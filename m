@@ -1,312 +1,795 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 19 Dec 2018 14:40:35 +0000
-Subject: [sparc64] soft lockup - CPU stuck , KGDB_TESTS_ON_BOOT
-Message-Id: <CADxRZqxP8A7+8QdB5Q2df4g_OeBbARB1UAg-acaEL=mGJWr_rw@mail.gmail.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Wed, 19 Dec 2018 14:44:25 +0000
+Subject: Re: [sparc64] soft lockup - CPU stuck , KGDB_TESTS_ON_BOOT
+Message-Id: <24f38250-b989-9893-066e-1e1f5e60d0d9@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
+References: <CADxRZqxP8A7+8QdB5Q2df4g_OeBbARB1UAg-acaEL=mGJWr_rw@mail.gmail.com>
+In-Reply-To: <CADxRZqxP8A7+8QdB5Q2df4g_OeBbARB1UAg-acaEL=mGJWr_rw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hello!
+> My current LDOM configuration allocated 3 cores (3x8 = 24 vcpus).
+> Tried as well with 2 vcpus and 1 vcpu. Any configuration, except 1
+> vcpu, does not boot, but single vcpu boots ok.
+> 
+> Enabled the following kernel config options:
+> 
+> CONFIG_KGDB_TESTS=y
+> CONFIG_KGDB_TESTS_ON_BOOT=y
+> CONFIG_KGDB_TESTS_BOOT_STRING="V1F100"
 
-Getting "soft lockup, cpu stuck" on the latest git kernel (including
-4.20.0-rc7) enabling kernel config option KGDB_TESTS_ON_BOOT.
+For test, I enabled these options on T1000 and T5120 (both bare hardware) and it hangs here too:
 
-My current LDOM configuration allocated 3 cores (3x8 =3D 24 vcpus).
-Tried as well with 2 vcpus and 1 vcpu. Any configuration, except 1
-vcpu, does not boot, but single vcpu boots ok.
+T1000:
 
-Enabled the following kernel config options:
+[    2.006110] f027a810: ttyS0 at I/O 0x0 (irq = 1, base_baud = 115200) is a SUN4V HCONS
+[    2.023466] printk: console [ttyHV0] enabled
+[    2.024730] f02877c8: ttyS1 at MMIO 0xf820c2c000 (irq = 20, base_baud = 115387) is a ST16650V2
+[    2.026139] KGDB: Registered I/O driver kgdbts
+[    2.026282] kgdbts:RUN plant and detach test
+[    2.028655] kgdbts:RUN sw breakpoint test
+[    2.057369] kgdbts:RUN bad memory access test
+[    2.057780] kgdbts:RUN singlestep test 1000 iterations
+[    2.112001] kgdbts:RUN singlestep [0/1000]
+[    5.385754] kgdbts:RUN singlestep [100/1000]
+[    8.735625] kgdbts:RUN singlestep [200/1000]
+[   11.943757] kgdbts:RUN singlestep [300/1000]
+[   15.176034] kgdbts:RUN singlestep [400/1000]
+[   18.568624] kgdbts:RUN singlestep [500/1000]
+[   22.024513] kgdbts:RUN singlestep [600/1000]
+[   25.459178] kgdbts:RUN singlestep [700/1000]
+[   28.873775] kgdbts:RUN singlestep [800/1000]
+[   32.491686] kgdbts:RUN singlestep [900/1000]
+[   35.943684] kgdbts:RUN do_fork for 100 breakpoints
 
-CONFIG_KGDB_TESTS=3Dy
-CONFIG_KGDB_TESTS_ON_BOOT=3Dy
-CONFIG_KGDB_TESTS_BOOT_STRING=3D"V1F100"
 
-compiled latest git kernel and tried to boot (2 vcpu LDOM config):
+T5120 (may have more debug options turned on but I did not check):
 
-[ 0.000017] PROMLIB: Sun IEEE Boot Prom 'OBP 4.38.12 2018/03/28 14:54'
-[ 0.000029] PROMLIB: Root node compatible: sun4v
-[ 0.000073] Linux version 4.20.0-rc6-00161-g6531e115b7ab (mator@ttip)
-(gcc version 8.2.0 (Debian 8.2.0-12)) #777 SMP Sun Dec 16 15:27:49 MSK
-2018
-[ 0.000383] printk: bootconsole [earlyprom0] enabled
-[ 0.000436] ARCH: SUN4V
-[ 0.000484] Ethernet address: 00:14:4f:fa:06:f2
-[ 0.000536] MM: PAGE_OFFSET is 0xfff8000000000000 (max_phys_bits =3D 47)
-[ 0.000601] MM: VMALLOC [0x0000000100000000 --> 0x0006000000000000]
-[ 0.000663] MM: VMEMMAP [0x0006000000000000 --> 0x000c000000000000]
-[ 0.013376] Kernel: Using 5 locked TLB entries for main kernel image.
-[ 0.013445] Remapping the kernel...
-[ 0.013469] done.
-[ 0.025723] OF stdout device is: /virtual-devices@100/console@1
-[ 0.025787] PROM: Built device tree with 44645 bytes of memory.
-[ 0.025847] MDESC: Size is 16208 bytes.
-[ 0.025930] PLATFORM: banner-name [SPARC T5-2]
-[ 0.025980] PLATFORM: name [ORCL,SPARC-T5-2]
-[ 0.026024] PLATFORM: hostid [84fa06f2]
-[ 0.026066] PLATFORM: serial# [0035260e]
-[ 0.026108] PLATFORM: stick-frequency [3b9aca00]
-[ 0.026156] PLATFORM: mac-address [144ffa06f2]
-[ 0.026204] PLATFORM: watchdog-resolution [1000 ms]
-[ 0.026254] PLATFORM: watchdog-max-timeout [31536000000 ms]
-[ 0.026310] PLATFORM: max-cpus [1024]
-[ 0.026391] Top of RAM: 0x24af948000, Total RAM: 0x87f3dc000
-[ 0.026451] Memory hole size: 115461MB
-[ 0.028905] Allocated 40960 bytes for kernel page tables.
-[ 0.028981] Zone ranges:
-[ 0.029020] Normal [mem 0x0000000030400000-0x00000024af947fff]
-[ 0.029083] Movable zone start for each node
-[ 0.029128] Early memory node ranges
-[ 0.029168] node 0: [mem 0x0000000030400000-0x000000006fefffff]
-[ 0.029228] node 0: [mem 0x000000006ff80000-0x000000006ff9ffff]
-[ 0.029289] node 0: [mem 0x0000000070000000-0x000000042fffffff]
-[ 0.029348] node 0: [mem 0x0000002030000000-0x00000024af8b3fff]
-[ 0.029409] node 0: [mem 0x00000024af940000-0x00000024af947fff]
-[ 0.036765] Zeroed struct page in unavailable ranges: 230070 pages
-[ 0.036773] Initmem setup node 0 [mem 0x0000000030400000-0x00000024af947fff]
-[ 0.234394] Booting Linux...
-[ 0.234479] CPU CAPS: [flush,stbar,swap,muldiv,v9,blkinit,n2,mul32]
-[ 0.234564] CPU CAPS: [div32,v8plus,popc,vis,vis2,ASIBlkInit,fmaf,vis3]
-[ 0.235642] CPU CAPS: [hpc,ima,pause,cbcond,aes,des,kasumi,camellia]
-[ 0.235716] CPU CAPS: [md5,sha1,sha256,sha512,mpmul,montmul,montsqr,crc32c]
-[ 0.272737] percpu: Embedded 20 pages/cpu @(____ptrval____) s122824
-r8192 d32824 u262144
-[ 0.273625] SUN4V: Mondo queue sizes [cpu(131072) dev(16384) r(8192) nr(256=
-)]
-[ 0.273779] Built 1 zonelists, mobility grouping on. Total pages: 4415739
-[ 0.273866] Kernel command line:
-BOOT_IMAGE=3D/vmlinuz-4.20.0-rc6-00161-g6531e115b7ab root=3D/dev/vdiska2
-ro zswap.enabled=3D1 elevator=DEadline
-[ 0.276230] printk: log_buf_len individual max cpu contribution: 4096 bytes
-[ 0.276299] printk: log_buf_len total cpu_extra contributions: 1044480 bytes
-[ 0.276367] printk: log_buf_len min size: 131072 bytes
-[ 0.276719] printk: log_buf_len: 2097152 bytes
-[ 0.276770] printk: early log buf free: 125920(96%)
-[ 0.283069] Dentry cache hash table entries: 8388608 (order: 13, 67108864 b=
-ytes)
-[ 0.286312] Inode-cache hash table entries: 4194304 (order: 12, 33554432 by=
-tes)
-[ 0.286395] Sorting __ex_table...
-[ 0.369324] Memory: 35110296K/35639152K available (6226K kernel code,
-837K rwdata, 1856K rodata, 888K init, 7995K bss, 528856K reserved, 0K
-cma-reserved)
-[ 0.369987] kmemleak: Kernel memory leak detector disabled
-[ 0.371411] ftrace: allocating 18971 entries in 38 pages
-[ 0.385010] Running RCU self tests
-[ 0.385055] rcu: Hierarchical RCU implementation.
-[ 0.385104] rcu: RCU event tracing is enabled.
-[ 0.385153] rcu: RCU lockdep checking is enabled.
-[ 0.385203] Tasks RCU enabled.
-[ 0.385241] rcu: RCU calculated value of scheduler-enlistment delay is
-11 jiffies.
-[ 0.390376] NR_IRQS: 2048, nr_irqs: 2048, preallocated irqs: 1
-[ 0.390458] SUN4V: Using IRQ API major 3, cookie only virqs enabled
-[ 0.394244] clocksource: stick: mask: 0xffffffffffffffff max_cycles:
-0x1cd42e4dffb, max_idle_ns: 881590591483 ns
-[ 0.394378] clocksource: mult[800000] shift[23]
-[ 0.394428] clockevent: mult[80000000] shift[31]
-[ 0.398798] Console: colour dummy device 80x25
-[ 0.398861] printk: console [tty0] enabled
-[ 0.398937] printk: bootconsole [earlyprom0] disabled
-[ 0.399019] Lock dependency validator: Copyright (c) 2006 Red Hat,
-Inc., Ingo Molnar
-[ 0.399064] ... MAX_LOCKDEP_SUBCLASSES: 8
-[ 0.399092] ... MAX_LOCK_DEPTH: 48
-[ 0.399121] ... MAX_LOCKDEP_KEYS: 8191
-[ 0.399150] ... CLASSHASH_SIZE: 4096
-[ 0.399179] ... MAX_LOCKDEP_ENTRIES: 16384
-[ 0.399208] ... MAX_LOCKDEP_CHAINS: 32768
-[ 0.399238] ... CHAINHASH_SIZE: 16384
-[ 0.399267] memory used by lock dependency info: 4959 kB
-[ 0.399301] per task-struct memory footprint: 1920 bytes
-[ 0.399531] kmemleak: Early log buffer exceeded (36190), please
-increase DEBUG_KMEMLEAK_EARLY_LOG_SIZE
-[ 0.544793] Calibrating delay using timer specific routine.. 2009.16
-BogoMIPS (lpj=10045830)
-[ 0.544860] pid_max: default: 262144 minimum: 2048
-[ 0.546003] LSM: Security Framework initializing
-[ 0.546044] AppArmor: AppArmor disabled by boot time parameter
-[ 0.546696] Mount-cache hash table entries: 131072 (order: 7, 1048576 bytes)
-[ 0.546853] Mountpoint-cache hash table entries: 131072 (order: 7,
-1048576 bytes)
-[ 0.551617] rcu: Hierarchical SRCU implementation.
-[ 0.574031] smp: Bringing up secondary CPUs ...
-[ 0.577098] smp: Brought up 1 node, 2 CPUs
-[ 0.579038] devtmpfs: initialized
-[ 0.582550] Performance events:
-[ 0.582574] Testing NMI watchdog ...
-[ 0.782660] OK.
-[ 0.782775] Supported PMU type is 'niagara5'
-[ 0.783121] random: get_random_u32 called from
-bucket_table_alloc.isra.4+0x140/0x1c0 with crng_init=3D0
-[ 0.783879] ldc.c:v1.1 (July 22, 2008)
-[ 0.786222] clocksource: jiffies: mask: 0xffffffff max_cycles:
-0xffffffff, max_idle_ns: 19112604462750000 ns
-[ 0.786347] futex hash table entries: 65536 (order: 10, 8388608 bytes)
-[ 0.796016] NET: Registered protocol family 16
-[ 0.801769] VIO: Adding device channel-devices (tx_ino ffffffffffffffff, rx=
-_ino =3D ffffffffffffffff)
-[ 0.801994] VIO: Adding device vnet-port-0-0 (tx_ino =3D 0, rx_ino =3D 1)
-[ 0.802227] VIO: Adding device vnet-port-0-1 (tx_ino =3D 2, rx_ino =3D 3)
-[ 0.802413] VIO: Adding device vnet-port-0-2 (tx_ino =3D 4, rx_ino =3D 5)
-[ 0.802597] VIO: Adding device vnet-port-0-3 (tx_ino =3D 6, rx_ino =3D 7)
-[ 0.802800] VIO: Adding device vdc-port-3-0 (tx_ino =3D 8, rx_ino =3D 9)
-[ 0.802990] VIO: Adding device vdc-port-2-0 (tx_ino =3D a, rx_ino =3D b)
-[ 0.803173] VIO: Adding device vdc-port-1-0 (tx_ino =3D c, rx_ino =3D d)
-[ 0.803361] VIO: Adding device vdc-port-0-0 (tx_ino =3D e, rx_ino =3D f)
-[ 0.803551] VIO: Adding device vlds-port-0-0 (tx_ino =3D 10, rx_ino =3D 11)
-[ 0.803753] VIO: Adding device domain-services-port-0 (tx_ino =3D 10, rx_in=
-o =3D 11)
-[ 0.804146] audit: initializing netlink subsys (disabled)
-[ 0.804510] audit: type 00 audit(0.210:1): state=3Dinitialized
-audit_enabled=3D0 res=3D1
-[ 0.846121] HugeTLB registered 64.0 KiB page size, pre-allocated 0 pages
-[ 0.846167] HugeTLB registered 8.00 MiB page size, pre-allocated 0 pages
-[ 0.846209] HugeTLB registered 256 MiB page size, pre-allocated 0 pages
-[ 0.846251] HugeTLB registered 2.00 GiB page size, pre-allocated 0 pages
-[ 0.857379] SUN4V: Reboot data supported (maj=3D1,min=3D0).
-[ 0.857789] ds.c:v1.0 (Jul 11, 2007)
-[ 0.858184] ds-0: ds_conn_reset() from send_events.isra.3
-[ 0.859741] clocksource: Switched to clocksource stick
-[ 1.037716] VFS: Disk quotas dquot_6.6.0
-[ 1.038213] VFS: Dquot-cache hash table entries: 1024 (order 0, 8192 bytes)
-[ 1.058375] NET: Registered protocol family 2
-[ 1.063061] tcp_listen_portaddr_hash hash table entries: 32768 (order:
-8, 2359296 bytes)
-[ 1.066376] TCP established hash table entries: 524288 (order: 9, 4194304 b=
-ytes)
-[ 1.068391] TCP bind hash table entries: 65536 (order: 9, 4194304 bytes)
-[ 1.074141] TCP: Hash tables configured (established 524288 bind 65536)
-[ 1.080678] UDP hash table entries: 32768 (order: 9, 5242880 bytes)
-[ 1.087909] UDP-Lite hash table entries: 32768 (order: 9, 5242880 bytes)
-[ 1.101881] NET: Registered protocol family 1
-[ 1.102607] Unpacking initramfs...
-[ 1.557478] Freeing initrd memory: 17104K
-[ 1.599309] Kprobe smoke test: started
-[ 1.608011] Kprobe smoke test: passed successfully
-[ 1.609165] workingset: timestamp_bitsF max_order# bucket_order=3D0
-[ 1.609516] zbud: loaded
-[ 1.762990] Block layer SCSI generic (bsg) driver version 0.4 loaded (major=
- 252)
-[ 1.764437] io scheduler noop registered
-[ 1.764469] io scheduler deadline registered (default)
-[ 1.765218] io scheduler cfq registered
-[ 1.765250] io scheduler mq-deadline registered (default)
-[ 1.765287] io scheduler kyber registered
-[ 1.769203] f029b788: ttyS0 at I/O 0x0 (irq =3D 1, base_baud =3D 115200)
-is a SUN4V HCONS
-[ 1.774739] printk: console [ttyHV0] enabled
-[ 1.776848] sunvdc.c:v1.2 (November 24, 2014)
-[ 1.779427] sunvdc: Virtual CDROM vdiskd
-[ 1.779478] sunvdc: vdiskd: 403160 sectors (196 MB) protocol 1.2
-[ 1.780747] vdiskd: vdiskd1 vdiskd2 vdiskd3 vdiskd4 vdiskd5 vdiskd6 vdiskd7
-[ 1.790947] sunvdc: Virtual Hard disk vdiskc
-[ 1.790984] sunvdc: vdiskc: 104857600 sectors (51200 MB) protocol 1.2
-[ 1.797597] sunvdc: Virtual Hard disk vdiskb
-[ 1.797634] sunvdc: vdiskb: 62914560 sectors (30720 MB) protocol 1.2
-[ 1.799128] vdiskb: vdiskb1
-[ 1.806169] sunvdc: Virtual Hard disk vdiska
-[ 1.806205] sunvdc: vdiska: 31457280 sectors (15360 MB) protocol 1.2
-[ 1.806905] vdiska: vdiska1 vdiska2 vdiska3 vdiska4
-[ 1.810071] KGDB: Registered I/O driver kgdbts
-[ 1.810244] kgdbts:RUN plant and detach test
+[    3.502477] KGDB: Registered I/O driver kgdbts
+[    3.502725] kgdbts:RUN plant and detach test
+[    3.568204] kgdbts:RUN sw breakpoint test
+[    3.839655] kgdbts:RUN bad memory access test
+[    3.983680] kgdbts:RUN singlestep test 1000 iterations
+[    4.434924] kgdbts:RUN singlestep [0/1000]
+[   42.730813] kgdbts:RUN singlestep [100/1000]
+[   84.608262] kgdbts:RUN singlestep [200/1000]
+[  128.651552] kgdbts:RUN singlestep [300/1000]
+[  165.781421] kgdbts:RUN singlestep [400/1000]
+[  203.620438] kgdbts:RUN singlestep [500/1000]
+[  241.926869] kgdbts:RUN singlestep [600/1000]
+[  280.629585] kgdbts:RUN singlestep [700/1000]
+[  319.128906] kgdbts:RUN singlestep [800/1000]
+[  357.525474] kgdbts:RUN singlestep [900/1000]
+[  391.493240] kgdbts:RUN do_fork for 100 breakpoints
+[  419.187943] watchdog: BUG: soft lockup - CPU#2 stuck for 22s! [swapper/2:0]
+[  419.187950] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [swapper/0:0]
+[  419.187957] watchdog: BUG: soft lockup - CPU#4 stuck for 22s! [swapper/4:0]
+[  419.187966] Modules linked in:
+[  419.187969] Modules linked in:
+[  419.187983] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.20.0-rc7 #260
+[  419.187992] TSTATE: 0000004480001601 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Not tainted
+[  419.188015] TPC: <__do_softirq+0x74/0x240>
+[  419.188024] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffc0c000 g3: 0000000000200102
+[  419.188033] g4: 0000000000afb880 g5: ffff8003fe494000 g6: 0000000000ae8000 g7: 0000000000430340
+[  419.188041] o0: 0000000000000000 o1: ffff8003ff007638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.188049] o4: 000000000000add8 o5: ffff8003ff007808 sp: ffff8003ffc0f671 ret_pc: 0000000000430350
+[  419.188074] RPC: <sparc64_next_event+0x10/0x40>
+[  419.188085] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.188095] l4: ffff8003fa841898 l5: 0000000000000040 l6: ffff8003ff06a4c0 l7: 0000000000000040
+[  419.188104] Modules linked in:
+[  419.188112] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.188121] CPU: 2 PID: 0 Comm: swapper/2 Not tainted 4.20.0-rc7 #260
+[  419.188131] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Not tainted
+[  419.188144] TPC: <__do_softirq+0x74/0x240>
+[  419.188152] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffbfc000 g3: 0000000000200042
+[  419.188161] g4: ffff8003f80e64c0 g5: ffff8003fe4d4000 g6: ffff8003f8138000 g7: 0000000000430340
+[  419.188169] o0: 0000000000000000 o1: ffff8003f813bd10 o2: ffff8003f813b8e8 o3: 0000000000000018
+[  419.188178] o4: 0000000000005e42 o5: ffff8003f80e64c0 sp: ffff8003ffbff671 ret_pc: 0000000000430350
+[  419.188193] RPC: <sparc64_next_event+0x10/0x40>
+[  419.188202] l0: 0000000000a60580 l1: 00000000ffffba01 l2: 0000000000aef800 l3: 0000000000965800
+[  419.188211] l4: 000000000000000e l5: 003b9aca00000000 l6: 0000000000b9c0b0 l7: ffff8003ec296c80
+[  419.188219] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.188227] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffbff741 i7: 000000000042c58c
+[  419.188249] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.188257] CPU: 4 PID: 0 Comm: swapper/4 Not tainted 4.20.0-rc7 #260
+[  419.188267] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Not tainted
+[  419.188280] TPC: <__do_softirq+0x74/0x240>
+[  419.188290] g0: 00000000f02713a8 g1: 0000000000000100 g2: ffff8003ffbec000 g3: 0000000000200042
+[  419.188299] g4: ffff8003f80e7440 g5: ffff8003fe514000 g6: ffff8003f8140000 g7: 0000000000430340
+[  419.188307] o0: 0000000000000000 o1: ffff8003ff087638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.188316] o4: 00000000000011ac o5: ffff8003ff087808 sp: ffff8003ffbef671 ret_pc: 0000000000430350
+[  419.188331] RPC: <sparc64_next_event+0x10/0x40>
+[  419.188340] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.188349] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.188357] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.188371] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbef741 i7: 000000000042c58c
+[  419.188378] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffc0f741 i7: 000000000042c58c
+[  419.188391] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.188395] Call Trace:
+[  419.188409]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.188422]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.188437]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.188445] Call Trace:
+[  419.188455]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.188469]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.188492]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.188507]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.188525]  [0000000000b3aa08] start_kernel+0x3f0/0x400
+[  419.188544] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.188673]  [000000000095a240] tlb_fixup_done+0x4c/0x6c
+[  419.188695]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.188700]  [0000000000000000]           (null)
+[  419.188877] Call Trace:
+[  419.188960]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.189072]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.189143]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.189212]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.189284]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.189328]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.189402]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.189469]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.189513]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.189584]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.189647]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.189732]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.189777]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.189846]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.189908]  [0000000000000000]           (null)
+[  419.189989]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.192669]  [0000000000000000]           (null)
+[  419.197945] watchdog: BUG: soft lockup - CPU#9 stuck for 22s! [swapper/9:0]
+[  419.197951] watchdog: BUG: soft lockup - CPU#11 stuck for 22s! [swapper/11:0]
+[  419.197959] watchdog: BUG: soft lockup - CPU#5 stuck for 22s! [swapper/5:0]
+[  419.197965] watchdog: BUG: soft lockup - CPU#7 stuck for 22s! [swapper/7:0]
+[  419.197974] watchdog: BUG: soft lockup - CPU#16 stuck for 22s! [swapper/16:0]
+[  419.197980] watchdog: BUG: soft lockup - CPU#8 stuck for 22s! [swapper/8:0]
+[  419.197985] watchdog: BUG: soft lockup - CPU#10 stuck for 22s! [swapper/10:0]
+[  419.197991] watchdog: BUG: soft lockup - CPU#12 stuck for 22s! [swapper/12:0]
+[  419.197996] watchdog: BUG: soft lockup - CPU#15 stuck for 22s! [swapper/15:0]
+[  419.198002] watchdog: BUG: soft lockup - CPU#13 stuck for 22s! [swapper/13:0]
+[  419.198008] watchdog: BUG: soft lockup - CPU#14 stuck for 22s! [swapper/14:0]
+[  419.198014] watchdog: BUG: soft lockup - CPU#6 stuck for 22s! [swapper/6:0]
+[  419.198022] Modules linked in:
+[  419.198025] Modules linked in:
+[  419.198027] Modules linked in:
+[  419.198029] Modules linked in:
+[  419.198032] Modules linked in:
+[  419.198033] Modules linked in:
+[  419.198035] Modules linked in:
+[  419.198037] Modules linked in:
+[  419.198039] Modules linked in:
+[  419.198041] Modules linked in:
+[  419.198043] Modules linked in:
+[  419.198059] CPU: 7 PID: 0 Comm: swapper/7 Tainted: G             L    4.20.0-rc7 #260
+[  419.198069] CPU: 11 PID: 0 Comm: swapper/11 Tainted: G             L    4.20.0-rc7 #260
+[  419.198078] CPU: 16 PID: 0 Comm: swapper/16 Tainted: G             L    4.20.0-rc7 #260
+[  419.198086] CPU: 8 PID: 0 Comm: swapper/8 Tainted: G             L    4.20.0-rc7 #260
+[  419.198093] CPU: 10 PID: 0 Comm: swapper/10 Tainted: G             L    4.20.0-rc7 #260
+[  419.198101] CPU: 12 PID: 0 Comm: swapper/12 Tainted: G             L    4.20.0-rc7 #260
+[  419.198108] CPU: 15 PID: 0 Comm: swapper/15 Tainted: G             L    4.20.0-rc7 #260
+[  419.198116] CPU: 13 PID: 0 Comm: swapper/13 Tainted: G             L    4.20.0-rc7 #260
+[  419.198124] CPU: 14 PID: 0 Comm: swapper/14 Tainted: G             L    4.20.0-rc7 #260
+[  419.198132] CPU: 6 PID: 0 Comm: swapper/6 Tainted: G             L    4.20.0-rc7 #260
+[  419.198140] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198147] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198155] Modules linked in:
+[  419.198164] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198171] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198178] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198185] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198192] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198199] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198206] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198215] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198227] TPC: <__do_softirq+0x74/0x240>
+[  419.198238] TPC: <__do_softirq+0x74/0x240>
+[  419.198247] TPC: <__do_softirq+0x74/0x240>
+[  419.198256] TPC: <__do_softirq+0x74/0x240>
+[  419.198264] TPC: <__do_softirq+0x74/0x240>
+[  419.198272] TPC: <__do_softirq+0x74/0x240>
+[  419.198281] TPC: <__do_softirq+0x74/0x240>
+[  419.198289] TPC: <__do_softirq+0x74/0x240>
+[  419.198307] TPC: <__do_softirq+0x74/0x240>
+[  419.198314] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffbd4000 g3: 0000000000200042
+[  419.198321] CPU: 9 PID: 0 Comm: swapper/9 Tainted: G             L    4.20.0-rc7 #260
+[  419.198327] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffbb4000 g3: 0000000000200042
+[  419.198333] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffbcc000 g3: 0000000000200042
+[  419.198339] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffbbc000 g3: 0000000000200042
+[  419.198346] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffbac000 g3: 0000000000200042
+[  419.198352] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb94000 g3: 0000000000200042
+[  419.198358] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffba4000 g3: 0000000000200042
+[  419.198364] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb9c000 g3: 0000000000200042
+[  419.198372] CPU: 5 PID: 0 Comm: swapper/5 Tainted: G             L    4.20.0-rc7 #260
+[  419.198379] g4: ffff8003f80e8b80 g5: ffff8003fe574000 g6: ffff8003f814c000 g7: 0000000000430340
+[  419.198386] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.198393] g4: ffff8003f80eaa80 g5: ffff8003fe5f4000 g6: ffff8003f815c000 g7: 0000000000430340
+[  419.198399] g4: ffff8003f80e9340 g5: ffff8003fe594000 g6: ffff8003f8150000 g7: 0000000000430340
+[  419.198406] g4: ffff8003f80ea2c0 g5: ffff8003fe5d4000 g6: ffff8003f8158000 g7: 0000000000430340
+[  419.198412] g4: ffff8003f80eb240 g5: ffff8003fe614000 g6: ffff8003f8160000 g7: 0000000000430340
+[  419.198431] TPC: <__do_softirq+0x74/0x240>
+[  419.198437] g4: ffff8003f80ec980 g5: ffff8003fe674000 g6: ffff8003f816c000 g7: 0000000000430340
+[  419.198444] g4: ffff8003f80eba00 g5: ffff8003fe634000 g6: ffff8003f8164000 g7: 0000000000430340
+[  419.198450] g4: ffff8003f80ec1c0 g5: ffff8003fe654000 g6: ffff8003f8168000 g7: 0000000000430340
+[  419.198458] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.198464] o0: 0000000000000000 o1: ffff8003ff0e7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198473] TPC: <__do_softirq+0x74/0x240>
+[  419.198479] o0: 0000000000000000 o1: ffff8003ff167638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198485] o0: 0000000000000000 o1: ffff8003ff107638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198491] o0: 0000000000000000 o1: ffff8003ff147638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198497] o0: 0000000000000000 o1: ffff8003ff187638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198503] o0: 0000000000000000 o1: ffff8003ff1e7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198509] o0: 0000000000000000 o1: ffff8003ff1a7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198515] o0: 0000000000000000 o1: ffff8003ff1c7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198525] TPC: <__do_softirq+0x74/0x240>
+[  419.198532] o4: 0000000000001062 o5: ffff8003ff0e7808 sp: ffff8003ffbd7671 ret_pc: 0000000000430350
+[  419.198538] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffbc4000 g3: 0000000000200042
+[  419.198544] o4: 0000000000000f87 o5: ffff8003ff167808 sp: ffff8003ffbb7671 ret_pc: 0000000000430350
+[  419.198551] o4: 000000000000121a o5: ffff8003ff107808 sp: ffff8003ffbcf671 ret_pc: 0000000000430350
+[  419.198557] o4: 0000000000001664 o5: ffff8003ff147808 sp: ffff8003ffbbf671 ret_pc: 0000000000430350
+[  419.198563] o4: 0000000000000ff4 o5: ffff8003ff187808 sp: ffff8003ffbaf671 ret_pc: 0000000000430350
+[  419.198570] o4: 000000000001161a o5: ffff8003ff1e7808 sp: ffff8003ffb97671 ret_pc: 0000000000430350
+[  419.198576] o4: 0000000000002869 o5: ffff8003ff1a7808 sp: ffff8003ffba7671 ret_pc: 0000000000430350
+[  419.198582] o4: 0000000000000f87 o5: ffff8003ff1c7808 sp: ffff8003ffb9f671 ret_pc: 0000000000430350
+[  419.198589] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffbe4000 g3: 0000000000200042
+[  419.198604] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198610] g4: ffff8003f80e9b00 g5: ffff8003fe5b4000 g6: ffff8003f8154000 g7: 0000000000430340
+[  419.198623] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198633] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198642] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198652] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198662] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198675] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffbdc000 g3: 0000000000200042
+[  419.198684] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198694] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198701] g4: ffff8003f80e7c00 g5: ffff8003fe534000 g6: ffff8003f8144000 g7: 0000000000430340
+[  419.198708] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198714] o0: 0000000000000000 o1: ffff8003ff127638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198720] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198726] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198732] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198738] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198744] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198750] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198756] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198762] o0: 0000000000000000 o1: ffff8003ff0a7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.198768] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  419.198774] o4: 000000000000a844 o5: ffff8003ff127808 sp: ffff8003ffbc7671 ret_pc: 0000000000430350
+[  419.198780] l4: 0000000000000007 l5: 0000000000200042 l6: 0000000000aee138 l7: 0000000000000100
+[  419.198786] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198792] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198798] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198803] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  419.198809] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198815] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198822] o4: 000000000001f5a2 o5: ffff8003ff0a7808 sp: ffff8003ffbe7671 ret_pc: 0000000000430350
+[  419.198828] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198838] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198844] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198850] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198856] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198861] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198867] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198873] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198879] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.198891] RPC: <sparc64_next_event+0x10/0x40>
+[  419.198898] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffbd7741 i7: 000000000042c58c
+[  419.198905] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198911] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbb7741 i7: 000000000042c58c
+[  419.198917] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbcf741 i7: 000000000042c58c
+[  419.198923] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbbf741 i7: 000000000042c58c
+[  419.198929] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbaf741 i7: 000000000042c58c
+[  419.198935] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb97741 i7: 000000000042c58c
+[  419.198941] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffba7741 i7: 000000000042c58c
+[  419.198947] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb9f741 i7: 000000000042c58c
+[  419.198954] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.198964] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.198971] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.198980] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.198988] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.198996] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199005] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199013] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199022] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199036] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb8c000 g3: 0000000000200042
+[  419.199044] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199051] l4: 0000000000000007 l5: 0000000000200042 l6: 0000000000aee138 l7: 0000000000000100
+[  419.199052] Call Trace:
+[  419.199058] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.199060] Call Trace:
+[  419.199061] Call Trace:
+[  419.199063] Call Trace:
+[  419.199064] Call Trace:
+[  419.199066] Call Trace:
+[  419.199067] Call Trace:
+[  419.199069] Call Trace:
+[  419.199076] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.199090]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199096] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffbc7741 i7: 000000000042c58c
+[  419.199105]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199115]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199124]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199134]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199143]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199152]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199162]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199169] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbe7741 i7: 000000000042c58c
+[  419.199183] g4: ffff8003f80e83c0 g5: ffff8003fe554000 g6: ffff8003f8148000 g7: 0000000000430340
+[  419.199191]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199199] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199207]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199214]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199221]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199228]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199235]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199242]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199249]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199259] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.199271]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199273] Call Trace:
+[  419.199282]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199291]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199299]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199314]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199322] g4: ffff8003f80ed140 g5: ffff8003fe694000 g6: ffff8003f8180000 g7: 0000000000430340
+[  419.199330]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199339]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199347]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199349] Call Trace:
+[  419.199359]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199370]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199378]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199385]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199392]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199399] o0: 0000000000000000 o1: ffff8003ff207638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.199406]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199413]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199420]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199433]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.199446] o0: 0000000000000000 o1: ffff8003ff0c7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.199456]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199464]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199475]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199485]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199495]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199503] o4: 00000000000010d0 o5: ffff8003ff207808 sp: ffff8003ffb8f671 ret_pc: 0000000000430350
+[  419.199512]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199521]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199530]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199538]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.199553]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199563]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199576]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199586]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199600]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199610]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199625] RPC: <sparc64_next_event+0x10/0x40>
+[  419.199635]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199645]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199655]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199668]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.199683]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.199690]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199701]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.199712]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.199722]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.199730] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.199740]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.199752] o4: 0000000000002869 o5: ffff8003ff0c7808 sp: ffff8003ffbdf671 ret_pc: 0000000000430350
+[  419.199763]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.199773]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.199782]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.199794]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199806]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199817]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199826]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199835]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199843] l4: ffff8003ff1ea4c0 l5: 0000000000000040 l6: 0000000000000040 l7: ffff8003f99e3a98
+[  419.199851]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199860]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199869]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.199882]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199886]  [0000000000000000]           (null)
+[  419.199902]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.199915]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199919]  [0000000000000000]           (null)
+[  419.199922]  [0000000000000000]           (null)
+[  419.199926]  [0000000000000000]           (null)
+[  419.199933] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.199938]  [0000000000000000]           (null)
+[  419.199941]  [0000000000000000]           (null)
+[  419.199946]  [0000000000000000]           (null)
+[  419.199961]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.199977]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.199984] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb8f741 i7: 000000000042c58c
+[  419.199998]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.200011]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.200022] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.200035]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.200040]  [0000000000000000]           (null)
+[  419.200060] RPC: <sparc64_next_event+0x10/0x40>
+[  419.200062] Call Trace:
+[  419.200066]  [0000000000000000]           (null)
+[  419.200078]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.200089]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.200102]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.200112]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.200125]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.200141]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.200156]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.200170]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.200176]  [0000000000000000]           (null)
+[  419.200290]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.200385] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.200432]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.200462] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  419.200507]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.200539] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.200576]  [0000000000000000]           (null)
+[  419.200617] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffbdf741 i7: 000000000042c58c
+[  419.207949] watchdog: BUG: soft lockup - CPU#28 stuck for 22s! [swapper/28:0]
+[  419.207956] watchdog: BUG: soft lockup - CPU#27 stuck for 22s! [swapper/27:0]
+[  419.207963] watchdog: BUG: soft lockup - CPU#26 stuck for 22s! [swapper/26:0]
+[  419.207970] watchdog: BUG: soft lockup - CPU#24 stuck for 22s! [swapper/24:0]
+[  419.207978] watchdog: BUG: soft lockup - CPU#20 stuck for 22s! [swapper/20:0]
+[  419.207984] watchdog: BUG: soft lockup - CPU#18 stuck for 22s! [swapper/18:0]
+[  419.207989] watchdog: BUG: soft lockup - CPU#17 stuck for 22s! [swapper/17:0]
+[  419.207995] watchdog: BUG: soft lockup - CPU#22 stuck for 22s! [swapper/22:0]
+[  419.208001] watchdog: BUG: soft lockup - CPU#23 stuck for 22s! [swapper/23:0]
+[  419.208006] watchdog: BUG: soft lockup - CPU#21 stuck for 22s! [swapper/21:0]
+[  419.208012] watchdog: BUG: soft lockup - CPU#19 stuck for 22s! [swapper/19:0]
+[  419.208020] Modules linked in:
+[  419.208022] Modules linked in:
+[  419.208024] Modules linked in:
+[  419.208026] Modules linked in:
+[  419.208028] Modules linked in:
+[  419.208030] Modules linked in:
+[  419.208032] Modules linked in:
+[  419.208034] Modules linked in:
+[  419.208036] Modules linked in:
+[  419.208038] Modules linked in:
+[  419.208040] Modules linked in:
+[  419.208056] CPU: 26 PID: 0 Comm: swapper/26 Tainted: G             L    4.20.0-rc7 #260
+[  419.208063] CPU: 24 PID: 0 Comm: swapper/24 Tainted: G             L    4.20.0-rc7 #260
+[  419.208072] CPU: 28 PID: 0 Comm: swapper/28 Tainted: G             L    4.20.0-rc7 #260
+[  419.208080] CPU: 20 PID: 0 Comm: swapper/20 Tainted: G             L    4.20.0-rc7 #260
+[  419.208088] CPU: 18 PID: 0 Comm: swapper/18 Tainted: G             L    4.20.0-rc7 #260
+[  419.208096] CPU: 17 PID: 0 Comm: swapper/17 Tainted: G             L    4.20.0-rc7 #260
+[  419.208104] CPU: 22 PID: 0 Comm: swapper/22 Tainted: G             L    4.20.0-rc7 #260
+[  419.208112] CPU: 23 PID: 0 Comm: swapper/23 Tainted: G             L    4.20.0-rc7 #260
+[  419.208119] CPU: 21 PID: 0 Comm: swapper/21 Tainted: G             L    4.20.0-rc7 #260
+[  419.208128] CPU: 19 PID: 0 Comm: swapper/19 Tainted: G             L    4.20.0-rc7 #260
+[  419.208149] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.208156] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208163] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208171] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.208178] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208186] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.208193] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208200] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208206] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208214] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208221] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.208232] TPC: <__do_softirq+0x74/0x240>
+[  419.208240] TPC: <__do_softirq+0x74/0x240>
+[  419.208250] TPC: <__do_softirq+0x74/0x240>
+[  419.208262] TPC: <__do_softirq+0x74/0x240>
+[  419.208271] TPC: <__do_softirq+0x74/0x240>
+[  419.208279] TPC: <__do_softirq+0x74/0x240>
+[  419.208288] TPC: <__do_softirq+0x74/0x240>
+[  419.208296] TPC: <__do_softirq+0x74/0x240>
+[  419.208305] TPC: <__do_softirq+0x74/0x240>
+[  419.208313] TPC: <__do_softirq+0x74/0x240>
+[  419.208319] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb3c000 g3: 0000000000200042
+[  419.208325] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb4c000 g3: 0000000000200042
+[  419.208332] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffb2c000 g3: 0000000000200042
+[  419.208338] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb6c000 g3: 0000000000200042
+[  419.208344] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb7c000 g3: 0000000000200042
+[  419.208351] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffb84000 g3: 0000000000200042
+[  419.208357] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffb5c000 g3: 0000000000200042
+[  419.208363] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb54000 g3: 0000000000200042
+[  419.208369] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb64000 g3: 0000000000200042
+[  419.208375] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb74000 g3: 0000000000200042
+[  419.208381] g4: ffff8003f81a1f00 g5: ffff8003fe7d4000 g6: ffff8003f81c0000 g7: 0000000000430340
+[  419.208388] g4: ffff8003f81a0f80 g5: ffff8003fe794000 g6: ffff8003f81b8000 g7: 0000000000430340
+[  419.208396] g4: ffff8003f81a2e80 g5: ffff8003fe814000 g6: ffff8003f81c8000 g7: 0000000000430340
+[  419.208402] g4: ffff8003f80ef040 g5: ffff8003fe714000 g6: ffff8003f8190000 g7: 0000000000430340
+[  419.208409] g4: ffff8003f80ee0c0 g5: ffff8003fe6d4000 g6: ffff8003f8188000 g7: 0000000000430340
+[  419.208416] g4: ffff8003f80ed900 g5: ffff8003fe6b4000 g6: ffff8003f8184000 g7: 0000000000430340
+[  419.208423] g4: ffff8003f81a0000 g5: ffff8003fe754000 g6: ffff8003f8198000 g7: 0000000000430340
+[  419.208429] g4: ffff8003f81a07c0 g5: ffff8003fe774000 g6: ffff8003f819c000 g7: 0000000000430340
+[  419.208436] g4: ffff8003f80ef800 g5: ffff8003fe734000 g6: ffff8003f8194000 g7: 0000000000430340
+[  419.208443] g4: ffff8003f80ee880 g5: ffff8003fe6f4000 g6: ffff8003f818c000 g7: 0000000000430340
+[  419.208449] o0: 0000000000000000 o1: ffff8003ff347638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208455] o0: 0000000000000000 o1: ffff8003ff307638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208462] o0: 0000000000000000 o1: ffff8003ff387638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208469] o0: 0000000000000000 o1: ffff8003ff287638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208475] o0: 0000000000000000 o1: ffff8003ff247638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208481] o0: 0000000000000000 o1: ffff8003ff227638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208495] o0: 0000000000000000 o1: ffff8003ff2c7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208501] o0: 0000000000000000 o1: ffff8003ff2e7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208507] o0: 0000000000000000 o1: ffff8003ff2a7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208513] o0: 0000000000000000 o1: ffff8003ff267638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208520] o4: 000000000000143f o5: ffff8003ff347808 sp: ffff8003ffb3f671 ret_pc: 0000000000430350
+[  419.208526] o4: 000000000000143f o5: ffff8003ff307808 sp: ffff8003ffb4f671 ret_pc: 0000000000430350
+[  419.208533] o4: 000000000016d119 o5: ffff8003ff387808 sp: ffff8003ffb2f671 ret_pc: 0000000000430350
+[  419.208540] o4: 000000000000151a o5: ffff8003ff287808 sp: ffff8003ffb6f671 ret_pc: 0000000000430350
+[  419.208547] o4: 000000000000151a o5: ffff8003ff247808 sp: ffff8003ffb7f671 ret_pc: 0000000000430350
+[  419.208553] o4: 00000000000017ad o5: ffff8003ff227808 sp: ffff8003ffb87671 ret_pc: 0000000000430350
+[  419.208561] CPU: 27 PID: 0 Comm: swapper/27 Tainted: G             L    4.20.0-rc7 #260
+[  419.208567] o4: 000000000004e62e o5: ffff8003ff2e7808 sp: ffff8003ffb57671 ret_pc: 0000000000430350
+[  419.208574] o4: 00000000000010d0 o5: ffff8003ff2a7808 sp: ffff8003ffb67671 ret_pc: 0000000000430350
+[  419.208581] o4: 00000000000010d0 o5: ffff8003ff267808 sp: ffff8003ffb77671 ret_pc: 0000000000430350
+[  419.208594] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208605] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208617] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208630] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208641] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208651] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208659] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.208668] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208686] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208689] Call Trace:
+[  419.208699] RPC: <sparc64_next_event+0x10/0x40>
+[  419.208705] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208711] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208718] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208725] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208732] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208738] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208748] TPC: <__do_softirq+0x74/0x240>
+[  419.208755] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208769]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.208776] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.208781] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.208787] l4: 0000000000b6ce78 l5: 0000000000000000 l6: 0000000000b09800 l7: ffff8003ff18a4c0
+[  419.208794] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.208800] l4: 0000000000000007 l5: 0000000000200042 l6: 0000000000aee138 l7: 0000000000000100
+[  419.208806] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  419.208819] o4: 00000000000010d0 o5: ffff8003ff2c7808 sp: ffff8003ffb5f671 ret_pc: 0000000000430350
+[  419.208825] l4: ffff8003ff1ea4c0 l5: 0000000000000040 l6: 0000000000000040 l7: ffff8003f985fa98
+[  419.208831] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb34000 g3: 0000000000200042
+[  419.208837] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.208846]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.208852] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.208857] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208863] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208870] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208876] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208882] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208888] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208894] g4: ffff8003f81a26c0 g5: ffff8003fe7f4000 g6: ffff8003f81c4000 g7: 0000000000430340
+[  419.208900] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208912]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.208918] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.208924] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb3f741 i7: 000000000042c58c
+[  419.208930] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb4f741 i7: 000000000042c58c
+[  419.208937] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb2f741 i7: 000000000042c58c
+[  419.208943] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb6f741 i7: 000000000042c58c
+[  419.208950] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb7f741 i7: 000000000042c58c
+[  419.208956] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb87741 i7: 000000000042c58c
+[  419.208962] o0: 0000000000000000 o1: ffff8003ff367638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.208968] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb57741 i7: 000000000042c58c
+[  419.208977]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.208983] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb77741 i7: 000000000042c58c
+[  419.208993] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209002] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209013] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209023] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209032] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209042] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209048] o4: 00000000000087a8 o5: ffff8003ff367808 sp: ffff8003ffb37671 ret_pc: 0000000000430350
+[  419.209056] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209068]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209078] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209080] Call Trace:
+[  419.209081] Call Trace:
+[  419.209083] Call Trace:
+[  419.209085] Call Trace:
+[  419.209086] Call Trace:
+[  419.209088] Call Trace:
+[  419.209098] RPC: <sparc64_next_event+0x10/0x40>
+[  419.209100] Call Trace:
+[  419.209115]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209117] Call Trace:
+[  419.209127]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209137]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209149]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209160]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209170]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209181]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209194] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.209200] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.209210]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209224]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.209234]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209242]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209249]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209258]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209266]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209274]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209282]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209288] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.209295]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209307]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209315]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209325]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209344] RPC: <sparc64_next_event+0x10/0x40>
+[  419.209353]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209363]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209374]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209383]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209392]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209398] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.209406]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209410]  [0000000000000000]           (null)
+[  419.209419]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209426]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209434]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209442]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209450]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209457]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209465]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209471] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb37741 i7: 000000000042c58c
+[  419.209478]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209485]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209496]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209506]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209517]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209528]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209537]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209547]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209556] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.209565]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209575]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209588]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209598]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209610]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209625]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209636]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209647]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209648] Call Trace:
+[  419.209658]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209669]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209680]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.209690]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.209704]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.209717] l4: 0000000000b088c8 l5: ffff8003ec593a60 l6: 0000000000aee138 l7: ffff8003ec593640
+[  419.209728]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.209740]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.209752]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.209763]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.209777]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  419.209789]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.209800]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209809]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209821]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209832]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209842]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209851]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209859]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.209872] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.209882]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209891]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.209895]  [0000000000000000]           (null)
+[  419.209898]  [0000000000000000]           (null)
+[  419.209903]  [0000000000000000]           (null)
+[  419.209906]  [0000000000000000]           (null)
+[  419.209910]  [0000000000000000]           (null)
+[  419.209914]  [0000000000000000]           (null)
+[  419.209926]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.209931]  [0000000000000000]           (null)
+[  419.209935]  [0000000000000000]           (null)
+[  419.209943]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.209957]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.209973]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.209986]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.209999]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.210005]  [0000000000000000]           (null)
+[  419.210228] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.210298] l4: 0000000000000007 l5: 0000000000200042 l6: 0000000000aee138 l7: 0000000000000100
+[  419.210365] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb67741 i7: 000000000042c58c
+[  419.210405] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.210702] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.210821] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb5f741 i7: 000000000042c58c
+[  419.210854] Call Trace:
+[  419.210903] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.210943]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.210972] Call Trace:
+[  419.211048]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.211091]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.211130]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.211197]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.211267]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.211339]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.211410]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.211476]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.211551]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.211620]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.211692]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.212020]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.212089]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.212162]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.212222]  [0000000000000000]           (null)
+[  419.212523]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.217952] watchdog: BUG: soft lockup - CPU#29 stuck for 22s! [swapper/29:0]
+[  419.217959] watchdog: BUG: soft lockup - CPU#31 stuck for 22s! [swapper/31:0]
+[  419.217965] watchdog: BUG: soft lockup - CPU#30 stuck for 22s! [swapper/30:0]
+[  419.217967] Modules linked in:
+[  419.217969] Modules linked in:
+[  419.217982] CPU: 30 PID: 0 Comm: swapper/30 Tainted: G             L    4.20.0-rc7 #260
+[  419.217991] CPU: 31 PID: 0 Comm: swapper/31 Tainted: G             L    4.20.0-rc7 #260
+[  419.217999] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000000    Tainted: G             L
+[  419.218006] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  419.218018] TPC: <__do_softirq+0x74/0x240>
+[  419.218028] TPC: <__do_softirq+0x74/0x240>
+[  419.218035] g0: 0000000000aef800 g1: 0000000000000100 g2: ffff8003ffb1c000 g3: 0000000000200042
+[  419.218041] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb14000 g3: 0000000000200042
+[  419.218048] g4: ffff8003f81a3e00 g5: ffff8003fe854000 g6: ffff8003f81d0000 g7: 0000000000430340
+[  419.218055] g4: ffff8003f81a45c0 g5: ffff8003fe874000 g6: ffff8003f81d4000 g7: 0000000000430340
+[  419.218062] o0: 0000000000000000 o1: ffff8003ff3c7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.218069] o0: 0000000000000000 o1: ffff8003ff3e7638 o2: 0000000000989680 o3: 0000000024f47300
+[  419.218076] o4: 000000000000143f o5: ffff8003ff3c7808 sp: ffff8003ffb1f671 ret_pc: 0000000000430350
+[  419.218083] o4: 000000000000143f o5: ffff8003ff3e7808 sp: ffff8003ffb17671 ret_pc: 0000000000430350
+[  419.218097] RPC: <sparc64_next_event+0x10/0x40>
+[  419.218108] RPC: <sparc64_next_event+0x10/0x40>
+[  419.218115] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.218121] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  419.218128] l4: 0000000000000009 l5: 0000000000200042 l6: 0000000000aee148 l7: 0000000000000100
+[  419.218133] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  419.218140] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.218146] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  419.218153] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb1f741 i7: 000000000042c58c
+[  419.218159] i4: 0000000000aee100 i5: 0000000000000082 i6: ffff8003ffb17741 i7: 000000000042c58c
+[  419.218169] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.218179] I7: <do_softirq_own_stack+0x2c/0x40>
+[  419.218181] Call Trace:
+[  419.218183] Call Trace:
+[  419.218194]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.218205]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  419.218213]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.218221]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  419.218231]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.218241]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  419.218249]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.218256]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  419.218267]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.218278]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  419.218292]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.218303]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  419.218315]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.218327]  [000000000048cbbc] cpu_startup_entry+0x1c/0x40
+[  419.218339]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.218349]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  419.218353]  [0000000000000000]           (null)
+[  419.218357]  [0000000000000000]           (null)
+[  419.219815]  [0000000000000000]           (null)
+[  419.219856] Modules linked in:
+[  421.633500] CPU: 29 PID: 0 Comm: swapper/29 Tainted: G             L    4.20.0-rc7 #260
+[  421.643041] TSTATE: 0000004480001600 TPC: 0000000000960e54 TNPC: 0000000000960e58 Y: 00000008    Tainted: G             L
+[  421.679044] TPC: <__do_softirq+0x74/0x240>
+[  421.686069] g0: 0000000000000000 g1: 0000000000000100 g2: ffff8003ffb24000 g3: 0000000000200042
+[  421.696093] g4: ffff8003f81a3640 g5: ffff8003fe834000 g6: ffff8003f81cc000 g7: 0000000000430340
+[  421.698937] o0: 0000000000000000 o1: ffff8003ff3a7638 o2: 0000000000989680 o3: 0000000024f47300
+[  421.701755] o4: 0000000000093f1f o5: ffff8003ff3a7808 sp: ffff8003ffb27671 ret_pc: 0000000000430350
+[  421.708795] RPC: <sparc64_next_event+0x10/0x40>
+[  421.710375] l0: 0000000000a60580 l1: 00000000ffff8b0f l2: 0000000000aef800 l3: 0000000000965800
+[  421.712892] l4: 0000000000000000 l5: 0000000000000000 l6: 0000000000000000 l7: 0000000000000100
+[  421.728480] i0: 0000000000b6ce68 i1: 000000000000000a i2: 0000000000b6c180 i3: 0000000000b6cee0
+[  421.731342] i4: 0000000000aee100 i5: 0000000000000282 i6: ffff8003ffb27741 i7: 000000000042c58c
+[  421.743342] I7: <do_softirq_own_stack+0x2c/0x40>
+[  421.750062] Call Trace:
+[  421.757770]  [000000000042c58c] do_softirq_own_stack+0x2c/0x40
+[  421.770986]  [00000000004684f8] irq_exit+0xb8/0xe0
+[  421.783123]  [0000000000960c04] timer_interrupt+0x84/0xc0
+[  421.801773]  [00000000004209d4] tl0_irq14+0x14/0x20
+[  421.811915]  [000000000042ccfc] arch_cpu_idle+0x7c/0xa0
+[  421.827388]  [000000000048c8c0] do_idle+0xe0/0x1c0
+[  421.833234]  [000000000048cbb4] cpu_startup_entry+0x14/0x40
+[  421.848257]  [0000000000b022b4] after_lock_tlb+0x1a8/0x1bc
+[  421.861669]  [0000000000000000]           (null)
 
-Entering kdb (current=3D0xfff80024a0b84020, pid 1) on processor 0 due to
-Keyboard Entry
-[0]kdb> [ 1.811420] kgdbts:RUN sw breakpoint test
-[ 1.813562] kgdbts:RUN bad memory access test
-[ 1.814630] kgdbts:RUN singlestep test 1000 iterations
-[ 1.817893] kgdbts:RUN singlestep [0/1000]
-[ 2.180093] kgdbts:RUN singlestep [100/1000]
-[ 2.492556] kgdbts:RUN singlestep [200/1000]
-[ 2.826972] kgdbts:RUN singlestep [300/1000]
-[ 3.200197] kgdbts:RUN singlestep [400/1000]
-[ 3.475914] kgdbts:RUN singlestep [500/1000]
-[ 3.851106] kgdbts:RUN singlestep [600/1000]
-[ 4.233180] kgdbts:RUN singlestep [700/1000]
-[ 4.609281] kgdbts:RUN singlestep [800/1000]
-[ 4.968420] kgdbts:RUN singlestep [900/1000]
-[ 5.262740] kgdbts:RUN do_fork for 100 breakpoints
-[ 5.263465] sunvnet: sunvnet 2.0 (February 3, 2017)
-[ 5.267474] vnet_port vnet-port-0-0 eth0: Sun LDOM vnet 00:14:4f:f8:12:a3
-[ 5.268150] sunvnet: eth0: PORT ( remote-mac 00:14:4f:fa:f3:f0 switch-port )
-[ 5.269701] sunvnet: eth0: PORT ( remote-mac 00:14:4f:f8:e5:f3 )
-[ 5.271202] sunvnet: eth0: PORT ( remote-mac 00:14:4f:f9:b4:97 )
-[ 5.272689] sunvnet: eth0: PORT ( remote-mac 00:14:4f:f9:8b:83 )
-[ 5.273845] mousedev: PS/2 mouse device common for all mice
-[ 5.274930] rtc-sun4v rtc-sun4v: rtc core: registered sun4v as rtc0
-[ 5.276231] device-mapper: uevent: version 1.0.3
-[ 5.277428] device-mapper: ioctl: 4.39.0-ioctl (2018-04-03)
-initialised: dm-devel@redhat.com
-[ 5.278953] NET: Registered protocol family 17
-[ 5.280368] registered taskstats version 1
-[ 5.281321] zswap: loaded using pool lzo/zbud
-[ 5.326031] Key type big_key registered
-[ 32.749684] watchdog: BUG: soft lockup - CPU#0 stuck for 22s! [swapper/0:1]
-[ 32.749759] Modules linked in:
-[ 32.749790] irq event stamp: 341442
-[ 32.749831] hardirqs last enabled at (341441): [<0000000000404bdc>]
-rtrap_xcall+0x18/0x20
-[ 32.749893] hardirqs last disabled at (341442): [<000000000042723c>]
-sys_call_table+0x650/0x854
-[ 32.749957] softirqs last enabled at (341440): [<0000000000a18874>]
-__do_softirq+0x494/0x500
-[ 32.750021] softirqs last disabled at (341433): [<000000000042ce14>]
-do_softirq_own_stack+0x34/0x60
-[ 32.750086] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
-4.20.0-rc6-00161-g6531e115b7ab #777
-[ 32.750144] TSTATE: 0000000080001603 TPC: 00000000005149c8 TNPC:
-00000000005149cc Y: 0000098e Not tainted
-[ 32.750212] TPC: <smp_call_function_single+0x108/0x180>
-[ 32.750252] g0: fff80024a0b84888 g1: 0000000000000003 g2:
-0000000000018e26 g3: 0000000000000001
-[ 32.750311] g4: fff80024a0b84020 g5: fff80024aa280000 g6:
-fff80024a0b88000 g7: 000000000000013f
-[ 32.750371] o0: 0000000000000000 o1: fff80024a0b8b760 o2:
-00000000004fdb80 o3: 0000000000000000
-[ 32.750430] o4: 0000000000000000 o5: 0000000000000000 sp:
-fff80024a0b8aeb1 ret_pc: 00000000005149ec
-[ 32.750491] RPC: <smp_call_function_single+0x12c/0x180>
-[ 32.750531] l0: 00000000014e3000 l1: 0000000000000001 l2:
-00000000009e6410 l3: 0000000000000000
-[ 32.750590] l4: 0000000000b490a0 l5: 0000000000cc21a8 l6:
-0000000000b49070 l7: 0000000000000000
-[ 32.750649] i0: 0000000000000001 i1: 00000000004fdb80 i2:
-0000000000000000 i3: 0000000000000001
-[ 32.750708] i4: 0000000000000001 i5: fff80024a0b8b760 i6:
-fff80024a0b8af91 i7: 0000000000514e98
-[ 32.750768] I7: <smp_call_function_many+0x118/0x320>
-[ 32.750806] Call Trace:
-[ 32.750832] [0000000000514e98] smp_call_function_many+0x118/0x320
-[ 32.750877] [00000000005150cc] smp_call_function+0x2c/0x60
-[ 32.750919] [0000000000515120] on_each_cpu+0x20/0xa0
-[ 32.750964] [00000000004fea98] clock_was_set+0x18/0x40
-[ 32.751005] [0000000000502114] do_settimeofday64+0x174/0x1a0
-[ 32.751054] [0000000000ced8f8] rtc_hctosys+0x7c/0xe8
-[ 32.751094] [0000000000427cc0] do_one_initcall+0x160/0x360
-[ 32.751146] [0000000000cc3130] kernel_init_freeable+0x440/0x500
-[ 32.751197] [0000000000a0cac0] kernel_init+0xc/0x10c
-[ 32.751237] [00000000004060e4] ret_from_fork+0x1c/0x2c
-[ 32.751276] [0000000000000000] (null)
-[ 32.779676] watchdog: BUG: soft lockup - CPU#1 stuck for 22s! [swapper/1:0]
-[ 32.779731] Modules linked in:
-[ 32.779758] irq event stamp: 54408233
-[ 32.779788] hardirqs last enabled at (54408232): [<0000000000404bdc>]
-rtrap_xcall+0x18/0x20
-[ 32.779842] hardirqs last disabled at (54408233):
-[<000000000042723c>] sys_call_table+0x650/0x854
-[ 32.779902] softirqs last enabled at (5192): [<000000000046bbc4>]
-_local_bh_enable+0x44/0x60
-[ 32.779956] softirqs last disabled at (5193): [<000000000042ce14>]
-do_softirq_own_stack+0x34/0x60
-[ 32.780012] CPU: 1 PID: 0 Comm: swapper/1 Tainted: G L
-4.20.0-rc6-00161-g6531e115b7ab #777
-[ 32.780071] TSTATE: 0000004480001602 TPC: 0000000000a184bc TNPC:
-0000000000a184c0 Y: 00000000 Tainted: G L
-[ 32.780138] TPC: <__do_softirq+0xdc/0x500>
-[ 32.780169] g0: fff80024af867641 g1: 0000000000d811a8 g2:
-000000000001f208 g3: 0000000000000001
-[ 32.780223] g4: fff80024a0be41a0 g5: fff80024aa2c0000 g6:
-fff80024a0be8000 g7: 0000000000200042
-[ 32.780277] o0: 000000000042ce14 o1: 00000
+
+-- 
+Meelis Roos <mroos@linux.ee>
