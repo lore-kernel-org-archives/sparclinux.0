@@ -1,22 +1,26 @@
-From: "hch@lst.de" <hch@lst.de>
-Date: Thu, 20 Dec 2018 14:34:15 +0000
+From: Eugeniy Paltsev <eugeniy.paltsev@synopsys.com>
+Date: Thu, 20 Dec 2018 14:39:20 +0000
 Subject: Re: ensure dma_alloc_coherent always returns zeroed memory
-Message-Id: <20181220143415.GA17726@lst.de>
+Message-Id: <1545316759.14089.22.camel@synopsys.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181214082515.14835-1-hch@lst.de> <20181219165939.GA26087@lst.de> <1545316369.14089.20.camel@synopsys.com>
-In-Reply-To: <1545316369.14089.20.camel@synopsys.com>
+References: <20181214082515.14835-1-hch@lst.de>
+         <20181219165939.GA26087@lst.de> <1545316369.14089.20.camel@synopsys.com>
+         <20181220143415.GA17726@lst.de>
+In-Reply-To: <20181220143415.GA17726@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eugeniy Paltsev <eugeniy.paltsev@synopsys.com>
-Cc: "hch@lst.de" <hch@lst.de>, Vineet Gupta <vineet.gupta1@synopsys.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "ashutosh.dixit@intel.com" <ashutosh.dixit@intel.com>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, monst
+To: "hch@lst.de" <hch@lst.de>, "eugeniy.paltsev@synopsys.com" <eugeniy.paltsev@synopsys.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>, "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>, "vineet.gupta1@synopsys.com" <vineet.gupta1@synopsys.com>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-snps-arc@lists.infradead.org" <linux-snps-arc@lists.infradead.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>, "ashutosh.dixit@intel.com" <ashutosh.dixit@intel.com>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linux-c6x-dev@linux-c6x.org" <linux-c6x-dev@linux-c6x.org>, "monstr@monstr.eu" <monst>
 
-On Thu, Dec 20, 2018 at 02:32:52PM +0000, Eugeniy Paltsev wrote:
-> Hi Christoph,
-> 
-> I test kernel from your 'dma-alloc-always-zero' branch, and as
-> I can see we have DMA peripherals (like USB) broken.
-
-I would be really surprised if that is caused by the patch to add
-the zeroing.  Can you check which commit caused the issue by bisecting
-from a known good baseline?
+T24gVGh1LCAyMDE4LTEyLTIwIGF0IDE1OjM0ICswMTAwLCBoY2hAbHN0LmRlIHdyb3RlOg0KPiBP
+biBUaHUsIERlYyAyMCwgMjAxOCBhdCAwMjozMjo1MlBNICswMDAwLCBFdWdlbml5IFBhbHRzZXYg
+d3JvdGU6DQo+ID4gSGkgQ2hyaXN0b3BoLA0KPiA+IA0KPiA+IEkgdGVzdCBrZXJuZWwgZnJvbSB5
+b3VyICdkbWEtYWxsb2MtYWx3YXlzLXplcm8nIGJyYW5jaCwgYW5kIGFzDQo+ID4gSSBjYW4gc2Vl
+IHdlIGhhdmUgRE1BIHBlcmlwaGVyYWxzIChsaWtlIFVTQikgYnJva2VuLg0KPiANCj4gSSB3b3Vs
+ZCBiZSByZWFsbHkgc3VycHJpc2VkIGlmIHRoYXQgaXMgY2F1c2VkIGJ5IHRoZSBwYXRjaCB0byBh
+ZGQNCj4gdGhlIHplcm9pbmcuIA0KTWUgdG9vIDopDQoNCj4gIENhbiB5b3UgY2hlY2sgd2hpY2gg
+Y29tbWl0IGNhdXNlZCB0aGUgaXNzdWUgYnkgYmlzZWN0aW5nDQo+IGZyb20gYSBrbm93biBnb29k
+IGJhc2VsaW5lPw0KDQpZZXAuIEF0IGxlYXN0IGtlcm5lbCBidWlsZCBmcm9tIHY0LjIwLXJjNCAo
+d2hpY2ggaXMgYmFzZSBmb3IgeW91ciBicmFuY2gpDQpzZWVtcyB0byB3b3JrIGZpbmUuDQoNCi0t
+IA0KIEV1Z2VuaXkgUGFsdHNldg=
