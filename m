@@ -1,91 +1,89 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Mon, 31 Dec 2018 09:29:20 +0000
-Subject: [PATCH v4 0/6] memblock: simplify several early memory allocation
-Message-Id: <1546248566-14910-1-git-send-email-rppt@linux.ibm.com>
+From: Sasha Levin <sashal@kernel.org>
+Date: Wed, 26 Dec 2018 22:38:39 +0000
+Subject: [PATCH AUTOSEL 4.14 59/59] serial/sunsu: fix refcount leak
+Message-Id: <20181226223839.150262-59-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181226223839.150262-1-sashal@kernel.org>
+In-Reply-To: <20181226223839.150262-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-Hi,
+From: Yangtao Li <tiny.windzz@gmail.com>
 
-These patches simplify some of the early memory allocations by replacing
-usage of older memblock APIs with newer and shinier ones.
+[ Upstream commit d430aff8cd0c57502d873909c184e3b5753f8b88 ]
 
-Quite a few places in the arch/ code allocated memory using a memblock API
-that returns a physical address of the allocated area, then converted this
-physical address to a virtual one and then used memset(0) to clear the
-allocated range.
+The function of_find_node_by_path() acquires a reference to the node
+returned by it and that reference needs to be dropped by its caller.
 
-More recent memblock APIs do all the three steps in one call and their
-usage simplifies the code.
+su_get_type() doesn't do that. The match node are used as an identifier
+to compare against the current node, so we can directly drop the refcount
+after getting the node from the path as it is not used as pointer.
 
-It's important to note that regardless of API used, the core allocation is
-nearly identical for any set of memblock allocators: first it tries to find
-a free memory with all the constraints specified by the caller and then
-falls back to the allocation with some or all constraints disabled.
+Fix this by use a single variable and drop the refcount right after
+of_find_node_by_path().
 
-The first three patches perform the conversion of call sites that have
-exact requirements for the node and the possible memory range.
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
 
-The fourth patch is a bit one-off as it simplifies openrisc's
-implementation of pte_alloc_one_kernel(), and not only the memblock usage.
-
-The fifth patch takes care of simpler cases when the allocation can be
-satisfied with a simple call to memblock_alloc().
-
-The sixth patch removes one-liner wrappers for memblock_alloc on arm and
-unicore32, as suggested by Christoph.
-
-v4:
-* rebased on the current upstream
-* added conversion of s390 node data allocation
-
-v3:
-* added Tested-by from Michal Simek for microblaze changes
-* updated powerpc changes as per Michael Ellerman comments:
-  - use allocations that clear memory in alloc_paca_data() and alloc_stack()
-  - ensure the replacement is equivalent to old API
-
-v2:
-* added Ack from Stafford Horne for openrisc changes
-* entirely drop early_alloc wrappers on arm and unicore32, as per Christoph
-Hellwig
-
-Mike Rapoport (6):
-  powerpc: prefer memblock APIs returning virtual address
-  microblaze: prefer memblock API returning virtual address
-  sh: prefer memblock APIs returning virtual address
-  openrisc: simplify pte_alloc_one_kernel()
-  arch: simplify several early memory allocations
-  arm, s390, unicore32: remove oneliner wrappers for memblock_alloc()
-
- arch/arm/mm/mmu.c                      | 13 +++----------
- arch/c6x/mm/dma-coherent.c             |  9 ++-------
- arch/microblaze/mm/init.c              |  5 +++--
- arch/nds32/mm/init.c                   | 12 ++++--------
- arch/openrisc/mm/ioremap.c             | 11 ++++-------
- arch/powerpc/kernel/paca.c             | 16 ++++++----------
- arch/powerpc/kernel/setup-common.c     |  4 ++--
- arch/powerpc/kernel/setup_64.c         | 24 ++++++++++--------------
- arch/powerpc/mm/hash_utils_64.c        |  6 +++---
- arch/powerpc/mm/pgtable-book3e.c       |  8 ++------
- arch/powerpc/mm/pgtable-book3s64.c     |  5 +----
- arch/powerpc/mm/pgtable-radix.c        | 25 +++++++------------------
- arch/powerpc/mm/ppc_mmu_32.c           |  3 +--
- arch/powerpc/platforms/pasemi/iommu.c  |  5 +++--
- arch/powerpc/platforms/powernv/opal.c  |  3 +--
- arch/powerpc/platforms/pseries/setup.c | 18 ++++++++++++++----
- arch/powerpc/sysdev/dart_iommu.c       |  7 +++++--
- arch/s390/numa/numa.c                  | 14 +-------------
- arch/sh/mm/init.c                      | 18 +++++-------------
- arch/sh/mm/numa.c                      |  5 ++---
- arch/sparc/kernel/prom_64.c            |  7 ++-----
- arch/sparc/mm/init_64.c                |  9 +++------
- arch/unicore32/mm/mmu.c                | 14 ++++----------
- 23 files changed, 88 insertions(+), 153 deletions(-)
-
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 95d34d7565c9..1cf78cec7461 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1393,22 +1393,43 @@ static inline struct console *SUNSU_CONSOLE(void)
+ static enum su_type su_get_type(struct device_node *dp)
+ {
+ 	struct device_node *ap = of_find_node_by_path("/aliases");
++	enum su_type rc = SU_PORT_PORT;
+ 
+ 	if (ap) {
+ 		const char *keyb = of_get_property(ap, "keyboard", NULL);
+ 		const char *ms = of_get_property(ap, "mouse", NULL);
++		struct device_node *match;
+ 
+ 		if (keyb) {
+-			if (dp = of_find_node_by_path(keyb))
+-				return SU_PORT_KBD;
++			match = of_find_node_by_path(keyb);
++
++			/*
++			 * The pointer is used as an identifier not
++			 * as a pointer, we can drop the refcount on
++			 * the of__node immediately after getting it.
++			 */
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_KBD;
++				goto out;
++			}
+ 		}
+ 		if (ms) {
+-			if (dp = of_find_node_by_path(ms))
+-				return SU_PORT_MS;
++			match = of_find_node_by_path(ms);
++
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_MS;
++				goto out;
++			}
+ 		}
+ 	}
+ 
+-	return SU_PORT_PORT;
++out:
++	of_node_put(ap);
++	return rc;
+ }
+ 
+ static int su_probe(struct platform_device *op)
 -- 
-2.7.4
+2.19.1
