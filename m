@@ -1,16 +1,89 @@
-From: "Mr Owen Peter" <aturnerr1976@gmail.com>
-Date: Mon, 17 Dec 2018 22:07:57 +0000
-Subject: <<<Good Day To You Sir>>
-Message-Id: <201812172207.wBHM7hDl014211-wBHM7hDn014211@antispam.interfashion.it>
+From: Sasha Levin <sashal@kernel.org>
+Date: Wed, 26 Dec 2018 22:35:56 +0000
+Subject: [PATCH AUTOSEL 4.19 96/97] serial/sunsu: fix refcount leak
+Message-Id: <20181226223557.149329-96-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20181226223557.149329-1-sashal@kernel.org>
+In-Reply-To: <20181226223557.149329-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
 
-Good Day,
-Hope you are doing great Today.I have a proposed BUSINESS DEAL that will benefit both parties. This is legitimate,legal and your personality will not be compromised.Please Reply to me ONLY if you are interested and consider your self capable for details.
+From: Yangtao Li <tiny.windzz@gmail.com>
 
-Sincerely,
+[ Upstream commit d430aff8cd0c57502d873909c184e3b5753f8b88 ]
 
-Peter OWEN
+The function of_find_node_by_path() acquires a reference to the node
+returned by it and that reference needs to be dropped by its caller.
+
+su_get_type() doesn't do that. The match node are used as an identifier
+to compare against the current node, so we can directly drop the refcount
+after getting the node from the path as it is not used as pointer.
+
+Fix this by use a single variable and drop the refcount right after
+of_find_node_by_path().
+
+Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
+ 1 file changed, 26 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index 6cf3e9b0728f..3e77475668c0 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1394,22 +1394,43 @@ static inline struct console *SUNSU_CONSOLE(void)
+ static enum su_type su_get_type(struct device_node *dp)
+ {
+ 	struct device_node *ap = of_find_node_by_path("/aliases");
++	enum su_type rc = SU_PORT_PORT;
+ 
+ 	if (ap) {
+ 		const char *keyb = of_get_property(ap, "keyboard", NULL);
+ 		const char *ms = of_get_property(ap, "mouse", NULL);
++		struct device_node *match;
+ 
+ 		if (keyb) {
+-			if (dp = of_find_node_by_path(keyb))
+-				return SU_PORT_KBD;
++			match = of_find_node_by_path(keyb);
++
++			/*
++			 * The pointer is used as an identifier not
++			 * as a pointer, we can drop the refcount on
++			 * the of__node immediately after getting it.
++			 */
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_KBD;
++				goto out;
++			}
+ 		}
+ 		if (ms) {
+-			if (dp = of_find_node_by_path(ms))
+-				return SU_PORT_MS;
++			match = of_find_node_by_path(ms);
++
++			of_node_put(match);
++
++			if (dp = match) {
++				rc = SU_PORT_MS;
++				goto out;
++			}
+ 		}
+ 	}
+ 
+-	return SU_PORT_PORT;
++out:
++	of_node_put(ap);
++	return rc;
+ }
+ 
+ static int su_probe(struct platform_device *op)
+-- 
+2.19.1
