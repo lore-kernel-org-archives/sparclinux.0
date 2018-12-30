@@ -1,89 +1,43 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Wed, 26 Dec 2018 22:54:59 +0000
-Subject: [PATCH AUTOSEL 4.4 21/21] serial/sunsu: fix refcount leak
-Message-Id: <20181226225501.151365-21-sashal@kernel.org>
+From: "FUND ALLIANCE INTERNATIONAL" <info@cent.org>
+Date: Sun, 30 Dec 2018 21:40:20 +0000
+Subject: ALLIANCE LOAN OFFER/PROJECT FUNDING
+Message-Id: <053852d193612747e87fe4e92aabadd4.squirrel@email.fatcow.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181226225501.151365-1-sashal@kernel.org>
-In-Reply-To: <20181226225501.151365-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Yangtao Li <tiny.windzz@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, linux-serial@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Yangtao Li <tiny.windzz@gmail.com>
 
-[ Upstream commit d430aff8cd0c57502d873909c184e3b5753f8b88 ]
 
-The function of_find_node_by_path() acquires a reference to the node
-returned by it and that reference needs to be dropped by its caller.
 
-su_get_type() doesn't do that. The match node are used as an identifier
-to compare against the current node, so we can directly drop the refcount
-after getting the node from the path as it is not used as pointer.
+Good Day,
 
-Fix this by use a single variable and drop the refcount right after
-of_find_node_by_path().
+I'm Olivia Austin a consultant from Fund Alliance International, We are
+currently offering 95% Non-Recourse Loan with our BG Leased Monetization
+Program for trade finance, constructions, credit enhancement, government
+funding, property investment and all-round range of funding, with 2%
+interest rate per annul for a period of 10-years + 1 year grace period
+with no pre-payment penalties. .
 
-Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- drivers/tty/serial/sunsu.c | 31 ++++++++++++++++++++++++++-----
- 1 file changed, 26 insertions(+), 5 deletions(-)
+    TERMS:
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index e124d2e88996..d6c9d5b458a0 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -1393,22 +1393,43 @@ static inline struct console *SUNSU_CONSOLE(void)
- static enum su_type su_get_type(struct device_node *dp)
- {
- 	struct device_node *ap = of_find_node_by_path("/aliases");
-+	enum su_type rc = SU_PORT_PORT;
- 
- 	if (ap) {
- 		const char *keyb = of_get_property(ap, "keyboard", NULL);
- 		const char *ms = of_get_property(ap, "mouse", NULL);
-+		struct device_node *match;
- 
- 		if (keyb) {
--			if (dp = of_find_node_by_path(keyb))
--				return SU_PORT_KBD;
-+			match = of_find_node_by_path(keyb);
-+
-+			/*
-+			 * The pointer is used as an identifier not
-+			 * as a pointer, we can drop the refcount on
-+			 * the of__node immediately after getting it.
-+			 */
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_KBD;
-+				goto out;
-+			}
- 		}
- 		if (ms) {
--			if (dp = of_find_node_by_path(ms))
--				return SU_PORT_MS;
-+			match = of_find_node_by_path(ms);
-+
-+			of_node_put(match);
-+
-+			if (dp = match) {
-+				rc = SU_PORT_MS;
-+				goto out;
-+			}
- 		}
- 	}
- 
--	return SU_PORT_PORT;
-+out:
-+	of_node_put(ap);
-+	return rc;
- }
- 
- static int su_probe(struct platform_device *op)
--- 
-2.19.1
+    2 % INTEREST RATE YEARLY
+    10 YEARS DURATION
+    1M-50B USD / EUR REQUIREMENT:
+
+    1.      CLIENT MUST OWN OR REPRESENT A COMPANY.
+
+    2.      CLIENT MUST BE ABLE TO PROVIDE BUSINESS PLAN OR EXECUTIVE
+SUMMARY OR SUMMARY PURPOSE OF THE LOAN.
+
+Let us know if you are interested in our services and meet up with the
+requirements? so as to provide you with more information.
+
+Regards,
+Olivia Austin
+Fund Alliance
+Lutzowplatz 17 10785, Berlin
+Germany
+Phone: +49 (322) 2109 7890
+Email:olistin001@gmail.com
