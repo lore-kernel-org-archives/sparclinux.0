@@ -1,117 +1,79 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 08 Dec 2018 17:37:02 +0000
-Subject: [PATCH 10/10] Documentation: update the description for DMA_ATTR_NON_CONSISTENT
-Message-Id: <20181208173702.15158-11-hch@lst.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Mon, 31 Dec 2018 09:29:23 +0000
+Subject: [PATCH v4 3/6] sh: prefer memblock APIs returning virtual address
+Message-Id: <1546248566-14910-4-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20181208173702.15158-1-hch@lst.de>
-In-Reply-To: <20181208173702.15158-1-hch@lst.de>
+References: <1546248566-14910-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1546248566-14910-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: iommu@lists.linux-foundation.org
-Cc: linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, Robin Murphy <robin.murphy@arm.com>, dri-devel@lists.freedesktop.org, "Matwey V. Kornilov" <matwey@sai.msu.ru>, openrisc@lists.librecores.org, Laurent Pinchart <laurent.pinchart@ideasonboard.com>, sparclinux@vger.kernel.org, linux-snps-arc@lists.infradead.org, Ezequiel Garcia <ezequiel@collabora.com>, linux-arm-kernel@vger.kernel.org, linux-media@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Rich Felker <dalias@libc.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Jonas Bonn <jonas@southpole.se>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, Mark Salter <msalter@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>, openrisc@lists.librecores.org, Greentime Hu <green.hu@gmail.com>, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-kernel@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-We got rid of the odd selective consistent or not behavior, and now
-want the normal dma_sync_single_* functions to be used for strict
-ownership transfers.  While dma_cache_sync hasn't been removed from
-the tree yet it should not be used in any new caller, so documentation
-for it is dropped here.
+Rather than use the memblock_alloc_base that returns a physical address and
+then convert this address to the virtual one, use appropriate memblock
+function that returns a virtual address.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+There is a small functional change in the allocation of then NODE_DATA().
+Instead of panicing if the local allocation failed, the non-local
+allocation attempt will be made.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- Documentation/DMA-API.txt        | 30 ++++--------------------------
- Documentation/DMA-attributes.txt |  9 +++++----
- include/linux/dma-mapping.h      |  3 +++
- 3 files changed, 12 insertions(+), 30 deletions(-)
+ arch/sh/mm/init.c | 18 +++++-------------
+ arch/sh/mm/numa.c |  5 ++---
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
-diff --git a/Documentation/DMA-API.txt b/Documentation/DMA-API.txt
-index ac66ae2509a9..c81fe8a4aeec 100644
---- a/Documentation/DMA-API.txt
-+++ b/Documentation/DMA-API.txt
-@@ -518,20 +518,9 @@ API at all.
- 	dma_alloc_attrs(struct device *dev, size_t size, dma_addr_t *dma_handle,
- 			gfp_t flag, unsigned long attrs)
+diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
+index a8e5c0e..a0fa4de 100644
+--- a/arch/sh/mm/init.c
++++ b/arch/sh/mm/init.c
+@@ -192,24 +192,16 @@ void __init page_table_range_init(unsigned long start, unsigned long end,
+ void __init allocate_pgdat(unsigned int nid)
+ {
+ 	unsigned long start_pfn, end_pfn;
+-#ifdef CONFIG_NEED_MULTIPLE_NODES
+-	unsigned long phys;
+-#endif
  
--Identical to dma_alloc_coherent() except that when the
--DMA_ATTR_NON_CONSISTENT flags is passed in the attrs argument, the
--platform will choose to return either consistent or non-consistent memory
--as it sees fit.  By using this API, you are guaranteeing to the platform
--that you have all the correct and necessary sync points for this memory
--in the driver should it choose to return non-consistent memory.
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+ 
+ #ifdef CONFIG_NEED_MULTIPLE_NODES
+-	phys = __memblock_alloc_base(sizeof(struct pglist_data),
+-				SMP_CACHE_BYTES, end_pfn << PAGE_SHIFT);
+-	/* Retry with all of system memory */
+-	if (!phys)
+-		phys = __memblock_alloc_base(sizeof(struct pglist_data),
+-					SMP_CACHE_BYTES, memblock_end_of_DRAM());
+-	if (!phys)
++	NODE_DATA(nid) = memblock_alloc_try_nid_nopanic(
++				sizeof(struct pglist_data),
++				SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
++				MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++	if (!NODE_DATA(nid))
+ 		panic("Can't allocate pgdat for node %d\n", nid);
 -
--Note: where the platform can return consistent memory, it will
--guarantee that the sync points become nops.
--
--Warning:  Handling non-consistent memory is a real pain.  You should
--only use this API if you positively know your driver will be
--required to work on one of the rare (usually non-PCI) architectures
--that simply cannot make consistent memory.
-+Similar to dma_alloc_coherent(), except that the behavior can be controlled
-+in more detail using the attrs argument.  See Documentation/DMA-attributes.txt
-+for more details.
+-	NODE_DATA(nid) = __va(phys);
+-	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
+ #endif
  
- ::
+ 	NODE_DATA(nid)->node_start_pfn = start_pfn;
+diff --git a/arch/sh/mm/numa.c b/arch/sh/mm/numa.c
+index 830e8b3..c4bde61 100644
+--- a/arch/sh/mm/numa.c
++++ b/arch/sh/mm/numa.c
+@@ -41,9 +41,8 @@ void __init setup_bootmem_node(int nid, unsigned long start, unsigned long end)
+ 	__add_active_range(nid, start_pfn, end_pfn);
  
-@@ -540,7 +529,7 @@ that simply cannot make consistent memory.
- 		       dma_addr_t dma_handle, unsigned long attrs)
+ 	/* Node-local pgdat */
+-	NODE_DATA(nid) = __va(memblock_alloc_base(sizeof(struct pglist_data),
+-					     SMP_CACHE_BYTES, end));
+-	memset(NODE_DATA(nid), 0, sizeof(struct pglist_data));
++	NODE_DATA(nid) = memblock_alloc_node(sizeof(struct pglist_data),
++					     SMP_CACHE_BYTES, nid);
  
- Free memory allocated by the dma_alloc_attrs().  All parameters common
--parameters must identical to those otherwise passed to dma_fre_coherent,
-+parameters must identical to those otherwise passed to dma_free_coherent,
- and the attrs argument must be identical to the attrs passed to
- dma_alloc_attrs().
- 
-@@ -560,17 +549,6 @@ memory or doing partial flushes.
- 	into the width returned by this call.  It will also always be a power
- 	of two for easy alignment.
- 
--::
--
--	void
--	dma_cache_sync(struct device *dev, void *vaddr, size_t size,
--		       enum dma_data_direction direction)
--
--Do a partial sync of memory that was allocated by dma_alloc_attrs() with
--the DMA_ATTR_NON_CONSISTENT flag starting at virtual address vaddr and
--continuing on for size.  Again, you *must* observe the cache line
--boundaries when doing this.
--
- ::
- 
- 	int
-diff --git a/Documentation/DMA-attributes.txt b/Documentation/DMA-attributes.txt
-index 8f8d97f65d73..2bb3fc0a621b 100644
---- a/Documentation/DMA-attributes.txt
-+++ b/Documentation/DMA-attributes.txt
-@@ -46,10 +46,11 @@ behavior.
- DMA_ATTR_NON_CONSISTENT
- -----------------------
- 
--DMA_ATTR_NON_CONSISTENT lets the platform to choose to return either
--consistent or non-consistent memory as it sees fit.  By using this API,
--you are guaranteeing to the platform that you have all the correct and
--necessary sync points for this memory in the driver.
-+DMA_ATTR_NON_CONSISTENT specifies that the memory returned is not
-+required to be consistent.  The memory is owned by the device when
-+returned from this function, and ownership must be explicitly
-+transferred to the CPU using dma_sync_single_for_cpu, and back to the
-+device using dma_sync_single_for_device.
- 
- DMA_ATTR_NO_KERNEL_MAPPING
- --------------------------
-diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
-index 8c81fa5d1f44..8757ad5087c4 100644
---- a/include/linux/dma-mapping.h
-+++ b/include/linux/dma-mapping.h
-@@ -432,6 +432,9 @@ dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
- #define dma_map_page(d, p, o, s, r) dma_map_page_attrs(d, p, o, s, r, 0)
- #define dma_unmap_page(d, a, s, r) dma_unmap_page_attrs(d, a, s, r, 0)
- 
-+/*
-+ * Don't use in new code, use dma_sync_single_for_{device,cpu} instead.
-+ */
- static inline void
- dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 		enum dma_data_direction dir)
+ 	NODE_DATA(nid)->node_start_pfn = start_pfn;
+ 	NODE_DATA(nid)->node_spanned_pages = end_pfn - start_pfn;
 -- 
-2.19.2
+2.7.4
