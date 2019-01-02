@@ -1,37 +1,38 @@
-From: Russell King - ARM Linux admin <linux@armlinux.org.uk>
-Date: Fri, 25 Jan 2019 16:21:06 +0000
-Subject: Re: [PATCH v2 07/29] ARM: add kexec_file_load system call number
-Message-Id: <20190125162106.axfhoxxdutkmaeh3@e5254000004ec.dyn.armlinux.org.uk>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Date: Wed, 02 Jan 2019 12:14:18 +0000
+Subject: Re: jump_label: move 'asm goto' support test to Kconfig
+Message-Id: <CA+icZUU=1S0Xg3+zWNU-60eknfWyL2kjEPm2BNNTK8Eu-tkTEg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190118161835.2259170-1-arnd@arndb.de>
- <20190118161835.2259170-8-arnd@arndb.de>
- <20190125154359.GG25901@arrakis.emea.arm.com>
-In-Reply-To: <20190125154359.GG25901@arrakis.emea.arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, mattst88@gmail.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, paul.burton@mips.com, deller@gmx.de, benh@kernel.crashing.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jcmvbkbc@gmail.com, akpm@linux-foundation.org, deepa.kernel@gmail.com, ebiederm@xmission.com, firoz.khan@linaro.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.or
+To: masahiroy@kernel.org
+Cc: linux-kbuild@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, "David S . Miller" <davem@davemloft.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Masahiro Yamada <yamada.masahiro@socionext.com>
 
-On Fri, Jan 25, 2019 at 03:43:59PM +0000, Catalin Marinas wrote:
-> On Fri, Jan 18, 2019 at 05:18:13PM +0100, Arnd Bergmann wrote:
-> > diff --git a/arch/arm/tools/syscall.tbl b/arch/arm/tools/syscall.tbl
-> > index 86de9eb34296..20ed7e026723 100644
-> > --- a/arch/arm/tools/syscall.tbl
-> > +++ b/arch/arm/tools/syscall.tbl
-> > @@ -415,3 +415,4 @@
-> >  398	common	rseq			sys_rseq
-> >  399	common	io_pgetevents		sys_io_pgetevents
-> >  400	common	migrate_pages		sys_migrate_pages
-> > +401	common	kexec_file_load		sys_kexec_file_load
-> 
-> I presume on arm32 this would still return -ENOSYS.
+Hi,
 
-Yes, I already checked.  If CONFIG_KEXEC_FILE is not set, then
-kernel/kexec_file.c is not built, and we fall back to the stub
-in kernel/sys_ni.c.
+I was not aware that CONFIG_JUMP_LABEL Kconfig setting depends on the
+support of asm-goto.
 
--- 
-RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 12.1Mbps down 622kbps up
-According to speedtest.net: 11.9Mbps down 500kbps up
+Currently, I am doing experiments with clang-7 and a snapshot of
+clang-8 on Linux/x86.
+These compilers have no asm-goto support.
+
+What is your recommendation for Linux >= v4.20?
+I am asking as it is possible to set CONFIG_JUMP_LABEL=y when
+compiling with clang - which has no effect.
+This is confusing.
+
+Thanks, this patch makes things clearer and protects users from
+setting "wrong" in the sense of non-functional settings.
+
+I have tested this against recent Linus tree where kbuild/kconfig Git
+pulls were latest commits.
+
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com> [ x86 with LLVM/Clang
+v7 and v8 (snapshot) ]
+
+Thanks.
+
+Regards,
+- Sedat -
