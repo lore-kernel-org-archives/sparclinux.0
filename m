@@ -1,107 +1,83 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Wed, 16 Jan 2019 13:44:13 +0000
-Subject: [PATCH 13/21] arch: don't memset(0) memory returned by memblock_alloc()
-Message-Id: <1547646261-32535-14-git-send-email-rppt@linux.ibm.com>
+From: Corentin Labbe <clabbe.montjoie@gmail.com>
+Date: Thu, 03 Jan 2019 15:48:10 +0000
+Subject: sparc: crash when using initrd > 5M
+Message-Id: <20190103154810.GB32032@Red>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
+To: sparclinux@vger.kernel.org, qemu-devel@nongnu.org
 
-memblock_alloc() already clears the allocated memory, no point in doing it
-twice.
+Hello
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
----
- arch/c6x/mm/init.c          | 1 -
- arch/h8300/mm/init.c        | 1 -
- arch/ia64/kernel/mca.c      | 2 --
- arch/m68k/mm/mcfmmu.c       | 1 -
- arch/microblaze/mm/init.c   | 6 ++----
- arch/sparc/kernel/prom_32.c | 2 --
- 6 files changed, 2 insertions(+), 11 deletions(-)
+When using an initrd > 5M, I hit the following kernel crash:
+qemu-system-sparc -kernel vmlinux -initrd rootfs.cpio.gz -nographic
+Configuration device id QEMU version 1 machine id 32
+Probing SBus slot 0 offset 0
+Probing SBus slot 1 offset 0
+Probing SBus slot 2 offset 0
+Probing SBus slot 3 offset 0
+Probing SBus slot 4 offset 0
+Probing SBus slot 5 offset 0
+Invalid FCode start byte
+CPUs: 1 x FMI,MB86904
+UUID: 00000000-0000-0000-0000-000000000000
+Welcome to OpenBIOS v1.1 built on Oct 5 2018 08:20
+  Type 'help' for detailed information
+[sparc] Kernel already loaded
+switching to new context:
+PROMLIB: obio_ranges 1
+[    0.000000] PROMLIB: Sun Boot Prom Version 3 Revision 2
+[    0.000000] Linux version 4.20.0-next-20190102+ (compile@Red) (gcc version 7.3.0 (Gentoo 7.3.0-r3 p1.4)) #148 Thu Jan 3 16:17:08 CET 2019
+[    0.000000] printk: bootconsole [earlyprom0] enabled
+[    0.000000] ARCH: SUN4M
+[    0.000000] TYPE: SPARCstation 5
+[    0.000000] Ethernet address: 52:54:00:12:34:56
+[    0.000000] Unable to handle kernel NULL pointer dereference
+[    0.000000] tsk->{mm,active_mm}->context = ffffffff
+[    0.000000] tsk->{mm,active_mm}->pgd = 00000000
+[    0.000000]               \|/ ____ \|/
+[    0.000000]               "@'/ ,. \`@"
+[    0.000000]               /_| \__/ |_\
+[    0.000000]                  \__U_/
+[    0.000000] swapper(0): Oops [#1]
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 4.20.0-next-20190102+ #148
+[    0.000000] PSR: 04001fc0 PC: f0010ef0 NPC: f0010ef4 Y: 00000000    Not tainted
+[    0.000000] PC: <do_sparc_fault+0x158/0x404>
+[    0.000000] %G: 0000000a 000003c4  f05ece08 f05ecc00  00000000 00e00000  f05d4000 00000001
+[    0.000000] %O: 00000000 00e00000  00800000 00e00000  00000000 00000002  f05d5bb8 f00bba58
+[    0.000000] RPC: <memblock_reserve+0x38/0x68>
+[    0.000000] %L: 00000040 f05dfaf8  f05d5c68 00000001  0003ffff 006951e0  f05ed014 f0674ab4
+[    0.000000] %I: f05d5c80 00000000  00000002 f1000000  ffffffff 00000000  f05d5c20 f0007fd8
+[    0.000000] Disabling lock debugging due to kernel taint
+[    0.000000] Caller[f0007fd8]: srmmu_fault+0x58/0x68
+[    0.000000] Caller[f0618598]: memblock_alloc_try_nid+0xb8/0xc8
+[    0.000000] Caller[f0611094]: srmmu_paging_init+0x174/0xaf8
+[    0.000000] Caller[f06106a8]: paging_init+0x4/0x24
+[    0.000000] Caller[f060e4f0]: setup_arch+0x3e8/0x480
+[    0.000000] Caller[f060ab50]: start_kernel+0x48/0x460
+[    0.000000] Caller[f060a43c]: continue_boot+0x324/0x334
+[    0.000000] Caller[00000000]:   (null)
+[    0.000000] Instruction DUMP:
+[    0.000000]  c800a024 
+[    0.000000]  83286002 
+[    0.000000]  073c17b3 
+[    0.000000] <c4010001>
+[    0.000000]  c600e22c 
+[    0.000000]  8a08a003 
+[    0.000000]  80a16001 
+[    0.000000]  0280003b 
+[    0.000000]  c600c001 
+[    0.000000] 
+[    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
+[    0.000000] Press Stop-A (L1-A) from sun keyboard or send break
+[    0.000000] twice on console to return to the boot prom
+[    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill the idle task! ]---
+qemu-system-sparc: terminating on signal 15 from pid 13043 (killall)
 
-diff --git a/arch/c6x/mm/init.c b/arch/c6x/mm/init.c
-index af5ada0..e83c046 100644
---- a/arch/c6x/mm/init.c
-+++ b/arch/c6x/mm/init.c
-@@ -40,7 +40,6 @@ void __init paging_init(void)
- 
- 	empty_zero_page      = (unsigned long) memblock_alloc(PAGE_SIZE,
- 							      PAGE_SIZE);
--	memset((void *)empty_zero_page, 0, PAGE_SIZE);
- 
- 	/*
- 	 * Set up user data space
-diff --git a/arch/h8300/mm/init.c b/arch/h8300/mm/init.c
-index 6519252..a157890 100644
---- a/arch/h8300/mm/init.c
-+++ b/arch/h8300/mm/init.c
-@@ -68,7 +68,6 @@ void __init paging_init(void)
- 	 * to a couple of allocated pages.
- 	 */
- 	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--	memset((void *)empty_zero_page, 0, PAGE_SIZE);
- 
- 	/*
- 	 * Set up SFC/DFC registers (user data space).
-diff --git a/arch/ia64/kernel/mca.c b/arch/ia64/kernel/mca.c
-index 74d148b..370bc34 100644
---- a/arch/ia64/kernel/mca.c
-+++ b/arch/ia64/kernel/mca.c
-@@ -400,8 +400,6 @@ ia64_log_init(int sal_info_type)
- 
- 	// set up OS data structures to hold error info
- 	IA64_LOG_ALLOCATE(sal_info_type, max_size);
--	memset(IA64_LOG_CURR_BUFFER(sal_info_type), 0, max_size);
--	memset(IA64_LOG_NEXT_BUFFER(sal_info_type), 0, max_size);
- }
- 
- /*
-diff --git a/arch/m68k/mm/mcfmmu.c b/arch/m68k/mm/mcfmmu.c
-index 0de4999..492f953 100644
---- a/arch/m68k/mm/mcfmmu.c
-+++ b/arch/m68k/mm/mcfmmu.c
-@@ -44,7 +44,6 @@ void __init paging_init(void)
- 	int i;
- 
- 	empty_zero_page = (void *) memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--	memset((void *) empty_zero_page, 0, PAGE_SIZE);
- 
- 	pg_dir = swapper_pg_dir;
- 	memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index 44f4b89..bd1cd4b 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -376,10 +376,8 @@ void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
- 
- 	if (mem_init_done)
- 		p = kzalloc(size, mask);
--	else {
-+	else
- 		p = memblock_alloc(size, SMP_CACHE_BYTES);
--		if (p)
--			memset(p, 0, size);
--	}
-+
- 	return p;
- }
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index 38940af..e7126ca 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -33,8 +33,6 @@ void * __init prom_early_alloc(unsigned long size)
- 	void *ret;
- 
- 	ret = memblock_alloc(size, SMP_CACHE_BYTES);
--	if (ret != NULL)
--		memset(ret, 0, size);
- 
- 	prom_early_allocated += size;
- 
--- 
-2.7.4
+The NULL ptr dereference is done by memset() in srmmu_nocache_init() and memblock_alloc_try_nid().
+If I comment both memset, the boot pass
+
+But since nothing explain the NULL ptr deref in memset(), I suspect something is overriden by the initrd
+
+Regards
