@@ -1,37 +1,37 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Fri, 18 Jan 2019 08:42:30 +0000
-Subject: Re: [PATCH 21/21] memblock: drop memblock_alloc_*_nopanic() variants
-Message-Id: <20190118084230.GA8855@kroah.com>
+From: IMFC EUROPE <info.euro@imfc.org>
+Date: Thu, 03 Jan 2019 21:01:38 +0000
+Subject: FROM IMFC EUROPE
+Message-Id: <a470b6b660639642d185de5aaadbfcce@imfc.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
- <1547646261-32535-22-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1547646261-32535-22-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, openrisc@lists.librecores.org, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Wed, Jan 16, 2019 at 03:44:21PM +0200, Mike Rapoport wrote:
-> As all the memblock allocation functions return NULL in case of error
-> rather than panic(), the duplicates with _nopanic suffix can be removed.
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/arc/kernel/unwind.c       |  3 +--
->  arch/sh/mm/init.c              |  2 +-
->  arch/x86/kernel/setup_percpu.c | 10 +++++-----
->  arch/x86/mm/kasan_init_64.c    | 14 ++++++++------
->  drivers/firmware/memmap.c      |  2 +-
->  drivers/usb/early/xhci-dbc.c   |  2 +-
->  include/linux/memblock.h       | 35 -----------------------------------
->  kernel/dma/swiotlb.c           |  2 +-
->  kernel/printk/printk.c         | 17 +++++++----------
->  mm/memblock.c                  | 35 -----------------------------------
->  mm/page_alloc.c                | 10 +++++-----
->  mm/page_ext.c                  |  2 +-
->  mm/percpu.c                    | 11 ++++-------
->  mm/sparse.c                    |  6 ++----
->  14 files changed, 37 insertions(+), 114 deletions(-)
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+-- 
+Dear Sir,
+My name is Nancy M. Michael of the International Monetary and Financial
+Committee (IMFC) of the IMF. The IMF through an electronic random pick
+has chosen your name for compensation/payment. At the meeting of heads
+of international financial institutions held recently in Geneva
+Switzerland, the key topics up for discussion by the World Bank Group
+included the implementation of the World Bank's strategy within the
+framework of the 2030 AGENDA FOR SUSTAINABLE DEVELOPMENT. The IMF is
+still optimistic in its semi-annual growth outlook. However in view of
+the Global Economic Recovery, in the IMF Steering Committee, Federal
+Councilor Ueli Maurer among other things welcomed the proposed
+structural reforms, which includes the swift release of beneficiaries
+funds because in so doing once these funds are back in circulation the
+financial growth that we sought for will be achieved sooner than later.
+Therefore, some transactions that require our urgent attention were
+listed out. We therefore initiated an electronic random pick of many
+names to benefit from this program and decided that the funds will be
+released to you through an auto loaded system (ALS).
+This Auto loading will be monitored by the Financial Action Task Force
+(FATF). Please get back to us swiftly for further details and 
+directives.
+Best Regards,
+Nancy M.Michael
+Auto Load Department
