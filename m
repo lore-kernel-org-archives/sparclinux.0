@@ -1,45 +1,42 @@
-From: Petr Mladek <pmladek@suse.com>
-Date: Wed, 30 Jan 2019 13:38:45 +0000
-Subject: Re: [PATCH v2 21/21] memblock: drop memblock_alloc_*_nopanic() variants
-Message-Id: <20190130133845.nps4itatl4fm6dcl@pathway.suse.cz>
+From: Ming Lei <ming.lei@redhat.com>
+Date: Thu, 03 Jan 2019 01:19:48 +0000
+Subject: [PATCH] block: sunvdc: don't run hw queue synchronously from irq context
+Message-Id: <20190103011948.25706-1-ming.lei@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
- <1548057848-15136-22-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1548057848-15136-22-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, devicetree@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
+To: Jens Axboe <axboe@kernel.dk>
+Cc: linux-block@vger.kernel.org, Ming Lei <ming.lei@redhat.com>, Anatoly Pugachev <matorola@gmail.com>, David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-On Mon 2019-01-21 10:04:08, Mike Rapoport wrote:
-> As all the memblock allocation functions return NULL in case of error
-> rather than panic(), the duplicates with _nopanic suffix can be removed.
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->  arch/arc/kernel/unwind.c       |  3 +--
->  arch/sh/mm/init.c              |  2 +-
->  arch/x86/kernel/setup_percpu.c | 10 +++++-----
->  arch/x86/mm/kasan_init_64.c    | 14 ++++++++------
->  drivers/firmware/memmap.c      |  2 +-
->  drivers/usb/early/xhci-dbc.c   |  2 +-
->  include/linux/memblock.h       | 35 -----------------------------------
->  kernel/dma/swiotlb.c           |  2 +-
->  kernel/printk/printk.c         |  9 +--------
+vdc_blk_queue_start() may be called from irq context, so we can't run
+queue via blk_mq_start_hw_queues() since we never allow to run queue
+from irq context. Use blk_mq_start_stopped_hw_queues(q, true) to fix
+this issue.
 
-For printk:
-Reviewed-by: Petr Mladek <pmladek@suse.com>
-Acked-by: Petr Mladek <pmladek@suse.com>
+Fixes: fa182a1fa97dff56cd ("sunvdc: convert to blk-mq")
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Tested-by: Anatoly Pugachev <matorola@gmail.com>
+Cc: Anatoly Pugachev <matorola@gmail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@redhat.com>
+---
+ drivers/block/sunvdc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Best Regards,
-Petr
-
->  mm/memblock.c                  | 35 -----------------------------------
->  mm/page_alloc.c                | 10 +++++-----
->  mm/page_ext.c                  |  2 +-
->  mm/percpu.c                    | 11 ++++-------
->  mm/sparse.c                    |  6 ++----
->  14 files changed, 31 insertions(+), 112 deletions(-)
-> 
+diff --git a/drivers/block/sunvdc.c b/drivers/block/sunvdc.c
+index 9c0553dd13e7..ab7f7ab4c472 100644
+--- a/drivers/block/sunvdc.c
++++ b/drivers/block/sunvdc.c
+@@ -181,7 +181,7 @@ static void vdc_blk_queue_start(struct vdc_port *port)
+ 	 * allocated a disk.
+ 	 */
+ 	if (port->disk && vdc_tx_dring_avail(dr) * 100 / VDC_TX_RING_SIZE >= 50)
+-		blk_mq_start_hw_queues(port->disk->queue);
++		blk_mq_start_stopped_hw_queues(port->disk->queue, true);
+ }
+ 
+ static void vdc_finish(struct vio_driver_state *vio, int err, int waiting_for)
+-- 
+2.9.5
