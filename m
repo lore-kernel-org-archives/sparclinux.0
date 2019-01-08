@@ -1,84 +1,277 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Wed, 16 Jan 2019 00:10:16 +0000
-Subject: Re: [PATCH 14/15] arch: add split IPC system calls where needed
-Message-Id: <871s5dzclz.fsf@concordia.ellerman.id.au>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Tue, 08 Jan 2019 05:22:54 +0000
+Subject: [PATCH 2/3] socket: Rename SO_RCVTIMEO/ SO_SNDTIMEO with _OLD suffixes
+Message-Id: <20190108052255.10699-3-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110162435.309262-1-arnd@arndb.de>
- <20190110162435.309262-15-arnd@arndb.de>
- <87pnsz28k2.fsf@concordia.ellerman.id.au>
- <CAK8P3a0uas76i2W1yjFvxHT-2=A8_egUZeAUM-Vya6386+87Xg@mail.gmail.com>
-In-Reply-To: <CAK8P3a0uas76i2W1yjFvxHT-2=A8_egUZeAUM-Vya6386+87Xg@mail.gmail.com>
+References: <20190108052255.10699-1-deepa.kernel@gmail.com>
+In-Reply-To: <20190108052255.10699-1-deepa.kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Dominik Brodowski <linux@dominikbrodowski.net>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Deepa Dinamani <deepa.kernel@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Davidlohr Bueso <dave@stgolabs.net>, y2038 Mailman List <y2038@lists.linaro.org>, Helge Deller <deller@gmx.de>, the arch/x86 maintainers <x86@kernel.org>, Russell King - ARM Linux <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Firoz Khan <firoz.khan@linaro.org>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Will Deacon <will.deacon@arm.com>linux-
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, ccaulfie@redhat.com, deller@gmx.de, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, cluster-devel@redhat.com, linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-Arnd Bergmann <arnd@arndb.de> writes:
-> On Mon, Jan 14, 2019 at 4:59 AM Michael Ellerman <mpe@ellerman.id.au> wrote:
->> Arnd Bergmann <arnd@arndb.de> writes:
->> >  arch/m68k/kernel/syscalls/syscall.tbl     | 11 +++++++++++
->> >  arch/mips/kernel/syscalls/syscall_o32.tbl | 11 +++++++++++
->> >  arch/powerpc/kernel/syscalls/syscall.tbl  | 12 ++++++++++++
->>
->> I have some changes I'd like to make to our syscall table that will
->> clash with this.
->>
->> I'll try and send them today.
->
-> Ok. Are those for 5.0 or 5.1? If they are intended for 5.0, it would be
-> nice for me to have a branch based on 5.0-rc1 that I can put
-> the other patches on top of.
+SO_RCVTIMEO and SO_SNDTIMEO socket options use struct timeval
+as the time format. struct timeval is not y2038 safe.
+The subsequent patches in the series add support for new socket
+timeout options with _NEW suffix that are y2038 safe.
+Rename the existing options with _OLD suffix forms so that the
+right option is enabled for userspace applications according
+to the architecture and time_t definition of libc.
 
-For 5.1.
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: ccaulfie@redhat.com
+Cc: deller@gmx.de
+Cc: paulus@samba.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: cluster-devel@redhat.com
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+---
+ arch/alpha/include/uapi/asm/socket.h   | 7 +++++--
+ arch/mips/include/uapi/asm/socket.h    | 6 ++++--
+ arch/parisc/include/uapi/asm/socket.h  | 6 ++++--
+ arch/powerpc/include/uapi/asm/socket.h | 4 ++--
+ arch/sparc/include/uapi/asm/socket.h   | 6 ++++--
+ fs/dlm/lowcomms.c                      | 4 ++--
+ include/net/sock.h                     | 4 ++--
+ include/uapi/asm-generic/socket.h      | 6 ++++--
+ net/compat.c                           | 4 ++--
+ net/core/sock.c                        | 8 ++++----
+ 10 files changed, 33 insertions(+), 22 deletions(-)
 
-I can put them in a topic branch for you.
-
->> > diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
->> > index db3bbb8744af..1bffab54ff35 100644
->> > --- a/arch/powerpc/kernel/syscalls/syscall.tbl
->> > +++ b/arch/powerpc/kernel/syscalls/syscall.tbl
->> > @@ -425,3 +425,15 @@
->> >  386  nospu   pkey_mprotect                   sys_pkey_mprotect
->> >  387  nospu   rseq                            sys_rseq
->> >  388  nospu   io_pgetevents                   sys_io_pgetevents               compat_sys_io_pgetevents
->> > +# room for arch specific syscalls
->> > +392  64      semtimedop                      sys_semtimedop
->> > +393  common  semget                          sys_semget
->> > +394  common  semctl                          sys_semctl                      compat_sys_semctl
->> > +395  common  shmget                          sys_shmget
->> > +396  common  shmctl                          sys_shmctl                      compat_sys_shmctl
->> > +397  common  shmat                           sys_shmat                       compat_sys_shmat
->> > +398  common  shmdt                           sys_shmdt
->> > +399  common  msgget                          sys_msgget
->> > +400  common  msgsnd                          sys_msgsnd                      compat_sys_msgsnd
->> > +401  common  msgrcv                          sys_msgrcv                      compat_sys_msgrcv
->> > +402  common  msgctl                          sys_msgctl                      compat_sys_msgctl
->>
->> We already have a gap at 366-377 from when we tried to add the split IPC
->> calls a few years back.
->>
->> I guess I don't mind leaving that gap and using the common numbers as
->> you've done here.
->>
->> But it would be good to add a comment pointing out that we have room
->> at 366 for more arch specific syscalls as well.
->
-> Ah, I missed that. I've added this to my patch now:
->
-> index 5c0936d862fc..2ddfba536d5f 100644
-> --- a/arch/powerpc/kernel/syscalls/syscall.tbl
-> +++ b/arch/powerpc/kernel/syscalls/syscall.tbl
-> @@ -460,6 +460,7 @@
->  363    spu     switch_endian                   sys_ni_syscall
->  364    common  userfaultfd                     sys_userfaultfd
->  365    common  membarrier                      sys_membarrier
-> +# 366-377 originally left for IPC, now unused
->  378    nospu   mlock2                          sys_mlock2
->  379    nospu   copy_file_range                 sys_copy_file_range
->  380    common  preadv2                         sys_preadv2
->          compat_sys_preadv2
-
-Thanks.
-
-cheers
+diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
+index da08412bd49f..ea3ba981d8a0 100644
+--- a/arch/alpha/include/uapi/asm/socket.h
++++ b/arch/alpha/include/uapi/asm/socket.h
+@@ -31,8 +31,8 @@
+ #define SO_RCVBUFFORCE	0x100b
+ #define	SO_RCVLOWAT	0x1010
+ #define	SO_SNDLOWAT	0x1011
+-#define	SO_RCVTIMEO	0x1012
+-#define	SO_SNDTIMEO	0x1013
++#define	SO_RCVTIMEO_OLD	0x1012
++#define	SO_SNDTIMEO_OLD	0x1013
+ #define SO_ACCEPTCONN	0x1014
+ #define SO_PROTOCOL	0x1028
+ #define SO_DOMAIN	0x1029
+@@ -120,6 +120,9 @@
+ 
+ #if !defined(__KERNEL__)
+ 
++#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
++#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
++
+ #if __BITS_PER_LONG = 64
+ #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+ #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
+diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
+index 1e48f67f1052..4dde20d64690 100644
+--- a/arch/mips/include/uapi/asm/socket.h
++++ b/arch/mips/include/uapi/asm/socket.h
+@@ -39,8 +39,8 @@
+ #define SO_RCVBUF	0x1002	/* Receive buffer. */
+ #define SO_SNDLOWAT	0x1003	/* send low-water mark */
+ #define SO_RCVLOWAT	0x1004	/* receive low-water mark */
+-#define SO_SNDTIMEO	0x1005	/* send timeout */
+-#define SO_RCVTIMEO	0x1006	/* receive timeout */
++#define SO_SNDTIMEO_OLD	0x1005	/* send timeout */
++#define SO_RCVTIMEO_OLD	0x1006	/* receive timeout */
+ #define SO_ACCEPTCONN	0x1009
+ #define SO_PROTOCOL	0x1028	/* protocol type */
+ #define SO_DOMAIN	0x1029	/* domain/socket family */
+@@ -130,6 +130,8 @@
+ 
+ #if !defined(__KERNEL__)
+ 
++#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
++#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
+ #if __BITS_PER_LONG = 64
+ #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+ #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
+diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
+index e8d6cf20f9a4..546937fa0d8b 100644
+--- a/arch/parisc/include/uapi/asm/socket.h
++++ b/arch/parisc/include/uapi/asm/socket.h
+@@ -22,8 +22,8 @@
+ #define SO_RCVBUFFORCE	0x100b
+ #define SO_SNDLOWAT	0x1003
+ #define SO_RCVLOWAT	0x1004
+-#define SO_SNDTIMEO	0x1005
+-#define SO_RCVTIMEO	0x1006
++#define SO_SNDTIMEO_OLD	0x1005
++#define SO_RCVTIMEO_OLD	0x1006
+ #define SO_ERROR	0x1007
+ #define SO_TYPE		0x1008
+ #define SO_PROTOCOL	0x1028
+@@ -111,6 +111,8 @@
+ 
+ #if !defined(__KERNEL__)
+ 
++#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
++#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
+ #if __BITS_PER_LONG = 64
+ #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+ #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
+diff --git a/arch/powerpc/include/uapi/asm/socket.h b/arch/powerpc/include/uapi/asm/socket.h
+index 94de465e0920..12aa0c43e775 100644
+--- a/arch/powerpc/include/uapi/asm/socket.h
++++ b/arch/powerpc/include/uapi/asm/socket.h
+@@ -11,8 +11,8 @@
+ 
+ #define SO_RCVLOWAT	16
+ #define SO_SNDLOWAT	17
+-#define SO_RCVTIMEO	18
+-#define SO_SNDTIMEO	19
++#define SO_RCVTIMEO_OLD	18
++#define SO_SNDTIMEO_OLD	19
+ #define SO_PASSCRED	20
+ #define SO_PEERCRED	21
+ 
+diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
+index fc65bf6b6440..bdc396211627 100644
+--- a/arch/sparc/include/uapi/asm/socket.h
++++ b/arch/sparc/include/uapi/asm/socket.h
+@@ -21,8 +21,8 @@
+ #define SO_BSDCOMPAT    0x0400
+ #define SO_RCVLOWAT     0x0800
+ #define SO_SNDLOWAT     0x1000
+-#define SO_RCVTIMEO     0x2000
+-#define SO_SNDTIMEO     0x4000
++#define SO_RCVTIMEO_OLD     0x2000
++#define SO_SNDTIMEO_OLD     0x4000
+ #define SO_ACCEPTCONN	0x8000
+ 
+ #define SO_SNDBUF	0x1001
+@@ -112,6 +112,8 @@
+ 
+ #if !defined(__KERNEL__)
+ 
++#define	SO_RCVTIMEO	SO_RCVTIMEO_OLD
++#define	SO_SNDTIMEO	SO_SNDTIMEO_OLD
+ #if __BITS_PER_LONG = 64
+ #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+ #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
+diff --git a/fs/dlm/lowcomms.c b/fs/dlm/lowcomms.c
+index 76976d6e50f9..c98ad9777ad9 100644
+--- a/fs/dlm/lowcomms.c
++++ b/fs/dlm/lowcomms.c
+@@ -1089,12 +1089,12 @@ static void sctp_connect_to_sock(struct connection *con)
+ 	 * since O_NONBLOCK argument in connect() function does not work here,
+ 	 * then, we should restore the default value of this attribute.
+ 	 */
+-	kernel_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,
++	kernel_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO_OLD, (char *)&tv,
+ 			  sizeof(tv));
+ 	result = sock->ops->connect(sock, (struct sockaddr *)&daddr, addr_len,
+ 				   0);
+ 	memset(&tv, 0, sizeof(tv));
+-	kernel_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,
++	kernel_setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO_OLD, (char *)&tv,
+ 			  sizeof(tv));
+ 
+ 	if (result = -EINPROGRESS)
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 6679f3c120b0..98965a9a2bf4 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -292,8 +292,8 @@ struct sock_common {
+   *	@sk_peer_pid: &struct pid for this socket's peer
+   *	@sk_peer_cred: %SO_PEERCRED setting
+   *	@sk_rcvlowat: %SO_RCVLOWAT setting
+-  *	@sk_rcvtimeo: %SO_RCVTIMEO setting
+-  *	@sk_sndtimeo: %SO_SNDTIMEO setting
++  *	@sk_rcvtimeo: %SO_RCVTIMEO_OLD setting
++  *	@sk_sndtimeo: %SO_SNDTIMEO_OLD setting
+   *	@sk_txhash: computed flow hash for use on transmit
+   *	@sk_filter: socket filtering instructions
+   *	@sk_timer: sock cleanup timer
+diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
+index 94e618a4a43f..9e370586fb19 100644
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -30,8 +30,8 @@
+ #define SO_PEERCRED	17
+ #define SO_RCVLOWAT	18
+ #define SO_SNDLOWAT	19
+-#define SO_RCVTIMEO	20
+-#define SO_SNDTIMEO	21
++#define SO_RCVTIMEO_OLD	20
++#define SO_SNDTIMEO_OLD	21
+ #endif
+ 
+ /* Security levels - as per NRL IPv6 - don't actually do anything */
+@@ -114,6 +114,8 @@
+ 
+ #if !defined(__KERNEL__)
+ 
++#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
++#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
+ #if __BITS_PER_LONG = 64 || (defined(__x86_64__) && defined(__ILP32__))
+ /* on 64-bit and x32, avoid the ?: operator */
+ #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+diff --git a/net/compat.c b/net/compat.c
+index cbc15f65033c..19e047f70f64 100644
+--- a/net/compat.c
++++ b/net/compat.c
+@@ -378,7 +378,7 @@ static int compat_sock_setsockopt(struct socket *sock, int level, int optname,
+ 		return do_set_attach_filter(sock, level, optname,
+ 					    optval, optlen);
+ 	if (!COMPAT_USE_64BIT_TIME &&
+-	    (optname = SO_RCVTIMEO || optname = SO_SNDTIMEO))
++	    (optname = SO_RCVTIMEO_OLD || optname = SO_SNDTIMEO_OLD))
+ 		return do_set_sock_timeout(sock, level, optname, optval, optlen);
+ 
+ 	return sock_setsockopt(sock, level, optname, optval, optlen);
+@@ -450,7 +450,7 @@ static int compat_sock_getsockopt(struct socket *sock, int level, int optname,
+ 				char __user *optval, int __user *optlen)
+ {
+ 	if (!COMPAT_USE_64BIT_TIME &&
+-	    (optname = SO_RCVTIMEO || optname = SO_SNDTIMEO))
++	    (optname = SO_RCVTIMEO_OLD || optname = SO_SNDTIMEO_OLD))
+ 		return do_get_sock_timeout(sock, level, optname, optval, optlen);
+ 	return sock_getsockopt(sock, level, optname, optval, optlen);
+ }
+diff --git a/net/core/sock.c b/net/core/sock.c
+index af0fb33624e2..42914ca3186c 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -889,11 +889,11 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 			sk->sk_rcvlowat = val ? : 1;
+ 		break;
+ 
+-	case SO_RCVTIMEO:
++	case SO_RCVTIMEO_OLD:
+ 		ret = sock_set_timeout(&sk->sk_rcvtimeo, optval, optlen);
+ 		break;
+ 
+-	case SO_SNDTIMEO:
++	case SO_SNDTIMEO_OLD:
+ 		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen);
+ 		break;
+ 
+@@ -1222,7 +1222,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		v.val = sk->sk_tsflags;
+ 		break;
+ 
+-	case SO_RCVTIMEO:
++	case SO_RCVTIMEO_OLD:
+ 		lv = sizeof(struct __kernel_old_timeval);
+ 		if (sk->sk_rcvtimeo = MAX_SCHEDULE_TIMEOUT) {
+ 			v.tm.tv_sec = 0;
+@@ -1233,7 +1233,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		}
+ 		break;
+ 
+-	case SO_SNDTIMEO:
++	case SO_SNDTIMEO_OLD:
+ 		lv = sizeof(struct __kernel_old_timeval);
+ 		if (sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT) {
+ 			v.tm.tv_sec = 0;
+-- 
+2.17.1
