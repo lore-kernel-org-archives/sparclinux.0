@@ -1,559 +1,480 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Date: Wed, 09 Jan 2019 12:43:53 +0000
-Subject: [PATCH 14/14] syscall_get_arch: add "struct task_struct *" argument
-Message-Id: <20190109124353.GN11981@altlinux.org>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Tue, 08 Jan 2019 03:26:51 +0000
+Subject: [PATCH v3 2/8] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
+Message-Id: <20190108032657.8331-3-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190109124044.GA11935@altlinux.org>
+References: <20190108032657.8331-1-deepa.kernel@gmail.com>
+In-Reply-To: <20190108032657.8331-1-deepa.kernel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Paul Moore <paul@paul-moore.com>
-Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Palmer Dabbelt <palmer@sifive.com>, linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Eugene Syromyatnikov <esyr@redhat.com>, Elvira Khabirova <lineprinter@altlinux.org>, Mark Salter <msalter@redhat.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Kees Cook <keescook@chromium.org>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Andy Lutomirski <luto@kernel.org>, linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, Oleg Nesterov <oleg@redhat.com>, linux-kernel@vger.kernel.org
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, deller@gmx.de, dhowells@redhat.com, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
 
-This argument is required to extend the generic ptrace API with
-PTRACE_GET_SYSCALL_INFO request: syscall_get_arch() is going
-to be called from ptrace_request() along with syscall_get_nr(),
-syscall_get_arguments(), syscall_get_error(), and
-syscall_get_return_value() functions with a tracee as their argument.
+SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
+way they are currently defined, are not y2038 safe.
+Subsequent patches in the series add new y2038 safe versions
+of these options which provide 64 bit timestamps on all
+architectures uniformly.
+Hence, rename existing options with OLD tag suffixes.
 
-The primary intent is that the triple (audit_arch, syscall_nr, arg1..arg6)
-should describe what system call is being called and what its arguments
-are.
+Also note that kernel will not use the untagged SO_TIMESTAMP*
+and SCM_TIMESTAMP* options internally anymore.
 
-Reverts: 5e937a9ae913 ("syscall_get_arch: remove useless function arguments")
-Reverts: 1002d94d3076 ("syscall.h: fix doc text for syscall_get_arch()")
-Reviewed-by: Andy Lutomirski <luto@kernel.org> # for x86
-Reviewed-by: Palmer Dabbelt <palmer@sifive.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Acked-by: Kees Cook <keescook@chromium.org> # seccomp parts
-Acked-by: Mark Salter <msalter@redhat.com> # for the c6x bit
-Cc: Elvira Khabirova <lineprinter@altlinux.org>
-Cc: Eugene Syromyatnikov <esyr@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: x86@kernel.org
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: deller@gmx.de
+Cc: dhowells@redhat.com
+Cc: jejb@parisc-linux.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: linux-afs@lists.infradead.org
 Cc: linux-alpha@vger.kernel.org
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-c6x-dev@linux-c6x.org
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: nios2-dev@lists.rocketboards.org
-Cc: openrisc@lists.librecores.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-um@lists.infradead.org
-Cc: linux-xtensa@linux-xtensa.org
 Cc: linux-arch@vger.kernel.org
-Cc: linux-audit@redhat.com
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Cc: linux-mips@linux-mips.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
 ---
- arch/alpha/include/asm/syscall.h      |  2 +-
- arch/arc/include/asm/syscall.h        |  2 +-
- arch/arm/include/asm/syscall.h        |  2 +-
- arch/arm64/include/asm/syscall.h      |  4 ++--
- arch/c6x/include/asm/syscall.h        |  2 +-
- arch/csky/include/asm/syscall.h       |  2 +-
- arch/h8300/include/asm/syscall.h      |  2 +-
- arch/hexagon/include/asm/syscall.h    |  2 +-
- arch/ia64/include/asm/syscall.h       |  2 +-
- arch/m68k/include/asm/syscall.h       |  2 +-
- arch/microblaze/include/asm/syscall.h |  2 +-
- arch/mips/include/asm/syscall.h       |  6 +++---
- arch/mips/kernel/ptrace.c             |  2 +-
- arch/nds32/include/asm/syscall.h      |  2 +-
- arch/nios2/include/asm/syscall.h      |  2 +-
- arch/openrisc/include/asm/syscall.h   |  2 +-
- arch/parisc/include/asm/syscall.h     |  4 ++--
- arch/powerpc/include/asm/syscall.h    | 10 ++++++++--
- arch/riscv/include/asm/syscall.h      |  2 +-
- arch/s390/include/asm/syscall.h       |  4 ++--
- arch/sh/include/asm/syscall_32.h      |  2 +-
- arch/sh/include/asm/syscall_64.h      |  2 +-
- arch/sparc/include/asm/syscall.h      |  5 +++--
- arch/unicore32/include/asm/syscall.h  |  2 +-
- arch/x86/include/asm/syscall.h        |  8 +++++---
- arch/x86/um/asm/syscall.h             |  2 +-
- arch/xtensa/include/asm/syscall.h     |  2 +-
- include/asm-generic/syscall.h         |  5 +++--
- kernel/auditsc.c                      |  4 ++--
- kernel/seccomp.c                      |  4 ++--
- 30 files changed, 52 insertions(+), 42 deletions(-)
+ arch/alpha/include/uapi/asm/socket.h  | 23 ++++++++++++++++-------
+ arch/mips/include/uapi/asm/socket.h   | 23 ++++++++++++++++-------
+ arch/parisc/include/uapi/asm/socket.h | 23 ++++++++++++++++-------
+ arch/sparc/include/uapi/asm/socket.h  | 24 ++++++++++++++++--------
+ include/uapi/asm-generic/socket.h     | 23 ++++++++++++++++-------
+ net/compat.c                          |  6 +++---
+ net/core/sock.c                       | 16 ++++++++--------
+ net/ipv4/tcp.c                        |  6 +++---
+ net/rds/af_rds.c                      |  2 +-
+ net/rds/recv.c                        |  2 +-
+ net/rxrpc/local_object.c              |  2 +-
+ net/socket.c                          |  8 ++++----
+ 12 files changed, 101 insertions(+), 57 deletions(-)
 
-diff --git a/arch/alpha/include/asm/syscall.h b/arch/alpha/include/asm/syscall.h
-index d73a6fcb519c..11c688c1d7ec 100644
---- a/arch/alpha/include/asm/syscall.h
-+++ b/arch/alpha/include/asm/syscall.h
-@@ -4,7 +4,7 @@
+diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
+index 065fb372e355..00e45c80e574 100644
+--- a/arch/alpha/include/uapi/asm/socket.h
++++ b/arch/alpha/include/uapi/asm/socket.h
+@@ -51,13 +51,9 @@
+ #define SO_GET_FILTER		SO_ATTACH_FILTER
  
- #include <uapi/linux/audit.h>
+ #define SO_PEERNAME		28
+-#define SO_TIMESTAMP		29
+-#define SCM_TIMESTAMP		SO_TIMESTAMP
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_ALPHA;
- }
-diff --git a/arch/arc/include/asm/syscall.h b/arch/arc/include/asm/syscall.h
-index c7fc4c0c3bcb..caf2697ef5b7 100644
---- a/arch/arc/include/asm/syscall.h
-+++ b/arch/arc/include/asm/syscall.h
-@@ -70,7 +70,7 @@ syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
- }
+ #define SO_PEERSEC		30
+ #define SO_PASSSEC		34
+-#define SO_TIMESTAMPNS		35
+-#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return IS_ENABLED(CONFIG_ISA_ARCOMPACT)
- 		? (IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
-diff --git a/arch/arm/include/asm/syscall.h b/arch/arm/include/asm/syscall.h
-index 06dea6bce293..3940ceac0bdc 100644
---- a/arch/arm/include/asm/syscall.h
-+++ b/arch/arm/include/asm/syscall.h
-@@ -104,7 +104,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->ARM_r0 + i, args, n * sizeof(args[0]));
- }
+ /* Security levels - as per NRL IPv6 - don't actually do anything */
+ #define SO_SECURITY_AUTHENTICATION		19
+@@ -66,9 +62,6 @@
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	/* ARM tasks don't change audit architectures on the fly. */
- 	return AUDIT_ARCH_ARM;
-diff --git a/arch/arm64/include/asm/syscall.h b/arch/arm64/include/asm/syscall.h
-index ad8be16a39c9..1870df03f774 100644
---- a/arch/arm64/include/asm/syscall.h
-+++ b/arch/arm64/include/asm/syscall.h
-@@ -117,9 +117,9 @@ static inline void syscall_set_arguments(struct task_struct *task,
-  * We don't care about endianness (__AUDIT_ARCH_LE bit) here because
-  * AArch64 has the same system calls both on little- and big- endian.
-  */
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
--	if (is_compat_task())
-+	if (is_compat_thread(task_thread_info(task)))
- 		return AUDIT_ARCH_ARM;
+ #define SO_MARK			36
  
- 	return AUDIT_ARCH_AARCH64;
-diff --git a/arch/c6x/include/asm/syscall.h b/arch/c6x/include/asm/syscall.h
-index 39dbd1ef994c..595057191c9c 100644
---- a/arch/c6x/include/asm/syscall.h
-+++ b/arch/c6x/include/asm/syscall.h
-@@ -121,7 +121,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	}
- }
+-#define SO_TIMESTAMPING		37
+-#define SCM_TIMESTAMPING	SO_TIMESTAMPING
+-
+ #define SO_RXQ_OVFL             40
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
- 		? AUDIT_ARCH_C6XBE : AUDIT_ARCH_C6X;
-diff --git a/arch/csky/include/asm/syscall.h b/arch/csky/include/asm/syscall.h
-index d637445737b7..150ffb894fa2 100644
---- a/arch/csky/include/asm/syscall.h
-+++ b/arch/csky/include/asm/syscall.h
-@@ -70,7 +70,7 @@ syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- }
+ #define SO_WIFI_STATUS		41
+@@ -115,4 +108,20 @@
+ #define SO_TXTIME		61
+ #define SCM_TXTIME		SO_TXTIME
  
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_CSKY;
- }
-diff --git a/arch/h8300/include/asm/syscall.h b/arch/h8300/include/asm/syscall.h
-index 5135910616e2..d316c3d40d4e 100644
---- a/arch/h8300/include/asm/syscall.h
-+++ b/arch/h8300/include/asm/syscall.h
-@@ -49,7 +49,7 @@ syscall_get_arguments(struct task_struct *task, struct pt_regs *regs,
- }
- 
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_H8300;
- }
-diff --git a/arch/hexagon/include/asm/syscall.h b/arch/hexagon/include/asm/syscall.h
-index de3917aad3fd..47b0bc3f16be 100644
---- a/arch/hexagon/include/asm/syscall.h
-+++ b/arch/hexagon/include/asm/syscall.h
-@@ -46,7 +46,7 @@ static inline void syscall_get_arguments(struct task_struct *task,
- 	memcpy(args, &(&regs->r00)[i], n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_HEXAGON;
- }
-diff --git a/arch/ia64/include/asm/syscall.h b/arch/ia64/include/asm/syscall.h
-index 1d0b875fec44..47ab33f5448a 100644
---- a/arch/ia64/include/asm/syscall.h
-+++ b/arch/ia64/include/asm/syscall.h
-@@ -81,7 +81,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	ia64_syscall_get_set_arguments(task, regs, i, n, args, 1);
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_IA64;
- }
-diff --git a/arch/m68k/include/asm/syscall.h b/arch/m68k/include/asm/syscall.h
-index d4d7deda8d50..465ac039be09 100644
---- a/arch/m68k/include/asm/syscall.h
-+++ b/arch/m68k/include/asm/syscall.h
-@@ -4,7 +4,7 @@
- 
- #include <uapi/linux/audit.h>
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_M68K;
- }
-diff --git a/arch/microblaze/include/asm/syscall.h b/arch/microblaze/include/asm/syscall.h
-index 220decd605a4..77a86fafa974 100644
---- a/arch/microblaze/include/asm/syscall.h
-+++ b/arch/microblaze/include/asm/syscall.h
-@@ -101,7 +101,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- asmlinkage unsigned long do_syscall_trace_enter(struct pt_regs *regs);
- asmlinkage void do_syscall_trace_leave(struct pt_regs *regs);
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_MICROBLAZE;
- }
-diff --git a/arch/mips/include/asm/syscall.h b/arch/mips/include/asm/syscall.h
-index 6cf8ffb5367e..6a22c9352ef6 100644
---- a/arch/mips/include/asm/syscall.h
-+++ b/arch/mips/include/asm/syscall.h
-@@ -140,14 +140,14 @@ extern const unsigned long sys_call_table[];
- extern const unsigned long sys32_call_table[];
- extern const unsigned long sysn32_call_table[];
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_MIPS;
- #ifdef CONFIG_64BIT
--	if (!test_thread_flag(TIF_32BIT_REGS)) {
-+	if (!test_tsk_thread_flag(task, TIF_32BIT_REGS)) {
- 		arch |= __AUDIT_ARCH_64BIT;
- 		/* N32 sets only TIF_32BIT_ADDR */
--		if (test_thread_flag(TIF_32BIT_ADDR))
-+		if (test_tsk_thread_flag(task, TIF_32BIT_ADDR))
- 			arch |= __AUDIT_ARCH_CONVENTION_MIPS64_N32;
- 	}
- #endif
-diff --git a/arch/mips/kernel/ptrace.c b/arch/mips/kernel/ptrace.c
-index 0057c910bc2f..2ead6ff919b7 100644
---- a/arch/mips/kernel/ptrace.c
-+++ b/arch/mips/kernel/ptrace.c
-@@ -1418,7 +1418,7 @@ asmlinkage long syscall_trace_enter(struct pt_regs *regs, long syscall)
- 		unsigned long args[6];
- 
- 		sd.nr = syscall;
--		sd.arch = syscall_get_arch();
-+		sd.arch = syscall_get_arch(current);
- 		syscall_get_arguments(current, regs, 0, 6, args);
- 		for (i = 0; i < 6; i++)
- 			sd.args[i] = args[i];
-diff --git a/arch/nds32/include/asm/syscall.h b/arch/nds32/include/asm/syscall.h
-index cc56a3962f8b..7501e376a6b1 100644
---- a/arch/nds32/include/asm/syscall.h
-+++ b/arch/nds32/include/asm/syscall.h
-@@ -188,7 +188,7 @@ void syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- }
- 
- static inline int
--syscall_get_arch(void)
-+syscall_get_arch(struct task_struct *task)
- {
- 	return IS_ENABLED(CONFIG_CPU_BIG_ENDIAN)
- 		? AUDIT_ARCH_NDS32BE : AUDIT_ARCH_NDS32;
-diff --git a/arch/nios2/include/asm/syscall.h b/arch/nios2/include/asm/syscall.h
-index cf35e210fc4d..f0f6ae208e78 100644
---- a/arch/nios2/include/asm/syscall.h
-+++ b/arch/nios2/include/asm/syscall.h
-@@ -136,7 +136,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	}
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_NIOS2;
- }
-diff --git a/arch/openrisc/include/asm/syscall.h b/arch/openrisc/include/asm/syscall.h
-index 2db9f1cf0694..46b10c674bd2 100644
---- a/arch/openrisc/include/asm/syscall.h
-+++ b/arch/openrisc/include/asm/syscall.h
-@@ -72,7 +72,7 @@ syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
- 	memcpy(&regs->gpr[3 + i], args, n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_OPENRISC;
- }
-diff --git a/arch/parisc/include/asm/syscall.h b/arch/parisc/include/asm/syscall.h
-index 8bff1a58c97f..c04ffc6ac928 100644
---- a/arch/parisc/include/asm/syscall.h
-+++ b/arch/parisc/include/asm/syscall.h
-@@ -62,11 +62,11 @@ static inline void syscall_rollback(struct task_struct *task,
- 	/* do nothing */
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_PARISC;
- #ifdef CONFIG_64BIT
--	if (!is_compat_task())
-+	if (!__is_compat_task(task))
- 		arch = AUDIT_ARCH_PARISC64;
- #endif
- 	return arch;
-diff --git a/arch/powerpc/include/asm/syscall.h b/arch/powerpc/include/asm/syscall.h
-index 1a0e7a8b1c81..efb50429c9f4 100644
---- a/arch/powerpc/include/asm/syscall.h
-+++ b/arch/powerpc/include/asm/syscall.h
-@@ -99,9 +99,15 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->orig_gpr3 = args[0];
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
--	int arch = is_32bit_task() ? AUDIT_ARCH_PPC : AUDIT_ARCH_PPC64;
-+	int arch;
++#define SO_TIMESTAMP_OLD         29
++#define SO_TIMESTAMPNS_OLD       35
++#define SO_TIMESTAMPING_OLD      37
 +
-+	if (IS_ENABLED(CONFIG_PPC64) && !test_tsk_thread_flag(task, TIF_32BIT))
-+		arch = AUDIT_ARCH_PPC64;
-+	else
-+		arch = AUDIT_ARCH_PPC;
++#if !defined(__KERNEL__)
 +
- #ifdef __LITTLE_ENDIAN__
- 	arch |= __AUDIT_ARCH_LE;
- #endif
-diff --git a/arch/riscv/include/asm/syscall.h b/arch/riscv/include/asm/syscall.h
-index bba3da6ef157..ca120a36a037 100644
---- a/arch/riscv/include/asm/syscall.h
-+++ b/arch/riscv/include/asm/syscall.h
-@@ -100,7 +100,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->a1 + i * sizeof(regs->a1), args, n * sizeof(regs->a0));
- }
++#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
++#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
++#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
++
++#define SCM_TIMESTAMP          SO_TIMESTAMP
++#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
++#define SCM_TIMESTAMPING       SO_TIMESTAMPING
++
++#endif
++
+ #endif /* _UAPI_ASM_SOCKET_H */
+diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
+index 71370fb3ceef..b9553f770346 100644
+--- a/arch/mips/include/uapi/asm/socket.h
++++ b/arch/mips/include/uapi/asm/socket.h
+@@ -65,21 +65,14 @@
+ #define SO_GET_FILTER		SO_ATTACH_FILTER
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #ifdef CONFIG_64BIT
- 	return AUDIT_ARCH_RISCV64;
-diff --git a/arch/s390/include/asm/syscall.h b/arch/s390/include/asm/syscall.h
-index 96f9a9151fde..5a40ea8b90ea 100644
---- a/arch/s390/include/asm/syscall.h
-+++ b/arch/s390/include/asm/syscall.h
-@@ -92,10 +92,10 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->orig_gpr2 = args[0];
- }
+ #define SO_PEERNAME		28
+-#define SO_TIMESTAMP		29
+-#define SCM_TIMESTAMP		SO_TIMESTAMP
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #ifdef CONFIG_COMPAT
--	if (test_tsk_thread_flag(current, TIF_31BIT))
-+	if (test_tsk_thread_flag(task, TIF_31BIT))
- 		return AUDIT_ARCH_S390;
- #endif
- 	return AUDIT_ARCH_S390X;
-diff --git a/arch/sh/include/asm/syscall_32.h b/arch/sh/include/asm/syscall_32.h
-index 6e118799831c..08de429eccd4 100644
---- a/arch/sh/include/asm/syscall_32.h
-+++ b/arch/sh/include/asm/syscall_32.h
-@@ -95,7 +95,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
+ #define SO_PEERSEC		30
+ #define SO_SNDBUFFORCE		31
+ #define SO_RCVBUFFORCE		33
+ #define SO_PASSSEC		34
+-#define SO_TIMESTAMPNS		35
+-#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
+ 
+ #define SO_MARK			36
+ 
+-#define SO_TIMESTAMPING		37
+-#define SCM_TIMESTAMPING	SO_TIMESTAMPING
+-
+ #define SO_RXQ_OVFL		40
+ 
+ #define SO_WIFI_STATUS		41
+@@ -126,4 +119,20 @@
+ #define SO_TXTIME		61
+ #define SCM_TXTIME		SO_TXTIME
+ 
++#define SO_TIMESTAMP_OLD         29
++#define SO_TIMESTAMPNS_OLD       35
++#define SO_TIMESTAMPING_OLD      37
++
++#if !defined(__KERNEL__)
++
++#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
++#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
++#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
++
++#define SCM_TIMESTAMP          SO_TIMESTAMP
++#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
++#define SCM_TIMESTAMPING       SO_TIMESTAMPING
++
++#endif
++
+ #endif /* _UAPI_ASM_SOCKET_H */
+diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
+index 061b9cf2a779..37cdfe64bb27 100644
+--- a/arch/parisc/include/uapi/asm/socket.h
++++ b/arch/parisc/include/uapi/asm/socket.h
+@@ -34,10 +34,6 @@
+ #define SO_BSDCOMPAT	0x400e
+ #define SO_PASSCRED	0x4010
+ #define SO_PEERCRED	0x4011
+-#define SO_TIMESTAMP	0x4012
+-#define SCM_TIMESTAMP	SO_TIMESTAMP
+-#define SO_TIMESTAMPNS	0x4013
+-#define SCM_TIMESTAMPNS	SO_TIMESTAMPNS
+ 
+ /* Security levels - as per NRL IPv6 - don't actually do anything */
+ #define SO_SECURITY_AUTHENTICATION		0x4016
+@@ -58,9 +54,6 @@
+ 
+ #define SO_MARK			0x401f
+ 
+-#define SO_TIMESTAMPING		0x4020
+-#define SCM_TIMESTAMPING	SO_TIMESTAMPING
+-
+ #define SO_RXQ_OVFL             0x4021
+ 
+ #define SO_WIFI_STATUS		0x4022
+@@ -107,4 +100,20 @@
+ #define SO_TXTIME		0x4036
+ #define SCM_TXTIME		SO_TXTIME
+ 
++#define SO_TIMESTAMP_OLD         0x4012
++#define SO_TIMESTAMPNS_OLD       0x4013
++#define SO_TIMESTAMPING_OLD      0x4020
++
++#if !defined(__KERNEL__)
++
++#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
++#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
++#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
++
++#define SCM_TIMESTAMP          SO_TIMESTAMP
++#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
++#define SCM_TIMESTAMPING       SO_TIMESTAMPING
++
++#endif
++
+ #endif /* _UAPI_ASM_SOCKET_H */
+diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
+index 7ea35e5601b6..ca573641fc6c 100644
+--- a/arch/sparc/include/uapi/asm/socket.h
++++ b/arch/sparc/include/uapi/asm/socket.h
+@@ -33,7 +33,6 @@
+ #define SO_PROTOCOL	0x1028
+ #define SO_DOMAIN	0x1029
+ 
+-
+ /* Linux specific, keep the same. */
+ #define SO_NO_CHECK	0x000b
+ #define SO_PRIORITY	0x000c
+@@ -45,19 +44,12 @@
+ #define SO_GET_FILTER		SO_ATTACH_FILTER
+ 
+ #define SO_PEERNAME		0x001c
+-#define SO_TIMESTAMP		0x001d
+-#define SCM_TIMESTAMP		SO_TIMESTAMP
+ 
+ #define SO_PEERSEC		0x001e
+ #define SO_PASSSEC		0x001f
+-#define SO_TIMESTAMPNS		0x0021
+-#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
+ 
+ #define SO_MARK			0x0022
+ 
+-#define SO_TIMESTAMPING		0x0023
+-#define SCM_TIMESTAMPING	SO_TIMESTAMPING
+-
+ #define SO_RXQ_OVFL             0x0024
+ 
+ #define SO_WIFI_STATUS		0x0025
+@@ -109,4 +101,20 @@
+ #define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
+ #define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
+ 
++#define SO_TIMESTAMP_OLD         0x001d
++#define SO_TIMESTAMPNS_OLD       0x0021
++#define SO_TIMESTAMPING_OLD      0x0023
++
++#if !defined(__KERNEL__)
++
++#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
++#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
++#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
++
++#define SCM_TIMESTAMP          SO_TIMESTAMP
++#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
++#define SCM_TIMESTAMPING       SO_TIMESTAMPING
++
++#endif
++
+ #endif /* _ASM_SOCKET_H */
+diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
+index a12692e5f7a8..dc704e41203d 100644
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -46,21 +46,14 @@
+ #define SO_GET_FILTER		SO_ATTACH_FILTER
+ 
+ #define SO_PEERNAME		28
+-#define SO_TIMESTAMP		29
+-#define SCM_TIMESTAMP		SO_TIMESTAMP
+ 
+ #define SO_ACCEPTCONN		30
+ 
+ #define SO_PEERSEC		31
+ #define SO_PASSSEC		34
+-#define SO_TIMESTAMPNS		35
+-#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
+ 
+ #define SO_MARK			36
+ 
+-#define SO_TIMESTAMPING		37
+-#define SCM_TIMESTAMPING	SO_TIMESTAMPING
+-
+ #define SO_PROTOCOL		38
+ #define SO_DOMAIN		39
+ 
+@@ -110,4 +103,20 @@
+ #define SO_TXTIME		61
+ #define SCM_TXTIME		SO_TXTIME
+ 
++#define SO_TIMESTAMP_OLD         29
++#define SO_TIMESTAMPNS_OLD       35
++#define SO_TIMESTAMPING_OLD      37
++
++#if !defined(__KERNEL__)
++
++#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
++#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
++#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
++
++#define SCM_TIMESTAMP          SO_TIMESTAMP
++#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
++#define SCM_TIMESTAMPING       SO_TIMESTAMPING
++
++#endif
++
+ #endif /* __ASM_GENERIC_SOCKET_H */
+diff --git a/net/compat.c b/net/compat.c
+index c3a2f868e8af..ad24c1c0f0a1 100644
+--- a/net/compat.c
++++ b/net/compat.c
+@@ -219,7 +219,7 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
  	}
- }
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_SH;
- 
-diff --git a/arch/sh/include/asm/syscall_64.h b/arch/sh/include/asm/syscall_64.h
-index 43882580c7f9..9b62a2404531 100644
---- a/arch/sh/include/asm/syscall_64.h
-+++ b/arch/sh/include/asm/syscall_64.h
-@@ -63,7 +63,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->regs[2 + i], args, n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	int arch = AUDIT_ARCH_SH;
- 
-diff --git a/arch/sparc/include/asm/syscall.h b/arch/sparc/include/asm/syscall.h
-index 053989e3f6a6..9ffb367c17fd 100644
---- a/arch/sparc/include/asm/syscall.h
-+++ b/arch/sparc/include/asm/syscall.h
-@@ -128,10 +128,11 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 		regs->u_regs[UREG_I0 + i + j] = args[j];
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #if defined(CONFIG_SPARC64) && defined(CONFIG_COMPAT)
--	return in_compat_syscall() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
-+	return test_tsk_thread_flag(task, TIF_32BIT)
-+		? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
- #elif defined(CONFIG_SPARC64)
- 	return AUDIT_ARCH_SPARC64;
- #else
-diff --git a/arch/unicore32/include/asm/syscall.h b/arch/unicore32/include/asm/syscall.h
-index 3a6b885476b4..607961797fff 100644
---- a/arch/unicore32/include/asm/syscall.h
-+++ b/arch/unicore32/include/asm/syscall.h
-@@ -4,7 +4,7 @@
- 
- #include <uapi/linux/audit.h>
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_UNICORE;
- }
-diff --git a/arch/x86/include/asm/syscall.h b/arch/x86/include/asm/syscall.h
-index d653139857af..435f3f09279c 100644
---- a/arch/x86/include/asm/syscall.h
-+++ b/arch/x86/include/asm/syscall.h
-@@ -107,7 +107,7 @@ static inline void syscall_set_arguments(struct task_struct *task,
- 	memcpy(&regs->bx + i, args, n * sizeof(args[0]));
- }
- 
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_I386;
- }
-@@ -236,10 +236,12 @@ static inline void syscall_set_arguments(struct task_struct *task,
+ 	if (!COMPAT_USE_64BIT_TIME) {
+-		if (level = SOL_SOCKET && type = SCM_TIMESTAMP) {
++		if (level = SOL_SOCKET && type = SO_TIMESTAMP_OLD) {
+ 			struct timeval *tv = (struct timeval *)data;
+ 			ctv.tv_sec = tv->tv_sec;
+ 			ctv.tv_usec = tv->tv_usec;
+@@ -227,8 +227,8 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
+ 			len = sizeof(ctv);
  		}
- }
+ 		if (level = SOL_SOCKET &&
+-		    (type = SCM_TIMESTAMPNS || type = SCM_TIMESTAMPING)) {
+-			int count = type = SCM_TIMESTAMPNS ? 1 : 3;
++		    (type = SO_TIMESTAMPNS_OLD || type = SO_TIMESTAMPING_OLD)) {
++			int count = type = SO_TIMESTAMPNS_OLD ? 1 : 3;
+ 			int i;
+ 			struct timespec *ts = (struct timespec *)data;
+ 			for (i = 0; i < count; i++) {
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 6aa2e7e0b4fb..492a8407130a 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -815,10 +815,10 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 			clear_bit(SOCK_PASSCRED, &sock->flags);
+ 		break;
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	/* x32 tasks should be considered AUDIT_ARCH_X86_64. */
--	return in_ia32_syscall() ? AUDIT_ARCH_I386 : AUDIT_ARCH_X86_64;
-+	return (IS_ENABLED(CONFIG_IA32_EMULATION) &&
-+		task->thread_info.status & TS_COMPAT)
-+		? AUDIT_ARCH_I386 : AUDIT_ARCH_X86_64;
- }
- #endif	/* CONFIG_X86_32 */
+-	case SO_TIMESTAMP:
+-	case SO_TIMESTAMPNS:
++	case SO_TIMESTAMP_OLD:
++	case SO_TIMESTAMPNS_OLD:
+ 		if (valbool)  {
+-			if (optname = SO_TIMESTAMP)
++			if (optname = SO_TIMESTAMP_OLD)
+ 				sock_reset_flag(sk, SOCK_RCVTSTAMPNS);
+ 			else
+ 				sock_set_flag(sk, SOCK_RCVTSTAMPNS);
+@@ -830,7 +830,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 		}
+ 		break;
  
-diff --git a/arch/x86/um/asm/syscall.h b/arch/x86/um/asm/syscall.h
-index ef898af102d1..56a2f0913e3c 100644
---- a/arch/x86/um/asm/syscall.h
-+++ b/arch/x86/um/asm/syscall.h
-@@ -9,7 +9,7 @@ typedef asmlinkage long (*sys_call_ptr_t)(unsigned long, unsigned long,
- 					  unsigned long, unsigned long,
- 					  unsigned long, unsigned long);
+-	case SO_TIMESTAMPING:
++	case SO_TIMESTAMPING_OLD:
+ 		if (val & ~SOF_TIMESTAMPING_MASK) {
+ 			ret = -EINVAL;
+ 			break;
+@@ -1186,16 +1186,16 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		sock_warn_obsolete_bsdism("getsockopt");
+ 		break;
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- #ifdef CONFIG_X86_32
- 	return AUDIT_ARCH_I386;
-diff --git a/arch/xtensa/include/asm/syscall.h b/arch/xtensa/include/asm/syscall.h
-index a168bf81c7f4..0681ca656809 100644
---- a/arch/xtensa/include/asm/syscall.h
-+++ b/arch/xtensa/include/asm/syscall.h
-@@ -14,7 +14,7 @@
- #include <asm/ptrace.h>
- #include <uapi/linux/audit.h>
+-	case SO_TIMESTAMP:
++	case SO_TIMESTAMP_OLD:
+ 		v.val = sock_flag(sk, SOCK_RCVTSTAMP) &&
+ 				!sock_flag(sk, SOCK_RCVTSTAMPNS);
+ 		break;
  
--static inline int syscall_get_arch(void)
-+static inline int syscall_get_arch(struct task_struct *task)
- {
- 	return AUDIT_ARCH_XTENSA;
- }
-diff --git a/include/asm-generic/syscall.h b/include/asm-generic/syscall.h
-index 0c938a4354f6..e0d060b43321 100644
---- a/include/asm-generic/syscall.h
-+++ b/include/asm-generic/syscall.h
-@@ -144,14 +144,15 @@ void syscall_set_arguments(struct task_struct *task, struct pt_regs *regs,
+-	case SO_TIMESTAMPNS:
++	case SO_TIMESTAMPNS_OLD:
+ 		v.val = sock_flag(sk, SOCK_RCVTSTAMPNS);
+ 		break;
  
- /**
-  * syscall_get_arch - return the AUDIT_ARCH for the current system call
-+ * @task:	task of interest, must be blocked
-  *
-  * Returns the AUDIT_ARCH_* based on the system call convention in use.
-  *
-- * It's only valid to call this when current is stopped on entry to a system
-+ * It's only valid to call this when @task is stopped on entry to a system
-  * call, due to %TIF_SYSCALL_TRACE, %TIF_SYSCALL_AUDIT, or %TIF_SECCOMP.
-  *
-  * Architectures which permit CONFIG_HAVE_ARCH_SECCOMP_FILTER must
-  * provide an implementation of this.
-  */
--int syscall_get_arch(void);
-+int syscall_get_arch(struct task_struct *task);
- #endif	/* _ASM_SYSCALL_H */
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 6593a5207fb0..919fe4ef4314 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -1505,7 +1505,7 @@ void __audit_syscall_entry(int major, unsigned long a1, unsigned long a2,
- 			return;
+-	case SO_TIMESTAMPING:
++	case SO_TIMESTAMPING_OLD:
+ 		v.val = sk->sk_tsflags;
+ 		break;
+ 
+@@ -2122,7 +2122,7 @@ int __sock_cmsg_send(struct sock *sk, struct msghdr *msg, struct cmsghdr *cmsg,
+ 			return -EINVAL;
+ 		sockc->mark = *(u32 *)CMSG_DATA(cmsg);
+ 		break;
+-	case SO_TIMESTAMPING:
++	case SO_TIMESTAMPING_OLD:
+ 		if (cmsg->cmsg_len != CMSG_LEN(sizeof(u32)))
+ 			return -EINVAL;
+ 
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 27e2f6837062..95eebe94ecf0 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -1870,13 +1870,13 @@ static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
+ 	if (tss->ts[0].tv_sec || tss->ts[0].tv_nsec) {
+ 		if (sock_flag(sk, SOCK_RCVTSTAMP)) {
+ 			if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
+-				put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPNS,
++				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
+ 					 sizeof(tss->ts[0]), &tss->ts[0]);
+ 			} else {
+ 				tv.tv_sec = tss->ts[0].tv_sec;
+ 				tv.tv_usec = tss->ts[0].tv_nsec / 1000;
+ 
+-				put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
++				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
+ 					 sizeof(tv), &tv);
+ 			}
+ 		}
+@@ -1896,7 +1896,7 @@ static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
+ 
+ 	if (has_timestamping) {
+ 		tss->ts[1] = (struct timespec) {0};
+-		put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPING,
++		put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPING_OLD,
+ 			 sizeof(*tss), tss);
  	}
- 
--	context->arch	    = syscall_get_arch();
-+	context->arch	    = syscall_get_arch(current);
- 	context->major      = major;
- 	context->argv[0]    = a1;
- 	context->argv[1]    = a2;
-@@ -2480,7 +2480,7 @@ void audit_seccomp(unsigned long syscall, long signr, int code)
- 		return;
- 	audit_log_task(ab);
- 	audit_log_format(ab, " sig=%ld arch=%x syscall=%ld compat=%d ip=0x%lx code=0x%x",
--			 signr, syscall_get_arch(), syscall,
-+			 signr, syscall_get_arch(current), syscall,
- 			 in_compat_syscall(), KSTK_EIP(current), code);
- 	audit_log_end(ab);
  }
-diff --git a/kernel/seccomp.c b/kernel/seccomp.c
-index d7f538847b84..803a69e6af37 100644
---- a/kernel/seccomp.c
-+++ b/kernel/seccomp.c
-@@ -148,7 +148,7 @@ static void populate_seccomp_data(struct seccomp_data *sd)
- 	unsigned long args[6];
+diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
+index 65387e1e6964..eeb4639adbe5 100644
+--- a/net/rds/af_rds.c
++++ b/net/rds/af_rds.c
+@@ -430,7 +430,7 @@ static int rds_setsockopt(struct socket *sock, int level, int optname,
+ 		ret = rds_set_transport(rs, optval, optlen);
+ 		release_sock(sock->sk);
+ 		break;
+-	case SO_TIMESTAMP:
++	case SO_TIMESTAMP_OLD:
+ 		lock_sock(sock->sk);
+ 		ret = rds_enable_recvtstamp(sock->sk, optval, optlen);
+ 		release_sock(sock->sk);
+diff --git a/net/rds/recv.c b/net/rds/recv.c
+index 727639dac8a7..04e30d63a159 100644
+--- a/net/rds/recv.c
++++ b/net/rds/recv.c
+@@ -550,7 +550,7 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
+ 	if ((inc->i_rx_tstamp != 0) &&
+ 	    sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP)) {
+ 		struct timeval tv = ktime_to_timeval(inc->i_rx_tstamp);
+-		ret = put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
++		ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
+ 			       sizeof(tv), &tv);
+ 		if (ret)
+ 			goto out;
+diff --git a/net/rxrpc/local_object.c b/net/rxrpc/local_object.c
+index 0906e51d3cfb..15cf42d5b53a 100644
+--- a/net/rxrpc/local_object.c
++++ b/net/rxrpc/local_object.c
+@@ -202,7 +202,7 @@ static int rxrpc_open_socket(struct rxrpc_local *local, struct net *net)
  
- 	sd->nr = syscall_get_nr(task, regs);
--	sd->arch = syscall_get_arch();
-+	sd->arch = syscall_get_arch(task);
- 	syscall_get_arguments(task, regs, 0, 6, args);
- 	sd->args[0] = args[0];
- 	sd->args[1] = args[1];
-@@ -589,7 +589,7 @@ static void seccomp_init_siginfo(kernel_siginfo_t *info, int syscall, int reason
- 	info->si_code = SYS_SECCOMP;
- 	info->si_call_addr = (void __user *)KSTK_EIP(current);
- 	info->si_errno = reason;
--	info->si_arch = syscall_get_arch();
-+	info->si_arch = syscall_get_arch(current);
- 	info->si_syscall = syscall;
- }
+ 		/* We want receive timestamps. */
+ 		opt = 1;
+-		ret = kernel_setsockopt(local->socket, SOL_SOCKET, SO_TIMESTAMPNS,
++		ret = kernel_setsockopt(local->socket, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
+ 					(char *)&opt, sizeof(opt));
+ 		if (ret < 0) {
+ 			_debug("setsockopt failed");
+diff --git a/net/socket.c b/net/socket.c
+index e89884e2197b..5087f9e40f3a 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -669,7 +669,7 @@ static bool skb_is_err_queue(const struct sk_buff *skb)
+  * before the software timestamp is received, a hardware TX timestamp may be
+  * returned only if there is no software TX timestamp. Ignore false software
+  * timestamps, which may be made in the __sock_recv_timestamp() call when the
+- * option SO_TIMESTAMP(NS) is enabled on the socket, even when the skb has a
++ * option SO_TIMESTAMP_OLD(NS) is enabled on the socket, even when the skb has a
+  * hardware timestamp.
+  */
+ static bool skb_is_swtx_tstamp(const struct sk_buff *skb, int false_tstamp)
+@@ -721,12 +721,12 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
+ 		if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
+ 			struct timeval tv;
+ 			skb_get_timestamp(skb, &tv);
+-			put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
++			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
+ 				 sizeof(tv), &tv);
+ 		} else {
+ 			struct timespec ts;
+ 			skb_get_timestampns(skb, &ts);
+-			put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPNS,
++			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
+ 				 sizeof(ts), &ts);
+ 		}
+ 	}
+@@ -746,7 +746,7 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
+ 	}
+ 	if (!empty) {
+ 		put_cmsg(msg, SOL_SOCKET,
+-			 SCM_TIMESTAMPING, sizeof(tss), &tss);
++			 SO_TIMESTAMPING_OLD, sizeof(tss), &tss);
  
+ 		if (skb_is_err_queue(skb) && skb->len &&
+ 		    SKB_EXT_ERR(skb)->opt_stats)
 -- 
-ldv
+2.17.1
