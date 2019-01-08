@@ -1,112 +1,63 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 10 Jan 2019 17:22:14 +0000
-Subject: [PATCH 09/11] y2038: remove struct definition redirects
-Message-Id: <20190110172216.313063-10-arnd@arndb.de>
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Tue, 08 Jan 2019 05:22:52 +0000
+Subject: [PATCH 0/3] net: y2038-safe socket timeout options
+Message-Id: <20190108052255.10699-1-deepa.kernel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110172216.313063-1-arnd@arndb.de>
-In-Reply-To: <20190110172216.313063-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, paul.burton@mips.com, deller@gmx.de, benh@kernel.crashing.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jcmvbkbc@gmail.com, akpm@linux-foundation.org, deepa.kernel@gmail.com, ebiederm@xmission.com, firoz.khan@linaro.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.or
+To: davem@davemloft.net, linux-kernel@vger.kernel.org
+Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, ccaulfie@redhat.com, cluster-devel@redhat.com, deller@gmx.de, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, sparclinux@vger.kernel.org
 
-We now use 64-bit time_t on all architectures, so the __kernel_timex,
-__kernel_timeval and __kernel_timespec redirects can be removed
-after having served their purpose.
+The series is aimed at adding y2038-safe timeout options:
+SO_RCVTIMEO_NEW and SO_SNDTIMEO_NEW.
 
-This makes it all much less confusing, as the __kernel_* types
-now always refer to the same layout based on 64-bit time_t across
-all 32-bit and 64-bit architectures.
+This is similar to the previous series adding y2038-safe
+SO_TIMESTAMP* options.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- include/linux/time64.h     | 8 --------
- include/linux/timex.h      | 7 -------
- include/uapi/linux/time.h  | 4 ----
- include/uapi/linux/timex.h | 2 --
- 4 files changed, 21 deletions(-)
+The series needs to be applied after the socket timestamp series:
+https://lore.kernel.org/lkml/20190108032657.8331-1-deepa.kernel@gmail.com
 
-diff --git a/include/linux/time64.h b/include/linux/time64.h
-index 05634afba0db..f38d382ffec1 100644
---- a/include/linux/time64.h
-+++ b/include/linux/time64.h
-@@ -7,14 +7,6 @@
- typedef __s64 time64_t;
- typedef __u64 timeu64_t;
- 
--/* CONFIG_64BIT_TIME enables new 64 bit time_t syscalls in the compat path
-- * and 32-bit emulation.
-- */
--#ifndef CONFIG_64BIT_TIME
--#define __kernel_timespec timespec
--#define __kernel_itimerspec itimerspec
--#endif
--
- #include <uapi/linux/time.h>
- 
- struct timespec64 {
-diff --git a/include/linux/timex.h b/include/linux/timex.h
-index 4aff9f0d1367..ce0859763670 100644
---- a/include/linux/timex.h
-+++ b/include/linux/timex.h
-@@ -53,13 +53,6 @@
- #ifndef _LINUX_TIMEX_H
- #define _LINUX_TIMEX_H
- 
--/* CONFIG_64BIT_TIME enables new 64 bit time_t syscalls in the compat path
-- * and 32-bit emulation.
-- */
--#ifndef CONFIG_64BIT_TIME
--#define __kernel_timex timex
--#endif
--
- #include <uapi/linux/timex.h>
- 
- #define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
-diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
-index 6b56a2208be7..b03f8717c312 100644
---- a/include/uapi/linux/time.h
-+++ b/include/uapi/linux/time.h
-@@ -42,19 +42,15 @@ struct itimerval {
- 	struct timeval it_value;	/* current value */
- };
- 
--#ifndef __kernel_timespec
- struct __kernel_timespec {
- 	__kernel_time64_t       tv_sec;                 /* seconds */
- 	long long               tv_nsec;                /* nanoseconds */
- };
--#endif
- 
--#ifndef __kernel_itimerspec
- struct __kernel_itimerspec {
- 	struct __kernel_timespec it_interval;    /* timer period */
- 	struct __kernel_timespec it_value;       /* timer expiration */
- };
--#endif
- 
- /*
-  * legacy timeval structure, only embedded in structures that
-diff --git a/include/uapi/linux/timex.h b/include/uapi/linux/timex.h
-index a1c6b73016a5..9f517f9010bb 100644
---- a/include/uapi/linux/timex.h
-+++ b/include/uapi/linux/timex.h
-@@ -97,7 +97,6 @@ struct __kernel_timex_timeval {
- 	long long		tv_usec;
- };
- 
--#ifndef __kernel_timex
- struct __kernel_timex {
- 	unsigned int modes;	/* mode selector */
- 	int :32;            /* pad */
-@@ -131,7 +130,6 @@ struct __kernel_timex {
- 	int  :32; int  :32; int  :32; int  :32;
- 	int  :32; int  :32; int  :32;
- };
--#endif
- 
- /*
-  * Mode codes (timex.mode)
+Deepa Dinamani (3):
+  socket: Use old_timeval types for socket timeouts
+  socket: Rename SO_RCVTIMEO/ SO_SNDTIMEO with _OLD suffixes
+  sock: Add SO_RCVTIMEO_NEW and SO_SNDTIMEO_NEW
+
+ arch/alpha/include/uapi/asm/socket.h   | 13 ++++-
+ arch/mips/include/uapi/asm/socket.h    | 13 ++++-
+ arch/parisc/include/uapi/asm/socket.h  | 13 ++++-
+ arch/powerpc/include/uapi/asm/socket.h |  4 +-
+ arch/sparc/include/uapi/asm/socket.h   | 13 ++++-
+ fs/dlm/lowcomms.c                      |  4 +-
+ include/uapi/asm-generic/socket.h      | 13 ++++-
+ net/compat.c                           | 14 ++---
+ net/core/sock.c                        | 78 +++++++++++++++++++-------
+ net/vmw_vsock/af_vsock.c               |  4 +-
+ 10 files changed, 126 insertions(+), 43 deletions(-)
+
+
+base-commit: a4983672f9ca4c8393f26b6b80710e6c78886b8c
+prerequisite-patch-id: a03ec6afbdd328cd90557f7ee6675016a5f5c653
+prerequisite-patch-id: 724d26c3036e6f3a38f810c2f10db3f7ddbf843b
+prerequisite-patch-id: 14017867b6eb4d5231eec1b563edcd840a1be26e
+prerequisite-patch-id: 8df0edfd9b973ff5aae91c7709c8223be096a5bc
+prerequisite-patch-id: 9850ad48d41bf068f074c0dd3c7610fb7177c89f
+prerequisite-patch-id: bd31f35bba11902d1cc3e8726492b54df34b5c59
+prerequisite-patch-id: ea4b005c5ad188a4e0899d728357c114710a3a8e
+prerequisite-patch-id: cc3ee912c1ee1ea502ca079de81236a467950501
 -- 
-2.20.0
+2.17.1
+
+Cc: ccaulfie@redhat.com
+Cc: cluster-devel@redhat.com
+Cc: davem@davemloft.net
+Cc: deller@gmx.de
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: paulus@samba.org
+Cc: ralf@linux-mips.org
+Cc: rth@twiddle.net
+Cc: sparclinux@vger.kernel.org
