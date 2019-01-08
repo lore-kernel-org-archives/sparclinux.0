@@ -1,7 +1,7 @@
 From: Willem de Bruijn <willemdebruijn.kernel@gmail.com>
-Date: Tue, 08 Jan 2019 13:46:13 +0000
+Date: Tue, 08 Jan 2019 14:03:04 +0000
 Subject: Re: [PATCH v3 6/8] socket: Add SO_TIMESTAMP[NS]_NEW
-Message-Id: <CAF=yD-LDd0jOgFPQWNSw_h7vMJ+tMB+G+ZS67ZZFKOJc4oFFrQ@mail.gmail.com>
+Message-Id: <CAF=yD-L_KbVEbMaY6-3uA4Sp7gDMPEcF7+74J4TzukXb33t55w@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190108032657.8331-1-deepa.kernel@gmail.com> <20190108032657.8331-7-deepa.kernel@gmail.com>
 In-Reply-To: <20190108032657.8331-7-deepa.kernel@gmail.com>
@@ -32,26 +32,6 @@ On Mon, Jan 7, 2019 at 10:29 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
 > Cc: netdev@vger.kernel.org
 > Cc: sparclinux@vger.kernel.org
 
-> diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-> index 00e45c80e574..352e3dc0b3d9 100644
-> --- a/arch/alpha/include/uapi/asm/socket.h
-> +++ b/arch/alpha/include/uapi/asm/socket.h
-> @@ -3,6 +3,7 @@
->  #define _UAPI_ASM_SOCKET_H
->
->  #include <asm/sockios.h>
-> +#include <asm/bitsperlong.h>
->
->  /* For setsockopt(2) */
->  /*
-> @@ -110,12 +111,22 @@
->
->  #define SO_TIMESTAMP_OLD         29
->  #define SO_TIMESTAMPNS_OLD       35
-> +
-
-nit: unnecessary whitespace line
-
 > @@ -1864,20 +1864,39 @@ static void tcp_update_recv_tstamps(struct sk_buff *skb,
 >  static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
 >                                struct scm_timestamping *tss)
@@ -59,22 +39,5 @@ nit: unnecessary whitespace line
 > -       struct __kernel_old_timeval tv;
 >         bool has_timestamping = false;
 > +       int new_tstamp = sock_flag(sk, SOCK_TSTAMP_NEW);
->
->         if (tss->ts[0].tv_sec || tss->ts[0].tv_nsec) {
->                 if (sock_flag(sk, SOCK_RCVTSTAMP)) {
->                         if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
-> -                               put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
-> -                                        sizeof(tss->ts[0]), &tss->ts[0]);
-> -                       } else {
-> -                               tv.tv_sec = tss->ts[0].tv_sec;
-> -                               tv.tv_usec = tss->ts[0].tv_nsec / 1000;
-> +                               if (new_tstamp) {
-> +                                       struct __kernel_timespec kts = {tss->ts[0].tv_sec, tss->ts[0].tv_nsec};
-> +
-> +                                       put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_NEW,
-> +                                                sizeof(kts), &kts);
-> +                               } else {
-> +                                       struct timespec ts_old = tss->ts[0];
 
-nit: intermediate variable not needed as tss->ts[0] is also of type
-struct timespec.
+nit: move above has_timestamping to maintain reverse christmas tree ordering
