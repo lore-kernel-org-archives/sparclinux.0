@@ -1,56 +1,48 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Wed, 02 Jan 2019 11:22:44 +0000
-Subject: Re: [PATCH] jump_label: move 'asm goto' support test to Kconfig
-Message-Id: <87imz7xq0r.fsf@concordia.ellerman.id.au>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 10 Jan 2019 16:24:31 +0000
+Subject: [PATCH 11/15] mips: fix n32 compat_ipc_parse_version
+Message-Id: <20190110162435.309262-12-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1546182855-24290-1-git-send-email-yamada.masahiro@socionext.com>
-In-Reply-To: <1546182855-24290-1-git-send-email-yamada.masahiro@socionext.com>
+References: <20190110162435.309262-1-arnd@arndb.de>
+In-Reply-To: <20190110162435.309262-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kbuild@vger.kernel.org
-Cc: masahiroy@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Josh Poimboeuf <jpoimboe@redhat.com>, linux-kernel@vger.kernel.org, Will Deacon <will.deacon@arm.com>, "David S . Miller" <davem@davemloft.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, x86@kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Masahiro Yamada <yamada.masahiro@socionext.com>
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux@dominikbrodowski.net, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, dave@stgolabs.net, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-m68k@lists.linux-m68k.org, ink@jurassic.park.msu.ru, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, stable@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foun
 
-Masahiro Yamada <yamada.masahiro@socionext.com> writes:
+While reading through the sysvipc implementation, I noticed that the n32
+semctl/shmctl/msgctl system calls behave differently based on whether
+o32 support is enabled or not: Without o32, the IPC_64 flag passed by
+user space is rejected but calls without that flag get IPC_64 behavior.
 
-> Currently, CONFIG_JUMP_LABEL just means "I _want_ to use jump label".
->
-> The jump label is controlled by HAVE_JUMP_LABEL, which is defined
-> like this:
->
->   #if defined(CC_HAVE_ASM_GOTO) && defined(CONFIG_JUMP_LABEL)
->   # define HAVE_JUMP_LABEL
->   #endif
->
-> We can improve this by testing 'asm goto' support in Kconfig, then
-> make JUMP_LABEL depend on CC_HAS_ASM_GOTO.
->
-> Ugly #ifdef HAVE_JUMP_LABEL will go away, and CONFIG_JUMP_LABEL will
-> match to the real kernel capability.
->
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
-> ---
->
-> This is a trivial conversion from the build system PoV.
-> I want to queue this up to kbuild tree.
->
->
->  Makefile                                          |  7 -------
->  arch/Kconfig                                      |  1 +
->  arch/arm/kernel/jump_label.c                      |  4 ----
->  arch/arm64/kernel/jump_label.c                    |  4 ----
->  arch/mips/kernel/jump_label.c                     |  4 ----
->  arch/powerpc/include/asm/asm-prototypes.h         |  2 +-
->  arch/powerpc/kernel/jump_label.c                  |  2 --
->  arch/powerpc/platforms/powernv/opal-tracepoints.c |  2 +-
->  arch/powerpc/platforms/powernv/opal-wrappers.S    |  2 +-
->  arch/powerpc/platforms/pseries/hvCall.S           |  4 ++--
->  arch/powerpc/platforms/pseries/lpar.c             |  2 +-
+As far as I can tell, this was inadvertently changed by a cleanup patch
+but never noticed by anyone, possibly nobody has tried using sysvipc
+on n32 after linux-3.19.
 
-Looks OK to me.
+Change it back to the old behavior now.
 
-If there's any odd build errors they should get caught in linux-next.
+Fixes: 78aaf956ba3a ("MIPS: Compat: Fix build error if CONFIG_MIPS32_COMPAT but no compat ABI.")
+Cc: stable@vger.kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+As stated above, this was only found by inspection, the patch is not
+tested. Please review accordingly.
+---
+ arch/mips/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-
-cheers
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 787290781b8c..0d14f51d0002 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -3155,6 +3155,7 @@ config MIPS32_O32
+ config MIPS32_N32
+ 	bool "Kernel support for n32 binaries"
+ 	depends on 64BIT
++	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ 	select COMPAT
+ 	select MIPS32_COMPAT
+ 	select SYSVIPC_COMPAT if SYSVIPC
+-- 
+2.20.0
