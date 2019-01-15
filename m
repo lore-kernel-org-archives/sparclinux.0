@@ -1,16 +1,21 @@
-From: "Mr Peter Owen" <aturnerr1976@gmail.com>
-Date: Sun, 06 Jan 2019 19:12:34 +0000
-Subject: <<<<Message from Mr Peter Owen>>>
-Message-Id: <201901061912.x06JCNkJ029905-x06JCNkL029905@antispam.interfashion.it>
+From: "Nancy" <oraitintverpacnloxp@verizon.net>
+Date: Tue, 15 Jan 2019 12:57:36 +0000
+Subject: Want editing?
+Message-Id: <bd6fe89b25c5811f9b37350675a60245@lirenti.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Good Day,
-Hope you are doing great Today.I have a proposed BUSINESS DEAL that will benefit both parties. This is legitimate,legal and your personality will not be compromised.Please Reply to me ONLY if you are interested and consider your self capable for details.
+Want editing your photos? We can help.
 
-Sincerely,
+No matter you need photos background cutting out , or adding clipping path,
+or even retouching.
+We are the right studio that who can help you for your photo editing with
+the quality you need.
 
-Peter OWEN
+Let me know if interested.
+
+Thanks,
+Nancy
