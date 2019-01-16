@@ -1,132 +1,151 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 10 Jan 2019 17:22:07 +0000
-Subject: [PATCH 02/11] time: Add struct __kernel_timex
-Message-Id: <20190110172216.313063-3-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Wed, 16 Jan 2019 13:44:16 +0000
+Subject: [PATCH 16/21] mm/percpu: add checks for the return value of memblock_alloc*()
+Message-Id: <1547646261-32535-17-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110172216.313063-1-arnd@arndb.de>
-In-Reply-To: <20190110172216.313063-1-arnd@arndb.de>
+References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akp
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-From: Deepa Dinamani <deepa.kernel@gmail.com>
+Add panic() calls if memblock_alloc() returns NULL.
 
-struct timex uses struct timeval internally.
-struct timeval is not y2038 safe.
-Introduce a new UAPI type struct __kernel_timex
-that is y2038 safe.
+The panic() format duplicates the one used by memblock itself and in order
+to avoid explosion with long parameters list replace open coded allocation
+size calculations with a local variable.
 
-struct __kernel_timex uses a timeval type that is
-similar to struct __kernel_timespec which preserves the
-same structure size across 32 bit and 64 bit ABIs.
-struct __kernel_timex also restructures other members of the
-structure to make the structure the same on 64 bit and 32 bit
-architectures.
-Note that struct __kernel_timex is the same as struct timex
-on a 64 bit architecture.
-
-The above solution is similar to other new y2038 syscalls
-that are being introduced: both 32 bit and 64 bit ABIs
-have a common entry, and the compat entry supports the old 32 bit
-syscall interface.
-
-Alternatives considered were:
-1. Add new time type to struct timex that makes use of padded
-   bits. This time type could be based on the struct __kernel_timespec.
-   modes will use a flag to notify which time structure should be
-   used internally.
-   This needs some application level changes on both 64 bit and 32 bit
-   architectures. Although 64 bit machines could continue to use the
-   older timeval structure without any changes.
-
-2. Add a new u8 type to struct timex that makes use of padded bits. This
-   can be used to save higher order tv_sec bits. modes will use a flag to
-   notify presence of such a type.
-   This will need some application level changes on 32 bit architectures.
-
-3. Add a new compat_timex structure that differs in only the size of the
-   time type; keep rest of struct timex the same.
-   This requires extra syscalls to manage all 3 cases on 64 bit
-   architectures. This will not need any application level changes but will
-   add more complexity from kernel side.
-
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- include/linux/timex.h      |  7 +++++++
- include/uapi/linux/timex.h | 41 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+)
+ mm/percpu.c | 73 +++++++++++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 56 insertions(+), 17 deletions(-)
 
-diff --git a/include/linux/timex.h b/include/linux/timex.h
-index 39c25dbebfe8..7f40e9e42ecc 100644
---- a/include/linux/timex.h
-+++ b/include/linux/timex.h
-@@ -53,6 +53,13 @@
- #ifndef _LINUX_TIMEX_H
- #define _LINUX_TIMEX_H
+diff --git a/mm/percpu.c b/mm/percpu.c
+index db86282..5998b03 100644
+--- a/mm/percpu.c
++++ b/mm/percpu.c
+@@ -1086,6 +1086,7 @@ static struct pcpu_chunk * __init pcpu_alloc_first_chunk(unsigned long tmp_addr,
+ 	struct pcpu_chunk *chunk;
+ 	unsigned long aligned_addr, lcm_align;
+ 	int start_offset, offset_bits, region_size, region_bits;
++	size_t alloc_size;
  
-+/* CONFIG_64BIT_TIME enables new 64 bit time_t syscalls in the compat path
-+ * and 32-bit emulation.
-+ */
-+#ifndef CONFIG_64BIT_TIME
-+#define __kernel_timex timex
-+#endif
-+
- #include <uapi/linux/timex.h>
+ 	/* region calculations */
+ 	aligned_addr = tmp_addr & PAGE_MASK;
+@@ -1101,9 +1102,12 @@ static struct pcpu_chunk * __init pcpu_alloc_first_chunk(unsigned long tmp_addr,
+ 	region_size = ALIGN(start_offset + map_size, lcm_align);
  
- #define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
-diff --git a/include/uapi/linux/timex.h b/include/uapi/linux/timex.h
-index 92685d826444..a1c6b73016a5 100644
---- a/include/uapi/linux/timex.h
-+++ b/include/uapi/linux/timex.h
-@@ -92,6 +92,47 @@ struct timex {
- 	int  :32; int  :32; int  :32;
- };
+ 	/* allocate chunk */
+-	chunk = memblock_alloc(sizeof(struct pcpu_chunk) +
+-			       BITS_TO_LONGS(region_size >> PAGE_SHIFT),
+-			       SMP_CACHE_BYTES);
++	alloc_size = sizeof(struct pcpu_chunk) +
++		BITS_TO_LONGS(region_size >> PAGE_SHIFT);
++	chunk = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!chunk)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
  
-+struct __kernel_timex_timeval {
-+	__kernel_time64_t       tv_sec;
-+	long long		tv_usec;
-+};
+ 	INIT_LIST_HEAD(&chunk->list);
+ 
+@@ -1114,12 +1118,25 @@ static struct pcpu_chunk * __init pcpu_alloc_first_chunk(unsigned long tmp_addr,
+ 	chunk->nr_pages = region_size >> PAGE_SHIFT;
+ 	region_bits = pcpu_chunk_map_bits(chunk);
+ 
+-	chunk->alloc_map = memblock_alloc(BITS_TO_LONGS(region_bits) * sizeof(chunk->alloc_map[0]),
+-					  SMP_CACHE_BYTES);
+-	chunk->bound_map = memblock_alloc(BITS_TO_LONGS(region_bits + 1) * sizeof(chunk->bound_map[0]),
+-					  SMP_CACHE_BYTES);
+-	chunk->md_blocks = memblock_alloc(pcpu_chunk_nr_blocks(chunk) * sizeof(chunk->md_blocks[0]),
+-					  SMP_CACHE_BYTES);
++	alloc_size = BITS_TO_LONGS(region_bits) * sizeof(chunk->alloc_map[0]);
++	chunk->alloc_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!chunk->alloc_map)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
 +
-+#ifndef __kernel_timex
-+struct __kernel_timex {
-+	unsigned int modes;	/* mode selector */
-+	int :32;            /* pad */
-+	long long offset;	/* time offset (usec) */
-+	long long freq;	/* frequency offset (scaled ppm) */
-+	long long maxerror;/* maximum error (usec) */
-+	long long esterror;/* estimated error (usec) */
-+	int status;		/* clock command/status */
-+	int :32;            /* pad */
-+	long long constant;/* pll time constant */
-+	long long precision;/* clock precision (usec) (read only) */
-+	long long tolerance;/* clock frequency tolerance (ppm)
-+				   * (read only)
-+				   */
-+	struct __kernel_timex_timeval time;	/* (read only, except for ADJ_SETOFFSET) */
-+	long long tick;	/* (modified) usecs between clock ticks */
++	alloc_size +		BITS_TO_LONGS(region_bits + 1) * sizeof(chunk->bound_map[0]);
++	chunk->bound_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!chunk->bound_map)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
 +
-+	long long ppsfreq;/* pps frequency (scaled ppm) (ro) */
-+	long long jitter; /* pps jitter (us) (ro) */
-+	int shift;              /* interval duration (s) (shift) (ro) */
-+	int :32;            /* pad */
-+	long long stabil;            /* pps stability (scaled ppm) (ro) */
-+	long long jitcnt; /* jitter limit exceeded (ro) */
-+	long long calcnt; /* calibration intervals (ro) */
-+	long long errcnt; /* calibration errors (ro) */
-+	long long stbcnt; /* stability limit exceeded (ro) */
++	alloc_size = pcpu_chunk_nr_blocks(chunk) * sizeof(chunk->md_blocks[0]);
++	chunk->md_blocks = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!chunk->md_blocks)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
 +
-+	int tai;		/* TAI offset (ro) */
+ 	pcpu_init_md_blocks(chunk);
+ 
+ 	/* manage populated page bitmap */
+@@ -2044,6 +2061,7 @@ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
+ 	int group, unit, i;
+ 	int map_size;
+ 	unsigned long tmp_addr;
++	size_t alloc_size;
+ 
+ #define PCPU_SETUP_BUG_ON(cond)	do {					\
+ 	if (unlikely(cond)) {						\
+@@ -2075,14 +2093,29 @@ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
+ 	PCPU_SETUP_BUG_ON(pcpu_verify_alloc_info(ai) < 0);
+ 
+ 	/* process group information and build config tables accordingly */
+-	group_offsets = memblock_alloc(ai->nr_groups * sizeof(group_offsets[0]),
+-				       SMP_CACHE_BYTES);
+-	group_sizes = memblock_alloc(ai->nr_groups * sizeof(group_sizes[0]),
+-				     SMP_CACHE_BYTES);
+-	unit_map = memblock_alloc(nr_cpu_ids * sizeof(unit_map[0]),
+-				  SMP_CACHE_BYTES);
+-	unit_off = memblock_alloc(nr_cpu_ids * sizeof(unit_off[0]),
+-				  SMP_CACHE_BYTES);
++	alloc_size = ai->nr_groups * sizeof(group_offsets[0]);
++	group_offsets = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!group_offsets)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
 +
-+	int  :32; int  :32; int  :32; int  :32;
-+	int  :32; int  :32; int  :32; int  :32;
-+	int  :32; int  :32; int  :32;
-+};
-+#endif
++	alloc_size = ai->nr_groups * sizeof(group_sizes[0]);
++	group_sizes = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!group_sizes)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
 +
- /*
-  * Mode codes (timex.mode)
-  */
++	alloc_size = nr_cpu_ids * sizeof(unit_map[0]);
++	unit_map = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!unit_map)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
++
++	alloc_size = nr_cpu_ids * sizeof(unit_off[0]);
++	unit_off = memblock_alloc(alloc_size, SMP_CACHE_BYTES);
++	if (!unit_off)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      alloc_size);
+ 
+ 	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
+ 		unit_map[cpu] = UINT_MAX;
+@@ -2148,6 +2181,9 @@ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
+ 	pcpu_nr_slots = __pcpu_size_to_slot(pcpu_unit_size) + 2;
+ 	pcpu_slot = memblock_alloc(pcpu_nr_slots * sizeof(pcpu_slot[0]),
+ 				   SMP_CACHE_BYTES);
++	if (!pcpu_slot)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      pcpu_nr_slots * sizeof(pcpu_slot[0]));
+ 	for (i = 0; i < pcpu_nr_slots; i++)
+ 		INIT_LIST_HEAD(&pcpu_slot[i]);
+ 
+@@ -2602,6 +2638,9 @@ int __init pcpu_page_first_chunk(size_t reserved_size,
+ 	pages_size = PFN_ALIGN(unit_pages * num_possible_cpus() *
+ 			       sizeof(pages[0]));
+ 	pages = memblock_alloc(pages_size, SMP_CACHE_BYTES);
++	if (!pages)
++		panic("%s: Failed to allocate %zu bytes\n", __func__,
++		      pages_size);
+ 
+ 	/* allocate pages */
+ 	j = 0;
 -- 
-2.20.0
+2.7.4
