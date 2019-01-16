@@ -1,43 +1,142 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 18 Jan 2019 16:18:21 +0000
-Subject: [PATCH v2 15/29] alpha: add standard statfs64/fstatfs64 syscalls
-Message-Id: <20190118161835.2259170-16-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Wed, 16 Jan 2019 13:44:03 +0000
+Subject: [PATCH 03/21] memblock: replace memblock_alloc_base(ANYWHERE) with memblock_phys_alloc
+Message-Id: <1547646261-32535-4-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190118161835.2259170-1-arnd@arndb.de>
-In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
+References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, paul.burton@mips.com, deller@gmx.de, benh@kernel.crashing.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jcmvbkbc@gmail.com, akpm@linux-foundation.org, deepa.kernel@gmail.com, ebiederm@xmission.com, firoz.khan@linaro.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.or
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-As Joseph Myers points out, alpha has never had a standard statfs64
-interface and instead returns only 32-bit numbers here.
+The calls to memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE) and
+memblock_phys_alloc(size, align) are equivalent as both try to allocate
+'size' bytes with 'align' alignment anywhere in the memory and panic if hte
+allocation fails.
 
-While there is an old osf_statfs64 system call that returns additional
-data, this has some other quirks and does not get used in glibc.
+The conversion is done using the following semantic patch:
 
-I considered making the stat64 structure layout compatible with
-with the one used by the kernel on most other 64 bit architecture that
-implement it (ia64, parisc, powerpc, and sparc), but in the end
-decided to stay with the one that was traditionally defined in
-the alpha headers but not used, since this is also what glibc
-exposes to user space.
+@@
+expression size, align;
+@@
+- memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE)
++ memblock_phys_alloc(size, align)
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/alpha/kernel/syscalls/syscall.tbl | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/mm/init.c                   | 2 +-
+ arch/sh/boards/mach-ap325rxa/setup.c | 2 +-
+ arch/sh/boards/mach-ecovec24/setup.c | 4 ++--
+ arch/sh/boards/mach-kfr2r09/setup.c  | 2 +-
+ arch/sh/boards/mach-migor/setup.c    | 2 +-
+ arch/sh/boards/mach-se/7724/setup.c  | 4 ++--
+ arch/xtensa/mm/kasan_init.c          | 3 +--
+ 7 files changed, 9 insertions(+), 10 deletions(-)
 
-diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
-index 25b4a7e76943..0ebd59fdcb8b 100644
---- a/arch/alpha/kernel/syscalls/syscall.tbl
-+++ b/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -456,3 +456,5 @@
- 525	common	pkey_free			sys_pkey_free
- 526	common	pkey_mprotect			sys_pkey_mprotect
- 527	common	rseq				sys_rseq
-+528	common	statfs64			sys_statfs64
-+529	common	fstatfs64			sys_fstatfs64
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index 478ea8b..b76b90e 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -205,7 +205,7 @@ phys_addr_t __init arm_memblock_steal(phys_addr_t size, phys_addr_t align)
+ 
+ 	BUG_ON(!arm_memblock_steal_permitted);
+ 
+-	phys = memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, align);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 
+diff --git a/arch/sh/boards/mach-ap325rxa/setup.c b/arch/sh/boards/mach-ap325rxa/setup.c
+index 8f234d04..d7ceab6 100644
+--- a/arch/sh/boards/mach-ap325rxa/setup.c
++++ b/arch/sh/boards/mach-ap325rxa/setup.c
+@@ -557,7 +557,7 @@ static void __init ap325rxa_mv_mem_reserve(void)
+ 	phys_addr_t phys;
+ 	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 
+diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
+index 22b4106..a3901806 100644
+--- a/arch/sh/boards/mach-ecovec24/setup.c
++++ b/arch/sh/boards/mach-ecovec24/setup.c
+@@ -1480,12 +1480,12 @@ static void __init ecovec_mv_mem_reserve(void)
+ 	phys_addr_t phys;
+ 	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 	ceu0_dma_membase = phys;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 	ceu1_dma_membase = phys;
+diff --git a/arch/sh/boards/mach-kfr2r09/setup.c b/arch/sh/boards/mach-kfr2r09/setup.c
+index 203d249..55bdf4a 100644
+--- a/arch/sh/boards/mach-kfr2r09/setup.c
++++ b/arch/sh/boards/mach-kfr2r09/setup.c
+@@ -631,7 +631,7 @@ static void __init kfr2r09_mv_mem_reserve(void)
+ 	phys_addr_t phys;
+ 	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index f4ad33c..ba7eee6 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -630,7 +630,7 @@ static void __init migor_mv_mem_reserve(void)
+ 	phys_addr_t phys;
+ 	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 
+diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
+index fdbec22a..4696e10 100644
+--- a/arch/sh/boards/mach-se/7724/setup.c
++++ b/arch/sh/boards/mach-se/7724/setup.c
+@@ -965,12 +965,12 @@ static void __init ms7724se_mv_mem_reserve(void)
+ 	phys_addr_t phys;
+ 	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 	ceu0_dma_membase = phys;
+ 
+-	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	phys = memblock_phys_alloc(size, PAGE_SIZE);
+ 	memblock_free(phys, size);
+ 	memblock_remove(phys, size);
+ 	ceu1_dma_membase = phys;
+diff --git a/arch/xtensa/mm/kasan_init.c b/arch/xtensa/mm/kasan_init.c
+index 1734cda..48dbb03 100644
+--- a/arch/xtensa/mm/kasan_init.c
++++ b/arch/xtensa/mm/kasan_init.c
+@@ -52,8 +52,7 @@ static void __init populate(void *start, void *end)
+ 
+ 		for (k = 0; k < PTRS_PER_PTE; ++k, ++j) {
+ 			phys_addr_t phys -				memblock_alloc_base(PAGE_SIZE, PAGE_SIZE,
+-						    MEMBLOCK_ALLOC_ANYWHERE);
++				memblock_phys_alloc(PAGE_SIZE, PAGE_SIZE);
+ 
+ 			set_pte(pte + j, pfn_pte(PHYS_PFN(phys), PAGE_KERNEL));
+ 		}
 -- 
-2.20.0
+2.7.4
