@@ -1,365 +1,138 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 10 Jan 2019 17:22:06 +0000
-Subject: [PATCH 01/11] time: make adjtime compat handling available for 32 bit
-Message-Id: <20190110172216.313063-2-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Wed, 16 Jan 2019 13:44:08 +0000
+Subject: [PATCH 08/21] memblock: drop __memblock_alloc_base()
+Message-Id: <1547646261-32535-9-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110172216.313063-1-arnd@arndb.de>
-In-Reply-To: <20190110172216.313063-1-arnd@arndb.de>
+References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akp
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-We want to reuse the compat_timex handling on 32-bit architectures the
-same way we are using the compat handling for timespec when moving to
-64-bit time_t.
+The __memblock_alloc_base() function tries to allocate a memory up to the
+limit specified by its max_addr parameter. Depending on the value of this
+parameter, the __memblock_alloc_base() can is replaced with the appropriate
+memblock_phys_alloc*() variant.
 
-Move all definitions related to compat_timex out of the compat code
-into the normal timekeeping code, along with a rename to old_timex32,
-corresponding to the timespec/timeval structures, and make it controlled
-by CONFIG_COMPAT_32BIT_TIME, which 32-bit architectures will then select.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- include/linux/compat.h     | 35 ++-----------------
- include/linux/time32.h     | 32 ++++++++++++++++-
- kernel/compat.c            | 64 ----------------------------------
- kernel/time/posix-timers.c | 14 ++------
- kernel/time/time.c         | 70 +++++++++++++++++++++++++++++++++++---
- 5 files changed, 102 insertions(+), 113 deletions(-)
+ arch/sh/kernel/machine_kexec.c |  3 ++-
+ arch/x86/kernel/e820.c         |  2 +-
+ arch/x86/mm/numa.c             | 12 ++++--------
+ drivers/of/of_reserved_mem.c   |  7 ++-----
+ include/linux/memblock.h       |  2 --
+ mm/memblock.c                  |  9 ++-------
+ 6 files changed, 11 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index 056be0d03722..657ca6abd855 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -132,37 +132,6 @@ struct compat_tms {
- 	compat_clock_t		tms_cstime;
- };
+diff --git a/arch/sh/kernel/machine_kexec.c b/arch/sh/kernel/machine_kexec.c
+index b9f9f1a..63d63a3 100644
+--- a/arch/sh/kernel/machine_kexec.c
++++ b/arch/sh/kernel/machine_kexec.c
+@@ -168,7 +168,8 @@ void __init reserve_crashkernel(void)
+ 	crash_size = PAGE_ALIGN(resource_size(&crashk_res));
+ 	if (!crashk_res.start) {
+ 		unsigned long max = memblock_end_of_DRAM() - memory_limit;
+-		crashk_res.start = __memblock_alloc_base(crash_size, PAGE_SIZE, max);
++		crashk_res.start = memblock_phys_alloc_range(crash_size,
++							     PAGE_SIZE, 0, max);
+ 		if (!crashk_res.start) {
+ 			pr_err("crashkernel allocation failed\n");
+ 			goto disable;
+diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
+index 50895c2..9c0eb54 100644
+--- a/arch/x86/kernel/e820.c
++++ b/arch/x86/kernel/e820.c
+@@ -778,7 +778,7 @@ u64 __init e820__memblock_alloc_reserved(u64 size, u64 align)
+ {
+ 	u64 addr;
  
--struct compat_timex {
--	compat_uint_t modes;
--	compat_long_t offset;
--	compat_long_t freq;
--	compat_long_t maxerror;
--	compat_long_t esterror;
--	compat_int_t status;
--	compat_long_t constant;
--	compat_long_t precision;
--	compat_long_t tolerance;
--	struct old_timeval32 time;
--	compat_long_t tick;
--	compat_long_t ppsfreq;
--	compat_long_t jitter;
--	compat_int_t shift;
--	compat_long_t stabil;
--	compat_long_t jitcnt;
--	compat_long_t calcnt;
--	compat_long_t errcnt;
--	compat_long_t stbcnt;
--	compat_int_t tai;
--
--	compat_int_t:32; compat_int_t:32; compat_int_t:32; compat_int_t:32;
--	compat_int_t:32; compat_int_t:32; compat_int_t:32; compat_int_t:32;
--	compat_int_t:32; compat_int_t:32; compat_int_t:32;
--};
--
--struct timex;
--int compat_get_timex(struct timex *, const struct compat_timex __user *);
--int compat_put_timex(struct compat_timex __user *, const struct timex *);
--
- #define _COMPAT_NSIG_WORDS	(_COMPAT_NSIG / _COMPAT_NSIG_BPW)
+-	addr = __memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
++	addr = memblock_phys_alloc(size, align);
+ 	if (addr) {
+ 		e820__range_update_kexec(addr, size, E820_TYPE_RAM, E820_TYPE_RESERVED);
+ 		pr_info("update e820_table_kexec for e820__memblock_alloc_reserved()\n");
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 1308f54..f85ae42 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -195,15 +195,11 @@ static void __init alloc_node_data(int nid)
+ 	 * Allocate node data.  Try node-local memory and then any node.
+ 	 * Never allocate in DMA zone.
+ 	 */
+-	nd_pa = memblock_phys_alloc_nid(nd_size, SMP_CACHE_BYTES, nid);
++	nd_pa = memblock_phys_alloc_try_nid(nd_size, SMP_CACHE_BYTES, nid);
+ 	if (!nd_pa) {
+-		nd_pa = __memblock_alloc_base(nd_size, SMP_CACHE_BYTES,
+-					      MEMBLOCK_ALLOC_ACCESSIBLE);
+-		if (!nd_pa) {
+-			pr_err("Cannot find %zu bytes in any node (initial node: %d)\n",
+-			       nd_size, nid);
+-			return;
+-		}
++		pr_err("Cannot find %zu bytes in any node (initial node: %d)\n",
++		       nd_size, nid);
++		return;
+ 	}
+ 	nd = __va(nd_pa);
  
- typedef struct {
-@@ -808,7 +777,7 @@ asmlinkage long compat_sys_gettimeofday(struct old_timeval32 __user *tv,
- 		struct timezone __user *tz);
- asmlinkage long compat_sys_settimeofday(struct old_timeval32 __user *tv,
- 		struct timezone __user *tz);
--asmlinkage long compat_sys_adjtimex(struct compat_timex __user *utp);
-+asmlinkage long compat_sys_adjtimex(struct old_timex32 __user *utp);
- 
- /* kernel/timer.c */
- asmlinkage long compat_sys_sysinfo(struct compat_sysinfo __user *info);
-@@ -911,7 +880,7 @@ asmlinkage long compat_sys_open_by_handle_at(int mountdirfd,
- 					     struct file_handle __user *handle,
- 					     int flags);
- asmlinkage long compat_sys_clock_adjtime(clockid_t which_clock,
--					 struct compat_timex __user *tp);
-+					 struct old_timex32 __user *tp);
- asmlinkage long compat_sys_sendmmsg(int fd, struct compat_mmsghdr __user *mmsg,
- 				    unsigned vlen, unsigned int flags);
- asmlinkage ssize_t compat_sys_process_vm_readv(compat_pid_t pid,
-diff --git a/include/linux/time32.h b/include/linux/time32.h
-index 118b9977080c..820a22e2b98b 100644
---- a/include/linux/time32.h
-+++ b/include/linux/time32.h
-@@ -10,6 +10,7 @@
-  */
- 
- #include <linux/time64.h>
-+#include <linux/timex.h>
- 
- #define TIME_T_MAX	(time_t)((1UL << ((sizeof(time_t) << 3) - 1)) - 1)
- 
-@@ -35,13 +36,42 @@ struct old_utimbuf32 {
- 	old_time32_t	modtime;
- };
- 
-+struct old_timex32 {
-+	u32 modes;
-+	s32 offset;
-+	s32 freq;
-+	s32 maxerror;
-+	s32 esterror;
-+	s32 status;
-+	s32 constant;
-+	s32 precision;
-+	s32 tolerance;
-+	struct old_timeval32 time;
-+	s32 tick;
-+	s32 ppsfreq;
-+	s32 jitter;
-+	s32 shift;
-+	s32 stabil;
-+	s32 jitcnt;
-+	s32 calcnt;
-+	s32 errcnt;
-+	s32 stbcnt;
-+	s32 tai;
+diff --git a/drivers/of/of_reserved_mem.c b/drivers/of/of_reserved_mem.c
+index 1977ee0..499f16d 100644
+--- a/drivers/of/of_reserved_mem.c
++++ b/drivers/of/of_reserved_mem.c
+@@ -31,13 +31,10 @@ int __init __weak early_init_dt_alloc_reserved_memory_arch(phys_addr_t size,
+ 	phys_addr_t *res_base)
+ {
+ 	phys_addr_t base;
+-	/*
+-	 * We use __memblock_alloc_base() because memblock_alloc_base()
+-	 * panic()s on allocation failure.
+-	 */
 +
-+	s32:32; s32:32; s32:32; s32:32;
-+	s32:32; s32:32; s32:32; s32:32;
-+	s32:32; s32:32; s32:32;
-+};
-+
- extern int get_old_timespec32(struct timespec64 *, const void __user *);
- extern int put_old_timespec32(const struct timespec64 *, void __user *);
- extern int get_old_itimerspec32(struct itimerspec64 *its,
- 			const struct old_itimerspec32 __user *uits);
- extern int put_old_itimerspec32(const struct itimerspec64 *its,
- 			struct old_itimerspec32 __user *uits);
--
-+struct timex;
-+int get_old_timex32(struct timex *, const struct old_timex32 __user *);
-+int put_old_timex32(struct old_timex32 __user *, const struct timex *);
+ 	end = !end ? MEMBLOCK_ALLOC_ANYWHERE : end;
+ 	align = !align ? SMP_CACHE_BYTES : align;
+-	base = __memblock_alloc_base(size, align, end);
++	base = memblock_phys_alloc_range(size, align, 0, end);
+ 	if (!base)
+ 		return -ENOMEM;
  
- #if __BITS_PER_LONG = 64
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 7883c74..768e2b4 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -496,8 +496,6 @@ static inline bool memblock_bottom_up(void)
  
-diff --git a/kernel/compat.c b/kernel/compat.c
-index f01affa17e22..d8a36c6ad7c9 100644
---- a/kernel/compat.c
-+++ b/kernel/compat.c
-@@ -20,7 +20,6 @@
- #include <linux/syscalls.h>
- #include <linux/unistd.h>
- #include <linux/security.h>
--#include <linux/timex.h>
- #include <linux/export.h>
- #include <linux/migrate.h>
- #include <linux/posix-timers.h>
-@@ -30,69 +29,6 @@
+ phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+ 				phys_addr_t max_addr);
+-phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+-				  phys_addr_t max_addr);
+ phys_addr_t memblock_phys_mem_size(void);
+ phys_addr_t memblock_reserved_size(void);
+ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 461e40a3..e5ffdcd 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1363,17 +1363,12 @@ phys_addr_t __init memblock_phys_alloc_nid(phys_addr_t size, phys_addr_t align,
+ 	return ret;
+ }
  
- #include <linux/uaccess.h>
- 
--int compat_get_timex(struct timex *txc, const struct compat_timex __user *utp)
+-phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
 -{
--	struct compat_timex tx32;
--
--	memset(txc, 0, sizeof(struct timex));
--	if (copy_from_user(&tx32, utp, sizeof(struct compat_timex)))
--		return -EFAULT;
--
--	txc->modes = tx32.modes;
--	txc->offset = tx32.offset;
--	txc->freq = tx32.freq;
--	txc->maxerror = tx32.maxerror;
--	txc->esterror = tx32.esterror;
--	txc->status = tx32.status;
--	txc->constant = tx32.constant;
--	txc->precision = tx32.precision;
--	txc->tolerance = tx32.tolerance;
--	txc->time.tv_sec = tx32.time.tv_sec;
--	txc->time.tv_usec = tx32.time.tv_usec;
--	txc->tick = tx32.tick;
--	txc->ppsfreq = tx32.ppsfreq;
--	txc->jitter = tx32.jitter;
--	txc->shift = tx32.shift;
--	txc->stabil = tx32.stabil;
--	txc->jitcnt = tx32.jitcnt;
--	txc->calcnt = tx32.calcnt;
--	txc->errcnt = tx32.errcnt;
--	txc->stbcnt = tx32.stbcnt;
--
--	return 0;
+-	return memblock_alloc_range_nid(size, align, 0, max_addr, NUMA_NO_NODE,
+-					MEMBLOCK_NONE);
 -}
 -
--int compat_put_timex(struct compat_timex __user *utp, const struct timex *txc)
--{
--	struct compat_timex tx32;
--
--	memset(&tx32, 0, sizeof(struct compat_timex));
--	tx32.modes = txc->modes;
--	tx32.offset = txc->offset;
--	tx32.freq = txc->freq;
--	tx32.maxerror = txc->maxerror;
--	tx32.esterror = txc->esterror;
--	tx32.status = txc->status;
--	tx32.constant = txc->constant;
--	tx32.precision = txc->precision;
--	tx32.tolerance = txc->tolerance;
--	tx32.time.tv_sec = txc->time.tv_sec;
--	tx32.time.tv_usec = txc->time.tv_usec;
--	tx32.tick = txc->tick;
--	tx32.ppsfreq = txc->ppsfreq;
--	tx32.jitter = txc->jitter;
--	tx32.shift = txc->shift;
--	tx32.stabil = txc->stabil;
--	tx32.jitcnt = txc->jitcnt;
--	tx32.calcnt = txc->calcnt;
--	tx32.errcnt = txc->errcnt;
--	tx32.stbcnt = txc->stbcnt;
--	tx32.tai = txc->tai;
--	if (copy_to_user(utp, &tx32, sizeof(struct compat_timex)))
--		return -EFAULT;
--	return 0;
--}
--
- static int __compat_get_timeval(struct timeval *tv, const struct old_timeval32 __user *ctv)
+ phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
  {
- 	return (!access_ok(ctv, sizeof(*ctv)) ||
-diff --git a/kernel/time/posix-timers.c b/kernel/time/posix-timers.c
-index 0e84bb72a3da..8955f32f2a36 100644
---- a/kernel/time/posix-timers.c
-+++ b/kernel/time/posix-timers.c
-@@ -1123,12 +1123,8 @@ COMPAT_SYSCALL_DEFINE2(clock_gettime, clockid_t, which_clock,
- 	return err;
- }
+ 	phys_addr_t alloc;
  
--#endif
--
--#ifdef CONFIG_COMPAT
--
- COMPAT_SYSCALL_DEFINE2(clock_adjtime, clockid_t, which_clock,
--		       struct compat_timex __user *, utp)
-+		       struct old_timex32 __user *, utp)
- {
- 	const struct k_clock *kc = clockid_to_kclock(which_clock);
- 	struct timex ktx;
-@@ -1139,22 +1135,18 @@ COMPAT_SYSCALL_DEFINE2(clock_adjtime, clockid_t, which_clock,
- 	if (!kc->clock_adj)
- 		return -EOPNOTSUPP;
+-	alloc = __memblock_alloc_base(size, align, max_addr);
++	alloc = memblock_alloc_range_nid(size, align, 0, max_addr, NUMA_NO_NODE,
++					MEMBLOCK_NONE);
  
--	err = compat_get_timex(&ktx, utp);
-+	err = get_old_timex32(&ktx, utp);
- 	if (err)
- 		return err;
- 
- 	err = kc->clock_adj(which_clock, &ktx);
- 
- 	if (err >= 0)
--		err = compat_put_timex(utp, &ktx);
-+		err = put_old_timex32(utp, &ktx);
- 
- 	return err;
- }
- 
--#endif
--
--#ifdef CONFIG_COMPAT_32BIT_TIME
--
- COMPAT_SYSCALL_DEFINE2(clock_getres, clockid_t, which_clock,
- 		       struct old_timespec32 __user *, tp)
- {
-diff --git a/kernel/time/time.c b/kernel/time/time.c
-index 2edb5088a70b..2d013bc2b271 100644
---- a/kernel/time/time.c
-+++ b/kernel/time/time.c
-@@ -278,20 +278,82 @@ SYSCALL_DEFINE1(adjtimex, struct timex __user *, txc_p)
- 	return copy_to_user(txc_p, &txc, sizeof(struct timex)) ? -EFAULT : ret;
- }
- 
--#ifdef CONFIG_COMPAT
-+#ifdef CONFIG_COMPAT_32BIT_TIME
-+int get_old_timex32(struct timex *txc, const struct old_timex32 __user *utp)
-+{
-+	struct old_timex32 tx32;
-+
-+	memset(txc, 0, sizeof(struct timex));
-+	if (copy_from_user(&tx32, utp, sizeof(struct old_timex32)))
-+		return -EFAULT;
-+
-+	txc->modes = tx32.modes;
-+	txc->offset = tx32.offset;
-+	txc->freq = tx32.freq;
-+	txc->maxerror = tx32.maxerror;
-+	txc->esterror = tx32.esterror;
-+	txc->status = tx32.status;
-+	txc->constant = tx32.constant;
-+	txc->precision = tx32.precision;
-+	txc->tolerance = tx32.tolerance;
-+	txc->time.tv_sec = tx32.time.tv_sec;
-+	txc->time.tv_usec = tx32.time.tv_usec;
-+	txc->tick = tx32.tick;
-+	txc->ppsfreq = tx32.ppsfreq;
-+	txc->jitter = tx32.jitter;
-+	txc->shift = tx32.shift;
-+	txc->stabil = tx32.stabil;
-+	txc->jitcnt = tx32.jitcnt;
-+	txc->calcnt = tx32.calcnt;
-+	txc->errcnt = tx32.errcnt;
-+	txc->stbcnt = tx32.stbcnt;
-+
-+	return 0;
-+}
-+
-+int put_old_timex32(struct old_timex32 __user *utp, const struct timex *txc)
-+{
-+	struct old_timex32 tx32;
-+
-+	memset(&tx32, 0, sizeof(struct old_timex32));
-+	tx32.modes = txc->modes;
-+	tx32.offset = txc->offset;
-+	tx32.freq = txc->freq;
-+	tx32.maxerror = txc->maxerror;
-+	tx32.esterror = txc->esterror;
-+	tx32.status = txc->status;
-+	tx32.constant = txc->constant;
-+	tx32.precision = txc->precision;
-+	tx32.tolerance = txc->tolerance;
-+	tx32.time.tv_sec = txc->time.tv_sec;
-+	tx32.time.tv_usec = txc->time.tv_usec;
-+	tx32.tick = txc->tick;
-+	tx32.ppsfreq = txc->ppsfreq;
-+	tx32.jitter = txc->jitter;
-+	tx32.shift = txc->shift;
-+	tx32.stabil = txc->stabil;
-+	tx32.jitcnt = txc->jitcnt;
-+	tx32.calcnt = txc->calcnt;
-+	tx32.errcnt = txc->errcnt;
-+	tx32.stbcnt = txc->stbcnt;
-+	tx32.tai = txc->tai;
-+	if (copy_to_user(utp, &tx32, sizeof(struct old_timex32)))
-+		return -EFAULT;
-+	return 0;
-+}
- 
--COMPAT_SYSCALL_DEFINE1(adjtimex, struct compat_timex __user *, utp)
-+COMPAT_SYSCALL_DEFINE1(adjtimex, struct old_timex32 __user *, utp)
- {
- 	struct timex txc;
- 	int err, ret;
- 
--	err = compat_get_timex(&txc, utp);
-+	err = get_old_timex32(&txc, utp);
- 	if (err)
- 		return err;
- 
- 	ret = do_adjtimex(&txc);
- 
--	err = compat_put_timex(utp, &txc);
-+	err = put_old_timex32(utp, &txc);
- 	if (err)
- 		return err;
- 
+ 	if (alloc = 0)
+ 		panic("ERROR: Failed to allocate %pa bytes below %pa.\n",
 -- 
-2.20.0
+2.7.4
