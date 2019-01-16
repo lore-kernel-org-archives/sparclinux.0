@@ -1,336 +1,78 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Tue, 08 Jan 2019 05:22:55 +0000
-Subject: [PATCH 3/3] sock: Add SO_RCVTIMEO_NEW and SO_SNDTIMEO_NEW
-Message-Id: <20190108052255.10699-4-deepa.kernel@gmail.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Wed, 16 Jan 2019 13:44:04 +0000
+Subject: [PATCH 04/21] memblock: drop memblock_alloc_base_nid()
+Message-Id: <1547646261-32535-5-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190108052255.10699-1-deepa.kernel@gmail.com>
-In-Reply-To: <20190108052255.10699-1-deepa.kernel@gmail.com>
+References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, ccaulfie@redhat.com, deller@gmx.de, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, cluster-devel@redhat.com, linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-Add new socket timeout options that are y2038 safe.
+The memblock_alloc_base_nid() is a oneliner wrapper for
+memblock_alloc_range_nid() without any side effect.
+Replace it's usage by the direct calls to memblock_alloc_range_nid().
 
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: ccaulfie@redhat.com
-Cc: davem@davemloft.net
-Cc: deller@gmx.de
-Cc: paulus@samba.org
-Cc: ralf@linux-mips.org
-Cc: rth@twiddle.net
-Cc: cluster-devel@redhat.com
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/alpha/include/uapi/asm/socket.h  | 12 +++--
- arch/mips/include/uapi/asm/socket.h   | 11 ++++-
- arch/parisc/include/uapi/asm/socket.h | 11 ++++-
- arch/sparc/include/uapi/asm/socket.h  | 11 ++++-
- include/net/sock.h                    |  4 +-
- include/uapi/asm-generic/socket.h     | 11 ++++-
- net/core/sock.c                       | 64 +++++++++++++++++++++------
- 7 files changed, 98 insertions(+), 26 deletions(-)
+ include/linux/memblock.h |  3 ---
+ mm/memblock.c            | 15 ++++-----------
+ 2 files changed, 4 insertions(+), 14 deletions(-)
 
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index ea3ba981d8a0..3d800d5d3d5d 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -118,19 +118,25 @@
- #define SO_TIMESTAMPNS_NEW       63
- #define SO_TIMESTAMPING_NEW      64
- 
--#if !defined(__KERNEL__)
-+#define SO_RCVTIMEO_NEW          65
-+#define SO_SNDTIMEO_NEW          66
- 
--#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
--#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
-+#if !defined(__KERNEL__)
- 
- #if __BITS_PER_LONG = 64
- #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
- #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
- #define SO_TIMESTAMPING	SO_TIMESTAMPING_OLD
-+
-+#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
-+#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #else
- #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
- #define SO_TIMESTAMPNS (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
- #define SO_TIMESTAMPING (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPING_OLD : SO_TIMESTAMPING_NEW)
-+
-+#define SO_RCVTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_RCVTIMEO_OLD : SO_RCVTIMEO_NEW)
-+#define SO_SNDTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_SNDTIMEO_OLD : SO_SNDTIMEO_NEW)
- #endif
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index 4dde20d64690..5a7f9010c090 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -128,18 +128,25 @@
- #define SO_TIMESTAMPNS_NEW       63
- #define SO_TIMESTAMPING_NEW      64
- 
-+#define SO_RCVTIMEO_NEW          65
-+#define SO_SNDTIMEO_NEW          66
-+
- #if !defined(__KERNEL__)
- 
--#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
--#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #if __BITS_PER_LONG = 64
- #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
- #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
- #define SO_TIMESTAMPING	SO_TIMESTAMPING_OLD
-+
-+#define        SO_RCVTIMEO             SO_RCVTIMEO_OLD
-+#define        SO_SNDTIMEO             SO_SNDTIMEO_OLD
- #else
- #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
- #define SO_TIMESTAMPNS (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
- #define SO_TIMESTAMPING (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPING_OLD : SO_TIMESTAMPING_NEW)
-+
-+#define        SO_RCVTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_RCVTIMEO_OLD : SO_RCVTIMEO_NEW)
-+#define        SO_SNDTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_SNDTIMEO_OLD : SO_SNDTIMEO_NEW)
- #endif
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index 546937fa0d8b..bd35de5b4666 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -109,18 +109,25 @@
- #define SO_TIMESTAMPNS_NEW       0x4038
- #define SO_TIMESTAMPING_NEW      0x4039
- 
-+#define SO_RCVTIMEO_NEW          0x4040
-+#define SO_SNDTIMEO_NEW          0x4041
-+
- #if !defined(__KERNEL__)
- 
--#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
--#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #if __BITS_PER_LONG = 64
- #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
- #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
- #define SO_TIMESTAMPING	SO_TIMESTAMPING_OLD
-+
-+#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
-+#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #else
- #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
- #define SO_TIMESTAMPNS (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
- #define SO_TIMESTAMPING (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPING_OLD : SO_TIMESTAMPING_NEW)
-+
-+#define        SO_RCVTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_RCVTIMEO_OLD : SO_RCVTIMEO_NEW)
-+#define        SO_SNDTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_SNDTIMEO_OLD : SO_SNDTIMEO_NEW)
- #endif
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index bdc396211627..5a5b073c3299 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -110,18 +110,25 @@
- #define SO_TIMESTAMPNS_NEW       0x0042
- #define SO_TIMESTAMPING_NEW      0x0043
- 
-+#define SO_RCVTIMEO_NEW          0x0044
-+#define SO_SNDTIMEO_NEW          0x0045
-+
- #if !defined(__KERNEL__)
- 
--#define	SO_RCVTIMEO	SO_RCVTIMEO_OLD
--#define	SO_SNDTIMEO	SO_SNDTIMEO_OLD
- #if __BITS_PER_LONG = 64
- #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
- #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
- #define SO_TIMESTAMPING	SO_TIMESTAMPING_OLD
-+
-+#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
-+#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #else
- #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
- #define SO_TIMESTAMPNS (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
- #define SO_TIMESTAMPING (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPING_OLD : SO_TIMESTAMPING_NEW)
-+
-+#define        SO_RCVTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_RCVTIMEO_OLD : SO_RCVTIMEO_NEW)
-+#define        SO_SNDTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_SNDTIMEO_OLD : SO_SNDTIMEO_NEW)
- #endif
- 
- 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 98965a9a2bf4..6679f3c120b0 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -292,8 +292,8 @@ struct sock_common {
-   *	@sk_peer_pid: &struct pid for this socket's peer
-   *	@sk_peer_cred: %SO_PEERCRED setting
-   *	@sk_rcvlowat: %SO_RCVLOWAT setting
--  *	@sk_rcvtimeo: %SO_RCVTIMEO_OLD setting
--  *	@sk_sndtimeo: %SO_SNDTIMEO_OLD setting
-+  *	@sk_rcvtimeo: %SO_RCVTIMEO setting
-+  *	@sk_sndtimeo: %SO_SNDTIMEO setting
-   *	@sk_txhash: computed flow hash for use on transmit
-   *	@sk_filter: socket filtering instructions
-   *	@sk_timer: sock cleanup timer
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index 9e370586fb19..5b4da6eacc9f 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -112,19 +112,26 @@
- #define SO_TIMESTAMPNS_NEW       63
- #define SO_TIMESTAMPING_NEW      64
- 
-+#define SO_RCVTIMEO_NEW          65
-+#define SO_SNDTIMEO_NEW          66
-+
- #if !defined(__KERNEL__)
- 
--#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
--#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #if __BITS_PER_LONG = 64 || (defined(__x86_64__) && defined(__ILP32__))
- /* on 64-bit and x32, avoid the ?: operator */
- #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
- #define SO_TIMESTAMPNS		SO_TIMESTAMPNS_OLD
- #define SO_TIMESTAMPING	SO_TIMESTAMPING_OLD
-+
-+#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
-+#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
- #else
- #define SO_TIMESTAMP (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMP_OLD : SO_TIMESTAMP_NEW)
- #define SO_TIMESTAMPNS (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPNS_OLD : SO_TIMESTAMPNS_NEW)
- #define SO_TIMESTAMPING (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_TIMESTAMPING_OLD : SO_TIMESTAMPING_NEW)
-+
-+#define        SO_RCVTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_RCVTIMEO_OLD : SO_RCVTIMEO_NEW)
-+#define        SO_SNDTIMEO (sizeof(time_t) = sizeof(__kernel_long_t) ? SO_SNDTIMEO_OLD : SO_SNDTIMEO_NEW)
- #endif
- 
- #define SCM_TIMESTAMP          SO_TIMESTAMP
-diff --git a/net/core/sock.c b/net/core/sock.c
-index 42914ca3186c..5e1c6dafee65 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -335,18 +335,31 @@ int __sk_backlog_rcv(struct sock *sk, struct sk_buff *skb)
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 60e100f..f7ef313 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -490,9 +490,6 @@ static inline bool memblock_bottom_up(void)
+ phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
+ 					phys_addr_t start, phys_addr_t end,
+ 					enum memblock_flags flags);
+-phys_addr_t memblock_alloc_base_nid(phys_addr_t size,
+-					phys_addr_t align, phys_addr_t max_addr,
+-					int nid, enum memblock_flags flags);
+ phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+ 				phys_addr_t max_addr);
+ phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+diff --git a/mm/memblock.c b/mm/memblock.c
+index a32db30..c80029e 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1346,21 +1346,14 @@ phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
+ 					flags);
  }
- EXPORT_SYMBOL(__sk_backlog_rcv);
  
--static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen)
-+static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen, bool old_timeval)
+-phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
+-					phys_addr_t align, phys_addr_t max_addr,
+-					int nid, enum memblock_flags flags)
+-{
+-	return memblock_alloc_range_nid(size, align, 0, max_addr, nid, flags);
+-}
+-
+ phys_addr_t __init memblock_phys_alloc_nid(phys_addr_t size, phys_addr_t align, int nid)
  {
--	struct __kernel_old_timeval tv;
+ 	enum memblock_flags flags = choose_memblock_flags();
+ 	phys_addr_t ret;
  
--	if (optlen < sizeof(tv))
--		return -EINVAL;
--	if (copy_from_user(&tv, optval, sizeof(tv)))
--		return -EFAULT;
--	if (tv.tv_usec < 0 || tv.tv_usec >= USEC_PER_SEC)
-+	struct __kernel_sock_timeval stv;
-+
-+	if (old_timeval) {
-+		struct __kernel_old_timeval tv;
-+
-+		if (optlen < sizeof(tv))
-+			return -EINVAL;
-+		if (copy_from_user(&tv, optval, sizeof(tv)))
-+			return -EFAULT;
-+		stv.tv_sec = tv.tv_sec;
-+		stv.tv_usec = tv.tv_usec;
-+	} else {
-+		if (optlen < sizeof(stv))
-+			return -EINVAL;
-+		if (copy_from_user(&stv, optval, sizeof(stv)))
-+			return -EFAULT;
-+	}
-+
-+	if (stv.tv_usec < 0 || stv.tv_usec >= USEC_PER_SEC)
- 		return -EDOM;
+ again:
+-	ret = memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE,
+-				      nid, flags);
++	ret = memblock_alloc_range_nid(size, align, 0,
++				       MEMBLOCK_ALLOC_ACCESSIBLE, nid, flags);
  
--	if (tv.tv_sec < 0) {
-+	if (stv.tv_sec < 0) {
- 		static int warned __read_mostly;
+ 	if (!ret && (flags & MEMBLOCK_MIRROR)) {
+ 		flags &= ~MEMBLOCK_MIRROR;
+@@ -1371,8 +1364,8 @@ phys_addr_t __init memblock_phys_alloc_nid(phys_addr_t size, phys_addr_t align,
  
- 		*timeo_p = 0;
-@@ -358,10 +371,10 @@ static int sock_set_timeout(long *timeo_p, char __user *optval, int optlen)
- 		return 0;
- 	}
- 	*timeo_p = MAX_SCHEDULE_TIMEOUT;
--	if (tv.tv_sec = 0 && tv.tv_usec = 0)
-+	if (stv.tv_sec = 0 && stv.tv_usec = 0)
- 		return 0;
--	if (tv.tv_sec < (MAX_SCHEDULE_TIMEOUT/HZ - 1))
--		*timeo_p = tv.tv_sec * HZ + DIV_ROUND_UP(tv.tv_usec, USEC_PER_SEC / HZ);
-+	if (stv.tv_sec < (MAX_SCHEDULE_TIMEOUT / HZ - 1))
-+		*timeo_p = stv.tv_sec * HZ + DIV_ROUND_UP((unsigned long)stv.tv_usec, USEC_PER_SEC / HZ);
- 	return 0;
+ phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
+ {
+-	return memblock_alloc_base_nid(size, align, max_addr, NUMA_NO_NODE,
+-				       MEMBLOCK_NONE);
++	return memblock_alloc_range_nid(size, align, 0, max_addr, NUMA_NO_NODE,
++					MEMBLOCK_NONE);
  }
  
-@@ -890,11 +903,13 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 		break;
- 
- 	case SO_RCVTIMEO_OLD:
--		ret = sock_set_timeout(&sk->sk_rcvtimeo, optval, optlen);
-+	case SO_RCVTIMEO_NEW:
-+		ret = sock_set_timeout(&sk->sk_rcvtimeo, optval, optlen, optname = SO_RCVTIMEO_OLD);
- 		break;
- 
- 	case SO_SNDTIMEO_OLD:
--		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen);
-+	case SO_SNDTIMEO_NEW:
-+		ret = sock_set_timeout(&sk->sk_sndtimeo, optval, optlen, optname = SO_SNDTIMEO_OLD);
- 		break;
- 
- 	case SO_ATTACH_FILTER:
-@@ -1114,6 +1129,7 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		u64 val64;
- 		struct linger ling;
- 		struct __kernel_old_timeval tm;
-+		struct  __kernel_sock_timeval stm;
- 		struct sock_txtime txtime;
- 	} v;
- 
-@@ -1233,6 +1249,17 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		}
- 		break;
- 
-+	case SO_RCVTIMEO_NEW:
-+		lv = sizeof(struct __kernel_sock_timeval);
-+		if (sk->sk_rcvtimeo = MAX_SCHEDULE_TIMEOUT) {
-+			v.stm.tv_sec = 0;
-+			v.stm.tv_usec = 0;
-+		} else {
-+			v.stm.tv_sec = sk->sk_rcvtimeo / HZ;
-+			v.stm.tv_usec = ((sk->sk_rcvtimeo % HZ) * USEC_PER_SEC) / HZ;
-+		}
-+		break;
-+
- 	case SO_SNDTIMEO_OLD:
- 		lv = sizeof(struct __kernel_old_timeval);
- 		if (sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT) {
-@@ -1244,6 +1271,17 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		}
- 		break;
- 
-+	case SO_SNDTIMEO_NEW:
-+		lv = sizeof(struct __kernel_sock_timeval);
-+		if (sk->sk_sndtimeo = MAX_SCHEDULE_TIMEOUT) {
-+			v.stm.tv_sec = 0;
-+			v.stm.tv_usec = 0;
-+		} else {
-+			v.stm.tv_sec = sk->sk_sndtimeo / HZ;
-+			v.stm.tv_usec = ((sk->sk_sndtimeo % HZ) * USEC_PER_SEC) / HZ;
-+		}
-+		break;
-+
- 	case SO_RCVLOWAT:
- 		v.val = sk->sk_rcvlowat;
- 		break;
+ phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
 -- 
-2.17.1
+2.7.4
