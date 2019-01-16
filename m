@@ -1,48 +1,134 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 10 Jan 2019 16:24:31 +0000
-Subject: [PATCH 11/15] mips: fix n32 compat_ipc_parse_version
-Message-Id: <20190110162435.309262-12-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Wed, 16 Jan 2019 13:44:09 +0000
+Subject: [PATCH 09/21] memblock: drop memblock_alloc_base()
+Message-Id: <1547646261-32535-10-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110162435.309262-1-arnd@arndb.de>
-In-Reply-To: <20190110162435.309262-1-arnd@arndb.de>
+References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux@dominikbrodowski.net, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, dave@stgolabs.net, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-m68k@lists.linux-m68k.org, ink@jurassic.park.msu.ru, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, stable@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foun
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-While reading through the sysvipc implementation, I noticed that the n32
-semctl/shmctl/msgctl system calls behave differently based on whether
-o32 support is enabled or not: Without o32, the IPC_64 flag passed by
-user space is rejected but calls without that flag get IPC_64 behavior.
+The memblock_alloc_base() function tries to allocate a memory up to the
+limit specified by its max_addr parameter and panics if the allocation
+fails. Replace its usage with memblock_phys_alloc_range() and make the
+callers check the return value and panic in case of error.
 
-As far as I can tell, this was inadvertently changed by a cleanup patch
-but never noticed by anyone, possibly nobody has tried using sysvipc
-on n32 after linux-3.19.
-
-Change it back to the old behavior now.
-
-Fixes: 78aaf956ba3a ("MIPS: Compat: Fix build error if CONFIG_MIPS32_COMPAT but no compat ABI.")
-Cc: stable@vger.kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
-As stated above, this was only found by inspection, the patch is not
-tested. Please review accordingly.
----
- arch/mips/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/kernel/rtas.c      |  6 +++++-
+ arch/powerpc/mm/hash_utils_64.c |  8 ++++++--
+ arch/s390/kernel/smp.c          |  6 +++++-
+ drivers/macintosh/smu.c         |  2 +-
+ include/linux/memblock.h        |  2 --
+ mm/memblock.c                   | 14 --------------
+ 6 files changed, 17 insertions(+), 21 deletions(-)
 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 787290781b8c..0d14f51d0002 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -3155,6 +3155,7 @@ config MIPS32_O32
- config MIPS32_N32
- 	bool "Kernel support for n32 binaries"
- 	depends on 64BIT
-+	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	select COMPAT
- 	select MIPS32_COMPAT
- 	select SYSVIPC_COMPAT if SYSVIPC
+diff --git a/arch/powerpc/kernel/rtas.c b/arch/powerpc/kernel/rtas.c
+index de35bd8f..fbc6761 100644
+--- a/arch/powerpc/kernel/rtas.c
++++ b/arch/powerpc/kernel/rtas.c
+@@ -1187,7 +1187,11 @@ void __init rtas_initialize(void)
+ 		ibm_suspend_me_token = rtas_token("ibm,suspend-me");
+ 	}
+ #endif
+-	rtas_rmo_buf = memblock_alloc_base(RTAS_RMOBUF_MAX, PAGE_SIZE, rtas_region);
++	rtas_rmo_buf = memblock_phys_alloc_range(RTAS_RMOBUF_MAX, PAGE_SIZE,
++						 0, rtas_region);
++	if (!rtas_rmo_buf)
++		panic("ERROR: RTAS: Failed to allocate %lx bytes below %pa\n",
++		      PAGE_SIZE, &rtas_region);
+ 
+ #ifdef CONFIG_RTAS_ERROR_LOGGING
+ 	rtas_last_error_token = rtas_token("rtas-last-error");
+diff --git a/arch/powerpc/mm/hash_utils_64.c b/arch/powerpc/mm/hash_utils_64.c
+index bc6be44..c7d5f48 100644
+--- a/arch/powerpc/mm/hash_utils_64.c
++++ b/arch/powerpc/mm/hash_utils_64.c
+@@ -882,8 +882,12 @@ static void __init htab_initialize(void)
+ 		}
+ #endif /* CONFIG_PPC_CELL */
+ 
+-		table = memblock_alloc_base(htab_size_bytes, htab_size_bytes,
+-					    limit);
++		table = memblock_phys_alloc_range(htab_size_bytes,
++						  htab_size_bytes,
++						  0, limit);
++		if (!table)
++			panic("ERROR: Failed to allocate %pa bytes below %pa\n",
++			      &htab_size_bytes, &limit);
+ 
+ 		DBG("Hash table allocated at %lx, size: %lx\n", table,
+ 		    htab_size_bytes);
+diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
+index f82b3d3..9061597 100644
+--- a/arch/s390/kernel/smp.c
++++ b/arch/s390/kernel/smp.c
+@@ -651,7 +651,11 @@ void __init smp_save_dump_cpus(void)
+ 		/* No previous system present, normal boot. */
+ 		return;
+ 	/* Allocate a page as dumping area for the store status sigps */
+-	page = memblock_alloc_base(PAGE_SIZE, PAGE_SIZE, 1UL << 31);
++	page = memblock_phys_alloc_range(PAGE_SIZE, PAGE_SIZE, 0, 1UL << 31);
++	if (!page)
++		panic("ERROR: Failed to allocate %x bytes below %lx\n",
++		      PAGE_SIZE, 1UL << 31);
++
+ 	/* Set multi-threading state to the previous system. */
+ 	pcpu_set_smt(sclp.mtid_prev);
+ 	boot_cpu_addr = stap();
+diff --git a/drivers/macintosh/smu.c b/drivers/macintosh/smu.c
+index 0a0b8e1..42cf68d 100644
+--- a/drivers/macintosh/smu.c
++++ b/drivers/macintosh/smu.c
+@@ -485,7 +485,7 @@ int __init smu_init (void)
+ 	 * SMU based G5s need some memory below 2Gb. Thankfully this is
+ 	 * called at a time where memblock is still available.
+ 	 */
+-	smu_cmdbuf_abs = memblock_alloc_base(4096, 4096, 0x80000000UL);
++	smu_cmdbuf_abs = memblock_phys_alloc_range(4096, 4096, 0, 0x80000000UL);
+ 	if (smu_cmdbuf_abs = 0) {
+ 		printk(KERN_ERR "SMU: Command buffer allocation failed !\n");
+ 		ret = -EINVAL;
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 768e2b4..6874fdc 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -494,8 +494,6 @@ static inline bool memblock_bottom_up(void)
+ 	return memblock.bottom_up;
+ }
+ 
+-phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,
+-				phys_addr_t max_addr);
+ phys_addr_t memblock_phys_mem_size(void);
+ phys_addr_t memblock_reserved_size(void);
+ phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index e5ffdcd..531fa77 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1363,20 +1363,6 @@ phys_addr_t __init memblock_phys_alloc_nid(phys_addr_t size, phys_addr_t align,
+ 	return ret;
+ }
+ 
+-phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
+-{
+-	phys_addr_t alloc;
+-
+-	alloc = memblock_alloc_range_nid(size, align, 0, max_addr, NUMA_NO_NODE,
+-					MEMBLOCK_NONE);
+-
+-	if (alloc = 0)
+-		panic("ERROR: Failed to allocate %pa bytes below %pa.\n",
+-		      &size, &max_addr);
+-
+-	return alloc;
+-}
+-
+ phys_addr_t __init memblock_phys_alloc_try_nid(phys_addr_t size, phys_addr_t align, int nid)
+ {
+ 	phys_addr_t res = memblock_phys_alloc_nid(size, align, nid);
 -- 
-2.20.0
+2.7.4
