@@ -1,108 +1,38 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Mon, 21 Jan 2019 08:04:00 +0000
-Subject: [PATCH v2 13/21] arch: don't memset(0) memory returned by memblock_alloc()
-Message-Id: <1548057848-15136-14-git-send-email-rppt@linux.ibm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Jan 2019 16:18:26 +0000
+Subject: [PATCH v2 20/29] time: fix sys_timer_settime prototype
+Message-Id: <20190118161835.2259170-21-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
+References: <20190118161835.2259170-1-arnd@arndb.de>
+In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, paul.burton@mips.com, deller@gmx.de, benh@kernel.crashing.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jcmvbkbc@gmail.com, akpm@linux-foundation.org, deepa.kernel@gmail.com, ebiederm@xmission.com, firoz.khan@linaro.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.or
 
-memblock_alloc() already clears the allocated memory, no point in doing it
-twice.
+A small typo has crept into the y2038 conversion of the timer_settime
+system call. So far this was completely harmless, but once we start
+using the new version, this has to be fixed.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> # m68k
+Fixes: 6ff847350702 ("time: Change types to new y2038 safe __kernel_itimerspec")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/c6x/mm/init.c          | 1 -
- arch/h8300/mm/init.c        | 1 -
- arch/ia64/kernel/mca.c      | 2 --
- arch/m68k/mm/mcfmmu.c       | 1 -
- arch/microblaze/mm/init.c   | 6 ++----
- arch/sparc/kernel/prom_32.c | 2 --
- 6 files changed, 2 insertions(+), 11 deletions(-)
+ include/linux/syscalls.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/c6x/mm/init.c b/arch/c6x/mm/init.c
-index af5ada0..e83c046 100644
---- a/arch/c6x/mm/init.c
-+++ b/arch/c6x/mm/init.c
-@@ -40,7 +40,6 @@ void __init paging_init(void)
- 
- 	empty_zero_page      = (unsigned long) memblock_alloc(PAGE_SIZE,
- 							      PAGE_SIZE);
--	memset((void *)empty_zero_page, 0, PAGE_SIZE);
- 
- 	/*
- 	 * Set up user data space
-diff --git a/arch/h8300/mm/init.c b/arch/h8300/mm/init.c
-index 6519252..a157890 100644
---- a/arch/h8300/mm/init.c
-+++ b/arch/h8300/mm/init.c
-@@ -68,7 +68,6 @@ void __init paging_init(void)
- 	 * to a couple of allocated pages.
- 	 */
- 	empty_zero_page = (unsigned long)memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--	memset((void *)empty_zero_page, 0, PAGE_SIZE);
- 
- 	/*
- 	 * Set up SFC/DFC registers (user data space).
-diff --git a/arch/ia64/kernel/mca.c b/arch/ia64/kernel/mca.c
-index 74d148b..370bc34 100644
---- a/arch/ia64/kernel/mca.c
-+++ b/arch/ia64/kernel/mca.c
-@@ -400,8 +400,6 @@ ia64_log_init(int sal_info_type)
- 
- 	// set up OS data structures to hold error info
- 	IA64_LOG_ALLOCATE(sal_info_type, max_size);
--	memset(IA64_LOG_CURR_BUFFER(sal_info_type), 0, max_size);
--	memset(IA64_LOG_NEXT_BUFFER(sal_info_type), 0, max_size);
- }
- 
- /*
-diff --git a/arch/m68k/mm/mcfmmu.c b/arch/m68k/mm/mcfmmu.c
-index 0de4999..492f953 100644
---- a/arch/m68k/mm/mcfmmu.c
-+++ b/arch/m68k/mm/mcfmmu.c
-@@ -44,7 +44,6 @@ void __init paging_init(void)
- 	int i;
- 
- 	empty_zero_page = (void *) memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--	memset((void *) empty_zero_page, 0, PAGE_SIZE);
- 
- 	pg_dir = swapper_pg_dir;
- 	memset(swapper_pg_dir, 0, sizeof(swapper_pg_dir));
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index 44f4b89..bd1cd4b 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -376,10 +376,8 @@ void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
- 
- 	if (mem_init_done)
- 		p = kzalloc(size, mask);
--	else {
-+	else
- 		p = memblock_alloc(size, SMP_CACHE_BYTES);
--		if (p)
--			memset(p, 0, size);
--	}
-+
- 	return p;
- }
-diff --git a/arch/sparc/kernel/prom_32.c b/arch/sparc/kernel/prom_32.c
-index 38940af..e7126ca 100644
---- a/arch/sparc/kernel/prom_32.c
-+++ b/arch/sparc/kernel/prom_32.c
-@@ -33,8 +33,6 @@ void * __init prom_early_alloc(unsigned long size)
- 	void *ret;
- 
- 	ret = memblock_alloc(size, SMP_CACHE_BYTES);
--	if (ret != NULL)
--		memset(ret, 0, size);
- 
- 	prom_early_allocated += size;
- 
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 938d8908b9e0..baa4b70b02d3 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -591,7 +591,7 @@ asmlinkage long sys_timer_gettime(timer_t timer_id,
+ asmlinkage long sys_timer_getoverrun(timer_t timer_id);
+ asmlinkage long sys_timer_settime(timer_t timer_id, int flags,
+ 				const struct __kernel_itimerspec __user *new_setting,
+-				struct itimerspec __user *old_setting);
++				struct __kernel_itimerspec __user *old_setting);
+ asmlinkage long sys_timer_delete(timer_t timer_id);
+ asmlinkage long sys_clock_settime(clockid_t which_clock,
+ 				const struct __kernel_timespec __user *tp);
 -- 
-2.7.4
+2.20.0
