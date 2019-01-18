@@ -1,70 +1,81 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Mon, 21 Jan 2019 08:04:04 +0000
-Subject: [PATCH v2 17/21] init/main: add checks for the return value of memblock_alloc*()
-Message-Id: <1548057848-15136-18-git-send-email-rppt@linux.ibm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Jan 2019 16:18:07 +0000
+Subject: [PATCH v2 01/29] ia64: add __NR_umount2 definition
+Message-Id: <20190118161835.2259170-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
+References: <20190118161835.2259170-1-arnd@arndb.de>
+In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foundation.orglinu
 
-Add panic() calls if memblock_alloc() returns NULL.
+Other architectures commonly use __NR_umount2 for sys_umount,
+only ia64 and alpha use __NR_umount here. In order to synchronize
+the generated tables, use umount2 like everyone else, and add back
+the old name from asm/unistd.h for compatibility.
 
-The panic() format duplicates the one used by memblock itself and in order
-to avoid explosion with long parameters list replace open coded allocation
-size calculations with a local variable.
+The __IGNORE_* lines are now all obsolete and can be removed as
+a side-effect.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- init/main.c | 26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ arch/ia64/include/asm/unistd.h        | 14 --------------
+ arch/ia64/include/uapi/asm/unistd.h   |  2 ++
+ arch/ia64/kernel/syscalls/syscall.tbl |  2 +-
+ 3 files changed, 3 insertions(+), 15 deletions(-)
 
-diff --git a/init/main.c b/init/main.c
-index a56f65a..d58a365 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -373,12 +373,20 @@ static inline void smp_prepare_cpus(unsigned int maxcpus) { }
-  */
- static void __init setup_command_line(char *command_line)
- {
--	saved_command_line -		memblock_alloc(strlen(boot_command_line) + 1, SMP_CACHE_BYTES);
--	initcall_command_line -		memblock_alloc(strlen(boot_command_line) + 1, SMP_CACHE_BYTES);
--	static_command_line = memblock_alloc(strlen(command_line) + 1,
--					     SMP_CACHE_BYTES);
-+	size_t len = strlen(boot_command_line) + 1;
+diff --git a/arch/ia64/include/asm/unistd.h b/arch/ia64/include/asm/unistd.h
+index 0b08ebd2dfde..9ba6110b10b9 100644
+--- a/arch/ia64/include/asm/unistd.h
++++ b/arch/ia64/include/asm/unistd.h
+@@ -12,20 +12,6 @@
+ 
+ #define NR_syscalls		__NR_syscalls /* length of syscall table */
+ 
+-/*
+- * The following defines stop scripts/checksyscalls.sh from complaining about
+- * unimplemented system calls.  Glibc provides for each of these by using
+- * more modern equivalent system calls.
+- */
+-#define __IGNORE_fork		/* clone() */
+-#define __IGNORE_time		/* gettimeofday() */
+-#define __IGNORE_alarm		/* setitimer(ITIMER_REAL, ... */
+-#define __IGNORE_pause		/* rt_sigprocmask(), rt_sigsuspend() */
+-#define __IGNORE_utime		/* utimes() */
+-#define __IGNORE_getpgrp	/* getpgid() */
+-#define __IGNORE_vfork		/* clone() */
+-#define __IGNORE_umount2	/* umount() */
+-
+ #define __ARCH_WANT_NEW_STAT
+ #define __ARCH_WANT_SYS_UTIME
+ 
+diff --git a/arch/ia64/include/uapi/asm/unistd.h b/arch/ia64/include/uapi/asm/unistd.h
+index b2513922dcb5..013e0bcacc39 100644
+--- a/arch/ia64/include/uapi/asm/unistd.h
++++ b/arch/ia64/include/uapi/asm/unistd.h
+@@ -15,6 +15,8 @@
+ 
+ #define __NR_Linux      1024
+ 
++#define __NR_umount __NR_umount2
 +
-+	saved_command_line = memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!saved_command_line)
-+		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
-+
-+	initcall_command_line =	memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!initcall_command_line)
-+		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
-+
-+	static_command_line = memblock_alloc(len, SMP_CACHE_BYTES);
-+	if (!static_command_line)
-+		panic("%s: Failed to allocate %zu bytes\n", __func__, len);
-+
- 	strcpy(saved_command_line, boot_command_line);
- 	strcpy(static_command_line, command_line);
- }
-@@ -773,8 +781,14 @@ static int __init initcall_blacklist(char *str)
- 			pr_debug("blacklisting initcall %s\n", str_entry);
- 			entry = memblock_alloc(sizeof(*entry),
- 					       SMP_CACHE_BYTES);
-+			if (!entry)
-+				panic("%s: Failed to allocate %zu bytes\n",
-+				      __func__, sizeof(*entry));
- 			entry->buf = memblock_alloc(strlen(str_entry) + 1,
- 						    SMP_CACHE_BYTES);
-+			if (!entry->buf)
-+				panic("%s: Failed to allocate %zu bytes\n",
-+				      __func__, strlen(str_entry) + 1);
- 			strcpy(entry->buf, str_entry);
- 			list_add(&entry->next, &blacklisted_initcalls);
- 		}
+ #include <asm/unistd_64.h>
+ 
+ #endif /* _UAPI_ASM_IA64_UNISTD_H */
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index b22203b40bfe..e97caf51be42 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -29,7 +29,7 @@
+ 17	common	getpid				sys_getpid
+ 18	common	getppid				sys_getppid
+ 19	common	mount				sys_mount
+-20	common	umount				sys_umount
++20	common	umount2				sys_umount
+ 21	common	setuid				sys_setuid
+ 22	common	getuid				sys_getuid
+ 23	common	geteuid				sys_geteuid
 -- 
-2.7.4
+2.20.0
