@@ -1,41 +1,84 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Tue, 29 Jan 2019 09:52:17 +0000
-Subject: Re: [PATCH v2 02/21] powerpc: use memblock functions returning virtual address
-Message-Id: <871s4vssdq.fsf@concordia.ellerman.id.au>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Jan 2019 16:18:12 +0000
+Subject: [PATCH v2 06/29] ARM: add migrate_pages() system call
+Message-Id: <20190118161835.2259170-7-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com> <1548057848-15136-3-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1548057848-15136-3-git-send-email-rppt@linux.ibm.com>
+References: <20190118161835.2259170-1-arnd@arndb.de>
+In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.ibm.com>, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, "David S. Miller" <davem@davemloft.net>, Dennis Zhou <dennis@kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guan Xuetao <gxt@pku.edu.cn>, Guo Ren <guoren@kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Max Filippov <jcmvbkbc@gmail.com>, Michal Simek <monstr@monstr.eu>, Paul Burton <paul.burton@mips.com>, Petr Mladek <pmladek@suse.com>, Rich Felker <dalias@libc.org>, Richard Weinberger <richard@nod.at>, Rob Herring <robh+dt@kernel.org>, Russell King <linux@arml>
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foundation.orglinu
 
-Mike Rapoport <rppt@linux.ibm.com> writes:
+The migrate_pages system call has an assigned number on all architectures
+except ARM. When it got added initially in commit d80ade7b3231 ("ARM:
+Fix warning: #warning syscall migrate_pages not implemented"), it was
+intentionally left out based on the observation that there are no 32-bit
+ARM NUMA systems.
 
-> From: Christophe Leroy <christophe.leroy@c-s.fr>
->
-> Since only the virtual address of allocated blocks is used,
-> lets use functions returning directly virtual address.
->
-> Those functions have the advantage of also zeroing the block.
->
-> [ MR:
->  - updated error message in alloc_stack() to be more verbose
->  - convereted several additional call sites ]
->
-> Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/powerpc/kernel/dt_cpu_ftrs.c |  3 +--
->  arch/powerpc/kernel/irq.c         |  5 -----
->  arch/powerpc/kernel/paca.c        |  6 +++++-
->  arch/powerpc/kernel/prom.c        |  5 ++++-
->  arch/powerpc/kernel/setup_32.c    | 26 ++++++++++++++++----------
->  5 files changed, 26 insertions(+), 19 deletions(-)
+However, there are now arm64 NUMA machines that can in theory run 32-bit
+kernels (actually enabling NUMA there would require additional work)
+as well as 32-bit user space on 64-bit kernels, so that argument is no
+longer very strong.
 
-LGTM.
+Assigning the number lets us use the system call on 64-bit kernels as well
+as providing a more consistent set of syscalls across architectures.
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm/include/asm/unistd.h     | 1 -
+ arch/arm/tools/syscall.tbl        | 1 +
+ arch/arm64/include/asm/unistd.h   | 2 +-
+ arch/arm64/include/asm/unistd32.h | 2 ++
+ 4 files changed, 4 insertions(+), 2 deletions(-)
 
-cheers
+diff --git a/arch/arm/include/asm/unistd.h b/arch/arm/include/asm/unistd.h
+index 88ef2ce1f69a..d713587dfcf4 100644
+--- a/arch/arm/include/asm/unistd.h
++++ b/arch/arm/include/asm/unistd.h
+@@ -45,7 +45,6 @@
+  * Unimplemented (or alternatively implemented) syscalls
+  */
+ #define __IGNORE_fadvise64_64
+-#define __IGNORE_migrate_pages
+ 
+ #ifdef __ARM_EABI__
+ /*
+diff --git a/arch/arm/tools/syscall.tbl b/arch/arm/tools/syscall.tbl
+index 8edf93b4490f..86de9eb34296 100644
+--- a/arch/arm/tools/syscall.tbl
++++ b/arch/arm/tools/syscall.tbl
+@@ -414,3 +414,4 @@
+ 397	common	statx			sys_statx
+ 398	common	rseq			sys_rseq
+ 399	common	io_pgetevents		sys_io_pgetevents
++400	common	migrate_pages		sys_migrate_pages
+diff --git a/arch/arm64/include/asm/unistd.h b/arch/arm64/include/asm/unistd.h
+index a7b1fc58ffdf..261216c3336e 100644
+--- a/arch/arm64/include/asm/unistd.h
++++ b/arch/arm64/include/asm/unistd.h
+@@ -44,7 +44,7 @@
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
+ #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
+ 
+-#define __NR_compat_syscalls		400
++#define __NR_compat_syscalls		401
+ #endif
+ 
+ #define __ARCH_WANT_SYS_CLONE
+diff --git a/arch/arm64/include/asm/unistd32.h b/arch/arm64/include/asm/unistd32.h
+index 04ee190b90fe..f15bcbacb8f6 100644
+--- a/arch/arm64/include/asm/unistd32.h
++++ b/arch/arm64/include/asm/unistd32.h
+@@ -821,6 +821,8 @@ __SYSCALL(__NR_statx, sys_statx)
+ __SYSCALL(__NR_rseq, sys_rseq)
+ #define __NR_io_pgetevents 399
+ __SYSCALL(__NR_io_pgetevents, compat_sys_io_pgetevents)
++#define __NR_migrate_pages 400
++__SYSCALL(__NR_migrate_pages, compat_sys_migrate_pages)
+ 
+ /*
+  * Please add new compat syscalls above this comment and update
+-- 
+2.20.0
