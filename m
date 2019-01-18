@@ -1,15 +1,37 @@
-From: WELFARE FINANCE PLC <suhariyanto@semenindonesia.com>
-Date: Fri, 11 Jan 2019 07:37:24 +0000
-Subject: =?utf-8?Q?l=C3=A5ne?=
-Message-Id: <1706132868.6941000.1547192244741.JavaMail.zimbra@semenindonesia.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Jan 2019 16:18:09 +0000
+Subject: [PATCH v2 03/29] ia64: assign syscall numbers for perf and seccomp
+Message-Id: <20190118161835.2259170-4-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190118161835.2259170-1-arnd@arndb.de>
+In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foundation.orglinu
 
+Most architectures have assigned numbers for both seccomp and
+perf_event_open, even when they do not implement either.
 
+ia64 is an exception here, so for consistency lets add numbers for both
+of them. Unless CONFIG_PERF_EVENTS and CONFIG_SECCOMP are implemented,
+the system calls just return -ENOSYS.
 
-Mitt navn er Mr.James R Walsh fra WELFARE FINANCE PLC basert i Storbritannia, og gir ut lån med post. Står du over økonomiske vanskeligheter? Vi tilbyr midler Antall: 200.000,00 NOK til 5.000.000.00 NOK til 1.5% av prisene for enkeltpersoner og bedrifter, kontakt oss i dag på (welfarefinanceplc@webadicta.org) for mer informasjon.
-_____________________________________________________________________
-This message is intended only for recipients who are authorized to receive it. It contains confidential and/ or legally privileged information belonging to PT SEMEN INDONESIA (Persero) Tbk, therefore the authorized recipients shall protect this confidential information disclosed pursuant to provisions of Semen Indonesia's policy. If you are not a valid recipient of this message, please delete it from your system and/ or destroy all of the tangible material produced from the information herein together with all copies or reproductions thereof and notify the sender immediately. Please also be notified that any disclosure, copying, distribution or taking any action based on the contents of this message is strictly prohibited and may be unlawful
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/ia64/kernel/syscalls/syscall.tbl | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index 52585281205b..2e93dbdcdb80 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -337,3 +337,5 @@
+ 325	common	pwritev2			sys_pwritev2
+ 326	common	statx				sys_statx
+ 327	common	io_pgetevents			sys_io_pgetevents
++328	common	perf_event_open			sys_perf_event_open
++329	common	seccomp				sys_seccomp
+-- 
+2.20.0
