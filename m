@@ -1,99 +1,199 @@
-From: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Date: Fri, 18 Jan 2019 13:33:50 +0000
-Subject: Re: [Qemu-devel] sparc: crash when using initrd > 5M
-Message-Id: <3a375dc6-f0ba-c3f0-6e86-2fd5cdf3ee35@ilande.co.uk>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 18 Jan 2019 16:18:19 +0000
+Subject: [PATCH v2 13/29] arch: add split IPC system calls where needed
+Message-Id: <20190118161835.2259170-14-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190103154810.GB32032@Red>
-In-Reply-To: <20190103154810.GB32032@Red>
+References: <20190118161835.2259170-1-arnd@arndb.de>
+In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Corentin Labbe <clabbe.montjoie@gmail.com>, sparclinux@vger.kernel.org, qemu-devel@nongnu.org
+To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
+Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akpm@linux-foundation.orglinu
 
-On 03/01/2019 15:48, Corentin Labbe wrote:
+The IPC system call handling is highly inconsistent across architectures,
+some use sys_ipc, some use separate calls, and some use both.  We also
+have some architectures that require passing IPC_64 in the flags, and
+others that set it implicitly.
 
-> Hello
-> 
-> When using an initrd > 5M, I hit the following kernel crash:
-> qemu-system-sparc -kernel vmlinux -initrd rootfs.cpio.gz -nographic
-> Configuration device id QEMU version 1 machine id 32
-> Probing SBus slot 0 offset 0
-> Probing SBus slot 1 offset 0
-> Probing SBus slot 2 offset 0
-> Probing SBus slot 3 offset 0
-> Probing SBus slot 4 offset 0
-> Probing SBus slot 5 offset 0
-> Invalid FCode start byte
-> CPUs: 1 x FMI,MB86904
-> UUID: 00000000-0000-0000-0000-000000000000
-> Welcome to OpenBIOS v1.1 built on Oct 5 2018 08:20
->   Type 'help' for detailed information
-> [sparc] Kernel already loaded
-> switching to new context:
-> PROMLIB: obio_ranges 1
-> [    0.000000] PROMLIB: Sun Boot Prom Version 3 Revision 2
-> [    0.000000] Linux version 4.20.0-next-20190102+ (compile@Red) (gcc version 7.3.0 (Gentoo 7.3.0-r3 p1.4)) #148 Thu Jan 3 16:17:08 CET 2019
-> [    0.000000] printk: bootconsole [earlyprom0] enabled
-> [    0.000000] ARCH: SUN4M
-> [    0.000000] TYPE: SPARCstation 5
-> [    0.000000] Ethernet address: 52:54:00:12:34:56
-> [    0.000000] Unable to handle kernel NULL pointer dereference
-> [    0.000000] tsk->{mm,active_mm}->context = ffffffff
-> [    0.000000] tsk->{mm,active_mm}->pgd = 00000000
-> [    0.000000]               \|/ ____ \|/
-> [    0.000000]               "@'/ ,. \`@"
-> [    0.000000]               /_| \__/ |_\
-> [    0.000000]                  \__U_/
-> [    0.000000] swapper(0): Oops [#1]
-> [    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 4.20.0-next-20190102+ #148
-> [    0.000000] PSR: 04001fc0 PC: f0010ef0 NPC: f0010ef4 Y: 00000000    Not tainted
-> [    0.000000] PC: <do_sparc_fault+0x158/0x404>
-> [    0.000000] %G: 0000000a 000003c4  f05ece08 f05ecc00  00000000 00e00000  f05d4000 00000001
-> [    0.000000] %O: 00000000 00e00000  00800000 00e00000  00000000 00000002  f05d5bb8 f00bba58
-> [    0.000000] RPC: <memblock_reserve+0x38/0x68>
-> [    0.000000] %L: 00000040 f05dfaf8  f05d5c68 00000001  0003ffff 006951e0  f05ed014 f0674ab4
-> [    0.000000] %I: f05d5c80 00000000  00000002 f1000000  ffffffff 00000000  f05d5c20 f0007fd8
-> [    0.000000] Disabling lock debugging due to kernel taint
-> [    0.000000] Caller[f0007fd8]: srmmu_fault+0x58/0x68
-> [    0.000000] Caller[f0618598]: memblock_alloc_try_nid+0xb8/0xc8
-> [    0.000000] Caller[f0611094]: srmmu_paging_init+0x174/0xaf8
-> [    0.000000] Caller[f06106a8]: paging_init+0x4/0x24
-> [    0.000000] Caller[f060e4f0]: setup_arch+0x3e8/0x480
-> [    0.000000] Caller[f060ab50]: start_kernel+0x48/0x460
-> [    0.000000] Caller[f060a43c]: continue_boot+0x324/0x334
-> [    0.000000] Caller[00000000]:   (null)
-> [    0.000000] Instruction DUMP:
-> [    0.000000]  c800a024 
-> [    0.000000]  83286002 
-> [    0.000000]  073c17b3 
-> [    0.000000] <c4010001>
-> [    0.000000]  c600e22c 
-> [    0.000000]  8a08a003 
-> [    0.000000]  80a16001 
-> [    0.000000]  0280003b 
-> [    0.000000]  c600c001 
-> [    0.000000] 
-> [    0.000000] Kernel panic - not syncing: Attempted to kill the idle task!
-> [    0.000000] Press Stop-A (L1-A) from sun keyboard or send break
-> [    0.000000] twice on console to return to the boot prom
-> [    0.000000] ---[ end Kernel panic - not syncing: Attempted to kill the idle task! ]---
-> qemu-system-sparc: terminating on signal 15 from pid 13043 (killall)
-> 
-> The NULL ptr dereference is done by memset() in srmmu_nocache_init() and memblock_alloc_try_nid().
-> If I comment both memset, the boot pass
-> 
-> But since nothing explain the NULL ptr deref in memset(), I suspect something is overriden by the initrd
+For the additon of a y2083 safe semtimedop() system call, I chose to only
+support the separate entry points, but that requires first supporting
+the regular ones with their own syscall numbers.
 
-Sorry about the delay in replying to this, I haven't been too well recently.
+The IPC_64 is now implied by the new semctl/shmctl/msgctl system
+calls even on the architectures that require passing it with the ipc()
+multiplexer.
 
-Looking at the code I suspect the problem is that when loading a kernel directly,
-OpenBIOS isn't adding the kernel/initrd memory ranges to the DT properties, and so
-the kernel doesn't recreate its own mapping on boot.
+I'm not adding the new semtimedop() or semop() on 32-bit architectures,
+those will get implemented using the new semtimedop_time64() version
+that gets added along with the other time64 calls.
+Three 64-bit architectures (powerpc, s390 and sparc) get semtimedop().
 
-It shouldn't be too hard to make this happen, let me take and look and see how
-difficult this would be.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+One aspect here that might be a bit controversial is the use of
+the same system call numbers across all architectures, synchronizing
+all of them with the x86-32 numbers. With the new syscall.tbl
+files, I hope we can just keep doing that in the future, and no
+longer require the architecture maintainers to assign a number.
 
+This is mainly useful for implementers of the C libraries: if
+we can add future system calls everywhere at the same time, using
+a particular version of the kernel headers also guarantees that
+the system call number macro is visible.
+---
+ arch/m68k/kernel/syscalls/syscall.tbl     | 11 +++++++++++
+ arch/mips/kernel/syscalls/syscall_o32.tbl | 11 +++++++++++
+ arch/powerpc/kernel/syscalls/syscall.tbl  | 13 +++++++++++++
+ arch/s390/kernel/syscalls/syscall.tbl     | 12 ++++++++++++
+ arch/sh/kernel/syscalls/syscall.tbl       | 11 +++++++++++
+ arch/sparc/kernel/syscalls/syscall.tbl    | 12 ++++++++++++
+ arch/x86/entry/syscalls/syscall_32.tbl    | 11 +++++++++++
+ 7 files changed, 81 insertions(+)
 
-ATB,
-
-Mark.
+diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
+index 85779d6ef935..5354ba02eed2 100644
+--- a/arch/m68k/kernel/syscalls/syscall.tbl
++++ b/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -388,3 +388,14 @@
+ 378	common	pwritev2			sys_pwritev2
+ 379	common	statx				sys_statx
+ 380	common	seccomp				sys_seccomp
++# room for arch specific calls
++393	common	semget				sys_semget
++394	common	semctl				sys_semctl
++395	common	shmget				sys_shmget
++396	common	shmctl				sys_shmctl
++397	common	shmat				sys_shmat
++398	common	shmdt				sys_shmdt
++399	common	msgget				sys_msgget
++400	common	msgsnd				sys_msgsnd
++401	common	msgrcv				sys_msgrcv
++402	common	msgctl				sys_msgctl
+diff --git a/arch/mips/kernel/syscalls/syscall_o32.tbl b/arch/mips/kernel/syscalls/syscall_o32.tbl
+index 3d5a47b80d2b..fa47ea8cc6ef 100644
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -380,3 +380,14 @@
+ 366	o32	statx				sys_statx
+ 367	o32	rseq				sys_rseq
+ 368	o32	io_pgetevents			sys_io_pgetevents		compat_sys_io_pgetevents
++# room for arch specific calls
++393	o32	semget				sys_semget
++394	o32	semctl				sys_semctl			compat_sys_semctl
++395	o32	shmget				sys_shmget
++396	o32	shmctl				sys_shmctl			compat_sys_shmctl
++397	o32	shmat				sys_shmat			compat_sys_shmat
++398	o32	shmdt				sys_shmdt
++399	o32	msgget				sys_msgget
++400	o32	msgsnd				sys_msgsnd			compat_sys_msgsnd
++401	o32	msgrcv				sys_msgrcv			compat_sys_msgrcv
++402	o32	msgctl				sys_msgctl			compat_sys_msgctl
+diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
+index db3bbb8744af..7555874ce39c 100644
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl
++++ b/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -414,6 +414,7 @@
+ 363	spu	switch_endian			sys_ni_syscall
+ 364	common	userfaultfd			sys_userfaultfd
+ 365	common	membarrier			sys_membarrier
++# 366-377 originally left for IPC, now unused
+ 378	nospu	mlock2				sys_mlock2
+ 379	nospu	copy_file_range			sys_copy_file_range
+ 380	common	preadv2				sys_preadv2			compat_sys_preadv2
+@@ -425,3 +426,15 @@
+ 386	nospu	pkey_mprotect			sys_pkey_mprotect
+ 387	nospu	rseq				sys_rseq
+ 388	nospu	io_pgetevents			sys_io_pgetevents		compat_sys_io_pgetevents
++# room for arch specific syscalls
++392	64	semtimedop			sys_semtimedop
++393	common	semget				sys_semget
++394	common	semctl				sys_semctl			compat_sys_semctl
++395	common	shmget				sys_shmget
++396	common	shmctl				sys_shmctl			compat_sys_shmctl
++397	common	shmat				sys_shmat			compat_sys_shmat
++398	common	shmdt				sys_shmdt
++399	common	msgget				sys_msgget
++400	common	msgsnd				sys_msgsnd			compat_sys_msgsnd
++401	common	msgrcv				sys_msgrcv			compat_sys_msgrcv
++402	common	msgctl				sys_msgctl			compat_sys_msgctl
+diff --git a/arch/s390/kernel/syscalls/syscall.tbl b/arch/s390/kernel/syscalls/syscall.tbl
+index 7413fd318e2a..0bccb01c6202 100644
+--- a/arch/s390/kernel/syscalls/syscall.tbl
++++ b/arch/s390/kernel/syscalls/syscall.tbl
+@@ -391,3 +391,15 @@
+ 381  common	kexec_file_load		sys_kexec_file_load		sys_kexec_file_load
+ 382  common	io_pgetevents		sys_io_pgetevents		compat_sys_io_pgetevents
+ 383  common	rseq			sys_rseq			sys_rseq
++# room for arch specific syscalls
++392	64	semtimedop		sys_semtimedop			-
++393  common	semget			sys_semget			sys_semget
++394  common	semctl			sys_semctl			compat_sys_semctl
++395  common	shmget			sys_shmget			sys_shmget
++396  common	shmctl			sys_shmctl			compat_sys_shmctl
++397  common	shmat			sys_shmat			compat_sys_shmat
++398  common	shmdt			sys_shmdt 			sys_shmdt
++399  common	msgget			sys_msgget			sys_msgget
++400  common	msgsnd			sys_msgsnd			compat_sys_msgsnd
++401  common	msgrcv			sys_msgrcv			compat_sys_msgrcv
++402  common	msgctl			sys_msgctl			compat_sys_msgctl
+diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
+index a70db013dbc7..6d0b84e3ef2d 100644
+--- a/arch/sh/kernel/syscalls/syscall.tbl
++++ b/arch/sh/kernel/syscalls/syscall.tbl
+@@ -391,3 +391,14 @@
+ 381	common	preadv2				sys_preadv2
+ 382	common	pwritev2			sys_pwritev2
+ 383	common	statx				sys_statx
++# room for arch specific syscalls
++393	common	semget				sys_semget
++394	common	semctl				sys_semctl
++395	common	shmget				sys_shmget
++396	common	shmctl				sys_shmctl
++397	common	shmat				sys_shmat
++398	common	shmdt				sys_shmdt
++399	common	msgget				sys_msgget
++400	common	msgsnd				sys_msgsnd
++401	common	msgrcv				sys_msgrcv
++402	common	msgctl				sys_msgctl
+diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
+index c8c77c05ea97..8c9580302422 100644
+--- a/arch/sparc/kernel/syscalls/syscall.tbl
++++ b/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -407,3 +407,15 @@
+ 359	common	pwritev2		sys_pwritev2			compat_sys_pwritev2
+ 360	common	statx			sys_statx
+ 361	common	io_pgetevents		sys_io_pgetevents		compat_sys_io_pgetevents
++# room for arch specific syscalls
++392	64	semtimedop			sys_semtimedop
++393	common	semget			sys_semget
++394	common	semctl			sys_semctl			compat_sys_semctl
++395	common	shmget			sys_shmget
++396	common	shmctl			sys_shmctl			compat_sys_shmctl
++397	common	shmat			sys_shmat			compat_sys_shmat
++398	common	shmdt			sys_shmdt
++399	common	msgget			sys_msgget
++400	common	msgsnd			sys_msgsnd			compat_sys_msgsnd
++401	common	msgrcv			sys_msgrcv			compat_sys_msgrcv
++402	common	msgctl			sys_msgctl			compat_sys_msgctl
+diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
+index 3cf7b533b3d1..fef80b92eb7e 100644
+--- a/arch/x86/entry/syscalls/syscall_32.tbl
++++ b/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -398,3 +398,14 @@
+ 384	i386	arch_prctl		sys_arch_prctl			__ia32_compat_sys_arch_prctl
+ 385	i386	io_pgetevents		sys_io_pgetevents		__ia32_compat_sys_io_pgetevents
+ 386	i386	rseq			sys_rseq			__ia32_sys_rseq
++# room for arch specific syscalls
++393	i386	semget			sys_semget    			__ia32_sys_semget
++394	i386	semctl			sys_semctl    			__ia32_compat_sys_semctl
++395	i386	shmget			sys_shmget    			__ia32_sys_shmget
++396	i386	shmctl			sys_shmctl    			__ia32_compat_sys_shmctl
++397	i386	shmat			sys_shmat     			__ia32_compat_sys_shmat
++398	i386	shmdt			sys_shmdt     			__ia32_sys_shmdt
++399	i386	msgget			sys_msgget    			__ia32_sys_msgget
++400	i386	msgsnd			sys_msgsnd    			__ia32_compat_sys_msgsnd
++401	i386	msgrcv			sys_msgrcv    			__ia32_compat_sys_msgrcv
++402	i386	msgctl			sys_msgctl    			__ia32_compat_sys_msgctl
+-- 
+2.20.0
