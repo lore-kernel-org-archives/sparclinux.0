@@ -1,50 +1,24 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Date: Tue, 08 Jan 2019 16:13:56 +0000
-Subject: [PATCH] sparc: use struct_size() in kzalloc()
-Message-Id: <20190108161356.GA23617@embeddedor>
+From: "Jenna" <jennalkianteerpfanlop@verizon.net>
+Date: Fri, 18 Jan 2019 10:49:12 +0000
+Subject: Shooting and Retouching
+Message-Id: <b352027d7c037683f989eb879656a918@intheswim.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: sparclinux@vger.kernel.org
 
-One of the more common cases of allocation size calculations is finding the
-size of a structure that has a zero-sized array at the end, along with memory
-for some number of elements for that array. For example:
+Want to shoot photos for your products and retouching also i needed?
 
-struct foo {
-    int stuff;
-    void *entry[];
-};
+We are studio special for photo shooting and retouching.
 
-instance = kzalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
+For your photos:
+White background, Optimized for Shopify, Retouching included
+Revisions accepted
 
-Instead of leaving these open-coded and prone to type mistakes, we can now
-use the new struct_size() helper:
+We can also give you dedicate editing service for your photos
 
-instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+Let me know if you need anything.
 
-This code was detected with the help of Coccinelle.
-
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- arch/sparc/kernel/cpumap.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/cpumap.c b/arch/sparc/kernel/cpumap.c
-index d1d52822603d..1cb62bfeaa1f 100644
---- a/arch/sparc/kernel/cpumap.c
-+++ b/arch/sparc/kernel/cpumap.c
-@@ -194,8 +194,7 @@ static struct cpuinfo_tree *build_cpuinfo_tree(void)
- 
- 	n = enumerate_cpuinfo_nodes(tmp_level);
- 
--	new_tree = kzalloc(sizeof(struct cpuinfo_tree) +
--	                   (sizeof(struct cpuinfo_node) * n), GFP_ATOMIC);
-+	new_tree = kzalloc(struct_size(new_tree, nodes, n), GFP_ATOMIC);
- 	if (!new_tree)
- 		return NULL;
- 
--- 
-2.20.1
+Thanks,
+Jenna
