@@ -1,97 +1,63 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 10 Jan 2019 17:22:11 +0000
-Subject: [PATCH 06/11] timex: change syscalls to use struct __kernel_timex
-Message-Id: <20190110172216.313063-7-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Mon, 21 Jan 2019 08:04:05 +0000
+Subject: [PATCH v2 18/21] swiotlb: add checks for the return value of memblock_alloc*()
+Message-Id: <1548057848-15136-19-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190110172216.313063-1-arnd@arndb.de>
-In-Reply-To: <20190110172216.313063-1-arnd@arndb.de>
+References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: dalias@libc.org, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, jcmvbkbc@gmail.com, deepa.kernel@gmail.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, mpe@ellerman.id.au, deller@gmx.de, x86@kernel.org, linux@armlinux.org.uk, mingo@redhat.com, geert@linux-m68k.org, benh@kernel.crashing.org, firoz.khan@linaro.org, mattst88@gmail.com, fenghua.yu@intel.com, Arnd Bergmann <arnd@arndb.de>, heiko.carstens@de.ibm.com, linux-fsdevel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, monstr@monstr.eu, tony.luck@intel.com, linux-parisc@vger.kernel.org, netdev@vger.kernel.org, linux-mips@vger.kernel.org, paul.burton@mips.com, ebiederm@xmission.com, linux-alpha@vger.kernel.org, schwidefsky@de.ibm.com, akp
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, devicetree@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Christoph Hellwig <hch@lst.de>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, linux-sh@vger.kernel.org, Russell King <linux@armlinux.org.uk>, kasan-dev@googlegroups.com, Mike Rapoport <rppt@linux.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Mark Salter <msalter@redhat.com>, Dennis Zhou <dennis@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, Petr Mladek <pmladek@suse.com>, linux-xtensa@linux-xtensa.org, linux-alpha@vger.kernel.org, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, Rob Herring <robh+dt@kernel.org>, Greentime Hu <green.hu@gmail.com>, xen-devel@lists.xenproject.org, Stafford Horne <shorne@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Vineet Gupta <vgupta@synopsys.com>, Michael Ellerman <mpe@ellerman.id.au>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, openrisc@lists.librecores.org
 
-From: Deepa Dinamani <deepa.kernel@gmail.com>
+Add panic() calls if memblock_alloc() returns NULL.
 
-struct timex is not y2038 safe.
-Switch all the syscall apis to use y2038 safe __kernel_timex.
+The panic() format duplicates the one used by memblock itself and in order
+to avoid explosion with long parameters list replace open coded allocation
+size calculations with a local variable.
 
-Note that sys_adjtimex() does not have a y2038 safe solution.  C libraries
-can implement it by calling clock_adjtime(CLOCK_REALTIME, ...).
-
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- include/linux/syscalls.h   | 6 +++---
- kernel/time/posix-timers.c | 2 +-
- kernel/time/time.c         | 4 +++-
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ kernel/dma/swiotlb.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
-index 8e86d9623d4e..394e8db7e57e 100644
---- a/include/linux/syscalls.h
-+++ b/include/linux/syscalls.h
-@@ -54,7 +54,7 @@ struct __sysctl_args;
- struct sysinfo;
- struct timespec;
- struct timeval;
--struct timex;
-+struct __kernel_timex;
- struct timezone;
- struct tms;
- struct utimbuf;
-@@ -695,7 +695,7 @@ asmlinkage long sys_gettimeofday(struct timeval __user *tv,
- 				struct timezone __user *tz);
- asmlinkage long sys_settimeofday(struct timeval __user *tv,
- 				struct timezone __user *tz);
--asmlinkage long sys_adjtimex(struct timex __user *txc_p);
-+asmlinkage long sys_adjtimex(struct __kernel_timex __user *txc_p);
- 
- /* kernel/timer.c */
- asmlinkage long sys_getpid(void);
-@@ -870,7 +870,7 @@ asmlinkage long sys_open_by_handle_at(int mountdirfd,
- 				      struct file_handle __user *handle,
- 				      int flags);
- asmlinkage long sys_clock_adjtime(clockid_t which_clock,
--				struct timex __user *tx);
-+				struct __kernel_timex __user *tx);
- asmlinkage long sys_syncfs(int fd);
- asmlinkage long sys_setns(int fd, int nstype);
- asmlinkage long sys_sendmmsg(int fd, struct mmsghdr __user *msg,
-diff --git a/kernel/time/posix-timers.c b/kernel/time/posix-timers.c
-index 2d84b3db1ade..de79f85ae14f 100644
---- a/kernel/time/posix-timers.c
-+++ b/kernel/time/posix-timers.c
-@@ -1060,7 +1060,7 @@ int do_clock_adjtime(const clockid_t which_clock, struct __kernel_timex * ktx)
- }
- 
- SYSCALL_DEFINE2(clock_adjtime, const clockid_t, which_clock,
--		struct timex __user *, utx)
-+		struct __kernel_timex __user *, utx)
+diff --git a/kernel/dma/swiotlb.c b/kernel/dma/swiotlb.c
+index d636177..e78835c8 100644
+--- a/kernel/dma/swiotlb.c
++++ b/kernel/dma/swiotlb.c
+@@ -191,6 +191,7 @@ void __init swiotlb_update_mem_attributes(void)
+ int __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
  {
- 	struct __kernel_timex ktx;
- 	int err;
-diff --git a/kernel/time/time.c b/kernel/time/time.c
-index d179d33f639a..78b5c8f1495a 100644
---- a/kernel/time/time.c
-+++ b/kernel/time/time.c
-@@ -263,7 +263,8 @@ COMPAT_SYSCALL_DEFINE2(settimeofday, struct old_timeval32 __user *, tv,
- }
- #endif
+ 	unsigned long i, bytes;
++	size_t alloc_size;
  
--SYSCALL_DEFINE1(adjtimex, struct timex __user *, txc_p)
-+#if !defined(CONFIG_64BIT_TIME) || defined(CONFIG_64BIT)
-+SYSCALL_DEFINE1(adjtimex, struct __kernel_timex __user *, txc_p)
- {
- 	struct __kernel_timex txc;		/* Local copy of parameter */
- 	int ret;
-@@ -277,6 +278,7 @@ SYSCALL_DEFINE1(adjtimex, struct timex __user *, txc_p)
- 	ret = do_adjtimex(&txc);
- 	return copy_to_user(txc_p, &txc, sizeof(struct __kernel_timex)) ? -EFAULT : ret;
- }
-+#endif
+ 	bytes = nslabs << IO_TLB_SHIFT;
  
- #ifdef CONFIG_COMPAT_32BIT_TIME
- int get_old_timex32(struct __kernel_timex *txc, const struct old_timex32 __user *utp)
+@@ -203,12 +204,18 @@ int __init swiotlb_init_with_tbl(char *tlb, unsigned long nslabs, int verbose)
+ 	 * to find contiguous free memory regions of size up to IO_TLB_SEGSIZE
+ 	 * between io_tlb_start and io_tlb_end.
+ 	 */
+-	io_tlb_list = memblock_alloc(
+-				PAGE_ALIGN(io_tlb_nslabs * sizeof(int)),
+-				PAGE_SIZE);
+-	io_tlb_orig_addr = memblock_alloc(
+-				PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t)),
+-				PAGE_SIZE);
++	alloc_size = PAGE_ALIGN(io_tlb_nslabs * sizeof(int));
++	io_tlb_list = memblock_alloc(alloc_size, PAGE_SIZE);
++	if (!io_tlb_list)
++		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
++		      __func__, alloc_size, PAGE_SIZE);
++
++	alloc_size = PAGE_ALIGN(io_tlb_nslabs * sizeof(phys_addr_t));
++	io_tlb_orig_addr = memblock_alloc(alloc_size, PAGE_SIZE);
++	if (!io_tlb_orig_addr)
++		panic("%s: Failed to allocate %lu bytes align=0x%lx\n",
++		      __func__, alloc_size, PAGE_SIZE);
++
+ 	for (i = 0; i < io_tlb_nslabs; i++) {
+ 		io_tlb_list[i] = IO_TLB_SEGSIZE - OFFSET(i, IO_TLB_SEGSIZE);
+ 		io_tlb_orig_addr[i] = INVALID_PHYS_ADDR;
 -- 
-2.20.0
+2.7.4
