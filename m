@@ -1,10 +1,10 @@
 From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Wed, 16 Jan 2019 13:44:17 +0000
-Subject: [PATCH 17/21] init/main: add checks for the return value of memblock_alloc*()
-Message-Id: <1547646261-32535-18-git-send-email-rppt@linux.ibm.com>
+Date: Mon, 21 Jan 2019 08:04:04 +0000
+Subject: [PATCH v2 17/21] init/main: add checks for the return value of memblock_alloc*()
+Message-Id: <1548057848-15136-18-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
-In-Reply-To: <1547646261-32535-1-git-send-email-rppt@linux.ibm.com>
+References: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
+In-Reply-To: <1548057848-15136-1-git-send-email-rppt@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
