@@ -1,21 +1,19 @@
-From: "Nancy" <oraitintverpacnloxp@verizon.net>
-Date: Tue, 15 Jan 2019 12:57:36 +0000
-Subject: Want editing?
-Message-Id: <bd6fe89b25c5811f9b37350675a60245@lirenti.com>
+From: "Denna" <briakinteeerpaenlop@sonic.com>
+Date: Thu, 24 Jan 2019 11:02:01 +0000
+Subject: Want to start it?
+Message-Id: <76076c4ec6773fdf2c2c1ff2dec30652@gemcal.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Want editing your photos? We can help.
+Please let me know the status of your photos, waiting to retouching them.
 
-No matter you need photos background cutting out , or adding clipping path,
-or even retouching.
-We are the right studio that who can help you for your photo editing with
-the quality you need.
+Do your photos need white background? sharpen? retouching? We can do it for
+you.
 
-Let me know if interested.
+Send us the test photos today and we can start to work on them.
 
 Thanks,
-Nancy
+Denna
