@@ -1,29 +1,27 @@
-From: Firoz Khan <firoz.khan@linaro.org>
-Date: Tue, 26 Feb 2019 03:29:35 +0000
-Subject: Re: [PATCH 0/3] sparc: Unify the system call scripts
-Message-Id: <CALxhOnjdNQsLf=vfWLM2XhQYZVQjo0jKZyCLbzqbcaXGHxyfBQ@mail.gmail.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 04 Feb 2019 15:24:55 +0000
+Subject: Re: [sparc64] soft lockup - CPU stuck , KGDB_TESTS_ON_BOOT
+Message-Id: <CADxRZqzyQUTNA-ethJHzLQacdE+D6fx4dNpQEDU6zcc2CpGvbA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1546444373-21386-1-git-send-email-firoz.khan@linaro.org> <20190225.162300.209654917842732349.davem@davemloft.net>
-In-Reply-To: <20190225.162300.209654917842732349.davem@davemloft.net>
+References: <CADxRZqxP8A7+8QdB5Q2df4g_OeBbARB1UAg-acaEL=mGJWr_rw@mail.gmail.com>
+In-Reply-To: <CADxRZqxP8A7+8QdB5Q2df4g_OeBbARB1UAg-acaEL=mGJWr_rw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, sparclinux <sparclinux@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Philippe Ombredanne <pombredanne@nexb.com>, Thomas Gleixner <tglx@linutronix.de>, Kate Stewart <kstewart@linuxfoundation.org>, y2038 Mailman List <y2038@lists.linaro.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Deepa Dinamani <deepa.kernel@gmail.com>, Marcin Juszkiewicz <marcin.juszkiewicz@linaro.org>
+To: sparclinux@vger.kernel.org
 
-Hi David,
-
-> > This patch depends on;
-> >  https://lore.kernel.org/lkml/1546439331-18646-1-git-send-email-firoz.khan@linaro.org/
+On Wed, Dec 19, 2018 at 5:44 PM Meelis Roos <mroos@linux.ee> wrote:
 >
-> Can you please merge this series in with that dependency
-> then?
+> > My current LDOM configuration allocated 3 cores (3x8 = 24 vcpus).
+> > Tried as well with 2 vcpus and 1 vcpu. Any configuration, except 1
+> > vcpu, does not boot, but single vcpu boots ok.
+> >
+> > Enabled the following kernel config options:
+> >
+> > CONFIG_KGDB_TESTS=y
+> > CONFIG_KGDB_TESTS_ON_BOOT=y
+> > CONFIG_KGDB_TESTS_BOOT_STRING="V1F100"
+>
+> For test, I enabled these options on T1000 and T5120 (both bare hardware) and it hangs here too:
 
-I was planning to push this patch series independently. But
-when Arnd (he is guiding me for this task) and I discussed
-some other work, then we planned to include that in this
-same patch series. I was done with the implementation but
-it is bit late to post. So please abandon this patch series.
-
-Thanks
-Firoz
+just tested on 5.0.0-rc5 , still hangs / lockups.
