@@ -1,7 +1,7 @@
 From: Corentin Labbe <clabbe.montjoie@gmail.com>
-Date: Wed, 06 Feb 2019 09:06:39 +0000
+Date: Wed, 06 Feb 2019 19:38:24 +0000
 Subject: Re: [Qemu-devel] sparc: crash when using initrd > 5M
-Message-Id: <20190206090639.GA32428@Red>
+Message-Id: <20190206193824.GA1909@Red>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190103154810.GB32032@Red>
 	<3a375dc6-f0ba-c3f0-6e86-2fd5cdf3ee35@ilande.co.uk>
@@ -46,12 +46,12 @@ On Wed, Feb 06, 2019 at 07:37:29AM +0000, Mark Cave-Ayland wrote:
 > 
 > Can you try with a few older kernels to see if this is the case?
 > 
-> 
 
 Hello
 
-Good catch, it boot fine with 4.9.99.
+In fact the problem was due to .config since a defconfig works fine on next-20190205
+After lots of diff I found that CONFIG_LOG_BUF_SHIFT cause this behaviour.
 
-A start a long git bisect...
+Note that values of 16,17 cause also the same problem.
 
 Regards
