@@ -1,43 +1,103 @@
-From: ira.weiny@intel.com
-Date: Wed, 20 Feb 2019 05:30:38 +0000
-Subject: [RESEND PATCH 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <20190220053040.10831-6-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:22 +0000
+Subject: [PATCH-tip 18/22] locking/rwsem: Make rwsem_spin_on_owner() return a tri-state value
+Message-Id: <1549566446-27967-19-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, kvm-ppc@vger.kernel.org, kvm@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+This patch modifies rwsem_spin_on_owner() to return a tri-state value
+to better reflect the state of lock holder which enables us to make a
+better decision of what to do next.
 
-Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-FS DAX pages being mapped.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/locking/rwsem-xadd.c | 25 +++++++++++++++++++------
+ kernel/locking/rwsem-xadd.h |  5 +++++
+ 2 files changed, 24 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index 78ccacaf97d0..6a7f9cd5a94e 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- 			    bool writable, struct page **pages)
- {
- 	int ret;
-+	unsigned int gup_flags = writable ? FOLL_WRITE : 0;
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index 21d462f..0a29aac 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -305,14 +305,24 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
+ }
  
--	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
--				  pages);
-+	gup_flags |= FOLL_LONGTERM;
+ /*
+- * Return true only if we can still spin on the owner field of the rwsem.
++ * Return the folowing three values depending on the lock owner state.
++ *   1	when owner changes and no reader is detected yet.
++ *   0	when owner changes and the new owner may be a reader.
++ *  -1	when optimistic spinning has to stop because either the owner stops
++ *	running, is unknown, or its timeslice has been used up.
+  */
+-static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
++enum owner_state {
++	OWNER_SPINNABLE = 1,
++	OWNER_READER = 0,
++	OWNER_NONSPINNABLE = -1,
++};
 +
-+	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
- 	if (ret < 0)
- 		return ret;
++static noinline enum owner_state rwsem_spin_on_owner(struct rw_semaphore *sem)
+ {
+ 	struct task_struct *owner = rwsem_get_owner(sem);
  
+ 	if (!is_rwsem_owner_spinnable(owner))
+-		return false;
++		return OWNER_NONSPINNABLE;
+ 
+ 	rcu_read_lock();
+ 	/*
+@@ -337,7 +347,7 @@ static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
+ 		 */
+ 		if (need_resched() || !owner_on_cpu(owner, sem)) {
+ 			rcu_read_unlock();
+-			return false;
++			return OWNER_NONSPINNABLE;
+ 		}
+ 
+ 		cpu_relax();
+@@ -348,7 +358,10 @@ static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
+ 	 * If there is a new owner or the owner is not set, we continue
+ 	 * spinning.
+ 	 */
+-	return is_rwsem_owner_spinnable(rwsem_get_owner(sem));
++	owner = rwsem_get_owner(sem);
++	if (!is_rwsem_owner_spinnable(owner))
++		return OWNER_NONSPINNABLE;
++	return is_rwsem_owner_reader(owner) ? OWNER_READER : OWNER_SPINNABLE;
+ }
+ 
+ static bool rwsem_optimistic_spin(struct rw_semaphore *sem, const long wlock)
+@@ -371,7 +384,7 @@ static bool rwsem_optimistic_spin(struct rw_semaphore *sem, const long wlock)
+ 	 *  2) readers own the lock as we can't determine if they are
+ 	 *     actively running or not.
+ 	 */
+-	while (rwsem_spin_on_owner(sem)) {
++	while (rwsem_spin_on_owner(sem) = OWNER_SPINNABLE) {
+ 		/*
+ 		 * Try to acquire the lock
+ 		 */
+diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
+index d54b5db..1de6f1e 100644
+--- a/kernel/locking/rwsem-xadd.h
++++ b/kernel/locking/rwsem-xadd.h
+@@ -200,6 +200,11 @@ static inline bool is_rwsem_owner_spinnable(struct task_struct *owner)
+ 	return !((unsigned long)owner & RWSEM_ANONYMOUSLY_OWNED);
+ }
+ 
++static inline bool is_rwsem_owner_reader(struct task_struct *owner)
++{
++	return (unsigned long)owner & RWSEM_READER_OWNED;
++}
++
+ /*
+  * Return true if the rwsem is owned by a reader.
+  */
 -- 
-2.20.1
+1.8.3.1
