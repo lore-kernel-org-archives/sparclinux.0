@@ -1,349 +1,258 @@
-From: ira.weiny@intel.com
-Date: Wed, 13 Feb 2019 23:04:49 +0000
-Subject: [PATCH V2 1/7] mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
-Message-Id: <20190213230455.5605-2-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:09 +0000
+Subject: [PATCH-tip 05/22] locking/rwsem: Move owner setting code from rwsem.c to rwsem.h
+Message-Id: <1549566446-27967-6-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190213230455.5605-1-ira.weiny@intel.com>
-In-Reply-To: <20190213230455.5605-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, kvm-ppc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, kvm@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-mm@kvack.org, ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Martin Brandenburg <martin@omnibond.com>, Rich Felker <dalias@libc.org>, David Hildenbrand <david@redhat.com>, David Airlie <airlied@linux.ie>, Jason Wang <jasowang@redhat.com>, =?UTF-8?q?Kai=20M=C3=A4kisara?= <Kai.Makisara@kolumbus.fi>, Michal Hocko <mhocko@suse.com>, Ira Weiny <ira.weiny@intel.com>, Ben Chan <benchan@chromium.org>, Rob Springer <rspringer@google.com>, Todd Poynor <toddpoynor@google.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Ingo Molnar <mingo@redhat.com>, Matt Porter <mporter@kernel.crashing.org>, Wu Hao <hao.wu@intel.com>, Alan Tull <atull@kernel.org>, John Hubbard <jhubbard@nvidia.com>, "James E.J. Bottomley" <jejb@linux.ibm.com>, Alex Williamson <alex.williamson@redhat.com>, Stefano Stabellini <sstabellini@kernel.org>, Borislav Petkov <bp@alien8.de>
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+The setting of owner field is specific to rwsem-xadd code, it is not needed
+for rwsem-spinlock. This patch moves all the owner setting code closer
+to the rwsem-xadd fast paths directly within rwsem.h file.
 
-Rather than have a separate get_user_pages_longterm() call,
-introduce FOLL_LONGTERM and change the longterm callers to use
-it.
+For __down_read() and __down_read_killable(), it is assumed that
+rwsem will be marked as reader-owned when the functions return. That
+is currently true except in the transient case that the waiter queue
+just becomes empty. So a rwsem_set_reader_owned() call is added for
+this case. The __rwsem_set_reader_owned() call in __rwsem_mark_wake()
+is now necessary.
 
-This patch does not change any functionality.
-
-FOLL_LONGTERM can only be supported with get_user_pages() as it
-requires vmas to determine if DAX is in use.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- drivers/infiniband/core/umem.c             |   5 +-
- drivers/infiniband/hw/qib/qib_user_pages.c |   8 +-
- drivers/infiniband/hw/usnic/usnic_uiom.c   |   9 +-
- drivers/media/v4l2-core/videobuf-dma-sg.c  |   6 +-
- drivers/vfio/vfio_iommu_type1.c            |   3 +-
- include/linux/mm.h                         |  13 +-
- mm/gup.c                                   | 138 ++++++++++++---------
- mm/gup_benchmark.c                         |   5 +-
- 8 files changed, 101 insertions(+), 86 deletions(-)
+ kernel/locking/rwsem-xadd.c |  6 +++---
+ kernel/locking/rwsem.c      | 19 ++-----------------
+ kernel/locking/rwsem.h      | 17 +++++++++++++++--
+ 3 files changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-index b69d3efa8712..120a40df91b4 100644
---- a/drivers/infiniband/core/umem.c
-+++ b/drivers/infiniband/core/umem.c
-@@ -185,10 +185,11 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
- 
- 	while (npages) {
- 		down_read(&mm->mmap_sem);
--		ret = get_user_pages_longterm(cur_base,
-+		ret = get_user_pages(cur_base,
- 				     min_t(unsigned long, npages,
- 					   PAGE_SIZE / sizeof (struct page *)),
--				     gup_flags, page_list, vma_list);
-+				     gup_flags | FOLL_LONGTERM,
-+				     page_list, vma_list);
- 		if (ret < 0) {
- 			up_read(&mm->mmap_sem);
- 			goto umem_release;
-diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
-index ef8bcf366ddc..1b9368261035 100644
---- a/drivers/infiniband/hw/qib/qib_user_pages.c
-+++ b/drivers/infiniband/hw/qib/qib_user_pages.c
-@@ -114,10 +114,10 @@ int qib_get_user_pages(unsigned long start_page, size_t num_pages,
- 
- 	down_read(&current->mm->mmap_sem);
- 	for (got = 0; got < num_pages; got += ret) {
--		ret = get_user_pages_longterm(start_page + got * PAGE_SIZE,
--					      num_pages - got,
--					      FOLL_WRITE | FOLL_FORCE,
--					      p + got, NULL);
-+		ret = get_user_pages(start_page + got * PAGE_SIZE,
-+				     num_pages - got,
-+				     FOLL_LONGTERM | FOLL_WRITE | FOLL_FORCE,
-+				     p + got, NULL);
- 		if (ret < 0) {
- 			up_read(&current->mm->mmap_sem);
- 			goto bail_release;
-diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
-index 06862a6af185..1d9a182ac163 100644
---- a/drivers/infiniband/hw/usnic/usnic_uiom.c
-+++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
-@@ -143,10 +143,11 @@ static int usnic_uiom_get_pages(unsigned long addr, size_t size, int writable,
- 	ret = 0;
- 
- 	while (npages) {
--		ret = get_user_pages_longterm(cur_base,
--					min_t(unsigned long, npages,
--					PAGE_SIZE / sizeof(struct page *)),
--					gup_flags, page_list, NULL);
-+		ret = get_user_pages(cur_base,
-+				     min_t(unsigned long, npages,
-+				     PAGE_SIZE / sizeof(struct page *)),
-+				     gup_flags | FOLL_LONGTERM,
-+				     page_list, NULL);
- 
- 		if (ret < 0)
- 			goto out;
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 08929c087e27..870a2a526e0b 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -186,12 +186,12 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
- 		data, size, dma->nr_pages);
- 
--	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
--			     flags, dma->pages, NULL);
-+	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
-+			     flags | FOLL_LONGTERM, dma->pages, NULL);
- 
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
--		dprintk(1, "get_user_pages_longterm: err=%d [%d]\n", err,
-+		dprintk(1, "get_user_pages: err=%d [%d]\n", err,
- 			dma->nr_pages);
- 		return err < 0 ? err : -EINVAL;
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index 0d518b5..c213869 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -176,9 +176,8 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
+ 			goto try_reader_grant;
+ 		}
+ 		/*
+-		 * It is not really necessary to set it to reader-owned here,
+-		 * but it gives the spinners an early indication that the
+-		 * readers now have the lock.
++		 * Set it to reader-owned to give spinners an early
++		 * indication that readers now have the lock.
+ 		 */
+ 		__rwsem_set_reader_owned(sem, waiter->task);
  	}
-diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
-index 73652e21efec..1500bd0bb6da 100644
---- a/drivers/vfio/vfio_iommu_type1.c
-+++ b/drivers/vfio/vfio_iommu_type1.c
-@@ -351,7 +351,8 @@ static int vaddr_get_pfn(struct mm_struct *mm, unsigned long vaddr,
+@@ -441,6 +440,7 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 		 */
+ 		if (atomic_long_read(&sem->count) >= 0) {
+ 			raw_spin_unlock_irq(&sem->wait_lock);
++			rwsem_set_reader_owned(sem);
+ 			return sem;
+ 		}
+ 		adjustment += RWSEM_WAITING_BIAS;
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index e586f0d..59e5848 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -24,7 +24,6 @@ void __sched down_read(struct rw_semaphore *sem)
+ 	rwsem_acquire_read(&sem->dep_map, 0, 0, _RET_IP_);
  
- 	down_read(&mm->mmap_sem);
- 	if (mm = current->mm) {
--		ret = get_user_pages_longterm(vaddr, 1, flags, page, vmas);
-+		ret = get_user_pages(vaddr, 1, flags | FOLL_LONGTERM, page,
-+				     vmas);
- 	} else {
- 		ret = get_user_pages_remote(NULL, mm, vaddr, 1, flags, page,
- 					    vmas, NULL);
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 80bb6408fe73..05a105d9d4c3 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1536,18 +1536,6 @@ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages, int *locked);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
--#ifdef CONFIG_FS_DAX
--long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
--			    unsigned int gup_flags, struct page **pages,
--			    struct vm_area_struct **vmas);
--#else
--static inline long get_user_pages_longterm(unsigned long start,
--		unsigned long nr_pages, unsigned int gup_flags,
--		struct page **pages, struct vm_area_struct **vmas)
--{
--	return get_user_pages(start, nr_pages, gup_flags, pages, vmas);
--}
--#endif /* CONFIG_FS_DAX */
- 
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
-@@ -2615,6 +2603,7 @@ struct page *follow_page(struct vm_area_struct *vma, unsigned long address,
- #define FOLL_REMOTE	0x2000	/* we are working on non-current tsk/mm */
- #define FOLL_COW	0x4000	/* internal GUP flag */
- #define FOLL_ANON	0x8000	/* don't do file mappings */
-+#define FOLL_LONGTERM	0x10000	/* mapping is intended for a long term pin */
- 
- static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
- {
-diff --git a/mm/gup.c b/mm/gup.c
-index b63e88eca31b..ee96eaff118c 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1109,87 +1109,109 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
+-	rwsem_set_reader_owned(sem);
  }
- EXPORT_SYMBOL(get_user_pages_remote);
  
--/*
-- * This is the same as get_user_pages_remote(), just with a
-- * less-flexible calling convention where we assume that the task
-- * and mm being operated on are the current task's and don't allow
-- * passing of a locked parameter.  We also obviously don't pass
-- * FOLL_REMOTE in here.
-- */
--long get_user_pages(unsigned long start, unsigned long nr_pages,
--		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas)
--{
--	return __get_user_pages_locked(current, current->mm, start, nr_pages,
--				       pages, vmas, NULL,
--				       gup_flags | FOLL_TOUCH);
--}
--EXPORT_SYMBOL(get_user_pages);
--
- #ifdef CONFIG_FS_DAX
- /*
-- * This is the same as get_user_pages() in that it assumes we are
-- * operating on the current task's mm, but it goes further to validate
-- * that the vmas associated with the address range are suitable for
-- * longterm elevated page reference counts. For example, filesystem-dax
-- * mappings are subject to the lifetime enforced by the filesystem and
-- * we need guarantees that longterm users like RDMA and V4L2 only
-- * establish mappings that have a kernel enforced revocation mechanism.
-+ * __gup_longterm_locked() is a wrapper for __get_uer_pages_locked which
-+ * allows us to process the FOLL_LONGTERM flag if present.
-+ *
-+ * __gup_longterm_locked() validates that the vmas associated with the address
-+ * range are suitable for longterm elevated page reference counts. For example,
-+ * filesystem-dax mappings are subject to the lifetime enforced by the
-+ * filesystem and we need guarantees that longterm users like RDMA and V4L2
-+ * only establish mappings that have a kernel enforced revocation mechanism.
-  *
-  * "longterm" = userspace controlled elevated page count lifetime.
-  * Contrast this to iov_iter_get_pages() usages which are transient.
-  */
--long get_user_pages_longterm(unsigned long start, unsigned long nr_pages,
--		unsigned int gup_flags, struct page **pages,
--		struct vm_area_struct **vmas_arg)
-+static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
-+						  struct mm_struct *mm,
-+						  unsigned long start,
-+						  unsigned long nr_pages,
-+						  struct page **pages,
-+						  struct vm_area_struct **vmas,
-+						  unsigned int flags)
- {
--	struct vm_area_struct **vmas = vmas_arg;
-+	struct vm_area_struct **vmas_tmp = vmas;
- 	struct vm_area_struct *vma_prev = NULL;
- 	long rc, i;
- 
--	if (!pages)
--		return -EINVAL;
--
--	if (!vmas) {
--		vmas = kcalloc(nr_pages, sizeof(struct vm_area_struct *),
--			       GFP_KERNEL);
--		if (!vmas)
--			return -ENOMEM;
-+	if (flags & FOLL_LONGTERM) {
-+		if (!pages)
-+			return -EINVAL;
-+
-+		if (!vmas_tmp) {
-+			vmas_tmp = kcalloc(nr_pages,
-+					   sizeof(struct vm_area_struct *),
-+					   GFP_KERNEL);
-+			if (!vmas_tmp)
-+				return -ENOMEM;
-+		}
+ EXPORT_SYMBOL(down_read);
+@@ -39,7 +38,6 @@ int __sched down_read_killable(struct rw_semaphore *sem)
+ 		return -EINTR;
  	}
  
--	rc = get_user_pages(start, nr_pages, gup_flags, pages, vmas);
-+	rc = __get_user_pages_locked(tsk, mm, start, nr_pages, pages,
-+				     vmas_tmp, NULL, flags);
+-	rwsem_set_reader_owned(sem);
+ 	return 0;
+ }
  
--	for (i = 0; i < rc; i++) {
--		struct vm_area_struct *vma = vmas[i];
-+	if (flags & FOLL_LONGTERM) {
-+		for (i = 0; i < rc; i++) {
-+			struct vm_area_struct *vma = vmas_tmp[i];
+@@ -52,10 +50,8 @@ int down_read_trylock(struct rw_semaphore *sem)
+ {
+ 	int ret = __down_read_trylock(sem);
  
--		if (vma = vma_prev)
--			continue;
-+			if (vma = vma_prev)
-+				continue;
- 
--		vma_prev = vma;
-+			vma_prev = vma;
- 
--		if (vma_is_fsdax(vma))
--			break;
+-	if (ret = 1) {
++	if (ret = 1)
+ 		rwsem_acquire_read(&sem->dep_map, 0, 1, _RET_IP_);
+-		rwsem_set_reader_owned(sem);
 -	}
-+			if (vma_is_fsdax(vma))
-+				break;
-+		}
- 
--	/*
--	 * Either get_user_pages() failed, or the vma validation
--	 * succeeded, in either case we don't need to put_page() before
--	 * returning.
--	 */
--	if (i >= rc)
--		goto out;
-+		/*
-+		 * Either get_user_pages() failed, or the vma validation
-+		 * succeeded, in either case we don't need to put_page() before
-+		 * returning.
-+		 */
-+		if (i >= rc)
-+			goto out;
- 
--	for (i = 0; i < rc; i++)
--		put_page(pages[i]);
--	rc = -EOPNOTSUPP;
-+		for (i = 0; i < rc; i++)
-+			put_page(pages[i]);
-+		rc = -EOPNOTSUPP;
- out:
--	if (vmas != vmas_arg)
--		kfree(vmas);
-+		if (vmas_tmp != vmas)
-+			kfree(vmas_tmp);
-+	}
-+
- 	return rc;
+ 	return ret;
  }
--EXPORT_SYMBOL(get_user_pages_longterm);
-+#else /* !CONFIG_FS_DAX */
-+static __always_inline long __gup_longterm_locked(struct task_struct *tsk,
-+						  struct mm_struct *mm,
-+						  unsigned long start,
-+						  unsigned long nr_pages,
-+						  struct page **pages,
-+						  struct vm_area_struct **vmas,
-+						  unsigned int flags)
-+{
-+	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
-+				       NULL, flags);
-+}
- #endif /* CONFIG_FS_DAX */
  
-+/*
-+ * This is the same as get_user_pages_remote(), just with a
-+ * less-flexible calling convention where we assume that the task
-+ * and mm being operated on are the current task's and don't allow
-+ * passing of a locked parameter.  We also obviously don't pass
-+ * FOLL_REMOTE in here.
-+ */
-+long get_user_pages(unsigned long start, unsigned long nr_pages,
-+		unsigned int gup_flags, struct page **pages,
-+		struct vm_area_struct **vmas)
-+{
-+	return __gup_longterm_locked(current, current->mm, start, nr_pages,
-+				     pages, vmas, gup_flags | FOLL_TOUCH);
-+}
-+EXPORT_SYMBOL(get_user_pages);
-+
- /**
-  * populate_vma_page_range() -  populate a range of pages in the vma.
-  * @vma:   target vma
-diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
-index 5b42d3d4b60a..c898e2e0d1e4 100644
---- a/mm/gup_benchmark.c
-+++ b/mm/gup_benchmark.c
-@@ -54,8 +54,9 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
- 						 pages + i);
- 			break;
- 		case GUP_LONGTERM_BENCHMARK:
--			nr = get_user_pages_longterm(addr, nr, gup->flags & 1,
--						     pages + i, NULL);
-+			nr = get_user_pages(addr, nr,
-+					    (gup->flags & 1) | FOLL_LONGTERM,
-+					    pages + i, NULL);
- 			break;
- 		case GUP_BENCHMARK:
- 			nr = get_user_pages(addr, nr, gup->flags & 1, pages + i,
+@@ -70,7 +66,6 @@ void __sched down_write(struct rw_semaphore *sem)
+ 	rwsem_acquire(&sem->dep_map, 0, 0, _RET_IP_);
+ 
+ 	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
+-	rwsem_set_owner(sem);
+ }
+ 
+ EXPORT_SYMBOL(down_write);
+@@ -88,7 +83,6 @@ int __sched down_write_killable(struct rw_semaphore *sem)
+ 		return -EINTR;
+ 	}
+ 
+-	rwsem_set_owner(sem);
+ 	return 0;
+ }
+ 
+@@ -101,10 +95,8 @@ int down_write_trylock(struct rw_semaphore *sem)
+ {
+ 	int ret = __down_write_trylock(sem);
+ 
+-	if (ret = 1) {
++	if (ret = 1)
+ 		rwsem_acquire(&sem->dep_map, 0, 1, _RET_IP_);
+-		rwsem_set_owner(sem);
+-	}
+ 
+ 	return ret;
+ }
+@@ -119,7 +111,6 @@ void up_read(struct rw_semaphore *sem)
+ 	rwsem_release(&sem->dep_map, 1, _RET_IP_);
+ 	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED));
+ 
+-	rwsem_clear_reader_owned(sem);
+ 	__up_read(sem);
+ }
+ 
+@@ -133,7 +124,6 @@ void up_write(struct rw_semaphore *sem)
+ 	rwsem_release(&sem->dep_map, 1, _RET_IP_);
+ 	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 
+-	rwsem_clear_owner(sem);
+ 	__up_write(sem);
+ }
+ 
+@@ -147,7 +137,6 @@ void downgrade_write(struct rw_semaphore *sem)
+ 	lock_downgrade(&sem->dep_map, _RET_IP_);
+ 	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 
+-	rwsem_set_reader_owned(sem);
+ 	__downgrade_write(sem);
+ }
+ 
+@@ -161,7 +150,6 @@ void down_read_nested(struct rw_semaphore *sem, int subclass)
+ 	rwsem_acquire_read(&sem->dep_map, subclass, 0, _RET_IP_);
+ 
+ 	LOCK_CONTENDED(sem, __down_read_trylock, __down_read);
+-	rwsem_set_reader_owned(sem);
+ }
+ 
+ EXPORT_SYMBOL(down_read_nested);
+@@ -172,7 +160,6 @@ void _down_write_nest_lock(struct rw_semaphore *sem, struct lockdep_map *nest)
+ 	rwsem_acquire_nest(&sem->dep_map, 0, 0, nest, _RET_IP_);
+ 
+ 	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
+-	rwsem_set_owner(sem);
+ }
+ 
+ EXPORT_SYMBOL(_down_write_nest_lock);
+@@ -193,7 +180,6 @@ void down_write_nested(struct rw_semaphore *sem, int subclass)
+ 	rwsem_acquire(&sem->dep_map, subclass, 0, _RET_IP_);
+ 
+ 	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
+-	rwsem_set_owner(sem);
+ }
+ 
+ EXPORT_SYMBOL(down_write_nested);
+@@ -208,7 +194,6 @@ int __sched down_write_killable_nested(struct rw_semaphore *sem, int subclass)
+ 		return -EINTR;
+ 	}
+ 
+-	rwsem_set_owner(sem);
+ 	return 0;
+ }
+ 
+diff --git a/kernel/locking/rwsem.h b/kernel/locking/rwsem.h
+index 067e265..f568391 100644
+--- a/kernel/locking/rwsem.h
++++ b/kernel/locking/rwsem.h
+@@ -161,6 +161,8 @@ static inline void __down_read(struct rw_semaphore *sem)
+ {
+ 	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0))
+ 		rwsem_down_read_failed(sem);
++	else
++		rwsem_set_reader_owned(sem);
+ }
+ 
+ static inline int __down_read_killable(struct rw_semaphore *sem)
+@@ -168,8 +170,9 @@ static inline int __down_read_killable(struct rw_semaphore *sem)
+ 	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
+ 		if (IS_ERR(rwsem_down_read_failed_killable(sem)))
+ 			return -EINTR;
++	} else {
++		rwsem_set_reader_owned(sem);
+ 	}
+-
+ 	return 0;
+ }
+ 
+@@ -180,6 +183,7 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ 	while ((tmp = atomic_long_read(&sem->count)) >= 0) {
+ 		if (tmp = atomic_long_cmpxchg_acquire(&sem->count, tmp,
+ 				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
++			rwsem_set_reader_owned(sem);
+ 			return 1;
+ 		}
+ 	}
+@@ -197,6 +201,7 @@ static inline void __down_write(struct rw_semaphore *sem)
+ 					     &sem->count);
+ 	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
+ 		rwsem_down_write_failed(sem);
++	rwsem_set_owner(sem);
+ }
+ 
+ static inline int __down_write_killable(struct rw_semaphore *sem)
+@@ -208,6 +213,7 @@ static inline int __down_write_killable(struct rw_semaphore *sem)
+ 	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
+ 		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+ 			return -EINTR;
++	rwsem_set_owner(sem);
+ 	return 0;
+ }
+ 
+@@ -217,7 +223,11 @@ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ 
+ 	tmp = atomic_long_cmpxchg_acquire(&sem->count, RWSEM_UNLOCKED_VALUE,
+ 		      RWSEM_ACTIVE_WRITE_BIAS);
+-	return tmp = RWSEM_UNLOCKED_VALUE;
++	if (tmp = RWSEM_UNLOCKED_VALUE) {
++		rwsem_set_owner(sem);
++		return true;
++	}
++	return false;
+ }
+ 
+ /*
+@@ -227,6 +237,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
++	rwsem_clear_reader_owned(sem);
+ 	tmp = atomic_long_dec_return_release(&sem->count);
+ 	if (unlikely(tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0))
+ 		rwsem_wake(sem);
+@@ -237,6 +248,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
++	rwsem_clear_owner(sem);
+ 	if (unlikely(atomic_long_sub_return_release(RWSEM_ACTIVE_WRITE_BIAS,
+ 						    &sem->count) < 0))
+ 		rwsem_wake(sem);
+@@ -257,6 +269,7 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ 	 * write side. As such, rely on RELEASE semantics.
+ 	 */
+ 	tmp = atomic_long_add_return_release(-RWSEM_WAITING_BIAS, &sem->count);
++	rwsem_set_reader_owned(sem);
+ 	if (tmp < 0)
+ 		rwsem_downgrade_wake(sem);
+ }
 -- 
-2.20.1
+1.8.3.1
