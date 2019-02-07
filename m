@@ -1,39 +1,99 @@
-From: ira.weiny@intel.com
-Date: Wed, 20 Feb 2019 05:30:40 +0000
-Subject: [RESEND PATCH 7/7] IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <20190220053040.10831-8-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:21 +0000
+Subject: [PATCH-tip 17/22] locking/rwsem: Recheck owner if it is not on cpu
+Message-Id: <1549566446-27967-18-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, kvm-ppc@vger.kernel.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+After merging the owner value directly into the count field, it was
+found that the number of failed optimistic spinning operations increased
+significantly during the boot up process.
 
-Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-FS DAX pages being mapped.
+The cause of this increased failures was tracked down to the condition
+that a lock holder might have just released the lock and gone to sleep
+right after its owner value was fetched by a spinner. So the task might
+have slept, but it was no longer the lock holder. The merging of owner
+into count increases the chance this condition can happen.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+To close this failure mode, we are now rechecking the owner value again
+to see if it has been changed in case it is not on cpu.
+
+On a 1-socket x86-64 system, the lock event counts before the patch
+were:
+
+  rwsem_opt_failX47
+  rwsem_opt_wlockx80
+  rwsem_wlockX47
+
+After the patch, the counts were:
+
+  rwsem_opt_fail"5
+  rwsem_opt_wlock=8541
+  rwsem_wlock"5
+
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- drivers/infiniband/hw/mthca/mthca_memfree.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/locking/rwsem-xadd.c | 20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 112d2f38e0de..8ff0e90d7564 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -472,7 +472,8 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 		goto out;
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index 16dc7a1..21d462f 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -263,13 +263,25 @@ static inline bool rwsem_try_write_lock_unqueued(stru=
+ct rw_semaphore *sem,
  	}
- 
--	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
-+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1,
-+				  FOLL_WRITE | FOLL_LONGTERM, pages);
- 	if (ret < 0)
- 		goto out;
- 
--- 
-2.20.1
+ }
+=20
+-static inline bool owner_on_cpu(struct task_struct *owner)
++static inline bool owner_on_cpu(struct task_struct *owner,
++				struct rw_semaphore *sem)
+ {
+ 	/*
+ 	 * As lock holder preemption issue, we both skip spinning if
+ 	 * task is not on cpu or its cpu is preempted
+ 	 */
+-	return owner->on_cpu && !vcpu_is_preempted(task_cpu(owner));
++	bool oncpu =3D owner->on_cpu && !vcpu_is_preempted(task_cpu(owner));
++
++	/*
++	 * There is a slight chance that the lock holder might have
++	 * just release the rwsem and gone to sleep right after we
++	 * fetched the owner value. So we double-check the sem->owner
++	 * field again to see if it has been changed. The sem->owner
++	 * would have been cleared right before the lock was released.
++	 */
++	if (!oncpu && (READ_ONCE(sem->owner) !=3D owner))
++		return true;	/* Assume the new owner is on cpu */
++	return oncpu;
+ }
+=20
+ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
+@@ -286,7 +298,7 @@ static inline bool rwsem_can_spin_on_owner(struct rw_se=
+maphore *sem)
+ 	owner =3D rwsem_get_owner(sem);
+ 	if (owner) {
+ 		ret =3D is_rwsem_owner_spinnable(owner) &&
+-		      owner_on_cpu(owner);
++		      owner_on_cpu(owner, sem);
+ 	}
+ 	rcu_read_unlock();
+ 	return ret;
+@@ -323,7 +335,7 @@ static noinline bool rwsem_spin_on_owner(struct rw_sema=
+phore *sem)
+ 		 * abort spinning when need_resched or owner is not running or
+ 		 * owner's cpu is preempted.
+ 		 */
+-		if (need_resched() || !owner_on_cpu(owner)) {
++		if (need_resched() || !owner_on_cpu(owner, sem)) {
+ 			rcu_read_unlock();
+ 			return false;
+ 		}
+--=20
+1.8.3.1
