@@ -1,38 +1,119 @@
-From: ira.weiny@intel.com
-Date: Wed, 20 Feb 2019 05:30:39 +0000
-Subject: [RESEND PATCH 6/7] IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <20190220053040.10831-7-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:13 +0000
+Subject: [PATCH-tip 09/22] locking/rwsem: Enhance DEBUG_RWSEMS_WARN_ON() macro
+Message-Id: <1549566446-27967-10-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, kvm-ppc@vger.kernel.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+Currently, the DEBUG_RWSEMS_WARN_ON() macro just dumps a stack trace
+when the rwsem isn't in the right state. It does not show the actual
+states of the rwsem. This may not be that helpful in the debugging
+process.
 
-Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-FS DAX pages being mapped.
+Enhance the DEBUG_RWSEMS_WARN_ON() macro to also show the current
+content of the rwsem count and owner fields to give more information
+about what is wrong with the rwsem.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- drivers/infiniband/hw/qib/qib_user_sdma.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/locking/rwsem-xadd.h | 19 ++++++++++++-------
+ kernel/locking/rwsem.c      |  5 +++--
+ 2 files changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index 31c523b2a9f5..b53cc0240e02 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -673,7 +673,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
- 		else
- 			j = npages;
+diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
+index 77151c3..6d2478c 100644
+--- a/kernel/locking/rwsem-xadd.h
++++ b/kernel/locking/rwsem-xadd.h
+@@ -27,9 +27,13 @@
+ #define RWSEM_ANONYMOUSLY_OWNED	(1UL << 1)
  
--		ret = get_user_pages_fast(addr, j, 0, pages);
-+		ret = get_user_pages_fast(addr, j, FOLL_LONGTERM, pages);
- 		if (ret != j) {
- 			i = 0;
- 			j = ret;
+ #ifdef CONFIG_DEBUG_RWSEMS
+-# define DEBUG_RWSEMS_WARN_ON(c)	DEBUG_LOCKS_WARN_ON(c)
++# define DEBUG_RWSEMS_WARN_ON(c, sem)				\
++	WARN_ONCE(c, "DEBUG_RWSEMS_WARN_ON(%s): count = 0x%lx, owner = 0x%lx, curr 0x%lx, list %sempty\n",\
++		#c, atomic_long_read(&(sem)->count),		\
++		(long)((sem)->owner), (long)current,		\
++		list_empty(&(sem)->wait_list) ? "" : "not ")
+ #else
+-# define DEBUG_RWSEMS_WARN_ON(c)
++# define DEBUG_RWSEMS_WARN_ON(c, sem)
+ #endif
+ 
+ /*
+@@ -168,7 +172,7 @@ static inline void __down_read(struct rw_semaphore *sem)
+ 	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
+ 		rwsem_down_read_failed(sem);
+ 		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
+-					RWSEM_READER_OWNED));
++					RWSEM_READER_OWNED), sem);
+ 	} else {
+ 		rwsem_set_reader_owned(sem);
+ 	}
+@@ -180,7 +184,7 @@ static inline int __down_read_killable(struct rw_semaphore *sem)
+ 		if (IS_ERR(rwsem_down_read_failed_killable(sem)))
+ 			return -EINTR;
+ 		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
+-					RWSEM_READER_OWNED));
++					RWSEM_READER_OWNED), sem);
+ 	} else {
+ 		rwsem_set_reader_owned(sem);
+ 	}
+@@ -248,7 +252,8 @@ static inline void __up_read(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+-	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED));
++	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED),
++				sem);
+ 	rwsem_clear_reader_owned(sem);
+ 	tmp = atomic_long_dec_return_release(&sem->count);
+ 	if (unlikely(tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0))
+@@ -260,7 +265,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
+-	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
++	DEBUG_RWSEMS_WARN_ON(sem->owner != current, sem);
+ 	rwsem_clear_owner(sem);
+ 	if (unlikely(atomic_long_sub_return_release(RWSEM_ACTIVE_WRITE_BIAS,
+ 						    &sem->count) < 0))
+@@ -281,7 +286,7 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ 	 * read-locked region is ok to be re-ordered into the
+ 	 * write side. As such, rely on RELEASE semantics.
+ 	 */
+-	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
++	DEBUG_RWSEMS_WARN_ON(sem->owner != current, sem);
+ 	tmp = atomic_long_add_return_release(-RWSEM_WAITING_BIAS, &sem->count);
+ 	rwsem_set_reader_owned(sem);
+ 	if (tmp < 0)
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index 598fc7c..bdfca7c 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -17,7 +17,7 @@
+ #include "rwsem-xadd.h"
+ #else
+ #define __rwsem_set_reader_owned(a, b)
+-#define DEBUG_RWSEMS_WARN_ON(a)
++#define DEBUG_RWSEMS_WARN_ON(a, b)
+ #endif
+ 
+ /*
+@@ -203,7 +203,8 @@ int __sched down_write_killable_nested(struct rw_semaphore *sem, int subclass)
+ 
+ void up_read_non_owner(struct rw_semaphore *sem)
+ {
+-	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED));
++	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED),
++				sem);
+ 	__up_read(sem);
+ }
+ 
 -- 
-2.20.1
+1.8.3.1
