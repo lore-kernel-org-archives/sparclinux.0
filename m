@@ -1,480 +1,267 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Fri, 01 Feb 2019 15:43:48 +0000
-Subject: [PATCH net-next v4 04/12] sockopt: Rename SO_TIMESTAMP* to SO_TIMESTAMP*_OLD
-Message-Id: <20190201154356.15536-5-deepa.kernel@gmail.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:24 +0000
+Subject: [PATCH-tip 20/22] locking/rwsem: Enable count-based spinning on reader
+Message-Id: <1549566446-27967-21-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190201154356.15536-1-deepa.kernel@gmail.com>
-In-Reply-To: <20190201154356.15536-1-deepa.kernel@gmail.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, deller@gmx.de, dhowells@redhat.com, jejb@parisc-linux.org, ralf@linux-mips.org, rth@twiddle.net, linux-afs@lists.infradead.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@linux-mips.org, linux-parisc@vger.kernel.org, linux-rdma@vger.kernel.org, sparclinux@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-SO_TIMESTAMP, SO_TIMESTAMPNS and SO_TIMESTAMPING options, the
-way they are currently defined, are not y2038 safe.
-Subsequent patches in the series add new y2038 safe versions
-of these options which provide 64 bit timestamps on all
-architectures uniformly.
-Hence, rename existing options with OLD tag suffixes.
+When the rwsem is owned by reader, writers stop optimistic spinning
+simply because there is no easy way to figure out if all the readers
+are actively running or not. However, there are scenarios where
+the readers are unlikely to sleep and optimistic spinning can help
+performance.
 
-Also note that kernel will not use the untagged SO_TIMESTAMP*
-and SCM_TIMESTAMP* options internally anymore.
+This patch provides a simple mechanism for spinning on a reader-owned
+rwsem. It is a loop count threshold based spinning where the count will
+get reset whenenver the rwsem reader count value changes indicating
+that the rwsem is still active. There is another maximum count value
+that limits that maximum number of spinnings that can happen.
 
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: deller@gmx.de
-Cc: dhowells@redhat.com
-Cc: jejb@parisc-linux.org
-Cc: ralf@linux-mips.org
-Cc: rth@twiddle.net
-Cc: linux-afs@lists.infradead.org
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-mips@linux-mips.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
+When the loop or max counts reach 0, a bit will be set in the owner
+field to indicate that no more optimistic spinning should be done on
+this rwsem until it becomes writer owned again. Not even readers
+is allowed to acquire the reader-locked rwsem for better fairness.
+
+The spinning threshold and maximum values can be overridden by
+architecture specific header file, if necessary. The current default
+threshold value is 512 iterations.
+
+With a locking microbenchmark running on 5.0 based kernel, the total
+locking rates (in kops/s) of the benchmark on a 4-socket 56-core x86-64
+system with equal numbers of readers and writers before all the reader
+spining patches, before this patch and after this patch were as follows:
+
+   # of Threads  Pre-rspin    Pre-Patch   Post-patch
+   ------------  ---------    ---------   ----------
+        2          1,926        2,120        8,057
+        4          1,391        1,320        7,680
+        8            716          694        7,284
+       16            618          606        6,542
+       32            501          487        1,449
+       64             61           57          480
+
+This patch gives a big boost in performance for mixed reader/writer
+workloads.
+
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- arch/alpha/include/uapi/asm/socket.h  | 23 ++++++++++++++++-------
- arch/mips/include/uapi/asm/socket.h   | 23 ++++++++++++++++-------
- arch/parisc/include/uapi/asm/socket.h | 23 ++++++++++++++++-------
- arch/sparc/include/uapi/asm/socket.h  | 24 ++++++++++++++++--------
- include/uapi/asm-generic/socket.h     | 23 ++++++++++++++++-------
- net/compat.c                          |  6 +++---
- net/core/sock.c                       | 16 ++++++++--------
- net/ipv4/tcp.c                        |  6 +++---
- net/rds/af_rds.c                      |  2 +-
- net/rds/recv.c                        |  2 +-
- net/rxrpc/local_object.c              |  2 +-
- net/socket.c                          |  8 ++++----
- 12 files changed, 101 insertions(+), 57 deletions(-)
+ kernel/locking/lock_events_list.h |  1 +
+ kernel/locking/rwsem-xadd.c       | 63 +++++++++++++++++++++++++++++++++++----
+ kernel/locking/rwsem-xadd.h       | 45 +++++++++++++++++++++-------
+ 3 files changed, 94 insertions(+), 15 deletions(-)
 
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index b1c9b542c021..992a0a6dcea1 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -51,13 +51,9 @@
- #define SO_GET_FILTER		SO_ATTACH_FILTER
+diff --git a/kernel/locking/lock_events_list.h b/kernel/locking/lock_events_list.h
+index 54b6650..0052534 100644
+--- a/kernel/locking/lock_events_list.h
++++ b/kernel/locking/lock_events_list.h
+@@ -60,6 +60,7 @@
+ LOCK_EVENT(rwsem_opt_rlock)	/* # of read locks opt-spin acquired	*/
+ LOCK_EVENT(rwsem_opt_wlock)	/* # of write locks opt-spin acquired	*/
+ LOCK_EVENT(rwsem_opt_fail)	/* # of failed opt-spinnings		*/
++LOCK_EVENT(rwsem_opt_nospin)	/* # of disabled reader opt-spinnings	*/
+ LOCK_EVENT(rwsem_rlock)		/* # of read locks acquired		*/
+ LOCK_EVENT(rwsem_rlock_fast)	/* # of fast read locks acquired	*/
+ LOCK_EVENT(rwsem_rlock_fail)	/* # of failed read lock acquisitions	*/
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index 015edd6..3beb942 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -95,6 +95,22 @@ enum rwsem_wake_type {
+ #define RWSEM_WAIT_TIMEOUT	((HZ - 1)/200 + 1)
  
- #define SO_PEERNAME		28
--#define SO_TIMESTAMP		29
--#define SCM_TIMESTAMP		SO_TIMESTAMP
- 
- #define SO_PEERSEC		30
- #define SO_PASSSEC		34
--#define SO_TIMESTAMPNS		35
--#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
- 
- /* Security levels - as per NRL IPv6 - don't actually do anything */
- #define SO_SECURITY_AUTHENTICATION		19
-@@ -66,9 +62,6 @@
- 
- #define SO_MARK			36
- 
--#define SO_TIMESTAMPING		37
--#define SCM_TIMESTAMPING	SO_TIMESTAMPING
--
- #define SO_RXQ_OVFL             40
- 
- #define SO_WIFI_STATUS		41
-@@ -117,4 +110,20 @@
- 
- #define SO_BINDTOIFINDEX	62
- 
-+#define SO_TIMESTAMP_OLD        29
-+#define SO_TIMESTAMPNS_OLD      35
-+#define SO_TIMESTAMPING_OLD     37
-+
-+#if !defined(__KERNEL__)
-+
-+#define SO_TIMESTAMP            SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS          SO_TIMESTAMPNS_OLD
-+#define SO_TIMESTAMPING         SO_TIMESTAMPING_OLD
-+
-+#define SCM_TIMESTAMP           SO_TIMESTAMP
-+#define SCM_TIMESTAMPNS         SO_TIMESTAMPNS
-+#define SCM_TIMESTAMPING        SO_TIMESTAMPING
-+
+ /*
++ * Reader-owned rwsem spinning threshold and maximum value
++ *
++ * This threshold and maximum values can be overridden by architecture
++ * specific value. The loop count will be reset whenenver the rwsem count
++ * value changes. The max value constrains the total number of reader-owned
++ * lock spinnings that can happen.
++ */
++#ifdef	ARCH_RWSEM_RSPIN_THRESHOLD
++# define RWSEM_RSPIN_THRESHOLD	ARCH_RWSEM_RSPIN_THRESHOLD
++# define RWSEM_RSPIN_MAX	ARCH_RWSEM_RSPIN_MAX
++#else
++# define RWSEM_RSPIN_THRESHOLD	(1 << 9)
++# define RWSEM_RSPIN_MAX	(1 << 12)
 +#endif
 +
- #endif /* _UAPI_ASM_SOCKET_H */
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index 73e25e35d803..0f4516c34df2 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -65,21 +65,14 @@
- #define SO_GET_FILTER		SO_ATTACH_FILTER
- 
- #define SO_PEERNAME		28
--#define SO_TIMESTAMP		29
--#define SCM_TIMESTAMP		SO_TIMESTAMP
- 
- #define SO_PEERSEC		30
- #define SO_SNDBUFFORCE		31
- #define SO_RCVBUFFORCE		33
- #define SO_PASSSEC		34
--#define SO_TIMESTAMPNS		35
--#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
- 
- #define SO_MARK			36
- 
--#define SO_TIMESTAMPING		37
--#define SCM_TIMESTAMPING	SO_TIMESTAMPING
--
- #define SO_RXQ_OVFL		40
- 
- #define SO_WIFI_STATUS		41
-@@ -128,4 +121,20 @@
- 
- #define SO_BINDTOIFINDEX	62
- 
-+#define SO_TIMESTAMP_OLD        29
-+#define SO_TIMESTAMPNS_OLD      35
-+#define SO_TIMESTAMPING_OLD     37
-+
-+#if !defined(__KERNEL__)
-+
-+#define SO_TIMESTAMP            SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS          SO_TIMESTAMPNS_OLD
-+#define SO_TIMESTAMPING         SO_TIMESTAMPING_OLD
-+
-+#define SCM_TIMESTAMP           SO_TIMESTAMP
-+#define SCM_TIMESTAMPNS         SO_TIMESTAMPNS
-+#define SCM_TIMESTAMPING        SO_TIMESTAMPING
-+
-+#endif
-+
- #endif /* _UAPI_ASM_SOCKET_H */
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index 52bed5976cbe..7c180321ebd6 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -34,10 +34,6 @@
- #define SO_BSDCOMPAT	0x400e
- #define SO_PASSCRED	0x4010
- #define SO_PEERCRED	0x4011
--#define SO_TIMESTAMP	0x4012
--#define SCM_TIMESTAMP	SO_TIMESTAMP
--#define SO_TIMESTAMPNS	0x4013
--#define SCM_TIMESTAMPNS	SO_TIMESTAMPNS
- 
- /* Security levels - as per NRL IPv6 - don't actually do anything */
- #define SO_SECURITY_AUTHENTICATION		0x4016
-@@ -58,9 +54,6 @@
- 
- #define SO_MARK			0x401f
- 
--#define SO_TIMESTAMPING		0x4020
--#define SCM_TIMESTAMPING	SO_TIMESTAMPING
--
- #define SO_RXQ_OVFL             0x4021
- 
- #define SO_WIFI_STATUS		0x4022
-@@ -109,4 +102,20 @@
- 
- #define SO_BINDTOIFINDEX	0x4037
- 
-+#define SO_TIMESTAMP_OLD        0x4012
-+#define SO_TIMESTAMPNS_OLD      0x4013
-+#define SO_TIMESTAMPING_OLD     0x4020
-+
-+#if !defined(__KERNEL__)
-+
-+#define SO_TIMESTAMP            SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS          SO_TIMESTAMPNS_OLD
-+#define SO_TIMESTAMPING         SO_TIMESTAMPING_OLD
-+
-+#define SCM_TIMESTAMP           SO_TIMESTAMP
-+#define SCM_TIMESTAMPNS         SO_TIMESTAMPNS
-+#define SCM_TIMESTAMPING        SO_TIMESTAMPING
-+
-+#endif
-+
- #endif /* _UAPI_ASM_SOCKET_H */
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index bbdb81594dd4..d8a1bbc3e6c4 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -33,7 +33,6 @@
- #define SO_PROTOCOL	0x1028
- #define SO_DOMAIN	0x1029
- 
--
- /* Linux specific, keep the same. */
- #define SO_NO_CHECK	0x000b
- #define SO_PRIORITY	0x000c
-@@ -45,19 +44,12 @@
- #define SO_GET_FILTER		SO_ATTACH_FILTER
- 
- #define SO_PEERNAME		0x001c
--#define SO_TIMESTAMP		0x001d
--#define SCM_TIMESTAMP		SO_TIMESTAMP
- 
- #define SO_PEERSEC		0x001e
- #define SO_PASSSEC		0x001f
--#define SO_TIMESTAMPNS		0x0021
--#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
- 
- #define SO_MARK			0x0022
- 
--#define SO_TIMESTAMPING		0x0023
--#define SCM_TIMESTAMPING	SO_TIMESTAMPING
--
- #define SO_RXQ_OVFL             0x0024
- 
- #define SO_WIFI_STATUS		0x0025
-@@ -111,4 +103,20 @@
- #define SO_SECURITY_ENCRYPTION_TRANSPORT	0x5002
- #define SO_SECURITY_ENCRYPTION_NETWORK		0x5004
- 
-+#define SO_TIMESTAMP_OLD         0x001d
-+#define SO_TIMESTAMPNS_OLD       0x0021
-+#define SO_TIMESTAMPING_OLD      0x0023
-+
-+#if !defined(__KERNEL__)
-+
-+#define SO_TIMESTAMP           SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS         SO_TIMESTAMPNS_OLD
-+#define SO_TIMESTAMPING        SO_TIMESTAMPING_OLD
-+
-+#define SCM_TIMESTAMP          SO_TIMESTAMP
-+#define SCM_TIMESTAMPNS        SO_TIMESTAMPNS
-+#define SCM_TIMESTAMPING       SO_TIMESTAMPING
-+
-+#endif
-+
- #endif /* _ASM_SOCKET_H */
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index 3066ab3853a8..4ef3aed31fb7 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -46,21 +46,14 @@
- #define SO_GET_FILTER		SO_ATTACH_FILTER
- 
- #define SO_PEERNAME		28
--#define SO_TIMESTAMP		29
--#define SCM_TIMESTAMP		SO_TIMESTAMP
- 
- #define SO_ACCEPTCONN		30
- 
- #define SO_PEERSEC		31
- #define SO_PASSSEC		34
--#define SO_TIMESTAMPNS		35
--#define SCM_TIMESTAMPNS		SO_TIMESTAMPNS
- 
- #define SO_MARK			36
- 
--#define SO_TIMESTAMPING		37
--#define SCM_TIMESTAMPING	SO_TIMESTAMPING
--
- #define SO_PROTOCOL		38
- #define SO_DOMAIN		39
- 
-@@ -112,4 +105,20 @@
- 
- #define SO_BINDTOIFINDEX	62
- 
-+#define SO_TIMESTAMP_OLD        29
-+#define SO_TIMESTAMPNS_OLD      35
-+#define SO_TIMESTAMPING_OLD     37
-+
-+#if !defined(__KERNEL__)
-+
-+#define SO_TIMESTAMP            SO_TIMESTAMP_OLD
-+#define SO_TIMESTAMPNS          SO_TIMESTAMPNS_OLD
-+#define SO_TIMESTAMPING         SO_TIMESTAMPING_OLD
-+
-+#define SCM_TIMESTAMP           SO_TIMESTAMP
-+#define SCM_TIMESTAMPNS         SO_TIMESTAMPNS
-+#define SCM_TIMESTAMPING        SO_TIMESTAMPING
-+
-+#endif
-+
- #endif /* __ASM_GENERIC_SOCKET_H */
-diff --git a/net/compat.c b/net/compat.c
-index ce8f6e8cdcd2..ccf93cd0e49b 100644
---- a/net/compat.c
-+++ b/net/compat.c
-@@ -219,7 +219,7 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
++/*
+  * handle the lock release when processes blocked on it that can now run
+  * - if we come here from up_xxxx(), then the RWSEM_FLAG_WAITERS bit must
+  *   have been set.
+@@ -324,7 +340,7 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
+ 	owner = rwsem_get_owner(sem);
+ 	if (owner) {
+ 		ret = is_rwsem_owner_spinnable(owner) &&
+-		      owner_on_cpu(owner, sem);
++		     (is_rwsem_owner_reader(owner) || owner_on_cpu(owner, sem));
  	}
+ 	rcu_read_unlock();
+ 	lockevent_cond_inc(rwsem_opt_fail, !ret);
+@@ -359,7 +375,8 @@ static noinline enum owner_state rwsem_spin_on_owner(struct rw_semaphore *sem)
+ 	 * This enables the spinner to move forward and do a trylock
+ 	 * earlier.
+ 	 */
+-	while (owner && (READ_ONCE(sem->owner) = owner)) {
++	while (owner && !is_rwsem_owner_reader(owner)
++		     && (READ_ONCE(sem->owner) = owner)) {
+ 		/*
+ 		 * Ensure we emit the owner->on_cpu, dereference _after_
+ 		 * checking sem->owner still matches owner, if that fails,
+@@ -394,6 +411,10 @@ static noinline enum owner_state rwsem_spin_on_owner(struct rw_semaphore *sem)
+ static bool rwsem_optimistic_spin(struct rw_semaphore *sem, const long wlock)
+ {
+ 	bool taken = false;
++	enum owner_state owner_state;
++	int rspin_cnt = RWSEM_RSPIN_THRESHOLD;
++	int rspin_max = RWSEM_RSPIN_MAX;
++	int old_rcount = 0;
  
- 	if (!COMPAT_USE_64BIT_TIME) {
--		if (level = SOL_SOCKET && type = SCM_TIMESTAMP) {
-+		if (level = SOL_SOCKET && type = SO_TIMESTAMP_OLD) {
- 			struct timeval *tv = (struct timeval *)data;
- 			ctv.tv_sec = tv->tv_sec;
- 			ctv.tv_usec = tv->tv_usec;
-@@ -227,8 +227,8 @@ int put_cmsg_compat(struct msghdr *kmsg, int level, int type, int len, void *dat
- 			len = sizeof(ctv);
- 		}
- 		if (level = SOL_SOCKET &&
--		    (type = SCM_TIMESTAMPNS || type = SCM_TIMESTAMPING)) {
--			int count = type = SCM_TIMESTAMPNS ? 1 : 3;
-+		    (type = SO_TIMESTAMPNS_OLD || type = SO_TIMESTAMPING_OLD)) {
-+			int count = type = SO_TIMESTAMPNS_OLD ? 1 : 3;
- 			int i;
- 			struct timespec *ts = (struct timespec *)data;
- 			for (i = 0; i < count; i++) {
-diff --git a/net/core/sock.c b/net/core/sock.c
-index a3fe0e7f49b0..5c38c740131d 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -867,10 +867,10 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 			clear_bit(SOCK_PASSCRED, &sock->flags);
- 		break;
+ 	preempt_disable();
  
--	case SO_TIMESTAMP:
--	case SO_TIMESTAMPNS:
-+	case SO_TIMESTAMP_OLD:
-+	case SO_TIMESTAMPNS_OLD:
- 		if (valbool)  {
--			if (optname = SO_TIMESTAMP)
-+			if (optname = SO_TIMESTAMP_OLD)
- 				sock_reset_flag(sk, SOCK_RCVTSTAMPNS);
- 			else
- 				sock_set_flag(sk, SOCK_RCVTSTAMPNS);
-@@ -882,7 +882,7 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
- 		}
- 		break;
+@@ -401,14 +422,16 @@ static bool rwsem_optimistic_spin(struct rw_semaphore *sem, const long wlock)
+ 	if (!osq_lock(&sem->osq))
+ 		goto done;
  
--	case SO_TIMESTAMPING:
-+	case SO_TIMESTAMPING_OLD:
- 		if (val & ~SOF_TIMESTAMPING_MASK) {
- 			ret = -EINVAL;
++	if (!is_rwsem_spinnable(sem))
++		rspin_cnt = 0;
++
+ 	/*
+ 	 * Optimistically spin on the owner field and attempt to acquire the
+ 	 * lock whenever the owner changes. Spinning will be stopped when:
+ 	 *  1) the owning writer isn't running; or
+-	 *  2) readers own the lock as we can't determine if they are
+-	 *     actively running or not.
++	 *  2) readers own the lock and spinning count has reached 0.
+ 	 */
+-	while (rwsem_spin_on_owner(sem) = OWNER_SPINNABLE) {
++	while ((owner_state = rwsem_spin_on_owner(sem)) != OWNER_NONSPINNABLE) {
+ 		/*
+ 		 * Try to acquire the lock
+ 		 */
+@@ -429,6 +452,36 @@ static bool rwsem_optimistic_spin(struct rw_semaphore *sem, const long wlock)
  			break;
-@@ -1243,16 +1243,16 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		sock_warn_obsolete_bsdism("getsockopt");
- 		break;
  
--	case SO_TIMESTAMP:
-+	case SO_TIMESTAMP_OLD:
- 		v.val = sock_flag(sk, SOCK_RCVTSTAMP) &&
- 				!sock_flag(sk, SOCK_RCVTSTAMPNS);
- 		break;
+ 		/*
++		 * We only decremnt rspin_cnt when a writer is trying to
++		 * acquire a lock owned by readers. In which case,
++		 * rwsem_spin_on_owner() will essentially be a no-op
++		 * and we will be spinning in this main loop. The spinning
++		 * count will be reset whenever the rwsem count value
++		 * changes.
++		 */
++		if (wlock && (owner_state = OWNER_READER)) {
++			int rcount;
++
++			if (!rspin_cnt || !rspin_max) {
++				if (is_rwsem_spinnable(sem)) {
++					rwsem_set_nonspinnable(sem);
++					lockevent_inc(rwsem_opt_nospin);
++				}
++				break;
++			}
++
++			rcount = atomic_long_read(&sem->count)
++					>> RWSEM_READER_SHIFT;
++			if (rcount != old_rcount) {
++				old_rcount = rcount;
++				rspin_cnt = RWSEM_RSPIN_THRESHOLD;
++			} else {
++				rspin_cnt--;
++			}
++			rspin_max--;
++		}
++
++		/*
+ 		 * The cpu_relax() call is a compiler barrier which forces
+ 		 * everything in this loop to be re-loaded. We don't need
+ 		 * memory barriers as we'll eventually observe the right
+diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
+index eb4ef36..be67dbd 100644
+--- a/kernel/locking/rwsem-xadd.h
++++ b/kernel/locking/rwsem-xadd.h
+@@ -5,18 +5,20 @@
+  *  - RWSEM_READER_OWNED (bit 0): The rwsem is owned by readers
+  *  - RWSEM_ANONYMOUSLY_OWNED (bit 1): The rwsem is anonymously owned,
+  *    i.e. the owner(s) cannot be readily determined. It can be reader
+- *    owned or the owning writer is indeterminate.
++ *    owned or the owning writer is indeterminate. Optimistic spinning
++ *    should be disabled if this flag is set.
+  *
+  * When a writer acquires a rwsem, it puts its task_struct pointer
+- * into the owner field. It is cleared after an unlock.
++ * into the owner field or the count itself (64-bit only. It should
++ * be cleared after an unlock.
+  *
+  * When a reader acquires a rwsem, it will also puts its task_struct
+- * pointer into the owner field with both the RWSEM_READER_OWNED and
+- * RWSEM_ANONYMOUSLY_OWNED bits set. On unlock, the owner field will
+- * largely be left untouched. So for a free or reader-owned rwsem,
+- * the owner value may contain information about the last reader that
+- * acquires the rwsem. The anonymous bit is set because that particular
+- * reader may or may not still own the lock.
++ * pointer into the owner field with the RWSEM_READER_OWNED bit set.
++ * On unlock, the owner field will largely be left untouched. So
++ * for a free or reader-owned rwsem, the owner value may contain
++ * information about the last reader that acquires the rwsem. The
++ * anonymous bit may also be set to permanently disable optimistic
++ * spinning on a reader-own rwsem until a writer comes along.
+  *
+  * That information may be helpful in debugging cases where the system
+  * seems to hang on a reader owned rwsem especially if only one reader
+@@ -182,8 +184,7 @@ static inline struct task_struct *rwsem_get_owner(struct rw_semaphore *sem)
+ static inline void __rwsem_set_reader_owned(struct rw_semaphore *sem,
+ 					    struct task_struct *owner)
+ {
+-	unsigned long val = (unsigned long)owner | RWSEM_READER_OWNED
+-						 | RWSEM_ANONYMOUSLY_OWNED;
++	unsigned long val = (unsigned long)owner | RWSEM_READER_OWNED;
  
--	case SO_TIMESTAMPNS:
-+	case SO_TIMESTAMPNS_OLD:
- 		v.val = sock_flag(sk, SOCK_RCVTSTAMPNS);
- 		break;
- 
--	case SO_TIMESTAMPING:
-+	case SO_TIMESTAMPING_OLD:
- 		v.val = sk->sk_tsflags;
- 		break;
- 
-@@ -2168,7 +2168,7 @@ int __sock_cmsg_send(struct sock *sk, struct msghdr *msg, struct cmsghdr *cmsg,
- 			return -EINVAL;
- 		sockc->mark = *(u32 *)CMSG_DATA(cmsg);
- 		break;
--	case SO_TIMESTAMPING:
-+	case SO_TIMESTAMPING_OLD:
- 		if (cmsg->cmsg_len != CMSG_LEN(sizeof(u32)))
- 			return -EINVAL;
- 
-diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
-index 6f8d292ad501..e29aec59cad1 100644
---- a/net/ipv4/tcp.c
-+++ b/net/ipv4/tcp.c
-@@ -1867,13 +1867,13 @@ static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
- 	if (tss->ts[0].tv_sec || tss->ts[0].tv_nsec) {
- 		if (sock_flag(sk, SOCK_RCVTSTAMP)) {
- 			if (sock_flag(sk, SOCK_RCVTSTAMPNS)) {
--				put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPNS,
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
- 					 sizeof(tss->ts[0]), &tss->ts[0]);
- 			} else {
- 				tv.tv_sec = tss->ts[0].tv_sec;
- 				tv.tv_usec = tss->ts[0].tv_nsec / 1000;
- 
--				put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
-+				put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
- 					 sizeof(tv), &tv);
- 			}
- 		}
-@@ -1893,7 +1893,7 @@ static void tcp_recv_timestamp(struct msghdr *msg, const struct sock *sk,
- 
- 	if (has_timestamping) {
- 		tss->ts[1] = (struct timespec) {0};
--		put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPING,
-+		put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPING_OLD,
- 			 sizeof(*tss), tss);
- 	}
+ 	WRITE_ONCE(sem->owner, (struct task_struct *)val);
  }
-diff --git a/net/rds/af_rds.c b/net/rds/af_rds.c
-index 65387e1e6964..eeb4639adbe5 100644
---- a/net/rds/af_rds.c
-+++ b/net/rds/af_rds.c
-@@ -430,7 +430,7 @@ static int rds_setsockopt(struct socket *sock, int level, int optname,
- 		ret = rds_set_transport(rs, optval, optlen);
- 		release_sock(sock->sk);
- 		break;
--	case SO_TIMESTAMP:
-+	case SO_TIMESTAMP_OLD:
- 		lock_sock(sock->sk);
- 		ret = rds_enable_recvtstamp(sock->sk, optval, optlen);
- 		release_sock(sock->sk);
-diff --git a/net/rds/recv.c b/net/rds/recv.c
-index 727639dac8a7..04e30d63a159 100644
---- a/net/rds/recv.c
-+++ b/net/rds/recv.c
-@@ -550,7 +550,7 @@ static int rds_cmsg_recv(struct rds_incoming *inc, struct msghdr *msg,
- 	if ((inc->i_rx_tstamp != 0) &&
- 	    sock_flag(rds_rs_to_sk(rs), SOCK_RCVTSTAMP)) {
- 		struct timeval tv = ktime_to_timeval(inc->i_rx_tstamp);
--		ret = put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
-+		ret = put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
- 			       sizeof(tv), &tv);
- 		if (ret)
- 			goto out;
-diff --git a/net/rxrpc/local_object.c b/net/rxrpc/local_object.c
-index 0906e51d3cfb..15cf42d5b53a 100644
---- a/net/rxrpc/local_object.c
-+++ b/net/rxrpc/local_object.c
-@@ -202,7 +202,7 @@ static int rxrpc_open_socket(struct rxrpc_local *local, struct net *net)
+@@ -209,6 +210,14 @@ static inline bool is_rwsem_owner_reader(struct task_struct *owner)
+ }
  
- 		/* We want receive timestamps. */
- 		opt = 1;
--		ret = kernel_setsockopt(local->socket, SOL_SOCKET, SO_TIMESTAMPNS,
-+		ret = kernel_setsockopt(local->socket, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
- 					(char *)&opt, sizeof(opt));
- 		if (ret < 0) {
- 			_debug("setsockopt failed");
-diff --git a/net/socket.c b/net/socket.c
-index e89884e2197b..5087f9e40f3a 100644
---- a/net/socket.c
-+++ b/net/socket.c
-@@ -669,7 +669,7 @@ static bool skb_is_err_queue(const struct sk_buff *skb)
-  * before the software timestamp is received, a hardware TX timestamp may be
-  * returned only if there is no software TX timestamp. Ignore false software
-  * timestamps, which may be made in the __sock_recv_timestamp() call when the
-- * option SO_TIMESTAMP(NS) is enabled on the socket, even when the skb has a
-+ * option SO_TIMESTAMP_OLD(NS) is enabled on the socket, even when the skb has a
-  * hardware timestamp.
+ /*
++ * Return true if the rwsem is spinnable.
++ */
++static inline bool is_rwsem_spinnable(struct rw_semaphore *sem)
++{
++	return is_rwsem_owner_spinnable(READ_ONCE(sem->owner));
++}
++
++/*
+  * Return true if the rwsem is owned by a reader.
   */
- static bool skb_is_swtx_tstamp(const struct sk_buff *skb, int false_tstamp)
-@@ -721,12 +721,12 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
- 		if (!sock_flag(sk, SOCK_RCVTSTAMPNS)) {
- 			struct timeval tv;
- 			skb_get_timestamp(skb, &tv);
--			put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMP,
-+			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMP_OLD,
- 				 sizeof(tv), &tv);
- 		} else {
- 			struct timespec ts;
- 			skb_get_timestampns(skb, &ts);
--			put_cmsg(msg, SOL_SOCKET, SCM_TIMESTAMPNS,
-+			put_cmsg(msg, SOL_SOCKET, SO_TIMESTAMPNS_OLD,
- 				 sizeof(ts), &ts);
- 		}
- 	}
-@@ -746,7 +746,7 @@ void __sock_recv_timestamp(struct msghdr *msg, struct sock *sk,
- 	}
- 	if (!empty) {
- 		put_cmsg(msg, SOL_SOCKET,
--			 SCM_TIMESTAMPING, sizeof(tss), &tss);
-+			 SO_TIMESTAMPING_OLD, sizeof(tss), &tss);
+ static inline bool is_rwsem_reader_owned(struct rw_semaphore *sem)
+@@ -226,6 +235,22 @@ static inline bool is_rwsem_reader_owned(struct rw_semaphore *sem)
+ }
  
- 		if (skb_is_err_queue(skb) && skb->len &&
- 		    SKB_EXT_ERR(skb)->opt_stats)
+ /*
++ * Set the RWSEM_ANONYMOUSLY_OWNED flag if the RWSEM_READER_OWNED flag
++ * remains set. Otherwise, the operation will be aborted.
++ */
++static inline void rwsem_set_nonspinnable(struct rw_semaphore *sem)
++{
++	long owner = (long)READ_ONCE(sem->owner);
++
++	while (is_rwsem_owner_reader((struct task_struct *)owner)) {
++		if (!is_rwsem_owner_spinnable((struct task_struct *)owner))
++			break;
++		owner = cmpxchg((long *)&sem->owner, owner,
++				owner | RWSEM_ANONYMOUSLY_OWNED);
++	}
++}
++
++/*
+  * Return true if rwsem is owned by an anonymous writer or readers.
+  */
+ static inline bool rwsem_has_anonymous_owner(struct task_struct *owner)
 -- 
-2.17.1
+1.8.3.1
