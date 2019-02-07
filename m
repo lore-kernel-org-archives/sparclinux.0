@@ -1,78 +1,79 @@
-From: ira.weiny@intel.com
-Date: Wed, 20 Feb 2019 05:30:37 +0000
-Subject: [RESEND PATCH 4/7] mm/gup: Add FOLL_LONGTERM capability to GUP fast
-Message-Id: <20190220053040.10831-5-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:25 +0000
+Subject: [PATCH-tip 21/22] locking/rwsem: Wake up all readers in wait queue
+Message-Id: <1549566446-27967-22-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190220053040.10831-1-ira.weiny@intel.com>
-In-Reply-To: <20190220053040.10831-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
-Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, kvm-ppc@vger.kernel.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+When the front of the wait queue is a reader, other readers
+immediately following the first reader will also be woken up at the
+same time. However, if there is a writer in between. Those readers
+behind the writer will not be woken up.
 
-DAX pages were previously unprotected from longterm pins when users
-called get_user_pages_fast().
+Because of optimistic spinning, the lock acquisition order is not FIFO
+anyway. The lock handoff mechanism will ensure that lock starvation
+will not happen.
 
-Use the new FOLL_LONGTERM flag to check for DEVMAP pages and fall
-back to regular GUP processing if a DEVMAP page is encountered.
+Assuming that the lock hold times of the other readers still in the
+queue will be about the same as the readers that are being woken up,
+there is really not much additional cost other than the additional
+latency due to the wakeup of additional tasks by the waker. Therefore
+all the readers in the queue are woken up when the first waiter is a
+reader to improve reader throughput.
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+With a locking microbenchmark running on 5.0 based kernel, the total
+locking rates (in kops/s) of the benchmark on a 4-socket 56-core x86-64
+system with equal numbers of readers and writers before all the reader
+spining patches, before this patch and after this patch were as follows:
+
+   # of Threads  Pre-rspin    Pre-Patch   Post-patch
+   ------------  ---------    ---------   ----------
+        2          1,926        8,057       7,397
+        4          1,391        7,680       6,161
+        8            716        7,284       6,405
+       16            618        6,542       6,768
+       32            501        1,449       6,550
+       64             61          480       5,548
+      112             75          769       5,216
+
+At low contention level, there is a slight drop in performance. At high
+contention level, however, this patch gives a big performance boost.
+
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- mm/gup.c | 24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ kernel/locking/rwsem-xadd.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 6f32d36b3c5b..f7e759c523bb 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1439,6 +1439,9 @@ static int gup_pte_range(pmd_t pmd, unsigned long addr, unsigned long end,
- 			goto pte_unmap;
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index 3beb942..3cf2e84 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -180,16 +180,16 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
+ 	}
  
- 		if (pte_devmap(pte)) {
-+			if (unlikely(flags & FOLL_LONGTERM))
-+				goto pte_unmap;
-+
- 			pgmap = get_dev_pagemap(pte_pfn(pte), pgmap);
- 			if (unlikely(!pgmap)) {
- 				undo_dev_pagemap(nr, nr_start, pages);
-@@ -1578,8 +1581,11 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
- 	if (!pmd_access_permitted(orig, flags & FOLL_WRITE))
- 		return 0;
+ 	/*
+-	 * Grant an infinite number of read locks to the readers at the front
+-	 * of the queue. We know that woken will be at least 1 as we accounted
+-	 * for above. Note we increment the 'active part' of the count by the
++	 * Grant an infinite number of read locks to all the readers in the
++	 * queue. We know that woken will be at least 1 as we accounted for
++	 * above. Note we increment the 'active part' of the count by the
+ 	 * number of readers before waking any processes up.
+ 	 */
+ 	list_for_each_entry_safe(waiter, tmp, &sem->wait_list, list) {
+ 		struct task_struct *tsk;
  
--	if (pmd_devmap(orig))
-+	if (pmd_devmap(orig)) {
-+		if (unlikely(flags & FOLL_LONGTERM))
-+			return 0;
- 		return __gup_device_huge_pmd(orig, pmdp, addr, end, pages, nr);
-+	}
+ 		if (waiter->type = RWSEM_WAITING_FOR_WRITE)
+-			break;
++			continue;
  
- 	refs = 0;
- 	page = pmd_page(orig) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
-@@ -1904,8 +1910,20 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
- 
--		ret = get_user_pages_unlocked(start, nr_pages - nr, pages,
--					      gup_flags);
-+		if (gup_flags & FOLL_LONGTERM) {
-+			down_read(&current->mm->mmap_sem);
-+			ret = __gup_longterm_locked(current, current->mm,
-+						    start, nr_pages - nr,
-+						    pages, NULL, gup_flags);
-+			up_read(&current->mm->mmap_sem);
-+		} else {
-+			/*
-+			 * retain FAULT_FOLL_ALLOW_RETRY optimization if
-+			 * possible
-+			 */
-+			ret = get_user_pages_unlocked(start, nr_pages - nr,
-+						      pages, gup_flags);
-+		}
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
+ 		woken++;
+ 		tsk = waiter->task;
 -- 
-2.20.1
+1.8.3.1
