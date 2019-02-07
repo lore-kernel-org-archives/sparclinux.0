@@ -1,7 +1,7 @@
 From: Waiman Long <longman@redhat.com>
-Date: Thu, 07 Feb 2019 19:07:06 +0000
-Subject: [PATCH-tip 02/22] locking/lock_events: Make lock_events available for all archs & other locks
-Message-Id: <1549566446-27967-3-git-send-email-longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:15 +0000
+Subject: [PATCH-tip 11/22] locking/rwsem: Implement a new locking scheme
+Message-Id: <1549566446-27967-12-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1549566446-27967-1-git-send-email-longman@redhat.com>
 In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
@@ -11,459 +11,520 @@ Content-Transfer-Encoding: 7bit
 To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
 Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-The QUEUED_LOCK_STAT option to report queued spinlocks event counts
-was previously allowed only on x86 architecture. To make the locking
-event counting code more useful, it is now renamed to a more generic
-LOCK_EVENT_COUNTS config option. This new option will be available to
-all the architectures that use qspinlock at the moment.
+The current way of using various reader, writer and waiting biases
+in the rwsem code are confusing and hard to understand. I have to
+reread the rwsem count guide in the rwsem-xadd.c file from time to
+time to remind myself how this whole thing works. It also makes the
+rwsem code harder to be optimized.
 
-Other locking code can now start to use the generic locking event
-counting code by including lock_events.h and put the new locking event
-names into the lock_events_list.h header file.
+To make rwsem more sane, a new locking scheme similar to the one in
+qrwlock is now being used.  The count is now a 32-bit atomic value
+in all architectures. The current bit definitions are:
 
-My experience with lock event counting is that it gives valuable insight
-on how the locking code works and what can be done to make it better. I
-would like to extend this benefit to other locking code like mutex and
-rwsem in the near future.
+  Bit  0   - writer locked bit
+  Bit  1   - waiters present bit
+  Bits 2-7 - reserved for future extension
+  Bits 8-X - reader count (24/56 bits)
 
-The PV qspinlock specific code will stay in qspinlock_stat.h. The
-locking event counters will now reside in the <debugfs>/lock_event_counts
-directory.
+Now the cmpxchg instruction is used to acquire the write lock. The
+read lock is still acquired with xadd instruction, so there is no
+change here.  This scheme will allow up to 16M active readers which
+should be more than enough. We can always use some more reserved bits
+if necessary.
+
+With that change, we can deterministically know if a rwsem has been
+write-locked. Looking at the count alone, however, one cannot determine
+for certain if a rwsem is owned by readers or not as the readers that
+set the reader count bits may be in the process of backing out. So we
+still need the reader-owned bit in the owner field to be sure.
+
+With a locking microbenchmark running on 5.0 based kernel, the total
+locking rates (in kops/s) of the benchmark on a 4-socket 56-core
+x86-64 system before and after the patch were as follows:
+
+                  Before Patch      After Patch
+   # of Threads  wlock    rlock    wlock    rlock
+   ------------  -----    -----    -----    -----
+        1        28,773   30,164   29,063   29,967
+        2         7,435   15,167    6,746   13,198
+        4         7,181   14,438    6,515   12,763
+        8         6,918   13,796    6,747   13,419
+       16         6,554   16,030    6,653   15,534
+
+The locking rates of the benchmark on a Power9 system were as follows:
+
+                  Before Patch      After Patch
+   # of Threads  wlock    rlock    wlock    rlock
+   ------------  -----    -----    -----    -----
+        1        11,527   12,378   11,527   12,195
+        2         6,318   15,116    7,690   15,065
+        4         3,957   16,812    4,495   16,884
+        8         3,617   16,496    3,993   16,588
+
+The locking rates of the benchmark on a 2-socket ARM64 system were
+as follows:
+
+                  Before Patch      After Patch
+   # of Threads  wlock    rlock    wlock    rlock
+   ------------  -----    -----    -----    -----
+        1        23,703   23,208   23,923   23,167
+        2         6,206   11,996    6,756   13,268
+        4         6,098   12,343    6,928   15,064
+        8         6,007   13,152    7,117   15,335
+
+For x86, the locking rate dropped somewhat at low contention level with
+the patch.  At high contention level, however, the performance recovered.
+For both Power9 and ARM64, the patch caused no performance drop. In fact,
+it improved a little bit after the patch.
 
 Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- arch/Kconfig                    |  10 +++
- arch/x86/Kconfig                |   8 ---
- kernel/locking/Makefile         |   1 +
- kernel/locking/lock_events.c    | 153 ++++++++++++++++++++++++++++++++++++++++
- kernel/locking/lock_events.h    |   6 +-
- kernel/locking/qspinlock_stat.h | 141 ++++--------------------------------
- 6 files changed, 179 insertions(+), 140 deletions(-)
- create mode 100644 kernel/locking/lock_events.c
+ kernel/locking/rwsem-xadd.c | 145 +++++++++++++++-----------------------------
+ kernel/locking/rwsem-xadd.h |  85 +++++++++++++-------------
+ 2 files changed, 89 insertions(+), 141 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 9f02132..af147c2 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -888,6 +888,16 @@ config HAVE_ARCH_PREL32_RELOCATIONS
- config ARCH_USE_MEMREMAP_PROT
- 	bool
- 
-+config LOCK_EVENT_COUNTS
-+	bool "Locking event counts collection"
-+	depends on DEBUG_FS
-+	depends on QUEUED_SPINLOCKS
-+	---help---
-+	  Enable light-weight counting of various locking related events
-+	  in the system with minimal performance impact. This reduces
-+	  the chance of application behavior change because of timing
-+	  differences. The counts are reported via debugfs.
-+
- source "kernel/gcov/Kconfig"
- 
- source "scripts/gcc-plugins/Kconfig"
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index a7e7a60..e4f620f 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -784,14 +784,6 @@ config PARAVIRT_SPINLOCKS
- 
- 	  If you are unsure how to answer this question, answer Y.
- 
--config QUEUED_LOCK_STAT
--	bool "Paravirt queued spinlock statistics"
--	depends on PARAVIRT_SPINLOCKS && DEBUG_FS
--	---help---
--	  Enable the collection of statistical data on the slowpath
--	  behavior of paravirtualized queued spinlocks and report
--	  them on debugfs.
--
- source "arch/x86/xen/Kconfig"
- 
- config KVM_GUEST
-diff --git a/kernel/locking/Makefile b/kernel/locking/Makefile
-index 392c7f2..f2257d7 100644
---- a/kernel/locking/Makefile
-+++ b/kernel/locking/Makefile
-@@ -30,3 +30,4 @@ obj-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem-xadd.o
- obj-$(CONFIG_QUEUED_RWLOCKS) += qrwlock.o
- obj-$(CONFIG_LOCK_TORTURE_TEST) += locktorture.o
- obj-$(CONFIG_WW_MUTEX_SELFTEST) += test-ww_mutex.o
-+obj-$(CONFIG_LOCK_EVENT_COUNTS) += lock_events.o
-diff --git a/kernel/locking/lock_events.c b/kernel/locking/lock_events.c
-new file mode 100644
-index 0000000..71c36d1
---- /dev/null
-+++ b/kernel/locking/lock_events.c
-@@ -0,0 +1,153 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Authors: Waiman Long <waiman.long@hpe.com>
-+ */
-+
-+/*
-+ * Collect locking event counts
-+ */
-+#include <linux/debugfs.h>
-+#include <linux/sched.h>
-+#include <linux/sched/clock.h>
-+#include <linux/fs.h>
-+
-+#include "lock_events.h"
-+
-+#undef  LOCK_EVENT
-+#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
-+
-+#define LOCK_EVENTS_DIR		"lock_event_counts"
-+
-+/*
-+ * When CONFIG_LOCK_EVENT_COUNTS is enabled, event counts of different
-+ * types of locks will be reported under the <debugfs>/lock_event_counts/
-+ * directory. See lock_events_list.h for the list of available locking
-+ * events.
-+ *
-+ * Writing to the special ".reset_counts" file will reset all the above
-+ * locking event counts. This is a very slow operation and so should not
-+ * be done frequently.
-+ *
-+ * These event counts are implemented as per-cpu variables which are
-+ * summed and computed whenever the corresponding debugfs files are read. This
-+ * minimizes added overhead making the counts usable even in a production
-+ * environment.
-+ */
-+static const char * const lockevent_names[lockevent_num + 1] = {
-+
-+#include "lock_events_list.h"
-+
-+	[LOCKEVENT_reset_cnts] = ".reset_counts",
-+};
-+
-+/*
-+ * Per-cpu counts
-+ */
-+DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
-+
-+/*
-+ * The lockevent_read() function can be overridden.
-+ */
-+ssize_t __weak lockevent_read(struct file *file, char __user *user_buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char buf[64];
-+	int cpu, id, len;
-+	u64 sum = 0;
-+
-+	/*
-+	 * Get the counter ID stored in file->f_inode->i_private
-+	 */
-+	id = (long)file_inode(file)->i_private;
-+
-+	if (id >= lockevent_num)
-+		return -EBADF;
-+
-+	for_each_possible_cpu(cpu)
-+		sum += per_cpu(lockevents[id], cpu);
-+	len = snprintf(buf, sizeof(buf) - 1, "%llu\n", sum);
-+
-+	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
-+}
-+
-+/*
-+ * Function to handle write request
-+ *
-+ * When idx = reset_cnts, reset all the counts.
-+ */
-+static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	int cpu;
-+
-+	/*
-+	 * Get the counter ID stored in file->f_inode->i_private
-+	 */
-+	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
-+		return count;
-+
-+	for_each_possible_cpu(cpu) {
-+		int i;
-+		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
-+
-+		for (i = 0 ; i < lockevent_num; i++)
-+			WRITE_ONCE(ptr[i], 0);
-+	}
-+	return count;
-+}
-+
-+/*
-+ * Debugfs data structures
-+ */
-+static const struct file_operations fops_lockevent = {
-+	.read = lockevent_read,
-+	.write = lockevent_write,
-+	.llseek = default_llseek,
-+};
-+
-+/*
-+ * Initialize debugfs for the locking event counts.
-+ */
-+static int __init init_lockevent_counts(void)
-+{
-+	struct dentry *d_counts = debugfs_create_dir(LOCK_EVENTS_DIR, NULL);
-+	int i;
-+
-+	if (!d_counts)
-+		goto out;
-+
-+	/*
-+	 * Create the debugfs files
-+	 *
-+	 * As reading from and writing to the stat files can be slow, only
-+	 * root is allowed to do the read/write to limit impact to system
-+	 * performance.
-+	 */
-+	for (i = 0; i < lockevent_num; i++)
-+		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
-+					 (void *)(long)i, &fops_lockevent))
-+			goto fail_undo;
-+
-+	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
-+				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
-+				 &fops_lockevent))
-+		goto fail_undo;
-+
-+	return 0;
-+fail_undo:
-+	debugfs_remove_recursive(d_counts);
-+out:
-+	pr_warn("Could not create '%s' debugfs entries\n", LOCK_EVENTS_DIR);
-+	return -ENOMEM;
-+}
-+fs_initcall(init_lockevent_counts);
-diff --git a/kernel/locking/lock_events.h b/kernel/locking/lock_events.h
-index 4009e07..d965470 100644
---- a/kernel/locking/lock_events.h
-+++ b/kernel/locking/lock_events.h
-@@ -21,7 +21,7 @@ enum lock_events {
- 	LOCKEVENT_reset_cnts = lockevent_num,
- };
- 
--#ifdef CONFIG_QUEUED_LOCK_STAT
-+#ifdef CONFIG_LOCK_EVENT_COUNTS
- /*
-  * Per-cpu counters
-  */
-@@ -46,10 +46,10 @@ static inline void __lockevent_add(enum lock_events event, int inc)
- 
- #define lockevent_add(ev, c)	__lockevent_add(LOCKEVENT_ ##ev, c)
- 
--#else  /* CONFIG_QUEUED_LOCK_STAT */
-+#else  /* CONFIG_LOCK_EVENT_COUNTS */
- 
- #define lockevent_inc(ev)
- #define lockevent_add(ev, c)
- #define lockevent_cond_inc(ev, c)
- 
--#endif /* CONFIG_QUEUED_LOCK_STAT */
-+#endif /* CONFIG_LOCK_EVENT_COUNTS */
-diff --git a/kernel/locking/qspinlock_stat.h b/kernel/locking/qspinlock_stat.h
-index 1db5b37..5415267 100644
---- a/kernel/locking/qspinlock_stat.h
-+++ b/kernel/locking/qspinlock_stat.h
-@@ -9,76 +9,29 @@
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
+diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
+index fff231a..18a414e 100644
+--- a/kernel/locking/rwsem-xadd.c
++++ b/kernel/locking/rwsem-xadd.c
+@@ -9,6 +9,8 @@
   *
-- * Authors: Waiman Long <waiman.long@hpe.com>
-+ * Authors: Waiman Long <longman@redhat.com>
+  * Optimistic spinning by Tim Chen <tim.c.chen@intel.com>
+  * and Davidlohr Bueso <davidlohr@hp.com>. Based on mutexes.
++ *
++ * Rwsem count bit fields re-definition by Waiman Long <longman@redhat.com>.
   */
- 
--/*
-- * When queued spinlock statistical counters are enabled, the following
-- * debugfs files will be created for reporting the counter values:
-- *
-- * <debugfs>/qlockstat/
-- *   pv_hash_hops	- average # of hops per hashing operation
-- *   pv_kick_unlock	- # of vCPU kicks issued at unlock time
-- *   pv_kick_wake	- # of vCPU kicks used for computing pv_latency_wake
-- *   pv_latency_kick	- average latency (ns) of vCPU kick operation
-- *   pv_latency_wake	- average latency (ns) from vCPU kick to wakeup
-- *   pv_lock_stealing	- # of lock stealing operations
-- *   pv_spurious_wakeup	- # of spurious wakeups in non-head vCPUs
-- *   pv_wait_again	- # of wait's after a queue head vCPU kick
-- *   pv_wait_early	- # of early vCPU wait's
-- *   pv_wait_head	- # of vCPU wait's at the queue head
-- *   pv_wait_node	- # of vCPU wait's at a non-head queue node
-- *   lock_pending	- # of locking operations via pending code
-- *   lock_slowpath	- # of locking operations via MCS lock queue
-- *   lock_use_node2	- # of locking operations that use 2nd per-CPU node
-- *   lock_use_node3	- # of locking operations that use 3rd per-CPU node
-- *   lock_use_node4	- # of locking operations that use 4th per-CPU node
-- *   lock_no_node	- # of locking operations without using per-CPU node
-- *
-- * Subtracting lock_use_node[234] from lock_slowpath will give you
-- * lock_use_node1.
-- *
-- * Writing to the special ".reset_counts" file will reset all the above
-- * counter values.
-- *
-- * These statistical counters are implemented as per-cpu variables which are
-- * summed and computed whenever the corresponding debugfs files are read. This
-- * minimizes added overhead making the counters usable even in a production
-- * environment.
-- *
-- * There may be slight difference between pv_kick_wake and pv_kick_unlock.
-- */
+ #include <linux/rwsem.h>
+ #include <linux/init.h>
+@@ -23,52 +25,20 @@
  #include "lock_events.h"
  
--#ifdef CONFIG_QUEUED_LOCK_STAT
-+#ifdef CONFIG_LOCK_EVENT_COUNTS
-+#ifdef CONFIG_PARAVIRT_SPINLOCKS
  /*
-- * Collect pvqspinlock statistics
-+ * Collect pvqspinlock locking event counts
-  */
--#include <linux/debugfs.h>
- #include <linux/sched.h>
- #include <linux/sched/clock.h>
- #include <linux/fs.h>
- 
- #define EVENT_COUNT(ev)	lockevents[LOCKEVENT_ ## ev]
- 
--#undef  LOCK_EVENT
--#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
--
--static const char * const lockevent_names[lockevent_num + 1] = {
--
--#include "lock_events_list.h"
--
--	[LOCKEVENT_reset_cnts] = ".reset_counts",
--};
--
- /*
-- * Per-cpu counters
-+ * PV specific per-cpu counter
-  */
--DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
- static DEFINE_PER_CPU(u64, pv_kick_time);
- 
- /*
-- * Function to read and return the qlock statistical counter values
-+ * Function to read and return the PV qspinlock counts.
+- * Guide to the rw_semaphore's count field for common values.
+- * (32-bit case illustrated, similar for 64-bit)
+- *
+- * 0x0000000X	(1) X readers active or attempting lock, no writer waiting
+- *		    X = #active_readers + #readers attempting to lock
+- *		    (X*ACTIVE_BIAS)
+- *
+- * 0x00000000	rwsem is unlocked, and no one is waiting for the lock or
+- *		attempting to read lock or write lock.
+- *
+- * 0xffff000X	(1) X readers active or attempting lock, with waiters for lock
+- *		    X = #active readers + # readers attempting lock
+- *		    (X*ACTIVE_BIAS + WAITING_BIAS)
+- *		(2) 1 writer attempting lock, no waiters for lock
+- *		    X-1 = #active readers + #readers attempting lock
+- *		    ((X-1)*ACTIVE_BIAS + ACTIVE_WRITE_BIAS)
+- *		(3) 1 writer active, no waiters for lock
+- *		    X-1 = #active readers + #readers attempting lock
+- *		    ((X-1)*ACTIVE_BIAS + ACTIVE_WRITE_BIAS)
+- *
+- * 0xffff0001	(1) 1 reader active or attempting lock, waiters for lock
+- *		    (WAITING_BIAS + ACTIVE_BIAS)
+- *		(2) 1 writer active or attempting lock, no waiters for lock
+- *		    (ACTIVE_WRITE_BIAS)
++ * Guide to the rw_semaphore's count field.
   *
-  * The following counters are handled specially:
-  * 1. pv_latency_kick
-@@ -88,8 +41,8 @@
-  * 3. pv_hash_hops
-  *    Average hops/hash = pv_hash_hops/pv_kick_unlock
+- * 0xffff0000	(1) There are writers or readers queued but none active
+- *		    or in the process of attempting lock.
+- *		    (WAITING_BIAS)
+- *		Note: writer can attempt to steal lock for this count by adding
+- *		ACTIVE_WRITE_BIAS in cmpxchg and checking the old count
++ * When the RWSEM_WRITER_LOCKED bit in count is set, the lock is owned
++ * by a writer.
+  *
+- * 0xfffe0001	(1) 1 writer active, or attempting lock. Waiters on queue.
+- *		    (ACTIVE_WRITE_BIAS + WAITING_BIAS)
+- *
+- * Note: Readers attempt to lock by adding ACTIVE_BIAS in down_read and checking
+- *	 the count becomes more than 0 for successful lock acquisition,
+- *	 i.e. the case where there are only readers or nobody has lock.
+- *	 (1st and 2nd case above).
+- *
+- *	 Writers attempt to lock by adding ACTIVE_WRITE_BIAS in down_write and
+- *	 checking the count becomes ACTIVE_WRITE_BIAS for successful lock
+- *	 acquisition (i.e. nobody else has lock or attempts lock).  If
+- *	 unsuccessful, in rwsem_down_write_failed, we'll check to see if there
+- *	 are only waiters but none active (5th case above), and attempt to
+- *	 steal the lock.
++ * The lock is owned by readers when
++ * (1) the RWSEM_WRITER_LOCKED isn't set in count,
++ * (2) some of the reader bits are set in count, and
++ * (3) the owner field has RWSEM_READ_OWNED bit set.
+  *
++ * Having some reader bits set is not enough to guarantee a readers owned
++ * lock as the readers may be in the process of backing out from the count
++ * and a writer has just released the lock. So another writer may steal
++ * the lock immediately after that.
   */
--static ssize_t lockevent_read(struct file *file, char __user *user_buf,
--			      size_t count, loff_t *ppos)
-+ssize_t lockevent_read(struct file *file, char __user *user_buf,
-+		       size_t count, loff_t *ppos)
+ 
+ /*
+@@ -114,9 +84,8 @@ enum rwsem_wake_type {
+ 
+ /*
+  * handle the lock release when processes blocked on it that can now run
+- * - if we come here from up_xxxx(), then:
+- *   - the 'active part' of count (&0x0000ffff) reached 0 (but may have changed)
+- *   - the 'waiting part' of count (&0xffff0000) is -ve (and will still be so)
++ * - if we come here from up_xxxx(), then the RWSEM_FLAG_WAITERS bit must
++ *   have been set.
+  * - there must be someone on the queue
+  * - the wait_lock must be held by the caller
+  * - tasks are marked for wakeup, the caller must later invoke wake_up_q()
+@@ -160,22 +129,11 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
+ 	 * so we can bail out early if a writer stole the lock.
+ 	 */
+ 	if (wake_type != RWSEM_WAKE_READ_OWNED) {
+-		adjustment = RWSEM_ACTIVE_READ_BIAS;
+- try_reader_grant:
++		adjustment = RWSEM_READER_BIAS;
+ 		oldcount = atomic_long_fetch_add(adjustment, &sem->count);
+-		if (unlikely(oldcount < RWSEM_WAITING_BIAS)) {
+-			/*
+-			 * If the count is still less than RWSEM_WAITING_BIAS
+-			 * after removing the adjustment, it is assumed that
+-			 * a writer has stolen the lock. We have to undo our
+-			 * reader grant.
+-			 */
+-			if (atomic_long_add_return(-adjustment, &sem->count) <
+-			    RWSEM_WAITING_BIAS)
+-				return;
+-
+-			/* Last active locker left. Retry waking readers. */
+-			goto try_reader_grant;
++		if (unlikely(oldcount & RWSEM_WRITER_MASK)) {
++			atomic_long_sub(adjustment, &sem->count);
++			return;
+ 		}
+ 		/*
+ 		 * Set it to reader-owned to give spinners an early
+@@ -215,11 +173,11 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
+ 		wake_q_add_safe(wake_q, tsk);
+ 	}
+ 
+-	adjustment = woken * RWSEM_ACTIVE_READ_BIAS - adjustment;
++	adjustment = woken * RWSEM_READER_BIAS - adjustment;
+ 	lockevent_cond_inc(rwsem_wake_reader, woken);
+ 	if (list_empty(&sem->wait_list)) {
+ 		/* hit end of list above */
+-		adjustment -= RWSEM_WAITING_BIAS;
++		adjustment -= RWSEM_FLAG_WAITERS;
+ 	}
+ 
+ 	if (adjustment)
+@@ -233,22 +191,15 @@ static void __rwsem_mark_wake(struct rw_semaphore *sem,
+  */
+ static inline bool rwsem_try_write_lock(long count, struct rw_semaphore *sem)
  {
- 	char buf[64];
- 	int cpu, id, len;
-@@ -150,78 +103,6 @@ static ssize_t lockevent_read(struct file *file, char __user *user_buf,
+-	/*
+-	 * Avoid trying to acquire write lock if count isn't RWSEM_WAITING_BIAS.
+-	 */
+-	if (count != RWSEM_WAITING_BIAS)
++	long new;
++
++	if (RWSEM_COUNT_LOCKED(count))
+ 		return false;
+ 
+-	/*
+-	 * Acquire the lock by trying to set it to ACTIVE_WRITE_BIAS. If there
+-	 * are other tasks on the wait list, we need to add on WAITING_BIAS.
+-	 */
+-	count = list_is_singular(&sem->wait_list) ?
+-			RWSEM_ACTIVE_WRITE_BIAS :
+-			RWSEM_ACTIVE_WRITE_BIAS + RWSEM_WAITING_BIAS;
++	new = count + RWSEM_WRITER_LOCKED -
++	     (list_is_singular(&sem->wait_list) ? RWSEM_FLAG_WAITERS : 0);
+ 
+-	if (atomic_long_cmpxchg_acquire(&sem->count, RWSEM_WAITING_BIAS, count)
+-							= RWSEM_WAITING_BIAS) {
++	if (atomic_long_cmpxchg_acquire(&sem->count, count, new) = count) {
+ 		rwsem_set_owner(sem);
+ 		return true;
+ 	}
+@@ -265,11 +216,11 @@ static inline bool rwsem_try_write_lock_unqueued(struct rw_semaphore *sem)
+ 	long old, count = atomic_long_read(&sem->count);
+ 
+ 	while (true) {
+-		if (!(count = 0 || count = RWSEM_WAITING_BIAS))
++		if (RWSEM_COUNT_LOCKED(count))
+ 			return false;
+ 
+ 		old = atomic_long_cmpxchg_acquire(&sem->count, count,
+-				      count + RWSEM_ACTIVE_WRITE_BIAS);
++				count + RWSEM_WRITER_LOCKED);
+ 		if (old = count) {
+ 			rwsem_set_owner(sem);
+ 			lockevent_inc(rwsem_opt_wlock);
+@@ -428,7 +379,7 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ static inline struct rw_semaphore __sched *
+ __rwsem_down_read_failed_common(struct rw_semaphore *sem, int state)
+ {
+-	long count, adjustment = -RWSEM_ACTIVE_READ_BIAS;
++	long count, adjustment = -RWSEM_READER_BIAS;
+ 	struct rwsem_waiter waiter;
+ 	DEFINE_WAKE_Q(wake_q);
+ 
+@@ -440,16 +391,16 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 		/*
+ 		 * In case the wait queue is empty and the lock isn't owned
+ 		 * by a writer, this reader can exit the slowpath and return
+-		 * immediately as its RWSEM_ACTIVE_READ_BIAS has already
+-		 * been set in the count.
++		 * immediately as its RWSEM_READER_BIAS has already been
++		 * set in the count.
+ 		 */
+-		if (atomic_long_read(&sem->count) >= 0) {
++		if (!(atomic_long_read(&sem->count) & RWSEM_WRITER_MASK)) {
+ 			raw_spin_unlock_irq(&sem->wait_lock);
+ 			rwsem_set_reader_owned(sem);
+ 			lockevent_inc(rwsem_rlock_fast);
+ 			return sem;
+ 		}
+-		adjustment += RWSEM_WAITING_BIAS;
++		adjustment += RWSEM_FLAG_WAITERS;
+ 	}
+ 	list_add_tail(&waiter.list, &sem->wait_list);
+ 
+@@ -462,9 +413,8 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 	 * If there are no writers and we are first in the queue,
+ 	 * wake our own waiter to join the existing active readers !
+ 	 */
+-	if (count = RWSEM_WAITING_BIAS ||
+-	    (count > RWSEM_WAITING_BIAS &&
+-	     adjustment != -RWSEM_ACTIVE_READ_BIAS))
++	if (!RWSEM_COUNT_LOCKED(count) ||
++	   (!(count & RWSEM_WRITER_MASK) && (adjustment & RWSEM_FLAG_WAITERS)))
+ 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
+ 
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+@@ -492,7 +442,7 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ out_nolock:
+ 	list_del(&waiter.list);
+ 	if (list_empty(&sem->wait_list))
+-		atomic_long_add(-RWSEM_WAITING_BIAS, &sem->count);
++		atomic_long_add(-RWSEM_FLAG_WAITERS, &sem->count);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+ 	__set_current_state(TASK_RUNNING);
+ 	lockevent_inc(rwsem_rlock_fail);
+@@ -525,9 +475,6 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 	struct rw_semaphore *ret = sem;
+ 	DEFINE_WAKE_Q(wake_q);
+ 
+-	/* undo write bias from down_write operation, stop active locking */
+-	count = atomic_long_sub_return(RWSEM_ACTIVE_WRITE_BIAS, &sem->count);
+-
+ 	/* do optimistic spinning and steal lock if possible */
+ 	if (rwsem_optimistic_spin(sem))
+ 		return sem;
+@@ -553,10 +500,12 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 
+ 		/*
+ 		 * If there were already threads queued before us and there are
+-		 * no active writers, the lock must be read owned; so we try to
+-		 * wake any read locks that were queued ahead of us.
++		 * no active writers and some readers, the lock must be read
++		 * owned; so we try to  any read locks that were queued ahead
++		 * of us.
+ 		 */
+-		if (count > RWSEM_WAITING_BIAS) {
++		if (!(count & RWSEM_WRITER_MASK) &&
++		     (count & RWSEM_READER_MASK)) {
+ 			__rwsem_mark_wake(sem, RWSEM_WAKE_READERS, &wake_q);
+ 			/*
+ 			 * The wakeup is normally called _after_ the wait_lock
+@@ -573,8 +522,9 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 			wake_q_init(&wake_q);
+ 		}
+ 
+-	} else
+-		count = atomic_long_add_return(RWSEM_WAITING_BIAS, &sem->count);
++	} else {
++		count = atomic_long_add_return(RWSEM_FLAG_WAITERS, &sem->count);
++	}
+ 
+ 	/* wait until we successfully acquire the lock */
+ 	set_current_state(state);
+@@ -591,7 +541,8 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 			schedule();
+ 			lockevent_inc(rwsem_sleep_writer);
+ 			set_current_state(state);
+-		} while ((count = atomic_long_read(&sem->count)) & RWSEM_ACTIVE_MASK);
++			count = atomic_long_read(&sem->count);
++		} while (RWSEM_COUNT_LOCKED(count));
+ 
+ 		raw_spin_lock_irq(&sem->wait_lock);
+ 	}
+@@ -607,7 +558,7 @@ static inline bool rwsem_has_spinner(struct rw_semaphore *sem)
+ 	raw_spin_lock_irq(&sem->wait_lock);
+ 	list_del(&waiter.list);
+ 	if (list_empty(&sem->wait_list))
+-		atomic_long_add(-RWSEM_WAITING_BIAS, &sem->count);
++		atomic_long_add(-RWSEM_FLAG_WAITERS, &sem->count);
+ 	else
+ 		__rwsem_mark_wake(sem, RWSEM_WAKE_ANY, &wake_q);
+ 	raw_spin_unlock_irq(&sem->wait_lock);
+diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
+index 6d2478c..1febd17 100644
+--- a/kernel/locking/rwsem-xadd.h
++++ b/kernel/locking/rwsem-xadd.h
+@@ -37,24 +37,26 @@
+ #endif
+ 
+ /*
+- * R/W semaphores originally for PPC using the stuff in lib/rwsem.c.
+- * Adapted largely from include/asm-i386/rwsem.h
+- * by Paul Mackerras <paulus@samba.org>.
+- */
+-
+-/*
+- * the semaphore definition
++ * The definition of the atomic counter in the semaphore:
++ *
++ * Bit  0   - writer locked bit
++ * Bit  1   - waiters present bit
++ * Bits 2-7 - reserved
++ * Bits 8-X - 24-bit (32-bit) or 56-bit reader count
++ *
++ * atomic_long_fetch_add() is used to obtain reader lock, whereas
++ * atomic_long_cmpxchg() will be used to obtain writer lock.
+  */
+-#ifdef CONFIG_64BIT
+-# define RWSEM_ACTIVE_MASK		0xffffffffL
+-#else
+-# define RWSEM_ACTIVE_MASK		0x0000ffffL
+-#endif
++#define RWSEM_WRITER_LOCKED	(1UL << 0)
++#define RWSEM_FLAG_WAITERS	(1UL << 1)
++#define RWSEM_READER_SHIFT	8
++#define RWSEM_READER_BIAS	(1UL << RWSEM_READER_SHIFT)
++#define RWSEM_READER_MASK	(~(RWSEM_READER_BIAS - 1))
++#define RWSEM_WRITER_MASK	RWSEM_WRITER_LOCKED
++#define RWSEM_LOCK_MASK		(RWSEM_WRITER_MASK|RWSEM_READER_MASK)
++#define RWSEM_READ_FAILED_MASK	(RWSEM_WRITER_MASK|RWSEM_FLAG_WAITERS)
+ 
+-#define RWSEM_ACTIVE_BIAS		0x00000001L
+-#define RWSEM_WAITING_BIAS		(-RWSEM_ACTIVE_MASK-1)
+-#define RWSEM_ACTIVE_READ_BIAS		RWSEM_ACTIVE_BIAS
+-#define RWSEM_ACTIVE_WRITE_BIAS		(RWSEM_WAITING_BIAS + RWSEM_ACTIVE_BIAS)
++#define RWSEM_COUNT_LOCKED(c)	((c) & RWSEM_LOCK_MASK)
+ 
+ #ifdef CONFIG_RWSEM_SPIN_ON_OWNER
+ /*
+@@ -169,7 +171,8 @@ static inline void rwsem_clear_reader_owned(struct rw_semaphore *sem)
+  */
+ static inline void __down_read(struct rw_semaphore *sem)
+ {
+-	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
++	if (unlikely(atomic_long_fetch_add_acquire(RWSEM_READER_BIAS,
++			&sem->count) & RWSEM_READ_FAILED_MASK)) {
+ 		rwsem_down_read_failed(sem);
+ 		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
+ 					RWSEM_READER_OWNED), sem);
+@@ -180,7 +183,8 @@ static inline void __down_read(struct rw_semaphore *sem)
+ 
+ static inline int __down_read_killable(struct rw_semaphore *sem)
+ {
+-	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
++	if (unlikely(atomic_long_fetch_add_acquire(RWSEM_READER_BIAS,
++			&sem->count) & RWSEM_READ_FAILED_MASK)) {
+ 		if (IS_ERR(rwsem_down_read_failed_killable(sem)))
+ 			return -EINTR;
+ 		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
+@@ -195,9 +199,10 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
+-	while ((tmp = atomic_long_read(&sem->count)) >= 0) {
++	while (!((tmp = atomic_long_read(&sem->count)) &
++			RWSEM_READ_FAILED_MASK)) {
+ 		if (tmp = atomic_long_cmpxchg_acquire(&sem->count, tmp,
+-				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
++				   tmp + RWSEM_READER_BIAS)) {
+ 			rwsem_set_reader_owned(sem);
+ 			return 1;
+ 		}
+@@ -210,22 +215,16 @@ static inline int __down_read_trylock(struct rw_semaphore *sem)
+  */
+ static inline void __down_write(struct rw_semaphore *sem)
+ {
+-	long tmp;
+-
+-	tmp = atomic_long_add_return_acquire(RWSEM_ACTIVE_WRITE_BIAS,
+-					     &sem->count);
+-	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
++	if (unlikely(atomic_long_cmpxchg_acquire(&sem->count, 0,
++						 RWSEM_WRITER_LOCKED)))
+ 		rwsem_down_write_failed(sem);
+ 	rwsem_set_owner(sem);
+ }
+ 
+ static inline int __down_write_killable(struct rw_semaphore *sem)
+ {
+-	long tmp;
+-
+-	tmp = atomic_long_add_return_acquire(RWSEM_ACTIVE_WRITE_BIAS,
+-					     &sem->count);
+-	if (unlikely(tmp != RWSEM_ACTIVE_WRITE_BIAS))
++	if (unlikely(atomic_long_cmpxchg_acquire(&sem->count, 0,
++						 RWSEM_WRITER_LOCKED)))
+ 		if (IS_ERR(rwsem_down_write_failed_killable(sem)))
+ 			return -EINTR;
+ 	rwsem_set_owner(sem);
+@@ -234,15 +233,11 @@ static inline int __down_write_killable(struct rw_semaphore *sem)
+ 
+ static inline int __down_write_trylock(struct rw_semaphore *sem)
+ {
+-	long tmp;
+-
+-	tmp = atomic_long_cmpxchg_acquire(&sem->count, RWSEM_UNLOCKED_VALUE,
+-		      RWSEM_ACTIVE_WRITE_BIAS);
+-	if (tmp = RWSEM_UNLOCKED_VALUE) {
++	bool taken = !atomic_long_cmpxchg_acquire(&sem->count, 0,
++						  RWSEM_WRITER_LOCKED);
++	if (taken)
+ 		rwsem_set_owner(sem);
+-		return true;
+-	}
+-	return false;
++	return taken;
  }
  
  /*
-- * Function to handle write request
-- *
-- * When id = .reset_cnts, reset all the counter values.
-- */
--static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
--			   size_t count, loff_t *ppos)
--{
--	int cpu;
--
--	/*
--	 * Get the counter ID stored in file->f_inode->i_private
--	 */
--	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
--		return count;
--
--	for_each_possible_cpu(cpu) {
--		int i;
--		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
--
--		for (i = 0 ; i < lockevent_num; i++)
--			WRITE_ONCE(ptr[i], 0);
--	}
--	return count;
--}
--
--/*
-- * Debugfs data structures
-- */
--static const struct file_operations fops_lockevent = {
--	.read = lockevent_read,
--	.write = lockevent_write,
--	.llseek = default_llseek,
--};
--
--/*
-- * Initialize debugfs for the qspinlock statistical counters
-- */
--static int __init init_qspinlock_stat(void)
--{
--	struct dentry *d_counts = debugfs_create_dir("qlockstat", NULL);
--	int i;
--
--	if (!d_counts)
--		goto out;
--
--	/*
--	 * Create the debugfs files
--	 *
--	 * As reading from and writing to the stat files can be slow, only
--	 * root is allowed to do the read/write to limit impact to system
--	 * performance.
--	 */
--	for (i = 0; i < lockevent_num; i++)
--		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
--					 (void *)(long)i, &fops_lockevent))
--			goto fail_undo;
--
--	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
--				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
--				 &fops_lockevent))
--		goto fail_undo;
--
--	return 0;
--fail_undo:
--	debugfs_remove_recursive(d_counts);
--out:
--	pr_warn("Could not create 'qlockstat' debugfs entries\n");
--	return -ENOMEM;
--}
--fs_initcall(init_qspinlock_stat);
--
--/*
-  * PV hash hop count
-  */
- static inline void lockevent_pv_hop(int hopcnt)
-@@ -260,8 +141,10 @@ static inline void __pv_wait(u8 *ptr, u8 val)
- #define pv_kick(c)	__pv_kick(c)
- #define pv_wait(p, v)	__pv_wait(p, v)
+@@ -255,8 +250,9 @@ static inline void __up_read(struct rw_semaphore *sem)
+ 	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED),
+ 				sem);
+ 	rwsem_clear_reader_owned(sem);
+-	tmp = atomic_long_dec_return_release(&sem->count);
+-	if (unlikely(tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0))
++	tmp = atomic_long_add_return_release(-RWSEM_READER_BIAS, &sem->count);
++	if (unlikely((tmp & (RWSEM_LOCK_MASK|RWSEM_FLAG_WAITERS))
++			= RWSEM_FLAG_WAITERS))
+ 		rwsem_wake(sem);
+ }
  
--#else /* CONFIG_QUEUED_LOCK_STAT */
-+#endif /* CONFIG_PARAVIRT_SPINLOCKS */
-+
-+#else /* CONFIG_LOCK_EVENT_COUNTS */
+@@ -267,8 +263,8 @@ static inline void __up_write(struct rw_semaphore *sem)
+ {
+ 	DEBUG_RWSEMS_WARN_ON(sem->owner != current, sem);
+ 	rwsem_clear_owner(sem);
+-	if (unlikely(atomic_long_sub_return_release(RWSEM_ACTIVE_WRITE_BIAS,
+-						    &sem->count) < 0))
++	if (unlikely(atomic_long_fetch_add_release(-RWSEM_WRITER_LOCKED,
++			&sem->count) & RWSEM_FLAG_WAITERS))
+ 		rwsem_wake(sem);
+ }
  
- static inline void lockevent_pv_hop(int hopcnt)	{ }
- 
--#endif /* CONFIG_QUEUED_LOCK_STAT */
-+#endif /* CONFIG_LOCK_EVENT_COUNTS */
+@@ -287,8 +283,9 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ 	 * write side. As such, rely on RELEASE semantics.
+ 	 */
+ 	DEBUG_RWSEMS_WARN_ON(sem->owner != current, sem);
+-	tmp = atomic_long_add_return_release(-RWSEM_WAITING_BIAS, &sem->count);
++	tmp = atomic_long_fetch_add_release(
++		-RWSEM_WRITER_LOCKED+RWSEM_READER_BIAS, &sem->count);
+ 	rwsem_set_reader_owned(sem);
+-	if (tmp < 0)
++	if (tmp & RWSEM_FLAG_WAITERS)
+ 		rwsem_downgrade_wake(sem);
+ }
 -- 
 1.8.3.1
