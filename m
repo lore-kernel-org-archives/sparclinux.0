@@ -1,68 +1,109 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Fri, 01 Feb 2019 15:43:49 +0000
-Subject: [PATCH net-next v4 05/12] arch: sparc: Override struct __kernel_old_timeval
-Message-Id: <20190201154356.15536-6-deepa.kernel@gmail.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:12 +0000
+Subject: [PATCH-tip 08/22] locking/rwsem: Add debug check for __down_read*()
+Message-Id: <1549566446-27967-9-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190201154356.15536-1-deepa.kernel@gmail.com>
-In-Reply-To: <20190201154356.15536-1-deepa.kernel@gmail.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, sparclinux@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-struct __kernel_old_timeval is supposed to have the same
-layout as struct timeval. But, it was inadvarently missed
-that __kernel_suseconds has a different definition for
-sparc64.
-Provide an asm-specific override that fixes it.
+When rwsem_down_read_failed*() return, the read lock is acquired
+indirectly by others. So debug checks are added in __down_read() and
+__down_read_killable() to make sure the rwsem is really reader-owned.
 
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: sparclinux@vger.kernel.org
+The other debug check calls in kernel/locking/rwsem.c except the
+one in up_read_non_owner() are also moved over to rwsem-xadd.h.
+
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- arch/sparc/include/uapi/asm/posix_types.h | 10 ++++++++++
- include/uapi/linux/time.h                 |  2 ++
- 2 files changed, 12 insertions(+)
+ kernel/locking/rwsem-xadd.h | 12 ++++++++++--
+ kernel/locking/rwsem.c      |  3 ---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
-index fec499d6efb7..f139e0048628 100644
---- a/arch/sparc/include/uapi/asm/posix_types.h
-+++ b/arch/sparc/include/uapi/asm/posix_types.h
-@@ -19,6 +19,16 @@ typedef unsigned short         __kernel_old_gid_t;
- typedef int		       __kernel_suseconds_t;
- #define __kernel_suseconds_t __kernel_suseconds_t
- 
-+typedef long		__kernel_long_t;
-+typedef unsigned long	__kernel_ulong_t;
-+#define __kernel_long_t __kernel_long_t
-+
-+struct __kernel_old_timeval {
-+	__kernel_long_t tv_sec;
-+	__kernel_suseconds_t tv_usec;
-+};
-+#define __kernel_old_timeval __kernel_old_timeval
-+
- #else
- /* sparc 32 bit */
- 
-diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
-index 6b56a2208be7..04d5587f30d3 100644
---- a/include/uapi/linux/time.h
-+++ b/include/uapi/linux/time.h
-@@ -63,10 +63,12 @@ struct __kernel_itimerspec {
-  * here, this is probably because it is not y2038 safe and needs to
-  * be changed to use another interface.
+diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
+index 64e7d62..77151c3 100644
+--- a/kernel/locking/rwsem-xadd.h
++++ b/kernel/locking/rwsem-xadd.h
+@@ -165,10 +165,13 @@ static inline void rwsem_clear_reader_owned(struct rw_semaphore *sem)
   */
-+#ifndef __kernel_old_timeval
- struct __kernel_old_timeval {
- 	__kernel_long_t tv_sec;
- 	__kernel_long_t tv_usec;
- };
-+#endif
+ static inline void __down_read(struct rw_semaphore *sem)
+ {
+-	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0))
++	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
+ 		rwsem_down_read_failed(sem);
+-	else
++		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
++					RWSEM_READER_OWNED));
++	} else {
+ 		rwsem_set_reader_owned(sem);
++	}
+ }
  
- /*
-  * The IDs of the various system clocks (for POSIX.1b interval timers):
+ static inline int __down_read_killable(struct rw_semaphore *sem)
+@@ -176,6 +179,8 @@ static inline int __down_read_killable(struct rw_semaphore *sem)
+ 	if (unlikely(atomic_long_inc_return_acquire(&sem->count) <= 0)) {
+ 		if (IS_ERR(rwsem_down_read_failed_killable(sem)))
+ 			return -EINTR;
++		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
++					RWSEM_READER_OWNED));
+ 	} else {
+ 		rwsem_set_reader_owned(sem);
+ 	}
+@@ -243,6 +248,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+ {
+ 	long tmp;
+ 
++	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED));
+ 	rwsem_clear_reader_owned(sem);
+ 	tmp = atomic_long_dec_return_release(&sem->count);
+ 	if (unlikely(tmp < -1 && (tmp & RWSEM_ACTIVE_MASK) = 0))
+@@ -254,6 +260,7 @@ static inline void __up_read(struct rw_semaphore *sem)
+  */
+ static inline void __up_write(struct rw_semaphore *sem)
+ {
++	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 	rwsem_clear_owner(sem);
+ 	if (unlikely(atomic_long_sub_return_release(RWSEM_ACTIVE_WRITE_BIAS,
+ 						    &sem->count) < 0))
+@@ -274,6 +281,7 @@ static inline void __downgrade_write(struct rw_semaphore *sem)
+ 	 * read-locked region is ok to be re-ordered into the
+ 	 * write side. As such, rely on RELEASE semantics.
+ 	 */
++	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 	tmp = atomic_long_add_return_release(-RWSEM_WAITING_BIAS, &sem->count);
+ 	rwsem_set_reader_owned(sem);
+ 	if (tmp < 0)
+diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
+index b3b4582..598fc7c 100644
+--- a/kernel/locking/rwsem.c
++++ b/kernel/locking/rwsem.c
+@@ -114,7 +114,6 @@ int down_write_trylock(struct rw_semaphore *sem)
+ void up_read(struct rw_semaphore *sem)
+ {
+ 	rwsem_release(&sem->dep_map, 1, _RET_IP_);
+-	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED));
+ 
+ 	__up_read(sem);
+ }
+@@ -127,7 +126,6 @@ void up_read(struct rw_semaphore *sem)
+ void up_write(struct rw_semaphore *sem)
+ {
+ 	rwsem_release(&sem->dep_map, 1, _RET_IP_);
+-	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 
+ 	__up_write(sem);
+ }
+@@ -140,7 +138,6 @@ void up_write(struct rw_semaphore *sem)
+ void downgrade_write(struct rw_semaphore *sem)
+ {
+ 	lock_downgrade(&sem->dep_map, _RET_IP_);
+-	DEBUG_RWSEMS_WARN_ON(sem->owner != current);
+ 
+ 	__downgrade_write(sem);
+ }
 -- 
-2.17.1
+1.8.3.1
