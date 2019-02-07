@@ -1,740 +1,583 @@
-From: ira.weiny@intel.com
-Date: Wed, 13 Feb 2019 23:04:51 +0000
-Subject: [PATCH V2 3/7] mm/gup: Change GUP fast to use flags rather than a write 'bool'
-Message-Id: <20190213230455.5605-4-ira.weiny@intel.com>
+From: Waiman Long <longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:05 +0000
+Subject: [PATCH-tip 01/22] locking/qspinlock_stat: Introduce a generic lockevent counting APIs
+Message-Id: <1549566446-27967-2-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190211201643.7599-1-ira.weiny@intel.com>
- <20190213230455.5605-1-ira.weiny@intel.com>
-In-Reply-To: <20190213230455.5605-1-ira.weiny@intel.com>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, kvm-ppc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, kvm@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-rdma@vger.kernel.org, linux-media@vger.kernel.org, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-fbdev@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-mm@kvack.org, ceph-devel@vger.kernel.org, rds-devel@oss.oracle.com
-Cc: Martin Brandenburg <martin@omnibond.com>, Rich Felker <dalias@libc.org>, David Hildenbrand <david@redhat.com>, David Airlie <airlied@linux.ie>, Jason Wang <jasowang@redhat.com>, =?UTF-8?q?Kai=20M=C3=A4kisara?= <Kai.Makisara@kolumbus.fi>, Michal Hocko <mhocko@suse.com>, Ira Weiny <ira.weiny@intel.com>, Ben Chan <benchan@chromium.org>, Rob Springer <rspringer@google.com>, Todd Poynor <toddpoynor@google.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, "Michael S. Tsirkin" <mst@redhat.com>, Jason Gunthorpe <jgg@ziepe.ca>, Ingo Molnar <mingo@redhat.com>, Matt Porter <mporter@kernel.crashing.org>, Wu Hao <hao.wu@intel.com>, Alan Tull <atull@kernel.org>, John Hubbard <jhubbard@nvidia.com>, "James E.J. Bottomley" <jejb@linux.ibm.com>, Alex Williamson <alex.williamson@redhat.com>, Stefano Stabellini <sstabellini@kernel.org>, Borislav Petkov <bp@alien8.de>
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+The percpu event counts used by qspinlock code can be useful for
+other locking code as well. So a new set of lockevent_* counting APIs
+is introduced with the lock event names extracted out into the new
+lock_events_list.h header file for easier addition in the future.
 
-To facilitate additional options to get_user_pages_fast() change the
-singular write parameter to be gup_flags.
+The existing qstat_inc() calls are replaced by either lockevent_inc() or
+lockevent_cond_inc() calls.
 
-This patch does not change any functionality.  New functionality will
-follow in subsequent patches.
+The qstat_hop() call is renamed to lockevent_pv_hop(). The "reset_counters"
+debugfs file is also renamed to ".reset_counts".
 
-Some of the get_user_pages_fast() call sites were unchanged because they
-already passed FOLL_WRITE or 0 for the write parameter.
-
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- arch/mips/mm/gup.c                         | 11 ++++++-----
- arch/powerpc/kvm/book3s_64_mmu_hv.c        |  4 ++--
- arch/powerpc/kvm/e500_mmu.c                |  2 +-
- arch/powerpc/mm/mmu_context_iommu.c        |  4 ++--
- arch/s390/kvm/interrupt.c                  |  2 +-
- arch/s390/mm/gup.c                         | 12 ++++++------
- arch/sh/mm/gup.c                           | 11 ++++++-----
- arch/sparc/mm/gup.c                        |  9 +++++----
- arch/x86/kvm/paging_tmpl.h                 |  2 +-
- arch/x86/kvm/svm.c                         |  2 +-
- drivers/fpga/dfl-afu-dma-region.c          |  2 +-
- drivers/gpu/drm/via/via_dmablit.c          |  3 ++-
- drivers/infiniband/hw/hfi1/user_pages.c    |  3 ++-
- drivers/misc/genwqe/card_utils.c           |  2 +-
- drivers/misc/vmw_vmci/vmci_host.c          |  2 +-
- drivers/misc/vmw_vmci/vmci_queue_pair.c    |  6 ++++--
- drivers/platform/goldfish/goldfish_pipe.c  |  3 ++-
- drivers/rapidio/devices/rio_mport_cdev.c   |  4 +++-
- drivers/sbus/char/oradax.c                 |  2 +-
- drivers/scsi/st.c                          |  3 ++-
- drivers/staging/gasket/gasket_page_table.c |  4 ++--
- drivers/tee/tee_shm.c                      |  2 +-
- drivers/vfio/vfio_iommu_spapr_tce.c        |  3 ++-
- drivers/vhost/vhost.c                      |  2 +-
- drivers/video/fbdev/pvr2fb.c               |  2 +-
- drivers/virt/fsl_hypervisor.c              |  2 +-
- drivers/xen/gntdev.c                       |  2 +-
- fs/orangefs/orangefs-bufmap.c              |  2 +-
- include/linux/mm.h                         |  4 ++--
- kernel/futex.c                             |  2 +-
- lib/iov_iter.c                             |  7 +++++--
- mm/gup.c                                   | 10 +++++-----
- mm/util.c                                  |  8 ++++----
- net/ceph/pagevec.c                         |  2 +-
- net/rds/info.c                             |  2 +-
- net/rds/rdma.c                             |  3 ++-
- 36 files changed, 81 insertions(+), 65 deletions(-)
+ kernel/locking/lock_events.h        |  55 ++++++++++++
+ kernel/locking/lock_events_list.h   |  50 +++++++++++
+ kernel/locking/qspinlock.c          |   8 +-
+ kernel/locking/qspinlock_paravirt.h |  19 +++--
+ kernel/locking/qspinlock_stat.h     | 163 ++++++++++++++----------------------
+ 5 files changed, 181 insertions(+), 114 deletions(-)
+ create mode 100644 kernel/locking/lock_events.h
+ create mode 100644 kernel/locking/lock_events_list.h
 
-diff --git a/arch/mips/mm/gup.c b/arch/mips/mm/gup.c
-index 0d14e0d8eacf..4c2b4483683c 100644
---- a/arch/mips/mm/gup.c
-+++ b/arch/mips/mm/gup.c
-@@ -235,7 +235,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-- * @write:	whether pages will be written to
-+ * @gup_flags:	flags modifying pin behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-@@ -247,8 +247,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-  * were pinned, returns -errno.
-  */
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr, len, end;
-@@ -273,7 +273,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
- 			goto slow;
--		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
-+		if (!gup_pud_range(pgd, addr, next, gup_flags & FOLL_WRITE,
-+				   pages, &nr))
- 			goto slow;
- 	} while (pgdp++, addr = next, addr != end);
- 	local_irq_enable();
-@@ -289,7 +290,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	pages += nr;
- 
- 	ret = get_user_pages_unlocked(start, (end - start) >> PAGE_SHIFT,
--				      pages, write ? FOLL_WRITE : 0);
-+				      pages, gup_flags);
- 
- 	/* Have to be a bit careful with return values */
- 	if (nr > 0) {
-diff --git a/arch/powerpc/kvm/book3s_64_mmu_hv.c b/arch/powerpc/kvm/book3s_64_mmu_hv.c
-index bd2dcfbf00cd..8fcb0a921e46 100644
---- a/arch/powerpc/kvm/book3s_64_mmu_hv.c
-+++ b/arch/powerpc/kvm/book3s_64_mmu_hv.c
-@@ -582,7 +582,7 @@ int kvmppc_book3s_hv_page_fault(struct kvm_run *run, struct kvm_vcpu *vcpu,
- 	/* If writing != 0, then the HPTE must allow writing, if we get here */
- 	write_ok = writing;
- 	hva = gfn_to_hva_memslot(memslot, gfn);
--	npages = get_user_pages_fast(hva, 1, writing, pages);
-+	npages = get_user_pages_fast(hva, 1, writing ? FOLL_WRITE : 0, pages);
- 	if (npages < 1) {
- 		/* Check if it's an I/O mapping */
- 		down_read(&current->mm->mmap_sem);
-@@ -1175,7 +1175,7 @@ void *kvmppc_pin_guest_page(struct kvm *kvm, unsigned long gpa,
- 	if (!memslot || (memslot->flags & KVM_MEMSLOT_INVALID))
- 		goto err;
- 	hva = gfn_to_hva_memslot(memslot, gfn);
--	npages = get_user_pages_fast(hva, 1, 1, pages);
-+	npages = get_user_pages_fast(hva, 1, FOLL_WRITE, pages);
- 	if (npages < 1)
- 		goto err;
- 	page = pages[0];
-diff --git a/arch/powerpc/kvm/e500_mmu.c b/arch/powerpc/kvm/e500_mmu.c
-index 24296f4cadc6..e0af53fd78c5 100644
---- a/arch/powerpc/kvm/e500_mmu.c
-+++ b/arch/powerpc/kvm/e500_mmu.c
-@@ -783,7 +783,7 @@ int kvm_vcpu_ioctl_config_tlb(struct kvm_vcpu *vcpu,
- 	if (!pages)
- 		return -ENOMEM;
- 
--	ret = get_user_pages_fast(cfg->array, num_pages, 1, pages);
-+	ret = get_user_pages_fast(cfg->array, num_pages, FOLL_WRITE, pages);
- 	if (ret < 0)
- 		goto free_pages;
- 
-diff --git a/arch/powerpc/mm/mmu_context_iommu.c b/arch/powerpc/mm/mmu_context_iommu.c
-index a712a650a8b6..acb0990c8364 100644
---- a/arch/powerpc/mm/mmu_context_iommu.c
-+++ b/arch/powerpc/mm/mmu_context_iommu.c
-@@ -190,7 +190,7 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, unsigned long ua,
- 	for (i = 0; i < entries; ++i) {
- 		cur_ua = ua + (i << PAGE_SHIFT);
- 		if (1 != get_user_pages_fast(cur_ua,
--					1/* pages */, 1/* iswrite */, &page)) {
-+					1/* pages */, FOLL_WRITE, &page)) {
- 			ret = -EFAULT;
- 			for (j = 0; j < i; ++j)
- 				put_page(pfn_to_page(mem->hpas[j] >>
-@@ -209,7 +209,7 @@ static long mm_iommu_do_alloc(struct mm_struct *mm, unsigned long ua,
- 			if (mm_iommu_move_page_from_cma(page))
- 				goto populate;
- 			if (1 != get_user_pages_fast(cur_ua,
--						1/* pages */, 1/* iswrite */,
-+						1/* pages */, FOLL_WRITE,
- 						&page)) {
- 				ret = -EFAULT;
- 				for (j = 0; j < i; ++j)
-diff --git a/arch/s390/kvm/interrupt.c b/arch/s390/kvm/interrupt.c
-index fcb55b02990e..69d9366b966c 100644
---- a/arch/s390/kvm/interrupt.c
-+++ b/arch/s390/kvm/interrupt.c
-@@ -2278,7 +2278,7 @@ static int kvm_s390_adapter_map(struct kvm *kvm, unsigned int id, __u64 addr)
- 		ret = -EFAULT;
- 		goto out;
- 	}
--	ret = get_user_pages_fast(map->addr, 1, 1, &map->page);
-+	ret = get_user_pages_fast(map->addr, 1, FOLL_WRITE, &map->page);
- 	if (ret < 0)
- 		goto out;
- 	BUG_ON(ret != 1);
-diff --git a/arch/s390/mm/gup.c b/arch/s390/mm/gup.c
-index 2809d11c7a28..0a6faf3d9960 100644
---- a/arch/s390/mm/gup.c
-+++ b/arch/s390/mm/gup.c
-@@ -265,7 +265,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-- * @write:	whether pages will be written to
-+ * @gup_flags:	flags modifying pin behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-@@ -277,22 +277,22 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-  * were pinned, returns -errno.
-  */
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages)
- {
- 	int nr, ret;
- 
- 	might_sleep();
- 	start &= PAGE_MASK;
--	nr = __get_user_pages_fast(start, nr_pages, write, pages);
-+	nr = __get_user_pages_fast(start, nr_pages, gup_flags & FOLL_WRITE,
-+				   pages);
- 	if (nr = nr_pages)
- 		return nr;
- 
- 	/* Try to get the remaining pages with get_user_pages */
- 	start += nr << PAGE_SHIFT;
- 	pages += nr;
--	ret = get_user_pages_unlocked(start, nr_pages - nr, pages,
--				      write ? FOLL_WRITE : 0);
-+	ret = get_user_pages_unlocked(start, nr_pages - nr, pages, gup_flags);
- 	/* Have to be a bit careful with return values */
- 	if (nr > 0)
- 		ret = (ret < 0) ? nr : ret + nr;
-diff --git a/arch/sh/mm/gup.c b/arch/sh/mm/gup.c
-index 3e27f6d1f1ec..277c882f7489 100644
---- a/arch/sh/mm/gup.c
-+++ b/arch/sh/mm/gup.c
-@@ -204,7 +204,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-- * @write:	whether pages will be written to
-+ * @gup_flags:	flags modifying pin behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-@@ -216,8 +216,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-  * were pinned, returns -errno.
-  */
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr, len, end;
-@@ -241,7 +241,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
- 			goto slow;
--		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
-+		if (!gup_pud_range(pgd, addr, next, gup_flags & FOLL_WRITE,
-+				   pages, &nr))
- 			goto slow;
- 	} while (pgdp++, addr = next, addr != end);
- 	local_irq_enable();
-@@ -261,7 +262,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 		ret = get_user_pages_unlocked(start,
- 			(end - start) >> PAGE_SHIFT, pages,
--			write ? FOLL_WRITE : 0);
-+			gup_flags);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
-index aee6dba83d0e..1e770a517d4a 100644
---- a/arch/sparc/mm/gup.c
-+++ b/arch/sparc/mm/gup.c
-@@ -245,8 +245,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 	return nr;
- }
- 
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages)
- {
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr, len, end;
-@@ -303,7 +303,8 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
- 			goto slow;
--		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
-+		if (!gup_pud_range(pgd, addr, next, gup_flags & FOLL_WRITE,
-+				   pages, &nr))
- 			goto slow;
- 	} while (pgdp++, addr = next, addr != end);
- 
-@@ -324,7 +325,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 
- 		ret = get_user_pages_unlocked(start,
- 			(end - start) >> PAGE_SHIFT, pages,
--			write ? FOLL_WRITE : 0);
-+			gup_flags);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff --git a/arch/x86/kvm/paging_tmpl.h b/arch/x86/kvm/paging_tmpl.h
-index 6bdca39829bc..08715034e315 100644
---- a/arch/x86/kvm/paging_tmpl.h
-+++ b/arch/x86/kvm/paging_tmpl.h
-@@ -140,7 +140,7 @@ static int FNAME(cmpxchg_gpte)(struct kvm_vcpu *vcpu, struct kvm_mmu *mmu,
- 	pt_element_t *table;
- 	struct page *page;
- 
--	npages = get_user_pages_fast((unsigned long)ptep_user, 1, 1, &page);
-+	npages = get_user_pages_fast((unsigned long)ptep_user, 1, FOLL_WRITE, &page);
- 	/* Check if the user is doing something meaningless. */
- 	if (unlikely(npages != 1))
- 		return -EFAULT;
-diff --git a/arch/x86/kvm/svm.c b/arch/x86/kvm/svm.c
-index f13a3a24d360..173596a020cb 100644
---- a/arch/x86/kvm/svm.c
-+++ b/arch/x86/kvm/svm.c
-@@ -1803,7 +1803,7 @@ static struct page **sev_pin_memory(struct kvm *kvm, unsigned long uaddr,
- 		return NULL;
- 
- 	/* Pin the user virtual address. */
--	npinned = get_user_pages_fast(uaddr, npages, write ? FOLL_WRITE : 0, pages);
-+	npinned = get_user_pages_fast(uaddr, npages, FOLL_WRITE, pages);
- 	if (npinned != npages) {
- 		pr_err("SEV: Failure locking %lu pages.\n", npages);
- 		goto err;
-diff --git a/drivers/fpga/dfl-afu-dma-region.c b/drivers/fpga/dfl-afu-dma-region.c
-index e18a786fc943..c438722bf4e1 100644
---- a/drivers/fpga/dfl-afu-dma-region.c
-+++ b/drivers/fpga/dfl-afu-dma-region.c
-@@ -102,7 +102,7 @@ static int afu_dma_pin_pages(struct dfl_feature_platform_data *pdata,
- 		goto unlock_vm;
- 	}
- 
--	pinned = get_user_pages_fast(region->user_addr, npages, 1,
-+	pinned = get_user_pages_fast(region->user_addr, npages, FOLL_WRITE,
- 				     region->pages);
- 	if (pinned < 0) {
- 		ret = pinned;
-diff --git a/drivers/gpu/drm/via/via_dmablit.c b/drivers/gpu/drm/via/via_dmablit.c
-index 345bda4494e1..0c8b09602910 100644
---- a/drivers/gpu/drm/via/via_dmablit.c
-+++ b/drivers/gpu/drm/via/via_dmablit.c
-@@ -239,7 +239,8 @@ via_lock_all_dma_pages(drm_via_sg_info_t *vsg,  drm_via_dmablit_t *xfer)
- 	if (NULL = vsg->pages)
- 		return -ENOMEM;
- 	ret = get_user_pages_fast((unsigned long)xfer->mem_addr,
--			vsg->num_pages, vsg->direction = DMA_FROM_DEVICE,
-+			vsg->num_pages,
-+			vsg->direction = DMA_FROM_DEVICE ? FOLL_WRITE : 0,
- 			vsg->pages);
- 	if (ret != vsg->num_pages) {
- 		if (ret < 0)
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index 24b592c6522e..78ccacaf97d0 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -105,7 +105,8 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- {
- 	int ret;
- 
--	ret = get_user_pages_fast(vaddr, npages, writable, pages);
-+	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
-+				  pages);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/drivers/misc/genwqe/card_utils.c b/drivers/misc/genwqe/card_utils.c
-index 25265fd0fd6e..89cff9d1012b 100644
---- a/drivers/misc/genwqe/card_utils.c
-+++ b/drivers/misc/genwqe/card_utils.c
-@@ -603,7 +603,7 @@ int genwqe_user_vmap(struct genwqe_dev *cd, struct dma_mapping *m, void *uaddr,
- 	/* pin user pages in memory */
- 	rc = get_user_pages_fast(data & PAGE_MASK, /* page aligned addr */
- 				 m->nr_pages,
--				 m->write,		/* readable/writable */
-+				 m->write ? FOLL_WRITE : 0,	/* readable/writable */
- 				 m->page_list);	/* ptrs to pages */
- 	if (rc < 0)
- 		goto fail_get_user_pages;
-diff --git a/drivers/misc/vmw_vmci/vmci_host.c b/drivers/misc/vmw_vmci/vmci_host.c
-index 997f92543dd4..422d08da3244 100644
---- a/drivers/misc/vmw_vmci/vmci_host.c
-+++ b/drivers/misc/vmw_vmci/vmci_host.c
-@@ -242,7 +242,7 @@ static int vmci_host_setup_notify(struct vmci_ctx *context,
- 	/*
- 	 * Lock physical page backing a given user VA.
+diff --git a/kernel/locking/lock_events.h b/kernel/locking/lock_events.h
+new file mode 100644
+index 0000000..4009e07
+--- /dev/null
++++ b/kernel/locking/lock_events.h
+@@ -0,0 +1,55 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Authors: Waiman Long <longman@redhat.com>
++ */
++
++enum lock_events {
++
++#include "lock_events_list.h"
++
++	lockevent_num,	/* Total number of lock event counts */
++	LOCKEVENT_reset_cnts = lockevent_num,
++};
++
++#ifdef CONFIG_QUEUED_LOCK_STAT
++/*
++ * Per-cpu counters
++ */
++DECLARE_PER_CPU(unsigned long, lockevents[lockevent_num]);
++
++/*
++ * Increment the PV qspinlock statistical counters
++ */
++static inline void __lockevent_inc(enum lock_events event, bool cond)
++{
++	if (cond)
++		__this_cpu_inc(lockevents[event]);
++}
++
++#define lockevent_inc(ev)	  __lockevent_inc(LOCKEVENT_ ##ev, true)
++#define lockevent_cond_inc(ev, c) __lockevent_inc(LOCKEVENT_ ##ev, c)
++
++static inline void __lockevent_add(enum lock_events event, int inc)
++{
++	__this_cpu_add(lockevents[event], inc);
++}
++
++#define lockevent_add(ev, c)	__lockevent_add(LOCKEVENT_ ##ev, c)
++
++#else  /* CONFIG_QUEUED_LOCK_STAT */
++
++#define lockevent_inc(ev)
++#define lockevent_add(ev, c)
++#define lockevent_cond_inc(ev, c)
++
++#endif /* CONFIG_QUEUED_LOCK_STAT */
+diff --git a/kernel/locking/lock_events_list.h b/kernel/locking/lock_events_list.h
+new file mode 100644
+index 0000000..8b4d2e1
+--- /dev/null
++++ b/kernel/locking/lock_events_list.h
+@@ -0,0 +1,50 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Authors: Waiman Long <longman@redhat.com>
++ */
++
++#ifndef LOCK_EVENT
++#define LOCK_EVENT(name)	LOCKEVENT_ ## name,
++#endif
++
++#ifdef CONFIG_QUEUED_SPINLOCKS
++#ifdef CONFIG_PARAVIRT_SPINLOCKS
++/*
++ * Locking events for PV qspinlock.
++ */
++LOCK_EVENT(pv_hash_hops)	/* Average # of hops per hashing operation */
++LOCK_EVENT(pv_kick_unlock)	/* # of vCPU kicks issued at unlock time   */
++LOCK_EVENT(pv_kick_wake)	/* # of vCPU kicks for pv_latency_wake	   */
++LOCK_EVENT(pv_latency_kick)	/* Average latency (ns) of vCPU kick	   */
++LOCK_EVENT(pv_latency_wake)	/* Average latency (ns) of kick-to-wakeup  */
++LOCK_EVENT(pv_lock_stealing)	/* # of lock stealing operations	   */
++LOCK_EVENT(pv_spurious_wakeup)	/* # of spurious wakeups in non-head vCPUs */
++LOCK_EVENT(pv_wait_again)	/* # of wait's after queue head vCPU kick  */
++LOCK_EVENT(pv_wait_early)	/* # of early vCPU wait's		   */
++LOCK_EVENT(pv_wait_head)	/* # of vCPU wait's at the queue head	   */
++LOCK_EVENT(pv_wait_node)	/* # of vCPU wait's at non-head queue node */
++#endif /* CONFIG_PARAVIRT_SPINLOCKS */
++
++/*
++ * Locking events for qspinlock
++ *
++ * Subtracting lock_use_node[234] from lock_slowpath will give you
++ * lock_use_node1.
++ */
++LOCK_EVENT(lock_pending)	/* # of locking ops via pending code	     */
++LOCK_EVENT(lock_slowpath)	/* # of locking ops via MCS lock queue	     */
++LOCK_EVENT(lock_use_node2)	/* # of locking ops that use 2nd percpu node */
++LOCK_EVENT(lock_use_node3)	/* # of locking ops that use 3rd percpu node */
++LOCK_EVENT(lock_use_node4)	/* # of locking ops that use 4th percpu node */
++LOCK_EVENT(lock_no_node)	/* # of locking ops w/o using percpu node    */
++#endif /* CONFIG_QUEUED_SPINLOCKS */
+diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
+index 21ee51b..fe0dc3c 100644
+--- a/kernel/locking/qspinlock.c
++++ b/kernel/locking/qspinlock.c
+@@ -398,7 +398,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
+ 	 * 0,1,0 -> 0,0,1
  	 */
--	retval = get_user_pages_fast(uva, 1, 1, &context->notify_page);
-+	retval = get_user_pages_fast(uva, 1, FOLL_WRITE, &context->notify_page);
- 	if (retval != 1) {
- 		context->notify_page = NULL;
- 		return VMCI_ERROR_GENERIC;
-diff --git a/drivers/misc/vmw_vmci/vmci_queue_pair.c b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-index 264f4ed8eef2..c5396ee32e51 100644
---- a/drivers/misc/vmw_vmci/vmci_queue_pair.c
-+++ b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-@@ -666,7 +666,8 @@ static int qp_host_get_user_memory(u64 produce_uva,
- 	int err = VMCI_SUCCESS;
+ 	clear_pending_set_locked(lock);
+-	qstat_inc(qstat_lock_pending, true);
++	lockevent_inc(lock_pending);
+ 	return;
  
- 	retval = get_user_pages_fast((uintptr_t) produce_uva,
--				     produce_q->kernel_if->num_pages, 1,
-+				     produce_q->kernel_if->num_pages,
-+				     FOLL_WRITE,
- 				     produce_q->kernel_if->u.h.header_page);
- 	if (retval < (int)produce_q->kernel_if->num_pages) {
- 		pr_debug("get_user_pages_fast(produce) failed (retval=%d)",
-@@ -678,7 +679,8 @@ static int qp_host_get_user_memory(u64 produce_uva,
- 	}
- 
- 	retval = get_user_pages_fast((uintptr_t) consume_uva,
--				     consume_q->kernel_if->num_pages, 1,
-+				     consume_q->kernel_if->num_pages,
-+				     FOLL_WRITE,
- 				     consume_q->kernel_if->u.h.header_page);
- 	if (retval < (int)consume_q->kernel_if->num_pages) {
- 		pr_debug("get_user_pages_fast(consume) failed (retval=%d)",
-diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
-index 321bc673c417..cef0133aa47a 100644
---- a/drivers/platform/goldfish/goldfish_pipe.c
-+++ b/drivers/platform/goldfish/goldfish_pipe.c
-@@ -274,7 +274,8 @@ static int pin_user_pages(unsigned long first_page,
- 		*iter_last_page_size = last_page_size;
- 	}
- 
--	ret = get_user_pages_fast(first_page, requested_pages, !is_write,
-+	ret = get_user_pages_fast(first_page, requested_pages,
-+				  !is_write ? FOLL_WRITE : 0,
- 				  pages);
- 	if (ret <= 0)
- 		return -EFAULT;
-diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-index cbe467ff1aba..f681b3e9e970 100644
---- a/drivers/rapidio/devices/rio_mport_cdev.c
-+++ b/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -868,7 +868,9 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 
- 		pinned = get_user_pages_fast(
- 				(unsigned long)xfer->loc_addr & PAGE_MASK,
--				nr_pages, dir = DMA_FROM_DEVICE, page_list);
-+				nr_pages,
-+				dir = DMA_FROM_DEVICE ? FOLL_WRITE : 0,
-+				page_list);
- 
- 		if (pinned != nr_pages) {
- 			if (pinned < 0) {
-diff --git a/drivers/sbus/char/oradax.c b/drivers/sbus/char/oradax.c
-index 6516bc3cb58b..790aa148670d 100644
---- a/drivers/sbus/char/oradax.c
-+++ b/drivers/sbus/char/oradax.c
-@@ -437,7 +437,7 @@ static int dax_lock_page(void *va, struct page **p)
- 
- 	dax_dbg("uva %p", va);
- 
--	ret = get_user_pages_fast((unsigned long)va, 1, 1, p);
-+	ret = get_user_pages_fast((unsigned long)va, 1, FOLL_WRITE, p);
- 	if (ret = 1) {
- 		dax_dbg("locked page %p, for VA %p", *p, va);
- 		return 0;
-diff --git a/drivers/scsi/st.c b/drivers/scsi/st.c
-index 7ff22d3f03e3..871b25914c07 100644
---- a/drivers/scsi/st.c
-+++ b/drivers/scsi/st.c
-@@ -4918,7 +4918,8 @@ static int sgl_map_user_pages(struct st_buffer *STbp,
- 
-         /* Try to fault in all of the necessary pages */
-         /* rw=READ means read from drive, write into memory area */
--	res = get_user_pages_fast(uaddr, nr_pages, rw = READ, pages);
-+	res = get_user_pages_fast(uaddr, nr_pages, rw = READ ? FOLL_WRITE : 0,
-+				  pages);
- 
- 	/* Errors and no page mapped should return here */
- 	if (res < nr_pages)
-diff --git a/drivers/staging/gasket/gasket_page_table.c b/drivers/staging/gasket/gasket_page_table.c
-index 26755d9ca41d..f67fdf1d3817 100644
---- a/drivers/staging/gasket/gasket_page_table.c
-+++ b/drivers/staging/gasket/gasket_page_table.c
-@@ -486,8 +486,8 @@ static int gasket_perform_mapping(struct gasket_page_table *pg_tbl,
- 			ptes[i].dma_addr = pg_tbl->coherent_pages[0].paddr +
- 					   off + i * PAGE_SIZE;
- 		} else {
--			ret = get_user_pages_fast(page_addr - offset, 1, 1,
--						  &page);
-+			ret = get_user_pages_fast(page_addr - offset, 1,
-+						  FOLL_WRITE, &page);
- 
- 			if (ret <= 0) {
- 				dev_err(pg_tbl->device,
-diff --git a/drivers/tee/tee_shm.c b/drivers/tee/tee_shm.c
-index 0b9ab1d0dd45..49fd7312e2aa 100644
---- a/drivers/tee/tee_shm.c
-+++ b/drivers/tee/tee_shm.c
-@@ -273,7 +273,7 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
- 		goto err;
- 	}
- 
--	rc = get_user_pages_fast(start, num_pages, 1, shm->pages);
-+	rc = get_user_pages_fast(start, num_pages, FOLL_WRITE, shm->pages);
- 	if (rc > 0)
- 		shm->num_pages = rc;
- 	if (rc != num_pages) {
-diff --git a/drivers/vfio/vfio_iommu_spapr_tce.c b/drivers/vfio/vfio_iommu_spapr_tce.c
-index c424913324e3..a4b10bb4086b 100644
---- a/drivers/vfio/vfio_iommu_spapr_tce.c
-+++ b/drivers/vfio/vfio_iommu_spapr_tce.c
-@@ -532,7 +532,8 @@ static int tce_iommu_use_page(unsigned long tce, unsigned long *hpa)
- 	enum dma_data_direction direction = iommu_tce_direction(tce);
- 
- 	if (get_user_pages_fast(tce & PAGE_MASK, 1,
--			direction != DMA_TO_DEVICE, &page) != 1)
-+			direction != DMA_TO_DEVICE ? FOLL_WRITE : 0,
-+			&page) != 1)
- 		return -EFAULT;
- 
- 	*hpa = __pa((unsigned long) page_address(page));
-diff --git a/drivers/vhost/vhost.c b/drivers/vhost/vhost.c
-index 24a129fcdd61..72685b1659ff 100644
---- a/drivers/vhost/vhost.c
-+++ b/drivers/vhost/vhost.c
-@@ -1700,7 +1700,7 @@ static int set_bit_to_user(int nr, void __user *addr)
- 	int bit = nr + (log % PAGE_SIZE) * 8;
- 	int r;
- 
--	r = get_user_pages_fast(log, 1, 1, &page);
-+	r = get_user_pages_fast(log, 1, FOLL_WRITE, &page);
- 	if (r < 0)
- 		return r;
- 	BUG_ON(r != 1);
-diff --git a/drivers/video/fbdev/pvr2fb.c b/drivers/video/fbdev/pvr2fb.c
-index 8a53d1de611d..41390c8e0f67 100644
---- a/drivers/video/fbdev/pvr2fb.c
-+++ b/drivers/video/fbdev/pvr2fb.c
-@@ -686,7 +686,7 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
- 	if (!pages)
- 		return -ENOMEM;
- 
--	ret = get_user_pages_fast((unsigned long)buf, nr_pages, true, pages);
-+	ret = get_user_pages_fast((unsigned long)buf, nr_pages, FOLL_WRITE, pages);
- 	if (ret < nr_pages) {
- 		nr_pages = ret;
- 		ret = -EINVAL;
-diff --git a/drivers/virt/fsl_hypervisor.c b/drivers/virt/fsl_hypervisor.c
-index 8ba726e600e9..6446bcab4185 100644
---- a/drivers/virt/fsl_hypervisor.c
-+++ b/drivers/virt/fsl_hypervisor.c
-@@ -244,7 +244,7 @@ static long ioctl_memcpy(struct fsl_hv_ioctl_memcpy __user *p)
- 
- 	/* Get the physical addresses of the source buffer */
- 	num_pinned = get_user_pages_fast(param.local_vaddr - lb_offset,
--		num_pages, param.source != -1, pages);
-+		num_pages, param.source != -1 ? FOLL_WRITE : 0, pages);
- 
- 	if (num_pinned != num_pages) {
- 		/* get_user_pages() failed */
-diff --git a/drivers/xen/gntdev.c b/drivers/xen/gntdev.c
-index 5efc5eee9544..7b47f1e6aab4 100644
---- a/drivers/xen/gntdev.c
-+++ b/drivers/xen/gntdev.c
-@@ -852,7 +852,7 @@ static int gntdev_get_page(struct gntdev_copy_batch *batch, void __user *virt,
- 	unsigned long xen_pfn;
- 	int ret;
- 
--	ret = get_user_pages_fast(addr, 1, writeable, &page);
-+	ret = get_user_pages_fast(addr, 1, writeable ? FOLL_WRITE : 0, &page);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/fs/orangefs/orangefs-bufmap.c b/fs/orangefs/orangefs-bufmap.c
-index 443bcd8c3c19..5a7c4fda682f 100644
---- a/fs/orangefs/orangefs-bufmap.c
-+++ b/fs/orangefs/orangefs-bufmap.c
-@@ -269,7 +269,7 @@ orangefs_bufmap_map(struct orangefs_bufmap *bufmap,
- 
- 	/* map the pages */
- 	ret = get_user_pages_fast((unsigned long)user_desc->ptr,
--			     bufmap->page_count, 1, bufmap->page_array);
-+			     bufmap->page_count, FOLL_WRITE, bufmap->page_array);
- 
- 	if (ret < 0)
- 		return ret;
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 05a105d9d4c3..8e1f3cd7482a 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1537,8 +1537,8 @@ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    struct page **pages, unsigned int gup_flags);
- 
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages);
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages);
- 
- /* Container for pinned pfns / pages */
- struct frame_vector {
-diff --git a/kernel/futex.c b/kernel/futex.c
-index fdd312da0992..e10209946f8b 100644
---- a/kernel/futex.c
-+++ b/kernel/futex.c
-@@ -546,7 +546,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 	if (unlikely(should_fail_futex(fshared)))
- 		return -EFAULT;
- 
--	err = get_user_pages_fast(address, 1, 1, &page);
-+	err = get_user_pages_fast(address, 1, FOLL_WRITE, &page);
  	/*
- 	 * If write access is not required (eg. FUTEX_WAIT), try
- 	 * and get read-only access.
-diff --git a/lib/iov_iter.c b/lib/iov_iter.c
-index be4bd627caf0..6dbae0692719 100644
---- a/lib/iov_iter.c
-+++ b/lib/iov_iter.c
-@@ -1280,7 +1280,9 @@ ssize_t iov_iter_get_pages(struct iov_iter *i,
- 			len = maxpages * PAGE_SIZE;
- 		addr &= ~(PAGE_SIZE - 1);
- 		n = DIV_ROUND_UP(len, PAGE_SIZE);
--		res = get_user_pages_fast(addr, n, iov_iter_rw(i) != WRITE, pages);
-+		res = get_user_pages_fast(addr, n,
-+				iov_iter_rw(i) != WRITE ?  FOLL_WRITE : 0,
-+				pages);
- 		if (unlikely(res < 0))
- 			return res;
- 		return (res = n ? len : res * PAGE_SIZE) - *start;
-@@ -1361,7 +1363,8 @@ ssize_t iov_iter_get_pages_alloc(struct iov_iter *i,
- 		p = get_pages_array(n);
- 		if (!p)
- 			return -ENOMEM;
--		res = get_user_pages_fast(addr, n, iov_iter_rw(i) != WRITE, p);
-+		res = get_user_pages_fast(addr, n,
-+				iov_iter_rw(i) != WRITE ?  FOLL_WRITE : 0, p);
- 		if (unlikely(res < 0)) {
- 			kvfree(p);
- 			return res;
-diff --git a/mm/gup.c b/mm/gup.c
-index 681388236106..6f32d36b3c5b 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1863,7 +1863,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-- * @write:	whether pages will be written to
-+ * @gup_flags:	flags modifying pin behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-@@ -1875,8 +1875,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-  * requested. If nr_pages is 0 or negative, returns 0. If no pages
-  * were pinned, returns -errno.
-  */
--int get_user_pages_fast(unsigned long start, int nr_pages, int write,
--			struct page **pages)
-+int get_user_pages_fast(unsigned long start, int nr_pages,
-+			unsigned int gup_flags, struct page **pages)
- {
- 	unsigned long addr, len, end;
- 	int nr = 0, ret = 0;
-@@ -1894,7 +1894,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+@@ -406,7 +406,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
+ 	 * queuing.
+ 	 */
+ queue:
+-	qstat_inc(qstat_lock_slowpath, true);
++	lockevent_inc(lock_slowpath);
+ pv_queue:
+ 	node = this_cpu_ptr(&qnodes[0].mcs);
+ 	idx = node->count++;
+@@ -422,7 +422,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
+ 	 * simple enough.
+ 	 */
+ 	if (unlikely(idx >= MAX_NODES)) {
+-		qstat_inc(qstat_lock_no_node, true);
++		lockevent_inc(lock_no_node);
+ 		while (!queued_spin_trylock(lock))
+ 			cpu_relax();
+ 		goto release;
+@@ -433,7 +433,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
+ 	/*
+ 	 * Keep counts of non-zero index values:
+ 	 */
+-	qstat_inc(qstat_lock_use_node2 + idx - 1, idx);
++	lockevent_cond_inc(lock_use_node2 + idx - 1, idx);
  
- 	if (gup_fast_permitted(start, nr_pages)) {
- 		local_irq_disable();
--		gup_pgd_range(addr, end, write ? FOLL_WRITE : 0, pages, &nr);
-+		gup_pgd_range(addr, end, gup_flags, pages, &nr);
- 		local_irq_enable();
- 		ret = nr;
+ 	/*
+ 	 * Ensure that we increment the head node->count before initialising
+diff --git a/kernel/locking/qspinlock_paravirt.h b/kernel/locking/qspinlock_paravirt.h
+index 8f36c27..89bab07 100644
+--- a/kernel/locking/qspinlock_paravirt.h
++++ b/kernel/locking/qspinlock_paravirt.h
+@@ -89,7 +89,7 @@ static inline bool pv_hybrid_queued_unfair_trylock(struct qspinlock *lock)
+ 
+ 		if (!(val & _Q_LOCKED_PENDING_MASK) &&
+ 		   (cmpxchg_acquire(&lock->locked, 0, _Q_LOCKED_VAL) = 0)) {
+-			qstat_inc(qstat_pv_lock_stealing, true);
++			lockevent_inc(pv_lock_stealing);
+ 			return true;
+ 		}
+ 		if (!(val & _Q_TAIL_MASK) || (val & _Q_PENDING_MASK))
+@@ -219,7 +219,7 @@ static struct qspinlock **pv_hash(struct qspinlock *lock, struct pv_node *node)
+ 		hopcnt++;
+ 		if (!cmpxchg(&he->lock, NULL, lock)) {
+ 			WRITE_ONCE(he->node, node);
+-			qstat_hop(hopcnt);
++			lockevent_pv_hop(hopcnt);
+ 			return &he->lock;
+ 		}
  	}
-@@ -1905,7 +1905,7 @@ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 		pages += nr;
+@@ -320,8 +320,8 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
+ 		smp_store_mb(pn->state, vcpu_halted);
  
- 		ret = get_user_pages_unlocked(start, nr_pages - nr, pages,
--				write ? FOLL_WRITE : 0);
-+					      gup_flags);
+ 		if (!READ_ONCE(node->locked)) {
+-			qstat_inc(qstat_pv_wait_node, true);
+-			qstat_inc(qstat_pv_wait_early, wait_early);
++			lockevent_inc(pv_wait_node);
++			lockevent_cond_inc(pv_wait_early, wait_early);
+ 			pv_wait(&pn->state, vcpu_halted);
+ 		}
  
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff --git a/mm/util.c b/mm/util.c
-index 1ea055138043..01ffe145c62b 100644
---- a/mm/util.c
-+++ b/mm/util.c
-@@ -306,7 +306,7 @@ EXPORT_SYMBOL_GPL(__get_user_pages_fast);
-  * get_user_pages_fast() - pin user pages in memory
-  * @start:	starting user address
-  * @nr_pages:	number of pages from start to pin
-- * @write:	whether pages will be written to
-+ * @gup_flags:	flags modifying pin behaviour
-  * @pages:	array that receives pointers to the pages pinned.
-  *		Should be at least nr_pages long.
-  *
-@@ -327,10 +327,10 @@ EXPORT_SYMBOL_GPL(__get_user_pages_fast);
-  * get_user_pages_fast simply falls back to get_user_pages.
-  */
- int __weak get_user_pages_fast(unsigned long start,
--				int nr_pages, int write, struct page **pages)
-+				int nr_pages, unsigned int gup_flags,
-+				struct page **pages)
- {
--	return get_user_pages_unlocked(start, nr_pages, pages,
--				       write ? FOLL_WRITE : 0);
-+	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+@@ -339,7 +339,8 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
+ 		 * So it is better to spin for a while in the hope that the
+ 		 * MCS lock will be released soon.
+ 		 */
+-		qstat_inc(qstat_pv_spurious_wakeup, !READ_ONCE(node->locked));
++		lockevent_cond_inc(pv_spurious_wakeup,
++				  !READ_ONCE(node->locked));
+ 	}
+ 
+ 	/*
+@@ -416,7 +417,7 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
+ 	/*
+ 	 * Tracking # of slowpath locking operations
+ 	 */
+-	qstat_inc(qstat_lock_slowpath, true);
++	lockevent_inc(lock_slowpath);
+ 
+ 	for (;; waitcnt++) {
+ 		/*
+@@ -464,8 +465,8 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
+ 			}
+ 		}
+ 		WRITE_ONCE(pn->state, vcpu_hashed);
+-		qstat_inc(qstat_pv_wait_head, true);
+-		qstat_inc(qstat_pv_wait_again, waitcnt);
++		lockevent_inc(pv_wait_head);
++		lockevent_cond_inc(pv_wait_again, waitcnt);
+ 		pv_wait(&lock->locked, _Q_SLOW_VAL);
+ 
+ 		/*
+@@ -528,7 +529,7 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
+ 	 * vCPU is harmless other than the additional latency in completing
+ 	 * the unlock.
+ 	 */
+-	qstat_inc(qstat_pv_kick_unlock, true);
++	lockevent_inc(pv_kick_unlock);
+ 	pv_kick(node->cpu);
  }
- EXPORT_SYMBOL_GPL(get_user_pages_fast);
  
-diff --git a/net/ceph/pagevec.c b/net/ceph/pagevec.c
-index d3736f5bffec..74cafc0142ea 100644
---- a/net/ceph/pagevec.c
-+++ b/net/ceph/pagevec.c
-@@ -27,7 +27,7 @@ struct page **ceph_get_direct_page_vector(const void __user *data,
- 	while (got < num_pages) {
- 		rc = get_user_pages_fast(
- 		    (unsigned long)data + ((unsigned long)got * PAGE_SIZE),
--		    num_pages - got, write_page, pages + got);
-+		    num_pages - got, write_page ? FOLL_WRITE : 0, pages + got);
- 		if (rc < 0)
- 			break;
- 		BUG_ON(rc = 0);
-diff --git a/net/rds/info.c b/net/rds/info.c
-index e367a97a18c8..03f6fd56d237 100644
---- a/net/rds/info.c
-+++ b/net/rds/info.c
-@@ -193,7 +193,7 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	ret = get_user_pages_fast(start, nr_pages, 1, pages);
-+	ret = get_user_pages_fast(start, nr_pages, FOLL_WRITE, pages);
- 	if (ret != nr_pages) {
- 		if (ret > 0)
- 			nr_pages = ret;
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index 182ab8430594..b340ed4fc43a 100644
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -158,7 +158,8 @@ static int rds_pin_pages(unsigned long user_addr, unsigned int nr_pages,
+diff --git a/kernel/locking/qspinlock_stat.h b/kernel/locking/qspinlock_stat.h
+index d73f853..1db5b37 100644
+--- a/kernel/locking/qspinlock_stat.h
++++ b/kernel/locking/qspinlock_stat.h
+@@ -38,8 +38,8 @@
+  * Subtracting lock_use_node[234] from lock_slowpath will give you
+  * lock_use_node1.
+  *
+- * Writing to the "reset_counters" file will reset all the above counter
+- * values.
++ * Writing to the special ".reset_counts" file will reset all the above
++ * counter values.
+  *
+  * These statistical counters are implemented as per-cpu variables which are
+  * summed and computed whenever the corresponding debugfs files are read. This
+@@ -48,27 +48,7 @@
+  *
+  * There may be slight difference between pv_kick_wake and pv_kick_unlock.
+  */
+-enum qlock_stats {
+-	qstat_pv_hash_hops,
+-	qstat_pv_kick_unlock,
+-	qstat_pv_kick_wake,
+-	qstat_pv_latency_kick,
+-	qstat_pv_latency_wake,
+-	qstat_pv_lock_stealing,
+-	qstat_pv_spurious_wakeup,
+-	qstat_pv_wait_again,
+-	qstat_pv_wait_early,
+-	qstat_pv_wait_head,
+-	qstat_pv_wait_node,
+-	qstat_lock_pending,
+-	qstat_lock_slowpath,
+-	qstat_lock_use_node2,
+-	qstat_lock_use_node3,
+-	qstat_lock_use_node4,
+-	qstat_lock_no_node,
+-	qstat_num,	/* Total number of statistical counters */
+-	qstat_reset_cnts = qstat_num,
+-};
++#include "lock_events.h"
+ 
+ #ifdef CONFIG_QUEUED_LOCK_STAT
+ /*
+@@ -79,99 +59,91 @@ enum qlock_stats {
+ #include <linux/sched/clock.h>
+ #include <linux/fs.h>
+ 
+-static const char * const qstat_names[qstat_num + 1] = {
+-	[qstat_pv_hash_hops]	   = "pv_hash_hops",
+-	[qstat_pv_kick_unlock]     = "pv_kick_unlock",
+-	[qstat_pv_kick_wake]       = "pv_kick_wake",
+-	[qstat_pv_spurious_wakeup] = "pv_spurious_wakeup",
+-	[qstat_pv_latency_kick]	   = "pv_latency_kick",
+-	[qstat_pv_latency_wake]    = "pv_latency_wake",
+-	[qstat_pv_lock_stealing]   = "pv_lock_stealing",
+-	[qstat_pv_wait_again]      = "pv_wait_again",
+-	[qstat_pv_wait_early]      = "pv_wait_early",
+-	[qstat_pv_wait_head]       = "pv_wait_head",
+-	[qstat_pv_wait_node]       = "pv_wait_node",
+-	[qstat_lock_pending]       = "lock_pending",
+-	[qstat_lock_slowpath]      = "lock_slowpath",
+-	[qstat_lock_use_node2]	   = "lock_use_node2",
+-	[qstat_lock_use_node3]	   = "lock_use_node3",
+-	[qstat_lock_use_node4]	   = "lock_use_node4",
+-	[qstat_lock_no_node]	   = "lock_no_node",
+-	[qstat_reset_cnts]         = "reset_counters",
++#define EVENT_COUNT(ev)	lockevents[LOCKEVENT_ ## ev]
++
++#undef  LOCK_EVENT
++#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
++
++static const char * const lockevent_names[lockevent_num + 1] = {
++
++#include "lock_events_list.h"
++
++	[LOCKEVENT_reset_cnts] = ".reset_counts",
+ };
+ 
+ /*
+  * Per-cpu counters
+  */
+-static DEFINE_PER_CPU(unsigned long, qstats[qstat_num]);
++DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
+ static DEFINE_PER_CPU(u64, pv_kick_time);
+ 
+ /*
+  * Function to read and return the qlock statistical counter values
+  *
+  * The following counters are handled specially:
+- * 1. qstat_pv_latency_kick
++ * 1. pv_latency_kick
+  *    Average kick latency (ns) = pv_latency_kick/pv_kick_unlock
+- * 2. qstat_pv_latency_wake
++ * 2. pv_latency_wake
+  *    Average wake latency (ns) = pv_latency_wake/pv_kick_wake
+- * 3. qstat_pv_hash_hops
++ * 3. pv_hash_hops
+  *    Average hops/hash = pv_hash_hops/pv_kick_unlock
+  */
+-static ssize_t qstat_read(struct file *file, char __user *user_buf,
+-			  size_t count, loff_t *ppos)
++static ssize_t lockevent_read(struct file *file, char __user *user_buf,
++			      size_t count, loff_t *ppos)
  {
- 	int ret;
+ 	char buf[64];
+-	int cpu, counter, len;
+-	u64 stat = 0, kicks = 0;
++	int cpu, id, len;
++	u64 sum = 0, kicks = 0;
  
--	ret = get_user_pages_fast(user_addr, nr_pages, write, pages);
-+	ret = get_user_pages_fast(user_addr, nr_pages, write ? FOLL_WRITE : 0,
-+				  pages);
+ 	/*
+ 	 * Get the counter ID stored in file->f_inode->i_private
+ 	 */
+-	counter = (long)file_inode(file)->i_private;
++	id = (long)file_inode(file)->i_private;
  
- 	if (ret >= 0 && ret < nr_pages) {
- 		while (ret--)
+-	if (counter >= qstat_num)
++	if (id >= lockevent_num)
+ 		return -EBADF;
+ 
+ 	for_each_possible_cpu(cpu) {
+-		stat += per_cpu(qstats[counter], cpu);
++		sum += per_cpu(lockevents[id], cpu);
+ 		/*
+-		 * Need to sum additional counter for some of them
++		 * Need to sum additional counters for some of them
+ 		 */
+-		switch (counter) {
++		switch (id) {
+ 
+-		case qstat_pv_latency_kick:
+-		case qstat_pv_hash_hops:
+-			kicks += per_cpu(qstats[qstat_pv_kick_unlock], cpu);
++		case LOCKEVENT_pv_latency_kick:
++		case LOCKEVENT_pv_hash_hops:
++			kicks += per_cpu(EVENT_COUNT(pv_kick_unlock), cpu);
+ 			break;
+ 
+-		case qstat_pv_latency_wake:
+-			kicks += per_cpu(qstats[qstat_pv_kick_wake], cpu);
++		case LOCKEVENT_pv_latency_wake:
++			kicks += per_cpu(EVENT_COUNT(pv_kick_wake), cpu);
+ 			break;
+ 		}
+ 	}
+ 
+-	if (counter = qstat_pv_hash_hops) {
++	if (id = LOCKEVENT_pv_hash_hops) {
+ 		u64 frac = 0;
+ 
+ 		if (kicks) {
+-			frac = 100ULL * do_div(stat, kicks);
++			frac = 100ULL * do_div(sum, kicks);
+ 			frac = DIV_ROUND_CLOSEST_ULL(frac, kicks);
+ 		}
+ 
+ 		/*
+ 		 * Return a X.XX decimal number
+ 		 */
+-		len = snprintf(buf, sizeof(buf) - 1, "%llu.%02llu\n", stat, frac);
++		len = snprintf(buf, sizeof(buf) - 1, "%llu.%02llu\n",
++			       sum, frac);
+ 	} else {
+ 		/*
+ 		 * Round to the nearest ns
+ 		 */
+-		if ((counter = qstat_pv_latency_kick) ||
+-		    (counter = qstat_pv_latency_wake)) {
++		if ((id = LOCKEVENT_pv_latency_kick) ||
++		    (id = LOCKEVENT_pv_latency_wake)) {
+ 			if (kicks)
+-				stat = DIV_ROUND_CLOSEST_ULL(stat, kicks);
++				sum = DIV_ROUND_CLOSEST_ULL(sum, kicks);
+ 		}
+-		len = snprintf(buf, sizeof(buf) - 1, "%llu\n", stat);
++		len = snprintf(buf, sizeof(buf) - 1, "%llu\n", sum);
+ 	}
+ 
+ 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
+@@ -180,11 +152,9 @@ static ssize_t qstat_read(struct file *file, char __user *user_buf,
+ /*
+  * Function to handle write request
+  *
+- * When counter = reset_cnts, reset all the counter values.
+- * Since the counter updates aren't atomic, the resetting is done twice
+- * to make sure that the counters are very likely to be all cleared.
++ * When id = .reset_cnts, reset all the counter values.
+  */
+-static ssize_t qstat_write(struct file *file, const char __user *user_buf,
++static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
+ 			   size_t count, loff_t *ppos)
+ {
+ 	int cpu;
+@@ -192,14 +162,14 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
+ 	/*
+ 	 * Get the counter ID stored in file->f_inode->i_private
+ 	 */
+-	if ((long)file_inode(file)->i_private != qstat_reset_cnts)
++	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
+ 		return count;
+ 
+ 	for_each_possible_cpu(cpu) {
+ 		int i;
+-		unsigned long *ptr = per_cpu_ptr(qstats, cpu);
++		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
+ 
+-		for (i = 0 ; i < qstat_num; i++)
++		for (i = 0 ; i < lockevent_num; i++)
+ 			WRITE_ONCE(ptr[i], 0);
+ 	}
+ 	return count;
+@@ -208,9 +178,9 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
+ /*
+  * Debugfs data structures
+  */
+-static const struct file_operations fops_qstat = {
+-	.read = qstat_read,
+-	.write = qstat_write,
++static const struct file_operations fops_lockevent = {
++	.read = lockevent_read,
++	.write = lockevent_write,
+ 	.llseek = default_llseek,
+ };
+ 
+@@ -219,10 +189,10 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
+  */
+ static int __init init_qspinlock_stat(void)
+ {
+-	struct dentry *d_qstat = debugfs_create_dir("qlockstat", NULL);
++	struct dentry *d_counts = debugfs_create_dir("qlockstat", NULL);
+ 	int i;
+ 
+-	if (!d_qstat)
++	if (!d_counts)
+ 		goto out;
+ 
+ 	/*
+@@ -232,18 +202,19 @@ static int __init init_qspinlock_stat(void)
+ 	 * root is allowed to do the read/write to limit impact to system
+ 	 * performance.
+ 	 */
+-	for (i = 0; i < qstat_num; i++)
+-		if (!debugfs_create_file(qstat_names[i], 0400, d_qstat,
+-					 (void *)(long)i, &fops_qstat))
++	for (i = 0; i < lockevent_num; i++)
++		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
++					 (void *)(long)i, &fops_lockevent))
+ 			goto fail_undo;
+ 
+-	if (!debugfs_create_file(qstat_names[qstat_reset_cnts], 0200, d_qstat,
+-				 (void *)(long)qstat_reset_cnts, &fops_qstat))
++	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
++				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
++				 &fops_lockevent))
+ 		goto fail_undo;
+ 
+ 	return 0;
+ fail_undo:
+-	debugfs_remove_recursive(d_qstat);
++	debugfs_remove_recursive(d_counts);
+ out:
+ 	pr_warn("Could not create 'qlockstat' debugfs entries\n");
+ 	return -ENOMEM;
+@@ -251,20 +222,11 @@ static int __init init_qspinlock_stat(void)
+ fs_initcall(init_qspinlock_stat);
+ 
+ /*
+- * Increment the PV qspinlock statistical counters
+- */
+-static inline void qstat_inc(enum qlock_stats stat, bool cond)
+-{
+-	if (cond)
+-		this_cpu_inc(qstats[stat]);
+-}
+-
+-/*
+  * PV hash hop count
+  */
+-static inline void qstat_hop(int hopcnt)
++static inline void lockevent_pv_hop(int hopcnt)
+ {
+-	this_cpu_add(qstats[qstat_pv_hash_hops], hopcnt);
++	this_cpu_add(EVENT_COUNT(pv_hash_hops), hopcnt);
+ }
+ 
+ /*
+@@ -276,7 +238,7 @@ static inline void __pv_kick(int cpu)
+ 
+ 	per_cpu(pv_kick_time, cpu) = start;
+ 	pv_kick(cpu);
+-	this_cpu_add(qstats[qstat_pv_latency_kick], sched_clock() - start);
++	this_cpu_add(EVENT_COUNT(pv_latency_kick), sched_clock() - start);
+ }
+ 
+ /*
+@@ -289,9 +251,9 @@ static inline void __pv_wait(u8 *ptr, u8 val)
+ 	*pkick_time = 0;
+ 	pv_wait(ptr, val);
+ 	if (*pkick_time) {
+-		this_cpu_add(qstats[qstat_pv_latency_wake],
++		this_cpu_add(EVENT_COUNT(pv_latency_wake),
+ 			     sched_clock() - *pkick_time);
+-		qstat_inc(qstat_pv_kick_wake, true);
++		lockevent_inc(pv_kick_wake);
+ 	}
+ }
+ 
+@@ -300,7 +262,6 @@ static inline void __pv_wait(u8 *ptr, u8 val)
+ 
+ #else /* CONFIG_QUEUED_LOCK_STAT */
+ 
+-static inline void qstat_inc(enum qlock_stats stat, bool cond)	{ }
+-static inline void qstat_hop(int hopcnt)			{ }
++static inline void lockevent_pv_hop(int hopcnt)	{ }
+ 
+ #endif /* CONFIG_QUEUED_LOCK_STAT */
 -- 
-2.20.1
+1.8.3.1
