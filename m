@@ -1,7 +1,7 @@
 From: Waiman Long <longman@redhat.com>
-Date: Thu, 07 Feb 2019 19:07:18 +0000
-Subject: [PATCH-tip 14/22] locking/rwsem: Add more rwsem owner access helpers
-Message-Id: <1549566446-27967-15-git-send-email-longman@redhat.com>
+Date: Thu, 07 Feb 2019 19:07:06 +0000
+Subject: [PATCH-tip 02/22] locking/lock_events: Make lock_events available for all archs & other locks
+Message-Id: <1549566446-27967-3-git-send-email-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1549566446-27967-1-git-send-email-longman@redhat.com>
 In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
@@ -11,158 +11,459 @@ Content-Transfer-Encoding: 7bit
 To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
 Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
 
-Before combining owner and count, we are adding two new helpers for
-accessing the owner value in the rwsem.
+The QUEUED_LOCK_STAT option to report queued spinlocks event counts
+was previously allowed only on x86 architecture. To make the locking
+event counting code more useful, it is now renamed to a more generic
+LOCK_EVENT_COUNTS config option. This new option will be available to
+all the architectures that use qspinlock at the moment.
 
- 1) struct task_struct *rwsem_get_owner(struct rw_semaphore *sem)
- 2) bool is_rwsem_reader_owned(struct rw_semaphore *sem)
+Other locking code can now start to use the generic locking event
+counting code by including lock_events.h and put the new locking event
+names into the lock_events_list.h header file.
+
+My experience with lock event counting is that it gives valuable insight
+on how the locking code works and what can be done to make it better. I
+would like to extend this benefit to other locking code like mutex and
+rwsem in the near future.
+
+The PV qspinlock specific code will stay in qspinlock_stat.h. The
+locking event counters will now reside in the <debugfs>/lock_event_counts
+directory.
 
 Signed-off-by: Waiman Long <longman@redhat.com>
 ---
- kernel/locking/rwsem-xadd.c | 11 ++++++-----
- kernel/locking/rwsem-xadd.h | 32 ++++++++++++++++++++++++++------
- kernel/locking/rwsem.c      |  3 +--
- 3 files changed, 33 insertions(+), 13 deletions(-)
+ arch/Kconfig                    |  10 +++
+ arch/x86/Kconfig                |   8 ---
+ kernel/locking/Makefile         |   1 +
+ kernel/locking/lock_events.c    | 153 ++++++++++++++++++++++++++++++++++++++++
+ kernel/locking/lock_events.h    |   6 +-
+ kernel/locking/qspinlock_stat.h | 141 ++++--------------------------------
+ 6 files changed, 179 insertions(+), 140 deletions(-)
+ create mode 100644 kernel/locking/lock_events.c
 
-diff --git a/kernel/locking/rwsem-xadd.c b/kernel/locking/rwsem-xadd.c
-index 5f74bae..719d390 100644
---- a/kernel/locking/rwsem-xadd.c
-+++ b/kernel/locking/rwsem-xadd.c
-@@ -277,7 +277,7 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
- 		return false;
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 9f02132..af147c2 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -888,6 +888,16 @@ config HAVE_ARCH_PREL32_RELOCATIONS
+ config ARCH_USE_MEMREMAP_PROT
+ 	bool
  
- 	rcu_read_lock();
--	owner = READ_ONCE(sem->owner);
-+	owner = rwsem_get_owner(sem);
- 	if (owner) {
- 		ret = is_rwsem_owner_spinnable(owner) &&
- 		      owner_on_cpu(owner);
-@@ -291,13 +291,13 @@ static inline bool rwsem_can_spin_on_owner(struct rw_semaphore *sem)
-  */
- static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
- {
--	struct task_struct *owner = READ_ONCE(sem->owner);
-+	struct task_struct *owner = rwsem_get_owner(sem);
- 
- 	if (!is_rwsem_owner_spinnable(owner))
- 		return false;
- 
- 	rcu_read_lock();
--	while (owner && (READ_ONCE(sem->owner) = owner)) {
-+	while (owner && (rwsem_get_owner(sem) = owner)) {
- 		/*
- 		 * Ensure we emit the owner->on_cpu, dereference _after_
- 		 * checking sem->owner still matches owner, if that fails,
-@@ -323,7 +323,7 @@ static noinline bool rwsem_spin_on_owner(struct rw_semaphore *sem)
- 	 * If there is a new owner or the owner is not set, we continue
- 	 * spinning.
- 	 */
--	return is_rwsem_owner_spinnable(READ_ONCE(sem->owner));
-+	return is_rwsem_owner_spinnable(rwsem_get_owner(sem));
- }
- 
- static bool rwsem_optimistic_spin(struct rw_semaphore *sem)
-@@ -361,7 +361,8 @@ static bool rwsem_optimistic_spin(struct rw_semaphore *sem)
- 		 * we're an RT task that will live-lock because we won't let
- 		 * the owner complete.
- 		 */
--		if (!sem->owner && (need_resched() || rt_task(current)))
-+		if (!rwsem_get_owner(sem) &&
-+		   (need_resched() || rt_task(current)))
- 			break;
- 
- 		/*
-diff --git a/kernel/locking/rwsem-xadd.h b/kernel/locking/rwsem-xadd.h
-index 6d4890d..277a134 100644
---- a/kernel/locking/rwsem-xadd.h
-+++ b/kernel/locking/rwsem-xadd.h
-@@ -83,6 +83,11 @@ static inline void rwsem_clear_owner(struct rw_semaphore *sem)
- 	WRITE_ONCE(sem->owner, NULL);
- }
- 
-+static inline struct task_struct *rwsem_get_owner(struct rw_semaphore *sem)
-+{
-+	return READ_ONCE(sem->owner);
-+}
++config LOCK_EVENT_COUNTS
++	bool "Locking event counts collection"
++	depends on DEBUG_FS
++	depends on QUEUED_SPINLOCKS
++	---help---
++	  Enable light-weight counting of various locking related events
++	  in the system with minimal performance impact. This reduces
++	  the chance of application behavior change because of timing
++	  differences. The counts are reported via debugfs.
 +
- /*
-  * The task_struct pointer of the last owning reader will be left in
-  * the owner field.
-@@ -116,6 +121,23 @@ static inline bool is_rwsem_owner_spinnable(struct task_struct *owner)
- }
+ source "kernel/gcov/Kconfig"
  
- /*
-+ * Return true if the rwsem is owned by a reader.
+ source "scripts/gcc-plugins/Kconfig"
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index a7e7a60..e4f620f 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -784,14 +784,6 @@ config PARAVIRT_SPINLOCKS
+ 
+ 	  If you are unsure how to answer this question, answer Y.
+ 
+-config QUEUED_LOCK_STAT
+-	bool "Paravirt queued spinlock statistics"
+-	depends on PARAVIRT_SPINLOCKS && DEBUG_FS
+-	---help---
+-	  Enable the collection of statistical data on the slowpath
+-	  behavior of paravirtualized queued spinlocks and report
+-	  them on debugfs.
+-
+ source "arch/x86/xen/Kconfig"
+ 
+ config KVM_GUEST
+diff --git a/kernel/locking/Makefile b/kernel/locking/Makefile
+index 392c7f2..f2257d7 100644
+--- a/kernel/locking/Makefile
++++ b/kernel/locking/Makefile
+@@ -30,3 +30,4 @@ obj-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem-xadd.o
+ obj-$(CONFIG_QUEUED_RWLOCKS) += qrwlock.o
+ obj-$(CONFIG_LOCK_TORTURE_TEST) += locktorture.o
+ obj-$(CONFIG_WW_MUTEX_SELFTEST) += test-ww_mutex.o
++obj-$(CONFIG_LOCK_EVENT_COUNTS) += lock_events.o
+diff --git a/kernel/locking/lock_events.c b/kernel/locking/lock_events.c
+new file mode 100644
+index 0000000..71c36d1
+--- /dev/null
++++ b/kernel/locking/lock_events.c
+@@ -0,0 +1,153 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * Authors: Waiman Long <waiman.long@hpe.com>
 + */
-+static inline bool is_rwsem_reader_owned(struct rw_semaphore *sem)
-+{
-+#ifdef CONFIG_DEBUG_RWSEMS
-+	/*
-+	 * Check the count to see if it is write-locked.
-+	 */
-+	long count = atomic_long_read(&sem->count);
 +
-+	if (count & RWSEM_WRITER_MASK)
-+		return false;
-+#endif
-+	return (unsigned long)sem->owner & RWSEM_READER_OWNED;
++/*
++ * Collect locking event counts
++ */
++#include <linux/debugfs.h>
++#include <linux/sched.h>
++#include <linux/sched/clock.h>
++#include <linux/fs.h>
++
++#include "lock_events.h"
++
++#undef  LOCK_EVENT
++#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
++
++#define LOCK_EVENTS_DIR		"lock_event_counts"
++
++/*
++ * When CONFIG_LOCK_EVENT_COUNTS is enabled, event counts of different
++ * types of locks will be reported under the <debugfs>/lock_event_counts/
++ * directory. See lock_events_list.h for the list of available locking
++ * events.
++ *
++ * Writing to the special ".reset_counts" file will reset all the above
++ * locking event counts. This is a very slow operation and so should not
++ * be done frequently.
++ *
++ * These event counts are implemented as per-cpu variables which are
++ * summed and computed whenever the corresponding debugfs files are read. This
++ * minimizes added overhead making the counts usable even in a production
++ * environment.
++ */
++static const char * const lockevent_names[lockevent_num + 1] = {
++
++#include "lock_events_list.h"
++
++	[LOCKEVENT_reset_cnts] = ".reset_counts",
++};
++
++/*
++ * Per-cpu counts
++ */
++DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
++
++/*
++ * The lockevent_read() function can be overridden.
++ */
++ssize_t __weak lockevent_read(struct file *file, char __user *user_buf,
++			      size_t count, loff_t *ppos)
++{
++	char buf[64];
++	int cpu, id, len;
++	u64 sum = 0;
++
++	/*
++	 * Get the counter ID stored in file->f_inode->i_private
++	 */
++	id = (long)file_inode(file)->i_private;
++
++	if (id >= lockevent_num)
++		return -EBADF;
++
++	for_each_possible_cpu(cpu)
++		sum += per_cpu(lockevents[id], cpu);
++	len = snprintf(buf, sizeof(buf) - 1, "%llu\n", sum);
++
++	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
 +}
 +
 +/*
-  * Return true if rwsem is owned by an anonymous writer or readers.
-  */
- static inline bool rwsem_has_anonymous_owner(struct task_struct *owner)
-@@ -135,6 +157,7 @@ static inline void rwsem_clear_reader_owned(struct rw_semaphore *sem)
- {
- 	unsigned long val = (unsigned long)current | RWSEM_READER_OWNED
- 						   | RWSEM_ANONYMOUSLY_OWNED;
++ * Function to handle write request
++ *
++ * When idx = reset_cnts, reset all the counts.
++ */
++static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
++			   size_t count, loff_t *ppos)
++{
++	int cpu;
 +
- 	if (READ_ONCE(sem->owner) = (struct task_struct *)val)
- 		cmpxchg_relaxed((unsigned long *)&sem->owner, val,
- 				RWSEM_READER_OWNED | RWSEM_ANONYMOUSLY_OWNED);
-@@ -181,8 +204,7 @@ static inline void __down_read(struct rw_semaphore *sem)
- 	if (unlikely(atomic_long_fetch_add_acquire(RWSEM_READER_BIAS,
- 			&sem->count) & RWSEM_READ_FAILED_MASK)) {
- 		rwsem_down_read_failed(sem);
--		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
--					RWSEM_READER_OWNED), sem);
-+		DEBUG_RWSEMS_WARN_ON(!is_rwsem_reader_owned(sem), sem);
- 	} else {
- 		rwsem_set_reader_owned(sem);
- 	}
-@@ -194,8 +216,7 @@ static inline int __down_read_killable(struct rw_semaphore *sem)
- 			&sem->count) & RWSEM_READ_FAILED_MASK)) {
- 		if (IS_ERR(rwsem_down_read_failed_killable(sem)))
- 			return -EINTR;
--		DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner &
--					RWSEM_READER_OWNED), sem);
-+		DEBUG_RWSEMS_WARN_ON(!is_rwsem_reader_owned(sem), sem);
- 	} else {
- 		rwsem_set_reader_owned(sem);
- 	}
-@@ -254,8 +275,7 @@ static inline void __up_read(struct rw_semaphore *sem)
- {
- 	long tmp;
++	/*
++	 * Get the counter ID stored in file->f_inode->i_private
++	 */
++	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
++		return count;
++
++	for_each_possible_cpu(cpu) {
++		int i;
++		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
++
++		for (i = 0 ; i < lockevent_num; i++)
++			WRITE_ONCE(ptr[i], 0);
++	}
++	return count;
++}
++
++/*
++ * Debugfs data structures
++ */
++static const struct file_operations fops_lockevent = {
++	.read = lockevent_read,
++	.write = lockevent_write,
++	.llseek = default_llseek,
++};
++
++/*
++ * Initialize debugfs for the locking event counts.
++ */
++static int __init init_lockevent_counts(void)
++{
++	struct dentry *d_counts = debugfs_create_dir(LOCK_EVENTS_DIR, NULL);
++	int i;
++
++	if (!d_counts)
++		goto out;
++
++	/*
++	 * Create the debugfs files
++	 *
++	 * As reading from and writing to the stat files can be slow, only
++	 * root is allowed to do the read/write to limit impact to system
++	 * performance.
++	 */
++	for (i = 0; i < lockevent_num; i++)
++		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
++					 (void *)(long)i, &fops_lockevent))
++			goto fail_undo;
++
++	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
++				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
++				 &fops_lockevent))
++		goto fail_undo;
++
++	return 0;
++fail_undo:
++	debugfs_remove_recursive(d_counts);
++out:
++	pr_warn("Could not create '%s' debugfs entries\n", LOCK_EVENTS_DIR);
++	return -ENOMEM;
++}
++fs_initcall(init_lockevent_counts);
+diff --git a/kernel/locking/lock_events.h b/kernel/locking/lock_events.h
+index 4009e07..d965470 100644
+--- a/kernel/locking/lock_events.h
++++ b/kernel/locking/lock_events.h
+@@ -21,7 +21,7 @@ enum lock_events {
+ 	LOCKEVENT_reset_cnts = lockevent_num,
+ };
  
--	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED),
--				sem);
-+	DEBUG_RWSEMS_WARN_ON(!is_rwsem_reader_owned(sem), sem);
- 	rwsem_clear_reader_owned(sem);
- 	tmp = atomic_long_add_return_release(-RWSEM_READER_BIAS, &sem->count);
- 	if (unlikely((tmp & (RWSEM_LOCK_MASK|RWSEM_FLAG_WAITERS))
-diff --git a/kernel/locking/rwsem.c b/kernel/locking/rwsem.c
-index bdfca7c..79fa6e4 100644
---- a/kernel/locking/rwsem.c
-+++ b/kernel/locking/rwsem.c
-@@ -203,8 +203,7 @@ int __sched down_write_killable_nested(struct rw_semaphore *sem, int subclass)
+-#ifdef CONFIG_QUEUED_LOCK_STAT
++#ifdef CONFIG_LOCK_EVENT_COUNTS
+ /*
+  * Per-cpu counters
+  */
+@@ -46,10 +46,10 @@ static inline void __lockevent_add(enum lock_events event, int inc)
  
- void up_read_non_owner(struct rw_semaphore *sem)
+ #define lockevent_add(ev, c)	__lockevent_add(LOCKEVENT_ ##ev, c)
+ 
+-#else  /* CONFIG_QUEUED_LOCK_STAT */
++#else  /* CONFIG_LOCK_EVENT_COUNTS */
+ 
+ #define lockevent_inc(ev)
+ #define lockevent_add(ev, c)
+ #define lockevent_cond_inc(ev, c)
+ 
+-#endif /* CONFIG_QUEUED_LOCK_STAT */
++#endif /* CONFIG_LOCK_EVENT_COUNTS */
+diff --git a/kernel/locking/qspinlock_stat.h b/kernel/locking/qspinlock_stat.h
+index 1db5b37..5415267 100644
+--- a/kernel/locking/qspinlock_stat.h
++++ b/kernel/locking/qspinlock_stat.h
+@@ -9,76 +9,29 @@
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+- * Authors: Waiman Long <waiman.long@hpe.com>
++ * Authors: Waiman Long <longman@redhat.com>
+  */
+ 
+-/*
+- * When queued spinlock statistical counters are enabled, the following
+- * debugfs files will be created for reporting the counter values:
+- *
+- * <debugfs>/qlockstat/
+- *   pv_hash_hops	- average # of hops per hashing operation
+- *   pv_kick_unlock	- # of vCPU kicks issued at unlock time
+- *   pv_kick_wake	- # of vCPU kicks used for computing pv_latency_wake
+- *   pv_latency_kick	- average latency (ns) of vCPU kick operation
+- *   pv_latency_wake	- average latency (ns) from vCPU kick to wakeup
+- *   pv_lock_stealing	- # of lock stealing operations
+- *   pv_spurious_wakeup	- # of spurious wakeups in non-head vCPUs
+- *   pv_wait_again	- # of wait's after a queue head vCPU kick
+- *   pv_wait_early	- # of early vCPU wait's
+- *   pv_wait_head	- # of vCPU wait's at the queue head
+- *   pv_wait_node	- # of vCPU wait's at a non-head queue node
+- *   lock_pending	- # of locking operations via pending code
+- *   lock_slowpath	- # of locking operations via MCS lock queue
+- *   lock_use_node2	- # of locking operations that use 2nd per-CPU node
+- *   lock_use_node3	- # of locking operations that use 3rd per-CPU node
+- *   lock_use_node4	- # of locking operations that use 4th per-CPU node
+- *   lock_no_node	- # of locking operations without using per-CPU node
+- *
+- * Subtracting lock_use_node[234] from lock_slowpath will give you
+- * lock_use_node1.
+- *
+- * Writing to the special ".reset_counts" file will reset all the above
+- * counter values.
+- *
+- * These statistical counters are implemented as per-cpu variables which are
+- * summed and computed whenever the corresponding debugfs files are read. This
+- * minimizes added overhead making the counters usable even in a production
+- * environment.
+- *
+- * There may be slight difference between pv_kick_wake and pv_kick_unlock.
+- */
+ #include "lock_events.h"
+ 
+-#ifdef CONFIG_QUEUED_LOCK_STAT
++#ifdef CONFIG_LOCK_EVENT_COUNTS
++#ifdef CONFIG_PARAVIRT_SPINLOCKS
+ /*
+- * Collect pvqspinlock statistics
++ * Collect pvqspinlock locking event counts
+  */
+-#include <linux/debugfs.h>
+ #include <linux/sched.h>
+ #include <linux/sched/clock.h>
+ #include <linux/fs.h>
+ 
+ #define EVENT_COUNT(ev)	lockevents[LOCKEVENT_ ## ev]
+ 
+-#undef  LOCK_EVENT
+-#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
+-
+-static const char * const lockevent_names[lockevent_num + 1] = {
+-
+-#include "lock_events_list.h"
+-
+-	[LOCKEVENT_reset_cnts] = ".reset_counts",
+-};
+-
+ /*
+- * Per-cpu counters
++ * PV specific per-cpu counter
+  */
+-DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
+ static DEFINE_PER_CPU(u64, pv_kick_time);
+ 
+ /*
+- * Function to read and return the qlock statistical counter values
++ * Function to read and return the PV qspinlock counts.
+  *
+  * The following counters are handled specially:
+  * 1. pv_latency_kick
+@@ -88,8 +41,8 @@
+  * 3. pv_hash_hops
+  *    Average hops/hash = pv_hash_hops/pv_kick_unlock
+  */
+-static ssize_t lockevent_read(struct file *file, char __user *user_buf,
+-			      size_t count, loff_t *ppos)
++ssize_t lockevent_read(struct file *file, char __user *user_buf,
++		       size_t count, loff_t *ppos)
  {
--	DEBUG_RWSEMS_WARN_ON(!((unsigned long)sem->owner & RWSEM_READER_OWNED),
--				sem);
-+	DEBUG_RWSEMS_WARN_ON(!is_rwsem_reader_owned(sem), sem);
- 	__up_read(sem);
+ 	char buf[64];
+ 	int cpu, id, len;
+@@ -150,78 +103,6 @@ static ssize_t lockevent_read(struct file *file, char __user *user_buf,
  }
  
+ /*
+- * Function to handle write request
+- *
+- * When id = .reset_cnts, reset all the counter values.
+- */
+-static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
+-			   size_t count, loff_t *ppos)
+-{
+-	int cpu;
+-
+-	/*
+-	 * Get the counter ID stored in file->f_inode->i_private
+-	 */
+-	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
+-		return count;
+-
+-	for_each_possible_cpu(cpu) {
+-		int i;
+-		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
+-
+-		for (i = 0 ; i < lockevent_num; i++)
+-			WRITE_ONCE(ptr[i], 0);
+-	}
+-	return count;
+-}
+-
+-/*
+- * Debugfs data structures
+- */
+-static const struct file_operations fops_lockevent = {
+-	.read = lockevent_read,
+-	.write = lockevent_write,
+-	.llseek = default_llseek,
+-};
+-
+-/*
+- * Initialize debugfs for the qspinlock statistical counters
+- */
+-static int __init init_qspinlock_stat(void)
+-{
+-	struct dentry *d_counts = debugfs_create_dir("qlockstat", NULL);
+-	int i;
+-
+-	if (!d_counts)
+-		goto out;
+-
+-	/*
+-	 * Create the debugfs files
+-	 *
+-	 * As reading from and writing to the stat files can be slow, only
+-	 * root is allowed to do the read/write to limit impact to system
+-	 * performance.
+-	 */
+-	for (i = 0; i < lockevent_num; i++)
+-		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
+-					 (void *)(long)i, &fops_lockevent))
+-			goto fail_undo;
+-
+-	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
+-				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
+-				 &fops_lockevent))
+-		goto fail_undo;
+-
+-	return 0;
+-fail_undo:
+-	debugfs_remove_recursive(d_counts);
+-out:
+-	pr_warn("Could not create 'qlockstat' debugfs entries\n");
+-	return -ENOMEM;
+-}
+-fs_initcall(init_qspinlock_stat);
+-
+-/*
+  * PV hash hop count
+  */
+ static inline void lockevent_pv_hop(int hopcnt)
+@@ -260,8 +141,10 @@ static inline void __pv_wait(u8 *ptr, u8 val)
+ #define pv_kick(c)	__pv_kick(c)
+ #define pv_wait(p, v)	__pv_wait(p, v)
+ 
+-#else /* CONFIG_QUEUED_LOCK_STAT */
++#endif /* CONFIG_PARAVIRT_SPINLOCKS */
++
++#else /* CONFIG_LOCK_EVENT_COUNTS */
+ 
+ static inline void lockevent_pv_hop(int hopcnt)	{ }
+ 
+-#endif /* CONFIG_QUEUED_LOCK_STAT */
++#endif /* CONFIG_LOCK_EVENT_COUNTS */
 -- 
 1.8.3.1
