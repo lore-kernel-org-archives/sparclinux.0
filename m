@@ -1,132 +1,87 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 18 Jan 2019 16:18:25 +0000
-Subject: [PATCH v2 19/29] time: Add struct __kernel_timex
-Message-Id: <20190118161835.2259170-20-arnd@arndb.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Tue, 12 Feb 2019 09:32:36 +0000
+Subject: [PATCH] sparc64: simplify reduce_memory() function
+Message-Id: <1549963956-28269-1-git-send-email-rppt@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190118161835.2259170-1-arnd@arndb.de>
-In-Reply-To: <20190118161835.2259170-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-api@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, paul.burton@mips.com, deller@gmx.de, benh@kernel.crashing.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, heiko.carstens@de.ibm.com, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jcmvbkbc@gmail.com, akpm@linux-foundation.org, deepa.kernel@gmail.com, ebiederm@xmission.com, firoz.khan@linaro.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.or
+To: "'David S . Miller'" <davem@davemloft.net>
+Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>
 
-From: Deepa Dinamani <deepa.kernel@gmail.com>
+The reduce_memory() function clampls the available memory to a limit
+defined by the "mem=" command line parameter. It takes into account the
+amount of already reserved memory and excludes it from the limit
+calculations.
 
-struct timex uses struct timeval internally.
-struct timeval is not y2038 safe.
-Introduce a new UAPI type struct __kernel_timex
-that is y2038 safe.
+Rather than traverse memblocks and remove them by hand, use
+memblock_reserved_size() to account the reserved memory and
+memblock_enforce_memory_limit() to clamp the available memory.
 
-struct __kernel_timex uses a timeval type that is
-similar to struct __kernel_timespec which preserves the
-same structure size across 32 bit and 64 bit ABIs.
-struct __kernel_timex also restructures other members of the
-structure to make the structure the same on 64 bit and 32 bit
-architectures.
-Note that struct __kernel_timex is the same as struct timex
-on a 64 bit architecture.
-
-The above solution is similar to other new y2038 syscalls
-that are being introduced: both 32 bit and 64 bit ABIs
-have a common entry, and the compat entry supports the old 32 bit
-syscall interface.
-
-Alternatives considered were:
-1. Add new time type to struct timex that makes use of padded
-   bits. This time type could be based on the struct __kernel_timespec.
-   modes will use a flag to notify which time structure should be
-   used internally.
-   This needs some application level changes on both 64 bit and 32 bit
-   architectures. Although 64 bit machines could continue to use the
-   older timeval structure without any changes.
-
-2. Add a new u8 type to struct timex that makes use of padded bits. This
-   can be used to save higher order tv_sec bits. modes will use a flag to
-   notify presence of such a type.
-   This will need some application level changes on 32 bit architectures.
-
-3. Add a new compat_timex structure that differs in only the size of the
-   time type; keep rest of struct timex the same.
-   This requires extra syscalls to manage all 3 cases on 64 bit
-   architectures. This will not need any application level changes but will
-   add more complexity from kernel side.
-
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- include/linux/timex.h      |  7 +++++++
- include/uapi/linux/timex.h | 41 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 48 insertions(+)
+ arch/sparc/mm/init_64.c | 42 ++----------------------------------------
+ 1 file changed, 2 insertions(+), 40 deletions(-)
 
-diff --git a/include/linux/timex.h b/include/linux/timex.h
-index 39c25dbebfe8..7f40e9e42ecc 100644
---- a/include/linux/timex.h
-+++ b/include/linux/timex.h
-@@ -53,6 +53,13 @@
- #ifndef _LINUX_TIMEX_H
- #define _LINUX_TIMEX_H
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index b4221d3..478b818 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2261,19 +2261,6 @@ static unsigned long last_valid_pfn;
+ static void sun4u_pgprot_init(void);
+ static void sun4v_pgprot_init(void);
  
-+/* CONFIG_64BIT_TIME enables new 64 bit time_t syscalls in the compat path
-+ * and 32-bit emulation.
-+ */
-+#ifndef CONFIG_64BIT_TIME
-+#define __kernel_timex timex
-+#endif
-+
- #include <uapi/linux/timex.h>
- 
- #define ADJ_ADJTIME		0x8000	/* switch between adjtime/adjtimex modes */
-diff --git a/include/uapi/linux/timex.h b/include/uapi/linux/timex.h
-index 92685d826444..a1c6b73016a5 100644
---- a/include/uapi/linux/timex.h
-+++ b/include/uapi/linux/timex.h
-@@ -92,6 +92,47 @@ struct timex {
- 	int  :32; int  :32; int  :32;
- };
- 
-+struct __kernel_timex_timeval {
-+	__kernel_time64_t       tv_sec;
-+	long long		tv_usec;
-+};
-+
-+#ifndef __kernel_timex
-+struct __kernel_timex {
-+	unsigned int modes;	/* mode selector */
-+	int :32;            /* pad */
-+	long long offset;	/* time offset (usec) */
-+	long long freq;	/* frequency offset (scaled ppm) */
-+	long long maxerror;/* maximum error (usec) */
-+	long long esterror;/* estimated error (usec) */
-+	int status;		/* clock command/status */
-+	int :32;            /* pad */
-+	long long constant;/* pll time constant */
-+	long long precision;/* clock precision (usec) (read only) */
-+	long long tolerance;/* clock frequency tolerance (ppm)
-+				   * (read only)
-+				   */
-+	struct __kernel_timex_timeval time;	/* (read only, except for ADJ_SETOFFSET) */
-+	long long tick;	/* (modified) usecs between clock ticks */
-+
-+	long long ppsfreq;/* pps frequency (scaled ppm) (ro) */
-+	long long jitter; /* pps jitter (us) (ro) */
-+	int shift;              /* interval duration (s) (shift) (ro) */
-+	int :32;            /* pad */
-+	long long stabil;            /* pps stability (scaled ppm) (ro) */
-+	long long jitcnt; /* jitter limit exceeded (ro) */
-+	long long calcnt; /* calibration intervals (ro) */
-+	long long errcnt; /* calibration errors (ro) */
-+	long long stbcnt; /* stability limit exceeded (ro) */
-+
-+	int tai;		/* TAI offset (ro) */
-+
-+	int  :32; int  :32; int  :32; int  :32;
-+	int  :32; int  :32; int  :32; int  :32;
-+	int  :32; int  :32; int  :32;
-+};
-+#endif
-+
- /*
-  * Mode codes (timex.mode)
+-static phys_addr_t __init available_memory(void)
+-{
+-	phys_addr_t available = 0ULL;
+-	phys_addr_t pa_start, pa_end;
+-	u64 i;
+-
+-	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &pa_start,
+-				&pa_end, NULL)
+-		available = available + (pa_end  - pa_start);
+-
+-	return available;
+-}
+-
+ #define _PAGE_CACHE_4U	(_PAGE_CP_4U | _PAGE_CV_4U)
+ #define _PAGE_CACHE_4V	(_PAGE_CP_4V | _PAGE_CV_4V)
+ #define __DIRTY_BITS_4U	 (_PAGE_MODIFIED_4U | _PAGE_WRITE_4U | _PAGE_W_4U)
+@@ -2287,33 +2274,8 @@ static phys_addr_t __init available_memory(void)
   */
+ static void __init reduce_memory(phys_addr_t limit_ram)
+ {
+-	phys_addr_t avail_ram = available_memory();
+-	phys_addr_t pa_start, pa_end;
+-	u64 i;
+-
+-	if (limit_ram >= avail_ram)
+-		return;
+-
+-	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &pa_start,
+-				&pa_end, NULL) {
+-		phys_addr_t region_size = pa_end - pa_start;
+-		phys_addr_t clip_start = pa_start;
+-
+-		avail_ram = avail_ram - region_size;
+-		/* Are we consuming too much? */
+-		if (avail_ram < limit_ram) {
+-			phys_addr_t give_back = limit_ram - avail_ram;
+-
+-			region_size = region_size - give_back;
+-			clip_start = clip_start + give_back;
+-		}
+-
+-		memblock_remove(clip_start, region_size);
+-
+-		if (avail_ram <= limit_ram)
+-			break;
+-		i = 0UL;
+-	}
++	limit_ram += memblock_reserved_size();
++	memblock_enforce_memory_limit(limit_ram);
+ }
+ 
+ void __init paging_init(void)
 -- 
-2.20.0
+2.7.4
