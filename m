@@ -1,88 +1,160 @@
-From: Will Deacon <will.deacon@arm.com>
-Date: Wed, 20 Feb 2019 14:47:17 +0000
-Subject: Re: [PATCH v4 1/3] locking/rwsem: Remove arch specific rwsem files
-Message-Id: <20190220144717.GI7523@fuggles.cambridge.arm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 Feb 2019 14:45:56 +0000
+Subject: [PATCH 2/5] sparc64: refactor the ali DMA quirk
+Message-Id: <20190215144559.8777-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1550095217-12047-1-git-send-email-longman@redhat.com>
- <1550095217-12047-2-git-send-email-longman@redhat.com>
-In-Reply-To: <1550095217-12047-2-git-send-email-longman@redhat.com>
+References: <20190215144559.8777-1-hch@lst.de>
+In-Reply-To: <20190215144559.8777-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Waiman Long <longman@redhat.com>
-Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, linux-mips@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Davidlohr Bueso <dave@stgolabs.net>, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Tim Chen <tim.c.chen@linux.intel.com>, linux-parisc@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-alpha@vger
+To: "David S. Miller" <davem@davemloft.net>, Helge Deller <deller@gmx.de>
+Cc: Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux-foundation.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wed, Feb 13, 2019 at 05:00:15PM -0500, Waiman Long wrote:
-> As the generic rwsem-xadd code is using the appropriate acquire and
-> release versions of the atomic operations, the arch specific rwsem.h
-> files will not be that much faster than the generic code as long as the
-> atomic functions are properly implemented. So we can remove those arch
-> specific rwsem.h and stop building asm/rwsem.h to reduce maintenance
-> effort.
-> 
-> Currently, only x86, alpha and ia64 have implemented architecture
-> specific fast paths. I don't have access to alpha and ia64 systems for
-> testing, but they are legacy systems that are not likely to be updated
-> to the latest kernel anyway.
-> 
-> By using a rwsem microbenchmark, the total locking rates on a 4-socket
-> 56-core 112-thread x86-64 system before and after the patch were as
-> follows (mixed means equal # of read and write locks):
-> 
->                       Before Patch              After Patch
->    # of Threads  wlock   rlock   mixed     wlock   rlock   mixed
->    ------------  -----   -----   -----     -----   -----   -----
->         1        29,201  30,143  29,458    28,615  30,172  29,201
->         2         6,807  13,299   1,171     7,725  15,025   1,804
->         4         6,504  12,755   1,520     7,127  14,286   1,345
->         8         6,762  13,412     764     6,826  13,652     726
->        16         6,693  15,408     662     6,599  15,938     626
->        32         6,145  15,286     496     5,549  15,487     511
->        64         5,812  15,495      60     5,858  15,572      60
-> 
-> There were some run-to-run variations for the multi-thread tests. For
-> x86-64, using the generic C code fast path seems to be a little bit
-> faster than the assembly version with low lock contention.  Looking at
-> the assembly version of the fast paths, there are assembly to/from C
-> code wrappers that save and restore all the callee-clobbered registers
-> (7 registers on x86-64). The assembly generated from the generic C
-> code doesn't need to do that. That may explain the slight performance
-> gain here.
-> 
-> The generic asm rwsem.h can also be merged into kernel/locking/rwsem.h
-> with no code change as no other code other than those under
-> kernel/locking needs to access the internal rwsem macros and functions.
-> 
-> Signed-off-by: Waiman Long <longman@redhat.com>
-> ---
->  MAINTAINERS                     |   1 -
->  arch/alpha/include/asm/rwsem.h  | 211 -----------------------------------
->  arch/arm/include/asm/Kbuild     |   1 -
->  arch/arm64/include/asm/Kbuild   |   1 -
->  arch/hexagon/include/asm/Kbuild |   1 -
->  arch/ia64/include/asm/rwsem.h   | 172 -----------------------------
->  arch/powerpc/include/asm/Kbuild |   1 -
->  arch/s390/include/asm/Kbuild    |   1 -
->  arch/sh/include/asm/Kbuild      |   1 -
->  arch/sparc/include/asm/Kbuild   |   1 -
->  arch/x86/include/asm/rwsem.h    | 237 ----------------------------------------
->  arch/x86/lib/Makefile           |   1 -
->  arch/x86/lib/rwsem.S            | 156 --------------------------
->  arch/x86/um/Makefile            |   1 -
->  arch/xtensa/include/asm/Kbuild  |   1 -
->  include/asm-generic/rwsem.h     | 140 ------------------------
->  include/linux/rwsem.h           |   4 +-
->  kernel/locking/percpu-rwsem.c   |   2 +
->  kernel/locking/rwsem.h          | 130 ++++++++++++++++++++++
->  19 files changed, 133 insertions(+), 930 deletions(-)
->  delete mode 100644 arch/alpha/include/asm/rwsem.h
->  delete mode 100644 arch/ia64/include/asm/rwsem.h
->  delete mode 100644 arch/x86/include/asm/rwsem.h
->  delete mode 100644 arch/x86/lib/rwsem.S
->  delete mode 100644 include/asm-generic/rwsem.h
+Do the quirk first in the dma_supported routines, as we don't need
+any of the other checks for it, and remove the duplicate mask checking
+that is already done by the callers.
 
-Looks like a nice cleanup, thanks:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/iommu.c     |  7 +++---
+ arch/sparc/kernel/kernel.h    |  6 ++++-
+ arch/sparc/kernel/pci.c       | 46 ++++++++++++-----------------------
+ arch/sparc/kernel/pci_sun4v.c |  5 +++-
+ 4 files changed, 27 insertions(+), 37 deletions(-)
 
-Acked-by: Will Deacon <will.deacon@arm.com>
-
-Will
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index b1a09080e8da..0c253f1c852e 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -745,14 +745,13 @@ static int dma_4u_supported(struct device *dev, u64 device_mask)
+ {
+ 	struct iommu *iommu = dev->archdata.iommu;
+ 
++	if (ali_sound_dma_hack(dev, device_mask))
++		return 1;
++
+ 	if (device_mask > DMA_BIT_MASK(32))
+ 		return 0;
+ 	if ((device_mask & iommu->dma_addr_mask) = iommu->dma_addr_mask)
+ 		return 1;
+-#ifdef CONFIG_PCI
+-	if (dev_is_pci(dev))
+-		return pci64_dma_supported(to_pci_dev(dev), device_mask);
+-#endif
+ 	return 0;
+ }
+ 
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index ddffd368e057..f6f498ba3198 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -45,7 +45,11 @@ void __irq_entry smp_receive_signal_client(int irq, struct pt_regs *regs);
+ void __irq_entry smp_kgdb_capture_client(int irq, struct pt_regs *regs);
+ 
+ /* pci.c */
+-int pci64_dma_supported(struct pci_dev *pdev, u64 device_mask);
++#ifdef CONFIG_PCI
++int ali_sound_dma_hack(struct device *dev, u64 device_mask);
++#else
++#define ali_sound_dma_hack(dev, mask)	(0)
++#endif
+ 
+ /* signal32.c */
+ void do_sigreturn32(struct pt_regs *regs);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index bcfec6a85d23..5ed43828e078 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -956,51 +956,35 @@ void arch_teardown_msi_irq(unsigned int irq)
+ }
+ #endif /* !(CONFIG_PCI_MSI) */
+ 
+-static void ali_sound_dma_hack(struct pci_dev *pdev, int set_bit)
++/* ALI sound chips generate 31-bits of DMA, a special register
++ * determines what bit 31 is emitted as.
++ */
++int ali_sound_dma_hack(struct device *dev, u64 device_mask)
+ {
++	struct iommu *iommu = dev->archdata.iommu;
+ 	struct pci_dev *ali_isa_bridge;
+ 	u8 val;
+ 
+-	/* ALI sound chips generate 31-bits of DMA, a special register
+-	 * determines what bit 31 is emitted as.
+-	 */
++	if (!dev_is_pci(dev))
++		return 0;
++
++	if (to_pci_dev(dev)->vendor != PCI_VENDOR_ID_AL ||
++	    to_pci_dev(dev)->device != PCI_DEVICE_ID_AL_M5451 ||
++	    device_mask != 0x7fffffff)
++		return 0;
++
+ 	ali_isa_bridge = pci_get_device(PCI_VENDOR_ID_AL,
+ 					 PCI_DEVICE_ID_AL_M1533,
+ 					 NULL);
+ 
+ 	pci_read_config_byte(ali_isa_bridge, 0x7e, &val);
+-	if (set_bit)
++	if (iommu->dma_addr_mask & 0x80000000)
+ 		val |= 0x01;
+ 	else
+ 		val &= ~0x01;
+ 	pci_write_config_byte(ali_isa_bridge, 0x7e, val);
+ 	pci_dev_put(ali_isa_bridge);
+-}
+-
+-int pci64_dma_supported(struct pci_dev *pdev, u64 device_mask)
+-{
+-	u64 dma_addr_mask;
+-
+-	if (pdev = NULL) {
+-		dma_addr_mask = 0xffffffff;
+-	} else {
+-		struct iommu *iommu = pdev->dev.archdata.iommu;
+-
+-		dma_addr_mask = iommu->dma_addr_mask;
+-
+-		if (pdev->vendor = PCI_VENDOR_ID_AL &&
+-		    pdev->device = PCI_DEVICE_ID_AL_M5451 &&
+-		    device_mask = 0x7fffffff) {
+-			ali_sound_dma_hack(pdev,
+-					   (dma_addr_mask & 0x80000000) != 0);
+-			return 1;
+-		}
+-	}
+-
+-	if (device_mask >= (1UL << 32UL))
+-		return 0;
+-
+-	return (device_mask & dma_addr_mask) = dma_addr_mask;
++	return 1;
+ }
+ 
+ void pci_resource_to_user(const struct pci_dev *pdev, int bar,
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index fa0e42b4cbfb..d30eb22b6e11 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -676,6 +676,9 @@ static int dma_4v_supported(struct device *dev, u64 device_mask)
+ 	struct iommu *iommu = dev->archdata.iommu;
+ 	u64 dma_addr_mask = iommu->dma_addr_mask;
+ 
++	if (ali_sound_dma_hack(dev, device_mask))
++		return 1;
++
+ 	if (device_mask > DMA_BIT_MASK(32)) {
+ 		if (iommu->atu)
+ 			dma_addr_mask = iommu->atu->dma_addr_mask;
+@@ -685,7 +688,7 @@ static int dma_4v_supported(struct device *dev, u64 device_mask)
+ 
+ 	if ((device_mask & dma_addr_mask) = dma_addr_mask)
+ 		return 1;
+-	return pci64_dma_supported(to_pci_dev(dev), device_mask);
++	return 0;
+ }
+ 
+ static const struct dma_map_ops sun4v_dma_ops = {
+-- 
+2.20.1
