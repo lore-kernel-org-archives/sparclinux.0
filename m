@@ -1,93 +1,184 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Wed, 06 Feb 2019 11:58:18 +0000
-Subject: Re: [PATCH net-next v5 11/12] socket: Rename SO_RCVTIMEO/ SO_SNDTIMEO with _OLD suffixes
-Message-Id: <87o97pku1x.fsf@concordia.ellerman.id.au>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 Feb 2019 14:45:59 +0000
+Subject: [PATCH 5/5] Documentation/DMA-API-HOWTO: update dma_mask sections
+Message-Id: <20190215144559.8777-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190202153454.7121-1-deepa.kernel@gmail.com> <20190202153454.7121-12-deepa.kernel@gmail.com>
-In-Reply-To: <20190202153454.7121-12-deepa.kernel@gmail.com>
+References: <20190215144559.8777-1-hch@lst.de>
+In-Reply-To: <20190215144559.8777-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>, davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, ccaulfie@redhat.com, deller@gmx.de, paulus@samba.org, ralf@linux-mips.org, rth@twiddle.net, cluster-devel@redhat.com, linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Helge Deller <deller@gmx.de>
+Cc: Robin Murphy <robin.murphy@arm.com>, iommu@lists.linux-foundation.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Deepa Dinamani <deepa.kernel@gmail.com> writes:
+We don't require drivers to guess a DMA mask that might actually
+match the system capabilities any more, so fix up the documentation
+to clear this up.
 
-> SO_RCVTIMEO and SO_SNDTIMEO socket options use struct timeval
-> as the time format. struct timeval is not y2038 safe.
-> The subsequent patches in the series add support for new socket
-> timeout options with _NEW suffix that will use y2038 safe
-> data structures. Although the existing struct timeval layout
-> is sufficiently wide to represent timeouts, because of the way
-> libc will interpret time_t based on user defined flag, these
-> new flags provide a way of having a structure that is the same
-> for all architectures consistently.
-> Rename the existing options with _OLD suffix forms so that the
-> right option is enabled for userspace applications according
-> to the architecture and time_t definition of libc.
->
-> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> Acked-by: Willem de Bruijn <willemb@google.com>
-> Cc: ccaulfie@redhat.com
-> Cc: deller@gmx.de
-> Cc: paulus@samba.org
-> Cc: ralf@linux-mips.org
-> Cc: rth@twiddle.net
-> Cc: cluster-devel@redhat.com
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-alpha@vger.kernel.org
-> Cc: linux-arch@vger.kernel.org
-> Cc: linux-mips@vger.kernel.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> ---
->  arch/alpha/include/uapi/asm/socket.h   | 7 +++++--
->  arch/mips/include/uapi/asm/socket.h    | 6 ++++--
->  arch/parisc/include/uapi/asm/socket.h  | 6 ++++--
->  arch/powerpc/include/uapi/asm/socket.h | 4 ++--
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ Documentation/DMA-API-HOWTO.txt | 121 +++++++++++---------------------
+ 1 file changed, 41 insertions(+), 80 deletions(-)
 
-The powerpc changes look OK to me.
-
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-
-cheers
-
-> diff --git a/arch/powerpc/include/uapi/asm/socket.h b/arch/powerpc/include/uapi/asm/socket.h
-> index 94de465e0920..12aa0c43e775 100644
-> --- a/arch/powerpc/include/uapi/asm/socket.h
-> +++ b/arch/powerpc/include/uapi/asm/socket.h
-> @@ -11,8 +11,8 @@
->  
->  #define SO_RCVLOWAT	16
->  #define SO_SNDLOWAT	17
-> -#define SO_RCVTIMEO	18
-> -#define SO_SNDTIMEO	19
-> +#define SO_RCVTIMEO_OLD	18
-> +#define SO_SNDTIMEO_OLD	19
->  #define SO_PASSCRED	20
->  #define SO_PEERCRED	21
->  
-> diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-> index 2713e0fa68ef..c56b8b487c12 100644
-> --- a/include/uapi/asm-generic/socket.h
-> +++ b/include/uapi/asm-generic/socket.h
-> @@ -30,8 +30,8 @@
->  #define SO_PEERCRED	17
->  #define SO_RCVLOWAT	18
->  #define SO_SNDLOWAT	19
-> -#define SO_RCVTIMEO	20
-> -#define SO_SNDTIMEO	21
-> +#define SO_RCVTIMEO_OLD	20
-> +#define SO_SNDTIMEO_OLD	21
->  #endif
->  
->  /* Security levels - as per NRL IPv6 - don't actually do anything */
-> @@ -116,6 +116,8 @@
->  
->  #if !defined(__KERNEL__)
->  
-> +#define	SO_RCVTIMEO SO_RCVTIMEO_OLD
-> +#define	SO_SNDTIMEO SO_SNDTIMEO_OLD
->  #if __BITS_PER_LONG = 64 || (defined(__x86_64__) && defined(__ILP32__))
->  /* on 64-bit and x32, avoid the ?: operator */
->  #define SO_TIMESTAMP		SO_TIMESTAMP_OLD
+diff --git a/Documentation/DMA-API-HOWTO.txt b/Documentation/DMA-API-HOWTO.txt
+index f0cc3f772265..8e948fae34af 100644
+--- a/Documentation/DMA-API-HOWTO.txt
++++ b/Documentation/DMA-API-HOWTO.txt
+@@ -146,114 +146,75 @@ What about block I/O and networking buffers?  The block I/O and
+ networking subsystems make sure that the buffers they use are valid
+ for you to DMA from/to.
+ 
+-DMA addressing limitations
++DMA addressing capabilities
+ =============
+ 
+-Does your device have any DMA addressing limitations?  For example, is
+-your device only capable of driving the low order 24-bits of address?
+-If so, you need to inform the kernel of this fact.
++By default, the kernel assumes that your device can address 32-bits of DMA
++addressing.  For a 64-bit capable device, this needs to be increased, and for
++a device with limitations, it needs to be decreased.
+ 
+-By default, the kernel assumes that your device can address the full
+-32-bits.  For a 64-bit capable device, this needs to be increased.
+-And for a device with limitations, as discussed in the previous
+-paragraph, it needs to be decreased.
++Special note about PCI: PCI-X specification requires PCI-X devices to support
++64-bit addressing (DAC) for all transactions.  And at least one platform (SGI
++SN2) requires 64-bit consistent allocations to operate correctly when the IO
++bus is in PCI-X mode.
+ 
+-Special note about PCI: PCI-X specification requires PCI-X devices to
+-support 64-bit addressing (DAC) for all transactions.  And at least
+-one platform (SGI SN2) requires 64-bit consistent allocations to
+-operate correctly when the IO bus is in PCI-X mode.
++For correct operation, you must set the DMA mask to inform the kernel about
++your devices DMA addressing capabilities.
+ 
+-For correct operation, you must interrogate the kernel in your device
+-probe routine to see if the DMA controller on the machine can properly
+-support the DMA addressing limitation your device has.  It is good
+-style to do this even if your device holds the default setting,
+-because this shows that you did think about these issues wrt. your
+-device.
+-
+-The query is performed via a call to dma_set_mask_and_coherent()::
++This is performed via a call to dma_set_mask_and_coherent()::
+ 
+ 	int dma_set_mask_and_coherent(struct device *dev, u64 mask);
+ 
+-which will query the mask for both streaming and coherent APIs together.
+-If you have some special requirements, then the following two separate
+-queries can be used instead:
++which will set the mask for both streaming and coherent APIs together.  If you
++have some special requirements, then the following two separate calls can be
++used instead:
+ 
+-	The query for streaming mappings is performed via a call to
++	The setup for streaming mappings is performed via a call to
+ 	dma_set_mask()::
+ 
+ 		int dma_set_mask(struct device *dev, u64 mask);
+ 
+-	The query for consistent allocations is performed via a call
++	The setup for consistent allocations is performed via a call
+ 	to dma_set_coherent_mask()::
+ 
+ 		int dma_set_coherent_mask(struct device *dev, u64 mask);
+ 
+-Here, dev is a pointer to the device struct of your device, and mask
+-is a bit mask describing which bits of an address your device
+-supports.  It returns zero if your card can perform DMA properly on
+-the machine given the address mask you provided.  In general, the
+-device struct of your device is embedded in the bus-specific device
+-struct of your device.  For example, &pdev->dev is a pointer to the
+-device struct of a PCI device (pdev is a pointer to the PCI device
+-struct of your device).
++Here, dev is a pointer to the device struct of your device, and mask is a bit
++mask describing which bits of an address your device supports.  Often the
++device struct of your device is embedded in the bus-specific device struct of
++your device.  For example, &pdev->dev is a pointer to the device struct of a
++PCI device (pdev is a pointer to the PCI device struct of your device).
+ 
+-If it returns non-zero, your device cannot perform DMA properly on
+-this platform, and attempting to do so will result in undefined
+-behavior.  You must either use a different mask, or not use DMA.
++These calls usually return zero to indicated your device can perform DMA
++properly on the machine given the address mask you provided, but they might
++return an error if the mask is too small to be supportable on the given
++system.  If it returns non-zero, your device cannot perform DMA properly on
++this platform, and attempting to do so will result in undefined behavior.
++You must not use DMA on this device unless the dma_set_mask family of
++functions has returned success.
+ 
+-This means that in the failure case, you have three options:
++This means that in the failure case, you have two options:
+ 
+-1) Use another DMA mask, if possible (see below).
+-2) Use some non-DMA mode for data transfer, if possible.
+-3) Ignore this device and do not initialize it.
++1) Use some non-DMA mode for data transfer, if possible.
++2) Ignore this device and do not initialize it.
+ 
+-It is recommended that your driver print a kernel KERN_WARNING message
+-when you end up performing either #2 or #3.  In this manner, if a user
+-of your driver reports that performance is bad or that the device is not
+-even detected, you can ask them for the kernel messages to find out
+-exactly why.
++It is recommended that your driver print a kernel KERN_WARNING message when
++setting the DMA mask fails.  In this manner, if a user of your driver reports
++that performance is bad or that the device is not even detected, you can ask
++them for the kernel messages to find out exactly why.
+ 
+-The standard 32-bit addressing device would do something like this::
++The standard 64-bit addressing device would do something like this::
+ 
+-	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32))) {
++	if (dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64))) {
+ 		dev_warn(dev, "mydev: No suitable DMA available\n");
+ 		goto ignore_this_device;
+ 	}
+ 
+-Another common scenario is a 64-bit capable device.  The approach here
+-is to try for 64-bit addressing, but back down to a 32-bit mask that
+-should not fail.  The kernel may fail the 64-bit mask not because the
+-platform is not capable of 64-bit addressing.  Rather, it may fail in
+-this case simply because 32-bit addressing is done more efficiently
+-than 64-bit addressing.  For example, Sparc64 PCI SAC addressing is
+-more efficient than DAC addressing.
+-
+-Here is how you would handle a 64-bit capable device which can drive
+-all 64-bits when accessing streaming DMA::
+-
+-	int using_dac;
++If the device only supports 32-bit addressing for descriptors in the
++coherent allocations, but supports full 64-bits fro streaming mappings
++it would look like this:
+ 
+-	if (!dma_set_mask(dev, DMA_BIT_MASK(64))) {
+-		using_dac = 1;
+-	} else if (!dma_set_mask(dev, DMA_BIT_MASK(32))) {
+-		using_dac = 0;
+-	} else {
+-		dev_warn(dev, "mydev: No suitable DMA available\n");
+-		goto ignore_this_device;
+-	}
+-
+-If a card is capable of using 64-bit consistent allocations as well,
+-the case would look like this::
+-
+-	int using_dac, consistent_using_dac;
+-
+-	if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(64))) {
+-		using_dac = 1;
+-		consistent_using_dac = 1;
+-	} else if (!dma_set_mask_and_coherent(dev, DMA_BIT_MASK(32))) {
+-		using_dac = 0;
+-		consistent_using_dac = 0;
+-	} else {
++	if (dma_set_mask(dev, DMA_BIT_MASK(64))) {
+ 		dev_warn(dev, "mydev: No suitable DMA available\n");
+ 		goto ignore_this_device;
+ 	}
+-- 
+2.20.1
