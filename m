@@ -1,141 +1,92 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Tue, 12 Feb 2019 19:08:52 +0000
-Subject: Re: [PATCH net-next v5 09/12] socket: Add SO_TIMESTAMPING_NEW
-Message-Id: <CABeXuvomXSgYQaFQgv71xQu837J_HUYR4NvMqXPyh4Z3Btnprg@mail.gmail.com>
+From: ira.weiny@intel.com
+Date: Wed, 20 Feb 2019 05:30:33 +0000
+Subject: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Message-Id: <20190220053040.10831-1-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190202153454.7121-1-deepa.kernel@gmail.com> <20190202153454.7121-10-deepa.kernel@gmail.com>
- <AM4PR0501MB2769C4BE6CF1C5B051068D0BC56B0@AM4PR0501MB2769.eurprd05.prod.outlook.com>
- <CABeXuvqMR7T=3ORvXPihkz-WbTN+oFeHkCu9uvebEq9wTLpJuQ@mail.gmail.com>
-In-Reply-To: <CABeXuvqMR7T=3ORvXPihkz-WbTN+oFeHkCu9uvebEq9wTLpJuQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ran Rozenstein <ranro@mellanox.com>
-Cc: "davem@davemloft.net" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "y2038@lists.linaro.org" <y2038@lists.linaro.org>, "chris@zankel.net" <chris@zankel.net>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, "rth@twiddle.net" <rth@twiddle.net>, "tglx@linutronix.de" <tglx@linutronix.de>, "ubraun@linux.ibm.com" <ubraun@linux.ibm.com>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, linux-xtensa@linux-xtens
+To: John Hubbard <jhubbard@nvidia.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>
+Cc: linux-fbdev@vger.kernel.org, kvm@vger.kernel.org, linux-sh@vger.kernel.org, linux-fpga@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, rds-devel@oss.oracle.com, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, kvm-ppc@vger.kernel.org, ceph-devel@vger.kernel.org, virtualization@lists.linux-foundation.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-On Sun, Feb 10, 2019 at 7:21 PM Deepa Dinamani <deepa.kernel@gmail.com> wrote:
->
-> On Feb 10, 2019, at 7:43 AM, Ran Rozenstein <ranro@mellanox.com> wrote:
->
-> >> Subject: [PATCH net-next v5 09/12] socket: Add SO_TIMESTAMPING_NEW
-> >>
-> >> Add SO_TIMESTAMPING_NEW variant of socket timestamp options.
-> >> This is the y2038 safe versions of the SO_TIMESTAMPING_OLD for all
-> >> architectures.
-> >>
-> >> Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-> >> Acked-by: Willem de Bruijn <willemb@google.com>
-> >
-> >
-> > Hi,
-> >
-> > I have app that include:
-> >    #include <linux/errqueue.h>
-> >
-> > It now fail with this error:
-> >    In file included from timestamping.c:6:0:
-> >    /usr/include/linux/errqueue.h:46:27: error: array type has incomplete element type 'struct __kernel_timespec'
-> >      struct __kernel_timespec ts[3];
-> >                                       ^~
-> > I tried to do the trivial fix, to include time.h:
-> > In include/uapi/linux/errqueue.h
-> >    #include <linux/time.h>
-> >    #include <linux/types.h>
-> >
-> > But it just add some other noises:
-> >                In file included from /usr/include/linux/errqueue.h:5:0,
-> >                                 from timestamping.c:6:
-> >                /usr/include/linux/time.h:10:8: error: redefinition of ?struct timespec?
-> >                 struct timespec {
-> >                        ^~~~~~~~
-> >                In file included from /usr/include/sys/select.h:39:0,
-> >                                 from /usr/include/sys/types.h:197,
-> >                                 from /usr/include/stdlib.h:279,
-> >                                 from timestamping.c:2:
-> >                /usr/include/bits/types/struct_timespec.h:8:8: note: originally defined here
-> >                 struct timespec
-> >                        ^~~~~~~~
-> >                In file included from /usr/include/linux/errqueue.h:5:0,
-> >                                 from timestamping.c:6:
-> >                /usr/include/linux/time.h:16:8: error: redefinition of ?struct timeval?
-> >                 struct timeval {
-> >                        ^~~~~~~
-> >                In file included from /usr/include/sys/select.h:37:0,
-> >                                 from /usr/include/sys/types.h:197,
-> >                                 from /usr/include/stdlib.h:279,
-> >                                 from timestamping.c:2:
-> >                /usr/include/bits/types/struct_timeval.h:8:8: note: originally defined here
-> >                 struct timeval
-> >                        ^~~~~~~
-> >
-> >
-> > Can you please advise how to solve it?
-> >
-> > Thanks,
-> > Ran
->
-> The errqueue.h already had the same issue reported previously:
-> https://lore.kernel.org/netdev/CAF=yD-L2ntuH54J_SwN9WcpBMgkV_v0e-Q2Pu2mrQ3+1RozGFQ@mail.gmail.com/
->
-> Earlier when I tested this with kernel selftests such as
-> tools/testing/selftests/networking/timestamping/rxtimestamp(the test
-> was broken to begin with because of  missing include of unistd.h), I
-> was using make.cross to build.
-> This does not put the headers in the right place
-> (obj-$ARCH/usr/include instead of usr/include). Hence, I did not
-> realize that this breaks the inclusion of errqueue.h due to the
-> missing __kernel_timespec definition.
-> I forgot that nobody seems to be using linux/time.h.
->
-> But, if I include guards( #ifndef __KERNEL__) for struct timespec,
-> struct timeval etc for linux/time.h, then we can include it from
-> userspace/ errqueue.h for __kernel_timespec:
->
-> --- a/include/uapi/linux/errqueue.h
-> +++ b/include/uapi/linux/errqueue.h
-> @@ -2,7 +2,7 @@
->  #ifndef _UAPI_LINUX_ERRQUEUE_H
->  #define _UAPI_LINUX_ERRQUEUE_H
->
-> -#include <linux/types.h>
-> +#include <linux/time.h>
->
->  struct sock_extended_err {
->         __u32   ee_errno;
-> diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
-> index a6aca9aaab80..40913d9a5bc8 100644
-> --- a/include/uapi/linux/time.h
-> +++ b/include/uapi/linux/time.h
-> @@ -5,6 +5,8 @@
->  #include <linux/types.h>
->
->
-> +#ifdef __KERNEL__
-> +
->  #ifndef _STRUCT_TIMESPEC
->  #define _STRUCT_TIMESPEC
->  struct timespec {
-> @@ -42,6 +44,8 @@ struct itimerval {
->         struct timeval it_value;        /* current value */
->  };
->
-> +#endif /* __KERNEL__ */
->
-> Arnd,
->
-> I forgot how we plan to include the definition for __kernel_timespec
-> for libc or userspace. Does this seem right to you?
-> Also these changes to errqueue.h needs to be reverted probably as this
-> breaks userspace.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Arnd and I talked about this today morning.
-We agreed that we could introduce a new time_types.h along the lines
-of posix_types.h. We will move all the time definitions that we plan
-to keep in the kernel uapi headers to this header. This header will
-also not have any overlap with the sys/time.h and can be included
-along with it from userspace.
-I will post this patch shortly.
+Resending these as I had only 1 minor comment which I believe we have covered
+in this series.  I was anticipating these going through the mm tree as they
+depend on a cleanup patch there and the IB changes are very minor.  But they
+could just as well go through the IB tree.
 
-This should fix Ran's issue.
+NOTE: This series depends on my clean up patch to remove the write parameter
+from gup_fast_permitted()[1]
 
--Deepa
+HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+advantages.  These pages can be held for a significant time.  But
+get_user_pages_fast() does not protect against mapping of FS DAX pages.
+
+Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+retains the performance while also adding the FS DAX checks.  XDP has also
+shown interest in using this functionality.[2]
+
+In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+remove the specialized get_user_pages_longterm call.
+
+[1] https://lkml.org/lkml/2019/2/11/237
+[2] https://lkml.org/lkml/2019/2/11/1789
+
+Ira Weiny (7):
+  mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+  mm/gup: Change write parameter to flags in fast walk
+  mm/gup: Change GUP fast to use flags rather than a write 'bool'
+  mm/gup: Add FOLL_LONGTERM capability to GUP fast
+  IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+
+ arch/mips/mm/gup.c                          |  11 +-
+ arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+ arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+ arch/powerpc/mm/mmu_context_iommu.c         |   4 +-
+ arch/s390/kvm/interrupt.c                   |   2 +-
+ arch/s390/mm/gup.c                          |  12 +-
+ arch/sh/mm/gup.c                            |  11 +-
+ arch/sparc/mm/gup.c                         |   9 +-
+ arch/x86/kvm/paging_tmpl.h                  |   2 +-
+ arch/x86/kvm/svm.c                          |   2 +-
+ drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+ drivers/infiniband/core/umem.c              |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   5 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+ drivers/misc/genwqe/card_utils.c            |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+ drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+ drivers/sbus/char/oradax.c                  |   2 +-
+ drivers/scsi/st.c                           |   3 +-
+ drivers/staging/gasket/gasket_page_table.c  |   4 +-
+ drivers/tee/tee_shm.c                       |   2 +-
+ drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+ drivers/vfio/vfio_iommu_type1.c             |   3 +-
+ drivers/vhost/vhost.c                       |   2 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/virt/fsl_hypervisor.c               |   2 +-
+ drivers/xen/gntdev.c                        |   2 +-
+ fs/orangefs/orangefs-bufmap.c               |   2 +-
+ include/linux/mm.h                          |  17 +-
+ kernel/futex.c                              |   2 +-
+ lib/iov_iter.c                              |   7 +-
+ mm/gup.c                                    | 220 ++++++++++++--------
+ mm/gup_benchmark.c                          |   5 +-
+ mm/util.c                                   |   8 +-
+ net/ceph/pagevec.c                          |   2 +-
+ net/rds/info.c                              |   2 +-
+ net/rds/rdma.c                              |   3 +-
+ 44 files changed, 232 insertions(+), 180 deletions(-)
+
+-- 
+2.20.1
