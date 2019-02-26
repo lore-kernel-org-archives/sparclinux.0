@@ -1,43 +1,33 @@
-From: Steven Price <steven.price@arm.com>
-Date: Thu, 28 Feb 2019 11:49:35 +0000
-Subject: Re: [PATCH v3 20/34] sparc: mm: Add p?d_large() definitions
-Message-Id: <eee95a89-ed4a-dab9-1349-a50eee4f5b77@arm.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 26 Feb 2019 00:23:00 +0000
+Subject: Re: [PATCH 0/3] sparc: Unify the system call scripts
+Message-Id: <20190225.162300.209654917842732349.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190227170608.27963-1-steven.price@arm.com>
- <20190227170608.27963-21-steven.price@arm.com>
- <20190227.103837.668255833945043179.davem@davemloft.net>
-In-Reply-To: <20190227.103837.668255833945043179.davem@davemloft.net>
+References: <1546444373-21386-1-git-send-email-firoz.khan@linaro.org>
+In-Reply-To: <1546444373-21386-1-git-send-email-firoz.khan@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: Mark.Rutland@arm.com, dave.hansen@linux.intel.com, arnd@arndb.de, ard.biesheuvel@linaro.org, peterz@infradead.org, catalin.marinas@arm.com, x86@kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, mingo@redhat.com, bp@alien8.de, luto@kernel.org, hpa@zytor.com, sparclinux@vger.kernel.org, james.morse@arm.com, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, kan.liang@linux.intel.com
+To: firoz.khan@linaro.org
+Cc: kstewart@linuxfoundation.org, linux-arch@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, marcin.juszkiewicz@linaro.org, viro@zeniv.linux.org.uk, pombredanne@nexb.com, sparclinux@vger.kernel.org, tglx@linutronix.de, deepa.kernel@gmail.com
 
-On 27/02/2019 18:38, David Miller wrote:
-> From: Steven Price <steven.price@arm.com>
-> Date: Wed, 27 Feb 2019 17:05:54 +0000
+From: Firoz Khan <firoz.khan@linaro.org>
+Date: Wed,  2 Jan 2019 21:22:50 +0530
+
+> System call table generation support is provided for
+> alpha, ia64, m68k, microblaze, mips, parisc, powerpc,
+> sh, sparc and xtensa architectures. The implementat-
+> ions are almost similar across all the above archte-
+> ctures. In order to reduce the source code across all
+> the above architectures, create common ".sh" files and
+> keep it in the common directory, script/. This will 
+> be a generic scripts which can use for all the above
+> architectures.
 > 
->> walk_page_range() is going to be allowed to walk page tables other than
->> those of user space. For this it needs to know when it has reached a
->> 'leaf' entry in the page tables. This information is provided by the
->> p?d_large() functions/macros.
->>
->> For sparc, we don't support large pages, so add stubs returning 0.
->>
->> CC: "David S. Miller" <davem@davemloft.net>
->> CC: sparclinux@vger.kernel.org
->> Signed-off-by: Steven Price <steven.price@arm.com>
-> 
-> Sparc does support large pages on 64-bit, just not at this level.  It
-> would be nice if the commit message was made more accurate.  
+> This patch depends on;
+>  https://lore.kernel.org/lkml/1546439331-18646-1-git-send-email-firoz.khan@linaro.org/
 
-Yes you are right, I fear I only looked at the 32 bit changes when I
-wrote the commit message. I'll clarify the difference between 32/64 bit.
+Can you please merge this series in with that dependency
+then?
 
-> Other than that:
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
-
-Thanks,
-
-Steve
+Acked-by: David S. Miller <davem@davemloft.net>
