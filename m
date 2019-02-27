@@ -1,61 +1,100 @@
-From: Mikael Pettersson <mikpelinux@gmail.com>
-Date: Thu, 14 Feb 2019 18:35:22 +0000
-Subject: Re: [5.0-rc5 regression] "scsi: kill off the legacy IO path" causes 5 minute delay during boot on Su
-Message-Id: <CAM43=SOwS8A1Tv33QtQU=qmYVBMbpsaz67QOdKcD5ZHQg=wBQw@mail.gmail.com>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 27 Feb 2019 16:05:14 +0000
+Subject: [RFC PATCH v2 10/14] kernel/watchdog: Add a function to obtain the watchdog_allowed_mask
+Message-Id: <1551283518-18922-11-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAM43=SO6bdDAEULEPArfgdbjLAYDo9OiPBa8gL4fsSg7Dky=gA@mail.gmail.com>
- <1549736341.2971.7.camel@HansenPartnership.com> <CAM43=SPUMzOLRmkoT+DQSpzu2DYRTyOhU6o8KRUU_Q902o2e1Q@mail.gmail.com>
- <1549813472.4142.3.camel@HansenPartnership.com> <3380ed8e-ae02-96f2-142b-7cce09459df8@kernel.dk>
-In-Reply-To: <3380ed8e-ae02-96f2-142b-7cce09459df8@kernel.dk>
+References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jens Axboe <axboe@kernel.dk>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Linux SPARC Kernel Mailing List <sparclinux@vger.kernel.org>, linux-block@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Sun, Feb 10, 2019 at 5:05 PM Jens Axboe <axboe@kernel.dk> wrote:
->
-> On 2/10/19 8:44 AM, James Bottomley wrote:
-> > On Sun, 2019-02-10 at 10:17 +0100, Mikael Pettersson wrote:
-> >> On Sat, Feb 9, 2019 at 7:19 PM James Bottomley
-> >> <James.Bottomley@hansenpartnership.com> wrote:
-> > [...]
-> >>> I think the reason for this is that the block mq path doesn't feed
-> >>> the kernel entropy pool correctly, hence the need to install an
-> >>> entropy gatherer for systems that don't have other good random
-> >>> number sources.
-> >>
-> >> That does sound plausible, I admit I didn't even consider the
-> >> possibility that the old block I/O path also was an entropy source.
-> >
-> > In theory, the new one should be as well since the rotational entropy
-> > collector is on the SCSI completion path.   I'd seen the same problem
-> > but had assumed it was something someone had done to our internal
-> > entropy pool and thus hadn't bisected it.
->
-> The difference is that the old stack included ADD_RANDOM by default,
-> so this check:
->
->         if (blk_queue_add_random(q))
->                 add_disk_randomness(req->rq_disk);
->
-> in scsi_end_request() would be true, and we'd add the randomness. For
-> sd, it seems to set it just fine for non-rotational drives. Could this
-> be because other devices don't? Maybe the below makes a difference.
->
->
-> diff --git a/drivers/scsi/scsi_lib.c b/drivers/scsi/scsi_lib.c
-> index 6d65ac584eba..60e029911755 100644
-> --- a/drivers/scsi/scsi_lib.c
-> +++ b/drivers/scsi/scsi_lib.c
-> @@ -1881,6 +1881,7 @@ struct request_queue *scsi_mq_alloc_queue(struct scsi_device *sdev)
->         sdev->request_queue->queuedata = sdev;
->         __scsi_init_queue(sdev->host, sdev->request_queue);
->         blk_queue_flag_set(QUEUE_FLAG_SCSI_PASSTHROUGH, sdev->request_queue);
-> +       blk_queue_flag_set(QUEUE_FLAG_ADD_RANDOM, sdev->request_queue);
->         return sdev->request_queue;
->  }
+Implementations of NMI watchdogs that use a single piece of hardware to
+monitor all the CPUs in the system (as opposed to per-CPU implementations
+such as perf) need to know which CPUs the watchdog is allowed to monitor.
+In this manner, non-maskable interrupts are directed only to the monitored
+CPUs.
 
-This patch eliminates my 5 minute boot-up delay problem.
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Byungchul Park <byungchul.park@lge.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Christoffer Dall <cdall@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
+Cc: x86@kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: sparclinux@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+---
+ include/linux/nmi.h | 1 +
+ kernel/watchdog.c   | 7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-/Mikael
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index bf5ebcfdd590..b563fb6ef21d 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -83,6 +83,7 @@ static inline void reset_hung_task_detector(void) { }
+ 
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR)
+ extern void hardlockup_detector_disable(void);
++extern struct cpumask *watchdog_get_allowed_cpumask(void);
+ extern unsigned int hardlockup_panic;
+ #else
+ static inline void hardlockup_detector_disable(void) {}
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 8fbfda94a67b..367aa81294ef 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -44,7 +44,7 @@ int __read_mostly soft_watchdog_user_enabled = 1;
+ int __read_mostly watchdog_thresh = 10;
+ int __read_mostly nmi_watchdog_available;
+ 
+-struct cpumask watchdog_allowed_mask __read_mostly;
++static struct cpumask watchdog_allowed_mask __read_mostly;
+ 
+ struct cpumask watchdog_cpumask __read_mostly;
+ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
+@@ -92,6 +92,11 @@ static int __init hardlockup_all_cpu_backtrace_setup(char *str)
+ }
+ __setup("hardlockup_all_cpu_backtrace=", hardlockup_all_cpu_backtrace_setup);
+ # endif /* CONFIG_SMP */
++
++struct cpumask *watchdog_get_allowed_cpumask(void)
++{
++	return &watchdog_allowed_mask;
++}
+ #endif /* CONFIG_HARDLOCKUP_DETECTOR */
+ 
+ /*
+-- 
+2.17.1
