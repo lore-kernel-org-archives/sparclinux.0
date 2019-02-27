@@ -1,583 +1,433 @@
-From: Waiman Long <longman@redhat.com>
-Date: Thu, 07 Feb 2019 19:07:05 +0000
-Subject: [PATCH-tip 01/22] locking/qspinlock_stat: Introduce a generic lockevent counting APIs
-Message-Id: <1549566446-27967-2-git-send-email-longman@redhat.com>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Wed, 27 Feb 2019 16:05:12 +0000
+Subject: [RFC PATCH v2 08/14] watchdog/hardlockup: Decouple the hardlockup detector from perf
+Message-Id: <1551283518-18922-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1549566446-27967-1-git-send-email-longman@redhat.com>
-In-Reply-To: <1549566446-27967-1-git-send-email-longman@redhat.com>
+References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Tim Chen <tim.c.chen@linux.intel.com>, Waiman Long <longman@redhat.com>
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Borislav Petkov <bp@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ricardo Neri <ricardo.neri@intel.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, Andi Kleen <andi.kleen@intel.com>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Ricardo Neri <ricardo.neri-calderon@linux.intel.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-The percpu event counts used by qspinlock code can be useful for
-other locking code as well. So a new set of lockevent_* counting APIs
-is introduced with the lock event names extracted out into the new
-lock_events_list.h header file for easier addition in the future.
+The current default implementation of the hardlockup detector assumes that
+it is implemented using perf events. However, the hardlockup detector can
+be driven by other sources of non-maskable interrupts (e.g., a properly
+configured timer).
 
-The existing qstat_inc() calls are replaced by either lockevent_inc() or
-lockevent_cond_inc() calls.
+Put in a separate file all the code that is specific to perf: create and
+manage events, stop and start the detector. This perf-specific code is put
+in the new file watchdog_hld_perf.c
 
-The qstat_hop() call is renamed to lockevent_pv_hop(). The "reset_counters"
-debugfs file is also renamed to ".reset_counts".
+The code generic code used to monitor the timers' thresholds, check
+timestamps and detect hardlockups remains in watchdog_hld.c
 
-Signed-off-by: Waiman Long <longman@redhat.com>
+Functions and variables are simply relocated to a new file. No functional
+changes were made.
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: Babu Moger <babu.moger@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
+Cc: x86@kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 ---
- kernel/locking/lock_events.h        |  55 ++++++++++++
- kernel/locking/lock_events_list.h   |  50 +++++++++++
- kernel/locking/qspinlock.c          |   8 +-
- kernel/locking/qspinlock_paravirt.h |  19 +++--
- kernel/locking/qspinlock_stat.h     | 163 ++++++++++++++----------------------
- 5 files changed, 181 insertions(+), 114 deletions(-)
- create mode 100644 kernel/locking/lock_events.h
- create mode 100644 kernel/locking/lock_events_list.h
+ kernel/Makefile            |   3 +-
+ kernel/watchdog_hld.c      | 153 --------------------------------
+ kernel/watchdog_hld_perf.c | 175 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 177 insertions(+), 154 deletions(-)
+ create mode 100644 kernel/watchdog_hld_perf.c
 
-diff --git a/kernel/locking/lock_events.h b/kernel/locking/lock_events.h
-new file mode 100644
-index 0000000..4009e07
---- /dev/null
-+++ b/kernel/locking/lock_events.h
-@@ -0,0 +1,55 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Authors: Waiman Long <longman@redhat.com>
-+ */
-+
-+enum lock_events {
-+
-+#include "lock_events_list.h"
-+
-+	lockevent_num,	/* Total number of lock event counts */
-+	LOCKEVENT_reset_cnts = lockevent_num,
-+};
-+
-+#ifdef CONFIG_QUEUED_LOCK_STAT
-+/*
-+ * Per-cpu counters
-+ */
-+DECLARE_PER_CPU(unsigned long, lockevents[lockevent_num]);
-+
-+/*
-+ * Increment the PV qspinlock statistical counters
-+ */
-+static inline void __lockevent_inc(enum lock_events event, bool cond)
-+{
-+	if (cond)
-+		__this_cpu_inc(lockevents[event]);
-+}
-+
-+#define lockevent_inc(ev)	  __lockevent_inc(LOCKEVENT_ ##ev, true)
-+#define lockevent_cond_inc(ev, c) __lockevent_inc(LOCKEVENT_ ##ev, c)
-+
-+static inline void __lockevent_add(enum lock_events event, int inc)
-+{
-+	__this_cpu_add(lockevents[event], inc);
-+}
-+
-+#define lockevent_add(ev, c)	__lockevent_add(LOCKEVENT_ ##ev, c)
-+
-+#else  /* CONFIG_QUEUED_LOCK_STAT */
-+
-+#define lockevent_inc(ev)
-+#define lockevent_add(ev, c)
-+#define lockevent_cond_inc(ev, c)
-+
-+#endif /* CONFIG_QUEUED_LOCK_STAT */
-diff --git a/kernel/locking/lock_events_list.h b/kernel/locking/lock_events_list.h
-new file mode 100644
-index 0000000..8b4d2e1
---- /dev/null
-+++ b/kernel/locking/lock_events_list.h
-@@ -0,0 +1,50 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Authors: Waiman Long <longman@redhat.com>
-+ */
-+
-+#ifndef LOCK_EVENT
-+#define LOCK_EVENT(name)	LOCKEVENT_ ## name,
-+#endif
-+
-+#ifdef CONFIG_QUEUED_SPINLOCKS
-+#ifdef CONFIG_PARAVIRT_SPINLOCKS
-+/*
-+ * Locking events for PV qspinlock.
-+ */
-+LOCK_EVENT(pv_hash_hops)	/* Average # of hops per hashing operation */
-+LOCK_EVENT(pv_kick_unlock)	/* # of vCPU kicks issued at unlock time   */
-+LOCK_EVENT(pv_kick_wake)	/* # of vCPU kicks for pv_latency_wake	   */
-+LOCK_EVENT(pv_latency_kick)	/* Average latency (ns) of vCPU kick	   */
-+LOCK_EVENT(pv_latency_wake)	/* Average latency (ns) of kick-to-wakeup  */
-+LOCK_EVENT(pv_lock_stealing)	/* # of lock stealing operations	   */
-+LOCK_EVENT(pv_spurious_wakeup)	/* # of spurious wakeups in non-head vCPUs */
-+LOCK_EVENT(pv_wait_again)	/* # of wait's after queue head vCPU kick  */
-+LOCK_EVENT(pv_wait_early)	/* # of early vCPU wait's		   */
-+LOCK_EVENT(pv_wait_head)	/* # of vCPU wait's at the queue head	   */
-+LOCK_EVENT(pv_wait_node)	/* # of vCPU wait's at non-head queue node */
-+#endif /* CONFIG_PARAVIRT_SPINLOCKS */
-+
-+/*
-+ * Locking events for qspinlock
-+ *
-+ * Subtracting lock_use_node[234] from lock_slowpath will give you
-+ * lock_use_node1.
-+ */
-+LOCK_EVENT(lock_pending)	/* # of locking ops via pending code	     */
-+LOCK_EVENT(lock_slowpath)	/* # of locking ops via MCS lock queue	     */
-+LOCK_EVENT(lock_use_node2)	/* # of locking ops that use 2nd percpu node */
-+LOCK_EVENT(lock_use_node3)	/* # of locking ops that use 3rd percpu node */
-+LOCK_EVENT(lock_use_node4)	/* # of locking ops that use 4th percpu node */
-+LOCK_EVENT(lock_no_node)	/* # of locking ops w/o using percpu node    */
-+#endif /* CONFIG_QUEUED_SPINLOCKS */
-diff --git a/kernel/locking/qspinlock.c b/kernel/locking/qspinlock.c
-index 21ee51b..fe0dc3c 100644
---- a/kernel/locking/qspinlock.c
-+++ b/kernel/locking/qspinlock.c
-@@ -398,7 +398,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 * 0,1,0 -> 0,0,1
- 	 */
- 	clear_pending_set_locked(lock);
--	qstat_inc(qstat_lock_pending, true);
-+	lockevent_inc(lock_pending);
+diff --git a/kernel/Makefile b/kernel/Makefile
+index 6aa7543bcdb2..5b75e6003458 100644
+--- a/kernel/Makefile
++++ b/kernel/Makefile
+@@ -81,7 +81,8 @@ obj-$(CONFIG_FAIL_FUNCTION) += fail_function.o
+ obj-$(CONFIG_KGDB) += debug/
+ obj-$(CONFIG_DETECT_HUNG_TASK) += hung_task.o
+ obj-$(CONFIG_LOCKUP_DETECTOR) += watchdog.o
+-obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld.o
++obj-$(CONFIG_HARDLOCKUP_DETECTOR) += watchdog_hld.o
++obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF) += watchdog_hld_perf.o
+ obj-$(CONFIG_SECCOMP) += seccomp.o
+ obj-$(CONFIG_RELAY) += relay.o
+ obj-$(CONFIG_SYSCTL) += utsname_sysctl.o
+diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_hld.c
+index 9724cd57307b..372db565b1b9 100644
+--- a/kernel/watchdog_hld.c
++++ b/kernel/watchdog_hld.c
+@@ -22,12 +22,8 @@
+ 
+ static DEFINE_PER_CPU(bool, hard_watchdog_warn);
+ static DEFINE_PER_CPU(bool, watchdog_nmi_touch);
+-static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
+-static DEFINE_PER_CPU(struct perf_event *, dead_event);
+-static struct cpumask dead_events_mask;
+ 
+ static unsigned long hardlockup_allcpu_dumped;
+-static atomic_t watchdog_cpus = ATOMIC_INIT(0);
+ 
+ notrace void arch_touch_nmi_watchdog(void)
+ {
+@@ -98,14 +94,6 @@ static inline bool watchdog_check_timestamp(void)
+ }
+ #endif
+ 
+-static struct perf_event_attr wd_hw_attr = {
+-	.type		= PERF_TYPE_HARDWARE,
+-	.config		= PERF_COUNT_HW_CPU_CYCLES,
+-	.size		= sizeof(struct perf_event_attr),
+-	.pinned		= 1,
+-	.disabled	= 1,
+-};
+-
+ void inspect_for_hardlockups(struct pt_regs *regs)
+ {
+ 	if (__this_cpu_read(watchdog_nmi_touch) = true) {
+@@ -156,144 +144,3 @@ void inspect_for_hardlockups(struct pt_regs *regs)
  	return;
- 
- 	/*
-@@ -406,7 +406,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 * queuing.
- 	 */
- queue:
--	qstat_inc(qstat_lock_slowpath, true);
-+	lockevent_inc(lock_slowpath);
- pv_queue:
- 	node = this_cpu_ptr(&qnodes[0].mcs);
- 	idx = node->count++;
-@@ -422,7 +422,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	 * simple enough.
- 	 */
- 	if (unlikely(idx >= MAX_NODES)) {
--		qstat_inc(qstat_lock_no_node, true);
-+		lockevent_inc(lock_no_node);
- 		while (!queued_spin_trylock(lock))
- 			cpu_relax();
- 		goto release;
-@@ -433,7 +433,7 @@ void queued_spin_lock_slowpath(struct qspinlock *lock, u32 val)
- 	/*
- 	 * Keep counts of non-zero index values:
- 	 */
--	qstat_inc(qstat_lock_use_node2 + idx - 1, idx);
-+	lockevent_cond_inc(lock_use_node2 + idx - 1, idx);
- 
- 	/*
- 	 * Ensure that we increment the head node->count before initialising
-diff --git a/kernel/locking/qspinlock_paravirt.h b/kernel/locking/qspinlock_paravirt.h
-index 8f36c27..89bab07 100644
---- a/kernel/locking/qspinlock_paravirt.h
-+++ b/kernel/locking/qspinlock_paravirt.h
-@@ -89,7 +89,7 @@ static inline bool pv_hybrid_queued_unfair_trylock(struct qspinlock *lock)
- 
- 		if (!(val & _Q_LOCKED_PENDING_MASK) &&
- 		   (cmpxchg_acquire(&lock->locked, 0, _Q_LOCKED_VAL) = 0)) {
--			qstat_inc(qstat_pv_lock_stealing, true);
-+			lockevent_inc(pv_lock_stealing);
- 			return true;
- 		}
- 		if (!(val & _Q_TAIL_MASK) || (val & _Q_PENDING_MASK))
-@@ -219,7 +219,7 @@ static struct qspinlock **pv_hash(struct qspinlock *lock, struct pv_node *node)
- 		hopcnt++;
- 		if (!cmpxchg(&he->lock, NULL, lock)) {
- 			WRITE_ONCE(he->node, node);
--			qstat_hop(hopcnt);
-+			lockevent_pv_hop(hopcnt);
- 			return &he->lock;
- 		}
- 	}
-@@ -320,8 +320,8 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
- 		smp_store_mb(pn->state, vcpu_halted);
- 
- 		if (!READ_ONCE(node->locked)) {
--			qstat_inc(qstat_pv_wait_node, true);
--			qstat_inc(qstat_pv_wait_early, wait_early);
-+			lockevent_inc(pv_wait_node);
-+			lockevent_cond_inc(pv_wait_early, wait_early);
- 			pv_wait(&pn->state, vcpu_halted);
- 		}
- 
-@@ -339,7 +339,8 @@ static void pv_wait_node(struct mcs_spinlock *node, struct mcs_spinlock *prev)
- 		 * So it is better to spin for a while in the hope that the
- 		 * MCS lock will be released soon.
- 		 */
--		qstat_inc(qstat_pv_spurious_wakeup, !READ_ONCE(node->locked));
-+		lockevent_cond_inc(pv_spurious_wakeup,
-+				  !READ_ONCE(node->locked));
- 	}
- 
- 	/*
-@@ -416,7 +417,7 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
- 	/*
- 	 * Tracking # of slowpath locking operations
- 	 */
--	qstat_inc(qstat_lock_slowpath, true);
-+	lockevent_inc(lock_slowpath);
- 
- 	for (;; waitcnt++) {
- 		/*
-@@ -464,8 +465,8 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
- 			}
- 		}
- 		WRITE_ONCE(pn->state, vcpu_hashed);
--		qstat_inc(qstat_pv_wait_head, true);
--		qstat_inc(qstat_pv_wait_again, waitcnt);
-+		lockevent_inc(pv_wait_head);
-+		lockevent_cond_inc(pv_wait_again, waitcnt);
- 		pv_wait(&lock->locked, _Q_SLOW_VAL);
- 
- 		/*
-@@ -528,7 +529,7 @@ static void pv_kick_node(struct qspinlock *lock, struct mcs_spinlock *node)
- 	 * vCPU is harmless other than the additional latency in completing
- 	 * the unlock.
- 	 */
--	qstat_inc(qstat_pv_kick_unlock, true);
-+	lockevent_inc(pv_kick_unlock);
- 	pv_kick(node->cpu);
  }
  
-diff --git a/kernel/locking/qspinlock_stat.h b/kernel/locking/qspinlock_stat.h
-index d73f853..1db5b37 100644
---- a/kernel/locking/qspinlock_stat.h
-+++ b/kernel/locking/qspinlock_stat.h
-@@ -38,8 +38,8 @@
-  * Subtracting lock_use_node[234] from lock_slowpath will give you
-  * lock_use_node1.
-  *
-- * Writing to the "reset_counters" file will reset all the above counter
-- * values.
-+ * Writing to the special ".reset_counts" file will reset all the above
-+ * counter values.
-  *
-  * These statistical counters are implemented as per-cpu variables which are
-  * summed and computed whenever the corresponding debugfs files are read. This
-@@ -48,27 +48,7 @@
-  *
-  * There may be slight difference between pv_kick_wake and pv_kick_unlock.
-  */
--enum qlock_stats {
--	qstat_pv_hash_hops,
--	qstat_pv_kick_unlock,
--	qstat_pv_kick_wake,
--	qstat_pv_latency_kick,
--	qstat_pv_latency_wake,
--	qstat_pv_lock_stealing,
--	qstat_pv_spurious_wakeup,
--	qstat_pv_wait_again,
--	qstat_pv_wait_early,
--	qstat_pv_wait_head,
--	qstat_pv_wait_node,
--	qstat_lock_pending,
--	qstat_lock_slowpath,
--	qstat_lock_use_node2,
--	qstat_lock_use_node3,
--	qstat_lock_use_node4,
--	qstat_lock_no_node,
--	qstat_num,	/* Total number of statistical counters */
--	qstat_reset_cnts = qstat_num,
--};
-+#include "lock_events.h"
- 
- #ifdef CONFIG_QUEUED_LOCK_STAT
- /*
-@@ -79,99 +59,91 @@ enum qlock_stats {
- #include <linux/sched/clock.h>
- #include <linux/fs.h>
- 
--static const char * const qstat_names[qstat_num + 1] = {
--	[qstat_pv_hash_hops]	   = "pv_hash_hops",
--	[qstat_pv_kick_unlock]     = "pv_kick_unlock",
--	[qstat_pv_kick_wake]       = "pv_kick_wake",
--	[qstat_pv_spurious_wakeup] = "pv_spurious_wakeup",
--	[qstat_pv_latency_kick]	   = "pv_latency_kick",
--	[qstat_pv_latency_wake]    = "pv_latency_wake",
--	[qstat_pv_lock_stealing]   = "pv_lock_stealing",
--	[qstat_pv_wait_again]      = "pv_wait_again",
--	[qstat_pv_wait_early]      = "pv_wait_early",
--	[qstat_pv_wait_head]       = "pv_wait_head",
--	[qstat_pv_wait_node]       = "pv_wait_node",
--	[qstat_lock_pending]       = "lock_pending",
--	[qstat_lock_slowpath]      = "lock_slowpath",
--	[qstat_lock_use_node2]	   = "lock_use_node2",
--	[qstat_lock_use_node3]	   = "lock_use_node3",
--	[qstat_lock_use_node4]	   = "lock_use_node4",
--	[qstat_lock_no_node]	   = "lock_no_node",
--	[qstat_reset_cnts]         = "reset_counters",
-+#define EVENT_COUNT(ev)	lockevents[LOCKEVENT_ ## ev]
-+
-+#undef  LOCK_EVENT
-+#define LOCK_EVENT(name)	[LOCKEVENT_ ## name] = #name,
-+
-+static const char * const lockevent_names[lockevent_num + 1] = {
-+
-+#include "lock_events_list.h"
-+
-+	[LOCKEVENT_reset_cnts] = ".reset_counts",
- };
- 
- /*
-  * Per-cpu counters
-  */
--static DEFINE_PER_CPU(unsigned long, qstats[qstat_num]);
-+DEFINE_PER_CPU(unsigned long, lockevents[lockevent_num]);
- static DEFINE_PER_CPU(u64, pv_kick_time);
- 
- /*
-  * Function to read and return the qlock statistical counter values
-  *
-  * The following counters are handled specially:
-- * 1. qstat_pv_latency_kick
-+ * 1. pv_latency_kick
-  *    Average kick latency (ns) = pv_latency_kick/pv_kick_unlock
-- * 2. qstat_pv_latency_wake
-+ * 2. pv_latency_wake
-  *    Average wake latency (ns) = pv_latency_wake/pv_kick_wake
-- * 3. qstat_pv_hash_hops
-+ * 3. pv_hash_hops
-  *    Average hops/hash = pv_hash_hops/pv_kick_unlock
-  */
--static ssize_t qstat_read(struct file *file, char __user *user_buf,
--			  size_t count, loff_t *ppos)
-+static ssize_t lockevent_read(struct file *file, char __user *user_buf,
-+			      size_t count, loff_t *ppos)
- {
- 	char buf[64];
--	int cpu, counter, len;
--	u64 stat = 0, kicks = 0;
-+	int cpu, id, len;
-+	u64 sum = 0, kicks = 0;
- 
- 	/*
- 	 * Get the counter ID stored in file->f_inode->i_private
- 	 */
--	counter = (long)file_inode(file)->i_private;
-+	id = (long)file_inode(file)->i_private;
- 
--	if (counter >= qstat_num)
-+	if (id >= lockevent_num)
- 		return -EBADF;
- 
- 	for_each_possible_cpu(cpu) {
--		stat += per_cpu(qstats[counter], cpu);
-+		sum += per_cpu(lockevents[id], cpu);
- 		/*
--		 * Need to sum additional counter for some of them
-+		 * Need to sum additional counters for some of them
- 		 */
--		switch (counter) {
-+		switch (id) {
- 
--		case qstat_pv_latency_kick:
--		case qstat_pv_hash_hops:
--			kicks += per_cpu(qstats[qstat_pv_kick_unlock], cpu);
-+		case LOCKEVENT_pv_latency_kick:
-+		case LOCKEVENT_pv_hash_hops:
-+			kicks += per_cpu(EVENT_COUNT(pv_kick_unlock), cpu);
- 			break;
- 
--		case qstat_pv_latency_wake:
--			kicks += per_cpu(qstats[qstat_pv_kick_wake], cpu);
-+		case LOCKEVENT_pv_latency_wake:
-+			kicks += per_cpu(EVENT_COUNT(pv_kick_wake), cpu);
- 			break;
- 		}
- 	}
- 
--	if (counter = qstat_pv_hash_hops) {
-+	if (id = LOCKEVENT_pv_hash_hops) {
- 		u64 frac = 0;
- 
- 		if (kicks) {
--			frac = 100ULL * do_div(stat, kicks);
-+			frac = 100ULL * do_div(sum, kicks);
- 			frac = DIV_ROUND_CLOSEST_ULL(frac, kicks);
- 		}
- 
- 		/*
- 		 * Return a X.XX decimal number
- 		 */
--		len = snprintf(buf, sizeof(buf) - 1, "%llu.%02llu\n", stat, frac);
-+		len = snprintf(buf, sizeof(buf) - 1, "%llu.%02llu\n",
-+			       sum, frac);
- 	} else {
- 		/*
- 		 * Round to the nearest ns
- 		 */
--		if ((counter = qstat_pv_latency_kick) ||
--		    (counter = qstat_pv_latency_wake)) {
-+		if ((id = LOCKEVENT_pv_latency_kick) ||
-+		    (id = LOCKEVENT_pv_latency_wake)) {
- 			if (kicks)
--				stat = DIV_ROUND_CLOSEST_ULL(stat, kicks);
-+				sum = DIV_ROUND_CLOSEST_ULL(sum, kicks);
- 		}
--		len = snprintf(buf, sizeof(buf) - 1, "%llu\n", stat);
-+		len = snprintf(buf, sizeof(buf) - 1, "%llu\n", sum);
- 	}
- 
- 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
-@@ -180,11 +152,9 @@ static ssize_t qstat_read(struct file *file, char __user *user_buf,
- /*
-  * Function to handle write request
-  *
-- * When counter = reset_cnts, reset all the counter values.
-- * Since the counter updates aren't atomic, the resetting is done twice
-- * to make sure that the counters are very likely to be all cleared.
-+ * When id = .reset_cnts, reset all the counter values.
-  */
--static ssize_t qstat_write(struct file *file, const char __user *user_buf,
-+static ssize_t lockevent_write(struct file *file, const char __user *user_buf,
- 			   size_t count, loff_t *ppos)
- {
- 	int cpu;
-@@ -192,14 +162,14 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
- 	/*
- 	 * Get the counter ID stored in file->f_inode->i_private
- 	 */
--	if ((long)file_inode(file)->i_private != qstat_reset_cnts)
-+	if ((long)file_inode(file)->i_private != LOCKEVENT_reset_cnts)
- 		return count;
- 
- 	for_each_possible_cpu(cpu) {
- 		int i;
--		unsigned long *ptr = per_cpu_ptr(qstats, cpu);
-+		unsigned long *ptr = per_cpu_ptr(lockevents, cpu);
- 
--		for (i = 0 ; i < qstat_num; i++)
-+		for (i = 0 ; i < lockevent_num; i++)
- 			WRITE_ONCE(ptr[i], 0);
- 	}
- 	return count;
-@@ -208,9 +178,9 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
- /*
-  * Debugfs data structures
-  */
--static const struct file_operations fops_qstat = {
--	.read = qstat_read,
--	.write = qstat_write,
-+static const struct file_operations fops_lockevent = {
-+	.read = lockevent_read,
-+	.write = lockevent_write,
- 	.llseek = default_llseek,
- };
- 
-@@ -219,10 +189,10 @@ static ssize_t qstat_write(struct file *file, const char __user *user_buf,
-  */
- static int __init init_qspinlock_stat(void)
- {
--	struct dentry *d_qstat = debugfs_create_dir("qlockstat", NULL);
-+	struct dentry *d_counts = debugfs_create_dir("qlockstat", NULL);
- 	int i;
- 
--	if (!d_qstat)
-+	if (!d_counts)
- 		goto out;
- 
- 	/*
-@@ -232,18 +202,19 @@ static int __init init_qspinlock_stat(void)
- 	 * root is allowed to do the read/write to limit impact to system
- 	 * performance.
- 	 */
--	for (i = 0; i < qstat_num; i++)
--		if (!debugfs_create_file(qstat_names[i], 0400, d_qstat,
--					 (void *)(long)i, &fops_qstat))
-+	for (i = 0; i < lockevent_num; i++)
-+		if (!debugfs_create_file(lockevent_names[i], 0400, d_counts,
-+					 (void *)(long)i, &fops_lockevent))
- 			goto fail_undo;
- 
--	if (!debugfs_create_file(qstat_names[qstat_reset_cnts], 0200, d_qstat,
--				 (void *)(long)qstat_reset_cnts, &fops_qstat))
-+	if (!debugfs_create_file(lockevent_names[LOCKEVENT_reset_cnts], 0200,
-+				 d_counts, (void *)(long)LOCKEVENT_reset_cnts,
-+				 &fops_lockevent))
- 		goto fail_undo;
- 
- 	return 0;
- fail_undo:
--	debugfs_remove_recursive(d_qstat);
-+	debugfs_remove_recursive(d_counts);
- out:
- 	pr_warn("Could not create 'qlockstat' debugfs entries\n");
- 	return -ENOMEM;
-@@ -251,20 +222,11 @@ static int __init init_qspinlock_stat(void)
- fs_initcall(init_qspinlock_stat);
- 
- /*
-- * Increment the PV qspinlock statistical counters
-- */
--static inline void qstat_inc(enum qlock_stats stat, bool cond)
+-/* Callback function for perf event subsystem */
+-static void watchdog_overflow_callback(struct perf_event *event,
+-				       struct perf_sample_data *data,
+-				       struct pt_regs *regs)
 -{
--	if (cond)
--		this_cpu_inc(qstats[stat]);
+-	/* Ensure the watchdog never gets throttled */
+-	event->hw.interrupts = 0;
+-	inspect_for_hardlockups(regs);
 -}
 -
--/*
-  * PV hash hop count
-  */
--static inline void qstat_hop(int hopcnt)
-+static inline void lockevent_pv_hop(int hopcnt)
- {
--	this_cpu_add(qstats[qstat_pv_hash_hops], hopcnt);
-+	this_cpu_add(EVENT_COUNT(pv_hash_hops), hopcnt);
- }
- 
- /*
-@@ -276,7 +238,7 @@ static inline void __pv_kick(int cpu)
- 
- 	per_cpu(pv_kick_time, cpu) = start;
- 	pv_kick(cpu);
--	this_cpu_add(qstats[qstat_pv_latency_kick], sched_clock() - start);
-+	this_cpu_add(EVENT_COUNT(pv_latency_kick), sched_clock() - start);
- }
- 
- /*
-@@ -289,9 +251,9 @@ static inline void __pv_wait(u8 *ptr, u8 val)
- 	*pkick_time = 0;
- 	pv_wait(ptr, val);
- 	if (*pkick_time) {
--		this_cpu_add(qstats[qstat_pv_latency_wake],
-+		this_cpu_add(EVENT_COUNT(pv_latency_wake),
- 			     sched_clock() - *pkick_time);
--		qstat_inc(qstat_pv_kick_wake, true);
-+		lockevent_inc(pv_kick_wake);
- 	}
- }
- 
-@@ -300,7 +262,6 @@ static inline void __pv_wait(u8 *ptr, u8 val)
- 
- #else /* CONFIG_QUEUED_LOCK_STAT */
- 
--static inline void qstat_inc(enum qlock_stats stat, bool cond)	{ }
--static inline void qstat_hop(int hopcnt)			{ }
-+static inline void lockevent_pv_hop(int hopcnt)	{ }
- 
- #endif /* CONFIG_QUEUED_LOCK_STAT */
+-static int hardlockup_detector_event_create(void)
+-{
+-	unsigned int cpu = smp_processor_id();
+-	struct perf_event_attr *wd_attr;
+-	struct perf_event *evt;
+-
+-	wd_attr = &wd_hw_attr;
+-	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+-
+-	/* Try to register using hardware perf events */
+-	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
+-					       watchdog_overflow_callback, NULL);
+-	if (IS_ERR(evt)) {
+-		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
+-			 PTR_ERR(evt));
+-		return PTR_ERR(evt);
+-	}
+-	this_cpu_write(watchdog_ev, evt);
+-	return 0;
+-}
+-
+-/**
+- * hardlockup_detector_perf_enable - Enable the local event
+- */
+-void hardlockup_detector_perf_enable(void)
+-{
+-	if (hardlockup_detector_event_create())
+-		return;
+-
+-	/* use original value for check */
+-	if (!atomic_fetch_inc(&watchdog_cpus))
+-		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
+-
+-	perf_event_enable(this_cpu_read(watchdog_ev));
+-}
+-
+-/**
+- * hardlockup_detector_perf_disable - Disable the local event
+- */
+-void hardlockup_detector_perf_disable(void)
+-{
+-	struct perf_event *event = this_cpu_read(watchdog_ev);
+-
+-	if (event) {
+-		perf_event_disable(event);
+-		this_cpu_write(watchdog_ev, NULL);
+-		this_cpu_write(dead_event, event);
+-		cpumask_set_cpu(smp_processor_id(), &dead_events_mask);
+-		atomic_dec(&watchdog_cpus);
+-	}
+-}
+-
+-/**
+- * hardlockup_detector_perf_cleanup - Cleanup disabled events and destroy them
+- *
+- * Called from lockup_detector_cleanup(). Serialized by the caller.
+- */
+-void hardlockup_detector_perf_cleanup(void)
+-{
+-	int cpu;
+-
+-	for_each_cpu(cpu, &dead_events_mask) {
+-		struct perf_event *event = per_cpu(dead_event, cpu);
+-
+-		/*
+-		 * Required because for_each_cpu() reports  unconditionally
+-		 * CPU0 as set on UP kernels. Sigh.
+-		 */
+-		if (event)
+-			perf_event_release_kernel(event);
+-		per_cpu(dead_event, cpu) = NULL;
+-	}
+-	cpumask_clear(&dead_events_mask);
+-}
+-
+-/**
+- * hardlockup_detector_perf_stop - Globally stop watchdog events
+- *
+- * Special interface for x86 to handle the perf HT bug.
+- */
+-void __init hardlockup_detector_perf_stop(void)
+-{
+-	int cpu;
+-
+-	lockdep_assert_cpus_held();
+-
+-	for_each_online_cpu(cpu) {
+-		struct perf_event *event = per_cpu(watchdog_ev, cpu);
+-
+-		if (event)
+-			perf_event_disable(event);
+-	}
+-}
+-
+-/**
+- * hardlockup_detector_perf_restart - Globally restart watchdog events
+- *
+- * Special interface for x86 to handle the perf HT bug.
+- */
+-void __init hardlockup_detector_perf_restart(void)
+-{
+-	int cpu;
+-
+-	lockdep_assert_cpus_held();
+-
+-	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
+-		return;
+-
+-	for_each_online_cpu(cpu) {
+-		struct perf_event *event = per_cpu(watchdog_ev, cpu);
+-
+-		if (event)
+-			perf_event_enable(event);
+-	}
+-}
+-
+-/**
+- * hardlockup_detector_perf_init - Probe whether NMI event is available at all
+- */
+-int __init hardlockup_detector_perf_init(void)
+-{
+-	int ret = hardlockup_detector_event_create();
+-
+-	if (ret) {
+-		pr_info("Perf NMI watchdog permanently disabled\n");
+-	} else {
+-		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+-		this_cpu_write(watchdog_ev, NULL);
+-	}
+-	return ret;
+-}
+diff --git a/kernel/watchdog_hld_perf.c b/kernel/watchdog_hld_perf.c
+new file mode 100644
+index 000000000000..1d06ec5a8e42
+--- /dev/null
++++ b/kernel/watchdog_hld_perf.c
+@@ -0,0 +1,175 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Detect hard lockups on a system
++ *
++ * Copyright (C) Intel Corporation 2019
++ *
++ * Note: All of this code comes from the original perf-specific hardlockup
++ * detector.
++ */
++
++#define pr_fmt(fmt) "NMI perf watchdog: " fmt
++
++#include <linux/nmi.h>
++#include <linux/atomic.h>
++#include <linux/module.h>
++#include <linux/sched/debug.h>
++#include <linux/perf_event.h>
++#include <asm/irq_regs.h>
++
++static DEFINE_PER_CPU(struct perf_event *, watchdog_ev);
++static DEFINE_PER_CPU(struct perf_event *, dead_event);
++static struct cpumask dead_events_mask;
++
++static atomic_t watchdog_cpus = ATOMIC_INIT(0);
++
++static struct perf_event_attr wd_hw_attr = {
++	.type		= PERF_TYPE_HARDWARE,
++	.config		= PERF_COUNT_HW_CPU_CYCLES,
++	.size		= sizeof(struct perf_event_attr),
++	.pinned		= 1,
++	.disabled	= 1,
++};
++
++/* Callback function for perf event subsystem */
++static void watchdog_overflow_callback(struct perf_event *event,
++				       struct perf_sample_data *data,
++				       struct pt_regs *regs)
++{
++	/* Ensure the watchdog never gets throttled */
++	event->hw.interrupts = 0;
++	inspect_for_hardlockups(regs);
++}
++
++static int hardlockup_detector_event_create(void)
++{
++	unsigned int cpu = smp_processor_id();
++	struct perf_event_attr *wd_attr;
++	struct perf_event *evt;
++
++	wd_attr = &wd_hw_attr;
++	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
++
++	/* Try to register using hardware perf events */
++	evt = perf_event_create_kernel_counter(wd_attr, cpu, NULL,
++					       watchdog_overflow_callback, NULL);
++	if (IS_ERR(evt)) {
++		pr_debug("Perf event create on CPU %d failed with %ld\n", cpu,
++			 PTR_ERR(evt));
++		return PTR_ERR(evt);
++	}
++	this_cpu_write(watchdog_ev, evt);
++	return 0;
++}
++
++/**
++ * hardlockup_detector_perf_enable - Enable the local event
++ */
++void hardlockup_detector_perf_enable(void)
++{
++	if (hardlockup_detector_event_create())
++		return;
++
++	/* use original value for check */
++	if (!atomic_fetch_inc(&watchdog_cpus))
++		pr_info("Enabled. Permanently consumes one hw-PMU counter.\n");
++
++	perf_event_enable(this_cpu_read(watchdog_ev));
++}
++
++/**
++ * hardlockup_detector_perf_disable - Disable the local event
++ */
++void hardlockup_detector_perf_disable(void)
++{
++	struct perf_event *event = this_cpu_read(watchdog_ev);
++
++	if (event) {
++		perf_event_disable(event);
++		this_cpu_write(watchdog_ev, NULL);
++		this_cpu_write(dead_event, event);
++		cpumask_set_cpu(smp_processor_id(), &dead_events_mask);
++		atomic_dec(&watchdog_cpus);
++	}
++}
++
++/**
++ * hardlockup_detector_perf_cleanup - Cleanup disabled events and destroy them
++ *
++ * Called from lockup_detector_cleanup(). Serialized by the caller.
++ */
++void hardlockup_detector_perf_cleanup(void)
++{
++	int cpu;
++
++	for_each_cpu(cpu, &dead_events_mask) {
++		struct perf_event *event = per_cpu(dead_event, cpu);
++
++		/*
++		 * Required because for_each_cpu() reports  unconditionally
++		 * CPU0 as set on UP kernels. Sigh.
++		 */
++		if (event)
++			perf_event_release_kernel(event);
++		per_cpu(dead_event, cpu) = NULL;
++	}
++	cpumask_clear(&dead_events_mask);
++}
++
++/**
++ * hardlockup_detector_perf_stop - Globally stop watchdog events
++ *
++ * Special interface for x86 to handle the perf HT bug.
++ */
++void __init hardlockup_detector_perf_stop(void)
++{
++	int cpu;
++
++	lockdep_assert_cpus_held();
++
++	for_each_online_cpu(cpu) {
++		struct perf_event *event = per_cpu(watchdog_ev, cpu);
++
++		if (event)
++			perf_event_disable(event);
++	}
++}
++
++/**
++ * hardlockup_detector_perf_restart - Globally restart watchdog events
++ *
++ * Special interface for x86 to handle the perf HT bug.
++ */
++void __init hardlockup_detector_perf_restart(void)
++{
++	int cpu;
++
++	lockdep_assert_cpus_held();
++
++	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
++		return;
++
++	for_each_online_cpu(cpu) {
++		struct perf_event *event = per_cpu(watchdog_ev, cpu);
++
++		if (event)
++			perf_event_enable(event);
++	}
++}
++
++/**
++ * hardlockup_detector_perf_init - Probe whether NMI event is available at all
++ */
++int __init hardlockup_detector_perf_init(void)
++{
++	int ret = hardlockup_detector_event_create();
++
++	if (ret) {
++		pr_info("Perf NMI watchdog permanently disabled\n");
++	} else {
++		perf_event_release_kernel(this_cpu_read(watchdog_ev));
++		this_cpu_write(watchdog_ev, NULL);
++	}
++	return ret;
++}
++
 -- 
-1.8.3.1
+2.17.1
