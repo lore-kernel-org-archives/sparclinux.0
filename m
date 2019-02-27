@@ -1,29 +1,70 @@
-From: Michael Ellerman <mpe@ellerman.id.au>
-Date: Sun, 10 Feb 2019 22:12:52 +0000
-Subject: Re: [PATCH net-next v5 12/12] sock: Add SO_RCVTIMEO_NEW and SO_SNDTIMEO_NEW
-Message-Id: <87o97ji97f.fsf@concordia.ellerman.id.au>
+From: Steven Price <steven.price@arm.com>
+Date: Wed, 27 Feb 2019 17:05:54 +0000
+Subject: [PATCH v3 20/34] sparc: mm: Add p?d_large() definitions
+Message-Id: <20190227170608.27963-21-steven.price@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190202153454.7121-1-deepa.kernel@gmail.com> <20190202153454.7121-13-deepa.kernel@gmail.com> <87r2clku4j.fsf@concordia.ellerman.id.au> <CABeXuvqpexo4g7xQihKPoOd4ce4rLq0Agy-jYMELYvOAnqmXJA@mail.gmail.com>
-In-Reply-To: <CABeXuvqpexo4g7xQihKPoOd4ce4rLq0Agy-jYMELYvOAnqmXJA@mail.gmail.com>
+References: <20190227170608.27963-1-steven.price@arm.com>
+In-Reply-To: <20190227170608.27963-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Network Devel Mailing List <netdev@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, y2038 Mailman List <y2038@lists.linaro.org>, ccaulfie@redhat.com, Helge Deller <deller@gmx.de>, Paul Mackerras <paulus@samba.org>, Ralf Baechle <ralf@linux-mips.org>, Richard Henderson <rth@twiddle.net>, cluster-devel <cluster-devel@redhat.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-alpha@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, linux-mips@vger.kernel.org, Parisc List <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>
+To: linux-mm@kvack.org
+Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
 
-Deepa Dinamani <deepa.kernel@gmail.com> writes:
+walk_page_range() is going to be allowed to walk page tables other than
+those of user space. For this it needs to know when it has reached a
+'leaf' entry in the page tables. This information is provided by the
+p?d_large() functions/macros.
 
->> You touched powerpc in the previous patch but not this one.
->>
->> That's because we use the asm-generic version I assume.
->
-> That is correct.
->
->> Would be good to mention in the change log though to avoid any confusion.
->
-> I'm not sure how to do that now. It looks like the series has already
-> been applied to net-next with a couple of merge conflicts fixed.
+For sparc, we don't support large pages, so add stubs returning 0.
 
-That's fine, it's not that important.
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Steven Price <steven.price@arm.com>
+---
+ arch/sparc/include/asm/pgtable_32.h | 10 ++++++++++
+ arch/sparc/include/asm/pgtable_64.h |  1 +
+ 2 files changed, 11 insertions(+)
 
-cheers
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 4eebed6c6781..dbc533e4c460 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -177,6 +177,11 @@ static inline int pmd_none(pmd_t pmd)
+ 	return !pmd_val(pmd);
+ }
+ 
++static inline int pmd_large(pmd_t pmd)
++{
++	return 0;
++}
++
+ static inline void pmd_clear(pmd_t *pmdp)
+ {
+ 	int i;
+@@ -199,6 +204,11 @@ static inline int pgd_present(pgd_t pgd)
+ 	return ((pgd_val(pgd) & SRMMU_ET_MASK) = SRMMU_ET_PTD);
+ }
+ 
++static inline int pgd_large(pgd_t pgd)
++{
++	return 0;
++}
++
+ static inline void pgd_clear(pgd_t *pgdp)
+ {
+ 	set_pte((pte_t *)pgdp, __pte(0));
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..c32b26bdea53 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -892,6 +892,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ #define pgd_page_vaddr(pgd)		\
+ 	((unsigned long) __va(pgd_val(pgd)))
+ #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
++#define pgd_large(pgd)			(0)
+ #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
+ 
+ static inline unsigned long pud_large(pud_t pud)
+-- 
+2.20.1
