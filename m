@@ -1,272 +1,137 @@
-From: Alex Ghiti <alex@ghiti.fr>
-Date: Mon, 18 Mar 2019 07:00:47 +0000
-Subject: Re: [PATCH v7 4/4] hugetlb: allow to free gigantic pages regardless of the configuration
-Message-Id: <525d6c00-012f-c6dd-abf0-fa5e1ffc12be@ghiti.fr>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Fri, 01 Mar 2019 13:21:06 +0000
+Subject: Re: [PATCH v4 4/4] hugetlb: allow to free gigantic pages regardless of the configuration
+Message-Id: <f7c94eb5-d496-7e24-d44f-17eaff287012@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317162847.14107-1-alex@ghiti.fr>
- <20190317162847.14107-5-alex@ghiti.fr>
- <f434892d-80b2-f09d-31d6-754a1be0b97a@c-s.fr>
-In-Reply-To: <f434892d-80b2-f09d-31d6-754a1be0b97a@c-s.fr>
+References: <20190228063604.15298-1-alex@ghiti.fr>
+ <20190228063604.15298-5-alex@ghiti.fr>
+ <9a385cc8-581c-55cf-4a85-10b5c4dd178c@intel.com>
+ <31212559-d397-88fb-eaec-60f6417436c8@oracle.com>
+ <6c842251-1bed-4d79-bf6d-997006ec72e2@intel.com>
+ <6ea4119a-0ecb-511d-3aab-269004245a08@oracle.com>
+ <1cfaca88-a219-d057-3ab8-37fb1c1687d6@ghiti.fr>
+In-Reply-To: <1cfaca88-a219-d057-3ab8-37fb1c1687d6@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: christophe leroy <christophe.leroy@c-s.fr>, aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+To: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>
 
-On 3/17/19 2:31 PM, christophe leroy wrote:
+On 03/01/2019 07:25 AM, Alex Ghiti wrote:
+> On 2/28/19 5:26 PM, Mike Kravetz wrote:
+>> On 2/28/19 12:23 PM, Dave Hansen wrote:
+>>> On 2/28/19 11:50 AM, Mike Kravetz wrote:
+>>>> On 2/28/19 11:13 AM, Dave Hansen wrote:
+>>>>>> +    if (hstate_is_gigantic(h) && 
+>>>>>> !IS_ENABLED(CONFIG_CONTIG_ALLOC)) {
+>>>>>> +        spin_lock(&hugetlb_lock);
+>>>>>> +        if (count > persistent_huge_pages(h)) {
+>>>>>> +            spin_unlock(&hugetlb_lock);
+>>>>>> +            return -EINVAL;
+>>>>>> +        }
+>>>>>> +        goto decrease_pool;
+>>>>>> +    }
+>>>>> This choice confuses me.  The "Decrease the pool size" code already
+>>>>> works and the code just falls through to it after skipping all the
+>>>>> "Increase the pool size" code.
+>>>>>
+>>>>> Why did did you need to add this case so early?  Why not just let it
+>>>>> fall through like before?
+>>>> I assume you are questioning the goto, right?  You are correct in that
+>>>> it is unnecessary and we could just fall through.
+>>> Yeah, it just looked odd to me.
 >
+> (Dave I do not receive your answers, I don't know why).
+
+I collected mistakes here: domain name expired and no mailing list added :)
+Really sorry about that, I missed the whole discussion (if any).
+Could someone forward it to me (if any) ? Thanks !
+
+> I'd rather avoid useless checks when we already know they won't
+> be met and I think that makes the code more understandable.
 >
-> Le 17/03/2019 à 17:28, Alexandre Ghiti a écrit :
->> On systems without CONTIG_ALLOC activated but that support gigantic 
->> pages,
->> boottime reserved gigantic pages can not be freed at all. This patch
->> simply enables the possibility to hand back those pages to memory
->> allocator.
+> But that's up to you for the next version.
+>
+> Thanks
+>>>
+>>>> However, I wonder if we might want to consider a wacky condition 
+>>>> that the
+>>>> above check would prevent.  Consider a system/configuration with 5 
+>>>> gigantic
+>>>> pages allocated at boot time.  Also CONFIG_CONTIG_ALLOC is not 
+>>>> enabled, so
+>>>> it is not possible to allocate gigantic pages after boot.
+>>>>
+>>>> Suppose the admin decreased the number of gigantic pages to 3.  
+>>>> However, all
+>>>> gigantic pages were in use.  So, 2 gigantic pages are now 'surplus'.
+>>>> h->nr_huge_pages = 5 and h->surplus_huge_pages = 2, so
+>>>> persistent_huge_pages() = 3.
+>>>>
+>>>> Now suppose the admin wanted to increase the number of gigantic 
+>>>> pages to 5.
+>>>> The above check would prevent this.  However, we do not need to really
+>>>> 'allocate' two gigantic pages.  We can simply convert the surplus 
+>>>> pages.
+>>>>
+>>>> I admit this is a wacky condition.  The ability to 'free' gigantic 
+>>>> pages
+>>>> at runtime if !CONFIG_CONTIG_ALLOC makes it possible.  I don't 
+>>>> necessairly
+>>>> think we should consider this.  hugetlbfs code just makes me think of
+>>>> wacky things. :)
+>>> I think you're saying that the newly-added check is overly-restrictive.
+>>>   If we "fell through" like I was suggesting we would get better 
+>>> behavior.
+>> At first, I did not think it overly restrictive.  But, I believe we can
+>> just eliminate that check for gigantic pages.  If 
+>> !CONFIG_CONTIG_ALLOC and
+>> this is a request to allocate more gigantic pages, 
+>> alloc_pool_huge_page()
+>> should return NULL.
 >>
->> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
->> Acked-by: David S. Miller <davem@davemloft.net> [sparc]
->> ---
->>   arch/arm64/Kconfig                           |  2 +-
->>   arch/arm64/include/asm/hugetlb.h             |  4 --
->>   arch/powerpc/include/asm/book3s/64/hugetlb.h |  7 ---
->>   arch/powerpc/platforms/Kconfig.cputype       |  2 +-
->>   arch/s390/Kconfig                            |  2 +-
->>   arch/s390/include/asm/hugetlb.h              |  3 --
->>   arch/sh/Kconfig                              |  2 +-
->>   arch/sparc/Kconfig                           |  2 +-
->>   arch/x86/Kconfig                             |  2 +-
->>   arch/x86/include/asm/hugetlb.h               |  4 --
->>   include/asm-generic/hugetlb.h                | 14 +++++
->>   include/linux/gfp.h                          |  2 +-
->>   mm/hugetlb.c                                 | 54 ++++++++++++++------
->>   mm/page_alloc.c                              |  4 +-
->>   14 files changed, 61 insertions(+), 43 deletions(-)
+>> The only potential issue I see is that in the past we have returned 
+>> EINVAL
+>> if !CONFIG_CONTIG_ALLOC and someone attempted to increase the pool size.
+>> Now, we will not increase the pool and will not return an error.  Not 
+>> sure
+>> if that is an acceptable change in user behavior.
+>
+> If I may, I think that this is the kind of info the user wants to have 
+> and we should
+> return an error when it is not possible to allocate runtime huge pages.
+> I already noticed that if someone asks for 10 huge pages, and only 5 
+> are allocated,
+> no error is returned to the user and I found that surprising.
+>
 >>
+>> If we go down this path, then we could remove this change as well:
 >
-> [...]
+> I agree that in that path, we do not need the following change neither.
 >
->> diff --git a/include/asm-generic/hugetlb.h 
->> b/include/asm-generic/hugetlb.h
->> index 71d7b77eea50..aaf14974ee5f 100644
->> --- a/include/asm-generic/hugetlb.h
->> +++ b/include/asm-generic/hugetlb.h
->> @@ -126,4 +126,18 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
->>   }
->>   #endif
->>   +#ifndef __HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED
->> +#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
->> +static inline bool gigantic_page_runtime_supported(void)
->> +{
->> +    return true;
->> +}
->> +#else
->> +static inline bool gigantic_page_runtime_supported(void)
->> +{
->> +    return false;
->> +}
->> +#endif /* CONFIG_ARCH_HAS_GIGANTIC_PAGE */
->
-> What about the following instead:
->
-> static inline bool gigantic_page_runtime_supported(void)
-> {
->     return IS_ENABLED(CONFIG_ARCH_HAS_GIGANTIC_PAGE);
-> }
->
-
-Totally, it already was like that in v2 or v3...
-
-
->
->> +#endif /* __HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED */
->> +
->>   #endif /* _ASM_GENERIC_HUGETLB_H */
->> diff --git a/include/linux/gfp.h b/include/linux/gfp.h
->> index 1f1ad9aeebb9..58ea44bf75de 100644
->> --- a/include/linux/gfp.h
->> +++ b/include/linux/gfp.h
->> @@ -589,8 +589,8 @@ static inline bool pm_suspended_storage(void)
->>   /* The below functions must be run on a range from a single zone. */
->>   extern int alloc_contig_range(unsigned long start, unsigned long end,
->>                     unsigned migratetype, gfp_t gfp_mask);
->> -extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
->>   #endif
->> +extern void free_contig_range(unsigned long pfn, unsigned int 
->> nr_pages);
->
-> 'extern' is unneeded and should be avoided (iaw checkpatch)
->
-
-Ok, I did fix a checkpatch warning here, but did not notice the 'extern' 
-one.
-
-
-Thanks for your time,
-
-
-Alex
-
-
-> Christophe
->
->>     #ifdef CONFIG_CMA
->>   /* CMA stuff */
->> diff --git a/mm/hugetlb.c b/mm/hugetlb.c
->> index afef61656c1e..4e55aa38704f 100644
->> --- a/mm/hugetlb.c
->> +++ b/mm/hugetlb.c
->> @@ -1058,6 +1058,7 @@ static void free_gigantic_page(struct page 
->> *page, unsigned int order)
->>       free_contig_range(page_to_pfn(page), 1 << order);
->>   }
->>   +#ifdef CONFIG_CONTIG_ALLOC
->>   static int __alloc_gigantic_page(unsigned long start_pfn,
->>                   unsigned long nr_pages, gfp_t gfp_mask)
->>   {
->> @@ -1142,11 +1143,20 @@ static struct page 
->> *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
->>     static void prep_new_huge_page(struct hstate *h, struct page 
->> *page, int nid);
->>   static void prep_compound_gigantic_page(struct page *page, unsigned 
->> int order);
->> +#else /* !CONFIG_CONTIG_ALLOC */
->> +static struct page *alloc_gigantic_page(struct hstate *h, gfp_t 
->> gfp_mask,
->> +                    int nid, nodemask_t *nodemask)
->> +{
->> +    return NULL;
->> +}
->> +#endif /* CONFIG_CONTIG_ALLOC */
->>     #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
->> -static inline bool gigantic_page_supported(void) { return false; }
->>   static struct page *alloc_gigantic_page(struct hstate *h, gfp_t 
->> gfp_mask,
->> -        int nid, nodemask_t *nodemask) { return NULL; }
->> +                    int nid, nodemask_t *nodemask)
->> +{
->> +    return NULL;
->> +}
->>   static inline void free_gigantic_page(struct page *page, unsigned 
->> int order) { }
->>   static inline void destroy_compound_gigantic_page(struct page *page,
->>                           unsigned int order) { }
->> @@ -1156,7 +1166,7 @@ static void update_and_free_page(struct hstate 
->> *h, struct page *page)
->>   {
->>       int i;
->>   -    if (hstate_is_gigantic(h) && !gigantic_page_supported())
->> +    if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
->>           return;
->>         h->nr_huge_pages--;
->> @@ -2276,13 +2286,27 @@ static int adjust_pool_surplus(struct hstate 
->> *h, nodemask_t *nodes_allowed,
->>   }
->>     #define persistent_huge_pages(h) (h->nr_huge_pages - 
->> h->surplus_huge_pages)
->> -static unsigned long set_max_huge_pages(struct hstate *h, unsigned 
->> long count,
->> -                        nodemask_t *nodes_allowed)
->> +static int set_max_huge_pages(struct hstate *h, unsigned long count,
->> +                  nodemask_t *nodes_allowed)
->>   {
->>       unsigned long min_count, ret;
->>   -    if (hstate_is_gigantic(h) && !gigantic_page_supported())
->> -        return h->max_huge_pages;
->> +    spin_lock(&hugetlb_lock);
->> +
->> +    /*
->> +     * Gigantic pages runtime allocation depend on the capability 
->> for large
->> +     * page range allocation.
->> +     * If the system does not provide this feature, return an error 
->> when
->> +     * the user tries to allocate gigantic pages but let the user 
->> free the
->> +     * boottime allocated gigantic pages.
->> +     */
->> +    if (hstate_is_gigantic(h) && !IS_ENABLED(CONFIG_CONTIG_ALLOC)) {
->> +        if (count > persistent_huge_pages(h)) {
->> +            spin_unlock(&hugetlb_lock);
->> +            return -EINVAL;
->> +        }
->> +        /* Fall through to decrease pool */
->> +    }
->>         /*
->>        * Increase the pool size
->> @@ -2295,7 +2319,6 @@ static unsigned long set_max_huge_pages(struct 
->> hstate *h, unsigned long count,
->>        * pool might be one hugepage larger than it needs to be, but
->>        * within all the constraints specified by the sysctls.
->>        */
->> -    spin_lock(&hugetlb_lock);
->>       while (h->surplus_huge_pages && count > 
->> persistent_huge_pages(h)) {
->>           if (!adjust_pool_surplus(h, nodes_allowed, -1))
->>               break;
->> @@ -2350,9 +2373,10 @@ static unsigned long set_max_huge_pages(struct 
->> hstate *h, unsigned long count,
->>               break;
->>       }
->>   out:
->> -    ret = persistent_huge_pages(h);
->> +    h->max_huge_pages = persistent_huge_pages(h);
->>       spin_unlock(&hugetlb_lock);
->> -    return ret;
->> +
->> +    return 0;
->>   }
->>     #define HSTATE_ATTR_RO(_name) \
->> @@ -2404,7 +2428,7 @@ static ssize_t __nr_hugepages_store_common(bool 
->> obey_mempolicy,
->>       int err;
->>       NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | 
->> __GFP_NORETRY);
->>   -    if (hstate_is_gigantic(h) && !gigantic_page_supported()) {
->> +    if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported()) {
->>           err = -EINVAL;
->>           goto out;
->>       }
->> @@ -2428,15 +2452,13 @@ static ssize_t 
->> __nr_hugepages_store_common(bool obey_mempolicy,
->>       } else
->>           nodes_allowed = &node_states[N_MEMORY];
->>   -    h->max_huge_pages = set_max_huge_pages(h, count, nodes_allowed);
->> +    err = set_max_huge_pages(h, count, nodes_allowed);
->>   +out:
->>       if (nodes_allowed != &node_states[N_MEMORY])
->>           NODEMASK_FREE(nodes_allowed);
->>   -    return len;
->> -out:
->> -    NODEMASK_FREE(nodes_allowed);
->> -    return err;
->> +    return err ? err : len;
->>   }
->>     static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
->> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
->> index ac9c45ffb344..a4547d90fa7a 100644
->> --- a/mm/page_alloc.c
->> +++ b/mm/page_alloc.c
->> @@ -8234,8 +8234,9 @@ int alloc_contig_range(unsigned long start, 
->> unsigned long end,
->>                   pfn_max_align_up(end), migratetype);
->>       return ret;
->>   }
->> +#endif /* CONFIG_CONTIG_ALLOC */
->>   -void free_contig_range(unsigned long pfn, unsigned nr_pages)
->> +void free_contig_range(unsigned long pfn, unsigned int nr_pages)
->>   {
->>       unsigned int count = 0;
->>   @@ -8247,7 +8248,6 @@ void free_contig_range(unsigned long pfn, 
->> unsigned nr_pages)
->>       }
->>       WARN(count != 0, "%d pages are still in use!\n", count);
->>   }
->> -#endif
->>     #ifdef CONFIG_MEMORY_HOTPLUG
->>   /*
 >>
+>>> @@ -2428,7 +2442,9 @@ static ssize_t 
+>>> __nr_hugepages_store_common(bool obey_mempolicy,
+>>>       } else
+>>>           nodes_allowed = &node_states[N_MEMORY];
+>>>   -    h->max_huge_pages = set_max_huge_pages(h, count, nodes_allowed);
+>>> +    err = set_max_huge_pages(h, count, nodes_allowed);
+>>> +    if (err)
+>>> +        goto out;
+>>>         if (nodes_allowed != &node_states[N_MEMORY])
+>>>           NODEMASK_FREE(nodes_allowed);
+>> Do note that I beleive there is a bug the above change.  The code after
+>> the out label is:
+>>
+>> out:
+>>          NODEMASK_FREE(nodes_allowed);
+>>          return err;
+>> }
+>>
+>> With the new goto, we need the same
+>> if (nodes_allowed != &node_states[N_MEMORY]) before NODEMASK_FREE().
+>>
+>> Sorry, I missed this in previous versions.
 >
-> ---
-> L'absence de virus dans ce courrier électronique a été vérifiée par le 
-> logiciel antivirus Avast.
-> https://www.avast.com/antivirus
+> Oh right, I'm really sorry I missed that, thank you for noticing.
 >
