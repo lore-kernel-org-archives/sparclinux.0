@@ -1,7 +1,7 @@
-From: Vlastimil Babka <vbabka@suse.cz>
-Date: Fri, 01 Mar 2019 13:33:43 +0000
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Fri, 01 Mar 2019 13:58:49 +0000
 Subject: Re: [PATCH v4 4/4] hugetlb: allow to free gigantic pages regardless of the configuration
-Message-Id: <027de1e2-a9cd-8ba7-859b-ee803937340a@suse.cz>
+Message-Id: <4bff265e-e03c-6d74-c09f-a89b74009feb@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190228063604.15298-1-alex@ghiti.fr>
  <20190228063604.15298-5-alex@ghiti.fr>
@@ -11,17 +11,22 @@ References: <20190228063604.15298-1-alex@ghiti.fr>
  <6ea4119a-0ecb-511d-3aab-269004245a08@oracle.com>
  <1cfaca88-a219-d057-3ab8-37fb1c1687d6@ghiti.fr>
  <f7c94eb5-d496-7e24-d44f-17eaff287012@ghiti.fr>
-In-Reply-To: <f7c94eb5-d496-7e24-d44f-17eaff287012@ghiti.fr>
+ <027de1e2-a9cd-8ba7-859b-ee803937340a@suse.cz>
+In-Reply-To: <027de1e2-a9cd-8ba7-859b-ee803937340a@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexandre Ghiti <alex@ghiti.fr>, Mike Kravetz <mike.kravetz@oracle.com>
+To: Vlastimil Babka <vbabka@suse.cz>, Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>
 
-On 3/1/19 2:21 PM, Alexandre Ghiti wrote:
-> I collected mistakes here: domain name expired and no mailing list added :)
-> Really sorry about that, I missed the whole discussion (if any).
-> Could someone forward it to me (if any) ? Thanks !
+On 03/01/2019 02:33 PM, Vlastimil Babka wrote:
+> On 3/1/19 2:21 PM, Alexandre Ghiti wrote:
+>> I collected mistakes here: domain name expired and no mailing list added :)
+>> Really sorry about that, I missed the whole discussion (if any).
+>> Could someone forward it to me (if any) ? Thanks !
+> Bounced you David and Mike's discussion (4 messages total). AFAICS that
+> was all.
 
-Bounced you David and Mike's discussion (4 messages total). AFAICS that
-was all.
+Thank you Vlastimil, I got them.
+
+Thanks,
