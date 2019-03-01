@@ -1,74 +1,95 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Sun, 31 Mar 2019 16:28:18 +0000
-Subject: Re: [PATCH 2/2] arch: add pidfd and io_uring syscalls everywhere
-Message-Id: <CAK8P3a14of-jJA2q7rki3gHk6gwE-0TCkzHuXZ1+TkemopgfRA@mail.gmail.com>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Fri, 01 Mar 2019 01:17:13 +0000
+Subject: Re: [RFC PATCH v2 09/14] watchdog/hardlockup: Make arch_touch_nmi_watchdog() to hpet-based implement
+Message-Id: <20190301011713.GA8058@ranerica-svr.sc.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190325143521.34928-1-arnd@arndb.de>
- <20190325144737.703921-1-arnd@arndb.de>
- <87y34vl6ji.fsf@concordia.ellerman.id.au>
-In-Reply-To: <87y34vl6ji.fsf@concordia.ellerman.id.au>
+References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+ <1551283518-18922-10-git-send-email-ricardo.neri-calderon@linux.intel.com>
+ <20190227161758.GE4072@linux.ibm.com>
+In-Reply-To: <20190227161758.GE4072@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Helge Deller <deller@gmx.de>, Russell King <linux@armlinux.org.uk>, Geert Uytterhoeven <geert@linux-m68k.org>, Catalin Marinas <catalin.marinas@arm.com>, James Hogan <jhogan@kernel.org>, Firoz Khan <firoz.khan@linaro.org>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Will Deacon <will.deacon@arm.com>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Richard Henderson <rth@twiddle.net>, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Parisc List <linux-parisc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, alpha <linux-alpha@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
+To: "Paul E. McKenney" <paulmck@linux.ibm.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Sun, Mar 31, 2019 at 5:47 PM Michael Ellerman <mpe@ellerman.id.au> wrote:
->
-> Arnd Bergmann <arnd@arndb.de> writes:
-> > Add the io_uring and pidfd_send_signal system calls to all architectures.
-> >
-> > These system calls are designed to handle both native and compat tasks,
-> > so all entries are the same across architectures, only arm-compat and
-> > the generic tale still use an old format.
-> >
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+On Wed, Feb 27, 2019 at 08:17:58AM -0800, Paul E. McKenney wrote:
+> On Wed, Feb 27, 2019 at 08:05:13AM -0800, Ricardo Neri wrote:
+> > CPU architectures that have an NMI watchdog use arch_touch_nmi_watchdog()
+> > to briefly ignore the hardlockup detector. If the architecture does not
+> > have an NMI watchdog, one can be constructed using a source of non-
+> > maskable interrupts. In this case, arch_touch_nmi_watchdog() is common
+> > to any underlying hardware resource used to drive the detector and needs
+> > to be available to other kernel subsystems if hardware different from perf
+> > drives the detector.
+> > 
+> > There exists perf-based and HPET-based implementations. Make it available
+> > to the latter.
+> > 
+> > For clarity, wrap this function in a separate preprocessor conditional
+> > from functions which are truly specific to the perf-based implementation.
+> > 
+> > Cc: "H. Peter Anvin" <hpa@zytor.com>
+> > Cc: Ashok Raj <ashok.raj@intel.com>
+> > Cc: Andi Kleen <andi.kleen@intel.com>
+> > Cc: Tony Luck <tony.luck@intel.com>
+> > Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> > Cc: Don Zickus <dzickus@redhat.com>
+> > Cc: Nicholas Piggin <npiggin@gmail.com>
+> > Cc: Michael Ellerman <mpe@ellerman.id.au>
+> > Cc: Frederic Weisbecker <frederic@kernel.org>
+> > Cc: Alexei Starovoitov <ast@kernel.org>
+> > Cc: Babu Moger <babu.moger@oracle.com>
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> > Cc: Paul Mackerras <paulus@samba.org>
+> > Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+> > Cc: Masami Hiramatsu <mhiramat@kernel.org>
+> > Cc: Peter Zijlstra <peterz@infradead.org>
+> > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > Cc: Philippe Ombredanne <pombredanne@nexb.com>
+> > Cc: Colin Ian King <colin.king@canonical.com>
+> > Cc: Byungchul Park <byungchul.park@lge.com>
+> > Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+> > Cc: "Luis R. Rodriguez" <mcgrof@kernel.org>
+> > Cc: Waiman Long <longman@redhat.com>
+> > Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+> > Cc: Randy Dunlap <rdunlap@infradead.org>
+> > Cc: Davidlohr Bueso <dave@stgolabs.net>
+> > Cc: Christoffer Dall <cdall@linaro.org>
+> > Cc: Marc Zyngier <marc.zyngier@arm.com>
+> > Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> > Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> > Cc: David Rientjes <rientjes@google.com>
+> > Cc: "Ravi V. Shankar" <ravi.v.shankar@intel.com>
+> > Cc: x86@kernel.org
+> > Cc: sparclinux@vger.kernel.org
+> > Cc: linuxppc-dev@lists.ozlabs.org
+> > Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 > > ---
-> >  arch/alpha/kernel/syscalls/syscall.tbl      | 4 ++++
-> >  arch/arm/tools/syscall.tbl                  | 4 ++++
-> >  arch/arm64/include/asm/unistd.h             | 2 +-
-> >  arch/arm64/include/asm/unistd32.h           | 8 ++++++++
-> >  arch/ia64/kernel/syscalls/syscall.tbl       | 4 ++++
-> >  arch/m68k/kernel/syscalls/syscall.tbl       | 4 ++++
-> >  arch/microblaze/kernel/syscalls/syscall.tbl | 4 ++++
-> >  arch/mips/kernel/syscalls/syscall_n32.tbl   | 4 ++++
-> >  arch/mips/kernel/syscalls/syscall_n64.tbl   | 4 ++++
-> >  arch/mips/kernel/syscalls/syscall_o32.tbl   | 4 ++++
-> >  arch/parisc/kernel/syscalls/syscall.tbl     | 4 ++++
-> >  arch/powerpc/kernel/syscalls/syscall.tbl    | 4 ++++
->
-> Have you done any testing?
->
-> I'd rather not wire up syscalls that have never been tested at all on
-> powerpc.
+> >  include/linux/nmi.h | 10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+> > index 5a8b19749769..bf5ebcfdd590 100644
+> > --- a/include/linux/nmi.h
+> > +++ b/include/linux/nmi.h
+> > @@ -94,8 +94,16 @@ static inline void hardlockup_detector_disable(void) {}
+> >  # define NMI_WATCHDOG_SYSCTL_PERM	0444
+> >  #endif
+> > 
+> > -#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
+> > +#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF) || \
+> > +    defined(CONFIG_X86_HARDLOCKUP_DETECTOR_HPET)
+> 
+> Why not instead make CONFIG_X86_HARDLOCKUP_DETECTOR_HPET select
+> CONFIG_HARDLOCKUP_DETECTOR_PERF?  Keep the arch-specific details
+> in the arch-specific files and all that.
 
-No, I have not. I did review the system calls carefully and added the first
-patch to fix the bug on x86 compat mode before adding the same bug
-on the other compat architectures though ;-)
+Thanks for your feedback, Paul! The HPET implementation does not use
+perf. Thus, in my opinion is not correct for the HPET HLD to select
+the perf implementation. Patch 8 of this series splits the perf-specific
+code and the generic hardlockup detector code. Does this make sense?
 
-Generally, my feeling is that adding system calls is not fundamentally
-different from adding other ABIs, and we should really do it at
-the same time across all architectures, rather than waiting for each
-maintainer to get around to reviewing and testing the new calls
-first. This is not a problem on powerpc, but a lot of other architectures
-are less active, which is how we have always ended up with
-different sets of system calls across architectures.
-
-The problem here is that this makes it harder for the C library to
-know when a system call is guaranteed to be available. glibc
-still needs a feature test for newly added syscalls to see if they
-are working (they might be backported to an older kernel, or
-disabled), but whenever the minimum kernel version is increased,
-it makes sense to drop those checks and assume non-optional
-system calls will work if they were part of that minimum version.
-
-In the future, I'd hope that any new system calls get added
-right away on all architectures when they land (it was a bit
-tricky this time, because I still did a bunch of reworks that
-conflicted with the new calls). Bugs will happen of course, but
-I think adding them sooner makes it more likely to catch those
-bugs early on so we have a chance to fix them properly,
-and need fewer arch specific workarounds (ideally none)
-for system calls.
-
-       Arnd
+Thanks and BR,
+Ricardo
