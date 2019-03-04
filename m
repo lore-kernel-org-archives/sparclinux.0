@@ -1,41 +1,26 @@
-From: "Barr.Augusto Daniel." <chamberlawyer6@gmail.com>
-Date: Mon, 25 Mar 2019 10:13:31 +0000
-Subject: Attention Dear,
-Message-Id: <CAP+Od_=JrRGGvqBeejFB0BECMzeO_=8rNWLdvj_q3gaM5bKCfA@mail.gmail.com>
+From: "Mrs. Elia Rodrigues" <albiz@freemail.gr>
+Date: Mon, 04 Mar 2019 12:55:52 +0000
+Subject: From Mrs. Elia Rodrigues,
+Message-Id: <1904429900.8904603.1551704152786@mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
--- 
-Attention Dear,
 
-I am personal representative to my late client, a national of your
-country, and the CEO of his own Construction Company here in Benin
-Republic West Africa. On the 27th of May 2015, my client, His wife and
-their only daughter were involved in a car accident Along express-high
-way, Unfortunately, they all lost their lives.
 
-Before his death the Ministry of public works and Transport Benin
-(MTPT) owed him the sum of Ten Million Eight Hundred Thousand United
-States Dollar Only) US$10.800.000 Only, for a contract he executed for
-the Ministry before his death.
+Hello 
 
-After these several unsuccessful attempts, I decided I want to present
-you as the next of kin for the inheritance fund transfer to your
-account for onward sharing between the both of us 50% to you and 50%
-for me. I guarantee that this will be executed under a legitimate
-arrangement that will protect you from any breach of the law. to
-enable me give you more details.Please kindly reply through my private
-email box for more information, overchambers@gmail.com
+I am Mrs. Elia Rodrigues I have been diagnosed with cancer. It has defied all forms of medical treatment, and right now I have only about a few months to live, according to medical experts. I have not particularly lived my life so well, as I never really cared for anyone (not even myself) but my business. Though I am very rich, I was never generous. I was always hostile to People and only focused on my business as that was the only thing I cared for. But now I regret all this as I now know that there is more to life than just wanting to have or make all the money in the world. I believe when God gives me a second chance to come to this world I would live my life a different way from how I have lived it.
 
-Your Full Name and Address,
-Your Age : Occupation and Position,
-Your Private Email : Address
-Your Telephone and Mobile for Communication Purpose
+I would want to have a Personal and Trustworthy Relationship with you, as I intend and willing to empower the change of ownership for the transfer of my Deposits to your personal possession for Charity Disbursement to the Less Privilege and Homeless. I want this fund to be used in liberation work Activities like, help to Orphanages, and Christian schools, helping widows and up keeping of the Churches and propagating the word of God and to endeavor that the house of God is maintained. I am not afraid of death hence I know where I am going. I know that I am going to be in the bosom of the Lord. Exodus 14 vs 14 says that the lord will fight my case and I shall hold my peace.
+Because of my health condition when i try to speak it leads to a serious coughing out of blood. I will send you the photos of me,
 
-I await your reply via my private email:overchambers@gmail.com
+As soon as I receive your reply I shall give you the details on how to contact the bank directly for onward transfer. I will also issue you an authority letter that will prove you as the present beneficiary of my funds. I want you and your family to always pray for me but the lord is my shepherd.
 
-Best Regards.
-Augusto Daniel Esq.
+Thank you for your due consideration. God be with you
+
+Yours Sister in the Lord.
+
+Mrs. Elia Rodrigues
