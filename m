@@ -1,23 +1,44 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Fri, 22 Mar 2019 22:15:10 +0000
-Subject: Re: [RESEND 6/7] IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <CAA9_cmdDxh1ZYn1fO+ED1crzDMCPWk0fLjNPfxkFKUb5kNHgxA@mail.gmail.com>
+From: Alex Ghiti <alex@ghiti.fr>
+Date: Tue, 05 Mar 2019 07:01:03 +0000
+Subject: Re: [PATCH v4 2/4] sparc: Advertise gigantic page support
+Message-Id: <08671d74-3851-5ff2-97c3-1da3ab0458af@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317183438.2057-1-ira.weiny@intel.com> <20190317183438.2057-7-ira.weiny@intel.com>
-In-Reply-To: <20190317183438.2057-7-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ira.weiny@intel.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mips@vger.kernel.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
+On 2/28/19 1:36 AM, Alexandre Ghiti wrote:
+> sparc actually supports gigantic pages and selecting
+> ARCH_HAS_GIGANTIC_PAGE allows it to allocate and free
+> gigantic pages at runtime.
 >
-> From: Ira Weiny <ira.weiny@intel.com>
+> sparc allows configuration such as huge pages of 16GB,
+> pages of 8KB and MAX_ORDER = 13 (default):
+> HPAGE_SHIFT (34) - PAGE_SHIFT (13) = 21 >= MAX_ORDER (13)
 >
-> Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-> FS DAX pages being mapped.
+> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+> ---
+>   arch/sparc/Kconfig | 1 +
+>   1 file changed, 1 insertion(+)
 >
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+> index d5dd652fb8cc..053a36246d4d 100644
+> --- a/arch/sparc/Kconfig
+> +++ b/arch/sparc/Kconfig
+> @@ -46,6 +46,7 @@ config SPARC
+>   	select LOCKDEP_SMALL if LOCKDEP
+>   	select NEED_DMA_MAP_STATE
+>   	select NEED_SG_DMA_LENGTH
+> +	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+>   
+>   config SPARC32
+>   	def_bool !64BIT
 
-Looks good modulo potential  __get_user_pages_fast() suggestion.
+Hi David,
+
+Do you have any remark regarding this patch before I send a v5 ?
+
+Thanks,
+
+Alex
