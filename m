@@ -1,35 +1,51 @@
-From: Florian Weimer <fw@deneb.enyo.de>
-Date: Mon, 18 Mar 2019 14:37:07 +0000
-Subject: Re: [PATCH] y2038: fix socket.h header inclusion
-Message-Id: <87mulsuu3w.fsf@mid.deneb.enyo.de>
+From: Steven Price <steven.price@arm.com>
+Date: Wed, 06 Mar 2019 15:50:19 +0000
+Subject: [PATCH v4 07/19] sparc: mm: Add p?d_large() definitions
+Message-Id: <20190306155031.4291-8-steven.price@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190311153857.563743-1-arnd@arndb.de>
-        <87k1h1fgkk.fsf@mid.deneb.enyo.de>
-        <CAK8P3a1r8GRC7GTHHqWY-PUn=9rWB-7+Qo=7txanbEjGZ-wppw@mail.gmail.com>
-        <87a7hvded7.fsf@mid.deneb.enyo.de>
-        <CABeXuvrEecSAkBuN-SmAbGwhLWNCC+bA1=X78fm8xMyw8=hm6Q@mail.gmail.com>
-        <CAK8P3a22n5L45Gknqd=2zinVGqRovkk0OABmGLJbGcmg8xXd+A@mail.gmail.com>
-        <87o968y1uv.fsf@mid.deneb.enyo.de>
-        <CAK8P3a1DzRhiuNxBeQaTYSX1NhCaN6+B0Ya7aeGfxUGj35LFhw@mail.gmail.com>
-        <877ecwwckm.fsf@mid.deneb.enyo.de>
-        <CAK8P3a3X26niT8Y8mWCNXgcRkWhT=ADK-Tt2vjYz6SLj90shCQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a3X26niT8Y8mWCNXgcRkWhT=ADK-Tt2vjYz6SLj90shCQ@mail.gmail.com>
-        (Arnd Bergmann's message of "Mon, 18 Mar 2019 15:34:17 +0100")
+References: <20190306155031.4291-1-steven.price@arm.com>
+In-Reply-To: <20190306155031.4291-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Deepa Dinamani <deepa.kernel@gmail.com>, "David S . Miller" <davem@davemloft.net>, Willem de Bruijn <willemb@google.com>, alpha <linux-alpha@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-mips@vger.kernel.org, Parisc List <linux-parisc@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Laura Abbott <labbott@redhat.com>, Networking <netdev@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux API <linux-api@vger.kernel.org>, Josh Boyer <jwboyer@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jeff Law <law@redhat.com>
+To: linux-mm@kvack.org
+Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
 
-* Arnd Bergmann:
+walk_page_range() is going to be allowed to walk page tables other than
+those of user space. For this it needs to know when it has reached a
+'leaf' entry in the page tables. This information is provided by the
+p?d_large() functions/macros.
 
-> Ok, so not '__fds_bits'.
->
-> Is '__kernel_fds_bits' ok? I would prefer to keep at least the
-> name __kernel_ namespace that we have for typedefs and the
-> occasional struct tag.
+For sparc 64 bit, pmd_large() and pud_large() are already provided, so
+add #defines to prevent the generic versions (added in a later patch)
+from being used.
 
-glibc should be okay with that.  We use __kernel_ in the math
-libraries for something completely different, but those files do not
-(or should not) include UAPI headers, and in any case, the set of such
-identifiers is really small.
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Steven Price <steven.price@arm.com>
+---
+ arch/sparc/include/asm/pgtable_64.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..f502e937c8fe 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -713,6 +713,7 @@ static inline unsigned long pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
+ }
+ 
++#define pmd_large	pmd_large
+ static inline unsigned long pmd_large(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -894,6 +895,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
+ #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
+ 
++#define pud_large	pud_large
+ static inline unsigned long pud_large(pud_t pud)
+ {
+ 	pte_t pte = __pte(pud_val(pud));
+-- 
+2.20.1
