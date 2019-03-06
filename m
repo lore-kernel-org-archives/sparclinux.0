@@ -1,11 +1,72 @@
-From: daniele@mybusinessdriver.com
-Date: Thu, 21 Mar 2019 19:27:17 +0000
-Subject: PRIVATE...
-Message-Id: <6832D27D-15C8-43D5-A09A-494633BC6848@mail.mybusinessdriver.com>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Wed, 06 Mar 2019 19:00:01 +0000
+Subject: [PATCH v5 0/4] Fix free/allocation of runtime gigantic pages
+Message-Id: <20190306190005.7036-1-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-I have a business Proposal that will be of benefit to the both of us.Kindly contact me on mrmichealwuu16@yahoo.com.hk should this be of interest to you.
+This series fixes sh and sparc that did not advertise their gigantic page
+support and then were not able to allocate and free those pages at runtime.
+It renames MEMORY_ISOLATION && COMPACTION || CMA condition into the more
+accurate CONTIG_ALLOC, since it allows the definition of alloc_contig_range
+function.
+Finally, it then fixes the wrong definition of ARCH_HAS_GIGANTIC_PAGE config
+that, without MEMORY_ISOLATION && COMPACTION || CMA defined, did not allow
+architectures to free boottime allocated gigantic pages although unrelated.
+
+Changes in v5:
+- Fix bug in previous version thanks to Mike Kravetz
+- Fix block comments that did not respect coding style thanks to Dave Hensen
+- Define ARCH_HAS_GIGANTIC_PAGE only for sparc64 as advised by David Miller
+- Factorize "def_bool" and "depends on" thanks to Vlastimil Babka
+
+Changes in v4 as suggested by Dave Hensen:
+- Split previous version into small patches
+- Do not compile alloc_gigantic** functions for architectures that do not
+  support those pages
+- Define correct ARCH_HAS_GIGANTIC_PAGE in all arch that support them to avoid
+  useless runtime check
+- Add comment in set_max_huge_pages to explain that freeing is possible even
+  without CONTIG_ALLOC defined
+- Remove gigantic_page_supported function across all archs
+
+Changes in v3 as suggested by Vlastimil Babka and Dave Hansen:
+- config definition was wrong and is now in mm/Kconfig
+- COMPACTION_CORE was renamed in CONTIG_ALLOC
+
+Changes in v2 as suggested by Vlastimil Babka:
+- Get rid of ARCH_HAS_GIGANTIC_PAGE
+- Get rid of architecture specific gigantic_page_supported
+- Factorize CMA or (MEMORY_ISOLATION && COMPACTION) into COMPACTION_CORE
+
+*** BLURB HERE ***
+
+Alexandre Ghiti (4):
+  sh: Advertise gigantic page support
+  sparc: Advertise gigantic page support
+  mm: Simplify MEMORY_ISOLATION && COMPACTION || CMA into CONTIG_ALLOC
+  hugetlb: allow to free gigantic pages regardless of the configuration
+
+ arch/arm64/Kconfig                           |  2 +-
+ arch/arm64/include/asm/hugetlb.h             |  4 --
+ arch/powerpc/include/asm/book3s/64/hugetlb.h |  7 ---
+ arch/powerpc/platforms/Kconfig.cputype       |  2 +-
+ arch/s390/Kconfig                            |  2 +-
+ arch/s390/include/asm/hugetlb.h              |  3 --
+ arch/sh/Kconfig                              |  1 +
+ arch/sparc/Kconfig                           |  1 +
+ arch/x86/Kconfig                             |  2 +-
+ arch/x86/include/asm/hugetlb.h               |  4 --
+ arch/x86/mm/hugetlbpage.c                    |  2 +-
+ include/linux/gfp.h                          |  4 +-
+ mm/Kconfig                                   |  3 ++
+ mm/hugetlb.c                                 | 54 ++++++++++++--------
+ mm/page_alloc.c                              |  7 ++-
+ 15 files changed, 48 insertions(+), 50 deletions(-)
+
+-- 
+2.20.1
