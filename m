@@ -1,151 +1,165 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Mon, 25 Mar 2019 08:26:20 +0000
-Subject: Re: [RESEND 3/7] mm/gup: Change GUP fast to use flags rather than a write 'bool'
-Message-Id: <20190325082620.GB16366@iweiny-DESK2.sc.intel.com>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Wed, 06 Mar 2019 19:00:04 +0000
+Subject: [PATCH v5 3/4] mm: Simplify MEMORY_ISOLATION && COMPACTION || CMA into CONTIG_ALLOC
+Message-Id: <20190306190005.7036-4-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317183438.2057-1-ira.weiny@intel.com>
- <20190317183438.2057-4-ira.weiny@intel.com>
- <CAA9_cmd9gUWMbpkP_AuxZ08iqvZdxjbtDoR-FpSjAyhZJisRZA@mail.gmail.com>
-In-Reply-To: <CAA9_cmd9gUWMbpkP_AuxZ08iqvZdxjbtDoR-FpSjAyhZJisRZA@mail.gmail.com>
+References: <20190306190005.7036-1-alex@ghiti.fr>
+In-Reply-To: <20190306190005.7036-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mips@vger.kernel.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, Linux-sh <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-On Fri, Mar 22, 2019 at 03:05:53PM -0700, Dan Williams wrote:
-> On Sun, Mar 17, 2019 at 7:36 PM <ira.weiny@intel.com> wrote:
-> >
-> > From: Ira Weiny <ira.weiny@intel.com>
-> >
-> > To facilitate additional options to get_user_pages_fast() change the
-> > singular write parameter to be gup_flags.
-> >
-> > This patch does not change any functionality.  New functionality will
-> > follow in subsequent patches.
-> >
-> > Some of the get_user_pages_fast() call sites were unchanged because they
-> > already passed FOLL_WRITE or 0 for the write parameter.
-> >
-> > Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-> >
-> > ---
-> > Changes from V1:
-> >         Rebase to current merge tree
-> >         arch/powerpc/mm/mmu_context_iommu.c no longer calls gup_fast
-> >                 The gup_longterm was converted in patch 1
-> >
-> >  arch/mips/mm/gup.c                         | 11 ++++++-----
-> >  arch/powerpc/kvm/book3s_64_mmu_hv.c        |  4 ++--
-> >  arch/powerpc/kvm/e500_mmu.c                |  2 +-
-> >  arch/s390/kvm/interrupt.c                  |  2 +-
-> >  arch/s390/mm/gup.c                         | 12 ++++++------
-> >  arch/sh/mm/gup.c                           | 11 ++++++-----
-> >  arch/sparc/mm/gup.c                        |  9 +++++----
-> >  arch/x86/kvm/paging_tmpl.h                 |  2 +-
-> >  arch/x86/kvm/svm.c                         |  2 +-
-> >  drivers/fpga/dfl-afu-dma-region.c          |  2 +-
-> >  drivers/gpu/drm/via/via_dmablit.c          |  3 ++-
-> >  drivers/infiniband/hw/hfi1/user_pages.c    |  3 ++-
-> >  drivers/misc/genwqe/card_utils.c           |  2 +-
-> >  drivers/misc/vmw_vmci/vmci_host.c          |  2 +-
-> >  drivers/misc/vmw_vmci/vmci_queue_pair.c    |  6 ++++--
-> >  drivers/platform/goldfish/goldfish_pipe.c  |  3 ++-
-> >  drivers/rapidio/devices/rio_mport_cdev.c   |  4 +++-
-> >  drivers/sbus/char/oradax.c                 |  2 +-
-> >  drivers/scsi/st.c                          |  3 ++-
-> >  drivers/staging/gasket/gasket_page_table.c |  4 ++--
-> >  drivers/tee/tee_shm.c                      |  2 +-
-> >  drivers/vfio/vfio_iommu_spapr_tce.c        |  3 ++-
-> >  drivers/vhost/vhost.c                      |  2 +-
-> >  drivers/video/fbdev/pvr2fb.c               |  2 +-
-> >  drivers/virt/fsl_hypervisor.c              |  2 +-
-> >  drivers/xen/gntdev.c                       |  2 +-
-> >  fs/orangefs/orangefs-bufmap.c              |  2 +-
-> >  include/linux/mm.h                         |  4 ++--
-> >  kernel/futex.c                             |  2 +-
-> >  lib/iov_iter.c                             |  7 +++++--
-> >  mm/gup.c                                   | 10 +++++-----
-> >  mm/util.c                                  |  8 ++++----
-> >  net/ceph/pagevec.c                         |  2 +-
-> >  net/rds/info.c                             |  2 +-
-> >  net/rds/rdma.c                             |  3 ++-
-> >  35 files changed, 79 insertions(+), 63 deletions(-)
-> 
-> 
-> >
-> > diff --git a/arch/mips/mm/gup.c b/arch/mips/mm/gup.c
-> > index 0d14e0d8eacf..4c2b4483683c 100644
-> > --- a/arch/mips/mm/gup.c
-> > +++ b/arch/mips/mm/gup.c
-> > @@ -235,7 +235,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-> >   * get_user_pages_fast() - pin user pages in memory
-> >   * @start:     starting user address
-> >   * @nr_pages:  number of pages from start to pin
-> > - * @write:     whether pages will be written to
-> > + * @gup_flags: flags modifying pin behaviour
-> >   * @pages:     array that receives pointers to the pages pinned.
-> >   *             Should be at least nr_pages long.
-> >   *
-> > @@ -247,8 +247,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
-> >   * requested. If nr_pages is 0 or negative, returns 0. If no pages
-> >   * were pinned, returns -errno.
-> >   */
-> > -int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-> > -                       struct page **pages)
-> > +int get_user_pages_fast(unsigned long start, int nr_pages,
-> > +                       unsigned int gup_flags, struct page **pages)
-> 
-> This looks a tad scary given all related thrash especially when it's
-> only 1 user that wants to do get_user_page_fast_longterm, right?
+This condition allows to define alloc_contig_range, so simplify
+it into a more accurate naming.
 
-Agreed but the discussion back in Feb agreed that it would be better to make
-get_user_pages_fast() use flags rather than add another *_longterm call, and I
-agree.
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+---
+ arch/arm64/Kconfig                     | 2 +-
+ arch/powerpc/platforms/Kconfig.cputype | 2 +-
+ arch/s390/Kconfig                      | 2 +-
+ arch/sh/Kconfig                        | 2 +-
+ arch/sparc/Kconfig                     | 2 +-
+ arch/x86/Kconfig                       | 2 +-
+ arch/x86/mm/hugetlbpage.c              | 2 +-
+ include/linux/gfp.h                    | 2 +-
+ mm/Kconfig                             | 3 +++
+ mm/page_alloc.c                        | 3 +--
+ 10 files changed, 12 insertions(+), 10 deletions(-)
 
-> Maybe
-> something like the following. Note I explicitly moved the flags to the
-> end so that someone half paying attention that calls
-> __get_user_pages_fast will get a compile error if they specify the
-> args in the same order.
-
-I did this to remain consistent with the other public calls.  They put the
-"return" pages parameter at the end.  For example get_user_pages() is defined
-this way with pages and vmas at the end.
-
-long get_user_pages(unsigned long start, unsigned long nr_pages,
-                unsigned int gup_flags, struct page **pages,
-                struct vm_area_struct **vmas)
-
-I'm pretty sure I got all the callers.  Is this worth making the signature
-"non-standard" WRT the other calls?
-
-Ira
-
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 76ba638ceda8..c6c743bc2c68 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -1505,8 +1505,15 @@ static inline long
-> get_user_pages_longterm(unsigned long start,
->  }
->  #endif /* CONFIG_FS_DAX */
-> 
-> -int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-> -                       struct page **pages);
-> +
-> +int __get_user_pages_fast(unsigned long start, int nr_pages,
-> +               struct page **pages, unsigned int gup_flags);
-> +
-> +static inline int get_user_pages_fast(unsigned long start, int
-> nr_pages, int write,
-> +                       struct page **pages)
-> +{
-> +       return __get_user_pages_fast(start, nr_pages, pages, write ?
-> FOLL_WRITE);
-> +}
-> 
->  /* Container for pinned pfns / pages */
->  struct frame_vector {
-> 
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index a4168d366127..091a513b93e9 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -18,7 +18,7 @@ config ARM64
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
+ 	select ARCH_HAS_PTE_SPECIAL
+diff --git a/arch/powerpc/platforms/Kconfig.cputype b/arch/powerpc/platforms/Kconfig.cputype
+index 8c7464c3f27f..f677c8974212 100644
+--- a/arch/powerpc/platforms/Kconfig.cputype
++++ b/arch/powerpc/platforms/Kconfig.cputype
+@@ -319,7 +319,7 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ config PPC_RADIX_MMU
+ 	bool "Radix MMU Support"
+ 	depends on PPC_BOOK3S_64
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 	default y
+ 	help
+ 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index ed554b09eb3f..1c57b83c76f5 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -69,7 +69,7 @@ config S390
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SET_MEMORY
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index 299a17bed67c..c7266302691c 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -53,7 +53,7 @@ config SUPERH
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
+ 	select NEED_SG_DMA_LENGTH
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 0b7f0e0fefa5..ca33c80870e2 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -90,7 +90,7 @@ config SPARC64
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select PCI_DOMAINS if PCI
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 
+ config ARCH_DEFCONFIG
+ 	string
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 68261430fe6e..8ba90f3e0038 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -23,7 +23,7 @@ config X86_64
+ 	def_bool y
+ 	depends on 64BIT
+ 	# Options that are inherently 64-bit kernel only:
+-	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
++	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
+ 	select ARCH_SUPPORTS_INT128
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select HAVE_ARCH_SOFT_DIRTY
+diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
+index 92e4c4b85bba..fab095362c50 100644
+--- a/arch/x86/mm/hugetlbpage.c
++++ b/arch/x86/mm/hugetlbpage.c
+@@ -203,7 +203,7 @@ static __init int setup_hugepagesz(char *opt)
+ }
+ __setup("hugepagesz=", setup_hugepagesz);
+ 
+-#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
++#ifdef CONFIG_CONTIG_ALLOC
+ static __init int gigantic_pages_init(void)
+ {
+ 	/* With compaction or CMA we can allocate gigantic pages at runtime */
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 5f5e25fd6149..1f1ad9aeebb9 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -585,7 +585,7 @@ static inline bool pm_suspended_storage(void)
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
+-#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
++#ifdef CONFIG_CONTIG_ALLOC
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+ 			      unsigned migratetype, gfp_t gfp_mask);
+diff --git a/mm/Kconfig b/mm/Kconfig
+index 25c71eb8a7db..137eadc18732 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -258,6 +258,9 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
+ config ARCH_ENABLE_THP_MIGRATION
+ 	bool
+ 
++config CONTIG_ALLOC
++       def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
++
+ config PHYS_ADDR_T_64BIT
+ 	def_bool 64BIT
+ 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 35fdde041f5c..ac9c45ffb344 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -8024,8 +8024,7 @@ bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
+ 	return true;
+ }
+ 
+-#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+-
++#ifdef CONFIG_CONTIG_ALLOC
+ static unsigned long pfn_max_align_down(unsigned long pfn)
+ {
+ 	return pfn & ~(max_t(unsigned long, MAX_ORDER_NR_PAGES,
+-- 
+2.20.1
