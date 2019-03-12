@@ -1,69 +1,41 @@
-From: Deepa Dinamani <deepa.kernel@gmail.com>
-Date: Sat, 02 Feb 2019 15:34:47 +0000
-Subject: [PATCH net-next v5 05/12] arch: sparc: Override struct __kernel_old_timeval
-Message-Id: <20190202153454.7121-6-deepa.kernel@gmail.com>
+From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Date: Tue, 12 Mar 2019 22:50:36 +0000
+Subject: Re: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
+Message-Id: <4c72a04bb87e341ea7c747d509f42136a99a0716.camel@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190202153454.7121-1-deepa.kernel@gmail.com>
-In-Reply-To: <20190202153454.7121-1-deepa.kernel@gmail.com>
+References: 
+	<154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+	 <154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
+	 <20181205172225.GT1286@dhcp22.suse.cz>
+	 <19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
+	 <20181205204247.GY1286@dhcp22.suse.cz>
+	 <20190312150727.cb15cbc323a742e520b9a881@linux-foundation.org>
+In-Reply-To: <20190312150727.cb15cbc323a742e520b9a881@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, linux-kernel@vger.kernel.org
-Cc: netdev@vger.kernel.org, arnd@arndb.de, y2038@lists.linaro.org, sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@kernel.org>
+Cc: linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
 
-struct __kernel_old_timeval is supposed to have the same
-layout as struct timeval. But, it was inadvarently missed
-that __kernel_suseconds has a different definition for
-sparc64.
-Provide an asm-specific override that fixes it.
+On Tue, 2019-03-12 at 15:07 -0700, Andrew Morton wrote:
+> On Wed, 5 Dec 2018 21:42:47 +0100 Michal Hocko <mhocko@kernel.org> wrote:
+> 
+> > > I got your explanation. However Andrew had already applied the patches
+> > > and I had some outstanding issues in them that needed to be addressed.
+> > > So I thought it best to send out this set of patches with those fixes
+> > > before the code in mm became too stale. I am still working on what to
+> > > do about the Reserved bit, and plan to submit it as a follow-up set.
+> > > From my experience Andrew can drop patches between different versions of
+> > the patchset. Things can change a lot while they are in mmotm and under
+> > the discussion.
+> 
+> It's been a while and everyone has forgotten everything, so I'll drop
+> this version of the patchset.
+> 
 
-Reported-by: Arnd Bergmann <arnd@arndb.de>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
-Acked-by: Willem de Bruijn <willemb@google.com>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/include/uapi/asm/posix_types.h | 10 ++++++++++
- include/uapi/linux/time.h                 |  2 ++
- 2 files changed, 12 insertions(+)
+As far as getting to the reserved bit I probably won't have the time in
+the near future. If I were to resubmit the first 4 patches as a
+standalone patch set would that be acceptable, or would they be held up
+as well until the reserved bit issues is addressed?
 
-diff --git a/arch/sparc/include/uapi/asm/posix_types.h b/arch/sparc/include/uapi/asm/posix_types.h
-index fec499d6efb7..f139e0048628 100644
---- a/arch/sparc/include/uapi/asm/posix_types.h
-+++ b/arch/sparc/include/uapi/asm/posix_types.h
-@@ -19,6 +19,16 @@ typedef unsigned short         __kernel_old_gid_t;
- typedef int		       __kernel_suseconds_t;
- #define __kernel_suseconds_t __kernel_suseconds_t
- 
-+typedef long		__kernel_long_t;
-+typedef unsigned long	__kernel_ulong_t;
-+#define __kernel_long_t __kernel_long_t
-+
-+struct __kernel_old_timeval {
-+	__kernel_long_t tv_sec;
-+	__kernel_suseconds_t tv_usec;
-+};
-+#define __kernel_old_timeval __kernel_old_timeval
-+
- #else
- /* sparc 32 bit */
- 
-diff --git a/include/uapi/linux/time.h b/include/uapi/linux/time.h
-index 6b56a2208be7..04d5587f30d3 100644
---- a/include/uapi/linux/time.h
-+++ b/include/uapi/linux/time.h
-@@ -63,10 +63,12 @@ struct __kernel_itimerspec {
-  * here, this is probably because it is not y2038 safe and needs to
-  * be changed to use another interface.
-  */
-+#ifndef __kernel_old_timeval
- struct __kernel_old_timeval {
- 	__kernel_long_t tv_sec;
- 	__kernel_long_t tv_usec;
- };
-+#endif
- 
- /*
-  * The IDs of the various system clocks (for POSIX.1b interval timers):
--- 
-2.17.1
+- Alex
