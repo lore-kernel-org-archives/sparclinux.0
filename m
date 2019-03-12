@@ -1,52 +1,31 @@
-From: Steven Price <steven.price@arm.com>
-Date: Thu, 28 Mar 2019 15:20:52 +0000
-Subject: [PATCH v7 08/20] sparc: mm: Add p?d_large() definitions
-Message-Id: <20190328152104.23106-9-steven.price@arm.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Tue, 12 Mar 2019 22:07:27 +0000
+Subject: Re: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
+Message-Id: <20190312150727.cb15cbc323a742e520b9a881@linux-foundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190328152104.23106-1-steven.price@arm.com>
-In-Reply-To: <20190328152104.23106-1-steven.price@arm.com>
+References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
+	<154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
+	<20181205172225.GT1286@dhcp22.suse.cz>
+	<19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
+	<20181205204247.GY1286@dhcp22.suse.cz>
+In-Reply-To: <20181205204247.GY1286@dhcp22.suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
 
-walk_page_range() is going to be allowed to walk page tables other than
-those of user space. For this it needs to know when it has reached a
-'leaf' entry in the page tables. This information is provided by the
-p?d_large() functions/macros.
+On Wed, 5 Dec 2018 21:42:47 +0100 Michal Hocko <mhocko@kernel.org> wrote:
 
-For sparc 64 bit, pmd_large() and pud_large() are already provided, so
-add #defines to prevent the generic versions (added in a later patch)
-from being used.
+> > I got your explanation. However Andrew had already applied the patches
+> > and I had some outstanding issues in them that needed to be addressed.
+> > So I thought it best to send out this set of patches with those fixes
+> > before the code in mm became too stale. I am still working on what to
+> > do about the Reserved bit, and plan to submit it as a follow-up set.
+> 
+> >From my experience Andrew can drop patches between different versions of
+> the patchset. Things can change a lot while they are in mmotm and under
+> the discussion.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/pgtable_64.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..f502e937c8fe 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -713,6 +713,7 @@ static inline unsigned long pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
- }
- 
-+#define pmd_large	pmd_large
- static inline unsigned long pmd_large(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -894,6 +895,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
- #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
- #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
- 
-+#define pud_large	pud_large
- static inline unsigned long pud_large(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
--- 
-2.20.1
+It's been a while and everyone has forgotten everything, so I'll drop
+this version of the patchset.
