@@ -1,38 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 11 Mar 2019 18:23:32 +0000
+From: Florian Weimer <fw@deneb.enyo.de>
+Date: Thu, 14 Mar 2019 18:37:15 +0000
 Subject: Re: [PATCH] y2038: fix socket.h header inclusion
-Message-Id: <20190311.112332.2212718467104899802.davem@davemloft.net>
+Message-Id: <87k1h1fgkk.fsf@mid.deneb.enyo.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190311153857.563743-1-arnd@arndb.de>
-In-Reply-To: <20190311153857.563743-1-arnd@arndb.de>
+In-Reply-To: <20190311153857.563743-1-arnd@arndb.de> (Arnd Bergmann's message
+        of "Mon, 11 Mar 2019 16:38:17 +0100")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arnd@arndb.de
-Cc: deepa.kernel@gmail.com, willemb@google.com, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, labbott@redhat.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "David S . Miller" <davem@davemloft.net>, Deepa Dinamani <deepa.kernel@gmail.com>, Willem de Bruijn <willemb@google.com>, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, Laura Abbott <labbott@redhat.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 11 Mar 2019 16:38:17 +0100
+* Arnd Bergmann:
 
-> Referencing the __kernel_long_t type caused some user space applications
-> to stop compiling when they had not already included linux/posix_types.h,
-> e.g.
-> 
-> s/multicast.c -o ext/sockets/multicast.lo
-> In file included from /builddir/build/BUILD/php-7.3.3/main/php.h:468,
->                  from /builddir/build/BUILD/php-7.3.3/ext/sockets/sockets.c:27:
-> /builddir/build/BUILD/php-7.3.3/ext/sockets/sockets.c: In function 'zm_startup_sockets':
-> /builddir/build/BUILD/php-7.3.3/ext/sockets/sockets.c:776:40: error: '__kernel_long_t' undeclared (first use in this function)
->   776 |  REGISTER_LONG_CONSTANT("SO_SNDTIMEO", SO_SNDTIMEO, CONST_CS | CONST_PERSISTENT);
-> 
-> It is safe to include that header here, since it only contains kernel
-> internal types that do not conflict with other user space types.
-> 
-> It's still possible that some related build failures remain, but those
-> are likely to be for code that is not already y2038 safe.
-> 
-> Reported-by: Laura Abbott <labbott@redhat.com>
-> Fixes: a9beb86ae6e5 ("sock: Add SO_RCVTIMEO_NEW and SO_SNDTIMEO_NEW")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
+> index 0d0fddb7e738..976e89b116e5 100644
+> --- a/arch/alpha/include/uapi/asm/socket.h
+> +++ b/arch/alpha/include/uapi/asm/socket.h
+> @@ -2,8 +2,8 @@
+>  #ifndef _UAPI_ASM_SOCKET_H
+>  #define _UAPI_ASM_SOCKET_H
+>  
+> +#include <linux/posix_types.h>
+>  #include <asm/sockios.h>
+> -#include <asm/bitsperlong.h>
 
-Applied, thanks.
+This breaks POSIX conformance in glibc because the
+<linux/posix_types.h> header is not namespace clean.  It contains the
+identifiers fds_bits and val:
+
+	unsigned long fds_bits[__FD_SETSIZE / (8 * sizeof(long))];
+
+        int     val[2];
+
+We could duplicate some of the SO_* constants for POSIX mode in glibc,
+but it would be nice to avoid that.
+
+Is there a different way of fixing this on the kernel side that avoids
+including <linux/posix_types.h>?
