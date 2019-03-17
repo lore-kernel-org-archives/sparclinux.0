@@ -1,19 +1,43 @@
-From: Mr Wong <ps.cachachuyug@06d01.mspz3.gob.ec>
-Date: Wed, 27 Mar 2019 15:44:14 +0000
-Subject: Re:Hello
-Message-Id: <20190327160006.B27712ACE204@06d01.mspz3.gob.ec>
+From: ira.weiny@intel.com
+Date: Sun, 17 Mar 2019 18:34:36 +0000
+Subject: [RESEND 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Message-Id: <20190317183438.2057-6-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190326135702.E42F02B017E0@06d01.mspz3.gob.ec>
-In-Reply-To: <20190326135702.E42F02B017E0@06d01.mspz3.gob.ec>
+References: <20190317183438.2057-1-ira.weiny@intel.com>
+In-Reply-To: <20190317183438.2057-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 
-Hello this is Mr Wong again from hongkong,Can we send the Swift as discuss best regards.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Mr Wong Cheng
+Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
+FS DAX pages being mapped.
 
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
+ drivers/infiniband/hw/hfi1/user_pages.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index 78ccacaf97d0..6a7f9cd5a94e 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -104,9 +104,11 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+ 			    bool writable, struct page **pages)
+ {
+ 	int ret;
++	unsigned int gup_flags = writable ? FOLL_WRITE : 0;
+ 
+-	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
+-				  pages);
++	gup_flags |= FOLL_LONGTERM;
++
++	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+2.20.1
