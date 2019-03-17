@@ -1,102 +1,358 @@
-From: Paul Moore <paul@paul-moore.com>
-Date: Thu, 21 Mar 2019 01:22:35 +0000
-Subject: Re: [PATCH v2 13/13] syscall_get_arch: add "struct task_struct *" argument
-Message-Id: <CAHC9VhQWKT8Mr=_pcmiccpChMB9oufUHO-4Agzmot7M=6ShNnw@mail.gmail.com>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Sun, 17 Mar 2019 16:28:47 +0000
+Subject: [PATCH v7 4/4] hugetlb: allow to free gigantic pages regardless of the configuration
+Message-Id: <20190317162847.14107-5-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317233018.GN16301@altlinux.org>
-In-Reply-To: <20190317233018.GN16301@altlinux.org>
+References: <20190317162847.14107-1-alex@ghiti.fr>
+In-Reply-To: <20190317162847.14107-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Dmitry V. Levin" <ldv@altlinux.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Palmer Dabbelt <palmer@sifive.com>, Paul Burton <paul.burton@mips.com>, Michael Ellerman <mpe@ellerman.id.au>, Kees Cook <keescook@chromium.org>, Mark Salter <msalter@redhat.com>, Elvira Khabirova <lineprinter@altlinux.org>, Eugene Syromyatnikov <esyr@redhat.com>, Oleg Nesterov <oleg@redhat.com>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.orgli
+To: aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-On Sun, Mar 17, 2019 at 7:30 PM Dmitry V. Levin <ldv@altlinux.org> wrote:
->
-> This argument is required to extend the generic ptrace API with
-> PTRACE_GET_SYSCALL_INFO request: syscall_get_arch() is going
-> to be called from ptrace_request() along with syscall_get_nr(),
-> syscall_get_arguments(), syscall_get_error(), and
-> syscall_get_return_value() functions with a tracee as their argument.
->
-> The primary intent is that the triple (audit_arch, syscall_nr, arg1..arg6)
-> should describe what system call is being called and what its arguments
-> are.
->
-> Reverts: 5e937a9ae913 ("syscall_get_arch: remove useless function arguments")
-> Reverts: 1002d94d3076 ("syscall.h: fix doc text for syscall_get_arch()")
-> Reviewed-by: Andy Lutomirski <luto@kernel.org> # for x86
-> Reviewed-by: Palmer Dabbelt <palmer@sifive.com>
-> Acked-by: Paul Moore <paul@paul-moore.com>
-> Acked-by: Paul Burton <paul.burton@mips.com> # MIPS parts
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-> Acked-by: Kees Cook <keescook@chromium.org> # seccomp parts
-> Acked-by: Mark Salter <msalter@redhat.com> # for the c6x bit
-> Cc: Elvira Khabirova <lineprinter@altlinux.org>
-> Cc: Eugene Syromyatnikov <esyr@redhat.com>
-> Cc: Oleg Nesterov <oleg@redhat.com>
-> Cc: x86@kernel.org
-> Cc: linux-alpha@vger.kernel.org
-> Cc: linux-snps-arc@lists.infradead.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-c6x-dev@linux-c6x.org
-> Cc: uclinux-h8-devel@lists.sourceforge.jp
-> Cc: linux-hexagon@vger.kernel.org
-> Cc: linux-ia64@vger.kernel.org
-> Cc: linux-m68k@lists.linux-m68k.org
-> Cc: linux-mips@vger.kernel.org
-> Cc: nios2-dev@lists.rocketboards.org
-> Cc: openrisc@lists.librecores.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-riscv@lists.infradead.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-um@lists.infradead.org
-> Cc: linux-xtensa@linux-xtensa.org
-> Cc: linux-arch@vger.kernel.org
-> Cc: linux-audit@redhat.com
-> Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
-> ---
->
-> Notes:
->     v2: unchanged
->
->  arch/alpha/include/asm/syscall.h      |  2 +-
->  arch/arc/include/asm/syscall.h        |  2 +-
->  arch/arm/include/asm/syscall.h        |  2 +-
->  arch/arm64/include/asm/syscall.h      |  4 ++--
->  arch/c6x/include/asm/syscall.h        |  2 +-
->  arch/csky/include/asm/syscall.h       |  2 +-
->  arch/h8300/include/asm/syscall.h      |  2 +-
->  arch/hexagon/include/asm/syscall.h    |  2 +-
->  arch/ia64/include/asm/syscall.h       |  2 +-
->  arch/m68k/include/asm/syscall.h       |  2 +-
->  arch/microblaze/include/asm/syscall.h |  2 +-
->  arch/mips/include/asm/syscall.h       |  6 +++---
->  arch/mips/kernel/ptrace.c             |  2 +-
->  arch/nds32/include/asm/syscall.h      |  2 +-
->  arch/nios2/include/asm/syscall.h      |  2 +-
->  arch/openrisc/include/asm/syscall.h   |  2 +-
->  arch/parisc/include/asm/syscall.h     |  4 ++--
->  arch/powerpc/include/asm/syscall.h    | 10 ++++++++--
->  arch/riscv/include/asm/syscall.h      |  2 +-
->  arch/s390/include/asm/syscall.h       |  4 ++--
->  arch/sh/include/asm/syscall_32.h      |  2 +-
->  arch/sh/include/asm/syscall_64.h      |  2 +-
->  arch/sparc/include/asm/syscall.h      |  5 +++--
->  arch/unicore32/include/asm/syscall.h  |  2 +-
->  arch/x86/include/asm/syscall.h        |  8 +++++---
->  arch/x86/um/asm/syscall.h             |  2 +-
->  arch/xtensa/include/asm/syscall.h     |  2 +-
->  include/asm-generic/syscall.h         |  5 +++--
->  kernel/auditsc.c                      |  4 ++--
->  kernel/seccomp.c                      |  4 ++--
->  30 files changed, 52 insertions(+), 42 deletions(-)
+On systems without CONTIG_ALLOC activated but that support gigantic pages,
+boottime reserved gigantic pages can not be freed at all. This patch
+simply enables the possibility to hand back those pages to memory
+allocator.
 
-Merged into audit/next, thanks everyone.
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+Acked-by: David S. Miller <davem@davemloft.net> [sparc]
+---
+ arch/arm64/Kconfig                           |  2 +-
+ arch/arm64/include/asm/hugetlb.h             |  4 --
+ arch/powerpc/include/asm/book3s/64/hugetlb.h |  7 ---
+ arch/powerpc/platforms/Kconfig.cputype       |  2 +-
+ arch/s390/Kconfig                            |  2 +-
+ arch/s390/include/asm/hugetlb.h              |  3 --
+ arch/sh/Kconfig                              |  2 +-
+ arch/sparc/Kconfig                           |  2 +-
+ arch/x86/Kconfig                             |  2 +-
+ arch/x86/include/asm/hugetlb.h               |  4 --
+ include/asm-generic/hugetlb.h                | 14 +++++
+ include/linux/gfp.h                          |  2 +-
+ mm/hugetlb.c                                 | 54 ++++++++++++++------
+ mm/page_alloc.c                              |  4 +-
+ 14 files changed, 61 insertions(+), 43 deletions(-)
 
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 091a513b93e9..af687eff884a 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -18,7 +18,7 @@ config ARM64
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
+ 	select ARCH_HAS_PTE_SPECIAL
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index fb6609875455..59893e766824 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -65,8 +65,4 @@ extern void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
+ 
+ #include <asm-generic/hugetlb.h>
+ 
+-#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static inline bool gigantic_page_supported(void) { return true; }
+-#endif
+-
+ #endif /* __ASM_HUGETLB_H */
+diff --git a/arch/powerpc/include/asm/book3s/64/hugetlb.h b/arch/powerpc/include/asm/book3s/64/hugetlb.h
+index 5b0177733994..d04a0bcc2f1c 100644
+--- a/arch/powerpc/include/asm/book3s/64/hugetlb.h
++++ b/arch/powerpc/include/asm/book3s/64/hugetlb.h
+@@ -32,13 +32,6 @@ static inline int hstate_get_psize(struct hstate *hstate)
+ 	}
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static inline bool gigantic_page_supported(void)
+-{
+-	return true;
+-}
+-#endif
+-
+ /* hugepd entry valid bit */
+ #define HUGEPD_VAL_BITS		(0x8000000000000000UL)
+ 
+diff --git a/arch/powerpc/platforms/Kconfig.cputype b/arch/powerpc/platforms/Kconfig.cputype
+index f677c8974212..dc0328de20cd 100644
+--- a/arch/powerpc/platforms/Kconfig.cputype
++++ b/arch/powerpc/platforms/Kconfig.cputype
+@@ -319,7 +319,7 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
+ config PPC_RADIX_MMU
+ 	bool "Radix MMU Support"
+ 	depends on PPC_BOOK3S_64
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	default y
+ 	help
+ 	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 1c57b83c76f5..d84e536796b1 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -69,7 +69,7 @@ config S390
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_HAS_KCOV
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select ARCH_HAS_SET_MEMORY
+diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
+index 2d1afa58a4b6..bd191560efcf 100644
+--- a/arch/s390/include/asm/hugetlb.h
++++ b/arch/s390/include/asm/hugetlb.h
+@@ -116,7 +116,4 @@ static inline pte_t huge_pte_modify(pte_t pte, pgprot_t newprot)
+ 	return pte_modify(pte, newprot);
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static inline bool gigantic_page_supported(void) { return true; }
+-#endif
+ #endif /* _ASM_S390_HUGETLB_H */
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index c7266302691c..404b12a0d871 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -53,7 +53,7 @@ config SUPERH
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
+ 	select NEED_SG_DMA_LENGTH
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index ca33c80870e2..234a6bd46e89 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -90,7 +90,7 @@ config SPARC64
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select PCI_DOMAINS if PCI
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 
+ config ARCH_DEFCONFIG
+ 	string
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 8ba90f3e0038..ff24eaeef211 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -23,7 +23,7 @@ config X86_64
+ 	def_bool y
+ 	depends on 64BIT
+ 	# Options that are inherently 64-bit kernel only:
+-	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
++	select ARCH_HAS_GIGANTIC_PAGE
+ 	select ARCH_SUPPORTS_INT128
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select HAVE_ARCH_SOFT_DIRTY
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index 7469d321f072..f65cfb48cfdd 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -17,8 +17,4 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+ 
+-#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static inline bool gigantic_page_supported(void) { return true; }
+-#endif
+-
+ #endif /* _ASM_X86_HUGETLB_H */
+diff --git a/include/asm-generic/hugetlb.h b/include/asm-generic/hugetlb.h
+index 71d7b77eea50..aaf14974ee5f 100644
+--- a/include/asm-generic/hugetlb.h
++++ b/include/asm-generic/hugetlb.h
+@@ -126,4 +126,18 @@ static inline pte_t huge_ptep_get(pte_t *ptep)
+ }
+ #endif
+ 
++#ifndef __HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED
++#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
++static inline bool gigantic_page_runtime_supported(void)
++{
++	return true;
++}
++#else
++static inline bool gigantic_page_runtime_supported(void)
++{
++	return false;
++}
++#endif /* CONFIG_ARCH_HAS_GIGANTIC_PAGE */
++#endif /* __HAVE_ARCH_GIGANTIC_PAGE_RUNTIME_SUPPORTED */
++
+ #endif /* _ASM_GENERIC_HUGETLB_H */
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 1f1ad9aeebb9..58ea44bf75de 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -589,8 +589,8 @@ static inline bool pm_suspended_storage(void)
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+ 			      unsigned migratetype, gfp_t gfp_mask);
+-extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ #endif
++extern void free_contig_range(unsigned long pfn, unsigned int nr_pages);
+ 
+ #ifdef CONFIG_CMA
+ /* CMA stuff */
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index afef61656c1e..4e55aa38704f 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -1058,6 +1058,7 @@ static void free_gigantic_page(struct page *page, unsigned int order)
+ 	free_contig_range(page_to_pfn(page), 1 << order);
+ }
+ 
++#ifdef CONFIG_CONTIG_ALLOC
+ static int __alloc_gigantic_page(unsigned long start_pfn,
+ 				unsigned long nr_pages, gfp_t gfp_mask)
+ {
+@@ -1142,11 +1143,20 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+ 
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
+ static void prep_compound_gigantic_page(struct page *page, unsigned int order);
++#else /* !CONFIG_CONTIG_ALLOC */
++static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
++					int nid, nodemask_t *nodemask)
++{
++	return NULL;
++}
++#endif /* CONFIG_CONTIG_ALLOC */
+ 
+ #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
+-static inline bool gigantic_page_supported(void) { return false; }
+ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+-		int nid, nodemask_t *nodemask) { return NULL; }
++					int nid, nodemask_t *nodemask)
++{
++	return NULL;
++}
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+ static inline void destroy_compound_gigantic_page(struct page *page,
+ 						unsigned int order) { }
+@@ -1156,7 +1166,7 @@ static void update_and_free_page(struct hstate *h, struct page *page)
+ {
+ 	int i;
+ 
+-	if (hstate_is_gigantic(h) && !gigantic_page_supported())
++	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
+ 		return;
+ 
+ 	h->nr_huge_pages--;
+@@ -2276,13 +2286,27 @@ static int adjust_pool_surplus(struct hstate *h, nodemask_t *nodes_allowed,
+ }
+ 
+ #define persistent_huge_pages(h) (h->nr_huge_pages - h->surplus_huge_pages)
+-static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count,
+-						nodemask_t *nodes_allowed)
++static int set_max_huge_pages(struct hstate *h, unsigned long count,
++			      nodemask_t *nodes_allowed)
+ {
+ 	unsigned long min_count, ret;
+ 
+-	if (hstate_is_gigantic(h) && !gigantic_page_supported())
+-		return h->max_huge_pages;
++	spin_lock(&hugetlb_lock);
++
++	/*
++	 * Gigantic pages runtime allocation depend on the capability for large
++	 * page range allocation.
++	 * If the system does not provide this feature, return an error when
++	 * the user tries to allocate gigantic pages but let the user free the
++	 * boottime allocated gigantic pages.
++	 */
++	if (hstate_is_gigantic(h) && !IS_ENABLED(CONFIG_CONTIG_ALLOC)) {
++		if (count > persistent_huge_pages(h)) {
++			spin_unlock(&hugetlb_lock);
++			return -EINVAL;
++		}
++		/* Fall through to decrease pool */
++	}
+ 
+ 	/*
+ 	 * Increase the pool size
+@@ -2295,7 +2319,6 @@ static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count,
+ 	 * pool might be one hugepage larger than it needs to be, but
+ 	 * within all the constraints specified by the sysctls.
+ 	 */
+-	spin_lock(&hugetlb_lock);
+ 	while (h->surplus_huge_pages && count > persistent_huge_pages(h)) {
+ 		if (!adjust_pool_surplus(h, nodes_allowed, -1))
+ 			break;
+@@ -2350,9 +2373,10 @@ static unsigned long set_max_huge_pages(struct hstate *h, unsigned long count,
+ 			break;
+ 	}
+ out:
+-	ret = persistent_huge_pages(h);
++	h->max_huge_pages = persistent_huge_pages(h);
+ 	spin_unlock(&hugetlb_lock);
+-	return ret;
++
++	return 0;
+ }
+ 
+ #define HSTATE_ATTR_RO(_name) \
+@@ -2404,7 +2428,7 @@ static ssize_t __nr_hugepages_store_common(bool obey_mempolicy,
+ 	int err;
+ 	NODEMASK_ALLOC(nodemask_t, nodes_allowed, GFP_KERNEL | __GFP_NORETRY);
+ 
+-	if (hstate_is_gigantic(h) && !gigantic_page_supported()) {
++	if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported()) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -2428,15 +2452,13 @@ static ssize_t __nr_hugepages_store_common(bool obey_mempolicy,
+ 	} else
+ 		nodes_allowed = &node_states[N_MEMORY];
+ 
+-	h->max_huge_pages = set_max_huge_pages(h, count, nodes_allowed);
++	err = set_max_huge_pages(h, count, nodes_allowed);
+ 
++out:
+ 	if (nodes_allowed != &node_states[N_MEMORY])
+ 		NODEMASK_FREE(nodes_allowed);
+ 
+-	return len;
+-out:
+-	NODEMASK_FREE(nodes_allowed);
+-	return err;
++	return err ? err : len;
+ }
+ 
+ static ssize_t nr_hugepages_store_common(bool obey_mempolicy,
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index ac9c45ffb344..a4547d90fa7a 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -8234,8 +8234,9 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 				pfn_max_align_up(end), migratetype);
+ 	return ret;
+ }
++#endif /* CONFIG_CONTIG_ALLOC */
+ 
+-void free_contig_range(unsigned long pfn, unsigned nr_pages)
++void free_contig_range(unsigned long pfn, unsigned int nr_pages)
+ {
+ 	unsigned int count = 0;
+ 
+@@ -8247,7 +8248,6 @@ void free_contig_range(unsigned long pfn, unsigned nr_pages)
+ 	}
+ 	WARN(count != 0, "%d pages are still in use!\n", count);
+ }
+-#endif
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
 -- 
-paul moore
-www.paul-moore.com
+2.20.1
