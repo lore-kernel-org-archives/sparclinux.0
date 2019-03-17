@@ -1,51 +1,40 @@
-From: John Gould <johnrgould@gmail.com>
-Date: Mon, 25 Mar 2019 10:24:13 +0000
-Subject: t5120 service processor
-Message-Id: <CAL_q2a6STrM_ESwJnnhO5SzEMM6e+pY20VGAUsD3_j47KUxbOQ@mail.gmail.com>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Sun, 17 Mar 2019 16:28:44 +0000
+Subject: [PATCH v7 1/4] sh: Advertise gigantic page support
+Message-Id: <20190317162847.14107-2-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190317162847.14107-1-alex@ghiti.fr>
+In-Reply-To: <20190317162847.14107-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-Hi everyone,
+sh actually supports gigantic pages and selecting
+ARCH_HAS_GIGANTIC_PAGE allows it to allocate and free
+gigantic pages at runtime.
 
-Sorry this question is not Linux based but it is sparc related.
-Since I upgraded the LOM on one of my sparc boxes I get the following
-when I log in via
-ssh to the sp:-
+At least sdk7786_defconfig exposes such a configuration with
+huge pages of 64MB, pages of 4KB and MAX_ORDER = 11:
+HPAGE_SHIFT (26) - PAGE_SHIFT (12) = 14 >= MAX_ORDER (11)
 
-Johns-Mac-Pro:~ johng$ ssh -l admin 192.168.1.147
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+---
+ arch/sh/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-Password:
-
-Could not chdir to home directory : No such file or directory
-
-Waiting for daemons to initialize...
-
-
-Daemons ready
-
-
-Oracle(R) Integrated Lights Out Manager
-
-
-Version 3.0.12.9 r117324
-
-
-Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-
-
-sc>
-
-
-Does anyone know how to fix this as as far as I am aware you cannot
-create home directories for a user on the sp. Sun obviously had a
-solution but since a lot of Sun info disappeared when Oracle took over
-you now need a support contract to view the solution! You can no
-longer get firmware
-without a service contract etc! (Shame on you Oracle!)
-
-I just wondered if anyone here knew a fix for this?
-
-Kind regards John.
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index a9c36f95744a..299a17bed67c 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -53,6 +53,7 @@ config SUPERH
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
+ 	select NEED_SG_DMA_LENGTH
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+ 
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+-- 
+2.20.1
