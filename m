@@ -1,41 +1,38 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 26 Mar 2019 21:20:41 +0000
-Subject: Re: [RFC PATCH v2 09/14] watchdog/hardlockup: Make arch_touch_nmi_watchdog() to hpet-based implement
-Message-Id: <alpine.DEB.2.21.1903262219100.1789@nanos.tec.linutronix.de>
+From: ira.weiny@intel.com
+Date: Sun, 17 Mar 2019 18:34:37 +0000
+Subject: [RESEND 6/7] IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Message-Id: <20190317183438.2057-7-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <1551283518-18922-10-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <20190227161758.GE4072@linux.ibm.com>
- <20190301011713.GA8058@ranerica-svr.sc.intel.com>
-In-Reply-To: <20190301011713.GA8058@ranerica-svr.sc.intel.com>
+References: <20190317183438.2057-1-ira.weiny@intel.com>
+In-Reply-To: <20190317183438.2057-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, "Paul E. McKenney" <paulmck@linux.ibm.com>, Ingo Molnar <mingo@kernel.org>, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 
-On Thu, 28 Feb 2019, Ricardo Neri wrote:
-> > > 
-> > > -#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
-> > > +#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF) || \
-> > > +    defined(CONFIG_X86_HARDLOCKUP_DETECTOR_HPET)
-> > 
-> > Why not instead make CONFIG_X86_HARDLOCKUP_DETECTOR_HPET select
-> > CONFIG_HARDLOCKUP_DETECTOR_PERF?  Keep the arch-specific details
-> > in the arch-specific files and all that.
-> 
-> Thanks for your feedback, Paul! The HPET implementation does not use
-> perf. Thus, in my opinion is not correct for the HPET HLD to select
-> the perf implementation. Patch 8 of this series splits the perf-specific
-> code and the generic hardlockup detector code. Does this make sense?
+From: Ira Weiny <ira.weiny@intel.com>
 
-That's what intermediate config symbols are for.
+Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
+FS DAX pages being mapped.
 
-config HARDLOCKUP_DETECTOR_CORE
-       bool
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+---
+ drivers/infiniband/hw/qib/qib_user_sdma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-And make both PERF and HPET select it.
-
-Thanks,
-
-	tglx
+diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
+index 31c523b2a9f5..b53cc0240e02 100644
+--- a/drivers/infiniband/hw/qib/qib_user_sdma.c
++++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
+@@ -673,7 +673,7 @@ static int qib_user_sdma_pin_pages(const struct qib_devdata *dd,
+ 		else
+ 			j = npages;
+ 
+-		ret = get_user_pages_fast(addr, j, 0, pages);
++		ret = get_user_pages_fast(addr, j, FOLL_LONGTERM, pages);
+ 		if (ret != j) {
+ 			i = 0;
+ 			j = ret;
+-- 
+2.20.1
