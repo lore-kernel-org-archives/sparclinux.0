@@ -1,63 +1,115 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Thu, 21 Mar 2019 08:40:49 +0000
-Subject: Re: [RESEND PATCH 0/7] Add FOLL_LONGTERM to GUP fast and use it
-Message-Id: <20190321084048.GA26439@iweiny-DESK2.sc.intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 21 Mar 2019 11:45:35 +0000
+Subject: Re: [PATCH V3] cpufreq: Call transition notifier only once for each policy
+Message-Id: <20190321114535.GM6058@hirez.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317183438.2057-1-ira.weiny@intel.com>
- <20190319151930.bab575d62fb1a33094160fe3@linux-foundation.org>
-In-Reply-To: <20190319151930.bab575d62fb1a33094160fe3@linux-foundation.org>
+References: <1eb27e3bbcbb2c67e6eadc0893c9b41e5d76894b.1553057341.git.viresh.kumar@linaro.org>
+In-Reply-To: <1eb27e3bbcbb2c67e6eadc0893c9b41e5d76894b.1553057341.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>, kvm@vger.kernel.org, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, linux-pm@vger.kernel.org, x86@kernel.org, Rafael Wysocki <rjw@rjwysocki.net>, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 
-On Tue, Mar 19, 2019 at 03:19:30PM -0700, Andrew Morton wrote:
-> On Sun, 17 Mar 2019 11:34:31 -0700 ira.weiny@intel.com wrote:
-> 
-> > Resending after rebasing to the latest mm tree.
-> > 
-> > HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
-> > advantages.  These pages can be held for a significant time.  But
-> > get_user_pages_fast() does not protect against mapping FS DAX pages.
-> > 
-> > Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
-> > retains the performance while also adding the FS DAX checks.  XDP has also
-> > shown interest in using this functionality.[1]
-> > 
-> > In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
-> > remove the specialized get_user_pages_longterm call.
-> 
-> It would be helpful to include your response to Christoph's question
-> (http://lkml.kernel.org/r/20190220180255.GA12020@iweiny-DESK2.sc.intel.com)
-> in the changelog.  Because if one person was wondering about this,
-> others will likely do so.
-> 
-> We have no record of acks or reviewed-by's.  At least one was missed
-> (http://lkml.kernel.org/r/CAOg9mSTTcD-9bCSDfC0WRYqfVrNB4TwOzL0c4+6QXi-N_Y43Vw@mail.gmail.com),
-> but that is very very partial.
+On Wed, Mar 20, 2019 at 10:22:23AM +0530, Viresh Kumar wrote:
+> diff --git a/arch/x86/kernel/tsc.c b/arch/x86/kernel/tsc.c
+> index 3fae23834069..b2fe665878f7 100644
+> --- a/arch/x86/kernel/tsc.c
+> +++ b/arch/x86/kernel/tsc.c
+> @@ -958,10 +958,15 @@ static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+>  	struct cpufreq_freqs *freq = data;
+>  	unsigned long *lpj;
+>  
+> +	if (WARN_ON_ONCE(cpumask_weight(freq->policy->related_cpus) != 1)) {
+> +		mark_tsc_unstable("cpufreq changes: related CPUs affected");
 
-That is my bad.  Sorry to Mike.  And I have added him.
+I suspect this is a big fat nop, but it won't hurt.
 
-> 
-> This patchset is fairly DAX-centered, but Dan wasn't cc'ed!
+> +		return 0;
+> +	}
+> +
+>  	lpj = &boot_cpu_data.loops_per_jiffy;
+>  #ifdef CONFIG_SMP
+>  	if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+> -		lpj = &cpu_data(freq->cpu).loops_per_jiffy;
+> +		lpj = &cpu_data(freq->policy->cpu).loops_per_jiffy;
+>  #endif
+>  
+>  	if (!ref_freq) {
+> @@ -977,7 +982,7 @@ static int time_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+>  		if (!(freq->flags & CPUFREQ_CONST_LOOPS))
+>  			mark_tsc_unstable("cpufreq changes");
+>  
+> -		set_cyc2ns_scale(tsc_khz, freq->cpu, rdtsc());
+> +		set_cyc2ns_scale(tsc_khz, freq->policy->cpu, rdtsc());
+>  	}
+>  
+>  	return 0;
 
-Agreed, I'm new to changing things which affect this many sub-systems and I
-struggled with who should be CC'ed (get_maintainer.pl returned a very large
-list  :-(.
+Just wondering, since we say x86 cpufreq handlers will only have a
+single CPU here,
 
-I fear I may have cc'ed too many people, and the wrong people apparently, so
-that may be affecting the review...
+> diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
+> index 65e4559eef2f..1ac8c710cccc 100644
+> --- a/arch/x86/kvm/x86.c
+> +++ b/arch/x86/kvm/x86.c
+> @@ -6649,10 +6649,8 @@ static void kvm_hyperv_tsc_notifier(void)
+>  }
+>  #endif
+>  
+> -static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+> -				     void *data)
+> +static void __kvmclock_cpufreq_notifier(struct cpufreq_freqs *freq, int cpu)
+>  {
+> -	struct cpufreq_freqs *freq = data;
+>  	struct kvm *kvm;
+>  	struct kvm_vcpu *vcpu;
+>  	int i, send_ipi = 0;
+> @@ -6696,17 +6694,12 @@ static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long va
+>  	 *
+>  	 */
+>  
+> -	if (val = CPUFREQ_PRECHANGE && freq->old > freq->new)
+> -		return 0;
+> -	if (val = CPUFREQ_POSTCHANGE && freq->old < freq->new)
+> -		return 0;
+> -
+> -	smp_call_function_single(freq->cpu, tsc_khz_changed, freq, 1);
+> +	smp_call_function_single(cpu, tsc_khz_changed, freq, 1);
+>  
+>  	spin_lock(&kvm_lock);
+>  	list_for_each_entry(kvm, &vm_list, vm_list) {
+>  		kvm_for_each_vcpu(i, vcpu, kvm) {
+> -			if (vcpu->cpu != freq->cpu)
+> +			if (vcpu->cpu != cpu)
+>  				continue;
+>  			kvm_make_request(KVM_REQ_CLOCK_UPDATE, vcpu);
+>  			if (vcpu->cpu != smp_processor_id())
+> @@ -6728,8 +6721,24 @@ static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long va
+>  		 * guest context is entered kvmclock will be updated,
+>  		 * so the guest will not see stale values.
+>  		 */
+> -		smp_call_function_single(freq->cpu, tsc_khz_changed, freq, 1);
+> +		smp_call_function_single(cpu, tsc_khz_changed, freq, 1);
+>  	}
+> +}
+> +
+> +static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
+> +				     void *data)
+> +{
+> +	struct cpufreq_freqs *freq = data;
+> +	int cpu;
+> +
+> +	if (val = CPUFREQ_PRECHANGE && freq->old > freq->new)
+> +		return 0;
+> +	if (val = CPUFREQ_POSTCHANGE && freq->old < freq->new)
+> +		return 0;
+> +
+> +	for_each_cpu(cpu, freq->policy->cpus)
+> +		__kvmclock_cpufreq_notifier(freq, cpu);
+> +
+>  	return 0;
+>  }
+>  
 
-So again my apologies.  I don't know if Dan is going to get a chance to put a
-reviewed-by on them this week but I thought I would send this note to let you
-know I'm not ignoring your feedback.  Just waiting a bit before resending to
-hopefully get some more acks/reviewed bys.
-
-Thanks,
-Ira
-
-> 
-> So ho hum.  I'll scoop them up and shall make the above changes to the
-> [1/n] changelog, but we still have some work to do.
-> 
+Then why to we pretend otherwise here?
