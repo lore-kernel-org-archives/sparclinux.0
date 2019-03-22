@@ -1,52 +1,32 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Date: Fri, 22 Mar 2019 13:53:50 +0000
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date: Fri, 22 Mar 2019 17:05:50 +0000
 Subject: Re: [PATCH 0/2] Remove support for deprecated %pf and %pF in vsprintf
-Message-Id: <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
+Message-Id: <20190322170550.GX9224@smile.fi.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
  <CAMuHMdVmqqjVx7As9AAywYxYXG=grijF5rF77OBn6TUjM9+xKw@mail.gmail.com>
-In-Reply-To: <CAMuHMdVmqqjVx7As9AAywYxYXG=grijF5rF77OBn6TUjM9+xKw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+ <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
+In-Reply-To: <20190322135350.2btpno7vspvewxvk@paasikivi.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Linux PM list <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux MMC List <linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-f2fs-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, ceph-devel <ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, linux-btrfs <linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lars Ellenberg <drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, Petr Mladek <pmladek@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, scsi <linux-scsi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Linux MMC List <linux-mmc@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, linux-um@lists.infradead.org, linux-f2fs-devel@lists.sourceforge.net, linux-block@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, netdev <netdev@vger.kernel.org>, linux-btrfs <linux-btrfs@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, xen-devel@lists.xenproject.org, ceph-devel <ceph-devel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Linux ARM <linux-arm-kernel@l>
 
-Hi Geert,
+On Fri, Mar 22, 2019 at 03:53:50PM +0200, Sakari Ailus wrote:
 
-On Fri, Mar 22, 2019 at 02:37:18PM +0100, Geert Uytterhoeven wrote:
-> Hi Sakari,
-> 
-> On Fri, Mar 22, 2019 at 2:25 PM Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
-> > The printk family of functions supports %ps and %pS conversion specifiers
-> > to print function names. Yet the deprecated %pf and %pF conversion
-> > specifiers with equivalent functionality remain supported. A number of
-> > users of %pf and %pF remain.
-> >
-> > This patchsets converts the existing users of %pf and %pF to %ps and %pS,
-> > respectively, and removes support for the deprecated %pf and %pF.
-> >
-> > The patches apply cleanly both on 5.1-rc1 as well as on Linux-next. No new
-> > %pf or %pF users have been added in the meantime so the patch is
-> > sufficient as itself on linux-next, too.
-> 
-> Do you know in which commit they became deprecated, so the backporters
-> know how far this can be backported safely?
+> Porting a patch
+> forward should have no issues either as checkpatch.pl has been complaining
+> of the use of %pf and %pF for a while now.
 
-That appears to be 04b8eb7a4ccd
-("symbol lookup: introduce dereference_symbol_descriptor()"), the same
-patch that made %p[fF] and %p[sS] functionally equivalent.
+And that's exactly the reason why I think instead of removing warning on
+checkpatch, it makes sense to convert to an error for a while. People are
+tending read documentation on internet and thus might have outdated one. And
+yes, the compiler doesn't tell a thing about it.
 
-But my personal opinion would be not to backport the patch for two reasons:
-the sheer number of files it touches (those format strings change for
-various reasons) and the meager benefits it has on older kernels as any
-backported patch using %s or %S still works as such. Porting a patch
-forward should have no issues either as checkpatch.pl has been complaining
-of the use of %pf and %pF for a while now.
+P.S. Though, if majority of people will tell that I'm wrong, then it's okay to
+remove.
 
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+With Best Regards,
+Andy Shevchenko
