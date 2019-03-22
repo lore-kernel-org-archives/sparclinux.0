@@ -1,171 +1,94 @@
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Date: Thu, 14 Mar 2019 05:53:55 +0000
-Subject: Re: [PATCH v6 3/4] mm: Simplify MEMORY_ISOLATION && COMPACTION || CMA into CONTIG_ALLOC
-Message-Id: <87y35iovvg.fsf@linux.ibm.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Date: Fri, 22 Mar 2019 13:21:06 +0000
+Subject: [PATCH 0/2] Remove support for deprecated %pf and %pF in vsprintf
+Message-Id: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190307132015.26970-1-alex@ghiti.fr>
- <20190307132015.26970-4-alex@ghiti.fr>
-In-Reply-To: <20190307132015.26970-4-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexandre Ghiti <alex@ghiti.fr>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+To: Petr Mladek <pmladek-IBi9RG/b67k@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mmc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-um-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-f2fs-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-block-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-btrfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xen-devel-GuqFBffKawtpuQazS67q72D2FQJk+8+b@public.gmane.org, ceph-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
 
-Alexandre Ghiti <alex@ghiti.fr> writes:
+Hi all,
 
-> This condition allows to define alloc_contig_range, so simplify
-> it into a more accurate naming.
+The printk family of functions supports %ps and %pS conversion specifiers
+to print function names. Yet the deprecated %pf and %pF conversion
+specifiers with equivalent functionality remain supported. A number of
+users of %pf and %pF remain.
 
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+This patchsets converts the existing users of %pf and %pF to %ps and %pS,
+respectively, and removes support for the deprecated %pf and %pF.
 
->
-> Suggested-by: Vlastimil Babka <vbabka@suse.cz>
-> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-> Acked-by: Vlastimil Babka <vbabka@suse.cz>
-> ---
->  arch/arm64/Kconfig                     | 2 +-
->  arch/powerpc/platforms/Kconfig.cputype | 2 +-
->  arch/s390/Kconfig                      | 2 +-
->  arch/sh/Kconfig                        | 2 +-
->  arch/sparc/Kconfig                     | 2 +-
->  arch/x86/Kconfig                       | 2 +-
->  arch/x86/mm/hugetlbpage.c              | 2 +-
->  include/linux/gfp.h                    | 2 +-
->  mm/Kconfig                             | 3 +++
->  mm/page_alloc.c                        | 3 +--
->  10 files changed, 12 insertions(+), 10 deletions(-)
->
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index a4168d366127..091a513b93e9 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -18,7 +18,7 @@ config ARM64
->  	select ARCH_HAS_FAST_MULTIPLIER
->  	select ARCH_HAS_FORTIFY_SOURCE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  	select ARCH_HAS_KCOV
->  	select ARCH_HAS_MEMBARRIER_SYNC_CORE
->  	select ARCH_HAS_PTE_SPECIAL
-> diff --git a/arch/powerpc/platforms/Kconfig.cputype b/arch/powerpc/platforms/Kconfig.cputype
-> index 8c7464c3f27f..f677c8974212 100644
-> --- a/arch/powerpc/platforms/Kconfig.cputype
-> +++ b/arch/powerpc/platforms/Kconfig.cputype
-> @@ -319,7 +319,7 @@ config ARCH_ENABLE_SPLIT_PMD_PTLOCK
->  config PPC_RADIX_MMU
->  	bool "Radix MMU Support"
->  	depends on PPC_BOOK3S_64
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  	default y
->  	help
->  	  Enable support for the Power ISA 3.0 Radix style MMU. Currently this
-> diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-> index ed554b09eb3f..1c57b83c76f5 100644
-> --- a/arch/s390/Kconfig
-> +++ b/arch/s390/Kconfig
-> @@ -69,7 +69,7 @@ config S390
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_FORTIFY_SOURCE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  	select ARCH_HAS_KCOV
->  	select ARCH_HAS_PTE_SPECIAL
->  	select ARCH_HAS_SET_MEMORY
-> diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-> index 299a17bed67c..c7266302691c 100644
-> --- a/arch/sh/Kconfig
-> +++ b/arch/sh/Kconfig
-> @@ -53,7 +53,7 @@ config SUPERH
->  	select HAVE_FUTEX_CMPXCHG if FUTEX
->  	select HAVE_NMI
->  	select NEED_SG_DMA_LENGTH
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  
->  	help
->  	  The SuperH is a RISC processor targeted for use in embedded systems
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index 0b7f0e0fefa5..ca33c80870e2 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -90,7 +90,7 @@ config SPARC64
->  	select ARCH_CLOCKSOURCE_DATA
->  	select ARCH_HAS_PTE_SPECIAL
->  	select PCI_DOMAINS if PCI
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  
->  config ARCH_DEFCONFIG
->  	string
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index 68261430fe6e..8ba90f3e0038 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -23,7 +23,7 @@ config X86_64
->  	def_bool y
->  	depends on 64BIT
->  	# Options that are inherently 64-bit kernel only:
-> -	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
-> +	select ARCH_HAS_GIGANTIC_PAGE if CONTIG_ALLOC
->  	select ARCH_SUPPORTS_INT128
->  	select ARCH_USE_CMPXCHG_LOCKREF
->  	select HAVE_ARCH_SOFT_DIRTY
-> diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
-> index 92e4c4b85bba..fab095362c50 100644
-> --- a/arch/x86/mm/hugetlbpage.c
-> +++ b/arch/x86/mm/hugetlbpage.c
-> @@ -203,7 +203,7 @@ static __init int setup_hugepagesz(char *opt)
->  }
->  __setup("hugepagesz=", setup_hugepagesz);
->  
-> -#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
-> +#ifdef CONFIG_CONTIG_ALLOC
->  static __init int gigantic_pages_init(void)
->  {
->  	/* With compaction or CMA we can allocate gigantic pages at runtime */
-> diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-> index 5f5e25fd6149..1f1ad9aeebb9 100644
-> --- a/include/linux/gfp.h
-> +++ b/include/linux/gfp.h
-> @@ -585,7 +585,7 @@ static inline bool pm_suspended_storage(void)
->  }
->  #endif /* CONFIG_PM_SLEEP */
->  
-> -#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
-> +#ifdef CONFIG_CONTIG_ALLOC
->  /* The below functions must be run on a range from a single zone. */
->  extern int alloc_contig_range(unsigned long start, unsigned long end,
->  			      unsigned migratetype, gfp_t gfp_mask);
-> diff --git a/mm/Kconfig b/mm/Kconfig
-> index 25c71eb8a7db..137eadc18732 100644
-> --- a/mm/Kconfig
-> +++ b/mm/Kconfig
-> @@ -258,6 +258,9 @@ config ARCH_ENABLE_HUGEPAGE_MIGRATION
->  config ARCH_ENABLE_THP_MIGRATION
->  	bool
->  
-> +config CONTIG_ALLOC
-> +       def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
-> +
->  config PHYS_ADDR_T_64BIT
->  	def_bool 64BIT
->  
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index 35fdde041f5c..ac9c45ffb344 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -8024,8 +8024,7 @@ bool has_unmovable_pages(struct zone *zone, struct page *page, int count,
->  	return true;
->  }
->  
-> -#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
-> -
-> +#ifdef CONFIG_CONTIG_ALLOC
->  static unsigned long pfn_max_align_down(unsigned long pfn)
->  {
->  	return pfn & ~(max_t(unsigned long, MAX_ORDER_NR_PAGES,
-> -- 
-> 2.20.1
+The patches apply cleanly both on 5.1-rc1 as well as on Linux-next. No new
+%pf or %pF users have been added in the meantime so the patch is
+sufficient as itself on linux-next, too.
+
+Sakari Ailus (2):
+  treewide: Switch printk users from %pf and %pF to %ps and %pS,
+    respectively
+  vsprintf: Remove support for %pF and %pf in favour of %pS and %ps
+
+ Documentation/core-api/printk-formats.rst | 10 ----------
+ arch/alpha/kernel/pci_iommu.c             | 20 ++++++++++----------
+ arch/arm/mach-imx/pm-imx6.c               |  2 +-
+ arch/arm/mm/alignment.c                   |  2 +-
+ arch/arm/nwfpe/fpmodule.c                 |  2 +-
+ arch/microblaze/mm/pgtable.c              |  2 +-
+ arch/sparc/kernel/ds.c                    |  2 +-
+ arch/um/kernel/sysrq.c                    |  2 +-
+ arch/x86/include/asm/trace/exceptions.h   |  2 +-
+ arch/x86/kernel/irq_64.c                  |  2 +-
+ arch/x86/mm/extable.c                     |  4 ++--
+ arch/x86/xen/multicalls.c                 |  2 +-
+ drivers/acpi/device_pm.c                  |  2 +-
+ drivers/base/power/main.c                 |  6 +++---
+ drivers/base/syscore.c                    | 12 ++++++------
+ drivers/block/drbd/drbd_receiver.c        |  2 +-
+ drivers/block/floppy.c                    | 10 +++++-----
+ drivers/cpufreq/cpufreq.c                 |  2 +-
+ drivers/mmc/core/quirks.h                 |  2 +-
+ drivers/nvdimm/bus.c                      |  2 +-
+ drivers/nvdimm/dimm_devs.c                |  2 +-
+ drivers/pci/pci-driver.c                  | 14 +++++++-------
+ drivers/pci/quirks.c                      |  4 ++--
+ drivers/pnp/quirks.c                      |  2 +-
+ drivers/scsi/esp_scsi.c                   |  2 +-
+ fs/btrfs/tests/free-space-tree-tests.c    |  4 ++--
+ fs/f2fs/f2fs.h                            |  2 +-
+ fs/pstore/inode.c                         |  2 +-
+ include/trace/events/btrfs.h              |  2 +-
+ include/trace/events/cpuhp.h              |  4 ++--
+ include/trace/events/preemptirq.h         |  2 +-
+ include/trace/events/rcu.h                |  4 ++--
+ include/trace/events/sunrpc.h             |  2 +-
+ include/trace/events/timer.h              |  8 ++++----
+ include/trace/events/vmscan.h             |  4 ++--
+ include/trace/events/workqueue.h          |  4 ++--
+ include/trace/events/xen.h                |  2 +-
+ init/main.c                               |  6 +++---
+ kernel/async.c                            |  4 ++--
+ kernel/events/uprobes.c                   |  2 +-
+ kernel/fail_function.c                    |  2 +-
+ kernel/irq/debugfs.c                      |  2 +-
+ kernel/irq/handle.c                       |  2 +-
+ kernel/irq/manage.c                       |  2 +-
+ kernel/irq/spurious.c                     |  4 ++--
+ kernel/rcu/tree.c                         |  2 +-
+ kernel/stop_machine.c                     |  2 +-
+ kernel/time/sched_clock.c                 |  2 +-
+ kernel/time/timer.c                       |  2 +-
+ kernel/workqueue.c                        | 12 ++++++------
+ lib/error-inject.c                        |  2 +-
+ lib/percpu-refcount.c                     |  4 ++--
+ lib/vsprintf.c                            |  8 ++------
+ mm/memblock.c                             | 12 ++++++------
+ mm/memory.c                               |  2 +-
+ mm/vmscan.c                               |  2 +-
+ net/ceph/osd_client.c                     |  2 +-
+ net/core/net-procfs.c                     |  2 +-
+ net/core/netpoll.c                        |  4 ++--
+ scripts/checkpatch.pl                     |  5 -----
+ 60 files changed, 111 insertions(+), 130 deletions(-)
+
+-- 
+2.11.0
