@@ -1,53 +1,115 @@
 From: Waiman Long <longman@redhat.com>
-Date: Fri, 22 Mar 2019 20:27:26 +0000
-Subject: Re: [PATCH v5 1/3] locking/rwsem: Remove arch specific rwsem files
-Message-Id: <45315aa9-f006-c4ca-705f-71d6c2650508@redhat.com>
+Date: Fri, 22 Mar 2019 14:30:08 +0000
+Subject: [PATCH v5 3/3] locking/rwsem: Optimize down_read_trylock()
+Message-Id: <20190322143008.21313-4-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190322143008.21313-1-longman@redhat.com>
- <20190322143008.21313-2-longman@redhat.com>
- <CAHk-=wikkO-1f1=FEOEzkSnaDg3yJLP=4Vd59UCuLBztFd0KOw@mail.gmail.com>
- <20190322193010.azb7rmmmaclhal35@linux-r8p5>
-In-Reply-To: <20190322193010.azb7rmmmaclhal35@linux-r8p5>
+In-Reply-To: <20190322143008.21313-1-longman@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Davidlohr Bueso <dave@stgolabs.net>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>, linux-c6x-dev@linux-c6x.org, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux@vg
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>Linus Torvalds <tor>
 
-T24gMDMvMjIvMjAxOSAwMzozMCBQTSwgRGF2aWRsb2hyIEJ1ZXNvIHdyb3RlOgo+IE9uIEZy
-aSwgMjIgTWFyIDIwMTksIExpbnVzIFRvcnZhbGRzIHdyb3RlOgo+PiBTb21lIG9mIHRoZW0g
-X21pZ2h0XyBiZSBwZXJmb3JtYW5jZS1jcml0aWNhbC4gVGhlcmUncyB0aGUgb25lIG9uCj4+
-IG1tYXBfc2VtIGluIHRoZSBmYXVsdCBoYW5kbGluZyBwYXRoLCBmb3IgZXhhbXBsZS4gQW5k
-IHllcywgSSdkIGV4cGVjdAo+PiB0aGUgbm9ybWFsIGNhc2UgdG8gdmVyeSBtdWNoIGJlICJu
-byBvdGhlciByZWFkZXJzIG9yIHdyaXRlcnMiIGZvciB0aGF0Cj4+IG9uZS4KPgo+IFllYWgs
-IHRoZSBtbWFwX3NlbSBjYXNlIGluIHRoZSBmYXVsdCBwYXRoIGlzIHJlYWxseSBleHBlY3Rp
-bmcgYW4gdW5sb2NrZWQKPiBzdGF0ZS4gVG8gdGhlIHBvaW50IHRoYXQgZm91ciBhcmNocyBo
-YXZlIGFkZGVkIGJyYW5jaCBwcmVkaWN0aW9ucywgaWU6Cj4KPiA5MjE4MWYxOTBiNiAoeDg2
-OiBvcHRpbWlzZSB4ODYncyBkb19wYWdlX2ZhdWx0IChDIGVudHJ5IHBvaW50IGZvciB0aGUK
-PiBwYWdlIGZhdWx0IHBhdGgpKQo+IGIxNTAyMWQ5OTRmIChwb3dlcnBjL21tOiBBZGQgYSBi
-dW5jaCBvZiAodW4pbGlrZWx5IGFubm90YXRpb25zIHRvCj4gZG9fcGFnZV9mYXVsdCkKPgo+
-IEFuZCB1c2luZyBQUk9GSUxFX0FOTk9UQVRFRF9CUkFOQ0hFUyBzaG93cyBwcmV0dHkgY2xl
-YXJseToKPiAod2l0aG91dCByZXNldHRpbmcgdGhlIGNvdW50ZXJzKQo+Cj4gY29ycmVjdCBp
-bmNvcnJlY3TCoCAlwqDCoMKgwqDCoMKgwqAgRnVuY3Rpb27CoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoCBGaWxlwqDCoMKgwqDCoMKgwqDCoMKgIExpbmUKPiAtLS0tLS0tIC0tLS0tLS0t
-LcKgIC3CoMKgwqDCoMKgwqDCoCAtLS0tLS0tLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IC0tLS3CoMKgwqDCoMKgwqDCoMKgwqAgLS0tLQo+IMKgNDYwMzY4NcKgwqDCoMKgwqDCoCAz
-NMKgwqAgMCBkb191c2VyX2FkZHJfZmF1bHTCoMKgwqDCoMKgwqDCoMKgIGZhdWx0LmPCoMKg
-wqDCoMKgwqDCoMKgwqAgMTQxNgo+IChib290dXApCj4gMzgyMzI3NzQ1wqDCoMKgwqDCoCA0
-NDnCoMKgIDAgZG9fdXNlcl9hZGRyX2ZhdWx0wqDCoMKgwqDCoMKgwqDCoCBmYXVsdC5jwqDC
-oMKgwqDCoMKgwqDCoMKgCj4gMTQxNiAoa2VybmVsIGJ1aWxkKQo+IDM5OTQ0NjE1OcKgwqDC
-oMKgwqAgNDYxwqDCoCAwIGRvX3VzZXJfYWRkcl9mYXVsdMKgwqDCoMKgwqDCoMKgwqAgZmF1
-bHQuY8KgwqDCoMKgwqDCoMKgwqDCoAo+IDE0MTYgKHJlZGlzIGJlbmNobWFyaykKPgo+IEl0
-IHdvdWxkIHByb2JhYmx5IHdvdWxkbid0IGhhcm0gZG9pbmcgdGhlIHVubGlrZWx5KCkgZm9y
-IGFsbCBhcmNocywgb3IKPiBhbHRlcm5hdGl2ZWx5LCBhZGQgbGlrZWx5KCkgdG8gdGhlIGF0
-b21pY19sb25nX3RyeV9jbXB4Y2hnX2FjcXVpcmUgaW4KPiBwYXRjaCAzIGFuZCBkbyBpdCBp
-bXBsaWNpdGx5IGJ1dCBtYXliZSB0aGF0IHdvdWxkIGJlIGxlc3MgZmxleGlibGUoPykKPgo+
-IFRoYW5rcywKPiBEYXZpZGxvaHIKCkkgaGFkIHVzZWQgdGhlIG15IGxvY2sgZXZlbnQgY291
-bnRpbmcgY29kZSB0byBjb3VudCB0aGUgbnVtYmVyIG9mCmNvbnRlbmRlZCBhbmQgdW5jb250
-ZW5kZWQgdHJ5bG9ja3MuIEkgdGVzdGVkIGJvdGggYm9vdHVwIGFuZCBrZXJuZWwKYnVpbGQu
-IEkgdGhpbmsgSSBzYXcgbGVzcyB0aGFuIDElIHdlcmUgY29udGVuZGVkLCB0aGUgcmVzdHMg
-d2VyZSBhbGwKdW5jb250ZW5kZWQuIFRoYXQgaXMgc2ltaWxhciB0byB3aGF0IHlvdSBnb3Qu
-IEkgdGhvdWdodCBJIGhhZCBzZW50IHRoZQpkYXRhIG91dCBwcmV2aW91c2x5LCBidXQgSSBj
-b3VsZG4ndCBmaW5kIHRoZSBlbWFpbC4gVGhhdCB3YXMgdGhlIG1haW4KcmVhc29uIHdoeSBJ
-IHRvb2sgTGludXMnIHN1Z2dlc3Rpb24gdG8gb3B0aW1pemUgaXQgZm9yIHRoZSB1bmNvbnRl
-bmRlZCBjYXNlLgoKVGhhbmtzLApMb25nbWFuCgo
+Modify __down_read_trylock() to optimize for an unlocked rwsem and make
+it generate slightly better code.
+
+Before this patch, down_read_trylock:
+
+   0x0000000000000000 <+0>:     callq  0x5 <down_read_trylock+5>
+   0x0000000000000005 <+5>:     jmp    0x18 <down_read_trylock+24>
+   0x0000000000000007 <+7>:     lea    0x1(%rdx),%rcx
+   0x000000000000000b <+11>:    mov    %rdx,%rax
+   0x000000000000000e <+14>:    lock cmpxchg %rcx,(%rdi)
+   0x0000000000000013 <+19>:    cmp    %rax,%rdx
+   0x0000000000000016 <+22>:    je     0x23 <down_read_trylock+35>
+   0x0000000000000018 <+24>:    mov    (%rdi),%rdx
+   0x000000000000001b <+27>:    test   %rdx,%rdx
+   0x000000000000001e <+30>:    jns    0x7 <down_read_trylock+7>
+   0x0000000000000020 <+32>:    xor    %eax,%eax
+   0x0000000000000022 <+34>:    retq
+   0x0000000000000023 <+35>:    mov    %gs:0x0,%rax
+   0x000000000000002c <+44>:    or     $0x3,%rax
+   0x0000000000000030 <+48>:    mov    %rax,0x20(%rdi)
+   0x0000000000000034 <+52>:    mov    $0x1,%eax
+   0x0000000000000039 <+57>:    retq
+
+After patch, down_read_trylock:
+
+   0x0000000000000000 <+0>:	callq  0x5 <down_read_trylock+5>
+   0x0000000000000005 <+5>:	xor    %eax,%eax
+   0x0000000000000007 <+7>:	lea    0x1(%rax),%rdx
+   0x000000000000000b <+11>:	lock cmpxchg %rdx,(%rdi)
+   0x0000000000000010 <+16>:	jne    0x29 <down_read_trylock+41>
+   0x0000000000000012 <+18>:	mov    %gs:0x0,%rax
+   0x000000000000001b <+27>:	or     $0x3,%rax
+   0x000000000000001f <+31>:	mov    %rax,0x20(%rdi)
+   0x0000000000000023 <+35>:	mov    $0x1,%eax
+   0x0000000000000028 <+40>:	retq
+   0x0000000000000029 <+41>:	test   %rax,%rax
+   0x000000000000002c <+44>:	jns    0x7 <down_read_trylock+7>
+   0x000000000000002e <+46>:	xor    %eax,%eax
+   0x0000000000000030 <+48>:	retq
+
+By using a rwsem microbenchmark, the down_read_trylock() rate (with a
+load of 10 to lengthen the lock critical section) on a x86-64 system
+before and after the patch were:
+
+                 Before Patch    After Patch
+   # of Threads     rlock           rlock
+   ------------     -----           -----
+        1           14,496          14,716
+        2            8,644           8,453
+	4            6,799           6,983
+	8            5,664           7,190
+
+On a ARM64 system, the performance results were:
+
+                 Before Patch    After Patch
+   # of Threads     rlock           rlock
+   ------------     -----           -----
+        1           23,676          24,488
+        2            7,697           9,502
+        4            4,945           3,440
+        8            2,641           1,603
+
+For the uncontended case (1 thread), the new down_read_trylock() is a
+little bit faster. For the contended cases, the new down_read_trylock()
+perform pretty well in x86-64, but performance degrades at high
+contention level on ARM64.
+
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Waiman Long <longman@redhat.com>
+---
+ kernel/locking/rwsem.h | 13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/kernel/locking/rwsem.h b/kernel/locking/rwsem.h
+index 45ee00236e03..1f5775aa6a1d 100644
+--- a/kernel/locking/rwsem.h
++++ b/kernel/locking/rwsem.h
+@@ -174,14 +174,17 @@ static inline int __down_read_killable(struct rw_semaphore *sem)
+ 
+ static inline int __down_read_trylock(struct rw_semaphore *sem)
+ {
+-	long tmp;
++	/*
++	 * Optimize for the case when the rwsem is not locked at all.
++	 */
++	long tmp = RWSEM_UNLOCKED_VALUE;
+ 
+-	while ((tmp = atomic_long_read(&sem->count)) >= 0) {
+-		if (tmp = atomic_long_cmpxchg_acquire(&sem->count, tmp,
+-				   tmp + RWSEM_ACTIVE_READ_BIAS)) {
++	do {
++		if (atomic_long_try_cmpxchg_acquire(&sem->count, &tmp,
++					tmp + RWSEM_ACTIVE_READ_BIAS)) {
+ 			return 1;
+ 		}
+-	}
++	} while (tmp >= 0);
+ 	return 0;
+ }
+ 
+-- 
+2.18.1
