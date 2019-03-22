@@ -1,7 +1,7 @@
-From: David Sterba <dsterba@suse.cz>
-Date: Fri, 22 Mar 2019 14:30:28 +0000
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Fri, 22 Mar 2019 21:30:34 +0000
 Subject: Re: [PATCH 1/2] treewide: Switch printk users from %pf and %pF to %ps and %pS, respectively
-Message-Id: <20190322143028.GD28481@twin.jikos.cz>
+Message-Id: <20190322213034.GA9303@rapoport-lnx>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190322132108.25501-1-sakari.ailus@linux.intel.com>
  <20190322132108.25501-2-sakari.ailus@linux.intel.com>
@@ -27,9 +27,8 @@ On Fri, Mar 22, 2019 at 03:21:07PM +0200, Sakari Ailus wrote:
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 > ---
 
-For 
+For
 
->  fs/btrfs/tests/free-space-tree-tests.c  |  4 ++--
->  include/trace/events/btrfs.h            |  2 +-
+>  mm/memblock.c                           | 12 ++++++------
 
-Acked-by: David Sterba <dsterba@suse.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
