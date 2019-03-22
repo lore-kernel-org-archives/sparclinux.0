@@ -1,52 +1,96 @@
-From: Steven Price <steven.price@arm.com>
-Date: Tue, 26 Mar 2019 16:26:12 +0000
-Subject: [PATCH v6 07/19] sparc: mm: Add p?d_large() definitions
-Message-Id: <20190326162624.20736-8-steven.price@arm.com>
+From: Waiman Long <longman@redhat.com>
+Date: Fri, 22 Mar 2019 14:30:05 +0000
+Subject: [PATCH v5 0/3] locking/rwsem: Rwsem rearchitecture part 0
+Message-Id: <20190322143008.21313-1-longman@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190326162624.20736-1-steven.price@arm.com>
-In-Reply-To: <20190326162624.20736-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
+To: Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>Linus Torvalds <tor>
 
-walk_page_range() is going to be allowed to walk page tables other than
-those of user space. For this it needs to know when it has reached a
-'leaf' entry in the page tables. This information is provided by the
-p?d_large() functions/macros.
+v5:
+ - Rebase to the latest v5.1 tree and fix conflicts in 
+   arch/{xtensa,s390}/include/asm/Kbuild.
 
-For sparc 64 bit, pmd_large() and pud_large() are already provided, so
-add #defines to prevent the generic versions (added in a later patch)
-from being used.
+v4:
+ - Remove rwsem-spinlock.c and make all archs use rwsem-xadd.c.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Steven Price <steven.price@arm.com>
-Acked-by: David S. Miller <davem@davemloft.net>
----
- arch/sparc/include/asm/pgtable_64.h | 2 ++
- 1 file changed, 2 insertions(+)
+v3:
+ - Optimize __down_read_trylock() for the uncontended case as suggested
+   by Linus.
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..f502e937c8fe 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -713,6 +713,7 @@ static inline unsigned long pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
- }
- 
-+#define pmd_large	pmd_large
- static inline unsigned long pmd_large(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -894,6 +895,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
- #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
- #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
- 
-+#define pud_large	pud_large
- static inline unsigned long pud_large(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
+v2:
+ - Add patch 2 to optimize __down_read_trylock() as suggested by PeterZ.
+ - Update performance test data in patch 1.
+
+The goal of this patchset is to remove the architecture specific files
+for rwsem-xadd to make it easer to add enhancements in the later rwsem
+patches. It also removes the legacy rwsem-spinlock.c file and make all
+the architectures use one single implementation of rwsem - rwsem-xadd.c.
+
+Waiman Long (3):
+  locking/rwsem: Remove arch specific rwsem files
+  locking/rwsem: Remove rwsem-spinlock.c & use rwsem-xadd.c for all
+    archs
+  locking/rwsem: Optimize down_read_trylock()
+
+ MAINTAINERS                     |   1 -
+ arch/alpha/Kconfig              |   7 -
+ arch/alpha/include/asm/rwsem.h  | 211 --------------------
+ arch/arc/Kconfig                |   3 -
+ arch/arm/Kconfig                |   4 -
+ arch/arm/include/asm/Kbuild     |   1 -
+ arch/arm64/Kconfig              |   3 -
+ arch/arm64/include/asm/Kbuild   |   1 -
+ arch/c6x/Kconfig                |   3 -
+ arch/csky/Kconfig               |   3 -
+ arch/h8300/Kconfig              |   3 -
+ arch/hexagon/Kconfig            |   6 -
+ arch/hexagon/include/asm/Kbuild |   1 -
+ arch/ia64/Kconfig               |   4 -
+ arch/ia64/include/asm/rwsem.h   | 172 ----------------
+ arch/m68k/Kconfig               |   7 -
+ arch/microblaze/Kconfig         |   6 -
+ arch/mips/Kconfig               |   7 -
+ arch/nds32/Kconfig              |   3 -
+ arch/nios2/Kconfig              |   3 -
+ arch/openrisc/Kconfig           |   6 -
+ arch/parisc/Kconfig             |   6 -
+ arch/powerpc/Kconfig            |   7 -
+ arch/powerpc/include/asm/Kbuild |   1 -
+ arch/riscv/Kconfig              |   3 -
+ arch/s390/Kconfig               |   6 -
+ arch/s390/include/asm/Kbuild    |   1 -
+ arch/sh/Kconfig                 |   6 -
+ arch/sh/include/asm/Kbuild      |   1 -
+ arch/sparc/Kconfig              |   8 -
+ arch/sparc/include/asm/Kbuild   |   1 -
+ arch/unicore32/Kconfig          |   6 -
+ arch/x86/Kconfig                |   3 -
+ arch/x86/include/asm/rwsem.h    | 237 ----------------------
+ arch/x86/lib/Makefile           |   1 -
+ arch/x86/lib/rwsem.S            | 156 ---------------
+ arch/x86/um/Kconfig             |   6 -
+ arch/x86/um/Makefile            |   1 -
+ arch/xtensa/Kconfig             |   3 -
+ arch/xtensa/include/asm/Kbuild  |   1 -
+ include/asm-generic/rwsem.h     | 140 -------------
+ include/linux/rwsem-spinlock.h  |  47 -----
+ include/linux/rwsem.h           |   9 +-
+ kernel/Kconfig.locks            |   2 +-
+ kernel/locking/Makefile         |   4 +-
+ kernel/locking/percpu-rwsem.c   |   2 +
+ kernel/locking/rwsem-spinlock.c | 339 --------------------------------
+ kernel/locking/rwsem.h          | 130 ++++++++++++
+ 48 files changed, 135 insertions(+), 1447 deletions(-)
+ delete mode 100644 arch/alpha/include/asm/rwsem.h
+ delete mode 100644 arch/ia64/include/asm/rwsem.h
+ delete mode 100644 arch/x86/include/asm/rwsem.h
+ delete mode 100644 arch/x86/lib/rwsem.S
+ delete mode 100644 include/asm-generic/rwsem.h
+ delete mode 100644 include/linux/rwsem-spinlock.h
+ delete mode 100644 kernel/locking/rwsem-spinlock.c
+
 -- 
-2.20.1
+2.18.1
