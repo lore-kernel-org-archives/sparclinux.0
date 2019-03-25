@@ -1,18 +1,41 @@
-From: Sgt Clara B Herbert <sgtclaraherbert@gmail.com>
-Date: Sat, 23 Mar 2019 10:07:02 +0000
-Subject: Hi
-Message-Id: <1333322827.9741962.1553335622597@mail.yahoo.com>
+From: "Barr.Augusto Daniel." <chamberlawyer6@gmail.com>
+Date: Mon, 25 Mar 2019 10:13:31 +0000
+Subject: Attention Dear,
+Message-Id: <CAP+Od_=JrRGGvqBeejFB0BECMzeO_=8rNWLdvj_q3gaM5bKCfA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+-- 
+Attention Dear,
 
+I am personal representative to my late client, a national of your
+country, and the CEO of his own Construction Company here in Benin
+Republic West Africa. On the 27th of May 2015, my client, His wife and
+their only daughter were involved in a car accident Along express-high
+way, Unfortunately, they all lost their lives.
 
-Greetings to you,
+Before his death the Ministry of public works and Transport Benin
+(MTPT) owed him the sum of Ten Million Eight Hundred Thousand United
+States Dollar Only) US$10.800.000 Only, for a contract he executed for
+the Ministry before his death.
 
-My name is Sgt Clara. America i am here to search for a business partner or friend who will help me to invest my fund in his company/country,Please reply me through my email:
+After these several unsuccessful attempts, I decided I want to present
+you as the next of kin for the inheritance fund transfer to your
+account for onward sharing between the both of us 50% to you and 50%
+for me. I guarantee that this will be executed under a legitimate
+arrangement that will protect you from any breach of the law. to
+enable me give you more details.Please kindly reply through my private
+email box for more information, overchambers@gmail.com
 
-Thanks
-Sgt Clara
+Your Full Name and Address,
+Your Age : Occupation and Position,
+Your Private Email : Address
+Your Telephone and Mobile for Communication Purpose
+
+I await your reply via my private email:overchambers@gmail.com
+
+Best Regards.
+Augusto Daniel Esq.
