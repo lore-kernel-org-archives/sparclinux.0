@@ -1,45 +1,36 @@
-From: ira.weiny@intel.com
-Date: Thu, 28 Mar 2019 08:44:20 +0000
-Subject: [PATCH V3 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <20190328084422.29911-6-ira.weiny@intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 26 Mar 2019 21:18:32 +0000
+Subject: Re: [RFC PATCH v2 08/14] watchdog/hardlockup: Decouple the hardlockup detector from perf
+Message-Id: <alpine.DEB.2.21.1903262213470.1789@nanos.tec.linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190328084422.29911-1-ira.weiny@intel.com>
-In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
+References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+ <1551283518-18922-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
+In-Reply-To: <1551283518-18922-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Ricardo Neri <ricardo.neri@intel.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, Andi Kleen <andi.kleen@intel.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Wed, 27 Feb 2019, Ricardo Neri wrote:
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Detect hard lockups on a system
+> + *
+> + * Copyright (C) Intel Corporation 2019
+> + *
+> + * Note: All of this code comes from the original perf-specific hardlockup
+> + * detector.
 
-Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
-FS DAX pages being mapped.
+And because you copied it from there without modification this becomes
+automatically Copyrighted by Intel?
 
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+May I recommend that you talk to your legal departement about this.
 
----
-Changes from V2
-	Per Dan Williams: set FOLL_LONGTERM on declaration line
+Aside of that there is really no value in creating yet another file. The
+code in question can simply wrapped into a large #ifdef PERF in the old
+file.
 
- drivers/infiniband/hw/hfi1/user_pages.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks,
 
-diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
-index 78ccacaf97d0..02eee8eff1db 100644
---- a/drivers/infiniband/hw/hfi1/user_pages.c
-+++ b/drivers/infiniband/hw/hfi1/user_pages.c
-@@ -104,9 +104,9 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
- 			    bool writable, struct page **pages)
- {
- 	int ret;
-+	unsigned int gup_flags = FOLL_LONGTERM | (writable ? FOLL_WRITE : 0);
- 
--	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
--				  pages);
-+	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
- 	if (ret < 0)
- 		return ret;
- 
--- 
-2.20.1
+	tglx
