@@ -1,31 +1,40 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 12 Mar 2019 22:07:27 +0000
-Subject: Re: [mm PATCH v6 6/7] mm: Add reserved flag setting to set_page_links
-Message-Id: <20190312150727.cb15cbc323a742e520b9a881@linux-foundation.org>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Wed, 27 Mar 2019 06:36:23 +0000
+Subject: [PATCH v8 1/4] sh: Advertise gigantic page support
+Message-Id: <20190327063626.18421-2-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <154361452447.7497.1348692079883153517.stgit@ahduyck-desk1.amr.corp.intel.com>
-	<154361479877.7497.2824031260670152276.stgit@ahduyck-desk1.amr.corp.intel.com>
-	<20181205172225.GT1286@dhcp22.suse.cz>
-	<19c9f0fe83a857d5858c386a08ca2ddeba7cf27b.camel@linux.intel.com>
-	<20181205204247.GY1286@dhcp22.suse.cz>
-In-Reply-To: <20181205204247.GY1286@dhcp22.suse.cz>
+References: <20190327063626.18421-1-alex@ghiti.fr>
+In-Reply-To: <20190327063626.18421-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-mm@kvack.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, davem@davemloft.net, pavel.tatashin@microsoft.com, mingo@kernel.org, kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, dave.jiang@intel.com, rppt@linux.vnet.ibm.com, willy@infradead.org, vbabka@suse.cz, khalid.aziz@oracle.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, yi.z.zhang@linux.intel.com
+To: aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+Cc: Alexandre Ghiti <alex@ghiti.fr>
 
-On Wed, 5 Dec 2018 21:42:47 +0100 Michal Hocko <mhocko@kernel.org> wrote:
+sh actually supports gigantic pages and selecting
+ARCH_HAS_GIGANTIC_PAGE allows it to allocate and free
+gigantic pages at runtime.
 
-> > I got your explanation. However Andrew had already applied the patches
-> > and I had some outstanding issues in them that needed to be addressed.
-> > So I thought it best to send out this set of patches with those fixes
-> > before the code in mm became too stale. I am still working on what to
-> > do about the Reserved bit, and plan to submit it as a follow-up set.
-> 
-> >From my experience Andrew can drop patches between different versions of
-> the patchset. Things can change a lot while they are in mmotm and under
-> the discussion.
+At least sdk7786_defconfig exposes such a configuration with
+huge pages of 64MB, pages of 4KB and MAX_ORDER = 11:
+HPAGE_SHIFT (26) - PAGE_SHIFT (12) = 14 >= MAX_ORDER (11)
 
-It's been a while and everyone has forgotten everything, so I'll drop
-this version of the patchset.
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+---
+ arch/sh/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
+index b1c91ea9a958..0d9fb2468e0b 100644
+--- a/arch/sh/Kconfig
++++ b/arch/sh/Kconfig
+@@ -53,6 +53,7 @@ config SUPERH
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select HAVE_NMI
+ 	select NEED_SG_DMA_LENGTH
++	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+ 
+ 	help
+ 	  The SuperH is a RISC processor targeted for use in embedded systems
+-- 
+2.20.1
