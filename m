@@ -1,93 +1,99 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Sun, 17 Mar 2019 16:28:43 +0000
-Subject: [PATCH v7 0/4] Fix free/allocation of runtime gigantic pages
-Message-Id: <20190317162847.14107-1-alex@ghiti.fr>
+From: ira.weiny@intel.com
+Date: Thu, 28 Mar 2019 08:44:15 +0000
+Subject: [PATCH V3 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Message-Id: <20190328084422.29911-1-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: Ira Weiny <ira.weiny@intel.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 
-his series fixes sh and sparc that did not advertise their gigantic page
-support and then were not able to allocate and free those pages at runtime.
-It renames MEMORY_ISOLATION && COMPACTION || CMA condition into the more
-accurate CONTIG_ALLOC, since it allows the definition of alloc_contig_range
-function.
-Finally, it then fixes the wrong definition of ARCH_HAS_GIGANTIC_PAGE config
-that, without MEMORY_ISOLATION && COMPACTION || CMA defined, did not allow
-architectures to free boottime allocated gigantic pages although unrelated.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Changes in v7:
-  I thought gigantic page support was settled at compile time, but Aneesh
-  and Michael have just come up with a patch proving me wrong for
-  powerpc: https://patchwork.ozlabs.org/patch/1047003/. So this version:
-  - reintroduces gigantic_page_supported renamed into
-    gigantic_page_runtime_supported
-  - reintroduces gigantic page page support corresponding checks (not
-    everywhere though: set_max_huge_pages check was redundant with
-    __nr_hugepages_store_common)
-  - introduces the possibility for arch to override this function
-    by using asm-generic/hugetlb.h current semantics although Aneesh
-    proposed something else.
+Following discussion and review[1] here are the cleanups requested.
 
-Changes in v6:
-- Remove unnecessary goto since the fallthrough path does the same and is
-  the 'normal' behaviour, as suggested by Dave Hensen
-- Be more explicit in comment in set_max_huge_page: we return an error
-  if alloc_contig_range is not defined and the user tries to allocate a
-  gigantic page (we keep the same behaviour as before this patch), but we
-  now let her free boottime gigantic page, as suggested by Dave Hensen
-- Add Acked-by, thanks. 
+The biggest change for V3 was the disabling of the ability to use FOLL_LONGTERM
+in get_user_pages[unlocked|locked|remote]
 
-Changes in v5:
-- Fix bug in previous version thanks to Mike Kravetz
-- Fix block comments that did not respect coding style thanks to Dave Hensen
-- Define ARCH_HAS_GIGANTIC_PAGE only for sparc64 as advised by David Miller
-- Factorize "def_bool" and "depends on" thanks to Vlastimil Babka
+Comments were also enhanced throughout to show potential users what
+FOLL_LONGTERM is all about and limitations it has.
 
-Changes in v4 as suggested by Dave Hensen:
-- Split previous version into small patches
-- Do not compile alloc_gigantic** functions for architectures that do not
-  support those pages
-- Define correct ARCH_HAS_GIGANTIC_PAGE in all arch that support them to avoid
-  useless runtime check
-- Add comment in set_max_huge_pages to explain that freeing is possible even
-  without CONTIG_ALLOC defined
-- Remove gigantic_page_supported function across all archs
+Minor review comments were fixed
 
-Changes in v3 as suggested by Vlastimil Babka and Dave Hansen:
-- config definition was wrong and is now in mm/Kconfig
-- COMPACTION_CORE was renamed in CONTIG_ALLOC
+Original cover letter:
 
-Changes in v2 as suggested by Vlastimil Babka:
-- Get rid of ARCH_HAS_GIGANTIC_PAGE
-- Get rid of architecture specific gigantic_page_supported
-- Factorize CMA or (MEMORY_ISOLATION && COMPACTION) into COMPACTION_CORE 
+HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+advantages.  These pages can be held for a significant time.  But
+get_user_pages_fast() does not protect against mapping FS DAX pages.
 
-Alexandre Ghiti (4):
-  sh: Advertise gigantic page support
-  sparc: Advertise gigantic page support
-  mm: Simplify MEMORY_ISOLATION && COMPACTION || CMA into CONTIG_ALLOC
-  hugetlb: allow to free gigantic pages regardless of the configuration
+Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+retains the performance while also adding the FS DAX checks.  XDP has also
+shown interest in using this functionality.[1]
 
- arch/arm64/Kconfig                           |  2 +-
- arch/arm64/include/asm/hugetlb.h             |  4 --
- arch/powerpc/include/asm/book3s/64/hugetlb.h |  7 ---
- arch/powerpc/platforms/Kconfig.cputype       |  2 +-
- arch/s390/Kconfig                            |  2 +-
- arch/s390/include/asm/hugetlb.h              |  3 --
- arch/sh/Kconfig                              |  1 +
- arch/sparc/Kconfig                           |  1 +
- arch/x86/Kconfig                             |  2 +-
- arch/x86/include/asm/hugetlb.h               |  4 --
- arch/x86/mm/hugetlbpage.c                    |  2 +-
- include/asm-generic/hugetlb.h                | 14 +++++
- include/linux/gfp.h                          |  4 +-
- mm/Kconfig                                   |  3 ++
- mm/hugetlb.c                                 | 54 ++++++++++++++------
- mm/page_alloc.c                              |  7 ++-
- 16 files changed, 67 insertions(+), 45 deletions(-)
+In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+remove the specialized get_user_pages_longterm call.
+
+[1] https://lkml.org/lkml/2019/3/19/939
+
+
+
+Ira Weiny (7):
+  mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+  mm/gup: Change write parameter to flags in fast walk
+  mm/gup: Change GUP fast to use flags rather than a write 'bool'
+  mm/gup: Add FOLL_LONGTERM capability to GUP fast
+  IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+  IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+
+ arch/mips/mm/gup.c                          |  11 +-
+ arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+ arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+ arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
+ arch/s390/kvm/interrupt.c                   |   2 +-
+ arch/s390/mm/gup.c                          |  12 +-
+ arch/sh/mm/gup.c                            |  11 +-
+ arch/sparc/mm/gup.c                         |   9 +-
+ arch/x86/kvm/paging_tmpl.h                  |   2 +-
+ arch/x86/kvm/svm.c                          |   2 +-
+ drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+ drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+ drivers/infiniband/core/umem.c              |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c     |   3 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+ drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+ drivers/misc/genwqe/card_utils.c            |   2 +-
+ drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+ drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+ drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+ drivers/sbus/char/oradax.c                  |   2 +-
+ drivers/scsi/st.c                           |   3 +-
+ drivers/staging/gasket/gasket_page_table.c  |   4 +-
+ drivers/tee/tee_shm.c                       |   2 +-
+ drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+ drivers/vfio/vfio_iommu_type1.c             |   3 +-
+ drivers/vhost/vhost.c                       |   2 +-
+ drivers/video/fbdev/pvr2fb.c                |   2 +-
+ drivers/virt/fsl_hypervisor.c               |   2 +-
+ drivers/xen/gntdev.c                        |   2 +-
+ fs/io_uring.c                               |   5 +-
+ fs/orangefs/orangefs-bufmap.c               |   2 +-
+ include/linux/mm.h                          |  45 ++-
+ kernel/futex.c                              |   2 +-
+ lib/iov_iter.c                              |   7 +-
+ mm/gup.c                                    | 288 +++++++++++++-------
+ mm/gup_benchmark.c                          |   5 +-
+ mm/util.c                                   |   8 +-
+ net/ceph/pagevec.c                          |   2 +-
+ net/rds/info.c                              |   2 +-
+ net/rds/rdma.c                              |   3 +-
+ net/xdp/xdp_umem.c                          |   4 +-
+ 46 files changed, 314 insertions(+), 200 deletions(-)
 
 -- 
 2.20.1
