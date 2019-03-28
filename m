@@ -1,39 +1,256 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 26 Mar 2019 21:22:40 +0000
-Subject: Re: [RFC PATCH v2 10/14] kernel/watchdog: Add a function to obtain the watchdog_allowed_mask
-Message-Id: <alpine.DEB.2.21.1903262221140.1789@nanos.tec.linutronix.de>
+From: George Spelvin <lkml@sdf.org>
+Date: Thu, 28 Mar 2019 10:52:36 +0000
+Subject: [PATCH] SPARC: Better fls64(), fls() and __fls() on SPARCv9
+Message-Id: <201903281052.x2SAqaoH015770@sdf.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <1551283518-18922-11-git-send-email-ricardo.neri-calderon@linux.intel.com>
-In-Reply-To: <1551283518-18922-11-git-send-email-ricardo.neri-calderon@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: sparclinux@vger.kernel.org
 
-On Wed, 27 Feb 2019, Ricardo Neri wrote:
->  
-> -struct cpumask watchdog_allowed_mask __read_mostly;
-> +static struct cpumask watchdog_allowed_mask __read_mostly;
+For some reason, the asm implementations didn't take advantage
+of the popc instruction, which allows a very simple fls64()
+implementation.
 
-That hunk is correct.
+fls() requires masking to avoid counting the high 32 bits,
+since popc is a 64-bit-only instruction.
 
->  struct cpumask watchdog_cpumask __read_mostly;
->  unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
-> @@ -92,6 +92,11 @@ static int __init hardlockup_all_cpu_backtrace_setup(char *str)
->  }
->  __setup("hardlockup_all_cpu_backtrace=", hardlockup_all_cpu_backtrace_setup);
->  # endif /* CONFIG_SMP */
-> +
-> +struct cpumask *watchdog_get_allowed_cpumask(void)
-> +{
-> +	return &watchdog_allowed_mask;
-> +}
+__fls() requires an extra shift right.  (Or it could be a
+subtract.  Do you prefer __fls(0) to return 0 or -1?)
 
-That part is pointless as I showed you in the other reply. You don't need
-that mask in your code at all.
+I don't have access to a Sparc machine to test this, but maybe
+someone would be willing?  It's simple enough that any bugs
+should not be subtle.
 
-Thanks,
+Signed-off-by: George Spelvin <lkml@sdf.org>
+Cc: Vijay Kumar <vijay.ac.kumar@oracle.com>
+Cc: sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+---
+ arch/sparc/include/asm/bitops_64.h |  3 +-
+ arch/sparc/lib/fls.S               | 77 +++++++-----------------
+ arch/sparc/lib/fls64.S             | 94 ++++++++++++++----------------
+ 3 files changed, 65 insertions(+), 109 deletions(-)
 
-	tglx
+diff --git a/arch/sparc/include/asm/bitops_64.h b/arch/sparc/include/asm/bitops_64.h
+index ca7ea5913494..888e4f786826 100644
+--- a/arch/sparc/include/asm/bitops_64.h
++++ b/arch/sparc/include/asm/bitops_64.h
+@@ -24,12 +24,11 @@ void clear_bit(unsigned long nr, volatile unsigned long *addr);
+ void change_bit(unsigned long nr, volatile unsigned long *addr);
+ 
+ int fls(unsigned int word);
++int fls64(unsigned long word);
+ int __fls(unsigned long word);
+ 
+ #include <asm-generic/bitops/non-atomic.h>
+ 
+-#include <asm-generic/bitops/fls64.h>
+-
+ #ifdef __KERNEL__
+ 
+ int ffs(int x);
+diff --git a/arch/sparc/lib/fls.S b/arch/sparc/lib/fls.S
+index 06b8d300bcae..48556ceadf92 100644
+--- a/arch/sparc/lib/fls.S
++++ b/arch/sparc/lib/fls.S
+@@ -1,67 +1,30 @@
+-/* fls.S: SPARC default fls definition.
++/* fls.S: SPARCv9 default fls definition.
+  *
+- * SPARC default fls definition, which follows the same algorithm as
+- * in generic fls(). This function will be boot time patched on T4
+- * and onward.
++ * SPARCv9 default fls definition, which performs a "smear-right"
++ * operations, doing repeated shifts and ors to turn binary 001xxxx
++ * to 0011111.  Finally, a popc returns the number of 1 bits, which
++ * equals the position of the most significant set bit.
++ *
++ * This function will be boot time patched on T4 and onward.
+  */
+ 
+ #include <linux/linkage.h>
+ #include <asm/export.h>
+ 
+ 	.text
+-	.register	%g2, #scratch
+-	.register	%g3, #scratch
+ ENTRY(fls)
+-	brz,pn	%o0, 6f
+-	 mov	0, %o1
+-	sethi	%hi(0xffff0000), %g3
+-	mov	%o0, %g2
+-	andcc	%o0, %g3, %g0
+-	be,pt	%icc, 8f
+-	 mov	32, %o1
+-	sethi	%hi(0xff000000), %g3
+-	andcc	%g2, %g3, %g0
+-	bne,pt	%icc, 3f
+-	 sethi	%hi(0xf0000000), %g3
+-	sll	%o0, 8, %o0
+-1:
+-	add	%o1, -8, %o1
+-	sra	%o0, 0, %o0
+-	mov	%o0, %g2
+-2:
+-	sethi	%hi(0xf0000000), %g3
+-3:
+-	andcc	%g2, %g3, %g0
+-	bne,pt	%icc, 4f
+-	 sethi	%hi(0xc0000000), %g3
+-	sll	%o0, 4, %o0
+-	add	%o1, -4, %o1
+-	sra	%o0, 0, %o0
+-	mov	%o0, %g2
+-4:
+-	andcc	%g2, %g3, %g0
+-	be,a,pt	%icc, 7f
+-	 sll	%o0, 2, %o0
+-5:
+-	xnor	%g0, %o0, %o0
+-	srl	%o0, 31, %o0
+-	sub	%o1, %o0, %o1
+-6:
+-	jmp	%o7 + 8
+-	 sra	%o1, 0, %o0
+-7:
+-	add	%o1, -2, %o1
+-	ba,pt	%xcc, 5b
+-	 sra	%o0, 0, %o0
+-8:
+-	sll	%o0, 16, %o0
+-	sethi	%hi(0xff000000), %g3
+-	sra	%o0, 0, %o0
+-	mov	%o0, %g2
+-	andcc	%g2, %g3, %g0
+-	bne,pt	%icc, 2b
+-	 mov	16, %o1
+-	ba,pt	%xcc, 1b
+-	 sll	%o0, 8, %o0
++	srl	%o0, 1, %g1
++	srl	%o0, %g0, %o0
++	or	%o0, %g1, %o0
++	srl	%o0, 2, %g1
++	or	%o0, %g1, %o0
++	srl	%o0, 4, %g1
++	or	%o0, %g1, %o0
++	srl	%o0, 8, %g1
++	or	%o0, %g1, %o0
++	srl	%o0, 16, %g1
++	or	%o0, %g1, %o0
++	retl
++	 popc	%o0, %o0
+ ENDPROC(fls)
+ EXPORT_SYMBOL(fls)
+diff --git a/arch/sparc/lib/fls64.S b/arch/sparc/lib/fls64.S
+index c83e22ae9586..620807691ae1 100644
+--- a/arch/sparc/lib/fls64.S
++++ b/arch/sparc/lib/fls64.S
+@@ -1,61 +1,55 @@
+ /* fls64.S: SPARC default __fls definition.
+  *
+- * SPARC default __fls definition, which follows the same algorithm as
+- * in generic __fls(). This function will be boot time patched on T4
+- * and onward.
++ * SPARCv9 default fls definition, which performs a "smear-right"
++ * operations, doing repeated shifts and ors to turn binary 001xxxx
++ * to 0011111.  Finally, a popc returns the number of 1 bits, which
++ * equals the position of the most significant set bit.
++ *
++ * __fls (which returns 0..63 for 1<<0 through 1<<63) is
++ * actually trickier; what do we want to do if it's passed 0?
++ * This returns 0 by ignoring the lsbit.  Another option would
++ * return -1.
++ *
++ * This function will be boot time patched on T4 and onward.
+  */
+ 
+ #include <linux/linkage.h>
+ #include <asm/export.h>
+ 
+ 	.text
+-	.register	%g2, #scratch
+-	.register	%g3, #scratch
++ENTRY(fls64)
++	srlx	%o0, 1, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 2, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 4, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 8, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 16, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 32, %g1
++	or	%o0, %g1, %o0
++	retl
++	 popc	%o0, %o0
++ENDPROC(fls64)
++EXPORT_SYMBOL(fls64)
++
+ ENTRY(__fls)
+-	mov	-1, %g2
+-	sllx	%g2, 32, %g2
+-	and	%o0, %g2, %g2
+-	brnz,pt	%g2, 1f
+-	 mov	63, %g1
+-	sllx	%o0, 32, %o0
+-	mov	31, %g1
+-1:
+-	mov	-1, %g2
+-	sllx	%g2, 48, %g2
+-	and	%o0, %g2, %g2
+-	brnz,pt	%g2, 2f
+-	 mov	-1, %g2
+-	sllx	%o0, 16, %o0
+-	add	%g1, -16, %g1
+-2:
+-	mov	-1, %g2
+-	sllx	%g2, 56, %g2
+-	and	%o0, %g2, %g2
+-	brnz,pt	%g2, 3f
+-	 mov	-1, %g2
+-	sllx	%o0, 8, %o0
+-	add	%g1, -8, %g1
+-3:
+-	sllx	%g2, 60, %g2
+-	and	%o0, %g2, %g2
+-	brnz,pt	%g2, 4f
+-	 mov	-1, %g2
+-	sllx	%o0, 4, %o0
+-	add	%g1, -4, %g1
+-4:
+-	sllx	%g2, 62, %g2
+-	and	%o0, %g2, %g2
+-	brnz,pt	%g2, 5f
+-	 mov	-1, %g3
+-	sllx	%o0, 2, %o0
+-	add	%g1, -2, %g1
+-5:
+-	mov	0, %g2
+-	sllx	%g3, 63, %g3
+-	and	%o0, %g3, %o0
+-	movre	%o0, 1, %g2
+-	sub	%g1, %g2, %g1
+-	jmp	%o7+8
+-	 sra	%g1, 0, %o0
++	srlx	%o0, 1, %g1
++	srlx	%o0, 2, %o0
++	or	%o0, %g1, %o0
++	srlx	%o0, 2, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 4, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 8, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 16, %g1
++	or	%o0, %g1, %o0
++	srlx	%o0, 32, %g1
++	or	%o0, %g1, %o0
++	retl
++	 popc	%o0, %o0
+ ENDPROC(__fls)
+ EXPORT_SYMBOL(__fls)
+-- 
+2.20.1
