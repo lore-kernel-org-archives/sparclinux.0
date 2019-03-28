@@ -1,10 +1,10 @@
 From: ira.weiny@intel.com
-Date: Sun, 17 Mar 2019 18:34:38 +0000
-Subject: [RESEND 7/7] IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-Message-Id: <20190317183438.2057-8-ira.weiny@intel.com>
+Date: Thu, 28 Mar 2019 08:44:20 +0000
+Subject: [PATCH V3 5/7] IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+Message-Id: <20190328084422.29911-6-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190317183438.2057-1-ira.weiny@intel.com>
-In-Reply-To: <20190317183438.2057-1-ira.weiny@intel.com>
+References: <20190328084422.29911-1-ira.weiny@intel.com>
+In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,23 +17,29 @@ Use the new FOLL_LONGTERM to get_user_pages_fast() to protect against
 FS DAX pages being mapped.
 
 Signed-off-by: Ira Weiny <ira.weiny@intel.com>
----
- drivers/infiniband/hw/mthca/mthca_memfree.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 112d2f38e0de..8ff0e90d7564 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -472,7 +472,8 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 		goto out;
- 	}
+---
+Changes from V2
+	Per Dan Williams: set FOLL_LONGTERM on declaration line
+
+ drivers/infiniband/hw/hfi1/user_pages.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index 78ccacaf97d0..02eee8eff1db 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -104,9 +104,9 @@ int hfi1_acquire_user_pages(struct mm_struct *mm, unsigned long vaddr, size_t np
+ 			    bool writable, struct page **pages)
+ {
+ 	int ret;
++	unsigned int gup_flags = FOLL_LONGTERM | (writable ? FOLL_WRITE : 0);
  
--	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1, FOLL_WRITE, pages);
-+	ret = get_user_pages_fast(uaddr & PAGE_MASK, 1,
-+				  FOLL_WRITE | FOLL_LONGTERM, pages);
+-	ret = get_user_pages_fast(vaddr, npages, writable ? FOLL_WRITE : 0,
+-				  pages);
++	ret = get_user_pages_fast(vaddr, npages, gup_flags, pages);
  	if (ret < 0)
- 		goto out;
+ 		return ret;
  
 -- 
 2.20.1
