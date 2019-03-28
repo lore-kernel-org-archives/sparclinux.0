@@ -1,40 +1,52 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Wed, 06 Mar 2019 19:00:02 +0000
-Subject: [PATCH v5 1/4] sh: Advertise gigantic page support
-Message-Id: <20190306190005.7036-2-alex@ghiti.fr>
+From: Steven Price <steven.price@arm.com>
+Date: Thu, 28 Mar 2019 15:20:52 +0000
+Subject: [PATCH v7 08/20] sparc: mm: Add p?d_large() definitions
+Message-Id: <20190328152104.23106-9-steven.price@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190306190005.7036-1-alex@ghiti.fr>
-In-Reply-To: <20190306190005.7036-1-alex@ghiti.fr>
+References: <20190328152104.23106-1-steven.price@arm.com>
+In-Reply-To: <20190328152104.23106-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Mike Kravetz <mike.kravetz@oracle.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
-Cc: Alexandre Ghiti <alex@ghiti.fr>
+To: linux-mm@kvack.org
+Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
 
-sh actually supports gigantic pages and selecting
-ARCH_HAS_GIGANTIC_PAGE allows it to allocate and free
-gigantic pages at runtime.
+walk_page_range() is going to be allowed to walk page tables other than
+those of user space. For this it needs to know when it has reached a
+'leaf' entry in the page tables. This information is provided by the
+p?d_large() functions/macros.
 
-At least sdk7786_defconfig exposes such a configuration with
-huge pages of 64MB, pages of 4KB and MAX_ORDER = 11:
-HPAGE_SHIFT (26) - PAGE_SHIFT (12) = 14 >= MAX_ORDER (11)
+For sparc 64 bit, pmd_large() and pud_large() are already provided, so
+add #defines to prevent the generic versions (added in a later patch)
+from being used.
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Steven Price <steven.price@arm.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 ---
- arch/sh/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/include/asm/pgtable_64.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-index a9c36f95744a..299a17bed67c 100644
---- a/arch/sh/Kconfig
-+++ b/arch/sh/Kconfig
-@@ -53,6 +53,7 @@ config SUPERH
- 	select HAVE_FUTEX_CMPXCHG if FUTEX
- 	select HAVE_NMI
- 	select NEED_SG_DMA_LENGTH
-+	select ARCH_HAS_GIGANTIC_PAGE if (MEMORY_ISOLATION && COMPACTION) || CMA
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1393a8ac596b..f502e937c8fe 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -713,6 +713,7 @@ static inline unsigned long pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
+ }
  
- 	help
- 	  The SuperH is a RISC processor targeted for use in embedded systems
++#define pmd_large	pmd_large
+ static inline unsigned long pmd_large(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -894,6 +895,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
+ #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
+ 
++#define pud_large	pud_large
+ static inline unsigned long pud_large(pud_t pud)
+ {
+ 	pte_t pte = __pte(pud_val(pud));
 -- 
 2.20.1
