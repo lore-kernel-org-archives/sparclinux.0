@@ -1,28 +1,31 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Thu, 28 Mar 2019 20:43:21 +0000
+From: Alex Ghiti <alex@ghiti.fr>
+Date: Fri, 29 Mar 2019 06:54:26 +0000
 Subject: Re: [PATCH v8 4/4] hugetlb: allow to free gigantic pages regardless of the configuration
-Message-Id: <c6a93f46-4d8a-e7fd-3f39-4c3c5a9ed514@oracle.com>
+Message-Id: <206f6cc5-51a8-05cb-0d4d-4d07bbdadc7d@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190327063626.18421-1-alex@ghiti.fr>
  <20190327063626.18421-5-alex@ghiti.fr>
-In-Reply-To: <20190327063626.18421-5-alex@ghiti.fr>
+ <c6a93f46-4d8a-e7fd-3f39-4c3c5a9ed514@oracle.com>
+In-Reply-To: <c6a93f46-4d8a-e7fd-3f39-4c3c5a9ed514@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexandre Ghiti <alex@ghiti.fr>, aneesh.kumar@linux.ibm.com, mpe@ellerman.id.au, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org
+To: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, aneesh.kumar@linux.ibm.com, x86@kernel.org, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, linux-kernel@vger.kernel.org, mpe@ellerman.id.au, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>
 
-On 3/26/19 11:36 PM, Alexandre Ghiti wrote:
-> On systems without CONTIG_ALLOC activated but that support gigantic pages,
-> boottime reserved gigantic pages can not be freed at all. This patch
-> simply enables the possibility to hand back those pages to memory
-> allocator.
-> 
-> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-> Acked-by: David S. Miller <davem@davemloft.net> [sparc]
+On 3/28/19 4:43 PM, Mike Kravetz wrote:
+> On 3/26/19 11:36 PM, Alexandre Ghiti wrote:
+>> On systems without CONTIG_ALLOC activated but that support gigantic pages,
+>> boottime reserved gigantic pages can not be freed at all. This patch
+>> simply enables the possibility to hand back those pages to memory
+>> allocator.
+>>
+>> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
+>> Acked-by: David S. Miller <davem@davemloft.net> [sparc]
+> Thanks for all the updates
+>
+> Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 
-Thanks for all the updates
+Thanks for all your reviews :)
 
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-
--- 
-Mike Kravetz
+Alex
