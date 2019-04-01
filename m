@@ -1,98 +1,37 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Date: Wed, 24 Apr 2019 07:26:50 +0000
-Subject: Re: [PATCH V3] cpufreq: Call transition notifier only once for each policy
-Message-Id: <CAJZ5v0jGofnUFKaM5-pRsZAiiQFumGGij8TE=SyX8DT8CUatQg@mail.gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 01 Apr 2019 08:19:09 +0000
+Subject: Re: [PATCH 2/2] arch: add pidfd and io_uring syscalls everywhere
+Message-Id: <CAMuHMdXa1qvNzAOFNBs4s6uNvNU4PX8O17K-c12eLni698Lf_A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1eb27e3bbcbb2c67e6eadc0893c9b41e5d76894b.1553057341.git.viresh.kumar@linaro.org>
- <20190321114535.GM6058@hirez.programming.kicks-ass.net> <20190322061957.hzhnlbmnkpuqviiv@vireshk-i7>
- <20190424064753.lwfsdeodncaai5oz@vireshk-i7>
-In-Reply-To: <20190424064753.lwfsdeodncaai5oz@vireshk-i7>
+References: <20190325143521.34928-1-arnd@arndb.de>
+ <20190325144737.703921-1-arnd@arndb.de>
+In-Reply-To: <20190325144737.703921-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Rafael Wysocki <rjw@rjwysocki.net>, Russell King <linux@armlinux.org.uk>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Paolo Bonzini <pbonzini@redhat.com>, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, Linux PM <linux-pm@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, kvm@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Rich Felker <dalias@libc.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Helge Deller <deller@gmx.de>, Russell King <linux@armlinux.org.uk>, Firoz Khan <firoz.khan@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, James Hogan <jhogan@kernel.org>, Matt Turner <mattst88@gmail.com>, Fenghua Yu <fenghua.yu@intel.com>, Will Deacon <will.deacon@arm.com>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Richard Henderson <rth@twiddle.net>, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Parisc List <linux-parisc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, alpha <linux-alpha@vger.kernel.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
 
-On Wed, Apr 24, 2019 at 8:48 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
+On Mon, Mar 25, 2019 at 3:48 PM Arnd Bergmann <arnd@arndb.de> wrote:
+> Add the io_uring and pidfd_send_signal system calls to all architectures.
 >
-> On 22-03-19, 11:49, Viresh Kumar wrote:
-> > On 21-03-19, 12:45, Peter Zijlstra wrote:
-> > > On Wed, Mar 20, 2019 at 10:22:23AM +0530, Viresh Kumar wrote:
+> These system calls are designed to handle both native and compat tasks,
+> so all entries are the same across architectures, only arm-compat and
+> the generic tale still use an old format.
 >
-> > > > diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-> > > > index 65e4559eef2f..1ac8c710cccc 100644
-> > > > --- a/arch/x86/kvm/x86.c
-> > > > +++ b/arch/x86/kvm/x86.c
-> > > > @@ -6649,10 +6649,8 @@ static void kvm_hyperv_tsc_notifier(void)
-> > > >  }
-> > > >  #endif
-> > > >
-> > > > -static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
-> > > > -                              void *data)
-> > > > +static void __kvmclock_cpufreq_notifier(struct cpufreq_freqs *freq, int cpu)
-> > > >  {
-> > > > - struct cpufreq_freqs *freq = data;
-> > > >   struct kvm *kvm;
-> > > >   struct kvm_vcpu *vcpu;
-> > > >   int i, send_ipi = 0;
-> > > > @@ -6696,17 +6694,12 @@ static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long va
-> > > >    *
-> > > >    */
-> > > >
-> > > > - if (val = CPUFREQ_PRECHANGE && freq->old > freq->new)
-> > > > -         return 0;
-> > > > - if (val = CPUFREQ_POSTCHANGE && freq->old < freq->new)
-> > > > -         return 0;
-> > > > -
-> > > > - smp_call_function_single(freq->cpu, tsc_khz_changed, freq, 1);
-> > > > + smp_call_function_single(cpu, tsc_khz_changed, freq, 1);
-> > > >
-> > > >   spin_lock(&kvm_lock);
-> > > >   list_for_each_entry(kvm, &vm_list, vm_list) {
-> > > >           kvm_for_each_vcpu(i, vcpu, kvm) {
-> > > > -                 if (vcpu->cpu != freq->cpu)
-> > > > +                 if (vcpu->cpu != cpu)
-> > > >                           continue;
-> > > >                   kvm_make_request(KVM_REQ_CLOCK_UPDATE, vcpu);
-> > > >                   if (vcpu->cpu != smp_processor_id())
-> > > > @@ -6728,8 +6721,24 @@ static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long va
-> > > >            * guest context is entered kvmclock will be updated,
-> > > >            * so the guest will not see stale values.
-> > > >            */
-> > > > -         smp_call_function_single(freq->cpu, tsc_khz_changed, freq, 1);
-> > > > +         smp_call_function_single(cpu, tsc_khz_changed, freq, 1);
-> > > >   }
-> > > > +}
-> > > > +
-> > > > +static int kvmclock_cpufreq_notifier(struct notifier_block *nb, unsigned long val,
-> > > > +                              void *data)
-> > > > +{
-> > > > + struct cpufreq_freqs *freq = data;
-> > > > + int cpu;
-> > > > +
-> > > > + if (val = CPUFREQ_PRECHANGE && freq->old > freq->new)
-> > > > +         return 0;
-> > > > + if (val = CPUFREQ_POSTCHANGE && freq->old < freq->new)
-> > > > +         return 0;
-> > > > +
-> > > > + for_each_cpu(cpu, freq->policy->cpus)
-> > > > +         __kvmclock_cpufreq_notifier(freq, cpu);
-> > > > +
-> > > >   return 0;
-> > > >  }
-> > > >
-> > >
-> > > Then why to we pretend otherwise here?
-> >
-> > My intention was to not add any bug here because of lack of my
-> > knowledge of the architecture in question and so I tried to be safe.
-> >
-> > If you guys think the behavior should be same here as of the tsc, then
-> > we can add similar checks here.
->
-> I am rebasing this patch over Rafael's patch [1] and wondering if I
-> should change anything here.
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-I guess please repost when my patch makes it into linux-next.
+>  arch/m68k/kernel/syscalls/syscall.tbl       | 4 ++++
 
-> [1] https://lore.kernel.org/lkml/38900622.ao2n2t5aPS@kreacher/
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
