@@ -1,31 +1,34 @@
-From: Peter Korsgaard <peter@korsgaard.com>
-Date: Mon, 29 Apr 2019 15:20:53 +0000
-Subject: Re: [PATCH 14/41] drivers: tty: serial: uartlite: remove unnecessary braces
-Message-Id: <87imuwrg6i.fsf@dell.be.48ers.dk>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Wed, 03 Apr 2019 08:32:24 +0000
+Subject: [PATCH] sparc: vdso: add FORCE to the build rule of %.so
+Message-Id: <1554280344-10741-1-git-send-email-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
- <1556369542-13247-15-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-15-git-send-email-info@metux.net> (Enrico
- Weigelt's message of "Sat, 27 Apr 2019 14:51:55 +0200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, macro@linux-mips.org, andrew@aj.id.au, gregkh@linuxfoundation.org, slemieux.tyco@gmail.com, liviu.dudau@arm.com, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com, linux-mips@vger.kernel.org, linux@prisktech.co.nz, matthias.bgg@gmail.com, khilman@baylibre.com, linux-serial@vger.kernel.org, sudeep.holla@arm.com, sparclinux@vger.kernel.org, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, vz@mleia.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, "ndesaulniers@google.com" <ndesaulniers@google.com>, linux-kernel@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, Ingo Molnar <mingo@kernel.org>
 
->>>>> "Enrico" = Enrico Weigelt, metux IT consult <info@metux.net> writes:
+$(call if_changed,...) must have FORCE as a prerequisite.
 
- > checkpatch complains:
- >     WARNING: braces {} are not necessary for any arm of this statement
- >     #489: FILE: drivers/tty/serial/uartlite.c:489:
- >     +	if (oops_in_progress) {
- >     [...]
- >     +	} else
- >     [...]
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
 
- > Signed-off-by: Enrico Weigelt <info@metux.net>
+ arch/sparc/vdso/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Acked-by: Peter Korsgaard <peter@korsgaard.com>
-
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index 74e97f7..83c4b46 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -68,7 +68,7 @@ CFLAGS_REMOVE_vdso-note.o = -pg
+ CFLAGS_REMOVE_vclock_gettime.o = -pg
+ 
+ $(obj)/%.so: OBJCOPYFLAGS := -S
+-$(obj)/%.so: $(obj)/%.so.dbg
++$(obj)/%.so: $(obj)/%.so.dbg FORCE
+ 	$(call if_changed,objcopy)
+ 
+ CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
 -- 
-Bye, Peter Korsgaard
+2.7.4
