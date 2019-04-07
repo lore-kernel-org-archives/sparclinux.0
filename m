@@ -1,51 +1,24 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:51:45 +0000
-Subject: [PATCH 04/41] drivers: tty: serial: dz: fix use fix bare 'unsigned'
-Message-Id: <1556369542-13247-5-git-send-email-info@metux.net>
+From: "Ms. Heba Oudeh" <p1000@takisawa.com.tw>
+Date: Sun, 07 Apr 2019 23:46:08 +0000
+Subject: Help Me
+Message-Id: <NT1tDJd5IghQYYAr27k0000645f@nt1.TAKISAWA.COM.TW>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Fix checkpatch warnings:
+Dear sir/Madam,
 
-    WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
-    #103: FILE: dz.c:103:
-    +static u16 dz_in(struct dz_port *dport, unsigned offset)
+Greetings! I would like to apologize for barging into your privacy without your concent. My name is Heba Oudeh from Damascus Syria and i am 29 years old orphan.
 
-    WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
-    #110: FILE: dz.c:110:
-    +static void dz_out(struct dz_port *dport, unsigned offset, u16 value)
+I have decided to make this contact after many thoughts and hard decision. On 27 may 2017 i lost my parents to the Syrian war in one day and since then i have been in the refugee camp where am been raped every other day with no one to come to my aid. It is rather risky for me to send this mail and would be punished if caught but i have no choice than to take the risk and either die or be completely freed.
 
-Signed-off-by: Enrico Weigelt <info@metux.net>
----
- drivers/tty/serial/dz.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I have contacted you for help. I have come to realize that all my late father's investments were made here and have been destroyed as well except a little money he has in his foreign account in the U.S.A. Before i was taken to the camp i discovered he has deposited the sum of $1,875,000USD in an American bank with me as next-of-kin. I have contacted the bank to explain things to them and they have agreed to accept anybody i would present as the new next-of-kin so they will transfer they money to the person since i can not transfer the money to Syria.
 
-diff --git a/drivers/tty/serial/dz.c b/drivers/tty/serial/dz.c
-index b3e9313..559d076 100644
---- a/drivers/tty/serial/dz.c
-+++ b/drivers/tty/serial/dz.c
-@@ -100,14 +100,14 @@ static inline struct dz_port *to_dport(struct uart_port *uport)
-  * ------------------------------------------------------------
-  */
- 
--static u16 dz_in(struct dz_port *dport, unsigned offset)
-+static u16 dz_in(struct dz_port *dport, unsigned int offset)
- {
- 	void __iomem *addr = dport->port.membase + offset;
- 
- 	return readw(addr);
- }
- 
--static void dz_out(struct dz_port *dport, unsigned offset, u16 value)
-+static void dz_out(struct dz_port *dport, unsigned int offset, u16 value)
- {
- 	void __iomem *addr = dport->port.membase + offset;
- 
--- 
-1.9.1
+The decision to make you the next-of-kin was not made because i need this money but because i want to leave this country to a better and safer place. All i need from you is to receive this money and make arrangement for me to join you in your country so i can complete my education and the remaining money can be invested in a business which both of us will be co-owners/partners and share profit equally. This might sound stupid but only option for me.
+
+If you feel you will be able to help me on this, please let me know as soon as you can so i can contact the bank to know the steps to be taken and what is reqired from our side. I will give you a copy of my ID in my next mail.
+
+Thanks,
+Heba.
