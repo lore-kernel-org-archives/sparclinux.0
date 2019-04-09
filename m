@@ -1,32 +1,44 @@
-From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Date: Mon, 29 Apr 2019 16:50:14 +0000
-Subject: Re: serial drivers polishing
-Message-Id: <5a826a97-4098-7e1e-4f07-5a1a372e66b8@metux.net>
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Tue, 09 Apr 2019 02:05:30 +0000
+Subject: Re: [RFC PATCH v2 09/14] watchdog/hardlockup: Make arch_touch_nmi_watchdog() to hpet-based implement
+Message-Id: <20190409020530.GA7197@ranerica-svr.sc.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
- <7471c418-4058-db7b-b2ed-af9a67fff201@c-s.fr>
-In-Reply-To: <7471c418-4058-db7b-b2ed-af9a67fff201@c-s.fr>
+References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
+ <1551283518-18922-10-git-send-email-ricardo.neri-calderon@linux.intel.com>
+ <20190227161758.GE4072@linux.ibm.com>
+ <20190301011713.GA8058@ranerica-svr.sc.intel.com>
+ <alpine.DEB.2.21.1903262219100.1789@nanos.tec.linutronix.de>
+In-Reply-To: <alpine.DEB.2.21.1903262219100.1789@nanos.tec.linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Christophe Leroy <christophe.leroy@c-s.fr>, "Enrico Weigelt, metux IT consult" <info@metux.net>, linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, macro@linux-mips.org, andrew@aj.id.au, gregkh@linuxfoundation.org, slemieux.tyco@gmail.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, matthias.bgg@gmail.com, khilman@baylibre.com, linux-serial@vger.kernel.org, sudeep.holla@arm.com, sparclinux@vger.kernel.org, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, "Paul E. McKenney" <paulmck@linux.ibm.com>, Ingo Molnar <mingo@kernel.org>, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On 29.04.19 18:16, Christophe Leroy wrote:
+On Tue, Mar 26, 2019 at 10:20:41PM +0100, Thomas Gleixner wrote:
+> On Thu, 28 Feb 2019, Ricardo Neri wrote:
+> > > > 
+> > > > -#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF)
+> > > > +#if defined(CONFIG_HARDLOCKUP_DETECTOR_PERF) || \
+> > > > +    defined(CONFIG_X86_HARDLOCKUP_DETECTOR_HPET)
+> > > 
+> > > Why not instead make CONFIG_X86_HARDLOCKUP_DETECTOR_HPET select
+> > > CONFIG_HARDLOCKUP_DETECTOR_PERF?  Keep the arch-specific details
+> > > in the arch-specific files and all that.
+> > 
+> > Thanks for your feedback, Paul! The HPET implementation does not use
+> > perf. Thus, in my opinion is not correct for the HPET HLD to select
+> > the perf implementation. Patch 8 of this series splits the perf-specific
+> > code and the generic hardlockup detector code. Does this make sense?
+> 
+> That's what intermediate config symbols are for.
+> 
+> config HARDLOCKUP_DETECTOR_CORE
+>        bool
+> 
+> And make both PERF and HPET select it.
 
-Hi,
+I'll implement it in this manner.
 
-> Got the following build=C2=A0 error while compiling for my powerpc board =
-with
-> your full series applied. No time to investigate though.
-
-thanks, fixed it. That was the unclean patch where i've forgotten to
-add 'rfc' into the title ... turned out that this one needs some
-more rework :o
-
---mtx
-
---=20
-Enrico Weigelt, metux IT consult
-Free software and Linux embedded engineering
-info@metux.net -- +49-151-27565287
+Thanks and BR,
+Ricardo
