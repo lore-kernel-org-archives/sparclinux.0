@@ -1,189 +1,111 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 22:12:19 +0000
-Subject: [mm PATCH v7 2/4] mm: Drop meminit_pfn_in_nid as it is redundant
-Message-Id: <20190405221219.12227.93957.stgit@localhost.localdomain>
+From: Ira Weiny <ira.weiny@intel.com>
+Date: Tue, 09 Apr 2019 00:13:36 +0000
+Subject: Re: [PATCH V3 0/7] Add FOLL_LONGTERM to GUP fast and use it
+Message-Id: <20190409001336.GB2049@iweiny-DESK2.sc.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190405221043.12227.19679.stgit@localhost.localdomain>
-In-Reply-To: <20190405221043.12227.19679.stgit@localhost.localdomain>
+References: <20190328084422.29911-1-ira.weiny@intel.com>
+In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
 
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+On Thu, Mar 28, 2019 at 01:44:15AM -0700, 'Ira Weiny' wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Following discussion and review[1] here are the cleanups requested.
+> 
+> The biggest change for V3 was the disabling of the ability to use FOLL_LONGTERM
+> in get_user_pages[unlocked|locked|remote]
+> 
+> Comments were also enhanced throughout to show potential users what
+> FOLL_LONGTERM is all about and limitations it has.
 
-As best as I can tell the meminit_pfn_in_nid call is completely redundant.
-The deferred memory initialization is already making use of
-for_each_free_mem_range which in turn will call into __next_mem_range which
-will only return a memory range if it matches the node ID provided assuming
-it is not NUMA_NO_NODE.
+Does anyone have any problems with these changes?
 
-I am operating on the assumption that there are no zones or pgdata_t
-structures that have a NUMA node of NUMA_NO_NODE associated with them. If
-that is the case then __next_mem_range will never return a memory range
-that doesn't match the zone's node ID and as such the check is redundant.
+I would like to get official Reviewed-by tags if possible.
 
-So one piece I would like to verify on this is if this works for ia64.
-Technically it was using a different approach to get the node ID, but it
-seems to have the node ID also encoded into the memblock. So I am
-assuming this is okay, but would like to get confirmation on that.
+Thanks,
+Ira
 
-On my x86_64 test system with 384GB of memory per node I saw a reduction in
-initialization time from 2.80s to 1.85s as a result of this patch.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
----
- mm/page_alloc.c |   51 ++++++++++++++-------------------------------------
- 1 file changed, 14 insertions(+), 37 deletions(-)
-
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 0c53807a2943..2d2bca9803d2 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1398,36 +1398,22 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
- #endif
- 
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--static inline bool __meminit __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn, state);
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
- 	if (nid >= 0 && nid != node)
- 		return false;
- 	return true;
- }
- 
--/* Only safe to use early in boot when initialisation is single-threaded */
--static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
--}
--
- #else
--
- static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
- 	return true;
- }
--static inline bool __meminit  __maybe_unused
--meminit_pfn_in_nid(unsigned long pfn, int node,
--		   struct mminit_pfnnid_cache *state)
--{
--	return true;
--}
- #endif
- 
- 
-@@ -1556,21 +1542,13 @@ static inline void __init pgdat_init_report_one_done(void)
-  *
-  * Then, we check if a current large page is valid by only checking the validity
-  * of the head pfn.
-- *
-- * Finally, meminit_pfn_in_nid is checked on systems where pfns can interleave
-- * within a node: a pfn is between start and end of a node, but does not belong
-- * to this memory node.
-  */
--static inline bool __init
--deferred_pfn_valid(int nid, unsigned long pfn,
--		   struct mminit_pfnnid_cache *nid_init_state)
-+static inline bool __init deferred_pfn_valid(unsigned long pfn)
- {
- 	if (!pfn_valid_within(pfn))
- 		return false;
- 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
- 		return false;
--	if (!meminit_pfn_in_nid(pfn, nid, nid_init_state))
--		return false;
- 	return true;
- }
- 
-@@ -1578,15 +1556,14 @@ static inline void __init pgdat_init_report_one_done(void)
-  * Free pages to buddy allocator. Try to free aligned pages in
-  * pageblock_nr_pages sizes.
-  */
--static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-+static void __init deferred_free_pages(unsigned long pfn,
- 				       unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
- 	unsigned long nr_free = 0;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			deferred_free_range(pfn - nr_free, nr_free);
- 			nr_free = 0;
- 		} else if (!(pfn & nr_pgmask)) {
-@@ -1606,17 +1583,18 @@ static void __init deferred_free_pages(int nid, int zid, unsigned long pfn,
-  * by performing it only once every pageblock_nr_pages.
-  * Return number of pages initialized.
-  */
--static unsigned long  __init deferred_init_pages(int nid, int zid,
-+static unsigned long  __init deferred_init_pages(struct zone *zone,
- 						 unsigned long pfn,
- 						 unsigned long end_pfn)
- {
--	struct mminit_pfnnid_cache nid_init_state = { };
- 	unsigned long nr_pgmask = pageblock_nr_pages - 1;
-+	int nid = zone_to_nid(zone);
- 	unsigned long nr_pages = 0;
-+	int zid = zone_idx(zone);
- 	struct page *page = NULL;
- 
- 	for (; pfn < end_pfn; pfn++) {
--		if (!deferred_pfn_valid(nid, pfn, &nid_init_state)) {
-+		if (!deferred_pfn_valid(pfn)) {
- 			page = NULL;
- 			continue;
- 		} else if (!page || !(pfn & nr_pgmask)) {
-@@ -1679,12 +1657,12 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		nr_pages += deferred_init_pages(nid, zid, spfn, epfn);
-+		nr_pages += deferred_init_pages(zone, spfn, epfn);
- 	}
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, zone_end_pfn(zone), PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
-@@ -1716,7 +1694,6 @@ static int __init deferred_init_memmap(void *data)
- static noinline bool __init
- deferred_grow_zone(struct zone *zone, unsigned int order)
- {
--	int zid = zone_idx(zone);
- 	int nid = zone_to_nid(zone);
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long nr_pages_needed = ALIGN(1 << order, PAGES_PER_SECTION);
-@@ -1766,7 +1743,7 @@ static int __init deferred_init_memmap(void *data)
- 		while (spfn < epfn && nr_pages < nr_pages_needed) {
- 			t = ALIGN(spfn + PAGES_PER_SECTION, PAGES_PER_SECTION);
- 			first_deferred_pfn = min(t, epfn);
--			nr_pages += deferred_init_pages(nid, zid, spfn,
-+			nr_pages += deferred_init_pages(zone, spfn,
- 							first_deferred_pfn);
- 			spfn = first_deferred_pfn;
- 		}
-@@ -1778,7 +1755,7 @@ static int __init deferred_init_memmap(void *data)
- 	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &spa, &epa, NULL) {
- 		spfn = max_t(unsigned long, first_init_pfn, PFN_UP(spa));
- 		epfn = min_t(unsigned long, first_deferred_pfn, PFN_DOWN(epa));
--		deferred_free_pages(nid, zid, spfn, epfn);
-+		deferred_free_pages(spfn, epfn);
- 
- 		if (first_deferred_pfn = epfn)
- 			break;
+> 
+> Minor review comments were fixed
+> 
+> Original cover letter:
+> 
+> HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
+> advantages.  These pages can be held for a significant time.  But
+> get_user_pages_fast() does not protect against mapping FS DAX pages.
+> 
+> Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
+> retains the performance while also adding the FS DAX checks.  XDP has also
+> shown interest in using this functionality.[1]
+> 
+> In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
+> remove the specialized get_user_pages_longterm call.
+> 
+> [1] https://lkml.org/lkml/2019/3/19/939
+> 
+> 
+> 
+> Ira Weiny (7):
+>   mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
+>   mm/gup: Change write parameter to flags in fast walk
+>   mm/gup: Change GUP fast to use flags rather than a write 'bool'
+>   mm/gup: Add FOLL_LONGTERM capability to GUP fast
+>   IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+>   IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+>   IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
+> 
+>  arch/mips/mm/gup.c                          |  11 +-
+>  arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
+>  arch/powerpc/kvm/e500_mmu.c                 |   2 +-
+>  arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
+>  arch/s390/kvm/interrupt.c                   |   2 +-
+>  arch/s390/mm/gup.c                          |  12 +-
+>  arch/sh/mm/gup.c                            |  11 +-
+>  arch/sparc/mm/gup.c                         |   9 +-
+>  arch/x86/kvm/paging_tmpl.h                  |   2 +-
+>  arch/x86/kvm/svm.c                          |   2 +-
+>  drivers/fpga/dfl-afu-dma-region.c           |   2 +-
+>  drivers/gpu/drm/via/via_dmablit.c           |   3 +-
+>  drivers/infiniband/core/umem.c              |   5 +-
+>  drivers/infiniband/hw/hfi1/user_pages.c     |   3 +-
+>  drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
+>  drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
+>  drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
+>  drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
+>  drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
+>  drivers/misc/genwqe/card_utils.c            |   2 +-
+>  drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
+>  drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
+>  drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
+>  drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
+>  drivers/sbus/char/oradax.c                  |   2 +-
+>  drivers/scsi/st.c                           |   3 +-
+>  drivers/staging/gasket/gasket_page_table.c  |   4 +-
+>  drivers/tee/tee_shm.c                       |   2 +-
+>  drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
+>  drivers/vfio/vfio_iommu_type1.c             |   3 +-
+>  drivers/vhost/vhost.c                       |   2 +-
+>  drivers/video/fbdev/pvr2fb.c                |   2 +-
+>  drivers/virt/fsl_hypervisor.c               |   2 +-
+>  drivers/xen/gntdev.c                        |   2 +-
+>  fs/io_uring.c                               |   5 +-
+>  fs/orangefs/orangefs-bufmap.c               |   2 +-
+>  include/linux/mm.h                          |  45 ++-
+>  kernel/futex.c                              |   2 +-
+>  lib/iov_iter.c                              |   7 +-
+>  mm/gup.c                                    | 288 +++++++++++++-------
+>  mm/gup_benchmark.c                          |   5 +-
+>  mm/util.c                                   |   8 +-
+>  net/ceph/pagevec.c                          |   2 +-
+>  net/rds/info.c                              |   2 +-
+>  net/rds/rdma.c                              |   3 +-
+>  net/xdp/xdp_umem.c                          |   4 +-
+>  46 files changed, 314 insertions(+), 200 deletions(-)
+> 
+> -- 
+> 2.20.1
+> 
