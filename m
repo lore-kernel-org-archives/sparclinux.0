@@ -1,49 +1,20 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Sat, 27 Apr 2019 13:32:15 +0000
-Subject: Re: [PATCH 10/41] drivers: tty: serial: sb1250-duart: fix missing parentheses
-Message-Id: <20190427133215.GD11368@kroah.com>
+From: huang ying <huang.ying.caritas@gmail.com>
+Date: Wed, 10 Apr 2019 08:15:44 +0000
+Subject: Re: [PATCH-tip 00/22] locking/rwsem: Rework rwsem-xadd & enable new rwsem features
+Message-Id: <CAC=cRTM5=e7rJX80m0vL10aQoLawK_VTnQubH8A7_sUO2VUCNA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
- <1556369542-13247-11-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-11-git-send-email-info@metux.net>
+References: <1549566446-27967-1-git-send-email-longman@redhat.com>
+ <20190213091936.GA22829@shao2-debian> <CAHk-=wiF2qv4TdKOTaTYeMnmsn4h6z9ot+MRj1=s7dm5y1FUwQ@mail.gmail.com>
+In-Reply-To: <CAHk-=wiF2qv4TdKOTaTYeMnmsn4h6z9ot+MRj1=s7dm5y1FUwQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: linux-ia64@vger.kernel.org, lorenzo.pieralisi@arm.com, linux-mips@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, khilman@baylibre.com, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-kernel@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: Waiman Long <longman@redhat.com>
+Cc: Chen Rong <rong.a.chen@intel.com>, Peter Zijlstra <peterz@infradead.org>, "IngoMolnar@shao2-debian" <mingo@redhat.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-arm-kernel@lists.infradead.org>, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch <linux-arch@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Davidlohr Bueso <dave@stgolabs.net>, Andrew Morton <akpm@linux-foundation>
 
-On Sat, Apr 27, 2019 at 02:51:51PM +0200, Enrico Weigelt, metux IT consult wrote:
-> Fix checkpatch warning:
-> 
->     ERROR: Macros with complex values should be enclosed in parentheses
->     #911: FILE: drivers/tty/serial/sb1250-duart.c:911:
->     +#define SERIAL_SB1250_DUART_CONSOLE	&sbd_console
-> 
-> Signed-off-by: Enrico Weigelt <info@metux.net>
-> ---
->  drivers/tty/serial/sb1250-duart.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
-> index 1184226..ec74f09 100644
-> --- a/drivers/tty/serial/sb1250-duart.c
-> +++ b/drivers/tty/serial/sb1250-duart.c
-> @@ -908,7 +908,7 @@ static int __init sbd_serial_console_init(void)
->  
->  console_initcall(sbd_serial_console_init);
->  
-> -#define SERIAL_SB1250_DUART_CONSOLE	&sbd_console
-> +#define SERIAL_SB1250_DUART_CONSOLE	(&sbd_console)
+Hi, Waiman,
 
-No, that's foolish.
+What's the status of this patchset?  And its merging plan?
 
-checkpatch is a hint, it's not always right.
-
-Also, checkpatch cleanups for really old drivers is not generally a good
-idea, especially if you do not have the hardware for them.  Please don't
-cause unneeded churn for this type of thing in this subsystem, unless
-you have the hardware.
-
-thanks,
-
-greg k-h
+Best Regards,
+Huang, Ying
