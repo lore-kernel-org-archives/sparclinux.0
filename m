@@ -1,87 +1,60 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 16 Apr 2019 18:23:42 +0000
-Subject: [PATCH 4/9] sparc/iommu: create a common helper for map_sg
-Message-Id: <20190416182347.18441-5-hch@lst.de>
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Date: Wed, 10 Apr 2019 19:05:38 +0000
+Subject: Re: [PATCH] sparc: use struct_size() in kzalloc()
+Message-Id: <b26b5a26-4a6b-1df8-bdda-4b5e14950970@embeddedor.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190416182347.18441-1-hch@lst.de>
-In-Reply-To: <20190416182347.18441-1-hch@lst.de>
+References: <20190108161356.GA23617@embeddedor>
+In-Reply-To: <20190108161356.GA23617@embeddedor>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: "David S. Miller" <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Share the code for the global and per-page flush map_sg loops using a
-simple bool parameter to disable the per-page flush for the former
-variant.
+Hi Dave,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
----
- arch/sparc/mm/iommu.c | 37 +++++++++++++++++--------------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+I wonder if you can take this.
 
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 7cb9ddda7531..f90d943a3a27 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -241,25 +241,9 @@ static dma_addr_t sbus_iommu_map_page_pflush(struct device *dev,
- 	return __sbus_iommu_map_page(dev, page, offset, len);
- }
- 
--static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
--{
--	struct scatterlist *sg;
--	int i, n;
--
--	flush_page_for_dma(0);
--
--	for_each_sg(sgl, sg, nents, i) {
--		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
--		sg->dma_address = iommu_get_one(dev, sg_page(sg), n) + sg->offset;
--		sg->dma_length = sg->length;
--	}
--
--	return nents;
--}
--
--static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
--		int nents, enum dma_data_direction dir, unsigned long attrs)
-+static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
-+		int nents, enum dma_data_direction dir, unsigned long attrs,
-+		bool per_page_flush)
- {
- 	unsigned long page, oldpage = 0;
- 	struct scatterlist *sg;
-@@ -273,7 +257,7 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
- 		 * XXX Is this a good assumption?
- 		 * XXX What if someone else unmaps it here and races us?
- 		 */
--		if (!PageHighMem(sg_page(sg))) {
-+		if (per_page_flush && !PageHighMem(sg_page(sg))) {
- 			page = (unsigned long)page_address(sg_page(sg));
- 			for (i = 0; i < n; i++) {
- 				if (page != oldpage) {	/* Already flushed? */
-@@ -291,6 +275,19 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
- 	return nents;
- }
- 
-+static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sgl,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	flush_page_for_dma(0);
-+	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, false);
-+}
-+
-+static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
-+		int nents, enum dma_data_direction dir, unsigned long attrs)
-+{
-+	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, true);
-+}
-+
- static void sbus_iommu_unmap_page(struct device *dev, dma_addr_t dma_addr,
- 		size_t len, enum dma_data_direction dir, unsigned long attrs)
- {
--- 
-2.20.1
+Thanks
+--
+Gustavo
+
+On 1/8/19 10:13 AM, Gustavo A. R. Silva wrote:
+> One of the more common cases of allocation size calculations is finding the
+> size of a structure that has a zero-sized array at the end, along with memory
+> for some number of elements for that array. For example:
+> 
+> struct foo {
+>     int stuff;
+>     void *entry[];
+> };
+> 
+> instance = kzalloc(sizeof(struct foo) + sizeof(void *) * count, GFP_KERNEL);
+> 
+> Instead of leaving these open-coded and prone to type mistakes, we can now
+> use the new struct_size() helper:
+> 
+> instance = kzalloc(struct_size(instance, entry, count), GFP_KERNEL);
+> 
+> This code was detected with the help of Coccinelle.
+> 
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+>  arch/sparc/kernel/cpumap.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/arch/sparc/kernel/cpumap.c b/arch/sparc/kernel/cpumap.c
+> index d1d52822603d..1cb62bfeaa1f 100644
+> --- a/arch/sparc/kernel/cpumap.c
+> +++ b/arch/sparc/kernel/cpumap.c
+> @@ -194,8 +194,7 @@ static struct cpuinfo_tree *build_cpuinfo_tree(void)
+>  
+>  	n = enumerate_cpuinfo_nodes(tmp_level);
+>  
+> -	new_tree = kzalloc(sizeof(struct cpuinfo_tree) +
+> -	                   (sizeof(struct cpuinfo_node) * n), GFP_ATOMIC);
+> +	new_tree = kzalloc(struct_size(new_tree, nodes, n), GFP_ATOMIC);
+>  	if (!new_tree)
+>  		return NULL;
+>  
+> 
