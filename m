@@ -1,40 +1,51 @@
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Thu, 11 Apr 2019 01:15:21 +0000
-Subject: Re: [RFC PATCH v2 10/14] kernel/watchdog: Add a function to obtain the watchdog_allowed_mask
-Message-Id: <20190411011521.GB9936@ranerica-svr.sc.intel.com>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Sun, 14 Apr 2019 07:21:32 +0000
+Subject: Naming inconsistency for serial device on sparc
+Message-Id: <4c392da4-8291-fe26-fb38-22535872f127@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <1551283518-18922-11-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <20190409113421.GU4038@hirez.programming.kicks-ass.net>
-In-Reply-To: <20190409113421.GU4038@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Alexei Starovoitov <ast@kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Christoffer Dall <cdall@linaro.org>, Davidlohr Bueso <dave@stgolabs.net>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, David Rientjes <rientjes@google.com>, Andi Kleen <andi.kleen@intel.com>, Waiman Long <longman@redhat.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Marc Zyngier <marc.zyngier@arm.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Ricardo Neri <ricardo.neri@intel.com>, Byungchul Park <byungchul.park@lge.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Josh Poimboeuf <jpoimboe@redhat.com>, "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Tue, Apr 09, 2019 at 01:34:21PM +0200, Peter Zijlstra wrote:
-> On Wed, Feb 27, 2019 at 08:05:14AM -0800, Ricardo Neri wrote:
-> > diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> > index 8fbfda94a67b..367aa81294ef 100644
-> > --- a/kernel/watchdog.c
-> > +++ b/kernel/watchdog.c
-> > @@ -44,7 +44,7 @@ int __read_mostly soft_watchdog_user_enabled = 1;
-> >  int __read_mostly watchdog_thresh = 10;
-> >  int __read_mostly nmi_watchdog_available;
-> >  
-> > -struct cpumask watchdog_allowed_mask __read_mostly;
-> > +static struct cpumask watchdog_allowed_mask __read_mostly;
-> >  
-> >  struct cpumask watchdog_cpumask __read_mostly;
-> >  unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
-> 
-> Hurmph, more struct cpumask, ideally this would get converted to
-> cpumask_var_t, I don't think we need this before the allocators work, do
-> we?
+Hello!
 
-I see mm_init() is called before lockup_detector_init(); both from start_kernel().
-Thus, IMHO, kzalloc should work at this point.
+We recently ran into a regression in the debian-installer on
+sparc64 which made the serial console unusable during installation.
 
-Thanks and BR,
-Ricardo
+It turned out that the regression was introduced by a change in
+the rootskel package [1] and the problem is that "steal-tty" is
+not able to find the active serial console and pick it up for
+the installer.
+
+After looking at the code changes, we found out that the problem is
+that in the sparc64 kernel, the device names for the serial console
+in /proc/consoles does not match the one under /sys:
+
+root@landau:~# cat /proc/consoles=20
+ttyHV0               -W- (EC p  )    4:64
+tty0                 -WU (E     )    4:1
+root@landau:~#
+
+root@landau:~# readlink /sys/dev/char/4:64
+../../devices/root/f0299a70/f029b788/tty/ttyS0
+root@landau:~#
+
+Thus, any software reading /proc/consoles will not be able to figure
+out what the name of the serial device is.
+
+Is there any particular reason this device name mismatch exists or
+is it just a bug we can fix?
+
+Thanks,
+Adrian
+
+> [1] https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=926539
+> [2] https://salsa.debian.org/installer-team/rootskel/commit/b6048aafed7d7=
+3ba42da04d6f7a798710f271384#11da32c570b25101c7d830e4fd6c254c323cddc8_21_16
+
+--=20
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
