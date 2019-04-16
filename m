@@ -1,40 +1,87 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:52:09 +0000
-Subject: [PATCH 28/41] drivers: tty: serial: sunzilog: fix includes
-Message-Id: <1556369542-13247-29-git-send-email-info@metux.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 16 Apr 2019 18:23:42 +0000
+Subject: [PATCH 4/9] sparc/iommu: create a common helper for map_sg
+Message-Id: <20190416182347.18441-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
+References: <20190416182347.18441-1-hch@lst.de>
+In-Reply-To: <20190416182347.18441-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Fix checkpatch warning:
+Share the code for the global and per-page flush map_sg loops using a
+simple bool parameter to disable the per-page flush for the former
+variant.
 
-    WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-    #38: FILE: drivers/tty/serial/sunzilog.c:38:
-    +#include <asm/io.h>
-
-Signed-off-by: Enrico Weigelt <info@metux.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/tty/serial/sunzilog.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/iommu.c | 37 +++++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
-index 17b0520..85edb0d 100644
---- a/drivers/tty/serial/sunzilog.c
-+++ b/drivers/tty/serial/sunzilog.c
-@@ -34,8 +34,8 @@
- #endif
- #include <linux/init.h>
- #include <linux/of_device.h>
-+#include <linux/io.h>
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 7cb9ddda7531..f90d943a3a27 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -241,25 +241,9 @@ static dma_addr_t sbus_iommu_map_page_pflush(struct device *dev,
+ 	return __sbus_iommu_map_page(dev, page, offset, len);
+ }
  
--#include <asm/io.h>
- #include <asm/irq.h>
- #include <asm/prom.h>
- #include <asm/setup.h>
+-static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sgl,
+-		int nents, enum dma_data_direction dir, unsigned long attrs)
+-{
+-	struct scatterlist *sg;
+-	int i, n;
+-
+-	flush_page_for_dma(0);
+-
+-	for_each_sg(sgl, sg, nents, i) {
+-		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
+-		sg->dma_address = iommu_get_one(dev, sg_page(sg), n) + sg->offset;
+-		sg->dma_length = sg->length;
+-	}
+-
+-	return nents;
+-}
+-
+-static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
+-		int nents, enum dma_data_direction dir, unsigned long attrs)
++static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
++		int nents, enum dma_data_direction dir, unsigned long attrs,
++		bool per_page_flush)
+ {
+ 	unsigned long page, oldpage = 0;
+ 	struct scatterlist *sg;
+@@ -273,7 +257,7 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
+ 		 * XXX Is this a good assumption?
+ 		 * XXX What if someone else unmaps it here and races us?
+ 		 */
+-		if (!PageHighMem(sg_page(sg))) {
++		if (per_page_flush && !PageHighMem(sg_page(sg))) {
+ 			page = (unsigned long)page_address(sg_page(sg));
+ 			for (i = 0; i < n; i++) {
+ 				if (page != oldpage) {	/* Already flushed? */
+@@ -291,6 +275,19 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
+ 	return nents;
+ }
+ 
++static int sbus_iommu_map_sg_gflush(struct device *dev, struct scatterlist *sgl,
++		int nents, enum dma_data_direction dir, unsigned long attrs)
++{
++	flush_page_for_dma(0);
++	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, false);
++}
++
++static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
++		int nents, enum dma_data_direction dir, unsigned long attrs)
++{
++	return __sbus_iommu_map_sg(dev, sgl, nents, dir, attrs, true);
++}
++
+ static void sbus_iommu_unmap_page(struct device *dev, dma_addr_t dma_addr,
+ 		size_t len, enum dma_data_direction dir, unsigned long attrs)
+ {
 -- 
-1.9.1
+2.20.1
