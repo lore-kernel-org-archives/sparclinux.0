@@ -1,44 +1,17 @@
-From: "Enrico Weigelt, metux IT consult" <lkml@metux.net>
-Date: Mon, 29 Apr 2019 18:26:51 +0000
-Subject: Re: [PATCH 13/41] drivers: tty: serial: uartlite: fill mapsize and use it
-Message-Id: <cb01328c-6308-d9c7-17ba-644d983b0a50@metux.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 16 Apr 2019 18:23:38 +0000
+Subject: fix SG list handling in the sparc32 iommu driver
+Message-Id: <20190416182347.18441-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
- <1556369542-13247-14-git-send-email-info@metux.net>
- <87muk8rg82.fsf@dell.be.48ers.dk>
-In-Reply-To: <87muk8rg82.fsf@dell.be.48ers.dk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Korsgaard <peter@korsgaard.com>, "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, macro@linux-mips.org, andrew@aj.id.au, gregkh@linuxfoundation.org, slemieux.tyco@gmail.com, liviu.dudau@arm.com, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com, linux-mips@vger.kernel.org, linux@prisktech.co.nz, matthias.bgg@gmail.com, khilman@baylibre.com, linux-serial@vger.kernel.org, sudeep.holla@arm.com, sparclinux@vger.kernel.org, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, vz@mleia.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 29.04.19 17:19, Peter Korsgaard wrote:
->>>>>> "Enrico" = Enrico Weigelt, metux IT consult <info@metux.net> writes:
-> 
->  > Fill the struct uart_port->mapsize field and use it, insteaf of
-> 
-> s/insteaf/instead/
+Hi Dave,
 
-Fixed.
-
->  > hardcoded values in many places. This makes the code layout a bit
->  > more consistent and easily allows using generic helpers for the
->  > io memory handling.
-> 
->  > Candidates for such helpers could be eg. the request+ioremap and
->  > iounmap+release combinations.
-> 
->  > Signed-off-by: Enrico Weigelt <info@metux.net>
-> 
-> Acked-by: Peter Korsgaard <peter@korsgaard.com>
-
-thanks for review.
-
-
---mtx
-
--- 
-Enrico Weigelt, metux IT consult
-Free software and Linux embedded engineering
-info@metux.net -- +49-151-27565287
+this series fixes some long standing bugs in the sparc32 iommu driver,
+mostly the lack of handling of large sglist offsets in the map_sg
+method, but also a few other smaller bits.  These now show up all the
+time do some block layer changes in linux-next.
