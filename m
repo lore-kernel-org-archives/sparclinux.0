@@ -1,42 +1,44 @@
-From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
-Date: Tue, 09 Apr 2019 02:05:16 +0000
-Subject: Re: [RFC PATCH v2 08/14] watchdog/hardlockup: Decouple the hardlockup detector from perf
-Message-Id: <20190409020516.GA7165@ranerica-svr.sc.intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 16 Apr 2019 18:23:40 +0000
+Subject: [PATCH 2/9] sparc/iommu: use sbus_iommu_unmap_page in sbus_iommu_unmap_sg
+Message-Id: <20190416182347.18441-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1551283518-18922-1-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <1551283518-18922-9-git-send-email-ricardo.neri-calderon@linux.intel.com>
- <alpine.DEB.2.21.1903262213470.1789@nanos.tec.linutronix.de>
-In-Reply-To: <alpine.DEB.2.21.1903262213470.1789@nanos.tec.linutronix.de>
+References: <20190416182347.18441-1-hch@lst.de>
+In-Reply-To: <20190416182347.18441-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>, Ricardo Neri <ricardo.neri@intel.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Ashok Raj <ashok.raj@intel.com>, x86@kernel.org, Andi Kleen <andi.kleen@intel.com>, Borislav Petkov <bp@suse.de>, Don Zickus <dzickus@redhat.com>, "Ravi V. Shankar" <ravi.v.shankar@intel.com>, Frederic Weisbecker <frederic@kernel.org>, Nicholas Piggin <npiggin@gmail.com>, Mathieu Desnoyers <mathieu.desnoyers@efficios.com>, Tony Luck <tony.luck@intel.com>, Babu Moger <babu.moger@oracle.com>, linux-kernel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>, Philippe Ombredanne <pombredanne@nexb.com>, Colin Ian King <colin.king@canonical.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Mar 26, 2019 at 10:18:32PM +0100, Thomas Gleixner wrote:
-> On Wed, 27 Feb 2019, Ricardo Neri wrote:
-> > +// SPDX-License-Identifier: GPL-2.0
-> > +/*
-> > + * Detect hard lockups on a system
-> > + *
-> > + * Copyright (C) Intel Corporation 2019
-> > + *
-> > + * Note: All of this code comes from the original perf-specific hardlockup
-> > + * detector.
-> 
-> And because you copied it from there without modification this becomes
-> automatically Copyrighted by Intel?
+Use the page-level helper instead of duplicating the logic, while also
+fixing the incorrect handling of larger than page sized offsets in
+the sg variant.
 
-Yes, it does not look correct.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+---
+ arch/sparc/mm/iommu.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-> 
-> May I recommend that you talk to your legal departement about this.
-> 
-> Aside of that there is really no value in creating yet another file. The
-> code in question can simply wrapped into a large #ifdef PERF in the old
-> file.
-
-Sure, I'll implement the change in this manner.
-
-Thanks and BR,
-Ricardo
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index dcdadac03fdf..f47a6ce0acaa 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -321,11 +321,11 @@ static void sbus_iommu_unmap_sg(struct device *dev, struct scatterlist *sgl,
+ 		int nents, enum dma_data_direction dir, unsigned long attrs)
+ {
+ 	struct scatterlist *sg;
+-	int i, n;
++	int i;
+ 
+ 	for_each_sg(sgl, sg, nents, i) {
+-		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
+-		iommu_release_one(dev, sg->dma_address & PAGE_MASK, n);
++		sbus_iommu_unmap_page(dev, sg->dma_address, sg->length, dir,
++				attrs);
+ 		sg->dma_address = 0x21212121;
+ 	}
+ }
+-- 
+2.20.1
