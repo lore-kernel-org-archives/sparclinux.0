@@ -1,41 +1,37 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:51:52 +0000
-Subject: [PATCH 11/41] drivers: tty: serial: sb1250-duart: fix formatting error
-Message-Id: <1556369542-13247-12-git-send-email-info@metux.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 16 Apr 2019 18:23:39 +0000
+Subject: [PATCH 1/9] sparc/iommu: use !PageHighMem to check if a page has a kernel mapping
+Message-Id: <20190416182347.18441-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
+References: <20190416182347.18441-1-hch@lst.de>
+In-Reply-To: <20190416182347.18441-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-checkpatch complains:
+This deobsfucates the check a bit, and prepares for future changes.
 
-    ERROR: space required before the open parenthesis '('
-    #659: FILE: drivers/tty/serial/sb1250-duart.c:659:
-    +	if(refcount_dec_and_test(&duart->map_guard))
-
-Just add this missing space to make checkpatch happy.
-
-Signed-off-by: Enrico Weigelt <info@metux.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/tty/serial/sb1250-duart.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/iommu.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
-index ec74f09..0023ed0 100644
---- a/drivers/tty/serial/sb1250-duart.c
-+++ b/drivers/tty/serial/sb1250-duart.c
-@@ -656,7 +656,7 @@ static void sbd_release_port(struct uart_port *uport)
- 	iounmap(uport->membase);
- 	uport->membase = NULL;
- 
--	if(refcount_dec_and_test(&duart->map_guard))
-+	if (refcount_dec_and_test(&duart->map_guard))
- 		release_mem_region(duart->mapctrl, DUART_CHANREG_SPACING);
- 	release_mem_region(uport->mapbase, uport->mapsize);
- }
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index e8d5d73ca40d..dcdadac03fdf 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -273,7 +273,8 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
+ 		 * XXX Is this a good assumption?
+ 		 * XXX What if someone else unmaps it here and races us?
+ 		 */
+-		if ((page = (unsigned long) page_address(sg_page(sg))) != 0) {
++		if (!PageHighMem(sg_page(sg))) {
++			page = (unsigned long)page_address(sg_page(sg));
+ 			for (i = 0; i < n; i++) {
+ 				if (page != oldpage) {	/* Already flushed? */
+ 					flush_page_for_dma(page);
 -- 
-1.9.1
+2.20.1
