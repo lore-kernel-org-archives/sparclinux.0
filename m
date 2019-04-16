@@ -1,59 +1,63 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:52:20 +0000
-Subject: [PATCH 39/41] drivers: tty: serial: pmac_zilog: fill mapsize and use it
-Message-Id: <1556369542-13247-40-git-send-email-info@metux.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 16 Apr 2019 18:23:45 +0000
+Subject: [PATCH 7/9] sparc/iommu: fix __sbus_iommu_map_page for highmem pages
+Message-Id: <20190416182347.18441-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
+References: <20190416182347.18441-1-hch@lst.de>
+In-Reply-To: <20190416182347.18441-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Fill the struct uart_port->mapsize field and use it, insteaf of
-hardcoded values in many places. This makes the code layout a bit
-more consistent and easily allows using generic helpers for the
-io memory handling.
+__sbus_iommu_map_page currently assumes all pages are mapped into the
+kernel direct mapping.  Switch to using physical address instead of
+virtual ones for all the normal mapping operations, and only use
+the virtual addresses for cache flushing when not operating on
+a highmem page.
 
-Candidates for such helpers could be eg. the request+ioremap and
-iounmap+release combinations.
-
-Signed-off-by: Enrico Weigelt <info@metux.net>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/tty/serial/pmac_zilog.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/sparc/mm/iommu.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/tty/serial/pmac_zilog.c b/drivers/tty/serial/pmac_zilog.c
-index bcb5bf7..1fef014 100644
---- a/drivers/tty/serial/pmac_zilog.c
-+++ b/drivers/tty/serial/pmac_zilog.c
-@@ -88,6 +88,8 @@
- #define PMACZILOG_NAME		"ttyPZ"
- #endif
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 7e191c8ae46a..37b5ce7657f6 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -209,24 +209,23 @@ static u32 iommu_get_one(struct device *dev, phys_addr_t paddr, int npages)
+ static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
+ 		unsigned long offset, size_t len, bool per_page_flush)
+ {
+-	void *vaddr = page_address(page) + offset;
+-	unsigned long off = (unsigned long)vaddr & ~PAGE_MASK;
++	phys_addr_t paddr = page_to_phys(page) + offset;
++	unsigned long off = paddr & ~PAGE_MASK;
+ 	unsigned long npages = (off + len + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
-+#define PMZ_MAPSIZE		0x1000
-+
- #define pmz_debug(fmt, arg...)	pr_debug("ttyPZ%d: " fmt, uap->port.line, ## arg)
- #define pmz_error(fmt, arg...)	pr_err("ttyPZ%d: " fmt, uap->port.line, ## arg)
- #define pmz_info(fmt, arg...)	pr_info("ttyPZ%d: " fmt, uap->port.line, ## arg)
-@@ -1411,7 +1413,8 @@ static int __init pmz_init_port(struct uart_pmac_port *uap)
- 	if (of_address_to_resource(np, 0, &r_ports))
- 		return -ENODEV;
- 	uap->port.mapbase = r_ports.start;
--	uap->port.membase = ioremap(uap->port.mapbase, 0x1000);
-+	uap->port.mapsize = PMZ_MAPSIZE;
-+	uap->port.membase = ioremap(uap->port.mapbase, uap->port.mapsize);
+ 	/* XXX So what is maxphys for us and how do drivers know it? */
+ 	if (!len || len > 256 * 1024)
+ 		return DMA_MAPPING_ERROR;
  
- 	uap->control_reg = uap->port.membase;
- 	uap->data_reg = uap->control_reg + 0x10;
-@@ -1709,6 +1712,7 @@ static int __init pmz_init_port(struct uart_pmac_port *uap)
- 		return -ENODEV;
+-	if (per_page_flush) {
+-		unsigned long p = (unsigned long)vaddr & PAGE_MASK;
++	if (per_page_flush && !PageHighMem(page)) {
++		unsigned long vaddr, p;
  
- 	uap->port.mapbase  = r_ports->start;
-+	uap->port.mapsize  = PMZ_MAPSIZE;
- 	uap->port.membase  = (unsigned char __iomem *) r_ports->start;
- 	uap->port.iotype   = UPIO_MEM;
- 	uap->port.irq      = irq;
+-		while (p < (unsigned long)vaddr + len) {
++		vaddr = (unsigned long)page_address(page) + offset;
++		for (p = vaddr & PAGE_MASK; p < vaddr + len; p += PAGE_SIZE)
+ 			flush_page_for_dma(p);
+-			p += PAGE_SIZE;
+-		}
+ 	}
+ 
+-	return iommu_get_one(dev, virt_to_phys(vaddr), npages) + off;
++	return iommu_get_one(dev, paddr, npages) + off;
+ }
+ 
+ static dma_addr_t sbus_iommu_map_page_gflush(struct device *dev,
 -- 
-1.9.1
+2.20.1
