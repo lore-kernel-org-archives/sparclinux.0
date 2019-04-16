@@ -1,73 +1,106 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:52:15 +0000
-Subject: [PATCH 34/41] drivers: tty: serial: zs: fill mapsize and use it
-Message-Id: <1556369542-13247-35-git-send-email-info@metux.net>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 16 Apr 2019 20:32:49 +0000
+Subject: [PATCH net-next 2/3] asm-generic: generalize asm/sockios.h
+Message-Id: <20190416203620.539628-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
+References: <20190416203620.539628-1-arnd@arndb.de>
+In-Reply-To: <20190416203620.539628-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-Fill the struct uart_port->mapsize field and use it, insteaf of
-hardcoded values in many places. This makes the code layout a bit
-more consistent and easily allows using generic helpers for the
-io memory handling.
+ia64, parisc and sparc just use a copy of the generic version
+of asm/sockios.h, and x86 is a redirect to the same file, so we
+can just let the header file be generated.
 
-Candidates for such helpers could be eg. the request+ioremap and
-iounmap+release combinations.
-
-Signed-off-by: Enrico Weigelt <info@metux.net>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/tty/serial/zs.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/ia64/include/uapi/asm/sockios.h   | 21 ---------------------
+ arch/parisc/include/uapi/asm/sockios.h | 14 --------------
+ arch/sparc/include/uapi/asm/sockios.h  | 15 ---------------
+ arch/x86/include/uapi/asm/sockios.h    |  1 -
+ 4 files changed, 51 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/sockios.h
+ delete mode 100644 arch/parisc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/sparc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/x86/include/uapi/asm/sockios.h
 
-diff --git a/drivers/tty/serial/zs.c b/drivers/tty/serial/zs.c
-index adbfe79..ab432ba 100644
---- a/drivers/tty/serial/zs.c
-+++ b/drivers/tty/serial/zs.c
-@@ -986,14 +986,14 @@ static void zs_release_port(struct uart_port *uport)
- {
- 	iounmap(uport->membase);
- 	uport->membase = 0;
--	release_mem_region(uport->mapbase, ZS_CHAN_IO_SIZE);
-+	release_mem_region(uport->mapbase, uport->mapsize);
- }
- 
- static int zs_map_port(struct uart_port *uport)
- {
- 	if (!uport->membase)
- 		uport->membase = ioremap_nocache(uport->mapbase,
--						 ZS_CHAN_IO_SIZE);
-+						 uport->mapsize);
- 	if (!uport->membase) {
- 		dev_err(port->dev, "zs: Cannot map MMIO\n");
- 		return -ENOMEM;
-@@ -1005,13 +1005,13 @@ static int zs_request_port(struct uart_port *uport)
- {
- 	int ret;
- 
--	if (!request_mem_region(uport->mapbase, ZS_CHAN_IO_SIZE, "scc")) {
-+	if (!request_mem_region(uport->mapbase, uport->mapsize, "scc")) {
- 		dev_err(uport->dev, "zs: Unable to reserve MMIO resource\n");
- 		return -EBUSY;
- 	}
- 	ret = zs_map_port(uport);
- 	if (ret) {
--		release_mem_region(uport->mapbase, ZS_CHAN_IO_SIZE);
-+		release_mem_region(uport->mapbase, uport->mapsize);
- 		return ret;
- 	}
- 	return 0;
-@@ -1113,6 +1113,7 @@ static int __init zs_probe_sccs(void)
- 			uport->flags	= UPF_BOOT_AUTOCONF;
- 			uport->ops	= &zs_ops;
- 			uport->line	= chip * ZS_NUM_CHAN + side;
-+			uport->mapsize	= ZS_CHAN_IO_SIZE;
- 			uport->mapbase	= dec_kn_slot_base +
- 					  zs_parms.scc[chip] +
- 					  (side ^ ZS_CHAN_B) * ZS_CHAN_IO_SIZE;
+diff --git a/arch/ia64/include/uapi/asm/sockios.h b/arch/ia64/include/uapi/asm/sockios.h
+deleted file mode 100644
+index f27a12f95d20..000000000000
+--- a/arch/ia64/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_SOCKIOS_H
+-#define _ASM_IA64_SOCKIOS_H
+-
+-/*
+- * Socket-level I/O control calls.
+- *
+- * Based on <asm-i386/sockios.h>.
+- *
+- * Modified 1998, 1999
+- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
+- */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* _ASM_IA64_SOCKIOS_H */
+diff --git a/arch/parisc/include/uapi/asm/sockios.h b/arch/parisc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 66a3ba64d53f..000000000000
+--- a/arch/parisc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,14 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef __ARCH_PARISC_SOCKIOS__
+-#define __ARCH_PARISC_SOCKIOS__
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif
+diff --git a/arch/sparc/include/uapi/asm/sockios.h b/arch/sparc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 18a3ec14a847..000000000000
+--- a/arch/sparc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_SPARC_SOCKIOS_H
+-#define _ASM_SPARC_SOCKIOS_H
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* !(_ASM_SPARC_SOCKIOS_H) */
+-
+diff --git a/arch/x86/include/uapi/asm/sockios.h b/arch/x86/include/uapi/asm/sockios.h
+deleted file mode 100644
+index def6d4746ee7..000000000000
+--- a/arch/x86/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/sockios.h>
 -- 
-1.9.1
+2.20.0
