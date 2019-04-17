@@ -1,24 +1,108 @@
-From: "Ms. Heba Oudeh" <p1000@takisawa.com.tw>
-Date: Sun, 07 Apr 2019 23:46:08 +0000
-Subject: Help Me
-Message-Id: <NT1tDJd5IghQYYAr27k0000645f@nt1.TAKISAWA.COM.TW>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 17 Apr 2019 20:51:49 +0000
+Subject: [PATCH v3 2/3] asm-generic: generalize asm/sockios.h
+Message-Id: <20190417205404.1877560-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190417205404.1877560-1-arnd@arndb.de>
+In-Reply-To: <20190417205404.1877560-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: netdev@vger.kernel.org
+Cc: y2038@lists.linaro.org, Willem de Bruijn <willemdebruijn.kernel@gmail.com>, Deepa Dinamani <deepa.kernel@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org
 
-Dear sir/Madam,
+ia64, parisc and sparc just use a copy of the generic version
+of asm/sockios.h, and x86 is a redirect to the same file, so we
+can just let the header file be generated.
 
-Greetings! I would like to apologize for barging into your privacy without your concent. My name is Heba Oudeh from Damascus Syria and i am 29 years old orphan.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v3: no changes since v1
+---
+ arch/ia64/include/uapi/asm/sockios.h   | 21 ---------------------
+ arch/parisc/include/uapi/asm/sockios.h | 14 --------------
+ arch/sparc/include/uapi/asm/sockios.h  | 15 ---------------
+ arch/x86/include/uapi/asm/sockios.h    |  1 -
+ 4 files changed, 51 deletions(-)
+ delete mode 100644 arch/ia64/include/uapi/asm/sockios.h
+ delete mode 100644 arch/parisc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/sparc/include/uapi/asm/sockios.h
+ delete mode 100644 arch/x86/include/uapi/asm/sockios.h
 
-I have decided to make this contact after many thoughts and hard decision. On 27 may 2017 i lost my parents to the Syrian war in one day and since then i have been in the refugee camp where am been raped every other day with no one to come to my aid. It is rather risky for me to send this mail and would be punished if caught but i have no choice than to take the risk and either die or be completely freed.
-
-I have contacted you for help. I have come to realize that all my late father's investments were made here and have been destroyed as well except a little money he has in his foreign account in the U.S.A. Before i was taken to the camp i discovered he has deposited the sum of $1,875,000USD in an American bank with me as next-of-kin. I have contacted the bank to explain things to them and they have agreed to accept anybody i would present as the new next-of-kin so they will transfer they money to the person since i can not transfer the money to Syria.
-
-The decision to make you the next-of-kin was not made because i need this money but because i want to leave this country to a better and safer place. All i need from you is to receive this money and make arrangement for me to join you in your country so i can complete my education and the remaining money can be invested in a business which both of us will be co-owners/partners and share profit equally. This might sound stupid but only option for me.
-
-If you feel you will be able to help me on this, please let me know as soon as you can so i can contact the bank to know the steps to be taken and what is reqired from our side. I will give you a copy of my ID in my next mail.
-
-Thanks,
-Heba.
+diff --git a/arch/ia64/include/uapi/asm/sockios.h b/arch/ia64/include/uapi/asm/sockios.h
+deleted file mode 100644
+index f27a12f95d20..000000000000
+--- a/arch/ia64/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_IA64_SOCKIOS_H
+-#define _ASM_IA64_SOCKIOS_H
+-
+-/*
+- * Socket-level I/O control calls.
+- *
+- * Based on <asm-i386/sockios.h>.
+- *
+- * Modified 1998, 1999
+- *	David Mosberger-Tang <davidm@hpl.hp.com>, Hewlett-Packard Co
+- */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* _ASM_IA64_SOCKIOS_H */
+diff --git a/arch/parisc/include/uapi/asm/sockios.h b/arch/parisc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 66a3ba64d53f..000000000000
+--- a/arch/parisc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,14 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef __ARCH_PARISC_SOCKIOS__
+-#define __ARCH_PARISC_SOCKIOS__
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif
+diff --git a/arch/sparc/include/uapi/asm/sockios.h b/arch/sparc/include/uapi/asm/sockios.h
+deleted file mode 100644
+index 18a3ec14a847..000000000000
+--- a/arch/sparc/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+-#ifndef _ASM_SPARC_SOCKIOS_H
+-#define _ASM_SPARC_SOCKIOS_H
+-
+-/* Socket-level I/O control calls. */
+-#define FIOSETOWN 	0x8901
+-#define SIOCSPGRP	0x8902
+-#define FIOGETOWN	0x8903
+-#define SIOCGPGRP	0x8904
+-#define SIOCATMARK	0x8905
+-#define SIOCGSTAMP	0x8906		/* Get stamp (timeval) */
+-#define SIOCGSTAMPNS	0x8907		/* Get stamp (timespec) */
+-
+-#endif /* !(_ASM_SPARC_SOCKIOS_H) */
+-
+diff --git a/arch/x86/include/uapi/asm/sockios.h b/arch/x86/include/uapi/asm/sockios.h
+deleted file mode 100644
+index def6d4746ee7..000000000000
+--- a/arch/x86/include/uapi/asm/sockios.h
++++ /dev/null
+@@ -1 +0,0 @@
+-#include <asm-generic/sockios.h>
+-- 
+2.20.0
