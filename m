@@ -1,53 +1,26 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:51:47 +0000
-Subject: [PATCH 06/41] drivers: tty: serial: sb1250-duart: use dev_err() instead of printk()
-Message-Id: <1556369542-13247-7-git-send-email-info@metux.net>
+From: Mark Casady <michaeljonas742@gmail.com>
+Date: Fri, 19 Apr 2019 18:11:16 +0000
+Subject: Dear
+Message-Id: <CAKu0aF7NYKXHQ_jG=Ys0xz84+CARijOiTJ1Q=J4B1pQd+j+=RA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: sparclinux@vger.kernel.org
 
-Using dev_err() instead of printk() for more consistent output.
-(prints device name, etc).
+Dear,
 
-Signed-off-by: Enrico Weigelt <info@metux.net>
----
- drivers/tty/serial/sb1250-duart.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+I am Mr.Marck Csady a solicitor at law, i need your assistance to
+represent my late client fund valued at $2.5 million dollars that his
+bank wants to comfiscate, You bear the same last name with my late
+client and he is also a national of your country.
 
-diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
-index 329aced..655961c 100644
---- a/drivers/tty/serial/sb1250-duart.c
-+++ b/drivers/tty/serial/sb1250-duart.c
-@@ -663,7 +663,6 @@ static void sbd_release_port(struct uart_port *uport)
- 
- static int sbd_map_port(struct uart_port *uport)
- {
--	const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
- 	struct sbd_port *sport = to_sport(uport);
- 	struct sbd_duart *duart = sport->duart;
- 
-@@ -671,7 +670,7 @@ static int sbd_map_port(struct uart_port *uport)
- 		uport->membase = ioremap_nocache(uport->mapbase,
- 						 DUART_CHANREG_SPACING);
- 	if (!uport->membase) {
--		printk(err);
-+		dev_err(uport->dev, "Cannot map MMIO (base)\n");
- 		return -ENOMEM;
- 	}
- 
-@@ -679,7 +678,7 @@ static int sbd_map_port(struct uart_port *uport)
- 		sport->memctrl = ioremap_nocache(duart->mapctrl,
- 						 DUART_CHANREG_SPACING);
- 	if (!sport->memctrl) {
--		printk(err);
-+		dev_err(uport->dev, "Cannot map MMIO (ctrl)\n");
- 		iounmap(uport->membase);
- 		uport->membase = NULL;
- 		return -ENOMEM;
--- 
-1.9.1
+Please if you are interested to assist me then get back to me through
+my private email bellow.
+
+i will make all necessary informations known to you,including the name
+of the bank and modes to the repartriation of this fund.
+
+PLEASE REPLY THROUGH MY PRIVATE EMAIL ADDRESS
+Thanks for your understanding
+Marck Csady Esq.
