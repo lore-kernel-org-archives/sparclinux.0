@@ -1,56 +1,43 @@
-From: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Date: Thu, 25 Apr 2019 15:53:01 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 25 Apr 2019 15:55:23 +0000
 Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to compat_ptr_ioctl
-Message-Id: <20190425125301.5165cf15@coco.lan>
+Message-Id: <CAK8P3a2HmiYQJ2FV2FgLiFsD8M9UKteC9Jetx7ja06PQVZWYfA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190416202013.4034148-1-arnd@arndb.de>
-        <20190416202701.127745-1-arnd@arndb.de>
-        <20190425122153.450fc094@coco.lan>
-        <20190425153534.GS2217@ZenIV.linux.org.uk>
-In-Reply-To: <20190425153534.GS2217@ZenIV.linux.org.uk>
+ <20190416202701.127745-1-arnd@arndb.de>
+ <20190425122153.450fc094@coco.lan> <20190425153534.GS2217@ZenIV.linux.org.uk>
+In-Reply-To: <20190425153534.GS2217-3bDd1+5oDREiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-fsdevel@vger.kernel.org, y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Sterba <dsterba@suse.com>, Darren Hart <dvhart@infradead.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, devel@driverdev.osuosl.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org
+To: Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>
+Cc: Sean Young <sean-hENCXIMQXOg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, driverdevel <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, y2038 Mailman List <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "open list:HID CORE LAYER" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, David Sterba <dsterba@su>
 
-Em Thu, 25 Apr 2019 16:35:34 +0100
-Al Viro <viro@zeniv.linux.org.uk> escreveu:
-
+On Thu, Apr 25, 2019 at 5:35 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+>
 > On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
-> 
+>
 > > If I understand your patch description well, using compat_ptr_ioctl
-> > only works if the driver is not for s390, right?  
-> 
+> > only works if the driver is not for s390, right?
+>
 > No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
 > and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
 > s390 is the reason for having compat_ptr_ioctl() in the first place;
 > that thing works on all biarch architectures, as long as all stuff
 > handled by ->ioctl() takes pointer to arch-independent object as
 > argument.  IOW,
-> 	argument ignored => OK
-> 	any arithmetical type => no go, compat_ptr() would bugger it
-> 	pointer to int => OK
+>         argument ignored => OK
+>         any arithmetical type => no go, compat_ptr() would bugger it
+>         pointer to int => OK
+>         pointer to string => OK
+>         pointer to u64 => OK
+>         pointer to struct {u64 addr; char s[11];} => OK
 
-That's the case for all LIRC ioctls: they all use a pointer to u32
-argument.
+To be extra pedantic, the 'struct {u64 addr; char s[11];} '
+case is also broken on x86, because sizeof (obj) is smaller
+on i386, even though the location of the members are
+the same. i.e. you can copy_from_user() this, but not
+copy_to_user(), which overwrites 4 bytes after the end of
+the 20-byte user structure.
 
-> 	pointer to string => OK
-> 	pointer to u64 => OK
-> 	pointer to struct {u64 addr; char s[11];} => OK
-> 	pointer to long => needs explicit handler
-> 	pointer to struct {void *addr; char s[11];} => needs explicit handler
-> 	pointer to struct {int x; u64 y;} => needs explicit handler on amd64
-> For "just use ->unlocked_ioctl for ->ioctl" we have
-> 	argument ignored => OK
-> 	any arithmetical type => OK
-> 	any pointer => instant breakage on s390, in addtion to cases that break
-> with compat_ptr_ioctl().
-> 
-> Probably some form of that ought to go into commit message for compat_ptr_ioctl()
-> introduction...
-
-Agreed.
-
-Thanks,
-Mauro
+       Arnd
