@@ -1,7 +1,7 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Thu, 25 Apr 2019 15:32:05 +0000
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Thu, 25 Apr 2019 15:35:34 +0000
 Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to compat_ptr_ioctl
-Message-Id: <CAK8P3a1qCQJEkne3uAw-Ep-taNU9t5Y2ZmgoiCGmOz1BSwmzEw@mail.gmail.com>
+Message-Id: <20190425153534.GS2217@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190416202013.4034148-1-arnd@arndb.de>
  <20190416202701.127745-1-arnd@arndb.de>
@@ -11,23 +11,33 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Mauro Carvalho Chehab <mchehab+samsung@kernel.org>
-Cc: linux-nvme@lists.infradead.org, Sean Young <sean@mess.org>, linux-iio@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>, linux-pci <linux-pci@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, Bjorn Andersson <bjorn.andersson@linaro.org>, sparclinux <sparclinux@vger.kernel.org>, driverdevel <devel@driverdev.osuosl.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-nvdimm@lists.01.org, linux-rdma <linux-rdma@vger.kernel.org>, qat-linux@intel.com, amd-gfx@lists.freedesktop.org, Jason Gunthorpe <jgg@mellanox.com>, "open list:HID CORE LAYER" <linux-input@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Linux Media Mailing List <linux-media@vger.kernel.org>, linux-remoteproc@vger.kernel.org, linaro-mm-sig@lists.linaro.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, David Sterba <dsterba@suse.com>, ceph
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-fsdevel@vger.kernel.org, y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Sterba <dsterba@suse.com>, Darren Hart <dvhart@infradead.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Bjorn Andersson <bjorn.andersson@linaro.org>, devel@driverdev.osuosl.org, qat-linux@intel.com, linux-crypto@vger.kernel.org, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, amd-gfx@lists.freedesktop.org, linux-input@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, linux-nvdimm@lists.01.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org
 
-On Thu, Apr 25, 2019 at 5:22 PM Mauro Carvalho Chehab
-<mchehab+samsung@kernel.org> wrote:
-> Em Tue, 16 Apr 2019 22:25:33 +0200 Arnd Bergmann <arnd@arndb.de> escreveu:
->
+On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
+
 > If I understand your patch description well, using compat_ptr_ioctl
 > only works if the driver is not for s390, right?
 
-No, the purpose of compat_ptr_ioctl() is to make sure it works
-everywhere including s390.
+No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
+and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
+s390 is the reason for having compat_ptr_ioctl() in the first place;
+that thing works on all biarch architectures, as long as all stuff
+handled by ->ioctl() takes pointer to arch-independent object as
+argument.  IOW,
+	argument ignored => OK
+	any arithmetical type => no go, compat_ptr() would bugger it
+	pointer to int => OK
+	pointer to string => OK
+	pointer to u64 => OK
+	pointer to struct {u64 addr; char s[11];} => OK
+	pointer to long => needs explicit handler
+	pointer to struct {void *addr; char s[11];} => needs explicit handler
+	pointer to struct {int x; u64 y;} => needs explicit handler on amd64
+For "just use ->unlocked_ioctl for ->ioctl" we have
+	argument ignored => OK
+	any arithmetical type => OK
+	any pointer => instant breakage on s390, in addtion to cases that break
+with compat_ptr_ioctl().
 
-Even on s390 it tends to work most of the time, but for correctness
-the upper bit of a 32-bit pointer needs to be cleared, as
-compat_ptr_ioctl does, in case some application passes a pointer
-with that bit set. [IIRC, in the instruction pointer, the high bit is set, in
-data references it is ignored but usually cleared, but it may be left
-on for IP-relative address generation]
-
-       Arnd
+Probably some form of that ought to go into commit message for compat_ptr_ioctl()
+introduction...
