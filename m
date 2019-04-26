@@ -1,7 +1,7 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Sun, 14 Apr 2019 21:17:01 +0000
+Date: Fri, 26 Apr 2019 12:07:53 +0000
 Subject: Re: Naming inconsistency for serial device on sparc
-Message-Id: <b1cd67b2-5f93-72d4-78ea-79966fbbe99d@physik.fu-berlin.de>
+Message-Id: <69b3b589-6a35-3732-6413-8328b1608238@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <4c392da4-8291-fe26-fb38-22535872f127@physik.fu-berlin.de>
 In-Reply-To: <4c392da4-8291-fe26-fb38-22535872f127@physik.fu-berlin.de>
@@ -10,7 +10,12 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hello!
+
 On 4/14/19 11:13 PM, David Miller wrote:
+>>> It's probably been there for so long that changing it is likely to
+>>> have a risk of breaking some other piece of software.
+>>
 >> Hmm, good point. We could maybe change it in the Debian kernel for testing
 >> purposes and see if anything breaks for our users.
 >>
@@ -19,11 +24,9 @@ On 4/14/19 11:13 PM, David Miller wrote:
 > That would cover Debian, but what about other distros whose components
 > are looking for the "wrong" name?
 
-I'm not aware of any actively maintained sparc(64) Linux distributions
-besides Debian and Gentoo and I know the folks from the latter, so I
-could ask them for their opinion as well.
-
-Oracle unfortunately stopped development of Oracle Linux for SPARC.
+I have talked with the Gentoo SPARC people on #gentoo-sparc OFTC now and
+then don't have a particularly strong on opinion on the subject, so I think
+it should be safe to fix the inconsistency bug in the driver.
 
 Adrian
 
