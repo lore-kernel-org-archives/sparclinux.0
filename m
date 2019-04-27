@@ -1,36 +1,54 @@
-From: "MRS.ZARA KUMAR" <fredwilliam543210@gmail.com>
-Date: Fri, 12 Apr 2019 08:05:12 +0000
-Subject: ATTENTION:BENEFICIARY
-Message-Id: <CAJ=SBYbNDxvO7Ms1H_tpqsaCPboYG7G+aWgMgddfK6oWd4cXew@mail.gmail.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:14 +0000
+Subject: [PATCH 33/41] drivers: tty: serial: zs: use dev_err() instead of printk()
+Message-Id: <1556369542-13247-34-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: target-devel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-DEAR:
+Using dev_err() instead of printk() for more consistent output.
+(prints device name, etc).
 
-WE FINALLY CONCLUDED TO EFFECT YOUR PAYMENT OF (US$7,5M) VIA MONEY GRAM
-OFFICE THIS MORNING AS THE BEST AND EASIER WAY TO CASH YOUR FUNDS IN ANY OF
-YOUR NEAREST MONEY GRAM OFFICE IN YOUR CITY,
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/zs.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-WELL BASED ON MY AGREEMENT WITH MONEY GRAM DIRECTOR, MR JOHN GRECH, YOUR
-TRANSFER WILL START IMMEDIATELY YOU CONTACT HIM WITH ALL YOUR INFORMATION
-AS FOLLOW
-
-YOUR NAME___________
-YOUR HOME ADDRESS_______
-YOUR COUNTY/CITY___________
-YOUR AGE/SEX_____________
-DIRECT PHONE NUMBER_______
-ID COPY_______
-OCCUPATION_______
-
-MONEY GRAM OFFICE:
-CONTACT PERSON:MR.JOHN GRECH
-E-MAIL: moneygram.payment@aol.com
-PHONE NO +229 65439498
-
-YOUR FUNDS AMOUNT DEPOSITED IS US$7.5million
-BEST REGARDS,
-MRS.ZARA KUMAR
+diff --git a/drivers/tty/serial/zs.c b/drivers/tty/serial/zs.c
+index b03d3e4..adbfe79 100644
+--- a/drivers/tty/serial/zs.c
++++ b/drivers/tty/serial/zs.c
+@@ -767,7 +767,7 @@ static int zs_startup(struct uart_port *uport)
+ 				  IRQF_SHARED, "scc", scc);
+ 		if (ret) {
+ 			atomic_add(-1, &scc->irq_guard);
+-			printk(KERN_ERR "zs: can't get irq %d\n",
++			dev_err(uport->dev, "zs: can't get irq %d\n",
+ 			       zport->port.irq);
+ 			return ret;
+ 		}
+@@ -995,7 +995,7 @@ static int zs_map_port(struct uart_port *uport)
+ 		uport->membase = ioremap_nocache(uport->mapbase,
+ 						 ZS_CHAN_IO_SIZE);
+ 	if (!uport->membase) {
+-		printk(KERN_ERR "zs: Cannot map MMIO\n");
++		dev_err(port->dev, "zs: Cannot map MMIO\n");
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
+@@ -1006,7 +1006,7 @@ static int zs_request_port(struct uart_port *uport)
+ 	int ret;
+ 
+ 	if (!request_mem_region(uport->mapbase, ZS_CHAN_IO_SIZE, "scc")) {
+-		printk(KERN_ERR "zs: Unable to reserve MMIO resource\n");
++		dev_err(uport->dev, "zs: Unable to reserve MMIO resource\n");
+ 		return -EBUSY;
+ 	}
+ 	ret = zs_map_port(uport);
+-- 
+1.9.1
