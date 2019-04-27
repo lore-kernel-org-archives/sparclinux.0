@@ -1,50 +1,68 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Date: Tue, 16 Apr 2019 11:41:04 +0000
-Subject: Re: [PATCH] [v2] arch: add pidfd and io_uring syscalls everywhere
-Message-Id: <20190416114103.GB28994@arrakis.emea.arm.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:01 +0000
+Subject: [PATCH 20/41] drivers: tty: serial: cpm_uart: use dev_err()/dev_warn() instead of printk()
+Message-Id: <1556369542-13247-21-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190415143007.2989285-1-arnd@arndb.de>
-In-Reply-To: <20190415143007.2989285-1-arnd@arndb.de>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arch@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Heiko Carstens <heiko.carstens@de.ibm.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Russell King <linux@armlinux.org.uk>, Will Deacon <will.deacon@arm.com>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Michal Simek <monstr@monstr.eu>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Yoshinori
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-On Mon, Apr 15, 2019 at 04:22:57PM +0200, Arnd Bergmann wrote:
-> Add the io_uring and pidfd_send_signal system calls to all architectures.
-> 
-> These system calls are designed to handle both native and compat tasks,
-> so all entries are the same across architectures, only arm-compat and
-> the generic tale still use an old format.
-> 
-> Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-> Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com> (s390)
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Changes since v1:
-> - fix s390 table
-> - use 'n64' tag in mips-n64 instead of common.
-> ---
->  arch/alpha/kernel/syscalls/syscall.tbl      | 4 ++++
->  arch/arm/tools/syscall.tbl                  | 4 ++++
->  arch/arm64/include/asm/unistd.h             | 2 +-
->  arch/arm64/include/asm/unistd32.h           | 8 ++++++++
->  arch/ia64/kernel/syscalls/syscall.tbl       | 4 ++++
->  arch/m68k/kernel/syscalls/syscall.tbl       | 4 ++++
->  arch/microblaze/kernel/syscalls/syscall.tbl | 4 ++++
->  arch/mips/kernel/syscalls/syscall_n32.tbl   | 4 ++++
->  arch/mips/kernel/syscalls/syscall_n64.tbl   | 4 ++++
->  arch/mips/kernel/syscalls/syscall_o32.tbl   | 4 ++++
->  arch/parisc/kernel/syscalls/syscall.tbl     | 4 ++++
->  arch/powerpc/kernel/syscalls/syscall.tbl    | 4 ++++
->  arch/s390/kernel/syscalls/syscall.tbl       | 4 ++++
->  arch/sh/kernel/syscalls/syscall.tbl         | 4 ++++
->  arch/sparc/kernel/syscalls/syscall.tbl      | 4 ++++
->  arch/xtensa/kernel/syscalls/syscall.tbl     | 4 ++++
->  16 files changed, 65 insertions(+), 1 deletion(-)
+Using dev_err()/dev_warn() instead of printk() for more consistent output.
+(prints device name, etc).
 
-For arm64:
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/cpm_uart/cpm_uart_core.c | 6 +++---
+ drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+diff --git a/drivers/tty/serial/cpm_uart/cpm_uart_core.c b/drivers/tty/serial/cpm_uart/cpm_uart_core.c
+index b929c7a..374b8bb 100644
+--- a/drivers/tty/serial/cpm_uart/cpm_uart_core.c
++++ b/drivers/tty/serial/cpm_uart/cpm_uart_core.c
+@@ -265,7 +265,7 @@ static void cpm_uart_int_rx(struct uart_port *port)
+ 		 * later, which will be the next rx-interrupt or a timeout
+ 		 */
+ 		if (tty_buffer_request_room(tport, i) < i) {
+-			printk(KERN_WARNING "No room in flip buffer\n");
++			dev_warn(port->dev, "No room in flip buffer\n");
+ 			return;
+ 		}
+ 
+@@ -1155,7 +1155,7 @@ static int cpm_uart_init_port(struct device_node *np,
+ 	if (!pinfo->clk) {
+ 		data = of_get_property(np, "fsl,cpm-brg", &len);
+ 		if (!data || len != 4) {
+-			printk(KERN_ERR "CPM UART %pOFn has no/invalid "
++			dev_err(port->dev, "CPM UART %pOFn has no/invalid "
+ 			                "fsl,cpm-brg property.\n", np);
+ 			return -EINVAL;
+ 		}
+@@ -1164,7 +1164,7 @@ static int cpm_uart_init_port(struct device_node *np,
+ 
+ 	data = of_get_property(np, "fsl,cpm-command", &len);
+ 	if (!data || len != 4) {
+-		printk(KERN_ERR "CPM UART %pOFn has no/invalid "
++		dev_err(port->dev, "CPM UART %pOFn has no/invalid "
+ 		                "fsl,cpm-command property.\n", np);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c b/drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c
+index 6a1cd03..ef1ae08 100644
+--- a/drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c
++++ b/drivers/tty/serial/cpm_uart/cpm_uart_cpm2.c
+@@ -67,7 +67,7 @@ void __iomem *cpm_uart_map_pram(struct uart_cpm_port *port,
+ 		return pram;
+ 
+ 	if (len != 2) {
+-		printk(KERN_WARNING "cpm_uart[%d]: device tree references "
++		dev_warn(port->dev, "cpm_uart[%d]: device tree references "
+ 			"SMC pram, using boot loader/wrapper pram mapping. "
+ 			"Please fix your device tree to reference the pram "
+ 			"base register instead.\n",
+-- 
+1.9.1
