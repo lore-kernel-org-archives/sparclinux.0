@@ -1,27 +1,45 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Thu, 04 Apr 2019 21:06:08 +0000
-Subject: Re: [PATCH 5/6 v3] syscalls: Remove start and number from syscall_get_arguments() args
-Message-Id: <20190404170608.25cadc7d@gandalf.local.home>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:55 +0000
+Subject: [PATCH 14/41] drivers: tty: serial: uartlite: remove unnecessary braces
+Message-Id: <1556369542-13247-15-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190401134104.676620247@goodmis.org>
-        <20190401134421.278590567@goodmis.org>
-        <20190404181758.GA8071@altlinux.org>
-In-Reply-To: <20190404181758.GA8071@altlinux.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Dmitry V. Levin" <ldv@altlinux.org>
-Cc: linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Roland McGrath <roland@hack.frob.com>, Oleg Nesterov <oleg@redhat.com>, linux-arch@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dominik Brodowski <linux@dominikbrodowski.net>, Andy Lutomirski <luto@kernel.org>, Kees Cook <keescook@chromium.org>, "Eric W. Biederman" <ebiederm@xmission.com>, Palmer Dabbelt <palmer@sifive.com>, Dave Martin <dave.martin@arm.c>
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-On Thu, 4 Apr 2019 21:17:58 +0300
-"Dmitry V. Levin" <ldv@altlinux.org> wrote:
+checkpatch complains:
 
-> There are several places listed below where I'd prefer to see more readable
-> equivalents, but feel free to leave it to respective arch maintainers.
+    WARNING: braces {} are not necessary for any arm of this statement
+    #489: FILE: drivers/tty/serial/uartlite.c:489:
+    +	if (oops_in_progress) {
+    [...]
+    +	} else
+    [...]
 
-I was going to do similar changes, but figured I'd do just that (let
-the arch maintainers further optimize the code). I made this more about
-fixing the interface and less about the optimization and clean ups that
-it can allow.
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/uartlite.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
--- Steve
+diff --git a/drivers/tty/serial/uartlite.c b/drivers/tty/serial/uartlite.c
+index c322ab6..4c28600 100644
+--- a/drivers/tty/serial/uartlite.c
++++ b/drivers/tty/serial/uartlite.c
+@@ -486,9 +486,9 @@ static void ulite_console_write(struct console *co, const char *s,
+ 	unsigned int ier;
+ 	int locked = 1;
+ 
+-	if (oops_in_progress) {
++	if (oops_in_progress)
+ 		locked = spin_trylock_irqsave(&port->lock, flags);
+-	} else
++	else
+ 		spin_lock_irqsave(&port->lock, flags);
+ 
+ 	/* save and disable interrupt */
+-- 
+1.9.1
