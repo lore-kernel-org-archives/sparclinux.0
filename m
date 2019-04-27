@@ -1,111 +1,65 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Tue, 09 Apr 2019 00:13:36 +0000
-Subject: Re: [PATCH V3 0/7] Add FOLL_LONGTERM to GUP fast and use it
-Message-Id: <20190409001336.GB2049@iweiny-DESK2.sc.intel.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:13 +0000
+Subject: [PATCH 32/41] drivers: tty: serial: 21285: define's for address/size, use mapsize field
+Message-Id: <1556369542-13247-33-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190328084422.29911-1-ira.weiny@intel.com>
-In-Reply-To: <20190328084422.29911-1-ira.weiny@intel.com>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@suse.com>, "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Rich Felker <dalias@libc.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Ralf Baechle <ralf@linux-mips.org>, James Hogan <jhogan@kernel.org>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-On Thu, Mar 28, 2019 at 01:44:15AM -0700, 'Ira Weiny' wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> Following discussion and review[1] here are the cleanups requested.
-> 
-> The biggest change for V3 was the disabling of the ability to use FOLL_LONGTERM
-> in get_user_pages[unlocked|locked|remote]
-> 
-> Comments were also enhanced throughout to show potential users what
-> FOLL_LONGTERM is all about and limitations it has.
+Instead of hardcoding raw numbers, add define's for the mmio address/size.
+Also fill the mapsize field and use it on mem request/release calls, for
+more consistency and allowing generic helpers to be used later.
 
-Does anyone have any problems with these changes?
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/21285.c | 12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-I would like to get official Reviewed-by tags if possible.
-
-Thanks,
-Ira
-
-> 
-> Minor review comments were fixed
-> 
-> Original cover letter:
-> 
-> HFI1, qib, and mthca, use get_user_pages_fast() due to it performance
-> advantages.  These pages can be held for a significant time.  But
-> get_user_pages_fast() does not protect against mapping FS DAX pages.
-> 
-> Introduce FOLL_LONGTERM and use this flag in get_user_pages_fast() which
-> retains the performance while also adding the FS DAX checks.  XDP has also
-> shown interest in using this functionality.[1]
-> 
-> In addition we change get_user_pages() to use the new FOLL_LONGTERM flag and
-> remove the specialized get_user_pages_longterm call.
-> 
-> [1] https://lkml.org/lkml/2019/3/19/939
-> 
-> 
-> 
-> Ira Weiny (7):
->   mm/gup: Replace get_user_pages_longterm() with FOLL_LONGTERM
->   mm/gup: Change write parameter to flags in fast walk
->   mm/gup: Change GUP fast to use flags rather than a write 'bool'
->   mm/gup: Add FOLL_LONGTERM capability to GUP fast
->   IB/hfi1: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
->   IB/qib: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
->   IB/mthca: Use the new FOLL_LONGTERM flag to get_user_pages_fast()
-> 
->  arch/mips/mm/gup.c                          |  11 +-
->  arch/powerpc/kvm/book3s_64_mmu_hv.c         |   4 +-
->  arch/powerpc/kvm/e500_mmu.c                 |   2 +-
->  arch/powerpc/mm/mmu_context_iommu.c         |   3 +-
->  arch/s390/kvm/interrupt.c                   |   2 +-
->  arch/s390/mm/gup.c                          |  12 +-
->  arch/sh/mm/gup.c                            |  11 +-
->  arch/sparc/mm/gup.c                         |   9 +-
->  arch/x86/kvm/paging_tmpl.h                  |   2 +-
->  arch/x86/kvm/svm.c                          |   2 +-
->  drivers/fpga/dfl-afu-dma-region.c           |   2 +-
->  drivers/gpu/drm/via/via_dmablit.c           |   3 +-
->  drivers/infiniband/core/umem.c              |   5 +-
->  drivers/infiniband/hw/hfi1/user_pages.c     |   3 +-
->  drivers/infiniband/hw/mthca/mthca_memfree.c |   3 +-
->  drivers/infiniband/hw/qib/qib_user_pages.c  |   8 +-
->  drivers/infiniband/hw/qib/qib_user_sdma.c   |   2 +-
->  drivers/infiniband/hw/usnic/usnic_uiom.c    |   9 +-
->  drivers/media/v4l2-core/videobuf-dma-sg.c   |   6 +-
->  drivers/misc/genwqe/card_utils.c            |   2 +-
->  drivers/misc/vmw_vmci/vmci_host.c           |   2 +-
->  drivers/misc/vmw_vmci/vmci_queue_pair.c     |   6 +-
->  drivers/platform/goldfish/goldfish_pipe.c   |   3 +-
->  drivers/rapidio/devices/rio_mport_cdev.c    |   4 +-
->  drivers/sbus/char/oradax.c                  |   2 +-
->  drivers/scsi/st.c                           |   3 +-
->  drivers/staging/gasket/gasket_page_table.c  |   4 +-
->  drivers/tee/tee_shm.c                       |   2 +-
->  drivers/vfio/vfio_iommu_spapr_tce.c         |   3 +-
->  drivers/vfio/vfio_iommu_type1.c             |   3 +-
->  drivers/vhost/vhost.c                       |   2 +-
->  drivers/video/fbdev/pvr2fb.c                |   2 +-
->  drivers/virt/fsl_hypervisor.c               |   2 +-
->  drivers/xen/gntdev.c                        |   2 +-
->  fs/io_uring.c                               |   5 +-
->  fs/orangefs/orangefs-bufmap.c               |   2 +-
->  include/linux/mm.h                          |  45 ++-
->  kernel/futex.c                              |   2 +-
->  lib/iov_iter.c                              |   7 +-
->  mm/gup.c                                    | 288 +++++++++++++-------
->  mm/gup_benchmark.c                          |   5 +-
->  mm/util.c                                   |   8 +-
->  net/ceph/pagevec.c                          |   2 +-
->  net/rds/info.c                              |   2 +-
->  net/rds/rdma.c                              |   3 +-
->  net/xdp/xdp_umem.c                          |   4 +-
->  46 files changed, 314 insertions(+), 200 deletions(-)
-> 
-> -- 
-> 2.20.1
-> 
+diff --git a/drivers/tty/serial/21285.c b/drivers/tty/serial/21285.c
+index 32b3acf..90684cd 100644
+--- a/drivers/tty/serial/21285.c
++++ b/drivers/tty/serial/21285.c
+@@ -27,6 +27,9 @@
+ #define SERIAL_21285_MAJOR	204
+ #define SERIAL_21285_MINOR	4
+ 
++#define SERIAL_21285_ADDRESS	0x42000160
++#define SERIAL_21285_SIZE	32
++
+ #define RXSTAT_DUMMY_READ	0x80000000
+ #define RXSTAT_FRAME		(1 << 0)
+ #define RXSTAT_PARITY		(1 << 1)
+@@ -305,12 +308,14 @@ static const char *serial21285_type(struct uart_port *port)
+ 
+ static void serial21285_release_port(struct uart_port *port)
+ {
+-	release_mem_region(port->mapbase, 32);
++	release_mem_region(port->mapbase, port->mapsize);
+ }
+ 
+ static int serial21285_request_port(struct uart_port *port)
+ {
+-	return request_mem_region(port->mapbase, 32, serial21285_name)
++	return request_mem_region(port->mapbase,
++				  port->mapsize,
++				  serial21285_name)
+ 			 != NULL ? 0 : -EBUSY;
+ }
+ 
+@@ -354,7 +359,8 @@ static int serial21285_verify_port(struct uart_port *port, struct serial_struct
+ };
+ 
+ static struct uart_port serial21285_port = {
+-	.mapbase	= 0x42000160,
++	.mapbase	= SERIAL_21285_BASE,
++	.mapsize	= SERIAL_21285_SIZE,
+ 	.iotype		= UPIO_MEM,
+ 	.irq		= 0,
+ 	.fifosize	= 16,
+-- 
+1.9.1
