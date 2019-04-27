@@ -1,26 +1,39 @@
-From: Mark Casady <michaeljonas742@gmail.com>
-Date: Fri, 19 Apr 2019 18:11:16 +0000
-Subject: Dear
-Message-Id: <CAKu0aF7NYKXHQ_jG=Ys0xz84+CARijOiTJ1Q=J4B1pQd+j+=RA@mail.gmail.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:44 +0000
+Subject: [PATCH 03/41] drivers: tty: serial: dz: fix missing parentheses
+Message-Id: <1556369542-13247-4-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Dear,
+Fix checkpatch warning:
 
-I am Mr.Marck Csady a solicitor at law, i need your assistance to
-represent my late client fund valued at $2.5 million dollars that his
-bank wants to comfiscate, You bear the same last name with my late
-client and he is also a national of your country.
+  ERROR: Macros with complex values should be enclosed in parentheses
+  #912: FILE: dz.c:912:
+  +#define SERIAL_DZ_CONSOLE	&dz_console
 
-Please if you are interested to assist me then get back to me through
-my private email bellow.
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/dz.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-i will make all necessary informations known to you,including the name
-of the bank and modes to the repartriation of this fund.
-
-PLEASE REPLY THROUGH MY PRIVATE EMAIL ADDRESS
-Thanks for your understanding
-Marck Csady Esq.
+diff --git a/drivers/tty/serial/dz.c b/drivers/tty/serial/dz.c
+index fd4f0cc..b3e9313 100644
+--- a/drivers/tty/serial/dz.c
++++ b/drivers/tty/serial/dz.c
+@@ -909,7 +909,7 @@ static int __init dz_serial_console_init(void)
+ 
+ console_initcall(dz_serial_console_init);
+ 
+-#define SERIAL_DZ_CONSOLE	&dz_console
++#define SERIAL_DZ_CONSOLE	(&dz_console)
+ #else
+ #define SERIAL_DZ_CONSOLE	NULL
+ #endif /* CONFIG_SERIAL_DZ_CONSOLE */
+-- 
+1.9.1
