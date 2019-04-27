@@ -1,79 +1,36 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 16 Apr 2019 18:23:46 +0000
-Subject: [PATCH 8/9] sparc/iommu: use __sbus_iommu_map_page to implement the map_sg path
-Message-Id: <20190416182347.18441-9-hch@lst.de>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:59 +0000
+Subject: [PATCH 18/41] drivers: tty: serial: apbuart: use dev_info() instead of printk()
+Message-Id: <1556369542-13247-19-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190416182347.18441-1-hch@lst.de>
-In-Reply-To: <20190416182347.18441-1-hch@lst.de>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-This means we handle > PAGE_SIZE offsets fine, and grow the size check
-so far only performed in the map_page path.  We lose the optimization
-to not double flush a page if it apears in multiple consecutive SG list
-entries.  But at least for block I/O those don't happen anymore since
-we properly merge in higher layers anyway.
+Using dev_err() instead of printk() for more consistent output.
+(prints device name, etc).
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- arch/sparc/mm/iommu.c | 31 ++++++++++---------------------
- 1 file changed, 10 insertions(+), 21 deletions(-)
+ drivers/tty/serial/apbuart.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 37b5ce7657f6..8fbc08d14836 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -217,6 +217,11 @@ static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
- 	if (!len || len > 256 * 1024)
- 		return DMA_MAPPING_ERROR;
+diff --git a/drivers/tty/serial/apbuart.c b/drivers/tty/serial/apbuart.c
+index d2b86f7..89e19b6 100644
+--- a/drivers/tty/serial/apbuart.c
++++ b/drivers/tty/serial/apbuart.c
+@@ -568,7 +568,7 @@ static int apbuart_probe(struct platform_device *op)
  
-+	/*
-+	 * We expect unmapped highmem pages to be not in the cache.
-+	 * XXX Is this a good assumption?
-+	 * XXX What if someone else unmaps it here and races us?
-+	 */
- 	if (per_page_flush && !PageHighMem(page)) {
- 		unsigned long vaddr, p;
+ 	apbuart_flush_fifo((struct uart_port *) port);
  
-@@ -247,30 +252,14 @@ static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
- 		int nents, enum dma_data_direction dir, unsigned long attrs,
- 		bool per_page_flush)
- {
--	unsigned long page, oldpage = 0;
- 	struct scatterlist *sg;
--	int i, j, n;
-+	int j;
- 
- 	for_each_sg(sgl, sg, nents, j) {
--		n = (sg->length + sg->offset + PAGE_SIZE-1) >> PAGE_SHIFT;
--
--		/*
--		 * We expect unmapped highmem pages to be not in the cache.
--		 * XXX Is this a good assumption?
--		 * XXX What if someone else unmaps it here and races us?
--		 */
--		if (per_page_flush && !PageHighMem(sg_page(sg))) {
--			page = (unsigned long)page_address(sg_page(sg));
--			for (i = 0; i < n; i++) {
--				if (page != oldpage) {	/* Already flushed? */
--					flush_page_for_dma(page);
--					oldpage = page;
--				}
--				page += PAGE_SIZE;
--			}
--		}
--
--		sg->dma_address = iommu_get_one(dev, sg_phys(sg), n) + sg->offset;
-+		sg->dma_address =__sbus_iommu_map_page(dev, sg_page(sg),
-+				sg->offset, sg->length, per_page_flush);
-+		if (sg->dma_address = DMA_MAPPING_ERROR)
-+			return 0;
- 		sg->dma_length = sg->length;
- 	}
- 
+-	printk(KERN_INFO "grlib-apbuart at 0x%llx, irq %d\n",
++	dev_info(&pdev->pdev, "grlib-apbuart at 0x%llx, irq %d\n",
+ 	       (unsigned long long) port->mapbase, port->irq);
+ 	return 0;
+ }
 -- 
-2.20.1
+1.9.1
