@@ -1,37 +1,101 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 16 Apr 2019 18:23:39 +0000
-Subject: [PATCH 1/9] sparc/iommu: use !PageHighMem to check if a page has a kernel mapping
-Message-Id: <20190416182347.18441-2-hch@lst.de>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:06 +0000
+Subject: [PATCH 25/41] drivers: tty: serial: timbuart: fix formatting issues
+Message-Id: <1556369542-13247-26-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190416182347.18441-1-hch@lst.de>
-In-Reply-To: <20190416182347.18441-1-hch@lst.de>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-This deobsfucates the check a bit, and prepares for future changes.
+Fix checkpatch warnings:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
+    WARNING: Missing a blank line after declarations
+    #43: FILE: drivers/tty/serial/timbuart.c:43:
+    +	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~RXFLAGS;
+    +	iowrite32(ier, port->membase + TIMBUART_IER);
+
+    WARNING: Missing a blank line after declarations
+    #50: FILE: drivers/tty/serial/timbuart.c:50:
+    +	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~TXBAE;
+    +	iowrite32(ier, port->membase + TIMBUART_IER);
+
+    WARNING: Missing a blank line after declarations
+    #86: FILE: drivers/tty/serial/timbuart.c:86:
+    +		u8 ch = ioread8(port->membase + TIMBUART_RXFIFO);
+    +		port->icount.rx++;
+
+    WARNING: Missing a blank line after declarations
+    #202: FILE: drivers/tty/serial/timbuart.c:202:
+    +	u8 cts = ioread8(port->membase + TIMBUART_CTRL);
+    +	dev_dbg(port->dev, "%s - cts %x\n", __func__, cts);
+
+    WARNING: Block comments use * on subsequent lines
+    #296: FILE: drivers/tty/serial/timbuart.c:296:
+    +	/* The serial layer calls into this once with old = NULL when setting
+    +	   up initially */
+
+    WARNING: Block comments use a trailing */ on a separate line
+    #296: FILE: drivers/tty/serial/timbuart.c:296:
+
+Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- arch/sparc/mm/iommu.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/tty/serial/timbuart.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index e8d5d73ca40d..dcdadac03fdf 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -273,7 +273,8 @@ static int sbus_iommu_map_sg_pflush(struct device *dev, struct scatterlist *sgl,
- 		 * XXX Is this a good assumption?
- 		 * XXX What if someone else unmaps it here and races us?
- 		 */
--		if ((page = (unsigned long) page_address(sg_page(sg))) != 0) {
-+		if (!PageHighMem(sg_page(sg))) {
-+			page = (unsigned long)page_address(sg_page(sg));
- 			for (i = 0; i < n; i++) {
- 				if (page != oldpage) {	/* Already flushed? */
- 					flush_page_for_dma(page);
+diff --git a/drivers/tty/serial/timbuart.c b/drivers/tty/serial/timbuart.c
+index dcce936..d80c332 100644
+--- a/drivers/tty/serial/timbuart.c
++++ b/drivers/tty/serial/timbuart.c
+@@ -40,6 +40,7 @@ static void timbuart_stop_rx(struct uart_port *port)
+ {
+ 	/* spin lock held by upper layer, disable all RX interrupts */
+ 	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~RXFLAGS;
++
+ 	iowrite32(ier, port->membase + TIMBUART_IER);
+ }
+ 
+@@ -47,6 +48,7 @@ static void timbuart_stop_tx(struct uart_port *port)
+ {
+ 	/* spinlock held by upper layer, disable TX interrupt */
+ 	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~TXBAE;
++
+ 	iowrite32(ier, port->membase + TIMBUART_IER);
+ }
+ 
+@@ -83,6 +85,7 @@ static void timbuart_rx_chars(struct uart_port *port)
+ 
+ 	while (ioread32(port->membase + TIMBUART_ISR) & RXDP) {
+ 		u8 ch = ioread8(port->membase + TIMBUART_RXFIFO);
++
+ 		port->icount.rx++;
+ 		tty_insert_flip_char(tport, ch, TTY_NORMAL);
+ 	}
+@@ -199,6 +202,7 @@ static void timbuart_tasklet(unsigned long arg)
+ static unsigned int timbuart_get_mctrl(struct uart_port *port)
+ {
+ 	u8 cts = ioread8(port->membase + TIMBUART_CTRL);
++
+ 	dev_dbg(port->dev, "%s - cts %x\n", __func__, cts);
+ 
+ 	if (cts & TIMBUART_CTRL_CTS)
+@@ -293,7 +297,8 @@ static void timbuart_set_termios(struct uart_port *port,
+ 	baud = baudrates[bindex];
+ 
+ 	/* The serial layer calls into this once with old = NULL when setting
+-	   up initially */
++	 * up initially
++	 */
+ 	if (old)
+ 		tty_termios_copy_hw(termios, old);
+ 	tty_termios_encode_baud_rate(termios, baud, baud);
+@@ -500,4 +505,3 @@ static int timbuart_remove(struct platform_device *dev)
+ MODULE_DESCRIPTION("Timberdale UART driver");
+ MODULE_LICENSE("GPL v2");
+ MODULE_ALIAS("platform:timb-uart");
+-
 -- 
-2.20.1
+1.9.1
