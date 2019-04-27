@@ -1,25 +1,47 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Apr 2019 19:38:44 +0000
-Subject: Re: [PATCH] sparc64/pci_sun4v: fix ATU checks for large DMA masks
-Message-Id: <20190410.123844.888350027080026974.davem@davemloft.net>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:53 +0000
+Subject: [PATCH 12/41] drivers: tty: serial: uartlite: use dev_dbg() instead of pr_debug()
+Message-Id: <1556369542-13247-13-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190404162538.22428-1-hch@lst.de> <20190410165430.GA7538@lst.de>
-In-Reply-To: <20190410165430.GA7538-jcswGhMUV9g@public.gmane.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: hch-jcswGhMUV9g@public.gmane.org
-Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, mroos-Y27EyoLml9s@public.gmane.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 10 Apr 2019 18:54:30 +0200
+Using dev_dbg() instead of pr_debg() for more consistent output.
+(prints device name, etc).
 
-> Dave, are you going to pick this up through the sparc tree, or do
-> you expect me to send it through the dma-mapping one?
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/uartlite.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Please take it through dma-mapping as I'm a bit overloaded right now
-and that would therefore help me a lot.
-
-Acked-by: David S. Miller <davem@davemloft.net>
-
-Thanks!
+diff --git a/drivers/tty/serial/uartlite.c b/drivers/tty/serial/uartlite.c
+index b8b912b..44d65bd 100644
+--- a/drivers/tty/serial/uartlite.c
++++ b/drivers/tty/serial/uartlite.c
+@@ -352,7 +352,8 @@ static int ulite_request_port(struct uart_port *port)
+ 	struct uartlite_data *pdata = port->private_data;
+ 	int ret;
+ 
+-	pr_debug("ulite console: port=%p; port->mapbase=%llx\n",
++	dev_dbg(port->dev,
++		"ulite console: port=%p; port->mapbase=%llx\n",
+ 		 port, (unsigned long long) port->mapbase);
+ 
+ 	if (!request_mem_region(port->mapbase, ULITE_REGION, "uartlite")) {
+@@ -519,7 +520,8 @@ static int ulite_console_setup(struct console *co, char *options)
+ 
+ 	/* Has the device been initialized yet? */
+ 	if (!port->mapbase) {
+-		pr_debug("console on ttyUL%i not present\n", co->index);
++		dev_dbg(port->dev, "console on ttyUL%i not present\n",
++			co->index);
+ 		return -ENODEV;
+ 	}
+ 
+-- 
+1.9.1
