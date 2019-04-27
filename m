@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:52:06 +0000
-Subject: [PATCH 25/41] drivers: tty: serial: timbuart: fix formatting issues
-Message-Id: <1556369542-13247-26-git-send-email-info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:50 +0000
+Subject: [PATCH 09/41] drivers: tty: serial: sb1250-duart: fill mapsize and use it
+Message-Id: <1556369542-13247-10-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1556369542-13247-1-git-send-email-info@metux.net>
 In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
@@ -11,91 +11,66 @@ Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Fix checkpatch warnings:
+Fill the struct uart_port->mapsize field and use it, insteaf of
+hardcoded values in many places. This makes the code layout a bit
+more consistent and easily allows using generic helpers for the
+io memory handling.
 
-    WARNING: Missing a blank line after declarations
-    #43: FILE: drivers/tty/serial/timbuart.c:43:
-    +	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~RXFLAGS;
-    +	iowrite32(ier, port->membase + TIMBUART_IER);
-
-    WARNING: Missing a blank line after declarations
-    #50: FILE: drivers/tty/serial/timbuart.c:50:
-    +	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~TXBAE;
-    +	iowrite32(ier, port->membase + TIMBUART_IER);
-
-    WARNING: Missing a blank line after declarations
-    #86: FILE: drivers/tty/serial/timbuart.c:86:
-    +		u8 ch = ioread8(port->membase + TIMBUART_RXFIFO);
-    +		port->icount.rx++;
-
-    WARNING: Missing a blank line after declarations
-    #202: FILE: drivers/tty/serial/timbuart.c:202:
-    +	u8 cts = ioread8(port->membase + TIMBUART_CTRL);
-    +	dev_dbg(port->dev, "%s - cts %x\n", __func__, cts);
-
-    WARNING: Block comments use * on subsequent lines
-    #296: FILE: drivers/tty/serial/timbuart.c:296:
-    +	/* The serial layer calls into this once with old = NULL when setting
-    +	   up initially */
-
-    WARNING: Block comments use a trailing */ on a separate line
-    #296: FILE: drivers/tty/serial/timbuart.c:296:
+Candidates for such helpers could be eg. the request+ioremap and
+iounmap+release combinations.
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/tty/serial/timbuart.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/tty/serial/sb1250-duart.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/tty/serial/timbuart.c b/drivers/tty/serial/timbuart.c
-index dcce936..d80c332 100644
---- a/drivers/tty/serial/timbuart.c
-+++ b/drivers/tty/serial/timbuart.c
-@@ -40,6 +40,7 @@ static void timbuart_stop_rx(struct uart_port *port)
- {
- 	/* spin lock held by upper layer, disable all RX interrupts */
- 	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~RXFLAGS;
-+
- 	iowrite32(ier, port->membase + TIMBUART_IER);
+diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
+index 227af87..1184226 100644
+--- a/drivers/tty/serial/sb1250-duart.c
++++ b/drivers/tty/serial/sb1250-duart.c
+@@ -658,7 +658,7 @@ static void sbd_release_port(struct uart_port *uport)
+ 
+ 	if(refcount_dec_and_test(&duart->map_guard))
+ 		release_mem_region(duart->mapctrl, DUART_CHANREG_SPACING);
+-	release_mem_region(uport->mapbase, DUART_CHANREG_SPACING);
++	release_mem_region(uport->mapbase, uport->mapsize);
  }
  
-@@ -47,6 +48,7 @@ static void timbuart_stop_tx(struct uart_port *port)
- {
- 	/* spinlock held by upper layer, disable TX interrupt */
- 	u32 ier = ioread32(port->membase + TIMBUART_IER) & ~TXBAE;
-+
- 	iowrite32(ier, port->membase + TIMBUART_IER);
- }
+ static int sbd_map_port(struct uart_port *uport)
+@@ -668,7 +668,7 @@ static int sbd_map_port(struct uart_port *uport)
  
-@@ -83,6 +85,7 @@ static void timbuart_rx_chars(struct uart_port *port)
+ 	if (!uport->membase)
+ 		uport->membase = ioremap_nocache(uport->mapbase,
+-						 DUART_CHANREG_SPACING);
++						 uport->mapsize);
+ 	if (!uport->membase) {
+ 		dev_err(uport->dev, "Cannot map MMIO (base)\n");
+ 		return -ENOMEM;
+@@ -693,7 +693,7 @@ static int sbd_request_port(struct uart_port *uport)
+ 	struct sbd_duart *duart = to_sport(uport)->duart;
+ 	int ret = 0;
  
- 	while (ioread32(port->membase + TIMBUART_ISR) & RXDP) {
- 		u8 ch = ioread8(port->membase + TIMBUART_RXFIFO);
-+
- 		port->icount.rx++;
- 		tty_insert_flip_char(tport, ch, TTY_NORMAL);
+-	if (!request_mem_region(uport->mapbase, DUART_CHANREG_SPACING,
++	if (!request_mem_region(uport->mapbase, uport->mapsize,
+ 				"sb1250-duart")) {
+ 		pr_err(err);
+ 		return -EBUSY;
+@@ -716,7 +716,7 @@ static int sbd_request_port(struct uart_port *uport)
+ 		}
  	}
-@@ -199,6 +202,7 @@ static void timbuart_tasklet(unsigned long arg)
- static unsigned int timbuart_get_mctrl(struct uart_port *port)
- {
- 	u8 cts = ioread8(port->membase + TIMBUART_CTRL);
-+
- 	dev_dbg(port->dev, "%s - cts %x\n", __func__, cts);
- 
- 	if (cts & TIMBUART_CTRL_CTS)
-@@ -293,7 +297,8 @@ static void timbuart_set_termios(struct uart_port *port,
- 	baud = baudrates[bindex];
- 
- 	/* The serial layer calls into this once with old = NULL when setting
--	   up initially */
-+	 * up initially
-+	 */
- 	if (old)
- 		tty_termios_copy_hw(termios, old);
- 	tty_termios_encode_baud_rate(termios, baud, baud);
-@@ -500,4 +505,3 @@ static int timbuart_remove(struct platform_device *dev)
- MODULE_DESCRIPTION("Timberdale UART driver");
- MODULE_LICENSE("GPL v2");
- MODULE_ALIAS("platform:timb-uart");
--
+ 	if (ret) {
+-		release_mem_region(uport->mapbase, DUART_CHANREG_SPACING);
++		release_mem_region(uport->mapbase, uport->mapsize);
+ 		return ret;
+ 	}
+ 	return 0;
+@@ -812,6 +812,7 @@ static void __init sbd_probe_duarts(void)
+ 			uport->ops	= &sbd_ops;
+ 			uport->line	= line;
+ 			uport->mapbase	= SBD_CHANREGS(line);
++			uport->mapsize	= DUART_CHANREG_SPACING;
+ 		}
+ 	}
+ }
 -- 
 1.9.1
