@@ -1,73 +1,53 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 22:12:06 +0000
-Subject: [mm PATCH v7 0/4] Deferred page init improvements
-Message-Id: <20190405221043.12227.19679.stgit@localhost.localdomain>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:47 +0000
+Subject: [PATCH 06/41] drivers: tty: serial: sb1250-duart: use dev_err() instead of printk()
+Message-Id: <1556369542-13247-7-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-This patchset is essentially a refactor of the page initialization logic
-that is meant to provide for better code reuse while providing a
-significant improvement in deferred page initialization performance.
+Using dev_err() instead of printk() for more consistent output.
+(prints device name, etc).
 
-In my testing on an x86_64 system with 384GB of RAM I have seen the
-following. In the case of regular memory initialization the deferred init
-time was decreased from 3.75s to 1.38s on average. This amounts to a 172%
-improvement for the deferred memory initialization performance.
-
-I have called out the improvement observed with each patch.
-
-v1->v2:
-    Fixed build issue on PowerPC due to page struct size being 56
-    Added new patch that removed __SetPageReserved call for hotplug
-v2->v3:
-    Rebased on latest linux-next
-    Removed patch that had removed __SetPageReserved call from init
-    Added patch that folded __SetPageReserved into set_page_links
-    Tweaked __init_pageblock to use start_pfn to get section_nr instead of pfn
-v3->v4:
-    Updated patch description and comments for mm_zero_struct_page patch
-        Replaced "default" with "case 64"
-        Removed #ifndef mm_zero_struct_page
-    Fixed typo in comment that ommited "_from" in kerneldoc for iterator
-    Added Reviewed-by for patches reviewed by Pavel
-    Added Acked-by from Michal Hocko
-    Added deferred init times for patches that affect init performance
-    Swapped patches 5 & 6, pulled some code/comments from 4 into 5
-v4->v5:
-    Updated Acks/Reviewed-by
-    Rebased on latest linux-next
-    Split core bits of zone iterator patch from MAX_ORDER_NR_PAGES init
-v5->v6:
-    Rebased on linux-next with previous v5 reverted
-    Drop the "This patch" or "This change" from patch descriptions.
-    Cleaned up patch descriptions for patches 3 & 4
-    Fixed kerneldoc for __next_mem_pfn_range_in_zone
-    Updated several Reviewed-by, and incorporated suggestions from Pavel
-    Added __init_single_page_nolru to patch 5 to consolidate code
-    Refactored iterator in patch 7 and fixed several issues
-v6->v7:
-    Updated MAX_ORDER_NR_PAGES patch to stop on section aligned boundaries
-    Dropped patches 5-7
-        Will follow-up later with reserved bit rework before resubmitting
-
+Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
+ drivers/tty/serial/sb1250-duart.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-Alexander Duyck (4):
-      mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-      mm: Drop meminit_pfn_in_nid as it is redundant
-      mm: Implement new zone specific memblock iterator
-      mm: Initialize MAX_ORDER_NR_PAGES at a time instead of doing larger sections
-
-
- arch/sparc/include/asm/pgtable_64.h |   30 -----
- include/linux/memblock.h            |   41 +++++++
- include/linux/mm.h                  |   41 ++++++-
- mm/memblock.c                       |   64 ++++++++++
- mm/page_alloc.c                     |  218 ++++++++++++++++++++++-------------
- 5 files changed, 277 insertions(+), 117 deletions(-)
-
---
+diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
+index 329aced..655961c 100644
+--- a/drivers/tty/serial/sb1250-duart.c
++++ b/drivers/tty/serial/sb1250-duart.c
+@@ -663,7 +663,6 @@ static void sbd_release_port(struct uart_port *uport)
+ 
+ static int sbd_map_port(struct uart_port *uport)
+ {
+-	const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
+ 	struct sbd_port *sport = to_sport(uport);
+ 	struct sbd_duart *duart = sport->duart;
+ 
+@@ -671,7 +670,7 @@ static int sbd_map_port(struct uart_port *uport)
+ 		uport->membase = ioremap_nocache(uport->mapbase,
+ 						 DUART_CHANREG_SPACING);
+ 	if (!uport->membase) {
+-		printk(err);
++		dev_err(uport->dev, "Cannot map MMIO (base)\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -679,7 +678,7 @@ static int sbd_map_port(struct uart_port *uport)
+ 		sport->memctrl = ioremap_nocache(duart->mapctrl,
+ 						 DUART_CHANREG_SPACING);
+ 	if (!sport->memctrl) {
+-		printk(err);
++		dev_err(uport->dev, "Cannot map MMIO (ctrl)\n");
+ 		iounmap(uport->membase);
+ 		uport->membase = NULL;
+ 		return -ENOMEM;
+-- 
+1.9.1
