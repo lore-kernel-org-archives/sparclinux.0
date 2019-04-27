@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:52:14 +0000
-Subject: [PATCH 33/41] drivers: tty: serial: zs: use dev_err() instead of printk()
-Message-Id: <1556369542-13247-34-git-send-email-info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:43 +0000
+Subject: [PATCH 02/41] drivers: tty: serial: dz: include <linux/io.h> instead of <asm/io.h>
+Message-Id: <1556369542-13247-3-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1556369542-13247-1-git-send-email-info@metux.net>
 In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
@@ -11,44 +11,29 @@ Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Using dev_err() instead of printk() for more consistent output.
-(prints device name, etc).
+fixing checkpatch warning:
+
+  WARNING: Use #include <linux/io.h> instead of <asm/io.h>
+  #55: FILE: dz.c:55:
+  +#include <asm/io.h>
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/tty/serial/zs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/tty/serial/dz.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/zs.c b/drivers/tty/serial/zs.c
-index b03d3e4..adbfe79 100644
---- a/drivers/tty/serial/zs.c
-+++ b/drivers/tty/serial/zs.c
-@@ -767,7 +767,7 @@ static int zs_startup(struct uart_port *uport)
- 				  IRQF_SHARED, "scc", scc);
- 		if (ret) {
- 			atomic_add(-1, &scc->irq_guard);
--			printk(KERN_ERR "zs: can't get irq %d\n",
-+			dev_err(uport->dev, "zs: can't get irq %d\n",
- 			       zport->port.irq);
- 			return ret;
- 		}
-@@ -995,7 +995,7 @@ static int zs_map_port(struct uart_port *uport)
- 		uport->membase = ioremap_nocache(uport->mapbase,
- 						 ZS_CHAN_IO_SIZE);
- 	if (!uport->membase) {
--		printk(KERN_ERR "zs: Cannot map MMIO\n");
-+		dev_err(port->dev, "zs: Cannot map MMIO\n");
- 		return -ENOMEM;
- 	}
- 	return 0;
-@@ -1006,7 +1006,7 @@ static int zs_request_port(struct uart_port *uport)
- 	int ret;
+diff --git a/drivers/tty/serial/dz.c b/drivers/tty/serial/dz.c
+index 96e35af..fd4f0cc 100644
+--- a/drivers/tty/serial/dz.c
++++ b/drivers/tty/serial/dz.c
+@@ -52,7 +52,7 @@
  
- 	if (!request_mem_region(uport->mapbase, ZS_CHAN_IO_SIZE, "scc")) {
--		printk(KERN_ERR "zs: Unable to reserve MMIO resource\n");
-+		dev_err(uport->dev, "zs: Unable to reserve MMIO resource\n");
- 		return -EBUSY;
- 	}
- 	ret = zs_map_port(uport);
+ #include <linux/atomic.h>
+ #include <asm/bootinfo.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include <asm/dec/interrupts.h>
+ #include <asm/dec/kn01.h>
 -- 
 1.9.1
