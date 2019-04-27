@@ -1,144 +1,37 @@
-From: Alexander Duyck <alexander.duyck@gmail.com>
-Date: Fri, 05 Apr 2019 22:12:13 +0000
-Subject: [mm PATCH v7 1/4] mm: Use mm_zero_struct_page from SPARC on all 64b architectures
-Message-Id: <20190405221213.12227.9392.stgit@localhost.localdomain>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:05 +0000
+Subject: [PATCH 24/41] drivers: tty: serial: timbuart: use dev_err() instead of printk()
+Message-Id: <1556369542-13247-25-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190405221043.12227.19679.stgit@localhost.localdomain>
-In-Reply-To: <20190405221043.12227.19679.stgit@localhost.localdomain>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: pavel.tatashin@microsoft.com, mhocko@suse.com, dave.jiang@intel.com, linux-nvdimm@lists.01.org, alexander.h.duyck@linux.intel.com, linux-kernel@vger.kernel.org, willy@infradead.org, mingo@kernel.org, yi.z.zhang@linux.intel.com, khalid.aziz@oracle.com, rppt@linux.vnet.ibm.com, vbabka@suse.cz, sparclinux@vger.kernel.org, dan.j.williams@intel.com, ldufour@linux.vnet.ibm.com, mgorman@techsingularity.net, davem@davemloft.net, kirill.shutemov@linux.intel.com
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-From: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Using dev_err() instead of printk() for more consistent output.
+(prints device name, etc).
 
-Use the same approach that was already in use on Sparc on all the
-architectures that support a 64b long.
-
-This is mostly motivated by the fact that 7 to 10 store/move instructions
-are likely always going to be faster than having to call into a function
-that is not specialized for handling page init.
-
-An added advantage to doing it this way is that the compiler can get away
-with combining writes in the __init_single_page call. As a result the
-memset call will be reduced to only about 4 write operations, or at least
-that is what I am seeing with GCC 6.2 as the flags, LRU pointers, and
-count/mapcount seem to be cancelling out at least 4 of the 8 assignments on
-my system.
-
-One change I had to make to the function was to reduce the minimum page
-size to 56 to support some powerpc64 configurations.
-
-This change should introduce no change on SPARC since it already had this
-code. In the case of x86_64 I saw a reduction from 3.75s to 2.80s when
-initializing 384GB of RAM per node. Pavel Tatashin tested on a system with
-Broadcom's Stingray CPU and 48GB of RAM and found that __init_single_page()
-takes 19.30ns / 64-byte struct page before this patch and with this patch
-it takes 17.33ns / 64-byte struct page. Mike Rapoport ran a similar test on
-a OpenPower (S812LC 8348-21C) with Power8 processor and 128GB or RAM. His
-results per 64-byte struct page were 4.68ns before, and 4.59ns after this
-patch.
-
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@linux.intel.com>
+Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- arch/sparc/include/asm/pgtable_64.h |   30 --------------------------
- include/linux/mm.h                  |   41 ++++++++++++++++++++++++++++++++---
- 2 files changed, 38 insertions(+), 33 deletions(-)
+ drivers/tty/serial/timbuart.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 1393a8ac596b..22500c3be7a9 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -231,36 +231,6 @@
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
+diff --git a/drivers/tty/serial/timbuart.c b/drivers/tty/serial/timbuart.c
+index 19d38b5..dcce936 100644
+--- a/drivers/tty/serial/timbuart.c
++++ b/drivers/tty/serial/timbuart.c
+@@ -470,8 +470,7 @@ static int timbuart_probe(struct platform_device *dev)
+ err_register:
+ 	kfree(uart);
+ err_mem:
+-	printk(KERN_ERR "timberdale: Failed to register Timberdale UART: %d\n",
+-		err);
++	dev_err(&dev->dev, "Failed to register Timberdale UART: %d\n", err);
  
--/* This macro must be updated when the size of struct page grows above 80
-- * or reduces below 64.
-- * The idea that compiler optimizes out switch() statement, and only
-- * leaves clrx instructions
-- */
--#define	mm_zero_struct_page(pp) do {					\
--	unsigned long *_pp = (void *)(pp);				\
--									\
--	 /* Check that struct page is either 64, 72, or 80 bytes */	\
--	BUILD_BUG_ON(sizeof(struct page) & 7);				\
--	BUILD_BUG_ON(sizeof(struct page) < 64);				\
--	BUILD_BUG_ON(sizeof(struct page) > 80);				\
--									\
--	switch (sizeof(struct page)) {					\
--	case 80:							\
--		_pp[9] = 0;	/* fallthrough */			\
--	case 72:							\
--		_pp[8] = 0;	/* fallthrough */			\
--	default:							\
--		_pp[7] = 0;						\
--		_pp[6] = 0;						\
--		_pp[5] = 0;						\
--		_pp[4] = 0;						\
--		_pp[3] = 0;						\
--		_pp[2] = 0;						\
--		_pp[1] = 0;						\
--		_pp[0] = 0;						\
--	}								\
--} while (0)
--
- /* PFNs are real physical page numbers.  However, mem_map only begins to record
-  * per-page information starting at pfn_base.  This is to handle systems where
-  * the first physical page in the machine is at some huge physical address,
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index fe52e266016e..f391c2d7c180 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -124,10 +124,45 @@ static inline void totalram_pages_set(long val)
- 
- /*
-  * On some architectures it is expensive to call memset() for small sizes.
-- * Those architectures should provide their own implementation of "struct page"
-- * zeroing by defining this macro in <asm/pgtable.h>.
-+ * If an architecture decides to implement their own version of
-+ * mm_zero_struct_page they should wrap the defines below in a #ifndef and
-+ * define their own version of this macro in <asm/pgtable.h>
-  */
--#ifndef mm_zero_struct_page
-+#if BITS_PER_LONG = 64
-+/* This function must be updated when the size of struct page grows above 80
-+ * or reduces below 56. The idea that compiler optimizes out switch()
-+ * statement, and only leaves move/store instructions. Also the compiler can
-+ * combine write statments if they are both assignments and can be reordered,
-+ * this can result in several of the writes here being dropped.
-+ */
-+#define	mm_zero_struct_page(pp) __mm_zero_struct_page(pp)
-+static inline void __mm_zero_struct_page(struct page *page)
-+{
-+	unsigned long *_pp = (void *)page;
-+
-+	 /* Check that struct page is either 56, 64, 72, or 80 bytes */
-+	BUILD_BUG_ON(sizeof(struct page) & 7);
-+	BUILD_BUG_ON(sizeof(struct page) < 56);
-+	BUILD_BUG_ON(sizeof(struct page) > 80);
-+
-+	switch (sizeof(struct page)) {
-+	case 80:
-+		_pp[9] = 0;	/* fallthrough */
-+	case 72:
-+		_pp[8] = 0;	/* fallthrough */
-+	case 64:
-+		_pp[7] = 0;	/* fallthrough */
-+	case 56:
-+		_pp[6] = 0;
-+		_pp[5] = 0;
-+		_pp[4] = 0;
-+		_pp[3] = 0;
-+		_pp[2] = 0;
-+		_pp[1] = 0;
-+		_pp[0] = 0;
-+	}
-+}
-+#else
- #define mm_zero_struct_page(pp)  ((void)memset((pp), 0, sizeof(struct page)))
- #endif
- 
+ 	return err;
+ }
+-- 
+1.9.1
