@@ -1,62 +1,56 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 26 Apr 2019 07:46:13 +0000
-Subject: Re: [PATCH v3 12/26] compat_ioctl: move more drivers to compat_ptr_ioctl
-Message-Id: <CAK8P3a3CzKLvpUiVV_k__kkaZ=wg2fqnFEzWYL9qNwBfxMKZ9w@mail.gmail.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:42 +0000
+Subject: [PATCH 01/41] drivers: tty: serial: dz: use dev_err() instead of printk()
+Message-Id: <1556369542-13247-2-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190416202013.4034148-1-arnd@arndb.de>
- <20190416202701.127745-1-arnd@arndb.de>
- <20190425122153.450fc094@coco.lan> <20190425153534.GS2217@ZenIV.linux.org.uk>
- <CAK8P3a2HmiYQJ2FV2FgLiFsD8M9UKteC9Jetx7ja06PQVZWYfA@mail.gmail.com>
- <5511420228cb38d08a67c0f6a614b7671d7d23d4.camel@sipsolutions.net>
-In-Reply-To: <5511420228cb38d08a67c0f6a614b7671d7d23d4.camel-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
-Cc: linux-nvme-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sean Young <sean-hENCXIMQXOg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Vetter <daniel.vetter-/w4YWyX8dFk@public.gmane.org>, linux-pci <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Bjorn Andersson <bjorn.andersson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, sparclinux <sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mauro Carvalho Chehab <mchehab+samsung-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, driverdevel <devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, y2038 Mailman List <y2038-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, qat-linux-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Jason Gunthorpe <jgg-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "open list:HID CORE LAYER" <linux-input-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Media Mailing List <linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-remoteproc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-mm-sig-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, Al Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jonathan Cameron <Jonathan.Cameron@h>
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-On Thu, Apr 25, 2019 at 11:25 PM Johannes Berg
-<johannes@sipsolutions.net> wrote:
-> On Thu, 2019-04-25 at 17:55 +0200, Arnd Bergmann wrote:
-> > On Thu, Apr 25, 2019 at 5:35 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
-> > >
-> > > On Thu, Apr 25, 2019 at 12:21:53PM -0300, Mauro Carvalho Chehab wrote:
-> > >
-> > > > If I understand your patch description well, using compat_ptr_ioctl
-> > > > only works if the driver is not for s390, right?
-> > >
-> > > No; s390 is where "oh, just set ->compat_ioctl same as ->unlocked_ioctl
-> > > and be done with that; compat_ptr() is a no-op anyway" breaks.  IOW,
-> > > s390 is the reason for having compat_ptr_ioctl() in the first place;
-> > > that thing works on all biarch architectures, as long as all stuff
-> > > handled by ->ioctl() takes pointer to arch-independent object as
-> > > argument.  IOW,
-> > >         argument ignored => OK
-> > >         any arithmetical type => no go, compat_ptr() would bugger it
-> > >         pointer to int => OK
-> > >         pointer to string => OK
-> > >         pointer to u64 => OK
-> > >         pointer to struct {u64 addr; char s[11];} => OK
-> >
-> > To be extra pedantic, the 'struct {u64 addr; char s[11];} '
-> > case is also broken on x86, because sizeof (obj) is smaller
-> > on i386, even though the location of the members are
-> > the same. i.e. you can copy_from_user() this
->
-> Actually, you can't even do that because the struct might sit at the end
-> of a page and then you'd erroneously fault in this case.
->
-> We had this a while ago with struct ifreq, see commit 98406133dd and its
-> parents.
+Using dev_err() instead of printk() for more consistent output.
+(prints device name, etc).
 
-Yes, you are right. Very rare to hit with real-life code, but easily
-reproduced by intentionally hitting it and clearly a bug.
+Signed-off-by: Enrico Weigelt <info@metux.net>
+---
+ drivers/tty/serial/dz.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-As the saying goes
-
-  | the difference between "always works" and "almost always works"
-  | is called data corruption
-
-here the difference is an -EFAULT.
-
-      Arnd
+diff --git a/drivers/tty/serial/dz.c b/drivers/tty/serial/dz.c
+index 7b57e84..96e35af 100644
+--- a/drivers/tty/serial/dz.c
++++ b/drivers/tty/serial/dz.c
+@@ -416,7 +416,7 @@ static int dz_startup(struct uart_port *uport)
+ 			  IRQF_SHARED, "dz", mux);
+ 	if (ret) {
+ 		atomic_add(-1, &mux->irq_guard);
+-		printk(KERN_ERR "dz: Cannot get IRQ %d!\n", dport->port.irq);
++		dev_err(uport->dev, "Cannot get IRQ %d!\n", dport->port.irq);
+ 		return ret;
+ 	}
+ 
+@@ -680,7 +680,7 @@ static int dz_map_port(struct uart_port *uport)
+ 		uport->membase = ioremap_nocache(uport->mapbase,
+ 						 dec_kn_slot_size);
+ 	if (!uport->membase) {
+-		printk(KERN_ERR "dz: Cannot map MMIO\n");
++		dev_err(uport->dev, "Cannot map MMIO\n");
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
+@@ -697,8 +697,8 @@ static int dz_request_port(struct uart_port *uport)
+ 		if (!request_mem_region(uport->mapbase, dec_kn_slot_size,
+ 					"dz")) {
+ 			atomic_add(-1, &mux->map_guard);
+-			printk(KERN_ERR
+-			       "dz: Unable to reserve MMIO resource\n");
++			dev_err(uport->dev,
++				"Unable to reserve MMIO resource\n");
+ 			return -EBUSY;
+ 		}
+ 	}
+-- 
+1.9.1
