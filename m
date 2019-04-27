@@ -1,7 +1,7 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:51:44 +0000
-Subject: [PATCH 03/41] drivers: tty: serial: dz: fix missing parentheses
-Message-Id: <1556369542-13247-4-git-send-email-info@metux.net>
+Date: Sat, 27 Apr 2019 12:51:48 +0000
+Subject: [PATCH 07/41] drivers: tty: serial: sb1250-duart: include <linux/io.h> instead of <asm/io.h>
+Message-Id: <1556369542-13247-8-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1556369542-13247-1-git-send-email-info@metux.net>
 In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
@@ -13,27 +13,27 @@ Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.ker
 
 Fix checkpatch warning:
 
-  ERROR: Macros with complex values should be enclosed in parentheses
-  #912: FILE: dz.c:912:
-  +#define SERIAL_DZ_CONSOLE	&dz_console
+    WARNING: Use #include <linux/io.h> instead of <asm/io.h>
+    #41: FILE: drivers/tty/serial/sb1250-duart.c:41:
+    +#include <asm/io.h>
 
 Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- drivers/tty/serial/dz.c | 2 +-
+ drivers/tty/serial/sb1250-duart.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/tty/serial/dz.c b/drivers/tty/serial/dz.c
-index fd4f0cc..b3e9313 100644
---- a/drivers/tty/serial/dz.c
-+++ b/drivers/tty/serial/dz.c
-@@ -909,7 +909,7 @@ static int __init dz_serial_console_init(void)
+diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
+index 655961c..b4342c8 100644
+--- a/drivers/tty/serial/sb1250-duart.c
++++ b/drivers/tty/serial/sb1250-duart.c
+@@ -38,7 +38,7 @@
+ #include <linux/types.h>
  
- console_initcall(dz_serial_console_init);
+ #include <linux/refcount.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <asm/war.h>
  
--#define SERIAL_DZ_CONSOLE	&dz_console
-+#define SERIAL_DZ_CONSOLE	(&dz_console)
- #else
- #define SERIAL_DZ_CONSOLE	NULL
- #endif /* CONFIG_SERIAL_DZ_CONSOLE */
+ #include <asm/sibyte/sb1250.h>
 -- 
 1.9.1
