@@ -1,80 +1,59 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 16 Apr 2019 18:23:43 +0000
-Subject: [PATCH 5/9] sparc/iommu: pass a physical address to iommu_get_one
-Message-Id: <20190416182347.18441-6-hch@lst.de>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Sat, 27 Apr 2019 12:52:20 +0000
+Subject: [PATCH 39/41] drivers: tty: serial: pmac_zilog: fill mapsize and use it
+Message-Id: <1556369542-13247-40-git-send-email-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190416182347.18441-1-hch@lst.de>
-In-Reply-To: <20190416182347.18441-1-hch@lst.de>
+References: <1556369542-13247-1-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-No need for the page structure, just the paddr / pfn.  This is
-going to simplify fixes to the callers.
+Fill the struct uart_port->mapsize field and use it, insteaf of
+hardcoded values in many places. This makes the code layout a bit
+more consistent and easily allows using generic helpers for the
+io memory handling.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
+Candidates for such helpers could be eg. the request+ioremap and
+iounmap+release combinations.
+
+Signed-off-by: Enrico Weigelt <info@metux.net>
 ---
- arch/sparc/mm/iommu.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/tty/serial/pmac_zilog.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index f90d943a3a27..19d9266e4049 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -175,16 +175,17 @@ static void iommu_flush_iotlb(iopte_t *iopte, unsigned int niopte)
- 	}
- }
+diff --git a/drivers/tty/serial/pmac_zilog.c b/drivers/tty/serial/pmac_zilog.c
+index bcb5bf7..1fef014 100644
+--- a/drivers/tty/serial/pmac_zilog.c
++++ b/drivers/tty/serial/pmac_zilog.c
+@@ -88,6 +88,8 @@
+ #define PMACZILOG_NAME		"ttyPZ"
+ #endif
  
--static u32 iommu_get_one(struct device *dev, struct page *page, int npages)
-+static u32 iommu_get_one(struct device *dev, phys_addr_t paddr, int npages)
- {
- 	struct iommu_struct *iommu = dev->archdata.iommu;
- 	int ioptex;
- 	iopte_t *iopte, *iopte0;
- 	unsigned int busa, busa0;
-+	unsigned long pfn = __phys_to_pfn(paddr);
- 	int i;
++#define PMZ_MAPSIZE		0x1000
++
+ #define pmz_debug(fmt, arg...)	pr_debug("ttyPZ%d: " fmt, uap->port.line, ## arg)
+ #define pmz_error(fmt, arg...)	pr_err("ttyPZ%d: " fmt, uap->port.line, ## arg)
+ #define pmz_info(fmt, arg...)	pr_info("ttyPZ%d: " fmt, uap->port.line, ## arg)
+@@ -1411,7 +1413,8 @@ static int __init pmz_init_port(struct uart_pmac_port *uap)
+ 	if (of_address_to_resource(np, 0, &r_ports))
+ 		return -ENODEV;
+ 	uap->port.mapbase = r_ports.start;
+-	uap->port.membase = ioremap(uap->port.mapbase, 0x1000);
++	uap->port.mapsize = PMZ_MAPSIZE;
++	uap->port.membase = ioremap(uap->port.mapbase, uap->port.mapsize);
  
- 	/* page color = pfn of page */
--	ioptex = bit_map_string_get(&iommu->usemap, npages, page_to_pfn(page));
-+	ioptex = bit_map_string_get(&iommu->usemap, npages, pfn);
- 	if (ioptex < 0)
- 		panic("iommu out");
- 	busa0 = iommu->start + (ioptex << PAGE_SHIFT);
-@@ -193,11 +194,11 @@ static u32 iommu_get_one(struct device *dev, struct page *page, int npages)
- 	busa = busa0;
- 	iopte = iopte0;
- 	for (i = 0; i < npages; i++) {
--		iopte_val(*iopte) = MKIOPTE(page_to_pfn(page), IOPERM);
-+		iopte_val(*iopte) = MKIOPTE(pfn, IOPERM);
- 		iommu_invalidate_page(iommu->regs, busa);
- 		busa += PAGE_SIZE;
- 		iopte++;
--		page++;
-+		pfn++;
- 	}
+ 	uap->control_reg = uap->port.membase;
+ 	uap->data_reg = uap->control_reg + 0x10;
+@@ -1709,6 +1712,7 @@ static int __init pmz_init_port(struct uart_pmac_port *uap)
+ 		return -ENODEV;
  
- 	iommu_flush_iotlb(iopte0, npages);
-@@ -215,7 +216,7 @@ static dma_addr_t __sbus_iommu_map_page(struct device *dev, struct page *page,
- 	/* XXX So what is maxphys for us and how do drivers know it? */
- 	if (!len || len > 256 * 1024)
- 		return DMA_MAPPING_ERROR;
--	return iommu_get_one(dev, virt_to_page(vaddr), npages) + off;
-+	return iommu_get_one(dev, virt_to_phys(vaddr), npages) + off;
- }
- 
- static dma_addr_t sbus_iommu_map_page_gflush(struct device *dev,
-@@ -268,7 +269,7 @@ static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
- 			}
- 		}
- 
--		sg->dma_address = iommu_get_one(dev, sg_page(sg), n) + sg->offset;
-+		sg->dma_address = iommu_get_one(dev, sg_phys(sg), n) + sg->offset;
- 		sg->dma_length = sg->length;
- 	}
- 
+ 	uap->port.mapbase  = r_ports->start;
++	uap->port.mapsize  = PMZ_MAPSIZE;
+ 	uap->port.membase  = (unsigned char __iomem *) r_ports->start;
+ 	uap->port.iotype   = UPIO_MEM;
+ 	uap->port.irq      = irq;
 -- 
-2.20.1
+1.9.1
