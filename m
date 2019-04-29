@@ -1,52 +1,32 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Sat, 27 Apr 2019 12:51:56 +0000
-Subject: [PATCH 15/41] drivers: tty: serial: uartlite: fix use fix bare 'unsigned'
-Message-Id: <1556369542-13247-16-git-send-email-info@metux.net>
+From: Peter Korsgaard <peter@korsgaard.com>
+Date: Mon, 29 Apr 2019 15:21:57 +0000
+Subject: Re: [PATCH 15/41] drivers: tty: serial: uartlite: fix use fix bare 'unsigned'
+Message-Id: <87ef5krg4q.fsf@dell.be.48ers.dk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1556369542-13247-1-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-1-git-send-email-info@metux.net>
+ <1556369542-13247-16-git-send-email-info@metux.net>
+In-Reply-To: <1556369542-13247-16-git-send-email-info@metux.net> (Enrico
+ Weigelt's message of "Sat, 27 Apr 2019 14:51:56 +0200")
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, linux-serial@vger.kernel.org, andrew@aj.id.au, gregkh@linuxfoundation.org, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-mips@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, macro@linux-mips.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+To: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Cc: lorenzo.pieralisi@arm.com, linux-ia64@vger.kernel.org, macro@linux-mips.org, andrew@aj.id.au, gregkh@linuxfoundation.org, slemieux.tyco@gmail.com, liviu.dudau@arm.com, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com, linux-mips@vger.kernel.org, linux@prisktech.co.nz, matthias.bgg@gmail.com, khilman@baylibre.com, linux-serial@vger.kernel.org, sudeep.holla@arm.com, sparclinux@vger.kernel.org, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, vz@mleia.com, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-Fix checkpatch warnings:
+>>>>> "Enrico" = Enrico Weigelt, metux IT consult <info@metux.net> writes:
 
-    WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
-    #562: FILE: drivers/tty/serial/uartlite.c:562:
-    +	unsigned retries = 1000000;
+ > Fix checkpatch warnings:
+ >     WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+ >     #562: FILE: drivers/tty/serial/uartlite.c:562:
+ >     +	unsigned retries = 1000000;
 
-    WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
-    #574: FILE: drivers/tty/serial/uartlite.c:574:
-    +				 const char *s, unsigned n)
+ >     WARNING: Prefer 'unsigned int' to bare use of 'unsigned'
+ >     #574: FILE: drivers/tty/serial/uartlite.c:574:
+ >     +				 const char *s, unsigned n)
 
-Signed-off-by: Enrico Weigelt <info@metux.net>
----
- drivers/tty/serial/uartlite.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+s/fix use fix/fix use of/ in Subject. Other than that:
 
-diff --git a/drivers/tty/serial/uartlite.c b/drivers/tty/serial/uartlite.c
-index 4c28600..6f79353 100644
---- a/drivers/tty/serial/uartlite.c
-+++ b/drivers/tty/serial/uartlite.c
-@@ -559,7 +559,7 @@ static void early_uartlite_putc(struct uart_port *port, int c)
- 	 * we'll never timeout on a working UART.
- 	 */
- 
--	unsigned retries = 1000000;
-+	unsigned int retries = 1000000;
- 	/* read status bit - 0x8 offset */
- 	while (--retries && (readl(port->membase + 8) & (1 << 3)))
- 		;
-@@ -571,7 +571,7 @@ static void early_uartlite_putc(struct uart_port *port, int c)
- }
- 
- static void early_uartlite_write(struct console *console,
--				 const char *s, unsigned n)
-+				 const char *s, unsigned int n)
- {
- 	struct earlycon_device *device = console->data;
- 	uart_console_write(&device->port, s, n, early_uartlite_putc);
+Acked-by: Peter Korsgaard <peter@korsgaard.com>
+
 -- 
-1.9.1
+Bye, Peter Korsgaard
