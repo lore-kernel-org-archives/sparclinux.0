@@ -1,41 +1,23 @@
-From: Cyril Hrubis <chrubis@suse.cz>
-Date: Tue, 28 May 2019 11:20:23 +0000
-Subject: Re: [PATCH] [RFC] Remove bdflush syscall stub
-Message-Id: <20190528112022.GA16683@rei>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 08 May 2019 23:58:00 +0000
+Subject: Re: [PATCH] arch:sparc:kernel/uprobes.c : Remove duplicate header
+Message-Id: <20190508.165800.635162508380574592.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190528101012.11402-1-chrubis@suse.cz>
- <mvmr28idgfu.fsf@linux-m68k.org>
- <20190528104017.GA11969@rei>
- <87ftoyg7t3.fsf@oldenburg2.str.redhat.com>
-In-Reply-To: <87ftoyg7t3.fsf@oldenburg2.str.redhat.com>
+References: <1553722125-38957-1-git-send-email-jagdsh.linux@gmail.com>
+In-Reply-To: <1553722125-38957-1-git-send-email-jagdsh.linux@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Florian Weimer <fweimer@redhat.com>
-Cc: Andreas Schwab <schwab@linux-m68k.org>, lkml <linux-kernel@vger.kernel.org>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org
+To: jagdsh.linux@gmail.com
+Cc: paul.burton@mips.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi!
-> >> > I've tested the patch on i386. Before the patch calling bdflush() with
-> >> > attempt to tune a variable returned 0 and after the patch the syscall
-> >> > fails with EINVAL.
-> >> 
-> >> Should be ENOSYS, doesn't it?
-> >
-> > My bad, the LTP syscall wrapper handles ENOSYS and produces skipped
-> > results based on that.
-> >
-> > EINVAL is what you get for not yet implemented syscalls, i.e. new
-> > syscall on old kernel.
+From: jagdsh.linux@gmail.com
+Date: Thu, 28 Mar 2019 02:58:45 +0530
+
+> From: Jagadeesh Pagadala <jagdsh.linux@gmail.com>
 > 
-> EINVAL?  Is that a bdflush-specific thing, test-specific, or is itmore
-> general?
+> Remove duplicate header which is included twice.
 > 
-> glibc has fallback paths that test for ENOSYS only.  EINVAL will be
-> passed to the application, skipping fallback.  For missing system calls,
-> this is not what we want.
+> Signed-off-by: Jagadeesh Pagadala <jagdsh.linux@gmail.com>
 
-The syscall returns ENOSYS after this change, sorry for the confusion.
-
--- 
-Cyril Hrubis
-chrubis@suse.cz
+Applied.
