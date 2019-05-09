@@ -1,69 +1,82 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Thu, 16 May 2019 14:53:41 +0000
-Subject: Re: [PATCH 1/2] pid: add pidfd_open()
-Message-Id: <20190516145341.xx7bpyakezvpqujj@yavin>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="rl3rpkoiju4ooj2k"
+From: David Miller <davem@davemloft.net>
+Date: Thu, 09 May 2019 21:35:31 +0000
+Subject: [GIT] Sparc
+Message-Id: <20190509.143531.499657137828123463.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190515100400.3450-1-christian@brauner.io>
- <CAKOZuesPF+ftwqsNDMBy1LpwJgWTNuQm9-E=C90sSTBYEEsDww@mail.gmail.com>
- <20190516130813.i66ujfzftbgpqhnh@brauner.io>
-In-Reply-To: <20190516130813.i66ujfzftbgpqhnh@brauner.io>
-To: Christian Brauner <christian@brauner.io>
-Cc: Daniel Colascione <dancol@google.com>, Jann Horn <jannh@google.com>, Oleg Nesterov <oleg@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Eric W. Biederman" <ebiederm@xmission.com>, elena.reshetova@intel.com, Kees Cook <keescook@chromium.org>, Andy Lutomirski <luto@amacapital.net>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozl
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
---rl3rpkoiju4ooj2k
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here we go:
 
-On 2019-05-16, Christian Brauner <christian@brauner.io> wrote:
-> On Wed, May 15, 2019 at 10:45:06AM -0700, Daniel Colascione wrote:
-> > On Wed, May 15, 2019 at 3:04 AM Christian Brauner <christian@brauner.io=
-> wrote:
-> > > +       if (pid <=3D 0)
-> > > +               return -EINVAL;
-> >=20
-> > WDYT of defining pid =3D=3D 0 to mean "open myself"?
->=20
-> I'm torn. It be a nice shortcut of course but pid being 0 is usually an
-> indicator for child processes. So unless the getpid() before
-> pidfd_open() is an issue I'd say let's leave it as is. If you really
-> want the shortcut might -1 be better?
+1) Fix various long standing issues in the sparc 32-bit IOMMU support
+   code, from Christoph Hellwig.
 
-I'd suggest not using negative numbers, and instead reserving them for
-PIDTYPE_TGID if we ever want to have that in the future. IMHO, doing
+2) Various other code cleanups and simplifications all over.  From
+   Gustavo A. R. Silva, Jagadeesh Pagadala, Masahiro Yamada, Mauro
+   Carvalho Chehab, Mike Rapoport.
 
-  pfd =3D pidfd_open(getpid(), 0);
+Please pull, thanks a lot!
 
-is not the end of the world.
+The following changes since commit 92fab77b6b309dc219b02da4a69ad5dc76f7ec74:
 
+  Merge tag 'mips_5.2' of git://git.kernel.org/pub/scm/linux/kernel/git/mips/linux (2019-05-08 16:41:47 -0700)
 
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
+are available in the Git repository at:
 
---rl3rpkoiju4ooj2k
-Content-Type: application/pgp-signature; name="signature.asc"
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
------BEGIN PGP SIGNATURE-----
+for you to fetch changes up to f4d9a23d3dad0252f375901bf4ff6523a2c97241:
 
-iQIzBAABCAAdFiEEb6Gz4/mhjNy+aiz1Snvnv3Dem58FAlzdeXUACgkQSnvnv3De
-m58cOhAArH3Suh66uovI36Cs+UiaKF7pQq8Uj5fLxF9TEp/xA0aglqcZbJKrUIKr
-DIaXBIm1GOitsaCBH/+k2puVlhgNpCPaskXKCWTACjS5l6z7NBQ3o4ZDgmy9sS6/
-MgIMUnFpdpX+4qRBZPsvsfknvtBO9eI8cVfZIzo4NZnUzs5zRU6qToEKWCjQNscK
-RzO+BsCNNkQXXlHBkNrdX4ue058LJyEAYop8gqPAMorepNpbcydpkRq1YWGbd4iS
-3F5ZTCHdstprw5ZmFcLUaedwf4O1X9B+eulR82Y2PHSVoOHgidE3KcdouxMEXQlh
-8KOVL1cpD2h+AdGu9znbvhKLP87kDoSbTSznKZ3dlFdk6YQQbOMvofXAay/zXRnJ
-6GXTZ6r8KDhtoJTNdYRoBQUf+pgzLKLwPdnkzLfu3CFPMy6YpaBMFFt7DwTNG6Du
-Q1nI8HIBPe0Sf7VNyv5qaixRR5rfKnqv80FPdQZD0MGsXTU7z7Iv9rZ7/g+/4ZdH
-yLhuLIARtcqLd2LSNmHQFuBbuDxODQbtqS/89FmshKn+WHowS3/406NNYsvvdwTY
-NGeva57n7Ke7NmdsO1uVsxPmTUHaxp55Vx0BTIQN4+in7mlYdf6I4qD0cVE1TGJQ
-3AF3dH8bQrznZvmJUjXZY8dWRD4StRbAp822rBOY4+QyhbySjoY=
-=SYyW
------END PGP SIGNATURE-----
+  sparc64: simplify reduce_memory() function (2019-05-09 14:26:17 -0700)
 
---rl3rpkoiju4ooj2k--
+----------------------------------------------------------------
+Christoph Hellwig (9):
+      sparc/iommu: use !PageHighMem to check if a page has a kernel mapping
+      sparc/iommu: use sbus_iommu_unmap_page in sbus_iommu_unmap_sg
+      sparc/iommu: merge iommu_release_one and sbus_iommu_unmap_page
+      sparc/iommu: create a common helper for map_sg
+      sparc/iommu: pass a physical address to iommu_get_one
+      sparc/iommu: move per-page flushing into __sbus_iommu_map_page
+      sparc/iommu: fix __sbus_iommu_map_page for highmem pages
+      sparc/iommu: use __sbus_iommu_map_page to implement the map_sg path
+      sparc/iommu: merge iommu_get_one and __sbus_iommu_map_page
+
+David S. Miller (1):
+      Merge branch 'sparc32-iommu-SG-list'
+
+Gustavo A. R. Silva (1):
+      sparc: use struct_size() in kzalloc()
+
+Jagadeesh Pagadala (1):
+      arch:sparc:kernel/uprobes.c : Remove duplicate header
+
+Masahiro Yamada (1):
+      sparc: vdso: add FORCE to the build rule of %.so
+
+Mauro Carvalho Chehab (1):
+      docs: sparc: convert to ReST
+
+Mike Rapoport (1):
+      sparc64: simplify reduce_memory() function
+
+ Documentation/sparc/{adi.txt => adi.rst}                      | 188 ++++++++++++++++++++++++++++++++++++++++++++++------------------------------------------
+ Documentation/sparc/{console.txt => console.rst}              |   4 +-
+ Documentation/sparc/index.rst                                 |  13 +++++++
+ Documentation/sparc/oradax/{oracle-dax.txt => oracle-dax.rst} |  58 +++++++++++++++++----------
+ arch/sparc/kernel/cpumap.c                                    |   3 +-
+ arch/sparc/kernel/uprobes.c                                   |   1 -
+ arch/sparc/mm/init_64.c                                       |  42 +-------------------
+ arch/sparc/mm/iommu.c                                         | 142 +++++++++++++++++++++++++++---------------------------------------
+ arch/sparc/vdso/Makefile                                      |   2 +-
+ drivers/sbus/char/oradax.c                                    |   2 +-
+ 10 files changed, 213 insertions(+), 242 deletions(-)
+ rename Documentation/sparc/{adi.txt => adi.rst} (70%)
+ rename Documentation/sparc/{console.txt => console.rst} (53%)
+ create mode 100644 Documentation/sparc/index.rst
+ rename Documentation/sparc/oradax/{oracle-dax.txt => oracle-dax.rst} (95%)
