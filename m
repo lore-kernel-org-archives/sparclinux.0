@@ -1,91 +1,82 @@
-From: Meelis Roos <mroos@linux.ee>
-Date: Mon, 13 May 2019 14:01:11 +0000
-Subject: bpf VM_FLUSH_RESET_PERMS breaks sparc64 boot
-Message-Id: <4401874b-31b9-42a0-31bd-32bef5b36f2a@linux.ee>
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Mon, 13 May 2019 17:01:15 +0000
+Subject: Re: bpf VM_FLUSH_RESET_PERMS breaks sparc64 boot
+Message-Id: <b8493de00d9973f6f054814ed69d146b29207d3e.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <4401874b-31b9-42a0-31bd-32bef5b36f2a@linux.ee>
+In-Reply-To: <4401874b-31b9-42a0-31bd-32bef5b36f2a@linux.ee>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Rick Edgecombe <rick.p.edgecombe@intel.com>, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "mroos@linux.ee" <mroos@linux.ee>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "bpf@vger.kernel.org" <bpf@vger.kernel.org>
+Cc: "namit@vmware.com" <namit@vmware.com>
 
-I tested yesterdays 5.2 devel git and it failed to boot on my Sun Fire V445
-(4x UltraSparc III). Init is started and it hangs there:
-
-[   38.414436] Run /sbin/init as init process
-[   38.530711] random: fast init done
-[   39.580678] systemd[1]: Inserted module 'autofs4'
-[   39.721577] systemd[1]: systemd 241 running in system mode. (+PAM +AUDIT=
- +SELINUX +IMA +APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNU=
-TLS +ACL +XZ +LZ4 -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 +IDN -PCRE2 default=
--hierarchy=3Dhybrid)
-[   40.028068] systemd[1]: Detected architecture sparc64.
-
-Welcome to Debian GNU/Linux 10 (buster)!
-
-[   40.168713] systemd[1]: Set hostname to <v445>.
-[   61.318034] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
-[   61.403039] rcu:     1-...!: (0 ticks this GP) idle`2/1/0x40000000000000=
-00 softirq=85/85 fqs=3D1
-[   61.526780] rcu:     (detected by 3, tR52 jiffies, g=3D-967, q"8)
-[   61.613037]   CPU[  1]: TSTATE[0000000080001602] TPC[000000000043f2b8] T=
-NPC[000000000043f2bc] TASK[systemd-fstab-g:90]
-[   61.766828]              TPC[smp_synchronize_tick_client+0x18/0x180] O7[=
-__do_munmap+0x204/0x3e0] I7[xcall_sync_tick+0x1c/0x2c] RPC[page_evictable+0=
-x4/0x60]
-[   61.966807] rcu: rcu_sched kthread starved for 5250 jiffies! g-967 f0x0 =
-RCU_GP_WAIT_FQS(5) ->state=3D0x402 ->cpu=3D2
-[   62.113058] rcu: RCU grace-period kthread stack dump:
-[   62.185558] rcu_sched       I    0    10      2 0x06000000
-[   62.264312] Call Trace:
-[   62.299316]  [000000000092a1fc] schedule+0x1c/0x80
-[   62.368071]  [000000000092d3fc] schedule_timeout+0x13c/0x280
-[   62.449328]  [00000000004b6c64] rcu_gp_kthread+0x4c4/0xa40
-[   62.528077]  [000000000047e95c] kthread+0xfc/0x120
-[   62.596833]  [00000000004060a4] ret_from_fork+0x1c/0x2c
-[   62.671831]  [0000000000000000]           (null)
-
-5.1.0 worked fine. I bisected it to the following commit:
-
-d53d2f78ceadba081fc7785570798c3c8d50a718 is the first bad commit
-commit d53d2f78ceadba081fc7785570798c3c8d50a718
-Author: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Date:   Thu Apr 25 17:11:38 2019 -0700
-
-     bpf: Use vmalloc special flag
-    =20
-     Use new flag VM_FLUSH_RESET_PERMS for handling freeing of special
-     permissioned memory in vmalloc and remove places where memory was set =
-RW
-     before freeing which is no longer needed. Don't track if the memory is=
- RO
-     anymore because it is now tracked in vmalloc.
-    =20
-     Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-     Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-     Cc: <akpm@linux-foundation.org>
-     Cc: <ard.biesheuvel@linaro.org>
-     Cc: <deneen.t.dock@intel.com>
-     Cc: <kernel-hardening@lists.openwall.com>
-     Cc: <kristen@linux.intel.com>
-     Cc: <linux_dti@icloud.com>
-     Cc: <will.deacon@arm.com>
-     Cc: Alexei Starovoitov <ast@kernel.org>
-     Cc: Andy Lutomirski <luto@kernel.org>
-     Cc: Borislav Petkov <bp@alien8.de>
-     Cc: Daniel Borkmann <daniel@iogearbox.net>
-     Cc: Dave Hansen <dave.hansen@linux.intel.com>
-     Cc: H. Peter Anvin <hpa@zytor.com>
-     Cc: Linus Torvalds <torvalds@linux-foundation.org>
-     Cc: Nadav Amit <nadav.amit@gmail.com>
-     Cc: Rik van Riel <riel@surriel.com>
-     Cc: Thomas Gleixner <tglx@linutronix.de>
-     Link: https://lkml.kernel.org/r/20190426001143.4983-19-namit@vmware.com
-     Signed-off-by: Ingo Molnar <mingo@kernel.org>
-
-:040000 040000 58066de53107eab0705398b5d0c407424c138a86 7a1345d43c4cacee60b=
-9135899b775ecdb54ea7e M      include
-:040000 040000 d02692cf57a359056b34e636d0f102d37de5b264 81c4c2c6408b68eb555=
-673bd3f0bc3071db1f7ed M      kernel
-
---=20
-Meelis Roos <mroos@linux.ee>
+T24gTW9uLCAyMDE5LTA1LTEzIGF0IDE3OjAxICswMzAwLCBNZWVsaXMgUm9vcyB3cm90ZToNCj4g
+SSB0ZXN0ZWQgeWVzdGVyZGF5cyA1LjIgZGV2ZWwgZ2l0IGFuZCBpdCBmYWlsZWQgdG8gYm9vdCBv
+biBteSBTdW4gRmlyZSBWNDQ1DQo+ICg0eCBVbHRyYVNwYXJjIElJSSkuIEluaXQgaXMgc3RhcnRl
+ZCBhbmQgaXQgaGFuZ3MgdGhlcmU6DQo+IA0KPiBbICAgMzguNDE0NDM2XSBSdW4gL3NiaW4vaW5p
+dCBhcyBpbml0IHByb2Nlc3MNCj4gWyAgIDM4LjUzMDcxMV0gcmFuZG9tOiBmYXN0IGluaXQgZG9u
+ZQ0KPiBbICAgMzkuNTgwNjc4XSBzeXN0ZW1kWzFdOiBJbnNlcnRlZCBtb2R1bGUgJ2F1dG9mczQn
+DQo+IFsgICAzOS43MjE1NzddIHN5c3RlbWRbMV06IHN5c3RlbWQgMjQxIHJ1bm5pbmcgaW4gc3lz
+dGVtIG1vZGUuICgrUEFNICtBVURJVA0KPiArU0VMSU5VWCArSU1BICtBUFBBUk1PUiArU01BQ0sg
+K1NZU1ZJTklUICtVVE1QICtMSUJDUllQVFNFVFVQICtHQ1JZUFQgK0dOVVRMUw0KPiArQUNMICtY
+WiArTFo0IC1TRUNDT01QICtCTEtJRCArRUxGVVRJTFMgK0tNT0QgLUlETjIgK0lETiAtUENSRTIg
+ZGVmYXVsdC0NCj4gaGllcmFyY2h5PWh5YnJpZCkNCj4gWyAgIDQwLjAyODA2OF0gc3lzdGVtZFsx
+XTogRGV0ZWN0ZWQgYXJjaGl0ZWN0dXJlIHNwYXJjNjQuDQo+IA0KPiBXZWxjb21lIHRvIERlYmlh
+biBHTlUvTGludXggMTAgKGJ1c3RlcikhDQo+IA0KPiBbICAgNDAuMTY4NzEzXSBzeXN0ZW1kWzFd
+OiBTZXQgaG9zdG5hbWUgdG8gPHY0NDU+Lg0KPiBbICAgNjEuMzE4MDM0XSByY3U6IElORk86IHJj
+dV9zY2hlZCBkZXRlY3RlZCBzdGFsbHMgb24gQ1BVcy90YXNrczoNCj4gWyAgIDYxLjQwMzAzOV0g
+cmN1OiAgICAgMS0uLi4hOiAoMCB0aWNrcyB0aGlzIEdQKQ0KPiBpZGxlPTYwMi8xLzB4NDAwMDAw
+MDAwMDAwMDAwMCBzb2Z0aXJxPTg1Lzg1IGZxcz0xDQo+IFsgICA2MS41MjY3ODBdIHJjdTogICAg
+IChkZXRlY3RlZCBieSAzLCB0PTUyNTIgamlmZmllcywgZz0tOTY3LCBxPTIyOCkNCj4gWyAgIDYx
+LjYxMzAzN10gICBDUFVbICAxXTogVFNUQVRFWzAwMDAwMDAwODAwMDE2MDJdIFRQQ1swMDAwMDAw
+MDAwNDNmMmI4XQ0KPiBUTlBDWzAwMDAwMDAwMDA0M2YyYmNdIFRBU0tbc3lzdGVtZC1mc3RhYi1n
+OjkwXQ0KPiBbICAgNjEuNzY2ODI4XSAgICAgICAgICAgICAgVFBDW3NtcF9zeW5jaHJvbml6ZV90
+aWNrX2NsaWVudCsweDE4LzB4MTgwXQ0KPiBPN1tfX2RvX211bm1hcCsweDIwNC8weDNlMF0gSTdb
+eGNhbGxfc3luY190aWNrKzB4MWMvMHgyY10NCj4gUlBDW3BhZ2VfZXZpY3RhYmxlKzB4NC8weDYw
+XQ0KPiBbICAgNjEuOTY2ODA3XSByY3U6IHJjdV9zY2hlZCBrdGhyZWFkIHN0YXJ2ZWQgZm9yIDUy
+NTAgamlmZmllcyEgZy05NjcgZjB4MA0KPiBSQ1VfR1BfV0FJVF9GUVMoNSkgLT5zdGF0ZT0weDQw
+MiAtPmNwdT0yDQo+IFsgICA2Mi4xMTMwNThdIHJjdTogUkNVIGdyYWNlLXBlcmlvZCBrdGhyZWFk
+IHN0YWNrIGR1bXA6DQo+IFsgICA2Mi4xODU1NThdIHJjdV9zY2hlZCAgICAgICBJICAgIDAgICAg
+MTAgICAgICAyIDB4MDYwMDAwMDANCj4gWyAgIDYyLjI2NDMxMl0gQ2FsbCBUcmFjZToNCj4gWyAg
+IDYyLjI5OTMxNl0gIFswMDAwMDAwMDAwOTJhMWZjXSBzY2hlZHVsZSsweDFjLzB4ODANCj4gWyAg
+IDYyLjM2ODA3MV0gIFswMDAwMDAwMDAwOTJkM2ZjXSBzY2hlZHVsZV90aW1lb3V0KzB4MTNjLzB4
+MjgwDQo+IFsgICA2Mi40NDkzMjhdICBbMDAwMDAwMDAwMDRiNmM2NF0gcmN1X2dwX2t0aHJlYWQr
+MHg0YzQvMHhhNDANCj4gWyAgIDYyLjUyODA3N10gIFswMDAwMDAwMDAwNDdlOTVjXSBrdGhyZWFk
+KzB4ZmMvMHgxMjANCj4gWyAgIDYyLjU5NjgzM10gIFswMDAwMDAwMDAwNDA2MGE0XSByZXRfZnJv
+bV9mb3JrKzB4MWMvMHgyYw0KPiBbICAgNjIuNjcxODMxXSAgWzAwMDAwMDAwMDAwMDAwMDBdICAg
+ICAgICAgICAobnVsbCkNCj4gDQo+IDUuMS4wIHdvcmtlZCBmaW5lLiBJIGJpc2VjdGVkIGl0IHRv
+IHRoZSBmb2xsb3dpbmcgY29tbWl0Og0KPiANCj4gZDUzZDJmNzhjZWFkYmEwODFmYzc3ODU1NzA3
+OThjM2M4ZDUwYTcxOCBpcyB0aGUgZmlyc3QgYmFkIGNvbW1pdA0KPiBjb21taXQgZDUzZDJmNzhj
+ZWFkYmEwODFmYzc3ODU1NzA3OThjM2M4ZDUwYTcxOA0KPiBBdXRob3I6IFJpY2sgRWRnZWNvbWJl
+IDxyaWNrLnAuZWRnZWNvbWJlQGludGVsLmNvbT4NCj4gRGF0ZTogICBUaHUgQXByIDI1IDE3OjEx
+OjM4IDIwMTkgLTA3MDANCj4gDQo+ICAgICAgYnBmOiBVc2Ugdm1hbGxvYyBzcGVjaWFsIGZsYWcN
+Cj4gICAgICANCj4gICAgICBVc2UgbmV3IGZsYWcgVk1fRkxVU0hfUkVTRVRfUEVSTVMgZm9yIGhh
+bmRsaW5nIGZyZWVpbmcgb2Ygc3BlY2lhbA0KPiAgICAgIHBlcm1pc3Npb25lZCBtZW1vcnkgaW4g
+dm1hbGxvYyBhbmQgcmVtb3ZlIHBsYWNlcyB3aGVyZSBtZW1vcnkgd2FzIHNldCBSVw0KPiAgICAg
+IGJlZm9yZSBmcmVlaW5nIHdoaWNoIGlzIG5vIGxvbmdlciBuZWVkZWQuIERvbid0IHRyYWNrIGlm
+IHRoZSBtZW1vcnkgaXMgUk8NCj4gICAgICBhbnltb3JlIGJlY2F1c2UgaXQgaXMgbm93IHRyYWNr
+ZWQgaW4gdm1hbGxvYy4NCj4gICAgICANCj4gICAgICBTaWduZWQtb2ZmLWJ5OiBSaWNrIEVkZ2Vj
+b21iZSA8cmljay5wLmVkZ2Vjb21iZUBpbnRlbC5jb20+DQo+ICAgICAgU2lnbmVkLW9mZi1ieTog
+UGV0ZXIgWmlqbHN0cmEgKEludGVsKSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+DQo+ICAgICAgQ2M6
+IDxha3BtQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiAgICAgIENjOiA8YXJkLmJpZXNoZXV2ZWxA
+bGluYXJvLm9yZz4NCj4gICAgICBDYzogPGRlbmVlbi50LmRvY2tAaW50ZWwuY29tPg0KPiAgICAg
+IENjOiA8a2VybmVsLWhhcmRlbmluZ0BsaXN0cy5vcGVud2FsbC5jb20+DQo+ICAgICAgQ2M6IDxr
+cmlzdGVuQGxpbnV4LmludGVsLmNvbT4NCj4gICAgICBDYzogPGxpbnV4X2R0aUBpY2xvdWQuY29t
+Pg0KPiAgICAgIENjOiA8d2lsbC5kZWFjb25AYXJtLmNvbT4NCj4gICAgICBDYzogQWxleGVpIFN0
+YXJvdm9pdG92IDxhc3RAa2VybmVsLm9yZz4NCj4gICAgICBDYzogQW5keSBMdXRvbWlyc2tpIDxs
+dXRvQGtlcm5lbC5vcmc+DQo+ICAgICAgQ2M6IEJvcmlzbGF2IFBldGtvdiA8YnBAYWxpZW44LmRl
+Pg0KPiAgICAgIENjOiBEYW5pZWwgQm9ya21hbm4gPGRhbmllbEBpb2dlYXJib3gubmV0Pg0KPiAg
+ICAgIENjOiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AbGludXguaW50ZWwuY29tPg0KPiAgICAg
+IENjOiBILiBQZXRlciBBbnZpbiA8aHBhQHp5dG9yLmNvbT4NCj4gICAgICBDYzogTGludXMgVG9y
+dmFsZHMgPHRvcnZhbGRzQGxpbnV4LWZvdW5kYXRpb24ub3JnPg0KPiAgICAgIENjOiBOYWRhdiBB
+bWl0IDxuYWRhdi5hbWl0QGdtYWlsLmNvbT4NCj4gICAgICBDYzogUmlrIHZhbiBSaWVsIDxyaWVs
+QHN1cnJpZWwuY29tPg0KPiAgICAgIENjOiBUaG9tYXMgR2xlaXhuZXIgPHRnbHhAbGludXRyb25p
+eC5kZT4NCj4gICAgICBMaW5rOiBodHRwczovL2xrbWwua2VybmVsLm9yZy9yLzIwMTkwNDI2MDAx
+MTQzLjQ5ODMtMTktbmFtaXRAdm13YXJlLmNvbQ0KPiAgICAgIFNpZ25lZC1vZmYtYnk6IEluZ28g
+TW9sbmFyIDxtaW5nb0BrZXJuZWwub3JnPg0KPiANCj4gOjA0MDAwMCAwNDAwMDAgNTgwNjZkZTUz
+MTA3ZWFiMDcwNTM5OGI1ZDBjNDA3NDI0YzEzOGE4Ng0KPiA3YTEzNDVkNDNjNGNhY2VlNjBiOTEz
+NTg5OWI3NzVlY2RiNTRlYTdlIE0gICAgICBpbmNsdWRlDQo+IDowNDAwMDAgMDQwMDAwIGQwMjY5
+MmNmNTdhMzU5MDU2YjM0ZTYzNmQwZjEwMmQzN2RlNWIyNjQNCj4gODFjNGMyYzY0MDhiNjhlYjU1
+NTY3M2JkM2YwYmMzMDcxZGIxZjdlZCBNICAgICAga2VybmVsDQo+IA0KVGhhbmtzLCBJJ2xsIHNl
+ZSBpZiBJIGNhbiByZXByb2R1Y2UuDQoNClJpY2sNCg=
