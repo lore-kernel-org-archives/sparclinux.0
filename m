@@ -1,23 +1,91 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 25 May 2019 16:55:00 +0000
-Subject: Re: [PATCH 5/6] sparc64: use the generic get_user_pages_fast code
-Message-Id: <20190525.095500.1447810293414838145.davem@davemloft.net>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 13 May 2019 14:01:11 +0000
+Subject: bpf VM_FLUSH_RESET_PERMS breaks sparc64 boot
+Message-Id: <4401874b-31b9-42a0-31bd-32bef5b36f2a@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190525133203.25853-1-hch@lst.de>
-        <20190525133203.25853-6-hch@lst.de>
-In-Reply-To: <20190525133203.25853-6-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: hch@lst.de
-Cc: torvalds@linux-foundation.org, paul.burton@mips.com, jhogan@kernel.org, ysato@users.sourceforge.jp, dalias@libc.org, npiggin@gmail.com, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Rick Edgecombe <rick.p.edgecombe@intel.com>, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 25 May 2019 15:32:02 +0200
+I tested yesterdays 5.2 devel git and it failed to boot on my Sun Fire V445
+(4x UltraSparc III). Init is started and it hangs there:
 
-> The sparc64 code is mostly equivalent to the generic one, minus various
-> bugfixes and two arch overrides that this patch adds to pgtable.h.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+[   38.414436] Run /sbin/init as init process
+[   38.530711] random: fast init done
+[   39.580678] systemd[1]: Inserted module 'autofs4'
+[   39.721577] systemd[1]: systemd 241 running in system mode. (+PAM +AUDIT=
+ +SELINUX +IMA +APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNU=
+TLS +ACL +XZ +LZ4 -SECCOMP +BLKID +ELFUTILS +KMOD -IDN2 +IDN -PCRE2 default=
+-hierarchy=3Dhybrid)
+[   40.028068] systemd[1]: Detected architecture sparc64.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Welcome to Debian GNU/Linux 10 (buster)!
+
+[   40.168713] systemd[1]: Set hostname to <v445>.
+[   61.318034] rcu: INFO: rcu_sched detected stalls on CPUs/tasks:
+[   61.403039] rcu:     1-...!: (0 ticks this GP) idle`2/1/0x40000000000000=
+00 softirq=85/85 fqs=3D1
+[   61.526780] rcu:     (detected by 3, tR52 jiffies, g=3D-967, q"8)
+[   61.613037]   CPU[  1]: TSTATE[0000000080001602] TPC[000000000043f2b8] T=
+NPC[000000000043f2bc] TASK[systemd-fstab-g:90]
+[   61.766828]              TPC[smp_synchronize_tick_client+0x18/0x180] O7[=
+__do_munmap+0x204/0x3e0] I7[xcall_sync_tick+0x1c/0x2c] RPC[page_evictable+0=
+x4/0x60]
+[   61.966807] rcu: rcu_sched kthread starved for 5250 jiffies! g-967 f0x0 =
+RCU_GP_WAIT_FQS(5) ->state=3D0x402 ->cpu=3D2
+[   62.113058] rcu: RCU grace-period kthread stack dump:
+[   62.185558] rcu_sched       I    0    10      2 0x06000000
+[   62.264312] Call Trace:
+[   62.299316]  [000000000092a1fc] schedule+0x1c/0x80
+[   62.368071]  [000000000092d3fc] schedule_timeout+0x13c/0x280
+[   62.449328]  [00000000004b6c64] rcu_gp_kthread+0x4c4/0xa40
+[   62.528077]  [000000000047e95c] kthread+0xfc/0x120
+[   62.596833]  [00000000004060a4] ret_from_fork+0x1c/0x2c
+[   62.671831]  [0000000000000000]           (null)
+
+5.1.0 worked fine. I bisected it to the following commit:
+
+d53d2f78ceadba081fc7785570798c3c8d50a718 is the first bad commit
+commit d53d2f78ceadba081fc7785570798c3c8d50a718
+Author: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date:   Thu Apr 25 17:11:38 2019 -0700
+
+     bpf: Use vmalloc special flag
+    =20
+     Use new flag VM_FLUSH_RESET_PERMS for handling freeing of special
+     permissioned memory in vmalloc and remove places where memory was set =
+RW
+     before freeing which is no longer needed. Don't track if the memory is=
+ RO
+     anymore because it is now tracked in vmalloc.
+    =20
+     Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+     Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+     Cc: <akpm@linux-foundation.org>
+     Cc: <ard.biesheuvel@linaro.org>
+     Cc: <deneen.t.dock@intel.com>
+     Cc: <kernel-hardening@lists.openwall.com>
+     Cc: <kristen@linux.intel.com>
+     Cc: <linux_dti@icloud.com>
+     Cc: <will.deacon@arm.com>
+     Cc: Alexei Starovoitov <ast@kernel.org>
+     Cc: Andy Lutomirski <luto@kernel.org>
+     Cc: Borislav Petkov <bp@alien8.de>
+     Cc: Daniel Borkmann <daniel@iogearbox.net>
+     Cc: Dave Hansen <dave.hansen@linux.intel.com>
+     Cc: H. Peter Anvin <hpa@zytor.com>
+     Cc: Linus Torvalds <torvalds@linux-foundation.org>
+     Cc: Nadav Amit <nadav.amit@gmail.com>
+     Cc: Rik van Riel <riel@surriel.com>
+     Cc: Thomas Gleixner <tglx@linutronix.de>
+     Link: https://lkml.kernel.org/r/20190426001143.4983-19-namit@vmware.com
+     Signed-off-by: Ingo Molnar <mingo@kernel.org>
+
+:040000 040000 58066de53107eab0705398b5d0c407424c138a86 7a1345d43c4cacee60b=
+9135899b775ecdb54ea7e M      include
+:040000 040000 d02692cf57a359056b34e636d0f102d37de5b264 81c4c2c6408b68eb555=
+673bd3f0bc3071db1f7ed M      kernel
+
+--=20
+Meelis Roos <mroos@linux.ee>
