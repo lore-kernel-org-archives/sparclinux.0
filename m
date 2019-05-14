@@ -1,51 +1,37 @@
-From: "Maciej W. Rozycki" <macro@linux-mips.org>
-Date: Wed, 01 May 2019 02:29:36 +0000
-Subject: Re: [PATCH 06/41] drivers: tty: serial: sb1250-duart: use dev_err() instead of printk()
-Message-Id: <alpine.LFD.2.21.1905010257020.30973@eddie.linux-mips.org>
+From: "Deputy Managing Director (IMF)" <afrilog@vodafone.com.gh>
+Date: Tue, 14 May 2019 21:49:05 +0000
+Subject: =?utf-8?B?67O07IOBIOyngOu2iCDthrXsp4A=?=
+Message-Id: <1569161178.4425505.1557870545056.JavaMail.zimbra@vodafone.com.gh>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1556369542-13247-1-git-send-email-info@metux.net>
- <1556369542-13247-7-git-send-email-info@metux.net>
-In-Reply-To: <1556369542-13247-7-git-send-email-info@metux.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Cc: linux-ia64@vger.kernel.org, lorenzo.pieralisi@arm.com, linux-mips@vger.kernel.org, andrew@aj.id.au, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, sudeep.holla@arm.com, liviu.dudau@arm.com, linux-kernel@vger.kernel.org, vz@mleia.com, linux@prisktech.co.nz, sparclinux@vger.kernel.org, khilman@baylibre.com, linux-serial@vger.kernel.org, slemieux.tyco@gmail.com, matthias.bgg@gmail.com, jacmet@sunsite.dk, linux-amlogic@lists.infradead.org, andriy.shevchenko@linux.intel.com, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-On Sat, 27 Apr 2019, Enrico Weigelt, metux IT consult wrote:
+주의 : 수혜자,
 
-> diff --git a/drivers/tty/serial/sb1250-duart.c b/drivers/tty/serial/sb1250-duart.c
-> index 329aced..655961c 100644
-> --- a/drivers/tty/serial/sb1250-duart.c
-> +++ b/drivers/tty/serial/sb1250-duart.c
-> @@ -663,7 +663,6 @@ static void sbd_release_port(struct uart_port *uport)
->  
->  static int sbd_map_port(struct uart_port *uport)
->  {
-> -	const char *err = KERN_ERR "sbd: Cannot map MMIO\n";
->  	struct sbd_port *sport = to_sport(uport);
->  	struct sbd_duart *duart = sport->duart;
->  
-> @@ -671,7 +670,7 @@ static int sbd_map_port(struct uart_port *uport)
->  		uport->membase = ioremap_nocache(uport->mapbase,
->  						 DUART_CHANREG_SPACING);
->  	if (!uport->membase) {
-> -		printk(err);
-> +		dev_err(uport->dev, "Cannot map MMIO (base)\n");
->  		return -ENOMEM;
->  	}
->  
-> @@ -679,7 +678,7 @@ static int sbd_map_port(struct uart_port *uport)
->  		sport->memctrl = ioremap_nocache(duart->mapctrl,
->  						 DUART_CHANREG_SPACING);
->  	if (!sport->memctrl) {
-> -		printk(err);
-> +		dev_err(uport->dev, "Cannot map MMIO (ctrl)\n");
->  		iounmap(uport->membase);
->  		uport->membase = NULL;
->  		return -ENOMEM;
+이 메일이 왜 왔는지 이해하지 못할 수도 있습니다. 국제 통화 기금 (IMF)의 고위 공무원들에 의해 상원의 외채 상환위원회와 상응 보조금 이행 패널 (카테고리 D)이 개최되었으며, 이는 전세계의 모든 사기 피해자들에 관한 것이었다. 시체. 주제에 관해 당신에게 연락하는 것이 필수적이되었습니다.
 
- Hmm, what's the point to have separate messages, which consume extra 
-memory, for a hardly if at all possible error condition?
+이 이메일은 선취 수수료 사기로 인해 사기가 났거나 돈을 강탈당한 모든 사람들과 자국 정부로부터 팁 서비스 혜택을받지 못한 모든 퇴직자들에게 발송됩니다.
 
-  Maciej
+국제 통화 기금 (IMF), 세계 은행 그룹 (WB) 및 연방 수사 국 (FBI)은 여러분 모두에게 $ 1,000,000.00USD의 총액을 보상하기로 동의했습니다. 퇴직 연금 수령자, 모든 외국인 계약자 / 친척 및 미완료 거래가있는 사람 또는 정부 문제 또는 비정규로 인해 실패한 국제 사업을 포함합니다.
+
+회의에서 잠재적 인 모든 보상 수혜자 기금은 ATM 카드 또는 수표로 지불해야하며 각 국가로 보내야한다고 결론지었습니다.
+
+모든 수혜자는 인터넷을 통해 2 천 7 백만 전자 메일 주소로 작성된 글로벌 무작위 통합 시스템을 통해 선정되었으며 행운의 수혜자는이 보상 프로그램에서 혜택을 얻으려는 티켓을 구입할 필요가 없습니다. 귀하의 이메일은 우리의 명단에 올랐습니다. 그래서 저희가 귀하에게 연락하는 이유는 국제 통화 기금 (IMF) 이사회와 세계 은행 그룹 관리 위원들에 의해 동의되고 서명되었습니다.
+
+보상금 지불을 위해 귀하의 이름과 같은 전체 세부 사항 (전화 번호 : 나이 : 성별 및 주소, 파일 참조 번호 (IMF-90690_WB))을 보내주십시오.
+
+담당자 : Mr. Joaquim Levy.
+==== 최고 재무 책임자 (CFO)
+        (세계 은행 그룹) ===전자 메일 : info@joaquimlevy.com
+전화 번호 : 44-7452286707
+
+보상금을 수령하면 바로 연락 드리겠습니다. 질문이 있으시면 언제든지 이메일을 보내 주시기 바랍니다. (info@imfukunit.co.uk)
+
+문안 인사,
+후루사와 미츠히로 (IMF 부회장)
+CC : Mrs. Kristalina Georgieva (세계 은행 총재)
+CC : Mr. Christopher A. Wray (FBI, 감독)
+*************************************************** *************************************************** *************************************************** ************************
+참고 : 귀하의 스팸 / BULK 폴더에서이 메시지를받은 경우, 이는 귀하의 인터넷 서비스 공급자에 의해 구현 된 제한 때문에, 우리 (국제 통화 기금 (IMF))는 당신이 진정으로 그것을 취급 할 것을 촉구합니다.
