@@ -1,21 +1,112 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 08 May 2019 23:58:47 +0000
-Subject: Re: [PATCH] sparc: vdso: add FORCE to the build rule of %.so
-Message-Id: <20190508.165847.250571841268086695.davem@davemloft.net>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Fri, 17 May 2019 21:01:23 +0000
+Subject: [PATCH 1/1] vmalloc: Fix issues with flush flag
+Message-Id: <20190517210123.5702-2-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1554280344-10741-1-git-send-email-yamada.masahiro@socionext.com>
-In-Reply-To: <1554280344-10741-1-git-send-email-yamada.masahiro@socionext.com>
+References: <20190517210123.5702-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20190517210123.5702-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yamada.masahiro@socionext.com
-Cc: sparclinux@vger.kernel.org, ndesaulniers@google.com, linux-kernel@vger.kernel.org, frowand.list@gmail.com, mingo@kernel.org
+To: peterz@infradead.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc: dave.hansen@intel.com, namit@vmware.com, Rick Edgecombe <rick.p.edgecombe@intel.com>, Meelis Roos <mroos@linux.ee>, "David S. Miller" <davem@davemloft.net>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>
 
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Wed,  3 Apr 2019 17:32:24 +0900
+Meelis Roos reported issues with the new VM_FLUSH_RESET_PERMS flag on the
+sparc architecture.
 
-> $(call if_changed,...) must have FORCE as a prerequisite.
-> 
-> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+When freeing many BPF JITs at once the free operations can become stuck
+waiting for locks as they each try to vm_unmap_aliases(). Calls to this
+function happen frequently on some archs, but in vmalloc itself the lazy
+purge operations happens more rarely, where only in extreme cases could
+multiple purges be happening at once. Since this is cross platform code we
+shouldn't do this here where it could happen concurrently in a burst, and
+instead just flush the TLB. Also, add a little logic to skip calls to
+page_address() when possible to further speed this up, since they may have
+locking on some archs.
 
-Applied.
+Lastly, it appears that the calculation of the address range to flush
+was broken at some point, so fix that as well.
+
+Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
+Reported-by: Meelis Roos <mroos@linux.ee>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nadav Amit <namit@vmware.com>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+---
+ mm/vmalloc.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 67bbb8d2a0a8..5daa7ec8950f 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -1531,9 +1531,10 @@ static inline void set_area_direct_map(const struct vm_struct *area,
+ /* Handle removing and resetting vm mappings related to the vm_struct. */
+ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ {
++	const bool has_set_direct = IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP);
++	const bool flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
+ 	unsigned long addr = (unsigned long)area->addr;
+-	unsigned long start = ULONG_MAX, end = 0;
+-	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
++	unsigned long start = addr, end = addr + get_vm_area_size(area);
+ 	int i;
+ 
+ 	/*
+@@ -1542,7 +1543,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * This is concerned with resetting the direct map any an vm alias with
+ 	 * execute permissions, without leaving a RW+X window.
+ 	 */
+-	if (flush_reset && !IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++	if (flush_reset && !has_set_direct) {
+ 		set_memory_nx(addr, area->nr_pages);
+ 		set_memory_rw(addr, area->nr_pages);
+ 	}
+@@ -1555,22 +1556,24 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 
+ 	/*
+ 	 * If not deallocating pages, just do the flush of the VM area and
+-	 * return.
++	 * return. If the arch doesn't have set_direct_map_(), also skip the
++	 * below work.
+ 	 */
+-	if (!deallocate_pages) {
+-		vm_unmap_aliases();
++	if (!deallocate_pages || !has_set_direct) {
++		flush_tlb_kernel_range(addr, get_vm_area_size(area));
+ 		return;
+ 	}
+ 
+ 	/*
+ 	 * If execution gets here, flush the vm mapping and reset the direct
+ 	 * map. Find the start and end range of the direct mappings to make sure
+-	 * the vm_unmap_aliases() flush includes the direct map.
++	 * the flush_tlb_kernel_range() includes the direct map.
+ 	 */
+ 	for (i = 0; i < area->nr_pages; i++) {
+-		if (page_address(area->pages[i])) {
++		addr = (unsigned long)page_address(area->pages[i]);
++		if (addr) {
+ 			start = min(addr, start);
+-			end = max(addr, end);
++			end = max(addr + PAGE_SIZE, end);
+ 		}
+ 	}
+ 
+@@ -1580,7 +1583,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * reset the direct map permissions to the default.
+ 	 */
+ 	set_area_direct_map(area, set_direct_map_invalid_noflush);
+-	_vm_unmap_aliases(start, end, 1);
++	flush_tlb_kernel_range(start, end);
+ 	set_area_direct_map(area, set_direct_map_default_noflush);
+ }
+ 
+-- 
+2.17.1
