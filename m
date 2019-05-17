@@ -1,87 +1,29 @@
-From: "David" <david@usbcustom.site>
-Date: Wed, 22 May 2019 11:48:56 +0000
-Subject: Logo printing
-Message-Id: <7d364a727ee1de5a4dd976cf428b68e8@walgreens.com>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Fri, 17 May 2019 21:01:22 +0000
+Subject: [PATCH 0/1] Fix for VM_FLUSH_RESET_PERMS on sparc
+Message-Id: <20190517210123.5702-1-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: peterz@infradead.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+Cc: dave.hansen@intel.com, namit@vmware.com, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
-Hi,
+Meelis Roos reported issues with the new VM_FLUSH_RESET_PERMS flag on the sparc
+architecture. When freeing many BPF JITs simultaneously, the vfree flush
+operations can become stuck waiting as they each try to vm_unmap_aliases().
 
-Not sure if you received my last email?
+It also came up that using this flag is not needed for architectures like sparc
+that already have normal kernel memory as executable. This patch fixes the usage
+of this flag on sparc to also fix it in case the root cause is also an issue on
+other architectures. Separately we can disable usage of VM_FLUSH_RESET_PERMS for
+these architectures if desired.
 
-Are you interested in purchasing your LOGO promotional and marketing
-products for your company?
-We produce USB Drives with your Logo Printed or artwork printed to be used
-for gifts or marketing.
-Here is more info from our website:
+Rick Edgecombe (1):
+  vmalloc: Fix issues with flush flag
 
-We can pre-load your media files, images, presentations and files onto the
-drives for you.
+ mm/vmalloc.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-Some reasons to get the USB drives from us:
-We make Custom Shaped USB drives in the shape of your logo, product or
-anything you like.
-Our USB drives are Eco-friendly
-We supply USB drives to Fortune 100 companies.
-We have over 150 styles and colors to choose from.
-People will keep the USB drive you give them and show it to others
-increasing your marketing value
-
-Please click
-to see all of our stock models and get a quote.
-
-If you are nonprofit, have further discounts for schools and charities.
-
-Thanks,
-David
-USB Drive Specialist
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-http://walgreens.com/mail/link.php?M=9739038&N'79&Le&F=3DT
+-- 
+2.17.1
