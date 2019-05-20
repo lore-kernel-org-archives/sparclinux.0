@@ -1,112 +1,65 @@
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Date: Fri, 17 May 2019 21:01:23 +0000
-Subject: [PATCH 1/1] vmalloc: Fix issues with flush flag
-Message-Id: <20190517210123.5702-2-rick.p.edgecombe@intel.com>
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Mon, 20 May 2019 03:54:40 +0000
+Subject: Re: [PATCH 1/1] vmalloc: Fix issues with flush flag
+Message-Id: <371f4eab57d4fa919b33cf4c3b6e5e0eb9eabc20.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190517210123.5702-1-rick.p.edgecombe@intel.com>
-In-Reply-To: <20190517210123.5702-1-rick.p.edgecombe@intel.com>
+         <20190517210123.5702-2-rick.p.edgecombe@intel.com>
+In-Reply-To: <20190517210123.5702-2-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peterz@infradead.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
-Cc: dave.hansen@intel.com, namit@vmware.com, Rick Edgecombe <rick.p.edgecombe@intel.com>, Meelis Roos <mroos@linux.ee>, "David S. Miller" <davem@davemloft.net>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>
+To: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "davem@davemloft.net" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "bpf@vger.kernel.org" <bpf@vger.kernel.org>
+Cc: "bp@alien8.de" <bp@alien8.de>, "mroos@linux.ee" <mroos@linux.ee>, "luto@kernel.org" <luto@kernel.org>, "namit@vmware.com" <namit@vmware.com>, "Hansen, Dave" <dave.hansen@intel.com>, "mingo@redhat.com" <mingo@redhat.com>
 
-Meelis Roos reported issues with the new VM_FLUSH_RESET_PERMS flag on the
-sparc architecture.
-
-When freeing many BPF JITs at once the free operations can become stuck
-waiting for locks as they each try to vm_unmap_aliases(). Calls to this
-function happen frequently on some archs, but in vmalloc itself the lazy
-purge operations happens more rarely, where only in extreme cases could
-multiple purges be happening at once. Since this is cross platform code we
-shouldn't do this here where it could happen concurrently in a burst, and
-instead just flush the TLB. Also, add a little logic to skip calls to
-page_address() when possible to further speed this up, since they may have
-locking on some archs.
-
-Lastly, it appears that the calculation of the address range to flush
-was broken at some point, so fix that as well.
-
-Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
-Reported-by: Meelis Roos <mroos@linux.ee>
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nadav Amit <namit@vmware.com>
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
----
- mm/vmalloc.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
-
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index 67bbb8d2a0a8..5daa7ec8950f 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -1531,9 +1531,10 @@ static inline void set_area_direct_map(const struct vm_struct *area,
- /* Handle removing and resetting vm mappings related to the vm_struct. */
- static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- {
-+	const bool has_set_direct = IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP);
-+	const bool flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
- 	unsigned long addr = (unsigned long)area->addr;
--	unsigned long start = ULONG_MAX, end = 0;
--	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
-+	unsigned long start = addr, end = addr + get_vm_area_size(area);
- 	int i;
- 
- 	/*
-@@ -1542,7 +1543,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- 	 * This is concerned with resetting the direct map any an vm alias with
- 	 * execute permissions, without leaving a RW+X window.
- 	 */
--	if (flush_reset && !IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
-+	if (flush_reset && !has_set_direct) {
- 		set_memory_nx(addr, area->nr_pages);
- 		set_memory_rw(addr, area->nr_pages);
- 	}
-@@ -1555,22 +1556,24 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- 
- 	/*
- 	 * If not deallocating pages, just do the flush of the VM area and
--	 * return.
-+	 * return. If the arch doesn't have set_direct_map_(), also skip the
-+	 * below work.
- 	 */
--	if (!deallocate_pages) {
--		vm_unmap_aliases();
-+	if (!deallocate_pages || !has_set_direct) {
-+		flush_tlb_kernel_range(addr, get_vm_area_size(area));
- 		return;
- 	}
- 
- 	/*
- 	 * If execution gets here, flush the vm mapping and reset the direct
- 	 * map. Find the start and end range of the direct mappings to make sure
--	 * the vm_unmap_aliases() flush includes the direct map.
-+	 * the flush_tlb_kernel_range() includes the direct map.
- 	 */
- 	for (i = 0; i < area->nr_pages; i++) {
--		if (page_address(area->pages[i])) {
-+		addr = (unsigned long)page_address(area->pages[i]);
-+		if (addr) {
- 			start = min(addr, start);
--			end = max(addr, end);
-+			end = max(addr + PAGE_SIZE, end);
- 		}
- 	}
- 
-@@ -1580,7 +1583,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- 	 * reset the direct map permissions to the default.
- 	 */
- 	set_area_direct_map(area, set_direct_map_invalid_noflush);
--	_vm_unmap_aliases(start, end, 1);
-+	flush_tlb_kernel_range(start, end);
- 	set_area_direct_map(area, set_direct_map_default_noflush);
- }
- 
--- 
-2.17.1
+SGksDQoNCkFmdGVyIGludmVzdGlnYXRpbmcgdGhpcyBtb3JlLCBJIGFtIG5vdCBwb3NpdGl2ZSB3
+aHkgdGhpcyBmaXhlcyB0aGUNCmlzc3VlIG9uIHNwYXJjLiBJIHdpbGwgY29udGludWUgdG8gaW52
+ZXN0aWdhdGUgYXMgYmVzdCBJIGNhbiwgYnV0IHdvdWxkDQpsaWtlIHRvIHJlcXVlc3QgaGVscCBm
+cm9tIHNvbWUgc3BhcmMgZXhwZXJ0cyBvbiBldmFsdWF0aW5nIG15IGxpbmUgb2YNCnRoaW5raW5n
+LiBJIHRoaW5rIHRoZSBjaGFuZ2VzIGluIHRoaXMgcGF0Y2ggYXJlIHN0aWxsIHZlcnkgd29ydGh3
+aGlsZQ0KZ2VuZXJhbGx5IHRob3VnaC4NCg0KDQpCZXNpZGVzIGZpeGluZyB0aGUgc3BhcmMgaXNz
+dWU6DQoNCjEuIFRoZSBmaXhlcyBmb3IgdGhlIGNhbGN1bGF0aW9uIG9mIHRoZSBkaXJlY3QgbWFw
+IGFkZHJlc3MgcmFuZ2UgYXJlDQppbXBvcnRhbnQgb24geDg2IGluIGNhc2UgYSBSTyBkaXJlY3Qg
+bWFwIGFsaWFzIGV2ZXIgZ2V0cyBsb2FkZWQgaW50bw0KdGhlIFRMQi4gVGhpcyBzaG91bGRuJ3Qg
+bm9ybWFsbHkgaGFwcGVuLCBidXQgaXQgY291bGQgY2F1c2UgdGhlDQpwZXJtaXNzaW9ucyB0byBu
+b3QgZ2V0IHJlc2V0IG9uIHRoZSBkaXJlY3QgbWFwIGFsaWFzLCBhbmQgdGhlbiB0aGUgcGFnZQ0K
+d291bGQgcmV0dXJuIGZyb20gdGhlIHBhZ2UgYWxsb2NhdG9yIHRvIHNvbWUgb3RoZXIgY29tcG9u
+ZW50IGFzIFJPIGFuZA0KY2F1c2UgYSBjcmFzaC4gVGhpcyB3YXMgbW9zdGx5IGJyb2tlbiBpbXBs
+ZW1lbnRpbmcgYSBzdHlsZSBzdWdnZXN0aW9uDQpsYXRlIGluIHRoZSBkZXZlbG9wbWVudC4gQXMg
+YmVzdCBJIGNhbiB0ZWxsLCBpdCBzaG91bGRuJ3QgaGF2ZSBhbnkNCmVmZmVjdCBvbiBzcGFyYy4N
+Cg0KMi4gU2ltcGx5IGZsdXNoaW5nIHRoZSBUTEIgaW5zdGVhZCBvZiB0aGUgd2hvbGUgdm1fdW5t
+YXBfYWxpYXMoKQ0Kb3BlcmF0aW9uIG1ha2VzIHRoZSBmcmVlcyBmYXN0ZXIgYW5kIHB1c2hlcyB0
+aGUgaGVhdnkgd29yayB0byBoYXBwZW4gb24NCmFsbG9jYXRpb24gd2hlcmUgaXQgd291bGQgYmUg
+bW9yZSBleHBlY3RlZC4gdm1fdW5tYXBfYWxpYXMoKSB0YWtlcyBzb21lDQpsb2NrcyBpbmNsdWRp
+bmcgYSBsb25nIGhvbGQgb2Ygdm1hcF9wdXJnZV9sb2NrLCB3aGljaCB3aWxsIG1ha2UgYWxsDQpv
+dGhlciBWTV9GTFVTSF9SRVNFVF9QRVJNUyB2ZnJlZXMgd2FpdCB3aGlsZSB0aGUgcHVyZ2Ugb3Bl
+cmF0aW9uDQpoYXBwZW5zLg0KDQoNClRoZSBpc3N1ZSBvYnNlcnZlZCBvbiBhbiBVbHRyYVNwYXJj
+IElJSSBzeXN0ZW0gd2FzIGEgaGFuZyBvbiBib290LiBUaGUNCm9ubHkgc2lnbmlmaWNhbnQgZGlm
+ZmVyZW5jZSBJIGNhbiBmaW5kIGluIGhvdyBTcGFyYyB3b3JrcyBpbiB0aGlzIGFyZWENCmlzIHRo
+YXQgdGhlcmUgaXMgYWN0dWFsbHkgc3BlY2lhbCBvcHRpbWl6YXRpb24gaW4gdGhlIFRMQiBmbHVz
+aCBmb3INCmhhbmRsaW5nIHZtYWxsb2MgbGF6eSBwdXJnZSBvcGVyYXRpb25zLg0KDQpTb21lIGZp
+cm13YXJlIG1hcHBpbmdzIGxpdmUgYmV0d2VlbiB0aGUgbW9kdWxlcyBhbmQgdm1hbGxvYyByYW5n
+ZXMsIGFuZA0KaWYgdGhlaXIgdHJhbnNsYXRpb25zIGFyZSBmbHVzaGVkIGNhbiBjYXVzZSAiaGFy
+ZCBoYW5ncyBhbmQgY3Jhc2hlcw0KWzFdLiBBZGRpdGlvbmFsbHkgaW4gdGhlIG1peCwgInNwYXJj
+NjQga2VybmVsIGxlYXJucyBhYm91dA0Kb3BlbmZpcm13YXJlJ3MgZHluYW1pYyBtYXBwaW5ncyBp
+biB0aGlzIHJlZ2lvbiBlYXJseSBpbiB0aGUgYm9vdCwgYW5kDQp0aGVuIHNlcnZpY2VzIFRMQiBt
+aXNzZXMgaW4gdGhpcyBhcmVhIi5bMV0gVGhlIGZpcm13YXJlIHByb3RlY3Rpb24NCmxvZ2ljIHNl
+ZW1zIHRvIGJlIGluIHBsYWNlLCBob3dldmVyIGxhdGVyIGFub3RoZXIgY2hhbmdlIHdhcyBtYWRl
+IGluDQp0aGUgbG93ZXIgYXNtIHRvIGRvIGEgImZsdXNoIGFsbCIgaWYgdGhlIHJhbmdlIHdhcyBi
+aWcgZW5vdWdoIG9uIHRoaXMNCmNwdSBbMl0uIFdpdGggdGhlIGFkdmVudCBvZiB0aGUgY2hhbmdl
+IHRoaXMgcGF0Y2ggYWRkcmVzc2VzLCB0aGUgcHVyZ2UNCm9wZXJhdGlvbnMgd291bGQgYmUgaGFw
+cGVuaW5nIG11Y2ggZWFybGllciB0aGFuIGJlZm9yZSwgd2l0aCB0aGUgZmlyc3QNCnNwZWNpYWwg
+cGVybWlzc2lvbmVkIHZmcmVlLCBpbnN0ZWFkIG9mIGFmdGVyIHRoZSBtYWNoaW5lIGhhcyBiZWVu
+DQpydW5uaW5nIGZvciBzb21lIHRpbWUgYW5kIHRoZSB2bWFsbG9jIHNwYWNlcyBoYWQgYmVjb21l
+IGZyYWdtZW50ZWQuDQoNClNvIG15IGJlc3QgdGhlb3J5IGlzIHRoYXQgdGhlIGhpc3Rvcnkgb2Yg
+dm1hbGxvYyBsYXp5IHB1cmdlcyBjYXVzaW5nDQpoYW5ncyBvbiB0aGUgc3BhcmMgaGFzIGNvbWUg
+aW50byBwbGF5IGhlcmUgc29tZWhvdywgdHJpZ2dlcmVkIGJ5IHRoYXQNCndlIHdlcmUgZG9pbmcg
+dGhlIHB1cmdlcyBtdWNoIGVhcmxpZXIuIElmIGl0IHdhcyBzb21ldGhpbmcgbGlrZSB0aGlzLA0K
+dGhlIGZhY3QgdGhhdCB3ZSBpbnN0ZWFkIG9ubHkgZmx1c2ggdGhlIHNtYWxsIGFsbG9jYXRpb24g
+aXRzZWxmIG9uDQpzcGFyYyBhZnRlciB0aGlzIHBhdGNoIHdvdWxkIGJlIHRoZSByZWFzb24gd2h5
+IGl0IGZpeGVzIGl0Lg0KDQpBZG1pdHRlZGx5LCB0aGVyZSBhcmUgc29tZSBtaXNzaW5nIHBpZWNl
+cyBpbiB0aGUgdGhlb3J5LiBJZiB0aGVyZSBhcmUNCmFueSBzcGFyYyBhcmNoaXRlY3R1cmUgZXhw
+ZXJ0cyB0aGF0IGNhbiBoZWxwIGVubGlnaHRlbiBtZSBpZiB0aGlzDQpzb3VuZHMgcmVhc29uYWJs
+ZSBhdCBhbGwgSSB3b3VsZCByZWFsbHkgYXBwcmVjaWF0ZSBpdC4NCg0KVGhhbmtzLA0KDQpSaWNr
+DQoNClsxXSBodHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzM3NjUyMy8NClsyXSBo
+dHRwczovL3BhdGNod29yay5vemxhYnMub3JnL3BhdGNoLzY4Nzc4MC8gDQoNCg=
