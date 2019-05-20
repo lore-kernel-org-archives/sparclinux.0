@@ -1,22 +1,58 @@
-From: "Yuehan Pan" <admin@linjama.gq>
-Date: Sun, 26 May 2019 16:13:20 +0000
-Subject: i will be waiting for your response
-Message-Id: <2fb5cdbbfcf7431bf5ba70122b8c6eb9.squirrel@128.199.32.115>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Mon, 20 May 2019 23:38:40 +0000
+Subject: [PATCH v2 1/2] vmalloc: Fix calculation of direct map addr range
+Message-Id: <20190520233841.17194-2-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190520233841.17194-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20190520233841.17194-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, peterz@infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, luto@amacapital.net
+Cc: dave.hansen@intel.com, namit@vmware.com, davem@davemloft.net, Rick Edgecombe <redgecombe.lkml@gmail.com>, Meelis Roos <mroos@linux.ee>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>, Rick Edgecombe <rick.p.edgecombe@intel.com>
 
+From: Rick Edgecombe <redgecombe.lkml@gmail.com>
 
+The calculation of the direct map address range to flush was wrong.
+This could cause problems on x86 if a RO direct map alias ever got loaded
+into the TLB. This shouldn't normally happen, but it could cause the
+permissions to remain RO on the direct map alias, and then the page
+would return from the page allocator to some other component as RO and
+cause a crash.
 
+So fix fix the address range calculation so the flush will include the
+direct map range.
 
-Good day,
-I am Yuehan Pan, Chief Financial Officer of the Bank of China
-I am looking for a manager / investment partner who will work with me for
-a joint venture.
-Contact me in my private email for more details.
-email (yuehanpan03@gmail.com)
-Waiting to hear from you.
-Thank you,
-Yuehan Pan
+Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nadav Amit <namit@vmware.com>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+---
+ mm/vmalloc.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index c42872ed82ac..836888ae01f6 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2159,9 +2159,10 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * the vm_unmap_aliases() flush includes the direct map.
+ 	 */
+ 	for (i = 0; i < area->nr_pages; i++) {
+-		if (page_address(area->pages[i])) {
++		addr = (unsigned long)page_address(area->pages[i]);
++		if (addr) {
+ 			start = min(addr, start);
+-			end = max(addr, end);
++			end = max(addr + PAGE_SIZE, end);
+ 		}
+ 	}
+ 
+-- 
+2.20.1
