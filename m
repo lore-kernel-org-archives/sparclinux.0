@@ -1,37 +1,124 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 24 May 2019 20:42:43 +0000
-Subject: Re: Making MAX_PHYS_ADDRESS_BITS configurable
-Message-Id: <20190524.134243.691473240566371408.davem@davemloft.net>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Mon, 20 May 2019 20:07:03 +0000
+Subject: [PATCH v2] vmalloc: Fix issues with flush flag
+Message-Id: <20190520200703.15997-1-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <2be3335c-1870-9867-0f25-01cf798ca84b@physik.fu-berlin.de>
-In-Reply-To: <2be3335c-1870-9867-0f25-01cf798ca84b@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, peterz@infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org
+Cc: dave.hansen@intel.com, namit@vmware.com, Rick Edgecombe <rick.p.edgecombe@intel.com>, Meelis Roos <mroos@linux.ee>, "David S. Miller" <davem@davemloft.net>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>
 
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Fri, 24 May 2019 20:51:33 +0200
+Switch VM_FLUSH_RESET_PERMS to use a regular TLB flush intead of
+vm_unmap_aliases() and fix calculation of the direct map for the
+CONFIG_ARCH_HAS_SET_DIRECT_MAP case.
 
-> On 5/24/19 6:20 PM, David Miller wrote:
->>> On the other hand, arm64 currently allows the virtual address size
->>> to be configurable, currently defaulting to 48 bits [2, 3]. I was
->>> therefore wondering whether we could make MAX_PHYS_ADDRESS_BITS [4]
->>> configurable as well to be able to support these JITs on
->>> Debian/sparc64 for the foreseeable future by limiting the virtual
->>> address space to 47 or 48 bits.
->> 
->> You can't just do this.
->> 
->> It is possible that all physical memory is mapped to the top of the
->> mappable physical address range, therefore we really need to use the
->> full maximum setting supported by the CPU.
-> 
-> Yes, my initial mail was incorrect. What I actually meant was reducing
-> the size of the va_hole in userspace so that the top-most address that
-> mmap() would return is not beyond 2^47.
-> 
-> Would it be possible to add such a workaround until the JITs have fixed
-> their broken code?
+Meelis Roos reported issues with the new VM_FLUSH_RESET_PERMS flag on a
+sparc machine. On investigation some issues were noticed:
 
-I suppose that's doable, sure.
+1. The calculation of the direct map address range to flush was wrong.
+This could cause problems on x86 if a RO direct map alias ever got loaded
+into the TLB. This shouldn't normally happen, but it could cause the
+permissions to remain RO on the direct map alias, and then the page
+would return from the page allocator to some other component as RO and
+cause a crash.
+
+2. Calling vm_unmap_alias() on vfree could potentially be a lot of work to
+do on a free operation. Simply flushing the TLB instead of the whole
+vm_unmap_alias() operation makes the frees faster and pushes the heavy
+work to happen on allocation where it would be more expected.
+In addition to the extra work, vm_unmap_alias() takes some locks including
+a long hold of vmap_purge_lock, which will make all other
+VM_FLUSH_RESET_PERMS vfrees wait while the purge operation happens.
+
+3. page_address() can have locking on some configurations, so skip calling
+this when possible to further speed this up.
+
+Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
+Reported-by: Meelis Roos <mroos@linux.ee>
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nadav Amit <namit@vmware.com>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+---
+
+Changes since v1:
+ - Update commit message with more detail
+ - Fix flush end range on !CONFIG_ARCH_HAS_SET_DIRECT_MAP case
+
+ mm/vmalloc.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index c42872ed82ac..8d03427626dc 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2122,9 +2122,10 @@ static inline void set_area_direct_map(const struct vm_struct *area,
+ /* Handle removing and resetting vm mappings related to the vm_struct. */
+ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ {
++	const bool has_set_direct = IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP);
++	const bool flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
+ 	unsigned long addr = (unsigned long)area->addr;
+-	unsigned long start = ULONG_MAX, end = 0;
+-	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
++	unsigned long start = addr, end = addr + area->size;
+ 	int i;
+ 
+ 	/*
+@@ -2133,7 +2134,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * This is concerned with resetting the direct map any an vm alias with
+ 	 * execute permissions, without leaving a RW+X window.
+ 	 */
+-	if (flush_reset && !IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++	if (flush_reset && !has_set_direct) {
+ 		set_memory_nx(addr, area->nr_pages);
+ 		set_memory_rw(addr, area->nr_pages);
+ 	}
+@@ -2146,22 +2147,24 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 
+ 	/*
+ 	 * If not deallocating pages, just do the flush of the VM area and
+-	 * return.
++	 * return. If the arch doesn't have set_direct_map_(), also skip the
++	 * below work.
+ 	 */
+-	if (!deallocate_pages) {
+-		vm_unmap_aliases();
++	if (!deallocate_pages || !has_set_direct) {
++		flush_tlb_kernel_range(start, end);
+ 		return;
+ 	}
+ 
+ 	/*
+ 	 * If execution gets here, flush the vm mapping and reset the direct
+ 	 * map. Find the start and end range of the direct mappings to make sure
+-	 * the vm_unmap_aliases() flush includes the direct map.
++	 * the flush_tlb_kernel_range() includes the direct map.
+ 	 */
+ 	for (i = 0; i < area->nr_pages; i++) {
+-		if (page_address(area->pages[i])) {
++		addr = (unsigned long)page_address(area->pages[i]);
++		if (addr) {
+ 			start = min(addr, start);
+-			end = max(addr, end);
++			end = max(addr + PAGE_SIZE, end);
+ 		}
+ 	}
+ 
+@@ -2171,7 +2174,7 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * reset the direct map permissions to the default.
+ 	 */
+ 	set_area_direct_map(area, set_direct_map_invalid_noflush);
+-	_vm_unmap_aliases(start, end, 1);
++	flush_tlb_kernel_range(start, end);
+ 	set_area_direct_map(area, set_direct_map_default_noflush);
+ }
+ 
+-- 
+2.20.1
