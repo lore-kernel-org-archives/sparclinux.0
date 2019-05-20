@@ -1,179 +1,374 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 07 May 2019 05:37:25 +0000
-Subject: [PATCH AUTOSEL 4.14 36/95] sparc64: Make corrupted user stacks more debuggable.
-Message-Id: <20190507053826.31622-36-sashal@kernel.org>
+From: Christian Brauner <christian@brauner.io>
+Date: Mon, 20 May 2019 13:46:05 +0000
+Subject: [PATCH v2 2/2] tests: add pidfd_open() tests
+Message-Id: <20190520134605.29116-2-christian@brauner.io>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190507053826.31622-1-sashal@kernel.org>
-In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+References: <20190520134605.29116-1-christian@brauner.io>
+In-Reply-To: <20190520134605.29116-1-christian@brauner.io>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: David Miller <davem@redhat.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <alexander.levin@microsoft.com>, sparclinux@vger.kernel.org
+To: jannh@google.com, oleg@redhat.com, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, arnd@arndb.de
+Cc: akpm@linux-foundation.org, cyphar@cyphar.com, dhowells@redhat.com, ebiederm@xmission.com, elena.reshetova@intel.com, keescook@chromium.org, luto@amacapital.net, luto@kernel.org, tglx@linutronix.de, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, joel@joelfernandes.org, dancol@google.com, serge@hallyn.com, surenb@google.com, kernel-team@android.com, Christian Brauner <christian@brauner.io>, man-pages <Michael>
 
-From: David Miller <davem@redhat.com>
+This adds testing for the new pidfd_open() syscalls. Specifically, we test:
+- that no invalid flags can be passed to pidfd_open()
+- that no invalid pid can be passed to pidfd_open()
+- that a pidfd can be retrieved with pidfd_open()
+- that the retrieved pidfd references the correct pid
 
-[ Upstream commit 5b4fc3882a649c9411dd0dcad2ddb78e911d340e ]
-
-Right now if we get a corrupted user stack frame we do a
-do_exit(SIGILL) which is not helpful.
-
-If under a debugger, this behavior causes the inferior process to
-exit.  So the register and other state cannot be examined at the time
-of the event.
-
-Instead, conditionally log a rate limited kernel log message and then
-force a SIGSEGV.
-
-With bits and ideas borrowed (as usual) from powerpc.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Signed-off-by: Christian Brauner <christian@brauner.io>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Cc: Andy Lutomirsky <luto@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-api@vger.kernel.org
 ---
- arch/sparc/include/asm/switch_to_64.h |  3 ++-
- arch/sparc/kernel/process_64.c        | 25 +++++++++++++++++++------
- arch/sparc/kernel/rtrap_64.S          |  1 +
- arch/sparc/kernel/signal32.c          | 12 ++++++++++--
- arch/sparc/kernel/signal_64.c         |  6 +++++-
- 5 files changed, 37 insertions(+), 10 deletions(-)
+v1: unchanged
+v2:
+- Christian Brauner <christian@brauner.io>:
+  - set number of planned tests via ksft_set_plan()
+---
+ tools/testing/selftests/pidfd/Makefile        |   2 +-
+ tools/testing/selftests/pidfd/pidfd.h         |  57 ++++++
+ .../testing/selftests/pidfd/pidfd_open_test.c | 169 ++++++++++++++++++
+ tools/testing/selftests/pidfd/pidfd_test.c    |  41 +----
+ 4 files changed, 228 insertions(+), 41 deletions(-)
+ create mode 100644 tools/testing/selftests/pidfd/pidfd.h
+ create mode 100644 tools/testing/selftests/pidfd/pidfd_open_test.c
 
-diff --git a/arch/sparc/include/asm/switch_to_64.h b/arch/sparc/include/asm/switch_to_64.h
-index 4ff29b1406a9..b1d4e2e3210f 100644
---- a/arch/sparc/include/asm/switch_to_64.h
-+++ b/arch/sparc/include/asm/switch_to_64.h
-@@ -67,6 +67,7 @@ do {	save_and_clear_fpu();						\
- } while(0)
+diff --git a/tools/testing/selftests/pidfd/Makefile b/tools/testing/selftests/pidfd/Makefile
+index deaf8073bc06..b36c0be70848 100644
+--- a/tools/testing/selftests/pidfd/Makefile
++++ b/tools/testing/selftests/pidfd/Makefile
+@@ -1,6 +1,6 @@
+ CFLAGS += -g -I../../../../usr/include/
  
- void synchronize_user_stack(void);
--void fault_in_user_windows(void);
-+struct pt_regs;
-+void fault_in_user_windows(struct pt_regs *);
+-TEST_GEN_PROGS := pidfd_test
++TEST_GEN_PROGS := pidfd_test pidfd_open_test
  
- #endif /* __SPARC64_SWITCH_TO_64_H */
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 318efd784a0b..5640131e2abf 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -36,6 +36,7 @@
- #include <linux/sysrq.h>
- #include <linux/nmi.h>
- #include <linux/context_tracking.h>
-+#include <linux/signal.h>
+ include ../lib.mk
  
- #include <linux/uaccess.h>
- #include <asm/page.h>
-@@ -528,7 +529,12 @@ static void stack_unaligned(unsigned long sp)
- 	force_sig_info(SIGBUS, &info, current);
- }
- 
--void fault_in_user_windows(void)
-+static const char uwfault32[] = KERN_INFO \
-+	"%s[%d]: bad register window fault: SP %08lx (orig_sp %08lx) TPC %08lx O7 %08lx\n";
-+static const char uwfault64[] = KERN_INFO \
-+	"%s[%d]: bad register window fault: SP %016lx (orig_sp %016lx) TPC %08lx O7 %016lx\n";
+diff --git a/tools/testing/selftests/pidfd/pidfd.h b/tools/testing/selftests/pidfd/pidfd.h
+new file mode 100644
+index 000000000000..8452e910463f
+--- /dev/null
++++ b/tools/testing/selftests/pidfd/pidfd.h
+@@ -0,0 +1,57 @@
++/* SPDX-License-Identifier: GPL-2.0 */
 +
-+void fault_in_user_windows(struct pt_regs *regs)
- {
- 	struct thread_info *t = current_thread_info();
- 	unsigned long window;
-@@ -541,9 +547,9 @@ void fault_in_user_windows(void)
- 		do {
- 			struct reg_window *rwin = &t->reg_window[window];
- 			int winsize = sizeof(struct reg_window);
--			unsigned long sp;
-+			unsigned long sp, orig_sp;
++#ifndef __PIDFD_H
++#define __PIDFD_H
++
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <sched.h>
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <syscall.h>
++#include <sys/mount.h>
++
++#include "../kselftest.h"
++
++/*
++ * The kernel reserves 300 pids via RESERVED_PIDS in kernel/pid.c
++ * That means, when it wraps around any pid < 300 will be skipped.
++ * So we need to use a pid > 300 in order to test recycling.
++ */
++#define PID_RECYCLE 1000
++
++/*
++ * Define a few custom error codes for the child process to clearly indicate
++ * what is happening. This way we can tell the difference between a system
++ * error, a test error, etc.
++ */
++#define PIDFD_PASS 0
++#define PIDFD_FAIL 1
++#define PIDFD_ERROR 2
++#define PIDFD_SKIP 3
++#define PIDFD_XFAIL 4
++
++int wait_for_pid(pid_t pid)
++{
++	int status, ret;
++
++again:
++	ret = waitpid(pid, &status, 0);
++	if (ret = -1) {
++		if (errno = EINTR)
++			goto again;
++
++		return -1;
++	}
++
++	if (!WIFEXITED(status))
++		return -1;
++
++	return WEXITSTATUS(status);
++}
++
++
++#endif /* __PIDFD_H */
+diff --git a/tools/testing/selftests/pidfd/pidfd_open_test.c b/tools/testing/selftests/pidfd/pidfd_open_test.c
+new file mode 100644
+index 000000000000..0377133dd6dc
+--- /dev/null
++++ b/tools/testing/selftests/pidfd/pidfd_open_test.c
+@@ -0,0 +1,169 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <inttypes.h>
++#include <limits.h>
++#include <linux/types.h>
++#include <linux/wait.h>
++#include <sched.h>
++#include <signal.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <syscall.h>
++#include <sys/mount.h>
++#include <sys/prctl.h>
++#include <sys/wait.h>
++#include <unistd.h>
++
++#include "pidfd.h"
++#include "../kselftest.h"
++
++static inline int sys_pidfd_open(pid_t pid, unsigned int flags)
++{
++	return syscall(__NR_pidfd_open, pid, flags);
++}
++
++static int safe_int(const char *numstr, int *converted)
++{
++	char *err = NULL;
++	long sli;
++
++	errno = 0;
++	sli = strtol(numstr, &err, 0);
++	if (errno = ERANGE && (sli = LONG_MAX || sli = LONG_MIN))
++		return -ERANGE;
++
++	if (errno != 0 && sli = 0)
++		return -EINVAL;
++
++	if (err = numstr || *err != '\0')
++		return -EINVAL;
++
++	if (sli > INT_MAX || sli < INT_MIN)
++		return -ERANGE;
++
++	*converted = (int)sli;
++	return 0;
++}
++
++static int char_left_gc(const char *buffer, size_t len)
++{
++	size_t i;
++
++	for (i = 0; i < len; i++) {
++		if (buffer[i] = ' ' ||
++		    buffer[i] = '\t')
++			continue;
++
++		return i;
++	}
++
++	return 0;
++}
++
++static int char_right_gc(const char *buffer, size_t len)
++{
++	int i;
++
++	for (i = len - 1; i >= 0; i--) {
++		if (buffer[i] = ' '  ||
++		    buffer[i] = '\t' ||
++		    buffer[i] = '\n' ||
++		    buffer[i] = '\0')
++			continue;
++
++		return i + 1;
++	}
++
++	return 0;
++}
++
++static char *trim_whitespace_in_place(char *buffer)
++{
++	buffer += char_left_gc(buffer, strlen(buffer));
++	buffer[char_right_gc(buffer, strlen(buffer))] = '\0';
++	return buffer;
++}
++
++static pid_t get_pid_from_fdinfo_file(int pidfd, const char *key, size_t keylen)
++{
++	int ret;
++	char path[512];
++	FILE *f;
++	size_t n = 0;
++	pid_t result = -1;
++	char *line = NULL;
++
++	snprintf(path, sizeof(path), "/proc/self/fdinfo/%d", pidfd);
++
++	f = fopen(path, "re");
++	if (!f)
++		return -1;
++
++	while (getline(&line, &n, f) != -1) {
++		char *numstr;
++
++		if (strncmp(line, key, keylen))
++			continue;
++
++		numstr = trim_whitespace_in_place(line + 4);
++		ret = safe_int(numstr, &result);
++		if (ret < 0)
++			goto out;
++
++		break;
++	}
++
++out:
++	free(line);
++	fclose(f);
++	return result;
++}
++
++int main(int argc, char **argv)
++{
++	int pidfd = -1, ret = 1;
++	pid_t pid;
++
++	ksft_set_plan(3);
++
++	pidfd = sys_pidfd_open(-1, 0);
++	if (pidfd >= 0) {
++		ksft_print_msg(
++			"%s - succeeded to open pidfd for invalid pid -1\n",
++			strerror(errno));
++		goto on_error;
++	}
++	ksft_test_result_pass("do not allow invalid pid test: passed\n");
++
++	pidfd = sys_pidfd_open(getpid(), 1);
++	if (pidfd >= 0) {
++		ksft_print_msg(
++			"%s - succeeded to open pidfd with invalid flag value specified\n",
++			strerror(errno));
++		goto on_error;
++	}
++	ksft_test_result_pass("do not allow invalid flag test: passed\n");
++
++	pidfd = sys_pidfd_open(getpid(), 0);
++	if (pidfd < 0) {
++		ksft_print_msg("%s - failed to open pidfd\n", strerror(errno));
++		goto on_error;
++	}
++	ksft_test_result_pass("open a new pidfd test: passed\n");
++
++	pid = get_pid_from_fdinfo_file(pidfd, "Pid:", sizeof("Pid:") - 1);
++	ksft_print_msg("pidfd %d refers to process with pid %d\n", pidfd, pid);
++
++	ret = 0;
++
++on_error:
++	if (pidfd >= 0)
++		close(pidfd);
++
++	return !ret ? ksft_exit_pass() : ksft_exit_fail();
++}
+diff --git a/tools/testing/selftests/pidfd/pidfd_test.c b/tools/testing/selftests/pidfd/pidfd_test.c
+index 5bae1792e3d6..a03387052aa7 100644
+--- a/tools/testing/selftests/pidfd/pidfd_test.c
++++ b/tools/testing/selftests/pidfd/pidfd_test.c
+@@ -14,6 +14,7 @@
+ #include <sys/wait.h>
+ #include <unistd.h>
  
--			sp = t->rwbuf_stkptrs[window];
-+			orig_sp = sp = t->rwbuf_stkptrs[window];
++#include "pidfd.h"
+ #include "../kselftest.h"
  
- 			if (test_thread_64bit_stack(sp))
- 				sp += STACK_BIAS;
-@@ -554,8 +560,16 @@ void fault_in_user_windows(void)
- 				stack_unaligned(sp);
- 
- 			if (unlikely(copy_to_user((char __user *)sp,
--						  rwin, winsize)))
-+						  rwin, winsize))) {
-+				if (show_unhandled_signals)
-+					printk_ratelimited(is_compat_task() ?
-+							   uwfault32 : uwfault64,
-+							   current->comm, current->pid,
-+							   sp, orig_sp,
-+							   regs->tpc,
-+							   regs->u_regs[UREG_I7]);
- 				goto barf;
-+			}
- 		} while (window--);
- 	}
- 	set_thread_wsaved(0);
-@@ -563,8 +577,7 @@ void fault_in_user_windows(void)
- 
- barf:
- 	set_thread_wsaved(window + 1);
--	user_exit();
--	do_exit(SIGILL);
-+	force_sig(SIGSEGV, current);
+ static inline int sys_pidfd_send_signal(int pidfd, int sig, siginfo_t *info,
+@@ -62,28 +63,6 @@ static int test_pidfd_send_signal_simple_success(void)
+ 	return 0;
  }
  
- asmlinkage long sparc_do_fork(unsigned long clone_flags,
-diff --git a/arch/sparc/kernel/rtrap_64.S b/arch/sparc/kernel/rtrap_64.S
-index 0b21042ab181..ad88d60bb740 100644
---- a/arch/sparc/kernel/rtrap_64.S
-+++ b/arch/sparc/kernel/rtrap_64.S
-@@ -30,6 +30,7 @@ __handle_preemption:
- 		 wrpr			%g0, RTRAP_PSTATE_IRQOFF, %pstate
+-static int wait_for_pid(pid_t pid)
+-{
+-	int status, ret;
+-
+-again:
+-	ret = waitpid(pid, &status, 0);
+-	if (ret = -1) {
+-		if (errno = EINTR)
+-			goto again;
+-
+-		return -1;
+-	}
+-
+-	if (ret != pid)
+-		goto again;
+-
+-	if (!WIFEXITED(status))
+-		return -1;
+-
+-	return WEXITSTATUS(status);
+-}
+-
+ static int test_pidfd_send_signal_exited_fail(void)
+ {
+ 	int pidfd, ret, saved_errno;
+@@ -128,13 +107,6 @@ static int test_pidfd_send_signal_exited_fail(void)
+ 	return 0;
+ }
  
- __handle_user_windows:
-+		add			%sp, PTREGS_OFF, %o0
- 		call			fault_in_user_windows
- 		 wrpr			%g0, RTRAP_PSTATE, %pstate
- 		ba,pt			%xcc, __handle_preemption_continue
-diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-index 5c572de64c74..879f8d86bc21 100644
---- a/arch/sparc/kernel/signal32.c
-+++ b/arch/sparc/kernel/signal32.c
-@@ -442,7 +442,11 @@ static int setup_frame32(struct ksignal *ksig, struct pt_regs *regs,
- 		get_sigframe(ksig, regs, sigframe_size);
- 	
- 	if (invalid_frame_pointer(sf, sigframe_size)) {
--		do_exit(SIGILL);
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_frame32: %08lx TPC %08lx O7 %08lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
+-/*
+- * The kernel reserves 300 pids via RESERVED_PIDS in kernel/pid.c
+- * That means, when it wraps around any pid < 300 will be skipped.
+- * So we need to use a pid > 300 in order to test recycling.
+- */
+-#define PID_RECYCLE 1000
+-
+ /*
+  * Maximum number of cycles we allow. This is equivalent to PID_MAX_DEFAULT.
+  * If users set a higher limit or we have cycled PIDFD_MAX_DEFAULT number of
+@@ -143,17 +115,6 @@ static int test_pidfd_send_signal_exited_fail(void)
+  */
+ #define PIDFD_MAX_DEFAULT 0x8000
  
-@@ -573,7 +577,11 @@ static int setup_rt_frame32(struct ksignal *ksig, struct pt_regs *regs,
- 		get_sigframe(ksig, regs, sigframe_size);
- 	
- 	if (invalid_frame_pointer(sf, sigframe_size)) {
--		do_exit(SIGILL);
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_rt_frame32: %08lx TPC %08lx O7 %08lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
- 
-diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index 20426a1c28f2..2d0a50bde3f9 100644
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -373,7 +373,11 @@ setup_rt_frame(struct ksignal *ksig, struct pt_regs *regs)
- 		get_sigframe(ksig, regs, sf_size);
- 
- 	if (invalid_frame_pointer (sf)) {
--		do_exit(SIGILL);	/* won't return, actually */
-+		if (show_unhandled_signals)
-+			pr_info("%s[%d] bad frame in setup_rt_frame: %016lx TPC %016lx O7 %016lx\n",
-+				current->comm, current->pid, (unsigned long)sf,
-+				regs->tpc, regs->u_regs[UREG_I7]);
-+		force_sigsegv(ksig->sig, current);
- 		return -EINVAL;
- 	}
- 
+-/*
+- * Define a few custom error codes for the child process to clearly indicate
+- * what is happening. This way we can tell the difference between a system
+- * error, a test error, etc.
+- */
+-#define PIDFD_PASS 0
+-#define PIDFD_FAIL 1
+-#define PIDFD_ERROR 2
+-#define PIDFD_SKIP 3
+-#define PIDFD_XFAIL 4
+-
+ static int test_pidfd_send_signal_recycled_pid_fail(void)
+ {
+ 	int i, ret;
 -- 
-2.20.1
+2.21.0
