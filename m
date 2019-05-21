@@ -1,36 +1,53 @@
-From: Andy Lutomirski <luto@kernel.org>
-Date: Tue, 21 May 2019 16:17:32 +0000
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Tue, 21 May 2019 16:51:52 +0000
 Subject: Re: [PATCH v2 2/2] vmalloc: Remove work as from vfree path
-Message-Id: <CALCETrUdfBrTV3kMjdVHv2JDtEOGSkVvoV++96x4zjvue0GpZA@mail.gmail.com>
+Message-Id: <4e353614f017c7c13a21d168992852dae1762aba.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190520233841.17194-1-rick.p.edgecombe@intel.com> <20190520233841.17194-3-rick.p.edgecombe@intel.com>
-In-Reply-To: <20190520233841.17194-3-rick.p.edgecombe@intel.com>
+References: <20190520233841.17194-1-rick.p.edgecombe@intel.com>
+	 <20190520233841.17194-3-rick.p.edgecombe@intel.com>
+	 <CALCETrUdfBrTV3kMjdVHv2JDtEOGSkVvoV++96x4zjvue0GpZA@mail.gmail.com>
+In-Reply-To: <CALCETrUdfBrTV3kMjdVHv2JDtEOGSkVvoV++96x4zjvue0GpZA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, sparclinux <sparclinux@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, Network Development <netdev@vger.kernel.org>, Dave Hansen <dave.hansen@intel.com>, Nadav Amit <namit@vmware.com>, "David S. Miller" <davem@davemloft.net>, Rick Edgecombe <redgecombe.lkml@gmail.com>, Meelis Roos <mroos@linux.ee>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>
+To: "luto@kernel.org" <luto@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "mroos@linux.ee" <mroos@linux.ee>, "redgecombe.lkml@gmail.com" <redgecombe.lkml@gmail.com>, "mingo@redhat.com" <mingo@redhat.com>, "namit@vmware.com" <namit@vmware.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "bp@alien8.de" <bp@alien8.de>, "davem@davemloft.net" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
 
-On Mon, May 20, 2019 at 4:39 PM Rick Edgecombe
-<rick.p.edgecombe@intel.com> wrote:
->
-> From: Rick Edgecombe <redgecombe.lkml@gmail.com>
->
-> Calling vm_unmap_alias() in vm_remove_mappings() could potentially be a
-> lot of work to do on a free operation. Simply flushing the TLB instead of
-> the whole vm_unmap_alias() operation makes the frees faster and pushes
-> the heavy work to happen on allocation where it would be more expected.
-> In addition to the extra work, vm_unmap_alias() takes some locks including
-> a long hold of vmap_purge_lock, which will make all other
-> VM_FLUSH_RESET_PERMS vfrees wait while the purge operation happens.
->
-> Lastly, page_address() can involve locking and lookups on some
-> configurations, so skip calling this by exiting out early when
-> !CONFIG_ARCH_HAS_SET_DIRECT_MAP.
-
-Hmm.  I would have expected that the major cost of vm_unmap_aliases()
-would be the flush, and at least informing the code that the flush
-happened seems valuable.  So would guess that this patch is actually a
-loss in throughput.
-
---Andy
+T24gVHVlLCAyMDE5LTA1LTIxIGF0IDA5OjE3IC0wNzAwLCBBbmR5IEx1dG9taXJza2kgd3JvdGU6
+DQo+IE9uIE1vbiwgTWF5IDIwLCAyMDE5IGF0IDQ6MzkgUE0gUmljayBFZGdlY29tYmUNCj4gPHJp
+Y2sucC5lZGdlY29tYmVAaW50ZWwuY29tPiB3cm90ZToNCj4gPiBGcm9tOiBSaWNrIEVkZ2Vjb21i
+ZSA8cmVkZ2Vjb21iZS5sa21sQGdtYWlsLmNvbT4NCj4gPiANCj4gPiBDYWxsaW5nIHZtX3VubWFw
+X2FsaWFzKCkgaW4gdm1fcmVtb3ZlX21hcHBpbmdzKCkgY291bGQgcG90ZW50aWFsbHkNCj4gPiBi
+ZSBhDQo+ID4gbG90IG9mIHdvcmsgdG8gZG8gb24gYSBmcmVlIG9wZXJhdGlvbi4gU2ltcGx5IGZs
+dXNoaW5nIHRoZSBUTEINCj4gPiBpbnN0ZWFkIG9mDQo+ID4gdGhlIHdob2xlIHZtX3VubWFwX2Fs
+aWFzKCkgb3BlcmF0aW9uIG1ha2VzIHRoZSBmcmVlcyBmYXN0ZXIgYW5kDQo+ID4gcHVzaGVzDQo+
+ID4gdGhlIGhlYXZ5IHdvcmsgdG8gaGFwcGVuIG9uIGFsbG9jYXRpb24gd2hlcmUgaXQgd291bGQg
+YmUgbW9yZQ0KPiA+IGV4cGVjdGVkLg0KPiA+IEluIGFkZGl0aW9uIHRvIHRoZSBleHRyYSB3b3Jr
+LCB2bV91bm1hcF9hbGlhcygpIHRha2VzIHNvbWUgbG9ja3MNCj4gPiBpbmNsdWRpbmcNCj4gPiBh
+IGxvbmcgaG9sZCBvZiB2bWFwX3B1cmdlX2xvY2ssIHdoaWNoIHdpbGwgbWFrZSBhbGwgb3RoZXIN
+Cj4gPiBWTV9GTFVTSF9SRVNFVF9QRVJNUyB2ZnJlZXMgd2FpdCB3aGlsZSB0aGUgcHVyZ2Ugb3Bl
+cmF0aW9uIGhhcHBlbnMuDQo+ID4gDQo+ID4gTGFzdGx5LCBwYWdlX2FkZHJlc3MoKSBjYW4gaW52
+b2x2ZSBsb2NraW5nIGFuZCBsb29rdXBzIG9uIHNvbWUNCj4gPiBjb25maWd1cmF0aW9ucywgc28g
+c2tpcCBjYWxsaW5nIHRoaXMgYnkgZXhpdGluZyBvdXQgZWFybHkgd2hlbg0KPiA+ICFDT05GSUdf
+QVJDSF9IQVNfU0VUX0RJUkVDVF9NQVAuDQo+IA0KPiBIbW0uICBJIHdvdWxkIGhhdmUgZXhwZWN0
+ZWQgdGhhdCB0aGUgbWFqb3IgY29zdCBvZiB2bV91bm1hcF9hbGlhc2VzKCkNCj4gd291bGQgYmUg
+dGhlIGZsdXNoLCBhbmQgYXQgbGVhc3QgaW5mb3JtaW5nIHRoZSBjb2RlIHRoYXQgdGhlIGZsdXNo
+DQo+IGhhcHBlbmVkIHNlZW1zIHZhbHVhYmxlLiAgU28gd291bGQgZ3Vlc3MgdGhhdCB0aGlzIHBh
+dGNoIGlzIGFjdHVhbGx5DQo+IGENCj4gbG9zcyBpbiB0aHJvdWdocHV0Lg0KPiANCllvdSBhcmUg
+cHJvYmFibHkgcmlnaHQgYWJvdXQgdGhlIGZsdXNoIHRha2luZyB0aGUgbG9uZ2VzdC4gVGhlIG9y
+aWdpbmFsDQppZGVhIG9mIHVzaW5nIGl0IHdhcyBleGFjdGx5IHRvIGltcHJvdmUgdGhyb3VnaHB1
+dCBieSBzYXZpbmcgYSBmbHVzaC4NCkhvd2V2ZXIgd2l0aCB2bV91bm1hcF9hbGlhc2VzKCkgdGhl
+IGZsdXNoIHdpbGwgYmUgb3ZlciBhIGxhcmdlciByYW5nZQ0KdGhhbiBiZWZvcmUgZm9yIG1vc3Qg
+YXJjaCdzIHNpbmNlIGl0IHdpbGwgbGlrbGV5IHNwYW4gZnJvbSB0aGUgbW9kdWxlDQpzcGFjZSB0
+byB2bWFsbG9jLiBGcm9tIHBva2luZyBhcm91bmQgdGhlIHNwYXJjIHRsYiBmbHVzaCBoaXN0b3J5
+LCBJDQpndWVzcyB0aGUgbGF6eSBwdXJnZXMgdXNlZCB0byBiZSAoc3RpbGwgYXJlPykgYSBwcm9i
+bGVtIGZvciB0aGVtDQpiZWNhdXNlIGl0IHdvdWxkIHRyeSB0byBmbHVzaCBlYWNoIHBhZ2UgaW5k
+aXZpZHVhbGx5IGZvciBzb21lIENQVXMuIE5vdA0Kc3VyZSBhYm91dCBhbGwgb2YgdGhlIG90aGVy
+IGFyY2hpdGVjdHVyZXMsIGJ1dCBmb3IgYW55IGltcGxlbWVudGF0aW9uDQpsaWtlIHRoYXQsIHVz
+aW5nIHZtX3VubWFwX2FsaWFzKCkgd291bGQgdHVybiBhbiBvY2Nhc2lvbmFsIGxvbmcNCm9wZXJh
+dGlvbiBpbnRvIGEgbW9yZSBmcmVxdWVudCBvbmUuDQoNCk9uIHg4NiwgaXQgc2hvdWxkbid0IGJl
+IGEgcHJvYmxlbSB0byB1c2UgaXQuIFdlIGFscmVhZHkgdXNlZCB0byBjYWxsDQp0aGlzIGZ1bmN0
+aW9uIHNldmVyYWwgdGltZXMgYXJvdW5kIGEgZXhlYyBwZXJtaXNzaW9uIHZmcmVlLiANCg0KSSBn
+dWVzcyBpdHMgYSB0cmFkZW9mZiB0aGF0IGRlcGVuZHMgb24gaG93IGZhc3QgbGFyZ2UgcmFuZ2Ug
+VExCIGZsdXNoZXMNCnVzdWFsbHkgYXJlIGNvbXBhcmVkIHRvIHNtYWxsIG9uZXMuIEkgYW0gb2sg
+ZHJvcHBpbmcgaXQsIGlmIGl0IGRvZXNuJ3QNCnNlZW0gd29ydGggaXQuDQo
