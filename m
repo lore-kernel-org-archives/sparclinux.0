@@ -1,37 +1,205 @@
-From: "Deputy Managing Director (IMF)" <afrilog@vodafone.com.gh>
-Date: Tue, 14 May 2019 21:49:05 +0000
-Subject: =?utf-8?B?67O07IOBIOyngOu2iCDthrXsp4A=?=
-Message-Id: <1569161178.4425505.1557870545056.JavaMail.zimbra@vodafone.com.gh>
+From: Christian Brauner <christian@brauner.io>
+Date: Tue, 21 May 2019 11:34:48 +0000
+Subject: [PATCH 2/2] tests: add close_range() tests
+Message-Id: <20190521113448.20654-2-christian@brauner.io>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190521113448.20654-1-christian@brauner.io>
+In-Reply-To: <20190521113448.20654-1-christian@brauner.io>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org
+Cc: jannh@google.com, fweimer@redhat.com, oleg@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, arnd@arndb.de, shuah@kernel.org, dhowells@redhat.com, tkjos@android.com, ldv@altlinux.org, miklos@szeredi.hu, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, x86@kernel.org, Christian Brauner <christian@brauner.io>
 
-주의 : 수혜자,
+This adds basic tests for the new close_range() syscall.
+- test that no invalid flags can be passed
+- test that a range of file descriptors is correctly closed
+- test that a range of file descriptors is correctly closed if there there
+  are already closed file descriptors in the range
+- test that max_fd is correctly capped to the current fdtable maximum
 
-이 메일이 왜 왔는지 이해하지 못할 수도 있습니다. 국제 통화 기금 (IMF)의 고위 공무원들에 의해 상원의 외채 상환위원회와 상응 보조금 이행 패널 (카테고리 D)이 개최되었으며, 이는 전세계의 모든 사기 피해자들에 관한 것이었다. 시체. 주제에 관해 당신에게 연락하는 것이 필수적이되었습니다.
+Signed-off-by: Christian Brauner <christian@brauner.io>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Jann Horn <jannh@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Dmitry V. Levin <ldv@altlinux.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: linux-api@vger.kernel.org
+---
+ tools/testing/selftests/Makefile              |   1 +
+ tools/testing/selftests/core/.gitignore       |   1 +
+ tools/testing/selftests/core/Makefile         |   6 +
+ .../testing/selftests/core/close_range_test.c | 128 ++++++++++++++++++
+ 4 files changed, 136 insertions(+)
+ create mode 100644 tools/testing/selftests/core/.gitignore
+ create mode 100644 tools/testing/selftests/core/Makefile
+ create mode 100644 tools/testing/selftests/core/close_range_test.c
 
-이 이메일은 선취 수수료 사기로 인해 사기가 났거나 돈을 강탈당한 모든 사람들과 자국 정부로부터 팁 서비스 혜택을받지 못한 모든 퇴직자들에게 발송됩니다.
-
-국제 통화 기금 (IMF), 세계 은행 그룹 (WB) 및 연방 수사 국 (FBI)은 여러분 모두에게 $ 1,000,000.00USD의 총액을 보상하기로 동의했습니다. 퇴직 연금 수령자, 모든 외국인 계약자 / 친척 및 미완료 거래가있는 사람 또는 정부 문제 또는 비정규로 인해 실패한 국제 사업을 포함합니다.
-
-회의에서 잠재적 인 모든 보상 수혜자 기금은 ATM 카드 또는 수표로 지불해야하며 각 국가로 보내야한다고 결론지었습니다.
-
-모든 수혜자는 인터넷을 통해 2 천 7 백만 전자 메일 주소로 작성된 글로벌 무작위 통합 시스템을 통해 선정되었으며 행운의 수혜자는이 보상 프로그램에서 혜택을 얻으려는 티켓을 구입할 필요가 없습니다. 귀하의 이메일은 우리의 명단에 올랐습니다. 그래서 저희가 귀하에게 연락하는 이유는 국제 통화 기금 (IMF) 이사회와 세계 은행 그룹 관리 위원들에 의해 동의되고 서명되었습니다.
-
-보상금 지불을 위해 귀하의 이름과 같은 전체 세부 사항 (전화 번호 : 나이 : 성별 및 주소, 파일 참조 번호 (IMF-90690_WB))을 보내주십시오.
-
-담당자 : Mr. Joaquim Levy.
-==== 최고 재무 책임자 (CFO)
-        (세계 은행 그룹) ===전자 메일 : info@joaquimlevy.com
-전화 번호 : 44-7452286707
-
-보상금을 수령하면 바로 연락 드리겠습니다. 질문이 있으시면 언제든지 이메일을 보내 주시기 바랍니다. (info@imfukunit.co.uk)
-
-문안 인사,
-후루사와 미츠히로 (IMF 부회장)
-CC : Mrs. Kristalina Georgieva (세계 은행 총재)
-CC : Mr. Christopher A. Wray (FBI, 감독)
-*************************************************** *************************************************** *************************************************** ************************
-참고 : 귀하의 스팸 / BULK 폴더에서이 메시지를받은 경우, 이는 귀하의 인터넷 서비스 공급자에 의해 구현 된 제한 때문에, 우리 (국제 통화 기금 (IMF))는 당신이 진정으로 그것을 취급 할 것을 촉구합니다.
+diff --git a/tools/testing/selftests/Makefile b/tools/testing/selftests/Makefile
+index 9781ca79794a..06e57fabbff9 100644
+--- a/tools/testing/selftests/Makefile
++++ b/tools/testing/selftests/Makefile
+@@ -4,6 +4,7 @@ TARGETS += bpf
+ TARGETS += breakpoints
+ TARGETS += capabilities
+ TARGETS += cgroup
++TARGETS += core
+ TARGETS += cpufreq
+ TARGETS += cpu-hotplug
+ TARGETS += drivers/dma-buf
+diff --git a/tools/testing/selftests/core/.gitignore b/tools/testing/selftests/core/.gitignore
+new file mode 100644
+index 000000000000..6e6712ce5817
+--- /dev/null
++++ b/tools/testing/selftests/core/.gitignore
+@@ -0,0 +1 @@
++close_range_test
+diff --git a/tools/testing/selftests/core/Makefile b/tools/testing/selftests/core/Makefile
+new file mode 100644
+index 000000000000..de3ae68aa345
+--- /dev/null
++++ b/tools/testing/selftests/core/Makefile
+@@ -0,0 +1,6 @@
++CFLAGS += -g -I../../../../usr/include/ -I../../../../include
++
++TEST_GEN_PROGS := close_range_test
++
++include ../lib.mk
++
+diff --git a/tools/testing/selftests/core/close_range_test.c b/tools/testing/selftests/core/close_range_test.c
+new file mode 100644
+index 000000000000..ab10cd205ab9
+--- /dev/null
++++ b/tools/testing/selftests/core/close_range_test.c
+@@ -0,0 +1,128 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#define _GNU_SOURCE
++#include <errno.h>
++#include <fcntl.h>
++#include <linux/kernel.h>
++#include <limits.h>
++#include <stdbool.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <syscall.h>
++#include <unistd.h>
++
++#include "../kselftest.h"
++
++static inline int sys_close_range(unsigned int fd, unsigned int max_fd,
++				  unsigned int flags)
++{
++	return syscall(__NR_close_range, fd, max_fd, flags);
++}
++
++#ifndef ARRAY_SIZE
++#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
++#endif
++
++int main(int argc, char **argv)
++{
++	const char *test_name = "close_range";
++	int i, ret;
++	int open_fds[100];
++	int fd_max, fd_mid, fd_min;
++
++	ksft_set_plan(7);
++
++	for (i = 0; i < ARRAY_SIZE(open_fds); i++) {
++		int fd;
++
++		fd = open("/dev/null", O_RDONLY | O_CLOEXEC);
++		if (fd < 0) {
++			if (errno = ENOENT)
++				ksft_exit_skip(
++					"%s test: skipping test since /dev/null does not exist\n",
++					test_name);
++
++			ksft_exit_fail_msg(
++				"%s test: %s - failed to open /dev/null\n",
++				strerror(errno), test_name);
++		}
++
++		open_fds[i] = fd;
++	}
++
++	fd_min = open_fds[0];
++	fd_max = open_fds[99];
++
++	ret = sys_close_range(fd_min, fd_max, 1);
++	if (!ret)
++		ksft_exit_fail_msg(
++			"%s test: managed to pass invalid flag value\n",
++			test_name);
++	ksft_test_result_pass("do not allow invalid flag values for close_range()\n");
++
++	fd_mid = open_fds[50];
++	ret = sys_close_range(fd_min, fd_mid, 0);
++	if (ret < 0)
++		ksft_exit_fail_msg(
++			"%s test: Failed to close range of file descriptors from 4 to 50\n",
++			test_name);
++	ksft_test_result_pass("close_range() from %d to %d\n", fd_min, fd_mid);
++
++	for (i = 0; i <= 50; i++) {
++		ret = fcntl(open_fds[i], F_GETFL);
++		if (ret >= 0)
++			ksft_exit_fail_msg(
++				"%s test: Failed to close range of file descriptors from 4 to 50\n",
++				test_name);
++	}
++	ksft_test_result_pass("fcntl() verify closed range from %d to %d\n", fd_min, fd_mid);
++
++	/* create a couple of gaps */
++	close(57);
++	close(78);
++	close(81);
++	close(82);
++	close(84);
++	close(90);
++
++	fd_mid = open_fds[51];
++	/* Choose slightly lower limit and leave some fds for a later test */
++	fd_max = open_fds[92];
++	ret = sys_close_range(fd_mid, fd_max, 0);
++	if (ret < 0)
++		ksft_exit_fail_msg(
++			"%s test: Failed to close range of file descriptors from 51 to 100\n",
++			test_name);
++	ksft_test_result_pass("close_range() from %d to %d\n", fd_mid, fd_max);
++
++	for (i = 51; i <= 92; i++) {
++		ret = fcntl(open_fds[i], F_GETFL);
++		if (ret >= 0)
++			ksft_exit_fail_msg(
++				"%s test: Failed to close range of file descriptors from 51 to 100\n",
++				test_name);
++	}
++	ksft_test_result_pass("fcntl() verify closed range from %d to %d\n", fd_mid, fd_max);
++
++	fd_mid = open_fds[93];
++	fd_max = open_fds[99];
++	/* test that the kernel caps and still closes all fds */
++	ret = sys_close_range(fd_mid, UINT_MAX, 0);
++	if (ret < 0)
++		ksft_exit_fail_msg(
++			"%s test: Failed to close range of file descriptors from 51 to 100\n",
++			test_name);
++	ksft_test_result_pass("close_range() from %d to %d\n", fd_mid, fd_max);
++
++	for (i = 93; i < 100; i++) {
++		ret = fcntl(open_fds[i], F_GETFL);
++		if (ret >= 0)
++			ksft_exit_fail_msg(
++				"%s test: Failed to close range of file descriptors from 51 to 100\n",
++				test_name);
++	}
++	ksft_test_result_pass("fcntl() verify closed range from %d to %d\n", fd_mid, fd_max);
++
++	return ksft_exit_pass();
++}
+-- 
+2.21.0
