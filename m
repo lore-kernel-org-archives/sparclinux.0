@@ -1,119 +1,56 @@
-From: Christian Brauner <christian@brauner.io>
-Date: Sat, 18 May 2019 10:04:46 +0000
-Subject: Re: [PATCH v1 1/2] pid: add pidfd_open()
-Message-Id: <20190518100435.c5bqpcnra53dsr6p@brauner.io>
+From: Meelis Roos <mroos@linux.ee>
+Date: Fri, 24 May 2019 08:20:30 +0000
+Subject: Re: More logging (was: vmalloc: Fix issues with flush flag)
+Message-Id: <23e053dc-47ff-d113-22f0-5497c7fa8227@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190516135944.7205-1-christian@brauner.io>
- <20190516224949.GA15401@localhost>
-In-Reply-To: <20190516224949.GA15401@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Joel Fernandes <joel@joelfernandes.org>
-Cc: jannh@google.com, oleg@redhat.com, viro@zeniv.linux.org.uk, torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, arnd@arndb.de, akpm@linux-foundation.org, cyphar@cyphar.com, dhowells@redhat.com, ebiederm@xmission.com, elena.reshetova@intel.com, keescook@chromium.org, luto@amacapital.net, luto@kernel.org, tglx@linutronix.de, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.orgg, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-kselftest@vger.kernel.org, dancol@google.com, serge@hallyn.com, su
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
-On Sat, May 18, 2019 at 05:48:03AM -0400, Joel Fernandes wrote:
-> Hi Christian,
->=20
-> For next revision, could you also CC surenb@google.com as well? He is also
-> working on the low memory killer. And also suggest CC to
-> kernel-team@android.com. And mentioned some comments below, thanks.
+(CC:ing list again)
 
-Yip, totally. Just added them both to my Cc list. :)
-(I saw you added Suren manually. I added the Android kernel team now too.)
+24.05.19 00:36 Rick Edgecombe kirjutas:
+> Hi Meelis,
+> 
+> I am worried this may be a lot of work to do in case the issue is still somehow with my patch. If you want to rule that out before you do a whole bisect, commit "0a203df5cf0eb709be4f190314e262b72d7e5b76" is the first one one before any of my changes. If that still hangs with:
+> CONFIG_DEBUG_PAGEALLOC=y
+> CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT=y
 
->=20
-> On Thu, May 16, 2019 at 03:59:42PM +0200, Christian Brauner wrote:
-> [snip] =20
-> > diff --git a/kernel/pid.c b/kernel/pid.c
-> > index 20881598bdfa..4afca3d6dcb8 100644
-> > --- a/kernel/pid.c
-> > +++ b/kernel/pid.c
-> > @@ -38,6 +38,7 @@
-> >  #include <linux/syscalls.h>
-> >  #include <linux/proc_ns.h>
-> >  #include <linux/proc_fs.h>
-> > +#include <linux/sched/signal.h>
-> >  #include <linux/sched/task.h>
-> >  #include <linux/idr.h>
-> > =20
-> > @@ -451,6 +452,55 @@ struct pid *find_ge_pid(int nr, struct pid_namespa=
-ce *ns)
-> >  	return idr_get_next(&ns->idr, &nr);
-> >  }
-> > =20
-> > +/**
-> > + * pidfd_open() - Open new pid file descriptor.
-> > + *
-> > + * @pid:   pid for which to retrieve a pidfd
-> > + * @flags: flags to pass
-> > + *
-> > + * This creates a new pid file descriptor with the O_CLOEXEC flag set =
-for
-> > + * the process identified by @pid. Currently, the process identified by
-> > + * @pid must be a thread-group leader. This restriction currently exis=
-ts
-> > + * for all aspects of pidfds including pidfd creation (CLONE_PIDFD can=
-not
-> > + * be used with CLONE_THREAD) and pidfd polling (only supports thread =
-group
-> > + * leaders).
-> > + *
-> > + * Return: On success, a cloexec pidfd is returned.
-> > + *         On error, a negative errno number will be returned.
-> > + */
-> > +SYSCALL_DEFINE2(pidfd_open, pid_t, pid, unsigned int, flags)
-> > +{
-> > +	int fd, ret;
-> > +	struct pid *p;
-> > +	struct task_struct *tsk;
-> > +
-> > +	if (flags)
-> > +		return -EINVAL;
-> > +
-> > +	if (pid <=3D 0)
-> > +		return -EINVAL;
-> > +
-> > +	p =3D find_get_pid(pid);
-> > +	if (!p)
-> > +		return -ESRCH;
-> > +
-> > +	ret =3D 0;
-> > +	rcu_read_lock();
-> > +	/*
-> > +	 * If this returns non-NULL the pid was used as a thread-group
-> > +	 * leader. Note, we race with exec here: If it changes the
-> > +	 * thread-group leader we might return the old leader.
-> > +	 */
-> > +	tsk =3D pid_task(p, PIDTYPE_TGID);
->=20
-> Just trying to understand the comment here. The issue is that we might ei=
-ther
-> return the new leader, or the old leader depending on the overlap with
-> concurrent de_thread right? In either case, we don't care though.
->=20
-> I suggest to remove the "Note..." part of the comment since it doesn't se=
-em the
-> race is relevant here unless we are doing something else with tsk in the
-> function, but if you want to keep it that's also fine. Comment text should
-> probably should be 'return the new leader' though.
+Tried that and 0a203df5cf0eb709be4f190314e262b72d7e5b76 with these DEBUG_PAGEALLOC
+flags on hangs. It hangs before reaching itnit, during scsi disk detection, and
+the exact moment of hangs varies by a line or too in dmesg.:
 
-Nah, I actually removed the comment already independently (cf. see [1]).
+This is a typical hang, from the middle of line:
 
-[1]: https://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux.git/comm=
-it/?h=3Dpidfd_open&id=DCfc98c2d957bf3ac14b06414cb2cf4c673fc297
->=20
-> > +	if (!tsk)
-> > +		ret =3D -ESRCH;
->=20
-> Perhaps -EINVAL?  AFAICS, this can only happen if a CLONE_THREAD pid was
-> passed as argument to pidfd_open which is invalid. But let me know what y=
-ou
-> had in mind..
+[   24.035174] printk: console [ttyS0] enabled
+[   24.095507] f0097810: ttyS1 at MMIO 0x7fff3fffff8 (irq = 21, base_baud = 115387) is a ST16650
+[   24.218682] Fusion MPT base driver 3.04.20
+[   24.277381] Copyright (c) 1999-2008 LSI Corporation
+[   24.347381] Fusion MPT SAS Host driver 3.04.20
+[   24.411427] mptbase: ioc0: Initiating bringup
+[   25.312352] ioc0: LSISAS1068 B0: Capabilities={Initiator}
+[   40.090391] scsi host0: ioc0: LSISAS1068 B0, FwRev080400h, Ports=1, MaxQQ1, IRQ
+[   40.219016] mptsas: ioc0: attaching ssp device: fw_channel 0, fw_id 0, phy 0, sas_addr 0x5000c5000cbc7cf5
+[   40.358062] scsi 0:0:0:0: Direct-Access     SEAGATE  ST914602SSUN146G 0703 PQ: 0 ANSI: 5
+[   40.478173] mptsas: ioc0: attaching ssp device: fw_channel 0, fw_id 4, phy 4, sas_addr 0x500000e0118969b2
+[   40.617183] scsi 0:0:1:0: Direct-Access     FUJITSU  MAV2073RCSUN72G  0301 PQ: 0 ANSI: 4
+[   40.733521] sd 0:0:0:0: [sda] 286739329 512-byte logical blocks: (147 GB/137 GiB)
+[   40.736867] Fusion MPT misc device (ioctl) driver 3.04.20
+[   40.842180] sd 0:0:0:0: [sda] Write Protect is off
+[   40.918551] m
 
-Hm, from the kernel's perspective ESRCH is correct but I guess EINVAL is
-nicer for userspace. So I don't have objections to using EINVAL. My
-first version did too I think.
+> Then I think it would be conclusive that the the problem is earlier and another bisect would probably be needed. I probably should have asked you to just go ahead and do that last time, but thought it would be easier to communicate properly and since you were already testing the patch that fixed it. Hopefully this is not putting you out too much.
 
-Thanks!
-Christian
+I do not remember trying DEBUG_PAGEALLOC before on any sparcs (though I have had a
+problem with thet on some strange old machine that might or might not have been a sparc).
+
+To actually bisect it requires a known good kernel DEBUG_PAGEALLOC it worked.
+Will try to find one - hopefully it is not in too distant past.
+
+So the conclusion is that your patch just triggers a bug that is there even before
+and DEBUG_PAGEALLOC hits the same bug? Myabe just DEBUG_PAGEALLOC is broken before, so
+thet would make two independent bugs - how do we know it's the same bug?
+
+-- 
+Meelis Roos <mroos@linux.ee>
