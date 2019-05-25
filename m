@@ -1,58 +1,63 @@
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Date: Mon, 20 May 2019 23:38:40 +0000
-Subject: [PATCH v2 1/2] vmalloc: Fix calculation of direct map addr range
-Message-Id: <20190520233841.17194-2-rick.p.edgecombe@intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 25 May 2019 13:32:03 +0000
+Subject: [PATCH 6/6] mm: don't allow non-generic get_user_pages_fast implementations
+Message-Id: <20190525133203.25853-7-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190520233841.17194-1-rick.p.edgecombe@intel.com>
-In-Reply-To: <20190520233841.17194-1-rick.p.edgecombe@intel.com>
+References: <20190525133203.25853-1-hch@lst.de>
+In-Reply-To: <20190525133203.25853-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, peterz@infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, luto@amacapital.net
-Cc: dave.hansen@intel.com, namit@vmware.com, davem@davemloft.net, Rick Edgecombe <redgecombe.lkml@gmail.com>, Meelis Roos <mroos@linux.ee>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Ingo Molnar <mingo@redhat.com>, Rick Edgecombe <rick.p.edgecombe@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-From: Rick Edgecombe <redgecombe.lkml@gmail.com>
+Add an explicit ifdef instead of the weak functions for the stubs
+so that we can't let new get_user_pages_fast implementation slip in.
 
-The calculation of the direct map address range to flush was wrong.
-This could cause problems on x86 if a RO direct map alias ever got loaded
-into the TLB. This shouldn't normally happen, but it could cause the
-permissions to remain RO on the direct map alias, and then the page
-would return from the page allocator to some other component as RO and
-cause a crash.
-
-So fix fix the address range calculation so the flush will include the
-direct map range.
-
-Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
-Cc: Meelis Roos <mroos@linux.ee>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nadav Amit <namit@vmware.com>
-Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- mm/vmalloc.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/util.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-index c42872ed82ac..836888ae01f6 100644
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -2159,9 +2159,10 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- 	 * the vm_unmap_aliases() flush includes the direct map.
- 	 */
- 	for (i = 0; i < area->nr_pages; i++) {
--		if (page_address(area->pages[i])) {
-+		addr = (unsigned long)page_address(area->pages[i]);
-+		if (addr) {
- 			start = min(addr, start);
--			end = max(addr, end);
-+			end = max(addr + PAGE_SIZE, end);
- 		}
- 	}
+diff --git a/mm/util.c b/mm/util.c
+index 91682a2090ee..74ae737ffd95 100644
+--- a/mm/util.c
++++ b/mm/util.c
+@@ -300,6 +300,7 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+ }
+ #endif
  
++#ifndef CONFIG_HAVE_GENERIC_GUP
+ /*
+  * Like get_user_pages_fast() except its IRQ-safe in that it won't fall
+  * back to the regular GUP.
+@@ -308,8 +309,8 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+  * If the architecture does not support this function, simply return with no
+  * pages pinned.
+  */
+-int __weak __get_user_pages_fast(unsigned long start,
+-				 int nr_pages, int write, struct page **pages)
++int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
++		struct page **pages)
+ {
+ 	return 0;
+ }
+@@ -339,13 +340,13 @@ EXPORT_SYMBOL_GPL(__get_user_pages_fast);
+  * requested. If nr_pages is 0 or negative, returns 0. If no pages
+  * were pinned, returns -errno.
+  */
+-int __weak get_user_pages_fast(unsigned long start,
+-				int nr_pages, unsigned int gup_flags,
+-				struct page **pages)
++int get_user_pages_fast(unsigned long start, int nr_pages,
++		unsigned int gup_flags, struct page **pages)
+ {
+ 	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
++#endif /* !CONFIG_HAVE_GENERIC_GUP */
+ 
+ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot,
 -- 
 2.20.1
