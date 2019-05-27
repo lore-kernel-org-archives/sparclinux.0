@@ -1,43 +1,77 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 07 May 2019 05:37:24 +0000
-Subject: [PATCH AUTOSEL 4.14 35/95] sparc64: Export __node_distance.
-Message-Id: <20190507053826.31622-35-sashal@kernel.org>
+From: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Date: Mon, 27 May 2019 21:10:57 +0000
+Subject: [PATCH v5 1/2] vmalloc: Fix calculation of direct map addr range
+Message-Id: <20190527211058.2729-2-rick.p.edgecombe@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190507053826.31622-1-sashal@kernel.org>
-In-Reply-To: <20190507053826.31622-1-sashal@kernel.org>
+References: <20190527211058.2729-1-rick.p.edgecombe@intel.com>
+In-Reply-To: <20190527211058.2729-1-rick.p.edgecombe@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <alexander.levin@microsoft.com>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, peterz@infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, luto@kernel.org
+Cc: dave.hansen@intel.com, namit@vmware.com, Rick Edgecombe <rick.p.edgecombe@intel.com>, Meelis Roos <mroos@linux.ee>, "David S. Miller" <davem@davemloft.net>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>
 
-From: "David S. Miller" <davem@davemloft.net>
+The calculation of the direct map address range to flush was wrong.
+This could cause the RO direct map alias to not get flushed. Today
+this shouldn't be a problem because this flush is only needed on x86
+right now and the spurious fault handler will fix cached RO->RW
+translations. In the future though, it could cause the permissions
+to remain RO in the TLB for the direct map alias, and then the page
+would return from the page allocator to some other component as RO
+and cause a crash.
 
-[ Upstream commit 2b4792eaa9f553764047d157365ed8b7787751a3 ]
+So fix fix the address range calculation so the flush will include the
+direct map range.
 
-Some drivers reference it via node_distance(), for example the
-NVME host driver core.
-
-ERROR: "__node_distance" [drivers/nvme/host/nvme-core.ko] undefined!
-make[1]: *** [scripts/Makefile.modpost:92: __modpost] Error 1
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
+Cc: Meelis Roos <mroos@linux.ee>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nadav Amit <namit@vmware.com>
+Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
 ---
- arch/sparc/mm/init_64.c | 1 +
- 1 file changed, 1 insertion(+)
+ mm/vmalloc.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 984e9d65ea0d..76977296dc9c 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -1383,6 +1383,7 @@ int __node_distance(int from, int to)
- 	}
- 	return numa_latency[from][to];
- }
-+EXPORT_SYMBOL(__node_distance);
- 
- static int __init find_best_numa_node_for_mlgroup(struct mdesc_mlgroup *grp)
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 233af6936c93..3ede9c064477 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2123,7 +2123,6 @@ static inline void set_area_direct_map(const struct vm_struct *area,
+ /* Handle removing and resetting vm mappings related to the vm_struct. */
+ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
  {
+-	unsigned long addr = (unsigned long)area->addr;
+ 	unsigned long start = ULONG_MAX, end = 0;
+ 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
+ 	int i;
+@@ -2135,8 +2134,8 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * execute permissions, without leaving a RW+X window.
+ 	 */
+ 	if (flush_reset && !IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
+-		set_memory_nx(addr, area->nr_pages);
+-		set_memory_rw(addr, area->nr_pages);
++		set_memory_nx((unsigned long)area->addr, area->nr_pages);
++		set_memory_rw((unsigned long)area->addr, area->nr_pages);
+ 	}
+ 
+ 	remove_vm_area(area->addr);
+@@ -2160,9 +2159,11 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
+ 	 * the vm_unmap_aliases() flush includes the direct map.
+ 	 */
+ 	for (i = 0; i < area->nr_pages; i++) {
+-		if (page_address(area->pages[i])) {
++		unsigned long addr +				(unsigned long)page_address(area->pages[i]);
++		if (addr) {
+ 			start = min(addr, start);
+-			end = max(addr, end);
++			end = max(addr + PAGE_SIZE, end);
+ 		}
+ 	}
+ 
 -- 
 2.20.1
