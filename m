@@ -1,104 +1,86 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Mon, 27 May 2019 12:20:22 +0000
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Mon, 27 May 2019 20:05:13 +0000
 Subject: Re: [PATCH v4 1/2] vmalloc: Fix calculation of direct map addr range
-Message-Id: <20190527122022.GP2606@hirez.programming.kicks-ass.net>
+Message-Id: <dbf5f298d51183589c92cbd94da3b1e078457f4d.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190521205137.22029-1-rick.p.edgecombe@intel.com>
- <20190521205137.22029-2-rick.p.edgecombe@intel.com>
-In-Reply-To: <20190521205137.22029-2-rick.p.edgecombe@intel.com>
+	 <20190521205137.22029-2-rick.p.edgecombe@intel.com>
+	 <20190527122022.GP2606@hirez.programming.kicks-ass.net>
+In-Reply-To: <20190527122022.GP2606@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, luto@kernel.org, dave.hansen@intel.com, namit@vmware.com, Meelis Roos <mroos@linux.ee>, "David S. Miller" <davem@davemloft.net>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@redhat.com>
+To: "peterz@infradead.org" <peterz@infradead.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "mroos@linux.ee" <mroos@linux.ee>, "mingo@redhat.com" <mingo@redhat.com>, "namit@vmware.com" <namit@vmware.com>, "luto@kernel.org" <luto@kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "bp@alien8.de" <bp@alien8.de>, "davem@davemloft.net" <davem@davemloft.net>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
 
-On Tue, May 21, 2019 at 01:51:36PM -0700, Rick Edgecombe wrote:
-> The calculation of the direct map address range to flush was wrong.
-> This could cause problems on x86 if a RO direct map alias ever got loaded
-> into the TLB. This shouldn't normally happen, but it could cause the
-> permissions to remain RO on the direct map alias, and then the page
-> would return from the page allocator to some other component as RO and
-> cause a crash.
-> 
-> So fix fix the address range calculation so the flush will include the
-> direct map range.
-> 
-> Fixes: 868b104d7379 ("mm/vmalloc: Add flag for freeing of special permsissions")
-> Cc: Meelis Roos <mroos@linux.ee>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Dave Hansen <dave.hansen@intel.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Nadav Amit <namit@vmware.com>
-> Signed-off-by: Rick Edgecombe <rick.p.edgecombe@intel.com>
-> ---
->  mm/vmalloc.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/mm/vmalloc.c b/mm/vmalloc.c
-> index c42872ed82ac..836888ae01f6 100644
-> --- a/mm/vmalloc.c
-> +++ b/mm/vmalloc.c
-> @@ -2159,9 +2159,10 @@ static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
->  	 * the vm_unmap_aliases() flush includes the direct map.
->  	 */
->  	for (i = 0; i < area->nr_pages; i++) {
-> -		if (page_address(area->pages[i])) {
-> +		addr = (unsigned long)page_address(area->pages[i]);
-> +		if (addr) {
->  			start = min(addr, start);
-> -			end = max(addr, end);
-> +			end = max(addr + PAGE_SIZE, end);
->  		}
->  	}
->  
-
-Indeed; howevr I'm thinking this bug was caused to exist by the dual use
-of @addr in this function, so should we not, perhaps, do something like
-the below instead?
-
-Also; having looked at this, it makes me question the use of
-flush_tlb_kernel_range() in _vm_unmap_aliases() and
-__purge_vmap_area_lazy(), it's potentially combining multiple ranges,
-which never really works well.
-
-Arguably, we should just do flush_tlb_all() here, but that's for another
-patch I'm thinking.
-
----
---- a/mm/vmalloc.c
-+++ b/mm/vmalloc.c
-@@ -2123,7 +2123,6 @@ static inline void set_area_direct_map(c
- /* Handle removing and resetting vm mappings related to the vm_struct. */
- static void vm_remove_mappings(struct vm_struct *area, int deallocate_pages)
- {
--	unsigned long addr = (unsigned long)area->addr;
- 	unsigned long start = ULONG_MAX, end = 0;
- 	int flush_reset = area->flags & VM_FLUSH_RESET_PERMS;
- 	int i;
-@@ -2135,8 +2134,8 @@ static void vm_remove_mappings(struct vm
- 	 * execute permissions, without leaving a RW+X window.
- 	 */
- 	if (flush_reset && !IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
--		set_memory_nx(addr, area->nr_pages);
--		set_memory_rw(addr, area->nr_pages);
-+		set_memory_nx((unsigned long)area->addr, area->nr_pages);
-+		set_memory_rw((unsigned long)area->addr, area->nr_pages);
- 	}
- 
- 	remove_vm_area(area->addr);
-@@ -2160,9 +2159,10 @@ static void vm_remove_mappings(struct vm
- 	 * the vm_unmap_aliases() flush includes the direct map.
- 	 */
- 	for (i = 0; i < area->nr_pages; i++) {
--		if (page_address(area->pages[i])) {
-+		unsigned long addr = (unsigned long)page_address(area->pages[i]);
-+		if (addr) {
- 			start = min(addr, start);
--			end = max(addr, end);
-+			end = max(addr + PAGE_SIZE, end);
- 		}
- 	}
- 
+T24gTW9uLCAyMDE5LTA1LTI3IGF0IDE0OjIwICswMjAwLCBQZXRlciBaaWpsc3RyYSB3cm90ZToN
+Cj4gT24gVHVlLCBNYXkgMjEsIDIwMTkgYXQgMDE6NTE6MzZQTSAtMDcwMCwgUmljayBFZGdlY29t
+YmUgd3JvdGU6DQo+ID4gVGhlIGNhbGN1bGF0aW9uIG9mIHRoZSBkaXJlY3QgbWFwIGFkZHJlc3Mg
+cmFuZ2UgdG8gZmx1c2ggd2FzIHdyb25nLg0KPiA+IFRoaXMgY291bGQgY2F1c2UgcHJvYmxlbXMg
+b24geDg2IGlmIGEgUk8gZGlyZWN0IG1hcCBhbGlhcyBldmVyIGdvdA0KPiA+IGxvYWRlZA0KPiA+
+IGludG8gdGhlIFRMQi4gVGhpcyBzaG91bGRuJ3Qgbm9ybWFsbHkgaGFwcGVuLCBidXQgaXQgY291
+bGQgY2F1c2UNCj4gPiB0aGUNCj4gPiBwZXJtaXNzaW9ucyB0byByZW1haW4gUk8gb24gdGhlIGRp
+cmVjdCBtYXAgYWxpYXMsIGFuZCB0aGVuIHRoZSBwYWdlDQo+ID4gd291bGQgcmV0dXJuIGZyb20g
+dGhlIHBhZ2UgYWxsb2NhdG9yIHRvIHNvbWUgb3RoZXIgY29tcG9uZW50IGFzIFJPDQo+ID4gYW5k
+DQo+ID4gY2F1c2UgYSBjcmFzaC4NCj4gPiANCj4gPiBTbyBmaXggZml4IHRoZSBhZGRyZXNzIHJh
+bmdlIGNhbGN1bGF0aW9uIHNvIHRoZSBmbHVzaCB3aWxsIGluY2x1ZGUNCj4gPiB0aGUNCj4gPiBk
+aXJlY3QgbWFwIHJhbmdlLg0KPiA+IA0KPiA+IEZpeGVzOiA4NjhiMTA0ZDczNzkgKCJtbS92bWFs
+bG9jOiBBZGQgZmxhZyBmb3IgZnJlZWluZyBvZiBzcGVjaWFsDQo+ID4gcGVybXNpc3Npb25zIikN
+Cj4gPiBDYzogTWVlbGlzIFJvb3MgPG1yb29zQGxpbnV4LmVlPg0KPiA+IENjOiBQZXRlciBaaWps
+c3RyYSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+DQo+ID4gQ2M6ICJEYXZpZCBTLiBNaWxsZXIiIDxk
+YXZlbUBkYXZlbWxvZnQubmV0Pg0KPiA+IENjOiBEYXZlIEhhbnNlbiA8ZGF2ZS5oYW5zZW5AaW50
+ZWwuY29tPg0KPiA+IENjOiBCb3Jpc2xhdiBQZXRrb3YgPGJwQGFsaWVuOC5kZT4NCj4gPiBDYzog
+QW5keSBMdXRvbWlyc2tpIDxsdXRvQGtlcm5lbC5vcmc+DQo+ID4gQ2M6IEluZ28gTW9sbmFyIDxt
+aW5nb0ByZWRoYXQuY29tPg0KPiA+IENjOiBOYWRhdiBBbWl0IDxuYW1pdEB2bXdhcmUuY29tPg0K
+PiA+IFNpZ25lZC1vZmYtYnk6IFJpY2sgRWRnZWNvbWJlIDxyaWNrLnAuZWRnZWNvbWJlQGludGVs
+LmNvbT4NCj4gPiAtLS0NCj4gPiAgbW0vdm1hbGxvYy5jIHwgNSArKystLQ0KPiA+ICAxIGZpbGUg
+Y2hhbmdlZCwgMyBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+IGRpZmYg
+LS1naXQgYS9tbS92bWFsbG9jLmMgYi9tbS92bWFsbG9jLmMNCj4gPiBpbmRleCBjNDI4NzJlZDgy
+YWMuLjgzNjg4OGFlMDFmNiAxMDA2NDQNCj4gPiAtLS0gYS9tbS92bWFsbG9jLmMNCj4gPiArKysg
+Yi9tbS92bWFsbG9jLmMNCj4gPiBAQCAtMjE1OSw5ICsyMTU5LDEwIEBAIHN0YXRpYyB2b2lkIHZt
+X3JlbW92ZV9tYXBwaW5ncyhzdHJ1Y3QNCj4gPiB2bV9zdHJ1Y3QgKmFyZWEsIGludCBkZWFsbG9j
+YXRlX3BhZ2VzKQ0KPiA+ICAJICogdGhlIHZtX3VubWFwX2FsaWFzZXMoKSBmbHVzaCBpbmNsdWRl
+cyB0aGUgZGlyZWN0IG1hcC4NCj4gPiAgCSAqLw0KPiA+ICAJZm9yIChpID0gMDsgaSA8IGFyZWEt
+Pm5yX3BhZ2VzOyBpKyspIHsNCj4gPiAtCQlpZiAocGFnZV9hZGRyZXNzKGFyZWEtPnBhZ2VzW2ld
+KSkgew0KPiA+ICsJCWFkZHIgPSAodW5zaWduZWQgbG9uZylwYWdlX2FkZHJlc3MoYXJlYS0+cGFn
+ZXNbaV0pOw0KPiA+ICsJCWlmIChhZGRyKSB7DQo+ID4gIAkJCXN0YXJ0ID0gbWluKGFkZHIsIHN0
+YXJ0KTsNCj4gPiAtCQkJZW5kID0gbWF4KGFkZHIsIGVuZCk7DQo+ID4gKwkJCWVuZCA9IG1heChh
+ZGRyICsgUEFHRV9TSVpFLCBlbmQpOw0KPiA+ICAJCX0NCj4gPiAgCX0NCj4gPiAgDQo+IA0KPiBJ
+bmRlZWQ7IGhvd2V2ciBJJ20gdGhpbmtpbmcgdGhpcyBidWcgd2FzIGNhdXNlZCB0byBleGlzdCBi
+eSB0aGUgZHVhbA0KPiB1c2UNCj4gb2YgQGFkZHIgaW4gdGhpcyBmdW5jdGlvbiwgc28gc2hvdWxk
+IHdlIG5vdCwgcGVyaGFwcywgZG8gc29tZXRoaW5nDQo+IGxpa2UNCj4gdGhlIGJlbG93IGluc3Rl
+YWQ/DQo+IA0KPiBBbHNvOyBoYXZpbmcgbG9va2VkIGF0IHRoaXMsIGl0IG1ha2VzIG1lIHF1ZXN0
+aW9uIHRoZSB1c2Ugb2YNCj4gZmx1c2hfdGxiX2tlcm5lbF9yYW5nZSgpIGluIF92bV91bm1hcF9h
+bGlhc2VzKCkgYW5kDQo+IF9fcHVyZ2Vfdm1hcF9hcmVhX2xhenkoKSwgaXQncyBwb3RlbnRpYWxs
+eSBjb21iaW5pbmcgbXVsdGlwbGUgcmFuZ2VzLA0KPiB3aGljaCBuZXZlciByZWFsbHkgd29ya3Mg
+d2VsbC4NCj4gDQo+IEFyZ3VhYmx5LCB3ZSBzaG91bGQganVzdCBkbyBmbHVzaF90bGJfYWxsKCkg
+aGVyZSwgYnV0IHRoYXQncyBmb3INCj4gYW5vdGhlcg0KPiBwYXRjaCBJJ20gdGhpbmtpbmcuDQoN
+ClRoYW5rcy4gSXQgbW9zdGx5IGdvdCBicm9rZW4gaW1wbGVtZW50aW5nIGEgc3R5bGUgc3VnZ2Vz
+dGlvbiBsYXRlIGluDQp0aGUgc2VyaWVzLiBJJ2xsIGNoYW5nZSB0aGUgYWRkciB2YXJpYWJsZSBh
+cm91bmQgbGlrZSB5b3Ugc3VnZ2VzdCB0bw0KbWFrZSBpdCBtb3JlIHJlc2lzdGFudC4NCg0KVGhl
+IGZsdXNoX3RsYl9hbGwoKSBzdWdnZXN0aW9uIG1ha2VzIHNlbnNlIHRvIG1lLCBidXQgSSdsbCBs
+ZWF2ZSBpdCBmb3INCm5vdy4NCg0KPiAtLS0NCj4gLS0tIGEvbW0vdm1hbGxvYy5jDQo+ICsrKyBi
+L21tL3ZtYWxsb2MuYw0KPiBAQCAtMjEyMyw3ICsyMTIzLDYgQEAgc3RhdGljIGlubGluZSB2b2lk
+IHNldF9hcmVhX2RpcmVjdF9tYXAoYw0KPiAgLyogSGFuZGxlIHJlbW92aW5nIGFuZCByZXNldHRp
+bmcgdm0gbWFwcGluZ3MgcmVsYXRlZCB0byB0aGUNCj4gdm1fc3RydWN0LiAqLw0KPiAgc3RhdGlj
+IHZvaWQgdm1fcmVtb3ZlX21hcHBpbmdzKHN0cnVjdCB2bV9zdHJ1Y3QgKmFyZWEsIGludA0KPiBk
+ZWFsbG9jYXRlX3BhZ2VzKQ0KPiAgew0KPiAtCXVuc2lnbmVkIGxvbmcgYWRkciA9ICh1bnNpZ25l
+ZCBsb25nKWFyZWEtPmFkZHI7DQo+ICAJdW5zaWduZWQgbG9uZyBzdGFydCA9IFVMT05HX01BWCwg
+ZW5kID0gMDsNCj4gIAlpbnQgZmx1c2hfcmVzZXQgPSBhcmVhLT5mbGFncyAmIFZNX0ZMVVNIX1JF
+U0VUX1BFUk1TOw0KPiAgCWludCBpOw0KPiBAQCAtMjEzNSw4ICsyMTM0LDggQEAgc3RhdGljIHZv
+aWQgdm1fcmVtb3ZlX21hcHBpbmdzKHN0cnVjdCB2bQ0KPiAgCSAqIGV4ZWN1dGUgcGVybWlzc2lv
+bnMsIHdpdGhvdXQgbGVhdmluZyBhIFJXK1ggd2luZG93Lg0KPiAgCSAqLw0KPiAgCWlmIChmbHVz
+aF9yZXNldCAmJiAhSVNfRU5BQkxFRChDT05GSUdfQVJDSF9IQVNfU0VUX0RJUkVDVF9NQVApKQ0K
+PiB7DQo+IC0JCXNldF9tZW1vcnlfbngoYWRkciwgYXJlYS0+bnJfcGFnZXMpOw0KPiAtCQlzZXRf
+bWVtb3J5X3J3KGFkZHIsIGFyZWEtPm5yX3BhZ2VzKTsNCj4gKwkJc2V0X21lbW9yeV9ueCgodW5z
+aWduZWQgbG9uZylhcmVhLT5hZGRyLCBhcmVhLQ0KPiA+bnJfcGFnZXMpOw0KPiArCQlzZXRfbWVt
+b3J5X3J3KCh1bnNpZ25lZCBsb25nKWFyZWEtPmFkZHIsIGFyZWEtDQo+ID5ucl9wYWdlcyk7DQo+
+ICAJfQ0KPiAgDQo+ICAJcmVtb3ZlX3ZtX2FyZWEoYXJlYS0+YWRkcik7DQo+IEBAIC0yMTYwLDkg
+KzIxNTksMTAgQEAgc3RhdGljIHZvaWQgdm1fcmVtb3ZlX21hcHBpbmdzKHN0cnVjdCB2bQ0KPiAg
+CSAqIHRoZSB2bV91bm1hcF9hbGlhc2VzKCkgZmx1c2ggaW5jbHVkZXMgdGhlIGRpcmVjdCBtYXAu
+DQo+ICAJICovDQo+ICAJZm9yIChpID0gMDsgaSA8IGFyZWEtPm5yX3BhZ2VzOyBpKyspIHsNCj4g
+LQkJaWYgKHBhZ2VfYWRkcmVzcyhhcmVhLT5wYWdlc1tpXSkpIHsNCj4gKwkJdW5zaWduZWQgbG9u
+ZyBhZGRyID0gKHVuc2lnbmVkIGxvbmcpcGFnZV9hZGRyZXNzKGFyZWEtDQo+ID5wYWdlc1tpXSk7
+DQo+ICsJCWlmIChhZGRyKSB7DQo+ICAJCQlzdGFydCA9IG1pbihhZGRyLCBzdGFydCk7DQo+IC0J
+CQllbmQgPSBtYXgoYWRkciwgZW5kKTsNCj4gKwkJCWVuZCA9IG1heChhZGRyICsgUEFHRV9TSVpF
+LCBlbmQpOw0KPiAgCQl9DQo+ICAJfQ0KPiAgDQo
