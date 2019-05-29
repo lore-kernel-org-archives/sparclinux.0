@@ -1,31 +1,43 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 29 May 2019 00:23:27 +0000
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Wed, 29 May 2019 05:11:52 +0000
 Subject: Re: [PATCH v5 0/2] Fix issues with vmalloc flush flag
-Message-Id: <20190528.172327.2113097810388476996.davem@davemloft.net>
+Message-Id: <abb649f0f076777346cbe6a8a0e5d9f8b3c26b41.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190527211058.2729-1-rick.p.edgecombe@intel.com>
-In-Reply-To: <20190527211058.2729-1-rick.p.edgecombe@intel.com>
+	 <20190528.172327.2113097810388476996.davem@davemloft.net>
+In-Reply-To: <20190528.172327.2113097810388476996.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rick.p.edgecombe@intel.com
-Cc: linux-kernel@vger.kernel.org, peterz@infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, luto@kernel.org, dave.hansen@intel.com, namit@vmware.com
+To: "davem@davemloft.net" <davem@davemloft.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "peterz@infradead.org" <peterz@infradead.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "namit@vmware.com" <namit@vmware.com>, "luto@kernel.org" <luto@kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
 
-From: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Date: Mon, 27 May 2019 14:10:56 -0700
-
-> These two patches address issues with the recently added
-> VM_FLUSH_RESET_PERMS vmalloc flag.
-> 
-> Patch 1 addresses an issue that could cause a crash after other
-> architectures besides x86 rely on this path.
-> 
-> Patch 2 addresses an issue where in a rare case strange arguments
-> could be provided to flush_tlb_kernel_range(). 
-
-It just occurred to me another situation that would cause trouble on
-sparc64, and that's if someone the address range of the main kernel
-image ended up being passed to flush_tlb_kernel_range().
-
-That would flush the locked kernel mapping and crash the kernel
-instantly in a completely non-recoverable way.
+T24gVHVlLCAyMDE5LTA1LTI4IGF0IDE3OjIzIC0wNzAwLCBEYXZpZCBNaWxsZXIgd3JvdGU6DQo+
+IEZyb206IFJpY2sgRWRnZWNvbWJlIDxyaWNrLnAuZWRnZWNvbWJlQGludGVsLmNvbT4NCj4gRGF0
+ZTogTW9uLCAyNyBNYXkgMjAxOSAxNDoxMDo1NiAtMDcwMA0KPiANCj4gPiBUaGVzZSB0d28gcGF0
+Y2hlcyBhZGRyZXNzIGlzc3VlcyB3aXRoIHRoZSByZWNlbnRseSBhZGRlZA0KPiA+IFZNX0ZMVVNI
+X1JFU0VUX1BFUk1TIHZtYWxsb2MgZmxhZy4NCj4gPiANCj4gPiBQYXRjaCAxIGFkZHJlc3NlcyBh
+biBpc3N1ZSB0aGF0IGNvdWxkIGNhdXNlIGEgY3Jhc2ggYWZ0ZXIgb3RoZXINCj4gPiBhcmNoaXRl
+Y3R1cmVzIGJlc2lkZXMgeDg2IHJlbHkgb24gdGhpcyBwYXRoLg0KPiA+IA0KPiA+IFBhdGNoIDIg
+YWRkcmVzc2VzIGFuIGlzc3VlIHdoZXJlIGluIGEgcmFyZSBjYXNlIHN0cmFuZ2UgYXJndW1lbnRz
+DQo+ID4gY291bGQgYmUgcHJvdmlkZWQgdG8gZmx1c2hfdGxiX2tlcm5lbF9yYW5nZSgpLiANCj4g
+DQo+IEl0IGp1c3Qgb2NjdXJyZWQgdG8gbWUgYW5vdGhlciBzaXR1YXRpb24gdGhhdCB3b3VsZCBj
+YXVzZSB0cm91YmxlIG9uDQo+IHNwYXJjNjQsIGFuZCB0aGF0J3MgaWYgc29tZW9uZSB0aGUgYWRk
+cmVzcyByYW5nZSBvZiB0aGUgbWFpbiBrZXJuZWwNCj4gaW1hZ2UgZW5kZWQgdXAgYmVpbmcgcGFz
+c2VkIHRvIGZsdXNoX3RsYl9rZXJuZWxfcmFuZ2UoKS4NCj4gDQo+IFRoYXQgd291bGQgZmx1c2gg
+dGhlIGxvY2tlZCBrZXJuZWwgbWFwcGluZyBhbmQgY3Jhc2ggdGhlIGtlcm5lbA0KPiBpbnN0YW50
+bHkgaW4gYSBjb21wbGV0ZWx5IG5vbi1yZWNvdmVyYWJsZSB3YXkuDQoNCkhtbSwgSSBoYXZlbid0
+IHJlY2VpdmVkIHRoZSBsb2dzIGZyb20gTWVlbGlzIHRoYXQgd2lsbCBzaG93IHRoZSByZWFsDQpy
+YW5nZXMgYmVpbmcgcGFzc2VkIGludG8gZmx1c2hfdGxiX2tlcm5lbF9yYW5nZSgpIG9uIHNwYXJj
+LCBidXQgaXQNCnNob3VsZCBiZSBmbHVzaGluZyBhIHJhbmdlIHNwYW5uaW5nIGZyb20gdGhlIG1v
+ZHVsZXMgdG8gdGhlIGRpcmVjdCBtYXAuDQpJdCBsb29rcyBsaWtlIHRoZSBrZXJuZWwgaXMgYXQg
+dGhlIHZlcnkgYm90dG9tIG9mIHRoZSBhZGRyZXNzIHNwYWNlLCBzbw0Kbm90IGluY2x1ZGVkLiBP
+ciBkbyB5b3UgbWVhbiB0aGUgcGFnZXMgdGhhdCBob2xkIHRoZSBrZXJuZWwgdGV4dCBvbiB0aGUN
+CmRpcmVjdCBtYXA/DQoNCkJ1dCByZWdhcmRsZXNzIG9mIHRoaXMgbmV3IGNvZGUsIERFQlVHX1BB
+R0VBTExPQyBoYW5ncyB3aXRoIHRoZSBmaXJzdA0Kdm1hbGxvYyBmcmVlL3VubWFwLiBUaGF0IHNo
+b3VsZCBiZSBqdXN0IGZsdXNoaW5nIGEgc2luZ2xlIGFsbG9jYXRpb24gaW4NCnRoZSB2bWFsbG9j
+IHJhbmdlLg0KDQpJZiBpdCBpcyBzb21laG93IGNhdGNoaW5nIGEgbG9ja2VkIGVudHJ5IHRob3Vn
+aC4uLiBBcmUgdGhlcmUgYW55IHNwYXJjDQpmbHVzaCBtZWNoYW5pc21zIHRoYXQgY291bGQgYmUg
+dXNlZCBpbiB2bWFsbG9jIHRoYXQgd29uJ3QgdG91Y2ggbG9ja2VkDQplbnRyaWVzPyBQZXRlciBa
+IHdhcyBwb2ludGluZyBvdXQgdGhhdCBmbHVzaF90bGJfYWxsKCkgbWlnaHQgYmUgbW9yZQ0KYXBw
+cm9yaWF0ZSBmb3Igdm1hbGxvYyBhbnl3YXkuDQoNCg=
