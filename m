@@ -1,7 +1,7 @@
 From: Meelis Roos <mroos@linux.ee>
-Date: Thu, 30 May 2019 05:24:06 +0000
+Date: Thu, 30 May 2019 07:43:12 +0000
 Subject: Re: [bisected] DEBUG_PAGEALLOC hangs on sparc64
-Message-Id: <18bc6015-0d57-ec80-d6af-ccd91ace7dd1@linux.ee>
+Message-Id: <b33747ea-e92d-8615-d0fe-174d3f62a214@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
 References: <86e9d84e-cffa-0bae-f575-7cf6789f5fb8@linux.ee>
 In-Reply-To: <86e9d84e-cffa-0bae-f575-7cf6789f5fb8@linux.ee>
@@ -12,9 +12,7 @@ To: sparclinux@vger.kernel.org
 
 > Meelis, could you please try the attached patch to see if it fixes the issue?
 
-Works on top of both the offending commit and current git, on V440 - thank you!
-
-Will try on V445 too, hopefully today.
+It also fixes latest git with DEBUG_PAGEALLOC on V445.
 
 -- 
-Meelis Roos
+Meelis Roos <mroos@linux.ee>
