@@ -1,12 +1,14 @@
 From: Gen Zhang <blackgod016574@gmail.com>
-Date: Mon, 27 May 2019 03:25:51 +0000
+Date: Fri, 31 May 2019 01:24:18 +0000
 Subject: [PATCH] mdesc: fix a missing-check bug in get_vdev_port_node_info()
-Message-Id: <20190527032551.GA19187@zhanggen-UX430UQ>
+Message-Id: <20190531012418.GA4473@zhanggen-UX430UQ>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190527032551.GA19187@zhanggen-UX430UQ>
+In-Reply-To: <20190527032551.GA19187@zhanggen-UX430UQ>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net, rppt@linux.vnet.ibm.com, akpm@linux-foundation.org, mhocko@suse.com, sfr@canb.auug.org.au
+To: davem@davemloft.net, rppt@linux.vnet.ibm.com, mhocko@suse.com, akpm@linux-foundation.org, sfr@canb.auug.org.au
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 In get_vdev_port_node_info(), 'node_info->vdev_port.name' is allcoated
