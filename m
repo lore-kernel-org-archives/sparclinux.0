@@ -1,57 +1,37 @@
-From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 20 Jun 2019 05:03:20 +0000
-Subject: [PATCH RESEND 0/8] Fix mmap base in bottom-up mmap
-Message-Id: <20190620050328.8942-1-alex@ghiti.fr>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 01 Jun 2019 07:49:56 +0000
+Subject: [PATCH 13/16] mm: validate get_user_pages_fast flags
+Message-Id: <20190601074959.14036-14-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190619053906.5900-1-alex@ghiti.fr>
-In-Reply-To: <20190619053906.5900-1-alex@ghiti.fr>
+References: <20190601074959.14036-1-hch@lst.de>
+In-Reply-To: <20190601074959.14036-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Alexandre Ghiti <alex@ghiti.fr>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-This series fixes the fallback of the top-down mmap: in case of
-failure, a bottom-up scheme can be tried as a last resort between
-the top-down mmap base and the stack, hoping for a large unused stack
-limit.
+We can only deal with FOLL_WRITE and/or FOLL_LONGTERM in
+get_user_pages_fast, so reject all other flags.
 
-Lots of architectures and even mm code start this fallback
-at TASK_UNMAPPED_BASE, which is useless since the top-down scheme
-already failed on the whole address space: instead, simply use
-mmap_base.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ mm/gup.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Along the way, it allows to get rid of of mmap_legacy_base and
-mmap_compat_legacy_base from mm_struct.
-
-Note that arm and mips already implement this behaviour. 
-
-Alexandre Ghiti (8):
-  s390: Start fallback of top-down mmap at mm->mmap_base
-  sh: Start fallback of top-down mmap at mm->mmap_base
-  sparc: Start fallback of top-down mmap at mm->mmap_base
-  x86, hugetlbpage: Start fallback of top-down mmap at mm->mmap_base
-  mm: Start fallback top-down mmap at mm->mmap_base
-  parisc: Use mmap_base, not mmap_legacy_base, as low_limit for
-    bottom-up mmap
-  x86: Use mmap_*base, not mmap_*legacy_base, as low_limit for bottom-up
-    mmap
-  mm: Remove mmap_legacy_base and mmap_compat_legacy_code fields from
-    mm_struct
-
- arch/parisc/kernel/sys_parisc.c  |  8 +++-----
- arch/s390/mm/mmap.c              |  2 +-
- arch/sh/mm/mmap.c                |  2 +-
- arch/sparc/kernel/sys_sparc_64.c |  2 +-
- arch/sparc/mm/hugetlbpage.c      |  2 +-
- arch/x86/include/asm/elf.h       |  2 +-
- arch/x86/kernel/sys_x86_64.c     |  4 ++--
- arch/x86/mm/hugetlbpage.c        |  7 ++++---
- arch/x86/mm/mmap.c               | 20 +++++++++-----------
- include/linux/mm_types.h         |  2 --
- mm/debug.c                       |  4 ++--
- mm/mmap.c                        |  2 +-
- 12 files changed, 26 insertions(+), 31 deletions(-)
-
+diff --git a/mm/gup.c b/mm/gup.c
+index c8da7764de9c..53b50c63ba51 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2316,6 +2316,9 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
+ 	unsigned long addr, len, end;
+ 	int nr = 0, ret = 0;
+ 
++	if (WARN_ON_ONCE(gup_flags & ~(FOLL_WRITE | FOLL_LONGTERM)))
++		return -EINVAL;
++
+ 	start = untagged_addr(start) & PAGE_MASK;
+ 	addr = start;
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
 -- 
 2.20.1
