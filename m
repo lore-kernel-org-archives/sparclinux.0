@@ -1,72 +1,34 @@
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Tue, 04 Jun 2019 12:05:16 +0000
-Subject: Re: [PATCH] uaccess: add noop untagged_addr definition
-Message-Id: <CAAeHK+wfNbNz_AP8c4PqcpWXuLxx23D1coY0SS5ORM_tUewNFA@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 01 Jun 2019 07:49:51 +0000
+Subject: [PATCH 08/16] sparc64: add the missing pgd_page definition
+Message-Id: <20190601074959.14036-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <8ab5cd1813b0890f8780018e9784838456ace49e.1559648669.git.andreyknvl@google.com>
- <d74b1621-70a2-94a0-e24b-dae32adc457d@amd.com>
- <CAAeHK+w0_9QdxCJXEf=6nMgZpsb8NyrAaMO010Hh86TW75jJvw@mail.gmail.com>
- <ff73058a-f57b-526b-af53-c0e30b7b1bc1@amd.com>
-In-Reply-To: <ff73058a-f57b-526b-af53-c0e30b7b1bc1@amd.com>
+References: <20190601074959.14036-1-hch@lst.de>
+In-Reply-To: <20190601074959.14036-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Koenig, Christian" <Christian.Koenig@amd.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "Kuehling,
- Felix" <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dmitry Vyukov <dvyukov@google.com>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Robin Murphy <robin.murphy@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Kostya Serebryany <kcc@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lee Smith <Lee.Smith@arm.com>, "Deucher,
- Alexander" <Alexander.Deucher@amd.com>, Andrew Morton <akpm@linux-foundation.org>, enh <enh@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, Jens Wiklander <jens.wiklander@linaro.org>, Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jun 4, 2019 at 1:49 PM Koenig, Christian
-<Christian.Koenig@amd.com> wrote:
->
-> Am 04.06.19 um 13:48 schrieb Andrey Konovalov:
-> > On Tue, Jun 4, 2019 at 1:46 PM Koenig, Christian
-> > <Christian.Koenig@amd.com> wrote:
-> >> Am 04.06.19 um 13:44 schrieb Andrey Konovalov:
-> >>> Architectures that support memory tagging have a need to perform untagging
-> >>> (stripping the tag) in various parts of the kernel. This patch adds an
-> >>> untagged_addr() macro, which is defined as noop for architectures that do
-> >>> not support memory tagging. The oncoming patch series will define it at
-> >>> least for sparc64 and arm64.
-> >>>
-> >>> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-> >>> Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-> >>> Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-> >>> ---
-> >>>    include/linux/mm.h | 4 ++++
-> >>>    1 file changed, 4 insertions(+)
-> >>>
-> >>> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> >>> index 0e8834ac32b7..949d43e9c0b6 100644
-> >>> --- a/include/linux/mm.h
-> >>> +++ b/include/linux/mm.h
-> >>> @@ -99,6 +99,10 @@ extern int mmap_rnd_compat_bits __read_mostly;
-> >>>    #include <asm/pgtable.h>
-> >>>    #include <asm/processor.h>
-> >>>
-> >>> +#ifndef untagged_addr
-> >>> +#define untagged_addr(addr) (addr)
-> >>> +#endif
-> >>> +
-> >> Maybe add a comment what tagging actually is? Cause that is not really
-> >> obvious from the context.
-> > Hi,
-> >
-> > Do you mean a comment in the code or an explanation in the patch description?
->
-> The code, the patch description actually sounds good to me.
+sparc64 only had pgd_page_vaddr, but not pgd_page.
 
-Sent v2, thanks!
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/include/asm/pgtable_64.h | 1 +
+ 1 file changed, 1 insertion(+)
 
->
-> Christian.
->
-> >
-> > Thanks!
-> >
-> >> Christian.
-> >>
-> >>>    #ifndef __pa_symbol
-> >>>    #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
-> >>>    #endif
->
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 22500c3be7a9..dcf970e82262 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -861,6 +861,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ #define pud_clear(pudp)			(pud_val(*(pudp)) = 0UL)
+ #define pgd_page_vaddr(pgd)		\
+ 	((unsigned long) __va(pgd_val(pgd)))
++#define pgd_page(pgd)			virt_to_page(__va(pgd_val(pgd)))
+ #define pgd_present(pgd)		(pgd_val(pgd) != 0U)
+ #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) = 0UL)
+ 
+-- 
+2.20.1
