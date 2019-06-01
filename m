@@ -1,39 +1,46 @@
-From: Aaron Lindsay OS <aaron@os.amperecomputing.com>
-Date: Thu, 27 Jun 2019 11:17:58 +0000
-Subject: Re: [PATCH 0/5] Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20190627111755.GJ7133@okra.localdomain>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 01 Jun 2019 07:49:44 +0000
+Subject: [PATCH 01/16] uaccess: add untagged_addr definition for other arches
+Message-Id: <20190601074959.14036-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1561501810-25163-1-git-send-email-Hoan@os.amperecomputing.com>
- <CAADWXX8wdEPNZ26SFJUfwrhQson3HPTrZ7D2jju3RhEeMuc+QQ@mail.gmail.com>
-In-Reply-To: <CAADWXX8wdEPNZ26SFJUfwrhQson3HPTrZ7D2jju3RhEeMuc+QQ@mail.gmail.com>
+References: <20190601074959.14036-1-hch@lst.de>
+In-Reply-To: <20190601074959.14036-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Hocko <mhocko@suse.com>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Open Source Submission <patches@amperecomputing.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Hoan Tran OS <hoan@os.amperecomputing.com>, Oscar Salvador <osalvador@suse.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>
 
-On Jun 26 08:28, Linus Torvalds wrote:
-> This is not a comment on the patch series itself, it is a comment on the emails.
-> 
-> Your email is mis-configured and ends up all being marked as spam for
-> me, because you go through the wrong smtp server (or maybe your smtp
-> server itself is miconfigured)
-> 
-> All your emails fail dmarc, because the "From" header is
-> os.amperecomputing.com, but the DKIM signature is for
-> amperemail.onmicrosoft.com.
+From: Andrey Konovalov <andreyknvl@google.com>
 
-It appears Microsoft enables DKIM by default, but does so using keys
-advertised at *.onmicrosoft.com domains, and our IT folks didn't
-initially notice this. We believe we've rectified the situation, so
-please let us know if our emails (including this one) continue to be an
-issue.
+To allow arm64 syscalls to accept tagged pointers from userspace, we must
+untag them when they are passed to the kernel. Since untagging is done in
+generic parts of the kernel, the untagged_addr macro needs to be defined
+for all architectures.
 
-> End result: it wil all go into the spam box of anybody who checks DKIM.
+Define it as a noop for architectures other than arm64.
 
-Interestingly, *some* receiving mail servers (at least gmail.com) were
-reporting DKIM/DMARC pass for emails sent directly from our domain
-(though not those sent through a mailing list), which I believe allowed
-our IT to falsely think they had everything configured correctly.
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/mm.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
--Aaron
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0e8834ac32b7..949d43e9c0b6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -99,6 +99,10 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+ 
++#ifndef untagged_addr
++#define untagged_addr(addr) (addr)
++#endif
++
+ #ifndef __pa_symbol
+ #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
+ #endif
+-- 
+2.20.1
