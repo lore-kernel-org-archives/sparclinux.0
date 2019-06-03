@@ -1,43 +1,30 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Jun 2019 20:29:28 +0000
-Subject: [PATCH AUTOSEL 4.19 23/39] mdesc: fix a missing-check bug in get_vdev_port_node_info()
-Message-Id: <20190614202946.27385-23-sashal@kernel.org>
+From: David Miller <davem@davemloft.net>
+Date: Mon, 03 Jun 2019 05:16:48 +0000
+Subject: Re: [PATCH] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIOD
+Message-Id: <20190602.221648.1225654208143233174.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190614202946.27385-1-sashal@kernel.org>
-In-Reply-To: <20190614202946.27385-1-sashal@kernel.org>
+References: <1559096508-25847-1-git-send-email-92siuyang@gmail.com>
+In-Reply-To: <1559096508-25847-1-git-send-email-92siuyang@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Gen Zhang <blackgod016574@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: 92siuyang@gmail.com
+Cc: peterz@infradead.org, mingo@redhat.com, acme@kernel.org, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-From: Gen Zhang <blackgod016574@gmail.com>
+From: Young Xiao <92siuyang@gmail.com>
+Date: Wed, 29 May 2019 10:21:48 +0800
 
-[ Upstream commit 80caf43549e7e41a695c6d1e11066286538b336f ]
+> The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
+> sample period of a running perf_event. Consequently, when calculating
+> the next event period, the new period will only be considered after the
+> previous one has overflowed.
+> 
+> This patch changes the calculation of the remaining event ticks so that
+> they are offset if the period has changed.
+> 
+> See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
+> response to PERF_EVENT_IOC_PERIOD") for details.
+> 
+> Signed-off-by: Young Xiao <92siuyang@gmail.com>
 
-In get_vdev_port_node_info(), 'node_info->vdev_port.name' is allcoated
-by kstrdup_const(), and it returns NULL when fails. So
-'node_info->vdev_port.name' should be checked.
-
-Signed-off-by: Gen Zhang <blackgod016574@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/sparc/kernel/mdesc.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 39a2503fa3e1..51028abe5e90 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -357,6 +357,8 @@ static int get_vdev_port_node_info(struct mdesc_handle *md, u64 node,
- 
- 	node_info->vdev_port.id = *idp;
- 	node_info->vdev_port.name = kstrdup_const(name, GFP_KERNEL);
-+	if (!node_info->vdev_port.name)
-+		return -1;
- 	node_info->vdev_port.parent_cfg_hdl = *parent_cfg_hdlp;
- 
- 	return 0;
--- 
-2.20.1
+Applied, thanks.
