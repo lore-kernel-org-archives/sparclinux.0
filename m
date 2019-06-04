@@ -1,24 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 13 Jun 2019 21:13:05 +0000
-Subject: Re: [PATCH] sparc: fix unknown type name u_int in uapi header
-Message-Id: <20190613.141305.616954421778433913.davem@davemloft.net>
+From: Andrey Konovalov <andreyknvl@google.com>
+Date: Tue, 04 Jun 2019 11:44:45 +0000
+Subject: [PATCH] uaccess: add noop untagged_addr definition
+Message-Id: <8ab5cd1813b0890f8780018e9784838456ace49e.1559648669.git.andreyknvl@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190604082314.25939-1-yamada.masahiro@socionext.com>
-In-Reply-To: <20190604082314.25939-1-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: yamada.masahiro@socionext.com
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Szabolcs Nagy <Szabolcs.Nagy@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Kostya Serebryany <kcc@google.com>, Khalid Aziz <khalid.aziz@oracle.com>, Felix Kuehling <Felix.Kuehling@amd.com>, Vincenzo Frascino <vincenzo.frascino@arm.com>, Jacob Bramley <Jacob.Bramley@arm.com>, Leon Romanovsky <leon@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Dave Martin <Dave.Martin@arm.com>, Evgeniy Stepanov <eugenis@google.com>, Kevin Brodsky <kevin.brodsky@arm.com>, Kees Cook <keescook@chromium.org>, Ruben Ayrapetyan <Ruben.Ayrapetyan@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Ramana Radhakrishnan <Ramana.Radhakrishnan@arm.com>, Alex Williamson <alex.williamson@redhat.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Dmitry Vyukov <dvyukov@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Yishai Hadas <yishaih@mellanox.com>, Jens Wiklander <jens.wiklander@linaro.org>, Lee Smith <Lee.Smith@arm.com>, Alexander Deucher <Alexander.Deucher@amd.com>, Andrew Morton <akpm@linux-foundation.org>, enh <enh@google.com>, Robin Murphy <robin.murphy@arm.com>, Christian Koenig <Christian.Koenig@amd.com>, Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
 
-RnJvbTogTWFzYWhpcm8gWWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4NCkRh
-dGU6IFR1ZSwgIDQgSnVuIDIwMTkgMTc6MjM6MTQgKzA5MDANCg0KPiAndV9pbnQnIGlzIGEgc2hv
-cnRoYW5kIHRoYXQgaXMgb25seSBhdmFpbGFibGUgaW4gdGhlIGtlcm5lbCBzcGFjZQ0KPiBiZWNh
-dXNlIGl0IGlzIGRlZmluZWQgaW4gaW5jbHVkZS9saW51eC90eXBlcy5oLCB3aGljaCBpcyBub3Qg
-ZXhwb3J0ZWQNCj4gdG8gdGhlIHVzZXIgc3BhY2UuDQo+IA0KPiBZb3UgY2Fubm90IHVzZSBpdCBp
-biB1YXBpIGhlYWRlcnMgZXZlbiBpZiB5b3UgaW5jbHVkZSA8bGludXgvdHlwZXMuaD4NCj4gDQo+
-IERldGVjdGVkIGJ5IGNvbXBpbGUtdGVzdGluZyBleHBvcnRlZCBoZWFkZXJzLg0KPiANCj4gLi91
-c3IvaW5jbHVkZS9hc20vb3BlbnByb21pby5oOjE2OjI6IGVycm9yOiB1bmtub3duIHR5cGUgbmFt
-ZSChdV9pbnSiDQo+ICAgdV9pbnQgb3Byb21fc2l6ZTsgIC8qIEFjdHVhbCBzaXplIG9mIHRoZSBv
-cHJvbV9hcnJheS4gKi8NCj4gICBefn5+fg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFzYWhpcm8g
-WWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4NCg0KQXBwbGllZC4NCg=
+Architectures that support memory tagging have a need to perform untagging
+(stripping the tag) in various parts of the kernel. This patch adds an
+untagged_addr() macro, which is defined as noop for architectures that do
+not support memory tagging. The oncoming patch series will define it at
+least for sparc64 and arm64.
+
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+---
+ include/linux/mm.h | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 0e8834ac32b7..949d43e9c0b6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -99,6 +99,10 @@ extern int mmap_rnd_compat_bits __read_mostly;
+ #include <asm/pgtable.h>
+ #include <asm/processor.h>
+ 
++#ifndef untagged_addr
++#define untagged_addr(addr) (addr)
++#endif
++
+ #ifndef __pa_symbol
+ #define __pa_symbol(x)  __pa(RELOC_HIDE((unsigned long)(x), 0))
+ #endif
+-- 
+2.22.0.rc1.311.g5d7573a151-goog
