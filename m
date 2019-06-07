@@ -1,52 +1,36 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Jun 2019 20:28:21 +0000
-Subject: [PATCH AUTOSEL 5.1 37/59] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIOD
-Message-Id: <20190614202843.26941-37-sashal@kernel.org>
+From: Martins Henry <rws@aero.iitb.ac.in>
+Date: Fri, 07 Jun 2019 06:43:49 +0000
+Subject: Thanks and I wait for your answer
+Message-Id: <630023291.60470.1559889109394.JavaMail.zimbra@aero.iitb.ac.in>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190614202843.26941-1-sashal@kernel.org>
-In-Reply-To: <20190614202843.26941-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Young Xiao <92siuyang@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: linux-sctp@vger.kernel.org
 
-From: Young Xiao <92siuyang@gmail.com>
+Hello,
 
-[ Upstream commit 56cd0aefa475079e9613085b14a0f05037518fed ]
+I am Martin Henry, An American Citizen; I am the personal secretary to
+Mr. Donald Railton, the controller of a Lottery Company. Please I am
+having big problem now, I have a 6yrs old daughter who has leukemia, a
+disease of the blood, and she needs a bone marrow transplant or she
+will die.
 
-The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
-sample period of a running perf_event. Consequently, when calculating
-the next event period, the new period will only be considered after the
-previous one has overflowed.
+Please I am only asking for your help and you will benefit from it
+also. As an insider with Lottery Firm, working as the personal
+secretary to the controller, I want you to send me your name to play,
+I have some numbers that are going to win, stored in his secret data
+system in the office. The Lottery is an online entry with credit card
+anywhere with a name and address. All I want you to do is to send your
+name to play it and I will send confirmation to you.
 
-This patch changes the calculation of the remaining event ticks so that
-they are offset if the period has changed.
+I will play with my card on your name and the Prize will be shared
+equally between us. Immediately the results are released they will
+contact you for payment as the oversea winner. The lotto can be played
+with 9.00 dollars, or 50 dollars but the prize will be Millions.
+Remember that I am playing on your name with my card; I just want to
+front you for this, because I need this money to save the life of my
+little daughter.
 
-See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
-response to PERF_EVENT_IOC_PERIOD") for details.
-
-Signed-off-by: Young Xiao <92siuyang@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/sparc/kernel/perf_event.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 6de7c684c29f..a58ae9c42803 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -891,6 +891,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
- 	s64 period = hwc->sample_period;
- 	int ret = 0;
- 
-+	/* The period may have been changed by PERF_EVENT_IOC_PERIOD */
-+	if (unlikely(period != hwc->last_period))
-+		left = period - (hwc->last_period - left);
-+
- 	if (unlikely(left <= -period)) {
- 		left = period;
- 		local64_set(&hwc->period_left, left);
--- 
-2.20.1
+Thanks and I wait for your answer
+Martin Henry.
