@@ -1,74 +1,120 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Mon, 03 Jun 2019 04:53:26 +0000
-Subject: Re: [RFC] mm: Generalize notify_page_fault()
-Message-Id: <6338fef8-e097-a76e-5c07-455d0d9b6e24@arm.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 11 Jun 2019 14:40:48 +0000
+Subject: [PATCH 02/16] mm: simplify gup_fast_permitted
+Message-Id: <20190611144102.8848-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1559195713-6956-1-git-send-email-anshuman.khandual@arm.com>
- <20190530110639.GC23461@bombadil.infradead.org>
- <4f9a610d-e856-60f6-4467-09e9c3836771@arm.com>
- <20190530133954.GA2024@bombadil.infradead.org>
- <f1995445-d5ab-f292-d26c-809581002184@arm.com>
- <20190531174854.GA31852@bombadil.infradead.org>
-In-Reply-To: <20190531174854.GA31852@bombadil.infradead.org>
+References: <20190611144102.8848-1-hch@lst.de>
+In-Reply-To: <20190611144102.8848-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Michal Hocko <mhocko@suse.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Fenghua Yu <fenghua.yu@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrey Konovalov <andreyknvl@google.com>, linux-arm-kernel@lists.infradead.org, Christophe Leroy <christophe.leroy@c-s.fr>, Tony Luck <tony.luck@intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-kernel@vger.kernel.org, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
+Pass in the already calculated end value instead of recomputing it, and
+leave the end > start check in the callers instead of duplicating them
+in the arch code.
 
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/s390/include/asm/pgtable.h   |  8 +-------
+ arch/x86/include/asm/pgtable_64.h |  8 +-------
+ mm/gup.c                          | 17 +++++++----------
+ 3 files changed, 9 insertions(+), 24 deletions(-)
 
-On 05/31/2019 11:18 PM, Matthew Wilcox wrote:
-> On Fri, May 31, 2019 at 02:17:43PM +0530, Anshuman Khandual wrote:
->> On 05/30/2019 07:09 PM, Matthew Wilcox wrote:
->>> On Thu, May 30, 2019 at 05:31:15PM +0530, Anshuman Khandual wrote:
->>>> On 05/30/2019 04:36 PM, Matthew Wilcox wrote:
->>>>> The two handle preemption differently.  Why is x86 wrong and this one
->>>>> correct?
->>>>
->>>> Here it expects context to be already non-preemptible where as the proposed
->>>> generic function makes it non-preemptible with a preempt_[disable|enable]()
->>>> pair for the required code section, irrespective of it's present state. Is
->>>> not this better ?
->>>
->>> git log -p arch/x86/mm/fault.c
->>>
->>> search for 'kprobes'.
->>>
->>> tell me what you think.
->>
->> Are you referring to these following commits
->>
->> a980c0ef9f6d ("x86/kprobes: Refactor kprobes_fault() like kprobe_exceptions_notify()")
->> b506a9d08bae ("x86: code clarification patch to Kprobes arch code")
->>
->> In particular the later one (b506a9d08bae). It explains how the invoking context
->> in itself should be non-preemptible for the kprobes processing context irrespective
->> of whether kprobe_running() or perhaps smp_processor_id() is safe or not. Hence it
->> does not make much sense to continue when original invoking context is preemptible.
->> Instead just bail out earlier. This seems to be making more sense than preempt
->> disable-enable pair. If there are no concerns about this change from other platforms,
->> I will change the preemption behavior in proposed generic function next time around.
-> 
-> Exactly.
-> 
-> So, any of the arch maintainers know of a reason they behave differently
-> from x86 in this regard?  Or can Anshuman use the x86 implementation
-> for all the architectures supporting kprobes?
-
-So the generic notify_page_fault() will be like this.
-
-int __kprobes notify_page_fault(struct pt_regs *regs, unsigned int trap)
-{
-        int ret = 0;
-
-        /*
-         * To be potentially processing a kprobe fault and to be allowed
-         * to call kprobe_running(), we have to be non-preemptible.
-         */
-        if (kprobes_built_in() && !preemptible() && !user_mode(regs)) {
-                if (kprobe_running() && kprobe_fault_handler(regs, trap))
-                        ret = 1;
-        }
-        return ret;
-}
+diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
+index 9f0195d5fa16..9b274fcaacb6 100644
+--- a/arch/s390/include/asm/pgtable.h
++++ b/arch/s390/include/asm/pgtable.h
+@@ -1270,14 +1270,8 @@ static inline pte_t *pte_offset(pmd_t *pmd, unsigned long address)
+ #define pte_offset_map(pmd, address) pte_offset_kernel(pmd, address)
+ #define pte_unmap(pte) do { } while (0)
+ 
+-static inline bool gup_fast_permitted(unsigned long start, int nr_pages)
++static inline bool gup_fast_permitted(unsigned long start, unsigned long end)
+ {
+-	unsigned long len, end;
+-
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-	if (end < start)
+-		return false;
+ 	return end <= current->mm->context.asce_limit;
+ }
+ #define gup_fast_permitted gup_fast_permitted
+diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
+index 0bb566315621..4990d26dfc73 100644
+--- a/arch/x86/include/asm/pgtable_64.h
++++ b/arch/x86/include/asm/pgtable_64.h
+@@ -259,14 +259,8 @@ extern void init_extra_mapping_uc(unsigned long phys, unsigned long size);
+ extern void init_extra_mapping_wb(unsigned long phys, unsigned long size);
+ 
+ #define gup_fast_permitted gup_fast_permitted
+-static inline bool gup_fast_permitted(unsigned long start, int nr_pages)
++static inline bool gup_fast_permitted(unsigned long start, unsigned long end)
+ {
+-	unsigned long len, end;
+-
+-	len = (unsigned long)nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-	if (end < start)
+-		return false;
+ 	if (end >> __VIRTUAL_MASK_SHIFT)
+ 		return false;
+ 	return true;
+diff --git a/mm/gup.c b/mm/gup.c
+index 6bb521db67ec..3237f33792e6 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2123,13 +2123,9 @@ static void gup_pgd_range(unsigned long addr, unsigned long end,
+  * Check if it's allowed to use __get_user_pages_fast() for the range, or
+  * we need to fall back to the slow version:
+  */
+-bool gup_fast_permitted(unsigned long start, int nr_pages)
++static bool gup_fast_permitted(unsigned long start, unsigned long end)
+ {
+-	unsigned long len, end;
+-
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-	return end >= start;
++	return true;
+ }
+ #endif
+ 
+@@ -2150,6 +2146,8 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+ 	end = start + len;
+ 
++	if (end <= start)
++		return 0;
+ 	if (unlikely(!access_ok((void __user *)start, len)))
+ 		return 0;
+ 
+@@ -2165,7 +2163,7 @@ int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 	 * block IPIs that come from THPs splitting.
+ 	 */
+ 
+-	if (gup_fast_permitted(start, nr_pages)) {
++	if (gup_fast_permitted(start, end)) {
+ 		local_irq_save(flags);
+ 		gup_pgd_range(start, end, write ? FOLL_WRITE : 0, pages, &nr);
+ 		local_irq_restore(flags);
+@@ -2224,13 +2222,12 @@ int get_user_pages_fast(unsigned long start, int nr_pages,
+ 	len = (unsigned long) nr_pages << PAGE_SHIFT;
+ 	end = start + len;
+ 
+-	if (nr_pages <= 0)
++	if (end <= start)
+ 		return 0;
+-
+ 	if (unlikely(!access_ok((void __user *)start, len)))
+ 		return -EFAULT;
+ 
+-	if (gup_fast_permitted(start, nr_pages)) {
++	if (gup_fast_permitted(start, end)) {
+ 		local_irq_disable();
+ 		gup_pgd_range(addr, end, gup_flags, pages, &nr);
+ 		local_irq_enable();
+-- 
+2.20.1
