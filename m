@@ -1,36 +1,31 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 03 Jun 2019 07:44:21 +0000
-Subject: Re: [PATCH 08/16] sparc64: add the missing pgd_page definition
-Message-Id: <20190603074421.GB22920@lst.de>
+Date: Tue, 11 Jun 2019 14:40:46 +0000
+Subject: switch the remaining architectures to use generic GUP v3
+Message-Id: <20190611144102.8848-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190601074959.14036-1-hch@lst.de> <20190601074959.14036-9-hch@lst.de> <CAHk-=wj9w5NxTcJsqpvYUiL3OBOH-J3=4-vXcc3GaG_U8H-gJw@mail.gmail.com>
-In-Reply-To: <CAHk-=wj9w5NxTcJsqpvYUiL3OBOH-J3=4-vXcc3GaG_U8H-gJw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Christoph Hellwig <hch@lst.de>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Linux-MM <linux-mm@kvack.org>, the arch/x86 maintainers <x86@kernel.org>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Jun 01, 2019 at 09:28:54AM -0700, Linus Torvalds wrote:
-> Both sparc64 and sh had this pattern, but now that I look at it more
-> closely, I think your version is wrong, or at least nonoptimal.
+Hi Linus and maintainers,
 
-I bet it is.  Then again these symbols are just required for the code
-to compile, as neither sparc64 nor sh actually use the particular
-variant of huge pages we need it for.  Then again even actually dead
-code should better be not too buggy if it isn't just a stub.
+below is a series to switch mips, sh and sparc64 to use the generic
+GUP code so that we only have one codebase to touch for further
+improvements to this code.  I don't have hardware for any of these
+architectures, and generally no clue about their page table
+management, so handle with care.
 
-> So I thgink this would be better done with
-> 
->      #define pgd_page(pgd)    pfn_to_page(pgd_pfn(pgd))
-> 
-> where that "pgd_pfn()" would need to be a new (but likely very
-> trivial) function. That's what we do for pte_pfn().
-> 
-> IOW, it would likely end up something like
-> 
->   #define pgd_to_pfn(pgd) (pgd_val(x) >> PFN_PGD_SHIFT)
+Changes since v2:
+ - rebase to mainline to pick up the untagged_addr definition
+ - fix the gup range check to be start <= end to catch the 0 length case
+ - use pfn based version for the missing pud_page/pgd_page definitions
+ - fix a wrong check in the sparc64 version of pte_access_permitted
 
-True.  I guess it would be best if we could get most if not all
-architectures to use common versions of these macros so that we have
-the issue settled once.
+Changes since v1:
+ - fix various issues found by the build bot
+ - cherry pick and use the untagged_addr helper form Andrey
+ - add various refactoring patches to share more code over architectures
+ - move the powerpc hugepd code to mm/gup.c and sync it with the generic
+   hup semantics
