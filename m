@@ -1,217 +1,427 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 25 Jun 2019 14:37:09 +0000
-Subject: [PATCH 10/16] mm: rename CONFIG_HAVE_GENERIC_GUP to CONFIG_HAVE_FAST_GUP
-Message-Id: <20190625143715.1689-11-hch@lst.de>
+Date: Tue, 11 Jun 2019 14:40:55 +0000
+Subject: [PATCH 09/16] sparc64: use the generic get_user_pages_fast code
+Message-Id: <20190611144102.8848-10-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190625143715.1689-1-hch@lst.de>
-In-Reply-To: <20190625143715.1689-1-hch@lst.de>
+References: <20190611144102.8848-1-hch@lst.de>
+In-Reply-To: <20190611144102.8848-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
-We only support the generic GUP now, so rename the config option to
-be more clear, and always use the mm/Kconfig definition of the
-symbol and select it from the arch Kconfigs.
+The sparc64 code is mostly equivalent to the generic one, minus various
+bugfixes and two arch overrides that this patch adds to pgtable.h.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
 ---
- arch/arm/Kconfig     | 5 +----
- arch/arm64/Kconfig   | 4 +---
- arch/mips/Kconfig    | 2 +-
- arch/powerpc/Kconfig | 2 +-
- arch/s390/Kconfig    | 2 +-
- arch/sh/Kconfig      | 2 +-
- arch/sparc/Kconfig   | 2 +-
- arch/x86/Kconfig     | 4 +---
- mm/Kconfig           | 2 +-
- mm/gup.c             | 4 ++--
- 10 files changed, 11 insertions(+), 18 deletions(-)
+ arch/sparc/Kconfig                  |   1 +
+ arch/sparc/include/asm/pgtable_64.h |  18 ++
+ arch/sparc/mm/Makefile              |   2 +-
+ arch/sparc/mm/gup.c                 | 340 ----------------------------
+ 4 files changed, 20 insertions(+), 341 deletions(-)
+ delete mode 100644 arch/sparc/mm/gup.c
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index 8869742a85df..3879a3e2c511 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -73,6 +73,7 @@ config ARM
- 	select HAVE_DYNAMIC_FTRACE_WITH_REGS if HAVE_DYNAMIC_FTRACE
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS if (CPU_V6 || CPU_V6K || CPU_V7) && MMU
- 	select HAVE_EXIT_THREAD
-+	select HAVE_FAST_GUP if ARM_LPAE
- 	select HAVE_FTRACE_MCOUNT_RECORD if !XIP_KERNEL
- 	select HAVE_FUNCTION_GRAPH_TRACER if !THUMB2_KERNEL && !CC_IS_CLANG
- 	select HAVE_FUNCTION_TRACER if !XIP_KERNEL
-@@ -1596,10 +1597,6 @@ config ARCH_SELECT_MEMORY_MODEL
- config HAVE_ARCH_PFN_VALID
- 	def_bool ARCH_HAS_HOLES_MEMORYMODEL || !SPARSEMEM
- 
--config HAVE_GENERIC_GUP
--	def_bool y
--	depends on ARM_LPAE
--
- config HIGHMEM
- 	bool "High Memory Support"
- 	depends on MMU
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 697ea0510729..4a6ee3e92757 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -140,6 +140,7 @@ config ARM64
- 	select HAVE_DMA_CONTIGUOUS
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
-+	select HAVE_FAST_GUP
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_FUNCTION_GRAPH_TRACER
-@@ -262,9 +263,6 @@ config GENERIC_CALIBRATE_DELAY
- config ZONE_DMA32
- 	def_bool y
- 
--config HAVE_GENERIC_GUP
--	def_bool y
--
- config ARCH_ENABLE_MEMORY_HOTPLUG
- 	def_bool y
- 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 64108a2a16d4..b1e42f0e4ed0 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -54,10 +54,10 @@ config MIPS
- 	select HAVE_DMA_CONTIGUOUS
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_EXIT_THREAD
-+	select HAVE_FAST_GUP
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_FUNCTION_TRACER
--	select HAVE_GENERIC_GUP
- 	select HAVE_IDE
- 	select HAVE_IOREMAP_PROT
- 	select HAVE_IRQ_EXIT_ON_IRQ_STACK
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 8c1c636308c8..992a04796e56 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -185,12 +185,12 @@ config PPC
- 	select HAVE_DYNAMIC_FTRACE_WITH_REGS	if MPROFILE_KERNEL
- 	select HAVE_EBPF_JIT			if PPC64
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS	if !(CPU_LITTLE_ENDIAN && POWER7_CPU)
-+	select HAVE_FAST_GUP
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_FUNCTION_ERROR_INJECTION
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_GCC_PLUGINS			if GCC_VERSION >= 50200   # plugin support on gcc <= 5.1 is buggy on PPC
--	select HAVE_GENERIC_GUP
- 	select HAVE_HW_BREAKPOINT		if PERF_EVENTS && (PPC_BOOK3S || PPC_8xx)
- 	select HAVE_IDE
- 	select HAVE_IOREMAP_PROT
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 109243fdb6ec..aaff0376bf53 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -137,6 +137,7 @@ config S390
- 	select HAVE_DMA_CONTIGUOUS
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_DYNAMIC_FTRACE_WITH_REGS
-+	select HAVE_FAST_GUP
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	select HAVE_FENTRY
- 	select HAVE_FTRACE_MCOUNT_RECORD
-@@ -144,7 +145,6 @@ config S390
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_FUTEX_CMPXCHG if FUTEX
- 	select HAVE_GCC_PLUGINS
--	select HAVE_GENERIC_GUP
- 	select HAVE_KERNEL_BZIP2
- 	select HAVE_KERNEL_GZIP
- 	select HAVE_KERNEL_LZ4
-diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-index 6fddfc3c9710..f6b15ecc37a3 100644
---- a/arch/sh/Kconfig
-+++ b/arch/sh/Kconfig
-@@ -14,7 +14,7 @@ config SUPERH
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_PERF_EVENTS
- 	select HAVE_DEBUG_BUGVERBOSE
--	select HAVE_GENERIC_GUP
-+	select HAVE_FAST_GUP if MMU
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
- 	select ARCH_HAS_GCOV_PROFILE_ALL
 diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 22435471f942..659232b760e1 100644
+index 26ab6f5bbaaf..22435471f942 100644
 --- a/arch/sparc/Kconfig
 +++ b/arch/sparc/Kconfig
-@@ -28,7 +28,7 @@ config SPARC
+@@ -28,6 +28,7 @@ config SPARC
  	select RTC_DRV_M48T59
  	select RTC_SYSTOHC
  	select HAVE_ARCH_JUMP_LABEL if SPARC64
--	select HAVE_GENERIC_GUP if SPARC64
-+	select HAVE_FAST_GUP if SPARC64
++	select HAVE_GENERIC_GUP if SPARC64
  	select GENERIC_IRQ_SHOW
  	select ARCH_WANT_IPC_PARSE_VERSION
  	select GENERIC_PCI_IOMAP
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 7cd53cc59f0f..44500e0ed630 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -157,6 +157,7 @@ config X86
- 	select HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	select HAVE_EISA
- 	select HAVE_EXIT_THREAD
-+	select HAVE_FAST_GUP
- 	select HAVE_FENTRY			if X86_64 || DYNAMIC_FTRACE
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_FUNCTION_GRAPH_TRACER
-@@ -2874,9 +2875,6 @@ config HAVE_ATOMIC_IOMAP
- config X86_DEV_DMA_OPS
- 	bool
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 1904782dcd39..547ff96fb228 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -1098,6 +1098,24 @@ static inline unsigned long untagged_addr(unsigned long start)
+ }
+ #define untagged_addr untagged_addr
  
--config HAVE_GENERIC_GUP
--	def_bool y
++static inline bool pte_access_permitted(pte_t pte, bool write)
++{
++	u64 prot;
++
++	if (tlb_type = hypervisor) {
++		prot = _PAGE_PRESENT_4V | _PAGE_P_4V;
++		if (write)
++			prot |= _PAGE_WRITE_4V;
++	} else {
++		prot = _PAGE_PRESENT_4U | _PAGE_P_4U;
++		if (write)
++			prot |= _PAGE_WRITE_4U;
++	}
++
++	return (pte_val(pte) & (prot | _PAGE_SPECIAL)) = prot;
++}
++#define pte_access_permitted pte_access_permitted
++
+ #include <asm/tlbflush.h>
+ #include <asm-generic/pgtable.h>
+ 
+diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
+index d39075b1e3b7..b078205b70e0 100644
+--- a/arch/sparc/mm/Makefile
++++ b/arch/sparc/mm/Makefile
+@@ -5,7 +5,7 @@
+ asflags-y := -ansi
+ ccflags-y := -Werror
+ 
+-obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o gup.o
++obj-$(CONFIG_SPARC64)   += ultra.o tlb.o tsb.o
+ obj-y                   += fault_$(BITS).o
+ obj-y                   += init_$(BITS).o
+ obj-$(CONFIG_SPARC32)   += extable.o srmmu.o iommu.o io-unit.o
+diff --git a/arch/sparc/mm/gup.c b/arch/sparc/mm/gup.c
+deleted file mode 100644
+index 1e770a517d4a..000000000000
+--- a/arch/sparc/mm/gup.c
++++ /dev/null
+@@ -1,340 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * Lockless get_user_pages_fast for sparc, cribbed from powerpc
+- *
+- * Copyright (C) 2008 Nick Piggin
+- * Copyright (C) 2008 Novell Inc.
+- */
 -
- source "drivers/firmware/Kconfig"
- 
- source "arch/x86/kvm/Kconfig"
-diff --git a/mm/Kconfig b/mm/Kconfig
-index fe51f104a9e0..98dffb0f2447 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -132,7 +132,7 @@ config HAVE_MEMBLOCK_NODE_MAP
- config HAVE_MEMBLOCK_PHYS_MAP
- 	bool
- 
--config HAVE_GENERIC_GUP
-+config HAVE_FAST_GUP
- 	bool
- 
- config ARCH_KEEP_MEMBLOCK
-diff --git a/mm/gup.c b/mm/gup.c
-index 9b72f2ea3471..7328890ad8d3 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -1651,7 +1651,7 @@ struct page *get_dump_page(unsigned long addr)
- #endif /* CONFIG_ELF_CORE */
- 
- /*
-- * Generic Fast GUP
-+ * Fast GUP
-  *
-  * get_user_pages_fast attempts to pin user pages by walking the page
-  * tables directly and avoids taking locks. Thus the walker needs to be
-@@ -1683,7 +1683,7 @@ struct page *get_dump_page(unsigned long addr)
-  *
-  * This code is based heavily on the PowerPC implementation by Nick Piggin.
-  */
--#ifdef CONFIG_HAVE_GENERIC_GUP
-+#ifdef CONFIG_HAVE_FAST_GUP
- #ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
- /*
-  * WARNING: only to be used in the get_user_pages_fast() implementation.
+-#include <linux/sched.h>
+-#include <linux/mm.h>
+-#include <linux/vmstat.h>
+-#include <linux/pagemap.h>
+-#include <linux/rwsem.h>
+-#include <asm/pgtable.h>
+-#include <asm/adi.h>
+-
+-/*
+- * The performance critical leaf functions are made noinline otherwise gcc
+- * inlines everything into a single function which results in too much
+- * register pressure.
+- */
+-static noinline int gup_pte_range(pmd_t pmd, unsigned long addr,
+-		unsigned long end, int write, struct page **pages, int *nr)
+-{
+-	unsigned long mask, result;
+-	pte_t *ptep;
+-
+-	if (tlb_type = hypervisor) {
+-		result = _PAGE_PRESENT_4V|_PAGE_P_4V;
+-		if (write)
+-			result |= _PAGE_WRITE_4V;
+-	} else {
+-		result = _PAGE_PRESENT_4U|_PAGE_P_4U;
+-		if (write)
+-			result |= _PAGE_WRITE_4U;
+-	}
+-	mask = result | _PAGE_SPECIAL;
+-
+-	ptep = pte_offset_kernel(&pmd, addr);
+-	do {
+-		struct page *page, *head;
+-		pte_t pte = *ptep;
+-
+-		if ((pte_val(pte) & mask) != result)
+-			return 0;
+-		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+-
+-		/* The hugepage case is simplified on sparc64 because
+-		 * we encode the sub-page pfn offsets into the
+-		 * hugepage PTEs.  We could optimize this in the future
+-		 * use page_cache_add_speculative() for the hugepage case.
+-		 */
+-		page = pte_page(pte);
+-		head = compound_head(page);
+-		if (!page_cache_get_speculative(head))
+-			return 0;
+-		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
+-			put_page(head);
+-			return 0;
+-		}
+-
+-		pages[*nr] = page;
+-		(*nr)++;
+-	} while (ptep++, addr += PAGE_SIZE, addr != end);
+-
+-	return 1;
+-}
+-
+-static int gup_huge_pmd(pmd_t *pmdp, pmd_t pmd, unsigned long addr,
+-			unsigned long end, int write, struct page **pages,
+-			int *nr)
+-{
+-	struct page *head, *page;
+-	int refs;
+-
+-	if (!(pmd_val(pmd) & _PAGE_VALID))
+-		return 0;
+-
+-	if (write && !pmd_write(pmd))
+-		return 0;
+-
+-	refs = 0;
+-	page = pmd_page(pmd) + ((addr & ~PMD_MASK) >> PAGE_SHIFT);
+-	head = compound_head(page);
+-	do {
+-		VM_BUG_ON(compound_head(page) != head);
+-		pages[*nr] = page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr += PAGE_SIZE, addr != end);
+-
+-	if (!page_cache_add_speculative(head, refs)) {
+-		*nr -= refs;
+-		return 0;
+-	}
+-
+-	if (unlikely(pmd_val(pmd) != pmd_val(*pmdp))) {
+-		*nr -= refs;
+-		while (refs--)
+-			put_page(head);
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+-static int gup_huge_pud(pud_t *pudp, pud_t pud, unsigned long addr,
+-			unsigned long end, int write, struct page **pages,
+-			int *nr)
+-{
+-	struct page *head, *page;
+-	int refs;
+-
+-	if (!(pud_val(pud) & _PAGE_VALID))
+-		return 0;
+-
+-	if (write && !pud_write(pud))
+-		return 0;
+-
+-	refs = 0;
+-	page = pud_page(pud) + ((addr & ~PUD_MASK) >> PAGE_SHIFT);
+-	head = compound_head(page);
+-	do {
+-		VM_BUG_ON(compound_head(page) != head);
+-		pages[*nr] = page;
+-		(*nr)++;
+-		page++;
+-		refs++;
+-	} while (addr += PAGE_SIZE, addr != end);
+-
+-	if (!page_cache_add_speculative(head, refs)) {
+-		*nr -= refs;
+-		return 0;
+-	}
+-
+-	if (unlikely(pud_val(pud) != pud_val(*pudp))) {
+-		*nr -= refs;
+-		while (refs--)
+-			put_page(head);
+-		return 0;
+-	}
+-
+-	return 1;
+-}
+-
+-static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+-		int write, struct page **pages, int *nr)
+-{
+-	unsigned long next;
+-	pmd_t *pmdp;
+-
+-	pmdp = pmd_offset(&pud, addr);
+-	do {
+-		pmd_t pmd = *pmdp;
+-
+-		next = pmd_addr_end(addr, end);
+-		if (pmd_none(pmd))
+-			return 0;
+-		if (unlikely(pmd_large(pmd))) {
+-			if (!gup_huge_pmd(pmdp, pmd, addr, next,
+-					  write, pages, nr))
+-				return 0;
+-		} else if (!gup_pte_range(pmd, addr, next, write,
+-					  pages, nr))
+-			return 0;
+-	} while (pmdp++, addr = next, addr != end);
+-
+-	return 1;
+-}
+-
+-static int gup_pud_range(pgd_t pgd, unsigned long addr, unsigned long end,
+-		int write, struct page **pages, int *nr)
+-{
+-	unsigned long next;
+-	pud_t *pudp;
+-
+-	pudp = pud_offset(&pgd, addr);
+-	do {
+-		pud_t pud = *pudp;
+-
+-		next = pud_addr_end(addr, end);
+-		if (pud_none(pud))
+-			return 0;
+-		if (unlikely(pud_large(pud))) {
+-			if (!gup_huge_pud(pudp, pud, addr, next,
+-					  write, pages, nr))
+-				return 0;
+-		} else if (!gup_pmd_range(pud, addr, next, write, pages, nr))
+-			return 0;
+-	} while (pudp++, addr = next, addr != end);
+-
+-	return 1;
+-}
+-
+-/*
+- * Note a difference with get_user_pages_fast: this always returns the
+- * number of pages pinned, 0 if no pages were pinned.
+- */
+-int __get_user_pages_fast(unsigned long start, int nr_pages, int write,
+-			  struct page **pages)
+-{
+-	struct mm_struct *mm = current->mm;
+-	unsigned long addr, len, end;
+-	unsigned long next, flags;
+-	pgd_t *pgdp;
+-	int nr = 0;
+-
+-#ifdef CONFIG_SPARC64
+-	if (adi_capable()) {
+-		long addr = start;
+-
+-		/* If userspace has passed a versioned address, kernel
+-		 * will not find it in the VMAs since it does not store
+-		 * the version tags in the list of VMAs. Storing version
+-		 * tags in list of VMAs is impractical since they can be
+-		 * changed any time from userspace without dropping into
+-		 * kernel. Any address search in VMAs will be done with
+-		 * non-versioned addresses. Ensure the ADI version bits
+-		 * are dropped here by sign extending the last bit before
+-		 * ADI bits. IOMMU does not implement version tags.
+-		 */
+-		addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
+-		start = addr;
+-	}
+-#endif
+-	start &= PAGE_MASK;
+-	addr = start;
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-
+-	local_irq_save(flags);
+-	pgdp = pgd_offset(mm, addr);
+-	do {
+-		pgd_t pgd = *pgdp;
+-
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none(pgd))
+-			break;
+-		if (!gup_pud_range(pgd, addr, next, write, pages, &nr))
+-			break;
+-	} while (pgdp++, addr = next, addr != end);
+-	local_irq_restore(flags);
+-
+-	return nr;
+-}
+-
+-int get_user_pages_fast(unsigned long start, int nr_pages,
+-			unsigned int gup_flags, struct page **pages)
+-{
+-	struct mm_struct *mm = current->mm;
+-	unsigned long addr, len, end;
+-	unsigned long next;
+-	pgd_t *pgdp;
+-	int nr = 0;
+-
+-#ifdef CONFIG_SPARC64
+-	if (adi_capable()) {
+-		long addr = start;
+-
+-		/* If userspace has passed a versioned address, kernel
+-		 * will not find it in the VMAs since it does not store
+-		 * the version tags in the list of VMAs. Storing version
+-		 * tags in list of VMAs is impractical since they can be
+-		 * changed any time from userspace without dropping into
+-		 * kernel. Any address search in VMAs will be done with
+-		 * non-versioned addresses. Ensure the ADI version bits
+-		 * are dropped here by sign extending the last bit before
+-		 * ADI bits. IOMMU does not implements version tags,
+-		 */
+-		addr = (addr << (long)adi_nbits()) >> (long)adi_nbits();
+-		start = addr;
+-	}
+-#endif
+-	start &= PAGE_MASK;
+-	addr = start;
+-	len = (unsigned long) nr_pages << PAGE_SHIFT;
+-	end = start + len;
+-
+-	/*
+-	 * XXX: batch / limit 'nr', to avoid large irq off latency
+-	 * needs some instrumenting to determine the common sizes used by
+-	 * important workloads (eg. DB2), and whether limiting the batch size
+-	 * will decrease performance.
+-	 *
+-	 * It seems like we're in the clear for the moment. Direct-IO is
+-	 * the main guy that batches up lots of get_user_pages, and even
+-	 * they are limited to 64-at-a-time which is not so many.
+-	 */
+-	/*
+-	 * This doesn't prevent pagetable teardown, but does prevent
+-	 * the pagetables from being freed on sparc.
+-	 *
+-	 * So long as we atomically load page table pointers versus teardown,
+-	 * we can follow the address down to the the page and take a ref on it.
+-	 */
+-	local_irq_disable();
+-
+-	pgdp = pgd_offset(mm, addr);
+-	do {
+-		pgd_t pgd = *pgdp;
+-
+-		next = pgd_addr_end(addr, end);
+-		if (pgd_none(pgd))
+-			goto slow;
+-		if (!gup_pud_range(pgd, addr, next, gup_flags & FOLL_WRITE,
+-				   pages, &nr))
+-			goto slow;
+-	} while (pgdp++, addr = next, addr != end);
+-
+-	local_irq_enable();
+-
+-	VM_BUG_ON(nr != (end - start) >> PAGE_SHIFT);
+-	return nr;
+-
+-	{
+-		int ret;
+-
+-slow:
+-		local_irq_enable();
+-
+-		/* Try to get the remaining pages with get_user_pages */
+-		start += nr << PAGE_SHIFT;
+-		pages += nr;
+-
+-		ret = get_user_pages_unlocked(start,
+-			(end - start) >> PAGE_SHIFT, pages,
+-			gup_flags);
+-
+-		/* Have to be a bit careful with return values */
+-		if (nr > 0) {
+-			if (ret < 0)
+-				ret = nr;
+-			else
+-				ret += nr;
+-		}
+-
+-		return ret;
+-	}
+-}
 -- 
 2.20.1
