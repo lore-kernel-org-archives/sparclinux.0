@@ -1,70 +1,64 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Thu, 27 Jun 2019 00:01:14 +0000
-Subject: Re: linux-next: build failure after merge of the akpm-current tree
-Message-Id: <20190627100114.3eda815f@canb.auug.org.au>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="Sig_/TmVpELSjnXhVlpZ+rR=WhJA"
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Tue, 11 Jun 2019 15:38:37 +0000
+Subject: [PATCH] sunhv: Fix device naming inconsistency between sunhv_console and sunhv_reg
+Message-Id: <20190611153836.18950-1-glaubitz@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190626225807.205f1382@canb.auug.org.au>
-        <20190626131318.GA5101@lst.de>
-In-Reply-To: <20190626131318.GA5101@lst.de>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linux Next Mailing List <linux-next@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: sparclinux@vger.kernel.org
 
---Sig_/TmVpELSjnXhVlpZ+rR=WhJA
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+In d5a2aa24, the name in struct console sunhv_console was changed from "ttyS"
+to "ttyHV" while the name in struct uart_ops sunhv_pops remained unchanged.
 
-Hi Christoph,
+This results in the hypervisor console device to be listed as "ttyHV0" under
+/proc/consoles while the device node is still named "ttyS0":
 
-On Wed, 26 Jun 2019 15:13:18 +0200 Christoph Hellwig <hch@lst.de> wrote:
->
-> As that function is in code only there to provide compile coverage
-> something like this should fix the problem:
->=20
->=20
-> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm=
-/pgtable_64.h
-> index 547ff96fb228..1599de730532 100644
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -861,10 +861,12 @@ static inline unsigned long pud_page_vaddr(pud_t pu=
-d)
->  #define pud_clear(pudp)			(pud_val(*(pudp)) =3D 0UL)
->  #define pgd_page_vaddr(pgd)		\
->  	((unsigned long) __va(pgd_val(pgd)))
-> -#define pgd_page(pgd)			pfn_to_page(pgd_pfn(pgd))
->  #define pgd_present(pgd)		(pgd_val(pgd) !=3D 0U)
->  #define pgd_clear(pgdp)			(pgd_val(*(pgdp)) =3D 0UL)
-> =20
-> +/* only used by the stubbed out hugetlb gup code, should never be called=
- */
-> +#define pgd_page(pgd)			NULL
-> +
->  static inline unsigned long pud_large(pud_t pud)
->  {
->  	pte_t pte =3D __pte(pud_val(pud));
+root@osaka:~# cat /proc/consoles
+ttyHV0               -W- (EC p  )    4:64
+tty0                 -WU (E     )    4:1
+root@osaka:~# readlink /sys/dev/char/4:64
+../../devices/root/f02836f0/f0285690/tty/ttyS0
+root@osaka:~#
 
-Thanks.
+This means that any userland code which tries to determine the name of the
+device file of the hypervisor console device can not rely on the information
+provided by /proc/consoles. In particular, booting current versions of debian-
+installer inside a SPARC LDOM will fail with the installer unable to determine
+the console device.
 
---=20
-Cheers,
-Stephen Rothwell
+After renaming the device in struct uart_ops sunhv_pops to "ttyHV" as well,
+the inconsistency is fixed and it is possible again to determine the name
+of the device file of the hypervisor console device by reading the contents
+of /proc/console:
 
---Sig_/TmVpELSjnXhVlpZ+rR=WhJA
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+root@osaka:~# cat /proc/consoles
+ttyHV0               -W- (EC p  )    4:64
+tty0                 -WU (E     )    4:1
+root@osaka:~# readlink /sys/dev/char/4:64
+../../devices/root/f02836f0/f0285690/tty/ttyHV0
+root@osaka:~#
 
------BEGIN PGP SIGNATURE-----
+With this change, debian-installer works correctly when installing inside
+a SPARC LDOM.
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAl0UB0oACgkQAVBC80lX
-0GxIZwgAhEu9RAp1zw7pbbiYTJSgyEfJ+NiUbwBPJBdW898jCXDYggkQdOge4hID
-9ycFIIX9NcWqFPEp4aZIs7WoAh+d6IhOR4AEd61u0x2l9r4JsydkQ95K0EruOQtQ
-VexF4aPCCNbFwOxRADrkHZ/ZOQIUZ/9MQCCLg1Zm3kJXITjsnm7TqSFfGJXsR1+V
-w+ekwkxnB0EYzJPhk/1mZRoXvijX+9cOdLX+G4orCEqPCLFl4/y1Z2Cse8CmAnzS
-ArQsJI3xn7BUUHdXMeE3o5kJWeAa53pgC0rwTxbnysGtXq5uJmyGb6mRnkKOf+tk
-3MM/gznYCyCM66+sWmjLLu4xb8cN2g==
-=ERSj
------END PGP SIGNATURE-----
+Signed-off-by: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+---
+ drivers/tty/serial/sunhv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---Sig_/TmVpELSjnXhVlpZ+rR=WhJA--
+diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+index 63e34d868de8..f8503f8fc44e 100644
+--- a/drivers/tty/serial/sunhv.c
++++ b/drivers/tty/serial/sunhv.c
+@@ -397,7 +397,7 @@ static const struct uart_ops sunhv_pops = {
+ static struct uart_driver sunhv_reg = {
+ 	.owner			= THIS_MODULE,
+ 	.driver_name		= "sunhv",
+-	.dev_name		= "ttyS",
++	.dev_name		= "ttyHV",
+ 	.major			= TTY_MAJOR,
+ };
+ 
+-- 
+2.21.0
