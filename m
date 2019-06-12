@@ -1,25 +1,33 @@
-From: Nicholas Piggin <npiggin@gmail.com>
-Date: Wed, 12 Jun 2019 00:52:53 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Wed, 12 Jun 2019 01:09:24 +0000
 Subject: Re: [PATCH 16/16] mm: pass get_user_pages_fast iterator arguments in a structure
-Message-Id: <1560300464.nijubslu3h.astroid@bobo.none>
+Message-Id: <CAHk-=wjSo+TzkvYnAqrp=eFgzzc058DhSMTPr4-2quZTbGLfnw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190611144102.8848-1-hch@lst.de>
-        <20190611144102.8848-17-hch@lst.de>
-In-Reply-To: <20190611144102.8848-17-hch@lst.de>
+References: <20190611144102.8848-1-hch@lst.de> <20190611144102.8848-17-hch@lst.de>
+ <1560300464.nijubslu3h.astroid@bobo.none>
+In-Reply-To: <1560300464.nijubslu3h.astroid@bobo.none>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Christoph Hellwig <hch@lst.de>, James Hogan <jhogan@kernel.org>, Paul Burton <paul.burton@mips.com>, Linus Torvalds <torvalds@linux-foundation.org>, Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Khalid Aziz <khalid.aziz@oracle.com>, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, x86@kernel.org
+To: Nicholas Piggin <npiggin@gmail.com>
+Cc: Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Christoph Hellwig <hch@lst.de>, James Hogan <jhogan@kernel.org>, Paul Burton <paul.burton@mips.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Khalid Aziz <khalid.aziz@oracle.com>, Linux List Kernel Mailing <linux-kernel@vger.kernel.org>, linux-mips@vger.kernel.org, Linux-MM <linux-mm@kvack.org>, linuxppc-dev@lists.ozlabs.org, Linux-sh list <linux-sh@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, the arch/x86 maintainers <x86@kernel.org>
 
-Christoph Hellwig's on June 12, 2019 12:41 am:
-> Instead of passing a set of always repeated arguments down the
-> get_user_pages_fast iterators, create a struct gup_args to hold them and
-> pass that by reference.  This leads to an over 100 byte .text size
-> reduction for x86-64.
+On Tue, Jun 11, 2019 at 2:55 PM Nicholas Piggin <npiggin@gmail.com> wrote:
+>
+> What does this do for performance? I've found this pattern can be
+> bad for store aliasing detection.
 
-What does this do for performance? I've found this pattern can be
-bad for store aliasing detection.
+I wouldn't expect it to be noticeable, and the lack of argument
+reloading etc should make up for it. Plus inlining makes it a
+non-issue when that happens.
 
-Thanks,
-Nick
+But I guess we could also at least look at using "restrict", if that
+ends up helping. Unlike the completely bogus type-based aliasing rules
+(that we disable because I think the C people were on some bad bad
+drugs when they came up with them), restricted pointers are a real
+thing that makes sense.
+
+That said, we haven't traditionally used it, and I don't know how much
+it helps gcc. Maybe gcc ignores it entirely? S
+
+               Linus
