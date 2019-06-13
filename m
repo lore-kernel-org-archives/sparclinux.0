@@ -1,88 +1,463 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sat, 29 Jun 2019 14:37:57 +0000
-Subject: Re: [PATCH 04/16] MIPS: use the generic get_user_pages_fast code
-Message-Id: <20190629143757.GA25077@roeck-us.net>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Thu, 13 Jun 2019 10:19:24 +0000
+Subject: [PATCH] mm: Generalize and rename notify_page_fault() as kprobe_page_fault()
+Message-Id: <1560420444-25737-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190625143715.1689-1-hch@lst.de>
- <20190625143715.1689-5-hch@lst.de>
-In-Reply-To: <20190625143715.1689-5-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org, Jason Gunthorpe <jgg@mellanox.com>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, Michal Hocko <mhocko@suse.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Will Deacon <will.deacon@arm.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Stephen Rothwell <sfr@canb.auug.org.au>, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Ingo Molnar <mingo@redhat.com>, James Hogan <jhogan@kernel.org>, linux-snps-arc@lists.infradead.org, Fenghua Yu <fenghua.yu@intel.com>, Anshuman Khandual <anshuman.khandual@arm.com>, Andrey Konovalov <andreyknvl@google.com>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Christophe Leroy <christophe.leroy@c-s.fr>, Tony Luck <tony.luck@intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-Hi,
+Architectures which support kprobes have very similar boilerplate around
+calling kprobe_fault_handler(). Use a helper function in kprobes.h to unify
+them, based on the x86 code.
 
-On Tue, Jun 25, 2019 at 04:37:03PM +0200, Christoph Hellwig wrote:
-> The mips code is mostly equivalent to the generic one, minus various
-> bugfixes and an arch override for gup_fast_permitted.
-> 
-> Note that this defines ARCH_HAS_PTE_SPECIAL for mips as mips has
-> pte_special and pte_mkspecial implemented and used in the existing
-> gup code.  They are no-op stubs, though which makes me a little unsure
-> if this is really right thing to do.
-> 
-> Note that this also adds back a missing cpu_has_dc_aliases check for
-> __get_user_pages_fast, which the old code was only doing for
-> get_user_pages_fast.  This clearly looks like an oversight, as any
-> condition that makes get_user_pages_fast unsafe also applies to
-> __get_user_pages_fast.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> Reviewed-by: Jason Gunthorpe <jgg@mellanox.com>
+This changes the behaviour for other architectures when preemption is
+enabled. Previously, they would have disabled preemption while calling the
+kprobe handler. However, preemption would be disabled if this fault was
+due to a kprobe, so we know the fault was not due to a kprobe handler and
+can simply return failure.
 
-This patch causes all mips images (mips, mips64, mipsel, mipsel64)
-to crash when booting in qemu. Unfortunately the patch can not be
-reverted easily since there are context changes, causing build failures
-after the revert, so I can not verify if this is the only problem.
+This behaviour was introduced in the commit a980c0ef9f6d ("x86/kprobes:
+Refactor kprobes_fault() like kprobe_exceptions_notify()")
 
-Crash log (same for all variants):
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: x86@kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 
-...
-Run /sbin/init as init process
-BUG: Bad page map in process mount  pte:00b70401 pmd:8e5dc000
-page:80c24880 refcount:1 mapcount:-1 mapping:00000000 index:0x0
-flags: 0x1000(reserved)
-raw: 00001000 80c24884 80c24884 00000000 00000000 00000000 fffffffe 00000001
-page dumped because: bad pte
-addr:(ptrval) vm_flags:04044411 anon_vma:(ptrval) mapping:(ptrval) index:0
-qemu-system-mips: terminating on signal 15 from pid 13034 (/bin/bash)
-
-Guenter
-
+Reviewed-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
-bisect log:
+Questions:
 
-# bad: [48568d8c7f479ec45b9c3d02b4b1895f3ef61a03] Add linux-next specific files for 20190628
-# good: [4b972a01a7da614b4796475f933094751a295a2f] Linux 5.2-rc6
-git bisect start 'HEAD' 'v5.2-rc6'
-# good: [89a77c9176fe88f68c3bf7bd255cfea6797258d4] Merge remote-tracking branch 'crypto/master'
-git bisect good 89a77c9176fe88f68c3bf7bd255cfea6797258d4
-# good: [2cedca636ad73ed838bd636685b245404e490c73] Merge remote-tracking branch 'security/next-testing'
-git bisect good 2cedca636ad73ed838bd636685b245404e490c73
-# good: [ea260819fdc2f8a64e6c87f3ad80ecc5e4015921] Merge remote-tracking branch 'char-misc/char-misc-next'
-git bisect good ea260819fdc2f8a64e6c87f3ad80ecc5e4015921
-# good: [aca42ca2a32eacf804ac56a33526f049debc8ec0] Merge remote-tracking branch 'rpmsg/for-next'
-git bisect good aca42ca2a32eacf804ac56a33526f049debc8ec0
-# good: [f4cd0c7f3c07876f7173b5306e974644c6eec141] Merge remote-tracking branch 'pidfd/for-next'
-git bisect good f4cd0c7f3c07876f7173b5306e974644c6eec141
-# bad: [09c57a8ab1fc3474b4a620247a0f9e3ac61c4cfe] mm/sparsemem: support sub-section hotplug
-git bisect bad 09c57a8ab1fc3474b4a620247a0f9e3ac61c4cfe
-# good: [aaffcf10880c363870413c5cdee5dfb6a923e9ae] mm: memcontrol: dump memory.stat during cgroup OOM
-git bisect good aaffcf10880c363870413c5cdee5dfb6a923e9ae
-# bad: [81d90bb2d2784258ed7c0762ecf34d4665198bad] um: switch to generic version of pte allocation
-git bisect bad 81d90bb2d2784258ed7c0762ecf34d4665198bad
-# bad: [dadae650472841f004882a2409aa844e37809c60] sparc64-add-the-missing-pgd_page-definition-fix
-git bisect bad dadae650472841f004882a2409aa844e37809c60
-# good: [d1edd06c6ac8c8c49345ff34de1c72ee571f3f7b] mm: memcg/slab: stop setting page->mem_cgroup pointer for slab pages
-git bisect good d1edd06c6ac8c8c49345ff34de1c72ee571f3f7b
-# good: [b1ceaacca9e63794bd3f574c928e7e6aca01bce7] mm: simplify gup_fast_permitted
-git bisect good b1ceaacca9e63794bd3f574c928e7e6aca01bce7
-# bad: [59f238b3353caf43b118e1bb44010aa1abd56d7f] sh: add the missing pud_page definition
-git bisect bad 59f238b3353caf43b118e1bb44010aa1abd56d7f
-# bad: [93a184240a74cb0242b9b970f0bc018c4fdf24fd] MIPS: use the generic get_user_pages_fast code
-git bisect bad 93a184240a74cb0242b9b970f0bc018c4fdf24fd
-# good: [7c6a77cff73127e9495e345a0903d55b1b0fb323] mm: lift the x86_32 PAE version of gup_get_pte to common code
-git bisect good 7c6a77cff73127e9495e345a0903d55b1b0fb323
-# first bad commit: [93a184240a74cb0242b9b970f0bc018c4fdf24fd] MIPS: use the generic get_user_pages_fast code
+AFAICT there is no equivalent of erstwhile notify_page_fault() during page
+fault handling in arc and mips archs which can call this generic function.
+Please let me know if that is not the case.
+
+Testing:
+
+- Build and boot tested on arm64 and x86
+- Build tested on some other archs (arm, sparc64, alpha, powerpc etc)
+
+Changes in V1:
+
+- Updated commit message per Matthew
+- Changed kprobe_page_fault() to return bool per Stephen/Dave/Christophe/Matthew
+- Changed kprobe_page_fault() to follow x86 code flow per Dave/Matthew
+- Changed kprobe_fault variable as bool in powerpc __do_page_fault()
+- Added a comment to kprobe_page_fault() per Dave
+
+Changes in RFC V3: (https://patchwork.kernel.org/patch/10981353/)
+
+- Updated the commit message with an explanation for new preemption behaviour
+- Moved notify_page_fault() to kprobes.h with 'static nokprobe_inline' per Matthew
+- Changed notify_page_fault() return type from int to bool per Michael Ellerman
+- Renamed notify_page_fault() as kprobe_page_fault() per Peterz
+
+Changes in RFC V2: (https://patchwork.kernel.org/patch/10974221/)
+
+- Changed generic notify_page_fault() per Mathew Wilcox
+- Changed x86 to use new generic notify_page_fault()
+- s/must not/need not/ in commit message per Matthew Wilcox
+
+Changes in RFC V1: (https://patchwork.kernel.org/patch/10968273/)
+
+ arch/arm/mm/fault.c      | 24 +-----------------------
+ arch/arm64/mm/fault.c    | 24 +-----------------------
+ arch/ia64/mm/fault.c     | 24 +-----------------------
+ arch/powerpc/mm/fault.c  | 23 ++---------------------
+ arch/s390/mm/fault.c     | 16 +---------------
+ arch/sh/mm/fault.c       | 18 ++----------------
+ arch/sparc/mm/fault_64.c | 16 +---------------
+ arch/x86/mm/fault.c      | 21 ++-------------------
+ include/linux/kprobes.h  | 19 +++++++++++++++++++
+ 9 files changed, 30 insertions(+), 155 deletions(-)
+
+diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
+index 58f69fa..94a97a4 100644
+--- a/arch/arm/mm/fault.c
++++ b/arch/arm/mm/fault.c
+@@ -30,28 +30,6 @@
+ 
+ #ifdef CONFIG_MMU
+ 
+-#ifdef CONFIG_KPROBES
+-static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
+-{
+-	int ret = 0;
+-
+-	if (!user_mode(regs)) {
+-		/* kprobe_running() needs smp_processor_id() */
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, fsr))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-
+-	return ret;
+-}
+-#else
+-static inline int notify_page_fault(struct pt_regs *regs, unsigned int fsr)
+-{
+-	return 0;
+-}
+-#endif
+-
+ /*
+  * This is useful to dump out the page tables associated with
+  * 'addr' in mm 'mm'.
+@@ -266,7 +244,7 @@ do_page_fault(unsigned long addr, unsigned int fsr, struct pt_regs *regs)
+ 	vm_fault_t fault;
+ 	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 
+-	if (notify_page_fault(regs, fsr))
++	if (kprobe_page_fault(regs, fsr))
+ 		return 0;
+ 
+ 	tsk = current;
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index a30818e..8fe4bbc 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -70,28 +70,6 @@ static inline const struct fault_info *esr_to_debug_fault_info(unsigned int esr)
+ 	return debug_fault_info + DBG_ESR_EVT(esr);
+ }
+ 
+-#ifdef CONFIG_KPROBES
+-static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
+-{
+-	int ret = 0;
+-
+-	/* kprobe_running() needs smp_processor_id() */
+-	if (!user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, esr))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-
+-	return ret;
+-}
+-#else
+-static inline int notify_page_fault(struct pt_regs *regs, unsigned int esr)
+-{
+-	return 0;
+-}
+-#endif
+-
+ static void data_abort_decode(unsigned int esr)
+ {
+ 	pr_alert("Data abort info:\n");
+@@ -446,7 +424,7 @@ static int __kprobes do_page_fault(unsigned long addr, unsigned int esr,
+ 	unsigned long vm_flags = VM_READ | VM_WRITE;
+ 	unsigned int mm_flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 
+-	if (notify_page_fault(regs, esr))
++	if (kprobe_page_fault(regs, esr))
+ 		return 0;
+ 
+ 	tsk = current;
+diff --git a/arch/ia64/mm/fault.c b/arch/ia64/mm/fault.c
+index 5baeb02..22582f8 100644
+--- a/arch/ia64/mm/fault.c
++++ b/arch/ia64/mm/fault.c
+@@ -21,28 +21,6 @@
+ 
+ extern int die(char *, struct pt_regs *, long);
+ 
+-#ifdef CONFIG_KPROBES
+-static inline int notify_page_fault(struct pt_regs *regs, int trap)
+-{
+-	int ret = 0;
+-
+-	if (!user_mode(regs)) {
+-		/* kprobe_running() needs smp_processor_id() */
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, trap))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-
+-	return ret;
+-}
+-#else
+-static inline int notify_page_fault(struct pt_regs *regs, int trap)
+-{
+-	return 0;
+-}
+-#endif
+-
+ /*
+  * Return TRUE if ADDRESS points at a page in the kernel's mapped segment
+  * (inside region 5, on ia64) and that page is present.
+@@ -116,7 +94,7 @@ ia64_do_page_fault (unsigned long address, unsigned long isr, struct pt_regs *re
+ 	/*
+ 	 * This is to handle the kprobes on user space access instructions
+ 	 */
+-	if (notify_page_fault(regs, TRAP_BRKPT))
++	if (kprobe_page_fault(regs, TRAP_BRKPT))
+ 		return;
+ 
+ 	if (user_mode(regs))
+diff --git a/arch/powerpc/mm/fault.c b/arch/powerpc/mm/fault.c
+index ec6b7ad..bc4e1af 100644
+--- a/arch/powerpc/mm/fault.c
++++ b/arch/powerpc/mm/fault.c
+@@ -42,26 +42,6 @@
+ #include <asm/debug.h>
+ #include <asm/kup.h>
+ 
+-static inline bool notify_page_fault(struct pt_regs *regs)
+-{
+-	bool ret = false;
+-
+-#ifdef CONFIG_KPROBES
+-	/* kprobe_running() needs smp_processor_id() */
+-	if (!user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, 11))
+-			ret = true;
+-		preempt_enable();
+-	}
+-#endif /* CONFIG_KPROBES */
+-
+-	if (unlikely(debugger_fault_handler(regs)))
+-		ret = true;
+-
+-	return ret;
+-}
+-
+ /*
+  * Check whether the instruction inst is a store using
+  * an update addressing form which will update r1.
+@@ -462,8 +442,9 @@ static int __do_page_fault(struct pt_regs *regs, unsigned long address,
+ 	int is_write = page_fault_is_write(error_code);
+ 	vm_fault_t fault, major = 0;
+ 	bool must_retry = false;
++	bool kprobe_fault = kprobe_page_fault(regs, 11);
+ 
+-	if (notify_page_fault(regs))
++	if (unlikely(debugger_fault_handler(regs) || kprobe_fault))
+ 		return 0;
+ 
+ 	if (unlikely(page_fault_is_bad(error_code))) {
+diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
+index df75d57..1aaae2c 100644
+--- a/arch/s390/mm/fault.c
++++ b/arch/s390/mm/fault.c
+@@ -67,20 +67,6 @@ static int __init fault_init(void)
+ }
+ early_initcall(fault_init);
+ 
+-static inline int notify_page_fault(struct pt_regs *regs)
+-{
+-	int ret = 0;
+-
+-	/* kprobe_running() needs smp_processor_id() */
+-	if (kprobes_built_in() && !user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, 14))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-	return ret;
+-}
+-
+ /*
+  * Find out which address space caused the exception.
+  */
+@@ -414,7 +400,7 @@ static inline vm_fault_t do_exception(struct pt_regs *regs, int access)
+ 	 */
+ 	clear_pt_regs_flag(regs, PIF_PER_TRAP);
+ 
+-	if (notify_page_fault(regs))
++	if (kprobe_page_fault(regs, 14))
+ 		return 0;
+ 
+ 	mm = tsk->mm;
+diff --git a/arch/sh/mm/fault.c b/arch/sh/mm/fault.c
+index 6defd2c6..74cd4ac 100644
+--- a/arch/sh/mm/fault.c
++++ b/arch/sh/mm/fault.c
+@@ -24,20 +24,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/traps.h>
+ 
+-static inline int notify_page_fault(struct pt_regs *regs, int trap)
+-{
+-	int ret = 0;
+-
+-	if (kprobes_built_in() && !user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, trap))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-
+-	return ret;
+-}
+-
+ static void
+ force_sig_info_fault(int si_signo, int si_code, unsigned long address,
+ 		     struct task_struct *tsk)
+@@ -415,14 +401,14 @@ asmlinkage void __kprobes do_page_fault(struct pt_regs *regs,
+ 	if (unlikely(fault_in_kernel_space(address))) {
+ 		if (vmalloc_fault(address) >= 0)
+ 			return;
+-		if (notify_page_fault(regs, vec))
++		if (kprobe_page_fault(regs, vec))
+ 			return;
+ 
+ 		bad_area_nosemaphore(regs, error_code, address);
+ 		return;
+ 	}
+ 
+-	if (unlikely(notify_page_fault(regs, vec)))
++	if (unlikely(kprobe_page_fault(regs, vec)))
+ 		return;
+ 
+ 	/* Only enable interrupts if they were on before the fault */
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 8f8a604..6865f9c 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -38,20 +38,6 @@
+ 
+ int show_unhandled_signals = 1;
+ 
+-static inline __kprobes int notify_page_fault(struct pt_regs *regs)
+-{
+-	int ret = 0;
+-
+-	/* kprobe_running() needs smp_processor_id() */
+-	if (kprobes_built_in() && !user_mode(regs)) {
+-		preempt_disable();
+-		if (kprobe_running() && kprobe_fault_handler(regs, 0))
+-			ret = 1;
+-		preempt_enable();
+-	}
+-	return ret;
+-}
+-
+ static void __kprobes unhandled_fault(unsigned long address,
+ 				      struct task_struct *tsk,
+ 				      struct pt_regs *regs)
+@@ -285,7 +271,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 
+ 	fault_code = get_thread_fault_code();
+ 
+-	if (notify_page_fault(regs))
++	if (kprobe_page_fault(regs, 0))
+ 		goto exit_exception;
+ 
+ 	si_code = SEGV_MAPERR;
+diff --git a/arch/x86/mm/fault.c b/arch/x86/mm/fault.c
+index 46df4c6..5400f4e 100644
+--- a/arch/x86/mm/fault.c
++++ b/arch/x86/mm/fault.c
+@@ -46,23 +46,6 @@ kmmio_fault(struct pt_regs *regs, unsigned long addr)
+ 	return 0;
+ }
+ 
+-static nokprobe_inline int kprobes_fault(struct pt_regs *regs)
+-{
+-	if (!kprobes_built_in())
+-		return 0;
+-	if (user_mode(regs))
+-		return 0;
+-	/*
+-	 * To be potentially processing a kprobe fault and to be allowed to call
+-	 * kprobe_running(), we have to be non-preemptible.
+-	 */
+-	if (preemptible())
+-		return 0;
+-	if (!kprobe_running())
+-		return 0;
+-	return kprobe_fault_handler(regs, X86_TRAP_PF);
+-}
+-
+ /*
+  * Prefetch quirks:
+  *
+@@ -1280,7 +1263,7 @@ do_kern_addr_fault(struct pt_regs *regs, unsigned long hw_error_code,
+ 		return;
+ 
+ 	/* kprobes don't want to hook the spurious faults: */
+-	if (kprobes_fault(regs))
++	if (kprobe_page_fault(regs, X86_TRAP_PF))
+ 		return;
+ 
+ 	/*
+@@ -1311,7 +1294,7 @@ void do_user_addr_fault(struct pt_regs *regs,
+ 	mm = tsk->mm;
+ 
+ 	/* kprobes don't want to hook the spurious faults: */
+-	if (unlikely(kprobes_fault(regs)))
++	if (unlikely(kprobe_page_fault(regs, X86_TRAP_PF)))
+ 		return;
+ 
+ 	/*
+diff --git a/include/linux/kprobes.h b/include/linux/kprobes.h
+index 443d980..04bdaf0 100644
+--- a/include/linux/kprobes.h
++++ b/include/linux/kprobes.h
+@@ -458,4 +458,23 @@ static inline bool is_kprobe_optinsn_slot(unsigned long addr)
+ }
+ #endif
+ 
++/* Returns true if kprobes handled the fault */
++static nokprobe_inline bool kprobe_page_fault(struct pt_regs *regs,
++					      unsigned int trap)
++{
++	if (!kprobes_built_in())
++		return false;
++	if (user_mode(regs))
++		return false;
++	/*
++	 * To be potentially processing a kprobe fault and to be allowed
++	 * to call kprobe_running(), we have to be non-preemptible.
++	 */
++	if (preemptible())
++		return false;
++	if (!kprobe_running())
++		return false;
++	return kprobe_fault_handler(regs, trap);
++}
++
+ #endif /* _LINUX_KPROBES_H */
+-- 
+2.7.4
