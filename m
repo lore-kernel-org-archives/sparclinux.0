@@ -1,52 +1,24 @@
-From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Tue, 04 Jun 2019 08:23:14 +0000
-Subject: [PATCH] sparc: fix unknown type name u_int in uapi header
-Message-Id: <20190604082314.25939-1-yamada.masahiro@socionext.com>
+From: David Miller <davem@davemloft.net>
+Date: Thu, 13 Jun 2019 21:13:05 +0000
+Subject: Re: [PATCH] sparc: fix unknown type name u_int in uapi header
+Message-Id: <20190613.141305.616954421778433913.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190604082314.25939-1-yamada.masahiro@socionext.com>
+In-Reply-To: <20190604082314.25939-1-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: yamada.masahiro@socionext.com
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-'u_int' is a shorthand that is only available in the kernel space
-because it is defined in include/linux/types.h, which is not exported
-to the user space.
-
-You cannot use it in uapi headers even if you include <linux/types.h>
-
-Detected by compile-testing exported headers.
-
-./usr/include/asm/openpromio.h:16:2: error: unknown type name ‘u_int’
-  u_int oprom_size;  /* Actual size of the oprom_array. */
-  ^~~~~
-
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
-
- arch/sparc/include/uapi/asm/openpromio.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/arch/sparc/include/uapi/asm/openpromio.h b/arch/sparc/include/uapi/asm/openpromio.h
-index 8817f7d1a70c..d4494b679e99 100644
---- a/arch/sparc/include/uapi/asm/openpromio.h
-+++ b/arch/sparc/include/uapi/asm/openpromio.h
-@@ -4,7 +4,6 @@
- 
- #include <linux/compiler.h>
- #include <linux/ioctl.h>
--#include <linux/types.h>
- 
- /*
-  * SunOS and Solaris /dev/openprom definitions. The ioctl values
-@@ -13,7 +12,7 @@
- 
- struct openpromio
- {
--	u_int	oprom_size;		/* Actual size of the oprom_array. */
-+	unsigned int oprom_size;	/* Actual size of the oprom_array. */
- 	char	oprom_array[1];		/* Holds property names and values. */
- };
- 
--- 
-2.17.1
+RnJvbTogTWFzYWhpcm8gWWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4NCkRh
+dGU6IFR1ZSwgIDQgSnVuIDIwMTkgMTc6MjM6MTQgKzA5MDANCg0KPiAndV9pbnQnIGlzIGEgc2hv
+cnRoYW5kIHRoYXQgaXMgb25seSBhdmFpbGFibGUgaW4gdGhlIGtlcm5lbCBzcGFjZQ0KPiBiZWNh
+dXNlIGl0IGlzIGRlZmluZWQgaW4gaW5jbHVkZS9saW51eC90eXBlcy5oLCB3aGljaCBpcyBub3Qg
+ZXhwb3J0ZWQNCj4gdG8gdGhlIHVzZXIgc3BhY2UuDQo+IA0KPiBZb3UgY2Fubm90IHVzZSBpdCBp
+biB1YXBpIGhlYWRlcnMgZXZlbiBpZiB5b3UgaW5jbHVkZSA8bGludXgvdHlwZXMuaD4NCj4gDQo+
+IERldGVjdGVkIGJ5IGNvbXBpbGUtdGVzdGluZyBleHBvcnRlZCBoZWFkZXJzLg0KPiANCj4gLi91
+c3IvaW5jbHVkZS9hc20vb3BlbnByb21pby5oOjE2OjI6IGVycm9yOiB1bmtub3duIHR5cGUgbmFt
+ZSChdV9pbnSiDQo+ICAgdV9pbnQgb3Byb21fc2l6ZTsgIC8qIEFjdHVhbCBzaXplIG9mIHRoZSBv
+cHJvbV9hcnJheS4gKi8NCj4gICBefn5+fg0KPiANCj4gU2lnbmVkLW9mZi1ieTogTWFzYWhpcm8g
+WWFtYWRhIDx5YW1hZGEubWFzYWhpcm9Ac29jaW9uZXh0LmNvbT4NCg0KQXBwbGllZC4NCg=
