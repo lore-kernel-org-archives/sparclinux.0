@@ -1,43 +1,52 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Jun 2019 20:28:20 +0000
-Subject: [PATCH AUTOSEL 5.1 36/59] mdesc: fix a missing-check bug in get_vdev_port_node_info()
-Message-Id: <20190614202843.26941-36-sashal@kernel.org>
+Date: Fri, 14 Jun 2019 20:30:26 +0000
+Subject: [PATCH AUTOSEL 4.9 10/18] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIOD
+Message-Id: <20190614203037.27910-10-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190614202843.26941-1-sashal@kernel.org>
-In-Reply-To: <20190614202843.26941-1-sashal@kernel.org>
+References: <20190614203037.27910-1-sashal@kernel.org>
+In-Reply-To: <20190614203037.27910-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Gen Zhang <blackgod016574@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+Cc: Young Xiao <92siuyang@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Gen Zhang <blackgod016574@gmail.com>
+From: Young Xiao <92siuyang@gmail.com>
 
-[ Upstream commit 80caf43549e7e41a695c6d1e11066286538b336f ]
+[ Upstream commit 56cd0aefa475079e9613085b14a0f05037518fed ]
 
-In get_vdev_port_node_info(), 'node_info->vdev_port.name' is allcoated
-by kstrdup_const(), and it returns NULL when fails. So
-'node_info->vdev_port.name' should be checked.
+The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
+sample period of a running perf_event. Consequently, when calculating
+the next event period, the new period will only be considered after the
+previous one has overflowed.
 
-Signed-off-by: Gen Zhang <blackgod016574@gmail.com>
+This patch changes the calculation of the remaining event ticks so that
+they are offset if the period has changed.
+
+See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
+response to PERF_EVENT_IOC_PERIOD") for details.
+
+Signed-off-by: Young Xiao <92siuyang@gmail.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/kernel/mdesc.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/sparc/kernel/perf_event.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 9a26b442f820..8e645ddac58e 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -356,6 +356,8 @@ static int get_vdev_port_node_info(struct mdesc_handle *md, u64 node,
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 71e7f77f6776..84a80cd004eb 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -889,6 +889,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
+ 	s64 period = hwc->sample_period;
+ 	int ret = 0;
  
- 	node_info->vdev_port.id = *idp;
- 	node_info->vdev_port.name = kstrdup_const(name, GFP_KERNEL);
-+	if (!node_info->vdev_port.name)
-+		return -1;
- 	node_info->vdev_port.parent_cfg_hdl = *parent_cfg_hdlp;
- 
- 	return 0;
++	/* The period may have been changed by PERF_EVENT_IOC_PERIOD */
++	if (unlikely(period != hwc->last_period))
++		left = period - (hwc->last_period - left);
++
+ 	if (unlikely(left <= -period)) {
+ 		left = period;
+ 		local64_set(&hwc->period_left, left);
 -- 
 2.20.1
