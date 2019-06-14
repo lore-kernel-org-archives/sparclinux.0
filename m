@@ -1,56 +1,52 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 01 Jun 2019 07:49:52 +0000
-Subject: [PATCH 09/16] sparc64: define untagged_addr()
-Message-Id: <20190601074959.14036-10-hch@lst.de>
+From: Sasha Levin <sashal@kernel.org>
+Date: Fri, 14 Jun 2019 20:29:29 +0000
+Subject: [PATCH AUTOSEL 4.19 24/39] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIO
+Message-Id: <20190614202946.27385-24-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190601074959.14036-1-hch@lst.de>
-In-Reply-To: <20190601074959.14036-1-hch@lst.de>
+References: <20190614202946.27385-1-sashal@kernel.org>
+In-Reply-To: <20190614202946.27385-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Young Xiao <92siuyang@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Add a helper to untag a user pointer.  This is needed for ADI support
-in get_user_pages_fast.
+From: Young Xiao <92siuyang@gmail.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+[ Upstream commit 56cd0aefa475079e9613085b14a0f05037518fed ]
+
+The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
+sample period of a running perf_event. Consequently, when calculating
+the next event period, the new period will only be considered after the
+previous one has overflowed.
+
+This patch changes the calculation of the remaining event ticks so that
+they are offset if the period has changed.
+
+See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
+response to PERF_EVENT_IOC_PERIOD") for details.
+
+Signed-off-by: Young Xiao <92siuyang@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/include/asm/pgtable_64.h | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ arch/sparc/kernel/perf_event.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index dcf970e82262..a93eca29e85a 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -1076,6 +1076,28 @@ static inline int io_remap_pfn_range(struct vm_area_struct *vma,
- }
- #define io_remap_pfn_range io_remap_pfn_range 
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 67b3e6b3ce5d..1ad5911f62b4 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -891,6 +891,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
+ 	s64 period = hwc->sample_period;
+ 	int ret = 0;
  
-+static inline unsigned long untagged_addr(unsigned long start)
-+{
-+	if (adi_capable()) {
-+		long addr = start;
++	/* The period may have been changed by PERF_EVENT_IOC_PERIOD */
++	if (unlikely(period != hwc->last_period))
++		left = period - (hwc->last_period - left);
 +
-+		/* If userspace has passed a versioned address, kernel
-+		 * will not find it in the VMAs since it does not store
-+		 * the version tags in the list of VMAs. Storing version
-+		 * tags in list of VMAs is impractical since they can be
-+		 * changed any time from userspace without dropping into
-+		 * kernel. Any address search in VMAs will be done with
-+		 * non-versioned addresses. Ensure the ADI version bits
-+		 * are dropped here by sign extending the last bit before
-+		 * ADI bits. IOMMU does not implement version tags.
-+		 */
-+		return (addr << (long)adi_nbits()) >> (long)adi_nbits();
-+	}
-+
-+	return start;
-+}
-+#define untagged_addr untagged_addr
-+
- #include <asm/tlbflush.h>
- #include <asm-generic/pgtable.h>
- 
+ 	if (unlikely(left <= -period)) {
+ 		left = period;
+ 		local64_set(&hwc->period_left, left);
 -- 
 2.20.1
