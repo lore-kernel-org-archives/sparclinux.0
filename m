@@ -1,39 +1,52 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 11 Jun 2019 14:41:00 +0000
-Subject: [PATCH 14/16] mm: switch gup_hugepte to use try_get_compound_head
-Message-Id: <20190611144102.8848-15-hch@lst.de>
+From: Sasha Levin <sashal@kernel.org>
+Date: Fri, 14 Jun 2019 20:28:21 +0000
+Subject: [PATCH AUTOSEL 5.1 37/59] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIOD
+Message-Id: <20190614202843.26941-37-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190611144102.8848-1-hch@lst.de>
-In-Reply-To: <20190611144102.8848-1-hch@lst.de>
+References: <20190614202843.26941-1-sashal@kernel.org>
+In-Reply-To: <20190614202843.26941-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Young Xiao <92siuyang@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-This applies the overflow fixes from 8fde12ca79aff
-("mm: prevent get_user_pages() from overflowing page refcount")
-to the powerpc hugepd code and brings it back in sync with the
-other GUP cases.
+From: Young Xiao <92siuyang@gmail.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+[ Upstream commit 56cd0aefa475079e9613085b14a0f05037518fed ]
+
+The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
+sample period of a running perf_event. Consequently, when calculating
+the next event period, the new period will only be considered after the
+previous one has overflowed.
+
+This patch changes the calculation of the remaining event ticks so that
+they are offset if the period has changed.
+
+See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
+response to PERF_EVENT_IOC_PERIOD") for details.
+
+Signed-off-by: Young Xiao <92siuyang@gmail.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- mm/gup.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/perf_event.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index 494aa4c3a55e..0733674b539d 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2007,7 +2007,8 @@ static int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
- 		refs++;
- 	} while (addr += PAGE_SIZE, addr != end);
+diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
+index 6de7c684c29f..a58ae9c42803 100644
+--- a/arch/sparc/kernel/perf_event.c
++++ b/arch/sparc/kernel/perf_event.c
+@@ -891,6 +891,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
+ 	s64 period = hwc->sample_period;
+ 	int ret = 0;
  
--	if (!page_cache_add_speculative(head, refs)) {
-+	head = try_get_compound_head(head, refs);
-+	if (!head) {
- 		*nr -= refs;
- 		return 0;
- 	}
++	/* The period may have been changed by PERF_EVENT_IOC_PERIOD */
++	if (unlikely(period != hwc->last_period))
++		left = period - (hwc->last_period - left);
++
+ 	if (unlikely(left <= -period)) {
+ 		left = period;
+ 		local64_set(&hwc->period_left, left);
 -- 
 2.20.1
