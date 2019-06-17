@@ -1,52 +1,35 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Jun 2019 20:30:26 +0000
-Subject: [PATCH AUTOSEL 4.9 10/18] sparc: perf: fix updated event period in response to PERF_EVENT_IOC_PERIOD
-Message-Id: <20190614203037.27910-10-sashal@kernel.org>
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Date: Mon, 17 Jun 2019 14:36:12 +0000
+Subject: [PATCH] sparc64: Add missing newline at end of file
+Message-Id: <20190617143612.4810-1-geert+renesas@glider.be>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190614203037.27910-1-sashal@kernel.org>
-In-Reply-To: <20190614203037.27910-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Young Xiao <92siuyang@gmail.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>
 
-From: Young Xiao <92siuyang@gmail.com>
+"git diff" says:
 
-[ Upstream commit 56cd0aefa475079e9613085b14a0f05037518fed ]
+    \ No newline at end of file
 
-The PERF_EVENT_IOC_PERIOD ioctl command can be used to change the
-sample period of a running perf_event. Consequently, when calculating
-the next event period, the new period will only be considered after the
-previous one has overflowed.
+after modifying the file.
 
-This patch changes the calculation of the remaining event ticks so that
-they are offset if the period has changed.
-
-See commit 3581fe0ef37c ("ARM: 7556/1: perf: fix updated event period in
-response to PERF_EVENT_IOC_PERIOD") for details.
-
-Signed-off-by: Young Xiao <92siuyang@gmail.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 ---
- arch/sparc/kernel/perf_event.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/sparc/lib/NG4clear_page.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/perf_event.c b/arch/sparc/kernel/perf_event.c
-index 71e7f77f6776..84a80cd004eb 100644
---- a/arch/sparc/kernel/perf_event.c
-+++ b/arch/sparc/kernel/perf_event.c
-@@ -889,6 +889,10 @@ static int sparc_perf_event_set_period(struct perf_event *event,
- 	s64 period = hwc->sample_period;
- 	int ret = 0;
- 
-+	/* The period may have been changed by PERF_EVENT_IOC_PERIOD */
-+	if (unlikely(period != hwc->last_period))
-+		left = period - (hwc->last_period - left);
-+
- 	if (unlikely(left <= -period)) {
- 		left = period;
- 		local64_set(&hwc->period_left, left);
--- 
-2.20.1
+diff --git a/arch/sparc/lib/NG4clear_page.S b/arch/sparc/lib/NG4clear_page.S
+index 97e2678d042a3390..d91d6b5f2444aef6 100644
+--- a/arch/sparc/lib/NG4clear_page.S
++++ b/arch/sparc/lib/NG4clear_page.S
+@@ -27,4 +27,4 @@ NG4clear_user_page:	/* %o0=DEst, %o1=3Dvaddr */
+ 	retl
+ 	 nop
+ 	.size		NG4clear_page,.-NG4clear_page
+-	.size		NG4clear_user_page,.-NG4clear_user_page
+\ No newline at end of file
++	.size		NG4clear_user_page,.-NG4clear_user_page
+--=20
+2.17.1
