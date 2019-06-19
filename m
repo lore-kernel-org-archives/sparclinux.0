@@ -1,7 +1,7 @@
 From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Wed, 19 Jun 2019 05:08:40 +0000
-Subject: [PATCH 4/8] x86, hugetlbpage: Start fallback of top-down mmap at mm->mmap_base
-Message-Id: <20190619050844.5294-5-alex@ghiti.fr>
+Date: Wed, 19 Jun 2019 05:08:39 +0000
+Subject: [PATCH 3/8] sparc: Start fallback of top-down mmap at mm->mmap_base
+Message-Id: <20190619050844.5294-4-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190619050844.5294-1-alex@ghiti.fr>
 In-Reply-To: <20190619050844.5294-1-alex@ghiti.fr>
@@ -18,34 +18,34 @@ and the stack, which is the only place not covered by the top-down mmap.
 
 Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 ---
- arch/x86/mm/hugetlbpage.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c | 2 +-
+ arch/sparc/mm/hugetlbpage.c      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
-index fab095362c50..4b90339aef50 100644
---- a/arch/x86/mm/hugetlbpage.c
-+++ b/arch/x86/mm/hugetlbpage.c
-@@ -106,11 +106,12 @@ static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
- {
- 	struct hstate *h = hstate_file(file);
- 	struct vm_unmapped_area_info info;
-+	unsigned long mmap_base = get_mmap_base(0);
- 
- 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
--	info.high_limit = get_mmap_base(0);
-+	info.high_limit = mmap_base;
- 
- 	/*
- 	 * If hint address is above DEFAULT_MAP_WINDOW, look for unmapped area
-@@ -132,7 +133,7 @@ static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index ccc88926bc00..ea1de1e5fa8d 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -206,7 +206,7 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
  	if (addr & ~PAGE_MASK) {
  		VM_BUG_ON(addr != -ENOMEM);
  		info.flags = 0;
 -		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.low_limit = mmap_base;
- 		info.high_limit = TASK_SIZE_LOW;
++		info.low_limit = mm->mmap_base;
+ 		info.high_limit = STACK_TOP32;
+ 		addr = vm_unmapped_area(&info);
+ 	}
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index f78793a06bbd..9c67f805abc8 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -86,7 +86,7 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 	if (addr & ~PAGE_MASK) {
+ 		VM_BUG_ON(addr != -ENOMEM);
+ 		info.flags = 0;
+-		info.low_limit = TASK_UNMAPPED_BASE;
++		info.low_limit = mm->mmap_base;
+ 		info.high_limit = STACK_TOP32;
  		addr = vm_unmapped_area(&info);
  	}
 -- 
