@@ -1,7 +1,7 @@
 From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Wed, 19 Jun 2019 05:08:38 +0000
-Subject: [PATCH 2/8] sh: Start fallback of top-down mmap at mm->mmap_base
-Message-Id: <20190619050844.5294-3-alex@ghiti.fr>
+Date: Wed, 19 Jun 2019 05:08:41 +0000
+Subject: [PATCH 5/8] mm: Start fallback top-down mmap at mm->mmap_base
+Message-Id: <20190619050844.5294-6-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190619050844.5294-1-alex@ghiti.fr>
 In-Reply-To: <20190619050844.5294-1-alex@ghiti.fr>
@@ -18,20 +18,20 @@ and the stack, which is the only place not covered by the top-down mmap.
 
 Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 ---
- arch/sh/mm/mmap.c | 2 +-
+ mm/mmap.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sh/mm/mmap.c b/arch/sh/mm/mmap.c
-index 6a1a1297baae..4c7da92473dd 100644
---- a/arch/sh/mm/mmap.c
-+++ b/arch/sh/mm/mmap.c
-@@ -135,7 +135,7 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
- 	if (addr & ~PAGE_MASK) {
+diff --git a/mm/mmap.c b/mm/mmap.c
+index dedae10cb6e2..e563145c1ff4 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -2185,7 +2185,7 @@ arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
+ 	if (offset_in_page(addr)) {
  		VM_BUG_ON(addr != -ENOMEM);
  		info.flags = 0;
 -		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.low_limit = mm->mmap_base;
- 		info.high_limit = TASK_SIZE;
++		info.low_limit = arch_get_mmap_base(addr, mm->mmap_base);
+ 		info.high_limit = mmap_end;
  		addr = vm_unmapped_area(&info);
  	}
 -- 
