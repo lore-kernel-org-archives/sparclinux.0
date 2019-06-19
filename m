@@ -1,38 +1,55 @@
 From: Alexandre Ghiti <alex@ghiti.fr>
-Date: Thu, 20 Jun 2019 05:03:25 +0000
-Subject: [PATCH RESEND 5/8] mm: Start fallback top-down mmap at mm->mmap_base
-Message-Id: <20190620050328.8942-6-alex@ghiti.fr>
+Date: Wed, 19 Jun 2019 05:08:36 +0000
+Subject: [PATCH 0/8] Fix mmap base in bottom-up mmap
+Message-Id: <20190619050844.5294-1-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190620050328.8942-1-alex@ghiti.fr>
-In-Reply-To: <20190620050328.8942-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Alexandre Ghiti <alex@ghiti.fr>
 
-In case of mmap failure in top-down mode, there is no need to go through
-the whole address space again for the bottom-up fallback: the goal of this
-fallback is to find, as a last resort, space between the top-down mmap base
-and the stack, which is the only place not covered by the top-down mmap.
+This series fixes the fallback of the top-down mmap: in case of
+failure, a bottom-up scheme can be tried as a last resort between
+the top-down mmap base and the stack, hoping for a large unused stack
+limit.
 
-Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
----
- mm/mmap.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Lots of architectures and even mm code start this fallback
+at TASK_UNMAPPED_BASE, which is useless since the top-down scheme
+already failed on the whole address space: instead, simply use
+mmap_base.
 
-diff --git a/mm/mmap.c b/mm/mmap.c
-index dedae10cb6e2..e563145c1ff4 100644
---- a/mm/mmap.c
-+++ b/mm/mmap.c
-@@ -2185,7 +2185,7 @@ arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
- 	if (offset_in_page(addr)) {
- 		VM_BUG_ON(addr != -ENOMEM);
- 		info.flags = 0;
--		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.low_limit = arch_get_mmap_base(addr, mm->mmap_base);
- 		info.high_limit = mmap_end;
- 		addr = vm_unmapped_area(&info);
- 	}
+Along the way, it allows to get rid of of mmap_legacy_base and
+mmap_compat_legacy_base from mm_struct.
+
+Note that arm and mips already implement this behaviour. 
+
+Alexandre Ghiti (8):
+  s390: Start fallback of top-down mmap at mm->mmap_base
+  sh: Start fallback of top-down mmap at mm->mmap_base
+  sparc: Start fallback of top-down mmap at mm->mmap_base
+  x86, hugetlbpage: Start fallback of top-down mmap at mm->mmap_base
+  mm: Start fallback top-down mmap at mm->mmap_base
+  parisc: Use mmap_base, not mmap_legacy_base, as low_limit for
+    bottom-up mmap
+  x86: Use mmap_*base, not mmap_*legacy_base, as low_limit for bottom-up
+    mmap
+  mm: Remove mmap_legacy_base and mmap_compat_legacy_code fields from
+    mm_struct
+
+ arch/parisc/kernel/sys_parisc.c  |  8 +++-----
+ arch/s390/mm/mmap.c              |  2 +-
+ arch/sh/mm/mmap.c                |  2 +-
+ arch/sparc/kernel/sys_sparc_64.c |  2 +-
+ arch/sparc/mm/hugetlbpage.c      |  2 +-
+ arch/x86/include/asm/elf.h       |  2 +-
+ arch/x86/kernel/sys_x86_64.c     |  4 ++--
+ arch/x86/mm/hugetlbpage.c        |  7 ++++---
+ arch/x86/mm/mmap.c               | 20 +++++++++-----------
+ include/linux/mm_types.h         |  2 --
+ mm/debug.c                       |  4 ++--
+ mm/mmap.c                        |  2 +-
+ 12 files changed, 26 insertions(+), 31 deletions(-)
+
 -- 
 2.20.1
