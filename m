@@ -1,51 +1,57 @@
-From: Michal Hocko <mhocko@kernel.org>
-Date: Wed, 26 Jun 2019 06:11:34 +0000
-Subject: Re: [PATCH 1/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20190626061134.GD17798@dhcp22.suse.cz>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Wed, 19 Jun 2019 05:38:58 +0000
+Subject: [PATCH RESEND 0/8] Fix mmap base in bottom-up mmap
+Message-Id: <20190619053906.5900-1-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1561501810-25163-1-git-send-email-Hoan@os.amperecomputing.com>
- <1561501810-25163-2-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1561501810-25163-2-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hoan Tran OS <hoan@os.amperecomputing.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Open Source Submission <patches@amperecomputing.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Oscar Salvador <osalvador@suse.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Alexandre Ghiti <alex@ghiti.fr>
 
-On Tue 25-06-19 22:30:24, Hoan Tran OS wrote:
-> This patch enables CONFIG_NODES_SPAN_OTHER_NODES by default
-> for NUMA. As some NUMA nodes have memory ranges that span other
-> nodes. Even though a pfn is valid and between a node's start and
-> end pfns, it may not reside on that node.
+(Sorry for the previous interrupted series) 
 
-Please describe the problem more thoroughly. What is the layout, what
-doesn't work with the default configuration and why do we need this
-particular fix rather than enabling of the config option for the
-specific HW.
+This series fixes the fallback of the top-down mmap: in case of
+failure, a bottom-up scheme can be tried as a last resort between
+the top-down mmap base and the stack, hoping for a large unused stack
+limit.
 
-> 
-> Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
-> ---
->  mm/page_alloc.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index d66bc8a..6335505 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -1413,7 +1413,7 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
->  }
->  #endif
->  
-> -#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-> +#ifdef CONFIG_NUMA
->  /* Only safe to use early in boot when initialisation is single-threaded */
->  static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
->  {
-> -- 
-> 2.7.4
-> 
+Lots of architectures and even mm code start this fallback
+at TASK_UNMAPPED_BASE, which is useless since the top-down scheme
+already failed on the whole address space: instead, simply use
+mmap_base.
+
+Along the way, it allows to get rid of of mmap_legacy_base and
+mmap_compat_legacy_base from mm_struct.
+
+Note that arm and mips already implement this behaviour.
+
+Alexandre Ghiti (8):
+  s390: Start fallback of top-down mmap at mm->mmap_base
+  sh: Start fallback of top-down mmap at mm->mmap_base
+  sparc: Start fallback of top-down mmap at mm->mmap_base
+  x86, hugetlbpage: Start fallback of top-down mmap at mm->mmap_base
+  mm: Start fallback top-down mmap at mm->mmap_base
+  parisc: Use mmap_base, not mmap_legacy_base, as low_limit for
+    bottom-up mmap
+  x86: Use mmap_*base, not mmap_*legacy_base, as low_limit for bottom-up
+    mmap
+  mm: Remove mmap_legacy_base and mmap_compat_legacy_code fields from
+    mm_struct
+
+ arch/parisc/kernel/sys_parisc.c  |  8 +++-----
+ arch/s390/mm/mmap.c              |  2 +-
+ arch/sh/mm/mmap.c                |  2 +-
+ arch/sparc/kernel/sys_sparc_64.c |  2 +-
+ arch/sparc/mm/hugetlbpage.c      |  2 +-
+ arch/x86/include/asm/elf.h       |  2 +-
+ arch/x86/kernel/sys_x86_64.c     |  4 ++--
+ arch/x86/mm/hugetlbpage.c        |  7 ++++---
+ arch/x86/mm/mmap.c               | 20 +++++++++-----------
+ include/linux/mm_types.h         |  2 --
+ mm/debug.c                       |  4 ++--
+ mm/mmap.c                        |  2 +-
+ 12 files changed, 26 insertions(+), 31 deletions(-)
 
 -- 
-Michal Hocko
-SUSE Labs
+2.20.1
