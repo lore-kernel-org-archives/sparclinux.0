@@ -1,35 +1,52 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 25 Jun 2019 14:37:15 +0000
-Subject: [PATCH 16/16] mm: mark the page referenced in gup_hugepte
-Message-Id: <20190625143715.1689-17-hch@lst.de>
+From: Alexandre Ghiti <alex@ghiti.fr>
+Date: Thu, 20 Jun 2019 05:03:23 +0000
+Subject: [PATCH RESEND 3/8] sparc: Start fallback of top-down mmap at mm->mmap_base
+Message-Id: <20190620050328.8942-4-alex@ghiti.fr>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190625143715.1689-1-hch@lst.de>
-In-Reply-To: <20190625143715.1689-1-hch@lst.de>
+References: <20190620050328.8942-1-alex@ghiti.fr>
+In-Reply-To: <20190620050328.8942-1-alex@ghiti.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
-Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Alexandre Ghiti <alex@ghiti.fr>
 
-All other get_user_page_fast cases mark the page referenced, so do
-this here as well.
+In case of mmap failure in top-down mode, there is no need to go through
+the whole address space again for the bottom-up fallback: the goal of this
+fallback is to find, as a last resort, space between the top-down mmap base
+and the stack, which is the only place not covered by the top-down mmap.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
 ---
- mm/gup.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/kernel/sys_sparc_64.c | 2 +-
+ arch/sparc/mm/hugetlbpage.c      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/mm/gup.c b/mm/gup.c
-index e06447cff635..d9d022d835ca 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -2020,6 +2020,7 @@ static int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
- 		return 0;
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index ccc88926bc00..ea1de1e5fa8d 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -206,7 +206,7 @@ arch_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 	if (addr & ~PAGE_MASK) {
+ 		VM_BUG_ON(addr != -ENOMEM);
+ 		info.flags = 0;
+-		info.low_limit = TASK_UNMAPPED_BASE;
++		info.low_limit = mm->mmap_base;
+ 		info.high_limit = STACK_TOP32;
+ 		addr = vm_unmapped_area(&info);
  	}
- 
-+	SetPageReferenced(head);
- 	return 1;
- }
- 
+diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+index f78793a06bbd..9c67f805abc8 100644
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -86,7 +86,7 @@ hugetlb_get_unmapped_area_topdown(struct file *filp, const unsigned long addr0,
+ 	if (addr & ~PAGE_MASK) {
+ 		VM_BUG_ON(addr != -ENOMEM);
+ 		info.flags = 0;
+-		info.low_limit = TASK_UNMAPPED_BASE;
++		info.low_limit = mm->mmap_base;
+ 		info.high_limit = STACK_TOP32;
+ 		addr = vm_unmapped_area(&info);
+ 	}
 -- 
 2.20.1
