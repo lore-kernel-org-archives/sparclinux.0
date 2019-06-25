@@ -1,68 +1,28 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 25 Jun 2019 22:45:41 +0000
-Subject: Re: [PATCH 3/5] x86: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
-Message-Id: <alpine.DEB.2.21.1906260032250.32342@nanos.tec.linutronix.de>
+From: Hoan Tran OS <hoan@os.amperecomputing.com>
+Date: Tue, 25 Jun 2019 22:30:24 +0000
+Subject: [PATCH 1/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <1561501810-25163-2-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1561501810-25163-1-git-send-email-Hoan@os.amperecomputing.com>
- <1561501810-25163-4-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1561501810-25163-4-git-send-email-Hoan@os.amperecomputing.com>
+In-Reply-To: <1561501810-25163-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hoan Tran OS <hoan@os.amperecomputing.com>
-Cc: Michal Hocko <mhocko@suse.com>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Open Source Submission <patches@amperecomputing.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Oscar Salvador <osalvador@suse.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hoan,
-
-On Tue, 25 Jun 2019, Hoan Tran OS wrote:
-
-Please use 'x86/Kconfig: ' as prefix.
-
-> This patch removes CONFIG_NODES_SPAN_OTHER_NODES as it's
-> enabled by default with NUMA.
-
-Please do not use 'This patch' in changelogs. It's pointless because we
-already know that this is a patch.
-
-See also Documentation/process/submitting-patches.rst and search for 'This
-patch'
-
-Simply say:
-
-  Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled by default with
-  NUMA.
-
-But .....
-
-> @@ -1567,15 +1567,6 @@ config X86_64_ACPI_NUMA
->  	---help---
->  	  Enable ACPI SRAT based node topology detection.
->  
-> -# Some NUMA nodes have memory ranges that span
-> -# other nodes.  Even though a pfn is valid and
-> -# between a node's start and end pfns, it may not
-> -# reside on that node.  See memmap_init_zone()
-> -# for details.
-> -config NODES_SPAN_OTHER_NODES
-> -	def_bool y
-> -	depends on X86_64_ACPI_NUMA
-
-the changelog does not mention that this lifts the dependency on
-X86_64_ACPI_NUMA and therefore enables that functionality for anything
-which has NUMA enabled including 32bit.
-
-The core mm change gives no helpful information either. You just copied the
-above comment text from some random Kconfig.
-
-This needs a bit more data in the changelogs and the cover letter:
-
-     - Why is it useful to enable it unconditionally
-
-     - Why is it safe to do so, even if the architecture had constraints on
-       it
-
-     - What's the potential impact
-
-Thanks,
-
-	tglx
+VGhpcyBwYXRjaCBlbmFibGVzIENPTkZJR19OT0RFU19TUEFOX09USEVSX05PREVTIGJ5IGRlZmF1
+bHQNCmZvciBOVU1BLiBBcyBzb21lIE5VTUEgbm9kZXMgaGF2ZSBtZW1vcnkgcmFuZ2VzIHRoYXQg
+c3BhbiBvdGhlcg0Kbm9kZXMuIEV2ZW4gdGhvdWdoIGEgcGZuIGlzIHZhbGlkIGFuZCBiZXR3ZWVu
+IGEgbm9kZSdzIHN0YXJ0IGFuZA0KZW5kIHBmbnMsIGl0IG1heSBub3QgcmVzaWRlIG9uIHRoYXQg
+bm9kZS4NCg0KU2lnbmVkLW9mZi1ieTogSG9hbiBUcmFuIDxIb2FuQG9zLmFtcGVyZWNvbXB1dGlu
+Zy5jb20+DQotLS0NCiBtbS9wYWdlX2FsbG9jLmMgfCAyICstDQogMSBmaWxlIGNoYW5nZWQsIDEg
+aW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pDQoNCmRpZmYgLS1naXQgYS9tbS9wYWdlX2FsbG9j
+LmMgYi9tbS9wYWdlX2FsbG9jLmMNCmluZGV4IGQ2NmJjOGEuLjYzMzU1MDUgMTAwNjQ0DQotLS0g
+YS9tbS9wYWdlX2FsbG9jLmMNCisrKyBiL21tL3BhZ2VfYWxsb2MuYw0KQEAgLTE0MTMsNyArMTQx
+Myw3IEBAIGludCBfX21lbWluaXQgZWFybHlfcGZuX3RvX25pZCh1bnNpZ25lZCBsb25nIHBmbikN
+CiB9DQogI2VuZGlmDQogDQotI2lmZGVmIENPTkZJR19OT0RFU19TUEFOX09USEVSX05PREVTDQor
+I2lmZGVmIENPTkZJR19OVU1BDQogLyogT25seSBzYWZlIHRvIHVzZSBlYXJseSBpbiBib290IHdo
+ZW4gaW5pdGlhbGlzYXRpb24gaXMgc2luZ2xlLXRocmVhZGVkICovDQogc3RhdGljIGlubGluZSBi
+b29sIF9fbWVtaW5pdCBlYXJseV9wZm5faW5fbmlkKHVuc2lnbmVkIGxvbmcgcGZuLCBpbnQgbm9k
+ZSkNCiB7DQotLSANCjIuNy40DQoNCg=
