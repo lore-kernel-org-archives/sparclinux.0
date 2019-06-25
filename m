@@ -1,14 +1,14 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 01 Jun 2019 07:49:57 +0000
+Date: Tue, 25 Jun 2019 14:37:13 +0000
 Subject: [PATCH 14/16] mm: move the powerpc hugepd code to mm/gup.c
-Message-Id: <20190601074959.14036-15-hch@lst.de>
+Message-Id: <20190625143715.1689-15-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190601074959.14036-1-hch@lst.de>
-In-Reply-To: <20190601074959.14036-1-hch@lst.de>
+References: <20190625143715.1689-1-hch@lst.de>
+In-Reply-To: <20190625143715.1689-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>
 Cc: Nicholas Piggin <npiggin@gmail.com>, Khalid Aziz <khalid.aziz@oracle.com>, Andrey Konovalov <andreyknvl@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, linux-mips@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mm@kvack.org, x86@kernel.org, linux-kernel@vger.kernel.org
 
 While only powerpc supports the hugepd case, the code is pretty
@@ -176,7 +176,7 @@ index 5c41409557da..44be3f01a2b2 100644
 +
  endmenu
 diff --git a/mm/gup.c b/mm/gup.c
-index 53b50c63ba51..e03c7e6b1422 100644
+index 37a2083b1ed8..7077549bc8ea 100644
 --- a/mm/gup.c
 +++ b/mm/gup.c
 @@ -1966,6 +1966,88 @@ static int __gup_device_huge_pud(pud_t pud, pud_t *pudp, unsigned long addr,
