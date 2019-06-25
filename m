@@ -1,78 +1,25 @@
-From: Alex Ghiti <alex@ghiti.fr>
-Date: Wed, 26 Jun 2019 05:20:51 +0000
-Subject: Re: [PATCH RESEND 6/8] parisc: Use mmap_base, not mmap_legacy_base, as low_limit for bottom-up mmap
-Message-Id: <7fb32983-3444-0747-4e5f-812d1b4d84c2@ghiti.fr>
+From: Hoan Tran OS <hoan@os.amperecomputing.com>
+Date: Tue, 25 Jun 2019 22:30:22 +0000
+Subject: [PATCH 0/5] Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <1561501810-25163-1-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190620050328.8942-1-alex@ghiti.fr>
- <20190620050328.8942-7-alex@ghiti.fr>
- <438124ff-6838-7ced-044c-ca57a6b9cc91@gmx.de>
-In-Reply-To: <438124ff-6838-7ced-044c-ca57a6b9cc91@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Helge Deller <deller@gmx.de>
-Cc: "James E . J . Bottomley" <james.bottomley@hansenpartnership.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S . Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 6/25/19 10:09 AM, Helge Deller wrote:
-> On 20.06.19 07:03, Alexandre Ghiti wrote:
->> Bottom-up mmap scheme is used twice:
->>
->> - for legacy mode, in which mmap_legacy_base and mmap_base are equal.
->>
->> - in case of mmap failure in top-down mode, where there is no need to go
->> through the whole address space again for the bottom-up fallback: the goal
->> of this fallback is to find, as a last resort, space between the top-down
->> mmap base and the stack, which is the only place not covered by the
->> top-down mmap.
->>
->> Then this commit removes the usage of mmap_legacy_base field from parisc
->> code.
->>
->> Signed-off-by: Alexandre Ghiti <alex@ghiti.fr>
-> Boot-tested on parisc and seems to work nicely, thus:
->
-> Acked-by: Helge Deller <deller@gmx.de>
-
-Thanks Helge,
-
-Alex
-
->
-> Helge
->
->
->
->> ---
->>   arch/parisc/kernel/sys_parisc.c | 8 +++-----
->>   1 file changed, 3 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/parisc/kernel/sys_parisc.c b/arch/parisc/kernel/sys_parisc.c
->> index 5d458a44b09c..e987f3a8eb0b 100644
->> --- a/arch/parisc/kernel/sys_parisc.c
->> +++ b/arch/parisc/kernel/sys_parisc.c
->> @@ -119,7 +119,7 @@ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
->>
->>   	info.flags = 0;
->>   	info.length = len;
->> -	info.low_limit = mm->mmap_legacy_base;
->> +	info.low_limit = mm->mmap_base;
->>   	info.high_limit = mmap_upper_limit(NULL);
->>   	info.align_mask = last_mmap ? (PAGE_MASK & (SHM_COLOUR - 1)) : 0;
->>   	info.align_offset = shared_align_offset(last_mmap, pgoff);
->> @@ -240,13 +240,11 @@ static unsigned long mmap_legacy_base(void)
->>    */
->>   void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
->>   {
->> -	mm->mmap_legacy_base = mmap_legacy_base();
->> -	mm->mmap_base = mmap_upper_limit(rlim_stack);
->> -
->>   	if (mmap_is_legacy()) {
->> -		mm->mmap_base = mm->mmap_legacy_base;
->> +		mm->mmap_base = mmap_legacy_base();
->>   		mm->get_unmapped_area = arch_get_unmapped_area;
->>   	} else {
->> +		mm->mmap_base = mmap_upper_limit(rlim_stack);
->>   		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
->>   	}
->>   }
->>
+VGhpcyBwYXRjaCBzZXQgZW5hYmxlcyBDT05GSUdfTk9ERVNfU1BBTl9PVEhFUl9OT0RFUyBieSBk
+ZWZhdWx0DQpmb3IgTlVNQS4NCg0KVGhlIG9yaWdpbmFsIHBhdGNoIFsxXQ0KWzFdIGFybTY0OiBL
+Y29uZmlnOiBFbmFibGUgTk9ERVNfU1BBTl9PVEhFUl9OT0RFUyBjb25maWcgZm9yIE5VTUENCmh0
+dHBzOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2FybS1rZXJuZWwvbXNnNzM3MzA2Lmh0bWwNCg0K
+SG9hbiBUcmFuICg1KToNCiAgbW06IEVuYWJsZSBDT05GSUdfTk9ERVNfU1BBTl9PVEhFUl9OT0RF
+UyBieSBkZWZhdWx0IGZvciBOVU1BDQogIHBvd2VycGM6IEtjb25maWc6IFJlbW92ZSBDT05GSUdf
+Tk9ERVNfU1BBTl9PVEhFUl9OT0RFUw0KICB4ODY6IEtjb25maWc6IFJlbW92ZSBDT05GSUdfTk9E
+RVNfU1BBTl9PVEhFUl9OT0RFUw0KICBzcGFyYzogS2NvbmZpZzogUmVtb3ZlIENPTkZJR19OT0RF
+U19TUEFOX09USEVSX05PREVTDQogIHMzOTA6IEtjb25maWc6IFJlbW92ZSBDT05GSUdfTk9ERVNf
+U1BBTl9PVEhFUl9OT0RFUw0KDQogYXJjaC9wb3dlcnBjL0tjb25maWcgfCA5IC0tLS0tLS0tLQ0K
+IGFyY2gvczM5MC9LY29uZmlnICAgIHwgOCAtLS0tLS0tLQ0KIGFyY2gvc3BhcmMvS2NvbmZpZyAg
+IHwgOSAtLS0tLS0tLS0NCiBhcmNoL3g4Ni9LY29uZmlnICAgICB8IDkgLS0tLS0tLS0tDQogbW0v
+cGFnZV9hbGxvYy5jICAgICAgfCAyICstDQogNSBmaWxlcyBjaGFuZ2VkLCAxIGluc2VydGlvbigr
+KSwgMzYgZGVsZXRpb25zKC0pDQoNCi0tIA0KMi43LjQNCg0K
