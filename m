@@ -1,89 +1,152 @@
-From: Christian Brauner <christian@brauner.io>
-Date: Fri, 19 Jul 2019 12:20:59 +0000
-Subject: Re: [PATCH 1/2] arch: mark syscall number 435 reserved for clone3
-Message-Id: <20190719122058.njbtwy2fbd6xrp2d@brauner.io>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Sat, 06 Jul 2019 14:57:31 +0000
+Subject: [PATCH v9 04/10] namei: split out nd->dfd handling to dirfd_path_init
+Message-Id: <20190706145737.5299-5-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190714192205.27190-1-christian@brauner.io>
- <20190714192205.27190-2-christian@brauner.io>
- <e14eb2f9-43cb-0b9d-dec4-b7e7dcd62091@de.ibm.com>
- <20190716130631.tohj4ub54md25dys@brauner.io>
- <874l3i8h0l.fsf@concordia.ellerman.id.au>
- <20190719102503.tm3ahvkh4rwykmws@brauner.io>
- <871rym8egj.fsf@concordia.ellerman.id.au>
-In-Reply-To: <871rym8egj.fsf@concordia.ellerman.id.au>
+References: <20190706145737.5299-1-cyphar@cyphar.com>
+In-Reply-To: <20190706145737.5299-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>, linux-kernel@vger.kernel.org, arnd@arndb.de, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Christian Brauner <christian@brauner.io>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Fri, Jul 19, 2019 at 09:13:16PM +1000, Michael Ellerman wrote:
-> Christian Brauner <christian@brauner.io> writes:
-> > On Fri, Jul 19, 2019 at 08:18:02PM +1000, Michael Ellerman wrote:
-> >> Christian Brauner <christian@brauner.io> writes:
-> >> > On Mon, Jul 15, 2019 at 03:56:04PM +0200, Christian Borntraeger wrote:
-> >> >> I think Vasily already has a clone3 patch for s390x with 435. 
-> >> >
-> >> > A quick follow-up on this. Helge and Michael have asked whether there
-> >> > are any tests for clone3. Yes, there will be and I try to have them
-> >> > ready by the end of the this or next week for review. In the meantime I
-> >> > hope the following minimalistic test program that just verifies very
-> >> > very basic functionality (It's not pretty.) will help you test:
-> >> 
-> >> Hi Christian,
-> >> 
-> >> Thanks for the test.
-> >> 
-> >> This actually oopses on powerpc, it hits the BUG_ON in CHECK_FULL_REGS
-> >> in process.c around line 1633:
-> >> 
-> >> 	} else {
-> >> 		/* user thread */
-> >> 		struct pt_regs *regs = current_pt_regs();
-> >> 		CHECK_FULL_REGS(regs);
-> >> 		*childregs = *regs;
-> >> 		if (usp)
-> >> 
-> >> 
-> >> So I'll have to dig into how we fix that before we wire up clone3.
-> >> 
-> >> Turns out testing is good! :)
-> >
-> > Indeed. I have a test-suite for clone3 in mind and I hope to have it
-> > ready by the end of next week. It's just always the finding the time
-> > part that is annoying. :)
-> 
-> I know the feeling!
-> 
-> > Thanks for digging into this, Michael!
-> 
-> No worries, happy to help where I can.
-> 
-> In the intervening five minutes I remembered how we handle this, we just
-> need a little wrapper to save the non-volatile regs:
-> 
-> _GLOBAL(ppc_clone3)
-> 	bl	save_nvgprs
-> 	bl	sys_clone3
-> 	b	.Lsyscall_exit
+Previously, path_init's handling of *at(dfd, ...) was only done once,
+but with LOOKUP_BENEATH (and LOOKUP_IN_ROOT) we have to parse the
+initial nd->path at different times (before or after absolute path
+handling) depending on whether we have been asked to scope resolution
+within a root.
 
-Sounds good.
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ fs/namei.c | 103 ++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 59 insertions(+), 44 deletions(-)
 
-> 
-> 
-> A while back I meant to make it generate those automatically based on a
-> flag in the syscall.tbl but of course haven't got around to it :)
-> 
-> So with the above it seems all good:
-> 
-> $ ./clone3 ; echo $?
-> Parent process received child's pid 4204 as return value
-> Parent process received child's pidfd 3
-> Parent process received child's pid 4204 as return argument
-> Child process with pid 4204
-> 0
-> 
-> I'll send a patch to wire it up on Monday.
-
-Excellent! Thank you!
-Christian
+diff --git a/fs/namei.c b/fs/namei.c
+index 4895717d2760..b490bcf855f8 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2257,9 +2257,59 @@ static int link_path_walk(const char *name, struct nameidata *nd)
+ 	}
+ }
+ 
++/*
++ * Configure nd->path based on the nd->dfd. This is only used as part of
++ * path_init().
++ */
++static inline int dirfd_path_init(struct nameidata *nd)
++{
++	if (nd->dfd = AT_FDCWD) {
++		if (nd->flags & LOOKUP_RCU) {
++			struct fs_struct *fs = current->fs;
++			unsigned seq;
++
++			do {
++				seq = read_seqcount_begin(&fs->seq);
++				nd->path = fs->pwd;
++				nd->inode = nd->path.dentry->d_inode;
++				nd->seq = __read_seqcount_begin(&nd->path.dentry->d_seq);
++			} while (read_seqcount_retry(&fs->seq, seq));
++		} else {
++			get_fs_pwd(current->fs, &nd->path);
++			nd->inode = nd->path.dentry->d_inode;
++		}
++	} else {
++		/* Caller must check execute permissions on the starting path component */
++		struct fd f = fdget_raw(nd->dfd);
++		struct dentry *dentry;
++
++		if (!f.file)
++			return -EBADF;
++
++		dentry = f.file->f_path.dentry;
++
++		if (*nd->name->name && unlikely(!d_can_lookup(dentry))) {
++			fdput(f);
++			return -ENOTDIR;
++		}
++
++		nd->path = f.file->f_path;
++		if (nd->flags & LOOKUP_RCU) {
++			nd->inode = nd->path.dentry->d_inode;
++			nd->seq = read_seqcount_begin(&nd->path.dentry->d_seq);
++		} else {
++			path_get(&nd->path);
++			nd->inode = nd->path.dentry->d_inode;
++		}
++		fdput(f);
++	}
++	return 0;
++}
++
+ /* must be paired with terminate_walk() */
+ static const char *path_init(struct nameidata *nd, unsigned flags)
+ {
++	int error;
+ 	const char *s = nd->name->name;
+ 
+ 	if (!*s)
+@@ -2293,52 +2343,17 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 
+ 	nd->m_seq = read_seqbegin(&mount_lock);
+ 	if (*s = '/') {
+-		set_root(nd);
+-		if (likely(!nd_jump_root(nd)))
+-			return s;
+-		return ERR_PTR(-ECHILD);
+-	} else if (nd->dfd = AT_FDCWD) {
+-		if (flags & LOOKUP_RCU) {
+-			struct fs_struct *fs = current->fs;
+-			unsigned seq;
+-
+-			do {
+-				seq = read_seqcount_begin(&fs->seq);
+-				nd->path = fs->pwd;
+-				nd->inode = nd->path.dentry->d_inode;
+-				nd->seq = __read_seqcount_begin(&nd->path.dentry->d_seq);
+-			} while (read_seqcount_retry(&fs->seq, seq));
+-		} else {
+-			get_fs_pwd(current->fs, &nd->path);
+-			nd->inode = nd->path.dentry->d_inode;
+-		}
+-		return s;
+-	} else {
+-		/* Caller must check execute permissions on the starting path component */
+-		struct fd f = fdget_raw(nd->dfd);
+-		struct dentry *dentry;
+-
+-		if (!f.file)
+-			return ERR_PTR(-EBADF);
+-
+-		dentry = f.file->f_path.dentry;
+-
+-		if (*s && unlikely(!d_can_lookup(dentry))) {
+-			fdput(f);
+-			return ERR_PTR(-ENOTDIR);
+-		}
+-
+-		nd->path = f.file->f_path;
+-		if (flags & LOOKUP_RCU) {
+-			nd->inode = nd->path.dentry->d_inode;
+-			nd->seq = read_seqcount_begin(&nd->path.dentry->d_seq);
+-		} else {
+-			path_get(&nd->path);
+-			nd->inode = nd->path.dentry->d_inode;
+-		}
+-		fdput(f);
++		if (likely(!nd->root.mnt))
++			set_root(nd);
++		error = nd_jump_root(nd);
++		if (unlikely(error))
++			s = ERR_PTR(error);
+ 		return s;
+ 	}
++	error = dirfd_path_init(nd);
++	if (unlikely(error))
++		return ERR_PTR(error);
++	return s;
+ }
+ 
+ static const char *trailing_symlink(struct nameidata *nd)
+-- 
+2.22.0
