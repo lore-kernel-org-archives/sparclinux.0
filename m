@@ -1,24 +1,25 @@
-From: John Jacob <jjacobvsusa@gmail.com>
-Date: Mon, 15 Jul 2019 11:29:40 +0000
-Subject: Kindly Respond
-Message-Id: <CAKZDKkA5FWapftSYGcC05KF4Ggo0KiU5CPStoh=wP7XKWdq8ww@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Tue, 09 Jul 2019 21:54:28 +0000
+Subject: Re: [PATCH] sparc64: Add missing newline at end of file
+Message-Id: <20190709.145428.675722523823847220.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190617143612.4810-1-geert+renesas@glider.be>
+In-Reply-To: <20190617143612.4810-1-geert+renesas@glider.be>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: geert+renesas@glider.be
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hello Sir,
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Date: Mon, 17 Jun 2019 16:36:12 +0200
 
-I am Barr Fredrick Mbogo a business consultant i have a lucrative
-business to discuss with you from the Eastern part of Africa Uganda
-aimed at agreed percentage upon your acceptance of my hand in business
-and friendship. Kindly respond to me if you are interested to partner
-with me for an update. Very important.
+> "git diff" says:
+> 
+>     \ No newline at end of file
+> 
+> after modifying the file.
+> 
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Yours Sincerely,
-John Jacob,
-For,
-Barr Frederick Mbogo
-Business Consultant.
-Reply to: barrfredmbogo@consultant.com
+Applied, thank you.
