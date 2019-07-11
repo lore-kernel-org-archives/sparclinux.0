@@ -1,125 +1,43 @@
-From: Palmer Dabbelt <palmer@sifive.com>
-Date: Wed, 17 Jul 2019 01:27:15 +0000
-Subject: Add a new fchmodat4() syscall, v2
-Message-Id: <20190717012719.5524-1-palmer@sifive.com>
+From: Hoan Tran OS <hoan@os.amperecomputing.com>
+Date: Thu, 11 Jul 2019 23:25:49 +0000
+Subject: [PATCH v2 2/5] powerpc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+Message-Id: <1562887528-5896-3-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
+In-Reply-To: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org
-Cc: rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, peterz@infradead.org, acme@kernel.org, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, Palmer Dabbelt <palm>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-This patch set adds fchmodat4(), a new syscall. The actual
-implementation is super simple: essentially it's just the same as
-fchmodat(), but LOOKUP_FOLLOW is conditionally set based on the flags.
-I've attempted to make this match "man 2 fchmodat" as closely as
-possible, which says EINVAL is returned for invalid flags (as opposed to
-ENOTSUPP, which is currently returned by glibc for AT_SYMLINK_NOFOLLOW).
-I have a sketch of a glibc patch that I haven't even compiled yet, but
-seems fairly straight-forward:
+Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled by
+default with NUMA.
 
-    diff --git a/sysdeps/unix/sysv/linux/fchmodat.c b/sysdeps/unix/sysv/linux/fchmodat.c
-    index 6d9cbc1ce9e0..b1beab76d56c 100644
-    --- a/sysdeps/unix/sysv/linux/fchmodat.c
-    +++ b/sysdeps/unix/sysv/linux/fchmodat.c
-    @@ -29,12 +29,36 @@
-     int
-     fchmodat (int fd, const char *file, mode_t mode, int flag)
-     {
-    -  if (flag & ~AT_SYMLINK_NOFOLLOW)
-    -    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-    -#ifndef __NR_lchmod		/* Linux so far has no lchmod syscall.  */
-    +  /* There are four paths through this code:
-    +      - The flags are zero.  In this case it's fine to call fchmodat.
-    +      - The flags are non-zero and glibc doesn't have access to
-    +	__NR_fchmodat4.  In this case all we can do is emulate the error codes
-    +	defined by the glibc interface from userspace.
-    +      - The flags are non-zero, glibc has __NR_fchmodat4, and the kernel has
-    +	fchmodat4.  This is the simplest case, as the fchmodat4 syscall exactly
-    +	matches glibc's library interface so it can be called directly.
-    +      - The flags are non-zero, glibc has __NR_fchmodat4, but the kernel does
-    +	not.  In this case we must respect the error codes defined by the glibc
-    +	interface instead of returning ENOSYS.
-    +    The intent here is to ensure that the kernel is called at most once per
-    +    library call, and that the error types defined by glibc are always
-    +    respected.  */
-    +
-    +#ifdef __NR_fchmodat4
-    +  long result;
-    +#endif
-    +
-    +  if (flag = 0)
-    +    return INLINE_SYSCALL (fchmodat, 3, fd, file, mode);
-    +
-    +#ifdef __NR_fchmodat4
-    +  result = INLINE_SYSCALL (fchmodat4, 4, fd, file, mode, flag);
-    +  if (result = 0 || errno != ENOSYS)
-    +    return result;
-    +#endif
-    +
-       if (flag & AT_SYMLINK_NOFOLLOW)
-         return INLINE_SYSCALL_ERROR_RETURN_VALUE (ENOTSUP);
-    -#endif
+Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+---
+ arch/powerpc/Kconfig | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-    -  return INLINE_SYSCALL (fchmodat, 3, fd, file, mode);
-    +  return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-     }
-
-I've never added a new syscall before so I'm not really sure what the
-proper procedure to follow is.  Based on the feedback from my v1 patch
-set it seems this is somewhat uncontroversial.  At this point I don't
-think there's anything I'm missing, though note that I haven't gotten
-around to testing it this time because the diff from v1 is trivial for
-any platform I could reasonably test on.  The v1 patches suggest a
-simple test case, but I didn't re-run it because I don't want to reboot
-my laptop.
-
-    $ touch test-file
-    $ ln -s test-file test-link
-    $ cat > test.c
-    #include <fcntl.h>
-    #include <stdio.h>
-    #include <unistd.h>
-
-    int main(int argc, char **argv)
-    {
-            long out;
-
-            out = syscall(434, AT_FDCWD, "test-file", 0x888, AT_SYMLINK_NOFOLLOW);
-            printf("fchmodat4(AT_FDCWD, \"test-file\", 0x888, AT_SYMLINK_NOFOLLOW): %ld\n", out);
-
-            out = syscall(434, AT_FDCWD, "test-file", 0x888, 0);
-            printf("fchmodat4(AT_FDCWD, \"test-file\", 0x888, 0): %ld\n", out);
-
-            out = syscall(268, AT_FDCWD, "test-file", 0x888);
-            printf("fchmodat(AT_FDCWD, \"test-file\", 0x888): %ld\n", out);
-
-            out = syscall(434, AT_FDCWD, "test-link", 0x888, AT_SYMLINK_NOFOLLOW);
-            printf("fchmodat4(AT_FDCWD, \"test-link\", 0x888, AT_SYMLINK_NOFOLLOW): %ld\n", out);
-
-            out = syscall(434, AT_FDCWD, "test-link", 0x888, 0);
-            printf("fchmodat4(AT_FDCWD, \"test-link\", 0x888, 0): %ld\n", out);
-
-            out = syscall(268, AT_FDCWD, "test-link", 0x888);
-            printf("fchmodat(AT_FDCWD, \"test-link\", 0x888): %ld\n", out);
-
-            return 0;
-    }
-    $ gcc test.c -o test
-    $ ./test
-    fchmodat4(AT_FDCWD, "test-file", 0x888, AT_SYMLINK_NOFOLLOW): 0
-    fchmodat4(AT_FDCWD, "test-file", 0x888, 0): 0
-    fchmodat(AT_FDCWD, "test-file", 0x888): 0
-    fchmodat4(AT_FDCWD, "test-link", 0x888, AT_SYMLINK_NOFOLLOW): -1
-    fchmodat4(AT_FDCWD, "test-link", 0x888, 0): 0
-    fchmodat(AT_FDCWD, "test-link", 0x888): 0
-
-I've only built this on 64-bit x86.
-
-Changes since v1 [20190531191204.4044-1-palmer@sifive.com]:
-
-* All architectures are now supported, which support squashed into a
-  single patch.
-* The do_fchmodat() helper function has been removed, in favor of directly
-  calling do_fchmodat4().
-* The patches are based on 5.2 instead of 5.1.
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 8c1c636..bdde8bc 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -629,15 +629,6 @@ config ARCH_MEMORY_PROBE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
+ 
+-# Some NUMA nodes have memory ranges that span
+-# other nodes.  Even though a pfn is valid and
+-# between a node's start and end pfns, it may not
+-# reside on that node.  See memmap_init_zone()
+-# for details.
+-config NODES_SPAN_OTHER_NODES
+-	def_bool y
+-	depends on NEED_MULTIPLE_NODES
+-
+ config STDBINUTILS
+ 	bool "Using standard binutils settings"
+ 	depends on 44x
+-- 
+2.7.4
