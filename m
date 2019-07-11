@@ -1,45 +1,53 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Wed, 17 Jul 2019 03:02:58 +0000
-Subject: Re: [PATCH v2 2/4] Add fchmodat4(), a new syscall
-Message-Id: <20190717030258.GT17978@ZenIV.linux.org.uk>
+From: Hoan Tran OS <hoan@os.amperecomputing.com>
+Date: Thu, 11 Jul 2019 23:25:44 +0000
+Subject: [PATCH v2 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190717012719.5524-1-palmer@sifive.com>
- <20190717012719.5524-3-palmer@sifive.com>
- <20190717024046.GI1506@brightrain.aerifal.cx>
-In-Reply-To: <20190717024046.GI1506@brightrain.aerifal.cx>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Rich Felker <dalias@libc.org>
-Cc: Palmer Dabbelt <palmer@sifive.com>, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, James.Bottomley@hansenpartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, x86@kernel.org, peterz@infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Tue, Jul 16, 2019 at 10:40:46PM -0400, Rich Felker wrote:
-> On Tue, Jul 16, 2019 at 06:27:17PM -0700, Palmer Dabbelt wrote:
-> > man 3p says that fchmodat() takes a flags argument, but the Linux
-> > syscall does not.  There doesn't appear to be a good userspace
-> > workaround for this issue but the implementation in the kernel is pretty
-> > straight-forward.  The specific use case where the missing flags came up
-> > was WRT a fuse filesystem implemenation, but the functionality is pretty
-> > generic so I'm assuming there would be other use cases.
-> 
-> Note that we do have a workaround in musl libc with O_PATH and
-> /proc/self/fd, but a syscall that allows a proper fix with the ugly
-> workaround only in the fallback path for old kernels will be much
-> appreciated!
-> 
-> What about also doing a new SYS_faccessat4 with working AT_EACCESS
-> flag? The workaround we have to do for it is far worse.
+In NUMA layout which nodes have memory ranges that span across other nodes,
+the mm driver can detect the memory node id incorrectly.
 
-Umm...  That's doable, but getting into the "don't switch creds unless
-needed" territory.  I'll need to play with that a bit and see what
-gives a tolerable variant...
+For example, with layout below
+Node 0 address: 0000 xxxx 0000 xxxx
+Node 1 address: xxxx 1111 xxxx 1111
 
-What of this part wrt AT_EACCESS?
-        if (!issecure(SECURE_NO_SETUID_FIXUP)) {
-                /* Clear the capabilities if we switch to a non-root user */
-                kuid_t root_uid = make_kuid(override_cred->user_ns, 0);
-                if (!uid_eq(override_cred->uid, root_uid))
-                        cap_clear(override_cred->cap_effective);
-                else
-                        override_cred->cap_effective                                 override_cred->cap_permitted;
-        }
+Note:
+ - Memory from low to high
+ - 0/1: Node id
+ - x: Invalid memory of a node
+
+When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
+config, mm only checks the memory validity but not the node id.
+Because of that, Node 1 also detects the memory from node 0 as below
+when it scans from the start address to the end address of node 1.
+
+Node 0 address: 0000 xxxx xxxx xxxx
+Node 1 address: xxxx 1111 1111 1111
+
+This layout could occur on any architecture. This patch enables
+CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA to fix this issue.
+
+V2:
+ * Revise the patch description
+
+Hoan Tran (5):
+  mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+  powerpc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  x86: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  sparc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  s390: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+
+ arch/powerpc/Kconfig | 9 ---------
+ arch/s390/Kconfig    | 8 --------
+ arch/sparc/Kconfig   | 9 ---------
+ arch/x86/Kconfig     | 9 ---------
+ mm/page_alloc.c      | 2 +-
+ 5 files changed, 1 insertion(+), 36 deletions(-)
+
+-- 
+2.7.4
