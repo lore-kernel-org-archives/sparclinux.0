@@ -1,41 +1,43 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Date: Tue, 30 Jul 2019 18:25:03 +0000
-Subject: Re: [PATCH v2 0/5] PCI: Convert pci_resource_to_user() to a weak function
-Message-Id: <20190730182503.GJ203187@google.com>
+From: Hoan Tran OS <hoan@os.amperecomputing.com>
+Date: Thu, 11 Jul 2019 23:25:51 +0000
+Subject: [PATCH v2 3/5] x86: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+Message-Id: <1562887528-5896-4-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190729101401.28068-1-efremov@linux.com>
-In-Reply-To: <20190729101401.28068-1-efremov@linux.com>
+References: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
+In-Reply-To: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Denis Efremov <efremov@linux.com>
-Cc: "David S. Miller" <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Michal Simek <monstr@monstr.eu>, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Mon, Jul 29, 2019 at 01:13:56PM +0300, Denis Efremov wrote:
-> Architectures currently define HAVE_ARCH_PCI_RESOURCE_TO_USER if they want
-> to provide their own pci_resource_to_user() implementation. This could be
-> simplified if we make the generic version a weak function. Thus,
-> architecture specific versions will automatically override the generic one.
-> 
-> Changes in v2:
-> 1. Removed __weak from pci_resource_to_user() declaration
-> 2. Fixed typo s/spark/sparc/g
-> 
-> Denis Efremov (5):
->   PCI: Convert pci_resource_to_user to a weak function
->   microblaze/PCI: Remove HAVE_ARCH_PCI_RESOURCE_TO_USER
->   mips/PCI: Remove HAVE_ARCH_PCI_RESOURCE_TO_USER
->   powerpc/PCI: Remove HAVE_ARCH_PCI_RESOURCE_TO_USER
->   sparc/PCI: Remove HAVE_ARCH_PCI_RESOURCE_TO_USER
-> 
->  arch/microblaze/include/asm/pci.h |  2 --
->  arch/mips/include/asm/pci.h       |  1 -
->  arch/powerpc/include/asm/pci.h    |  2 --
->  arch/sparc/include/asm/pci.h      |  2 --
->  drivers/pci/pci.c                 |  8 ++++++++
->  include/linux/pci.h               | 12 ------------
->  6 files changed, 8 insertions(+), 19 deletions(-)
+Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled
+by default with NUMA.
 
-Thanks, I added Paul's ack, squashed into a single patch since I think
-it's easier to see what's going on then, and applied to pci/misc for
-v4.5.
+Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+---
+ arch/x86/Kconfig | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 2bbbd4d..fa9318c 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -1567,15 +1567,6 @@ config X86_64_ACPI_NUMA
+ 	---help---
+ 	  Enable ACPI SRAT based node topology detection.
+ 
+-# Some NUMA nodes have memory ranges that span
+-# other nodes.  Even though a pfn is valid and
+-# between a node's start and end pfns, it may not
+-# reside on that node.  See memmap_init_zone()
+-# for details.
+-config NODES_SPAN_OTHER_NODES
+-	def_bool y
+-	depends on X86_64_ACPI_NUMA
+-
+ config NUMA_EMU
+ 	bool "NUMA emulation"
+ 	depends on NUMA
+-- 
+2.7.4
