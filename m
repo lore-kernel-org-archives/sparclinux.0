@@ -1,122 +1,59 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sun, 14 Jul 2019 07:11:02 +0000
-Subject: Re: [PATCH v9 01/10] namei: obey trailing magic-link DAC permissions
-Message-Id: <20190714071102.gsc3kqpakz7chqt6@yavin>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="gghwwblfl4frle37"
+From: David Miller <davem@davemloft.net>
+Date: Sat, 13 Jul 2019 06:17:42 +0000
+Subject: [GIT] Sparc
+Message-Id: <20190712.231742.1744524168822613248.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190706145737.5299-1-cyphar@cyphar.com>
- <20190706145737.5299-2-cyphar@cyphar.com>
- <20190712041454.GG17978@ZenIV.linux.org.uk>
- <20190712122017.xkowq2cjreylpotm@yavin>
- <20190712131005.GM17978@ZenIV.linux.org.uk>
-In-Reply-To: <20190712131005.GM17978@ZenIV.linux.org.uk>
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Andy Lutomirski <luto@kernel.org>, Christian Brauner <christian@brauner.io>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
---gghwwblfl4frle37
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Just a few small changes:
 
-On 2019-07-12, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Fri, Jul 12, 2019 at 10:20:17PM +1000, Aleksa Sarai wrote:
-> > On 2019-07-12, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> > > On Sun, Jul 07, 2019 at 12:57:28AM +1000, Aleksa Sarai wrote:
-> > > > @@ -514,7 +516,14 @@ static void set_nameidata(struct nameidata *p,=
- int dfd, struct filename *name)
-> > > >  	p->stack =3D p->internal;
-> > > >  	p->dfd =3D dfd;
-> > > >  	p->name =3D name;
-> > > > -	p->total_link_count =3D old ? old->total_link_count : 0;
-> > > > +	p->total_link_count =3D 0;
-> > > > +	p->acc_mode =3D 0;
-> > > > +	p->opath_mask =3D FMODE_PATH_READ | FMODE_PATH_WRITE;
-> > > > +	if (old) {
-> > > > +		p->total_link_count =3D old->total_link_count;
-> > > > +		p->acc_mode =3D old->acc_mode;
-> > > > +		p->opath_mask =3D old->opath_mask;
-> > > > +	}
-> > >=20
-> > > Huh?  Could somebody explain why traversals of NFS4 referrals should =
-inherit
-> > > ->acc_mode and ->opath_mask?
-> >=20
-> > I'll be honest -- I don't understand what set_nameidata() did so I just
-> > did what I thought would be an obvious change (to just copy the
-> > contents). I thought it was related to some aspect of the symlink stack
-> > handling.
->=20
-> No.  It's handling of (very rare) nested pathwalk.  The only case I can t=
-hink
-> of is handling of NFS4 referrals - they are triggered by ->d_automount()
-> and include NFS4 mount.  Which does internal pathwalk of its own, to get
-> to the root of subtree being automounted.
->=20
-> NFS has its own recursion protection on that path (no deeper nesting than
-> one level of referral traversals), but there some nesting is inevitable;
-> we do get another nameidata instance on stack.  And for nd_jump_link() we
-> need to keep track of the innermost one.
->=20
-> For symlinks nothing of that sort happens - they are dealt with on the sa=
-me
-> struct nameidata.  ->total_link_count copying is there for one reason onl=
-y -
-> we want the total amount of symlinks traversed during the pathwalk (inclu=
-ding
-> the referral processing, etc.) to count towards MAXSYMLINKS check.  It co=
-uld've
-> been moved from nameidata to task_struct, but it's cheaper to handle it t=
-hat
-> way.
->=20
-> Again, nesting is *rare*.
+1) Fix console naming inconsistency with hypervisor consoles, from
+   John Paul Adrian Glaubitz
 
-Thanks for the explanation, much appreciated. I will drop the old->...
-copying hunk.
+2) Fix userland compilation due to use of u_int, from Masahiro Yamada.
 
-> > In that case, should they both be set to 0 on set_nameidata()? This will
-> > mean that fd re-opening (or magic-link opening) through a
-> > set_nameidata() would always fail.
->=20
-> Huh?  set_nameidata() is done for *all* instances - it's pretty much the
-> constructor of that object (and restore_nameidata() - a destructor).
-> Everything goes through it.
+Please pull, thanks a lot.
 
-Sorry, I meant to drop the copy-from-old logic -- not set it to zero
-explicitly in set_nameidata().
+The following changes since commit 30d1d92a888d03681b927c76a35181b4eed7071f:
 
-> And again, I'm not sure we want these fields in nameidata - IMO they belo=
-ng
-> in open_flags.  Things like e.g. stat() don't need them at all.
+  Merge tag 'nds32-for-linux-5.2-rc3' of git://git.kernel.org/pub/scm/linux/kernel/git/greentime/linux (2019-06-03 10:23:41 -0700)
 
-Yup, I'll work up a version that does the consolidation you mentioned
-in your other mail.
+are available in the Git repository at:
 
-> Incidentally, O_PATH opening of symlinks combined with subsequent procfs
-> symlink traversals is worth testing - that's where the things get subtle
-> and that's where it's easy to get in trouble on modifications.
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
 
-I have some self-tests of a symlink-to-a-magic-link in the last patch of
-the series. Did you mean something even more chained like a symlink to a
-/proc/self/fd/$n of an O_NOFOLLOW|O_PATH of a symlink?
+for you to fetch changes up to 61daf52c4ddd433924687850fa04ed85c0d806dd:
 
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
+  sparc64: Add missing newline at end of file (2019-07-09 14:53:57 -0700)
 
---gghwwblfl4frle37
-Content-Type: application/pgp-signature; name="signature.asc"
+----------------------------------------------------------------
+Geert Uytterhoeven (1):
+      sparc64: Add missing newline at end of file
 
------BEGIN PGP SIGNATURE-----
+John Paul Adrian Glaubitz (1):
+      sunhv: Fix device naming inconsistency between sunhv_console and sunhv_reg
 
-iHUEABYIAB0WIQSxZm6dtfE8gxLLfYqdlLljIbnQEgUCXSrVgAAKCRCdlLljIbnQ
-EupPAQDpi9m99/xBGy4or9AS/LoRkr4tSLDlWlOsdCn0tZ52WAEAqoZwgZWyT46F
-mjKoRQeNjgtDk5jRNWbrwkJAMPXy2AE=
-=GnH+
------END PGP SIGNATURE-----
+Krzysztof Kozlowski (1):
+      sparc: configs: Remove useless UEVENT_HELPER_PATH
 
---gghwwblfl4frle37--
+Masahiro Yamada (1):
+      sparc: fix unknown type name u_int in uapi header
+
+Thomas Huth (1):
+      sparc: Remove redundant copy of the LGPL-2.0
+
+ arch/sparc/configs/sparc32_defconfig     |   1 -
+ arch/sparc/configs/sparc64_defconfig     |   1 -
+ arch/sparc/include/uapi/asm/openpromio.h |   3 +-
+ arch/sparc/lib/COPYING.LIB               | 481 -----------------------------------------------------------------------------
+ arch/sparc/lib/NG4clear_page.S           |   2 +-
+ drivers/tty/serial/sunhv.c               |   2 +-
+ 6 files changed, 3 insertions(+), 487 deletions(-)
+ delete mode 100644 arch/sparc/lib/COPYING.LIB
