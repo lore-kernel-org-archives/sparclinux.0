@@ -1,73 +1,149 @@
-From: Arnaldo Carvalho de Melo <arnaldo.melo@gmail.com>
-Date: Wed, 17 Jul 2019 12:39:59 +0000
-Subject: Re: [PATCH v2 4/4] tools: Add fchmodat4
-Message-Id: <20190717123959.GB24063@kernel.org>
+From: Christian Brauner <christian@brauner.io>
+Date: Sun, 14 Jul 2019 19:22:04 +0000
+Subject: [PATCH 1/2] arch: mark syscall number 435 reserved for clone3
+Message-Id: <20190714192205.27190-2-christian@brauner.io>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190717012719.5524-1-palmer@sifive.com>
- <20190717012719.5524-5-palmer@sifive.com>
-In-Reply-To: <20190717012719.5524-5-palmer@sifive.com>
+References: <20190714192205.27190-1-christian@brauner.io>
+In-Reply-To: <20190714192205.27190-1-christian@brauner.io>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Palmer Dabbelt <palmer@sifive.com>
-Cc: viro@zeniv.linux.org.uk, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-api@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, monstr@monstr.eu, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, James.Bottomley@hansenpartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, luto@kernel.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, hpa@zytor.com, x86@kernel.org, peterz@infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: arnd@arndb.de, Christian Brauner <christian@brauner.io>, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
 
-Em Tue, Jul 16, 2019 at 06:27:19PM -0700, Palmer Dabbelt escreveu:
-> I'm not sure why it's necessary to add this explicitly to tools/ as well
-> as arch/, but there were a few instances of fspick in here so I blindly
-> added fchmodat4 in the same fashion.
+A while ago Arnd made it possible to give new system calls the same
+syscall number on all architectures (except alpha). To not break this
+nice new feature let's mark 435 for clone3 as reserved on all
+architectures that do not yet implement it.
+Even if an architecture does not plan to implement it this ensures that
+new system calls coming after clone3 will have the same number on all
+architectures.
 
-The copies in tools/ for these specific files are used to generate a
-syscall table used by 'perf trace', and we don't/can't access files
-outside of tools/ to build tools/perf/, so we grab a copy and have
-checks in place to warn perf developers when those copies get out of
-sync.
+Signed-off-by: Christian Brauner <christian@brauner.io>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arch@vger.kernel.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+---
+ arch/alpha/kernel/syscalls/syscall.tbl    | 1 +
+ arch/ia64/kernel/syscalls/syscall.tbl     | 1 +
+ arch/m68k/kernel/syscalls/syscall.tbl     | 1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl | 1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl | 1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl | 1 +
+ arch/parisc/kernel/syscalls/syscall.tbl   | 1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl  | 1 +
+ arch/s390/kernel/syscalls/syscall.tbl     | 1 +
+ arch/sh/kernel/syscalls/syscall.tbl       | 1 +
+ arch/sparc/kernel/syscalls/syscall.tbl    | 1 +
+ 11 files changed, 11 insertions(+)
 
-Its not required that kernel developers update anything in tools, you're
-welcomed to do so if you wish tho.
-
-Thanks,
-
-- Arnaldo
- 
-> Signed-off-by: Palmer Dabbelt <palmer@sifive.com>
-> ---
->  tools/include/uapi/asm-generic/unistd.h           | 4 +++-
->  tools/perf/arch/x86/entry/syscalls/syscall_64.tbl | 1 +
->  2 files changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/tools/include/uapi/asm-generic/unistd.h b/tools/include/uapi/asm-generic/unistd.h
-> index a87904daf103..36232ea94956 100644
-> --- a/tools/include/uapi/asm-generic/unistd.h
-> +++ b/tools/include/uapi/asm-generic/unistd.h
-> @@ -844,9 +844,11 @@ __SYSCALL(__NR_fsconfig, sys_fsconfig)
->  __SYSCALL(__NR_fsmount, sys_fsmount)
->  #define __NR_fspick 433
->  __SYSCALL(__NR_fspick, sys_fspick)
-> +#define __NR_fchmodat4 434
-> +__SYSCALL(__NR_fchmodat4, sys_fchmodat4)
->  
->  #undef __NR_syscalls
-> -#define __NR_syscalls 434
-> +#define __NR_syscalls 435
->  
->  /*
->   * 32 bit systems traditionally used different
-> diff --git a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl b/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
-> index b4e6f9e6204a..b92d5b195e66 100644
-> --- a/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
-> +++ b/tools/perf/arch/x86/entry/syscalls/syscall_64.tbl
-> @@ -355,6 +355,7 @@
->  431	common	fsconfig		__x64_sys_fsconfig
->  432	common	fsmount			__x64_sys_fsmount
->  433	common	fspick			__x64_sys_fspick
-> +434	common	fchmodat4		__x64_sys_fchmodat4
->  
->  #
->  # x32-specific system call numbers start at 512 to avoid cache impact
-> -- 
-> 2.21.0
-
+diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
+index 1db9bbcfb84e..728fe028c02c 100644
+--- a/arch/alpha/kernel/syscalls/syscall.tbl
++++ b/arch/alpha/kernel/syscalls/syscall.tbl
+@@ -474,3 +474,4 @@
+ 542	common	fsmount				sys_fsmount
+ 543	common	fspick				sys_fspick
+ 544	common	pidfd_open			sys_pidfd_open
++# 545 reserved for clone3
+diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
+index ecc44926737b..36d5faf4c86c 100644
+--- a/arch/ia64/kernel/syscalls/syscall.tbl
++++ b/arch/ia64/kernel/syscalls/syscall.tbl
+@@ -355,3 +355,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
+index 9a3eb2558568..a88a285a0e5f 100644
+--- a/arch/m68k/kernel/syscalls/syscall.tbl
++++ b/arch/m68k/kernel/syscalls/syscall.tbl
+@@ -434,3 +434,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/mips/kernel/syscalls/syscall_n32.tbl b/arch/mips/kernel/syscalls/syscall_n32.tbl
+index 97035e19ad03..c9c879ec9b6d 100644
+--- a/arch/mips/kernel/syscalls/syscall_n32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n32.tbl
+@@ -373,3 +373,4 @@
+ 432	n32	fsmount				sys_fsmount
+ 433	n32	fspick				sys_fspick
+ 434	n32	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/mips/kernel/syscalls/syscall_n64.tbl b/arch/mips/kernel/syscalls/syscall_n64.tbl
+index d7292722d3b0..bbce9159caa1 100644
+--- a/arch/mips/kernel/syscalls/syscall_n64.tbl
++++ b/arch/mips/kernel/syscalls/syscall_n64.tbl
+@@ -349,3 +349,4 @@
+ 432	n64	fsmount				sys_fsmount
+ 433	n64	fspick				sys_fspick
+ 434	n64	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/mips/kernel/syscalls/syscall_o32.tbl b/arch/mips/kernel/syscalls/syscall_o32.tbl
+index dba084c92f14..9653591428ec 100644
+--- a/arch/mips/kernel/syscalls/syscall_o32.tbl
++++ b/arch/mips/kernel/syscalls/syscall_o32.tbl
+@@ -422,3 +422,4 @@
+ 432	o32	fsmount				sys_fsmount
+ 433	o32	fspick				sys_fspick
+ 434	o32	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/parisc/kernel/syscalls/syscall.tbl b/arch/parisc/kernel/syscalls/syscall.tbl
+index 5022b9e179c2..c7aadfef5386 100644
+--- a/arch/parisc/kernel/syscalls/syscall.tbl
++++ b/arch/parisc/kernel/syscalls/syscall.tbl
+@@ -431,3 +431,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
+index f2c3bda2d39f..3331749aab20 100644
+--- a/arch/powerpc/kernel/syscalls/syscall.tbl
++++ b/arch/powerpc/kernel/syscalls/syscall.tbl
+@@ -516,3 +516,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/s390/kernel/syscalls/syscall.tbl b/arch/s390/kernel/syscalls/syscall.tbl
+index 6ebacfeaf853..a90d3e945445 100644
+--- a/arch/s390/kernel/syscalls/syscall.tbl
++++ b/arch/s390/kernel/syscalls/syscall.tbl
+@@ -437,3 +437,4 @@
+ 432  common	fsmount			sys_fsmount			sys_fsmount
+ 433  common	fspick			sys_fspick			sys_fspick
+ 434  common	pidfd_open		sys_pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
+index 834c9c7d79fa..b5ed26c4c005 100644
+--- a/arch/sh/kernel/syscalls/syscall.tbl
++++ b/arch/sh/kernel/syscalls/syscall.tbl
+@@ -437,3 +437,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
+diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
+index c58e71f21129..8c8cc7537fb2 100644
+--- a/arch/sparc/kernel/syscalls/syscall.tbl
++++ b/arch/sparc/kernel/syscalls/syscall.tbl
+@@ -480,3 +480,4 @@
+ 432	common	fsmount				sys_fsmount
+ 433	common	fspick				sys_fspick
+ 434	common	pidfd_open			sys_pidfd_open
++# 435 reserved for clone3
 -- 
-
-- Arnaldo
+2.22.0
