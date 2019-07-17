@@ -1,169 +1,87 @@
-From: Masami Hiramatsu <mhiramat@kernel.org>
-Date: Thu, 11 Jul 2019 22:49:07 +0000
-Subject: Re: [PATCH] mm/kprobes: Add generic kprobe_fault_handler() fallback definition
-Message-Id: <20190712074907.1ab08841e77b6cc867396148@kernel.org>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Wed, 17 Jul 2019 21:59:56 +0000
+Subject: Re: [PATCH 09/16] sparc64: use the generic get_user_pages_fast code
+Message-Id: <20190717215956.GA30369@altlinux.org>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="opJtzjQTFsWo+cga"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1562304629-29376-1-git-send-email-anshuman.khandual@arm.com>
- <20190705193028.f9e08fe9cf1ee86bc5c0bb82@kernel.org>
- <3aee1f30-241c-d1c2-2ff5-ff521db47755@arm.com>
-In-Reply-To: <3aee1f30-241c-d1c2-2ff5-ff521db47755@arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Mark Rutland <mark.rutland@arm.com>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Will Deacon <will@kernel.org>, linux-s390@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, James Hogan <jhogan@kernel.org>, linux-snps-arc@lists.infradead.org, Guenter Roeck <linux@roeck-us.net>, Fenghua Yu <fenghua.yu@intel.com>, Vasily Gorbik <gor@linux.ibm.com>, linuxppc-dev@lists.ozlabs.org, "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Allison Randal <allison@lohutok.net>, Tony Luck <tony.luck@intel.com>, Richard Fontana <rfontana@redhat.com>, Vineet Gupta <vgupta@synopsys.com>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andrew Morton <akpm@linux-foundation.org>, Enrico Weigelt <info@metux.net>, "David S. Miller" <davem@davemloft.net>
+References: <20190625143715.1689-1-hch@lst.de>
+ <20190625143715.1689-10-hch@lst.de>
+In-Reply-To: <20190625143715.1689-10-hch@lst.de>
+To: Christoph Hellwig <hch@lst.de>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Anatoly Pugachev <matorola@gmail.com>, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-Hi Anshuman,
 
-On Mon, 8 Jul 2019 09:03:13 +0530
-Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> >> Architectures like parisc enable CONFIG_KROBES without having a definition
-> >> for kprobe_fault_handler() which results in a build failure.
-> > 
-> > Hmm, as far as I can see, kprobe_fault_handler() is closed inside each arch
-> > specific code. The reason why include/linux/kprobes.h defines
-> > dummy inline function is only for !CONFIG_KPROBES case.
-> 
-> IIRC Andrew mentioned [1] that we should remove this stub from the generic kprobes
-> header because this is very much architecture specific. As we see in this proposed
-> patch, except x86 there is no other current user which actually calls this from
-> some where when CONFIG_KPROBES is not enabled.
-> 
-> [1] https://www.spinics.net/lists/linux-mm/msg182649.html
+Hi,
 
-Ah, OK. I saw another branch. Also, this is a bugfix patch against
-commit 4dd635bce90e ("mm, kprobes: generalize and rename notify_page_fault() as
- kprobe_page_fault()"), please add Fixes: tag on it.
+On Tue, Jun 25, 2019 at 04:37:08PM +0200, Christoph Hellwig wrote:
+> The sparc64 code is mostly equivalent to the generic one, minus various
+> bugfixes and two arch overrides that this patch adds to pgtable.h.
+>=20
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+> ---
+>  arch/sparc/Kconfig                  |   1 +
+>  arch/sparc/include/asm/pgtable_64.h |  18 ++
+>  arch/sparc/mm/Makefile              |   2 +-
+>  arch/sparc/mm/gup.c                 | 340 ----------------------------
+>  4 files changed, 20 insertions(+), 341 deletions(-)
+>  delete mode 100644 arch/sparc/mm/gup.c
 
-In this case, we should just add a prototype of kprobe_fault_handler() in
-include/linux/kprobes.h, and maybe add a stub of kprobe_fault_handler()
-as a weak function, something like below.
+So this ended up as commit 7b9afb86b6328f10dc2cad9223d7def12d60e505
+(thanks to Anatoly for bisecting) and introduced a regression:=20
+futex.test from the strace test suite now causes an Oops on sparc64
+in futex syscall.
 
-int __weak kprobe_fault_handler(struct pt_regs *regs, int trapnr)
+Here is a heavily stripped down reproducer:
+
+// SPDX-License-Identifier: GPL-2.0-or-later
+#include <err.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <asm/unistd.h>
+int main(void)
 {
-	/*
-	 * Each architecture which uses kprobe_page_fault() must define
-	 * a fault handler to handle page fault in kprobe correctly.
-	 */
-	WARN_ON_ONCE(1);
+	size_t page_size =3D sysconf(_SC_PAGESIZE);
+	size_t alloc_size =3D 3 * page_size;
+	void *p =3D mmap(NULL, alloc_size, PROT_READ | PROT_WRITE,
+		       MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	if (MAP_FAILED =3D=3D p)
+		err(EXIT_FAILURE, "mmap(%zu)", alloc_size);
+	void *hole =3D p + page_size;
+	if (munmap(hole, page_size))
+		err(EXIT_FAILURE, "munmap(%p, %zu)", hole, page_size);
+	syscall(__NR_futex, (unsigned long) hole, 0L, 0L, 0L, 0L, 0L);
 	return 0;
 }
 
-> >> Arch needs to
-> >> provide kprobe_fault_handler() as it is platform specific and cannot have
-> >> a generic working alternative. But in the event when platform lacks such a
-> >> definition there needs to be a fallback.
-> > 
-> > Wait, indeed that each arch need to implement it, but that is for calling
-> > kprobe->fault_handler() as user expected.
-> > Hmm, why not fixing those architecture implementations?
-> 
-> After the recent change which introduced a generic kprobe_page_fault() every
-> architecture enabling CONFIG_KPROBES must have a kprobe_fault_handler() which
-> was not the case earlier.
+--=20
+ldv
 
-As far as I can see, gcc complains it because there is no prototype of
-kprobe_fault_handler(). Actually no need to define empty kprobe_fault_handler()
-on each arch. If we have a prototype, but no actual function, gcc stops the
-error unless the arch depending code uses it. So actually, we don't need above
-__weak function.
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> Architectures like parisc which does enable KPROBES but
-> never used (kprobe_page_fault or kprobe->fault_handler) kprobe_fault_handler() now
-> needs one as well.
+-----BEGIN PGP SIGNATURE-----
 
-(Hmm, it sounds like the kprobes porting is incomplete on parisc...)
+iQIcBAEBCAAGBQJdL5pcAAoJEAVFT+BVnCUIQ+4QAJbAg/fjGdrZiUuhFCsAumUr
+1a+Sj62OxFSUDyqbMKHGYQndj9PAPc6CqjbaT02kKPqqCVKQsww+kLGHLOIBMq3G
+4tK92yghsLeH7PiOgLNjBuLtZm3qySmxG1e5Wvt7/1AZeEZLvQit4Js1t0yUYgz2
+copTaWXHLHUHQ9ePrzd4CyVo2Ha8ChhVATHAI9NSby1kqvBDG5Yt5pS6A14ocRH8
+drd71GTLFu0pXWBh3dRSZ1irXnyL/SKYYGD6/kem1l8Bq8hVwfiLfwhhAl02Gmap
+7wj/kYIG/aDFlK43ulBeXVwG/xFDdTVL5cOc8aS9x+160+jfzGRcSHdfUwnV3evI
+0Qi66H4im83apvoaVOznNIk88x3omiN2XoYcWZjVazN6whSdmA4Oz3RMQxm9Epx3
+heEwsaAX/5dGPwWG6JdZIktHIw+Z64egFm+5AXPRkGo2LUP6dgVew2dECP2+dl8H
+E6o86lU2ctAaaeDCymH0w5cOVp9WPeEEEGxwuIai7LZN3GuFP+/hwEsPMrRtIhsD
+NVmq/JPWACqixvfHL7t1UpZkwvJxraR/V4v4cjC7jW1kE73AlF3xNxjJtOPQlesR
+xQBuQ5ezVXipMyeC1a29NgKGCvMtxUvkszGmejsYUiplI2bI8g7uwhySqssqW+e9
+7SxH0zcMsECH0iugLK5w
+=+CIC
+-----END PGP SIGNATURE-----
 
-> I am not sure and will probably require inputs from arch parsic
-> folks whether it at all needs one. We dont have a stub or fallback definition for
-> kprobe_fault_handler() when CONFIG_KPROBES is enabled just to prevent a build
-> failure in such cases.
-
-Yeah, that is a bug, and fixed by adding a prototype, not introducing new macro.
-
-> 
-> In such a situation it might be better defining a stub symbol fallback than to try
-> to implement one definition which the architecture previously never needed or used.
-> AFAICS there is no generic MM callers for kprobe_fault_handler() as well which would
-> have made it mandatory for parisc to define a real one.
-> 
-> > 
-> >> This adds a stub kprobe_fault_handler() definition which not only prevents
-> >> a build failure but also makes sure that kprobe_page_fault() if called will
-> >> always return negative in absence of a sane platform specific alternative.
-> > 
-> > I don't like introducing this complicated macro only for avoiding (not fixing)
-> > build error. To fix that, kprobes on parisc should implement kprobe_fault_handler
-> > correctly (and call kprobe->fault_handler).
-> 
-> As I mentioned before parsic might not need a real one. But you are right this
-> complicated (if perceived as such) change can be just avoided at least for the
-> build failure problem by just defining a stub definition kprobe_fault_handler()
-> for arch parsic when CONFIG_KPROBES is enabled. But this patch does some more
-> and solves the kprobe_fault_handler() symbol dependency in a more generic way and
-> forces kprobe_page_fault() to fail in absence a real arch kprobe_fault_handler().
-> Is not it worth solving in this way ?
-> 
-> > 
-> > BTW, even if you need such generic stub, please use a weak function instead
-> > of macros for every arch headers.
-> 
-> There is a bit problem with that. The existing definitions are with different
-> signatures and an weak function will need them to be exact same for override
-> requiring more code changes. Hence choose to go with a macro in each header.
-> 
-> arch/arc/include/asm/kprobes.h:int kprobe_fault_handler(struct pt_regs *regs, unsigned long cause);
-> arch/arm/include/asm/kprobes.h:int kprobe_fault_handler(struct pt_regs *regs, unsigned int fsr);
-> arch/arm64/include/asm/kprobes.h:int kprobe_fault_handler(struct pt_regs *regs, unsigned int fsr);
-> arch/ia64/include/asm/kprobes.h:extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-> arch/powerpc/include/asm/kprobes.h:extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-> arch/s390/include/asm/kprobes.h:int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-> arch/sh/include/asm/kprobes.h:extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-> arch/sparc/include/asm/kprobes.h:int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-> arch/x86/include/asm/kprobes.h:extern int kprobe_fault_handler(struct pt_regs *regs, int trapnr);
-
-OK, in that case, original commit is wrong way. it should be reverted and
-should introduce something like below
-
-
-/* Returns true if arch should call kprobes_fault_handler() */
-static nokprobe_inline bool is_kprobe_page_fault(struct pt_regs *regs)
-{
-	if (!kprobes_built_in())
-		return false;
-	if (user_mode(regs))
-		return false;
-	/*
-	 * To be potentially processing a kprobe fault and to be allowed
-	 * to call kprobe_running(), we have to be non-preemptible.
-	 */
-	if (preemptible())
-		return false;
-	if (!kprobe_running())
-		return false;
-	return true;
-}
-
-Since it silently casts the type of trapnr, which is strongly depends
-on architecture.
-
-> >> While here wrap kprobe_page_fault() in CONFIG_KPROBES. This enables stud
-> >> definitions for generic kporbe_fault_handler() and kprobes_built_in() can
-> >> just be dropped. Only on x86 it needs to be added back locally as it gets
-> >> used in a !CONFIG_KPROBES function do_general_protection().
-> > 
-> > If you want to remove kprobes_built_in(), you should replace it with
-> > IS_ENABLED(CONFIG_KPROBES), instead of this...
-> 
-> Apart from kprobes_built_in() the intent was to remove !CONFIG_KPROBES
-> stub for kprobe_fault_handler() as well which required making generic
-> kprobe_page_fault() to be empty in such case.
-
-No, I meant that "IS_ENABLED(CONFIG_KPROBES)" is generic and is equal to
-what kprobes_built_in() does.
-
-Thank you,
-
--- 
-Masami Hiramatsu <mhiramat@kernel.org>
+--opJtzjQTFsWo+cga--
