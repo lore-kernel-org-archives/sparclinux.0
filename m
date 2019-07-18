@@ -1,22 +1,33 @@
 From: David Miller <davem@davemloft.net>
-Date: Thu, 18 Jul 2019 01:21:21 +0000
+Date: Thu, 18 Jul 2019 21:14:05 +0000
 Subject: Re: [PATCH 09/16] sparc64: use the generic get_user_pages_fast code
-Message-Id: <20190717.182121.54176691060371062.davem@davemloft.net>
+Message-Id: <20190718.141405.1070121094691581998.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAHk-=whj_+tYSRcDsw7mDGrkmyU9tAk-a53XK271wYtDqYRzig@mail.gmail.com>
-	<20190717233031.GB30369@altlinux.org>
-	<CAHk-=wgjmt2i37nn9v+nGC0m8-DdLBMEs=NC=TV-u+9XAzA61g@mail.gmail.com>
-In-Reply-To: <CAHk-=wgjmt2i37nn9v+nGC0m8-DdLBMEs=NC=TV-u+9XAzA61g@mail.gmail.com>
+References: <20190625143715.1689-1-hch@lst.de>
+	<20190625143715.1689-10-hch@lst.de>
+	<20190717215956.GA30369@altlinux.org>
+In-Reply-To: <20190717215956.GA30369@altlinux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: ldv@altlinux.org, hch@lst.de, khalid.aziz@oracle.com, akpm@linux-foundation.org, matorola@gmail.com, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
+To: ldv@altlinux.org
+Cc: hch@lst.de, khalid.aziz@oracle.com, torvalds@linux-foundation.org, akpm@linux-foundation.org, matorola@gmail.com, sparclinux@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 17 Jul 2019 17:17:16 -0700
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Thu, 18 Jul 2019 00:59:56 +0300
 
-> Anyway, I suspect some sparc64 person needs to delve into it.
+> So this ended up as commit 7b9afb86b6328f10dc2cad9223d7def12d60e505
+> (thanks to Anatoly for bisecting) and introduced a regression: 
+> futex.test from the strace test suite now causes an Oops on sparc64
+> in futex syscall.
+> 
+> Here is a heavily stripped down reproducer:
 
-I'll take a look at it soon if someone doesn't figure it out before
-me.
+Does not reproduce for me on a T4-2 machine.
+
+So this problem might depend on the type of system you are on,
+I suspect it's one of those "pre-Niagara vs. Niagara and later"
+situations because that's the dividing line between two set of
+wildly different TLB and cache management methods.
+
+What kind of machine are you on?
