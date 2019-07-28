@@ -1,10 +1,10 @@
 From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sat, 06 Jul 2019 14:57:29 +0000
-Subject: [PATCH v9 02/10] procfs: switch magic-link modes to be more sane
-Message-Id: <20190706145737.5299-3-cyphar@cyphar.com>
+Date: Sun, 28 Jul 2019 01:02:01 +0000
+Subject: [PATCH v11 2/8] procfs: switch magic-link modes to be more sane
+Message-Id: <20190728010207.9781-3-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190706145737.5299-1-cyphar@cyphar.com>
-In-Reply-To: <20190706145737.5299-1-cyphar@cyphar.com>
+References: <20190728010207.9781-1-cyphar@cyphar.com>
+In-Reply-To: <20190728010207.9781-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -30,7 +30,7 @@ Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
  2 files changed, 11 insertions(+), 11 deletions(-)
 
 diff --git a/fs/proc/base.c b/fs/proc/base.c
-index 255f6754c70d..82c06c21e69d 100644
+index ebea9501afb8..297242174402 100644
 --- a/fs/proc/base.c
 +++ b/fs/proc/base.c
 @@ -133,9 +133,9 @@ struct pid_entry {
@@ -46,7 +46,7 @@ index 255f6754c70d..82c06c21e69d 100644
  		{ .proc_get_link = get_link } )
  #define REG(NAME, MODE, fops)				\
  	NOD(NAME, (S_IFREG|(MODE)), NULL, &fops, {})
-@@ -2995,9 +2995,9 @@ static const struct pid_entry tgid_base_stuff[] = {
+@@ -3028,9 +3028,9 @@ static const struct pid_entry tgid_base_stuff[] = {
  	REG("numa_maps",  S_IRUGO, proc_pid_numa_maps_operations),
  #endif
  	REG("mem",        S_IRUSR|S_IWUSR, proc_mem_operations),
@@ -59,7 +59,7 @@ index 255f6754c70d..82c06c21e69d 100644
  	REG("mounts",     S_IRUGO, proc_mounts_operations),
  	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
  	REG("mountstats", S_IRUSR, proc_mountstats_operations),
-@@ -3393,11 +3393,11 @@ static const struct pid_entry tid_base_stuff[] = {
+@@ -3429,11 +3429,11 @@ static const struct pid_entry tid_base_stuff[] = {
  	REG("numa_maps", S_IRUGO, proc_pid_numa_maps_operations),
  #endif
  	REG("mem",       S_IRUSR|S_IWUSR, proc_mem_operations),
