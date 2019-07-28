@@ -1,43 +1,78 @@
-From: Hoan Tran OS <hoan@os.amperecomputing.com>
-Date: Thu, 11 Jul 2019 23:25:49 +0000
-Subject: [PATCH v2 2/5] powerpc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
-Message-Id: <1562887528-5896-3-git-send-email-Hoan@os.amperecomputing.com>
+From: Denis Efremov <efremov@linux.com>
+Date: Sun, 28 Jul 2019 20:22:09 +0000
+Subject: [PATCH 1/5] PCI: Convert pci_resource_to_user to a weak function
+Message-Id: <20190728202213.15550-2-efremov@linux.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1562887528-5896-1-git-send-email-Hoan@os.amperecomputing.com>
+References: <20190728202213.15550-1-efremov@linux.com>
+In-Reply-To: <20190728202213.15550-1-efremov@linux.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H . Peter Anvin" <hpa@zytor.com>, "David S . Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran OS <hoan@os.amperecomputing.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Open Source Submission <patches@amperecomputing.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Denis Efremov <efremov@linux.com>, "David S. Miller" <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paul.burton@mips.com>, James Hogan <jhogan@kernel.org>, Michal Simek <monstr@monstr.eu>, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled by
-default with NUMA.
+The patch turns pci_resource_to_user() to a weak function. Thus,
+architecture-specific versions will automatically override the generic
+one. This allows to remove the HAVE_ARCH_PCI_RESOURCE_TO_USER macro and
+avoid the conditional compilation for this single function.
 
-Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+Signed-off-by: Denis Efremov <efremov@linux.com>
 ---
- arch/powerpc/Kconfig | 9 ---------
- 1 file changed, 9 deletions(-)
+ drivers/pci/pci.c   |  8 ++++++++
+ include/linux/pci.h | 18 +++---------------
+ 2 files changed, 11 insertions(+), 15 deletions(-)
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 8c1c636..bdde8bc 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -629,15 +629,6 @@ config ARCH_MEMORY_PROBE
- 	def_bool y
- 	depends on MEMORY_HOTPLUG
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 29ed5ec1ac27..f9dc7563a8b9 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -5932,6 +5932,14 @@ resource_size_t __weak pcibios_default_alignment(void)
+ 	return 0;
+ }
  
--# Some NUMA nodes have memory ranges that span
--# other nodes.  Even though a pfn is valid and
--# between a node's start and end pfns, it may not
--# reside on that node.  See memmap_init_zone()
--# for details.
--config NODES_SPAN_OTHER_NODES
--	def_bool y
--	depends on NEED_MULTIPLE_NODES
++void __weak pci_resource_to_user(const struct pci_dev *dev, int bar,
++		const struct resource *rsrc, resource_size_t *start,
++		resource_size_t *end)
++{
++	*start = rsrc->start;
++	*end = rsrc->end;
++}
++
+ #define RESOURCE_ALIGNMENT_PARAM_SIZE COMMAND_LINE_SIZE
+ static char resource_alignment_param[RESOURCE_ALIGNMENT_PARAM_SIZE] = {0};
+ static DEFINE_SPINLOCK(resource_alignment_lock);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 9e700d9f9f28..1a19d0151b0a 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1870,25 +1870,13 @@ static inline const char *pci_name(const struct pci_dev *pdev)
+ 	return dev_name(&pdev->dev);
+ }
+ 
 -
- config STDBINUTILS
- 	bool "Using standard binutils settings"
- 	depends on 44x
+ /*
+  * Some archs don't want to expose struct resource to userland as-is
+  * in sysfs and /proc
+  */
+-#ifdef HAVE_ARCH_PCI_RESOURCE_TO_USER
+-void pci_resource_to_user(const struct pci_dev *dev, int bar,
+-			  const struct resource *rsrc,
+-			  resource_size_t *start, resource_size_t *end);
+-#else
+-static inline void pci_resource_to_user(const struct pci_dev *dev, int bar,
+-		const struct resource *rsrc, resource_size_t *start,
+-		resource_size_t *end)
+-{
+-	*start = rsrc->start;
+-	*end = rsrc->end;
+-}
+-#endif /* HAVE_ARCH_PCI_RESOURCE_TO_USER */
+-
++void __weak pci_resource_to_user(const struct pci_dev *dev, int bar,
++				 const struct resource *rsrc,
++				 resource_size_t *start, resource_size_t *end);
+ 
+ /*
+  * The world is not perfect and supplies us with broken PCI devices.
 -- 
-2.7.4
+2.21.0
