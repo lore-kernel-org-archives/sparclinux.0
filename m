@@ -1,112 +1,73 @@
-From: Changbin Du <changbin.du@gmail.com>
-Date: Sun, 25 Aug 2019 13:23:23 +0000
-Subject: [PATCH 04/11] ftrace/hash: add private data field
-Message-Id: <20190825132330.5015-5-changbin.du@gmail.com>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:42 +0000
+Subject: [PATCH 11/34] scif: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-12-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190825132330.5015-1-changbin.du@gmail.com>
-In-Reply-To: <20190825132330.5015-1-changbin.du@gmail.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, Sudeep Dutt <sudeep.dutt@intel.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, Ashutosh Dixit <ashutosh.dixit@intel.com>, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead
 
-We will reuse ftrace_hash to lookup function prototype information. So
-we need an additional field to bind ftrace_func_entry to prototype
-information.
+From: John Hubbard <jhubbard@nvidia.com>
 
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
+
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
+
+Cc: Sudeep Dutt <sudeep.dutt@intel.com>
+Cc: Ashutosh Dixit <ashutosh.dixit@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- kernel/trace/ftrace.c | 17 +++++++----------
- kernel/trace/trace.h  |  6 ++++++
- 2 files changed, 13 insertions(+), 10 deletions(-)
+ drivers/misc/mic/scif/scif_rma.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index eca34503f178..a314f0768b2c 100644
---- a/kernel/trace/ftrace.c
-+++ b/kernel/trace/ftrace.c
-@@ -1017,11 +1017,6 @@ static bool update_all_ops;
- # error Dynamic ftrace depends on MCOUNT_RECORD
- #endif
+diff --git a/drivers/misc/mic/scif/scif_rma.c b/drivers/misc/mic/scif/scif_rma.c
+index 01e27682ea30..d84ed9466920 100644
+--- a/drivers/misc/mic/scif/scif_rma.c
++++ b/drivers/misc/mic/scif/scif_rma.c
+@@ -113,13 +113,14 @@ static int scif_destroy_pinned_pages(struct scif_pinned_pages *pin)
+ 	int writeable = pin->prot & SCIF_PROT_WRITE;
+ 	int kernel = SCIF_MAP_KERNEL & pin->map_flags;
  
--struct ftrace_func_entry {
--	struct hlist_node hlist;
--	unsigned long ip;
--};
--
- struct ftrace_func_probe {
- 	struct ftrace_probe_ops	*probe_ops;
- 	struct ftrace_ops	ops;
-@@ -1169,7 +1164,8 @@ static void __add_hash_entry(struct ftrace_hash *hash,
- 	hash->count++;
- }
- 
--static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip)
-+static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip,
-+			  void *priv)
- {
- 	struct ftrace_func_entry *entry;
- 
-@@ -1178,6 +1174,7 @@ static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip)
- 		return -ENOMEM;
- 
- 	entry->ip = ip;
-+	entry->priv = priv;
- 	__add_hash_entry(hash, entry);
- 
- 	return 0;
-@@ -1346,7 +1343,7 @@ alloc_and_copy_ftrace_hash(int size_bits, struct ftrace_hash *hash)
- 	size = 1 << hash->size_bits;
- 	for (i = 0; i < size; i++) {
- 		hlist_for_each_entry(entry, &hash->buckets[i], hlist) {
--			ret = add_hash_entry(new_hash, entry->ip);
-+			ret = add_hash_entry(new_hash, entry->ip, NULL);
- 			if (ret < 0)
- 				goto free_hash;
+-	for (j = 0; j < pin->nr_pages; j++) {
+-		if (pin->pages[j] && !kernel) {
++	if (kernel) {
++		for (j = 0; j < pin->nr_pages; j++) {
+ 			if (writeable)
+-				SetPageDirty(pin->pages[j]);
++				set_page_dirty_lock(pin->pages[j]);
+ 			put_page(pin->pages[j]);
  		}
-@@ -3694,7 +3691,7 @@ enter_record(struct ftrace_hash *hash, struct dyn_ftrace *rec, int clear_filter)
- 		if (entry)
- 			return 0;
+-	}
++	} else
++		put_user_pages_dirty_lock(pin->pages, pin->nr_pages, writeable);
  
--		ret = add_hash_entry(hash, rec->ip);
-+		ret = add_hash_entry(hash, rec->ip, NULL);
- 	}
- 	return ret;
- }
-@@ -4700,7 +4697,7 @@ ftrace_match_addr(struct ftrace_hash *hash, unsigned long ip, int remove)
- 		return 0;
- 	}
- 
--	return add_hash_entry(hash, ip);
-+	return add_hash_entry(hash, ip, NULL);
- }
- 
- static int
-@@ -5380,7 +5377,7 @@ ftrace_graph_set_hash(struct ftrace_hash *hash, char *buffer)
- 
- 				if (entry)
- 					continue;
--				if (add_hash_entry(hash, rec->ip) < 0)
-+				if (add_hash_entry(hash, rec->ip, NULL) < 0)
- 					goto out;
- 			} else {
- 				if (entry) {
-diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index 005f08629b8b..ad619c73a505 100644
---- a/kernel/trace/trace.h
-+++ b/kernel/trace/trace.h
-@@ -882,6 +882,12 @@ struct ftrace_hash {
- 	struct rcu_head		rcu;
- };
- 
-+struct ftrace_func_entry {
-+	struct hlist_node hlist;
-+	unsigned long ip;
-+	void *priv;
-+};
+ 	scif_free(pin->pages,
+ 		  pin->nr_pages * sizeof(*pin->pages));
+@@ -1385,11 +1386,9 @@ int __scif_pin_pages(void *addr, size_t len, int *out_prot,
+ 				if (ulimit)
+ 					__scif_dec_pinned_vm_lock(mm, nr_pages);
+ 				/* Roll back any pinned pages */
+-				for (i = 0; i < pinned_pages->nr_pages; i++) {
+-					if (pinned_pages->pages[i])
+-						put_page(
+-						pinned_pages->pages[i]);
+-				}
++				put_user_pages(pinned_pages->pages,
++					       pinned_pages->nr_pages);
 +
- struct ftrace_func_entry *
- ftrace_lookup_ip(struct ftrace_hash *hash, unsigned long ip);
- 
+ 				prot &= ~SCIF_PROT_WRITE;
+ 				try_upgrade = false;
+ 				goto retry;
 -- 
-2.20.1
+2.22.0
