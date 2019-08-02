@@ -1,59 +1,80 @@
-From: Paul Walmsley <paul.walmsley@sifive.com>
-Date: Sat, 17 Aug 2019 21:07:29 +0000
-Subject: Re: [PATCH 15/26] asm-generic: ioremap_uc should behave the same with and without MMU
-Message-Id: <alpine.DEB.2.21.9999.1908171403330.4130@viisi.sifive.com>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:37 +0000
+Subject: [PATCH 06/34] drm/i915: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-7-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-16-hch@lst.de>
-In-Reply-To: <20190817073253.27819-16-hch@lst.de>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-mtd@lists.infradead.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, Jani Nikula <jani.nikula@linux.intel.com>, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Rodrigo
 
-On Sat, 17 Aug 2019, Christoph Hellwig wrote:
+From: John Hubbard <jhubbard@nvidia.com>
 
-> Whatever reason there is for the existence of ioremap_uc, and the fact 
-> that it returns NULL by default on architectures with an MMU applies 
-> equally to nommu architectures, so don't provide different defaults.
-> 
-> In practice the difference is meaningless as the only portable driver
-> that uses ioremap_uc is atyfb which probably doesn't show up on nommu
-> devices.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-[ ... ]
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-> index d02806513670..a98ed6325727 100644
-> --- a/include/asm-generic/io.h
-> +++ b/include/asm-generic/io.h
+Note that this effectively changes the code's behavior in
+i915_gem_userptr_put_pages(): it now calls set_page_dirty_lock(),
+instead of set_page_dirty(). This is probably more accurate.
 
-[ ... ]
+As Christophe Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
 
-> @@ -1004,6 +985,21 @@ static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
->  }
->  #endif
->  
-> +/*
-> + * ioremap_uc is special in that we do require an explicit architecture
-> + * implementation.  In general you do now want to use this function in a
-                                         ^^^ not
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
 
-> + * driver and use plain ioremap, which is uncached by default.  Similarly
-                ^ instead 
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: intel-gfx@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/gpu/drm/i915/gem/i915_gem_userptr.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-> + * architectures should not implement it unless they have a very good
-> + * reason.
-> + */
-
-Looks like this mess is only needed on x86 with certain graphics drivers 
-and conflicts between MTRR and page table-based MMU attributes.
-
-
-Reviewed-by: Paul Walmsley <paul.walmsley@sifive.com>
-Tested-by: Paul Walmsley <paul.walmsley@sifive.com> # rv32, rv64 boot
-
-
-- Paul
+diff --git a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
+index 528b61678334..c18008d3cc2a 100644
+--- a/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/gem/i915_gem_userptr.c
+@@ -527,7 +527,7 @@ __i915_gem_userptr_get_pages_worker(struct work_struct *_work)
+ 	}
+ 	mutex_unlock(&obj->mm.lock);
+ 
+-	release_pages(pvec, pinned);
++	put_user_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	i915_gem_object_put(obj);
+@@ -640,7 +640,7 @@ static int i915_gem_userptr_get_pages(struct drm_i915_gem_object *obj)
+ 		__i915_gem_userptr_set_active(obj, true);
+ 
+ 	if (IS_ERR(pages))
+-		release_pages(pvec, pinned);
++		put_user_pages(pvec, pinned);
+ 	kvfree(pvec);
+ 
+ 	return PTR_ERR_OR_ZERO(pages);
+@@ -663,11 +663,8 @@ i915_gem_userptr_put_pages(struct drm_i915_gem_object *obj,
+ 	i915_gem_gtt_finish_pages(obj, pages);
+ 
+ 	for_each_sgt_page(page, sgt_iter, pages) {
+-		if (obj->mm.dirty)
+-			set_page_dirty(page);
+-
+ 		mark_page_accessed(page);
+-		put_page(page);
++		put_user_pages_dirty_lock(&page, 1, obj->mm.dirty);
+ 	}
+ 	obj->mm.dirty = false;
+ 
+-- 
+2.22.0
