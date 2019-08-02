@@ -1,15 +1,15 @@
 From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:24 +0000
-Subject: [PATCH v3 25/41] uprobes: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-26-jhubbard@nvidia.com>
+Date: Fri, 02 Aug 2019 02:19:49 +0000
+Subject: [PATCH 18/34] fbdev/pvr2fb: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-19-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Arvind Yadav <arvind.yadav.cs@gmail.com>, Dan
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,47 +20,31 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- kernel/events/uprobes.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/fbdev/pvr2fb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
-index 84fa00497c49..4a575de8cec8 100644
---- a/kernel/events/uprobes.c
-+++ b/kernel/events/uprobes.c
-@@ -397,7 +397,7 @@ __update_ref_ctr(struct mm_struct *mm, unsigned long vaddr, short d)
- 	ret = 0;
- out:
- 	kunmap_atomic(kaddr);
--	put_page(page);
-+	put_user_page(page);
- 	return ret;
- }
+diff --git a/drivers/video/fbdev/pvr2fb.c b/drivers/video/fbdev/pvr2fb.c
+index 7ff4b6b84282..0e4f9aa6444d 100644
+--- a/drivers/video/fbdev/pvr2fb.c
++++ b/drivers/video/fbdev/pvr2fb.c
+@@ -700,8 +700,7 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
+ 	ret = count;
  
-@@ -504,7 +504,7 @@ int uprobe_write_opcode(struct arch_uprobe *auprobe, struct mm_struct *mm,
- 	ret = __replace_page(vma, vaddr, old_page, new_page);
- 	put_page(new_page);
- put_old:
--	put_page(old_page);
-+	put_user_page(old_page);
+ out_unmap:
+-	for (i = 0; i < nr_pages; i++)
+-		put_page(pages[i]);
++	put_user_pages(pages, nr_pages);
  
- 	if (unlikely(ret = -EAGAIN))
- 		goto retry;
-@@ -1981,7 +1981,7 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
- 		return result;
+ 	kfree(pages);
  
- 	copy_from_page(page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
--	put_page(page);
-+	put_user_page(page);
-  out:
- 	/* This needs to return true for any variant of the trap insn */
- 	return is_trap_insn(&opcode);
 -- 
 2.22.0
