@@ -1,61 +1,70 @@
-From: Changbin Du <changbin.du@gmail.com>
-Date: Mon, 26 Aug 2019 22:25:12 +0000
-Subject: Re: [PATCH 03/11] asm-generic: add generic dwarf definition
-Message-Id: <20190826222510.6m2k3puwflnr52b7@mail.google.com>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:47 +0000
+Subject: [PATCH 16/34] drivers/tee: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-17-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190825132330.5015-1-changbin.du@gmail.com>
- <20190825132330.5015-4-changbin.du@gmail.com>
- <20190826074215.GL2369@hirez.programming.kicks-ass.net>
-In-Reply-To: <20190826074215.GL2369@hirez.programming.kicks-ass.net>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Changbin Du <changbin.du@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.orgLKML
 
-Hi, Peter,
+From: John Hubbard <jhubbard@nvidia.com>
 
-On Mon, Aug 26, 2019 at 09:42:15AM +0200, Peter Zijlstra wrote:
-> On Sun, Aug 25, 2019 at 09:23:22PM +0800, Changbin Du wrote:
-> > Add generic DWARF constant definitions. We will use it later.
-> > 
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  include/asm-generic/dwarf.h | 199 ++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 199 insertions(+)
-> >  create mode 100644 include/asm-generic/dwarf.h
-> > 
-> > diff --git a/include/asm-generic/dwarf.h b/include/asm-generic/dwarf.h
-> > new file mode 100644
-> > index 000000000000..c705633c2a8f
-> > --- /dev/null
-> > +++ b/include/asm-generic/dwarf.h
-> > @@ -0,0 +1,199 @@
-> > +/* SPDX-License-Identifier: GPL-2.0
-> > + *
-> > + * Architecture independent definitions of DWARF.
-> > + *
-> > + * Copyright (C) 2019 Changbin Du <changbin.du@gmail.com>
-> 
-> You're claiming copyright on dwarf definitions? ;-)
-> 
-> I'm thinking only Oracle was daft enough to think stuff like that was
-> copyrightable.
-> 
-ok, let me remove copyright line. I think SPDX claim is okay, right?
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-> Also; I think it would be very good to not use/depend on DWARF for this.
->
-It only includes the DWARF expersion opcodes, not all of dwarf stuffs.
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-> You really don't need all of DWARF; I'm thikning you only need a few
-> types; for location we already have regs_get_kernel_argument() which
-> has all the logic to find the n-th argument.
-> 
-regs_get_kernel_argument() can handle most cases, but if the size of one paramater
-exceeds 64bit (it is rare in kernel), we must recalculate the locations. So I think
-dwarf location descriptor is the most accurate one.
+Cc: Jens Wiklander <jens.wiklander@linaro.org>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/tee/tee_shm.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/tee/tee_shm.c b/drivers/tee/tee_shm.c
+index 2da026fd12c9..c967d0420b67 100644
+--- a/drivers/tee/tee_shm.c
++++ b/drivers/tee/tee_shm.c
+@@ -31,16 +31,13 @@ static void tee_shm_release(struct tee_shm *shm)
+ 
+ 		poolm->ops->free(poolm, shm);
+ 	} else if (shm->flags & TEE_SHM_REGISTER) {
+-		size_t n;
+ 		int rc = teedev->desc->ops->shm_unregister(shm->ctx, shm);
+ 
+ 		if (rc)
+ 			dev_err(teedev->dev.parent,
+ 				"unregister shm %p failed: %d", shm, rc);
+ 
+-		for (n = 0; n < shm->num_pages; n++)
+-			put_page(shm->pages[n]);
+-
++		put_user_pages(shm->pages, shm->num_pages);
+ 		kfree(shm->pages);
+ 	}
+ 
+@@ -313,16 +310,13 @@ struct tee_shm *tee_shm_register(struct tee_context *ctx, unsigned long addr,
+ 	return shm;
+ err:
+ 	if (shm) {
+-		size_t n;
+-
+ 		if (shm->id >= 0) {
+ 			mutex_lock(&teedev->mutex);
+ 			idr_remove(&teedev->idr, shm->id);
+ 			mutex_unlock(&teedev->mutex);
+ 		}
+ 		if (shm->pages) {
+-			for (n = 0; n < shm->num_pages; n++)
+-				put_page(shm->pages[n]);
++			put_user_pages(shm->pages, shm->num_pages);
+ 			kfree(shm->pages);
+ 		}
+ 	}
 -- 
-Cheers,
-Changbin Du
+2.22.0
