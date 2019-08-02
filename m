@@ -1,60 +1,79 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Sat, 31 Aug 2019 05:58:18 +0000
-Subject: [PATCH v2 4/9] powerpc: numa: check the node id consistently for powerpc
-Message-Id: <1567231103-13237-5-git-send-email-linyunsheng@huawei.com>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:43 +0000
+Subject: [PATCH 12/34] vmci: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-13-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, "Gustavo A. R. Silva" <gustavo@embeddedor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.wil>
 
-According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
-of proximity domain is optional, as below:
+From: John Hubbard <jhubbard@nvidia.com>
 
-This optional object is used to describe proximity domain
-associations within a machine. _PXM evaluates to an integer
-that identifies a device as belonging to a Proximity Domain
-defined in the System Resource Affinity Table (SRAT).
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-This patch checks node id with the below case before returning
-node_to_cpumask_map[node]:
-1. if node_id >= nr_node_ids, return cpu_none_mask
-2. if node_id < 0, return cpu_online_mask
-3. if node_to_cpumask_map[node_id] is NULL, return cpu_online_mask
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
+Note that this effectively changes the code's behavior in
+qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
+instead of set_page_dirty(). This is probably more accurate.
 
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+As Christophe Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
+
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- arch/powerpc/include/asm/topology.h | 13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ drivers/misc/vmw_vmci/vmci_context.c    |  2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c | 11 ++---------
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/arch/powerpc/include/asm/topology.h b/arch/powerpc/include/asm/topology.h
-index 2f7e1ea..217dc9b 100644
---- a/arch/powerpc/include/asm/topology.h
-+++ b/arch/powerpc/include/asm/topology.h
-@@ -17,9 +17,16 @@ struct device_node;
+diff --git a/drivers/misc/vmw_vmci/vmci_context.c b/drivers/misc/vmw_vmci/vmci_context.c
+index 16695366ec92..9daa52ee63b7 100644
+--- a/drivers/misc/vmw_vmci/vmci_context.c
++++ b/drivers/misc/vmw_vmci/vmci_context.c
+@@ -587,7 +587,7 @@ void vmci_ctx_unset_notify(struct vmci_ctx *context)
  
- #include <asm/mmzone.h>
+ 	if (notify_page) {
+ 		kunmap(notify_page);
+-		put_page(notify_page);
++		put_user_page(notify_page);
+ 	}
+ }
  
--#define cpumask_of_node(node) ((node) = -1 ?				\
--			       cpu_all_mask :				\
--			       node_to_cpumask_map[node])
-+static inline const struct cpumask *cpumask_of_node(int node)
-+{
-+	if (node >= nr_node_ids)
-+		return cpu_none_mask;
-+
-+	if (node < 0 || !node_to_cpumask_map[node])
-+		return cpu_online_mask;
-+
-+	return node_to_cpumask_map[node];
-+}
+diff --git a/drivers/misc/vmw_vmci/vmci_queue_pair.c b/drivers/misc/vmw_vmci/vmci_queue_pair.c
+index 8531ae781195..e5434551d0ef 100644
+--- a/drivers/misc/vmw_vmci/vmci_queue_pair.c
++++ b/drivers/misc/vmw_vmci/vmci_queue_pair.c
+@@ -626,15 +626,8 @@ static void qp_release_queue_mutex(struct vmci_queue *queue)
+ static void qp_release_pages(struct page **pages,
+ 			     u64 num_pages, bool dirty)
+ {
+-	int i;
+-
+-	for (i = 0; i < num_pages; i++) {
+-		if (dirty)
+-			set_page_dirty(pages[i]);
+-
+-		put_page(pages[i]);
+-		pages[i] = NULL;
+-	}
++	put_user_pages_dirty_lock(pages, num_pages, dirty);
++	memset(pages, 0, num_pages * sizeof(struct page *));
+ }
  
- struct pci_bus;
- #ifdef CONFIG_PCI
+ /*
 -- 
-2.8.1
+2.22.0
