@@ -1,15 +1,15 @@
 From: john.hubbard@gmail.com
-Date: Sun, 04 Aug 2019 22:48:46 +0000
-Subject: [PATCH v2 05/34] drm/etnaviv: convert release_pages() to put_user_pages()
-Message-Id: <20190804224915.28669-6-jhubbard@nvidia.com>
+Date: Fri, 02 Aug 2019 02:20:03 +0000
+Subject: [PATCH 32/34] goldfish_pipe: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-33-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
-In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Roman Kiryanov <rkir@google.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.or
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,41 +20,45 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Joerg Roedel <joro@8bytes.org>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: kvm@vger.kernel.org
+Note that this effectively changes the code's behavior in
+qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
+instead of set_page_dirty(). This is probably more accurate.
+
+As Christophe Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
+
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Roman Kiryanov <rkir@google.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/gpu/drm/etnaviv/etnaviv_gem.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/goldfish/goldfish_pipe.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/gpu/drm/etnaviv/etnaviv_gem.c b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-index e8778ebb72e6..a0144a5ee325 100644
---- a/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-+++ b/drivers/gpu/drm/etnaviv/etnaviv_gem.c
-@@ -686,7 +686,7 @@ static int etnaviv_gem_userptr_get_pages(struct etnaviv_gem_object *etnaviv_obj)
- 		ret = get_user_pages_fast(ptr, num_pages,
- 					  !userptr->ro ? FOLL_WRITE : 0, pages);
- 		if (ret < 0) {
--			release_pages(pvec, pinned);
-+			put_user_pages(pvec, pinned);
- 			kvfree(pvec);
- 			return ret;
- 		}
-@@ -710,7 +710,7 @@ static void etnaviv_gem_userptr_release(struct etnaviv_gem_object *etnaviv_obj)
- 	if (etnaviv_obj->pages) {
- 		int npages = etnaviv_obj->base.size >> PAGE_SHIFT;
+diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
+index cef0133aa47a..2bd21020e288 100644
+--- a/drivers/platform/goldfish/goldfish_pipe.c
++++ b/drivers/platform/goldfish/goldfish_pipe.c
+@@ -288,15 +288,12 @@ static int pin_user_pages(unsigned long first_page,
+ static void release_user_pages(struct page **pages, int pages_count,
+ 			       int is_write, s32 consumed_size)
+ {
+-	int i;
++	bool dirty = !is_write && consumed_size > 0;
  
--		release_pages(etnaviv_obj->pages, npages);
-+		put_user_pages(etnaviv_obj->pages, npages);
- 		kvfree(etnaviv_obj->pages);
- 	}
+-	for (i = 0; i < pages_count; i++) {
+-		if (!is_write && consumed_size > 0)
+-			set_page_dirty(pages[i]);
+-		put_page(pages[i]);
+-	}
++	put_user_pages_dirty_lock(pages, pages_count, dirty);
  }
+ 
++
+ /* Populate the call parameters, merging adjacent pages together */
+ static void populate_rw_params(struct page **pages,
+ 			       int pages_count,
 -- 
 2.22.0
