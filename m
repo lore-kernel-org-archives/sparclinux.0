@@ -1,58 +1,57 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Sat, 31 Aug 2019 05:58:19 +0000
-Subject: [PATCH v2 5/9] s390: numa: check the node id consistently for s390
-Message-Id: <1567231103-13237-6-git-send-email-linyunsheng@huawei.com>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:53 +0000
+Subject: [PATCH 22/34] orangefs: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-23-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Martin Brandenburg <martin@omnibond.com>, linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, Mike Marshall <hubcap@omnibond.com>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel
 
-According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
-of proximity domain is optional, as below:
+From: John Hubbard <jhubbard@nvidia.com>
 
-This optional object is used to describe proximity domain
-associations within a machine. _PXM evaluates to an integer
-that identifies a device as belonging to a Proximity Domain
-defined in the System Resource Affinity Table (SRAT).
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-This patch checks node id with the below case before returning
-node_to_cpumask_map[node]:
-1. if node_id >= nr_node_ids, return cpu_none_mask
-2. if node_id < 0, return cpu_online_mask
-3. if node_to_cpumask_map[node_id] is NULL, return cpu_online_mask
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
-
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
+Cc: Martin Brandenburg <martin@omnibond.com>
+Cc: devel@lists.orangefs.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
-Note node_to_cpumask_map[node] is already a pointer, so
-returning &node_to_cpumask_map[node] does not seem to
-be correct, if this is problem, maybe clean it up in another
-patch.
----
- arch/s390/include/asm/topology.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/orangefs/orangefs-bufmap.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/arch/s390/include/asm/topology.h b/arch/s390/include/asm/topology.h
-index cca406f..75340ca 100644
---- a/arch/s390/include/asm/topology.h
-+++ b/arch/s390/include/asm/topology.h
-@@ -78,6 +78,12 @@ static inline int cpu_to_node(int cpu)
- #define cpumask_of_node cpumask_of_node
- static inline const struct cpumask *cpumask_of_node(int node)
+diff --git a/fs/orangefs/orangefs-bufmap.c b/fs/orangefs/orangefs-bufmap.c
+index 2bb916d68576..f2f33a16d604 100644
+--- a/fs/orangefs/orangefs-bufmap.c
++++ b/fs/orangefs/orangefs-bufmap.c
+@@ -168,10 +168,7 @@ static DEFINE_SPINLOCK(orangefs_bufmap_lock);
+ static void
+ orangefs_bufmap_unmap(struct orangefs_bufmap *bufmap)
  {
-+	if (node >= nr_node_ids)
-+		return cpu_none_mask;
-+
-+	if (node < 0 || !node_to_cpumask_map[node])
-+		return cpu_online_mask;
-+
- 	return &node_to_cpumask_map[node];
+-	int i;
+-
+-	for (i = 0; i < bufmap->page_count; i++)
+-		put_page(bufmap->page_array[i]);
++	put_user_pages(bufmap->page_array, bufmap->page_count);
  }
  
+ static void
+@@ -280,7 +277,7 @@ orangefs_bufmap_map(struct orangefs_bufmap *bufmap,
+ 
+ 		for (i = 0; i < ret; i++) {
+ 			SetPageError(bufmap->page_array[i]);
+-			put_page(bufmap->page_array[i]);
++			put_user_page(bufmap->page_array[i]);
+ 		}
+ 		return -ENOMEM;
+ 	}
 -- 
-2.8.1
+2.22.0
