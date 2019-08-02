@@ -1,15 +1,15 @@
 From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:27 +0000
-Subject: [PATCH v3 28/41] mm/gup_benchmark.c: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-29-jhubbard@nvidia.com>
+Date: Fri, 02 Aug 2019 02:20:01 +0000
+Subject: [PATCH 30/34] crypt: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-31-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, "Michael S . Tsirkin" <mst@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, Keith Busch <keith.busch@intel.com>, linux-mm@kvack.org, sparclinux@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, YueHaibing <yuehaibing@huawei.com>, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,31 +20,38 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Reviewed-by: Keith Busch <keith.busch@intel.com>
-
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: YueHaibing <yuehaibing@huawei.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: linux-crypto@vger.kernel.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/gup_benchmark.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ crypto/af_alg.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/mm/gup_benchmark.c b/mm/gup_benchmark.c
-index 7dd602d7f8db..515ac8eeb6ee 100644
---- a/mm/gup_benchmark.c
-+++ b/mm/gup_benchmark.c
-@@ -79,7 +79,7 @@ static int __gup_benchmark_ioctl(unsigned int cmd,
- 	for (i = 0; i < nr_pages; i++) {
- 		if (!pages[i])
- 			break;
--		put_page(pages[i]);
-+		put_user_page(pages[i]);
- 	}
- 	end_time = ktime_get();
- 	gup->put_delta_usec = ktime_us_delta(end_time, start_time);
+diff --git a/crypto/af_alg.c b/crypto/af_alg.c
+index 879cf23f7489..edd358ea64da 100644
+--- a/crypto/af_alg.c
++++ b/crypto/af_alg.c
+@@ -428,10 +428,7 @@ static void af_alg_link_sg(struct af_alg_sgl *sgl_prev,
+ 
+ void af_alg_free_sg(struct af_alg_sgl *sgl)
+ {
+-	int i;
+-
+-	for (i = 0; i < sgl->npages; i++)
+-		put_page(sgl->pages[i]);
++	put_user_pages(sgl->pages, sgl->npages);
+ }
+ EXPORT_SYMBOL_GPL(af_alg_free_sg);
+ 
+@@ -668,7 +665,7 @@ static void af_alg_free_areq_sgls(struct af_alg_async_req *areq)
+ 		for_each_sg(tsgl, sg, areq->tsgl_entries, i) {
+ 			if (!sg_page(sg))
+ 				continue;
+-			put_page(sg_page(sg));
++			put_user_page(sg_page(sg));
+ 		}
+ 
+ 		sock_kfree_s(sk, tsgl, areq->tsgl_entries * sizeof(*tsgl));
 -- 
 2.22.0
