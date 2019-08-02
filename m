@@ -1,15 +1,15 @@
 From: john.hubbard@gmail.com
-Date: Fri, 02 Aug 2019 02:19:59 +0000
-Subject: [PATCH 28/34] mm/madvise.c: convert put_page() to put_user_page*()
-Message-Id: <20190802022005.5117-29-jhubbard@nvidia.com>
+Date: Fri, 02 Aug 2019 02:19:54 +0000
+Subject: [PATCH 23/34] uprobes: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-24-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190802022005.5117-1-jhubbard@nvidia.com>
 In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, Matthew Wilcox <willy@infradead.org>, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Daniel Black <daniel@linux.ibm.com>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@list
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, Arnaldo Carvalho de Melo <acme@kernel.org>, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infrad
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,29 +20,47 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Black <daniel@linux.ibm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Jiri Olsa <jolsa@redhat.com>
+Cc: Namhyung Kim <namhyung@kernel.org>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/madvise.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/events/uprobes.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/mm/madvise.c b/mm/madvise.c
-index 968df3aa069f..1c6881a761a5 100644
---- a/mm/madvise.c
-+++ b/mm/madvise.c
-@@ -672,7 +672,7 @@ static int madvise_inject_error(int behavior,
- 		 * routine is responsible for pinning the page to prevent it
- 		 * from being released back to the page allocator.
- 		 */
--		put_page(page);
-+		put_user_page(page);
- 		ret = memory_failure(pfn, 0);
- 		if (ret)
- 			return ret;
+diff --git a/kernel/events/uprobes.c b/kernel/events/uprobes.c
+index 84fa00497c49..4a575de8cec8 100644
+--- a/kernel/events/uprobes.c
++++ b/kernel/events/uprobes.c
+@@ -397,7 +397,7 @@ __update_ref_ctr(struct mm_struct *mm, unsigned long vaddr, short d)
+ 	ret = 0;
+ out:
+ 	kunmap_atomic(kaddr);
+-	put_page(page);
++	put_user_page(page);
+ 	return ret;
+ }
+ 
+@@ -504,7 +504,7 @@ int uprobe_write_opcode(struct arch_uprobe *auprobe, struct mm_struct *mm,
+ 	ret = __replace_page(vma, vaddr, old_page, new_page);
+ 	put_page(new_page);
+ put_old:
+-	put_page(old_page);
++	put_user_page(old_page);
+ 
+ 	if (unlikely(ret = -EAGAIN))
+ 		goto retry;
+@@ -1981,7 +1981,7 @@ static int is_trap_at_addr(struct mm_struct *mm, unsigned long vaddr)
+ 		return result;
+ 
+ 	copy_from_page(page, vaddr, &opcode, UPROBE_SWBP_INSN_SIZE);
+-	put_page(page);
++	put_user_page(page);
+  out:
+ 	/* This needs to return true for any variant of the trap insn */
+ 	return is_trap_insn(&opcode);
 -- 
 2.22.0
