@@ -1,166 +1,49 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 17 Aug 2019 07:32:53 +0000
-Subject: [PATCH 26/26] nds32: use generic ioremap
-Message-Id: <20190817073253.27819-27-hch@lst.de>
+From: john.hubbard@gmail.com
+Date: Fri, 02 Aug 2019 02:19:38 +0000
+Subject: [PATCH 07/34] drm/radeon: convert put_page() to put_user_page*()
+Message-Id: <20190802022005.5117-8-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de>
-In-Reply-To: <20190817073253.27819-1-hch@lst.de>
+References: <20190802022005.5117-1-jhubbard@nvidia.com>
+In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, David Zhou <David1.Zhou@amd.com>, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, Alex Deucher <alexander.deucher@amd.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org
 
-Use the generic ioremap_prot and iounmap helpers.
+From: John Hubbard <jhubbard@nvidia.com>
 
-Note that the io.h include in pgtable.h had to be removed to not create
-an include loop.  As far as I can tell there was no need for it to
-start with.
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
+
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: David (ChunMing) Zhou <David1.Zhou@amd.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: amd-gfx@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- arch/nds32/Kconfig               |  1 +
- arch/nds32/include/asm/io.h      |  3 +-
- arch/nds32/include/asm/pgtable.h |  4 ++-
- arch/nds32/mm/Makefile           |  3 +-
- arch/nds32/mm/ioremap.c          | 62 --------------------------------
- 5 files changed, 6 insertions(+), 67 deletions(-)
- delete mode 100644 arch/nds32/mm/ioremap.c
+ drivers/gpu/drm/radeon/radeon_ttm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/nds32/Kconfig b/arch/nds32/Kconfig
-index fbd68329737f..12c06a833b7c 100644
---- a/arch/nds32/Kconfig
-+++ b/arch/nds32/Kconfig
-@@ -20,6 +20,7 @@ config NDS32
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_IRQ_CHIP
- 	select GENERIC_IRQ_SHOW
-+	select GENERIC_IOREMAP
- 	select GENERIC_LIB_ASHLDI3
- 	select GENERIC_LIB_ASHRDI3
- 	select GENERIC_LIB_CMPDI2
-diff --git a/arch/nds32/include/asm/io.h b/arch/nds32/include/asm/io.h
-index fb0e8a24c7af..e57378d04006 100644
---- a/arch/nds32/include/asm/io.h
-+++ b/arch/nds32/include/asm/io.h
-@@ -6,8 +6,6 @@
- 
- #include <linux/types.h>
- 
--void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
--extern void iounmap(volatile void __iomem *addr);
- #define __raw_writeb __raw_writeb
- static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
- {
-@@ -80,6 +78,7 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
- #define writeb(v,c)	({ __iowmb(); writeb_relaxed((v),(c)); })
- #define writew(v,c)	({ __iowmb(); writew_relaxed((v),(c)); })
- #define writel(v,c)	({ __iowmb(); writel_relaxed((v),(c)); })
-+
- #include <asm-generic/io.h>
- 
- #endif /* __ASM_NDS32_IO_H */
-diff --git a/arch/nds32/include/asm/pgtable.h b/arch/nds32/include/asm/pgtable.h
-index c70cc56bec09..9c5efa4f1f96 100644
---- a/arch/nds32/include/asm/pgtable.h
-+++ b/arch/nds32/include/asm/pgtable.h
-@@ -12,7 +12,6 @@
- #include <asm/nds32.h>
- #ifndef __ASSEMBLY__
- #include <asm/fixmap.h>
--#include <asm/io.h>
- #include <nds32_intrinsic.h>
- #endif
- 
-@@ -130,6 +129,9 @@ extern void __pgd_error(const char *file, int line, unsigned long val);
- #define _PAGE_CACHE		_PAGE_C_MEM_WB
- #endif
- 
-+#define _PAGE_IOREMAP \
-+	(_PAGE_V | _PAGE_M_KRW | _PAGE_D | _PAGE_G | _PAGE_C_DEV)
-+
- /*
-  * + Level 1 descriptor (PMD)
-  */
-diff --git a/arch/nds32/mm/Makefile b/arch/nds32/mm/Makefile
-index bd360e4583b5..897ecaf5cf54 100644
---- a/arch/nds32/mm/Makefile
-+++ b/arch/nds32/mm/Makefile
-@@ -1,6 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0-only
--obj-y				:= extable.o tlb.o \
--				   fault.o init.o ioremap.o mmap.o \
-+obj-y				:= extable.o tlb.o fault.o init.o mmap.o \
-                                    mm-nds32.o cacheflush.o proc.o
- 
- obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
-diff --git a/arch/nds32/mm/ioremap.c b/arch/nds32/mm/ioremap.c
-deleted file mode 100644
-index 690140bb23a2..000000000000
---- a/arch/nds32/mm/ioremap.c
-+++ /dev/null
-@@ -1,62 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--// Copyright (C) 2005-2017 Andes Technology Corporation
--
--#include <linux/vmalloc.h>
--#include <linux/io.h>
--#include <linux/mm.h>
--#include <asm/pgtable.h>
--
--void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
--
--static void __iomem *__ioremap_caller(phys_addr_t phys_addr, size_t size,
--				      void *caller)
--{
--	struct vm_struct *area;
--	unsigned long addr, offset, last_addr;
--	pgprot_t prot;
--
--	/* Don't allow wraparound or zero size */
--	last_addr = phys_addr + size - 1;
--	if (!size || last_addr < phys_addr)
--		return NULL;
--
--	/*
--	 * Mappings have to be page-aligned
--	 */
--	offset = phys_addr & ~PAGE_MASK;
--	phys_addr &= PAGE_MASK;
--	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
--
--	/*
--	 * Ok, go for it..
--	 */
--	area = get_vm_area_caller(size, VM_IOREMAP, caller);
--	if (!area)
--		return NULL;
--
--	area->phys_addr = phys_addr;
--	addr = (unsigned long)area->addr;
--	prot = __pgprot(_PAGE_V | _PAGE_M_KRW | _PAGE_D |
--			_PAGE_G | _PAGE_C_DEV);
--	if (ioremap_page_range(addr, addr + size, phys_addr, prot)) {
--		vunmap((void *)addr);
--		return NULL;
--	}
--	return (__force void __iomem *)(offset + (char *)addr);
--
--}
--
--void __iomem *ioremap(phys_addr_t phys_addr, size_t size)
--{
--	return __ioremap_caller(phys_addr, size,
--				__builtin_return_address(0));
--}
--
--EXPORT_SYMBOL(ioremap);
--
--void iounmap(volatile void __iomem * addr)
--{
--	vunmap((void *)(PAGE_MASK & (unsigned long)addr));
--}
--
--EXPORT_SYMBOL(iounmap);
--- 
-2.20.1
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/r=
+adeon_ttm.c
+index fb3696bc616d..4c9943fa10df 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -540,7 +540,7 @@ static int radeon_ttm_tt_pin_userptr(struct ttm_tt *ttm)
+ 	kfree(ttm->sg);
+=20
+ release_pages:
+-	release_pages(ttm->pages, pinned);
++	put_user_pages(ttm->pages, pinned);
+ 	return r;
+ }
+=20
+--=20
+2.22.0
