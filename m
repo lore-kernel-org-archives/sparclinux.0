@@ -1,174 +1,172 @@
-From: Changbin Du <changbin.du@gmail.com>
-Date: Sun, 25 Aug 2019 13:23:19 +0000
-Subject: [PATCH 00/11] ftrace: add support for recording function parameters and return value
-Message-Id: <20190825132330.5015-1-changbin.du@gmail.com>
+From: john.hubbard@gmail.com
+Date: Sun, 04 Aug 2019 22:48:41 +0000
+Subject: [PATCH v2 00/34] put_user_pages(): miscellaneous call sites
+Message-Id: <20190804224915.28669-1-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.orgLKML
 
-This series introduces a new ftrace feature CONFIG_FTRACE_FUNC_PROTOTYPE to
-record function parameters and return value. It can be enabled/disabled at
-runtime by a new trace option "record-funcproto".
+From: John Hubbard <jhubbard@nvidia.com>
 
-To achieve this, we need the function prototype infomation and the location of
-parameters. A new tool scripts/ftrace/funcprototype is provided to collect such
-necessary infomation and put them into kernel. It walks through the DWARF debug
-sections in each object file and output assembly code which defines the function
-prototype data. Then the assembly code is built into the original object file.
+Changes since v1:
 
-Here is an example of memremap() function:
-            .section __funcprotostr, "a"
-    .P_memremap_0:
-            .string "offset"
-    .P_memremap_1:
-            .string "size"
-    .P_memremap_2:
-            .string "flags"
-    
-            .section __funcproto,  "a"
-            .quad memremap
-            .byte 0x8
-            .byte 0x3
-            .quad .P_memremap_0
-            .byte 0x8
-            .byte 0x55
-            .byte 0x0
-            .quad .P_memremap_1
-            .byte 0x8
-            .byte 0x54
-            .byte 0x0
-            .quad .P_memremap_2
-            .byte 0x8
-            .byte 0x51
-            .byte 0x0
+* 9 out of 34 patches have been reviewed or ack'd or changed:
+    * Picked up Keith's Reviewed-by for patch 26 (gup_benchmark).
+    * Picked up ACKs for patches 3, 10, 15, 16 (ceph, genwqe,
+      staging/vc04_services, drivers/tee).
 
-Note that currently funcprototype only support global functions. Local functions
-can also be supported by using the idea described in recordmcount.pl - temporary
-change local functions to global.
+* Patch 6 (i915): adjusted drivers/gpu/drm/i915/gem/i915_gem_userptr.c to
+  match the latest linux.git: the code has already been fixed in linux.git,
+  as of the latest -rc, to do a set_page_dirty_lock(), instead of
+  set_page_dirty(). So all that it needs now is a conversion to
+  put_user_page(). I've done that in a way (avoiding the changed API call)
+  that allows patch 6 to go up via either Andrew's -mm tree, or the drm
+  tree, just in case. See that patch's comments for slightly more detail.
 
-The C ABI is arch specific. For arch which supports this feature must
-implement a new  arch-specific interface arch_fgraph_record_params() and
-deliver the return value of function to ftrace core part.
+* Patch 20 (xen): applied Juergen's recommended fix, and speculatively
+  (pending his approval) added his Signed-off-by (also noted in the patch
+  comments).
 
-This series only add support for x86_64 platform. Other platforms can be
-supported in the future.
+* Improved patch 31 (NFS) as recommended by Calum Mackay.
 
-Here is an example of the graph trace of function pick_next_task_fair().
-Note that we only record the parameter and return value of global
-functions.
-    
-     2)               |  pick_next_task_fair() {
-     2)               |    update_blocked_averages() {
-     2)   0.765 us    |      _raw_spin_lock_irqsave(lock=0xffff88807da2b100); /* ret=0x0000000000000082 */
-     2)   0.944 us    |      update_rq_clock(rq=0xffff88807da2b100);
-     2)   0.612 us    |      __update_load_avg_cfs_rq(now=0x000000251b8516ee, cfs_rq=0xffff8880754f7488); /* ret=0 */
-     2)   0.654 us    |      __update_load_avg_se(now=0x000000251b8516ee, cfs_rq=0xffff88807da2b180, se=0xffff88807be2e0d8); /* ret=0 */
-     2)   0.206 us    |      __update_load_avg_cfs_rq(now=0x000000251b8516ee, cfs_rq=0xffff88807da2b180); /* ret=0 */
-     2)               |      __update_load_avg_cfs_rq(now=0x000000251b8516ee, cfs_rq=0xffff888079b5fb18) {
-     2)   2.410 us    |        __accumulate_pelt_segments();
-     2)   3.103 us    |      } /* ret=1 */
-     2)   0.193 us    |      __update_load_avg_cfs_rq(now=0x000000251b8516ee, cfs_rq=0xffff88807da2b180); /* ret=0 */
-     2)               |      update_rt_rq_load_avg(now=0x000000251b8516ee, rq=0xffff88807da2b100, running=0) {
-     2)   0.258 us    |        __accumulate_pelt_segments();
-     2)   1.617 us    |      } /* ret=1 */
-     2)               |      update_dl_rq_load_avg(now=0x000000251b8516ee, rq=0xffff88807da2b100, running=0) {
-     2)   0.230 us    |        __accumulate_pelt_segments();
-     2)   1.511 us    |      } /* ret=1 */
-     2)   1.040 us    |      _raw_spin_unlock_irqrestore(lock=0xffff88807da2b100, flags=0x0000000000000082);
-     2) + 14.739 us   |    }
-     2)               |    load_balance() {
-     2)               |      find_busiest_group() {
-     2)   0.874 us    |        update_group_capacity(sd=0xffff88807c1d37d0, cpu=2);
-     2)   1.761 us    |        idle_cpu();
-     2)   0.262 us    |        idle_cpu();
-     2)   0.217 us    |        idle_cpu();
-     2)   6.338 us    |      }
-     2)   8.442 us    |    }
-     2)   1.823 us    |    __msecs_to_jiffies(m=0x00000006); /* ret=0x0000000000000002 */
-     2)               |    load_balance() {
-     2)               |      find_busiest_group() {
-     2)   0.434 us    |        idle_cpu();
-     2)   0.233 us    |        idle_cpu();
-     2)   0.210 us    |        idle_cpu();
-     2)   2.308 us    |      }
-     2)   2.821 us    |    }
-     2)   0.263 us    |    __msecs_to_jiffies(m=0x00000008); /* ret=0x0000000000000002 */
-     2)   0.977 us    |    _raw_spin_lock(lock=0xffff88807da2b100);
-     2) + 32.262 us   |  }
-    
-The printing rules of each value is:
-   o For signed value, it is always printed as decimal number.
-   o For unsigned value,
-     - For value has size great than 8, it is printed as '{..}'.
-     - For value has size of 1,2,4,8, it is printed as hexadecimal number.
-     - If failed to record a parameter, it is printed as '?'.
+* Includes the latest version of patch 1. (Patch 1 has been separately
+  reposted [3], with those updates. And it's included here in order to
+  make this series apply directly to linux.git, as noted in the original
+  cover letter below.)
 
+Cover letter from v1:
 
-Changbin Du (11):
-  ftrace: move recordmcount tools to scripts/ftrace
-  ftrace: introduce new building tool funcprototype
-  asm-generic: add generic dwarf definition
-  ftrace/hash: add private data field
-  ftrace: create memcache for hash entries
-  ftrace: process function prototype data in vmlinux and modules
-  ftrace: prepare arch specific interfaces for function prototype
-    feature
-  ftrace: introduce core part of function prototype recording
-  x86_64: add function prototype recording support
-  ftrace: add doc for new option record-funcproto
-  MAINTAINERS: make scripts/ftrace/ maintained
+These are best characterized as miscellaneous conversions: many (not all)
+call sites that don't involve biovec or iov_iter, nor mm/. It also leaves
+out a few call sites that require some more work. These are mostly pretty
+simple ones.
 
- Documentation/trace/ftrace.rst       |   6 +
- MAINTAINERS                          |   2 +
- arch/arm/kernel/ftrace.c             |   2 +-
- arch/arm64/kernel/ftrace.c           |   2 +-
- arch/csky/kernel/ftrace.c            |   2 +-
- arch/microblaze/kernel/ftrace.c      |   2 +-
- arch/mips/kernel/ftrace.c            |   2 +-
- arch/nds32/kernel/ftrace.c           |   5 +-
- arch/parisc/kernel/ftrace.c          |   2 +-
- arch/powerpc/kernel/trace/ftrace.c   |   2 +-
- arch/riscv/kernel/ftrace.c           |   2 +-
- arch/s390/kernel/ftrace.c            |   2 +-
- arch/sh/kernel/ftrace.c              |   2 +-
- arch/sparc/kernel/ftrace.c           |   2 +-
- arch/x86/Kconfig                     |   1 +
- arch/x86/kernel/ftrace.c             |  84 +++-
- arch/x86/kernel/ftrace_64.S          |   4 +-
- include/asm-generic/dwarf.h          | 199 +++++++++
- include/asm-generic/vmlinux.lds.h    |  18 +
- include/linux/ftrace.h               |  55 ++-
- include/linux/module.h               |   4 +
- kernel/module.c                      |  25 +-
- kernel/trace/Kconfig                 |  19 +
- kernel/trace/fgraph.c                |  26 +-
- kernel/trace/ftrace.c                | 164 +++++++-
- kernel/trace/trace.h                 |  20 +-
- kernel/trace/trace_entries.h         |  10 +
- kernel/trace/trace_functions_graph.c | 108 ++++-
- kernel/trace/trace_irqsoff.c         |   3 +-
- kernel/trace/trace_sched_wakeup.c    |   3 +-
- scripts/.gitignore                   |   1 -
- scripts/Makefile                     |   2 +-
- scripts/Makefile.build               |  28 +-
- scripts/ftrace/.gitignore            |   6 +
- scripts/ftrace/Makefile              |   9 +
- scripts/ftrace/funcprototype.c       | 576 +++++++++++++++++++++++++++
- scripts/{ => ftrace}/recordmcount.c  |   0
- scripts/{ => ftrace}/recordmcount.h  |   0
- scripts/{ => ftrace}/recordmcount.pl |   0
- 39 files changed, 1340 insertions(+), 60 deletions(-)
- create mode 100644 include/asm-generic/dwarf.h
- create mode 100644 scripts/ftrace/.gitignore
- create mode 100644 scripts/ftrace/Makefile
- create mode 100644 scripts/ftrace/funcprototype.c
- rename scripts/{ => ftrace}/recordmcount.c (100%)
- rename scripts/{ => ftrace}/recordmcount.h (100%)
- rename scripts/{ => ftrace}/recordmcount.pl (100%)
- mode change 100755 => 100644
+It's probably best to send all of these via Andrew's -mm tree, assuming
+that there are no significant merge conflicts with ongoing work in other
+trees (which I doubt, given that these are small changes).
+
+These patches apply to the latest linux.git. Patch #1 is also already in
+Andrew's tree, but given the broad non-linux-mm Cc list, I thought it
+would be more convenient to just include that patch here, so that people
+can use linux.git as the base--even though these are probably destined
+for linux-mm.
+
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions"). That commit
+has an extensive description of the problem and the planned steps to
+solve it, but the highlites are:
+
+1) Provide put_user_page*() routines, intended to be used
+for releasing pages that were pinned via get_user_pages*().
+
+2) Convert all of the call sites for get_user_pages*(), to
+invoke put_user_page*(), instead of put_page(). This involves dozens of
+call sites, and will take some time.
+
+3) After (2) is complete, use get_user_pages*() and put_user_page*() to
+implement tracking of these pages. This tracking will be separate from
+the existing struct page refcounting.
+
+4) Use the tracking and identification of these pages, to implement
+special handling (especially in writeback paths) when the pages are
+backed by a filesystem.
+
+And a few references, also from that commit:
+
+[1] https://lwn.net/Articles/774411/ : "DMA and get_user_pages()"
+[2] https://lwn.net/Articles/753027/ : "The Trouble with get_user_pages()"
+
+[3] "mm/gup: add make_dirty arg to put_user_pages_dirty_lock()"
+    https://lore.kernel.org/r/20190804214042.4564-1-jhubbard@nvidia.com
+
+Ira Weiny (1):
+  fs/binfmt_elf: convert put_page() to put_user_page*()
+
+John Hubbard (33):
+  mm/gup: add make_dirty arg to put_user_pages_dirty_lock()
+  net/rds: convert put_page() to put_user_page*()
+  net/ceph: convert put_page() to put_user_page*()
+  x86/kvm: convert put_page() to put_user_page*()
+  drm/etnaviv: convert release_pages() to put_user_pages()
+  drm/i915: convert put_page() to put_user_page*()
+  drm/radeon: convert put_page() to put_user_page*()
+  media/ivtv: convert put_page() to put_user_page*()
+  media/v4l2-core/mm: convert put_page() to put_user_page*()
+  genwqe: convert put_page() to put_user_page*()
+  scif: convert put_page() to put_user_page*()
+  vmci: convert put_page() to put_user_page*()
+  rapidio: convert put_page() to put_user_page*()
+  oradax: convert put_page() to put_user_page*()
+  staging/vc04_services: convert put_page() to put_user_page*()
+  drivers/tee: convert put_page() to put_user_page*()
+  vfio: convert put_page() to put_user_page*()
+  fbdev/pvr2fb: convert put_page() to put_user_page*()
+  fsl_hypervisor: convert put_page() to put_user_page*()
+  fs/exec.c: convert put_page() to put_user_page*()
+  xen: convert put_page() to put_user_page*()
+  orangefs: convert put_page() to put_user_page*()
+  uprobes: convert put_page() to put_user_page*()
+  futex: convert put_page() to put_user_page*()
+  mm/frame_vector.c: convert put_page() to put_user_page*()
+  mm/gup_benchmark.c: convert put_page() to put_user_page*()
+  mm/memory.c: convert put_page() to put_user_page*()
+  mm/madvise.c: convert put_page() to put_user_page*()
+  mm/process_vm_access.c: convert put_page() to put_user_page*()
+  crypt: convert put_page() to put_user_page*()
+  fs/nfs: convert put_page() to put_user_page*()
+  goldfish_pipe: convert put_page() to put_user_page*()
+  kernel/events/core.c: convert put_page() to put_user_page*()
+
+ arch/x86/kvm/svm.c                            |   4 +-
+ crypto/af_alg.c                               |   7 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c         |   4 +-
+ drivers/gpu/drm/i915/gem/i915_gem_userptr.c   |   6 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c           |   2 +-
+ drivers/infiniband/core/umem.c                |   5 +-
+ drivers/infiniband/hw/hfi1/user_pages.c       |   5 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c    |  13 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c      |   5 +-
+ drivers/infiniband/sw/siw/siw_mem.c           |  19 +--
+ drivers/media/pci/ivtv/ivtv-udma.c            |  14 +--
+ drivers/media/pci/ivtv/ivtv-yuv.c             |  11 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c     |   3 +-
+ drivers/misc/genwqe/card_utils.c              |  17 +--
+ drivers/misc/mic/scif/scif_rma.c              |  17 ++-
+ drivers/misc/vmw_vmci/vmci_context.c          |   2 +-
+ drivers/misc/vmw_vmci/vmci_queue_pair.c       |  11 +-
+ drivers/platform/goldfish/goldfish_pipe.c     |   9 +-
+ drivers/rapidio/devices/rio_mport_cdev.c      |   9 +-
+ drivers/sbus/char/oradax.c                    |   2 +-
+ .../interface/vchiq_arm/vchiq_2835_arm.c      |  10 +-
+ drivers/tee/tee_shm.c                         |  10 +-
+ drivers/vfio/vfio_iommu_type1.c               |   8 +-
+ drivers/video/fbdev/pvr2fb.c                  |   3 +-
+ drivers/virt/fsl_hypervisor.c                 |   7 +-
+ drivers/xen/privcmd.c                         |  32 ++---
+ fs/binfmt_elf.c                               |   2 +-
+ fs/binfmt_elf_fdpic.c                         |   2 +-
+ fs/exec.c                                     |   2 +-
+ fs/nfs/direct.c                               |  11 +-
+ fs/orangefs/orangefs-bufmap.c                 |   7 +-
+ include/linux/mm.h                            |   5 +-
+ kernel/events/core.c                          |   2 +-
+ kernel/events/uprobes.c                       |   6 +-
+ kernel/futex.c                                |  10 +-
+ mm/frame_vector.c                             |   4 +-
+ mm/gup.c                                      | 115 ++++++++----------
+ mm/gup_benchmark.c                            |   2 +-
+ mm/madvise.c                                  |   2 +-
+ mm/memory.c                                   |   2 +-
+ mm/process_vm_access.c                        |  18 +--
+ net/ceph/pagevec.c                            |   8 +-
+ net/rds/info.c                                |   5 +-
+ net/rds/message.c                             |   2 +-
+ net/rds/rdma.c                                |  15 ++-
+ virt/kvm/kvm_main.c                           |   4 +-
+ 46 files changed, 164 insertions(+), 295 deletions(-)
 
 -- 
-2.20.1
+2.22.0
