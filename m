@@ -1,52 +1,69 @@
-From: Changbin Du <changbin.du@gmail.com>
-Date: Wed, 28 Aug 2019 23:41:34 +0000
-Subject: Re: [PATCH 01/11] ftrace: move recordmcount tools to scripts/ftrace
-Message-Id: <20190828234133.quir3ptl4kidnxud@mail.google.com>
+From: john.hubbard@gmail.com
+Date: Sun, 04 Aug 2019 22:49:12 +0000
+Subject: [PATCH v2 31/34] fs/nfs: convert put_page() to put_user_page*()
+Message-Id: <20190804224915.28669-32-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190825132330.5015-1-changbin.du@gmail.com>
- <20190825132330.5015-2-changbin.du@gmail.com>
- <20190826184444.09334ae9@gandalf.local.home>
-In-Reply-To: <20190826184444.09334ae9@gandalf.local.home>
+References: <20190804224915.28669-1-jhubbard@nvidia.com>
+In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Changbin Du <changbin.du@gmail.com>, Ingo Molnar <mingo@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, "John F . Reiser" <jreiser@BitWagon.com>, Matt Helsley <mhelsley@vmware.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
-On Mon, Aug 26, 2019 at 06:44:44PM -0400, Steven Rostedt wrote:
-> On Sun, 25 Aug 2019 21:23:20 +0800
-> Changbin Du <changbin.du@gmail.com> wrote:
-> 
-> > Move ftrace tools to its own directory. We will add another tool later.
-> > 
-> > Cc: John F. Reiser <jreiser@BitWagon.com>
-> > Signed-off-by: Changbin Du <changbin.du@gmail.com>
-> > ---
-> >  scripts/.gitignore                   |  1 -
-> >  scripts/Makefile                     |  2 +-
-> >  scripts/Makefile.build               | 10 +++++-----
-> >  scripts/ftrace/.gitignore            |  4 ++++
-> >  scripts/ftrace/Makefile              |  4 ++++
-> >  scripts/{ => ftrace}/recordmcount.c  |  0
-> >  scripts/{ => ftrace}/recordmcount.h  |  0
-> >  scripts/{ => ftrace}/recordmcount.pl |  0
-> >  8 files changed, 14 insertions(+), 7 deletions(-)
-> >  create mode 100644 scripts/ftrace/.gitignore
-> >  create mode 100644 scripts/ftrace/Makefile
-> >  rename scripts/{ => ftrace}/recordmcount.c (100%)
-> >  rename scripts/{ => ftrace}/recordmcount.h (100%)
-> >  rename scripts/{ => ftrace}/recordmcount.pl (100%)
-> >  mode change 100755 => 100644
-> 
-> Note, we are in the process of merging recordmcount with objtool. It
-> would be better to continue from that work.
-> 
->  http://lkml.kernel.org/r/2767f55f4a5fbf30ba0635aed7a9c5ee92ac07dd.1563992889.git.mhelsley@vmware.com
-> 
-> -- Steve
-Thanks for reminding. Let me check if prototype tool can merge into
-objtool easily after above work.
+From: John Hubbard <jhubbard@nvidia.com>
 
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
+
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
+
+Cc: Calum Mackay <calum.mackay@oracle.com>
+Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <anna.schumaker@netapp.com>
+Cc: linux-nfs@vger.kernel.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ fs/nfs/direct.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
+index 0cb442406168..c0c1b9f2c069 100644
+--- a/fs/nfs/direct.c
++++ b/fs/nfs/direct.c
+@@ -276,13 +276,6 @@ ssize_t nfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ 	return nfs_file_direct_write(iocb, iter);
+ }
+ 
+-static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
+-{
+-	unsigned int i;
+-	for (i = 0; i < npages; i++)
+-		put_page(pages[i]);
+-}
+-
+ void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
+ 			      struct nfs_direct_req *dreq)
+ {
+@@ -512,7 +505,7 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
+ 		}
+-		nfs_direct_release_pages(pagevec, npages);
++		put_user_pages(pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
+@@ -935,7 +928,7 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
+ 			pos += req_len;
+ 			dreq->bytes_left -= req_len;
+ 		}
+-		nfs_direct_release_pages(pagevec, npages);
++		put_user_pages(pagevec, npages);
+ 		kvfree(pagevec);
+ 		if (result < 0)
+ 			break;
 -- 
-Cheers,
-Changbin Du
+2.22.0
