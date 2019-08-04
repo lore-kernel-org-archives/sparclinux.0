@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Date: Sun, 04 Aug 2019 22:49:06 +0000
-Subject: [PATCH v2 25/34] mm/frame_vector.c: convert put_page() to put_user_page*()
-Message-Id: <20190804224915.28669-26-jhubbard@nvidia.com>
+Date: Sun, 04 Aug 2019 22:49:13 +0000
+Subject: [PATCH v2 32/34] goldfish_pipe: convert put_page() to put_user_page*()
+Message-Id: <20190804224915.28669-33-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190804224915.28669-1-jhubbard@nvidia.com>
 In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Mel Gorman <mgorman@suse.de>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Vlastimil Babka <vbabka@suse.cz>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Roman Kiryanov <rkir@google.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infrad
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,36 +20,45 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Note that this effectively changes the code's behavior in
+qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
+instead of set_page_dirty(). This is probably more accurate.
+
+As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
+
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Roman Kiryanov <rkir@google.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/frame_vector.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/platform/goldfish/goldfish_pipe.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/mm/frame_vector.c b/mm/frame_vector.c
-index c64dca6e27c2..f590badac776 100644
---- a/mm/frame_vector.c
-+++ b/mm/frame_vector.c
-@@ -120,7 +120,6 @@ EXPORT_SYMBOL(get_vaddr_frames);
-  */
- void put_vaddr_frames(struct frame_vector *vec)
+diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
+index cef0133aa47a..2bd21020e288 100644
+--- a/drivers/platform/goldfish/goldfish_pipe.c
++++ b/drivers/platform/goldfish/goldfish_pipe.c
+@@ -288,15 +288,12 @@ static int pin_user_pages(unsigned long first_page,
+ static void release_user_pages(struct page **pages, int pages_count,
+ 			       int is_write, s32 consumed_size)
  {
 -	int i;
- 	struct page **pages;
++	bool dirty = !is_write && consumed_size > 0;
  
- 	if (!vec->got_ref)
-@@ -133,8 +132,7 @@ void put_vaddr_frames(struct frame_vector *vec)
- 	 */
- 	if (WARN_ON(IS_ERR(pages)))
- 		goto out;
--	for (i = 0; i < vec->nr_frames; i++)
+-	for (i = 0; i < pages_count; i++) {
+-		if (!is_write && consumed_size > 0)
+-			set_page_dirty(pages[i]);
 -		put_page(pages[i]);
-+	put_user_pages(pages, vec->nr_frames);
- 	vec->got_ref = false;
- out:
- 	vec->nr_frames = 0;
+-	}
++	put_user_pages_dirty_lock(pages, pages_count, dirty);
+ }
+ 
++
+ /* Populate the call parameters, merging adjacent pages together */
+ static void populate_rw_params(struct page **pages,
+ 			       int pages_count,
 -- 
 2.22.0
