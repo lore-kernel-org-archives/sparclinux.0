@@ -1,10 +1,10 @@
 From: john.hubbard@gmail.com
-Date: Sun, 04 Aug 2019 22:49:05 +0000
-Subject: [PATCH v2 24/34] futex: convert put_page() to put_user_page*()
-Message-Id: <20190804224915.28669-25-jhubbard@nvidia.com>
+Date: Wed, 07 Aug 2019 01:33:12 +0000
+Subject: [PATCH v3 13/41] scif: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-14-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
-In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -20,63 +20,54 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Darren Hart <dvhart@infradead.org>
+Cc: Sudeep Dutt <sudeep.dutt@intel.com>
+Cc: Ashutosh Dixit <ashutosh.dixit@intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Joerg Roedel <jroedel@suse.de>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Zhen Lei <thunder.leizhen@huawei.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- kernel/futex.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/misc/mic/scif/scif_rma.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/kernel/futex.c b/kernel/futex.c
-index 6d50728ef2e7..4b4cae58ec57 100644
---- a/kernel/futex.c
-+++ b/kernel/futex.c
-@@ -623,7 +623,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 		lock_page(page);
- 		shmem_swizzled = PageSwapCache(page) || page->mapping;
- 		unlock_page(page);
--		put_page(page);
-+		put_user_page(page);
+diff --git a/drivers/misc/mic/scif/scif_rma.c b/drivers/misc/mic/scif/scif_rma.c
+index 01e27682ea30..d84ed9466920 100644
+--- a/drivers/misc/mic/scif/scif_rma.c
++++ b/drivers/misc/mic/scif/scif_rma.c
+@@ -113,13 +113,14 @@ static int scif_destroy_pinned_pages(struct scif_pinned_pages *pin)
+ 	int writeable = pin->prot & SCIF_PROT_WRITE;
+ 	int kernel = SCIF_MAP_KERNEL & pin->map_flags;
  
- 		if (shmem_swizzled)
- 			goto again;
-@@ -675,7 +675,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 
- 		if (READ_ONCE(page->mapping) != mapping) {
- 			rcu_read_unlock();
--			put_page(page);
-+			put_user_page(page);
- 
- 			goto again;
+-	for (j = 0; j < pin->nr_pages; j++) {
+-		if (pin->pages[j] && !kernel) {
++	if (kernel) {
++		for (j = 0; j < pin->nr_pages; j++) {
+ 			if (writeable)
+-				SetPageDirty(pin->pages[j]);
++				set_page_dirty_lock(pin->pages[j]);
+ 			put_page(pin->pages[j]);
  		}
-@@ -683,7 +683,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 		inode = READ_ONCE(mapping->host);
- 		if (!inode) {
- 			rcu_read_unlock();
--			put_page(page);
-+			put_user_page(page);
+-	}
++	} else
++		put_user_pages_dirty_lock(pin->pages, pin->nr_pages, writeable);
  
- 			goto again;
- 		}
-@@ -702,7 +702,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 		 */
- 		if (!atomic_inc_not_zero(&inode->i_count)) {
- 			rcu_read_unlock();
--			put_page(page);
-+			put_user_page(page);
- 
- 			goto again;
- 		}
-@@ -723,7 +723,7 @@ get_futex_key(u32 __user *uaddr, int fshared, union futex_key *key, enum futex_a
- 	}
- 
- out:
--	put_page(page);
-+	put_user_page(page);
- 	return err;
- }
- 
+ 	scif_free(pin->pages,
+ 		  pin->nr_pages * sizeof(*pin->pages));
+@@ -1385,11 +1386,9 @@ int __scif_pin_pages(void *addr, size_t len, int *out_prot,
+ 				if (ulimit)
+ 					__scif_dec_pinned_vm_lock(mm, nr_pages);
+ 				/* Roll back any pinned pages */
+-				for (i = 0; i < pinned_pages->nr_pages; i++) {
+-					if (pinned_pages->pages[i])
+-						put_page(
+-						pinned_pages->pages[i]);
+-				}
++				put_user_pages(pinned_pages->pages,
++					       pinned_pages->nr_pages);
++
+ 				prot &= ~SCIF_PROT_WRITE;
+ 				try_upgrade = false;
+ 				goto retry;
 -- 
 2.22.0
