@@ -1,13 +1,13 @@
 From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:40 +0000
-Subject: [PATCH v3 41/41] mm/ksm: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-42-jhubbard@nvidia.com>
+Date: Wed, 07 Aug 2019 01:33:16 +0000
+Subject: [PATCH v3 17/41] staging/vc04_services: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-18-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190807013340.9706-1-jhubbard@nvidia.com>
 In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
@@ -20,78 +20,51 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Black <daniel@linux.ibm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+Cc: Eric Anholt <eric@anholt.net>
+Cc: Stefan Wahren <stefan.wahren@i2se.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Mihaela Muraru <mihaela.muraru21@gmail.com>
+Cc: Suniel Mahesh <sunil.m@techveda.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Sidong Yang <realwakka@gmail.com>
+Cc: Kishore KP <kishore.p@techveda.org>
+Cc: linux-rpi-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: devel@driverdev.osuosl.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- mm/ksm.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ .../vc04_services/interface/vchiq_arm/vchiq_2835_arm.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/mm/ksm.c b/mm/ksm.c
-index 3dc4346411e4..e10ee4d5fdd8 100644
---- a/mm/ksm.c
-+++ b/mm/ksm.c
-@@ -456,7 +456,7 @@ static inline bool ksm_test_exit(struct mm_struct *mm)
-  * We use break_ksm to break COW on a ksm page: it's a stripped down
-  *
-  *	if (get_user_pages(addr, 1, 1, 1, &page, NULL) = 1)
-- *		put_page(page);
-+ *		put_user_page(page);
-  *
-  * but taking great care only to touch a ksm page, in a VM_MERGEABLE vma,
-  * in case the application has unmapped and remapped mm,addr meanwhile.
-@@ -483,7 +483,7 @@ static int break_ksm(struct vm_area_struct *vma, unsigned long addr)
- 					FAULT_FLAG_WRITE | FAULT_FLAG_REMOTE);
- 		else
- 			ret = VM_FAULT_WRITE;
--		put_page(page);
-+		put_user_page(page);
- 	} while (!(ret & (VM_FAULT_WRITE | VM_FAULT_SIGBUS | VM_FAULT_SIGSEGV | VM_FAULT_OOM)));
- 	/*
- 	 * We must loop because handle_mm_fault() may back out if there's
-@@ -568,7 +568,7 @@ static struct page *get_mergeable_page(struct rmap_item *rmap_item)
- 		flush_anon_page(vma, page, addr);
- 		flush_dcache_page(page);
- 	} else {
--		put_page(page);
-+		put_user_page(page);
- out:
- 		page = NULL;
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_2835_arm.c b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_2835_arm.c
+index 61c69f353cdb..ec92b4c50e95 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_2835_arm.c
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_2835_arm.c
+@@ -336,10 +336,7 @@ cleanup_pagelistinfo(struct vchiq_pagelist_info *pagelistinfo)
  	}
-@@ -1974,10 +1974,10 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
  
- 		parent = *new;
- 		if (ret < 0) {
--			put_page(tree_page);
-+			put_user_page(tree_page);
- 			new = &parent->rb_left;
- 		} else if (ret > 0) {
--			put_page(tree_page);
-+			put_user_page(tree_page);
- 			new = &parent->rb_right;
- 		} else if (!ksm_merge_across_nodes &&
- 			   page_to_nid(tree_page) != nid) {
-@@ -1986,7 +1986,7 @@ struct rmap_item *unstable_tree_search_insert(struct rmap_item *rmap_item,
- 			 * it will be flushed out and put in the right unstable
- 			 * tree next time: only merge with it when across_nodes.
- 			 */
--			put_page(tree_page);
-+			put_user_page(tree_page);
+ 	if (pagelistinfo->pages_need_release) {
+-		unsigned int i;
+-
+-		for (i = 0; i < pagelistinfo->num_pages; i++)
+-			put_page(pagelistinfo->pages[i]);
++		put_user_pages(pagelistinfo->pages, pagelistinfo->num_pages);
+ 	}
+ 
+ 	dma_free_coherent(g_dev, pagelistinfo->pagelist_buffer_size,
+@@ -454,10 +451,7 @@ create_pagelist(char __user *buf, size_t count, unsigned short type)
+ 				       __func__, actual_pages, num_pages);
+ 
+ 			/* This is probably due to the process being killed */
+-			while (actual_pages > 0) {
+-				actual_pages--;
+-				put_page(pages[actual_pages]);
+-			}
++			put_user_pages(pages, actual_pages);
+ 			cleanup_pagelistinfo(pagelistinfo);
  			return NULL;
- 		} else {
- 			*tree_pagep = tree_page;
-@@ -2328,7 +2328,7 @@ static struct rmap_item *scan_get_next_rmap_item(struct page **page)
- 							&rmap_item->rmap_list;
- 					ksm_scan.address += PAGE_SIZE;
- 				} else
--					put_page(*page);
-+					put_user_page(*page);
- 				up_read(&mm->mmap_sem);
- 				return rmap_item;
- 			}
+ 		}
 -- 
 2.22.0
