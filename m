@@ -1,64 +1,52 @@
-From: Paul Walmsley <paul.walmsley@sifive.com>
-Date: Sat, 17 Aug 2019 21:15:06 +0000
-Subject: Re: [PATCH 16/26] asm-generic: don't provide ioremap for CONFIG_MMU
-Message-Id: <alpine.DEB.2.21.9999.1908171414260.4130@viisi.sifive.com>
+From: john.hubbard@gmail.com
+Date: Wed, 07 Aug 2019 01:33:10 +0000
+Subject: [PATCH v3 11/41] media/v4l2-core/mm: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-12-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-17-hch@lst.de>
-In-Reply-To: <20190817073253.27819-17-hch@lst.de>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-mtd@lists.infradead.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
-On Sat, 17 Aug 2019, Christoph Hellwig wrote:
+From: John Hubbard <jhubbard@nvidia.com>
 
-> All MMU-enabled ports have a non-trivial ioremap and should thus provide
-> the prototype for their implementation instead of providing a generic
-> one unless a different symbol is not defined.  Note that this only
-> affects sparc32 nds32 as all others do provide their own version.
-> 
-> Also update the kerneldoc comments in asm-generic/io.h to explain the
-> situation around the default ioremap* implementations correctly.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/nds32/include/asm/io.h    |  2 ++
->  arch/sparc/include/asm/io_32.h |  1 +
->  include/asm-generic/io.h       | 29 ++++++++---------------------
->  3 files changed, 11 insertions(+), 21 deletions(-)
-> 
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-[ ... ]
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-> index a98ed6325727..6a5edc23afe2 100644
-> --- a/include/asm-generic/io.h
-> +++ b/include/asm-generic/io.h
-> @@ -922,28 +922,16 @@ static inline void *phys_to_virt(unsigned long address)
->  /**
->   * DOC: ioremap() and ioremap_*() variants
->   *
-> - * If you have an IOMMU your architecture is expected to have both ioremap()
-> - * and iounmap() implemented otherwise the asm-generic helpers will provide a
-> - * direct mapping.
-> + * Architectures with an MMU are expected to provide ioremap() and iounmap()
-> + * themselves.  For NOMMU architectures we provide a default nop-op
-> + * implementation that expect that the physical address used for MMIO are
-> + * already marked as uncached, and can be used as kernel virtual addresses.
->   *
-> - * There are ioremap_*() call variants, if you have no IOMMU we naturally will
-> - * default to direct mapping for all of them, you can override these defaults.
-> - * If you have an IOMMU you are highly encouraged to provide your own
-> - * ioremap variant implementation as there currently is no safe architecture
-> - * agnostic default. To avoid possible improper behaviour default asm-generic
-> - * ioremap_*() variants all return NULL when an IOMMU is available. If you've
-> - * defined your own ioremap_*() variant you must then declare your own
-> - * ioremap_*() variant as defined to itself to avoid the default NULL return.
-> + * ioremap_wc() and ioremap_wt() can provide more relaxed caching attributes
-> + * for specific drivers if the architecture choses to implement them.  If they
-                                               ^^^ chooses
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/media/v4l2-core/videobuf-dma-sg.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-
-
-- Paul
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 66a6c6c236a7..d6eeb437ec19 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -349,8 +349,7 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 	BUG_ON(dma->sglen);
+ 
+ 	if (dma->pages) {
+-		for (i = 0; i < dma->nr_pages; i++)
+-			put_page(dma->pages[i]);
++		put_user_pages(dma->pages, dma->nr_pages);
+ 		kfree(dma->pages);
+ 		dma->pages = NULL;
+ 	}
+-- 
+2.22.0
