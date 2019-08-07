@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:12 +0000
-Subject: [PATCH v3 13/41] scif: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-14-jhubbard@nvidia.com>
+Date: Wed, 07 Aug 2019 01:33:30 +0000
+Subject: [PATCH v3 31/41] mm/process_vm_access.c: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-32-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190807013340.9706-1-jhubbard@nvidia.com>
 In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Ingo Molnar <mingo@kernel.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Rashika Kheria <rashika.kheria@gmail.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Andrea Arcangeli <aarcange@redhat.com>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Mike Rapoport <rppt@linux.v>
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,54 +20,68 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Sudeep Dutt <sudeep.dutt@intel.com>
-Cc: Ashutosh Dixit <ashutosh.dixit@intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christopher Yeoh <cyeoh@au1.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jann Horn <jann@thejh.net>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/misc/mic/scif/scif_rma.c | 17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/process_vm_access.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/misc/mic/scif/scif_rma.c b/drivers/misc/mic/scif/scif_rma.c
-index 01e27682ea30..d84ed9466920 100644
---- a/drivers/misc/mic/scif/scif_rma.c
-+++ b/drivers/misc/mic/scif/scif_rma.c
-@@ -113,13 +113,14 @@ static int scif_destroy_pinned_pages(struct scif_pinned_pages *pin)
- 	int writeable = pin->prot & SCIF_PROT_WRITE;
- 	int kernel = SCIF_MAP_KERNEL & pin->map_flags;
+diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
+index 357aa7bef6c0..4d29d54ec93f 100644
+--- a/mm/process_vm_access.c
++++ b/mm/process_vm_access.c
+@@ -96,7 +96,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 		flags |= FOLL_WRITE;
  
--	for (j = 0; j < pin->nr_pages; j++) {
--		if (pin->pages[j] && !kernel) {
-+	if (kernel) {
-+		for (j = 0; j < pin->nr_pages; j++) {
- 			if (writeable)
--				SetPageDirty(pin->pages[j]);
-+				set_page_dirty_lock(pin->pages[j]);
- 			put_page(pin->pages[j]);
- 		}
--	}
-+	} else
-+		put_user_pages_dirty_lock(pin->pages, pin->nr_pages, writeable);
+ 	while (!rc && nr_pages && iov_iter_count(iter)) {
+-		int pages = min(nr_pages, max_pages_per_loop);
++		int pinned_pages = min(nr_pages, max_pages_per_loop);
+ 		int locked = 1;
+ 		size_t bytes;
  
- 	scif_free(pin->pages,
- 		  pin->nr_pages * sizeof(*pin->pages));
-@@ -1385,11 +1386,9 @@ int __scif_pin_pages(void *addr, size_t len, int *out_prot,
- 				if (ulimit)
- 					__scif_dec_pinned_vm_lock(mm, nr_pages);
- 				/* Roll back any pinned pages */
--				for (i = 0; i < pinned_pages->nr_pages; i++) {
--					if (pinned_pages->pages[i])
--						put_page(
--						pinned_pages->pages[i]);
--				}
-+				put_user_pages(pinned_pages->pages,
-+					       pinned_pages->nr_pages);
-+
- 				prot &= ~SCIF_PROT_WRITE;
- 				try_upgrade = false;
- 				goto retry;
+@@ -106,14 +106,15 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 		 * current/current->mm
+ 		 */
+ 		down_read(&mm->mmap_sem);
+-		pages = get_user_pages_remote(task, mm, pa, pages, flags,
+-					      process_pages, NULL, &locked);
++		pinned_pages = get_user_pages_remote(task, mm, pa, pinned_pages,
++						     flags, process_pages, NULL,
++						     &locked);
+ 		if (locked)
+ 			up_read(&mm->mmap_sem);
+-		if (pages <= 0)
++		if (pinned_pages <= 0)
+ 			return -EFAULT;
+ 
+-		bytes = pages * PAGE_SIZE - start_offset;
++		bytes = pinned_pages * PAGE_SIZE - start_offset;
+ 		if (bytes > len)
+ 			bytes = len;
+ 
+@@ -122,10 +123,9 @@ static int process_vm_rw_single_vec(unsigned long addr,
+ 					 vm_write);
+ 		len -= bytes;
+ 		start_offset = 0;
+-		nr_pages -= pages;
+-		pa += pages * PAGE_SIZE;
+-		while (pages)
+-			put_page(process_pages[--pages]);
++		nr_pages -= pinned_pages;
++		pa += pinned_pages * PAGE_SIZE;
++		put_user_pages(process_pages, pinned_pages);
+ 	}
+ 
+ 	return rc;
 -- 
 2.22.0
