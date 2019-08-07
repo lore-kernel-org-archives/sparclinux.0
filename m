@@ -1,92 +1,63 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Tue, 20 Aug 2019 03:34:00 +0000
-Subject: [PATCH RESEND v11 2/8] procfs: switch magic-link modes to be more sane
-Message-Id: <20190820033406.29796-3-cyphar@cyphar.com>
+From: john.hubbard@gmail.com
+Date: Wed, 07 Aug 2019 01:33:01 +0000
+Subject: [PATCH v3 02/41] drivers/gpu/drm/via: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-3-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190820033406.29796-1-cyphar@cyphar.com>
-In-Reply-To: <20190820033406.29796-1-cyphar@cyphar.com>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Christian Brauner <christian@brauner.io>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, David Airlie <airlied@linux.ie>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org
 
-Now that magic-link modes are obeyed for file re-opening purposes, some
-of the pre-existing magic-link modes need to be adjusted to be more
-semantically correct.
+From: John Hubbard <jhubbard@nvidia.com>
 
-The most blatant example of this is /proc/self/exe, which had a mode of
-a+rwx even though tautologically the file could never be opened for
-writing (because it is the current->mm of a live process).
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-With the new O_PATH restrictions, changing the default mode of these
-magic-links allows us to avoid delayed-access attacks such as we saw in
-CVE-2019-5736.
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Also reverse the order of a comparison, in order to placate
+checkpatch.pl.
+
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel@lists.freedesktop.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- fs/proc/base.c       | 20 ++++++++++----------
- fs/proc/namespaces.c |  2 +-
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/gpu/drm/via/via_dmablit.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index ebea9501afb8..297242174402 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -133,9 +133,9 @@ struct pid_entry {
+diff --git a/drivers/gpu/drm/via/via_dmablit.c b/drivers/gpu/drm/via/via_dmablit.c
+index 062067438f1d..b5b5bf0ba65e 100644
+--- a/drivers/gpu/drm/via/via_dmablit.c
++++ b/drivers/gpu/drm/via/via_dmablit.c
+@@ -171,7 +171,6 @@ via_map_blit_for_device(struct pci_dev *pdev,
+ static void
+ via_free_sg_info(struct pci_dev *pdev, drm_via_sg_info_t *vsg)
+ {
+-	struct page *page;
+ 	int i;
  
- #define DIR(NAME, MODE, iops, fops)	\
- 	NOD(NAME, (S_IFDIR|(MODE)), &iops, &fops, {} )
--#define LNK(NAME, get_link)					\
--	NOD(NAME, (S_IFLNK|S_IRWXUGO),				\
--		&proc_pid_link_inode_operations, NULL,		\
-+#define LNK(NAME, MODE, get_link)			\
-+	NOD(NAME, (S_IFLNK|(MODE)),			\
-+		&proc_pid_link_inode_operations, NULL,	\
- 		{ .proc_get_link = get_link } )
- #define REG(NAME, MODE, fops)				\
- 	NOD(NAME, (S_IFREG|(MODE)), NULL, &fops, {})
-@@ -3028,9 +3028,9 @@ static const struct pid_entry tgid_base_stuff[] = {
- 	REG("numa_maps",  S_IRUGO, proc_pid_numa_maps_operations),
- #endif
- 	REG("mem",        S_IRUSR|S_IWUSR, proc_mem_operations),
--	LNK("cwd",        proc_cwd_link),
--	LNK("root",       proc_root_link),
--	LNK("exe",        proc_exe_link),
-+	LNK("cwd",        S_IRWXUGO, proc_cwd_link),
-+	LNK("root",       S_IRWXUGO, proc_root_link),
-+	LNK("exe",        S_IRUGO|S_IXUGO, proc_exe_link),
- 	REG("mounts",     S_IRUGO, proc_mounts_operations),
- 	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
- 	REG("mountstats", S_IRUSR, proc_mountstats_operations),
-@@ -3429,11 +3429,11 @@ static const struct pid_entry tid_base_stuff[] = {
- 	REG("numa_maps", S_IRUGO, proc_pid_numa_maps_operations),
- #endif
- 	REG("mem",       S_IRUSR|S_IWUSR, proc_mem_operations),
--	LNK("cwd",       proc_cwd_link),
--	LNK("root",      proc_root_link),
--	LNK("exe",       proc_exe_link),
-+	LNK("cwd",       S_IRWXUGO, proc_cwd_link),
-+	LNK("root",      S_IRWXUGO, proc_root_link),
-+	LNK("exe",       S_IRUGO|S_IXUGO, proc_exe_link),
- 	REG("mounts",    S_IRUGO, proc_mounts_operations),
--	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
-+	REG("mountinfo", S_IRUGO, proc_mountinfo_operations),
- #ifdef CONFIG_PROC_PAGE_MONITOR
- 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
- 	REG("smaps",     S_IRUGO, proc_pid_smaps_operations),
-diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
-index dd2b35f78b09..cd1e130913f7 100644
---- a/fs/proc/namespaces.c
-+++ b/fs/proc/namespaces.c
-@@ -94,7 +94,7 @@ static struct dentry *proc_ns_instantiate(struct dentry *dentry,
- 	struct inode *inode;
- 	struct proc_inode *ei;
- 
--	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFLNK | S_IRWXUGO);
-+	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFLNK | S_IRUGO);
- 	if (!inode)
- 		return ERR_PTR(-ENOENT);
- 
+ 	switch (vsg->state) {
+@@ -186,13 +185,8 @@ via_free_sg_info(struct pci_dev *pdev, drm_via_sg_info_t *vsg)
+ 		kfree(vsg->desc_pages);
+ 		/* fall through */
+ 	case dr_via_pages_locked:
+-		for (i = 0; i < vsg->num_pages; ++i) {
+-			if (NULL != (page = vsg->pages[i])) {
+-				if (!PageReserved(page) && (DMA_FROM_DEVICE = vsg->direction))
+-					SetPageDirty(page);
+-				put_page(page);
+-			}
+-		}
++		put_user_pages_dirty_lock(vsg->pages, vsg->num_pages,
++					  (vsg->direction = DMA_FROM_DEVICE));
+ 		/* fall through */
+ 	case dr_via_pages_alloc:
+ 		vfree(vsg->pages);
 -- 
 2.22.0
