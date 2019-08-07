@@ -1,16 +1,44 @@
-From: "Herr.Robert Jackson" <liliana.marinero@osep.mendoza.gov.ar>
-Date: Sat, 24 Aug 2019 14:10:56 +0000
-Subject: 
-Message-Id: <677918274.24998908.1566655856556.JavaMail.zimbra@osep.mendoza.gov.ar>
+From: john.hubbard@gmail.com
+Date: Wed, 07 Aug 2019 01:33:22 +0000
+Subject: [PATCH v3 23/41] fs/exec.c: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-24-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="euc-kr"
-Content-Transfer-Encoding: base64
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org
 
-CgpXaXIgc2luZCB6dXZlcmzDpHNzaWdlLCB2ZXJ0cmF1ZW5zd8O8cmRpZ2UgS3JlZGl0Z2ViZXIs
-IGxlaWhlbiB3aXIgVW50ZXJuZWhtZW4gdW5kIEVpbnplbHBlcnNvbmVuIHp1IGVpbmVtIG5pZWRy
-aWdlbiBaaW5zc2F0eiB2b24gMiUsIFNpbmQgU2llIGF1ZiBkZXIgU3VjaGUgbmFjaCBlaW5lbSBH
-ZXNjaMOkZnRza3JlZGl0LCBQcml2YXRrcmVkaXRlLCBTY2h1bGRlbmtvbnNvbGlkaWVydW5nLCB1
-bmJlc2ljaGVydGUgS3JlZGl0ZSwgUmlzaWtva2FwaXRhbCwgd2VubiBqYSBLb250YWt0aWVyZW4g
-U2llIHVucyBqZXR6dCBmw7xyIHdlaXRlcmUgRWluemVsaGVpdGVuLg==
+From: John Hubbard <jhubbard@nvidia.com>
+
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
+
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: linux-fsdevel@vger.kernel.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ fs/exec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/exec.c b/fs/exec.c
+index f7f6a140856a..ee442151582f 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -227,7 +227,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
+ 
+ static void put_arg_page(struct page *page)
+ {
+-	put_page(page);
++	put_user_page(page);
+ }
+ 
+ static void free_arg_pages(struct linux_binprm *bprm)
+-- 
+2.22.0
