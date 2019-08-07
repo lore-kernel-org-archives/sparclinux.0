@@ -1,126 +1,51 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 17 Aug 2019 07:32:50 +0000
-Subject: [PATCH 23/26] lib: provide a simple generic ioremap implementation
-Message-Id: <20190817073253.27819-24-hch@lst.de>
+From: john.hubbard@gmail.com
+Date: Wed, 07 Aug 2019 01:33:28 +0000
+Subject: [PATCH v3 29/41] mm/memory.c: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-30-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de>
-In-Reply-To: <20190817073253.27819-1-hch@lst.de>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
-A lot of architectures reuse the same simple ioremap implementation, so
-start lifting the most simple variant to lib/ioremap.c.  It provides
-ioremap_prot and iounmap, plus a default ioremap that uses prot_noncached,
-although that can be overridden by asm/io.h.
+From: John Hubbard <jhubbard@nvidia.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
+
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Jérôme Glisse <jglisse@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- include/asm-generic/io.h | 20 ++++++++++++++++----
- lib/Kconfig              |  3 +++
- lib/ioremap.c            | 39 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+), 4 deletions(-)
+ mm/memory.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-index 4e45e1cb6560..4a661fdd1937 100644
---- a/include/asm-generic/io.h
-+++ b/include/asm-generic/io.h
-@@ -923,9 +923,10 @@ static inline void *phys_to_virt(unsigned long address)
-  * DOC: ioremap() and ioremap_*() variants
-  *
-  * Architectures with an MMU are expected to provide ioremap() and iounmap()
-- * themselves.  For NOMMU architectures we provide a default nop-op
-- * implementation that expect that the physical address used for MMIO are
-- * already marked as uncached, and can be used as kernel virtual addresses.
-+ * themselves or rely on GENERIC_IOREMAP.  For NOMMU architectures we provide
-+ * a default nop-op implementation that expect that the physical address used
-+ * for MMIO are already marked as uncached, and can be used as kernel virtual
-+ * addresses.
-  *
-  * ioremap_wc() and ioremap_wt() can provide more relaxed caching attributes
-  * for specific drivers if the architecture choses to implement them.  If they
-@@ -946,7 +947,18 @@ static inline void iounmap(void __iomem *addr)
- {
- }
- #endif
--#endif /* CONFIG_MMU */
-+#elif defined(CONFIG_GENERIC_IOREMAP)
-+#include <asm/pgtable.h>
-+
-+void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
-+void iounmap(volatile void __iomem *addr);
-+
-+static inline void __iomem *ioremap(phys_addr_t addr, size_t size)
-+{
-+	/* _PAGE_IOREMAP needs to be supplied by the architecture */
-+	return ioremap_prot(addr, size, _PAGE_IOREMAP);
-+}
-+#endif /* !CONFIG_MMU || CONFIG_GENERIC_IOREMAP */
- 
- #ifndef ioremap_nocache
- #define ioremap_nocache ioremap
-diff --git a/lib/Kconfig b/lib/Kconfig
-index f33d66fc0e86..5d452e1072ab 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -636,6 +636,9 @@ config STRING_SELFTEST
- 
- endmenu
- 
-+config GENERIC_IOREMAP
-+	bool
-+
- config GENERIC_LIB_ASHLDI3
- 	bool
- 
-diff --git a/lib/ioremap.c b/lib/ioremap.c
-index 0a2ffadc6d71..3f0e18543de8 100644
---- a/lib/ioremap.c
-+++ b/lib/ioremap.c
-@@ -231,3 +231,42 @@ int ioremap_page_range(unsigned long addr,
- 
- 	return err;
- }
-+
-+#ifdef CONFIG_GENERIC_IOREMAP
-+void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
-+{
-+	unsigned long offset, vaddr;
-+	phys_addr_t last_addr;
-+	struct vm_struct *area;
-+
-+	/* Disallow wrap-around or zero size */
-+	last_addr = addr + size - 1;
-+	if (!size || last_addr < addr)
-+		return NULL;
-+
-+	/* Page-align mappings */
-+	offset = addr & (~PAGE_MASK);
-+	addr -= offset;
-+	size = PAGE_ALIGN(size + offset);
-+
-+	area = get_vm_area_caller(size, VM_IOREMAP,
-+			__builtin_return_address(0));
-+	if (!area)
-+		return NULL;
-+	vaddr = (unsigned long)area->addr;
-+
-+	if (ioremap_page_range(vaddr, vaddr + size, addr, __pgprot(prot))) {
-+		free_vm_area(area);
-+		return NULL;
-+	}
-+
-+	return (void __iomem *)(vaddr + offset);
-+}
-+EXPORT_SYMBOL(ioremap_prot);
-+
-+void iounmap(volatile void __iomem *addr)
-+{
-+	vunmap((void *)((unsigned long)addr & PAGE_MASK));
-+}
-+EXPORT_SYMBOL(iounmap);
-+#endif /* CONFIG_GENERIC_IOREMAP */
+diff --git a/mm/memory.c b/mm/memory.c
+index e2bb51b6242e..8870968496ea 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -4337,7 +4337,7 @@ int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+ 						    buf, maddr + offset, bytes);
+ 			}
+ 			kunmap(page);
+-			put_page(page);
++			put_user_page(page);
+ 		}
+ 		len -= bytes;
+ 		buf += bytes;
 -- 
-2.20.1
+2.22.0
