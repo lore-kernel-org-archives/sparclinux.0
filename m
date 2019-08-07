@@ -1,7 +1,7 @@
 From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:31 +0000
-Subject: [PATCH v3 32/41] crypt: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-33-jhubbard@nvidia.com>
+Date: Wed, 07 Aug 2019 01:33:04 +0000
+Subject: [PATCH v3 05/41] net/ceph: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-6-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190807013340.9706-1-jhubbard@nvidia.com>
 In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
@@ -9,7 +9,7 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, Sage Weil <sage@redhat.com>, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, Ilya Dryomov <idryomov@gmail.com>, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,38 +20,36 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Acked-by: Jeff Layton <jlayton@kernel.org>
+
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Sage Weil <sage@redhat.com>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: linux-crypto@vger.kernel.org
+Cc: ceph-devel@vger.kernel.org
+Cc: netdev@vger.kernel.org
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- crypto/af_alg.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ net/ceph/pagevec.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff --git a/crypto/af_alg.c b/crypto/af_alg.c
-index 879cf23f7489..edd358ea64da 100644
---- a/crypto/af_alg.c
-+++ b/crypto/af_alg.c
-@@ -428,10 +428,7 @@ static void af_alg_link_sg(struct af_alg_sgl *sgl_prev,
+diff --git a/net/ceph/pagevec.c b/net/ceph/pagevec.c
+index 64305e7056a1..c88fff2ab9bd 100644
+--- a/net/ceph/pagevec.c
++++ b/net/ceph/pagevec.c
+@@ -12,13 +12,7 @@
  
- void af_alg_free_sg(struct af_alg_sgl *sgl)
+ void ceph_put_page_vector(struct page **pages, int num_pages, bool dirty)
  {
 -	int i;
 -
--	for (i = 0; i < sgl->npages; i++)
--		put_page(sgl->pages[i]);
-+	put_user_pages(sgl->pages, sgl->npages);
+-	for (i = 0; i < num_pages; i++) {
+-		if (dirty)
+-			set_page_dirty_lock(pages[i]);
+-		put_page(pages[i]);
+-	}
++	put_user_pages_dirty_lock(pages, num_pages, dirty);
+ 	kvfree(pages);
  }
- EXPORT_SYMBOL_GPL(af_alg_free_sg);
- 
-@@ -668,7 +665,7 @@ static void af_alg_free_areq_sgls(struct af_alg_async_req *areq)
- 		for_each_sg(tsgl, sg, areq->tsgl_entries, i) {
- 			if (!sg_page(sg))
- 				continue;
--			put_page(sg_page(sg));
-+			put_user_page(sg_page(sg));
- 		}
- 
- 		sock_kfree_s(sk, tsgl, areq->tsgl_entries * sizeof(*tsgl));
+ EXPORT_SYMBOL(ceph_put_page_vector);
 -- 
 2.22.0
