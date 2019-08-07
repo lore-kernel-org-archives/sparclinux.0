@@ -1,31 +1,50 @@
-From: Paul Walmsley <paul.walmsley@sifive.com>
-Date: Sat, 17 Aug 2019 21:13:30 +0000
-Subject: Re: [PATCH 17/26] arch: rely on asm-generic/io.h for default ioremap_* definitions
-Message-Id: <alpine.DEB.2.21.9999.1908171412560.4130@viisi.sifive.com>
+From: john.hubbard@gmail.com
+Date: Wed, 07 Aug 2019 01:33:19 +0000
+Subject: [PATCH v3 20/41] fbdev/pvr2fb: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-21-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-18-hch@lst.de>
-In-Reply-To: <20190817073253.27819-18-hch@lst.de>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-mtd@lists.infradead.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
 
-On Sat, 17 Aug 2019, Christoph Hellwig wrote:
+From: John Hubbard <jhubbard@nvidia.com>
 
-> Various architectures that use asm-generic/io.h still defined their
-> own default versions of ioremap_nocache, ioremap_wt and ioremap_wc
-> that point back to plain ioremap directly or indirectly.  Remove these
-> definitions and rely on asm-generic/io.h instead.  For this to work
-> the backup ioremap_* defintions needs to be changed to purely cpp
-> macros instea of inlines to cover for architectures like openrisc
-> that only define ioremap after including <asm-generic/io.h>.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
+For pages that were retained via get_user_pages*(), release those pages
+via the new put_user_page*() routines, instead of via put_page() or
+release_pages().
 
-Reviewed-by: Paul Walmsley <paul.walmsley@sifive.com>
-Tested-by: Paul Walmsley <paul.walmsley@sifive.com> # rv32, rv64 boot
-Acked-by: Paul Walmsley <paul.walmsley@sifive.com> # arch/riscv
+This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
+("mm: introduce put_user_page*(), placeholder versions").
 
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+---
+ drivers/video/fbdev/pvr2fb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-- Paul
+diff --git a/drivers/video/fbdev/pvr2fb.c b/drivers/video/fbdev/pvr2fb.c
+index 7ff4b6b84282..0e4f9aa6444d 100644
+--- a/drivers/video/fbdev/pvr2fb.c
++++ b/drivers/video/fbdev/pvr2fb.c
+@@ -700,8 +700,7 @@ static ssize_t pvr2fb_write(struct fb_info *info, const char *buf,
+ 	ret = count;
+ 
+ out_unmap:
+-	for (i = 0; i < nr_pages; i++)
+-		put_page(pages[i]);
++	put_user_pages(pages, nr_pages);
+ 
+ 	kfree(pages);
+ 
+-- 
+2.22.0
