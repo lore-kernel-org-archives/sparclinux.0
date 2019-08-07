@@ -1,15 +1,15 @@
 From: john.hubbard@gmail.com
-Date: Fri, 02 Aug 2019 02:19:44 +0000
-Subject: [PATCH 13/34] rapidio: convert put_page() to put_user_page*()
-Message-Id: <20190802022005.5117-14-jhubbard@nvidia.com>
+Date: Wed, 07 Aug 2019 01:33:33 +0000
+Subject: [PATCH v3 34/41] goldfish_pipe: convert put_page() to put_user_page*()
+Message-Id: <20190807013340.9706-35-jhubbard@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190802022005.5117-1-jhubbard@nvidia.com>
-In-Reply-To: <20190802022005.5117-1-jhubbard@nvidia.com>
+References: <20190807013340.9706-1-jhubbard@nvidia.com>
+In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, Roman Kiryanov <rkir@google.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.or
 
 From: John Hubbard <jhubbard@nvidia.com>
 
@@ -20,57 +20,45 @@ release_pages().
 This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
 ("mm: introduce put_user_page*(), placeholder versions").
 
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Logan Gunthorpe <logang@deltatee.com>
-Cc: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc: Ioan Nicu <ioan.nicu.ext@nokia.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Note that this effectively changes the code's behavior in
+qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
+instead of set_page_dirty(). This is probably more accurate.
+
+As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
+dealing with a file backed page where we have reference on the inode it
+hangs off." [1]
+
+[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Roman Kiryanov <rkir@google.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
 ---
- drivers/rapidio/devices/rio_mport_cdev.c | 9 +++------
+ drivers/platform/goldfish/goldfish_pipe.c | 9 +++------
  1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-index 8155f59ece38..0e8ea0e5a89e 100644
---- a/drivers/rapidio/devices/rio_mport_cdev.c
-+++ b/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -572,14 +572,12 @@ static void dma_req_free(struct kref *ref)
- 	struct mport_dma_req *req = container_of(ref, struct mport_dma_req,
- 			refcount);
- 	struct mport_cdev_priv *priv = req->priv;
--	unsigned int i;
+diff --git a/drivers/platform/goldfish/goldfish_pipe.c b/drivers/platform/goldfish/goldfish_pipe.c
+index cef0133aa47a..2bd21020e288 100644
+--- a/drivers/platform/goldfish/goldfish_pipe.c
++++ b/drivers/platform/goldfish/goldfish_pipe.c
+@@ -288,15 +288,12 @@ static int pin_user_pages(unsigned long first_page,
+ static void release_user_pages(struct page **pages, int pages_count,
+ 			       int is_write, s32 consumed_size)
+ {
+-	int i;
++	bool dirty = !is_write && consumed_size > 0;
  
- 	dma_unmap_sg(req->dmach->device->dev,
- 		     req->sgt.sgl, req->sgt.nents, req->dir);
- 	sg_free_table(&req->sgt);
- 	if (req->page_list) {
--		for (i = 0; i < req->nr_pages; i++)
--			put_page(req->page_list[i]);
-+		put_user_pages(req->page_list, req->nr_pages);
- 		kfree(req->page_list);
- 	}
+-	for (i = 0; i < pages_count; i++) {
+-		if (!is_write && consumed_size > 0)
+-			set_page_dirty(pages[i]);
+-		put_page(pages[i]);
+-	}
++	put_user_pages_dirty_lock(pages, pages_count, dirty);
+ }
  
-@@ -815,7 +813,7 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 	struct mport_dma_req *req;
- 	struct mport_dev *md = priv->md;
- 	struct dma_chan *chan;
--	int i, ret;
-+	int ret;
- 	int nents;
- 
- 	if (xfer->length = 0)
-@@ -946,8 +944,7 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
- 
- err_pg:
- 	if (!req->page_list) {
--		for (i = 0; i < nr_pages; i++)
--			put_page(page_list[i]);
-+		put_user_pages(page_list, nr_pages);
- 		kfree(page_list);
- 	}
- err_req:
++
+ /* Populate the call parameters, merging adjacent pages together */
+ static void populate_rw_params(struct page **pages,
+ 			       int pages_count,
 -- 
 2.22.0
