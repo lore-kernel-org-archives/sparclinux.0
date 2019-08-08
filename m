@@ -1,7 +1,7 @@
-From: "Weiny, Ira" <ira.weiny@intel.com>
-Date: Thu, 08 Aug 2019 16:25:04 +0000
-Subject: RE: [PATCH 00/34] put_user_pages(): miscellaneous call sites
-Message-Id: <2807E5FD2F6FDA4886F6618EAC48510E79E79644@CRSMSX101.amr.corp.intel.com>
+From: John Hubbard <jhubbard@nvidia.com>
+Date: Thu, 08 Aug 2019 18:18:49 +0000
+Subject: Re: [PATCH 00/34] put_user_pages(): miscellaneous call sites
+Message-Id: <b1b33292-d929-f9ff-dd75-02828228f35e@nvidia.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190802022005.5117-1-jhubbard@nvidia.com>
  <20190802091244.GD6461@dhcp22.suse.cz>
@@ -13,76 +13,41 @@ References: <20190802022005.5117-1-jhubbard@nvidia.com>
  <20190807084649.GQ11812@dhcp22.suse.cz>
  <20190808023637.GA1508@iweiny-DESK2.sc.intel.com>
  <e648a7f3-6a1b-c9ea-1121-7ab69b6b173d@nvidia.com>
-In-Reply-To: <e648a7f3-6a1b-c9ea-1121-7ab69b6b173d@nvidia.com>
+ <2807E5FD2F6FDA4886F6618EAC48510E79E79644@CRSMSX101.amr.corp.intel.com>
+In-Reply-To: <2807E5FD2F6FDA4886F6618EAC48510E79E79644@CRSMSX101.amr.corp.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Hubbard <jhubbard@nvidia.com>, Michal Hocko <mhocko@kernel.org>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Jan Kara <jack@suse.cz>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "Williams,
- Dan J" <dan.j.williams@intel.com>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "x86@kernel.org" <x86@kernel.org>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>devel
+To: "Weiny, Ira" <ira.weiny@intel.com>, Michal Hocko <mhocko@kernel.org>
+Cc: Jan Kara <jack@suse.cz>, Matthew Wilcox <willy@infradead.org>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, "Williams, Dan J" <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, "amd-gfx@lists.freedesktop.org" <amd-gfx@lists.freedesktop.org>, "ceph-devel@vger.kernel.org" <ceph-devel@vger.kernel.org>, "devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>, "devel@lists.orangefs.org" <devel@lists.orangefs.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "intel-gfx@lists.freedesktop.org" <intel-gfx@lists.freedesktop.org>, kvm@v
 
-PiANCj4gT24gOC83LzE5IDc6MzYgUE0sIElyYSBXZWlueSB3cm90ZToNCj4gPiBPbiBXZWQsIEF1
-ZyAwNywgMjAxOSBhdCAxMDo0Njo0OUFNICswMjAwLCBNaWNoYWwgSG9ja28gd3JvdGU6DQo+ID4+
-IE9uIFdlZCAwNy0wOC0xOSAxMDozNzoyNiwgSmFuIEthcmEgd3JvdGU6DQo+ID4+PiBPbiBGcmkg
-MDItMDgtMTkgMTI6MTQ6MDksIEpvaG4gSHViYmFyZCB3cm90ZToNCj4gPj4+PiBPbiA4LzIvMTkg
-Nzo1MiBBTSwgSmFuIEthcmEgd3JvdGU6DQo+ID4+Pj4+IE9uIEZyaSAwMi0wOC0xOSAwNzoyNDo0
-MywgTWF0dGhldyBXaWxjb3ggd3JvdGU6DQo+ID4+Pj4+PiBPbiBGcmksIEF1ZyAwMiwgMjAxOSBh
-dCAwMjo0MTo0NlBNICswMjAwLCBKYW4gS2FyYSB3cm90ZToNCj4gPj4+Pj4+PiBPbiBGcmkgMDIt
-MDgtMTkgMTE6MTI6NDQsIE1pY2hhbCBIb2NrbyB3cm90ZToNCj4gPj4+Pj4+Pj4gT24gVGh1IDAx
-LTA4LTE5IDE5OjE5OjMxLCBqb2huLmh1YmJhcmRAZ21haWwuY29tIHdyb3RlOg0KPiAgIFsuLi5d
-DQo+ID4gQmVmb3JlIEkgZ28gb24sIEkgd291bGQgbGlrZSB0byBzYXkgdGhhdCB0aGUgImltYmFs
-YW5jZSIgb2YNCj4gPiBnZXRfdXNlcl9wYWdlcygpIGFuZCBwdXRfcGFnZSgpIGJvdGhlcnMgbWUg
-ZnJvbSBhIHB1cmlzdCBzdGFuZHBvaW50Li4uDQo+ID4gSG93ZXZlciwgc2luY2UgdGhpcyBkaXNj
-dXNzaW9uIGNyb3BwZWQgdXAgSSB3ZW50IGFoZWFkIGFuZCBwb3J0ZWQgbXkNCj4gPiB3b3JrIHRv
-IExpbnVzJyBjdXJyZW50IG1hc3Rlcg0KPiA+ICg1LjMtcmMzKykgYW5kIGluIGRvaW5nIHNvIEkg
-b25seSBoYWQgdG8gc3RlYWwgYSBiaXQgb2YgSm9obnMgY29kZS4uLg0KPiA+IFNvcnJ5IEpvaG4u
-Li4gIDotKA0KPiA+DQo+ID4gSSBkb24ndCBoYXZlIHRoZSBjb21taXQgbWVzc2FnZXMgYWxsIGNs
-ZWFuZWQgdXAgYW5kIEkga25vdyB0aGVyZSBtYXkNCj4gPiBiZSBzb21lIGRpc2N1c3Npb24gb24g
-dGhlc2UgbmV3IGludGVyZmFjZXMgYnV0IEkgd2FudGVkIHRvIHRocm93IHRoaXMNCj4gPiBzZXJp
-ZXMgb3V0IHRoZXJlIGJlY2F1c2UgSSB0aGluayBpdCBtYXkgYmUgd2hhdCBKYW4gYW5kIE1pY2hh
-bCBhcmUNCj4gPiBkcml2aW5nIGF0IChvciBhdCBsZWFzdCBpbiB0aGF0IGRpcmVjdGlvbi4NCj4g
-Pg0KPiA+IFJpZ2h0IG5vdyBvbmx5IFJETUEgYW5kIERBWCBGUydzIGFyZSBzdXBwb3J0ZWQuICBP
-dGhlciB1c2VycyBvZiBHVVANCj4gPiB3aWxsIHN0aWxsIGZhaWwgb24gYSBEQVggZmlsZSBhbmQg
-cmVndWxhciBmaWxlcyB3aWxsIHN0aWxsIGJlIGF0DQo+ID4gcmlzay5bMl0NCj4gPg0KPiA+IEkn
-dmUgcHVzaGVkIHRoaXMgd29yayAoYmFzZWQgNS4zLXJjMysgKDMzOTIwZjFlYzViZikpIGhlcmVb
-M106DQo+ID4NCj4gPiBodHRwczovL2dpdGh1Yi5jb20vd2VpbnkyL2xpbnV4LWtlcm5lbC90cmVl
-L2xpbnVzLXJkbWFmc2RheC1iMC12Mw0KPiA+DQo+ID4gSSB0aGluayB0aGUgbW9zdCByZWxldmFu
-dCBwYXRjaCB0byB0aGlzIGNvbnZlcnNhdGlvbiBpczoNCj4gPg0KPiA+IGh0dHBzOi8vZ2l0aHVi
-LmNvbS93ZWlueTIvbGludXgtDQo+IGtlcm5lbC9jb21taXQvNWQzNzc2NTNiYTVjZjExYzNiNzE2
-ZjkwDQo+ID4gNGIwNTdiZWU2NjQxYWFmNg0KPiA+DQo+IA0KPiBvaGhoLi4uY2FuIHlvdSBwbGVh
-c2UgYXZvaWQgdXNpbmcgdGhlIG9sZCBfX3B1dF91c2VyX3BhZ2VzX2RpcnR5KCkNCj4gZnVuY3Rp
-b24/IA0KDQpBZ3JlZWQuLi4gSSBkaWQgbm90IGxpa2UgdGhhdC4gIFBhcnQgb2YgdGhlIHJlYXNv
-biBJIGRpZCBub3QgcG9zdCB0aGlzIGlzIEknbSBzdGlsbCB0cnlpbmcgdG8gZmlndXJlIG91dCB3
-aGF0IGhhcyBsYW5kZWQgYW5kIHdoYXQgSSBjYW4gYW5kIGNhbid0IGRlcGVuZCBvbi4NCg0KRm9y
-IGV4YW1wbGUsIENocmlzdG9waCBILiB3YXMgcHJvcG9zaW5nIGNoYW5nZXMgdG8gc29tZSBvZiB0
-aGUgR1VQIGNhbGxzIHdoaWNoIG1heSBjb25mbGljdC4gIEJ1dCBJJ20gbm90IHN1cmUgaGlzIGNo
-YW5nZXMgYXJlIG1vdmluZyBmb3J3YXJkLiAgU28gcmF0aGVyIHRoYW4gd2FpdGluZyBmb3IgdGhl
-IGR1c3QgdG8gc2V0dGxlIEkgZGVjaWRlZCB0byBzZWUgaG93IGhhcmQgaXQgd291bGQgYmUgdG8g
-Z2V0IHRoaXMgcmViYXNlZCBhZ2FpbnN0IG1haW5saW5lIGFuZCB3b3JraW5nLiAgVHVybnMgb3V0
-IGl0IHdhcyBub3QgdG9vIGhhcmQuDQoNCkkgdGhpbmsgdGhhdCBpcyBiZWNhdXNlLCBhcyB0aW1l
-IGhhcyBtb3ZlZCBvbiBpdCBzZWVtcyB0aGF0LCBmb3Igc29tZSB1c2VycyBzdWNoIGFzIFJETUEs
-IGEgc2ltcGxlIHB1dF91c2VyX3BhZ2UoKSBpcyBub3QgZ29pbmcgdG8gYmUgc3VmZmljaWVudC4g
-IFdlIG5lZWQgc29tZXRoaW5nIGVsc2UgdG8gYWxsb3cgR1VQIHRvIGtlZXAgdHJhY2sgb2YgdGhl
-IGZpbGUgcGlucyBhcyB3ZSBkaXNjdXNzZWQuICBTbyBJJ20gc3RhcnRpbmcgdG8gdGhpbmsgc29t
-ZSBvZiB0aGlzIGNvdWxkIGdvIGluIGF0IHRoZSBzYW1lIHRpbWUuDQoNCj4gSSB0aG91Z2h0IEkn
-ZCBjYXVnaHQgdGhpbmdzIGVhcmx5IGVub3VnaCB0byBnZXQgYXdheSB3aXRoIHRoZQ0KPiByZW5h
-bWUgYW5kIGRlbGV0aW9uIG9mIHRoYXQuIFlvdSBjb3VsZCBlaXRoZXI6DQo+IA0KPiBhKSBvcGVu
-IGNvZGUgYW4gaW1wbGVtZW50YXRpb24gb2YgdmFkZHJfcHV0X3BhZ2VzX2RpcnR5X2xvY2soKSB0
-aGF0DQo+IGRvZXNuJ3QgY2FsbCBhbnkgb2YgdGhlICpwdXRfdXNlcl9wYWdlc19kaXJ0eSooKSB2
-YXJpYW50cywgb3INCj4gDQo+IGIpIGluY2x1ZGUgbXkgZmlyc3QgcGF0Y2ggKCIiKSBhcmUgcGFy
-dCBvZiB5b3VyIHNlcmllcywgb3INCj4gDQo+IGMpIGJhc2UgdGhpcyBvbiBBbmRyZXdzJ3MgdHJl
-ZSwgd2hpY2ggYWxyZWFkeSBoYXMgbWVyZ2VkIGluIG15IGZpcnN0IHBhdGNoLg0KPiANCg0KWWVw
-IEkgY2FuIGRvIHRoaXMuICBJIGRpZCBub3QgcmVhbGl6ZSB0aGF0IEFuZHJldyBoYWQgYWNjZXB0
-ZWQgYW55IG9mIHRoaXMgd29yay4gIEknbGwgY2hlY2sgb3V0IGhpcyB0cmVlLiAgQnV0IEkgZG9u
-J3QgdGhpbmsgaGUgaXMgZ29pbmcgdG8gYWNjZXB0IHRoaXMgc2VyaWVzIHRocm91Z2ggaGlzIHRy
-ZWUuICBTbyB3aGF0IGlzIHRoZSBFVEEgb24gdGhhdCBsYW5kaW5nIGluIExpbnVzJyB0cmVlPw0K
-DQpUbyB0aGF0IHBvaW50IEknbSBzdGlsbCBub3Qgc3VyZSB3aG8gd291bGQgdGFrZSBhbGwgdGhp
-cyBhcyBJIGFtIG5vdyB0b3VjaGluZyBtbSwgcHJvY2ZzLCByZG1hLCBleHQ0LCBhbmQgeGZzLg0K
-DQpJIGp1c3QgdGhvdWdodCBJIHdvdWxkIGNoaW1lIGluIHdpdGggbXkgcHJvZ3Jlc3MgYmVjYXVz
-ZSBJJ20gdG8gYSBwb2ludCB3aGVyZSB0aGluZ3MgYXJlIHdvcmtpbmcgYW5kIHNvIEkgY2FuIHN1
-Ym1pdCB0aGUgY29kZSBidXQgSSdtIG5vdCBzdXJlIHdoYXQgSSBjYW4vc2hvdWxkIGRlcGVuZCBv
-biBsYW5kaW5nLi4uICBBbHNvLCBub3cgdGhhdCAwZGF5IGhhcyBydW4gb3Zlcm5pZ2h0IGl0IGhh
-cyBmb3VuZCBpc3N1ZXMgd2l0aCB0aGlzIHJlYmFzZSBzbyBJIG5lZWQgdG8gY2xlYW4gdGhvc2Ug
-dXAuLi4gIFBlcmhhcHMgSSB3aWxsIGJhc2Ugb24gQW5kcmV3J3MgdHJlZSBwcmlvciB0byBkb2lu
-ZyB0aGF0Li4uDQoNClRoYW5rcywNCklyYQ0KDQo+IA0KPiB0aGFua3MsDQo+IC0tDQo+IEpvaG4g
-SHViYmFyZA0KPiBOVklESUENCg0K
+On 8/8/19 9:25 AM, Weiny, Ira wrote:
+>>
+>> On 8/7/19 7:36 PM, Ira Weiny wrote:
+>>> On Wed, Aug 07, 2019 at 10:46:49AM +0200, Michal Hocko wrote:
+>>>> On Wed 07-08-19 10:37:26, Jan Kara wrote:
+>>>>> On Fri 02-08-19 12:14:09, John Hubbard wrote:
+>>>>>> On 8/2/19 7:52 AM, Jan Kara wrote:
+>>>>>>> On Fri 02-08-19 07:24:43, Matthew Wilcox wrote:
+>>>>>>>> On Fri, Aug 02, 2019 at 02:41:46PM +0200, Jan Kara wrote:
+>>>>>>>>> On Fri 02-08-19 11:12:44, Michal Hocko wrote:
+>>>>>>>>>> On Thu 01-08-19 19:19:31, john.hubbard@gmail.com wrote:
+>>   [...]
+> Yep I can do this.  I did not realize that Andrew had accepted any of this work.  I'll check out his tree.  But I don't think he is going to accept this series through his tree.  So what is the ETA on that landing in Linus' tree?
+> 
+
+I'd expect it to go into 5.4, according to my understanding of how
+the release cycles are arranged.
+
+
+> To that point I'm still not sure who would take all this as I am now touching mm, procfs, rdma, ext4, and xfs.
+> 
+> I just thought I would chime in with my progress because I'm to a point where things are working and so I can submit the code but I'm not sure what I can/should depend on landing...  Also, now that 0day has run overnight it has found issues with this rebase so I need to clean those up...  Perhaps I will base on Andrew's tree prior to doing that...
+
+I'm certainly not the right person to answer, but in spite of that, I'd think
+Andrew's tree is a reasonable place for it. Sort of.
+
+thanks,
+-- 
+John Hubbard
+NVIDIA
