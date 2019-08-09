@@ -1,84 +1,66 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Date: Tue, 06 Aug 2019 20:39:16 +0000
-Subject: Re: [PATCH v2 01/34] mm/gup: add make_dirty arg to put_user_pages_dirty_lock()
-Message-Id: <0e232d84-e6ea-159e-91d4-77e938377161@nvidia.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Fri, 09 Aug 2019 19:59:23 +0000
+Subject: Re: [PATCH 09/16] sparc64: use the generic get_user_pages_fast code
+Message-Id: <CADxRZqy61-JOYSv3xtdeW_wTDqKovqDg2G+a-=LH3w=mrf2zUQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
- <20190804224915.28669-2-jhubbard@nvidia.com>
- <20190806173945.GA4748@iweiny-DESK2.sc.intel.com>
-In-Reply-To: <20190806173945.GA4748@iweiny-DESK2.sc.intel.com>
+References: <20190625143715.1689-1-hch@lst.de> <20190625143715.1689-10-hch@lst.de>
+ <20190717215956.GA30369@altlinux.org>
+In-Reply-To: <20190717215956.GA30369@altlinux.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Ira Weiny <ira.weiny@intel.com>, john.hubbard@gmail.com
-Cc: Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kva
+To: "Dmitry V. Levin" <ldv@altlinux.org>
+Cc: Christoph Hellwig <hch@lst.de>, Khalid Aziz <khalid.aziz@oracle.com>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Sparc kernel list <sparclinux@vger.kernel.org>, linux-mm@kvack.org, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On 8/6/19 10:39 AM, Ira Weiny wrote:
-> On Sun, Aug 04, 2019 at 03:48:42PM -0700, john.hubbard@gmail.com wrote:
->> From: John Hubbard <jhubbard@nvidia.com>
+On Thu, Jul 18, 2019 at 12:59 AM Dmitry V. Levin <ldv@altlinux.org> wrote:
+> On Tue, Jun 25, 2019 at 04:37:08PM +0200, Christoph Hellwig wrote:
+> > The sparc64 code is mostly equivalent to the generic one, minus various
+> > bugfixes and two arch overrides that this patch adds to pgtable.h.
+> >
+> > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> > Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+> > ---
+> >  arch/sparc/Kconfig                  |   1 +
+> >  arch/sparc/include/asm/pgtable_64.h |  18 ++
+> >  arch/sparc/mm/Makefile              |   2 +-
+> >  arch/sparc/mm/gup.c                 | 340 ----------------------------
+> >  4 files changed, 20 insertions(+), 341 deletions(-)
+> >  delete mode 100644 arch/sparc/mm/gup.c
+>
+> So this ended up as commit 7b9afb86b6328f10dc2cad9223d7def12d60e505
+
+I've tried to revert this commit on a current master branch , but i'm getting :
+
+linux-2.6$ git show 7b9afb86b632 > /tmp/gup.patch
+linux-2.6$ patch -p1 -R < /tmp/gup.patch
 ...
->> -
->>  /**
->> - * put_user_pages_dirty() - release and dirty an array of gup-pinned pages
->> - * @pages:  array of pages to be marked dirty and released.
->> + * put_user_pages_dirty_lock() - release and optionally dirty gup-pinned pages
->> + * @pages:  array of pages to be maybe marked dirty, and definitely released.
-> 
-> Better would be.
-> 
-> @pages:  array of pages to be put
-
-OK, I'll change to that wording.
-
-> 
->>   * @npages: number of pages in the @pages array.
->> + * @make_dirty: whether to mark the pages dirty
->>   *
->>   * "gup-pinned page" refers to a page that has had one of the get_user_pages()
->>   * variants called on that page.
->>   *
->>   * For each page in the @pages array, make that page (or its head page, if a
->> - * compound page) dirty, if it was previously listed as clean. Then, release
->> - * the page using put_user_page().
->> + * compound page) dirty, if @make_dirty is true, and if the page was previously
->> + * listed as clean. In any case, releases all pages using put_user_page(),
->> + * possibly via put_user_pages(), for the non-dirty case.
-> 
-> I don't think users of this interface need this level of detail.  I think
-> something like.
-> 
->  * For each page in the @pages array, release the page.  If @make_dirty is
->  * true, mark the page dirty prior to release.
-
-Yes, it is too wordy, I'll change to that.
-
-> 
+linux-2.6$ make -j && make -j modules
 ...
->> -void put_user_pages_dirty_lock(struct page **pages, unsigned long npages)
->> -{
->> -	__put_user_pages_dirty(pages, npages, set_page_dirty_lock);
->> +	/*
->> +	 * TODO: this can be optimized for huge pages: if a series of pages is
->> +	 * physically contiguous and part of the same compound page, then a
->> +	 * single operation to the head page should suffice.
->> +	 */
-> 
-> I think this comment belongs to the for loop below...  or just something about
-> how to make this and put_user_pages() more efficient.  It is odd, that this is
-> the same comment as in put_user_pages()...
+  CALL    scripts/atomic/check-atomics.sh
+  CALL    scripts/checksyscalls.sh
+<stdin>:1511:2: warning: #warning syscall clone3 not implemented [-Wcpp]
+  CHK     include/generated/compile.h
+  CHK     include/generated/autoksyms.h
+  GEN     .version
+  CHK     include/generated/compile.h
+  UPD     include/generated/compile.h
+  CC      init/version.o
+  AR      init/built-in.a
+  LD      vmlinux.o
+ld: mm/gup.o: in function `__get_user_pages_fast':
+gup.c:(.text+0x1bc0): multiple definition of `__get_user_pages_fast';
+arch/sparc/mm/gup.o:gup.c:(.text+0x620): first defined here
+ld: mm/gup.o: in function `get_user_pages_fast':
+gup.c:(.text+0x1be0): multiple definition of `get_user_pages_fast';
+arch/sparc/mm/gup.o:gup.c:(.text+0x740): first defined here
+make: *** [Makefile:1060: vmlinux] Error 1
 
-Actually I think I'll just delete the comment entirely, it's just noise really.
+Can someone help me to revert this commit? Is it even possible? Since
+it's not only futex strace calls getting killed and producing OOPS,
+even util-linux.git 'make check' hangs machine/LDOM with multiple OOPS
+in logs, while previous (before this commit) kernel passes tests ok
+(and without kernel OOPS). I've already tried to compile current
+master with gcc-6, gcc-7, gcc-8 debian versions, but all produce same
+OOPS.
 
-> 
-> The code is good.  So... Other than the comments.
-> 
-> Reviewed-by: Ira Weiny <ira.weiny@intel.com>
-
-
-Thanks for the review!
-
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+Thanks.
