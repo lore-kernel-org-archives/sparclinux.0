@@ -1,26 +1,48 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 30 Aug 2019 16:06:20 +0000
-Subject: Re: [PATCH 08/26] m68k: simplify ioremap_nocache
-Message-Id: <20190830160620.GD26887@lst.de>
+From: Nick Desaulniers <ndesaulniers@google.com>
+Date: Mon, 12 Aug 2019 21:50:42 +0000
+Subject: [PATCH 09/16] sparc: prefer __section from compiler_attributes.h
+Message-Id: <20190812215052.71840-9-ndesaulniers@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-9-hch@lst.de> <CAMuHMdWyXGjokWi7tn9JHCTz9YMb_vHn6XKeE7KzH5n-54Sy0A@mail.gmail.com>
-In-Reply-To: <CAMuHMdWyXGjokWi7tn9JHCTz9YMb_vHn6XKeE7KzH5n-54Sy0A@mail.gmail.com>
+References: <20190812215052.71840-1-ndesaulniers@google.com>
+In-Reply-To: <20190812215052.71840-1-ndesaulniers@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Christoph Hellwig <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, the arch/x86 maintainers <x86@kernel.org>, alpha <linux-alpha@vger.kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, Openrisc <openrisc@lists.librecores.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-riscv@lists.infradead.orglinux-s390
+To: akpm@linux-foundation.org
+Cc: sedat.dilek@gmail.com, jpoimboe@redhat.com, yhs@fb.com, miguel.ojeda.sandonis@gmail.com, clang-built-linux@googlegroups.com, Nick Desaulniers <ndesaulniers@google.com>, "David S. Miller" <davem@davemloft.net>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
 
-On Mon, Aug 19, 2019 at 10:56:02AM +0200, Geert Uytterhoeven wrote:
-> Hi Christoph,
-> 
-> On Sat, Aug 17, 2019 at 9:48 AM Christoph Hellwig <hch@lst.de> wrote:
-> > Just define ioremap_nocache to ioremap instead of duplicating the
-> > inline.  Also defined ioremap_uc in terms of ioremap instead of
-> > the using a double indirection.
-> >
-> > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> 
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+Suggested-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+---
+ arch/sparc/include/asm/cache.h | 2 +-
+ arch/sparc/kernel/btext.c      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Do you mind picking this up through the m68k tree?
+diff --git a/arch/sparc/include/asm/cache.h b/arch/sparc/include/asm/cache.h
+index dcfd58118c11..9a9effdd01e2 100644
+--- a/arch/sparc/include/asm/cache.h
++++ b/arch/sparc/include/asm/cache.h
+@@ -21,6 +21,6 @@
+ 
+ #define SMP_CACHE_BYTES (1 << SMP_CACHE_BYTES_SHIFT)
+ 
+-#define __read_mostly __attribute__((__section__(".data..read_mostly")))
++#define __read_mostly __section(.data..read_mostly)
+ 
+ #endif /* !(_SPARC_CACHE_H) */
+diff --git a/arch/sparc/kernel/btext.c b/arch/sparc/kernel/btext.c
+index 5869773f3dc4..b2eff8f8f27b 100644
+--- a/arch/sparc/kernel/btext.c
++++ b/arch/sparc/kernel/btext.c
+@@ -24,7 +24,7 @@ static void draw_byte_32(unsigned char *bits, unsigned int *base, int rb);
+ static void draw_byte_16(unsigned char *bits, unsigned int *base, int rb);
+ static void draw_byte_8(unsigned char *bits, unsigned int *base, int rb);
+ 
+-#define __force_data __attribute__((__section__(".data")))
++#define __force_data __section(.data)
+ 
+ static int g_loc_X __force_data;
+ static int g_loc_Y __force_data;
+-- 
+2.23.0.rc1.153.gdeed80330f-goog
