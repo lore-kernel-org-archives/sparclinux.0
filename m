@@ -1,127 +1,75 @@
-From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:03 +0000
-Subject: [PATCH v3 04/41] net/rds: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-5-jhubbard@nvidia.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 17 Aug 2019 07:32:47 +0000
+Subject: [PATCH 20/26] hexagon: remove __iounmap
+Message-Id: <20190817073253.27819-21-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190817073253.27819-1-hch@lst.de>
+In-Reply-To: <20190817073253.27819-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, Santosh Shilimkar <santosh.shilimkar@oracle.com>, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nf
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+No need to indirect iounmap for hexagon.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
-
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
-
-Cc: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
-Cc: rds-devel@oss.oracle.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- net/rds/info.c    |  5 ++---
- net/rds/message.c |  2 +-
- net/rds/rdma.c    | 15 +++++++--------
- 3 files changed, 10 insertions(+), 12 deletions(-)
+ arch/hexagon/include/asm/io.h       | 7 +------
+ arch/hexagon/kernel/hexagon_ksyms.c | 2 +-
+ arch/hexagon/mm/ioremap.c           | 2 +-
+ 3 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/net/rds/info.c b/net/rds/info.c
-index 03f6fd56d237..ca6af2889adf 100644
---- a/net/rds/info.c
-+++ b/net/rds/info.c
-@@ -162,7 +162,6 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
- 	struct rds_info_lengths lens;
- 	unsigned long nr_pages = 0;
- 	unsigned long start;
--	unsigned long i;
- 	rds_info_func func;
- 	struct page **pages = NULL;
- 	int ret;
-@@ -235,8 +234,8 @@ int rds_info_getsockopt(struct socket *sock, int optname, char __user *optval,
- 		ret = -EFAULT;
+diff --git a/arch/hexagon/include/asm/io.h b/arch/hexagon/include/asm/io.h
+index 89537dc1cf97..539e3efcf39c 100644
+--- a/arch/hexagon/include/asm/io.h
++++ b/arch/hexagon/include/asm/io.h
+@@ -27,7 +27,7 @@
+ extern int remap_area_pages(unsigned long start, unsigned long phys_addr,
+ 				unsigned long end, unsigned long flags);
  
- out:
--	for (i = 0; pages && i < nr_pages; i++)
--		put_page(pages[i]);
-+	if (pages)
-+		put_user_pages(pages, nr_pages);
- 	kfree(pages);
+-extern void __iounmap(const volatile void __iomem *addr);
++extern void iounmap(const volatile void __iomem *addr);
  
- 	return ret;
-diff --git a/net/rds/message.c b/net/rds/message.c
-index 50f13f1d4ae0..d7b0d266c437 100644
---- a/net/rds/message.c
-+++ b/net/rds/message.c
-@@ -404,7 +404,7 @@ static int rds_message_zcopy_from_user(struct rds_message *rm, struct iov_iter *
- 			int i;
+ /* Defined in lib/io.c, needed for smc91x driver. */
+ extern void __raw_readsw(const void __iomem *addr, void *data, int wordlen);
+@@ -175,11 +175,6 @@ void __iomem *ioremap(unsigned long phys_addr, unsigned long size);
+ #define ioremap_nocache ioremap
  
- 			for (i = 0; i < rm->data.op_nents; i++)
--				put_page(sg_page(&rm->data.op_sg[i]));
-+				put_user_page(sg_page(&rm->data.op_sg[i]));
- 			mmp = &rm->data.op_mmp_znotifier->z_mmp;
- 			mm_unaccount_pinned_pages(mmp);
- 			ret = -EFAULT;
-diff --git a/net/rds/rdma.c b/net/rds/rdma.c
-index 916f5ec373d8..6762e8696b99 100644
---- a/net/rds/rdma.c
-+++ b/net/rds/rdma.c
-@@ -162,8 +162,7 @@ static int rds_pin_pages(unsigned long user_addr, unsigned int nr_pages,
- 				  pages);
  
- 	if (ret >= 0 && ret < nr_pages) {
--		while (ret--)
--			put_page(pages[ret]);
-+		put_user_pages(pages, ret);
- 		ret = -EFAULT;
- 	}
+-static inline void iounmap(volatile void __iomem *addr)
+-{
+-	__iounmap(addr);
+-}
+-
+ #define __raw_writel writel
  
-@@ -276,7 +275,7 @@ static int __rds_rdma_map(struct rds_sock *rs, struct rds_get_mr_args *args,
+ static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
+diff --git a/arch/hexagon/kernel/hexagon_ksyms.c b/arch/hexagon/kernel/hexagon_ksyms.c
+index b3dbb472572e..6fb1aaab1c29 100644
+--- a/arch/hexagon/kernel/hexagon_ksyms.c
++++ b/arch/hexagon/kernel/hexagon_ksyms.c
+@@ -14,7 +14,7 @@
+ EXPORT_SYMBOL(__clear_user_hexagon);
+ EXPORT_SYMBOL(raw_copy_from_user);
+ EXPORT_SYMBOL(raw_copy_to_user);
+-EXPORT_SYMBOL(__iounmap);
++EXPORT_SYMBOL(iounmap);
+ EXPORT_SYMBOL(__strnlen_user);
+ EXPORT_SYMBOL(__vmgetie);
+ EXPORT_SYMBOL(__vmsetie);
+diff --git a/arch/hexagon/mm/ioremap.c b/arch/hexagon/mm/ioremap.c
+index b103d83b5fbb..255c5b1ee1a7 100644
+--- a/arch/hexagon/mm/ioremap.c
++++ b/arch/hexagon/mm/ioremap.c
+@@ -38,7 +38,7 @@ void __iomem *ioremap(unsigned long phys_addr, unsigned long size)
+ 	return (void __iomem *) (offset + addr);
+ }
  
- 	if (IS_ERR(trans_private)) {
- 		for (i = 0 ; i < nents; i++)
--			put_page(sg_page(&sg[i]));
-+			put_user_page(sg_page(&sg[i]));
- 		kfree(sg);
- 		ret = PTR_ERR(trans_private);
- 		goto out;
-@@ -464,9 +463,10 @@ void rds_rdma_free_op(struct rm_rdma_op *ro)
- 		 * to local memory */
- 		if (!ro->op_write) {
- 			WARN_ON(!page->mapping && irqs_disabled());
--			set_page_dirty(page);
-+			put_user_pages_dirty_lock(&page, 1, true);
-+		} else {
-+			put_user_page(page);
- 		}
--		put_page(page);
- 	}
- 
- 	kfree(ro->op_notifier);
-@@ -481,8 +481,7 @@ void rds_atomic_free_op(struct rm_atomic_op *ao)
- 	/* Mark page dirty if it was possibly modified, which
- 	 * is the case for a RDMA_READ which copies from remote
- 	 * to local memory */
--	set_page_dirty(page);
--	put_page(page);
-+	put_user_pages_dirty_lock(&page, 1, true);
- 
- 	kfree(ao->op_notifier);
- 	ao->op_notifier = NULL;
-@@ -867,7 +866,7 @@ int rds_cmsg_atomic(struct rds_sock *rs, struct rds_message *rm,
- 	return ret;
- err:
- 	if (page)
--		put_page(page);
-+		put_user_page(page);
- 	rm->atomic.op_active = 0;
- 	kfree(rm->atomic.op_notifier);
- 
+-void __iounmap(const volatile void __iomem *addr)
++void iounmap(const volatile void __iomem *addr)
+ {
+ 	vunmap((void *) ((unsigned long) addr & PAGE_MASK));
+ }
 -- 
-2.22.0
+2.20.1
