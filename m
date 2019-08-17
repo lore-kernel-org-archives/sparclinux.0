@@ -1,29 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Date: Sat, 31 Aug 2019 20:02:50 +0000
-Subject: Re: [PATCH v2 7/9] sparc64: numa: check the node id consistently for sparc64
-Message-Id: <20190831.130250.1236116087422472663.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 17 Aug 2019 07:32:35 +0000
+Subject: [PATCH 08/26] m68k: simplify ioremap_nocache
+Message-Id: <20190817073253.27819-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1567231103-13237-8-git-send-email-linyunsheng@huawei.com>
- <20190830.235337.570776316111294728.davem@davemloft.net>
- <0195eb73-99ae-fec2-3e11-2cb9e6677926@huawei.com>
-In-Reply-To: <0195eb73-99ae-fec2-3e11-2cb9e6677926@huawei.com>
+References: <20190817073253.27819-1-hch@lst.de>
+In-Reply-To: <20190817073253.27819-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linyunsheng@huawei.com
-Cc: dalias@libc.org, linux-sh@vger.kernel.org, peterz@infradead.org, catalin.marinas@arm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, linuxarm@huawei.com, jiaxun.yang@flygoat.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, chenhc@lemote.com, will@kernel.org, cai@lca.pw, linux-s390@vger.kernel.org, ysato@users.sourceforge.jp, mpe@ellerman.id.au, x86@kernel.org, rppt@linux.ibm.com, borntraeger@de.ibm.com, dledford@redhat.com, mingo@redhat.com, jeffrey.t.kirsher@intel.com, benh@kernel.crashing.org, jhogan@kernel.org, nfont@linux.vnet.ibm.com, mattst88@gmail.com, len.brown@intel.com, gor@linux.ibm.com, anshuman.khandual@arm.com, bp@alien8.de, luto@kernel.org, tglx@linutronix.de, naveen.n.rao@linux.vnet.ibm.com, linux-arm-kernel@lists.infradead.org, rth@twiddle.net, axboe@kernel.dk, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, ralf@linux-mips.org, tbogendoerfer@suse.de, paul.burton@mips.com, linux-alpha@vger.kernel.org, ink@jurassic.park.msu.ru, akpm@linux-foundation.org, robin.murphy@arm.com
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Sat, 31 Aug 2019 16:57:04 +0800
+Just define ioremap_nocache to ioremap instead of duplicating the
+inline.  Also defined ioremap_uc in terms of ioremap instead of
+the using a double indirection.
 
-> Did you mean sparc64 system does not has ACPI, the device's node id will
-> not specified by ACPI, so the ACPI is unrelated here?
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/m68k/include/asm/kmap.h | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-Yes, sparc64 never has and never will have ACPI.
-
-This is also true for several other platforms where you have made this
-change.
-
-The assumption of your entire patch set is that the semantics of the
-NUMA node ID are somehow completely defined by ACPI semantics.  Which
-is not true.
+diff --git a/arch/m68k/include/asm/kmap.h b/arch/m68k/include/asm/kmap.h
+index 03d904fe6087..421b6c9c769d 100644
+--- a/arch/m68k/include/asm/kmap.h
++++ b/arch/m68k/include/asm/kmap.h
+@@ -28,14 +28,8 @@ static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
+ 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+ }
+ 
+-#define ioremap_nocache ioremap_nocache
+-static inline void __iomem *ioremap_nocache(unsigned long physaddr,
+-					    unsigned long size)
+-{
+-	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+-}
+-
+-#define ioremap_uc ioremap_nocache
++#define ioremap_nocache ioremap
++#define ioremap_uc ioremap
+ #define ioremap_wt ioremap_wt
+ static inline void __iomem *ioremap_wt(unsigned long physaddr,
+ 				       unsigned long size)
+-- 
+2.20.1
