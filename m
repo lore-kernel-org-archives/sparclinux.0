@@ -1,79 +1,94 @@
-From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:13 +0000
-Subject: [PATCH v3 14/41] vmci: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-15-jhubbard@nvidia.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 17 Aug 2019 07:32:38 +0000
+Subject: [PATCH 11/26] parisc: remove __ioremap
+Message-Id: <20190817073253.27819-12-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190817073253.27819-1-hch@lst.de>
+In-Reply-To: <20190817073253.27819-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, "Gustavo A . R . Silva" <gustavo@embeddedor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Kees Cook <keescook@chromium.org>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.w>
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+__ioremap is always called with the _PAGE_NO_CACHE, so fold the whole
+thing and rename it to ioremap.  This allows allows to remove the
+special EISA quirk to force _PAGE_NO_CACHE.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
-
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
-
-Note that this effectively changes the code's behavior in
-qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
-instead of set_page_dirty(). This is probably more accurate.
-
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
-
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/misc/vmw_vmci/vmci_context.c    |  2 +-
- drivers/misc/vmw_vmci/vmci_queue_pair.c | 11 ++---------
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ arch/parisc/include/asm/io.h | 11 +----------
+ arch/parisc/mm/ioremap.c     | 16 +++-------------
+ 2 files changed, 4 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/misc/vmw_vmci/vmci_context.c b/drivers/misc/vmw_vmci/vmci_context.c
-index 16695366ec92..9daa52ee63b7 100644
---- a/drivers/misc/vmw_vmci/vmci_context.c
-+++ b/drivers/misc/vmw_vmci/vmci_context.c
-@@ -587,7 +587,7 @@ void vmci_ctx_unset_notify(struct vmci_ctx *context)
- 
- 	if (notify_page) {
- 		kunmap(notify_page);
--		put_page(notify_page);
-+		put_user_page(notify_page);
- 	}
- }
- 
-diff --git a/drivers/misc/vmw_vmci/vmci_queue_pair.c b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-index 8531ae781195..e5434551d0ef 100644
---- a/drivers/misc/vmw_vmci/vmci_queue_pair.c
-+++ b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-@@ -626,15 +626,8 @@ static void qp_release_queue_mutex(struct vmci_queue *queue)
- static void qp_release_pages(struct page **pages,
- 			     u64 num_pages, bool dirty)
- {
--	int i;
--
--	for (i = 0; i < num_pages; i++) {
--		if (dirty)
--			set_page_dirty(pages[i]);
--
--		put_page(pages[i]);
--		pages[i] = NULL;
--	}
-+	put_user_pages_dirty_lock(pages, num_pages, dirty);
-+	memset(pages, 0, num_pages * sizeof(struct page *));
- }
- 
+diff --git a/arch/parisc/include/asm/io.h b/arch/parisc/include/asm/io.h
+index 93d37010b375..46212b52c23e 100644
+--- a/arch/parisc/include/asm/io.h
++++ b/arch/parisc/include/asm/io.h
+@@ -127,16 +127,7 @@ static inline void gsc_writeq(unsigned long long val, unsigned long addr)
  /*
+  * The standard PCI ioremap interfaces
+  */
+-
+-extern void __iomem * __ioremap(unsigned long offset, unsigned long size, unsigned long flags);
+-
+-/* Most machines react poorly to I/O-space being cacheable... Instead let's
+- * define ioremap() in terms of ioremap_nocache().
+- */
+-static inline void __iomem * ioremap(unsigned long offset, unsigned long size)
+-{
+-	return __ioremap(offset, size, _PAGE_NO_CACHE);
+-}
++void __iomem *ioremap(unsigned long offset, unsigned long size);
+ #define ioremap_nocache(off, sz)	ioremap((off), (sz))
+ #define ioremap_wc			ioremap_nocache
+ #define ioremap_uc			ioremap_nocache
+diff --git a/arch/parisc/mm/ioremap.c b/arch/parisc/mm/ioremap.c
+index 92a9b5f12f98..fe65e27f882b 100644
+--- a/arch/parisc/mm/ioremap.c
++++ b/arch/parisc/mm/ioremap.c
+@@ -25,23 +25,13 @@
+  * have to convert them into an offset in a page-aligned mapping, but the
+  * caller shouldn't need to know that small detail.
+  */
+-void __iomem * __ioremap(unsigned long phys_addr, unsigned long size, unsigned long flags)
++void __iomem *ioremap(unsigned long phys_addr, unsigned long size)
+ {
+ 	void __iomem *addr;
+ 	struct vm_struct *area;
+ 	unsigned long offset, last_addr;
+ 	pgprot_t pgprot;
+ 
+-#ifdef CONFIG_EISA
+-	unsigned long end = phys_addr + size - 1;
+-	/* Support EISA addresses */
+-	if ((phys_addr >= 0x00080000 && end < 0x000fffff) ||
+-	    (phys_addr >= 0x00500000 && end < 0x03bfffff)) {
+-		phys_addr |= F_EXTEND(0xfc000000);
+-		flags |= _PAGE_NO_CACHE;
+-	}
+-#endif
+-
+ 	/* Don't allow wraparound or zero size */
+ 	last_addr = phys_addr + size - 1;
+ 	if (!size || last_addr < phys_addr)
+@@ -65,7 +55,7 @@ void __iomem * __ioremap(unsigned long phys_addr, unsigned long size, unsigned l
+ 	}
+ 
+ 	pgprot = __pgprot(_PAGE_PRESENT | _PAGE_RW | _PAGE_DIRTY |
+-			  _PAGE_ACCESSED | flags);
++			  _PAGE_ACCESSED | _PAGE_NO_CACHE);
+ 
+ 	/*
+ 	 * Mappings have to be page-aligned
+@@ -90,7 +80,7 @@ void __iomem * __ioremap(unsigned long phys_addr, unsigned long size, unsigned l
+ 
+ 	return (void __iomem *) (offset + (char __iomem *)addr);
+ }
+-EXPORT_SYMBOL(__ioremap);
++EXPORT_SYMBOL(ioremap);
+ 
+ void iounmap(const volatile void __iomem *addr)
+ {
 -- 
-2.22.0
+2.20.1
