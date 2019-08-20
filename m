@@ -1,51 +1,92 @@
-From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:28 +0000
-Subject: [PATCH v3 29/41] mm/memory.c: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-30-jhubbard@nvidia.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Tue, 20 Aug 2019 03:34:00 +0000
+Subject: [PATCH RESEND v11 2/8] procfs: switch magic-link modes to be more sane
+Message-Id: <20190820033406.29796-3-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190820033406.29796-1-cyphar@cyphar.com>
+In-Reply-To: <20190820033406.29796-1-cyphar@cyphar.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Christian Brauner <christian@brauner.io>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: John Hubbard <jhubbard@nvidia.com>
+Now that magic-link modes are obeyed for file re-opening purposes, some
+of the pre-existing magic-link modes need to be adjusted to be more
+semantically correct.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
+The most blatant example of this is /proc/self/exe, which had a mode of
+a+rwx even though tautologically the file could never be opened for
+writing (because it is the current->mm of a live process).
 
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
+With the new O_PATH restrictions, changing the default mode of these
+magic-links allows us to avoid delayed-access attacks such as we saw in
+CVE-2019-5736.
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Jérôme Glisse <jglisse@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- mm/memory.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c       | 20 ++++++++++----------
+ fs/proc/namespaces.c |  2 +-
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/mm/memory.c b/mm/memory.c
-index e2bb51b6242e..8870968496ea 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -4337,7 +4337,7 @@ int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
- 						    buf, maddr + offset, bytes);
- 			}
- 			kunmap(page);
--			put_page(page);
-+			put_user_page(page);
- 		}
- 		len -= bytes;
- 		buf += bytes;
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index ebea9501afb8..297242174402 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -133,9 +133,9 @@ struct pid_entry {
+ 
+ #define DIR(NAME, MODE, iops, fops)	\
+ 	NOD(NAME, (S_IFDIR|(MODE)), &iops, &fops, {} )
+-#define LNK(NAME, get_link)					\
+-	NOD(NAME, (S_IFLNK|S_IRWXUGO),				\
+-		&proc_pid_link_inode_operations, NULL,		\
++#define LNK(NAME, MODE, get_link)			\
++	NOD(NAME, (S_IFLNK|(MODE)),			\
++		&proc_pid_link_inode_operations, NULL,	\
+ 		{ .proc_get_link = get_link } )
+ #define REG(NAME, MODE, fops)				\
+ 	NOD(NAME, (S_IFREG|(MODE)), NULL, &fops, {})
+@@ -3028,9 +3028,9 @@ static const struct pid_entry tgid_base_stuff[] = {
+ 	REG("numa_maps",  S_IRUGO, proc_pid_numa_maps_operations),
+ #endif
+ 	REG("mem",        S_IRUSR|S_IWUSR, proc_mem_operations),
+-	LNK("cwd",        proc_cwd_link),
+-	LNK("root",       proc_root_link),
+-	LNK("exe",        proc_exe_link),
++	LNK("cwd",        S_IRWXUGO, proc_cwd_link),
++	LNK("root",       S_IRWXUGO, proc_root_link),
++	LNK("exe",        S_IRUGO|S_IXUGO, proc_exe_link),
+ 	REG("mounts",     S_IRUGO, proc_mounts_operations),
+ 	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
+ 	REG("mountstats", S_IRUSR, proc_mountstats_operations),
+@@ -3429,11 +3429,11 @@ static const struct pid_entry tid_base_stuff[] = {
+ 	REG("numa_maps", S_IRUGO, proc_pid_numa_maps_operations),
+ #endif
+ 	REG("mem",       S_IRUSR|S_IWUSR, proc_mem_operations),
+-	LNK("cwd",       proc_cwd_link),
+-	LNK("root",      proc_root_link),
+-	LNK("exe",       proc_exe_link),
++	LNK("cwd",       S_IRWXUGO, proc_cwd_link),
++	LNK("root",      S_IRWXUGO, proc_root_link),
++	LNK("exe",       S_IRUGO|S_IXUGO, proc_exe_link),
+ 	REG("mounts",    S_IRUGO, proc_mounts_operations),
+-	REG("mountinfo",  S_IRUGO, proc_mountinfo_operations),
++	REG("mountinfo", S_IRUGO, proc_mountinfo_operations),
+ #ifdef CONFIG_PROC_PAGE_MONITOR
+ 	REG("clear_refs", S_IWUSR, proc_clear_refs_operations),
+ 	REG("smaps",     S_IRUGO, proc_pid_smaps_operations),
+diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
+index dd2b35f78b09..cd1e130913f7 100644
+--- a/fs/proc/namespaces.c
++++ b/fs/proc/namespaces.c
+@@ -94,7 +94,7 @@ static struct dentry *proc_ns_instantiate(struct dentry *dentry,
+ 	struct inode *inode;
+ 	struct proc_inode *ei;
+ 
+-	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFLNK | S_IRWXUGO);
++	inode = proc_pid_make_inode(dentry->d_sb, task, S_IFLNK | S_IRUGO);
+ 	if (!inode)
+ 		return ERR_PTR(-ENOENT);
+ 
 -- 
 2.22.0
