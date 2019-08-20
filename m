@@ -1,79 +1,183 @@
-From: john.hubbard@gmail.com
-Date: Sun, 04 Aug 2019 22:48:53 +0000
-Subject: [PATCH v2 12/34] vmci: convert put_page() to put_user_page*()
-Message-Id: <20190804224915.28669-13-jhubbard@nvidia.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Tue, 20 Aug 2019 03:34:03 +0000
+Subject: [PATCH RESEND v11 5/8] namei: LOOKUP_IN_ROOT: chroot-like path resolution
+Message-Id: <20190820033406.29796-6-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
-In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
+References: <20190820033406.29796-1-cyphar@cyphar.com>
+In-Reply-To: <20190820033406.29796-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Dan Williams <dan.j.williams@intel.com>, Dave Chinner <david@fromorbit.com>, Dave Hansen <dave.hansen@linux.intel.com>, Ira Weiny <ira.weiny@intel.com>, Jan Kara <jack@suse.cz>, Jason Gunthorpe <jgg@ziepe.ca>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, LKML <linux-kernel@vger.kernel.org>, amd-gfx@lists.freedesktop.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, devel@lists.orangefs.org, dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org, linux-mm@kvack.org, linux-nfs@vger.kernel.or
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian@brauner.io>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.orglinux-
 
-From: John Hubbard <jhubbard@nvidia.com>
+The primary motivation for the need for this flag is container runtimes
+which have to interact with malicious root filesystems in the host
+namespaces. One of the first requirements for a container runtime to be
+secure against a malicious rootfs is that they correctly scope symlinks
+(that is, they should be scoped as though they are chroot(2)ed into the
+container's rootfs) and ".."-style paths[*]. The already-existing
+LOOKUP_NO_XDEV and LOOKUP_NO_MAGICLINKS help defend against other
+potential attacks in a malicious rootfs scenario.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
+Currently most container runtimes try to do this resolution in
+userspace[1], causing many potential race conditions. In addition, the
+"obvious" alternative (actually performing a {ch,pivot_}root(2))
+requires a fork+exec (for some runtimes) which is *very* costly if
+necessary for every filesystem operation involving a container.
 
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
+[*] At the moment, ".." and magic-link jumping are disallowed for the
+    same reason it is disabled for LOOKUP_BENEATH -- currently it is not
+    safe to allow it. Future patches may enable it unconditionally once
+    we have resolved the possible races (for "..") and semantics (for
+    magic-link jumping).
 
-Note that this effectively changes the code's behavior in
-qp_release_pages(): it now ultimately calls set_page_dirty_lock(),
-instead of set_page_dirty(). This is probably more accurate.
+The most significant *at(2) semantic change with LOOKUP_IN_ROOT is that
+absolute pathnames no longer cause the dirfd to be ignored completely.
 
-As Christoph Hellwig put it, "set_page_dirty() is only safe if we are
-dealing with a file backed page where we have reference on the inode it
-hangs off." [1]
+The rationale is that LOOKUP_IN_ROOT must necessarily chroot-scope
+symlinks with absolute paths to dirfd, and so doing it for the base path
+seems to be the most consistent behaviour (and also avoids foot-gunning
+users who want to scope paths that are absolute).
 
-[1] https://lore.kernel.org/r/20190723153640.GB720@lst.de
+[1]: https://github.com/cyphar/filepath-securejoin
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Gustavo A. R. Silva <gustavo@embeddedor.com>
-Cc: Kees Cook <keescook@chromium.org>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: Christian Brauner <christian@brauner.io>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- drivers/misc/vmw_vmci/vmci_context.c    |  2 +-
- drivers/misc/vmw_vmci/vmci_queue_pair.c | 11 ++---------
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ fs/namei.c            | 41 +++++++++++++++++++++++++++++++----------
+ include/linux/namei.h |  1 +
+ 2 files changed, 32 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/misc/vmw_vmci/vmci_context.c b/drivers/misc/vmw_vmci/vmci_context.c
-index 16695366ec92..9daa52ee63b7 100644
---- a/drivers/misc/vmw_vmci/vmci_context.c
-+++ b/drivers/misc/vmw_vmci/vmci_context.c
-@@ -587,7 +587,7 @@ void vmci_ctx_unset_notify(struct vmci_ctx *context)
- 
- 	if (notify_page) {
- 		kunmap(notify_page);
--		put_page(notify_page);
-+		put_user_page(notify_page);
- 	}
+diff --git a/fs/namei.c b/fs/namei.c
+index 2e18ce5a313e..0352d275bd13 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -676,7 +676,7 @@ static int unlazy_walk(struct nameidata *nd)
+ 		goto out1;
+ 	if (!nd->root.mnt) {
+ 		/* Restart from path_init() if nd->root was cleared. */
+-		if (nd->flags & LOOKUP_BENEATH)
++		if (nd->flags & (LOOKUP_BENEATH | LOOKUP_IN_ROOT))
+ 			goto out;
+ 	} else if (!(nd->flags & LOOKUP_ROOT)) {
+ 		if (unlikely(!legitimize_path(nd, &nd->root, nd->root_seq)))
+@@ -809,10 +809,18 @@ static int complete_walk(struct nameidata *nd)
+ 	return status;
  }
  
-diff --git a/drivers/misc/vmw_vmci/vmci_queue_pair.c b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-index 8531ae781195..e5434551d0ef 100644
---- a/drivers/misc/vmw_vmci/vmci_queue_pair.c
-+++ b/drivers/misc/vmw_vmci/vmci_queue_pair.c
-@@ -626,15 +626,8 @@ static void qp_release_queue_mutex(struct vmci_queue *queue)
- static void qp_release_pages(struct page **pages,
- 			     u64 num_pages, bool dirty)
+-static void set_root(struct nameidata *nd)
++static int set_root(struct nameidata *nd)
  {
--	int i;
--
--	for (i = 0; i < num_pages; i++) {
--		if (dirty)
--			set_page_dirty(pages[i]);
--
--		put_page(pages[i]);
--		pages[i] = NULL;
--	}
-+	put_user_pages_dirty_lock(pages, num_pages, dirty);
-+	memset(pages, 0, num_pages * sizeof(struct page *));
+ 	struct fs_struct *fs = current->fs;
+ 
++	/*
++	 * Jumping to the real root as part of LOOKUP_IN_ROOT is a BUG in namei,
++	 * but we still have to ensure it doesn't happen because it will cause a
++	 * breakout from the dirfd.
++	 */
++	if (WARN_ON(nd->flags & LOOKUP_IN_ROOT))
++		return -ENOTRECOVERABLE;
++
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		unsigned seq;
+ 
+@@ -824,6 +832,7 @@ static void set_root(struct nameidata *nd)
+ 	} else {
+ 		get_fs_root(fs, &nd->root);
+ 	}
++	return 0;
  }
  
- /*
+ static void path_put_conditional(struct path *path, struct nameidata *nd)
+@@ -854,6 +863,11 @@ static int nd_jump_root(struct nameidata *nd)
+ 		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
+ 			return -EXDEV;
+ 	}
++	if (!nd->root.mnt) {
++		int error = set_root(nd);
++		if (error)
++			return error;
++	}
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		struct dentry *d;
+ 		nd->path = nd->root;
+@@ -1100,15 +1114,13 @@ const char *get_link(struct nameidata *nd)
+ 			if (unlikely(nd->flags & LOOKUP_NO_MAGICLINKS))
+ 				return ERR_PTR(-ELOOP);
+ 			/* Not currently safe. */
+-			if (unlikely(nd->flags & LOOKUP_BENEATH))
++			if (unlikely(nd->flags & (LOOKUP_BENEATH | LOOKUP_IN_ROOT)))
+ 				return ERR_PTR(-EXDEV);
+ 		}
+ 		if (IS_ERR_OR_NULL(res))
+ 			return res;
+ 	}
+ 	if (*res = '/') {
+-		if (!nd->root.mnt)
+-			set_root(nd);
+ 		error = nd_jump_root(nd);
+ 		if (unlikely(error))
+ 			return ERR_PTR(error);
+@@ -1744,15 +1756,20 @@ static inline int may_lookup(struct nameidata *nd)
+ static inline int handle_dots(struct nameidata *nd, int type)
+ {
+ 	if (type = LAST_DOTDOT) {
++		int error = 0;
++
+ 		/*
+ 		 * LOOKUP_BENEATH resolving ".." is not currently safe -- races
+ 		 * can cause our parent to have moved outside of the root and
+ 		 * us to skip over it.
+ 		 */
+-		if (unlikely(nd->flags & LOOKUP_BENEATH))
++		if (unlikely(nd->flags & (LOOKUP_BENEATH | LOOKUP_IN_ROOT)))
+ 			return -EXDEV;
+-		if (!nd->root.mnt)
+-			set_root(nd);
++		if (!nd->root.mnt) {
++			error = set_root(nd);
++			if (error)
++				return error;
++		}
+ 		if (nd->flags & LOOKUP_RCU) {
+ 			return follow_dotdot_rcu(nd);
+ 		} else
+@@ -2251,9 +2268,13 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 
+ 	nd->m_seq = read_seqbegin(&mount_lock);
+ 
++	/* LOOKUP_IN_ROOT treats absolute paths as being relative-to-dirfd. */
++	if (flags & LOOKUP_IN_ROOT)
++		while (*s = '/')
++			s++;
++
+ 	/* Figure out the starting path and root (if needed). */
+ 	if (*s = '/') {
+-		set_root(nd);
+ 		error = nd_jump_root(nd);
+ 		if (unlikely(error))
+ 			return ERR_PTR(error);
+@@ -2298,7 +2319,7 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 		fdput(f);
+ 	}
+ 	/* For scoped-lookups we need to set the root to the dirfd as well. */
+-	if (flags & LOOKUP_BENEATH) {
++	if (flags & (LOOKUP_BENEATH | LOOKUP_IN_ROOT)) {
+ 		nd->root = nd->path;
+ 		if (flags & LOOKUP_RCU)
+ 			nd->root_seq = nd->seq;
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index be407415c28a..ec2c6c588ea7 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -57,6 +57,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
+ #define LOOKUP_NO_MAGICLINKS	0x080000 /* No /proc/$pid/fd/ "symlink" crossing. */
+ #define LOOKUP_NO_SYMLINKS	0x100000 /* No symlink crossing *at all*.
+ 					    Implies LOOKUP_NO_MAGICLINKS. */
++#define LOOKUP_IN_ROOT		0x200000 /* Treat dirfd as %current->fs->root. */
+ 
+ extern int path_pts(struct path *path);
+ 
 -- 
 2.22.0
