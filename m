@@ -1,57 +1,182 @@
-From: john.hubbard@gmail.com
-Date: Wed, 07 Aug 2019 01:33:23 +0000
-Subject: [PATCH v3 24/41] orangefs: convert put_page() to put_user_page*()
-Message-Id: <20190807013340.9706-25-jhubbard@nvidia.com>
+From: Changbin Du <changbin.du@gmail.com>
+Date: Sun, 25 Aug 2019 13:23:28 +0000
+Subject: [PATCH 09/11] x86_64: add function prototype recording support
+Message-Id: <20190825132330.5015-10-changbin.du@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190807013340.9706-1-jhubbard@nvidia.com>
-In-Reply-To: <20190807013340.9706-1-jhubbard@nvidia.com>
+References: <20190825132330.5015-1-changbin.du@gmail.com>
+In-Reply-To: <20190825132330.5015-1-changbin.du@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Martin Brandenburg <martin@omnibond.com>, linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, ceph-devel@vger.kernel.org, Mike Marshall <hubcap@omnibond.com>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.willi>
+To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
 
-From: John Hubbard <jhubbard@nvidia.com>
+This patch implements the arch_fgraph_record_params() function for x86_64
+platform and deliver the return value of function to ftrace core part.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
-
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
-
-Cc: Mike Marshall <hubcap@omnibond.com>
-Cc: Martin Brandenburg <martin@omnibond.com>
-Cc: devel@lists.orangefs.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- fs/orangefs/orangefs-bufmap.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/x86/Kconfig            |  1 +
+ arch/x86/kernel/ftrace.c    | 84 +++++++++++++++++++++++++++++++++++--
+ arch/x86/kernel/ftrace_64.S |  4 +-
+ 3 files changed, 85 insertions(+), 4 deletions(-)
 
-diff --git a/fs/orangefs/orangefs-bufmap.c b/fs/orangefs/orangefs-bufmap.c
-index 2bb916d68576..f2f33a16d604 100644
---- a/fs/orangefs/orangefs-bufmap.c
-+++ b/fs/orangefs/orangefs-bufmap.c
-@@ -168,10 +168,7 @@ static DEFINE_SPINLOCK(orangefs_bufmap_lock);
- static void
- orangefs_bufmap_unmap(struct orangefs_bufmap *bufmap)
- {
--	int i;
--
--	for (i = 0; i < bufmap->page_count; i++)
--		put_page(bufmap->page_array[i]);
-+	put_user_pages(bufmap->page_array, bufmap->page_count);
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 222855cc0158..34e583bfdab8 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -31,6 +31,7 @@ config X86_64
+ 	select NEED_DMA_MAP_STATE
+ 	select SWIOTLB
+ 	select ARCH_HAS_SYSCALL_WRAPPER
++	select HAVE_FTRACE_FUNC_PROTOTYPE
+ 
+ config FORCE_DYNAMIC_FTRACE
+ 	def_bool y
+diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+index a044734167af..fc0a062ce762 100644
+--- a/arch/x86/kernel/ftrace.c
++++ b/arch/x86/kernel/ftrace.c
+@@ -31,6 +31,7 @@
+ #include <asm/ftrace.h>
+ #include <asm/nops.h>
+ #include <asm/text-patching.h>
++#include <asm-generic/dwarf.h>
+ 
+ #ifdef CONFIG_DYNAMIC_FTRACE
+ 
+@@ -918,7 +919,8 @@ static void *addr_from_call(void *ptr)
  }
  
- static void
-@@ -280,7 +277,7 @@ orangefs_bufmap_map(struct orangefs_bufmap *bufmap,
+ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
+-			   unsigned long frame_pointer);
++			   unsigned long frame_pointer,
++			   struct pt_regs *pt_regs);
  
- 		for (i = 0; i < ret; i++) {
- 			SetPageError(bufmap->page_array[i]);
--			put_page(bufmap->page_array[i]);
-+			put_user_page(bufmap->page_array[i]);
- 		}
- 		return -ENOMEM;
+ /*
+  * If the ops->trampoline was not allocated, then it probably
+@@ -973,6 +975,82 @@ void arch_ftrace_trampoline_free(struct ftrace_ops *ops)
+ 	ops->trampoline = 0;
+ }
+ 
++#ifdef CONFIG_FTRACE_FUNC_PROTOTYPE
++void arch_fgraph_record_params(struct ftrace_graph_ent *trace,
++			       struct func_prototype *proto,
++			       struct pt_regs *pt_regs)
++{
++	int i;
++
++	trace->nr_param = min(proto->nr_param, (uint8_t)FTRACE_MAX_FUNC_PARAMS);
++
++	for (i = 0; i < trace->nr_param; i++) {
++		struct func_param *param = &proto->params[i];
++		unsigned int sz = FTRACE_PROTOTYPE_SIZE(param->type);
++		long off = (char)param->loc[1];
++		unsigned long value = 0;
++		bool good = true;
++
++		if (sz > sizeof(value)) {
++			/* Don't record value of complex type. */
++			trace->param_types[i] = param->type;
++			trace->param_values[i] = 0;
++			continue;
++		}
++
++		switch (param->loc[0]) {
++		case DW_OP_reg1:
++			value = pt_regs->dx;
++			break;
++		case DW_OP_reg2:
++			value = pt_regs->cx;
++			break;
++		case DW_OP_reg3:
++			value = pt_regs->bx;
++			break;
++		case DW_OP_reg4:
++			value = pt_regs->si;
++			break;
++		case DW_OP_reg5:
++			value = pt_regs->di;
++			break;
++		case DW_OP_reg6:
++			value = pt_regs->bp;
++			break;
++		case DW_OP_reg8:
++			value = pt_regs->r8;
++			break;
++		case DW_OP_reg9:
++			value = pt_regs->r9;
++			break;
++		case DW_OP_fbreg:
++			if (probe_kernel_read(&value,
++					(void *)pt_regs->bp + off,
++					sz))
++				good = false;
++			break;
++		case DW_OP_breg7:
++			if (probe_kernel_read(&value,
++					(void *)pt_regs->sp + off,
++					sz))
++				good = false;
++			break;
++		default:
++			/* unexpected loc expression */
++			good = false;
++		}
++
++		trace->param_names[i] = param->name;
++		if (good) {
++			trace->param_types[i] = param->type;
++			trace->param_values[i] = value;
++		} else {
++			/* set the type to 0 so we skip it when printing. */
++			trace->param_types[i] = 0;
++		}
++	}
++}
++#endif /* CONFIG_FTRACE_FUNC_PROTOTYPE */
+ #endif /* CONFIG_X86_64 */
+ #endif /* CONFIG_DYNAMIC_FTRACE */
+ 
+@@ -1017,7 +1095,7 @@ int ftrace_disable_ftrace_graph_caller(void)
+  * in current thread info.
+  */
+ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
+-			   unsigned long frame_pointer)
++			   unsigned long frame_pointer, struct pt_regs *pt_regs)
+ {
+ 	unsigned long old;
+ 	int faulted;
+@@ -1072,7 +1150,7 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
+ 		return;
  	}
+ 
+-	if (function_graph_enter(old, self_addr, frame_pointer, parent, NULL))
++	if (function_graph_enter(old, self_addr, frame_pointer, parent, pt_regs))
+ 		*parent = old;
+ }
+ #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
+diff --git a/arch/x86/kernel/ftrace_64.S b/arch/x86/kernel/ftrace_64.S
+index 809d54397dba..e01d6358e859 100644
+--- a/arch/x86/kernel/ftrace_64.S
++++ b/arch/x86/kernel/ftrace_64.S
+@@ -289,7 +289,8 @@ ENTRY(ftrace_graph_caller)
+ 
+ 	leaq MCOUNT_REG_SIZE+8(%rsp), %rsi
+ 	movq $0, %rdx	/* No framepointers needed */
+-	call	prepare_ftrace_return
++	movq %rsp, %rcx /* the fourth parameter */
++	call prepare_ftrace_return
+ 
+ 	restore_mcount_regs
+ 
+@@ -304,6 +305,7 @@ ENTRY(return_to_handler)
+ 	movq %rax, (%rsp)
+ 	movq %rdx, 8(%rsp)
+ 	movq %rbp, %rdi
++	movq %rax, %rsi
+ 
+ 	call ftrace_return_to_handler
+ 
 -- 
-2.22.0
+2.20.1
