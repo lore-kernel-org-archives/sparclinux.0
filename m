@@ -1,28 +1,46 @@
-From: "Mr NARESH KUMAR" <mscarolynsmtih@gmail.com>
-Date: Wed, 14 Aug 2019 07:52:06 +0000
-Subject: PLEASE CONFIRM PURCHASE ORDER
-Message-Id: <0.0.3.45F.1D55274E3266CA0.0@slot0.abamarket.ga>
+From: Changbin Du <changbin.du@gmail.com>
+Date: Sun, 25 Aug 2019 13:23:29 +0000
+Subject: [PATCH 10/11] ftrace: add doc for new option record-funcproto
+Message-Id: <20190825132330.5015-11-changbin.du@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190825132330.5015-1-changbin.du@gmail.com>
+In-Reply-To: <20190825132330.5015-1-changbin.du@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
 
-Could you please confirm if your recieved our purchase order last week.
+Just add the doc for our new feature.
 
-If no please confirm let me resend it to you.
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
+---
+ Documentation/trace/ftrace.rst | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-
-
-
-NARESH KUMAR
-
-Executive Purchase Saiapextrading Ltd
-
-Dubai, KSA.
-
-(T/F): +96-2667-264 777 / 778
-
-(Mo): +96 94284 02803
-
-Website - http://www.saiapexgeneraltrading.com
+diff --git a/Documentation/trace/ftrace.rst b/Documentation/trace/ftrace.rst
+index f60079259669..c68fbbedb8bd 100644
+--- a/Documentation/trace/ftrace.rst
++++ b/Documentation/trace/ftrace.rst
+@@ -988,6 +988,7 @@ To see what is available, simply cat the file::
+ 	nolatency-format
+ 	record-cmd
+ 	norecord-tgid
++	norecord-funcproto
+ 	overwrite
+ 	nodisable_on_free
+ 	irq-info
+@@ -1131,6 +1132,11 @@ Here are the available options:
+ 	mapped Thread Group IDs (TGID) mapping to pids. See
+ 	"saved_tgids".
+ 
++  record-funcproto
++	Record function parameters and return value. This option
++	is only supported by function_graph tracer on x86_64
++	platform by now.
++
+   overwrite
+ 	This controls what happens when the trace buffer is
+ 	full. If "1" (default), the oldest events are
+-- 
+2.20.1
