@@ -1,44 +1,112 @@
-From: john.hubbard@gmail.com
-Date: Sun, 04 Aug 2019 22:49:02 +0000
-Subject: [PATCH v2 21/34] fs/exec.c: convert put_page() to put_user_page*()
-Message-Id: <20190804224915.28669-22-jhubbard@nvidia.com>
+From: Changbin Du <changbin.du@gmail.com>
+Date: Sun, 25 Aug 2019 13:23:23 +0000
+Subject: [PATCH 04/11] ftrace/hash: add private data field
+Message-Id: <20190825132330.5015-5-changbin.du@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
-In-Reply-To: <20190804224915.28669-1-jhubbard@nvidia.com>
+References: <20190825132330.5015-1-changbin.du@gmail.com>
+In-Reply-To: <20190825132330.5015-1-changbin.du@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, ceph-devel@vger.kernel.org, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, John Hubbard <jhubbard@nvidia.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.org, netdev@vger.kernel.orgLKML
+To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
 
-From: John Hubbard <jhubbard@nvidia.com>
+We will reuse ftrace_hash to lookup function prototype information. So
+we need an additional field to bind ftrace_func_entry to prototype
+information.
 
-For pages that were retained via get_user_pages*(), release those pages
-via the new put_user_page*() routines, instead of via put_page() or
-release_pages().
-
-This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-("mm: introduce put_user_page*(), placeholder versions").
-
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: linux-fsdevel@vger.kernel.org
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
 ---
- fs/exec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/trace/ftrace.c | 17 +++++++----------
+ kernel/trace/trace.h  |  6 ++++++
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/fs/exec.c b/fs/exec.c
-index f7f6a140856a..ee442151582f 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -227,7 +227,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
+diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
+index eca34503f178..a314f0768b2c 100644
+--- a/kernel/trace/ftrace.c
++++ b/kernel/trace/ftrace.c
+@@ -1017,11 +1017,6 @@ static bool update_all_ops;
+ # error Dynamic ftrace depends on MCOUNT_RECORD
+ #endif
  
- static void put_arg_page(struct page *page)
- {
--	put_page(page);
-+	put_user_page(page);
+-struct ftrace_func_entry {
+-	struct hlist_node hlist;
+-	unsigned long ip;
+-};
+-
+ struct ftrace_func_probe {
+ 	struct ftrace_probe_ops	*probe_ops;
+ 	struct ftrace_ops	ops;
+@@ -1169,7 +1164,8 @@ static void __add_hash_entry(struct ftrace_hash *hash,
+ 	hash->count++;
  }
  
- static void free_arg_pages(struct linux_binprm *bprm)
+-static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip)
++static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip,
++			  void *priv)
+ {
+ 	struct ftrace_func_entry *entry;
+ 
+@@ -1178,6 +1174,7 @@ static int add_hash_entry(struct ftrace_hash *hash, unsigned long ip)
+ 		return -ENOMEM;
+ 
+ 	entry->ip = ip;
++	entry->priv = priv;
+ 	__add_hash_entry(hash, entry);
+ 
+ 	return 0;
+@@ -1346,7 +1343,7 @@ alloc_and_copy_ftrace_hash(int size_bits, struct ftrace_hash *hash)
+ 	size = 1 << hash->size_bits;
+ 	for (i = 0; i < size; i++) {
+ 		hlist_for_each_entry(entry, &hash->buckets[i], hlist) {
+-			ret = add_hash_entry(new_hash, entry->ip);
++			ret = add_hash_entry(new_hash, entry->ip, NULL);
+ 			if (ret < 0)
+ 				goto free_hash;
+ 		}
+@@ -3694,7 +3691,7 @@ enter_record(struct ftrace_hash *hash, struct dyn_ftrace *rec, int clear_filter)
+ 		if (entry)
+ 			return 0;
+ 
+-		ret = add_hash_entry(hash, rec->ip);
++		ret = add_hash_entry(hash, rec->ip, NULL);
+ 	}
+ 	return ret;
+ }
+@@ -4700,7 +4697,7 @@ ftrace_match_addr(struct ftrace_hash *hash, unsigned long ip, int remove)
+ 		return 0;
+ 	}
+ 
+-	return add_hash_entry(hash, ip);
++	return add_hash_entry(hash, ip, NULL);
+ }
+ 
+ static int
+@@ -5380,7 +5377,7 @@ ftrace_graph_set_hash(struct ftrace_hash *hash, char *buffer)
+ 
+ 				if (entry)
+ 					continue;
+-				if (add_hash_entry(hash, rec->ip) < 0)
++				if (add_hash_entry(hash, rec->ip, NULL) < 0)
+ 					goto out;
+ 			} else {
+ 				if (entry) {
+diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
+index 005f08629b8b..ad619c73a505 100644
+--- a/kernel/trace/trace.h
++++ b/kernel/trace/trace.h
+@@ -882,6 +882,12 @@ struct ftrace_hash {
+ 	struct rcu_head		rcu;
+ };
+ 
++struct ftrace_func_entry {
++	struct hlist_node hlist;
++	unsigned long ip;
++	void *priv;
++};
++
+ struct ftrace_func_entry *
+ ftrace_lookup_ip(struct ftrace_hash *hash, unsigned long ip);
+ 
 -- 
-2.22.0
+2.20.1
