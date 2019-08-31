@@ -1,39 +1,64 @@
-From: Stefan Wahren <stefan.wahren@i2se.com>
-Date: Tue, 13 Aug 2019 05:23:36 +0000
-Subject: Re: [PATCH v2 15/34] staging/vc04_services: convert put_page() to put_user_page*()
-Message-Id: <f92a9b35-072c-a452-3248-ded047a9ee7e@i2se.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Sat, 31 Aug 2019 05:58:21 +0000
+Subject: [PATCH v2 7/9] sparc64: numa: check the node id consistently for sparc64
+Message-Id: <1567231103-13237-8-git-send-email-linyunsheng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190804224915.28669-1-jhubbard@nvidia.com>
- <20190804224915.28669-16-jhubbard@nvidia.com>
-In-Reply-To: <20190804224915.28669-16-jhubbard@nvidia.com>
+References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+In-Reply-To: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: john.hubbard@gmail.com, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, Suniel Mahesh <sunil.m@techveda.org>, Dan Williams <dan.j.williams@intel.com>, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, Mihaela Muraru <mihaela.muraru21@gmail.com>, intel-gfx@lists.freedesktop.org, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>
+To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
+Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
 
-On 05.08.19 00:48, john.hubbard@gmail.com wrote:
-> From: John Hubbard <jhubbard@nvidia.com>
->
-> For pages that were retained via get_user_pages*(), release those pages
-> via the new put_user_page*() routines, instead of via put_page() or
-> release_pages().
->
-> This is part a tree-wide conversion, as described in commit fc1d8e7cca2d
-> ("mm: introduce put_user_page*(), placeholder versions").
->
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->
-> Cc: Eric Anholt <eric@anholt.net>
-> Cc: Stefan Wahren <stefan.wahren@i2se.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Mihaela Muraru <mihaela.muraru21@gmail.com>
-> Cc: Suniel Mahesh <sunil.m@techveda.org>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: Sidong Yang <realwakka@gmail.com>
-> Cc: Kishore KP <kishore.p@techveda.org>
-> Cc: linux-rpi-kernel@lists.infradead.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: devel@driverdev.osuosl.org
-> Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Acked-by: Stefan Wahren <stefan.wahren@i2se.com>
+According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
+of proximity domain is optional, as below:
+
+This optional object is used to describe proximity domain
+associations within a machine. _PXM evaluates to an integer
+that identifies a device as belonging to a Proximity Domain
+defined in the System Resource Affinity Table (SRAT).
+
+This patch checks node id with the below case before returning
+&numa_cpumask_lookup_table[node]:
+1. if node_id >= nr_node_ids, return cpu_none_mask
+2. if node_id < 0, return cpu_online_mask
+3. Since numa_cpumask_lookup_table is not a pointer, a comment
+   is added to indicate that
+
+[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
+
+Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+---
+ arch/sparc/include/asm/topology_64.h | 16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
+index 34c628a..66a7917 100644
+--- a/arch/sparc/include/asm/topology_64.h
++++ b/arch/sparc/include/asm/topology_64.h
+@@ -11,9 +11,19 @@ static inline int cpu_to_node(int cpu)
+ 	return numa_cpu_lookup_table[cpu];
+ }
+ 
+-#define cpumask_of_node(node) ((node) = -1 ?				\
+-			       cpu_all_mask :				\
+-			       &numa_cpumask_lookup_table[node])
++static inline const struct cpumask *cpumask_of_node(int node)
++{
++	if (node >= MAX_NUMNODES)
++		return cpu_none_mask;
++
++	/* numa_cpumask_lookup_table[node] is not a pointer, so
++	 * no need to check for NULL here.
++	 */
++	if (node < 0)
++		return cpu_online_mask;
++
++	return &numa_cpumask_lookup_table[node];
++}
+ 
+ struct pci_bus;
+ #ifdef CONFIG_PCI
+-- 
+2.8.1
