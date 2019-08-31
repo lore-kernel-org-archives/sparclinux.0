@@ -1,387 +1,111 @@
-From: Changbin Du <changbin.du@gmail.com>
-Date: Sun, 25 Aug 2019 13:23:26 +0000
-Subject: [PATCH 07/11] ftrace: prepare arch specific interfaces for function prototype feature
-Message-Id: <20190825132330.5015-8-changbin.du@gmail.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Sat, 31 Aug 2019 05:58:14 +0000
+Subject: [PATCH v2 0/9] check the node id consistently across different arches
+Message-Id: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190825132330.5015-1-changbin.du@gmail.com>
-In-Reply-To: <20190825132330.5015-1-changbin.du@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Jessica Yu <jeyu@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-kbuild@vger.kernel.org, Changbin Du <changbin.du@gmail.com>
+To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
+Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
 
-To record function parameter and return value, we need the arch specific
-code to pass the saved register context. It is only valid if the
-CONFIG_FTRACE_FUNC_PROTOTYPE feature is enabled. This patch only changes
-the interfaces, real implementation will be added later.
+According to Section 6.2.14 from ACPI spec 6.3 [1], the
+setting of proximity domain is optional, as below:
 
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
----
- arch/arm/kernel/ftrace.c             |  2 +-
- arch/arm64/kernel/ftrace.c           |  2 +-
- arch/csky/kernel/ftrace.c            |  2 +-
- arch/microblaze/kernel/ftrace.c      |  2 +-
- arch/mips/kernel/ftrace.c            |  2 +-
- arch/nds32/kernel/ftrace.c           |  5 +++--
- arch/parisc/kernel/ftrace.c          |  2 +-
- arch/powerpc/kernel/trace/ftrace.c   |  2 +-
- arch/riscv/kernel/ftrace.c           |  2 +-
- arch/s390/kernel/ftrace.c            |  2 +-
- arch/sh/kernel/ftrace.c              |  2 +-
- arch/sparc/kernel/ftrace.c           |  2 +-
- arch/x86/kernel/ftrace.c             |  2 +-
- include/linux/ftrace.h               | 10 +++++++---
- kernel/trace/fgraph.c                | 21 +++++++++++++++------
- kernel/trace/ftrace.c                |  4 +++-
- kernel/trace/trace.h                 |  2 +-
- kernel/trace/trace_functions_graph.c |  2 +-
- kernel/trace/trace_irqsoff.c         |  3 ++-
- kernel/trace/trace_sched_wakeup.c    |  3 ++-
- 20 files changed, 46 insertions(+), 28 deletions(-)
+This optional object is used to describe proximity domain
+associations within a machine. _PXM evaluates to an integer
+that identifies a device as belonging to a Proximity Domain
+defined in the System Resource Affinity Table (SRAT).
 
-diff --git a/arch/arm/kernel/ftrace.c b/arch/arm/kernel/ftrace.c
-index bda949fd84e8..fd01c08b2dcb 100644
---- a/arch/arm/kernel/ftrace.c
-+++ b/arch/arm/kernel/ftrace.c
-@@ -191,7 +191,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
- 	old = *parent;
- 	*parent = return_hooker;
- 
--	if (function_graph_enter(old, self_addr, frame_pointer, NULL))
-+	if (function_graph_enter(old, self_addr, frame_pointer, NULL, NULL))
- 		*parent = old;
- }
- 
-diff --git a/arch/arm64/kernel/ftrace.c b/arch/arm64/kernel/ftrace.c
-index 171773257974..dc8cc516c00a 100644
---- a/arch/arm64/kernel/ftrace.c
-+++ b/arch/arm64/kernel/ftrace.c
-@@ -233,7 +233,7 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
- 	 */
- 	old = *parent;
- 
--	if (!function_graph_enter(old, self_addr, frame_pointer, NULL))
-+	if (!function_graph_enter(old, self_addr, frame_pointer, NULL, NULL))
- 		*parent = return_hooker;
- }
- 
-diff --git a/arch/csky/kernel/ftrace.c b/arch/csky/kernel/ftrace.c
-index 44f4880179b7..5bc67f447e78 100644
---- a/arch/csky/kernel/ftrace.c
-+++ b/arch/csky/kernel/ftrace.c
-@@ -148,7 +148,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
- 	old = *parent;
- 
- 	if (!function_graph_enter(old, self_addr,
--			*(unsigned long *)frame_pointer, parent)) {
-+			*(unsigned long *)frame_pointer, parent, NULL)) {
- 		/*
- 		 * For csky-gcc function has sub-call:
- 		 * subi	sp,	sp, 8
-diff --git a/arch/microblaze/kernel/ftrace.c b/arch/microblaze/kernel/ftrace.c
-index 224eea40e1ee..9722e98cd01d 100644
---- a/arch/microblaze/kernel/ftrace.c
-+++ b/arch/microblaze/kernel/ftrace.c
-@@ -62,7 +62,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr)
- 		return;
- 	}
- 
--	if (function_graph_enter(old, self_addr, 0, NULL))
-+	if (function_graph_enter(old, self_addr, 0, NULL, NULL))
- 		*parent = old;
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-diff --git a/arch/mips/kernel/ftrace.c b/arch/mips/kernel/ftrace.c
-index 2625232bfe52..24668bf079d2 100644
---- a/arch/mips/kernel/ftrace.c
-+++ b/arch/mips/kernel/ftrace.c
-@@ -378,7 +378,7 @@ void prepare_ftrace_return(unsigned long *parent_ra_addr, unsigned long self_ra,
- 	insns = core_kernel_text(self_ra) ? 2 : MCOUNT_OFFSET_INSNS + 1;
- 	self_ra -= (MCOUNT_INSN_SIZE * insns);
- 
--	if (function_graph_enter(old_parent_ra, self_ra, fp, NULL))
-+	if (function_graph_enter(old_parent_ra, self_ra, fp, NULL, NULL))
- 		*parent_ra_addr = old_parent_ra;
- 	return;
- out:
-diff --git a/arch/nds32/kernel/ftrace.c b/arch/nds32/kernel/ftrace.c
-index fd2a54b8cd57..3dbf0017dfdf 100644
---- a/arch/nds32/kernel/ftrace.c
-+++ b/arch/nds32/kernel/ftrace.c
-@@ -217,7 +217,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
- 
- 	old = *parent;
- 
--	if (!function_graph_enter(old, self_addr, frame_pointer, NULL))
-+	if (!function_graph_enter(old, self_addr, frame_pointer, NULL, NULL))
- 		*parent = return_hooker;
- }
- 
-@@ -235,7 +235,8 @@ noinline void ftrace_graph_caller(void)
- 	prepare_ftrace_return(parent_ip, selfpc, frame_pointer);
- }
- 
--extern unsigned long ftrace_return_to_handler(unsigned long frame_pointer);
-+extern unsigned long ftrace_return_to_handler(unsigned long frame_pointer,
-+					      unsigned long retval);
- void __naked return_to_handler(void)
- {
- 	__asm__ __volatile__ (
-diff --git a/arch/parisc/kernel/ftrace.c b/arch/parisc/kernel/ftrace.c
-index b6fb30f2e4bf..ea02f36e4f84 100644
---- a/arch/parisc/kernel/ftrace.c
-+++ b/arch/parisc/kernel/ftrace.c
-@@ -40,7 +40,7 @@ static void __hot prepare_ftrace_return(unsigned long *parent,
- 
- 	old = *parent;
- 
--	if (!function_graph_enter(old, self_addr, 0, NULL))
-+	if (!function_graph_enter(old, self_addr, 0, NULL, NULL))
- 		/* activate parisc_return_to_handler() as return point */
- 		*parent = (unsigned long) &parisc_return_to_handler;
- }
-diff --git a/arch/powerpc/kernel/trace/ftrace.c b/arch/powerpc/kernel/trace/ftrace.c
-index be1ca98fce5c..78174bbb257e 100644
---- a/arch/powerpc/kernel/trace/ftrace.c
-+++ b/arch/powerpc/kernel/trace/ftrace.c
-@@ -956,7 +956,7 @@ unsigned long prepare_ftrace_return(unsigned long parent, unsigned long ip)
- 
- 	return_hooker = ppc_function_entry(return_to_handler);
- 
--	if (!function_graph_enter(parent, ip, 0, NULL))
-+	if (!function_graph_enter(parent, ip, 0, NULL, NULL))
- 		parent = return_hooker;
- out:
- 	return parent;
-diff --git a/arch/riscv/kernel/ftrace.c b/arch/riscv/kernel/ftrace.c
-index b94d8db5ddcc..18f836727950 100644
---- a/arch/riscv/kernel/ftrace.c
-+++ b/arch/riscv/kernel/ftrace.c
-@@ -142,7 +142,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr,
- 	 */
- 	old = *parent;
- 
--	if (function_graph_enter(old, self_addr, frame_pointer, parent))
-+	if (function_graph_enter(old, self_addr, frame_pointer, parent, NULL))
- 		*parent = return_hooker;
- }
- 
-diff --git a/arch/s390/kernel/ftrace.c b/arch/s390/kernel/ftrace.c
-index 1bb85f60c0dd..5021a23c5089 100644
---- a/arch/s390/kernel/ftrace.c
-+++ b/arch/s390/kernel/ftrace.c
-@@ -209,7 +209,7 @@ unsigned long prepare_ftrace_return(unsigned long ra, unsigned long sp,
- 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
- 		goto out;
- 	ip -= MCOUNT_INSN_SIZE;
--	if (!function_graph_enter(ra, ip, 0, (void *) sp))
-+	if (!function_graph_enter(ra, ip, 0, (void *) sp), NULL)
- 		ra = (unsigned long) return_to_handler;
- out:
- 	return ra;
-diff --git a/arch/sh/kernel/ftrace.c b/arch/sh/kernel/ftrace.c
-index 1b04270e5460..3a8271993e9c 100644
---- a/arch/sh/kernel/ftrace.c
-+++ b/arch/sh/kernel/ftrace.c
-@@ -364,7 +364,7 @@ void prepare_ftrace_return(unsigned long *parent, unsigned long self_addr)
- 		return;
- 	}
- 
--	if (function_graph_enter(old, self_addr, 0, NULL))
-+	if (function_graph_enter(old, self_addr, 0, NULL, NULL))
- 		__raw_writel(old, parent);
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
-index 684b84ce397f..2783185719ba 100644
---- a/arch/sparc/kernel/ftrace.c
-+++ b/arch/sparc/kernel/ftrace.c
-@@ -130,7 +130,7 @@ unsigned long prepare_ftrace_return(unsigned long parent,
- 	if (unlikely(atomic_read(&current->tracing_graph_pause)))
- 		return parent + 8UL;
- 
--	if (function_graph_enter(parent, self_addr, frame_pointer, NULL))
-+	if (function_graph_enter(parent, self_addr, frame_pointer, NULL, NULL))
- 		return parent + 8UL;
- 
- 	return return_hooker;
-diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
-index 024c3053dbba..a044734167af 100644
---- a/arch/x86/kernel/ftrace.c
-+++ b/arch/x86/kernel/ftrace.c
-@@ -1072,7 +1072,7 @@ void prepare_ftrace_return(unsigned long self_addr, unsigned long *parent,
- 		return;
- 	}
- 
--	if (function_graph_enter(old, self_addr, frame_pointer, parent))
-+	if (function_graph_enter(old, self_addr, frame_pointer, parent, NULL))
- 		*parent = old;
- }
- #endif /* CONFIG_FUNCTION_GRAPH_TRACER */
-diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
-index f5aab37a8c34..e615b5e639aa 100644
---- a/include/linux/ftrace.h
-+++ b/include/linux/ftrace.h
-@@ -757,9 +757,12 @@ struct ftrace_graph_ret {
- 
- /* Type of the callback handlers for tracing function graph*/
- typedef void (*trace_func_graph_ret_t)(struct ftrace_graph_ret *); /* return */
--typedef int (*trace_func_graph_ent_t)(struct ftrace_graph_ent *); /* entry */
-+/* @pt_regs is only available for CONFIG_FTRACE_FUNC_PROTOTYPE. */
-+typedef int (*trace_func_graph_ent_t)(struct ftrace_graph_ent *,
-+				      struct pt_regs *); /* entry */
- 
--extern int ftrace_graph_entry_stub(struct ftrace_graph_ent *trace);
-+int ftrace_graph_entry_stub(struct ftrace_graph_ent *trace,
-+			    struct pt_regs *pt_regs);
- 
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
- 
-@@ -797,7 +800,8 @@ extern void return_to_handler(void);
- 
- extern int
- function_graph_enter(unsigned long ret, unsigned long func,
--		     unsigned long frame_pointer, unsigned long *retp);
-+		     unsigned long frame_pointer, unsigned long *retp,
-+		     struct pt_regs *pt_regs);
- 
- struct ftrace_ret_stack *
- ftrace_graph_get_ret_stack(struct task_struct *task, int idx);
-diff --git a/kernel/trace/fgraph.c b/kernel/trace/fgraph.c
-index 8dfd5021b933..7451dba84fee 100644
---- a/kernel/trace/fgraph.c
-+++ b/kernel/trace/fgraph.c
-@@ -96,8 +96,13 @@ ftrace_push_return_trace(unsigned long ret, unsigned long func,
- 	return 0;
- }
- 
-+/*
-+ * Called from arch specific code. @pt_regs is only available for
-+ * CONFIG_FTRACE_FUNC_PROTOTYPE.
-+ */
- int function_graph_enter(unsigned long ret, unsigned long func,
--			 unsigned long frame_pointer, unsigned long *retp)
-+			 unsigned long frame_pointer, unsigned long *retp,
-+			 struct pt_regs *pt_regs)
- {
- 	struct ftrace_graph_ent trace;
- 
-@@ -108,7 +113,7 @@ int function_graph_enter(unsigned long ret, unsigned long func,
- 		goto out;
- 
- 	/* Only trace if the calling function expects to */
--	if (!ftrace_graph_entry(&trace))
-+	if (!ftrace_graph_entry(&trace, pt_regs))
- 		goto out_ret;
- 
- 	return 0;
-@@ -204,9 +209,11 @@ static struct notifier_block ftrace_suspend_notifier = {
- 
- /*
-  * Send the trace to the ring-buffer.
-+ * @retval is only available for CONFIG_FTRACE_FUNC_PROTOTYPE.
-  * @return the original return address.
-  */
--unsigned long ftrace_return_to_handler(unsigned long frame_pointer)
-+unsigned long ftrace_return_to_handler(unsigned long frame_pointer,
-+				       unsigned long retval)
- {
- 	struct ftrace_graph_ret trace;
- 	unsigned long ret;
-@@ -327,7 +334,8 @@ void ftrace_graph_sleep_time_control(bool enable)
- 	fgraph_sleep_time = enable;
- }
- 
--int ftrace_graph_entry_stub(struct ftrace_graph_ent *trace)
-+int ftrace_graph_entry_stub(struct ftrace_graph_ent *trace,
-+			    struct pt_regs *pt_regs)
- {
- 	return 0;
- }
-@@ -417,11 +425,12 @@ ftrace_graph_probe_sched_switch(void *ignore, bool preempt,
- 		next->ret_stack[index].calltime += timestamp;
- }
- 
--static int ftrace_graph_entry_test(struct ftrace_graph_ent *trace)
-+static int ftrace_graph_entry_test(struct ftrace_graph_ent *trace,
-+				   struct pt_regs *pt_regs)
- {
- 	if (!ftrace_ops_test(&global_ops, trace->func, NULL))
- 		return 0;
--	return __ftrace_graph_entry(trace);
-+	return __ftrace_graph_entry(trace, pt_regs);
- }
- 
- /*
-diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index 438b8b47198f..a1683cc55838 100644
---- a/kernel/trace/ftrace.c
-+++ b/kernel/trace/ftrace.c
-@@ -794,7 +794,9 @@ void ftrace_graph_graph_time_control(bool enable)
- 	fgraph_graph_time = enable;
- }
- 
--static int profile_graph_entry(struct ftrace_graph_ent *trace)
-+/* @pt_regs is only available for CONFIG_FTRACE_FUNC_PROTOTYPE. */
-+static int profile_graph_entry(struct ftrace_graph_ent *trace,
-+			       struct pt_regs *pt_regs)
- {
- 	struct ftrace_ret_stack *ret_stack;
- 
-diff --git a/kernel/trace/trace.h b/kernel/trace/trace.h
-index 22433a15e340..4b31176d443e 100644
---- a/kernel/trace/trace.h
-+++ b/kernel/trace/trace.h
-@@ -737,7 +737,7 @@ void print_trace_header(struct seq_file *m, struct trace_iterator *iter);
- int trace_empty(struct trace_iterator *iter);
- 
- void trace_graph_return(struct ftrace_graph_ret *trace);
--int trace_graph_entry(struct ftrace_graph_ent *trace);
-+int trace_graph_entry(struct ftrace_graph_ent *trace, struct pt_regs *pt_regs);
- void set_graph_array(struct trace_array *tr);
- 
- void tracing_start_cmdline_record(void);
-diff --git a/kernel/trace/trace_functions_graph.c b/kernel/trace/trace_functions_graph.c
-index 78af97163147..f331a9ba946d 100644
---- a/kernel/trace/trace_functions_graph.c
-+++ b/kernel/trace/trace_functions_graph.c
-@@ -124,7 +124,7 @@ static inline int ftrace_graph_ignore_irqs(void)
- 	return in_irq();
- }
- 
--int trace_graph_entry(struct ftrace_graph_ent *trace)
-+int trace_graph_entry(struct ftrace_graph_ent *trace, struct pt_regs *pt_regs)
- {
- 	struct trace_array *tr = graph_array;
- 	struct trace_array_cpu *data;
-diff --git a/kernel/trace/trace_irqsoff.c b/kernel/trace/trace_irqsoff.c
-index a745b0cee5d3..513e3544a45a 100644
---- a/kernel/trace/trace_irqsoff.c
-+++ b/kernel/trace/trace_irqsoff.c
-@@ -172,7 +172,8 @@ static int irqsoff_display_graph(struct trace_array *tr, int set)
- 	return start_irqsoff_tracer(irqsoff_trace, set);
- }
- 
--static int irqsoff_graph_entry(struct ftrace_graph_ent *trace)
-+static int irqsoff_graph_entry(struct ftrace_graph_ent *trace,
-+			       struct pt_regs *pt_regs)
- {
- 	struct trace_array *tr = irqsoff_trace;
- 	struct trace_array_cpu *data;
-diff --git a/kernel/trace/trace_sched_wakeup.c b/kernel/trace/trace_sched_wakeup.c
-index 743b2b520d34..ce18f679930c 100644
---- a/kernel/trace/trace_sched_wakeup.c
-+++ b/kernel/trace/trace_sched_wakeup.c
-@@ -112,7 +112,8 @@ static int wakeup_display_graph(struct trace_array *tr, int set)
- 	return start_func_tracer(tr, set);
- }
- 
--static int wakeup_graph_entry(struct ftrace_graph_ent *trace)
-+static int wakeup_graph_entry(struct ftrace_graph_ent *trace,
-+			      struct pt_regs *pt_regs)
- {
- 	struct trace_array *tr = wakeup_trace;
- 	struct trace_array_cpu *data;
+When enabling KASAN and bios has not implemented the proximity
+domain of the hns3 device, there is a global-out-of-bounds error
+below:
+
+[   42.970381] =================================
+[   42.977595] BUG: KASAN: global-out-of-bounds in __bitmap_weight+0x48/0xb0
+[   42.984370] Read of size 8 at addr ffff20008cdf8790 by task kworker/0:1/13
+[   42.991230]
+[   42.992712] CPU: 0 PID: 13 Comm: kworker/0:1 Tainted: G           O      5.2.0-rc4-g8bde06a-dirty #3
+[   43.001830] Hardware name: Huawei TaiShan 2280 V2/BC82AMDA, BIOS TA BIOS 2280-A CS V2.B050.01 08/08/2019
+[   43.011298] Workqueue: events work_for_cpu_fn
+[   43.015643] Call trace:
+[   43.018078]  dump_backtrace+0x0/0x1e8
+[   43.021727]  show_stack+0x14/0x20
+[   43.025031]  dump_stack+0xc4/0xfc
+[   43.028335]  print_address_description+0x178/0x270
+[   43.033113]  __kasan_report+0x164/0x1b8
+[   43.036936]  kasan_report+0xc/0x18
+[   43.040325]  __asan_load8+0x84/0xa8
+[   43.043801]  __bitmap_weight+0x48/0xb0
+[   43.047552]  hclge_init_ae_dev+0x988/0x1e78 [hclge]
+[   43.052418]  hnae3_register_ae_dev+0xcc/0x278 [hnae3]
+[   43.057467]  hns3_probe+0xe0/0x120 [hns3]
+[   43.061464]  local_pci_probe+0x74/0xf0
+[   43.065200]  work_for_cpu_fn+0x2c/0x48
+[   43.068937]  process_one_work+0x3c0/0x878
+[   43.072934]  worker_thread+0x400/0x670
+[   43.076670]  kthread+0x1b0/0x1b8
+[   43.079885]  ret_from_fork+0x10/0x18
+[   43.083446]
+[   43.084925] The buggy address belongs to the variable:
+[   43.090052]  numa_distance+0x30/0x40
+[   43.093613]
+[   43.095091] Memory state around the buggy address:
+[   43.099870]  ffff20008cdf8680: fa fa fa fa 04 fa fa fa fa fa fa fa 00 00 fa fa
+[   43.107078]  ffff20008cdf8700: fa fa fa fa 04 fa fa fa fa fa fa fa 00 fa fa fa
+[   43.114286] >ffff20008cdf8780: fa fa fa fa 00 00 00 00 00 00 00 00 fa fa fa fa
+[   43.121494]                          ^
+[   43.125230]  ffff20008cdf8800: 01 fa fa fa fa fa fa fa 04 fa fa fa fa fa fa fa
+[   43.132439]  ffff20008cdf8880: fa fa fa fa fa fa fa fa 00 00 fa fa fa fa fa fa
+[   43.139646] =================================
+
+As suggested [2] by Michal Hocko:
+"if the specification really allows to provide NUMA_NO_NODE (-1) then
+the code really has to be prepared for that. And ideally all arches
+should deal with that."
+
+This patchset checks the node id with the below case consistently
+across different arches in order to be compliant with spec and
+backward compatible as much as possible:
+1. if node_id < 0, return cpu_online_mask
+2. if node_id >= nr_node_ids, return cpu_none_mask
+3. if node_to_cpumask_map[node_id] is NULL, return cpu_online_mask
+
+Note:
+1. Only arm64 has been compile tested and tested on real board.
+2. x86 has been compile tested with defconfig.
+3. Other arch has not been compile tested or tested on real board.
+
+Changelog:
+V2: Change commit log as suggested by Michal Hocko, and make the change to
+    other arches as well.
+
+[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
+[2] https://patchwork.kernel.org/patch/11122823/
+
+Yunsheng Lin (9):
+  arm64: numa: check the node id consistently for arm64
+  x86: numa: check the node id consistently for x86
+  alpha: numa: check the node id consistently for alpha
+  powerpc: numa: check the node id consistently for powerpc
+  s390: numa: check the node id consistently for s390
+  sh: numa: check the node id consistently for sh
+  sparc64: numa: check the node id consistently for sparc64
+  mips: numa: check the node id consistently for mips ip27
+  mips: numa: check the node id consistently for mips loongson64
+
+ arch/alpha/include/asm/topology.h                |  7 +++++--
+ arch/arm64/include/asm/numa.h                    |  6 ++++++
+ arch/arm64/mm/numa.c                             |  2 +-
+ arch/mips/include/asm/mach-ip27/topology.h       | 15 ++++++++++++---
+ arch/mips/include/asm/mach-loongson64/topology.h | 12 +++++++++++-
+ arch/powerpc/include/asm/topology.h              | 13 ++++++++++---
+ arch/s390/include/asm/topology.h                 |  6 ++++++
+ arch/sh/include/asm/topology.h                   | 14 +++++++++++++-
+ arch/sparc/include/asm/topology_64.h             | 16 +++++++++++++---
+ arch/x86/include/asm/topology.h                  |  6 ++++++
+ arch/x86/mm/numa.c                               |  2 +-
+ 11 files changed, 84 insertions(+), 15 deletions(-)
+
 -- 
-2.20.1
+2.8.1
