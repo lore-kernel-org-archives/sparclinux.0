@@ -1,78 +1,58 @@
-From: Calum Mackay <calum.mackay@oracle.com>
-Date: Sun, 04 Aug 2019 23:28:01 +0000
-Subject: Re: [PATCH 31/34] nfs: convert put_page() to put_user_page*()
-Message-Id: <03a81556-98a7-7edb-5989-b799ec99a072@oracle.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Sat, 31 Aug 2019 05:58:19 +0000
+Subject: [PATCH v2 5/9] s390: numa: check the node id consistently for s390
+Message-Id: <1567231103-13237-6-git-send-email-linyunsheng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190802022005.5117-1-jhubbard@nvidia.com>
- <20190802022005.5117-32-jhubbard@nvidia.com>
- <1738cb1e-15d8-0bbe-5362-341664f6efc8@oracle.com>
- <db136399-ed87-56ea-bd6e-e5d29b145eda@nvidia.com>
-In-Reply-To: <db136399-ed87-56ea-bd6e-e5d29b145eda@nvidia.com>
+References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+In-Reply-To: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: John Hubbard <jhubbard@nvidia.com>, john.hubbard@gmail.com, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>, kvm@vger.kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Dave Chinner <david@fromorbit.com>, dri-devel@lists.freedesktop.org, linux-mm@kvack.org, sparclinux@vger.kernel.org, calum.mackay@oracle.com, devel@driverdev.osuosl.org, rds-devel@oss.oracle.com, linux-rdma@vger.kernel.org, x86@kernel.org, amd-gfx@lists.freedesktop.org, Christoph Hellwig <hch@infradead.org>, Jason Gunthorpe <jgg@ziepe.ca>, xen-devel@lists.xenproject.org, devel@lists.orangefs.org, linux-media@vger.kernel.org, intel-gfx@lists.freedesktop.org, Dan Williams <dan.j.williams@intel.com>, linux-block@vger.kernel.org, =?UTF-8?B?SsOpcsO0bWUgR2xpc3Nl?= <jglisse@redhat.com>, linux-rpi-kernel@lists.infradead.org, ceph-devel@vger.kernel.org, Trond Myklebust <trond.myklebust@hammerspace.com>, linux-arm-kernel@lists.infradead.org, linux-nfs@vger.kernel.o
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
+Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
 
-On 03/08/2019 2:41 am, John Hubbard wrote:
-> On 8/2/19 6:27 PM, Calum Mackay wrote:
->> On 02/08/2019 3:20 am, john.hubbard@gmail.com wrote:
-> ...
->> Since it's static, and only called twice, might it be better to change its two callers [nfs_direct_{read,write}_schedule_iovec()] to call put_user_pages() directly, and remove nfs_direct_release_pages() entirely?
->>
->> thanks,
->> calum.
->>
->>
->>>      void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
->>>
->   
-> Hi Calum,
-> 
-> Absolutely! Is it OK to add your reviewed-by, with the following incremental
-> patch made to this one?
+According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
+of proximity domain is optional, as below:
 
-Thanks John; looks good.
+This optional object is used to describe proximity domain
+associations within a machine. _PXM evaluates to an integer
+that identifies a device as belonging to a Proximity Domain
+defined in the System Resource Affinity Table (SRAT).
 
-Reviewed-by: Calum Mackay <calum.mackay@oracle.com>
+This patch checks node id with the below case before returning
+node_to_cpumask_map[node]:
+1. if node_id >= nr_node_ids, return cpu_none_mask
+2. if node_id < 0, return cpu_online_mask
+3. if node_to_cpumask_map[node_id] is NULL, return cpu_online_mask
 
-> 
-> diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
-> index b00b89dda3c5..c0c1b9f2c069 100644
-> --- a/fs/nfs/direct.c
-> +++ b/fs/nfs/direct.c
-> @@ -276,11 +276,6 @@ ssize_t nfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
->          return nfs_file_direct_write(iocb, iter);
->   }
->   
-> -static void nfs_direct_release_pages(struct page **pages, unsigned int npages)
-> -{
-> -       put_user_pages(pages, npages);
-> -}
-> -
->   void nfs_init_cinfo_from_dreq(struct nfs_commit_info *cinfo,
->                                struct nfs_direct_req *dreq)
->   {
-> @@ -510,7 +505,7 @@ static ssize_t nfs_direct_read_schedule_iovec(struct nfs_direct_req *dreq,
->                          pos += req_len;
->                          dreq->bytes_left -= req_len;
->                  }
-> -               nfs_direct_release_pages(pagevec, npages);
-> +               put_user_pages(pagevec, npages);
->                  kvfree(pagevec);
->                  if (result < 0)
->                          break;
-> @@ -933,7 +928,7 @@ static ssize_t nfs_direct_write_schedule_iovec(struct nfs_direct_req *dreq,
->                          pos += req_len;
->                          dreq->bytes_left -= req_len;
->                  }
-> -               nfs_direct_release_pages(pagevec, npages);
-> +               put_user_pages(pagevec, npages);
->                  kvfree(pagevec);
->                  if (result < 0)
->                          break;
-> 
-> 
-> 
-> thanks,
-> 
+[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
+
+Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+---
+Note node_to_cpumask_map[node] is already a pointer, so
+returning &node_to_cpumask_map[node] does not seem to
+be correct, if this is problem, maybe clean it up in another
+patch.
+---
+ arch/s390/include/asm/topology.h | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/arch/s390/include/asm/topology.h b/arch/s390/include/asm/topology.h
+index cca406f..75340ca 100644
+--- a/arch/s390/include/asm/topology.h
++++ b/arch/s390/include/asm/topology.h
+@@ -78,6 +78,12 @@ static inline int cpu_to_node(int cpu)
+ #define cpumask_of_node cpumask_of_node
+ static inline const struct cpumask *cpumask_of_node(int node)
+ {
++	if (node >= nr_node_ids)
++		return cpu_none_mask;
++
++	if (node < 0 || !node_to_cpumask_map[node])
++		return cpu_online_mask;
++
+ 	return &node_to_cpumask_map[node];
+ }
+ 
+-- 
+2.8.1
