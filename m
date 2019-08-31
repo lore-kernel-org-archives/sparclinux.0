@@ -1,64 +1,22 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Sat, 31 Aug 2019 05:58:21 +0000
-Subject: [PATCH v2 7/9] sparc64: numa: check the node id consistently for sparc64
-Message-Id: <1567231103-13237-8-git-send-email-linyunsheng@huawei.com>
+From: David Miller <davem@davemloft.net>
+Date: Sat, 31 Aug 2019 06:53:37 +0000
+Subject: Re: [PATCH v2 7/9] sparc64: numa: check the node id consistently for sparc64
+Message-Id: <20190830.235337.570776316111294728.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+ <1567231103-13237-8-git-send-email-linyunsheng@huawei.com>
+In-Reply-To: <1567231103-13237-8-git-send-email-linyunsheng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: linux-sh@vger.kernel.org, peterz@infradead.org, dave.hansen@linux.intel.com, linuxarm@huawei.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, hpa@zytor.com, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, x86@kernel.org, rppt@linux.ibm.com, dledford@redhat.com, jeffrey.t.kirsher@intel.com, nfont@linux.vnet.ibm.com, naveen.n.rao@linux.vnet.ibm.com, len.brown@intel.com, anshuman.khandual@arm.com, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, axboe@kernel.dk, robin.murphy@arm.com, linux-kernel@vger.kernel.org, tbogendoerfer@suse.de, linux-alpha@vger.kernel.org, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org
+To: linyunsheng@huawei.com
+Cc: dalias@libc.org, linux-sh@vger.kernel.org, peterz@infradead.org, catalin.marinas@arm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, linuxarm@huawei.com, jiaxun.yang@flygoat.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, chenhc@lemote.com, will@kernel.org, cai@lca.pw, linux-s390@vger.kernel.org, ysato@users.sourceforge.jp, mpe@ellerman.id.au, x86@kernel.org, rppt@linux.ibm.com, borntraeger@de.ibm.com, dledford@redhat.com, mingo@redhat.com, jeffrey.t.kirsher@intel.com, benh@kernel.crashing.org, jhogan@kernel.org, nfont@linux.vnet.ibm.com, mattst88@gmail.com, len.brown@intel.com, gor@linux.ibm.com, anshuman.khandual@arm.com, bp@alien8.de, luto@kernel.org, tglx@linutronix.de, naveen.n.rao@linux.vnet.ibm.com, linux-arm-kernel@lists.infradead.org, rth@twiddle.net, axboe@kernel.dk, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, ralf@linux-mips.org, tbogendoerfer@suse.de, paul.burton@mips.com, linux-alpha@vger.kernel.org, ink@jurassic.park.msu.ru, akpm@linux-foundation.org, robin.murphy@arm.com
 
-According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
-of proximity domain is optional, as below:
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Sat, 31 Aug 2019 13:58:21 +0800
 
-This optional object is used to describe proximity domain
-associations within a machine. _PXM evaluates to an integer
-that identifies a device as belonging to a Proximity Domain
-defined in the System Resource Affinity Table (SRAT).
+> According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
+> of proximity domain is optional, as below:
 
-This patch checks node id with the below case before returning
-&numa_cpumask_lookup_table[node]:
-1. if node_id >= nr_node_ids, return cpu_none_mask
-2. if node_id < 0, return cpu_online_mask
-3. Since numa_cpumask_lookup_table is not a pointer, a comment
-   is added to indicate that
-
-[1] https://uefi.org/sites/default/files/resources/ACPI_6_3_final_Jan30.pdf
-
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
----
- arch/sparc/include/asm/topology_64.h | 16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
-
-diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
-index 34c628a..66a7917 100644
---- a/arch/sparc/include/asm/topology_64.h
-+++ b/arch/sparc/include/asm/topology_64.h
-@@ -11,9 +11,19 @@ static inline int cpu_to_node(int cpu)
- 	return numa_cpu_lookup_table[cpu];
- }
- 
--#define cpumask_of_node(node) ((node) = -1 ?				\
--			       cpu_all_mask :				\
--			       &numa_cpumask_lookup_table[node])
-+static inline const struct cpumask *cpumask_of_node(int node)
-+{
-+	if (node >= MAX_NUMNODES)
-+		return cpu_none_mask;
-+
-+	/* numa_cpumask_lookup_table[node] is not a pointer, so
-+	 * no need to check for NULL here.
-+	 */
-+	if (node < 0)
-+		return cpu_online_mask;
-+
-+	return &numa_cpumask_lookup_table[node];
-+}
- 
- struct pci_bus;
- #ifdef CONFIG_PCI
--- 
-2.8.1
+What in the world does the ACPI spec have to do with sparc64 NUMA
+node ID checking?
