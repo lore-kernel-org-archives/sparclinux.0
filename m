@@ -1,25 +1,109 @@
-From: pr-tracker-bot@kernel.org
-Date: Tue, 10 Sep 2019 11:55:06 +0000
-Subject: Re: [GIT PULL] ipc: fix regressions from y2038 patches
-Message-Id: <156811650600.2184.136295943395140110.pr-tracker-bot@kernel.org>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Mon, 02 Sep 2019 15:18:20 +0000
+Subject: Re: microblaze HAVE_MEMBLOCK_NODE_MAP dependency (was Re: [PATCH v2 0/5] mm: Enable CONFIG_NODES_SPA
+Message-Id: <20190902151819.GA13793@rapoport-lnx>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a1Q0ec50n2ueWDKHirpem+SQvsv3sYXzw9EFRqXiUqxUg@mail.gmail.com>
-In-Reply-To: <CAK8P3a1Q0ec50n2ueWDKHirpem+SQvsv3sYXzw9EFRqXiUqxUg@mail.gmail.com>
+References: <20190731062420.GC21422@rapoport-lnx>
+ <20190731080309.GZ9330@dhcp22.suse.cz>
+ <20190731111422.GA14538@rapoport-lnx>
+ <20190731114016.GI9330@dhcp22.suse.cz>
+ <20190731122631.GB14538@rapoport-lnx>
+ <20190731130037.GN9330@dhcp22.suse.cz>
+ <20190731142129.GA24998@rapoport-lnx>
+ <20190731144114.GY9330@dhcp22.suse.cz>
+ <20190731171510.GB24998@rapoport-lnx>
+ <f57f15b5-dee7-c2be-5a34-192a9ecf0763@monstr.eu>
+In-Reply-To: <f57f15b5-dee7-c2be-5a34-192a9ecf0763@monstr.eu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, linux-arch <linux-arch@vger.kernel.org>, David Miller <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>, Matt Turner <mattst88@gmail.com>, Anatoly Pugachev <matorola@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guo Ren <guoren@kernel.org>, Stafford Horne <shorne@gmail.com>, Davidlohr Bueso <dave@stgolabs.net>, Manfred Spraul <manfred@colorfullife.com>, Waiman Long <longman@redhat.com>, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: base64
+To: Michal Simek <monstr@monstr.eu>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Michal Hocko <mhocko@kernel.org>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H . Peter Anvin" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Will Deacon <will@kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, "willy@infradead.org" <willy@infradead.org>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Open Source Submission <patches@amperecomputing.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Hoan Tran OS <hoan@os.amperecomputing.com>, Oscar Salvador <osalvador@suse.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Randy Dunlap <rdunlap@infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "David S . Miller" <davem@davemloft.net>
 
-The pull request you sent on Tue, 10 Sep 2019 11:49:00 +0200:
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git tags/ipc-fixes
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/3120b9a6a3f7487f96af7bd634ec49c87ef712ab
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+T24gTW9uLCBTZXAgMDIsIDIwMTkgYXQgMDM6NTE6MjVQTSArMDIwMCwgTWljaGFsIFNpbWVrIHdy
+b3RlOgo+IE9uIDMxLiAwNy4gMTkgMTk6MTUsIE1pa2UgUmFwb3BvcnQgd3JvdGU6Cj4gPiBPbiBX
+ZWQsIEp1bCAzMSwgMjAxOSBhdCAwNDo0MToxNFBNICswMjAwLCBNaWNoYWwgSG9ja28gd3JvdGU6
+Cj4gPj4gT24gV2VkIDMxLTA3LTE5IDE3OjIxOjI5LCBNaWtlIFJhcG9wb3J0IHdyb3RlOgo+ID4+
+PiBPbiBXZWQsIEp1bCAzMSwgMjAxOSBhdCAwMzowMDozN1BNICswMjAwLCBNaWNoYWwgSG9ja28g
+d3JvdGU6Cj4gPj4+Pgo+ID4+Pj4gSSBhbSBzb3JyeSwgYnV0IEkgc3RpbGwgZG8gbm90IGZvbGxv
+dy4gV2hvIGlzIGNvbnN1bWluZyB0aGF0IG5vZGUgaWQKPiA+Pj4+IGluZm9ybWF0aW9uIHdoZW4g
+TlVNQT1uLiBJbiBvdGhlciB3b3JkcyB3aHkgY2Fubm90IHdlIHNpbXBseSBkbwo+ID4+PiAgCj4g
+Pj4+IFdlIGNhbiwgSSB0aGluayBub2JvZHkgY2FyZWQgdG8gY2hhbmdlIGl0Lgo+ID4+Cj4gPj4g
+SXQgd291bGQgYmUgZ3JlYXQgaWYgc29tZWJvZHkgd2l0aCB0aGUgYWN0dWFsIEhXIGNvdWxkIHRy
+eSBpdCBvdXQuCj4gPj4gSSBjYW4gdGhyb3cgYSBwYXRjaCBidXQgSSBkbyBub3QgZXZlbiBoYXZl
+IGEgY3Jvc3MgY29tcGlsZXIgaW4gbXkKPiA+PiB0b29sYm94Lgo+ID4gCj4gPiBXZWxsLCBpdCBj
+b21waWxlcyA6KQo+ID4gIAo+ID4+Pj4gZGlmZiAtLWdpdCBhL2FyY2gvbWljcm9ibGF6ZS9tbS9p
+bml0LmMgYi9hcmNoL21pY3JvYmxhemUvbW0vaW5pdC5jCj4gPj4+PiBpbmRleCBhMDE1YTk1MWM4
+YjcuLjNhNDdlOGRiOGQxYyAxMDA2NDQKPiA+Pj4+IC0tLSBhL2FyY2gvbWljcm9ibGF6ZS9tbS9p
+bml0LmMKPiA+Pj4+ICsrKyBiL2FyY2gvbWljcm9ibGF6ZS9tbS9pbml0LmMKPiA+Pj4+IEBAIC0x
+NzUsMTQgKzE3NSw5IEBAIHZvaWQgX19pbml0IHNldHVwX21lbW9yeSh2b2lkKQo+ID4+Pj4gIAo+
+ID4+Pj4gIAkJc3RhcnRfcGZuID0gbWVtYmxvY2tfcmVnaW9uX21lbW9yeV9iYXNlX3BmbihyZWcp
+Owo+ID4+Pj4gIAkJZW5kX3BmbiA9IG1lbWJsb2NrX3JlZ2lvbl9tZW1vcnlfZW5kX3BmbihyZWcp
+Owo+ID4+Pj4gLQkJbWVtYmxvY2tfc2V0X25vZGUoc3RhcnRfcGZuIDw8IFBBR0VfU0hJRlQsCj4g
+Pj4+PiAtCQkJCSAgKGVuZF9wZm4gLSBzdGFydF9wZm4pIDw8IFBBR0VfU0hJRlQsCj4gPj4+PiAt
+CQkJCSAgJm1lbWJsb2NrLm1lbW9yeSwgMCk7Cj4gPj4+PiArCQltZW1vcnlfcHJlc2VudCgwLCBz
+dGFydF9wZm4gPDwgUEFHRV9TSElGVCwgZW5kX3BmbiA8PCBQQUdFX1NISUZUKTsKPiA+Pj4KPiA+
+Pj4gbWVtb3J5X3ByZXNlbnQoKSBleHBlY3RzIHBmbnMsIHRoZSBzaGlmdCBpcyBub3QgbmVlZGVk
+Lgo+ID4+Cj4gPj4gUmlnaHQuCj4gCj4gU29ycnkgZm9yIHNsb3cgcmVzcG9uc2Ugb24gdGhpcy4g
+SW4gZ2VuZXJhbCByZWdhcmRpbmcgdGhpcyB0b3BpYy4KPiBNaWNyb2JsYXplIGlzIHNvZnQgY29y
+ZSBDUFUgKG5vdyB0aGVyZSBhcmUgaGFyZGNvcmUgdmVyc2lvbnMgdG9vIGJ1dCBub3QKPiBydW5u
+aW5nIExpbnV4KS4gSSBiZWxpZXZlIHRoZXJlIGNvdWxkIGJlIE51bWEgc3lzdGVtIHdpdGgKPiBt
+aWNyb2JsYXplL21pY3JvYmxhemVzIChTTVAgaXMgbm90IHN1cHBvcnRlZCBpbiBtYWlubGluZSku
+Cj4gCj4gVGhpcyBjb2RlIHdhcyBhZGRlZCBpbiAyMDExIHdoaWNoIGlzIHByZXR0eSBoYXJkIHRv
+IHJlbWVtYmVyIHdoeSBpdCB3YXMKPiBkb25lIGluIHRoaXMgd2F5Lgo+IAo+IEl0IGNvbXBpbGVz
+IGJ1dCBub3Qgd29ya2luZyBvbiBIVy4gUGxlYXNlIHRha2UgYSBsb29rIGF0IGxvZyBiZWxvdy4K
+PiAKPiBUaGFua3MsCj4gTWljaGFsCj4gCj4gCj4gWyAgICAwLjAwMDAwMF0gTGludXggdmVyc2lv
+biA1LjMuMC1yYzYtMDAwMDctZzU0YjAxOTM5MTgyZi1kaXJ0eQo+IChtb25zdHJAbW9uc3RyLWRl
+c2t0b3AzKSAoZ2NjIHZlcnNpb24gOC4yLjAgKGNyb3NzdG9vbC1ORyAxLjIwLjApKSAjMTAxCj4g
+TW9uIFNlcCAyIDE1OjQ0OjA1IENFU1QgMjAxOQo+IFsgICAgMC4wMDAwMDBdIHNldHVwX21lbW9y
+eTogbWF4X21hcG5yOiAweDQwMDAwCj4gWyAgICAwLjAwMDAwMF0gc2V0dXBfbWVtb3J5OiBtaW5f
+bG93X3BmbjogMHg4MDAwMAo+IFsgICAgMC4wMDAwMDBdIHNldHVwX21lbW9yeTogbWF4X2xvd19w
+Zm46IDB4YjAwMDAKPiBbICAgIDAuMDAwMDAwXSBzZXR1cF9tZW1vcnk6IG1heF9wZm46IDB4YzAw
+MDAKPiBbICAgIDAuMDAwMDAwXSBzdGFydCBwZm4gMHg4MDAwMAo+IFsgICAgMC4wMDAwMDBdIGVu
+ZCBwZm4gMHhjMDAwMAo+IFsgICAgMC4wMDAwMDBdIFpvbmUgcmFuZ2VzOgo+IFsgICAgMC4wMDAw
+MDBdICAgRE1BICAgICAgW21lbSAweDAwMDAwMDAwODAwMDAwMDAtMHgwMDAwMDAwMGFmZmZmZmZm
+XQo+IFsgICAgMC4wMDAwMDBdICAgTm9ybWFsICAgZW1wdHkKPiBbICAgIDAuMDAwMDAwXSAgIEhp
+Z2hNZW0gIFttZW0gMHgwMDAwMDAwMGIwMDAwMDAwLTB4MDAwMDAwMDBiZmZmZmZmZl0KPiBbICAg
+IDAuMDAwMDAwXSBNb3ZhYmxlIHpvbmUgc3RhcnQgZm9yIGVhY2ggbm9kZQo+IFsgICAgMC4wMDAw
+MDBdIEVhcmx5IG1lbW9yeSBub2RlIHJhbmdlcwo+IFsgICAgMC4wMDAwMDBdICAgbm9kZSAgIDE6
+IFttZW0gMHgwMDAwMDAwMDgwMDAwMDAwLTB4MDAwMDAwMDBiZmZmZmZmZl0KPiBbICAgIDAuMDAw
+MDAwXSBDb3VsZCBub3QgZmluZCBzdGFydF9wZm4gZm9yIG5vZGUgMAo+IFsgICAgMC4wMDAwMDBd
+IEluaXRtZW0gc2V0dXAgbm9kZSAwIFttZW0KPiAweDAwMDAwMDAwMDAwMDAwMDAtMHgwMDAwMDAw
+MDAwMDAwMDAwXQoKVGhpcyBkb2VzIG5vdCBsb29rIGdvb2QgOikKCkkgdGhpbmsgdGhlIHByb2Js
+ZW0gaXMgdGhhdCB3aXRob3V0IGFuIGV4cGxpY2l0IGNhbGwgdG8gbWVtYmxvY2tfc2V0X25vZGUo
+KQp0aGUgLT5uaWQgaW4gbWVtYmxvY2sgaXMgTUFYX05VTU5PREVTIGJ1dCBmcmVlX2FyZWFfaW5p
+dF9ub2RlcygpIHByZXN1bWVzCmFjdHVhbCBub2RlIGlkcyBhcmUgcHJvcGVybHkgc2V0LgoKPiBb
+ICAgIDAuMDAwMDAwXSBlYXJseWNvbjogbnMxNjU1MGEwIGF0IE1NSU8gMHg0NGEwMTAwMCAob3B0
+aW9ucyAnMTE1MjAwbjgnKQo+IFsgICAgMC4wMDAwMDBdIHByaW50azogYm9vdGNvbnNvbGUgW25z
+MTY1NTBhMF0gZW5hYmxlZAo+IFsgICAgMC4wMDAwMDBdIHNldHVwX2NwdWluZm86IGluaXRpYWxp
+c2luZwo+IFsgICAgMC4wMDAwMDBdIHNldHVwX2NwdWluZm86IFVzaW5nIGZ1bGwgQ1BVIFBWUiBz
+dXBwb3J0Cj4gWyAgICAwLjAwMDAwMF0gd3RfbXNyX25vaXJxCj4gWyAgICAwLjAwMDAwMF0gcGNw
+dS1hbGxvYzogczAgcjAgZDMyNzY4IHUzMjc2OCBhbGxvYz0xKjMyNzY4Cj4gWyAgICAwLjAwMDAw
+MF0gcGNwdS1hbGxvYzogWzBdIDAKPiBbICAgIDAuMDAwMDAwXSBCdWlsdCAxIHpvbmVsaXN0cywg
+bW9iaWxpdHkgZ3JvdXBpbmcgb2ZmLiAgVG90YWwgcGFnZXM6IDAKPiBbICAgIDAuMDAwMDAwXSBL
+ZXJuZWwgY29tbWFuZCBsaW5lOiBlYXJseWNvbgo+IFsgICAgMC4wMDAwMDBdIERlbnRyeSBjYWNo
+ZSBoYXNoIHRhYmxlIGVudHJpZXM6IC0yMTQ3NDgzNjQ4IChvcmRlcjogLTEzLAo+IDAgYnl0ZXMs
+IGxpbmVhcikKPiBbICAgIDAuMDAwMDAwXSBJbm9kZS1jYWNoZSBoYXNoIHRhYmxlIGVudHJpZXM6
+IC0yMTQ3NDgzNjQ4IChvcmRlcjogLTEzLAo+IDAgYnl0ZXMsIGxpbmVhcikKPiBbICAgIDAuMDAw
+MDAwXSBtZW0gYXV0by1pbml0OiBzdGFjazpvZmYsIGhlYXAgYWxsb2M6b2ZmLCBoZWFwIGZyZWU6
+b2ZmCj4gWyAgICAwLjAwMDAwMF0gT29wczoga2VybmVsIGFjY2VzcyBvZiBiYWQgYXJlYSwgc2ln
+OiAxMQo+IFsgICAgMC4wMDAwMDBdIENQVTogMCBQSUQ6IDAgQ29tbTogc3dhcHBlciBOb3QgdGFp
+bnRlZAo+IDUuMy4wLXJjNi0wMDAwNy1nNTRiMDE5MzkxODJmLWRpcnR5ICMxMDEKPiBbICAgIDAu
+MDAwMDAwXSAgUmVnaXN0ZXJzIGR1bXA6IG1vZGWANUI5RUE4Cj4gWyAgICAwLjAwMDAwMF0gIHIx
+ADAwNjVBMCwgcjLANUI3QUU2LCByMwAwMDAwMDAsIHI0ADAwMDAwMAo+IFsgICAgMC4wMDAwMDBd
+ICByNQAwODAwMDAsIHI2ADA4MEI1MCwgcjcAMDAwMDAwLCByOAAwMDAwMDQKPiBbICAgIDAuMDAw
+MDAwXSAgcjkAMDAwMDAwLCByMTAAMDAwMDFGLCByMTEAMDAwMDAwLCByMTIAMDA2NjY2Cj4gWyAg
+ICAwLjAwMDAwMF0gIHIxM0ExOURDQzAsIHIxNAAwMDAwMDAsIHIxNcA1RUZGOEMsIHIxNgAwMDAw
+MDAKPiBbICAgIDAuMDAwMDAwXSAgcjE3wDYwNDQwOCwgcjE4/0ZDMDAwMCwgcjE5wDVCOUY2Qywg
+cjIwv0ZFQzE2OAo+IFsgICAgMC4wMDAwMDBdICByMjG/RkVDMTY4LCByMjLvRkY5QUMwLCByMjMA
+MDAwMDAxLCByMjTANjA2ODc0Cj4gWyAgICAwLjAwMDAwMF0gIHIyNb9FNkI3NEMsIHIyNoAwMDAw
+MDAsIHIyNwAwMDAwMDAsIHIyOJAwMDAwNDAKPiBbICAgIDAuMDAwMDAwXSAgcjI5ATAwMDAwMCwg
+cjMwADAwMDM4MCwgcjMxwDVDMDJGMCwgclBDwDYwNDQwOAo+IFsgICAgMC4wMDAwMDBdICBtc3IA
+MDA0NkEwLCBlYXIAMDAwMDA0LCBlc3IAMDAwRDEyLCBmc3L/RkZGRkZGCj4gWyAgICAwLjAwMDAw
+MF0gT29wczoga2VybmVsIGFjY2VzcyBvZiBiYWQgYXJlYSwgc2lnOiAxMQo+IAo+IAo+IC0tIAo+
+IE1pY2hhbCBTaW1laywgSW5nLiAoTS5FbmcpLCBPcGVuUEdQIC0+IEtleUlEOiBGRTNEMUY5MQo+
+IHc6IHd3dy5tb25zdHIuZXUgcDogKzQyLTAtNzIxODQyODU0Cj4gTWFpbnRhaW5lciBvZiBMaW51
+eCBrZXJuZWwgLSBYaWxpbnggTWljcm9ibGF6ZQo+IE1haW50YWluZXIgb2YgTGludXgga2VybmVs
+IC0gWGlsaW54IFp5bnEgQVJNIGFuZCBaeW5xTVAgQVJNNjQgU29Dcwo+IFUtQm9vdCBjdXN0b2Rp
+YW4gLSBYaWxpbnggTWljcm9ibGF6ZS9aeW5xL1p5bnFNUC9WZXJzYWwgU29Dcwo+IAo+IAoKCgoK
+LS0gClNpbmNlcmVseSB5b3VycywKTWlrZS4K
