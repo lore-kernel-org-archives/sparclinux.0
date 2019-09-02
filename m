@@ -1,22 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 02 Sep 2019 15:17:27 +0000
-Subject: Re: [PATCH v2 7/9] sparc64: numa: check the node id consistently for sparc64
-Message-Id: <20190902.081727.1498167275046613083.davem@davemloft.net>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 02 Sep 2019 07:53:01 +0000
+Subject: Re: [PATCH 08/26] m68k: simplify ioremap_nocache
+Message-Id: <CAMuHMdXB=DWyu=Y25gih5poeanVnhLEP2MXoozvxdEY6op32FA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <0195eb73-99ae-fec2-3e11-2cb9e6677926@huawei.com>
- <20190831.130250.1236116087422472663.davem@davemloft.net>
- <1e128e33-427f-19a2-0e13-95a9c0656ab1@huawei.com>
-In-Reply-To: <1e128e33-427f-19a2-0e13-95a9c0656ab1@huawei.com>
+References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-9-hch@lst.de>
+ <CAMuHMdWyXGjokWi7tn9JHCTz9YMb_vHn6XKeE7KzH5n-54Sy0A@mail.gmail.com> <20190830160620.GD26887@lst.de>
+In-Reply-To: <20190830160620.GD26887@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linyunsheng@huawei.com
-Cc: dalias@libc.org, linux-sh@vger.kernel.org, peterz@infradead.org, catalin.marinas@arm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, linuxarm@huawei.com, jiaxun.yang@flygoat.com, linux-mips@vger.kernel.org, mwb@linux.vnet.ibm.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, chenhc@lemote.com, will@kernel.org, cai@lca.pw, linux-s390@vger.kernel.org, ysato@users.sourceforge.jp, mpe@ellerman.id.au, x86@kernel.org, rppt@linux.ibm.com, borntraeger@de.ibm.com, dledford@redhat.com, mingo@redhat.com, jeffrey.t.kirsher@intel.com, benh@kernel.crashing.org, jhogan@kernel.org, nfont@linux.vnet.ibm.com, mattst88@gmail.com, len.brown@intel.com, gor@linux.ibm.com, anshuman.khandual@arm.com, bp@alien8.de, luto@kernel.org, tglx@linutronix.de, naveen.n.rao@linux.vnet.ibm.com, linux-arm-kernel@lists.infradead.org, rth@twiddle.net, axboe@kernel.dk, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, ralf@linux-mips.org, tbogendoerfer@suse.de, paul.burton@mips.com, linux-alpha@vger.kernel.org, ink@jurassic.park.msu.ru, akpm@linux-foundation.org, robin.murphy@arm.com
+To: Christoph Hellwig <hch@lst.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, the arch/x86 maintainers <x86@kernel.org>, alpha <linux-alpha@vger.kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, Openrisc <openrisc@lists.librecores.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-riscv@lists.infradead.org, linux-s390 <linux-s390@vger.kernel.org>
 
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Mon, 2 Sep 2019 14:08:31 +0800
+Hi Christoph,
 
-> The NUMA node id in sparc64 system is defined by DT semantics?
+On Fri, Aug 30, 2019 at 6:06 PM Christoph Hellwig <hch@lst.de> wrote:
+> On Mon, Aug 19, 2019 at 10:56:02AM +0200, Geert Uytterhoeven wrote:
+> > On Sat, Aug 17, 2019 at 9:48 AM Christoph Hellwig <hch@lst.de> wrote:
+> > > Just define ioremap_nocache to ioremap instead of duplicating the
+> > > inline.  Also defined ioremap_uc in terms of ioremap instead of
+> > > the using a double indirection.
+> > >
+> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
+> >
+> > Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+>
+> Do you mind picking this up through the m68k tree?
 
-Sometimes, and in other cases other methods are used to determine
-the NUMA node id.
+Sure. Applied and queued for v5.4.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+-- 
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
