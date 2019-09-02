@@ -1,225 +1,131 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Mon, 23 Sep 2019 14:20:12 +0000
-Subject: Re: [RFC PATCH v2 01/12] smp: add generic SMP-stop support to common code
-Message-Id: <1d7e90b7-71d8-3c12-9c1b-7049a1d7e32f@arm.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Mon, 02 Sep 2019 05:46:51 +0000
+Subject: Re: [PATCH v2 2/9] x86: numa: check the node id consistently for x86
+Message-Id: <ae64285f-5134-4147-7b02-34bb5d519e8c@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190913181953.45748-1-cristian.marussi@arm.com>
- <20190913181953.45748-2-cristian.marussi@arm.com>
-In-Reply-To: <20190913181953.45748-2-cristian.marussi@arm.com>
+References: <1567231103-13237-1-git-send-email-linyunsheng@huawei.com>
+ <1567231103-13237-3-git-send-email-linyunsheng@huawei.com>
+ <20190831085539.GG2369@hirez.programming.kicks-ass.net>
+ <4d89c688-49e4-a2aa-32ee-65e36edcd913@huawei.com>
+ <20190831161247.GM2369@hirez.programming.kicks-ass.net>
+In-Reply-To: <20190831161247.GM2369@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: dalias@libc.org, linux-sh@vger.kernel.org, catalin.marinas@arm.com, dave.hansen@linux.intel.com, heiko.carstens@de.ibm.com, linuxarm@huawei.com, jiaxun.yang@flygoat.com, linux-kernel@vger.kernel.org, mwb@linux.vnet.ibm.com, paulus@samba.org, hpa@zytor.com, sparclinux@vger.kernel.org, chenhc@lemote.com, will@kernel.org, linux-s390@vger.kernel.org, ysato@users.sourceforge.jp, mpe@ellerman.id.au, x86@kernel.org, rppt@linux.ibm.com, borntraeger@de.ibm.com, dledford@redhat.com, mingo@redhat.com, jeffrey.t.kirsher@intel.com, benh@kernel.crashing.org, jhogan@kernel.org, nfont@linux.vnet.ibm.com, mattst88@gmail.com, len.brown@intel.com, gor@linux.ibm.com, anshuman.khandual@arm.com, ink@jurassic.park.msu.ru, cai@lca.pw, luto@kernel.org, tglx@linutronix.de, naveen.n.rao@linux.vnet.ibm.com, linux-arm-kernel@lists.infradead.org, rth@twiddle.net, axboe@kernel.dk, robin.murphy@arm.com, linux-mips@vger.kernel.org, ralf@linux-mips.org, tbogendoerfer@suse.de, paul.burton@mips.com, linux-alpha@vger.kernel.org, bp@alien8.de, akpm@linux-foundation.org, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
 
-On 13/09/2019 19:19, Cristian Marussi wrote:
-> There was a lot of code duplication across architectures regarding the
-> SMP stop procedures' logic; moreover some of this duplicated code logic
-> happened to be similarly faulty across a few architectures: while fixing
-> such logic, move such generic logic as much as possible inside common
-> code.
+On 2019/9/1 0:12, Peter Zijlstra wrote:
+> On Sat, Aug 31, 2019 at 06:09:39PM +0800, Yunsheng Lin wrote:
+>>
+>>
+>> On 2019/8/31 16:55, Peter Zijlstra wrote:
+>>> On Sat, Aug 31, 2019 at 01:58:16PM +0800, Yunsheng Lin wrote:
+>>>> According to Section 6.2.14 from ACPI spec 6.3 [1], the setting
+>>>> of proximity domain is optional, as below:
+>>>>
+>>>> This optional object is used to describe proximity domain
+>>>> associations within a machine. _PXM evaluates to an integer
+>>>> that identifies a device as belonging to a Proximity Domain
+>>>> defined in the System Resource Affinity Table (SRAT).
+>>>
+>>> That's just words.. what does it actually mean?
+>>
+>> It means the dev_to_node(dev) may return -1 if the bios does not
+>> implement the proximity domain feature, user may use that value
+>> to call cpumask_of_node and cpumask_of_node does not protect itself
+>> from node id being -1, which causes out of bound access.
 > 
-> Collect all the common logic related to SMP stop operations into the
-> common SMP code; any architecture willing to use such centralized logic
-> can select CONFIG_ARCH_USE_COMMON_STOP=y and provide the related
-> arch-specific helpers: in such a scenario, those architectures will
-> transparently start using the common code provided by smp_send_stop()
-> common function.
+>>>> @@ -69,6 +69,12 @@ extern const struct cpumask *cpumask_of_node(int node);
+>>>>  /* Returns a pointer to the cpumask of CPUs on Node 'node'. */
+>>>>  static inline const struct cpumask *cpumask_of_node(int node)
+>>>>  {
+>>>> +	if (node >= nr_node_ids)
+>>>> +		return cpu_none_mask;
+>>>> +
+>>>> +	if (node < 0 || !node_to_cpumask_map[node])
+>>>> +		return cpu_online_mask;
+>>>> +
+>>>>  	return node_to_cpumask_map[node];
+>>>>  }
+>>>>  #endif
+>>>
+>>> I _reallly_ hate this. Users are expected to use valid numa ids. Now
+>>> we're adding all this checking to all users. Why do we want to do that?
+>>
+>> As above, the dev_to_node(dev) may return -1.
+>>
+>>>
+>>> Using '(unsigned)node >= nr_nods_ids' is an error.
+>>
+>> 'node >= nr_node_ids' can be dropped if all user is expected to not call
+>> cpumask_of_node with node id greater or equal to nr_nods_ids.
 > 
-> On the other side, Architectures not willing to use common code SMP stop
-> logic will simply leave CONFIG_ARCH_USE_COMMON_STOP undefined and carry
-> on executing their local arch-specific smp_send_stop() as before.
+> you copied my typo :-)
+
+I did note the typo, corrected the first one, but missed the second one :)
+
 > 
-> Suggested-by: Dave Martin <Dave.Martin@arm.com>
-> Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
-> ---
-> v1 --> v2
-> - moved related Kconfig to common code inside arch/Kconfig
-> - introduced additional CONFIG_USE_COMMON_STOP selected by
->   CONFIG_ARCH_USE_COMMON_STOP
-> - introduced helpers to let architectures optionally alter
->   the default common code behaviour while waiting for CPUs:
->   change timeout or wait for ever. (will be needed by x86)
-> ---
->  arch/Kconfig        |  7 +++++
->  include/linux/smp.h | 55 +++++++++++++++++++++++++++++++++++++
->  kernel/smp.c        | 67 +++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 129 insertions(+)
+>> From what I can see, the problem can be fixed in three place:
+>> 1. Make user dev_to_node return a valid node id even when proximity
+>>    domain is not set by bios(or node id set by buggy bios is not valid),
+>>    which may need info from the numa system to make sure it will return
+>>    a valid node.
+>>
+>> 2. User that call cpumask_of_node should ensure the node id is valid
+>>    before calling cpumask_of_node, and user also need some info to
+>>    make ensure node id is valid.
+>>
+>> 3. Make sure cpumask_of_node deal with invalid node id as this patchset.
+>>
+>> Which one do you prefer to make sure node id is valid, or do you
+>> have any better idea?
+>>
+>> Any detail advice and suggestion will be very helpful, thanks.
 > 
-> diff --git a/arch/Kconfig b/arch/Kconfig
-> index a7b57dd42c26..89766e6c0ac8 100644
-> --- a/arch/Kconfig
-> +++ b/arch/Kconfig
-> @@ -166,6 +166,13 @@ config ARCH_USE_BUILTIN_BSWAP
->  	 instructions should set this. And it shouldn't hurt to set it
->  	 on architectures that don't have such instructions.
->  
-> +config ARCH_USE_COMMON_SMP_STOP
-> +       def_bool n
-> +
-> +config USE_COMMON_SMP_STOP
-> +       depends on SMP && ARCH_USE_COMMON_SMP_STOP
-> +       def_bool y
-> +
->  config KRETPROBES
->  	def_bool y
->  	depends on KPROBES && HAVE_KRETPROBES
-> diff --git a/include/linux/smp.h b/include/linux/smp.h
-> index 6fc856c9eda5..381a14bfcd96 100644
-> --- a/include/linux/smp.h
-> +++ b/include/linux/smp.h
-> @@ -77,6 +77,61 @@ int smp_call_function_single_async(int cpu, call_single_data_t *csd);
->   */
->  extern void smp_send_stop(void);
->  
-> +#ifdef CONFIG_USE_COMMON_SMP_STOP
-> +static atomic_t wait_forever;
-> +static atomic_t wait_timeout = ATOMIC_INIT(USEC_PER_SEC);
-> +
-> +/*
-> + * An Architecture can optionally decide to use this helper to change the
-> + * waiting behaviour of common STOP logic, forcing to wait forever for
-> + * all CPUs to be stopped.
-> + */
-> +static inline void smp_stop_set_wait_forever(int wait)
-> +{
-> +	atomic_set(&wait_forever, wait);
-> +	/* ensure wait atomic-op is visible */
-> +	smp_mb__after_atomic();
-> +}
-> +
+> 1) because even it is not set, the device really does belong to a node.
+> It is impossible a device will have magic uniform access to memory when
+> CPUs cannot.
 
-These new helpers I added in V2 to let x86 configure wait/timeout SMP common stop behavior
-are in fact deadly broken as of now since based on underlying static header-globals.
-I'll fix in V3.
+So it means dev_to_node() will return either NUMA_NO_NODE or a
+valid node id?
 
-Cheers
+> 
+> 2) is already true today, cpumask_of_node() requires a valid node_id.
 
-Cristian
+Ok, most of the user does check node_id before calling
+cpumask_of_node(), but does a little different type of checking:
+
+1) some does " < 0" check;
+2) some does "= NUMA_NO_NODE" check;
+3) some does ">= MAX_NUMNODES" check;
+4) some does "< 0 || >= MAX_NUMNODES || !node_online(node)" check.
 
 
-> +/*
-> + * An Architecture can optionally decide to use this helper to change the
-> + * waiting timeout of common STOP logic. A ZERO timeout means no timeout
-> + * at all as long as wait_forever was not previously set.
-> + *
-> + * Note that wait_forever and timeout must remain individually selectable:
-> + * so you can temporarily request wait_forever while keeping the same timeout
-> + * settings.
-> + */
-> +static inline void smp_stop_set_wait_timeout_us(unsigned long timeout)
-> +{
-> +	atomic_set(&wait_timeout, timeout);
-> +	/* ensure timeout atomic-op is visible */
-> +	smp_mb__after_atomic();
-> +}
-> +
-> +/* Retrieve the current wait settings. */
-> +static inline bool smp_stop_get_wait_timeout_us(unsigned long *timeout)
-> +{
-> +	if (timeout)
-> +		*timeout = atomic_read(&wait_timeout);
-> +	return atomic_read(&wait_forever);
-> +}
-> +
-> +/*
-> + * Any Architecture willing to use STOP common logic implementation
-> + * MUST at least provide the arch_smp_stop_call() helper which is in
-> + * charge of its own arch-specific CPU-stop mechanism.
-> + */
-> +extern void arch_smp_stop_call(cpumask_t *cpus);
-> +
-> +/*
-> + * An Architecture CAN also provide the arch_smp_cpus_stop_complete()
-> + * dedicated helper, to perform any final arch-specific operation on
-> + * the local CPU once the other CPUs have been successfully stopped.
-> + */
-> +void arch_smp_cpus_stop_complete(void);
-> +#endif
-> +
->  /*
->   * sends a 'reschedule' event to another CPU:
->   */
-> diff --git a/kernel/smp.c b/kernel/smp.c
-> index 7dbcb402c2fc..72f99bf13fd0 100644
-> --- a/kernel/smp.c
-> +++ b/kernel/smp.c
-> @@ -20,6 +20,7 @@
->  #include <linux/sched.h>
->  #include <linux/sched/idle.h>
->  #include <linux/hypervisor.h>
-> +#include <linux/delay.h>
->  
->  #include "smpboot.h"
->  
-> @@ -817,3 +818,69 @@ int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par, bool phys)
->  	return sscs.ret;
->  }
->  EXPORT_SYMBOL_GPL(smp_call_on_cpu);
-> +
-> +#ifdef CONFIG_USE_COMMON_SMP_STOP
-> +void __weak arch_smp_cpus_stop_complete(void) { }
-> +
-> +static inline bool any_other_cpus_online(cpumask_t *mask,
-> +					 unsigned int this_cpu_id)
-> +{
-> +	cpumask_copy(mask, cpu_online_mask);
-> +	cpumask_clear_cpu(this_cpu_id, mask);
-> +
-> +	return !cpumask_empty(mask);
-> +}
-> +
-> +/*
-> + * This centralizes the common logic to:
-> + *
-> + *  - evaluate which CPUs are online and needs to be notified for stop,
-> + *    while considering properly the status of the calling CPU
-> + *
-> + *  - call the arch-specific helpers to request the effective stop
-> + *
-> + *  - wait for the stop operation to be completed across all involved CPUs
-> + *    monitoring the cpu_online_mask
-> + */
-> +void smp_send_stop(void)
-> +{
-> +	unsigned int this_cpu_id;
-> +	cpumask_t mask;
-> +
-> +	this_cpu_id = smp_processor_id();
-> +	if (any_other_cpus_online(&mask, this_cpu_id)) {
-> +		bool wait;
-> +		unsigned long timeout;
-> +		unsigned int this_cpu_online = cpu_online(this_cpu_id);
-> +
-> +		if (system_state <= SYSTEM_RUNNING)
-> +			pr_crit("stopping secondary CPUs\n");
-> +		arch_smp_stop_call(&mask);
-> +
-> +		/*
-> +		 * Defaults to wait up to one second for other CPUs to stop;
-> +		 * architectures can modify the default timeout or request
-> +		 * to wait forever.
-> +		 *
-> +		 * Here we rely simply on cpu_online_mask to sync with
-> +		 * arch-specific stop code without bloating the code with an
-> +		 * additional atomic_t ad-hoc counter.
-> +		 *
-> +		 * As a consequence we'll need proper explicit memory barriers
-> +		 * in case the other CPUs running the arch-specific stop-code
-> +		 * would need to commit to memory some data (like saved_regs).
-> +		 */
-> +		wait = smp_stop_get_wait_timeout_us(&timeout);
-> +		while (num_online_cpus() > this_cpu_online &&
-> +		       (wait || timeout--))
-> +			udelay(1);
-> +		/* ensure any stopping-CPUs memory access is made visible */
-> +		smp_rmb();
-> +		if (num_online_cpus() > this_cpu_online)
-> +			pr_warn("failed to stop secondary CPUs %*pbl\n",
-> +				cpumask_pr_args(cpu_online_mask));
-> +	}
-> +	/* Perform final (possibly arch-specific) work on this CPU */
-> +	arch_smp_cpus_stop_complete();
-> +}
-> +#endif
+> 
+> 3) is just wrong and increases overhead for everyone.
+
+Ok, cpumask_of_node() is also used in some critical path such
+as scheduling, which may not need those checking, the overhead
+is unnecessary.
+
+But for non-critical path such as setup or configuration path,
+it better to have consistent checking, and also simplify the
+user code that calls cpumask_of_node().
+
+Do you think it is worth the trouble to add a new function
+such as cpumask_of_node_check(maybe some other name) to do
+consistent checking?
+
+Or caller just simply check if dev_to_node()'s return value is
+NUMA_NO_NODE before calling cpumask_of_node()?
+
+
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
+> .
 > 
