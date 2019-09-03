@@ -1,249 +1,126 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Fri, 13 Sep 2019 18:19:43 +0000
-Subject: [RFC PATCH v2 02/12] smp: unify crash_ and smp_send_stop() logic
-Message-Id: <20190913181953.45748-3-cristian.marussi@arm.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Tue, 03 Sep 2019 08:13:45 +0000
+Subject: [PATCH 0/1] mm/debug: Add tests for architecture exported page table helpers
+Message-Id: <1567497706-8649-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190913181953.45748-1-cristian.marussi@arm.com>
-In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: linux-mm@kvack.org
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, linux-arm-kernel@lists.infradead.org, linux-snps-arc@lists.infradead.org, Kees Cook <keescook@chromium.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-crash_smp_send_stop() logic was fairly similar to smp_send_stop():
-a lot of logic and code was duplicated between the two code paths and
-across a few different architectures.
+This series adds a test validation for architecture exported page table
+helpers. Patch in the series adds basic transformation tests at various
+levels of the page table.
 
-Unify this underlying common logic into the existing SMP common stop
-code: use a common workhorse function for both paths to perform the
-common tasks while taking care to propagate to the underlying
-architecture code the intent of the stop operation: a simple stop or
-a crash dump stop.
+This test was originally suggested by Catalin during arm64 THP migration
+RFC discussion earlier. Going forward it can include more specific tests
+with respect to various generic MM functions like THP, HugeTLB etc and
+platform specific tests.
 
-Relocate the __weak crash_smp_send_stop() function from panic.c to smp.c,
-since it is the crash dump entry point for the crash stop process and now
-calls into this new common logic (only if this latter is enabled by
-ARCH_USE_COMMON_SMP_STOP=y).
+https://lore.kernel.org/linux-mm/20190628102003.GA56463@arrakis.emea.arm.com/
 
-Introduce a few more helpers so that the architectures willing to use
-the common code logic can provide their arch-specific bits to handle
-the differences between a stop and a crash stop; architectures can
-anyway decide to override as a whole the common logic providing their
-own custom solution in crash_smp_send_stop() (as it was before).
+Questions:
 
-Provide also a new common code method to inquiry on the outcome of an
-ongoing crash_stop procedure: smp_crash_stop_failed().
+Should alloc_gigantic_page() be made available as an interface for general
+use in the kernel. The test module here uses very similar implementation from
+HugeTLB to allocate a PUD aligned memory block. Similar for mm_alloc() which
+needs to be exported through a header.
 
-Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
----
-v1 --> v2
-- using new CONFIG_USE_COMMON_SMP_STOP
-- added arch_smp_cpus_crash_complete()
----
- include/linux/smp.h | 34 +++++++++++++++++++++++
- kernel/panic.c      | 26 -----------------
- kernel/smp.c        | 68 ++++++++++++++++++++++++++++++++++++++++++---
- 3 files changed, 98 insertions(+), 30 deletions(-)
+Matthew Wilcox had expressed concerns regarding memory allocation for mapped
+page table entries at various level. He also suggested using synethetic pfns
+which can be derived from virtual address of a known kernel text symbol like
+kernel_init(). But as discussed previously, it seems like allocated memory
+might still outweigh synthetic pfns. This proposal goes with allocated memory
+but if there is a broader agreement with respect to synthetic pfns, will be
+happy to rework the test.
 
-diff --git a/include/linux/smp.h b/include/linux/smp.h
-index 381a14bfcd96..0f95bbd2cb5c 100644
---- a/include/linux/smp.h
-+++ b/include/linux/smp.h
-@@ -130,8 +130,36 @@ extern void arch_smp_stop_call(cpumask_t *cpus);
-  * the local CPU once the other CPUs have been successfully stopped.
-  */
- void arch_smp_cpus_stop_complete(void);
-+
-+/*
-+ * An Architecture CAN also provide the arch_smp_cpus_crash_complete()
-+ * dedicated helper, to perform any final arch-specific operation on
-+ * the local CPU once the other CPUs have been successfully crash stopped.
-+ * When not overridden by the user, this defaults to call straight away
-+ * arch_smp_cpus_stop_complete()
-+ */
-+void arch_smp_cpus_crash_complete(void);
-+
-+/*
-+ * An Architecture CAN additionally provide the arch_smp_crash_call()
-+ * helper which implements the arch-specific crash dump related operations.
-+ *
-+ * If such arch wants to fully support crash dump, this MUST be provided;
-+ * when not provided the crash dump procedure will fallback to behave like
-+ * a normal stop. (no saved regs, no arch-specific features disabled)
-+ */
-+extern void arch_smp_crash_call(cpumask_t *cpus);
-+
-+/* Helper to query the outcome of an ongoing crash_stop operation */
-+bool smp_crash_stop_failed(void);
- #endif
- 
-+/*
-+ * stops all CPUs but the current one propagating to all other CPUs
-+ * the information that a crash_kexec is ongoing:
-+ */
-+void crash_smp_send_stop(void);
-+
- /*
-  * sends a 'reschedule' event to another CPU:
-  */
-@@ -195,6 +223,12 @@ static inline int get_boot_cpu_id(void)
- 
- static inline void smp_send_stop(void) { }
- 
-+static inline void crash_smp_send_stop(void) { }
-+
-+#ifdef CONFIG_USE_COMMON_SMP_STOP
-+static inline bool smp_crash_stop_failed(void) { }
-+#endif
-+
- /*
-  *	These macros fold the SMP functionality into a single CPU system
-  */
-diff --git a/kernel/panic.c b/kernel/panic.c
-index 057540b6eee9..bc0dbf9c9b75 100644
---- a/kernel/panic.c
-+++ b/kernel/panic.c
-@@ -86,32 +86,6 @@ void __weak nmi_panic_self_stop(struct pt_regs *regs)
- 	panic_smp_self_stop();
- }
- 
--/*
-- * Stop other CPUs in panic.  Architecture dependent code may override this
-- * with more suitable version.  For example, if the architecture supports
-- * crash dump, it should save registers of each stopped CPU and disable
-- * per-CPU features such as virtualization extensions.
-- */
--void __weak crash_smp_send_stop(void)
--{
--	static int cpus_stopped;
--
--	/*
--	 * This function can be called twice in panic path, but obviously
--	 * we execute this only once.
--	 */
--	if (cpus_stopped)
--		return;
--
--	/*
--	 * Note smp_send_stop is the usual smp shutdown function, which
--	 * unfortunately means it may not be hardened to work in a panic
--	 * situation.
--	 */
--	smp_send_stop();
--	cpus_stopped = 1;
--}
--
- atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
- 
- /*
-diff --git a/kernel/smp.c b/kernel/smp.c
-index 72f99bf13fd0..b05d2648a168 100644
---- a/kernel/smp.c
-+++ b/kernel/smp.c
-@@ -820,8 +820,14 @@ int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par, bool phys)
- EXPORT_SYMBOL_GPL(smp_call_on_cpu);
- 
- #ifdef CONFIG_USE_COMMON_SMP_STOP
-+
- void __weak arch_smp_cpus_stop_complete(void) { }
- 
-+void __weak arch_smp_cpus_crash_complete(void)
-+{
-+	arch_smp_cpus_stop_complete();
-+}
-+
- static inline bool any_other_cpus_online(cpumask_t *mask,
- 					 unsigned int this_cpu_id)
- {
-@@ -831,6 +837,12 @@ static inline bool any_other_cpus_online(cpumask_t *mask,
- 	return !cpumask_empty(mask);
- }
- 
-+void __weak arch_smp_crash_call(cpumask_t *cpus)
-+{
-+	pr_debug("SMP: Using generic %s() as SMP crash call.\n", __func__);
-+	arch_smp_stop_call(cpus);
-+}
-+
- /*
-  * This centralizes the common logic to:
-  *
-@@ -842,7 +854,7 @@ static inline bool any_other_cpus_online(cpumask_t *mask,
-  *  - wait for the stop operation to be completed across all involved CPUs
-  *    monitoring the cpu_online_mask
-  */
--void smp_send_stop(void)
-+static inline void __smp_send_stop_all(bool reason_crash)
- {
- 	unsigned int this_cpu_id;
- 	cpumask_t mask;
-@@ -855,8 +867,11 @@ void smp_send_stop(void)
- 
- 		if (system_state <= SYSTEM_RUNNING)
- 			pr_crit("stopping secondary CPUs\n");
--		arch_smp_stop_call(&mask);
--
-+		/* smp and crash arch-backends helpers are kept distinct */
-+		if (!reason_crash)
-+			arch_smp_stop_call(&mask);
-+		else
-+			arch_smp_crash_call(&mask);
- 		/*
- 		 * Defaults to wait up to one second for other CPUs to stop;
- 		 * architectures can modify the default timeout or request
-@@ -881,6 +896,51 @@ void smp_send_stop(void)
- 				cpumask_pr_args(cpu_online_mask));
- 	}
- 	/* Perform final (possibly arch-specific) work on this CPU */
--	arch_smp_cpus_stop_complete();
-+	if (!reason_crash)
-+		arch_smp_cpus_stop_complete();
-+	else
-+		arch_smp_cpus_crash_complete();
-+}
-+
-+void smp_send_stop(void)
-+{
-+	__smp_send_stop_all(false);
- }
-+
-+bool __weak smp_crash_stop_failed(void)
-+{
-+	return (num_online_cpus() > cpu_online(smp_processor_id()));
-+}
-+#endif
-+
-+/*
-+ * Stop other CPUs while passing down the additional information that a
-+ * crash_kexec is ongoing: it's up to the architecture implementation
-+ * decide what to do.
-+ *
-+ * For example, Architectures supporting crash dump should provide
-+ * specialized support for saving registers and disabling per-CPU features
-+ * like virtualization extensions.
-+ *
-+ * Behaviour in the CONFIG_USE_COMMON_SMP_STOP=n case is preserved
-+ * as it was before.
-+ */
-+void __weak crash_smp_send_stop(void)
-+{
-+	static int cpus_stopped;
-+
-+	/*
-+	 * This function can be called twice in panic path, but obviously
-+	 * we execute this only once.
-+	 */
-+	if (cpus_stopped)
-+		return;
-+
-+#ifdef CONFIG_USE_COMMON_SMP_STOP
-+	__smp_send_stop_all(true);
-+#else
-+	smp_send_stop();
- #endif
-+
-+	cpus_stopped = 1;
-+}
+Testing:
+
+Build and boot tested on arm64 and x86 platforms. While arm64 clears all
+these tests, following errors were reported on x86.
+
+1. WARN_ON(pud_bad(pud)) in pud_populate_tests()
+2. WARN_ON(p4d_bad(p4d)) in p4d_populate_tests()
+
+I would really appreciate if folks can help validate this test on other
+platforms and report back problems if any. Suggestions, comments and
+inputs welcome. Thank you.
+
+Changes in V3:
+
+- Added fallback mechanism for PMD aligned memory allocation failure
+
+Changes in V2:
+
+https://lore.kernel.org/linux-mm/1565335998-22553-1-git-send-email-anshuman.khandual@arm.com/T/#u
+
+- Moved test module and it's config from lib/ to mm/
+- Renamed config TEST_ARCH_PGTABLE as DEBUG_ARCH_PGTABLE_TEST
+- Renamed file from test_arch_pgtable.c to arch_pgtable_test.c
+- Added relevant MODULE_DESCRIPTION() and MODULE_AUTHOR() details
+- Dropped loadable module config option
+- Basic tests now use memory blocks with required size and alignment
+- PUD aligned memory block gets allocated with alloc_contig_range()
+- If PUD aligned memory could not be allocated it falls back on PMD aligned
+  memory block from page allocator and pud_* tests are skipped
+- Clear and populate tests now operate on real in memory page table entries
+- Dummy mm_struct gets allocated with mm_alloc()
+- Dummy page table entries get allocated with [pud|pmd|pte]_alloc_[map]()
+- Simplified [p4d|pgd]_basic_tests(), now has random values in the entries
+
+RFC V1:
+
+https://lore.kernel.org/linux-mm/1564037723-26676-1-git-send-email-anshuman.khandual@arm.com/
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Steven Price <Steven.Price@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sri Krishna chowdary <schowdary@nvidia.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: x86@kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+Anshuman Khandual (1):
+  mm/pgtable/debug: Add test validating architecture page table helpers
+
+ mm/Kconfig.debug       |  14 ++
+ mm/Makefile            |   1 +
+ mm/arch_pgtable_test.c | 425 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 440 insertions(+)
+ create mode 100644 mm/arch_pgtable_test.c
+
 -- 
-2.17.1
+2.20.1
