@@ -1,60 +1,93 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Thu, 12 Sep 2019 10:15:29 +0000
-Subject: [PATCH v3 3/8] alpha: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for alpha
-Message-Id: <1568283334-178380-4-git-send-email-linyunsheng@huawei.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Wed, 04 Sep 2019 20:19:23 +0000
+Subject: [PATCH v12 02/12] clone3: switch to copy_struct_from_user()
+Message-Id: <20190904201933.10736-3-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+References: <20190904201933.10736-1-cyphar@cyphar.com>
+In-Reply-To: <20190904201933.10736-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, mhocko@kernel.org, gregkh@linuxfoundation.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Christian Brauner <christian@brauner.io>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org
 
-When passing the return value of dev_to_node() to cpumask_of_node()
-without checking the node id if the node id is NUMA_NO_NODE, there is
-global-out-of-bounds detected by KASAN.
+The change is very straightforward, and takes advantage of the (very
+minor) efficiency improvements in copy_struct_from_user() -- that the
+memchr_inv() check is done on a buffer instead of one-at-at-time with
+get_user().
 
-From the discussion [1], NUMA_NO_NODE really means no node affinity,
-which also means all cpus should be usable. So the cpumask_of_node()
-should always return all cpus online when user passes the node id
-as NUMA_NO_NODE, just like similar semantic that page allocator handles
-NUMA_NO_NODE.
+Additionally, explicitly define CLONE_ARGS_SIZE_VER0 to match the other
+users of the struct-extension pattern.
 
-But we cannot really copy the page allocator logic. Simply because the
-page allocator doesn't enforce the near node affinity. It just picks it
-up as a preferred node but then it is free to fallback to any other numa
-node. This is not the case here and node_to_cpumask_map will only restrict
-to the particular node's cpus which would have really non deterministic
-behavior depending on where the code is executed. So in fact we really
-want to return cpu_online_mask for NUMA_NO_NODE.
-
-Since this arch was already NUMA_NO_NODE aware, this patch only changes
-it to return cpu_online_mask.
-
-[1] https://lore.kernel.org/patchwork/patch/1125789/
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
+Cc: Christian Brauner <christian@brauner.io>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
-V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
-    for NUMA_NO_NODE case, and change the commit log to better justify
-    the change.
----
- arch/alpha/include/asm/topology.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/sched.h |  2 ++
+ kernel/fork.c              | 34 ++++++----------------------------
+ 2 files changed, 8 insertions(+), 28 deletions(-)
 
-diff --git a/arch/alpha/include/asm/topology.h b/arch/alpha/include/asm/topology.h
-index 5a77a40..836c9e2 100644
---- a/arch/alpha/include/asm/topology.h
-+++ b/arch/alpha/include/asm/topology.h
-@@ -31,7 +31,7 @@ static const struct cpumask *cpumask_of_node(int node)
- 	int cpu;
+diff --git a/include/uapi/linux/sched.h b/include/uapi/linux/sched.h
+index b3105ac1381a..0945805982b4 100644
+--- a/include/uapi/linux/sched.h
++++ b/include/uapi/linux/sched.h
+@@ -47,6 +47,8 @@ struct clone_args {
+ 	__aligned_u64 tls;
+ };
  
- 	if (node = NUMA_NO_NODE)
--		return cpu_all_mask;
-+		return cpu_online_mask;
++#define CLONE_ARGS_SIZE_VER0 64 /* sizeof first published struct */
++
+ /*
+  * Scheduling policies
+  */
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 2852d0e76ea3..70c10d9b429a 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -2528,39 +2528,17 @@ SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
+ #ifdef __ARCH_WANT_SYS_CLONE3
+ noinline static int copy_clone_args_from_user(struct kernel_clone_args *kargs,
+ 					      struct clone_args __user *uargs,
+-					      size_t size)
++					      size_t usize)
+ {
++	int err;
+ 	struct clone_args args;
  
- 	cpumask_clear(&node_to_cpumask_map[node]);
+-	if (unlikely(size > PAGE_SIZE))
+-		return -E2BIG;
+-
+-	if (unlikely(size < sizeof(struct clone_args)))
++	if (unlikely(usize < CLONE_ARGS_SIZE_VER0))
+ 		return -EINVAL;
  
+-	if (unlikely(!access_ok(uargs, size)))
+-		return -EFAULT;
+-
+-	if (size > sizeof(struct clone_args)) {
+-		unsigned char __user *addr;
+-		unsigned char __user *end;
+-		unsigned char val;
+-
+-		addr = (void __user *)uargs + sizeof(struct clone_args);
+-		end = (void __user *)uargs + size;
+-
+-		for (; addr < end; addr++) {
+-			if (get_user(val, addr))
+-				return -EFAULT;
+-			if (val)
+-				return -E2BIG;
+-		}
+-
+-		size = sizeof(struct clone_args);
+-	}
+-
+-	if (copy_from_user(&args, uargs, size))
+-		return -EFAULT;
++	err = copy_struct_from_user(&args, sizeof(args), uargs, usize);
++	if (err)
++		return err;
+ 
+ 	*kargs = (struct kernel_clone_args){
+ 		.flags		= args.flags,
 -- 
-2.8.1
+2.23.0
