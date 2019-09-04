@@ -1,82 +1,258 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Tue, 17 Sep 2019 11:36:39 +0000
-Subject: Re: [PATCH v5] numa: make node_to_cpumask_map() NUMA_NO_NODE aware
-Message-Id: <7fe82a6a-2183-3d9d-2740-0d4fe123b813@huawei.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Wed, 04 Sep 2019 20:19:22 +0000
+Subject: [PATCH v12 01/12] lib: introduce copy_struct_{to,from}_user helpers
+Message-Id: <20190904201933.10736-2-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1568640481-133352-1-git-send-email-linyunsheng@huawei.com>
- <87pnjzsd8f.fsf@mpe.ellerman.id.au>
- <d748aae4-4d48-6f8a-2f6d-67fad5224ba9@huawei.com>
- <20190917093655.GA1872@dhcp22.suse.cz>
- <07c78b6c-277e-eec0-a6cd-46beab1f1547@huawei.com>
- <20190917100854.GC1872@dhcp22.suse.cz>
-In-Reply-To: <20190917100854.GC1872@dhcp22.suse.cz>
+References: <20190904201933.10736-1-cyphar@cyphar.com>
+In-Reply-To: <20190904201933.10736-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>, catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com, akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, gregkh@linuxfoundation.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Christian Brauner <christian@brauner.io>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org
 
-On 2019/9/17 18:08, Michal Hocko wrote:
-> On Tue 17-09-19 17:53:57, Yunsheng Lin wrote:
->> On 2019/9/17 17:36, Michal Hocko wrote:
->>> On Tue 17-09-19 14:20:11, Yunsheng Lin wrote:
->>>> On 2019/9/17 13:28, Michael Ellerman wrote:
->>>>> Yunsheng Lin <linyunsheng@huawei.com> writes:
->>> [...]
->>>>>> But we cannot really copy the page allocator logic. Simply because the
->>>>>> page allocator doesn't enforce the near node affinity. It just picks it
->>>>>> up as a preferred node but then it is free to fallback to any other numa
->>>>>> node. This is not the case here and node_to_cpumask_map will only restrict
->>>>>> to the particular node's cpus which would have really non deterministic
->>>>>> behavior depending on where the code is executed. So in fact we really
->>>>>> want to return cpu_online_mask for NUMA_NO_NODE.
->>>>>>
->>>>>> Some arches were already NUMA_NO_NODE aware, but they return cpu_all_mask,
->>>>>> which should be identical with cpu_online_mask when those arches do not
->>>>>> support cpu hotplug, this patch also changes them to return cpu_online_mask
->>>>>> in order to be consistent and use NUMA_NO_NODE instead of "-1".
->>>>>
->>>>> Except some of those arches *do* support CPU hotplug, powerpc and sparc
->>>>> at least. So switching from cpu_all_mask to cpu_online_mask is a
->>>>> meaningful change.
->>>>
->>>> Yes, thanks for pointing out.
->>>>
->>>>>
->>>>> That doesn't mean it's wrong, but you need to explain why it's the right
->>>>> change.
->>>>
->>>> How about adding the below to the commit log:
->>>> Even if some of the arches do support CPU hotplug, it does not make sense
->>>> to return the cpu that has been hotplugged.
->>>>
->>>> Any suggestion?
->>>
->>> Again, for the third time, I believe. Make it a separate patch please.
->>> There is absolutely no reason to conflate those two things.
->>
->> Ok, thanks.
->> Will make the cpu_all_mask -> cpu_online_mask change a separate patch.
-> 
-> Thanks. This really needs per arch maintainer to check closely.
-> 
->> Also, do you think it is better to resend this as individual patches for each arch
->> or have all these changes in a single patch? I am not sure which is the common
->> practice for a multi-arches changes like this.
-> 
-> It really depends on arch maintainers. Both approaches have some pros
-> and cons. A single patch is more compact and and parts are not going to
-> get lost in noise. They might generate some conflicts with parallel
-> changes. I suspect a conflict risk is quite low in this code considering
-> from a recent activity. A follow up arch specific patch would have to be
-> routed via Andrew as well.
-> 
-> If Andrew is ok routing it through his tree and none of the arch
-> maintainers is opposed then I would go with a single patch.
+A common pattern for syscall extensions is increasing the size of a
+struct passed from userspace, such that the zero-value of the new fields
+result in the old kernel behaviour (allowing for a mix of userspace and
+kernel vintages to operate on one another in most cases). This is done
+in both directions -- hence two helpers -- though it's more common to
+have to copy user space structs into kernel space.
 
-Ok, I will try a single patch for NUMA_NO_NODE aware change first.
-"cpu_all_mask -> cpu_online_mask" change seems a little controversial,
-and may need deeper investigation.
+Previously there was no common lib/ function that implemented
+the necessary extension-checking semantics (and different syscalls
+implemented them slightly differently or incompletely[1]). A future
+patch replaces all of the common uses of this pattern to use the new
+copy_struct_{to,from}_user() helpers.
 
+[1]: For instance {sched_setattr,perf_event_open,clone3}(2) all do do
+     similar checks to copy_struct_from_user() while rt_sigprocmask(2)
+     always rejects differently-sized struct arguments.
 
-> 
+Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ include/linux/uaccess.h |   5 ++
+ lib/Makefile            |   2 +-
+ lib/struct_user.c       | 182 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 188 insertions(+), 1 deletion(-)
+ create mode 100644 lib/struct_user.c
+
+diff --git a/include/linux/uaccess.h b/include/linux/uaccess.h
+index 34a038563d97..0ad9544a1aee 100644
+--- a/include/linux/uaccess.h
++++ b/include/linux/uaccess.h
+@@ -230,6 +230,11 @@ static inline unsigned long __copy_from_user_inatomic_nocache(void *to,
+ 
+ #endif		/* ARCH_HAS_NOCACHE_UACCESS */
+ 
++extern int copy_struct_to_user(void __user *dst, size_t usize,
++			       const void *src, size_t ksize);
++extern int copy_struct_from_user(void *dst, size_t ksize,
++				 const void __user *src, size_t usize);
++
+ /*
+  * probe_kernel_read(): safely attempt to read from a location
+  * @dst: pointer to the buffer that shall take the data
+diff --git a/lib/Makefile b/lib/Makefile
+index 29c02a924973..d86c71feaf0a 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -28,7 +28,7 @@ endif
+ CFLAGS_string.o := $(call cc-option, -fno-stack-protector)
+ endif
+ 
+-lib-y := ctype.o string.o vsprintf.o cmdline.o \
++lib-y := ctype.o string.o struct_user.o vsprintf.o cmdline.o \
+ 	 rbtree.o radix-tree.o timerqueue.o xarray.o \
+ 	 idr.o extable.o \
+ 	 sha1.o chacha.o irq_regs.o argv_split.o \
+diff --git a/lib/struct_user.c b/lib/struct_user.c
+new file mode 100644
+index 000000000000..7301ab1bbe98
+--- /dev/null
++++ b/lib/struct_user.c
+@@ -0,0 +1,182 @@
++// SPDX-License-Identifier: GPL-2.0-or-later
++/*
++ * Copyright (C) 2019 SUSE LLC
++ * Copyright (C) 2019 Aleksa Sarai <cyphar@cyphar.com>
++ */
++
++#include <linux/types.h>
++#include <linux/export.h>
++#include <linux/uaccess.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
++
++#define BUFFER_SIZE 64
++
++/*
++ * "memset(p, 0, size)" but for user space buffers. Caller must have already
++ * checked access_ok(p, size).
++ */
++static int __memzero_user(void __user *p, size_t s)
++{
++	const char zeros[BUFFER_SIZE] = {};
++	while (s > 0) {
++		size_t n = min(s, sizeof(zeros));
++
++		if (__copy_to_user(p, zeros, n))
++			return -EFAULT;
++
++		p += n;
++		s -= n;
++	}
++	return 0;
++}
++
++/**
++ * copy_struct_to_user: copy a struct to user space
++ * @dst:   Destination address, in user space.
++ * @usize: Size of @dst struct.
++ * @src:   Source address, in kernel space.
++ * @ksize: Size of @src struct.
++ *
++ * Copies a struct from kernel space to user space, in a way that guarantees
++ * backwards-compatibility for struct syscall arguments (as long as future
++ * struct extensions are made such that all new fields are *appended* to the
++ * old struct, and zeroed-out new fields have the same meaning as the old
++ * struct).
++ *
++ * @ksize is just sizeof(*dst), and @usize should've been passed by user space.
++ * The recommended usage is something like the following:
++ *
++ *   SYSCALL_DEFINE2(foobar, struct foo __user *, uarg, size_t, usize)
++ *   {
++ *      int err;
++ *      struct foo karg = {};
++ *
++ *      // do something with karg
++ *
++ *      err = copy_struct_to_user(uarg, usize, &karg, sizeof(karg));
++ *      if (err)
++ *        return err;
++ *
++ *      // ...
++ *   }
++ *
++ * There are three cases to consider:
++ *  * If @usize = @ksize, then it's copied verbatim.
++ *  * If @usize < @ksize, then kernel space is "returning" a newer struct to an
++ *    older user space. In order to avoid user space getting incomplete
++ *    information (new fields might be important), all trailing bytes in @src
++ *    (@ksize - @usize) must be zerored, otherwise -EFBIG is returned.
++ *  * If @usize > @ksize, then the kernel is "returning" an older struct to a
++ *    newer user space. The trailing bytes in @dst (@usize - @ksize) will be
++ *    zero-filled.
++ *
++ * Returns (in all cases, some data may have been copied):
++ *  * -EFBIG:  (@usize < @ksize) and there are non-zero trailing bytes in @src.
++ *  * -EFAULT: access to user space failed.
++ */
++int copy_struct_to_user(void __user *dst, size_t usize,
++			const void *src, size_t ksize)
++{
++	size_t size = min(ksize, usize);
++	size_t rest = abs(ksize - usize);
++
++	if (unlikely(usize > PAGE_SIZE))
++		return -EFAULT;
++	if (unlikely(!access_ok(dst, usize)))
++		return -EFAULT;
++
++	/* Deal with trailing bytes. */
++	if (usize < ksize) {
++		if (memchr_inv(src + size, 0, rest))
++			return -EFBIG;
++	} else if (usize > ksize) {
++		if (__memzero_user(dst + size, rest))
++			return -EFAULT;
++	}
++	/* Copy the interoperable parts of the struct. */
++	if (__copy_to_user(dst, src, size))
++		return -EFAULT;
++	return 0;
++}
++EXPORT_SYMBOL(copy_struct_to_user);
++
++/**
++ * copy_struct_from_user: copy a struct from user space
++ * @dst:   Destination address, in kernel space. This buffer must be @ksize
++ *         bytes long.
++ * @ksize: Size of @dst struct.
++ * @src:   Source address, in user space.
++ * @usize: (Alleged) size of @src struct.
++ *
++ * Copies a struct from user space to kernel space, in a way that guarantees
++ * backwards-compatibility for struct syscall arguments (as long as future
++ * struct extensions are made such that all new fields are *appended* to the
++ * old struct, and zeroed-out new fields have the same meaning as the old
++ * struct).
++ *
++ * @ksize is just sizeof(*dst), and @usize should've been passed by user space.
++ * The recommended usage is something like the following:
++ *
++ *   SYSCALL_DEFINE2(foobar, const struct foo __user *, uarg, size_t, usize)
++ *   {
++ *      int err;
++ *      struct foo karg = {};
++ *
++ *      err = copy_struct_from_user(&karg, sizeof(karg), uarg, size);
++ *      if (err)
++ *        return err;
++ *
++ *      // ...
++ *   }
++ *
++ * There are three cases to consider:
++ *  * If @usize = @ksize, then it's copied verbatim.
++ *  * If @usize < @ksize, then the user space has passed an old struct to a
++ *    newer kernel. The rest of the trailing bytes in @dst (@ksize - @usize)
++ *    are to be zero-filled.
++ *  * If @usize > @ksize, then the user space has passed a new struct to an
++ *    older kernel. The trailing bytes unknown to the kernel (@usize - @ksize)
++ *    are checked to ensure they are zeroed, otherwise -E2BIG is returned.
++ *
++ * Returns (in all cases, some data may have been copied):
++ *  * -E2BIG:  (@usize > @ksize) and there are non-zero trailing bytes in @src.
++ *  * -E2BIG:  @usize is "too big" (at time of writing, >PAGE_SIZE).
++ *  * -EFAULT: access to user space failed.
++ */
++int copy_struct_from_user(void *dst, size_t ksize,
++			  const void __user *src, size_t usize)
++{
++	size_t size = min(ksize, usize);
++	size_t rest = abs(ksize - usize);
++
++	if (unlikely(usize > PAGE_SIZE))
++		return -EFAULT;
++	if (unlikely(!access_ok(src, usize)))
++		return -EFAULT;
++
++	/* Deal with trailing bytes. */
++	if (usize < ksize)
++		memset(dst + size, 0, rest);
++	else if (usize > ksize) {
++		const void __user *addr = src + size;
++		char buffer[BUFFER_SIZE] = {};
++
++		while (rest > 0) {
++			size_t bufsize = min(rest, sizeof(buffer));
++
++			if (__copy_from_user(buffer, addr, bufsize))
++				return -EFAULT;
++			if (memchr_inv(buffer, 0, bufsize))
++				return -E2BIG;
++
++			addr += bufsize;
++			rest -= bufsize;
++		}
++	}
++	/* Copy the interoperable parts of the struct. */
++	if (__copy_from_user(dst, src, size))
++		return -EFAULT;
++	return 0;
++}
++EXPORT_SYMBOL(copy_struct_from_user);
+-- 
+2.23.0
