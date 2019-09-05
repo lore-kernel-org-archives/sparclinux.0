@@ -1,7 +1,7 @@
-From: Matt Turner <mattst88@gmail.com>
-Date: Thu, 05 Sep 2019 17:22:36 +0000
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Thu, 05 Sep 2019 20:38:39 +0000
 Subject: Re: [PATCH 2/2] ipc: fix sparc64 ipc() wrapper
-Message-Id: <CAEdQ38G24-s0x+xKzUfg1GH8JAPtcAq5e5L37SnOZ3gQth1STQ@mail.gmail.com>
+Message-Id: <CADxRZqxkj+vdAOtZYmKtavy5nCtNFAUgfZ6k12nYeNcPYB+ssw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190905152155.1392871-1-arnd@arndb.de> <20190905152155.1392871-2-arnd@arndb.de>
 In-Reply-To: <20190905152155.1392871-2-arnd@arndb.de>
@@ -9,9 +9,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Arnd Bergmann <arnd@arndb.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, "Eric W. Biederman" <ebiederm@xmission.com>, Deepa Dinamani <deepa.kernel@gmail.com>, Christian Brauner <christian@brauner.io>, Manfred Spraul <manfred@colorfullife.com>, Davidlohr Bueso <dave@stgolabs.net>, Linux-Arch <linux-arch@vger.kernel.org>, y2038 Mailman List <y2038@lists.linaro.org>, Dominik Brodowski <linux@dominikbrodowski.net>, stable@vger.kernel.org, sparclinux@vger.kernel.org, Linux API <linux-api@vger.kernel.org>
+Cc: Linux Kernel list <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, "Eric W. Biederman" <ebiederm@xmission.com>, Deepa Dinamani <deepa.kernel@gmail.com>, Christian Brauner <christian@brauner.io>, Manfred Spraul <manfred@colorfullife.com>, Davidlohr Bueso <dave@stgolabs.net>, linux-arch@vger.kernel.org, y2038@lists.linaro.org, Dominik Brodowski <linux@dominikbrodowski.net>, Matt Turner <mattst88@gmail.com>, stable@vger.kernel.org, Sparc kernel list <sparclinux@vger.kernel.org>, linux-api@vger.kernel.org
 
-On Thu, Sep 5, 2019 at 8:23 AM Arnd Bergmann <arnd@arndb.de> wrote:
+On Thu, Sep 5, 2019 at 9:39 PM Arnd Bergmann <arnd@arndb.de> wrote:
 >
 > Matt bisected a sparc64 specific issue with semctl, shmctl and msgctl
 > to a commit from my y2038 series in linux-5.1, as I missed the custom
@@ -33,11 +33,14 @@ On Thu, Sep 5, 2019 at 8:23 AM Arnd Bergmann <arnd@arndb.de> wrote:
 > Fixes: 275f22148e87 ("ipc: rename old-style shmctl/semctl/msgctl syscalls")
 > Cc: stable@vger.kernel.org
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> Hi Matt,
->
-> Can you check that this solves your problem?
 
-Works great. Thank you Arnd!
 
-Tested-by: Matt Turner <mattst88@gmail.com>
+Not Matt,
+
+but this patch fixes util-linux.git ipcs test-suite (make check)
+regression for me on current sparc64 git kernel (5.3.0-rc7), which was
+broken somewhere in between 4.19 (debian unstable kernel) and 5.3-rcX.
+
+Thanks!
+
+PS: wanted to bisect kernel, but Matt did it first.
