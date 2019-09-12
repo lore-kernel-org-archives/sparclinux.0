@@ -1,142 +1,59 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Mon, 30 Sep 2019 18:33:16 +0000
-Subject: [PATCH v13 9/9] Documentation: update path-lookup to mention trailing magic-links
-Message-Id: <20190930183316.10190-10-cyphar@cyphar.com>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Thu, 12 Sep 2019 10:15:34 +0000
+Subject: [PATCH v3 8/8] mips: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for loongson64
+Message-Id: <1568283334-178380-9-git-send-email-linyunsheng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190930183316.10190-1-cyphar@cyphar.com>
-In-Reply-To: <20190930183316.10190-1-cyphar@cyphar.com>
+References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+In-Reply-To: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
-Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexei Starovoitov <ast@kernel.org>, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Tycho Andersen <tycho@tycho.ws>, Aleksa Sarai <asarai@suse.de>, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-xtensa@linux-xtensa.org, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, linuxppc-dev@lists.ozlabs.org, Aleksa Sarai <cyphar@cyphar.com>, Andy Lutomirski <luto@kernel.org>, Namhyung Kim <namhyung@kernel.org>, David Drysdale <drysdale@google.com>, Christian Brauner <christian@brauner.io>, libc-alpha@sourceware.org, linux-parisc@vger.kernel.org, linux-m68k@li
+To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
+Cc: akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, mhocko@kernel.org, gregkh@linuxfoundation.org
 
-We've introduced new (somewhat subtle) behaviour regarding trailing
-magic-links, so it's best to make sure everyone can follow along with
-the reasoning behind trailing_magiclink().
+When passing the return value of dev_to_node() to cpumask_of_node()
+without checking the node id if the node id is NUMA_NO_NODE, there is
+global-out-of-bounds detected by KASAN.
 
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+From the discussion [1], NUMA_NO_NODE really means no node affinity,
+which also means all cpus should be usable. So the cpumask_of_node()
+should always return all cpus online when user passes the node id
+as NUMA_NO_NODE, just like similar semantic that page allocator handles
+NUMA_NO_NODE.
+
+But we cannot really copy the page allocator logic. Simply because the
+page allocator doesn't enforce the near node affinity. It just picks it
+up as a preferred node but then it is free to fallback to any other numa
+node. This is not the case here and node_to_cpumask_map will only restrict
+to the particular node's cpus which would have really non deterministic
+behavior depending on where the code is executed. So in fact we really
+want to return cpu_online_mask for NUMA_NO_NODE.
+
+[1] https://lore.kernel.org/patchwork/patch/1125789/
+Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
 ---
- Documentation/filesystems/path-lookup.rst | 80 ++++++++++++++++++-----
- 1 file changed, 63 insertions(+), 17 deletions(-)
+V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
+    for NUMA_NO_NODE case, and change the commit log to better justify
+    the change.
+---
+ arch/mips/include/asm/mach-loongson64/topology.h | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/filesystems/path-lookup.rst b/Documentation/filesystems/path-lookup.rst
-index 434a07b0002b..c30145b3d9ba 100644
---- a/Documentation/filesystems/path-lookup.rst
-+++ b/Documentation/filesystems/path-lookup.rst
-@@ -405,6 +405,10 @@ is requested.  Keeping a reference in the ``nameidata`` ensures that
- only one root is in effect for the entire path walk, even if it races
- with a ``chroot()`` system call.
+diff --git a/arch/mips/include/asm/mach-loongson64/topology.h b/arch/mips/include/asm/mach-loongson64/topology.h
+index 7ff819a..2207e2e 100644
+--- a/arch/mips/include/asm/mach-loongson64/topology.h
++++ b/arch/mips/include/asm/mach-loongson64/topology.h
+@@ -5,7 +5,9 @@
+ #ifdef CONFIG_NUMA
  
-+It should be noted that in the case of ``LOOKUP_IN_ROOT`` or
-+``LOOKUP_BENEATH``, the effective root becomes the directory file descriptor
-+passed to ``openat2()`` (which exposes these ``LOOKUP_`` flags).
-+
- The root is needed when either of two conditions holds: (1) either the
- pathname or a symbolic link starts with a "'/'", or (2) a "``..``"
- component is being handled, since "``..``" from the root must always stay
-@@ -1149,22 +1153,61 @@ so ``NULL`` is returned to indicate that the symlink can be released and
- the stack frame discarded.
+ #define cpu_to_node(cpu)	(cpu_logical_map(cpu) >> 2)
+-#define cpumask_of_node(node)	(&__node_data[(node)]->cpumask)
++#define cpumask_of_node(node)  ((node) = NUMA_NO_NODE ?	\
++				cpu_online_mask :		\
++				(&__node_data[(node)]->cpumask)
  
- The other case involves things in ``/proc`` that look like symlinks but
--aren't really::
-+aren't really (and are therefore commonly referred to as "magic-links")::
- 
-      $ ls -l /proc/self/fd/1
-      lrwx------ 1 neilb neilb 64 Jun 13 10:19 /proc/self/fd/1 -> /dev/pts/4
- 
- Every open file descriptor in any process is represented in ``/proc`` by
--something that looks like a symlink.  It is really a reference to the
--target file, not just the name of it.  When you ``readlink`` these
--objects you get a name that might refer to the same file - unless it
--has been unlinked or mounted over.  When ``walk_component()`` follows
--one of these, the ``->follow_link()`` method in "procfs" doesn't return
--a string name, but instead calls ``nd_jump_link()`` which updates the
--``nameidata`` in place to point to that target.  ``->follow_link()`` then
--returns ``NULL``.  Again there is no final component and ``get_link()``
--reports this by leaving the ``last_type`` field of ``nameidata`` as
--``LAST_BIND``.
-+a magic-link.  It is really a reference to the target file, not just the
-+name of it (hence making them "magical" compared to ordinary symlinks).
-+When you ``readlink`` these objects you get a name that might refer to
-+the same file - unless it has been unlinked or mounted over.  When
-+``walk_component()`` follows one of these, the ``->follow_link()`` method
-+in "procfs" doesn't return a string name, but instead calls
-+``nd_jump_link()`` which updates the ``nameidata`` in place to point to
-+that target.  ``->follow_link()`` then returns ``NULL``. Again there is
-+no final component and ``get_link()`` reports this by leaving the
-+``last_type`` field of ``nameidata`` as ``LAST_BIND``.
-+
-+In order to avoid potential re-opening attacks (especially in the context
-+of containers), it is necessary to restrict the ability for a trailing
-+magic-link to be opened. The restrictions are as follows (and are
-+implemented in ``trailing_magiclink()``):
-+
-+* If the ``open()`` is an "ordinary open" (without ``O_PATH``), the
-+  access-mode of the ``open()`` call must be permitted by one of the
-+  octets in the magic-link's file mode (elsewhere in Linux, ordinary
-+  symlinks have a file mode of ``0777`` but this doesn't apply to
-+  magic-links). Each "ordinary" file in ``/proc/self/fd/$n`` has the user
-+  octet of its file mode set to correspond to the access-mode it was
-+  opened with.
-+
-+  This restriction means that you cannot re-open an ``O_RDONLY`` file
-+  descriptor through ``/proc/self/fd/$n`` with ``O_RDWR``.
-+
-+With a "half-open" (with ``O_PATH``), there is no ``-EACCES``-enforced
-+restrictions on ``open()``, but there are rules about the mode shown in
-+``/proc/self/fd/$n``:
-+
-+* If the target of the ``open()`` is not a magic-link, then the group
-+  octet of the file mode is set to permit all access modes.
-+
-+* Otherwise, the mode of the new ``O_PATH`` descriptor is set to
-+  effectively the same mode as the magic-link (though the permissions are
-+  set in the group octet of the mode). This means that an ``O_PATH`` of a
-+  magic-link gives you no more re-open permissions than the magic-link
-+  itself.
-+
-+With these ``O_PATH`` restrictions, it is still possible to re-open an
-+``O_PATH`` file descriptor but you cannot use ``O_PATH`` to work around
-+the above restrictions on "ordinary opens" of magic-links.
-+
-+In order to avoid certain race conditions (where a file descriptor
-+associated with a magic-link is swapped, causing the ``link_inode`` of
-+``nameidata`` to become stale during magic-link traversal),
-+``nd_jump_link()`` stores the mode of the magic-link during traversal in
-+``last_magiclink``.
- 
- Following the symlink in the final component
- --------------------------------------------
-@@ -1187,7 +1230,8 @@ handles the final component.  If the final component is a symlink
- that needs to be followed, then ``trailing_symlink()`` is called to set
- things up properly and the loop repeats, calling ``link_path_walk()``
- again.  This could loop as many as 40 times if the last component of
--each symlink is another symlink.
-+each symlink is another symlink. ``trailing_magiclink()`` is then called to
-+deal with permission checks relevant to ``/proc/$pid/fd``-style "symlinks".
- 
- The various functions that examine the final component and possibly
- report that it is a symlink are ``lookup_last()``, ``mountpoint_last()``
-@@ -1310,12 +1354,14 @@ longer needed.
- ``LOOKUP_JUMPED`` means that the current dentry was chosen not because
- it had the right name but for some other reason.  This happens when
- following "``..``", following a symlink to ``/``, crossing a mount point
--or accessing a "``/proc/$PID/fd/$FD``" symlink.  In this case the
--filesystem has not been asked to revalidate the name (with
--``d_revalidate()``).  In such cases the inode may still need to be
--revalidated, so ``d_op->d_weak_revalidate()`` is called if
-+or accessing a "``/proc/$PID/fd/$FD``" symlink (also known as a "magic
-+link"). In this case the filesystem has not been asked to revalidate the
-+name (with ``d_revalidate()``).  In such cases the inode may still need
-+to be revalidated, so ``d_op->d_weak_revalidate()`` is called if
- ``LOOKUP_JUMPED`` is set when the look completes - which may be at the
--final component or, when creating, unlinking, or renaming, at the penultimate component.
-+final component or, when creating, unlinking, or renaming, at the
-+penultimate component. ``LOOKUP_MAGICLINK_JUMPED`` is set alongside
-+``LOOKUP_JUMPED`` if a magic-link was traversed.
- 
- Final-component flags
- ~~~~~~~~~~~~~~~~~~~~~
+ struct pci_bus;
+ extern int pcibus_to_node(struct pci_bus *);
 -- 
-2.23.0
+2.8.1
