@@ -1,8 +1,10 @@
 From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Thu, 12 Sep 2019 10:15:26 +0000
-Subject: [PATCH v3 0/8] make node_to_cpumask_map() NUMA_NO_NODE aware
-Message-Id: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+Date: Thu, 12 Sep 2019 10:15:32 +0000
+Subject: [PATCH v3 6/8] sparc64: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for sparc64
+Message-Id: <1568283334-178380-7-git-send-email-linyunsheng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+In-Reply-To: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -11,45 +13,7 @@ Cc: akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tg
 
 When passing the return value of dev_to_node() to cpumask_of_node()
 without checking the node id if the node id is NUMA_NO_NODE, there is
-global-out-of-bounds detected by KASAN:
-
-[   42.970381] =================================
-[   42.977595] BUG: KASAN: global-out-of-bounds in __bitmap_weight+0x48/0xb0
-[   42.984370] Read of size 8 at addr ffff20008cdf8790 by task kworker/0:1/13
-[   42.991230]
-[   42.992712] CPU: 0 PID: 13 Comm: kworker/0:1 Tainted: G           O      5.2.0-rc4-g8bde06a-dirty #3
-[   43.001830] Hardware name: Huawei TaiShan 2280 V2/BC82AMDA, BIOS TA BIOS 2280-A CS V2.B050.01 08/08/2019
-[   43.011298] Workqueue: events work_for_cpu_fn
-[   43.015643] Call trace:
-[   43.018078]  dump_backtrace+0x0/0x1e8
-[   43.021727]  show_stack+0x14/0x20
-[   43.025031]  dump_stack+0xc4/0xfc
-[   43.028335]  print_address_description+0x178/0x270
-[   43.033113]  __kasan_report+0x164/0x1b8
-[   43.036936]  kasan_report+0xc/0x18
-[   43.040325]  __asan_load8+0x84/0xa8
-[   43.043801]  __bitmap_weight+0x48/0xb0
-[   43.047552]  hclge_init_ae_dev+0x988/0x1e78 [hclge]
-[   43.052418]  hnae3_register_ae_dev+0xcc/0x278 [hnae3]
-[   43.057467]  hns3_probe+0xe0/0x120 [hns3]
-[   43.061464]  local_pci_probe+0x74/0xf0
-[   43.065200]  work_for_cpu_fn+0x2c/0x48
-[   43.068937]  process_one_work+0x3c0/0x878
-[   43.072934]  worker_thread+0x400/0x670
-[   43.076670]  kthread+0x1b0/0x1b8
-[   43.079885]  ret_from_fork+0x10/0x18
-[   43.083446]
-[   43.084925] The buggy address belongs to the variable:
-[   43.090052]  numa_distance+0x30/0x40
-[   43.093613]
-[   43.095091] Memory state around the buggy address:
-[   43.099870]  ffff20008cdf8680: fa fa fa fa 04 fa fa fa fa fa fa fa 00 00 fa fa
-[   43.107078]  ffff20008cdf8700: fa fa fa fa 04 fa fa fa fa fa fa fa 00 fa fa fa
-[   43.114286] >ffff20008cdf8780: fa fa fa fa 00 00 00 00 00 00 00 00 fa fa fa fa
-[   43.121494]                          ^
-[   43.125230]  ffff20008cdf8800: 01 fa fa fa fa fa fa fa 04 fa fa fa fa fa fa fa
-[   43.132439]  ffff20008cdf8880: fa fa fa fa fa fa fa fa 00 00 fa fa fa fa fa fa
-[   43.139646] =================================
+global-out-of-bounds detected by KASAN.
 
 From the discussion [1], NUMA_NO_NODE really means no node affinity,
 which also means all cpus should be usable. So the cpumask_of_node()
@@ -65,40 +29,34 @@ to the particular node's cpus which would have really non deterministic
 behavior depending on where the code is executed. So in fact we really
 want to return cpu_online_mask for NUMA_NO_NODE.
 
-Note:
-1. Only arm64 has been compile tested and tested on real board.
-2. x86 has been compile tested with defconfig.
-3. Other arch has not been compile tested or tested on real board.
+Since this arch was already NUMA_NO_NODE aware, this patch only changes
+it to return cpu_online_mask and use NUMA_NO_NODE instead of "-1".
 
-Change log:
+[1] https://lore.kernel.org/patchwork/patch/1125789/
+Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
+Suggested-by: Michal Hocko <mhocko@kernel.org>
+---
 V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
     for NUMA_NO_NODE case, and change the commit log to better justify
-    the change, drop sh arch change since it always return cpu_online_mask.
+    the change.
+---
+ arch/sparc/include/asm/topology_64.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Yunsheng Lin (8):
-  arm64: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for arm64
-  x86: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for x86
-  alpha: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for alpha
-  powerpc: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for
-    powerpc
-  s390: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for s390
-  sparc64: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for
-    sparc64
-  mips: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for mips
-  mips: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for
-    loongson64
-
- arch/alpha/include/asm/topology.h                | 2 +-
- arch/arm64/include/asm/numa.h                    | 3 +++
- arch/arm64/mm/numa.c                             | 5 ++++-
- arch/mips/include/asm/mach-ip27/topology.h       | 4 ++--
- arch/mips/include/asm/mach-loongson64/topology.h | 4 +++-
- arch/powerpc/include/asm/topology.h              | 4 ++--
- arch/s390/include/asm/topology.h                 | 3 +++
- arch/sparc/include/asm/topology_64.h             | 4 ++--
- arch/x86/include/asm/topology.h                  | 3 +++
- arch/x86/mm/numa.c                               | 7 +++++--
- 10 files changed, 28 insertions(+), 11 deletions(-)
-
+diff --git a/arch/sparc/include/asm/topology_64.h b/arch/sparc/include/asm/topology_64.h
+index 34c628a..34f9240 100644
+--- a/arch/sparc/include/asm/topology_64.h
++++ b/arch/sparc/include/asm/topology_64.h
+@@ -11,8 +11,8 @@ static inline int cpu_to_node(int cpu)
+ 	return numa_cpu_lookup_table[cpu];
+ }
+ 
+-#define cpumask_of_node(node) ((node) = -1 ?				\
+-			       cpu_all_mask :				\
++#define cpumask_of_node(node) ((node) = NUMA_NO_NODE ?			\
++			       cpu_online_mask :			\
+ 			       &numa_cpumask_lookup_table[node])
+ 
+ struct pci_bus;
 -- 
 2.8.1
