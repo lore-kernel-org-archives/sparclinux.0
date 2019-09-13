@@ -1,15 +1,76 @@
-From: "Support@3c Communications" <support@3cpakistan.com>
-Date: Thu, 26 Sep 2019 03:36:20 +0000
-Subject: Hi
-Message-Id: <1569468980.OkPgdz0JLMOBZIHx@premium39.web-hosting.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:53 +0000
+Subject: [RFC PATCH v2 12/12] sparc64: smp: use generic SMP stop common code
+Message-Id: <20190913181953.45748-13-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-Thank you for reaching out to us. 
-We will get back to you as soon as possible.
-Regards,
-Support@ 
-3C Pakistan.
+Make sparc64 use the generic SMP-stop logic provided by common code
+unified smp_send_stop() function.
+
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+---
+ arch/sparc/Kconfig         |  1 +
+ arch/sparc/kernel/smp_64.c | 15 ++++++++-------
+ 2 files changed, 9 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 7926a2e11bdc..67d8bb741378 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -95,6 +95,7 @@ config SPARC64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select PCI_DOMAINS if PCI
+ 	select ARCH_HAS_GIGANTIC_PAGE
++	select ARCH_USE_COMMON_SMP_STOP
+ 
+ config ARCH_DEFCONFIG
+ 	string
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index a8275fea4b70..759e5fd867c5 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1537,7 +1537,12 @@ static void stop_this_cpu(void *dummy)
+ 	prom_stopself();
+ }
+ 
+-void smp_send_stop(void)
++void arch_smp_cpus_stop_complete(void)
++{
++	smp_call_function(stop_this_cpu, NULL, 0);
++}
++
++void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
+ {
+ 	int cpu;
+ 
+@@ -1546,10 +1551,7 @@ void smp_send_stop(void)
+ #ifdef CONFIG_SERIAL_SUNHV
+ 		sunhv_migrate_hvcons_irq(this_cpu);
+ #endif
+-		for_each_online_cpu(cpu) {
+-			if (cpu = this_cpu)
+-				continue;
+-
++		for_each_cpu(cpu, cpus) {
+ 			set_cpu_online(cpu, false);
+ #ifdef CONFIG_SUN_LDOMS
+ 			if (ldom_domaining_enabled) {
+@@ -1562,8 +1564,7 @@ void smp_send_stop(void)
+ #endif
+ 				prom_stopcpu_cpuid(cpu);
+ 		}
+-	} else
+-		smp_call_function(stop_this_cpu, NULL, 0);
++	}
+ }
+ 
+ /**
+-- 
+2.17.1
