@@ -1,7 +1,7 @@
 From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Fri, 13 Sep 2019 18:19:53 +0000
-Subject: [RFC PATCH v2 12/12] sparc64: smp: use generic SMP stop common code
-Message-Id: <20190913181953.45748-13-cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:49 +0000
+Subject: [RFC PATCH v2 08/12] x86: smp: use generic SMP stop common code
+Message-Id: <20190913181953.45748-9-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20190913181953.45748-1-cristian.marussi@arm.com>
 In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
@@ -11,66 +11,188 @@ Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-Make sparc64 use the generic SMP-stop logic provided by common code
-unified smp_send_stop() function.
+Make x86 use the generic SMP-stop logic provided by common code unified
+smp_send_stop() function.
+
+Introduce needed arch_smp_stop_call()/arch_smp_cpus_stop_complete()
+helpers that implement the backend architectures specific functionalities
+previously provided by native_stop_other_cpus(): common logic is now
+delegated to common SMP stop code.
+
+Remove arch-specific smp_send_stop(), and redefine original function
+native_stop_other_cpus() to rely instead on the unified common code
+version of smp_send_stop(): native_stop_other_cpus() is anyway kept
+since it is wired to smp_ops.stop_other_cpus() which get called at
+reboot time with particular waiting settings.
 
 Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
- arch/sparc/Kconfig         |  1 +
- arch/sparc/kernel/smp_64.c | 15 ++++++++-------
- 2 files changed, 9 insertions(+), 7 deletions(-)
+Note that in this patch we kept in use the original x86 local handling
+of 'stopping_cpu' variable:
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 7926a2e11bdc..67d8bb741378 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -95,6 +95,7 @@ config SPARC64
- 	select ARCH_HAS_PTE_SPECIAL
- 	select PCI_DOMAINS if PCI
- 	select ARCH_HAS_GIGANTIC_PAGE
+	atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id());
+
+Instead, common SMP stop code could have been easily extended to keep and
+expose to architectures backends such value using some additional helper
+like smp_stop_get_stopping_cpu_id().
+
+This has not been addressed in this series.
+---
+ arch/x86/Kconfig           |  1 +
+ arch/x86/include/asm/smp.h |  5 --
+ arch/x86/kernel/smp.c      | 95 ++++++++++++++++----------------------
+ 3 files changed, 41 insertions(+), 60 deletions(-)
+
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 222855cc0158..0fcee2f03a5b 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -92,6 +92,7 @@ config X86
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
 +	select ARCH_USE_COMMON_SMP_STOP
+ 	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+ 	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
+ 	select ARCH_WANT_HUGE_PMD_SHARE
+diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
+index e1356a3b8223..5cf590259d68 100644
+--- a/arch/x86/include/asm/smp.h
++++ b/arch/x86/include/asm/smp.h
+@@ -67,11 +67,6 @@ extern void set_cpu_sibling_map(int cpu);
+ #ifdef CONFIG_SMP
+ extern struct smp_ops smp_ops;
  
- config ARCH_DEFCONFIG
- 	string
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index a8275fea4b70..759e5fd867c5 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1537,7 +1537,12 @@ static void stop_this_cpu(void *dummy)
- 	prom_stopself();
+-static inline void smp_send_stop(void)
+-{
+-	smp_ops.stop_other_cpus(0);
+-}
+-
+ static inline void stop_other_cpus(void)
+ {
+ 	smp_ops.stop_other_cpus(1);
+diff --git a/arch/x86/kernel/smp.c b/arch/x86/kernel/smp.c
+index 96421f97e75c..0942cae46fee 100644
+--- a/arch/x86/kernel/smp.c
++++ b/arch/x86/kernel/smp.c
+@@ -179,78 +179,63 @@ asmlinkage __visible void smp_reboot_interrupt(void)
+ 	irq_exit();
  }
  
--void smp_send_stop(void)
-+void arch_smp_cpus_stop_complete(void)
-+{
-+	smp_call_function(stop_this_cpu, NULL, 0);
+-static void native_stop_other_cpus(int wait)
++void arch_smp_stop_call(cpumask_t *cpus, unsigned int attempt_num)
+ {
+-	unsigned long flags;
+-	unsigned long timeout;
+-
+ 	if (reboot_force)
+ 		return;
+ 
+-	/*
+-	 * Use an own vector here because smp_call_function
+-	 * does lots of things not suitable in a panic situation.
+-	 */
+-
+-	/*
+-	 * We start by using the REBOOT_VECTOR irq.
+-	 * The irq is treated as a sync point to allow critical
+-	 * regions of code on other cpus to release their spin locks
+-	 * and re-enable irqs.  Jumping straight to an NMI might
+-	 * accidentally cause deadlocks with further shutdown/panic
+-	 * code.  By syncing, we give the cpus up to one second to
+-	 * finish their work before we force them off with the NMI.
+-	 */
+-	if (num_online_cpus() > 1) {
+-		/* did someone beat us here? */
+-		if (atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id()) != -1)
+-			return;
+-
+-		/* sync above data before sending IRQ */
+-		wmb();
+-
+-		apic->send_IPI_allbutself(REBOOT_VECTOR);
+-
++	if (attempt_num = 1) {
+ 		/*
+-		 * Don't wait longer than a second if the caller
+-		 * didn't ask us to wait.
++		 * We start by using the REBOOT_VECTOR irq.
++		 * The irq is treated as a sync point to allow critical
++		 * regions of code on other cpus to release their spin locks
++		 * and re-enable irqs.  Jumping straight to an NMI might
++		 * accidentally cause deadlocks with further shutdown/panic
++		 * code.  By syncing, we give the cpus up to one second to
++		 * finish their work before we force them off with the NMI.
+ 		 */
+-		timeout = USEC_PER_SEC;
+-		while (num_online_cpus() > 1 && (wait || timeout--))
+-			udelay(1);
+-	}
+-	
+-	/* if the REBOOT_VECTOR didn't work, try with the NMI */
+-	if ((num_online_cpus() > 1) && (!smp_no_nmi_ipi))  {
+-		if (register_nmi_handler(NMI_LOCAL, smp_stop_nmi_callback,
+-					 NMI_FLAG_FIRST, "smp_stop"))
+-			/* Note: we ignore failures here */
+-			/* Hope the REBOOT_IRQ is good enough */
+-			goto finish;
++
++		/* Used by NMI handler callback to skip the stopping_cpu. */
++		atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id());
+ 
+ 		/* sync above data before sending IRQ */
+ 		wmb();
+-
+-		pr_emerg("Shutting down cpus with NMI\n");
+-
+-		apic->send_IPI_allbutself(NMI_VECTOR);
+-
+-		/*
+-		 * Don't wait longer than a 10 ms if the caller
+-		 * didn't ask us to wait.
+-		 */
+-		timeout = USEC_PER_MSEC * 10;
+-		while (num_online_cpus() > 1 && (wait || timeout--))
+-			udelay(1);
++		apic->send_IPI_mask(cpus, REBOOT_VECTOR);
++	} else if (attempt_num > 1 && !smp_no_nmi_ipi) {
++		/* if the REBOOT_VECTOR didn't work, try with the NMI */
++
++		/* Don't wait longer than 10 ms when not asked to wait */
++		smp_stop_set_wait_timeout_us(USEC_PER_MSEC * 10);
++
++		/* Note: we ignore failures here */
++		/* Hope the REBOOT_IRQ was good enough */
++		if (!register_nmi_handler(NMI_LOCAL, smp_stop_nmi_callback,
++					  NMI_FLAG_FIRST, "smp_stop")) {
++			/* sync above data before sending IRQ */
++			wmb();
++			pr_emerg("Shutting down cpus with NMI\n");
++			apic->send_IPI_mask(cpus, NMI_VECTOR);
++		}
+ 	}
 +}
 +
-+void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
- {
- 	int cpu;
++void arch_smp_cpus_stop_complete(void)
++{
++	unsigned long flags;
  
-@@ -1546,10 +1551,7 @@ void smp_send_stop(void)
- #ifdef CONFIG_SERIAL_SUNHV
- 		sunhv_migrate_hvcons_irq(this_cpu);
- #endif
--		for_each_online_cpu(cpu) {
--			if (cpu = this_cpu)
--				continue;
--
-+		for_each_cpu(cpu, cpus) {
- 			set_cpu_online(cpu, false);
- #ifdef CONFIG_SUN_LDOMS
- 			if (ldom_domaining_enabled) {
-@@ -1562,8 +1564,7 @@ void smp_send_stop(void)
- #endif
- 				prom_stopcpu_cpuid(cpu);
- 		}
--	} else
--		smp_call_function(stop_this_cpu, NULL, 0);
-+	}
+-finish:
+ 	local_irq_save(flags);
+ 	disable_local_APIC();
+ 	mcheck_cpu_clear(this_cpu_ptr(&cpu_info));
+ 	local_irq_restore(flags);
  }
  
- /**
++static void native_stop_other_cpus(int wait)
++{
++	smp_stop_set_wait_forever(wait);
++	/* use common SMP stop code */
++	smp_send_stop();
++}
++
+ /*
+  * Reschedule call back. KVM uses this interrupt to force a cpu out of
+  * guest mode
 -- 
 2.17.1
