@@ -1,84 +1,251 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Thu, 12 Sep 2019 10:15:28 +0000
-Subject: [PATCH v3 2/8] x86: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for x86
-Message-Id: <1568283334-178380-3-git-send-email-linyunsheng@huawei.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:50 +0000
+Subject: [RFC PATCH v2 09/12] x86: smp: use SMP crash-stop common code
+Message-Id: <20190913181953.45748-10-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, mhocko@kernel.org, gregkh@linuxfoundation.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-When passing the return value of dev_to_node() to cpumask_of_node()
-without checking the node id if the node id is NUMA_NO_NODE, there is
-global-out-of-bounds detected by KASAN.
+Make x86 use the SMP common implementation of crash_smp_send_stop() and
+its generic logic, by removing the x86 crash_smp_send_stop() definition
+and providing the needed arch specific helpers.
 
-From the discussion [1], NUMA_NO_NODE really means no node affinity,
-which also means all cpus should be usable. So the cpumask_of_node()
-should always return all cpus online when user passes the node id
-as NUMA_NO_NODE, just like similar semantic that page allocator handles
-NUMA_NO_NODE.
+Remove also redundant smp_ops.crash_stop_other_cpus(); add shared util
+function common_nmi_shootdown_cpus(), which is a generalization of the
+previous nmi_shootdown_cpus(), and it is used by architecture backend
+helper arch_smp_crash_call().
 
-But we cannot really copy the page allocator logic. Simply because the
-page allocator doesn't enforce the near node affinity. It just picks it
-up as a preferred node but then it is free to fallback to any other numa
-node. This is not the case here and node_to_cpumask_map will only restrict
-to the particular node's cpus which would have really non deterministic
-behavior depending on where the code is executed. So in fact we really
-want to return cpu_online_mask for NUMA_NO_NODE.
+Modify original crash_nmi_callback() to properly set cpu offline flag
+and adding needed memory barriers.
 
-Also there is a debuging version of node_to_cpumask_map(), which only
-is used when CONFIG_DEBUG_PER_CPU_MAPS is defined, this patch changes
-it to handle NUMA_NO_NODE as the normal node_to_cpumask_map(). And "fix"
-a sign "bug" since it is for debugging and should catch all the error
-cases.
+Modify original nmi_shootdown_cpus() to rely on common code logic
+provided by generic crash_smp_send_stop(): this was needed because the
+original nmi_shootdown_cpus() was used also on the emergency reboot
+path, employing a different callback. Reuse the same shootdown_callback
+mechanism to properly handle both a crash and an emergency reboot through
+the same common code crash path.
 
-[1] https://lore.kernel.org/patchwork/patch/1125789/
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
-V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
-    for NUMA_NO_NODE case, and change the commit log to better justify
-    the change.
----
- arch/x86/include/asm/topology.h | 3 +++
- arch/x86/mm/numa.c              | 7 +++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+Note that in this patch we kept in use the original x86 local handling
+of 'crashing_cpu' variable:
 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 4b14d23..7fa82e1 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -69,6 +69,9 @@ extern const struct cpumask *cpumask_of_node(int node);
- /* Returns a pointer to the cpumask of CPUs on Node 'node'. */
- static inline const struct cpumask *cpumask_of_node(int node)
- {
-+	if (node = NUMA_NO_NODE)
-+		return cpu_online_mask;
-+
- 	return node_to_cpumask_map[node];
+	crashing_cpu = safe_smp_processor_id();
+
+Instead, common SMP stop code could have been easily extended to keep and
+expose to architectures backends such value using some additional helper
+like smp_stop_get_stopping_cpu_id().
+
+This has not been addressed in this series.
+---
+ arch/x86/include/asm/reboot.h |  2 ++
+ arch/x86/include/asm/smp.h    |  1 -
+ arch/x86/kernel/crash.c       | 27 ++++---------------
+ arch/x86/kernel/reboot.c      | 50 ++++++++++++++++++++++-------------
+ arch/x86/kernel/smp.c         |  3 ---
+ 5 files changed, 38 insertions(+), 45 deletions(-)
+
+diff --git a/arch/x86/include/asm/reboot.h b/arch/x86/include/asm/reboot.h
+index 04c17be9b5fd..a1a9cbed6df5 100644
+--- a/arch/x86/include/asm/reboot.h
++++ b/arch/x86/include/asm/reboot.h
+@@ -3,6 +3,7 @@
+ #define _ASM_X86_REBOOT_H
+ 
+ #include <linux/kdebug.h>
++#include <linux/cpumask.h>
+ 
+ struct pt_regs;
+ 
+@@ -28,6 +29,7 @@ void __noreturn machine_real_restart(unsigned int type);
+ typedef void (*nmi_shootdown_cb)(int, struct pt_regs*);
+ void nmi_panic_self_stop(struct pt_regs *regs);
+ void nmi_shootdown_cpus(nmi_shootdown_cb callback);
++void common_nmi_shootdown_cpus(cpumask_t *cpus, nmi_shootdown_cb callback);
+ void run_crash_ipi_callback(struct pt_regs *regs);
+ 
+ #endif /* _ASM_X86_REBOOT_H */
+diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
+index 5cf590259d68..684643ad71e4 100644
+--- a/arch/x86/include/asm/smp.h
++++ b/arch/x86/include/asm/smp.h
+@@ -49,7 +49,6 @@ struct smp_ops {
+ 	void (*smp_cpus_done)(unsigned max_cpus);
+ 
+ 	void (*stop_other_cpus)(int wait);
+-	void (*crash_stop_other_cpus)(void);
+ 	void (*smp_send_reschedule)(int cpu);
+ 
+ 	int (*cpu_up)(unsigned cpu, struct task_struct *tidle);
+diff --git a/arch/x86/kernel/crash.c b/arch/x86/kernel/crash.c
+index 2bf70a2fed90..8fff06c7cd26 100644
+--- a/arch/x86/kernel/crash.c
++++ b/arch/x86/kernel/crash.c
+@@ -96,34 +96,16 @@ static void kdump_nmi_callback(int cpu, struct pt_regs *regs)
+ 	disable_local_APIC();
  }
- #endif
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index e6dad60..c676ffb 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -861,9 +861,12 @@ void numa_remove_cpu(int cpu)
-  */
- const struct cpumask *cpumask_of_node(int node)
+ 
+-void kdump_nmi_shootdown_cpus(void)
++void arch_smp_crash_call(cpumask_t *cpus, unsigned int __unused)
  {
--	if (node >= nr_node_ids) {
-+	if (node = NUMA_NO_NODE)
-+		return cpu_online_mask;
+-	nmi_shootdown_cpus(kdump_nmi_callback);
+-
+-	disable_local_APIC();
++	common_nmi_shootdown_cpus(cpus, kdump_nmi_callback);
+ }
+ 
+-/* Override the weak function in kernel/panic.c */
+-void crash_smp_send_stop(void)
++void arch_smp_cpus_crash_complete(void)
+ {
+-	static int cpus_stopped;
+-
+-	if (cpus_stopped)
+-		return;
+-
+-	if (smp_ops.crash_stop_other_cpus)
+-		smp_ops.crash_stop_other_cpus();
+-	else
+-		smp_send_stop();
+-
+-	cpus_stopped = 1;
++	disable_local_APIC();
+ }
+ 
+-#else
+-void crash_smp_send_stop(void)
+-{
+-	/* There are no cpus to shootdown */
+-}
+ #endif
+ 
+ void native_machine_crash_shutdown(struct pt_regs *regs)
+@@ -139,6 +121,7 @@ void native_machine_crash_shutdown(struct pt_regs *regs)
+ 	/* The kernel is broken so disable interrupts */
+ 	local_irq_disable();
+ 
++	/* calling into SMP common stop code */
+ 	crash_smp_send_stop();
+ 
+ 	/*
+diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
+index 09d6bded3c1e..69f894e28fec 100644
+--- a/arch/x86/kernel/reboot.c
++++ b/arch/x86/kernel/reboot.c
+@@ -799,7 +799,6 @@ int crashing_cpu = -1;
+ 
+ static nmi_shootdown_cb shootdown_callback;
+ 
+-static atomic_t waiting_for_crash_ipi;
+ static int crash_ipi_issued;
+ 
+ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
+@@ -819,7 +818,12 @@ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
+ 
+ 	shootdown_callback(cpu, regs);
+ 
+-	atomic_dec(&waiting_for_crash_ipi);
++	/* ensure all shootdown writes are visible once cpu is seen offline */
++	smp_wmb();
++	set_cpu_online(cpu, false);
++	/* ensure all writes are globally visible before cpu parks */
++	wmb();
 +
-+	if ((unsigned int)node >= nr_node_ids) {
- 		printk(KERN_WARNING
--			"cpumask_of_node(%d): node > nr_node_ids(%u)\n",
-+			"cpumask_of_node(%d): node >= nr_node_ids(%u)\n",
- 			node, nr_node_ids);
- 		dump_stack();
- 		return cpu_none_mask;
+ 	/* Assume hlt works */
+ 	halt();
+ 	for (;;)
+@@ -828,29 +832,44 @@ static int crash_nmi_callback(unsigned int val, struct pt_regs *regs)
+ 	return NMI_HANDLED;
+ }
+ 
+-static void smp_send_nmi_allbutself(void)
+-{
+-	apic->send_IPI_allbutself(NMI_VECTOR);
+-}
+-
+ /*
+  * Halt all other CPUs, calling the specified function on each of them
+  *
+  * This function can be used to halt all other CPUs on crash
+  * or emergency reboot time. The function passed as parameter
+  * will be called inside a NMI handler on all CPUs.
++ *
++ * It relies on crash_smp_send_stop() common code logic to shutdown CPUs.
+  */
+ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
+ {
+-	unsigned long msecs;
++	local_irq_disable();
++
++	shootdown_callback = callback;
++	/* ensure callback in place before calling into common crash code */
++	wmb();
++	/* call into common SMP Crash Stop to reuse the logic */
++	crash_smp_send_stop();
++}
++
++/*
++ * Halt the specified @cpus, calling the provided @callback on each of them
++ * unless a shootdown_callback was already installed previously: this way
++ * we can handle here also the emergency reboot requests issued via
++ * nmi_shootdown_cpus() and routed via usual common code crash_smp_send_stop()
++ *
++ * Called by arch_smp_crash_call() arch-helper.
++ */
++void common_nmi_shootdown_cpus(cpumask_t *cpus, nmi_shootdown_cb callback)
++{
+ 	local_irq_disable();
+ 
+ 	/* Make a note of crashing cpu. Will be used in NMI callback. */
+ 	crashing_cpu = safe_smp_processor_id();
+ 
+-	shootdown_callback = callback;
+-
+-	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
++	/* skip when the callback has been already set by nmi_shootdown_cpus */
++	if (!shootdown_callback)
++		shootdown_callback = callback;
+ 	/* Would it be better to replace the trap vector here? */
+ 	if (register_nmi_handler(NMI_LOCAL, crash_nmi_callback,
+ 				 NMI_FLAG_FIRST, "crash"))
+@@ -860,18 +879,11 @@ void nmi_shootdown_cpus(nmi_shootdown_cb callback)
+ 	 * out the NMI
+ 	 */
+ 	wmb();
+-
+-	smp_send_nmi_allbutself();
++	apic->send_IPI_mask(cpus, NMI_VECTOR);
+ 
+ 	/* Kick CPUs looping in NMI context. */
+ 	WRITE_ONCE(crash_ipi_issued, 1);
+ 
+-	msecs = 1000; /* Wait at most a second for the other cpus to stop */
+-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
+-		mdelay(1);
+-		msecs--;
+-	}
+-
+ 	/* Leave the nmi callback set */
+ }
+ 
+diff --git a/arch/x86/kernel/smp.c b/arch/x86/kernel/smp.c
+index 0942cae46fee..d718b185c6a9 100644
+--- a/arch/x86/kernel/smp.c
++++ b/arch/x86/kernel/smp.c
+@@ -295,9 +295,6 @@ struct smp_ops smp_ops = {
+ 	.smp_cpus_done		= native_smp_cpus_done,
+ 
+ 	.stop_other_cpus	= native_stop_other_cpus,
+-#if defined(CONFIG_KEXEC_CORE)
+-	.crash_stop_other_cpus	= kdump_nmi_shootdown_cpus,
+-#endif
+ 	.smp_send_reschedule	= native_smp_send_reschedule,
+ 
+ 	.cpu_up			= native_cpu_up,
 -- 
-2.8.1
+2.17.1
