@@ -1,58 +1,138 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Thu, 12 Sep 2019 10:15:31 +0000
-Subject: [PATCH v3 5/8] s390: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for s390
-Message-Id: <1568283334-178380-6-git-send-email-linyunsheng@huawei.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:46 +0000
+Subject: [RFC PATCH v2 05/12] arm64: smp: use generic SMP stop common code
+Message-Id: <20190913181953.45748-6-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
-In-Reply-To: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com
-Cc: akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, mhocko@kernel.org, gregkh@linuxfoundation.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-When passing the return value of dev_to_node() to cpumask_of_node()
-without checking the node id if the node id is NUMA_NO_NODE, there is
-global-out-of-bounds detected by KASAN.
+Make arm64 use the generic SMP-stop logic provided by common code
+unified smp_send_stop() function.
 
-From the discussion [1], NUMA_NO_NODE really means no node affinity,
-which also means all cpus should be usable. So the cpumask_of_node()
-should always return all cpus online when user passes the node id
-as NUMA_NO_NODE, just like similar semantic that page allocator handles
-NUMA_NO_NODE.
+arm64 smp_send_stop() logic had a bug in it: it failed to consider the
+online status of the calling CPU when evaluating if any stop message
+needed to be sent to other CPus at all: this resulted, on a 2-CPUs
+system, in the failure to stop all cpus if one paniced while starting
+up, leaving such system in an unexpected lively state.
 
-But we cannot really copy the page allocator logic. Simply because the
-page allocator doesn't enforce the near node affinity. It just picks it
-up as a preferred node but then it is free to fallback to any other numa
-node. This is not the case here and node_to_cpumask_map will only restrict
-to the particular node's cpus which would have really non deterministic
-behavior depending on where the code is executed. So in fact we really
-want to return cpu_online_mask for NUMA_NO_NODE.
+[root@arch ~]# echo 1 > /sys/devices/system/cpu/cpu1/online
+[root@arch ~]# [  152.583368] ------------[ cut here ]------------
+[  152.583872] kernel BUG at arch/arm64/kernel/cpufeature.c:852!
+[  152.584693] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[  152.585228] Modules linked in:
+[  152.586040] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.3.0-rc5-00001-gcabd12118c4a-dirty #2
+[  152.586218] Hardware name: Foundation-v8A (DT)
+[  152.586478] pstate: 000001c5 (nzcv dAIF -PAN -UAO)
+[  152.587260] pc : has_cpuid_feature+0x35c/0x360
+[  152.587398] lr : verify_local_elf_hwcaps+0x6c/0xf0
+[  152.587520] sp : ffff0000118bbf60
+[  152.587605] x29: ffff0000118bbf60 x28: 0000000000000000
+[  152.587784] x27: 0000000000000000 x26: 0000000000000000
+[  152.587882] x25: ffff00001167a010 x24: ffff0000112f59f8
+[  152.587992] x23: 0000000000000000 x22: 0000000000000000
+[  152.588085] x21: ffff0000112ea018 x20: ffff000010fe5518
+[  152.588180] x19: ffff000010ba3f30 x18: 0000000000000036
+[  152.588285] x17: 0000000000000000 x16: 0000000000000000
+[  152.588380] x15: 0000000000000000 x14: ffff80087a821210
+[  152.588481] x13: 0000000000000000 x12: 0000000000000000
+[  152.588599] x11: 0000000000000080 x10: 00400032b5503510
+[  152.588709] x9 : 0000000000000000 x8 : ffff000010b93204
+[  152.588810] x7 : 00000000800001d8 x6 : 0000000000000005
+[  152.588910] x5 : 0000000000000000 x4 : 0000000000000000
+[  152.589021] x3 : 0000000000000000 x2 : 0000000000008000
+[  152.589121] x1 : 0000000000180480 x0 : 0000000000180480
+[  152.589379] Call trace:
+[  152.589646]  has_cpuid_feature+0x35c/0x360
+[  152.589763]  verify_local_elf_hwcaps+0x6c/0xf0
+[  152.589858]  check_local_cpu_capabilities+0x88/0x118
+[  152.589968]  secondary_start_kernel+0xc4/0x168
+[  152.590530] Code: d53801e0 17ffff58 d5380600 17ffff56 (d4210000)
+[  152.592215] ---[ end trace 80ea98416149c87e ]---
+[  152.592734] Kernel panic - not syncing: Attempted to kill the idle task!
+[  152.593173] Kernel Offset: disabled
+[  152.593501] CPU features: 0x0004,20c02008
+[  152.593678] Memory Limit: none
+[  152.594208] ---[ end Kernel panic - not syncing: Attempted to kill the idle
+task! ]---
+[root@arch ~]# bash: echo: write error: Input/output error
+[root@arch ~]#
+[root@arch ~]#
+[root@arch ~]# echo HELO
+HELO
 
-[1] https://lore.kernel.org/patchwork/patch/1125789/
-Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
-Suggested-by: Michal Hocko <mhocko@kernel.org>
+Get rid of such bug, switching arm64 to use the common SMP stop code.
+
+Reported-by: Dave Martin <Dave.Martin@arm.com>
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
-V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
-    for NUMA_NO_NODE case, and change the commit log to better justify
-    the change.
+v1 --> v2
+- now selecting arch/Kconfig ARCH_USE_COMMON_SMP_STOP
+- added attempt_num arch_smp_stop_call() helper
 ---
- arch/s390/include/asm/topology.h | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/arm64/Kconfig      |  1 +
+ arch/arm64/kernel/smp.c | 29 ++++++-----------------------
+ 2 files changed, 7 insertions(+), 23 deletions(-)
 
-diff --git a/arch/s390/include/asm/topology.h b/arch/s390/include/asm/topology.h
-index cca406f..1bd2e73 100644
---- a/arch/s390/include/asm/topology.h
-+++ b/arch/s390/include/asm/topology.h
-@@ -78,6 +78,9 @@ static inline int cpu_to_node(int cpu)
- #define cpumask_of_node cpumask_of_node
- static inline const struct cpumask *cpumask_of_node(int node)
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 3adcec05b1f6..33f88381702b 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -67,6 +67,7 @@ config ARM64
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
++	select ARCH_USE_COMMON_SMP_STOP
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_INT128 if GCC_VERSION >= 50000 || CC_IS_CLANG
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 018a33e01b0e..3e87fdbb9f74 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -953,33 +953,16 @@ void tick_broadcast(const struct cpumask *mask)
+ }
+ #endif
+ 
+-void smp_send_stop(void)
++void arch_smp_cpus_stop_complete(void)
  {
-+	if (node = NUMA_NO_NODE)
-+		return cpu_online_mask;
-+
- 	return &node_to_cpumask_map[node];
+-	unsigned long timeout;
+-
+-	if (num_online_cpus() > 1) {
+-		cpumask_t mask;
+-
+-		cpumask_copy(&mask, cpu_online_mask);
+-		cpumask_clear_cpu(smp_processor_id(), &mask);
+-
+-		if (system_state <= SYSTEM_RUNNING)
+-			pr_crit("SMP: stopping secondary CPUs\n");
+-		smp_cross_call(&mask, IPI_CPU_STOP);
+-	}
+-
+-	/* Wait up to one second for other CPUs to stop */
+-	timeout = USEC_PER_SEC;
+-	while (num_online_cpus() > 1 && timeout--)
+-		udelay(1);
+-
+-	if (num_online_cpus() > 1)
+-		pr_warning("SMP: failed to stop secondary CPUs %*pbl\n",
+-			   cpumask_pr_args(cpu_online_mask));
+-
+ 	sdei_mask_local_cpu();
  }
  
++void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
++{
++	smp_cross_call(cpus, IPI_CPU_STOP);
++}
++
+ #ifdef CONFIG_KEXEC_CORE
+ void crash_smp_send_stop(void)
+ {
 -- 
-2.8.1
+2.17.1
