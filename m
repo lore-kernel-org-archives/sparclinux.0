@@ -1,101 +1,214 @@
-From: Yunsheng Lin <linyunsheng@huawei.com>
-Date: Sun, 15 Sep 2019 06:51:49 +0000
-Subject: Re: [PATCH v3 7/8] mips: numa: make node_to_cpumask_map() NUMA_NO_NODE aware for mips
-Message-Id: <67673e73-168b-976f-83e2-11edc7e412ee@huawei.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:42 +0000
+Subject: [RFC PATCH v2 01/12] smp: add generic SMP-stop support to common code
+Message-Id: <20190913181953.45748-2-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1568283334-178380-1-git-send-email-linyunsheng@huawei.com>
- <1568283334-178380-8-git-send-email-linyunsheng@huawei.com>
- <20190915054901.GC11429@linux.ibm.com>
- <938be3af-ece4-7f5f-34d6-f949ee2a3d32@huawei.com>
- <20190915064647.GD11429@linux.ibm.com>
-In-Reply-To: <20190915064647.GD11429@linux.ibm.com>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com, akpm@linux-foundation.org, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, peterz@infradead.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, mhocko@kernel.org, gregkh@linuxfoundation.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-On 2019/9/15 14:46, Mike Rapoport wrote:
-> On Sun, Sep 15, 2019 at 02:13:51PM +0800, Yunsheng Lin wrote:
->> On 2019/9/15 13:49, Mike Rapoport wrote:
->>> Hi,
->>>
->>> On Thu, Sep 12, 2019 at 06:15:33PM +0800, Yunsheng Lin wrote:
->>>> When passing the return value of dev_to_node() to cpumask_of_node()
->>>> without checking the node id if the node id is NUMA_NO_NODE, there is
->>>> global-out-of-bounds detected by KASAN.
->>>>
->>>> From the discussion [1], NUMA_NO_NODE really means no node affinity,
->>>> which also means all cpus should be usable. So the cpumask_of_node()
->>>> should always return all cpus online when user passes the node id
->>>> as NUMA_NO_NODE, just like similar semantic that page allocator handles
->>>> NUMA_NO_NODE.
->>>>
->>>> But we cannot really copy the page allocator logic. Simply because the
->>>> page allocator doesn't enforce the near node affinity. It just picks it
->>>> up as a preferred node but then it is free to fallback to any other numa
->>>> node. This is not the case here and node_to_cpumask_map will only restrict
->>>> to the particular node's cpus which would have really non deterministic
->>>> behavior depending on where the code is executed. So in fact we really
->>>> want to return cpu_online_mask for NUMA_NO_NODE.
->>>>
->>>> Since this arch was already NUMA_NO_NODE aware, this patch only changes
->>>> it to return cpu_online_mask and use NUMA_NO_NODE instead of "-1".
->>>>
->>>> [1] https://lore.kernel.org/patchwork/patch/1125789/
->>>> Signed-off-by: Yunsheng Lin <linyunsheng@huawei.com>
->>>> Suggested-by: Michal Hocko <mhocko@kernel.org>
->>>> ---
->>>> V3: Change to only handle NUMA_NO_NODE, and return cpu_online_mask
->>>>     for NUMA_NO_NODE case, and change the commit log to better justify
->>>>     the change.
->>>> ---
->>>>  arch/mips/include/asm/mach-ip27/topology.h | 4 ++--
->>>
->>> Nit: the subject says "mips:", but this patch only touches sgi-ip27 and
->>> loongson is updated as a separate patch. I don't see why both patches
->>> cannot be merged. Moreover, the whole set can be made as a single patch,
->>> IMHO.
->>
->> Thanks for reviewing.
->>
->> As this patchset touches a few files, which may has different maintainer.
->> I am not sure if a separate patch for different arch will make the merging
->> process easy, or a single patch will make the merging process easy?
-> 
-> The set makes the same logical change to several definitions of
-> cpumask_of_node(). It's appropriate to have all these changes in a single
-> patch.
+There was a lot of code duplication across architectures regarding the
+SMP stop procedures' logic; moreover some of this duplicated code logic
+happened to be similarly faulty across a few architectures: while fixing
+such logic, move such generic logic as much as possible inside common
+code.
 
-Ok, thanks.
-Will have all these changes in a single patch.
+Collect all the common logic related to SMP stop operations into the
+common SMP code; any architecture willing to use such centralized logic
+can select CONFIG_ARCH_USE_COMMON_STOP=y and provide the related
+arch-specific helpers: in such a scenario, those architectures will
+transparently start using the common code provided by smp_send_stop()
+common function.
 
+On the other side, Architectures not willing to use common code SMP stop
+logic will simply leave CONFIG_ARCH_USE_COMMON_STOP undefined and carry
+on executing their local arch-specific smp_send_stop() as before.
 
->  
->> It can be made as a single patch if a single patch will make the merging
->> process easy.
->>
->>>
->>>>  1 file changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/arch/mips/include/asm/mach-ip27/topology.h b/arch/mips/include/asm/mach-ip27/topology.h
->>>> index 965f079..04505e6 100644
->>>> --- a/arch/mips/include/asm/mach-ip27/topology.h
->>>> +++ b/arch/mips/include/asm/mach-ip27/topology.h
->>>> @@ -15,8 +15,8 @@ struct cpuinfo_ip27 {
->>>>  extern struct cpuinfo_ip27 sn_cpu_info[NR_CPUS];
->>>>  
->>>>  #define cpu_to_node(cpu)	(sn_cpu_info[(cpu)].p_nodeid)
->>>> -#define cpumask_of_node(node)	((node) = -1 ?				\
->>>> -				 cpu_all_mask :				\
->>>> +#define cpumask_of_node(node)	((node) = NUMA_NO_NODE ?		\
->>>> +				 cpu_online_mask :			\
->>>>  				 &hub_data(node)->h_cpus)
->>>>  struct pci_bus;
->>>>  extern int pcibus_to_node(struct pci_bus *);
->>>> -- 
->>>> 2.8.1
->>>>
->>>
->>
-> 
+Suggested-by: Dave Martin <Dave.Martin@arm.com>
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+---
+v1 --> v2
+- moved related Kconfig to common code inside arch/Kconfig
+- introduced additional CONFIG_USE_COMMON_STOP selected by
+  CONFIG_ARCH_USE_COMMON_STOP
+- introduced helpers to let architectures optionally alter
+  the default common code behaviour while waiting for CPUs:
+  change timeout or wait for ever. (will be needed by x86)
+---
+ arch/Kconfig        |  7 +++++
+ include/linux/smp.h | 55 +++++++++++++++++++++++++++++++++++++
+ kernel/smp.c        | 67 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 129 insertions(+)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index a7b57dd42c26..89766e6c0ac8 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -166,6 +166,13 @@ config ARCH_USE_BUILTIN_BSWAP
+ 	 instructions should set this. And it shouldn't hurt to set it
+ 	 on architectures that don't have such instructions.
+ 
++config ARCH_USE_COMMON_SMP_STOP
++       def_bool n
++
++config USE_COMMON_SMP_STOP
++       depends on SMP && ARCH_USE_COMMON_SMP_STOP
++       def_bool y
++
+ config KRETPROBES
+ 	def_bool y
+ 	depends on KPROBES && HAVE_KRETPROBES
+diff --git a/include/linux/smp.h b/include/linux/smp.h
+index 6fc856c9eda5..381a14bfcd96 100644
+--- a/include/linux/smp.h
++++ b/include/linux/smp.h
+@@ -77,6 +77,61 @@ int smp_call_function_single_async(int cpu, call_single_data_t *csd);
+  */
+ extern void smp_send_stop(void);
+ 
++#ifdef CONFIG_USE_COMMON_SMP_STOP
++static atomic_t wait_forever;
++static atomic_t wait_timeout = ATOMIC_INIT(USEC_PER_SEC);
++
++/*
++ * An Architecture can optionally decide to use this helper to change the
++ * waiting behaviour of common STOP logic, forcing to wait forever for
++ * all CPUs to be stopped.
++ */
++static inline void smp_stop_set_wait_forever(int wait)
++{
++	atomic_set(&wait_forever, wait);
++	/* ensure wait atomic-op is visible */
++	smp_mb__after_atomic();
++}
++
++/*
++ * An Architecture can optionally decide to use this helper to change the
++ * waiting timeout of common STOP logic. A ZERO timeout means no timeout
++ * at all as long as wait_forever was not previously set.
++ *
++ * Note that wait_forever and timeout must remain individually selectable:
++ * so you can temporarily request wait_forever while keeping the same timeout
++ * settings.
++ */
++static inline void smp_stop_set_wait_timeout_us(unsigned long timeout)
++{
++	atomic_set(&wait_timeout, timeout);
++	/* ensure timeout atomic-op is visible */
++	smp_mb__after_atomic();
++}
++
++/* Retrieve the current wait settings. */
++static inline bool smp_stop_get_wait_timeout_us(unsigned long *timeout)
++{
++	if (timeout)
++		*timeout = atomic_read(&wait_timeout);
++	return atomic_read(&wait_forever);
++}
++
++/*
++ * Any Architecture willing to use STOP common logic implementation
++ * MUST at least provide the arch_smp_stop_call() helper which is in
++ * charge of its own arch-specific CPU-stop mechanism.
++ */
++extern void arch_smp_stop_call(cpumask_t *cpus);
++
++/*
++ * An Architecture CAN also provide the arch_smp_cpus_stop_complete()
++ * dedicated helper, to perform any final arch-specific operation on
++ * the local CPU once the other CPUs have been successfully stopped.
++ */
++void arch_smp_cpus_stop_complete(void);
++#endif
++
+ /*
+  * sends a 'reschedule' event to another CPU:
+  */
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 7dbcb402c2fc..72f99bf13fd0 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -20,6 +20,7 @@
+ #include <linux/sched.h>
+ #include <linux/sched/idle.h>
+ #include <linux/hypervisor.h>
++#include <linux/delay.h>
+ 
+ #include "smpboot.h"
+ 
+@@ -817,3 +818,69 @@ int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par, bool phys)
+ 	return sscs.ret;
+ }
+ EXPORT_SYMBOL_GPL(smp_call_on_cpu);
++
++#ifdef CONFIG_USE_COMMON_SMP_STOP
++void __weak arch_smp_cpus_stop_complete(void) { }
++
++static inline bool any_other_cpus_online(cpumask_t *mask,
++					 unsigned int this_cpu_id)
++{
++	cpumask_copy(mask, cpu_online_mask);
++	cpumask_clear_cpu(this_cpu_id, mask);
++
++	return !cpumask_empty(mask);
++}
++
++/*
++ * This centralizes the common logic to:
++ *
++ *  - evaluate which CPUs are online and needs to be notified for stop,
++ *    while considering properly the status of the calling CPU
++ *
++ *  - call the arch-specific helpers to request the effective stop
++ *
++ *  - wait for the stop operation to be completed across all involved CPUs
++ *    monitoring the cpu_online_mask
++ */
++void smp_send_stop(void)
++{
++	unsigned int this_cpu_id;
++	cpumask_t mask;
++
++	this_cpu_id = smp_processor_id();
++	if (any_other_cpus_online(&mask, this_cpu_id)) {
++		bool wait;
++		unsigned long timeout;
++		unsigned int this_cpu_online = cpu_online(this_cpu_id);
++
++		if (system_state <= SYSTEM_RUNNING)
++			pr_crit("stopping secondary CPUs\n");
++		arch_smp_stop_call(&mask);
++
++		/*
++		 * Defaults to wait up to one second for other CPUs to stop;
++		 * architectures can modify the default timeout or request
++		 * to wait forever.
++		 *
++		 * Here we rely simply on cpu_online_mask to sync with
++		 * arch-specific stop code without bloating the code with an
++		 * additional atomic_t ad-hoc counter.
++		 *
++		 * As a consequence we'll need proper explicit memory barriers
++		 * in case the other CPUs running the arch-specific stop-code
++		 * would need to commit to memory some data (like saved_regs).
++		 */
++		wait = smp_stop_get_wait_timeout_us(&timeout);
++		while (num_online_cpus() > this_cpu_online &&
++		       (wait || timeout--))
++			udelay(1);
++		/* ensure any stopping-CPUs memory access is made visible */
++		smp_rmb();
++		if (num_online_cpus() > this_cpu_online)
++			pr_warn("failed to stop secondary CPUs %*pbl\n",
++				cpumask_pr_args(cpu_online_mask));
++	}
++	/* Perform final (possibly arch-specific) work on this CPU */
++	arch_smp_cpus_stop_complete();
++}
++#endif
+-- 
+2.17.1
