@@ -1,328 +1,249 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Wed, 04 Sep 2019 20:19:29 +0000
-Subject: [PATCH v12 08/12] namei: O_BENEATH-style path resolution flags
-Message-Id: <20190904201933.10736-9-cyphar@cyphar.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:43 +0000
+Subject: [RFC PATCH v2 02/12] smp: unify crash_ and smp_send_stop() logic
+Message-Id: <20190913181953.45748-3-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190904201933.10736-1-cyphar@cyphar.com>
-In-Reply-To: <20190904201933.10736-1-cyphar@cyphar.com>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Christian Brauner <christian@brauner.io>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, David Drysdale <drysdale@google.com>, Andy Lutomirski <luto@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Aleksa Sarai <asarai@suse.de>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, linux-arch@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-Add the following flags to allow various restrictions on path resolution
-(these affect the *entire* resolution, rather than just the final path
-component -- as is the case with LOOKUP_FOLLOW).
+crash_smp_send_stop() logic was fairly similar to smp_send_stop():
+a lot of logic and code was duplicated between the two code paths and
+across a few different architectures.
 
-The primary justification for these flags is to allow for programs to be
-far more strict about how they want path resolution to handle symlinks,
-mountpoint crossings, and paths that escape the dirfd (through an
-absolute path or ".." shenanigans).
+Unify this underlying common logic into the existing SMP common stop
+code: use a common workhorse function for both paths to perform the
+common tasks while taking care to propagate to the underlying
+architecture code the intent of the stop operation: a simple stop or
+a crash dump stop.
 
-This is of particular concern to container runtimes that want to be very
-careful about malicious root filesystems that a container's init might
-have screwed around with (and there is no real way to protect against
-this in userspace if you consider potential races against a malicious
-container's init). More classical applications (which have their own
-potentially buggy userspace path sanitisation code) include web servers,
-archive extraction tools, network file servers, and so on.
+Relocate the __weak crash_smp_send_stop() function from panic.c to smp.c,
+since it is the crash dump entry point for the crash stop process and now
+calls into this new common logic (only if this latter is enabled by
+ARCH_USE_COMMON_SMP_STOP=y).
 
-These flags are exposed to userspace through openat2(2) in a later
-patchset.
+Introduce a few more helpers so that the architectures willing to use
+the common code logic can provide their arch-specific bits to handle
+the differences between a stop and a crash stop; architectures can
+anyway decide to override as a whole the common logic providing their
+own custom solution in crash_smp_send_stop() (as it was before).
 
-* LOOKUP_NO_XDEV: Disallow mount-point crossing (both *down* into one,
-  or *up* from one). Both bind-mounts and cross-filesystem mounts are
-  blocked by this flag. The naming is based on "find -xdev" as well as
-  -EXDEV (though find(1) doesn't walk upwards, the semantics seem
-  obvious).
+Provide also a new common code method to inquiry on the outcome of an
+ongoing crash_stop procedure: smp_crash_stop_failed().
 
-* LOOKUP_NO_MAGICLINKS: Disallows ->get_link "symlink" (or rather,
-  magic-link) jumping. This is a very specific restriction, and it
-  exists because /proc/$pid/fd/... "symlinks" allow for access outside
-  nd->root and pose risk to container runtimes that don't want to be
-  tricked into accessing a host path (but do want to allow
-  no-funny-business symlink resolution).
-
-* LOOKUP_NO_SYMLINKS: Disallows resolution through symlinks of any kind
-  (including magic-links).
-
-* LOOKUP_BENEATH: Disallow "escapes" from the starting point of the
-  filesystem tree during resolution (you must stay "beneath" the
-  starting point at all times). Currently this is done by disallowing
-  ".." and absolute paths (either in the given path or found during
-  symlink resolution) entirely, as well as all magic-link jumping.
-
-  The wholesale banning of ".." is because it is currently not safe to
-  allow ".." resolution (races can cause the path to be moved outside of
-  the root -- this is conceptually similar to historical chroot(2)
-  escape attacks). Future patches in this series will address this, and
-  will re-enable ".." resolution once it is safe. With those patches,
-  ".." resolution will only be allowed if it remains in the root
-  throughout resolution (such as "a/../b" not "a/../../outside/b").
-
-  The banning of magic-link jumping is done because it is not clear
-  whether semantically they should be allowed -- while some magic-links
-  are safe there are many that can cause escapes (and once a
-  resolution is outside of the root, O_BENEATH will no longer detect
-  it). Future patches may re-enable magic-link jumping when such jumps
-  would remain inside the root.
-
-The LOOKUP_NO_*LINK flags return -ELOOP if path resolution would
-violates their requirement, while the others all return -EXDEV.
-
-This is a refresh of Al's AT_NO_JUMPS patchset[1] (which was a variation
-on David Drysdale's O_BENEATH patchset[2], which in turn was based on
-the Capsicum project[3]). Input from Linus and Andy in the AT_NO_JUMPS
-thread[4] determined most of the API changes made in this refresh.
-
-[1]: https://lwn.net/Articles/721443/
-[2]: https://lwn.net/Articles/619151/
-[3]: https://lwn.net/Articles/603929/
-[4]: https://lwn.net/Articles/723057/
-
-Cc: Christian Brauner <christian@brauner.io>
-Suggested-by: David Drysdale <drysdale@google.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
- fs/namei.c            | 85 ++++++++++++++++++++++++++++++++++++-------
- include/linux/namei.h |  7 ++++
- 2 files changed, 78 insertions(+), 14 deletions(-)
+v1 --> v2
+- using new CONFIG_USE_COMMON_SMP_STOP
+- added arch_smp_cpus_crash_complete()
+---
+ include/linux/smp.h | 34 +++++++++++++++++++++++
+ kernel/panic.c      | 26 -----------------
+ kernel/smp.c        | 68 ++++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 98 insertions(+), 30 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index e39b573fcc4d..2e18ce5a313e 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -674,7 +674,11 @@ static int unlazy_walk(struct nameidata *nd)
- 		goto out2;
- 	if (unlikely(!legitimize_path(nd, &nd->path, nd->seq)))
- 		goto out1;
--	if (nd->root.mnt && !(nd->flags & LOOKUP_ROOT)) {
-+	if (!nd->root.mnt) {
-+		/* Restart from path_init() if nd->root was cleared. */
-+		if (nd->flags & LOOKUP_BENEATH)
-+			goto out;
-+	} else if (!(nd->flags & LOOKUP_ROOT)) {
- 		if (unlikely(!legitimize_path(nd, &nd->root, nd->root_seq)))
- 			goto out;
- 	}
-@@ -843,6 +847,13 @@ static inline void path_to_nameidata(const struct path *path,
- 
- static int nd_jump_root(struct nameidata *nd)
- {
-+	if (unlikely(nd->flags & LOOKUP_BENEATH))
-+		return -EXDEV;
-+	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
-+		/* Absolute path arguments to path_init() are allowed. */
-+		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
-+			return -EXDEV;
-+	}
- 	if (nd->flags & LOOKUP_RCU) {
- 		struct dentry *d;
- 		nd->path = nd->root;
-@@ -1051,6 +1062,9 @@ const char *get_link(struct nameidata *nd)
- 	int error;
- 	const char *res;
- 
-+	if (unlikely(nd->flags & LOOKUP_NO_SYMLINKS))
-+		return ERR_PTR(-ELOOP);
+diff --git a/include/linux/smp.h b/include/linux/smp.h
+index 381a14bfcd96..0f95bbd2cb5c 100644
+--- a/include/linux/smp.h
++++ b/include/linux/smp.h
+@@ -130,8 +130,36 @@ extern void arch_smp_stop_call(cpumask_t *cpus);
+  * the local CPU once the other CPUs have been successfully stopped.
+  */
+ void arch_smp_cpus_stop_complete(void);
 +
- 	if (!(nd->flags & LOOKUP_RCU)) {
- 		touch_atime(&last->link);
- 		cond_resched();
-@@ -1082,14 +1096,22 @@ const char *get_link(struct nameidata *nd)
- 		} else {
- 			res = get(dentry, inode, &last->done);
- 		}
-+		if (nd->flags & LOOKUP_MAGICLINK_JUMPED) {
-+			if (unlikely(nd->flags & LOOKUP_NO_MAGICLINKS))
-+				return ERR_PTR(-ELOOP);
-+			/* Not currently safe. */
-+			if (unlikely(nd->flags & LOOKUP_BENEATH))
-+				return ERR_PTR(-EXDEV);
-+		}
- 		if (IS_ERR_OR_NULL(res))
- 			return res;
- 	}
- 	if (*res = '/') {
- 		if (!nd->root.mnt)
- 			set_root(nd);
--		if (unlikely(nd_jump_root(nd)))
--			return ERR_PTR(-ECHILD);
-+		error = nd_jump_root(nd);
-+		if (unlikely(error))
-+			return ERR_PTR(error);
- 		while (unlikely(*++res = '/'))
- 			;
- 	}
-@@ -1270,12 +1292,16 @@ static int follow_managed(struct path *path, struct nameidata *nd)
- 		break;
- 	}
- 
--	if (need_mntput && path->mnt = mnt)
--		mntput(path->mnt);
-+	if (need_mntput) {
-+		if (path->mnt = mnt)
-+			mntput(path->mnt);
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			ret = -EXDEV;
-+		else
-+			nd->flags |= LOOKUP_JUMPED;
-+	}
- 	if (ret = -EISDIR || !ret)
- 		ret = 1;
--	if (need_mntput)
--		nd->flags |= LOOKUP_JUMPED;
- 	if (unlikely(ret < 0))
- 		path_put_conditional(path, nd);
- 	return ret;
-@@ -1332,6 +1358,8 @@ static bool __follow_mount_rcu(struct nameidata *nd, struct path *path,
- 		mounted = __lookup_mnt(path->mnt, path->dentry);
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return false;
- 		path->mnt = &mounted->mnt;
- 		path->dentry = mounted->mnt.mnt_root;
- 		nd->flags |= LOOKUP_JUMPED;
-@@ -1352,8 +1380,11 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 	struct inode *inode = nd->inode;
- 
- 	while (1) {
--		if (path_equal(&nd->path, &nd->root))
-+		if (path_equal(&nd->path, &nd->root)) {
-+			if (unlikely(nd->flags & LOOKUP_BENEATH))
-+				return -EXDEV;
- 			break;
-+		}
- 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
- 			struct dentry *old = nd->path.dentry;
- 			struct dentry *parent = old->d_parent;
-@@ -1378,6 +1409,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 				return -ECHILD;
- 			if (&mparent->mnt = nd->path.mnt)
- 				break;
-+			if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+				return -EXDEV;
- 			/* we know that mountpoint was pinned */
- 			nd->path.dentry = mountpoint;
- 			nd->path.mnt = &mparent->mnt;
-@@ -1392,6 +1425,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 			return -ECHILD;
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -EXDEV;
- 		nd->path.mnt = &mounted->mnt;
- 		nd->path.dentry = mounted->mnt.mnt_root;
- 		inode = nd->path.dentry->d_inode;
-@@ -1480,8 +1515,11 @@ static int path_parent_directory(struct path *path)
- static int follow_dotdot(struct nameidata *nd)
- {
- 	while(1) {
--		if (path_equal(&nd->path, &nd->root))
-+		if (path_equal(&nd->path, &nd->root)) {
-+			if (unlikely(nd->flags & LOOKUP_BENEATH))
-+				return -EXDEV;
- 			break;
-+		}
- 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
- 			int ret = path_parent_directory(&nd->path);
- 			if (ret)
-@@ -1490,6 +1528,8 @@ static int follow_dotdot(struct nameidata *nd)
- 		}
- 		if (!follow_up(&nd->path))
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -EXDEV;
- 	}
- 	follow_mount(&nd->path);
- 	nd->inode = nd->path.dentry->d_inode;
-@@ -1704,6 +1744,13 @@ static inline int may_lookup(struct nameidata *nd)
- static inline int handle_dots(struct nameidata *nd, int type)
- {
- 	if (type = LAST_DOTDOT) {
-+		/*
-+		 * LOOKUP_BENEATH resolving ".." is not currently safe -- races
-+		 * can cause our parent to have moved outside of the root and
-+		 * us to skip over it.
-+		 */
-+		if (unlikely(nd->flags & LOOKUP_BENEATH))
-+			return -EXDEV;
- 		if (!nd->root.mnt)
- 			set_root(nd);
- 		if (nd->flags & LOOKUP_RCU) {
-@@ -2170,6 +2217,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
- /* must be paired with terminate_walk() */
- static const char *path_init(struct nameidata *nd, unsigned flags)
- {
-+	int error;
- 	const char *s = nd->name->name;
- 
- 	if (!*s)
-@@ -2202,11 +2250,13 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	nd->path.dentry = NULL;
- 
- 	nd->m_seq = read_seqbegin(&mount_lock);
++/*
++ * An Architecture CAN also provide the arch_smp_cpus_crash_complete()
++ * dedicated helper, to perform any final arch-specific operation on
++ * the local CPU once the other CPUs have been successfully crash stopped.
++ * When not overridden by the user, this defaults to call straight away
++ * arch_smp_cpus_stop_complete()
++ */
++void arch_smp_cpus_crash_complete(void);
 +
-+	/* Figure out the starting path and root (if needed). */
- 	if (*s = '/') {
- 		set_root(nd);
--		if (likely(!nd_jump_root(nd)))
--			return s;
--		return ERR_PTR(-ECHILD);
-+		error = nd_jump_root(nd);
-+		if (unlikely(error))
-+			return ERR_PTR(error);
- 	} else if (nd->dfd = AT_FDCWD) {
- 		if (flags & LOOKUP_RCU) {
- 			struct fs_struct *fs = current->fs;
-@@ -2222,7 +2272,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 			get_fs_pwd(current->fs, &nd->path);
- 			nd->inode = nd->path.dentry->d_inode;
- 		}
--		return s;
- 	} else {
- 		/* Caller must check execute permissions on the starting path component */
- 		struct fd f = fdget_raw(nd->dfd);
-@@ -2247,8 +2296,16 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 			nd->inode = nd->path.dentry->d_inode;
- 		}
- 		fdput(f);
--		return s;
- 	}
-+	/* For scoped-lookups we need to set the root to the dirfd as well. */
-+	if (flags & LOOKUP_BENEATH) {
-+		nd->root = nd->path;
-+		if (flags & LOOKUP_RCU)
-+			nd->root_seq = nd->seq;
-+		else
-+			path_get(&nd->root);
-+	}
-+	return s;
++/*
++ * An Architecture CAN additionally provide the arch_smp_crash_call()
++ * helper which implements the arch-specific crash dump related operations.
++ *
++ * If such arch wants to fully support crash dump, this MUST be provided;
++ * when not provided the crash dump procedure will fallback to behave like
++ * a normal stop. (no saved regs, no arch-specific features disabled)
++ */
++extern void arch_smp_crash_call(cpumask_t *cpus);
++
++/* Helper to query the outcome of an ongoing crash_stop operation */
++bool smp_crash_stop_failed(void);
+ #endif
+ 
++/*
++ * stops all CPUs but the current one propagating to all other CPUs
++ * the information that a crash_kexec is ongoing:
++ */
++void crash_smp_send_stop(void);
++
+ /*
+  * sends a 'reschedule' event to another CPU:
+  */
+@@ -195,6 +223,12 @@ static inline int get_boot_cpu_id(void)
+ 
+ static inline void smp_send_stop(void) { }
+ 
++static inline void crash_smp_send_stop(void) { }
++
++#ifdef CONFIG_USE_COMMON_SMP_STOP
++static inline bool smp_crash_stop_failed(void) { }
++#endif
++
+ /*
+  *	These macros fold the SMP functionality into a single CPU system
+  */
+diff --git a/kernel/panic.c b/kernel/panic.c
+index 057540b6eee9..bc0dbf9c9b75 100644
+--- a/kernel/panic.c
++++ b/kernel/panic.c
+@@ -86,32 +86,6 @@ void __weak nmi_panic_self_stop(struct pt_regs *regs)
+ 	panic_smp_self_stop();
  }
  
- static const char *trailing_symlink(struct nameidata *nd)
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index bd6d3eb7764d..be407415c28a 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -51,6 +51,13 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- #define LOOKUP_DOWN		0x8000
- #define LOOKUP_MAGICLINK_JUMPED	0x10000
+-/*
+- * Stop other CPUs in panic.  Architecture dependent code may override this
+- * with more suitable version.  For example, if the architecture supports
+- * crash dump, it should save registers of each stopped CPU and disable
+- * per-CPU features such as virtualization extensions.
+- */
+-void __weak crash_smp_send_stop(void)
+-{
+-	static int cpus_stopped;
+-
+-	/*
+-	 * This function can be called twice in panic path, but obviously
+-	 * we execute this only once.
+-	 */
+-	if (cpus_stopped)
+-		return;
+-
+-	/*
+-	 * Note smp_send_stop is the usual smp shutdown function, which
+-	 * unfortunately means it may not be hardened to work in a panic
+-	 * situation.
+-	 */
+-	smp_send_stop();
+-	cpus_stopped = 1;
+-}
+-
+ atomic_t panic_cpu = ATOMIC_INIT(PANIC_CPU_INVALID);
  
-+/* Scoping flags for lookup. */
-+#define LOOKUP_BENEATH		0x020000 /* No escaping from starting point. */
-+#define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
-+#define LOOKUP_NO_MAGICLINKS	0x080000 /* No /proc/$pid/fd/ "symlink" crossing. */
-+#define LOOKUP_NO_SYMLINKS	0x100000 /* No symlink crossing *at all*.
-+					    Implies LOOKUP_NO_MAGICLINKS. */
+ /*
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 72f99bf13fd0..b05d2648a168 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -820,8 +820,14 @@ int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par, bool phys)
+ EXPORT_SYMBOL_GPL(smp_call_on_cpu);
+ 
+ #ifdef CONFIG_USE_COMMON_SMP_STOP
 +
- extern int path_pts(struct path *path);
+ void __weak arch_smp_cpus_stop_complete(void) { }
  
- extern int user_path_at_empty(int, const char __user *, unsigned, struct path *, int *empty);
++void __weak arch_smp_cpus_crash_complete(void)
++{
++	arch_smp_cpus_stop_complete();
++}
++
+ static inline bool any_other_cpus_online(cpumask_t *mask,
+ 					 unsigned int this_cpu_id)
+ {
+@@ -831,6 +837,12 @@ static inline bool any_other_cpus_online(cpumask_t *mask,
+ 	return !cpumask_empty(mask);
+ }
+ 
++void __weak arch_smp_crash_call(cpumask_t *cpus)
++{
++	pr_debug("SMP: Using generic %s() as SMP crash call.\n", __func__);
++	arch_smp_stop_call(cpus);
++}
++
+ /*
+  * This centralizes the common logic to:
+  *
+@@ -842,7 +854,7 @@ static inline bool any_other_cpus_online(cpumask_t *mask,
+  *  - wait for the stop operation to be completed across all involved CPUs
+  *    monitoring the cpu_online_mask
+  */
+-void smp_send_stop(void)
++static inline void __smp_send_stop_all(bool reason_crash)
+ {
+ 	unsigned int this_cpu_id;
+ 	cpumask_t mask;
+@@ -855,8 +867,11 @@ void smp_send_stop(void)
+ 
+ 		if (system_state <= SYSTEM_RUNNING)
+ 			pr_crit("stopping secondary CPUs\n");
+-		arch_smp_stop_call(&mask);
+-
++		/* smp and crash arch-backends helpers are kept distinct */
++		if (!reason_crash)
++			arch_smp_stop_call(&mask);
++		else
++			arch_smp_crash_call(&mask);
+ 		/*
+ 		 * Defaults to wait up to one second for other CPUs to stop;
+ 		 * architectures can modify the default timeout or request
+@@ -881,6 +896,51 @@ void smp_send_stop(void)
+ 				cpumask_pr_args(cpu_online_mask));
+ 	}
+ 	/* Perform final (possibly arch-specific) work on this CPU */
+-	arch_smp_cpus_stop_complete();
++	if (!reason_crash)
++		arch_smp_cpus_stop_complete();
++	else
++		arch_smp_cpus_crash_complete();
++}
++
++void smp_send_stop(void)
++{
++	__smp_send_stop_all(false);
+ }
++
++bool __weak smp_crash_stop_failed(void)
++{
++	return (num_online_cpus() > cpu_online(smp_processor_id()));
++}
++#endif
++
++/*
++ * Stop other CPUs while passing down the additional information that a
++ * crash_kexec is ongoing: it's up to the architecture implementation
++ * decide what to do.
++ *
++ * For example, Architectures supporting crash dump should provide
++ * specialized support for saving registers and disabling per-CPU features
++ * like virtualization extensions.
++ *
++ * Behaviour in the CONFIG_USE_COMMON_SMP_STOP=n case is preserved
++ * as it was before.
++ */
++void __weak crash_smp_send_stop(void)
++{
++	static int cpus_stopped;
++
++	/*
++	 * This function can be called twice in panic path, but obviously
++	 * we execute this only once.
++	 */
++	if (cpus_stopped)
++		return;
++
++#ifdef CONFIG_USE_COMMON_SMP_STOP
++	__smp_send_stop_all(true);
++#else
++	smp_send_stop();
+ #endif
++
++	cpus_stopped = 1;
++}
 -- 
-2.23.0
+2.17.1
