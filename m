@@ -1,478 +1,196 @@
-From: Registraduria Municipal Caramanta - Antioquia  <CaramantaAntioquia@registraduria
-Date: Mon, 16 Sep 2019 12:58:30 +0000
-Subject: =?iso-8859-1?Q?Se_non_verifichi_il_tuo_account_entro_le_prossime_24_ore,_?= =?iso-8859-1?Q?il_tuo_ac
-Message-Id: <1568667559759.4076@registraduria.gov.co>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Fri, 13 Sep 2019 18:19:47 +0000
+Subject: [RFC PATCH v2 06/12] arm64: smp: use SMP crash-stop common code
+Message-Id: <20190913181953.45748-7-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190913181953.45748-1-cristian.marussi@arm.com>
+In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Aggiorna il tuo account
-
-Il nostro record indica che il tuo account non =E8 stato aggiornato, il che=
- potrebbe comportare la chiusura del tuo account. Se non aggiorni il tuo ac=
-count, non sarai pi=F9 in grado di inviare e ricevere e-mail e ti verr=E0 n=
-egato l'accesso a molte delle nostre ultime conversazioni, contatti e alleg=
-ati migliorati.
-
-Prenditi un minuto per aggiornare il tuo account per un'esperienza di maili=
-ng pi=F9 rapida e completa.
-
-Fai cl<http://hfnfgewf.000webhostapp.com/>ic qui per aggiornare il tuo <htt=
-p://jhgewads.000webhostapp.com/> account?
-
-Nota: il mancato aggiornamento della propria casella di posta comporter=E0 =
-la cancellazione permanente del proprio account.
-
-Grazie molto,
-Il team di sicurezza
-
-Copyright =A9 2019 Webmail .Inc. Tutti i diritti riservati.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-?
-
-
-
-Confidencialidad: La informaci=F3n contenida en este mensaje de e-mail y su=
-s anexos, es confidencial y est=E1 reservada para el destinatario =FAnicame=
-nte. Si usted no es el destinatario o un empleado o agente responsable de e=
-nviar este mensaje al destinatario final, se le notifica que no est=E1 auto=
-rizado para revisar, retransmitir, imprimir, copiar, usar o distribuir este=
- e-mail o sus anexos. Si usted ha recibido este e-mail por error, por favor=
- comun=EDquelo inmediatamente v=EDa e-mail al remitente y tenga la amabilid=
-ad de borrarlo de su computadora o cualquier otro banco de datos. Muchas gr=
-acias.
-
-Confidentiality Notice: The information contained in this email message, in=
-cluding any attachment, is confidential and is intended only for the person=
- or entity to which it is addressed. If you are neither the intended recipi=
-ent nor the employee or agent responsible for delivering this message to th=
-e intended recipient, you are hereby notified that you may not review, retr=
-ansmit, convert to hard copy, copy, use or distribute this email message or=
- any attachments to it. If you have received this email in error, please co=
-ntact the sender immediately and delete this message from any computer or o=
-ther data bank. Thank you.
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+
+Make arm64 use the SMP common implementation of crash_smp_send_stop() and
+its generic logic, by removing the arm64 crash_smp_send_stop() definition
+and providing the needed arch specific helpers.
+
+Additionally, simplify the arch-specific stop and crash dump ISRs backends
+(which are in charge of effectively receiving and interpreting the
+stop/crash messages) and unify them as much as possible.
+
+Using the SMP common code, it is no more needed to make use of an atomic_t
+counter to make sure that each CPU had time to perform its crash dump
+related shutdown-ops before the world ends: simply take care to synchronize
+on cpu_online_mask, and add proper explicit memory barriers where needed.
+
+Moreover, remove arm64 specific smp_crash_stop_failed() helper as a whole
+and rely on the common code provided homonym function to lookup the state
+of an ongoing crash_stop operation.
+
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+v1 --> v2
+- added attempt_num param to arch_smp_crash_call()
+---
+ arch/arm64/include/asm/smp.h |   2 -
+ arch/arm64/kernel/smp.c      | 100 +++++++++--------------------------
+ 2 files changed, 26 insertions(+), 76 deletions(-)
+
+diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
+index a0c8a0b65259..d98c409f9225 100644
+--- a/arch/arm64/include/asm/smp.h
++++ b/arch/arm64/include/asm/smp.h
+@@ -150,8 +150,6 @@ static inline void cpu_panic_kernel(void)
+  */
+ bool cpus_are_stuck_in_kernel(void);
+ 
+-extern void crash_smp_send_stop(void);
+-extern bool smp_crash_stop_failed(void);
+ 
+ #endif /* ifndef __ASSEMBLY__ */
+ 
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 3e87fdbb9f74..f0cc2bf84aaa 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -825,12 +825,30 @@ void arch_irq_work_raise(void)
+ }
+ #endif
+ 
+-static void local_cpu_stop(void)
++static void local_cpu_crash_or_stop(struct pt_regs *crash_regs)
+ {
+-	set_cpu_online(smp_processor_id(), false);
++	unsigned int cpu = smp_processor_id();
+ 
+-	local_daif_mask();
++	if (IS_ENABLED(CONFIG_KEXEC_CORE) && crash_regs) {
++#ifdef CONFIG_KEXEC_CORE
++		/* crash stop requested: save regs before going offline */
++		crash_save_cpu(crash_regs, cpu);
++#endif
++		local_irq_disable();
++	} else {
++		local_daif_mask();
++	}
+ 	sdei_mask_local_cpu();
++	/* ensure dumped regs are visible once cpu is seen offline */
++	smp_wmb();
++	set_cpu_online(cpu, false);
++	/* ensure all writes are globally visible before cpu parks */
++	wmb();
++#if defined(CONFIG_KEXEC_CORE) && defined(CONFIG_HOTPLUG_CPU)
++	if (cpu_ops[cpu]->cpu_die)
++		cpu_ops[cpu]->cpu_die(cpu);
++#endif
++	/* just in case */
+ 	cpu_park_loop();
+ }
+ 
+@@ -841,31 +859,7 @@ static void local_cpu_stop(void)
+  */
+ void panic_smp_self_stop(void)
+ {
+-	local_cpu_stop();
+-}
+-
+-#ifdef CONFIG_KEXEC_CORE
+-static atomic_t waiting_for_crash_ipi = ATOMIC_INIT(0);
+-#endif
+-
+-static void ipi_cpu_crash_stop(unsigned int cpu, struct pt_regs *regs)
+-{
+-#ifdef CONFIG_KEXEC_CORE
+-	crash_save_cpu(regs, cpu);
+-
+-	atomic_dec(&waiting_for_crash_ipi);
+-
+-	local_irq_disable();
+-	sdei_mask_local_cpu();
+-
+-#ifdef CONFIG_HOTPLUG_CPU
+-	if (cpu_ops[cpu]->cpu_die)
+-		cpu_ops[cpu]->cpu_die(cpu);
+-#endif
+-
+-	/* just in case */
+-	cpu_park_loop();
+-#endif
++	local_cpu_crash_or_stop(NULL);
+ }
+ 
+ /*
+@@ -894,14 +888,14 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
+ 
+ 	case IPI_CPU_STOP:
+ 		irq_enter();
+-		local_cpu_stop();
++		local_cpu_crash_or_stop(NULL);
+ 		irq_exit();
+ 		break;
+ 
+ 	case IPI_CPU_CRASH_STOP:
+ 		if (IS_ENABLED(CONFIG_KEXEC_CORE)) {
+ 			irq_enter();
+-			ipi_cpu_crash_stop(cpu, regs);
++			local_cpu_crash_or_stop(regs);
+ 
+ 			unreachable();
+ 		}
+@@ -963,52 +957,10 @@ void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
+ 	smp_cross_call(cpus, IPI_CPU_STOP);
+ }
+ 
+-#ifdef CONFIG_KEXEC_CORE
+-void crash_smp_send_stop(void)
++void arch_smp_crash_call(cpumask_t *cpus, unsigned int __unused)
+ {
+-	static int cpus_stopped;
+-	cpumask_t mask;
+-	unsigned long timeout;
+-
+-	/*
+-	 * This function can be called twice in panic path, but obviously
+-	 * we execute this only once.
+-	 */
+-	if (cpus_stopped)
+-		return;
+-
+-	cpus_stopped = 1;
+-
+-	if (num_online_cpus() = 1) {
+-		sdei_mask_local_cpu();
+-		return;
+-	}
+-
+-	cpumask_copy(&mask, cpu_online_mask);
+-	cpumask_clear_cpu(smp_processor_id(), &mask);
+-
+-	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
+-
+-	pr_crit("SMP: stopping secondary CPUs\n");
+-	smp_cross_call(&mask, IPI_CPU_CRASH_STOP);
+-
+-	/* Wait up to one second for other CPUs to stop */
+-	timeout = USEC_PER_SEC;
+-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && timeout--)
+-		udelay(1);
+-
+-	if (atomic_read(&waiting_for_crash_ipi) > 0)
+-		pr_warning("SMP: failed to stop secondary CPUs %*pbl\n",
+-			   cpumask_pr_args(&mask));
+-
+-	sdei_mask_local_cpu();
+-}
+-
+-bool smp_crash_stop_failed(void)
+-{
+-	return (atomic_read(&waiting_for_crash_ipi) > 0);
++	smp_cross_call(cpus, IPI_CPU_CRASH_STOP);
+ }
+-#endif
+ 
+ /*
+  * not supported here
+-- 
+2.17.1
