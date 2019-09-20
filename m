@@ -1,38 +1,79 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 26 Sep 2019 12:10:07 +0000
-Subject: Re: [PATCH v6] numa: make node_to_cpumask_map() NUMA_NO_NODE aware
-Message-Id: <20190926121007.GB4581@hirez.programming.kicks-ass.net>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Fri, 20 Sep 2019 10:27:57 +0000
+Subject: [sparc64] pktcdvd: setup of pktcdvd device failed
+Message-Id: <CADxRZqz_TF7jyGtbg9cVSnCGh2VzfCoRGBdCU_yE_v1cveq1Pg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190924120943.GP2349@hirez.programming.kicks-ass.net>
- <20190924122500.GP23050@dhcp22.suse.cz>
- <20190924124325.GQ2349@hirez.programming.kicks-ass.net>
- <20190924125936.GR2349@hirez.programming.kicks-ass.net>
- <20190924131939.GS23050@dhcp22.suse.cz>
- <20190925104040.GD4553@hirez.programming.kicks-ass.net>
- <20190925132544.GL23050@dhcp22.suse.cz>
- <20190925163154.GF4553@hirez.programming.kicks-ass.net>
- <20190925214526.GA4643@worktop.programming.kicks-ass.net>
- <20190926090559.GA4581@hirez.programming.kicks-ass.net>
-In-Reply-To: <20190926090559.GA4581@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Yunsheng Lin <linyunsheng@huawei.com>, catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com, akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, gregkh@linuxfoundation.org
+To: linux-block@vger.kernel.org
+Cc: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
 
-On Thu, Sep 26, 2019 at 11:05:59AM +0200, Peter Zijlstra wrote:
-> On Wed, Sep 25, 2019 at 11:45:26PM +0200, Peter Zijlstra wrote:
-> > [    7.149889] [Firmware Bug]: device: 'pci0000:7f': no node assigned on NUMA capable HW
-> > [    7.882888] [Firmware Bug]: device: 'pci0000:ff': no node assigned on NUMA capable HW
-> 
-> Going by the limited number of intel numa boxes I have, it looks like:
-> 
->   socket = (~busid) >> (8-n)
+Hello!
 
-Bah, I got my notes mixed up, it should be: busid >> (8-n)
+Getting the following call trace on boot on sparc64 ldom/machine with
+current git kernel:
 
-> where 'n' is the number of bits required to encode the largest socket
-> id, ie 1 for 2-socket and 2 for 4 socket.
-> 
-> For 8 socket systems we start using pci domains, and things get more
-> 'interesting' :/
+...
+[   13.352975] aes_sparc64: Using sparc64 aes opcodes optimized AES
+implementation
+[   13.428002] ------------[ cut here ]------------
+[   13.428081] WARNING: CPU: 21 PID: 586 at
+drivers/block/pktcdvd.c:2597 pkt_setup_dev+0x2e4/0x5a0 [pktcdvd]
+[   13.428147] Attempt to register a non-SCSI queue
+[   13.428184] Modules linked in: pktcdvd libdes cdrom aes_sparc64
+n2_rng md5_sparc64 sha512_sparc64 rng_core sha256_sparc64 flash
+sha1_sparc64 ip_tables x_tables ipv6 crc_ccitt nf_defrag_ipv6 autofs4
+ext4 crc16 mbcache jbd2 raid10 raid456 async_raid6_recov async_memcpy
+async_pq async_xor xor async_tx raid6_pq raid1 raid0 multipath linear
+md_mod crc32c_sparc64
+[   13.428452] CPU: 21 PID: 586 Comm: pktsetup Not tainted
+5.3.0-10169-g574cc4539762 #1234
+[   13.428507] Call Trace:
+[   13.428542]  [00000000004635c0] __warn+0xc0/0x100
+[   13.428582]  [0000000000463634] warn_slowpath_fmt+0x34/0x60
+[   13.428626]  [000000001045b244] pkt_setup_dev+0x2e4/0x5a0 [pktcdvd]
+[   13.428674]  [000000001045ccf4] pkt_ctl_ioctl+0x94/0x220 [pktcdvd]
+[   13.428724]  [00000000006b95c8] do_vfs_ioctl+0x628/0x6e0
+[   13.428764]  [00000000006b96c8] ksys_ioctl+0x48/0x80
+[   13.428803]  [00000000006b9714] sys_ioctl+0x14/0x40
+[   13.428847]  [0000000000406294] linux_sparc_syscall+0x34/0x44
+[   13.428890] irq event stamp: 4181
+[   13.428924] hardirqs last  enabled at (4189): [<00000000004e0a74>]
+console_unlock+0x634/0x6c0
+[   13.428984] hardirqs last disabled at (4196): [<00000000004e0540>]
+console_unlock+0x100/0x6c0
+[   13.429048] softirqs last  enabled at (3978): [<0000000000b2e2d8>]
+__do_softirq+0x498/0x520
+[   13.429110] softirqs last disabled at (3967): [<000000000042cfb4>]
+do_softirq_own_stack+0x34/0x60
+[   13.429172] ---[ end trace 2220ca468f32967d ]---
+[   13.430018] pktcdvd: setup of pktcdvd device failed
+[   13.455589] des_sparc64: Using sparc64 des opcodes optimized DES
+implementation
+[   13.515334] camellia_sparc64: Using sparc64 camellia opcodes
+optimized CAMELLIA implementation
+[   13.522856] pktcdvd: setup of pktcdvd device failed
+[   13.529327] pktcdvd: setup of pktcdvd device failed
+[   13.532932] pktcdvd: setup of pktcdvd device failed
+[   13.536165] pktcdvd: setup of pktcdvd device failed
+[   13.539372] pktcdvd: setup of pktcdvd device failed
+[   13.542834] pktcdvd: setup of pktcdvd device failed
+[   13.546536] pktcdvd: setup of pktcdvd device failed
+[   15.431071] XFS (dm-0): Mounting V5 Filesystem
+...
+
+
+Full boot log at [1] and kernel config [2].
+
+4.12.0 kernel have different message on boot for pktcdvd module
+(something with circular locking)...
+
+4.14.0 kernel have OOPS, boot log at [3]
+
+starting from 4.16.0 and up to current git kernel messages are/almost
+the same ...
+
+1. https://github.com/mator/sparc64-dmesg/blob/master/dmesg-5.3.0-10169-g574cc4539762
+2. https://github.com/mator/sparc64-dmesg/blob/master/config-5.3.0-10169-g574cc4539762.gz
+3. https://github.com/mator/sparc64-dmesg/blob/master/dmesg-4.14.0
