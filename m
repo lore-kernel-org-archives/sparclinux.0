@@ -1,7 +1,7 @@
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Sun, 22 Sep 2019 11:37:14 +0000
+Date: Sun, 22 Sep 2019 11:46:40 +0000
 Subject: Re: latest git kernel (v5.3-11506-gf7c3bf8fa7e5) does not compile
-Message-Id: <CAK7LNAR3szhzH89ujCPq5Xz8rm0xvSjJdx0TebsaU8yiroXXVg@mail.gmail.com>
+Message-Id: <CAK7LNASgNh04dAn6Fe4A2Dfhu55Vtk=jeNqC6_HNQHbyNMkoZA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CADxRZqwizJ2HXdiU7aSH9t=ecBEHnxdVVsQ4wUpTYRpCgdXf=w@mail.gmail.com>
  <CADxRZqzx=8jNQuvi8WN=7U_G5a0f+v_GODHH8q3QJVYmg=n1LA@mail.gmail.com>
@@ -11,8 +11,6 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Anatoly Pugachev <matorola@gmail.com>
 Cc: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
-
-Hi Anatoly,
 
 On Sun, Sep 22, 2019 at 5:33 PM Anatoly Pugachev <matorola@gmail.com> wrote:
 >
@@ -40,22 +38,6 @@ On Sun, Sep 22, 2019 at 5:33 PM Anatoly Pugachev <matorola@gmail.com> wrote:
 > > make: *** [Makefile:1667: arch/sparc] Error
 > >
 > > but I was able to compile successfully v5.3-10169-g574cc4539762
-
-
-Thanks for the report, and apology for the breakage.
-
-Please check this patch.
-https://lore.kernel.org/patchwork/patch/1130469/
-
-I hope it will fix the build error.
-
-Thanks.
-
-
-
-
-
-
 > >
 > > Not sure my bisect log is right, but here it is:
 > >
@@ -170,6 +152,15 @@ Thanks.
 > PS: unable to compile kernel makes its bisection impossible =(
 
 
+I have no idea about this error because this
+seems unrelated to commit 54b8ae66ae1a3454a7645d159a482c31cd89ab33
+
+From the error message "Cannot allocate memory",
+maybe, your machine was in the memory shortage.
+
+(If you have the steps to reproduce it, please share it.)
+
+Thanks.
 
 -- 
 Best Regards
