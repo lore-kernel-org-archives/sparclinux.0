@@ -1,41 +1,54 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 02 Sep 2019 07:53:01 +0000
-Subject: Re: [PATCH 08/26] m68k: simplify ioremap_nocache
-Message-Id: <CAMuHMdXB=DWyu=Y25gih5poeanVnhLEP2MXoozvxdEY6op32FA@mail.gmail.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Sun, 22 Sep 2019 11:34:36 +0000
+Subject: [PATCH] sparc: vdso: fix build error of vdso32
+Message-Id: <20190922113436.10396-1-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190817073253.27819-1-hch@lst.de> <20190817073253.27819-9-hch@lst.de>
- <CAMuHMdWyXGjokWi7tn9JHCTz9YMb_vHn6XKeE7KzH5n-54Sy0A@mail.gmail.com> <20190830160620.GD26887@lst.de>
-In-Reply-To: <20190830160620.GD26887@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, the arch/x86 maintainers <x86@kernel.org>, alpha <linux-alpha@vger.kernel.org>, arcml <linux-snps-arc@lists.infradead.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, Openrisc <openrisc@lists.librecores.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-riscv@lists.infradead.org, linux-s390 <linux-s390@vger.kernel.org>
+To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Anatoly Pugachev <matorola@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, "ndesaulniers@google.com" <ndesaulniers@google.com>
 
-Hi Christoph,
+Since commit 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to
+take the path relative to $(obj)"), sparc allmodconfig fails to build
+as follows:
 
-On Fri, Aug 30, 2019 at 6:06 PM Christoph Hellwig <hch@lst.de> wrote:
-> On Mon, Aug 19, 2019 at 10:56:02AM +0200, Geert Uytterhoeven wrote:
-> > On Sat, Aug 17, 2019 at 9:48 AM Christoph Hellwig <hch@lst.de> wrote:
-> > > Just define ioremap_nocache to ioremap instead of duplicating the
-> > > inline.  Also defined ioremap_uc in terms of ioremap instead of
-> > > the using a double indirection.
-> > >
-> > > Signed-off-by: Christoph Hellwig <hch@lst.de>
-> >
-> > Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
->
-> Do you mind picking this up through the m68k tree?
+  CC      arch/sparc/vdso/vdso32/vclock_gettime.o
+unrecognized e_machine 18 arch/sparc/vdso/vdso32/vclock_gettime.o
+arch/sparc/vdso/vdso32/vclock_gettime.o: failed
 
-Sure. Applied and queued for v5.4.
+The cause of the breakage is that -pg flag not being dropped.
 
-Gr{oetje,eeting}s,
+The vdso32 files are located in the vdso32/ subdirectory, but I missed
+to update the Makefile.
 
-                        Geert
+Fixes: 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to take the path relative to $(obj)")
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+---
 
+ arch/sparc/vdso/Makefile | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index 324a23947585..399bc22b1cf8 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -67,12 +67,14 @@ $(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS
+ #
+ CFLAGS_REMOVE_vdso-note.o = -pg
+ CFLAGS_REMOVE_vclock_gettime.o = -pg
++CFLAGS_REMOVE_vdso32/vdso-note.o = -pg
++CFLAGS_REMOVE_vdso32/vclock_gettime.o = -pg
+ 
+ $(obj)/%.so: OBJCOPYFLAGS := -S
+ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ 	$(call if_changed,objcopy)
+ 
+-CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
++CPPFLAGS_vdso32/vdso32.lds = $(CPPFLAGS_vdso.lds)
+ VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
+ 
+ #This makes sure the $(obj) subdirectory exists even though vdso32/
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.17.1
