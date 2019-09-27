@@ -1,54 +1,78 @@
 From: Masahiro Yamada <yamada.masahiro@socionext.com>
-Date: Sun, 22 Sep 2019 11:34:36 +0000
-Subject: [PATCH] sparc: vdso: fix build error of vdso32
-Message-Id: <20190922113436.10396-1-yamada.masahiro@socionext.com>
+Date: Fri, 27 Sep 2019 15:46:32 +0000
+Subject: Re: [PATCH] sparc: vdso: fix build error of vdso32
+Message-Id: <CAK7LNARXA4MnDyYHLphYEqMfEbh=cMk0i=pzDRbEODTeM+cJ4Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20190922113436.10396-1-yamada.masahiro@socionext.com>
+In-Reply-To: <20190922113436.10396-1-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Anatoly Pugachev <matorola@gmail.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, "ndesaulniers@google.com" <ndesaulniers@google.com>
+To: "David S . Miller" <davem@davemloft.net>, sparclinux <sparclinux@vger.kernel.org>
+Cc: Anatoly Pugachev <matorola@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "ndesaulniers@google.com" <ndesaulniers@google.com>
 
-Since commit 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to
-take the path relative to $(obj)"), sparc allmodconfig fails to build
-as follows:
+On Sun, Sep 22, 2019 at 8:36 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> Since commit 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to
+> take the path relative to $(obj)"), sparc allmodconfig fails to build
+> as follows:
+>
+>   CC      arch/sparc/vdso/vdso32/vclock_gettime.o
+> unrecognized e_machine 18 arch/sparc/vdso/vdso32/vclock_gettime.o
+> arch/sparc/vdso/vdso32/vclock_gettime.o: failed
+>
+> The cause of the breakage is that -pg flag not being dropped.
+>
+> The vdso32 files are located in the vdso32/ subdirectory, but I missed
+> to update the Makefile.
+>
+> Fixes: 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to take the path relative to $(obj)")
+> Reported-by: Anatoly Pugachev <matorola@gmail.com>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+>
 
-  CC      arch/sparc/vdso/vdso32/vclock_gettime.o
-unrecognized e_machine 18 arch/sparc/vdso/vdso32/vclock_gettime.o
-arch/sparc/vdso/vdso32/vclock_gettime.o: failed
 
-The cause of the breakage is that -pg flag not being dropped.
+I am copy-pasting Tested-by from the reporter:
 
-The vdso32 files are located in the vdso32/ subdirectory, but I missed
-to update the Makefile.
+Tested-by: Anatoly Pugachev <matorola@gmail.com>
 
-Fixes: 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to take the path relative to $(obj)")
-Reported-by: Anatoly Pugachev <matorola@gmail.com>
-Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
----
+It was given here:
 
- arch/sparc/vdso/Makefile | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+https://lkml.org/lkml/2019/9/25/197
 
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index 324a23947585..399bc22b1cf8 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -67,12 +67,14 @@ $(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS
- #
- CFLAGS_REMOVE_vdso-note.o = -pg
- CFLAGS_REMOVE_vclock_gettime.o = -pg
-+CFLAGS_REMOVE_vdso32/vdso-note.o = -pg
-+CFLAGS_REMOVE_vdso32/vclock_gettime.o = -pg
- 
- $(obj)/%.so: OBJCOPYFLAGS := -S
- $(obj)/%.so: $(obj)/%.so.dbg FORCE
- 	$(call if_changed,objcopy)
- 
--CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
-+CPPFLAGS_vdso32/vdso32.lds = $(CPPFLAGS_vdso.lds)
- VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
- 
- #This makes sure the $(obj) subdirectory exists even though vdso32/
+
+
+
+>  arch/sparc/vdso/Makefile | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+> index 324a23947585..399bc22b1cf8 100644
+> --- a/arch/sparc/vdso/Makefile
+> +++ b/arch/sparc/vdso/Makefile
+> @@ -67,12 +67,14 @@ $(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS
+>  #
+>  CFLAGS_REMOVE_vdso-note.o = -pg
+>  CFLAGS_REMOVE_vclock_gettime.o = -pg
+> +CFLAGS_REMOVE_vdso32/vdso-note.o = -pg
+> +CFLAGS_REMOVE_vdso32/vclock_gettime.o = -pg
+>
+>  $(obj)/%.so: OBJCOPYFLAGS := -S
+>  $(obj)/%.so: $(obj)/%.so.dbg FORCE
+>         $(call if_changed,objcopy)
+>
+> -CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
+> +CPPFLAGS_vdso32/vdso32.lds = $(CPPFLAGS_vdso.lds)
+>  VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
+>
+>  #This makes sure the $(obj) subdirectory exists even though vdso32/
+> --
+> 2.17.1
+>
+
+
 -- 
-2.17.1
+Best Regards
+Masahiro Yamada
