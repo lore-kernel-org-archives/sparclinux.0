@@ -1,138 +1,83 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Fri, 13 Sep 2019 18:19:46 +0000
-Subject: [RFC PATCH v2 05/12] arm64: smp: use generic SMP stop common code
-Message-Id: <20190913181953.45748-6-cristian.marussi@arm.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Mon, 30 Sep 2019 18:33:12 +0000
+Subject: [PATCH v13 5/9] namei: LOOKUP_IN_ROOT: chroot-like path resolution
+Message-Id: <20190930183316.10190-6-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190913181953.45748-1-cristian.marussi@arm.com>
-In-Reply-To: <20190913181953.45748-1-cristian.marussi@arm.com>
+References: <20190930183316.10190-1-cyphar@cyphar.com>
+In-Reply-To: <20190930183316.10190-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, dave.martin@arm.com, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexei Starovoitov <ast@kernel.org>, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, sparclinux@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Tycho Andersen <tycho@tycho.ws>, Aleksa Sarai <asarai@suse.de>, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-xtensa@linux-xtensa.org, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, linuxppc-dev@lists.ozlabs.org, Aleksa Sarai <cyphar@cyphar.com>, Andy Lutomirski <luto@kernel.org>, Namhyung Kim <namhyung@kernel.org>, David Drysdale <drysdale@google.com>, Christian Brauner <christian@brauner.io>, libc-alpha@sourceware.org, linux-parisc@vger.kernel.org, linux-m68k@li
 
-Make arm64 use the generic SMP-stop logic provided by common code
-unified smp_send_stop() function.
+The primary motivation for the need for this flag is container runtimes
+which have to interact with malicious root filesystems in the host
+namespaces. One of the first requirements for a container runtime to be
+secure against a malicious rootfs is that they correctly scope symlinks
+(that is, they should be scoped as though they are chroot(2)ed into the
+container's rootfs) and ".."-style paths[*]. The already-existing
+LOOKUP_NO_XDEV and LOOKUP_NO_MAGICLINKS help defend against other
+potential attacks in a malicious rootfs scenario.
 
-arm64 smp_send_stop() logic had a bug in it: it failed to consider the
-online status of the calling CPU when evaluating if any stop message
-needed to be sent to other CPus at all: this resulted, on a 2-CPUs
-system, in the failure to stop all cpus if one paniced while starting
-up, leaving such system in an unexpected lively state.
+Currently most container runtimes try to do this resolution in
+userspace[1], causing many potential race conditions. In addition, the
+"obvious" alternative (actually performing a {ch,pivot_}root(2))
+requires a fork+exec (for some runtimes) which is *very* costly if
+necessary for every filesystem operation involving a container.
 
-[root@arch ~]# echo 1 > /sys/devices/system/cpu/cpu1/online
-[root@arch ~]# [  152.583368] ------------[ cut here ]------------
-[  152.583872] kernel BUG at arch/arm64/kernel/cpufeature.c:852!
-[  152.584693] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
-[  152.585228] Modules linked in:
-[  152.586040] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.3.0-rc5-00001-gcabd12118c4a-dirty #2
-[  152.586218] Hardware name: Foundation-v8A (DT)
-[  152.586478] pstate: 000001c5 (nzcv dAIF -PAN -UAO)
-[  152.587260] pc : has_cpuid_feature+0x35c/0x360
-[  152.587398] lr : verify_local_elf_hwcaps+0x6c/0xf0
-[  152.587520] sp : ffff0000118bbf60
-[  152.587605] x29: ffff0000118bbf60 x28: 0000000000000000
-[  152.587784] x27: 0000000000000000 x26: 0000000000000000
-[  152.587882] x25: ffff00001167a010 x24: ffff0000112f59f8
-[  152.587992] x23: 0000000000000000 x22: 0000000000000000
-[  152.588085] x21: ffff0000112ea018 x20: ffff000010fe5518
-[  152.588180] x19: ffff000010ba3f30 x18: 0000000000000036
-[  152.588285] x17: 0000000000000000 x16: 0000000000000000
-[  152.588380] x15: 0000000000000000 x14: ffff80087a821210
-[  152.588481] x13: 0000000000000000 x12: 0000000000000000
-[  152.588599] x11: 0000000000000080 x10: 00400032b5503510
-[  152.588709] x9 : 0000000000000000 x8 : ffff000010b93204
-[  152.588810] x7 : 00000000800001d8 x6 : 0000000000000005
-[  152.588910] x5 : 0000000000000000 x4 : 0000000000000000
-[  152.589021] x3 : 0000000000000000 x2 : 0000000000008000
-[  152.589121] x1 : 0000000000180480 x0 : 0000000000180480
-[  152.589379] Call trace:
-[  152.589646]  has_cpuid_feature+0x35c/0x360
-[  152.589763]  verify_local_elf_hwcaps+0x6c/0xf0
-[  152.589858]  check_local_cpu_capabilities+0x88/0x118
-[  152.589968]  secondary_start_kernel+0xc4/0x168
-[  152.590530] Code: d53801e0 17ffff58 d5380600 17ffff56 (d4210000)
-[  152.592215] ---[ end trace 80ea98416149c87e ]---
-[  152.592734] Kernel panic - not syncing: Attempted to kill the idle task!
-[  152.593173] Kernel Offset: disabled
-[  152.593501] CPU features: 0x0004,20c02008
-[  152.593678] Memory Limit: none
-[  152.594208] ---[ end Kernel panic - not syncing: Attempted to kill the idle
-task! ]---
-[root@arch ~]# bash: echo: write error: Input/output error
-[root@arch ~]#
-[root@arch ~]#
-[root@arch ~]# echo HELO
-HELO
+[*] At the moment, ".." and magic-link jumping are disallowed for the
+    same reason it is disabled for LOOKUP_BENEATH -- currently it is not
+    safe to allow it. Future patches may enable it unconditionally once
+    we have resolved the possible races (for "..") and semantics (for
+    magic-link jumping).
 
-Get rid of such bug, switching arm64 to use the common SMP stop code.
+The most significant *at(2) semantic change with LOOKUP_IN_ROOT is that
+absolute pathnames no longer cause the dirfd to be ignored completely.
 
-Reported-by: Dave Martin <Dave.Martin@arm.com>
-Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+The rationale is that LOOKUP_IN_ROOT must necessarily chroot-scope
+symlinks with absolute paths to dirfd, and so doing it for the base path
+seems to be the most consistent behaviour (and also avoids foot-gunning
+users who want to scope paths that are absolute).
+
+[1]: https://github.com/cyphar/filepath-securejoin
+
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
-v1 --> v2
-- now selecting arch/Kconfig ARCH_USE_COMMON_SMP_STOP
-- added attempt_num arch_smp_stop_call() helper
----
- arch/arm64/Kconfig      |  1 +
- arch/arm64/kernel/smp.c | 29 ++++++-----------------------
- 2 files changed, 7 insertions(+), 23 deletions(-)
+ fs/namei.c            | 5 +++++
+ include/linux/namei.h | 3 ++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 3adcec05b1f6..33f88381702b 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -67,6 +67,7 @@ config ARM64
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
-+	select ARCH_USE_COMMON_SMP_STOP
- 	select ARCH_SUPPORTS_MEMORY_FAILURE
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_INT128 if GCC_VERSION >= 50000 || CC_IS_CLANG
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 018a33e01b0e..3e87fdbb9f74 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -953,33 +953,16 @@ void tick_broadcast(const struct cpumask *mask)
- }
- #endif
+diff --git a/fs/namei.c b/fs/namei.c
+index b80efc0ae0f3..efed62c6136e 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2274,6 +2274,11 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
  
--void smp_send_stop(void)
-+void arch_smp_cpus_stop_complete(void)
- {
--	unsigned long timeout;
--
--	if (num_online_cpus() > 1) {
--		cpumask_t mask;
--
--		cpumask_copy(&mask, cpu_online_mask);
--		cpumask_clear_cpu(smp_processor_id(), &mask);
--
--		if (system_state <= SYSTEM_RUNNING)
--			pr_crit("SMP: stopping secondary CPUs\n");
--		smp_cross_call(&mask, IPI_CPU_STOP);
--	}
--
--	/* Wait up to one second for other CPUs to stop */
--	timeout = USEC_PER_SEC;
--	while (num_online_cpus() > 1 && timeout--)
--		udelay(1);
--
--	if (num_online_cpus() > 1)
--		pr_warning("SMP: failed to stop secondary CPUs %*pbl\n",
--			   cpumask_pr_args(cpu_online_mask));
--
- 	sdei_mask_local_cpu();
- }
+ 	nd->m_seq = read_seqbegin(&mount_lock);
  
-+void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
-+{
-+	smp_cross_call(cpus, IPI_CPU_STOP);
-+}
++	/* LOOKUP_IN_ROOT treats absolute paths as being relative-to-dirfd. */
++	if (flags & LOOKUP_IN_ROOT)
++		while (*s = '/')
++			s++;
 +
- #ifdef CONFIG_KEXEC_CORE
- void crash_smp_send_stop(void)
- {
+ 	/* Figure out the starting path and root (if needed). */
+ 	if (*s = '/') {
+ 		error = nd_jump_root(nd);
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 88b610ca4d83..1ace31052237 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -48,8 +48,9 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
+ #define LOOKUP_NO_MAGICLINKS	0x080000 /* No /proc/$pid/fd/ "symlink" crossing. */
+ #define LOOKUP_NO_SYMLINKS	0x100000 /* No symlink crossing *at all*.
+ 					    Implies LOOKUP_NO_MAGICLINKS. */
++#define LOOKUP_IN_ROOT		0x200000 /* Treat dirfd as %current->fs->root. */
+ /* LOOKUP_* flags which do scope-related checks based on the dirfd. */
+-#define LOOKUP_DIRFD_SCOPE_FLAGS LOOKUP_BENEATH
++#define LOOKUP_DIRFD_SCOPE_FLAGS (LOOKUP_BENEATH | LOOKUP_IN_ROOT)
+ 
+ extern int path_pts(struct path *path);
+ 
 -- 
-2.17.1
+2.23.0
