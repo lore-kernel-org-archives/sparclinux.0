@@ -1,32 +1,23 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 15 Oct 2019 20:34:14 +0000
-Subject: Re: [PATCH 19/34] sparc: Use CONFIG_PREEMPTION
-Message-Id: <20191015.133414.946929614650400310.davem@davemloft.net>
+From: "Just Repair" <admin@justrepair.net>
+Date: Thu, 03 Oct 2019 05:35:28 +0000
+Subject: We bring your gadget back to life
+Message-Id: <1C08126D.9ECA9CE0@justrepair.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191015191821.11479-1-bigeasy@linutronix.de>
-        <20191015191821.11479-20-bigeasy@linutronix.de>
-In-Reply-To: <20191015191821.11479-20-bigeasy@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: bigeasy@linutronix.de
-Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Date: Tue, 15 Oct 2019 21:18:06 +0200
+Hello, 
 
-> From: Thomas Gleixner <tglx@linutronix.de>
-> 
-> CONFIG_PREEMPTION is selected by CONFIG_PREEMPT and by CONFIG_PREEMPT_RT.
-> Both PREEMPT and PREEMPT_RT require the same functionality which today
-> depends on CONFIG_PREEMPT.
-> 
-> Switch the trap code over to use CONFIG_PREEMPTION.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> [bigeasy: +Kconfig]
-> Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Let us repair your phone or gadget right on the spot
+visit us today
+https://www.justrepair.net
 
-Acked-by: David S. Miller <davem@davemloft.net>
+or come into our location
+https://goo.gl/maps/k5iRbeJyggiXnZSG6
+Give us a nice review and we`ll make you a big discount
+
+
+Thank you,
+Ameer
