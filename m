@@ -1,51 +1,47 @@
-From: Steven Price <steven.price@arm.com>
-Date: Mon, 07 Oct 2019 15:38:09 +0000
-Subject: [PATCH v11 09/22] sparc: mm: Add p?d_leaf() definitions
-Message-Id: <20191007153822.16518-10-steven.price@arm.com>
+From: "DR.Mike Benz" <eco.bank1204@gmail.com>
+Date: Sat, 05 Oct 2019 17:51:10 +0000
+Subject: Happy to inform you, CONTACT WALMART TRANSFER To pick up $8000.00 sent to you this morning.
+Message-Id: <CAOE+jAC-6g0v-iie79CDRgWcsZeGvhPLU5QCbPzngXjjmkQK6g@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191007153822.16518-1-steven.price@arm.com>
-In-Reply-To: <20191007153822.16518-1-steven.price@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Mark Rutland <Mark.Rutland@arm.com>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Will Deacon <will@kernel.org>, "Liang,
- Kan" <kan.liang@linux.intel.com>, x86@kernel.org, Steven Price <steven.price@arm.com>, Ingo Molnar <mingo@redhat.com>, Arnd Bergmann <arnd@arndb.de>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-walk_page_range() is going to be allowed to walk page tables other than
-those of user space. For this it needs to know when it has reached a
-'leaf' entry in the page tables. This information is provided by the
-p?d_leaf() functions/macros.
+Attn Dear Beneficiary.
+Happy to inform you, CONTACT WALMART TRANSFER To pick up $8000.00 sent
+to you this morning.
 
-For sparc 64 bit, pmd_large() and pud_large() are already provided, so
-add macros to provide the p?d_leaf names required by the generic code.
+I have deposited your payment funds $2.500,000MillionUS Dollars
+With Walmart international money transfers.
+Receive the Money with Walmart | MoneyGram service.
+Walmart partners with MoneyGram to allow customers
+easily receive money transfers abroad,
+Contact Walmart international money transfers office -Benin
+Receive your approval payment funds $10.500,000MillionUS Dollars
+HERE IS WALMART CONTACT INFORMATIONS.
+Contact person. Mrs. Mary Anderson,Dir. Walmart transfers-Benin
+Email: walmart.b100263@gmail.com
+Telephone. +229 68823234
+Text Her on this international phone line. (256) 284-4886
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Steven Price <steven.price@arm.com>
----
- arch/sparc/include/asm/pgtable_64.h | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 6ae8016ef4ec..43206652eaf5 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -683,6 +683,7 @@ static inline unsigned long pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
- }
- 
-+#define pmd_leaf	pmd_large
- static inline unsigned long pmd_large(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -867,6 +868,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
- /* only used by the stubbed out hugetlb gup code, should never be called */
- #define pgd_page(pgd)			NULL
- 
-+#define pud_leaf	pud_large
- static inline unsigned long pud_large(pud_t pud)
- {
- 	pte_t pte = __pte(pud_val(pud));
--- 
-2.20.1
+Ask Mrs. Mary Anderson,Dir. Walmart transfers-Benin to send the transfer
+as i instructed.
+we agreed to keep sending the transfer to you $8000.00 daily.
+Until you received your total payment $10.500,000 from the office
+Once again,
+make sure you contact Mrs. Mary Anderson,Dir. Walmart transfers-Benin
+today including your infos.
+(1) Your  Full Name=3D=3D=3D=3D=3D=3D=3D
+(2) house address=3D=3D=3D=3D=3D=3D(3) Your Phone Numbers=3D=3D=3D=3D=3D=3D=
+Urgent to receive your transfer now without any further delay.
+Finally, Send your first payment transfer fees to Walmart office on
+below address
+Receiver's Name=3D=3D=3D ALAN UDE
+Country=3D=3D=BENIN
+City=3D=3D=3D=3DCOTONOU
+AMOUNT =3D=3D=3D$58.00 only. Your first payment $8000.00 transfer fee.
+Question=3D=3D=3DGod
+Answer=3D=3D=3D=3D=3DCreator
+Thanks
+DR.Mike Benz
