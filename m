@@ -1,149 +1,157 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Wed, 23 Oct 2019 09:29:01 +0000
-Subject: [PATCH 12/12] mm: remove __ARCH_HAS_4LEVEL_HACK and include/asm-generic/4level-fixup.h
-Message-Id: <1571822941-29776-13-git-send-email-rppt@kernel.org>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Mon, 07 Oct 2019 05:57:23 +0000
+Subject: [PATCH V4 1/2] mm/hugetlb: Make alloc_gigantic_page() available for general use
+Message-Id: <1570427124-21887-2-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+References: <1570427124-21887-1-git-send-email-anshuman.khandual@arm.com>
+In-Reply-To: <1570427124-21887-1-git-send-email-anshuman.khandual@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kees Cook <keescook@chromium.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+alloc_gigantic_page() implements an allocation method where it scans over
+various zones looking for a large contiguous memory block which could not
+have been allocated through the buddy allocator. A subsequent patch which
+tests arch page table helpers needs such a method to allocate PUD_SIZE
+sized memory block. In the future such methods might have other use cases
+as well. So alloc_gigantic_page() has been split carving out actual memory
+allocation method and made available via new alloc_gigantic_page_order().
 
-There are no architectures that use include/asm-generic/4level-fixup.h
-therefore it can be removed along with __ARCH_HAS_4LEVEL_HACK define.
-
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Steven Price <Steven.Price@arm.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Sri Krishna chowdary <schowdary@nvidia.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: James Hogan <jhogan@kernel.org>
+Cc: Paul Burton <paul.burton@mips.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: x86@kernel.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- include/asm-generic/4level-fixup.h | 40 --------------------------------------
- include/asm-generic/tlb.h          |  2 --
- include/linux/mm.h                 | 10 +++++-----
- mm/memory.c                        |  8 --------
- 4 files changed, 5 insertions(+), 55 deletions(-)
- delete mode 100644 include/asm-generic/4level-fixup.h
+ include/linux/hugetlb.h |  9 +++++++++
+ mm/hugetlb.c            | 24 ++++++++++++++++++++++--
+ 2 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/include/asm-generic/4level-fixup.h b/include/asm-generic/4level-fixup.h
-deleted file mode 100644
-index e3667c9..0000000
---- a/include/asm-generic/4level-fixup.h
-+++ /dev/null
-@@ -1,40 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _4LEVEL_FIXUP_H
--#define _4LEVEL_FIXUP_H
--
--#define __ARCH_HAS_4LEVEL_HACK
--#define __PAGETABLE_PUD_FOLDED 1
--
--#define PUD_SHIFT			PGDIR_SHIFT
--#define PUD_SIZE			PGDIR_SIZE
--#define PUD_MASK			PGDIR_MASK
--#define PTRS_PER_PUD			1
--
--#define pud_t				pgd_t
--
--#define pmd_alloc(mm, pud, address) \
--	((unlikely(pgd_none(*(pud))) && __pmd_alloc(mm, pud, address))? \
-- 		NULL: pmd_offset(pud, address))
--
--#define pud_offset(pgd, start)		(pgd)
--#define pud_none(pud)			0
--#define pud_bad(pud)			0
--#define pud_present(pud)		1
--#define pud_ERROR(pud)			do { } while (0)
--#define pud_clear(pud)			pgd_clear(pud)
--#define pud_val(pud)			pgd_val(pud)
--#define pud_populate(mm, pud, pmd)	pgd_populate(mm, pud, pmd)
--#define pud_page(pud)			pgd_page(pud)
--#define pud_page_vaddr(pud)		pgd_page_vaddr(pud)
--
--#undef pud_free_tlb
--#define pud_free_tlb(tlb, x, addr)	do { } while (0)
--#define pud_free(mm, x)			do { } while (0)
--#define __pud_free_tlb(tlb, x, addr)	do { } while (0)
--
--#undef  pud_addr_end
--#define pud_addr_end(addr, end)		(end)
--
--#include <asm-generic/5level-fixup.h>
--
--#endif
-diff --git a/include/asm-generic/tlb.h b/include/asm-generic/tlb.h
-index 04c0644..5e0c2d0 100644
---- a/include/asm-generic/tlb.h
-+++ b/include/asm-generic/tlb.h
-@@ -584,7 +584,6 @@ static inline void tlb_end_vma(struct mmu_gather *tlb, struct vm_area_struct *vm
- 	} while (0)
- #endif
+diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+index 53fc34f930d0..cc50d5ad4885 100644
+--- a/include/linux/hugetlb.h
++++ b/include/linux/hugetlb.h
+@@ -299,6 +299,9 @@ static inline bool is_file_hugepages(struct file *file)
+ }
  
--#ifndef __ARCH_HAS_4LEVEL_HACK
- #ifndef pud_free_tlb
- #define pud_free_tlb(tlb, pudp, address)			\
- 	do {							\
-@@ -594,7 +593,6 @@ static inline void tlb_end_vma(struct mmu_gather *tlb, struct vm_area_struct *vm
- 		__pud_free_tlb(tlb, pudp, address);		\
- 	} while (0)
- #endif
--#endif
  
- #ifndef __ARCH_HAS_5LEVEL_HACK
- #ifndef p4d_free_tlb
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index cc29227..477b52a 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1850,12 +1850,12 @@ static inline void mm_dec_nr_ptes(struct mm_struct *mm) {}
- int __pte_alloc(struct mm_struct *mm, pmd_t *pmd);
- int __pte_alloc_kernel(pmd_t *pmd);
++struct page *
++alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
++			  int nid, nodemask_t *nodemask);
+ #else /* !CONFIG_HUGETLBFS */
  
-+#if defined(CONFIG_MMU)
+ #define is_file_hugepages(file)			false
+@@ -310,6 +313,12 @@ hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
+ 	return ERR_PTR(-ENOSYS);
+ }
+ 
++static inline struct page *
++alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
++			  int nid, nodemask_t *nodemask)
++{
++	return NULL;
++}
+ #endif /* !CONFIG_HUGETLBFS */
+ 
+ #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index ef37c85423a5..3fb81252f52b 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -1112,10 +1112,9 @@ static bool zone_spans_last_pfn(const struct zone *zone,
+ 	return zone_spans_pfn(zone, last_pfn);
+ }
+ 
+-static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
++struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
+ 		int nid, nodemask_t *nodemask)
+ {
+-	unsigned int order = huge_page_order(h);
+ 	unsigned long nr_pages = 1 << order;
+ 	unsigned long ret, pfn, flags;
+ 	struct zonelist *zonelist;
+@@ -1151,6 +1150,14 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+ 	return NULL;
+ }
+ 
++static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
++					int nid, nodemask_t *nodemask)
++{
++	unsigned int order = huge_page_order(h);
 +
- /*
-- * The following ifdef needed to get the 4level-fixup.h header to work.
-- * Remove it when 4level-fixup.h has been removed.
-+ * The following ifdef needed to get the 5level-fixup.h header to work.
-+ * Remove it when 5level-fixup.h has been removed.
-  */
--#if defined(CONFIG_MMU) && !defined(__ARCH_HAS_4LEVEL_HACK)
--
- #ifndef __ARCH_HAS_5LEVEL_HACK
- static inline p4d_t *p4d_alloc(struct mm_struct *mm, pgd_t *pgd,
- 		unsigned long address)
-@@ -1877,7 +1877,7 @@ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long a
- 	return (unlikely(pud_none(*pud)) && __pmd_alloc(mm, pud, address))?
- 		NULL: pmd_offset(pud, address);
++	return alloc_gigantic_page_order(order, gfp_mask, nid, nodemask);
++}
++
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
+ static void prep_compound_gigantic_page(struct page *page, unsigned int order);
+ #else /* !CONFIG_CONTIG_ALLOC */
+@@ -1159,6 +1166,12 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+ {
+ 	return NULL;
  }
--#endif /* CONFIG_MMU && !__ARCH_HAS_4LEVEL_HACK */
-+#endif /* CONFIG_MMU */
++
++struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
++				       int nid, nodemask_t *nodemask)
++{
++	return NULL;
++}
+ #endif /* CONFIG_CONTIG_ALLOC */
  
- #if USE_SPLIT_PTE_PTLOCKS
- #if ALLOC_SPLIT_PTLOCKS
-diff --git a/mm/memory.c b/mm/memory.c
-index b1ca51a..50300f0 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -4095,19 +4095,11 @@ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
- 	smp_wmb(); /* See comment in __pte_alloc */
- 
- 	ptl = pud_lock(mm, pud);
--#ifndef __ARCH_HAS_4LEVEL_HACK
- 	if (!pud_present(*pud)) {
- 		mm_inc_nr_pmds(mm);
- 		pud_populate(mm, pud, new);
- 	} else	/* Another has populated it */
- 		pmd_free(mm, new);
--#else
--	if (!pgd_present(*pud)) {
--		mm_inc_nr_pmds(mm);
--		pgd_populate(mm, pud, new);
--	} else /* Another has populated it */
--		pmd_free(mm, new);
--#endif /* __ARCH_HAS_4LEVEL_HACK */
- 	spin_unlock(ptl);
- 	return 0;
+ #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
+@@ -1167,6 +1180,13 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+ {
+ 	return NULL;
  }
++
++struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
++				       int nid, nodemask_t *nodemask)
++{
++	return NULL;
++}
++
+ static inline void free_gigantic_page(struct page *page, unsigned int order) { }
+ static inline void destroy_compound_gigantic_page(struct page *page,
+ 						unsigned int order) { }
 -- 
-2.7.4
+2.20.1
