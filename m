@@ -1,48 +1,36 @@
-From: "Mr Ekrem Bayraktar" <dave@dbsoundfactory.com>
-Date: Fri, 18 Oct 2019 08:01:01 +0000
-Subject: MOTHERLESS CHILDREN IN YOUR CITY !!
-Message-Id: <o$-180-$fef63m2-ks-b8qx1@8qua.ap>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary=".4559F..._9_.CC__A02C"
+From: "Lion Leather" <hassan@lionleather100.site>
+Date: Mon, 07 Oct 2019 22:47:14 +0000
+Subject: Juggling Ball
+Message-Id: <6800392940032227499358@DESKTOP-NVQ8BB8>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Hi,
 
---.4559F..._9_.CC__A02C
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+We are making juggling balls.
+ 
+Find below link of our Google drive where you can see catalog of our juggling balls.
 
-Dear Sir / Madam
+https://drive.google.com/open?id=0B5meiXXKee54Y1RYaU9OczRlUjQ
 
+Price depend on order quantity.
 
+For quick communication you also can whatsaap 00923006122353
 
-Since ever we left your country back to Canada , we have gotten Government=
- approval and we have been busying planning for the less privilege Childre=
-n projects.
+PS. If you are already our customer then please ignore this email.
 
-We are planning to release first batch of the funds $2,990,000.00 within 1=
-4 days for building an estate for motherless children in your city.
-
-I want you to use my mother;s company name to register this charity projec=
-t in your country after receiving the project funds.
-
-It must be registered as { Bayraktar Group Homeless Children Ltd }.
+Regards
+ 
+Hassan Afzal
+Proprietor 
 
 
-Can you handle and supervise this big project ?
-Can you manager all the workers as a senior supervisor ?
-We want to be sure you can handle it before we proceed with this project.
-
-
-Please call me if you want to hear from us + 1-917 580 4919.
-Please can you manage such project please Kindly reply for further details=
-.
-
-Your full names-----------
-
-
-
-Ekrem Bayraktar.
-Bayraktar Shipping Group
-
---.4559F..._9_.CC__A02C--
+---
+Lion Leather
+Sialkot Pakistan
+Mob: 0092-3006122353 
+Whats Ap: 00923006122353  
+Viber: 00923006122353   
