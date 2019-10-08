@@ -1,18 +1,55 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 28 Oct 2019 15:29:56 +0000
-Subject: Re: [PATCH 08/21] x86: clean up ioremap
-Message-Id: <20191028152956.GA28048@lst.de>
+From: Yunsheng Lin <linyunsheng@huawei.com>
+Date: Tue, 08 Oct 2019 08:38:28 +0000
+Subject: Re: [PATCH v6] numa: make node_to_cpumask_map() NUMA_NO_NODE aware
+Message-Id: <47fa4cee-8528-7c23-c7de-7be1b65aa2ae@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191017174554.29840-1-hch@lst.de> <20191017174554.29840-9-hch@lst.de> <alpine.DEB.2.21.1910211019540.1904@nanos.tec.linutronix.de>
-In-Reply-To: <alpine.DEB.2.21.1910211019540.1904@nanos.tec.linutronix.de>
+References: <20190924091714.GJ2369@hirez.programming.kicks-ass.net>
+ <20190924105622.GH23050@dhcp22.suse.cz>
+ <20190924112349.GJ2332@hirez.programming.kicks-ass.net>
+ <20190924115401.GM23050@dhcp22.suse.cz>
+ <20190924120943.GP2349@hirez.programming.kicks-ass.net>
+ <20190924122500.GP23050@dhcp22.suse.cz>
+ <20190924124325.GQ2349@hirez.programming.kicks-ass.net>
+ <20190924125936.GR2349@hirez.programming.kicks-ass.net>
+ <20190924131939.GS23050@dhcp22.suse.cz>
+ <1adcbe68-6753-3497-48a0-cc84ac503372@huawei.com>
+ <20190925104108.GE4553@hirez.programming.kicks-ass.net>
+In-Reply-To: <20190925104108.GE4553@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.k
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>, catalin.marinas@arm.com, will@kernel.org, mingo@redhat.com, bp@alien8.de, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mpe@ellerman.id.au, heiko.carstens@de.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, ralf@linux-mips.org, paul.burton@mips.com, jhogan@kernel.org, jiaxun.yang@flygoat.com, chenhc@lemote.com, akpm@linux-foundation.org, rppt@linux.ibm.com, anshuman.khandual@arm.com, tglx@linutronix.de, cai@lca.pw, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, hpa@zytor.com, x86@kernel.org, dave.hansen@linux.intel.com, luto@kernel.org, len.brown@intel.com, axboe@kernel.dk, dledford@redhat.com, jeffrey.t.kirsher@intel.com, linux-alpha@vger.kernel.org, naveen.n.rao@linux.vnet.ibm.com, mwb@linux.vnet.ibm.com, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, tbogendoerfer@suse.de, linux-mips@vger.kernel.org, rafael@kernel.org, gregkh@linuxfoundation.org
 
-On Mon, Oct 21, 2019 at 10:23:03AM +0200, Thomas Gleixner wrote:
-> Should this go with your larger series or can this be picked up
-> independently?
+On 2019/9/25 18:41, Peter Zijlstra wrote:
+> On Wed, Sep 25, 2019 at 05:14:20PM +0800, Yunsheng Lin wrote:
+>> From the discussion above, It seems making the node_to_cpumask_map()
+>> NUMA_NO_NODE aware is the most feasible way to move forwad.
+> 
+> That's still wrong.
 
-This should all go together.
+Hi, Peter
+
+It seems this has trapped in the dead circle.
+
+From my understanding, NUMA_NO_NODE which means not node numa preference
+is the state to describe the node of virtual device or the physical device
+that has equal distance to all cpu.
+
+We can be stricter if the device does have a nearer node, but we can not
+deny that a device does not have a node numa preference or node affinity,
+which also means the control or data buffer can be allocated at the node where
+the process is running.
+
+As you has proposed, making it -2 and have dev_to_node() warn if the device does
+have a nearer node and not set by the fw is a way to be stricter.
+
+But I think maybe being stricter is not really relevant to NUMA_NO_NODE, because
+we does need a state to describe the device that have equal distance to all node,
+even if it is not physically scalable.
+
+Any better suggestion to move this forward?
+
+> 
+> .
+> 
