@@ -1,157 +1,666 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sat, 26 Oct 2019 18:56:57 +0000
-Subject: [PATCH RESEND v14 3/6] namei: permit ".." resolution with LOOKUP_{IN_ROOT,BENEATH}
-Message-Id: <20191026185700.10708-4-cyphar@cyphar.com>
+From: Eric Biggers <ebiggers@kernel.org>
+Date: Sat, 12 Oct 2019 04:38:50 +0000
+Subject: [RFT PATCH 3/3] crypto: sparc/des - convert to skcipher API
+Message-Id: <20191012043850.340957-4-ebiggers@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191026185700.10708-1-cyphar@cyphar.com>
-In-Reply-To: <20191026185700.10708-1-cyphar@cyphar.com>
+References: <20191012043850.340957-1-ebiggers@kernel.org>
+In-Reply-To: <20191012043850.340957-1-ebiggers@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.orglinu
+To: Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
 
-This patch allows for LOOKUP_BENEATH and LOOKUP_IN_ROOT to safely permit
-".." resolution (in the case of LOOKUP_BENEATH the resolution will still
-fail if ".." resolution would resolve a path outside of the root --
-while LOOKUP_IN_ROOT will chroot(2)-style scope it). Magic-link jumps
-are still disallowed entirely[*].
+From: Eric Biggers <ebiggers@google.com>
 
-The need for this patch (and the original no-".." restriction) is
-explained by observing there is a fairly easy-to-exploit race condition
-with chroot(2) (and thus by extension LOOKUP_IN_ROOT and LOOKUP_BENEATH
-if ".." is allowed) where a rename(2) of a path can be used to "skip
-over" nd->root and thus escape to the filesystem above nd->root.
+Convert the glue code for the SPARC64 DES opcodes implementations of
+DES-ECB, DES-CBC, 3DES-ECB, and 3DES-CBC from the deprecated "blkcipher"
+API to the "skcipher" API.  This is needed in order for the blkcipher
+API to be removed.
 
-  thread1 [attacker]:
-    for (;;)
-      renameat2(AT_FDCWD, "/a/b/c", AT_FDCWD, "/a/d", RENAME_EXCHANGE);
-  thread2 [victim]:
-    for (;;)
-      openat2(dirb, "b/c/../../etc/shadow",
-              { .flags = O_PATH, .resolve = RESOLVE_IN_ROOT } );
-
-With fairly significant regularity, thread2 will resolve to
-"/etc/shadow" rather than "/a/b/etc/shadow". There is also a similar
-(though somewhat more privileged) attack using MS_MOVE.
-
-With this patch, such cases will be detected *during* ".." resolution
-and will return -EAGAIN for userspace to decide to either retry or abort
-the lookup. It should be noted that ".." is the weak point of chroot(2)
--- walking *into* a subdirectory tautologically cannot result in you
-walking *outside* nd->root (except through a bind-mount or magic-link).
-There is also no other way for a directory's parent to change (which is
-the primary worry with ".." resolution here) other than a rename or
-MS_MOVE.
-
-This is a first-pass implementation, where -EAGAIN will be returned if
-any rename or mount occurs anywhere on the host (in any namespace). This
-will result in spurious errors, but there isn't a satisfactory
-alternative (other than denying ".." altogether).
-
-One other possible alternative (which previous versions of this patch
-used) would be to check with path_is_under() if there was a racing
-rename or mount (after re-taking the relevant seqlocks). While this does
-work, it results in possible O(n*m) behaviour if there are many renames
-or mounts occuring *anywhere on the system*.
-
-A variant of the above attack is included in the selftests for
-openat2(2) later in this patch series. I've run this test on several
-machines for several days and no instances of a breakout were detected.
-While this is not concrete proof that this is safe, when combined with
-the above argument it should lend some trustworthiness to this
-construction.
-
-[*] It may be acceptable in the future to do a path_is_under() check (as
-    with the alternative solution for "..") for magic-links after they
-    are resolved. However this seems unlikely to be a feature that
-    people *really* need -- it can be added later if it turns out a lot
-    of people want it.
-
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Eric Biggers <ebiggers@google.com>
 ---
- fs/namei.c | 43 +++++++++++++++++++++++++++++--------------
- 1 file changed, 29 insertions(+), 14 deletions(-)
+ arch/sparc/crypto/des_glue.c | 499 ++++++++++++++++-------------------
+ crypto/Kconfig               |   1 +
+ 2 files changed, 228 insertions(+), 272 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 9d00b138f54c..0d6857ac4e5b 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -491,7 +491,7 @@ struct nameidata {
- 	struct path	root;
- 	struct inode	*inode; /* path.dentry.d_inode */
- 	unsigned int	flags;
--	unsigned	seq, m_seq;
-+	unsigned	seq, m_seq, r_seq;
- 	int		last_type;
- 	unsigned	depth;
- 	int		total_link_count;
-@@ -1769,22 +1769,35 @@ static inline int handle_dots(struct nameidata *nd, int type)
- 	if (type = LAST_DOTDOT) {
- 		int error = 0;
+diff --git a/arch/sparc/crypto/des_glue.c b/arch/sparc/crypto/des_glue.c
+index db6010b4e52e..a499102bf706 100644
+--- a/arch/sparc/crypto/des_glue.c
++++ b/arch/sparc/crypto/des_glue.c
+@@ -13,6 +13,7 @@
+ #include <linux/types.h>
+ #include <crypto/algapi.h>
+ #include <crypto/internal/des.h>
++#include <crypto/internal/skcipher.h>
  
--		/*
--		 * Scoped-lookup flags resolving ".." is not currently safe --
--		 * races can cause our parent to have moved outside of the root
--		 * and us to skip over it.
--		 */
--		if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
--			return -EXDEV;
- 		if (!nd->root.mnt) {
- 			error = set_root(nd);
- 			if (error)
- 				return error;
- 		}
--		if (nd->flags & LOOKUP_RCU) {
--			return follow_dotdot_rcu(nd);
--		} else
--			return follow_dotdot(nd);
-+		if (nd->flags & LOOKUP_RCU)
-+			error = follow_dotdot_rcu(nd);
-+		else
-+			error = follow_dotdot(nd);
-+		if (error)
-+			return error;
-+
-+		if (unlikely(nd->flags & LOOKUP_IS_SCOPED)) {
-+			bool m_retry = read_seqretry(&mount_lock, nd->m_seq);
-+			bool r_retry = read_seqretry(&rename_lock, nd->r_seq);
-+
-+			/*
-+			 * If there was a racing rename or mount along our
-+			 * path, then we can't be sure that ".." hasn't jumped
-+			 * above nd->root (and so userspace should retry or use
-+			 * some fallback).
-+			 *
-+			 * In future we could do a path_is_under() check here
-+			 * instead, but there are O(n*m) performance
-+			 * considerations with such a setup.
-+			 */
-+			if (unlikely(m_retry || r_retry))
-+				return -EAGAIN;
-+		}
- 	}
+ #include <asm/fpumacro.h>
+ #include <asm/pstate.h>
+@@ -61,6 +62,12 @@ static int des_set_key(struct crypto_tfm *tfm, const u8 *key,
  	return 0;
  }
-@@ -2254,6 +2267,10 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
- 	nd->flags = flags | LOOKUP_JUMPED | LOOKUP_PARENT;
- 	nd->depth = 0;
-+
-+	nd->m_seq = read_seqbegin(&mount_lock);
-+	nd->r_seq = read_seqbegin(&rename_lock);
-+
- 	if (flags & LOOKUP_ROOT) {
- 		struct dentry *root = nd->root.dentry;
- 		struct inode *inode = root->d_inode;
-@@ -2275,8 +2292,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	nd->path.mnt = NULL;
- 	nd->path.dentry = NULL;
  
--	nd->m_seq = read_seqbegin(&mount_lock);
++static int des_set_key_skcipher(struct crypto_skcipher *tfm, const u8 *key,
++				unsigned int keylen)
++{
++	return des_set_key(crypto_skcipher_tfm(tfm), key, keylen);
++}
++
+ extern void des_sparc64_crypt(const u64 *key, const u64 *input,
+ 			      u64 *output);
+ 
+@@ -85,113 +92,90 @@ extern void des_sparc64_load_keys(const u64 *key);
+ extern void des_sparc64_ecb_crypt(const u64 *input, u64 *output,
+ 				  unsigned int len);
+ 
+-#define DES_BLOCK_MASK	(~(DES_BLOCK_SIZE - 1))
 -
- 	/* LOOKUP_IN_ROOT treats absolute paths as being relative-to-dirfd. */
- 	if (flags & LOOKUP_IN_ROOT)
- 		while (*s = '/')
+-static int __ecb_crypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes, bool encrypt)
++static int __ecb_crypt(struct skcipher_request *req, bool encrypt)
+ {
+-	struct des_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
++	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
++	const struct des_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
++	struct skcipher_walk walk;
++	unsigned int nbytes;
+ 	int err;
+ 
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
++	err = skcipher_walk_virt(&walk, req, true);
++	if (err)
++		return err;
+ 
+ 	if (encrypt)
+ 		des_sparc64_load_keys(&ctx->encrypt_expkey[0]);
+ 	else
+ 		des_sparc64_load_keys(&ctx->decrypt_expkey[0]);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
+-
+-		if (likely(block_len)) {
+-			des_sparc64_ecb_crypt((const u64 *)walk.src.virt.addr,
+-					      (u64 *) walk.dst.virt.addr,
+-					      block_len);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
++	while ((nbytes = walk.nbytes) != 0) {
++		des_sparc64_ecb_crypt(walk.src.virt.addr, walk.dst.virt.addr,
++				      round_down(nbytes, DES_BLOCK_SIZE));
++		err = skcipher_walk_done(&walk, nbytes % DES_BLOCK_SIZE);
+ 	}
+ 	fprs_write(0);
+ 	return err;
+ }
+ 
+-static int ecb_encrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++static int ecb_encrypt(struct skcipher_request *req)
+ {
+-	return __ecb_crypt(desc, dst, src, nbytes, true);
++	return __ecb_crypt(req, true);
+ }
+ 
+-static int ecb_decrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++static int ecb_decrypt(struct skcipher_request *req)
+ {
+-	return __ecb_crypt(desc, dst, src, nbytes, false);
++	return __ecb_crypt(req, false);
+ }
+ 
+ extern void des_sparc64_cbc_encrypt(const u64 *input, u64 *output,
+ 				    unsigned int len, u64 *iv);
+ 
+-static int cbc_encrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++extern void des_sparc64_cbc_decrypt(const u64 *input, u64 *output,
++				    unsigned int len, u64 *iv);
++
++static int __cbc_crypt(struct skcipher_request *req, bool encrypt)
+ {
+-	struct des_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
++	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
++	const struct des_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
++	struct skcipher_walk walk;
++	unsigned int nbytes;
+ 	int err;
+ 
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
+-
+-	des_sparc64_load_keys(&ctx->encrypt_expkey[0]);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
++	err = skcipher_walk_virt(&walk, req, true);
++	if (err)
++		return err;
+ 
+-		if (likely(block_len)) {
+-			des_sparc64_cbc_encrypt((const u64 *)walk.src.virt.addr,
+-						(u64 *) walk.dst.virt.addr,
+-						block_len, (u64 *) walk.iv);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
++	if (encrypt)
++		des_sparc64_load_keys(&ctx->encrypt_expkey[0]);
++	else
++		des_sparc64_load_keys(&ctx->decrypt_expkey[0]);
++	while ((nbytes = walk.nbytes) != 0) {
++		if (encrypt)
++			des_sparc64_cbc_encrypt(walk.src.virt.addr,
++						walk.dst.virt.addr,
++						round_down(nbytes,
++							   DES_BLOCK_SIZE),
++						walk.iv);
++		else
++			des_sparc64_cbc_decrypt(walk.src.virt.addr,
++						walk.dst.virt.addr,
++						round_down(nbytes,
++							   DES_BLOCK_SIZE),
++						walk.iv);
++		err = skcipher_walk_done(&walk, nbytes % DES_BLOCK_SIZE);
+ 	}
+ 	fprs_write(0);
+ 	return err;
+ }
+ 
+-extern void des_sparc64_cbc_decrypt(const u64 *input, u64 *output,
+-				    unsigned int len, u64 *iv);
+-
+-static int cbc_decrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++static int cbc_encrypt(struct skcipher_request *req)
+ {
+-	struct des_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
+-	int err;
+-
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
+-
+-	des_sparc64_load_keys(&ctx->decrypt_expkey[0]);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
++	return __cbc_crypt(req, true);
++}
+ 
+-		if (likely(block_len)) {
+-			des_sparc64_cbc_decrypt((const u64 *)walk.src.virt.addr,
+-						(u64 *) walk.dst.virt.addr,
+-						block_len, (u64 *) walk.iv);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
+-	}
+-	fprs_write(0);
+-	return err;
++static int cbc_decrypt(struct skcipher_request *req)
++{
++	return __cbc_crypt(req, false);
+ }
+ 
+ static int des3_ede_set_key(struct crypto_tfm *tfm, const u8 *key,
+@@ -227,6 +211,12 @@ static int des3_ede_set_key(struct crypto_tfm *tfm, const u8 *key,
+ 	return 0;
+ }
+ 
++static int des3_ede_set_key_skcipher(struct crypto_skcipher *tfm, const u8 *key,
++				     unsigned int keylen)
++{
++	return des3_ede_set_key(crypto_skcipher_tfm(tfm), key, keylen);
++}
++
+ extern void des3_ede_sparc64_crypt(const u64 *key, const u64 *input,
+ 				   u64 *output);
+ 
+@@ -251,241 +241,196 @@ extern void des3_ede_sparc64_load_keys(const u64 *key);
+ extern void des3_ede_sparc64_ecb_crypt(const u64 *expkey, const u64 *input,
+ 				       u64 *output, unsigned int len);
+ 
+-static int __ecb3_crypt(struct blkcipher_desc *desc,
+-			struct scatterlist *dst, struct scatterlist *src,
+-			unsigned int nbytes, bool encrypt)
++static int __ecb3_crypt(struct skcipher_request *req, bool encrypt)
+ {
+-	struct des3_ede_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
++	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
++	const struct des3_ede_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
++	struct skcipher_walk walk;
+ 	const u64 *K;
++	unsigned int nbytes;
+ 	int err;
+ 
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
++	err = skcipher_walk_virt(&walk, req, true);
++	if (err)
++		return err;
+ 
+ 	if (encrypt)
+ 		K = &ctx->encrypt_expkey[0];
+ 	else
+ 		K = &ctx->decrypt_expkey[0];
+ 	des3_ede_sparc64_load_keys(K);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
+-
+-		if (likely(block_len)) {
+-			const u64 *src64 = (const u64 *)walk.src.virt.addr;
+-			des3_ede_sparc64_ecb_crypt(K, src64,
+-						   (u64 *) walk.dst.virt.addr,
+-						   block_len);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
++	while ((nbytes = walk.nbytes) != 0) {
++		des3_ede_sparc64_ecb_crypt(K, walk.src.virt.addr,
++					   walk.dst.virt.addr,
++					   round_down(nbytes, DES_BLOCK_SIZE));
++		err = skcipher_walk_done(&walk, nbytes % DES_BLOCK_SIZE);
+ 	}
+ 	fprs_write(0);
+ 	return err;
+ }
+ 
+-static int ecb3_encrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++static int ecb3_encrypt(struct skcipher_request *req)
+ {
+-	return __ecb3_crypt(desc, dst, src, nbytes, true);
++	return __ecb3_crypt(req, true);
+ }
+ 
+-static int ecb3_decrypt(struct blkcipher_desc *desc,
+-		       struct scatterlist *dst, struct scatterlist *src,
+-		       unsigned int nbytes)
++static int ecb3_decrypt(struct skcipher_request *req)
+ {
+-	return __ecb3_crypt(desc, dst, src, nbytes, false);
++	return __ecb3_crypt(req, false);
+ }
+ 
+ extern void des3_ede_sparc64_cbc_encrypt(const u64 *expkey, const u64 *input,
+ 					 u64 *output, unsigned int len,
+ 					 u64 *iv);
+ 
+-static int cbc3_encrypt(struct blkcipher_desc *desc,
+-			struct scatterlist *dst, struct scatterlist *src,
+-			unsigned int nbytes)
+-{
+-	struct des3_ede_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
+-	const u64 *K;
+-	int err;
+-
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
+-
+-	K = &ctx->encrypt_expkey[0];
+-	des3_ede_sparc64_load_keys(K);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
+-
+-		if (likely(block_len)) {
+-			const u64 *src64 = (const u64 *)walk.src.virt.addr;
+-			des3_ede_sparc64_cbc_encrypt(K, src64,
+-						     (u64 *) walk.dst.virt.addr,
+-						     block_len,
+-						     (u64 *) walk.iv);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
+-	}
+-	fprs_write(0);
+-	return err;
+-}
+-
+ extern void des3_ede_sparc64_cbc_decrypt(const u64 *expkey, const u64 *input,
+ 					 u64 *output, unsigned int len,
+ 					 u64 *iv);
+ 
+-static int cbc3_decrypt(struct blkcipher_desc *desc,
+-			struct scatterlist *dst, struct scatterlist *src,
+-			unsigned int nbytes)
++static int __cbc3_crypt(struct skcipher_request *req, bool encrypt)
+ {
+-	struct des3_ede_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
+-	struct blkcipher_walk walk;
++	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
++	const struct des3_ede_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
++	struct skcipher_walk walk;
+ 	const u64 *K;
++	unsigned int nbytes;
+ 	int err;
+ 
+-	blkcipher_walk_init(&walk, dst, src, nbytes);
+-	err = blkcipher_walk_virt(desc, &walk);
+-	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
++	err = skcipher_walk_virt(&walk, req, true);
++	if (err)
++		return err;
+ 
+-	K = &ctx->decrypt_expkey[0];
++	if (encrypt)
++		K = &ctx->encrypt_expkey[0];
++	else
++		K = &ctx->decrypt_expkey[0];
+ 	des3_ede_sparc64_load_keys(K);
+-	while ((nbytes = walk.nbytes)) {
+-		unsigned int block_len = nbytes & DES_BLOCK_MASK;
+-
+-		if (likely(block_len)) {
+-			const u64 *src64 = (const u64 *)walk.src.virt.addr;
+-			des3_ede_sparc64_cbc_decrypt(K, src64,
+-						     (u64 *) walk.dst.virt.addr,
+-						     block_len,
+-						     (u64 *) walk.iv);
+-		}
+-		nbytes &= DES_BLOCK_SIZE - 1;
+-		err = blkcipher_walk_done(desc, &walk, nbytes);
++	while ((nbytes = walk.nbytes) != 0) {
++		if (encrypt)
++			des3_ede_sparc64_cbc_encrypt(K, walk.src.virt.addr,
++						     walk.dst.virt.addr,
++						     round_down(nbytes,
++								DES_BLOCK_SIZE),
++						     walk.iv);
++		else
++			des3_ede_sparc64_cbc_decrypt(K, walk.src.virt.addr,
++						     walk.dst.virt.addr,
++						     round_down(nbytes,
++								DES_BLOCK_SIZE),
++						     walk.iv);
++		err = skcipher_walk_done(&walk, nbytes % DES_BLOCK_SIZE);
+ 	}
+ 	fprs_write(0);
+ 	return err;
+ }
+ 
+-static struct crypto_alg algs[] = { {
+-	.cra_name		= "des",
+-	.cra_driver_name	= "des-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_CIPHER,
+-	.cra_blocksize		= DES_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u	= {
+-		.cipher	= {
+-			.cia_min_keysize	= DES_KEY_SIZE,
+-			.cia_max_keysize	= DES_KEY_SIZE,
+-			.cia_setkey		= des_set_key,
+-			.cia_encrypt		= sparc_des_encrypt,
+-			.cia_decrypt		= sparc_des_decrypt
++static int cbc3_encrypt(struct skcipher_request *req)
++{
++	return __cbc3_crypt(req, true);
++}
++
++static int cbc3_decrypt(struct skcipher_request *req)
++{
++	return __cbc3_crypt(req, false);
++}
++
++static struct crypto_alg cipher_algs[] = {
++	{
++		.cra_name		= "des",
++		.cra_driver_name	= "des-sparc64",
++		.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
++		.cra_flags		= CRYPTO_ALG_TYPE_CIPHER,
++		.cra_blocksize		= DES_BLOCK_SIZE,
++		.cra_ctxsize		= sizeof(struct des_sparc64_ctx),
++		.cra_alignmask		= 7,
++		.cra_module		= THIS_MODULE,
++		.cra_u	= {
++			.cipher	= {
++				.cia_min_keysize	= DES_KEY_SIZE,
++				.cia_max_keysize	= DES_KEY_SIZE,
++				.cia_setkey		= des_set_key,
++				.cia_encrypt		= sparc_des_encrypt,
++				.cia_decrypt		= sparc_des_decrypt
++			}
+ 		}
+-	}
+-}, {
+-	.cra_name		= "ecb(des)",
+-	.cra_driver_name	= "ecb-des-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
+-	.cra_blocksize		= DES_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_type		= &crypto_blkcipher_type,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u = {
+-		.blkcipher = {
+-			.min_keysize	= DES_KEY_SIZE,
+-			.max_keysize	= DES_KEY_SIZE,
+-			.setkey		= des_set_key,
+-			.encrypt	= ecb_encrypt,
+-			.decrypt	= ecb_decrypt,
+-		},
+-	},
+-}, {
+-	.cra_name		= "cbc(des)",
+-	.cra_driver_name	= "cbc-des-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
+-	.cra_blocksize		= DES_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_type		= &crypto_blkcipher_type,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u = {
+-		.blkcipher = {
+-			.min_keysize	= DES_KEY_SIZE,
+-			.max_keysize	= DES_KEY_SIZE,
+-			.ivsize		= DES_BLOCK_SIZE,
+-			.setkey		= des_set_key,
+-			.encrypt	= cbc_encrypt,
+-			.decrypt	= cbc_decrypt,
+-		},
+-	},
+-}, {
+-	.cra_name		= "des3_ede",
+-	.cra_driver_name	= "des3_ede-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_CIPHER,
+-	.cra_blocksize		= DES3_EDE_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des3_ede_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u	= {
+-		.cipher	= {
+-			.cia_min_keysize	= DES3_EDE_KEY_SIZE,
+-			.cia_max_keysize	= DES3_EDE_KEY_SIZE,
+-			.cia_setkey		= des3_ede_set_key,
+-			.cia_encrypt		= sparc_des3_ede_encrypt,
+-			.cia_decrypt		= sparc_des3_ede_decrypt
++	}, {
++		.cra_name		= "des3_ede",
++		.cra_driver_name	= "des3_ede-sparc64",
++		.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
++		.cra_flags		= CRYPTO_ALG_TYPE_CIPHER,
++		.cra_blocksize		= DES3_EDE_BLOCK_SIZE,
++		.cra_ctxsize		= sizeof(struct des3_ede_sparc64_ctx),
++		.cra_alignmask		= 7,
++		.cra_module		= THIS_MODULE,
++		.cra_u	= {
++			.cipher	= {
++				.cia_min_keysize	= DES3_EDE_KEY_SIZE,
++				.cia_max_keysize	= DES3_EDE_KEY_SIZE,
++				.cia_setkey		= des3_ede_set_key,
++				.cia_encrypt		= sparc_des3_ede_encrypt,
++				.cia_decrypt		= sparc_des3_ede_decrypt
++			}
+ 		}
+ 	}
+-}, {
+-	.cra_name		= "ecb(des3_ede)",
+-	.cra_driver_name	= "ecb-des3_ede-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
+-	.cra_blocksize		= DES3_EDE_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des3_ede_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_type		= &crypto_blkcipher_type,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u = {
+-		.blkcipher = {
+-			.min_keysize	= DES3_EDE_KEY_SIZE,
+-			.max_keysize	= DES3_EDE_KEY_SIZE,
+-			.setkey		= des3_ede_set_key,
+-			.encrypt	= ecb3_encrypt,
+-			.decrypt	= ecb3_decrypt,
+-		},
+-	},
+-}, {
+-	.cra_name		= "cbc(des3_ede)",
+-	.cra_driver_name	= "cbc-des3_ede-sparc64",
+-	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
+-	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
+-	.cra_blocksize		= DES3_EDE_BLOCK_SIZE,
+-	.cra_ctxsize		= sizeof(struct des3_ede_sparc64_ctx),
+-	.cra_alignmask		= 7,
+-	.cra_type		= &crypto_blkcipher_type,
+-	.cra_module		= THIS_MODULE,
+-	.cra_u = {
+-		.blkcipher = {
+-			.min_keysize	= DES3_EDE_KEY_SIZE,
+-			.max_keysize	= DES3_EDE_KEY_SIZE,
+-			.ivsize		= DES3_EDE_BLOCK_SIZE,
+-			.setkey		= des3_ede_set_key,
+-			.encrypt	= cbc3_encrypt,
+-			.decrypt	= cbc3_decrypt,
+-		},
+-	},
+-} };
++};
++
++static struct skcipher_alg skcipher_algs[] = {
++	{
++		.base.cra_name		= "ecb(des)",
++		.base.cra_driver_name	= "ecb-des-sparc64",
++		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
++		.base.cra_blocksize	= DES_BLOCK_SIZE,
++		.base.cra_ctxsize	= sizeof(struct des_sparc64_ctx),
++		.base.cra_alignmask	= 7,
++		.base.cra_module	= THIS_MODULE,
++		.min_keysize		= DES_KEY_SIZE,
++		.max_keysize		= DES_KEY_SIZE,
++		.setkey			= des_set_key_skcipher,
++		.encrypt		= ecb_encrypt,
++		.decrypt		= ecb_decrypt,
++	}, {
++		.base.cra_name		= "cbc(des)",
++		.base.cra_driver_name	= "cbc-des-sparc64",
++		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
++		.base.cra_blocksize	= DES_BLOCK_SIZE,
++		.base.cra_ctxsize	= sizeof(struct des_sparc64_ctx),
++		.base.cra_alignmask	= 7,
++		.base.cra_module	= THIS_MODULE,
++		.min_keysize		= DES_KEY_SIZE,
++		.max_keysize		= DES_KEY_SIZE,
++		.ivsize			= DES_BLOCK_SIZE,
++		.setkey			= des_set_key_skcipher,
++		.encrypt		= cbc_encrypt,
++		.decrypt		= cbc_decrypt,
++	}, {
++		.base.cra_name		= "ecb(des3_ede)",
++		.base.cra_driver_name	= "ecb-des3_ede-sparc64",
++		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
++		.base.cra_blocksize	= DES3_EDE_BLOCK_SIZE,
++		.base.cra_ctxsize	= sizeof(struct des3_ede_sparc64_ctx),
++		.base.cra_alignmask	= 7,
++		.base.cra_module	= THIS_MODULE,
++		.min_keysize		= DES3_EDE_KEY_SIZE,
++		.max_keysize		= DES3_EDE_KEY_SIZE,
++		.setkey			= des3_ede_set_key_skcipher,
++		.encrypt		= ecb3_encrypt,
++		.decrypt		= ecb3_decrypt,
++	}, {
++		.base.cra_name		= "cbc(des3_ede)",
++		.base.cra_driver_name	= "cbc-des3_ede-sparc64",
++		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
++		.base.cra_blocksize	= DES3_EDE_BLOCK_SIZE,
++		.base.cra_ctxsize	= sizeof(struct des3_ede_sparc64_ctx),
++		.base.cra_alignmask	= 7,
++		.base.cra_module	= THIS_MODULE,
++		.min_keysize		= DES3_EDE_KEY_SIZE,
++		.max_keysize		= DES3_EDE_KEY_SIZE,
++		.ivsize			= DES3_EDE_BLOCK_SIZE,
++		.setkey			= des3_ede_set_key_skcipher,
++		.encrypt		= cbc3_encrypt,
++		.decrypt		= cbc3_decrypt,
++	}
++};
+ 
+ static bool __init sparc64_has_des_opcode(void)
+ {
+@@ -503,17 +448,27 @@ static bool __init sparc64_has_des_opcode(void)
+ 
+ static int __init des_sparc64_mod_init(void)
+ {
+-	if (sparc64_has_des_opcode()) {
+-		pr_info("Using sparc64 des opcodes optimized DES implementation\n");
+-		return crypto_register_algs(algs, ARRAY_SIZE(algs));
++	int err;
++
++	if (!sparc64_has_des_opcode()) {
++		pr_info("sparc64 des opcodes not available.\n");
++		return -ENODEV;
+ 	}
+-	pr_info("sparc64 des opcodes not available.\n");
+-	return -ENODEV;
++	pr_info("Using sparc64 des opcodes optimized DES implementation\n");
++	err = crypto_register_algs(cipher_algs, ARRAY_SIZE(cipher_algs));
++	if (err)
++		return err;
++	err = crypto_register_skciphers(skcipher_algs,
++					ARRAY_SIZE(skcipher_algs));
++	if (err)
++		crypto_unregister_algs(cipher_algs, ARRAY_SIZE(cipher_algs));
++	return err;
+ }
+ 
+ static void __exit des_sparc64_mod_fini(void)
+ {
+-	crypto_unregister_algs(algs, ARRAY_SIZE(algs));
++	crypto_unregister_algs(cipher_algs, ARRAY_SIZE(cipher_algs));
++	crypto_unregister_skciphers(skcipher_algs, ARRAY_SIZE(skcipher_algs));
+ }
+ 
+ module_init(des_sparc64_mod_init);
+diff --git a/crypto/Kconfig b/crypto/Kconfig
+index bc97543d1ec2..320548b4dfa9 100644
+--- a/crypto/Kconfig
++++ b/crypto/Kconfig
+@@ -1355,6 +1355,7 @@ config CRYPTO_DES_SPARC64
+ 	depends on SPARC64
+ 	select CRYPTO_ALGAPI
+ 	select CRYPTO_LIB_DES
++	select CRYPTO_BLKCIPHER
+ 	help
+ 	  DES cipher algorithm (FIPS 46-2), and Triple DES EDE (FIPS 46-3),
+ 	  optimized using SPARC64 crypto opcodes.
 -- 
 2.23.0
