@@ -1,66 +1,54 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 29 Oct 2019 06:48:15 +0000
-Subject: [PATCH 02/21] unicore32: remove ioremap_cached
-Message-Id: <20191029064834.23438-3-hch@lst.de>
+From: Eric Biggers <ebiggers@kernel.org>
+Date: Sat, 12 Oct 2019 04:38:47 +0000
+Subject: [RFT PATCH 0/3] crypto: sparc - convert to skcipher API
+Message-Id: <20191012043850.340957-1-ebiggers@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191029064834.23438-1-hch@lst.de>
-In-Reply-To: <20191029064834.23438-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org
+Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
 
-No users of ioremap_cached are left, remove it.
+This series converts the glue code for the SPARC64 crypto opcodes
+implementations of AES, Camellia, DES, and 3DES modes from the
+deprecated "blkcipher" API to the "skcipher" API.  This is needed in
+order for the blkcipher API to be removed.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/unicore32/include/asm/io.h | 4 +---
- arch/unicore32/mm/ioremap.c     | 8 --------
- 2 files changed, 1 insertion(+), 11 deletions(-)
+I've compiled this patchset, and the conversion is very similar to that
+which has been done for many other crypto drivers.  But I don't have the
+hardware to test it, nor are SPARC64 crypto opcodes supported by QEMU.
+So I really need someone with the hardware to test it.  You can do so by
+setting:
 
-diff --git a/arch/unicore32/include/asm/io.h b/arch/unicore32/include/asm/io.h
-index c71aa4b95996..4b460e01acfa 100644
---- a/arch/unicore32/include/asm/io.h
-+++ b/arch/unicore32/include/asm/io.h
-@@ -18,10 +18,9 @@
- #include <asm-generic/io.h>
- 
- /*
-- * __uc32_ioremap and __uc32_ioremap_cached takes CPU physical address.
-+ * __uc32_ioremap takes CPU physical address.
-  */
- extern void __iomem *__uc32_ioremap(unsigned long, size_t);
--extern void __iomem *__uc32_ioremap_cached(unsigned long, size_t);
- extern void __uc32_iounmap(volatile void __iomem *addr);
- 
- /*
-@@ -32,7 +31,6 @@ extern void __uc32_iounmap(volatile void __iomem *addr);
-  *
-  */
- #define ioremap(cookie, size)		__uc32_ioremap(cookie, size)
--#define ioremap_cached(cookie, size)	__uc32_ioremap_cached(cookie, size)
- #define ioremap_nocache(cookie, size)	__uc32_ioremap(cookie, size)
- #define iounmap(cookie)			__uc32_iounmap(cookie)
- 
-diff --git a/arch/unicore32/mm/ioremap.c b/arch/unicore32/mm/ioremap.c
-index cf6d656f240c..46a64bd6156a 100644
---- a/arch/unicore32/mm/ioremap.c
-+++ b/arch/unicore32/mm/ioremap.c
-@@ -220,14 +220,6 @@ __uc32_ioremap(unsigned long phys_addr, size_t size)
- }
- EXPORT_SYMBOL(__uc32_ioremap);
- 
--void __iomem *
--__uc32_ioremap_cached(unsigned long phys_addr, size_t size)
--{
--	return __uc32_ioremap_caller(phys_addr, size, MT_DEVICE_CACHED,
--			__builtin_return_address(0));
--}
--EXPORT_SYMBOL(__uc32_ioremap_cached);
--
- void __uc32_iounmap(volatile void __iomem *io_addr)
- {
- 	void *addr = (void *)(PAGE_MASK & (unsigned long)io_addr);
+CONFIG_CRYPTO_AES_SPARC64=y
+CONFIG_CRYPTO_CAMELLIA_SPARC64=y
+CONFIG_CRYPTO_DES_SPARC64=y
+# CONFIG_CRYPTO_MANAGER_DISABLE_TESTS is not set
+CONFIG_DEBUG_KERNEL=y
+CONFIG_CRYPTO_MANAGER_EXTRA_TESTS=y
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_CAMELLIA=y
+CONFIG_CRYPTO_DES=y
+CONFIG_CRYPTO_CBC=y
+CONFIG_CRYPTO_CTR=y
+CONFIG_CRYPTO_ECB=y
+
+Then boot and check for crypto self-test failures by running
+'dmesg | grep alg'.
+
+If there are test failures, please also check whether they were already
+failing prior to this patchset.
+
+Eric Biggers (3):
+  crypto: sparc/aes - convert to skcipher API
+  crypto: sparc/camellia - convert to skcipher API
+  crypto: sparc/des - convert to skcipher API
+
+ arch/sparc/crypto/aes_glue.c      | 310 +++++++++----------
+ arch/sparc/crypto/camellia_glue.c | 217 ++++++-------
+ arch/sparc/crypto/des_glue.c      | 499 ++++++++++++++----------------
+ crypto/Kconfig                    |   5 +-
+ 4 files changed, 468 insertions(+), 563 deletions(-)
+
 -- 
-2.20.1
+2.23.0
