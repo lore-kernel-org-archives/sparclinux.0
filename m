@@ -1,36 +1,36 @@
-From: "Lion Leather" <hassan@lionleather100.site>
-Date: Mon, 07 Oct 2019 22:47:14 +0000
-Subject: Juggling Ball
-Message-Id: <6800392940032227499358@DESKTOP-NVQ8BB8>
+From: "Mr Barrister Hans Erich" <dave@dbsoundfactory.com>
+Date: Sun, 13 Oct 2019 04:16:45 +0000
+Subject: RE:PERSONAL LETTER FROM MRS RASHIA AMIRA ??
+Message-Id: <a-$-460$81-f-g@cjo9.liw0l6h>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="_7D4.D0FC9E..5BD4FD0_"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi,
 
-We are making juggling balls.
- 
-Find below link of our Google drive where you can see catalog of our juggling balls.
+--_7D4.D0FC9E..5BD4FD0_
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-https://drive.google.com/open?id=0B5meiXXKee54Y1RYaU9OczRlUjQ
+Greetings
 
-Price depend on order quantity.
+My name is Barrister Hans Erich.
 
-For quick communication you also can whatsaap 00923006122353
+I have a client who is interested to invest in your country, she is a well=
+ known politician in her country and deserve a lucrative investment partne=
+rship with you outside her country without any delay   Please can you mana=
+ge such investment please Kindly reply for further details.
 
-PS. If you are already our customer then please ignore this email.
-
-Regards
- 
-Hassan Afzal
-Proprietor 
+Your full nameS -----------
 
 
----
-Lion Leather
-Sialkot Pakistan
-Mob: 0092-3006122353 
-Whats Ap: 00923006122353  
-Viber: 00923006122353   
+Your urgent response will be appreciated
+
+Thank you and God bless you.
+
+Barrister Hans Erich
+
+Yours sincerely,
+Barrister Hans Erich
+
+--_7D4.D0FC9E..5BD4FD0_--
