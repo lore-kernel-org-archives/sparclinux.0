@@ -1,95 +1,81 @@
-From: Greg Ungerer <gerg@linux-m68k.org>
-Date: Thu, 24 Oct 2019 06:23:04 +0000
-Subject: Re: [PATCH 04/12] m68k: nommu: use pgtable-nopud instead of 4level-fixup
-Message-Id: <24454c38-184a-b5fe-e534-aad3713c157e@linux-m68k.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 17 Oct 2019 17:45:46 +0000
+Subject: [PATCH 13/21] m68k: rename __iounmap and mark it static
+Message-Id: <20191017174554.29840-14-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
- <1571822941-29776-5-git-send-email-rppt@kernel.org>
- <de03a882-fb1a-455c-7c60-84ab0c4f9674@linux-m68k.org>
- <20191024053533.GA12281@rapoport-lnx>
-In-Reply-To: <20191024053533.GA12281@rapoport-lnx>
+References: <20191017174554.29840-1-hch@lst.de>
+In-Reply-To: <20191017174554.29840-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet Gupta <Vineet.Gupta1@sy>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Mike,
+m68k uses __iounmap as the name for an internal helper that is only
+used for some CPU types.  Mark it static and give it a better name.
 
-On 24/10/19 3:35 pm, Mike Rapoport wrote:
-> Hi Greg,
-> 
-> On Thu, Oct 24, 2019 at 02:09:01PM +1000, Greg Ungerer wrote:
->> Hi Mike,
->>
->> On 23/10/19 7:28 pm, Mike Rapoport wrote:
->>> From: Mike Rapoport <rppt@linux.ibm.com>
->>>
->>> The generic nommu implementation of page table manipulation takes care of
->>> folding of the upper levels and does not require fixups.
->>>
->>> Simply replace of include/asm-generic/4level-fixup.h with
->>> include/asm-generic/pgtable-nopud.h.
->>>
->>> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
->>> ---
->>>   arch/m68k/include/asm/pgtable_no.h | 2 +-
->>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/arch/m68k/include/asm/pgtable_no.h b/arch/m68k/include/asm/pgtable_no.h
->>> index c18165b..ccc4568 100644
->>> --- a/arch/m68k/include/asm/pgtable_no.h
->>> +++ b/arch/m68k/include/asm/pgtable_no.h
->>> @@ -2,7 +2,7 @@
->>>   #ifndef _M68KNOMMU_PGTABLE_H
->>>   #define _M68KNOMMU_PGTABLE_H
->>> -#include <asm-generic/4level-fixup.h>
->>> +#include <asm-generic/pgtable-nopud.h>
->>>   /*
->>>    * (C) Copyright 2000-2002, Greg Ungerer <gerg@snapgear.com>
->>
->> This fails to compile for me (targeting m5208evb_defconfig):
->>
->>    CC      init/main.o
->> In file included from ./arch/m68k/include/asm/pgtable_no.h:56:0,
->>                   from ./arch/m68k/include/asm/pgtable.h:3,
->>                   from ./include/linux/mm.h:99,
->>                   from ./include/linux/ring_buffer.h:5,
->>                   from ./include/linux/trace_events.h:6,
->>                   from ./include/trace/syscall.h:7,
->>                   from ./include/linux/syscalls.h:85,
->>                   from init/main.c:21:
->> ./include/asm-generic/pgtable.h:738:34: error: unknown type name ‘pmd_t’
->>   static inline int pmd_soft_dirty(pmd_t pmd)
->>                                    ^
-> 
-> ...
-> 
->> scripts/Makefile.build:265: recipe for target 'init/main.o' failed
->> make[1]: *** [init/main.o] Error 1
->> Makefile:1649: recipe for target 'init' failed
->> make: *** [init] Error 2
-> 
-> The hunk below fixes the build.
-> 
-> diff --git a/arch/m68k/include/asm/page.h b/arch/m68k/include/asm/page.h
-> index c00b67a..05e1e1e 100644
-> --- a/arch/m68k/include/asm/page.h
-> +++ b/arch/m68k/include/asm/page.h
-> @@ -21,7 +21,7 @@
->   /*
->    * These are used to make use of C type-checking..
->    */
-> -#if CONFIG_PGTABLE_LEVELS = 3
-> +#if !defined(CONFIG_MMU) || CONFIG_PGTABLE_LEVELS = 3
->   typedef struct { unsigned long pmd[16]; } pmd_t;
->   #define pmd_val(x)	((&x)->pmd[0])
->   #define __pmd(x)	((pmd_t) { { (x) }, })
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/m68k/include/asm/kmap.h | 1 -
+ arch/m68k/mm/kmap.c          | 9 ++++++---
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-That looks better. Thanks.
-Tested and working on m68knommu. For the combined patches:
-
-Acked-by: Greg Ungerer <gerg@linux-m68k.org>
-
-Regards
-Greg
+diff --git a/arch/m68k/include/asm/kmap.h b/arch/m68k/include/asm/kmap.h
+index 421b6c9c769d..559cb91bede1 100644
+--- a/arch/m68k/include/asm/kmap.h
++++ b/arch/m68k/include/asm/kmap.h
+@@ -20,7 +20,6 @@ extern void __iomem *__ioremap(unsigned long physaddr, unsigned long size,
+ 			       int cacheflag);
+ #define iounmap iounmap
+ extern void iounmap(void __iomem *addr);
+-extern void __iounmap(void *addr, unsigned long size);
+ 
+ #define ioremap ioremap
+ static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
+diff --git a/arch/m68k/mm/kmap.c b/arch/m68k/mm/kmap.c
+index 40a3b327da07..4c279cf0bcc8 100644
+--- a/arch/m68k/mm/kmap.c
++++ b/arch/m68k/mm/kmap.c
+@@ -52,6 +52,7 @@ static inline void free_io_area(void *addr)
+ 
+ #define IO_SIZE		(256*1024)
+ 
++static void __free_io_area(void *addr, unsigned long size);
+ static struct vm_struct *iolist;
+ 
+ static struct vm_struct *get_io_area(unsigned long size)
+@@ -90,7 +91,7 @@ static inline void free_io_area(void *addr)
+ 		if (tmp->addr = addr) {
+ 			*p = tmp->next;
+ 			/* remove gap added in get_io_area() */
+-			__iounmap(tmp->addr, tmp->size - IO_SIZE);
++			__free_io_area(tmp->addr, tmp->size - IO_SIZE);
+ 			kfree(tmp);
+ 			return;
+ 		}
+@@ -249,12 +250,13 @@ void iounmap(void __iomem *addr)
+ }
+ EXPORT_SYMBOL(iounmap);
+ 
++#ifndef CPU_M68040_OR_M68060_ONLY
+ /*
+- * __iounmap unmaps nearly everything, so be careful
++ * __free_io_area unmaps nearly everything, so be careful
+  * Currently it doesn't free pointer/page tables anymore but this
+  * wasn't used anyway and might be added later.
+  */
+-void __iounmap(void *addr, unsigned long size)
++static void __free_io_area(void *addr, unsigned long size)
+ {
+ 	unsigned long virtaddr = (unsigned long)addr;
+ 	pgd_t *pgd_dir;
+@@ -297,6 +299,7 @@ void __iounmap(void *addr, unsigned long size)
+ 
+ 	flush_tlb_all();
+ }
++#endif /* CPU_M68040_OR_M68060_ONLY */
+ 
+ /*
+  * Set new cache mode for some kernel address space.
+-- 
+2.20.1
