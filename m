@@ -1,48 +1,166 @@
-From: Waiman Long <longman@redhat.com>
-Date: Thu, 24 Oct 2019 17:03:16 +0000
-Subject: Re: [PATCH 0/2] Enabling MSI for Microblaze
-Message-Id: <e9feafd1-8497-025b-e81d-f0e974038f3c@redhat.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 17 Oct 2019 17:45:52 +0000
+Subject: [PATCH 19/21] nds32: use generic ioremap
+Message-Id: <20191017174554.29840-20-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1571911976.git.michal.simek@xilinx.com>
-In-Reply-To: <cover.1571911976.git.michal.simek@xilinx.com>
+References: <20191017174554.29840-1-hch@lst.de>
+In-Reply-To: <20191017174554.29840-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Simek <michal.simek@xilinx.com>, linux-kernel@vger.kernel.org, monstr@monstr.eu, git@xilinx.com, palmer@sifive.com, hch@infradead.org, helgaas@kernel.org
-Cc: Paolo Bonzini <pbonzini@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Jackie Liu <liuyun01@kylinos.cn>, Wesley Terpstra <wesley@sifive.com>, Firoz Khan <firoz.khan@linaro.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, James Hogan <jhogan@kernel.org>, Vineet Gupta <vgupta@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, Will Deacon <will@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.>
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 10/24/19 6:13 AM, Michal Simek wrote:
-> Hi,
->
-> these two patches come from discussion with Christoph, Bjorn, Palmer and
-> Waiman. The first patch was suggestion by Christoph here
-> https://lore.kernel.org/linux-riscv/20191008154604.GA7903@infradead.org/
-> The second part was discussed
-> https://lore.kernel.org/linux-pci/mhng-5d9bcb53-225e-441f-86cc-b335624b3e7c@palmer-si-x1e/
-> and
-> https://lore.kernel.org/linux-pci/20191017181937.7004-1-palmer@sifive.com/
->
-> Thanks,
-> Michal
->
->
-> Michal Simek (1):
->   asm-generic: Make msi.h a mandatory include/asm header
->
-> Palmer Dabbelt (1):
->   pci: Default to PCI_MSI_IRQ_DOMAIN
->
->  arch/arc/include/asm/Kbuild     | 1 -
->  arch/arm/include/asm/Kbuild     | 1 -
->  arch/arm64/include/asm/Kbuild   | 1 -
->  arch/mips/include/asm/Kbuild    | 1 -
->  arch/powerpc/include/asm/Kbuild | 1 -
->  arch/riscv/include/asm/Kbuild   | 1 -
->  arch/sparc/include/asm/Kbuild   | 1 -
->  drivers/pci/Kconfig             | 2 +-
->  include/asm-generic/Kbuild      | 1 +
->  9 files changed, 2 insertions(+), 8 deletions(-)
->
-That looks OK.
+Use the generic ioremap_prot and iounmap helpers.
 
-Acked-by: Waiman Long <longman@redhat.com>
+Note that the io.h include in pgtable.h had to be removed to not create
+an include loop.  As far as I can tell there was no need for it to
+start with.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/nds32/Kconfig               |  1 +
+ arch/nds32/include/asm/io.h      |  3 +-
+ arch/nds32/include/asm/pgtable.h |  4 ++-
+ arch/nds32/mm/Makefile           |  3 +-
+ arch/nds32/mm/ioremap.c          | 62 --------------------------------
+ 5 files changed, 6 insertions(+), 67 deletions(-)
+ delete mode 100644 arch/nds32/mm/ioremap.c
+
+diff --git a/arch/nds32/Kconfig b/arch/nds32/Kconfig
+index fbd68329737f..12c06a833b7c 100644
+--- a/arch/nds32/Kconfig
++++ b/arch/nds32/Kconfig
+@@ -20,6 +20,7 @@ config NDS32
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_IRQ_CHIP
+ 	select GENERIC_IRQ_SHOW
++	select GENERIC_IOREMAP
+ 	select GENERIC_LIB_ASHLDI3
+ 	select GENERIC_LIB_ASHRDI3
+ 	select GENERIC_LIB_CMPDI2
+diff --git a/arch/nds32/include/asm/io.h b/arch/nds32/include/asm/io.h
+index fb0e8a24c7af..e57378d04006 100644
+--- a/arch/nds32/include/asm/io.h
++++ b/arch/nds32/include/asm/io.h
+@@ -6,8 +6,6 @@
+ 
+ #include <linux/types.h>
+ 
+-void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
+-extern void iounmap(volatile void __iomem *addr);
+ #define __raw_writeb __raw_writeb
+ static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
+ {
+@@ -80,6 +78,7 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
+ #define writeb(v,c)	({ __iowmb(); writeb_relaxed((v),(c)); })
+ #define writew(v,c)	({ __iowmb(); writew_relaxed((v),(c)); })
+ #define writel(v,c)	({ __iowmb(); writel_relaxed((v),(c)); })
++
+ #include <asm-generic/io.h>
+ 
+ #endif /* __ASM_NDS32_IO_H */
+diff --git a/arch/nds32/include/asm/pgtable.h b/arch/nds32/include/asm/pgtable.h
+index 0588ec99725c..6fbf251cfc26 100644
+--- a/arch/nds32/include/asm/pgtable.h
++++ b/arch/nds32/include/asm/pgtable.h
+@@ -12,7 +12,6 @@
+ #include <asm/nds32.h>
+ #ifndef __ASSEMBLY__
+ #include <asm/fixmap.h>
+-#include <asm/io.h>
+ #include <nds32_intrinsic.h>
+ #endif
+ 
+@@ -130,6 +129,9 @@ extern void __pgd_error(const char *file, int line, unsigned long val);
+ #define _PAGE_CACHE		_PAGE_C_MEM_WB
+ #endif
+ 
++#define _PAGE_IOREMAP \
++	(_PAGE_V | _PAGE_M_KRW | _PAGE_D | _PAGE_G | _PAGE_C_DEV)
++
+ /*
+  * + Level 1 descriptor (PMD)
+  */
+diff --git a/arch/nds32/mm/Makefile b/arch/nds32/mm/Makefile
+index bd360e4583b5..897ecaf5cf54 100644
+--- a/arch/nds32/mm/Makefile
++++ b/arch/nds32/mm/Makefile
+@@ -1,6 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-obj-y				:= extable.o tlb.o \
+-				   fault.o init.o ioremap.o mmap.o \
++obj-y				:= extable.o tlb.o fault.o init.o mmap.o \
+                                    mm-nds32.o cacheflush.o proc.o
+ 
+ obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
+diff --git a/arch/nds32/mm/ioremap.c b/arch/nds32/mm/ioremap.c
+deleted file mode 100644
+index 690140bb23a2..000000000000
+--- a/arch/nds32/mm/ioremap.c
++++ /dev/null
+@@ -1,62 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (C) 2005-2017 Andes Technology Corporation
+-
+-#include <linux/vmalloc.h>
+-#include <linux/io.h>
+-#include <linux/mm.h>
+-#include <asm/pgtable.h>
+-
+-void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
+-
+-static void __iomem *__ioremap_caller(phys_addr_t phys_addr, size_t size,
+-				      void *caller)
+-{
+-	struct vm_struct *area;
+-	unsigned long addr, offset, last_addr;
+-	pgprot_t prot;
+-
+-	/* Don't allow wraparound or zero size */
+-	last_addr = phys_addr + size - 1;
+-	if (!size || last_addr < phys_addr)
+-		return NULL;
+-
+-	/*
+-	 * Mappings have to be page-aligned
+-	 */
+-	offset = phys_addr & ~PAGE_MASK;
+-	phys_addr &= PAGE_MASK;
+-	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
+-
+-	/*
+-	 * Ok, go for it..
+-	 */
+-	area = get_vm_area_caller(size, VM_IOREMAP, caller);
+-	if (!area)
+-		return NULL;
+-
+-	area->phys_addr = phys_addr;
+-	addr = (unsigned long)area->addr;
+-	prot = __pgprot(_PAGE_V | _PAGE_M_KRW | _PAGE_D |
+-			_PAGE_G | _PAGE_C_DEV);
+-	if (ioremap_page_range(addr, addr + size, phys_addr, prot)) {
+-		vunmap((void *)addr);
+-		return NULL;
+-	}
+-	return (__force void __iomem *)(offset + (char *)addr);
+-
+-}
+-
+-void __iomem *ioremap(phys_addr_t phys_addr, size_t size)
+-{
+-	return __ioremap_caller(phys_addr, size,
+-				__builtin_return_address(0));
+-}
+-
+-EXPORT_SYMBOL(ioremap);
+-
+-void iounmap(volatile void __iomem * addr)
+-{
+-	vunmap((void *)(PAGE_MASK & (unsigned long)addr));
+-}
+-
+-EXPORT_SYMBOL(iounmap);
+-- 
+2.20.1
