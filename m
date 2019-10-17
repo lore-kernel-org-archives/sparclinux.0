@@ -1,34 +1,110 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Thu, 24 Oct 2019 09:50:54 +0000
-Subject: Re: [PATCH 08/12] parisc: use pgtable-nopXd instead of 4level-fixup
-Message-Id: <20191024095053.GC12281@rapoport-lnx>
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 17 Oct 2019 17:45:41 +0000
+Subject: [PATCH 08/21] x86: clean up ioremap
+Message-Id: <20191017174554.29840-9-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-9-git-send-email-rppt@kernel.org>
- <20191024093451.15161-1-peda@axentia.se>
-In-Reply-To: <20191024093451.15161-1-peda@axentia.se>
+References: <20191017174554.29840-1-hch@lst.de>
+In-Reply-To: <20191017174554.29840-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Rosin <peda@axentia.se>
-Cc: "James.Bottomley@HansenPartnership.com" <James.Bottomley@HansenPartnership.com>, "Vineet.Gupta1@synopsys.com" <Vineet.Gupta1@synopsys.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "anton.ivanov@cambridgegreys.com" <anton.ivanov@cambridgegreys.com>, "arnd@arndb.de" <arnd@arndb.de>, "davem@davemloft.net" <davem@davemloft.net>, "deanbo422@gmail.com" <deanbo422@gmail.com>, "deller@gmx.de" <deller@gmx.de>, "geert@linux-m68k.org" <geert@linux-m68k.org>, "gerg@linux-m68k.org" <gerg@linux-m68k.org>, "green.hu@gmail.com" <green.hu@gmail.com>, "jdike@addtoit.com" <jdike@addtoit.com>, "kirill@shutemov.name" <kirill@shutemov.name>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>l
+To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
+Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Oct 24, 2019 at 09:35:12AM +0000, Peter Rosin wrote:
-> On 2019-10-23 12:28, Mike Rapoport <rppt@kernel.org> wrote:
-> > parisc has two or three levels of page tables and can use appropriate
-> > pgtable-nopXd and folding of the upper layers.
-> >
-> > Replace usage of include/asm-generic/4level-fixup.h and explicit
-> > definitions of __PAGETABLE_PxD_FOLDED in parisc with
-> > include/asm-generic/pgtable-nopmd.h for two-level configurations and with
-> > include/asm-generic/pgtable-nopmd.h for three-lelve configurations and
-> 
-> I think you mean .../pgtable-nopud.h in the latter case.
+Use ioremap as the main implemented function, and defined
+ioremap_nocache to it as a deprecated alias.
 
-Right, thanks!
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/x86/include/asm/io.h | 8 ++------
+ arch/x86/mm/ioremap.c     | 8 ++++----
+ arch/x86/mm/pageattr.c    | 4 ++--
+ 3 files changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index 6bed97ff6db2..6b5cc41319a7 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -180,8 +180,6 @@ static inline unsigned int isa_virt_to_bus(volatile void *address)
+  * The default ioremap() behavior is non-cached; if you need something
+  * else, you probably want one of the following.
+  */
+-extern void __iomem *ioremap_nocache(resource_size_t offset, unsigned long size);
+-#define ioremap_nocache ioremap_nocache
+ extern void __iomem *ioremap_uc(resource_size_t offset, unsigned long size);
+ #define ioremap_uc ioremap_uc
+ extern void __iomem *ioremap_cache(resource_size_t offset, unsigned long size);
+@@ -205,11 +203,9 @@ extern void __iomem *ioremap_encrypted(resource_size_t phys_addr, unsigned long
+  * If the area you are trying to map is a PCI BAR you should have a
+  * look at pci_iomap().
+  */
+-static inline void __iomem *ioremap(resource_size_t offset, unsigned long size)
+-{
+-	return ioremap_nocache(offset, size);
+-}
++void __iomem *ioremap(resource_size_t offset, unsigned long size);
+ #define ioremap ioremap
++#define ioremap_nocache ioremap
  
-> Cheers,
-> Peter
-
+ extern void iounmap(volatile void __iomem *addr);
+ #define iounmap iounmap
+diff --git a/arch/x86/mm/ioremap.c b/arch/x86/mm/ioremap.c
+index a39dcdb5ae34..7985233dfb8d 100644
+--- a/arch/x86/mm/ioremap.c
++++ b/arch/x86/mm/ioremap.c
+@@ -280,11 +280,11 @@ __ioremap_caller(resource_size_t phys_addr, unsigned long size,
+ }
+ 
+ /**
+- * ioremap_nocache     -   map bus memory into CPU space
++ * ioremap     -   map bus memory into CPU space
+  * @phys_addr:    bus address of the memory
+  * @size:      size of the resource to map
+  *
+- * ioremap_nocache performs a platform specific sequence of operations to
++ * ioremap performs a platform specific sequence of operations to
+  * make bus memory CPU accessible via the readb/readw/readl/writeb/
+  * writew/writel functions and the other mmio helpers. The returned
+  * address is not guaranteed to be usable directly as a virtual
+@@ -300,7 +300,7 @@ __ioremap_caller(resource_size_t phys_addr, unsigned long size,
+  *
+  * Must be freed with iounmap.
+  */
+-void __iomem *ioremap_nocache(resource_size_t phys_addr, unsigned long size)
++void __iomem *ioremap(resource_size_t phys_addr, unsigned long size)
+ {
+ 	/*
+ 	 * Ideally, this should be:
+@@ -315,7 +315,7 @@ void __iomem *ioremap_nocache(resource_size_t phys_addr, unsigned long size)
+ 	return __ioremap_caller(phys_addr, size, pcm,
+ 				__builtin_return_address(0), false);
+ }
+-EXPORT_SYMBOL(ioremap_nocache);
++EXPORT_SYMBOL(ioremap);
+ 
+ /**
+  * ioremap_uc     -   map bus memory into CPU space as strongly uncachable
+diff --git a/arch/x86/mm/pageattr.c b/arch/x86/mm/pageattr.c
+index 0d09cc5aad61..1b99ad05b117 100644
+--- a/arch/x86/mm/pageattr.c
++++ b/arch/x86/mm/pageattr.c
+@@ -1784,7 +1784,7 @@ static inline int cpa_clear_pages_array(struct page **pages, int numpages,
+ int _set_memory_uc(unsigned long addr, int numpages)
+ {
+ 	/*
+-	 * for now UC MINUS. see comments in ioremap_nocache()
++	 * for now UC MINUS. see comments in ioremap()
+ 	 * If you really need strong UC use ioremap_uc(), but note
+ 	 * that you cannot override IO areas with set_memory_*() as
+ 	 * these helpers cannot work with IO memory.
+@@ -1799,7 +1799,7 @@ int set_memory_uc(unsigned long addr, int numpages)
+ 	int ret;
+ 
+ 	/*
+-	 * for now UC MINUS. see comments in ioremap_nocache()
++	 * for now UC MINUS. see comments in ioremap()
+ 	 */
+ 	ret = reserve_memtype(__pa(addr), __pa(addr) + numpages * PAGE_SIZE,
+ 			      _PAGE_CACHE_MODE_UC_MINUS, NULL);
 -- 
-Sincerely yours,
-Mike.
+2.20.1
