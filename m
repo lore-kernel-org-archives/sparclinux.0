@@ -1,46 +1,80 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 30 Oct 2019 19:49:48 +0000
-Subject: Re: [PATCH] tty: n_hdlc: fix build on SPARC
-Message-Id: <201910301249.9070A9889E@keescook>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Fri, 18 Oct 2019 08:27:42 +0000
+Subject: Re: [PATCH] sparc: vdso: fix build error of vdso32
+Message-Id: <CADxRZqy-3x4ZMSdGoxc1F2uE3x33kugD_wXdmUwBMy1s6Hqz0Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <675e7bd9-955b-3ff3-1101-a973b58b5b75@infradead.org>
- <201910301131.2739AA83@keescook>
- <9ef8c2a5-8510-c509-4c31-b8684b6e1c67@physik.fu-berlin.de>
-In-Reply-To: <9ef8c2a5-8510-c509-4c31-b8684b6e1c67@physik.fu-berlin.de>
+References: <20190922113436.10396-1-yamada.masahiro@socionext.com> <CAK7LNARXA4MnDyYHLphYEqMfEbh=cMk0i=pzDRbEODTeM+cJ4Q@mail.gmail.com>
+In-Reply-To: <CAK7LNARXA4MnDyYHLphYEqMfEbh=cMk0i=pzDRbEODTeM+cJ4Q@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>, LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Miller <davem@davemloft.net>, kbuild test robot <lkp@intel.com>
+To: sparclinux <sparclinux@vger.kernel.org>
+Cc: "David S . Miller" <davem@davemloft.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thomas Gleixner <tglx@linutronix.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "ndesaulniers@google.com" <ndesaulniers@google.com>, Masahiro Yamada <yamada.masahiro@socionext.com>
 
-On Wed, Oct 30, 2019 at 08:29:40PM +0100, John Paul Adrian Glaubitz wrote:
-> On 10/30/19 7:34 PM, Kees Cook wrote:
-> > On Mon, Sep 30, 2019 at 07:15:12PM -0700, Randy Dunlap wrote:
-> >> From: Randy Dunlap <rdunlap@infradead.org>
-> >>
-> >> Fix tty driver build on SPARC by not using __exitdata.
-> >> It appears that SPARC does not support section .exit.data.
-> >>
-> >> Fixes these build errors:
-> >>
-> >> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> >> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> >> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> >> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> >>
-> >> Reported-by: kbuild test robot <lkp@intel.com>
-> >> Fixes: 063246641d4a ("format-security: move static strings to const")
-> >> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> > 
-> > Wow. That commit is from 2.5 years ago. Is the SPARC port still alive?
-> Yes, it is. No idea why we didn't run into this. I assume it affects certain
-> configurations only. On Debian, we are always compiling and running the
-> latest kernel versions on sparc64.
+On Fri, Sep 27, 2019 at 6:47 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> On Sun, Sep 22, 2019 at 8:36 PM Masahiro Yamada
+> <yamada.masahiro@socionext.com> wrote:
+> >
+> > Since commit 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to
+> > take the path relative to $(obj)"), sparc allmodconfig fails to build
+> > as follows:
+> >
+> >   CC      arch/sparc/vdso/vdso32/vclock_gettime.o
+> > unrecognized e_machine 18 arch/sparc/vdso/vdso32/vclock_gettime.o
+> > arch/sparc/vdso/vdso32/vclock_gettime.o: failed
+> >
+> > The cause of the breakage is that -pg flag not being dropped.
+> >
+> > The vdso32 files are located in the vdso32/ subdirectory, but I missed
+> > to update the Makefile.
+> >
+> > Fixes: 54b8ae66ae1a ("kbuild: change *FLAGS_<basetarget>.o to take the path relative to $(obj)")
+> > Reported-by: Anatoly Pugachev <matorola@gmail.com>
+> > Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> > ---
+> >
+>
+>
+> I am copy-pasting Tested-by from the reporter:
+>
+> Tested-by: Anatoly Pugachev <matorola@gmail.com>
+>
+> It was given here:
+>
+> https://lkml.org/lkml/2019/9/25/197
+>
+>
+>
+>
+> >  arch/sparc/vdso/Makefile | 4 +++-
+> >  1 file changed, 3 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+> > index 324a23947585..399bc22b1cf8 100644
+> > --- a/arch/sparc/vdso/Makefile
+> > +++ b/arch/sparc/vdso/Makefile
+> > @@ -67,12 +67,14 @@ $(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS
+> >  #
+> >  CFLAGS_REMOVE_vdso-note.o = -pg
+> >  CFLAGS_REMOVE_vclock_gettime.o = -pg
+> > +CFLAGS_REMOVE_vdso32/vdso-note.o = -pg
+> > +CFLAGS_REMOVE_vdso32/vclock_gettime.o = -pg
+> >
+> >  $(obj)/%.so: OBJCOPYFLAGS := -S
+> >  $(obj)/%.so: $(obj)/%.so.dbg FORCE
+> >         $(call if_changed,objcopy)
+> >
+> > -CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
+> > +CPPFLAGS_vdso32/vdso32.lds = $(CPPFLAGS_vdso.lds)
+> >  VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
+> >
+> >  #This makes sure the $(obj) subdirectory exists even though vdso32/
 
-Yeah, that's what I thought. I also didn't hit it 2.5 years ago when I
-did multi-architecture build validation of these changes. :P
 
-Randy you've found a nice corner case! :)
+Hello!
 
--- 
-Kees Cook
+Can someone please pull/apply this to master ?!
+
+Thanks!
