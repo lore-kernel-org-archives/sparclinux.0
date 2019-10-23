@@ -1,95 +1,41 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 29 Oct 2019 06:48:14 +0000
-Subject: [PATCH 01/21] arm: remove ioremap_cached
-Message-Id: <20191029064834.23438-2-hch@lst.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Wed, 23 Oct 2019 09:28:53 +0000
+Subject: [PATCH 04/12] m68k: nommu: use pgtable-nopud instead of 4level-fixup
+Message-Id: <1571822941-29776-5-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191029064834.23438-1-hch@lst.de>
-In-Reply-To: <20191029064834.23438-1-hch@lst.de>
+References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
-Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-mtd@lists.infradead.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
 
-No users of ioremap_cached are left, remove it.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+The generic nommu implementation of page table manipulation takes care of
+folding of the upper levels and does not require fixups.
+
+Simply replace of include/asm-generic/4level-fixup.h with
+include/asm-generic/pgtable-nopud.h.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/arm/include/asm/io.h | 6 ------
- arch/arm/mm/ioremap.c     | 4 ----
- arch/arm/mm/mmu.c         | 2 +-
- arch/arm/mm/nommu.c       | 4 ----
- 4 files changed, 1 insertion(+), 15 deletions(-)
+ arch/m68k/include/asm/pgtable_no.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index 7a0596fcb2e7..924f9dd502ed 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -400,12 +400,6 @@ void __iomem *ioremap(resource_size_t res_cookie, size_t size);
- void __iomem *ioremap_cache(resource_size_t res_cookie, size_t size);
- #define ioremap_cache ioremap_cache
+diff --git a/arch/m68k/include/asm/pgtable_no.h b/arch/m68k/include/asm/pgtable_no.h
+index c18165b..ccc4568 100644
+--- a/arch/m68k/include/asm/pgtable_no.h
++++ b/arch/m68k/include/asm/pgtable_no.h
+@@ -2,7 +2,7 @@
+ #ifndef _M68KNOMMU_PGTABLE_H
+ #define _M68KNOMMU_PGTABLE_H
  
--/*
-- * Do not use ioremap_cached in new code. Provided for the benefit of
-- * the pxa2xx-flash MTD driver only.
-- */
--void __iomem *ioremap_cached(resource_size_t res_cookie, size_t size);
--
- void __iomem *ioremap_wc(resource_size_t res_cookie, size_t size);
- #define ioremap_wc ioremap_wc
- #define ioremap_wt ioremap_wc
-diff --git a/arch/arm/mm/ioremap.c b/arch/arm/mm/ioremap.c
-index d42b93316183..72286f9a4d30 100644
---- a/arch/arm/mm/ioremap.c
-+++ b/arch/arm/mm/ioremap.c
-@@ -382,15 +382,11 @@ void __iomem *ioremap(resource_size_t res_cookie, size_t size)
- EXPORT_SYMBOL(ioremap);
+-#include <asm-generic/4level-fixup.h>
++#include <asm-generic/pgtable-nopud.h>
  
- void __iomem *ioremap_cache(resource_size_t res_cookie, size_t size)
--	__alias(ioremap_cached);
--
--void __iomem *ioremap_cached(resource_size_t res_cookie, size_t size)
- {
- 	return arch_ioremap_caller(res_cookie, size, MT_DEVICE_CACHED,
- 				   __builtin_return_address(0));
- }
- EXPORT_SYMBOL(ioremap_cache);
--EXPORT_SYMBOL(ioremap_cached);
- 
- void __iomem *ioremap_wc(resource_size_t res_cookie, size_t size)
- {
-diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
-index 48c2888297dd..5d0d0f86e790 100644
---- a/arch/arm/mm/mmu.c
-+++ b/arch/arm/mm/mmu.c
-@@ -259,7 +259,7 @@ static struct mem_type mem_types[] __ro_after_init = {
- 		.prot_sect	= PROT_SECT_DEVICE,
- 		.domain		= DOMAIN_IO,
- 	},
--	[MT_DEVICE_CACHED] = {	  /* ioremap_cached */
-+	[MT_DEVICE_CACHED] = {	  /* ioremap_cache */
- 		.prot_pte	= PROT_PTE_DEVICE | L_PTE_MT_DEV_CACHED,
- 		.prot_l1	= PMD_TYPE_TABLE,
- 		.prot_sect	= PROT_SECT_DEVICE | PMD_SECT_WB,
-diff --git a/arch/arm/mm/nommu.c b/arch/arm/mm/nommu.c
-index 24ecf8d30a1e..8b3d7191e2b8 100644
---- a/arch/arm/mm/nommu.c
-+++ b/arch/arm/mm/nommu.c
-@@ -206,15 +206,11 @@ void __iomem *ioremap(resource_size_t res_cookie, size_t size)
- EXPORT_SYMBOL(ioremap);
- 
- void __iomem *ioremap_cache(resource_size_t res_cookie, size_t size)
--	__alias(ioremap_cached);
--
--void __iomem *ioremap_cached(resource_size_t res_cookie, size_t size)
- {
- 	return __arm_ioremap_caller(res_cookie, size, MT_DEVICE_CACHED,
- 				    __builtin_return_address(0));
- }
- EXPORT_SYMBOL(ioremap_cache);
--EXPORT_SYMBOL(ioremap_cached);
- 
- void __iomem *ioremap_wc(resource_size_t res_cookie, size_t size)
- {
+ /*
+  * (C) Copyright 2000-2002, Greg Ungerer <gerg@snapgear.com>
 -- 
-2.20.1
+2.7.4
