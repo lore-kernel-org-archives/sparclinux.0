@@ -1,366 +1,392 @@
-From: Eric Biggers <ebiggers@kernel.org>
-Date: Sat, 12 Oct 2019 04:38:49 +0000
-Subject: [RFT PATCH 2/3] crypto: sparc/camellia - convert to skcipher API
-Message-Id: <20191012043850.340957-3-ebiggers@kernel.org>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Wed, 23 Oct 2019 09:28:58 +0000
+Subject: [PATCH 09/12] sparc32: use pgtable-nopud instead of 4level-fixup
+Message-Id: <1571822941-29776-10-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191012043850.340957-1-ebiggers@kernel.org>
-In-Reply-To: <20191012043850.340957-1-ebiggers@kernel.org>
+References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
 
-From: Eric Biggers <ebiggers@google.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Convert the glue code for the SPARC64 Camellia opcodes implementations
-of Camellia-ECB and Camellia-CBC from the deprecated "blkcipher" API to
-the "skcipher" API.  This is needed in order for the blkcipher API to be
-removed.
+32-bit version of sparc has three-level page tables and can use
+pgtable-nopud and folding of the upper layers.
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
+Replace usage of include/asm-generic/4level-fixup.h with
+include/asm-generic/pgtable-nopud.h and adjust page table manipulation
+macros and functions accordingly.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/sparc/crypto/camellia_glue.c | 217 +++++++++++++-----------------
- crypto/Kconfig                    |   1 +
- 2 files changed, 96 insertions(+), 122 deletions(-)
+ arch/sparc/include/asm/pgalloc_32.h |  6 ++---
+ arch/sparc/include/asm/pgtable_32.h | 28 ++++++++++----------
+ arch/sparc/mm/fault_32.c            | 11 ++++++--
+ arch/sparc/mm/highmem.c             |  6 ++++-
+ arch/sparc/mm/io-unit.c             |  6 ++++-
+ arch/sparc/mm/iommu.c               |  6 ++++-
+ arch/sparc/mm/srmmu.c               | 51 +++++++++++++++++++++++++++++--------
+ 7 files changed, 81 insertions(+), 33 deletions(-)
 
-diff --git a/arch/sparc/crypto/camellia_glue.c b/arch/sparc/crypto/camellia_glue.c
-index 3823f9491a72..1700f863748c 100644
---- a/arch/sparc/crypto/camellia_glue.c
-+++ b/arch/sparc/crypto/camellia_glue.c
-@@ -12,6 +12,7 @@
- #include <linux/mm.h>
- #include <linux/types.h>
- #include <crypto/algapi.h>
-+#include <crypto/internal/skcipher.h>
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index 10538a4..eae0c92 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -26,14 +26,14 @@ static inline void free_pgd_fast(pgd_t *pgd)
+ #define pgd_free(mm, pgd)	free_pgd_fast(pgd)
+ #define pgd_alloc(mm)	get_pgd_fast()
  
- #include <asm/fpumacro.h>
- #include <asm/pstate.h>
-@@ -52,6 +53,12 @@ static int camellia_set_key(struct crypto_tfm *tfm, const u8 *_in_key,
- 	return 0;
+-static inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
++static inline void pud_set(pud_t * pudp, pmd_t * pmdp)
+ {
+ 	unsigned long pa = __nocache_pa(pmdp);
+ 
+-	set_pte((pte_t *)pgdp, __pte((SRMMU_ET_PTD | (pa >> 4))));
++	set_pte((pte_t *)pudp, __pte((SRMMU_ET_PTD | (pa >> 4))));
  }
  
-+static int camellia_set_key_skcipher(struct crypto_skcipher *tfm,
-+				     const u8 *in_key, unsigned int key_len)
-+{
-+	return camellia_set_key(crypto_skcipher_tfm(tfm), in_key, key_len);
-+}
-+
- extern void camellia_sparc64_crypt(const u64 *key, const u32 *input,
- 				   u32 *output, unsigned int key_len);
+-#define pgd_populate(MM, PGD, PMD)      pgd_set(PGD, PMD)
++#define pud_populate(MM, PGD, PMD)      pud_set(PGD, PMD)
  
-@@ -81,61 +88,46 @@ typedef void ecb_crypt_op(const u64 *input, u64 *output, unsigned int len,
- extern ecb_crypt_op camellia_sparc64_ecb_crypt_3_grand_rounds;
- extern ecb_crypt_op camellia_sparc64_ecb_crypt_4_grand_rounds;
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm,
+ 				   unsigned long address)
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 31da448..6d6f44c 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -12,7 +12,7 @@
+ #include <linux/const.h>
  
--#define CAMELLIA_BLOCK_MASK	(~(CAMELLIA_BLOCK_SIZE - 1))
--
--static int __ecb_crypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes, bool encrypt)
-+static int __ecb_crypt(struct skcipher_request *req, bool encrypt)
+ #ifndef __ASSEMBLY__
+-#include <asm-generic/4level-fixup.h>
++#include <asm-generic/pgtable-nopud.h>
+ 
+ #include <linux/spinlock.h>
+ #include <linux/mm_types.h>
+@@ -132,12 +132,12 @@ static inline struct page *pmd_page(pmd_t pmd)
+ 	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT-4));
+ }
+ 
+-static inline unsigned long pgd_page_vaddr(pgd_t pgd)
++static inline unsigned long pud_page_vaddr(pud_t pud)
  {
--	struct camellia_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct camellia_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
- 	ecb_crypt_op *op;
- 	const u64 *key;
-+	unsigned int nbytes;
- 	int err;
- 
- 	op = camellia_sparc64_ecb_crypt_3_grand_rounds;
- 	if (ctx->key_len != 16)
- 		op = camellia_sparc64_ecb_crypt_4_grand_rounds;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	if (encrypt)
- 		key = &ctx->encrypt_key[0];
- 	else
- 		key = &ctx->decrypt_key[0];
- 	camellia_sparc64_load_keys(key, ctx->key_len);
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & CAMELLIA_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			const u64 *src64;
--			u64 *dst64;
--
--			src64 = (const u64 *)walk.src.virt.addr;
--			dst64 = (u64 *) walk.dst.virt.addr;
--			op(src64, dst64, block_len, key);
--		}
--		nbytes &= CAMELLIA_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		op(walk.src.virt.addr, walk.dst.virt.addr,
-+		   round_down(nbytes, CAMELLIA_BLOCK_SIZE), key);
-+		err = skcipher_walk_done(&walk, nbytes % CAMELLIA_BLOCK_SIZE);
+-	if (srmmu_device_memory(pgd_val(pgd))) {
++	if (srmmu_device_memory(pud_val(pud))) {
+ 		return ~0;
+ 	} else {
+-		unsigned long v = pgd_val(pgd) & SRMMU_PTD_PMASK;
++		unsigned long v = pud_val(pud) & SRMMU_PTD_PMASK;
+ 		return (unsigned long)__nocache_va(v << 4);
  	}
- 	fprs_write(0);
- 	return err;
+ }
+@@ -184,24 +184,24 @@ static inline void pmd_clear(pmd_t *pmdp)
+ 		set_pte((pte_t *)&pmdp->pmdv[i], __pte(0));
  }
  
--static int ecb_encrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int ecb_encrypt(struct skcipher_request *req)
+-static inline int pgd_none(pgd_t pgd)          
++static inline int pud_none(pud_t pud)
  {
--	return __ecb_crypt(desc, dst, src, nbytes, true);
-+	return __ecb_crypt(req, true);
+-	return !(pgd_val(pgd) & 0xFFFFFFF);
++	return !(pud_val(pud) & 0xFFFFFFF);
  }
  
--static int ecb_decrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int ecb_decrypt(struct skcipher_request *req)
+-static inline int pgd_bad(pgd_t pgd)
++static inline int pud_bad(pud_t pud)
  {
--	return __ecb_crypt(desc, dst, src, nbytes, false);
-+	return __ecb_crypt(req, false);
+-	return (pgd_val(pgd) & SRMMU_ET_MASK) != SRMMU_ET_PTD;
++	return (pud_val(pud) & SRMMU_ET_MASK) != SRMMU_ET_PTD;
  }
  
- typedef void cbc_crypt_op(const u64 *input, u64 *output, unsigned int len,
-@@ -146,85 +138,65 @@ extern cbc_crypt_op camellia_sparc64_cbc_encrypt_4_grand_rounds;
- extern cbc_crypt_op camellia_sparc64_cbc_decrypt_3_grand_rounds;
- extern cbc_crypt_op camellia_sparc64_cbc_decrypt_4_grand_rounds;
- 
--static int cbc_encrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int cbc_encrypt(struct skcipher_request *req)
+-static inline int pgd_present(pgd_t pgd)
++static inline int pud_present(pud_t pud)
  {
--	struct camellia_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct camellia_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
- 	cbc_crypt_op *op;
- 	const u64 *key;
-+	unsigned int nbytes;
- 	int err;
- 
- 	op = camellia_sparc64_cbc_encrypt_3_grand_rounds;
- 	if (ctx->key_len != 16)
- 		op = camellia_sparc64_cbc_encrypt_4_grand_rounds;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	key = &ctx->encrypt_key[0];
- 	camellia_sparc64_load_keys(key, ctx->key_len);
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & CAMELLIA_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			const u64 *src64;
--			u64 *dst64;
--
--			src64 = (const u64 *)walk.src.virt.addr;
--			dst64 = (u64 *) walk.dst.virt.addr;
--			op(src64, dst64, block_len, key,
--			   (u64 *) walk.iv);
--		}
--		nbytes &= CAMELLIA_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		op(walk.src.virt.addr, walk.dst.virt.addr,
-+		   round_down(nbytes, CAMELLIA_BLOCK_SIZE), key, walk.iv);
-+		err = skcipher_walk_done(&walk, nbytes % CAMELLIA_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 	return err;
+-	return ((pgd_val(pgd) & SRMMU_ET_MASK) = SRMMU_ET_PTD);
++	return ((pud_val(pud) & SRMMU_ET_MASK) = SRMMU_ET_PTD);
  }
  
--static int cbc_decrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int cbc_decrypt(struct skcipher_request *req)
+-static inline void pgd_clear(pgd_t *pgdp)
++static inline void pud_clear(pud_t *pudp)
  {
--	struct camellia_sparc64_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct camellia_sparc64_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
- 	cbc_crypt_op *op;
- 	const u64 *key;
-+	unsigned int nbytes;
- 	int err;
- 
- 	op = camellia_sparc64_cbc_decrypt_3_grand_rounds;
- 	if (ctx->key_len != 16)
- 		op = camellia_sparc64_cbc_decrypt_4_grand_rounds;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	key = &ctx->decrypt_key[0];
- 	camellia_sparc64_load_keys(key, ctx->key_len);
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & CAMELLIA_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			const u64 *src64;
--			u64 *dst64;
--
--			src64 = (const u64 *)walk.src.virt.addr;
--			dst64 = (u64 *) walk.dst.virt.addr;
--			op(src64, dst64, block_len, key,
--			   (u64 *) walk.iv);
--		}
--		nbytes &= CAMELLIA_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		op(walk.src.virt.addr, walk.dst.virt.addr,
-+		   round_down(nbytes, CAMELLIA_BLOCK_SIZE), key, walk.iv);
-+		err = skcipher_walk_done(&walk, nbytes % CAMELLIA_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 	return err;
+-	set_pte((pte_t *)pgdp, __pte(0));
++	set_pte((pte_t *)pudp, __pte(0));
  }
  
--static struct crypto_alg algs[] = { {
-+static struct crypto_alg cipher_alg = {
- 	.cra_name		= "camellia",
- 	.cra_driver_name	= "camellia-sparc64",
- 	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
-@@ -242,46 +214,37 @@ static struct crypto_alg algs[] = { {
- 			.cia_decrypt		= camellia_decrypt
+ /*
+@@ -319,9 +319,9 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ #define pgd_offset_k(address) pgd_offset(&init_mm, address)
+ 
+ /* Find an entry in the second-level page table.. */
+-static inline pmd_t *pmd_offset(pgd_t * dir, unsigned long address)
++static inline pmd_t *pmd_offset(pud_t * dir, unsigned long address)
+ {
+-	return (pmd_t *) pgd_page_vaddr(*dir) +
++	return (pmd_t *) pud_page_vaddr(*dir) +
+ 		((address >> PMD_SHIFT) & (PTRS_PER_PMD - 1));
+ }
+ 
+diff --git a/arch/sparc/mm/fault_32.c b/arch/sparc/mm/fault_32.c
+index 8d69de1..89976c9 100644
+--- a/arch/sparc/mm/fault_32.c
++++ b/arch/sparc/mm/fault_32.c
+@@ -351,6 +351,8 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 		 */
+ 		int offset = pgd_index(address);
+ 		pgd_t *pgd, *pgd_k;
++		p4d_t *p4d, *p4d_k;
++		pud_t *pud, *pud_k;
+ 		pmd_t *pmd, *pmd_k;
+ 
+ 		pgd = tsk->active_mm->pgd + offset;
+@@ -363,8 +365,13 @@ asmlinkage void do_sparc_fault(struct pt_regs *regs, int text_fault, int write,
+ 			return;
  		}
- 	}
--}, {
--	.cra_name		= "ecb(camellia)",
--	.cra_driver_name	= "ecb-camellia-sparc64",
--	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
--	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
--	.cra_blocksize		= CAMELLIA_BLOCK_SIZE,
--	.cra_ctxsize		= sizeof(struct camellia_sparc64_ctx),
--	.cra_alignmask		= 7,
--	.cra_type		= &crypto_blkcipher_type,
--	.cra_module		= THIS_MODULE,
--	.cra_u = {
--		.blkcipher = {
--			.min_keysize	= CAMELLIA_MIN_KEY_SIZE,
--			.max_keysize	= CAMELLIA_MAX_KEY_SIZE,
--			.setkey		= camellia_set_key,
--			.encrypt	= ecb_encrypt,
--			.decrypt	= ecb_decrypt,
--		},
--	},
--}, {
--	.cra_name		= "cbc(camellia)",
--	.cra_driver_name	= "cbc-camellia-sparc64",
--	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
--	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
--	.cra_blocksize		= CAMELLIA_BLOCK_SIZE,
--	.cra_ctxsize		= sizeof(struct camellia_sparc64_ctx),
--	.cra_alignmask		= 7,
--	.cra_type		= &crypto_blkcipher_type,
--	.cra_module		= THIS_MODULE,
--	.cra_u = {
--		.blkcipher = {
--			.min_keysize	= CAMELLIA_MIN_KEY_SIZE,
--			.max_keysize	= CAMELLIA_MAX_KEY_SIZE,
--			.ivsize		= CAMELLIA_BLOCK_SIZE,
--			.setkey		= camellia_set_key,
--			.encrypt	= cbc_encrypt,
--			.decrypt	= cbc_decrypt,
--		},
--	},
--}
-+};
+ 
+-		pmd = pmd_offset(pgd, address);
+-		pmd_k = pmd_offset(pgd_k, address);
++		p4d = p4d_offset(pgd, address);
++		pud = pud_offset(p4d, address);
++		pmd = pmd_offset(pud, address);
 +
-+static struct skcipher_alg skcipher_algs[] = {
-+	{
-+		.base.cra_name		= "ecb(camellia)",
-+		.base.cra_driver_name	= "ecb-camellia-sparc64",
-+		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
-+		.base.cra_blocksize	= CAMELLIA_BLOCK_SIZE,
-+		.base.cra_ctxsize	= sizeof(struct camellia_sparc64_ctx),
-+		.base.cra_alignmask	= 7,
-+		.base.cra_module	= THIS_MODULE,
-+		.min_keysize		= CAMELLIA_MIN_KEY_SIZE,
-+		.max_keysize		= CAMELLIA_MAX_KEY_SIZE,
-+		.setkey			= camellia_set_key_skcipher,
-+		.encrypt		= ecb_encrypt,
-+		.decrypt		= ecb_decrypt,
-+	}, {
-+		.base.cra_name		= "cbc(camellia)",
-+		.base.cra_driver_name	= "cbc-camellia-sparc64",
-+		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
-+		.base.cra_blocksize	= CAMELLIA_BLOCK_SIZE,
-+		.base.cra_ctxsize	= sizeof(struct camellia_sparc64_ctx),
-+		.base.cra_alignmask	= 7,
-+		.base.cra_module	= THIS_MODULE,
-+		.min_keysize		= CAMELLIA_MIN_KEY_SIZE,
-+		.max_keysize		= CAMELLIA_MAX_KEY_SIZE,
-+		.ivsize			= CAMELLIA_BLOCK_SIZE,
-+		.setkey			= camellia_set_key_skcipher,
-+		.encrypt		= cbc_encrypt,
-+		.decrypt		= cbc_decrypt,
-+	}
- };
++		p4d_k = p4d_offset(pgd_k, address);
++		pud_k = pud_offset(p4d_k, address);
++		pmd_k = pmd_offset(pud_k, address);
  
- static bool __init sparc64_has_camellia_opcode(void)
-@@ -300,17 +263,27 @@ static bool __init sparc64_has_camellia_opcode(void)
- 
- static int __init camellia_sparc64_mod_init(void)
+ 		if (pmd_present(*pmd) || !pmd_present(*pmd_k))
+ 			goto bad_area_nosemaphore;
+diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
+index 86bc2a5..d4a80ad 100644
+--- a/arch/sparc/mm/highmem.c
++++ b/arch/sparc/mm/highmem.c
+@@ -39,10 +39,14 @@ static pte_t *kmap_pte;
+ void __init kmap_init(void)
  {
--	if (sparc64_has_camellia_opcode()) {
--		pr_info("Using sparc64 camellia opcodes optimized CAMELLIA implementation\n");
--		return crypto_register_algs(algs, ARRAY_SIZE(algs));
-+	int err;
+ 	unsigned long address;
++	p4d_t *p4d;
++	pud_t *pud;
+ 	pmd_t *dir;
+ 
+ 	address = __fix_to_virt(FIX_KMAP_BEGIN);
+-	dir = pmd_offset(pgd_offset_k(address), address);
++	p4d = p4d_offset(pgd_offset_k(address), address);
++	pud = pud_offset(p4d, address);
++	dir = pmd_offset(pud, address);
+ 
+         /* cache the first kmap pte */
+         kmap_pte = pte_offset_kernel(dir, address);
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index f770ee7..33a0fac 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -239,12 +239,16 @@ static void *iounit_alloc(struct device *dev, size_t len,
+ 		page = va;
+ 		{
+ 			pgd_t *pgdp;
++			p4d_t *p4dp;
++			pud_t *pudp;
+ 			pmd_t *pmdp;
+ 			pte_t *ptep;
+ 			long i;
+ 
+ 			pgdp = pgd_offset(&init_mm, addr);
+-			pmdp = pmd_offset(pgdp, addr);
++			p4dp = p4d_offset(pgdp, addr);
++			pudp = pud_offset(p4dp, addr);
++			pmdp = pmd_offset(pudp, addr);
+ 			ptep = pte_offset_map(pmdp, addr);
+ 
+ 			set_pte(ptep, mk_pte(virt_to_page(page), dvma_prot));
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 71ac353..4d3c699 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -343,6 +343,8 @@ static void *sbus_iommu_alloc(struct device *dev, size_t len,
+ 		page = va;
+ 		{
+ 			pgd_t *pgdp;
++			p4d_t *p4dp;
++			pud_t *pudp;
+ 			pmd_t *pmdp;
+ 			pte_t *ptep;
+ 
+@@ -354,7 +356,9 @@ static void *sbus_iommu_alloc(struct device *dev, size_t len,
+ 				__flush_page_to_ram(page);
+ 
+ 			pgdp = pgd_offset(&init_mm, addr);
+-			pmdp = pmd_offset(pgdp, addr);
++			p4dp = p4d_offset(pgdp, addr);
++			pudp = pud_offset(p4dp, addr);
++			pmdp = pmd_offset(pudp, addr);
+ 			ptep = pte_offset_map(pmdp, addr);
+ 
+ 			set_pte(ptep, mk_pte(virt_to_page(page), dvma_prot));
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index cc3ad64..eb95407 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -296,6 +296,8 @@ static void __init srmmu_nocache_init(void)
+ 	void *srmmu_nocache_bitmap;
+ 	unsigned int bitmap_bits;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	unsigned long paddr, vaddr;
+@@ -329,6 +331,8 @@ static void __init srmmu_nocache_init(void)
+ 
+ 	while (vaddr < srmmu_nocache_end) {
+ 		pgd = pgd_offset_k(vaddr);
++		p4d = p4d_offset(__nocache_fix(pgd), vaddr);
++		pud = pud_offset(__nocache_fix(p4d), vaddr);
+ 		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
+ 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
+ 
+@@ -516,13 +520,17 @@ static inline void srmmu_mapioaddr(unsigned long physaddr,
+ 				   unsigned long virt_addr, int bus_type)
+ {
+ 	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 	unsigned long tmp;
+ 
+ 	physaddr &= PAGE_MASK;
+ 	pgdp = pgd_offset_k(virt_addr);
+-	pmdp = pmd_offset(pgdp, virt_addr);
++	p4dp = p4d_offset(pgdp, virt_addr);
++	pudp = pud_offset(p4dp, virt_addr);
++	pmdp = pmd_offset(pudp, virt_addr);
+ 	ptep = pte_offset_kernel(pmdp, virt_addr);
+ 	tmp = (physaddr >> 4) | SRMMU_ET_PTE;
+ 
+@@ -551,11 +559,16 @@ void srmmu_mapiorange(unsigned int bus, unsigned long xpa,
+ static inline void srmmu_unmapioaddr(unsigned long virt_addr)
+ {
+ 	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 
 +
-+	if (!sparc64_has_camellia_opcode()) {
-+		pr_info("sparc64 camellia opcodes not available.\n");
-+		return -ENODEV;
- 	}
--	pr_info("sparc64 camellia opcodes not available.\n");
--	return -ENODEV;
-+	pr_info("Using sparc64 camellia opcodes optimized CAMELLIA implementation\n");
-+	err = crypto_register_alg(&cipher_alg);
-+	if (err)
-+		return err;
-+	err = crypto_register_skciphers(skcipher_algs,
-+					ARRAY_SIZE(skcipher_algs));
-+	if (err)
-+		crypto_unregister_alg(&cipher_alg);
-+	return err;
- }
+ 	pgdp = pgd_offset_k(virt_addr);
+-	pmdp = pmd_offset(pgdp, virt_addr);
++	p4dp = p4d_offset(pgdp, virt_addr);
++	pudp = pud_offset(p4dp, virt_addr);
++	pmdp = pmd_offset(pudp, virt_addr);
+ 	ptep = pte_offset_kernel(pmdp, virt_addr);
  
- static void __exit camellia_sparc64_mod_fini(void)
+ 	/* No need to flush uncacheable page. */
+@@ -693,20 +706,24 @@ static void __init srmmu_early_allocate_ptable_skeleton(unsigned long start,
+ 							unsigned long end)
  {
--	crypto_unregister_algs(algs, ARRAY_SIZE(algs));
-+	crypto_unregister_alg(&cipher_alg);
-+	crypto_unregister_skciphers(skcipher_algs, ARRAY_SIZE(skcipher_algs));
- }
+ 	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
  
- module_init(camellia_sparc64_mod_init);
-diff --git a/crypto/Kconfig b/crypto/Kconfig
-index 7c54a5b9aa2b..bc97543d1ec2 100644
---- a/crypto/Kconfig
-+++ b/crypto/Kconfig
-@@ -1276,6 +1276,7 @@ config CRYPTO_CAMELLIA_SPARC64
- 	depends on SPARC64
- 	depends on CRYPTO
- 	select CRYPTO_ALGAPI
-+	select CRYPTO_BLKCIPHER
- 	help
- 	  Camellia cipher algorithm module (SPARC64).
+ 	while (start < end) {
+ 		pgdp = pgd_offset_k(start);
+-		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp))) {
++		p4dp = p4d_offset(__nocache_fix(pgdp), start);
++		pudp = pud_offset(__nocache_fix(p4dp), start);
++		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
+ 			pmdp = __srmmu_get_nocache(
+ 			    SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
+ 			if (pmdp = NULL)
+ 				early_pgtable_allocfail("pmd");
+ 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
+-			pgd_set(__nocache_fix(pgdp), pmdp);
++			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+-		pmdp = pmd_offset(__nocache_fix(pgdp), start);
++		pmdp = pmd_offset(__nocache_fix(pudp), start);
+ 		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
+ 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+ 			if (ptep = NULL)
+@@ -724,19 +741,23 @@ static void __init srmmu_allocate_ptable_skeleton(unsigned long start,
+ 						  unsigned long end)
+ {
+ 	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 
+ 	while (start < end) {
+ 		pgdp = pgd_offset_k(start);
+-		if (pgd_none(*pgdp)) {
++		p4dp = p4d_offset(pgdp, start);
++		pudp = pud_offset(p4dp, start);
++		if (pud_none(*pudp)) {
+ 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
+ 			if (pmdp = NULL)
+ 				early_pgtable_allocfail("pmd");
+ 			memset(pmdp, 0, SRMMU_PMD_TABLE_SIZE);
+-			pgd_set(pgdp, pmdp);
++			pud_set((pud_t *)pgdp, pmdp);
+ 		}
+-		pmdp = pmd_offset(pgdp, start);
++		pmdp = pmd_offset(pudp, start);
+ 		if (srmmu_pmd_none(*pmdp)) {
+ 			ptep = __srmmu_get_nocache(PTE_SIZE,
+ 							     PTE_SIZE);
+@@ -779,6 +800,8 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 	unsigned long probed;
+ 	unsigned long addr;
+ 	pgd_t *pgdp;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 	int what; /* 0 = normal-pte, 1 = pmd-level pte, 2 = pgd-level pte */
+@@ -810,18 +833,20 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 		}
+ 
+ 		pgdp = pgd_offset_k(start);
++		p4dp = p4d_offset(__nocache_fix(pgdp), start);
++		pudp = pud_offset(__nocache_fix(p4dp), start);
+ 		if (what = 2) {
+ 			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
+ 			start += SRMMU_PGDIR_SIZE;
+ 			continue;
+ 		}
+-		if (pgd_none(*(pgd_t *)__nocache_fix(pgdp))) {
++		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
+ 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
+ 						   SRMMU_PMD_TABLE_SIZE);
+ 			if (pmdp = NULL)
+ 				early_pgtable_allocfail("pmd");
+ 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
+-			pgd_set(__nocache_fix(pgdp), pmdp);
++			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+ 		pmdp = pmd_offset(__nocache_fix(pgdp), start);
+ 		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
+@@ -906,6 +931,8 @@ void __init srmmu_paging_init(void)
+ 	phandle cpunode;
+ 	char node_str[128];
+ 	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	unsigned long pages_avail;
+@@ -967,7 +994,9 @@ void __init srmmu_paging_init(void)
+ 	srmmu_allocate_ptable_skeleton(PKMAP_BASE, PKMAP_END);
+ 
+ 	pgd = pgd_offset_k(PKMAP_BASE);
+-	pmd = pmd_offset(pgd, PKMAP_BASE);
++	p4d = p4d_offset(pgd, PKMAP_BASE);
++	pud = pud_offset(p4d, PKMAP_BASE);
++	pmd = pmd_offset(pud, PKMAP_BASE);
+ 	pte = pte_offset_kernel(pmd, PKMAP_BASE);
+ 	pkmap_page_table = pte;
  
 -- 
-2.23.0
+2.7.4
