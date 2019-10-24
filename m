@@ -1,40 +1,44 @@
-From: Ben Dooks <ben.dooks@codethink.co.uk>
-Date: Fri, 11 Oct 2019 13:43:32 +0000
-Subject: Re: [PATCH] proc: centralise declaration of cpuinfo_op
-Message-Id: <5c4ad594-55a3-a9c5-1674-e85665422aa1@codethink.co.uk>
+From: Michal Simek <michal.simek@xilinx.com>
+Date: Thu, 24 Oct 2019 10:13:10 +0000
+Subject: [PATCH 0/2] Enabling MSI for Microblaze
+Message-Id: <cover.1571911976.git.michal.simek@xilinx.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191009113930.13236-1-ben.dooks@codethink.co.uk>
- <20191009175149.GA28540@infradead.org>
-In-Reply-To: <20191009175149.GA28540@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-kernel@lists.codethink.co.uk, linux-s390@vger.kernel.org, Rich Felker <dalias@libc.org>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-sh@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "H. Peter Anvin" <hpa@zytor.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, x86@kernel.org, Aurelien Jacquiot <jacquiot.aurelien@gmail.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, linux-arm-kernel@lists.infradead.org, Mark Salter <msalter@redhat.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org, monstr@monstr.eu, michal.simek@xilinx.com, git@xilinx.com, palmer@sifive.com, hch@infradead.org, longman@redhat.com, helgaas@kernel.org
+Cc: Paolo Bonzini <pbonzini@redhat.com>, Arnd Bergmann <arnd@arndb.de>, Jackie Liu <liuyun01@kylinos.cn>, Wesley Terpstra <wesley@sifive.com>, Firoz Khan <firoz.khan@linaro.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, James Hogan <jhogan@kernel.org>, Vineet Gupta <vgupta@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, Will Deacon <will@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.>
 
-On 09/10/2019 18:51, Christoph Hellwig wrote:
-> On Wed, Oct 09, 2019 at 12:39:30PM +0100, Ben Dooks wrote:
->> When building for arm, cpuinfo_op generates a warning due
->> to no declaration. Since this is used in fs/proc/cpuinfo.c
->> and inconsitently declared across archiectures move the
->> declaration info <linux/seq_file.h>. This means that the
->> cpuinfo_op will have a declaration any place it is used.
->>
->> Removes the following sparse warning:
->>
->> arch/arm/kernel/setup.c:1320:29: warning: symbol 'cpuinfo_op' was not declared. Should it be static?
-> 
-> I like the consolidation, but I don't think seq_file.h is the right
-> place.  A procfs or cpu topology related header seems like the better
-> choice.
+Hi,
 
-Ok, thanks.
+these two patches come from discussion with Christoph, Bjorn, Palmer and
+Waiman. The first patch was suggestion by Christoph here
+https://lore.kernel.org/linux-riscv/20191008154604.GA7903@infradead.org/
+The second part was discussed
+https://lore.kernel.org/linux-pci/mhng-5d9bcb53-225e-441f-86cc-b335624b3e7c@palmer-si-x1e/
+and
+https://lore.kernel.org/linux-pci/20191017181937.7004-1-palmer@sifive.com/
 
-I'll have a look at where else it could go, but I'm not sure if I have
-the resources to build /all/ kernels that this would effect.
+Thanks,
+Michal
+
+
+Michal Simek (1):
+  asm-generic: Make msi.h a mandatory include/asm header
+
+Palmer Dabbelt (1):
+  pci: Default to PCI_MSI_IRQ_DOMAIN
+
+ arch/arc/include/asm/Kbuild     | 1 -
+ arch/arm/include/asm/Kbuild     | 1 -
+ arch/arm64/include/asm/Kbuild   | 1 -
+ arch/mips/include/asm/Kbuild    | 1 -
+ arch/powerpc/include/asm/Kbuild | 1 -
+ arch/riscv/include/asm/Kbuild   | 1 -
+ arch/sparc/include/asm/Kbuild   | 1 -
+ drivers/pci/Kconfig             | 2 +-
+ include/asm-generic/Kbuild      | 1 +
+ 9 files changed, 2 insertions(+), 8 deletions(-)
 
 -- 
-Ben Dooks				http://www.codethink.co.uk/
-Senior Engineer				Codethink - Providing Genius
-
-https://www.codethink.co.uk/privacy.html
+2.17.1
