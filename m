@@ -1,38 +1,46 @@
-From: "Mr Barrister Hans Erich" <Barrister_Hans@stationlibraryjhelum.com>
-Date: Fri, 18 Oct 2019 14:59:26 +0000
-Subject: RE:PERSONAL LETTER FROM MRS RASHIA AMIRA
-Message-Id: <0$1rl39a4m87co16$37j-u1i6e@gtzp9x2s.z.nyk>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_1A_._.39205DE_.9DBF0_FB"
+From: Michal Simek <michal.simek@xilinx.com>
+Date: Fri, 25 Oct 2019 06:10:36 +0000
+Subject: [PATCH v2 0/2] Enabling MSI for Microblaze
+Message-Id: <cover.1571983829.git.michal.simek@xilinx.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <nov$55$3d$e$956@b21.dmt>
-In-Reply-To: <nov$55$3d$e$956@b21.dmt>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org, monstr@monstr.eu, michal.simek@xilinx.com, git@xilinx.com, palmer@sifive.com, hch@infradead.org, longman@redhat.com, helgaas@kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Jackie Liu <liuyun01@kylinos.cn>, Wesley Terpstra <wesley@sifive.com>, Firoz Khan <firoz.khan@linaro.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-riscv@lists.infradead.org, linux-arch@vger.kernel.org, James Hogan <jhogan@kernel.org>, Vineet Gupta <vgupta@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Peter Zijlstra (Intel)" <peterz@infradead.org>, Will Deacon <will@kernel.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Greg Ungerer <gerg@linux-m68k.o>
 
+Hi,
 
---_1A_._.39205DE_.9DBF0_FB
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+these two patches come from discussion with Christoph, Bjorn, Palmer and
+Waiman. The first patch was suggestion by Christoph here
+https://lore.kernel.org/linux-riscv/20191008154604.GA7903@infradead.org/
+The second part was discussed
+https://lore.kernel.org/linux-pci/mhng-5d9bcb53-225e-441f-86cc-b335624b3e7c@palmer-si-x1e/
+and
+https://lore.kernel.org/linux-pci/20191017181937.7004-1-palmer@sifive.com/
 
-Greetings
+Thanks,
+Michal
 
-My name is Barrister Hans Erich.
+Changes in v2:
+- Fix typo in commit message s/expect/except/ - Reported-by: Masahiro
 
-I have a client who is interested to invest in your country, she is a well=
- known politician in her country and deserve a lucrative investment partne=
-rship with you outside her country without any delay   Please can you mana=
-ge such investment please Kindly reply for further details.
+Michal Simek (1):
+  asm-generic: Make msi.h a mandatory include/asm header
 
-Your full names ---------
+Palmer Dabbelt (1):
+  pci: Default to PCI_MSI_IRQ_DOMAIN
 
+ arch/arc/include/asm/Kbuild     | 1 -
+ arch/arm/include/asm/Kbuild     | 1 -
+ arch/arm64/include/asm/Kbuild   | 1 -
+ arch/mips/include/asm/Kbuild    | 1 -
+ arch/powerpc/include/asm/Kbuild | 1 -
+ arch/riscv/include/asm/Kbuild   | 1 -
+ arch/sparc/include/asm/Kbuild   | 1 -
+ drivers/pci/Kconfig             | 2 +-
+ include/asm-generic/Kbuild      | 1 +
+ 9 files changed, 2 insertions(+), 8 deletions(-)
 
-Your urgent response will be appreciated
-
-Thank you and God bless you.
-
-Barrister Hans Erich
-
-Yours sincerely,
-Barrister Hans Erich
-
---_1A_._.39205DE_.9DBF0_FB--
+-- 
+2.17.1
