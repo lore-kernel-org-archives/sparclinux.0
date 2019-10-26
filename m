@@ -1,332 +1,448 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Wed, 23 Oct 2019 09:28:56 +0000
-Subject: [PATCH 07/12] nds32: use pgtable-nopmd instead of 4level-fixup
-Message-Id: <1571822941-29776-8-git-send-email-rppt@kernel.org>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Sat, 26 Oct 2019 18:56:55 +0000
+Subject: [PATCH RESEND v14 1/6] namei: O_BENEATH-style resolution restriction flags
+Message-Id: <20191026185700.10708-2-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+References: <20191026185700.10708-1-cyphar@cyphar.com>
+In-Reply-To: <20191026185700.10708-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian@brauner.io>, David Drysdale <drysdale@google.com>, Andy Lutomirski <luto@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Aleksa Sarai <asarai@suse.de>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.orglinu
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+/* Background. */
+The need for some sort of control over VFS's path resolution (to avoid
+malicious paths resulting in inadvertent breakouts) has been a very
+long-standing desire of many userspace applications throughout the
+history of Unix. While some improvements have been made (such as
+O_NOFOLLOW or AT_NO_AUTOMOUNT), most of the new APIs have involved
+restricting the final component in a path's lookup -- completely
+ignoring the rest of the path components.
 
-nds32 has only two-level page tables and can use pgtable-nopmd and folding
-of the upper layers.
+Userspace programs have thus been forced to implement their own (and
+usually subtly broken) methods of ensuring path components they don't
+wish to resolve are detected. Aside from making it more complicated to
+write such programs safely, there are some things which are effectively
+impossible to safely handle correctly (for instance, magic-links cannot
+reliably be differentiated from symlinks on filesystems that may contain
+magic-links). It would be a massive improvement to provide these types
+of resolution restriction features to userspace.
 
-Replace usage of include/asm-generic/4level-fixup.h and explicit definition
-of __PAGETABLE_PMD_FOLDED in nds32 with include/asm-generic/pgtable-nopmd.h
-and adjust page table manipulation macros and functions accordingly.
+This is a refresh of Al's AT_NO_JUMPS patchset[1] (which was a variation
+on David Drysdale's O_BENEATH patchset[2], which in turn was based on
+the Capsicum project[3]). Input from Linus and Andy in the AT_NO_JUMPS
+thread[4] determined most of the API changes made in this refresh.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+/* Userspace API. */
+These flags will be exposed to userspace through openat2(2).
+
+/* Semantics. */
+The following new LOOKUP flags are defined, and (in contrast to most
+other LOOKUP flags, they apply to all components of path resolution as
+opposed to only the final component).
+
+  LOOKUP_NO_XDEV
+    Disallow mount-point crossing (both *down* into one, or *up* from
+    one). Both bind-mounts and cross-filesystem mounts are blocked by
+    this flag. The naming is based on "find -xdev" as well as -EXDEV
+    (though find(1) doesn't walk upwards, the semantics seem obvious).
+
+  LOOKUP_NO_MAGICLINKS
+    Disallows "magic-link" resolution ("symlinks" that are resolved
+    through nd_jump_link()). This is important to provide explicitly,
+    because magic-links can be used to trick privileged programs into
+    bypassing normal path resolution restriction mechanisms (such as
+    mount namespaces). Such programs likely want to permit ordinary
+    symlink resolution, but don't wish to permit magic-links.
+
+    It should be noted that prior to this, there was no way for
+    userspace to unambiguously verify whether a symlink was a
+    magic-link.
+
+  LOOKUP_NO_SYMLINKS
+    Disallows resolution through symlinks (includes magic-links).
+
+  LOOKUP_BENEATH
+    Disallow "escapes" from the starting point of the filesystem tree
+    during resolution (you must stay "beneath" the starting point at all
+    times). Currently this is done by disallowing ".." and absolute
+    paths (either in the given path or found during symlink resolution)
+    entirely, as well as all magic-link jumping.
+
+    The wholesale banning of ".." is because it is currently not safe to
+    allow ".." resolution (races can cause the path to be moved outside
+    of the root -- this is conceptually similar to historical chroot(2)
+    escape attacks). Future patches in this series will address this,
+    and will re-enable ".." resolution once it is safe. With those
+    patches, ".." resolution will only be allowed if it remains in the
+    root throughout resolution (such as "a/../b" not
+    "a/../../outside/b").
+
+    The banning of magic-link jumping is done because it is not clear
+    whether semantically they should be allowed -- while some
+    magic-links are safe there are many that can cause escapes (and once
+    a resolution is outside of the root, O_BENEATH will no longer detect
+    it). Future patches may re-enable magic-link jumping when such jumps
+    would remain inside the root.
+
+The LOOKUP_NO_*LINK flags return -ELOOP if path resolution would
+violates their requirement, while the others all return -EXDEV.
+
+[1]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk/
+[2]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdale@google.com/
+[3]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdale@google.com/
+[4]: https://lwn.net/Articles/723057/
+
+Cc: Christian Brauner <christian@brauner.io>
+Suggested-by: David Drysdale <drysdale@google.com>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Suggested-by: Andy Lutomirski <luto@kernel.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- arch/nds32/include/asm/page.h    |  3 ---
- arch/nds32/include/asm/pgalloc.h |  3 ---
- arch/nds32/include/asm/pgtable.h | 12 +-----------
- arch/nds32/include/asm/tlb.h     |  1 -
- arch/nds32/kernel/pm.c           |  4 +++-
- arch/nds32/mm/fault.c            | 16 +++++++++++++---
- arch/nds32/mm/init.c             | 11 ++++++++---
- arch/nds32/mm/mm-nds32.c         |  6 +++++-
- arch/nds32/mm/proc.c             | 26 +++++++++++++++++---------
- 9 files changed, 47 insertions(+), 35 deletions(-)
+ fs/namei.c            | 135 +++++++++++++++++++++++++++++++++++-------
+ include/linux/namei.h |  11 ++++
+ 2 files changed, 125 insertions(+), 21 deletions(-)
 
-diff --git a/arch/nds32/include/asm/page.h b/arch/nds32/include/asm/page.h
-index 8feb1fa..86b3201 100644
---- a/arch/nds32/include/asm/page.h
-+++ b/arch/nds32/include/asm/page.h
-@@ -41,17 +41,14 @@ void clear_page(void *page);
- void copy_page(void *to, void *from);
+diff --git a/fs/namei.c b/fs/namei.c
+index 671c3c1a3425..54fdbdfbeb94 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -504,6 +504,9 @@ struct nameidata {
+ 	struct filename	*name;
+ 	struct nameidata *saved;
+ 	struct inode	*link_inode;
++	struct {
++		bool same_mnt;
++	} last_magiclink;
+ 	unsigned	root_seq;
+ 	int		dfd;
+ } __randomize_layout;
+@@ -641,6 +644,14 @@ static bool legitimize_links(struct nameidata *nd)
  
- typedef unsigned long pte_t;
--typedef unsigned long pmd_t;
- typedef unsigned long pgd_t;
- typedef unsigned long pgprot_t;
- 
- #define pte_val(x)      (x)
--#define pmd_val(x)      (x)
- #define pgd_val(x)	(x)
- #define pgprot_val(x)   (x)
- 
- #define __pte(x)        (x)
--#define __pmd(x)        (x)
- #define __pgd(x)        (x)
- #define __pgprot(x)     (x)
- 
-diff --git a/arch/nds32/include/asm/pgalloc.h b/arch/nds32/include/asm/pgalloc.h
-index 37125e6..85c1173 100644
---- a/arch/nds32/include/asm/pgalloc.h
-+++ b/arch/nds32/include/asm/pgalloc.h
-@@ -15,9 +15,6 @@
- /*
-  * Since we have only two-level page tables, these are trivial
-  */
--#define pmd_alloc_one(mm, addr)		({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, pmd)			do { } while (0)
--#define pgd_populate(mm, pmd, pte)	BUG()
- #define pmd_pgtable(pmd) pmd_page(pmd)
- 
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
-diff --git a/arch/nds32/include/asm/pgtable.h b/arch/nds32/include/asm/pgtable.h
-index 0588ec9..a80b9c6 100644
---- a/arch/nds32/include/asm/pgtable.h
-+++ b/arch/nds32/include/asm/pgtable.h
-@@ -4,8 +4,7 @@
- #ifndef _ASMNDS32_PGTABLE_H
- #define _ASMNDS32_PGTABLE_H
- 
--#define __PAGETABLE_PMD_FOLDED 1
--#include <asm-generic/4level-fixup.h>
-+#include <asm-generic/pgtable-nopmd.h>
- #include <linux/sizes.h>
- 
- #include <asm/memory.h>
-@@ -19,26 +18,20 @@
- #ifdef CONFIG_ANDES_PAGE_SIZE_4KB
- #define PGDIR_SHIFT      22
- #define PTRS_PER_PGD     1024
--#define PMD_SHIFT        22
--#define PTRS_PER_PMD     1
- #define PTRS_PER_PTE     1024
- #endif
- 
- #ifdef CONFIG_ANDES_PAGE_SIZE_8KB
- #define PGDIR_SHIFT      24
- #define PTRS_PER_PGD     256
--#define PMD_SHIFT        24
--#define PTRS_PER_PMD     1
- #define PTRS_PER_PTE     2048
- #endif
- 
- #ifndef __ASSEMBLY__
- extern void __pte_error(const char *file, int line, unsigned long val);
--extern void __pmd_error(const char *file, int line, unsigned long val);
- extern void __pgd_error(const char *file, int line, unsigned long val);
- 
- #define pte_ERROR(pte)		__pte_error(__FILE__, __LINE__, pte_val(pte))
--#define pmd_ERROR(pmd)		__pmd_error(__FILE__, __LINE__, pmd_val(pmd))
- #define pgd_ERROR(pgd)		__pgd_error(__FILE__, __LINE__, pgd_val(pgd))
- #endif /* !__ASSEMBLY__ */
- 
-@@ -366,9 +359,6 @@ static inline pmd_t __mk_pmd(pte_t * ptep, unsigned long prot)
- /* to find an entry in a kernel page-table-directory */
- #define pgd_offset_k(addr)      pgd_offset(&init_mm, addr)
- 
--/* Find an entry in the second-level page table.. */
--#define pmd_offset(dir, addr)	((pmd_t *)(dir))
--
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ static bool legitimize_root(struct nameidata *nd)
  {
- 	const unsigned long mask = 0xfff;
-diff --git a/arch/nds32/include/asm/tlb.h b/arch/nds32/include/asm/tlb.h
-index a8aff1c..6726038 100644
---- a/arch/nds32/include/asm/tlb.h
-+++ b/arch/nds32/include/asm/tlb.h
-@@ -7,6 +7,5 @@
- #include <asm-generic/tlb.h>
++	/*
++	 * For scoped-lookups (where nd->root has been zeroed), we need to
++	 * restart the whole lookup from scratch -- because set_root() is wrong
++	 * for these lookups (nd->dfd is the root, not the filesystem root).
++	 */
++	if (!nd->root.mnt && (nd->flags & LOOKUP_IS_SCOPED))
++		return false;
++	/* Nothing to do if nd->root is zero or is managed by the VFS user. */
+ 	if (!nd->root.mnt || (nd->flags & LOOKUP_ROOT))
+ 		return true;
+ 	nd->flags |= LOOKUP_ROOT_GRABBED;
+@@ -776,7 +787,11 @@ static int complete_walk(struct nameidata *nd)
+ 	int status;
  
- #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
--#define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tln)->mm, pmd)
- 
- #endif
-diff --git a/arch/nds32/kernel/pm.c b/arch/nds32/kernel/pm.c
-index ffa8040..e25700e 100644
---- a/arch/nds32/kernel/pm.c
-+++ b/arch/nds32/kernel/pm.c
-@@ -14,6 +14,7 @@ unsigned int *phy_addr_sp_tmp;
- static void nds32_suspend2ram(void)
- {
- 	pgd_t *pgdv;
-+	p4d_t *p4dv;
- 	pud_t *pudv;
- 	pmd_t *pmdv;
- 	pte_t *ptev;
-@@ -21,7 +22,8 @@ static void nds32_suspend2ram(void)
- 	pgdv = (pgd_t *)__va((__nds32__mfsr(NDS32_SR_L1_PPTB) &
- 		L1_PPTB_mskBASE)) + pgd_index((unsigned int)cpu_resume);
- 
--	pudv = pud_offset(pgdv, (unsigned int)cpu_resume);
-+	p4dv = p4d_offset(pgdv, (unsigned int)cpu_resume);
-+	pudv = pud_offset(p4dv, (unsigned int)cpu_resume);
- 	pmdv = pmd_offset(pudv, (unsigned int)cpu_resume);
- 	ptev = pte_offset_map(pmdv, (unsigned int)cpu_resume);
- 
-diff --git a/arch/nds32/mm/fault.c b/arch/nds32/mm/fault.c
-index 064ae5d..906dfb2 100644
---- a/arch/nds32/mm/fault.c
-+++ b/arch/nds32/mm/fault.c
-@@ -31,6 +31,8 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
- 	pr_alert("[%08lx] *pgd=%08lx", addr, pgd_val(*pgd));
- 
- 	do {
-+		p4d_t *p4d;
-+		pud_t *pud;
- 		pmd_t *pmd;
- 
- 		if (pgd_none(*pgd))
-@@ -41,7 +43,9 @@ void show_pte(struct mm_struct *mm, unsigned long addr)
- 			break;
- 		}
- 
--		pmd = pmd_offset(pgd, addr);
-+		p4d = p4d_offset(pgd, addr);
-+		pud = pud_offset(p4d, addr);
-+		pmd = pmd_offset(pud, addr);
- #if PTRS_PER_PMD != 1
- 		pr_alert(", *pmd=%08lx", pmd_val(*pmd));
- #endif
-@@ -359,6 +363,7 @@ void do_page_fault(unsigned long entry, unsigned long addr,
- 
- 		unsigned int index = pgd_index(addr);
- 		pgd_t *pgd, *pgd_k;
-+		p4d_t *p4d, *p4d_k;
- 		pud_t *pud, *pud_k;
- 		pmd_t *pmd, *pmd_k;
- 		pte_t *pte_k;
-@@ -369,8 +374,13 @@ void do_page_fault(unsigned long entry, unsigned long addr,
- 		if (!pgd_present(*pgd_k))
- 			goto no_context;
- 
--		pud = pud_offset(pgd, addr);
--		pud_k = pud_offset(pgd_k, addr);
-+		p4d = p4d_offset(pgd, addr);
-+		p4d_k = p4d_offset(pgd_k, addr);
-+		if (!p4d_present(*p4d_k))
-+			goto no_context;
-+
-+		pud = pud_offset(p4d, addr);
-+		pud_k = pud_offset(p4d_k, addr);
- 		if (!pud_present(*pud_k))
- 			goto no_context;
- 
-diff --git a/arch/nds32/mm/init.c b/arch/nds32/mm/init.c
-index 55703b0..0be3833f 100644
---- a/arch/nds32/mm/init.c
-+++ b/arch/nds32/mm/init.c
-@@ -54,6 +54,7 @@ static void __init map_ram(void)
- {
- 	unsigned long v, p, e;
- 	pgd_t *pge;
-+	p4d_t *p4e;
- 	pud_t *pue;
- 	pmd_t *pme;
- 	pte_t *pte;
-@@ -69,7 +70,8 @@ static void __init map_ram(void)
- 
- 	while (p < e) {
- 		int j;
--		pue = pud_offset(pge, v);
-+		p4e = p4d_offset(pge, v);
-+		pue = pud_offset(p4e, v);
- 		pme = pmd_offset(pue, v);
- 
- 		if ((u32) pue != (u32) pge || (u32) pme != (u32) pge) {
-@@ -100,6 +102,7 @@ static void __init fixedrange_init(void)
- {
- 	unsigned long vaddr;
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- #ifdef CONFIG_HIGHMEM
-@@ -111,7 +114,8 @@ static void __init fixedrange_init(void)
- 	 */
- 	vaddr = __fix_to_virt(__end_of_fixed_addresses - 1);
- 	pgd = swapper_pg_dir + pgd_index(vaddr);
--	pud = pud_offset(pgd, vaddr);
-+	p4d = p4d_offset(pgd, vaddr);
-+	pud = pud_offset(p4d, vaddr);
- 	pmd = pmd_offset(pud, vaddr);
- 	fixmap_pmd_p = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
- 	if (!fixmap_pmd_p)
-@@ -126,7 +130,8 @@ static void __init fixedrange_init(void)
- 	vaddr = PKMAP_BASE;
- 
- 	pgd = swapper_pg_dir + pgd_index(vaddr);
--	pud = pud_offset(pgd, vaddr);
-+	p4d = p4d_offset(pgd, vaddr);
-+	pud = pud_offset(p4d, vaddr);
- 	pmd = pmd_offset(pud, vaddr);
- 	pte = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
- 	if (!pte)
-diff --git a/arch/nds32/mm/mm-nds32.c b/arch/nds32/mm/mm-nds32.c
-index 3b43798..8503bee 100644
---- a/arch/nds32/mm/mm-nds32.c
-+++ b/arch/nds32/mm/mm-nds32.c
-@@ -74,6 +74,8 @@ void setup_mm_for_reboot(char mode)
- {
- 	unsigned long pmdval;
- 	pgd_t *pgd;
-+	p4d_t *p4d;
-+	pud_t *pud;
- 	pmd_t *pmd;
- 	int i;
- 
-@@ -84,7 +86,9 @@ void setup_mm_for_reboot(char mode)
- 
- 	for (i = 0; i < USER_PTRS_PER_PGD; i++) {
- 		pmdval = (i << PGDIR_SHIFT);
--		pmd = pmd_offset(pgd + i, i << PGDIR_SHIFT);
-+		p4d = p4d_offset(pgd, i << PGDIR_SHIFT);
-+		pud = pud_offset(p4d, i << PGDIR_SHIFT);
-+		pmd = pmd_offset(pud + i, i << PGDIR_SHIFT);
- 		set_pmd(pmd, __pmd(pmdval));
- 	}
+ 	if (nd->flags & LOOKUP_RCU) {
+-		if (!(nd->flags & LOOKUP_ROOT))
++		/*
++		 * We don't want to zero nd->root for scoped-lookups or
++		 * externally-managed nd->root.
++		 */
++		if (!(nd->flags & (LOOKUP_ROOT | LOOKUP_IS_SCOPED)))
+ 			nd->root.mnt = NULL;
+ 		if (unlikely(unlazy_walk(nd)))
+ 			return -ECHILD;
+@@ -798,10 +813,18 @@ static int complete_walk(struct nameidata *nd)
+ 	return status;
  }
-diff --git a/arch/nds32/mm/proc.c b/arch/nds32/mm/proc.c
-index ba80992..837ae77 100644
---- a/arch/nds32/mm/proc.c
-+++ b/arch/nds32/mm/proc.c
-@@ -16,10 +16,14 @@ extern struct cache_info L1_cache_info[2];
  
- int va_kernel_present(unsigned long addr)
+-static void set_root(struct nameidata *nd)
++static int set_root(struct nameidata *nd)
  {
-+	p4d_t *p4d;
-+	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *ptep, pte;
+ 	struct fs_struct *fs = current->fs;
  
--	pmd = pmd_offset(pgd_offset_k(addr), addr);
-+	p4d = p4d_offset(pgd_offset_k(addr), addr);
-+	pud = pud_offset(p4d, addr);
-+	pmd = pmd_offset(pud, addr);
- 	if (!pmd_none(*pmd)) {
- 		ptep = pte_offset_map(pmd, addr);
- 		pte = *ptep;
-@@ -32,20 +36,24 @@ int va_kernel_present(unsigned long addr)
- pte_t va_present(struct mm_struct * mm, unsigned long addr)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *ptep, pte;
++	/*
++	 * Jumping to the real root in a scoped-lookup is a BUG in namei, but we
++	 * still have to ensure it doesn't happen because it will cause a breakout
++	 * from the dirfd.
++	 */
++	if (WARN_ON(nd->flags & LOOKUP_IS_SCOPED))
++		return -ENOTRECOVERABLE;
++
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		unsigned seq;
  
- 	pgd = pgd_offset(mm, addr);
- 	if (!pgd_none(*pgd)) {
--		pud = pud_offset(pgd, addr);
--		if (!pud_none(*pud)) {
--			pmd = pmd_offset(pud, addr);
--			if (!pmd_none(*pmd)) {
--				ptep = pte_offset_map(pmd, addr);
--				pte = *ptep;
--				if (pte_present(pte))
--					return pte;
-+		p4d = p4d_offset(pgd, addr);
-+		if (!p4d_none(*p4d)) {
-+			pud = pud_offset(p4d, addr);
-+			if (!pud_none(*pud)) {
-+				pmd = pmd_offset(pud, addr);
-+				if (!pmd_none(*pmd)) {
-+					ptep = pte_offset_map(pmd, addr);
-+					pte = *ptep;
-+					if (pte_present(pte))
-+						return pte;
-+				}
- 			}
- 		}
+@@ -814,6 +837,7 @@ static void set_root(struct nameidata *nd)
+ 		get_fs_root(fs, &nd->root);
+ 		nd->flags |= LOOKUP_ROOT_GRABBED;
  	}
++	return 0;
+ }
+ 
+ static void path_put_conditional(struct path *path, struct nameidata *nd)
+@@ -837,6 +861,18 @@ static inline void path_to_nameidata(const struct path *path,
+ 
+ static int nd_jump_root(struct nameidata *nd)
+ {
++	if (unlikely(nd->flags & LOOKUP_BENEATH))
++		return -EXDEV;
++	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
++		/* Absolute path arguments to path_init() are allowed. */
++		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
++			return -EXDEV;
++	}
++	if (!nd->root.mnt) {
++		int error = set_root(nd);
++		if (error)
++			return error;
++	}
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		struct dentry *d;
+ 		nd->path = nd->root;
+@@ -862,11 +898,13 @@ static int nd_jump_root(struct nameidata *nd)
+ void nd_jump_link(struct path *path)
+ {
+ 	struct nameidata *nd = current->nameidata;
++
++	nd->last_magiclink.same_mnt = (nd->path.mnt = path->mnt);
+ 	path_put(&nd->path);
+ 
+ 	nd->path = *path;
+ 	nd->inode = nd->path.dentry->d_inode;
+-	nd->flags |= LOOKUP_JUMPED;
++	nd->flags |= LOOKUP_JUMPED | LOOKUP_MAGICLINK_JUMPED;
+ }
+ 
+ static inline void put_link(struct nameidata *nd)
+@@ -1045,6 +1083,9 @@ const char *get_link(struct nameidata *nd)
+ 	int error;
+ 	const char *res;
+ 
++	if (unlikely(nd->flags & LOOKUP_NO_SYMLINKS))
++		return ERR_PTR(-ELOOP);
++
+ 	if (!(nd->flags & LOOKUP_RCU)) {
+ 		touch_atime(&last->link);
+ 		cond_resched();
+@@ -1060,6 +1101,7 @@ const char *get_link(struct nameidata *nd)
+ 		return ERR_PTR(error);
+ 
+ 	nd->last_type = LAST_BIND;
++	nd->flags &= ~LOOKUP_MAGICLINK_JUMPED;
+ 	res = READ_ONCE(inode->i_link);
+ 	if (!res) {
+ 		const char * (*get)(struct dentry *, struct inode *,
+@@ -1075,14 +1117,24 @@ const char *get_link(struct nameidata *nd)
+ 		} else {
+ 			res = get(dentry, inode, &last->done);
+ 		}
++		if (nd->flags & LOOKUP_MAGICLINK_JUMPED) {
++			if (unlikely(nd->flags & LOOKUP_NO_MAGICLINKS))
++				return ERR_PTR(-ELOOP);
++			if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
++				if (!nd->last_magiclink.same_mnt)
++					return ERR_PTR(-EXDEV);
++			}
++			/* Not currently safe for scoped-lookups. */
++			if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
++				return ERR_PTR(-EXDEV);
++		}
+ 		if (IS_ERR_OR_NULL(res))
+ 			return res;
+ 	}
+ 	if (*res = '/') {
+-		if (!nd->root.mnt)
+-			set_root(nd);
+-		if (unlikely(nd_jump_root(nd)))
+-			return ERR_PTR(-ECHILD);
++		error = nd_jump_root(nd);
++		if (unlikely(error))
++			return ERR_PTR(error);
+ 		while (unlikely(*++res = '/'))
+ 			;
+ 	}
+@@ -1263,12 +1315,16 @@ static int follow_managed(struct path *path, struct nameidata *nd)
+ 		break;
+ 	}
+ 
+-	if (need_mntput && path->mnt = mnt)
+-		mntput(path->mnt);
++	if (need_mntput) {
++		if (path->mnt = mnt)
++			mntput(path->mnt);
++		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
++			ret = -EXDEV;
++		else
++			nd->flags |= LOOKUP_JUMPED;
++	}
+ 	if (ret = -EISDIR || !ret)
+ 		ret = 1;
+-	if (need_mntput)
+-		nd->flags |= LOOKUP_JUMPED;
+ 	if (unlikely(ret < 0))
+ 		path_put_conditional(path, nd);
+ 	return ret;
+@@ -1325,6 +1381,8 @@ static bool __follow_mount_rcu(struct nameidata *nd, struct path *path,
+ 		mounted = __lookup_mnt(path->mnt, path->dentry);
+ 		if (!mounted)
+ 			break;
++		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
++			return false;
+ 		path->mnt = &mounted->mnt;
+ 		path->dentry = mounted->mnt.mnt_root;
+ 		nd->flags |= LOOKUP_JUMPED;
+@@ -1345,8 +1403,11 @@ static int follow_dotdot_rcu(struct nameidata *nd)
+ 	struct inode *inode = nd->inode;
+ 
+ 	while (1) {
+-		if (path_equal(&nd->path, &nd->root))
++		if (path_equal(&nd->path, &nd->root)) {
++			if (unlikely(nd->flags & LOOKUP_BENEATH))
++				return -EXDEV;
+ 			break;
++		}
+ 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
+ 			struct dentry *old = nd->path.dentry;
+ 			struct dentry *parent = old->d_parent;
+@@ -1371,6 +1432,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
+ 				return -ECHILD;
+ 			if (&mparent->mnt = nd->path.mnt)
+ 				break;
++			if (unlikely(nd->flags & LOOKUP_NO_XDEV))
++				return -EXDEV;
+ 			/* we know that mountpoint was pinned */
+ 			nd->path.dentry = mountpoint;
+ 			nd->path.mnt = &mparent->mnt;
+@@ -1385,6 +1448,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
+ 			return -ECHILD;
+ 		if (!mounted)
+ 			break;
++		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
++			return -EXDEV;
+ 		nd->path.mnt = &mounted->mnt;
+ 		nd->path.dentry = mounted->mnt.mnt_root;
+ 		inode = nd->path.dentry->d_inode;
+@@ -1473,8 +1538,11 @@ static int path_parent_directory(struct path *path)
+ static int follow_dotdot(struct nameidata *nd)
+ {
+ 	while(1) {
+-		if (path_equal(&nd->path, &nd->root))
++		if (path_equal(&nd->path, &nd->root)) {
++			if (unlikely(nd->flags & LOOKUP_BENEATH))
++				return -EXDEV;
+ 			break;
++		}
+ 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
+ 			int ret = path_parent_directory(&nd->path);
+ 			if (ret)
+@@ -1483,6 +1551,8 @@ static int follow_dotdot(struct nameidata *nd)
+ 		}
+ 		if (!follow_up(&nd->path))
+ 			break;
++		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
++			return -EXDEV;
+ 	}
+ 	follow_mount(&nd->path);
+ 	nd->inode = nd->path.dentry->d_inode;
+@@ -1697,8 +1767,20 @@ static inline int may_lookup(struct nameidata *nd)
+ static inline int handle_dots(struct nameidata *nd, int type)
+ {
+ 	if (type = LAST_DOTDOT) {
+-		if (!nd->root.mnt)
+-			set_root(nd);
++		int error = 0;
++
++		/*
++		 * Scoped-lookup flags resolving ".." is not currently safe --
++		 * races can cause our parent to have moved outside of the root
++		 * and us to skip over it.
++		 */
++		if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
++			return -EXDEV;
++		if (!nd->root.mnt) {
++			error = set_root(nd);
++			if (error)
++				return error;
++		}
+ 		if (nd->flags & LOOKUP_RCU) {
+ 			return follow_dotdot_rcu(nd);
+ 		} else
+@@ -2161,6 +2243,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
+ /* must be paired with terminate_walk() */
+ static const char *path_init(struct nameidata *nd, unsigned flags)
+ {
++	int error;
+ 	const char *s = nd->name->name;
+ 
+ 	if (!*s)
+@@ -2193,11 +2276,12 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 	nd->path.dentry = NULL;
+ 
+ 	nd->m_seq = read_seqbegin(&mount_lock);
++
++	/* Figure out the starting path and root (if needed). */
+ 	if (*s = '/') {
+-		set_root(nd);
+-		if (likely(!nd_jump_root(nd)))
+-			return s;
+-		return ERR_PTR(-ECHILD);
++		error = nd_jump_root(nd);
++		if (unlikely(error))
++			return ERR_PTR(error);
+ 	} else if (nd->dfd = AT_FDCWD) {
+ 		if (flags & LOOKUP_RCU) {
+ 			struct fs_struct *fs = current->fs;
+@@ -2213,7 +2297,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 			get_fs_pwd(current->fs, &nd->path);
+ 			nd->inode = nd->path.dentry->d_inode;
+ 		}
+-		return s;
+ 	} else {
+ 		/* Caller must check execute permissions on the starting path component */
+ 		struct fd f = fdget_raw(nd->dfd);
+@@ -2238,8 +2321,18 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 			nd->inode = nd->path.dentry->d_inode;
+ 		}
+ 		fdput(f);
+-		return s;
+ 	}
++	/* For scoped-lookups we need to set the root to the dirfd as well. */
++	if (flags & LOOKUP_IS_SCOPED) {
++		nd->root = nd->path;
++		if (flags & LOOKUP_RCU) {
++			nd->root_seq = nd->seq;
++		} else {
++			path_get(&nd->root);
++			nd->flags |= LOOKUP_ROOT_GRABBED;
++		}
++	}
++	return s;
+ }
+ 
+ static const char *trailing_symlink(struct nameidata *nd)
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 397a08ade6a2..35a1bf074ff1 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_NAMEI_H
+ #define _LINUX_NAMEI_H
+ 
++#include <linux/fs.h>
+ #include <linux/kernel.h>
+ #include <linux/path.h>
+ #include <linux/fcntl.h>
+@@ -38,6 +39,16 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
+ #define LOOKUP_JUMPED		0x1000
+ #define LOOKUP_ROOT		0x2000
+ #define LOOKUP_ROOT_GRABBED	0x0008
++#define LOOKUP_MAGICLINK_JUMPED	0x10000
++
++/* Scoping flags for lookup. */
++#define LOOKUP_BENEATH		0x020000 /* No escaping from starting point. */
++#define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
++#define LOOKUP_NO_MAGICLINKS	0x080000 /* No /proc/$pid/fd/ "symlink" crossing. */
++#define LOOKUP_NO_SYMLINKS	0x100000 /* No symlink crossing *at all*.
++					    Implies LOOKUP_NO_MAGICLINKS. */
++/* LOOKUP_* flags which do scope-related checks based on the dirfd. */
++#define LOOKUP_IS_SCOPED LOOKUP_BENEATH
+ 
+ extern int path_pts(struct path *path);
+ 
 -- 
-2.7.4
+2.23.0
