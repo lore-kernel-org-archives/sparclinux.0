@@ -1,42 +1,64 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Wed, 23 Oct 2019 09:28:52 +0000
-Subject: [PATCH 03/12] c6x: use pgtable-nopud instead of 4level-fixup
-Message-Id: <1571822941-29776-4-git-send-email-rppt@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Sat, 26 Oct 2019 13:15:38 +0000
+Subject: [PATCH AUTOSEL 5.3 77/99] sparc64: disable fast-GUP due to unexplained oopses
+Message-Id: <20191026131600.2507-77-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+References: <20191026131600.2507-1-sashal@kernel.org>
+In-Reply-To: <20191026131600.2507-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry V Levin <ldv@altlinux.org>, Anatoly Pugachev <matorola@gmail.com>, Meelis Roos <mroos@linux.ee>, Christoph Hellwig <hch@infradead.org>, David Miller <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-c6x is a nommu architecture and does not require fixup for upper layers of
-the page tables because it is already handled by the generic nommu
-implementation.
+[ Upstream commit 8e0d0ad206f08506c893326ca7c9c3d9cc042cef ]
 
-Replace usage of include/asm-generic/4level-fixup.h with
-include/asm-generic/pgtable-nopud.h
+HAVE_FAST_GUP enables the lockless quick page table walker for simple
+cases, and is a nice optimization for some random loads that can then
+use get_user_pages_fast() rather than the more careful page walker.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+However, for some unexplained reason, it seems to be subtly broken on
+sparc64.  The breakage is only with some compiler versions and some
+hardware, and nobody seems to have figured out what triggers it,
+although there's a simple reprodicer for the problem when it does
+trigger.
+
+The problem was introduced with the conversion to the generic GUP code
+in commit 7b9afb86b632 ("sparc64: use the generic get_user_pages_fast
+code"), but nothing looks obviously wrong in that conversion.  It may be
+a compiler bug that just hits us with the code reorganization.  Or it
+may be something very specific to sparc64.
+
+This disables HAVE_FAST_GUP entirely.  That makes things like futexes a
+bit slower, but at least they work.  If we can figure out the trigger,
+that would be lovely, but it's been three months already..
+
+Link: https://lore.kernel.org/lkml/20190717215956.GA30369@altlinux.org/
+Fixes: 7b9afb86b632 ("sparc64: use the generic get_user_pages_fast code")
+Reported-by: Dmitry V Levin <ldv@altlinux.org>
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Requested-by: Meelis Roos <mroos@linux.ee>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/c6x/include/asm/pgtable.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/Kconfig | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/c6x/include/asm/pgtable.h b/arch/c6x/include/asm/pgtable.h
-index 0b6919c..197c473 100644
---- a/arch/c6x/include/asm/pgtable.h
-+++ b/arch/c6x/include/asm/pgtable.h
-@@ -8,7 +8,7 @@
- #ifndef _ASM_C6X_PGTABLE_H
- #define _ASM_C6X_PGTABLE_H
- 
--#include <asm-generic/4level-fixup.h>
-+#include <asm-generic/pgtable-nopud.h>
- 
- #include <asm/setup.h>
- #include <asm/page.h>
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 7926a2e11bdc2..6a31f240840d4 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -28,7 +28,6 @@ config SPARC
+ 	select RTC_DRV_M48T59
+ 	select RTC_SYSTOHC
+ 	select HAVE_ARCH_JUMP_LABEL if SPARC64
+-	select HAVE_FAST_GUP if SPARC64
+ 	select GENERIC_IRQ_SHOW
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select GENERIC_PCI_IOMAP
 -- 
-2.7.4
+2.20.1
