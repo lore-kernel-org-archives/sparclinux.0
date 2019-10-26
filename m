@@ -1,65 +1,69 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Wed, 23 Oct 2019 09:28:59 +0000
-Subject: [PATCH 10/12] um: remove unused pxx_offset_proc() and addr_pte() functions
-Message-Id: <1571822941-29776-11-git-send-email-rppt@kernel.org>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Sat, 26 Oct 2019 18:57:00 +0000
+Subject: [PATCH RESEND v14 6/6] Documentation: path-lookup: mention LOOKUP_MAGICLINK_JUMPED
+Message-Id: <20191026185700.10708-7-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1571822941-29776-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1571822941-29776-1-git-send-email-rppt@kernel.org>
+References: <20191026185700.10708-1-cyphar@cyphar.com>
+In-Reply-To: <20191026185700.10708-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Richard Weinberger <richard@nod.at>, Russell King <linux@armlinux.org.uk>, Sam Creasey <sammy@sammy.net>, Vincent Chen <deanbo422@gmail.com>, Vineet
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.orglinu
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+Now that we have a special flag to signify magic-link jumps, mention it
+within the path-lookup docs. And now that "magic link" is the correct
+term for nd_jump_link()-style symlinks, clean up references to this type
+of "symlink".
 
-The pxx_offset_proc() and addr_pte() functions are never used.
-Remove them.
-
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- arch/um/kernel/tlb.c | 29 -----------------------------
- 1 file changed, 29 deletions(-)
+ Documentation/filesystems/path-lookup.rst | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/arch/um/kernel/tlb.c b/arch/um/kernel/tlb.c
-index b7eaf65..8425a22 100644
---- a/arch/um/kernel/tlb.c
-+++ b/arch/um/kernel/tlb.c
-@@ -490,35 +490,6 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
- 	force_sig(SIGKILL);
- }
+diff --git a/Documentation/filesystems/path-lookup.rst b/Documentation/filesystems/path-lookup.rst
+index 434a07b0002b..2c32795389bd 100644
+--- a/Documentation/filesystems/path-lookup.rst
++++ b/Documentation/filesystems/path-lookup.rst
+@@ -405,6 +405,10 @@ is requested.  Keeping a reference in the ``nameidata`` ensures that
+ only one root is in effect for the entire path walk, even if it races
+ with a ``chroot()`` system call.
  
--pgd_t *pgd_offset_proc(struct mm_struct *mm, unsigned long address)
--{
--	return pgd_offset(mm, address);
--}
--
--pud_t *pud_offset_proc(pgd_t *pgd, unsigned long address)
--{
--	return pud_offset(pgd, address);
--}
--
--pmd_t *pmd_offset_proc(pud_t *pud, unsigned long address)
--{
--	return pmd_offset(pud, address);
--}
--
--pte_t *pte_offset_proc(pmd_t *pmd, unsigned long address)
--{
--	return pte_offset_kernel(pmd, address);
--}
--
--pte_t *addr_pte(struct task_struct *task, unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset(task->mm, addr);
--	pud_t *pud = pud_offset(pgd, addr);
--	pmd_t *pmd = pmd_offset(pud, addr);
--
--	return pte_offset_map(pmd, addr);
--}
--
- void flush_tlb_all(void)
- {
- 	/*
++It should be noted that in the case of ``LOOKUP_IN_ROOT`` or
++``LOOKUP_BENEATH``, the effective root becomes the directory file descriptor
++passed to ``openat2()`` (which exposes these ``LOOKUP_`` flags).
++
+ The root is needed when either of two conditions holds: (1) either the
+ pathname or a symbolic link starts with a "'/'", or (2) a "``..``"
+ component is being handled, since "``..``" from the root must always stay
+@@ -1149,7 +1153,7 @@ so ``NULL`` is returned to indicate that the symlink can be released and
+ the stack frame discarded.
+ 
+ The other case involves things in ``/proc`` that look like symlinks but
+-aren't really::
++aren't really (and are therefore commonly referred to as "magic-links")::
+ 
+      $ ls -l /proc/self/fd/1
+      lrwx------ 1 neilb neilb 64 Jun 13 10:19 /proc/self/fd/1 -> /dev/pts/4
+@@ -1310,12 +1314,14 @@ longer needed.
+ ``LOOKUP_JUMPED`` means that the current dentry was chosen not because
+ it had the right name but for some other reason.  This happens when
+ following "``..``", following a symlink to ``/``, crossing a mount point
+-or accessing a "``/proc/$PID/fd/$FD``" symlink.  In this case the
+-filesystem has not been asked to revalidate the name (with
+-``d_revalidate()``).  In such cases the inode may still need to be
+-revalidated, so ``d_op->d_weak_revalidate()`` is called if
++or accessing a "``/proc/$PID/fd/$FD``" symlink (also known as a "magic
++link"). In this case the filesystem has not been asked to revalidate the
++name (with ``d_revalidate()``).  In such cases the inode may still need
++to be revalidated, so ``d_op->d_weak_revalidate()`` is called if
+ ``LOOKUP_JUMPED`` is set when the look completes - which may be at the
+-final component or, when creating, unlinking, or renaming, at the penultimate component.
++final component or, when creating, unlinking, or renaming, at the
++penultimate component. ``LOOKUP_MAGICLINK_JUMPED`` is set alongside
++``LOOKUP_JUMPED`` if a magic-link was traversed.
+ 
+ Final-component flags
+ ~~~~~~~~~~~~~~~~~~~~~
 -- 
-2.7.4
+2.23.0
