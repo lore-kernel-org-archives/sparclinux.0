@@ -1,690 +1,568 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Fri, 11 Oct 2019 06:37:42 +0000
-Subject: [PATCH V5 2/2] mm/debug: Add tests validating architecture page table helpers
-Message-Id: <1570775142-31425-3-git-send-email-anshuman.khandual@arm.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Sat, 26 Oct 2019 18:56:54 +0000
+Subject: [PATCH RESEND v14 0/6] open: introduce openat2(2) syscall
+Message-Id: <20191026185700.10708-1-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1570775142-31425-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1570775142-31425-1-git-send-email-anshuman.khandual@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kees Cook <keescook@chromium.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: quoted-printable
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, containers@lists.linux-foundation.org, linux-alpha@vger.kernel.orglinu
 
-This adds tests which will validate architecture page table helpers and
-other accessors in their compliance with expected generic MM semantics.
-This will help various architectures in validating changes to existing
-page table helpers or addition of new ones.
+This patchset is being developed here:
+  <https://github.com/cyphar/linux/tree/openat2/master>
 
-Test page table and memory pages creating it's entries at various level are
-all allocated from system memory with required size and alignments. But if
-memory pages with required size and alignment could not be allocated, then
-all depending individual tests are just skipped afterwards. This test gets
-called right after init_mm_internals() required for alloc_contig_range() to
-work correctly.
+Patch changelog:
+ v14: [<https://lore.kernel.org/lkml/20191010054140.8483-1-cyphar@cyphar.co=
+m/>]
+  * The magic-link changes (and O_EMPTYPATH) have been dropped from this se=
+ries
+    -- they will be developed and sent separately. The main reason is that =
+we
+    need to restrict things other than open(2) (examples include truncate(2=
+) as
+    well as mount(MS_BIND)). This will require a fair amount of extra work,=
+ and
+    there's no point stalling openat2(2) for that work to be completed.
+  * Minor rework of 'struct open_how':
+    * To avoid future headaches, make it a non-const argument.
+    * Expand ->flags and ->resolve to 64-bit fields to allow for more flag
+      extensions without needing to add separate fields too early. This
+      requires adding a bit of explicit padding (32 bits) to avoid userspace
+      putting garbage in the alignment padding -- this can be repurposed for
+      future extensions.
+    * upgrade_mask is dropped (and will be a separate field when we add it
+      again in the future) to avoid userspace foot-guns.
+    * Expand -EINVAL checks in build_open_flags(). Rather than silently
+      ignoring silly flag combinations (such as O_TMPFILE|O_PATH or
+      O_PATH|<most flags>), give an -EINVAL. All of the silent ignore seman=
+tics
+      were added to open(2) because we couldn't return -EINVAL -- but we can
+      now!
+      * open(2) and openat(2) clean up their flags before passing them to
+        build_open_flags(), so all mixed flags will continue to work. There=
+ is
+        one exception which is (O_PATH|O_TMPFILE) -- this is no longer
+        permitted (as far as I can tell this appears to be a bug, and there=
+ are
+        no userspace users that I've hit after running this code for a few
+        days). If it turns out that userspace does depend on (O_PATH|O_TMPF=
+ILE)
+        working, we can only disallow it for openat2(2).
+  * Don't zero out nd->root in complete_walk() for RCU-walk if we're doing a
+    scoped-lookup (this prevents a needless REF-walk retry).
+  * Attempt all tests on kernels that don't have openat2(2), rather than ju=
+st
+    skipping everything.
+ v13: <https://lore.kernel.org/lkml/20190930183316.10190-1-cyphar@cyphar.co=
+m/>
+ v12: <https://lore.kernel.org/lkml/20190904201933.10736-1-cyphar@cyphar.co=
+m/>
+ v11: <https://lore.kernel.org/lkml/20190820033406.29796-1-cyphar@cyphar.co=
+m/>
+      <https://lore.kernel.org/lkml/20190728010207.9781-1-cyphar@cyphar.com=
+/>
+ v10: <https://lore.kernel.org/lkml/20190719164225.27083-1-cyphar@cyphar.co=
+m/>
+ v09: <https://lore.kernel.org/lkml/20190706145737.5299-1-cyphar@cyphar.com=
+/>
+ v08: <https://lore.kernel.org/lkml/20190520133305.11925-1-cyphar@cyphar.co=
+m/>
+ v07: <https://lore.kernel.org/lkml/20190507164317.13562-1-cyphar@cyphar.co=
+m/>
+ v06: <https://lore.kernel.org/lkml/20190506165439.9155-1-cyphar@cyphar.com=
+/>
+ v05: <https://lore.kernel.org/lkml/20190320143717.2523-1-cyphar@cyphar.com=
+/>
+ v04: <https://lore.kernel.org/lkml/20181112142654.341-1-cyphar@cyphar.com/>
+ v03: <https://lore.kernel.org/lkml/20181009070230.12884-1-cyphar@cyphar.co=
+m/>
+ v02: <https://lore.kernel.org/lkml/20181009065300.11053-1-cyphar@cyphar.co=
+m/>
+ v01: <https://lore.kernel.org/lkml/20180929103453.12025-1-cyphar@cyphar.co=
+m/>
 
-This gets build and run when CONFIG_DEBUG_VM_PGTABLE is selected along with
-CONFIG_VM_DEBUG. Architectures willing to subscribe this test also need to
-select CONFIG_ARCH_HAS_DEBUG_VM_PGTABLE which for now is limited to x86 and
-arm64. Going forward, other architectures too can enable this after fixing
-build or runtime problems (if any) with their page table helpers.
+For a very long time, extending openat(2) with new features has been
+incredibly frustrating. This stems from the fact that openat(2) is
+possibly the most famous counter-example to the mantra "don't silently
+accept garbage from userspace" -- it doesn't check whether unknown flags
+are present[1].
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Steven Price <Steven.Price@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Sri Krishna chowdary <schowdary@nvidia.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: x86@kernel.org
-Cc: linux-kernel@vger.kernel.org
+This means that (generally) the addition of new flags to openat(2) has
+been fraught with backwards-compatibility issues (O_TMPFILE has to be
+defined as __O_TMPFILE|O_DIRECTORY|[O_RDWR or O_WRONLY] to ensure old
+kernels gave errors, since it's insecure to silently ignore the
+flag[2]). All new security-related flags therefore have a tough road to
+being added to openat(2).
 
-Tested-by: Christophe Leroy <christophe.leroy@c-s.fr>		#PPC32
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Christophe Leroy <christophe.leroy@c-s.fr>
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
----
- .../debug/debug-vm-pgtable/arch-support.txt        |  34 ++
- arch/arm64/Kconfig                                 |   1 +
- arch/x86/Kconfig                                   |   1 +
- arch/x86/include/asm/pgtable_64.h                  |   6 +
- include/asm-generic/pgtable.h                      |   6 +
- init/main.c                                        |   1 +
- lib/Kconfig.debug                                  |  21 +
- mm/Makefile                                        |   1 +
- mm/debug_vm_pgtable.c                              | 438 +++++++++++++++++++++
- 9 files changed, 509 insertions(+)
- create mode 100644 Documentation/features/debug/debug-vm-pgtable/arch-support.txt
- create mode 100644 mm/debug_vm_pgtable.c
+Furthermore, the need for some sort of control over VFS's path resolution (=
+to
+avoid malicious paths resulting in inadvertent breakouts) has been a very
+long-standing desire of many userspace applications. This patchset is a rev=
+ival
+of Al Viro's old AT_NO_JUMPS[3] patchset (which was a variant of David
+Drysdale's O_BENEATH patchset[4] which was a spin-off of the Capsicum
+project[5]) with a few additions and changes made based on the previous
+discussion within [6] as well as others I felt were useful.
 
-diff --git a/Documentation/features/debug/debug-vm-pgtable/arch-support.txt b/Documentation/features/debug/debug-vm-pgtable/arch-support.txt
-new file mode 100644
-index 0000000..d6b8185
---- /dev/null
-+++ b/Documentation/features/debug/debug-vm-pgtable/arch-support.txt
-@@ -0,0 +1,34 @@
-+#
-+# Feature name:          debug-vm-pgtable
-+#         Kconfig:       ARCH_HAS_DEBUG_VM_PGTABLE
-+#         description:   arch supports pgtable tests for semantics compliance
-+#
-+    -----------------------
-+    |         arch |status|
-+    -----------------------
-+    |       alpha: | TODO |
-+    |         arc: | TODO |
-+    |         arm: | TODO |
-+    |       arm64: |  ok  |
-+    |         c6x: | TODO |
-+    |        csky: | TODO |
-+    |       h8300: | TODO |
-+    |     hexagon: | TODO |
-+    |        ia64: | TODO |
-+    |        m68k: | TODO |
-+    |  microblaze: | TODO |
-+    |        mips: | TODO |
-+    |       nds32: | TODO |
-+    |       nios2: | TODO |
-+    |    openrisc: | TODO |
-+    |      parisc: | TODO |
-+    |     powerpc: | TODO |
-+    |       riscv: | TODO |
-+    |        s390: | TODO |
-+    |          sh: | TODO |
-+    |       sparc: | TODO |
-+    |          um: | TODO |
-+    |   unicore32: | TODO |
-+    |         x86: |  ok  |
-+    |      xtensa: | TODO |
-+    -----------------------
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 950a56b..8a3b3ea 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -11,6 +11,7 @@ config ARM64
- 	select ACPI_PPTT if ACPI
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_HAS_DEBUG_VIRTUAL
-+	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_DMA_COHERENT_TO_PFN
- 	select ARCH_HAS_DMA_PREP_COHERENT
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index abe822d..13c9bd9 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -61,6 +61,7 @@ config X86
- 	select ARCH_CLOCKSOURCE_INIT
- 	select ARCH_HAS_ACPI_TABLE_UPGRADE	if ACPI
- 	select ARCH_HAS_DEBUG_VIRTUAL
-+	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select ARCH_HAS_ELF_RANDOMIZE
- 	select ARCH_HAS_FAST_MULTIPLIER
-diff --git a/arch/x86/include/asm/pgtable_64.h b/arch/x86/include/asm/pgtable_64.h
-index 0b6c4042..fb0e76d 100644
---- a/arch/x86/include/asm/pgtable_64.h
-+++ b/arch/x86/include/asm/pgtable_64.h
-@@ -53,6 +53,12 @@ static inline void sync_initial_page_table(void) { }
- 
- struct mm_struct;
- 
-+#define mm_p4d_folded mm_p4d_folded
-+static inline bool mm_p4d_folded(struct mm_struct *mm)
-+{
-+	return !pgtable_l5_enabled();
-+}
-+
- void set_pte_vaddr_p4d(p4d_t *p4d_page, unsigned long vaddr, pte_t new_pte);
- void set_pte_vaddr_pud(pud_t *pud_page, unsigned long vaddr, pte_t new_pte);
- 
-diff --git a/include/asm-generic/pgtable.h b/include/asm-generic/pgtable.h
-index 8186918..9e5c248 100644
---- a/include/asm-generic/pgtable.h
-+++ b/include/asm-generic/pgtable.h
-@@ -1187,4 +1187,10 @@ static inline bool arch_has_pfn_modify_check(void)
- #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
- #endif
- 
-+#ifdef CONFIG_DEBUG_VM_PGTABLE
-+extern void debug_vm_pgtable(void);
-+#else
-+static inline void debug_vm_pgtable(void) { }
-+#endif
-+
- #endif /* _ASM_GENERIC_PGTABLE_H */
-diff --git a/init/main.c b/init/main.c
-index 91f6ebb..676d8020 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -1177,6 +1177,7 @@ static noinline void __init kernel_init_freeable(void)
- 	workqueue_init();
- 
- 	init_mm_internals();
-+	debug_vm_pgtable();
- 
- 	do_pre_smp_initcalls();
- 	lockup_detector_init();
-diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
-index cb1fc48..b9b8fe1 100644
---- a/lib/Kconfig.debug
-+++ b/lib/Kconfig.debug
-@@ -698,6 +698,27 @@ config DEBUG_VM_PGFLAGS
- 
- 	  If unsure, say N.
- 
-+config ARCH_HAS_DEBUG_VM_PGTABLE
-+	bool
-+	help
-+	  An architecture should select this when it can successfully
-+	  build and run DEBUG_VM_PGTABLE.
-+
-+config DEBUG_VM_PGTABLE
-+	bool "Debug arch page table for semantics compliance"
-+	depends on MMU
-+	depends on DEBUG_VM
-+	depends on ARCH_HAS_DEBUG_VM_PGTABLE
-+	help
-+	  This option provides a debug method which can be used to test
-+	  architecture page table helper functions on various platforms in
-+	  verifying if they comply with expected generic MM semantics. This
-+	  will help architecture code in making sure that any changes or
-+	  new additions of these helpers still conform to expected
-+	  semantics of the generic MM.
-+
-+	  If unsure, say N.
-+
- config ARCH_HAS_DEBUG_VIRTUAL
- 	bool
- 
-diff --git a/mm/Makefile b/mm/Makefile
-index d996846..2f085b9 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -86,6 +86,7 @@ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_DEBUG_RODATA_TEST) += rodata_test.o
-+obj-$(CONFIG_DEBUG_VM_PGTABLE) += debug_vm_pgtable.o
- obj-$(CONFIG_PAGE_OWNER) += page_owner.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
- obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
-diff --git a/mm/debug_vm_pgtable.c b/mm/debug_vm_pgtable.c
-new file mode 100644
-index 0000000..885d1e5
---- /dev/null
-+++ b/mm/debug_vm_pgtable.c
-@@ -0,0 +1,438 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * This kernel module validates architecture page table helpers &
-+ * accessors and helps in verifying their continued compliance with
-+ * generic MM semantics.
-+ *
-+ * Copyright (C) 2019 ARM Ltd.
-+ *
-+ * Author: Anshuman Khandual <anshuman.khandual@arm.com>
-+ */
-+#define pr_fmt(fmt) "arch_pgtable_test: %s " fmt, __func__
-+
-+#include <linux/gfp.h>
-+#include <linux/highmem.h>
-+#include <linux/hugetlb.h>
-+#include <linux/kernel.h>
-+#include <linux/kconfig.h>
-+#include <linux/mm.h>
-+#include <linux/mman.h>
-+#include <linux/mm_types.h>
-+#include <linux/module.h>
-+#include <linux/pfn_t.h>
-+#include <linux/printk.h>
-+#include <linux/random.h>
-+#include <linux/spinlock.h>
-+#include <linux/swap.h>
-+#include <linux/swapops.h>
-+#include <linux/sched/mm.h>
-+#include <asm/pgalloc.h>
-+#include <asm/pgtable.h>
-+
-+/*
-+ * Basic operations
-+ *
-+ * mkold(entry)			= An old and not a young entry
-+ * mkyoung(entry)		= A young and not an old entry
-+ * mkdirty(entry)		= A dirty and not a clean entry
-+ * mkclean(entry)		= A clean and not a dirty entry
-+ * mkwrite(entry)		= A write and not a write protected entry
-+ * wrprotect(entry)		= A write protected and not a write entry
-+ * pxx_bad(entry)		= A mapped and non-table entry
-+ * pxx_same(entry1, entry2)	= Both entries hold the exact same value
-+ */
-+#define VMFLAGS	(VM_READ|VM_WRITE|VM_EXEC)
-+
-+/*
-+ * On s390 platform, the lower 12 bits are used to identify given page table
-+ * entry type and for other arch specific requirements. But these bits might
-+ * affect the ability to clear entries with pxx_clear(). So while loading up
-+ * the entries skip all lower 12 bits in order to accommodate s390 platform.
-+ * It does not have affect any other platform.
-+ */
-+#define RANDOM_ORVALUE	(0xfffffffffffff000UL)
-+#define RANDOM_NZVALUE	(0xff)
-+
-+static bool pud_aligned __initdata;
-+static bool pmd_aligned __initdata;
-+
-+static void __init pte_basic_tests(struct page *page, pgprot_t prot)
-+{
-+	pte_t pte = mk_pte(page, prot);
-+
-+	WARN_ON(!pte_same(pte, pte));
-+	WARN_ON(!pte_young(pte_mkyoung(pte)));
-+	WARN_ON(!pte_dirty(pte_mkdirty(pte)));
-+	WARN_ON(!pte_write(pte_mkwrite(pte)));
-+	WARN_ON(pte_young(pte_mkold(pte)));
-+	WARN_ON(pte_dirty(pte_mkclean(pte)));
-+	WARN_ON(pte_write(pte_wrprotect(pte)));
-+}
-+
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+static void __init pmd_basic_tests(struct page *page, pgprot_t prot)
-+{
-+	pmd_t pmd;
-+
-+	/*
-+	 * Memory block here must be PMD_SIZE aligned. Abort this
-+	 * test in case we could not allocate such a memory block.
-+	 */
-+	if (!pmd_aligned) {
-+		pr_warn("Could not proceed with PMD tests\n");
-+		return;
-+	}
-+
-+	pmd = mk_pmd(page, prot);
-+	WARN_ON(!pmd_same(pmd, pmd));
-+	WARN_ON(!pmd_young(pmd_mkyoung(pmd)));
-+	WARN_ON(!pmd_dirty(pmd_mkdirty(pmd)));
-+	WARN_ON(!pmd_write(pmd_mkwrite(pmd)));
-+	WARN_ON(pmd_young(pmd_mkold(pmd)));
-+	WARN_ON(pmd_dirty(pmd_mkclean(pmd)));
-+	WARN_ON(pmd_write(pmd_wrprotect(pmd)));
-+	/*
-+	 * A huge page does not point to next level page table
-+	 * entry. Hence this must qualify as pmd_bad().
-+	 */
-+	WARN_ON(!pmd_bad(pmd_mkhuge(pmd)));
-+}
-+#else
-+static void __init pmd_basic_tests(struct page *page, pgprot_t prot) { }
-+#endif
-+
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+static void __init pud_basic_tests(struct page *page, pgprot_t prot)
-+{
-+	pud_t pud;
-+
-+	/*
-+	 * Memory block here must be PUD_SIZE aligned. Abort this
-+	 * test in case we could not allocate such a memory block.
-+	 */
-+	if (!pud_aligned) {
-+		pr_warn("Could not proceed with PUD tests\n");
-+		return;
-+	}
-+
-+	pud = pfn_pud(page_to_pfn(page), prot);
-+	WARN_ON(!pud_same(pud, pud));
-+	WARN_ON(!pud_young(pud_mkyoung(pud)));
-+	WARN_ON(!pud_write(pud_mkwrite(pud)));
-+	WARN_ON(pud_write(pud_wrprotect(pud)));
-+	WARN_ON(pud_young(pud_mkold(pud)));
-+
-+	if (mm_pmd_folded(mm) || __is_defined(ARCH_HAS_4LEVEL_HACK))
-+		return;
-+
-+	/*
-+	 * A huge page does not point to next level page table
-+	 * entry. Hence this must qualify as pud_bad().
-+	 */
-+	WARN_ON(!pud_bad(pud_mkhuge(pud)));
-+}
-+#else
-+static void __init pud_basic_tests(struct page *page, pgprot_t prot) { }
-+#endif
-+
-+static void __init p4d_basic_tests(struct page *page, pgprot_t prot)
-+{
-+	p4d_t p4d;
-+
-+	memset(&p4d, RANDOM_NZVALUE, sizeof(p4d_t));
-+	WARN_ON(!p4d_same(p4d, p4d));
-+}
-+
-+static void __init pgd_basic_tests(struct page *page, pgprot_t prot)
-+{
-+	pgd_t pgd;
-+
-+	memset(&pgd, RANDOM_NZVALUE, sizeof(pgd_t));
-+	WARN_ON(!pgd_same(pgd, pgd));
-+}
-+
-+#ifndef __ARCH_HAS_4LEVEL_HACK
-+static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp)
-+{
-+	pud_t pud = READ_ONCE(*pudp);
-+
-+	if (mm_pmd_folded(mm))
-+		return;
-+
-+	pud = __pud(pud_val(pud) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pudp, pud);
-+	pud_clear(pudp);
-+	pud = READ_ONCE(*pudp);
-+	WARN_ON(!pud_none(pud));
-+}
-+
-+static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
-+				      pmd_t *pmdp)
-+{
-+	pud_t pud;
-+
-+	if (mm_pmd_folded(mm))
-+		return;
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pud_bad().
-+	 */
-+	pmd_clear(pmdp);
-+	pud_clear(pudp);
-+	pud_populate(mm, pudp, pmdp);
-+	pud = READ_ONCE(*pudp);
-+	WARN_ON(pud_bad(pud));
-+}
-+#else
-+static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp) { }
-+static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
-+				      pmd_t *pmdp)
-+{
-+}
-+#endif
-+
-+#ifndef __ARCH_HAS_5LEVEL_HACK
-+static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp)
-+{
-+	p4d_t p4d = READ_ONCE(*p4dp);
-+
-+	if (mm_pud_folded(mm))
-+		return;
-+
-+	p4d = __p4d(p4d_val(p4d) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*p4dp, p4d);
-+	p4d_clear(p4dp);
-+	p4d = READ_ONCE(*p4dp);
-+	WARN_ON(!p4d_none(p4d));
-+}
-+
-+static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
-+				      pud_t *pudp)
-+{
-+	p4d_t p4d;
-+
-+	if (mm_pud_folded(mm))
-+		return;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as p4d_bad().
-+	 */
-+	pud_clear(pudp);
-+	p4d_clear(p4dp);
-+	p4d_populate(mm, p4dp, pudp);
-+	p4d = READ_ONCE(*p4dp);
-+	WARN_ON(p4d_bad(p4d));
-+}
-+
-+static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp)
-+{
-+	pgd_t pgd = READ_ONCE(*pgdp);
-+
-+	if (mm_p4d_folded(mm))
-+		return;
-+
-+	pgd = __pgd(pgd_val(pgd) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pgdp, pgd);
-+	pgd_clear(pgdp);
-+	pgd = READ_ONCE(*pgdp);
-+	WARN_ON(!pgd_none(pgd));
-+}
-+
-+static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
-+				      p4d_t *p4dp)
-+{
-+	pgd_t pgd;
-+
-+	if (mm_p4d_folded(mm))
-+		return;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pgd_bad().
-+	 */
-+	p4d_clear(p4dp);
-+	pgd_clear(pgdp);
-+	pgd_populate(mm, pgdp, p4dp);
-+	pgd = READ_ONCE(*pgdp);
-+	WARN_ON(pgd_bad(pgd));
-+}
-+#else
-+static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp) { }
-+static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp) { }
-+static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
-+				      pud_t *pudp)
-+{
-+}
-+static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
-+				      p4d_t *p4dp)
-+{
-+}
-+#endif
-+
-+static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep)
-+{
-+	pte_t pte = READ_ONCE(*ptep);
-+
-+	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*ptep, pte);
-+	pte_clear(mm, 0, ptep);
-+	pte = READ_ONCE(*ptep);
-+	WARN_ON(!pte_none(pte));
-+}
-+
-+static void __init pmd_clear_tests(struct mm_struct *mm, pmd_t *pmdp)
-+{
-+	pmd_t pmd = READ_ONCE(*pmdp);
-+
-+	pmd = __pmd(pmd_val(pmd) | RANDOM_ORVALUE);
-+	WRITE_ONCE(*pmdp, pmd);
-+	pmd_clear(pmdp);
-+	pmd = READ_ONCE(*pmdp);
-+	WARN_ON(!pmd_none(pmd));
-+}
-+
-+static void __init pmd_populate_tests(struct mm_struct *mm, pmd_t *pmdp,
-+				      pgtable_t pgtable)
-+{
-+	pmd_t pmd;
-+
-+	/*
-+	 * This entry points to next level page table page.
-+	 * Hence this must not qualify as pmd_bad().
-+	 */
-+	pmd_clear(pmdp);
-+	pmd_populate(mm, pmdp, pgtable);
-+	pmd = READ_ONCE(*pmdp);
-+	WARN_ON(pmd_bad(pmd));
-+}
-+
-+static struct page * __init alloc_mapped_page(void)
-+{
-+	struct page *page;
-+	gfp_t gfp_mask = GFP_KERNEL | __GFP_ZERO;
-+
-+	page = alloc_gigantic_page_order(get_order(PUD_SIZE), gfp_mask,
-+				first_memory_node, &node_states[N_MEMORY]);
-+	if (page) {
-+		pud_aligned = true;
-+		pmd_aligned = true;
-+		return page;
-+	}
-+
-+	page = alloc_pages(gfp_mask, get_order(PMD_SIZE));
-+	if (page) {
-+		pmd_aligned = true;
-+		return page;
-+	}
-+	return alloc_page(gfp_mask);
-+}
-+
-+static void __init free_mapped_page(struct page *page)
-+{
-+	if (pud_aligned) {
-+		unsigned long pfn = page_to_pfn(page);
-+
-+		free_contig_range(pfn, 1ULL << get_order(PUD_SIZE));
-+		return;
-+	}
-+
-+	if (pmd_aligned) {
-+		int order = get_order(PMD_SIZE);
-+
-+		free_pages((unsigned long)page_address(page), order);
-+		return;
-+	}
-+	free_page((unsigned long)page_address(page));
-+}
-+
-+static unsigned long __init get_random_vaddr(void)
-+{
-+	unsigned long random_vaddr, random_pages, total_user_pages;
-+
-+	total_user_pages = (TASK_SIZE - FIRST_USER_ADDRESS) / PAGE_SIZE;
-+
-+	random_pages = get_random_long() % total_user_pages;
-+	random_vaddr = FIRST_USER_ADDRESS + random_pages * PAGE_SIZE;
-+
-+	WARN_ON(random_vaddr > TASK_SIZE);
-+	WARN_ON(random_vaddr < FIRST_USER_ADDRESS);
-+	return random_vaddr;
-+}
-+
-+void __init debug_vm_pgtable(void)
-+{
-+	struct mm_struct *mm;
-+	struct page *page;
-+	pgd_t *pgdp;
-+	p4d_t *p4dp, *saved_p4dp;
-+	pud_t *pudp, *saved_pudp;
-+	pmd_t *pmdp, *saved_pmdp, pmd;
-+	pte_t *ptep;
-+	pgtable_t saved_ptep;
-+	pgprot_t prot;
-+	unsigned long vaddr;
-+
-+	prot = vm_get_page_prot(VMFLAGS);
-+	vaddr = get_random_vaddr();
-+	mm = mm_alloc();
-+	if (!mm) {
-+		pr_err("mm_struct allocation failed\n");
-+		return;
-+	}
-+
-+	page = alloc_mapped_page();
-+	if (!page) {
-+		pr_err("memory allocation failed\n");
-+		return;
-+	}
-+
-+	pgdp = pgd_offset(mm, vaddr);
-+	p4dp = p4d_alloc(mm, pgdp, vaddr);
-+	pudp = pud_alloc(mm, p4dp, vaddr);
-+	pmdp = pmd_alloc(mm, pudp, vaddr);
-+	ptep = pte_alloc_map(mm, pmdp, vaddr);
-+
-+	/*
-+	 * Save all the page table page addresses as the page table
-+	 * entries will be used for testing with random or garbage
-+	 * values. These saved addresses will be used for freeing
-+	 * page table pages.
-+	 */
-+	pmd = READ_ONCE(*pmdp);
-+	saved_p4dp = p4d_offset(pgdp, 0UL);
-+	saved_pudp = pud_offset(p4dp, 0UL);
-+	saved_pmdp = pmd_offset(pudp, 0UL);
-+	saved_ptep = pmd_pgtable(pmd);
-+
-+	pte_basic_tests(page, prot);
-+	pmd_basic_tests(page, prot);
-+	pud_basic_tests(page, prot);
-+	p4d_basic_tests(page, prot);
-+	pgd_basic_tests(page, prot);
-+
-+	pte_clear_tests(mm, ptep);
-+	pmd_clear_tests(mm, pmdp);
-+	pud_clear_tests(mm, pudp);
-+	p4d_clear_tests(mm, p4dp);
-+	pgd_clear_tests(mm, pgdp);
-+
-+	pte_unmap(ptep);
-+
-+	pmd_populate_tests(mm, pmdp, saved_ptep);
-+	pud_populate_tests(mm, pudp, saved_pmdp);
-+	p4d_populate_tests(mm, p4dp, saved_pudp);
-+	pgd_populate_tests(mm, pgdp, saved_p4dp);
-+
-+	p4d_free(mm, saved_p4dp);
-+	pud_free(mm, saved_pudp);
-+	pmd_free(mm, saved_pmdp);
-+	pte_free(mm, saved_ptep);
-+
-+	mm_dec_nr_puds(mm);
-+	mm_dec_nr_pmds(mm);
-+	mm_dec_nr_ptes(mm);
-+	__mmdrop(mm);
-+
-+	free_mapped_page(page);
-+}
--- 
-2.7.4
+In line with the conclusions of the original discussion of AT_NO_JUMPS, the
+flag has been split up into separate flags. However, instead of being an
+openat(2) flag it is provided through a new syscall openat2(2) which provid=
+es
+several other improvements to the openat(2) interface (see the patch
+description for more details). The following new LOOKUP_* flags are added:
+
+  * LOOKUP_NO_XDEV blocks all mountpoint crossings (upwards, downwards,
+    or through absolute links). Absolute pathnames alone in openat(2) do not
+    trigger this. Magic-link traversal which implies a vfsmount jump is also
+    blocked (though magic-link jumps on the same vfsmount are permitted).
+
+  * LOOKUP_NO_MAGICLINKS blocks resolution through /proc/$pid/fd-style
+    links. This is done by blocking the usage of nd_jump_link() during
+    resolution in a filesystem. The term "magic-links" is used to match
+    with the only reference to these links in Documentation/, but I'm
+    happy to change the name.
+
+    It should be noted that this is different to the scope of
+    ~LOOKUP_FOLLOW in that it applies to all path components. However,
+    you can do openat2(NO_FOLLOW|NO_MAGICLINKS) on a magic-link and it
+    will *not* fail (assuming that no parent component was a
+    magic-link), and you will have an fd for the magic-link.
+
+    In order to correctly detect magic-links, the introduction of a new
+    LOOKUP_MAGICLINK_JUMPED state flag was required.
+
+  * LOOKUP_BENEATH disallows escapes to outside the starting dirfd's
+    tree, using techniques such as ".." or absolute links. Absolute
+    paths in openat(2) are also disallowed. Conceptually this flag is to
+    ensure you "stay below" a certain point in the filesystem tree --
+    but this requires some additional to protect against various races
+    that would allow escape using "..".
+
+    Currently LOOKUP_BENEATH implies LOOKUP_NO_MAGICLINKS, because it
+    can trivially beam you around the filesystem (breaking the
+    protection). In future, there might be similar safety checks done as
+    in LOOKUP_IN_ROOT, but that requires more discussion.
+
+In addition, two new flags are added that expand on the above ideas:
+
+  * LOOKUP_NO_SYMLINKS does what it says on the tin. No symlink
+    resolution is allowed at all, including magic-links. Just as with
+    LOOKUP_NO_MAGICLINKS this can still be used with NOFOLLOW to open an
+    fd for the symlink as long as no parent path had a symlink
+    component.
+
+  * LOOKUP_IN_ROOT is an extension of LOOKUP_BENEATH that, rather than
+    blocking attempts to move past the root, forces all such movements
+    to be scoped to the starting point. This provides chroot(2)-like
+    protection but without the cost of a chroot(2) for each filesystem
+    operation, as well as being safe against race attacks that chroot(2)
+    is not.
+
+    If a race is detected (as with LOOKUP_BENEATH) then an error is
+    generated, and similar to LOOKUP_BENEATH it is not permitted to cross
+    magic-links with LOOKUP_IN_ROOT.
+
+    The primary need for this is from container runtimes, which
+    currently need to do symlink scoping in userspace[7] when opening
+    paths in a potentially malicious container. There is a long list of
+    CVEs that could have bene mitigated by having RESOLVE_THIS_ROOT
+    (such as CVE-2017-1002101, CVE-2017-1002102, CVE-2018-15664, and
+    CVE-2019-5736, just to name a few).
+
+In order to make all of the above more usable, I'm working on
+libpathrs[8] which is a C-friendly library for safe path resolution. It
+features a userspace-emulated backend if the kernel doesn't support
+openat2(2). Hopefully we can get userspace to switch to using it, and
+thus get openat2(2) support for free once it's ready.
+
+[1]: https://lwn.net/Articles/588444/
+[2]: https://lore.kernel.org/lkml/CA+55aFyyxJL1LyXZeBsf2ypriraj5ut1XkNDsunR=
+BqgVjZU_6Q@mail.gmail.com
+[3]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk
+[4]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdal=
+e@google.com
+[5]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdal=
+e@google.com
+[6]: https://lwn.net/Articles/723057/
+[7]: https://github.com/cyphar/filepath-securejoin
+[8]: https://github.com/openSUSE/libpathrs
+
+The current draft of the openat2(2) man-page is included below.
+
+--8<-----------------------------------------------------------------------=
+----
+OPENAT2(2)                          Linux Programmer's Manual              =
+            OPENAT2(2)
+
+NAME
+       openat2 - open and possibly create a file (extended)
+
+SYNOPSIS
+       #include <sys/types.h>
+       #include <sys/stat.h>
+       #include <fcntl.h>
+
+       int openat2(int dirfd, const char *pathname, struct open_how *how, s=
+ize_t size);
+
+       Note: There is no glibc wrapper for this system call; see NOTES.
+
+DESCRIPTION
+       The  openat2()  system  call  opens the file specified by pathname. =
+ If the specified file
+       does not exist, it may optionally (if O_CREAT is specified in  how.f=
+lags)  be  created  by
+       openat2().
+
+       As  with openat(2), if pathname is relative, then it is interpreted =
+relative to the direc-
+       tory referred to by the file descriptor dirfd (or the current  worki=
+ng  directory  of  the
+       calling  process,  if dirfd is the special value AT_FDCWD.)  If path=
+name is absolute, then
+       dirfd is ignored (unless how.resolve contains RESOLVE_IN_ROOT, in wh=
+ich case  pathname  is
+       resolved relative to dirfd.)
+
+       The  openat2()  system  call  is  an extension of openat(2) and prov=
+ides a superset of its
+       functionality.  Rather than taking a single flag argument, an extens=
+ible  structure  (how)
+       is  passed  instead  to  allow  for  future extensions.  size must b=
+e set to sizeof(struct
+       open_how), to facilitate future extensions (see the "Extensibility" =
+section of  the  NOTES
+       for more detail on how extensions are handled.)
+
+   The open_how structure
+       The following structure indicates how pathname should be opened, and=
+ acts as a superset of
+       the flag and mode arguments to openat(2).
+
+           struct open_how {
+               __aligned_u64 flags;         /* O_* flags. */
+               __u16         mode;          /* Mode for O_{CREAT,TMPFILE}. =
+*/
+               __u16         __padding[3];  /* Must be zeroed. */
+               __aligned_u64 resolve;       /* RESOLVE_* flags. */
+           };
+
+       Any future extensions to openat2() will be implemented as new fields=
+ appended to the above
+       structure (or through reuse of pre-existing padding space), with the=
+ zero value of the new
+       fields acting as though the extension were not present.
+
+       The meaning of each field is as follows:
+
+              flags
+                     The file creation and status flags to use for this ope=
+ration.   All  of  the
+                     O_* flags defined for openat(2) are valid openat2() fl=
+ag values.
+
+                     Unlike openat(2), it is an error to provide openat2() =
+unknown or conflicting
+                     flags in flags.
+
+              mode
+                     File mode for the new file, with identical semantics t=
+o the mode argument to
+                     openat(2).   However,  unlike openat(2), it is an erro=
+r to provide openat2()
+                     with a mode which contains bits other than 0777.
+
+                     It is an error to provide openat2() a non-zero mode if=
+ flags does  not  con-
+                     tain O_CREAT or O_TMPFILE.
+
+              resolve
+                     Change  how  the  components  of pathname will be reso=
+lved (see path_resolu-
+                     tion(7) for background information.)  The primary use =
+case for  these  flags
+                     is  to  allow trusted programs to restrict how untrust=
+ed paths (or paths in-
+                     side untrusted directories) are resolved.  The full li=
+st of resolve flags is
+                     given below.
+
+                     RESOLVE_NO_XDEV
+                            Disallow  traversal of mount points during path=
+ resolution (including
+                            all bind mounts).
+
+                            Users of this flag are encouraged to make its u=
+se  configurable  (un-
+                            less  it is used for a specific security purpos=
+e), as bind mounts are
+                            very widely used by end-users.  Setting this fl=
+ag indiscrimnately for
+                            all  uses  of  openat2() may result in spurious=
+ errors on previously-
+                            functional systems.
+
+                     RESOLVE_NO_SYMLINKS
+                            Disallow resolution of symbolic links during pa=
+th  resolution.   This
+                            option implies RESOLVE_NO_MAGICLINKS.
+
+                            If the trailing component is a symbolic link, a=
+nd flags contains both
+                            O_PATH and O_NOFOLLOW, then an O_PATH file desc=
+riptor referencing the
+                            symbolic link will be returned.
+
+                            Users  of  this flag are encouraged to make its=
+ use configurable (un-
+                            less it is used for a specific security purpose=
+), as  symbolic  links
+                            are very widely used by end-users.  Setting thi=
+s flag indiscrimnately
+                            for all uses of openat2() may result in  spurio=
+us  errors  on  previ-
+                            ously-functional systems.
+
+                     RESOLVE_NO_MAGICLINKS
+                            Disallow all magic link resolution during path =
+resolution.
+
+                            If  the  trailing  component is a magic link, a=
+nd flags contains both
+                            O_PATH and O_NOFOLLOW, then an O_PATH file desc=
+riptor referencing the
+                            magic link will be returned.
+
+                            Magic-links  are  symbolic  link-like  objects =
+ that are most notably
+                            found   in   proc(5)   (examples    include    =
+/proc/[pid]/exe    and
+                            /proc/[pid]/fd/*.)   Due to the potential dange=
+r of unknowingly open-
+                            ing these magic links, it may be  preferable  f=
+or  users  to  disable
+                            their resolution entirely (see symboliclink(7) =
+for more details.)
+
+                     RESOLVE_BENEATH
+                            Do  not permit the path resolution to succeed i=
+f any component of the
+                            resolution is not a descendant of the directory=
+ indicated  by  dirfd.
+                            This results in absolute symbolic links (and ab=
+solute values of path-
+                            name) to be rejected.
+
+                            Currently, this flag also disables magic link  =
+resolution.   However,
+                            this  may change in the future.  The caller sho=
+uld explicitly specify
+                            RESOLVE_NO_MAGICLINKS to ensure that magic link=
+s are not resolved.
+
+                     RESOLVE_IN_ROOT
+                            Treat dirfd as the root directory while resolvi=
+ng pathname (as though
+                            the user called chroot(2) with dirfd as the arg=
+ument.)  Absolute sym-
+                            bolic links and ".." path components will be  s=
+coped  to  dirfd.   If
+                            pathname is an absolute path, it is also treate=
+d relative to dirfd.
+
+                            However,  unlike  chroot(2) (which changes the =
+filesystem root perma-
+                            nently for a process), RESOLVE_IN_ROOT  allows =
+ a  program  to  effi-
+                            ciently  restrict  path  resolution  for only c=
+ertain operations.  It
+                            also has several hardening features (such detec=
+ting  escape  attempts
+                            during ..  resolution) which chroot(2) does not.
+
+                            Currently,  this  flag also disables magic link=
+ resolution.  However,
+                            this may change in the future.  The caller shou=
+ld explicitly  specify
+                            RESOLVE_NO_MAGICLINKS to ensure that magic link=
+s are not resolved.
+
+                     It is an error to provide openat2() unknown flags in r=
+esolve.
+
+RETURN VALUE
+       On success, a new file descriptor is returned.  On error, -1 is retu=
+rned, and errno is set
+       appropriately.
+
+ERRORS
+       The set of errors returned by openat2() includes all of the errors r=
+eturned by  openat(2),
+       as well as the following additional errors:
+
+       EINVAL An unknown flag or invalid value was specified in how.
+
+       EINVAL mode is non-zero, but flags does not contain O_CREAT or O_TMP=
+FILE.
+
+       EINVAL size was smaller than any known version of struct open_how.
+
+       E2BIG  An  extension  was specified in how, which the current kernel=
+ does not support (see
+              the "Extensibility" section of the NOTES for more detail on h=
+ow extensions are han-
+              dled.)
+
+       EAGAIN resolve  contains  either  RESOLVE_IN_ROOT or RESOLVE_BENEATH=
+, and the kernel could
+              not ensure that a ".." component didn't escape (due to a race=
+ condition  or  poten-
+              tial attack.)  Callers may choose to retry the openat2() call.
+
+       EXDEV  resolve  contains either RESOLVE_IN_ROOT or RESOLVE_BENEATH, =
+and an escape from the
+              root during path resolution was detected.
+
+       EXDEV  resolve contains RESOLVE_NO_XDEV, and a path component attemp=
+ted to cross  a  mount
+              point.
+
+       ELOOP  resolve contains RESOLVE_NO_SYMLINKS, and one of the path com=
+ponents was a symbolic
+              link (or magic link).
+
+       ELOOP  resolve contains RESOLVE_NO_MAGICLINKS, and one of the path c=
+omponents was a  magic
+              link.
+
+VERSIONS
+       openat2() was added to Linux in kernel 5.FOO.
+
+CONFORMING TO
+       This system call is Linux-specific.
+
+       The semantics of RESOLVE_BENEATH were modelled after FreeBSD's O_BEN=
+EATH.
+
+NOTES
+       Glibc does not provide a wrapper for this system call; call it using=
+ systemcall(2).
+
+   Extensibility
+       In order to allow for struct open_how to be extended in future kerne=
+l revisions, openat2()
+       requires userspace to specify the size of struct open_how structure =
+they are passing.   By
+       providing  this  information,  it  is possible for openat2() to prov=
+ide both forwards- and
+       backwards-compatibility =E2=80=94 with size acting as an implicit ve=
+rsion number (because new  ex-
+       tension  fields will always be appended, the size will always increa=
+se.)  This extensibil-
+       ity  design  is  very  similar  to   other   system   calls   such  =
+ as   perf_setattr(2),
+       perf_event_open(2), and clone(3).
+
+       If  we let usize be the size of the structure according to userspace=
+ and ksize be the size
+       of the structure which the kernel supports, then there are only thre=
+e cases to consider:
+
+              *  If ksize equals usize, then there is no version mismatch a=
+nd  how  can  be  used
+                 verbatim.
+
+              *  If  ksize  is  larger than usize, then there are some exte=
+nsions the kernel sup-
+                 ports which the userspace program is unaware of.  Because =
+ all  extensions  must
+                 have their zero values be a no-op, the kernel treats all o=
+f the extension fields
+                 not set by userspace to have zero values.  This  provides =
+ backwards-compatibil-
+                 ity.
+
+              *  If  ksize  is  smaller  than  usize,  then  there  are som=
+e extensions which the
+                 userspace program is aware of but the kernel does not supp=
+ort.  Because all  ex-
+                 tensions  must  have  their zero values be a no-op, the ke=
+rnel can safely ignore
+                 the unsupported extension fields if they are all-zero.  If=
+ any  unsupported  ex-
+                 tension  fields  are  non-zero,  then  -1 is returned and =
+errno is set to E2BIG.
+                 This provides forwards-compatibility.
+
+       Therefore, most userspace programs will not need to have any special=
+  handling  of  exten-
+       sions.   However,  if  a userspace program wishes to determine what =
+extensions the running
+       kernel supports, they may conduct a binary search on size (to find t=
+he largest value which
+       doesn't produce an error of E2BIG.)
+
+SEE ALSO
+       openat(2), path_resolution(7), symlink(7)
+
+Linux                                       2019-10-27                     =
+            OPENAT2(2)
+--8<-----------------------------------------------------------------------=
+----
+
+
+Aleksa Sarai (6):
+  namei: O_BENEATH-style resolution restriction flags
+  namei: LOOKUP_IN_ROOT: chroot-like path resolution
+  namei: permit ".." resolution with LOOKUP_{IN_ROOT,BENEATH}
+  open: introduce openat2(2) syscall
+  selftests: add openat2(2) selftests
+  Documentation: path-lookup: mention LOOKUP_MAGICLINK_JUMPED
+
+ CREDITS                                       |   4 +-
+ Documentation/filesystems/path-lookup.rst     |  18 +-
+ arch/alpha/kernel/syscalls/syscall.tbl        |   1 +
+ arch/arm/tools/syscall.tbl                    |   1 +
+ arch/arm64/include/asm/unistd.h               |   2 +-
+ arch/arm64/include/asm/unistd32.h             |   2 +
+ arch/ia64/kernel/syscalls/syscall.tbl         |   1 +
+ arch/m68k/kernel/syscalls/syscall.tbl         |   1 +
+ arch/microblaze/kernel/syscalls/syscall.tbl   |   1 +
+ arch/mips/kernel/syscalls/syscall_n32.tbl     |   1 +
+ arch/mips/kernel/syscalls/syscall_n64.tbl     |   1 +
+ arch/mips/kernel/syscalls/syscall_o32.tbl     |   1 +
+ arch/parisc/kernel/syscalls/syscall.tbl       |   1 +
+ arch/powerpc/kernel/syscalls/syscall.tbl      |   1 +
+ arch/s390/kernel/syscalls/syscall.tbl         |   1 +
+ arch/sh/kernel/syscalls/syscall.tbl           |   1 +
+ arch/sparc/kernel/syscalls/syscall.tbl        |   1 +
+ arch/x86/entry/syscalls/syscall_32.tbl        |   1 +
+ arch/x86/entry/syscalls/syscall_64.tbl        |   1 +
+ arch/xtensa/kernel/syscalls/syscall.tbl       |   1 +
+ fs/namei.c                                    | 167 +++++-
+ fs/open.c                                     | 154 ++++--
+ include/linux/fcntl.h                         |  12 +-
+ include/linux/namei.h                         |  12 +
+ include/linux/syscalls.h                      |   3 +
+ include/uapi/asm-generic/unistd.h             |   5 +-
+ include/uapi/linux/fcntl.h                    |  41 ++
+ tools/testing/selftests/Makefile              |   1 +
+ tools/testing/selftests/openat2/.gitignore    |   1 +
+ tools/testing/selftests/openat2/Makefile      |   8 +
+ tools/testing/selftests/openat2/helpers.c     | 109 ++++
+ tools/testing/selftests/openat2/helpers.h     | 107 ++++
+ .../testing/selftests/openat2/openat2_test.c  | 297 ++++++++++
+ .../selftests/openat2/rename_attack_test.c    | 160 ++++++
+ .../testing/selftests/openat2/resolve_test.c  | 523 ++++++++++++++++++
+ 35 files changed, 1571 insertions(+), 71 deletions(-)
+ create mode 100644 tools/testing/selftests/openat2/.gitignore
+ create mode 100644 tools/testing/selftests/openat2/Makefile
+ create mode 100644 tools/testing/selftests/openat2/helpers.c
+ create mode 100644 tools/testing/selftests/openat2/helpers.h
+ create mode 100644 tools/testing/selftests/openat2/openat2_test.c
+ create mode 100644 tools/testing/selftests/openat2/rename_attack_test.c
+ create mode 100644 tools/testing/selftests/openat2/resolve_test.c
+
+--=20
+2.23.0
