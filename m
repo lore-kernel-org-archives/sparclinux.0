@@ -1,30 +1,57 @@
-From: David Miller <davem@davemloft.net>
-Date: Thu, 24 Oct 2019 16:46:23 +0000
-Subject: Re: [PATCH v13 09/22] sparc: mm: Add p?d_leaf() definitions
-Message-Id: <20191024.094623.2182520936177775102.davem@davemloft.net>
+From: Tuowen Zhao <ztuowen@gmail.com>
+Date: Mon, 28 Oct 2019 20:46:00 +0000
+Subject: Fwd: [PATCH v5 1/4] sparc64: implement ioremap_uc
+Message-Id: <5c5b9dec7ea401fffa13446af2a528cbaf6e1046.camel@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191024093716.49420-1-steven.price@arm.com>
- <20191024093716.49420-10-steven.price@arm.com>
-In-Reply-To: <20191024093716.49420-10-steven.price@arm.com>
+References: <20191016210629.1005086-2-ztuowen@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: steven.price@arm.com
-Cc: Mark.Rutland@arm.com, x86@kernel.org, arnd@arndb.de, ard.biesheuvel@linaro.org, peterz@infradead.org, catalin.marinas@arm.com, dave.hansen@linux.intel.com, linux-kernel@vger.kernel.org, linux-mm@kvack.org, jglisse@redhat.com, mingo@redhat.com, bp@alien8.de, luto@kernel.org, hpa@zytor.com, sparclinux@vger.kernel.org, james.morse@arm.com, tglx@linutronix.de, will@kernel.org, akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org, kan.liang@linux.intel.com
+To: sparclinux@vger.kernel.org, "davem@davemloft.net" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "lee.jones@linaro.org" <lee.jones@linaro.org>, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, acelan.kao@canonical.com, mcgrof@kernel.org
 
-From: Steven Price <steven.price@arm.com>
-Date: Thu, 24 Oct 2019 10:37:03 +0100
+Adding sparc list. Sorry, first time missed the list.
 
-> walk_page_range() is going to be allowed to walk page tables other than
-> those of user space. For this it needs to know when it has reached a
-> 'leaf' entry in the page tables. This information is provided by the
-> p?d_leaf() functions/macros.
-> 
-> For sparc 64 bit, pmd_large() and pud_large() are already provided, so
-> add macros to provide the p?d_leaf names required by the generic code.
-> 
-> CC: "David S. Miller" <davem@davemloft.net>
-> CC: sparclinux@vger.kernel.org
-> Signed-off-by: Steven Price <steven.price@arm.com>
+Looking for some reviews.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Patch set: Fix MTRR bug for intel-lpss-pci
+https://lkml.org/lkml/2019/10/16/1230
+
+Tuowen
+
+-------- Forwarded Message --------
+From: Tuowen Zhao <ztuowen@gmail.com>
+To: lee.jones@linaro.org, linux-kernel@vger.kernel.org
+Cc: andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com,
+acelan.kao@canonical.com, mcgrof@kernel.org, davem@davemloft.net, 
+Tuowen Zhao <ztuowen@gmail.com>, kbuild test robot <lkp@intel.com>
+Subject: [PATCH v5 1/4] sparc64: implement ioremap_uc
+Date: Wed, 16 Oct 2019 15:06:27 -0600
+
+On sparc64, the whole physical IO address space is accessible using
+physically addressed loads and stores. *_uc does nothing like the
+others.
+
+Cc: <stable@vger.kernel.org>
+Reported-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Tuowen Zhao <ztuowen@gmail.com>
+---
+ arch/sparc/include/asm/io_64.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/sparc/include/asm/io_64.h
+b/arch/sparc/include/asm/io_64.h
+index 688911051b44..f4afa301954a 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -407,6 +407,7 @@ static inline void __iomem *ioremap(unsigned long
+offset, unsigned long size)
+ }
+ 
+ #define ioremap_nocache(X,Y)		ioremap((X),(Y))
++#define ioremap_uc(X,Y)			ioremap((X),(Y))
+ #define ioremap_wc(X,Y)			ioremap((X),(Y))
+ #define ioremap_wt(X,Y)			ioremap((X),(Y))
+ 
+-- 
+2.23.0
