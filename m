@@ -1,64 +1,52 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Sat, 26 Oct 2019 13:15:38 +0000
-Subject: [PATCH AUTOSEL 5.3 77/99] sparc64: disable fast-GUP due to unexplained oopses
-Message-Id: <20191026131600.2507-77-sashal@kernel.org>
+From: Steven Price <steven.price@arm.com>
+Date: Mon, 28 Oct 2019 13:58:57 +0000
+Subject: [PATCH v14 09/22] sparc: mm: Add p?d_leaf() definitions
+Message-Id: <20191028135910.33253-10-steven.price@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191026131600.2507-1-sashal@kernel.org>
-In-Reply-To: <20191026131600.2507-1-sashal@kernel.org>
+References: <20191028135910.33253-1-steven.price@arm.com>
+In-Reply-To: <20191028135910.33253-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Dmitry V Levin <ldv@altlinux.org>, Anatoly Pugachev <matorola@gmail.com>, Meelis Roos <mroos@linux.ee>, Christoph Hellwig <hch@infradead.org>, David Miller <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Mark Rutland <Mark.Rutland@arm.com>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Will Deacon <will@kernel.org>, "Liang,
+ Kan" <kan.liang@linux.intel.com>, x86@kernel.org, Steven Price <steven.price@arm.com>, Ingo Molnar <mingo@redhat.com>, Arnd Bergmann <arnd@arndb.de>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
+walk_page_range() is going to be allowed to walk page tables other than
+those of user space. For this it needs to know when it has reached a
+'leaf' entry in the page tables. This information is provided by the
+p?d_leaf() functions/macros.
 
-[ Upstream commit 8e0d0ad206f08506c893326ca7c9c3d9cc042cef ]
+For sparc 64 bit, pmd_large() and pud_large() are already provided, so
+add macros to provide the p?d_leaf names required by the generic code.
 
-HAVE_FAST_GUP enables the lockless quick page table walker for simple
-cases, and is a nice optimization for some random loads that can then
-use get_user_pages_fast() rather than the more careful page walker.
-
-However, for some unexplained reason, it seems to be subtly broken on
-sparc64.  The breakage is only with some compiler versions and some
-hardware, and nobody seems to have figured out what triggers it,
-although there's a simple reprodicer for the problem when it does
-trigger.
-
-The problem was introduced with the conversion to the generic GUP code
-in commit 7b9afb86b632 ("sparc64: use the generic get_user_pages_fast
-code"), but nothing looks obviously wrong in that conversion.  It may be
-a compiler bug that just hits us with the code reorganization.  Or it
-may be something very specific to sparc64.
-
-This disables HAVE_FAST_GUP entirely.  That makes things like futexes a
-bit slower, but at least they work.  If we can figure out the trigger,
-that would be lovely, but it's been three months already..
-
-Link: https://lore.kernel.org/lkml/20190717215956.GA30369@altlinux.org/
-Fixes: 7b9afb86b632 ("sparc64: use the generic get_user_pages_fast code")
-Reported-by: Dmitry V Levin <ldv@altlinux.org>
-Reported-by: Anatoly Pugachev <matorola@gmail.com>
-Requested-by: Meelis Roos <mroos@linux.ee>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Cc: David Miller <davem@davemloft.net>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Steven Price <steven.price@arm.com>
 ---
- arch/sparc/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+ arch/sparc/include/asm/pgtable_64.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 7926a2e11bdc2..6a31f240840d4 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -28,7 +28,6 @@ config SPARC
- 	select RTC_DRV_M48T59
- 	select RTC_SYSTOHC
- 	select HAVE_ARCH_JUMP_LABEL if SPARC64
--	select HAVE_FAST_GUP if SPARC64
- 	select GENERIC_IRQ_SHOW
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_PCI_IOMAP
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 6ae8016ef4ec..43206652eaf5 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -683,6 +683,7 @@ static inline unsigned long pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
+ }
+ 
++#define pmd_leaf	pmd_large
+ static inline unsigned long pmd_large(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -867,6 +868,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ /* only used by the stubbed out hugetlb gup code, should never be called */
+ #define pgd_page(pgd)			NULL
+ 
++#define pud_leaf	pud_large
+ static inline unsigned long pud_large(pud_t pud)
+ {
+ 	pte_t pte = __pte(pud_val(pud));
 -- 
 2.20.1
