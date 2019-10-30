@@ -1,65 +1,126 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Tue, 29 Oct 2019 06:48:28 +0000
-Subject: [PATCH 15/21] nios2: remove __iounmap
-Message-Id: <20191029064834.23438-16-hch@lst.de>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Wed, 30 Oct 2019 06:38:53 +0000
+Subject: [PATCH 1/3] arch: ipcbuf.h: make uapi asm/ipcbuf.h self-contained
+Message-Id: <20191030063855.9989-1-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191029064834.23438-1-hch@lst.de>
-In-Reply-To: <20191029064834.23438-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org
-Cc: linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andrew Morton <akpm@linux-foundation.org>, linux-arch <linux-arch@vger.kernel.org>
+Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Masahiro Yamada <yamada.masahiro@socionext.com>
 
-No need to indirect iounmap for nios2.
+The user-space cannot compile <asm/ipcbuf.h> due to some missing type
+definitions. For example, building it for x86 fails as follows:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+  CC      usr/include/asm/ipcbuf.h.s
+In file included from ./usr/include/asm/ipcbuf.h:1:0,
+                 from <command-line>:32:
+./usr/include/asm-generic/ipcbuf.h:21:2: error: unknown type name ‘__kernel_key_t’
+  __kernel_key_t  key;
+  ^~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:22:2: error: unknown type name ‘__kernel_uid32_t’
+  __kernel_uid32_t uid;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:23:2: error: unknown type name ‘__kernel_gid32_t’
+  __kernel_gid32_t gid;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:24:2: error: unknown type name ‘__kernel_uid32_t’
+  __kernel_uid32_t cuid;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:25:2: error: unknown type name ‘__kernel_gid32_t’
+  __kernel_gid32_t cgid;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:26:2: error: unknown type name ‘__kernel_mode_t’
+  __kernel_mode_t  mode;
+  ^~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:28:35: error: ‘__kernel_mode_t’ undeclared here (not in a function)
+  unsigned char  __pad1[4 - sizeof(__kernel_mode_t)];
+                                   ^~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:31:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused1;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm-generic/ipcbuf.h:32:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused2;
+  ^~~~~~~~~~~~~~~~
+
+It is just a matter of missing include directive.
+
+Include <asm/posix_types.h> to make it self-contained, and add it to
+the compile-test coverage.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 ---
- arch/nios2/include/asm/io.h | 7 +------
- arch/nios2/mm/ioremap.c     | 6 +++---
- 2 files changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/arch/nios2/include/asm/io.h b/arch/nios2/include/asm/io.h
-index d108937c321e..746853ac7d8d 100644
---- a/arch/nios2/include/asm/io.h
-+++ b/arch/nios2/include/asm/io.h
-@@ -26,12 +26,7 @@
- #define writel_relaxed(x, addr)	writel(x, addr)
+ arch/s390/include/uapi/asm/ipcbuf.h   | 2 ++
+ arch/sparc/include/uapi/asm/ipcbuf.h  | 2 ++
+ arch/xtensa/include/uapi/asm/ipcbuf.h | 2 ++
+ include/uapi/asm-generic/ipcbuf.h     | 2 ++
+ usr/include/Makefile                  | 1 -
+ 5 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/arch/s390/include/uapi/asm/ipcbuf.h b/arch/s390/include/uapi/asm/ipcbuf.h
+index 5b1c4f47c656..1030cd186899 100644
+--- a/arch/s390/include/uapi/asm/ipcbuf.h
++++ b/arch/s390/include/uapi/asm/ipcbuf.h
+@@ -2,6 +2,8 @@
+ #ifndef __S390_IPCBUF_H__
+ #define __S390_IPCBUF_H__
  
- void __iomem *ioremap(unsigned long physaddr, unsigned long size);
--extern void __iounmap(void __iomem *addr);
--
--static inline void iounmap(void __iomem *addr)
--{
--	__iounmap(addr);
--}
-+void iounmap(void __iomem *addr);
- 
- /* Pages to physical address... */
- #define page_to_phys(page)	virt_to_phys(page_to_virt(page))
-diff --git a/arch/nios2/mm/ioremap.c b/arch/nios2/mm/ioremap.c
-index 7a1a27f3daa3..b56af759dcdf 100644
---- a/arch/nios2/mm/ioremap.c
-+++ b/arch/nios2/mm/ioremap.c
-@@ -157,11 +157,11 @@ void __iomem *ioremap(unsigned long phys_addr, unsigned long size)
- EXPORT_SYMBOL(ioremap);
- 
++#include <linux/posix_types.h>
++
  /*
-- * __iounmap unmaps nearly everything, so be careful
-+ * iounmap unmaps nearly everything, so be careful
-  * it doesn't free currently pointer/page tables anymore but it
-  * wasn't used anyway and might be added later.
-  */
--void __iounmap(void __iomem *addr)
-+void iounmap(void __iomem *addr)
- {
- 	struct vm_struct *p;
+  * The user_ipc_perm structure for S/390 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/sparc/include/uapi/asm/ipcbuf.h b/arch/sparc/include/uapi/asm/ipcbuf.h
+index 9d0d125500e2..5b933a598a33 100644
+--- a/arch/sparc/include/uapi/asm/ipcbuf.h
++++ b/arch/sparc/include/uapi/asm/ipcbuf.h
+@@ -2,6 +2,8 @@
+ #ifndef __SPARC_IPCBUF_H
+ #define __SPARC_IPCBUF_H
  
-@@ -173,4 +173,4 @@ void __iounmap(void __iomem *addr)
- 		pr_err("iounmap: bad address %p\n", addr);
- 	kfree(p);
- }
--EXPORT_SYMBOL(__iounmap);
-+EXPORT_SYMBOL(iounmap);
++#include <linux/posix_types.h>
++
+ /*
+  * The ipc64_perm structure for sparc/sparc64 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/xtensa/include/uapi/asm/ipcbuf.h b/arch/xtensa/include/uapi/asm/ipcbuf.h
+index a57afa0b606f..3bd0642f6660 100644
+--- a/arch/xtensa/include/uapi/asm/ipcbuf.h
++++ b/arch/xtensa/include/uapi/asm/ipcbuf.h
+@@ -12,6 +12,8 @@
+ #ifndef _XTENSA_IPCBUF_H
+ #define _XTENSA_IPCBUF_H
+ 
++#include <linux/posix_types.h>
++
+ /*
+  * Pad space is left for:
+  * - 32-bit mode_t and seq
+diff --git a/include/uapi/asm-generic/ipcbuf.h b/include/uapi/asm-generic/ipcbuf.h
+index 7d80dbd336fb..41a01b494fc7 100644
+--- a/include/uapi/asm-generic/ipcbuf.h
++++ b/include/uapi/asm-generic/ipcbuf.h
+@@ -2,6 +2,8 @@
+ #ifndef __ASM_GENERIC_IPCBUF_H
+ #define __ASM_GENERIC_IPCBUF_H
+ 
++#include <linux/posix_types.h>
++
+ /*
+  * The generic ipc64_perm structure:
+  * Note extra padding because this structure is passed back and forth
+diff --git a/usr/include/Makefile b/usr/include/Makefile
+index 57b20f7b6729..70f8fe256aed 100644
+--- a/usr/include/Makefile
++++ b/usr/include/Makefile
+@@ -16,7 +16,6 @@ override c_flags = $(UAPI_CFLAGS) -Wp,-MD,$(depfile) -I$(objtree)/usr/include
+ # Please consider to fix the header first.
+ #
+ # Sorted alphabetically.
+-header-test- += asm/ipcbuf.h
+ header-test- += asm/msgbuf.h
+ header-test- += asm/sembuf.h
+ header-test- += asm/shmbuf.h
 -- 
-2.20.1
+2.17.1
