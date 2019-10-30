@@ -1,157 +1,163 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Mon, 07 Oct 2019 05:57:23 +0000
-Subject: [PATCH V4 1/2] mm/hugetlb: Make alloc_gigantic_page() available for general use
-Message-Id: <1570427124-21887-2-git-send-email-anshuman.khandual@arm.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Wed, 30 Oct 2019 06:38:55 +0000
+Subject: [PATCH 3/3] arch: sembuf.h: make uapi asm/sembuf.h self-contained
+Message-Id: <20191030063855.9989-3-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1570427124-21887-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1570427124-21887-1-git-send-email-anshuman.khandual@arm.com>
+References: <20191030063855.9989-1-yamada.masahiro@socionext.com>
+In-Reply-To: <20191030063855.9989-1-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Kees Cook <keescook@chromium.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andrew Morton <akpm@linux-foundation.org>, linux-arch <linux-arch@vger.kernel.org>
+Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Masahiro Yamada <yamada.masahiro@socionext.com>
 
-alloc_gigantic_page() implements an allocation method where it scans over
-various zones looking for a large contiguous memory block which could not
-have been allocated through the buddy allocator. A subsequent patch which
-tests arch page table helpers needs such a method to allocate PUD_SIZE
-sized memory block. In the future such methods might have other use cases
-as well. So alloc_gigantic_page() has been split carving out actual memory
-allocation method and made available via new alloc_gigantic_page_order().
+The user-space cannot compile <asm/sembuf.h> due to some missing type
+definitions. For example, building it for x86 fails as follows:
 
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Steven Price <Steven.Price@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Sri Krishna chowdary <schowdary@nvidia.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: James Hogan <jhogan@kernel.org>
-Cc: Paul Burton <paul.burton@mips.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: x86@kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+  CC      usr/include/asm/sembuf.h.s
+In file included from <command-line>:32:0:
+./usr/include/asm/sembuf.h:17:20: error: field ‘sem_perm’ has incomplete type
+  struct ipc64_perm sem_perm; /* permissions .. see ipc.h */
+                    ^~~~~~~~
+./usr/include/asm/sembuf.h:24:2: error: unknown type name ‘__kernel_time_t’
+  __kernel_time_t sem_otime; /* last semop time */
+  ^~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:25:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused1;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:26:2: error: unknown type name ‘__kernel_time_t’
+  __kernel_time_t sem_ctime; /* last change time */
+  ^~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:27:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused2;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:29:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t sem_nsems; /* no. of semaphores in array */
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:30:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused3;
+  ^~~~~~~~~~~~~~~~
+./usr/include/asm/sembuf.h:31:2: error: unknown type name ‘__kernel_ulong_t’
+  __kernel_ulong_t __unused4;
+  ^~~~~~~~~~~~~~~~
+
+It is just a matter of missing include directive.
+
+Include <asm/ipcbuf.h> to make it self-contained, and add it to
+the compile-test coverage.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 ---
- include/linux/hugetlb.h |  9 +++++++++
- mm/hugetlb.c            | 24 ++++++++++++++++++++++--
- 2 files changed, 31 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 53fc34f930d0..cc50d5ad4885 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -299,6 +299,9 @@ static inline bool is_file_hugepages(struct file *file)
- }
+ arch/mips/include/uapi/asm/sembuf.h    | 2 ++
+ arch/parisc/include/uapi/asm/sembuf.h  | 1 +
+ arch/powerpc/include/uapi/asm/sembuf.h | 2 ++
+ arch/sparc/include/uapi/asm/sembuf.h   | 2 ++
+ arch/x86/include/uapi/asm/sembuf.h     | 2 ++
+ arch/xtensa/include/uapi/asm/sembuf.h  | 1 +
+ include/uapi/asm-generic/sembuf.h      | 1 +
+ usr/include/Makefile                   | 1 -
+ 8 files changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/arch/mips/include/uapi/asm/sembuf.h b/arch/mips/include/uapi/asm/sembuf.h
+index 60c89e6cb25b..7d135b93bebd 100644
+--- a/arch/mips/include/uapi/asm/sembuf.h
++++ b/arch/mips/include/uapi/asm/sembuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_SEMBUF_H
+ #define _ASM_SEMBUF_H
  
- 
-+struct page *
-+alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
-+			  int nid, nodemask_t *nodemask);
- #else /* !CONFIG_HUGETLBFS */
- 
- #define is_file_hugepages(file)			false
-@@ -310,6 +313,12 @@ hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
- 	return ERR_PTR(-ENOSYS);
- }
- 
-+static inline struct page *
-+alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
-+			  int nid, nodemask_t *nodemask)
-+{
-+	return NULL;
-+}
- #endif /* !CONFIG_HUGETLBFS */
- 
- #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index ef37c85423a5..3fb81252f52b 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -1112,10 +1112,9 @@ static bool zone_spans_last_pfn(const struct zone *zone,
- 	return zone_spans_pfn(zone, last_pfn);
- }
- 
--static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
- 		int nid, nodemask_t *nodemask)
- {
--	unsigned int order = huge_page_order(h);
- 	unsigned long nr_pages = 1 << order;
- 	unsigned long ret, pfn, flags;
- 	struct zonelist *zonelist;
-@@ -1151,6 +1150,14 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
- 	return NULL;
- }
- 
-+static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
-+					int nid, nodemask_t *nodemask)
-+{
-+	unsigned int order = huge_page_order(h);
++#include <asm/ipcbuf.h>
 +
-+	return alloc_gigantic_page_order(order, gfp_mask, nid, nodemask);
-+}
-+
- static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
- static void prep_compound_gigantic_page(struct page *page, unsigned int order);
- #else /* !CONFIG_CONTIG_ALLOC */
-@@ -1159,6 +1166,12 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
- {
- 	return NULL;
- }
-+
-+struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
-+				       int nid, nodemask_t *nodemask)
-+{
-+	return NULL;
-+}
- #endif /* CONFIG_CONTIG_ALLOC */
+ /*
+  * The semid64_ds structure for the MIPS architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/parisc/include/uapi/asm/sembuf.h b/arch/parisc/include/uapi/asm/sembuf.h
+index 3c31163b1241..b17a2460b184 100644
+--- a/arch/parisc/include/uapi/asm/sembuf.h
++++ b/arch/parisc/include/uapi/asm/sembuf.h
+@@ -3,6 +3,7 @@
+ #define _PARISC_SEMBUF_H
  
- #else /* !CONFIG_ARCH_HAS_GIGANTIC_PAGE */
-@@ -1167,6 +1180,13 @@ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
- {
- 	return NULL;
- }
+ #include <asm/bitsperlong.h>
++#include <asm/ipcbuf.h>
+ 
+ /* 
+  * The semid64_ds structure for parisc architecture.
+diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
+index 3f60946f77e3..f42c9c3502c7 100644
+--- a/arch/powerpc/include/uapi/asm/sembuf.h
++++ b/arch/powerpc/include/uapi/asm/sembuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_POWERPC_SEMBUF_H
+ #define _ASM_POWERPC_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
 +
-+struct page *alloc_gigantic_page_order(unsigned int order, gfp_t gfp_mask,
-+				       int nid, nodemask_t *nodemask)
-+{
-+	return NULL;
-+}
+ /*
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
+index f3d309c2e1cd..5d7764cdf80f 100644
+--- a/arch/sparc/include/uapi/asm/sembuf.h
++++ b/arch/sparc/include/uapi/asm/sembuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _SPARC_SEMBUF_H
+ #define _SPARC_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
 +
- static inline void free_gigantic_page(struct page *page, unsigned int order) { }
- static inline void destroy_compound_gigantic_page(struct page *page,
- 						unsigned int order) { }
+ /*
+  * The semid64_ds structure for sparc architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/x86/include/uapi/asm/sembuf.h b/arch/x86/include/uapi/asm/sembuf.h
+index 89de6cd9f0a7..da0464af7aa6 100644
+--- a/arch/x86/include/uapi/asm/sembuf.h
++++ b/arch/x86/include/uapi/asm/sembuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_X86_SEMBUF_H
+ #define _ASM_X86_SEMBUF_H
+ 
++#include <asm/ipcbuf.h>
++
+ /*
+  * The semid64_ds structure for x86 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
+index 09f348d643f1..3b9cdd406dfe 100644
+--- a/arch/xtensa/include/uapi/asm/sembuf.h
++++ b/arch/xtensa/include/uapi/asm/sembuf.h
+@@ -22,6 +22,7 @@
+ #define _XTENSA_SEMBUF_H
+ 
+ #include <asm/byteorder.h>
++#include <asm/ipcbuf.h>
+ 
+ struct semid64_ds {
+ 	struct ipc64_perm sem_perm;		/* permissions .. see ipc.h */
+diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
+index 0bae010f1b64..5807fcd643ba 100644
+--- a/include/uapi/asm-generic/sembuf.h
++++ b/include/uapi/asm-generic/sembuf.h
+@@ -3,6 +3,7 @@
+ #define __ASM_GENERIC_SEMBUF_H
+ 
+ #include <asm/bitsperlong.h>
++#include <asm/ipcbuf.h>
+ 
+ /*
+  * The semid64_ds structure for x86 architecture.
+diff --git a/usr/include/Makefile b/usr/include/Makefile
+index 099d7401aa23..107d04bd5ee3 100644
+--- a/usr/include/Makefile
++++ b/usr/include/Makefile
+@@ -16,7 +16,6 @@ override c_flags = $(UAPI_CFLAGS) -Wp,-MD,$(depfile) -I$(objtree)/usr/include
+ # Please consider to fix the header first.
+ #
+ # Sorted alphabetically.
+-header-test- += asm/sembuf.h
+ header-test- += asm/shmbuf.h
+ header-test- += asm/signal.h
+ header-test- += asm/ucontext.h
 -- 
-2.20.1
+2.17.1
