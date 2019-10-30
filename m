@@ -1,461 +1,160 @@
-From: Eric Biggers <ebiggers@kernel.org>
-Date: Sat, 12 Oct 2019 04:38:48 +0000
-Subject: [RFT PATCH 1/3] crypto: sparc/aes - convert to skcipher API
-Message-Id: <20191012043850.340957-2-ebiggers@kernel.org>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Wed, 30 Oct 2019 06:38:54 +0000
+Subject: [PATCH 2/3] arch: msgbuf.h: make uapi asm/msgbuf.h self-contained
+Message-Id: <20191030063855.9989-2-yamada.masahiro@socionext.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191012043850.340957-1-ebiggers@kernel.org>
-In-Reply-To: <20191012043850.340957-1-ebiggers@kernel.org>
+References: <20191030063855.9989-1-yamada.masahiro@socionext.com>
+In-Reply-To: <20191030063855.9989-1-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Herbert Xu <herbert@gondor.apana.org.au>, linux-crypto@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, "David S . Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andrew Morton <akpm@linux-foundation.org>, linux-arch <linux-arch@vger.kernel.org>
+Cc: linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, Masahiro Yamada <yamada.masahiro@socionext.com>
 
-From: Eric Biggers <ebiggers@google.com>
+The user-space cannot compile <asm/msgbuf.h> due to some missing type
+definitions. For example, building it for x86 fails as follows:
 
-Convert the glue code for the SPARC64 AES opcodes implementations of
-AES-ECB, AES-CBC, and AES-CTR from the deprecated "blkcipher" API to the
-"skcipher" API.  This is needed in order for the blkcipher API to be
-removed.
+  CC      usr/include/asm/msgbuf.h.s
+In file included from ./usr/include/asm/msgbuf.h:6:0,
+                 from <command-line>:32:
+./usr/include/asm-generic/msgbuf.h:25:20: error: field ‘msg_perm’ has incomplete type
+  struct ipc64_perm msg_perm;
+                    ^~~~~~~~
+./usr/include/asm-generic/msgbuf.h:27:2: error: unknown type name ‘__kernel_time_t’
+  __kernel_time_t msg_stime; /* last msgsnd time */
+  ^~~~~~~~~~~~~~~
+./usr/include/asm-generic/msgbuf.h:28:2: error: unknown type name ‘__kernel_time_t’
+  __kernel_time_t msg_rtime; /* last msgrcv time */
+  ^~~~~~~~~~~~~~~
+./usr/include/asm-generic/msgbuf.h:29:2: error: unknown type name ‘__kernel_time_t’
+  __kernel_time_t msg_ctime; /* last change time */
+  ^~~~~~~~~~~~~~~
+./usr/include/asm-generic/msgbuf.h:41:2: error: unknown type name ‘__kernel_pid_t’
+  __kernel_pid_t msg_lspid; /* pid of last msgsnd */
+  ^~~~~~~~~~~~~~
+./usr/include/asm-generic/msgbuf.h:42:2: error: unknown type name ‘__kernel_pid_t’
+  __kernel_pid_t msg_lrpid; /* last receive pid */
+  ^~~~~~~~~~~~~~
 
-Signed-off-by: Eric Biggers <ebiggers@google.com>
+It is just a matter of missing include directive.
+
+Include <asm/ipcbuf.h> to make it self-contained, and add it to
+the compile-test coverage.
+
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
 ---
- arch/sparc/crypto/aes_glue.c | 310 ++++++++++++++++-------------------
- crypto/Kconfig               |   3 +-
- 2 files changed, 144 insertions(+), 169 deletions(-)
 
-diff --git a/arch/sparc/crypto/aes_glue.c b/arch/sparc/crypto/aes_glue.c
-index 7b946b3dee9d..0f5a501c95a9 100644
---- a/arch/sparc/crypto/aes_glue.c
-+++ b/arch/sparc/crypto/aes_glue.c
-@@ -24,6 +24,7 @@
- #include <linux/types.h>
- #include <crypto/algapi.h>
- #include <crypto/aes.h>
-+#include <crypto/internal/skcipher.h>
+ arch/mips/include/uapi/asm/msgbuf.h    | 1 +
+ arch/parisc/include/uapi/asm/msgbuf.h  | 1 +
+ arch/powerpc/include/uapi/asm/msgbuf.h | 2 ++
+ arch/sparc/include/uapi/asm/msgbuf.h   | 2 ++
+ arch/x86/include/uapi/asm/msgbuf.h     | 3 +++
+ arch/xtensa/include/uapi/asm/msgbuf.h  | 2 ++
+ include/uapi/asm-generic/msgbuf.h      | 2 ++
+ usr/include/Makefile                   | 1 -
+ 8 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/arch/mips/include/uapi/asm/msgbuf.h b/arch/mips/include/uapi/asm/msgbuf.h
+index 46aa15b13e4e..2722f9b82cf2 100644
+--- a/arch/mips/include/uapi/asm/msgbuf.h
++++ b/arch/mips/include/uapi/asm/msgbuf.h
+@@ -2,6 +2,7 @@
+ #ifndef _ASM_MSGBUF_H
+ #define _ASM_MSGBUF_H
  
- #include <asm/fpumacro.h>
- #include <asm/pstate.h>
-@@ -197,6 +198,12 @@ static int aes_set_key(struct crypto_tfm *tfm, const u8 *in_key,
- 	return 0;
- }
++#include <asm/ipcbuf.h>
  
-+static int aes_set_key_skcipher(struct crypto_skcipher *tfm, const u8 *in_key,
-+				unsigned int key_len)
-+{
-+	return aes_set_key(crypto_skcipher_tfm(tfm), in_key, key_len);
-+}
+ /*
+  * The msqid64_ds structure for the MIPS architecture.
+diff --git a/arch/parisc/include/uapi/asm/msgbuf.h b/arch/parisc/include/uapi/asm/msgbuf.h
+index 6a2e9ab2ef8d..02ae1f616347 100644
+--- a/arch/parisc/include/uapi/asm/msgbuf.h
++++ b/arch/parisc/include/uapi/asm/msgbuf.h
+@@ -3,6 +3,7 @@
+ #define _PARISC_MSGBUF_H
+ 
+ #include <asm/bitsperlong.h>
++#include <asm/ipcbuf.h>
+ 
+ /* 
+  * The msqid64_ds structure for parisc architecture, copied from sparc.
+diff --git a/arch/powerpc/include/uapi/asm/msgbuf.h b/arch/powerpc/include/uapi/asm/msgbuf.h
+index 2b1b37797a47..30d5e1b45553 100644
+--- a/arch/powerpc/include/uapi/asm/msgbuf.h
++++ b/arch/powerpc/include/uapi/asm/msgbuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _ASM_POWERPC_MSGBUF_H
+ #define _ASM_POWERPC_MSGBUF_H
+ 
++#include <asm/ipcbuf.h>
 +
- static void crypto_aes_encrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
- {
- 	struct crypto_sparc64_aes_ctx *ctx = crypto_tfm_ctx(tfm);
-@@ -211,131 +218,108 @@ static void crypto_aes_decrypt(struct crypto_tfm *tfm, u8 *dst, const u8 *src)
- 	ctx->ops->decrypt(&ctx->key[0], (const u32 *) src, (u32 *) dst);
- }
+ /*
+  * The msqid64_ds structure for the PowerPC architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/sparc/include/uapi/asm/msgbuf.h b/arch/sparc/include/uapi/asm/msgbuf.h
+index ffc46c211d6d..81a8460fdd67 100644
+--- a/arch/sparc/include/uapi/asm/msgbuf.h
++++ b/arch/sparc/include/uapi/asm/msgbuf.h
+@@ -2,6 +2,8 @@
+ #ifndef _SPARC_MSGBUF_H
+ #define _SPARC_MSGBUF_H
  
--#define AES_BLOCK_MASK	(~(AES_BLOCK_SIZE-1))
--
--static int ecb_encrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int ecb_encrypt(struct skcipher_request *req)
- {
--	struct crypto_sparc64_aes_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct crypto_sparc64_aes_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
-+	unsigned int nbytes;
- 	int err;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	ctx->ops->load_encrypt_keys(&ctx->key[0]);
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & AES_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			ctx->ops->ecb_encrypt(&ctx->key[0],
--					      (const u64 *)walk.src.virt.addr,
--					      (u64 *) walk.dst.virt.addr,
--					      block_len);
--		}
--		nbytes &= AES_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		ctx->ops->ecb_encrypt(&ctx->key[0], walk.src.virt.addr,
-+				      walk.dst.virt.addr,
-+				      round_down(nbytes, AES_BLOCK_SIZE));
-+		err = skcipher_walk_done(&walk, nbytes % AES_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 	return err;
- }
- 
--static int ecb_decrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int ecb_decrypt(struct skcipher_request *req)
- {
--	struct crypto_sparc64_aes_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
--	u64 *key_end;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct crypto_sparc64_aes_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	const u64 *key_end;
-+	struct skcipher_walk walk;
-+	unsigned int nbytes;
- 	int err;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	ctx->ops->load_decrypt_keys(&ctx->key[0]);
- 	key_end = &ctx->key[ctx->expanded_key_length / sizeof(u64)];
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & AES_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			ctx->ops->ecb_decrypt(key_end,
--					      (const u64 *) walk.src.virt.addr,
--					      (u64 *) walk.dst.virt.addr, block_len);
--		}
--		nbytes &= AES_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		ctx->ops->ecb_decrypt(key_end, walk.src.virt.addr,
-+				      walk.dst.virt.addr,
-+				      round_down(nbytes, AES_BLOCK_SIZE));
-+		err = skcipher_walk_done(&walk, nbytes % AES_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 
- 	return err;
- }
- 
--static int cbc_encrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int cbc_encrypt(struct skcipher_request *req)
- {
--	struct crypto_sparc64_aes_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct crypto_sparc64_aes_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
-+	unsigned int nbytes;
- 	int err;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	ctx->ops->load_encrypt_keys(&ctx->key[0]);
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & AES_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			ctx->ops->cbc_encrypt(&ctx->key[0],
--					      (const u64 *)walk.src.virt.addr,
--					      (u64 *) walk.dst.virt.addr,
--					      block_len, (u64 *) walk.iv);
--		}
--		nbytes &= AES_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		ctx->ops->cbc_encrypt(&ctx->key[0], walk.src.virt.addr,
-+				      walk.dst.virt.addr,
-+				      round_down(nbytes, AES_BLOCK_SIZE),
-+				      walk.iv);
-+		err = skcipher_walk_done(&walk, nbytes % AES_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 	return err;
- }
- 
--static int cbc_decrypt(struct blkcipher_desc *desc,
--		       struct scatterlist *dst, struct scatterlist *src,
--		       unsigned int nbytes)
-+static int cbc_decrypt(struct skcipher_request *req)
- {
--	struct crypto_sparc64_aes_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
--	u64 *key_end;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct crypto_sparc64_aes_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	const u64 *key_end;
-+	struct skcipher_walk walk;
-+	unsigned int nbytes;
- 	int err;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt(desc, &walk);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	ctx->ops->load_decrypt_keys(&ctx->key[0]);
- 	key_end = &ctx->key[ctx->expanded_key_length / sizeof(u64)];
--	while ((nbytes = walk.nbytes)) {
--		unsigned int block_len = nbytes & AES_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			ctx->ops->cbc_decrypt(key_end,
--					      (const u64 *) walk.src.virt.addr,
--					      (u64 *) walk.dst.virt.addr,
--					      block_len, (u64 *) walk.iv);
--		}
--		nbytes &= AES_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+	while ((nbytes = walk.nbytes) != 0) {
-+		ctx->ops->cbc_decrypt(key_end, walk.src.virt.addr,
-+				      walk.dst.virt.addr,
-+				      round_down(nbytes, AES_BLOCK_SIZE),
-+				      walk.iv);
-+		err = skcipher_walk_done(&walk, nbytes % AES_BLOCK_SIZE);
- 	}
- 	fprs_write(0);
- 
- 	return err;
- }
- 
--static void ctr_crypt_final(struct crypto_sparc64_aes_ctx *ctx,
--			    struct blkcipher_walk *walk)
-+static void ctr_crypt_final(const struct crypto_sparc64_aes_ctx *ctx,
-+			    struct skcipher_walk *walk)
- {
- 	u8 *ctrblk = walk->iv;
- 	u64 keystream[AES_BLOCK_SIZE / sizeof(u64)];
-@@ -349,40 +333,35 @@ static void ctr_crypt_final(struct crypto_sparc64_aes_ctx *ctx,
- 	crypto_inc(ctrblk, AES_BLOCK_SIZE);
- }
- 
--static int ctr_crypt(struct blkcipher_desc *desc,
--		     struct scatterlist *dst, struct scatterlist *src,
--		     unsigned int nbytes)
-+static int ctr_crypt(struct skcipher_request *req)
- {
--	struct crypto_sparc64_aes_ctx *ctx = crypto_blkcipher_ctx(desc->tfm);
--	struct blkcipher_walk walk;
-+	struct crypto_skcipher *tfm = crypto_skcipher_reqtfm(req);
-+	const struct crypto_sparc64_aes_ctx *ctx = crypto_skcipher_ctx(tfm);
-+	struct skcipher_walk walk;
-+	unsigned int nbytes;
- 	int err;
- 
--	blkcipher_walk_init(&walk, dst, src, nbytes);
--	err = blkcipher_walk_virt_block(desc, &walk, AES_BLOCK_SIZE);
--	desc->flags &= ~CRYPTO_TFM_REQ_MAY_SLEEP;
-+	err = skcipher_walk_virt(&walk, req, true);
-+	if (err)
-+		return err;
- 
- 	ctx->ops->load_encrypt_keys(&ctx->key[0]);
- 	while ((nbytes = walk.nbytes) >= AES_BLOCK_SIZE) {
--		unsigned int block_len = nbytes & AES_BLOCK_MASK;
--
--		if (likely(block_len)) {
--			ctx->ops->ctr_crypt(&ctx->key[0],
--					    (const u64 *)walk.src.virt.addr,
--					    (u64 *) walk.dst.virt.addr,
--					    block_len, (u64 *) walk.iv);
--		}
--		nbytes &= AES_BLOCK_SIZE - 1;
--		err = blkcipher_walk_done(desc, &walk, nbytes);
-+		ctx->ops->ctr_crypt(&ctx->key[0], walk.src.virt.addr,
-+				    walk.dst.virt.addr,
-+				    round_down(nbytes, AES_BLOCK_SIZE),
-+				    walk.iv);
-+		err = skcipher_walk_done(&walk, nbytes % AES_BLOCK_SIZE);
- 	}
- 	if (walk.nbytes) {
- 		ctr_crypt_final(ctx, &walk);
--		err = blkcipher_walk_done(desc, &walk, 0);
-+		err = skcipher_walk_done(&walk, 0);
- 	}
- 	fprs_write(0);
- 	return err;
- }
- 
--static struct crypto_alg algs[] = { {
-+static struct crypto_alg cipher_alg = {
- 	.cra_name		= "aes",
- 	.cra_driver_name	= "aes-sparc64",
- 	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
-@@ -400,66 +379,53 @@ static struct crypto_alg algs[] = { {
- 			.cia_decrypt		= crypto_aes_decrypt
- 		}
- 	}
--}, {
--	.cra_name		= "ecb(aes)",
--	.cra_driver_name	= "ecb-aes-sparc64",
--	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
--	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
--	.cra_blocksize		= AES_BLOCK_SIZE,
--	.cra_ctxsize		= sizeof(struct crypto_sparc64_aes_ctx),
--	.cra_alignmask		= 7,
--	.cra_type		= &crypto_blkcipher_type,
--	.cra_module		= THIS_MODULE,
--	.cra_u = {
--		.blkcipher = {
--			.min_keysize	= AES_MIN_KEY_SIZE,
--			.max_keysize	= AES_MAX_KEY_SIZE,
--			.setkey		= aes_set_key,
--			.encrypt	= ecb_encrypt,
--			.decrypt	= ecb_decrypt,
--		},
--	},
--}, {
--	.cra_name		= "cbc(aes)",
--	.cra_driver_name	= "cbc-aes-sparc64",
--	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
--	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
--	.cra_blocksize		= AES_BLOCK_SIZE,
--	.cra_ctxsize		= sizeof(struct crypto_sparc64_aes_ctx),
--	.cra_alignmask		= 7,
--	.cra_type		= &crypto_blkcipher_type,
--	.cra_module		= THIS_MODULE,
--	.cra_u = {
--		.blkcipher = {
--			.min_keysize	= AES_MIN_KEY_SIZE,
--			.max_keysize	= AES_MAX_KEY_SIZE,
--			.ivsize		= AES_BLOCK_SIZE,
--			.setkey		= aes_set_key,
--			.encrypt	= cbc_encrypt,
--			.decrypt	= cbc_decrypt,
--		},
--	},
--}, {
--	.cra_name		= "ctr(aes)",
--	.cra_driver_name	= "ctr-aes-sparc64",
--	.cra_priority		= SPARC_CR_OPCODE_PRIORITY,
--	.cra_flags		= CRYPTO_ALG_TYPE_BLKCIPHER,
--	.cra_blocksize		= 1,
--	.cra_ctxsize		= sizeof(struct crypto_sparc64_aes_ctx),
--	.cra_alignmask		= 7,
--	.cra_type		= &crypto_blkcipher_type,
--	.cra_module		= THIS_MODULE,
--	.cra_u = {
--		.blkcipher = {
--			.min_keysize	= AES_MIN_KEY_SIZE,
--			.max_keysize	= AES_MAX_KEY_SIZE,
--			.ivsize		= AES_BLOCK_SIZE,
--			.setkey		= aes_set_key,
--			.encrypt	= ctr_crypt,
--			.decrypt	= ctr_crypt,
--		},
--	},
--} };
-+};
++#include <asm/ipcbuf.h>
 +
-+static struct skcipher_alg skcipher_algs[] = {
-+	{
-+		.base.cra_name		= "ecb(aes)",
-+		.base.cra_driver_name	= "ecb-aes-sparc64",
-+		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
-+		.base.cra_blocksize	= AES_BLOCK_SIZE,
-+		.base.cra_ctxsize	= sizeof(struct crypto_sparc64_aes_ctx),
-+		.base.cra_alignmask	= 7,
-+		.base.cra_module	= THIS_MODULE,
-+		.min_keysize		= AES_MIN_KEY_SIZE,
-+		.max_keysize		= AES_MAX_KEY_SIZE,
-+		.setkey			= aes_set_key_skcipher,
-+		.encrypt		= ecb_encrypt,
-+		.decrypt		= ecb_decrypt,
-+	}, {
-+		.base.cra_name		= "cbc(aes)",
-+		.base.cra_driver_name	= "cbc-aes-sparc64",
-+		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
-+		.base.cra_blocksize	= AES_BLOCK_SIZE,
-+		.base.cra_ctxsize	= sizeof(struct crypto_sparc64_aes_ctx),
-+		.base.cra_alignmask	= 7,
-+		.base.cra_module	= THIS_MODULE,
-+		.min_keysize		= AES_MIN_KEY_SIZE,
-+		.max_keysize		= AES_MAX_KEY_SIZE,
-+		.ivsize			= AES_BLOCK_SIZE,
-+		.setkey			= aes_set_key_skcipher,
-+		.encrypt		= cbc_encrypt,
-+		.decrypt		= cbc_decrypt,
-+	}, {
-+		.base.cra_name		= "ctr(aes)",
-+		.base.cra_driver_name	= "ctr-aes-sparc64",
-+		.base.cra_priority	= SPARC_CR_OPCODE_PRIORITY,
-+		.base.cra_blocksize	= 1,
-+		.base.cra_ctxsize	= sizeof(struct crypto_sparc64_aes_ctx),
-+		.base.cra_alignmask	= 7,
-+		.base.cra_module	= THIS_MODULE,
-+		.min_keysize		= AES_MIN_KEY_SIZE,
-+		.max_keysize		= AES_MAX_KEY_SIZE,
-+		.ivsize			= AES_BLOCK_SIZE,
-+		.setkey			= aes_set_key_skcipher,
-+		.encrypt		= ctr_crypt,
-+		.decrypt		= ctr_crypt,
-+		.chunksize		= AES_BLOCK_SIZE,
-+	}
-+};
- 
- static bool __init sparc64_has_aes_opcode(void)
- {
-@@ -477,17 +443,27 @@ static bool __init sparc64_has_aes_opcode(void)
- 
- static int __init aes_sparc64_mod_init(void)
- {
--	if (sparc64_has_aes_opcode()) {
--		pr_info("Using sparc64 aes opcodes optimized AES implementation\n");
--		return crypto_register_algs(algs, ARRAY_SIZE(algs));
-+	int err;
+ /*
+  * The msqid64_ds structure for sparc64 architecture.
+  * Note extra padding because this structure is passed back and forth
+diff --git a/arch/x86/include/uapi/asm/msgbuf.h b/arch/x86/include/uapi/asm/msgbuf.h
+index 90ab9a795b49..e09fd2363300 100644
+--- a/arch/x86/include/uapi/asm/msgbuf.h
++++ b/arch/x86/include/uapi/asm/msgbuf.h
+@@ -5,6 +5,9 @@
+ #if !defined(__x86_64__) || !defined(__ILP32__)
+ #include <asm-generic/msgbuf.h>
+ #else
 +
-+	if (!sparc64_has_aes_opcode()) {
-+		pr_info("sparc64 aes opcodes not available.\n");
-+		return -ENODEV;
- 	}
--	pr_info("sparc64 aes opcodes not available.\n");
--	return -ENODEV;
-+	pr_info("Using sparc64 aes opcodes optimized AES implementation\n");
-+	err = crypto_register_alg(&cipher_alg);
-+	if (err)
-+		return err;
-+	err = crypto_register_skciphers(skcipher_algs,
-+					ARRAY_SIZE(skcipher_algs));
-+	if (err)
-+		crypto_unregister_alg(&cipher_alg);
-+	return err;
- }
++#include <asm/ipcbuf.h>
++
+ /*
+  * The msqid64_ds structure for x86 architecture with x32 ABI.
+  *
+diff --git a/arch/xtensa/include/uapi/asm/msgbuf.h b/arch/xtensa/include/uapi/asm/msgbuf.h
+index d6915e9f071c..1ed2c85b693a 100644
+--- a/arch/xtensa/include/uapi/asm/msgbuf.h
++++ b/arch/xtensa/include/uapi/asm/msgbuf.h
+@@ -17,6 +17,8 @@
+ #ifndef _XTENSA_MSGBUF_H
+ #define _XTENSA_MSGBUF_H
  
- static void __exit aes_sparc64_mod_fini(void)
- {
--	crypto_unregister_algs(algs, ARRAY_SIZE(algs));
-+	crypto_unregister_alg(&cipher_alg);
-+	crypto_unregister_skciphers(skcipher_algs, ARRAY_SIZE(skcipher_algs));
- }
++#include <asm/ipcbuf.h>
++
+ struct msqid64_ds {
+ 	struct ipc64_perm msg_perm;
+ #ifdef __XTENSA_EB__
+diff --git a/include/uapi/asm-generic/msgbuf.h b/include/uapi/asm-generic/msgbuf.h
+index 9fe4881557cb..7cdc7e52490d 100644
+--- a/include/uapi/asm-generic/msgbuf.h
++++ b/include/uapi/asm-generic/msgbuf.h
+@@ -3,6 +3,8 @@
+ #define __ASM_GENERIC_MSGBUF_H
  
- module_init(aes_sparc64_mod_init);
-diff --git a/crypto/Kconfig b/crypto/Kconfig
-index 03699657fb5d..7c54a5b9aa2b 100644
---- a/crypto/Kconfig
-+++ b/crypto/Kconfig
-@@ -1098,8 +1098,7 @@ config CRYPTO_AES_NI_INTEL
- config CRYPTO_AES_SPARC64
- 	tristate "AES cipher algorithms (SPARC64)"
- 	depends on SPARC64
--	select CRYPTO_CRYPTD
--	select CRYPTO_ALGAPI
-+	select CRYPTO_BLKCIPHER
- 	help
- 	  Use SPARC64 crypto opcodes for AES algorithm.
- 
+ #include <asm/bitsperlong.h>
++#include <asm/ipcbuf.h>
++
+ /*
+  * generic msqid64_ds structure.
+  *
+diff --git a/usr/include/Makefile b/usr/include/Makefile
+index 70f8fe256aed..099d7401aa23 100644
+--- a/usr/include/Makefile
++++ b/usr/include/Makefile
+@@ -16,7 +16,6 @@ override c_flags = $(UAPI_CFLAGS) -Wp,-MD,$(depfile) -I$(objtree)/usr/include
+ # Please consider to fix the header first.
+ #
+ # Sorted alphabetically.
+-header-test- += asm/msgbuf.h
+ header-test- += asm/sembuf.h
+ header-test- += asm/shmbuf.h
+ header-test- += asm/signal.h
 -- 
-2.23.0
+2.17.1
