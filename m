@@ -1,64 +1,44 @@
-From: Kees Cook <keescook@chromium.org>
-Date: Wed, 30 Oct 2019 18:34:35 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Wed, 30 Oct 2019 19:29:40 +0000
 Subject: Re: [PATCH] tty: n_hdlc: fix build on SPARC
-Message-Id: <201910301131.2739AA83@keescook>
+Message-Id: <9ef8c2a5-8510-c509-4c31-b8684b6e1c67@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <675e7bd9-955b-3ff3-1101-a973b58b5b75@infradead.org>
-In-Reply-To: <675e7bd9-955b-3ff3-1101-a973b58b5b75@infradead.org>
+ <201910301131.2739AA83@keescook>
+In-Reply-To: <201910301131.2739AA83@keescook>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Randy Dunlap <rdunlap@infradead.org>
+To: Kees Cook <keescook@chromium.org>, Randy Dunlap <rdunlap@infradead.org>
 Cc: LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Miller <davem@davemloft.net>, kbuild test robot <lkp@intel.com>
 
-On Mon, Sep 30, 2019 at 07:15:12PM -0700, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
+On 10/30/19 7:34 PM, Kees Cook wrote:
+> On Mon, Sep 30, 2019 at 07:15:12PM -0700, Randy Dunlap wrote:
+>> From: Randy Dunlap <rdunlap@infradead.org>
+>>
+>> Fix tty driver build on SPARC by not using __exitdata.
+>> It appears that SPARC does not support section .exit.data.
+>>
+>> Fixes these build errors:
+>>
+>> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
+>> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
+>> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
+>> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
+>>
+>> Reported-by: kbuild test robot <lkp@intel.com>
+>> Fixes: 063246641d4a ("format-security: move static strings to const")
+>> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 > 
-> Fix tty driver build on SPARC by not using __exitdata.
-> It appears that SPARC does not support section .exit.data.
-> 
-> Fixes these build errors:
-> 
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> 
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Fixes: 063246641d4a ("format-security: move static strings to const")
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Wow. That commit is from 2.5 years ago. Is the SPARC port still alive?
+Yes, it is. No idea why we didn't run into this. I assume it affects certain
+configurations only. On Debian, we are always compiling and running the
+latest kernel versions on sparc64.
 
-Wow. That commit is from 2.5 years ago. Is the SPARC port still alive?
-
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> ---
->  drivers/tty/n_hdlc.c |    5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> --- mmotm-2019-0925-1810.orig/drivers/tty/n_hdlc.c
-> +++ mmotm-2019-0925-1810/drivers/tty/n_hdlc.c
-> @@ -968,6 +968,11 @@ static int __init n_hdlc_init(void)
->  	
->  }	/* end of init_module() */
->  
-> +#ifdef CONFIG_SPARC
-> +#undef __exitdata
-> +#define __exitdata
-> +#endif
-
-Shouldn't this be somewhere else? Any other driver wanting to use
-__exitdata would need a similar patch. This feels like it should be
-handled where __exitdata is normally defined?
-
--Kees
-
-> +
->  static const char hdlc_unregister_ok[] __exitdata >  	KERN_INFO "N_HDLC: line discipline unregistered\n";
->  static const char hdlc_unregister_fail[] __exitdata > 
-> 
+Adrian
 
 -- 
-Kees Cook
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
