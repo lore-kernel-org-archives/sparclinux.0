@@ -1,74 +1,42 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 08 Nov 2019 20:34:23 +0000
-Subject: [PATCH 0/8] y2038: bug fixes from y2038 work
-Message-Id: <20191108203435.112759-1-arnd@arndb.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Fri, 01 Nov 2019 08:39:35 +0000
+Subject: [PATCH v2 04/13] m68k: nommu: use pgtable-nopud instead of 4level-fixup
+Message-Id: <1572597584-6390-5-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1572597584-6390-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572597584-6390-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Corey Minyard <minyard@acm.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sudip Mukherjee <sudipm.mukherjee@gmail.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, John Stultz <john.stultz@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Stephen Boyd <sboyd@kernel.org>, Pablo Neira Ayuso <pablo@netfilter.org>, Jozsef Kadlecsik <kadlec@netfilter.org>, Florian Westphal <fw@strlen.de>, "David S. Miller" <davem@davemloft.net>, linuxppc-dev@lists.ozlabs.org, openipmi-developer@lists.sourceforge.net, linux-input@vger.kernel.org, netfilter-devel@vger.kernel.org, coreteam@netfilter.org, netdev@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-I've gone through the remaining uses of time_t etc and come up with a
-set of 90 patches of varying complexity and importance, to the point
-of being able to remove the old time_t/timeval/timespec from the kernel
-headers completely.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-This set includes the eight patches that I think should be merged
-right away and backported into stable kernels if possible.
+The generic nommu implementation of page table manipulation takes care of
+folding of the upper levels and does not require fixups.
 
-Please apply individual patches to the respective maintainer trees
-for either v5.4 or v5.5 as appropriate.
+Simply replace of include/asm-generic/4level-fixup.h with
+include/asm-generic/pgtable-nopud.h.
 
-For reference, the full series of 90 patches can be found at
-https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038-endgame
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Greg Ungerer <gerg@linux-m68k.org>
+---
+ arch/m68k/include/asm/pgtable_no.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-      Arnd
-
-Arnd Bergmann (8):
-  y2038: timex: remove incorrect time_t truncation
-  timekeeping: optimize ns_to_timespec64
-  powerpc: fix vdso32 for ppc64le
-  ipmi: kill off 'timespec' usage again
-  netfilter: xt_time: use time64_t
-  lp: fix sparc64 LPSETTIMEOUT ioctl
-  ppdev: fix PPGETTIME/PPSETTIME ioctls
-  Input: input_event: fix struct padding on sparc64
-
- arch/powerpc/kernel/vdso32/gettimeofday.S |  2 +-
- drivers/char/ipmi/ipmi_si_intf.c          | 40 ++++++++---------------
- drivers/char/lp.c                         |  4 +++
- drivers/char/ppdev.c                      | 16 ++++++---
- drivers/input/evdev.c                     |  3 ++
- drivers/input/misc/uinput.c               |  3 ++
- include/uapi/linux/input.h                |  1 +
- kernel/time/ntp.c                         |  2 +-
- kernel/time/time.c                        | 21 +++++++-----
- net/netfilter/xt_time.c                   | 19 ++++++-----
- 10 files changed, 61 insertions(+), 50 deletions(-)
-
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Stephen Boyd <sboyd@kernel.org>
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>
-Cc: Jozsef Kadlecsik <kadlec@netfilter.org>
-Cc: Florian Westphal <fw@strlen.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-kernel@vger.kernel.org
-Cc: openipmi-developer@lists.sourceforge.net
-Cc: linux-input@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: coreteam@netfilter.org
-Cc: netdev@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-
+diff --git a/arch/m68k/include/asm/pgtable_no.h b/arch/m68k/include/asm/pgtable_no.h
+index c18165b..ccc4568 100644
+--- a/arch/m68k/include/asm/pgtable_no.h
++++ b/arch/m68k/include/asm/pgtable_no.h
+@@ -2,7 +2,7 @@
+ #ifndef _M68KNOMMU_PGTABLE_H
+ #define _M68KNOMMU_PGTABLE_H
+ 
+-#include <asm-generic/4level-fixup.h>
++#include <asm-generic/pgtable-nopud.h>
+ 
+ /*
+  * (C) Copyright 2000-2002, Greg Ungerer <gerg@snapgear.com>
 -- 
-2.20.0
+2.7.4
