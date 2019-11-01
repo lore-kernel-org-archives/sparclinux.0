@@ -1,127 +1,72 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sun, 17 Nov 2019 01:17:03 +0000
-Subject: [PATCH v17 03/13] namei: allow nd_jump_link() to produce errors
-Message-Id: <20191117011713.13032-4-cyphar@cyphar.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Fri, 01 Nov 2019 08:39:40 +0000
+Subject: [PATCH v2 09/13] parisc/hugetlb: use pgtable-nopXd instead of 4level-fixup
+Message-Id: <1572597584-6390-10-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191117011713.13032-1-cyphar@cyphar.com>
-In-Reply-To: <20191117011713.13032-1-cyphar@cyphar.com>
+References: <1572597584-6390-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572597584-6390-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-In preparation for LOOKUP_NO_MAGICLINKS, it's necessary to add the
-ability for nd_jump_link() to return an error which the corresponding
-get_link() caller must propogate back up to the VFS.
+From: Helge Deller <deller@gmx.de>
 
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Helge Deller <deller@gmx.de>
 ---
- fs/namei.c                     |  3 ++-
- fs/proc/base.c                 |  3 +--
- fs/proc/namespaces.c           | 14 +++++++++-----
- include/linux/namei.h          |  2 +-
- security/apparmor/apparmorfs.c |  6 ++++--
- 5 files changed, 17 insertions(+), 11 deletions(-)
+ arch/parisc/mm/hugetlbpage.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 5a47d9c09581..1024a641f075 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -859,7 +859,7 @@ static int nd_jump_root(struct nameidata *nd)
-  * Helper to directly jump to a known parsed path from ->get_link,
-  * caller must have taken a reference to path beforehand.
-  */
--void nd_jump_link(struct path *path)
-+int nd_jump_link(struct path *path)
+diff --git a/arch/parisc/mm/hugetlbpage.c b/arch/parisc/mm/hugetlbpage.c
+index d578809..0e1e212 100644
+--- a/arch/parisc/mm/hugetlbpage.c
++++ b/arch/parisc/mm/hugetlbpage.c
+@@ -49,6 +49,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 			unsigned long addr, unsigned long sz)
  {
- 	struct nameidata *nd = current->nameidata;
- 	path_put(&nd->path);
-@@ -867,6 +867,7 @@ void nd_jump_link(struct path *path)
- 	nd->path = *path;
- 	nd->inode = nd->path.dentry->d_inode;
- 	nd->flags |= LOOKUP_JUMPED;
-+	return 0;
- }
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte = NULL;
+@@ -61,7 +62,8 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 	addr &= HPAGE_MASK;
  
- static inline void put_link(struct nameidata *nd)
-diff --git a/fs/proc/base.c b/fs/proc/base.c
-index ebea9501afb8..ee97dd322f3e 100644
---- a/fs/proc/base.c
-+++ b/fs/proc/base.c
-@@ -1626,8 +1626,7 @@ static const char *proc_pid_get_link(struct dentry *dentry,
- 	if (error)
- 		goto out;
- 
--	nd_jump_link(&path);
--	return NULL;
-+	error = nd_jump_link(&path);
- out:
- 	return ERR_PTR(error);
- }
-diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
-index 08dd94df1a66..a8cca516f1a9 100644
---- a/fs/proc/namespaces.c
-+++ b/fs/proc/namespaces.c
-@@ -51,11 +51,15 @@ static const char *proc_ns_get_link(struct dentry *dentry,
- 	if (!task)
- 		return ERR_PTR(-EACCES);
- 
--	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
--		error = ns_get_path(&ns_path, task, ns_ops);
--		if (!error)
--			nd_jump_link(&ns_path);
--	}
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
-+		goto out;
-+
-+	error = ns_get_path(&ns_path, task, ns_ops);
-+	if (error)
-+		goto out;
-+
-+	error = nd_jump_link(&ns_path);
-+out:
- 	put_task_struct(task);
- 	return ERR_PTR(error);
- }
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 397a08ade6a2..758e9b47db6f 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -68,7 +68,7 @@ extern int follow_up(struct path *);
- extern struct dentry *lock_rename(struct dentry *, struct dentry *);
- extern void unlock_rename(struct dentry *, struct dentry *);
- 
--extern void nd_jump_link(struct path *path);
-+extern int __must_check nd_jump_link(struct path *path);
- 
- static inline void nd_terminate_link(void *name, size_t len, size_t maxlen)
+ 	pgd = pgd_offset(mm, addr);
+-	pud = pud_alloc(mm, pgd, addr);
++	p4d = p4d_offset(pgd, addr);
++	pud = pud_alloc(mm, p4d, addr);
+ 	if (pud) {
+ 		pmd = pmd_alloc(mm, pud, addr);
+ 		if (pmd)
+@@ -74,6 +76,7 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
+ 		       unsigned long addr, unsigned long sz)
  {
-diff --git a/security/apparmor/apparmorfs.c b/security/apparmor/apparmorfs.c
-index 45d13b6462aa..0b7d6dce6291 100644
---- a/security/apparmor/apparmorfs.c
-+++ b/security/apparmor/apparmorfs.c
-@@ -2455,16 +2455,18 @@ static const char *policy_get_link(struct dentry *dentry,
- {
- 	struct aa_ns *ns;
- 	struct path path;
-+	int error;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte = NULL;
+@@ -82,11 +85,14 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
  
- 	if (!dentry)
- 		return ERR_PTR(-ECHILD);
-+
- 	ns = aa_get_current_ns();
- 	path.mnt = mntget(aafs_mnt);
- 	path.dentry = dget(ns_dir(ns));
--	nd_jump_link(&path);
-+	error = nd_jump_link(&path);
- 	aa_put_ns(ns);
- 
--	return NULL;
-+	return ERR_PTR(error);
- }
- 
- static int policy_readlink(struct dentry *dentry, char __user *buffer,
+ 	pgd = pgd_offset(mm, addr);
+ 	if (!pgd_none(*pgd)) {
+-		pud = pud_offset(pgd, addr);
+-		if (!pud_none(*pud)) {
+-			pmd = pmd_offset(pud, addr);
+-			if (!pmd_none(*pmd))
+-				pte = pte_offset_map(pmd, addr);
++		p4d = p4d_offset(pgd, addr);
++		if (!p4d_none(*p4d)) {
++			pud = pud_offset(p4d, addr);
++			if (!pud_none(*pud)) {
++				pmd = pmd_offset(pud, addr);
++				if (!pmd_none(*pmd))
++					pte = pte_offset_map(pmd, addr);
++			}
+ 		}
+ 	}
+ 	return pte;
 -- 
-2.24.0
+2.7.4
