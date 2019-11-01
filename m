@@ -1,155 +1,655 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Wed, 20 Nov 2019 05:06:25 +0000
-Subject: [PATCH RESEND v17 07/13] namei: LOOKUP_NO_XDEV: block mountpoint crossing
-Message-Id: <20191120050631.12816-8-cyphar@cyphar.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Fri, 01 Nov 2019 08:39:36 +0000
+Subject: [PATCH v2 05/13] m68k: mm: use pgtable-nopXd instead of 4level-fixup
+Message-Id: <1572597584-6390-6-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191120050631.12816-1-cyphar@cyphar.com>
-In-Reply-To: <20191120050631.12816-1-cyphar@cyphar.com>
+References: <1572597584-6390-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572597584-6390-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, David Drysdale <drysdale@google.com>, Andy Lutomirski <luto@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-/* Background. */
-The need to contain path operations within a mountpoint has been a
-long-standing usecase that userspace has historically implemented
-manually with liberal usage of stat(). find, rsync, tar and
-many other programs implement these semantics -- but it'd be much
-simpler to have a fool-proof way of refusing to open a path if it
-crosses a mountpoint.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-This is part of a refresh of Al's AT_NO_JUMPS patchset[1] (which was a
-variation on David Drysdale's O_BENEATH patchset[2], which in turn was
-based on the Capsicum project[3]).
+m68k has two or three levels of page tables and can use appropriate
+pgtable-nopXd and folding of the upper layers.
 
-/* Userspace API. */
-LOOKUP_NO_XDEV will be exposed to userspace through openat2(2).
+Replace usage of include/asm-generic/4level-fixup.h and explicit
+definitions of __PAGETABLE_PxD_FOLDED in m68k with
+include/asm-generic/pgtable-nopmd.h for two-level configurations and with
+include/asm-generic/pgtable-nopud.h for three-lelve configurations and
+adjust page table manipulation macros and functions accordingly.
 
-/* Semantics. */
-Unlike most other LOOKUP flags (most notably LOOKUP_FOLLOW),
-LOOKUP_NO_XDEV applies to all components of the path.
-
-With LOOKUP_NO_XDEV, any path component which crosses a mount-point
-during path resolution (including "..") will yield an -EXDEV. Absolute
-paths, absolute symlinks, and magic-links will only yield an -EXDEV if
-the jump involved changing mount-points.
-
-/* Testing. */
-LOOKUP_NO_XDEV is tested as part of the openat2(2) selftests.
-
-[1]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk/
-[2]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdale@google.com/
-[3]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdale@google.com/
-
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Suggested-by: David Drysdale <drysdale@google.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Greg Ungerer <gerg@linux-m68k.org>
 ---
- fs/namei.c            | 31 +++++++++++++++++++++++++++----
- include/linux/namei.h |  1 +
- 2 files changed, 28 insertions(+), 4 deletions(-)
+ arch/m68k/include/asm/mcf_pgalloc.h      |  7 -------
+ arch/m68k/include/asm/mcf_pgtable.h      | 28 +++++++++----------------
+ arch/m68k/include/asm/mmu_context.h      | 12 ++++++++++-
+ arch/m68k/include/asm/motorola_pgalloc.h |  4 ++--
+ arch/m68k/include/asm/motorola_pgtable.h | 32 +++++++++++++++++-----------
+ arch/m68k/include/asm/page.h             |  9 +++++---
+ arch/m68k/include/asm/pgtable_mm.h       | 11 ++++++----
+ arch/m68k/include/asm/sun3_pgalloc.h     |  5 -----
+ arch/m68k/include/asm/sun3_pgtable.h     | 18 ----------------
+ arch/m68k/kernel/sys_m68k.c              | 10 ++++++++-
+ arch/m68k/mm/init.c                      |  6 ++++--
+ arch/m68k/mm/kmap.c                      | 36 ++++++++++++++++++++++++--------
+ arch/m68k/mm/mcfmmu.c                    | 16 +++++++++++++-
+ arch/m68k/mm/motorola.c                  | 17 +++++++++------
+ 14 files changed, 122 insertions(+), 89 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 415a897729c8..321c8ad5d6b3 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -838,6 +838,11 @@ static inline void path_to_nameidata(const struct path *path,
+diff --git a/arch/m68k/include/asm/mcf_pgalloc.h b/arch/m68k/include/asm/mcf_pgalloc.h
+index b34d44d..82ec54c 100644
+--- a/arch/m68k/include/asm/mcf_pgalloc.h
++++ b/arch/m68k/include/asm/mcf_pgalloc.h
+@@ -28,9 +28,6 @@ extern inline pmd_t *pmd_alloc_kernel(pgd_t *pgd, unsigned long address)
+ 	return (pmd_t *) pgd;
+ }
  
- static int nd_jump_root(struct nameidata *nd)
+-#define pmd_alloc_one_fast(mm, address) ({ BUG(); ((pmd_t *)1); })
+-#define pmd_alloc_one(mm, address)      ({ BUG(); ((pmd_t *)2); })
+-
+ #define pmd_populate(mm, pmd, page) (pmd_val(*pmd) = \
+ 	(unsigned long)(page_address(page)))
+ 
+@@ -45,8 +42,6 @@ static inline void __pte_free_tlb(struct mmu_gather *tlb, pgtable_t page,
+ 	__free_page(page);
+ }
+ 
+-#define __pmd_free_tlb(tlb, pmd, address) do { } while (0)
+-
+ static inline struct page *pte_alloc_one(struct mm_struct *mm)
  {
-+	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
-+		/* Absolute path arguments to path_init() are allowed. */
-+		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
-+			return -EXDEV;
-+	}
- 	if (!nd->root.mnt) {
- 		int error = set_root(nd);
- 		if (error)
-@@ -873,6 +878,12 @@ int nd_jump_link(struct path *path)
- 	if (unlikely(nd->flags & LOOKUP_NO_MAGICLINKS))
- 		goto err;
+ 	struct page *page = alloc_pages(GFP_DMA, 0);
+@@ -100,6 +95,4 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+ 	return new_pgd;
+ }
  
-+	error = -EXDEV;
-+	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
-+		if (nd->path.mnt != path->mnt)
-+			goto err;
+-#define pgd_populate(mm, pmd, pte) BUG()
+-
+ #endif /* M68K_MCF_PGALLOC_H */
+diff --git a/arch/m68k/include/asm/mcf_pgtable.h b/arch/m68k/include/asm/mcf_pgtable.h
+index 5d5502c..b9f45ae 100644
+--- a/arch/m68k/include/asm/mcf_pgtable.h
++++ b/arch/m68k/include/asm/mcf_pgtable.h
+@@ -198,17 +198,9 @@ static inline int pmd_bad2(pmd_t *pmd) { return 0; }
+ #define pmd_present(pmd) (!pmd_none2(&(pmd)))
+ static inline void pmd_clear(pmd_t *pmdp) { pmd_val(*pmdp) = 0; }
+ 
+-static inline int pgd_none(pgd_t pgd) { return 0; }
+-static inline int pgd_bad(pgd_t pgd) { return 0; }
+-static inline int pgd_present(pgd_t pgd) { return 1; }
+-static inline void pgd_clear(pgd_t *pgdp) {}
+-
+ #define pte_ERROR(e) \
+ 	printk(KERN_ERR "%s:%d: bad pte %08lx.\n",	\
+ 	__FILE__, __LINE__, pte_val(e))
+-#define pmd_ERROR(e) \
+-	printk(KERN_ERR "%s:%d: bad pmd %08lx.\n",	\
+-	__FILE__, __LINE__, pmd_val(e))
+ #define pgd_ERROR(e) \
+ 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n",	\
+ 	__FILE__, __LINE__, pgd_val(e))
+@@ -340,14 +332,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+ #define pgd_offset_k(address)	pgd_offset(&init_mm, address)
+ 
+ /*
+- * Find an entry in the second-level pagetable.
+- */
+-static inline pmd_t *pmd_offset(pgd_t *pgd, unsigned long address)
+-{
+-	return (pmd_t *) pgd;
+-}
+-
+-/*
+  * Find an entry in the third-level pagetable.
+  */
+ #define __pte_offset(address)	((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+@@ -360,12 +344,16 @@ static inline pmd_t *pmd_offset(pgd_t *pgd, unsigned long address)
+ static inline void nocache_page(void *vaddr)
+ {
+ 	pgd_t *dir;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 	unsigned long addr = (unsigned long) vaddr;
+ 
+ 	dir = pgd_offset_k(addr);
+-	pmdp = pmd_offset(dir, addr);
++	p4dp = p4d_offset(dir, addr);
++	pudp = pud_offset(p4dp, addr);
++	pmdp = pmd_offset(pudp, addr);
+ 	ptep = pte_offset_kernel(pmdp, addr);
+ 	*ptep = pte_mknocache(*ptep);
+ }
+@@ -376,12 +364,16 @@ static inline void nocache_page(void *vaddr)
+ static inline void cache_page(void *vaddr)
+ {
+ 	pgd_t *dir;
++	p4d_t *p4dp;
++	pud_t *pudp;
+ 	pmd_t *pmdp;
+ 	pte_t *ptep;
+ 	unsigned long addr = (unsigned long) vaddr;
+ 
+ 	dir = pgd_offset_k(addr);
+-	pmdp = pmd_offset(dir, addr);
++	p4dp = p4d_offset(dir, addr);
++	pudp = pud_offset(p4dp, addr);
++	pmdp = pmd_offset(pudp, addr);
+ 	ptep = pte_offset_kernel(pmdp, addr);
+ 	*ptep = pte_mkcache(*ptep);
+ }
+diff --git a/arch/m68k/include/asm/mmu_context.h b/arch/m68k/include/asm/mmu_context.h
+index f5b1852..cac9f28 100644
+--- a/arch/m68k/include/asm/mmu_context.h
++++ b/arch/m68k/include/asm/mmu_context.h
+@@ -100,6 +100,8 @@ static inline void load_ksp_mmu(struct task_struct *task)
+ 	struct mm_struct *mm;
+ 	int asid;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	unsigned long mmuar;
+@@ -127,7 +129,15 @@ static inline void load_ksp_mmu(struct task_struct *task)
+ 	if (pgd_none(*pgd))
+ 		goto bug;
+ 
+-	pmd = pmd_offset(pgd, mmuar);
++	p4d = p4d_offset(pgd, mmuar);
++	if (p4d_none(*p4d))
++		goto bug;
++
++	pud = pud_offset(p4d, mmuar);
++	if (pud_none(*pud))
++		goto bug;
++
++	pmd = pmd_offset(pud, mmuar);
+ 	if (pmd_none(*pmd))
+ 		goto bug;
+ 
+diff --git a/arch/m68k/include/asm/motorola_pgalloc.h b/arch/m68k/include/asm/motorola_pgalloc.h
+index acab315..ff9cc40 100644
+--- a/arch/m68k/include/asm/motorola_pgalloc.h
++++ b/arch/m68k/include/asm/motorola_pgalloc.h
+@@ -106,9 +106,9 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd, pgtable_t page
+ }
+ #define pmd_pgtable(pmd) pmd_page(pmd)
+ 
+-static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmd)
++static inline void pud_populate(struct mm_struct *mm, pud_t *pud, pmd_t *pmd)
+ {
+-	pgd_set(pgd, pmd);
++	pud_set(pud, pmd);
+ }
+ 
+ #endif /* _MOTOROLA_PGALLOC_H */
+diff --git a/arch/m68k/include/asm/motorola_pgtable.h b/arch/m68k/include/asm/motorola_pgtable.h
+index 7f66a7b..62bedc6 100644
+--- a/arch/m68k/include/asm/motorola_pgtable.h
++++ b/arch/m68k/include/asm/motorola_pgtable.h
+@@ -117,14 +117,14 @@ static inline void pmd_set(pmd_t *pmdp, pte_t *ptep)
+ 	}
+ }
+ 
+-static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
++static inline void pud_set(pud_t *pudp, pmd_t *pmdp)
+ {
+-	pgd_val(*pgdp) = _PAGE_TABLE | _PAGE_ACCESSED | __pa(pmdp);
++	pud_val(*pudp) = _PAGE_TABLE | _PAGE_ACCESSED | __pa(pmdp);
+ }
+ 
+ #define __pte_page(pte) ((unsigned long)__va(pte_val(pte) & PAGE_MASK))
+ #define __pmd_page(pmd) ((unsigned long)__va(pmd_val(pmd) & _TABLE_MASK))
+-#define __pgd_page(pgd) ((unsigned long)__va(pgd_val(pgd) & _TABLE_MASK))
++#define pud_page_vaddr(pud) ((unsigned long)__va(pud_val(pud) & _TABLE_MASK))
+ 
+ 
+ #define pte_none(pte)		(!pte_val(pte))
+@@ -147,11 +147,11 @@ static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
+ #define pmd_page(pmd)		virt_to_page(__va(pmd_val(pmd)))
+ 
+ 
+-#define pgd_none(pgd)		(!pgd_val(pgd))
+-#define pgd_bad(pgd)		((pgd_val(pgd) & _DESCTYPE_MASK) != _PAGE_TABLE)
+-#define pgd_present(pgd)	(pgd_val(pgd) & _PAGE_TABLE)
+-#define pgd_clear(pgdp)		({ pgd_val(*pgdp) = 0; })
+-#define pgd_page(pgd)		(mem_map + ((unsigned long)(__va(pgd_val(pgd)) - PAGE_OFFSET) >> PAGE_SHIFT))
++#define pud_none(pud)		(!pud_val(pud))
++#define pud_bad(pud)		((pud_val(pud) & _DESCTYPE_MASK) != _PAGE_TABLE)
++#define pud_present(pud)	(pud_val(pud) & _PAGE_TABLE)
++#define pud_clear(pudp)		({ pud_val(*pudp) = 0; })
++#define pud_page(pud)		(mem_map + ((unsigned long)(__va(pud_val(pud)) - PAGE_OFFSET) >> PAGE_SHIFT))
+ 
+ #define pte_ERROR(e) \
+ 	printk("%s:%d: bad pte %08lx.\n", __FILE__, __LINE__, pte_val(e))
+@@ -209,9 +209,9 @@ static inline pgd_t *pgd_offset_k(unsigned long address)
+ 
+ 
+ /* Find an entry in the second-level page table.. */
+-static inline pmd_t *pmd_offset(pgd_t *dir, unsigned long address)
++static inline pmd_t *pmd_offset(pud_t *dir, unsigned long address)
+ {
+-	return (pmd_t *)__pgd_page(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PMD-1));
++	return (pmd_t *)pud_page_vaddr(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PMD-1));
+ }
+ 
+ /* Find an entry in the third-level page table.. */
+@@ -239,11 +239,15 @@ static inline void nocache_page(void *vaddr)
+ 
+ 	if (CPU_IS_040_OR_060) {
+ 		pgd_t *dir;
++		p4d_t *p4dp;
++		pud_t *pudp;
+ 		pmd_t *pmdp;
+ 		pte_t *ptep;
+ 
+ 		dir = pgd_offset_k(addr);
+-		pmdp = pmd_offset(dir, addr);
++		p4dp = p4d_offset(dir, addr);
++		pudp = pud_offset(p4dp, addr);
++		pmdp = pmd_offset(pudp, addr);
+ 		ptep = pte_offset_kernel(pmdp, addr);
+ 		*ptep = pte_mknocache(*ptep);
+ 	}
+@@ -255,11 +259,15 @@ static inline void cache_page(void *vaddr)
+ 
+ 	if (CPU_IS_040_OR_060) {
+ 		pgd_t *dir;
++		p4d_t *p4dp;
++		pud_t *pudp;
+ 		pmd_t *pmdp;
+ 		pte_t *ptep;
+ 
+ 		dir = pgd_offset_k(addr);
+-		pmdp = pmd_offset(dir, addr);
++		p4dp = p4d_offset(dir, addr);
++		pudp = pud_offset(p4dp, addr);
++		pmdp = pmd_offset(pudp, addr);
+ 		ptep = pte_offset_kernel(pmdp, addr);
+ 		*ptep = pte_mkcache(*ptep);
+ 	}
+diff --git a/arch/m68k/include/asm/page.h b/arch/m68k/include/asm/page.h
+index 700d819..05e1e1e 100644
+--- a/arch/m68k/include/asm/page.h
++++ b/arch/m68k/include/asm/page.h
+@@ -21,19 +21,22 @@
+ /*
+  * These are used to make use of C type-checking..
+  */
+-typedef struct { unsigned long pte; } pte_t;
++#if !defined(CONFIG_MMU) || CONFIG_PGTABLE_LEVELS = 3
+ typedef struct { unsigned long pmd[16]; } pmd_t;
++#define pmd_val(x)	((&x)->pmd[0])
++#define __pmd(x)	((pmd_t) { { (x) }, })
++#endif
++
++typedef struct { unsigned long pte; } pte_t;
+ typedef struct { unsigned long pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
+ typedef struct page *pgtable_t;
+ 
+ #define pte_val(x)	((x).pte)
+-#define pmd_val(x)	((&x)->pmd[0])
+ #define pgd_val(x)	((x).pgd)
+ #define pgprot_val(x)	((x).pgprot)
+ 
+ #define __pte(x)	((pte_t) { (x) } )
+-#define __pmd(x)	((pmd_t) { { (x) }, })
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
+ 
+diff --git a/arch/m68k/include/asm/pgtable_mm.h b/arch/m68k/include/asm/pgtable_mm.h
+index 646c174f..2bf5c35 100644
+--- a/arch/m68k/include/asm/pgtable_mm.h
++++ b/arch/m68k/include/asm/pgtable_mm.h
+@@ -2,7 +2,12 @@
+ #ifndef _M68K_PGTABLE_H
+ #define _M68K_PGTABLE_H
+ 
+-#include <asm-generic/4level-fixup.h>
++
++#if defined(CONFIG_SUN3) || defined(CONFIG_COLDFIRE)
++#include <asm-generic/pgtable-nopmd.h>
++#else
++#include <asm-generic/pgtable-nopud.h>
++#endif
+ 
+ #include <asm/setup.h>
+ 
+@@ -30,9 +35,7 @@
+ 
+ 
+ /* PMD_SHIFT determines the size of the area a second-level page table can map */
+-#ifdef CONFIG_SUN3
+-#define PMD_SHIFT       17
+-#else
++#if CONFIG_PGTABLE_LEVELS = 3
+ #define PMD_SHIFT	22
+ #endif
+ #define PMD_SIZE	(1UL << PMD_SHIFT)
+diff --git a/arch/m68k/include/asm/sun3_pgalloc.h b/arch/m68k/include/asm/sun3_pgalloc.h
+index 8561211..11b95da 100644
+--- a/arch/m68k/include/asm/sun3_pgalloc.h
++++ b/arch/m68k/include/asm/sun3_pgalloc.h
+@@ -17,8 +17,6 @@
+ 
+ extern const char bad_pmd_string[];
+ 
+-#define pmd_alloc_one(mm,address)       ({ BUG(); ((pmd_t *)2); })
+-
+ #define __pte_free_tlb(tlb,pte,addr)			\
+ do {							\
+ 	pgtable_pte_page_dtor(pte);			\
+@@ -41,7 +39,6 @@ static inline void pmd_populate(struct mm_struct *mm, pmd_t *pmd, pgtable_t page
+  * inside the pgd, so has no extra memory associated with it.
+  */
+ #define pmd_free(mm, x)			do { } while (0)
+-#define __pmd_free_tlb(tlb, x, addr)	do { } while (0)
+ 
+ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ {
+@@ -58,6 +55,4 @@ static inline pgd_t * pgd_alloc(struct mm_struct *mm)
+      return new_pgd;
+ }
+ 
+-#define pgd_populate(mm, pmd, pte) BUG()
+-
+ #endif /* SUN3_PGALLOC_H */
+diff --git a/arch/m68k/include/asm/sun3_pgtable.h b/arch/m68k/include/asm/sun3_pgtable.h
+index c987d50..bc41552 100644
+--- a/arch/m68k/include/asm/sun3_pgtable.h
++++ b/arch/m68k/include/asm/sun3_pgtable.h
+@@ -110,11 +110,6 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ 
+ #define pmd_set(pmdp,ptep) do {} while (0)
+ 
+-static inline void pgd_set(pgd_t *pgdp, pmd_t *pmdp)
+-{
+-	pgd_val(*pgdp) = virt_to_phys(pmdp);
+-}
+-
+ #define __pte_page(pte) \
+ ((unsigned long) __va ((pte_val (pte) & SUN3_PAGE_PGNUM_MASK) << PAGE_SHIFT))
+ #define __pmd_page(pmd) \
+@@ -145,16 +140,9 @@ static inline int pmd_present2 (pmd_t *pmd) { return pmd_val (*pmd) & SUN3_PMD_V
+ #define pmd_present(pmd) (!pmd_none2(&(pmd)))
+ static inline void pmd_clear (pmd_t *pmdp) { pmd_val (*pmdp) = 0; }
+ 
+-static inline int pgd_none (pgd_t pgd) { return 0; }
+-static inline int pgd_bad (pgd_t pgd) { return 0; }
+-static inline int pgd_present (pgd_t pgd) { return 1; }
+-static inline void pgd_clear (pgd_t *pgdp) {}
+-
+ 
+ #define pte_ERROR(e) \
+ 	pr_err("%s:%d: bad pte %08lx.\n", __FILE__, __LINE__, pte_val(e))
+-#define pmd_ERROR(e) \
+-	pr_err("%s:%d: bad pmd %08lx.\n", __FILE__, __LINE__, pmd_val(e))
+ #define pgd_ERROR(e) \
+ 	pr_err("%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__, pgd_val(e))
+ 
+@@ -194,12 +182,6 @@ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+ /* Find an entry in a kernel pagetable directory. */
+ #define pgd_offset_k(address) pgd_offset(&init_mm, address)
+ 
+-/* Find an entry in the second-level pagetable. */
+-static inline pmd_t *pmd_offset (pgd_t *pgd, unsigned long address)
+-{
+-	return (pmd_t *) pgd;
+-}
+-
+ /* Find an entry in the third-level pagetable. */
+ #define pte_index(address) ((address >> PAGE_SHIFT) & (PTRS_PER_PTE-1))
+ #define pte_offset_kernel(pmd, address) ((pte_t *) __pmd_page(*pmd) + pte_index(address))
+diff --git a/arch/m68k/kernel/sys_m68k.c b/arch/m68k/kernel/sys_m68k.c
+index 6363ec8..18a4de7 100644
+--- a/arch/m68k/kernel/sys_m68k.c
++++ b/arch/m68k/kernel/sys_m68k.c
+@@ -465,6 +465,8 @@ sys_atomic_cmpxchg_32(unsigned long newval, int oldval, int d3, int d4, int d5,
+ 	for (;;) {
+ 		struct mm_struct *mm = current->mm;
+ 		pgd_t *pgd;
++		p4d_t *p4d;
++		pud_t *pud;
+ 		pmd_t *pmd;
+ 		pte_t *pte;
+ 		spinlock_t *ptl;
+@@ -474,7 +476,13 @@ sys_atomic_cmpxchg_32(unsigned long newval, int oldval, int d3, int d4, int d5,
+ 		pgd = pgd_offset(mm, (unsigned long)mem);
+ 		if (!pgd_present(*pgd))
+ 			goto bad_access;
+-		pmd = pmd_offset(pgd, (unsigned long)mem);
++		p4d = p4d_offset(pgd, (unsigned long)mem);
++		if (!p4d_present(*p4d))
++			goto bad_access;
++		pud = pud_offset(p4d, (unsigned long)mem);
++		if (!pud_present(*pud))
++			goto bad_access;
++		pmd = pmd_offset(pud, (unsigned long)mem);
+ 		if (!pmd_present(*pmd))
+ 			goto bad_access;
+ 		pte = pte_offset_map_lock(mm, pmd, (unsigned long)mem, &ptl);
+diff --git a/arch/m68k/mm/init.c b/arch/m68k/mm/init.c
+index 778cacb..27c453f 100644
+--- a/arch/m68k/mm/init.c
++++ b/arch/m68k/mm/init.c
+@@ -130,8 +130,10 @@ static inline void init_pointer_tables(void)
+ 	/* insert pointer tables allocated so far into the tablelist */
+ 	init_pointer_table((unsigned long)kernel_pg_dir);
+ 	for (i = 0; i < PTRS_PER_PGD; i++) {
+-		if (pgd_present(kernel_pg_dir[i]))
+-			init_pointer_table(__pgd_page(kernel_pg_dir[i]));
++		pud_t *pud = (pud_t *)(&kernel_pg_dir[i]);
++
++		if (pud_present(*pud))
++			init_pointer_table(pgd_page_vaddr(kernel_pg_dir[i]));
+ 	}
+ 
+ 	/* insert also pointer table that we used to unmap the zero page */
+diff --git a/arch/m68k/mm/kmap.c b/arch/m68k/mm/kmap.c
+index 40a3b32..9f687da 100644
+--- a/arch/m68k/mm/kmap.c
++++ b/arch/m68k/mm/kmap.c
+@@ -110,6 +110,8 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
+ 	unsigned long virtaddr, retaddr;
+ 	long offset;
+ 	pgd_t *pgd_dir;
++	p4d_t *p4d_dir;
++	pud_t *pud_dir;
+ 	pmd_t *pmd_dir;
+ 	pte_t *pte_dir;
+ 
+@@ -196,17 +198,21 @@ void __iomem *__ioremap(unsigned long physaddr, unsigned long size, int cachefla
+ 			printk ("\npa=%#lx va=%#lx ", physaddr, virtaddr);
+ #endif
+ 		pgd_dir = pgd_offset_k(virtaddr);
+-		pmd_dir = pmd_alloc(&init_mm, pgd_dir, virtaddr);
++		p4d_dir = p4d_offset(pgd_dir, virtaddr);
++		pud_dir = pud_offset(p4d_dir, virtaddr);
++		pmd_dir = pmd_alloc(&init_mm, pud_dir, virtaddr);
+ 		if (!pmd_dir) {
+ 			printk("ioremap: no mem for pmd_dir\n");
+ 			return NULL;
+ 		}
+ 
+ 		if (CPU_IS_020_OR_030) {
++#if CONFIG_PGTABLE_LEVELS = 3
+ 			pmd_dir->pmd[(virtaddr/PTRTREESIZE) & 15] = physaddr;
+ 			physaddr += PTRTREESIZE;
+ 			virtaddr += PTRTREESIZE;
+ 			size -= PTRTREESIZE;
++#endif
+ 		} else {
+ 			pte_dir = pte_alloc_kernel(pmd_dir, virtaddr);
+ 			if (!pte_dir) {
+@@ -258,19 +264,24 @@ void __iounmap(void *addr, unsigned long size)
+ {
+ 	unsigned long virtaddr = (unsigned long)addr;
+ 	pgd_t *pgd_dir;
++	p4d_t *p4d_dir;
++	pud_t *pud_dir;
+ 	pmd_t *pmd_dir;
+ 	pte_t *pte_dir;
+ 
+ 	while ((long)size > 0) {
+ 		pgd_dir = pgd_offset_k(virtaddr);
+-		if (pgd_bad(*pgd_dir)) {
+-			printk("iounmap: bad pgd(%08lx)\n", pgd_val(*pgd_dir));
+-			pgd_clear(pgd_dir);
++		p4d_dir = p4d_offset(pgd_dir, virtaddr);
++		pud_dir = pud_offset(p4d_dir, virtaddr);
++		if (pud_bad(*pud_dir)) {
++			printk("iounmap: bad pgd(%08lx)\n", pud_val(*pud_dir));
++			pud_clear(pud_dir);
+ 			return;
+ 		}
+-		pmd_dir = pmd_offset(pgd_dir, virtaddr);
++		pmd_dir = pmd_offset(pud_dir, virtaddr);
+ 
+ 		if (CPU_IS_020_OR_030) {
++#if CONFIG_PGTABLE_LEVELS = 3
+ 			int pmd_off = (virtaddr/PTRTREESIZE) & 15;
+ 			int pmd_type = pmd_dir->pmd[pmd_off] & _DESCTYPE_MASK;
+ 
+@@ -281,6 +292,7 @@ void __iounmap(void *addr, unsigned long size)
+ 				continue;
+ 			} else if (pmd_type = 0)
+ 				continue;
++#endif
+ 		}
+ 
+ 		if (pmd_bad(*pmd_dir)) {
+@@ -307,6 +319,8 @@ void kernel_set_cachemode(void *addr, unsigned long size, int cmode)
+ {
+ 	unsigned long virtaddr = (unsigned long)addr;
+ 	pgd_t *pgd_dir;
++	p4d_t *p4d_dir;
++	pud_t *pud_dir;
+ 	pmd_t *pmd_dir;
+ 	pte_t *pte_dir;
+ 
+@@ -341,14 +355,17 @@ void kernel_set_cachemode(void *addr, unsigned long size, int cmode)
+ 
+ 	while ((long)size > 0) {
+ 		pgd_dir = pgd_offset_k(virtaddr);
+-		if (pgd_bad(*pgd_dir)) {
+-			printk("iocachemode: bad pgd(%08lx)\n", pgd_val(*pgd_dir));
+-			pgd_clear(pgd_dir);
++		p4d_dir = p4d_offset(pgd_dir, virtaddr);
++		pud_dir = pud_offset(p4d_dir, virtaddr);
++		if (pud_bad(*pud_dir)) {
++			printk("iocachemode: bad pud(%08lx)\n", pud_val(*pud_dir));
++			pud_clear(pud_dir);
+ 			return;
+ 		}
+-		pmd_dir = pmd_offset(pgd_dir, virtaddr);
++		pmd_dir = pmd_offset(pud_dir, virtaddr);
+ 
+ 		if (CPU_IS_020_OR_030) {
++#if CONFIG_PGTABLE_LEVELS = 3
+ 			int pmd_off = (virtaddr/PTRTREESIZE) & 15;
+ 
+ 			if ((pmd_dir->pmd[pmd_off] & _DESCTYPE_MASK) = _PAGE_PRESENT) {
+@@ -358,6 +375,7 @@ void kernel_set_cachemode(void *addr, unsigned long size, int cmode)
+ 				size -= PTRTREESIZE;
+ 				continue;
+ 			}
++#endif
+ 		}
+ 
+ 		if (pmd_bad(*pmd_dir)) {
+diff --git a/arch/m68k/mm/mcfmmu.c b/arch/m68k/mm/mcfmmu.c
+index 6cb1e41..0ea3756 100644
+--- a/arch/m68k/mm/mcfmmu.c
++++ b/arch/m68k/mm/mcfmmu.c
+@@ -92,6 +92,8 @@ int cf_tlb_miss(struct pt_regs *regs, int write, int dtlb, int extension_word)
+ 	unsigned long flags, mmuar, mmutr;
+ 	struct mm_struct *mm;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	int asid;
+@@ -113,7 +115,19 @@ int cf_tlb_miss(struct pt_regs *regs, int write, int dtlb, int extension_word)
+ 		return -1;
+ 	}
+ 
+-	pmd = pmd_offset(pgd, mmuar);
++	p4d = p4d_offset(pgd, mmuar);
++	if (p4d_none(*p4d)) {
++		local_irq_restore(flags);
++		return -1;
 +	}
 +
- 	path_put(&nd->path);
- 	nd->path = *path;
- 	nd->inode = nd->path.dentry->d_inode;
-@@ -1280,12 +1291,16 @@ static int follow_managed(struct path *path, struct nameidata *nd)
- 		break;
- 	}
- 
--	if (need_mntput && path->mnt = mnt)
--		mntput(path->mnt);
-+	if (need_mntput) {
-+		if (path->mnt = mnt)
-+			mntput(path->mnt);
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			ret = -EXDEV;
-+		else
-+			nd->flags |= LOOKUP_JUMPED;
++	pud = pud_offset(p4d, mmuar);
++	if (pud_none(*pud)) {
++		local_irq_restore(flags);
++		return -1;
 +	}
- 	if (ret = -EISDIR || !ret)
- 		ret = 1;
--	if (need_mntput)
--		nd->flags |= LOOKUP_JUMPED;
- 	if (unlikely(ret < 0))
- 		path_put_conditional(path, nd);
- 	return ret;
-@@ -1342,6 +1357,8 @@ static bool __follow_mount_rcu(struct nameidata *nd, struct path *path,
- 		mounted = __lookup_mnt(path->mnt, path->dentry);
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return false;
- 		path->mnt = &mounted->mnt;
- 		path->dentry = mounted->mnt.mnt_root;
- 		nd->flags |= LOOKUP_JUMPED;
-@@ -1388,6 +1405,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 				return -ECHILD;
- 			if (&mparent->mnt = nd->path.mnt)
- 				break;
-+			if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+				return -ECHILD;
- 			/* we know that mountpoint was pinned */
- 			nd->path.dentry = mountpoint;
- 			nd->path.mnt = &mparent->mnt;
-@@ -1402,6 +1421,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 			return -ECHILD;
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -ECHILD;
- 		nd->path.mnt = &mounted->mnt;
- 		nd->path.dentry = mounted->mnt.mnt_root;
- 		inode = nd->path.dentry->d_inode;
-@@ -1500,6 +1521,8 @@ static int follow_dotdot(struct nameidata *nd)
++
++	pmd = pmd_offset(pud, mmuar);
+ 	if (pmd_none(*pmd)) {
+ 		local_irq_restore(flags);
+ 		return -1;
+diff --git a/arch/m68k/mm/motorola.c b/arch/m68k/mm/motorola.c
+index 356601b..4857985 100644
+--- a/arch/m68k/mm/motorola.c
++++ b/arch/m68k/mm/motorola.c
+@@ -82,9 +82,11 @@ static pmd_t * __init kernel_ptr_table(void)
+ 		 */
+ 		last = (unsigned long)kernel_pg_dir;
+ 		for (i = 0; i < PTRS_PER_PGD; i++) {
+-			if (!pgd_present(kernel_pg_dir[i]))
++			pud_t *pud = (pud_t *)(&kernel_pg_dir[i]);
++
++			if (!pud_present(*pud))
+ 				continue;
+-			pmd = __pgd_page(kernel_pg_dir[i]);
++			pmd = pgd_page_vaddr(kernel_pg_dir[i]);
+ 			if (pmd > last)
+ 				last = pmd;
  		}
- 		if (!follow_up(&nd->path))
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -EXDEV;
+@@ -118,6 +120,8 @@ static void __init map_node(int node)
+ #define ROOTTREESIZE (32*1024*1024)
+ 	unsigned long physaddr, virtaddr, size;
+ 	pgd_t *pgd_dir;
++	p4d_t *p4d_dir;
++	pud_t *pud_dir;
+ 	pmd_t *pmd_dir;
+ 	pte_t *pte_dir;
+ 
+@@ -149,14 +153,16 @@ static void __init map_node(int node)
+ 				continue;
+ 			}
+ 		}
+-		if (!pgd_present(*pgd_dir)) {
++		p4d_dir = p4d_offset(pgd_dir, virtaddr);
++		pud_dir = pud_offset(p4d_dir, virtaddr);
++		if (!pud_present(*pud_dir)) {
+ 			pmd_dir = kernel_ptr_table();
+ #ifdef DEBUG
+ 			printk ("[new pointer %p]", pmd_dir);
+ #endif
+-			pgd_set(pgd_dir, pmd_dir);
++			pud_set(pud_dir, pmd_dir);
+ 		} else
+-			pmd_dir = pmd_offset(pgd_dir, virtaddr);
++			pmd_dir = pmd_offset(pud_dir, virtaddr);
+ 
+ 		if (CPU_IS_020_OR_030) {
+ 			if (virtaddr) {
+@@ -304,4 +310,3 @@ void __init paging_init(void)
+ 			node_set_state(i, N_NORMAL_MEMORY);
  	}
- 	follow_mount(&nd->path);
- 	nd->inode = nd->path.dentry->d_inode;
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 1573b8493d98..25ee88c4acb1 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -42,6 +42,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- /* Scoping flags for lookup. */
- #define LOOKUP_NO_SYMLINKS	0x010000 /* No symlink crossing. */
- #define LOOKUP_NO_MAGICLINKS	0x020000 /* No nd_jump_link() crossing. */
-+#define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
- 
- extern int path_pts(struct path *path);
- 
+ }
+-
 -- 
-2.24.0
+2.7.4
