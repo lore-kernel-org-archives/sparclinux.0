@@ -1,228 +1,131 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Wed, 20 Nov 2019 05:06:20 +0000
-Subject: [PATCH RESEND v17 02/13] nsfs: clean-up ns_get_path() signature to return int
-Message-Id: <20191120050631.12816-3-cyphar@cyphar.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Mon, 04 Nov 2019 06:56:14 +0000
+Subject: [PATCH v3 00/13] mm: remove __ARCH_HAS_4LEVEL_HACK
+Message-Id: <1572850587-20314-1-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191120050631.12816-1-cyphar@cyphar.com>
-In-Reply-To: <20191120050631.12816-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-ns_get_path() and ns_get_path_cb() only ever return either NULL or an
-ERR_PTR. It is far more idiomatic to simply return an integer, and it
-makes all of the callers of ns_get_path() more straightforward to read.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Fixes: e149ed2b805f ("take the targets of /proc/*/ns/* symlinks to separate fs")
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
----
- fs/nsfs.c               | 29 ++++++++++++++---------------
- fs/proc/namespaces.c    |  6 +++---
- include/linux/proc_ns.h |  4 ++--
- kernel/bpf/offload.c    | 12 ++++++------
- kernel/events/core.c    |  2 +-
- 5 files changed, 26 insertions(+), 27 deletions(-)
+Hi,
 
-diff --git a/fs/nsfs.c b/fs/nsfs.c
-index a0431642c6b5..f3d2833c5781 100644
---- a/fs/nsfs.c
-+++ b/fs/nsfs.c
-@@ -52,7 +52,7 @@ static void nsfs_evict(struct inode *inode)
- 	ns->ops->put(ns);
- }
- 
--static void *__ns_get_path(struct path *path, struct ns_common *ns)
-+static int __ns_get_path(struct path *path, struct ns_common *ns)
- {
- 	struct vfsmount *mnt = nsfs_mnt;
- 	struct dentry *dentry;
-@@ -71,13 +71,13 @@ static void *__ns_get_path(struct path *path, struct ns_common *ns)
- got_it:
- 	path->mnt = mntget(mnt);
- 	path->dentry = dentry;
--	return NULL;
-+	return 0;
- slow:
- 	rcu_read_unlock();
- 	inode = new_inode_pseudo(mnt->mnt_sb);
- 	if (!inode) {
- 		ns->ops->put(ns);
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 	}
- 	inode->i_ino = ns->inum;
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
-@@ -89,7 +89,7 @@ static void *__ns_get_path(struct path *path, struct ns_common *ns)
- 	dentry = d_alloc_anon(mnt->mnt_sb);
- 	if (!dentry) {
- 		iput(inode);
--		return ERR_PTR(-ENOMEM);
-+		return -ENOMEM;
- 	}
- 	d_instantiate(dentry, inode);
- 	dentry->d_fsdata = (void *)ns->ops;
-@@ -98,23 +98,22 @@ static void *__ns_get_path(struct path *path, struct ns_common *ns)
- 		d_delete(dentry);	/* make sure ->d_prune() does nothing */
- 		dput(dentry);
- 		cpu_relax();
--		return ERR_PTR(-EAGAIN);
-+		return -EAGAIN;
- 	}
- 	goto got_it;
- }
- 
--void *ns_get_path_cb(struct path *path, ns_get_path_helper_t *ns_get_cb,
-+int ns_get_path_cb(struct path *path, ns_get_path_helper_t *ns_get_cb,
- 		     void *private_data)
- {
--	void *ret;
-+	int ret;
- 
- 	do {
- 		struct ns_common *ns = ns_get_cb(private_data);
- 		if (!ns)
--			return ERR_PTR(-ENOENT);
--
-+			return -ENOENT;
- 		ret = __ns_get_path(path, ns);
--	} while (ret = ERR_PTR(-EAGAIN));
-+	} while (ret = -EAGAIN);
- 
- 	return ret;
- }
-@@ -131,7 +130,7 @@ static struct ns_common *ns_get_path_task(void *private_data)
- 	return args->ns_ops->get(args->task);
- }
- 
--void *ns_get_path(struct path *path, struct task_struct *task,
-+int ns_get_path(struct path *path, struct task_struct *task,
- 		  const struct proc_ns_operations *ns_ops)
- {
- 	struct ns_get_path_task_args args = {
-@@ -147,7 +146,7 @@ int open_related_ns(struct ns_common *ns,
- {
- 	struct path path = {};
- 	struct file *f;
--	void *err;
-+	int err;
- 	int fd;
- 
- 	fd = get_unused_fd_flags(O_CLOEXEC);
-@@ -164,11 +163,11 @@ int open_related_ns(struct ns_common *ns,
- 		}
- 
- 		err = __ns_get_path(&path, relative);
--	} while (err = ERR_PTR(-EAGAIN));
-+	} while (err = -EAGAIN);
- 
--	if (IS_ERR(err)) {
-+	if (err) {
- 		put_unused_fd(fd);
--		return PTR_ERR(err);
-+		return err;
- 	}
- 
- 	f = dentry_open(&path, O_RDONLY, current_cred());
-diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
-index dd2b35f78b09..08dd94df1a66 100644
---- a/fs/proc/namespaces.c
-+++ b/fs/proc/namespaces.c
-@@ -42,14 +42,14 @@ static const char *proc_ns_get_link(struct dentry *dentry,
- 	const struct proc_ns_operations *ns_ops = PROC_I(inode)->ns_ops;
- 	struct task_struct *task;
- 	struct path ns_path;
--	void *error = ERR_PTR(-EACCES);
-+	int error = -EACCES;
- 
- 	if (!dentry)
- 		return ERR_PTR(-ECHILD);
- 
- 	task = get_proc_task(inode);
- 	if (!task)
--		return error;
-+		return ERR_PTR(-EACCES);
- 
- 	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
- 		error = ns_get_path(&ns_path, task, ns_ops);
-@@ -57,7 +57,7 @@ static const char *proc_ns_get_link(struct dentry *dentry,
- 			nd_jump_link(&ns_path);
- 	}
- 	put_task_struct(task);
--	return error;
-+	return ERR_PTR(error);
- }
- 
- static int proc_ns_readlink(struct dentry *dentry, char __user *buffer, int buflen)
-diff --git a/include/linux/proc_ns.h b/include/linux/proc_ns.h
-index d31cb6215905..aed366b4795c 100644
---- a/include/linux/proc_ns.h
-+++ b/include/linux/proc_ns.h
-@@ -76,10 +76,10 @@ static inline int ns_alloc_inum(struct ns_common *ns)
- 
- extern struct file *proc_ns_fget(int fd);
- #define get_proc_ns(inode) ((struct ns_common *)(inode)->i_private)
--extern void *ns_get_path(struct path *path, struct task_struct *task,
-+extern int ns_get_path(struct path *path, struct task_struct *task,
- 			const struct proc_ns_operations *ns_ops);
- typedef struct ns_common *ns_get_path_helper_t(void *);
--extern void *ns_get_path_cb(struct path *path, ns_get_path_helper_t ns_get_cb,
-+extern int ns_get_path_cb(struct path *path, ns_get_path_helper_t ns_get_cb,
- 			    void *private_data);
- 
- extern int ns_get_name(char *buf, size_t size, struct task_struct *task,
-diff --git a/kernel/bpf/offload.c b/kernel/bpf/offload.c
-index ba635209ae9a..a2253a044f90 100644
---- a/kernel/bpf/offload.c
-+++ b/kernel/bpf/offload.c
-@@ -302,14 +302,14 @@ int bpf_prog_offload_info_fill(struct bpf_prog_info *info,
- 	struct inode *ns_inode;
- 	struct path ns_path;
- 	char __user *uinsns;
--	void *res;
-+	int res;
- 	u32 ulen;
- 
- 	res = ns_get_path_cb(&ns_path, bpf_prog_offload_info_fill_ns, &args);
--	if (IS_ERR(res)) {
-+	if (res) {
- 		if (!info->ifindex)
- 			return -ENODEV;
--		return PTR_ERR(res);
-+		return res;
- 	}
- 
- 	down_read(&bpf_devs_lock);
-@@ -526,13 +526,13 @@ int bpf_map_offload_info_fill(struct bpf_map_info *info, struct bpf_map *map)
- 	};
- 	struct inode *ns_inode;
- 	struct path ns_path;
--	void *res;
-+	int res;
- 
- 	res = ns_get_path_cb(&ns_path, bpf_map_offload_info_fill_ns, &args);
--	if (IS_ERR(res)) {
-+	if (res) {
- 		if (!info->ifindex)
- 			return -ENODEV;
--		return PTR_ERR(res);
-+		return res;
- 	}
- 
- 	ns_inode = ns_path.dentry->d_inode;
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 00a014670ed0..3772a04ca802 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -7258,7 +7258,7 @@ static void perf_fill_ns_link_info(struct perf_ns_link_info *ns_link_info,
- {
- 	struct path ns_path;
- 	struct inode *ns_inode;
--	void *error;
-+	int error;
- 
- 	error = ns_get_path(&ns_path, task, ns_ops);
- 	if (!error) {
+These patches convert several architectures to use page table folding and
+remove __ARCH_HAS_4LEVEL_HACK along with include/asm-generic/4level-fixup.h.
+
+For the nommu configurations the folding is already implemented by the
+generic code so the only change was to use the appropriate header file.
+
+As for the rest, the changes are mostly about mechanical replacement of
+pgd accessors with pud/pmd ones and the addition of higher levels to page
+table traversals.
+
+With Vineet's patches from "elide extraneous generated code for folded
+p4d/pud/pmd" series [1] there is a small shrink of the kernel size of about
+-0.01% for the defconfig builds. 
+
+The set is boot-tested on UML, qemu-{alpha,sparc} and aranym.
+
+v3 changes:
+* alpha: fix changelog to use pgtable-nopud.h rather than pgtable-nop4d.h
+* um: remove dead-code that was intended as provisioning for 4-level page
+  tables
+
+v2 changes:
+* m68k: fixed ifdefs around pmd_t defintion to work with nommu
+* parisc: added conversion of hugetlb (thanks, Helge!); lexical fixups in
+  comments and changelog
+* collected acks
+
+[1] https://lore.kernel.org/lkml/20191016162400.14796-1-vgupta@synopsys.com
+
+
+Helge Deller (1):
+  parisc/hugetlb: use pgtable-nopXd instead of 4level-fixup
+
+Mike Rapoport (12):
+  alpha: use pgtable-nopud instead of 4level-fixup
+  arm: nommu: use pgtable-nopud instead of 4level-fixup
+  c6x: use pgtable-nopud instead of 4level-fixup
+  m68k: nommu: use pgtable-nopud instead of 4level-fixup
+  m68k: mm: use pgtable-nopXd instead of 4level-fixup
+  microblaze: use pgtable-nopmd instead of 4level-fixup
+  nds32: use pgtable-nopmd instead of 4level-fixup
+  parisc: use pgtable-nopXd instead of 4level-fixup
+  sparc32: use pgtable-nopud instead of 4level-fixup
+  um: remove unused pxx_offset_proc() and addr_pte() functions
+  um: add support for folded p4d page tables
+  mm: remove __ARCH_HAS_4LEVEL_HACK and
+    include/asm-generic/4level-fixup.h
+
+ arch/alpha/include/asm/mmzone.h          |  1 -
+ arch/alpha/include/asm/pgalloc.h         |  4 +-
+ arch/alpha/include/asm/pgtable.h         | 24 ++++-----
+ arch/alpha/mm/init.c                     | 12 +++--
+ arch/arm/include/asm/pgtable.h           |  2 +-
+ arch/c6x/include/asm/pgtable.h           |  2 +-
+ arch/m68k/include/asm/mcf_pgalloc.h      |  7 ---
+ arch/m68k/include/asm/mcf_pgtable.h      | 28 ++++-------
+ arch/m68k/include/asm/mmu_context.h      | 12 ++++-
+ arch/m68k/include/asm/motorola_pgalloc.h |  4 +-
+ arch/m68k/include/asm/motorola_pgtable.h | 32 +++++++-----
+ arch/m68k/include/asm/page.h             |  9 ++--
+ arch/m68k/include/asm/pgtable_mm.h       | 11 +++--
+ arch/m68k/include/asm/pgtable_no.h       |  2 +-
+ arch/m68k/include/asm/sun3_pgalloc.h     |  5 --
+ arch/m68k/include/asm/sun3_pgtable.h     | 18 -------
+ arch/m68k/kernel/sys_m68k.c              | 10 +++-
+ arch/m68k/mm/init.c                      |  6 ++-
+ arch/m68k/mm/kmap.c                      | 36 ++++++++++----
+ arch/m68k/mm/mcfmmu.c                    | 16 +++++-
+ arch/m68k/mm/motorola.c                  | 17 ++++---
+ arch/microblaze/include/asm/page.h       |  3 --
+ arch/microblaze/include/asm/pgalloc.h    | 16 ------
+ arch/microblaze/include/asm/pgtable.h    | 32 +-----------
+ arch/microblaze/kernel/signal.c          | 10 ++--
+ arch/microblaze/mm/init.c                |  7 ++-
+ arch/microblaze/mm/pgtable.c             | 13 ++++-
+ arch/nds32/include/asm/page.h            |  3 --
+ arch/nds32/include/asm/pgalloc.h         |  3 --
+ arch/nds32/include/asm/pgtable.h         | 12 +----
+ arch/nds32/include/asm/tlb.h             |  1 -
+ arch/nds32/kernel/pm.c                   |  4 +-
+ arch/nds32/mm/fault.c                    | 16 ++++--
+ arch/nds32/mm/init.c                     | 11 +++--
+ arch/nds32/mm/mm-nds32.c                 |  6 ++-
+ arch/nds32/mm/proc.c                     | 26 ++++++----
+ arch/parisc/include/asm/page.h           | 30 ++++++-----
+ arch/parisc/include/asm/pgalloc.h        | 41 ++++++---------
+ arch/parisc/include/asm/pgtable.h        | 52 ++++++++++---------
+ arch/parisc/include/asm/tlb.h            |  2 +
+ arch/parisc/kernel/cache.c               | 13 +++--
+ arch/parisc/kernel/pci-dma.c             |  9 +++-
+ arch/parisc/mm/fixmap.c                  | 10 ++--
+ arch/parisc/mm/hugetlbpage.c             | 18 ++++---
+ arch/sparc/include/asm/pgalloc_32.h      |  6 +--
+ arch/sparc/include/asm/pgtable_32.h      | 28 +++++------
+ arch/sparc/mm/fault_32.c                 | 11 ++++-
+ arch/sparc/mm/highmem.c                  |  6 ++-
+ arch/sparc/mm/io-unit.c                  |  6 ++-
+ arch/sparc/mm/iommu.c                    |  6 ++-
+ arch/sparc/mm/srmmu.c                    | 51 ++++++++++++++-----
+ arch/um/include/asm/pgtable-2level.h     |  1 -
+ arch/um/include/asm/pgtable-3level.h     |  1 -
+ arch/um/include/asm/pgtable.h            |  3 ++
+ arch/um/kernel/mem.c                     |  8 ++-
+ arch/um/kernel/skas/mmu.c                | 12 ++++-
+ arch/um/kernel/skas/uaccess.c            |  7 ++-
+ arch/um/kernel/tlb.c                     | 85 +++++++++++++++++++-------------
+ arch/um/kernel/trap.c                    |  4 +-
+ include/asm-generic/4level-fixup.h       | 40 ---------------
+ include/asm-generic/tlb.h                |  2 -
+ include/linux/mm.h                       | 10 ++--
+ mm/memory.c                              |  8 ---
+ 63 files changed, 476 insertions(+), 415 deletions(-)
+ delete mode 100644 include/asm-generic/4level-fixup.h
+
 -- 
-2.24.0
+2.7.4
