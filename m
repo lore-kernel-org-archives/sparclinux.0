@@ -1,129 +1,401 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sat, 16 Nov 2019 00:27:58 +0000
-Subject: [PATCH v16 08/12] namei: LOOKUP_IN_ROOT: chroot-like scoped resolution
-Message-Id: <20191116002802.6663-9-cyphar@cyphar.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Mon, 04 Nov 2019 06:56:22 +0000
+Subject: [PATCH v3 08/13] parisc: use pgtable-nopXd instead of 4level-fixup
+Message-Id: <1572850587-20314-9-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191116002802.6663-1-cyphar@cyphar.com>
-In-Reply-To: <20191116002802.6663-1-cyphar@cyphar.com>
+References: <1572850587-20314-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572850587-20314-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-/* Background. */
-Container runtimes or other administrative management processes will
-often interact with root filesystems while in the host mount namespace,
-because the cost of doing a chroot(2) on every operation is too
-prohibitive (especially in Go, which cannot safely use vfork). However,
-a malicious program can trick the management process into doing
-operations on files outside of the root filesystem through careful
-crafting of symlinks.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Most programs that need this feature have attempted to make this process
-safe, by doing all of the path resolution in userspace (with symlinks
-being scoped to the root of the malicious root filesystem).
-Unfortunately, this method is prone to foot-guns and usually such
-implementations have subtle security bugs.
+parisc has two or three levels of page tables and can use appropriate
+pgtable-nopXd and folding of the upper layers.
 
-Thus, what userspace needs is a way to resolve a path as though it were
-in a chroot(2) -- with all absolute symlinks being resolved relative to
-the dirfd root (and ".." components being stuck under the dirfd root).
-It is much simpler and more straight-forward to provide this
-functionality in-kernel (because it can be done far more cheaply and
-correctly).
+Replace usage of include/asm-generic/4level-fixup.h and explicit
+definitions of __PAGETABLE_PxD_FOLDED in parisc with
+include/asm-generic/pgtable-nopmd.h for two-level configurations and with
+include/asm-generic/pgtable-nopud.h for three-lelve configurations and
+adjust page table manipulation macros and functions accordingly.
 
-More classical applications that also have this problem (which have
-their own potentially buggy userspace path sanitisation code) include
-web servers, archive extraction tools, network file servers, and so on.
-
-/* Userspace API. */
-LOOKUP_IN_ROOT will be exposed to userspace through openat2(2).
-
-/* Semantics. */
-Unlike most other LOOKUP flags (most notably LOOKUP_FOLLOW),
-LOOKUP_IN_ROOT applies to all components of the path.
-
-With LOOKUP_IN_ROOT, any path component which attempts to cross the
-starting point of the pathname lookup (the dirfd passed to openat) will
-remain at the starting point. Thus, all absolute paths and symlinks will
-be scoped within the starting point.
-
-There is a slight change in behaviour regarding pathnames -- if the
-pathname is absolute then the dirfd is still used as the root of
-resolution of LOOKUP_IN_ROOT is specified (this is to avoid obvious
-foot-guns, at the cost of a minor API inconsistency).
-
-As with LOOKUP_BENEATH, Jann's security concern about ".."[1] applies to
-LOOKUP_IN_ROOT -- therefore ".." resolution is blocked. This restriction
-will be lifted in a future patch, but requires more work to ensure that
-permitting ".." is done safely.
-
-Magic-link jumps are also blocked, because they can beam the path lookup
-across the starting point. It would be possible to detect and block
-only the "bad" crossings with path_is_under() checks, but it's unclear
-whether it makes sense to permit magic-links at all. However, userspace
-is recommended to pass LOOKUP_NO_MAGICLINKS if they want to ensure that
-magic-link crossing is entirely disabled.
-
-/* Testing. */
-LOOKUP_IN_ROOT is tested as part of the openat2(2) selftests.
-
-[1]: https://lore.kernel.org/lkml/CAG48ez1jzNvxB+bfOBnERFGp=oMM0vHWuLD6EULmne3R6xa53w@mail.gmail.com/
-
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Helge Deller <deller@gmx.de>
 ---
- fs/namei.c            | 10 +++++++---
- include/linux/namei.h |  3 ++-
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ arch/parisc/include/asm/page.h    | 30 +++++++++++++---------
+ arch/parisc/include/asm/pgalloc.h | 41 +++++++++++-------------------
+ arch/parisc/include/asm/pgtable.h | 52 +++++++++++++++++++--------------------
+ arch/parisc/include/asm/tlb.h     |  2 ++
+ arch/parisc/kernel/cache.c        | 13 ++++++----
+ arch/parisc/kernel/pci-dma.c      |  9 +++++--
+ arch/parisc/mm/fixmap.c           | 10 +++++---
+ 7 files changed, 81 insertions(+), 76 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index bad5ef56b4c8..cb0b9f411efb 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -2271,13 +2271,16 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+diff --git a/arch/parisc/include/asm/page.h b/arch/parisc/include/asm/page.h
+index 93caf17..796ae29 100644
+--- a/arch/parisc/include/asm/page.h
++++ b/arch/parisc/include/asm/page.h
+@@ -42,48 +42,54 @@ typedef struct { unsigned long pte; } pte_t; /* either 32 or 64bit */
  
- 	nd->m_seq = read_seqbegin(&mount_lock);
+ /* NOTE: even on 64 bits, these entries are __u32 because we allocate
+  * the pmd and pgd in ZONE_DMA (i.e. under 4GB) */
+-typedef struct { __u32 pmd; } pmd_t;
+ typedef struct { __u32 pgd; } pgd_t;
+ typedef struct { unsigned long pgprot; } pgprot_t;
  
--	/* Figure out the starting path and root (if needed). */
--	if (*s = '/') {
-+	/* Absolute pathname -- fetch the root (LOOKUP_IN_ROOT uses nd->dfd). */
-+	if (*s = '/' && !(flags & LOOKUP_IN_ROOT)) {
- 		error = nd_jump_root(nd);
- 		if (unlikely(error))
- 			return ERR_PTR(error);
- 		return s;
--	} else if (nd->dfd = AT_FDCWD) {
-+	}
+-#define pte_val(x)	((x).pte)
+-/* These do not work lvalues, so make sure we don't use them as such. */
++#if CONFIG_PGTABLE_LEVELS = 3
++typedef struct { __u32 pmd; } pmd_t;
++#define __pmd(x)	((pmd_t) { (x) } )
++/* pXd_val() do not work as lvalues, so make sure we don't use them as such. */
+ #define pmd_val(x)	((x).pmd + 0)
++#endif
 +
-+	/* Relative pathname -- get the starting-point it is relative to. */
-+	if (nd->dfd = AT_FDCWD) {
- 		if (flags & LOOKUP_RCU) {
- 			struct fs_struct *fs = current->fs;
- 			unsigned seq;
-@@ -2317,6 +2320,7 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 		}
- 		fdput(f);
++#define pte_val(x)	((x).pte)
+ #define pgd_val(x)	((x).pgd + 0)
+ #define pgprot_val(x)	((x).pgprot)
+ 
+ #define __pte(x)	((pte_t) { (x) } )
+-#define __pmd(x)	((pmd_t) { (x) } )
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
+ 
+-#define __pmd_val_set(x,n) (x).pmd = (n)
+-#define __pgd_val_set(x,n) (x).pgd = (n)
+-
+ #else
+ /*
+  * .. while these make it easier on the compiler
+  */
+ typedef unsigned long pte_t;
++
++#if CONFIG_PGTABLE_LEVELS = 3
+ typedef         __u32 pmd_t;
++#define pmd_val(x)      (x)
++#define __pmd(x)	(x)
++#endif
++
+ typedef         __u32 pgd_t;
+ typedef unsigned long pgprot_t;
+ 
+ #define pte_val(x)      (x)
+-#define pmd_val(x)      (x)
+ #define pgd_val(x)      (x)
+ #define pgprot_val(x)   (x)
+ 
+ #define __pte(x)        (x)
+-#define __pmd(x)	(x)
+ #define __pgd(x)        (x)
+ #define __pgprot(x)     (x)
+ 
+-#define __pmd_val_set(x,n) (x) = (n)
+-#define __pgd_val_set(x,n) (x) = (n)
+-
+ #endif /* STRICT_MM_TYPECHECKS */
+ 
++#define set_pmd(pmdptr, pmdval) (*(pmdptr) = (pmdval))
++#if CONFIG_PGTABLE_LEVELS = 3
++#define set_pud(pudptr, pudval) (*(pudptr) = (pudval))
++#endif
++
+ typedef struct page *pgtable_t;
+ 
+ typedef struct __physmem_range {
+diff --git a/arch/parisc/include/asm/pgalloc.h b/arch/parisc/include/asm/pgalloc.h
+index d98647c..9ac74da 100644
+--- a/arch/parisc/include/asm/pgalloc.h
++++ b/arch/parisc/include/asm/pgalloc.h
+@@ -34,13 +34,13 @@ static inline pgd_t *pgd_alloc(struct mm_struct *mm)
+ 		/* Populate first pmd with allocated memory.  We mark it
+ 		 * with PxD_FLAG_ATTACHED as a signal to the system that this
+ 		 * pmd entry may not be cleared. */
+-		__pgd_val_set(*actual_pgd, (PxD_FLAG_PRESENT | 
+-				        PxD_FLAG_VALID | 
+-					PxD_FLAG_ATTACHED) 
+-			+ (__u32)(__pa((unsigned long)pgd) >> PxD_VALUE_SHIFT));
++		set_pgd(actual_pgd, __pgd((PxD_FLAG_PRESENT |
++				        PxD_FLAG_VALID |
++					PxD_FLAG_ATTACHED)
++			+ (__u32)(__pa((unsigned long)pgd) >> PxD_VALUE_SHIFT)));
+ 		/* The first pmd entry also is marked with PxD_FLAG_ATTACHED as
+ 		 * a signal that this pmd may not be freed */
+-		__pgd_val_set(*pgd, PxD_FLAG_ATTACHED);
++		set_pgd(pgd, __pgd(PxD_FLAG_ATTACHED));
+ #endif
  	}
+ 	spin_lock_init(pgd_spinlock(actual_pgd));
+@@ -59,10 +59,10 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ 
+ /* Three Level Page Table Support for pmd's */
+ 
+-static inline void pgd_populate(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmd)
++static inline void pud_populate(struct mm_struct *mm, pud_t *pud, pmd_t *pmd)
+ {
+-	__pgd_val_set(*pgd, (PxD_FLAG_PRESENT | PxD_FLAG_VALID) +
+-		        (__u32)(__pa((unsigned long)pmd) >> PxD_VALUE_SHIFT));
++	set_pud(pud, __pud((PxD_FLAG_PRESENT | PxD_FLAG_VALID) +
++			(__u32)(__pa((unsigned long)pmd) >> PxD_VALUE_SHIFT)));
+ }
+ 
+ static inline pmd_t *pmd_alloc_one(struct mm_struct *mm, unsigned long address)
+@@ -88,19 +88,6 @@ static inline void pmd_free(struct mm_struct *mm, pmd_t *pmd)
+ 	free_pages((unsigned long)pmd, PMD_ORDER);
+ }
+ 
+-#else
+-
+-/* Two Level Page Table Support for pmd's */
+-
+-/*
+- * allocating and freeing a pmd is trivial: the 1-entry pmd is
+- * inside the pgd, so has no extra memory associated with it.
+- */
+-
+-#define pmd_alloc_one(mm, addr)		({ BUG(); ((pmd_t *)2); })
+-#define pmd_free(mm, x)			do { } while (0)
+-#define pgd_populate(mm, pmd, pte)	BUG()
+-
+ #endif
+ 
+ static inline void
+@@ -110,14 +97,14 @@ pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd, pte_t *pte)
+ 	/* preserve the gateway marker if this is the beginning of
+ 	 * the permanent pmd */
+ 	if(pmd_flag(*pmd) & PxD_FLAG_ATTACHED)
+-		__pmd_val_set(*pmd, (PxD_FLAG_PRESENT |
+-				 PxD_FLAG_VALID |
+-				 PxD_FLAG_ATTACHED) 
+-			+ (__u32)(__pa((unsigned long)pte) >> PxD_VALUE_SHIFT));
++		set_pmd(pmd, __pmd((PxD_FLAG_PRESENT |
++				PxD_FLAG_VALID |
++				PxD_FLAG_ATTACHED)
++			+ (__u32)(__pa((unsigned long)pte) >> PxD_VALUE_SHIFT)));
+ 	else
+ #endif
+-		__pmd_val_set(*pmd, (PxD_FLAG_PRESENT | PxD_FLAG_VALID) 
+-			+ (__u32)(__pa((unsigned long)pte) >> PxD_VALUE_SHIFT));
++		set_pmd(pmd, __pmd((PxD_FLAG_PRESENT | PxD_FLAG_VALID)
++			+ (__u32)(__pa((unsigned long)pte) >> PxD_VALUE_SHIFT)));
+ }
+ 
+ #define pmd_populate(mm, pmd, pte_page) \
+diff --git a/arch/parisc/include/asm/pgtable.h b/arch/parisc/include/asm/pgtable.h
+index 4ac374b..f0a3659 100644
+--- a/arch/parisc/include/asm/pgtable.h
++++ b/arch/parisc/include/asm/pgtable.h
+@@ -3,7 +3,12 @@
+ #define _PARISC_PGTABLE_H
+ 
+ #include <asm/page.h>
+-#include <asm-generic/4level-fixup.h>
 +
- 	/* For scoped-lookups we need to set the root to the dirfd as well. */
- 	if (flags & LOOKUP_IS_SCOPED) {
- 		nd->root = nd->path;
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 93dad378f1e8..93151e47ec47 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -45,8 +45,9 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- #define LOOKUP_NO_MAGICLINKS	0x020000 /* No nd_jump_link() crossing. */
- #define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
- #define LOOKUP_BENEATH		0x080000 /* No escaping from starting point. */
-+#define LOOKUP_IN_ROOT		0x100000 /* Treat dirfd as fs root. */
- /* LOOKUP_* flags which do scope-related checks based on the dirfd. */
--#define LOOKUP_IS_SCOPED LOOKUP_BENEATH
-+#define LOOKUP_IS_SCOPED (LOOKUP_BENEATH | LOOKUP_IN_ROOT)
++#if CONFIG_PGTABLE_LEVELS = 3
++#include <asm-generic/pgtable-nopud.h>
++#elif CONFIG_PGTABLE_LEVELS = 2
++#include <asm-generic/pgtable-nopmd.h>
++#endif
  
- extern int path_pts(struct path *path);
+ #include <asm/fixmap.h>
  
+@@ -101,8 +106,10 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
+ 
+ #define pte_ERROR(e) \
+ 	printk("%s:%d: bad pte %08lx.\n", __FILE__, __LINE__, pte_val(e))
++#if CONFIG_PGTABLE_LEVELS = 3
+ #define pmd_ERROR(e) \
+ 	printk("%s:%d: bad pmd %08lx.\n", __FILE__, __LINE__, (unsigned long)pmd_val(e))
++#endif
+ #define pgd_ERROR(e) \
+ 	printk("%s:%d: bad pgd %08lx.\n", __FILE__, __LINE__, (unsigned long)pgd_val(e))
+ 
+@@ -132,19 +139,18 @@ static inline void purge_tlb_entries(struct mm_struct *mm, unsigned long addr)
+ #define PTRS_PER_PTE    (1UL << BITS_PER_PTE)
+ 
+ /* Definitions for 2nd level */
++#if CONFIG_PGTABLE_LEVELS = 3
+ #define PMD_SHIFT       (PLD_SHIFT + BITS_PER_PTE)
+ #define PMD_SIZE	(1UL << PMD_SHIFT)
+ #define PMD_MASK	(~(PMD_SIZE-1))
+-#if CONFIG_PGTABLE_LEVELS = 3
+ #define BITS_PER_PMD	(PAGE_SHIFT + PMD_ORDER - BITS_PER_PMD_ENTRY)
++#define PTRS_PER_PMD    (1UL << BITS_PER_PMD)
+ #else
+-#define __PAGETABLE_PMD_FOLDED 1
+ #define BITS_PER_PMD	0
+ #endif
+-#define PTRS_PER_PMD    (1UL << BITS_PER_PMD)
+ 
+ /* Definitions for 1st level */
+-#define PGDIR_SHIFT	(PMD_SHIFT + BITS_PER_PMD)
++#define PGDIR_SHIFT	(PLD_SHIFT + BITS_PER_PTE + BITS_PER_PMD)
+ #if (PGDIR_SHIFT + PAGE_SHIFT + PGD_ORDER - BITS_PER_PGD_ENTRY) > BITS_PER_LONG
+ #define BITS_PER_PGD	(BITS_PER_LONG - PGDIR_SHIFT)
+ #else
+@@ -317,6 +323,8 @@ extern unsigned long *empty_zero_page;
+ 
+ #define pmd_flag(x)	(pmd_val(x) & PxD_FLAG_MASK)
+ #define pmd_address(x)	((unsigned long)(pmd_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
++#define pud_flag(x)	(pud_val(x) & PxD_FLAG_MASK)
++#define pud_address(x)	((unsigned long)(pud_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
+ #define pgd_flag(x)	(pgd_val(x) & PxD_FLAG_MASK)
+ #define pgd_address(x)	((unsigned long)(pgd_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
+ 
+@@ -334,42 +342,32 @@ static inline void pmd_clear(pmd_t *pmd) {
+ 	if (pmd_flag(*pmd) & PxD_FLAG_ATTACHED)
+ 		/* This is the entry pointing to the permanent pmd
+ 		 * attached to the pgd; cannot clear it */
+-		__pmd_val_set(*pmd, PxD_FLAG_ATTACHED);
++		set_pmd(pmd, __pmd(PxD_FLAG_ATTACHED));
+ 	else
+ #endif
+-		__pmd_val_set(*pmd,  0);
++		set_pmd(pmd,  __pmd(0));
+ }
+ 
+ 
+ 
+ #if CONFIG_PGTABLE_LEVELS = 3
+-#define pgd_page_vaddr(pgd) ((unsigned long) __va(pgd_address(pgd)))
+-#define pgd_page(pgd)	virt_to_page((void *)pgd_page_vaddr(pgd))
++#define pud_page_vaddr(pud) ((unsigned long) __va(pud_address(pud)))
++#define pud_page(pud)	virt_to_page((void *)pud_page_vaddr(pud))
+ 
+ /* For 64 bit we have three level tables */
+ 
+-#define pgd_none(x)     (!pgd_val(x))
+-#define pgd_bad(x)      (!(pgd_flag(x) & PxD_FLAG_VALID))
+-#define pgd_present(x)  (pgd_flag(x) & PxD_FLAG_PRESENT)
+-static inline void pgd_clear(pgd_t *pgd) {
++#define pud_none(x)     (!pud_val(x))
++#define pud_bad(x)      (!(pud_flag(x) & PxD_FLAG_VALID))
++#define pud_present(x)  (pud_flag(x) & PxD_FLAG_PRESENT)
++static inline void pud_clear(pud_t *pud) {
+ #if CONFIG_PGTABLE_LEVELS = 3
+-	if(pgd_flag(*pgd) & PxD_FLAG_ATTACHED)
+-		/* This is the permanent pmd attached to the pgd; cannot
++	if(pud_flag(*pud) & PxD_FLAG_ATTACHED)
++		/* This is the permanent pmd attached to the pud; cannot
+ 		 * free it */
+ 		return;
+ #endif
+-	__pgd_val_set(*pgd, 0);
++	set_pud(pud, __pud(0));
+ }
+-#else
+-/*
+- * The "pgd_xxx()" functions here are trivial for a folded two-level
+- * setup: the pgd is never bad, and a pmd always exists (as it's folded
+- * into the pgd entry)
+- */
+-static inline int pgd_none(pgd_t pgd)		{ return 0; }
+-static inline int pgd_bad(pgd_t pgd)		{ return 0; }
+-static inline int pgd_present(pgd_t pgd)	{ return 1; }
+-static inline void pgd_clear(pgd_t * pgdp)	{ }
+ #endif
+ 
+ /*
+@@ -452,7 +450,7 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ #if CONFIG_PGTABLE_LEVELS = 3
+ #define pmd_index(addr)         (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
+ #define pmd_offset(dir,address) \
+-((pmd_t *) pgd_page_vaddr(*(dir)) + pmd_index(address))
++((pmd_t *) pud_page_vaddr(*(dir)) + pmd_index(address))
+ #else
+ #define pmd_offset(dir,addr) ((pmd_t *) dir)
+ #endif
+diff --git a/arch/parisc/include/asm/tlb.h b/arch/parisc/include/asm/tlb.h
+index 8c0446b..44235f3 100644
+--- a/arch/parisc/include/asm/tlb.h
++++ b/arch/parisc/include/asm/tlb.h
+@@ -4,7 +4,9 @@
+ 
+ #include <asm-generic/tlb.h>
+ 
++#if CONFIG_PGTABLE_LEVELS = 3
+ #define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
++#endif
+ #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, pte)
+ 
+ #endif
+diff --git a/arch/parisc/kernel/cache.c b/arch/parisc/kernel/cache.c
+index a82b3ea..7b2e0ab 100644
+--- a/arch/parisc/kernel/cache.c
++++ b/arch/parisc/kernel/cache.c
+@@ -534,11 +534,14 @@ static inline pte_t *get_ptep(pgd_t *pgd, unsigned long addr)
+ 	pte_t *ptep = NULL;
+ 
+ 	if (!pgd_none(*pgd)) {
+-		pud_t *pud = pud_offset(pgd, addr);
+-		if (!pud_none(*pud)) {
+-			pmd_t *pmd = pmd_offset(pud, addr);
+-			if (!pmd_none(*pmd))
+-				ptep = pte_offset_map(pmd, addr);
++		p4d_t *p4d = p4d_offset(pgd, addr);
++		if (!p4d_none(*p4d)) {
++			pud_t *pud = pud_offset(p4d, addr);
++			if (!pud_none(*pud)) {
++				pmd_t *pmd = pmd_offset(pud, addr);
++				if (!pmd_none(*pmd))
++					ptep = pte_offset_map(pmd, addr);
++			}
+ 		}
+ 	}
+ 	return ptep;
+diff --git a/arch/parisc/kernel/pci-dma.c b/arch/parisc/kernel/pci-dma.c
+index ca35d9a..8859c71 100644
+--- a/arch/parisc/kernel/pci-dma.c
++++ b/arch/parisc/kernel/pci-dma.c
+@@ -133,9 +133,14 @@ static inline int map_uncached_pages(unsigned long vaddr, unsigned long size,
+ 
+ 	dir = pgd_offset_k(vaddr);
+ 	do {
++		p4d_t *p4d;
++		pud_t *pud;
+ 		pmd_t *pmd;
+-		
+-		pmd = pmd_alloc(NULL, dir, vaddr);
++
++		p4d = p4d_offset(dir, vaddr);
++		pud = pud_offset(p4d, vaddr);
++		pmd = pmd_alloc(NULL, pud, vaddr);
++
+ 		if (!pmd)
+ 			return -ENOMEM;
+ 		if (map_pmd_uncached(pmd, vaddr, end - vaddr, &paddr))
+diff --git a/arch/parisc/mm/fixmap.c b/arch/parisc/mm/fixmap.c
+index 474cd24..e2d8b0a 100644
+--- a/arch/parisc/mm/fixmap.c
++++ b/arch/parisc/mm/fixmap.c
+@@ -14,11 +14,13 @@ void notrace set_fixmap(enum fixed_addresses idx, phys_addr_t phys)
+ {
+ 	unsigned long vaddr = __fix_to_virt(idx);
+ 	pgd_t *pgd = pgd_offset_k(vaddr);
+-	pmd_t *pmd = pmd_offset(pgd, vaddr);
++	p4d_t *p4d = p4d_offset(pgd, vaddr);
++	pud_t *pud = pud_offset(p4d, vaddr);
++	pmd_t *pmd = pmd_offset(pud, vaddr);
+ 	pte_t *pte;
+ 
+ 	if (pmd_none(*pmd))
+-		pmd = pmd_alloc(NULL, pgd, vaddr);
++		pmd = pmd_alloc(NULL, pud, vaddr);
+ 
+ 	pte = pte_offset_kernel(pmd, vaddr);
+ 	if (pte_none(*pte))
+@@ -32,7 +34,9 @@ void notrace clear_fixmap(enum fixed_addresses idx)
+ {
+ 	unsigned long vaddr = __fix_to_virt(idx);
+ 	pgd_t *pgd = pgd_offset_k(vaddr);
+-	pmd_t *pmd = pmd_offset(pgd, vaddr);
++	p4d_t *p4d = p4d_offset(pgd, vaddr);
++	pud_t *pud = pud_offset(p4d, vaddr);
++	pmd_t *pmd = pmd_offset(pud, vaddr);
+ 	pte_t *pte = pte_offset_kernel(pmd, vaddr);
+ 
+ 	if (WARN_ON(pte_none(*pte)))
 -- 
-2.24.0
+2.7.4
