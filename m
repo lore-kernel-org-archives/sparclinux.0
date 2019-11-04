@@ -1,10 +1,10 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 05 Nov 2019 07:15:23 +0000
-Subject: [PATCH v4 01/13] alpha: use pgtable-nopud instead of 4level-fixup
-Message-Id: <1572938135-31886-2-git-send-email-rppt@kernel.org>
+Date: Mon, 04 Nov 2019 06:56:26 +0000
+Subject: [PATCH v3 12/13] um: add support for folded p4d page tables
+Message-Id: <1572850587-20314-13-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+References: <1572850587-20314-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572850587-20314-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,151 +13,301 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambri
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-It is not likely alpha will have 5-level page tables.
+The UML port uses 4 and 5 level fixups to support higher level page table
+directories in the generic VM code.
 
-Replace usage of include/asm-generic/4level-fixup.h and implied
-__ARCH_HAS_4LEVEL_HACK with include/asm-generic/pgtable-nopud.h and adjust
-page table manipulation macros and functions accordingly.
+Implement primitives necessary for the 4th level folding, add walks of
+p4d level where appropriate and drop usage of __ARCH_USE_5LEVEL_HACK.
 
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/alpha/include/asm/mmzone.h  |  1 -
- arch/alpha/include/asm/pgalloc.h |  4 ++--
- arch/alpha/include/asm/pgtable.h | 24 ++++++++++++------------
- arch/alpha/mm/init.c             | 12 ++++++++----
- 4 files changed, 22 insertions(+), 19 deletions(-)
+ arch/um/include/asm/pgtable-2level.h |  1 -
+ arch/um/include/asm/pgtable-3level.h |  1 -
+ arch/um/include/asm/pgtable.h        |  3 ++
+ arch/um/kernel/mem.c                 |  8 ++++--
+ arch/um/kernel/skas/mmu.c            | 12 ++++++--
+ arch/um/kernel/skas/uaccess.c        |  7 ++++-
+ arch/um/kernel/tlb.c                 | 56 ++++++++++++++++++++++++++++++++----
+ arch/um/kernel/trap.c                |  4 ++-
+ 8 files changed, 78 insertions(+), 14 deletions(-)
 
-diff --git a/arch/alpha/include/asm/mmzone.h b/arch/alpha/include/asm/mmzone.h
-index 889b5d3..7ee144f 100644
---- a/arch/alpha/include/asm/mmzone.h
-+++ b/arch/alpha/include/asm/mmzone.h
-@@ -73,7 +73,6 @@ PLAT_NODE_DATA_LOCALNR(unsigned long p, int n)
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+diff --git a/arch/um/include/asm/pgtable-2level.h b/arch/um/include/asm/pgtable-2level.h
+index 32b3d26..32106d3 100644
+--- a/arch/um/include/asm/pgtable-2level.h
++++ b/arch/um/include/asm/pgtable-2level.h
+@@ -8,7 +8,6 @@
+ #ifndef __UM_PGTABLE_2LEVEL_H
+ #define __UM_PGTABLE_2LEVEL_H
  
- #define pmd_page(pmd)		(pfn_to_page(pmd_val(pmd) >> 32))
--#define pgd_page(pgd)		(pfn_to_page(pgd_val(pgd) >> 32))
- #define pte_pfn(pte)		(pte_val(pte) >> 32)
+-#define __ARCH_USE_5LEVEL_HACK
+ #include <asm-generic/pgtable-nopmd.h>
  
- #define mk_pte(page, pgprot)						     \
-diff --git a/arch/alpha/include/asm/pgalloc.h b/arch/alpha/include/asm/pgalloc.h
-index eb91f1e..a1a29f6 100644
---- a/arch/alpha/include/asm/pgalloc.h
-+++ b/arch/alpha/include/asm/pgalloc.h
-@@ -27,9 +27,9 @@ pmd_populate_kernel(struct mm_struct *mm, pmd_t *pmd, pte_t *pte)
- }
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
+index 9812269..8a3b689 100644
+--- a/arch/um/include/asm/pgtable-3level.h
++++ b/arch/um/include/asm/pgtable-3level.h
+@@ -7,7 +7,6 @@
+ #ifndef __UM_PGTABLE_3LEVEL_H
+ #define __UM_PGTABLE_3LEVEL_H
  
- static inline void
--pgd_populate(struct mm_struct *mm, pgd_t *pgd, pmd_t *pmd)
-+pud_populate(struct mm_struct *mm, pud_t *pud, pmd_t *pmd)
+-#define __ARCH_USE_5LEVEL_HACK
+ #include <asm-generic/pgtable-nopud.h>
+ 
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
+index 36a44d5..2daa58d 100644
+--- a/arch/um/include/asm/pgtable.h
++++ b/arch/um/include/asm/pgtable.h
+@@ -106,6 +106,9 @@ extern unsigned long end_iomem;
+ #define pud_newpage(x)  (pud_val(x) & _PAGE_NEWPAGE)
+ #define pud_mkuptodate(x) (pud_val(x) &= ~_PAGE_NEWPAGE)
+ 
++#define p4d_newpage(x)  (p4d_val(x) & _PAGE_NEWPAGE)
++#define p4d_mkuptodate(x) (p4d_val(x) &= ~_PAGE_NEWPAGE)
++
+ #define pmd_page(pmd) phys_to_page(pmd_val(pmd) & PAGE_MASK)
+ 
+ #define pte_page(x) pfn_to_page(pte_pfn(x))
+diff --git a/arch/um/kernel/mem.c b/arch/um/kernel/mem.c
+index 417ff64..30885d0 100644
+--- a/arch/um/kernel/mem.c
++++ b/arch/um/kernel/mem.c
+@@ -96,6 +96,7 @@ static void __init fixrange_init(unsigned long start, unsigned long end,
+ 				 pgd_t *pgd_base)
  {
--	pgd_set(pgd, pmd);
-+	pud_set(pud, pmd);
- }
- 
- extern pgd_t *pgd_alloc(struct mm_struct *mm);
-diff --git a/arch/alpha/include/asm/pgtable.h b/arch/alpha/include/asm/pgtable.h
-index 065b57f..299791c 100644
---- a/arch/alpha/include/asm/pgtable.h
-+++ b/arch/alpha/include/asm/pgtable.h
-@@ -2,7 +2,7 @@
- #ifndef _ALPHA_PGTABLE_H
- #define _ALPHA_PGTABLE_H
- 
--#include <asm-generic/4level-fixup.h>
-+#include <asm-generic/pgtable-nopud.h>
- 
- /*
-  * This file contains the functions and defines necessary to modify and use
-@@ -226,8 +226,8 @@ extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- extern inline void pmd_set(pmd_t * pmdp, pte_t * ptep)
- { pmd_val(*pmdp) = _PAGE_TABLE | ((((unsigned long) ptep) - PAGE_OFFSET) << (32-PAGE_SHIFT)); }
- 
--extern inline void pgd_set(pgd_t * pgdp, pmd_t * pmdp)
--{ pgd_val(*pgdp) = _PAGE_TABLE | ((((unsigned long) pmdp) - PAGE_OFFSET) << (32-PAGE_SHIFT)); }
-+extern inline void pud_set(pud_t * pudp, pmd_t * pmdp)
-+{ pud_val(*pudp) = _PAGE_TABLE | ((((unsigned long) pmdp) - PAGE_OFFSET) << (32-PAGE_SHIFT)); }
- 
- 
- extern inline unsigned long
-@@ -238,11 +238,11 @@ pmd_page_vaddr(pmd_t pmd)
- 
- #ifndef CONFIG_DISCONTIGMEM
- #define pmd_page(pmd)	(mem_map + ((pmd_val(pmd) & _PFN_MASK) >> 32))
--#define pgd_page(pgd)	(mem_map + ((pgd_val(pgd) & _PFN_MASK) >> 32))
-+#define pud_page(pud)	(mem_map + ((pud_val(pud) & _PFN_MASK) >> 32))
- #endif
- 
--extern inline unsigned long pgd_page_vaddr(pgd_t pgd)
--{ return PAGE_OFFSET + ((pgd_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)); }
-+extern inline unsigned long pud_page_vaddr(pud_t pgd)
-+{ return PAGE_OFFSET + ((pud_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)); }
- 
- extern inline int pte_none(pte_t pte)		{ return !pte_val(pte); }
- extern inline int pte_present(pte_t pte)	{ return pte_val(pte) & _PAGE_VALID; }
-@@ -256,10 +256,10 @@ extern inline int pmd_bad(pmd_t pmd)		{ return (pmd_val(pmd) & ~_PFN_MASK) != _P
- extern inline int pmd_present(pmd_t pmd)	{ return pmd_val(pmd) & _PAGE_VALID; }
- extern inline void pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = 0; }
- 
--extern inline int pgd_none(pgd_t pgd)		{ return !pgd_val(pgd); }
--extern inline int pgd_bad(pgd_t pgd)		{ return (pgd_val(pgd) & ~_PFN_MASK) != _PAGE_TABLE; }
--extern inline int pgd_present(pgd_t pgd)	{ return pgd_val(pgd) & _PAGE_VALID; }
--extern inline void pgd_clear(pgd_t * pgdp)	{ pgd_val(*pgdp) = 0; }
-+extern inline int pud_none(pud_t pud)		{ return !pud_val(pud); }
-+extern inline int pud_bad(pud_t pud)		{ return (pud_val(pud) & ~_PFN_MASK) != _PAGE_TABLE; }
-+extern inline int pud_present(pud_t pud)	{ return pud_val(pud) & _PAGE_VALID; }
-+extern inline void pud_clear(pud_t * pudp)	{ pud_val(*pudp) = 0; }
- 
- /*
-  * The following only work if pte_present() is true.
-@@ -301,9 +301,9 @@ extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
-  */
- 
- /* Find an entry in the second-level page table.. */
--extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
-+extern inline pmd_t * pmd_offset(pud_t * dir, unsigned long address)
- {
--	pmd_t *ret = (pmd_t *) pgd_page_vaddr(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PAGE - 1));
-+	pmd_t *ret = (pmd_t *) pud_page_vaddr(*dir) + ((address >> PMD_SHIFT) & (PTRS_PER_PAGE - 1));
- 	smp_read_barrier_depends(); /* see above */
- 	return ret;
- }
-diff --git a/arch/alpha/mm/init.c b/arch/alpha/mm/init.c
-index e2cbec3..12e218d 100644
---- a/arch/alpha/mm/init.c
-+++ b/arch/alpha/mm/init.c
-@@ -146,6 +146,8 @@ callback_init(void * kernel_end)
- {
- 	struct crb_struct * crb;
  	pgd_t *pgd;
 +	p4d_t *p4d;
-+	pud_t *pud;
+ 	pud_t *pud;
  	pmd_t *pmd;
- 	void *two_pages;
+ 	int i, j;
+@@ -107,7 +108,8 @@ static void __init fixrange_init(unsigned long start, unsigned long end,
+ 	pgd = pgd_base + i;
  
-@@ -184,8 +186,10 @@ callback_init(void * kernel_end)
- 	memset(two_pages, 0, 2*PAGE_SIZE);
+ 	for ( ; (i < PTRS_PER_PGD) && (vaddr < end); pgd++, i++) {
+-		pud = pud_offset(pgd, vaddr);
++		p4d = p4d_offset(pgd, vaddr);
++		pud = pud_offset(p4d, vaddr);
+ 		if (pud_none(*pud))
+ 			one_md_table_init(pud);
+ 		pmd = pmd_offset(pud, vaddr);
+@@ -124,6 +126,7 @@ static void __init fixaddr_user_init( void)
+ #ifdef CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA
+ 	long size = FIXADDR_USER_END - FIXADDR_USER_START;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -144,7 +147,8 @@ static void __init fixaddr_user_init( void)
+ 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
+ 		      p += PAGE_SIZE) {
+ 		pgd = swapper_pg_dir + pgd_index(vaddr);
+-		pud = pud_offset(pgd, vaddr);
++		p4d = p4d_offset(pgd, vaddr);
++		pud = pud_offset(p4d, vaddr);
+ 		pmd = pmd_offset(pud, vaddr);
+ 		pte = pte_offset_kernel(pmd, vaddr);
+ 		pte_set_val(*pte, p, PAGE_READONLY);
+diff --git a/arch/um/kernel/skas/mmu.c b/arch/um/kernel/skas/mmu.c
+index b5e3d91..3f0d9a5 100644
+--- a/arch/um/kernel/skas/mmu.c
++++ b/arch/um/kernel/skas/mmu.c
+@@ -19,15 +19,21 @@ static int init_stub_pte(struct mm_struct *mm, unsigned long proc,
+ 			 unsigned long kernel)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
  
- 	pgd = pgd_offset_k(VMALLOC_START);
--	pgd_set(pgd, (pmd_t *)two_pages);
--	pmd = pmd_offset(pgd, VMALLOC_START);
-+	p4d = p4d_offset(pgd, VMALLOC_START);
-+	pud = pud_offset(p4d, VMALLOC_START);
-+	pud_set(pud, (pmd_t *)two_pages);
-+	pmd = pmd_offset(pud, VMALLOC_START);
- 	pmd_set(pmd, (pte_t *)(two_pages + PAGE_SIZE));
+ 	pgd = pgd_offset(mm, proc);
+-	pud = pud_alloc(mm, pgd, proc);
+-	if (!pud)
++
++	p4d = p4d_alloc(mm, pgd, proc);
++	if (!p4d)
+ 		goto out;
  
- 	if (alpha_using_srm) {
-@@ -214,9 +218,9 @@ callback_init(void * kernel_end)
- 				/* Newer consoles (especially on larger
- 				   systems) may require more pages of
- 				   PTEs. Grab additional pages as needed. */
--				if (pmd != pmd_offset(pgd, vaddr)) {
-+				if (pmd != pmd_offset(pud, vaddr)) {
- 					memset(kernel_end, 0, PAGE_SIZE);
--					pmd = pmd_offset(pgd, vaddr);
-+					pmd = pmd_offset(pud, vaddr);
- 					pmd_set(pmd, (pte_t *)kernel_end);
- 					kernel_end += PAGE_SIZE;
- 				}
++	pud = pud_alloc(mm, p4d, proc);
++	if (!pud)
++		goto out_pud;
++
+ 	pmd = pmd_alloc(mm, pud, proc);
+ 	if (!pmd)
+ 		goto out_pmd;
+@@ -44,6 +50,8 @@ static int init_stub_pte(struct mm_struct *mm, unsigned long proc,
+ 	pmd_free(mm, pmd);
+  out_pmd:
+ 	pud_free(mm, pud);
++ out_pud:
++	p4d_free(mm, p4d);
+  out:
+ 	return -ENOMEM;
+ }
+diff --git a/arch/um/kernel/skas/uaccess.c b/arch/um/kernel/skas/uaccess.c
+index 3236052..d617f8d 100644
+--- a/arch/um/kernel/skas/uaccess.c
++++ b/arch/um/kernel/skas/uaccess.c
+@@ -17,6 +17,7 @@
+ pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 
+@@ -27,7 +28,11 @@ pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
+ 	if (!pgd_present(*pgd))
+ 		return NULL;
+ 
+-	pud = pud_offset(pgd, addr);
++	p4d = p4d_offset(pgd, addr);
++	if (!p4d_present(*p4d))
++		return NULL;
++
++	pud = pud_offset(p4d, addr);
+ 	if (!pud_present(*pud))
+ 		return NULL;
+ 
+diff --git a/arch/um/kernel/tlb.c b/arch/um/kernel/tlb.c
+index 8425a22..80a358c 100644
+--- a/arch/um/kernel/tlb.c
++++ b/arch/um/kernel/tlb.c
+@@ -277,7 +277,7 @@ static inline int update_pmd_range(pud_t *pud, unsigned long addr,
+ 	return ret;
+ }
+ 
+-static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
++static inline int update_pud_range(p4d_t *p4d, unsigned long addr,
+ 				   unsigned long end,
+ 				   struct host_vm_change *hvc)
+ {
+@@ -285,7 +285,7 @@ static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
+ 	unsigned long next;
+ 	int ret = 0;
+ 
+-	pud = pud_offset(pgd, addr);
++	pud = pud_offset(p4d, addr);
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 		if (!pud_present(*pud)) {
+@@ -299,6 +299,28 @@ static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
+ 	return ret;
+ }
+ 
++static inline int update_p4d_range(pgd_t *pgd, unsigned long addr,
++				   unsigned long end,
++				   struct host_vm_change *hvc)
++{
++	p4d_t *p4d;
++	unsigned long next;
++	int ret = 0;
++
++	p4d = p4d_offset(pgd, addr);
++	do {
++		next = p4d_addr_end(addr, end);
++		if (!p4d_present(*p4d)) {
++			if (hvc->force || p4d_newpage(*p4d)) {
++				ret = add_munmap(addr, next - addr, hvc);
++				p4d_mkuptodate(*p4d);
++			}
++		} else
++			ret = update_pud_range(p4d, addr, next, hvc);
++	} while (p4d++, addr = next, ((addr < end) && !ret));
++	return ret;
++}
++
+ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+ 		      unsigned long end_addr, int force)
+ {
+@@ -316,8 +338,8 @@ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+ 				ret = add_munmap(addr, next - addr, &hvc);
+ 				pgd_mkuptodate(*pgd);
+ 			}
+-		}
+-		else ret = update_pud_range(pgd, addr, next, &hvc);
++		} else
++			ret = update_p4d_range(pgd, addr, next, &hvc);
+ 	} while (pgd++, addr = next, ((addr < end_addr) && !ret));
+ 
+ 	if (!ret)
+@@ -338,6 +360,7 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ {
+ 	struct mm_struct *mm;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -364,7 +387,23 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ 			continue;
+ 		}
+ 
+-		pud = pud_offset(pgd, addr);
++		p4d = p4d_offset(pgd, addr);
++		if (!p4d_present(*p4d)) {
++			last = ADD_ROUND(addr, P4D_SIZE);
++			if (last > end)
++				last = end;
++			if (p4d_newpage(*p4d)) {
++				updated = 1;
++				err = add_munmap(addr, last - addr, &hvc);
++				if (err < 0)
++					panic("munmap failed, errno = %d\n",
++					      -err);
++			}
++			addr = last;
++			continue;
++		}
++
++		pud = pud_offset(p4d, addr);
+ 		if (!pud_present(*pud)) {
+ 			last = ADD_ROUND(addr, PUD_SIZE);
+ 			if (last > end)
+@@ -424,6 +463,7 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -437,7 +477,11 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
+ 	if (!pgd_present(*pgd))
+ 		goto kill;
+ 
+-	pud = pud_offset(pgd, address);
++	p4d = p4d_offset(pgd, address);
++	if (!p4d_present(*p4d))
++		goto kill;
++
++	pud = pud_offset(p4d, address);
+ 	if (!pud_present(*pud))
+ 		goto kill;
+ 
+diff --git a/arch/um/kernel/trap.c b/arch/um/kernel/trap.c
+index e62296c..8185530 100644
+--- a/arch/um/kernel/trap.c
++++ b/arch/um/kernel/trap.c
+@@ -28,6 +28,7 @@ int handle_page_fault(unsigned long address, unsigned long ip,
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -104,7 +105,8 @@ int handle_page_fault(unsigned long address, unsigned long ip,
+ 		}
+ 
+ 		pgd = pgd_offset(mm, address);
+-		pud = pud_offset(pgd, address);
++		p4d = p4d_offset(pgd, address);
++		pud = pud_offset(p4d, address);
+ 		pmd = pmd_offset(pud, address);
+ 		pte = pte_offset_kernel(pmd, address);
+ 	} while (!pte_present(*pte));
 -- 
 2.7.4
