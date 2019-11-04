@@ -1,57 +1,56 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Wed, 13 Nov 2019 07:52:27 +0000
-Subject: Re: [PATCH v15 6/9] namei: LOOKUP_{IN_ROOT,BENEATH}: permit limited ".." resolution
-Message-Id: <20191113075227.lu5b5uvc2nuk76uk@yavin.dot.cyphar.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="qprdfpbfkuvffdu5"
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Mon, 04 Nov 2019 02:27:56 +0000
+Subject: Re: [PATCH V8] mm/debug: Add tests validating architecture page table helpers
+Message-Id: <fdb72ac1-5f21-bcf1-ebab-411f56e67b56@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191105090553.6350-1-cyphar@cyphar.com>
- <20191105090553.6350-7-cyphar@cyphar.com>
- <20191113020917.GC26530@ZenIV.linux.org.uk>
-In-Reply-To: <20191113020917.GC26530@ZenIV.linux.org.uk>
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>, Jann Horn <jannh@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Kees Cook <keescook@chromium.org>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>
+References: <1572240562-23630-1-git-send-email-anshuman.khandual@arm.com>
+ <B6AAFA3F-745D-48E2-98CC-CFB30934CE39@lca.pw>
+In-Reply-To: <B6AAFA3F-745D-48E2-98CC-CFB30934CE39@lca.pw>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Qian Cai <cai@lca.pw>
+Cc: Mark Rutland <Mark.Rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Jason Gunthorpe <jgg@ziepe.ca>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@kernel.org>, Kees Cook <keescook@chromium.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
 
---qprdfpbfkuvffdu5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On 2019-11-13, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Tue, Nov 05, 2019 at 08:05:50PM +1100, Aleksa Sarai wrote:
->=20
-> > One other possible alternative (which previous versions of this patch
-> > used) would be to check with path_is_under() if there was a racing
-> > rename or mount (after re-taking the relevant seqlocks). While this does
-> > work, it results in possible O(n*m) behaviour if there are many renames
-> > or mounts occuring *anywhere on the system*.
->=20
-> BTW, do you realize that open-by-fhandle (or working nfsd, for that matte=
-r)
-> will trigger arseloads of write_seqlock(&rename_lock) simply on d_splice_=
-alias()
-> bringing disconnected subtrees in contact with parent?
+On 10/29/2019 04:01 PM, Qian Cai wrote:
+> 
+> 
+>> On Oct 28, 2019, at 1:29 AM, Anshuman Khandual <Anshuman.Khandual@arm.com> wrote:
+>>
+>> This adds tests which will validate architecture page table helpers and
+>> other accessors in their compliance with expected generic MM semantics.
+>> This will help various architectures in validating changes to existing
+>> page table helpers or addition of new ones.
+>>
+>> This test covers basic page table entry transformations including but not
+>> limited to old, young, dirty, clean, write, write protect etc at various
+>> level along with populating intermediate entries with next page table page
+>> and validating them.
+>>
+>> Test page table pages are allocated from system memory with required size
+>> and alignments. The mapped pfns at page table levels are derived from a
+>> real pfn representing a valid kernel text symbol. This test gets called
+>> right after page_alloc_init_late().
+>>
+>> This gets build and run when CONFIG_DEBUG_VM_PGTABLE is selected along with
+>> CONFIG_VM_DEBUG. Architectures willing to subscribe this test also need to
+>> select CONFIG_ARCH_HAS_DEBUG_VM_PGTABLE which for now is limited to x86 and
+>> arm64. Going forward, other architectures too can enable this after fixing
+>> build or runtime problems (if any) with their page table helpers.
+>>
+>> Folks interested in making sure that a given platform's page table helpers
+>> conform to expected generic MM semantics should enable the above config
+>> which will just trigger this test during boot. Any non conformity here will
+>> be reported as an warning which would need to be fixed. This test will help
+>> catch any changes to the agreed upon semantics expected from generic MM and
+>> enable platforms to accommodate it thereafter.
+> 
+> This looks like a perfect candidate to streamline with the new kunit framework, no?
 
-I wasn't aware of that -- that makes path_is_under() even less viable.
-I'll reword it to be clearer that path_is_under() isn't a good idea and
-why we went with -EAGAIN over an in-kernel retry.
-
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
-
---qprdfpbfkuvffdu5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQSxZm6dtfE8gxLLfYqdlLljIbnQEgUCXcu2OAAKCRCdlLljIbnQ
-EtqZAQCjNdiANKBF7WCOTHUeD48U+o/7WczR7I/1WTsCcSBp9gEA6HgEdHKRHmol
-+5Fvn3Eg1Tya83fWQgWoVLu8i6CUUwE=
-=voMa
------END PGP SIGNATURE-----
-
---qprdfpbfkuvffdu5--
+I have not been following the kunit test framework. But being highly dependent on
+existing MM accessors (generic or platform) and very much page table modification
+centric, mm/ is the best place for this test IMHO. It is now also part of DEBUG_VM
+set of tests. Probably in future all existing MM tests (mm/ or lib/) might move to
+kunit framework but for now it should remain with DEBUG_VM set of tests.
