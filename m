@@ -1,155 +1,313 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sun, 17 Nov 2019 01:17:10 +0000
-Subject: [PATCH v17 10/13] namei: LOOKUP_{IN_ROOT,BENEATH}: permit limited ".." resolution
-Message-Id: <20191117011713.13032-11-cyphar@cyphar.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 05 Nov 2019 07:15:34 +0000
+Subject: [PATCH v4 12/13] um: add support for folded p4d page tables
+Message-Id: <1572938135-31886-13-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191117011713.13032-1-cyphar@cyphar.com>
-In-Reply-To: <20191117011713.13032-1-cyphar@cyphar.com>
+References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, Jann Horn <jannh@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-Allow LOOKUP_BENEATH and LOOKUP_IN_ROOT to safely permit ".." resolution
-(in the case of LOOKUP_BENEATH the resolution will still fail if ".."
-resolution would resolve a path outside of the root -- while
-LOOKUP_IN_ROOT will chroot(2)-style scope it). Magic-link jumps are
-still disallowed entirely[*].
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-As Jann explains[1,2], the need for this patch (and the original no-".."
-restriction) is explained by observing there is a fairly easy-to-exploit
-race condition with chroot(2) (and thus by extension LOOKUP_IN_ROOT and
-LOOKUP_BENEATH if ".." is allowed) where a rename(2) of a path can be
-used to "skip over" nd->root and thus escape to the filesystem above
-nd->root.
+The UML port uses 4 and 5 level fixups to support higher level page table
+directories in the generic VM code.
 
-  thread1 [attacker]:
-    for (;;)
-      renameat2(AT_FDCWD, "/a/b/c", AT_FDCWD, "/a/d", RENAME_EXCHANGE);
-  thread2 [victim]:
-    for (;;)
-      openat2(dirb, "b/c/../../etc/shadow",
-              { .flags = O_PATH, .resolve = RESOLVE_IN_ROOT } );
+Implement primitives necessary for the 4th level folding, add walks of
+p4d level where appropriate and drop usage of __ARCH_USE_5LEVEL_HACK.
 
-With fairly significant regularity, thread2 will resolve to
-"/etc/shadow" rather than "/a/b/etc/shadow". There is also a similar
-(though somewhat more privileged) attack using MS_MOVE.
-
-With this patch, such cases will be detected *during* ".." resolution
-and will return -EAGAIN for userspace to decide to either retry or abort
-the lookup. It should be noted that ".." is the weak point of chroot(2)
--- walking *into* a subdirectory tautologically cannot result in you
-walking *outside* nd->root (except through a bind-mount or magic-link).
-There is also no other way for a directory's parent to change (which is
-the primary worry with ".." resolution here) other than a rename or
-MS_MOVE.
-
-The primary reason for deferring to userspace with -EAGAIN is that an
-in-kernel retry loop (or doing a path_is_under() check after re-taking
-the relevant seqlocks) can become unreasonably expensive on machines
-with lots of VFS activity (nfsd can cause lots of rename_lock updates).
-Thus it should be up to userspace how many times they wish to retry the
-lookup -- the selftests for this attack indicate that there is a ~35%
-chance of the lookup succeeding on the first try even with an attacker
-thrashing rename_lock.
-
-A variant of the above attack is included in the selftests for
-openat2(2) later in this patch series. I've run this test on several
-machines for several days and no instances of a breakout were detected.
-While this is not concrete proof that this is safe, when combined with
-the above argument it should lend some trustworthiness to this
-construction.
-
-[*] It may be acceptable in the future to do a path_is_under() check for
-    magic-links after they are resolved. However this seems unlikely to
-    be a feature that people *really* need -- it can be added later if
-    it turns out a lot of people want it.
-
-[1]: https://lore.kernel.org/lkml/CAG48ez1jzNvxB+bfOBnERFGp=oMM0vHWuLD6EULmne3R6xa53w@mail.gmail.com/
-[2]: https://lore.kernel.org/lkml/CAG48ez30WJhbsro2HOc_DR7V91M+hNFzBP5ogRMZaxbAORvqzg@mail.gmail.com/
-
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Suggested-by: Jann Horn <jannh@google.com>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- fs/namei.c | 37 ++++++++++++++++++++++++-------------
- 1 file changed, 24 insertions(+), 13 deletions(-)
+ arch/um/include/asm/pgtable-2level.h |  1 -
+ arch/um/include/asm/pgtable-3level.h |  1 -
+ arch/um/include/asm/pgtable.h        |  3 ++
+ arch/um/kernel/mem.c                 |  8 ++++--
+ arch/um/kernel/skas/mmu.c            | 12 ++++++--
+ arch/um/kernel/skas/uaccess.c        |  7 ++++-
+ arch/um/kernel/tlb.c                 | 56 ++++++++++++++++++++++++++++++++----
+ arch/um/kernel/trap.c                |  4 ++-
+ 8 files changed, 78 insertions(+), 14 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index a6196786db13..88c706e459f6 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -491,7 +491,7 @@ struct nameidata {
- 	struct path	root;
- 	struct inode	*inode; /* path.dentry.d_inode */
- 	unsigned int	flags;
--	unsigned	seq, m_seq;
-+	unsigned	seq, m_seq, r_seq;
- 	int		last_type;
- 	unsigned	depth;
- 	int		total_link_count;
-@@ -1781,22 +1781,30 @@ static inline int handle_dots(struct nameidata *nd, int type)
- 	if (type = LAST_DOTDOT) {
- 		int error = 0;
+diff --git a/arch/um/include/asm/pgtable-2level.h b/arch/um/include/asm/pgtable-2level.h
+index 32b3d26..32106d3 100644
+--- a/arch/um/include/asm/pgtable-2level.h
++++ b/arch/um/include/asm/pgtable-2level.h
+@@ -8,7 +8,6 @@
+ #ifndef __UM_PGTABLE_2LEVEL_H
+ #define __UM_PGTABLE_2LEVEL_H
  
--		/*
--		 * Scoped-lookup flags resolving ".." is not currently safe --
--		 * races can cause our parent to have moved outside of the root
--		 * and us to skip over it.
--		 */
--		if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
--			return -EXDEV;
- 		if (!nd->root.mnt) {
- 			error = set_root(nd);
- 			if (error)
- 				return error;
- 		}
--		if (nd->flags & LOOKUP_RCU) {
--			return follow_dotdot_rcu(nd);
--		} else
--			return follow_dotdot(nd);
-+		if (nd->flags & LOOKUP_RCU)
-+			error = follow_dotdot_rcu(nd);
-+		else
-+			error = follow_dotdot(nd);
-+		if (error)
-+			return error;
+-#define __ARCH_USE_5LEVEL_HACK
+ #include <asm-generic/pgtable-nopmd.h>
+ 
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+diff --git a/arch/um/include/asm/pgtable-3level.h b/arch/um/include/asm/pgtable-3level.h
+index 9812269..8a3b689 100644
+--- a/arch/um/include/asm/pgtable-3level.h
++++ b/arch/um/include/asm/pgtable-3level.h
+@@ -7,7 +7,6 @@
+ #ifndef __UM_PGTABLE_3LEVEL_H
+ #define __UM_PGTABLE_3LEVEL_H
+ 
+-#define __ARCH_USE_5LEVEL_HACK
+ #include <asm-generic/pgtable-nopud.h>
+ 
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
+index 36a44d5..2daa58d 100644
+--- a/arch/um/include/asm/pgtable.h
++++ b/arch/um/include/asm/pgtable.h
+@@ -106,6 +106,9 @@ extern unsigned long end_iomem;
+ #define pud_newpage(x)  (pud_val(x) & _PAGE_NEWPAGE)
+ #define pud_mkuptodate(x) (pud_val(x) &= ~_PAGE_NEWPAGE)
+ 
++#define p4d_newpage(x)  (p4d_val(x) & _PAGE_NEWPAGE)
++#define p4d_mkuptodate(x) (p4d_val(x) &= ~_PAGE_NEWPAGE)
 +
-+		if (unlikely(nd->flags & LOOKUP_IS_SCOPED)) {
-+			/*
-+			 * If there was a racing rename or mount along our
-+			 * path, then we can't be sure that ".." hasn't jumped
-+			 * above nd->root (and so userspace should retry or use
-+			 * some fallback).
-+			 */
-+			if (unlikely(read_seqretry(&mount_lock, nd->m_seq)))
-+				return -EAGAIN;
-+			if (unlikely(read_seqretry(&rename_lock, nd->r_seq)))
-+				return -EAGAIN;
-+		}
- 	}
- 	return 0;
+ #define pmd_page(pmd) phys_to_page(pmd_val(pmd) & PAGE_MASK)
+ 
+ #define pte_page(x) pfn_to_page(pte_pfn(x))
+diff --git a/arch/um/kernel/mem.c b/arch/um/kernel/mem.c
+index 417ff64..30885d0 100644
+--- a/arch/um/kernel/mem.c
++++ b/arch/um/kernel/mem.c
+@@ -96,6 +96,7 @@ static void __init fixrange_init(unsigned long start, unsigned long end,
+ 				 pgd_t *pgd_base)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	int i, j;
+@@ -107,7 +108,8 @@ static void __init fixrange_init(unsigned long start, unsigned long end,
+ 	pgd = pgd_base + i;
+ 
+ 	for ( ; (i < PTRS_PER_PGD) && (vaddr < end); pgd++, i++) {
+-		pud = pud_offset(pgd, vaddr);
++		p4d = p4d_offset(pgd, vaddr);
++		pud = pud_offset(p4d, vaddr);
+ 		if (pud_none(*pud))
+ 			one_md_table_init(pud);
+ 		pmd = pmd_offset(pud, vaddr);
+@@ -124,6 +126,7 @@ static void __init fixaddr_user_init( void)
+ #ifdef CONFIG_ARCH_REUSE_HOST_VSYSCALL_AREA
+ 	long size = FIXADDR_USER_END - FIXADDR_USER_START;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -144,7 +147,8 @@ static void __init fixaddr_user_init( void)
+ 	for ( ; size > 0; size -= PAGE_SIZE, vaddr += PAGE_SIZE,
+ 		      p += PAGE_SIZE) {
+ 		pgd = swapper_pg_dir + pgd_index(vaddr);
+-		pud = pud_offset(pgd, vaddr);
++		p4d = p4d_offset(pgd, vaddr);
++		pud = pud_offset(p4d, vaddr);
+ 		pmd = pmd_offset(pud, vaddr);
+ 		pte = pte_offset_kernel(pmd, vaddr);
+ 		pte_set_val(*pte, p, PAGE_READONLY);
+diff --git a/arch/um/kernel/skas/mmu.c b/arch/um/kernel/skas/mmu.c
+index b5e3d91..3f0d9a5 100644
+--- a/arch/um/kernel/skas/mmu.c
++++ b/arch/um/kernel/skas/mmu.c
+@@ -19,15 +19,21 @@ static int init_stub_pte(struct mm_struct *mm, unsigned long proc,
+ 			 unsigned long kernel)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 
+ 	pgd = pgd_offset(mm, proc);
+-	pud = pud_alloc(mm, pgd, proc);
+-	if (!pud)
++
++	p4d = p4d_alloc(mm, pgd, proc);
++	if (!p4d)
+ 		goto out;
+ 
++	pud = pud_alloc(mm, p4d, proc);
++	if (!pud)
++		goto out_pud;
++
+ 	pmd = pmd_alloc(mm, pud, proc);
+ 	if (!pmd)
+ 		goto out_pmd;
+@@ -44,6 +50,8 @@ static int init_stub_pte(struct mm_struct *mm, unsigned long proc,
+ 	pmd_free(mm, pmd);
+  out_pmd:
+ 	pud_free(mm, pud);
++ out_pud:
++	p4d_free(mm, p4d);
+  out:
+ 	return -ENOMEM;
  }
-@@ -2266,6 +2274,10 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
- 	nd->flags = flags | LOOKUP_JUMPED | LOOKUP_PARENT;
- 	nd->depth = 0;
-+
-+	nd->m_seq = read_seqbegin(&mount_lock);
-+	nd->r_seq = read_seqbegin(&rename_lock);
-+
- 	if (flags & LOOKUP_ROOT) {
- 		struct dentry *root = nd->root.dentry;
- 		struct inode *inode = root->d_inode;
-@@ -2287,7 +2299,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	nd->path.mnt = NULL;
- 	nd->path.dentry = NULL;
+diff --git a/arch/um/kernel/skas/uaccess.c b/arch/um/kernel/skas/uaccess.c
+index 3236052..d617f8d 100644
+--- a/arch/um/kernel/skas/uaccess.c
++++ b/arch/um/kernel/skas/uaccess.c
+@@ -17,6 +17,7 @@
+ pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
  
--	nd->m_seq = read_seqbegin(&mount_lock);
+@@ -27,7 +28,11 @@ pte_t *virt_to_pte(struct mm_struct *mm, unsigned long addr)
+ 	if (!pgd_present(*pgd))
+ 		return NULL;
  
- 	/* Absolute pathname -- fetch the root (LOOKUP_IN_ROOT uses nd->dfd). */
- 	if (*s = '/' && !(flags & LOOKUP_IN_ROOT)) {
+-	pud = pud_offset(pgd, addr);
++	p4d = p4d_offset(pgd, addr);
++	if (!p4d_present(*p4d))
++		return NULL;
++
++	pud = pud_offset(p4d, addr);
+ 	if (!pud_present(*pud))
+ 		return NULL;
+ 
+diff --git a/arch/um/kernel/tlb.c b/arch/um/kernel/tlb.c
+index 8425a22..80a358c 100644
+--- a/arch/um/kernel/tlb.c
++++ b/arch/um/kernel/tlb.c
+@@ -277,7 +277,7 @@ static inline int update_pmd_range(pud_t *pud, unsigned long addr,
+ 	return ret;
+ }
+ 
+-static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
++static inline int update_pud_range(p4d_t *p4d, unsigned long addr,
+ 				   unsigned long end,
+ 				   struct host_vm_change *hvc)
+ {
+@@ -285,7 +285,7 @@ static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
+ 	unsigned long next;
+ 	int ret = 0;
+ 
+-	pud = pud_offset(pgd, addr);
++	pud = pud_offset(p4d, addr);
+ 	do {
+ 		next = pud_addr_end(addr, end);
+ 		if (!pud_present(*pud)) {
+@@ -299,6 +299,28 @@ static inline int update_pud_range(pgd_t *pgd, unsigned long addr,
+ 	return ret;
+ }
+ 
++static inline int update_p4d_range(pgd_t *pgd, unsigned long addr,
++				   unsigned long end,
++				   struct host_vm_change *hvc)
++{
++	p4d_t *p4d;
++	unsigned long next;
++	int ret = 0;
++
++	p4d = p4d_offset(pgd, addr);
++	do {
++		next = p4d_addr_end(addr, end);
++		if (!p4d_present(*p4d)) {
++			if (hvc->force || p4d_newpage(*p4d)) {
++				ret = add_munmap(addr, next - addr, hvc);
++				p4d_mkuptodate(*p4d);
++			}
++		} else
++			ret = update_pud_range(p4d, addr, next, hvc);
++	} while (p4d++, addr = next, ((addr < end) && !ret));
++	return ret;
++}
++
+ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+ 		      unsigned long end_addr, int force)
+ {
+@@ -316,8 +338,8 @@ void fix_range_common(struct mm_struct *mm, unsigned long start_addr,
+ 				ret = add_munmap(addr, next - addr, &hvc);
+ 				pgd_mkuptodate(*pgd);
+ 			}
+-		}
+-		else ret = update_pud_range(pgd, addr, next, &hvc);
++		} else
++			ret = update_p4d_range(pgd, addr, next, &hvc);
+ 	} while (pgd++, addr = next, ((addr < end_addr) && !ret));
+ 
+ 	if (!ret)
+@@ -338,6 +360,7 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ {
+ 	struct mm_struct *mm;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -364,7 +387,23 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ 			continue;
+ 		}
+ 
+-		pud = pud_offset(pgd, addr);
++		p4d = p4d_offset(pgd, addr);
++		if (!p4d_present(*p4d)) {
++			last = ADD_ROUND(addr, P4D_SIZE);
++			if (last > end)
++				last = end;
++			if (p4d_newpage(*p4d)) {
++				updated = 1;
++				err = add_munmap(addr, last - addr, &hvc);
++				if (err < 0)
++					panic("munmap failed, errno = %d\n",
++					      -err);
++			}
++			addr = last;
++			continue;
++		}
++
++		pud = pud_offset(p4d, addr);
+ 		if (!pud_present(*pud)) {
+ 			last = ADD_ROUND(addr, PUD_SIZE);
+ 			if (last > end)
+@@ -424,6 +463,7 @@ static int flush_tlb_kernel_range_common(unsigned long start, unsigned long end)
+ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
+ {
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -437,7 +477,11 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
+ 	if (!pgd_present(*pgd))
+ 		goto kill;
+ 
+-	pud = pud_offset(pgd, address);
++	p4d = p4d_offset(pgd, address);
++	if (!p4d_present(*p4d))
++		goto kill;
++
++	pud = pud_offset(p4d, address);
+ 	if (!pud_present(*pud))
+ 		goto kill;
+ 
+diff --git a/arch/um/kernel/trap.c b/arch/um/kernel/trap.c
+index e62296c..8185530 100644
+--- a/arch/um/kernel/trap.c
++++ b/arch/um/kernel/trap.c
+@@ -28,6 +28,7 @@ int handle_page_fault(unsigned long address, unsigned long ip,
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+ 	pgd_t *pgd;
++	p4d_t *p4d;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+@@ -104,7 +105,8 @@ int handle_page_fault(unsigned long address, unsigned long ip,
+ 		}
+ 
+ 		pgd = pgd_offset(mm, address);
+-		pud = pud_offset(pgd, address);
++		p4d = p4d_offset(pgd, address);
++		pud = pud_offset(p4d, address);
+ 		pmd = pmd_offset(pud, address);
+ 		pte = pte_offset_kernel(pmd, address);
+ 	} while (!pte_present(*pte));
 -- 
-2.24.0
+2.7.4
