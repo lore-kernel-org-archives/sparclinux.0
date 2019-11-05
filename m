@@ -1,89 +1,134 @@
-From: Aleksa Sarai <asarai@suse.de>
-Date: Sat, 16 Nov 2019 18:09:34 +0000
-Subject: Re: [PATCH v16 02/12] namei: allow nd_jump_link() to produce errors
-Message-Id: <20191116180934.fajrkc4jqcewiuqd@yavin.dot.cyphar.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="ushqsy2n2ywnjdre"
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 05 Nov 2019 07:15:22 +0000
+Subject: [PATCH v4 00/13] mm: remove __ARCH_HAS_4LEVEL_HACK
+Message-Id: <1572938135-31886-1-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191116002802.6663-1-cyphar@cyphar.com>
- <20191116002802.6663-3-cyphar@cyphar.com>
- <20191116003702.GX26530@ZenIV.linux.org.uk>
-In-Reply-To: <20191116003702.GX26530@ZenIV.linux.org.uk>
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
+From: Mike Rapoport <rppt@linux.ibm.com>
 
---ushqsy2n2ywnjdre
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On 2019-11-16, Al Viro <viro@zeniv.linux.org.uk> wrote:
-> On Sat, Nov 16, 2019 at 11:27:52AM +1100, Aleksa Sarai wrote:
-> > +	error =3D nd_jump_link(&path);
-> > +	if (error)
-> > +		path_put(&path);
->=20
-> > +	error =3D nd_jump_link(&ns_path);
-> > +	if (error)
-> > +		path_put(&ns_path);
->=20
-> > +	error =3D nd_jump_link(&path);
-> > +	if (error)
-> > +		path_put(&path);
->=20
-> 3 calls.  Exact same boilerplate in each to handle a failure case.
-> Which spells "wrong calling conventions"; it's absolutely clear
-> that we want that path_put() inside nd_jump_link().
->=20
-> The rule should be this: reference that used to be held in
-> *path is consumed in any case.  On success it goes into
-> nd->path, on error it's just dropped, but in any case, the
-> caller has the same refcounting environment to deal with.
->=20
-> If you need the same boilerplate cleanup on failure again and again,
-> the calling conventions are wrong and need to be fixed.
+These patches convert several architectures to use page table folding and
+remove __ARCH_HAS_4LEVEL_HACK along with include/asm-generic/4level-fixup.h.
 
-Will do.
+For the nommu configurations the folding is already implemented by the
+generic code so the only change was to use the appropriate header file.
 
-> And I'm not sure that int is the right return type here, to be honest.
-> void * might be better - return ERR_PTR() or NULL, so that the value
-> could be used as return value of ->get_link() that calls that thing.
+As for the rest, the changes are mostly about mechanical replacement of
+pgd accessors with pud/pmd ones and the addition of higher levels to page
+table traversals.
 
-I don't agree, given that the few callers of ns_get_path() are
-inconsistent with regards to whether they should use IS_ERR() or check
-for NULL, not to mention that "void *error" reads to me as being very
-odd given how common "int error" is throughout the kernel. There's also
-the "error =3D=3D ERR_PTR(-EAGAIN)" checks which also read as being quite
-odd too.
+With Vineet's patches from "elide extraneous generated code for folded
+p4d/pud/pmd" series [1] there is a small shrink of the kernel size of about
+-0.01% for the defconfig builds. 
 
-But the main motivating factor for changing it was that the one use
-where "void *" is useful (proc_ns_get_link) becomes needlessly ugly
-because of the "nd_jump_link() can return errors" change:
+The set is boot-tested on UML, qemu-{alpha,sparc} and aranym.
 
-	error =3D ERR_PTR(nd_jump_link(&ns_path));
+v4 changes:
+* m68k: fix sun3x_defconfig build and reorder ifdefs as per Geert's
+  suggestion
 
-Or probably (if you don't want to rely on ERR_PTR(0) =3D=3D NULL):
+v3 changes:
+* alpha: fix changelog to use pgtable-nopud.h rather than pgtable-nop4d.h
+* um: remove dead-code that was intended as provisioning for 4-level page
+  tables
 
-	int err =3D nd_jump_link(&ns_path);
-	if (err)
-		error =3D ERR_PTR(err);
+v2 changes:
+* m68k: fixed ifdefs around pmd_t defintion to work with nommu
+* parisc: added conversion of hugetlb (thanks, Helge!); lexical fixups in
+  comments and changelog
+* collected acks
 
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
+[1] https://lore.kernel.org/lkml/20191016162400.14796-1-vgupta@synopsys.com
 
---ushqsy2n2ywnjdre
-Content-Type: application/pgp-signature; name="signature.asc"
+Helge Deller (1):
+  parisc/hugetlb: use pgtable-nopXd instead of 4level-fixup
 
------BEGIN PGP SIGNATURE-----
+Mike Rapoport (12):
+  alpha: use pgtable-nopud instead of 4level-fixup
+  arm: nommu: use pgtable-nopud instead of 4level-fixup
+  c6x: use pgtable-nopud instead of 4level-fixup
+  m68k: nommu: use pgtable-nopud instead of 4level-fixup
+  m68k: mm: use pgtable-nopXd instead of 4level-fixup
+  microblaze: use pgtable-nopmd instead of 4level-fixup
+  nds32: use pgtable-nopmd instead of 4level-fixup
+  parisc: use pgtable-nopXd instead of 4level-fixup
+  sparc32: use pgtable-nopud instead of 4level-fixup
+  um: remove unused pxx_offset_proc() and addr_pte() functions
+  um: add support for folded p4d page tables
+  mm: remove __ARCH_HAS_4LEVEL_HACK and include/asm-generic/4level-fixup.h
 
-iHUEABYIAB0WIQSxZm6dtfE8gxLLfYqdlLljIbnQEgUCXdA7WwAKCRCdlLljIbnQ
-EkhIAQCTW+ppymqPGqw4uOB2Z70GQdn52zl46zQ6xxp5L3kEHQD9FZ2+HHtYsZC+
-LGfFupqoyojLXID+lx72AXf4CJ7KLw4=
-=aGSY
------END PGP SIGNATURE-----
+ arch/alpha/include/asm/mmzone.h          |  1 -
+ arch/alpha/include/asm/pgalloc.h         |  4 +-
+ arch/alpha/include/asm/pgtable.h         | 24 ++++-----
+ arch/alpha/mm/init.c                     | 12 +++--
+ arch/arm/include/asm/pgtable.h           |  2 +-
+ arch/c6x/include/asm/pgtable.h           |  2 +-
+ arch/m68k/include/asm/mcf_pgalloc.h      |  7 ---
+ arch/m68k/include/asm/mcf_pgtable.h      | 28 ++++-------
+ arch/m68k/include/asm/mmu_context.h      | 12 ++++-
+ arch/m68k/include/asm/motorola_pgalloc.h |  4 +-
+ arch/m68k/include/asm/motorola_pgtable.h | 32 +++++++-----
+ arch/m68k/include/asm/page.h             |  9 ++--
+ arch/m68k/include/asm/pgtable_mm.h       | 11 +++--
+ arch/m68k/include/asm/pgtable_no.h       |  2 +-
+ arch/m68k/include/asm/sun3_pgalloc.h     |  5 --
+ arch/m68k/include/asm/sun3_pgtable.h     | 18 -------
+ arch/m68k/kernel/sys_m68k.c              | 10 +++-
+ arch/m68k/mm/init.c                      |  6 ++-
+ arch/m68k/mm/kmap.c                      | 39 +++++++++++----
+ arch/m68k/mm/mcfmmu.c                    | 16 +++++-
+ arch/m68k/mm/motorola.c                  | 17 ++++---
+ arch/m68k/sun3x/dvma.c                   |  7 ++-
+ arch/microblaze/include/asm/page.h       |  3 --
+ arch/microblaze/include/asm/pgalloc.h    | 16 ------
+ arch/microblaze/include/asm/pgtable.h    | 32 +-----------
+ arch/microblaze/kernel/signal.c          | 10 ++--
+ arch/microblaze/mm/init.c                |  7 ++-
+ arch/microblaze/mm/pgtable.c             | 13 ++++-
+ arch/nds32/include/asm/page.h            |  3 --
+ arch/nds32/include/asm/pgalloc.h         |  3 --
+ arch/nds32/include/asm/pgtable.h         | 12 +----
+ arch/nds32/include/asm/tlb.h             |  1 -
+ arch/nds32/kernel/pm.c                   |  4 +-
+ arch/nds32/mm/fault.c                    | 16 ++++--
+ arch/nds32/mm/init.c                     | 11 +++--
+ arch/nds32/mm/mm-nds32.c                 |  6 ++-
+ arch/nds32/mm/proc.c                     | 26 ++++++----
+ arch/parisc/include/asm/page.h           | 30 ++++++-----
+ arch/parisc/include/asm/pgalloc.h        | 41 ++++++---------
+ arch/parisc/include/asm/pgtable.h        | 52 ++++++++++---------
+ arch/parisc/include/asm/tlb.h            |  2 +
+ arch/parisc/kernel/cache.c               | 13 +++--
+ arch/parisc/kernel/pci-dma.c             |  9 +++-
+ arch/parisc/mm/fixmap.c                  | 10 ++--
+ arch/parisc/mm/hugetlbpage.c             | 18 ++++---
+ arch/sparc/include/asm/pgalloc_32.h      |  6 +--
+ arch/sparc/include/asm/pgtable_32.h      | 28 +++++------
+ arch/sparc/mm/fault_32.c                 | 11 ++++-
+ arch/sparc/mm/highmem.c                  |  6 ++-
+ arch/sparc/mm/io-unit.c                  |  6 ++-
+ arch/sparc/mm/iommu.c                    |  6 ++-
+ arch/sparc/mm/srmmu.c                    | 51 ++++++++++++++-----
+ arch/um/include/asm/pgtable-2level.h     |  1 -
+ arch/um/include/asm/pgtable-3level.h     |  1 -
+ arch/um/include/asm/pgtable.h            |  3 ++
+ arch/um/kernel/mem.c                     |  8 ++-
+ arch/um/kernel/skas/mmu.c                | 12 ++++-
+ arch/um/kernel/skas/uaccess.c            |  7 ++-
+ arch/um/kernel/tlb.c                     | 85 +++++++++++++++++++-------------
+ arch/um/kernel/trap.c                    |  4 +-
+ include/asm-generic/4level-fixup.h       | 40 ---------------
+ include/asm-generic/tlb.h                |  2 -
+ include/linux/mm.h                       | 10 ++--
+ mm/memory.c                              |  8 ---
+ 64 files changed, 483 insertions(+), 418 deletions(-)
+ delete mode 100644 include/asm-generic/4level-fixup.h
 
---ushqsy2n2ywnjdre--
+-- 
+2.7.4
