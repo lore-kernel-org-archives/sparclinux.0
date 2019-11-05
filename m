@@ -1,55 +1,66 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Sat, 16 Nov 2019 15:50:14 +0000
-Subject: [PATCH AUTOSEL 4.9 51/99] sparc64: Rework xchg() definition to avoid warnings.
-Message-Id: <20191116155103.10971-51-sashal@kernel.org>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 05 Nov 2019 07:15:33 +0000
+Subject: [PATCH v4 11/13] um: remove unused pxx_offset_proc() and addr_pte() functions
+Message-Id: <1572938135-31886-12-git-send-email-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191116155103.10971-1-sashal@kernel.org>
-In-Reply-To: <20191116155103.10971-1-sashal@kernel.org>
+References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
 
-From: "David S. Miller" <davem@davemloft.net>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-[ Upstream commit 6c2fc9cddc1ffdef8ada1dc8404e5affae849953 ]
+The pxx_offset_proc() and addr_pte() functions are never used.
+Remove them.
 
-Such as:
-
-fs/ocfs2/file.c: In function ‘ocfs2_file_write_iter’:
-./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
- #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-
-and
-
-drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c: In function ‘ixgbevf_xdp_setup’:
-./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
- #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Richard Weinberger <richard@nod.at>
 ---
- arch/sparc/include/asm/cmpxchg_64.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ arch/um/kernel/tlb.c | 29 -----------------------------
+ 1 file changed, 29 deletions(-)
 
-diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/cmpxchg_64.h
-index faa2f61058c27..92f0a46ace78e 100644
---- a/arch/sparc/include/asm/cmpxchg_64.h
-+++ b/arch/sparc/include/asm/cmpxchg_64.h
-@@ -40,7 +40,12 @@ static inline unsigned long xchg64(__volatile__ unsigned long *m, unsigned long
- 	return val;
+diff --git a/arch/um/kernel/tlb.c b/arch/um/kernel/tlb.c
+index b7eaf65..8425a22 100644
+--- a/arch/um/kernel/tlb.c
++++ b/arch/um/kernel/tlb.c
+@@ -490,35 +490,6 @@ void flush_tlb_page(struct vm_area_struct *vma, unsigned long address)
+ 	force_sig(SIGKILL);
  }
  
--#define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-+#define xchg(ptr,x)							\
-+({	__typeof__(*(ptr)) __ret;					\
-+	__ret = (__typeof__(*(ptr)))					\
-+		__xchg((unsigned long)(x), (ptr), sizeof(*(ptr)));	\
-+	__ret;								\
-+})
- 
- void __xchg_called_with_bad_pointer(void);
- 
+-pgd_t *pgd_offset_proc(struct mm_struct *mm, unsigned long address)
+-{
+-	return pgd_offset(mm, address);
+-}
+-
+-pud_t *pud_offset_proc(pgd_t *pgd, unsigned long address)
+-{
+-	return pud_offset(pgd, address);
+-}
+-
+-pmd_t *pmd_offset_proc(pud_t *pud, unsigned long address)
+-{
+-	return pmd_offset(pud, address);
+-}
+-
+-pte_t *pte_offset_proc(pmd_t *pmd, unsigned long address)
+-{
+-	return pte_offset_kernel(pmd, address);
+-}
+-
+-pte_t *addr_pte(struct task_struct *task, unsigned long addr)
+-{
+-	pgd_t *pgd = pgd_offset(task->mm, addr);
+-	pud_t *pud = pud_offset(pgd, addr);
+-	pmd_t *pmd = pmd_offset(pud, addr);
+-
+-	return pte_offset_map(pmd, addr);
+-}
+-
+ void flush_tlb_all(void)
+ {
+ 	/*
 -- 
-2.20.1
+2.7.4
