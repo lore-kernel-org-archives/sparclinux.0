@@ -1,44 +1,95 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Tue, 05 Nov 2019 14:58:20 +0000
-Subject: Re: [PATCH v4 00/13] mm: remove __ARCH_HAS_4LEVEL_HACK
-Message-Id: <CADxRZqyJewYKn_juVPrxm9KVQjZQngnig-FYf1q3G6wc=oawYQ@mail.gmail.com>
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Date: Wed, 06 Nov 2019 17:56:34 +0000
+Subject: Re: [PATCH 10/21] asm-generic: ioremap_uc should behave the same with and without MMU
+Message-Id: <mhng-3f709a8a-a8c3-4612-b4de-847d13b4af0a@palmer-si-x1c4>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+References: <20191029064834.23438-11-hch@lst.de>
+In-Reply-To: <20191029064834.23438-11-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Arnd Bergmann <arnd@arndb.de>, guoren@kernel.org, monstr@monstr.eu, green.hu@gmail.com, deanbo422@gmail.com, gxt@pku.edu.cn, x86@kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Nov 5, 2019 at 10:16 AM Mike Rapoport <rppt@kernel.org> wrote:
+On Mon, 28 Oct 2019 23:48:23 PDT (-0700), Christoph Hellwig wrote:
+> Whatever reason there is for the existence of ioremap_uc, and the fact
+> that it returns NULL by default on architectures with an MMU applies
+> equally to nommu architectures, so don't provide different defaults.
 >
-> From: Mike Rapoport <rppt@linux.ibm.com>
+> In practice the difference is meaningless as the only portable driver
+> that uses ioremap_uc is atyfb which probably doesn't show up on nommu
+> devices.
 >
-> Hi,
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
+>  include/asm-generic/io.h | 36 ++++++++++++++++--------------------
+>  1 file changed, 16 insertions(+), 20 deletions(-)
 >
-> These patches convert several architectures to use page table folding and
-> remove __ARCH_HAS_4LEVEL_HACK along with include/asm-generic/4level-fixup.h.
+> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
+> index d02806513670..a98ed6325727 100644
+> --- a/include/asm-generic/io.h
+> +++ b/include/asm-generic/io.h
+> @@ -935,18 +935,7 @@ static inline void *phys_to_virt(unsigned long address)
+>   * defined your own ioremap_*() variant you must then declare your own
+>   * ioremap_*() variant as defined to itself to avoid the default NULL return.
+>   */
+> -
+> -#ifdef CONFIG_MMU
+> -
+> -#ifndef ioremap_uc
+> -#define ioremap_uc ioremap_uc
+> -static inline void __iomem *ioremap_uc(phys_addr_t offset, size_t size)
+> -{
+> -	return NULL;
+> -}
+> -#endif
+> -
+> -#else /* !CONFIG_MMU */
+> +#ifndef CONFIG_MMU
 >
-> For the nommu configurations the folding is already implemented by the
-> generic code so the only change was to use the appropriate header file.
+>  /*
+>   * Change "struct page" to physical address.
+> @@ -980,14 +969,6 @@ static inline void __iomem *ioremap_nocache(phys_addr_t offset, size_t size)
+>  }
+>  #endif
 >
-> As for the rest, the changes are mostly about mechanical replacement of
-> pgd accessors with pud/pmd ones and the addition of higher levels to page
-> table traversals.
+> -#ifndef ioremap_uc
+> -#define ioremap_uc ioremap_uc
+> -static inline void __iomem *ioremap_uc(phys_addr_t offset, size_t size)
+> -{
+> -	return ioremap_nocache(offset, size);
+> -}
+> -#endif
+> -
+>  #ifndef ioremap_wc
+>  #define ioremap_wc ioremap_wc
+>  static inline void __iomem *ioremap_wc(phys_addr_t offset, size_t size)
+> @@ -1004,6 +985,21 @@ static inline void __iomem *ioremap_wt(phys_addr_t offset, size_t size)
+>  }
+>  #endif
 >
-> With Vineet's patches from "elide extraneous generated code for folded
-> p4d/pud/pmd" series [1] there is a small shrink of the kernel size of about
-> -0.01% for the defconfig builds.
->
-> The set is boot-tested on UML, qemu-{alpha,sparc} and aranym.
->
-> v4 changes:
-> * m68k: fix sun3x_defconfig build and reorder ifdefs as per Geert's
->   suggestion
+> +/*
+> + * ioremap_uc is special in that we do require an explicit architecture
+> + * implementation.  In general you do now want to use this function in a
 
+Presumably that's supposed to be "do not want to use"?
 
-Mike,
+> + * driver and use plain ioremap, which is uncached by default.  Similarly
+> + * architectures should not implement it unless they have a very good
+> + * reason.
+> + */
+> +#ifndef ioremap_uc
+> +#define ioremap_uc ioremap_uc
+> +static inline void __iomem *ioremap_uc(phys_addr_t offset, size_t size)
+> +{
+> +	return NULL;
+> +}
+> +#endif
+> +
+>  #ifdef CONFIG_HAS_IOPORT_MAP
+>  #ifndef CONFIG_GENERIC_IOMAP
+>  #ifndef ioport_map
 
-tested your patch series on a debian sid/unstable sparc64 LDOM running
-on a T5-2 sparc server - it boots for me.
+With the fix:
+
+Reviewed-by: Palmer Dabbelt <palmer@dabbelt.com>
