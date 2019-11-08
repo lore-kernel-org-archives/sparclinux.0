@@ -1,7 +1,7 @@
 From: "zoosbook.com" <admin@zoosbook.com>
-Date: Wed, 06 Nov 2019 18:42:34 +0000
+Date: Fri, 08 Nov 2019 11:13:01 +0000
 Subject: FREE Bestiality Social Network
-Message-Id: <0D7C5902.0FC9DE08@zoosbook.com>
+Message-Id: <604801d5961d$1a6b5f40$0625869e@admin>
 List-Id: <sparclinux.vger.kernel.org>
 References: <6F985FE3.8EB5C6D6@zoosbook.com>
 In-Reply-To: <6F985FE3.8EB5C6D6@zoosbook.com>
@@ -21,9 +21,9 @@ https://www.zoosbook.com/register
 
 Let your animalic thoughts get alive.
 
-After you`ll get a feeling of the things inside, please give us a nice
-review here
-https://www.scamadviser.com/check-website/zoosbook.com
+Help us build a good reputation, remember all that we offer is free, be
+fair to us
+https://www.trustpilot.com/review/zoosbook.com
 
 
 See you inside
