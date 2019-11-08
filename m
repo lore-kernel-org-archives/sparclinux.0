@@ -1,155 +1,199 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sun, 17 Nov 2019 01:17:07 +0000
-Subject: [PATCH v17 07/13] namei: LOOKUP_NO_XDEV: block mountpoint crossing
-Message-Id: <20191117011713.13032-8-cyphar@cyphar.com>
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Fri, 08 Nov 2019 05:51:59 +0000
+Subject: Re: [PATCH 3/3] arch: sembuf.h: make uapi asm/sembuf.h self-contained
+Message-Id: <CAK7LNAR3Runh-eLQ7_wLodvo3_+d13UctAzEzbJgWoYnf998jw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191117011713.13032-1-cyphar@cyphar.com>
-In-Reply-To: <20191117011713.13032-1-cyphar@cyphar.com>
+References: <20191030063855.9989-1-yamada.masahiro@socionext.com> <20191030063855.9989-3-yamada.masahiro@socionext.com>
+In-Reply-To: <20191030063855.9989-3-yamada.masahiro@socionext.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, David Drysdale <drysdale@google.com>, Andy Lutomirski <luto@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-s390 <linux-s390@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-mips@vger.kernel.org, X86 ML <x86@kernel.org>, Arnd Bergmann <arnd@arndb.de>, sparclinux <sparclinux@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-arch <linux-arch@vger.kernel.org>
 
-/* Background. */
-The need to contain path operations within a mountpoint has been a
-long-standing usecase that userspace has historically implemented
-manually with liberal usage of stat(). find, rsync, tar and
-many other programs implement these semantics -- but it'd be much
-simpler to have a fool-proof way of refusing to open a path if it
-crosses a mountpoint.
+Hi Andrew,
 
-This is part of a refresh of Al's AT_NO_JUMPS patchset[1] (which was a
-variation on David Drysdale's O_BENEATH patchset[2], which in turn was
-based on the Capsicum project[3]).
+I think you modified the commit log before applying this patch.
+I just noticed a typo.
 
-/* Userspace API. */
-LOOKUP_NO_XDEV will be exposed to userspace through openat2(2).
 
-/* Semantics. */
-Unlike most other LOOKUP flags (most notably LOOKUP_FOLLOW),
-LOOKUP_NO_XDEV applies to all components of the path.
+commit 411865d8dd2c31f56eefc54bc16fabb47e1bfb73
+Author: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date:   Wed Nov 6 16:07:08 2019 +1100
 
-With LOOKUP_NO_XDEV, any path component which crosses a mount-point
-during path resolution (including "..") will yield an -EXDEV. Absolute
-paths, absolute symlinks, and magic-links will only yield an -EXDEV if
-the jump involved changing mount-points.
+    arch: sembuf.h: make uapi asm/sembuf.h self-contained
 
-/* Testing. */
-LOOKUP_NO_XDEV is tested as part of the openat2(2) selftests.
+    Uuserspace cannot compile <asm/sembuf.h> due to some missing type
+    definitions.  For example, building it for x86 fails as follows:
 
-[1]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk/
-[2]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdale@google.com/
-[3]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdale@google.com/
 
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Suggested-by: David Drysdale <drysdale@google.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Andy Lutomirski <luto@kernel.org>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
----
- fs/namei.c            | 31 +++++++++++++++++++++++++++----
- include/linux/namei.h |  1 +
- 2 files changed, 28 insertions(+), 4 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 415a897729c8..321c8ad5d6b3 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -838,6 +838,11 @@ static inline void path_to_nameidata(const struct path *path,
- 
- static int nd_jump_root(struct nameidata *nd)
- {
-+	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
-+		/* Absolute path arguments to path_init() are allowed. */
-+		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
-+			return -EXDEV;
-+	}
- 	if (!nd->root.mnt) {
- 		int error = set_root(nd);
- 		if (error)
-@@ -873,6 +878,12 @@ int nd_jump_link(struct path *path)
- 	if (unlikely(nd->flags & LOOKUP_NO_MAGICLINKS))
- 		goto err;
- 
-+	error = -EXDEV;
-+	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
-+		if (nd->path.mnt != path->mnt)
-+			goto err;
-+	}
-+
- 	path_put(&nd->path);
- 	nd->path = *path;
- 	nd->inode = nd->path.dentry->d_inode;
-@@ -1280,12 +1291,16 @@ static int follow_managed(struct path *path, struct nameidata *nd)
- 		break;
- 	}
- 
--	if (need_mntput && path->mnt = mnt)
--		mntput(path->mnt);
-+	if (need_mntput) {
-+		if (path->mnt = mnt)
-+			mntput(path->mnt);
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			ret = -EXDEV;
-+		else
-+			nd->flags |= LOOKUP_JUMPED;
-+	}
- 	if (ret = -EISDIR || !ret)
- 		ret = 1;
--	if (need_mntput)
--		nd->flags |= LOOKUP_JUMPED;
- 	if (unlikely(ret < 0))
- 		path_put_conditional(path, nd);
- 	return ret;
-@@ -1342,6 +1357,8 @@ static bool __follow_mount_rcu(struct nameidata *nd, struct path *path,
- 		mounted = __lookup_mnt(path->mnt, path->dentry);
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return false;
- 		path->mnt = &mounted->mnt;
- 		path->dentry = mounted->mnt.mnt_root;
- 		nd->flags |= LOOKUP_JUMPED;
-@@ -1388,6 +1405,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 				return -ECHILD;
- 			if (&mparent->mnt = nd->path.mnt)
- 				break;
-+			if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+				return -ECHILD;
- 			/* we know that mountpoint was pinned */
- 			nd->path.dentry = mountpoint;
- 			nd->path.mnt = &mparent->mnt;
-@@ -1402,6 +1421,8 @@ static int follow_dotdot_rcu(struct nameidata *nd)
- 			return -ECHILD;
- 		if (!mounted)
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -ECHILD;
- 		nd->path.mnt = &mounted->mnt;
- 		nd->path.dentry = mounted->mnt.mnt_root;
- 		inode = nd->path.dentry->d_inode;
-@@ -1500,6 +1521,8 @@ static int follow_dotdot(struct nameidata *nd)
- 		}
- 		if (!follow_up(&nd->path))
- 			break;
-+		if (unlikely(nd->flags & LOOKUP_NO_XDEV))
-+			return -EXDEV;
- 	}
- 	follow_mount(&nd->path);
- 	nd->inode = nd->path.dentry->d_inode;
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 1573b8493d98..25ee88c4acb1 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -42,6 +42,7 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- /* Scoping flags for lookup. */
- #define LOOKUP_NO_SYMLINKS	0x010000 /* No symlink crossing. */
- #define LOOKUP_NO_MAGICLINKS	0x020000 /* No nd_jump_link() crossing. */
-+#define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
- 
- extern int path_pts(struct path *path);
- 
+If possible, could you fix up  s/Uuserspace/Userspace/  ?
+
+
+Thanks.
+Masahiro Yamada
+
+
+
+
+
+On Wed, Oct 30, 2019 at 3:40 PM Masahiro Yamada
+<yamada.masahiro@socionext.com> wrote:
+>
+> The user-space cannot compile <asm/sembuf.h> due to some missing type
+> definitions. For example, building it for x86 fails as follows:
+>
+>   CC      usr/include/asm/sembuf.h.s
+> In file included from <command-line>:32:0:
+> ./usr/include/asm/sembuf.h:17:20: error: field ‘sem_perm’ has incomplete type
+>   struct ipc64_perm sem_perm; /* permissions .. see ipc.h */
+>                     ^~~~~~~~
+> ./usr/include/asm/sembuf.h:24:2: error: unknown type name ‘__kernel_time_t’
+>   __kernel_time_t sem_otime; /* last semop time */
+>   ^~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:25:2: error: unknown type name ‘__kernel_ulong_t’
+>   __kernel_ulong_t __unused1;
+>   ^~~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:26:2: error: unknown type name ‘__kernel_time_t’
+>   __kernel_time_t sem_ctime; /* last change time */
+>   ^~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:27:2: error: unknown type name ‘__kernel_ulong_t’
+>   __kernel_ulong_t __unused2;
+>   ^~~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:29:2: error: unknown type name ‘__kernel_ulong_t’
+>   __kernel_ulong_t sem_nsems; /* no. of semaphores in array */
+>   ^~~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:30:2: error: unknown type name ‘__kernel_ulong_t’
+>   __kernel_ulong_t __unused3;
+>   ^~~~~~~~~~~~~~~~
+> ./usr/include/asm/sembuf.h:31:2: error: unknown type name ‘__kernel_ulong_t’
+>   __kernel_ulong_t __unused4;
+>   ^~~~~~~~~~~~~~~~
+>
+> It is just a matter of missing include directive.
+>
+> Include <asm/ipcbuf.h> to make it self-contained, and add it to
+> the compile-test coverage.
+>
+> Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+> ---
+>
+>  arch/mips/include/uapi/asm/sembuf.h    | 2 ++
+>  arch/parisc/include/uapi/asm/sembuf.h  | 1 +
+>  arch/powerpc/include/uapi/asm/sembuf.h | 2 ++
+>  arch/sparc/include/uapi/asm/sembuf.h   | 2 ++
+>  arch/x86/include/uapi/asm/sembuf.h     | 2 ++
+>  arch/xtensa/include/uapi/asm/sembuf.h  | 1 +
+>  include/uapi/asm-generic/sembuf.h      | 1 +
+>  usr/include/Makefile                   | 1 -
+>  8 files changed, 11 insertions(+), 1 deletion(-)
+>
+> diff --git a/arch/mips/include/uapi/asm/sembuf.h b/arch/mips/include/uapi/asm/sembuf.h
+> index 60c89e6cb25b..7d135b93bebd 100644
+> --- a/arch/mips/include/uapi/asm/sembuf.h
+> +++ b/arch/mips/include/uapi/asm/sembuf.h
+> @@ -2,6 +2,8 @@
+>  #ifndef _ASM_SEMBUF_H
+>  #define _ASM_SEMBUF_H
+>
+> +#include <asm/ipcbuf.h>
+> +
+>  /*
+>   * The semid64_ds structure for the MIPS architecture.
+>   * Note extra padding because this structure is passed back and forth
+> diff --git a/arch/parisc/include/uapi/asm/sembuf.h b/arch/parisc/include/uapi/asm/sembuf.h
+> index 3c31163b1241..b17a2460b184 100644
+> --- a/arch/parisc/include/uapi/asm/sembuf.h
+> +++ b/arch/parisc/include/uapi/asm/sembuf.h
+> @@ -3,6 +3,7 @@
+>  #define _PARISC_SEMBUF_H
+>
+>  #include <asm/bitsperlong.h>
+> +#include <asm/ipcbuf.h>
+>
+>  /*
+>   * The semid64_ds structure for parisc architecture.
+> diff --git a/arch/powerpc/include/uapi/asm/sembuf.h b/arch/powerpc/include/uapi/asm/sembuf.h
+> index 3f60946f77e3..f42c9c3502c7 100644
+> --- a/arch/powerpc/include/uapi/asm/sembuf.h
+> +++ b/arch/powerpc/include/uapi/asm/sembuf.h
+> @@ -2,6 +2,8 @@
+>  #ifndef _ASM_POWERPC_SEMBUF_H
+>  #define _ASM_POWERPC_SEMBUF_H
+>
+> +#include <asm/ipcbuf.h>
+> +
+>  /*
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+> diff --git a/arch/sparc/include/uapi/asm/sembuf.h b/arch/sparc/include/uapi/asm/sembuf.h
+> index f3d309c2e1cd..5d7764cdf80f 100644
+> --- a/arch/sparc/include/uapi/asm/sembuf.h
+> +++ b/arch/sparc/include/uapi/asm/sembuf.h
+> @@ -2,6 +2,8 @@
+>  #ifndef _SPARC_SEMBUF_H
+>  #define _SPARC_SEMBUF_H
+>
+> +#include <asm/ipcbuf.h>
+> +
+>  /*
+>   * The semid64_ds structure for sparc architecture.
+>   * Note extra padding because this structure is passed back and forth
+> diff --git a/arch/x86/include/uapi/asm/sembuf.h b/arch/x86/include/uapi/asm/sembuf.h
+> index 89de6cd9f0a7..da0464af7aa6 100644
+> --- a/arch/x86/include/uapi/asm/sembuf.h
+> +++ b/arch/x86/include/uapi/asm/sembuf.h
+> @@ -2,6 +2,8 @@
+>  #ifndef _ASM_X86_SEMBUF_H
+>  #define _ASM_X86_SEMBUF_H
+>
+> +#include <asm/ipcbuf.h>
+> +
+>  /*
+>   * The semid64_ds structure for x86 architecture.
+>   * Note extra padding because this structure is passed back and forth
+> diff --git a/arch/xtensa/include/uapi/asm/sembuf.h b/arch/xtensa/include/uapi/asm/sembuf.h
+> index 09f348d643f1..3b9cdd406dfe 100644
+> --- a/arch/xtensa/include/uapi/asm/sembuf.h
+> +++ b/arch/xtensa/include/uapi/asm/sembuf.h
+> @@ -22,6 +22,7 @@
+>  #define _XTENSA_SEMBUF_H
+>
+>  #include <asm/byteorder.h>
+> +#include <asm/ipcbuf.h>
+>
+>  struct semid64_ds {
+>         struct ipc64_perm sem_perm;             /* permissions .. see ipc.h */
+> diff --git a/include/uapi/asm-generic/sembuf.h b/include/uapi/asm-generic/sembuf.h
+> index 0bae010f1b64..5807fcd643ba 100644
+> --- a/include/uapi/asm-generic/sembuf.h
+> +++ b/include/uapi/asm-generic/sembuf.h
+> @@ -3,6 +3,7 @@
+>  #define __ASM_GENERIC_SEMBUF_H
+>
+>  #include <asm/bitsperlong.h>
+> +#include <asm/ipcbuf.h>
+>
+>  /*
+>   * The semid64_ds structure for x86 architecture.
+> diff --git a/usr/include/Makefile b/usr/include/Makefile
+> index 099d7401aa23..107d04bd5ee3 100644
+> --- a/usr/include/Makefile
+> +++ b/usr/include/Makefile
+> @@ -16,7 +16,6 @@ override c_flags = $(UAPI_CFLAGS) -Wp,-MD,$(depfile) -I$(objtree)/usr/include
+>  # Please consider to fix the header first.
+>  #
+>  # Sorted alphabetically.
+> -header-test- += asm/sembuf.h
+>  header-test- += asm/shmbuf.h
+>  header-test- += asm/signal.h
+>  header-test- += asm/ucontext.h
+> --
+> 2.17.1
+>
+
+
 -- 
-2.24.0
+Best Regards
+Masahiro Yamada
