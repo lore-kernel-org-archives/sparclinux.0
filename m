@@ -1,171 +1,185 @@
-From: Greentime Hu <green.hu@gmail.com>
-Date: Tue, 12 Nov 2019 08:51:29 +0000
-Subject: Re: [PATCH 19/21] nds32: use generic ioremap
-Message-Id: <CAEbi=3c58Pb=Q3BqeTLhEK8OsdTpbD5tAe6VcGOC7JBWbTjetQ@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 08 Nov 2019 21:02:21 +0000
+Subject: [PATCH 00/23] y2038 cleanups
+Message-Id: <20191108210236.1296047-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191029064834.23438-1-hch@lst.de> <20191029064834.23438-20-hch@lst.de>
-In-Reply-To: <20191029064834.23438-20-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Christoph Hellwig <hch@lst.de>, Nickhu <nickhu@andestech.com>, alankao@andestech.com
-Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, nios2-dev@lists.rocketboards.org, openrisc@lists.librecores.org, linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390 <linux-s390@vger.kernel.org>, linux-sh@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, linux-xtensa@linux-xtensa.org, linux-mtd@lists.infradead.org, linux-arch <linux-arch@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.ke>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: y2038@lists.linaro.org
+Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, rth@twiddle.net, tony.luck@intel.com, paul.burton@mips.com, green.hu@gmail.com, deller@gmx.de, mpe@ellerman.id.au, davem@davemloft.net, tglx@linutronix.de, x86@kernel.org, jdike@addtoit.com, richard@nod.at, viro@zeniv.linux.org.uk, bcrl@kvack.org, john.stultz@linaro.org, sboyd@kernel.org, rostedt@goodmis.org, vincenzo.frascino@arm.com, paul@paul-moore.com, sds@tycho.nsa.gov, eparis@parisplace.org, peterz@infradead.org, will@kernel.org, deepa.kernel@gmail.com, christian@brauner.io, heiko.carstens@de.ibm.com, christophe.leroy@c-s.fr, ebiederm@xmission.com, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, linux-um@lists.infradead.org, linux-fsdevel@vger.kernel.orgli
 
-Hi,
+This is a series of cleanups for the y2038 work, mostly intended
+for namespace cleaning: the kernel defines the traditional
+time_t, timeval and timespec types that often lead to y2038-unsafe
+code. Even though the unsafe usage is mostly gone from the kernel,
+having the types and associated functions around means that we
+can still grow new users, and that we may be missing conversions
+to safe types that actually matter.
 
-Christoph Hellwig <hch@lst.de> 於 2019年10月29日 週二 下午2:49寫道：
->
-> Use the generic ioremap_prot and iounmap helpers.
->
-> Note that the io.h include in pgtable.h had to be removed to not create
-> an include loop.  As far as I can tell there was no need for it to
-> start with.
->
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  arch/nds32/Kconfig               |  1 +
->  arch/nds32/include/asm/io.h      |  3 +-
->  arch/nds32/include/asm/pgtable.h |  4 ++-
->  arch/nds32/mm/Makefile           |  3 +-
->  arch/nds32/mm/ioremap.c          | 62 --------------------------------
->  5 files changed, 6 insertions(+), 67 deletions(-)
->  delete mode 100644 arch/nds32/mm/ioremap.c
->
-> diff --git a/arch/nds32/Kconfig b/arch/nds32/Kconfig
-> index fbd68329737f..12c06a833b7c 100644
-> --- a/arch/nds32/Kconfig
-> +++ b/arch/nds32/Kconfig
-> @@ -20,6 +20,7 @@ config NDS32
->         select GENERIC_CLOCKEVENTS
->         select GENERIC_IRQ_CHIP
->         select GENERIC_IRQ_SHOW
-> +       select GENERIC_IOREMAP
->         select GENERIC_LIB_ASHLDI3
->         select GENERIC_LIB_ASHRDI3
->         select GENERIC_LIB_CMPDI2
-> diff --git a/arch/nds32/include/asm/io.h b/arch/nds32/include/asm/io.h
-> index fb0e8a24c7af..e57378d04006 100644
-> --- a/arch/nds32/include/asm/io.h
-> +++ b/arch/nds32/include/asm/io.h
-> @@ -6,8 +6,6 @@
->
->  #include <linux/types.h>
->
-> -void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
-> -extern void iounmap(volatile void __iomem *addr);
->  #define __raw_writeb __raw_writeb
->  static inline void __raw_writeb(u8 val, volatile void __iomem *addr)
->  {
-> @@ -80,6 +78,7 @@ static inline u32 __raw_readl(const volatile void __iomem *addr)
->  #define writeb(v,c)    ({ __iowmb(); writeb_relaxed((v),(c)); })
->  #define writew(v,c)    ({ __iowmb(); writew_relaxed((v),(c)); })
->  #define writel(v,c)    ({ __iowmb(); writel_relaxed((v),(c)); })
-> +
->  #include <asm-generic/io.h>
->
->  #endif /* __ASM_NDS32_IO_H */
-> diff --git a/arch/nds32/include/asm/pgtable.h b/arch/nds32/include/asm/pgtable.h
-> index 0588ec99725c..6fbf251cfc26 100644
-> --- a/arch/nds32/include/asm/pgtable.h
-> +++ b/arch/nds32/include/asm/pgtable.h
-> @@ -12,7 +12,6 @@
->  #include <asm/nds32.h>
->  #ifndef __ASSEMBLY__
->  #include <asm/fixmap.h>
-> -#include <asm/io.h>
->  #include <nds32_intrinsic.h>
->  #endif
->
-> @@ -130,6 +129,9 @@ extern void __pgd_error(const char *file, int line, unsigned long val);
->  #define _PAGE_CACHE            _PAGE_C_MEM_WB
->  #endif
->
-> +#define _PAGE_IOREMAP \
-> +       (_PAGE_V | _PAGE_M_KRW | _PAGE_D | _PAGE_G | _PAGE_C_DEV)
-> +
->  /*
->   * + Level 1 descriptor (PMD)
->   */
-> diff --git a/arch/nds32/mm/Makefile b/arch/nds32/mm/Makefile
-> index bd360e4583b5..897ecaf5cf54 100644
-> --- a/arch/nds32/mm/Makefile
-> +++ b/arch/nds32/mm/Makefile
-> @@ -1,6 +1,5 @@
->  # SPDX-License-Identifier: GPL-2.0-only
-> -obj-y                          := extable.o tlb.o \
-> -                                  fault.o init.o ioremap.o mmap.o \
-> +obj-y                          := extable.o tlb.o fault.o init.o mmap.o \
->                                     mm-nds32.o cacheflush.o proc.o
->
->  obj-$(CONFIG_ALIGNMENT_TRAP)   += alignment.o
-> diff --git a/arch/nds32/mm/ioremap.c b/arch/nds32/mm/ioremap.c
-> deleted file mode 100644
-> index 690140bb23a2..000000000000
-> --- a/arch/nds32/mm/ioremap.c
-> +++ /dev/null
-> @@ -1,62 +0,0 @@
-> -// SPDX-License-Identifier: GPL-2.0
-> -// Copyright (C) 2005-2017 Andes Technology Corporation
-> -
-> -#include <linux/vmalloc.h>
-> -#include <linux/io.h>
-> -#include <linux/mm.h>
-> -#include <asm/pgtable.h>
-> -
-> -void __iomem *ioremap(phys_addr_t phys_addr, size_t size);
-> -
-> -static void __iomem *__ioremap_caller(phys_addr_t phys_addr, size_t size,
-> -                                     void *caller)
-> -{
-> -       struct vm_struct *area;
-> -       unsigned long addr, offset, last_addr;
-> -       pgprot_t prot;
-> -
-> -       /* Don't allow wraparound or zero size */
-> -       last_addr = phys_addr + size - 1;
-> -       if (!size || last_addr < phys_addr)
-> -               return NULL;
-> -
-> -       /*
-> -        * Mappings have to be page-aligned
-> -        */
-> -       offset = phys_addr & ~PAGE_MASK;
-> -       phys_addr &= PAGE_MASK;
-> -       size = PAGE_ALIGN(last_addr + 1) - phys_addr;
-> -
-> -       /*
-> -        * Ok, go for it..
-> -        */
-> -       area = get_vm_area_caller(size, VM_IOREMAP, caller);
-> -       if (!area)
-> -               return NULL;
-> -
-> -       area->phys_addr = phys_addr;
-> -       addr = (unsigned long)area->addr;
-> -       prot = __pgprot(_PAGE_V | _PAGE_M_KRW | _PAGE_D |
-> -                       _PAGE_G | _PAGE_C_DEV);
-> -       if (ioremap_page_range(addr, addr + size, phys_addr, prot)) {
-> -               vunmap((void *)addr);
-> -               return NULL;
-> -       }
-> -       return (__force void __iomem *)(offset + (char *)addr);
-> -
-> -}
-> -
-> -void __iomem *ioremap(phys_addr_t phys_addr, size_t size)
-> -{
-> -       return __ioremap_caller(phys_addr, size,
-> -                               __builtin_return_address(0));
-> -}
-> -
-> -EXPORT_SYMBOL(ioremap);
-> -
-> -void iounmap(volatile void __iomem * addr)
-> -{
-> -       vunmap((void *)(PAGE_MASK & (unsigned long)addr));
-> -}
-> -
-> -EXPORT_SYMBOL(iounmap);
+As there is no rush on any of these patches, I would either
+queue them up in linux-next through my y2038 branch, or
+Thomas could add them to the tip tree if he wants.
 
-Acked-by: Greentime Hu <green.hu@gmail.com>
-Looks good to me.
+As mentioned in another series, this is part of a larger
+effort to fix all the remaining bits and pieces that are
+not completed yet from the y2038 conversion, and the full
+set can be found at:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038-endgame
+
+Maintainers, please review and provide Acks.
+
+Let me know if you have any opinion on whether we should do
+the include last two patches of this series or not.
+
+     Arnd
+
+Arnd Bergmann (23):
+  y2038: remove CONFIG_64BIT_TIME
+  y2038: add __kernel_old_timespec and __kernel_old_time_t
+  y2038: vdso: change timeval to __kernel_old_timeval
+  y2038: vdso: change timespec to __kernel_old_timespec
+  y2038: vdso: change time_t to __kernel_old_time_t
+  y2038: vdso: nds32: open-code timespec_add_ns()
+  y2038: vdso: powerpc: avoid timespec references
+  y2038: ipc: remove __kernel_time_t reference from headers
+  y2038: stat: avoid 'time_t' in 'struct stat'
+  y2038: uapi: change __kernel_time_t to __kernel_old_time_t
+  y2038: rusage: use __kernel_old_timeval
+  y2038: syscalls: change remaining timeval to __kernel_old_timeval
+  y2038: socket: remove timespec reference in timestamping
+  y2038: make ns_to_compat_timeval use __kernel_old_timeval
+  y2038: elfcore: Use __kernel_old_timeval for process times
+  y2038: timerfd: Use timespec64 internally
+  y2038: time: avoid timespec usage in settimeofday()
+  y2038: itimer: compat handling to itimer.c
+  y2038: use compat_{get,set}_itimer on alpha
+  y2038: move itimer reset into itimer.c
+  y2038: itimer: change implementation to timespec64
+  [RFC] y2038: itimer: use ktime_t internally
+  y2038: allow disabling time32 system calls
+
+ arch/Kconfig                              |  11 +-
+ arch/alpha/kernel/osf_sys.c               |  67 +-----
+ arch/alpha/kernel/syscalls/syscall.tbl    |   4 +-
+ arch/ia64/kernel/asm-offsets.c            |   2 +-
+ arch/mips/include/uapi/asm/msgbuf.h       |   6 +-
+ arch/mips/include/uapi/asm/sembuf.h       |   4 +-
+ arch/mips/include/uapi/asm/shmbuf.h       |   6 +-
+ arch/mips/include/uapi/asm/stat.h         |  16 +-
+ arch/mips/kernel/binfmt_elfn32.c          |   4 +-
+ arch/mips/kernel/binfmt_elfo32.c          |   4 +-
+ arch/nds32/kernel/vdso/gettimeofday.c     |  61 +++--
+ arch/parisc/include/uapi/asm/msgbuf.h     |   6 +-
+ arch/parisc/include/uapi/asm/sembuf.h     |   4 +-
+ arch/parisc/include/uapi/asm/shmbuf.h     |   6 +-
+ arch/powerpc/include/asm/asm-prototypes.h |   3 +-
+ arch/powerpc/include/asm/vdso_datapage.h  |   6 +-
+ arch/powerpc/include/uapi/asm/msgbuf.h    |   6 +-
+ arch/powerpc/include/uapi/asm/sembuf.h    |   4 +-
+ arch/powerpc/include/uapi/asm/shmbuf.h    |   6 +-
+ arch/powerpc/include/uapi/asm/stat.h      |   2 +-
+ arch/powerpc/kernel/asm-offsets.c         |  18 +-
+ arch/powerpc/kernel/syscalls.c            |   4 +-
+ arch/powerpc/kernel/time.c                |   5 +-
+ arch/powerpc/kernel/vdso32/gettimeofday.S |   6 +-
+ arch/powerpc/kernel/vdso64/gettimeofday.S |   8 +-
+ arch/sparc/include/uapi/asm/msgbuf.h      |   6 +-
+ arch/sparc/include/uapi/asm/sembuf.h      |   4 +-
+ arch/sparc/include/uapi/asm/shmbuf.h      |   6 +-
+ arch/sparc/include/uapi/asm/stat.h        |  24 +-
+ arch/sparc/vdso/vclock_gettime.c          |  36 +--
+ arch/x86/entry/vdso/vclock_gettime.c      |   6 +-
+ arch/x86/entry/vsyscall/vsyscall_64.c     |   4 +-
+ arch/x86/include/uapi/asm/msgbuf.h        |   6 +-
+ arch/x86/include/uapi/asm/sembuf.h        |   4 +-
+ arch/x86/include/uapi/asm/shmbuf.h        |   6 +-
+ arch/x86/um/vdso/um_vdso.c                |  12 +-
+ fs/aio.c                                  |   2 +-
+ fs/binfmt_elf.c                           |  12 +-
+ fs/binfmt_elf_fdpic.c                     |  12 +-
+ fs/compat_binfmt_elf.c                    |   4 +-
+ fs/select.c                               |  10 +-
+ fs/timerfd.c                              |  14 +-
+ fs/utimes.c                               |   8 +-
+ include/linux/compat.h                    |  19 +-
+ include/linux/syscalls.h                  |  16 +-
+ include/linux/time.h                      |   9 +-
+ include/linux/time32.h                    |   2 +-
+ include/linux/types.h                     |   2 +-
+ include/trace/events/timer.h              |  29 +--
+ include/uapi/asm-generic/msgbuf.h         |  12 +-
+ include/uapi/asm-generic/posix_types.h    |   1 +
+ include/uapi/asm-generic/sembuf.h         |   7 +-
+ include/uapi/asm-generic/shmbuf.h         |  12 +-
+ include/uapi/linux/cyclades.h             |   6 +-
+ include/uapi/linux/elfcore.h              |   8 +-
+ include/uapi/linux/errqueue.h             |   7 +
+ include/uapi/linux/msg.h                  |   6 +-
+ include/uapi/linux/ppp_defs.h             |   4 +-
+ include/uapi/linux/resource.h             |   4 +-
+ include/uapi/linux/sem.h                  |   4 +-
+ include/uapi/linux/shm.h                  |   6 +-
+ include/uapi/linux/time.h                 |   6 +-
+ include/uapi/linux/time_types.h           |   5 +
+ include/uapi/linux/utime.h                |   4 +-
+ ipc/syscall.c                             |   2 +-
+ kernel/compat.c                           |  24 --
+ kernel/power/power.h                      |   2 +-
+ kernel/sys.c                              |   4 +-
+ kernel/sys_ni.c                           |  23 ++
+ kernel/time/hrtimer.c                     |   2 +-
+ kernel/time/itimer.c                      | 280 ++++++++++++++--------
+ kernel/time/time.c                        |  32 ++-
+ lib/vdso/gettimeofday.c                   |   4 +-
+ net/core/scm.c                            |   6 +-
+ net/socket.c                              |   2 +-
+ security/selinux/hooks.c                  |  10 +-
+ 76 files changed, 501 insertions(+), 504 deletions(-)
+
+-- 
+2.20.0
+
+Cc: rth@twiddle.net
+Cc: tony.luck@intel.com
+Cc: paul.burton@mips.com
+Cc: green.hu@gmail.com
+Cc: deller@gmx.de
+Cc: mpe@ellerman.id.au
+Cc: davem@davemloft.net
+Cc: tglx@linutronix.de
+Cc: x86@kernel.org
+Cc: jdike@addtoit.com
+Cc: richard@nod.at
+Cc: viro@zeniv.linux.org.uk
+Cc: bcrl@kvack.org
+Cc: john.stultz@linaro.org
+Cc: sboyd@kernel.org
+Cc: rostedt@goodmis.org
+Cc: arnd@arndb.de
+Cc: vincenzo.frascino@arm.com
+Cc: paul@paul-moore.com
+Cc: sds@tycho.nsa.gov
+Cc: eparis@parisplace.org
+Cc: peterz@infradead.org
+Cc: will@kernel.org
+Cc: deepa.kernel@gmail.com
+Cc: christian@brauner.io
+Cc: heiko.carstens@de.ibm.com
+Cc: christophe.leroy@c-s.fr
+Cc: ebiederm@xmission.com
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-alpha@vger.kernel.org>
+Cc: linux-ia64@vger.kernel.org>
+Cc: linux-mips@vger.kernel.org>
+Cc: linux-parisc@vger.kernel.org>
+Cc: linuxppc-dev@lists.ozlabs.org>
+Cc: sparclinux@vger.kernel.org>
+Cc: linux-um@lists.infradead.org>
+Cc: linux-fsdevel@vger.kernel.org>
+Cc: linux-aio@kvack.org>
+Cc: linux-api@vger.kernel.org>
+Cc: linux-arch@vger.kernel.org>
+Cc: netdev@vger.kernel.org>
+Cc: selinux@vger.kernel.org>
