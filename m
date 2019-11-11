@@ -1,55 +1,30 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Sat, 16 Nov 2019 15:39:22 +0000
-Subject: [PATCH AUTOSEL 4.19 127/237] sparc64: Rework xchg() definition to avoid warnings.
-Message-Id: <20191116154113.7417-127-sashal@kernel.org>
+From: Lee Jones <lee.jones@linaro.org>
+Date: Mon, 11 Nov 2019 08:40:56 +0000
+Subject: Re: Fwd: [PATCH v5 1/4] sparc64: implement ioremap_uc
+Message-Id: <20191111084056.GH18902@dell>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191116154113.7417-1-sashal@kernel.org>
-In-Reply-To: <20191116154113.7417-1-sashal@kernel.org>
+References: <20191016210629.1005086-2-ztuowen@gmail.com>
+ <5c5b9dec7ea401fffa13446af2a528cbaf6e1046.camel@gmail.com>
+In-Reply-To: <5c5b9dec7ea401fffa13446af2a528cbaf6e1046.camel@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+To: Tuowen Zhao <ztuowen@gmail.com>
+Cc: sparclinux@vger.kernel.org, "davem@davemloft.net" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, acelan.kao@canonical.com, mcgrof@kernel.org
 
-From: "David S. Miller" <davem@davemloft.net>
+On Mon, 28 Oct 2019, Tuowen Zhao wrote:
 
-[ Upstream commit 6c2fc9cddc1ffdef8ada1dc8404e5affae849953 ]
+> Adding sparc list. Sorry, first time missed the list.
+> 
+> Looking for some reviews.
+> 
+> Patch set: Fix MTRR bug for intel-lpss-pci
+> https://lkml.org/lkml/2019/10/16/1230
 
-Such as:
+Applied, thanks.
 
-fs/ocfs2/file.c: In function ‘ocfs2_file_write_iter’:
-./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
- #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-
-and
-
-drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c: In function ‘ixgbevf_xdp_setup’:
-./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
- #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/sparc/include/asm/cmpxchg_64.h | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/cmpxchg_64.h
-index f71ef3729888f..316faa0130bab 100644
---- a/arch/sparc/include/asm/cmpxchg_64.h
-+++ b/arch/sparc/include/asm/cmpxchg_64.h
-@@ -52,7 +52,12 @@ static inline unsigned long xchg64(__volatile__ unsigned long *m, unsigned long
- 	return val;
- }
- 
--#define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
-+#define xchg(ptr,x)							\
-+({	__typeof__(*(ptr)) __ret;					\
-+	__ret = (__typeof__(*(ptr)))					\
-+		__xchg((unsigned long)(x), (ptr), sizeof(*(ptr)));	\
-+	__ret;								\
-+})
- 
- void __xchg_called_with_bad_pointer(void);
- 
 -- 
-2.20.1
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
