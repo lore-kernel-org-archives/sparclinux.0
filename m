@@ -1,14 +1,16 @@
 From: "Simon Oliver" <olivia_simon@lihat.dds-akaun.com>
-Date: Sun, 10 Nov 2019 02:27:26 +0000
+Date: Mon, 11 Nov 2019 13:26:58 +0000
 Subject: Seeking Investment Opportunities
-Message-Id: <z-c-y9$b-cqi2---l0d9$1$g4ey9-7a@3wh8x.drnuqs>
+Message-Id: <58g44vp1l0s6-$e095r0wi2$u43-pq2@47f.vb5qj>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="D7__BF68D.DC"
+Content-Type: multipart/mixed; boundary="509C0775..1__0_"
 List-Id: <sparclinux.vger.kernel.org>
+References: <z-c-y9$b-cqi2---l0d9$1$g4ey9-7a@3wh8x.drnuqs>
+In-Reply-To: <z-c-y9$b-cqi2---l0d9$1$g4ey9-7a@3wh8x.drnuqs>
 To: sparclinux@vger.kernel.org
 
 
---D7__BF68D.DC
+--509C0775..1__0_
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -26,4 +28,4 @@ one number and Occupation.
 Thank you
 Oliver Simon
 
---D7__BF68D.DC--
+--509C0775..1__0_--
