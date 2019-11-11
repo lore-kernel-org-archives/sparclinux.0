@@ -1,128 +1,54 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Thu, 07 Nov 2019 13:34:34 +0000
-Subject: Re: [PATCH V8] mm/debug: Add tests validating architecture page table helpers
-Message-Id: <83f14c65-035c-8387-3216-5dee8a287cfb@arm.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Mon, 11 Nov 2019 01:11:06 +0000
+Subject: [PATCH] sparc: vdso: Fix build failure seen due to kbuild changes
+Message-Id: <20191111011106.18427-1-linux@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572240562-23630-1-git-send-email-anshuman.khandual@arm.com>
- <3229d68d-0b9d-0719-3370-c6e1df0ea032@arm.com>
- <42160baa-0e9d-73d0-bf72-58bdbacf10ff@c-s.fr>
- <0e0c2ce9-636d-1153-2451-baf7317ed45f@arm.com>
- <87tv7f4zkf.fsf@mpe.ellerman.id.au>
-In-Reply-To: <87tv7f4zkf.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Michael Ellerman <mpe@ellerman.id.au>, Christophe Leroy <christophe.leroy@c-s.fr>, linux-mm@kvack.org
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, linux-s390@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, Ingo Molnar <mingo@kernel.org>, Kees Cook <keescook@chromium.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Dan Williams <dan.j.williams@intel.com>, Vlastimil Babka <vbabka@suse.cz>, linux-arm-kernel@lists.infradead.org, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S . Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kbuild@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, Masahiro Yamada <yamada.masahiro@socionext.com>, Marc Zyngier <maz@kernel.org>
 
+sparc64:allmodconfig fails to build with the following error.
 
+unrecognized e_machine 18 arch/sparc/vdso/vdso32/vclock_gettime.o
+arch/sparc/vdso/vdso32/vclock_gettime.o: failed
+make[2]: *** [arch/sparc/vdso/vdso32/vclock_gettime.o] Error 1
+make[2]: *** Deleting file 'arch/sparc/vdso/vdso32/vclock_gettime.o'
+make[2]: *** Waiting for unfinished jobs....
 
-On 11/07/2019 06:24 PM, Michael Ellerman wrote:
-> Anshuman Khandual <anshuman.khandual@arm.com> writes:
->> On 11/06/2019 12:11 PM, Christophe Leroy wrote:
->>> Le 06/11/2019 à 04:22, Anshuman Khandual a écrit :
->>>> On 10/28/2019 10:59 AM, Anshuman Khandual wrote:
->>>>> +    -----------------------
->>>>> +    |         arch |status|
->>>>> +    -----------------------
->>>>> +    |       alpha: | TODO |
->>>>> +    |         arc: | TODO |
->>>>> +    |         arm: | TODO |
->>>>> +    |       arm64: |  ok  |
->>>>> +    |         c6x: | TODO |
->>>>> +    |        csky: | TODO |
->>>>> +    |       h8300: | TODO |
->>>>> +    |     hexagon: | TODO |
->>>>> +    |        ia64: | TODO |
->>>>> +    |        m68k: | TODO |
->>>>> +    |  microblaze: | TODO |
->>>>> +    |        mips: | TODO |
->>>>> +    |       nds32: | TODO |
->>>>> +    |       nios2: | TODO |
->>>>> +    |    openrisc: | TODO |
->>>>> +    |      parisc: | TODO |
->>>>> +    |     powerpc: | TODO |
->>>>> +    |       ppc32: |  ok  |
->>>
->>> Note that ppc32 is a part of powerpc, not a standalone arch.
->>
->> Right, I understand. But we are yet to hear about how this test
->> came about on powerpc server platforms. Will update 'powerpc'
->> arch listing above once we get some confirmation. May be once
->> this works on all relevant powerpc platforms, we can just merge
->> 'powerpc' and 'ppc32' entries here as just 'powerpc'.
-> 
-> On pseries:
-> 
->   watchdog: BUG: soft lockup - CPU#0 stuck for 23s! [swapper/0:1]
->   Modules linked in:
->   CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.4.0-rc6-gcc-8.2.0-next-20191107-00001-g250339d6747b-dirty #152
->   NIP:  c0000000010435a0 LR: c0000000010434b4 CTR: 0000000000000000
->   REGS: c00000003a403980 TRAP: 0901   Not tainted  (5.4.0-rc6-gcc-8.2.0-next-20191107-00001-g250339d6747b-dirty)
->   MSR:  8000000002009033 <SF,VEC,EE,ME,IR,DR,RI,LE>  CR: 44000222  XER: 00000000
->   CFAR: c0000000010435a8 IRQMASK: 0 
->   GPR00: c0000000010434b4 c00000003a403c10 c000000001295000 05210001000000c0 
->   GPR04: 8000000000000105 0000000000400dc0 000000003eb00000 0000000000000001 
->   GPR08: 0000000000000000 ffffffffffffffff 0000000000000001 0000000000000100 
->   GPR12: 0000000000000000 c0000000018f0000 
->   NIP [c0000000010435a0] debug_vm_pgtable+0x43c/0x82c
->   LR [c0000000010434b4] debug_vm_pgtable+0x350/0x82c
->   Call Trace:
->   [c00000003a403c10] [c00000000104346c] debug_vm_pgtable+0x308/0x82c (unreliable)
->   [c00000003a403ce0] [c000000001004310] kernel_init_freeable+0x1d0/0x39c
->   [c00000003a403db0] [c000000000010da0] kernel_init+0x24/0x174
->   [c00000003a403e20] [c00000000000bdc4] ret_from_kernel_thread+0x5c/0x78
->   Instruction dump:
->   7d075078 7ce74b78 7ce0f9ad 40c2fff0 38800000 7f83e378 4b02eee1 60000000 
->   48000080 3920ffff 39400001 39000000 <7ea0f8a8> 7ea75039 40c2fff8 7ea74878 
-> 
-> Looking at the asm I think it's stuck in hash__pte_update() waiting for
-> H_PAGE_BUSY to clear, but not sure why.
-> 
-> That's just using qemu TCG, instructions here if anyone wants to test it
-> themselves :)
-> 
->   https://github.com/linuxppc/wiki/wiki/Booting-with-Qemu
-> 
-> 
-> If I boot with -cpu power9 (using Radix MMU), I get a plain old BUG:
-> 
->   debug_vm_pgtable: debug_vm_pgtable: Validating architecture page table helpers
->   ------------[ cut here ]------------
->   kernel BUG at arch/powerpc/mm/pgtable.c:274!
->   Oops: Exception in kernel mode, sig: 5 [#1]
->   LE PAGE_SIZEdK MMU=Radix SMP NR_CPUS2 NUMA pSeries
->   Modules linked in:
->   CPU: 0 PID: 1 Comm: swapper/0 Not tainted 5.4.0-rc6-gcc-8.2.0-next-20191107-00001-g250339d6747b-dirty #152
->   NIP:  c0000000000724e8 LR: c00000000104358c CTR: 0000000000000000
->   REGS: c00000003a483980 TRAP: 0700   Not tainted  (5.4.0-rc6-gcc-8.2.0-next-20191107-00001-g250339d6747b-dirty)
->   MSR:  8000000002029033 <SF,VEC,EE,ME,IR,DR,RI,LE>  CR: 24000224  XER: 20000000
->   CFAR: c000000001043588 IRQMASK: 0 
->   GPR00: c00000000104358c c00000003a483c10 c000000001295000 0000000000000009 
->   GPR04: 0000000000000000 0000000000000005 0000000000000000 0000000000000009 
->   GPR08: 0000000000000001 000000000000000e 0000000000000001 c00000003a5f0000 
->   GPR12: 0000000000000000 c0000000018f0000 c000000000010d84 0000000000000000 
->   GPR16: 0000000000000000 0000000000000000 c00000003a5f0000 8000000000000105 
->   GPR20: c000000001003ab8 0000000000000015 0500613a00000080 0900603a00000080 
->   GPR24: 09202e3a00000080 c00000000133bd90 c00000000133bd98 c00000000133bda0 
->   GPR28: c00000003a5e0000 c00000003a600af8 c00000003a2e2d48 c00000003a6100a0 
->   NIP [c0000000000724e8] assert_pte_locked+0x88/0x190
->   LR [c00000000104358c] debug_vm_pgtable+0x428/0x82c
->   Call Trace:
->   [c00000003a483c10] [c00000000104346c] debug_vm_pgtable+0x308/0x82c (unreliable)
->   [c00000003a483ce0] [c000000001004310] kernel_init_freeable+0x1d0/0x39c
->   [c00000003a483db0] [c000000000010da0] kernel_init+0x24/0x174
->   [c00000003a483e20] [c00000000000bdc4] ret_from_kernel_thread+0x5c/0x78
->   Instruction dump:
->   7d251a14 39070010 7d463030 7d084a14 38c6ffff 7c884436 7cc607b4 7d083038 
->   79081f24 7ccb402a 7cc80074 7908d182 <0b080000> 78cb0022 54c8c03e 7d473830 
->   ---[ end trace a694f1bc56529c0e ]---
+The problem bisects to commit a3de7a72c517 ("kbuild: change
+*FLAGS_<basetarget>.o to take the path relative to $(obj)").
+Duplicate the x86 specific defines from this commit to the sparc
+vdso Makefile to fix the problem.
 
-Oops. Does not seem like a quick problem to fix :) Though assert_pte_locked()
-gets checked only when DEBUG_VM is enabled. Probably will have to keep this
-test disabled on powerpc for now.
+Fixes: a3de7a72c517 ("kbuild: change *FLAGS_<basetarget>.o to take the path relative to $(obj)")
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Marc Zyngier <maz@kernel.org>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+---
+ arch/sparc/vdso/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
 
-> 
-> 
-> cheers
-> 
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index 324a23947585..cb72a205cd7e 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -67,6 +67,7 @@ $(vobjs): KBUILD_CFLAGS := $(filter-out $(GCC_PLUGINS_CFLAGS) $(SPARC_REG_CFLAGS
+ #
+ CFLAGS_REMOVE_vdso-note.o = -pg
+ CFLAGS_REMOVE_vclock_gettime.o = -pg
++CFLAGS_REMOVE_vdso32/vclock_gettime.o = -pg
+ 
+ $(obj)/%.so: OBJCOPYFLAGS := -S
+ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+@@ -74,6 +75,7 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ 
+ CPPFLAGS_vdso32.lds = $(CPPFLAGS_vdso.lds)
+ VDSO_LDFLAGS_vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
++VDSO_LDFLAGS_vdso32/vdso32.lds = -m elf32_sparc -soname linux-gate.so.1
+ 
+ #This makes sure the $(obj) subdirectory exists even though vdso32/
+ #is not a kbuild sub-make subdirectory
+-- 
+2.17.1
