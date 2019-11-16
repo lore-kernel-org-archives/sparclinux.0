@@ -1,42 +1,55 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Fri, 01 Nov 2019 08:39:33 +0000
-Subject: [PATCH v2 02/13] arm: nommu: use pgtable-nopud instead of 4level-fixup
-Message-Id: <1572597584-6390-3-git-send-email-rppt@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Sat, 16 Nov 2019 15:46:15 +0000
+Subject: [PATCH AUTOSEL 4.14 077/150] sparc64: Rework xchg() definition to avoid warnings.
+Message-Id: <20191116154729.9573-77-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572597584-6390-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1572597584-6390-1-git-send-email-rppt@kernel.org>
+References: <20191116154729.9573-1-sashal@kernel.org>
+In-Reply-To: <20191116154729.9573-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+From: "David S. Miller" <davem@davemloft.net>
 
-The generic nommu implementation of page table manipulation takes care of
-folding of the upper levels and does not require fixups.
+[ Upstream commit 6c2fc9cddc1ffdef8ada1dc8404e5affae849953 ]
 
-Simply replace of include/asm-generic/4level-fixup.h with
-include/asm-generic/pgtable-nopud.h.
+Such as:
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Russell King <rmk+kernel@armlinux.org.uk>
+fs/ocfs2/file.c: In function ‘ocfs2_file_write_iter’:
+./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
+ #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
+
+and
+
+drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c: In function ‘ixgbevf_xdp_setup’:
+./arch/sparc/include/asm/cmpxchg_64.h:55:22: warning: value computed is not used [-Wunused-value]
+ #define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/arm/include/asm/pgtable.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/include/asm/cmpxchg_64.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pgtable.h
-index 3ae120c..eabcb48 100644
---- a/arch/arm/include/asm/pgtable.h
-+++ b/arch/arm/include/asm/pgtable.h
-@@ -12,7 +12,7 @@
+diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/cmpxchg_64.h
+index f71ef3729888f..316faa0130bab 100644
+--- a/arch/sparc/include/asm/cmpxchg_64.h
++++ b/arch/sparc/include/asm/cmpxchg_64.h
+@@ -52,7 +52,12 @@ static inline unsigned long xchg64(__volatile__ unsigned long *m, unsigned long
+ 	return val;
+ }
  
- #ifndef CONFIG_MMU
+-#define xchg(ptr,x) ((__typeof__(*(ptr)))__xchg((unsigned long)(x),(ptr),sizeof(*(ptr))))
++#define xchg(ptr,x)							\
++({	__typeof__(*(ptr)) __ret;					\
++	__ret = (__typeof__(*(ptr)))					\
++		__xchg((unsigned long)(x), (ptr), sizeof(*(ptr)));	\
++	__ret;								\
++})
  
--#include <asm-generic/4level-fixup.h>
-+#include <asm-generic/pgtable-nopud.h>
- #include <asm/pgtable-nommu.h>
+ void __xchg_called_with_bad_pointer(void);
  
- #else
 -- 
-2.7.4
+2.20.1
