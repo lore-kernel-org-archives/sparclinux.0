@@ -1,256 +1,229 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 05 Nov 2019 07:15:28 +0000
-Subject: [PATCH v4 06/13] microblaze: use pgtable-nopmd instead of 4level-fixup
-Message-Id: <1572938135-31886-7-git-send-email-rppt@kernel.org>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Sat, 16 Nov 2019 00:27:57 +0000
+Subject: [PATCH v16 07/12] namei: LOOKUP_BENEATH: O_BENEATH-like scoped resolution
+Message-Id: <20191116002802.6663-8-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+References: <20191116002802.6663-1-cyphar@cyphar.com>
+In-Reply-To: <20191116002802.6663-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, David Drysdale <drysdale@google.com>, Andy Lutomirski <luto@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+/* Background. */
+There are many circumstances when userspace wants to resolve a path and
+ensure that it doesn't go outside of a particular root directory during
+resolution. Obvious examples include archive extraction tools, as well as
+other security-conscious userspace programs. FreeBSD spun out O_BENEATH
+from their Capsicum project[1,2], so it also seems reasonable to
+implement similar functionality for Linux.
 
-microblaze has only two-level page tables and can use pgtable-nopmd and
-folding of the upper layers.
+This is part of a refresh of Al's AT_NO_JUMPS patchset[3] (which was a
+variation on David Drysdale's O_BENEATH patchset[4], which in turn was
+based on the Capsicum project[5]).
 
-Replace usage of include/asm-generic/4level-fixup.h and explicit definition
-of __PAGETABLE_PMD_FOLDED in microblaze with
-include/asm-generic/pgtable-nopmd.h and adjust page table manipulation
-macros and functions accordingly.
+/* Userspace API. */
+LOOKUP_BENEATH will be exposed to userspace through openat2(2).
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+/* Semantics. */
+Unlike most other LOOKUP flags (most notably LOOKUP_FOLLOW),
+LOOKUP_BENEATH applies to all components of the path.
+
+With LOOKUP_BENEATH, any path component which attempts to "escape" the
+starting point of the filesystem lookup (the dirfd passed to openat)
+will yield -EXDEV. Thus, all absolute paths and symlinks are disallowed.
+
+Due to a security concern brought up by Jann[6], any ".." path
+components are also blocked. This restriction will be lifted in a future
+patch, but requires more work to ensure that permitting ".." is done
+safely.
+
+Magic-link jumps are also blocked, because they can beam the path lookup
+across the starting point. It would be possible to detect and block
+only the "bad" crossings with path_is_under() checks, but it's unclear
+whether it makes sense to permit magic-links at all. However, userspace
+is recommended to pass LOOKUP_NO_MAGICLINKS if they want to ensure that
+magic-link crossing is entirely disabled.
+
+/* Testing. */
+LOOKUP_BENEATH is tested as part of the openat2(2) selftests.
+
+[1]: https://reviews.freebsd.org/D2808
+[2]: https://reviews.freebsd.org/D17547
+[3]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk/
+[4]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdale@google.com/
+[5]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdale@google.com/
+[6]: https://lore.kernel.org/lkml/CAG48ez1jzNvxB+bfOBnERFGp=oMM0vHWuLD6EULmne3R6xa53w@mail.gmail.com/
+
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Suggested-by: David Drysdale <drysdale@google.com>
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Suggested-by: Andy Lutomirski <luto@kernel.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- arch/microblaze/include/asm/page.h    |  3 ---
- arch/microblaze/include/asm/pgalloc.h | 16 ----------------
- arch/microblaze/include/asm/pgtable.h | 32 ++------------------------------
- arch/microblaze/kernel/signal.c       | 10 +++++++---
- arch/microblaze/mm/init.c             |  7 +++++--
- arch/microblaze/mm/pgtable.c          | 13 +++++++++++--
- 6 files changed, 25 insertions(+), 56 deletions(-)
+ fs/namei.c            | 59 ++++++++++++++++++++++++++++++++++++++-----
+ include/linux/namei.h |  4 +++
+ 2 files changed, 57 insertions(+), 6 deletions(-)
 
-diff --git a/arch/microblaze/include/asm/page.h b/arch/microblaze/include/asm/page.h
-index d506bb0..f4b44b2 100644
---- a/arch/microblaze/include/asm/page.h
-+++ b/arch/microblaze/include/asm/page.h
-@@ -90,7 +90,6 @@ typedef struct { unsigned long	pte; }		pte_t;
- typedef struct { unsigned long	pgprot; }	pgprot_t;
- /* FIXME this can depend on linux kernel version */
- #   ifdef CONFIG_MMU
--typedef struct { unsigned long pmd; } pmd_t;
- typedef struct { unsigned long pgd; } pgd_t;
- #   else /* CONFIG_MMU */
- typedef struct { unsigned long	ste[64]; }	pmd_t;
-@@ -103,7 +102,6 @@ typedef struct { p4d_t		pge[1]; }	pgd_t;
- # define pgprot_val(x)	((x).pgprot)
+diff --git a/fs/namei.c b/fs/namei.c
+index 854a1cbbe7b0..bad5ef56b4c8 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -641,6 +641,14 @@ static bool legitimize_links(struct nameidata *nd)
  
- #   ifdef CONFIG_MMU
--#   define pmd_val(x)      ((x).pmd)
- #   define pgd_val(x)      ((x).pgd)
- #   else  /* CONFIG_MMU */
- #   define pmd_val(x)	((x).ste[0])
-@@ -112,7 +110,6 @@ typedef struct { p4d_t		pge[1]; }	pgd_t;
- #   endif  /* CONFIG_MMU */
- 
- # define __pte(x)	((pte_t) { (x) })
--# define __pmd(x)	((pmd_t) { (x) })
- # define __pgd(x)	((pgd_t) { (x) })
- # define __pgprot(x)	((pgprot_t) { (x) })
- 
-diff --git a/arch/microblaze/include/asm/pgalloc.h b/arch/microblaze/include/asm/pgalloc.h
-index 7ecb05b..fcf1e23 100644
---- a/arch/microblaze/include/asm/pgalloc.h
-+++ b/arch/microblaze/include/asm/pgalloc.h
-@@ -41,13 +41,6 @@ static inline void free_pgd(pgd_t *pgd)
- 
- #define pmd_pgtable(pmd)	pmd_page(pmd)
- 
--/*
-- * We don't have any real pmd's, and this code never triggers because
-- * the pgd will always be present..
-- */
--#define pmd_alloc_one_fast(mm, address)	({ BUG(); ((pmd_t *)1); })
--#define pmd_alloc_one(mm, address)	({ BUG(); ((pmd_t *)2); })
--
- extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
- 
- #define __pte_free_tlb(tlb, pte, addr)	pte_free((tlb)->mm, (pte))
-@@ -58,15 +51,6 @@ extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm);
- #define pmd_populate_kernel(mm, pmd, pte) \
- 		(pmd_val(*(pmd)) = (unsigned long) (pte))
- 
--/*
-- * We don't have any real pmd's, and this code never triggers because
-- * the pgd will always be present..
-- */
--#define pmd_alloc_one(mm, address)	({ BUG(); ((pmd_t *)2); })
--#define pmd_free(mm, x)			do { } while (0)
--#define __pmd_free_tlb(tlb, x, addr)	pmd_free((tlb)->mm, x)
--#define pgd_populate(mm, pmd, pte)	BUG()
--
- #endif /* CONFIG_MMU */
- 
- #endif /* _ASM_MICROBLAZE_PGALLOC_H */
-diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
-index 954b69a..2def331 100644
---- a/arch/microblaze/include/asm/pgtable.h
-+++ b/arch/microblaze/include/asm/pgtable.h
-@@ -59,9 +59,7 @@ extern int mem_init_done;
- 
- #else /* CONFIG_MMU */
- 
--#include <asm-generic/4level-fixup.h>
--
--#define __PAGETABLE_PMD_FOLDED 1
-+#include <asm-generic/pgtable-nopmd.h>
- 
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-@@ -138,13 +136,8 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
-  *
-  */
- 
--/* PMD_SHIFT determines the size of the area mapped by the PTE pages */
--#define PMD_SHIFT	(PAGE_SHIFT + PTE_SHIFT)
--#define PMD_SIZE	(1UL << PMD_SHIFT)
--#define PMD_MASK	(~(PMD_SIZE-1))
--
- /* PGDIR_SHIFT determines what a top-level page table entry can map */
--#define PGDIR_SHIFT	PMD_SHIFT
-+#define PGDIR_SHIFT	(PAGE_SHIFT + PTE_SHIFT)
- #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
- #define PGDIR_MASK	(~(PGDIR_SIZE-1))
- 
-@@ -165,9 +158,6 @@ static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
- #define pte_ERROR(e) \
- 	printk(KERN_ERR "%s:%d: bad pte "PTE_FMT".\n", \
- 		__FILE__, __LINE__, pte_val(e))
--#define pmd_ERROR(e) \
--	printk(KERN_ERR "%s:%d: bad pmd %08lx.\n", \
--		__FILE__, __LINE__, pmd_val(e))
- #define pgd_ERROR(e) \
- 	printk(KERN_ERR "%s:%d: bad pgd %08lx.\n", \
- 		__FILE__, __LINE__, pgd_val(e))
-@@ -314,18 +304,6 @@ extern unsigned long empty_zero_page[1024];
- 
- #ifndef __ASSEMBLY__
- /*
-- * The "pgd_xxx()" functions here are trivial for a folded two-level
-- * setup: the pgd is never bad, and a pmd always exists (as it's folded
-- * into the pgd entry)
-- */
--static inline int pgd_none(pgd_t pgd)		{ return 0; }
--static inline int pgd_bad(pgd_t pgd)		{ return 0; }
--static inline int pgd_present(pgd_t pgd)	{ return 1; }
--#define pgd_clear(xp)				do { } while (0)
--#define pgd_page(pgd) \
--	((unsigned long) __va(pgd_val(pgd) & PAGE_MASK))
--
--/*
-  * The following only work if pte_present() is true.
-  * Undefined behaviour if not..
-  */
-@@ -479,12 +457,6 @@ static inline void ptep_mkdirty(struct mm_struct *mm,
- #define pgd_index(address)	 ((address) >> PGDIR_SHIFT)
- #define pgd_offset(mm, address)	 ((mm)->pgd + pgd_index(address))
- 
--/* Find an entry in the second-level page table.. */
--static inline pmd_t *pmd_offset(pgd_t *dir, unsigned long address)
--{
--	return (pmd_t *) dir;
--}
--
- /* Find an entry in the third-level page table.. */
- #define pte_index(address)		\
- 	(((address) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
-diff --git a/arch/microblaze/kernel/signal.c b/arch/microblaze/kernel/signal.c
-index cdd4feb..c9125c3 100644
---- a/arch/microblaze/kernel/signal.c
-+++ b/arch/microblaze/kernel/signal.c
-@@ -160,6 +160,9 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
- 	int err = 0, sig = ksig->sig;
- 	unsigned long address = 0;
- #ifdef CONFIG_MMU
-+	pgd_t *pgdp;
-+	p4d_t *p4dp;
-+	pud_t *pudp;
- 	pmd_t *pmdp;
- 	pte_t *ptep;
- #endif
-@@ -195,9 +198,10 @@ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
- 
- 	address = ((unsigned long)frame->tramp);
- #ifdef CONFIG_MMU
--	pmdp = pmd_offset(pud_offset(
--			pgd_offset(current->mm, address),
--					address), address);
-+	pgdp = pgd_offset(current->mm, address);
-+	p4dp = p4d_offset(pgdp, address);
-+	pudp = pud_offset(p4dp, address);
-+	pmdp = pmd_offset(pudp, address);
- 
- 	preempt_disable();
- 	ptep = pte_offset_map(pmdp, address);
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index a015a95..050fc62 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -53,8 +53,11 @@ EXPORT_SYMBOL(kmap_prot);
- 
- static inline pte_t *virt_to_kpte(unsigned long vaddr)
+ static bool legitimize_root(struct nameidata *nd)
  {
--	return pte_offset_kernel(pmd_offset(pgd_offset_k(vaddr),
--			vaddr), vaddr);
-+	pgd_t *pgd = pgd_offset_k(vaddr);
-+	p4d_t *p4d = p4d_offset(pgd, vaddr);
-+	pud_t *pud = pud_offset(p4d, vaddr);
++	/*
++	 * For scoped-lookups (where nd->root has been zeroed), we need to
++	 * restart the whole lookup from scratch -- because set_root() is wrong
++	 * for these lookups (nd->dfd is the root, not the filesystem root).
++	 */
++	if (!nd->root.mnt && (nd->flags & LOOKUP_IS_SCOPED))
++		return false;
++	/* Nothing to do if nd->root is zero or is managed by the VFS user. */
+ 	if (!nd->root.mnt || (nd->flags & LOOKUP_ROOT))
+ 		return true;
+ 	nd->flags |= LOOKUP_ROOT_GRABBED;
+@@ -776,7 +784,11 @@ static int complete_walk(struct nameidata *nd)
+ 	int status;
+ 
+ 	if (nd->flags & LOOKUP_RCU) {
+-		if (!(nd->flags & LOOKUP_ROOT))
++		/*
++		 * We don't want to zero nd->root for scoped-lookups or
++		 * externally-managed nd->root.
++		 */
++		if (!(nd->flags & (LOOKUP_ROOT | LOOKUP_IS_SCOPED)))
+ 			nd->root.mnt = NULL;
+ 		if (unlikely(unlazy_walk(nd)))
+ 			return -ECHILD;
+@@ -802,6 +814,14 @@ static int set_root(struct nameidata *nd)
+ {
+ 	struct fs_struct *fs = current->fs;
+ 
++	/*
++	 * Jumping to the real root in a scoped-lookup is a BUG in namei, but we
++	 * still have to ensure it doesn't happen because it will cause a breakout
++	 * from the dirfd.
++	 */
++	if (WARN_ON(nd->flags & LOOKUP_IS_SCOPED))
++		return -ENOTRECOVERABLE;
 +
-+	return pte_offset_kernel(pmd_offset(pud, vaddr), vaddr);
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		unsigned seq;
+ 
+@@ -838,6 +858,8 @@ static inline void path_to_nameidata(const struct path *path,
+ 
+ static int nd_jump_root(struct nameidata *nd)
+ {
++	if (unlikely(nd->flags & LOOKUP_BENEATH))
++		return -EXDEV;
+ 	if (unlikely(nd->flags & LOOKUP_NO_XDEV)) {
+ 		/* Absolute path arguments to path_init() are allowed. */
+ 		if (nd->path.mnt != NULL && nd->path.mnt != nd->root.mnt)
+@@ -880,6 +902,9 @@ int nd_jump_link(struct path *path)
+ 		if (nd->path.mnt != path->mnt)
+ 			return -EXDEV;
+ 	}
++	/* Not currently safe for scoped-lookups. */
++	if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
++		return -EXDEV;
+ 
+ 	path_put(&nd->path);
+ 	nd->path = *path;
+@@ -1372,8 +1397,11 @@ static int follow_dotdot_rcu(struct nameidata *nd)
+ 	struct inode *inode = nd->inode;
+ 
+ 	while (1) {
+-		if (path_equal(&nd->path, &nd->root))
++		if (path_equal(&nd->path, &nd->root)) {
++			if (unlikely(nd->flags & LOOKUP_BENEATH))
++				return -ECHILD;
+ 			break;
++		}
+ 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
+ 			struct dentry *old = nd->path.dentry;
+ 			struct dentry *parent = old->d_parent;
+@@ -1503,9 +1531,12 @@ static int path_parent_directory(struct path *path)
+ 
+ static int follow_dotdot(struct nameidata *nd)
+ {
+-	while(1) {
+-		if (path_equal(&nd->path, &nd->root))
++	while (1) {
++		if (path_equal(&nd->path, &nd->root)) {
++			if (unlikely(nd->flags & LOOKUP_BENEATH))
++				return -EXDEV;
+ 			break;
++		}
+ 		if (nd->path.dentry != nd->path.mnt->mnt_root) {
+ 			int ret = path_parent_directory(&nd->path);
+ 			if (ret)
+@@ -1732,6 +1763,13 @@ static inline int handle_dots(struct nameidata *nd, int type)
+ 	if (type = LAST_DOTDOT) {
+ 		int error = 0;
+ 
++		/*
++		 * Scoped-lookup flags resolving ".." is not currently safe --
++		 * races can cause our parent to have moved outside of the root
++		 * and us to skip over it.
++		 */
++		if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
++			return -EXDEV;
+ 		if (!nd->root.mnt) {
+ 			error = set_root(nd);
+ 			if (error)
+@@ -2254,7 +2292,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 			get_fs_pwd(current->fs, &nd->path);
+ 			nd->inode = nd->path.dentry->d_inode;
+ 		}
+-		return s;
+ 	} else {
+ 		/* Caller must check execute permissions on the starting path component */
+ 		struct fd f = fdget_raw(nd->dfd);
+@@ -2279,8 +2316,18 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 			nd->inode = nd->path.dentry->d_inode;
+ 		}
+ 		fdput(f);
+-		return s;
+ 	}
++	/* For scoped-lookups we need to set the root to the dirfd as well. */
++	if (flags & LOOKUP_IS_SCOPED) {
++		nd->root = nd->path;
++		if (flags & LOOKUP_RCU) {
++			nd->root_seq = nd->seq;
++		} else {
++			path_get(&nd->root);
++			nd->flags |= LOOKUP_ROOT_GRABBED;
++		}
++	}
++	return s;
  }
  
- static void __init highmem_init(void)
-diff --git a/arch/microblaze/mm/pgtable.c b/arch/microblaze/mm/pgtable.c
-index 010bb9c..68c26ca 100644
---- a/arch/microblaze/mm/pgtable.c
-+++ b/arch/microblaze/mm/pgtable.c
-@@ -134,11 +134,16 @@ EXPORT_SYMBOL(iounmap);
+ static const char *trailing_symlink(struct nameidata *nd)
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 25ee88c4acb1..93dad378f1e8 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -2,6 +2,7 @@
+ #ifndef _LINUX_NAMEI_H
+ #define _LINUX_NAMEI_H
  
- int map_page(unsigned long va, phys_addr_t pa, int flags)
- {
-+	p4d_t *p4d;
-+	pud_t *pud;
- 	pmd_t *pd;
- 	pte_t *pg;
- 	int err = -ENOMEM;
-+
- 	/* Use upper 10 bits of VA to index the first level map */
--	pd = pmd_offset(pgd_offset_k(va), va);
-+	p4d = p4d_offset(pgd_offset_k(va), va);
-+	pud = pud_offset(p4d, va);
-+	pd = pmd_offset(pud, va);
- 	/* Use middle 10 bits of VA to index the second-level map */
- 	pg = pte_alloc_kernel(pd, va); /* from powerpc - pgtable.c */
- 	/* pg = pte_alloc_kernel(&init_mm, pd, va); */
-@@ -188,13 +193,17 @@ void __init mapin_ram(void)
- static int get_pteptr(struct mm_struct *mm, unsigned long addr, pte_t **ptep)
- {
- 	pgd_t	*pgd;
-+	p4d_t	*p4d;
-+	pud_t	*pud;
- 	pmd_t	*pmd;
- 	pte_t	*pte;
- 	int     retval = 0;
++#include <linux/fs.h>
+ #include <linux/kernel.h>
+ #include <linux/path.h>
+ #include <linux/fcntl.h>
+@@ -43,6 +44,9 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
+ #define LOOKUP_NO_SYMLINKS	0x010000 /* No symlink crossing. */
+ #define LOOKUP_NO_MAGICLINKS	0x020000 /* No nd_jump_link() crossing. */
+ #define LOOKUP_NO_XDEV		0x040000 /* No mountpoint crossing. */
++#define LOOKUP_BENEATH		0x080000 /* No escaping from starting point. */
++/* LOOKUP_* flags which do scope-related checks based on the dirfd. */
++#define LOOKUP_IS_SCOPED LOOKUP_BENEATH
  
- 	pgd = pgd_offset(mm, addr & PAGE_MASK);
- 	if (pgd) {
--		pmd = pmd_offset(pgd, addr & PAGE_MASK);
-+		p4d = p4d_offset(pgd, addr & PAGE_MASK);
-+		pud = pud_offset(p4d, addr & PAGE_MASK);
-+		pmd = pmd_offset(pud, addr & PAGE_MASK);
- 		if (pmd_present(*pmd)) {
- 			pte = pte_offset_kernel(pmd, addr & PAGE_MASK);
- 			if (pte) {
+ extern int path_pts(struct path *path);
+ 
 -- 
-2.7.4
+2.24.0
