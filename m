@@ -1,75 +1,134 @@
 From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Wed, 13 Nov 2019 00:46:34 +0000
-Subject: Re: [PATCH v15 0/9] open: introduce openat2(2) syscall
-Message-Id: <20191113004634.tz7geloshltkafwj@yavin.dot.cyphar.com>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="7ndczamgwxls6q65"
+Date: Sat, 16 Nov 2019 00:27:52 +0000
+Subject: [PATCH v16 02/12] namei: allow nd_jump_link() to produce errors
+Message-Id: <20191116002802.6663-3-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191105090553.6350-1-cyphar@cyphar.com>
- <20191111132404.y523iqicbn6fivx5@yavin.dot.cyphar.com>
- <201911121457.7D02692@keescook>
-In-Reply-To: <201911121457.7D02692@keescook>
-To: Kees Cook <keescook@chromium.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Alexei Starovoitov <ast@kernel.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>
+References: <20191116002802.6663-1-cyphar@cyphar.com>
+In-Reply-To: <20191116002802.6663-1-cyphar@cyphar.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
 
+In preparation for LOOKUP_NO_MAGICLINKS, it's necessary to add the
+ability for nd_jump_link() to return an error which the corresponding
+get_link() caller must propogate back up to the VFS.
 
---7ndczamgwxls6q65
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+---
+ fs/namei.c                     |  3 ++-
+ fs/proc/base.c                 |  5 +++--
+ fs/proc/namespaces.c           | 17 ++++++++++++-----
+ include/linux/namei.h          |  2 +-
+ security/apparmor/apparmorfs.c |  8 ++++++--
+ 5 files changed, 24 insertions(+), 11 deletions(-)
 
-On 2019-11-12, Kees Cook <keescook@chromium.org> wrote:
-> On Tue, Nov 12, 2019 at 12:24:04AM +1100, Aleksa Sarai wrote:
-> > On 2019-11-05, Aleksa Sarai <cyphar@cyphar.com> wrote:
-> > > This patchset is being developed here:
-> > >   <https://github.com/cyphar/linux/tree/openat2/master>
-> > >=20
-> > > Patch changelog:
-> > >  v15:
-> > >   * Fix code style for LOOKUP_IN_ROOT handling in path_init(). [Linus=
- Torvalds]
-> > >   * Split out patches for each individual LOOKUP flag.
-> > >   * Reword commit messages to give more background information about =
-the
-> > >     series, as well as mention the semantics of each flag in more det=
-ail.
-> > > [...]
-> >=20
-> > Ping -- this patch hasn't been touched for a week. Thanks.
->=20
-> If I've been following correctly, everyone is happy with this series.
-> (i.e. Linus's comment appear to have been addressed.)
->=20
-> Perhaps the next question is should this go via a pull request by you to
-> Linus directly during the v5.5 merge window, via akpm, via akpm, via
-> Christian, or some other path? Besides Linus, it's not been clear who
-> should "claim" this series. :)
-
-Given the namei changes, I wanted to avoid stepping on Al's toes. Though
-he did review the series a few versions ago, the discussion didn't focus
-on the openat2(2) semantics (which have also changed since then). I'm
-not sure whether to interpret the silence to mean he's satisfied with
-things as they are, or if he hasn't had more time to look at the series.
-
-As for which tree it should be routed to, I don't mind -- Christian is
-the most straight-forward choice (but if Al wants to route it, that's
-fine with me too).
-
---=20
-Aleksa Sarai
-Senior Software Engineer (Containers)
-SUSE Linux GmbH
-<https://www.cyphar.com/>
-
---7ndczamgwxls6q65
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQSxZm6dtfE8gxLLfYqdlLljIbnQEgUCXctSZgAKCRCdlLljIbnQ
-Ej+PAP0UBMczq8p/OLMeyIryF0EfQ+noWktKHkfgvrRf7bKN7AEAiW1OItA5gtV4
-HiJnADyDHQw1h7livSSrD2X7HKS2BAA=
-=yOzJ
------END PGP SIGNATURE-----
-
---7ndczamgwxls6q65--
+diff --git a/fs/namei.c b/fs/namei.c
+index 671c3c1a3425..965a25b2e3df 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -859,7 +859,7 @@ static int nd_jump_root(struct nameidata *nd)
+  * Helper to directly jump to a known parsed path from ->get_link,
+  * caller must have taken a reference to path beforehand.
+  */
+-void nd_jump_link(struct path *path)
++int nd_jump_link(struct path *path)
+ {
+ 	struct nameidata *nd = current->nameidata;
+ 	path_put(&nd->path);
+@@ -867,6 +867,7 @@ void nd_jump_link(struct path *path)
+ 	nd->path = *path;
+ 	nd->inode = nd->path.dentry->d_inode;
+ 	nd->flags |= LOOKUP_JUMPED;
++	return 0;
+ }
+ 
+ static inline void put_link(struct nameidata *nd)
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index ebea9501afb8..fecd5b4af607 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -1626,8 +1626,9 @@ static const char *proc_pid_get_link(struct dentry *dentry,
+ 	if (error)
+ 		goto out;
+ 
+-	nd_jump_link(&path);
+-	return NULL;
++	error = nd_jump_link(&path);
++	if (error)
++		path_put(&path);
+ out:
+ 	return ERR_PTR(error);
+ }
+diff --git a/fs/proc/namespaces.c b/fs/proc/namespaces.c
+index 08dd94df1a66..95e199fbad57 100644
+--- a/fs/proc/namespaces.c
++++ b/fs/proc/namespaces.c
+@@ -51,11 +51,18 @@ static const char *proc_ns_get_link(struct dentry *dentry,
+ 	if (!task)
+ 		return ERR_PTR(-EACCES);
+ 
+-	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
+-		error = ns_get_path(&ns_path, task, ns_ops);
+-		if (!error)
+-			nd_jump_link(&ns_path);
+-	}
++	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
++		goto out;
++
++	error = ns_get_path(&ns_path, task, ns_ops);
++	if (error)
++		goto out;
++
++	error = nd_jump_link(&ns_path);
++	if (error)
++		path_put(&ns_path);
++
++out:
+ 	put_task_struct(task);
+ 	return ERR_PTR(error);
+ }
+diff --git a/include/linux/namei.h b/include/linux/namei.h
+index 397a08ade6a2..758e9b47db6f 100644
+--- a/include/linux/namei.h
++++ b/include/linux/namei.h
+@@ -68,7 +68,7 @@ extern int follow_up(struct path *);
+ extern struct dentry *lock_rename(struct dentry *, struct dentry *);
+ extern void unlock_rename(struct dentry *, struct dentry *);
+ 
+-extern void nd_jump_link(struct path *path);
++extern int __must_check nd_jump_link(struct path *path);
+ 
+ static inline void nd_terminate_link(void *name, size_t len, size_t maxlen)
+ {
+diff --git a/security/apparmor/apparmorfs.c b/security/apparmor/apparmorfs.c
+index 45d13b6462aa..da045d0477a5 100644
+--- a/security/apparmor/apparmorfs.c
++++ b/security/apparmor/apparmorfs.c
+@@ -2455,16 +2455,20 @@ static const char *policy_get_link(struct dentry *dentry,
+ {
+ 	struct aa_ns *ns;
+ 	struct path path;
++	int error;
+ 
+ 	if (!dentry)
+ 		return ERR_PTR(-ECHILD);
++
+ 	ns = aa_get_current_ns();
+ 	path.mnt = mntget(aafs_mnt);
+ 	path.dentry = dget(ns_dir(ns));
+-	nd_jump_link(&path);
++	error = nd_jump_link(&path);
++	if (error)
++		path_put(&path);
+ 	aa_put_ns(ns);
+ 
+-	return NULL;
++	return ERR_PTR(error);
+ }
+ 
+ static int policy_readlink(struct dentry *dentry, char __user *buffer,
+-- 
+2.24.0
