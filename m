@@ -1,73 +1,54 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 05 Nov 2019 07:15:31 +0000
-Subject: [PATCH v4 09/13] parisc/hugetlb: use pgtable-nopXd instead of 4level-fixup
-Message-Id: <1572938135-31886-10-git-send-email-rppt@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Sat, 16 Nov 2019 15:38:44 +0000
+Subject: [PATCH AUTOSEL 4.19 089/237] sparc: Fix parport build warnings.
+Message-Id: <20191116154113.7417-89-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1572938135-31886-1-git-send-email-rppt@kernel.org>
-In-Reply-To: <1572938135-31886-1-git-send-email-rppt@kernel.org>
+References: <20191116154113.7417-1-sashal@kernel.org>
+In-Reply-To: <20191116154113.7417-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Greentime Hu <green.hu@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Helge Deller <deller@gmx.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Jeff Dike <jdike@addtoit.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Linus Torvalds <torvalds@linux-foundation.org>, Mark Salter <msalter@redhat.com>, Matt Turner <mattst88@gmail.com>, Michal Simek <monstr@monstr.eu>, Peter Rosin <peda@axentia.se>, Richard Weinberger <richard@nod.at>, Rolf Eike Beer <eike-kernel@sf-tec.de>, Russell King <linux@armlinux.org.uk>, Sam
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Helge Deller <deller@gmx.de>
+From: "David S. Miller" <davem@davemloft.net>
 
-Signed-off-by: Helge Deller <deller@gmx.de>
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+[ Upstream commit 46b8306480fb424abd525acc1763da1c63a27d8a ]
+
+If PARPORT_PC_FIFO is not enabled, do not provide the dma lock
+macros and lock definition.  Otherwise:
+
+./arch/sparc/include/asm/parport.h:24:24: warning: ‘dma_spin_lock’ defined but not used [-Wunused-variable]
+ static DEFINE_SPINLOCK(dma_spin_lock);
+                        ^~~~~~~~~~~~~
+./include/linux/spinlock_types.h:81:39: note: in definition of macro ‘DEFINE_SPINLOCK’
+ #define DEFINE_SPINLOCK(x) spinlock_t x = __SPIN_LOCK_UNLOCKED(x)
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/parisc/mm/hugetlbpage.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ arch/sparc/include/asm/parport.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/parisc/mm/hugetlbpage.c b/arch/parisc/mm/hugetlbpage.c
-index d578809..0e1e212 100644
---- a/arch/parisc/mm/hugetlbpage.c
-+++ b/arch/parisc/mm/hugetlbpage.c
-@@ -49,6 +49,7 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
- 			unsigned long addr, unsigned long sz)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte = NULL;
-@@ -61,7 +62,8 @@ pte_t *huge_pte_alloc(struct mm_struct *mm,
- 	addr &= HPAGE_MASK;
+diff --git a/arch/sparc/include/asm/parport.h b/arch/sparc/include/asm/parport.h
+index 05df5f0430535..3c5a1c620f0f7 100644
+--- a/arch/sparc/include/asm/parport.h
++++ b/arch/sparc/include/asm/parport.h
+@@ -21,6 +21,7 @@
+  */
+ #define HAS_DMA
  
- 	pgd = pgd_offset(mm, addr);
--	pud = pud_alloc(mm, pgd, addr);
-+	p4d = p4d_offset(pgd, addr);
-+	pud = pud_alloc(mm, p4d, addr);
- 	if (pud) {
- 		pmd = pmd_alloc(mm, pud, addr);
- 		if (pmd)
-@@ -74,6 +76,7 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
- 		       unsigned long addr, unsigned long sz)
- {
- 	pgd_t *pgd;
-+	p4d_t *p4d;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte = NULL;
-@@ -82,11 +85,14 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
++#ifdef CONFIG_PARPORT_PC_FIFO
+ static DEFINE_SPINLOCK(dma_spin_lock);
  
- 	pgd = pgd_offset(mm, addr);
- 	if (!pgd_none(*pgd)) {
--		pud = pud_offset(pgd, addr);
--		if (!pud_none(*pud)) {
--			pmd = pmd_offset(pud, addr);
--			if (!pmd_none(*pmd))
--				pte = pte_offset_map(pmd, addr);
-+		p4d = p4d_offset(pgd, addr);
-+		if (!p4d_none(*p4d)) {
-+			pud = pud_offset(p4d, addr);
-+			if (!pud_none(*pud)) {
-+				pmd = pmd_offset(pud, addr);
-+				if (!pmd_none(*pmd))
-+					pte = pte_offset_map(pmd, addr);
-+			}
- 		}
- 	}
- 	return pte;
+ #define claim_dma_lock() \
+@@ -31,6 +32,7 @@ static DEFINE_SPINLOCK(dma_spin_lock);
+ 
+ #define release_dma_lock(__flags) \
+ 	spin_unlock_irqrestore(&dma_spin_lock, __flags);
++#endif
+ 
+ static struct sparc_ebus_info {
+ 	struct ebus_dma_info info;
 -- 
-2.7.4
+2.20.1
