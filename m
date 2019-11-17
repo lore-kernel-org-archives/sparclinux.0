@@ -1,7 +1,7 @@
 From: Peter Wong <choimj@isd.co.kr>
-Date: Thu, 07 Nov 2019 21:31:38 +0000
+Date: Sun, 17 Nov 2019 23:54:13 +0000
 Subject: Investment opportunity
-Message-Id: <12285665.90357.1573162300340.JavaMail.cash@211.53.128.215>
+Message-Id: <10019025.77544.1574034855743.JavaMail.cash@211.53.128.215>
 List-Id: <sparclinux.vger.kernel.org>
 References: <18393570.214396.1572848844558.JavaMail.cash@211.53.128.215>
 In-Reply-To: <18393570.214396.1572848844558.JavaMail.cash@211.53.128.215>
