@@ -1,32 +1,73 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 11 Nov 2019 19:33:17 +0000
-Subject: Re: [PATCH 10/21] asm-generic: ioremap_uc should behave the same with and without MMU
-Message-Id: <CAK8P3a2b=td4JhYOcK1jUshh8Mp-5_w4v+dAr_JjnH783=ptBQ@mail.gmail.com>
+From: Meelis Roos <mroos@linux.ee>
+Date: Mon, 18 Nov 2019 09:48:20 +0000
+Subject: 5.4-rc8 OOPS from path_openat->link_path_walk->inode_permission, on sparc64
+Message-Id: <cf84521e-7b7e-570e-9850-1a5573e62786@linux.ee>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191029064834.23438-1-hch@lst.de> <20191029064834.23438-11-hch@lst.de>
- <CAK8P3a2o4R+E2hTrHrmNy7K1ki3_98aWE5a-fjkQ_NWW=xd_gQ@mail.gmail.com>
- <20191111101531.GA12294@lst.de> <CAK8P3a0rTvfPP2LUMw8EC0xz5gfZP5+NUkoaZBJrtYYfr6YRig@mail.gmail.com>
- <20191111102923.GA12974@lst.de>
-In-Reply-To: <20191111102923.GA12974@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Guo Ren <guoren@kernel.org>, Michal Simek <monstr@monstr.eu>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Guan Xuetao <gxt@pku.edu.cn>, the arch/x86 maintainers <x86@kernel.org>, alpha <linux-alpha@vger.kernel.org>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, linux-ia64@vger.kernel.org, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, "moderated list:NIOS2 ARCHITECTURE" <nios2-dev@lists.rocketboards.org>, openrisc@lists.librecores.org, Parisc List <linux-parisc@vger.kernel.org>, linux-riscv@lists.infradead.org, linux-s390 <linux-s390@vger.kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
 
-On Mon, Nov 11, 2019 at 11:29 AM Christoph Hellwig <hch@lst.de> wrote:
->
-> On Mon, Nov 11, 2019 at 11:27:27AM +0100, Arnd Bergmann wrote:
-> > Ok, fair enough. Let's just go with your version for now, if only to not
-> > hold your series up more. I'd still suggest we change atyfb to only
-> > use ioremap_uc() on i386 and maybe ia64. I can send a patch for that.
->
-> I don't think we even need it on ia64.  But lets kick off a dicussion
-> with the atyfb, x86 and ia64 maintainers after this series is in.
-> Which was kinda my plan anyway.
+Just tried 5.3 and 5.4-rc8 on my revived Sun Netra 240 (Ultrasparc III).
+gcc-8 was used to compile 5.3, then as a test, packages were upgraded so
+gcc-9 was used to compile the 5.4-rc8 kernel in question. Did not see any problems with 5.3.
 
-I missed your reply and already sent my patch now. I guess it doesn't
-hurt to discuss that in parallel. Anyway I think that this patch is the
-last one you want an Ack from me for (let me know if I missed one), so
+Started some more package upgrades with 5.4-rc8 with apt and got a crash:
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+[  294.269620] Kernel unaligned access at TPC[5a9e84] generic_permission+0x164/0x200
+[  294.368107] Unable to handle kernel paging request in mna handler
+[  294.368110]  at virtual address 91d0200591d02055
+[  294.508933] current->{active_,}mm->context = 0000000000000001
+[  294.584438] current->{active_,}mm->pgd = fff000133c930000
+[  294.655439]               \|/ ____ \|/
+[  294.655439]               "@'/ .. \`@"
+[  294.655439]               /_| \__/ |_\
+[  294.655439]                  \__U_/
+[  294.848739] systemd(1): Oops [#1]
+[  294.892191] CPU: 0 PID: 1 Comm: systemd Not tainted 5.4.0-rc8 #12
+[  294.972257] TSTATE: 0000009111001600 TPC: 00000000005a9e84 TNPC: 00000000005a9e88 Y: 00000000    Not tainted
+[  295.101497] TPC: <generic_permission+0x164/0x200>
+[  295.163253] g0: 0000000000000000 g1: 91d0200591d02005 g2: 00000000000091d0 g3: 0000000000010000
+[  295.277641] g4: fff000133c0ab760 g5: fff000133ec8a000 g6: fff000133c100000 g7: 0000000000000000
+[  295.392015] o0: 0000000000000001 o1: fff000133c103d38 o2: fff000133c103a40 o3: fff000133c103a38
+[  295.506381] o4: fff000133c103a34 o5: 0000000000040000 sp: fff000133c1030f1 ret_pc: 00000000005abc3c
+[  295.625335] RPC: <lookup_fast+0x9c/0x2c0>
+[  295.677938] l0: fff000133c9bde60 l1: 0000000000200008 l2: 0000010000284df0 l3: 000007feffd41088
+[  295.792320] l4: 00000100000fb0a0 l5: 000001000026ac10 l6: 0000000000000000 l7: fff0000100a65d20
+[  295.906690] i0: fff000132e001d08 i1: 0000000000000081 i2: fff000133c103a38 i3: fff000133c103a34
+[  296.021068] i4: 0000000000000001 i5: 00000000000091d0 i6: fff000133c1031a1 i7: 00000000005a9f40
+[  296.135438] I7: <inode_permission+0x20/0x1e0>
+[  296.192623] Call Trace:
+[  296.224647]  [00000000005a9f40] inode_permission+0x20/0x1e0
+[  296.297851]  [00000000005ad8f4] link_path_walk.part.0+0x74/0x540
+[  296.376770]  [00000000005ae498] path_openat+0x78/0x12e0
+[  296.445420]  [00000000005b0608] do_filp_open+0x48/0xc0
+[  296.512994]  [000000000059c168] do_sys_open+0x168/0x240
+[  296.581716]  [0000000000406254] linux_sparc_syscall+0x34/0x44
+[  296.657291] Disabling lock debugging due to kernel taint
+[  296.727063] Caller[00000000005a9f40]: inode_permission+0x20/0x1e0
+[  296.807121] Caller[00000000005ad8f4]: link_path_walk.part.0+0x74/0x540
+[  296.892905] Caller[00000000005ae498]: path_openat+0x78/0x12e0
+[  296.968388] Caller[00000000005b0608]: do_filp_open+0x48/0xc0
+[  297.042734] Caller[000000000059c168]: do_sys_open+0x168/0x240
+[  297.118218] Caller[0000000000406254]: linux_sparc_syscall+0x34/0x44
+[  297.200570] Caller[fff0000100207200]: 0xfff0000100207200
+[  297.270332] Instruction DUMP:
+[  297.270334]  b8102000
+[  297.309217]  c25e2028
+[  297.340098]  07000040
+[  297.370982] <c2586050>
+[  297.401860]  82084003
+[  297.432743]  22c04007
+[  297.463623]  d0062008
+[  297.494506]  8408a038
+[  297.525384]  80a0a000
+[  297.556264]
+[  297.643992] printk: systemd: 15 output lines suppressed due to ratelimiting
+[  297.735610] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009
+[  297.836282] Press Stop-A (L1-A) from sun keyboard or send break
+[  297.836282] twice on console to return to the boot prom
+[  297.982667] ---[ end Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000009 ]---
+
+-- 
+Meelis Roos <mroos@linux.ee>
