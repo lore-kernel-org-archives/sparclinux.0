@@ -1,86 +1,87 @@
-From: Aleksa Sarai <cyphar@cyphar.com>
-Date: Sat, 16 Nov 2019 00:27:54 +0000
-Subject: [PATCH v16 04/12] namei: LOOKUP_NO_SYMLINKS: block symlink resolution
-Message-Id: <20191116002802.6663-5-cyphar@cyphar.com>
+From: Qais Yousef <qais.yousef@arm.com>
+Date: Mon, 25 Nov 2019 11:27:47 +0000
+Subject: [PATCH v2 07/14] sparc: Replace cpu_up/down with device_online/offline
+Message-Id: <20191125112754.25223-8-qais.yousef@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191116002802.6663-1-cyphar@cyphar.com>
-In-Reply-To: <20191116002802.6663-1-cyphar@cyphar.com>
+References: <20191125112754.25223-1-qais.yousef@arm.com>
+In-Reply-To: <20191125112754.25223-1-qais.yousef@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>
-Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Qais Yousef <qais.yousef@arm.com>, "David S. Miller" <davem@davemloft.net>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-/* Background. */
-Userspace cannot easily resolve a path without resolving symlinks, and
-would have to manually resolve each path component with O_PATH and
-O_NOFOLLOW. This is clearly inefficient, and can be fairly easy to screw
-up (resulting in possible security bugs). Linus has mentioned that Git
-has a particular need for this kind of flag[1]. It also resolves a
-fairly long-standing perceived deficiency in O_NOFOLLOw -- that it only
-blocks the opening of trailing symlinks.
+The core device API performs extra housekeeping bits that are missing
+from directly calling cpu_up/down.
 
-This is part of a refresh of Al's AT_NO_JUMPS patchset[2] (which was a
-variation on David Drysdale's O_BENEATH patchset[3], which in turn was
-based on the Capsicum project[4]).
+See commit a6717c01ddc2 ("powerpc/rtas: use device model APIs and
+serialization during LPM") for an example description of what might go
+wrong.
 
-/* Userspace API. */
-LOOKUP_NO_SYMLINKS will be exposed to userspace through openat2(2).
+This also prepares to make cpu_up/down a private interface for anything
+but the cpu subsystem.
 
-/* Semantics. */
-Unlike most other LOOKUP flags (most notably LOOKUP_FOLLOW),
-LOOKUP_NO_SYMLINKS applies to all components of the path.
-
-With LOOKUP_NO_SYMLINKS, any symlink path component encountered during
-path resolution will yield -ELOOP. If the trailing component is a
-symlink (and no other components were symlinks), then O_PATH|O_NOFOLLOW
-will not error out and will instead provide a handle to the trailing
-symlink -- without resolving it.
-
-/* Testing. */
-LOOKUP_NO_SYMLINKS is tested as part of the openat2(2) selftests.
-
-[1]: https://lore.kernel.org/lkml/CA+55aFyOKM7DW7+0sdDFKdZFXgptb5r1id9=Wvhd8AgSP7qjwQ@mail.gmail.com/
-[2]: https://lore.kernel.org/lkml/20170429220414.GT29622@ZenIV.linux.org.uk/
-[3]: https://lore.kernel.org/lkml/1415094884-18349-1-git-send-email-drysdale@google.com/
-[4]: https://lore.kernel.org/lkml/1404124096-21445-1-git-send-email-drysdale@google.com/
-
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Qais Yousef <qais.yousef@arm.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: sparclinux@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
 ---
- fs/namei.c            | 3 +++
- include/linux/namei.h | 3 +++
- 2 files changed, 6 insertions(+)
+ arch/sparc/kernel/ds.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/fs/namei.c b/fs/namei.c
-index 259652667881..14d6d3afb9d3 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -1052,6 +1052,9 @@ const char *get_link(struct nameidata *nd)
- 	int error;
- 	const char *res;
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index bbf59b3b4af8..39350e5dbaf1 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -550,12 +550,13 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
+ 	mdesc_populate_present_mask(mask);
+ 	mdesc_fill_in_cpu_data(mask);
  
-+	if (unlikely(nd->flags & LOOKUP_NO_SYMLINKS))
-+		return ERR_PTR(-ELOOP);
-+
- 	if (!(nd->flags & LOOKUP_RCU)) {
- 		touch_atime(&last->link);
- 		cond_resched();
-diff --git a/include/linux/namei.h b/include/linux/namei.h
-index 758e9b47db6f..0d86e75c04a7 100644
---- a/include/linux/namei.h
-+++ b/include/linux/namei.h
-@@ -39,6 +39,9 @@ enum {LAST_NORM, LAST_ROOT, LAST_DOT, LAST_DOTDOT, LAST_BIND};
- #define LOOKUP_ROOT		0x2000
- #define LOOKUP_ROOT_GRABBED	0x0008
++	lock_device_hotplug();
+ 	for_each_cpu(cpu, mask) {
+ 		int err;
  
-+/* Scoping flags for lookup. */
-+#define LOOKUP_NO_SYMLINKS	0x010000 /* No symlink crossing. */
-+
- extern int path_pts(struct path *path);
+ 		printk(KERN_INFO "ds-%llu: Starting cpu %d...\n",
+ 		       dp->id, cpu);
+-		err = cpu_up(cpu);
++		err = device_online(get_cpu_device(cpu));
+ 		if (err) {
+ 			__u32 res = DR_CPU_RES_FAILURE;
+ 			__u32 stat = DR_CPU_STAT_UNCONFIGURED;
+@@ -574,6 +575,7 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
+ 			dr_cpu_mark(resp, cpu, ncpus, res, stat);
+ 		}
+ 	}
++	unlock_device_hotplug();
  
- extern int user_path_at_empty(int, const char __user *, unsigned, struct path *, int *empty);
+ 	spin_lock_irqsave(&ds_lock, flags);
+ 	__ds_send(dp->lp, resp, resp_len);
+@@ -606,17 +608,19 @@ static int dr_cpu_unconfigure(struct ds_info *dp,
+ 			     resp_len, ncpus, mask,
+ 			     DR_CPU_STAT_UNCONFIGURED);
+ 
++	lock_device_hotplug();
+ 	for_each_cpu(cpu, mask) {
+ 		int err;
+ 
+ 		printk(KERN_INFO "ds-%llu: Shutting down cpu %d...\n",
+ 		       dp->id, cpu);
+-		err = cpu_down(cpu);
++		err = device_offline(get_cpu_device(cpu));
+ 		if (err)
+ 			dr_cpu_mark(resp, cpu, ncpus,
+ 				    DR_CPU_RES_FAILURE,
+ 				    DR_CPU_STAT_CONFIGURED);
+ 	}
++	unlock_device_hotplug();
+ 
+ 	spin_lock_irqsave(&ds_lock, flags);
+ 	__ds_send(dp->lp, resp, resp_len);
 -- 
-2.24.0
+2.17.1
