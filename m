@@ -1,80 +1,169 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Thu, 19 Dec 2019 12:19:04 +0000
-Subject: [RFC PATCH v3 11/12] arm: smp: use SMP crash-stop common code
-Message-Id: <20191219121905.26905-12-cristian.marussi@arm.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Fri, 06 Dec 2019 14:13:35 +0000
+Subject: [PATCH v18 10/13] namei: LOOKUP_{IN_ROOT,BENEATH}: permit limited ".." resolution
+Message-Id: <20191206141338.23338-11-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191219121905.26905-1-cristian.marussi@arm.com>
-In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
+References: <20191206141338.23338-1-cyphar@cyphar.com>
+In-Reply-To: <20191206141338.23338-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Christian Brauner <christian.brauner@ubuntu.com>, Jann Horn <jannh@google.com>, Linus Torvalds <torvalds@linux-foundation.org>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
 
-Make arm use the SMP common implementation of crash_smp_send_stop() and
-its generic logic, by removing the arm crash_smp_send_stop() definition
-and providing the needed arch specific helpers.
+Allow LOOKUP_BENEATH and LOOKUP_IN_ROOT to safely permit ".." resolution
+(in the case of LOOKUP_BENEATH the resolution will still fail if ".."
+resolution would resolve a path outside of the root -- while
+LOOKUP_IN_ROOT will chroot(2)-style scope it). Magic-link jumps are
+still disallowed entirely[*].
 
-Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+As Jann explains[1,2], the need for this patch (and the original no-".."
+restriction) is explained by observing there is a fairly easy-to-exploit
+race condition with chroot(2) (and thus by extension LOOKUP_IN_ROOT and
+LOOKUP_BENEATH if ".." is allowed) where a rename(2) of a path can be
+used to "skip over" nd->root and thus escape to the filesystem above
+nd->root.
+
+  thread1 [attacker]:
+    for (;;)
+      renameat2(AT_FDCWD, "/a/b/c", AT_FDCWD, "/a/d", RENAME_EXCHANGE);
+  thread2 [victim]:
+    for (;;)
+      openat2(dirb, "b/c/../../etc/shadow",
+              { .flags = O_PATH, .resolve = RESOLVE_IN_ROOT } );
+
+With fairly significant regularity, thread2 will resolve to
+"/etc/shadow" rather than "/a/b/etc/shadow". There is also a similar
+(though somewhat more privileged) attack using MS_MOVE.
+
+With this patch, such cases will be detected *during* ".." resolution
+and will return -EAGAIN for userspace to decide to either retry or abort
+the lookup. It should be noted that ".." is the weak point of chroot(2)
+-- walking *into* a subdirectory tautologically cannot result in you
+walking *outside* nd->root (except through a bind-mount or magic-link).
+There is also no other way for a directory's parent to change (which is
+the primary worry with ".." resolution here) other than a rename or
+MS_MOVE.
+
+The primary reason for deferring to userspace with -EAGAIN is that an
+in-kernel retry loop (or doing a path_is_under() check after re-taking
+the relevant seqlocks) can become unreasonably expensive on machines
+with lots of VFS activity (nfsd can cause lots of rename_lock updates).
+Thus it should be up to userspace how many times they wish to retry the
+lookup -- the selftests for this attack indicate that there is a ~35%
+chance of the lookup succeeding on the first try even with an attacker
+thrashing rename_lock.
+
+A variant of the above attack is included in the selftests for
+openat2(2) later in this patch series. I've run this test on several
+machines for several days and no instances of a breakout were detected.
+While this is not concrete proof that this is safe, when combined with
+the above argument it should lend some trustworthiness to this
+construction.
+
+[*] It may be acceptable in the future to do a path_is_under() check for
+    magic-links after they are resolved. However this seems unlikely to
+    be a feature that people *really* need -- it can be added later if
+    it turns out a lot of people want it.
+
+[1]: https://lore.kernel.org/lkml/CAG48ez1jzNvxB+bfOBnERFGp=oMM0vHWuLD6EULmne3R6xa53w@mail.gmail.com/
+[2]: https://lore.kernel.org/lkml/CAG48ez30WJhbsro2HOc_DR7V91M+hNFzBP5ogRMZaxbAORvqzg@mail.gmail.com/
+
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Suggested-by: Jann Horn <jannh@google.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
- arch/arm/kernel/machine_kexec.c | 29 ++++++++---------------------
- 1 file changed, 8 insertions(+), 21 deletions(-)
+ fs/namei.c | 43 +++++++++++++++++++++++++++----------------
+ 1 file changed, 27 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/kernel/machine_kexec.c b/arch/arm/kernel/machine_kexec.c
-index 76300f3813e8..5289984e3941 100644
---- a/arch/arm/kernel/machine_kexec.c
-+++ b/arch/arm/kernel/machine_kexec.c
-@@ -29,8 +29,6 @@ extern unsigned long kexec_indirection_page;
- extern unsigned long kexec_mach_type;
- extern unsigned long kexec_boot_atags;
+diff --git a/fs/namei.c b/fs/namei.c
+index 69cd0b296e8e..9f60c3f49b8b 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -491,7 +491,7 @@ struct nameidata {
+ 	struct path	root;
+ 	struct inode	*inode; /* path.dentry.d_inode */
+ 	unsigned int	flags;
+-	unsigned	seq, m_seq;
++	unsigned	seq, m_seq, r_seq;
+ 	int		last_type;
+ 	unsigned	depth;
+ 	int		total_link_count;
+@@ -1791,22 +1791,31 @@ static inline int handle_dots(struct nameidata *nd, int type)
+ 	if (type = LAST_DOTDOT) {
+ 		int error = 0;
  
--static atomic_t waiting_for_crash_ipi;
--
- /*
-  * Provide a dummy crash_notes definition while crash dump arrives to arm.
-  * This prevents breakage of crash_notes attribute in kernel/ksysfs.c.
-@@ -89,34 +87,23 @@ void machine_crash_nonpanic_core(void *unused)
- 	crash_save_cpu(&regs, smp_processor_id());
- 	flush_cache_all();
- 
-+	/* ensure saved regs writes are visible before going offline */
-+	smp_wmb();
- 	set_cpu_online(smp_processor_id(), false);
--	atomic_dec(&waiting_for_crash_ipi);
- 
-+	/* ensure all writes visible before parking */
-+	wmb();
- 	while (1) {
- 		cpu_relax();
- 		wfe();
+-		/*
+-		 * Scoped-lookup flags resolving ".." is not currently safe --
+-		 * races can cause our parent to have moved outside of the root
+-		 * and us to skip over it.
+-		 */
+-		if (unlikely(nd->flags & LOOKUP_IS_SCOPED))
+-			return -EXDEV;
+ 		if (!nd->root.mnt) {
+ 			error = set_root(nd);
+ 			if (error)
+ 				return error;
+ 		}
+-		if (nd->flags & LOOKUP_RCU) {
+-			return follow_dotdot_rcu(nd);
+-		} else
+-			return follow_dotdot(nd);
++		if (nd->flags & LOOKUP_RCU)
++			error = follow_dotdot_rcu(nd);
++		else
++			error = follow_dotdot(nd);
++		if (error)
++			return error;
++
++		if (unlikely(nd->flags & LOOKUP_IS_SCOPED)) {
++			/*
++			 * If there was a racing rename or mount along our
++			 * path, then we can't be sure that ".." hasn't jumped
++			 * above nd->root (and so userspace should retry or use
++			 * some fallback).
++			 */
++			smp_rmb();
++			if (unlikely(__read_seqcount_retry(&mount_lock.seqcount, nd->m_seq)))
++				return -EAGAIN;
++			if (unlikely(__read_seqcount_retry(&rename_lock.seqcount, nd->r_seq)))
++				return -EAGAIN;
++		}
  	}
+ 	return 0;
  }
+@@ -2276,6 +2285,11 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
+ 	nd->flags = flags | LOOKUP_JUMPED | LOOKUP_PARENT;
+ 	nd->depth = 0;
++
++	nd->m_seq = __read_seqcount_begin(&mount_lock.seqcount);
++	nd->r_seq = __read_seqcount_begin(&rename_lock.seqcount);
++	smp_rmb();
++
+ 	if (flags & LOOKUP_ROOT) {
+ 		struct dentry *root = nd->root.dentry;
+ 		struct inode *inode = root->d_inode;
+@@ -2284,9 +2298,8 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 		nd->path = nd->root;
+ 		nd->inode = inode;
+ 		if (flags & LOOKUP_RCU) {
+-			nd->seq = __read_seqcount_begin(&nd->path.dentry->d_seq);
++			nd->seq = read_seqcount_begin(&nd->path.dentry->d_seq);
+ 			nd->root_seq = nd->seq;
+-			nd->m_seq = read_seqbegin(&mount_lock);
+ 		} else {
+ 			path_get(&nd->path);
+ 		}
+@@ -2297,8 +2310,6 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 	nd->path.mnt = NULL;
+ 	nd->path.dentry = NULL;
  
--void crash_smp_send_stop(void)
-+void arch_smp_crash_call(cpumask_t *cpus, unsigned int __unused)
- {
--	static int cpus_stopped;
--	unsigned long msecs;
+-	nd->m_seq = read_seqbegin(&mount_lock);
 -
--	if (cpus_stopped)
--		return;
--
--	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
--	smp_call_function(machine_crash_nonpanic_core, NULL, false);
--	msecs = 1000; /* Wait at most a second for the other cpus to stop */
--	while ((atomic_read(&waiting_for_crash_ipi) > 0) && msecs) {
--		mdelay(1);
--		msecs--;
--	}
--	if (atomic_read(&waiting_for_crash_ipi) > 0)
--		pr_warn("Non-crashing CPUs did not react to IPI\n");
--
--	cpus_stopped = 1;
-+	preempt_disable();
-+	smp_call_function_many(cpus, machine_crash_nonpanic_core, NULL, false);
-+	preempt_enable();
- }
- 
- static void machine_kexec_mask_interrupts(void)
+ 	/* Absolute pathname -- fetch the root (LOOKUP_IN_ROOT uses nd->dfd). */
+ 	if (*s = '/' && !(flags & LOOKUP_IN_ROOT)) {
+ 		error = nd_jump_root(nd);
 -- 
-2.17.1
+2.24.0
