@@ -1,224 +1,51 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Thu, 19 Dec 2019 12:18:54 +0000
-Subject: [RFC PATCH v3 01/12] smp: add generic SMP-stop support to common code
-Message-Id: <20191219121905.26905-2-cristian.marussi@arm.com>
+From: Steven Price <steven.price@arm.com>
+Date: Fri, 06 Dec 2019 13:53:00 +0000
+Subject: [PATCH v16 09/25] sparc: mm: Add p?d_leaf() definitions
+Message-Id: <20191206135316.47703-10-steven.price@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191219121905.26905-1-cristian.marussi@arm.com>
-In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
+References: <20191206135316.47703-1-steven.price@arm.com>
+In-Reply-To: <20191206135316.47703-1-steven.price@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
+Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
 
-There was a lot of code duplication across architectures regarding the
-SMP stop procedures' logic; moreover some of this duplicated code logic
-happened to be similarly faulty across a few architectures: while fixing
-such logic, move such generic logic as much as possible inside common
-code.
+walk_page_range() is going to be allowed to walk page tables other than
+those of user space. For this it needs to know when it has reached a
+'leaf' entry in the page tables. This information is provided by the
+p?d_leaf() functions/macros.
 
-Collect all the common logic related to SMP stop operations into the
-common SMP code; any architecture willing to use such centralized logic
-can select CONFIG_ARCH_USE_COMMON_STOP=y and provide the related
-arch-specific helpers: in such a scenario, those architectures will
-transparently start using the common code provided by smp_send_stop()
-common function.
+For sparc 64 bit, pmd_large() and pud_large() are already provided, so
+add macros to provide the p?d_leaf names required by the generic code.
 
-On the other side, Architectures not willing to use common code SMP stop
-logic will simply leave CONFIG_ARCH_USE_COMMON_STOP undefined and carry
-on executing their local arch-specific smp_send_stop() as before.
-
-Suggested-by: Dave Martin <Dave.Martin@arm.com>
-Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Steven Price <steven.price@arm.com>
 ---
-v2 --> v3
-- reviewed wait/timeout helpers avoiding broken shared static globals
-v1 --> v2
-- moved related Kconfig to common code inside arch/Kconfig
-- introduced additional CONFIG_USE_COMMON_STOP selected by
-  CONFIG_ARCH_USE_COMMON_STOP
-- introduced helpers to let architectures optionally alter
-  the default common code behaviour while waiting for CPUs:
-  change timeout or wait for ever. (will be needed by x86)
----
- arch/Kconfig        |  7 ++++
- include/linux/smp.h | 39 +++++++++++++++++++
- kernel/smp.c        | 91 +++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 137 insertions(+)
+ arch/sparc/include/asm/pgtable_64.h | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 48b5e103bdb0..99550754e2ea 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -169,6 +169,13 @@ config ARCH_USE_BUILTIN_BSWAP
- 	 instructions should set this. And it shouldn't hurt to set it
- 	 on architectures that don't have such instructions.
- 
-+config ARCH_USE_COMMON_SMP_STOP
-+       def_bool n
-+
-+config USE_COMMON_SMP_STOP
-+       depends on SMP && ARCH_USE_COMMON_SMP_STOP
-+       def_bool y
-+
- config KRETPROBES
- 	def_bool y
- 	depends on KPROBES && HAVE_KRETPROBES
-diff --git a/include/linux/smp.h b/include/linux/smp.h
-index 6fc856c9eda5..22a0adeb7350 100644
---- a/include/linux/smp.h
-+++ b/include/linux/smp.h
-@@ -77,6 +77,45 @@ int smp_call_function_single_async(int cpu, call_single_data_t *csd);
-  */
- extern void smp_send_stop(void);
- 
-+#ifdef CONFIG_USE_COMMON_SMP_STOP
-+/*
-+ * An Architecture can optionally use this helper to change the default
-+ * waiting behaviour of common STOP logic.
-+ */
-+void smp_stop_set_wait_forever(bool wait_forever);
-+
-+/*
-+ * An Architecture can optionally use this helper to change the default
-+ * waiting timeout of common STOP logic.
-+ * A ZERO timeout means no waiting at all as long as waiting forever was
-+ * not also previously set.
-+ *
-+ * Note that, in this way, waiting forever and timeout period settings
-+ * remain disjoint.
-+ */
-+void smp_stop_set_wait_timeout_us(unsigned long timeout);
-+
-+/*
-+ * Retrieve the current SMP STOP wait settings.
-+ * Returns true if waiting forever is set.
-+ */
-+bool smp_stop_get_wait_settings(unsigned long *timeout);
-+
-+/*
-+ * Any Architecture willing to use STOP common logic implementation
-+ * MUST at least provide the arch_smp_stop_call() helper which implements
-+ * the arch-specific CPU-stop mechanism.
-+ */
-+extern void arch_smp_stop_call(cpumask_t *cpus);
-+
-+/*
-+ * An Architecture CAN also provide the arch_smp_cpus_stop_complete()
-+ * dedicated helper, to perform any final arch-specific operation on
-+ * the local CPU once the other CPUs have been successfully stopped.
-+ */
-+void arch_smp_cpus_stop_complete(void);
-+#endif
-+
- /*
-  * sends a 'reschedule' event to another CPU:
-  */
-diff --git a/kernel/smp.c b/kernel/smp.c
-index 7dbcb402c2fc..de29cd94a948 100644
---- a/kernel/smp.c
-+++ b/kernel/smp.c
-@@ -20,6 +20,7 @@
- #include <linux/sched.h>
- #include <linux/sched/idle.h>
- #include <linux/hypervisor.h>
-+#include <linux/delay.h>
- 
- #include "smpboot.h"
- 
-@@ -817,3 +818,93 @@ int smp_call_on_cpu(unsigned int cpu, int (*func)(void *), void *par, bool phys)
- 	return sscs.ret;
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 6ae8016ef4ec..43206652eaf5 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -683,6 +683,7 @@ static inline unsigned long pte_special(pte_t pte)
+ 	return pte_val(pte) & _PAGE_SPECIAL;
  }
- EXPORT_SYMBOL_GPL(smp_call_on_cpu);
-+
-+#ifdef CONFIG_USE_COMMON_SMP_STOP
-+static atomic_t smp_stop_wait_forever;
-+static atomic_t smp_stop_wait_timeout = ATOMIC_INIT(USEC_PER_SEC);
-+
-+void smp_stop_set_wait_forever(bool wait_forever)
-+{
-+	atomic_set(&smp_stop_wait_forever, wait_forever);
-+	/* ensure wait atomic-op is visible */
-+	smp_mb__after_atomic();
-+}
-+
-+void smp_stop_set_wait_timeout_us(unsigned long timeout)
-+{
-+	atomic_set(&smp_stop_wait_timeout, timeout);
-+	/* ensure timeout atomic-op is visible */
-+	smp_mb__after_atomic();
-+}
-+
-+bool smp_stop_get_wait_settings(unsigned long *timeout)
-+{
-+	if (timeout)
-+		*timeout = atomic_read(&smp_stop_wait_timeout);
-+	return atomic_read(&smp_stop_wait_forever);
-+}
-+
-+void __weak arch_smp_cpus_stop_complete(void) { }
-+
-+static inline bool any_other_cpus_online(cpumask_t *mask,
-+					 unsigned int this_cpu_id)
-+{
-+	cpumask_copy(mask, cpu_online_mask);
-+	cpumask_clear_cpu(this_cpu_id, mask);
-+
-+	return !cpumask_empty(mask);
-+}
-+
-+/*
-+ * This centralizes the common logic to:
-+ *
-+ *  - evaluate which CPUs are online and needs to be notified for stop,
-+ *    while considering properly the status of the calling CPU
-+ *
-+ *  - call the arch-specific helpers to request the effective stop
-+ *
-+ *  - wait for the stop operation to be completed across all involved CPUs
-+ *    monitoring the cpu_online_mask
-+ */
-+void smp_send_stop(void)
-+{
-+	unsigned int this_cpu_id;
-+	cpumask_t mask;
-+
-+	this_cpu_id = smp_processor_id();
-+	if (any_other_cpus_online(&mask, this_cpu_id)) {
-+		bool wait_forever;
-+		unsigned long timeout;
-+		unsigned int this_cpu_online = cpu_online(this_cpu_id);
-+
-+		if (system_state <= SYSTEM_RUNNING)
-+			pr_crit("stopping secondary CPUs\n");
-+		arch_smp_stop_call(&mask);
-+
-+		/*
-+		 * Defaults to wait up to one second for other CPUs to stop;
-+		 * architectures can modify the default timeout or request
-+		 * to wait forever.
-+		 *
-+		 * Here we rely simply on cpu_online_mask to sync with
-+		 * arch-specific stop code without bloating the code with an
-+		 * additional atomic_t ad-hoc counter.
-+		 *
-+		 * As a consequence we'll need proper explicit memory barriers
-+		 * in case the other CPUs running the arch-specific stop-code
-+		 * would need to commit to memory some data (like saved_regs).
-+		 */
-+		wait_forever = smp_stop_get_wait_settings(&timeout);
-+		while (num_online_cpus() > this_cpu_online &&
-+		       (wait_forever || timeout--))
-+			udelay(1);
-+		/* ensure any stopping-CPUs memory access is made visible */
-+		smp_rmb();
-+		if (num_online_cpus() > this_cpu_online)
-+			pr_warn("failed to stop secondary CPUs %*pbl\n",
-+				cpumask_pr_args(cpu_online_mask));
-+	}
-+	/* Perform final (possibly arch-specific) work on this CPU */
-+	arch_smp_cpus_stop_complete();
-+}
-+#endif
+ 
++#define pmd_leaf	pmd_large
+ static inline unsigned long pmd_large(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
+@@ -867,6 +868,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
+ /* only used by the stubbed out hugetlb gup code, should never be called */
+ #define pgd_page(pgd)			NULL
+ 
++#define pud_leaf	pud_large
+ static inline unsigned long pud_large(pud_t pud)
+ {
+ 	pte_t pte = __pte(pud_val(pud));
 -- 
-2.17.1
+2.20.1
