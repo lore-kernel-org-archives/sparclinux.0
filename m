@@ -1,88 +1,114 @@
-From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Thu, 19 Dec 2019 12:19:03 +0000
-Subject: [RFC PATCH v3 10/12] arm: smp: use generic SMP stop common code
-Message-Id: <20191219121905.26905-11-cristian.marussi@arm.com>
+From: Aleksa Sarai <cyphar@cyphar.com>
+Date: Fri, 06 Dec 2019 14:13:29 +0000
+Subject: [PATCH v18 04/13] namei: allow set_root() to produce errors
+Message-Id: <20191206141338.23338-5-cyphar@cyphar.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191219121905.26905-1-cristian.marussi@arm.com>
-In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
+References: <20191206141338.23338-1-cyphar@cyphar.com>
+In-Reply-To: <20191206141338.23338-1-cyphar@cyphar.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
+To: Al Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, Shuah Khan <shuah@kernel.org>, Shuah Khan <skhan@linuxfoundation.org>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Martin KaFai Lau <kafai@fb.com>, Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>, Andrii Nakryiko <andriin@fb.com>, Jonathan Corbet <corbet@lwn.net>
+Cc: Aleksa Sarai <cyphar@cyphar.com>, Eric Biederman <ebiederm@xmission.com>, Andy Lutomirski <luto@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Kees Cook <keescook@chromium.org>, Jann Horn <jannh@google.com>, Tycho Andersen <tycho@tycho.ws>, David Drysdale <drysdale@google.com>, Chanho Min <chanho.min@lge.com>, Oleg Nesterov <oleg@redhat.com>, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Christian Brauner <christian@brauner.io>, Aleksa Sarai <asarai@suse.de>, Linus Torvalds <torvalds@linux-foundation.org>, dev@opencontainers.org, containers@lists.linux-foundation.org, bpf@vger.kernel.org, netdev@vger.kernel.org, linux-alpha@vger.kernel.org, linux-api@vger.kernel.org, libc-alpha@sourceware.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-kselftest@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
 
-Make arm use the generic SMP-stop logic provided by common code
-unified smp_send_stop() function.
+For LOOKUP_BENEATH and LOOKUP_IN_ROOT it is necessary to ensure that
+set_root() is never called, and thus (for hardening purposes) it should
+return an error rather than permit a breakout from the root. In
+addition, move all of the repetitive set_root() calls to nd_jump_root().
 
-Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+Signed-off-by: Aleksa Sarai <cyphar@cyphar.com>
 ---
-v2 --> v3
-- conflicts
-- added missing barriers
----
- arch/arm/Kconfig      |  1 +
- arch/arm/kernel/smp.c | 22 ++++++----------------
- 2 files changed, 7 insertions(+), 16 deletions(-)
+ fs/namei.c | 35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index ba75e3661a41..40f6961c449c 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -35,6 +35,7 @@ config ARM
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select ARCH_WANT_DEFAULT_TOPDOWN_MMAP_LAYOUT if MMU
- 	select ARCH_WANT_IPC_PARSE_VERSION
-+	select ARCH_USE_COMMON_SMP_STOP
- 	select BINFMT_FLAT_ARGVP_ENVP_ON_STACK
- 	select BUILDTIME_EXTABLE_SORT if MMU
- 	select CLONE_BACKWARDS
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 46e1be9e57a8..f03e9bbf4116 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -598,6 +598,8 @@ static void ipi_cpu_stop(unsigned int cpu)
- 	}
- 
- 	set_cpu_online(cpu, false);
-+	/* ensure all writes are globally visible before cpu parks */
-+	wmb();
- 
- 	local_fiq_disable();
- 	local_irq_disable();
-@@ -705,23 +707,9 @@ void smp_send_reschedule(int cpu)
- 	smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
+diff --git a/fs/namei.c b/fs/namei.c
+index 1024a641f075..74574a69a614 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -798,7 +798,7 @@ static int complete_walk(struct nameidata *nd)
+ 	return status;
  }
  
--void smp_send_stop(void)
-+void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
+-static void set_root(struct nameidata *nd)
++static int set_root(struct nameidata *nd)
  {
--	unsigned long timeout;
--	struct cpumask mask;
--
--	cpumask_copy(&mask, cpu_online_mask);
--	cpumask_clear_cpu(smp_processor_id(), &mask);
--	if (!cpumask_empty(&mask))
--		smp_cross_call(&mask, IPI_CPU_STOP);
--
--	/* Wait up to one second for other CPUs to stop */
--	timeout = USEC_PER_SEC;
--	while (num_online_cpus() > 1 && timeout--)
--		udelay(1);
--
--	if (num_online_cpus() > 1)
--		pr_warn("SMP: failed to stop secondary CPUs\n");
-+	smp_cross_call(cpus, IPI_CPU_STOP);
+ 	struct fs_struct *fs = current->fs;
+ 
+@@ -814,6 +814,7 @@ static void set_root(struct nameidata *nd)
+ 		get_fs_root(fs, &nd->root);
+ 		nd->flags |= LOOKUP_ROOT_GRABBED;
+ 	}
++	return 0;
  }
  
- /* In case panic() and panic() called at the same time on CPU1 and CPU2,
-@@ -735,6 +723,8 @@ void panic_smp_self_stop(void)
- 	pr_debug("CPU %u will stop doing anything useful since another CPU has paniced\n",
- 	         smp_processor_id());
- 	set_cpu_online(smp_processor_id(), false);
-+	/* ensure all writes visible before parking */
-+	wmb();
- 	while (1)
- 		cpu_relax();
- }
+ static void path_put_conditional(struct path *path, struct nameidata *nd)
+@@ -837,6 +838,11 @@ static inline void path_to_nameidata(const struct path *path,
+ 
+ static int nd_jump_root(struct nameidata *nd)
+ {
++	if (!nd->root.mnt) {
++		int error = set_root(nd);
++		if (error)
++			return error;
++	}
+ 	if (nd->flags & LOOKUP_RCU) {
+ 		struct dentry *d;
+ 		nd->path = nd->root;
+@@ -1080,10 +1086,9 @@ const char *get_link(struct nameidata *nd)
+ 			return res;
+ 	}
+ 	if (*res = '/') {
+-		if (!nd->root.mnt)
+-			set_root(nd);
+-		if (unlikely(nd_jump_root(nd)))
+-			return ERR_PTR(-ECHILD);
++		error = nd_jump_root(nd);
++		if (unlikely(error))
++			return ERR_PTR(error);
+ 		while (unlikely(*++res = '/'))
+ 			;
+ 	}
+@@ -1698,8 +1703,13 @@ static inline int may_lookup(struct nameidata *nd)
+ static inline int handle_dots(struct nameidata *nd, int type)
+ {
+ 	if (type = LAST_DOTDOT) {
+-		if (!nd->root.mnt)
+-			set_root(nd);
++		int error = 0;
++
++		if (!nd->root.mnt) {
++			error = set_root(nd);
++			if (error)
++				return error;
++		}
+ 		if (nd->flags & LOOKUP_RCU) {
+ 			return follow_dotdot_rcu(nd);
+ 		} else
+@@ -2162,6 +2172,7 @@ static int link_path_walk(const char *name, struct nameidata *nd)
+ /* must be paired with terminate_walk() */
+ static const char *path_init(struct nameidata *nd, unsigned flags)
+ {
++	int error;
+ 	const char *s = nd->name->name;
+ 
+ 	if (!*s)
+@@ -2194,11 +2205,13 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 	nd->path.dentry = NULL;
+ 
+ 	nd->m_seq = read_seqbegin(&mount_lock);
++
++	/* Figure out the starting path and root (if needed). */
+ 	if (*s = '/') {
+-		set_root(nd);
+-		if (likely(!nd_jump_root(nd)))
+-			return s;
+-		return ERR_PTR(-ECHILD);
++		error = nd_jump_root(nd);
++		if (unlikely(error))
++			return ERR_PTR(error);
++		return s;
+ 	} else if (nd->dfd = AT_FDCWD) {
+ 		if (flags & LOOKUP_RCU) {
+ 			struct fs_struct *fs = current->fs;
 -- 
-2.17.1
+2.24.0
