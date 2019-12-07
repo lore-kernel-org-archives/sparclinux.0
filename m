@@ -1,13 +1,17 @@
-From: Beth Nat <anthonymoore105@gmail.com>
-Date: Tue, 24 Dec 2019 08:47:10 +0000
-Subject: 
-Message-Id: <CAKqrdYCjdg7tKr1Bgbtcoo-HGDCypDL8xnV8R2ZpiJxfRimm-A@mail.gmail.com>
+From: " Mrs.Samira Hassim" <mr.zumaabubaka@gmail.com>
+Date: Sat, 07 Dec 2019 00:10:44 +0000
+Subject: OK
+Message-Id: <CAMM86CC3=BEqq-Lz0wUUkumjJ7Q+jDdqmcgcLye4NFpYOo28gg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-sctp@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-How are you today my dear? i saw your profile and it interests me, i
-am a Military nurse from USA. Can we be friend? I want to know more
-about you.
+Greetings My Dearest One.
+
+My name is Mrs.Samira Hassim, i saw your profile and became interested
+in you, please contact me through my email address
+(sharmamrssandhya011@gmail.com) to know each other and i have
+something very important to tell you, i wait for your response to my
+email ID. (sharmamrssandhya011@gmail.com
