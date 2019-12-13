@@ -1,45 +1,97 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Mon, 16 Dec 2019 04:56:56 +0000
-Subject: Re: [PATCH V11] mm/debug: Add tests validating architecture page table helpers
-Message-Id: <d433f5a8-20a5-2862-8228-9ca72633b530@arm.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 13 Dec 2019 20:49:10 +0000
+Subject: [PATCH v2 01/24] Input: input_event: fix struct padding on sparc64
+Message-Id: <20191213204936.3643476-2-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1575364731-18131-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1575364731-18131-1-git-send-email-anshuman.khandual@arm.com>
+References: <20191213204936.3643476-1-arnd@arndb.de>
+In-Reply-To: <20191213204936.3643476-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, James Hogan <jhogan@kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@kernel.org>, Kees Cook <keescook@chromium.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Deepa Dinamani <deepa.kernel@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Lubomir Rintel <lkundrak@v3.sk>, Thomas Gleixner <tglx@linutronix.de>, linux-input@vger.kernel.org
 
+Going through all uses of timeval, I noticed that we screwed up
+input_event in the previous attempts to fix it:
 
+The time fields now match between kernel and user space, but
+all following fields are in the wrong place.
 
-On 12/03/2019 02:48 PM, Anshuman Khandual wrote:
-> This adds tests which will validate architecture page table helpers and
-> other accessors in their compliance with expected generic MM semantics.
-> This will help various architectures in validating changes to existing
-> page table helpers or addition of new ones.
-> 
-> This test covers basic page table entry transformations including but not
-> limited to old, young, dirty, clean, write, write protect etc at various
-> level along with populating intermediate entries with next page table page
-> and validating them.
-> 
-> Test page table pages are allocated from system memory with required size
-> and alignments. The mapped pfns at page table levels are derived from a
-> real pfn representing a valid kernel text symbol. This test gets called
-> right after page_alloc_init_late().
-> 
-> This gets build and run when CONFIG_DEBUG_VM_PGTABLE is selected along with
-> CONFIG_VM_DEBUG. Architectures willing to subscribe this test also need to
-> select CONFIG_ARCH_HAS_DEBUG_VM_PGTABLE which for now is limited to x86 and
-> arm64. Going forward, other architectures too can enable this after fixing
-> build or runtime problems (if any) with their page table helpers.
-> 
-> Folks interested in making sure that a given platform's page table helpers
-> conform to expected generic MM semantics should enable the above config
-> which will just trigger this test during boot. Any non conformity here will
-> be reported as an warning which would need to be fixed. This test will help
-> catch any changes to the agreed upon semantics expected from generic MM and
-> enable platforms to accommodate it thereafter.
+Add the required padding that is implied by the glibc timeval
+definition to fix the layout, and use a struct initializer
+to avoid leaking kernel stack data.
 
-Any updates on this ?
+Cc: sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Fixes: 141e5dcaa735 ("Input: input_event - fix the CONFIG_SPARC64 mixup")
+Fixes: 2e746942ebac ("Input: input_event - provide override for sparc64")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/input/evdev.c       | 14 +++++++-------
+ drivers/input/misc/uinput.c | 14 +++++++++-----
+ include/uapi/linux/input.h  |  1 +
+ 3 files changed, 17 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
+index d7dd6fcf2db0..f918fca9ada3 100644
+--- a/drivers/input/evdev.c
++++ b/drivers/input/evdev.c
+@@ -224,13 +224,13 @@ static void __pass_event(struct evdev_client *client,
+ 		 */
+ 		client->tail = (client->head - 2) & (client->bufsize - 1);
+ 
+-		client->buffer[client->tail].input_event_sec -						event->input_event_sec;
+-		client->buffer[client->tail].input_event_usec -						event->input_event_usec;
+-		client->buffer[client->tail].type = EV_SYN;
+-		client->buffer[client->tail].code = SYN_DROPPED;
+-		client->buffer[client->tail].value = 0;
++		client->buffer[client->tail] = (struct input_event) {
++			.input_event_sec = event->input_event_sec,
++			.input_event_usec = event->input_event_usec,
++			.type = EV_SYN,
++			.code = SYN_DROPPED,
++			.value = 0,
++		};
+ 
+ 		client->packet_head = client->tail;
+ 	}
+diff --git a/drivers/input/misc/uinput.c b/drivers/input/misc/uinput.c
+index fd253781be71..2dabbe47d43e 100644
+--- a/drivers/input/misc/uinput.c
++++ b/drivers/input/misc/uinput.c
+@@ -74,12 +74,16 @@ static int uinput_dev_event(struct input_dev *dev,
+ 	struct uinput_device	*udev = input_get_drvdata(dev);
+ 	struct timespec64	ts;
+ 
+-	udev->buff[udev->head].type = type;
+-	udev->buff[udev->head].code = code;
+-	udev->buff[udev->head].value = value;
+ 	ktime_get_ts64(&ts);
+-	udev->buff[udev->head].input_event_sec = ts.tv_sec;
+-	udev->buff[udev->head].input_event_usec = ts.tv_nsec / NSEC_PER_USEC;
++
++	udev->buff[udev->head] = (struct input_event) {
++		.input_event_sec = ts.tv_sec,
++		.input_event_usec = ts.tv_nsec / NSEC_PER_USEC,
++		.type = type,
++		.code = code,
++		.value = value,
++	};
++
+ 	udev->head = (udev->head + 1) % UINPUT_BUFFER_SIZE;
+ 
+ 	wake_up_interruptible(&udev->waitq);
+diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+index f056b2a00d5c..9a61c28ed3ae 100644
+--- a/include/uapi/linux/input.h
++++ b/include/uapi/linux/input.h
+@@ -34,6 +34,7 @@ struct input_event {
+ 	__kernel_ulong_t __sec;
+ #if defined(__sparc__) && defined(__arch64__)
+ 	unsigned int __usec;
++	unsigned int __pad;
+ #else
+ 	__kernel_ulong_t __usec;
+ #endif
+-- 
+2.20.0
