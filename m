@@ -1,54 +1,166 @@
-From: Dmitry Safonov <dima@arista.com>
-Date: Fri, 13 Dec 2019 00:06:46 +0000
-Subject: [PATCH 47/58] tty/serial: Migrate sunsu to use has_sysrq
-Message-Id: <20191213000657.931618-48-dima@arista.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 13 Dec 2019 20:49:09 +0000
+Subject: [PATCH v2 00/24] drivers, fs: y2038 updates
+Message-Id: <20191213204936.3643476-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191213000657.931618-1-dima@arista.com>
-In-Reply-To: <20191213000657.931618-1-dima@arista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>, Dmitry Safonov <dima@arista.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Vasiliy Khoruzhick <vasilykh@arista.com>, linux-serial@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
+Cc: airlied@linux.ie, dri-devel@lists.freedesktop.org, jcmvbkbc@gmail.com, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, devel@driverdev.osuosl.org, darrick.wong@oracle.com, richard@nod.at, cluster-devel@redhat.com, ccaulfie@redhat.com, linux+etnaviv@armlinux.org.uk, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, jdike@addtoit.com, linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org, teigland@redhat.com, viro@zeniv.linux.org.uk, tglx@linutronix.de, sean@poorly.run, trond.myklebust@hammerspace.com, hirofumi@mail.parknet.co.jp, linux-nfs@vger.kernel.org, valdis.kletnieks@vt.edu, rfontana@redhat.com, gregkh@linuxfoundation.org, fw@strlen.de, anna.schumaker@netapp.com, linux-xfs@vger.kernel.org, stefanr@s5r6.in-berlin.de, jack@suse.com, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org, davem@davemloft.net
 
-The SUPPORT_SYSRQ ifdeffery is not nice as:
-- May create misunderstanding about sizeof(struct uart_port) between
-  different objects
-- Prevents moving functions from serial_core.h
-- Reduces readability (well, it's ifdeffery - it's hard to follow)
+These are updates to devidce drivers and file systems that for some
+reason or another were not included in the kernel in the previous
+y2038 series.
 
-In order to remove SUPPORT_SYSRQ, has_sysrq variable has been added.
-Initialise it in driver's probe and remove ifdeffery.
+I've gone through all users of time_t again to make sure the
+kernel is in a long-term maintainable state.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Dmitry Safonov <dima@arista.com>
----
- drivers/tty/serial/sunsu.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+Posting these as a series for better organization, but each change
+here is applicable standalone.
 
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index 4db6aaa330b2..8ce9a7a256e5 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -44,10 +44,6 @@
- #include <asm/prom.h>
- #include <asm/setup.h>
- 
--#if defined(CONFIG_SERIAL_SUNSU_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
--#define SUPPORT_SYSRQ
--#endif
--
- #include <linux/serial_core.h>
- #include <linux/sunserialcore.h>
- 
-@@ -1475,6 +1471,7 @@ static int su_probe(struct platform_device *op)
- 
- 	up->port.type = PORT_UNKNOWN;
- 	up->port.uartclk = (SU_BASE_BAUD * 16);
-+	up->port.has_sysrq = IS_ENABLED(CONFIG_SERIAL_SUNSU_CONSOLE);
- 
- 	err = 0;
- 	if (up->su_type = SU_PORT_KBD || up->su_type = SU_PORT_MS) {
+Please merge, review, ack/nack etc as you see fit. I will
+add these to my y2038 branch [1] for linux-next, but can keep
+rebasing for feedback and to remove any patches that get
+picked up by a maintainer.
+
+Changes since v1 [2]:
+
+- Add Acks I received
+- Rebase to v5.5-rc1, droping patches that got merged already
+- Add NFS, XFS and the final three patches from another series
+- Rewrite etnaviv patches
+
+      Arnd
+
+[1] https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038
+[2] https://lore.kernel.org/lkml/20191108213257.3097633-1-arnd@arndb.de/
+
+Arnd Bergmann (24):
+  Input: input_event: fix struct padding on sparc64
+  fat: use prandom_u32() for i_generation
+  dlm: use SO_SNDTIMEO_NEW instead of SO_SNDTIMEO_OLD
+  xtensa: ISS: avoid struct timeval
+  um: ubd: use 64-bit time_t where possible
+  acct: stop using get_seconds()
+  tsacct: add 64-bit btime field
+  packet: clarify timestamp overflow
+  quota: avoid time_t in v1_disk_dqblk definition
+  hostfs: pass 64-bit timestamps to/from user space
+  hfs/hfsplus: use 64-bit inode timestamps
+  drm/msm: avoid using 'timespec'
+  drm/etnaviv: reject timeouts with tv_nsec >= NSEC_PER_SEC
+  drm/etnaviv: avoid deprecated timespec
+  sunrpc: convert to time64_t for expiry
+  nfs: use time64_t internally
+  nfs: fix timstamp debug prints
+  nfs: fscache: use timespec64 in inode auxdata
+  xfs: rename compat_time_t to old_time32_t
+  xfs: disallow broken ioctls without compat-32-bit-time
+  xfs: quota: move to time64_t interfaces
+  y2038: remove obsolete jiffies conversion functions
+  y2038: rename itimerval to __kernel_old_itimerval
+  y2038: sparc: remove use of struct timex
+
+ arch/sparc/kernel/sys_sparc_64.c              | 29 +++++-----
+ arch/um/drivers/cow.h                         |  2 +-
+ arch/um/drivers/cow_user.c                    |  7 ++-
+ arch/um/drivers/ubd_kern.c                    | 10 ++--
+ arch/um/include/shared/os.h                   |  2 +-
+ arch/um/os-Linux/file.c                       |  2 +-
+ .../platforms/iss/include/platform/simcall.h  |  4 +-
+ drivers/gpu/drm/etnaviv/etnaviv_drv.c         | 20 ++++---
+ drivers/gpu/drm/etnaviv/etnaviv_drv.h         | 11 ++--
+ drivers/gpu/drm/etnaviv/etnaviv_gem.c         |  4 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem.h         |  2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.c         |  5 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.h         |  5 +-
+ drivers/gpu/drm/msm/msm_drv.h                 |  3 +-
+ drivers/input/evdev.c                         | 14 ++---
+ drivers/input/misc/uinput.c                   | 14 +++--
+ fs/dlm/lowcomms.c                             |  6 +-
+ fs/fat/inode.c                                |  3 +-
+ fs/hfs/hfs_fs.h                               | 28 +++++++--
+ fs/hfs/inode.c                                |  4 +-
+ fs/hfsplus/hfsplus_fs.h                       | 28 +++++++--
+ fs/hfsplus/inode.c                            | 12 ++--
+ fs/hostfs/hostfs.h                            | 22 ++++---
+ fs/hostfs/hostfs_kern.c                       | 15 +++--
+ fs/nfs/fscache-index.c                        |  6 +-
+ fs/nfs/fscache.c                              | 18 ++++--
+ fs/nfs/fscache.h                              |  8 ++-
+ fs/nfs/nfs4xdr.c                              | 10 ++--
+ fs/quota/quotaio_v1.h                         |  6 +-
+ fs/xfs/xfs_dquot.c                            |  6 +-
+ fs/xfs/xfs_ioctl.c                            | 26 +++++++++
+ fs/xfs/xfs_ioctl32.c                          |  2 +-
+ fs/xfs/xfs_ioctl32.h                          |  2 +-
+ fs/xfs/xfs_qm.h                               |  6 +-
+ fs/xfs/xfs_quotaops.c                         |  6 +-
+ fs/xfs/xfs_trans_dquot.c                      |  8 ++-
+ include/linux/jiffies.h                       | 20 -------
+ include/linux/sunrpc/cache.h                  | 42 ++++++++------
+ include/linux/sunrpc/gss_api.h                |  4 +-
+ include/linux/sunrpc/gss_krb5.h               |  2 +-
+ include/linux/syscalls.h                      |  9 ++-
+ include/uapi/linux/acct.h                     |  2 +
+ include/uapi/linux/input.h                    |  1 +
+ include/uapi/linux/taskstats.h                |  6 +-
+ include/uapi/linux/time_types.h               |  5 ++
+ include/uapi/linux/timex.h                    |  2 +
+ kernel/acct.c                                 |  4 +-
+ kernel/time/itimer.c                          | 18 +++---
+ kernel/time/time.c                            | 58 ++-----------------
+ kernel/tsacct.c                               |  9 ++-
+ net/packet/af_packet.c                        | 27 +++++----
+ net/sunrpc/auth_gss/gss_krb5_mech.c           | 12 +++-
+ net/sunrpc/auth_gss/gss_krb5_seal.c           |  8 +--
+ net/sunrpc/auth_gss/gss_krb5_unseal.c         |  6 +-
+ net/sunrpc/auth_gss/gss_krb5_wrap.c           | 16 ++---
+ net/sunrpc/auth_gss/gss_mech_switch.c         |  2 +-
+ net/sunrpc/auth_gss/svcauth_gss.c             |  6 +-
+ net/sunrpc/cache.c                            | 16 ++---
+ net/sunrpc/svcauth_unix.c                     | 10 ++--
+ 59 files changed, 351 insertions(+), 290 deletions(-)
+
 -- 
-2.24.0
+2.20.0
+
+Cc: jdike@addtoit.com
+Cc: richard@nod.at
+Cc: jcmvbkbc@gmail.com
+Cc: stefanr@s5r6.in-berlin.de
+Cc: l.stach@pengutronix.de
+Cc: linux+etnaviv@armlinux.org.uk
+Cc: christian.gmeiner@gmail.com
+Cc: airlied@linux.ie
+Cc: daniel@ffwll.ch
+Cc: robdclark@gmail.com
+Cc: sean@poorly.run
+Cc: valdis.kletnieks@vt.edu
+Cc: gregkh@linuxfoundation.org
+Cc: ccaulfie@redhat.com
+Cc: teigland@redhat.com
+Cc: hirofumi@mail.parknet.co.jp
+Cc: jack@suse.com
+Cc: davem@davemloft.net
+Cc: fw@strlen.de
+Cc: viro@zeniv.linux.org.uk
+Cc: rfontana@redhat.com
+Cc: tglx@linutronix.de
+Cc: linux-um@lists.infradead.org
+Cc: linux1394-devel@lists.sourceforge.net
+Cc: etnaviv@lists.freedesktop.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-arm-msm@vger.kernel.org
+Cc: freedreno@lists.freedesktop.org
+Cc: devel@driverdev.osuosl.org
+Cc: cluster-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: trond.myklebust@hammerspace.com
+Cc: anna.schumaker@netapp.com
+Cc: linux-nfs@vger.kernel.org
+Cc: linux-xfs@vger.kernel.org
+Cc: darrick.wong@oracle.com
+Cc: sparclinux@vger.kernel.org
