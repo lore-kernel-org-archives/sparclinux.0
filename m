@@ -1,97 +1,106 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 13 Dec 2019 20:49:10 +0000
-Subject: [PATCH v2 01/24] Input: input_event: fix struct padding on sparc64
-Message-Id: <20191213204936.3643476-2-arnd@arndb.de>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Date: Fri, 13 Dec 2019 22:08:30 +0000
+Subject: Re: [PATCH v2 01/24] Input: input_event: fix struct padding on sparc64
+Message-Id: <20191213220830.GK101194@dtor-ws>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20191213204936.3643476-1-arnd@arndb.de>
-In-Reply-To: <20191213204936.3643476-1-arnd@arndb.de>
+ <20191213204936.3643476-2-arnd@arndb.de>
+In-Reply-To: <20191213204936.3643476-2-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Deepa Dinamani <deepa.kernel@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Lubomir Rintel <lkundrak@v3.sk>, Thomas Gleixner <tglx@linutronix.de>, linux-input@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: y2038@lists.linaro.org, linux-kernel@vger.kernel.org, Deepa Dinamani <deepa.kernel@gmail.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, stable@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Lubomir Rintel <lkundrak@v3.sk>, Thomas Gleixner <tglx@linutronix.de>, linux-input@vger.kernel.org
 
-Going through all uses of timeval, I noticed that we screwed up
-input_event in the previous attempts to fix it:
+On Fri, Dec 13, 2019 at 09:49:10PM +0100, Arnd Bergmann wrote:
+> Going through all uses of timeval, I noticed that we screwed up
+> input_event in the previous attempts to fix it:
+> 
+> The time fields now match between kernel and user space, but
+> all following fields are in the wrong place.
+> 
+> Add the required padding that is implied by the glibc timeval
+> definition to fix the layout, and use a struct initializer
+> to avoid leaking kernel stack data.
+> 
+> Cc: sparclinux@vger.kernel.org
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Fixes: 141e5dcaa735 ("Input: input_event - fix the CONFIG_SPARC64 mixup")
+> Fixes: 2e746942ebac ("Input: input_event - provide override for sparc64")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-The time fields now match between kernel and user space, but
-all following fields are in the wrong place.
+Applied, thank you.
 
-Add the required padding that is implied by the glibc timeval
-definition to fix the layout, and use a struct initializer
-to avoid leaking kernel stack data.
+> ---
+>  drivers/input/evdev.c       | 14 +++++++-------
+>  drivers/input/misc/uinput.c | 14 +++++++++-----
+>  include/uapi/linux/input.h  |  1 +
+>  3 files changed, 17 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
+> index d7dd6fcf2db0..f918fca9ada3 100644
+> --- a/drivers/input/evdev.c
+> +++ b/drivers/input/evdev.c
+> @@ -224,13 +224,13 @@ static void __pass_event(struct evdev_client *client,
+>  		 */
+>  		client->tail = (client->head - 2) & (client->bufsize - 1);
+>  
+> -		client->buffer[client->tail].input_event_sec > -						event->input_event_sec;
+> -		client->buffer[client->tail].input_event_usec > -						event->input_event_usec;
+> -		client->buffer[client->tail].type = EV_SYN;
+> -		client->buffer[client->tail].code = SYN_DROPPED;
+> -		client->buffer[client->tail].value = 0;
+> +		client->buffer[client->tail] = (struct input_event) {
+> +			.input_event_sec = event->input_event_sec,
+> +			.input_event_usec = event->input_event_usec,
+> +			.type = EV_SYN,
+> +			.code = SYN_DROPPED,
+> +			.value = 0,
+> +		};
+>  
+>  		client->packet_head = client->tail;
+>  	}
+> diff --git a/drivers/input/misc/uinput.c b/drivers/input/misc/uinput.c
+> index fd253781be71..2dabbe47d43e 100644
+> --- a/drivers/input/misc/uinput.c
+> +++ b/drivers/input/misc/uinput.c
+> @@ -74,12 +74,16 @@ static int uinput_dev_event(struct input_dev *dev,
+>  	struct uinput_device	*udev = input_get_drvdata(dev);
+>  	struct timespec64	ts;
+>  
+> -	udev->buff[udev->head].type = type;
+> -	udev->buff[udev->head].code = code;
+> -	udev->buff[udev->head].value = value;
+>  	ktime_get_ts64(&ts);
+> -	udev->buff[udev->head].input_event_sec = ts.tv_sec;
+> -	udev->buff[udev->head].input_event_usec = ts.tv_nsec / NSEC_PER_USEC;
+> +
+> +	udev->buff[udev->head] = (struct input_event) {
+> +		.input_event_sec = ts.tv_sec,
+> +		.input_event_usec = ts.tv_nsec / NSEC_PER_USEC,
+> +		.type = type,
+> +		.code = code,
+> +		.value = value,
+> +	};
+> +
+>  	udev->head = (udev->head + 1) % UINPUT_BUFFER_SIZE;
+>  
+>  	wake_up_interruptible(&udev->waitq);
+> diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
+> index f056b2a00d5c..9a61c28ed3ae 100644
+> --- a/include/uapi/linux/input.h
+> +++ b/include/uapi/linux/input.h
+> @@ -34,6 +34,7 @@ struct input_event {
+>  	__kernel_ulong_t __sec;
+>  #if defined(__sparc__) && defined(__arch64__)
+>  	unsigned int __usec;
+> +	unsigned int __pad;
+>  #else
+>  	__kernel_ulong_t __usec;
+>  #endif
+> -- 
+> 2.20.0
+> 
 
-Cc: sparclinux@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Fixes: 141e5dcaa735 ("Input: input_event - fix the CONFIG_SPARC64 mixup")
-Fixes: 2e746942ebac ("Input: input_event - provide override for sparc64")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/input/evdev.c       | 14 +++++++-------
- drivers/input/misc/uinput.c | 14 +++++++++-----
- include/uapi/linux/input.h  |  1 +
- 3 files changed, 17 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/input/evdev.c b/drivers/input/evdev.c
-index d7dd6fcf2db0..f918fca9ada3 100644
---- a/drivers/input/evdev.c
-+++ b/drivers/input/evdev.c
-@@ -224,13 +224,13 @@ static void __pass_event(struct evdev_client *client,
- 		 */
- 		client->tail = (client->head - 2) & (client->bufsize - 1);
- 
--		client->buffer[client->tail].input_event_sec -						event->input_event_sec;
--		client->buffer[client->tail].input_event_usec -						event->input_event_usec;
--		client->buffer[client->tail].type = EV_SYN;
--		client->buffer[client->tail].code = SYN_DROPPED;
--		client->buffer[client->tail].value = 0;
-+		client->buffer[client->tail] = (struct input_event) {
-+			.input_event_sec = event->input_event_sec,
-+			.input_event_usec = event->input_event_usec,
-+			.type = EV_SYN,
-+			.code = SYN_DROPPED,
-+			.value = 0,
-+		};
- 
- 		client->packet_head = client->tail;
- 	}
-diff --git a/drivers/input/misc/uinput.c b/drivers/input/misc/uinput.c
-index fd253781be71..2dabbe47d43e 100644
---- a/drivers/input/misc/uinput.c
-+++ b/drivers/input/misc/uinput.c
-@@ -74,12 +74,16 @@ static int uinput_dev_event(struct input_dev *dev,
- 	struct uinput_device	*udev = input_get_drvdata(dev);
- 	struct timespec64	ts;
- 
--	udev->buff[udev->head].type = type;
--	udev->buff[udev->head].code = code;
--	udev->buff[udev->head].value = value;
- 	ktime_get_ts64(&ts);
--	udev->buff[udev->head].input_event_sec = ts.tv_sec;
--	udev->buff[udev->head].input_event_usec = ts.tv_nsec / NSEC_PER_USEC;
-+
-+	udev->buff[udev->head] = (struct input_event) {
-+		.input_event_sec = ts.tv_sec,
-+		.input_event_usec = ts.tv_nsec / NSEC_PER_USEC,
-+		.type = type,
-+		.code = code,
-+		.value = value,
-+	};
-+
- 	udev->head = (udev->head + 1) % UINPUT_BUFFER_SIZE;
- 
- 	wake_up_interruptible(&udev->waitq);
-diff --git a/include/uapi/linux/input.h b/include/uapi/linux/input.h
-index f056b2a00d5c..9a61c28ed3ae 100644
---- a/include/uapi/linux/input.h
-+++ b/include/uapi/linux/input.h
-@@ -34,6 +34,7 @@ struct input_event {
- 	__kernel_ulong_t __sec;
- #if defined(__sparc__) && defined(__arch64__)
- 	unsigned int __usec;
-+	unsigned int __pad;
- #else
- 	__kernel_ulong_t __usec;
- #endif
 -- 
-2.20.0
+Dmitry
