@@ -1,8 +1,10 @@
 From: Mr Pressley Anton <info@anton.co.za>
-Date: Sun, 15 Dec 2019 03:22:20 +0000
+Date: Sun, 15 Dec 2019 03:23:09 +0000
 Subject: Love Greetings
-Message-Id: <8cad546a266e399a3a8869a8b9044744@mail.baskent.edu.tr>
+Message-Id: <20abfd51c7169b7a402dc243d8c744fa@mail.baskent.edu.tr>
 List-Id: <sparclinux.vger.kernel.org>
+References: <8cad546a266e399a3a8869a8b9044744@mail.baskent.edu.tr>
+In-Reply-To: <8cad546a266e399a3a8869a8b9044744@mail.baskent.edu.tr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
