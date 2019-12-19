@@ -1,51 +1,207 @@
-From: Steven Price <steven.price@arm.com>
-Date: Fri, 06 Dec 2019 13:53:00 +0000
-Subject: [PATCH v16 09/25] sparc: mm: Add p?d_leaf() definitions
-Message-Id: <20191206135316.47703-10-steven.price@arm.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Thu, 19 Dec 2019 12:18:57 +0000
+Subject: [RFC PATCH v3 04/12] smp: address races of starting CPUs while stopping
+Message-Id: <20191219121905.26905-5-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191206135316.47703-1-steven.price@arm.com>
-In-Reply-To: <20191206135316.47703-1-steven.price@arm.com>
+References: <20191219121905.26905-1-cristian.marussi@arm.com>
+In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
-Cc: Mark Rutland <Mark.Rutland@arm.com>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, linux-kernel@vger.kernel.org, Steven Price <steven.price@arm.com>, =?UTF-8?q?J=C3=A9r=C3=B4me=20Glisse?= <jglisse@redhat.com>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, James Morse <james.morse@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org, "Liang, Kan" <kan.liang@linux.intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-walk_page_range() is going to be allowed to walk page tables other than
-those of user space. For this it needs to know when it has reached a
-'leaf' entry in the page tables. This information is provided by the
-p?d_leaf() functions/macros.
+Add to SMP stop common code a best-effort retry logic, re-issuing a stop
+request when any CPU is detected to be still online after the first
+stop request cycle has completed.
 
-For sparc 64 bit, pmd_large() and pud_large() are already provided, so
-add macros to provide the p?d_leaf names required by the generic code.
+While retrying provide to architectures' helpers an 'attempt' argument
+so that, after a possible first failed attempt, they can autonomously
+decide to adopt different approaches in subsequent retries.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Steven Price <steven.price@arm.com>
+Address the case in which some CPUs could still be starting up when the
+stop process is initiated, remaining so undetected and coming fully online
+only after the SMP stop procedure was already started: such officially
+still offline CPUs would be missed by an ongoing stop procedure.
+
+Being a best effort approach, though, it is not always guaranteed to be
+able to stop any CPU that happened to finally come online after the whole
+SMP stop retry cycle has completed.
+(i.e. the race-window is reduced but not eliminated)
+
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
- arch/sparc/include/asm/pgtable_64.h | 2 ++
- 1 file changed, 2 insertions(+)
+v2 --> v3
+- reviewed max_retries get/set helpers to avoid header global static
+v1 --> v2
+- added attempt_num param to arch helpers, to let arch implementation
+  know if a retry is ongoing because some CPU failed to stop.
+  (some arch like x86 attempts the retry with different means like NMI)
+- added some helpers to let archs decide on the number of retries
 
-diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-index 6ae8016ef4ec..43206652eaf5 100644
---- a/arch/sparc/include/asm/pgtable_64.h
-+++ b/arch/sparc/include/asm/pgtable_64.h
-@@ -683,6 +683,7 @@ static inline unsigned long pte_special(pte_t pte)
- 	return pte_val(pte) & _PAGE_SPECIAL;
+---
+A more deterministic approach has been also attempted in order to catch
+any concurrently starting CPUs at the very last moment and make them
+kill themselves by:
+
+- adding a new set_cpus_stopping() in cpumask.h used to set a
+  __cpus_stopping atomic internal flag
+
+- modifying set_cpu_online() to check on __cpus_stopping only when
+  coming online, and force the offending CPU to kill itself in that case
+
+Anyway it has proved tricky and complex (beside faulty) to implement the
+above 'kill-myself' phase in a reliable way while remaining architecture
+agnostic and still distingushing properly regular stops from crash kexec.
+
+So given that the main idea underlying this patch series was instead of
+simplifying and unifying code and the residual races not caught by the
+best-effort logic seemed not very likely, this more deterministic approach
+has been dropped in favour of the best effort retry logic.
+
+Moreover, the current retry logic will be anyway needed to support some
+architectures, like x86, that prefer to use different CPU's stopping
+methods in subsequent retries.
+---
+ include/linux/smp.h | 11 +++++++++--
+ kernel/smp.c        | 34 +++++++++++++++++++++++++++-------
+ 2 files changed, 36 insertions(+), 9 deletions(-)
+
+diff --git a/include/linux/smp.h b/include/linux/smp.h
+index 42be03ac1c0c..247c78434a3d 100644
+--- a/include/linux/smp.h
++++ b/include/linux/smp.h
+@@ -78,6 +78,7 @@ int smp_call_function_single_async(int cpu, call_single_data_t *csd);
+ extern void smp_send_stop(void);
+ 
+ #ifdef CONFIG_USE_COMMON_SMP_STOP
++
+ /*
+  * An Architecture can optionally use this helper to change the default
+  * waiting behaviour of common STOP logic.
+@@ -101,12 +102,18 @@ void smp_stop_set_wait_timeout_us(unsigned long timeout);
+  */
+ bool smp_stop_get_wait_settings(unsigned long *timeout);
+ 
++/* Change common SMP STOP logic maximum retries */
++void smp_stop_set_max_retries(unsigned int max_retries);
++
++/* Get currently set maximum retries attempt */
++unsigned int smp_stop_get_max_retries(void);
++
+ /*
+  * Any Architecture willing to use STOP common logic implementation
+  * MUST at least provide the arch_smp_stop_call() helper which implements
+  * the arch-specific CPU-stop mechanism.
+  */
+-extern void arch_smp_stop_call(cpumask_t *cpus);
++extern void arch_smp_stop_call(cpumask_t *cpus, unsigned int attempt_num);
+ 
+ /*
+  * An Architecture CAN also provide the arch_smp_cpus_stop_complete()
+@@ -132,7 +139,7 @@ void arch_smp_cpus_crash_complete(void);
+  * when not provided the crash dump procedure will fallback to behave like
+  * a normal stop. (no saved regs, no arch-specific features disabled)
+  */
+-extern void arch_smp_crash_call(cpumask_t *cpus);
++extern void arch_smp_crash_call(cpumask_t *cpus, unsigned int attempt_num);
+ 
+ /* Helper to query the outcome of an ongoing crash_stop operation */
+ bool smp_crash_stop_failed(void);
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 29eb6eff2063..46a307d2351e 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -823,6 +823,9 @@ EXPORT_SYMBOL_GPL(smp_call_on_cpu);
+ static atomic_t smp_stop_wait_forever;
+ static atomic_t smp_stop_wait_timeout = ATOMIC_INIT(USEC_PER_SEC);
+ 
++#define	DEFAULT_MAX_STOP_RETRIES	2
++static atomic_t max_stop_retries = ATOMIC_INIT(DEFAULT_MAX_STOP_RETRIES);
++
+ void smp_stop_set_wait_forever(bool wait_forever)
+ {
+ 	atomic_set(&smp_stop_wait_forever, wait_forever);
+@@ -844,6 +847,18 @@ bool smp_stop_get_wait_settings(unsigned long *timeout)
+ 	return atomic_read(&smp_stop_wait_forever);
  }
  
-+#define pmd_leaf	pmd_large
- static inline unsigned long pmd_large(pmd_t pmd)
++void smp_stop_set_max_retries(unsigned int max_retries)
++{
++	atomic_set(&max_stop_retries, max_retries);
++	/* ensure retries atomics are visible */
++	smp_mb__after_atomic();
++}
++
++unsigned int smp_stop_get_max_retries(void)
++{
++	return atomic_read(&max_stop_retries);
++}
++
+ void __weak arch_smp_cpu_park(void)
  {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -867,6 +868,7 @@ static inline unsigned long pud_page_vaddr(pud_t pud)
- /* only used by the stubbed out hugetlb gup code, should never be called */
- #define pgd_page(pgd)			NULL
+ 	while (1)
+@@ -866,10 +881,10 @@ static inline bool any_other_cpus_online(cpumask_t *mask,
+ 	return !cpumask_empty(mask);
+ }
  
-+#define pud_leaf	pud_large
- static inline unsigned long pud_large(pud_t pud)
+-void __weak arch_smp_crash_call(cpumask_t *cpus)
++void __weak arch_smp_crash_call(cpumask_t *cpus, unsigned int attempt_num)
  {
- 	pte_t pte = __pte(pud_val(pud));
+ 	pr_debug("SMP: Using generic %s() as SMP crash call.\n", __func__);
+-	arch_smp_stop_call(cpus);
++	arch_smp_stop_call(cpus, attempt_num);
+ }
+ 
+ #define	REASON_STOP	1
+@@ -888,10 +903,10 @@ void __weak arch_smp_crash_call(cpumask_t *cpus)
+  */
+ static void __smp_send_stop_all(bool crash)
+ {
+-	unsigned int this_cpu_id;
+ 	cpumask_t mask;
+ 	static atomic_t stopping;
+ 	int was_stopping;
++	unsigned int this_cpu_id, max_retries, attempt = 0;
+ 
+ 	this_cpu_id = smp_processor_id();
+ 	/* make sure that concurrent stop requests are handled properly */
+@@ -922,7 +937,9 @@ static void __smp_send_stop_all(bool crash)
+ 			arch_smp_cpu_park();
+ 		}
+ 	}
+-	if (any_other_cpus_online(&mask, this_cpu_id)) {
++	max_retries = smp_stop_get_max_retries();
++	while (++attempt <= max_retries &&
++	       any_other_cpus_online(&mask, this_cpu_id)) {
+ 		bool wait_forever;
+ 		unsigned long timeout;
+ 		unsigned int this_cpu_online = cpu_online(this_cpu_id);
+@@ -931,9 +948,9 @@ static void __smp_send_stop_all(bool crash)
+ 			pr_crit("stopping secondary CPUs\n");
+ 		/* smp and crash arch-backends helpers are kept distinct */
+ 		if (!crash)
+-			arch_smp_stop_call(&mask);
++			arch_smp_stop_call(&mask, attempt);
+ 		else
+-			arch_smp_crash_call(&mask);
++			arch_smp_crash_call(&mask, attempt);
+ 		/*
+ 		 * Defaults to wait up to one second for other CPUs to stop;
+ 		 * architectures can modify the default timeout or request
+@@ -953,9 +970,12 @@ static void __smp_send_stop_all(bool crash)
+ 			udelay(1);
+ 		/* ensure any stopping-CPUs memory access is made visible */
+ 		smp_rmb();
+-		if (num_online_cpus() > this_cpu_online)
++		if (num_online_cpus() > this_cpu_online) {
+ 			pr_warn("failed to stop secondary CPUs %*pbl\n",
+ 				cpumask_pr_args(cpu_online_mask));
++			if (attempt < max_retries)
++				pr_warn("Retrying SMP stop call...\n");
++		}
+ 	}
+ 	/* Perform final (possibly arch-specific) work on this CPU */
+ 	if (!crash)
 -- 
-2.20.1
+2.17.1
