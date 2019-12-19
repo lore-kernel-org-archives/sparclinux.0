@@ -1,166 +1,223 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 13 Dec 2019 20:49:09 +0000
-Subject: [PATCH v2 00/24] drivers, fs: y2038 updates
-Message-Id: <20191213204936.3643476-1-arnd@arndb.de>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Thu, 19 Dec 2019 12:18:56 +0000
+Subject: [RFC PATCH v3 03/12] smp: coordinate concurrent crash/smp stop calls
+Message-Id: <20191219121905.26905-4-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20191219121905.26905-1-cristian.marussi@arm.com>
+In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: y2038@lists.linaro.org, linux-kernel@vger.kernel.org
-Cc: airlied@linux.ie, dri-devel@lists.freedesktop.org, jcmvbkbc@gmail.com, netdev@vger.kernel.org, sparclinux@vger.kernel.org, linux1394-devel@lists.sourceforge.net, devel@driverdev.osuosl.org, darrick.wong@oracle.com, richard@nod.at, cluster-devel@redhat.com, ccaulfie@redhat.com, linux+etnaviv@armlinux.org.uk, Arnd Bergmann <arnd@arndb.de>, linux-arm-msm@vger.kernel.org, jdike@addtoit.com, linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org, teigland@redhat.com, viro@zeniv.linux.org.uk, tglx@linutronix.de, sean@poorly.run, trond.myklebust@hammerspace.com, hirofumi@mail.parknet.co.jp, linux-nfs@vger.kernel.org, valdis.kletnieks@vt.edu, rfontana@redhat.com, gregkh@linuxfoundation.org, fw@strlen.de, anna.schumaker@netapp.com, linux-xfs@vger.kernel.org, stefanr@s5r6.in-berlin.de, jack@suse.com, linux-fsdevel@vger.kernel.org, freedreno@lists.freedesktop.org, davem@davemloft.net
+To: linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-These are updates to devidce drivers and file systems that for some
-reason or another were not included in the kernel in the previous
-y2038 series.
+Once a stop request is in progress on one CPU, it must be carefully
+evaluated what to do if another stop request is issued concurrently
+on another CPU.
 
-I've gone through all users of time_t again to make sure the
-kernel is in a long-term maintainable state.
+Given that panic and crash dump code flows are mutually exclusive,
+the only alternative possible scenario which instead could lead to
+concurrent stop requests, is represented by the simultaneous stop
+requests possibly triggered by a concurrent halt/reboot/shutdown.
 
-Posting these as a series for better organization, but each change
-here is applicable standalone.
+In such a case, prioritize the panic/crash procedure and most importantly
+immediately park the offending CPU that was attempting the concurrent stop
+request: force it to idle quietly, waiting for the ongoing stop/dump
+requests to arrive.
 
-Please merge, review, ack/nack etc as you see fit. I will
-add these to my y2038 branch [1] for linux-next, but can keep
-rebasing for feedback and to remove any patches that get
-picked up by a maintainer.
+Failing to do so would result in the offending CPU being effectively lost
+on the next possible reboot triggered by the crash dump. [1]
 
-Changes since v1 [2]:
+Another scenario, where the crash/stop code path was known to be executed
+twice, was during a normal panic/crash with crash_kexec_post_notifiers=1;
+since this issue is similar, fold also this case-handling into this new
+logic.
 
-- Add Acks I received
-- Rebase to v5.5-rc1, droping patches that got merged already
-- Add NFS, XFS and the final three patches from another series
-- Rewrite etnaviv patches
+[1]
+<<<<<---------- TRIGGERED PANIC
+[  225.676014] ------------[ cut here ]------------
+[  225.676656] kernel BUG at arch/arm64/kernel/cpufeature.c:852!
+[  225.677253] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[  225.677660] Modules linked in:
+[  225.678458] CPU: 3 PID: 0 Comm: swapper/3 Kdump: loaded Not tainted 5.3.0-rc5-00004-gb8a210cd3c32-dirty #2
+[  225.678621] Hardware name: Foundation-v8A (DT)
+[  225.678868] pstate: 000001c5 (nzcv dAIF -PAN -UAO)
+[  225.679523] pc : has_cpuid_feature+0x35c/0x360
+[  225.679649] lr : verify_local_elf_hwcaps+0x6c/0xf0
+[  225.679759] sp : ffff0000118cbf60
+[  225.679855] x29: ffff0000118cbf60 x28: 0000000000000000
+[  225.680026] x27: 0000000000000000 x26: 0000000000000000
+[  225.680115] x25: ffff00001167a010 x24: ffff0000112f59f8
+[  225.680207] x23: 0000000000000000 x22: 0000000000000000
+[  225.680290] x21: ffff0000112ea018 x20: ffff000010fe5538
+[  225.680372] x19: ffff000010ba3f30 x18: 000000000000001e
+[  225.680465] x17: 0000000000000000 x16: 0000000000000000
+[  225.680546] x15: 0000000000000000 x14: 0000000000000008
+[  225.680629] x13: 0209018b7a9404f4 x12: 0000000000000001
+[  225.680719] x11: 0000000000000080 x10: 00400032b5503510
+[  225.680803] x9 : 0000000000000000 x8 : ffff000010b93204
+[  225.680884] x7 : 00000000800001d8 x6 : 0000000000000005
+[  225.680975] x5 : 0000000000000000 x4 : 0000000000000000
+[  225.681056] x3 : 0000000000000000 x2 : 0000000000008000
+[  225.681139] x1 : 0000000000180480 x0 : 0000000000180480
+[  225.681423] Call trace:
+[  225.681669]  has_cpuid_feature+0x35c/0x360
+[  225.681762]  verify_local_elf_hwcaps+0x6c/0xf0
+[  225.681836]  check_local_cpu_capabilities+0x88/0x118
+[  225.681939]  secondary_start_kernel+0xc4/0x168
+[  225.682432] Code: d53801e0 17ffff58 d5380600 17ffff56 (d4210000)
+[  225.683998] smp: stopping secondary CPUs
+[  225.684130] Delaying stop....   <<<<<------ INSTRUMENTED DEBUG_DELAY
 
-      Arnd
+Rebooting.                         <<<<<------ MANUAL SIMULTANEOUS REBOOT
+[  232.647472] reboot: Restarting system
+[  232.648363] Reboot failed -- System halted
+[  239.552413] smp: failed to stop secondary CPUs 0
+[  239.554730] Starting crashdump kernel...
+[  239.555194] ------------[ cut here ]------------
+[  239.555406] Some CPUs may be stale, kdump will be unreliable.
+[  239.555802] WARNING: CPU: 3 PID: 0 at arch/arm64/kernel/machine_kexec.c:156 machine_kexec+0x3c/0x2b0
+[  239.556044] Modules linked in:
+[  239.556244] CPU: 3 PID: 0 Comm: swapper/3 Kdump: loaded Not tainted 5.3.0-rc5-00004-gb8a210cd3c32-dirty #2
+[  239.556340] Hardware name: Foundation-v8A (DT)
+[  239.556459] pstate: 600003c5 (nZCv DAIF -PAN -UAO)
+[  239.556587] pc : machine_kexec+0x3c/0x2b0
+[  239.556700] lr : machine_kexec+0x3c/0x2b0
+[  239.556775] sp : ffff0000118cbad0
+[  239.556876] x29: ffff0000118cbad0 x28: ffff80087a8c3700
+[  239.557012] x27: 0000000000000000 x26: 0000000000000000
+[  239.557278] x25: ffff000010fe3ef0 x24: 00000000000003c0
+....
+[  239.561568] Bye!
+[    0.000000] Booting Linux on physical CPU 0x0000000003 [0x410fd0f0]
+[    0.000000] Linux version 5.2.0-rc4-00001-g93bd4bc234d5-dirty
+[    0.000000] Machine model: Foundation-v8A
+...
+[    0.197991] smp: Bringing up secondary CPUs ...
+[    0.232643] psci: failed to boot CPU1 (-22)  <<<<--- LOST CPU ON REBOOT
+[    0.232861] CPU1: failed to boot: -22
+[    0.306291] Detected PIPT I-cache on CPU2
+[    0.310524] GICv3: CPU2: found redistributor 1 region 0:0x000000002f120000
+[    0.315618] CPU2: Booted secondary processor 0x0000000001 [0x410fd0f0]
+[    0.395576] Detected PIPT I-cache on CPU3
+[    0.400431] GICv3: CPU3: found redistributor 2 region 0:0x000000002f140000
+[    0.407252] CPU3: Booted secondary processor 0x0000000002 [0x410fd0f0]
+[    0.431811] smp: Brought up 1 node, 3 CPUs
+[    0.439898] SMP: Total of 3 processors activated.
 
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git/log/?h=y2038
-[2] https://lore.kernel.org/lkml/20191108213257.3097633-1-arnd@arndb.de/
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+---
+v2 --> v3
+- local var renamded
+v1 --> v2
+- using new CONFIG_USE_COMMON_SMP_STOP
+---
+ include/linux/smp.h |  3 +++
+ kernel/smp.c        | 48 ++++++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 46 insertions(+), 5 deletions(-)
 
-Arnd Bergmann (24):
-  Input: input_event: fix struct padding on sparc64
-  fat: use prandom_u32() for i_generation
-  dlm: use SO_SNDTIMEO_NEW instead of SO_SNDTIMEO_OLD
-  xtensa: ISS: avoid struct timeval
-  um: ubd: use 64-bit time_t where possible
-  acct: stop using get_seconds()
-  tsacct: add 64-bit btime field
-  packet: clarify timestamp overflow
-  quota: avoid time_t in v1_disk_dqblk definition
-  hostfs: pass 64-bit timestamps to/from user space
-  hfs/hfsplus: use 64-bit inode timestamps
-  drm/msm: avoid using 'timespec'
-  drm/etnaviv: reject timeouts with tv_nsec >= NSEC_PER_SEC
-  drm/etnaviv: avoid deprecated timespec
-  sunrpc: convert to time64_t for expiry
-  nfs: use time64_t internally
-  nfs: fix timstamp debug prints
-  nfs: fscache: use timespec64 in inode auxdata
-  xfs: rename compat_time_t to old_time32_t
-  xfs: disallow broken ioctls without compat-32-bit-time
-  xfs: quota: move to time64_t interfaces
-  y2038: remove obsolete jiffies conversion functions
-  y2038: rename itimerval to __kernel_old_itimerval
-  y2038: sparc: remove use of struct timex
-
- arch/sparc/kernel/sys_sparc_64.c              | 29 +++++-----
- arch/um/drivers/cow.h                         |  2 +-
- arch/um/drivers/cow_user.c                    |  7 ++-
- arch/um/drivers/ubd_kern.c                    | 10 ++--
- arch/um/include/shared/os.h                   |  2 +-
- arch/um/os-Linux/file.c                       |  2 +-
- .../platforms/iss/include/platform/simcall.h  |  4 +-
- drivers/gpu/drm/etnaviv/etnaviv_drv.c         | 20 ++++---
- drivers/gpu/drm/etnaviv/etnaviv_drv.h         | 11 ++--
- drivers/gpu/drm/etnaviv/etnaviv_gem.c         |  4 +-
- drivers/gpu/drm/etnaviv/etnaviv_gem.h         |  2 +-
- drivers/gpu/drm/etnaviv/etnaviv_gpu.c         |  5 +-
- drivers/gpu/drm/etnaviv/etnaviv_gpu.h         |  5 +-
- drivers/gpu/drm/msm/msm_drv.h                 |  3 +-
- drivers/input/evdev.c                         | 14 ++---
- drivers/input/misc/uinput.c                   | 14 +++--
- fs/dlm/lowcomms.c                             |  6 +-
- fs/fat/inode.c                                |  3 +-
- fs/hfs/hfs_fs.h                               | 28 +++++++--
- fs/hfs/inode.c                                |  4 +-
- fs/hfsplus/hfsplus_fs.h                       | 28 +++++++--
- fs/hfsplus/inode.c                            | 12 ++--
- fs/hostfs/hostfs.h                            | 22 ++++---
- fs/hostfs/hostfs_kern.c                       | 15 +++--
- fs/nfs/fscache-index.c                        |  6 +-
- fs/nfs/fscache.c                              | 18 ++++--
- fs/nfs/fscache.h                              |  8 ++-
- fs/nfs/nfs4xdr.c                              | 10 ++--
- fs/quota/quotaio_v1.h                         |  6 +-
- fs/xfs/xfs_dquot.c                            |  6 +-
- fs/xfs/xfs_ioctl.c                            | 26 +++++++++
- fs/xfs/xfs_ioctl32.c                          |  2 +-
- fs/xfs/xfs_ioctl32.h                          |  2 +-
- fs/xfs/xfs_qm.h                               |  6 +-
- fs/xfs/xfs_quotaops.c                         |  6 +-
- fs/xfs/xfs_trans_dquot.c                      |  8 ++-
- include/linux/jiffies.h                       | 20 -------
- include/linux/sunrpc/cache.h                  | 42 ++++++++------
- include/linux/sunrpc/gss_api.h                |  4 +-
- include/linux/sunrpc/gss_krb5.h               |  2 +-
- include/linux/syscalls.h                      |  9 ++-
- include/uapi/linux/acct.h                     |  2 +
- include/uapi/linux/input.h                    |  1 +
- include/uapi/linux/taskstats.h                |  6 +-
- include/uapi/linux/time_types.h               |  5 ++
- include/uapi/linux/timex.h                    |  2 +
- kernel/acct.c                                 |  4 +-
- kernel/time/itimer.c                          | 18 +++---
- kernel/time/time.c                            | 58 ++-----------------
- kernel/tsacct.c                               |  9 ++-
- net/packet/af_packet.c                        | 27 +++++----
- net/sunrpc/auth_gss/gss_krb5_mech.c           | 12 +++-
- net/sunrpc/auth_gss/gss_krb5_seal.c           |  8 +--
- net/sunrpc/auth_gss/gss_krb5_unseal.c         |  6 +-
- net/sunrpc/auth_gss/gss_krb5_wrap.c           | 16 ++---
- net/sunrpc/auth_gss/gss_mech_switch.c         |  2 +-
- net/sunrpc/auth_gss/svcauth_gss.c             |  6 +-
- net/sunrpc/cache.c                            | 16 ++---
- net/sunrpc/svcauth_unix.c                     | 10 ++--
- 59 files changed, 351 insertions(+), 290 deletions(-)
-
+diff --git a/include/linux/smp.h b/include/linux/smp.h
+index 1886e49a65bb..42be03ac1c0c 100644
+--- a/include/linux/smp.h
++++ b/include/linux/smp.h
+@@ -136,6 +136,9 @@ extern void arch_smp_crash_call(cpumask_t *cpus);
+ 
+ /* Helper to query the outcome of an ongoing crash_stop operation */
+ bool smp_crash_stop_failed(void);
++
++/* A generic cpu parking helper, possibly overridden by architecture code */
++void arch_smp_cpu_park(void) __noreturn;
+ #endif
+ 
+ /*
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 6224b0b1208b..29eb6eff2063 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -844,6 +844,12 @@ bool smp_stop_get_wait_settings(unsigned long *timeout)
+ 	return atomic_read(&smp_stop_wait_forever);
+ }
+ 
++void __weak arch_smp_cpu_park(void)
++{
++	while (1)
++		cpu_relax();
++}
++
+ void __weak arch_smp_cpus_stop_complete(void) { }
+ 
+ void __weak arch_smp_cpus_crash_complete(void)
+@@ -866,6 +872,9 @@ void __weak arch_smp_crash_call(cpumask_t *cpus)
+ 	arch_smp_stop_call(cpus);
+ }
+ 
++#define	REASON_STOP	1
++#define	REASON_CRASH	2
++
+ /*
+  * This centralizes the common logic to:
+  *
+@@ -881,8 +890,38 @@ static void __smp_send_stop_all(bool crash)
+ {
+ 	unsigned int this_cpu_id;
+ 	cpumask_t mask;
++	static atomic_t stopping;
++	int was_stopping;
+ 
+ 	this_cpu_id = smp_processor_id();
++	/* make sure that concurrent stop requests are handled properly */
++	was_stopping = atomic_cmpxchg(&stopping, 0,
++				      crash ? REASON_CRASH : REASON_STOP);
++	if (was_stopping) {
++		/*
++		 * This function can be called twice in panic path if
++		 * crash_kexec is called with crash_kexec_post_notifiers=1,
++		 * but obviously we execute this only once.
++		 */
++		if (crash && was_stopping = REASON_CRASH)
++			return;
++		/*
++		 * In case of other concurrent STOP calls (like in a REBOOT
++		 * started simultaneously as an ongoing PANIC/CRASH/REBOOT)
++		 * we want to prioritize the ongoing PANIC/KEXEC call and
++		 * force here the offending CPU that was attempting the
++		 * concurrent STOP to just sit idle waiting to die.
++		 * Failing to do so would result in a lost CPU on the next
++		 * possible reboot triggered by crash_kexec().
++		 */
++		if (!crash) {
++			pr_crit("CPU%d - kernel already stopping, parking myself.\n",
++				this_cpu_id);
++			local_irq_enable();
++			/* does not return */
++			arch_smp_cpu_park();
++		}
++	}
+ 	if (any_other_cpus_online(&mask, this_cpu_id)) {
+ 		bool wait_forever;
+ 		unsigned long timeout;
+@@ -950,6 +989,9 @@ bool __weak smp_crash_stop_failed(void)
+  */
+ void __weak crash_smp_send_stop(void)
+ {
++#ifdef CONFIG_USE_COMMON_SMP_STOP
++	__smp_send_stop_all(true);
++#else
+ 	static int cpus_stopped;
+ 
+ 	/*
+@@ -959,11 +1001,7 @@ void __weak crash_smp_send_stop(void)
+ 	if (cpus_stopped)
+ 		return;
+ 
+-#ifdef CONFIG_USE_COMMON_SMP_STOP
+-	__smp_send_stop_all(true);
+-#else
+ 	smp_send_stop();
+-#endif
+-
+ 	cpus_stopped = 1;
++#endif
+ }
 -- 
-2.20.0
-
-Cc: jdike@addtoit.com
-Cc: richard@nod.at
-Cc: jcmvbkbc@gmail.com
-Cc: stefanr@s5r6.in-berlin.de
-Cc: l.stach@pengutronix.de
-Cc: linux+etnaviv@armlinux.org.uk
-Cc: christian.gmeiner@gmail.com
-Cc: airlied@linux.ie
-Cc: daniel@ffwll.ch
-Cc: robdclark@gmail.com
-Cc: sean@poorly.run
-Cc: valdis.kletnieks@vt.edu
-Cc: gregkh@linuxfoundation.org
-Cc: ccaulfie@redhat.com
-Cc: teigland@redhat.com
-Cc: hirofumi@mail.parknet.co.jp
-Cc: jack@suse.com
-Cc: davem@davemloft.net
-Cc: fw@strlen.de
-Cc: viro@zeniv.linux.org.uk
-Cc: rfontana@redhat.com
-Cc: tglx@linutronix.de
-Cc: linux-um@lists.infradead.org
-Cc: linux1394-devel@lists.sourceforge.net
-Cc: etnaviv@lists.freedesktop.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-arm-msm@vger.kernel.org
-Cc: freedreno@lists.freedesktop.org
-Cc: devel@driverdev.osuosl.org
-Cc: cluster-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: trond.myklebust@hammerspace.com
-Cc: anna.schumaker@netapp.com
-Cc: linux-nfs@vger.kernel.org
-Cc: linux-xfs@vger.kernel.org
-Cc: darrick.wong@oracle.com
-Cc: sparclinux@vger.kernel.org
+2.17.1
