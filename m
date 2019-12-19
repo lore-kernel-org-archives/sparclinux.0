@@ -1,7 +1,7 @@
 From: Cristian Marussi <cristian.marussi@arm.com>
-Date: Thu, 19 Dec 2019 12:19:01 +0000
-Subject: [RFC PATCH v3 08/12] x86: smp: use generic SMP stop common code
-Message-Id: <20191219121905.26905-9-cristian.marussi@arm.com>
+Date: Thu, 19 Dec 2019 12:18:58 +0000
+Subject: [RFC PATCH v3 05/12] arm64: smp: use generic SMP stop common code
+Message-Id: <20191219121905.26905-6-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20191219121905.26905-1-cristian.marussi@arm.com>
 In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
@@ -11,188 +11,128 @@ Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
 Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-Make x86 use the generic SMP-stop logic provided by common code unified
-smp_send_stop() function.
+Make arm64 use the generic SMP-stop logic provided by common code
+unified smp_send_stop() function.
 
-Introduce needed arch_smp_stop_call()/arch_smp_cpus_stop_complete()
-helpers that implement the backend architectures specific functionalities
-previously provided by native_stop_other_cpus(): common logic is now
-delegated to common SMP stop code.
+arm64 smp_send_stop() logic had a bug in it: it failed to consider the
+online status of the calling CPU when evaluating if any stop message
+needed to be sent to other CPus at all: this resulted, on a 2-CPUs
+system, in the failure to stop all cpus if one paniced while starting
+up, leaving such system in an unexpected lively state.
 
-Remove arch-specific smp_send_stop(), and redefine original function
-native_stop_other_cpus() to rely instead on the unified common code
-version of smp_send_stop(): native_stop_other_cpus() is anyway kept
-since it is wired to smp_ops.stop_other_cpus() which get called at
-reboot time with particular waiting settings.
+[root@arch ~]# echo 1 > /sys/devices/system/cpu/cpu1/online
+[root@arch ~]# [  152.583368] ------------[ cut here ]------------
+[  152.583872] kernel BUG at arch/arm64/kernel/cpufeature.c:852!
+[  152.584693] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+[  152.585228] Modules linked in:
+[  152.586040] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.3.0-rc5-00001-gcabd12118c4a-dirty #2
+[  152.586218] Hardware name: Foundation-v8A (DT)
+[  152.586478] pstate: 000001c5 (nzcv dAIF -PAN -UAO)
+[  152.587260] pc : has_cpuid_feature+0x35c/0x360
+[  152.587398] lr : verify_local_elf_hwcaps+0x6c/0xf0
+[  152.587520] sp : ffff0000118bbf60
+[  152.587605] x29: ffff0000118bbf60 x28: 0000000000000000
+[  152.587784] x27: 0000000000000000 x26: 0000000000000000
+[  152.587882] x25: ffff00001167a010 x24: ffff0000112f59f8
+[  152.587992] x23: 0000000000000000 x22: 0000000000000000
+[  152.588085] x21: ffff0000112ea018 x20: ffff000010fe5518
+[  152.588180] x19: ffff000010ba3f30 x18: 0000000000000036
+[  152.588285] x17: 0000000000000000 x16: 0000000000000000
+[  152.588380] x15: 0000000000000000 x14: ffff80087a821210
+[  152.588481] x13: 0000000000000000 x12: 0000000000000000
+[  152.588599] x11: 0000000000000080 x10: 00400032b5503510
+[  152.588709] x9 : 0000000000000000 x8 : ffff000010b93204
+[  152.588810] x7 : 00000000800001d8 x6 : 0000000000000005
+[  152.588910] x5 : 0000000000000000 x4 : 0000000000000000
+[  152.589021] x3 : 0000000000000000 x2 : 0000000000008000
+[  152.589121] x1 : 0000000000180480 x0 : 0000000000180480
+[  152.589379] Call trace:
+[  152.589646]  has_cpuid_feature+0x35c/0x360
+[  152.589763]  verify_local_elf_hwcaps+0x6c/0xf0
+[  152.589858]  check_local_cpu_capabilities+0x88/0x118
+[  152.589968]  secondary_start_kernel+0xc4/0x168
+[  152.590530] Code: d53801e0 17ffff58 d5380600 17ffff56 (d4210000)
+[  152.592215] ---[ end trace 80ea98416149c87e ]---
+[  152.592734] Kernel panic - not syncing: Attempted to kill the idle task!
+[  152.593173] Kernel Offset: disabled
+[  152.593501] CPU features: 0x0004,20c02008
+[  152.593678] Memory Limit: none
+[  152.594208] ---[ end Kernel panic - not syncing: Attempted to kill the idle
+task! ]---
+[root@arch ~]# bash: echo: write error: Input/output error
+[root@arch ~]#
+[root@arch ~]#
+[root@arch ~]# echo HELO
+HELO
 
+Get rid of such bug, switching arm64 to use the common SMP stop code.
+
+Reported-by: Dave Martin <Dave.Martin@arm.com>
 Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
 ---
-Note that in this patch we kept in use the original x86 local handling
-of 'stopping_cpu' variable:
-
-	atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id());
-
-Instead, common SMP stop code could have been easily extended to keep and
-expose to architectures backends such value using some additional helper
-like smp_stop_get_stopping_cpu_id().
-
-This has not been addressed in this series.
-
-v2 ---> v3
-- added new wait_forever change capabilities
-- better handling of x86 reboot_force flag
+v1 --> v2
+- now selecting arch/Kconfig ARCH_USE_COMMON_SMP_STOP
+- added attempt_num arch_smp_stop_call() helper
 ---
- arch/x86/Kconfig           |  1 +
- arch/x86/include/asm/smp.h |  5 ---
- arch/x86/kernel/smp.c      | 88 +++++++++++++++++++-------------------
- 3 files changed, 44 insertions(+), 50 deletions(-)
+ arch/arm64/Kconfig      |  1 +
+ arch/arm64/kernel/smp.c | 29 ++++++-----------------------
+ 2 files changed, 7 insertions(+), 23 deletions(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 5e8949953660..0bc274426875 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -92,6 +92,7 @@ config X86
- 	select ARCH_USE_BUILTIN_BSWAP
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index b1b4476ddb83..618e2c2052dd 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -64,6 +64,7 @@ config ARM64
+ 	select ARCH_USE_CMPXCHG_LOCKREF
  	select ARCH_USE_QUEUED_RWLOCKS
  	select ARCH_USE_QUEUED_SPINLOCKS
 +	select ARCH_USE_COMMON_SMP_STOP
- 	select ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
- 	select ARCH_WANTS_DYNAMIC_TASK_STRUCT
- 	select ARCH_WANT_HUGE_PMD_SHARE
-diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-index e15f364efbcc..e937fab6474b 100644
---- a/arch/x86/include/asm/smp.h
-+++ b/arch/x86/include/asm/smp.h
-@@ -67,11 +67,6 @@ extern void set_cpu_sibling_map(int cpu);
- #ifdef CONFIG_SMP
- extern struct smp_ops smp_ops;
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_INT128 if CC_HAS_INT128 && (GCC_VERSION >= 50000 || CC_IS_CLANG)
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index d4ed9a19d8fe..7c1869161b5e 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -958,33 +958,16 @@ void tick_broadcast(const struct cpumask *mask)
+ }
+ #endif
  
--static inline void smp_send_stop(void)
--{
--	smp_ops.stop_other_cpus(0);
--}
--
- static inline void stop_other_cpus(void)
+-void smp_send_stop(void)
++void arch_smp_cpus_stop_complete(void)
  {
- 	smp_ops.stop_other_cpus(1);
-diff --git a/arch/x86/kernel/smp.c b/arch/x86/kernel/smp.c
-index b8d4e9c3c070..7aeb45c512f7 100644
---- a/arch/x86/kernel/smp.c
-+++ b/arch/x86/kernel/smp.c
-@@ -147,71 +147,69 @@ static int register_stop_handler(void)
- 
- static void native_stop_other_cpus(int wait)
- {
--	unsigned long flags;
 -	unsigned long timeout;
 -
- 	if (reboot_force)
- 		return;
-+	smp_stop_set_wait_forever(wait);
-+	/* use common SMP stop code */
-+	smp_send_stop();
-+}
- 
--	/*
--	 * Use an own vector here because smp_call_function
--	 * does lots of things not suitable in a panic situation.
--	 */
--
--	/*
--	 * We start by using the REBOOT_VECTOR irq.
--	 * The irq is treated as a sync point to allow critical
--	 * regions of code on other cpus to release their spin locks
--	 * and re-enable irqs.  Jumping straight to an NMI might
--	 * accidentally cause deadlocks with further shutdown/panic
--	 * code.  By syncing, we give the cpus up to one second to
--	 * finish their work before we force them off with the NMI.
--	 */
 -	if (num_online_cpus() > 1) {
--		/* did someone beat us here? */
--		if (atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id()) != -1)
--			return;
+-		cpumask_t mask;
 -
--		/* sync above data before sending IRQ */
--		wmb();
-+void arch_smp_stop_call(cpumask_t *cpus, unsigned int attempt_num)
-+{
-+	static bool saved_wait;
- 
--		apic_send_IPI_allbutself(REBOOT_VECTOR);
-+	if (attempt_num = 1) {
-+		/*
-+		 * We start by using the REBOOT_VECTOR irq.
-+		 * The irq is treated as a sync point to allow critical
-+		 * regions of code on other cpus to release their spin locks
-+		 * and re-enable irqs.  Jumping straight to an NMI might
-+		 * accidentally cause deadlocks with further shutdown/panic
-+		 * code.  By syncing, we give the cpus up to one second to
-+		 * finish their work before we force them off with the NMI.
-+		 */
- 
- 		/*
--		 * Don't wait longer than a second for IPI completion. The
--		 * wait request is not checked here because that would
--		 * prevent an NMI shutdown attempt in case that not all
--		 * CPUs reach shutdown state.
-+		 * Don't wait longer than a second for IPI completion.
-+		 * Wait forever request is explicitly disabled here because
-+		 * that would prevent an NMI shutdown attempt in case that
-+		 * not all CPUs reach shutdown state.
- 		 */
--		timeout = USEC_PER_SEC;
--		while (num_online_cpus() > 1 && timeout--)
--			udelay(1);
+-		cpumask_copy(&mask, cpu_online_mask);
+-		cpumask_clear_cpu(smp_processor_id(), &mask);
+-
+-		if (system_state <= SYSTEM_RUNNING)
+-			pr_crit("SMP: stopping secondary CPUs\n");
+-		smp_cross_call(&mask, IPI_CPU_STOP);
 -	}
-+		saved_wait = smp_stop_get_wait_settings(NULL);
-+		smp_stop_set_wait_forever(false);
-+		smp_stop_set_wait_timeout_us(USEC_PER_MSEC);
-+
-+		/* Used by NMI handler callback to skip the stopping_cpu. */
-+		atomic_cmpxchg(&stopping_cpu, -1, safe_smp_processor_id());
-+
-+		/* sync above data before sending IRQ */
-+		wmb();
-+		apic->send_IPI_mask(cpus, REBOOT_VECTOR);
-+	} else if (attempt_num > 1) {
-+		/* if the REBOOT_VECTOR didn't work, try with the NMI */
-+		smp_stop_set_wait_forever(saved_wait);
-+		/* Don't wait longer than 10 ms when not asked to wait */
-+		smp_stop_set_wait_timeout_us(USEC_PER_MSEC * 10);
+-
+-	/* Wait up to one second for other CPUs to stop */
+-	timeout = USEC_PER_SEC;
+-	while (num_online_cpus() > 1 && timeout--)
+-		udelay(1);
+-
+-	if (num_online_cpus() > 1)
+-		pr_warn("SMP: failed to stop secondary CPUs %*pbl\n",
+-			cpumask_pr_args(cpu_online_mask));
+-
+ 	sdei_mask_local_cpu();
+ }
  
--	/* if the REBOOT_VECTOR didn't work, try with the NMI */
--	if (num_online_cpus() > 1) {
- 		/*
- 		 * If NMI IPI is enabled, try to register the stop handler
- 		 * and send the IPI. In any case try to wait for the other
- 		 * CPUs to stop.
- 		 */
- 		if (!smp_no_nmi_ipi && !register_stop_handler()) {
--			/* Sync above data before sending IRQ */
-+			/* sync above data before sending IRQ */
- 			wmb();
- 
- 			pr_emerg("Shutting down cpus with NMI\n");
- 
--			apic_send_IPI_allbutself(NMI_VECTOR);
-+			apic->send_IPI_mask(cpus, NMI_VECTOR);
- 		}
--		/*
--		 * Don't wait longer than 10 ms if the caller didn't
--		 * reqeust it. If wait is true, the machine hangs here if
--		 * one or more CPUs do not reach shutdown state.
--		 */
--		timeout = USEC_PER_MSEC * 10;
--		while (num_online_cpus() > 1 && (wait || timeout--))
--			udelay(1);
- 	}
++void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
++{
++	smp_cross_call(cpus, IPI_CPU_STOP);
 +}
 +
-+void arch_smp_cpus_stop_complete(void)
-+{
-+	unsigned long flags;
- 
- 	local_irq_save(flags);
- 	disable_local_APIC();
+ #ifdef CONFIG_KEXEC_CORE
+ void crash_smp_send_stop(void)
+ {
 -- 
 2.17.1
