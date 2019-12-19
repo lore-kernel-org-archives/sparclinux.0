@@ -1,62 +1,196 @@
-From: Dmitry Safonov <dima@arista.com>
-Date: Fri, 13 Dec 2019 00:06:47 +0000
-Subject: [PATCH 48/58] tty/serial: Migrate sunzilog to use has_sysrq
-Message-Id: <20191213000657.931618-49-dima@arista.com>
+From: Cristian Marussi <cristian.marussi@arm.com>
+Date: Thu, 19 Dec 2019 12:18:59 +0000
+Subject: [RFC PATCH v3 06/12] arm64: smp: use SMP crash-stop common code
+Message-Id: <20191219121905.26905-7-cristian.marussi@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20191213000657.931618-1-dima@arista.com>
-In-Reply-To: <20191213000657.931618-1-dima@arista.com>
+References: <20191219121905.26905-1-cristian.marussi@arm.com>
+In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>, Dmitry Safonov <dima@arista.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Vasiliy Khoruzhick <vasilykh@arista.com>, linux-serial@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, will@kernel.org, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-The SUPPORT_SYSRQ ifdeffery is not nice as:
-- May create misunderstanding about sizeof(struct uart_port) between
-  different objects
-- Prevents moving functions from serial_core.h
-- Reduces readability (well, it's ifdeffery - it's hard to follow)
+Make arm64 use the SMP common implementation of crash_smp_send_stop() and
+its generic logic, by removing the arm64 crash_smp_send_stop() definition
+and providing the needed arch specific helpers.
 
-In order to remove SUPPORT_SYSRQ, has_sysrq variable has been added.
-Initialise it in driver's probe and remove ifdeffery.
+Additionally, simplify the arch-specific stop and crash dump ISRs backends
+(which are in charge of effectively receiving and interpreting the
+stop/crash messages) and unify them as much as possible.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Dmitry Safonov <dima@arista.com>
+Using the SMP common code, it is no more needed to make use of an atomic_t
+counter to make sure that each CPU had time to perform its crash dump
+related shutdown-ops before the world ends: simply take care to synchronize
+on cpu_online_mask, and add proper explicit memory barriers where needed.
+
+Moreover, remove arm64 specific smp_crash_stop_failed() helper as a whole
+and rely on the common code provided homonym function to lookup the state
+of an ongoing crash_stop operation.
+
+Signed-off-by: Cristian Marussi <cristian.marussi@arm.com>
+v1 --> v2
+- added attempt_num param to arch_smp_crash_call()
 ---
- drivers/tty/serial/sunzilog.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/smp.h |   2 -
+ arch/arm64/kernel/smp.c      | 100 +++++++++--------------------------
+ 2 files changed, 26 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
-index bc7af8b08a72..103ab8c556e7 100644
---- a/drivers/tty/serial/sunzilog.c
-+++ b/drivers/tty/serial/sunzilog.c
-@@ -40,10 +40,6 @@
- #include <asm/prom.h>
- #include <asm/setup.h>
+diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
+index a0c8a0b65259..d98c409f9225 100644
+--- a/arch/arm64/include/asm/smp.h
++++ b/arch/arm64/include/asm/smp.h
+@@ -150,8 +150,6 @@ static inline void cpu_panic_kernel(void)
+  */
+ bool cpus_are_stuck_in_kernel(void);
  
--#if defined(CONFIG_SERIAL_SUNZILOG_CONSOLE) && defined(CONFIG_MAGIC_SYSRQ)
--#define SUPPORT_SYSRQ
+-extern void crash_smp_send_stop(void);
+-extern bool smp_crash_stop_failed(void);
+ 
+ #endif /* ifndef __ASSEMBLY__ */
+ 
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 7c1869161b5e..edb2de85507a 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -830,12 +830,30 @@ void arch_irq_work_raise(void)
+ }
+ #endif
+ 
+-static void local_cpu_stop(void)
++static void local_cpu_crash_or_stop(struct pt_regs *crash_regs)
+ {
+-	set_cpu_online(smp_processor_id(), false);
++	unsigned int cpu = smp_processor_id();
+ 
+-	local_daif_mask();
++	if (IS_ENABLED(CONFIG_KEXEC_CORE) && crash_regs) {
++#ifdef CONFIG_KEXEC_CORE
++		/* crash stop requested: save regs before going offline */
++		crash_save_cpu(crash_regs, cpu);
++#endif
++		local_irq_disable();
++	} else {
++		local_daif_mask();
++	}
+ 	sdei_mask_local_cpu();
++	/* ensure dumped regs are visible once cpu is seen offline */
++	smp_wmb();
++	set_cpu_online(cpu, false);
++	/* ensure all writes are globally visible before cpu parks */
++	wmb();
++#if defined(CONFIG_KEXEC_CORE) && defined(CONFIG_HOTPLUG_CPU)
++	if (cpu_ops[cpu]->cpu_die)
++		cpu_ops[cpu]->cpu_die(cpu);
++#endif
++	/* just in case */
+ 	cpu_park_loop();
+ }
+ 
+@@ -846,31 +864,7 @@ static void local_cpu_stop(void)
+  */
+ void panic_smp_self_stop(void)
+ {
+-	local_cpu_stop();
+-}
+-
+-#ifdef CONFIG_KEXEC_CORE
+-static atomic_t waiting_for_crash_ipi = ATOMIC_INIT(0);
 -#endif
 -
- #include <linux/serial_core.h>
- #include <linux/sunserialcore.h>
+-static void ipi_cpu_crash_stop(unsigned int cpu, struct pt_regs *regs)
+-{
+-#ifdef CONFIG_KEXEC_CORE
+-	crash_save_cpu(regs, cpu);
+-
+-	atomic_dec(&waiting_for_crash_ipi);
+-
+-	local_irq_disable();
+-	sdei_mask_local_cpu();
+-
+-#ifdef CONFIG_HOTPLUG_CPU
+-	if (cpu_ops[cpu]->cpu_die)
+-		cpu_ops[cpu]->cpu_die(cpu);
+-#endif
+-
+-	/* just in case */
+-	cpu_park_loop();
+-#endif
++	local_cpu_crash_or_stop(NULL);
+ }
  
-@@ -1444,6 +1440,7 @@ static int zs_probe(struct platform_device *op)
- 	up[0].port.line = (inst * 2) + 0;
- 	up[0].port.dev = &op->dev;
- 	up[0].flags |= SUNZILOG_FLAG_IS_CHANNEL_A;
-+	up[0].port.has_sysrq = IS_ENABLED(CONFIG_SERIAL_SUNZILOG_CONSOLE);
- 	if (keyboard_mouse)
- 		up[0].flags |= SUNZILOG_FLAG_CONS_KEYB;
- 	sunzilog_init_hw(&up[0]);
-@@ -1461,6 +1458,7 @@ static int zs_probe(struct platform_device *op)
- 	up[1].port.line = (inst * 2) + 1;
- 	up[1].port.dev = &op->dev;
- 	up[1].flags |= 0;
-+	up[1].port.has_sysrq = IS_ENABLED(CONFIG_SERIAL_SUNZILOG_CONSOLE);
- 	if (keyboard_mouse)
- 		up[1].flags |= SUNZILOG_FLAG_CONS_MOUSE;
- 	sunzilog_init_hw(&up[1]);
+ /*
+@@ -899,14 +893,14 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
+ 
+ 	case IPI_CPU_STOP:
+ 		irq_enter();
+-		local_cpu_stop();
++		local_cpu_crash_or_stop(NULL);
+ 		irq_exit();
+ 		break;
+ 
+ 	case IPI_CPU_CRASH_STOP:
+ 		if (IS_ENABLED(CONFIG_KEXEC_CORE)) {
+ 			irq_enter();
+-			ipi_cpu_crash_stop(cpu, regs);
++			local_cpu_crash_or_stop(regs);
+ 
+ 			unreachable();
+ 		}
+@@ -968,52 +962,10 @@ void arch_smp_stop_call(cpumask_t *cpus, unsigned int __unused)
+ 	smp_cross_call(cpus, IPI_CPU_STOP);
+ }
+ 
+-#ifdef CONFIG_KEXEC_CORE
+-void crash_smp_send_stop(void)
++void arch_smp_crash_call(cpumask_t *cpus, unsigned int __unused)
+ {
+-	static int cpus_stopped;
+-	cpumask_t mask;
+-	unsigned long timeout;
+-
+-	/*
+-	 * This function can be called twice in panic path, but obviously
+-	 * we execute this only once.
+-	 */
+-	if (cpus_stopped)
+-		return;
+-
+-	cpus_stopped = 1;
+-
+-	if (num_online_cpus() = 1) {
+-		sdei_mask_local_cpu();
+-		return;
+-	}
+-
+-	cpumask_copy(&mask, cpu_online_mask);
+-	cpumask_clear_cpu(smp_processor_id(), &mask);
+-
+-	atomic_set(&waiting_for_crash_ipi, num_online_cpus() - 1);
+-
+-	pr_crit("SMP: stopping secondary CPUs\n");
+-	smp_cross_call(&mask, IPI_CPU_CRASH_STOP);
+-
+-	/* Wait up to one second for other CPUs to stop */
+-	timeout = USEC_PER_SEC;
+-	while ((atomic_read(&waiting_for_crash_ipi) > 0) && timeout--)
+-		udelay(1);
+-
+-	if (atomic_read(&waiting_for_crash_ipi) > 0)
+-		pr_warn("SMP: failed to stop secondary CPUs %*pbl\n",
+-			cpumask_pr_args(&mask));
+-
+-	sdei_mask_local_cpu();
+-}
+-
+-bool smp_crash_stop_failed(void)
+-{
+-	return (atomic_read(&waiting_for_crash_ipi) > 0);
++	smp_cross_call(cpus, IPI_CPU_CRASH_STOP);
+ }
+-#endif
+ 
+ /*
+  * not supported here
 -- 
-2.24.0
+2.17.1
