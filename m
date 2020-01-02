@@ -1,51 +1,262 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 16 Jan 2020 11:10:56 +0000
-Subject: Re: [PATCH v5] reboot: support offline CPUs before reboot
-Message-Id: <87h80vwta7.fsf@nanos.tec.linutronix.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 02 Jan 2020 14:55:20 +0000
+Subject: [PATCH v3 02/22] compat: provide compat_ptr() on all architectures
+Message-Id: <20200102145552.1853992-3-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200115063410.131692-1-hsinyi@chromium.org>
- <8736cgxmxi.fsf@nanos.tec.linutronix.de>
- <CAJMQK-jDi+AACE1Cv_hKSMq8VhGTBeh+kyHO2U4sx9w=9bO2mA@mail.gmail.com>
-In-Reply-To: <CAJMQK-jDi+AACE1Cv_hKSMq8VhGTBeh+kyHO2U4sx9w=9bO2mA@mail.gmail.com>
+References: <20200102145552.1853992-1-arnd@arndb.de>
+In-Reply-To: <20200102145552.1853992-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, lkml <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org, Guenter Roeck <groeck@chromium.org>, Will Deacon <will@kernel.org>, Ingo Molnar <mingo@kernel.org>, linux-s390@vger.kernel.org, linux-csky@vger.kernel.org, Aaro Koskinen <aaro.koskinen@nokia.com>, Fenghua Yu <fenghua.yu@intel.com>, Linux PM <linux-pm@vger.kernel.org>, linux-xtensa@linux-xtensa.org, Stephen Boyd <swboyd@chromium.org>, Josh Poimboeuf <jpoimboe@redhat.com>, Pavankumar Kondeti <pkondeti@codeaurora.org>, "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, linux-parisc@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-mips@vger.kernel.org, James Morse <james.morse@arm.com>, Jiri Kosina <jkosina@suse.cz>, Vitaly Kuznetsov <vkuznets@redhat.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+To: "James E.J. Bottomley" <jejb@linux.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Ralf Baechle <ralf@linux-mips.org>, Paul Burton <paulburton@kernel.org>, James Hogan <jhogan@kernel.org>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Robert Richter <rric@kernel.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, oprofile-list@lists.sf.net, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hsin-Yi Wang <hsinyi@chromium.org> writes:
-> On Thu, Jan 16, 2020 at 8:30 AM Thomas Gleixner <tglx@linutronix.de> wrote:
-> We saw this issue on regular reboot (not panic) on arm64: If tick
-> broadcast and smp_send_stop() happen together and the first broadcast
-> arrives to some idled CPU that hasn't already executed reboot ipi to
-> run in spinloop, it would try to broadcast to another CPU, but that
-> target CPU is already marked as offline by set_cpu_online() in reboot
-> ipi, and a warning comes out since tick_handle_oneshot_broadcast()
-> would check if it tries to broadcast to offline cpus. Most of the time
-> the CPU getting the broadcast interrupt is already in the spinloop and
-> thus isn't going to receive interrupts from the broadcast timer.
+In order to avoid needless #ifdef CONFIG_COMPAT checks,
+move the compat_ptr() definition to linux/compat.h
+where it can be seen by any file regardless of the
+architecture.
 
-The timer broadcasting is obviously broken by the existing reboot unplug
-mechanism as the outgoing CPU should remove itself from the broadcast.
+Only s390 needs a special definition, this can use the
+self-#define trick we have elsewhere.
 
-Just addressing the broadcast issue is not sufficient as there are tons
-of other places which rely on consistency of the various cpu masks.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm64/include/asm/compat.h   | 17 -----------------
+ arch/mips/include/asm/compat.h    | 18 ------------------
+ arch/parisc/include/asm/compat.h  | 17 -----------------
+ arch/powerpc/include/asm/compat.h | 17 -----------------
+ arch/powerpc/oprofile/backtrace.c |  2 +-
+ arch/s390/include/asm/compat.h    |  6 +-----
+ arch/sparc/include/asm/compat.h   | 17 -----------------
+ arch/x86/include/asm/compat.h     | 17 -----------------
+ include/linux/compat.h            | 18 ++++++++++++++++++
+ 9 files changed, 20 insertions(+), 109 deletions(-)
 
-> If system supports hotplug, _cpu_down() would properly handle tasks
-> termination such as remove CPU from timer broadcasting by
-> tick_offline_cpu()...etc, as well as some interrupt handling.
-
-Well, emphasis on 'if system supports hotplug'. If not, then you are
-back to square one. On ARM64 hotplug is selectable by a config option.
-
-So either we mandate HOTPLUG_CPU for SMP and get rid of all the
-ifdeffery or we need to have a mechanism which works on !HOTPLUG_CPU as
-well.
-
-That whole reboot/shutdown stuff is an unpenetrable mess of notifiers
-and architecture hackery, so something generic and understandable is
-really required.
-
-Thanks,
-
-        tglx
+diff --git a/arch/arm64/include/asm/compat.h b/arch/arm64/include/asm/compat.h
+index 7b4172ce497c..935d2aa231bf 100644
+--- a/arch/arm64/include/asm/compat.h
++++ b/arch/arm64/include/asm/compat.h
+@@ -114,23 +114,6 @@ typedef u32		compat_sigset_word;
+ 
+ #define COMPAT_OFF_T_MAX	0x7fffffff
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	return (void __user *)(unsigned long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ #define compat_user_stack_pointer() (user_stack_pointer(task_pt_regs(current)))
+ #define COMPAT_MINSIGSTKSZ	2048
+ 
+diff --git a/arch/mips/include/asm/compat.h b/arch/mips/include/asm/compat.h
+index c99166eadbde..255afcdd79c9 100644
+--- a/arch/mips/include/asm/compat.h
++++ b/arch/mips/include/asm/compat.h
+@@ -100,24 +100,6 @@ typedef u32		compat_sigset_word;
+ 
+ #define COMPAT_OFF_T_MAX	0x7fffffff
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	/* cast to a __user pointer via "unsigned long" makes sparse happy */
+-	return (void __user *)(unsigned long)(long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ static inline void __user *arch_compat_alloc_user_space(long len)
+ {
+ 	struct pt_regs *regs = (struct pt_regs *)
+diff --git a/arch/parisc/include/asm/compat.h b/arch/parisc/include/asm/compat.h
+index e03e3c849f40..2f4f66a3bac0 100644
+--- a/arch/parisc/include/asm/compat.h
++++ b/arch/parisc/include/asm/compat.h
+@@ -173,23 +173,6 @@ struct compat_shmid64_ds {
+ #define COMPAT_ELF_NGREG 80
+ typedef compat_ulong_t compat_elf_gregset_t[COMPAT_ELF_NGREG];
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	return (void __user *)(unsigned long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ static __inline__ void __user *arch_compat_alloc_user_space(long len)
+ {
+ 	struct pt_regs *regs = &current->thread.regs;
+diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
+index 74d0db511099..3e3cdfaa76c6 100644
+--- a/arch/powerpc/include/asm/compat.h
++++ b/arch/powerpc/include/asm/compat.h
+@@ -96,23 +96,6 @@ typedef u32		compat_sigset_word;
+ 
+ #define COMPAT_OFF_T_MAX	0x7fffffff
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	return (void __user *)(unsigned long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ static inline void __user *arch_compat_alloc_user_space(long len)
+ {
+ 	struct pt_regs *regs = current->thread.regs;
+diff --git a/arch/powerpc/oprofile/backtrace.c b/arch/powerpc/oprofile/backtrace.c
+index 43245f4a9bcb..6ffcb80cf844 100644
+--- a/arch/powerpc/oprofile/backtrace.c
++++ b/arch/powerpc/oprofile/backtrace.c
+@@ -9,7 +9,7 @@
+ #include <linux/sched.h>
+ #include <asm/processor.h>
+ #include <linux/uaccess.h>
+-#include <asm/compat.h>
++#include <linux/compat.h>
+ #include <asm/oprofile_impl.h>
+ 
+ #define STACK_SP(STACK)		*(STACK)
+diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
+index 63b46e30b2c3..9547cd5d6cdc 100644
+--- a/arch/s390/include/asm/compat.h
++++ b/arch/s390/include/asm/compat.h
+@@ -177,11 +177,7 @@ static inline void __user *compat_ptr(compat_uptr_t uptr)
+ {
+ 	return (void __user *)(unsigned long)(uptr & 0x7fffffffUL);
+ }
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
++#define compat_ptr(uptr) compat_ptr(uptr)
+ 
+ #ifdef CONFIG_COMPAT
+ 
+diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
+index 30b1763580b1..40a267b3bd52 100644
+--- a/arch/sparc/include/asm/compat.h
++++ b/arch/sparc/include/asm/compat.h
+@@ -125,23 +125,6 @@ typedef u32		compat_sigset_word;
+ 
+ #define COMPAT_OFF_T_MAX	0x7fffffff
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	return (void __user *)(unsigned long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ #ifdef CONFIG_COMPAT
+ static inline void __user *arch_compat_alloc_user_space(long len)
+ {
+diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
+index 22c4dfe65992..52e9f3480f69 100644
+--- a/arch/x86/include/asm/compat.h
++++ b/arch/x86/include/asm/compat.h
+@@ -177,23 +177,6 @@ typedef struct user_regs_struct compat_elf_gregset_t;
+ 	(!!(task_pt_regs(current)->orig_ax & __X32_SYSCALL_BIT))
+ #endif
+ 
+-/*
+- * A pointer passed in from user mode. This should not
+- * be used for syscall parameters, just declare them
+- * as pointers because the syscall entry code will have
+- * appropriately converted them already.
+- */
+-
+-static inline void __user *compat_ptr(compat_uptr_t uptr)
+-{
+-	return (void __user *)(unsigned long)uptr;
+-}
+-
+-static inline compat_uptr_t ptr_to_compat(void __user *uptr)
+-{
+-	return (u32)(unsigned long)uptr;
+-}
+-
+ static inline void __user *arch_compat_alloc_user_space(long len)
+ {
+ 	compat_uptr_t sp;
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index 68f79d855c3d..11083d84eb23 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -958,4 +958,22 @@ static inline bool in_compat_syscall(void) { return false; }
+ 
+ #endif /* CONFIG_COMPAT */
+ 
++/*
++ * A pointer passed in from user mode. This should not
++ * be used for syscall parameters, just declare them
++ * as pointers because the syscall entry code will have
++ * appropriately converted them already.
++ */
++#ifndef compat_ptr
++static inline void __user *compat_ptr(compat_uptr_t uptr)
++{
++	return (void __user *)(unsigned long)uptr;
++}
++#endif
++
++static inline compat_uptr_t ptr_to_compat(void __user *uptr)
++{
++	return (u32)(unsigned long)uptr;
++}
++
+ #endif /* _LINUX_COMPAT_H */
+-- 
+2.20.0
