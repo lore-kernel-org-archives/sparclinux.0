@@ -1,33 +1,32 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sat, 11 Jan 2020 07:26:09 +0000
-Subject: Re: [PATCH] modpost: assume STT_SPARC_REGISTER is defined
-Message-Id: <CAK7LNASGJvim3Mfp3LqLd2kKR-HLM0vwwx81fSAQtWZHuqYsFw@mail.gmail.com>
+From: Brian Gilvary <1brian.gilvary@gmail.com>
+Date: Fri, 03 Jan 2020 11:39:57 +0000
+Subject: Happy New Year For Our Mutual Benefits
+Message-Id: <156407729.4076756.1578051597568@mail.yahoo.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200104153651.2258-1-masahiroy@kernel.org> <20200106.133336.719905028750983361.davem@redhat.com>
-In-Reply-To: <20200106.133336.719905028750983361.davem@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David Miller <davem@redhat.com>
-Cc: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, bcollins@debian.org, Michal Marek <michal.lkml@markovi.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Tue, Jan 7, 2020 at 6:33 AM David Miller <davem@redhat.com> wrote:
->
-> From: Masahiro Yamada <masahiroy@kernel.org>
-> Date: Sun,  5 Jan 2020 00:36:51 +0900
->
-> > Commit 8d5290149ee1 ("[SPARC]: Deal with glibc changing macro names in
-> > modpost.c") was more than 14 years ago. STT_SPARC_REGISTER is hopefully
-> > defined in elf.h of recent C libraries.
-> >
-> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
->
-> Acked-by: David S. Miller <davem@davemloft.net>
->
+Hi
 
-Applied to linux-kbuild.
+As the Chief Financial Officer, British Petroleum Company plc (BP), I am in=
+ a position to facilitate immediate transfer of =C2=A3 48,000,000.00 (Forty=
+ Eight Million British Pounds Sterling), to any of your nominated Bank Acco=
+unt.
 
+Source of Funds: An over-invoiced payment from a past project executed in m=
+y department. I cannot successfully achieve this transaction without presen=
+ting you as foreign contractor who will provide the bank account to receive=
+ the funds. Every documentation for the claim of the funds will be legally =
+processed and documented, so I will need your full co-operation for our mut=
+ual benefits.
 
--- 
-Best Regards
-Masahiro Yamada
+We will discuss details if you are interested to work with me to secure thi=
+s funds, as I said for our mutual benefits. I will be looking forward to yo=
+ur prompt response.
+
+Best regards
+Brian Gilvary
+Chief financial officer
+BP, Plc.
