@@ -1,39 +1,56 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Jan 2020 12:27:25 +0000
-Subject: Re: [PATCH] sparc32: fix struct ipc64_perm type definition
-Message-Id: <20200121.132725.1938964059289099578.davem@davemloft.net>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Sat, 04 Jan 2020 15:36:51 +0000
+Subject: [PATCH] modpost: assume STT_SPARC_REGISTER is defined
+Message-Id: <20200104153651.2258-1-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200114132633.3694261-1-arnd@arndb.de>
-In-Reply-To: <20200114132633.3694261-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: arnd@arndb.de
-Cc: sam@ravnborg.org, stable@vger.kernel.org, ldv@altlinux.org, dalias@libc.org, libc-alpha@sourceware.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kbuild@vger.kernel.org
+Cc: "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Ben Colline <bcollins@debian.org>, Masahiro Yamada <masahiroy@kernel.org>, Michal Marek <michal.lkml@markovi.net>, linux-kernel@vger.kernel.org
 
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 14 Jan 2020 14:26:14 +0100
+Commit 8d5290149ee1 ("[SPARC]: Deal with glibc changing macro names in
+modpost.c") was more than 14 years ago. STT_SPARC_REGISTER is hopefully
+defined in elf.h of recent C libraries.
 
-> As discussed in the strace issue tracker, it appears that the sparc32
-> sysvipc support has been broken for the past 11 years. It was however
-> working in compat mode, which is how it must have escaped most of the
-> regular testing.
-> 
-> The problem is that a cleanup patch inadvertently changed the uid/gid
-> fields in struct ipc64_perm from 32-bit types to 16-bit types in uapi
-> headers.
-> 
-> Both glibc and uclibc-ng still use the original types, so they should
-> work fine with compat mode, but not natively.  Change the definitions
-> to use __kernel_uid32_t and __kernel_gid32_t again.
-> 
-> Fixes: 83c86984bff2 ("sparc: unify ipcbuf.h")
-> Link: https://github.com/strace/strace/issues/116
-> Cc: <stable@vger.kernel.org> # v2.6.29
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: "Dmitry V . Levin" <ldv@altlinux.org>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: libc-alpha@sourceware.org
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
 
-Applied and queued up for -stable, thanks Arnd.
+ scripts/mod/modpost.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/scripts/mod/modpost.c b/scripts/mod/modpost.c
+index 6e892c93d104..7edfdb2f4497 100644
+--- a/scripts/mod/modpost.c
++++ b/scripts/mod/modpost.c
+@@ -12,6 +12,7 @@
+  */
+ 
+ #define _GNU_SOURCE
++#include <elf.h>
+ #include <stdio.h>
+ #include <ctype.h>
+ #include <string.h>
+@@ -729,12 +730,6 @@ static void handle_symbol(struct module *mod, struct elf_info *info,
+ 			break;
+ 		if (ignore_undef_symbol(info, symname))
+ 			break;
+-/* cope with newer glibc (2.3.4 or higher) STT_ definition in elf.h */
+-#if defined(STT_REGISTER) || defined(STT_SPARC_REGISTER)
+-/* add compatibility with older glibc */
+-#ifndef STT_SPARC_REGISTER
+-#define STT_SPARC_REGISTER STT_REGISTER
+-#endif
+ 		if (info->hdr->e_machine = EM_SPARC ||
+ 		    info->hdr->e_machine = EM_SPARCV9) {
+ 			/* Ignore register directives. */
+@@ -747,7 +742,6 @@ static void handle_symbol(struct module *mod, struct elf_info *info,
+ 				symname = munged;
+ 			}
+ 		}
+-#endif
+ 
+ 		mod->unres = alloc_symbol(symname,
+ 					  ELF_ST_BIND(sym->st_info) = STB_WEAK,
+-- 
+2.17.1
