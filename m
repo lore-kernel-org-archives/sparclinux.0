@@ -1,25 +1,32 @@
-From: pr-tracker-bot@kernel.org
-Date: Thu, 30 Jan 2020 18:00:22 +0000
-Subject: Re: [GIT] Sparc
-Message-Id: <158040722204.2766.8349842403156129206.pr-tracker-bot@kernel.org>
+From: "Dr. William Johnson" <eco.bank1204@gmail.com>
+Date: Tue, 07 Jan 2020 19:40:03 +0000
+Subject: ATTN Dear Beneficiary. Goodnews
+Message-Id: <CAOE+jADGEV7DMNY-1BsL_Pb1_8BC3wHHVOD1JnTMxhVPODb-ew@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200130.111927.1184332737812002632.davem@davemloft.net>
-In-Reply-To: <20200130.111927.1184332737812002632.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-The pull request you sent on Thu, 30 Jan 2020 11:19:27 +0100 (CET):
-
-> git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git refs/heads/master
-
-has been merged into torvalds/linux.git:
-https://git.kernel.org/torvalds/c/9ca4c6429f92598a84e4c3292ea7d187c9d7b033
-
-Thank you!
-
--- 
-Deet-doot-dot, I am a bot.
-https://korg.wiki.kernel.org/userdoc/prtracker
+ATTN Dear Beneficiary.
+Goodnews
+I have Registered your Prepaid ATM Master Card
+worth $15.800,000.00 US DOLLARS Courier company asigned to deliver it
+to you today.
+So contact Dhl office New York to receive your Prepaid ATM Master Card
+worth $15.8Million US DOLLARS now.
+Contact Person: Mrs. Mary Michael, Director, DHL Courier Company-NY USA. 10218
+Email. dhlexpresscouriercompany.nyusa@gmail.com
+Call the office +(202) 890-8752
+Rec-Confirmed your mailing address to the office as I listed below.
+Your Full Name--------------
+House Address-----------
+Your working Phone Number----------------
+ID copy-------------------------
+Sex-----------------------------
+Note,delivery fee to your address is only $25.00. send it to this
+company urgent on itunes card today so that DHL will deliver this
+Prepaid ATM Master Card to you today according to our finally
+agreement.
+Thanks for coperations,
+Dr. William Johnson
