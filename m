@@ -1,33 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Date: Sun, 12 Jan 2020 08:05:04 +0000
-Subject: Re: [PATCH] tty: n_hdlc: fix build on SPARC
-Message-Id: <20200112.000504.1994757840298424991.davem@davemloft.net>
+From: Rick Schaech <msjulianaalfred@gmail.com>
+Date: Mon, 13 Jan 2020 06:04:41 +0000
+Subject: I wait for your swift response,
+Message-Id: <CADBcy2JVwN49aa-JrbqhxFXCdGh+k0Up2NKBGgE0Q4BrF-iY0A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <675e7bd9-955b-3ff3-1101-a973b58b5b75@infradead.org>
-In-Reply-To: <675e7bd9-955b-3ff3-1101-a973b58b5b75@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: rdunlap@infradead.org
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, akpm@linux-foundation.org, gregkh@linuxfoundation.org, keescook@chromium.org, lkp@intel.com
+To: sparclinux@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Date: Mon, 30 Sep 2019 19:15:12 -0700
+Dear, I'm Mr Rick Schaech, I am the General Account Auditor, Though i
+know we have not meet each other before but sometimes in life God have
+a reason of bringing two people from two different countries together
+as business partners or life partners.
 
-> From: Randy Dunlap <rdunlap@infradead.org>
-> 
-> Fix tty driver build on SPARC by not using __exitdata.
-> It appears that SPARC does not support section .exit.data.
-> 
-> Fixes these build errors:
-> 
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> `.exit.data' referenced in section `.exit.text' of drivers/tty/n_hdlc.o: defined in discarded section `.exit.data' of drivers/tty/n_hdlc.o
-> 
-> Reported-by: kbuild test robot <lkp@intel.com>
-> Fixes: 063246641d4a ("format-security: move static strings to const")
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+My dear friend, I have the sum of 15.7 Million USD i wish to put in
+your name due to the death of my late client who died several years
+ago as his next of kin column still remain blank. Though the internet
+medium is highly abuse these days but am assuring you that this
+transaction is legitimate and I am contacting you that we may have a
+deal, note for your cooperation and collaboration 40% of the sum will
+be for you while the other 60% will be for me as well. I wait for your
+swift response for more details. please forward your response to my
+personal E-mail: rickschaech@gmail.com
 
-I'll add an .exit.data to arch/sparc/kernel/vmlinux.lds.S to fix this.
+Yours sincerely,
+Rick Schaech.
