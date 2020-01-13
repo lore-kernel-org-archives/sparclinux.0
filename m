@@ -1,23 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Jan 2020 12:28:45 +0000
-Subject: Re: [PATCH RESEND] sparc/console: kill off obsolete declarations
-Message-Id: <20200121.132845.2048607059303572209.davem@davemloft.net>
+From: Will Deacon <will@kernel.org>
+Date: Mon, 13 Jan 2020 16:40:29 +0000
+Subject: Re: [RFC PATCH v3 00/12] Unify SMP stop generic logic to common code
+Message-Id: <20200113164029.GE4458@willie-the-truck>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200115160749.GA3951901@rani.riverdale.lan>
-In-Reply-To: <20200115160749.GA3951901@rani.riverdale.lan>
+References: <20191219121905.26905-1-cristian.marussi@arm.com>
+In-Reply-To: <20191219121905.26905-1-cristian.marussi@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: nivedita@alum.mit.edu
-Cc: gregkh@linuxfoundation.org, jslaby@suse.com, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Cristian Marussi <cristian.marussi@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, mark.rutland@arm.com, peterz@infradead.org, catalin.marinas@arm.com, takahiro.akashi@linaro.org, james.morse@arm.com, hidehiro.kawai.ez@hitachi.com, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, mingo@redhat.com, x86@kernel.org, dzickus@redhat.com, ehabkost@redhat.com, linux@armlinux.org.uk, davem@davemloft.net, sparclinux@vger.kernel.org, hch@infradead.org
 
-From: Arvind Sankar <nivedita@alum.mit.edu>
-Date: Wed, 15 Jan 2020 11:07:50 -0500
+On Thu, Dec 19, 2019 at 12:18:53PM +0000, Cristian Marussi wrote:
+> the logic underlying SMP stop and kexec crash procedures, beside containing
+> some arch-specific bits, is mostly generic and common across all archs:
+> despite this fact, such logic is now scattered across all architectures and
+> on some of them is flawed, in such a way that, under some specific
+> conditions, you can end up with a CPU left still running after a panic and
+> possibly lost across a subsequent kexec crash reboot. [1]
 
-> commit 09d3f3f0e02c ("sparc: Kill PROM console driver.") missed removing
-> the declarations of the deleted prom_con structure and prom_con_init
-> function from console.h. Kill them off now.
-> 
-> Signed-off-by: Arvind Sankar <nivedita@alum.mit.edu>
+Is this still the case even after 20bb759a66be ("panic: ensure preemption is
+disabled during panic()")?
 
-Applied, thank you.
+Will
