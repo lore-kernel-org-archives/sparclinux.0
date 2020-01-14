@@ -1,34 +1,73 @@
-From: "Dr. William Johnson" <eco.bank1204@gmail.com>
-Date: Tue, 07 Jan 2020 19:40:04 +0000
-Subject: ATTN Dear Beneficiary. Goodnews
-Message-Id: <CAOE+jABWq2cMpdCjZHQd6wvcoEyEXNKkt30Wpb+zdzxGxxUJCQ@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 14 Jan 2020 13:26:14 +0000
+Subject: [PATCH] sparc32: fix struct ipc64_perm type definition
+Message-Id: <20200114132633.3694261-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAOE+jADGEV7DMNY-1BsL_Pb1_8BC3wHHVOD1JnTMxhVPODb-ew@mail.gmail.com>
-In-Reply-To: <CAOE+jADGEV7DMNY-1BsL_Pb1_8BC3wHHVOD1JnTMxhVPODb-ew@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org, "Dmitry V . Levin" <ldv@altlinux.org>, Rich Felker <dalias@libc.org>, libc-alpha@sourceware.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ATTN Dear Beneficiary.
-Goodnews
-I have Registered your Prepaid ATM Master Card
-worth $15.800,000.00 US DOLLARS Courier company asigned to deliver it
-to you today.
-So contact Dhl office New York to receive your Prepaid ATM Master Card
-worth $15.8Million US DOLLARS now.
-Contact Person: Mrs. Mary Michael, Director, DHL Courier Company-NY USA. 10218
-Email. dhlexpresscouriercompany.nyusa@gmail.com
-Call the office +(202) 890-8752
-Rec-Confirmed your mailing address to the office as I listed below.
-Your Full Name--------------
-House Address-----------
-Your working Phone Number----------------
-ID copy-------------------------
-Sex-----------------------------
-Note,delivery fee to your address is only $25.00. send it to this
-company urgent on itunes card today so that DHL will deliver this
-Prepaid ATM Master Card to you today according to our finally
-agreement.
-Thanks for coperations,
-Dr. William Johnson
+As discussed in the strace issue tracker, it appears that the sparc32
+sysvipc support has been broken for the past 11 years. It was however
+working in compat mode, which is how it must have escaped most of the
+regular testing.
+
+The problem is that a cleanup patch inadvertently changed the uid/gid
+fields in struct ipc64_perm from 32-bit types to 16-bit types in uapi
+headers.
+
+Both glibc and uclibc-ng still use the original types, so they should
+work fine with compat mode, but not natively.  Change the definitions
+to use __kernel_uid32_t and __kernel_gid32_t again.
+
+Fixes: 83c86984bff2 ("sparc: unify ipcbuf.h")
+Link: https://github.com/strace/strace/issues/116
+Cc: <stable@vger.kernel.org> # v2.6.29
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: "Dmitry V . Levin" <ldv@altlinux.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: libc-alpha@sourceware.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/sparc/include/uapi/asm/ipcbuf.h | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/arch/sparc/include/uapi/asm/ipcbuf.h b/arch/sparc/include/uapi/asm/ipcbuf.h
+index 5b933a598a33..0ea1240d2ea1 100644
+--- a/arch/sparc/include/uapi/asm/ipcbuf.h
++++ b/arch/sparc/include/uapi/asm/ipcbuf.h
+@@ -17,19 +17,19 @@
+ 
+ struct ipc64_perm
+ {
+-	__kernel_key_t	key;
+-	__kernel_uid_t	uid;
+-	__kernel_gid_t	gid;
+-	__kernel_uid_t	cuid;
+-	__kernel_gid_t	cgid;
++	__kernel_key_t		key;
++	__kernel_uid32_t	uid;
++	__kernel_gid32_t	gid;
++	__kernel_uid32_t	cuid;
++	__kernel_gid32_t	cgid;
+ #ifndef __arch64__
+-	unsigned short	__pad0;
++	unsigned short		__pad0;
+ #endif
+-	__kernel_mode_t	mode;
+-	unsigned short	__pad1;
+-	unsigned short	seq;
+-	unsigned long long __unused1;
+-	unsigned long long __unused2;
++	__kernel_mode_t		mode;
++	unsigned short		__pad1;
++	unsigned short		seq;
++	unsigned long long	__unused1;
++	unsigned long long	__unused2;
+ };
+ 
+ #endif /* __SPARC_IPCBUF_H */
+-- 
+2.20.0
