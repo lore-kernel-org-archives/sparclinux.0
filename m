@@ -1,56 +1,63 @@
-From: "MS. MARYANNA B. THOMASON" <info.zennitbankplcnigerian@gmail.com>
-Date: Fri, 03 Jan 2020 20:10:48 +0000
-Subject: contact my Diplomatic Agent, His name is Mike Benz o receive your prepaid (ATM) Debit card of US$12,
-Message-Id: <CABHzvrks3U6DC+=nSMq63OcUygjbdB1kXZQEpZCeroZN=t_tSQ@mail.gmail.com>
+From: Innocent Moti <innocentmoti6@gmail.com>
+Date: Wed, 22 Jan 2020 06:35:25 +0000
+Subject: NEW DEVELOPMENT
+Message-Id: <CABYecEb5XZ3=+7HiK63-R9TMJKQQ_HJ+QkxiYLHUkrwsoMT=Yg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Dear Friend
+ATTENTION : ,
 
-i hope all is well with you,if so, glory be to God almighty. I'm very
-happy to inform you, about my success in getting payment funds under
-the cooperation of a new partner from United States of
-America.Presently I am in uk for investment projects with my own share
-of the total sum. I didn't forget your past efforts. IMF finally
-approved your compensation payment funds this morning by prepaid (ATM)
-Debit card of US$12,500.000.00Million Dollars, Since you not received
-this payment yet, I was not certified
-but it is not your fault and not my fault, I hold nothing against
-you.than bank official whom has been detaining the transfer in the
-bank, trying to claim your funds by themselves.
+This is to inform you that you are now going to receive your fund in
+their affiliate office in Japan payment center. hence presently, i
+have gotten an a sponsor from Japan who is willing to carter for the
+expenses on your behalf since you are unable. note, the sponsor will
+be taking 10% out of the total sum $40 million USD after your fund
+must have transferred into your account.
 
-Therefore, in appreciation of your effort I have raised an
-International prepaid (ATM) Debit card of US$12,500.000.00 in your
-favor as compensation to you.
+The conditions mentioned  in the payment arrangement are short listed below.
 
-Now, i want you to contact my Diplomatic Agent, His name is Mike Benz
-on His  e-mail Address (mikebenz550@aol.com
+1. YOU WILL TRAVEL TO BRAZIL FIRST TO MEET WITH THE SPONSOR FOR
+SHOPPING. THEN, THE SPONSOR WILL BUY YOU GIFTS ITEMS WHICH YOU WILL
+GIVE TO THE OFFICIALS IN JAPAN PAYMENT CENTER WHERE YOU WILL SIGN YOUR
+DOCUMENTS AS THE BENEFICIARY AS SOON AS YOU ARRIVE IN JAPAN.
 
-ask Him to send the Prepaid (ATM) Debit card to you. Bear in mind that
-the money is in Prepaid (ATM) Debit card, not cash, so you need to
-send to him,
-your full name
-address  where the prepaid (ATM) Debit card will be delivered to you,
-including your cell phone number. Finally, I left explicit
-instructions with him, on how to send the (ATM CARD) to you.
+2. NO MORE UPFRONT PAYMENT REQUIRED FROM YOU AS THE BENEFICIARY.
 
-The Prepaid (ATM) Debit card, will be send to you through my
-Diplomatic Agent Mr. Mike Benz immediately you contact him. So contact
-my Diplomatic Agent Mr. Mike Benz immediately you receive this letter.
-Below is his contact information:
+3.YOUR FLIGHT TICKETS WILL BE CATERED BY THE SPONSOR.
 
-NAME : MIKE BENZ
-EMAIL ADDRESS: mikebenz550@aol.com
-Text Him, (256) 284-4886
+4. YOUR HOTEL RESERVATION / ACCOMMODATION  WILL BE PROVIDED BY THE SPONSOR.
 
-Request for Delivery of the Prepaid (ATM) Debit card  to you today.
-Note, please I have paid for the whole service fees for you, so the
-only money you will send to my Diplomatic Agent Mr. Mike Benz is
-$50.00 for your prepaid (ATM) Debit card DELIVERY FEE to your address
-ok.
-Let me know once you receive this Card at your address.
-Best regards,
-Rev.Dr, George Adadar
+5. YOUR JOURNEY /TRIP TO JAPAN YOUR PAYMENT CENTER WILL NOT TAKE MORE
+THAN THREE DAYS TO FINALIZE YOUR PAYMENT.
+
+6. YOUR DUTY IS TO PROVIDE YOUR VALID PASSPORT AND READINESS TO FLY TO
+THE PAYING CENTER AT NO EXPENSES FROM YOU AS YOU NEED NO VISA. NOTE,
+YOU ARE TRAVELING TO BRAZIL  FIRST TO COLLECT ALL THE GIFTS ITEMS FROM
+THE SPONSOR AND THEN PROCEED TO THEIR AFFILIATE OFFICE IN JAPAN THEIR
+PAYMENT CENTER TO MEET WITH THE OFFICIALS FOR THE FINAL RELEASE OF
+YOUR FUND.
+
+BE MINDFUL, YOU ARE ALSO TRAVELING TO THE PAYMENT CENTER JAPAN TO SIGN
+ALL THE NECESSARY DOCUMENTS THAT BACK UP YOUR CLAIM AS THE
+BENEFICIARY. AS SOON AS YOU SIGN ALL THE NECESSARY DOCUMENTS THAT BACK
+UP YOUR CLAIM, THE OFFICIALS WILL THEN NOW HAVE THE FULL OFFICIAL
+RIGHT TO RELEASE YOUR FUND TO YOU AS THE BENEFICIARY WITHOUT ANY
+FURTHER DELAY.
+
+7. SEND  YOUR CURRENT AND DIRECT TELEPHONE NUMBER AND YOUR CONTACT ADDRESS.
+
+8. SEND YOUR INTERNATIONAL PASSPORT.
+
+THEREFORE, UPON THE RECEIPT OF YOUR DETAILS, THE INVESTOR WILL SEND
+YOUR FLIGHT TICKET TO YOU WITHOUT DELAY. CONGRATULATIONS.
+
+I WILL COME OVER THERE IN YOUR COUNTRY TO MEET WITH YOU FOR MY OWN
+PERCENTAGE AS WE HAVE AGREED AFTER YOUR FUND MUST HAVE TRANSFERRED
+INTO YOUR ACCOUNT. get in touch with me through my email: (
+baileym53@yahoo.com )
+
+THANKS FOR YOUR UNDERSTANDING
+BARRISTER. INNOCENT MOTI.
