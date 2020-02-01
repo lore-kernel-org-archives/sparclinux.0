@@ -1,39 +1,61 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Fri, 07 Feb 2020 10:58:05 +0000
-Subject: Re: [sparc64] unable to build kernel after bbfceba15f8 / "kdb: Get rid of confusing diag msg from "r
-Message-Id: <ba1e277d-511c-9ed6-994c-d096e54c3ab3@physik.fu-berlin.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Sat, 01 Feb 2020 21:20:52 +0000
+Subject: [PATCH] sparc64: fix adjtimex regression
+Message-Id: <20200201212104.575657-1-arnd@arndb.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqyB_g3S0OHkNcyDiS8PX-vGwrtH+3Cp-YNJ7SGj3x6bDg@mail.gmail.com>
- <CAD=FV=UYbMMr+obKqCvKpfpsJ-T5n6p9cZZsjFwF4kfTKM0Jqw@mail.gmail.com>
-In-Reply-To: <CAD=FV=UYbMMr+obKqCvKpfpsJ-T5n6p9cZZsjFwF4kfTKM0Jqw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Doug Anderson <dianders@chromium.org>, Anatoly Pugachev <matorola@gmail.com>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Daniel Thompson <daniel.thompson@linaro.org>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Anatoly Pugachev <matorola@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Deepa Dinamani <deepa.kernel@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Doug!
+Anatoly Pugachev reported one of the y2038 patches to introduce
+a fatal bug from a stupid typo:
 
-On 2/4/20 11:13 PM, Doug Anderson wrote:
-> Argh.  Sorry about this.  :(  I'm not setup with a sparc compiler, but
-> I've simulated your results on arm64 by just commenting out the
-> definition of "DBG_MAX_REG_NUM" in "arch/arm64/include/asm/kgdb.h".
-At least on Debian and openSUSE, compilers for most kernel architectures
-are available as cross-compilers ready for installation. So it might
-be a good idea to have a machine running Debian or openSUSE around
-for performing these tests.
+[   96.384129] watchdog: BUG: soft lockup - CPU#8 stuck for 22s!
+...
+[   96.385624]  [0000000000652ca4] handle_mm_fault+0x84/0x320
+[   96.385668]  [0000000000b6f2bc] do_sparc64_fault+0x43c/0x820
+[   96.385720]  [0000000000407754] sparc64_realfault_common+0x10/0x20
+[   96.385769]  [000000000042fa28] __do_sys_sparc_clock_adjtime+0x28/0x80
+[   96.385819]  [00000000004307f0] sys_sparc_clock_adjtime+0x10/0x20
+[   96.385866]  [0000000000406294] linux_sparc_syscall+0x34/0x44
 
-On Debian, you can just install a SPARC compiler with:
+Fix the code to dereference the correct pointer again.
 
-$ apt install gcc-sparc64-linux-gnu
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Tested-by: Anatoly Pugachev <matorola@gmail.com>
+Fixes: 251ec1c159e4 ("y2038: sparc: remove use of struct timex")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+The bug was introduced through my y2038 branch and is now in
+mainline, but not in v5.5. Who should pick up the fix to
+get it into v5.6-rc1?
+---
+ arch/sparc/kernel/sys_sparc_64.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The only target that is currently missing is ia64 but that's on my
-TODO list for Debian :).
-
-Adrian
-
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index 34917617f258..6b92fadb6ec7 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -551,7 +551,7 @@ SYSCALL_DEFINE2(getdomainname, char __user *, name, int, len)
+ SYSCALL_DEFINE1(sparc_adjtimex, struct __kernel_timex __user *, txc_p)
+ {
+ 	struct __kernel_timex txc;
+-	struct __kernel_old_timeval *tv = (void *)&txc_p->time;
++	struct __kernel_old_timeval *tv = (void *)&txc.time;
+ 	int ret;
+ 
+ 	/* Copy the user data space into the kernel copy
+@@ -576,7 +576,7 @@ SYSCALL_DEFINE2(sparc_clock_adjtime, const clockid_t, which_clock,
+ 		struct __kernel_timex __user *, txc_p)
+ {
+ 	struct __kernel_timex txc;
+-	struct __kernel_old_timeval *tv = (void *)&txc_p->time;
++	struct __kernel_old_timeval *tv = (void *)&txc.time;
+ 	int ret;
+ 
+ 	if (!IS_ENABLED(CONFIG_POSIX_TIMERS)) {
 -- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+2.25.0
