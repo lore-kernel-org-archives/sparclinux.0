@@ -1,27 +1,36 @@
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Thu, 20 Feb 2020 09:26:04 +0000
-Subject: Re: [PATCH 2/2] compiler: Remove CONFIG_OPTIMIZE_INLINING entirely
-Message-Id: <CANiq72nWs3c2MWGTsG=zvDQ21B_=_Yaw3AhRhHDBAr2xFJwF_g@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Date: Sun, 02 Feb 2020 10:57:57 +0000
+Subject: [GIT] Sparc
+Message-Id: <20200202.115757.1806399388803712136.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200220071140.14080-1-masahiroy@kernel.org> <20200220071140.14080-2-masahiroy@kernel.org>
-In-Reply-To: <20200220071140.14080-2-masahiroy@kernel.org>
+References: <20100329.131141.80866523.davem@davemloft.net>
+In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, clang-built-linux <clang-built-linux@googlegroups.com>, sparclinux@vger.kernel.org, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel <linux-kernel@vger.kernel.org>
+To: torvalds@linux-foundation.org
+Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Thu, Feb 20, 2020 at 8:12 AM Masahiro Yamada <masahiroy@kernel.org> wrote:
->
-> Commit ac7c3e4ff401 ("compiler: enable CONFIG_OPTIMIZE_INLINING
-> forcibly") made this always-on option. We released v5.4 and v5.5
-> including that commit.
->
-> Remove the CONFIG option and clean up the code now.
 
-Yes, please!
+Please pull to get this adjtimex regression fix from Arnd.
 
-Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+Thank you!
 
-Cheers,
-Miguel
+The following changes since commit 94f2630b18975bb56eee5d1a36371db967643479:
+
+  Merge tag '5.6-rc-small-smb3-fix-for-stable' of git://git.samba.org/sfrench/cifs-2.6 (2020-02-01 11:22:41 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
+
+for you to fetch changes up to 11648b8339f840d4b1f4c54a1abec8025d9e077d:
+
+  sparc64: fix adjtimex regression (2020-02-02 11:54:41 +0100)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      sparc64: fix adjtimex regression
+
+ arch/sparc/kernel/sys_sparc_64.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
