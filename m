@@ -1,59 +1,74 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Thu, 13 Feb 2020 02:27:55 +0000
-Subject: Re: [PATCH V12] mm/debug: Add tests validating architecture page table helpers
-Message-Id: <085cdec7-1759-82c6-7a65-9b7d28c1c458@arm.com>
+From: Douglas Anderson <dianders@chromium.org>
+Date: Tue, 04 Feb 2020 22:12:25 +0000
+Subject: [PATCH] kdb: Fix compiling on architectures w/out DBG_MAX_REG_NUM defined
+Message-Id: <20200204141219.1.Ief3f3a7edbbd76165901b14813e90381c290786d@changeid>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1580174873-18117-1-git-send-email-anshuman.khandual@arm.com>
- <20200210153716.GB9283@E121110.arm.com>
- <b169ff9d-7b87-91f4-b3d0-e97f86680d0c@arm.com>
- <20200212185548.3274ec2e@thinkpad>
-In-Reply-To: <20200212185548.3274ec2e@thinkpad>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, linux-s390@vger.kernel.org, Jason Gunthorpe <jgg@ziepe.ca>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, Matthew Wilcox <willy@infradead.org>, Steven Price <Steven.Price@arm.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, Vlastimil Babka <vbabka@suse.cz>, James Hogan <jhogan@kernel.org>, linux-snps-arc@lists.infradead.org, Kees Cook <keescook@chromium.org>, Masahiro Yamada <yamada.masahiro@socionext.com>, Dan Williams <dan.j.williams@intel.com>, Mark Brown <broonie@kernel.org>, "Kirill A . Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Christophe Leroy <christophe.leroy@c-s.fr>, Sri Krishna chowdary <schowdary@nvidia.com>, Dave Hansen <dave.hansen@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-mips@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-kernel@vger.kernel.org, Paul Burton <paul.burton@mips.com>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vineet Gupta <vgupta@synopsys.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Daniel Thompson <daniel.thompson@linaro.org>, Anatoly Pugachev <matorola@gmail.com>
+Cc: sparclinux@vger.kernel.org, Douglas Anderson <dianders@chromium.org>, Jason Wessel <jason.wessel@windriver.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Chuhong Yuan <hslester96@gmail.com>, kgdb-bugreport@lists.sourceforge.net, linux-kernel@vger.kernel.org, Dan Carpenter <dan.carpenter@oracle.com>
 
+In commit bbfceba15f8d ("kdb: Get rid of confusing diag msg from "rd"
+if current task has no regs") I tried to clean things up by using "if"
+instead of "#ifdef".  Turns out we really need "#ifdef" since not all
+architectures define some of the structures that the code is referring
+to.
 
+Let's switch to #ifdef again, but at least avoid using it inside of
+the function.
 
-On 02/12/2020 11:25 PM, Gerald Schaefer wrote:
-> On Wed, 12 Feb 2020 15:12:54 +0530
-> Anshuman Khandual <anshuman.khandual@arm.com> wrote:
-> 
->>>> +/*
->>>> + * On s390 platform, the lower 12 bits are used to identify given page table
->>>> + * entry type and for other arch specific requirements. But these bits might
->>>> + * affect the ability to clear entries with pxx_clear(). So while loading up
->>>> + * the entries skip all lower 12 bits in order to accommodate s390 platform.
->>>> + * It does not have affect any other platform.
->>>> + */
->>>> +#define RANDOM_ORVALUE	(0xfffffffffffff000UL)  
->>>
->>> I'd suggest you generate this mask with something like
->>> GENMASK(BITS_PER_LONG, PAGE_SHIFT).  
->>
->> IIRC the lower 12 bits constrains on s390 platform might not be really related
->> to it's PAGE_SHIFT which can be a variable, but instead just a constant number.
->> But can definitely use GENMASK or it's variants here.
->>
->> https://lkml.org/lkml/2019/9/5/862
-> 
-> PAGE_SHIFT would be fine, it is 12 on s390. However, in order to be
-> more precise, we do not really need all 12 bits, only the last 4 bits.
-> So, something like this would work:
-> 
-> #define RANDOM_ORVALUE GENMASK(BITS_PER_LONG - 1, 4)
-> 
-> The text in the comment could then also be changed from 12 to 4, and
-> be a bit more specific on the fact that the impact on pxx_clear()
-> results from the dynamic page table folding logic on s390:
-> 
-> /*
->  * On s390 platform, the lower 4 bits are used to identify given page table
->  * entry type. But these bits might affect the ability to clear entries with
->  * pxx_clear() because of how dynamic page table folding works on s390. So
->  * while loading up the entries do not change the lower 4 bits.
->  * It does not have affect any other platform.
->  */
+Fixes: bbfceba15f8d ("kdb: Get rid of confusing diag msg from "rd" if current task has no regs")
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+---
+I don't have a sparc64 compiler but I'm pretty sure this should work.
+Testing appreciated.
 
-Sure, will update accordingly.
+ kernel/debug/kdb/kdb_main.c | 17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/kernel/debug/kdb/kdb_main.c b/kernel/debug/kdb/kdb_main.c
+index b22292b649c4..c84e61747267 100644
+--- a/kernel/debug/kdb/kdb_main.c
++++ b/kernel/debug/kdb/kdb_main.c
+@@ -1833,6 +1833,16 @@ static int kdb_go(int argc, const char **argv)
+ /*
+  * kdb_rd - This function implements the 'rd' command.
+  */
++
++/* Fallback to Linux showregs() if we don't have DBG_MAX_REG_NUM */
++#if DBG_MAX_REG_NUM <= 0
++static int kdb_rd(int argc, const char **argv)
++{
++	if (!kdb_check_regs())
++		kdb_dumpregs(kdb_current_regs);
++	return 0;
++}
++#else
+ static int kdb_rd(int argc, const char **argv)
+ {
+ 	int len = 0;
+@@ -1847,12 +1857,6 @@ static int kdb_rd(int argc, const char **argv)
+ 	if (kdb_check_regs())
+ 		return 0;
+ 
+-	/* Fallback to Linux showregs() if we don't have DBG_MAX_REG_NUM */
+-	if (DBG_MAX_REG_NUM <= 0) {
+-		kdb_dumpregs(kdb_current_regs);
+-		return 0;
+-	}
+-
+ 	for (i = 0; i < DBG_MAX_REG_NUM; i++) {
+ 		rsize = dbg_reg_def[i].size * 2;
+ 		if (rsize > 16)
+@@ -1896,6 +1900,7 @@ static int kdb_rd(int argc, const char **argv)
+ 
+ 	return 0;
+ }
++#endif
+ 
+ /*
+  * kdb_rm - This function implements the 'rm' (register modify)  command.
+-- 
+2.25.0.341.g760bfbb309-goog
