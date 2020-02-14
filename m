@@ -1,10 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Feb 2020 16:08:01 +0000
-Subject: [PATCH AUTOSEL 4.19 026/252] sparc: Add .exit.data section.
-Message-Id: <20200214161147.15842-26-sashal@kernel.org>
+Date: Fri, 14 Feb 2020 16:19:18 +0000
+Subject: [PATCH AUTOSEL 4.9 018/141] sparc: Add .exit.data section.
+Message-Id: <20200214162122.19794-18-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200214161147.15842-1-sashal@kernel.org>
-In-Reply-To: <20200214161147.15842-1-sashal@kernel.org>
+References: <20200214162122.19794-1-sashal@kernel.org>
+In-Reply-To: <20200214162122.19794-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -26,10 +26,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index 61afd787bd0c7..59b6df13ddead 100644
+index 572db686f8458..385d6d04564d5 100644
 --- a/arch/sparc/kernel/vmlinux.lds.S
 +++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -172,12 +172,14 @@ SECTIONS
+@@ -151,12 +151,14 @@ SECTIONS
  	}
  	PERCPU_SECTION(SMP_CACHE_BYTES)
  
