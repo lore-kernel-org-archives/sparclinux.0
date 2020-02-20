@@ -1,123 +1,122 @@
-From: Doug Anderson <dianders@chromium.org>
-Date: Thu, 06 Feb 2020 16:15:52 +0000
-Subject: Re: [PATCH] kdb: Fix compiling on architectures w/out DBG_MAX_REG_NUM defined
-Message-Id: <CAD=FV=XpUwWyxoEOdOGf=hDQSmQgU7VV0gOPHdvN1L4AqGok1A@mail.gmail.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 20 Feb 2020 11:08:07 +0000
+Subject: [PATCH v2 2/2] compiler: Remove CONFIG_OPTIMIZE_INLINING entirely
+Message-Id: <20200220110807.32534-2-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200204141219.1.Ief3f3a7edbbd76165901b14813e90381c290786d@changeid>
- <20200205173042.chqij5i53mncfzar@holly.lan> <CAD=FV=V6ovmi-zCUYyFdiyf0pG4g=i5N4hUC8JjvrWDRUzPnqQ@mail.gmail.com>
- <20200206115826.oeltu56pp6w5jwvs@holly.lan>
-In-Reply-To: <20200206115826.oeltu56pp6w5jwvs@holly.lan>
+References: <20200220110807.32534-1-masahiroy@kernel.org>
+In-Reply-To: <20200220110807.32534-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Anatoly Pugachev <matorola@gmail.com>, Sparc kernel list <sparclinux@vger.kernel.org>, Jason Wessel <jason.wessel@windriver.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Chuhong Yuan <hslester96@gmail.com>, kgdb-bugreport@lists.sourceforge.net, LKML <linux-kernel@vger.kernel.org>, Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, Thomas Gleixner <tglx@linutronix.de>, x86@kernel.org, clang-built-linux@googlegroups.com, Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org
 
-Hi,
+Commit ac7c3e4ff401 ("compiler: enable CONFIG_OPTIMIZE_INLINING
+forcibly") made this always-on option. We released v5.4 and v5.5
+including that commit.
 
-On Thu, Feb 6, 2020 at 3:58 AM Daniel Thompson
-<daniel.thompson@linaro.org> wrote:
->
-> On Wed, Feb 05, 2020 at 10:01:17AM -0800, Doug Anderson wrote:
-> > Hi,
-> >
-> > On Wed, Feb 5, 2020 at 9:30 AM Daniel Thompson
-> > <daniel.thompson@linaro.org> wrote:
-> > >
-> > > On Tue, Feb 04, 2020 at 02:12:25PM -0800, Douglas Anderson wrote:
-> > > > In commit bbfceba15f8d ("kdb: Get rid of confusing diag msg from "rd"
-> > > > if current task has no regs") I tried to clean things up by using "if"
-> > > > instead of "#ifdef".  Turns out we really need "#ifdef" since not all
-> > > > architectures define some of the structures that the code is referring
-> > > > to.
-> > > >
-> > > > Let's switch to #ifdef again, but at least avoid using it inside of
-> > > > the function.
-> > > >
-> > > > Fixes: bbfceba15f8d ("kdb: Get rid of confusing diag msg from "rd" if current task has no regs")
-> > > > Reported-by: Anatoly Pugachev <matorola@gmail.com>
-> > > > Signed-off-by: Douglas Anderson <dianders@chromium.org>
-> > >
-> > > Thanks for being so quick with this (especially when if I had been less
-> > > delinquent with linux-next it might have been spotted sooner).
-> > >
-> > >
-> > > > ---
-> > > > I don't have a sparc64 compiler but I'm pretty sure this should work.
-> > > > Testing appreciated.
-> > >
-> > > I've just add sparc64 into my pre-release testing (although I have had to
-> > > turn off a bunch of additional compiler warnings in order to do so).
-> > >
-> > >
-> > > >  kernel/debug/kdb/kdb_main.c | 17 +++++++++++------
-> > > >  1 file changed, 11 insertions(+), 6 deletions(-)
-> > > >
-> > > > diff --git a/kernel/debug/kdb/kdb_main.c b/kernel/debug/kdb/kdb_main.c
-> > > > index b22292b649c4..c84e61747267 100644
-> > > > --- a/kernel/debug/kdb/kdb_main.c
-> > > > +++ b/kernel/debug/kdb/kdb_main.c
-> > > > @@ -1833,6 +1833,16 @@ static int kdb_go(int argc, const char **argv)
-> > > >  /*
-> > > >   * kdb_rd - This function implements the 'rd' command.
-> > > >   */
-> > > > +
-> > > > +/* Fallback to Linux showregs() if we don't have DBG_MAX_REG_NUM */
-> > > > +#if DBG_MAX_REG_NUM <= 0
-> > > > +static int kdb_rd(int argc, const char **argv)
-> > > > +{
-> > > > +     if (!kdb_check_regs())
-> > > > +             kdb_dumpregs(kdb_current_regs);
-> > > > +     return 0;
-> > > > +}
-> > > > +#else
-> > >
-> > > The original kdb_rd (and kdb_rm which still exists in this file) place
-> > > the #if inside the function and users > 0 so the common case was
-> > > covered at the top and the fallback at the bottom.
-> > >
-> > > Why change style when re-introducing this code?
-> >
-> > My opinion is that #if / #ifdef leads to hard-to-follow code, so I
-> > have always taken the policy that #if / #ifdef don't belong anywhere
-> > inside a function if it can be avoided.  This seems to be the policy
-> > in Linux in general, though not as much in the existing kgdb code.
-> > IMO kgdb should be working to reduce #if / #ifdef inside functions.
->
-> I definitely agree that reducing #if and its shortcuts is a good thing.
->
-> However I would characterize the dominant pattern as using #if[def]
-> to replace disabled functionality with an inline nop version. Other
-> cases are, I think, less clear cut.
->
->
-> > In this case, the duplicated code is 1 line: the call to
-> > kdb_check_regs().  It seemed better to duplicate.  Another option that
-> > would avoid the #if / #ifdef in the function would be as follows.
-> > Happy to change my patch like this if you prefer:
->
-> I wasn't really the duplicated code that bothered me.
->
-> More that this test of DBG_MAX_REG_NUM is following a different pattern
-> to all other instances in the code case (for a start all others use a
-> DBG_MAX_REG_NUM > 0 test and put the fallback code at the bottom).
+Remove the CONFIG option and clean up the code now.
 
-Ah, got it.  I'll give a shot at a new version then.
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Reviewed-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
+---
 
+Changes in v2:
+  - add Reviewed-by
 
-> > ...or if you just want to get something quickly so we have time to
-> > debate the finer points, I wouldn't object to a simple Revert and I
-> > can put it on my plate to resubmit the patch later.
->
-> There's a degree of bikeshedding in the above (and as we both know this
-> are larger bits of tidying up that kdb, in particular, could benefit
-> from) but nevertheless I think a revert is better at this point.
->
-> I hope you don't mind but I shall interpret the above paragraph as an
-> Acked-by: since I'd like the record to show your diligence in jumping
-> on this!
+ arch/x86/configs/i386_defconfig   |  1 -
+ arch/x86/configs/x86_64_defconfig |  1 -
+ include/linux/compiler_types.h    | 11 +----------
+ kernel/configs/tiny.config        |  1 -
+ lib/Kconfig.debug                 | 12 ------------
+ 5 files changed, 1 insertion(+), 25 deletions(-)
 
-Sounds perfect.  Thanks for the revert and adding exra tests for the
-future to keep me from shooting myself in the foot.
-
--Doug
+diff --git a/arch/x86/configs/i386_defconfig b/arch/x86/configs/i386_defconfig
+index 59ce9ed58430..d961d831c266 100644
+--- a/arch/x86/configs/i386_defconfig
++++ b/arch/x86/configs/i386_defconfig
+@@ -288,7 +288,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
+ CONFIG_DEBUG_STACKOVERFLOW=y
+ # CONFIG_DEBUG_RODATA_TEST is not set
+ CONFIG_DEBUG_BOOT_PARAMS=y
+-CONFIG_OPTIMIZE_INLINING=y
+ CONFIG_SECURITY=y
+ CONFIG_SECURITY_NETWORK=y
+ CONFIG_SECURITY_SELINUX=y
+diff --git a/arch/x86/configs/x86_64_defconfig b/arch/x86/configs/x86_64_defconfig
+index 0b9654c7a05c..4826254c6140 100644
+--- a/arch/x86/configs/x86_64_defconfig
++++ b/arch/x86/configs/x86_64_defconfig
+@@ -285,7 +285,6 @@ CONFIG_EARLY_PRINTK_DBGP=y
+ CONFIG_DEBUG_STACKOVERFLOW=y
+ # CONFIG_DEBUG_RODATA_TEST is not set
+ CONFIG_DEBUG_BOOT_PARAMS=y
+-CONFIG_OPTIMIZE_INLINING=y
+ CONFIG_UNWINDER_ORC=y
+ CONFIG_SECURITY=y
+ CONFIG_SECURITY_NETWORK=y
+diff --git a/include/linux/compiler_types.h b/include/linux/compiler_types.h
+index 72393a8c1a6c..e970f97a7fcb 100644
+--- a/include/linux/compiler_types.h
++++ b/include/linux/compiler_types.h
+@@ -129,22 +129,13 @@ struct ftrace_likely_data {
+ #define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
+ 
+ /*
+- * Force always-inline if the user requests it so via the .config.
+  * Prefer gnu_inline, so that extern inline functions do not emit an
+  * externally visible function. This makes extern inline behave as per gnu89
+  * semantics rather than c99. This prevents multiple symbol definition errors
+  * of extern inline functions at link time.
+  * A lot of inline functions can cause havoc with function tracing.
+- * Do not use __always_inline here, since currently it expands to inline again
+- * (which would break users of __always_inline).
+  */
+-#if !defined(CONFIG_OPTIMIZE_INLINING)
+-#define inline inline __attribute__((__always_inline__)) __gnu_inline \
+-	__inline_maybe_unused notrace
+-#else
+-#define inline inline                                    __gnu_inline \
+-	__inline_maybe_unused notrace
+-#endif
++#define inline inline __gnu_inline __inline_maybe_unused notrace
+ 
+ /*
+  * gcc provides both __inline__ and __inline as alternate spellings of
+diff --git a/kernel/configs/tiny.config b/kernel/configs/tiny.config
+index 7fa0c4ae6394..8a44b93da0f3 100644
+--- a/kernel/configs/tiny.config
++++ b/kernel/configs/tiny.config
+@@ -6,7 +6,6 @@ CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+ CONFIG_KERNEL_XZ=y
+ # CONFIG_KERNEL_LZO is not set
+ # CONFIG_KERNEL_LZ4 is not set
+-CONFIG_OPTIMIZE_INLINING=y
+ # CONFIG_SLAB is not set
+ # CONFIG_SLUB is not set
+ CONFIG_SLOB=y
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 69def4a9df00..5abde39c3c69 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -305,18 +305,6 @@ config HEADERS_INSTALL
+ 	  user-space program samples. It is also needed by some features such
+ 	  as uapi header sanity checks.
+ 
+-config OPTIMIZE_INLINING
+-	def_bool y
+-	help
+-	  This option determines if the kernel forces gcc to inline the functions
+-	  developers have marked 'inline'. Doing so takes away freedom from gcc to
+-	  do what it thinks is best, which is desirable for the gcc 3.x series of
+-	  compilers. The gcc 4.x series have a rewritten inlining algorithm and
+-	  enabling this option will generate a smaller kernel there. Hopefully
+-	  this algorithm is so good that allowing gcc 4.x and above to make the
+-	  decision will become the default in the future. Until then this option
+-	  is there to test gcc for this.
+-
+ config DEBUG_SECTION_MISMATCH
+ 	bool "Enable full Section mismatch analysis"
+ 	help
+-- 
+2.17.1
