@@ -1,238 +1,59 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Fri, 21 Feb 2020 09:18:50 +0000
+From: Will Deacon <will@kernel.org>
+Date: Fri, 21 Feb 2020 09:22:43 +0000
 Subject: Re: [PATCH] kbuild: use KBUILD_DEFCONFIG as the fallback for DEFCONFIG_LIST
-Message-Id: <CAK7LNAQqsLnZc4h_XEMifS2hX+E39-vxD-BL5C59Aj+TaQo+eA@mail.gmail.com>
+Message-Id: <20200221092242.GA11448@willie-the-truck>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CGME20200221085039eucas1p2b439c37eb04870cc020f452b7ad31929@eucas1p2.samsung.com>
  <20200216154502.26478-1-masahiroy@kernel.org>
  <e0212512-bc44-fc3a-a647-47eff86983b7@samsung.com>
-In-Reply-To: <e0212512-bc44-fc3a-a647-47eff86983b7@samsung.com>
+ <CAK7LNAQqsLnZc4h_XEMifS2hX+E39-vxD-BL5C59Aj+TaQo+eA@mail.gmail.com>
+In-Reply-To: <CAK7LNAQqsLnZc4h_XEMifS2hX+E39-vxD-BL5C59Aj+TaQo+eA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Rich Felker <dalias@libc.org>, Linux-sh list <linux-sh@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, "open list:SIFIVE DRIVERS" <linux-riscv@lists.infradead.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, X86 ML <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Albert Ou <aou@eecs.berkeley.edu>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, linux-um@lists.infradead.org, Borislav Petkov <bp@alien8.de>, Greentime Hu <green.hu@gmail.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Nick Hu <nickhu@andestech.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "David S. Miller" <davem@davemloft.net>
+To: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Rich Felker <dalias@libc.org>, Linux-sh list <linux-sh@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux <sparclinux@vger.kernel.org>, "open list:SIFIVE DRIVERS" <linux-riscv@lists.infradead.org>, Vincent Chen <deanbo422@gmail.com>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Richard Weinberger <richard@nod.at>, X86 ML <x86@kernel.org>, Ingo Molnar <mingo@redhat.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Albert Ou <aou@eecs.berkeley.edu>, Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Jeff Dike <jdike@addtoit.com>, linux-um@lists.infradead.org, Borislav Petkov <bp@alien8.de>, Greentime Hu <green.hu@gmail.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Nick Hu <nickhu@andestech.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "David S. Miller" <davem@davemloft.net>
 
-On Fri, Feb 21, 2020 at 5:50 PM Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
->
-> Dear All,
->
-> On 16.02.2020 16:45, Masahiro Yamada wrote:
-> > Most of the Kconfig commands (except defconfig and all*config) read the
-> > .config file as a base set of CONFIG options.
+On Fri, Feb 21, 2020 at 06:18:50PM +0900, Masahiro Yamada wrote:
+> On Fri, Feb 21, 2020 at 5:50 PM Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
+> > This patch landed in today's linux-next (next-20200221) and broke arm64
+> > builds:
 > >
-> > When it does not exist, the files in DEFCONFIG_LIST are searched in this
-> > order and loaded if found.
+> > --->8---
 > >
-> > I do not see much sense in the last two entries in DEFCONFIG_LIST.
+> > $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- defconfig
+> > *** Default configuration is based on 'defconfig'
+> > #
+> > # configuration written to .config
+> > #
+> > $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- Image.gz
+> > scripts/kconfig/conf  --syncconfig Kconfig
+> > scripts/kconfig/conf  --syncconfig Kconfig
+> > scripts/kconfig/conf  --syncconfig Kconfig
+> > scripts/kconfig/conf  --syncconfig Kconfig
+> > scripts/kconfig/conf  --syncconfig Kconfig
+> > ...
 > >
-> > [1] ARCH_DEFCONFIG
+> > (endless loop)
 > >
-> > The entry for DEFCONFIG_LIST is guarded by 'depends on !UML'. So, the
-> > ARCH_DEFCONFIG definition in arch/x86/um/Kconfig is meaningless.
+> > --->8---
 > >
-> > arch/{sh,sparc,x86}/Kconfig define ARCH_DEFCONFIG depending on 32 or 64
-> > bit variant symbols. This is a little bit strange; ARCH_DEFCONFIG should
-> > be a fixed string because the base config file is loaded before the sym=
-bol
-> > evaluation stage.
-> >
-> > Using KBUILD_DEFCONFIG is saner because it is fixed before Kconfig is
-> > invoked. Fortunately, arch/{sh,sparc,x86}/Makefile define it in the
-> > same way, and it works as expected. Hence, replace ARCH_DEFCONFIG with
-> > "arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)".
-> >
-> > [2] arch/$(ARCH)/defconfig
-> >
-> > This file path is no longer valid. The defconfig files are always locat=
-ed
-> > in the arch configs/ directories.
-> >
-> >    $ find arch -name defconfig | sort
-> >    arch/alpha/configs/defconfig
-> >    arch/arm64/configs/defconfig
-> >    arch/csky/configs/defconfig
-> >    arch/nds32/configs/defconfig
-> >    arch/riscv/configs/defconfig
-> >    arch/s390/configs/defconfig
-> >    arch/unicore32/configs/defconfig
-> >
-> > The path arch/*/configs/defconfig is already covered by
-> > "arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)". So, this file path is
-> > not necessary.
-> >
-> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
->
-> This patch landed in today's linux-next (next-20200221) and broke arm64
-> builds:
->
-> --->8---
->
-> $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- defconfig
-> *** Default configuration is based on 'defconfig'
-> #
-> # configuration written to .config
-> #
-> $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- Image.gz
-> scripts/kconfig/conf  --syncconfig Kconfig
-> scripts/kconfig/conf  --syncconfig Kconfig
-> scripts/kconfig/conf  --syncconfig Kconfig
-> scripts/kconfig/conf  --syncconfig Kconfig
-> scripts/kconfig/conf  --syncconfig Kconfig
-> ...
->
-> (endless loop)
->
-> --->8---
->
-> Reverting it fixes the issue:
+> > Reverting it fixes the issue:
+>=20
+>=20
+>=20
+> My bad.
+>=20
+> This is because arch/arm64/Makefile does not define
+> KBUILD_DEFCONFIG.
+>=20
+>=20
+>=20
+> I will drop it.
+>=20
+> Sorry about that.
 
+Thanks, Masahiro.
 
-
-My bad.
-
-This is because arch/arm64/Makefile does not define
-KBUILD_DEFCONFIG.
-
-
-
-I will drop it.
-
-Sorry about that.
-
-
-
-
-
->
-> --->8---
->
-> $ git revert cdd5d1a207d6a3a06c9e627a0234d9a6af6ad347
-> [detached HEAD 1080d6a13b6d] Revert "kbuild: use KBUILD_DEFCONFIG as the
-> fallback for DEFCONFIG_LIST"
->   5 files changed, 22 insertions(+), 1 deletion(-)
-> $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- defconfig
-> *** Default configuration is based on 'defconfig'
-> #
-> # No change to .config
-> #
-> $ make ARCH=3Darm64 CROSS_COMPILE=AArch64-linux-gnu- Image.gz
-> scripts/kconfig/conf  --syncconfig Kconfig
->    UPD     include/config/kernel.release
->    UPD     include/generated/utsrelease.h
->    CC      scripts/mod/empty.o
-> ...
->
-> $ aarch64-linux-gnu-gcc --version
-> aarch64-linux-gnu-gcc (Ubuntu/Linaro 7.4.0-1ubuntu1~18.04.1) 7.4.0
-> Copyright (C) 2017 Free Software Foundation, Inc.
-> This is free software; see the source for copying conditions. There is NO
-> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOS=
-E.
-> --->8---
->
-> It looks that the issue is similar to the one described here:
->
-> https://patchwork.kernel.org/patch/10453685/
->
-> I hope this report helps fixing the issue.
->
-> > ---
-> >
-> >   arch/sh/Kconfig     | 5 -----
-> >   arch/sparc/Kconfig  | 5 -----
-> >   arch/x86/Kconfig    | 5 -----
-> >   arch/x86/um/Kconfig | 5 -----
-> >   init/Kconfig        | 3 +--
-> >   5 files changed, 1 insertion(+), 22 deletions(-)
-> >
-> > diff --git a/arch/sh/Kconfig b/arch/sh/Kconfig
-> > index 9ece111b0254..b4f0e37b83eb 100644
-> > --- a/arch/sh/Kconfig
-> > +++ b/arch/sh/Kconfig
-> > @@ -87,11 +87,6 @@ config SUPERH64
-> >       select HAVE_EXIT_THREAD
-> >       select KALLSYMS
-> >
-> > -config ARCH_DEFCONFIG
-> > -     string
-> > -     default "arch/sh/configs/shx3_defconfig" if SUPERH32
-> > -     default "arch/sh/configs/cayman_defconfig" if SUPERH64
-> > -
-> >   config GENERIC_BUG
-> >       def_bool y
-> >       depends on BUG && SUPERH32
-> > diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> > index c1dd6dd642f4..0de15380d1fc 100644
-> > --- a/arch/sparc/Kconfig
-> > +++ b/arch/sparc/Kconfig
-> > @@ -95,11 +95,6 @@ config SPARC64
-> >       select PCI_DOMAINS if PCI
-> >       select ARCH_HAS_GIGANTIC_PAGE
-> >
-> > -config ARCH_DEFCONFIG
-> > -     string
-> > -     default "arch/sparc/configs/sparc32_defconfig" if SPARC32
-> > -     default "arch/sparc/configs/sparc64_defconfig" if SPARC64
-> > -
-> >   config ARCH_PROC_KCORE_TEXT
-> >       def_bool y
-> >
-> > diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> > index beea77046f9b..98935f4387f9 100644
-> > --- a/arch/x86/Kconfig
-> > +++ b/arch/x86/Kconfig
-> > @@ -240,11 +240,6 @@ config OUTPUT_FORMAT
-> >       default "elf32-i386" if X86_32
-> >       default "elf64-x86-64" if X86_64
-> >
-> > -config ARCH_DEFCONFIG
-> > -     string
-> > -     default "arch/x86/configs/i386_defconfig" if X86_32
-> > -     default "arch/x86/configs/x86_64_defconfig" if X86_64
-> > -
-> >   config LOCKDEP_SUPPORT
-> >       def_bool y
-> >
-> > diff --git a/arch/x86/um/Kconfig b/arch/x86/um/Kconfig
-> > index a8985e1f7432..95d26a69088b 100644
-> > --- a/arch/x86/um/Kconfig
-> > +++ b/arch/x86/um/Kconfig
-> > @@ -27,11 +27,6 @@ config X86_64
-> >       def_bool 64BIT
-> >       select MODULES_USE_ELF_RELA
-> >
-> > -config ARCH_DEFCONFIG
-> > -     string
-> > -     default "arch/um/configs/i386_defconfig" if X86_32
-> > -     default "arch/um/configs/x86_64_defconfig" if X86_64
-> > -
-> >   config 3_LEVEL_PGTABLES
-> >       bool "Three-level pagetables" if !64BIT
-> >       default 64BIT
-> > diff --git a/init/Kconfig b/init/Kconfig
-> > index 452bc1835cd4..6ccdb168dee5 100644
-> > --- a/init/Kconfig
-> > +++ b/init/Kconfig
-> > @@ -6,8 +6,7 @@ config DEFCONFIG_LIST
-> >       default "/lib/modules/$(shell,uname -r)/.config"
-> >       default "/etc/kernel-config"
-> >       default "/boot/config-$(shell,uname -r)"
-> > -     default ARCH_DEFCONFIG
-> > -     default "arch/$(ARCH)/defconfig"
-> > +     default "arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)"
-> >
-> >   config CC_IS_GCC
-> >       def_bool $(success,$(CC) --version | head -n 1 | grep -q gcc)
->
-> Best regards
-> --
-> Marek Szyprowski, PhD
-> Samsung R&D Institute Poland
->
-
-
---=20
-Best Regards
-Masahiro Yamada
+Will
