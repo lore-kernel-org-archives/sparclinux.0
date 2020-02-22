@@ -1,66 +1,12 @@
-From: Qais Yousef <qais.yousef@arm.com>
-Date: Sun, 23 Feb 2020 19:29:36 +0000
-Subject: [PATCH v3 09/15] sparc: Replace cpu_up/down with add/remove_cpu
-Message-Id: <20200223192942.18420-10-qais.yousef@arm.com>
+From: "RECEIVE AND SECURE THIS MONEY FOR ME" <fta447447@gmail.com>
+Date: Sat, 22 Feb 2020 20:49:16 +0000
+Subject: RECEIVE MONEY IN BANK ACCOUNT REPLY TO fta447447@gmail.com
+Message-Id: <784-y8720-4uj37z26lj1@hcvd3g6.xf5m>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200223192942.18420-1-qais.yousef@arm.com>
-In-Reply-To: <20200223192942.18420-1-qais.yousef@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>, Qais Yousef <qais.yousef@arm.com>, "David S. Miller" <davem@davemloft.net>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-The core device API performs extra housekeeping bits that are missing
-from directly calling cpu_up/down.
 
-See commit a6717c01ddc2 ("powerpc/rtas: use device model APIs and
-serialization during LPM") for an example description of what might go
-wrong.
-
-This also prepares to make cpu_up/down a private interface for anything
-but the cpu subsystem.
-
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Qais Yousef <qais.yousef@arm.com>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Bjorn Helgaas <bhelgaas@google.com>
-CC: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: sparclinux@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
----
-
-David, this now uses add/remove_cpu() which you should be CCed on. I wasn't
-sure if I can keep your Ack or remove it in this case. Please let me know if
-you need more clarification.
-
- arch/sparc/kernel/ds.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
-index bbf59b3b4af8..75232cbd58bf 100644
---- a/arch/sparc/kernel/ds.c
-+++ b/arch/sparc/kernel/ds.c
-@@ -555,7 +555,7 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
- 
- 		printk(KERN_INFO "ds-%llu: Starting cpu %d...\n",
- 		       dp->id, cpu);
--		err = cpu_up(cpu);
-+		err = add_cpu(cpu);
- 		if (err) {
- 			__u32 res = DR_CPU_RES_FAILURE;
- 			__u32 stat = DR_CPU_STAT_UNCONFIGURED;
-@@ -611,7 +611,7 @@ static int dr_cpu_unconfigure(struct ds_info *dp,
- 
- 		printk(KERN_INFO "ds-%llu: Shutting down cpu %d...\n",
- 		       dp->id, cpu);
--		err = cpu_down(cpu);
-+		err = remove_cpu(cpu);
- 		if (err)
- 			dr_cpu_mark(resp, cpu, ncpus,
- 				    DR_CPU_RES_FAILURE,
--- 
-2.17.1
+--A..C8.._3321CEA_--
