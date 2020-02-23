@@ -1,23 +1,105 @@
-From: santos martins <mj659619@gmail.com>
-Date: Mon, 10 Feb 2020 09:11:26 +0000
-Subject: HELLO ;
-Message-Id: <CADNW3pkG8rD_zgFiTnnRqLcse_BopDw0j43xo3fb4-yEV4Cn-A@mail.gmail.com>
+From: Qais Yousef <qais.yousef@arm.com>
+Date: Sun, 23 Feb 2020 19:29:28 +0000
+Subject: [PATCH v3 01/15] cpu: Add new {add,remove}_cpu() functions
+Message-Id: <20200223192942.18420-2-qais.yousef@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200223192942.18420-1-qais.yousef@arm.com>
+In-Reply-To: <20200223192942.18420-1-qais.yousef@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juergen Gross <jgross@suse.com>, Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-parisc@vger.kernel.org, "Paul E . McKenney" <paulmck@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, linuxppc-dev@lists.ozlabs.org, Qais Yousef <qais.yousef@arm.com>, linux-arm-kernel@lists.infradead.org
 
-Hello,
+The new functions use device_{online,offline}() which are userspace
+safe.
 
-I am Barrister James Morrison,writing you in respect of my deceased
-client who died in 2006 along with his entire family. He shares the
-same last name with you.
+This is in preparation to move cpu_{up, down} kernel users to use
+a safer interface that is not racy with userspace.
 
-I have been trying to locate any member of his family to assist in
-repatriating the fund (USD5.5 Million) he deposited in a bank here.I
-would like you to contact me so that i can give you the details
-concerning the claim.I am looking forward to hear from you soon..
+Suggested-by: "Paul E. McKenney" <paulmck@kernel.org>
+Signed-off-by: Qais Yousef <qais.yousef@arm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: "Paul E. McKenney" <paulmck@kernel.org>
+CC: Helge Deller <deller@gmx.de>
+CC: Michael Ellerman <mpe@ellerman.id.au>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Juergen Gross <jgross@suse.com>
+CC: Mark Rutland <mark.rutland@arm.com>
+CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+CC: xen-devel@lists.xenproject.org
+CC: linux-parisc@vger.kernel.org
+CC: sparclinux@vger.kernel.org
+CC: linuxppc-dev@lists.ozlabs.org
+CC: linux-arm-kernel@lists.infradead.org
+CC: x86@kernel.org
+CC: linux-kernel@vger.kernel.org
+---
+ include/linux/cpu.h |  2 ++
+ kernel/cpu.c        | 24 ++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
 
-Best Regards,
-Barrister James Morrison
+diff --git a/include/linux/cpu.h b/include/linux/cpu.h
+index 1ca2baf817ed..cf8cf38dca43 100644
+--- a/include/linux/cpu.h
++++ b/include/linux/cpu.h
+@@ -89,6 +89,7 @@ extern ssize_t arch_cpu_release(const char *, size_t);
+ #ifdef CONFIG_SMP
+ extern bool cpuhp_tasks_frozen;
+ int cpu_up(unsigned int cpu);
++int add_cpu(unsigned int cpu);
+ void notify_cpu_starting(unsigned int cpu);
+ extern void cpu_maps_update_begin(void);
+ extern void cpu_maps_update_done(void);
+@@ -118,6 +119,7 @@ extern void cpu_hotplug_disable(void);
+ extern void cpu_hotplug_enable(void);
+ void clear_tasks_mm_cpumask(int cpu);
+ int cpu_down(unsigned int cpu);
++int remove_cpu(unsigned int cpu);
+ 
+ #else /* CONFIG_HOTPLUG_CPU */
+ 
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index 9c706af713fb..069802f7010f 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -1057,6 +1057,18 @@ int cpu_down(unsigned int cpu)
+ }
+ EXPORT_SYMBOL(cpu_down);
+ 
++int remove_cpu(unsigned int cpu)
++{
++	int ret;
++
++	lock_device_hotplug();
++	ret = device_offline(get_cpu_device(cpu));
++	unlock_device_hotplug();
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(remove_cpu);
++
+ #else
+ #define takedown_cpu		NULL
+ #endif /*CONFIG_HOTPLUG_CPU*/
+@@ -1209,6 +1221,18 @@ int cpu_up(unsigned int cpu)
+ }
+ EXPORT_SYMBOL_GPL(cpu_up);
+ 
++int add_cpu(unsigned int cpu)
++{
++	int ret;
++
++	lock_device_hotplug();
++	ret = device_online(get_cpu_device(cpu));
++	unlock_device_hotplug();
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(add_cpu);
++
+ #ifdef CONFIG_PM_SLEEP_SMP
+ static cpumask_var_t frozen_cpus;
+ 
+-- 
+2.17.1
