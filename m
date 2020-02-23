@@ -1,50 +1,66 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Fri, 14 Feb 2020 16:14:34 +0000
-Subject: [PATCH AUTOSEL 4.14 025/186] sparc: Add .exit.data section.
-Message-Id: <20200214161715.18113-25-sashal@kernel.org>
+From: Qais Yousef <qais.yousef@arm.com>
+Date: Sun, 23 Feb 2020 19:29:36 +0000
+Subject: [PATCH v3 09/15] sparc: Replace cpu_up/down with add/remove_cpu
+Message-Id: <20200223192942.18420-10-qais.yousef@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200214161715.18113-1-sashal@kernel.org>
-In-Reply-To: <20200214161715.18113-1-sashal@kernel.org>
+References: <20200223192942.18420-1-qais.yousef@arm.com>
+In-Reply-To: <20200223192942.18420-1-qais.yousef@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>, Qais Yousef <qais.yousef@arm.com>, "David S. Miller" <davem@davemloft.net>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: "David S. Miller" <davem@davemloft.net>
+The core device API performs extra housekeeping bits that are missing
+from directly calling cpu_up/down.
 
-[ Upstream commit 548f0b9a5f4cffa0cecf62eb12aa8db682e4eee6 ]
+See commit a6717c01ddc2 ("powerpc/rtas: use device model APIs and
+serialization during LPM") for an example description of what might go
+wrong.
 
-This fixes build errors of all sorts.
+This also prepares to make cpu_up/down a private interface for anything
+but the cpu subsystem.
 
-Also, emit .exit.text unconditionally.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Qais Yousef <qais.yousef@arm.com>
+CC: "David S. Miller" <davem@davemloft.net>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+CC: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: sparclinux@vger.kernel.org
+CC: linux-kernel@vger.kernel.org
 ---
- arch/sparc/kernel/vmlinux.lds.S | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/arch/sparc/kernel/vmlinux.lds.S b/arch/sparc/kernel/vmlinux.lds.S
-index 5a2344574f39b..4323dc4ae4c7a 100644
---- a/arch/sparc/kernel/vmlinux.lds.S
-+++ b/arch/sparc/kernel/vmlinux.lds.S
-@@ -167,12 +167,14 @@ SECTIONS
- 	}
- 	PERCPU_SECTION(SMP_CACHE_BYTES)
+David, this now uses add/remove_cpu() which you should be CCed on. I wasn't
+sure if I can keep your Ack or remove it in this case. Please let me know if
+you need more clarification.
+
+ arch/sparc/kernel/ds.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/ds.c b/arch/sparc/kernel/ds.c
+index bbf59b3b4af8..75232cbd58bf 100644
+--- a/arch/sparc/kernel/ds.c
++++ b/arch/sparc/kernel/ds.c
+@@ -555,7 +555,7 @@ static int dr_cpu_configure(struct ds_info *dp, struct ds_cap_state *cp,
  
--#ifdef CONFIG_JUMP_LABEL
- 	. = ALIGN(PAGE_SIZE);
- 	.exit.text : {
- 		EXIT_TEXT
- 	}
--#endif
-+
-+	.exit.data : {
-+		EXIT_DATA
-+	}
+ 		printk(KERN_INFO "ds-%llu: Starting cpu %d...\n",
+ 		       dp->id, cpu);
+-		err = cpu_up(cpu);
++		err = add_cpu(cpu);
+ 		if (err) {
+ 			__u32 res = DR_CPU_RES_FAILURE;
+ 			__u32 stat = DR_CPU_STAT_UNCONFIGURED;
+@@ -611,7 +611,7 @@ static int dr_cpu_unconfigure(struct ds_info *dp,
  
- 	. = ALIGN(PAGE_SIZE);
- 	__init_end = .;
+ 		printk(KERN_INFO "ds-%llu: Shutting down cpu %d...\n",
+ 		       dp->id, cpu);
+-		err = cpu_down(cpu);
++		err = remove_cpu(cpu);
+ 		if (err)
+ 			dr_cpu_mark(resp, cpu, ncpus,
+ 				    DR_CPU_RES_FAILURE,
 -- 
-2.20.1
+2.17.1
