@@ -1,218 +1,533 @@
-From: Mina Almasry <almasrymina@google.com>
-Date: Tue, 24 Mar 2020 00:23:15 +0000
-Subject: Re: [PATCH 3/4] hugetlbfs: remove hugetlb_add_hstate() warning for existing hstate
-Message-Id: <CAHS8izMsg5fNCKtLsaNWv0GDFFtHUTW=JHRy9uOm6SC9sBQ=NA@mail.gmail.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Mon, 02 Mar 2020 06:59:44 +0000
+Subject: [RFC 1/3] mm/vma: Define a default value for VM_DATA_DEFAULT_FLAGS
+Message-Id: <1583131666-15531-2-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200318220634.32100-1-mike.kravetz@oracle.com>
- <20200318220634.32100-4-mike.kravetz@oracle.com>
- <CAHS8izN1Q+yiZq8zcU8hoojafcQ19W7XQx-HyFm3Ud8hSvN1Nw@mail.gmail.com>
- <54fd7234-bdd9-de78-9351-16706bae2c08@oracle.com>
-In-Reply-To: <54fd7234-bdd9-de78-9351-16706bae2c08@oracle.com>
+References: <1583131666-15531-1-git-send-email-anshuman.khandual@arm.com>
+In-Reply-To: <1583131666-15531-1-git-send-email-anshuman.khandual@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: linux-doc@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Linux-MM <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, linux-s390@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Longpeng <longpeng2@huawei.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, open list <linux-kernel@vger.kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S.Miller" <davem@davemloft.net>
+To: linux-mm@kvack.org
+Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org, Jonas Bonn <jonas@southpole.se>, linux-s390@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-c6x-dev@linux-c6x.org, Brian Cain <bcain@codeaurora.org>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-parisc@vger.kernel.org, Mark Salter <msalter@redhat.com>, Paul Burton <paulburton@kernel.org>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Anshuman Khandual <anshuman.khandual@arm.com>, Jeff Dike <jdike@addtoit.com>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Nick Hu <nickhu@andestech.com>, Vineet Gupta <vgupta@synopsys.com>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Mon, Mar 23, 2020 at 5:17 PM Mike Kravetz <mike.kravetz@oracle.com> wrote:
->
-> On 3/23/20 5:01 PM, Mina Almasry wrote:
-> > On Wed, Mar 18, 2020 at 3:07 PM Mike Kravetz <mike.kravetz@oracle.com> wrote:
-> >>
-> >> The routine hugetlb_add_hstate prints a warning if the hstate already
-> >> exists.  This was originally done as part of kernel command line
-> >> parsing.  If 'hugepagesz=' was specified more than once, the warning
-> >>         pr_warn("hugepagesz= specified twice, ignoring\n");
-> >> would be printed.
-> >>
-> >> Some architectures want to enable all huge page sizes.  They would
-> >> call hugetlb_add_hstate for all supported sizes.  However, this was
-> >> done after command line processing and as a result hstates could have
-> >> already been created for some sizes.  To make sure no warning were
-> >> printed, there would often be code like:
-> >>         if (!size_to_hstate(size)
-> >>                 hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT)
-> >>
-> >> The only time we want to print the warning is as the result of command
-> >> line processing.  So, remove the warning from hugetlb_add_hstate and
-> >> add it to the single arch independent routine processing "hugepagesz=".
-> >> After this, calls to size_to_hstate() in arch specific code can be
-> >> removed and hugetlb_add_hstate can be called without worrying about
-> >> warning messages.
-> >>
-> >> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-> >> ---
-> >>  arch/arm64/mm/hugetlbpage.c   | 16 ++++------------
-> >>  arch/powerpc/mm/hugetlbpage.c |  3 +--
-> >>  arch/riscv/mm/hugetlbpage.c   |  2 +-
-> >>  arch/sparc/mm/init_64.c       | 19 ++++---------------
-> >>  arch/x86/mm/hugetlbpage.c     |  2 +-
-> >>  mm/hugetlb.c                  | 10 +++++++---
-> >>  6 files changed, 18 insertions(+), 34 deletions(-)
-> >>
-> >> diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
-> >> index 4aa9534a45d7..050809e6f0a9 100644
-> >> --- a/arch/arm64/mm/hugetlbpage.c
-> >> +++ b/arch/arm64/mm/hugetlbpage.c
-> >> @@ -441,22 +441,14 @@ void huge_ptep_clear_flush(struct vm_area_struct *vma,
-> >>         clear_flush(vma->vm_mm, addr, ptep, pgsize, ncontig);
-> >>  }
-> >>
-> >> -static void __init add_huge_page_size(unsigned long size)
-> >> -{
-> >> -       if (size_to_hstate(size))
-> >> -               return;
-> >> -
-> >> -       hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
-> >> -}
-> >> -
-> >>  static int __init hugetlbpage_init(void)
-> >>  {
-> >>  #ifdef CONFIG_ARM64_4K_PAGES
-> >> -       add_huge_page_size(PUD_SIZE);
-> >> +       hugetlb_add_hstate(ilog2(PUD_SIZE) - PAGE_SHIFT);
-> >>  #endif
-> >> -       add_huge_page_size(CONT_PMD_SIZE);
-> >> -       add_huge_page_size(PMD_SIZE);
-> >> -       add_huge_page_size(CONT_PTE_SIZE);
-> >> +       hugetlb_add_hstate(ilog2(CONT_PMD_SIZE) - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(ilog2(PMD_SIZE) - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(ilog2(CONT_PTE_SIZE) - PAGE_SHIFT);
-> >>
-> >>         return 0;
-> >>  }
-> >> diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
-> >> index 166960ba1236..f46464ba6fb4 100644
-> >> --- a/arch/powerpc/mm/hugetlbpage.c
-> >> +++ b/arch/powerpc/mm/hugetlbpage.c
-> >> @@ -584,8 +584,7 @@ static int __init add_huge_page_size(unsigned long long size)
-> >>         if (!arch_hugetlb_valid_size(size))
-> >>                 return -EINVAL;
-> >>
-> >> -       if (!size_to_hstate(size))
-> >> -               hugetlb_add_hstate(shift - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(shift - PAGE_SHIFT);
-> >>         return 0;
-> >>  }
-> >>
-> >> diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
-> >> index bdf89d7eb714..beaa91941db8 100644
-> >> --- a/arch/riscv/mm/hugetlbpage.c
-> >> +++ b/arch/riscv/mm/hugetlbpage.c
-> >> @@ -26,7 +26,7 @@ bool __init arch_hugetlb_valid_size(unsigned long long size)
-> >>  static __init int gigantic_pages_init(void)
-> >>  {
-> >>         /* With CONTIG_ALLOC, we can allocate gigantic pages at runtime */
-> >> -       if (IS_ENABLED(CONFIG_64BIT) && !size_to_hstate(1UL << PUD_SHIFT))
-> >> +       if (IS_ENABLED(CONFIG_64BIT))
-> >>                 hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-> >>         return 0;
-> >>  }
-> >> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> >> index 5c29203fd460..8f619edc8f8c 100644
-> >> --- a/arch/sparc/mm/init_64.c
-> >> +++ b/arch/sparc/mm/init_64.c
-> >> @@ -325,23 +325,12 @@ static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_inde
-> >>  }
-> >>
-> >>  #ifdef CONFIG_HUGETLB_PAGE
-> >> -static void __init add_huge_page_size(unsigned long size)
-> >> -{
-> >> -       unsigned int order;
-> >> -
-> >> -       if (size_to_hstate(size))
-> >> -               return;
-> >> -
-> >> -       order = ilog2(size) - PAGE_SHIFT;
-> >> -       hugetlb_add_hstate(order);
-> >> -}
-> >> -
-> >>  static int __init hugetlbpage_init(void)
-> >>  {
-> >> -       add_huge_page_size(1UL << HPAGE_64K_SHIFT);
-> >> -       add_huge_page_size(1UL << HPAGE_SHIFT);
-> >> -       add_huge_page_size(1UL << HPAGE_256MB_SHIFT);
-> >> -       add_huge_page_size(1UL << HPAGE_2GB_SHIFT);
-> >> +       hugetlb_add_hstate(HPAGE_64K_SHIFT - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(HPAGE_256MB_SHIFT - PAGE_SHIFT);
-> >> +       hugetlb_add_hstate(HPAGE_2GB_SHIFT - PAGE_SHIFT);
-> >>
-> >>         return 0;
-> >>  }
-> >> diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
-> >> index dd3ed09f6c23..8a3f586e1217 100644
-> >> --- a/arch/x86/mm/hugetlbpage.c
-> >> +++ b/arch/x86/mm/hugetlbpage.c
-> >> @@ -195,7 +195,7 @@ bool __init arch_hugetlb_valid_size(unsigned long long size)
-> >>  static __init int gigantic_pages_init(void)
-> >>  {
-> >>         /* With compaction or CMA we can allocate gigantic pages at runtime */
-> >> -       if (boot_cpu_has(X86_FEATURE_GBPAGES) && !size_to_hstate(1UL << PUD_SHIFT))
-> >> +       if (boot_cpu_has(X86_FEATURE_GBPAGES))
-> >>                 hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-> >>         return 0;
-> >>  }
-> >> diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-> >> index cd4ec07080fb..cc85b4f156ca 100644
-> >> --- a/mm/hugetlb.c
-> >> +++ b/mm/hugetlb.c
-> >> @@ -3116,8 +3116,7 @@ static int __init hugetlb_init(void)
-> >>                 }
-> >>
-> >>                 default_hstate_size = HPAGE_SIZE;
-> >> -               if (!size_to_hstate(default_hstate_size))
-> >> -                       hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-> >> +               hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-> >>         }
-> >>         default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
-> >>         if (default_hstate_max_huge_pages) {
-> >> @@ -3155,7 +3154,6 @@ void __init hugetlb_add_hstate(unsigned int order)
-> >>         unsigned long i;
-> >>
-> >>         if (size_to_hstate(PAGE_SIZE << order)) {
-> >> -               pr_warn("hugepagesz= specified twice, ignoring\n");
-> >>                 return;
-> >>         }
-> >>         BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
-> >> @@ -3231,6 +3229,12 @@ static int __init hugepagesz_setup(char *s)
-> >>                 return 0;
-> >>         }
-> >>
-> >> +       if (size_to_hstate(size)) {
-> >> +               pr_warn("HugeTLB: hugepagesz %s specified twice, ignoring\n",
-> >> +                       saved_s);
-> >> +               return 0;
-> >> +       }
-> >> +
-> >
-> > Not too familiar with the code but I'm a bit confused by this print.
-> > AFAICT this prints the warning when hugepagesz= refers to a hugepage
-> > that is already added via hugetlb_add_hstate, but there is a default
-> > hstate added here without the user specifying hugepagesz, no?
->
-> Correct.
->
-> >                                                               Does
-> > that mean the warning prints if you specify this size?
->
-> The code which adds the default hstate (in hugetlb_init) runs after this
-> code which is reading/processing command line options.  So, the case you
-> are concerned with will not happen.
->
-> Thanks for taking a look,
-> --
-> Mike Kravetz
->
-> > 'HugeTLB: hugepage size already supported: xxxxx' or
-> > 'HugeTLB: hugepage size xxxx specified twice or is default size, ignoring.'
-> >
-> > Or don't print anything if it's the default size.
-> >
-> >>         hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
-> >>         return 1;
-> >>  }
-> >> --
-> >> 2.24.1
+There are many platforms with exact same value for VM_DATA_DEFAULT_FLAGS
+This creates a default value for VM_DATA_DEFAULT_FLAGS in line with the
+existing VM_STACK_DEFAULT_FLAGS. While here, also define some more macros
+with standard VMA access flag combinations that are used frequently across
+many platforms. Apart from simplification, this reduces code duplication
+as well.
 
-Acked-By: Mina Almasry <almasrymina@google.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-c6x-dev@linux-c6x.org
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: nios2-dev@lists.rocketboards.org
+Cc: openrisc@lists.librecores.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-mm@kvack.org
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+---
+ arch/alpha/include/asm/page.h      |  3 ---
+ arch/arc/include/asm/page.h        |  2 +-
+ arch/arm/include/asm/page.h        |  4 +---
+ arch/arm64/include/asm/page.h      |  4 +---
+ arch/c6x/include/asm/page.h        |  5 +----
+ arch/csky/include/asm/page.h       |  3 ---
+ arch/h8300/include/asm/page.h      |  2 --
+ arch/hexagon/include/asm/page.h    |  3 +--
+ arch/ia64/include/asm/page.h       |  5 +----
+ arch/m68k/include/asm/page.h       |  3 ---
+ arch/microblaze/include/asm/page.h |  2 --
+ arch/mips/include/asm/page.h       |  5 +----
+ arch/nds32/include/asm/page.h      |  3 ---
+ arch/nios2/include/asm/page.h      |  3 +--
+ arch/openrisc/include/asm/page.h   |  5 -----
+ arch/parisc/include/asm/page.h     |  3 ---
+ arch/powerpc/include/asm/page.h    |  9 ++-------
+ arch/powerpc/include/asm/page_64.h |  7 ++-----
+ arch/riscv/include/asm/page.h      |  3 +--
+ arch/s390/include/asm/page.h       |  3 +--
+ arch/sh/include/asm/page.h         |  3 ---
+ arch/sparc/include/asm/page_32.h   |  3 ---
+ arch/sparc/include/asm/page_64.h   |  3 ---
+ arch/unicore32/include/asm/page.h  |  3 ---
+ arch/x86/include/asm/page_types.h  |  4 +---
+ arch/x86/um/asm/vm-flags.h         | 10 ++--------
+ arch/xtensa/include/asm/page.h     |  3 ---
+ include/linux/mm.h                 | 15 +++++++++++++++
+ 28 files changed, 32 insertions(+), 89 deletions(-)
+
+diff --git a/arch/alpha/include/asm/page.h b/arch/alpha/include/asm/page.h
+index f3fb2848470a..e241bd88880f 100644
+--- a/arch/alpha/include/asm/page.h
++++ b/arch/alpha/include/asm/page.h
+@@ -90,9 +90,6 @@ typedef struct page *pgtable_t;
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ #endif /* CONFIG_DISCONTIGMEM */
+ 
+-#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE | VM_EXEC | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
+index 0a32e8cfd074..b0dfed0f12be 100644
+--- a/arch/arc/include/asm/page.h
++++ b/arch/arc/include/asm/page.h
+@@ -102,7 +102,7 @@ typedef pte_t * pgtable_t;
+ #define virt_addr_valid(kaddr)  pfn_valid(virt_to_pfn(kaddr))
+ 
+ /* Default Permissions for stack/heaps pages (Non Executable) */
+-#define VM_DATA_DEFAULT_FLAGS   (VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define WANT_PAGE_VIRTUAL   1
+ 
+diff --git a/arch/arm/include/asm/page.h b/arch/arm/include/asm/page.h
+index c2b75cba26df..11b058a72a5b 100644
+--- a/arch/arm/include/asm/page.h
++++ b/arch/arm/include/asm/page.h
+@@ -161,9 +161,7 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/arm64/include/asm/page.h b/arch/arm64/include/asm/page.h
+index d39ddb258a04..cb4e1e6ca385 100644
+--- a/arch/arm64/include/asm/page.h
++++ b/arch/arm64/include/asm/page.h
+@@ -32,9 +32,7 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/c6x/include/asm/page.h b/arch/c6x/include/asm/page.h
+index 70db1e7632bc..40079899084d 100644
+--- a/arch/c6x/include/asm/page.h
++++ b/arch/c6x/include/asm/page.h
+@@ -2,10 +2,7 @@
+ #ifndef _ASM_C6X_PAGE_H
+ #define _ASM_C6X_PAGE_H
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/page.h>
+ 
+diff --git a/arch/csky/include/asm/page.h b/arch/csky/include/asm/page.h
+index 9738eacefdc7..9b98bf31d57c 100644
+--- a/arch/csky/include/asm/page.h
++++ b/arch/csky/include/asm/page.h
+@@ -85,9 +85,6 @@ extern unsigned long va_pa_offset;
+ 				 PHYS_OFFSET_OFFSET)
+ #define virt_to_page(x)	(mem_map + MAP_NR(x))
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #define pfn_to_kaddr(x)	__va(PFN_PHYS(x))
+ 
+ #include <asm-generic/memory_model.h>
+diff --git a/arch/h8300/include/asm/page.h b/arch/h8300/include/asm/page.h
+index 8da5124ad344..53e037544239 100644
+--- a/arch/h8300/include/asm/page.h
++++ b/arch/h8300/include/asm/page.h
+@@ -6,8 +6,6 @@
+ #include <linux/types.h>
+ 
+ #define MAP_NR(addr) (((uintptr_t)(addr)-PAGE_OFFSET) >> PAGE_SHIFT)
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ 
+ #ifndef __ASSEMBLY__
+ extern unsigned long rom_length;
+diff --git a/arch/hexagon/include/asm/page.h b/arch/hexagon/include/asm/page.h
+index ee31f36f48f3..7cbf719c578e 100644
+--- a/arch/hexagon/include/asm/page.h
++++ b/arch/hexagon/include/asm/page.h
+@@ -93,8 +93,7 @@ struct page;
+ #define virt_to_page(kaddr) pfn_to_page(PFN_DOWN(__pa(kaddr)))
+ 
+ /* Default vm area behavior is non-executable.  */
+-#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | \
+-				VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define pfn_valid(pfn) ((pfn) < max_mapnr)
+ #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+diff --git a/arch/ia64/include/asm/page.h b/arch/ia64/include/asm/page.h
+index 5798bd2b462c..b69a5499d75b 100644
+--- a/arch/ia64/include/asm/page.h
++++ b/arch/ia64/include/asm/page.h
+@@ -218,10 +218,7 @@ get_order (unsigned long size)
+ 
+ #define PAGE_OFFSET			RGN_BASE(RGN_KERNEL)
+ 
+-#define VM_DATA_DEFAULT_FLAGS		(VM_READ | VM_WRITE |					\
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC |		\
+-					 (((current->personality & READ_IMPLIES_EXEC) != 0)	\
+-					  ? VM_EXEC : 0))
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #define GATE_ADDR		RGN_BASE(RGN_GATE)
+ 
+diff --git a/arch/m68k/include/asm/page.h b/arch/m68k/include/asm/page.h
+index 05e1e1e77a9a..9d2ef0a51720 100644
+--- a/arch/m68k/include/asm/page.h
++++ b/arch/m68k/include/asm/page.h
+@@ -55,9 +55,6 @@ extern unsigned long _ramend;
+ #define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
+ #define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif /* _M68K_PAGE_H */
+diff --git a/arch/microblaze/include/asm/page.h b/arch/microblaze/include/asm/page.h
+index f4b44b24b02e..43bd560b7b67 100644
+--- a/arch/microblaze/include/asm/page.h
++++ b/arch/microblaze/include/asm/page.h
+@@ -197,8 +197,6 @@ extern int page_is_ram(unsigned long pfn);
+ 
+ #ifdef CONFIG_MMU
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ #endif /* CONFIG_MMU */
+ 
+ #endif /* __KERNEL__ */
+diff --git a/arch/mips/include/asm/page.h b/arch/mips/include/asm/page.h
+index 0ba4ce6e2bf3..e2f503fc7a84 100644
+--- a/arch/mips/include/asm/page.h
++++ b/arch/mips/include/asm/page.h
+@@ -253,10 +253,7 @@ extern bool __virt_addr_valid(const volatile void *kaddr);
+ #define virt_addr_valid(kaddr)						\
+ 	__virt_addr_valid((const volatile void *) (kaddr))
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	 ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-	 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+diff --git a/arch/nds32/include/asm/page.h b/arch/nds32/include/asm/page.h
+index 86b32014c5f9..add33a7f02c8 100644
+--- a/arch/nds32/include/asm/page.h
++++ b/arch/nds32/include/asm/page.h
+@@ -59,9 +59,6 @@ typedef struct page *pgtable_t;
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif
+diff --git a/arch/nios2/include/asm/page.h b/arch/nios2/include/asm/page.h
+index 79fcac61f6ef..6a989819a7c1 100644
+--- a/arch/nios2/include/asm/page.h
++++ b/arch/nios2/include/asm/page.h
+@@ -98,8 +98,7 @@ static inline bool pfn_valid(unsigned long pfn)
+ # define virt_to_page(vaddr)	pfn_to_page(PFN_DOWN(virt_to_phys(vaddr)))
+ # define virt_addr_valid(vaddr)	pfn_valid(PFN_DOWN(virt_to_phys(vaddr)))
+ 
+-# define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++# define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ 
+diff --git a/arch/openrisc/include/asm/page.h b/arch/openrisc/include/asm/page.h
+index 01069db59454..aab6e64d6db4 100644
+--- a/arch/openrisc/include/asm/page.h
++++ b/arch/openrisc/include/asm/page.h
+@@ -86,11 +86,6 @@ typedef struct page *pgtable_t;
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/parisc/include/asm/page.h b/arch/parisc/include/asm/page.h
+index 796ae29e9b9a..6b3f6740a6a6 100644
+--- a/arch/parisc/include/asm/page.h
++++ b/arch/parisc/include/asm/page.h
+@@ -180,9 +180,6 @@ extern int npmem_ranges;
+ #define page_to_phys(page)	(page_to_pfn(page) << PAGE_SHIFT)
+ #define virt_to_page(kaddr)     pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ #include <asm/pdc.h>
+diff --git a/arch/powerpc/include/asm/page.h b/arch/powerpc/include/asm/page.h
+index 080a0bf8e54b..3ee8df0f66e0 100644
+--- a/arch/powerpc/include/asm/page.h
++++ b/arch/powerpc/include/asm/page.h
+@@ -240,13 +240,8 @@ static inline bool pfn_valid(unsigned long pfn)
+  * and needs to be executable.  This means the whole heap ends
+  * up being executable.
+  */
+-#define VM_DATA_DEFAULT_FLAGS32 \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0) | \
+-				 VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-#define VM_DATA_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS32	VM_DATA_FLAGS_TSK_EXEC
++#define VM_DATA_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
+ 
+ #ifdef __powerpc64__
+ #include <asm/page_64.h>
+diff --git a/arch/powerpc/include/asm/page_64.h b/arch/powerpc/include/asm/page_64.h
+index 5962797f784a..79a9b7c6a132 100644
+--- a/arch/powerpc/include/asm/page_64.h
++++ b/arch/powerpc/include/asm/page_64.h
+@@ -94,11 +94,8 @@ extern u64 ppc64_pft_size;
+  * stack by default, so in the absence of a PT_GNU_STACK program header
+  * we turn execute permission off.
+  */
+-#define VM_STACK_DEFAULT_FLAGS32	(VM_READ | VM_WRITE | VM_EXEC | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+-#define VM_STACK_DEFAULT_FLAGS64	(VM_READ | VM_WRITE | \
+-					 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_STACK_DEFAULT_FLAGS32	VM_DATA_FLAGS_EXEC
++#define VM_STACK_DEFAULT_FLAGS64	VM_DATA_FLAGS_NON_EXEC
+ 
+ #define VM_STACK_DEFAULT_FLAGS \
+ 	(is_32bit_task() ? \
+diff --git a/arch/riscv/include/asm/page.h b/arch/riscv/include/asm/page.h
+index 8ca1930caa44..2d50f76efe48 100644
+--- a/arch/riscv/include/asm/page.h
++++ b/arch/riscv/include/asm/page.h
+@@ -137,8 +137,7 @@ extern phys_addr_t __phys_addr_symbol(unsigned long x);
+ 
+ #define virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+diff --git a/arch/s390/include/asm/page.h b/arch/s390/include/asm/page.h
+index 1019efd85b9d..089f49230966 100644
+--- a/arch/s390/include/asm/page.h
++++ b/arch/s390/include/asm/page.h
+@@ -176,8 +176,7 @@ static inline int devmem_is_allowed(unsigned long pfn)
+ 
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_NON_EXEC
+ 
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+diff --git a/arch/sh/include/asm/page.h b/arch/sh/include/asm/page.h
+index 5eef8be3e59f..ea8d68f58e39 100644
+--- a/arch/sh/include/asm/page.h
++++ b/arch/sh/include/asm/page.h
+@@ -182,9 +182,6 @@ typedef struct page *pgtable_t;
+ #endif
+ #define virt_addr_valid(kaddr)	pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+index b76d59edec8c..478260002836 100644
+--- a/arch/sparc/include/asm/page_32.h
++++ b/arch/sparc/include/asm/page_32.h
+@@ -133,9 +133,6 @@ extern unsigned long pfn_base;
+ #define pfn_valid(pfn)		(((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
+ #define virt_addr_valid(kaddr)	((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT) < max_mapnr)
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #include <asm-generic/getorder.h>
+ 
+diff --git a/arch/sparc/include/asm/page_64.h b/arch/sparc/include/asm/page_64.h
+index e80f2d5bf62f..254dffd85fb1 100644
+--- a/arch/sparc/include/asm/page_64.h
++++ b/arch/sparc/include/asm/page_64.h
+@@ -158,9 +158,6 @@ extern unsigned long PAGE_OFFSET;
+ 
+ #endif /* !(__ASSEMBLY__) */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif /* _SPARC64_PAGE_H */
+diff --git a/arch/unicore32/include/asm/page.h b/arch/unicore32/include/asm/page.h
+index 8a89335673f9..96d6bdf180bd 100644
+--- a/arch/unicore32/include/asm/page.h
++++ b/arch/unicore32/include/asm/page.h
+@@ -69,9 +69,6 @@ extern int pfn_valid(unsigned long);
+ 
+ #endif /* !__ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/getorder.h>
+ 
+ #endif
+diff --git a/arch/x86/include/asm/page_types.h b/arch/x86/include/asm/page_types.h
+index c85e15010f48..e27aa6be6320 100644
+--- a/arch/x86/include/asm/page_types.h
++++ b/arch/x86/include/asm/page_types.h
+@@ -35,9 +35,7 @@
+ 
+ #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
+-	 VM_READ | VM_WRITE | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #define __PHYSICAL_START	ALIGN(CONFIG_PHYSICAL_START, \
+ 				      CONFIG_PHYSICAL_ALIGN)
+diff --git a/arch/x86/um/asm/vm-flags.h b/arch/x86/um/asm/vm-flags.h
+index 7c297e9e2413..df7a3896f5dd 100644
+--- a/arch/x86/um/asm/vm-flags.h
++++ b/arch/x86/um/asm/vm-flags.h
+@@ -9,17 +9,11 @@
+ 
+ #ifdef CONFIG_X86_32
+ 
+-#define VM_DATA_DEFAULT_FLAGS \
+-	(VM_READ | VM_WRITE | \
+-	((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0 ) | \
+-		 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_DEFAULT_FLAGS	VM_DATA_FLAGS_TSK_EXEC
+ 
+ #else
+ 
+-#define VM_DATA_DEFAULT_FLAGS (VM_READ | VM_WRITE | VM_EXEC | \
+-	VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_READ | VM_WRITE | \
+-	VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_STACK_DEFAULT_FLAGS (VM_GROWSDOWN | VM_DATA_FLAGS_EXEC)
+ 
+ #endif
+ #endif
+diff --git a/arch/xtensa/include/asm/page.h b/arch/xtensa/include/asm/page.h
+index f4771c29c7e9..37ce25ef92d6 100644
+--- a/arch/xtensa/include/asm/page.h
++++ b/arch/xtensa/include/asm/page.h
+@@ -203,8 +203,5 @@ static inline unsigned long ___pa(unsigned long va)
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+-#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
+-				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+-
+ #include <asm-generic/memory_model.h>
+ #endif /* _XTENSA_PAGE_H */
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index b0e53ef13ff1..7a764ae6ab68 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -342,6 +342,21 @@ extern unsigned int kobjsize(const void *objp);
+ /* Bits set in the VMA until the stack is in its final location */
+ #define VM_STACK_INCOMPLETE_SETUP	(VM_RAND_READ | VM_SEQ_READ)
+ 
++#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
++
++/* Common data flag combinations */
++#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_NON_EXEC	(VM_READ | VM_WRITE | VM_MAYREAD | \
++				 VM_MAYWRITE | VM_MAYEXEC)
++#define VM_DATA_FLAGS_EXEC	(VM_READ | VM_WRITE | VM_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++
++#ifndef VM_DATA_DEFAULT_FLAGS		/* arch can override this */
++#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
++				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#endif
++
+ #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
+ #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
+ #endif
+-- 
+2.20.1
