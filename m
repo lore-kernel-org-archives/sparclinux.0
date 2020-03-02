@@ -1,172 +1,135 @@
-From: Qais Yousef <qais.yousef@arm.com>
-Date: Mon, 23 Mar 2020 13:50:53 +0000
-Subject: [PATCH v4 00/17] Convert cpu_up/down to device_online/offline
-Message-Id: <20200323135110.30522-1-qais.yousef@arm.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Mon, 02 Mar 2020 06:59:43 +0000
+Subject: [RFC 0/3] mm/vma: some new flags and helpers
+Message-Id: <1583131666-15531-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juergen Gross <jgross@suse.com>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, "Paul E. McKenney" <paulmck@kernel.org>, "David S. Miller" <davem@davemloft.net>, Catalin Marinas <catalin.marinas@arm.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Michael Ellerman <mpe@ellerman.id.au>, sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org, Mark Rutland <mark.rutland@arm.com>, linuxppc-dev@lists.ozlabs.org, Qais Yousef <qais.yousef@arm.com>, linux-arm-kernel@lists.infradead.org
+To: linux-mm@kvack.org
+Cc: uclinux-h8-devel@lists.sourceforge.jp, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, Anshuman Khandual <anshuman.khandual@arm.com>, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-======Changes in v4
-======
-	* Split arm and arm64 patches so that the change to use reboot_cpu goes
-	  into its own separate patch (Russell)
-	* Collected new Acked-by
-	* Rebased on top of v5.6-rc6
-	* Trimmed the CC list on the cover letter as lists were rejecting it
+The motivation here is to consolidate VMA flag combinations commonly used
+across platforms and reduce code duplication while making it uncluttered
+in general.
 
+This first introduces a default VM_DATA_DEFAULT_FLAGS which platforms can
+easily fall back on without requiring to define any similar data flag
+combinations as they currently do. This also adds some more common data
+flag combinations which are generally used when the platforms decide to
+override the default.
 
-	git clone git://linux-arm.org/linux-qy.git -b cpu-hp-cleanup-v4
+The second patch consolidates VM_READ, VM_WRITE, VM_EXEC as VM_ACCESS_FLAGS
+extending the existing VMA accessibility concept via vma_is_accessibility().
+VM_ACCESS_FLAGS replaces many other instances which used check all three
+VMA access flags simultaneously.
 
+While here, this also adds some more special VMA flag based helpers which
+wraps around similar checks at various places thus improving readability.
+This series intentionally limits these new helpers which are applicable 
+only for special purpose VM flags than the more common ones like VM_READ,
+VM_WRITE, VM_EXEC, VM_SHARED etc just to limit code churn. But if there is
+common agreement that every flag should have it's own wrapper here, we can
+do that as well. Otherwise if this patch seems really unnecessary with much
+code churn, will be happy to drop it.
 
-Older post can be found here
-----------------------------
+Reviews, comments, suggestions and concerns welcome. Thank you.
 
-	https://lore.kernel.org/lkml/20200223192942.18420-2-qais.yousef@arm.com/
+This series is based on v5.6-r4 after applying these patches.
 
+1. https://patchwork.kernel.org/cover/11399319/
+2. https://patchwork.kernel.org/patch/11399379/
 
-======Test Coverage
-======
-	All tests ran with LOCKDEP enabled.
+This series is build tested across multiple architectures but boot tested
+only on arm64 and x86 platforms.
 
-Platform: Juno-r2: arm64
-------------------------
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-c6x-dev@linux-c6x.org
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: nios2-dev@lists.rocketboards.org
+Cc: openrisc@lists.librecores.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-mm@kvack.org
 
-	* Overnight rcutorture
-	* Overnight locktorture
-	* kexec -f Image --command="$(cat /proc/cmdline) reboot=s[0-5]"
-	* Hibernate to disk (using suspend option)
-	* Userspace hotplug via sysfs
-	* PSCI firemware checker
+Anshuman Khandual (3):
+  mm/vma: Define a default value for VM_DATA_DEFAULT_FLAGS
+  mm/vma: Introduce VM_ACCESS_FLAGS
+  mm/vma: Introduce some more VMA flag wrappers
 
-Notes:
-
-	* Couldn't convince Juno to hibernate using [reboot] or [shutdown]
-	  options.
-
-Platform: qemu (8 vCPUs) and VM (2 vCPUs): x86_64
--------------------------------------------------
-
-	* Overnight rcutorture
-	* Overnight locktorture
-	* Userspace hotplug via sysfs
-	* echo mmiotrace > /sys/kernel/debug/tracing/current_tracer &&
-	  echo nop > /sys/kernel/debug/tracing/current_tracer
-	* Ran with CONFIG_DEBUG_HOTPLUG_CPU0 and CONFIG_BOOTPARAM_HOTPLUG_CPU0
-
-Notes:
-
-	* qemu failed to bring cpu0 after offlining. Same behavior observed on
-	  vanilla v5.6-rc6. Worked fine on the VM.
-
-	* mmiotrace successfully brought down all cpus when enabled,
-	  then back online again when disabled. Including when cpu0 was
-	  offline.
-
-	* My xen shenanigans are too 'humble' too create environment to test
-	  the change in xen yet..
-
-
-==========Original Cover Letter
-==========
-Using cpu_up/down directly to bring cpus online/offline loses synchronization
-with sysfs and could suffer from a race similar to what is described in
-commit a6717c01ddc2 ("powerpc/rtas: use device model APIs and serialization
-during LPM").
-
-cpu_up/down seem to be more of a internal implementation detail for the cpu
-subsystem to use to boot up cpus, perform suspend/resume and low level hotplug
-operations. Users outside of the cpu subsystem would be better using the device
-core API to bring a cpu online/offline which is the interface used to hotplug
-memory and other system devices.
-
-Several users have already migrated to use the device core API, this series
-converts the remaining users and hides cpu_up/down from internal users at the
-end.
-
-I noticed this problem while working on a hack to disable offlining
-a particular CPU but noticed that setting the offline_disabled attribute in the
-device struct isn't enough because users can easily bypass the device core.
-While my hack isn't a valid use case but it did highlight the inconsistency in
-the way cpus are being onlined/offlined and this attempt hopefully improves on
-this.
-
-The first patch introduces new API to {add,remove}_cpu() using device_{online,
-offline}() with correct locks held and export it.
-
-The following 10 patches fix arch users.
-
-The remaining 6 patches fix generic code users. Particularly creating a new
-special exported API for the device core to use instead of cpu_up/down.
-
-The last patch removes cpu_up/down from cpu.h and unexport the functions.
-
-In some cases where the use of cpu_up/down seemed legitimate, I encapsulated
-the logic in a higher level - special purposed function; and converted the code
-to use that instead.
-
-
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Tony Luck <tony.luck@intel.com>
-CC: Fenghua Yu <fenghua.yu@intel.com>
-CC: Russell King <linux@armlinux.org.uk>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Michael Ellerman <mpe@ellerman.id.au>
-CC: "David S. Miller" <davem@davemloft.net>
-CC: Helge Deller <deller@gmx.de>
-CC: Juergen Gross <jgross@suse.com>
-CC: Mark Rutland <mark.rutland@arm.com>
-CC: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-CC: "Paul E. McKenney" <paulmck@kernel.org>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-CC: xen-devel@lists.xenproject.org
-CC: linux-parisc@vger.kernel.org
-CC: sparclinux@vger.kernel.org
-CC: linuxppc-dev@lists.ozlabs.org
-CC: x86@kernel.org
-CC: linux-arm-kernel@lists.infradead.org
-CC: linux-ia64@vger.kernel.org
-CC: linux-kernel@vger.kernel.org
-
-Qais Yousef (17):
-  cpu: Add new {add,remove}_cpu() functions
-  smp: Create a new function to shutdown nonboot cpus
-  ia64: Replace cpu_down with smp_shutdown_nonboot_cpus()
-  arm: Don't use disable_nonboot_cpus()
-  arm: Use reboot_cpu instead of hardcoding it to 0
-  arm64: Don't use disable_nonboot_cpus()
-  arm64: Use reboot_cpu instead of hardconding it to 0
-  arm64: hibernate.c: Create a new function to handle cpu_up(sleep_cpu)
-  x86: Replace cpu_up/down with add/remove_cpu
-  powerpc: Replace cpu_up/down with add/remove_cpu
-  sparc: Replace cpu_up/down with add/remove_cpu
-  parisc: Replace cpu_up/down with add/remove_cpu
-  driver: xen: Replace cpu_up/down with device_online/offline
-  firmware: psci: Replace cpu_up/down with add/remove_cpu
-  torture: Replace cpu_up/down with add/remove_cpu
-  smp: Create a new function to bringup nonboot cpus online
-  cpu: Hide cpu_up/down
-
- arch/arm/kernel/reboot.c             |   4 +-
- arch/arm64/kernel/hibernate.c        |  13 +--
- arch/arm64/kernel/process.c          |   4 +-
- arch/ia64/kernel/process.c           |   8 +-
- arch/parisc/kernel/processor.c       |   2 +-
- arch/powerpc/kexec/core_64.c         |   2 +-
- arch/sparc/kernel/ds.c               |   4 +-
- arch/x86/kernel/topology.c           |  22 ++---
- arch/x86/mm/mmio-mod.c               |   4 +-
- arch/x86/xen/smp.c                   |   2 +-
- drivers/base/cpu.c                   |   4 +-
- drivers/firmware/psci/psci_checker.c |   4 +-
- drivers/xen/cpu_hotplug.c            |   2 +-
- include/linux/cpu.h                  |  10 +-
- kernel/cpu.c                         | 134 ++++++++++++++++++++++++++-
- kernel/smp.c                         |   9 +-
- kernel/torture.c                     |   9 +-
- 17 files changed, 172 insertions(+), 65 deletions(-)
+ arch/alpha/include/asm/page.h        |  3 --
+ arch/arc/include/asm/page.h          |  2 +-
+ arch/arm/include/asm/page.h          |  4 +-
+ arch/arm/mm/fault.c                  |  2 +-
+ arch/arm64/include/asm/page.h        |  4 +-
+ arch/arm64/mm/fault.c                |  2 +-
+ arch/c6x/include/asm/page.h          |  5 +--
+ arch/c6x/include/asm/processor.h     |  2 +-
+ arch/csky/include/asm/page.h         |  3 --
+ arch/h8300/include/asm/page.h        |  2 -
+ arch/hexagon/include/asm/page.h      |  3 +-
+ arch/ia64/include/asm/page.h         |  5 +--
+ arch/m68k/include/asm/page.h         |  3 --
+ arch/microblaze/include/asm/page.h   |  2 -
+ arch/mips/include/asm/page.h         |  5 +--
+ arch/nds32/include/asm/page.h        |  3 --
+ arch/nds32/mm/fault.c                |  2 +-
+ arch/nios2/include/asm/page.h        |  3 +-
+ arch/nios2/include/asm/processor.h   |  2 +-
+ arch/openrisc/include/asm/page.h     |  5 ---
+ arch/parisc/include/asm/page.h       |  3 --
+ arch/powerpc/include/asm/page.h      |  9 +----
+ arch/powerpc/include/asm/page_64.h   |  7 +---
+ arch/powerpc/mm/book3s64/pkeys.c     |  2 +-
+ arch/riscv/include/asm/page.h        |  3 +-
+ arch/s390/include/asm/page.h         |  3 +-
+ arch/s390/mm/fault.c                 |  2 +-
+ arch/sh/include/asm/page.h           |  3 --
+ arch/sh/include/asm/processor_64.h   |  2 +-
+ arch/sparc/include/asm/mman.h        |  2 +-
+ arch/sparc/include/asm/page_32.h     |  3 --
+ arch/sparc/include/asm/page_64.h     |  3 --
+ arch/unicore32/include/asm/page.h    |  3 --
+ arch/unicore32/mm/fault.c            |  2 +-
+ arch/x86/include/asm/page_types.h    |  4 +-
+ arch/x86/mm/pkeys.c                  |  2 +-
+ arch/x86/um/asm/vm-flags.h           | 10 +----
+ arch/xtensa/include/asm/page.h       |  3 --
+ drivers/staging/gasket/gasket_core.c |  2 +-
+ fs/binfmt_elf.c                      |  2 +-
+ fs/proc/task_mmu.c                   | 14 +++----
+ include/linux/huge_mm.h              |  4 +-
+ include/linux/mm.h                   | 58 +++++++++++++++++++++++++++-
+ kernel/events/core.c                 |  2 +-
+ kernel/events/uprobes.c              |  2 +-
+ mm/gup.c                             |  2 +-
+ mm/huge_memory.c                     |  6 +--
+ mm/hugetlb.c                         |  4 +-
+ mm/ksm.c                             |  8 ++--
+ mm/madvise.c                         |  4 +-
+ mm/memory.c                          |  4 +-
+ mm/migrate.c                         |  4 +-
+ mm/mlock.c                           |  4 +-
+ mm/mmap.c                            | 20 +++++-----
+ mm/mprotect.c                        |  9 ++---
+ mm/mremap.c                          |  4 +-
+ mm/msync.c                           |  3 +-
+ mm/rmap.c                            |  6 +--
+ mm/shmem.c                           |  8 ++--
+ 59 files changed, 140 insertions(+), 158 deletions(-)
 
 -- 
-2.17.1
+2.20.1
