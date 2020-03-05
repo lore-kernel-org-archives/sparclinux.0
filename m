@@ -1,82 +1,107 @@
-From: Dmitry Safonov <dima@arista.com>
-Date: Mon, 16 Mar 2020 14:39:00 +0000
-Subject: [PATCHv2 34/50] sparc: Add show_stack_loglvl()
-Message-Id: <20200316143916.195608-35-dima@arista.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Thu, 05 Mar 2020 06:50:38 +0000
+Subject: [PATCH 0/2]  mm/vma: some new flags
+Message-Id: <1583391014-8170-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200316143916.195608-1-dima@arista.com>
-In-Reply-To: <20200316143916.195608-1-dima@arista.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>, Dmitry Safonov <dima@arista.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@kernel.org>, Jiri Slaby <jslaby@suse.com>, Petr Mladek <pmladek@suse.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, linux-mips@vger.kernel.org, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, hughd@google.com, vbabka@suse.cz, linux-snps-arc@lists.infradead.org, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Anshuman Khandual <anshuman.khandual@arm.com>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org
 
-Currently, the log-level of show_stack() depends on a platform
-realization. It creates situations where the headers are printed with
-lower log level or higher than the stacktrace (depending on
-a platform or user).
+The motivation here is to consolidate VMA flag combinations commonly used
+across platforms and reduce code duplication while making it uncluttered
+in general.
 
-Furthermore, it forces the logic decision from user to an architecture
-side. In result, some users as sysrq/kdb/etc are doing tricks with
-temporary rising console_loglevel while printing their messages.
-And in result it not only may print unwanted messages from other CPUs,
-but also omit printing at all in the unlucky case where the printk()
-was deferred.
+This first introduces a default VM_DATA_DEFAULT_FLAGS which platforms can
+easily fall back on without requiring to define any similar data flag
+combinations as they currently do. This also adds some more common data
+flag combinations which are generally used when the platforms decide to
+override the default.
 
-Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems
-an easier approach than introducing more printk buffers.
-Also, it will consolidate printings with headers.
+The second patch consolidates VM_READ, VM_WRITE, VM_EXEC as VM_ACCESS_FLAGS
+extending the existing VMA accessibility concept via vma_is_accessibility().
+VM_ACCESS_FLAGS replaces many other instances which used check all three
+VMA access flags simultaneously.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
+This series is based on v5.6-rc4 after applying these.
 
-Cc: "David S. Miller" <davem@davemloft.net>
+1. https://patchwork.kernel.org/cover/11399319/
+2. https://patchwork.kernel.org/patch/11399379/
+
+Changes in V1:
+
+- Dropped the [PATCH 3/3] which was adding more vma_is_* wrappers
+- Used VM_DATA_FLAGS_EXEC for VM_DATA_DEFAULT_FLAGS instead per Vlastimil
+- Dropped init use cases for VM_ACCESS_FLAGS as suggested by Vlastimil
+
+Changes in RFC: (https://patchwork.kernel.org/project/linux-mm/list/?series$9733)
+
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-c6x-dev@linux-c6x.org
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: nios2-dev@lists.rocketboards.org
+Cc: openrisc@lists.librecores.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
 Cc: sparclinux@vger.kernel.org
-[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Dmitry Safonov <dima@arista.com>
----
- arch/sparc/kernel/process_32.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+Cc: linux-um@lists.infradead.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-mm@kvack.org
 
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 26cca65e9246..0b07de5618e5 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -145,10 +145,12 @@ void show_regs(struct pt_regs *r)
- }
- 
- /*
-- * The show_stack is an external API which we do not use ourselves.
-+ * The show_stack(), show_stack_loglvl() are external APIs which
-+ * we do not use ourselves.
-  * The oops is printed in die_if_kernel.
-  */
--void show_stack(struct task_struct *tsk, unsigned long *_ksp)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *_ksp,
-+		       const char *loglvl)
- {
- 	unsigned long pc, fp;
- 	unsigned long task_base;
-@@ -170,11 +172,16 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
- 			break;
- 		rw = (struct reg_window32 *) fp;
- 		pc = rw->ins[7];
--		printk("[%08lx : ", pc);
--		printk("%pS ] ", (void *) pc);
-+		printk("%s[%08lx : ", loglvl, pc);
-+		printk("%s%pS ] ", loglvl, (void *) pc);
- 		fp = rw->ins[6];
- 	} while (++count < 16);
--	printk("\n");
-+	printk("%s\n", loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
- }
- 
- /*
+Anshuman Khandual (2):
+  mm/vma: Define a default value for VM_DATA_DEFAULT_FLAGS
+  mm/vma: Introduce VM_ACCESS_FLAGS
+
+ arch/alpha/include/asm/page.h        |  3 ---
+ arch/arc/include/asm/page.h          |  2 +-
+ arch/arm/include/asm/page.h          |  4 +---
+ arch/arm/mm/fault.c                  |  2 +-
+ arch/arm64/include/asm/page.h        |  4 +---
+ arch/arm64/mm/fault.c                |  2 +-
+ arch/c6x/include/asm/page.h          |  5 +----
+ arch/csky/include/asm/page.h         |  3 ---
+ arch/h8300/include/asm/page.h        |  2 --
+ arch/hexagon/include/asm/page.h      |  3 +--
+ arch/ia64/include/asm/page.h         |  5 +----
+ arch/m68k/include/asm/page.h         |  3 ---
+ arch/microblaze/include/asm/page.h   |  2 --
+ arch/mips/include/asm/page.h         |  5 +----
+ arch/nds32/include/asm/page.h        |  3 ---
+ arch/nds32/mm/fault.c                |  2 +-
+ arch/nios2/include/asm/page.h        |  3 +--
+ arch/openrisc/include/asm/page.h     |  5 -----
+ arch/parisc/include/asm/page.h       |  3 ---
+ arch/powerpc/include/asm/page.h      |  9 ++-------
+ arch/powerpc/include/asm/page_64.h   |  7 ++-----
+ arch/powerpc/mm/book3s64/pkeys.c     |  2 +-
+ arch/riscv/include/asm/page.h        |  3 +--
+ arch/s390/include/asm/page.h         |  3 +--
+ arch/s390/mm/fault.c                 |  2 +-
+ arch/sh/include/asm/page.h           |  3 ---
+ arch/sparc/include/asm/page_32.h     |  3 ---
+ arch/sparc/include/asm/page_64.h     |  3 ---
+ arch/unicore32/include/asm/page.h    |  3 ---
+ arch/unicore32/mm/fault.c            |  2 +-
+ arch/x86/include/asm/page_types.h    |  4 +---
+ arch/x86/mm/pkeys.c                  |  2 +-
+ arch/x86/um/asm/vm-flags.h           | 10 ++--------
+ arch/xtensa/include/asm/page.h       |  3 ---
+ drivers/staging/gasket/gasket_core.c |  2 +-
+ include/linux/mm.h                   | 20 +++++++++++++++++++-
+ mm/mmap.c                            |  2 +-
+ mm/mprotect.c                        |  4 ++--
+ 38 files changed, 47 insertions(+), 101 deletions(-)
+
 -- 
-2.25.1
+2.20.1
