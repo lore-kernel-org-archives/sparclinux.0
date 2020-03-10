@@ -1,469 +1,595 @@
-From: Will Deacon <will@kernel.org>
-Date: Tue, 24 Mar 2020 10:40:03 +0000
-Subject: [PATCH 2/4] sparc32: mm: Restructure sparc32 MMU page-table layout
-Message-Id: <20200324104005.11279-3-will@kernel.org>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Tue, 10 Mar 2020 14:52:44 +0000
+Subject: [PATCH V3] mm/special: Create generic fallbacks for pte_special() and pte_mkspecial()
+Message-Id: <1583851924-21603-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200324104005.11279-1-will@kernel.org>
-In-Reply-To: <20200324104005.11279-1-will@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: kernel-team@android.com, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org
+Cc: linux-ia64@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-kernel@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Anton Ivanov <anton.ivanov@cambridgegreys.com>, Jonas Bonn <jonas@southpole.se>, Paul Burton <paulburton@kernel.org>, Richard Weinberger <richard@nod.at>, Helge Deller <deller@gmx.de>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-parisc@vger.kernel.org, linux-arch@vger.kernel.org, Matt Turner <mattst88@gmail.com>, Sam Creasey <sammy@sammy.net>, Fenghua Yu <fenghua.yu@intel.com>, Anshuman Khandual <anshuman.khandual@arm.com>, Jeff Dike <jdike@addtoit.com>
 
-The "SRMMU" supports 4k pages using a fixed three-level walk with a
-256-entry PGD and 64-entry PMD/PTE levels. In order to fill a page
-with a 'pgtable_t', the SRMMU code allocates four native PTE tables
-into a single PTE allocation and similarly for the PMD level, leading
-to an array of 16 physical pointers in a 'pmd_t'
+Currently there are many platforms that dont enable ARCH_HAS_PTE_SPECIAL
+but required to define quite similar fallback stubs for special page table
+entry helpers such as pte_special() and pte_mkspecial(), as they get build
+in generic MM without a config check. This creates two generic fallback
+stub definitions for these helpers, eliminating much code duplication.
 
-This breaks the generic code which assumes READ_ONCE(*pmd) will be
-word sized.
+mips platform has a special case where pte_special() and pte_mkspecial()
+visibility is wider than what ARCH_HAS_PTE_SPECIAL enablement requires.
+This restricts those symbol visibility in order to avoid redefinitions
+which is now exposed through this new generic stubs and subsequent build
+failure. arm platform set_pte_at() definition needs to be moved into a C
+file just to prevent a build failure.
 
-In a manner similar to ef22d8abd876 ("m68k: mm: Restructure Motorola
-MMU page-table layout"), this patch implements the native page-table
-setup directly. This significantly increases the page-table memory
-overhead, but will be addresses in a subsequent patch.
-
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Brian Cain <bcain@codeaurora.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sam Creasey <sammy@sammy.net>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Burton <paulburton@kernel.org>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Will Deacon <will@kernel.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
+Cc: Guan Xuetao <gxt@pku.edu.cn>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: nios2-dev@lists.rocketboards.org
+Cc: openrisc@lists.librecores.org
+Cc: linux-parisc@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org
+Acked-by: Guo Ren <guoren@kernel.org>			# csky
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	# m68k
+Acked-by: Stafford Horne <shorne@gmail.com>		# openrisc
+Acked-by: Helge Deller <deller@gmx.de>			# parisc
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- arch/sparc/include/asm/page_32.h    | 10 ++---
- arch/sparc/include/asm/pgalloc_32.h |  5 ++-
- arch/sparc/include/asm/pgtable_32.h | 29 +++++++-------
- arch/sparc/include/asm/pgtsrmmu.h   | 36 ++---------------
- arch/sparc/include/asm/viking.h     |  5 ++-
- arch/sparc/kernel/head_32.S         |  8 ++--
- arch/sparc/mm/hypersparc.S          |  3 +-
- arch/sparc/mm/srmmu.c               | 60 ++++++++++-------------------
- arch/sparc/mm/viking.S              |  5 ++-
- 9 files changed, 58 insertions(+), 103 deletions(-)
+Build tested on multiple platforms but boot tested only for arm64.
 
-diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
-index b76d59edec8c..e76e6c006e10 100644
---- a/arch/sparc/include/asm/page_32.h
-+++ b/arch/sparc/include/asm/page_32.h
-@@ -54,7 +54,7 @@ extern struct sparc_phys_banks sp_banks[SPARC_PHYS_BANKS+1];
-  */
- typedef struct { unsigned long pte; } pte_t;
- typedef struct { unsigned long iopte; } iopte_t;
--typedef struct { unsigned long pmdv[16]; } pmd_t;
-+typedef struct { unsigned long pmd; } pmd_t;
- typedef struct { unsigned long pgd; } pgd_t;
- typedef struct { unsigned long ctxd; } ctxd_t;
- typedef struct { unsigned long pgprot; } pgprot_t;
-@@ -62,7 +62,7 @@ typedef struct { unsigned long iopgprot; } iopgprot_t;
+Changes in V3:
+
+- Used defined(CONFIG_ARCH_HAS_PTE_SPECIAL) in mips per Thomas
+
+Changes in V2: (https://patchwork.kernel.org/patch/11428285/)
+
+- s/HAVE_ARCH_PTE_SPECIAL/ARCH_HAS_PTE_SPECIAL per Geert
+
+Changes in V1: (https://patchwork.kernel.org/patch/11414613/)
+
+ arch/alpha/include/asm/pgtable.h         |  2 --
+ arch/arm/include/asm/pgtable-2level.h    |  2 --
+ arch/arm/include/asm/pgtable.h           | 15 ++------
+ arch/arm/mm/mmu.c                        | 14 ++++++++
+ arch/csky/include/asm/pgtable.h          |  3 --
+ arch/hexagon/include/asm/pgtable.h       |  2 --
+ arch/ia64/include/asm/pgtable.h          |  2 --
+ arch/m68k/include/asm/mcf_pgtable.h      | 10 ------
+ arch/m68k/include/asm/motorola_pgtable.h |  2 --
+ arch/m68k/include/asm/sun3_pgtable.h     |  2 --
+ arch/microblaze/include/asm/pgtable.h    |  4 ---
+ arch/mips/include/asm/pgtable.h          | 44 ++++++++++++++++--------
+ arch/nds32/include/asm/pgtable.h         |  9 -----
+ arch/nios2/include/asm/pgtable.h         |  3 --
+ arch/openrisc/include/asm/pgtable.h      |  2 --
+ arch/parisc/include/asm/pgtable.h        |  2 --
+ arch/sparc/include/asm/pgtable_32.h      |  7 ----
+ arch/um/include/asm/pgtable.h            | 10 ------
+ arch/unicore32/include/asm/pgtable.h     |  3 --
+ arch/xtensa/include/asm/pgtable.h        |  3 --
+ include/linux/mm.h                       | 12 +++++++
+ 21 files changed, 58 insertions(+), 95 deletions(-)
+
+diff --git a/arch/alpha/include/asm/pgtable.h b/arch/alpha/include/asm/pgtable.h
+index 299791ce14b6..0267aa8a4f86 100644
+--- a/arch/alpha/include/asm/pgtable.h
++++ b/arch/alpha/include/asm/pgtable.h
+@@ -268,7 +268,6 @@ extern inline void pud_clear(pud_t * pudp)	{ pud_val(*pudp) = 0; }
+ extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
+ extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-extern inline int pte_special(pte_t pte)	{ return 0; }
  
- #define pte_val(x)	((x).pte)
- #define iopte_val(x)	((x).iopte)
--#define pmd_val(x)      ((x).pmdv[0])
-+#define pmd_val(x)      ((x).pmd)
- #define pgd_val(x)	((x).pgd)
- #define ctxd_val(x)	((x).ctxd)
- #define pgprot_val(x)	((x).pgprot)
-@@ -82,7 +82,7 @@ typedef struct { unsigned long iopgprot; } iopgprot_t;
-  */
- typedef unsigned long pte_t;
- typedef unsigned long iopte_t;
--typedef struct { unsigned long pmdv[16]; } pmd_t;
-+typedef unsigned long pmd_t;
- typedef unsigned long pgd_t;
- typedef unsigned long ctxd_t;
- typedef unsigned long pgprot_t;
-@@ -90,14 +90,14 @@ typedef unsigned long iopgprot_t;
+ extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~(__DIRTY_BITS); return pte; }
+@@ -276,7 +275,6 @@ extern inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~(__ACCESS_BITS); ret
+ extern inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) &= ~_PAGE_FOW; return pte; }
+ extern inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= __DIRTY_BITS; return pte; }
+ extern inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= __ACCESS_BITS; return pte; }
+-extern inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
  
- #define pte_val(x)	(x)
- #define iopte_val(x)	(x)
--#define pmd_val(x)      ((x).pmdv[0])
-+#define pmd_val(x)      (x)
- #define pgd_val(x)	(x)
- #define ctxd_val(x)	(x)
- #define pgprot_val(x)	(x)
- #define iopgprot_val(x)	(x)
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
  
- #define __pte(x)	(x)
--#define __pmd(x)	((pmd_t) { { (x) }, })
-+#define __pmd(x)	(x)
- #define __iopte(x)	(x)
- #define __pgd(x)	(x)
- #define __ctxd(x)	(x)
-diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
-index eae0c92ec422..99c032424946 100644
---- a/arch/sparc/include/asm/pgalloc_32.h
-+++ b/arch/sparc/include/asm/pgalloc_32.h
-@@ -60,13 +60,14 @@ pgtable_t pte_alloc_one(struct mm_struct *mm);
+diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
+index 0d3ea35c97fe..9e084a464a97 100644
+--- a/arch/arm/include/asm/pgtable-2level.h
++++ b/arch/arm/include/asm/pgtable-2level.h
+@@ -211,8 +211,6 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long addr)
+ #define pmd_addr_end(addr,end) (end)
  
- static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+ #define set_pte_ext(ptep,pte,ext) cpu_set_pte_ext(ptep,pte,ext)
+-#define pte_special(pte)	(0)
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ 
+ /*
+  * We don't have huge page support for short descriptors, for the moment
+diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pgtable.h
+index eabcb48a7840..556468240ba5 100644
+--- a/arch/arm/include/asm/pgtable.h
++++ b/arch/arm/include/asm/pgtable.h
+@@ -252,19 +252,8 @@ static inline void __sync_icache_dcache(pte_t pteval)
+ extern void __sync_icache_dcache(pte_t pteval);
+ #endif
+ 
+-static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+-			      pte_t *ptep, pte_t pteval)
+-{
+-	unsigned long ext = 0;
+-
+-	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
+-		if (!pte_special(pteval))
+-			__sync_icache_dcache(pteval);
+-		ext |= PTE_EXT_NG;
+-	}
+-
+-	set_pte_ext(ptep, pteval, ext);
+-}
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++		      pte_t *ptep, pte_t pteval);
+ 
+ static inline pte_t clear_pte_bit(pte_t pte, pgprot_t prot)
  {
--	return srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
-+	return srmmu_get_nocache(SRMMU_PTE_TABLE_SIZE,
-+				 SRMMU_PTE_TABLE_SIZE);
+diff --git a/arch/arm/mm/mmu.c b/arch/arm/mm/mmu.c
+index 5d0d0f86e790..16e9b041d7cf 100644
+--- a/arch/arm/mm/mmu.c
++++ b/arch/arm/mm/mmu.c
+@@ -1672,3 +1672,17 @@ void __init early_mm_init(const struct machine_desc *mdesc)
+ 	build_mem_type_table();
+ 	early_paging_init(mdesc);
+ }
++
++void set_pte_at(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep, pte_t pteval)
++{
++	unsigned long ext = 0;
++
++	if (addr < TASK_SIZE && pte_valid_user(pteval)) {
++		if (!pte_special(pteval))
++			__sync_icache_dcache(pteval);
++		ext |= PTE_EXT_NG;
++	}
++
++	set_pte_ext(ptep, pteval, ext);
++}
+diff --git a/arch/csky/include/asm/pgtable.h b/arch/csky/include/asm/pgtable.h
+index 9b7764cb7645..9ab4a445ad99 100644
+--- a/arch/csky/include/asm/pgtable.h
++++ b/arch/csky/include/asm/pgtable.h
+@@ -110,9 +110,6 @@ extern unsigned long empty_zero_page[PAGE_SIZE / sizeof(unsigned long)];
+ extern void load_pgd(unsigned long pg_dir);
+ extern pte_t invalid_pte_table[PTRS_PER_PTE];
+ 
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+-
+ static inline void set_pte(pte_t *p, pte_t pte)
+ {
+ 	*p = pte;
+diff --git a/arch/hexagon/include/asm/pgtable.h b/arch/hexagon/include/asm/pgtable.h
+index 2fec20ad939e..d383e8bea5b2 100644
+--- a/arch/hexagon/include/asm/pgtable.h
++++ b/arch/hexagon/include/asm/pgtable.h
+@@ -158,8 +158,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];  /* located in head.S */
+ 
+ /* Seems to be zero even in architectures where the zero page is firewalled? */
+ #define FIRST_USER_ADDRESS 0UL
+-#define pte_special(pte)	0
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*  HUGETLB not working currently  */
+ #ifdef CONFIG_HUGETLB_PAGE
+diff --git a/arch/ia64/include/asm/pgtable.h b/arch/ia64/include/asm/pgtable.h
+index d602e7c622db..0e7b645b76c6 100644
+--- a/arch/ia64/include/asm/pgtable.h
++++ b/arch/ia64/include/asm/pgtable.h
+@@ -298,7 +298,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+ #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
+-#define pte_special(pte)	0
+ 
+ /*
+  * Note: we convert AR_RWX to AR_RX and AR_RW to AR_R by clearing the 2nd bit in the
+@@ -311,7 +310,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_mkclean(pte)	(__pte(pte_val(pte) & ~_PAGE_D))
+ #define pte_mkdirty(pte)	(__pte(pte_val(pte) | _PAGE_D))
+ #define pte_mkhuge(pte)		(__pte(pte_val(pte)))
+-#define pte_mkspecial(pte)	(pte)
+ 
+ /*
+  * Because ia64's Icache and Dcache is not coherent (on a cpu), we need to
+diff --git a/arch/m68k/include/asm/mcf_pgtable.h b/arch/m68k/include/asm/mcf_pgtable.h
+index b9f45aeded25..0031cd387b75 100644
+--- a/arch/m68k/include/asm/mcf_pgtable.h
++++ b/arch/m68k/include/asm/mcf_pgtable.h
+@@ -235,11 +235,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & CF_PAGE_ACCESSED;
  }
  
- 
- static inline void free_pte_fast(pte_t *pte)
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ static inline pte_t pte_wrprotect(pte_t pte)
  {
--	srmmu_free_nocache(pte, PTE_SIZE);
-+	srmmu_free_nocache(pte, SRMMU_PTE_TABLE_SIZE);
+ 	pte_val(pte) &= ~CF_PAGE_WRITABLE;
+@@ -312,11 +307,6 @@ static inline pte_t pte_mkcache(pte_t pte)
+ 	return pte;
  }
  
- #define pte_free_kernel(mm, pte)	free_pte_fast(pte)
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+-
+ #define swapper_pg_dir kernel_pg_dir
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+ 
+diff --git a/arch/m68k/include/asm/motorola_pgtable.h b/arch/m68k/include/asm/motorola_pgtable.h
+index 62bedc61f110..a6f4b96d674e 100644
+--- a/arch/m68k/include/asm/motorola_pgtable.h
++++ b/arch/m68k/include/asm/motorola_pgtable.h
+@@ -168,7 +168,6 @@ static inline void pud_set(pud_t *pudp, pmd_t *pmdp)
+ static inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_RONLY); }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_RONLY; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+@@ -186,7 +185,6 @@ static inline pte_t pte_mkcache(pte_t pte)
+ 	pte_val(pte) = (pte_val(pte) & _CACHEMASK040) | m68k_supervisor_cachemode;
+ 	return pte;
+ }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ #define PAGE_DIR_OFFSET(tsk,address) pgd_offset((tsk),(address))
+ 
+diff --git a/arch/m68k/include/asm/sun3_pgtable.h b/arch/m68k/include/asm/sun3_pgtable.h
+index bc4155264810..0caa18a08437 100644
+--- a/arch/m68k/include/asm/sun3_pgtable.h
++++ b/arch/m68k/include/asm/sun3_pgtable.h
+@@ -155,7 +155,6 @@ static inline void pmd_clear (pmd_t *pmdp) { pmd_val (*pmdp) = 0; }
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_WRITEABLE; }
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & SUN3_PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_WRITEABLE; return pte; }
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~SUN3_PAGE_MODIFIED; return pte; }
+@@ -168,7 +167,6 @@ static inline pte_t pte_mknocache(pte_t pte)	{ pte_val(pte) |= SUN3_PAGE_NOCACHE
+ //static inline pte_t pte_mkcache(pte_t pte)	{ pte_val(pte) &= SUN3_PAGE_NOCACHE; return pte; }
+ // until then, use:
+ static inline pte_t pte_mkcache(pte_t pte)	{ return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+ extern pgd_t kernel_pg_dir[PTRS_PER_PGD];
+diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
+index 2def331f9e2c..db9bdfcf46b7 100644
+--- a/arch/microblaze/include/asm/pgtable.h
++++ b/arch/microblaze/include/asm/pgtable.h
+@@ -80,10 +80,6 @@ extern pte_t *va_to_pte(unsigned long address);
+  * Undefined behaviour if not..
+  */
+ 
+-static inline int pte_special(pte_t pte)	{ return 0; }
+-
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ /* Start and end of the vmalloc area. */
+ /* Make sure to map the vmalloc area above the pinned kernel memory area
+    of 32Mb.  */
+diff --git a/arch/mips/include/asm/pgtable.h b/arch/mips/include/asm/pgtable.h
+index aef5378f909c..f1801e7a4b15 100644
+--- a/arch/mips/include/asm/pgtable.h
++++ b/arch/mips/include/asm/pgtable.h
+@@ -269,6 +269,36 @@ static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
+  */
+ extern pgd_t swapper_pg_dir[];
+ 
++/*
++ * Platform specific pte_special() and pte_mkspecial() definitions
++ * are required only when ARCH_HAS_PTE_SPECIAL is enabled.
++ */
++#if defined(CONFIG_ARCH_HAS_PTE_SPECIAL)
++#if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
++static inline int pte_special(pte_t pte)
++{
++	return pte.pte_low & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte.pte_low |= _PAGE_SPECIAL;
++	return pte;
++}
++#else
++static inline int pte_special(pte_t pte)
++{
++	return pte_val(pte) & _PAGE_SPECIAL;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	pte_val(pte) |= _PAGE_SPECIAL;
++	return pte;
++}
++#endif
++#endif /* CONFIG_ARCH_HAS_PTE_SPECIAL */
++
+ /*
+  * The following only work if pte_present() is true.
+  * Undefined behaviour if not..
+@@ -277,7 +307,6 @@ extern pgd_t swapper_pg_dir[];
+ static inline int pte_write(pte_t pte)	{ return pte.pte_low & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte.pte_low & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte.pte_low & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte.pte_low & _PAGE_SPECIAL; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -338,17 +367,10 @@ static inline pte_t pte_mkyoung(pte_t pte)
+ 	}
+ 	return pte;
+ }
+-
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte.pte_low |= _PAGE_SPECIAL;
+-	return pte;
+-}
+ #else
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return pte_val(pte) & _PAGE_SPECIAL; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -392,12 +414,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	pte_val(pte) |= _PAGE_SPECIAL;
+-	return pte;
+-}
+-
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ static inline int pte_huge(pte_t pte)	{ return pte_val(pte) & _PAGE_HUGE; }
+ 
+diff --git a/arch/nds32/include/asm/pgtable.h b/arch/nds32/include/asm/pgtable.h
+index 6abc58ac406d..476cc4dd1709 100644
+--- a/arch/nds32/include/asm/pgtable.h
++++ b/arch/nds32/include/asm/pgtable.h
+@@ -286,15 +286,6 @@ PTE_BIT_FUNC(mkclean, &=~_PAGE_D);
+ PTE_BIT_FUNC(mkdirty, |=_PAGE_D);
+ PTE_BIT_FUNC(mkold, &=~_PAGE_YOUNG);
+ PTE_BIT_FUNC(mkyoung, |=_PAGE_YOUNG);
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
+-
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return pte;
+-}
+ 
+ /*
+  * Mark the prot value as uncacheable and unbufferable.
+diff --git a/arch/nios2/include/asm/pgtable.h b/arch/nios2/include/asm/pgtable.h
+index 99985d8b7166..f98b7f4519ba 100644
+--- a/arch/nios2/include/asm/pgtable.h
++++ b/arch/nios2/include/asm/pgtable.h
+@@ -113,7 +113,6 @@ static inline int pte_dirty(pte_t pte)		\
+ 	{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		\
+ 	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ #define pgprot_noncached pgprot_noncached
+ 
+@@ -168,8 +167,6 @@ static inline pte_t pte_mkdirty(pte_t pte)
+ 	return pte;
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+-
+ static inline pte_t pte_mkyoung(pte_t pte)
+ {
+ 	pte_val(pte) |= _PAGE_ACCESSED;
+diff --git a/arch/openrisc/include/asm/pgtable.h b/arch/openrisc/include/asm/pgtable.h
+index 248d22d8faa7..7f3fb9ceb083 100644
+--- a/arch/openrisc/include/asm/pgtable.h
++++ b/arch/openrisc/include/asm/pgtable.h
+@@ -236,8 +236,6 @@ static inline int pte_write(pte_t pte) { return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+diff --git a/arch/parisc/include/asm/pgtable.h b/arch/parisc/include/asm/pgtable.h
+index f0a365950536..9832c73a7021 100644
+--- a/arch/parisc/include/asm/pgtable.h
++++ b/arch/parisc/include/asm/pgtable.h
+@@ -377,7 +377,6 @@ static inline void pud_clear(pud_t *pud) {
+ static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+ static inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_WRITE; }
+-static inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ static inline pte_t pte_mkclean(pte_t pte)	{ pte_val(pte) &= ~_PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkold(pte_t pte)	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+@@ -385,7 +384,6 @@ static inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) &= ~_PAGE_WRITE; ret
+ static inline pte_t pte_mkdirty(pte_t pte)	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+ static inline pte_t pte_mkyoung(pte_t pte)	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)	{ pte_val(pte) |= _PAGE_WRITE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)	{ return pte; }
+ 
+ /*
+  * Huge pte definitions.
 diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 6d6f44c0cad9..785dc9a95e70 100644
+index 6d6f44c0cad9..0de659ae0ba4 100644
 --- a/arch/sparc/include/asm/pgtable_32.h
 +++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -11,6 +11,16 @@
- 
- #include <linux/const.h>
- 
-+#define PMD_SHIFT		18
-+#define PMD_SIZE        	(1UL << PMD_SHIFT)
-+#define PMD_MASK        	(~(PMD_SIZE-1))
-+#define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
-+
-+#define PGDIR_SHIFT     	24
-+#define PGDIR_SIZE      	(1UL << PGDIR_SHIFT)
-+#define PGDIR_MASK      	(~(PGDIR_SIZE-1))
-+#define PGDIR_ALIGN(__addr) 	(((__addr) + ~PGDIR_MASK) & PGDIR_MASK)
-+
- #ifndef __ASSEMBLY__
- #include <asm-generic/pgtable-nopud.h>
- 
-@@ -34,17 +44,10 @@ unsigned long __init bootmem_init(unsigned long *pages_avail);
- #define pmd_ERROR(e)   __builtin_trap()
- #define pgd_ERROR(e)   __builtin_trap()
- 
--#define PMD_SHIFT		22
--#define PMD_SIZE        	(1UL << PMD_SHIFT)
--#define PMD_MASK        	(~(PMD_SIZE-1))
--#define PMD_ALIGN(__addr) 	(((__addr) + ~PMD_MASK) & PMD_MASK)
--#define PGDIR_SHIFT     	SRMMU_PGDIR_SHIFT
--#define PGDIR_SIZE      	SRMMU_PGDIR_SIZE
--#define PGDIR_MASK      	SRMMU_PGDIR_MASK
--#define PTRS_PER_PTE    	1024
--#define PTRS_PER_PMD    	SRMMU_PTRS_PER_PMD
--#define PTRS_PER_PGD    	SRMMU_PTRS_PER_PGD
--#define USER_PTRS_PER_PGD	PAGE_OFFSET / SRMMU_PGDIR_SIZE
-+#define PTRS_PER_PTE    	64
-+#define PTRS_PER_PMD    	64
-+#define PTRS_PER_PGD    	256
-+#define USER_PTRS_PER_PGD	PAGE_OFFSET / PGDIR_SIZE
- #define FIRST_USER_ADDRESS	0UL
- #define PTE_SIZE		(PTRS_PER_PTE*4)
- 
-@@ -179,9 +182,7 @@ static inline int pmd_none(pmd_t pmd)
- 
- static inline void pmd_clear(pmd_t *pmdp)
- {
--	int i;
--	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++)
--		set_pte((pte_t *)&pmdp->pmdv[i], __pte(0));
-+	set_pte((pte_t *)&pmd_val(*pmdp), __pte(0));
+@@ -223,11 +223,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & SRMMU_REF;
  }
  
- static inline int pud_none(pud_t pud)
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 32a508897501..58ea8e8c6ee7 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -17,39 +17,9 @@
- /* Number of contexts is implementation-dependent; 64k is the most we support */
- #define SRMMU_MAX_CONTEXTS	65536
- 
--/* PMD_SHIFT determines the size of the area a second-level page table entry can map */
--#define SRMMU_REAL_PMD_SHIFT		18
--#define SRMMU_REAL_PMD_SIZE		(1UL << SRMMU_REAL_PMD_SHIFT)
--#define SRMMU_REAL_PMD_MASK		(~(SRMMU_REAL_PMD_SIZE-1))
--#define SRMMU_REAL_PMD_ALIGN(__addr)	(((__addr)+SRMMU_REAL_PMD_SIZE-1)&SRMMU_REAL_PMD_MASK)
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
 -
--/* PGDIR_SHIFT determines what a third-level page table entry can map */
--#define SRMMU_PGDIR_SHIFT       24
--#define SRMMU_PGDIR_SIZE        (1UL << SRMMU_PGDIR_SHIFT)
--#define SRMMU_PGDIR_MASK        (~(SRMMU_PGDIR_SIZE-1))
--#define SRMMU_PGDIR_ALIGN(addr) (((addr)+SRMMU_PGDIR_SIZE-1)&SRMMU_PGDIR_MASK)
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+ 	return __pte(pte_val(pte) & ~SRMMU_WRITE);
+@@ -258,8 +253,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
+ 	return __pte(pte_val(pte) | SRMMU_REF);
+ }
+ 
+-#define pte_mkspecial(pte)    (pte)
 -
--#define SRMMU_REAL_PTRS_PER_PTE	64
--#define SRMMU_REAL_PTRS_PER_PMD	64
--#define SRMMU_PTRS_PER_PGD	256
+ #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
+ 
+ static inline unsigned long pte_pfn(pte_t pte)
+diff --git a/arch/um/include/asm/pgtable.h b/arch/um/include/asm/pgtable.h
+index 2daa58df2190..b5ddf5d98bd5 100644
+--- a/arch/um/include/asm/pgtable.h
++++ b/arch/um/include/asm/pgtable.h
+@@ -167,11 +167,6 @@ static inline int pte_newprot(pte_t pte)
+ 	return(pte_present(pte) && (pte_get_bits(pte, _PAGE_NEWPROT)));
+ }
+ 
+-static inline int pte_special(pte_t pte)
+-{
+-	return 0;
+-}
 -
--#define SRMMU_REAL_PTE_TABLE_SIZE	(SRMMU_REAL_PTRS_PER_PTE*4)
--#define SRMMU_PMD_TABLE_SIZE		(SRMMU_REAL_PTRS_PER_PMD*4)
--#define SRMMU_PGD_TABLE_SIZE		(SRMMU_PTRS_PER_PGD*4)
+ /*
+  * ================  * Flags setting section.
+@@ -247,11 +242,6 @@ static inline pte_t pte_mknewpage(pte_t pte)
+ 	return(pte);
+ }
+ 
+-static inline pte_t pte_mkspecial(pte_t pte)
+-{
+-	return(pte);
+-}
 -
--/*
-- * To support pagetables in highmem, Linux introduces APIs which
-- * return struct page* and generally manipulate page tables when
-- * they are not mapped into kernel space. Our hardware page tables
-- * are smaller than pages. We lump hardware tabes into big, page sized
-- * software tables.
-- *
-- * PMD_SHIFT determines the size of the area a second-level page table entry
-- * can map, and our pmd_t is 16 times larger than normal.  The values which
-- * were once defined here are now generic for 4c and srmmu, so they're
-- * found in pgtable.h.
-- */
--#define SRMMU_PTRS_PER_PMD	4
-+#define SRMMU_PTE_TABLE_SIZE		(PAGE_SIZE)
-+#define SRMMU_PMD_TABLE_SIZE		(PAGE_SIZE)
-+#define SRMMU_PGD_TABLE_SIZE		(PTRS_PER_PGD*4)
+ static inline void set_pte(pte_t *pteptr, pte_t pteval)
+ {
+ 	pte_copy(*pteptr, pteval);
+diff --git a/arch/unicore32/include/asm/pgtable.h b/arch/unicore32/include/asm/pgtable.h
+index c8f7ba12f309..3b8731b3a937 100644
+--- a/arch/unicore32/include/asm/pgtable.h
++++ b/arch/unicore32/include/asm/pgtable.h
+@@ -177,7 +177,6 @@ extern struct page *empty_zero_page;
+ #define pte_dirty(pte)		(pte_val(pte) & PTE_DIRTY)
+ #define pte_young(pte)		(pte_val(pte) & PTE_YOUNG)
+ #define pte_exec(pte)		(pte_val(pte) & PTE_EXEC)
+-#define pte_special(pte)	(0)
  
- /* Definition of the values in the ET field of PTD's and PTE's */
- #define SRMMU_ET_MASK         0x3
-diff --git a/arch/sparc/include/asm/viking.h b/arch/sparc/include/asm/viking.h
-index 0bbefd184221..08ffc605035f 100644
---- a/arch/sparc/include/asm/viking.h
-+++ b/arch/sparc/include/asm/viking.h
-@@ -10,6 +10,7 @@
+ #define PTE_BIT_FUNC(fn, op) \
+ static inline pte_t pte_##fn(pte_t pte) { pte_val(pte) op; return pte; }
+@@ -189,8 +188,6 @@ PTE_BIT_FUNC(mkdirty,   |= PTE_DIRTY);
+ PTE_BIT_FUNC(mkold,     &= ~PTE_YOUNG);
+ PTE_BIT_FUNC(mkyoung,   |= PTE_YOUNG);
  
- #include <asm/asi.h>
- #include <asm/mxcc.h>
-+#include <asm/pgtable.h>
- #include <asm/pgtsrmmu.h>
+-static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+-
+ /*
+  * Mark the prot value as uncacheable.
+  */
+diff --git a/arch/xtensa/include/asm/pgtable.h b/arch/xtensa/include/asm/pgtable.h
+index 27ac17c9da09..8be0c0568c50 100644
+--- a/arch/xtensa/include/asm/pgtable.h
++++ b/arch/xtensa/include/asm/pgtable.h
+@@ -266,7 +266,6 @@ static inline void paging_init(void) { }
+ static inline int pte_write(pte_t pte) { return pte_val(pte) & _PAGE_WRITABLE; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_special(pte_t pte) { return 0; }
  
- /* Bits in the SRMMU control register for GNU/Viking modules.
-@@ -227,7 +228,7 @@ static inline unsigned long viking_hwprobe(unsigned long vaddr)
- 			     : "=r" (val)
- 			     : "r" (vaddr | 0x200), "i" (ASI_M_FLUSH_PROBE));
- 	if ((val & SRMMU_ET_MASK) = SRMMU_ET_PTE) {
--		vaddr &= ~SRMMU_PGDIR_MASK;
-+		vaddr &= ~PGDIR_MASK;
- 		vaddr >>= PAGE_SHIFT;
- 		return val | (vaddr << 8);
- 	}
-@@ -237,7 +238,7 @@ static inline unsigned long viking_hwprobe(unsigned long vaddr)
- 			     : "=r" (val)
- 			     : "r" (vaddr | 0x100), "i" (ASI_M_FLUSH_PROBE));
- 	if ((val & SRMMU_ET_MASK) = SRMMU_ET_PTE) {
--		vaddr &= ~SRMMU_REAL_PMD_MASK;
-+		vaddr &= ~PMD_MASK;
- 		vaddr >>= PAGE_SHIFT;
- 		return val | (vaddr << 8);
- 	}
-diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
-index e55f2c075165..be30c8d4cc73 100644
---- a/arch/sparc/kernel/head_32.S
-+++ b/arch/sparc/kernel/head_32.S
-@@ -24,7 +24,7 @@
- #include <asm/winmacro.h>
- #include <asm/thread_info.h>	/* TI_UWINMASK */
- #include <asm/errno.h>
--#include <asm/pgtsrmmu.h>	/* SRMMU_PGDIR_SHIFT */
-+#include <asm/pgtable.h>	/* PGDIR_SHIFT */
- #include <asm/export.h>
+ static inline pte_t pte_wrprotect(pte_t pte)	
+ 	{ pte_val(pte) &= ~(_PAGE_WRITABLE | _PAGE_HW_WRITE); return pte; }
+@@ -280,8 +279,6 @@ static inline pte_t pte_mkyoung(pte_t pte)
+ 	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+ static inline pte_t pte_mkwrite(pte_t pte)
+ 	{ pte_val(pte) |= _PAGE_WRITABLE; return pte; }
+-static inline pte_t pte_mkspecial(pte_t pte)
+-	{ return pte; }
  
- 	.data
-@@ -273,7 +273,7 @@ not_a_sun4:
- 		lda	[%o1] ASI_M_BYPASS, %o2		! This is the 0x0 16MB pgd
+ #define pgprot_noncached(prot) (__pgprot(pgprot_val(prot) & ~_PAGE_CA_MASK))
  
- 		/* Calculate to KERNBASE entry. */
--		add	%o1, KERNBASE >> (SRMMU_PGDIR_SHIFT - 2), %o3
-+		add	%o1, KERNBASE >> (PGDIR_SHIFT - 2), %o3
- 
- 		/* Poke the entry into the calculated address. */
- 		sta	%o2, [%o3] ASI_M_BYPASS
-@@ -317,7 +317,7 @@ srmmu_not_viking:
- 		sll	%g1, 0x8, %g1			! make phys addr for l1 tbl
- 
- 		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
--		add	%g1, KERNBASE >> (SRMMU_PGDIR_SHIFT - 2), %g3
-+		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
- 		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
- 		b	go_to_highmem
- 		 nop					! wheee....
-@@ -341,7 +341,7 @@ leon_remap:
- 		sll	%g1, 0x8, %g1			! make phys addr for l1 tbl
- 
- 		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
--		add	%g1, KERNBASE >> (SRMMU_PGDIR_SHIFT - 2), %g3
-+		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
- 		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
- 		b	go_to_highmem
- 		 nop					! wheee....
-diff --git a/arch/sparc/mm/hypersparc.S b/arch/sparc/mm/hypersparc.S
-index 66885a8dc50a..6c2521e85a42 100644
---- a/arch/sparc/mm/hypersparc.S
-+++ b/arch/sparc/mm/hypersparc.S
-@@ -10,6 +10,7 @@
- #include <asm/asm-offsets.h>
- #include <asm/asi.h>
- #include <asm/page.h>
-+#include <asm/pgtable.h>
- #include <asm/pgtsrmmu.h>
- #include <linux/init.h>
- 
-@@ -293,7 +294,7 @@ hypersparc_flush_tlb_range:
- 	cmp	%o3, -1
- 	be	hypersparc_flush_tlb_range_out
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index c54fb96cb1e6..b2b43c88bff2 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1720,6 +1720,18 @@ static inline void sync_mm_rss(struct mm_struct *mm)
+ }
  #endif
--	 sethi	%hi(~((1 << SRMMU_PGDIR_SHIFT) - 1)), %o4
-+	 sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
- 	sta	%o3, [%g1] ASI_M_MMUREGS
- 	and	%o1, %o4, %o1
- 	add	%o1, 0x200, %o1
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index a19863cac0c4..7fa096422bd0 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -136,26 +136,14 @@ static void msi_set_sync(void)
  
- void pmd_set(pmd_t *pmdp, pte_t *ptep)
++#ifndef CONFIG_ARCH_HAS_PTE_SPECIAL
++static inline int pte_special(pte_t pte)
++{
++	return 0;
++}
++
++static inline pte_t pte_mkspecial(pte_t pte)
++{
++	return pte;
++}
++#endif
++
+ #ifndef CONFIG_ARCH_HAS_PTE_DEVMAP
+ static inline int pte_devmap(pte_t pte)
  {
--	unsigned long ptp;	/* Physical address, shifted right by 4 */
--	int i;
--
--	ptp = __nocache_pa(ptep) >> 4;
--	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
--		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
--		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
--	}
-+	unsigned long ptp = __nocache_pa(ptep) >> 4;
-+	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
- }
- 
- void pmd_populate(struct mm_struct *mm, pmd_t *pmdp, struct page *ptep)
- {
--	unsigned long ptp;	/* Physical address, shifted right by 4 */
--	int i;
--
--	ptp = page_to_pfn(ptep) << (PAGE_SHIFT-4);	/* watch for overflow */
--	for (i = 0; i < PTRS_PER_PTE/SRMMU_REAL_PTRS_PER_PTE; i++) {
--		set_pte((pte_t *)&pmdp->pmdv[i], __pte(SRMMU_ET_PTD | ptp));
--		ptp += (SRMMU_REAL_PTRS_PER_PTE * sizeof(pte_t) >> 4);
--	}
-+	unsigned long ptp = page_to_pfn(ptep) << (PAGE_SHIFT-4); /* watch for overflow */
-+	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
- }
- 
- /* Find an entry in the third-level page table.. */
-@@ -163,7 +151,7 @@ pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
- {
- 	void *pte;
- 
--	pte = __nocache_va((dir->pmdv[0] & SRMMU_PTD_PMASK) << 4);
-+	pte = __nocache_va((pmd_val(*dir) & SRMMU_PTD_PMASK) << 4);
- 	return (pte_t *) pte +
- 	    ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
- }
-@@ -400,7 +388,7 @@ void pte_free(struct mm_struct *mm, pgtable_t pte)
- 	p = page_to_pfn(pte) << PAGE_SHIFT;	/* Physical address */
- 
- 	/* free non cached virtual address*/
--	srmmu_free_nocache(__nocache_va(p), PTE_SIZE);
-+	srmmu_free_nocache(__nocache_va(p), SRMMU_PTE_TABLE_SIZE);
- }
- 
- /* context handling - a dynamically sized pool is used */
-@@ -822,13 +810,13 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 		what = 0;
- 		addr = start - PAGE_SIZE;
- 
--		if (!(start & ~(SRMMU_REAL_PMD_MASK))) {
--			if (srmmu_probe(addr + SRMMU_REAL_PMD_SIZE) = probed)
-+		if (!(start & ~(PMD_MASK))) {
-+			if (srmmu_probe(addr + PMD_SIZE) = probed)
- 				what = 1;
- 		}
- 
--		if (!(start & ~(SRMMU_PGDIR_MASK))) {
--			if (srmmu_probe(addr + SRMMU_PGDIR_SIZE) = probed)
-+		if (!(start & ~(PGDIR_MASK))) {
-+			if (srmmu_probe(addr + PGDIR_SIZE) = probed)
- 				what = 2;
- 		}
- 
-@@ -837,7 +825,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 		pudp = pud_offset(p4dp, start);
- 		if (what = 2) {
- 			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
--			start += SRMMU_PGDIR_SIZE;
-+			start += PGDIR_SIZE;
- 			continue;
- 		}
- 		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
-@@ -849,6 +837,11 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 			pud_set(__nocache_fix(pudp), pmdp);
- 		}
- 		pmdp = pmd_offset(__nocache_fix(pgdp), start);
-+		if (what = 1) {
-+			*(pmd_t *)__nocache_fix(pmdp) = __pmd(probed);
-+			start += PMD_SIZE;
-+			continue;
-+		}
- 		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
- 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
- 			if (ptep = NULL)
-@@ -856,19 +849,6 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 			memset(__nocache_fix(ptep), 0, PTE_SIZE);
- 			pmd_set(__nocache_fix(pmdp), ptep);
- 		}
--		if (what = 1) {
--			/* We bend the rule where all 16 PTPs in a pmd_t point
--			 * inside the same PTE page, and we leak a perfectly
--			 * good hardware PTE piece. Alternatives seem worse.
--			 */
--			unsigned int x;	/* Index of HW PMD in soft cluster */
--			unsigned long *val;
--			x = (start >> PMD_SHIFT) & 15;
--			val = &pmdp->pmdv[x];
--			*(unsigned long *)__nocache_fix(val) = probed;
--			start += SRMMU_REAL_PMD_SIZE;
--			continue;
--		}
- 		ptep = pte_offset_kernel(__nocache_fix(pmdp), start);
- 		*(pte_t *)__nocache_fix(ptep) = __pte(probed);
- 		start += PAGE_SIZE;
-@@ -890,9 +870,9 @@ static void __init do_large_mapping(unsigned long vaddr, unsigned long phys_base
- /* Map sp_bank entry SP_ENTRY, starting at virtual address VBASE. */
- static unsigned long __init map_spbank(unsigned long vbase, int sp_entry)
- {
--	unsigned long pstart = (sp_banks[sp_entry].base_addr & SRMMU_PGDIR_MASK);
--	unsigned long vstart = (vbase & SRMMU_PGDIR_MASK);
--	unsigned long vend = SRMMU_PGDIR_ALIGN(vbase + sp_banks[sp_entry].num_bytes);
-+	unsigned long pstart = (sp_banks[sp_entry].base_addr & PGDIR_MASK);
-+	unsigned long vstart = (vbase & PGDIR_MASK);
-+	unsigned long vend = PGDIR_ALIGN(vbase + sp_banks[sp_entry].num_bytes);
- 	/* Map "low" memory only */
- 	const unsigned long min_vaddr = PAGE_OFFSET;
- 	const unsigned long max_vaddr = PAGE_OFFSET + SRMMU_MAXMEM;
-@@ -905,7 +885,7 @@ static unsigned long __init map_spbank(unsigned long vbase, int sp_entry)
- 
- 	while (vstart < vend) {
- 		do_large_mapping(vstart, pstart);
--		vstart += SRMMU_PGDIR_SIZE; pstart += SRMMU_PGDIR_SIZE;
-+		vstart += PGDIR_SIZE; pstart += PGDIR_SIZE;
- 	}
- 	return vstart;
- }
-diff --git a/arch/sparc/mm/viking.S b/arch/sparc/mm/viking.S
-index adaef6e7b8cf..48f062de7a7f 100644
---- a/arch/sparc/mm/viking.S
-+++ b/arch/sparc/mm/viking.S
-@@ -13,6 +13,7 @@
- #include <asm/asi.h>
- #include <asm/mxcc.h>
- #include <asm/page.h>
-+#include <asm/pgtable.h>
- #include <asm/pgtsrmmu.h>
- #include <asm/viking.h>
- 
-@@ -157,7 +158,7 @@ viking_flush_tlb_range:
- 	cmp	%o3, -1
- 	be	2f
- #endif
--	sethi	%hi(~((1 << SRMMU_PGDIR_SHIFT) - 1)), %o4
-+	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
- 	sta	%o3, [%g1] ASI_M_MMUREGS
- 	and	%o1, %o4, %o1
- 	add	%o1, 0x200, %o1
-@@ -243,7 +244,7 @@ sun4dsmp_flush_tlb_range:
- 	ld	[%o0 + VMA_VM_MM], %o0
- 	ld	[%o0 + AOFF_mm_context], %o3
- 	lda	[%g1] ASI_M_MMUREGS, %g5
--	sethi	%hi(~((1 << SRMMU_PGDIR_SHIFT) - 1)), %o4
-+	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
- 	sta	%o3, [%g1] ASI_M_MMUREGS
- 	and	%o1, %o4, %o1
- 	add	%o1, 0x200, %o1
 -- 
 2.20.1
