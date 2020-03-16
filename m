@@ -1,24 +1,82 @@
-From: ''Michael Weirsky'' <alex.zari@11d02.mspz7.gob.ec>
-Date: Thu, 05 Mar 2020 10:23:01 +0000
-Subject: =?utf-8?q?Wohlt=C3=A4tigkeitsspende_von_2=2E000=2E000_Millionen_Euro?=
-Message-Id: <20200305103004.44D06148AF6@mail.11d02.mspz7.gob.ec>
+From: Dmitry Safonov <dima@arista.com>
+Date: Mon, 16 Mar 2020 14:39:00 +0000
+Subject: [PATCHv2 34/50] sparc: Add show_stack_loglvl()
+Message-Id: <20200316143916.195608-35-dima@arista.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200316143916.195608-1-dima@arista.com>
+In-Reply-To: <20200316143916.195608-1-dima@arista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>, Dmitry Safonov <dima@arista.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@kernel.org>, Jiri Slaby <jslaby@suse.com>, Petr Mladek <pmladek@suse.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-Lieber Freund,
+Currently, the log-level of show_stack() depends on a platform
+realization. It creates situations where the headers are printed with
+lower log level or higher than the stacktrace (depending on
+a platform or user).
 
-Ich bin Herr Mike Weirsky, New Jersey, Vereinigte Staaten von Amerika, der Mega-Gewinner von $ 273million In Mega Millions Jackpot, spende ich an 5 zufällige Personen, wenn Sie diese E-Mail erhalten, dann wurde Ihre E-Mail nach einem Spinball ausgewählt.Ich habe den größten Teil meines Vermögens auf eine Reihe von Wohltätigkeitsorganisationen und Organisationen verteilt.Ich habe mich freiwillig dazu entschieden, die Summe von € 2.000.000,00 an Sie als eine der ausgewählten 5 zu spenden, um meine Gewinne zu überprüfen.
-Das ist dein Spendencode: [MW530342019]
-www.youtube.com/watch?v=un8yRTmrYMY
+Furthermore, it forces the logic decision from user to an architecture
+side. In result, some users as sysrq/kdb/etc are doing tricks with
+temporary rising console_loglevel while printing their messages.
+And in result it not only may print unwanted messages from other CPUs,
+but also omit printing at all in the unlucky case where the printk()
+was deferred.
 
-Antworten Sie mit dem SPENDE-CODE an diese 
+Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems
+an easier approach than introducing more printk buffers.
+Also, it will consolidate printings with headers.
 
-E-Mail:mikeweirskyspende@gmail.com
+Introduce show_stack_loglvl(), that eventually will substitute
+show_stack().
 
-Ich hoffe, Sie und Ihre Familie glücklich zu machen.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Dmitry Safonov <dima@arista.com>
+---
+ arch/sparc/kernel/process_32.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-Grüße
-Herr Mike Weirsky
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 26cca65e9246..0b07de5618e5 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -145,10 +145,12 @@ void show_regs(struct pt_regs *r)
+ }
+ 
+ /*
+- * The show_stack is an external API which we do not use ourselves.
++ * The show_stack(), show_stack_loglvl() are external APIs which
++ * we do not use ourselves.
+  * The oops is printed in die_if_kernel.
+  */
+-void show_stack(struct task_struct *tsk, unsigned long *_ksp)
++void show_stack_loglvl(struct task_struct *tsk, unsigned long *_ksp,
++		       const char *loglvl)
+ {
+ 	unsigned long pc, fp;
+ 	unsigned long task_base;
+@@ -170,11 +172,16 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
+ 			break;
+ 		rw = (struct reg_window32 *) fp;
+ 		pc = rw->ins[7];
+-		printk("[%08lx : ", pc);
+-		printk("%pS ] ", (void *) pc);
++		printk("%s[%08lx : ", loglvl, pc);
++		printk("%s%pS ] ", loglvl, (void *) pc);
+ 		fp = rw->ins[6];
+ 	} while (++count < 16);
+-	printk("\n");
++	printk("%s\n", loglvl);
++}
++
++void show_stack(struct task_struct *task, unsigned long *sp)
++{
++	show_stack_loglvl(task, sp, KERN_DEFAULT);
+ }
+ 
+ /*
+-- 
+2.25.1
