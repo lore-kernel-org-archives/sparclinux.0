@@ -1,57 +1,27 @@
-From: Hoan Tran <Hoan@os.amperecomputing.com>
-Date: Sat, 28 Mar 2020 18:31:18 +0000
-Subject: [PATCH v3 1/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <1585420282-25630-2-git-send-email-Hoan@os.amperecomputing.com>
+From: David Ibe <ylawrence@uic.edu.hk>
+Date: Tue, 17 Mar 2020 00:30:44 +0000
+Subject: 
+Message-Id: <1962998701.63764382.1584405044025.JavaMail.zimbra@uic.edu.hk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-In NUMA layout which nodes have memory ranges that span across other nodes,
-the mm driver can detect the memory node id incorrectly.
 
-For example, with layout below
-Node 0 address: 0000 xxxx 0000 xxxx
-Node 1 address: xxxx 1111 xxxx 1111
 
-Note:
- - Memory from low to high
- - 0/1: Node id
- - x: Invalid memory of a node
+Good Day,                
 
-When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
-config, mm only checks the memory validity but not the node id.
-Because of that, Node 1 also detects the memory from node 0 as below
-when it scans from the start address to the end address of node 1.
+I am Mr. David Ibe, I work with the International Standards on Auditing, I have seen on records, that several times people has divert your funds into their own personal accounts.
 
-Node 0 address: 0000 xxxx xxxx xxxx
-Node 1 address: xxxx 1111 1111 1111
+Now I am writing to you in respect of the amount which I have been able to send to you through our International United Nations accredited and approved Diplomat, who has arrived Africa, I want you to know that the diplomat would deliver the funds which I have packaged as a diplomatic compensation to you and the amount in the consignment is  $10,000,000.00 United State Dollars.
 
-This layout could occur on any architecture. Most of them enables
-this config by default with CONFIG_NUMA. This patch, by default, enables
-CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
+I did not disclose the contents to the diplomat, but I told him that it is your compensation from the Auditing Corporate Governance and Stewardship, Auditing and Assurance Standards Board. I want you to know that these funds would help with your financial status as I have seen in records that you have spent a lot trying to receive these funds and I am not demanding so much from you but only 30% for my stress and logistics.
 
-Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
----
- mm/page_alloc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I would like you to get back to me with your personal contact details, so that I can give you the contact information's of the diplomat who has arrived Africa and has been waiting to get your details so that he can proceed with the delivery to you.
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d047bf7..948c1c9 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1467,7 +1467,7 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
- }
- #endif
- 
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-+#ifdef CONFIG_NUMA
- /* Only safe to use early in boot when initialisation is single-threaded */
- static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
- {
--- 
-1.8.3.1
+Yours Sincerely,
+Kindly forward your details to: mrdavidibe966@gmail.com
+Mr. David Ibe
+International Auditor,
+Corporate Governance and Stewardship
