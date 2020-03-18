@@ -1,116 +1,229 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Wed, 04 Mar 2020 05:31:13 +0000
-Subject: Re: [RFC 1/3] mm/vma: Define a default value for VM_DATA_DEFAULT_FLAGS
-Message-Id: <8b0f4c1b-f693-e139-4f66-ee4e1e88b95c@arm.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 18 Mar 2020 22:06:34 +0000
+Subject: [PATCH 4/4] hugetlbfs: clean up command line processing
+Message-Id: <20200318220634.32100-5-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1583131666-15531-1-git-send-email-anshuman.khandual@arm.com>
- <1583131666-15531-2-git-send-email-anshuman.khandual@arm.com>
- <b243be54-7b5e-c6e9-fb68-46369d7d7aa4@suse.cz>
-In-Reply-To: <b243be54-7b5e-c6e9-fb68-46369d7d7aa4@suse.cz>
+References: <20200318220634.32100-1-mike.kravetz@oracle.com>
+In-Reply-To: <20200318220634.32100-1-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vlastimil Babka <vbabka@suse.cz>, linux-mm@kvack.org
-Cc: Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org, Jonas Bonn <jonas@southpole.se>, linux-s390@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-c6x-dev@linux-c6x.org, Brian Cain <bcain@codeaurora.org>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, linux-parisc@vger.kernel.org, Mark Salter <msalter@redhat.com>, Paul Burton <paulburton@kernel.org>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, Jeff Dike <jdike@addtoit.com>, linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Richard Henderson <rth@twiddle.net>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Tony Luck <tony.luck@intel.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Nick Hu <nickhu@andestech.com>, Vineet Gupta <vgupta@synopsys.com>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, linux-alpha@vger.kernel.org, nios2-dev@lists.rocketboards.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Albert Ou <aou@eecs.berkeley.edu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Vasily Gorbik <gor@linux.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Longpeng <longpeng2@huawei.com>, Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
+With all hugetlb page processing done in a single file clean up code.
+- Make code match desired semantics
+  - Update documentation with semantics
+- Make all warnings and errors messages start with 'HugeTLB:'.
+- Consistently name command line parsing routines.
+- Add comments to code
+  - Describe some of the subtle interactions
+  - Describe semantics of command line arguments
 
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ Documentation/admin-guide/mm/hugetlbpage.rst | 26 +++++++
+ mm/hugetlb.c                                 | 78 +++++++++++++++-----
+ 2 files changed, 87 insertions(+), 17 deletions(-)
 
-On 03/03/2020 10:55 PM, Vlastimil Babka wrote:
-> On 3/2/20 7:47 AM, Anshuman Khandual wrote:
->> There are many platforms with exact same value for VM_DATA_DEFAULT_FLAGS
->> This creates a default value for VM_DATA_DEFAULT_FLAGS in line with the
->> existing VM_STACK_DEFAULT_FLAGS. While here, also define some more macros
->> with standard VMA access flag combinations that are used frequently across
->> many platforms. Apart from simplification, this reduces code duplication
->> as well.
->>
->> Cc: Richard Henderson <rth@twiddle.net>
->> Cc: Vineet Gupta <vgupta@synopsys.com>
->> Cc: Russell King <linux@armlinux.org.uk>
->> Cc: Catalin Marinas <catalin.marinas@arm.com>
->> Cc: Mark Salter <msalter@redhat.com>
->> Cc: Guo Ren <guoren@kernel.org>
->> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
->> Cc: Brian Cain <bcain@codeaurora.org>
->> Cc: Tony Luck <tony.luck@intel.com>
->> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
->> Cc: Michal Simek <monstr@monstr.eu>
->> Cc: Ralf Baechle <ralf@linux-mips.org>
->> Cc: Paul Burton <paulburton@kernel.org>
->> Cc: Nick Hu <nickhu@andestech.com>
->> Cc: Ley Foon Tan <ley.foon.tan@intel.com>
->> Cc: Jonas Bonn <jonas@southpole.se>
->> Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
->> Cc: Michael Ellerman <mpe@ellerman.id.au>
->> Cc: Paul Walmsley <paul.walmsley@sifive.com>
->> Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
->> Cc: Rich Felker <dalias@libc.org>
->> Cc: "David S. Miller" <davem@davemloft.net>
->> Cc: Guan Xuetao <gxt@pku.edu.cn>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Jeff Dike <jdike@addtoit.com>
->> Cc: Chris Zankel <chris@zankel.net>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: linux-alpha@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: linux-snps-arc@lists.infradead.org
->> Cc: linux-arm-kernel@lists.infradead.org
->> Cc: linux-c6x-dev@linux-c6x.org
->> Cc: uclinux-h8-devel@lists.sourceforge.jp
->> Cc: linux-hexagon@vger.kernel.org
->> Cc: linux-ia64@vger.kernel.org
->> Cc: linux-m68k@lists.linux-m68k.org
->> Cc: linux-mips@vger.kernel.org
->> Cc: nios2-dev@lists.rocketboards.org
->> Cc: openrisc@lists.librecores.org
->> Cc: linux-parisc@vger.kernel.org
->> Cc: linuxppc-dev@lists.ozlabs.org
->> Cc: linux-riscv@lists.infradead.org
->> Cc: linux-s390@vger.kernel.org
->> Cc: linux-sh@vger.kernel.org
->> Cc: sparclinux@vger.kernel.org
->> Cc: linux-um@lists.infradead.org
->> Cc: linux-xtensa@linux-xtensa.org
->> Cc: linux-mm@kvack.org
->> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com
-> Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-> 
-> Nit:
-> 
->> diff --git a/include/linux/mm.h b/include/linux/mm.h
->> index b0e53ef13ff1..7a764ae6ab68 100644
->> --- a/include/linux/mm.h
->> +++ b/include/linux/mm.h
->> @@ -342,6 +342,21 @@ extern unsigned int kobjsize(const void *objp);
->>  /* Bits set in the VMA until the stack is in its final location */
->>  #define VM_STACK_INCOMPLETE_SETUP	(VM_RAND_READ | VM_SEQ_READ)
->>  
->> +#define TASK_EXEC ((current->personality & READ_IMPLIES_EXEC) ? VM_EXEC : 0)
->> +
->> +/* Common data flag combinations */
->> +#define VM_DATA_FLAGS_TSK_EXEC	(VM_READ | VM_WRITE | TASK_EXEC | \
->> +				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
->> +#define VM_DATA_FLAGS_NON_EXEC	(VM_READ | VM_WRITE | VM_MAYREAD | \
->> +				 VM_MAYWRITE | VM_MAYEXEC)
->> +#define VM_DATA_FLAGS_EXEC	(VM_READ | VM_WRITE | VM_EXEC | \
->> +				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
->> +
->> +#ifndef VM_DATA_DEFAULT_FLAGS		/* arch can override this */
->> +#define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
->> +				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
-> 
-> Should you use VM_DATA_FLAGS_EXEC here? Yeah one more macro to expand, but it's
-> right above this.
-
-Sure, can do that.
-
-> 
->> +#endif
->> +
->>  #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
->>  #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
->>  #endif
->>
-> 
-> 
-> 
+diff --git a/Documentation/admin-guide/mm/hugetlbpage.rst b/Documentation/admin-guide/mm/hugetlbpage.rst
+index 1cc0bc78d10e..afc8888f33c3 100644
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst
++++ b/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -100,6 +100,32 @@ with a huge page size selection parameter "hugepagesz=<size>".  <size> must
+ be specified in bytes with optional scale suffix [kKmMgG].  The default huge
+ page size may be selected with the "default_hugepagesz=<size>" boot parameter.
+ 
++Hugetlb boot command line parameter semantics
++hugepagesz - Specify a huge page size.  Used in conjunction with hugepages
++	parameter to preallocate a number of huge pages of the specified
++	size.  Hence, hugepagesz and hugepages are typically specified in
++	pairs such as:
++		hugepagesz=2M hugepagesQ2
++	hugepagesz can only be specified once on the command line for a
++	specific huge page size.  Valid huge page sizes are architecture
++	dependent.
++hugepages - Specify the number of huge pages to preallocate.  This typically
++	follows a valid hugepagesz parameter.  However, if hugepages is the
++	first or only hugetlb command line parameter it specifies the number
++	of huge pages of default size to allocate.  The number of huge pages
++	of default size specified in this manner can be overwritten by a
++	hugepagesz,hugepages parameter pair for the default size.
++	For example, on an architecture with 2M default huge page size:
++		hugepages%6 hugepagesz=2M hugepagesQ2
++	will result in 512 2M huge pages being allocated.  If a hugepages
++	parameter is preceded by an invalid hugepagesz parameter, it will
++	be ignored.
++default_hugepagesz - Specify the default huge page size.  This parameter can
++	only be specified on the command line.  No other hugetlb command line
++	parameter is associated with default_hugepagesz.  Therefore, it can
++	appear anywhere on the command line.  Valid default huge page size is
++	architecture dependent.
++
+ When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
+ indicates the current number of pre-allocated huge pages of the default size.
+ Thus, one can use the following command to dynamically allocate/deallocate
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index cc85b4f156ca..2b9bf01db2b6 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -2954,7 +2954,7 @@ static void __init hugetlb_sysfs_init(void)
+ 		err = hugetlb_sysfs_add_hstate(h, hugepages_kobj,
+ 					 hstate_kobjs, &hstate_attr_group);
+ 		if (err)
+-			pr_err("Hugetlb: Unable to add hstate %s", h->name);
++			pr_err("HugeTLB: Unable to add hstate %s", h->name);
+ 	}
+ }
+ 
+@@ -3058,7 +3058,7 @@ static void hugetlb_register_node(struct node *node)
+ 						nhs->hstate_kobjs,
+ 						&per_node_hstate_attr_group);
+ 		if (err) {
+-			pr_err("Hugetlb: Unable to add hstate %s for node %d\n",
++			pr_err("HugeTLB: Unable to add hstate %s for node %d\n",
+ 				h->name, node->dev.id);
+ 			hugetlb_unregister_node(node);
+ 			break;
+@@ -3109,19 +3109,35 @@ static int __init hugetlb_init(void)
+ 	if (!hugepages_supported())
+ 		return 0;
+ 
+-	if (!size_to_hstate(default_hstate_size)) {
+-		if (default_hstate_size != 0) {
+-			pr_err("HugeTLB: unsupported default_hugepagesz %lu. Reverting to %lu\n",
+-			       default_hstate_size, HPAGE_SIZE);
+-		}
+-
++	/*
++	 * Make sure HPAGE_SIZE (HUGETLB_PAGE_ORDER) hstate exists.  Some
++	 * architectures depend on setup being done here.
++	 *
++	 * If a valid default huge page size was specified on the command line,
++	 * add associated hstate if necessary.  If not, set default_hstate_size
++	 * to default size.  default_hstate_idx is used at runtime to identify
++	 * the default huge page size/hstate.
++	 */
++	hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
++	if (default_hstate_size)
++		hugetlb_add_hstate(ilog2(default_hstate_size) - PAGE_SHIFT);
++	else
+ 		default_hstate_size = HPAGE_SIZE;
+-		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
+-	}
+ 	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
++
++	/*
++	 * default_hstate_max_huge_pages != 0 indicates a count (hugepages=)
++	 * specified before a size (hugepagesz=).  Use this count for the
++	 * default huge page size, unless a specific value was specified for
++	 * this size in a hugepagesz/hugepages pair.
++	 */
+ 	if (default_hstate_max_huge_pages) {
+ 		if (!default_hstate.max_huge_pages)
+-			default_hstate.max_huge_pages = default_hstate_max_huge_pages;
++			default_hstate.max_huge_pages +				default_hstate_max_huge_pages;
++		else
++			pr_warn("HugeTLB: First hugepages=%lu kB ignored\n",
++				default_hstate_max_huge_pages);
+ 	}
+ 
+ 	hugetlb_init_hstates();
+@@ -3174,20 +3190,27 @@ void __init hugetlb_add_hstate(unsigned int order)
+ 	parsed_hstate = h;
+ }
+ 
+-static int __init hugetlb_nrpages_setup(char *s)
++/*
++ * hugepages command line processing
++ * hugepages must normally follows a valid hugepagsz specification.  If not,
++ * ignore the hugepages value.  hugepages can also be the first huge page
++ * command line option in which case it specifies the number of huge pages
++ * for the default size.
++ */
++static int __init hugepages_setup(char *s)
+ {
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
+ 
+ 	if (!parsed_valid_hugepagesz) {
+-		pr_warn("hugepages = %s preceded by "
++		pr_warn("HugeTLB: hugepages = %s preceded by "
+ 			"an unsupported hugepagesz, ignoring\n", s);
+ 		parsed_valid_hugepagesz = true;
+ 		return 1;
+ 	}
+ 	/*
+-	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
+-	 * so this hugepages= parameter goes to the "default hstate".
++	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter
++	 * yet, so this hugepages= parameter goes to the "default hstate".
+ 	 */
+ 	else if (!hugetlb_max_hstate)
+ 		mhp = &default_hstate_max_huge_pages;
+@@ -3195,7 +3218,8 @@ static int __init hugetlb_nrpages_setup(char *s)
+ 		mhp = &parsed_hstate->max_huge_pages;
+ 
+ 	if (mhp = last_mhp) {
+-		pr_warn("hugepages= specified twice without interleaving hugepagesz=, ignoring\n");
++		pr_warn("HugeTLB: hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n",
++			s);
+ 		return 1;
+ 	}
+ 
+@@ -3214,8 +3238,15 @@ static int __init hugetlb_nrpages_setup(char *s)
+ 
+ 	return 1;
+ }
+-__setup("hugepages=", hugetlb_nrpages_setup);
++__setup("hugepages=", hugepages_setup);
+ 
++/*
++ * hugepagesz command line processing
++ * A specific huge page size can only be specified once with hugepagesz.
++ * hugepagesz is followed by hugepages on the commnad line.  The global
++ * variable 'parsed_valid_hugepagesz' is used to determine if prior
++ * hugepagesz argument was valid.
++ */
+ static int __init hugepagesz_setup(char *s)
+ {
+ 	unsigned long long size;
+@@ -3230,16 +3261,23 @@ static int __init hugepagesz_setup(char *s)
+ 	}
+ 
+ 	if (size_to_hstate(size)) {
++		parsed_valid_hugepagesz = false;
+ 		pr_warn("HugeTLB: hugepagesz %s specified twice, ignoring\n",
+ 			saved_s);
+ 		return 0;
+ 	}
+ 
++	parsed_valid_hugepagesz = true;
+ 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
+ 	return 1;
+ }
+ __setup("hugepagesz=", hugepagesz_setup);
+ 
++/*
++ * default_hugepagesz command line input
++ * Only one instance of default_hugepagesz allowed on command line.  Do not
++ * add hstate here as that will confuse hugepagesz/hugepages processing.
++ */
+ static int __init default_hugepagesz_setup(char *s)
+ {
+ 	unsigned long long size;
+@@ -3252,6 +3290,12 @@ static int __init default_hugepagesz_setup(char *s)
+ 		return 0;
+ 	}
+ 
++	if (default_hstate_size) {
++		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n",
++			saved_s);
++		return 0;
++	}
++
+ 	default_hstate_size = size;
+ 	return 1;
+ }
+-- 
+2.24.1
