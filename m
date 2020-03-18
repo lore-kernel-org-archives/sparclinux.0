@@ -1,108 +1,184 @@
-From: Baoquan He <bhe@redhat.com>
-Date: Tue, 31 Mar 2020 14:31:40 +0000
-Subject: Re: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20200331143140.GA2402@MiWiFi-R3L-srv>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 18 Mar 2020 22:06:33 +0000
+Subject: [PATCH 3/4] hugetlbfs: remove hugetlb_add_hstate() warning for existing hstate
+Message-Id: <20200318220634.32100-4-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
- <20200330074246.GA14243@dhcp22.suse.cz>
- <20200330175100.GD30942@linux.ibm.com>
- <20200330182301.GM14243@dhcp22.suse.cz>
- <20200331081423.GE30942@linux.ibm.com>
- <20200331085513.GE30449@dhcp22.suse.cz>
- <20200331140332.GA2129@MiWiFi-R3L-srv>
- <20200331142138.GL30449@dhcp22.suse.cz>
-In-Reply-To: <20200331142138.GL30449@dhcp22.suse.cz>
+References: <20200318220634.32100-1-mike.kravetz@oracle.com>
+In-Reply-To: <20200318220634.32100-1-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Hoan Tran <Hoan@os.amperecomputing.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Albert Ou <aou@eecs.berkeley.edu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Vasily Gorbik <gor@linux.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Longpeng <longpeng2@huawei.com>, Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-On 03/31/20 at 04:21pm, Michal Hocko wrote:
-> On Tue 31-03-20 22:03:32, Baoquan He wrote:
-> > Hi Michal,
-> > 
-> > On 03/31/20 at 10:55am, Michal Hocko wrote:
-> > > On Tue 31-03-20 11:14:23, Mike Rapoport wrote:
-> > > > Maybe I mis-read the code, but I don't see how this could happen. In the
-> > > > HAVE_MEMBLOCK_NODE_MAP=y case, free_area_init_node() calls
-> > > > calculate_node_totalpages() that ensures that node->node_zones are entirely
-> > > > within the node because this is checked in zone_spanned_pages_in_node().
-> > > 
-> > > zone_spanned_pages_in_node does chech the zone boundaries are within the
-> > > node boundaries. But that doesn't really tell anything about other
-> > > potential zones interleaving with the physical memory range.
-> > > zone->spanned_pages simply gives the physical range for the zone
-> > > including holes. Interleaving nodes are essentially a hole
-> > > (__absent_pages_in_range is going to skip those).
-> > > 
-> > > That means that when free_area_init_core simply goes over the whole
-> > > physical zone range including holes and that is why we need to check
-> > > both for physical and logical holes (aka other nodes).
-> > > 
-> > > The life would be so much easier if the whole thing would simply iterate
-> > > over memblocks...
-> > 
-> > The memblock iterating sounds a great idea. I tried with putting the
-> > memblock iterating in the upper layer, memmap_init(), which is used for
-> > boot mem only anyway. Do you think it's doable and OK? It yes, I can
-> > work out a formal patch to make this simpler as you said. The draft code
-> > is as below. Like this it uses the existing code and involves little change.
-> 
-> Doing this would be a step in the right direction! I haven't checked the
-> code very closely though. The below sounds way too simple to be truth I
-> am afraid. First for_each_mem_pfn_range is available only for
-> CONFIG_HAVE_MEMBLOCK_NODE_MAP (which is one of the reasons why I keep
-> saying that I really hate that being conditional). Also I haven't really
-> checked the deferred initialization path - I have a very vague
-> recollection that it has been converted to the memblock api but I have
-> happilly dropped all that memory.
+The routine hugetlb_add_hstate prints a warning if the hstate already
+exists.  This was originally done as part of kernel command line
+parsing.  If 'hugepagesz=' was specified more than once, the warning
+        pr_warn("hugepagesz= specified twice, ignoring\n");
+would be printed.
 
-Thanks for your quick response and pointing out the rest suspect aspects,
-I will investigate what you mentioned, see if they impact.
+Some architectures want to enable all huge page sizes.  They would
+call hugetlb_add_hstate for all supported sizes.  However, this was
+done after command line processing and as a result hstates could have
+already been created for some sizes.  To make sure no warning were
+printed, there would often be code like:
+        if (!size_to_hstate(size)
+                hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT)
 
->  
-> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> > index 138a56c0f48f..558d421f294b 100644
-> > --- a/mm/page_alloc.c
-> > +++ b/mm/page_alloc.c
-> > @@ -6007,14 +6007,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
-> >  		 * function.  They do not exist on hotplugged memory.
-> >  		 */
-> >  		if (context = MEMMAP_EARLY) {
-> > -			if (!early_pfn_valid(pfn)) {
-> > -				pfn = next_pfn(pfn);
-> > -				continue;
-> > -			}
-> > -			if (!early_pfn_in_nid(pfn, nid)) {
-> > -				pfn++;
-> > -				continue;
-> > -			}
-> >  			if (overlap_memmap_init(zone, &pfn))
-> >  				continue;
-> >  			if (defer_init(nid, pfn, end_pfn))
-> > @@ -6130,9 +6122,17 @@ static void __meminit zone_init_free_lists(struct zone *zone)
-> >  }
-> >  
-> >  void __meminit __weak memmap_init(unsigned long size, int nid,
-> > -				  unsigned long zone, unsigned long start_pfn)
-> > +				  unsigned long zone, unsigned long range_start_pfn)
-> >  {
-> > -	memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY, NULL);
-> > +	unsigned long start_pfn, end_pfn;
-> > +	unsigned long range_end_pfn = range_start_pfn + size;
-> > +	int i;
-> > +	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
-> > +		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
-> > +		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
-> > +		if (end_pfn > start_pfn)
-> > +			memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY, NULL);
-> > +	}
-> >  }
-> >  
-> >  static int zone_batchsize(struct zone *zone)
-> 
-> -- 
-> Michal Hocko
-> SUSE Labs
-> 
+The only time we want to print the warning is as the result of command
+line processing.  So, remove the warning from hugetlb_add_hstate and
+add it to the single arch independent routine processing "hugepagesz=".
+After this, calls to size_to_hstate() in arch specific code can be
+removed and hugetlb_add_hstate can be called without worrying about
+warning messages.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ arch/arm64/mm/hugetlbpage.c   | 16 ++++------------
+ arch/powerpc/mm/hugetlbpage.c |  3 +--
+ arch/riscv/mm/hugetlbpage.c   |  2 +-
+ arch/sparc/mm/init_64.c       | 19 ++++---------------
+ arch/x86/mm/hugetlbpage.c     |  2 +-
+ mm/hugetlb.c                  | 10 +++++++---
+ 6 files changed, 18 insertions(+), 34 deletions(-)
+
+diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+index 4aa9534a45d7..050809e6f0a9 100644
+--- a/arch/arm64/mm/hugetlbpage.c
++++ b/arch/arm64/mm/hugetlbpage.c
+@@ -441,22 +441,14 @@ void huge_ptep_clear_flush(struct vm_area_struct *vma,
+ 	clear_flush(vma->vm_mm, addr, ptep, pgsize, ncontig);
+ }
+ 
+-static void __init add_huge_page_size(unsigned long size)
+-{
+-	if (size_to_hstate(size))
+-		return;
+-
+-	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
+-}
+-
+ static int __init hugetlbpage_init(void)
+ {
+ #ifdef CONFIG_ARM64_4K_PAGES
+-	add_huge_page_size(PUD_SIZE);
++	hugetlb_add_hstate(ilog2(PUD_SIZE) - PAGE_SHIFT);
+ #endif
+-	add_huge_page_size(CONT_PMD_SIZE);
+-	add_huge_page_size(PMD_SIZE);
+-	add_huge_page_size(CONT_PTE_SIZE);
++	hugetlb_add_hstate(ilog2(CONT_PMD_SIZE) - PAGE_SHIFT);
++	hugetlb_add_hstate(ilog2(PMD_SIZE) - PAGE_SHIFT);
++	hugetlb_add_hstate(ilog2(CONT_PTE_SIZE) - PAGE_SHIFT);
+ 
+ 	return 0;
+ }
+diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
+index 166960ba1236..f46464ba6fb4 100644
+--- a/arch/powerpc/mm/hugetlbpage.c
++++ b/arch/powerpc/mm/hugetlbpage.c
+@@ -584,8 +584,7 @@ static int __init add_huge_page_size(unsigned long long size)
+ 	if (!arch_hugetlb_valid_size(size))
+ 		return -EINVAL;
+ 
+-	if (!size_to_hstate(size))
+-		hugetlb_add_hstate(shift - PAGE_SHIFT);
++	hugetlb_add_hstate(shift - PAGE_SHIFT);
+ 	return 0;
+ }
+ 
+diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
+index bdf89d7eb714..beaa91941db8 100644
+--- a/arch/riscv/mm/hugetlbpage.c
++++ b/arch/riscv/mm/hugetlbpage.c
+@@ -26,7 +26,7 @@ bool __init arch_hugetlb_valid_size(unsigned long long size)
+ static __init int gigantic_pages_init(void)
+ {
+ 	/* With CONTIG_ALLOC, we can allocate gigantic pages at runtime */
+-	if (IS_ENABLED(CONFIG_64BIT) && !size_to_hstate(1UL << PUD_SHIFT))
++	if (IS_ENABLED(CONFIG_64BIT))
+ 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+ 	return 0;
+ }
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 5c29203fd460..8f619edc8f8c 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -325,23 +325,12 @@ static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_inde
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+-static void __init add_huge_page_size(unsigned long size)
+-{
+-	unsigned int order;
+-
+-	if (size_to_hstate(size))
+-		return;
+-
+-	order = ilog2(size) - PAGE_SHIFT;
+-	hugetlb_add_hstate(order);
+-}
+-
+ static int __init hugetlbpage_init(void)
+ {
+-	add_huge_page_size(1UL << HPAGE_64K_SHIFT);
+-	add_huge_page_size(1UL << HPAGE_SHIFT);
+-	add_huge_page_size(1UL << HPAGE_256MB_SHIFT);
+-	add_huge_page_size(1UL << HPAGE_2GB_SHIFT);
++	hugetlb_add_hstate(HPAGE_64K_SHIFT - PAGE_SHIFT);
++	hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
++	hugetlb_add_hstate(HPAGE_256MB_SHIFT - PAGE_SHIFT);
++	hugetlb_add_hstate(HPAGE_2GB_SHIFT - PAGE_SHIFT);
+ 
+ 	return 0;
+ }
+diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
+index dd3ed09f6c23..8a3f586e1217 100644
+--- a/arch/x86/mm/hugetlbpage.c
++++ b/arch/x86/mm/hugetlbpage.c
+@@ -195,7 +195,7 @@ bool __init arch_hugetlb_valid_size(unsigned long long size)
+ static __init int gigantic_pages_init(void)
+ {
+ 	/* With compaction or CMA we can allocate gigantic pages at runtime */
+-	if (boot_cpu_has(X86_FEATURE_GBPAGES) && !size_to_hstate(1UL << PUD_SHIFT))
++	if (boot_cpu_has(X86_FEATURE_GBPAGES))
+ 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+ 	return 0;
+ }
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index cd4ec07080fb..cc85b4f156ca 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -3116,8 +3116,7 @@ static int __init hugetlb_init(void)
+ 		}
+ 
+ 		default_hstate_size = HPAGE_SIZE;
+-		if (!size_to_hstate(default_hstate_size))
+-			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
++		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
+ 	}
+ 	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
+ 	if (default_hstate_max_huge_pages) {
+@@ -3155,7 +3154,6 @@ void __init hugetlb_add_hstate(unsigned int order)
+ 	unsigned long i;
+ 
+ 	if (size_to_hstate(PAGE_SIZE << order)) {
+-		pr_warn("hugepagesz= specified twice, ignoring\n");
+ 		return;
+ 	}
+ 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
+@@ -3231,6 +3229,12 @@ static int __init hugepagesz_setup(char *s)
+ 		return 0;
+ 	}
+ 
++	if (size_to_hstate(size)) {
++		pr_warn("HugeTLB: hugepagesz %s specified twice, ignoring\n",
++			saved_s);
++		return 0;
++	}
++
+ 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
+ 	return 1;
+ }
+-- 
+2.24.1
