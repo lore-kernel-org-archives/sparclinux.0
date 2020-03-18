@@ -1,78 +1,55 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Tue, 03 Mar 2020 13:46:47 +0000
-Subject: Re: [PATCH] kbuild: use KBUILD_DEFCONFIG as the fallback for DEFCONFIG_LIST
-Message-Id: <CAK7LNATyuyU46qXngDr80d51cs0-J=00jkgL1rdASUMfgmfKOw@mail.gmail.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 18 Mar 2020 22:06:30 +0000
+Subject: [PATCH 0/4] Clean up hugetlb boot command line processing
+Message-Id: <20200318220634.32100-1-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200228034640.25247-1-masahiroy@kernel.org> <CAK7LNAS9uWyvFeVkxtbkuBrnqumYzzLfcsUrVByHHyons4m8hA@mail.gmail.com>
-In-Reply-To: <CAK7LNAS9uWyvFeVkxtbkuBrnqumYzzLfcsUrVByHHyons4m8hA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, X86 ML <x86@kernel.org>, linux-um@lists.infradead.org, sparclinux <sparclinux@vger.kernel.org>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Albert Ou <aou@eecs.berkeley.edu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Vasily Gorbik <gor@linux.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Longpeng <longpeng2@huawei.com>, Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-On Fri, Feb 28, 2020 at 12:48 PM Masahiro Yamada <masahiroy@kernel.org> wrote:
->
-> On Fri, Feb 28, 2020 at 12:47 PM Masahiro Yamada <masahiroy@kernel.org> wrote:
-> >
-> > Most of the Kconfig commands (except defconfig and all*config) read
-> > the .config file as a base set of CONFIG options.
-> >
-> > When it does not exist, the files in DEFCONFIG_LIST are searched in
-> > this order and loaded if found.
-> >
-> > I do not see much sense in the last two lines in DEFCONFIG_LIST.
-> >
-> > [1] ARCH_DEFCONFIG
-> >
-> > The entry for DEFCONFIG_LIST is guarded by 'depends on !UML'. So, the
-> > ARCH_DEFCONFIG definition in arch/x86/um/Kconfig is meaningless.
-> >
-> > arch/{sh,sparc,x86}/Kconfig define ARCH_DEFCONFIG depending on 32 or
-> > 64 bit variant symbols. This is a little bit strange; ARCH_DEFCONFIG
-> > should be a fixed string because the base config file is loaded before
-> > the symbol evaluation stage.
-> >
-> > Using KBUILD_DEFCONFIG makes more sense because it is fixed before
-> > Kconfig is invoked. Fortunately, arch/{sh,sparc,x86}/Makefile define it
-> > in the same way, and it works as expected. Hence, replace ARCH_DEFCONFIG
-> > with "arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)".
-> >
-> > [2] arch/$(ARCH)/defconfig
-> >
-> > This file path is no longer valid. The defconfig files are always located
-> > in the arch configs/ directories.
-> >
-> >   $ find arch -name defconfig | sort
-> >   arch/alpha/configs/defconfig
-> >   arch/arm64/configs/defconfig
-> >   arch/csky/configs/defconfig
-> >   arch/nds32/configs/defconfig
-> >   arch/riscv/configs/defconfig
-> >   arch/s390/configs/defconfig
-> >   arch/unicore32/configs/defconfig
-> >
-> > The path arch/*/configs/defconfig is already covered by
-> > "arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG)". So, this file path is
-> > not necessary.
-> >
-> > I moved the default KBUILD_DEFCONFIG to the top Makefile. Otherwise,
-> > the 7 architectures listed above would end up with endless loop of
-> > syncconfig.
-> >
-> > Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
->
->
-> I forgot to say this.
-> This is v2.
->
-> Changes in v2:
->   - Move KBUILD_DEFCONFIG to fix endless loop of syncconfig
->
->
+Longpeng(Mike) reported a weird message from hugetlb command line processing
+and proposed a solution [1].  While the proposed patch does address the
+specific issue, there are other related issues in command line processing.
+As hugetlbfs evolved, updates to command line processing have been made to
+meet immediate needs and not necessarily in a coordinated manner.  The result
+is that some processing is done in arch specific code, some is done in arch
+independent code and coordination is problematic.  Semantics can vary between
+architectures.
 
-Applied to linux-kbuild.
+The following patch series does the following:
+- Define arch specific arch_hugetlb_valid_size routine used to validate
+  passed huge page sizes.
+- Move hugepagesz= command line parsing out of arch specific code and into
+  an arch independent routine.
+- Clean up command line processing to follow desired semantics and
+  document those semantics.
 
+[1] https://lore.kernel.org/linux-mm/20200305033014.1152-1-longpeng2@huawei.com
 
-Best Regards
-Masahiro Yamada
+Mike Kravetz (4):
+  hugetlbfs: add arch_hugetlb_valid_size
+  hugetlbfs: move hugepagesz= parsing to arch independent code
+  hugetlbfs: remove hugetlb_add_hstate() warning for existing hstate
+  hugetlbfs: clean up command line processing
+
+ Documentation/admin-guide/mm/hugetlbpage.rst |  26 ++++
+ arch/arm64/include/asm/hugetlb.h             |   2 +
+ arch/arm64/mm/hugetlbpage.c                  |  30 ++---
+ arch/powerpc/include/asm/hugetlb.h           |   3 +
+ arch/powerpc/mm/hugetlbpage.c                |  30 ++---
+ arch/riscv/include/asm/hugetlb.h             |   3 +
+ arch/riscv/mm/hugetlbpage.c                  |  24 ++--
+ arch/s390/include/asm/hugetlb.h              |   3 +
+ arch/s390/mm/hugetlbpage.c                   |  24 ++--
+ arch/sparc/include/asm/hugetlb.h             |   3 +
+ arch/sparc/mm/init_64.c                      |  42 ++-----
+ arch/x86/include/asm/hugetlb.h               |   3 +
+ arch/x86/mm/hugetlbpage.c                    |  23 ++--
+ include/linux/hugetlb.h                      |   8 +-
+ mm/hugetlb.c                                 | 126 ++++++++++++++-----
+ 15 files changed, 198 insertions(+), 152 deletions(-)
+
+-- 
+2.24.1
