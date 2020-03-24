@@ -1,43 +1,142 @@
-From: Hoan Tran <Hoan@os.amperecomputing.com>
-Date: Sat, 28 Mar 2020 18:31:21 +0000
-Subject: [PATCH v3 4/5] sparc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
-Message-Id: <1585420282-25630-5-git-send-email-Hoan@os.amperecomputing.com>
+From: Will Deacon <will@kernel.org>
+Date: Tue, 24 Mar 2020 10:40:04 +0000
+Subject: [PATCH 3/4] sparc32: mm: Change pgtable_t type to pte_t * instead of struct page *
+Message-Id: <20200324104005.11279-4-will@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
+References: <20200324104005.11279-1-will@kernel.org>
+In-Reply-To: <20200324104005.11279-1-will@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: kernel-team@android.com, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, sparclinux@vger.kernel.org
 
-Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled
-by default with NUMA.
+Change the 'pgtable_t' type for sparc32 so that it represents the uncached
+virtual address of the PTE table, rather than the underlying 'struct page'.
 
-Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+This allows us to free page table allocations smaller than a page.
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Will Deacon <will@kernel.org>
 ---
- arch/sparc/Kconfig | 9 ---------
- 1 file changed, 9 deletions(-)
+ arch/sparc/include/asm/page_32.h    |  2 +-
+ arch/sparc/include/asm/pgalloc_32.h |  6 +++---
+ arch/sparc/include/asm/pgtable_32.h | 11 +++++++++++
+ arch/sparc/mm/srmmu.c               | 29 +++++++++--------------------
+ 4 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index eb24cb1..6fc615e 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -292,15 +292,6 @@ config NODES_SHIFT
- 	  Specify the maximum number of NUMA Nodes available on the target
- 	  system.  Increases memory reserved to accommodate various tables.
+diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+index e76e6c006e10..721fa99abc73 100644
+--- a/arch/sparc/include/asm/page_32.h
++++ b/arch/sparc/include/asm/page_32.h
+@@ -106,7 +106,7 @@ typedef unsigned long iopgprot_t;
  
--# Some NUMA nodes have memory ranges that span
--# other nodes.  Even though a pfn is valid and
--# between a node's start and end pfns, it may not
--# reside on that node.  See memmap_init_zone()
--# for details.
--config NODES_SPAN_OTHER_NODES
--	def_bool y
--	depends on NEED_MULTIPLE_NODES
+ #endif
+ 
+-typedef struct page *pgtable_t;
++typedef pte_t *pgtable_t;
+ 
+ #define TASK_UNMAPPED_BASE	0x50000000
+ 
+diff --git a/arch/sparc/include/asm/pgalloc_32.h b/arch/sparc/include/asm/pgalloc_32.h
+index 99c032424946..b772384871e9 100644
+--- a/arch/sparc/include/asm/pgalloc_32.h
++++ b/arch/sparc/include/asm/pgalloc_32.h
+@@ -50,11 +50,11 @@ static inline void free_pmd_fast(pmd_t * pmd)
+ #define pmd_free(mm, pmd)		free_pmd_fast(pmd)
+ #define __pmd_free_tlb(tlb, pmd, addr)	pmd_free((tlb)->mm, pmd)
+ 
+-void pmd_populate(struct mm_struct *mm, pmd_t *pmdp, struct page *ptep);
+-#define pmd_pgtable(pmd) pmd_page(pmd)
++#define pmd_populate(mm, pmd, pte)	pmd_set(pmd, pte)
++#define pmd_pgtable(pmd)		(pgtable_t)__pmd_page(pmd)
+ 
+ void pmd_set(pmd_t *pmdp, pte_t *ptep);
+-#define pmd_populate_kernel(MM, PMD, PTE) pmd_set(PMD, PTE)
++#define pmd_populate_kernel		pmd_populate
+ 
+ pgtable_t pte_alloc_one(struct mm_struct *mm);
+ 
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 785dc9a95e70..03f4b84dc8fd 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -135,6 +135,17 @@ static inline struct page *pmd_page(pmd_t pmd)
+ 	return pfn_to_page((pmd_val(pmd) & SRMMU_PTD_PMASK) >> (PAGE_SHIFT-4));
+ }
+ 
++static inline unsigned long __pmd_page(pmd_t pmd)
++{
++	unsigned long v;
++
++	if (srmmu_device_memory(pmd_val(pmd)))
++		BUG();
++
++	v = pmd_val(pmd) & SRMMU_PTD_PMASK;
++	return (unsigned long)__nocache_va(v << 4);
++}
++
+ static inline unsigned long pud_page_vaddr(pud_t pud)
+ {
+ 	if (srmmu_device_memory(pud_val(pud))) {
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 7fa096422bd0..dfd883b53054 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -140,12 +140,6 @@ void pmd_set(pmd_t *pmdp, pte_t *ptep)
+ 	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
+ }
+ 
+-void pmd_populate(struct mm_struct *mm, pmd_t *pmdp, struct page *ptep)
+-{
+-	unsigned long ptp = page_to_pfn(ptep) << (PAGE_SHIFT-4); /* watch for overflow */
+-	set_pte((pte_t *)&pmd_val(*pmdp), __pte(SRMMU_ET_PTD | ptp));
+-}
 -
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y if SPARC64
- 	select SPARSEMEM_VMEMMAP_ENABLE
+ /* Find an entry in the third-level page table.. */
+ pte_t *pte_offset_kernel(pmd_t *dir, unsigned long address)
+ {
+@@ -364,31 +358,26 @@ pgd_t *get_pgd_fast(void)
+  */
+ pgtable_t pte_alloc_one(struct mm_struct *mm)
+ {
+-	unsigned long pte;
++	pte_t *ptep;
+ 	struct page *page;
+ 
+-	if ((pte = (unsigned long)pte_alloc_one_kernel(mm)) = 0)
++	if ((ptep = pte_alloc_one_kernel(mm)) = 0)
+ 		return NULL;
+-	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
++	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
+ 	if (!pgtable_pte_page_ctor(page)) {
+ 		__free_page(page);
+ 		return NULL;
+ 	}
+-	return page;
++	return ptep;
+ }
+ 
+-void pte_free(struct mm_struct *mm, pgtable_t pte)
++void pte_free(struct mm_struct *mm, pgtable_t ptep)
+ {
+-	unsigned long p;
+-
+-	pgtable_pte_page_dtor(pte);
+-	p = (unsigned long)page_address(pte);	/* Cached address (for test) */
+-	if (p = 0)
+-		BUG();
+-	p = page_to_pfn(pte) << PAGE_SHIFT;	/* Physical address */
++	struct page *page;
+ 
+-	/* free non cached virtual address*/
+-	srmmu_free_nocache(__nocache_va(p), SRMMU_PTE_TABLE_SIZE);
++	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
++	pgtable_pte_page_dtor(page);
++	srmmu_free_nocache(ptep, SRMMU_PTE_TABLE_SIZE);
+ }
+ 
+ /* context handling - a dynamically sized pool is used */
 -- 
-1.8.3.1
+2.20.1
