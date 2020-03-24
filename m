@@ -1,42 +1,41 @@
-From: Hoan Tran <Hoan@os.amperecomputing.com>
-Date: Sat, 28 Mar 2020 18:31:22 +0000
-Subject: [PATCH v3 5/5] s390: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
-Message-Id: <1585420282-25630-6-git-send-email-Hoan@os.amperecomputing.com>
+From: Will Deacon <will@kernel.org>
+Date: Tue, 24 Mar 2020 10:40:05 +0000
+Subject: [PATCH 4/4] sparc32: mm: Reduce allocation size for PMD and PTE tables
+Message-Id: <20200324104005.11279-5-will@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
+References: <20200324104005.11279-1-will@kernel.org>
+In-Reply-To: <20200324104005.11279-1-will@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: kernel-team@android.com, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, sparclinux@vger.kernel.org
 
-Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled
-by default with NUMA.
+Now that the page table allocator can free page table allocations
+smaller than PAGE_SIZE, reduce the size of the PMD and PTE allocations
+to avoid needlessly wasting memory.
 
-Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Will Deacon <will@kernel.org>
 ---
- arch/s390/Kconfig | 8 --------
- 1 file changed, 8 deletions(-)
+ arch/sparc/include/asm/pgtsrmmu.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index bc88841..d86066e 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -449,14 +449,6 @@ config NR_CPUS
- config HOTPLUG_CPU
- 	def_bool y
+diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
+index 58ea8e8c6ee7..7708d015712b 100644
+--- a/arch/sparc/include/asm/pgtsrmmu.h
++++ b/arch/sparc/include/asm/pgtsrmmu.h
+@@ -17,8 +17,8 @@
+ /* Number of contexts is implementation-dependent; 64k is the most we support */
+ #define SRMMU_MAX_CONTEXTS	65536
  
--# Some NUMA nodes have memory ranges that span
--# other nodes.	Even though a pfn is valid and
--# between a node's start and end pfns, it may not
--# reside on that node.	See memmap_init_zone()
--# for details. <- They meant memory holes!
--config NODES_SPAN_OTHER_NODES
--	def_bool NUMA
--
- config NUMA
- 	bool "NUMA support"
- 	depends on SCHED_TOPOLOGY
+-#define SRMMU_PTE_TABLE_SIZE		(PAGE_SIZE)
+-#define SRMMU_PMD_TABLE_SIZE		(PAGE_SIZE)
++#define SRMMU_PTE_TABLE_SIZE		(PTRS_PER_PTE*4)
++#define SRMMU_PMD_TABLE_SIZE		(PTRS_PER_PMD*4)
+ #define SRMMU_PGD_TABLE_SIZE		(PTRS_PER_PGD*4)
+ 
+ /* Definition of the values in the ET field of PTD's and PTE's */
 -- 
-1.8.3.1
+2.20.1
