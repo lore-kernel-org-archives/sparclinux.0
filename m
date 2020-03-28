@@ -1,40 +1,57 @@
-From: Dave Hansen <dave.hansen@intel.com>
-Date: Thu, 26 Mar 2020 23:10:56 +0000
-Subject: Re: [PATCH 1/4] hugetlbfs: add arch_hugetlb_valid_size
-Message-Id: <ae80063f-cef8-3141-3c6b-9130def5396a@intel.com>
+From: Hoan Tran <Hoan@os.amperecomputing.com>
+Date: Sat, 28 Mar 2020 18:31:17 +0000
+Subject: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200318220634.32100-1-mike.kravetz@oracle.com>
- <20200318220634.32100-2-mike.kravetz@oracle.com>
- <831a0773-1ba6-4d72-44b9-7472123b8528@intel.com>
- <5aceea6a-8dc0-a44b-80c6-94511b5c75ca@oracle.com>
- <1c8b16c7-248e-b75f-96c6-eabc953c5066@intel.com>
- <530e6e11-ad1a-55bc-e61e-9da6eb7fea21@oracle.com>
-In-Reply-To: <530e6e11-ad1a-55bc-e61e-9da6eb7fea21@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Kravetz <mike.kravetz@oracle.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: Albert Ou <aou@eecs.berkeley.edu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Vasily Gorbik <gor@linux.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "Shutemov,
- Kirill" <kirill.shutemov@intel.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Longpeng <longpeng2@huawei.com>, Will Deacon <will@kernel.org>, "David S.Miller" <davem@davemloft.net>
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On 3/26/20 2:56 PM, Mike Kravetz wrote:
-> Perhaps it would be best to check hugepages_supported() when parsing
-> hugetlb command line options.  If not enabled, throw an error.  This
-> will be much easier to do after moving all command line parsing to
-> arch independent code.
+In NUMA layout which nodes have memory ranges that span across other nodes,
+the mm driver can detect the memory node id incorrectly.
 
-Yeah, that sounds sane.
+For example, with layout below
+Node 0 address: 0000 xxxx 0000 xxxx
+Node 1 address: xxxx 1111 xxxx 1111
 
-> Is that a sufficient way to address this concern?  I think it is a good
-> change in any case.
+Note:
+ - Memory from low to high
+ - 0/1: Node id
+ - x: Invalid memory of a node
 
-(Thanks to Kirill for pointing this out.)
+When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
+config, mm only checks the memory validity but not the node id.
+Because of that, Node 1 also detects the memory from node 0 as below
+when it scans from the start address to the end address of node 1.
 
-So, it turns out the x86 huge page enumeration is totally buggered.
-X86_FEATURE_PSE is actually meaningless on 64-bit (and 32-bit PAE).  All
-CPUs architecturally support 2MB pages regardless of X86_FEATURE_PSE and
-the state of CR4.PSE.
+Node 0 address: 0000 xxxx xxxx xxxx
+Node 1 address: xxxx 1111 1111 1111
 
-So, on x86_64 at least, hugepages_supported() should *always* return 1.
+This layout could occur on any architecture. Most of them enables
+this config by default with CONFIG_NUMA. This patch, by default, enables
+CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
 
-1GB page support can continue to be dependent on X86_FEATURE_GBPAGES.
+v3:
+ * Revise the patch description
+
+V2:
+ * Revise the patch description
+
+Hoan Tran (5):
+  mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+  powerpc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  x86: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  sparc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+  s390: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+
+ arch/powerpc/Kconfig | 9 ---------
+ arch/s390/Kconfig    | 8 --------
+ arch/sparc/Kconfig   | 9 ---------
+ arch/x86/Kconfig     | 9 ---------
+ mm/page_alloc.c      | 2 +-
+ 5 files changed, 1 insertion(+), 36 deletions(-)
+
+-- 
+1.8.3.1
