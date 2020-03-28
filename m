@@ -1,135 +1,57 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Mon, 02 Mar 2020 06:59:43 +0000
-Subject: [RFC 0/3] mm/vma: some new flags and helpers
-Message-Id: <1583131666-15531-1-git-send-email-anshuman.khandual@arm.com>
+From: Hoan Tran <Hoan@os.amperecomputing.com>
+Date: Sat, 28 Mar 2020 18:31:18 +0000
+Subject: [PATCH v3 1/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <1585420282-25630-2-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
+In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: uclinux-h8-devel@lists.sourceforge.jp, linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-parisc@vger.kernel.org, Anshuman Khandual <anshuman.khandual@arm.com>, linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, nios2-dev@lists.rocketboards.org, linux-riscv@lists.infradead.org, linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-The motivation here is to consolidate VMA flag combinations commonly used
-across platforms and reduce code duplication while making it uncluttered
-in general.
+In NUMA layout which nodes have memory ranges that span across other nodes,
+the mm driver can detect the memory node id incorrectly.
 
-This first introduces a default VM_DATA_DEFAULT_FLAGS which platforms can
-easily fall back on without requiring to define any similar data flag
-combinations as they currently do. This also adds some more common data
-flag combinations which are generally used when the platforms decide to
-override the default.
+For example, with layout below
+Node 0 address: 0000 xxxx 0000 xxxx
+Node 1 address: xxxx 1111 xxxx 1111
 
-The second patch consolidates VM_READ, VM_WRITE, VM_EXEC as VM_ACCESS_FLAGS
-extending the existing VMA accessibility concept via vma_is_accessibility().
-VM_ACCESS_FLAGS replaces many other instances which used check all three
-VMA access flags simultaneously.
+Note:
+ - Memory from low to high
+ - 0/1: Node id
+ - x: Invalid memory of a node
 
-While here, this also adds some more special VMA flag based helpers which
-wraps around similar checks at various places thus improving readability.
-This series intentionally limits these new helpers which are applicable 
-only for special purpose VM flags than the more common ones like VM_READ,
-VM_WRITE, VM_EXEC, VM_SHARED etc just to limit code churn. But if there is
-common agreement that every flag should have it's own wrapper here, we can
-do that as well. Otherwise if this patch seems really unnecessary with much
-code churn, will be happy to drop it.
+When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
+config, mm only checks the memory validity but not the node id.
+Because of that, Node 1 also detects the memory from node 0 as below
+when it scans from the start address to the end address of node 1.
 
-Reviews, comments, suggestions and concerns welcome. Thank you.
+Node 0 address: 0000 xxxx xxxx xxxx
+Node 1 address: xxxx 1111 1111 1111
 
-This series is based on v5.6-r4 after applying these patches.
+This layout could occur on any architecture. Most of them enables
+this config by default with CONFIG_NUMA. This patch, by default, enables
+CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
 
-1. https://patchwork.kernel.org/cover/11399319/
-2. https://patchwork.kernel.org/patch/11399379/
+Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+---
+ mm/page_alloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-This series is build tested across multiple architectures but boot tested
-only on arm64 and x86 platforms.
-
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-c6x-dev@linux-c6x.org
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: nios2-dev@lists.rocketboards.org
-Cc: openrisc@lists.librecores.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-um@lists.infradead.org
-Cc: linux-xtensa@linux-xtensa.org
-Cc: linux-mm@kvack.org
-
-Anshuman Khandual (3):
-  mm/vma: Define a default value for VM_DATA_DEFAULT_FLAGS
-  mm/vma: Introduce VM_ACCESS_FLAGS
-  mm/vma: Introduce some more VMA flag wrappers
-
- arch/alpha/include/asm/page.h        |  3 --
- arch/arc/include/asm/page.h          |  2 +-
- arch/arm/include/asm/page.h          |  4 +-
- arch/arm/mm/fault.c                  |  2 +-
- arch/arm64/include/asm/page.h        |  4 +-
- arch/arm64/mm/fault.c                |  2 +-
- arch/c6x/include/asm/page.h          |  5 +--
- arch/c6x/include/asm/processor.h     |  2 +-
- arch/csky/include/asm/page.h         |  3 --
- arch/h8300/include/asm/page.h        |  2 -
- arch/hexagon/include/asm/page.h      |  3 +-
- arch/ia64/include/asm/page.h         |  5 +--
- arch/m68k/include/asm/page.h         |  3 --
- arch/microblaze/include/asm/page.h   |  2 -
- arch/mips/include/asm/page.h         |  5 +--
- arch/nds32/include/asm/page.h        |  3 --
- arch/nds32/mm/fault.c                |  2 +-
- arch/nios2/include/asm/page.h        |  3 +-
- arch/nios2/include/asm/processor.h   |  2 +-
- arch/openrisc/include/asm/page.h     |  5 ---
- arch/parisc/include/asm/page.h       |  3 --
- arch/powerpc/include/asm/page.h      |  9 +----
- arch/powerpc/include/asm/page_64.h   |  7 +---
- arch/powerpc/mm/book3s64/pkeys.c     |  2 +-
- arch/riscv/include/asm/page.h        |  3 +-
- arch/s390/include/asm/page.h         |  3 +-
- arch/s390/mm/fault.c                 |  2 +-
- arch/sh/include/asm/page.h           |  3 --
- arch/sh/include/asm/processor_64.h   |  2 +-
- arch/sparc/include/asm/mman.h        |  2 +-
- arch/sparc/include/asm/page_32.h     |  3 --
- arch/sparc/include/asm/page_64.h     |  3 --
- arch/unicore32/include/asm/page.h    |  3 --
- arch/unicore32/mm/fault.c            |  2 +-
- arch/x86/include/asm/page_types.h    |  4 +-
- arch/x86/mm/pkeys.c                  |  2 +-
- arch/x86/um/asm/vm-flags.h           | 10 +----
- arch/xtensa/include/asm/page.h       |  3 --
- drivers/staging/gasket/gasket_core.c |  2 +-
- fs/binfmt_elf.c                      |  2 +-
- fs/proc/task_mmu.c                   | 14 +++----
- include/linux/huge_mm.h              |  4 +-
- include/linux/mm.h                   | 58 +++++++++++++++++++++++++++-
- kernel/events/core.c                 |  2 +-
- kernel/events/uprobes.c              |  2 +-
- mm/gup.c                             |  2 +-
- mm/huge_memory.c                     |  6 +--
- mm/hugetlb.c                         |  4 +-
- mm/ksm.c                             |  8 ++--
- mm/madvise.c                         |  4 +-
- mm/memory.c                          |  4 +-
- mm/migrate.c                         |  4 +-
- mm/mlock.c                           |  4 +-
- mm/mmap.c                            | 20 +++++-----
- mm/mprotect.c                        |  9 ++---
- mm/mremap.c                          |  4 +-
- mm/msync.c                           |  3 +-
- mm/rmap.c                            |  6 +--
- mm/shmem.c                           |  8 ++--
- 59 files changed, 140 insertions(+), 158 deletions(-)
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index d047bf7..948c1c9 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1467,7 +1467,7 @@ int __meminit early_pfn_to_nid(unsigned long pfn)
+ }
+ #endif
+ 
+-#ifdef CONFIG_NODES_SPAN_OTHER_NODES
++#ifdef CONFIG_NUMA
+ /* Only safe to use early in boot when initialisation is single-threaded */
+ static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
+ {
 -- 
-2.20.1
+1.8.3.1
