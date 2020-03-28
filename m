@@ -1,22 +1,43 @@
-From: DR CHALLY NOAH <mayorabrahamedge404@gmail.com>
-Date: Tue, 03 Mar 2020 18:07:56 +0000
-Subject: Hello Dear
-Message-Id: <CALqVJWfs6c5u8GPtq5eVSK-ajudUdj5-F=fEyHY1UeBaPk8vjg@mail.gmail.com>
+From: Hoan Tran <Hoan@os.amperecomputing.com>
+Date: Sat, 28 Mar 2020 18:31:19 +0000
+Subject: [PATCH v3 2/5] powerpc: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
+Message-Id: <1585420282-25630-3-git-send-email-Hoan@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
+In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-Hello Dear,
-What Have Kept You Waiting To Claim Your $600,000.00 USD Compensation Award?
-This said fund was issued out by the UNITED NATIONS To compensate
-you.Please If You Have Not Claim Your Fund (Award),Kindly contact me
-at   DR.CHALLYNOAH@GMAIL.COM   for further details on how to proceed your
-fund (award)release to you or better still reply back Immediately You
-Receive This Information For An Urgent Confirmation And Release Of Your
-Fund To You Without Delays, as your email was listed among those to be
-compensated this year.Congratulations..
-Best Regards,
-Dr Chally Noah.
-Minister Of Finance On Foreign Remittance:
+Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled by
+default with NUMA.
+
+Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
+---
+ arch/powerpc/Kconfig | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index e2a4121..4af2699 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -686,15 +686,6 @@ config ARCH_MEMORY_PROBE
+ 	def_bool y
+ 	depends on MEMORY_HOTPLUG
+ 
+-# Some NUMA nodes have memory ranges that span
+-# other nodes.  Even though a pfn is valid and
+-# between a node's start and end pfns, it may not
+-# reside on that node.  See memmap_init_zone()
+-# for details.
+-config NODES_SPAN_OTHER_NODES
+-	def_bool y
+-	depends on NEED_MULTIPLE_NODES
+-
+ config STDBINUTILS
+ 	bool "Using standard binutils settings"
+ 	depends on 44x
+-- 
+1.8.3.1
