@@ -1,13 +1,17 @@
-From: Peter Wong <sport08@dsns.gov.ua>
-Date: Sun, 01 Mar 2020 20:18:03 +0000
-Subject: Hello
-Message-Id: <1920470452.3698275.1583093883518.JavaMail.zimbra@dsns.gov.ua>
+From: Abd-Jaafari Maddah <sensekxb@gmail.com>
+Date: Sun, 29 Mar 2020 13:23:12 +0000
+Subject: Are You There?
+Message-Id: <CAHLcUS9CohSsMDdd5vVNi_FNVnD7r25o2_DSKP-g_AtQAAHZWw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-
-
-Can we talk now?
+-- 
+Dear,
+I had sent you a mail but i don't think you received it that's why am
+writing you again.It is important you get back to me as soon as you
+can.
+Am waiting,
+Abd-jaafari Maddah
