@@ -1,7 +1,7 @@
-From: Baoquan He <bhe@redhat.com>
-Date: Sun, 29 Mar 2020 00:19:24 +0000
+From: Michal Hocko <mhocko@kernel.org>
+Date: Mon, 30 Mar 2020 07:42:46 +0000
 Subject: Re: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20200329001924.GS3039@MiWiFi-R3L-srv>
+Message-Id: <20200330074246.GA14243@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
@@ -9,21 +9,15 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Hoan Tran <Hoan@os.amperecomputing.com>
-Cc: mmorana@amperecomputing.com, Michal Hocko <mhocko@suse.com>, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On 03/28/20 at 11:31am, Hoan Tran wrote:
+On Sat 28-03-20 11:31:17, Hoan Tran wrote:
 > In NUMA layout which nodes have memory ranges that span across other nodes,
 > the mm driver can detect the memory node id incorrectly.
 > 
 > For example, with layout below
 > Node 0 address: 0000 xxxx 0000 xxxx
 > Node 1 address: xxxx 1111 xxxx 1111
-
-Sorry, I read this example several times, but still don't get what it
-means. Can it be given with real hex number address as an exmaple? I
-mean just using the memory layout you have seen from some systems. The
-change looks interesting though.
-
 > 
 > Note:
 >  - Memory from low to high
@@ -41,7 +35,22 @@ change looks interesting though.
 > This layout could occur on any architecture. Most of them enables
 > this config by default with CONFIG_NUMA. This patch, by default, enables
 > CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
-> 
+
+I am not opposed to this at all. It reduces the config space and that is
+a good thing on its own. The history has shown that meory layout might
+be really wild wrt NUMA. The config is only used for early_pfn_in_nid
+which is clearly an overkill.
+
+Your description doesn't really explain why this is safe though. The
+history of this config is somehow messy, though. Mike has tried
+to remove it a94b3ab7eab4 ("[PATCH] mm: remove arch independent
+NODES_SPAN_OTHER_NODES") just to be reintroduced by 7516795739bd
+("[PATCH] Reintroduce NODES_SPAN_OTHER_NODES for powerpc") without any
+reasoning what so ever. This doesn't make it really easy see whether
+reasons for reintroduction are still there. Maybe there are some subtle
+dependencies. I do not see any TBH but that might be burried deep in an
+arch specific code.
+
 > v3:
 >  * Revise the patch description
 > 
@@ -65,4 +74,7 @@ change looks interesting though.
 > -- 
 > 1.8.3.1
 > 
-> 
+
+-- 
+Michal Hocko
+SUSE Labs
