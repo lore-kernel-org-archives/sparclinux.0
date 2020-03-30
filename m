@@ -1,47 +1,21 @@
-From: Hoan Tran <Hoan@os.amperecomputing.com>
-Date: Sat, 28 Mar 2020 18:31:20 +0000
-Subject: [PATCH v3 3/5] x86: Kconfig: Remove CONFIG_NODES_SPAN_OTHER_NODES
-Message-Id: <1585420282-25630-4-git-send-email-Hoan@os.amperecomputing.com>
+From: Julian Smith <juliansmith2015@mail.ru>
+Date: Mon, 30 Mar 2020 02:52:31 +0000
+Subject: Request for catalog and price list
+Message-Id: <20200330025231.B4C05F7CE5@mail.richermoren.tk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
-In-Reply-To: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Mike Rapoport <rppt@linux.ibm.com>, Alexander Duyck <alexander.h.duyck@linux.intel.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "David S. Miller" <davem@davemloft.net>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: linux-s390@vger.kernel.org, lho@amperecomputing.com, mmorana@amperecomputing.com, x86@kernel.org, linux-kernel@vger.kernel.org, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Hoan Tran <Hoan@os.amperecomputing.com>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: sparclinux@vger.kernel.org
 
-Remove CONFIG_NODES_SPAN_OTHER_NODES as it's enabled
-by default. It is now enabled for x86(32 bit) configurations
-and do not depend on X64_64_ACPI_NUMA config.
-Because of that, on NUMA enabled system, early_pfn_in_nid() 
-function is called by memmap_init_zone() during boot-time.
-It doesn't affect the performance at run-time.
+Hello friend,
 
-Signed-off-by: Hoan Tran <Hoan@os.amperecomputing.com>
----
- arch/x86/Kconfig | 9 ---------
- 1 file changed, 9 deletions(-)
+This is Julian Smith and i am purchasing manager from Sinara Group Co.,LTD in Russia.
+We are glad to know about your company from the web and we are interested in your products.
+Could you kindly send us your Latest catalog and price list for our trial order.
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 5e89499..a938738 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -1581,15 +1581,6 @@ config X86_64_ACPI_NUMA
- 	---help---
- 	  Enable ACPI SRAT based node topology detection.
- 
--# Some NUMA nodes have memory ranges that span
--# other nodes.  Even though a pfn is valid and
--# between a node's start and end pfns, it may not
--# reside on that node.  See memmap_init_zone()
--# for details.
--config NODES_SPAN_OTHER_NODES
--	def_bool y
--	depends on X86_64_ACPI_NUMA
--
- config NUMA_EMU
- 	bool "NUMA emulation"
- 	depends on NUMA
--- 
-1.8.3.1
+Thanks and Best Regards,
+
+Ms. Julian Smith
+Purchasing Manager
+Sinara Group Co.,LTD
