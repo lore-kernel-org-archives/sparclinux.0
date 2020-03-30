@@ -1,7 +1,7 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Mon, 30 Mar 2020 09:21:27 +0000
+From: Baoquan He <bhe@redhat.com>
+Date: Mon, 30 Mar 2020 09:26:06 +0000
 Subject: Re: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20200330092127.GB30942@linux.ibm.com>
+Message-Id: <20200330092606.GC6352@MiWiFi-R3L-srv>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
  <20200330074246.GA14243@dhcp22.suse.cz>
@@ -10,9 +10,9 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Michal Hocko <mhocko@kernel.org>
-Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Hoan Tran <Hoan@os.amperecomputing.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Hoan Tran <Hoan@os.amperecomputing.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Mon, Mar 30, 2020 at 09:42:46AM +0200, Michal Hocko wrote:
+On 03/30/20 at 09:42am, Michal Hocko wrote:
 > On Sat 28-03-20 11:31:17, Hoan Tran wrote:
 > > In NUMA layout which nodes have memory ranges that span across other nodes,
 > > the mm driver can detect the memory node id incorrectly.
@@ -53,15 +53,19 @@ On Mon, Mar 30, 2020 at 09:42:46AM +0200, Michal Hocko wrote:
 > dependencies. I do not see any TBH but that might be burried deep in an
 > arch specific code.
 
-Well, back then early_pfn_in_nid() was arch-dependant, today everyone
-except ia64 rely on HAVE_MEMBLOCK_NODE_MAP. So, if the memblock node map
-is correct, that using CONFIG_NUMA instead of CONFIG_NODES_SPAN_OTHER_NODES
-would only mean that early_pfn_in_nid() will cost several cycles more on
-architectures that didn't select CONFIG_NODES_SPAN_OTHER_NODES (i.e. arm64
-and sh).
-Agian, ia64 is an exception here.
+Since on all ARCHes NODES_SPAN_OTHER_NODES has dependency on NUMA,
+replacing it with CONFIG_NUMA seems no risk. Just for those ARCHes which
+don't have CONFIG_NODES_SPAN_OTHER_NODES before, it involves a tiny
+performance degradation. Besides, s390 has removed support of
+NODES_SPAN_OTHER_NODES already.
 
+commit 701dc81e7412daaf3c5bf4bc55d35c8b1525112a
+Author: Heiko Carstens <heiko.carstens@de.ibm.com>
+Date:   Wed Feb 19 13:29:15 2020 +0100
 
+    s390/mm: remove fake numa support
+
+> 
 > > v3:
 > >  * Revise the patch description
 > > 
@@ -89,7 +93,4 @@ Agian, ia64 is an exception here.
 > -- 
 > Michal Hocko
 > SUSE Labs
-
--- 
-Sincerely yours,
-Mike.
+> 
