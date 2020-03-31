@@ -1,89 +1,95 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Date: Tue, 31 Mar 2020 08:14:23 +0000
+From: Michal Hocko <mhocko@kernel.org>
+Date: Tue, 31 Mar 2020 08:55:13 +0000
 Subject: Re: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
-Message-Id: <20200331081423.GE30942@linux.ibm.com>
+Message-Id: <20200331085513.GE30449@dhcp22.suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
  <20200330074246.GA14243@dhcp22.suse.cz>
  <20200330175100.GD30942@linux.ibm.com>
  <20200330182301.GM14243@dhcp22.suse.cz>
-In-Reply-To: <20200330182301.GM14243@dhcp22.suse.cz>
+ <20200331081423.GE30942@linux.ibm.com>
+In-Reply-To: <20200331081423.GE30942@linux.ibm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
+To: Mike Rapoport <rppt@linux.ibm.com>
 Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Hoan Tran <Hoan@os.amperecomputing.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Mon, Mar 30, 2020 at 08:23:01PM +0200, Michal Hocko wrote:
-> On Mon 30-03-20 20:51:00, Mike Rapoport wrote:
-> > On Mon, Mar 30, 2020 at 09:42:46AM +0200, Michal Hocko wrote:
-> > > On Sat 28-03-20 11:31:17, Hoan Tran wrote:
-> > > > In NUMA layout which nodes have memory ranges that span across other nodes,
-> > > > the mm driver can detect the memory node id incorrectly.
+On Tue 31-03-20 11:14:23, Mike Rapoport wrote:
+> On Mon, Mar 30, 2020 at 08:23:01PM +0200, Michal Hocko wrote:
+> > On Mon 30-03-20 20:51:00, Mike Rapoport wrote:
+> > > On Mon, Mar 30, 2020 at 09:42:46AM +0200, Michal Hocko wrote:
+> > > > On Sat 28-03-20 11:31:17, Hoan Tran wrote:
+> > > > > In NUMA layout which nodes have memory ranges that span across other nodes,
+> > > > > the mm driver can detect the memory node id incorrectly.
+> > > > > 
+> > > > > For example, with layout below
+> > > > > Node 0 address: 0000 xxxx 0000 xxxx
+> > > > > Node 1 address: xxxx 1111 xxxx 1111
+> > > > > 
+> > > > > Note:
+> > > > >  - Memory from low to high
+> > > > >  - 0/1: Node id
+> > > > >  - x: Invalid memory of a node
+> > > > > 
+> > > > > When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
+> > > > > config, mm only checks the memory validity but not the node id.
+> > > > > Because of that, Node 1 also detects the memory from node 0 as below
+> > > > > when it scans from the start address to the end address of node 1.
+> > > > > 
+> > > > > Node 0 address: 0000 xxxx xxxx xxxx
+> > > > > Node 1 address: xxxx 1111 1111 1111
+> > > > > 
+> > > > > This layout could occur on any architecture. Most of them enables
+> > > > > this config by default with CONFIG_NUMA. This patch, by default, enables
+> > > > > CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
 > > > > 
-> > > > For example, with layout below
-> > > > Node 0 address: 0000 xxxx 0000 xxxx
-> > > > Node 1 address: xxxx 1111 xxxx 1111
+> > > > I am not opposed to this at all. It reduces the config space and that is
+> > > > a good thing on its own. The history has shown that meory layout might
+> > > > be really wild wrt NUMA. The config is only used for early_pfn_in_nid
+> > > > which is clearly an overkill.
 > > > > 
-> > > > Note:
-> > > >  - Memory from low to high
-> > > >  - 0/1: Node id
-> > > >  - x: Invalid memory of a node
-> > > > 
-> > > > When mm probes the memory map, without CONFIG_NODES_SPAN_OTHER_NODES
-> > > > config, mm only checks the memory validity but not the node id.
-> > > > Because of that, Node 1 also detects the memory from node 0 as below
-> > > > when it scans from the start address to the end address of node 1.
-> > > > 
-> > > > Node 0 address: 0000 xxxx xxxx xxxx
-> > > > Node 1 address: xxxx 1111 1111 1111
-> > > > 
-> > > > This layout could occur on any architecture. Most of them enables
-> > > > this config by default with CONFIG_NUMA. This patch, by default, enables
-> > > > CONFIG_NODES_SPAN_OTHER_NODES or uses early_pfn_in_nid() for NUMA.
+> > > > Your description doesn't really explain why this is safe though. The
+> > > > history of this config is somehow messy, though. Mike has tried
+> > > > to remove it a94b3ab7eab4 ("[PATCH] mm: remove arch independent
+> > > > NODES_SPAN_OTHER_NODES") just to be reintroduced by 7516795739bd
+> > > > ("[PATCH] Reintroduce NODES_SPAN_OTHER_NODES for powerpc") without any
+> > > > reasoning what so ever. This doesn't make it really easy see whether
+> > > > reasons for reintroduction are still there. Maybe there are some subtle
+> > > > dependencies. I do not see any TBH but that might be burried deep in an
+> > > > arch specific code.
 > > > 
-> > > I am not opposed to this at all. It reduces the config space and that is
-> > > a good thing on its own. The history has shown that meory layout might
-> > > be really wild wrt NUMA. The config is only used for early_pfn_in_nid
-> > > which is clearly an overkill.
+> > > I've looked at this a bit more and it seems that the check for
+> > > early_pfn_in_nid() in memmap_init_zone() can be simply removed.
 > > > 
-> > > Your description doesn't really explain why this is safe though. The
-> > > history of this config is somehow messy, though. Mike has tried
-> > > to remove it a94b3ab7eab4 ("[PATCH] mm: remove arch independent
-> > > NODES_SPAN_OTHER_NODES") just to be reintroduced by 7516795739bd
-> > > ("[PATCH] Reintroduce NODES_SPAN_OTHER_NODES for powerpc") without any
-> > > reasoning what so ever. This doesn't make it really easy see whether
-> > > reasons for reintroduction are still there. Maybe there are some subtle
-> > > dependencies. I do not see any TBH but that might be burried deep in an
-> > > arch specific code.
+> > > The commits you've mentioned were way before the addition of
+> > > HAVE_MEMBLOCK_NODE_MAP and the whole infrastructure that calculates zone
+> > > sizes and boundaries based on the memblock node map.
+> > > So, the memmap_init_zone() is called when zone boundaries are already
+> > > within a node.
 > > 
-> > I've looked at this a bit more and it seems that the check for
-> > early_pfn_in_nid() in memmap_init_zone() can be simply removed.
-> > 
-> > The commits you've mentioned were way before the addition of
-> > HAVE_MEMBLOCK_NODE_MAP and the whole infrastructure that calculates zone
-> > sizes and boundaries based on the memblock node map.
-> > So, the memmap_init_zone() is called when zone boundaries are already
-> > within a node.
+> > But zones from different nodes might overlap in the pfn range. And this
+> > check is there to skip over those overlapping areas.
 > 
-> But zones from different nodes might overlap in the pfn range. And this
-> check is there to skip over those overlapping areas.
+> Maybe I mis-read the code, but I don't see how this could happen. In the
+> HAVE_MEMBLOCK_NODE_MAP=y case, free_area_init_node() calls
+> calculate_node_totalpages() that ensures that node->node_zones are entirely
+> within the node because this is checked in zone_spanned_pages_in_node().
 
-Maybe I mis-read the code, but I don't see how this could happen. In the
-HAVE_MEMBLOCK_NODE_MAP=y case, free_area_init_node() calls
-calculate_node_totalpages() that ensures that node->node_zones are entirely
-within the node because this is checked in zone_spanned_pages_in_node().
-So, for zones from different nodes to overlap in the pfn range the nodes
-themself should overlap. Is this even possible?
+zone_spanned_pages_in_node does chech the zone boundaries are within the
+node boundaries. But that doesn't really tell anything about other
+potential zones interleaving with the physical memory range.
+zone->spanned_pages simply gives the physical range for the zone
+including holes. Interleaving nodes are essentially a hole
+(__absent_pages_in_range is going to skip those).
 
+That means that when free_area_init_core simply goes over the whole
+physical zone range including holes and that is why we need to check
+both for physical and logical holes (aka other nodes).
 
-> The only way to skip over this check I can see is to do a different pfn
-> walk and go through memblock ranges which are guaranteed to belong to a
-> single node.
-> -- 
-> Michal Hocko
-> SUSE Labs
+The life would be so much easier if the whole thing would simply iterate
+over memblocks...
 
 -- 
-Sincerely yours,
-Mike.
+Michal Hocko
+SUSE Labs
