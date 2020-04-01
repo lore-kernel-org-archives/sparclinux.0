@@ -1,98 +1,412 @@
-From: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
-Date: Thu, 23 Apr 2020 12:34:09 +0000
-Subject: Re: [PATCH 1/4] fs: Implement close-on-fork
-Message-Id: <f3640ed9-d846-9cbd-7690-53da5ff1473a@petrovitsch.priv.at>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="------------985EBFE9F348F8C36FCBAAF1"
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Wed, 01 Apr 2020 18:38:16 +0000
+Subject: [PATCH v2 1/4] hugetlbfs: add arch_hugetlb_valid_size
+Message-Id: <20200401183819.20647-2-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200420071548.62112-1-nate.karstens@garmin.com>
- <20200420071548.62112-2-nate.karstens@garmin.com>
- <fa6c5c9c7c434f878c94a7c984cd43ba@garmin.com>
- <20200422154356.GU5820@bombadil.infradead.org>
- <6ed7bd08892b4311b70636658321904f@garmin.com>
- <97f05204-a27c-7cc8-429a-edcf6eebaa11@petrovitsch.priv.at>
- <337320db094d4426a621858fa0f6d7fd@AcuMS.aculab.com>
-In-Reply-To: <337320db094d4426a621858fa0f6d7fd@AcuMS.aculab.com>
-To: David Laight <David.Laight@ACULAB.COM>, "Karstens, Nate" <Nate.Karstens@garmin.com>, Matthew Wilcox <willy@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>"netdev@vger.kernel.org" <ne>
+References: <20200401183819.20647-1-mike.kravetz@oracle.com>
+In-Reply-To: <20200401183819.20647-1-mike.kravetz@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>, Mina Almasry <almasrymina@google.com>, Albert Ou <aou@eecs.berkeley.edu>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Andrew Morton <akpm@linux-foundation.org>, Vasily Gorbik <gor@linux.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Walmsley <paul.walmsley@sifive.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Longpeng <longpeng2@huawei.com>, Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-This is a multi-part message in MIME format.
---------------985EBFE9F348F8C36FCBAAF1
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+The architecture independent routine hugetlb_default_setup sets up
+the default huge pages size.  It has no way to verify if the passed
+value is valid, so it accepts it and attempts to validate at a later
+time.  This requires undocumented cooperation between the arch specific
+and arch independent code.
 
-Hi all!
+For architectures that support more than one huge page size, provide
+a routine arch_hugetlb_valid_size to validate a huge page size.
+hugetlb_default_setup can use this to validate passed values.
 
-On 22/04/2020 16:55, David Laight wrote:
-> From: Bernd Petrovitsch
->> Sent: 22 April 2020 17:32
-> ...
->> Apart from that, system() is a PITA even on
->> single/non-threaded apps.
->=20
-> Not only that, it is bloody dangerous because (typically)
-> shell is doing post substitution syntax analysis.
+arch_hugetlb_valid_size will also be used in a subsequent patch to
+move processing of the "hugepagesz=" in arch specific code to a common
+routine in arch independent code.
 
-I actually meant exactly that with PITA;-)
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ arch/arm64/include/asm/hugetlb.h   |  2 ++
+ arch/arm64/mm/hugetlbpage.c        | 17 +++++++++++++----
+ arch/powerpc/include/asm/hugetlb.h |  3 +++
+ arch/powerpc/mm/hugetlbpage.c      | 20 +++++++++++++-------
+ arch/riscv/include/asm/hugetlb.h   |  3 +++
+ arch/riscv/mm/hugetlbpage.c        | 26 +++++++++++++++++---------
+ arch/s390/include/asm/hugetlb.h    |  3 +++
+ arch/s390/mm/hugetlbpage.c         | 16 ++++++++++++----
+ arch/sparc/include/asm/hugetlb.h   |  3 +++
+ arch/sparc/mm/init_64.c            | 24 ++++++++++++++++--------
+ arch/x86/include/asm/hugetlb.h     |  5 +++++
+ arch/x86/mm/hugetlbpage.c          | 17 +++++++++++++----
+ include/linux/hugetlb.h            |  7 +++++++
+ mm/hugetlb.c                       | 15 ++++++++++++---
+ 14 files changed, 122 insertions(+), 39 deletions(-)
 
-> If you need to run an external process you need to generate
-> an arv[] array containing the parameters.
-
-FullACK. That is usually similar trivial ...
-
-MfG,
-	Bernd
---=20
-There is no cloud, just other people computers.
--- https://static.fsf.org/nosvn/stickers/thereisnocloud.svg
-
---------------985EBFE9F348F8C36FCBAAF1
-Content-Type: application/pgp-keys;
- name="pEpkey.asc"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="pEpkey.asc"
-
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-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3D=3D
-=3DGX6K
------END PGP PUBLIC KEY BLOCK-----
-
---------------985EBFE9F348F8C36FCBAAF1--
+diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
+index 2eb6c234d594..81606223494f 100644
+--- a/arch/arm64/include/asm/hugetlb.h
++++ b/arch/arm64/include/asm/hugetlb.h
+@@ -59,6 +59,8 @@ extern void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
+ extern void set_huge_swap_pte_at(struct mm_struct *mm, unsigned long addr,
+ 				 pte_t *ptep, pte_t pte, unsigned long sz);
+ #define set_huge_swap_pte_at set_huge_swap_pte_at
++bool __init arch_hugetlb_valid_size(unsigned long size);
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
+ 
+ #include <asm-generic/hugetlb.h>
+ 
+diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+index bbeb6a5a6ba6..069b96ee2aec 100644
+--- a/arch/arm64/mm/hugetlbpage.c
++++ b/arch/arm64/mm/hugetlbpage.c
+@@ -462,17 +462,26 @@ static int __init hugetlbpage_init(void)
+ }
+ arch_initcall(hugetlbpage_init);
+ 
+-static __init int setup_hugepagesz(char *opt)
++bool __init arch_hugetlb_valid_size(unsigned long size)
+ {
+-	unsigned long ps = memparse(opt, &opt);
+-
+-	switch (ps) {
++	switch (size) {
+ #ifdef CONFIG_ARM64_4K_PAGES
+ 	case PUD_SIZE:
+ #endif
+ 	case CONT_PMD_SIZE:
+ 	case PMD_SIZE:
+ 	case CONT_PTE_SIZE:
++		return true;
++	}
++
++	return false;
++}
++
++static __init int setup_hugepagesz(char *opt)
++{
++	unsigned long ps = memparse(opt, &opt);
++
++	if (arch_hugetlb_valid_size(ps)) {
+ 		add_huge_page_size(ps);
+ 		return 1;
+ 	}
+diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
+index bd6504c28c2f..19b453ee1431 100644
+--- a/arch/powerpc/include/asm/hugetlb.h
++++ b/arch/powerpc/include/asm/hugetlb.h
+@@ -64,6 +64,9 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+ 
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
++bool __init arch_hugetlb_valid_size(unsigned long size);
++
+ #include <asm-generic/hugetlb.h>
+ 
+ #else /* ! CONFIG_HUGETLB_PAGE */
+diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
+index 33b3461d91e8..de54d2a37830 100644
+--- a/arch/powerpc/mm/hugetlbpage.c
++++ b/arch/powerpc/mm/hugetlbpage.c
+@@ -558,7 +558,7 @@ unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
+ 	return vma_kernel_pagesize(vma);
+ }
+ 
+-static int __init add_huge_page_size(unsigned long long size)
++bool __init arch_hugetlb_valid_size(unsigned long size)
+ {
+ 	int shift = __ffs(size);
+ 	int mmu_psize;
+@@ -566,20 +566,26 @@ static int __init add_huge_page_size(unsigned long long size)
+ 	/* Check that it is a page size supported by the hardware and
+ 	 * that it fits within pagetable and slice limits. */
+ 	if (size <= PAGE_SIZE || !is_power_of_2(size))
+-		return -EINVAL;
++		return false;
+ 
+ 	mmu_psize = check_and_get_huge_psize(shift);
+ 	if (mmu_psize < 0)
+-		return -EINVAL;
++		return false;
+ 
+ 	BUG_ON(mmu_psize_defs[mmu_psize].shift != shift);
+ 
+-	/* Return if huge page size has already been setup */
+-	if (size_to_hstate(size))
+-		return 0;
++	return true;
++}
+ 
+-	hugetlb_add_hstate(shift - PAGE_SHIFT);
++static int __init add_huge_page_size(unsigned long long size)
++{
++	int shift = __ffs(size);
++
++	if (!arch_hugetlb_valid_size((unsigned long)size))
++		return -EINVAL;
+ 
++	if (!size_to_hstate(size))
++		hugetlb_add_hstate(shift - PAGE_SHIFT);
+ 	return 0;
+ }
+ 
+diff --git a/arch/riscv/include/asm/hugetlb.h b/arch/riscv/include/asm/hugetlb.h
+index 728a5db66597..a6c414fa5b82 100644
+--- a/arch/riscv/include/asm/hugetlb.h
++++ b/arch/riscv/include/asm/hugetlb.h
+@@ -5,6 +5,9 @@
+ #include <asm-generic/hugetlb.h>
+ #include <asm/page.h>
+ 
++bool __init arch_hugetlb_valid_size(unsigned long size);
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
++
+ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 					 unsigned long addr,
+ 					 unsigned long len) {
+diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
+index a6189ed36c5f..da1f516bc451 100644
+--- a/arch/riscv/mm/hugetlbpage.c
++++ b/arch/riscv/mm/hugetlbpage.c
+@@ -12,21 +12,29 @@ int pmd_huge(pmd_t pmd)
+ 	return pmd_leaf(pmd);
+ }
+ 
++bool __init arch_hugetlb_valid_size(unsigned long size)
++{
++	if (size = HPAGE_SIZE)
++		return true;
++	else if (IS_ENABLED(CONFIG_64BIT) && size = PUD_SIZE)
++		return true;
++	else
++		return false;
++}
++
+ static __init int setup_hugepagesz(char *opt)
+ {
+ 	unsigned long ps = memparse(opt, &opt);
+ 
+-	if (ps = HPAGE_SIZE) {
+-		hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
+-	} else if (IS_ENABLED(CONFIG_64BIT) && ps = PUD_SIZE) {
+-		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+-	} else {
+-		hugetlb_bad_size();
+-		pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
+-		return 0;
++	if (arch_hugetlb_valid_size(ps)) {
++		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
++		return 1;
+ 	}
+ 
+-	return 1;
++	hugetlb_bad_size();
++	pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
++	return 0;
++
+ }
+ __setup("hugepagesz=", setup_hugepagesz);
+ 
+diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
+index de8f0bf5f238..f49981c00e72 100644
+--- a/arch/s390/include/asm/hugetlb.h
++++ b/arch/s390/include/asm/hugetlb.h
+@@ -15,6 +15,9 @@
+ #define hugetlb_free_pgd_range			free_pgd_range
+ #define hugepages_supported()			(MACHINE_HAS_EDAT1)
+ 
++bool __init arch_hugetlb_valid_size(unsigned long size);
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
++
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t pte);
+ pte_t huge_ptep_get(pte_t *ptep);
+diff --git a/arch/s390/mm/hugetlbpage.c b/arch/s390/mm/hugetlbpage.c
+index f01daddcbc5e..ac25b207624c 100644
+--- a/arch/s390/mm/hugetlbpage.c
++++ b/arch/s390/mm/hugetlbpage.c
+@@ -251,16 +251,24 @@ follow_huge_pud(struct mm_struct *mm, unsigned long address,
+ 	return pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
+ }
+ 
++bool __init arch_hugetlb_valid_size(unsigned long size)
++{
++	if (MACHINE_HAS_EDAT1 && size = PMD_SIZE)
++		return true;
++	else if (MACHINE_HAS_EDAT2 && size = PUD_SIZE)
++		return true;
++	else
++		return false;
++}
++
+ static __init int setup_hugepagesz(char *opt)
+ {
+ 	unsigned long size;
+ 	char *string = opt;
+ 
+ 	size = memparse(opt, &opt);
+-	if (MACHINE_HAS_EDAT1 && size = PMD_SIZE) {
+-		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
+-	} else if (MACHINE_HAS_EDAT2 && size = PUD_SIZE) {
+-		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
++	if (arch_hugetlb_valid_size(size)) {
++		hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
+ 	} else {
+ 		hugetlb_bad_size();
+ 		pr_err("hugepagesz= specifies an unsupported page size %s\n",
+diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
+index 3963f80d1cb3..a88668b455d3 100644
+--- a/arch/sparc/include/asm/hugetlb.h
++++ b/arch/sparc/include/asm/hugetlb.h
+@@ -10,6 +10,9 @@ struct pud_huge_patch_entry {
+ 	unsigned int insn;
+ };
+ extern struct pud_huge_patch_entry __pud_huge_patch, __pud_huge_patch_end;
++
++bool __init arch_hugetlb_valid_size(unsigned long size);
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
+ #endif
+ 
+ #define __HAVE_ARCH_HUGE_SET_HUGE_PTE_AT
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1cf0d666dea3..2bfe8e22b706 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -360,16 +360,11 @@ static void __init pud_huge_patch(void)
+ 	__asm__ __volatile__("flush %0" : : "r" (addr));
+ }
+ 
+-static int __init setup_hugepagesz(char *string)
++bool __init arch_hugetlb_valid_size(unsigned long size)
+ {
+-	unsigned long long hugepage_size;
+-	unsigned int hugepage_shift;
++	unsigned int hugepage_shift = ilog2(size);
+ 	unsigned short hv_pgsz_idx;
+ 	unsigned int hv_pgsz_mask;
+-	int rc = 0;
+-
+-	hugepage_size = memparse(string, &string);
+-	hugepage_shift = ilog2(hugepage_size);
+ 
+ 	switch (hugepage_shift) {
+ 	case HPAGE_16GB_SHIFT:
+@@ -397,7 +392,20 @@ static int __init setup_hugepagesz(char *string)
+ 		hv_pgsz_mask = 0;
+ 	}
+ 
+-	if ((hv_pgsz_mask & cpu_pgsz_mask) = 0U) {
++	if ((hv_pgsz_mask & cpu_pgsz_mask) = 0U)
++		return false;
++
++	return true;
++}
++
++static int __init setup_hugepagesz(char *string)
++{
++	unsigned long long hugepage_size;
++	int rc = 0;
++
++	hugepage_size = memparse(string, &string);
++
++	if (!arch_hugetlb_valid_size((unsigned long)hugepage_size)) {
+ 		hugetlb_bad_size();
+ 		pr_err("hugepagesz=%llu not supported by MMU.\n",
+ 			hugepage_size);
+diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
+index f65cfb48cfdd..53ae4df41433 100644
+--- a/arch/x86/include/asm/hugetlb.h
++++ b/arch/x86/include/asm/hugetlb.h
+@@ -7,6 +7,11 @@
+ 
+ #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
+ 
++#ifdef CONFIG_X86_64
++bool __init arch_hugetlb_valid_size(unsigned long size);
++#define arch_hugetlb_valid_size arch_hugetlb_valid_size
++#endif
++
+ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 					 unsigned long addr,
+ 					 unsigned long len) {
+diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
+index 5bfd5aef5378..1c4372bfe782 100644
+--- a/arch/x86/mm/hugetlbpage.c
++++ b/arch/x86/mm/hugetlbpage.c
+@@ -181,13 +181,22 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
+ #endif /* CONFIG_HUGETLB_PAGE */
+ 
+ #ifdef CONFIG_X86_64
++bool __init arch_hugetlb_valid_size(unsigned long size)
++{
++	if (size = PMD_SIZE)
++		return true;
++	else if (size = PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES))
++		return true;
++	else
++		return false;
++}
++
+ static __init int setup_hugepagesz(char *opt)
+ {
+ 	unsigned long ps = memparse(opt, &opt);
+-	if (ps = PMD_SIZE) {
+-		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
+-	} else if (ps = PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
+-		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
++
++	if (arch_hugetlb_valid_size(ps)) {
++		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
+ 	} else {
+ 		hugetlb_bad_size();
+ 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
+diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+index 2fc9bc91894e..962bb1e6682b 100644
+--- a/include/linux/hugetlb.h
++++ b/include/linux/hugetlb.h
+@@ -688,6 +688,13 @@ static inline spinlock_t *huge_pte_lockptr(struct hstate *h,
+ 	return &mm->page_table_lock;
+ }
+ 
++#ifndef arch_hugetlb_valid_size
++static inline bool arch_hugetlb_valid_size(unsigned long size)
++{
++	return size = HPAGE_SIZE;
++}
++#endif
++
+ #ifndef hugepages_supported
+ /*
+  * Some platform decide whether they support huge pages at boot
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 38c3363b46e1..e9d9d179cf12 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -3324,12 +3324,21 @@ static int __init hugetlb_nrpages_setup(char *s)
+ }
+ __setup("hugepages=", hugetlb_nrpages_setup);
+ 
+-static int __init hugetlb_default_setup(char *s)
++static int __init default_hugepagesz_setup(char *s)
+ {
+-	default_hstate_size = memparse(s, &s);
++	unsigned long size;
++
++	size = (unsigned long)memparse(s, NULL);
++
++	if (!arch_hugetlb_valid_size(size)) {
++		pr_err("HugeTLB: unsupported default_hugepagesz %s\n", s);
++		return 0;
++	}
++
++	default_hstate_size = size;
+ 	return 1;
+ }
+-__setup("default_hugepagesz=", hugetlb_default_setup);
++__setup("default_hugepagesz=", default_hugepagesz_setup);
+ 
+ static unsigned int cpuset_mems_nr(unsigned int *array)
+ {
+-- 
+2.25.1
