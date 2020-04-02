@@ -1,143 +1,106 @@
-From: Dmitry Safonov <dima@arista.com>
-Date: Sat, 18 Apr 2020 20:19:28 +0000
-Subject: [PATCHv3 34/50] sparc: Add show_stack_loglvl()
-Message-Id: <20200418201944.482088-35-dima@arista.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 02 Apr 2020 17:13:43 +0000
+Subject: Re: [PATCH v2 2/2] kbuild: link lib-y objects to vmlinux forcibly when CONFIG_MODULES=y
+Message-Id: <CAK7LNAT3SR3rc5F1BYA0=Wxp3PRbd+ueDZ-h_UzCj=9m8CLWLQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200418201944.482088-1-dima@arista.com>
-In-Reply-To: <20200418201944.482088-1-dima@arista.com>
+References: <20200311223725.27662-1-masahiroy@kernel.org> <20200311223725.27662-2-masahiroy@kernel.org>
+In-Reply-To: <20200311223725.27662-2-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>, Dmitry Safonov <dima@arista.com>, Andrew Morton <akpm@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ingo Molnar <mingo@kernel.org>, Jiri Slaby <jslaby@suse.com>, Petr Mladek <pmladek@suse.com>, Sergey Senozhatsky <sergey.senozhatsky@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>, "David S . Miller" <davem@davemloft.net>, clang-built-linux <clang-built-linux@googlegroups.com>, Al Viro <viro@zeniv.linux.org.uk>, Nick Desaulniers <ndesaulniers@google.com>, Ilie Halip <ilie.halip@gmail.com>, Nathan Chancellor <natechancellor@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Michal Marek <michal.lkml@markovi.net>
 
-Currently, the log-level of show_stack() depends on a platform
-realization. It creates situations where the headers are printed with
-lower log level or higher than the stacktrace (depending on
-a platform or user).
+On Thu, Mar 12, 2020 at 7:38 AM Masahiro Yamada <masahiroy@kernel.org> wrote:
+>
+> Kbuild supports not only obj-y but also lib-y to list objects linked to
+> vmlinux.
+>
+> The difference between them is that all the objects from obj-y are
+> forcibly linked to vmlinux by using --whole-archive, whereas the objects
+> from lib-y are linked as needed; if there is no user of a lib-y object,
+> it is not linked.
+>
+> lib-y is intended to list utility functions that may be called from all
+> over the place (and may be unused at all), but it is a problem for
+> EXPORT_SYMBOL(). Even if there is no call-site in the vmlinux, we need
+> to keep exported symbols for the use from loadable modules.
+>
+> Commit 7f2084fa55e6 ("[kbuild] handle exports in lib-y objects reliably")
+> worked around it by linking a dummy object, lib-ksyms.o, which contains
+> references to all the symbols exported from lib.a in that directory.
+> It uses the linker script command, EXTERN. Unfortunately, the meaning of
+> EXTERN of ld.lld is different from that of ld.bfd. Therefore, this does
+> not work with LD=ld.lld (CBL issue #515).
+>
+> Anyway, the build rule of lib-ksyms.o is somewhat tricky. So, I want to
+> get rid of it.
+>
+> At first, I was thinking of accumulating lib-y objects into obj-y
+> (or even replacing lib-y with obj-y entirely), but the lib-y syntax
+> is used beyond the ordinary use in lib/ and arch/*/lib/.
+>
+> Examples:
+>
+>  - drivers/firmware/efi/libstub/Makefile builds lib.a, which is linked
+>    into vmlinux in the own way (arm64), or linked to the decompressor
+>    (arm, x86).
+>
+>  - arch/alpha/lib/Makefile builds lib.a which is linked not only to
+>    vmlinux, but also to bootloaders in arch/alpha/boot/Makefile.
+>
+>  - arch/xtensa/boot/lib/Makefile builds lib.a for use from
+>    arch/xtensa/boot/boot-redboot/Makefile.
+>
+> One more thing, adding everything to obj-y would increase the vmlinux
+> size of allnoconfig (or tinyconfig).
+>
+> For less impact, I tweaked the destination of lib.a at the top Makefile;
+> when CONFIG_MODULES=y, lib.a goes to KBUILD_VMLINUX_OBJS, which is
+> forcibly linked to vmlinux, otherwise lib.a goes to KBUILD_VMLINUX_LIBS
+> as before.
+>
+> The size impact for normal usecases is quite small since at lease one
+> symbol in every lib-y object is eventually called by someone. In case
+> you are intrested, here are the figures.
+>
+> x86_64_defconfig:
+>
+>    text    data     bss     dec     hex filename
+> 19566602 5422072 1589328 26578002 1958c52 vmlinux.before
+> 19566932 5422104 1589328 26578364 1958dbc vmlinux.after
+>
+> The case with the biggest impact is allnoconfig + CONFIG_MODULES=y.
+>
+> ARCH=x86 allnoconfig + CONFIG_MODULES=y:
+>
+>    text    data     bss     dec     hex filename
+> 1175162  254740 1220608 2650510  28718e vmlinux.before
+> 1177974  254836 1220608 2653418  287cea vmlinux.after
+>
+> Hopefully this is still not a big deal. The per-file trimming with the
+> static library is not so effective after all.
+>
+> If fine-grained optimization is desired, some architectures support
+> CONFIG_LD_DEAD_CODE_DATA_ELIMINATION, which trims dead code per-symbol
+> basis. When LTO is supported in mainline, even better optimization will
+> be possible.
+>
+> Link: https://github.com/ClangBuiltLinux/linux/issues/515
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+> Reported-by: kbuild test robot <lkp@intel.com>
+> ---
 
-Furthermore, it forces the logic decision from user to an architecture
-side. In result, some users as sysrq/kdb/etc are doing tricks with
-temporary rising console_loglevel while printing their messages.
-And in result it not only may print unwanted messages from other CPUs,
-but also omit printing at all in the unlucky case where the printk()
-was deferred.
+Applied to linux-kbuild.
 
-Introducing log-level parameter and KERN_UNSUPPRESSED [1] seems
-an easier approach than introducing more printk buffers.
-Also, it will consolidate printings with headers.
+I will rebase my branch during this MW,
+so the commit ID will be unstable.
+Please do not record it until it lands in Linus' tree.
 
-Introduce show_stack_loglvl(), that eventually will substitute
-show_stack().
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-[1]: https://lore.kernel.org/lkml/20190528002412.1625-1-dima@arista.com/T/#u
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Dmitry Safonov <dima@arista.com>
----
- arch/sparc/kernel/process_32.c | 17 ++++++++++++-----
- arch/sparc/kernel/traps_64.c   | 15 +++++++++++----
- 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 26cca65e9246..0b07de5618e5 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -145,10 +145,12 @@ void show_regs(struct pt_regs *r)
- }
- 
- /*
-- * The show_stack is an external API which we do not use ourselves.
-+ * The show_stack(), show_stack_loglvl() are external APIs which
-+ * we do not use ourselves.
-  * The oops is printed in die_if_kernel.
-  */
--void show_stack(struct task_struct *tsk, unsigned long *_ksp)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *_ksp,
-+		       const char *loglvl)
- {
- 	unsigned long pc, fp;
- 	unsigned long task_base;
-@@ -170,11 +172,16 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
- 			break;
- 		rw = (struct reg_window32 *) fp;
- 		pc = rw->ins[7];
--		printk("[%08lx : ", pc);
--		printk("%pS ] ", (void *) pc);
-+		printk("%s[%08lx : ", loglvl, pc);
-+		printk("%s%pS ] ", loglvl, (void *) pc);
- 		fp = rw->ins[6];
- 	} while (++count < 16);
--	printk("\n");
-+	printk("%s\n", loglvl);
-+}
-+
-+void show_stack(struct task_struct *task, unsigned long *sp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
- }
- 
- /*
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 27778b65a965..8715bc93bd9d 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -18,6 +18,7 @@
- #include <linux/smp.h>
- #include <linux/mm.h>
- #include <linux/init.h>
-+#include <linux/kallsyms.h>
- #include <linux/kdebug.h>
- #include <linux/ftrace.h>
- #include <linux/reboot.h>
-@@ -2452,7 +2453,8 @@ static void user_instruction_dump(unsigned int __user *pc)
- 	printk("\n");
- }
- 
--void show_stack(struct task_struct *tsk, unsigned long *_ksp)
-+void show_stack_loglvl(struct task_struct *tsk, unsigned long *_ksp,
-+			 const char *loglvl)
- {
- 	unsigned long fp, ksp;
- 	struct thread_info *tp;
-@@ -2476,7 +2478,7 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
- 
- 	fp = ksp + STACK_BIAS;
- 
--	printk("Call Trace:\n");
-+	printk("%sCall Trace:\n", loglvl);
- 	do {
- 		struct sparc_stackf *sf;
- 		struct pt_regs *regs;
-@@ -2497,14 +2499,14 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
- 			fp = (unsigned long)sf->fp + STACK_BIAS;
- 		}
- 
--		printk(" [%016lx] %pS\n", pc, (void *) pc);
-+		print_ip_sym(loglvl, pc);
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
- 		if ((pc + 8UL) = (unsigned long) &return_to_handler) {
- 			struct ftrace_ret_stack *ret_stack;
- 			ret_stack = ftrace_graph_get_ret_stack(tsk, graph);
- 			if (ret_stack) {
- 				pc = ret_stack->ret;
--				printk(" [%016lx] %pS\n", pc, (void *) pc);
-+				print_ip_sym(loglvl, pc);
- 				graph++;
- 			}
- 		}
-@@ -2512,6 +2514,11 @@ void show_stack(struct task_struct *tsk, unsigned long *_ksp)
- 	} while (++count < 16);
- }
- 
-+void show_stack(struct task_struct *tsk, unsigned long *_ksp)
-+{
-+	show_stack_loglvl(task, sp, KERN_DEFAULT);
-+}
-+
- static inline struct reg_window *kernel_stack_up(struct reg_window *rw)
- {
- 	unsigned long fp = rw->ins[6];
+
+
 -- 
-2.26.0
+Best Regards
+Masahiro Yamada
