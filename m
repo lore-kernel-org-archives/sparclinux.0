@@ -1,65 +1,52 @@
-From: Baoquan He <bhe@redhat.com>
-Date: Fri, 10 Apr 2020 06:46:26 +0000
-Subject: Re: [PATCH RFC] mm: remove CONFIG_HAVE_MEMBLOCK_NODE_MAP (was: Re: [PATCH v3 0/5] mm: Enable CONFIG_
-Message-Id: <20200410064626.GF2129@MiWiFi-R3L-srv>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Date: Thu, 02 Apr 2020 14:57:38 +0000
+Subject: Re: Suspected bug in wait syscall or similar
+Message-Id: <2790388.WAhmubx6ku@daneel.sf-tec.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="nextPart1641587.pqXMvmSoLt"
 List-Id: <sparclinux.vger.kernel.org>
-References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
- <20200330074246.GA14243@dhcp22.suse.cz>
- <20200330092127.GB30942@linux.ibm.com>
- <20200330095843.GF14243@dhcp22.suse.cz>
- <20200331215618.GG30942@linux.ibm.com>
- <20200401054227.GC2129@MiWiFi-R3L-srv>
- <20200401075155.GH30942@linux.ibm.com>
- <20200402080144.GK22681@dhcp22.suse.cz>
- <20200409144119.GE2129@MiWiFi-R3L-srv>
- <20200409153321.GQ18386@dhcp22.suse.cz>
-In-Reply-To: <20200409153321.GQ18386@dhcp22.suse.cz>
-MIME-Version: 1.0
+References: <1848982.8N1hjUtedq@eto.sf-tec.de>
+In-Reply-To: <1848982.8N1hjUtedq@eto.sf-tec.de>
+To: sparclinux@vger.kernel.org
+
+--nextPart1641587.pqXMvmSoLt
+Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Michal Hocko <mhocko@kernel.org>
-Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Hoan Tran <Hoan@os.amperecomputing.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On 04/09/20 at 05:33pm, Michal Hocko wrote:
-> On Thu 09-04-20 22:41:19, Baoquan He wrote:
-> > On 04/02/20 at 10:01am, Michal Hocko wrote:
-> > > On Wed 01-04-20 10:51:55, Mike Rapoport wrote:
-> > > > Hi,
-> > > > 
-> > > > On Wed, Apr 01, 2020 at 01:42:27PM +0800, Baoquan He wrote:
-> > > [...]
-> > > > > From above information, we can remove HAVE_MEMBLOCK_NODE_MAP, and
-> > > > > replace it with CONFIG_NUMA. That sounds more sensible to store nid into
-> > > > > memblock when NUMA support is enabled.
-> > > >  
-> > > > Replacing CONFIG_HAVE_MEMBLOCK_NODE_MAP with CONFIG_NUMA will work, but
-> > > > this will not help cleaning up the whole node/zone initialization mess and
-> > > > we'll be stuck with two implementations.
-> > > 
-> > > Yeah, this is far from optimal.
-> > > 
-> > > > The overhead of enabling HAVE_MEMBLOCK_NODE_MAP is only for init time as
-> > > > most architectures will anyway discard the entire memblock, so having it in
-> > > > a UMA arch won't be a problem. The only exception is arm that uses
-> > > > memblock for pfn_valid(), here we may also think about a solution to
-> > > > compensate the addition of nid to the memblock structures. 
-> > > 
-> > > Well, we can make memblock_region->nid defined only for CONFIG_NUMA.
-> > > memblock_get_region_node would then unconditionally return 0 on UMA.
-> > > Essentially the same way we do NUMA for other MM code. I only see few
-> > > direct usage of region->nid.
-> > 
-> > Checked code again, seems HAVE_MEMBLOCK_NODE_MAP is selected directly in
-> > all ARCHes which support it. Means HAVE_MEMBLOCK_NODE_MAP is enabled by
-> > default on those ARCHes, and has no dependency on CONFIG_NUMA at all.
-> > E.g on x86, it just calls free_area_init_nodes() in generic code path,
-> > while free_area_init_nodes() is defined in CONFIG_HAVE_MEMBLOCK_NODE_MAP
-> > ifdeffery scope. So I tend to agree with Mike to remove
-> > HAVE_MEMBLOCK_NODE_MAP firstly on all ARCHes. We can check if it's worth
-> > only defining memblock_region->nid for CONFIG_NUMA case after
-> > HAVE_MEMBLOCK_NODE_MAP is removed.
+> The only recent change prior the move to assembly was on 2.25 where we had
+> to disable the stack protector.  For 2.31 release, for instance, I used the
+> gcc 7.5.0 since it didn't trigger this issue.
+
+I recently tried rebuilding 2.29 on Gentoo with 9.2 and things started 
+breaking, may that still be an issue?
+
+> > I know that there have been some stability issues with the Linux kernel on
+> > SPARC with older hardware like the UltraSPARC IIIi. The T5120 we have and
+> > newer machines seem to run relatively fine with a 64-bit userland.
 > 
-> This can surely go in separate patches. What I meant to say is the
-> region->nid is by definition 0 on !CONFIG_NUMA.
+> Not only stability issues, but I noticed that kernel developers had
+> fixed a SysV IPC kernel issue on 32-bits kernels that has been
+> lingering for years.  So I am not sure how well maintained is
+> 32-bit sparc is in general.
 
-I see, thanks.
+This seems generally be an option, but noone has a clue of LDOM at the moment. 
+You way come to #gentoo-sparc on Freenode if you want to give a helping hand.
+
+> [1] https://sourceware.org/glibc/wiki/Release/2.31
+
+That only lists known test failures regarding sparc?
+
+Eike
+--nextPart1641587.pqXMvmSoLt
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCXoX9YgAKCRBcpIk+abn8
+Tqs4AJwLtCrbsc59c7zeb17QbEVOn+KgFwCfQb4YtqiDvu+cMMJFT9fymZfIyRk=
+=BXwS
+-----END PGP SIGNATURE-----
+
+--nextPart1641587.pqXMvmSoLt--
