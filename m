@@ -1,85 +1,120 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Sun, 26 Apr 2020 03:01:24 +0000
-Subject: Re: [PATCH 3/3] mm/hugetlb: Introduce HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS
-Message-Id: <20200425200124.20d0c75fcaef05d062d3667c@linux-foundation.org>
+From: Hoan Tran <hoan@os.amperecomputing.com>
+Date: Fri, 03 Apr 2020 04:46:05 +0000
+Subject: Re: [PATCH v3 0/5] mm: Enable CONFIG_NODES_SPAN_OTHER_NODES by default for NUMA
+Message-Id: <cc717f09-2b18-b242-e438-3ec730c5dac0@os.amperecomputing.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
-        <1586864670-21799-4-git-send-email-anshuman.khandual@arm.com>
-        <20200425175511.7a68efb5e2f4436fe0328c1d@linux-foundation.org>
-        <87d37591-caa2-b82b-392a-3a29b2c7e9a6@arm.com>
-In-Reply-To: <87d37591-caa2-b82b-392a-3a29b2c7e9a6@arm.com>
+References: <1585420282-25630-1-git-send-email-Hoan@os.amperecomputing.com>
+ <20200330074246.GA14243@dhcp22.suse.cz>
+ <20200330175100.GD30942@linux.ibm.com>
+ <20200330182301.GM14243@dhcp22.suse.cz>
+ <20200331081423.GE30942@linux.ibm.com>
+ <20200331085513.GE30449@dhcp22.suse.cz>
+ <20200331140332.GA2129@MiWiFi-R3L-srv>
+ <20200331142138.GL30449@dhcp22.suse.cz>
+ <20200331143140.GA2402@MiWiFi-R3L-srv>
+In-Reply-To: <20200331143140.GA2402@MiWiFi-R3L-srv>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: linux-mm@kvack.org, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, David
+To: Baoquan He <bhe@redhat.com>, Michal Hocko <mhocko@kernel.org>
+Cc: mmorana@amperecomputing.com, Catalin Marinas <catalin.marinas@arm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, "open list:MEMORY MANAGEMENT" <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Alexander Duyck <alexander.h.duyck@linux.intel.com>, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Vlastimil Babka <vbabka@suse.cz>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, lho@amperecomputing.com, Vasily Gorbik <gor@linux.ibm.com>, Will Deacon <will.deacon@arm.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Oscar Salvador <osalvador@suse.de>, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Sun, 26 Apr 2020 08:13:17 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+Hi All,
+
+On 3/31/20 7:31 AM, Baoquan He wrote:
+> On 03/31/20 at 04:21pm, Michal Hocko wrote:
+>> On Tue 31-03-20 22:03:32, Baoquan He wrote:
+>>> Hi Michal,
+>>>
+>>> On 03/31/20 at 10:55am, Michal Hocko wrote:
+>>>> On Tue 31-03-20 11:14:23, Mike Rapoport wrote:
+>>>>> Maybe I mis-read the code, but I don't see how this could happen. In the
+>>>>> HAVE_MEMBLOCK_NODE_MAP=y case, free_area_init_node() calls
+>>>>> calculate_node_totalpages() that ensures that node->node_zones are entirely
+>>>>> within the node because this is checked in zone_spanned_pages_in_node().
+>>>>
+>>>> zone_spanned_pages_in_node does chech the zone boundaries are within the
+>>>> node boundaries. But that doesn't really tell anything about other
+>>>> potential zones interleaving with the physical memory range.
+>>>> zone->spanned_pages simply gives the physical range for the zone
+>>>> including holes. Interleaving nodes are essentially a hole
+>>>> (__absent_pages_in_range is going to skip those).
+>>>>
+>>>> That means that when free_area_init_core simply goes over the whole
+>>>> physical zone range including holes and that is why we need to check
+>>>> both for physical and logical holes (aka other nodes).
+>>>>
+>>>> The life would be so much easier if the whole thing would simply iterate
+>>>> over memblocks...
+>>>
+>>> The memblock iterating sounds a great idea. I tried with putting the
+>>> memblock iterating in the upper layer, memmap_init(), which is used for
+>>> boot mem only anyway. Do you think it's doable and OK? It yes, I can
+>>> work out a formal patch to make this simpler as you said. The draft code
+>>> is as below. Like this it uses the existing code and involves little change.
+>>
+>> Doing this would be a step in the right direction! I haven't checked the
+>> code very closely though. The below sounds way too simple to be truth I
+>> am afraid. First for_each_mem_pfn_range is available only for
+>> CONFIG_HAVE_MEMBLOCK_NODE_MAP (which is one of the reasons why I keep
+>> saying that I really hate that being conditional). Also I haven't really
+>> checked the deferred initialization path - I have a very vague
+>> recollection that it has been converted to the memblock api but I have
+>> happilly dropped all that memory.
+> 
+> Thanks for your quick response and pointing out the rest suspect aspects,
+> I will investigate what you mentioned, see if they impact.
+
+I would like to check if we still move on with my patch to remove 
+CONFIG_NODES_SPAN_OTHER_NODES and have another patch on top it?
+
+Thanks
+Hoan
 
 > 
+>>   
+>>> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+>>> index 138a56c0f48f..558d421f294b 100644
+>>> --- a/mm/page_alloc.c
+>>> +++ b/mm/page_alloc.c
+>>> @@ -6007,14 +6007,6 @@ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+>>>   		 * function.  They do not exist on hotplugged memory.
+>>>   		 */
+>>>   		if (context = MEMMAP_EARLY) {
+>>> -			if (!early_pfn_valid(pfn)) {
+>>> -				pfn = next_pfn(pfn);
+>>> -				continue;
+>>> -			}
+>>> -			if (!early_pfn_in_nid(pfn, nid)) {
+>>> -				pfn++;
+>>> -				continue;
+>>> -			}
+>>>   			if (overlap_memmap_init(zone, &pfn))
+>>>   				continue;
+>>>   			if (defer_init(nid, pfn, end_pfn))
+>>> @@ -6130,9 +6122,17 @@ static void __meminit zone_init_free_lists(struct zone *zone)
+>>>   }
+>>>   
+>>>   void __meminit __weak memmap_init(unsigned long size, int nid,
+>>> -				  unsigned long zone, unsigned long start_pfn)
+>>> +				  unsigned long zone, unsigned long range_start_pfn)
+>>>   {
+>>> -	memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY, NULL);
+>>> +	unsigned long start_pfn, end_pfn;
+>>> +	unsigned long range_end_pfn = range_start_pfn + size;
+>>> +	int i;
+>>> +	for_each_mem_pfn_range(i, nid, &start_pfn, &end_pfn, NULL) {
+>>> +		start_pfn = clamp(start_pfn, range_start_pfn, range_end_pfn);
+>>> +		end_pfn = clamp(end_pfn, range_start_pfn, range_end_pfn);
+>>> +		if (end_pfn > start_pfn)
+>>> +			memmap_init_zone(size, nid, zone, start_pfn, MEMMAP_EARLY, NULL);
+>>> +	}
+>>>   }
+>>>   
+>>>   static int zone_batchsize(struct zone *zone)
+>>
+>> -- 
+>> Michal Hocko
+>> SUSE Labs
+>>
 > 
-> On 04/26/2020 06:25 AM, Andrew Morton wrote:
-> > On Tue, 14 Apr 2020 17:14:30 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
-> > 
-> >> There are multiple similar definitions for arch_clear_hugepage_flags() on
-> >> various platforms. This introduces HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS for those
-> >> platforms that need to define their own arch_clear_hugepage_flags() while
-> >> also providing a generic fallback definition for others to use. This help
-> >> reduce code duplication.
-> >>
-> >> ...
-> >>
-> >> --- a/include/linux/hugetlb.h
-> >> +++ b/include/linux/hugetlb.h
-> >> @@ -544,6 +544,10 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
-> >>  }
-> >>  #endif
-> >>  
-> >> +#ifndef HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS
-> >> +static inline void arch_clear_hugepage_flags(struct page *page) { }
-> >> +#endif
-> >> +
-> >>  #ifndef arch_make_huge_pte
-> >>  static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
-> >>  				       struct page *page, int writable)
-> > 
-> > This is the rather old-school way of doing it.  The Linus-suggested way is
-> > 
-> > #ifndef arch_clear_hugepage_flags
-> > static inline void arch_clear_hugepage_flags(struct page *page)
-> > {
-> > }
-> > #define arch_clear_hugepage_flags arch_clear_hugepage_flags
-> 
-> Do we need that above line here ? Is not that implicit.
-
-It depends if other header files want to test whether
-arch_clear_hugepage_flags is already defined.  If the header heorarchy
-is well-defined and working properly, they shouldn't need to, because
-we're reliably indluding the relevant arch header before (or early
-within) include/linux/hugetlb.h.
-
-It would be nice if
-
-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-
-were to generate an compiler error but it doesn't.  If it did we could
-detect these incorrect inclusion orders.
-
-> > #endif
-> > 
-> > And the various arch headers do
-> > 
-> > static inline void arch_clear_hugepage_flags(struct page *page)
-> > {
-> > 	<some implementation>
-> > }
-> > #define arch_clear_hugepage_flags arch_clear_hugepage_flags
-> > 
-> > It's a small difference - mainly to avoid adding two variables to the
-> > overall namespace where one would do.
-> 
-> Understood, will change and resend.
-
-That's OK - I've queued up that fix.
