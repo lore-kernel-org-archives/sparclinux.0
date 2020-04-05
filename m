@@ -1,41 +1,43 @@
-From: Will Deacon <will@kernel.org>
-Date: Tue, 14 Apr 2020 21:40:11 +0000
-Subject: [RESEND PATCH 4/4] sparc32: mm: Reduce allocation size for PMD and PTE tables
-Message-Id: <20200414214011.2699-5-will@kernel.org>
+From: Matt Turner <mattst88@gmail.com>
+Date: Sun, 05 Apr 2020 20:18:56 +0000
+Subject: Re: [PATCH 4/5] second: Fix typo'd operator
+Message-Id: <CAEdQ38HQ+tb+ZQ2-7tGQSsuz=6fcKa5++-dMOdhcUs=ZzbBFwQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200414214011.2699-1-will@kernel.org>
-In-Reply-To: <20200414214011.2699-1-will@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, sparclinux@vger.kernel.org, kernel-team@android.com
+To: sparclinux@vger.kernel.org
 
-Now that the page table allocator can free page table allocations
-smaller than PAGE_SIZE, reduce the size of the PMD and PTE allocations
-to avoid needlessly wasting memory.
+On Sun, Apr 5, 2020 at 12:23 PM Aaro Koskinen <aaro.koskinen@iki.fi> wrote:
+>
+> Hi,
+>
+> On Sun, Apr 05, 2020 at 11:54:50AM -0700, Matt Turner wrote:
+> > Signed-off-by: Matt Turner <mattst88@gmail.com>
+> > ---
+> >  second/disk.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/second/disk.c b/second/disk.c
+> > index 40234b3..b81a465 100644
+> > --- a/second/disk.c
+> > +++ b/second/disk.c
+> > @@ -293,7 +293,7 @@ int silo_disk_read(char *buff, int size, unsigned long long offset)
+> >       if (!net) {
+> >           if (prom_vers != PROM_P1275) {
+> >                   if (((romvec->pv_printrev >> 16) < 2 ||
+> > -                      ((romvec->pv_printrev >> 16) = 2 && (romvec->pv_printrev && 0xffff) < 6))
+> > +                      ((romvec->pv_printrev >> 16) = 2 && (romvec->pv_printrev & 0xffff) < 6))
+> >                       && offset >= 0x40000000) {
+> >                       printf ("Buggy old PROMs don't allow reading past 1GB from start of the disk. Send complaints to SMCC\n");
+> >                       return -1;
+>
+> I think it's worth mentioning in the commit log that this is changing
+> the behaviour... After the patch only < 2.6 PROMs will fail (which is
+> probably correct), instead of every 2.* like now.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Signed-off-by: Will Deacon <will@kernel.org>
----
- arch/sparc/include/asm/pgtsrmmu.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Sure, that's fair.
 
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 58ea8e8c6ee7..7708d015712b 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -17,8 +17,8 @@
- /* Number of contexts is implementation-dependent; 64k is the most we support */
- #define SRMMU_MAX_CONTEXTS	65536
- 
--#define SRMMU_PTE_TABLE_SIZE		(PAGE_SIZE)
--#define SRMMU_PMD_TABLE_SIZE		(PAGE_SIZE)
-+#define SRMMU_PTE_TABLE_SIZE		(PTRS_PER_PTE*4)
-+#define SRMMU_PMD_TABLE_SIZE		(PTRS_PER_PMD*4)
- #define SRMMU_PGD_TABLE_SIZE		(PTRS_PER_PGD*4)
- 
- /* Definition of the values in the ET field of PTD's and PTE's */
--- 
-2.26.0.110.g2183baf09c-goog
+> BTW, I guess you found this error after a GCC warning, not in real use?
+
+Correct.
