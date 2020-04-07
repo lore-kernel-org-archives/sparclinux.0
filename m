@@ -1,42 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 06 Apr 2020 18:25:28 +0000
-Subject: [GIT] Sparc
-Message-Id: <20200406.112528.895031681027517472.davem@davemloft.net>
+From: pr-tracker-bot@kernel.org
+Date: Tue, 07 Apr 2020 19:55:24 +0000
+Subject: Re: [GIT] Sparc
+Message-Id: <158628932413.3792.18059030227180244818.pr-tracker-bot@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20200406.112528.895031681027517472.davem@davemloft.net>
+In-Reply-To: <20200406.112528.895031681027517472.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
-Cc: akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+The pull request you sent on Mon, 06 Apr 2020 11:25:28 -0700 (PDT):
 
-A per-device DMA ops conversion for sparc32 by Chrstioph Hellwig.
+> git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git refs/heads/master
 
-Please pull, thanks a lot!
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/12782fbe0f77dcc36c48de8b0ab36d336620a3e7
 
-The following changes since commit bef7b2a7be28638770972ab2709adf11d601c11a:
+Thank you!
 
-  Merge tag 'devicetree-for-5.7' of git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux (2020-04-02 17:32:52 -0700)
-
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to 255a69a94b8cbbcfef142137b5e7f99b5d168771:
-
-  sparc32: use per-device dma_ops (2020-04-02 18:11:55 -0700)
-
-----------------------------------------------------------------
-Christoph Hellwig (1):
-      sparc32: use per-device dma_ops
-
- arch/sparc/include/asm/dma-mapping.h | 15 ++-------------
- arch/sparc/kernel/ioport.c           |  3 ---
- arch/sparc/kernel/of_device_common.c |  1 +
- arch/sparc/mm/io-unit.c              |  9 ++++-----
- arch/sparc/mm/iommu.c                | 15 ++++++++-------
- arch/sparc/mm/mm_32.h                |  3 ---
- arch/sparc/mm/srmmu.c                |  4 +---
- 7 files changed, 16 insertions(+), 34 deletions(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
