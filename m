@@ -1,187 +1,82 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Tue, 28 Apr 2020 20:56:13 +0000
-Subject: [PATCH v4 3/4] hugetlbfs: remove hugetlb_add_hstate() warning for existing hstate
-Message-Id: <20200428205614.246260-4-mike.kravetz@oracle.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Tue, 14 Apr 2020 11:56:27 +0000
+Subject: [PATCH 0/3] mm/hugetlb: Add some new arch enabling macros
+Message-Id: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200428205614.246260-1-mike.kravetz@oracle.com>
-In-Reply-To: <20200428205614.246260-1-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Peter Xu <peterx@redhat.com>, Paul Mackerras <paulus@samba.org>, Will Deacon <will@kernel.org>, Mina Almasry <almasrymina@google.com>, Anders Roxell <anders.roxell@linaro.org>, Jonathan Corbet <corbet@lwn.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Longpeng <longpeng2@huawei.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Christophe Leroy <christophe.leroy@c-s.fr>, Nitesh Narayan Lal <nitesh@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
+To: linux-mm@kvack.org
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>Rich Felker <d>
 
-The routine hugetlb_add_hstate prints a warning if the hstate already
-exists.  This was originally done as part of kernel command line
-parsing.  If 'hugepagesz=' was specified more than once, the warning
-	pr_warn("hugepagesz= specified twice, ignoring\n");
-would be printed.
+This series adds two macros which platforms can enable to override generic
+fallback definitions. Before that it drops __HAVE_ARCH_HUGE_PTEP_GET from
+arm64 platform.
 
-Some architectures want to enable all huge page sizes.  They would
-call hugetlb_add_hstate for all supported sizes.  However, this was
-done after command line processing and as a result hstates could have
-already been created for some sizes.  To make sure no warning were
-printed, there would often be code like:
-	if (!size_to_hstate(size)
-		hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT)
+1. HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE - is_hugepage_only_range()
+2. HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS   - arch_clear_hugepage_flags()
 
-The only time we want to print the warning is as the result of command
-line processing.  So, remove the warning from hugetlb_add_hstate and
-add it to the single arch independent routine processing "hugepagesz=".
-After this, calls to size_to_hstate() in arch specific code can be
-removed and hugetlb_add_hstate can be called without worrying about
-warning messages.
+This has been boot tested on arm64 and x86 platforms but built tested on
+some more platforms including the changed ones here. This series applies
+on v5.7-rc1. After this arm (32 bit) remains the sole platform defining
+it's own huge_ptep_get() via __HAVE_ARCH_HUGE_PTEP_GET.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Mina Almasry <almasrymina@google.com>
-Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>  [s390]
-Acked-by: Will Deacon <will@kernel.org>
-Tested-by: Anders Roxell <anders.roxell@linaro.org>
----
- arch/arm64/mm/hugetlbpage.c   | 16 ++++------------
- arch/powerpc/mm/hugetlbpage.c |  3 +--
- arch/riscv/mm/hugetlbpage.c   |  2 +-
- arch/sparc/mm/init_64.c       | 19 ++++---------------
- arch/x86/mm/hugetlbpage.c     |  2 +-
- mm/hugetlb.c                  |  9 ++++++---
- 6 files changed, 17 insertions(+), 34 deletions(-)
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: x86@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
-index f706b821aba6..14bed8f4674a 100644
---- a/arch/arm64/mm/hugetlbpage.c
-+++ b/arch/arm64/mm/hugetlbpage.c
-@@ -441,22 +441,14 @@ void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 	clear_flush(vma->vm_mm, addr, ptep, pgsize, ncontig);
- }
- 
--static void __init add_huge_page_size(unsigned long size)
--{
--	if (size_to_hstate(size))
--		return;
--
--	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
--}
--
- static int __init hugetlbpage_init(void)
- {
- #ifdef CONFIG_ARM64_4K_PAGES
--	add_huge_page_size(PUD_SIZE);
-+	hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
- #endif
--	add_huge_page_size(CONT_PMD_SIZE);
--	add_huge_page_size(PMD_SIZE);
--	add_huge_page_size(CONT_PTE_SIZE);
-+	hugetlb_add_hstate((CONT_PMD_SHIFT + PMD_SHIFT) - PAGE_SHIFT);
-+	hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
-+	hugetlb_add_hstate((CONT_PTE_SHIFT + PAGE_SHIFT) - PAGE_SHIFT);
- 
- 	return 0;
- }
-diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
-index 2c3fa0a7787b..4d5ed1093615 100644
---- a/arch/powerpc/mm/hugetlbpage.c
-+++ b/arch/powerpc/mm/hugetlbpage.c
-@@ -584,8 +584,7 @@ static int __init add_huge_page_size(unsigned long long size)
- 	if (!arch_hugetlb_valid_size((unsigned long)size))
- 		return -EINVAL;
- 
--	if (!size_to_hstate(size))
--		hugetlb_add_hstate(shift - PAGE_SHIFT);
-+	hugetlb_add_hstate(shift - PAGE_SHIFT);
- 	return 0;
- }
- 
-diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
-index 4e5d7e9f0eef..932dadfdca54 100644
---- a/arch/riscv/mm/hugetlbpage.c
-+++ b/arch/riscv/mm/hugetlbpage.c
-@@ -26,7 +26,7 @@ bool __init arch_hugetlb_valid_size(unsigned long size)
- static __init int gigantic_pages_init(void)
- {
- 	/* With CONTIG_ALLOC, we can allocate gigantic pages at runtime */
--	if (IS_ENABLED(CONFIG_64BIT) && !size_to_hstate(1UL << PUD_SHIFT))
-+	if (IS_ENABLED(CONFIG_64BIT))
- 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
- 	return 0;
- }
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 4618f96fd30f..ae819a16d07a 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -325,23 +325,12 @@ static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_inde
- }
- 
- #ifdef CONFIG_HUGETLB_PAGE
--static void __init add_huge_page_size(unsigned long size)
--{
--	unsigned int order;
--
--	if (size_to_hstate(size))
--		return;
--
--	order = ilog2(size) - PAGE_SHIFT;
--	hugetlb_add_hstate(order);
--}
--
- static int __init hugetlbpage_init(void)
- {
--	add_huge_page_size(1UL << HPAGE_64K_SHIFT);
--	add_huge_page_size(1UL << HPAGE_SHIFT);
--	add_huge_page_size(1UL << HPAGE_256MB_SHIFT);
--	add_huge_page_size(1UL << HPAGE_2GB_SHIFT);
-+	hugetlb_add_hstate(HPAGE_64K_SHIFT - PAGE_SHIFT);
-+	hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
-+	hugetlb_add_hstate(HPAGE_256MB_SHIFT - PAGE_SHIFT);
-+	hugetlb_add_hstate(HPAGE_2GB_SHIFT - PAGE_SHIFT);
- 
- 	return 0;
- }
-diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
-index 937d640a89e3..cf5781142716 100644
---- a/arch/x86/mm/hugetlbpage.c
-+++ b/arch/x86/mm/hugetlbpage.c
-@@ -195,7 +195,7 @@ bool __init arch_hugetlb_valid_size(unsigned long size)
- static __init int gigantic_pages_init(void)
- {
- 	/* With compaction or CMA we can allocate gigantic pages at runtime */
--	if (boot_cpu_has(X86_FEATURE_GBPAGES) && !size_to_hstate(1UL << PUD_SHIFT))
-+	if (boot_cpu_has(X86_FEATURE_GBPAGES))
- 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
- 	return 0;
- }
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index 6a8454bc2917..2ae0e506cfc7 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -3222,8 +3222,7 @@ static int __init hugetlb_init(void)
- 		}
- 
- 		default_hstate_size = HPAGE_SIZE;
--		if (!size_to_hstate(default_hstate_size))
--			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
-+		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
- 	}
- 	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
- 	if (default_hstate_max_huge_pages) {
-@@ -3268,7 +3267,6 @@ void __init hugetlb_add_hstate(unsigned int order)
- 	unsigned long i;
- 
- 	if (size_to_hstate(PAGE_SIZE << order)) {
--		pr_warn("hugepagesz= specified twice, ignoring\n");
- 		return;
- 	}
- 	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
-@@ -3343,6 +3341,11 @@ static int __init hugepagesz_setup(char *s)
- 		return 0;
- 	}
- 
-+	if (size_to_hstate(size)) {
-+		pr_warn("HugeTLB: hugepagesz %s specified twice, ignoring\n", s);
-+		return 0;
-+	}
-+
- 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
- 	return 1;
- }
+Anshuman Khandual (3):
+  arm64/mm: Drop __HAVE_ARCH_HUGE_PTEP_GET
+  mm/hugetlb: Introduce HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
+  mm/hugetlb: Introduce HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS
+
+ arch/arm/include/asm/hugetlb.h     |  7 +------
+ arch/arm64/include/asm/hugetlb.h   | 13 +------------
+ arch/ia64/include/asm/hugetlb.h    |  5 +----
+ arch/mips/include/asm/hugetlb.h    | 11 -----------
+ arch/parisc/include/asm/hugetlb.h  | 10 ----------
+ arch/powerpc/include/asm/hugetlb.h |  5 +----
+ arch/riscv/include/asm/hugetlb.h   | 10 ----------
+ arch/s390/include/asm/hugetlb.h    |  8 +-------
+ arch/sh/include/asm/hugetlb.h      |  7 +------
+ arch/sparc/include/asm/hugetlb.h   | 10 ----------
+ arch/x86/include/asm/hugetlb.h     | 10 ----------
+ include/linux/hugetlb.h            | 12 ++++++++++++
+ 12 files changed, 18 insertions(+), 90 deletions(-)
+
 -- 
-2.25.4
+2.20.1
