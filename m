@@ -1,31 +1,54 @@
-From: "ATM CARD" <info@ubagroup.com>
-Date: Wed, 15 Apr 2020 13:07:18 +0000
-Subject: Attention,
-Message-Id: <55FA35C42DEB46C88DEAB0E47B059AB2.MAI@NCR.local>
+From: Will Deacon <will@kernel.org>
+Date: Tue, 14 Apr 2020 21:40:07 +0000
+Subject: [RESEND PATCH 0/4] Rework sparc32 page-table layout
+Message-Id: <20200414214011.2699-1-will@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200409002152.4AB242384909@zeta.ibetec.info>
-In-Reply-To: <20200409002152.4AB242384909@zeta.ibetec.info>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, Peter Zijlstra <peterz@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Matt Fleming <matt@codeblueprint.co.uk>, sparclinux@vger.kernel.org, kernel-team@android.com
 
+Hi all,
 
-(52.68/GDEMSGC)
+This is a reposting of the patch series I sent previously to rework the
+sparc32 page-table layout so that 'pmd_t' can be used safely with
+READ_ONCE():
 
-Your ATM card worth the sum Four Million, Five Hundred Thousand United States Of American Dollars ($4.500’000’00 ) has been deposited with UNITED PARCEL SERVICE (UPS) for delivery to your home address. We are sorry for the Delay which was as a result of the CoronaVirus Pandemic. You are advised to stay safe band clean.  
+https://lore.kernel.org/lkml/20200324104005.11279-1-will@kernel.org
 
-Please Do Reconfirm the below Details;
+This is blocking the READ_ONCE() rework, which in turn allows us to
+bump the minimum GCC version for building the kernel up to 4.8.
 
-Your name____________
-Delivery Address:____
-Country______________
-Phone Number:________
+Cheers,
 
-Note, All charges regards this delivery was paid except , that it's mandatory the recepient to pay for the safe keeping fees charged $50 USD Daily which is payable before dispatching the parcel to your destination. for further inquiries please  Now contact UNITED PARCEL SERVICE (UPS) Nigerian Regional Director :        Mr Morris Soma
-                                      ups.courier518@gmail.com 
-                                     +234(815)7599680
+Will
 
-Your faithfully
-Mr.Davis Luiz
-Acting Manager of UBA Bank Plc
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: sparclinux@vger.kernel.org
+Cc: kernel-team@android.com
+
+--->8
+
+Will Deacon (4):
+  sparc32: mm: Fix argument checking in __srmmu_get_nocache()
+  sparc32: mm: Restructure sparc32 MMU page-table layout
+  sparc32: mm: Change pgtable_t type to pte_t * instead of struct page *
+  sparc32: mm: Reduce allocation size for PMD and PTE tables
+
+ arch/sparc/include/asm/page_32.h    | 12 ++--
+ arch/sparc/include/asm/pgalloc_32.h | 11 ++--
+ arch/sparc/include/asm/pgtable_32.h | 40 +++++++-----
+ arch/sparc/include/asm/pgtsrmmu.h   | 36 +----------
+ arch/sparc/include/asm/viking.h     |  5 +-
+ arch/sparc/kernel/head_32.S         |  8 +--
+ arch/sparc/mm/hypersparc.S          |  3 +-
+ arch/sparc/mm/srmmu.c               | 95 ++++++++++-------------------
+ arch/sparc/mm/viking.S              |  5 +-
+ 9 files changed, 85 insertions(+), 130 deletions(-)
+
+-- 
+2.26.0.110.g2183baf09c-goog
