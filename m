@@ -1,15 +1,17 @@
 From: "ATM CARD" <info@ubagroup.com>
-Date: Wed, 08 Apr 2020 18:30:22 +0000
+Date: Wed, 15 Apr 2020 13:07:18 +0000
 Subject: Attention,
-Message-Id: <20200409002152.4AB242384909@zeta.ibetec.info>
+Message-Id: <55FA35C42DEB46C88DEAB0E47B059AB2.MAI@NCR.local>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200409002152.4AB242384909@zeta.ibetec.info>
+In-Reply-To: <20200409002152.4AB242384909@zeta.ibetec.info>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
 
-(GESGC1/79.50)
+(52.68/GDEMSGC)
 
 Your ATM card worth the sum Four Million, Five Hundred Thousand United States Of American Dollars ($4.500’000’00 ) has been deposited with UNITED PARCEL SERVICE (UPS) for delivery to your home address. We are sorry for the Delay which was as a result of the CoronaVirus Pandemic. You are advised to stay safe band clean.  
 
