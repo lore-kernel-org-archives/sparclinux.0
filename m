@@ -1,38 +1,72 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Date: Thu, 02 Apr 2020 14:03:02 +0000
-Subject: Re: [sparc64] OOPS after 'serial: core: Allow detach and attach serial device for console'
-Message-Id: <20200402140302.GB1922688@smile.fi.intel.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Fri, 17 Apr 2020 18:50:45 +0000
+Subject: [PATCH v3 0/4] Clean up hugetlb boot command line processing
+Message-Id: <20200417185049.275845-1-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqwHdRd=3fzr=-9hdR7_cW2VXXHwoySzbSpWx+aZ1S=ysA@mail.gmail.com>
-In-Reply-To: <CADxRZqwHdRd=3fzr=-9hdR7_cW2VXXHwoySzbSpWx+aZ1S=ysA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Peter Xu <peterx@redhat.com>, Paul Mackerras <paulus@samba.org>, Will Deacon <will@kernel.org>, Mina Almasry <almasrymina@google.com>, Jonathan Corbet <corbet@lwn.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Longpeng <longpeng2@huawei.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Christophe Leroy <christophe.leroy@c-s.fr>, Nitesh Narayan Lal <nitesh@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-On Thu, Apr 02, 2020 at 02:24:59PM +0300, Andy Shevchenko wrote:
-> On Thu, Apr 02, 2020 at 02:00:51PM +0300, Anatoly Pugachev wrote:
-> > Hello!
-> > 
-> > Bisected the following call trace on kernel boot with linux sparc64
-> > debian sid LDOM:
-> > 
-> 
-> Thank you, I'm on it.
-> 
-> Briefly looking it among these lines
-> 
-> static inline void uart_port_spin_lock_init(struct uart_port *port)
-> {
-> 	- if (uart_console_enabled(port))
-> 	+ if (uart_console(port))
-> 
-> which reveals an issue in the sparc code.
-> 
-> I'm going to look further into it...
+v3 -
+   Used weak attribute method of defining arch_hugetlb_valid_size.
+     This eliminates changes to arch specific hugetlb.h files (Peter)
+   Updated documentation (Peter, Randy)
+   Fixed handling of implicitly specified gigantic page preallocation
+     in existing code and removed documentation of such.  There is now
+     no difference between handling of gigantic and non-gigantic pages.
+     (Peter, Nitesh).
+     This requires the most review as there is a small change to
+     undocumented behavior.  See patch 4 commit message for details.
+   Added Acks and Reviews (Mina, Peter)
 
-Meanwhile, can you replace above and test if it fixes your case?
+v2 -
+   Fix build errors with patch 1 (Will)
+   Change arch_hugetlb_valid_size arg to unsigned long and remove
+     irrelevant 'extern' keyword (Christophe)
+   Documentation and other misc changes (Randy, Christophe, Mina)
+   Do not process command line options if !hugepages_supported()
+     (Dave, but it sounds like we may want to additional changes to
+      hugepages_supported() for x86?  If that is needed I would prefer
+      a separate patch.)
+
+Longpeng(Mike) reported a weird message from hugetlb command line processing
+and proposed a solution [1].  While the proposed patch does address the
+specific issue, there are other related issues in command line processing.
+As hugetlbfs evolved, updates to command line processing have been made to
+meet immediate needs and not necessarily in a coordinated manner.  The result
+is that some processing is done in arch specific code, some is done in arch
+independent code and coordination is problematic.  Semantics can vary between
+architectures.
+
+The patch series does the following:
+- Define arch specific arch_hugetlb_valid_size routine used to validate
+  passed huge page sizes.
+- Move hugepagesz= command line parsing out of arch specific code and into
+  an arch independent routine.
+- Clean up command line processing to follow desired semantics and
+  document those semantics.
+
+[1] https://lore.kernel.org/linux-mm/20200305033014.1152-1-longpeng2@huawei.com
+
+Mike Kravetz (4):
+  hugetlbfs: add arch_hugetlb_valid_size
+  hugetlbfs: move hugepagesz= parsing to arch independent code
+  hugetlbfs: remove hugetlb_add_hstate() warning for existing hstate
+  hugetlbfs: clean up command line processing
+
+ .../admin-guide/kernel-parameters.txt         |  40 ++--
+ Documentation/admin-guide/mm/hugetlbpage.rst  |  35 ++++
+ arch/arm64/mm/hugetlbpage.c                   |  30 +--
+ arch/powerpc/mm/hugetlbpage.c                 |  30 +--
+ arch/riscv/mm/hugetlbpage.c                   |  24 +--
+ arch/s390/mm/hugetlbpage.c                    |  24 +--
+ arch/sparc/mm/init_64.c                       |  43 +---
+ arch/x86/mm/hugetlbpage.c                     |  23 +--
+ include/linux/hugetlb.h                       |   2 +-
+ mm/hugetlb.c                                  | 190 +++++++++++++++---
+ 10 files changed, 271 insertions(+), 170 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.25.2
