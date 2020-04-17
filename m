@@ -1,7 +1,7 @@
-From: Matt Turner <mattst88@gmail.com>
-Date: Fri, 17 Apr 2020 19:39:24 +0000
+From: David Miller <davem@davemloft.net>
+Date: Fri, 17 Apr 2020 23:30:32 +0000
 Subject: Re: [PATCH] silo: Allow building tilo only
-Message-Id: <CAEdQ38F174h2WkdNj1DUuto8N1wr58=7AqpS98YFBMwYCZ4RaQ@mail.gmail.com>
+Message-Id: <20200417.163032.1343365817549462941.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200406202716.4008090-1-mattst88@gmail.com>
 In-Reply-To: <20200406202716.4008090-1-mattst88@gmail.com>
@@ -10,4 +10,9 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Ping (and for the other 5 patches I sent as well)
+From: Matt Turner <mattst88@gmail.com>
+Date: Fri, 17 Apr 2020 12:39:24 -0700
+
+> Ping (and for the other 5 patches I sent as well)
+
+I'll take a look at this soon.
