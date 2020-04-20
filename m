@@ -1,82 +1,76 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Tue, 14 Apr 2020 11:56:27 +0000
-Subject: [PATCH 0/3] mm/hugetlb: Add some new arch enabling macros
-Message-Id: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
+From: Nate Karstens <nate.karstens@garmin.com>
+Date: Mon, 20 Apr 2020 07:15:47 +0000
+Subject: [PATCH 3/4] fs: Add F_DUPFD_CLOFORK to fcntl(2)
+Message-Id: <20200420071548.62112-4-nate.karstens@garmin.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200420071548.62112-1-nate.karstens@garmin.com>
+In-Reply-To: <20200420071548.62112-1-nate.karstens@garmin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>Rich Felker <d>
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Changli Gao <xiaosuo@gmail.com>, Nate Karstens <nate.karstens@garmin.com>
 
-This series adds two macros which platforms can enable to override generic
-fallback definitions. Before that it drops __HAVE_ARCH_HUGE_PTEP_GET from
-arm64 platform.
+Implement functionality for duplicating a file descriptor
+and having the close-on-fork flag automatically set in the
+new file descriptor.
 
-1. HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE - is_hugepage_only_range()
-2. HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS   - arch_clear_hugepage_flags()
+Signed-off-by: Nate Karstens <nate.karstens@garmin.com>
+---
+ fs/fcntl.c                       | 4 ++++
+ include/uapi/linux/fcntl.h       | 3 +++
+ tools/include/uapi/linux/fcntl.h | 3 +++
+ 3 files changed, 10 insertions(+)
 
-This has been boot tested on arm64 and x86 platforms but built tested on
-some more platforms including the changed ones here. This series applies
-on v5.7-rc1. After this arm (32 bit) remains the sole platform defining
-it's own huge_ptep_get() via __HAVE_ARCH_HUGE_PTEP_GET.
-
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: x86@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-Anshuman Khandual (3):
-  arm64/mm: Drop __HAVE_ARCH_HUGE_PTEP_GET
-  mm/hugetlb: Introduce HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
-  mm/hugetlb: Introduce HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS
-
- arch/arm/include/asm/hugetlb.h     |  7 +------
- arch/arm64/include/asm/hugetlb.h   | 13 +------------
- arch/ia64/include/asm/hugetlb.h    |  5 +----
- arch/mips/include/asm/hugetlb.h    | 11 -----------
- arch/parisc/include/asm/hugetlb.h  | 10 ----------
- arch/powerpc/include/asm/hugetlb.h |  5 +----
- arch/riscv/include/asm/hugetlb.h   | 10 ----------
- arch/s390/include/asm/hugetlb.h    |  8 +-------
- arch/sh/include/asm/hugetlb.h      |  7 +------
- arch/sparc/include/asm/hugetlb.h   | 10 ----------
- arch/x86/include/asm/hugetlb.h     | 10 ----------
- include/linux/hugetlb.h            | 12 ++++++++++++
- 12 files changed, 18 insertions(+), 90 deletions(-)
-
+diff --git a/fs/fcntl.c b/fs/fcntl.c
+index b59b27c3a338..43ca3e3dacc5 100644
+--- a/fs/fcntl.c
++++ b/fs/fcntl.c
+@@ -333,6 +333,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 	case F_DUPFD_CLOEXEC:
+ 		err = f_dupfd(arg, filp, O_CLOEXEC);
+ 		break;
++	case F_DUPFD_CLOFORK:
++		err = f_dupfd(arg, filp, O_CLOFORK);
++		break;
+ 	case F_GETFD:
+ 		err = get_close_on_exec(fd) ? FD_CLOEXEC : 0;
+ 		err |= get_close_on_fork(fd) ? FD_CLOFORK : 0;
+@@ -439,6 +442,7 @@ static int check_fcntl_cmd(unsigned cmd)
+ 	switch (cmd) {
+ 	case F_DUPFD:
+ 	case F_DUPFD_CLOEXEC:
++	case F_DUPFD_CLOFORK:
+ 	case F_GETFD:
+ 	case F_SETFD:
+ 	case F_GETFL:
+diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
+index ca88b7bce553..9e1069ff3a22 100644
+--- a/include/uapi/linux/fcntl.h
++++ b/include/uapi/linux/fcntl.h
+@@ -55,6 +55,9 @@
+ #define F_GET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 13)
+ #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
+ 
++/* Create a file descriptor with FD_CLOFORK set. */
++#define F_DUPFD_CLOFORK	(F_LINUX_SPECIFIC_BASE + 15)
++
+ /*
+  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
+  * used to clear any hints previously set.
+diff --git a/tools/include/uapi/linux/fcntl.h b/tools/include/uapi/linux/fcntl.h
+index ca88b7bce553..9e1069ff3a22 100644
+--- a/tools/include/uapi/linux/fcntl.h
++++ b/tools/include/uapi/linux/fcntl.h
+@@ -55,6 +55,9 @@
+ #define F_GET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 13)
+ #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
+ 
++/* Create a file descriptor with FD_CLOFORK set. */
++#define F_DUPFD_CLOFORK	(F_LINUX_SPECIFIC_BASE + 15)
++
+ /*
+  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
+  * used to clear any hints previously set.
 -- 
-2.20.1
+2.26.1
