@@ -1,49 +1,29 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Date: Thu, 09 Apr 2020 18:50:30 +0000
-Subject: Re: Suspected bug in wait syscall or similar
-Message-Id: <7975934.7CMqr95tqx@daneel.sf-tec.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart1827298.CxYgaetDCC"
+From: Wei Yongjun <weiyongjun1@huawei.com>
+Date: Mon, 27 Apr 2020 12:24:15 +0000
+Subject: [PATCH -next] sparc64: vcc: Fix error return code in vcc_probe()
+Message-Id: <20200427122415.47416-1-weiyongjun1@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1848982.8N1hjUtedq@eto.sf-tec.de>
-In-Reply-To: <1848982.8N1hjUtedq@eto.sf-tec.de>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: kernel-janitors@vger.kernel.org
 
---nextPart1827298.CxYgaetDCC
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Fix to return negative error code -ENOMEM from the error handling
+case instead of 0, as done elsewhere in this function.
 
-Am Donnerstag, 9. April 2020, 10:11:18 CEST schrieb Rolf Eike Beer:
-> Am Montag, 30. M=E4rz 2020, 10:41:09 CEST schrieb Rolf Eike Beer:
-> > I run a 32 bit Gentoo userspace on my T5120 with a 64 bit kernel (5.5.7=
- at
-> > the moment). This is nothing really new, I see this for a while, but it
-> > seems to got a bit worse lately.
-> >=20
-> > My observations are:
-> > -the testsuite of the fish shell often hangs. A subprocess goes zombie,
-> > but
-> > the parent never cleans this up
->=20
-> This also happens on sparc64.
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/tty/vcc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Given that is only calls select() here over and over again I think it's an=
-=20
-application bug, files here:
-
-https://github.com/fish-shell/fish-shell/issues/6878
-
-Eike
---nextPart1827298.CxYgaetDCC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCXo9udgAKCRBcpIk+abn8
-Tj50AKCg2/dMBAupLTdzkEdaoEHrG4uuEwCffGJEy2IN02XLTilDoW2pNzSPvvg=
-=OQu2
------END PGP SIGNATURE-----
-
---nextPart1827298.CxYgaetDCC--
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index d2a1e1228c82..9ffd42e333b8 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -605,6 +605,7 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 	port->index = vcc_table_add(port);
+ 	if (port->index = -1) {
+ 		pr_err("VCC: no more TTY indices left for allocation\n");
++		rv = -ENOMEM;
+ 		goto free_ldc;
+ 	}
