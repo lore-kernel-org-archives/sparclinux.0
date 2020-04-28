@@ -1,272 +1,404 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Tue, 14 Apr 2020 11:56:29 +0000
-Subject: [PATCH 2/3] mm/hugetlb: Introduce HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
-Message-Id: <1586864670-21799-3-git-send-email-anshuman.khandual@arm.com>
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Date: Tue, 28 Apr 2020 20:56:14 +0000
+Subject: [PATCH v4 4/4] hugetlbfs: clean up command line processing
+Message-Id: <20200428205614.246260-5-mike.kravetz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
+References: <20200428205614.246260-1-mike.kravetz@oracle.com>
+In-Reply-To: <20200428205614.246260-1-mike.kravetz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>Rich Felker <d>
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Peter Xu <peterx@redhat.com>, Paul Mackerras <paulus@samba.org>, Sandipan Das <sandipan@linux.ibm.com>, Will Deacon <will@kernel.org>, Mina Almasry <almasrymina@google.com>, Jonathan Corbet <corbet@lwn.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Longpeng <longpeng2@huawei.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Christophe Leroy <christophe.leroy@c-s.fr>, Nitesh Narayan Lal <nitesh@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
 
-There are multiple similar definitions for is_hugepage_only_range() across
-platforms. This introduces HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE for platforms
-that need to define their own is_hugepage_only_range() but otherwise there
-is a generic fallback definition for others to use. This help reduce code
-duplication.
+With all hugetlb page processing done in a single file clean up code.
+- Make code match desired semantics
+  - Update documentation with semantics
+- Make all warnings and errors messages start with 'HugeTLB:'.
+- Consistently name command line parsing routines.
+- Warn if !hugepages_supported() and command line parameters have
+  been specified.
+- Add comments to code
+  - Describe some of the subtle interactions
+  - Describe semantics of command line arguments
 
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: x86@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This patch also fixes issues with implicitly setting the number of
+gigantic huge pages to preallocate.  Previously on X86 command line,
+        hugepages=2 default_hugepagesz=1G
+would result in zero 1G pages being preallocated and,
+        # grep HugePages_Total /proc/meminfo
+        HugePages_Total:       0
+        # sysctl -a | grep nr_hugepages
+        vm.nr_hugepages = 2
+        vm.nr_hugepages_mempolicy = 2
+        # cat /proc/sys/vm/nr_hugepages
+        2
+After this patch 2 gigantic pages will be preallocated and all the
+proc, sysfs, sysctl and meminfo files will accurately reflect this.
+
+To address the issue with gigantic pages, a small change in behavior
+was made to command line processing.  Previously the command line,
+        hugepages8 default_hugepagesz=2M hugepagesz=2M hugepages%6
+would result in the allocation of 256 2M huge pages.  The value 128
+would be ignored without any warning.  After this patch, 128 2M pages
+will be allocated and a warning message will be displayed indicating
+the value of 256 is ignored.  This change in behavior is required
+because allocation of implicitly specified gigantic pages must be done
+when the default_hugepagesz= is encountered for gigantic pages.
+Previously the code waited until later in the boot process (hugetlb_init),
+to allocate pages of default size.  However the bootmem allocator required
+for gigantic allocations is not available at this time.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>  [s390]
+Acked-by: Will Deacon <will@kernel.org>
+Tested-by: Sandipan Das <sandipan@linux.ibm.com>
 ---
- arch/arm/include/asm/hugetlb.h     | 6 ------
- arch/arm64/include/asm/hugetlb.h   | 6 ------
- arch/ia64/include/asm/hugetlb.h    | 1 +
- arch/mips/include/asm/hugetlb.h    | 7 -------
- arch/parisc/include/asm/hugetlb.h  | 6 ------
- arch/powerpc/include/asm/hugetlb.h | 1 +
- arch/riscv/include/asm/hugetlb.h   | 6 ------
- arch/s390/include/asm/hugetlb.h    | 7 -------
- arch/sh/include/asm/hugetlb.h      | 6 ------
- arch/sparc/include/asm/hugetlb.h   | 6 ------
- arch/x86/include/asm/hugetlb.h     | 6 ------
- include/linux/hugetlb.h            | 8 ++++++++
- 12 files changed, 10 insertions(+), 56 deletions(-)
+ .../admin-guide/kernel-parameters.txt         |  40 +++--
+ Documentation/admin-guide/mm/hugetlbpage.rst  |  35 ++++
+ mm/hugetlb.c                                  | 149 ++++++++++++++----
+ 3 files changed, 179 insertions(+), 45 deletions(-)
 
-diff --git a/arch/arm/include/asm/hugetlb.h b/arch/arm/include/asm/hugetlb.h
-index 318dcf5921ab..9ecd516d1ff7 100644
---- a/arch/arm/include/asm/hugetlb.h
-+++ b/arch/arm/include/asm/hugetlb.h
-@@ -14,12 +14,6 @@
- #include <asm/hugetlb-3level.h>
- #include <asm-generic/hugetlb.h>
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 7bc83f3d9bdf..cbe657b86d0e 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -834,12 +834,15 @@
+ 			See also Documentation/networking/decnet.txt.
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr, unsigned long len)
--{
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index b88878ddc88b..8f58e052697a 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -17,12 +17,6 @@
- extern bool arch_hugetlb_migration_supported(struct hstate *h);
- #endif
+ 	default_hugepagesz-			[same as hugepagesz=] The size of the default
+-			HugeTLB page size. This is the size represented by
+-			the legacy /proc/ hugepages APIs, used for SHM, and
+-			default size when mounting hugetlbfs filesystems.
+-			Defaults to the default architecture's huge page size
+-			if not specified.
++			[HW] The size of the default HugeTLB page. This is
++			the size represented by the legacy /proc/ hugepages
++			APIs.  In addition, this is the default hugetlb size
++			used for shmget(), mmap() and mounting hugetlbfs
++			filesystems.  If not specified, defaults to the
++			architecture's default huge page size.  Huge page
++			sizes are architecture dependent.  See also
++			Documentation/admin-guide/mm/hugetlbpage.rst.
++			Format: size[KMG]
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr, unsigned long len)
--{
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index 36cc0396b214..f17c1e228045 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -13,6 +13,7 @@ void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- int prepare_hugepage_range(struct file *file,
- 			unsigned long addr, unsigned long len);
+ 	deferred_probe_timeout 			[KNL] Debugging option to set a timeout in seconds for
+@@ -1479,13 +1482,24 @@
+ 			hugepages using the cma allocator. If enabled, the
+ 			boot-time allocation of gigantic hugepages is skipped.
  
-+#define HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
- static inline int is_hugepage_only_range(struct mm_struct *mm,
- 					 unsigned long addr,
- 					 unsigned long len)
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 425bb6fc3bda..8b201e281f67 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -11,13 +11,6 @@
- 
- #include <asm/page.h>
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len)
--{
--	return 0;
--}
--
- #define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
- static inline int prepare_hugepage_range(struct file *file,
- 					 unsigned long addr,
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index 7cb595dcb7d7..411d9d867baa 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -12,12 +12,6 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
-index bd6504c28c2f..9dd50e1e4fe5 100644
---- a/arch/powerpc/include/asm/hugetlb.h
-+++ b/arch/powerpc/include/asm/hugetlb.h
-@@ -22,6 +22,7 @@ void flush_dcache_icache_hugepage(struct page *page);
- int slice_is_hugepage_only_range(struct mm_struct *mm, unsigned long addr,
- 			   unsigned long len);
- 
-+#define HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
- static inline int is_hugepage_only_range(struct mm_struct *mm,
- 					 unsigned long addr,
- 					 unsigned long len)
-diff --git a/arch/riscv/include/asm/hugetlb.h b/arch/riscv/include/asm/hugetlb.h
-index 728a5db66597..866f6ae6467c 100644
---- a/arch/riscv/include/asm/hugetlb.h
-+++ b/arch/riscv/include/asm/hugetlb.h
-@@ -5,12 +5,6 @@
- #include <asm-generic/hugetlb.h>
- #include <asm/page.h>
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
-index de8f0bf5f238..7d27ea96ec2f 100644
---- a/arch/s390/include/asm/hugetlb.h
-+++ b/arch/s390/include/asm/hugetlb.h
-@@ -21,13 +21,6 @@ pte_t huge_ptep_get(pte_t *ptep);
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 			      unsigned long addr, pte_t *ptep);
- 
--static inline bool is_hugepage_only_range(struct mm_struct *mm,
--					  unsigned long addr,
--					  unsigned long len)
--{
--	return false;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index 6f025fe18146..536ad2cb8aa4 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -5,12 +5,6 @@
- #include <asm/cacheflush.h>
- #include <asm/page.h>
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 3963f80d1cb3..a056fe1119f5 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -20,12 +20,6 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index f65cfb48cfdd..cc98f79074d0 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -7,12 +7,6 @@
- 
- #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 1e897e4168ac..2342e5a8d1dd 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -536,6 +536,14 @@ static inline unsigned int blocks_per_huge_page(struct hstate *h)
- 
- #include <asm/hugetlb.h>
- 
-+#ifndef HAVE_ARCH_IS_HUGEPAGE_ONLY_RANGE
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					unsigned long addr, unsigned long len)
-+{
-+	return 0;
-+}
-+#endif
+-	hugepages=	[HW,X86-32,IA-64] HugeTLB pages to allocate at boot.
+-	hugepagesz=	[HW,IA-64,PPC,X86-64] The size of the HugeTLB pages.
+-			On x86-64 and powerpc, this option can be specified
+-			multiple times interleaved with hugepages= to reserve
+-			huge pages of different sizes. Valid pages sizes on
+-			x86-64 are 2M (when the CPU supports "pse") and 1G
+-			(when the CPU supports the "pdpe1gb" cpuinfo flag).
++	hugepages=	[HW] Number of HugeTLB pages to allocate at boot.
++			If this follows hugepagesz (below), it specifies
++			the number of pages of hugepagesz to be allocated.
++			If this is the first HugeTLB parameter on the command
++			line, it specifies the number of pages to allocate for
++			the default huge page size.  See also
++			Documentation/admin-guide/mm/hugetlbpage.rst.
++			Format: <integer>
 +
- #ifndef arch_make_huge_pte
- static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
- 				       struct page *page, int writable)
++	hugepagesz+			[HW] The size of the HugeTLB pages.  This is used in
++			conjunction with hugepages (above) to allocate huge
++			pages of a specific size at boot.  The pair
++			hugepagesz=X hugepages=Y can be specified once for
++			each supported huge page size. Huge page sizes are
++			architecture dependent.  See also
++			Documentation/admin-guide/mm/hugetlbpage.rst.
++			Format: size[KMG]
+ 
+ 	hung_task_panic 			[KNL] Should the hung task detector generate panics.
+diff --git a/Documentation/admin-guide/mm/hugetlbpage.rst b/Documentation/admin-guide/mm/hugetlbpage.rst
+index 1cc0bc78d10e..5026e58826e2 100644
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst
++++ b/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -100,6 +100,41 @@ with a huge page size selection parameter "hugepagesz=<size>".  <size> must
+ be specified in bytes with optional scale suffix [kKmMgG].  The default huge
+ page size may be selected with the "default_hugepagesz=<size>" boot parameter.
+ 
++Hugetlb boot command line parameter semantics
++hugepagesz - Specify a huge page size.  Used in conjunction with hugepages
++	parameter to preallocate a number of huge pages of the specified
++	size.  Hence, hugepagesz and hugepages are typically specified in
++	pairs such as:
++		hugepagesz=2M hugepagesQ2
++	hugepagesz can only be specified once on the command line for a
++	specific huge page size.  Valid huge page sizes are architecture
++	dependent.
++hugepages - Specify the number of huge pages to preallocate.  This typically
++	follows a valid hugepagesz or default_hugepagesz parameter.  However,
++	if hugepages is the first or only hugetlb command line parameter it
++	implicitly specifies the number of huge pages of default size to
++	allocate.  If the number of huge pages of default size is implicitly
++	specified, it can not be overwritten by a hugepagesz,hugepages
++	parameter pair for the default size.
++	For example, on an architecture with 2M default huge page size:
++		hugepages%6 hugepagesz=2M hugepagesQ2
++	will result in 256 2M huge pages being allocated and a warning message
++	indicating that the hugepagesQ2 parameter is ignored.  If a hugepages
++	parameter is preceded by an invalid hugepagesz parameter, it will
++	be ignored.
++default_hugepagesz - Specify the default huge page size.  This parameter can
++	only be specified once on the command line.  default_hugepagesz can
++	optionally be followed by the hugepages parameter to preallocate a
++	specific number of huge pages of default size.  The number of default
++	sized huge pages to preallocate can also be implicitly specified as
++	mentioned in the hugepages section above.  Therefore, on an
++	architecture with 2M default huge page size:
++		hugepages%6
++		default_hugepagesz=2M hugepages%6
++		hugepages%6 default_hugepagesz=2M
++	will all result in 256 2M huge pages being allocated.  Valid default
++	huge page size is architecture dependent.
++
+ When multiple huge page sizes are supported, ``/proc/sys/vm/nr_hugepages``
+ indicates the current number of pre-allocated huge pages of the default size.
+ Thus, one can use the following command to dynamically allocate/deallocate
+diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+index 2ae0e506cfc7..8852b0b12270 100644
+--- a/mm/hugetlb.c
++++ b/mm/hugetlb.c
+@@ -59,8 +59,8 @@ __initdata LIST_HEAD(huge_boot_pages);
+ /* for command line parsing */
+ static struct hstate * __initdata parsed_hstate;
+ static unsigned long __initdata default_hstate_max_huge_pages;
+-static unsigned long __initdata default_hstate_size;
+ static bool __initdata parsed_valid_hugepagesz = true;
++static bool __initdata parsed_default_hugepagesz;
+ 
+ /*
+  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
+@@ -3060,7 +3060,7 @@ static void __init hugetlb_sysfs_init(void)
+ 		err = hugetlb_sysfs_add_hstate(h, hugepages_kobj,
+ 					 hstate_kobjs, &hstate_attr_group);
+ 		if (err)
+-			pr_err("Hugetlb: Unable to add hstate %s", h->name);
++			pr_err("HugeTLB: Unable to add hstate %s", h->name);
+ 	}
+ }
+ 
+@@ -3164,7 +3164,7 @@ static void hugetlb_register_node(struct node *node)
+ 						nhs->hstate_kobjs,
+ 						&per_node_hstate_attr_group);
+ 		if (err) {
+-			pr_err("Hugetlb: Unable to add hstate %s for node %d\n",
++			pr_err("HugeTLB: Unable to add hstate %s for node %d\n",
+ 				h->name, node->dev.id);
+ 			hugetlb_unregister_node(node);
+ 			break;
+@@ -3212,22 +3212,41 @@ static int __init hugetlb_init(void)
+ {
+ 	int i;
+ 
+-	if (!hugepages_supported())
++	if (!hugepages_supported()) {
++		if (hugetlb_max_hstate || default_hstate_max_huge_pages)
++			pr_warn("HugeTLB: huge pages not supported, ignoring associated command-line parameters\n");
+ 		return 0;
++	}
+ 
+-	if (!size_to_hstate(default_hstate_size)) {
+-		if (default_hstate_size != 0) {
+-			pr_err("HugeTLB: unsupported default_hugepagesz %lu. Reverting to %lu\n",
+-			       default_hstate_size, HPAGE_SIZE);
++	/*
++	 * Make sure HPAGE_SIZE (HUGETLB_PAGE_ORDER) hstate exists.  Some
++	 * architectures depend on setup being done here.
++	 */
++	hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
++	if (!parsed_default_hugepagesz) {
++		/*
++		 * If we did not parse a default huge page size, set
++		 * default_hstate_idx to HPAGE_SIZE hstate. And, if the
++		 * number of huge pages for this default size was implicitly
++		 * specified, set that here as well.
++		 * Note that the implicit setting will overwrite an explicit
++		 * setting.  A warning will be printed in this case.
++		 */
++		default_hstate_idx = hstate_index(size_to_hstate(HPAGE_SIZE));
++		if (default_hstate_max_huge_pages) {
++			if (default_hstate.max_huge_pages) {
++				char buf[32];
++
++				string_get_size(huge_page_size(&default_hstate),
++					1, STRING_UNITS_2, buf, 32);
++				pr_warn("HugeTLB: Ignoring hugepages=%lu associated with %s page size\n",
++					default_hstate.max_huge_pages, buf);
++				pr_warn("HugeTLB: Using hugepages=%lu for number of default huge pages\n",
++					default_hstate_max_huge_pages);
++			}
++			default_hstate.max_huge_pages +				default_hstate_max_huge_pages;
+ 		}
+-
+-		default_hstate_size = HPAGE_SIZE;
+-		hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
+-	}
+-	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
+-	if (default_hstate_max_huge_pages) {
+-		if (!default_hstate.max_huge_pages)
+-			default_hstate.max_huge_pages = default_hstate_max_huge_pages;
+ 	}
+ 
+ 	hugetlb_cma_check();
+@@ -3287,20 +3306,29 @@ void __init hugetlb_add_hstate(unsigned int order)
+ 	parsed_hstate = h;
+ }
+ 
+-static int __init hugetlb_nrpages_setup(char *s)
++/*
++ * hugepages command line processing
++ * hugepages normally follows a valid hugepagsz or default_hugepagsz
++ * specification.  If not, ignore the hugepages value.  hugepages can also
++ * be the first huge page command line  option in which case it implicitly
++ * specifies the number of huge pages for the default size.
++ */
++static int __init hugepages_setup(char *s)
+ {
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
+ 
+ 	if (!parsed_valid_hugepagesz) {
+-		pr_warn("hugepages = %s preceded by "
+-			"an unsupported hugepagesz, ignoring\n", s);
++		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+ 		parsed_valid_hugepagesz = true;
+-		return 1;
++		return 0;
+ 	}
++
+ 	/*
+-	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
+-	 * so this hugepages= parameter goes to the "default hstate".
++	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter
++	 * yet, so this hugepages= parameter goes to the "default hstate".
++	 * Otherwise, it goes with the previously parsed hugepagesz or
++	 * default_hugepagesz.
+ 	 */
+ 	else if (!hugetlb_max_hstate)
+ 		mhp = &default_hstate_max_huge_pages;
+@@ -3308,8 +3336,8 @@ static int __init hugetlb_nrpages_setup(char *s)
+ 		mhp = &parsed_hstate->max_huge_pages;
+ 
+ 	if (mhp = last_mhp) {
+-		pr_warn("hugepages= specified twice without interleaving hugepagesz=, ignoring\n");
+-		return 1;
++		pr_warn("HugeTLB: hugepages= specified twice without interleaving hugepagesz=, ignoring hugepages=%s\n", s);
++		return 0;
+ 	}
+ 
+ 	if (sscanf(s, "%lu", mhp) <= 0)
+@@ -3327,42 +3355,99 @@ static int __init hugetlb_nrpages_setup(char *s)
+ 
+ 	return 1;
+ }
+-__setup("hugepages=", hugetlb_nrpages_setup);
++__setup("hugepages=", hugepages_setup);
+ 
++/*
++ * hugepagesz command line processing
++ * A specific huge page size can only be specified once with hugepagesz.
++ * hugepagesz is followed by hugepages on the command line.  The global
++ * variable 'parsed_valid_hugepagesz' is used to determine if prior
++ * hugepagesz argument was valid.
++ */
+ static int __init hugepagesz_setup(char *s)
+ {
+ 	unsigned long size;
++	struct hstate *h;
+ 
++	parsed_valid_hugepagesz = false;
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		parsed_valid_hugepagesz = false;
+-		pr_err("HugeTLB: unsupported hugepagesz %s\n", s);
++		pr_err("HugeTLB: unsupported hugepagesz=%s\n", s);
+ 		return 0;
+ 	}
+ 
+-	if (size_to_hstate(size)) {
+-		pr_warn("HugeTLB: hugepagesz %s specified twice, ignoring\n", s);
+-		return 0;
++	h = size_to_hstate(size);
++	if (h) {
++		/*
++		 * hstate for this size already exists.  This is normally
++		 * an error, but is allowed if the existing hstate is the
++		 * default hstate.  More specifically, it is only allowed if
++		 * the number of huge pages for the default hstate was not
++		 * previously specified.
++		 */
++		if (!parsed_default_hugepagesz ||  h != &default_hstate ||
++		    default_hstate.max_huge_pages) {
++			pr_warn("HugeTLB: hugepagesz=%s specified twice, ignoring\n", s);
++			return 0;
++		}
++
++		/*
++		 * No need to call hugetlb_add_hstate() as hstate already
++		 * exists.  But, do set parsed_hstate so that a following
++		 * hugepages= parameter will be applied to this hstate.
++		 */
++		parsed_hstate = h;
++		parsed_valid_hugepagesz = true;
++		return 1;
+ 	}
+ 
+ 	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
++	parsed_valid_hugepagesz = true;
+ 	return 1;
+ }
+ __setup("hugepagesz=", hugepagesz_setup);
+ 
++/*
++ * default_hugepagesz command line input
++ * Only one instance of default_hugepagesz allowed on command line.
++ */
+ static int __init default_hugepagesz_setup(char *s)
+ {
+ 	unsigned long size;
+ 
++	parsed_valid_hugepagesz = false;
++	if (parsed_default_hugepagesz) {
++		pr_err("HugeTLB: default_hugepagesz previously specified, ignoring %s\n", s);
++		return 0;
++	}
++
+ 	size = (unsigned long)memparse(s, NULL);
+ 
+ 	if (!arch_hugetlb_valid_size(size)) {
+-		pr_err("HugeTLB: unsupported default_hugepagesz %s\n", s);
++		pr_err("HugeTLB: unsupported default_hugepagesz=%s\n", s);
+ 		return 0;
+ 	}
+ 
+-	default_hstate_size = size;
++	hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
++	parsed_valid_hugepagesz = true;
++	parsed_default_hugepagesz = true;
++	default_hstate_idx = hstate_index(size_to_hstate(size));
++
++	/*
++	 * The number of default huge pages (for this size) could have been
++	 * specified as the first hugetlb parameter: hugepages=X.  If so,
++	 * then default_hstate_max_huge_pages is set.  If the default huge
++	 * page size is gigantic (>= MAX_ORDER), then the pages must be
++	 * allocated here from bootmem allocator.
++	 */
++	if (default_hstate_max_huge_pages) {
++		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
++		if (hstate_is_gigantic(&default_hstate))
++			hugetlb_hstate_alloc_pages(&default_hstate);
++		default_hstate_max_huge_pages = 0;
++	}
++
+ 	return 1;
+ }
+ __setup("default_hugepagesz=", default_hugepagesz_setup);
 -- 
-2.20.1
+2.25.4
