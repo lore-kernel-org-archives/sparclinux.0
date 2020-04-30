@@ -1,328 +1,411 @@
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Date: Fri, 17 Apr 2020 18:50:46 +0000
-Subject: [PATCH v3 1/4] hugetlbfs: add arch_hugetlb_valid_size
-Message-Id: <20200417185049.275845-2-mike.kravetz@oracle.com>
+From: ira.weiny@intel.com
+Date: Thu, 30 Apr 2020 20:38:38 +0000
+Subject: [PATCH V1 03/10] arch/kmap: Remove redundant arch specific kmaps
+Message-Id: <20200430203845.582900-4-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200417185049.275845-1-mike.kravetz@oracle.com>
-In-Reply-To: <20200417185049.275845-1-mike.kravetz@oracle.com>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Peter Xu <peterx@redhat.com>, Paul Mackerras <paulus@samba.org>, Will Deacon <will@kernel.org>, Mina Almasry <almasrymina@google.com>, Jonathan Corbet <corbet@lwn.net>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Longpeng <longpeng2@huawei.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Christophe Leroy <christophe.leroy@c-s.fr>, Nitesh Narayan Lal <nitesh@redhat.com>, Randy Dunlap <rdunlap@infradead.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, Mike Kravetz <mike.kravetz@oracle.com>
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-The architecture independent routine hugetlb_default_setup sets up
-the default huge pages size.  It has no way to verify if the passed
-value is valid, so it accepts it and attempts to validate at a later
-time.  This requires undocumented cooperation between the arch specific
-and arch independent code.
+From: Ira Weiny <ira.weiny@intel.com>
 
-For architectures that support more than one huge page size, provide
-a routine arch_hugetlb_valid_size to validate a huge page size.
-hugetlb_default_setup can use this to validate passed values.
+The kmap code for all the architectures is almost 100% identical.
 
-arch_hugetlb_valid_size will also be used in a subsequent patch to
-move processing of the "hugepagesz=" in arch specific code to a common
-routine in arch independent code.
+Lift the common code to the core.  Use ARCH_HAS_KMAP_FLUSH_TLB to
+indicate if an arch defines kmap_flush_tlb() and call if if needed.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+This also has the benefit of changing kmap() on a number of
+architectures to be an inline call rather than an actual function.
+
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+
 ---
- arch/arm64/mm/hugetlbpage.c   | 17 +++++++++++++----
- arch/powerpc/mm/hugetlbpage.c | 20 +++++++++++++-------
- arch/riscv/mm/hugetlbpage.c   | 26 +++++++++++++++++---------
- arch/s390/mm/hugetlbpage.c    | 16 ++++++++++++----
- arch/sparc/mm/init_64.c       | 24 ++++++++++++++++--------
- arch/x86/mm/hugetlbpage.c     | 17 +++++++++++++----
- include/linux/hugetlb.h       |  1 +
- mm/hugetlb.c                  | 21 ++++++++++++++++++---
- 8 files changed, 103 insertions(+), 39 deletions(-)
+Changes from V0:
+	Define kmap_flush_tlb() and define it in csky/mips
+---
+ arch/arc/include/asm/highmem.h        |  2 --
+ arch/arc/mm/highmem.c                 | 10 ----------
+ arch/arm/include/asm/highmem.h        |  2 --
+ arch/arm/mm/highmem.c                 |  9 ---------
+ arch/csky/include/asm/highmem.h       |  4 ++--
+ arch/csky/mm/highmem.c                | 14 ++++----------
+ arch/microblaze/include/asm/highmem.h |  9 ---------
+ arch/mips/include/asm/highmem.h       |  4 ++--
+ arch/mips/mm/highmem.c                | 14 +++-----------
+ arch/nds32/include/asm/highmem.h      |  2 --
+ arch/nds32/mm/highmem.c               | 12 ------------
+ arch/powerpc/include/asm/highmem.h    |  9 ---------
+ arch/sparc/include/asm/highmem.h      |  9 ---------
+ arch/x86/include/asm/highmem.h        |  2 --
+ arch/x86/mm/highmem_32.c              |  9 ---------
+ arch/xtensa/include/asm/highmem.h     |  9 ---------
+ include/linux/highmem.h               | 18 ++++++++++++++++++
+ 17 files changed, 29 insertions(+), 109 deletions(-)
 
-diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
-index bbeb6a5a6ba6..069b96ee2aec 100644
---- a/arch/arm64/mm/hugetlbpage.c
-+++ b/arch/arm64/mm/hugetlbpage.c
-@@ -462,17 +462,26 @@ static int __init hugetlbpage_init(void)
- }
- arch_initcall(hugetlbpage_init);
+diff --git a/arch/arc/include/asm/highmem.h b/arch/arc/include/asm/highmem.h
+index 042e92921c4c..96eb67c86961 100644
+--- a/arch/arc/include/asm/highmem.h
++++ b/arch/arc/include/asm/highmem.h
+@@ -30,8 +30,6 @@
  
--static __init int setup_hugepagesz(char *opt)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
--	unsigned long ps = memparse(opt, &opt);
+ #include <asm/cacheflush.h>
+ 
+-extern void *kmap(struct page *page);
+-extern void *kmap_high(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void kunmap_high(struct page *page);
+diff --git a/arch/arc/mm/highmem.c b/arch/arc/mm/highmem.c
+index 39ef7b9a3aa9..4db13a6b9f3b 100644
+--- a/arch/arc/mm/highmem.c
++++ b/arch/arc/mm/highmem.c
+@@ -49,16 +49,6 @@
+ extern pte_t * pkmap_page_table;
+ static pte_t * fixmap_page_table;
+ 
+-void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
 -
--	switch (ps) {
-+	switch (size) {
- #ifdef CONFIG_ARM64_4K_PAGES
- 	case PUD_SIZE:
- #endif
- 	case CONT_PMD_SIZE:
- 	case PMD_SIZE:
- 	case CONT_PTE_SIZE:
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+static __init int setup_hugepagesz(char *opt)
-+{
-+	unsigned long ps = memparse(opt, &opt);
-+
-+	if (arch_hugetlb_valid_size(ps)) {
- 		add_huge_page_size(ps);
- 		return 1;
- 	}
-diff --git a/arch/powerpc/mm/hugetlbpage.c b/arch/powerpc/mm/hugetlbpage.c
-index 33b3461d91e8..de54d2a37830 100644
---- a/arch/powerpc/mm/hugetlbpage.c
-+++ b/arch/powerpc/mm/hugetlbpage.c
-@@ -558,7 +558,7 @@ unsigned long vma_mmu_pagesize(struct vm_area_struct *vma)
- 	return vma_kernel_pagesize(vma);
- }
- 
--static int __init add_huge_page_size(unsigned long long size)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
- 	int shift = __ffs(size);
- 	int mmu_psize;
-@@ -566,20 +566,26 @@ static int __init add_huge_page_size(unsigned long long size)
- 	/* Check that it is a page size supported by the hardware and
- 	 * that it fits within pagetable and slice limits. */
- 	if (size <= PAGE_SIZE || !is_power_of_2(size))
--		return -EINVAL;
-+		return false;
- 
- 	mmu_psize = check_and_get_huge_psize(shift);
- 	if (mmu_psize < 0)
--		return -EINVAL;
-+		return false;
- 
- 	BUG_ON(mmu_psize_defs[mmu_psize].shift != shift);
- 
--	/* Return if huge page size has already been setup */
--	if (size_to_hstate(size))
--		return 0;
-+	return true;
-+}
- 
--	hugetlb_add_hstate(shift - PAGE_SHIFT);
-+static int __init add_huge_page_size(unsigned long long size)
-+{
-+	int shift = __ffs(size);
-+
-+	if (!arch_hugetlb_valid_size((unsigned long)size))
-+		return -EINVAL;
- 
-+	if (!size_to_hstate(size))
-+		hugetlb_add_hstate(shift - PAGE_SHIFT);
- 	return 0;
- }
- 
-diff --git a/arch/riscv/mm/hugetlbpage.c b/arch/riscv/mm/hugetlbpage.c
-index a6189ed36c5f..da1f516bc451 100644
---- a/arch/riscv/mm/hugetlbpage.c
-+++ b/arch/riscv/mm/hugetlbpage.c
-@@ -12,21 +12,29 @@ int pmd_huge(pmd_t pmd)
- 	return pmd_leaf(pmd);
- }
- 
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (size = HPAGE_SIZE)
-+		return true;
-+	else if (IS_ENABLED(CONFIG_64BIT) && size = PUD_SIZE)
-+		return true;
-+	else
-+		return false;
-+}
-+
- static __init int setup_hugepagesz(char *opt)
- {
- 	unsigned long ps = memparse(opt, &opt);
- 
--	if (ps = HPAGE_SIZE) {
--		hugetlb_add_hstate(HPAGE_SHIFT - PAGE_SHIFT);
--	} else if (IS_ENABLED(CONFIG_64BIT) && ps = PUD_SIZE) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
--	} else {
--		hugetlb_bad_size();
--		pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
--		return 0;
-+	if (arch_hugetlb_valid_size(ps)) {
-+		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
-+		return 1;
- 	}
- 
--	return 1;
-+	hugetlb_bad_size();
-+	pr_err("hugepagesz: Unsupported page size %lu M\n", ps >> 20);
-+	return 0;
-+
- }
- __setup("hugepagesz=", setup_hugepagesz);
- 
-diff --git a/arch/s390/mm/hugetlbpage.c b/arch/s390/mm/hugetlbpage.c
-index f01daddcbc5e..ac25b207624c 100644
---- a/arch/s390/mm/hugetlbpage.c
-+++ b/arch/s390/mm/hugetlbpage.c
-@@ -251,16 +251,24 @@ follow_huge_pud(struct mm_struct *mm, unsigned long address,
- 	return pud_page(*pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
- }
- 
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (MACHINE_HAS_EDAT1 && size = PMD_SIZE)
-+		return true;
-+	else if (MACHINE_HAS_EDAT2 && size = PUD_SIZE)
-+		return true;
-+	else
-+		return false;
-+}
-+
- static __init int setup_hugepagesz(char *opt)
- {
- 	unsigned long size;
- 	char *string = opt;
- 
- 	size = memparse(opt, &opt);
--	if (MACHINE_HAS_EDAT1 && size = PMD_SIZE) {
--		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
--	} else if (MACHINE_HAS_EDAT2 && size = PUD_SIZE) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+	if (arch_hugetlb_valid_size(size)) {
-+		hugetlb_add_hstate(ilog2(size) - PAGE_SHIFT);
- 	} else {
- 		hugetlb_bad_size();
- 		pr_err("hugepagesz= specifies an unsupported page size %s\n",
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 1cf0d666dea3..2bfe8e22b706 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -360,16 +360,11 @@ static void __init pud_huge_patch(void)
- 	__asm__ __volatile__("flush %0" : : "r" (addr));
- }
- 
--static int __init setup_hugepagesz(char *string)
-+bool __init arch_hugetlb_valid_size(unsigned long size)
- {
--	unsigned long long hugepage_size;
--	unsigned int hugepage_shift;
-+	unsigned int hugepage_shift = ilog2(size);
- 	unsigned short hv_pgsz_idx;
- 	unsigned int hv_pgsz_mask;
--	int rc = 0;
+-	return kmap_high(page);
+-}
+-EXPORT_SYMBOL(kmap);
 -
--	hugepage_size = memparse(string, &string);
--	hugepage_shift = ilog2(hugepage_size);
+ void *kmap_atomic(struct page *page)
+ {
+ 	int idx, cpu_idx;
+diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
+index eb4e4207cd3c..c917522541de 100644
+--- a/arch/arm/include/asm/highmem.h
++++ b/arch/arm/include/asm/highmem.h
+@@ -20,7 +20,6 @@
  
- 	switch (hugepage_shift) {
- 	case HPAGE_16GB_SHIFT:
-@@ -397,7 +392,20 @@ static int __init setup_hugepagesz(char *string)
- 		hv_pgsz_mask = 0;
- 	}
+ extern pte_t *pkmap_page_table;
  
--	if ((hv_pgsz_mask & cpu_pgsz_mask) = 0U) {
-+	if ((hv_pgsz_mask & cpu_pgsz_mask) = 0U)
-+		return false;
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ 
+ /*
+@@ -63,7 +62,6 @@ static inline void *kmap_high_get(struct page *page)
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void *kmap(struct page *page);
+ extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
+index cc6eb79ef20c..e8ba37c36590 100644
+--- a/arch/arm/mm/highmem.c
++++ b/arch/arm/mm/highmem.c
+@@ -31,15 +31,6 @@ static inline pte_t get_fixmap_pte(unsigned long vaddr)
+ 	return *ptep;
+ }
+ 
+-void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-EXPORT_SYMBOL(kmap);
+-
+ void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/csky/include/asm/highmem.h b/arch/csky/include/asm/highmem.h
+index a345a2f2c22e..9d0516e38110 100644
+--- a/arch/csky/include/asm/highmem.h
++++ b/arch/csky/include/asm/highmem.h
+@@ -30,10 +30,10 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ 
+-extern void *kmap(struct page *page);
++#define ARCH_HAS_KMAP_FLUSH_TLB
++extern void kmap_flush_tlb(unsigned long addr);
+ extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
+index 690d678649d1..4a3c273bc8b9 100644
+--- a/arch/csky/mm/highmem.c
++++ b/arch/csky/mm/highmem.c
+@@ -13,18 +13,12 @@ static pte_t *kmap_pte;
+ 
+ unsigned long highstart_pfn, highend_pfn;
+ 
+-void *kmap(struct page *page)
++void kmap_flush_tlb(unsigned long addr)
+ {
+-	void *addr;
+-
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	addr = kmap_high(page);
+-	flush_tlb_one((unsigned long)addr);
+-
+-	return addr;
++	flush_tlb_one(addr);
+ }
++EXPORT_SYMBOL(kmap_flush_tlb);
 +
-+	return true;
-+}
+ EXPORT_SYMBOL(kmap);
+ 
+ void kunmap(struct page *page)
+diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
+index 99ced7278b5c..8c5bfd228bd8 100644
+--- a/arch/microblaze/include/asm/highmem.h
++++ b/arch/microblaze/include/asm/highmem.h
+@@ -51,19 +51,10 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
+index 9d84aafc33d0..1f741e3ecabf 100644
+--- a/arch/mips/include/asm/highmem.h
++++ b/arch/mips/include/asm/highmem.h
+@@ -46,10 +46,10 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void * kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ 
+-extern void *kmap(struct page *page);
++#define ARCH_HAS_KMAP_FLUSH_TLB
++extern void kmap_flush_tlb(unsigned long addr);
+ extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
+index edd889f6cede..c72058bfead6 100644
+--- a/arch/mips/mm/highmem.c
++++ b/arch/mips/mm/highmem.c
+@@ -12,19 +12,11 @@ static pte_t *kmap_pte;
+ 
+ unsigned long highstart_pfn, highend_pfn;
+ 
+-void *kmap(struct page *page)
++void kmap_flush_tlb(unsigned long addr)
+ {
+-	void *addr;
+-
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	addr = kmap_high(page);
+-	flush_tlb_one((unsigned long)addr);
+-
+-	return addr;
++	flush_tlb_one(addr);
+ }
+-EXPORT_SYMBOL(kmap);
++EXPORT_SYMBOL(kmap_flush_tlb);
+ 
+ void kunmap(struct page *page)
+ {
+diff --git a/arch/nds32/include/asm/highmem.h b/arch/nds32/include/asm/highmem.h
+index b3a82c97ded3..b13654a79069 100644
+--- a/arch/nds32/include/asm/highmem.h
++++ b/arch/nds32/include/asm/highmem.h
+@@ -44,7 +44,6 @@ extern unsigned long highstart_pfn, highend_pfn;
+ 
+ extern pte_t *pkmap_page_table;
+ 
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ 
+ extern void kmap_init(void);
+@@ -54,7 +53,6 @@ extern void kmap_init(void);
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void *kmap(struct page *page);
+ extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
+index 4c7c28e994ea..d0cde53b84ae 100644
+--- a/arch/nds32/mm/highmem.c
++++ b/arch/nds32/mm/highmem.c
+@@ -10,18 +10,6 @@
+ #include <asm/fixmap.h>
+ #include <asm/tlbflush.h>
+ 
+-void *kmap(struct page *page)
+-{
+-	unsigned long vaddr;
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	vaddr = (unsigned long)kmap_high(page);
+-	return (void *)vaddr;
+-}
+-
+-EXPORT_SYMBOL(kmap);
+-
+ void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
+index 529512f6d65a..f14e4feef6d5 100644
+--- a/arch/powerpc/include/asm/highmem.h
++++ b/arch/powerpc/include/asm/highmem.h
+@@ -59,19 +59,10 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
+index 7dd2d4b3f980..2ff1192047f7 100644
+--- a/arch/sparc/include/asm/highmem.h
++++ b/arch/sparc/include/asm/highmem.h
+@@ -50,17 +50,8 @@ void kmap_init(void) __init;
+ 
+ #define PKMAP_END (PKMAP_ADDR(LAST_PKMAP))
+ 
+-void *kmap_high(struct page *page);
+ void kunmap_high(struct page *page);
+ 
+-static inline void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
+index a8059930056d..c916a28a9738 100644
+--- a/arch/x86/include/asm/highmem.h
++++ b/arch/x86/include/asm/highmem.h
+@@ -58,10 +58,8 @@ extern unsigned long highstart_pfn, highend_pfn;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void *kmap_high(struct page *page);
+ extern void kunmap_high(struct page *page);
+ 
+-void *kmap(struct page *page);
+ void kunmap(struct page *page);
+ 
+ void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+diff --git a/arch/x86/mm/highmem_32.c b/arch/x86/mm/highmem_32.c
+index 8af66382672b..12591a81b85c 100644
+--- a/arch/x86/mm/highmem_32.c
++++ b/arch/x86/mm/highmem_32.c
+@@ -4,15 +4,6 @@
+ #include <linux/swap.h> /* for totalram_pages */
+ #include <linux/memblock.h>
+ 
+-void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-EXPORT_SYMBOL(kmap);
+-
+ void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/arch/xtensa/include/asm/highmem.h b/arch/xtensa/include/asm/highmem.h
+index a9587c85be85..2546b88ddecf 100644
+--- a/arch/xtensa/include/asm/highmem.h
++++ b/arch/xtensa/include/asm/highmem.h
+@@ -63,17 +63,8 @@ static inline wait_queue_head_t *get_pkmap_wait_queue_head(unsigned int color)
+ 
+ extern pte_t *pkmap_page_table;
+ 
+-void *kmap_high(struct page *page);
+ void kunmap_high(struct page *page);
+ 
+-static inline void *kmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_high(page);
+-}
+-
+ static inline void kunmap(struct page *page)
+ {
+ 	might_sleep();
+diff --git a/include/linux/highmem.h b/include/linux/highmem.h
+index ea5cdbd8c2c3..fc3adc51254a 100644
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -34,6 +34,24 @@ static inline void invalidate_kernel_vmap_range(void *vaddr, int size)
+ #ifdef CONFIG_HIGHMEM
+ #include <asm/highmem.h>
+ 
++#ifndef ARCH_HAS_KMAP_FLUSH_TLB
++static inline void kmap_flush_tlb(unsigned long addr) { }
++#endif
 +
-+static int __init setup_hugepagesz(char *string)
++void *kmap_high(struct page *page);
++static inline void *kmap(struct page *page)
 +{
-+	unsigned long long hugepage_size;
-+	int rc = 0;
++	void *addr;
 +
-+	hugepage_size = memparse(string, &string);
-+
-+	if (!arch_hugetlb_valid_size((unsigned long)hugepage_size)) {
- 		hugetlb_bad_size();
- 		pr_err("hugepagesz=%llu not supported by MMU.\n",
- 			hugepage_size);
-diff --git a/arch/x86/mm/hugetlbpage.c b/arch/x86/mm/hugetlbpage.c
-index 5bfd5aef5378..1c4372bfe782 100644
---- a/arch/x86/mm/hugetlbpage.c
-+++ b/arch/x86/mm/hugetlbpage.c
-@@ -181,13 +181,22 @@ hugetlb_get_unmapped_area(struct file *file, unsigned long addr,
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef CONFIG_X86_64
-+bool __init arch_hugetlb_valid_size(unsigned long size)
-+{
-+	if (size = PMD_SIZE)
-+		return true;
-+	else if (size = PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES))
-+		return true;
++	might_sleep();
++	if (!PageHighMem(page))
++		addr = page_address(page);
 +	else
-+		return false;
++		addr = kmap_high(page);
++	kmap_flush_tlb((unsigned long)addr);
++	return addr;
 +}
 +
- static __init int setup_hugepagesz(char *opt)
- {
- 	unsigned long ps = memparse(opt, &opt);
--	if (ps = PMD_SIZE) {
--		hugetlb_add_hstate(PMD_SHIFT - PAGE_SHIFT);
--	} else if (ps = PUD_SIZE && boot_cpu_has(X86_FEATURE_GBPAGES)) {
--		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+
-+	if (arch_hugetlb_valid_size(ps)) {
-+		hugetlb_add_hstate(ilog2(ps) - PAGE_SHIFT);
- 	} else {
- 		hugetlb_bad_size();
- 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 43a1cef8f0f1..2eb15f5ab01e 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -521,6 +521,7 @@ int __init alloc_bootmem_huge_page(struct hstate *h);
- 
- void __init hugetlb_bad_size(void);
- void __init hugetlb_add_hstate(unsigned order);
-+bool __init arch_hugetlb_valid_size(unsigned long size);
- struct hstate *size_to_hstate(unsigned long size);
- 
- #ifndef HUGE_MAX_HSTATE
-diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-index cd459155d28a..871ac1681f37 100644
---- a/mm/hugetlb.c
-+++ b/mm/hugetlb.c
-@@ -3256,6 +3256,12 @@ static int __init hugetlb_init(void)
- }
- subsys_initcall(hugetlb_init);
- 
-+/* Overwritten by architectures with more huge page sizes */
-+bool __init __attribute((weak)) arch_hugetlb_valid_size(unsigned long size)
-+{
-+	return size = HPAGE_SIZE;
-+}
-+
- /* Should be called on processing a hugepagesz=... option */
- void __init hugetlb_bad_size(void)
- {
-@@ -3331,12 +3337,21 @@ static int __init hugetlb_nrpages_setup(char *s)
- }
- __setup("hugepages=", hugetlb_nrpages_setup);
- 
--static int __init hugetlb_default_setup(char *s)
-+static int __init default_hugepagesz_setup(char *s)
- {
--	default_hstate_size = memparse(s, &s);
-+	unsigned long size;
-+
-+	size = (unsigned long)memparse(s, NULL);
-+
-+	if (!arch_hugetlb_valid_size(size)) {
-+		pr_err("HugeTLB: unsupported default_hugepagesz %s\n", s);
-+		return 0;
-+	}
-+
-+	default_hstate_size = size;
- 	return 1;
- }
--__setup("default_hugepagesz=", hugetlb_default_setup);
-+__setup("default_hugepagesz=", default_hugepagesz_setup);
- 
- static unsigned int cpuset_mems_nr(unsigned int *array)
- {
+ /* declarations for linux/mm/highmem.c */
+ unsigned int nr_free_highpages(void);
+ extern atomic_long_t _totalhigh_pages;
 -- 
-2.25.2
+2.25.1
