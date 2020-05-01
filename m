@@ -1,73 +1,31 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Thu, 07 May 2020 22:51:09 +0000
-Subject: Re: [PATCH V3 15/15] kmap: Consolidate kmap_prot definitions
-Message-Id: <20200507225109.GB1428632@iweiny-DESK2.sc.intel.com>
+From: Michael Ellerman <mpe@ellerman.id.au>
+Date: Fri, 01 May 2020 02:29:00 +0000
+Subject: Re: [PATCH V1 00/10] Remove duplicated kmap code
+Message-Id: <87imhge6c3.fsf@mpe.ellerman.id.au>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200507150004.1423069-1-ira.weiny@intel.com>
- <20200507150004.1423069-16-ira.weiny@intel.com>
- <20200507135307.4ba10d99c611f17beab31751@linux-foundation.org>
-In-Reply-To: <20200507135307.4ba10d99c611f17beab31751@linux-foundation.org>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Christoph Hellwig <hch@infradead.org>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: ira.weiny@intel.com, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Thu, May 07, 2020 at 01:53:07PM -0700, Andrew Morton wrote:
-> On Thu,  7 May 2020 08:00:03 -0700 ira.weiny@intel.com wrote:
-> 
-> > From: Ira Weiny <ira.weiny@intel.com>
-> > 
-> > Most architectures define kmap_prot to be PAGE_KERNEL.
-> > 
-> > Let sparc and xtensa define there own and define PAGE_KERNEL as the
-> > default if not overridden.
-> > 
-> 
-> checkpatch considered useful ;)
+ira.weiny@intel.com writes:
+> From: Ira Weiny <ira.weiny@intel.com>
+>
+> The kmap infrastructure has been copied almost verbatim to every architecture.
+> This series consolidates obvious duplicated code by defining core functions
+> which call into the architectures only when needed.
+>
+> Some of the k[un]map_atomic() implementations have some similarities but the
+> similarities were not sufficient to warrant further changes.
+>
+> In addition we remove a duplicate implementation of kmap() in DRM.
+>
+> Testing was done by 0day to cover all the architectures I can't readily
+> build/test.
 
-Yes sorry...  V3.1 on it's way...
+I threw some powerpc builds at it and they all passed, so LGTM.
 
-Ira
-
-> 
-> 
-> From: Andrew Morton <akpm@linux-foundation.org>
-> Subject: kmap-consolidate-kmap_prot-definitions-checkpatch-fixes
-> 
-> WARNING: macros should not use a trailing semicolon
-> #134: FILE: arch/sparc/include/asm/highmem.h:33:
-> +#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
-> 
-> total: 0 errors, 1 warnings, 100 lines checked
-> 
-> NOTE: For some of the reported defects, checkpatch may be able to
->       mechanically convert to the typical style using --fix or --fix-inplace.
-> 
-> ./patches/kmap-consolidate-kmap_prot-definitions.patch has style problems, please review.
-> 
-> NOTE: If any of the errors are false positives, please report
->       them to the maintainer, see CHECKPATCH in MAINTAINERS.
-> 
-> Please run checkpatch prior to sending patches
-> 
-> Cc: Ira Weiny <ira.weiny@intel.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  arch/sparc/include/asm/highmem.h |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- a/arch/sparc/include/asm/highmem.h~kmap-consolidate-kmap_prot-definitions-checkpatch-fixes
-> +++ a/arch/sparc/include/asm/highmem.h
-> @@ -30,7 +30,7 @@
->  /* declarations for highmem.c */
->  extern unsigned long highstart_pfn, highend_pfn;
->  
-> -#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
-> +#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
->  extern pte_t *pkmap_page_table;
->  
->  void kmap_init(void) __init;
-> _
-> 
+cheers
