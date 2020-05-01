@@ -1,28 +1,25 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Thu, 07 May 2020 04:56:30 +0000
-Subject: Re: [PATCH V2 08/11] arch/kmap: Ensure kmap_prot visibility
-Message-Id: <20200507045630.GA22061@infradead.org>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 01 May 2020 02:16:34 +0000
+Subject: Re: [PATCH V1 08/10] arch/kmap: Don't hard code kmap_prot values
+Message-Id: <20200501021634.GE23230@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200504010912.982044-1-ira.weiny@intel.com>
- <20200504010912.982044-9-ira.weiny@intel.com>
-In-Reply-To: <20200504010912.982044-9-ira.weiny@intel.com>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+ <20200430203845.582900-9-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-9-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: ira.weiny@intel.com
-Cc: Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Sun, May 03, 2020 at 06:09:09PM -0700, ira.weiny@intel.com wrote:
+On Thu, Apr 30, 2020 at 01:38:43PM -0700, ira.weiny@intel.com wrote:
 > From: Ira Weiny <ira.weiny@intel.com>
 > 
-> We want to support kmap_atomic_prot() on all architectures and it makes
-> sense to define kmap_atomic() to use the default kmap_prot.
+> To support kmap_atomic_prot() on all architectures each arch must
+> support protections passed in to them.
 > 
-> So we ensure all arch's have a globally available kmap_prot either as a
-> define or exported symbol.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+> Change csky, mips, nds32 and xtensa to use their global kmap_prot value
+> rather than a hard coded value which was equal.
 
-Looks good,
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Minor nitpick: it's probably worth pointing out that kmap_prot on those
+is a constant...
