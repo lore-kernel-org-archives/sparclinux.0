@@ -1,23 +1,30 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 13 May 2020 06:23:18 +0000
-Subject: Re: [PATCH 19/31] riscv: use asm-generic/cacheflush.h
-Message-Id: <20200513062318.GA24133@lst.de>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 01 May 2020 02:09:12 +0000
+Subject: Re: [PATCH V1 05/10] arch/kmap_atomic: Consolidate duplicate code
+Message-Id: <20200501020912.GD23230@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200510075510.987823-20-hch@lst.de> <mhng-8adbedbc-0f91-4291-9471-2df5eb7b802b@palmerdabbelt-glaptop1>
-In-Reply-To: <mhng-8adbedbc-0f91-4291-9471-2df5eb7b802b@palmerdabbelt-glaptop1>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+ <20200430203845.582900-6-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-6-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Christoph Hellwig <hch@lst.de>, akpm@linux-foundation.org, Arnd Bergmann <arnd@arndb.de>, zippel@linux-m68k.org, linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, monstr@monstr.eu, jeyu@kernel.org, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: ira.weiny@intel.com
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Tue, May 12, 2020 at 04:00:26PM -0700, Palmer Dabbelt wrote:
-> Reviewed-by: Palmer Dabbelt <palmerdabbelt@google.com>
-> Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
->
-> Were you trying to get these all in at once, or do you want me to take it into
-> my tree?
+On Thu, Apr 30, 2020 at 01:38:40PM -0700, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Every arch has the same code to ensure atomic operations and a check for
+> !HIGHMEM page.
+> 
+> Remove the duplicate code by defining a core kmap_atomic() which only
+> calls the arch specific kmap_atomic_high() when the page is high memory.
 
-Except for the small fixups at the beginning of the series this needs
-to go in together.  I'll have to do at least another resend, and after
-that I hope Andrew is going to pick it up.
+Err....  AFAICS, you've just silently changed the semantics for
+kmap_atomic_prot() here.  And while most of the callers are converted,
+drivers/gpu/drm/ttm/ttm_bo_util.c one is not, so at the very least it's
+a bisect hazard...
+
+And I would argue that having kmap_atomic() differ from kmap_atomic_prot()
+wrt disabling preempt is asking for trouble.
