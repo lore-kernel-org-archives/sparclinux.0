@@ -1,34 +1,28 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 15 May 2020 14:36:19 +0000
-Subject: [PATCH 02/29] nds32: unexport flush_icache_page
-Message-Id: <20200515143646.3857579-3-hch@lst.de>
+From: Christoph Hellwig <hch@infradead.org>
+Date: Fri, 01 May 2020 08:38:31 +0000
+Subject: Re: [PATCH V1 04/10] arch/kunmap: Remove duplicate kunmap implementations
+Message-Id: <20200501083831.GD27858@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200515143646.3857579-1-hch@lst.de>
-In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+ <20200430203845.582900-5-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-5-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
-Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
+To: ira.weiny@intel.com
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>
 
-flush_icache_page is only used by mm/memory.c.
+On Thu, Apr 30, 2020 at 01:38:39PM -0700, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> All architectures do exactly the same thing for kunmap(); remove all the
+> duplicate definitions and lift the call to the core.
+> 
+> This also has the benefit of changing kmap_unmap() on a number of
+> architectures to be an inline call rather than an actual function.
+> 
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/nds32/mm/cacheflush.c | 1 -
- 1 file changed, 1 deletion(-)
+Looks good,
 
-diff --git a/arch/nds32/mm/cacheflush.c b/arch/nds32/mm/cacheflush.c
-index 254703653b6f5..8f168b33065fa 100644
---- a/arch/nds32/mm/cacheflush.c
-+++ b/arch/nds32/mm/cacheflush.c
-@@ -35,7 +35,6 @@ void flush_icache_page(struct vm_area_struct *vma, struct page *page)
- 	kunmap_atomic((void *)kaddr);
- 	local_irq_restore(flags);
- }
--EXPORT_SYMBOL(flush_icache_page);
- 
- void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
- 	                     unsigned long addr, int len)
--- 
-2.26.2
+Reviewed-by: Christoph Hellwig <hch@lst.de>
