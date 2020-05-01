@@ -1,36 +1,30 @@
-From: Matt Turner <mattst88@gmail.com>
-Date: Sat, 23 May 2020 20:22:30 +0000
-Subject: [PATCH 2/5] silo: Build with -U_FORTIFY_SOURCE
-Message-Id: <20200523202233.3063074-2-mattst88@gmail.com>
+From: Christoph Hellwig <hch@infradead.org>
+Date: Fri, 01 May 2020 08:35:59 +0000
+Subject: Re: [PATCH V1 01/10] arch/kmap: Remove BUG_ON()
+Message-Id: <20200501083559.GA27858@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200430203845.582900-1-ira.weiny@intel.com>
+ <20200430203845.582900-2-ira.weiny@intel.com>
+In-Reply-To: <20200430203845.582900-2-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: ira.weiny@intel.com
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>
 
-Otherwise the build will fail:
+On Thu, Apr 30, 2020 at 01:38:36PM -0700, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> Replace the use of BUG_ON(in_interrupt()) in the kmap() and kunmap()
+> in favor of might_sleep().
+> 
+> Besides the benefits of might_sleep(), this normalizes the
+> implementations such that they can be made generic in subsequent
+> patches.
+> 
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-| ld: decompnet.o: in function `error':
-| decomp.c:(.text+0x4dc): undefined reference to `__longjmp_chk'
+Looks good,
 
-Signed-off-by: Matt Turner <mattst88@gmail.com>
----
- Rules.make | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/Rules.make b/Rules.make
-index 3d0efe7..9739f7a 100644
---- a/Rules.make
-+++ b/Rules.make
-@@ -19,7 +19,8 @@ cc-option-yn = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
- 		> /dev/null 2>&1; then echo "y"; else echo "n"; fi;)
- 
- CFLAGS = -Os -Wall -I. -I../include -fomit-frame-pointer \
--	-fno-strict-aliasing -fno-PIC -DSMALL_RELOC=$(SMALL_RELOC) \
-+	-fno-strict-aliasing -fno-PIC -U_FORTIFY_SOURCE \
-+	-DSMALL_RELOC=$(SMALL_RELOC) \
- 	-DLARGE_RELOC=$(LARGE_RELOC)
- HOSTCFLAGS = -O2 -Wall
- 
--- 
-2.26.2
+Reviewed-by: Christoph Hellwig <hch@lst.de>
