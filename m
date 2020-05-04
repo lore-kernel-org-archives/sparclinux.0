@@ -1,51 +1,87 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Date: Thu, 28 May 2020 11:20:25 +0000
-Subject: Re: Cache flush issue with page_mapping_file() and swap back shmem page ?
-Message-Id: <20200528112025.GA10175@redhat.com>
+From: ira.weiny@intel.com
+Date: Mon, 04 May 2020 01:09:01 +0000
+Subject: [PATCH V2 00/11] Subject: Remove duplicated kmap code
+Message-Id: <20200504010912.982044-1-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200528002033.GB1992500@redhat.com>
- <alpine.LSU.2.11.2005272021220.3857@eggly.anvils>
-In-Reply-To: <alpine.LSU.2.11.2005272021220.3857@eggly.anvils>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Hugh Dickins <hughd@google.com>
-Cc: Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, linux-mm@kvack.org, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Paul Burton <paulburton@kernel.org>, Helge Deller <deller@gmx.de>, Huang Ying <ying.huang@intel.com>, James Hogan <jhogan@kernel.org>, rmk+kernel@arm.linux.org.uk, linux-xtensa@linux-xtensa.org, Steven Capper <steve.capper@linaro.org>, Rabin Vincent <rabinv@axis.com>, Ley Foon Tan <lftan@altera.com>, Guan Xuetao <gxt@pku.edu.cn>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-parisc@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, linux-kernel@vger.kernel.org, Ralf Baechle <ralf@linux-mips.org>, nios2-dev@lists.rocketboards.org, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Wed, May 27, 2020 at 08:46:22PM -0700, Hugh Dickins wrote:
-> Hi Jerome,
->=20
-> On Wed, 27 May 2020, Jerome Glisse wrote:
-> > So any arch code which uses page_mapping_file() might get the wrong
-> > answer, this function will return NULL for a swap backed page which
-> > can be a shmem pages. But shmem pages can still be shared among
-> > multiple process (and possibly at different virtual addresses if
-> > mremap was use).
-> >=20
-> > Attached is a patch that changes page_mapping_file() to return the
-> > shmem mapping for swap backed shmem page. I have not tested it (no
-> > way for me to test all those architecture) and i spotted this while
-> > working on something else. So i hope someone can take a closer look.
->=20
-> I'm certainly no expert on flush_dcache_page() and friends, but I'd
-> be very surprised if such a problem exists, yet has gone unnoticed
-> for so long.  page_mapping_file() itself is fairly new, added when
-> a risk of crashing on a race with swapoff came in: but the previous
-> use of page_mapping() would have suffered equally if there were such
-> a cache flushinhg problem here.
->=20
-> And I'm afraid your patch won't do anything to help if there is a
-> problem: very soon after shmem calls add_to_swap_cache(), it calls
-> shmem_delete_from_page_cache(), which sets page->mapping to NULL.
->=20
-> But I can assure you that a shmem page (unlike an anon page) is never
-> put into swap cache while it is mapped into userspace, and never
-> mapped into userspace while it is still in swap cache: does that help?
->=20
+From: Ira Weiny <ira.weiny@intel.com>
 
-You are right i missed/forgot the part where shmem is never swapcache
-and mapped at the same time, thus page_mapping_file() can return NULL
-for those as they can no longer have alias mapping.
+The kmap infrastructure has been copied almost verbatim to every architecture.
+This series consolidates obvious duplicated code by defining core functions
+which call into the architectures only when needed.
 
-Thank you Hugh
-J=E9r=F4me
+Some of the k[un]map_atomic() implementations have some similarities but the
+similarities were not sufficient to warrant further changes.
+
+In addition we remove a duplicate implementation of kmap() in DRM.
+
+Testing was done by 0day to cover all the architectures I can't readily
+build/test.
+
+---
+Changes from V1:
+	Fix bisect-ability
+	Update commit message and fix line lengths
+	Remove unneded kunmap_atomic_high() declarations
+	Remove unneded kmap_atomic_high() declarations
+	collect reviews
+	rebase to 5.7-rc4
+
+Changes from V0:
+	Define kmap_flush_tlb() and make kmap() truely arch independent.
+	Redefine the k[un]map_atomic_* code to call into the architectures for
+		high mem pages
+	Ensure all architectures define kmap_prot, use it appropriately, and
+		define kmap_atomic_prot()
+	Remove drm implementation of kmap_atomic()
+
+Ira Weiny (11):
+  arch/kmap: Remove BUG_ON()
+  arch/xtensa: Move kmap build bug out of the way
+  arch/kmap: Remove redundant arch specific kmaps
+  arch/kunmap: Remove duplicate kunmap implementations
+  {x86,powerpc,microblaze}/kmap: Move preempt disable
+  arch/kmap_atomic: Consolidate duplicate code
+  arch/kunmap_atomic: Consolidate duplicate code
+  arch/kmap: Ensure kmap_prot visibility
+  arch/kmap: Don't hard code kmap_prot values
+  arch/kmap: Define kmap_atomic_prot() for all arch's
+  drm: Remove drm specific kmap_atomic code
+
+ arch/arc/include/asm/highmem.h        | 15 -------
+ arch/arc/mm/highmem.c                 | 28 +++---------
+ arch/arm/include/asm/highmem.h        |  7 ---
+ arch/arm/mm/highmem.c                 | 35 +++------------
+ arch/csky/include/asm/highmem.h       |  9 +---
+ arch/csky/mm/highmem.c                | 43 +++++--------------
+ arch/microblaze/include/asm/highmem.h | 28 +-----------
+ arch/microblaze/mm/highmem.c          | 16 ++-----
+ arch/microblaze/mm/init.c             |  3 --
+ arch/mips/include/asm/highmem.h       |  9 +---
+ arch/mips/mm/cache.c                  |  6 +--
+ arch/mips/mm/highmem.c                | 49 ++++-----------------
+ arch/nds32/include/asm/highmem.h      |  7 ---
+ arch/nds32/mm/highmem.c               | 39 +++--------------
+ arch/parisc/include/asm/cacheflush.h  |  4 +-
+ arch/powerpc/include/asm/highmem.h    | 29 +------------
+ arch/powerpc/mm/highmem.c             | 21 ++-------
+ arch/powerpc/mm/mem.c                 |  3 --
+ arch/sparc/include/asm/highmem.h      | 22 ----------
+ arch/sparc/mm/highmem.c               | 18 +++-----
+ arch/x86/include/asm/highmem.h        |  9 ----
+ arch/x86/mm/highmem_32.c              | 50 ++-------------------
+ arch/xtensa/include/asm/highmem.h     | 27 ------------
+ arch/xtensa/mm/highmem.c              | 22 ++++------
+ drivers/gpu/drm/ttm/ttm_bo_util.c     | 56 ++----------------------
+ drivers/gpu/drm/vmwgfx/vmwgfx_blit.c  | 16 +++----
+ include/drm/ttm/ttm_bo_api.h          |  4 --
+ include/linux/highmem.h               | 62 +++++++++++++++++++++++++--
+ 28 files changed, 140 insertions(+), 497 deletions(-)
+
+-- 
+2.25.1
