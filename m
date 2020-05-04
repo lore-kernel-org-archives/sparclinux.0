@@ -1,87 +1,61 @@
-From: ira.weiny@intel.com
-Date: Mon, 04 May 2020 01:09:01 +0000
-Subject: [PATCH V2 00/11] Subject: Remove duplicated kmap code
-Message-Id: <20200504010912.982044-1-ira.weiny@intel.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 04 May 2020 01:35:09 +0000
+Subject: Re: [PATCH V2 00/11] Subject: Remove duplicated kmap code
+Message-Id: <20200504013509.GU23230@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200504010912.982044-1-ira.weiny@intel.com>
+In-Reply-To: <20200504010912.982044-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: ira.weiny@intel.com
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-From: Ira Weiny <ira.weiny@intel.com>
+On Sun, May 03, 2020 at 06:09:01PM -0700, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> The kmap infrastructure has been copied almost verbatim to every architecture.
+> This series consolidates obvious duplicated code by defining core functions
+> which call into the architectures only when needed.
+> 
+> Some of the k[un]map_atomic() implementations have some similarities but the
+> similarities were not sufficient to warrant further changes.
+> 
+> In addition we remove a duplicate implementation of kmap() in DRM.
+> 
+> Testing was done by 0day to cover all the architectures I can't readily
+> build/test.
 
-The kmap infrastructure has been copied almost verbatim to every architecture.
-This series consolidates obvious duplicated code by defining core functions
-which call into the architectures only when needed.
+OK...  Looking through my old notes on kmap unification (this winter, never
+went anywhere),
 
-Some of the k[un]map_atomic() implementations have some similarities but the
-similarities were not sufficient to warrant further changes.
+* arch/mips/mm/cache.c ought to use linux/highmem.h, not asm/highmem.h
+I suspect that your series doesn't build on some configs there.  Hadn't
+verified that, though.
 
-In addition we remove a duplicate implementation of kmap() in DRM.
+* kmap_atomic_to_page() is dead, but not quite gone - csky and nds32 brought
+the damn thing back (nds32 - only an extern).  It needs killin'...
 
-Testing was done by 0day to cover all the architectures I can't readily
-build/test.
+* parisc is (arguably) abusing kunmap()/kunmap_atomic() for cache flushing.
+Replace the bulk of its highmem.h with
+#define ARCH_HAS_FLUSH_ON_KUNMAP
+#define arch_before_kunmap flush_kernel_dcache_page_addr
+and have default kunmap()/kunmap_atomic() do
+#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
+	arch_before_kunmap(page_address(page));
+#endif
+and
+#ifdef ARCH_HAS_FLUSH_ON_KUNMAP
+	arch_before_kunmap(addr);
+#endif
+resp.  Kills ARCH_HAS_KMAP along with ifdefs on it, makes parisc use somewhat
+less hacky.
 
----
-Changes from V1:
-	Fix bisect-ability
-	Update commit message and fix line lengths
-	Remove unneded kunmap_atomic_high() declarations
-	Remove unneded kmap_atomic_high() declarations
-	collect reviews
-	rebase to 5.7-rc4
-
-Changes from V0:
-	Define kmap_flush_tlb() and make kmap() truely arch independent.
-	Redefine the k[un]map_atomic_* code to call into the architectures for
-		high mem pages
-	Ensure all architectures define kmap_prot, use it appropriately, and
-		define kmap_atomic_prot()
-	Remove drm implementation of kmap_atomic()
-
-Ira Weiny (11):
-  arch/kmap: Remove BUG_ON()
-  arch/xtensa: Move kmap build bug out of the way
-  arch/kmap: Remove redundant arch specific kmaps
-  arch/kunmap: Remove duplicate kunmap implementations
-  {x86,powerpc,microblaze}/kmap: Move preempt disable
-  arch/kmap_atomic: Consolidate duplicate code
-  arch/kunmap_atomic: Consolidate duplicate code
-  arch/kmap: Ensure kmap_prot visibility
-  arch/kmap: Don't hard code kmap_prot values
-  arch/kmap: Define kmap_atomic_prot() for all arch's
-  drm: Remove drm specific kmap_atomic code
-
- arch/arc/include/asm/highmem.h        | 15 -------
- arch/arc/mm/highmem.c                 | 28 +++---------
- arch/arm/include/asm/highmem.h        |  7 ---
- arch/arm/mm/highmem.c                 | 35 +++------------
- arch/csky/include/asm/highmem.h       |  9 +---
- arch/csky/mm/highmem.c                | 43 +++++--------------
- arch/microblaze/include/asm/highmem.h | 28 +-----------
- arch/microblaze/mm/highmem.c          | 16 ++-----
- arch/microblaze/mm/init.c             |  3 --
- arch/mips/include/asm/highmem.h       |  9 +---
- arch/mips/mm/cache.c                  |  6 +--
- arch/mips/mm/highmem.c                | 49 ++++-----------------
- arch/nds32/include/asm/highmem.h      |  7 ---
- arch/nds32/mm/highmem.c               | 39 +++--------------
- arch/parisc/include/asm/cacheflush.h  |  4 +-
- arch/powerpc/include/asm/highmem.h    | 29 +------------
- arch/powerpc/mm/highmem.c             | 21 ++-------
- arch/powerpc/mm/mem.c                 |  3 --
- arch/sparc/include/asm/highmem.h      | 22 ----------
- arch/sparc/mm/highmem.c               | 18 +++-----
- arch/x86/include/asm/highmem.h        |  9 ----
- arch/x86/mm/highmem_32.c              | 50 ++-------------------
- arch/xtensa/include/asm/highmem.h     | 27 ------------
- arch/xtensa/mm/highmem.c              | 22 ++++------
- drivers/gpu/drm/ttm/ttm_bo_util.c     | 56 ++----------------------
- drivers/gpu/drm/vmwgfx/vmwgfx_blit.c  | 16 +++----
- include/drm/ttm/ttm_bo_api.h          |  4 --
- include/linux/highmem.h               | 62 +++++++++++++++++++++++++--
- 28 files changed, 140 insertions(+), 497 deletions(-)
-
--- 
-2.25.1
+I'd suggest checking various configs on mips - that's likely to cause headache.
+Said that, my analysis of include chains back then is pretty much worthless
+by now - I really hate the amount of indirect include chains leading to that
+sucker on some, but not all configs ;-/  IIRC, the proof that everything
+using kmap*/kunmap* would pull linux/highmem.h regardless of config took several
+hours of digging, ran for several pages and had been hopelessly brittle.
+arch/mips/mm/cache.c was the only exception caught by it, but these days
+there might be more.
