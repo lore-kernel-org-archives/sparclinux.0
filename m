@@ -1,301 +1,370 @@
-From: Nate Karstens <nate.karstens@garmin.com>
-Date: Fri, 15 May 2020 15:23:18 +0000
-Subject: [PATCH v2 1/4] fs: Implement close-on-fork
-Message-Id: <20200515152321.9280-2-nate.karstens@garmin.com>
+From: ira.weiny@intel.com
+Date: Mon, 04 May 2020 01:09:05 +0000
+Subject: [PATCH V2 04/11] arch/kunmap: Remove duplicate kunmap implementations
+Message-Id: <20200504010912.982044-5-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200515152321.9280-1-nate.karstens@garmin.com>
-In-Reply-To: <20200515152321.9280-1-nate.karstens@garmin.com>
+References: <20200504010912.982044-1-ira.weiny@intel.com>
+In-Reply-To: <20200504010912.982044-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Changli Gao <xiaosuo@gmail.com>, Nate Karstens <nate.karstens@garmin.com>
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-The close-on-fork flag causes the file descriptor to be closed
-atomically in the child process before the child process returns
-from fork(). Implement this feature and provide a method to
-get/set the close-on-fork flag using fcntl(2).
+From: Ira Weiny <ira.weiny@intel.com>
 
-This functionality was approved by the Austin Common Standards
-Revision Group for inclusion in the next revision of the POSIX
-standard (see issue 1318 in the Austin Group Defect Tracker).
+All architectures do exactly the same thing for kunmap(); remove all the
+duplicate definitions and lift the call to the core.
 
-If clone(2) is used to create a child process and the CLONE_FILES
-flag is set, then both processes will share the table of file
-descriptors and the state of the close-on-fork flag for any
-individual file descriptor. If unshare(2) is later used to stop
-sharing the file descriptor table, then any file descriptor with
-the close-on-fork flag set will be closed in the process that
-calls unshare(2).
+This also has the benefit of changing kmap_unmap() on a number of
+architectures to be an inline call rather than an actual function.
 
-execve(2) also causes the file descriptor table to be unshared,
-so any file descriptor with the close-on-fork flag set will be
-closed in the process that calls execve(2).
-
-Co-developed-by: Changli Gao <xiaosuo@gmail.com>
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Signed-off-by: Nate Karstens <nate.karstens@garmin.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- fs/fcntl.c                             |  4 +-
- fs/file.c                              | 64 ++++++++++++++++++++++++--
- include/linux/fdtable.h                |  7 +++
- include/linux/file.h                   |  2 +
- include/uapi/asm-generic/fcntl.h       |  5 +-
- tools/include/uapi/asm-generic/fcntl.h |  5 +-
- 6 files changed, 77 insertions(+), 10 deletions(-)
+ arch/arc/include/asm/highmem.h        | 10 ----------
+ arch/arm/include/asm/highmem.h        |  3 ---
+ arch/arm/mm/highmem.c                 |  9 ---------
+ arch/csky/include/asm/highmem.h       |  3 ---
+ arch/csky/mm/highmem.c                |  9 ---------
+ arch/microblaze/include/asm/highmem.h |  9 ---------
+ arch/mips/include/asm/highmem.h       |  3 ---
+ arch/mips/mm/highmem.c                |  9 ---------
+ arch/nds32/include/asm/highmem.h      |  3 ---
+ arch/nds32/mm/highmem.c               | 10 ----------
+ arch/powerpc/include/asm/highmem.h    |  9 ---------
+ arch/sparc/include/asm/highmem.h      | 10 ----------
+ arch/x86/include/asm/highmem.h        |  4 ----
+ arch/x86/mm/highmem_32.c              |  9 ---------
+ arch/xtensa/include/asm/highmem.h     | 10 ----------
+ include/linux/highmem.h               |  9 +++++++++
+ 16 files changed, 9 insertions(+), 110 deletions(-)
 
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 2e4c0fa2074b..913b0cb70804 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -334,11 +334,11 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 		err = f_dupfd(arg, filp, O_CLOEXEC);
- 		break;
- 	case F_GETFD:
--		err = get_close_on_exec(fd) ? FD_CLOEXEC : 0;
-+		err = f_getfd(fd);
- 		break;
- 	case F_SETFD:
- 		err = 0;
--		set_close_on_exec(fd, arg & FD_CLOEXEC);
-+		f_setfd(fd, arg);
- 		break;
- 	case F_GETFL:
- 		err = filp->f_flags;
-diff --git a/fs/file.c b/fs/file.c
-index c8a4e4c86e55..81194349e980 100644
---- a/fs/file.c
-+++ b/fs/file.c
-@@ -47,7 +47,7 @@ static void free_fdtable_rcu(struct rcu_head *rcu)
-  * spinlock held for write.
-  */
- static void copy_fd_bitmaps(struct fdtable *nfdt, struct fdtable *ofdt,
--			    unsigned int count)
-+			    unsigned int count, bool copy_cof)
- {
- 	unsigned int cpy, set;
+diff --git a/arch/arc/include/asm/highmem.h b/arch/arc/include/asm/highmem.h
+index 96eb67c86961..8387a5596a91 100644
+--- a/arch/arc/include/asm/highmem.h
++++ b/arch/arc/include/asm/highmem.h
+@@ -32,7 +32,6 @@
  
-@@ -58,6 +58,13 @@ static void copy_fd_bitmaps(struct fdtable *nfdt, struct fdtable *ofdt,
- 	memcpy(nfdt->close_on_exec, ofdt->close_on_exec, cpy);
- 	memset((char *)nfdt->close_on_exec + cpy, 0, set);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+-extern void kunmap_high(struct page *page);
  
-+	if (copy_cof) {
-+		memcpy(nfdt->close_on_fork, ofdt->close_on_fork, cpy);
-+		memset((char *)nfdt->close_on_fork + cpy, 0, set);
-+	} else {
-+		memset((char *)nfdt->close_on_fork, 0, cpy + set);
-+	}
-+
- 	cpy = BITBIT_SIZE(count);
- 	set = BITBIT_SIZE(nfdt->max_fds) - cpy;
- 	memcpy(nfdt->full_fds_bits, ofdt->full_fds_bits, cpy);
-@@ -79,7 +86,7 @@ static void copy_fdtable(struct fdtable *nfdt, struct fdtable *ofdt)
- 	memcpy(nfdt->fd, ofdt->fd, cpy);
- 	memset((char *)nfdt->fd + cpy, 0, set);
+ extern void kmap_init(void);
  
--	copy_fd_bitmaps(nfdt, ofdt, ofdt->max_fds);
-+	copy_fd_bitmaps(nfdt, ofdt, ofdt->max_fds, true);
+@@ -41,15 +40,6 @@ static inline void flush_cache_kmaps(void)
+ 	flush_cache_all();
  }
  
- static struct fdtable * alloc_fdtable(unsigned int nr)
-@@ -118,7 +125,7 @@ static struct fdtable * alloc_fdtable(unsigned int nr)
- 	fdt->fd = data;
- 
- 	data = kvmalloc(max_t(size_t,
--				 2 * nr / BITS_PER_BYTE + BITBIT_SIZE(nr), L1_CACHE_BYTES),
-+				 3 * nr / BITS_PER_BYTE + BITBIT_SIZE(nr), L1_CACHE_BYTES),
- 				 GFP_KERNEL_ACCOUNT);
- 	if (!data)
- 		goto out_arr;
-@@ -126,6 +133,8 @@ static struct fdtable * alloc_fdtable(unsigned int nr)
- 	data += nr / BITS_PER_BYTE;
- 	fdt->close_on_exec = data;
- 	data += nr / BITS_PER_BYTE;
-+	fdt->close_on_fork = data;
-+	data += nr / BITS_PER_BYTE;
- 	fdt->full_fds_bits = data;
- 
- 	return fdt;
-@@ -236,6 +245,17 @@ static inline void __clear_close_on_exec(unsigned int fd, struct fdtable *fdt)
- 		__clear_bit(fd, fdt->close_on_exec);
- }
- 
-+static inline void __set_close_on_fork(unsigned int fd, struct fdtable *fdt)
-+{
-+	__set_bit(fd, fdt->close_on_fork);
-+}
-+
-+static inline void __clear_close_on_fork(unsigned int fd, struct fdtable *fdt)
-+{
-+	if (test_bit(fd, fdt->close_on_fork))
-+		__clear_bit(fd, fdt->close_on_fork);
-+}
-+
- static inline void __set_open_fd(unsigned int fd, struct fdtable *fdt)
- {
- 	__set_bit(fd, fdt->open_fds);
-@@ -290,6 +310,7 @@ struct files_struct *dup_fd(struct files_struct *oldf, int *errorp)
- 	new_fdt = &newf->fdtab;
- 	new_fdt->max_fds = NR_OPEN_DEFAULT;
- 	new_fdt->close_on_exec = newf->close_on_exec_init;
-+	new_fdt->close_on_fork = newf->close_on_fork_init;
- 	new_fdt->open_fds = newf->open_fds_init;
- 	new_fdt->full_fds_bits = newf->full_fds_bits_init;
- 	new_fdt->fd = &newf->fd_array[0];
-@@ -330,13 +351,17 @@ struct files_struct *dup_fd(struct files_struct *oldf, int *errorp)
- 		open_files = count_open_files(old_fdt);
- 	}
- 
--	copy_fd_bitmaps(new_fdt, old_fdt, open_files);
-+	copy_fd_bitmaps(new_fdt, old_fdt, open_files, false);
- 
- 	old_fds = old_fdt->fd;
- 	new_fds = new_fdt->fd;
- 
- 	for (i = open_files; i != 0; i--) {
- 		struct file *f = *old_fds++;
-+
-+		if (close_on_fork(open_files - i, old_fdt))
-+			f = NULL;
-+
- 		if (f) {
- 			get_file(f);
- 		} else {
-@@ -453,6 +478,7 @@ struct files_struct init_files = {
- 		.max_fds	= NR_OPEN_DEFAULT,
- 		.fd		= &init_files.fd_array[0],
- 		.close_on_exec	= init_files.close_on_exec_init,
-+		.close_on_fork	= init_files.close_on_fork_init,
- 		.open_fds	= init_files.open_fds_init,
- 		.full_fds_bits	= init_files.full_fds_bits_init,
- 	},
-@@ -840,6 +866,36 @@ void __f_unlock_pos(struct file *f)
-  * file count (done either by fdget() or by fork()).
-  */
- 
-+void f_setfd(unsigned int fd, int flags)
-+{
-+	struct files_struct *files = current->files;
-+	struct fdtable *fdt;
-+	spin_lock(&files->file_lock);
-+	fdt = files_fdtable(files);
-+	if (flags & FD_CLOEXEC)
-+		__set_close_on_exec(fd, fdt);
-+	else
-+		__clear_close_on_exec(fd, fdt);
-+	if (flags & FD_CLOFORK)
-+		__set_close_on_fork(fd, fdt);
-+	else
-+		__clear_close_on_fork(fd, fdt);
-+	spin_unlock(&files->file_lock);
-+}
-+
-+int f_getfd(unsigned int fd)
-+{
-+	struct files_struct *files = current->files;
-+	struct fdtable *fdt;
-+	int flags;
-+	rcu_read_lock();
-+	fdt = files_fdtable(files);
-+	flags = (close_on_exec(fd, fdt) ? FD_CLOEXEC : 0) |
-+	        (close_on_fork(fd, fdt) ? FD_CLOFORK : 0);
-+	rcu_read_unlock();
-+	return flags;
-+}
-+
- void set_close_on_exec(unsigned int fd, int flag)
- {
- 	struct files_struct *files = current->files;
-diff --git a/include/linux/fdtable.h b/include/linux/fdtable.h
-index f07c55ea0c22..61c551947fa3 100644
---- a/include/linux/fdtable.h
-+++ b/include/linux/fdtable.h
-@@ -27,6 +27,7 @@ struct fdtable {
- 	unsigned int max_fds;
- 	struct file __rcu **fd;      /* current fd array */
- 	unsigned long *close_on_exec;
-+	unsigned long *close_on_fork;
- 	unsigned long *open_fds;
- 	unsigned long *full_fds_bits;
- 	struct rcu_head rcu;
-@@ -37,6 +38,11 @@ static inline bool close_on_exec(unsigned int fd, const struct fdtable *fdt)
- 	return test_bit(fd, fdt->close_on_exec);
- }
- 
-+static inline bool close_on_fork(unsigned int fd, const struct fdtable *fdt)
-+{
-+	return test_bit(fd, fdt->close_on_fork);
-+}
-+
- static inline bool fd_is_open(unsigned int fd, const struct fdtable *fdt)
- {
- 	return test_bit(fd, fdt->open_fds);
-@@ -61,6 +67,7 @@ struct files_struct {
- 	spinlock_t file_lock ____cacheline_aligned_in_smp;
- 	unsigned int next_fd;
- 	unsigned long close_on_exec_init[1];
-+	unsigned long close_on_fork_init[1];
- 	unsigned long open_fds_init[1];
- 	unsigned long full_fds_bits_init[1];
- 	struct file __rcu * fd_array[NR_OPEN_DEFAULT];
-diff --git a/include/linux/file.h b/include/linux/file.h
-index 142d102f285e..0ee15ee24010 100644
---- a/include/linux/file.h
-+++ b/include/linux/file.h
-@@ -83,6 +83,8 @@ static inline void fdput_pos(struct fd f)
- 
- extern int f_dupfd(unsigned int from, struct file *file, unsigned flags);
- extern int replace_fd(unsigned fd, struct file *file, unsigned flags);
-+extern int f_getfd(unsigned int fd);
-+extern void f_setfd(unsigned int fd, int flags);
- extern void set_close_on_exec(unsigned int fd, int flag);
- extern bool get_close_on_exec(unsigned int fd);
- extern int __get_unused_fd_flags(unsigned flags, unsigned long nofile);
-diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
-index 9dc0bf0c5a6e..0cb7199a7743 100644
---- a/include/uapi/asm-generic/fcntl.h
-+++ b/include/uapi/asm-generic/fcntl.h
-@@ -98,8 +98,8 @@
+-static inline void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+-
  #endif
  
- #define F_DUPFD		0	/* dup */
--#define F_GETFD		1	/* get close_on_exec */
--#define F_SETFD		2	/* set/clear close_on_exec */
-+#define F_GETFD		1	/* get close_on_exec & close_on_fork */
-+#define F_SETFD		2	/* set/clear close_on_exec & close_on_fork */
- #define F_GETFL		3	/* get file->f_flags */
- #define F_SETFL		4	/* set file->f_flags */
- #ifndef F_GETLK
-@@ -160,6 +160,7 @@ struct f_owner_ex {
- 
- /* for F_[GET|SET]FL */
- #define FD_CLOEXEC	1	/* actually anything with low bit set goes */
-+#define FD_CLOFORK	2
- 
- /* for posix fcntl() and lockf() */
- #ifndef F_RDLCK
-diff --git a/tools/include/uapi/asm-generic/fcntl.h b/tools/include/uapi/asm-generic/fcntl.h
-index ac190958c981..e04a00fecb4a 100644
---- a/tools/include/uapi/asm-generic/fcntl.h
-+++ b/tools/include/uapi/asm-generic/fcntl.h
-@@ -97,8 +97,8 @@
  #endif
+diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
+index c917522541de..736f65283e7b 100644
+--- a/arch/arm/include/asm/highmem.h
++++ b/arch/arm/include/asm/highmem.h
+@@ -20,8 +20,6 @@
  
- #define F_DUPFD		0	/* dup */
--#define F_GETFD		1	/* get close_on_exec */
--#define F_SETFD		2	/* set/clear close_on_exec */
-+#define F_GETFD		1	/* get close_on_exec & close_on_fork */
-+#define F_SETFD		2	/* set/clear close_on_exec & close_on_fork */
- #define F_GETFL		3	/* get file->f_flags */
- #define F_SETFL		4	/* set file->f_flags */
- #ifndef F_GETLK
-@@ -159,6 +159,7 @@ struct f_owner_ex {
+ extern pte_t *pkmap_page_table;
  
- /* for F_[GET|SET]FL */
- #define FD_CLOEXEC	1	/* actually anything with low bit set goes */
-+#define FD_CLOFORK	2
+-extern void kunmap_high(struct page *page);
+-
+ /*
+  * The reason for kmap_high_get() is to ensure that the currently kmap'd
+  * page usage count does not decrease to zero while we're using its
+@@ -62,7 +60,6 @@ static inline void *kmap_high_get(struct page *page)
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
+index e8ba37c36590..c700b32350ee 100644
+--- a/arch/arm/mm/highmem.c
++++ b/arch/arm/mm/highmem.c
+@@ -31,15 +31,6 @@ static inline pte_t get_fixmap_pte(unsigned long vaddr)
+ 	return *ptep;
+ }
  
- /* for posix fcntl() and lockf() */
- #ifndef F_RDLCK
+-void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-EXPORT_SYMBOL(kunmap);
+-
+ void *kmap_atomic(struct page *page)
+ {
+ 	unsigned int idx;
+diff --git a/arch/csky/include/asm/highmem.h b/arch/csky/include/asm/highmem.h
+index 9d0516e38110..be11c5b67122 100644
+--- a/arch/csky/include/asm/highmem.h
++++ b/arch/csky/include/asm/highmem.h
+@@ -30,11 +30,8 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void kunmap_high(struct page *page);
+-
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
+index 4a3c273bc8b9..e9952211264b 100644
+--- a/arch/csky/mm/highmem.c
++++ b/arch/csky/mm/highmem.c
+@@ -21,15 +21,6 @@ EXPORT_SYMBOL(kmap_flush_tlb);
+ 
+ EXPORT_SYMBOL(kmap);
+ 
+-void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-EXPORT_SYMBOL(kunmap);
+-
+ void *kmap_atomic(struct page *page)
+ {
+ 	unsigned long vaddr;
+diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
+index 8c5bfd228bd8..0c94046f2d58 100644
+--- a/arch/microblaze/include/asm/highmem.h
++++ b/arch/microblaze/include/asm/highmem.h
+@@ -51,18 +51,9 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void kunmap_high(struct page *page);
+ extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+ static inline void *kmap_atomic(struct page *page)
+ {
+ 	return kmap_atomic_prot(page, kmap_prot);
+diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
+index 1f741e3ecabf..24e7e7e5cc7b 100644
+--- a/arch/mips/include/asm/highmem.h
++++ b/arch/mips/include/asm/highmem.h
+@@ -46,11 +46,8 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void kunmap_high(struct page *page);
+-
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
+index c72058bfead6..eb8ec8493f2f 100644
+--- a/arch/mips/mm/highmem.c
++++ b/arch/mips/mm/highmem.c
+@@ -18,15 +18,6 @@ void kmap_flush_tlb(unsigned long addr)
+ }
+ EXPORT_SYMBOL(kmap_flush_tlb);
+ 
+-void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-EXPORT_SYMBOL(kunmap);
+-
+ /*
+  * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
+  * no global lock is needed and because the kmap code must perform a global TLB
+diff --git a/arch/nds32/include/asm/highmem.h b/arch/nds32/include/asm/highmem.h
+index b13654a79069..c93c7368bb3f 100644
+--- a/arch/nds32/include/asm/highmem.h
++++ b/arch/nds32/include/asm/highmem.h
+@@ -44,8 +44,6 @@ extern unsigned long highstart_pfn, highend_pfn;
+ 
+ extern pte_t *pkmap_page_table;
+ 
+-extern void kunmap_high(struct page *page);
+-
+ extern void kmap_init(void);
+ 
+ /*
+@@ -53,7 +51,6 @@ extern void kmap_init(void);
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void kunmap(struct page *page);
+ extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
+index d0cde53b84ae..f9348bec0ecb 100644
+--- a/arch/nds32/mm/highmem.c
++++ b/arch/nds32/mm/highmem.c
+@@ -10,16 +10,6 @@
+ #include <asm/fixmap.h>
+ #include <asm/tlbflush.h>
+ 
+-void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+-EXPORT_SYMBOL(kunmap);
+-
+ void *kmap_atomic(struct page *page)
+ {
+ 	unsigned int idx;
+diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
+index f14e4feef6d5..ba3371977d49 100644
+--- a/arch/powerpc/include/asm/highmem.h
++++ b/arch/powerpc/include/asm/highmem.h
+@@ -59,18 +59,9 @@ extern pte_t *pkmap_page_table;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void kunmap_high(struct page *page);
+ extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+ static inline void *kmap_atomic(struct page *page)
+ {
+ 	return kmap_atomic_prot(page, kmap_prot);
+diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
+index 2ff1192047f7..4bdb79fed02c 100644
+--- a/arch/sparc/include/asm/highmem.h
++++ b/arch/sparc/include/asm/highmem.h
+@@ -50,16 +50,6 @@ void kmap_init(void) __init;
+ 
+ #define PKMAP_END (PKMAP_ADDR(LAST_PKMAP))
+ 
+-void kunmap_high(struct page *page);
+-
+-static inline void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+ void *kmap_atomic(struct page *page);
+ void __kunmap_atomic(void *kvaddr);
+ 
+diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
+index c916a28a9738..90b96594d6c5 100644
+--- a/arch/x86/include/asm/highmem.h
++++ b/arch/x86/include/asm/highmem.h
+@@ -58,10 +58,6 @@ extern unsigned long highstart_pfn, highend_pfn;
+ #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
+ #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ 
+-extern void kunmap_high(struct page *page);
+-
+-void kunmap(struct page *page);
+-
+ void *kmap_atomic_prot(struct page *page, pgprot_t prot);
+ void *kmap_atomic(struct page *page);
+ void __kunmap_atomic(void *kvaddr);
+diff --git a/arch/x86/mm/highmem_32.c b/arch/x86/mm/highmem_32.c
+index 12591a81b85c..c4ebfd0ae401 100644
+--- a/arch/x86/mm/highmem_32.c
++++ b/arch/x86/mm/highmem_32.c
+@@ -4,15 +4,6 @@
+ #include <linux/swap.h> /* for totalram_pages */
+ #include <linux/memblock.h>
+ 
+-void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-EXPORT_SYMBOL(kunmap);
+-
+ /*
+  * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
+  * no global lock is needed and because the kmap code must perform a global TLB
+diff --git a/arch/xtensa/include/asm/highmem.h b/arch/xtensa/include/asm/highmem.h
+index 2546b88ddecf..5a481f7def0b 100644
+--- a/arch/xtensa/include/asm/highmem.h
++++ b/arch/xtensa/include/asm/highmem.h
+@@ -63,16 +63,6 @@ static inline wait_queue_head_t *get_pkmap_wait_queue_head(unsigned int color)
+ 
+ extern pte_t *pkmap_page_table;
+ 
+-void kunmap_high(struct page *page);
+-
+-static inline void kunmap(struct page *page)
+-{
+-	might_sleep();
+-	if (!PageHighMem(page))
+-		return;
+-	kunmap_high(page);
+-}
+-
+ static inline void flush_cache_kmaps(void)
+ {
+ 	flush_cache_all();
+diff --git a/include/linux/highmem.h b/include/linux/highmem.h
+index fc3adc51254a..ae6e8cb81043 100644
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -52,6 +52,15 @@ static inline void *kmap(struct page *page)
+ 	return addr;
+ }
+ 
++void kunmap_high(struct page *page);
++static inline void kunmap(struct page *page)
++{
++	might_sleep();
++	if (!PageHighMem(page))
++		return;
++	kunmap_high(page);
++}
++
+ /* declarations for linux/mm/highmem.c */
+ unsigned int nr_free_highpages(void);
+ extern atomic_long_t _totalhigh_pages;
 -- 
-2.26.1
+2.25.1
