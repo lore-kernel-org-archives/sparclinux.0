@@ -1,14 +1,16 @@
 From: "JEAN MARIE" <fkinneyofd@tampabay.rr.com>
-Date: Sat, 02 May 2020 22:40:02 +0000
+Date: Tue, 05 May 2020 20:27:11 +0000
 Subject: Kindly Acknowledge Receipt
-Message-Id: <ysiyod--y-4jv3$-811-47j3vx@k27.30r9j49>
+Message-Id: <7$$$t4460d$0$3@aj476en8j>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="A.8__C1.8D_9DF_E2DD_5F_9"
+Content-Type: multipart/mixed; boundary="582.A.E8.7"
 List-Id: <sparclinux.vger.kernel.org>
+References: <ysiyod--y-4jv3$-811-47j3vx@k27.30r9j49>
+In-Reply-To: <ysiyod--y-4jv3$-811-47j3vx@k27.30r9j49>
 To: sparclinux@vger.kernel.org
 
 
---A.8__C1.8D_9DF_E2DD_5F_9
+--582.A.E8.7
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -23,4 +25,4 @@ Regards.
 Mr. J. Marie
 fkinneyofd Consulting
 
---A.8__C1.8D_9DF_E2DD_5F_9--
+--582.A.E8.7--
