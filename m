@@ -1,237 +1,521 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Wed, 06 May 2020 06:24:14 +0000
-Subject: [PATCH V2 3/3] mm/hugetlb: Define a generic fallback for arch_clear_hugepage_flags()
-Message-Id: <1588745534-24418-4-git-send-email-anshuman.khandual@arm.com>
+From: ira.weiny@intel.com
+Date: Thu, 07 May 2020 14:59:54 +0000
+Subject: [PATCH V3 06/15] arch/kmap_atomic: Consolidate duplicate code
+Message-Id: <20200507150004.1423069-7-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1588745534-24418-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1588745534-24418-1-git-send-email-anshuman.khandual@arm.com>
+References: <20200507150004.1423069-1-ira.weiny@intel.com>
+In-Reply-To: <20200507150004.1423069-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-There are multiple similar definitions for arch_clear_hugepage_flags() on
-various platforms. Lets just add it's generic fallback definition for
-platforms that do not override. This help reduce code duplication.
+From: Ira Weiny <ira.weiny@intel.com>
 
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Every arch has the same code to ensure atomic operations and a check for
+!HIGHMEM page.
+
+Remove the duplicate code by defining a core kmap_atomic() which only
+calls the arch specific kmap_atomic_high() when the page is high memory.
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+
 ---
- arch/arm/include/asm/hugetlb.h     | 1 +
- arch/arm64/include/asm/hugetlb.h   | 1 +
- arch/ia64/include/asm/hugetlb.h    | 4 ----
- arch/mips/include/asm/hugetlb.h    | 4 ----
- arch/parisc/include/asm/hugetlb.h  | 4 ----
- arch/powerpc/include/asm/hugetlb.h | 4 ----
- arch/riscv/include/asm/hugetlb.h   | 4 ----
- arch/s390/include/asm/hugetlb.h    | 1 +
- arch/sh/include/asm/hugetlb.h      | 1 +
- arch/sparc/include/asm/hugetlb.h   | 4 ----
- arch/x86/include/asm/hugetlb.h     | 4 ----
- include/linux/hugetlb.h            | 5 +++++
- 12 files changed, 9 insertions(+), 28 deletions(-)
+Changes from V1:
+	Adjust to preserve bisect-ability
+	Remove unneeded kmap_atomic_high declarations
+---
+ arch/arc/include/asm/highmem.h        |  1 -
+ arch/arc/mm/highmem.c                 |  9 ++-------
+ arch/arm/include/asm/highmem.h        |  1 -
+ arch/arm/mm/highmem.c                 |  9 ++-------
+ arch/csky/include/asm/highmem.h       |  1 -
+ arch/csky/mm/highmem.c                |  9 ++-------
+ arch/microblaze/include/asm/highmem.h |  4 ++--
+ arch/mips/include/asm/highmem.h       |  1 -
+ arch/mips/mm/cache.c                  |  2 +-
+ arch/mips/mm/highmem.c                | 18 ++----------------
+ arch/nds32/include/asm/highmem.h      |  1 -
+ arch/nds32/mm/highmem.c               |  9 ++-------
+ arch/powerpc/include/asm/highmem.h    |  4 ++--
+ arch/powerpc/mm/highmem.c             |  6 ------
+ arch/sparc/include/asm/highmem.h      |  1 -
+ arch/sparc/mm/highmem.c               |  9 ++-------
+ arch/x86/include/asm/highmem.h        |  5 ++++-
+ arch/x86/mm/highmem_32.c              | 14 --------------
+ arch/xtensa/include/asm/highmem.h     |  1 -
+ arch/xtensa/mm/highmem.c              |  9 ++-------
+ include/linux/highmem.h               | 23 +++++++++++++++++++++++
+ 21 files changed, 46 insertions(+), 91 deletions(-)
 
-diff --git a/arch/arm/include/asm/hugetlb.h b/arch/arm/include/asm/hugetlb.h
-index 9ecd516d1ff7..d02d6ca88e92 100644
---- a/arch/arm/include/asm/hugetlb.h
-+++ b/arch/arm/include/asm/hugetlb.h
-@@ -18,5 +18,6 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+diff --git a/arch/arc/include/asm/highmem.h b/arch/arc/include/asm/highmem.h
+index 8387a5596a91..db425cd38545 100644
+--- a/arch/arc/include/asm/highmem.h
++++ b/arch/arc/include/asm/highmem.h
+@@ -30,7 +30,6 @@
+ 
+ #include <asm/cacheflush.h>
+ 
+-extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+ extern void kmap_init(void);
+diff --git a/arch/arc/mm/highmem.c b/arch/arc/mm/highmem.c
+index 4db13a6b9f3b..0964b011c29f 100644
+--- a/arch/arc/mm/highmem.c
++++ b/arch/arc/mm/highmem.c
+@@ -49,16 +49,11 @@
+ extern pte_t * pkmap_page_table;
+ static pte_t * fixmap_page_table;
+ 
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
  {
- 	clear_bit(PG_dcache_clean, &page->flags);
- }
-+#define arch_clear_hugepage_flags arch_clear_hugepage_flags
+ 	int idx, cpu_idx;
+ 	unsigned long vaddr;
  
- #endif /* _ASM_ARM_HUGETLB_H */
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index 8f58e052697a..94ba0c5bced2 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -21,6 +21,7 @@ static inline void arch_clear_hugepage_flags(struct page *page)
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	cpu_idx = kmap_atomic_idx_push();
+ 	idx = cpu_idx + KM_TYPE_NR * smp_processor_id();
+ 	vaddr = FIXMAP_ADDR(idx);
+@@ -68,7 +63,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void *)vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kv)
  {
- 	clear_bit(PG_dcache_clean, &page->flags);
- }
-+#define arch_clear_hugepage_flags arch_clear_hugepage_flags
- 
- extern pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
- 				struct page *page, int writable);
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index 6ef50b9a4bdf..7e46ebde8c0c 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -28,10 +28,6 @@ static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- {
- }
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #include <asm-generic/hugetlb.h>
- 
- #endif /* _ASM_IA64_HUGETLB_H */
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 8b201e281f67..10e3be870df7 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -75,10 +75,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 	return changed;
- }
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #include <asm-generic/hugetlb.h>
- 
- #endif /* __ASM_HUGETLB_H */
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index 411d9d867baa..a69cf9efb0c1 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -42,10 +42,6 @@ int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 					     unsigned long addr, pte_t *ptep,
- 					     pte_t pte, int dirty);
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #include <asm-generic/hugetlb.h>
- 
- #endif /* _ASM_PARISC64_HUGETLB_H */
-diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
-index b167c869d72d..e6dfa63da552 100644
---- a/arch/powerpc/include/asm/hugetlb.h
-+++ b/arch/powerpc/include/asm/hugetlb.h
-@@ -61,10 +61,6 @@ int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 			       unsigned long addr, pte_t *ptep,
- 			       pte_t pte, int dirty);
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #include <asm-generic/hugetlb.h>
- 
- #else /* ! CONFIG_HUGETLB_PAGE */
-diff --git a/arch/riscv/include/asm/hugetlb.h b/arch/riscv/include/asm/hugetlb.h
-index 866f6ae6467c..a5c2ca1d1cd8 100644
---- a/arch/riscv/include/asm/hugetlb.h
-+++ b/arch/riscv/include/asm/hugetlb.h
-@@ -5,8 +5,4 @@
- #include <asm-generic/hugetlb.h>
- #include <asm/page.h>
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #endif /* _ASM_RISCV_HUGETLB_H */
-diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
-index 7d27ea96ec2f..9ddf4a43a590 100644
---- a/arch/s390/include/asm/hugetlb.h
-+++ b/arch/s390/include/asm/hugetlb.h
-@@ -39,6 +39,7 @@ static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_arch_1, &page->flags);
- }
-+#define arch_clear_hugepage_flags arch_clear_hugepage_flags
- 
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 				  pte_t *ptep, unsigned long sz)
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index 536ad2cb8aa4..ae4de7b89210 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -30,6 +30,7 @@ static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
- }
-+#define arch_clear_hugepage_flags arch_clear_hugepage_flags
- 
- #include <asm-generic/hugetlb.h>
- 
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index a056fe1119f5..53838a173f62 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -47,10 +47,6 @@ static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
- 	return changed;
- }
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #define __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
- void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 			    unsigned long end, unsigned long floor,
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index cc98f79074d0..1721b1aadeb1 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -7,8 +7,4 @@
- 
- #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
- 
--static inline void arch_clear_hugepage_flags(struct page *page)
--{
--}
--
- #endif /* _ASM_X86_HUGETLB_H */
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index c01c0c6f7fd4..04bc794becfc 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -600,6 +600,11 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- #define is_hugepage_only_range is_hugepage_only_range
+diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
+index 736f65283e7b..8c80bfe18a34 100644
+--- a/arch/arm/include/asm/highmem.h
++++ b/arch/arm/include/asm/highmem.h
+@@ -60,7 +60,6 @@ static inline void *kmap_high_get(struct page *page)
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
  #endif
+diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
+index c700b32350ee..075fdc235091 100644
+--- a/arch/arm/mm/highmem.c
++++ b/arch/arm/mm/highmem.c
+@@ -31,18 +31,13 @@ static inline pte_t get_fixmap_pte(unsigned long vaddr)
+ 	return *ptep;
+ }
  
-+#ifndef arch_clear_hugepage_flags
-+static inline void arch_clear_hugepage_flags(struct page *page) { }
-+#define arch_clear_hugepage_flags arch_clear_hugepage_flags
-+#endif
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	unsigned int idx;
+ 	unsigned long vaddr;
+ 	void *kmap;
+ 	int type;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ #ifdef CONFIG_DEBUG_HIGHMEM
+ 	/*
+ 	 * There is no cache coherency issue when non VIVT, so force the
+@@ -76,7 +71,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void *)vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/arch/csky/include/asm/highmem.h b/arch/csky/include/asm/highmem.h
+index be11c5b67122..8ceee12f9bc1 100644
+--- a/arch/csky/include/asm/highmem.h
++++ b/arch/csky/include/asm/highmem.h
+@@ -32,7 +32,6 @@ extern pte_t *pkmap_page_table;
+ 
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+ extern struct page *kmap_atomic_to_page(void *ptr);
+diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
+index e9952211264b..63d74b47eee6 100644
+--- a/arch/csky/mm/highmem.c
++++ b/arch/csky/mm/highmem.c
+@@ -21,16 +21,11 @@ EXPORT_SYMBOL(kmap_flush_tlb);
+ 
+ EXPORT_SYMBOL(kmap);
+ 
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+ 	int idx, type;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	type = kmap_atomic_idx_push();
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+@@ -42,7 +37,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void *)vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
+index c38d920a1171..f7c5467df5ad 100644
+--- a/arch/microblaze/include/asm/highmem.h
++++ b/arch/microblaze/include/asm/highmem.h
+@@ -63,9 +63,9 @@ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+ }
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void *kmap_atomic(struct page *page)
++static inline void *kmap_atomic_high(struct page *page)
+ {
+-	return kmap_atomic_prot(page, kmap_prot);
++	return kmap_atomic_high_prot(page, kmap_prot);
+ }
+ 
+ #define flush_cache_kmaps()	{ flush_icache(); flush_dcache(); }
+diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
+index 24e7e7e5cc7b..8bdbbfc322ad 100644
+--- a/arch/mips/include/asm/highmem.h
++++ b/arch/mips/include/asm/highmem.h
+@@ -48,7 +48,6 @@ extern pte_t *pkmap_page_table;
+ 
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+ 
+diff --git a/arch/mips/mm/cache.c b/arch/mips/mm/cache.c
+index 33b409391ddb..f015bb51fab0 100644
+--- a/arch/mips/mm/cache.c
++++ b/arch/mips/mm/cache.c
+@@ -14,9 +14,9 @@
+ #include <linux/sched.h>
+ #include <linux/syscalls.h>
+ #include <linux/mm.h>
++#include <linux/highmem.h>
+ 
+ #include <asm/cacheflush.h>
+-#include <asm/highmem.h>
+ #include <asm/processor.h>
+ #include <asm/cpu.h>
+ #include <asm/cpu-features.h>
+diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
+index eb8ec8493f2f..2bda56372995 100644
+--- a/arch/mips/mm/highmem.c
++++ b/arch/mips/mm/highmem.c
+@@ -18,25 +18,11 @@ void kmap_flush_tlb(unsigned long addr)
+ }
+ EXPORT_SYMBOL(kmap_flush_tlb);
+ 
+-/*
+- * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
+- * no global lock is needed and because the kmap code must perform a global TLB
+- * invalidation when the kmap pool wraps.
+- *
+- * However when holding an atomic kmap is is not legal to sleep, so atomic
+- * kmaps are appropriate for short, tight code paths only.
+- */
+-
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+ 	int idx, type;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	type = kmap_atomic_idx_push();
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+@@ -48,7 +34,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void*) vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/arch/nds32/include/asm/highmem.h b/arch/nds32/include/asm/highmem.h
+index c93c7368bb3f..a3970e566ede 100644
+--- a/arch/nds32/include/asm/highmem.h
++++ b/arch/nds32/include/asm/highmem.h
+@@ -51,7 +51,6 @@ extern void kmap_init(void);
+  * when CONFIG_HIGHMEM is not set.
+  */
+ #ifdef CONFIG_HIGHMEM
+-extern void *kmap_atomic(struct page *page);
+ extern void __kunmap_atomic(void *kvaddr);
+ extern void *kmap_atomic_pfn(unsigned long pfn);
+ extern struct page *kmap_atomic_to_page(void *ptr);
+diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
+index f9348bec0ecb..f5f3a21460c4 100644
+--- a/arch/nds32/mm/highmem.c
++++ b/arch/nds32/mm/highmem.c
+@@ -10,18 +10,13 @@
+ #include <asm/fixmap.h>
+ #include <asm/tlbflush.h>
+ 
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	unsigned int idx;
+ 	unsigned long vaddr, pte;
+ 	int type;
+ 	pte_t *ptep;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	type = kmap_atomic_idx_push();
+ 
+ 	idx = type + KM_TYPE_NR * smp_processor_id();
+@@ -37,7 +32,7 @@ void *kmap_atomic(struct page *page)
+ 	return (void *)vaddr;
+ }
+ 
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
+index d049806a8354..74fa2c726fde 100644
+--- a/arch/powerpc/include/asm/highmem.h
++++ b/arch/powerpc/include/asm/highmem.h
+@@ -71,9 +71,9 @@ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+ }
+ extern void __kunmap_atomic(void *kvaddr);
+ 
+-static inline void *kmap_atomic(struct page *page)
++static inline void *kmap_atomic_high(struct page *page)
+ {
+-	return kmap_atomic_prot(page, kmap_prot);
++	return kmap_atomic_high_prot(page, kmap_prot);
+ }
+ 
+ 
+diff --git a/arch/powerpc/mm/highmem.c b/arch/powerpc/mm/highmem.c
+index f075cef6d663..67aaa5217f7f 100644
+--- a/arch/powerpc/mm/highmem.c
++++ b/arch/powerpc/mm/highmem.c
+@@ -24,12 +24,6 @@
+ #include <linux/highmem.h>
+ #include <linux/module.h>
+ 
+-/*
+- * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
+- * gives a more generic (and caching) interface. But kmap_atomic can
+- * be used in IRQ contexts, so in some (very limited) cases we need
+- * it.
+- */
+ void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+ {
+ 	unsigned long vaddr;
+diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
+index 4bdb79fed02c..458210c5bc38 100644
+--- a/arch/sparc/include/asm/highmem.h
++++ b/arch/sparc/include/asm/highmem.h
+@@ -50,7 +50,6 @@ void kmap_init(void) __init;
+ 
+ #define PKMAP_END (PKMAP_ADDR(LAST_PKMAP))
+ 
+-void *kmap_atomic(struct page *page);
+ void __kunmap_atomic(void *kvaddr);
+ 
+ #define flush_cache_kmaps()	flush_cache_all()
+diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
+index d4a80adea7e5..b53070ab6a31 100644
+--- a/arch/sparc/mm/highmem.c
++++ b/arch/sparc/mm/highmem.c
+@@ -53,16 +53,11 @@ void __init kmap_init(void)
+         kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
+ }
+ 
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+ 	long idx, type;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	type = kmap_atomic_idx_push();
+ 	idx = type + KM_TYPE_NR*smp_processor_id();
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+@@ -87,7 +82,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void*) vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
+index 61f47fef40e5..9393d55a2adb 100644
+--- a/arch/x86/include/asm/highmem.h
++++ b/arch/x86/include/asm/highmem.h
+@@ -68,7 +68,10 @@ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+ 
+ 	return kmap_atomic_high_prot(page, prot);
+ }
+-void *kmap_atomic(struct page *page);
++static inline void *kmap_atomic_high(struct page *page)
++{
++	return kmap_atomic_high_prot(page, kmap_prot);
++}
+ void __kunmap_atomic(void *kvaddr);
+ void *kmap_atomic_pfn(unsigned long pfn);
+ void *kmap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot);
+diff --git a/arch/x86/mm/highmem_32.c b/arch/x86/mm/highmem_32.c
+index 48b56b1af902..c3e272a759e0 100644
+--- a/arch/x86/mm/highmem_32.c
++++ b/arch/x86/mm/highmem_32.c
+@@ -4,14 +4,6 @@
+ #include <linux/swap.h> /* for totalram_pages */
+ #include <linux/memblock.h>
+ 
+-/*
+- * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
+- * no global lock is needed and because the kmap code must perform a global TLB
+- * invalidation when the kmap pool wraps.
+- *
+- * However when holding an atomic kmap it is not legal to sleep, so atomic
+- * kmaps are appropriate for short, tight code paths only.
+- */
+ void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+ {
+ 	unsigned long vaddr;
+@@ -28,12 +20,6 @@ void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+ }
+ EXPORT_SYMBOL(kmap_atomic_high_prot);
+ 
+-void *kmap_atomic(struct page *page)
+-{
+-	return kmap_atomic_prot(page, kmap_prot);
+-}
+-EXPORT_SYMBOL(kmap_atomic);
+-
+ /*
+  * This is the same as kmap_atomic() but can map memory that doesn't
+  * have a struct page associated with it.
+diff --git a/arch/xtensa/include/asm/highmem.h b/arch/xtensa/include/asm/highmem.h
+index 5a481f7def0b..1e6aa15c4bdf 100644
+--- a/arch/xtensa/include/asm/highmem.h
++++ b/arch/xtensa/include/asm/highmem.h
+@@ -68,7 +68,6 @@ static inline void flush_cache_kmaps(void)
+ 	flush_cache_all();
+ }
+ 
+-void *kmap_atomic(struct page *page);
+ void __kunmap_atomic(void *kvaddr);
+ 
+ void kmap_init(void);
+diff --git a/arch/xtensa/mm/highmem.c b/arch/xtensa/mm/highmem.c
+index da734a2ed641..90b85a897cb0 100644
+--- a/arch/xtensa/mm/highmem.c
++++ b/arch/xtensa/mm/highmem.c
+@@ -37,16 +37,11 @@ static inline enum fixed_addresses kmap_idx(int type, unsigned long color)
+ 		color;
+ }
+ 
+-void *kmap_atomic(struct page *page)
++void *kmap_atomic_high(struct page *page)
+ {
+ 	enum fixed_addresses idx;
+ 	unsigned long vaddr;
+ 
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-
+ 	idx = kmap_idx(kmap_atomic_idx_push(),
+ 		       DCACHE_ALIAS(page_to_phys(page)));
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+@@ -57,7 +52,7 @@ void *kmap_atomic(struct page *page)
+ 
+ 	return (void *)vaddr;
+ }
+-EXPORT_SYMBOL(kmap_atomic);
++EXPORT_SYMBOL(kmap_atomic_high);
+ 
+ void __kunmap_atomic(void *kvaddr)
+ {
+diff --git a/include/linux/highmem.h b/include/linux/highmem.h
+index ae6e8cb81043..86b93dee758a 100644
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -32,6 +32,7 @@ static inline void invalidate_kernel_vmap_range(void *vaddr, int size)
+ #include <asm/kmap_types.h>
+ 
+ #ifdef CONFIG_HIGHMEM
++extern void *kmap_atomic_high(struct page *page);
+ #include <asm/highmem.h>
+ 
+ #ifndef ARCH_HAS_KMAP_FLUSH_TLB
+@@ -61,6 +62,28 @@ static inline void kunmap(struct page *page)
+ 	kunmap_high(page);
+ }
+ 
++/*
++ * kmap_atomic/kunmap_atomic is significantly faster than kmap/kunmap because
++ * no global lock is needed and because the kmap code must perform a global TLB
++ * invalidation when the kmap pool wraps.
++ *
++ * However when holding an atomic kmap is is not legal to sleep, so atomic
++ * kmaps are appropriate for short, tight code paths only.
++ *
++ * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
++ * gives a more generic (and caching) interface. But kmap_atomic can
++ * be used in IRQ contexts, so in some (very limited) cases we need
++ * it.
++ */
++static inline void *kmap_atomic(struct page *page)
++{
++	preempt_disable();
++	pagefault_disable();
++	if (!PageHighMem(page))
++		return page_address(page);
++	return kmap_atomic_high(page);
++}
 +
- #ifndef arch_make_huge_pte
- static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
- 				       struct page *page, int writable)
+ /* declarations for linux/mm/highmem.c */
+ unsigned int nr_free_highpages(void);
+ extern atomic_long_t _totalhigh_pages;
 -- 
-2.20.1
+2.25.1
