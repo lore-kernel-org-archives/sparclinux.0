@@ -1,35 +1,115 @@
-From: Matt Turner <mattst88@gmail.com>
-Date: Sat, 23 May 2020 20:22:29 +0000
-Subject: [PATCH 1/5] silo: Build with -fno-PIC to reduce size
-Message-Id: <20200523202233.3063074-1-mattst88@gmail.com>
+From: ira.weiny@intel.com
+Date: Thu, 07 May 2020 14:59:56 +0000
+Subject: [PATCH V3 08/15] arch/kmap: Ensure kmap_prot visibility
+Message-Id: <20200507150004.1423069-9-ira.weiny@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200507150004.1423069-1-ira.weiny@intel.com>
+In-Reply-To: <20200507150004.1423069-1-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-Otherwise the resulting image will be too large:
+From: Ira Weiny <ira.weiny@intel.com>
 
-| ./util second.map second.aout second2.aout second.b second.b2
-| Distance between two changes larger than 63K 3 84553 0
+We want to support kmap_atomic_prot() on all architectures and it makes
+sense to define kmap_atomic() to use the default kmap_prot.
 
-Signed-off-by: Matt Turner <mattst88@gmail.com>
+So we ensure all arch's have a globally available kmap_prot either as a
+define or exported symbol.
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 ---
- Rules.make | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/microblaze/include/asm/highmem.h | 2 +-
+ arch/microblaze/mm/init.c             | 3 ---
+ arch/powerpc/include/asm/highmem.h    | 2 +-
+ arch/powerpc/mm/mem.c                 | 3 ---
+ arch/sparc/mm/highmem.c               | 1 +
+ 5 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/Rules.make b/Rules.make
-index 0f176db..3d0efe7 100644
---- a/Rules.make
-+++ b/Rules.make
-@@ -19,7 +19,7 @@ cc-option-yn = $(shell if $(CC) $(CFLAGS) $(1) -S -o /dev/null -xc /dev/null \
- 		> /dev/null 2>&1; then echo "y"; else echo "n"; fi;)
+diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
+index c3cbda90391d..90d96239152f 100644
+--- a/arch/microblaze/include/asm/highmem.h
++++ b/arch/microblaze/include/asm/highmem.h
+@@ -25,8 +25,8 @@
+ #include <linux/uaccess.h>
+ #include <asm/fixmap.h>
  
- CFLAGS = -Os -Wall -I. -I../include -fomit-frame-pointer \
--	-fno-strict-aliasing -DSMALL_RELOC=$(SMALL_RELOC) \
-+	-fno-strict-aliasing -fno-PIC -DSMALL_RELOC=$(SMALL_RELOC) \
- 	-DLARGE_RELOC=$(LARGE_RELOC)
- HOSTCFLAGS = -O2 -Wall
++#define kmap_prot		PAGE_KERNEL
+ extern pte_t *kmap_pte;
+-extern pgprot_t kmap_prot;
+ extern pte_t *pkmap_page_table;
+ 
+ /*
+diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
+index 1ffbfa96b9b8..a467686c13af 100644
+--- a/arch/microblaze/mm/init.c
++++ b/arch/microblaze/mm/init.c
+@@ -49,8 +49,6 @@ unsigned long lowmem_size;
+ #ifdef CONFIG_HIGHMEM
+ pte_t *kmap_pte;
+ EXPORT_SYMBOL(kmap_pte);
+-pgprot_t kmap_prot;
+-EXPORT_SYMBOL(kmap_prot);
+ 
+ static inline pte_t *virt_to_kpte(unsigned long vaddr)
+ {
+@@ -68,7 +66,6 @@ static void __init highmem_init(void)
+ 	pkmap_page_table = virt_to_kpte(PKMAP_BASE);
+ 
+ 	kmap_pte = virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
+-	kmap_prot = PAGE_KERNEL;
+ }
+ 
+ static void highmem_setup(void)
+diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
+index 373a470df205..ee5de974c5ef 100644
+--- a/arch/powerpc/include/asm/highmem.h
++++ b/arch/powerpc/include/asm/highmem.h
+@@ -29,8 +29,8 @@
+ #include <asm/page.h>
+ #include <asm/fixmap.h>
+ 
++#define kmap_prot		PAGE_KERNEL
+ extern pte_t *kmap_pte;
+-extern pgprot_t kmap_prot;
+ extern pte_t *pkmap_page_table;
+ 
+ /*
+diff --git a/arch/powerpc/mm/mem.c b/arch/powerpc/mm/mem.c
+index 041ed7cfd341..3f642b058731 100644
+--- a/arch/powerpc/mm/mem.c
++++ b/arch/powerpc/mm/mem.c
+@@ -64,8 +64,6 @@ bool init_mem_is_free;
+ #ifdef CONFIG_HIGHMEM
+ pte_t *kmap_pte;
+ EXPORT_SYMBOL(kmap_pte);
+-pgprot_t kmap_prot;
+-EXPORT_SYMBOL(kmap_prot);
+ #endif
+ 
+ pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
+@@ -245,7 +243,6 @@ void __init paging_init(void)
+ 	pkmap_page_table = virt_to_kpte(PKMAP_BASE);
+ 
+ 	kmap_pte = virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
+-	kmap_prot = PAGE_KERNEL;
+ #endif /* CONFIG_HIGHMEM */
+ 
+ 	printk(KERN_DEBUG "Top of RAM: 0x%llx, Total RAM: 0x%llx\n",
+diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
+index 469786bc430f..9f06d75e88e1 100644
+--- a/arch/sparc/mm/highmem.c
++++ b/arch/sparc/mm/highmem.c
+@@ -33,6 +33,7 @@
+ #include <asm/vaddrs.h>
+ 
+ pgprot_t kmap_prot;
++EXPORT_SYMBOL(kmap_prot);
+ 
+ static pte_t *kmap_pte;
  
 -- 
-2.26.2
+2.25.1
