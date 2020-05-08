@@ -1,38 +1,94 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 15 May 2020 14:36:18 +0000
-Subject: [PATCH 01/29] arm: fix the flush_icache_range arguments in set_fiq_handler
-Message-Id: <20200515143646.3857579-2-hch@lst.de>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Date: Fri, 08 May 2020 03:19:48 +0000
+Subject: [PATCH V3 0/3] mm/hugetlb: Add some new generic fallbacks
+Message-Id: <1588907271-11920-1-git-send-email-anshuman.khandual@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200515143646.3857579-1-hch@lst.de>
-In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
-Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
+To: linux-mm@kvack.org, akpm@linux-foundation.org
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>
 
-The arguments passed look bogus, try to fix them to something that seems
-to make sense.
+This series adds the following new generic fallbacks. Before that it drops
+__HAVE_ARCH_HUGE_PTEP_GET from arm64 platform.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arm/kernel/fiq.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+1. is_hugepage_only_range()
+2. arch_clear_hugepage_flags()
 
-diff --git a/arch/arm/kernel/fiq.c b/arch/arm/kernel/fiq.c
-index cd1234c103fcd..98ca3e3fa8471 100644
---- a/arch/arm/kernel/fiq.c
-+++ b/arch/arm/kernel/fiq.c
-@@ -98,8 +98,8 @@ void set_fiq_handler(void *start, unsigned int length)
- 
- 	memcpy(base + offset, start, length);
- 	if (!cache_is_vipt_nonaliasing())
--		flush_icache_range((unsigned long)base + offset, offset +
--				   length);
-+		flush_icache_range((unsigned long)base + offset,
-+				   (unsigned long)base + offset + length);
- 	flush_icache_range(0xffff0000 + offset, 0xffff0000 + offset + length);
- }
- 
+This has been boot tested on arm64 and x86 platforms but built tested on
+some more platforms including the changed ones here. This series applies
+on v5.7-rc4. After this arm (32 bit) remains the sole platform defining
+it's own huge_ptep_get() via __HAVE_ARCH_HUGE_PTEP_GET.
+
+Changes in V3:
+
+- Added READ_ONCE() in generic huge_ptep_get() per Will
+
+Changes in V2: (https://patchwork.kernel.org/project/linux-mm/list/?series(2947)
+
+- Adopted "#ifndef func" method (adding a single symbol to namespace) per Andrew
+- Updated the commit messages in [PATCH 2/3] and [PATCH 3/3] as required
+
+Changes in V1: (https://patchwork.kernel.org/project/linux-mm/list/?series'0677)
+
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: x86@kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+Anshuman Khandual (3):
+  arm64/mm: Drop __HAVE_ARCH_HUGE_PTEP_GET
+  mm/hugetlb: Define a generic fallback for is_hugepage_only_range()
+  mm/hugetlb: Define a generic fallback for arch_clear_hugepage_flags()
+
+ arch/arm/include/asm/hugetlb.h     |  7 +------
+ arch/arm64/include/asm/hugetlb.h   | 13 +------------
+ arch/ia64/include/asm/hugetlb.h    |  5 +----
+ arch/mips/include/asm/hugetlb.h    | 11 -----------
+ arch/parisc/include/asm/hugetlb.h  | 10 ----------
+ arch/powerpc/include/asm/hugetlb.h |  5 +----
+ arch/riscv/include/asm/hugetlb.h   | 10 ----------
+ arch/s390/include/asm/hugetlb.h    |  8 +-------
+ arch/sh/include/asm/hugetlb.h      |  7 +------
+ arch/sparc/include/asm/hugetlb.h   | 10 ----------
+ arch/x86/include/asm/hugetlb.h     | 10 ----------
+ include/asm-generic/hugetlb.h      |  2 +-
+ include/linux/hugetlb.h            | 14 ++++++++++++++
+ 13 files changed, 21 insertions(+), 91 deletions(-)
+
 -- 
-2.26.2
+2.20.1
