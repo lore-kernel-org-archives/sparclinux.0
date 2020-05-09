@@ -1,17 +1,27 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Wed, 06 May 2020 06:12:10 +0000
-Subject: Re: [PATCH V2 06/11] arch/kmap_atomic: Consolidate duplicate code
-Message-Id: <20200506061210.GB5192@infradead.org>
+From: Chen Zhou <chenzhou10@huawei.com>
+Date: Sat, 09 May 2020 09:18:47 +0000
+Subject: [PATCH -next 0/2] sparc: use snprintf() in show() methods
+Message-Id: <20200509091849.116954-1-chenzhou10@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200504010912.982044-1-ira.weiny@intel.com>
- <20200504010912.982044-7-ira.weiny@intel.com>
-In-Reply-To: <20200504010912.982044-7-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ira.weiny@intel.com
-Cc: Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: davem@davemloft.net
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, chenzhou10@huawei.com
 
-Looks good,
+snprintf() returns the number of bytes that would be written,
+which may be greater than the the actual length to be written.
+	    
+show() methods should return the number of bytes printed into the
+buffer. This is the return value of scnprintf().
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Chen Zhou (2):
+  sparc: use snprintf() in show_pciobppath_attr() in pci.c
+  sparc: use snprintf() in show_pciobppath_attr() in vio.c
+
+ arch/sparc/kernel/pci.c | 2 +-
+ arch/sparc/kernel/vio.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+-- 
+2.20.1
