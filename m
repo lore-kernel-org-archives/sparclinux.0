@@ -1,39 +1,13 @@
-From: Chen Zhou <chenzhou10@huawei.com>
-Date: Sat, 09 May 2020 09:18:49 +0000
-Subject: [PATCH -next 2/2] sparc: use snprintf() in show_pciobppath_attr() in vio.c
-Message-Id: <20200509091849.116954-3-chenzhou10@huawei.com>
+From: Barbara D Wilkins <endrigo.lsantos@itanhaem.sp.gov.br>
+Date: Sat, 09 May 2020 00:22:10 +0000
+Subject: 
+Message-Id: <578326163.983053.1588983730436.JavaMail.zimbra@itanhaem.sp.gov.br>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200509091849.116954-1-chenzhou10@huawei.com>
-In-Reply-To: <20200509091849.116954-1-chenzhou10@huawei.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, chenzhou10@huawei.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: sparclinux@vger.kernel.org
 
-snprintf() returns the number of bytes that would be written,
-which may be greater than the the actual length to be written.
 
-show_pciobppath_attr() should return the number of bytes printed
-into the buffer. This is the return value of scnprintf().
 
-Signed-off-by: Chen Zhou <chenzhou10@huawei.com>
----
- arch/sparc/kernel/vio.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index c7cad9b7bba7..4f57056ed463 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -193,7 +193,7 @@ show_pciobppath_attr(struct device *dev, struct device_attribute *attr,
- 	vdev = to_vio_dev(dev);
- 	dp = vdev->dp;
- 
--	return snprintf (buf, PAGE_SIZE, "%pOF\n", dp);
-+	return scnprintf(buf, PAGE_SIZE, "%pOF\n", dp);
- }
- 
- static DEVICE_ATTR(obppath, S_IRUSR | S_IRGRP | S_IROTH,
--- 
-2.20.1
+Hallo,          Wir sind eine christliche Organisation, die gegründet wurde, um Menschen zu helfen, die Hilfe benötigen, beispielsweise finanzielle Hilfe. Wenn Sie also finanzielle Schwierigkeiten haben oder sich in einem finanziellen Chaos befinden und Geld benötigen, um Ihr eigenes Unternehmen zu gründen, oder wenn Sie einen Kredit benötigen Begleichen Sie Ihre Schulden oder zahlen Sie Ihre Rechnungen ab, gründen Sie ein gutes Geschäft oder es fällt Ihnen schwer, einen Kapitalkredit von lokalen Banken zu erhalten. Kontaktieren Sie uns noch heute per E-Mail:  Lassen Sie sich diese Gelegenheit also nicht entgehen weil Jesus gestern, heute und für immer derselbe ist. Bitte, diese sind für ernsthafte und gottesfürchtige Menschen.Dein Name:Darlehensbetrag:Leihdauer:Gültige Handynummer:Vielen Dank für Ihr Verständnis für Ihren Kontakt, während wir warten: mrsbarbarawilkinsfunds.usagmail.comGrüßeVerwaltung
