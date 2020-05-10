@@ -1,42 +1,44 @@
-From: Will Deacon <will@kernel.org>
-Date: Tue, 26 May 2020 17:33:00 +0000
-Subject: [PATCH 1/3] sparc32: mm: Don't try to free page-table pages if ctor() fails
-Message-Id: <20200526173302.377-2-will@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:55:06 +0000
+Subject: [PATCH 27/31] exec: only build read_code when needed
+Message-Id: <20200510075510.987823-28-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200526173302.377-1-will@kernel.org>
-In-Reply-To: <20200526173302.377-1-will@kernel.org>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, Will Deacon <will@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "David S . Miller" <davem@davemloft.net>, Guenter Roeck <linux@roeck-us.net>, Mike Rapoport <rppt@kernel.org>, kernel-team@android.com, "Kirill A . Shutemov" <kirill@shutemov.name>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-The pages backing page-table allocations for SRMMU are allocated via
-memblock as part of the "nocache" region initialisation during
-srmmu_paging_init() and should not be freed even if a later call to
-pgtable_pte_page_ctor() fails.
+Only build read_code when binary formats that use it are built into the
+kernel.
 
-Remove the broken call to __free_page().
-
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
-Signed-off-by: Will Deacon <will@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/mm/srmmu.c | 1 -
- 1 file changed, 1 deletion(-)
+ fs/exec.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index c861c0f0df73..589370a21b12 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -365,7 +365,6 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
- 		return NULL;
- 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
- 	if (!pgtable_pte_page_ctor(page)) {
--		__free_page(page);
- 		return NULL;
- 	}
- 	return ptep;
+diff --git a/fs/exec.c b/fs/exec.c
+index 06b4c550af5d9..a4f766f296f8f 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1027,6 +1027,8 @@ int kernel_read_file_from_fd(int fd, void **buf, loff_t *size, loff_t max_size,
+ }
+ EXPORT_SYMBOL_GPL(kernel_read_file_from_fd);
+ 
++#if defined(CONFIG_HAVE_AOUT) || defined(CONFIG_BINFMT_FLAT) || \
++    defined(CONFIG_BINFMT_ELF_FDPIC)
+ ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
+ {
+ 	ssize_t res = vfs_read(file, (void __user *)addr, len, &pos);
+@@ -1035,6 +1037,7 @@ ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
+ 	return res;
+ }
+ EXPORT_SYMBOL(read_code);
++#endif
+ 
+ /*
+  * Maps the mm_struct mm into the current task struct.
 -- 
-2.27.0.rc0.183.gde8f92d652-goog
+2.26.2
