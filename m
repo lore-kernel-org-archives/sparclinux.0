@@ -1,64 +1,34 @@
-From: Will Deacon <will@kernel.org>
-Date: Tue, 26 May 2020 17:33:02 +0000
-Subject: [PATCH 3/3] sparc32: mm: Only call ctor()/dtor() functions for first and last user
-Message-Id: <20200526173302.377-4-will@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:54:43 +0000
+Subject: [PATCH 04/31] nds32: unexport flush_icache_page
+Message-Id: <20200510075510.987823-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200526173302.377-1-will@kernel.org>
-In-Reply-To: <20200526173302.377-1-will@kernel.org>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org, Will Deacon <will@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "David S . Miller" <davem@davemloft.net>, Guenter Roeck <linux@roeck-us.net>, Mike Rapoport <rppt@kernel.org>, kernel-team@android.com
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-The SRMMU page-table allocator allocates multiple PTE tables per page,
-since they are only 1K in size. However, this means that calls to
-pgtable_pte_page_{ctor,dtor}() must be serialised and performed only by
-the first and last page-table allocation for the page respectively.
+flush_icache_page is only used by mm/memory.c.
 
-Use the page reference count to track how many PTE tables we have
-allocated for a given page returned by the SRMMU allocator and only
-call the ctor()/dtor() functions for the first and last user respectively.
-
-Cc: David S. Miller <davem@davemloft.net>
-Fixes: 8c8f3156dd40 ("sparc32: mm: Reduce allocation size for PMD and PTE tables")
-Signed-off-by: Will Deacon <will@kernel.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/mm/srmmu.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ arch/nds32/mm/cacheflush.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 589370a21b12..116d19a390f2 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -364,9 +364,13 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
- 	if ((ptep = pte_alloc_one_kernel(mm)) = 0)
- 		return NULL;
- 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
--	if (!pgtable_pte_page_ctor(page)) {
--		return NULL;
-+	spin_lock(&mm->page_table_lock);
-+	if (page_ref_inc_return(page) = 2 && !pgtable_pte_page_ctor(page)) {
-+		page_ref_dec(page);
-+		ptep = NULL;
- 	}
-+	spin_unlock(&mm->page_table_lock);
-+
- 	return ptep;
+diff --git a/arch/nds32/mm/cacheflush.c b/arch/nds32/mm/cacheflush.c
+index 254703653b6f5..8f168b33065fa 100644
+--- a/arch/nds32/mm/cacheflush.c
++++ b/arch/nds32/mm/cacheflush.c
+@@ -35,7 +35,6 @@ void flush_icache_page(struct vm_area_struct *vma, struct page *page)
+ 	kunmap_atomic((void *)kaddr);
+ 	local_irq_restore(flags);
  }
+-EXPORT_SYMBOL(flush_icache_page);
  
-@@ -375,7 +379,11 @@ void pte_free(struct mm_struct *mm, pgtable_t ptep)
- 	struct page *page;
- 
- 	page = pfn_to_page(__nocache_pa((unsigned long)ptep) >> PAGE_SHIFT);
--	pgtable_pte_page_dtor(page);
-+	spin_lock(&mm->page_table_lock);
-+	if (page_ref_dec_return(page) = 1)
-+		pgtable_pte_page_dtor(page);
-+	spin_unlock(&mm->page_table_lock);
-+
- 	srmmu_free_nocache(ptep, SRMMU_PTE_TABLE_SIZE);
- }
- 
+ void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
+ 	                     unsigned long addr, int len)
 -- 
-2.27.0.rc0.183.gde8f92d652-goog
+2.26.2
