@@ -1,206 +1,99 @@
-From: ira.weiny@intel.com
-Date: Thu, 07 May 2020 14:59:53 +0000
-Subject: [PATCH V3 05/15] {x86,powerpc,microblaze}/kmap: Move preempt disable
-Message-Id: <20200507150004.1423069-6-ira.weiny@intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:54:57 +0000
+Subject: [PATCH 18/31] powerpc: use asm-generic/cacheflush.h
+Message-Id: <20200510075510.987823-19-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200507150004.1423069-1-ira.weiny@intel.com>
-In-Reply-To: <20200507150004.1423069-1-ira.weiny@intel.com>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+Power needs almost no cache flushing routines of its own.  Rely on
+asm-generic/cacheflush.h for the defaults.
 
-During this kmap() conversion series we must maintain bisect-ability.
-To do this, kmap_atomic_prot() in x86, powerpc, and microblaze need to
-remain functional.
+Also remove the pointless __KERNEL__ ifdef while we're at it.
 
-Create a temporary inline version of kmap_atomic_prot within these
-architectures so we can rework their kmap_atomic() calls and then lift
-kmap_atomic_prot() to the core.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
-Changes from V2:
-	Fix microblaze not being static inline
+ arch/powerpc/include/asm/cacheflush.h | 42 +++++++--------------------
+ 1 file changed, 10 insertions(+), 32 deletions(-)
 
-Changes from V1:
-	New patch
----
- arch/microblaze/include/asm/highmem.h | 11 ++++++++++-
- arch/microblaze/mm/highmem.c          | 10 ++--------
- arch/powerpc/include/asm/highmem.h    | 11 ++++++++++-
- arch/powerpc/mm/highmem.c             |  9 ++-------
- arch/x86/include/asm/highmem.h        | 11 ++++++++++-
- arch/x86/mm/highmem_32.c              | 10 ++--------
- 6 files changed, 36 insertions(+), 26 deletions(-)
-
-diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
-index 0c94046f2d58..c38d920a1171 100644
---- a/arch/microblaze/include/asm/highmem.h
-+++ b/arch/microblaze/include/asm/highmem.h
-@@ -51,7 +51,16 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+diff --git a/arch/powerpc/include/asm/cacheflush.h b/arch/powerpc/include/asm/cacheflush.h
+index e92191b390f31..e682c8e10e903 100644
+--- a/arch/powerpc/include/asm/cacheflush.h
++++ b/arch/powerpc/include/asm/cacheflush.h
+@@ -4,23 +4,9 @@
+ #ifndef _ASM_POWERPC_CACHEFLUSH_H
+ #define _ASM_POWERPC_CACHEFLUSH_H
  
--extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
-+extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
-+static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+{
-+	preempt_disable();
-+	pagefault_disable();
-+	if (!PageHighMem(page))
-+		return page_address(page);
-+
-+	return kmap_atomic_high_prot(page, prot);
-+}
- extern void __kunmap_atomic(void *kvaddr);
+-#ifdef __KERNEL__
+-
+ #include <linux/mm.h>
+ #include <asm/cputable.h>
  
- static inline void *kmap_atomic(struct page *page)
-diff --git a/arch/microblaze/mm/highmem.c b/arch/microblaze/mm/highmem.c
-index d7569f77fa15..0e3efaa8a004 100644
---- a/arch/microblaze/mm/highmem.c
-+++ b/arch/microblaze/mm/highmem.c
-@@ -32,18 +32,12 @@
-  */
- #include <asm/tlbflush.h>
- 
--void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+-/*
+- * No cache flushing is required when address mappings are changed,
+- * because the caches on PowerPCs are physically addressed.
+- */
+-#define flush_cache_all()			do { } while (0)
+-#define flush_cache_mm(mm)			do { } while (0)
+-#define flush_cache_dup_mm(mm)			do { } while (0)
+-#define flush_cache_range(vma, start, end)	do { } while (0)
+-#define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
+-#define flush_icache_page(vma, page)		do { } while (0)
+-#define flush_cache_vunmap(start, end)		do { } while (0)
+-
+ #ifdef CONFIG_PPC_BOOK3S_64
+ /*
+  * Book3s has no ptesync after setting a pte, so without this ptesync it's
+@@ -33,20 +19,20 @@ static inline void flush_cache_vmap(unsigned long start, unsigned long end)
  {
- 
- 	unsigned long vaddr;
- 	int idx, type;
- 
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--
- 	type = kmap_atomic_idx_push();
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-@@ -55,7 +49,7 @@ void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- 
- 	return (void *) vaddr;
+ 	asm volatile("ptesync" ::: "memory");
  }
--EXPORT_SYMBOL(kmap_atomic_prot);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
+-#else
+-static inline void flush_cache_vmap(unsigned long start, unsigned long end) { }
+-#endif
++#define flush_cache_vmap flush_cache_vmap
++#endif /* CONFIG_PPC_BOOK3S_64 */
  
- void __kunmap_atomic(void *kvaddr)
- {
-diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
-index ba3371977d49..d049806a8354 100644
---- a/arch/powerpc/include/asm/highmem.h
-+++ b/arch/powerpc/include/asm/highmem.h
-@@ -59,7 +59,16 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ extern void flush_dcache_page(struct page *page);
+-#define flush_dcache_mmap_lock(mapping)		do { } while (0)
+-#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
  
--extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
-+extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
-+static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+{
-+	preempt_disable();
-+	pagefault_disable();
-+	if (!PageHighMem(page))
-+		return page_address(page);
+ void flush_icache_range(unsigned long start, unsigned long stop);
+-extern void flush_icache_user_range(struct vm_area_struct *vma,
+-				    struct page *page, unsigned long addr,
+-				    int len);
+-extern void flush_dcache_icache_page(struct page *page);
++#define flush_icache_range flush_icache_range
 +
-+	return kmap_atomic_high_prot(page, prot);
-+}
- extern void __kunmap_atomic(void *kvaddr);
- 
- static inline void *kmap_atomic(struct page *page)
-diff --git a/arch/powerpc/mm/highmem.c b/arch/powerpc/mm/highmem.c
-index 320c1672b2ae..f075cef6d663 100644
---- a/arch/powerpc/mm/highmem.c
-+++ b/arch/powerpc/mm/highmem.c
-@@ -30,16 +30,11 @@
-  * be used in IRQ contexts, so in some (very limited) cases we need
-  * it.
-  */
--void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
- 
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
- 	type = kmap_atomic_idx_push();
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-@@ -49,7 +44,7 @@ void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- 
- 	return (void*) vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_prot);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void __kunmap_atomic(void *kvaddr)
- {
-diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
-index 90b96594d6c5..61f47fef40e5 100644
---- a/arch/x86/include/asm/highmem.h
-+++ b/arch/x86/include/asm/highmem.h
-@@ -58,7 +58,16 @@ extern unsigned long highstart_pfn, highend_pfn;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--void *kmap_atomic_prot(struct page *page, pgprot_t prot);
-+extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
-+static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+{
-+	preempt_disable();
-+	pagefault_disable();
-+	if (!PageHighMem(page))
-+		return page_address(page);
++void flush_icache_user_range(struct vm_area_struct *vma, struct page *page,
++		unsigned long addr, int len);
++#define flush_icache_user_range flush_icache_user_range
 +
-+	return kmap_atomic_high_prot(page, prot);
-+}
- void *kmap_atomic(struct page *page);
- void __kunmap_atomic(void *kvaddr);
- void *kmap_atomic_pfn(unsigned long pfn);
-diff --git a/arch/x86/mm/highmem_32.c b/arch/x86/mm/highmem_32.c
-index c4ebfd0ae401..48b56b1af902 100644
---- a/arch/x86/mm/highmem_32.c
-+++ b/arch/x86/mm/highmem_32.c
-@@ -12,17 +12,11 @@
-  * However when holding an atomic kmap it is not legal to sleep, so atomic
-  * kmaps are appropriate for short, tight code paths only.
-  */
--void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
++void flush_dcache_icache_page(struct page *page);
+ void __flush_dcache_icache(void *page);
  
--	preempt_disable();
--	pagefault_disable();
--
--	if (!PageHighMem(page))
--		return page_address(page);
--
- 	type = kmap_atomic_idx_push();
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
-@@ -32,7 +26,7 @@ void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- 
- 	return (void *)vaddr;
+ /**
+@@ -111,14 +97,6 @@ static inline void invalidate_dcache_range(unsigned long start,
+ 	mb();	/* sync */
  }
--EXPORT_SYMBOL(kmap_atomic_prot);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
  
- void *kmap_atomic(struct page *page)
- {
+-#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+-	do { \
+-		memcpy(dst, src, len); \
+-		flush_icache_user_range(vma, page, vaddr, len); \
+-	} while (0)
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	memcpy(dst, src, len)
+-
+-#endif /* __KERNEL__ */
++#include <asm-generic/cacheflush.h>
+ 
+ #endif /* _ASM_POWERPC_CACHEFLUSH_H */
 -- 
-2.25.1
+2.26.2
