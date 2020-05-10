@@ -1,26 +1,35 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Fri, 01 May 2020 08:47:19 +0000
-Subject: Re: [PATCH V1 08/10] arch/kmap: Don't hard code kmap_prot values
-Message-Id: <20200501084719.GI27858@infradead.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:55:08 +0000
+Subject: [PATCH 29/31] binfmt_flat: use flush_icache_user_range
+Message-Id: <20200510075510.987823-30-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200430203845.582900-1-ira.weiny@intel.com>
- <20200430203845.582900-9-ira.weiny@intel.com>
-In-Reply-To: <20200430203845.582900-9-ira.weiny@intel.com>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ira.weiny@intel.com
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Apr 30, 2020 at 01:38:43PM -0700, ira.weiny@intel.com wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> To support kmap_atomic_prot() on all architectures each arch must
-> support protections passed in to them.
-> 
-> Change csky, mips, nds32 and xtensa to use their global kmap_prot value
-> rather than a hard coded value which was equal.
+load_flat_file works on user addresses.
 
-Looks good,
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/binfmt_flat.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+diff --git a/fs/binfmt_flat.c b/fs/binfmt_flat.c
+index 831a2b25ba79f..6f0aca5379da2 100644
+--- a/fs/binfmt_flat.c
++++ b/fs/binfmt_flat.c
+@@ -854,7 +854,7 @@ static int load_flat_file(struct linux_binprm *bprm,
+ #endif /* CONFIG_BINFMT_FLAT_OLD */
+ 	}
+ 
+-	flush_icache_range(start_code, end_code);
++	flush_icache_user_range(start_code, end_code);
+ 
+ 	/* zero the BSS,  BRK and stack areas */
+ 	if (clear_user((void __user *)(datapos + data_len), bss_len +
+-- 
+2.26.2
