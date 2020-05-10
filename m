@@ -1,46 +1,108 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Sun, 03 May 2020 13:52:45 +0000
-Subject: RE: [PATCH 1/4] fs: Implement close-on-fork
-Message-Id: <4d00ffe759ec4f87bd7f4e663732838b@AcuMS.aculab.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:54:58 +0000
+Subject: [PATCH 19/31] riscv: use asm-generic/cacheflush.h
+Message-Id: <20200510075510.987823-20-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200420071548.62112-1-nate.karstens@garmin.com>
- <20200420071548.62112-2-nate.karstens@garmin.com>
- <36dce9b4-a0bf-0015-f6bc-1006938545b1@gmail.com>
- <0e884704c25740df8e652d50431facff@garmin.com>
-In-Reply-To: <0e884704c25740df8e652d50431facff@garmin.com>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "'Karstens, Nate'" <Nate.Karstens@garmin.com>, Eric Dumazet <eric.dumazet@gmail.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.o>
-Cc: Changli Gao <xiaosuo@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-RnJvbTogS2Fyc3RlbnMsIE5hdGUNCj4gU2VudDogMDEgTWF5IDIwMjAgMTU6NDUNCj4gVGhhbmtz
-IGZvciB0aGUgc3VnZ2VzdGlvbi4gSSBsb29rZWQgaW50byBpdCBhbmQgbm90aWNlZCB0aGF0IGRv
-X2Nsb3NlX29uX2V4ZWMoKSBhcHBlYXJzIHRvIGhhdmUgc29tZQ0KPiBvcHRpbWl6YXRpb25zIGFz
-IHdlbGw6DQo+IA0KPiA+IHNldCA9IGZkdC0+Y2xvc2Vfb25fZXhlY1tpXTsNCj4gPiBpZiAoIXNl
-dCkNCj4gPiAJY29udGludWU7DQo+IA0KPiBJZiB3ZSBpbnRlcmxlYXZlIHRoZSBjbG9zZS1vbi1l
-eGVjIGFuZCBjbG9zZS1vbi1mb3JrIGZsYWdzIHRoZW4gdGhpcyBvcHRpbWl6YXRpb24gd2lsbCBo
-YXZlIHRvIGJlDQo+IHJlbW92ZWQuIERvIHlvdSBoYXZlIGEgc2Vuc2Ugb2Ygd2hpY2ggb3B0aW1p
-emF0aW9uIHByb3ZpZGVzIHRoZSBtb3N0IGJlbmVmaXQ/DQoNClRoaW5rcy4uLi4NCkEgbW9kZXJh
-dGUgcHJvcG9ydGlvbiBvZiBleGVjKCkgd2lsbCBoYXZlIGF0IGxlYXN0IG9uZSBmZCB3aXRoICdj
-bG9zZSBvbiBleGVjJyBzZXQuDQpWZXJ5IGZldyBmb3JrKCkgd2lsbCBoYXZlIGFueSBmZCB3aXRo
-ICdjbG9zZSBvbiBmb3JrJyBzZXQuDQpUaGUgJ2Nsb3NlIG9uIGZvcmsnIHRhYmxlIHNob3VsZG4n
-dCBiZSBjb3BpZWQgdG8gdGhlIGZvcmtlZCBwcm9jZXNzLg0KVGhlICdjbG9zZSBvbiBleGVjJyB0
-YWJsZSBpcyBkZWxldGVkIGJ5IGV4ZWMoKS4NCg0KU28uLi4NCk9uIGZvcmsoKSB0YWtlIGEgY29w
-eSBhbmQgY2xlYXIgdGhlICdjbG9zZV9vbl9mb3JrJyBiaXRtYXAuDQpGb3IgZXZlcnkgYml0IHNl
-dCBsb29rdXAgdGhlIGZkIGFuZCBjbG9zZSBpZiB0aGUgbGl2ZSBiaXQgaXMgc2V0Lg0KU2ltaWxh
-cmx5IGV4ZWMoKSBjbGVhcnMgYW5kIGFjdHMgb24gdGhlICdjbG9zZSBvbiBleGVjJyBtYXAuDQoN
-CllvdSBzaG91bGQgYmUgYWJsZSB0byB1c2UgdGhlIHNhbWUgJ2Nsb3NlIHRoZSBmZHMgaW4gdGhp
-cyBiaXRtYXAnDQpmdW5jdGlvbiBmb3IgYm90aCBjYXNlcy4NCg0KU28gSSB0aGluayB5b3UgbmVl
-ZCB0d28gYml0bWFwcy4NCkJ1dCB0aGUgY29kZSBuZWVkcyB0byBkaWZmZXJlbnRpYXRlIGJldHdl
-ZW4gcmVxdWVzdHMgdG8gc2V0IGJpdHMNCih3aGljaCBuZWVkIHRvIGFsbG9jYXRlL2V4dGVuZCB0
-aGUgYml0bWFwKSBhbmQgb25lcyB0byBjbGVhci9yZWFkDQpiaXRzICh3aGljaCBkbyBub3QpLg0K
-DQpZb3UgbWlnaHQgZXZlbiBjb25zaWRlciBwdXR0aW5nIHRoZSAnbGl2ZScgZmxhZyBpbnRvIHRo
-ZSBmZCBzdHJ1Y3R1cmUNCmFuZCB1c2luZyB0aGUgYml0bWFwIHZhbHVlIGFzIGEgJ2hpbnQnIC0g
-d2hpY2ggbWlnaHQgYmUgaGFzaGVkLg0KDQpBZnRlciBhbGwsIGl0IGlzIGxpa2VseSB0aGF0IHRo
-ZSAnY2xvc2Ugb24gZXhlYycgcHJvY2Vzc2luZw0Kd2lsbCBiZSBmYXN0ZXIgb3ZlcmFsbCBpZiBp
-dCBqdXN0IGxvb3BzIHRocm91Z2ggdGhlIG9wZW4gZmQgYW5kDQpjaGVja3MgZWFjaCBpbiB0dXJu
-IQ0KSSBkb3VidCBtYW55IHByb2Nlc3NlcyBhY3R1YWxseSBleGVjIHdpdGggbW9yZSB0aGFuIGFu
-IGhhbmRmdWwNCm9mIG9wZW4gZmlsZXMuDQoNCglEYXZpZA0KDQotDQpSZWdpc3RlcmVkIEFkZHJl
-c3MgTGFrZXNpZGUsIEJyYW1sZXkgUm9hZCwgTW91bnQgRmFybSwgTWlsdG9uIEtleW5lcywgTUsx
-IDFQVCwgVUsNClJlZ2lzdHJhdGlvbiBObzogMTM5NzM4NiAoV2FsZXMpDQo
+RISC-V needs almost no cache flushing routines of its own.  Rely on
+asm-generic/cacheflush.h for the defaults.
+
+Also remove the pointless __KERNEL__ ifdef while we're at it.
+---
+ arch/riscv/include/asm/cacheflush.h | 62 ++---------------------------
+ 1 file changed, 3 insertions(+), 59 deletions(-)
+
+diff --git a/arch/riscv/include/asm/cacheflush.h b/arch/riscv/include/asm/cacheflush.h
+index c8677c75f82cb..a167b4fbdf007 100644
+--- a/arch/riscv/include/asm/cacheflush.h
++++ b/arch/riscv/include/asm/cacheflush.h
+@@ -8,65 +8,6 @@
+ 
+ #include <linux/mm.h>
+ 
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-
+-/*
+- * The cache doesn't need to be flushed when TLB entries change when
+- * the cache is mapped to physical memory, not virtual memory
+- */
+-static inline void flush_cache_all(void)
+-{
+-}
+-
+-static inline void flush_cache_mm(struct mm_struct *mm)
+-{
+-}
+-
+-static inline void flush_cache_dup_mm(struct mm_struct *mm)
+-{
+-}
+-
+-static inline void flush_cache_range(struct vm_area_struct *vma,
+-				     unsigned long start,
+-				     unsigned long end)
+-{
+-}
+-
+-static inline void flush_cache_page(struct vm_area_struct *vma,
+-				    unsigned long vmaddr,
+-				    unsigned long pfn)
+-{
+-}
+-
+-static inline void flush_dcache_mmap_lock(struct address_space *mapping)
+-{
+-}
+-
+-static inline void flush_dcache_mmap_unlock(struct address_space *mapping)
+-{
+-}
+-
+-static inline void flush_icache_page(struct vm_area_struct *vma,
+-				     struct page *page)
+-{
+-}
+-
+-static inline void flush_cache_vmap(unsigned long start, unsigned long end)
+-{
+-}
+-
+-static inline void flush_cache_vunmap(unsigned long start, unsigned long end)
+-{
+-}
+-
+-#define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+-	do { \
+-		memcpy(dst, src, len); \
+-		flush_icache_user_range(vma, page, vaddr, len); \
+-	} while (0)
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	memcpy(dst, src, len)
+-
+ static inline void local_flush_icache_all(void)
+ {
+ 	asm volatile ("fence.i" ::: "memory");
+@@ -79,6 +20,7 @@ static inline void flush_dcache_page(struct page *page)
+ 	if (test_bit(PG_dcache_clean, &page->flags))
+ 		clear_bit(PG_dcache_clean, &page->flags);
+ }
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+ 
+ /*
+  * RISC-V doesn't have an instruction to flush parts of the instruction cache,
+@@ -105,4 +47,6 @@ void flush_icache_mm(struct mm_struct *mm, bool local);
+ #define SYS_RISCV_FLUSH_ICACHE_LOCAL 1UL
+ #define SYS_RISCV_FLUSH_ICACHE_ALL   (SYS_RISCV_FLUSH_ICACHE_LOCAL)
+ 
++#include <asm-generic/cacheflush.h>
++
+ #endif /* _ASM_RISCV_CACHEFLUSH_H */
+-- 
+2.26.2
