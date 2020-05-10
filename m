@@ -1,62 +1,65 @@
-From: ira.weiny@intel.com
-Date: Thu, 07 May 2020 14:59:50 +0000
-Subject: [PATCH V3 02/15] arch/xtensa: Move kmap build bug out of the way
-Message-Id: <20200507150004.1423069-3-ira.weiny@intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:54:51 +0000
+Subject: [PATCH 12/31] c6x: use asm-generic/cacheflush.h
+Message-Id: <20200510075510.987823-13-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200507150004.1423069-1-ira.weiny@intel.com>
-In-Reply-To: <20200507150004.1423069-1-ira.weiny@intel.com>
+References: <20200510075510.987823-1-hch@lst.de>
+In-Reply-To: <20200510075510.987823-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+C6x needs almost no cache flushing routines of its own.  Rely on
+asm-generic/cacheflush.h for the defaults.
 
-Move the kmap() build bug to kmap_init() to facilitate patches to lift
-kmap() to the core.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
-Changes from V1:
-	combine code onto 1 line.
----
- arch/xtensa/include/asm/highmem.h | 5 -----
- arch/xtensa/mm/highmem.c          | 4 ++++
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ arch/c6x/include/asm/cacheflush.h | 19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
-diff --git a/arch/xtensa/include/asm/highmem.h b/arch/xtensa/include/asm/highmem.h
-index 413848cc1e56..a9587c85be85 100644
---- a/arch/xtensa/include/asm/highmem.h
-+++ b/arch/xtensa/include/asm/highmem.h
-@@ -68,11 +68,6 @@ void kunmap_high(struct page *page);
+diff --git a/arch/c6x/include/asm/cacheflush.h b/arch/c6x/include/asm/cacheflush.h
+index 4540b40475e6c..10922d528de6d 100644
+--- a/arch/c6x/include/asm/cacheflush.h
++++ b/arch/c6x/include/asm/cacheflush.h
+@@ -16,21 +16,6 @@
+ #include <asm/page.h>
+ #include <asm/string.h>
  
- static inline void *kmap(struct page *page)
- {
--	/* Check if this memory layout is broken because PKMAP overlaps
--	 * page table.
--	 */
--	BUILD_BUG_ON(PKMAP_BASE <
--		     TLBTEMP_BASE_1 + TLBTEMP_SIZE);
- 	might_sleep();
- 	if (!PageHighMem(page))
- 		return page_address(page);
-diff --git a/arch/xtensa/mm/highmem.c b/arch/xtensa/mm/highmem.c
-index 184ceadccc1a..da734a2ed641 100644
---- a/arch/xtensa/mm/highmem.c
-+++ b/arch/xtensa/mm/highmem.c
-@@ -88,6 +88,10 @@ void __init kmap_init(void)
- {
- 	unsigned long kmap_vstart;
+-/*
+- * virtually-indexed cache management (our cache is physically indexed)
+- */
+-#define flush_cache_all()			do {} while (0)
+-#define flush_cache_mm(mm)			do {} while (0)
+-#define flush_cache_dup_mm(mm)			do {} while (0)
+-#define flush_cache_range(mm, start, end)	do {} while (0)
+-#define flush_cache_page(vma, vmaddr, pfn)	do {} while (0)
+-#define flush_cache_vmap(start, end)		do {} while (0)
+-#define flush_cache_vunmap(start, end)		do {} while (0)
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-#define flush_dcache_page(page)			do {} while (0)
+-#define flush_dcache_mmap_lock(mapping)		do {} while (0)
+-#define flush_dcache_mmap_unlock(mapping)	do {} while (0)
+-
+ /*
+  * physically-indexed cache management
+  */
+@@ -49,14 +34,12 @@ do {								  \
+ 			(unsigned long) page_address(page) + PAGE_SIZE)); \
+ } while (0)
  
-+	/* Check if this memory layout is broken because PKMAP overlaps
-+	 * page table.
-+	 */
-+	BUILD_BUG_ON(PKMAP_BASE < TLBTEMP_BASE_1 + TLBTEMP_SIZE);
- 	/* cache the first kmap pte */
- 	kmap_vstart = __fix_to_virt(FIX_KMAP_BEGIN);
- 	kmap_pte = kmap_get_fixmap_pte(kmap_vstart);
+-
+ #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+ do {						     \
+ 	memcpy(dst, src, len);			     \
+ 	flush_icache_range((unsigned) (dst), (unsigned) (dst) + (len)); \
+ } while (0)
+ 
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	memcpy(dst, src, len)
++#include <asm-generic/cacheflush.h>
+ 
+ #endif /* _ASM_C6X_CACHEFLUSH_H */
 -- 
-2.25.1
+2.26.2
