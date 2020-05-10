@@ -1,31 +1,43 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Sun, 31 May 2020 01:04:14 +0000
-Subject: [git pull] a couple of sparc ptrace fixes
-Message-Id: <20200531010414.GW23230@ZenIV.linux.org.uk>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sun, 10 May 2020 07:54:39 +0000
+Subject: sort out the flush_icache_range mess
+Message-Id: <20200510075510.987823-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org, Michal Simek <monstr@monstr.eu>, Jessica Yu <jeyu@kernel.org>, linux-ia64@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-sh@vger.kernel.org, linux-hexagon@vger.kernel.org, x86@kernel.org, linux-um@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-m68k@lists.linux-m68k.org, openrisc@lists.librecores.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-The following changes since commit 8f3d9f354286745c751374f5f1fcafee6b3f3136:
+Hi all,
 
-  Linux 5.7-rc1 (2020-04-12 12:35:55 -0700)
+flush_icache_range is mostly used for kernel address, except for the following
+cases:
 
-are available in the git repository at:
+ - the nommu brk and mmap implementations,
+ - the read_code helper that is only used for binfmt_flat, binfmt_elf_fdpic,
+   and binfmt_aout including the broken ia32 compat version
+ - binfmt_flat itself,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git for-davem
+none of which really are used by a typical MMU enabled kernel, as a.out can
+only be build for alpha and m68k to start with.
 
-for you to fetch changes up to cf51e129b96847f969bfb8af1ee1516a01a70b39:
+But strangely enough commit ae92ef8a4424 ("PATCH] flush icache in correct
+context") added a "set_fs(KERNEL_DS)" around the flush_icache_range call
+in the module loader, because apparently m68k assumed user pointers.
 
-  sparc32: fix register window handling in genregs32_[gs]et() (2020-05-20 13:29:37 -0400)
+This series first cleans up the cacheflush implementations, largely by
+switching as much as possible to the asm-generic version after a few
+preparations, then moves the misnamed current flush_icache_user_range to
+a new name, to finally introduce a real flush_icache_user_range to be used
+for the above use cases to flush the instruction cache for a userspace
+address range.  The last patch then drops the set_fs in the module code
+and moves it into the m68k implementation.
 
-----------------------------------------------------------------
-Al Viro (2):
-      sparc64: fix misuses of access_process_vm() in genregs32_[sg]et()
-      sparc32: fix register window handling in genregs32_[gs]et()
+A git tree is available here:
 
- arch/sparc/kernel/ptrace_32.c | 228 ++++++++++++++++++------------------------
- arch/sparc/kernel/ptrace_64.c |  17 +---
- 2 files changed, 101 insertions(+), 144 deletions(-)
+    git://git.infradead.org/users/hch/misc.git flush_icache_range
+
+Gitweb:
+
+    http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/flush_icache_range
