@@ -1,54 +1,26 @@
-From: David Miller <davem@davemloft.net>
-Date: Fri, 08 May 2020 01:49:16 +0000
+From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+Date: Tue, 12 May 2020 18:05:02 +0000
 Subject: Re: [PATCH] sparc64: Replace zero-length array with flexible-array
-Message-Id: <20200507.184916.273108688700388097.davem@davemloft.net>
+Message-Id: <20200512180502.GC4897@embeddedor>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200507192302.GA16402@embeddedor>
-In-Reply-To: <20200507192302.GA16402@embeddedor>
+ <20200507.184916.273108688700388097.davem@davemloft.net>
+In-Reply-To: <20200507.184916.273108688700388097.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: gustavoars@kernel.org
+To: David Miller <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Date: Thu, 7 May 2020 14:23:02 -0500
+On Thu, May 07, 2020 at 06:49:16PM -0700, David Miller wrote:
+> From: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+> Date: Thu, 7 May 2020 14:23:02 -0500
+> 
+> > Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+> 
+> Applied, thank you.
 
-> The current codebase makes use of the zero-length array language
-> extension to the C90 standard, but the preferred mechanism to declare
-> variable-length types such as these ones is a flexible array member[1][2],
-> introduced in C99:
-> 
-> struct foo {
->         int stuff;
->         struct boo array[];
-> };
-> 
-> By making use of the mechanism above, we will get a compiler warning
-> in case the flexible array does not occur last in the structure, which
-> will help us prevent some kind of undefined behavior bugs from being
-> inadvertently introduced[3] to the codebase from now on.
-> 
-> Also, notice that, dynamic memory allocations won't be affected by
-> this change:
-> 
-> "Flexible array members have incomplete type, and so the sizeof operator
-> may not be applied. As a quirk of the original implementation of
-> zero-length arrays, sizeof evaluates to zero."[1]
-> 
-> sizeof(flexible-array-member) triggers a warning because flexible array
-> members have incomplete type[1]. There are some instances of code in
-> which the sizeof operator is being incorrectly/erroneously applied to
-> zero-length arrays and the result is zero. Such instances may be hiding
-> some bugs. So, this work (flexible-array member conversions) will also
-> help to get completely rid of those sorts of issues.
-> 
-> This issue was found with the help of Coccinelle.
-> 
-> [1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
-> [2] https://github.com/KSPP/linux/issues/21
-> [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
-> 
-> Signed-off-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Thanks, Dave.
 
-Applied, thank you.
+--
+Gustavo
