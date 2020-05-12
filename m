@@ -1,74 +1,78 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 10 May 2020 07:54:52 +0000
-Subject: [PATCH 13/31] hexagon: use asm-generic/cacheflush.h
-Message-Id: <20200510075510.987823-14-hch@lst.de>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 12 May 2020 17:15:27 +0000
+Subject: [PATCH 3/3] sparc: unconditionally enable HAVE_COPY_THREAD_TLS
+Message-Id: <20200512171527.570109-4-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200510075510.987823-1-hch@lst.de>
-In-Reply-To: <20200510075510.987823-1-hch@lst.de>
+References: <20200512171527.570109-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200512171527.570109-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
-Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
 
-Hexagon needs almost no cache flushing routines of its own.  Rely on
-asm-generic/cacheflush.h for the defaults.
+Now that both sparc and sparc64 support copy_thread_tls() and don't rely
+on do_fork() anymore, turn on HAVE_COPY_THREAD_TLS unconditionally. Once
+all architectures are switched over this macro will be removed and
+the old do_fork() calling convention fully abandoned in favor of the
+cleaner struct kernel_clone_args one.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: linux-csky@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- arch/hexagon/include/asm/cacheflush.h | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ arch/sparc/Kconfig             | 2 +-
+ arch/sparc/kernel/process_32.c | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/arch/hexagon/include/asm/cacheflush.h b/arch/hexagon/include/asm/cacheflush.h
-index fb447de45d54c..6eff0730e6efd 100644
---- a/arch/hexagon/include/asm/cacheflush.h
-+++ b/arch/hexagon/include/asm/cacheflush.h
-@@ -25,29 +25,17 @@
- #define LINESIZE	32
- #define LINEBITS	5
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 423f6bc41de2..9f44afe1f73d 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -48,6 +48,7 @@ config SPARC
+ 	select LOCKDEP_SMALL if LOCKDEP
+ 	select NEED_DMA_MAP_STATE
+ 	select NEED_SG_DMA_LENGTH
++	select HAVE_COPY_THREAD_TLS
  
--#define flush_cache_all()			do { } while (0)
--#define flush_cache_mm(mm)			do { } while (0)
--#define flush_cache_dup_mm(mm)			do { } while (0)
--#define flush_cache_range(vma, start, end)	do { } while (0)
--#define flush_cache_page(vma, vmaddr, pfn)	do { } while (0)
--#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
--#define flush_dcache_page(page)			do { } while (0)
--#define flush_dcache_mmap_lock(mapping)		do { } while (0)
--#define flush_dcache_mmap_unlock(mapping)	do { } while (0)
--#define flush_icache_page(vma, pg)		do { } while (0)
--#define flush_icache_user_range(vma, pg, adr, len)	do { } while (0)
--#define flush_cache_vmap(start, end)		do { } while (0)
--#define flush_cache_vunmap(start, end)		do { } while (0)
--
- /*
-  * Flush Dcache range through current map.
-  */
- extern void flush_dcache_range(unsigned long start, unsigned long end);
-+#define flush_dcache_range flush_dcache_range
+ config SPARC32
+ 	def_bool !64BIT
+@@ -95,7 +96,6 @@ config SPARC64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select PCI_DOMAINS if PCI
+ 	select ARCH_HAS_GIGANTIC_PAGE
+-	select HAVE_COPY_THREAD_TLS
  
- /*
-  * Flush Icache range through current map.
-  */
- extern void flush_icache_range(unsigned long start, unsigned long end);
-+#define flush_icache_range flush_icache_range
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 9c510e6625aa..575bfbda7373 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -274,8 +274,9 @@ clone_stackframe(struct sparc_stackf __user *dst,
+ extern void ret_from_fork(void);
+ extern void ret_from_kernel_thread(void);
  
- /*
-  * Memory-management related flushes are there to ensure in non-physically
-@@ -78,6 +66,7 @@ static inline void update_mmu_cache(struct vm_area_struct *vma,
+-int copy_thread(unsigned long clone_flags, unsigned long sp,
+-		unsigned long arg, struct task_struct *p)
++int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
++		    unsigned long arg, struct task_struct *p,
++		    unsigned long tls)
+ {
+ 	struct thread_info *ti = task_thread_info(p);
+ 	struct pt_regs *childregs, *regs = current_pt_regs();
+@@ -377,7 +378,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
+ 	regs->u_regs[UREG_I1] = 0;
  
- void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
- 		       unsigned long vaddr, void *dst, void *src, int len);
-+#define copy_to_user_page copy_to_user_page
+ 	if (clone_flags & CLONE_SETTLS)
+-		childregs->u_regs[UREG_G7] = regs->u_regs[UREG_I3];
++		childregs->u_regs[UREG_G7] = tls;
  
- #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
- 	memcpy(dst, src, len)
-@@ -85,4 +74,6 @@ void copy_to_user_page(struct vm_area_struct *vma, struct page *page,
- extern void hexagon_inv_dcache_range(unsigned long start, unsigned long end);
- extern void hexagon_clean_dcache_range(unsigned long start, unsigned long end);
- 
-+#include <asm-generic/cacheflush.h>
-+
- #endif
+ 	return 0;
+ }
 -- 
 2.26.2
