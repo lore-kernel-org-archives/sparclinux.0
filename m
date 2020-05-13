@@ -1,28 +1,54 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 11 May 2020 16:35:04 +0000
-Subject: Re: sort out the flush_icache_range mess
-Message-Id: <20200511163503.GA32228@lst.de>
+From: Emil Velikov <emil.l.velikov@gmail.com>
+Date: Wed, 13 May 2020 21:43:47 +0000
+Subject: [PATCH 07/11] sparc64: constify sysrq_key_op
+Message-Id: <20200513214351.2138580-7-emil.l.velikov@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200510075510.987823-1-hch@lst.de>
- <CAMuHMdXazsBw0mjJd0uFHQud7qbb5-Uw-PTDB3+-M=huRWOfgQ@mail.gmail.com>
- <20200511151356.GB28634@lst.de>
- <CAMuHMdU1xAmyWysi5xRoaRL7PFurPncvEL0CcEY0V_sUz3EJPw@mail.gmail.com>
-In-Reply-To: <CAMuHMdU1xAmyWysi5xRoaRL7PFurPncvEL0CcEY0V_sUz3EJPw@mail.gmail.com>
+References: <20200513214351.2138580-1-emil.l.velikov@gmail.com>
+In-Reply-To: <20200513214351.2138580-1-emil.l.velikov@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Roman Zippel <zippel@linux-m68k.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, sparclinux <sparclinux@vger.kernel.org>, linux-riscv@lists.infradead.org, Christoph Hellwig <hch@lst.de>, Linux-Arch <linux-arch@vger.kernel.org>, linux-c6x-dev@linux-c6x.org, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, Arnd Bergmann <arnd@arndb.de>, Jessica Yu <jeyu@kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Openrisc <openrisc@lists.librecores.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Michal Simek <monstr@monstr.eu>Linux
+To: dri-devel@lists.freedesktop.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, emil.l.velikov@gmail.com, linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-On Mon, May 11, 2020 at 05:25:45PM +0200, Geert Uytterhoeven wrote:
-> > Do you want to drop the:
-> >
-> >     select HAVE_AOUT if MMU
-> >
-> > for m68k then?
-> 
-> If that helps to reduce maintenance, it's fine for me.
-> That leaves alpha as the sole user?
+With earlier commits, the API no longer discards the const-ness of the
+sysrq_key_op. As such we can add the notation.
 
-Yes.  And for alpha it isn't classic Linux a.out, but the OSF/1 ECOFF
-format, which might lead to further cleanups eventually.
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jiri Slaby <jslaby@suse.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Emil Velikov <emil.l.velikov@gmail.com>
+---
+Please keep me in the CC list, as I'm not subscribed to the list.
+
+IMHO it would be better if this gets merged this via the tty tree.
+---
+ arch/sparc/kernel/process_64.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 4282116e28e7..423011e60982 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -313,7 +313,7 @@ static void sysrq_handle_globreg(int key)
+ 	trigger_all_cpu_backtrace();
+ }
+ 
+-static struct sysrq_key_op sparc_globalreg_op = {
++static const struct sysrq_key_op sparc_globalreg_op = {
+ 	.handler	= sysrq_handle_globreg,
+ 	.help_msg	= "global-regs(y)",
+ 	.action_msg	= "Show Global CPU Regs",
+@@ -388,7 +388,7 @@ static void sysrq_handle_globpmu(int key)
+ 	pmu_snapshot_all_cpus();
+ }
+ 
+-static struct sysrq_key_op sparc_globalpmu_op = {
++static const struct sysrq_key_op sparc_globalpmu_op = {
+ 	.handler	= sysrq_handle_globpmu,
+ 	.help_msg	= "global-pmu(x)",
+ 	.action_msg	= "Show Global PMU Regs",
+-- 
+2.25.1
