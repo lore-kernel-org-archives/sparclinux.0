@@ -1,28 +1,26 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Date: Sun, 24 May 2020 02:09:19 +0000
-Subject: Re: [PATCH] sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
-Message-Id: <3bc16457-55d1-3d1f-6a78-fc3e95a1855f@roeck-us.net>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 13 May 2020 22:32:26 +0000
+Subject: Re: [RESEND PATCH 0/4] Rework sparc32 page-table layout
+Message-Id: <20200513.153226.1639916880914538869.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200523224732.GA243603@roeck-us.net>
- <CAHk-=wjnwsRfE_RJLAV8SX465uEmpOOJxyqjsLRwoX-UPH0kQg@mail.gmail.com>
-In-Reply-To: <CAHk-=wjnwsRfE_RJLAV8SX465uEmpOOJxyqjsLRwoX-UPH0kQg@mail.gmail.com>
+References: <20200414214011.2699-1-will@kernel.org>
+In-Reply-To: <20200414214011.2699-1-will@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mike Rapoport <rppt@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, "David S. Miller" <davem@davemloft.net>, Anatoly Pugachev <matorola@gmail.com>, sparclinux@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, stable <stable@vger.kernel.org>
+To: will@kernel.org
+Cc: linux-kernel@vger.kernel.org, peterz@infradead.org, ndesaulniers@google.com, matt@codeblueprint.co.uk, sparclinux@vger.kernel.org, kernel-team@android.com
 
-On 5/23/20 5:15 PM, Linus Torvalds wrote:
-> On Sat, May 23, 2020 at 3:47 PM Guenter Roeck <linux@roeck-us.net> wrote:
->>
->> This quite innocent looking patch crashes all my sparc32 boot tests.
->> Crash log and bisect results below. Reverting it fixes the problem.
+From: Will Deacon <will@kernel.org>
+Date: Tue, 14 Apr 2020 22:40:07 +0100
+
+> This is a reposting of the patch series I sent previously to rework the
+> sparc32 page-table layout so that 'pmd_t' can be used safely with
+> READ_ONCE():
 > 
-> It should also fixed by 0cfc8a8d70dc ("sparc32: fix page table
-> traversal in srmmu_nocache_init()"). No?
+> https://lore.kernel.org/lkml/20200324104005.11279-1-will@kernel.org
 > 
+> This is blocking the READ_ONCE() rework, which in turn allows us to
+> bump the minimum GCC version for building the kernel up to 4.8.
 
-Yes, it is. Sorry for the noise. 0cfc8a8d70dc wasn't available
-when I started the bisect, and I didn't re-check afterwards.
-
-Guenter
+Series applied to sparc-next, thanks Will.
