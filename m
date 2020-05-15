@@ -1,33 +1,65 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Wed, 06 May 2020 06:14:10 +0000
-Subject: Re: [PATCH V2 10/11] arch/kmap: Define kmap_atomic_prot() for all arch's
-Message-Id: <20200506061410.GE5192@infradead.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 May 2020 14:36:27 +0000
+Subject: [PATCH 10/29] c6x: use asm-generic/cacheflush.h
+Message-Id: <20200515143646.3857579-11-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200504010912.982044-1-ira.weiny@intel.com>
- <20200504010912.982044-11-ira.weiny@intel.com>
-In-Reply-To: <20200504010912.982044-11-ira.weiny@intel.com>
+References: <20200515143646.3857579-1-hch@lst.de>
+In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ira.weiny@intel.com
-Cc: Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-On Sun, May 03, 2020 at 06:09:11PM -0700, ira.weiny@intel.com wrote:
-> From: Ira Weiny <ira.weiny@intel.com>
-> 
-> To support kmap_atomic_prot(), all architectures need to support
-> protections passed to their kmap_atomic_high() function.  Pass
-> protections into kmap_atomic_high() and change the name to
-> kmap_atomic_high_prot() to match.
-> 
-> Then define kmap_atomic_prot() as a core function which calls
-> kmap_atomic_high_prot() when needed.
-> 
-> Finally, redefine kmap_atomic() as a wrapper of kmap_atomic_prot() with
-> the default kmap_prot exported by the architectures.
-> 
-> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+C6x needs almost no cache flushing routines of its own.  Rely on
+asm-generic/cacheflush.h for the defaults.
 
-Looks good,
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ arch/c6x/include/asm/cacheflush.h | 19 +------------------
+ 1 file changed, 1 insertion(+), 18 deletions(-)
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+diff --git a/arch/c6x/include/asm/cacheflush.h b/arch/c6x/include/asm/cacheflush.h
+index 4540b40475e6c..10922d528de6d 100644
+--- a/arch/c6x/include/asm/cacheflush.h
++++ b/arch/c6x/include/asm/cacheflush.h
+@@ -16,21 +16,6 @@
+ #include <asm/page.h>
+ #include <asm/string.h>
+ 
+-/*
+- * virtually-indexed cache management (our cache is physically indexed)
+- */
+-#define flush_cache_all()			do {} while (0)
+-#define flush_cache_mm(mm)			do {} while (0)
+-#define flush_cache_dup_mm(mm)			do {} while (0)
+-#define flush_cache_range(mm, start, end)	do {} while (0)
+-#define flush_cache_page(vma, vmaddr, pfn)	do {} while (0)
+-#define flush_cache_vmap(start, end)		do {} while (0)
+-#define flush_cache_vunmap(start, end)		do {} while (0)
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-#define flush_dcache_page(page)			do {} while (0)
+-#define flush_dcache_mmap_lock(mapping)		do {} while (0)
+-#define flush_dcache_mmap_unlock(mapping)	do {} while (0)
+-
+ /*
+  * physically-indexed cache management
+  */
+@@ -49,14 +34,12 @@ do {								  \
+ 			(unsigned long) page_address(page) + PAGE_SIZE)); \
+ } while (0)
+ 
+-
+ #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+ do {						     \
+ 	memcpy(dst, src, len);			     \
+ 	flush_icache_range((unsigned) (dst), (unsigned) (dst) + (len)); \
+ } while (0)
+ 
+-#define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+-	memcpy(dst, src, len)
++#include <asm-generic/cacheflush.h>
+ 
+ #endif /* _ASM_C6X_CACHEFLUSH_H */
+-- 
+2.26.2
