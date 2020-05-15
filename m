@@ -1,28 +1,35 @@
-From: Christoph Hellwig <hch@infradead.org>
-Date: Fri, 01 May 2020 08:36:51 +0000
-Subject: Re: [PATCH V1 02/10] arch/xtensa: Move kmap build bug out of the way
-Message-Id: <20200501083651.GB27858@infradead.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 May 2020 14:36:43 +0000
+Subject: [PATCH 26/29] exec: use flush_icache_user_range in read_code
+Message-Id: <20200515143646.3857579-27-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200430203845.582900-1-ira.weiny@intel.com>
- <20200430203845.582900-3-ira.weiny@intel.com>
-In-Reply-To: <20200430203845.582900-3-ira.weiny@intel.com>
+References: <20200515143646.3857579-1-hch@lst.de>
+In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: ira.weiny@intel.com
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-On Thu, Apr 30, 2020 at 01:38:37PM -0700, ira.weiny@intel.com wrote:
-> @@ -88,6 +88,11 @@ void __init kmap_init(void)
->  {
->  	unsigned long kmap_vstart;
->  
-> +	/* Check if this memory layout is broken because PKMAP overlaps
-> +	 * page table.
-> +	 */
-> +	BUILD_BUG_ON(PKMAP_BASE <
-> +		     TLBTEMP_BASE_1 + TLBTEMP_SIZE);
+read_code operates on user addresses.
 
-This can fit on a single line.  Otherwise looks good:
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/exec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+diff --git a/fs/exec.c b/fs/exec.c
+index a4f766f296f8f..c541867316a63 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -1033,7 +1033,7 @@ ssize_t read_code(struct file *file, unsigned long addr, loff_t pos, size_t len)
+ {
+ 	ssize_t res = vfs_read(file, (void __user *)addr, len, &pos);
+ 	if (res > 0)
+-		flush_icache_range(addr, addr + len);
++		flush_icache_user_range(addr, addr + len);
+ 	return res;
+ }
+ EXPORT_SYMBOL(read_code);
+-- 
+2.26.2
