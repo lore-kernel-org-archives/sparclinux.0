@@ -1,201 +1,80 @@
-From: ira.weiny@intel.com
-Date: Thu, 07 May 2020 22:52:27 +0000
-Subject: [PATCH V3.1] kmap: Consolidate kmap_prot definitions
-Message-Id: <20200507225227.1428910-1-ira.weiny@intel.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 May 2020 14:36:35 +0000
+Subject: [PATCH 18/29] arm,sparc,unicore32: remove flush_icache_user_range
+Message-Id: <20200515143646.3857579-19-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200507150004.1423069-16-ira.weiny@intel.com>
-In-Reply-To: <20200507150004.1423069-16-ira.weiny@intel.com>
+References: <20200515143646.3857579-1-hch@lst.de>
+In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Christoph Hellwig <hch@infradead.org>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+flush_icache_user_range is only used by <asm-generic/cacheflush.h>, so
+remove it from the architectures that implement it, but don't use
+<asm-generic/cacheflush.h>.
 
-Most architectures define kmap_prot to be PAGE_KERNEL.
-
-Let sparc and xtensa define there own and define PAGE_KERNEL as the
-default if not overridden.
-
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
-
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
-Changes from V3:
-	Fix semicolon in macro
+ arch/arm/include/asm/cacheflush.h       | 3 ---
+ arch/sparc/include/asm/cacheflush_32.h  | 2 --
+ arch/sparc/include/asm/cacheflush_64.h  | 1 -
+ arch/unicore32/include/asm/cacheflush.h | 3 ---
+ 4 files changed, 9 deletions(-)
 
-Changes from V2:
-	New Patch for this series
----
- arch/arc/include/asm/highmem.h        | 3 ---
- arch/arm/include/asm/highmem.h        | 2 --
- arch/csky/include/asm/highmem.h       | 2 --
- arch/microblaze/include/asm/highmem.h | 1 -
- arch/mips/include/asm/highmem.h       | 2 --
- arch/nds32/include/asm/highmem.h      | 1 -
- arch/powerpc/include/asm/highmem.h    | 1 -
- arch/sparc/include/asm/highmem.h      | 3 ++-
- arch/sparc/mm/highmem.c               | 4 ----
- arch/x86/include/asm/fixmap.h         | 1 -
- include/linux/highmem.h               | 4 ++++
- 11 files changed, 6 insertions(+), 18 deletions(-)
-
-diff --git a/arch/arc/include/asm/highmem.h b/arch/arc/include/asm/highmem.h
-index 70900a73bfc8..6e5eafb3afdd 100644
---- a/arch/arc/include/asm/highmem.h
-+++ b/arch/arc/include/asm/highmem.h
-@@ -25,9 +25,6 @@
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
+diff --git a/arch/arm/include/asm/cacheflush.h b/arch/arm/include/asm/cacheflush.h
+index 7114b9aa46b87..c78e14fcfb5df 100644
+--- a/arch/arm/include/asm/cacheflush.h
++++ b/arch/arm/include/asm/cacheflush.h
+@@ -318,9 +318,6 @@ extern void flush_kernel_dcache_page(struct page *);
+ #define flush_dcache_mmap_lock(mapping)		xa_lock_irq(&mapping->i_pages)
+ #define flush_dcache_mmap_unlock(mapping)	xa_unlock_irq(&mapping->i_pages)
  
--#define kmap_prot		PAGE_KERNEL
+-#define flush_icache_user_range(vma,page,addr,len) \
+-	flush_dcache_page(page)
 -
+ /*
+  * We don't appear to need to do anything here.  In fact, if we did, we'd
+  * duplicate cache flushing elsewhere performed by flush_dcache_page().
+diff --git a/arch/sparc/include/asm/cacheflush_32.h b/arch/sparc/include/asm/cacheflush_32.h
+index fb66094a2c30c..41c6d734a4741 100644
+--- a/arch/sparc/include/asm/cacheflush_32.h
++++ b/arch/sparc/include/asm/cacheflush_32.h
+@@ -17,8 +17,6 @@
+ #define flush_icache_range(start, end)		do { } while (0)
+ #define flush_icache_page(vma, pg)		do { } while (0)
+ 
+-#define flush_icache_user_range(vma,pg,adr,len)	do { } while (0)
 -
- #include <asm/cacheflush.h>
+ #define copy_to_user_page(vma, page, vaddr, dst, src, len) \
+ 	do {							\
+ 		flush_cache_page(vma, vaddr, page_to_pfn(page));\
+diff --git a/arch/sparc/include/asm/cacheflush_64.h b/arch/sparc/include/asm/cacheflush_64.h
+index e7517434d1fa6..b9341836597ec 100644
+--- a/arch/sparc/include/asm/cacheflush_64.h
++++ b/arch/sparc/include/asm/cacheflush_64.h
+@@ -49,7 +49,6 @@ void __flush_dcache_range(unsigned long start, unsigned long end);
+ void flush_dcache_page(struct page *page);
  
- extern void kmap_init(void);
-diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
-index b0d4bd8dc3c1..31811be38d78 100644
---- a/arch/arm/include/asm/highmem.h
-+++ b/arch/arm/include/asm/highmem.h
-@@ -10,8 +10,6 @@
- #define PKMAP_NR(virt)		(((virt) - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
+ #define flush_icache_page(vma, pg)	do { } while(0)
+-#define flush_icache_user_range(vma,pg,adr,len)	do { } while (0)
  
--#define kmap_prot		PAGE_KERNEL
+ void flush_ptrace_access(struct vm_area_struct *, struct page *,
+ 			 unsigned long uaddr, void *kaddr,
+diff --git a/arch/unicore32/include/asm/cacheflush.h b/arch/unicore32/include/asm/cacheflush.h
+index 9393ca4047e93..ff0be92ebc320 100644
+--- a/arch/unicore32/include/asm/cacheflush.h
++++ b/arch/unicore32/include/asm/cacheflush.h
+@@ -162,9 +162,6 @@ extern void flush_dcache_page(struct page *);
+ #define flush_dcache_mmap_lock(mapping)		do { } while (0)
+ #define flush_dcache_mmap_unlock(mapping)	do { } while (0)
+ 
+-#define flush_icache_user_range(vma, page, addr, len)	\
+-	flush_dcache_page(page)
 -
- #define flush_cache_kmaps() \
- 	do { \
- 		if (cache_is_vivt()) \
-diff --git a/arch/csky/include/asm/highmem.h b/arch/csky/include/asm/highmem.h
-index ea2f3f39174d..14645e3d5cd5 100644
---- a/arch/csky/include/asm/highmem.h
-+++ b/arch/csky/include/asm/highmem.h
-@@ -38,8 +38,6 @@ extern void *kmap_atomic_pfn(unsigned long pfn);
- 
- extern void kmap_init(void);
- 
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
- 
- #endif /* __ASM_CSKY_HIGHMEM_H */
-diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
-index d7c55cfd27bd..284ca8fb54c1 100644
---- a/arch/microblaze/include/asm/highmem.h
-+++ b/arch/microblaze/include/asm/highmem.h
-@@ -25,7 +25,6 @@
- #include <linux/uaccess.h>
- #include <asm/fixmap.h>
- 
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
- 
-diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
-index 76dec0bd4f59..f1f788b57166 100644
---- a/arch/mips/include/asm/highmem.h
-+++ b/arch/mips/include/asm/highmem.h
-@@ -54,8 +54,6 @@ extern void *kmap_atomic_pfn(unsigned long pfn);
- 
- extern void kmap_init(void);
- 
--#define kmap_prot PAGE_KERNEL
--
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_HIGHMEM_H */
-diff --git a/arch/nds32/include/asm/highmem.h b/arch/nds32/include/asm/highmem.h
-index a48a6536d41a..5717647d14d1 100644
---- a/arch/nds32/include/asm/highmem.h
-+++ b/arch/nds32/include/asm/highmem.h
-@@ -32,7 +32,6 @@
- #define LAST_PKMAP_MASK		(LAST_PKMAP - 1)
- #define PKMAP_NR(virt)		(((virt) - (PKMAP_BASE)) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)		(PKMAP_BASE + ((nr) << PAGE_SHIFT))
--#define kmap_prot		PAGE_KERNEL
- 
- static inline void flush_cache_kmaps(void)
- {
-diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
-index 8d8ee3fcd800..104026f7d6bc 100644
---- a/arch/powerpc/include/asm/highmem.h
-+++ b/arch/powerpc/include/asm/highmem.h
-@@ -29,7 +29,6 @@
- #include <asm/page.h>
- #include <asm/fixmap.h>
- 
--#define kmap_prot		PAGE_KERNEL
- extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
- 
-diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index f4babe67cb5d..ddb03c04f1f3 100644
---- a/arch/sparc/include/asm/highmem.h
-+++ b/arch/sparc/include/asm/highmem.h
-@@ -25,11 +25,12 @@
- #include <asm/vaddrs.h>
- #include <asm/kmap_types.h>
- #include <asm/pgtable.h>
-+#include <asm/pgtsrmmu.h>
- 
- /* declarations for highmem.c */
- extern unsigned long highstart_pfn, highend_pfn;
- 
--extern pgprot_t kmap_prot;
-+#define kmap_prot __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE)
- extern pte_t *pkmap_page_table;
- 
- void kmap_init(void) __init;
-diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 414f578d1e57..d237d902f9c3 100644
---- a/arch/sparc/mm/highmem.c
-+++ b/arch/sparc/mm/highmem.c
-@@ -32,9 +32,6 @@
- #include <asm/pgalloc.h>
- #include <asm/vaddrs.h>
- 
--pgprot_t kmap_prot;
--EXPORT_SYMBOL(kmap_prot);
--
- static pte_t *kmap_pte;
- 
- void __init kmap_init(void)
-@@ -51,7 +48,6 @@ void __init kmap_init(void)
- 
-         /* cache the first kmap pte */
-         kmap_pte = pte_offset_kernel(dir, address);
--        kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- }
- 
- void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
-diff --git a/arch/x86/include/asm/fixmap.h b/arch/x86/include/asm/fixmap.h
-index 28183ee3cc42..b9527a54db99 100644
---- a/arch/x86/include/asm/fixmap.h
-+++ b/arch/x86/include/asm/fixmap.h
-@@ -152,7 +152,6 @@ extern void reserve_top_address(unsigned long reserve);
- extern int fixmaps_set;
- 
- extern pte_t *kmap_pte;
--#define kmap_prot PAGE_KERNEL
- extern pte_t *pkmap_page_table;
- 
- void __native_set_fixmap(enum fixed_addresses idx, pte_t pte);
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index cc0c3904e501..bf470c16cecb 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -40,6 +40,10 @@ extern void kunmap_atomic_high(void *kvaddr);
- static inline void kmap_flush_tlb(unsigned long addr) { }
- #endif
- 
-+#ifndef kmap_prot
-+#define kmap_prot PAGE_KERNEL
-+#endif
-+
- void *kmap_high(struct page *page);
- static inline void *kmap(struct page *page)
- {
+ /*
+  * We don't appear to need to do anything here.  In fact, if we did, we'd
+  * duplicate cache flushing elsewhere performed by flush_dcache_page().
 -- 
-2.25.1
+2.26.2
