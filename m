@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Sun, 10 May 2020 07:54:53 +0000
-Subject: [PATCH 14/31] ia64: use asm-generic/cacheflush.h
-Message-Id: <20200510075510.987823-15-hch@lst.de>
+Date: Fri, 15 May 2020 14:36:29 +0000
+Subject: [PATCH 12/29] ia64: use asm-generic/cacheflush.h
+Message-Id: <20200515143646.3857579-13-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200510075510.987823-1-hch@lst.de>
-In-Reply-To: <20200510075510.987823-1-hch@lst.de>
+References: <20200515143646.3857579-1-hch@lst.de>
+In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
