@@ -1,76 +1,53 @@
-From: Nate Karstens <nate.karstens@garmin.com>
-Date: Fri, 15 May 2020 15:23:20 +0000
-Subject: [PATCH v2 3/4] fs: Add F_DUPFD_CLOFORK to fcntl(2)
-Message-Id: <20200515152321.9280-4-nate.karstens@garmin.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 15 May 2020 14:36:24 +0000
+Subject: [PATCH 07/29] asm-generic: improve the flush_dcache_page stub
+Message-Id: <20200515143646.3857579-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200515152321.9280-1-nate.karstens@garmin.com>
-In-Reply-To: <20200515152321.9280-1-nate.karstens@garmin.com>
+References: <20200515143646.3857579-1-hch@lst.de>
+In-Reply-To: <20200515143646.3857579-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Changli Gao <xiaosuo@gmail.com>, Nate Karstens <nate.karstens@garmin.com>
+To: Andrew Morton <akpm@linux-foundation.org>, Arnd Bergmann <arnd@arndb.de>, Roman Zippel <zippel@linux-m68k.org>
+Cc: Jessica Yu <jeyu@kernel.org>, Michal Simek <monstr@monstr.eu>, x86@kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linux-fsdevel@vger.kernel.org
 
-Implement functionality for duplicating a file descriptor
-and having the close-on-fork flag automatically set in the
-new file descriptor.
+There is a magic ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE cpp symbol that
+guards non-stub availability of flush_dcache_pagge.  Use that to
+check if flush_dcache_pagg is implemented.
 
-Signed-off-by: Nate Karstens <nate.karstens@garmin.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/fcntl.c                       | 4 ++++
- include/uapi/linux/fcntl.h       | 3 +++
- tools/include/uapi/linux/fcntl.h | 3 +++
- 3 files changed, 10 insertions(+)
+ include/asm-generic/cacheflush.h | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 40af2a48702b..e15cdd77b1df 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -333,6 +333,9 @@ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
- 	case F_DUPFD_CLOEXEC:
- 		err = f_dupfd(arg, filp, O_CLOEXEC);
- 		break;
-+	case F_DUPFD_CLOFORK:
-+		err = f_dupfd(arg, filp, O_CLOFORK);
-+		break;
- 	case F_GETFD:
- 		err = f_getfd(fd);
- 		break;
-@@ -437,6 +440,7 @@ static int check_fcntl_cmd(unsigned cmd)
- 	switch (cmd) {
- 	case F_DUPFD:
- 	case F_DUPFD_CLOEXEC:
-+	case F_DUPFD_CLOFORK:
- 	case F_GETFD:
- 	case F_SETFD:
- 	case F_GETFL:
-diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
-index ca88b7bce553..9e1069ff3a22 100644
---- a/include/uapi/linux/fcntl.h
-+++ b/include/uapi/linux/fcntl.h
-@@ -55,6 +55,9 @@
- #define F_GET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 13)
- #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
+diff --git a/include/asm-generic/cacheflush.h b/include/asm-generic/cacheflush.h
+index bf9bb83e9fc8d..bbbb4d4ef6516 100644
+--- a/include/asm-generic/cacheflush.h
++++ b/include/asm-generic/cacheflush.h
+@@ -2,8 +2,6 @@
+ #ifndef _ASM_GENERIC_CACHEFLUSH_H
+ #define _ASM_GENERIC_CACHEFLUSH_H
  
-+/* Create a file descriptor with FD_CLOFORK set. */
-+#define F_DUPFD_CLOFORK	(F_LINUX_SPECIFIC_BASE + 15)
-+
+-#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+-
  /*
-  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
-  * used to clear any hints previously set.
-diff --git a/tools/include/uapi/linux/fcntl.h b/tools/include/uapi/linux/fcntl.h
-index ca88b7bce553..9e1069ff3a22 100644
---- a/tools/include/uapi/linux/fcntl.h
-+++ b/tools/include/uapi/linux/fcntl.h
-@@ -55,6 +55,9 @@
- #define F_GET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 13)
- #define F_SET_FILE_RW_HINT	(F_LINUX_SPECIFIC_BASE + 14)
+  * The cache doesn't need to be flushed when TLB entries change when
+  * the cache is mapped to physical memory, not virtual memory
+@@ -42,12 +40,14 @@ static inline void flush_cache_page(struct vm_area_struct *vma,
+ }
+ #endif
  
-+/* Create a file descriptor with FD_CLOFORK set. */
-+#define F_DUPFD_CLOFORK	(F_LINUX_SPECIFIC_BASE + 15)
+-#ifndef flush_dcache_page
++#ifndef ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE
+ static inline void flush_dcache_page(struct page *page)
+ {
+ }
++#define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 0
+ #endif
+ 
 +
- /*
-  * Valid hint values for F_{GET,SET}_RW_HINT. 0 is "not set", or can be
-  * used to clear any hints previously set.
+ #ifndef flush_dcache_mmap_lock
+ static inline void flush_dcache_mmap_lock(struct address_space *mapping)
+ {
 -- 
-2.26.1
+2.26.2
