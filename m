@@ -1,272 +1,104 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Wed, 06 May 2020 06:24:13 +0000
-Subject: [PATCH V2 2/3] mm/hugetlb: Define a generic fallback for is_hugepage_only_range()
-Message-Id: <1588745534-24418-3-git-send-email-anshuman.khandual@arm.com>
+From: Nate Karstens <nate.karstens@garmin.com>
+Date: Fri, 15 May 2020 15:23:21 +0000
+Subject: [PATCH v2 4/4] net: Add SOCK_CLOFORK
+Message-Id: <20200515152321.9280-5-nate.karstens@garmin.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1588745534-24418-1-git-send-email-anshuman.khandual@arm.com>
-In-Reply-To: <1588745534-24418-1-git-send-email-anshuman.khandual@arm.com>
+References: <20200515152321.9280-1-nate.karstens@garmin.com>
+In-Reply-To: <20200515152321.9280-1-nate.karstens@garmin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>
+To: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Changli Gao <xiaosuo@gmail.com>, Nate Karstens <nate.karstens@garmin.com>
 
-There are multiple similar definitions for is_hugepage_only_range() on
-various platforms. Lets just add it's generic fallback definition for
-platforms that do not override. This help reduce code duplication.
+Implements a new socket flag that automatically sets the
+close-on-fork flag for sockets created using socket(2),
+socketpair(2), and accept4(2).
 
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Signed-off-by: Nate Karstens <nate.karstens@garmin.com>
 ---
- arch/arm/include/asm/hugetlb.h     | 6 ------
- arch/arm64/include/asm/hugetlb.h   | 6 ------
- arch/ia64/include/asm/hugetlb.h    | 1 +
- arch/mips/include/asm/hugetlb.h    | 7 -------
- arch/parisc/include/asm/hugetlb.h  | 6 ------
- arch/powerpc/include/asm/hugetlb.h | 1 +
- arch/riscv/include/asm/hugetlb.h   | 6 ------
- arch/s390/include/asm/hugetlb.h    | 7 -------
- arch/sh/include/asm/hugetlb.h      | 6 ------
- arch/sparc/include/asm/hugetlb.h   | 6 ------
- arch/x86/include/asm/hugetlb.h     | 6 ------
- include/linux/hugetlb.h            | 9 +++++++++
- 12 files changed, 11 insertions(+), 56 deletions(-)
+ include/linux/net.h |  3 ++-
+ net/socket.c        | 14 ++++++++------
+ 2 files changed, 10 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/include/asm/hugetlb.h b/arch/arm/include/asm/hugetlb.h
-index 318dcf5921ab..9ecd516d1ff7 100644
---- a/arch/arm/include/asm/hugetlb.h
-+++ b/arch/arm/include/asm/hugetlb.h
-@@ -14,12 +14,6 @@
- #include <asm/hugetlb-3level.h>
- #include <asm-generic/hugetlb.h>
+diff --git a/include/linux/net.h b/include/linux/net.h
+index 6451425e828f..57663c9dc8c4 100644
+--- a/include/linux/net.h
++++ b/include/linux/net.h
+@@ -17,7 +17,7 @@
+ #include <linux/stringify.h>
+ #include <linux/random.h>
+ #include <linux/wait.h>
+-#include <linux/fcntl.h>	/* For O_CLOEXEC and O_NONBLOCK */
++#include <linux/fcntl.h>	/* For O_CLOEXEC, O_CLOFORK, and O_NONBLOCK */
+ #include <linux/rcupdate.h>
+ #include <linux/once.h>
+ #include <linux/fs.h>
+@@ -73,6 +73,7 @@ enum sock_type {
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr, unsigned long len)
--{
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff --git a/arch/arm64/include/asm/hugetlb.h b/arch/arm64/include/asm/hugetlb.h
-index b88878ddc88b..8f58e052697a 100644
---- a/arch/arm64/include/asm/hugetlb.h
-+++ b/arch/arm64/include/asm/hugetlb.h
-@@ -17,12 +17,6 @@
- extern bool arch_hugetlb_migration_supported(struct hstate *h);
+ /* Flags for socket, socketpair, accept4 */
+ #define SOCK_CLOEXEC	O_CLOEXEC
++#define SOCK_CLOFORK	O_CLOFORK
+ #ifndef SOCK_NONBLOCK
+ #define SOCK_NONBLOCK	O_NONBLOCK
  #endif
+diff --git a/net/socket.c b/net/socket.c
+index 2eecf1517f76..ba6e971c7e78 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -1511,12 +1511,14 @@ int __sys_socket(int family, int type, int protocol)
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr, unsigned long len)
--{
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff --git a/arch/ia64/include/asm/hugetlb.h b/arch/ia64/include/asm/hugetlb.h
-index 36cc0396b214..6ef50b9a4bdf 100644
---- a/arch/ia64/include/asm/hugetlb.h
-+++ b/arch/ia64/include/asm/hugetlb.h
-@@ -20,6 +20,7 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- 	return (REGION_NUMBER(addr) = RGN_HPAGE ||
- 		REGION_NUMBER((addr)+(len)-1) = RGN_HPAGE);
+ 	/* Check the SOCK_* constants for consistency.  */
+ 	BUILD_BUG_ON(SOCK_CLOEXEC != O_CLOEXEC);
++	BUILD_BUG_ON(SOCK_CLOFORK != O_CLOFORK);
+ 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
++	BUILD_BUG_ON(SOCK_CLOFORK & SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
+ 
+ 	flags = type & ~SOCK_TYPE_MASK;
+-	if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
++	if (flags & ~(SOCK_CLOEXEC | SOCK_CLOFORK | SOCK_NONBLOCK))
+ 		return -EINVAL;
+ 	type &= SOCK_TYPE_MASK;
+ 
+@@ -1527,7 +1529,7 @@ int __sys_socket(int family, int type, int protocol)
+ 	if (retval < 0)
+ 		return retval;
+ 
+-	return sock_map_fd(sock, flags & (O_CLOEXEC | O_NONBLOCK));
++	return sock_map_fd(sock, flags & (O_CLOEXEC | O_CLOFORK | O_NONBLOCK));
  }
-+#define is_hugepage_only_range is_hugepage_only_range
  
- #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
-diff --git a/arch/mips/include/asm/hugetlb.h b/arch/mips/include/asm/hugetlb.h
-index 425bb6fc3bda..8b201e281f67 100644
---- a/arch/mips/include/asm/hugetlb.h
-+++ b/arch/mips/include/asm/hugetlb.h
-@@ -11,13 +11,6 @@
+ SYSCALL_DEFINE3(socket, int, family, int, type, int, protocol)
+@@ -1547,7 +1549,7 @@ int __sys_socketpair(int family, int type, int protocol, int __user *usockvec)
+ 	int flags;
  
- #include <asm/page.h>
+ 	flags = type & ~SOCK_TYPE_MASK;
+-	if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
++	if (flags & ~(SOCK_CLOEXEC | SOCK_CLOFORK | SOCK_NONBLOCK))
+ 		return -EINVAL;
+ 	type &= SOCK_TYPE_MASK;
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len)
--{
--	return 0;
--}
--
- #define __HAVE_ARCH_PREPARE_HUGEPAGE_RANGE
- static inline int prepare_hugepage_range(struct file *file,
- 					 unsigned long addr,
-diff --git a/arch/parisc/include/asm/hugetlb.h b/arch/parisc/include/asm/hugetlb.h
-index 7cb595dcb7d7..411d9d867baa 100644
---- a/arch/parisc/include/asm/hugetlb.h
-+++ b/arch/parisc/include/asm/hugetlb.h
-@@ -12,12 +12,6 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
+@@ -1715,7 +1717,7 @@ int __sys_accept4_file(struct file *file, unsigned file_flags,
+ 	int err, len, newfd;
+ 	struct sockaddr_storage address;
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/powerpc/include/asm/hugetlb.h b/arch/powerpc/include/asm/hugetlb.h
-index bd6504c28c2f..b167c869d72d 100644
---- a/arch/powerpc/include/asm/hugetlb.h
-+++ b/arch/powerpc/include/asm/hugetlb.h
-@@ -30,6 +30,7 @@ static inline int is_hugepage_only_range(struct mm_struct *mm,
- 		return slice_is_hugepage_only_range(mm, addr, len);
- 	return 0;
- }
-+#define is_hugepage_only_range is_hugepage_only_range
+-	if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
++	if (flags & ~(SOCK_CLOEXEC | SOCK_CLOFORK | SOCK_NONBLOCK))
+ 		return -EINVAL;
  
- #define __HAVE_ARCH_HUGETLB_FREE_PGD_RANGE
- void hugetlb_free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
-diff --git a/arch/riscv/include/asm/hugetlb.h b/arch/riscv/include/asm/hugetlb.h
-index 728a5db66597..866f6ae6467c 100644
---- a/arch/riscv/include/asm/hugetlb.h
-+++ b/arch/riscv/include/asm/hugetlb.h
-@@ -5,12 +5,6 @@
- #include <asm-generic/hugetlb.h>
- #include <asm/page.h>
+ 	if (SOCK_NONBLOCK != O_NONBLOCK && (flags & SOCK_NONBLOCK))
+@@ -3628,8 +3630,8 @@ EXPORT_SYMBOL(kernel_listen);
+  *	@newsock: new connected socket
+  *	@flags: flags
+  *
+- *	@flags must be SOCK_CLOEXEC, SOCK_NONBLOCK or 0.
+- *	If it fails, @newsock is guaranteed to be %NULL.
++ *	@flags must be SOCK_CLOEXEC, SOCK_CLOFORK, SOCK_NONBLOCK,
++ *	or 0. If it fails, @newsock is guaranteed to be %NULL.
+  *	Returns 0 or an error.
+  */
  
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff --git a/arch/s390/include/asm/hugetlb.h b/arch/s390/include/asm/hugetlb.h
-index de8f0bf5f238..7d27ea96ec2f 100644
---- a/arch/s390/include/asm/hugetlb.h
-+++ b/arch/s390/include/asm/hugetlb.h
-@@ -21,13 +21,6 @@ pte_t huge_ptep_get(pte_t *ptep);
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
- 			      unsigned long addr, pte_t *ptep);
- 
--static inline bool is_hugepage_only_range(struct mm_struct *mm,
--					  unsigned long addr,
--					  unsigned long len)
--{
--	return false;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/sh/include/asm/hugetlb.h b/arch/sh/include/asm/hugetlb.h
-index 6f025fe18146..536ad2cb8aa4 100644
---- a/arch/sh/include/asm/hugetlb.h
-+++ b/arch/sh/include/asm/hugetlb.h
-@@ -5,12 +5,6 @@
- #include <asm/cacheflush.h>
- #include <asm/page.h>
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- /*
-  * If the arch doesn't supply something else, assume that hugepage
-  * size aligned regions are ok without further preparation.
-diff --git a/arch/sparc/include/asm/hugetlb.h b/arch/sparc/include/asm/hugetlb.h
-index 3963f80d1cb3..a056fe1119f5 100644
---- a/arch/sparc/include/asm/hugetlb.h
-+++ b/arch/sparc/include/asm/hugetlb.h
-@@ -20,12 +20,6 @@ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep);
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- #define __HAVE_ARCH_HUGE_PTEP_CLEAR_FLUSH
- static inline void huge_ptep_clear_flush(struct vm_area_struct *vma,
- 					 unsigned long addr, pte_t *ptep)
-diff --git a/arch/x86/include/asm/hugetlb.h b/arch/x86/include/asm/hugetlb.h
-index f65cfb48cfdd..cc98f79074d0 100644
---- a/arch/x86/include/asm/hugetlb.h
-+++ b/arch/x86/include/asm/hugetlb.h
-@@ -7,12 +7,6 @@
- 
- #define hugepages_supported() boot_cpu_has(X86_FEATURE_PSE)
- 
--static inline int is_hugepage_only_range(struct mm_struct *mm,
--					 unsigned long addr,
--					 unsigned long len) {
--	return 0;
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
-index 43a1cef8f0f1..c01c0c6f7fd4 100644
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -591,6 +591,15 @@ static inline unsigned int blocks_per_huge_page(struct hstate *h)
- 
- #include <asm/hugetlb.h>
- 
-+#ifndef is_hugepage_only_range
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					unsigned long addr, unsigned long len)
-+{
-+	return 0;
-+}
-+#define is_hugepage_only_range is_hugepage_only_range
-+#endif
-+
- #ifndef arch_make_huge_pte
- static inline pte_t arch_make_huge_pte(pte_t entry, struct vm_area_struct *vma,
- 				       struct page *page, int writable)
 -- 
-2.20.1
+2.26.1
