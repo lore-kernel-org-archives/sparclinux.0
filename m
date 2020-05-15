@@ -1,109 +1,37 @@
-From: "Karstens, Nate" <Nate.Karstens@garmin.com>
-Date: Fri, 15 May 2020 18:28:20 +0000
-Subject: RE: [PATCH v2] Implement close-on-fork
-Message-Id: <4964fe0ccdf7495daf4045c195b14ed6@garmin.com>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Fri, 15 May 2020 18:43:58 +0000
+Subject: Re: [PATCH v2] Implement close-on-fork
+Message-Id: <20200515184358.GH16070@bombadil.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200515152321.9280-1-nate.karstens@garmin.com>
-         <20200515155730.GF16070@bombadil.infradead.org>
-         <5b1929aa9f424e689c7f430663891827@garmin.com>
+ <20200515155730.GF16070@bombadil.infradead.org>
+ <5b1929aa9f424e689c7f430663891827@garmin.com>
  <1589559950.3653.11.camel@HansenPartnership.com>
-In-Reply-To: <1589559950.3653.11.camel@HansenPartnership.com>
+ <4964fe0ccdf7495daf4045c195b14ed6@garmin.com>
+In-Reply-To: <4964fe0ccdf7495daf4045c195b14ed6@garmin.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: James Bottomley <James.Bottomley@HansenPartnership.com>, Matthew Wilcox <willy@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, netdev@vger.ker
+To: "Karstens, Nate" <Nate.Karstens@garmin.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, sparclinux@vger.k
 
-SmFtZXMsDQoNClNvcnJ5LCBwZXJoYXBzIEkgd2FzIGluZGlyZWN0LCBidXQgSSB0aG91Z2h0IEkg
-aGFkIHJlc3BvbmRlZCB0byB0aGF0IGluIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL2xpbnV4LWZz
-ZGV2ZWwvZGU2YWRjZTc2YjUzNDMxMDk3NWU0ZDNjNGE0ZmFjYjJAZ2FybWluLmNvbS8uDQoNCkkg
-cmVhbGx5IGhvcGUgSSBkbyBub3QgY29tZSBvZmYgYXMgY29tcGxhaW5pbmcgYWJvdXQgdGhpcyBp
-c3N1ZS4gV2UgaWRlbnRpZmllZCB3aGF0IHNlZW1lZCB0byBiZSBzb21ldGhpbmcgdGhhdCB3YXMg
-b3Zlcmxvb2tlZCB3aXRoIHRoZSB2YXJpb3VzIEFQSXMgYXJvdW5kIGNyZWF0aW5nIGNoaWxkIHBy
-b2Nlc3Nlcy4gUmF0aGVyIHRoYW4gZml4aW5nIGl0IG91cnNlbHZlcyBhbmQgbW92aW5nIG9uIHdl
-IGNob3NlIHRvIGludmVzdCBtb3JlIHRpbWUgYW5kIGVmZm9ydCBpbnRvIGl0IGJ5IGVuZ2FnaW5n
-IHRoZSBjb21tdW5pdHkgKGZpcnN0IFBPU0lYLCBhbmQgbm93IHRoaXMgb25lKSBpbiBhIGRpc2N1
-c3Npb24uIEkgaHVtYmx5IGFuZCBzaW5jZXJlbHkgYXNrIGlmIHlvdSB3b3VsZCBoZWxwIG1lIHVu
-ZGVyc3RhbmQsIGlmIHdlIGNvdWxkIHR1cm4gYmFjayB0aGUgY2xvY2ssIGhvdyBvdXIgYXBwbGlj
-YXRpb24gY291bGQgaGF2ZSBiZWVuIHdyaXR0ZW4gdG8gYXZvaWQgdGhpcyBpc3N1ZToNCg0KKkEg
-cGFyZW50IHByb2Nlc3MgZm9ya3MgYSBjaGlsZC4gQW5vdGhlciB0aHJlYWQgaW4gdGhlIHBhcmVu
-dCBwcm9jZXNzIGNsb3NlcyBhbmQgYXR0ZW1wdHMgdG8gcmVvcGVuIGEgc29ja2V0LCBmaWxlLCBv
-ciBvdGhlciByZXNvdXJjZSBpdCBuZWVkcyBleGNsdXNpdmUgYWNjZXNzIHRvLiBUaGlzIGZhaWxz
-IGJlY2F1c2UgdGhlIC1vcGVyYXRpbmcgc3lzdGVtLSBzdGlsbCBoYXMgYSByZWZlcmVuY2UgdG8g
-dGhhdCByZXNvdXJjZSB0aGF0IGl0IGlzIGtlZXBpbmcgb24gYmVoYWxmIG9mIHRoZSBjaGlsZC4g
-VGhlIGNoaWxkIGV2ZW50dWFsbHkgY2FsbHMgZXhlYyBhbmQgdGhlIHJlc291cmNlIGlzIGNsb3Nl
-ZCBiZWNhdXNlIHRoZSBjbG9zZS1vbi1leGVjIGZsYWcgaXMgc2V0LioNCg0KT3VyIGZpcnN0IGF0
-dGVtcHQsIHdoaWNoIHdhcyB0byB1c2UgdGhlIHB0aHJlYWRfYXRmb3JrKCkgaGFuZGxlcnMsIGZh
-aWxlZCBiZWNhdXNlIHN5c3RlbSgpIGlzIG5vdCByZXF1aXJlZCB0byBjYWxsIHRoZSBoYW5kbGVy
-cy4NCg0KTW9zdCBvZiB0aGUgZmVlZGJhY2sgd2UncmUgZ2V0dGluZyBvbiB0aGlzIHNlZW1zIHRv
-IHNheSAiZG9uJ3QgdXNlIHN5c3RlbSgpLCBpdCBpcyB1bnNhZmUgZm9yIHRocmVhZGVkIGFwcGxp
-Y2F0aW9ucyIuIElzIHRoYXQgZG9jdW1lbnRlZCBhbnl3aGVyZT8gVGhlIG1hbiBwYWdlIHNheXMg
-aXQgaXMgIk1ULVNhZmUiLg0KDQpBc2lkZSBmcm9tIHRoYXQsIGV2ZW4gaWYgd2UgcmVtb3ZlIGFs
-bCB1c2VzIG9mIHN5c3RlbSgpIGZyb20gb3VyIGFwcGxpY2F0aW9uICh3aGljaCB3ZSBhbHJlYWR5
-IGhhdmUpLCB0aGVuIG91ciBhcHBsaWNhdGlvbiwgbGlrZSBtYW55IG90aGVyIGFwcGxpY2F0aW9u
-cywgbmVlZHMgdG8gdXNlIHRoaXJkLXBhcnR5IHNoYXJlZCBsaWJyYXJpZXMuIFRoZXJlIGlzIG5v
-dGhpbmcgdGhhdCBwcmV2ZW50cyB0aG9zZSBsaWJyYXJpZXMgZnJvbSB1c2luZyBzeXN0ZW0oKS4g
-V2UgY2FuIGF1ZGl0IHRob3NlIGxpYnJhcmllcyBhbmQgZ28gYmFjayB3aXRoIHRoZSB2ZW5kb3Ig
-d2l0aCBhIHJlcXVlc3QgdG8gcmVwbGFjZSBzeXN0ZW0oKSB3aXRoIGEgc3RhbmRhcmQgZm9yay9l
-eGVjLCBidXQgdGhleSB3aWxsIGFsc28gd2FudCBkb2N1bWVudGF0aW9uIHN1cHBvcnRpbmcgdGhh
-dC4NCg0KV2UgY2FuIGFsc28gdGFrZSBzdGVwcyB0byBjaGFuZ2Ugb3IgcmVtb3ZlIHN5c3RlbSgp
-IGZyb20gb3VyIHN0YW5kYXJkIGxpYnJhcnkuIEl0IGZpeGVzIG91ciBpc3N1ZSwgYnV0IHN0aWxs
-IGxlYXZlcyB0aGUgY29tbXVuaXR5IHdpdGggYW4gQVBJIHRoYXQgaXMgYnJva2VuL2ZsYXdlZC9w
-b29ybHktZG9jdW1lbnRlZCAoZGVwZW5kaW5nIG9uIGhvdyBvbmUgbG9va3MgYXQgaXQpLg0KDQpJ
-ZiB0aGUgZmVlZGJhY2sgZnJvbSB0aGUgY29tbXVuaXR5IGlzIHRydWx5IGFuZCBmaW5hbGx5IHRo
-YXQgc3lzdGVtKCkgc2hvdWxkIG5vdCBiZSB1c2VkIGluIHRoZXNlIGFwcGxpY2F0aW9ucywgdGhl
-biBpcyB0aGVyZSBzdXBwb3J0IGZvciB1cGRhdGluZyB0aGUgbWFuIHBhZ2UgdG8gYmV0dGVyIGNv
-bW11bmljYXRlIHRoYXQ/DQoNClRoYW5rcyBmb3IgeW91ciBoZWxwIHdpdGggdGhpcy4NCg0KTmF0
-ZQ0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogSmFtZXMgQm90dG9tbGV5IDxK
-YW1lcy5Cb3R0b21sZXlASGFuc2VuUGFydG5lcnNoaXAuY29tPg0KU2VudDogRnJpZGF5LCBNYXkg
-MTUsIDIwMjAgMTE6MjYNClRvOiBLYXJzdGVucywgTmF0ZSA8TmF0ZS5LYXJzdGVuc0BnYXJtaW4u
-Y29tPjsgTWF0dGhldyBXaWxjb3ggPHdpbGx5QGluZnJhZGVhZC5vcmc+DQpDYzogQWxleGFuZGVy
-IFZpcm8gPHZpcm9AemVuaXYubGludXgub3JnLnVrPjsgSmVmZiBMYXl0b24gPGpsYXl0b25Aa2Vy
-bmVsLm9yZz47IEouIEJydWNlIEZpZWxkcyA8YmZpZWxkc0BmaWVsZHNlcy5vcmc+OyBBcm5kIEJl
-cmdtYW5uIDxhcm5kQGFybmRiLmRlPjsgUmljaGFyZCBIZW5kZXJzb24gPHJ0aEB0d2lkZGxlLm5l
-dD47IEl2YW4gS29rc2hheXNreSA8aW5rQGp1cmFzc2ljLnBhcmsubXN1LnJ1PjsgTWF0dCBUdXJu
-ZXIgPG1hdHRzdDg4QGdtYWlsLmNvbT47IEhlbGdlIERlbGxlciA8ZGVsbGVyQGdteC5kZT47IERh
-dmlkIFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD47IEpha3ViIEtpY2luc2tpIDxrdWJh
-QGtlcm5lbC5vcmc+OyBFcmljIER1bWF6ZXQgPGVkdW1hemV0QGdvb2dsZS5jb20+OyBEYXZpZCBM
-YWlnaHQgPERhdmlkLkxhaWdodEBhY3VsYWIuY29tPjsgbGludXgtZnNkZXZlbEB2Z2VyLmtlcm5l
-bC5vcmc7IGxpbnV4LWFyY2hAdmdlci5rZXJuZWwub3JnOyBsaW51eC1hbHBoYUB2Z2VyLmtlcm5l
-bC5vcmc7IGxpbnV4LXBhcmlzY0B2Z2VyLmtlcm5lbC5vcmc7IHNwYXJjbGludXhAdmdlci5rZXJu
-ZWwub3JnOyBuZXRkZXZAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwu
-b3JnOyBDaGFuZ2xpIEdhbyA8eGlhb3N1b0BnbWFpbC5jb20+OyBhLmpvc2V5QG9wZW5ncm91cC5v
-cmcNClN1YmplY3Q6IFJlOiBbUEFUQ0ggdjJdIEltcGxlbWVudCBjbG9zZS1vbi1mb3JrDQoNCkNB
-VVRJT04gLSBFWFRFUk5BTCBFTUFJTDogRG8gbm90IGNsaWNrIGFueSBsaW5rcyBvciBvcGVuIGFu
-eSBhdHRhY2htZW50cyB1bmxlc3MgeW91IHRydXN0IHRoZSBzZW5kZXIgYW5kIGtub3cgdGhlIGNv
-bnRlbnQgaXMgc2FmZS4NCg0KDQpPbiBGcmksIDIwMjAtMDUtMTUgYXQgMTY6MDcgKzAwMDAsIEth
-cnN0ZW5zLCBOYXRlIHdyb3RlOg0KPiBNYXR0aGV3LA0KPg0KPiBXaGF0IGFsdGVybmF0aXZlIHdv
-dWxkIHlvdSBzdWdnZXN0Pw0KPg0KPiBGcm9tIGFuIGVhcmxpZXIgZW1haWw6DQo+DQo+ID4gLi4u
-bm90aGluZyBlbHNlIGFkZHJlc3NlcyB0aGUgdW5kZXJseWluZyBpc3N1ZTogdGhlcmUgaXMgbm8g
-d2F5IHRvDQo+ID4gcHJldmVudCBhIGZvcmsoKSBmcm9tIGR1cGxpY2F0aW5nIHRoZSByZXNvdXJj
-ZS4gVGhlIGNsb3NlLW9uLWV4ZWMNCj4gPiBmbGFnIHBhcnRpYWxseS1hZGRyZXNzZXMgdGhpcyBi
-eSBhbGxvd2luZyB0aGUgcGFyZW50IHByb2Nlc3MgdG8gbWFyaw0KPiA+IGEgZmlsZSBkZXNjcmlw
-dG9yIGFzIGV4Y2x1c2l2ZSB0byBpdHNlbGYsIGJ1dCB0aGVyZSBpcyBzdGlsbCBhDQo+ID4gcGVy
-aW9kIG9mIHRpbWUgdGhlIGZhaWx1cmUgY2FuIG9jY3VyIGJlY2F1c2UgdGhlIGF1dG8tY2xvc2Ug
-b25seQ0KPiA+IG9jY3VycyBkdXJpbmcgdGhlIGV4ZWMoKS4gUGVyaGFwcyB0aGlzIHdvdWxkIG5v
-dCBiZSBhbiBpc3N1ZSB3aXRoIGENCj4gPiBkaWZmZXJlbnQgcHJvY2Vzcy90aHJlYWRpbmcgbW9k
-ZWwsIGJ1dCB0aGF0IGlzIGFub3RoZXIgZGlzY3Vzc2lvbg0KPiA+IGVudGlyZWx5Lg0KPg0KPiBE
-byB5b3UgZGlzYWdyZWUgdGhlcmUgaXMgYW4gaXNzdWU/DQoNCk9oIGdvb2QgZ3JpZWYgdGhhdCdz
-IGEgbGVhZGluZyBxdWVzdGlvbjogV2hlbiBJIHdyaXRlIGJhZCBjb2RlIGFuZCBpdCBjcmFzaGVz
-LCBtb3N0IHBlb3BsZSB3b3VsZCBhZ3JlZSB0aGVyZSBpcyBhbiBpc3N1ZTsgdmVyeSBmZXcgd291
-bGQgYWdyZWUgdGhlIGtlcm5lbCBzaG91bGQgYmUgY2hhbmdlZCB0byBmaXggaXQuIFNldmVyYWwg
-b2YgdXMgaGF2ZSBhbHJlYWR5IHNhaWQgdGhlIHByb2JsZW0gc2VlbXMgdG8gYmUgd2l0aCB0aGUg
-d2F5IHlvdXIgYXBwbGljYXRpb24gaXMgd3JpdHRlbi4gIFlvdSBkaWRuJ3QgZXZlbiBhbnN3ZXIg
-ZW1haWxzIGxpa2UgdGhpcyBzcGVjdWxhdGluZyBhYm91dCB0aGUgY2F1c2UgYmVpbmcgdGhlIHdh
-eSB5b3VyIGFwcGxpY2F0aW9uIGNvdW50cyByZXNvdXJjZXM6DQoNCmh0dHBzOi8vbG9yZS5rZXJu
-ZWwub3JnL2xpbnV4LWZzZGV2ZWwvMTU4NzU2OTY2My4zNDg1LjE4LmNhbWVsQEhhbnNlblBhcnRu
-ZXJzaGlwLmNvbS8NCg0KVGhlIGJvdHRvbSBsaW5lIGlzIHRoYXQgd2UgdGhpbmsgeW91IGNvdWxk
-IHJld3JpdGUgdGhpcyBvbmUgYXBwbGljYXRpb24gbm90IHRvIGhhdmUgdGhlIHByb2JsZW0geW91
-J3JlIGNvbXBsYWluaW5nIGFib3V0IHJhdGhlciB0aGFuIGludHJvZHVjZSBhIG5ldyBrZXJuZWwg
-QVBJIHRvICJmaXgiIGl0Lg0KDQpKYW1lcw0KDQoNCg0KDQpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXw0KDQpDT05GSURFTlRJQUxJVFkgTk9USUNFOiBUaGlzIGVtYWlsIGFuZCBhbnkg
-YXR0YWNobWVudHMgYXJlIGZvciB0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lwaWVu
-dChzKSBhbmQgY29udGFpbiBpbmZvcm1hdGlvbiB0aGF0IG1heSBiZSBHYXJtaW4gY29uZmlkZW50
-aWFsIGFuZC9vciBHYXJtaW4gbGVnYWxseSBwcml2aWxlZ2VkLiBJZiB5b3UgaGF2ZSByZWNlaXZl
-ZCB0aGlzIGVtYWlsIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgYnkgcmVwbHkg
-ZW1haWwgYW5kIGRlbGV0ZSB0aGUgbWVzc2FnZS4gQW55IGRpc2Nsb3N1cmUsIGNvcHlpbmcsIGRp
-c3RyaWJ1dGlvbiBvciB1c2Ugb2YgdGhpcyBjb21tdW5pY2F0aW9uIChpbmNsdWRpbmcgYXR0YWNo
-bWVudHMpIGJ5IHNvbWVvbmUgb3RoZXIgdGhhbiB0aGUgaW50ZW5kZWQgcmVjaXBpZW50IGlzIHBy
-b2hpYml0ZWQuIFRoYW5rIHlvdS4NCg=
+On Fri, May 15, 2020 at 06:28:20PM +0000, Karstens, Nate wrote:
+> Our first attempt, which was to use the pthread_atfork() handlers, failed because system() is not required to call the handlers.
+> 
+> Most of the feedback we're getting on this seems to say "don't use system(), it is unsafe for threaded applications". Is that documented anywhere? The man page says it is "MT-Safe".
+
+https://pubs.opengroup.org/onlinepubs/9699919799/functions/system.html
+
+> Aside from that, even if we remove all uses of system() from our application (which we already have), then our application, like many other applications, needs to use third-party shared libraries. There is nothing that prevents those libraries from using system(). We can audit those libraries and go back with the vendor with a request to replace system() with a standard fork/exec, but they will also want documentation supporting that.
+
+They might also be using any number of other interfaces which aren't
+thread-safe.
+
+> If the feedback from the community is truly and finally that system() should not be used in these applications, then is there support for updating the man page to better communicate that?
+
+Yes, absolutely.
+
+I think you're mischaracterising our feedback.  It's not "We don't want
+to fix this interface".  It's "We don't want to slow down everything else
+to fix this interface (and by the way there are lots of other problems
+with this interface that you aren't even trying to address)".
