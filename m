@@ -1,37 +1,32 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Fri, 15 May 2020 18:43:58 +0000
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Sat, 16 May 2020 13:29:18 +0000
 Subject: Re: [PATCH v2] Implement close-on-fork
-Message-Id: <20200515184358.GH16070@bombadil.infradead.org>
+Message-Id: <20200516132918.edq7p2tyh6elorjm@wittgenstein>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200515152321.9280-1-nate.karstens@garmin.com>
  <20200515155730.GF16070@bombadil.infradead.org>
- <5b1929aa9f424e689c7f430663891827@garmin.com>
- <1589559950.3653.11.camel@HansenPartnership.com>
- <4964fe0ccdf7495daf4045c195b14ed6@garmin.com>
-In-Reply-To: <4964fe0ccdf7495daf4045c195b14ed6@garmin.com>
+In-Reply-To: <20200515155730.GF16070@bombadil.infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Karstens, Nate" <Nate.Karstens@garmin.com>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, sparclinux@vger.k
+To: Matthew Wilcox <willy@infradead.org>
+Cc: Nate Karstens <nate.karstens@garmin.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Jeff Layton <jlayton@kernel.org>, "J. Bruce Fields" <bfields@fieldses.org>, Arnd Bergmann <arnd@arndb.de>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Jakub Kicinski <kuba@kernel.org>, Eric Dumazet <edumazet@google.com>, David Laight <David.Laight@aculab.com>, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, Changli
 
-On Fri, May 15, 2020 at 06:28:20PM +0000, Karstens, Nate wrote:
-> Our first attempt, which was to use the pthread_atfork() handlers, failed because system() is not required to call the handlers.
+On Fri, May 15, 2020 at 08:57:30AM -0700, Matthew Wilcox wrote:
+> On Fri, May 15, 2020 at 10:23:17AM -0500, Nate Karstens wrote:
+> > Series of 4 patches to implement close-on-fork. Tests have been
+> > published to https://github.com/nkarstens/ltp/tree/close-on-fork
+> > and cover close-on-fork functionality in the following syscalls:
 > 
-> Most of the feedback we're getting on this seems to say "don't use system(), it is unsafe for threaded applications". Is that documented anywhere? The man page says it is "MT-Safe".
+> [...]
+> 
+> > This functionality was approved by the Austin Common Standards
+> > Revision Group for inclusion in the next revision of the POSIX
+> > standard (see issue 1318 in the Austin Group Defect Tracker).
+> 
+> NAK to this patch series, and the entire concept.
 
-https://pubs.opengroup.org/onlinepubs/9699919799/functions/system.html
+Yeah.
+But also, stuff like this should really be on linux-api.
 
-> Aside from that, even if we remove all uses of system() from our application (which we already have), then our application, like many other applications, needs to use third-party shared libraries. There is nothing that prevents those libraries from using system(). We can audit those libraries and go back with the vendor with a request to replace system() with a standard fork/exec, but they will also want documentation supporting that.
-
-They might also be using any number of other interfaces which aren't
-thread-safe.
-
-> If the feedback from the community is truly and finally that system() should not be used in these applications, then is there support for updating the man page to better communicate that?
-
-Yes, absolutely.
-
-I think you're mischaracterising our feedback.  It's not "We don't want
-to fix this interface".  It's "We don't want to slow down everything else
-to fix this interface (and by the way there are lots of other problems
-with this interface that you aren't even trying to address)".
+Christian
