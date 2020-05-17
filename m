@@ -1,360 +1,133 @@
-From: ira.weiny@intel.com
-Date: Thu, 07 May 2020 14:59:58 +0000
-Subject: [PATCH V3 10/15] arch/kmap: Define kmap_atomic_prot() for all arch's
-Message-Id: <20200507150004.1423069-11-ira.weiny@intel.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Date: Sun, 17 May 2020 17:37:22 +0000
+Subject: Re: [PATCH V3 10/15] arch/kmap: Define kmap_atomic_prot() for all arch's
+Message-Id: <20200517173722.GA33341@roeck-us.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200507150004.1423069-1-ira.weiny@intel.com>
-In-Reply-To: <20200507150004.1423069-1-ira.weiny@intel.com>
+ <20200507150004.1423069-11-ira.weiny@intel.com>
+In-Reply-To: <20200507150004.1423069-11-ira.weiny@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: ira.weiny@intel.com
+Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Al Viro <viro@zeniv.linux.org.uk>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-From: Ira Weiny <ira.weiny@intel.com>
+Hi,
 
-To support kmap_atomic_prot(), all architectures need to support
-protections passed to their kmap_atomic_high() function.  Pass
-protections into kmap_atomic_high() and change the name to
-kmap_atomic_high_prot() to match.
+On Thu, May 07, 2020 at 07:59:58AM -0700, ira.weiny@intel.com wrote:
+> From: Ira Weiny <ira.weiny@intel.com>
+> 
+> To support kmap_atomic_prot(), all architectures need to support
+> protections passed to their kmap_atomic_high() function.  Pass
+> protections into kmap_atomic_high() and change the name to
+> kmap_atomic_high_prot() to match.
+> 
+> Then define kmap_atomic_prot() as a core function which calls
+> kmap_atomic_high_prot() when needed.
+> 
+> Finally, redefine kmap_atomic() as a wrapper of kmap_atomic_prot() with
+> the default kmap_prot exported by the architectures.
+> 
+> Reviewed-by: Christoph Hellwig <hch@lst.de>
+> Signed-off-by: Ira Weiny <ira.weiny@intel.com>
 
-Then define kmap_atomic_prot() as a core function which calls
-kmap_atomic_high_prot() when needed.
+This patch causes a variety of crashes whem booting powerpc images in qemu.
 
-Finally, redefine kmap_atomic() as a wrapper of kmap_atomic_prot() with
-the default kmap_prot exported by the architectures.
+There are lots of warnings such as:
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+WARNING: CPU: 0 PID: 0 at lib/locking-selftest.c:743 irqsafe1_hard_spin_12+0x50/0xb0
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Tainted: G        W         5.7.0-rc5-next-20200515 #1
+NIP:  c0660c7c LR: c0660c44 CTR: c0660c2c
+REGS: c1223e68 TRAP: 0700   Tainted: G        W          (5.7.0-rc5-next-20200515)
+MSR:  00021000 <CE,ME>  CR: 28000224  XER: 20000000
+
+GPR00: c0669c78 c1223f20 c113d560 c0660c44 00000000 00000001 c1223ea8 00000001
+GPR08: 00000000 00000001 0000fffc ffffffff 88000222 00000000 00000000 00000000
+GPR16: 00000000 00000000 00000000 00000000 c0000000 00000000 00000000 c1125084
+GPR24: c1125084 c1230000 c1879538 fffffffc 00000001 00000000 c1011afc c1230000
+NIP [c0660c7c] irqsafe1_hard_spin_12+0x50/0xb0
+LR [c0660c44] irqsafe1_hard_spin_12+0x18/0xb0
+Call Trace:
+[c1223f20] [c1880000] megasas_mgmt_info+0xee4/0x1008 (unreliable)
+[c1223f40] [c0669c78] dotest+0x38/0x550
+[c1223f70] [c066aa4c] locking_selftest+0x8bc/0x1d54
+[c1223fa0] [c10e0bc8] start_kernel+0x3ec/0x510
+[c1223ff0] [c00003a0] set_ivor+0x118/0x154
+Instruction dump:
+81420000 38e80001 3d4a0001 2c080000 91420000 90e20488 40820008 91020470
+81290000 5529031e 7d290034 5529d97e <0f090000> 3fe0c11c 3bff3964 3bff00ac
+irq event stamp: 588
+hardirqs last  enabled at (587): [<c00b9fe4>] vprintk_emit+0x1b4/0x33c
+hardirqs last disabled at (588): [<c0660c44>] irqsafe1_hard_spin_12+0x18/0xb0
+softirqs last  enabled at (0): [<00000000>] 0x0
+softirqs last disabled at (0): [<00000000>] 0x0
+---[ end trace b18fe9e172f99d03 ]---
+
+This is followed by:
+
+BUG: sleeping function called from invalid context at lib/mpi/mpi-pow.c:245
+in_atomic(): 1, irqs_disabled(): 0, non_block: 0, pid: 14, name: cryptomgr_test
+INFO: lockdep is turned off.
+CPU: 0 PID: 14 Comm: cryptomgr_test Tainted: G        W         5.7.0-rc5-next-20200515 #1
+Call Trace:
+[ce221b58] [c008755c] ___might_sleep+0x280/0x2a8 (unreliable)
+[ce221b78] [c06bc524] mpi_powm+0x634/0xc50
+[ce221c38] [c05eafdc] rsa_dec+0x88/0x134
+[ce221c78] [c05f3b40] test_akcipher_one+0x678/0x804
+[ce221dc8] [c05f3d7c] alg_test_akcipher+0xb0/0x130
+[ce221df8] [c05ee674] alg_test.part.0+0xb4/0x458
+[ce221ed8] [c05ed2b0] cryptomgr_test+0x30/0x50
+[ce221ef8] [c007cd74] kthread+0x134/0x170
+[ce221f38] [c001433c] ret_from_kernel_thread+0x14/0x1c
+Kernel panic - not syncing: Aiee, killing interrupt handler!
+CPU: 0 PID: 14 Comm: cryptomgr_test Tainted: G        W         5.7.0-rc5-next-20200515 #1
+Call Trace:
+[ce221e08] [c00530fc] panic+0x148/0x34c (unreliable)
+[ce221e68] [c0056460] do_exit+0xac0/0xb40
+[ce221eb8] [c00f5be8] find_kallsyms_symbol_value+0x0/0x128
+[ce221ed8] [c05ed2d0] crypto_alg_put+0x0/0x70
+[ce221ef8] [c007cd74] kthread+0x134/0x170
+[ce221f38] [c001433c] ret_from_kernel_thread+0x14/0x1c
+
+Bisect log is attached. The patch can not easily be reverted since
+it results in compile errors.
+
+Note that similar failures are seen with sparc32 images. Those bisect
+to a different patch, but reverting that patch doesn't fix the problem.
+The failure pattern (warnings followed by a crash in cryptomgr_test)
+is the same.
+
+Guenter
 
 ---
-Changes from V1:
-	Adjust for bisect-ability
-	Adjust for removing kunmap_atomic_high
-	Remove kmap_atomic_high_prot declarations
----
- arch/arc/mm/highmem.c                 |  6 +++---
- arch/arm/mm/highmem.c                 |  6 +++---
- arch/csky/mm/highmem.c                |  6 +++---
- arch/microblaze/include/asm/highmem.h | 16 ----------------
- arch/mips/mm/highmem.c                |  6 +++---
- arch/nds32/mm/highmem.c               |  6 +++---
- arch/powerpc/include/asm/highmem.h    | 17 -----------------
- arch/sparc/mm/highmem.c               |  6 +++---
- arch/x86/include/asm/highmem.h        | 14 --------------
- arch/xtensa/mm/highmem.c              |  6 +++---
- include/linux/highmem.h               |  7 ++++---
- 11 files changed, 25 insertions(+), 71 deletions(-)
-
-diff --git a/arch/arc/mm/highmem.c b/arch/arc/mm/highmem.c
-index 5d3eab4ac0b0..479b0d72d3cf 100644
---- a/arch/arc/mm/highmem.c
-+++ b/arch/arc/mm/highmem.c
-@@ -49,7 +49,7 @@
- extern pte_t * pkmap_page_table;
- static pte_t * fixmap_page_table;
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	int idx, cpu_idx;
- 	unsigned long vaddr;
-@@ -59,11 +59,11 @@ void *kmap_atomic_high(struct page *page)
- 	vaddr = FIXMAP_ADDR(idx);
- 
- 	set_pte_at(&init_mm, vaddr, fixmap_page_table + idx,
--		   mk_pte(page, kmap_prot));
-+		   mk_pte(page, prot));
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kv)
- {
-diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
-index ac8394655a6e..e013f6b81328 100644
---- a/arch/arm/mm/highmem.c
-+++ b/arch/arm/mm/highmem.c
-@@ -31,7 +31,7 @@ static inline pte_t get_fixmap_pte(unsigned long vaddr)
- 	return *ptep;
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned int idx;
- 	unsigned long vaddr;
-@@ -67,11 +67,11 @@ void *kmap_atomic_high(struct page *page)
- 	 * in place, so the contained TLB flush ensures the TLB is updated
- 	 * with the new mapping.
- 	 */
--	set_fixmap_pte(idx, mk_pte(page, kmap_prot));
-+	set_fixmap_pte(idx, mk_pte(page, prot));
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
-index f4311669b5bb..3ae5c8cd7619 100644
---- a/arch/csky/mm/highmem.c
-+++ b/arch/csky/mm/highmem.c
-@@ -21,7 +21,7 @@ EXPORT_SYMBOL(kmap_flush_tlb);
- 
- EXPORT_SYMBOL(kmap);
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
-@@ -32,12 +32,12 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- 	flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
-index 90d96239152f..d7c55cfd27bd 100644
---- a/arch/microblaze/include/asm/highmem.h
-+++ b/arch/microblaze/include/asm/highmem.h
-@@ -51,22 +51,6 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
--{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_atomic_high_prot(page, prot);
--}
--
--static inline void *kmap_atomic_high(struct page *page)
--{
--	return kmap_atomic_high_prot(page, kmap_prot);
--}
--
- #define flush_cache_kmaps()	{ flush_icache(); flush_dcache(); }
- 
- #endif /* __KERNEL__ */
-diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
-index 87023bd1a33c..37e244cdb14e 100644
---- a/arch/mips/mm/highmem.c
-+++ b/arch/mips/mm/highmem.c
-@@ -18,7 +18,7 @@ void kmap_flush_tlb(unsigned long addr)
- }
- EXPORT_SYMBOL(kmap_flush_tlb);
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	int idx, type;
-@@ -29,12 +29,12 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- 	local_flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void*) vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
-index 809f8c830f06..63ded527c1e8 100644
---- a/arch/nds32/mm/highmem.c
-+++ b/arch/nds32/mm/highmem.c
-@@ -10,7 +10,7 @@
- #include <asm/fixmap.h>
- #include <asm/tlbflush.h>
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned int idx;
- 	unsigned long vaddr, pte;
-@@ -21,7 +21,7 @@ void *kmap_atomic_high(struct page *page)
- 
- 	idx = type + KM_TYPE_NR * smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--	pte = (page_to_pfn(page) << PAGE_SHIFT) | (kmap_prot);
-+	pte = (page_to_pfn(page) << PAGE_SHIFT) | prot;
- 	ptep = pte_offset_kernel(pmd_off_k(vaddr), vaddr);
- 	set_pte(ptep, pte);
- 
-@@ -32,7 +32,7 @@ void *kmap_atomic_high(struct page *page)
- 	return (void *)vaddr;
- }
- 
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
-index ee5de974c5ef..8d8ee3fcd800 100644
---- a/arch/powerpc/include/asm/highmem.h
-+++ b/arch/powerpc/include/asm/highmem.h
-@@ -59,23 +59,6 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
--{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_atomic_high_prot(page, prot);
--}
--
--static inline void *kmap_atomic_high(struct page *page)
--{
--	return kmap_atomic_high_prot(page, kmap_prot);
--}
--
--
- #define flush_cache_kmaps()	flush_cache_all()
- 
- #endif /* __KERNEL__ */
-diff --git a/arch/sparc/mm/highmem.c b/arch/sparc/mm/highmem.c
-index 9f06d75e88e1..414f578d1e57 100644
---- a/arch/sparc/mm/highmem.c
-+++ b/arch/sparc/mm/highmem.c
-@@ -54,7 +54,7 @@ void __init kmap_init(void)
-         kmap_prot = __pgprot(SRMMU_ET_PTE | SRMMU_PRIV | SRMMU_CACHE);
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	unsigned long vaddr;
- 	long idx, type;
-@@ -73,7 +73,7 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte-idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte-idx, mk_pte(page, prot));
- /* XXX Fix - Anton */
- #if 0
- 	__flush_tlb_one(vaddr);
-@@ -83,7 +83,7 @@ void *kmap_atomic_high(struct page *page)
- 
- 	return (void*) vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
-index be66b77885a0..0f420b24e0fc 100644
---- a/arch/x86/include/asm/highmem.h
-+++ b/arch/x86/include/asm/highmem.h
-@@ -58,20 +58,6 @@ extern unsigned long highstart_pfn, highend_pfn;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
--static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
--{
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_atomic_high_prot(page, prot);
--}
--static inline void *kmap_atomic_high(struct page *page)
--{
--	return kmap_atomic_high_prot(page, kmap_prot);
--}
- void *kmap_atomic_pfn(unsigned long pfn);
- void *kmap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot);
- 
-diff --git a/arch/xtensa/mm/highmem.c b/arch/xtensa/mm/highmem.c
-index 50168b09510a..99b5ad137ab5 100644
---- a/arch/xtensa/mm/highmem.c
-+++ b/arch/xtensa/mm/highmem.c
-@@ -37,7 +37,7 @@ static inline enum fixed_addresses kmap_idx(int type, unsigned long color)
- 		color;
- }
- 
--void *kmap_atomic_high(struct page *page)
-+void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
- {
- 	enum fixed_addresses idx;
- 	unsigned long vaddr;
-@@ -48,11 +48,11 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte + idx)));
- #endif
--	set_pte(kmap_pte + idx, mk_pte(page, kmap_prot));
-+	set_pte(kmap_pte + idx, mk_pte(page, prot));
- 
- 	return (void *)vaddr;
- }
--EXPORT_SYMBOL(kmap_atomic_high);
-+EXPORT_SYMBOL(kmap_atomic_high_prot);
- 
- void kunmap_atomic_high(void *kvaddr)
- {
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index c36c0ee09423..89838306f50d 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -32,7 +32,7 @@ static inline void invalidate_kernel_vmap_range(void *vaddr, int size)
- #include <asm/kmap_types.h>
- 
- #ifdef CONFIG_HIGHMEM
--extern void *kmap_atomic_high(struct page *page);
-+extern void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
- extern void kunmap_atomic_high(void *kvaddr);
- #include <asm/highmem.h>
- 
-@@ -76,14 +76,15 @@ static inline void kunmap(struct page *page)
-  * be used in IRQ contexts, so in some (very limited) cases we need
-  * it.
-  */
--static inline void *kmap_atomic(struct page *page)
-+static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- {
- 	preempt_disable();
- 	pagefault_disable();
- 	if (!PageHighMem(page))
- 		return page_address(page);
--	return kmap_atomic_high(page);
-+	return kmap_atomic_high_prot(page, prot);
- }
-+#define kmap_atomic(page)	kmap_atomic_prot(page, kmap_prot)
- 
- /* declarations for linux/mm/highmem.c */
- unsigned int nr_free_highpages(void);
--- 
-2.25.1
+# bad: [bdecf38f228bcca73b31ada98b5b7ba1215eb9c9] Add linux-next specific files for 20200515
+# good: [2ef96a5bb12be62ef75b5828c0aab838ebb29cb8] Linux 5.7-rc5
+git bisect start 'HEAD' 'v5.7-rc5'
+# good: [3674d7aa7a8e61d993886c2fb7c896c5ef85e988] Merge remote-tracking branch 'crypto/master'
+git bisect good 3674d7aa7a8e61d993886c2fb7c896c5ef85e988
+# good: [87f6f21783522e6d62127cf33ae5e95f50874beb] Merge remote-tracking branch 'spi/for-next'
+git bisect good 87f6f21783522e6d62127cf33ae5e95f50874beb
+# good: [5c428e8277d5d97c85126387d4e00aa5adde4400] Merge remote-tracking branch 'staging/staging-next'
+git bisect good 5c428e8277d5d97c85126387d4e00aa5adde4400
+# good: [f68de67ed934e7bdef4799fd7777c86f33f14982] Merge remote-tracking branch 'hyperv/hyperv-next'
+git bisect good f68de67ed934e7bdef4799fd7777c86f33f14982
+# bad: [54acd2dc52b069da59639eea0d0c92726f32fb01] mm/memblock: fix a typo in comment "implict"->"implicit"
+git bisect bad 54acd2dc52b069da59639eea0d0c92726f32fb01
+# good: [784a17aa58a529b84f7cc50f351ed4acf3bd11f3] mm: remove the pgprot argument to __vmalloc
+git bisect good 784a17aa58a529b84f7cc50f351ed4acf3bd11f3
+# good: [6cd8137ff37e9a37aee2d2a8889c8beb8eab192f] khugepaged: replace the usage of system(3) in the test
+git bisect good 6cd8137ff37e9a37aee2d2a8889c8beb8eab192f
+# bad: [6987da379826ed01b8a1cf046b67cc8cc10117cc] sparc: remove unnecessary includes
+git bisect bad 6987da379826ed01b8a1cf046b67cc8cc10117cc
+# good: [bc17b545388f64c09e83e367898e28f60277c584] mm/hugetlb: define a generic fallback for is_hugepage_only_range()
+git bisect good bc17b545388f64c09e83e367898e28f60277c584
+# good: [9b5aa5b43f957f03a1f4a9aff5f7924e2ebbc011] arch-kmap_atomic-consolidate-duplicate-code-checkpatch-fixes
+git bisect good 9b5aa5b43f957f03a1f4a9aff5f7924e2ebbc011
+# bad: [89194ba5ee31567eeee9c81101b334c8e3248198] arch/kmap: define kmap_atomic_prot() for all arch's
+git bisect bad 89194ba5ee31567eeee9c81101b334c8e3248198
+# good: [022785d2bea99f8bc2a37b7b6c525eea26f6ac59] arch-kunmap_atomic-consolidate-duplicate-code-checkpatch-fixes
+git bisect good 022785d2bea99f8bc2a37b7b6c525eea26f6ac59
+# good: [a13c2f39e3f0519ddee57d26cc66ec70e3546106] arch/kmap: don't hard code kmap_prot values
+git bisect good a13c2f39e3f0519ddee57d26cc66ec70e3546106
+# first bad commit: [89194ba5ee31567eeee9c81101b334c8e3248198] arch/kmap: define kmap_atomic_prot() for all arch's
