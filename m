@@ -1,7 +1,7 @@
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Mon, 18 May 2020 18:11:08 +0000
+Date: Tue, 19 May 2020 00:03:52 +0000
 Subject: Re: [PATCH V3 07/15] arch/kunmap_atomic: Consolidate duplicate code
-Message-Id: <20200518181107.GC3025231@iweiny-DESK2.sc.intel.com>
+Message-Id: <20200519000352.GF3025231@iweiny-DESK2.sc.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200507150004.1423069-1-ira.weiny@intel.com>
  <20200507150004.1423069-8-ira.weiny@intel.com>
@@ -50,40 +50,103 @@ On Sun, May 17, 2020 at 09:29:32PM -0700, Guenter Roeck wrote:
 > The scripts used to build and boot the image are at:
 > 
 > https://github.com/groeck/linux-build-test/tree/master/rootfs/microblazeel
-> 
-> Hope this helps,
 
-Thank you ...
+Despite finding the obvious error earlier today I've still been trying to get
+this to work.
 
-Could you try the following patch?
+I had to make some slight modifications to use the 0-day cross compile build
+and my local qemu build.  But those were pretty minor modifications.  I'm
+running on x86_64 host.
 
+With those slight mods to the scripts I get the following error even without my
+patch set on 5.7-rc4.  I have 1 cpu pegged at 100% while it is running...  Is
+there anything I can do to get more debug output?  Perhaps I just need to let
+it run longer?
 
-commit 82c284b2bb74ca195dfcd35b70a175f010b9fd46 (HEAD -> lm-kmap17)
-Author: Ira Weiny <ira.weiny@intel.com>
-Date:   Mon May 18 11:01:10 2020 -0700
+Thanks,
+Ira
 
-    microblaze/kmap: Don't enable pagefault/preempt twice
-    
-    The kunmap_atomic clean up failed to remove the pagefault/preempt
-    enables on this path.
-    
-    Fixes: bee2128a09e6 ("arch/kunmap_atomic: consolidate duplicate code")
-    Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+16:46:54 > ../linux-build-test/rootfs/microblazeel/run-qemu-microblazeel.sh 
+Build reference: v5.7-rc4-2-g7c2411d7fb6a
 
-diff --git a/arch/microblaze/mm/highmem.c b/arch/microblaze/mm/highmem.c
-index ee8a422b2b76..92e0890416c9 100644
---- a/arch/microblaze/mm/highmem.c
-+++ b/arch/microblaze/mm/highmem.c
-@@ -57,11 +57,8 @@ void kunmap_atomic_high(void *kvaddr)
-        int type;
-        unsigned int idx;
+Building microblaze:petalogix-s3adsp1800:qemu_microblazeel_defconfig ...
+running ................ failed (silent)
+------------
+qemu log:
+qemu-system-microblazeel: terminating on signal 15 from pid 3277686 (/bin/bash)
+------------
+Building microblaze:petalogix-ml605:qemu_microblazeel_ml605_defconfig ...
+running ................ failed (silent)
+------------
+qemu log:
+qemu-system-microblazeel: terminating on signal 15 from pid 3277686 (/bin/bash)
+------------
+
+<env changes>
+16:47:23 > git di
+diff --git a/rootfs/microblazeel/run-qemu-microblazeel.sh b/rootfs/microblazeel/run-qemu-microblazeel.sh
+index 68d4de39ab50..0d6a4f85308f 100755
+--- a/rootfs/microblazeel/run-qemu-microblazeel.sh
++++ b/rootfs/microblazeel/run-qemu-microblazeel.sh
+@@ -3,7 +3,8 @@
+ dir=$(cd $(dirname $0); pwd)
+ . ${dir}/../scripts/common.sh
  
--       if (vaddr < __fix_to_virt(FIX_KMAP_END)) {
--               pagefault_enable();
--               preempt_enable();
-+       if (vaddr < __fix_to_virt(FIX_KMAP_END))
-                return;
--       }
+-QEMU=${QEMU:-${QEMU_BIN}/qemu-system-microblazeel}
++#QEMU=${QEMU:-${QEMU_BIN}/qemu-system-microblazeel}
++QEMU=/home/iweiny/dev/qemu/microblazeel-softmmu/qemu-system-microblazeel
+ PREFIX=microblazeel-linux-
+ ARCH=microblaze
+ PATH_MICROBLAZE=/opt/kernel/microblazeel/gcc-4.9.1/usr/bin
+diff --git a/rootfs/scripts/common.sh b/rootfs/scripts/common.sh
+index 8fa6a9be2b2f..c4550a27beaa 100644
+--- a/rootfs/scripts/common.sh
++++ b/rootfs/scripts/common.sh
+@@ -1,5 +1,9 @@
+ #!/bin/bash
  
-        type = kmap_atomic_idx();
++# Set up make.cross
++export COMPILER_INSTALL_PATH=$HOME/0day
++export GCC_VERSION=6.5.0
++
+ # Set the following variable to true to skip DC395/AM53C97 build tests
+ __skip_dc395=0
  
+@@ -569,7 +573,7 @@ doclean()
+        then
+                git clean -x -d -f -q
+        else
+-               make ARCH=${ARCH} mrproper >/dev/null 2>&1
++               make.cross ARCH=${ARCH} mrproper >/dev/null 2>&1
+        fi
+ }
+ 
+@@ -669,7 +673,7 @@ __setup_config()
+        cp ${__progdir}/${defconfig} arch/${arch}/configs
+     fi
+ 
+-    if ! make ARCH=${ARCH} CROSS_COMPILE=${PREFIX} ${defconfig} >/dev/null 2>&1 </dev/null; then
++    if ! make.cross ARCH=${ARCH} ${defconfig} >/dev/null 2>&1 </dev/null; then
+        return 2
+     fi
+ 
+@@ -687,7 +691,7 @@ __setup_config()
+        if [[ "${rel}" = "v3.16" ]]; then
+            target="oldconfig"
+        fi
+-       if ! make ARCH=${ARCH} CROSS_COMPILE=${PREFIX} ${target} >/dev/null 2>&1 </dev/null; then
++       if ! make.cross ARCH=${ARCH} ${target} >/dev/null 2>&1 </dev/null; then
+            return 1
+        fi
+     fi
+@@ -1038,7 +1042,7 @@ dosetup()
+     rootfs="$(setup_rootfs ${dynamic} ${rootfs})"
+     __common_fixups "${fixups}" "${rootfs}"
+ 
+-    make -j${maxload} ARCH=${ARCH} CROSS_COMPILE=${PREFIX} ${EXTRAS} </dev/null >/dev/null 2>${logfile}
++    make.cross -j${maxload} ARCH=${ARCH} ${EXTRAS} </dev/null >/dev/null 2>${logfile}
+     rv=$?
+     if [ ${rv} -ne 0 ]
+     then
+
+</env changes>
