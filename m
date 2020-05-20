@@ -1,7 +1,7 @@
 From: Ira Weiny <ira.weiny@intel.com>
-Date: Wed, 20 May 2020 05:02:34 +0000
+Date: Wed, 20 May 2020 05:13:16 +0000
 Subject: Re: [PATCH] arch/{mips,sparc,microblaze,powerpc}: Don't enable pagefault/preempt twice
-Message-Id: <20200520050233.GB3470571@iweiny-DESK2.sc.intel.com>
+Message-Id: <20200520051315.GA3660833@iweiny-DESK2.sc.intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200507150004.1423069-8-ira.weiny@intel.com>
  <20200518184843.3029640-1-ira.weiny@intel.com>
@@ -63,19 +63,23 @@ On Tue, May 19, 2020 at 12:42:15PM -0700, Guenter Roeck wrote:
 > > > ret_from_kernel_thread+0xc/0x38 ]
 > > > [00000000 :
 > > > 0x0 ]
-
-I'm really not seeing how this is related to the kmap clean up.
-
-But just to make sure I'm trying to run your environment for sparc and having
-less luck than with microblaze.
-
-Could you give me the command which is failing above?
-
-Ira
-
 > > > 
 > > > Code path leading to that message is different but always the same
 > > > from free_unref_page().
+
+Actually it occurs to me that the patch consolidating kmap_prot is odd for
+sparc 32 bit...
+
+Its a long shot but could you try reverting this patch?
+
+4ea7d2419e3f kmap: consolidate kmap_prot definitions
+
+Alternately I will need to figure out how to run the sparc on qemu here...
+
+Thanks very much for all the testing though!  :-D
+
+Ira
+
 > > > 
 > > > Still testing ppc images.
 > > > 
