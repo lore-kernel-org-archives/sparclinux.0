@@ -1,51 +1,119 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Sun, 03 May 2020 03:11:28 +0000
-Subject: Re: [PATCH V1 09/10] arch/kmap: Define kmap_atomic_prot() for all arch's
-Message-Id: <20200503031127.GA685597@iweiny-DESK2.sc.intel.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 24 May 2020 16:21:51 +0000
+Subject: [PATCH 2/2] sparc32: srmmu: improve type safety of __nocache_fix()
+Message-Id: <20200524162151.3493-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200430203845.582900-1-ira.weiny@intel.com>
- <20200430203845.582900-10-ira.weiny@intel.com>
- <20200501023734.GF23230@ZenIV.linux.org.uk>
- <20200501032020.GG23230@ZenIV.linux.org.uk>
-In-Reply-To: <20200501032020.GG23230@ZenIV.linux.org.uk>
+References: <20200524162151.3493-1-rppt@kernel.org>
+In-Reply-To: <20200524162151.3493-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-kernel@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>
 
-On Fri, May 01, 2020 at 04:20:20AM +0100, Al Viro wrote:
-> On Fri, May 01, 2020 at 03:37:34AM +0100, Al Viro wrote:
-> > On Thu, Apr 30, 2020 at 01:38:44PM -0700, ira.weiny@intel.com wrote:
-> > 
-> > > -static inline void *kmap_atomic(struct page *page)
-> > > +static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
-> > >  {
-> > >  	preempt_disable();
-> > >  	pagefault_disable();
-> > >  	if (!PageHighMem(page))
-> > >  		return page_address(page);
-> > > -	return kmap_atomic_high(page);
-> > > +	return kmap_atomic_high_prot(page, prot);
-> > >  }
-> > > +#define kmap_atomic(page)	kmap_atomic_prot(page, kmap_prot)
-> > 
-> > OK, so it *was* just a bisect hazard - you return to original semantics
-> > wrt preempt_disable()...
-> 
-> FWIW, how about doing the following: just before #5/10 have a patch
-> that would touch only microblaze, ppc and x86 splitting their
-> kmap_atomic_prot() into an inline helper + kmap_atomic_high_prot().
-> Then your #5 would leave their kmap_atomic_prot() as-is (it would
-> use kmap_atomic_prot_high() instead).  The rest of the series plays
-> out pretty much the same way it does now, and wrappers on those
-> 3 architectures would go away when an identical generic one is
-> introduced in this commit (#9/10).
-> 
-> AFAICS, that would avoid the bisect hazard and might even end
-> up with less noise in the patches...
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-This works.  V2 coming out shortly.
+The __nocache_fix(VADDR) macro is used to add an offset for pointers and
+its "return type" is 'void *'.
 
-Thanks for catching this,
-Ira
+We can do better and keep the type information with simply by casting the
+return value to (__typeof__(VADDR)).
+
+This will  ".. show when those pgd/p4d/pud pointers get mis-used because
+they don't end up dropping the type info.."
+
+The addition of the casting to __nocache_fix() also allows to remove
+explicit casts at its call sites.
+
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/stablestablestablestablestabler/CAHk-=wisORTa7QVPnFqNw9pFs62UiwgsD4C4d=MtYy1o4JPyGQ@mail.gmail.com
+---
+ arch/sparc/include/asm/pgtsrmmu.h |  2 +-
+ arch/sparc/mm/srmmu.c             | 16 ++++++++--------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
+index 32a508897501..941d42a59b81 100644
+--- a/arch/sparc/include/asm/pgtsrmmu.h
++++ b/arch/sparc/include/asm/pgtsrmmu.h
+@@ -143,7 +143,7 @@ extern unsigned long last_valid_pfn;
+ extern void *srmmu_nocache_pool;
+ #define __nocache_pa(VADDR) (((unsigned long)VADDR) - SRMMU_NOCACHE_VADDR + __pa((unsigned long)srmmu_nocache_pool))
+ #define __nocache_va(PADDR) (__va((unsigned long)PADDR) - (unsigned long)srmmu_nocache_pool + SRMMU_NOCACHE_VADDR)
+-#define __nocache_fix(VADDR) __va(__nocache_pa(VADDR))
++#define __nocache_fix(VADDR) ((__typeof__(VADDR))__va(__nocache_pa(VADDR)))
+ 
+ /* Accessing the MMU control register. */
+ unsigned int srmmu_get_mmureg(void);
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index dbf5334dd084..d86e6c657922 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -724,7 +724,7 @@ static void __init srmmu_early_allocate_ptable_skeleton(unsigned long start,
+ 			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+ 		pmdp = pmd_offset(__nocache_fix(pudp), start);
+-		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
++		if (srmmu_pmd_none(*__nocache_fix(pmdp))) {
+ 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+ 			if (ptep = NULL)
+ 				early_pgtable_allocfail("pte");
+@@ -836,11 +836,11 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 		p4dp = p4d_offset(pgdp, start);
+ 		pudp = pud_offset(p4dp, start);
+ 		if (what = 2) {
+-			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
++			*__nocache_fix(pgdp) = __pgd(probed);
+ 			start += SRMMU_PGDIR_SIZE;
+ 			continue;
+ 		}
+-		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
++		if (pud_none(*__nocache_fix(pudp))) {
+ 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
+ 						   SRMMU_PMD_TABLE_SIZE);
+ 			if (pmdp = NULL)
+@@ -849,7 +849,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+ 		pmdp = pmd_offset(__nocache_fix(pudp), start);
+-		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
++		if (srmmu_pmd_none(*__nocache_fix(pmdp))) {
+ 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+ 			if (ptep = NULL)
+ 				early_pgtable_allocfail("pte");
+@@ -865,12 +865,12 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 			unsigned long *val;
+ 			x = (start >> PMD_SHIFT) & 15;
+ 			val = &pmdp->pmdv[x];
+-			*(unsigned long *)__nocache_fix(val) = probed;
++			*__nocache_fix(val) = probed;
+ 			start += SRMMU_REAL_PMD_SIZE;
+ 			continue;
+ 		}
+ 		ptep = pte_offset_kernel(__nocache_fix(pmdp), start);
+-		*(pte_t *)__nocache_fix(ptep) = __pte(probed);
++		*__nocache_fix(ptep) = __pte(probed);
+ 		start += PAGE_SIZE;
+ 	}
+ }
+@@ -884,7 +884,7 @@ static void __init do_large_mapping(unsigned long vaddr, unsigned long phys_base
+ 	unsigned long big_pte;
+ 
+ 	big_pte = KERNEL_PTE(phys_base >> 4);
+-	*(pgd_t *)__nocache_fix(pgdp) = __pgd(big_pte);
++	*__nocache_fix(pgdp) = __pgd(big_pte);
+ }
+ 
+ /* Map sp_bank entry SP_ENTRY, starting at virtual address VBASE. */
+@@ -974,7 +974,7 @@ void __init srmmu_paging_init(void)
+ 	srmmu_ctx_table_phys = (ctxd_t *)__nocache_pa(srmmu_context_table);
+ 
+ 	for (i = 0; i < num_contexts; i++)
+-		srmmu_ctxd_set((ctxd_t *)__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
++		srmmu_ctxd_set(__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
+ 
+ 	flush_cache_all();
+ 	srmmu_set_ctable_ptr((unsigned long)srmmu_ctx_table_phys);
+-- 
+2.26.2
