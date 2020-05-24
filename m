@@ -1,28 +1,39 @@
-From: "JEAN MARIE" <fkinneyofd@tampabay.rr.com>
-Date: Tue, 05 May 2020 20:27:11 +0000
-Subject: Kindly Acknowledge Receipt
-Message-Id: <7$$$t4460d$0$3@aj476en8j>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="582.A.E8.7"
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 24 May 2020 16:21:49 +0000
+Subject: [PATCH 0/2] sparc32: srmmu: improve type safety of __nocache_fix()
+Message-Id: <20200524162151.3493-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ysiyod--y-4jv3$-811-47j3vx@k27.30r9j49>
-In-Reply-To: <ysiyod--y-4jv3$-811-47j3vx@k27.30r9j49>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>
 
+From: Mike Rapoport <rppt@linux.ibm.com>
 
---582.A.E8.7
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-I 'm a Financial Consultant.  under my network as a financial consultant, =
-there are few private investors offering capital injection as project fund=
-ing or business expansion in critical areas of Investment placements such =
-as Real Estate, Healthcare, Transportation and Agriculture. 
-Get back to me for more details as you express your interest areas of spec=
-ialization.
+As discussed at [1] the __nocache_fix() macro in sparc's SRMMU can be made
+type safe and so the compiler will yell anout misuse of pXd pointers for
+which the __nocache_fix() is primarily used.
 
-Regards.
-Mr. J. Marie
-fkinneyofd Consulting
+The first patch is an fix of such misuse that I've discovered after adding
+type cast to __nocache_fix(), but to avoid breaking bisection I've made it
+the first commit.
 
---582.A.E8.7--
+--
+Sincerely yours,
+Mike.
+
+[1] https://lkml.kernel.org/r/CAHk-=wisORTa7QVPnFqNw9pFs62UiwgsD4C4d=MtYy1o4JPyGQ@mail.gmail.com
+
+Mike Rapoport (2):
+  sparc32: use PUD rather than PGD to get PMD in srmmu_inherit_prom_mappings()
+  sparc32: srmmu: improve type safety of __nocache_fix()
+
+ arch/sparc/include/asm/pgtsrmmu.h |  2 +-
+ arch/sparc/mm/srmmu.c             | 18 +++++++++---------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+-- 
+2.26.2
