@@ -1,88 +1,47 @@
-From: ira.weiny@intel.com
-Date: Mon, 04 May 2020 01:09:10 +0000
-Subject: [PATCH V2 09/11] arch/kmap: Don't hard code kmap_prot values
-Message-Id: <20200504010912.982044-10-ira.weiny@intel.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 24 May 2020 16:21:50 +0000
+Subject: [PATCH 1/2] sparc32: use PUD rather than PGD to get PMD in srmmu_inherit_prom_mappings()
+Message-Id: <20200524162151.3493-2-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200504010912.982044-1-ira.weiny@intel.com>
-In-Reply-To: <20200504010912.982044-1-ira.weiny@intel.com>
+References: <20200524162151.3493-1-rppt@kernel.org>
+In-Reply-To: <20200524162151.3493-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>
 
-From: Ira Weiny <ira.weiny@intel.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-To support kmap_atomic_prot() on all architectures each arch must
-support protections passed in to them.
+This is a misprint in the page table traversal in
+srmmu_inherit_prom_mappings`() function which accessed a PMD entry using
+PGD rather than PUD.
 
-Change csky, mips, nds32 and xtensa to use their global constant
-kmap_prot rather than a hard coded value which was equal.
+Since sparc32 has only 3 page table levels, the PGD and PUD are
+essentially the same and usage of __nocache_fix() removed the type
+checking.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Use PUD for the consistency and to avoid breakage because of upcoming
+addition of type checking into __nocache_fix().
 
+Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
-changes from V1:
-	Mention that kmap_prot is a constant in commit message
----
- arch/csky/mm/highmem.c   | 2 +-
- arch/mips/mm/highmem.c   | 2 +-
- arch/nds32/mm/highmem.c  | 2 +-
- arch/xtensa/mm/highmem.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/sparc/mm/srmmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
-index 0aafbbbe651c..f4311669b5bb 100644
---- a/arch/csky/mm/highmem.c
-+++ b/arch/csky/mm/highmem.c
-@@ -32,7 +32,7 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, PAGE_KERNEL));
-+	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
- 	flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void *)vaddr;
-diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
-index 155fbb107b35..87023bd1a33c 100644
---- a/arch/mips/mm/highmem.c
-+++ b/arch/mips/mm/highmem.c
-@@ -29,7 +29,7 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte - idx)));
- #endif
--	set_pte(kmap_pte-idx, mk_pte(page, PAGE_KERNEL));
-+	set_pte(kmap_pte-idx, mk_pte(page, kmap_prot));
- 	local_flush_tlb_one((unsigned long)vaddr);
- 
- 	return (void*) vaddr;
-diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
-index f6e6915c0d31..809f8c830f06 100644
---- a/arch/nds32/mm/highmem.c
-+++ b/arch/nds32/mm/highmem.c
-@@ -21,7 +21,7 @@ void *kmap_atomic_high(struct page *page)
- 
- 	idx = type + KM_TYPE_NR * smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--	pte = (page_to_pfn(page) << PAGE_SHIFT) | (PAGE_KERNEL);
-+	pte = (page_to_pfn(page) << PAGE_SHIFT) | (kmap_prot);
- 	ptep = pte_offset_kernel(pmd_off_k(vaddr), vaddr);
- 	set_pte(ptep, pte);
- 
-diff --git a/arch/xtensa/mm/highmem.c b/arch/xtensa/mm/highmem.c
-index 4de323e43682..50168b09510a 100644
---- a/arch/xtensa/mm/highmem.c
-+++ b/arch/xtensa/mm/highmem.c
-@@ -48,7 +48,7 @@ void *kmap_atomic_high(struct page *page)
- #ifdef CONFIG_DEBUG_HIGHMEM
- 	BUG_ON(!pte_none(*(kmap_pte + idx)));
- #endif
--	set_pte(kmap_pte + idx, mk_pte(page, PAGE_KERNEL_EXEC));
-+	set_pte(kmap_pte + idx, mk_pte(page, kmap_prot));
- 
- 	return (void *)vaddr;
- }
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index a8c2f2615fc6..dbf5334dd084 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -848,7 +848,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
+ 			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+-		pmdp = pmd_offset(__nocache_fix(pgdp), start);
++		pmdp = pmd_offset(__nocache_fix(pudp), start);
+ 		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
+ 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
+ 			if (ptep = NULL)
 -- 
-2.25.1
+2.26.2
