@@ -1,408 +1,319 @@
-From: ira.weiny@intel.com
-Date: Mon, 04 May 2020 01:09:04 +0000
-Subject: [PATCH V2 03/11] arch/kmap: Remove redundant arch specific kmaps
-Message-Id: <20200504010912.982044-4-ira.weiny@intel.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 29 May 2020 21:35:54 +0000
+Subject: [PATCH v3 4/5] lockdep: Change hardirq{s_enabled,_context} to per-cpu variables
+Message-Id: <20200529214203.843735494@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200504010912.982044-1-ira.weiny@intel.com>
-In-Reply-To: <20200504010912.982044-1-ira.weiny@intel.com>
+References: <20200529213550.683440625@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Christian Koenig <christian.koenig@amd.com>, Huang Rui <ray.huang@amd.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, dri-devel@lists.freedesktop.org, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Ira Weiny <ira.weiny@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Helge Deller <deller@gmx.de>, x86@kernel.org, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Ingo Molnar <mingo@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Dan Williams <dan.j.williams@intel.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: mingo@kernel.org, will@kernel.org, tglx@linutronix.de
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, peterz@infradead.org, davem@davemloft.net, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org
 
-From: Ira Weiny <ira.weiny@intel.com>
+Currently all IRQ-tracking state is in task_struct, this means that
+task_struct needs to be defined before we use it.
 
-The kmap code for all the architectures is almost 100% identical.
+Especially for lockdep_assert_irq*() this can lead to header-hell.
 
-Lift the common code to the core.  Use ARCH_HAS_KMAP_FLUSH_TLB to
-indicate if an arch defines kmap_flush_tlb() and call if if needed.
+Move the hardirq state into per-cpu variables to avoid the task_struct
+dependency.
 
-This also has the benefit of changing kmap() on a number of
-architectures to be an inline call rather than an actual function.
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Ira Weiny <ira.weiny@intel.com>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/arc/include/asm/highmem.h        |  2 --
- arch/arc/mm/highmem.c                 | 10 ----------
- arch/arm/include/asm/highmem.h        |  2 --
- arch/arm/mm/highmem.c                 |  9 ---------
- arch/csky/include/asm/highmem.h       |  4 ++--
- arch/csky/mm/highmem.c                | 14 ++++----------
- arch/microblaze/include/asm/highmem.h |  9 ---------
- arch/mips/include/asm/highmem.h       |  4 ++--
- arch/mips/mm/highmem.c                | 14 +++-----------
- arch/nds32/include/asm/highmem.h      |  2 --
- arch/nds32/mm/highmem.c               | 12 ------------
- arch/powerpc/include/asm/highmem.h    |  9 ---------
- arch/sparc/include/asm/highmem.h      |  9 ---------
- arch/x86/include/asm/highmem.h        |  2 --
- arch/x86/mm/highmem_32.c              |  9 ---------
- arch/xtensa/include/asm/highmem.h     |  9 ---------
- include/linux/highmem.h               | 18 ++++++++++++++++++
- 17 files changed, 29 insertions(+), 109 deletions(-)
+ include/linux/irqflags.h |   19 ++++++++++++-------
+ include/linux/lockdep.h  |   34 ++++++++++++++++++----------------
+ include/linux/sched.h    |    2 --
+ kernel/fork.c            |    4 +---
+ kernel/locking/lockdep.c |   30 +++++++++++++++---------------
+ kernel/softirq.c         |    6 ++++++
+ 6 files changed, 52 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arc/include/asm/highmem.h b/arch/arc/include/asm/highmem.h
-index 042e92921c4c..96eb67c86961 100644
---- a/arch/arc/include/asm/highmem.h
-+++ b/arch/arc/include/asm/highmem.h
-@@ -30,8 +30,6 @@
+--- a/include/linux/irqflags.h
++++ b/include/linux/irqflags.h
+@@ -14,6 +14,7 @@
  
- #include <asm/cacheflush.h>
+ #include <linux/typecheck.h>
+ #include <asm/irqflags.h>
++#include <asm/percpu.h>
  
--extern void *kmap(struct page *page);
--extern void *kmap_high(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
- extern void kunmap_high(struct page *page);
-diff --git a/arch/arc/mm/highmem.c b/arch/arc/mm/highmem.c
-index 39ef7b9a3aa9..4db13a6b9f3b 100644
---- a/arch/arc/mm/highmem.c
-+++ b/arch/arc/mm/highmem.c
-@@ -49,16 +49,6 @@
- extern pte_t * pkmap_page_table;
- static pte_t * fixmap_page_table;
+ /* Currently lockdep_softirqs_on/off is used only by lockdep */
+ #ifdef CONFIG_PROVE_LOCKING
+@@ -31,18 +32,22 @@
+ #endif
  
--void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	return kmap_high(page);
--}
--EXPORT_SYMBOL(kmap);
--
- void *kmap_atomic(struct page *page)
+ #ifdef CONFIG_TRACE_IRQFLAGS
++
++DECLARE_PER_CPU(int, hardirqs_enabled);
++DECLARE_PER_CPU(int, hardirq_context);
++
+   extern void trace_hardirqs_on_prepare(void);
+   extern void trace_hardirqs_off_finish(void);
+   extern void trace_hardirqs_on(void);
+   extern void trace_hardirqs_off(void);
+-# define lockdep_hardirq_context(p)	((p)->hardirq_context)
++# define lockdep_hardirq_context(p)	(this_cpu_read(hardirq_context))
+ # define lockdep_softirq_context(p)	((p)->softirq_context)
+-# define lockdep_hardirqs_enabled(p)	((p)->hardirqs_enabled)
++# define lockdep_hardirqs_enabled(p)	(this_cpu_read(hardirqs_enabled))
+ # define lockdep_softirqs_enabled(p)	((p)->softirqs_enabled)
+-# define lockdep_hardirq_enter()		\
+-do {						\
+-	if (!current->hardirq_context++)	\
+-		current->hardirq_threaded = 0;	\
++# define lockdep_hardirq_enter()			\
++do {							\
++	if (this_cpu_inc_return(hardirq_context) = 1)	\
++		current->hardirq_threaded = 0;		\
+ } while (0)
+ # define lockdep_hardirq_threaded()		\
+ do {						\
+@@ -50,7 +55,7 @@ do {						\
+ } while (0)
+ # define lockdep_hardirq_exit()			\
+ do {						\
+-	current->hardirq_context--;		\
++	this_cpu_dec(hardirq_context);		\
+ } while (0)
+ # define lockdep_softirq_enter()		\
+ do {						\
+--- a/include/linux/lockdep.h
++++ b/include/linux/lockdep.h
+@@ -19,6 +19,7 @@ extern int lock_stat;
+ 
+ #define MAX_LOCKDEP_SUBCLASSES		8UL
+ 
++#include <asm/percpu.h>
+ #include <linux/types.h>
+ 
+ enum lockdep_wait_type {
+@@ -703,28 +704,29 @@ do {									\
+ 	lock_release(&(lock)->dep_map, _THIS_IP_);			\
+ } while (0)
+ 
+-#define lockdep_assert_irqs_enabled()	do {				\
+-		WARN_ONCE(debug_locks && !current->lockdep_recursion &&	\
+-			  !current->hardirqs_enabled,			\
+-			  "IRQs not enabled as expected\n");		\
+-	} while (0)
++DECLARE_PER_CPU(int, hardirqs_enabled);
++DECLARE_PER_CPU(int, hardirq_context);
+ 
+-#define lockdep_assert_irqs_disabled()	do {				\
+-		WARN_ONCE(debug_locks && !current->lockdep_recursion &&	\
+-			  current->hardirqs_enabled,			\
+-			  "IRQs not disabled as expected\n");		\
+-	} while (0)
++#define lockdep_assert_irqs_enabled()					\
++do {									\
++	WARN_ON_ONCE(debug_locks && !this_cpu_read(hardirqs_enabled));	\
++} while (0)
+ 
+-#define lockdep_assert_in_irq() do {					\
+-		WARN_ONCE(debug_locks && !current->lockdep_recursion &&	\
+-			  !current->hardirq_context,			\
+-			  "Not in hardirq as expected\n");		\
+-	} while (0)
++#define lockdep_assert_irqs_disabled()					\
++do {									\
++	WARN_ON_ONCE(debug_locks && this_cpu_read(hardirqs_enabled));	\
++} while (0)
++
++#define lockdep_assert_in_irq()						\
++do {									\
++	WARN_ON_ONCE(debug_locks && !this_cpu_read(hardirq_context));	\
++} while (0)
+ 
+ #else
+ # define might_lock(lock) do { } while (0)
+ # define might_lock_read(lock) do { } while (0)
+ # define might_lock_nested(lock, subclass) do { } while (0)
++
+ # define lockdep_assert_irqs_enabled() do { } while (0)
+ # define lockdep_assert_irqs_disabled() do { } while (0)
+ # define lockdep_assert_in_irq() do { } while (0)
+@@ -734,7 +736,7 @@ do {									\
+ 
+ # define lockdep_assert_RT_in_threaded_ctx() do {			\
+ 		WARN_ONCE(debug_locks && !current->lockdep_recursion &&	\
+-			  current->hardirq_context &&			\
++			  lockdep_hardirq_context(current) &&		\
+ 			  !(current->hardirq_threaded || current->irq_config),	\
+ 			  "Not in threaded context on PREEMPT_RT as expected\n");	\
+ } while (0)
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -991,8 +991,6 @@ struct task_struct {
+ 	unsigned long			hardirq_disable_ip;
+ 	unsigned int			hardirq_enable_event;
+ 	unsigned int			hardirq_disable_event;
+-	int				hardirqs_enabled;
+-	int				hardirq_context;
+ 	u64				hardirq_chain_key;
+ 	unsigned long			softirq_disable_ip;
+ 	unsigned long			softirq_enable_ip;
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -1946,8 +1946,8 @@ static __latent_entropy struct task_stru
+ 
+ 	rt_mutex_init_task(p);
+ 
++	lockdep_assert_irqs_enabled();
+ #ifdef CONFIG_PROVE_LOCKING
+-	DEBUG_LOCKS_WARN_ON(!p->hardirqs_enabled);
+ 	DEBUG_LOCKS_WARN_ON(!p->softirqs_enabled);
+ #endif
+ 	retval = -EAGAIN;
+@@ -2028,7 +2028,6 @@ static __latent_entropy struct task_stru
+ #endif
+ #ifdef CONFIG_TRACE_IRQFLAGS
+ 	p->irq_events = 0;
+-	p->hardirqs_enabled = 0;
+ 	p->hardirq_enable_ip = 0;
+ 	p->hardirq_enable_event = 0;
+ 	p->hardirq_disable_ip = _THIS_IP_;
+@@ -2038,7 +2037,6 @@ static __latent_entropy struct task_stru
+ 	p->softirq_enable_event = 0;
+ 	p->softirq_disable_ip = 0;
+ 	p->softirq_disable_event = 0;
+-	p->hardirq_context = 0;
+ 	p->softirq_context = 0;
+ #endif
+ 
+--- a/kernel/locking/lockdep.c
++++ b/kernel/locking/lockdep.c
+@@ -2062,9 +2062,9 @@ print_bad_irq_dependency(struct task_str
+ 	pr_warn("-----------------------------------------------------\n");
+ 	pr_warn("%s/%d [HC%u[%lu]:SC%u[%lu]:HE%u:SE%u] is trying to acquire:\n",
+ 		curr->comm, task_pid_nr(curr),
+-		curr->hardirq_context, hardirq_count() >> HARDIRQ_SHIFT,
++		lockdep_hardirq_context(curr), hardirq_count() >> HARDIRQ_SHIFT,
+ 		curr->softirq_context, softirq_count() >> SOFTIRQ_SHIFT,
+-		curr->hardirqs_enabled,
++		lockdep_hardirqs_enabled(curr),
+ 		curr->softirqs_enabled);
+ 	print_lock(next);
+ 
+@@ -3655,7 +3655,7 @@ void lockdep_hardirqs_on_prepare(unsigne
+ 	if (DEBUG_LOCKS_WARN_ON(current->lockdep_recursion & LOCKDEP_RECURSION_MASK))
+ 		return;
+ 
+-	if (unlikely(current->hardirqs_enabled)) {
++	if (unlikely(lockdep_hardirqs_enabled(current))) {
+ 		/*
+ 		 * Neither irq nor preemption are disabled here
+ 		 * so this is racy by nature but losing one hit
+@@ -3683,7 +3683,7 @@ void lockdep_hardirqs_on_prepare(unsigne
+ 	 * Can't allow enabling interrupts while in an interrupt handler,
+ 	 * that's general bad form and such. Recursion, limited stack etc..
+ 	 */
+-	if (DEBUG_LOCKS_WARN_ON(current->hardirq_context))
++	if (DEBUG_LOCKS_WARN_ON(lockdep_hardirq_context(current)))
+ 		return;
+ 
+ 	current->hardirq_chain_key = current->curr_chain_key;
+@@ -3718,7 +3718,7 @@ void noinstr lockdep_hardirqs_on(unsigne
+ 	if (DEBUG_LOCKS_WARN_ON(curr->lockdep_recursion & LOCKDEP_RECURSION_MASK))
+ 		return;
+ 
+-	if (curr->hardirqs_enabled) {
++	if (lockdep_hardirqs_enabled(curr)) {
+ 		/*
+ 		 * Neither irq nor preemption are disabled here
+ 		 * so this is racy by nature but losing one hit
+@@ -3745,7 +3745,7 @@ void noinstr lockdep_hardirqs_on(unsigne
+ 
+ skip_checks:
+ 	/* we'll do an OFF -> ON transition: */
+-	curr->hardirqs_enabled = 1;
++	this_cpu_write(hardirqs_enabled, 1);
+ 	curr->hardirq_enable_ip = ip;
+ 	curr->hardirq_enable_event = ++curr->irq_events;
+ 	debug_atomic_inc(hardirqs_on_events);
+@@ -3772,11 +3772,11 @@ void noinstr lockdep_hardirqs_off(unsign
+ 	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
+ 		return;
+ 
+-	if (curr->hardirqs_enabled) {
++	if (lockdep_hardirqs_enabled(curr)) {
+ 		/*
+ 		 * We have done an ON -> OFF transition:
+ 		 */
+-		curr->hardirqs_enabled = 0;
++		this_cpu_write(hardirqs_enabled, 0);
+ 		curr->hardirq_disable_ip = ip;
+ 		curr->hardirq_disable_event = ++curr->irq_events;
+ 		debug_atomic_inc(hardirqs_off_events);
+@@ -3821,7 +3821,7 @@ void lockdep_softirqs_on(unsigned long i
+ 	 * usage bit for all held locks, if hardirqs are
+ 	 * enabled too:
+ 	 */
+-	if (curr->hardirqs_enabled)
++	if (lockdep_hardirqs_enabled(curr))
+ 		mark_held_locks(curr, LOCK_ENABLED_SOFTIRQ);
+ 	lockdep_recursion_finish();
+ }
+@@ -3870,7 +3870,7 @@ mark_usage(struct task_struct *curr, str
+ 	 */
+ 	if (!hlock->trylock) {
+ 		if (hlock->read) {
+-			if (curr->hardirq_context)
++			if (lockdep_hardirq_context(curr))
+ 				if (!mark_lock(curr, hlock,
+ 						LOCK_USED_IN_HARDIRQ_READ))
+ 					return 0;
+@@ -3879,7 +3879,7 @@ mark_usage(struct task_struct *curr, str
+ 						LOCK_USED_IN_SOFTIRQ_READ))
+ 					return 0;
+ 		} else {
+-			if (curr->hardirq_context)
++			if (lockdep_hardirq_context(curr))
+ 				if (!mark_lock(curr, hlock, LOCK_USED_IN_HARDIRQ))
+ 					return 0;
+ 			if (curr->softirq_context)
+@@ -3917,7 +3917,7 @@ mark_usage(struct task_struct *curr, str
+ 
+ static inline unsigned int task_irq_context(struct task_struct *task)
  {
- 	int idx, cpu_idx;
-diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
-index eb4e4207cd3c..c917522541de 100644
---- a/arch/arm/include/asm/highmem.h
-+++ b/arch/arm/include/asm/highmem.h
-@@ -20,7 +20,6 @@
+-	return LOCK_CHAIN_HARDIRQ_CONTEXT * !!task->hardirq_context +
++	return LOCK_CHAIN_HARDIRQ_CONTEXT * !!lockdep_hardirq_context(task) +
+ 	       LOCK_CHAIN_SOFTIRQ_CONTEXT * !!task->softirq_context;
+ }
  
- extern pte_t *pkmap_page_table;
+@@ -4010,7 +4010,7 @@ static inline short task_wait_context(st
+ 	 * Set appropriate wait type for the context; for IRQs we have to take
+ 	 * into account force_irqthread as that is implied by PREEMPT_RT.
+ 	 */
+-	if (curr->hardirq_context) {
++	if (lockdep_hardirq_context(curr)) {
+ 		/*
+ 		 * Check if force_irqthreads will run us threaded.
+ 		 */
+@@ -4853,11 +4853,11 @@ static void check_flags(unsigned long fl
+ 		return;
  
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- 
- /*
-@@ -63,7 +62,6 @@ static inline void *kmap_high_get(struct page *page)
-  * when CONFIG_HIGHMEM is not set.
+ 	if (irqs_disabled_flags(flags)) {
+-		if (DEBUG_LOCKS_WARN_ON(current->hardirqs_enabled)) {
++		if (DEBUG_LOCKS_WARN_ON(lockdep_hardirqs_enabled(current))) {
+ 			printk("possible reason: unannotated irqs-off.\n");
+ 		}
+ 	} else {
+-		if (DEBUG_LOCKS_WARN_ON(!current->hardirqs_enabled)) {
++		if (DEBUG_LOCKS_WARN_ON(!lockdep_hardirqs_enabled(current))) {
+ 			printk("possible reason: unannotated irqs-on.\n");
+ 		}
+ 	}
+--- a/kernel/softirq.c
++++ b/kernel/softirq.c
+@@ -107,6 +107,12 @@ static bool ksoftirqd_running(unsigned l
+  * where hardirqs are disabled legitimately:
   */
- #ifdef CONFIG_HIGHMEM
--extern void *kmap(struct page *page);
- extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
-diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
-index cc6eb79ef20c..e8ba37c36590 100644
---- a/arch/arm/mm/highmem.c
-+++ b/arch/arm/mm/highmem.c
-@@ -31,15 +31,6 @@ static inline pte_t get_fixmap_pte(unsigned long vaddr)
- 	return *ptep;
- }
- 
--void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--EXPORT_SYMBOL(kmap);
--
- void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/csky/include/asm/highmem.h b/arch/csky/include/asm/highmem.h
-index a345a2f2c22e..9d0516e38110 100644
---- a/arch/csky/include/asm/highmem.h
-+++ b/arch/csky/include/asm/highmem.h
-@@ -30,10 +30,10 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- 
--extern void *kmap(struct page *page);
-+#define ARCH_HAS_KMAP_FLUSH_TLB
-+extern void kmap_flush_tlb(unsigned long addr);
- extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
-diff --git a/arch/csky/mm/highmem.c b/arch/csky/mm/highmem.c
-index 690d678649d1..4a3c273bc8b9 100644
---- a/arch/csky/mm/highmem.c
-+++ b/arch/csky/mm/highmem.c
-@@ -13,18 +13,12 @@ static pte_t *kmap_pte;
- 
- unsigned long highstart_pfn, highend_pfn;
- 
--void *kmap(struct page *page)
-+void kmap_flush_tlb(unsigned long addr)
- {
--	void *addr;
--
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	addr = kmap_high(page);
--	flush_tlb_one((unsigned long)addr);
--
--	return addr;
-+	flush_tlb_one(addr);
- }
-+EXPORT_SYMBOL(kmap_flush_tlb);
+ #ifdef CONFIG_TRACE_IRQFLAGS
 +
- EXPORT_SYMBOL(kmap);
- 
- void kunmap(struct page *page)
-diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
-index 99ced7278b5c..8c5bfd228bd8 100644
---- a/arch/microblaze/include/asm/highmem.h
-+++ b/arch/microblaze/include/asm/highmem.h
-@@ -51,19 +51,10 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt - PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
- extern void __kunmap_atomic(void *kvaddr);
- 
--static inline void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
-index 9d84aafc33d0..1f741e3ecabf 100644
---- a/arch/mips/include/asm/highmem.h
-+++ b/arch/mips/include/asm/highmem.h
-@@ -46,10 +46,10 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)	((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)	(PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void * kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- 
--extern void *kmap(struct page *page);
-+#define ARCH_HAS_KMAP_FLUSH_TLB
-+extern void kmap_flush_tlb(unsigned long addr);
- extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
-diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
-index edd889f6cede..c72058bfead6 100644
---- a/arch/mips/mm/highmem.c
-+++ b/arch/mips/mm/highmem.c
-@@ -12,19 +12,11 @@ static pte_t *kmap_pte;
- 
- unsigned long highstart_pfn, highend_pfn;
- 
--void *kmap(struct page *page)
-+void kmap_flush_tlb(unsigned long addr)
- {
--	void *addr;
--
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	addr = kmap_high(page);
--	flush_tlb_one((unsigned long)addr);
--
--	return addr;
-+	flush_tlb_one(addr);
- }
--EXPORT_SYMBOL(kmap);
-+EXPORT_SYMBOL(kmap_flush_tlb);
- 
- void kunmap(struct page *page)
- {
-diff --git a/arch/nds32/include/asm/highmem.h b/arch/nds32/include/asm/highmem.h
-index b3a82c97ded3..b13654a79069 100644
---- a/arch/nds32/include/asm/highmem.h
-+++ b/arch/nds32/include/asm/highmem.h
-@@ -44,7 +44,6 @@ extern unsigned long highstart_pfn, highend_pfn;
- 
- extern pte_t *pkmap_page_table;
- 
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- 
- extern void kmap_init(void);
-@@ -54,7 +53,6 @@ extern void kmap_init(void);
-  * when CONFIG_HIGHMEM is not set.
-  */
- #ifdef CONFIG_HIGHMEM
--extern void *kmap(struct page *page);
- extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
-diff --git a/arch/nds32/mm/highmem.c b/arch/nds32/mm/highmem.c
-index 4c7c28e994ea..d0cde53b84ae 100644
---- a/arch/nds32/mm/highmem.c
-+++ b/arch/nds32/mm/highmem.c
-@@ -10,18 +10,6 @@
- #include <asm/fixmap.h>
- #include <asm/tlbflush.h>
- 
--void *kmap(struct page *page)
--{
--	unsigned long vaddr;
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	vaddr = (unsigned long)kmap_high(page);
--	return (void *)vaddr;
--}
--
--EXPORT_SYMBOL(kmap);
--
- void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/powerpc/include/asm/highmem.h b/arch/powerpc/include/asm/highmem.h
-index 529512f6d65a..f14e4feef6d5 100644
---- a/arch/powerpc/include/asm/highmem.h
-+++ b/arch/powerpc/include/asm/highmem.h
-@@ -59,19 +59,10 @@ extern pte_t *pkmap_page_table;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- extern void *kmap_atomic_prot(struct page *page, pgprot_t prot);
- extern void __kunmap_atomic(void *kvaddr);
- 
--static inline void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/sparc/include/asm/highmem.h b/arch/sparc/include/asm/highmem.h
-index 7dd2d4b3f980..2ff1192047f7 100644
---- a/arch/sparc/include/asm/highmem.h
-+++ b/arch/sparc/include/asm/highmem.h
-@@ -50,17 +50,8 @@ void kmap_init(void) __init;
- 
- #define PKMAP_END (PKMAP_ADDR(LAST_PKMAP))
- 
--void *kmap_high(struct page *page);
- void kunmap_high(struct page *page);
- 
--static inline void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/x86/include/asm/highmem.h b/arch/x86/include/asm/highmem.h
-index a8059930056d..c916a28a9738 100644
---- a/arch/x86/include/asm/highmem.h
-+++ b/arch/x86/include/asm/highmem.h
-@@ -58,10 +58,8 @@ extern unsigned long highstart_pfn, highend_pfn;
- #define PKMAP_NR(virt)  ((virt-PKMAP_BASE) >> PAGE_SHIFT)
- #define PKMAP_ADDR(nr)  (PKMAP_BASE + ((nr) << PAGE_SHIFT))
- 
--extern void *kmap_high(struct page *page);
- extern void kunmap_high(struct page *page);
- 
--void *kmap(struct page *page);
- void kunmap(struct page *page);
- 
- void *kmap_atomic_prot(struct page *page, pgprot_t prot);
-diff --git a/arch/x86/mm/highmem_32.c b/arch/x86/mm/highmem_32.c
-index 8af66382672b..12591a81b85c 100644
---- a/arch/x86/mm/highmem_32.c
-+++ b/arch/x86/mm/highmem_32.c
-@@ -4,15 +4,6 @@
- #include <linux/swap.h> /* for totalram_pages */
- #include <linux/memblock.h>
- 
--void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--EXPORT_SYMBOL(kmap);
--
- void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/arch/xtensa/include/asm/highmem.h b/arch/xtensa/include/asm/highmem.h
-index a9587c85be85..2546b88ddecf 100644
---- a/arch/xtensa/include/asm/highmem.h
-+++ b/arch/xtensa/include/asm/highmem.h
-@@ -63,17 +63,8 @@ static inline wait_queue_head_t *get_pkmap_wait_queue_head(unsigned int color)
- 
- extern pte_t *pkmap_page_table;
- 
--void *kmap_high(struct page *page);
- void kunmap_high(struct page *page);
- 
--static inline void *kmap(struct page *page)
--{
--	might_sleep();
--	if (!PageHighMem(page))
--		return page_address(page);
--	return kmap_high(page);
--}
--
- static inline void kunmap(struct page *page)
- {
- 	might_sleep();
-diff --git a/include/linux/highmem.h b/include/linux/highmem.h
-index ea5cdbd8c2c3..fc3adc51254a 100644
---- a/include/linux/highmem.h
-+++ b/include/linux/highmem.h
-@@ -34,6 +34,24 @@ static inline void invalidate_kernel_vmap_range(void *vaddr, int size)
- #ifdef CONFIG_HIGHMEM
- #include <asm/highmem.h>
- 
-+#ifndef ARCH_HAS_KMAP_FLUSH_TLB
-+static inline void kmap_flush_tlb(unsigned long addr) { }
-+#endif
++DEFINE_PER_CPU(int, hardirqs_enabled);
++DEFINE_PER_CPU(int, hardirq_context);
++EXPORT_PER_CPU_SYMBOL_GPL(hardirqs_enabled);
++EXPORT_PER_CPU_SYMBOL_GPL(hardirq_context);
 +
-+void *kmap_high(struct page *page);
-+static inline void *kmap(struct page *page)
-+{
-+	void *addr;
-+
-+	might_sleep();
-+	if (!PageHighMem(page))
-+		addr = page_address(page);
-+	else
-+		addr = kmap_high(page);
-+	kmap_flush_tlb((unsigned long)addr);
-+	return addr;
-+}
-+
- /* declarations for linux/mm/highmem.c */
- unsigned int nr_free_highpages(void);
- extern atomic_long_t _totalhigh_pages;
--- 
-2.25.1
+ void __local_bh_disable_ip(unsigned long ip, unsigned int cnt)
+ {
+ 	unsigned long flags;
