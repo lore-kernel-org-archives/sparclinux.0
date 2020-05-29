@@ -1,43 +1,119 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Date: Tue, 05 May 2020 20:12:06 +0000
-Subject: Re: [PATCH 3/3] mm/hugetlb: Introduce HAVE_ARCH_CLEAR_HUGEPAGE_FLAGS
-Message-Id: <20200505131206.bee7b103431bff077c2ca0cf@linux-foundation.org>
+From: Sergei Trofimovich <slyfox@gentoo.org>
+Date: Fri, 29 May 2020 09:40:19 +0000
+Subject: sparc vs sparc64: O_NDELAY and O_NONBLOCK mismatch in kernel and in glibc
+Message-Id: <20200529104019.72983ef9@sf>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1586864670-21799-1-git-send-email-anshuman.khandual@arm.com>
-        <1586864670-21799-4-git-send-email-anshuman.khandual@arm.com>
-        <20200425175511.7a68efb5e2f4436fe0328c1d@linux-foundation.org>
-        <87d37591-caa2-b82b-392a-3a29b2c7e9a6@arm.com>
-        <20200425200124.20d0c75fcaef05d062d3667c@linux-foundation.org>
-        <21460cbc-8e9a-b956-5797-57b2e1df9fb1@arm.com>
-In-Reply-To: <21460cbc-8e9a-b956-5797-57b2e1df9fb1@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: linux-mm@kvack.org, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, David
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-On Tue, 5 May 2020 08:21:34 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
+On most targets glibc defines O_NDELAY as O_NONBLOCK.
 
-> >>> static inline void arch_clear_hugepage_flags(struct page *page)
-> >>> {
-> >>> 	<some implementation>
-> >>> }
-> >>> #define arch_clear_hugepage_flags arch_clear_hugepage_flags
-> >>>
-> >>> It's a small difference - mainly to avoid adding two variables to the
-> >>> overall namespace where one would do.
-> >>
-> >> Understood, will change and resend.
-> > 
-> > That's OK - I've queued up that fix.
-> >
-> 
-> Hello Andrew,
-> 
-> I might not have searched all the relevant trees or might have just searched
-> earlier than required. But I dont see these patches (or your proposed fixes)
-> either in mmotm (2020-04-29-23-04) or in next-20200504. Wondering if you are
-> waiting on a V2 for this series accommodating the changes you had proposed.
+glibc's manual/llio.texi manual says they are supposed to be equal:
 
-hm.  I think I must have got confused and thought you were referring to
-a different patch.  Yes please, let's have v2.
+"""
+@deftypevr Macro int O_NDELAY
+@standards{BSD, fcntl.h}
+This is an obsolete name for @code{O_NONBLOCK}, provided for
+compatibility with BSD.  It is not defined by the POSIX.1 standard.
+@end deftypevr
+"""
+
+A bunch of packages rely on it and find out that this assumption
+breaks on sparc in unusual ways. Recently it popped up as:
+    https://github.com/eventlet/eventlet/pull/615
+Older workarounds:
+    https://github.com/libuv/libuv/issues/1830
+
+What is more confusing for me:
+
+linux kernel's uapi definition of O_NDELAY is ABI-dependent:
+  arch/sparc/include/uapi/asm/fcntl.h
+"""
+#if defined(__sparc__) && defined(__arch64__)
+#define O_NDELAY        0x0004
+#else
+#define O_NDELAY        (0x0004 | O_NONBLOCK)
+#endif
+"""
+
+while glibc's is not:
+  sysdeps/unix/sysv/linux/sparc/bits/fcntl.h
+"""
+#define O_NONBLOCK      0x4000
+#define O_NDELAY        (0x0004 | O_NONBLOCK)
+"""
+
+Spot-checking preprocessor's output that seems to corroborate:
+
+"""
+$ printf "#include <sys/fcntl.h>'\n int o_ndelay =3D O_NDELAY; int o_nonblo=
+ck =3D O_NONBLOCK;" | sparc-unknown-linux-gnu-gcc -E -x c - | fgrep -A3 o_
+int o_ndelay                (0x0004 | 0x4000)
+                       ; int o_nonblock                                    =
+       0x4000
+
+$ printf "#include <sys/fcntl.h>'\n int o_ndelay =3D O_NDELAY; int o_nonblo=
+ck =3D O_NONBLOCK;" | sparc64-unknown-linux-gnu-gcc -E -x c - | fgrep -A3 o_
+
+int o_ndelay                (0x0004 | 0x4000)
+                       ; int o_nonblock                                    =
+       0x4000
+"""
+
+I think this skew causes strange effects when you run sparc32
+binary on sparc64 kernel (compared to sparc32 binary on sparc32
+kernel) as kernel disagrees with userspace on O_NDELAY definition.
+
+https://github.com/libuv/libuv/issues/1830 has more details.
+
+I tried to trace the O_NDELAY definition and stopped at linux-2.1.29:
+  https://git.kernel.org/pub/scm/linux/kernel/git/history/history.git/diff/=
+include/asm-sparc/fcntl.h?id=B7b4d2d2c1809575374269e14d86ee1953bd168c
+which brought O_NDELAY to O_NONBLOCK but did not make them
+match exactly.
+
+Question time:
+
+1. Why is sparc32 special? Does it have something to do with
+   compatibility to other OSes of that time? (Solaris? BSD?)
+
+   fs/fcntl.c has kernel handling:
+        /* required for strict SunOS emulation */
+        if (O_NONBLOCK !=3D O_NDELAY)
+               if (arg & O_NDELAY)
+                   arg |=3D O_NONBLOCK;
+   but why does it leak to to userspace header definition?
+
+   I think it should not.
+
+2. Should sparc64-glibc change it's definition? Say, from
+    #define O_NDELAY        (0x0004 | O_NONBLOCK)
+   to
+    #define O_NDELAY        O_NONBLOCK
+
+    I think it should.
+
+3. Should sparc32-linux (and glibc) change it's definition? Say, from
+   #if defined(__sparc__) && defined(__arch64__)
+   #define O_NDELAY        0x0004
+   #else
+   #define O_NDELAY        (0x0004 | O_NONBLOCK)
+   #endif
+  to
+   #define O_NDELAY        (0x0004 | O_NONBLOCK)
+  or even to=20
+  #define O_NDELAY        O_NONBLOCK
+  and make sure kernel maps old O_NDELAY to O_NONBLOCK?
+
+  I think '#define O_NDELAY O_NONBLOCK' would be most
+  consistent.
+
+What do you think?
+
+Thanks!
+
+--=20
+
+  Sergei
