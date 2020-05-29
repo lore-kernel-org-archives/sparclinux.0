@@ -1,89 +1,41 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Date: Wed, 06 May 2020 06:24:11 +0000
-Subject: [PATCH V2 0/3] mm/hugetlb: Add some new generic fallbacks
-Message-Id: <1588745534-24418-1-git-send-email-anshuman.khandual@arm.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 29 May 2020 21:35:53 +0000
+Subject: [PATCH v3 3/5] s390: Break cyclic percpu include
+Message-Id: <20200529214203.786639120@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200529213550.683440625@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org, akpm@linux-foundation.org
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>, Russell King <linux@armlinux.org.uk>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Paul Walmsley <paul.walmsley@sifive.com>, Palmer Dabbelt <palmer@dabbelt.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Yoshinori Sato <ysato@users.sourceforge.jp>
+To: mingo@kernel.org, will@kernel.org, tglx@linutronix.de
+Cc: x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, peterz@infradead.org, davem@davemloft.net, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org
 
-This series adds the following new generic fallbacks. Before that it drops
-__HAVE_ARCH_HUGE_PTEP_GET from arm64 platform.
+In order to use <asm/percpu.h> in irqflags.h, we need to make sure
+asm/percpu.h does not itself depend on irqflags.h
 
-1. is_hugepage_only_range()
-2. arch_clear_hugepage_flags()
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ arch/s390/include/asm/smp.h         |    1 +
+ arch/s390/include/asm/thread_info.h |    1 -
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-This has been boot tested on arm64 and x86 platforms but built tested on
-some more platforms including the changed ones here. This series applies
-on v5.7-rc4. After this arm (32 bit) remains the sole platform defining
-it's own huge_ptep_get() via __HAVE_ARCH_HUGE_PTEP_GET.
-
-Changes in V2:
-
-- Adopted "#ifndef func" method (adding a single symbol to namespace) per Andrew
-- Updated the commit messages in [PATCH 2/3] and [PATCH 3/3] as required
-
-Changes in V1: (https://patchwork.kernel.org/project/linux-mm/list/?series'0677)
-
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: x86@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-mm@kvack.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-
-Anshuman Khandual (3):
-  arm64/mm: Drop __HAVE_ARCH_HUGE_PTEP_GET
-  mm/hugetlb: Define a generic fallback for is_hugepage_only_range()
-  mm/hugetlb: Define a generic fallback for arch_clear_hugepage_flags()
-
- arch/arm/include/asm/hugetlb.h     |  7 +------
- arch/arm64/include/asm/hugetlb.h   | 13 +------------
- arch/ia64/include/asm/hugetlb.h    |  5 +----
- arch/mips/include/asm/hugetlb.h    | 11 -----------
- arch/parisc/include/asm/hugetlb.h  | 10 ----------
- arch/powerpc/include/asm/hugetlb.h |  5 +----
- arch/riscv/include/asm/hugetlb.h   | 10 ----------
- arch/s390/include/asm/hugetlb.h    |  8 +-------
- arch/sh/include/asm/hugetlb.h      |  7 +------
- arch/sparc/include/asm/hugetlb.h   | 10 ----------
- arch/x86/include/asm/hugetlb.h     | 10 ----------
- include/linux/hugetlb.h            | 14 ++++++++++++++
- 12 files changed, 20 insertions(+), 90 deletions(-)
-
--- 
-2.20.1
+--- a/arch/s390/include/asm/smp.h
++++ b/arch/s390/include/asm/smp.h
+@@ -10,6 +10,7 @@
+ 
+ #include <asm/sigp.h>
+ #include <asm/lowcore.h>
++#include <asm/processor.h>
+ 
+ #define raw_smp_processor_id()	(S390_lowcore.cpu_nr)
+ 
+--- a/arch/s390/include/asm/thread_info.h
++++ b/arch/s390/include/asm/thread_info.h
+@@ -24,7 +24,6 @@
+ #ifndef __ASSEMBLY__
+ #include <asm/lowcore.h>
+ #include <asm/page.h>
+-#include <asm/processor.h>
+ 
+ #define STACK_INIT_OFFSET \
+ 	(THREAD_SIZE - STACK_FRAME_OVERHEAD - sizeof(struct pt_regs))
