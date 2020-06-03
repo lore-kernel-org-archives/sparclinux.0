@@ -1,16 +1,21 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 22 Jun 2020 15:47:18 +0000
-Subject: Re: mkfs.ext2 - state D partitioning stops at 33% /boot
-Message-Id: <CADxRZqwDV339PQt8qQWMOq22Pv5quAaNo3UHOiMn3VUr7q9Luw@mail.gmail.com>
+From: David Miller <davem@redhat.com>
+Date: Wed, 03 Jun 2020 01:38:16 +0000
+Subject: Re: [PATCH 2/5] silo: Build with -U_FORTIFY_SOURCE
+Message-Id: <20200602.183816.25711110268130552.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-On Mon, Jun 22, 2020 at 6:37 PM Connor McLaughlan <cont6pro3@gmail.com> wrote:
->
-> Can you by any chance tell me how i could obtain a list of all PCI
-> cards that are possibly supported  and might work on debian sparc?
+From: Matt Turner <mattst88@gmail.com>
+Date: Sat, 23 May 2020 13:22:30 -0700
 
-Probably most PCI cards supported by kernel ?
+> Otherwise the build will fail:
+> 
+> | ld: decompnet.o: in function `error':
+> | decomp.c:(.text+0x4dc): undefined reference to `__longjmp_chk'
+> 
+> Signed-off-by: Matt Turner <mattst88@gmail.com>
+
+Applied.
