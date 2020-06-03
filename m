@@ -1,80 +1,16 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Mon, 22 Jun 2020 23:43:13 +0000
-Subject: [PATCH 04/17] sparc: unconditionally enable HAVE_COPY_THREAD_TLS
-Message-Id: <20200622234326.906346-5-christian.brauner@ubuntu.com>
+From: David Miller <davem@redhat.com>
+Date: Wed, 03 Jun 2020 01:38:21 +0000
+Subject: Re: [PATCH 3/5] silo: Fix misleading indentation
+Message-Id: <20200602.183821.1883934145641704299.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200622234326.906346-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200622234326.906346-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Christian Brauner <christian.brauner@ubuntu.com>, "David S . Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Now that both sparc and sparc64 support copy_thread_tls() and don't rely
-on do_fork() anymore, turn on HAVE_COPY_THREAD_TLS unconditionally. Once
-all architectures are switched over this macro will be removed and
-the old do_fork() calling convention fully abandoned in favor of the
-cleaner struct kernel_clone_args one.
+From: Matt Turner <mattst88@gmail.com>
+Date: Sat, 23 May 2020 13:22:31 -0700
 
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: linux-csky@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Link: https://lore.kernel.org/r/20200512171527.570109-4-christian.brauner@ubuntu.com
----
- arch/sparc/Kconfig             | 2 +-
- arch/sparc/kernel/process_32.c | 7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+> Signed-off-by: Matt Turner <mattst88@gmail.com>
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index e2bb4956e130..66213c0cb557 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -48,6 +48,7 @@ config SPARC
- 	select LOCKDEP_SMALL if LOCKDEP
- 	select NEED_DMA_MAP_STATE
- 	select NEED_SG_DMA_LENGTH
-+	select HAVE_COPY_THREAD_TLS
- 
- config SPARC32
- 	def_bool !64BIT
-@@ -94,7 +95,6 @@ config SPARC64
- 	select ARCH_HAS_PTE_SPECIAL
- 	select PCI_DOMAINS if PCI
- 	select ARCH_HAS_GIGANTIC_PAGE
--	select HAVE_COPY_THREAD_TLS
- 
- config ARCH_PROC_KCORE_TEXT
- 	def_bool y
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 229a10bab74a..3e1f7b639e9a 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -273,8 +273,9 @@ clone_stackframe(struct sparc_stackf __user *dst,
- extern void ret_from_fork(void);
- extern void ret_from_kernel_thread(void);
- 
--int copy_thread(unsigned long clone_flags, unsigned long sp,
--		unsigned long arg, struct task_struct *p)
-+int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
-+		    unsigned long arg, struct task_struct *p,
-+		    unsigned long tls)
- {
- 	struct thread_info *ti = task_thread_info(p);
- 	struct pt_regs *childregs, *regs = current_pt_regs();
-@@ -376,7 +377,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
- 	regs->u_regs[UREG_I1] = 0;
- 
- 	if (clone_flags & CLONE_SETTLS)
--		childregs->u_regs[UREG_G7] = regs->u_regs[UREG_I3];
-+		childregs->u_regs[UREG_G7] = tls;
- 
- 	return 0;
- }
--- 
-2.27.0
+Applied.
