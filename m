@@ -1,47 +1,24 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sat, 27 Jun 2020 08:16:52 +0000
-Subject: [PATCH v2 1/2] sparc32: use PUD rather than PGD to get PMD in srmmu_inherit_prom_mappings()
-Message-Id: <20200627081653.25311-2-rppt@kernel.org>
+From: David Miller <davem@redhat.com>
+Date: Wed, 03 Jun 2020 01:42:03 +0000
+Subject: Re: [PATCH] sparc: remove unused header file nfs_fs.h
+Message-Id: <20200602.184203.261894695720513185.davem@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627081653.25311-1-rppt@kernel.org>
-In-Reply-To: <20200627081653.25311-1-rppt@kernel.org>
+References: <CGME20200529122614epcas5p38e0acf63c010f8b691caf68916f512bd@epcas5p3.samsung.com>
+        <1590755160-26009-1-git-send-email-anupam.al@samsung.com>
+In-Reply-To: <1590755160-26009-1-git-send-email-anupam.al@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: David Miller <davem@davemloft.net>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>
+To: anupam.al@samsung.com
+Cc: a.sahrawat@samsung.com, t.vivek@samsung.com, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+From: Anupam Aggarwal <anupam.al@samsung.com>
+Date: Fri, 29 May 2020 17:56:00 +0530
 
-This is a misprint in the page table traversal in
-srmmu_inherit_prom_mappings`() function which accessed a PMD entry using
-PGD rather than PUD.
+> Remove unused header file linux/nfs_fs.h
+> 
+> Signed-off-by: Anupam Aggarwal <anupam.al@samsung.com>
+> Signed-off-by: Vivek Trivedi <t.vivek@samsung.com>
+> Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
 
-Since sparc32 has only 3 page table levels, the PGD and PUD are
-essentially the same and usage of __nocache_fix() removed the type
-checking.
-
-Use PUD for the consistency and to avoid breakage because of upcoming
-addition of type checking into __nocache_fix().
-
-Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
----
- arch/sparc/mm/srmmu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 0070f8b9a753..f5fa07958f34 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -822,7 +822,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
- 			pud_set(__nocache_fix(pudp), pmdp);
- 		}
--		pmdp = pmd_offset(__nocache_fix(pgdp), start);
-+		pmdp = pmd_offset(__nocache_fix(pudp), start);
- 		if (what = 1) {
- 			*(pmd_t *)__nocache_fix(pmdp) = __pmd(probed);
- 			start += PMD_SIZE;
--- 
-2.26.2
+Applied, thank you.
