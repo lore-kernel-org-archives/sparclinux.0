@@ -1,36 +1,62 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 04 Jun 2020 16:57:03 +0000
+Date: Thu, 04 Jun 2020 20:41:16 +0000
 Subject: Re: [RFC][PATCH v3 1/5] sparc64: Fix asm/percpu.h build error
-Message-Id: <20200604165703.GG3976@hirez.programming.kicks-ass.net>
+Message-Id: <20200604204116.GD4496@worktop.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200529213550.683440625@infradead.org>
  <20200529214203.673108357@infradead.org>
  <20200529.162917.1970892823680223252.davem@davemloft.net>
-In-Reply-To: <20200529.162917.1970892823680223252.davem@davemloft.net>
+ <20200604165703.GG3976@hirez.programming.kicks-ass.net>
+In-Reply-To: <20200604165703.GG3976@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: David Miller <davem@davemloft.net>
 Cc: mingo@kernel.org, will@kernel.org, tglx@linutronix.de, x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org
 
-On Fri, May 29, 2020 at 04:29:17PM -0700, David Miller wrote:
-> From: Peter Zijlstra <peterz@infradead.org>
-> Date: Fri, 29 May 2020 23:35:51 +0200
-> 
-> > ../arch/sparc/include/asm/percpu_64.h:7:24: warning: call-clobbered register used for global register variable
-> > register unsigned long __local_per_cpu_offset asm("g5");
-> 
-> The "-ffixed-g5" option on the command line tells gcc that we are
-> using 'g5' as a fixed register, so some part of your build isn't using
-> the:
-> 
-> KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
-> 
-> from arch/sparc/Makefile for some reason.
+On Thu, Jun 04, 2020 at 06:57:03PM +0200, Peter Zijlstra wrote:
 
-Thanks, that was the clue I needed.
+> I think I see, what happens is that these headers end up in the VDSO
+> build, and that doesn't have these CFLAGS, because userspace.
+> 
+> Let me see what to do about that.
 
-I think I see, what happens is that these headers end up in the VDSO
-build, and that doesn't have these CFLAGS, because userspace.
+I feel like the below is cheating, but it's the best I could find :/
+VDSO including kernel headers and the utter maze that our kernel headers
+are makes it really hard to untangle :/
 
-Let me see what to do about that.
+This builds sparc64-defconfig and sparc64-all{no,mod}config.
+
+Dave, does this work for you, or should I try hardder?
+
+---
+ arch/sparc/include/asm/percpu_64.h  | 2 ++
+ arch/sparc/include/asm/trap_block.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/arch/sparc/include/asm/percpu_64.h b/arch/sparc/include/asm/percpu_64.h
+index 32ef6f05cc565..a8786a4b90b6b 100644
+--- a/arch/sparc/include/asm/percpu_64.h
++++ b/arch/sparc/include/asm/percpu_64.h
+@@ -4,7 +4,9 @@
+
+ #include <linux/compiler.h>
+
++#ifndef BUILD_VDSO
+ register unsigned long __local_per_cpu_offset asm("g5");
++#endif
+
+ #ifdef CONFIG_SMP
+
+diff --git a/arch/sparc/include/asm/trap_block.h b/arch/sparc/include/asm/trap_block.h
+index 0f6d0c4f66838..ace0d48e837e5 100644
+--- a/arch/sparc/include/asm/trap_block.h
++++ b/arch/sparc/include/asm/trap_block.h
+@@ -2,6 +2,8 @@
+ #ifndef _SPARC_TRAP_BLOCK_H
+ #define _SPARC_TRAP_BLOCK_H
+
++#include <linux/threads.h>
++
+ #include <asm/hypervisor.h>
+ #include <asm/asi.h>
