@@ -1,37 +1,36 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 29 Jun 2020 15:42:28 +0000
-Subject: Re: [PATCH 6/8] asm-generic: pgalloc: provide generic pgd_free()
-Message-Id: <CAMuHMdWP07XqvgrXjCG+n5FssH3BwdDEWA4fD9TQgvVy93uMhQ@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 04 Jun 2020 16:57:03 +0000
+Subject: Re: [RFC][PATCH v3 1/5] sparc64: Fix asm/percpu.h build error
+Message-Id: <20200604165703.GG3976@hirez.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627143453.31835-1-rppt@kernel.org>
- <20200627143453.31835-7-rppt@kernel.org>
-In-Reply-To: <20200627143453.31835-7-rppt@kernel.org>
+References: <20200529213550.683440625@infradead.org>
+ <20200529214203.673108357@infradead.org>
+ <20200529.162917.1970892823680223252.davem@davemloft.net>
+In-Reply-To: <20200529.162917.1970892823680223252.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>, linux-csky@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, linux-riscv <linux-riscv@lists.infradead.org>, Linux-Arch <linux-arch@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Mike Rapoport <rppt@linux.ibm.com>, Abdul Haleem <abdhalee@linux.vnet.ibm.com>, arcml <linux-snps-arc@lists.infradead.org>, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, Arnd Bergmann <arnd@arndb.de>, linux-s390 <linux-s390@vger.kernel.org>, linux-um <linux-um@lis>
+To: David Miller <davem@davemloft.net>
+Cc: mingo@kernel.org, will@kernel.org, tglx@linutronix.de, x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org
 
-On Sat, Jun 27, 2020 at 4:36 PM Mike Rapoport <rppt@kernel.org> wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> Most architectures define pgd_free() as a wrapper for free_page().
->
-> Provide a generic version in asm-generic/pgalloc.h and enable its use for
-> most architectures.
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+On Fri, May 29, 2020 at 04:29:17PM -0700, David Miller wrote:
+> From: Peter Zijlstra <peterz@infradead.org>
+> Date: Fri, 29 May 2020 23:35:51 +0200
+> 
+> > ../arch/sparc/include/asm/percpu_64.h:7:24: warning: call-clobbered register used for global register variable
+> > register unsigned long __local_per_cpu_offset asm("g5");
+> 
+> The "-ffixed-g5" option on the command line tells gcc that we are
+> using 'g5' as a fixed register, so some part of your build isn't using
+> the:
+> 
+> KBUILD_CFLAGS += -ffixed-g4 -ffixed-g5 -fcall-used-g7 -Wno-sign-compare
+> 
+> from arch/sparc/Makefile for some reason.
 
-For the m68k part:
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Thanks, that was the clue I needed.
 
-Gr{oetje,eeting}s,
+I think I see, what happens is that these headers end up in the VDSO
+build, and that doesn't have these CFLAGS, because userspace.
 
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Let me see what to do about that.
