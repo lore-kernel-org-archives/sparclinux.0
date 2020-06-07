@@ -1,51 +1,35 @@
-From: Rolf Eike Beer <eike-kernel@sf-tec.de>
-Date: Sun, 07 Jun 2020 07:34:05 +0000
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Sun, 07 Jun 2020 09:11:33 +0000
 Subject: Re: Suspected bug in wait syscall or similar
-Message-Id: <4725976.BPSWWyVmpD@daneel.sf-tec.de>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="nextPart4158771.nXM9zAifOn"
+Message-Id: <741dc1ef-1e4c-f278-9cf7-db17fda31a9d@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <1848982.8N1hjUtedq@eto.sf-tec.de>
 In-Reply-To: <1848982.8N1hjUtedq@eto.sf-tec.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
---nextPart4158771.nXM9zAifOn
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Hi Rolf!
 
-Am Montag, 30. M=E4rz 2020, 10:41:09 CEST schrieb Rolf Eike Beer:
-> I run a 32 bit Gentoo userspace on my T5120 with a 64 bit kernel (5.5.7 at
-> the moment). This is nothing really new, I see this for a while, but it
-> seems to got a bit worse lately.
->=20
-> My observations are:
-> -the testsuite of the fish shell often hangs. A subprocess goes zombie, b=
-ut
-> the parent never cleans this up
+On 6/7/20 9:34 AM, Rolf Eike Beer wrote:
+> Thanks to the work of the fish maintainer this now looks like it is a bug in 
+> either gcc or posix_spawn() or something like that:
+> 
+> https://github.com/fish-shell/fish-shell/issues/6878#issuecomment-640128661
+> 
+> A minimal testcase is here:
+> 
+> https://gist.github.com/ridiculousfish/1b28af43ae2a3a871a5f4aa43a3811f2
+> 
+> This is not limited to sparc32 userspace, but also affects sparc64.
 
-Thanks to the work of the fish maintainer this now looks like it is a bug i=
-n=20
-either gcc or posix_spawn() or something like that:
+Has this been reported upstream yet? I would guess this is a glibc problem.
 
-https://github.com/fish-shell/fish-shell/issues/6878#issuecomment-640128661
+Adrian
 
-A minimal testcase is here:
-
-https://gist.github.com/ridiculousfish/1b28af43ae2a3a871a5f4aa43a3811f2
-
-This is not limited to sparc32 userspace, but also affects sparc64.
-
-Eike
---nextPart4158771.nXM9zAifOn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCXtyYbQAKCRBcpIk+abn8
-TnWKAJ4ywJXAx+2BksEARNWYGRjUX4MQEQCcDEvBKq3GTdNVfIB0wHwEFzeRlsc=
-=E+m/
------END PGP SIGNATURE-----
-
---nextPart4158771.nXM9zAifOn--
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
