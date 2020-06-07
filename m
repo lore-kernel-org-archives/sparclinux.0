@@ -1,52 +1,51 @@
-From: Will Deacon <will@kernel.org>
-Date: Thu, 25 Jun 2020 07:31:45 +0000
-Subject: Re: [PATCH v4 6/8] arm: Break cyclic percpu include
-Message-Id: <20200625073145.GA7444@willie-the-truck>
+From: Rolf Eike Beer <eike-kernel@sf-tec.de>
+Date: Sun, 07 Jun 2020 07:34:05 +0000
+Subject: Re: Suspected bug in wait syscall or similar
+Message-Id: <4725976.BPSWWyVmpD@daneel.sf-tec.de>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="nextPart4158771.nXM9zAifOn"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200623083645.277342609@infradead.org>
- <20200623083721.454517573@infradead.org>
- <20200623090257.GA3743@willie-the-truck>
- <20200624175320.GN4781@hirez.programming.kicks-ass.net>
-In-Reply-To: <20200624175320.GN4781@hirez.programming.kicks-ass.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: mingo@kernel.org, tglx@linutronix.de, x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, davem@davemloft.net, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org, linux@armlinux.org.uk
+References: <1848982.8N1hjUtedq@eto.sf-tec.de>
+In-Reply-To: <1848982.8N1hjUtedq@eto.sf-tec.de>
+To: sparclinux@vger.kernel.org
 
-On Wed, Jun 24, 2020 at 07:53:20PM +0200, Peter Zijlstra wrote:
-> On Tue, Jun 23, 2020 at 10:02:57AM +0100, Will Deacon wrote:
-> > On Tue, Jun 23, 2020 at 10:36:51AM +0200, Peter Zijlstra wrote:
-> > > In order to use <asm/percpu.h> in irqflags.h, we need to make sure
-> > > asm/percpu.h does not itself depend on irqflags.h.
-> > > 
-> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > > ---
-> > >  arch/arm/include/asm/percpu.h |    2 ++
-> > >  1 file changed, 2 insertions(+)
-> > > 
-> > > --- a/arch/arm/include/asm/percpu.h
-> > > +++ b/arch/arm/include/asm/percpu.h
-> > > @@ -10,6 +10,8 @@
-> > >   * in the TPIDRPRW. TPIDRPRW only exists on V6K and V7
-> > >   */
-> > >  #if defined(CONFIG_SMP) && !defined(CONFIG_CPU_V6)
-> > > +register unsigned long current_stack_pointer asm ("sp");
-> > 
-> > If you define this unconditionally, then we can probably get rid of the
-> > copy in asm/thread_info.h, rather than duplicate the same #define.
-> 
-> The below delta seems to build arm-allnoconfig, arm-defconfig and
-> arm-allmodconfig.
-> 
-> Although please don't ask me how asm/thread_info.h includes asm/percpu.h
-> 
-> Does that work for you?
+--nextPart4158771.nXM9zAifOn
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 
-Yes, thanks! I can't believe you removed the helpful comment.
+Am Montag, 30. M=E4rz 2020, 10:41:09 CEST schrieb Rolf Eike Beer:
+> I run a 32 bit Gentoo userspace on my T5120 with a 64 bit kernel (5.5.7 at
+> the moment). This is nothing really new, I see this for a while, but it
+> seems to got a bit worse lately.
+>=20
+> My observations are:
+> -the testsuite of the fish shell often hangs. A subprocess goes zombie, b=
+ut
+> the parent never cleans this up
 
-> -/*
-> - * how to get the current stack pointer in C
-> - */
+Thanks to the work of the fish maintainer this now looks like it is a bug i=
+n=20
+either gcc or posix_spawn() or something like that:
 
-Will
+https://github.com/fish-shell/fish-shell/issues/6878#issuecomment-640128661
+
+A minimal testcase is here:
+
+https://gist.github.com/ridiculousfish/1b28af43ae2a3a871a5f4aa43a3811f2
+
+This is not limited to sparc32 userspace, but also affects sparc64.
+
+Eike
+--nextPart4158771.nXM9zAifOn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCXtyYbQAKCRBcpIk+abn8
+TnWKAJ4ywJXAx+2BksEARNWYGRjUX4MQEQCcDEvBKq3GTdNVfIB0wHwEFzeRlsc=
+=E+m/
+-----END PGP SIGNATURE-----
+
+--nextPart4158771.nXM9zAifOn--
