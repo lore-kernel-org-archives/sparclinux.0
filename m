@@ -1,48 +1,61 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Thu, 18 Jun 2020 01:13:15 +0000
-Subject: [PATCH AUTOSEL 5.4 070/266] sparc32: mm: Don't try to free page-table pages if ctor() fails
-Message-Id: <20200618011631.604574-70-sashal@kernel.org>
+Date: Mon, 08 Jun 2020 23:05:15 +0000
+Subject: [PATCH AUTOSEL 5.6 190/606] sparc32: use PUD rather than PGD to get PMD in srmmu_nocache_init()
+Message-Id: <20200608231211.3363633-190-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200618011631.604574-1-sashal@kernel.org>
-In-Reply-To: <20200618011631.604574-1-sashal@kernel.org>
+References: <20200608231211.3363633-1-sashal@kernel.org>
+In-Reply-To: <20200608231211.3363633-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, "Kirill A . Shutemov" <kirill@shutemov.name>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+Cc: Mike Rapoport <rppt@linux.ibm.com>, kbuild test robot <lkp@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, Anatoly Pugachev <matorola@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, sparclinux@vger.kernel.org
 
-From: Will Deacon <will@kernel.org>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-[ Upstream commit 454b0289c6b5f2c66164654b80212d15fbef7a03 ]
+commit c2bc26f7ca1ff1165bb6669a7a4cccc20ffd2ced upstream.
 
-The pages backing page-table allocations for SRMMU are allocated via
-memblock as part of the "nocache" region initialisation during
-srmmu_paging_init() and should not be freed even if a later call to
-pgtable_pte_page_ctor() fails.
+The kbuild test robot reported the following warning:
 
-Remove the broken call to __free_page().
+  arch/sparc/mm/srmmu.c: In function 'srmmu_nocache_init': arch/sparc/mm/srmmu.c:300:9: error: variable 'pud' set but not used [-Werror=unused-but-set-variable]
+  300 |  pud_t *pud;
 
+This warning is caused by misprint in the page table traversal in
+srmmu_nocache_init() function which accessed a PMD entry using PGD
+rather than PUD.
+
+Since sparc32 has only 3 page table levels, the PGD and PUD are
+essentially the same and usage of __nocache_fix() removed the type
+checking.
+
+Use PUD for the consistency and to silence the compiler warning.
+
+Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
+Reported-by: kbuild test robot <lkp@intel.com>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Cc: David S. Miller <davem@davemloft.net>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
-Signed-off-by: Will Deacon <will@kernel.org>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Cc: Anatoly Pugachev <matorola@gmail.com>
+Cc: <stable@vger.kernel.org>
+Link: http://lkml.kernel.org/r/20200520132005.GM1059226@linux.ibm.com
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 ---
- arch/sparc/mm/srmmu.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/sparc/mm/srmmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index cc3ad64479ac..9e256d4d1f4c 100644
+index f56c3c9a9793..083ba02c94e6 100644
 --- a/arch/sparc/mm/srmmu.c
 +++ b/arch/sparc/mm/srmmu.c
-@@ -379,7 +379,6 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
- 		return NULL;
- 	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
- 	if (!pgtable_pte_page_ctor(page)) {
--		__free_page(page);
- 		return NULL;
- 	}
- 	return page;
+@@ -333,7 +333,7 @@ static void __init srmmu_nocache_init(void)
+ 		pgd = pgd_offset_k(vaddr);
+ 		p4d = p4d_offset(__nocache_fix(pgd), vaddr);
+ 		pud = pud_offset(__nocache_fix(p4d), vaddr);
+-		pmd = pmd_offset(__nocache_fix(pgd), vaddr);
++		pmd = pmd_offset(__nocache_fix(pud), vaddr);
+ 		pte = pte_offset_kernel(__nocache_fix(pmd), vaddr);
+ 
+ 		pteval = ((paddr >> 4) | SRMMU_ET_PTE | SRMMU_PRIV);
 -- 
 2.25.1
