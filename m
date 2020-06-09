@@ -1,35 +1,39 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Sun, 07 Jun 2020 09:11:33 +0000
-Subject: Re: Suspected bug in wait syscall or similar
-Message-Id: <741dc1ef-1e4c-f278-9cf7-db17fda31a9d@physik.fu-berlin.de>
+From: "Mrs Aisha Al-Qaddafi" <alqaddafim06@gmail.com>
+Date: Tue, 09 Jun 2020 04:03:56 +0000
+Subject: Funds
+Message-Id: <6f0252$92620@lwmyi90.gu5yqz>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary=".B.A1F8.5.176EE."
 List-Id: <sparclinux.vger.kernel.org>
-References: <1848982.8N1hjUtedq@eto.sf-tec.de>
-In-Reply-To: <1848982.8N1hjUtedq@eto.sf-tec.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Rolf!
 
-On 6/7/20 9:34 AM, Rolf Eike Beer wrote:
-> Thanks to the work of the fish maintainer this now looks like it is a bug in 
-> either gcc or posix_spawn() or something like that:
-> 
-> https://github.com/fish-shell/fish-shell/issues/6878#issuecomment-640128661
-> 
-> A minimal testcase is here:
-> 
-> https://gist.github.com/ridiculousfish/1b28af43ae2a3a871a5f4aa43a3811f2
-> 
-> This is not limited to sparc32 userspace, but also affects sparc64.
+--.B.A1F8.5.176EE.
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-Has this been reported upstream yet? I would guess this is a glibc problem.
+Assalamu Alaikum Wa Rahmatullahi Wa Barakatuh,
 
-Adrian
+My Dear Good Friend
 
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+May i use this medium to open a mutual communication with you seeking your=
+ acceptance towards investing in your country under your management as my =
+partner, My name is Aisha  Gaddafi and presently living in Oman, i am a Wi=
+dow and single Mother with three Children, the only biological
+Daughter of late Libyan President (Late Colonel Muammar Gaddafi) and prese=
+ntly i am under political asylum protection by the Omani Government..Pleas=
+e Reply me in my box. ( alqaddafim06@gmail.com)
+
+I have funds worth "Twenty Seven Million Five Hundred Thousand United Stat=
+e Dollars" -$27.500.000.00 US Dollars which i want to entrust on you for i=
+nvestment project in your country.If you are willing to handle this projec=
+t on my behalf, kindly reply urgent to enable me provide you more
+
+details to start the transfer process.
+I shall appreciate your urgent response through my email address below: (a=
+lqaddafim06@gmail.com)
+ 
+Best Regards
+Mrs Aisha Al-Qaddafi
+
+--.B.A1F8.5.176EE.--
