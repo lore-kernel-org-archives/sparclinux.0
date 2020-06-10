@@ -1,73 +1,39 @@
-From: Luis Chamberlain <mcgrof@kernel.org>
-Date: Sat, 20 Jun 2020 17:02:19 +0000
-Subject: Re: [PATCH 6/6] kernel: add a kernel_wait helper
-Message-Id: <20200620170219.GT11244@42.do-not-panic.com>
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Wed, 10 Jun 2020 07:55:19 +0000
+Subject: [PATCH] sparc: piggyback: handle invalid image
+Message-Id: <1591775719-28390-1-git-send-email-clabbe@baylibre.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200618144627.114057-1-hch@lst.de>
- <20200618144627.114057-7-hch@lst.de>
- <20200619211700.GS11244@42.do-not-panic.com>
- <20200620063538.GA2408@lst.de>
-In-Reply-To: <20200620063538.GA2408@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-parisc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, x86@kernel.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>, Brian Gerst <brgerst@gmail.com>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 
-On Sat, Jun 20, 2020 at 08:35:38AM +0200, Christoph Hellwig wrote:
-> On Fri, Jun 19, 2020 at 09:17:00PM +0000, Luis Chamberlain wrote:
-> > On Thu, Jun 18, 2020 at 04:46:27PM +0200, Christoph Hellwig wrote:
-> > > --- a/kernel/exit.c
-> > > +++ b/kernel/exit.c
-> > > @@ -1626,6 +1626,22 @@ long kernel_wait4(pid_t upid, int __user *stat_addr, int options,
-> > >  	return ret;
-> > >  }
-> > >  
-> > > +int kernel_wait(pid_t pid, int *stat)
-> > > +{
-> > > +	struct wait_opts wo = {
-> > > +		.wo_type	= PIDTYPE_PID,
-> > > +		.wo_pid		= find_get_pid(pid),
-> > > +		.wo_flags	= WEXITED,
-> > > +	};
-> > > +	int ret;
-> > > +
-> > > +	ret = do_wait(&wo);
-> > > +	if (ret > 0 && wo.wo_stat)
-> > > +		*stat = wo.wo_stat;
-> > 
-> > Since all we care about is WEXITED, that could be simplified
-> > to something like this:
-> > 
-> > if (ret > 0 && KWIFEXITED(wo.wo_stat)
-> >  	*stat = KWEXITSTATUS(wo.wo_stat)
-> > 
-> > Otherwise callers have to use W*() wrappers.
-> > 
-> > > +	put_pid(wo.wo_pid);
-> > > +	return ret;
-> > > +}
-> > 
-> > Then we don't get *any* in-kernel code dealing with the W*() crap.
-> > I just unwrapped this for the umh [0], given that otherwise we'd
-> > have to use KW*() callers elsewhere. Doing it upshot one level
-> > further would be even better.
-> > 
-> > [0] https://lkml.kernel.org/r/20200610154923.27510-1-mcgrof@kernel.org              
-> Do you just want to pick this patch up, add your suggested bits and
-> add it to the beginning of your series?  That should clean the whole
-> thing up a bit.  Nothing else in this series depends on the patch.
+With an old elftoaout, the generation of tftpboot.img fail with "lseek:
+invalid argument".
+This is due to offset being negative.
 
-Sure but let's wait to hear from the NFS folks.
+Instead of printing this error message, let's print a better one.
 
-I'm waiting to hear from NFS folks if the one place where the UMH is
-fixed for the error code (on fs/nfsd/nfs4recover.c we never were
-disabling the upcall as the error code of -ENOENT or -EACCES was *never*
-properly checked for) to see how critical that was. If it can help
-stable kernels the fix can go in as I proposed, followed by this patch
-to further take the KWEXITSTATUS() up further, and ensure we *never*
-deal with this in-kernel. If its not a fix stable kernels should care
-for what you suggest of taking this patch first would be best and I'd be
-happy to do that.
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ arch/sparc/boot/piggyback.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-  Luis
+diff --git a/arch/sparc/boot/piggyback.c b/arch/sparc/boot/piggyback.c
+index a7a38fb4ece0..613e23a1016e 100644
+--- a/arch/sparc/boot/piggyback.c
++++ b/arch/sparc/boot/piggyback.c
+@@ -154,6 +154,10 @@ static off_t get_hdrs_offset(int kernelfd, const char *filename)
+ 		offset -= LOOKBACK;
+ 		/* skip a.out header */
+ 		offset += AOUT_TEXT_OFFSET;
++		if (offset < 0) {
++			errno = -EINVAL;
++			die("Calculated a negative offset, probably elftoaout generated an invalid image. Did you use a recent elftoaout ?");
++		}
+ 		if (lseek(kernelfd, offset, SEEK_SET) < 0)
+ 			die("lseek");
+ 		if (read(kernelfd, buffer, BUFSIZE) != BUFSIZE)
+-- 
+2.26.2
