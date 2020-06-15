@@ -1,25 +1,71 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 22 Jun 2020 22:44:58 +0000
-Subject: Re: [PATCH] sparc: piggyback: handle invalid image
-Message-Id: <20200622.154458.2067869648476467711.davem@davemloft.net>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 15 Jun 2020 13:00:30 +0000
+Subject: [PATCH 4/6] exec: split prepare_arg_pages
+Message-Id: <20200615130032.931285-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1591775719-28390-1-git-send-email-clabbe@baylibre.com>
-In-Reply-To: <1591775719-28390-1-git-send-email-clabbe@baylibre.com>
+References: <20200615130032.931285-1-hch@lst.de>
+In-Reply-To: <20200615130032.931285-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: clabbe@baylibre.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Corentin Labbe <clabbe@baylibre.com>
-Date: Wed, 10 Jun 2020 07:55:19 +0000
+Move counting the arguments and enviroment variables out of
+prepare_arg_pages and rename the rest of the function to check_arg_limit.
+This prepares for a version of do_execvat that takes kernel pointers.
 
-> With an old elftoaout, the generation of tftpboot.img fail with "lseek:
-> invalid argument".
-> This is due to offset being negative.
-> 
-> Instead of printing this error message, let's print a better one.
-> 
-> Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/exec.c | 26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-Applied, thank you.
+diff --git a/fs/exec.c b/fs/exec.c
+index 6e4d9d1ffa35fa..696b1e8180d7d8 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -439,20 +439,10 @@ static int count_strings(const char __user *const __user *argv)
+ 	return i;
+ }
+ 
+-static int prepare_arg_pages(struct linux_binprm *bprm,
+-		const char __user *const __user *argv,
+-		const char __user *const __user *envp)
++static int check_arg_limit(struct linux_binprm *bprm)
+ {
+ 	unsigned long limit, ptr_size;
+ 
+-	bprm->argc = count_strings(argv);
+-	if (bprm->argc < 0)
+-		return bprm->argc;
+-
+-	bprm->envc = count_strings(envp);
+-	if (bprm->envc < 0)
+-		return bprm->envc;
+-
+ 	/*
+ 	 * Limit to 1/4 of the max stack size or 3/4 of _STK_LIM
+ 	 * (whichever is smaller) for the argv+env strings.
+@@ -1890,7 +1880,19 @@ int do_execveat(int fd, struct filename *filename,
+ 	if (retval)
+ 		goto out_unmark;
+ 
+-	retval = prepare_arg_pages(bprm, argv, envp);
++	bprm->argc = count_strings(argv);
++	if (bprm->argc < 0) {
++		retval = bprm->argc;
++		goto out;
++	}
++
++	bprm->envc = count_strings(envp);
++	if (bprm->envc < 0) {
++		retval = bprm->envc;
++		goto out;
++	}
++
++	retval = check_arg_limit(bprm);
+ 	if (retval < 0)
+ 		goto out;
+ 
+-- 
+2.26.2
