@@ -1,49 +1,62 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 29 Jun 2020 15:41:43 +0000
-Subject: Re: [PATCH 1/8] mm: remove unneeded includes of <asm/pgalloc.h>
-Message-Id: <CAMuHMdUOrrrtKuhtWJvzKNNLXY1fx+Ym1oXGN2J_CZ7RqByGHQ@mail.gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Mon, 15 Jun 2020 13:00:29 +0000
+Subject: [PATCH 3/6] exec: cleanup the count() function
+Message-Id: <20200615130032.931285-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627143453.31835-1-rppt@kernel.org>
- <20200627143453.31835-2-rppt@kernel.org>
-In-Reply-To: <20200627143453.31835-2-rppt@kernel.org>
+References: <20200615130032.931285-1-hch@lst.de>
+In-Reply-To: <20200615130032.931285-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>, linux-csky@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, linux-riscv <linux-riscv@lists.infradead.org>, Linux-Arch <linux-arch@vger.kernel.org>, Stephen Rothwell <sfr@canb.auug.org.au>, "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>, Joerg Roedel <joro@8bytes.org>, Mike Rapoport <rppt@linux.ibm.com>, Abdul Haleem <abdhalee@linux.vnet.ibm.com>, arcml <linux-snps-arc@lists.infradead.org>, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, Arnd Bergmann <arnd@arndb.de>, linux-s390 <linux-s390@vger.kernel.org>, linux-um <linux-um@lis>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-parisc@vger.kernel.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
 
-On Sat, Jun 27, 2020 at 4:35 PM Mike Rapoport <rppt@kernel.org> wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> In the most cases <asm/pgalloc.h> header is required only for allocations
-> of page table memory. Most of the .c files that include that header do not
-> use symbols declared in <asm/pgalloc.h> and do not require that header.
->
-> As for the other header files that used to include <asm/pgalloc.h>, it is
-> possible to move that include into the .c file that actually uses symbols
-> from <asm/pgalloc.h> and drop the include from the header file.
->
-> The process was somewhat automated using
->
->         sed -i -E '/[<"]asm\/pgalloc\.h/d' \
->                 $(grep -L -w -f /tmp/xx \
->                         $(git grep -E -l '[<"]asm/pgalloc\.h'))
->
-> where /tmp/xx contains all the symbols defined in
-> arch/*/include/asm/pgalloc.h.
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Remove the max argument as it is hard wired to MAX_ARG_STRINGS, and
+give the function a slightly less generic name.
 
-For the m68k part:
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/exec.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
+diff --git a/fs/exec.c b/fs/exec.c
+index 94107eceda8a67..6e4d9d1ffa35fa 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -411,9 +411,9 @@ get_user_arg_ptr(const char __user *const __user *argv, int nr)
+ }
+ 
+ /*
+- * count() counts the number of strings in array ARGV.
++ * count_strings() counts the number of strings in array ARGV.
+  */
+-static int count(const char __user *const __user *argv, int max)
++static int count_strings(const char __user *const __user *argv)
+ {
+ 	int i = 0;
+ 
+@@ -427,7 +427,7 @@ static int count(const char __user *const __user *argv, int max)
+ 			if (IS_ERR(p))
+ 				return -EFAULT;
+ 
+-			if (i >= max)
++			if (i >= MAX_ARG_STRINGS)
+ 				return -E2BIG;
+ 			++i;
+ 
+@@ -445,11 +445,11 @@ static int prepare_arg_pages(struct linux_binprm *bprm,
+ {
+ 	unsigned long limit, ptr_size;
+ 
+-	bprm->argc = count(argv, MAX_ARG_STRINGS);
++	bprm->argc = count_strings(argv);
+ 	if (bprm->argc < 0)
+ 		return bprm->argc;
+ 
+-	bprm->envc = count(envp, MAX_ARG_STRINGS);
++	bprm->envc = count_strings(envp);
+ 	if (bprm->envc < 0)
+ 		return bprm->envc;
+ 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.26.2
