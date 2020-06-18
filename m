@@ -1,61 +1,48 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sat, 27 Jun 2020 14:34:52 +0000
-Subject: [PATCH 7/8] mm: move lib/ioremap.c to mm/
-Message-Id: <20200627143453.31835-8-rppt@kernel.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Thu, 18 Jun 2020 01:13:15 +0000
+Subject: [PATCH AUTOSEL 5.4 070/266] sparc32: mm: Don't try to free page-table pages if ctor() fails
+Message-Id: <20200618011631.604574-70-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627143453.31835-1-rppt@kernel.org>
-In-Reply-To: <20200627143453.31835-1-rppt@kernel.org>
+References: <20200618011631.604574-1-sashal@kernel.org>
+In-Reply-To: <20200618011631.604574-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Christophe Leroy <christophe.leroy@csgroup.eu>, Joerg Roedel <joro@8bytes.org>, Max Filippov <jcmvbkbc@gmail.com>, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>, Stafford Horne <shorne@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Steven Rostedt <rostedt@goodmis.org>, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.orglinux
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, "Kirill A . Shutemov" <kirill@shutemov.name>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+From: Will Deacon <will@kernel.org>
 
-The functionality in lib/ioremap.c deals with pagetables, vmalloc and
-caches, so it naturally belongs to mm/
-Moving it there will also allow declaring p?d_alloc_track functions in an
-header file inside mm/ rather than having those declarations in
-include/linux/mm.h
+[ Upstream commit 454b0289c6b5f2c66164654b80212d15fbef7a03 ]
 
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+The pages backing page-table allocations for SRMMU are allocated via
+memblock as part of the "nocache" region initialisation during
+srmmu_paging_init() and should not be freed even if a later call to
+pgtable_pte_page_ctor() fails.
+
+Remove the broken call to __free_page().
+
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
+Signed-off-by: Will Deacon <will@kernel.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- lib/Makefile          | 1 -
- mm/Makefile           | 2 +-
- {lib => mm}/ioremap.c | 0
- 3 files changed, 1 insertion(+), 2 deletions(-)
- rename {lib => mm}/ioremap.c (100%)
+ arch/sparc/mm/srmmu.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/lib/Makefile b/lib/Makefile
-index b1c42c10073b..5f9384adde9c 100644
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -37,7 +37,6 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
- 	 nmi_backtrace.o nodemask.o win_minmax.o memcat_p.o
- 
- lib-$(CONFIG_PRINTK) += dump_stack.o
--lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
- 
- lib-y	+= kobject.o klist.o
-diff --git a/mm/Makefile b/mm/Makefile
-index 6e9d46b2efc9..d5649f1c12c0 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -38,7 +38,7 @@ mmu-y			:= nommu.o
- mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
- 			   mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
- 			   msync.o page_vma_mapped.o pagewalk.o \
--			   pgtable-generic.o rmap.o vmalloc.o
-+			   pgtable-generic.o rmap.o vmalloc.o ioremap.o
- 
- 
- ifdef CONFIG_CROSS_MEMORY_ATTACH
-diff --git a/lib/ioremap.c b/mm/ioremap.c
-similarity index 100%
-rename from lib/ioremap.c
-rename to mm/ioremap.c
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index cc3ad64479ac..9e256d4d1f4c 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -379,7 +379,6 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
+ 		return NULL;
+ 	page = pfn_to_page(__nocache_pa(pte) >> PAGE_SHIFT);
+ 	if (!pgtable_pte_page_ctor(page)) {
+-		__free_page(page);
+ 		return NULL;
+ 	}
+ 	return page;
 -- 
-2.26.2
+2.25.1
