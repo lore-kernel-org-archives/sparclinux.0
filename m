@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 15 Jun 2020 13:00:30 +0000
+Date: Thu, 18 Jun 2020 14:46:25 +0000
 Subject: [PATCH 4/6] exec: split prepare_arg_pages
-Message-Id: <20200615130032.931285-5-hch@lst.de>
+Message-Id: <20200618144627.114057-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200615130032.931285-1-hch@lst.de>
-In-Reply-To: <20200615130032.931285-1-hch@lst.de>
+References: <20200618144627.114057-1-hch@lst.de>
+In-Reply-To: <20200618144627.114057-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Move counting the arguments and enviroment variables out of
 prepare_arg_pages and rename the rest of the function to check_arg_limit.
@@ -21,10 +21,10 @@ Signed-off-by: Christoph Hellwig <hch@lst.de>
  1 file changed, 14 insertions(+), 12 deletions(-)
 
 diff --git a/fs/exec.c b/fs/exec.c
-index 6e4d9d1ffa35fa..696b1e8180d7d8 100644
+index a5d91f8b1341d5..34781db6bf6889 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
-@@ -439,20 +439,10 @@ static int count_strings(const char __user *const __user *argv)
+@@ -435,20 +435,10 @@ static int count_strings(const char __user *const __user *argv)
  	return i;
  }
  
@@ -46,7 +46,7 @@ index 6e4d9d1ffa35fa..696b1e8180d7d8 100644
  	/*
  	 * Limit to 1/4 of the max stack size or 3/4 of _STK_LIM
  	 * (whichever is smaller) for the argv+env strings.
-@@ -1890,7 +1880,19 @@ int do_execveat(int fd, struct filename *filename,
+@@ -1886,7 +1876,19 @@ int do_execveat(int fd, struct filename *filename,
  	if (retval)
  		goto out_unmark;
  
