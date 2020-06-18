@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 15 Jun 2020 13:00:29 +0000
+Date: Thu, 18 Jun 2020 14:46:24 +0000
 Subject: [PATCH 3/6] exec: cleanup the count() function
-Message-Id: <20200615130032.931285-4-hch@lst.de>
+Message-Id: <20200618144627.114057-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200615130032.931285-1-hch@lst.de>
-In-Reply-To: <20200615130032.931285-1-hch@lst.de>
+References: <20200618144627.114057-1-hch@lst.de>
+In-Reply-To: <20200618144627.114057-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-parisc@vger.kernel.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org, Luis Chamberlain <mcgrof@kernel.org>, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Remove the max argument as it is hard wired to MAX_ARG_STRINGS, and
 give the function a slightly less generic name.
@@ -20,10 +20,10 @@ Signed-off-by: Christoph Hellwig <hch@lst.de>
  1 file changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/fs/exec.c b/fs/exec.c
-index 94107eceda8a67..6e4d9d1ffa35fa 100644
+index 4e5db0e35797a5..a5d91f8b1341d5 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
-@@ -411,9 +411,9 @@ get_user_arg_ptr(const char __user *const __user *argv, int nr)
+@@ -407,9 +407,9 @@ get_user_arg_ptr(const char __user *const __user *argv, int nr)
  }
  
  /*
@@ -35,7 +35,7 @@ index 94107eceda8a67..6e4d9d1ffa35fa 100644
  {
  	int i = 0;
  
-@@ -427,7 +427,7 @@ static int count(const char __user *const __user *argv, int max)
+@@ -423,7 +423,7 @@ static int count(const char __user *const __user *argv, int max)
  			if (IS_ERR(p))
  				return -EFAULT;
  
@@ -44,7 +44,7 @@ index 94107eceda8a67..6e4d9d1ffa35fa 100644
  				return -E2BIG;
  			++i;
  
-@@ -445,11 +445,11 @@ static int prepare_arg_pages(struct linux_binprm *bprm,
+@@ -441,11 +441,11 @@ static int prepare_arg_pages(struct linux_binprm *bprm,
  {
  	unsigned long limit, ptr_size;
  
