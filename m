@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 15 Jun 2020 13:00:27 +0000
+Date: Thu, 18 Jun 2020 14:46:22 +0000
 Subject: [PATCH 1/6] exec: cleanup the execve wrappers
-Message-Id: <20200615130032.931285-2-hch@lst.de>
+Message-Id: <20200618144627.114057-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200615130032.931285-1-hch@lst.de>
-In-Reply-To: <20200615130032.931285-1-hch@lst.de>
+References: <20200618144627.114057-1-hch@lst.de>
+In-Reply-To: <20200618144627.114057-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Remove a whole bunch of wrappers that eventually all call
 __do_execve_file, and consolidate the execvce helpers to:
