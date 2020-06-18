@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 15 Jun 2020 13:00:31 +0000
+Date: Thu, 18 Jun 2020 14:46:26 +0000
 Subject: [PATCH 5/6] exec: add a kernel_execveat helper
-Message-Id: <20200615130032.931285-6-hch@lst.de>
+Message-Id: <20200618144627.114057-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200615130032.931285-1-hch@lst.de>
-In-Reply-To: <20200615130032.931285-1-hch@lst.de>
+References: <20200618144627.114057-1-hch@lst.de>
+In-Reply-To: <20200618144627.114057-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
 Add a kernel_execveat helper to execute a binary with kernel space argv
 and envp pointers.  Switch executing init and user mode helpers to this
@@ -19,17 +19,17 @@ do_execve helper.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- fs/exec.c               | 116 +++++++++++++++++++++++++++++++---------
+ fs/exec.c               | 109 ++++++++++++++++++++++++++++++++--------
  include/linux/binfmts.h |   6 +--
  init/main.c             |   6 +--
  kernel/umh.c            |   8 ++-
- 4 files changed, 97 insertions(+), 39 deletions(-)
+ 4 files changed, 95 insertions(+), 34 deletions(-)
 
 diff --git a/fs/exec.c b/fs/exec.c
-index 696b1e8180d7d8..9e16d56aa53e86 100644
+index 34781db6bf6889..7923b8334ae600 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
-@@ -439,6 +439,21 @@ static int count_strings(const char __user *const __user *argv)
+@@ -435,6 +435,21 @@ static int count_strings(const char __user *const __user *argv)
  	return i;
  }
  
@@ -51,7 +51,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  static int check_arg_limit(struct linux_binprm *bprm)
  {
  	unsigned long limit, ptr_size;
-@@ -615,6 +630,19 @@ int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
+@@ -611,6 +626,19 @@ int copy_string_kernel(const char *arg, struct linux_binprm *bprm)
  }
  EXPORT_SYMBOL(copy_string_kernel);
  
@@ -71,7 +71,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  #ifdef CONFIG_MMU
  
  /*
-@@ -1797,9 +1825,11 @@ static int exec_binprm(struct linux_binprm *bprm)
+@@ -1793,9 +1821,11 @@ static int exec_binprm(struct linux_binprm *bprm)
  	return 0;
  }
  
@@ -84,7 +84,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  		int flags, struct file *file)
  {
  	char *pathbuf = NULL;
-@@ -1880,16 +1910,30 @@ int do_execveat(int fd, struct filename *filename,
+@@ -1876,16 +1906,30 @@ int do_execveat(int fd, struct filename *filename,
  	if (retval)
  		goto out_unmark;
  
@@ -124,7 +124,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  	}
  
  	retval = check_arg_limit(bprm);
-@@ -1906,13 +1950,22 @@ int do_execveat(int fd, struct filename *filename,
+@@ -1902,13 +1946,22 @@ int do_execveat(int fd, struct filename *filename,
  		goto out;
  
  	bprm->exec = bprm->p;
@@ -153,7 +153,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  
  	retval = exec_binprm(bprm);
  	if (retval < 0)
-@@ -1963,6 +2016,23 @@ int do_execveat(int fd, struct filename *filename,
+@@ -1959,6 +2012,23 @@ int do_execveat(int fd, struct filename *filename,
  	return retval;
  }
  
@@ -177,7 +177,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  void set_binfmt(struct linux_binfmt *new)
  {
  	struct mm_struct *mm = current->mm;
-@@ -1992,7 +2062,7 @@ SYSCALL_DEFINE3(execve,
+@@ -1988,7 +2058,7 @@ SYSCALL_DEFINE3(execve,
  		const char __user *const __user *, argv,
  		const char __user *const __user *, envp)
  {
@@ -186,7 +186,7 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
  }
  
  SYSCALL_DEFINE5(execveat,
-@@ -2001,10 +2071,7 @@ SYSCALL_DEFINE5(execveat,
+@@ -1997,8 +2067,5 @@ SYSCALL_DEFINE5(execveat,
  		const char __user *const __user *, envp,
  		int, flags)
  {
@@ -196,28 +196,6 @@ index 696b1e8180d7d8..9e16d56aa53e86 100644
 -	return do_execveat(fd, name, argv, envp, flags, NULL);
 +	return do_execveat(fd, filename, argv, envp, flags);
  }
- 
- /*
-@@ -2017,7 +2084,7 @@ COMPAT_SYSCALL_DEFINE3(execve, const char __user *, filename,
- 		       const char __user *const __user *, argv,
- 		       const char __user *const __user *, envp)
- {
--	return do_execveat(AT_FDCWD, getname(filename), argv, envp, 0, NULL);
-+	return do_execveat(AT_FDCWD, filename, argv, envp, 0);
- }
- 
- COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
-@@ -2026,9 +2093,6 @@ COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
- 		       const char __user *const __user *, envp,
- 		       int,  flags)
- {
--	int lookup_flags = (flags & AT_EMPTY_PATH) ? LOOKUP_EMPTY : 0;
--	struct filename *name = getname_flags(filename, lookup_flags, NULL);
--
--	return do_execveat(fd, name, argv, envp, flags, NULL);
-+	return do_execveat(fd, filename, argv, envp, flags);
- }
- #endif /* CONFIG_X86_X32 */
 diff --git a/include/linux/binfmts.h b/include/linux/binfmts.h
 index bed702e4b1fbd9..1e61c980c16354 100644
 --- a/include/linux/binfmts.h
