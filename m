@@ -1,68 +1,80 @@
-From: Mrs Kim Hong Yeoh <mrs.kimhongyeoh55@gmail.com>
-Date: Fri, 19 Jun 2020 22:32:30 +0000
-Subject: MAY THE PEACE OF GOD BE UPON YOU.
-Message-Id: <CAN=1CtcryffX5sy86SwuYD7WT8w3nYerRyRyJaynL8xsNLasmg@mail.gmail.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Mon, 22 Jun 2020 23:43:13 +0000
+Subject: [PATCH 04/17] sparc: unconditionally enable HAVE_COPY_THREAD_TLS
+Message-Id: <20200622234326.906346-5-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200622234326.906346-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200622234326.906346-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Christian Brauner <christian.brauner@ubuntu.com>, "David S . Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, sparclinux@vger.kernel.org
 
-Greetings Beloved in Christ,
+Now that both sparc and sparc64 support copy_thread_tls() and don't rely
+on do_fork() anymore, turn on HAVE_COPY_THREAD_TLS unconditionally. Once
+all architectures are switched over this macro will be removed and
+the old do_fork() calling convention fully abandoned in favor of the
+cleaner struct kernel_clone_args one.
 
-I had previously sent you an email with no feedback from you.I suppose
-it went to your junk folder.I anticipate that you read this mail
-quickly and let me know your opinion or willingness on this classified
-information that I will release to you.  therefore I would not want to
-jeopardize this opportunity to Save lives of Less Privileged ones and
-also change our financial status and give Less Privileged a secured
-future.
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: linux-csky@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Link: https://lore.kernel.org/r/20200512171527.570109-4-christian.brauner@ubuntu.com
+---
+ arch/sparc/Kconfig             | 2 +-
+ arch/sparc/kernel/process_32.c | 7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-I am Ms. Hong Yeoh Kim, Working at MAYBANK (Malaysia) as the
-Non-Independent Non-Executive Director and Chairman of Maybank. During
-our last banking Audits we discovered an abandoned account belongs to
-one of our Foreign Deceased Customer, Late Mr. Wang Jian, The
-Co-founder and Co-chairman of HNA Group, a Chinese conglomerate with
-significant real estate ownerships across the U.S., died in an
-accident while on a business trip in France on Tuesday.
-
-Please go through this link:
-https://observer.com/2018/07/wang-jian-hna-founder-dies-tragic-fall/
-
-I am writing to request your assistance in transferring the sum of
-$17.000.000.00 (Seventeen Million United States Dollars) into your
-account as the Late Mr. Wang Jian Foreign Business Partner, which I am
-planning to use the fund to invest for public benefit as follows;
-
-1. Establish An Orphanage Home To Help The Orphanages Children.
-2. Build A Hospital To Help The Poor.
-3. Build A Nursing Home For Elderly People Need Care & Meal.
-
-Meanwhile, before I contacted you I have done personal investigation
-in locating any of Late Mr. Wang Jian relatives who knows about the
-account, but I came out unsuccessful. However, I took this decision to
-use this fund in supporting the Orphanages Children, Less Privileged
-and Elderly People Need Care & Meal Support, because i don't want this
-fund to be transfer into our Government Treasury Account as unclaimed
-fund as the law of my country abiding.
-
-As an officer of the Bank I cannot be directly connected to this
-money, so this is why I have to contact you for us to work so that you
-can assist to claim/receive this money into your bank account for us
-start a charity project, Meanwhile you will have 40% of the total fund
-and 60% for charity project, Note there are practically no risk
-involved, it will be bank to bank transfer, all I need from you is to
-stand and claim $17. Million without any problem with the information
-am going to provide to you.
-
-
-Please for the sake of god accept this offer to work with me and let
-us save lives of those Orphanages Children, Less Privileged and
-Elderly People Need Care, I will appreciate it very much. As soon as I
-receive your kind response, I will give you details on how we can
-achieve it successfully i will explain more on how the fund will be
-transfer to you.
-
-Waiting for your urgent response now.
-best regards
-Ms. Hong Yeoh Kim .
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index e2bb4956e130..66213c0cb557 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -48,6 +48,7 @@ config SPARC
+ 	select LOCKDEP_SMALL if LOCKDEP
+ 	select NEED_DMA_MAP_STATE
+ 	select NEED_SG_DMA_LENGTH
++	select HAVE_COPY_THREAD_TLS
+ 
+ config SPARC32
+ 	def_bool !64BIT
+@@ -94,7 +95,6 @@ config SPARC64
+ 	select ARCH_HAS_PTE_SPECIAL
+ 	select PCI_DOMAINS if PCI
+ 	select ARCH_HAS_GIGANTIC_PAGE
+-	select HAVE_COPY_THREAD_TLS
+ 
+ config ARCH_PROC_KCORE_TEXT
+ 	def_bool y
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index 229a10bab74a..3e1f7b639e9a 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -273,8 +273,9 @@ clone_stackframe(struct sparc_stackf __user *dst,
+ extern void ret_from_fork(void);
+ extern void ret_from_kernel_thread(void);
+ 
+-int copy_thread(unsigned long clone_flags, unsigned long sp,
+-		unsigned long arg, struct task_struct *p)
++int copy_thread_tls(unsigned long clone_flags, unsigned long sp,
++		    unsigned long arg, struct task_struct *p,
++		    unsigned long tls)
+ {
+ 	struct thread_info *ti = task_thread_info(p);
+ 	struct pt_regs *childregs, *regs = current_pt_regs();
+@@ -376,7 +377,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp,
+ 	regs->u_regs[UREG_I1] = 0;
+ 
+ 	if (clone_flags & CLONE_SETTLS)
+-		childregs->u_regs[UREG_G7] = regs->u_regs[UREG_I3];
++		childregs->u_regs[UREG_G7] = tls;
+ 
+ 	return 0;
+ }
+-- 
+2.27.0
