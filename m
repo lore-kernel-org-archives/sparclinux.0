@@ -1,252 +1,172 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Thu, 18 Jun 2020 14:46:22 +0000
-Subject: [PATCH 1/6] exec: cleanup the execve wrappers
-Message-Id: <20200618144627.114057-2-hch@lst.de>
+From: Adhemerval Zanella <adhemerval.zanella@linaro.org>
+Date: Mon, 22 Jun 2020 19:08:28 +0000
+Subject: Re: sparc vs sparc64: O_NDELAY and O_NONBLOCK mismatch in kernel and in glibc
+Message-Id: <a213fcf7-73e3-7727-dea2-f73e1032a307@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200618144627.114057-1-hch@lst.de>
-In-Reply-To: <20200618144627.114057-1-hch@lst.de>
+References: <20200529104019.72983ef9@sf>
+In-Reply-To: <20200529104019.72983ef9@sf>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Remove a whole bunch of wrappers that eventually all call
-__do_execve_file, and consolidate the execvce helpers to:
 
-  (1) __do_execveat, which is the lowest level helper implementing the
-      actual functionality
-  (2) do_execvat, which is used by all callers that want native
-      pointers
-  (3) do_compat_execve, which is used by all compat syscalls
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/exec.c               | 98 +++++++++++------------------------------
- include/linux/binfmts.h | 12 ++---
- init/main.c             |  7 +--
- kernel/umh.c            | 16 +++----
- 4 files changed, 41 insertions(+), 92 deletions(-)
+On 29/05/2020 06:40, Sergei Trofimovich via Libc-alpha wrote:
+> On most targets glibc defines O_NDELAY as O_NONBLOCK.
+>=20
+> glibc's manual/llio.texi manual says they are supposed to be equal:
+>=20
+> """
+> @deftypevr Macro int O_NDELAY
+> @standards{BSD, fcntl.h}
+> This is an obsolete name for @code{O_NONBLOCK}, provided for
+> compatibility with BSD.  It is not defined by the POSIX.1 standard.
+> @end deftypevr
+> """
+>=20
+> A bunch of packages rely on it and find out that this assumption
+> breaks on sparc in unusual ways. Recently it popped up as:
+>     https://github.com/eventlet/eventlet/pull/615
+> Older workarounds:
+>     https://github.com/libuv/libuv/issues/1830
+>=20
+> What is more confusing for me:
+>=20
+> linux kernel's uapi definition of O_NDELAY is ABI-dependent:
+>   arch/sparc/include/uapi/asm/fcntl.h
+> """
+> #if defined(__sparc__) && defined(__arch64__)
+> #define O_NDELAY        0x0004
+> #else
+> #define O_NDELAY        (0x0004 | O_NONBLOCK)
+> #endif
+> """
+>=20
+> while glibc's is not:
+>   sysdeps/unix/sysv/linux/sparc/bits/fcntl.h
+> """
+> #define O_NONBLOCK      0x4000
+> #define O_NDELAY        (0x0004 | O_NONBLOCK)
+> """
 
-diff --git a/fs/exec.c b/fs/exec.c
-index e6e8a9a7032784..354fdaa536ae7d 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -1815,10 +1815,7 @@ static int exec_binprm(struct linux_binprm *bprm)
- 	return 0;
- }
- 
--/*
-- * sys_execve() executes a new program.
-- */
--static int __do_execve_file(int fd, struct filename *filename,
-+static int __do_execveat(int fd, struct filename *filename,
- 			    struct user_arg_ptr argv,
- 			    struct user_arg_ptr envp,
- 			    int flags, struct file *file)
-@@ -1972,74 +1969,16 @@ static int __do_execve_file(int fd, struct filename *filename,
- 	return retval;
- }
- 
--static int do_execveat_common(int fd, struct filename *filename,
--			      struct user_arg_ptr argv,
--			      struct user_arg_ptr envp,
--			      int flags)
--{
--	return __do_execve_file(fd, filename, argv, envp, flags, NULL);
--}
--
--int do_execve_file(struct file *file, void *__argv, void *__envp)
--{
--	struct user_arg_ptr argv = { .ptr.native = __argv };
--	struct user_arg_ptr envp = { .ptr.native = __envp };
--
--	return __do_execve_file(AT_FDCWD, NULL, argv, envp, 0, file);
--}
--
--int do_execve(struct filename *filename,
--	const char __user *const __user *__argv,
--	const char __user *const __user *__envp)
--{
--	struct user_arg_ptr argv = { .ptr.native = __argv };
--	struct user_arg_ptr envp = { .ptr.native = __envp };
--	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
--}
--
- int do_execveat(int fd, struct filename *filename,
- 		const char __user *const __user *__argv,
- 		const char __user *const __user *__envp,
--		int flags)
-+		int flags, struct file *file)
- {
- 	struct user_arg_ptr argv = { .ptr.native = __argv };
- 	struct user_arg_ptr envp = { .ptr.native = __envp };
- 
--	return do_execveat_common(fd, filename, argv, envp, flags);
--}
--
--#ifdef CONFIG_COMPAT
--static int compat_do_execve(struct filename *filename,
--	const compat_uptr_t __user *__argv,
--	const compat_uptr_t __user *__envp)
--{
--	struct user_arg_ptr argv = {
--		.is_compat = true,
--		.ptr.compat = __argv,
--	};
--	struct user_arg_ptr envp = {
--		.is_compat = true,
--		.ptr.compat = __envp,
--	};
--	return do_execveat_common(AT_FDCWD, filename, argv, envp, 0);
--}
--
--static int compat_do_execveat(int fd, struct filename *filename,
--			      const compat_uptr_t __user *__argv,
--			      const compat_uptr_t __user *__envp,
--			      int flags)
--{
--	struct user_arg_ptr argv = {
--		.is_compat = true,
--		.ptr.compat = __argv,
--	};
--	struct user_arg_ptr envp = {
--		.is_compat = true,
--		.ptr.compat = __envp,
--	};
--	return do_execveat_common(fd, filename, argv, envp, flags);
-+	return __do_execveat(fd, filename, argv, envp, flags, file);
- }
--#endif
- 
- void set_binfmt(struct linux_binfmt *new)
- {
-@@ -2070,7 +2009,7 @@ SYSCALL_DEFINE3(execve,
- 		const char __user *const __user *, argv,
- 		const char __user *const __user *, envp)
- {
--	return do_execve(getname(filename), argv, envp);
-+	return do_execveat(AT_FDCWD, getname(filename), argv, envp, 0, NULL);
- }
- 
- SYSCALL_DEFINE5(execveat,
-@@ -2080,18 +2019,34 @@ SYSCALL_DEFINE5(execveat,
- 		int, flags)
- {
- 	int lookup_flags = (flags & AT_EMPTY_PATH) ? LOOKUP_EMPTY : 0;
-+	struct filename *name = getname_flags(filename, lookup_flags, NULL);
- 
--	return do_execveat(fd,
--			   getname_flags(filename, lookup_flags, NULL),
--			   argv, envp, flags);
-+	return do_execveat(fd, name, argv, envp, flags, NULL);
- }
- 
- #ifdef CONFIG_COMPAT
-+static int do_compat_execve(int fd, struct filename *filename,
-+		const compat_uptr_t __user *__argv,
-+		const compat_uptr_t __user *__envp,
-+		int flags)
-+{
-+	struct user_arg_ptr argv = {
-+		.is_compat = true,
-+		.ptr.compat = __argv,
-+	};
-+	struct user_arg_ptr envp = {
-+		.is_compat = true,
-+		.ptr.compat = __envp,
-+	};
-+
-+	return __do_execveat(fd, filename, argv, envp, flags, NULL);
-+}
-+
- COMPAT_SYSCALL_DEFINE3(execve, const char __user *, filename,
- 	const compat_uptr_t __user *, argv,
- 	const compat_uptr_t __user *, envp)
- {
--	return compat_do_execve(getname(filename), argv, envp);
-+	return do_compat_execve(AT_FDCWD, getname(filename), argv, envp, 0);
- }
- 
- COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
-@@ -2101,9 +2056,8 @@ COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
- 		       int,  flags)
- {
- 	int lookup_flags = (flags & AT_EMPTY_PATH) ? LOOKUP_EMPTY : 0;
-+	struct filename *name = getname_flags(filename, lookup_flags, NULL);
- 
--	return compat_do_execveat(fd,
--				  getname_flags(filename, lookup_flags, NULL),
--				  argv, envp, flags);
-+	return do_compat_execve(fd, name, argv, envp, flags);
- }
- #endif
-diff --git a/include/linux/binfmts.h b/include/linux/binfmts.h
-index 4a20b7517dd036..bed702e4b1fbd9 100644
---- a/include/linux/binfmts.h
-+++ b/include/linux/binfmts.h
-@@ -134,13 +134,9 @@ int copy_string_kernel(const char *arg, struct linux_binprm *bprm);
- extern void set_binfmt(struct linux_binfmt *new);
- extern ssize_t read_code(struct file *, unsigned long, loff_t, size_t);
- 
--extern int do_execve(struct filename *,
--		     const char __user * const __user *,
--		     const char __user * const __user *);
--extern int do_execveat(int, struct filename *,
--		       const char __user * const __user *,
--		       const char __user * const __user *,
--		       int);
--int do_execve_file(struct file *file, void *__argv, void *__envp);
-+int do_execveat(int fd, struct filename *filename,
-+		const char __user *const __user *__argv,
-+		const char __user *const __user *__envp,
-+		int flags, struct file *file);
- 
- #endif /* _LINUX_BINFMTS_H */
-diff --git a/init/main.c b/init/main.c
-index 0ead83e86b5aa2..838950ea7bca22 100644
---- a/init/main.c
-+++ b/init/main.c
-@@ -1329,9 +1329,10 @@ static int run_init_process(const char *init_filename)
- 	pr_debug("  with environment:\n");
- 	for (p = envp_init; *p; p++)
- 		pr_debug("    %s\n", *p);
--	return do_execve(getname_kernel(init_filename),
--		(const char __user *const __user *)argv_init,
--		(const char __user *const __user *)envp_init);
-+	return do_execveat(AT_FDCWD, getname_kernel(init_filename),
-+			(const char __user *const __user *)argv_init,
-+			(const char __user *const __user *)envp_init,
-+			0, NULL);
- }
- 
- static int try_to_run_init_process(const char *init_filename)
-diff --git a/kernel/umh.c b/kernel/umh.c
-index 79f139a7ca03c6..7aa9a5817582ca 100644
---- a/kernel/umh.c
-+++ b/kernel/umh.c
-@@ -103,15 +103,13 @@ static int call_usermodehelper_exec_async(void *data)
- 	commit_creds(new);
- 
- 	sub_info->pid = task_pid_nr(current);
--	if (sub_info->file) {
--		retval = do_execve_file(sub_info->file,
--					sub_info->argv, sub_info->envp);
--		if (!retval)
--			current->flags |= PF_UMH;
--	} else
--		retval = do_execve(getname_kernel(sub_info->path),
--				   (const char __user *const __user *)sub_info->argv,
--				   (const char __user *const __user *)sub_info->envp);
-+	retval = do_execveat(AT_FDCWD,
-+			sub_info->path ? getname_kernel(sub_info->path) : NULL,
-+			(const char __user *const __user *)sub_info->argv,
-+			(const char __user *const __user *)sub_info->envp,
-+			0, sub_info->file);
-+	if (sub_info->file && !retval)
-+		current->flags |= PF_UMH;
- out:
- 	sub_info->retval = retval;
- 	/*
--- 
-2.26.2
+Doing some archeology it seems that sparc32 originally defined
+O_NDELAY as 0x0004, but it has changed it to 0x0004 | O_NONBLOCK
+on 2.1.29.
+
+>=20
+> Spot-checking preprocessor's output that seems to corroborate:
+>=20
+> """
+> $ printf "#include <sys/fcntl.h>'\n int o_ndelay =3D O_NDELAY; int o_nonb=
+lock =3D O_NONBLOCK;" | sparc-unknown-linux-gnu-gcc -E -x c - | fgrep -A3 o_
+> int o_ndelay >                (0x0004 | 0x4000)
+>                        ; int o_nonblock >                                =
+           0x4000
+>=20
+> $ printf "#include <sys/fcntl.h>'\n int o_ndelay =3D O_NDELAY; int o_nonb=
+lock =3D O_NONBLOCK;" | sparc64-unknown-linux-gnu-gcc -E -x c - | fgrep -A3=
+ o_
+>=20
+> int o_ndelay >                (0x0004 | 0x4000)
+>                        ; int o_nonblock >                                =
+           0x4000
+> """
+>=20
+> I think this skew causes strange effects when you run sparc32
+> binary on sparc64 kernel (compared to sparc32 binary on sparc32
+> kernel) as kernel disagrees with userspace on O_NDELAY definition.
+>=20
+> https://github.com/libuv/libuv/issues/1830 has more details.
+>=20
+> I tried to trace the O_NDELAY definition and stopped at linux-2.1.29:
+>   https://git.kernel.org/pub/scm/linux/kernel/git/history/history.git/dif=
+f/include/asm-sparc/fcntl.h?id=B7b4d2d2c1809575374269e14d86ee1953bd168c
+> which brought O_NDELAY to O_NONBLOCK but did not make them
+> match exactly.
+>=20
+> Question time:
+>=20
+> 1. Why is sparc32 special? Does it have something to do with
+>    compatibility to other OSes of that time? (Solaris? BSD?)
+>=20
+>    fs/fcntl.c has kernel handling:
+>         /* required for strict SunOS emulation */
+>         if (O_NONBLOCK !=3D O_NDELAY)
+>                if (arg & O_NDELAY)
+>                    arg |=3D O_NONBLOCK;
+>    but why does it leak to to userspace header definition?
+>=20
+>    I think it should not.
+
+It seems to provide some compatibility with SunOS since on Solaris11
+O_NDELAY is 0x4 on both 32 and 64 bits.=20
+
+>=20
+> 2. Should sparc64-glibc change it's definition? Say, from
+>     #define O_NDELAY        (0x0004 | O_NONBLOCK)
+>    to
+>     #define O_NDELAY        O_NONBLOCK
+>=20
+>     I think it should.
+
+This will make:
+
+  fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+  flags =3D fcntl(fd, F_GETFL);
+  fcntl(fd, F_SETFL, flags & ~O_NDELAY);
+
+Not clearing the flag.
+
+>=20
+> 3. Should sparc32-linux (and glibc) change it's definition? Say, from
+>    #if defined(__sparc__) && defined(__arch64__)
+>    #define O_NDELAY        0x0004
+>    #else
+>    #define O_NDELAY        (0x0004 | O_NONBLOCK)
+>    #endif
+>   to
+>    #define O_NDELAY        (0x0004 | O_NONBLOCK)
+>   or even to=20
+>   #define O_NDELAY        O_NONBLOCK
+>   and make sure kernel maps old O_NDELAY to O_NONBLOCK?
+>=20
+>   I think '#define O_NDELAY O_NONBLOCK' would be most
+>   consistent.
+>=20
+> What do you think?
+
+I think the main issue here is in fact FIONBIO historical inconsistency
+over different system that Linux originally tried to accommodate it:
+
+fs/ioctl.c:
+
+545 static int ioctl_fionbio(struct file *filp, int __user *argp)
+546 {
+547         unsigned int flag;
+548         int on, error;
+549=20
+550         error =3D get_user(on, argp);
+551         if (error)
+552                 return error;
+553         flag =3D O_NONBLOCK;
+554 #ifdef __sparc__
+555         /* SunOS compatibility item. */
+556         if (O_NONBLOCK !=3D O_NDELAY)
+557                 flag |=3D O_NDELAY;
+558 #endif
+559         spin_lock(&filp->f_lock);
+560         if (on)
+561                 filp->f_flags |=3D flag;
+562         else
+563                 filp->f_flags &=3D ~flag;
+564         spin_unlock(&filp->f_lock);
+565         return error;
+566 }
+
+The issue on sparc is FIONBIO will always try to set/reset *both*
+flags at the same time. I think what would be better would be to
+either define O_NDELAY and O_NONBLOCK to be the same value of
+0x4004 on both sparc32 and sparc64 (since the kernel does treat
+them semantically as the same) or try to avoid use FIONBIO set the
+socket as non-blocking in favor or fcntl(fd, F_SETFL, ... O_NONBLOCK).
