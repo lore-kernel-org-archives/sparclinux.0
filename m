@@ -1,7 +1,7 @@
 From: Peter Zijlstra <peterz@infradead.org>
-Date: Tue, 23 Jun 2020 19:41:32 +0000
+Date: Tue, 23 Jun 2020 20:08:00 +0000
 Subject: Re: [PATCH v4 7/8] lockdep: Change hardirq{s_enabled,_context} to per-cpu variables
-Message-Id: <20200623194132.GC2483@worktop.programming.kicks-ass.net>
+Message-Id: <20200623200800.GD2483@worktop.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200623083645.277342609@infradead.org>
  <20200623083721.512673481@infradead.org>
@@ -21,19 +21,6 @@ To: Marco Elver <elver@google.com>
 Cc: "Ahmed S. Darwish" <a.darwish@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Will Deacon <will@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, the arch/x86 maintainers <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Steven Rostedt <rostedt@goodmis.org>, bigeasy@linutronix.de, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org, linux@armlinux.org.uk, Qian Cai <cai@lca.pw>
 
 On Tue, Jun 23, 2020 at 09:13:35PM +0200, Marco Elver wrote:
-> I see the below report when I boot with your branch + KCSAN and
-> PROVE_LOCKING. config attached. Trying to make sense of what's
-> happening.
-
-Ah, I was still playing with tip/master + PROVE_LOCKING + KCSAN and
-slowly removing parts of that annotation patch to see what would come
-unstuck.
-
-I think I just hit a genuine but unavoidable lockdep report on
-report_lock.
-
-> ------ >8 ------
-> 
 > [   10.182354] ------------[ cut here ]------------
 > [   10.183058] WARNING: CPU: 7 PID: 136 at kernel/locking/lockdep.c:398 lockdep_hardirqs_on_prepare+0x1c6/0x270
 > [   10.184347] Modules linked in:
@@ -59,7 +46,19 @@ report_lock.
 > [   10.203686]  _raw_spin_unlock_irqrestore+0x40/0x70  		<----- take report_lock
 > [   10.204406]  prepare_report+0x11f/0x150
 > [   10.204986]  kcsan_report+0xca/0x6c0 			<----- generating a KCSAN report
-> [   10.212669]  kcsan_found_watchpoint+0xe5/0x110
 
-That appears to be warning about a lockdep_recursion underflow, weird.
-I'll go stare at it.
+Oh, duh.. that's because lockdep_off() ;-)
+
+diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
+index ab7571c1a1f5..c9ea05edce25 100644
+--- a/kernel/locking/lockdep.c
++++ b/kernel/locking/lockdep.c
+@@ -395,7 +395,7 @@ void lockdep_init_task(struct task_struct *task)
+ 
+ static __always_inline void lockdep_recursion_finish(void)
+ {
+-	if (WARN_ON_ONCE(--current->lockdep_recursion))
++	if (WARN_ON_ONCE((--current->lockdep_recursion) & LOCKDEP_RECURSION_MASK))
+ 		current->lockdep_recursion = 0;
+ }
+ 
