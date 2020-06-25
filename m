@@ -1,79 +1,52 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Wed, 24 Jun 2020 17:53:20 +0000
+From: Will Deacon <will@kernel.org>
+Date: Thu, 25 Jun 2020 07:31:45 +0000
 Subject: Re: [PATCH v4 6/8] arm: Break cyclic percpu include
-Message-Id: <20200624175320.GN4781@hirez.programming.kicks-ass.net>
+Message-Id: <20200625073145.GA7444@willie-the-truck>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200623083645.277342609@infradead.org>
  <20200623083721.454517573@infradead.org>
  <20200623090257.GA3743@willie-the-truck>
-In-Reply-To: <20200623090257.GA3743@willie-the-truck>
+ <20200624175320.GN4781@hirez.programming.kicks-ass.net>
+In-Reply-To: <20200624175320.GN4781@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Will Deacon <will@kernel.org>
+To: Peter Zijlstra <peterz@infradead.org>
 Cc: mingo@kernel.org, tglx@linutronix.de, x86@kernel.org, linux-kernel@vger.kernel.org, a.darwish@linutronix.de, rostedt@goodmis.org, bigeasy@linutronix.de, davem@davemloft.net, sparclinux@vger.kernel.org, mpe@ellerman.id.au, linuxppc-dev@lists.ozlabs.org, heiko.carstens@de.ibm.com, linux-s390@vger.kernel.org, linux@armlinux.org.uk
 
-On Tue, Jun 23, 2020 at 10:02:57AM +0100, Will Deacon wrote:
-> On Tue, Jun 23, 2020 at 10:36:51AM +0200, Peter Zijlstra wrote:
-> > In order to use <asm/percpu.h> in irqflags.h, we need to make sure
-> > asm/percpu.h does not itself depend on irqflags.h.
+On Wed, Jun 24, 2020 at 07:53:20PM +0200, Peter Zijlstra wrote:
+> On Tue, Jun 23, 2020 at 10:02:57AM +0100, Will Deacon wrote:
+> > On Tue, Jun 23, 2020 at 10:36:51AM +0200, Peter Zijlstra wrote:
+> > > In order to use <asm/percpu.h> in irqflags.h, we need to make sure
+> > > asm/percpu.h does not itself depend on irqflags.h.
+> > > 
+> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> > > ---
+> > >  arch/arm/include/asm/percpu.h |    2 ++
+> > >  1 file changed, 2 insertions(+)
+> > > 
+> > > --- a/arch/arm/include/asm/percpu.h
+> > > +++ b/arch/arm/include/asm/percpu.h
+> > > @@ -10,6 +10,8 @@
+> > >   * in the TPIDRPRW. TPIDRPRW only exists on V6K and V7
+> > >   */
+> > >  #if defined(CONFIG_SMP) && !defined(CONFIG_CPU_V6)
+> > > +register unsigned long current_stack_pointer asm ("sp");
 > > 
-> > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> > ---
-> >  arch/arm/include/asm/percpu.h |    2 ++
-> >  1 file changed, 2 insertions(+)
-> > 
-> > --- a/arch/arm/include/asm/percpu.h
-> > +++ b/arch/arm/include/asm/percpu.h
-> > @@ -10,6 +10,8 @@
-> >   * in the TPIDRPRW. TPIDRPRW only exists on V6K and V7
-> >   */
-> >  #if defined(CONFIG_SMP) && !defined(CONFIG_CPU_V6)
-> > +register unsigned long current_stack_pointer asm ("sp");
+> > If you define this unconditionally, then we can probably get rid of the
+> > copy in asm/thread_info.h, rather than duplicate the same #define.
 > 
-> If you define this unconditionally, then we can probably get rid of the
-> copy in asm/thread_info.h, rather than duplicate the same #define.
+> The below delta seems to build arm-allnoconfig, arm-defconfig and
+> arm-allmodconfig.
+> 
+> Although please don't ask me how asm/thread_info.h includes asm/percpu.h
+> 
+> Does that work for you?
 
-The below delta seems to build arm-allnoconfig, arm-defconfig and
-arm-allmodconfig.
+Yes, thanks! I can't believe you removed the helpful comment.
 
-Although please don't ask me how asm/thread_info.h includes asm/percpu.h
+> -/*
+> - * how to get the current stack pointer in C
+> - */
 
-Does that work for you?
-
-diff --git a/arch/arm/include/asm/percpu.h b/arch/arm/include/asm/percpu.h
-index e86e47486b6b1..e2fcb3cfd3de5 100644
---- a/arch/arm/include/asm/percpu.h
-+++ b/arch/arm/include/asm/percpu.h
-@@ -5,13 +5,13 @@
- #ifndef _ASM_ARM_PERCPU_H_
- #define _ASM_ARM_PERCPU_H_
- 
-+register unsigned long current_stack_pointer asm ("sp");
-+
- /*
-  * Same as asm-generic/percpu.h, except that we store the per cpu offset
-  * in the TPIDRPRW. TPIDRPRW only exists on V6K and V7
-  */
- #if defined(CONFIG_SMP) && !defined(CONFIG_CPU_V6)
--register unsigned long current_stack_pointer asm ("sp");
--
- static inline void set_my_cpu_offset(unsigned long off)
- {
- 	/* Set TPIDRPRW */
-diff --git a/arch/arm/include/asm/thread_info.h b/arch/arm/include/asm/thread_info.h
-index 3609a6980c342..536b6b979f634 100644
---- a/arch/arm/include/asm/thread_info.h
-+++ b/arch/arm/include/asm/thread_info.h
-@@ -75,11 +75,6 @@ struct thread_info {
- 	.addr_limit	= KERNEL_DS,					\
- }
- 
--/*
-- * how to get the current stack pointer in C
-- */
--register unsigned long current_stack_pointer asm ("sp");
--
- /*
-  * how to get the thread information struct from C
-  */
+Will
