@@ -1,15 +1,15 @@
 From: Peter Xu <peterx@redhat.com>
-Date: Fri, 19 Jun 2020 16:13:48 +0000
+Date: Fri, 26 Jun 2020 22:36:35 +0000
 Subject: [PATCH 21/26] mm/sparc64: Use general page fault accounting
-Message-Id: <20200619161348.9811-1-peterx@redhat.com>
+Message-Id: <20200626223635.200006-1-peterx@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200619160538.8641-1-peterx@redhat.com>
-In-Reply-To: <20200619160538.8641-1-peterx@redhat.com>
+References: <20200626223130.199227-1-peterx@redhat.com>
+In-Reply-To: <20200626223130.199227-1-peterx@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: Peter Xu <peterx@redhat.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Andrea Arcangeli <aarcange@redhat.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Linus Torvalds <torvalds@linux-foundation.org>, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: Peter Xu <peterx@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
 Use the general page fault accounting by passing regs into handle_mm_fault().
 It naturally solve the issue of multiple page fault accounting when page fault
