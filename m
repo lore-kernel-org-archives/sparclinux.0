@@ -1,52 +1,47 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 15 Jun 2020 07:44:36 +0000
-Subject: Re: Build regressions/improvements in v5.8-rc1
-Message-Id: <CAMuHMdWh9w_50uPhFYZ26GOfp=Uv_DCg94M1GN9cuizz2+GxJQ@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sat, 27 Jun 2020 08:16:52 +0000
+Subject: [PATCH v2 1/2] sparc32: use PUD rather than PGD to get PMD in srmmu_inherit_prom_mappings()
+Message-Id: <20200627081653.25311-2-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200615073533.1809-1-geert@linux-m68k.org>
-In-Reply-To: <20200615073533.1809-1-geert@linux-m68k.org>
+References: <20200627081653.25311-1-rppt@kernel.org>
+In-Reply-To: <20200627081653.25311-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>
+To: sparclinux@vger.kernel.org
+Cc: David Miller <davem@davemloft.net>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>
 
-On Mon, Jun 15, 2020 at 9:39 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> Below is the list of build error/warning regressions/improvements in
-> v5.8-rc1[1] compared to v5.7[2].
->
-> Summarized:
->   - build errors: +4/-4
->   - build warnings: +66/-42
->
-> Note that there may be false regressions, as some logs are incomplete.
-> Still, they're build errors/warnings.
->
-> Happy fixing! ;-)
->
-> Thanks to the linux-next team for providing the build service.
->
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/b3a9e3b9622ae10064826dccb4f7a52bd88c7407/ (192 out of 194 configs)
-> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/3d77e6a8804abcc0504c904bd6e5cdf3a5cf8162/ (all 194 configs)
->
->
-> *** ERRORS ***
->
-> 4 error regressions:
->   + error: arch/sparc/kernel/head_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
->   + error: arch/sparc/kernel/head_32.o: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
->   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0xc)
->   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x28), (.fixup+0x1c), (.fixup+0x4), (.fixup+0x10), (.fixup+0x34)
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-sparc-allmodconfig
+This is a misprint in the page table traversal in
+srmmu_inherit_prom_mappings`() function which accessed a PMD entry using
+PGD rather than PUD.
 
-Gr{oetje,eeting}s,
+Since sparc32 has only 3 page table levels, the PGD and PUD are
+essentially the same and usage of __nocache_fix() removed the type
+checking.
 
-                        Geert
+Use PUD for the consistency and to avoid breakage because of upcoming
+addition of type checking into __nocache_fix().
 
+Fixes: 7235db268a2777bc38 ("sparc32: use pgtable-nopud instead of 4level-fixup")
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/sparc/mm/srmmu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index 0070f8b9a753..f5fa07958f34 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -822,7 +822,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
+ 			memset(__nocache_fix(pmdp), 0, SRMMU_PMD_TABLE_SIZE);
+ 			pud_set(__nocache_fix(pudp), pmdp);
+ 		}
+-		pmdp = pmd_offset(__nocache_fix(pgdp), start);
++		pmdp = pmd_offset(__nocache_fix(pudp), start);
+ 		if (what = 1) {
+ 			*(pmd_t *)__nocache_fix(pmdp) = __pmd(probed);
+ 			start += PMD_SIZE;
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.26.2
