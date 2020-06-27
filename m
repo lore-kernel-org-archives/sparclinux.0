@@ -1,20 +1,62 @@
-From: David Miller <davem@redhat.com>
-Date: Wed, 03 Jun 2020 01:38:29 +0000
-Subject: Re: [PATCHv2 4/5] second: Fix typo'd operator
-Message-Id: <20200602.183829.1942625976276786676.davem@redhat.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 27 Jun 2020 07:27:02 +0000
+Subject: [PATCH 3/5] exec: cleanup the count() function
+Message-Id: <20200627072704.2447163-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200627072704.2447163-1-hch@lst.de>
+In-Reply-To: <20200627072704.2447163-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Matt Turner <mattst88@gmail.com>
-Date: Sat, 23 May 2020 13:26:50 -0700
+Remove the max argument as it is hard wired to MAX_ARG_STRINGS, and
+give the function a slightly less generic name.
 
-> Note that this does change the behavior of the code. After the patch
-> only < 2.6 PROMs will fail (which is probably correct), instead of every
-> 2.* like now.
-> 
-> Signed-off-by: Matt Turner <mattst88@gmail.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/exec.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Applied.
+diff --git a/fs/exec.c b/fs/exec.c
+index 4e5db0e35797a5..a5d91f8b1341d5 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -407,9 +407,9 @@ get_user_arg_ptr(const char __user *const __user *argv, int nr)
+ }
+ 
+ /*
+- * count() counts the number of strings in array ARGV.
++ * count_strings() counts the number of strings in array ARGV.
+  */
+-static int count(const char __user *const __user *argv, int max)
++static int count_strings(const char __user *const __user *argv)
+ {
+ 	int i = 0;
+ 
+@@ -423,7 +423,7 @@ static int count(const char __user *const __user *argv, int max)
+ 			if (IS_ERR(p))
+ 				return -EFAULT;
+ 
+-			if (i >= max)
++			if (i >= MAX_ARG_STRINGS)
+ 				return -E2BIG;
+ 			++i;
+ 
+@@ -441,11 +441,11 @@ static int prepare_arg_pages(struct linux_binprm *bprm,
+ {
+ 	unsigned long limit, ptr_size;
+ 
+-	bprm->argc = count(argv, MAX_ARG_STRINGS);
++	bprm->argc = count_strings(argv);
+ 	if (bprm->argc < 0)
+ 		return bprm->argc;
+ 
+-	bprm->envc = count(envp, MAX_ARG_STRINGS);
++	bprm->envc = count_strings(envp);
+ 	if (bprm->envc < 0)
+ 		return bprm->envc;
+ 
+-- 
+2.26.2
