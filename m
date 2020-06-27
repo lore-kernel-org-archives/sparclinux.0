@@ -1,122 +1,59 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sat, 27 Jun 2020 08:16:53 +0000
-Subject: [PATCH v2 2/2] sparc32: srmmu: improve type safety of __nocache_fix()
-Message-Id: <20200627081653.25311-3-rppt@kernel.org>
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 27 Jun 2020 07:26:59 +0000
+Subject: properly support exec with kernel pointers v3
+Message-Id: <20200627072704.2447163-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627081653.25311-1-rppt@kernel.org>
-In-Reply-To: <20200627081653.25311-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
-Cc: David Miller <davem@davemloft.net>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+Hi all,
 
-The __nocache_fix(VADDR) macro is used to add an offset for pointers and
-its "return type" is 'void *'.
+this series first cleans up the exec code and then adds proper
+kernel_execveat and kernel_wait callers instead of relying on the fact
+that the early init code and kernel threads implicitly run with
+the address limit set to KERNEL_DS.
 
-We can do better and keep the type information with simply by casting the
-return value to (__typeof__(VADDR)).
+Note that the cleanup removes the compat execve(at) handlers entirely, as
+we can handle the compat difference very nicely in a unified codebase.
+x32 needs two hacky #defines for that for now, although those can go
+away if the x32 syscall rework from Brian gets merged.
 
-This will  ".. show when those pgd/p4d/pud pointers get mis-used because
-they don't end up dropping the type info.."
+I think this is ready to get picked up.  What would the best tree be?
+Most important a git tree would be good, as I have other work building
+on top of it.
 
-The addition of the casting to __nocache_fix() also allows to remove
-explicit casts at its call sites.
 
-Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Link: https://lkml.kernel.org/r/CAHk-=wisORTa7QVPnFqNw9pFs62UiwgsD4C4d=MtYy1o4JPyGQ@mail.gmail.com
----
- arch/sparc/include/asm/pgtsrmmu.h |  2 +-
- arch/sparc/mm/srmmu.c             | 16 ++++++++--------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+Changes since v2:
+ - drop the kernel_wait addition, as this interacts with a series
+   from Luis and should be merged together with that one
 
-diff --git a/arch/sparc/include/asm/pgtsrmmu.h b/arch/sparc/include/asm/pgtsrmmu.h
-index 7708d015712b..6067925972d9 100644
---- a/arch/sparc/include/asm/pgtsrmmu.h
-+++ b/arch/sparc/include/asm/pgtsrmmu.h
-@@ -113,7 +113,7 @@ extern unsigned long last_valid_pfn;
- extern void *srmmu_nocache_pool;
- #define __nocache_pa(VADDR) (((unsigned long)VADDR) - SRMMU_NOCACHE_VADDR + __pa((unsigned long)srmmu_nocache_pool))
- #define __nocache_va(PADDR) (__va((unsigned long)PADDR) - (unsigned long)srmmu_nocache_pool + SRMMU_NOCACHE_VADDR)
--#define __nocache_fix(VADDR) __va(__nocache_pa(VADDR))
-+#define __nocache_fix(VADDR) ((__typeof__(VADDR))__va(__nocache_pa(VADDR)))
- 
- /* Accessing the MMU control register. */
- unsigned int srmmu_get_mmureg(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index f5fa07958f34..da4e10b4cb37 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -689,7 +689,7 @@ static void __init srmmu_early_allocate_ptable_skeleton(unsigned long start,
- 		pgdp = pgd_offset_k(start);
- 		p4dp = p4d_offset(pgdp, start);
- 		pudp = pud_offset(p4dp, start);
--		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
-+		if (pud_none(*__nocache_fix(pudp))) {
- 			pmdp = __srmmu_get_nocache(
- 			    SRMMU_PMD_TABLE_SIZE, SRMMU_PMD_TABLE_SIZE);
- 			if (pmdp = NULL)
-@@ -698,7 +698,7 @@ static void __init srmmu_early_allocate_ptable_skeleton(unsigned long start,
- 			pud_set(__nocache_fix(pudp), pmdp);
- 		}
- 		pmdp = pmd_offset(__nocache_fix(pudp), start);
--		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
-+		if (srmmu_pmd_none(*__nocache_fix(pmdp))) {
- 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
- 			if (ptep = NULL)
- 				early_pgtable_allocfail("pte");
-@@ -810,11 +810,11 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 		p4dp = p4d_offset(pgdp, start);
- 		pudp = pud_offset(p4dp, start);
- 		if (what = 2) {
--			*(pgd_t *)__nocache_fix(pgdp) = __pgd(probed);
-+			*__nocache_fix(pgdp) = __pgd(probed);
- 			start += PGDIR_SIZE;
- 			continue;
- 		}
--		if (pud_none(*(pud_t *)__nocache_fix(pudp))) {
-+		if (pud_none(*__nocache_fix(pudp))) {
- 			pmdp = __srmmu_get_nocache(SRMMU_PMD_TABLE_SIZE,
- 						   SRMMU_PMD_TABLE_SIZE);
- 			if (pmdp = NULL)
-@@ -828,7 +828,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 			start += PMD_SIZE;
- 			continue;
- 		}
--		if (srmmu_pmd_none(*(pmd_t *)__nocache_fix(pmdp))) {
-+		if (srmmu_pmd_none(*__nocache_fix(pmdp))) {
- 			ptep = __srmmu_get_nocache(PTE_SIZE, PTE_SIZE);
- 			if (ptep = NULL)
- 				early_pgtable_allocfail("pte");
-@@ -836,7 +836,7 @@ static void __init srmmu_inherit_prom_mappings(unsigned long start,
- 			pmd_set(__nocache_fix(pmdp), ptep);
- 		}
- 		ptep = pte_offset_kernel(__nocache_fix(pmdp), start);
--		*(pte_t *)__nocache_fix(ptep) = __pte(probed);
-+		*__nocache_fix(ptep) = __pte(probed);
- 		start += PAGE_SIZE;
- 	}
- }
-@@ -850,7 +850,7 @@ static void __init do_large_mapping(unsigned long vaddr, unsigned long phys_base
- 	unsigned long big_pte;
- 
- 	big_pte = KERNEL_PTE(phys_base >> 4);
--	*(pgd_t *)__nocache_fix(pgdp) = __pgd(big_pte);
-+	*__nocache_fix(pgdp) = __pgd(big_pte);
- }
- 
- /* Map sp_bank entry SP_ENTRY, starting at virtual address VBASE. */
-@@ -940,7 +940,7 @@ void __init srmmu_paging_init(void)
- 	srmmu_ctx_table_phys = (ctxd_t *)__nocache_pa(srmmu_context_table);
- 
- 	for (i = 0; i < num_contexts; i++)
--		srmmu_ctxd_set((ctxd_t *)__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
-+		srmmu_ctxd_set(__nocache_fix(&srmmu_context_table[i]), srmmu_swapper_pg_dir);
- 
- 	flush_cache_all();
- 	srmmu_set_ctable_ptr((unsigned long)srmmu_ctx_table_phys);
--- 
-2.26.2
+Changes since v1:
+ - remove a pointless ifdef from get_user_arg_ptr
+ - remove the need for a compat syscall handler for x32
+
+
+Diffstat:
+ arch/arm64/include/asm/unistd32.h                  |    4 
+ arch/mips/kernel/syscalls/syscall_n32.tbl          |    4 
+ arch/mips/kernel/syscalls/syscall_o32.tbl          |    4 
+ arch/parisc/kernel/syscalls/syscall.tbl            |    4 
+ arch/powerpc/kernel/syscalls/syscall.tbl           |    4 
+ arch/s390/kernel/syscalls/syscall.tbl              |    4 
+ arch/sparc/kernel/syscalls.S                       |    4 
+ arch/x86/entry/syscall_x32.c                       |    7 
+ arch/x86/entry/syscalls/syscall_32.tbl             |    4 
+ arch/x86/entry/syscalls/syscall_64.tbl             |    4 
+ fs/exec.c                                          |  248 ++++++++-------------
+ include/linux/binfmts.h                            |   10 
+ include/linux/compat.h                             |    7 
+ include/uapi/asm-generic/unistd.h                  |    4 
+ init/main.c                                        |    5 
+ kernel/umh.c                                       |   14 -
+ tools/include/uapi/asm-generic/unistd.h            |    4 
+ tools/perf/arch/powerpc/entry/syscalls/syscall.tbl |    4 
+ tools/perf/arch/s390/entry/syscalls/syscall.tbl    |    4 
+ tools/perf/arch/x86/entry/syscalls/syscall_64.tbl  |    4 
+ 20 files changed, 149 insertions(+), 198 deletions(-)
