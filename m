@@ -1,25 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 30 Jun 2020 20:52:28 +0000
-Subject: Re: [PATCH v4 20/26] mm/sparc32: Use general page fault accounting
-Message-Id: <20200630.135228.954417156471421009.davem@davemloft.net>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sat, 27 Jun 2020 08:16:51 +0000
+Subject: [PATCH v2 0/2] sparc32: srmmu: improve type safety of __nocache_fix()
+Message-Id: <20200627081653.25311-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200630204553.39442-1-peterx@redhat.com>
-In-Reply-To: <20200630204553.39442-1-peterx@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: peterx@redhat.com
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org, jhubbard@nvidia.com, mpe@ellerman.id.au, gerald.schaefer@de.ibm.com, aarcange@redhat.com, torvalds@linux-foundation.org, will@kernel.org, sparclinux@vger.kernel.org
+To: sparclinux@vger.kernel.org
+Cc: David Miller <davem@davemloft.net>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org, Mike Rapoport <rppt@linux.ibm.com>
 
-From: Peter Xu <peterx@redhat.com>
-Date: Tue, 30 Jun 2020 16:45:53 -0400
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-> Use the general page fault accounting by passing regs into handle_mm_fault().
-> It naturally solve the issue of multiple page fault accounting when page fault
-> retry happened.
-> 
-> CC: David S. Miller <davem@davemloft.net>
-> CC: sparclinux@vger.kernel.org
-> Signed-off-by: Peter Xu <peterx@redhat.com>
+Hi,
 
-Acked-by: David S. Miller <davem@davemloft.net>
+As discussed at [1] the __nocache_fix() macro in sparc's SRMMU can be made
+type safe and so the compiler will yell anout misuse of pXd pointers for
+which the __nocache_fix() is primarily used.
+
+The first patch is an fix of such misuse that I've discovered after adding
+type cast to __nocache_fix(), but to avoid breaking bisection I've made it
+the first commit.
+
+v2: rebased on v5.8-rc2+
+
+--
+Sincerely yours,
+Mike.
+
+[1] https://lkml.kernel.org/r/CAHk-=wisORTa7QVPnFqNw9pFs62UiwgsD4C4d=MtYy1o4JPyGQ@mail.gmail.com
+
+Mike Rapoport (2):
+  sparc32: use PUD rather than PGD to get PMD in srmmu_inherit_prom_mappings()
+  sparc32: srmmu: improve type safety of __nocache_fix()
+
+ arch/sparc/include/asm/pgtsrmmu.h |  2 +-
+ arch/sparc/mm/srmmu.c             | 18 +++++++++---------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
+
+base-commit: 1590a2e1c681b0991bd42c992cabfd380e0338f2
+-- 
+2.26.2
