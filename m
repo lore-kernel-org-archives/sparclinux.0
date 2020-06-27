@@ -1,404 +1,193 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Mon, 22 Jun 2020 23:43:12 +0000
-Subject: [PATCH 03/17] sparc: share process creation helpers between sparc and sparc64
-Message-Id: <20200622234326.906346-4-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sat, 27 Jun 2020 14:34:53 +0000
+Subject: [PATCH 8/8] mm: move p?d_alloc_track to separate header file
+Message-Id: <20200627143453.31835-9-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200622234326.906346-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200622234326.906346-1-christian.brauner@ubuntu.com>
+References: <20200627143453.31835-1-rppt@kernel.org>
+In-Reply-To: <20200627143453.31835-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Christian Brauner <christian.brauner@ubuntu.com>, "David S . Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Christophe Leroy <christophe.leroy@csgroup.eu>, Joerg Roedel <joro@8bytes.org>, Max Filippov <jcmvbkbc@gmail.com>, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>, Stafford Horne <shorne@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Steven Rostedt <rostedt@goodmis.org>, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.orglinux
 
-As promised in the previous patch, this moves the process creation
-helpers into a common process.c file that is shared between sparc and
-sparc64. It allows us to get rid of quite a bit custom assembler and the
-to remove the separe 32bit specific sparc_do_fork() call.
+From: Joerg Roedel <jroedel@suse.de>
 
-One thing to note, is that when clone() was called with a separate stack
-for the child the assembler would align it. But copy_thread() has always
-been doing that too so that line wasn't needed and can thus simply be
-removed.
+The functions are only used in two source files, both residing in mm/
+subdirectory, so there is no need for them to be in the global <linux/mm.h>
+header.  Move them to the new mm/pgalloc-track.h header and include it only
+where needed.
 
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: linux-csky@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Link: https://lore.kernel.org/r/20200512171527.570109-3-christian.brauner@ubuntu.com
+[rppt: mv include/linux/pgalloc-track.h mm/]
+
+Link: http://lkml.kernel.org/r/20200609120533.25867-1-joro@8bytes.org
+Signed-off-by: Joerg Roedel <jroedel@suse.de>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>
+Cc: Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- arch/sparc/kernel/Makefile     |   1 +
- arch/sparc/kernel/entry.S      |  29 +++------
- arch/sparc/kernel/kernel.h     |  11 ++--
- arch/sparc/kernel/process.c    | 110 +++++++++++++++++++++++++++++++++
- arch/sparc/kernel/process_32.c |  27 --------
- arch/sparc/kernel/process_64.c |  94 ----------------------------
- 6 files changed, 123 insertions(+), 149 deletions(-)
- create mode 100644 arch/sparc/kernel/process.c
+ include/linux/mm.h | 45 ----------------------------------------
+ mm/ioremap.c       |  2 ++
+ mm/pgalloc-track.h | 51 ++++++++++++++++++++++++++++++++++++++++++++++
+ mm/vmalloc.c       |  1 +
+ 4 files changed, 54 insertions(+), 45 deletions(-)
+ create mode 100644 mm/pgalloc-track.h
 
-diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
-index 97c0e19263d1..d3a0e072ebe8 100644
---- a/arch/sparc/kernel/Makefile
-+++ b/arch/sparc/kernel/Makefile
-@@ -33,6 +33,7 @@ obj-y                   += irq_$(BITS).o
- obj-$(CONFIG_SPARC32)   += sun4m_irq.o sun4d_irq.o
- 
- obj-y                   += process_$(BITS).o
-+obj-y                   += process.o
- obj-y                   += signal_$(BITS).o
- obj-y                   += sigutil_$(BITS).o
- obj-$(CONFIG_SPARC32)   += ioport.o
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index f636acf3312f..d58940280f8d 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -869,14 +869,11 @@ flush_patch_two:
- 	ld	[%curptr + TI_TASK], %o4
- 	rd	%psr, %g4
- 	WRITE_PAUSE
--	mov	SIGCHLD, %o0			! arg0:	clone flags
- 	rd	%wim, %g5
- 	WRITE_PAUSE
--	mov	%fp, %o1			! arg1:	usp
- 	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
--	add	%sp, STACKFRAME_SZ, %o2		! arg2:	pt_regs ptr
--	mov	0, %o3
--	call	sparc_do_fork
-+	add	%sp, STACKFRAME_SZ, %o0
-+	call	sparc_fork
- 	 mov	%l5, %o7
- 
- 	/* Whee, kernel threads! */
-@@ -888,19 +885,11 @@ flush_patch_three:
- 	ld	[%curptr + TI_TASK], %o4
- 	rd	%psr, %g4
- 	WRITE_PAUSE
--
--	/* arg0,1: flags,usp  -- loaded already */
--	cmp	%o1, 0x0			! Is new_usp NULL?
- 	rd	%wim, %g5
- 	WRITE_PAUSE
--	be,a	1f
--	 mov	%fp, %o1			! yes, use callers usp
--	andn	%o1, 7, %o1			! no, align to 8 bytes
--1:
- 	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
--	add	%sp, STACKFRAME_SZ, %o2		! arg2:	pt_regs ptr
--	mov	0, %o3
--	call	sparc_do_fork
-+	add	%sp, STACKFRAME_SZ, %o0
-+	call	sparc_clone
- 	 mov	%l5, %o7
- 
- 	/* Whee, real vfork! */
-@@ -914,13 +903,9 @@ flush_patch_four:
- 	rd	%wim, %g5
- 	WRITE_PAUSE
- 	std	%g4, [%o4 + AOFF_task_thread + AOFF_thread_fork_kpsr]
--	sethi	%hi(0x4000 | 0x0100 | SIGCHLD), %o0
--	mov	%fp, %o1
--	or	%o0, %lo(0x4000 | 0x0100 | SIGCHLD), %o0
--	sethi	%hi(sparc_do_fork), %l1
--	mov	0, %o3
--	jmpl	%l1 + %lo(sparc_do_fork), %g0
--	 add	%sp, STACKFRAME_SZ, %o2
-+	sethi	%hi(sparc_vfork), %l1
-+	jmpl	%l1 + %lo(sparc_vfork), %g0
-+	 add	%sp, STACKFRAME_SZ, %o0
- 
-         .align  4
- linux_sparc_ni_syscall:
-diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
-index f6f498ba3198..9cd09a3ef35f 100644
---- a/arch/sparc/kernel/kernel.h
-+++ b/arch/sparc/kernel/kernel.h
-@@ -14,6 +14,11 @@ extern const char *sparc_pmu_type;
- extern unsigned int fsr_storage;
- extern int ncpus_probed;
- 
-+/* process{_32,_64}.c */
-+asmlinkage long sparc_clone(struct pt_regs *regs);
-+asmlinkage long sparc_fork(struct pt_regs *regs);
-+asmlinkage long sparc_vfork(struct pt_regs *regs);
-+
- #ifdef CONFIG_SPARC64
- /* setup_64.c */
- struct seq_file;
-@@ -153,12 +158,6 @@ void floppy_hardint(void);
- extern unsigned long sun4m_cpu_startup;
- extern unsigned long sun4d_cpu_startup;
- 
--/* process_32.c */
--asmlinkage int sparc_do_fork(unsigned long clone_flags,
--                             unsigned long stack_start,
--                             struct pt_regs *regs,
--                             unsigned long stack_size);
--
- /* signal_32.c */
- asmlinkage void do_sigreturn(struct pt_regs *regs);
- asmlinkage void do_rt_sigreturn(struct pt_regs *regs);
-diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
-new file mode 100644
-index 000000000000..8bbe62d77b77
---- /dev/null
-+++ b/arch/sparc/kernel/process.c
-@@ -0,0 +1,110 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+/*
-+ * This file handles the architecture independent parts of process handling..
-+ */
-+
-+#include <linux/compat.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/ptrace.h>
-+#include <linux/sched.h>
-+#include <linux/sched/task.h>
-+#include <linux/sched/task_stack.h>
-+#include <linux/signal.h>
-+
-+#include "kernel.h"
-+
-+asmlinkage long sparc_fork(struct pt_regs *regs)
-+{
-+	unsigned long orig_i1 = regs->u_regs[UREG_I1];
-+	long ret;
-+	struct kernel_clone_args args = {
-+		.exit_signal	= SIGCHLD,
-+		/* Reuse the parent's stack for the child. */
-+		.stack		= regs->u_regs[UREG_FP],
-+	};
-+
-+	ret = _do_fork(&args);
-+
-+	/* If we get an error and potentially restart the system
-+	 * call, we're screwed because copy_thread_tls() clobbered
-+	 * the parent's %o1.  So detect that case and restore it
-+	 * here.
-+	 */
-+	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
-+		regs->u_regs[UREG_I1] = orig_i1;
-+
-+	return ret;
-+}
-+
-+asmlinkage long sparc_vfork(struct pt_regs *regs)
-+{
-+	unsigned long orig_i1 = regs->u_regs[UREG_I1];
-+	long ret;
-+
-+	struct kernel_clone_args args = {
-+		.flags		= CLONE_VFORK | CLONE_VM,
-+		.exit_signal	= SIGCHLD,
-+		/* Reuse the parent's stack for the child. */
-+		.stack		= regs->u_regs[UREG_FP],
-+	};
-+
-+	ret = _do_fork(&args);
-+
-+	/* If we get an error and potentially restart the system
-+	 * call, we're screwed because copy_thread_tls() clobbered
-+	 * the parent's %o1.  So detect that case and restore it
-+	 * here.
-+	 */
-+	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
-+		regs->u_regs[UREG_I1] = orig_i1;
-+
-+	return ret;
-+}
-+
-+asmlinkage long sparc_clone(struct pt_regs *regs)
-+{
-+	unsigned long orig_i1 = regs->u_regs[UREG_I1];
-+	unsigned int flags = lower_32_bits(regs->u_regs[UREG_I0]);
-+	long ret;
-+
-+	struct kernel_clone_args args = {
-+		.flags		= (flags & ~CSIGNAL),
-+		.exit_signal	= (flags & CSIGNAL),
-+		.tls		= regs->u_regs[UREG_I3],
-+	};
-+
-+#ifdef CONFIG_COMPAT
-+	if (test_thread_flag(TIF_32BIT)) {
-+		args.pidfd	= compat_ptr(regs->u_regs[UREG_I2]);
-+		args.child_tid	= compat_ptr(regs->u_regs[UREG_I4]);
-+		args.parent_tid	= compat_ptr(regs->u_regs[UREG_I2]);
-+	} else
-+#endif
-+	{
-+		args.pidfd	= (int __user *)regs->u_regs[UREG_I2];
-+		args.child_tid	= (int __user *)regs->u_regs[UREG_I4];
-+		args.parent_tid	= (int __user *)regs->u_regs[UREG_I2];
-+	}
-+
-+	/* Did userspace give setup a separate stack for the child or are we
-+	 * reusing the parent's?
-+	 */
-+	if (regs->u_regs[UREG_I1])
-+		args.stack = regs->u_regs[UREG_I1];
-+	else
-+		args.stack = regs->u_regs[UREG_FP];
-+
-+	ret = _do_fork(&args);
-+
-+	/* If we get an error and potentially restart the system
-+	 * call, we're screwed because copy_thread_tls() clobbered
-+	 * the parent's %o1.  So detect that case and restore it
-+	 * here.
-+	 */
-+	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
-+		regs->u_regs[UREG_I1] = orig_i1;
-+
-+	return ret;
-+}
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 13cb5638fab8..229a10bab74a 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -257,33 +257,6 @@ clone_stackframe(struct sparc_stackf __user *dst,
- 	return sp;
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index dc7b87310c10..5e878a3c7c57 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2093,51 +2093,11 @@ static inline pud_t *pud_alloc(struct mm_struct *mm, p4d_t *p4d,
+ 		NULL : pud_offset(p4d, address);
  }
  
--asmlinkage int sparc_do_fork(unsigned long clone_flags,
--                             unsigned long stack_start,
--                             struct pt_regs *regs,
--                             unsigned long stack_size)
+-static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
+-				     unsigned long address,
+-				     pgtbl_mod_mask *mod_mask)
+-
 -{
--	unsigned long parent_tid_ptr, child_tid_ptr;
--	unsigned long orig_i1 = regs->u_regs[UREG_I1];
--	long ret;
--
--	parent_tid_ptr = regs->u_regs[UREG_I2];
--	child_tid_ptr = regs->u_regs[UREG_I4];
--
--	ret = do_fork(clone_flags, stack_start, stack_size,
--		      (int __user *) parent_tid_ptr,
--		      (int __user *) child_tid_ptr);
--
--	/* If we get an error and potentially restart the system
--	 * call, we're screwed because copy_thread() clobbered
--	 * the parent's %o1.  So detect that case and restore it
--	 * here.
--	 */
--	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
--		regs->u_regs[UREG_I1] = orig_i1;
--
--	return ret;
--}
--
- /* Copy a Sparc thread.  The fork() return value conventions
-  * under SunOS are nothing short of bletcherous:
-  * Parent -->  %o0 = childs  pid, %o1 = 0
-diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
-index 8c400fca4e9f..278bf287c4be 100644
---- a/arch/sparc/kernel/process_64.c
-+++ b/arch/sparc/kernel/process_64.c
-@@ -572,100 +572,6 @@ void fault_in_user_windows(struct pt_regs *regs)
- 	force_sig(SIGSEGV);
- }
- 
--asmlinkage long sparc_fork(struct pt_regs *regs)
--{
--	unsigned long orig_i1 = regs->u_regs[UREG_I1];
--	long ret;
--	struct kernel_clone_args args = {
--		.exit_signal	= SIGCHLD,
--		/* Reuse the parent's stack for the child. */
--		.stack		= regs->u_regs[UREG_FP],
--	};
--
--	ret = _do_fork(&args);
--
--	/* If we get an error and potentially restart the system
--	 * call, we're screwed because copy_thread_tls() clobbered
--	 * the parent's %o1.  So detect that case and restore it
--	 * here.
--	 */
--	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
--		regs->u_regs[UREG_I1] = orig_i1;
--
--	return ret;
--}
--
--asmlinkage long sparc_vfork(struct pt_regs *regs)
--{
--	unsigned long orig_i1 = regs->u_regs[UREG_I1];
--	long ret;
--
--	struct kernel_clone_args args = {
--		.flags		= CLONE_VFORK | CLONE_VM,
--		.exit_signal	= SIGCHLD,
--		/* Reuse the parent's stack for the child. */
--		.stack		= regs->u_regs[UREG_FP],
--	};
--
--	ret = _do_fork(&args);
--
--	/* If we get an error and potentially restart the system
--	 * call, we're screwed because copy_thread_tls() clobbered
--	 * the parent's %o1.  So detect that case and restore it
--	 * here.
--	 */
--	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
--		regs->u_regs[UREG_I1] = orig_i1;
--
--	return ret;
--}
--
--asmlinkage long sparc_clone(struct pt_regs *regs)
--{
--	unsigned long orig_i1 = regs->u_regs[UREG_I1];
--	unsigned int flags = lower_32_bits(regs->u_regs[UREG_I0]);
--	long ret;
--
--	struct kernel_clone_args args = {
--		.flags		= (flags & ~CSIGNAL),
--		.exit_signal	= (flags & CSIGNAL),
--		.tls		= regs->u_regs[UREG_I3],
--	};
--
--#ifdef CONFIG_COMPAT
--	if (test_thread_flag(TIF_32BIT)) {
--		args.pidfd	= compat_ptr(regs->u_regs[UREG_I2]);
--		args.child_tid	= compat_ptr(regs->u_regs[UREG_I4]);
--		args.parent_tid	= compat_ptr(regs->u_regs[UREG_I2]);
--	} else
--#endif
--	{
--		args.pidfd	= (int __user *)regs->u_regs[UREG_I2];
--		args.child_tid	= (int __user *)regs->u_regs[UREG_I4];
--		args.parent_tid	= (int __user *)regs->u_regs[UREG_I2];
+-	if (unlikely(pgd_none(*pgd))) {
+-		if (__p4d_alloc(mm, pgd, address))
+-			return NULL;
+-		*mod_mask |= PGTBL_PGD_MODIFIED;
 -	}
 -
--	/* Did userspace setup a separate stack for the child or are we
--	 * copying the parent's?
--	 */
--	if (regs->u_regs[UREG_I1])
--		args.stack = regs->u_regs[UREG_I1];
--	else
--		args.stack = regs->u_regs[UREG_FP];
--
--	ret = _do_fork(&args);
--
--	/* If we get an error and potentially restart the system
--	 * call, we're screwed because copy_thread_tls() clobbered
--	 * the parent's %o1.  So detect that case and restore it
--	 * here.
--	 */
--	if ((unsigned long)ret >= -ERESTART_RESTARTBLOCK)
--		regs->u_regs[UREG_I1] = orig_i1;
--
--	return ret;
+-	return p4d_offset(pgd, address);
 -}
 -
- /* Copy a Sparc thread.  The fork() return value conventions
-  * under SunOS are nothing short of bletcherous:
-  * Parent -->  %o0 = childs  pid, %o1 = 0
+-static inline pud_t *pud_alloc_track(struct mm_struct *mm, p4d_t *p4d,
+-				     unsigned long address,
+-				     pgtbl_mod_mask *mod_mask)
+-{
+-	if (unlikely(p4d_none(*p4d))) {
+-		if (__pud_alloc(mm, p4d, address))
+-			return NULL;
+-		*mod_mask |= PGTBL_P4D_MODIFIED;
+-	}
+-
+-	return pud_offset(p4d, address);
+-}
+-
+ static inline pmd_t *pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address)
+ {
+ 	return (unlikely(pud_none(*pud)) && __pmd_alloc(mm, pud, address))?
+ 		NULL: pmd_offset(pud, address);
+ }
+-
+-static inline pmd_t *pmd_alloc_track(struct mm_struct *mm, pud_t *pud,
+-				     unsigned long address,
+-				     pgtbl_mod_mask *mod_mask)
+-{
+-	if (unlikely(pud_none(*pud))) {
+-		if (__pmd_alloc(mm, pud, address))
+-			return NULL;
+-		*mod_mask |= PGTBL_PUD_MODIFIED;
+-	}
+-
+-	return pmd_offset(pud, address);
+-}
+ #endif /* CONFIG_MMU */
+ 
+ #if USE_SPLIT_PTE_PTLOCKS
+@@ -2253,11 +2213,6 @@ static inline void pgtable_pte_page_dtor(struct page *page)
+ 	((unlikely(pmd_none(*(pmd))) && __pte_alloc_kernel(pmd))? \
+ 		NULL: pte_offset_kernel(pmd, address))
+ 
+-#define pte_alloc_kernel_track(pmd, address, mask)			\
+-	((unlikely(pmd_none(*(pmd))) &&					\
+-	  (__pte_alloc_kernel(pmd) || ({*(mask)|=PGTBL_PMD_MODIFIED;0;})))?\
+-		NULL: pte_offset_kernel(pmd, address))
+-
+ #if USE_SPLIT_PMD_PTLOCKS
+ 
+ static struct page *pmd_to_page(pmd_t *pmd)
+diff --git a/mm/ioremap.c b/mm/ioremap.c
+index 5ee3526f71b8..5fa1ab41d152 100644
+--- a/mm/ioremap.c
++++ b/mm/ioremap.c
+@@ -13,6 +13,8 @@
+ #include <linux/export.h>
+ #include <asm/cacheflush.h>
+ 
++#include "pgalloc-track.h"
++
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+ static int __read_mostly ioremap_p4d_capable;
+ static int __read_mostly ioremap_pud_capable;
+diff --git a/mm/pgalloc-track.h b/mm/pgalloc-track.h
+new file mode 100644
+index 000000000000..1dcc865029a2
+--- /dev/null
++++ b/mm/pgalloc-track.h
+@@ -0,0 +1,51 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_PGALLLC_TRACK_H
++#define _LINUX_PGALLLC_TRACK_H
++
++#if defined(CONFIG_MMU)
++static inline p4d_t *p4d_alloc_track(struct mm_struct *mm, pgd_t *pgd,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(pgd_none(*pgd))) {
++		if (__p4d_alloc(mm, pgd, address))
++			return NULL;
++		*mod_mask |= PGTBL_PGD_MODIFIED;
++	}
++
++	return p4d_offset(pgd, address);
++}
++
++static inline pud_t *pud_alloc_track(struct mm_struct *mm, p4d_t *p4d,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(p4d_none(*p4d))) {
++		if (__pud_alloc(mm, p4d, address))
++			return NULL;
++		*mod_mask |= PGTBL_P4D_MODIFIED;
++	}
++
++	return pud_offset(p4d, address);
++}
++
++static inline pmd_t *pmd_alloc_track(struct mm_struct *mm, pud_t *pud,
++				     unsigned long address,
++				     pgtbl_mod_mask *mod_mask)
++{
++	if (unlikely(pud_none(*pud))) {
++		if (__pmd_alloc(mm, pud, address))
++			return NULL;
++		*mod_mask |= PGTBL_PUD_MODIFIED;
++	}
++
++	return pmd_offset(pud, address);
++}
++#endif /* CONFIG_MMU */
++
++#define pte_alloc_kernel_track(pmd, address, mask)			\
++	((unlikely(pmd_none(*(pmd))) &&					\
++	  (__pte_alloc_kernel(pmd) || ({*(mask)|=PGTBL_PMD_MODIFIED;0;})))?\
++		NULL: pte_offset_kernel(pmd, address))
++
++#endif /* _LINUX_PGALLLC_TRACK_H */
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 5a2b55c8dd9a..5be3cf3b59de 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -41,6 +41,7 @@
+ #include <asm/shmparam.h>
+ 
+ #include "internal.h"
++#include "pgalloc-track.h"
+ 
+ bool is_vmalloc_addr(const void *x)
+ {
 -- 
-2.27.0
+2.26.2
