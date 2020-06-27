@@ -1,48 +1,110 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Wed, 17 Jun 2020 12:14:06 +0000
-Subject: [PATCH] selftests: kvm: don't try to build kvm tests on sparc64 architecture
-Message-Id: <20200617121406.GA29692@yogzotot>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sat, 27 Jun 2020 14:34:48 +0000
+Subject: [PATCH 3/8] xtensa: switch to generic version of pte allocation
+Message-Id: <20200627143453.31835-4-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200627143453.31835-1-rppt@kernel.org>
+In-Reply-To: <20200627143453.31835-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kselftest@vger.kernel.org
-Cc: Jiri Kosina <trivial@kernel.org>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Abdul Haleem <abdhalee@linux.vnet.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Arnd Bergmann <arnd@arndb.de>, Christophe Leroy <christophe.leroy@csgroup.eu>, Joerg Roedel <joro@8bytes.org>, Max Filippov <jcmvbkbc@gmail.com>, Mike Rapoport <rppt@kernel.org>, Mike Rapoport <rppt@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Satheesh Rajendran <sathnaga@linux.vnet.ibm.com>, Stafford Horne <shorne@gmail.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Steven Rostedt <rostedt@goodmis.org>, linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.orglinux
 
-There's no support for KVM on sparc64, so don't try to build kvm tests.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-gcc -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99
--fno-stack-protector -fno-PIE -I../../../../tools/include
--I../../../../tools/arch/sparc64/include -I../../../../usr/include/
--Iinclude -Ilib -Iinclude/sparc64 -I..   -c lib/elf.c -o
-/1/mator/linux-2.6/tools/testing/selftests/kvm/lib/elf.o
-In file included from lib/elf.c:13:
-include/kvm_util.h:12:10: fatal error: asm/kvm.h: No such file or
-directory
-   12 | #include "asm/kvm.h"
-      |          ^~~~~~~~~~~
-compilation terminated.
+xtensa clears PTEs during allocation of the page tables and pte_clear()
+sets the PTE to a non-zero value. Splitting ptes_clear() helper out of
+pte_alloc_one() and pte_alloc_one_kernel() allows reuse of base generic
+allocation methods (__pte_alloc_one() and __pte_alloc_one_kernel()) and the
+common GFP mask for page table allocations.
 
-Signed-off-by: Anatoly Pugachev <matorola@gmail.com>
-CC: Jiri Kosina <trivial@kernel.org>
-CC: sparclinux@vger.kernel.org
+The pte_free() and pte_free_kernel() implementations on xtensa are
+identical to the generic ones and can be dropped.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 ---
- tools/testing/selftests/kvm/Makefile | 3 +++
- 1 file changed, 3 insertions(+)
+ arch/xtensa/include/asm/pgalloc.h | 41 ++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 22 deletions(-)
 
-diff --git a/tools/testing/selftests/kvm/Makefile b/tools/testing/selftests/kvm/Makefile
-index 4a166588d99f..00be52199cb9 100644
---- a/tools/testing/selftests/kvm/Makefile
-+++ b/tools/testing/selftests/kvm/Makefile
-@@ -32,6 +32,9 @@ endif
- ifeq ($(ARCH),s390)
- 	UNAME_M := s390x
- endif
-+ifeq ($(UNAME_M),sparc64)
-+$(error kvm selftests is not supported on sparc64)
-+endif
+diff --git a/arch/xtensa/include/asm/pgalloc.h b/arch/xtensa/include/asm/pgalloc.h
+index 1d38f0e755ba..60ee94b42850 100644
+--- a/arch/xtensa/include/asm/pgalloc.h
++++ b/arch/xtensa/include/asm/pgalloc.h
+@@ -8,9 +8,14 @@
+ #ifndef _XTENSA_PGALLOC_H
+ #define _XTENSA_PGALLOC_H
  
- LIBKVM = lib/assert.c lib/elf.c lib/io.c lib/kvm_util.c lib/sparsebit.c lib/test_util.c
- LIBKVM_x86_64 = lib/x86_64/processor.c lib/x86_64/vmx.c lib/x86_64/svm.c lib/x86_64/ucall.c
++#ifdef CONFIG_MMU
+ #include <linux/highmem.h>
+ #include <linux/slab.h>
+ 
++#define __HAVE_ARCH_PTE_ALLOC_ONE_KERNEL
++#define __HAVE_ARCH_PTE_ALLOC_ONE
++#include <asm-generic/pgalloc.h>
++
+ /*
+  * Allocating and freeing a pmd is trivial: the 1-entry pmd is
+  * inside the pgd, so has no extra memory associated with it.
+@@ -33,45 +38,37 @@ static inline void pgd_free(struct mm_struct *mm, pgd_t *pgd)
+ 	free_page((unsigned long)pgd);
+ }
+ 
++static inline void ptes_clear(pte_t *ptep)
++{
++	int i;
++
++	for (i = 0; i < PTRS_PER_PTE; i++)
++		pte_clear(NULL, 0, ptep + i);
++}
++
+ static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+ {
+ 	pte_t *ptep;
+-	int i;
+ 
+-	ptep = (pte_t *)__get_free_page(GFP_KERNEL);
++	ptep = (pte_t *)__pte_alloc_one_kernel(mm);
+ 	if (!ptep)
+ 		return NULL;
+-	for (i = 0; i < 1024; i++)
+-		pte_clear(NULL, 0, ptep + i);
++	ptes_clear(ptep);
+ 	return ptep;
+ }
+ 
+ static inline pgtable_t pte_alloc_one(struct mm_struct *mm)
+ {
+-	pte_t *pte;
+ 	struct page *page;
+ 
+-	pte = pte_alloc_one_kernel(mm);
+-	if (!pte)
+-		return NULL;
+-	page = virt_to_page(pte);
+-	if (!pgtable_pte_page_ctor(page)) {
+-		__free_page(page);
++	page = __pte_alloc_one(mm, GFP_PGTABLE_USER);
++	if (!page)
+ 		return NULL;
+-	}
++	ptes_clear(page_address(page));
+ 	return page;
+ }
+ 
+-static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+-{
+-	free_page((unsigned long)pte);
+-}
+-
+-static inline void pte_free(struct mm_struct *mm, pgtable_t pte)
+-{
+-	pgtable_pte_page_dtor(pte);
+-	__free_page(pte);
+-}
+ #define pmd_pgtable(pmd) pmd_page(pmd)
++#endif CONFIG_MMU
+ 
+ #endif /* _XTENSA_PGALLOC_H */
 -- 
-2.27.0
+2.26.2
