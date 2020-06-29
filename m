@@ -1,62 +1,24 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Sat, 27 Jun 2020 07:27:02 +0000
-Subject: [PATCH 3/5] exec: cleanup the count() function
-Message-Id: <20200627072704.2447163-4-hch@lst.de>
+From: " Mrs. Victoria Alexander  " <wo17995@gmail.com>
+Date: Mon, 29 Jun 2020 17:31:45 +0000
+Subject: Hello,
+Message-Id: <CAP9gN4ePnHSmUB6XvKwq53uCvQ+q-gXcgOaVcyySfZWodZTP6g@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200627072704.2447163-1-hch@lst.de>
-In-Reply-To: <20200627072704.2447163-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>, Luis Chamberlain <mcgrof@kernel.org>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-Remove the max argument as it is hard wired to MAX_ARG_STRINGS, and
-give the function a slightly less generic name.
+Dear friend,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- fs/exec.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/fs/exec.c b/fs/exec.c
-index 4e5db0e35797a5..a5d91f8b1341d5 100644
---- a/fs/exec.c
-+++ b/fs/exec.c
-@@ -407,9 +407,9 @@ get_user_arg_ptr(const char __user *const __user *argv, int nr)
- }
- 
- /*
-- * count() counts the number of strings in array ARGV.
-+ * count_strings() counts the number of strings in array ARGV.
-  */
--static int count(const char __user *const __user *argv, int max)
-+static int count_strings(const char __user *const __user *argv)
- {
- 	int i = 0;
- 
-@@ -423,7 +423,7 @@ static int count(const char __user *const __user *argv, int max)
- 			if (IS_ERR(p))
- 				return -EFAULT;
- 
--			if (i >= max)
-+			if (i >= MAX_ARG_STRINGS)
- 				return -E2BIG;
- 			++i;
- 
-@@ -441,11 +441,11 @@ static int prepare_arg_pages(struct linux_binprm *bprm,
- {
- 	unsigned long limit, ptr_size;
- 
--	bprm->argc = count(argv, MAX_ARG_STRINGS);
-+	bprm->argc = count_strings(argv);
- 	if (bprm->argc < 0)
- 		return bprm->argc;
- 
--	bprm->envc = count(envp, MAX_ARG_STRINGS);
-+	bprm->envc = count_strings(envp);
- 	if (bprm->envc < 0)
- 		return bprm->envc;
- 
--- 
-2.26.2
+I have a business container transaction what that some of( $13million dollars)
+
+ I would like to discuss with you. If you are interested, please
+contact my email
+
+address (mrs.victoria.alexander2@gmail.com)
+
+My WhatsApp number but only message (+19293737780)
+
+Please do not reply if you are not ready
+Thanks
