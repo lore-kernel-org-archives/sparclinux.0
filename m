@@ -1,41 +1,53 @@
-From: "Mrs Aisha Al-Qaddafi" <alqaddafim06@gmail.com>
-Date: Tue, 09 Jun 2020 07:44:58 +0000
-Subject: Funds
-Message-Id: <z5tv66i0z70w-8qz$$x6$v@4y7mx0>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="30_2C_9D7.8.4.347A_FA6A"
+From: Peter Xu <peterx@redhat.com>
+Date: Tue, 30 Jun 2020 20:45:56 +0000
+Subject: [PATCH v4 21/26] mm/sparc64: Use general page fault accounting
+Message-Id: <20200630204556.39491-1-peterx@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <6f0252$92620@lwmyi90.gu5yqz>
-In-Reply-To: <6f0252$92620@lwmyi90.gu5yqz>
-To: sparclinux@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-mm@kvack.org, linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, peterx@redhat.com, John Hubbard <jhubbard@nvidia.com>, Michael Ellerman <mpe@ellerman.id.au>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Andrea Arcangeli <aarcange@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Will Deacon <will@kernel.org>, "David S . Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
+Use the general page fault accounting by passing regs into handle_mm_fault().
+It naturally solve the issue of multiple page fault accounting when page fault
+retry happened.
 
---30_2C_9D7.8.4.347A_FA6A
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+CC: David S. Miller <davem@davemloft.net>
+CC: sparclinux@vger.kernel.org
+Signed-off-by: Peter Xu <peterx@redhat.com>
+---
+ arch/sparc/mm/fault_64.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Assalamu Alaikum Wa Rahmatullahi Wa Barakatuh,
-
-My Dear Good Friend
-
-May i use this medium to open a mutual communication with you seeking your=
- acceptance towards investing in your country under your management as my =
-partner, My name is Aisha  Gaddafi and presently living in Oman, i am a Wi=
-dow and single Mother with three Children, the only biological
-Daughter of late Libyan President (Late Colonel Muammar Gaddafi) and prese=
-ntly i am under political asylum protection by the Omani Government..Pleas=
-e Reply me in my box. ( alqaddafim06@gmail.com)
-
-I have funds worth "Twenty Seven Million Five Hundred Thousand United Stat=
-e Dollars" -$27.500.000.00 US Dollars which i want to entrust on you for i=
-nvestment project in your country.If you are willing to handle this projec=
-t on my behalf, kindly reply urgent to enable me provide you more
-
-details to start the transfer process.
-I shall appreciate your urgent response through my email address below: (a=
-lqaddafim06@gmail.com)
+diff --git a/arch/sparc/mm/fault_64.c b/arch/sparc/mm/fault_64.c
+index 9ebee14ee893..0a6bcc85fba7 100644
+--- a/arch/sparc/mm/fault_64.c
++++ b/arch/sparc/mm/fault_64.c
+@@ -422,7 +422,7 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 			goto bad_area;
+ 	}
  
-Best Regards
-Mrs Aisha Al-Qaddafi
-
---30_2C_9D7.8.4.347A_FA6A--
+-	fault = handle_mm_fault(vma, address, flags, NULL);
++	fault = handle_mm_fault(vma, address, flags, regs);
+ 
+ 	if (fault_signal_pending(fault, regs))
+ 		goto exit_exception;
+@@ -438,15 +438,6 @@ asmlinkage void __kprobes do_sparc64_fault(struct pt_regs *regs)
+ 	}
+ 
+ 	if (flags & FAULT_FLAG_ALLOW_RETRY) {
+-		if (fault & VM_FAULT_MAJOR) {
+-			current->maj_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ,
+-				      1, regs, address);
+-		} else {
+-			current->min_flt++;
+-			perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN,
+-				      1, regs, address);
+-		}
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags |= FAULT_FLAG_TRIED;
+ 
+-- 
+2.26.2
