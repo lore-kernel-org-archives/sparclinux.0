@@ -1,74 +1,33 @@
-From: Baoquan He <bhe@redhat.com>
-Date: Tue, 28 Jul 2020 14:23:48 +0000
-Subject: Re: [PATCH 14/15] x86/numa: remove redundant iteration over memblock.reserved
-Message-Id: <20200728142348.GE10792@MiWiFi-R3L-srv>
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Thu, 02 Jul 2020 13:02:53 +0000
+Subject: [PATCH] sparc: sparc64_defconfig: add necessary configs for qemu
+Message-Id: <1593694973-34113-1-git-send-email-clabbe@baylibre.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200728051153.1590-1-rppt@kernel.org>
- <20200728051153.1590-15-rppt@kernel.org>
- <20200728110254.GA14854@MiWiFi-R3L-srv>
- <20200728141504.GC3655207@kernel.org>
-In-Reply-To: <20200728141504.GC3655207@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Stafford Horne <shorne@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 
-On 07/28/20 at 05:15pm, Mike Rapoport wrote:
-> On Tue, Jul 28, 2020 at 07:02:54PM +0800, Baoquan He wrote:
-> > On 07/28/20 at 08:11am, Mike Rapoport wrote:
-> > > From: Mike Rapoport <rppt@linux.ibm.com>
-> > > 
-> > > numa_clear_kernel_node_hotplug() function first traverses numa_meminfo
-> > > regions to set node ID in memblock.reserved and than traverses
-> > > memblock.reserved to update reserved_nodemask to include node IDs that were
-> > > set in the first loop.
-> > > 
-> > > Remove redundant traversal over memblock.reserved and update
-> > > reserved_nodemask while iterating over numa_meminfo.
-> > > 
-> > > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > > ---
-> > >  arch/x86/mm/numa.c | 26 ++++++++++----------------
-> > >  1 file changed, 10 insertions(+), 16 deletions(-)
-> > > 
-> > > diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> > > index 8ee952038c80..4078abd33938 100644
-> > > --- a/arch/x86/mm/numa.c
-> > > +++ b/arch/x86/mm/numa.c
-> > > @@ -498,31 +498,25 @@ static void __init numa_clear_kernel_node_hotplug(void)
-> > >  	 * and use those ranges to set the nid in memblock.reserved.
-> > >  	 * This will split up the memblock regions along node
-> > >  	 * boundaries and will set the node IDs as well.
-> > > +	 *
-> > > +	 * The nid will also be set in reserved_nodemask which is later
-> > > +	 * used to clear MEMBLOCK_HOTPLUG flag.
-> > > +	 *
-> > > +	 * [ Note, when booting with mem=nn[kMG] or in a kdump kernel,
-> > > +	 *   numa_meminfo might not include all memblock.reserved
-> > > +	 *   memory ranges, because quirks such as trim_snb_memory()
-> > > +	 *   reserve specific pages for Sandy Bridge graphics.
-> > > +	 *   These ranges will remain with nid = MAX_NUMNODES. ]
-> > >  	 */
-> > >  	for (i = 0; i < numa_meminfo.nr_blks; i++) {
-> > >  		struct numa_memblk *mb = numa_meminfo.blk + i;
-> > >  		int ret;
-> > >  
-> > >  		ret = memblock_set_node(mb->start, mb->end - mb->start, &memblock.reserved, mb->nid);
-> > > +		node_set(mb->nid, reserved_nodemask);
-> > 
-> > Really? This will set all node id into reserved_nodemask. But in the
-> > current code, it's setting nid into memblock reserved region which
-> > interleaves with numa_memoinfo, then get those nid and set it in
-> > reserved_nodemask. This is so different, with my understanding. Please
-> > correct me if I am wrong.
-> 
-> You are right, I've missed the intersections of numa_meminfo with
-> memblock.reserved.
-> 
-> x86 interaction with membock is so, hmm, interesting...
+The sparc64 qemu machines uses pcnet32 network hardware by default, so for
+simple boot testing using qemu, having PCNET32 is useful.
+Same for its storage which is a PATA_CMD64.
 
-Yeah, numa_clear_kernel_node_hotplug() intends to find out any memory node
-which has reserved memory, then make it as unmovable. Setting all node
-id into reserved_nodemask will break the use case of hot removing hotpluggable
-boot memory after system bootup.
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ arch/sparc/configs/sparc64_defconfig | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index bde4d21a8ac8..61073f48a7a1 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -236,3 +236,6 @@ CONFIG_CRYPTO_TWOFISH=m
+ CONFIG_CRC16=m
+ CONFIG_LIBCRC32C=m
+ CONFIG_VCC=m
++CONFIG_ATA=y
++CONFIG_PATA_CMD64X=y
++CONFIG_PCNET32=y
+-- 
+2.26.2
