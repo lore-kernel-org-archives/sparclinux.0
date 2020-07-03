@@ -1,105 +1,137 @@
-From: Nicholas Piggin <npiggin@gmail.com>
-Date: Tue, 28 Jul 2020 03:34:01 +0000
-Subject: [PATCH 20/24] sparc: use asm-generic/mmu_context.h for no-op implementations
-Message-Id: <20200728033405.78469-21-npiggin@gmail.com>
+From: Valentin Schneider <valentin.schneider@arm.com>
+Date: Fri, 03 Jul 2020 15:56:45 +0000
+Subject: [PATCH 2/2] genirq: Remove preflow handler support
+Message-Id: <20200703155645.29703-3-valentin.schneider@arm.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200728033405.78469-1-npiggin@gmail.com>
-In-Reply-To: <20200728033405.78469-1-npiggin@gmail.com>
+References: <20200703155645.29703-1-valentin.schneider@arm.com>
+In-Reply-To: <20200703155645.29703-1-valentin.schneider@arm.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Marc Zyngier <maz@kernel.org>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+That was put in place for sparc64, and blackfin also used it for some time;
+sparc64 no longer uses those, and blackfin is dead.
+
+As there are no more users, remove preflow handlers.
+
+Signed-off-by: Valentin Schneider <valentin.schneider@arm.com>
 ---
- arch/sparc/include/asm/mmu_context_32.h | 10 ++++------
- arch/sparc/include/asm/mmu_context_64.h | 10 +++++-----
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ include/linux/irqdesc.h    | 15 ---------------
+ include/linux/irqhandler.h |  1 -
+ kernel/irq/Kconfig         |  4 ----
+ kernel/irq/chip.c          | 13 -------------
+ 4 files changed, 33 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mmu_context_32.h b/arch/sparc/include/asm/mmu_context_32.h
-index 7ddcb8badf70..509043f81560 100644
---- a/arch/sparc/include/asm/mmu_context_32.h
-+++ b/arch/sparc/include/asm/mmu_context_32.h
-@@ -6,13 +6,10 @@
- 
- #include <asm-generic/mm_hooks.h>
- 
--static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
--{
--}
--
- /* Initialize a new mmu context.  This is invoked when a new
-  * address space instance (unique or shared) is instantiated.
-  */
-+#define init_new_context init_new_context
- int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
- 
- /* Destroy a dead context.  This occurs when mmput drops the
-@@ -20,17 +17,18 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
-  * all the page tables have been flushed.  Our job is to destroy
-  * any remaining processor-specific state.
-  */
-+#define destroy_context destroy_context
- void destroy_context(struct mm_struct *mm);
- 
- /* Switch the current MM context. */
- void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
- 	       struct task_struct *tsk);
- 
--#define deactivate_mm(tsk,mm)	do { } while (0)
--
- /* Activate a new MM instance for the current task. */
- #define activate_mm(active_mm, mm) switch_mm((active_mm), (mm), NULL)
- 
-+#include <asm-generic/mmu_context.h>
-+
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC_MMU_CONTEXT_H) */
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 312fcee8df2b..7a8380c63aab 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -16,17 +16,16 @@
- #include <asm-generic/mm_hooks.h>
- #include <asm/percpu.h>
- 
--static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
--{
--}
--
- extern spinlock_t ctx_alloc_lock;
- extern unsigned long tlb_context_cache;
- extern unsigned long mmu_context_bmap[];
- 
- DECLARE_PER_CPU(struct mm_struct *, per_cpu_secondary_mm);
- void get_new_mmu_context(struct mm_struct *mm);
-+
-+#define init_new_context init_new_context
- int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
-+#define destroy_context destroy_context
- void destroy_context(struct mm_struct *mm);
- 
- void __tsb_context_switch(unsigned long pgd_pa,
-@@ -136,7 +135,6 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
- 	spin_unlock_irqrestore(&mm->context.lock, flags);
- }
- 
--#define deactivate_mm(tsk,mm)	do { } while (0)
- #define activate_mm(active_mm, mm) switch_mm(active_mm, mm, NULL)
- 
- #define  __HAVE_ARCH_START_CONTEXT_SWITCH
-@@ -187,6 +185,8 @@ static inline void finish_arch_post_lock_switch(void)
+diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
+index 8f2820c5e69e..5745491303e0 100644
+--- a/include/linux/irqdesc.h
++++ b/include/linux/irqdesc.h
+@@ -22,7 +22,6 @@ struct pt_regs;
+  * @irq_common_data:	per irq and chip data passed down to chip functions
+  * @kstat_irqs:		irq stats per cpu
+  * @handle_irq:		highlevel irq-events handler
+- * @preflow_handler:	handler called before the flow handler (currently used by sparc)
+  * @action:		the irq action chain
+  * @status_use_accessors: status information
+  * @core_internal_state__do_not_mess_with_it: core internal status information
+@@ -58,9 +57,6 @@ struct irq_desc {
+ 	struct irq_data		irq_data;
+ 	unsigned int __percpu	*kstat_irqs;
+ 	irq_flow_handler_t	handle_irq;
+-#ifdef CONFIG_IRQ_PREFLOW_FASTEOI
+-	irq_preflow_handler_t	preflow_handler;
+-#endif
+ 	struct irqaction	*action;	/* IRQ action list */
+ 	unsigned int		status_use_accessors;
+ 	unsigned int		core_internal_state__do_not_mess_with_it;
+@@ -268,15 +264,4 @@ irq_set_lockdep_class(unsigned int irq, struct lock_class_key *lock_class,
  	}
  }
  
-+#include <asm-generic/mmu_context.h>
-+
- #endif /* !(__ASSEMBLY__) */
+-#ifdef CONFIG_IRQ_PREFLOW_FASTEOI
+-static inline void
+-__irq_set_preflow_handler(unsigned int irq, irq_preflow_handler_t handler)
+-{
+-	struct irq_desc *desc;
+-
+-	desc = irq_to_desc(irq);
+-	desc->preflow_handler = handler;
+-}
+-#endif
+-
+ #endif
+diff --git a/include/linux/irqhandler.h b/include/linux/irqhandler.h
+index 1e6f4e7123d6..c30f454a9518 100644
+--- a/include/linux/irqhandler.h
++++ b/include/linux/irqhandler.h
+@@ -10,6 +10,5 @@
+ struct irq_desc;
+ struct irq_data;
+ typedef	void (*irq_flow_handler_t)(struct irq_desc *desc);
+-typedef	void (*irq_preflow_handler_t)(struct irq_data *data);
  
- #endif /* !(__SPARC64_MMU_CONTEXT_H) */
+ #endif
+diff --git a/kernel/irq/Kconfig b/kernel/irq/Kconfig
+index d63c324895ea..58f0e996a2c3 100644
+--- a/kernel/irq/Kconfig
++++ b/kernel/irq/Kconfig
+@@ -51,10 +51,6 @@ config GENERIC_IRQ_INJECTION
+ config HARDIRQS_SW_RESEND
+        bool
+ 
+-# Preflow handler support for fasteoi (sparc64)
+-config IRQ_PREFLOW_FASTEOI
+-       bool
+-
+ # Edge style eoi based handler (cell)
+ config IRQ_EDGE_EOI_HANDLER
+        bool
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index 41e7e37a0928..75bbaa8b38f1 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -656,16 +656,6 @@ void handle_level_irq(struct irq_desc *desc)
+ }
+ EXPORT_SYMBOL_GPL(handle_level_irq);
+ 
+-#ifdef CONFIG_IRQ_PREFLOW_FASTEOI
+-static inline void preflow_handler(struct irq_desc *desc)
+-{
+-	if (desc->preflow_handler)
+-		desc->preflow_handler(&desc->irq_data);
+-}
+-#else
+-static inline void preflow_handler(struct irq_desc *desc) { }
+-#endif
+-
+ static void cond_unmask_eoi_irq(struct irq_desc *desc, struct irq_chip *chip)
+ {
+ 	if (!(desc->istate & IRQS_ONESHOT)) {
+@@ -721,7 +711,6 @@ void handle_fasteoi_irq(struct irq_desc *desc)
+ 	if (desc->istate & IRQS_ONESHOT)
+ 		mask_irq(desc);
+ 
+-	preflow_handler(desc);
+ 	handle_irq_event(desc);
+ 
+ 	cond_unmask_eoi_irq(desc, chip);
+@@ -1231,7 +1220,6 @@ void handle_fasteoi_ack_irq(struct irq_desc *desc)
+ 	/* Start handling the irq */
+ 	desc->irq_data.chip->irq_ack(&desc->irq_data);
+ 
+-	preflow_handler(desc);
+ 	handle_irq_event(desc);
+ 
+ 	cond_unmask_eoi_irq(desc, chip);
+@@ -1281,7 +1269,6 @@ void handle_fasteoi_mask_irq(struct irq_desc *desc)
+ 	if (desc->istate & IRQS_ONESHOT)
+ 		mask_irq(desc);
+ 
+-	preflow_handler(desc);
+ 	handle_irq_event(desc);
+ 
+ 	cond_unmask_eoi_irq(desc, chip);
 -- 
-2.23.0
+2.27.0
