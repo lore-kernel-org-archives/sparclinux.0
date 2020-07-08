@@ -1,31 +1,41 @@
-From: ''Tayeb@vger.kernel.org, Souami''@vger.kernel.org
-Date: Fri, 24 Jul 2020 10:48:25 +0000
-Subject: =?utf-8?q?Covid_19_Wohlt=C3=A4tigkeitsfonds?=
-Message-Id: <4739febd-9da0-438b-948c-8327ff41d951@CRONOS2.itam.mx>
+From: Eric Biggers <ebiggers@kernel.org>
+Date: Wed, 08 Jul 2020 16:39:38 +0000
+Subject: [PATCH v2 0/5] crypto: add sha256() function
+Message-Id: <20200708163943.52071-1-ebiggers@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <f755460c-a6ba-485d-9306-e6205fd60ba1@CRONOS2.itam.mx>
-In-Reply-To: <f755460c-a6ba-485d-9306-e6205fd60ba1@CRONOS2.itam.mx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-crypto@vger.kernel.org, Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Enric Balletbo i Serra <enric.balletbo@collabora.com>, alsa-devel@alsa-project.org, linux-efi@vger.kernel.org, Tzung-Bi Shih <tzungbi@google.com>, Mat Martineau <mathew.j.martineau@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>, sparclinux@vger.kernel.org, Matthieu Baerts <matthieu.baerts@tessares.net>, Guenter Roeck <groeck@chromium.org>, mptcp@lists.01.org, Ard Biesheuvel <ardb@kernel.org>, Cheng-Yi Chiang <cychiang@chromium.org>
 
-Hallo
+This series adds a function sha256() to the sha256 library so that users
+who want to compute a hash in one step can just call sha256() instead of
+sha256_init() + sha256_update() + sha256_final().
 
-Ich bin Charles W. Jackson aus North Carolina, Vereinigte Staaten von Ameri=
-ka, und ich bin der Gewinner des Mega-Millionen-Jackpots von 344 Millionen =
-US-Dollar. Ich spende die Summe von 2.000.000 Millionen Euro als Teil der H=
-ilfsgelder f=FCr das Corona-Virus.
+Patches 3-5 then convert some users to use it.
 
-Dies ist Ihr Spendencode: [CJ530342019]
+Changed v1 => v2:
+  - Added sparc patch to fix a build breakage caused by a
+    static variable already named "sha256".
+  - Added Reviewed-by, Acked-by, and Tested-by tags.
 
-www.youtube.com/watch?v=3DBSr8myiLPMQ
+Eric Biggers (5):
+  crypto: sparc - rename sha256 to sha256_alg
+  crypto: lib/sha256 - add sha256() function
+  efi: use sha256() instead of open coding
+  mptcp: use sha256() instead of open coding
+  ASoC: cros_ec_codec: use sha256() instead of open coding
 
-Bitte antworten Sie auf diese E-Mail mit dem SPENDERCODE:
+ arch/sparc/crypto/sha256_glue.c          | 14 ++++++------
+ drivers/firmware/efi/embedded-firmware.c |  9 +++-----
+ include/crypto/sha.h                     |  1 +
+ lib/crypto/sha256.c                      | 10 +++++++++
+ net/mptcp/crypto.c                       | 15 +++----------
+ sound/soc/codecs/cros_ec_codec.c         | 27 ++----------------------
+ 6 files changed, 26 insertions(+), 50 deletions(-)
 
-charlesjacksonjr001@gmail.com
 
-Ich hoffe, dass Sie und Ihre Familie dies durchkommen
-
-
-Herr Charles Jackson
+base-commit: 57c8aa43b9f272c382c253573c82be5cb68fe22d
+-- 
+2.27.0
