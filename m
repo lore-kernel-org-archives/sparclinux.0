@@ -1,7 +1,7 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 14 Jul 2020 22:01:56 +0000
+From: Rob Herring <robh@kernel.org>
+Date: Tue, 14 Jul 2020 23:14:13 +0000
 Subject: Re: [RFC PATCH 00/35] Move all PCIBIOS* definitions into arch/x86
-Message-Id: <CAK8P3a3EZX8=649R9cYF6_=ivh1Xyrgsc5mUtS=d5yvQ3doZaQ@mail.gmail.com>
+Message-Id: <CAL_JsqL21k8wyxfGfVdwz0jBEVME5b+rvLrwF4waZeiHZkuvhA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CAK8P3a3NWSZw6678k1O2eJ6-c5GuW7484PRvEzU9MEPPrCD-yw@mail.gmail.com>
  <20200714184550.GA397277@bjorn-Precision-5520>
@@ -9,12 +9,52 @@ In-Reply-To: <20200714184550.GA397277@bjorn-Precision-5520>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Keith Busch <kbusch@kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Greg Ungerer <gerg@linux-m68k.org>, Marek Vasut <marek.vasut+renesas@gmail.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Christoph Hellwig <hch@lst.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@baylibre.com>, linux-pci <linux-pci@vger.kernel.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-kernel-mentees@lists.linuxfoundation.org, Guenter Roeck <linux@roeck-us.net>, Ray Jui <rjui@broadcom.com>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "Saheed O. Bolarinwa" <refactormyself@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
+To: Bjorn Helgaas <helgaas@kernel.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Keith Busch <kbusch@kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Greg Ungerer <gerg@linux-m68k.org>, Marek Vasut <marek.vasut+renesas@gmail.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Christoph Hellwig <hch@lst.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@baylibre.com>, linux-pci <linux-pci@vger.kernel.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-kernel-mentees@lists.linuxfoundation.org, Guenter Roeck <linux@roeck-us.net>, Ray Jui <rjui@broadcom.com>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "Saheed O. Bolarinwa" <refactormyself@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
 
-On Tue, Jul 14, 2020 at 8:45 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+On Tue, Jul 14, 2020 at 12:45 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
+>
+> [trimmed the cc list; it's still too large but maybe arch folks care]
+>
 > On Mon, Jul 13, 2020 at 05:08:10PM +0200, Arnd Bergmann wrote:
 > > On Mon, Jul 13, 2020 at 3:22 PM Saheed O. Bolarinwa
+> > <refactormyself@gmail.com> wrote:
+> > > This goal of these series is to move the definition of *all*
+> > > PCIBIOS* from include/linux/pci.h to arch/x86 and limit their use
+> > > within there.  All other tree specific definition will be left for
+> > > intact. Maybe they can be renamed.
+> > >
+> > > PCIBIOS* is an x86 concept as defined by the PCI spec. The
+> > > returned error codes of PCIBIOS* are positive values and this
+> > > introduces some complexities which other archs need not incur.
+> >
+> > I think the intention is good, but I find the series in its current
+> > form very hard to review, in particular the way you touch some
+> > functions three times with trivial changes. Instead of
+> >
+> > 1) replace PCIBIOS_SUCCESSFUL with 0
+> > 2) drop pointless 0-comparison
+> > 3) reformat whitespace
+> >
+> > I would suggest to combine the first two steps into one patch per
+> > subsystem and drop the third step.
+>
+> I agree.  BUT please don't just run out and post new patches to do
+> this.  Let's talk about Arnd's further ideas below first.
+>
+> > ...
+> > Maybe the work can be split up differently, with a similar end
+> > result but fewer and easier reviewed patches. The way I'd look at
+> > the problem, there are three main areas that can be dealt with one
+> > at a time:
+> >
+> > a) callers of the high-level config space accessors
+> >    pci_{write,read}_config_{byte,word,dword}, mostly in device
+> >    drivers.
+> > b) low-level implementation of the config space accessors
+> >     through struct pci_ops
+> > c) all other occurrences of these constants
+> >
 > > Starting with a), my first question is whether any high-level
 > > drivers even need to care about errors from these functions. I see
 > > 4913 callers that ignore the return code, and 576 that actually
@@ -42,11 +82,7 @@ On Tue, Jul 14, 2020 at 8:45 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
 > Checking the function return value catches programming errors (bad
 > alignment, etc) but misses most of the interesting errors (device was
 > unplugged or reported a PCI error).
-
-My thinking was more that most of the time the error checking may
-be completely bogus to start with, and I would just not check for
-errors at all.
-
+>
 > Checking the value returned from PCI is tricky because ~0 is a valid
 > value for some config registers, and only the driver knows for sure.
 > If the driver knows that ~0 is a possible value, it would have to do
@@ -89,74 +125,41 @@ errors at all.
 >   }
 >
 > Am I understanding you correctly?
+>
+> > For b), it might be nice to also change other aspects of the
+> > interface, e.g. passing a pci_host_bridge pointer plus bus number
+> > instead of a pci_bus pointer, or having the callback in the
+> > pci_host_bridge structure.
+>
+> I like this idea a lot, too.  I think the fact that
+> pci_bus_read_config_word() requires a pci_bus * complicates things in
+> a few places.
 
-That would require changing all callers of the function, which
-I think would involve changing some 700 files. What I was
-suggesting was to only change the return type to void and
-categorize all drivers that today check it as either
+I've been looking at the various host implementations of config
+accessors as well as probe functions. Needing the pci_bus pointer is a
+big reason why host drivers will have 2 sets of config accessors or
+don't use the generic ones. Often that's just for the root bus config
+space init before pci_host_probe() is called. Perhaps that's better
+addressed with a fixup hook for the host bridge? ftpci100i is a good
+example of this.
 
-a) checking the return code is not helpful, or possibly even
-    wrong, so we just stop doing it. I expect those to be the
-    vast majority of callers, but that could be wrong.
+The root bus accesses are often different from the rest of config
+space. Determining if an access is for the root bus or not is all over
+the map, but often involves a private bus number variable. I have a
+series to use pci_is_root_bus() instead and eliminate a bunch of bus
+number handling in the host drivers (I'm sure there's a bunch of hosts
+that would be broken if the root bus is not 0). The majority of hosts
+don't really need to know anything about the bus number. The more I've
+thought about it, it would be better if the PCI core handled this and
+picked the right ops to call. We already have several cases of host
+drivers with their own ops for this and we could eliminate several
+layers of indirection (looking at you, DWC). Any thoughts on direction
+here would be helpful.
 
-b) Code that legitimately check the error code and need to
-   take an appropriate action. These could be changed to
-   calling a different interface such as 'pci_bus_read_config_word'
-   or a new 'pci_device_last_error()' function.
+> I think it's completely separate, as you say, and we should defer it
+> for now because even part a) is a lot of work.  I added it to my list
+> of possible future projects.
 
-The reasons I suspect that most callers don't actually need
-to check for errors are:
+Got that published somewhere? :)
 
-- Most error checking is static: PCIBIOS_BAD_REGISTER_NUMBER
-  only happens if you pass an invalid register number, but most
-  callers pass a compile-time constant register number that is
-  known to be correct, or the driver would never work. Similarly,
-  PCIBIOS_DEVICE_NOT_FOUND wouldn't normally happen
-  since you pass a valid pci_device pointer that was already
-  probed.
-
-- config space accesses are very rare compared to memory
-  space access and on the hardware side the error handling
-  would be similar, but readl/writel don't return errors, they just
-  access wrong registers or return 0xffffffff.
-  arch/powerpc/kernel/eeh.c has a ton extra code written to
-  deal with it, but no other architectures do.
-
-- If we add code to detect errors in pci_read_config_*
-  and do some of the stuff from powerpc's
-  eeh_dev_check_failure(), we are more likely to catch
-  intermittent failures when drivers don't check, or bugs
-  with invalid arguments in device drivers than relying on
-  drivers to get their error handling right when those code
-  paths don't ever get covered in normal testing.
-
-Looking at a couple of random drivers that do check the
-return codes, I find:
-
-drivers/edac/amd8131_edac.c: prints the register number,
-then keeps going. This is not useful
-
-drivers/net/ethernet/mellanox/mlx4/reset.c: error handling
-in mlx4_reset() seems reasonable, but it gets called
-from mlx4_pci_resume(), which has a 'void' return code and
-cannot propagate the error further. My guess is that it
-would try to keep going after a failed resume and run into
-random other problems then.
-
-drivers/ata/pata_cs5536.c: error code gets passed to
-caller and then always ignored. Can clearly be changed
-
-drivers/net/wireless/intersil/prism54/islpci_hotplug.c:
-Out of two calls, only one is checked, which seems bogus
-
-drivers/usb/host/pci-quirks.c: only one of many instances
-has a check, again this seems bogus.
-
-drivers/leds/leds-ss4200.c: called from probe(), which
-seems to correctly deal with errors by failing the probe.
-Not sure this can ever fail though, since the driver only does
-it after pci_enable_device() succeeds first. Note that
-pci_enable_device() ignores pci_read_config_byte()
-errors but sanity-checks the register contents/
-
-        Arnd
+Rob
