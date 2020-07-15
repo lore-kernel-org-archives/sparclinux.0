@@ -1,70 +1,60 @@
-From: "Oliver O'Halloran" <oohall@gmail.com>
-Date: Wed, 15 Jul 2020 04:18:47 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 15 Jul 2020 06:47:17 +0000
 Subject: Re: [RFC PATCH 00/35] Move all PCIBIOS* definitions into arch/x86
-Message-Id: <CAOSf1CEviMYySQhyQGks8hHjST-85wGpxEBasuxwSX_homBJ2A@mail.gmail.com>
+Message-Id: <CAK8P3a3OEOosC2VEHb3z7hTA=BjVp0nv9bNxBWzEnmgSDDTX3Q@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a3NWSZw6678k1O2eJ6-c5GuW7484PRvEzU9MEPPrCD-yw@mail.gmail.com>
- <20200714184550.GA397277@bjorn-Precision-5520>
- <CAK8P3a3EZX8=649R9cYF6_=ivh1Xyrgsc5mUtS=d5yvQ3doZaQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a3EZX8=649R9cYF6_=ivh1Xyrgsc5mUtS=d5yvQ3doZaQ@mail.gmail.com>
+References: <CAK8P3a3EZX8=649R9cYF6_=ivh1Xyrgsc5mUtS=d5yvQ3doZaQ@mail.gmail.com>
+ <20200714234625.GA428442@bjorn-Precision-5520>
+In-Reply-To: <20200714234625.GA428442@bjorn-Precision-5520>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci <linux-pci@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Christoph Hellwig <hch@lst.de>, Marek Vasut <marek.vasut+renesas@gmail.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Kevin Hilman <khilman@baylibre.com>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Greg Ungerer <gerg@linux-m68k.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-kernel-mentees@lists.linuxfoundation.org, Guenter Roeck <linux@roeck-us.net>, Bjorn Helgaas <helgaas@kernel.org>, Ray Jui <rjui@broadcom.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Keith Busch <kbusch@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, "Saheed O. Bolarinwa" <refactormyself@gmail.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Keith Busch <kbusch@kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Kjetil Oftedal <oftedal@gmail.com>, Greg Ungerer <gerg@linux-m68k.org>, Marek Vasut <marek.vasut+renesas@gmail.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Michael Ellerman <mpe@ellerman.id.au>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Christoph Hellwig <hch@lst.de>, Geert Uytterhoeven <geert@linux-m68k.org>, Kevin Hilman <khilman@baylibre.com>, linux-pci <linux-pci@vger.kernel.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, linux-kernel-mentees@lists.linuxfoundation.org, Guenter Roeck <linux@roeck-us.net>, Ray Jui <rjui@broadcom.com>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "Saheed O. Bolarinwa" <refactormyself@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
 
-On Wed, Jul 15, 2020 at 8:03 AM Arnd Bergmann <arnd@arndb.de> wrote:
+On Wed, Jul 15, 2020 at 1:46 AM Bjorn Helgaas <helgaas@kernel.org> wrote:
+
+ So something like:
 >
-> - Most error checking is static: PCIBIOS_BAD_REGISTER_NUMBER
->   only happens if you pass an invalid register number, but most
->   callers pass a compile-time constant register number that is
->   known to be correct, or the driver would never work. Similarly,
->   PCIBIOS_DEVICE_NOT_FOUND wouldn't normally happen
->   since you pass a valid pci_device pointer that was already
->   probed.
+>   void pci_read_config_word(struct pci_dev *dev, int where, u16 *val)
+>
+> and where we used to return anything non-zero, we just set *val = ~0
+> instead?  I think we do that already in most, maybe all, cases.
 
-Having some feedback about obvious programming errors is still useful
-when doing driver development. Reporting those via printk() would
-probably be more useful to those who care though.
+Right, this is what I had in mind. If we start by removing the handling
+of the return code in all files that clearly don't need it, looking at
+whatever remains will give a much better idea of what a good interface
+should be.
 
-> - config space accesses are very rare compared to memory
->   space access and on the hardware side the error handling
->   would be similar, but readl/writel don't return errors, they just
->   access wrong registers or return 0xffffffff.
->   arch/powerpc/kernel/eeh.c has a ton extra code written to
->   deal with it, but no other architectures do.
+>  git grep -E "(if|return|=).*\<pci_(read|write)_config" drivers
+> finds about 400 matches.
 
-TBH the EEH MMIO hooks were probably a mistake to begin with. Errors
-detected via MMIO are almost always asynchronous to the error itself
-so you usually just wind up with a misleading stack trace rather than
-any kind of useful synchronous error reporting. It seems like most
-drivers don't bother checking for 0xFFs either and rely on the
-asynchronous reporting via .error_detected() instead, so I have to
-wonder what the point is. I've been thinking of removing the MMIO
-hooks and using a background poller to check for errors on each PHB
-periodically (assuming we don't have an EEH interrupt) instead. That
-would remove the requirement for eeh_dev_check_failure() to be
-interrupt safe too, so it might even let us fix all the godawful races
-in EEH.
+Right, and this is some 112 files to look at.
 
-> - If we add code to detect errors in pci_read_config_*
->   and do some of the stuff from powerpc's
->   eeh_dev_check_failure(), we are more likely to catch
->   intermittent failures when drivers don't check, or bugs
->   with invalid arguments in device drivers than relying on
->   drivers to get their error handling right when those code
->   paths don't ever get covered in normal testing.
+I had a slightly different regex, which found more false-positives, but
+also these:
 
-Adding some kind of error detection to the generic config accessors
-wouldn't hurt, but detection is only half the problem. The main job of
-eeh_dev_check_failure() is waking up the EEH recovery thread which
-actually handles notifying drivers, device resets, etc and you'd want
-something in the PCI core. Right now there's two implementations of
-that reporting logic: one for EEH in arch/powerpc/eeh_driver.c and one
-for AER/DPC in drivers/pci/pcie/err.c. I think the latter could be
-moved into the PCI core easily enough since there's not much about it
-that's really specific to PCIe. Ideally we could drop the EEH specific
-one too, but I'm not sure how to implement that without it devolving
-into callback spaghetti.
+arch/x86/kernel/amd_nb.c:      : pci_read_config_dword(root, 0x64, value));
+drivers/i2c/busses/i2c-sis630.c:     pci_write_config_byte(sis630_dev,
+SIS630_BIOS_CTL_REG, b | 0x80)) {
+drivers/i2c/busses/i2c-viapro.c:     !pci_read_config_word(pdev,
+SMBBA2, &vt596_smba) &&
+drivers/ide/rz1000.c:     !pci_write_config_word(dev, 0x40, reg & 0xdfff)) {
+drivers/net/ethernet/realtek/r8169_main.c:
+pci_write_config_byte(pdev, 0x070f, val) = PCIBIOS_SUCCESSFUL)
+include/linux/rtsx_pci.h:#define rtsx_pci_read_config_dword(pcr,
+where, val) pci_read_config_dword((pcr)->pci, where, val)
+include/linux/rtsx_pci.h:#define rtsx_pci_write_config_dword(pcr,
+where, val) pci_write_config_dword((pcr)->pci, where, val)
+drivers/misc/cardreader/rts5261.c:              retval rtsx_pci_read_config_dword(pcr,
+drivers/misc/cardreader/rts5261.c:      retval rtsx_pci_write_config_dword(pcr, PCR_SETTING_REG2, lval);
 
-Oliver
+That last one is interesting because I think this is a case in which we
+actually want to check for errors, as the driver seems to use it
+to ensure that accessing extended config space at offset 0x814
+works before relying on the value. Unfortunately the implementation
+seems buggy as it a) keeps using the possibly uninitialized value after
+printing a warning and b) returns the PCIBIOS_* value in place of a
+negative errno and then ignores it in the caller.
+
+      Arnd
