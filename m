@@ -1,62 +1,55 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Wed, 15 Jul 2020 14:38:29 +0000
-Subject: RE: [RFC PATCH 00/35] Move all PCIBIOS* definitions into arch/x86
-Message-Id: <1e2ae69a55f542faa18988a49e9b9491@AcuMS.aculab.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Date: Wed, 15 Jul 2020 22:12:30 +0000
+Subject: Re: [RFC PATCH 00/35] Move all PCIBIOS* definitions into arch/x86
+Message-Id: <20200715221230.GA563957@bjorn-Precision-5520>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a3NWSZw6678k1O2eJ6-c5GuW7484PRvEzU9MEPPrCD-yw@mail.gmail.com>
- <20200714184550.GA397277@bjorn-Precision-5520>
- <CAK8P3a3EZX8=649R9cYF6_=ivh1Xyrgsc5mUtS=d5yvQ3doZaQ@mail.gmail.com>
- <CAOSf1CEviMYySQhyQGks8hHjST-85wGpxEBasuxwSX_homBJ2A@mail.gmail.com>
-In-Reply-To: <CAOSf1CEviMYySQhyQGks8hHjST-85wGpxEBasuxwSX_homBJ2A@mail.gmail.com>
+In-Reply-To: <1e2ae69a55f542faa18988a49e9b9491@AcuMS.aculab.com>
+References: <20200714184550.GA397277@bjorn-Precision-5520>
+In-Reply-To: <20200714184550.GA397277@bjorn-Precision-5520>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Oliver O'Halloran' <oohall@gmail.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: linux-pci <linux-pci@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Christoph Hellwig <hch@lst.de>, Marek Vasut <marek.vasut+renesas@gmail.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Kevin Hilman <khilman@baylibre.com>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Greg Ungerer <gerg@linux-m68k.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, "linux-kernel-mentees@lists.linuxfoundation.org" <linux-kernel-mentees@lists.linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>, Bjorn Helgaas <helgaas@kernel.org>, Ray Jui <rjui@broadcom.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Keith Busch <kbusch@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, "Saheed O.
- Bolarinwa" <refactormyself@gmail.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: linux-pci <linux-pci@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, sparclinux <sparclinux@vger.kernel.org>, Toan Le <toan@os.amperecomputing.com>, Christoph Hellwig <hch@lst.de>, Marek Vasut <marek.vasut+renesas@gmail.com>, Rob Herring <robh@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sagi Grimberg <sagi@grimberg.me>, Kevin Hilman <khilman@baylibre.com>, Russell King <linux@armlinux.org.uk>, Ley Foon Tan <ley.foon.tan@intel.com>, Greg Ungerer <gerg@linux-m68k.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Jakub Kicinski <kuba@kernel.org>, Matt Turner <mattst88@gmail.com>, "linux-kernel-mentees@lists.linuxfoundation.org" <linux-kernel-mentees@lists.linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>, Arnd Bergmann <arnd@arndb.de>, Ray Jui <rjui@broadcom.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Jens Axboe <axboe@fb.com>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Keith Busch <kbusch@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Richard Henderson <rth@twiddle.net>, Juergen Gross <jgross@suse.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Scott Branden <sbranden@broadcom.com>, Jingoo Han <jingoohan1@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Philipp Zabel <p.zabel@pengutronix.de>, "Saheed O. Bolarinwa" <refactormyself@gmail.com>, 'Oliver O'Halloran' <oohall@gmail.com>, Gustavo Pimentel <gustavo.pimentel@synopsys.com>, Bjorn Helgaas <bhelgaas@google.com>, "David S. Miller" <davem@davemloft.net>, Heiner Kallweit <hkallweit1@gmail.com>
 
-RnJvbTogT2xpdmVyIE8nSGFsbG9yYW4NCj4gU2VudDogMTUgSnVseSAyMDIwIDA1OjE5DQo+IA0K
-PiBPbiBXZWQsIEp1bCAxNSwgMjAyMCBhdCA4OjAzIEFNIEFybmQgQmVyZ21hbm4gPGFybmRAYXJu
-ZGIuZGU+IHdyb3RlOg0KLi4uDQo+ID4gLSBjb25maWcgc3BhY2UgYWNjZXNzZXMgYXJlIHZlcnkg
-cmFyZSBjb21wYXJlZCB0byBtZW1vcnkNCj4gPiAgIHNwYWNlIGFjY2VzcyBhbmQgb24gdGhlIGhh
-cmR3YXJlIHNpZGUgdGhlIGVycm9yIGhhbmRsaW5nDQo+ID4gICB3b3VsZCBiZSBzaW1pbGFyLCBi
-dXQgcmVhZGwvd3JpdGVsIGRvbid0IHJldHVybiBlcnJvcnMsIHRoZXkganVzdA0KPiA+ICAgYWNj
-ZXNzIHdyb25nIHJlZ2lzdGVycyBvciByZXR1cm4gMHhmZmZmZmZmZi4NCj4gPiAgIGFyY2gvcG93
-ZXJwYy9rZXJuZWwvZWVoLmMgaGFzIGEgdG9uIGV4dHJhIGNvZGUgd3JpdHRlbiB0bw0KPiA+ICAg
-ZGVhbCB3aXRoIGl0LCBidXQgbm8gb3RoZXIgYXJjaGl0ZWN0dXJlcyBkby4NCj4gDQo+IFRCSCB0
-aGUgRUVIIE1NSU8gaG9va3Mgd2VyZSBwcm9iYWJseSBhIG1pc3Rha2UgdG8gYmVnaW4gd2l0aC4g
-RXJyb3JzDQo+IGRldGVjdGVkIHZpYSBNTUlPIGFyZSBhbG1vc3QgYWx3YXlzIGFzeW5jaHJvbm91
-cyB0byB0aGUgZXJyb3IgaXRzZWxmDQo+IHNvIHlvdSB1c3VhbGx5IGp1c3Qgd2luZCB1cCB3aXRo
-IGEgbWlzbGVhZGluZyBzdGFjayB0cmFjZSByYXRoZXIgdGhhbg0KPiBhbnkga2luZCBvZiB1c2Vm
-dWwgc3luY2hyb25vdXMgZXJyb3IgcmVwb3J0aW5nLiBJdCBzZWVtcyBsaWtlIG1vc3QNCj4gZHJp
-dmVycyBkb24ndCBib3RoZXIgY2hlY2tpbmcgZm9yIDB4RkZzIGVpdGhlciBhbmQgcmVseSBvbiB0
-aGUNCj4gYXN5bmNocm9ub3VzIHJlcG9ydGluZyB2aWEgLmVycm9yX2RldGVjdGVkKCkgaW5zdGVh
-ZCwgc28gSSBoYXZlIHRvDQo+IHdvbmRlciB3aGF0IHRoZSBwb2ludCBpcy4gSSd2ZSBiZWVuIHRo
-aW5raW5nIG9mIHJlbW92aW5nIHRoZSBNTUlPDQo+IGhvb2tzIGFuZCB1c2luZyBhIGJhY2tncm91
-bmQgcG9sbGVyIHRvIGNoZWNrIGZvciBlcnJvcnMgb24gZWFjaCBQSEINCj4gcGVyaW9kaWNhbGx5
-IChhc3N1bWluZyB3ZSBkb24ndCBoYXZlIGFuIEVFSCBpbnRlcnJ1cHQpIGluc3RlYWQuIFRoYXQN
-Cj4gd291bGQgcmVtb3ZlIHRoZSByZXF1aXJlbWVudCBmb3IgZWVoX2Rldl9jaGVja19mYWlsdXJl
-KCkgdG8gYmUNCj4gaW50ZXJydXB0IHNhZmUgdG9vLCBzbyBpdCBtaWdodCBldmVuIGxldCB1cyBm
-aXggYWxsIHRoZSBnb2Rhd2Z1bCByYWNlcw0KPiBpbiBFRUguDQoNCkkndmUgJ3BsYXllZCcgd2l0
-aCBQQ0llIGVycm9yIGhhbmRsaW5nIC0gd2l0aG91dCBtdWNoIHN1Y2Nlc3MuDQpXaGF0IG1pZ2h0
-IGJlIHVzZWZ1bCBpcyBmb3IgYSBkcml2ZXIgdGhhdCBoYXMganVzdCByZWFkIH4wdSB0bw0KYmUg
-YWJsZSB0byBhc2sgJ2hhcyB0aGVyZSBiZWVuIGFuIGVycm9yIHNpZ25hbGxlZCBmb3IgdGhpcyBk
-ZXZpY2U/Jy4NCg0KSSBnb3QgYW4gZXJyb3IgZ2VuZXJhdGVkIGJ5IGRvaW5nIGFuIE1NSU8gYWNj
-ZXNzIHRoYXQgd2FzIGluc2lkZQ0KdGhlIGFkZHJlc3MgcmFuZ2UgZm9yd2FyZGVkIHRvIHRoZSBz
-bGF2ZSwgYnV0IG91dHNpZGUgYW55IG9mIGl0cyBCQVJzLg0KKFR3byBCQVJzIG9mIGRpZmZlcmVu
-dCBzaXplcyBsZWF2ZXMgYSBuaWNlIGdhcC4pDQpUaGlzIGdvdCByZXBvcnRlZCB1cCB0byB0aGUg
-YnJpZGdlIG5lYXJlc3QgdGhlIHNsYXZlICh3aGljaCBzdXBwb3J0ZWQNCmVycm9yIGhhbmRsaW5n
-KSwgYnV0IG5vdCB0byB0aGUgcm9vdCBicmlkZ2UgKHdoaWNoIEkgZG9uJ3QgdGhpbmsgZG9lcyku
-DQpJU1RSIGEgbWVzc2FnZSBhYm91dCBFRUggYmVpbmcgaGFuZGxlZCBieSB0aGUgaGFyZHdhcmUg
-KHRoZSBtYWNoaW5lDQppcyB1cCBidXQgZG1lc2cgaXMgZnVsbCBvZiBtZXNzYWdlcyBmcm9tIGEg
-Ym91bmNpbmcgVVNCIG1vdXNlKS4NCg0KV2l0aCBzdWNoIHBhcnRpYWwgZXJyb3IgcmVwb3J0aW5n
-IHVzZWZ1bCBpbmZvIGNhbiBzdGlsbCBiZSBleHRyYWN0ZWQuDQoNCk9mIGNvdXJzZSwgd2hhdCBh
-Y3R1YWxseSBoYXBwZW5zIG9uIGEgUENJZSBlcnJvciBpcyB0aGF0IHRoZSBzaWduYWwNCmdldHMg
-cm91dGVkIHRvIHNvbWUgJ2JvYXJkIHN1cHBvcnQgbG9naWMnIGFuZCB0aGVuIHBhc3NlZCBiYWNr
-IGludG8NCnRoZSBrZXJuZWwgYXMgYW4gTk1JIC0gd2hpY2ggdGhlbiBjcmFzaGVzIHRoZSBrZXJu
-ZWwhDQpUaGlzIGV2ZW4gaGFwcGVucyB3aGVuIHRoZSBQQ0llIGxpbmsgZ29lcyBkb3duIGFmdGVy
-IHdlJ3ZlIGRvbmUgYQ0Kc29mdC1yZW1vdmUgb2YgdGhlIGRldmljZSBpdHNlbGYhDQpSYXRoZXIg
-bWFrZXMgdXBkYXRpbmcgdGhlIGJvYXJkJ3MgRlBHQSB3aXRob3V0IGEgcmVib290IHRyaWNreS4N
-Cg0KCURhdmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVzcyBMYWtlc2lkZSwgQnJhbWxleSBSb2Fk
-LCBNb3VudCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEgMVBULCBVSw0KUmVnaXN0cmF0aW9uIE5v
-OiAxMzk3Mzg2IChXYWxlcykNCg=
+On Wed, Jul 15, 2020 at 02:38:29PM +0000, David Laight wrote:
+> From: Oliver O'Halloran
+> > Sent: 15 July 2020 05:19
+> > 
+> > On Wed, Jul 15, 2020 at 8:03 AM Arnd Bergmann <arnd@arndb.de> wrote:
+> ...
+> > > - config space accesses are very rare compared to memory
+> > >   space access and on the hardware side the error handling
+> > >   would be similar, but readl/writel don't return errors, they just
+> > >   access wrong registers or return 0xffffffff.
+> > >   arch/powerpc/kernel/eeh.c has a ton extra code written to
+> > >   deal with it, but no other architectures do.
+> > 
+> > TBH the EEH MMIO hooks were probably a mistake to begin with. Errors
+> > detected via MMIO are almost always asynchronous to the error itself
+> > so you usually just wind up with a misleading stack trace rather than
+> > any kind of useful synchronous error reporting. It seems like most
+> > drivers don't bother checking for 0xFFs either and rely on the
+> > asynchronous reporting via .error_detected() instead, so I have to
+> > wonder what the point is. I've been thinking of removing the MMIO
+> > hooks and using a background poller to check for errors on each PHB
+> > periodically (assuming we don't have an EEH interrupt) instead. That
+> > would remove the requirement for eeh_dev_check_failure() to be
+> > interrupt safe too, so it might even let us fix all the godawful races
+> > in EEH.
+> 
+> I've 'played' with PCIe error handling - without much success.
+> What might be useful is for a driver that has just read ~0u to
+> be able to ask 'has there been an error signalled for this device?'.
+
+In many cases a driver will know that ~0 is not a valid value for the
+register it's reading.  But if ~0 *could* be valid, an interface like
+you suggest could be useful.  I don't think we have anything like that
+today, but maybe we could.  It would certainly be nice if the PCI core
+noticed, logged, and cleared errors.  We have some of that for AER,
+but that's an optional feature, and support for the error bits in the
+garden-variety PCI_STATUS register is pretty haphazard.  As you note
+below, this sort of SERR/PERR reporting is frequently hard-wired in
+ways that takes it out of our purview.
+
+Bjorn
