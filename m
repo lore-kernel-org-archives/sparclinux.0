@@ -1,58 +1,49 @@
-From: Stafford Horne <shorne@gmail.com>
-Date: Wed, 29 Jul 2020 11:41:57 +0000
-Subject: Re: [PATCH 05/15] h8300, nds32, openrisc: simplify detection of memory extents
-Message-Id: <20200729114157.GF80756@lianli.shorne-pla.net>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 20 Jul 2020 01:21:51 +0000
+Subject: [PATCH] sparc32: fix a user-triggerable oops in clear_user()
+Message-Id: <20200720012151.GM2786714@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200728051153.1590-1-rppt@kernel.org>
- <20200728051153.1590-6-rppt@kernel.org>
-In-Reply-To: <20200728051153.1590-6-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org
+To: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jul 28, 2020 at 08:11:43AM +0300, Mike Rapoport wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
-> 
-> Instead of traversing memblock.memory regions to find memory_start and
-> memory_end, simply query memblock_{start,end}_of_DRAM().
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/h8300/kernel/setup.c    | 8 +++-----
->  arch/nds32/kernel/setup.c    | 8 ++------
->  arch/openrisc/kernel/setup.c | 9 ++-------
->  3 files changed, 7 insertions(+), 18 deletions(-)
+Back in 2.1.29 the clear_user() guts (__bzero()) had been merged
+with memset().  Unfortunately, while all exception handlers had been
+copied, one of the exception table entries got lost.  As the result,
+clear_user() starting at 128*n bytes before the end of page and
+spanning between 8 and 127 bytes into the next page would oops when
+the second page is unmapped.  It's trivial to reproduce - all
+it takes is
 
-Hi Mike,
+main()
+{
+	int fd = open("/dev/zero", O_RDONLY);
+	char *p = mmap(NULL, 16384, PROT_READ|PROT_WRITE,
+			MAP_PRIVATE|MAP_ANON, -1, 0);
+	munmap(p + 8192, 8192);
+	read(fd, p + 8192 - 128, 192);
+}
 
-For the openrisc part:
+which had been oopsing since March 1997.  Says something about
+the quality of test coverage... ;-/  And while today sparc32 port
+is nearly dead, back in '97 it had been very much alive; in fact,
+sparc64 had only been in mainline for 3 months by that point...
 
-Acked-by: Stafford Horne <shorne@gmail.com>
-
-> --- a/arch/openrisc/kernel/setup.c
-> +++ b/arch/openrisc/kernel/setup.c
-> @@ -48,17 +48,12 @@ static void __init setup_memory(void)
->  	unsigned long ram_start_pfn;
->  	unsigned long ram_end_pfn;
->  	phys_addr_t memory_start, memory_end;
-> -	struct memblock_region *region;
->  
->  	memory_end = memory_start = 0;
->  
->  	/* Find main memory where is the kernel, we assume its the only one */
-> -	for_each_memblock(memory, region) {
-> -		memory_start = region->base;
-> -		memory_end = region->base + region->size;
-> -		printk(KERN_INFO "%s: Memory: 0x%x-0x%x\n", __func__,
-> -		       memory_start, memory_end);
-> -	}
-> +	memory_start = memblock_start_of_DRAM();
-> +	memory_end = memblock_end_of_DRAM();
->  
->  	if (!memory_end) {
->  		panic("No memory!");
-> -- 
-> 2.26.2
-> 
+Cc: stable@kernel.org
+Fixes: v2.1.29
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+diff --git a/arch/sparc/lib/memset.S b/arch/sparc/lib/memset.S
+index b89d42b29e34..f427f34b8b79 100644
+--- a/arch/sparc/lib/memset.S
++++ b/arch/sparc/lib/memset.S
+@@ -142,6 +142,7 @@ __bzero:
+ 	ZERO_LAST_BLOCKS(%o0, 0x48, %g2)
+ 	ZERO_LAST_BLOCKS(%o0, 0x08, %g2)
+ 13:
++	EXT(12b, 13b, 21f)
+ 	be	8f
+ 	 andcc	%o1, 4, %g0
+ 
