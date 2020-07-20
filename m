@@ -1,148 +1,69 @@
-From: "Saheed O. Bolarinwa" <refactormyself@gmail.com>
-Date: Mon, 13 Jul 2020 12:22:35 +0000
-Subject: [RFC PATCH 23/35] sparc/PCI: Change PCIBIOS_SUCCESSFUL to 0
-Message-Id: <20200713122247.10985-24-refactormyself@gmail.com>
+From: Nicholas Piggin <npiggin@gmail.com>
+Date: Mon, 20 Jul 2020 00:38:15 +0000
+Subject: io_uring kthread_use_mm / mmget_not_zero possible abuse
+Message-Id: <1595203632.x8vplwce1a.astroid@bobo.none>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200713122247.10985-1-refactormyself@gmail.com>
-In-Reply-To: <20200713122247.10985-1-refactormyself@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: helgaas@kernel.org, "David S. Miller" <davem@davemloft.net>
-Cc: "Saheed O. Bolarinwa" <refactormyself@gmail.com>, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel-mentees@lists.linuxfoundation.org
+To: Jens Axboe <axboe@kernel.dk>, "David S. Miller" <davem@davemloft.net>
+Cc: linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 
-In reference to the PCI spec (Chapter 2), PCIBIOS* is an x86 concept.
-Their scope should be limited within arch/x86.
+When I last looked at this (predating io_uring), as far as I remember it was 
+not permitted to actually switch to (use_mm) an mm user context that was 
+pinned with mmget_not_zero. Those pins were only allowed to look at page 
+tables, vmas, etc., but not actually run the CPU in that mm context.
 
-Change all PCIBIOS_SUCCESSFUL to 0
+sparc/kernel/smp_64.c depends heavily on this, e.g.,
 
-Signed-off-by: "Saheed O. Bolarinwa" <refactormyself@gmail.com>
----
- arch/sparc/kernel/pci_common.c | 28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+void smp_flush_tlb_mm(struct mm_struct *mm)
+{
+        u32 ctx = CTX_HWBITS(mm->context);
+        int cpu = get_cpu();
 
-diff --git a/arch/sparc/kernel/pci_common.c b/arch/sparc/kernel/pci_common.c
-index 4759ccd542fe..39175f26f401 100644
---- a/arch/sparc/kernel/pci_common.c
-+++ b/arch/sparc/kernel/pci_common.c
-@@ -59,7 +59,7 @@ static int sun4u_read_pci_cfg_host(struct pci_pbm_info *pbm,
- 
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
--		return PCIBIOS_SUCCESSFUL;
-+		return 0;
- 
- 	switch (size) {
- 	case 1:
-@@ -102,7 +102,7 @@ static int sun4u_read_pci_cfg_host(struct pci_pbm_info *pbm,
- 		*value |= tmp32 << 16;
- 		break;
- 	}
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
-@@ -132,7 +132,7 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
--		return PCIBIOS_SUCCESSFUL;
-+		return 0;
- 
- 	switch (size) {
- 	case 1:
-@@ -144,7 +144,7 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 		if (where & 0x01) {
- 			printk("pci_read_config_word: misaligned reg [%x]\n",
- 			       where);
--			return PCIBIOS_SUCCESSFUL;
-+			return 0;
- 		}
- 		pci_config_read16((u16 *)addr, &tmp16);
- 		*value = (u32) tmp16;
-@@ -154,12 +154,12 @@ static int sun4u_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 		if (where & 0x03) {
- 			printk("pci_read_config_dword: misaligned reg [%x]\n",
- 			       where);
--			return PCIBIOS_SUCCESSFUL;
-+			return 0;
- 		}
- 		pci_config_read32(addr, value);
- 		break;
- 	}
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- static int sun4u_write_pci_cfg_host(struct pci_pbm_info *pbm,
-@@ -170,7 +170,7 @@ static int sun4u_write_pci_cfg_host(struct pci_pbm_info *pbm,
- 
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
--		return PCIBIOS_SUCCESSFUL;
-+		return 0;
- 
- 	switch (size) {
- 	case 1:
-@@ -206,7 +206,7 @@ static int sun4u_write_pci_cfg_host(struct pci_pbm_info *pbm,
- 					 where + 2, 2, value >> 16);
- 		break;
- 	}
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
-@@ -222,7 +222,7 @@ static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 
- 	addr = sun4u_config_mkaddr(pbm, bus, devfn, where);
- 	if (!addr)
--		return PCIBIOS_SUCCESSFUL;
-+		return 0;
- 
- 	switch (size) {
- 	case 1:
-@@ -233,7 +233,7 @@ static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 		if (where & 0x01) {
- 			printk("pci_write_config_word: misaligned reg [%x]\n",
- 			       where);
--			return PCIBIOS_SUCCESSFUL;
-+			return 0;
- 		}
- 		pci_config_write16((u16 *)addr, value);
- 		break;
-@@ -242,11 +242,11 @@ static int sun4u_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 		if (where & 0x03) {
- 			printk("pci_write_config_dword: misaligned reg [%x]\n",
- 			       where);
--			return PCIBIOS_SUCCESSFUL;
-+			return 0;
- 		}
- 		pci_config_write32(addr, value);
- 	}
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- struct pci_ops sun4u_pci_ops = {
-@@ -284,7 +284,7 @@ static int sun4v_read_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 	}
- 
- 
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- static int sun4v_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
-@@ -307,7 +307,7 @@ static int sun4v_write_pci_cfg(struct pci_bus *bus_dev, unsigned int devfn,
- 				     HV_PCI_DEVICE_BUILD(bus, device, func),
- 				     where, size, value);
- 	}
--	return PCIBIOS_SUCCESSFUL;
-+	return 0;
- }
- 
- struct pci_ops sun4v_pci_ops = {
--- 
-2.18.2
+        if (atomic_read(&mm->mm_users) == 1) {
+                cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+                goto local_flush_and_out;
+        }
+
+        smp_cross_call_masked(&xcall_flush_tlb_mm,
+                              ctx, 0, 0,
+                              mm_cpumask(mm));
+
+local_flush_and_out:
+        __flush_tlb_mm(ctx, SECONDARY_CONTEXT);
+
+        put_cpu();
+}
+
+If a kthread comes in concurrently between the mm_users test and the 
+mm_cpumask reset, and does mmget_not_zero(); kthread_use_mm() then we have 
+another CPU switched to mm context but not in the mm_cpumask. It's then 
+possible for our thread to schedule on that CPU and not go through a 
+switch_mm (because kthread_unuse_mm will make it lazy, then we can switch 
+back to our user thread and un-lazy it).
+
+powerpc has something similar.
+
+I don't think this is documented anywhere and certainly isn't checked for 
+unfortunately, so I don't really blame io_uring.
+
+The simplest fix is for io_uring to carry mm_users references. If that can't 
+be done or we decide to lift the limitation on mmget_not_zero references, we 
+can come up with a way to synchronize things.
+
+On powerpc for example, we IPI all targets in mm_cpumask before clearing 
+them, so we could disable interrupts while kthread_use_mm does the mm switch 
+sequence, and have the IPI handler check that current->mm hasn't been set to 
+mm, for example.
+
+sparc is a bit harder because it doesn't IPI targets if it thinks it can 
+avoid it. But powerpc found that just doing one IPI isn't a big burden here 
+so maybe we change sparc to do that too. I would be inclined to fix this 
+mmget_not_zero quirk if we can, unless someone has a very good way to test 
+and enforce it, it'll just happen again.
+
+Comments?
+
+Thanks,
+Nick
