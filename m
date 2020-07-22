@@ -1,36 +1,28 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Date: Tue, 21 Jul 2020 21:00:33 +0000
-Subject: [PATCH] SPARC: backoff.h: delete a duplicated word
-Message-Id: <20200721210033.15408-1-rdunlap@infradead.org>
+From: David Miller <davem@davemloft.net>
+Date: Wed, 22 Jul 2020 01:22:48 +0000
+Subject: Re: [PATCH] SPARC: backoff.h: delete a duplicated word
+Message-Id: <20200721.182248.277146641003054082.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200721210033.15408-1-rdunlap@infradead.org>
+In-Reply-To: <20200721210033.15408-1-rdunlap@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Randy Dunlap <rdunlap@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: rdunlap@infradead.org
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Drop the repeated word "other".
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Tue, 21 Jul 2020 14:00:33 -0700
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
-@David:
-In arch/sparc/include/asm/cpu_type.h, line 12,
-is that duplicated "ploos" correct?
-  sun4u       = 0x03, /* V8 ploos ploos */
+> Drop the repeated word "other".
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 
- arch/sparc/include/asm/backoff.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied, thanks Randy.
 
---- linux-next-20200720.orig/arch/sparc/include/asm/backoff.h
-+++ linux-next-20200720/arch/sparc/include/asm/backoff.h
-@@ -18,7 +18,7 @@
-  *
-  * When we spin, we try to use an operation that will cause the
-  * current cpu strand to block, and therefore make the core fully
-- * available to any other other runnable strands.  There are two
-+ * available to any other runnable strands.  There are two
-  * options, based upon cpu capabilities.
-  *
-  * On all cpus prior to SPARC-T4 we do three dummy reads of the
+> @David:
+> In arch/sparc/include/asm/cpu_type.h, line 12,
+> is that duplicated "ploos" correct?
+>   sun4u       = 0x03, /* V8 ploos ploos */
+
+Yes, it's a funny way of saying "++" :-)
