@@ -1,29 +1,56 @@
-From: LABBE Corentin <clabbe@baylibre.com>
-Date: Fri, 03 Jul 2020 05:55:51 +0000
-Subject: Re: [PATCH] sparc: sparc64_defconfig: add necessary configs for qemu
-Message-Id: <20200703055551.GA14096@Red>
+From: Arvind Sankar <nivedita@alum.mit.edu>
+Date: Thu, 23 Jul 2020 23:15:42 +0000
+Subject: [PATCH 1/3] x86/mm: Drop unused MAX_PHYSADDR_BITS
+Message-Id: <20200723231544.17274-2-nivedita@alum.mit.edu>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1593694973-34113-1-git-send-email-clabbe@baylibre.com>
- <275363bb-2f36-f7f3-aa7e-4a2fc6901d63@ilande.co.uk>
-In-Reply-To: <275363bb-2f36-f7f3-aa7e-4a2fc6901d63@ilande.co.uk>
+References: <20200723231544.17274-1-nivedita@alum.mit.edu>
+In-Reply-To: <20200723231544.17274-1-nivedita@alum.mit.edu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
-Cc: davem@davemloft.net, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+To: x86@kernel.org, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, linux-sh@vger.kernel.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, linux-kernel@vger.kernel.org
 
-On Thu, Jul 02, 2020 at 08:58:40PM +0100, Mark Cave-Ayland wrote:
-> On 02/07/2020 14:02, Corentin Labbe wrote:
-> 
-> > The sparc64 qemu machines uses pcnet32 network hardware by default, so for
-> > simple boot testing using qemu, having PCNET32 is useful.
-> > Same for its storage which is a PATA_CMD64.
-> 
-> Which version of QEMU are you using? qemu-system-sparc64 switched to using a hme NIC
-> by default in version 2.11 (see
-> https://wiki.qemu.org/Documentation/Platforms/SPARC#Changes_to_sun4u_machine_from_2.11_onwards)
-> which is well over 2 years ago...
-> 
+The macro is not used anywhere, and has an incorrect value (going by the
+comment) on x86_64 since commit
+  c898faf91b3e ("x86: 46 bit physical address support on 64 bits")
 
-You are right, I verfied in the code and it is sunhme by default.
-So I will verify it works and send a v2.
+To avoid confusion, just remove the definition.
+
+Signed-off-by: Arvind Sankar <nivedita@alum.mit.edu>
+---
+ arch/x86/include/asm/sparsemem.h | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
+
+diff --git a/arch/x86/include/asm/sparsemem.h b/arch/x86/include/asm/sparsemem.h
+index 199218719a86..6bfc878f6771 100644
+--- a/arch/x86/include/asm/sparsemem.h
++++ b/arch/x86/include/asm/sparsemem.h
+@@ -10,24 +10,20 @@
+  *    field of the struct page
+  *
+  * SECTION_SIZE_BITS		2^n: size of each section
+- * MAX_PHYSADDR_BITS		2^n: max size of physical address space
+- * MAX_PHYSMEM_BITS		2^n: how much memory we can have in that space
++ * MAX_PHYSMEM_BITS		2^n: max size of physical address space
+  *
+  */
+ 
+ #ifdef CONFIG_X86_32
+ # ifdef CONFIG_X86_PAE
+ #  define SECTION_SIZE_BITS	29
+-#  define MAX_PHYSADDR_BITS	36
+ #  define MAX_PHYSMEM_BITS	36
+ # else
+ #  define SECTION_SIZE_BITS	26
+-#  define MAX_PHYSADDR_BITS	32
+ #  define MAX_PHYSMEM_BITS	32
+ # endif
+ #else /* CONFIG_X86_32 */
+ # define SECTION_SIZE_BITS	27 /* matt - 128 is convenient right now */
+-# define MAX_PHYSADDR_BITS	(pgtable_l5_enabled() ? 52 : 44)
+ # define MAX_PHYSMEM_BITS	(pgtable_l5_enabled() ? 52 : 46)
+ #endif
+ 
+-- 
+2.26.2
