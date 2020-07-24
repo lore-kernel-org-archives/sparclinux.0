@@ -1,31 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 22 Jul 2020 01:29:30 +0000
-Subject: Re: [PATCH 1/2] sparc64: Deselect IRQ_PREFLOW_FASTEOI
-Message-Id: <20200721.182930.2286555697760796633.davem@davemloft.net>
+From: ''Tayeb@vger.kernel.org, Souami''@vger.kernel.org
+Date: Fri, 24 Jul 2020 08:54:00 +0000
+Subject: =?utf-8?q?Covid_19_Wohlt=C3=A4tigkeitsfonds?=
+Message-Id: <f755460c-a6ba-485d-9306-e6205fd60ba1@CRONOS2.itam.mx>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200703155645.29703-1-valentin.schneider@arm.com>
-        <20200703155645.29703-2-valentin.schneider@arm.com>
-In-Reply-To: <20200703155645.29703-2-valentin.schneider@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: valentin.schneider@arm.com
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, tglx@linutronix.de, jason@lakedaemon.net, maz@kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-From: Valentin Schneider <valentin.schneider@arm.com>
-Date: Fri,  3 Jul 2020 16:56:44 +0100
+Hallo
 
-> sparc64 hasn't needed to select this since commit:
-> 
->   ee6a9333fa58 ("sparc64: sparse irq")
-> 
-> which got rid of the calls to __irq_set_preflow_handler() first installed
-> by commit:
-> 
->   fcd8d4f49869 ("sparc: Use the new genirq functionality")
-> 
-> Deselect this option.
-> 
-> Signed-off-by: Valentin Schneider <valentin.schneider@arm.com>
+Ich bin Charles W. Jackson aus North Carolina, Vereinigte Staaten von Ameri=
+ka, und ich bin der Gewinner des Mega-Millionen-Jackpots von 344 Millionen =
+US-Dollar. Ich spende die Summe von 2.000.000 Millionen Euro als Teil der H=
+ilfsgelder f=FCr das Corona-Virus.
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Dies ist Ihr Spendencode: [CJ530342019]
+
+www.youtube.com/watch?v=3DBSr8myiLPMQ
+
+Bitte antworten Sie auf diese E-Mail mit dem SPENDERCODE:
+
+charlesjacksonjr001@gmail.com
+
+Ich hoffe, dass Sie und Ihre Familie dies durchkommen
+
+
+Herr Charles Jackson
