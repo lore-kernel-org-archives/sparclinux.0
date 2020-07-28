@@ -1,38 +1,60 @@
-From: Max Filippov <jcmvbkbc@gmail.com>
-Date: Tue, 28 Jul 2020 08:09:45 +0000
-Subject: Re: [PATCH 03/15] arm, xtensa: simplify initialization of high memory pages
-Message-Id: <CAMo8Bf+VKHmAm1GV=0D9Um2mpsxjnwp9WrAJq_eKW1MK+_8r6g@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 28 Jul 2020 05:11:44 +0000
+Subject: [PATCH 06/15] powerpc: fadamp: simplify fadump_reserve_crash_area()
+Message-Id: <20200728051153.1590-7-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200728051153.1590-1-rppt@kernel.org>
- <20200728051153.1590-4-rppt@kernel.org>
-In-Reply-To: <20200728051153.1590-4-rppt@kernel.org>
+In-Reply-To: <20200728051153.1590-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: "open list:SUPERH" <linux-sh@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Linux Memory Management List <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, "open list:SPARC + UltraSPAR..." <sparclinux@vger.kernel.org>, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Stafford Horne <shorne@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-s390 <linux-s390@vger.kernel.org>, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, "maintainer:X86 ARCHITECTURE..." <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, "moderated list:H8/300 ARCHITECTURE" <uclinux-h8-devel@lists.sourceforge.jp>, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linuxppc-dev@lists.ozlabs.org, LKML <linux-kernel@vger.kernel.org>, iommu@lists.linux-foundation.org, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Stafford Horne <shorne@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Palmer Dabbelt <palmer@dabbelt.com>, Christoph Hellwig <hch@lst.de>, Mike Rapoport <rppt@kernel.org>
 
-On Mon, Jul 27, 2020 at 10:12 PM Mike Rapoport <rppt@kernel.org> wrote:
->
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> The function free_highpages() in both arm and xtensa essentially open-code
-> for_each_free_mem_range() loop to detect high memory pages that were not
-> reserved and that should be initialized and passed to the buddy allocator.
->
-> Replace open-coded implementation of for_each_free_mem_range() with usage
-> of memblock API to simplify the code.
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/arm/mm/init.c    | 48 +++++++------------------------------
->  arch/xtensa/mm/init.c | 55 ++++++++-----------------------------------
->  2 files changed, 18 insertions(+), 85 deletions(-)
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-For the xtensa part:
-Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
-Tested-by: Max Filippov <jcmvbkbc@gmail.com>
+fadump_reserve_crash_area() reserves memory from a specified base address
+till the end of the RAM.
 
+Replace iteration through the memblock.memory with a single call to
+memblock_reserve() with appropriate  that will take care of proper memory
+reservation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/powerpc/kernel/fadump.c | 20 +-------------------
+ 1 file changed, 1 insertion(+), 19 deletions(-)
+
+diff --git a/arch/powerpc/kernel/fadump.c b/arch/powerpc/kernel/fadump.c
+index 78ab9a6ee6ac..2446a61e3c25 100644
+--- a/arch/powerpc/kernel/fadump.c
++++ b/arch/powerpc/kernel/fadump.c
+@@ -1658,25 +1658,7 @@ int __init fadump_reserve_mem(void)
+ /* Preserve everything above the base address */
+ static void __init fadump_reserve_crash_area(u64 base)
+ {
+-	struct memblock_region *reg;
+-	u64 mstart, msize;
+-
+-	for_each_memblock(memory, reg) {
+-		mstart = reg->base;
+-		msize  = reg->size;
+-
+-		if ((mstart + msize) < base)
+-			continue;
+-
+-		if (mstart < base) {
+-			msize -= (base - mstart);
+-			mstart = base;
+-		}
+-
+-		pr_info("Reserving %lluMB of memory at %#016llx for preserving crash data",
+-			(msize >> 20), mstart);
+-		memblock_reserve(mstart, msize);
+-	}
++	memblock_reserve(base, memblock_end_of_DRAM() - base);
+ }
+ 
+ unsigned long __init arch_reserved_kernel_pages(void)
 -- 
-Thanks.
--- Max
+2.26.2
