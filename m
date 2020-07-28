@@ -1,69 +1,105 @@
 From: Nicholas Piggin <npiggin@gmail.com>
-Date: Mon, 20 Jul 2020 00:38:15 +0000
-Subject: io_uring kthread_use_mm / mmget_not_zero possible abuse
-Message-Id: <1595203632.x8vplwce1a.astroid@bobo.none>
+Date: Tue, 28 Jul 2020 03:34:01 +0000
+Subject: [PATCH 20/24] sparc: use asm-generic/mmu_context.h for no-op implementations
+Message-Id: <20200728033405.78469-21-npiggin@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200728033405.78469-1-npiggin@gmail.com>
+In-Reply-To: <20200728033405.78469-1-npiggin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jens Axboe <axboe@kernel.dk>, "David S. Miller" <davem@davemloft.net>
-Cc: linux-mm@kvack.org, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: linux-arch@vger.kernel.org
+Cc: Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-When I last looked at this (predating io_uring), as far as I remember it was 
-not permitted to actually switch to (use_mm) an mm user context that was 
-pinned with mmget_not_zero. Those pins were only allowed to look at page 
-tables, vmas, etc., but not actually run the CPU in that mm context.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+---
+ arch/sparc/include/asm/mmu_context_32.h | 10 ++++------
+ arch/sparc/include/asm/mmu_context_64.h | 10 +++++-----
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-sparc/kernel/smp_64.c depends heavily on this, e.g.,
-
-void smp_flush_tlb_mm(struct mm_struct *mm)
-{
-        u32 ctx = CTX_HWBITS(mm->context);
-        int cpu = get_cpu();
-
-        if (atomic_read(&mm->mm_users) == 1) {
-                cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
-                goto local_flush_and_out;
-        }
-
-        smp_cross_call_masked(&xcall_flush_tlb_mm,
-                              ctx, 0, 0,
-                              mm_cpumask(mm));
-
-local_flush_and_out:
-        __flush_tlb_mm(ctx, SECONDARY_CONTEXT);
-
-        put_cpu();
-}
-
-If a kthread comes in concurrently between the mm_users test and the 
-mm_cpumask reset, and does mmget_not_zero(); kthread_use_mm() then we have 
-another CPU switched to mm context but not in the mm_cpumask. It's then 
-possible for our thread to schedule on that CPU and not go through a 
-switch_mm (because kthread_unuse_mm will make it lazy, then we can switch 
-back to our user thread and un-lazy it).
-
-powerpc has something similar.
-
-I don't think this is documented anywhere and certainly isn't checked for 
-unfortunately, so I don't really blame io_uring.
-
-The simplest fix is for io_uring to carry mm_users references. If that can't 
-be done or we decide to lift the limitation on mmget_not_zero references, we 
-can come up with a way to synchronize things.
-
-On powerpc for example, we IPI all targets in mm_cpumask before clearing 
-them, so we could disable interrupts while kthread_use_mm does the mm switch 
-sequence, and have the IPI handler check that current->mm hasn't been set to 
-mm, for example.
-
-sparc is a bit harder because it doesn't IPI targets if it thinks it can 
-avoid it. But powerpc found that just doing one IPI isn't a big burden here 
-so maybe we change sparc to do that too. I would be inclined to fix this 
-mmget_not_zero quirk if we can, unless someone has a very good way to test 
-and enforce it, it'll just happen again.
-
-Comments?
-
-Thanks,
-Nick
+diff --git a/arch/sparc/include/asm/mmu_context_32.h b/arch/sparc/include/asm/mmu_context_32.h
+index 7ddcb8badf70..509043f81560 100644
+--- a/arch/sparc/include/asm/mmu_context_32.h
++++ b/arch/sparc/include/asm/mmu_context_32.h
+@@ -6,13 +6,10 @@
+ 
+ #include <asm-generic/mm_hooks.h>
+ 
+-static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+-{
+-}
+-
+ /* Initialize a new mmu context.  This is invoked when a new
+  * address space instance (unique or shared) is instantiated.
+  */
++#define init_new_context init_new_context
+ int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
+ 
+ /* Destroy a dead context.  This occurs when mmput drops the
+@@ -20,17 +17,18 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
+  * all the page tables have been flushed.  Our job is to destroy
+  * any remaining processor-specific state.
+  */
++#define destroy_context destroy_context
+ void destroy_context(struct mm_struct *mm);
+ 
+ /* Switch the current MM context. */
+ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
+ 	       struct task_struct *tsk);
+ 
+-#define deactivate_mm(tsk,mm)	do { } while (0)
+-
+ /* Activate a new MM instance for the current task. */
+ #define activate_mm(active_mm, mm) switch_mm((active_mm), (mm), NULL)
+ 
++#include <asm-generic/mmu_context.h>
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(__SPARC_MMU_CONTEXT_H) */
+diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
+index 312fcee8df2b..7a8380c63aab 100644
+--- a/arch/sparc/include/asm/mmu_context_64.h
++++ b/arch/sparc/include/asm/mmu_context_64.h
+@@ -16,17 +16,16 @@
+ #include <asm-generic/mm_hooks.h>
+ #include <asm/percpu.h>
+ 
+-static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
+-{
+-}
+-
+ extern spinlock_t ctx_alloc_lock;
+ extern unsigned long tlb_context_cache;
+ extern unsigned long mmu_context_bmap[];
+ 
+ DECLARE_PER_CPU(struct mm_struct *, per_cpu_secondary_mm);
+ void get_new_mmu_context(struct mm_struct *mm);
++
++#define init_new_context init_new_context
+ int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
++#define destroy_context destroy_context
+ void destroy_context(struct mm_struct *mm);
+ 
+ void __tsb_context_switch(unsigned long pgd_pa,
+@@ -136,7 +135,6 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+ 
+-#define deactivate_mm(tsk,mm)	do { } while (0)
+ #define activate_mm(active_mm, mm) switch_mm(active_mm, mm, NULL)
+ 
+ #define  __HAVE_ARCH_START_CONTEXT_SWITCH
+@@ -187,6 +185,8 @@ static inline void finish_arch_post_lock_switch(void)
+ 	}
+ }
+ 
++#include <asm-generic/mmu_context.h>
++
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(__SPARC64_MMU_CONTEXT_H) */
+-- 
+2.23.0
