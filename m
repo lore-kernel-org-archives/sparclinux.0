@@ -1,8 +1,10 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 28 Jul 2020 05:11:38 +0000
-Subject: [PATCH 00/15] memblock: seasonal cleaning^w cleanup
-Message-Id: <20200728051153.1590-1-rppt@kernel.org>
+Date: Tue, 28 Jul 2020 05:11:39 +0000
+Subject: [PATCH 01/15] KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
+Message-Id: <20200728051153.1590-2-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200728051153.1590-1-rppt@kernel.org>
+In-Reply-To: <20200728051153.1590-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -11,81 +13,49 @@ Cc: linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin He
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-Hi,
+The memory size calculation in kvm_cma_reserve() traverses memblock.memory
+rather than simply call memblock_phys_mem_size(). The comment in that
+function suggests that at some point there should have been call to
+memblock_analyze() before memblock_phys_mem_size() could be used.
+As of now, there is no memblock_analyze() at all and
+memblock_phys_mem_size() can be used as soon as cold-plug memory is
+registerd with memblock.
 
-These patches simplify several uses of memblock iterators and hide some of
-the memblock implementation details from the rest of the system.
+Replace loop over memblock.memory with a call to memblock_phys_mem_size().
 
-The patches are on top of v5.8-rc7 + cherry-pick of "mm/sparse: cleanup the
-code surrounding memory_present()" [1] from mmotm tree.
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/powerpc/kvm/book3s_hv_builtin.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-[1] http://lkml.kernel.org/r/20200712083130.22919-1-rppt@kernel.org 
-
-Mike Rapoport (15):
-  KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
-  dma-contiguous: simplify cma_early_percent_memory()
-  arm, xtensa: simplify initialization of high memory pages
-  arm64: numa: simplify dummy_numa_init()
-  h8300, nds32, openrisc: simplify detection of memory extents
-  powerpc: fadamp: simplify fadump_reserve_crash_area()
-  riscv: drop unneeded node initialization
-  mircoblaze: drop unneeded NUMA and sparsemem initializations
-  memblock: make for_each_memblock_type() iterator private
-  memblock: make memblock_debug and related functionality private
-  memblock: reduce number of parameters in for_each_mem_range()
-  arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
-  arch, drivers: replace for_each_membock() with for_each_mem_range()
-  x86/numa: remove redundant iteration over memblock.reserved
-  memblock: remove 'type' parameter from for_each_memblock()
-
- .clang-format                            |  1 +
- arch/arm/kernel/setup.c                  | 18 +++++---
- arch/arm/mm/init.c                       | 59 +++++-------------------
- arch/arm/mm/mmu.c                        | 39 ++++++----------
- arch/arm/mm/pmsa-v7.c                    | 20 ++++----
- arch/arm/mm/pmsa-v8.c                    | 17 ++++---
- arch/arm/xen/mm.c                        |  7 +--
- arch/arm64/kernel/machine_kexec_file.c   |  6 +--
- arch/arm64/kernel/setup.c                |  2 +-
- arch/arm64/mm/init.c                     | 11 ++---
- arch/arm64/mm/kasan_init.c               |  8 ++--
- arch/arm64/mm/mmu.c                      | 11 ++---
- arch/arm64/mm/numa.c                     | 15 +++---
- arch/c6x/kernel/setup.c                  |  9 ++--
- arch/h8300/kernel/setup.c                |  8 ++--
- arch/microblaze/mm/init.c                | 24 ++--------
- arch/mips/cavium-octeon/dma-octeon.c     | 12 ++---
- arch/mips/kernel/setup.c                 | 31 ++++++-------
- arch/mips/netlogic/xlp/setup.c           |  2 +-
- arch/nds32/kernel/setup.c                |  8 +---
- arch/openrisc/kernel/setup.c             |  9 +---
- arch/openrisc/mm/init.c                  |  8 ++--
- arch/powerpc/kernel/fadump.c             | 58 ++++++++---------------
- arch/powerpc/kvm/book3s_hv_builtin.c     | 11 +----
- arch/powerpc/mm/book3s64/hash_utils.c    | 16 +++----
- arch/powerpc/mm/book3s64/radix_pgtable.c | 11 ++---
- arch/powerpc/mm/kasan/kasan_init_32.c    |  8 ++--
- arch/powerpc/mm/mem.c                    | 33 +++++++------
- arch/powerpc/mm/numa.c                   |  7 +--
- arch/powerpc/mm/pgtable_32.c             |  8 ++--
- arch/riscv/mm/init.c                     | 33 ++++---------
- arch/riscv/mm/kasan_init.c               | 10 ++--
- arch/s390/kernel/crash_dump.c            |  8 ++--
- arch/s390/kernel/setup.c                 | 31 ++++++++-----
- arch/s390/mm/page-states.c               |  6 +--
- arch/s390/mm/vmem.c                      | 16 ++++---
- arch/sh/mm/init.c                        |  9 ++--
- arch/sparc/mm/init_64.c                  | 12 ++---
- arch/x86/mm/numa.c                       | 26 ++++-------
- arch/xtensa/mm/init.c                    | 55 ++++------------------
- drivers/bus/mvebu-mbus.c                 | 12 ++---
- drivers/s390/char/zcore.c                |  9 ++--
- include/linux/memblock.h                 | 45 +++++++++---------
- kernel/dma/contiguous.c                  | 11 +----
- mm/memblock.c                            | 28 +++++++----
- mm/page_alloc.c                          | 11 ++---
- mm/sparse.c                              | 10 ++--
- 47 files changed, 324 insertions(+), 485 deletions(-)
-
+diff --git a/arch/powerpc/kvm/book3s_hv_builtin.c b/arch/powerpc/kvm/book3s_hv_builtin.c
+index 7cd3cf3d366b..56ab0d28de2a 100644
+--- a/arch/powerpc/kvm/book3s_hv_builtin.c
++++ b/arch/powerpc/kvm/book3s_hv_builtin.c
+@@ -95,22 +95,15 @@ EXPORT_SYMBOL_GPL(kvm_free_hpt_cma);
+ void __init kvm_cma_reserve(void)
+ {
+ 	unsigned long align_size;
+-	struct memblock_region *reg;
+-	phys_addr_t selected_size = 0;
++	phys_addr_t selected_size;
+ 
+ 	/*
+ 	 * We need CMA reservation only when we are in HV mode
+ 	 */
+ 	if (!cpu_has_feature(CPU_FTR_HVMODE))
+ 		return;
+-	/*
+-	 * We cannot use memblock_phys_mem_size() here, because
+-	 * memblock_analyze() has not been called yet.
+-	 */
+-	for_each_memblock(memory, reg)
+-		selected_size += memblock_region_memory_end_pfn(reg) -
+-				 memblock_region_memory_base_pfn(reg);
+ 
++	selected_size = PHYS_PFN(memblock_phys_mem_size());
+ 	selected_size = (selected_size * kvm_cma_resv_ratio / 100) << PAGE_SHIFT;
+ 	if (selected_size) {
+ 		pr_debug("%s: reserving %ld MiB for global area\n", __func__,
 -- 
 2.26.2
