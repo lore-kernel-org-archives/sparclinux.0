@@ -1,76 +1,84 @@
-From: Daniel Axtens <dja@axtens.net>
-Date: Tue, 04 Aug 2020 13:53:15 +0000
-Subject: Re: [PATCH v2 01/17] KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
-Message-Id: <87tuxio6us.fsf@dja-thinkpad.axtens.net>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sat, 01 Aug 2020 10:18:54 +0000
+Subject: Re: [PATCH 06/15] powerpc: fadamp: simplify fadump_reserve_crash_area()
+Message-Id: <20200801101854.GD534153@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org> <20200802163601.8189-2-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-2-rppt@kernel.org>
+References: <20200728051153.1590-1-rppt@kernel.org>
+ <20200728051153.1590-7-rppt@kernel.org>
+ <87d04d5hda.fsf@mpe.ellerman.id.au>
+In-Reply-To: <87d04d5hda.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: Michael Ellerman <mpe@ellerman.id.au>
+Cc: linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, Hari Bathini <hbathini@in.ibm.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Stafford Horne <shorne@gmail.com>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Yoshinori Sato <ysato@users.sourceforge.jp>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, uclinux-h8-devel@lists.sourceforge.jp, linux-xtensa@linux-xtensa.org, openrisc@lists.librecores.org, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, Christoph Hellwig <hch@lst.de>
 
-Hi Mike,
+On Thu, Jul 30, 2020 at 10:15:13PM +1000, Michael Ellerman wrote:
+> Mike Rapoport <rppt@kernel.org> writes:
+> > From: Mike Rapoport <rppt@linux.ibm.com>
+> >
+> > fadump_reserve_crash_area() reserves memory from a specified base address
+> > till the end of the RAM.
+> >
+> > Replace iteration through the memblock.memory with a single call to
+> > memblock_reserve() with appropriate  that will take care of proper memory
+>                                      ^
+>                                      parameters?
+> > reservation.
+> >
+> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+> > ---
+> >  arch/powerpc/kernel/fadump.c | 20 +-------------------
+> >  1 file changed, 1 insertion(+), 19 deletions(-)
+> 
+> I think this looks OK to me, but I don't have a setup to test it easily.
+> I've added Hari to Cc who might be able to.
+> 
+> But I'll give you an ack in the hope that it works :)
 
->
-> The memory size calculation in kvm_cma_reserve() traverses memblock.memory
-> rather than simply call memblock_phys_mem_size(). The comment in that
-> function suggests that at some point there should have been call to
-> memblock_analyze() before memblock_phys_mem_size() could be used.
-> As of now, there is no memblock_analyze() at all and
-> memblock_phys_mem_size() can be used as soon as cold-plug memory is
-> registerd with memblock.
->
-> Replace loop over memblock.memory with a call to memblock_phys_mem_size().
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/powerpc/kvm/book3s_hv_builtin.c | 11 ++---------
->  1 file changed, 2 insertions(+), 9 deletions(-)
->
-> diff --git a/arch/powerpc/kvm/book3s_hv_builtin.c b/arch/powerpc/kvm/book3s_hv_builtin.c
-> index 7cd3cf3d366b..56ab0d28de2a 100644
-> --- a/arch/powerpc/kvm/book3s_hv_builtin.c
-> +++ b/arch/powerpc/kvm/book3s_hv_builtin.c
-> @@ -95,22 +95,15 @@ EXPORT_SYMBOL_GPL(kvm_free_hpt_cma);
->  void __init kvm_cma_reserve(void)
->  {
->  	unsigned long align_size;
-> -	struct memblock_region *reg;
-> -	phys_addr_t selected_size = 0;
-> +	phys_addr_t selected_size;
->  
->  	/*
->  	 * We need CMA reservation only when we are in HV mode
->  	 */
->  	if (!cpu_has_feature(CPU_FTR_HVMODE))
->  		return;
-> -	/*
-> -	 * We cannot use memblock_phys_mem_size() here, because
-> -	 * memblock_analyze() has not been called yet.
-> -	 */
-> -	for_each_memblock(memory, reg)
-> -		selected_size += memblock_region_memory_end_pfn(reg) -
-> -				 memblock_region_memory_base_pfn(reg);
->  
-> +	selected_size = PHYS_PFN(memblock_phys_mem_size());
->  	selected_size = (selected_size * kvm_cma_resv_ratio / 100) << PAGE_SHIFT;
+Actually, I did some digging in the git log and the traversal was added
+there on purpose by the commit b71a693d3db3 ("powerpc/fadump: exclude
+memory holes while reserving memory in second kernel")
+Presuming this is still reqruired I'm going to drop this patch and will
+simply replace for_each_memblock() with for_each_mem_range() in v2.
+ 
+> Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+> 
+> 
+> > diff --git a/arch/powerpc/kernel/fadump.c b/arch/powerpc/kernel/fadump.c
+> > index 78ab9a6ee6ac..2446a61e3c25 100644
+> > --- a/arch/powerpc/kernel/fadump.c
+> > +++ b/arch/powerpc/kernel/fadump.c
+> > @@ -1658,25 +1658,7 @@ int __init fadump_reserve_mem(void)
+> >  /* Preserve everything above the base address */
+> >  static void __init fadump_reserve_crash_area(u64 base)
+> >  {
+> > -	struct memblock_region *reg;
+> > -	u64 mstart, msize;
+> > -
+> > -	for_each_memblock(memory, reg) {
+> > -		mstart = reg->base;
+> > -		msize  = reg->size;
+> > -
+> > -		if ((mstart + msize) < base)
+> > -			continue;
+> > -
+> > -		if (mstart < base) {
+> > -			msize -= (base - mstart);
+> > -			mstart = base;
+> > -		}
+> > -
+> > -		pr_info("Reserving %lluMB of memory at %#016llx for preserving crash data",
+> > -			(msize >> 20), mstart);
+> > -		memblock_reserve(mstart, msize);
+> > -	}
+> > +	memblock_reserve(base, memblock_end_of_DRAM() - base);
+> >  }
+> >  
+> >  unsigned long __init arch_reserved_kernel_pages(void)
+> > -- 
+> > 2.26.2
 
-I think this is correct, but PHYS_PFN does x >> PAGE_SHIFT and then the
-next line does x << PAGE_SHIFT, so I think we could combine those two
-lines as:
-
-selected_size = PAGE_ALIGN(memblock_phys_mem_size() * kvm_cma_resv_ratio / 100);
-
-(I think that might technically change it from aligning down to aligning
-up but I don't think 1 page matters here.)
-
-Kind regards,
-Daniel
-
-
->  	if (selected_size) {
->  		pr_debug("%s: reserving %ld MiB for global area\n", __func__,
-> -- 
-> 2.26.2
+-- 
+Sincerely yours,
+Mike.
