@@ -1,45 +1,48 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 03 Aug 2020 09:57:51 +0000
-Subject: Re: Build regressions/improvements in v5.8
-Message-Id: <CAMuHMdW=tzsK=bsQHQmFAUF041XZ8-msfgNZPpKQurxq1dsjGg@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 02 Aug 2020 16:35:50 +0000
+Subject: [PATCH v2 06/17] riscv: drop unneeded node initialization
+Message-Id: <20200802163601.8189-7-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200803095048.20102-1-geert@linux-m68k.org>
-In-Reply-To: <20200803095048.20102-1-geert@linux-m68k.org>
+References: <20200802163601.8189-1-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: sparclinux <sparclinux@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
 
-On Mon, Aug 3, 2020 at 11:53 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> JFYI, when comparing v5.8[1] to v5.8-rc7[3], the summaries are:
->   - build errors: +2/-3
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-  + /kisskb/src/arch/powerpc/include/asm/mmu.h: error: unknown type
-name 'next_tlbcam_idx':  => 139:22
+RISC-V does not (yet) support NUMA  and for UMA architectures node 0 is
+used implicitly during early memory initialization.
 
-v5.8/powerpc-gcc4.9/corenet64_smp_defconfig
-v5.8/powerpc-gcc4.9/ppc64_book3e_allmodconfig
-v5.8/powerpc-gcc4.9/ppc64e_defconfig
-v5.8/powerpc-gcc9/ppc64_book3e_allmodconfig
-(fix available)
+There is no need to call memblock_set_node(), remove this call and the
+surrounding code.
 
-  + /kisskb/src/arch/sparc/include/asm/trap_block.h: error: 'NR_CPUS'
-undeclared here (not in a function):  => 54:39
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/riscv/mm/init.c | 9 ---------
+ 1 file changed, 9 deletions(-)
 
-v5.8/sparc64/sparc64-allmodconfig
-v5.8/sparc64/sparc64-defconfig
-
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/bcf876870b95592b52519ed4aafcf9d95999bc9c/ (192 out of 194 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/92ed301919932f777713b9172e525674157e983d/ (192 out of 194 configs)
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
+diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
+index 79e9d55bdf1a..7440ba2cdaaa 100644
+--- a/arch/riscv/mm/init.c
++++ b/arch/riscv/mm/init.c
+@@ -191,15 +191,6 @@ void __init setup_bootmem(void)
+ 	early_init_fdt_scan_reserved_mem();
+ 	memblock_allow_resize();
+ 	memblock_dump_all();
+-
+-	for_each_memblock(memory, reg) {
+-		unsigned long start_pfn = memblock_region_memory_base_pfn(reg);
+-		unsigned long end_pfn = memblock_region_memory_end_pfn(reg);
+-
+-		memblock_set_node(PFN_PHYS(start_pfn),
+-				  PFN_PHYS(end_pfn - start_pfn),
+-				  &memblock.memory, 0);
+-	}
+ }
+ 
+ #ifdef CONFIG_MMU
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.26.2
