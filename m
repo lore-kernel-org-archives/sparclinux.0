@@ -1,119 +1,35 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:58 +0000
-Subject: [PATCH v2 14/17] x86/setup: simplify reserve_crashkernel()
-Message-Id: <20200802163601.8189-15-rppt@kernel.org>
+From: Ingo Molnar <mingo@kernel.org>
+Date: Sun, 02 Aug 2020 18:02:23 +0000
+Subject: Re: [PATCH v2 14/17] x86/setup: simplify reserve_crashkernel()
+Message-Id: <20200802180223.GB86614@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200802163601.8189-1-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
+ <20200802163601.8189-15-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-15-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: Mike Rapoport <rppt@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradea>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
 
-* Replace magic numbers with defines
-* Replace memblock_find_in_range() + memblock_reserve() with
-  memblock_phys_alloc_range()
-* Stop checking for low memory size in reserve_crashkernel_low(). The
-  allocation from limited range will anyway fail if there is no enough
-  memory, so there is no need for extra traversal of memblock.memory
+* Mike Rapoport <rppt@kernel.org> wrote:
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
----
- arch/x86/kernel/setup.c | 40 ++++++++++++++--------------------------
- 1 file changed, 14 insertions(+), 26 deletions(-)
+> From: Mike Rapoport <rppt@linux.ibm.com>
+> 
+> * Replace magic numbers with defines
+> * Replace memblock_find_in_range() + memblock_reserve() with
+>   memblock_phys_alloc_range()
+> * Stop checking for low memory size in reserve_crashkernel_low(). The
+>   allocation from limited range will anyway fail if there is no enough
+>   memory, so there is no need for extra traversal of memblock.memory
+> 
+> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index d8de4053c5e8..d7ced6982524 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -419,13 +419,13 @@ static int __init reserve_crashkernel_low(void)
- {
- #ifdef CONFIG_X86_64
- 	unsigned long long base, low_base = 0, low_size = 0;
--	unsigned long total_low_mem;
-+	unsigned long low_mem_limit;
- 	int ret;
- 
--	total_low_mem = memblock_mem_size(1UL << (32 - PAGE_SHIFT));
-+	low_mem_limit = min(memblock_phys_mem_size(), CRASH_ADDR_LOW_MAX);
- 
- 	/* crashkernel=Y,low */
--	ret = parse_crashkernel_low(boot_command_line, total_low_mem, &low_size, &base);
-+	ret = parse_crashkernel_low(boot_command_line, low_mem_limit, &low_size, &base);
- 	if (ret) {
- 		/*
- 		 * two parts from kernel/dma/swiotlb.c:
-@@ -443,23 +443,17 @@ static int __init reserve_crashkernel_low(void)
- 			return 0;
- 	}
- 
--	low_base = memblock_find_in_range(0, 1ULL << 32, low_size, CRASH_ALIGN);
-+	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
- 	if (!low_base) {
- 		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
- 		       (unsigned long)(low_size >> 20));
- 		return -ENOMEM;
- 	}
- 
--	ret = memblock_reserve(low_base, low_size);
--	if (ret) {
--		pr_err("%s: Error reserving crashkernel low memblock.\n", __func__);
--		return ret;
--	}
--
--	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (System low RAM: %ldMB)\n",
-+	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (low RAM limit: %ldMB)\n",
- 		(unsigned long)(low_size >> 20),
- 		(unsigned long)(low_base >> 20),
--		(unsigned long)(total_low_mem >> 20));
-+		(unsigned long)(low_mem_limit >> 20));
- 
- 	crashk_low_res.start = low_base;
- 	crashk_low_res.end   = low_base + low_size - 1;
-@@ -503,13 +497,13 @@ static void __init reserve_crashkernel(void)
- 		 * unless "crashkernel=size[KMG],high" is specified.
- 		 */
- 		if (!high)
--			crash_base = memblock_find_in_range(CRASH_ALIGN,
--						CRASH_ADDR_LOW_MAX,
--						crash_size, CRASH_ALIGN);
-+			crash_base = memblock_phys_alloc_range(crash_size,
-+						CRASH_ALIGN, CRASH_ALIGN,
-+						CRASH_ADDR_LOW_MAX);
- 		if (!crash_base)
--			crash_base = memblock_find_in_range(CRASH_ALIGN,
--						CRASH_ADDR_HIGH_MAX,
--						crash_size, CRASH_ALIGN);
-+			crash_base = memblock_phys_alloc_range(crash_size,
-+						CRASH_ALIGN, CRASH_ALIGN,
-+						CRASH_ADDR_HIGH_MAX);
- 		if (!crash_base) {
- 			pr_info("crashkernel reservation failed - No suitable area found.\n");
- 			return;
-@@ -517,19 +511,13 @@ static void __init reserve_crashkernel(void)
- 	} else {
- 		unsigned long long start;
- 
--		start = memblock_find_in_range(crash_base,
--					       crash_base + crash_size,
--					       crash_size, 1 << 20);
-+		start = memblock_phys_alloc_range(crash_size, SZ_1M, crash_base,
-+						  crash_base + crash_size);
- 		if (start != crash_base) {
- 			pr_info("crashkernel reservation failed - memory is in use.\n");
- 			return;
- 		}
- 	}
--	ret = memblock_reserve(crash_base, crash_size);
--	if (ret) {
--		pr_err("%s: Error reserving crashkernel memblock.\n", __func__);
--		return;
--	}
- 
- 	if (crash_base >= (1ULL << 32) && reserve_crashkernel_low()) {
- 		memblock_free(crash_base, crash_size);
--- 
-2.26.2
+Assuming that this got or will get tested with a crash kernel:
+
+Acked-by: Ingo Molnar <mingo@kernel.org>
+
+Thanks,
+
+	Ingo
