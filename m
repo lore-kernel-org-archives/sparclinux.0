@@ -1,39 +1,108 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Tue, 18 Aug 2020 17:34:07 +0000
-Subject: [PATCH 07/11] x86: switch to kernel_clone()
-Message-Id: <20200818173411.404104-8-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 02 Aug 2020 16:35:44 +0000
+Subject: [PATCH v2 00/17] memblock: seasonal cleaning^w cleanup
+Message-Id: <20200802163601.8189-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
 
-The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-The latter adheres to naming conventions for kernel internal syscall helpers.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: x86@kernel.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
----
- arch/x86/kernel/sys_ia32.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi,
 
-diff --git a/arch/x86/kernel/sys_ia32.c b/arch/x86/kernel/sys_ia32.c
-index 720cde885042..6cf65397d225 100644
---- a/arch/x86/kernel/sys_ia32.c
-+++ b/arch/x86/kernel/sys_ia32.c
-@@ -251,6 +251,6 @@ COMPAT_SYSCALL_DEFINE5(ia32_clone, unsigned long, clone_flags,
- 		.tls		= tls_val,
- 	};
- 
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- }
- #endif /* CONFIG_IA32_EMULATION */
+These patches simplify several uses of memblock iterators and hide some of
+the memblock implementation details from the rest of the system.
+
+The patches are on top of v5.8-rc7 + cherry-pick of "mm/sparse: cleanup the
+code surrounding memory_present()" [1] from mmotm tree.
+
+v2 changes:
+* replace for_each_memblock() with two versions, one for memblock.memory
+  and another one for memblock.reserved
+* fix overzealous cleanup of powerpc fadamp: keep the traversal over the
+  memblocks, but use better suited iterators
+* don't remove traversal over memblock.reserved in x86 numa cleanup but
+  replace for_each_memblock() with new for_each_reserved_mem_region()
+* simplify ramdisk and crash kernel allocations on x86
+* drop more redundant and unused code: __next_reserved_mem_region() and
+  memblock_mem_size()
+* add description of numa initialization fix on arm64 (thanks Jonathan)
+* add Acked and Reviewed tags
+
+[1] http://lkml.kernel.org/r/20200712083130.22919-1-rppt@kernel.org 
+
+Mike Rapoport (17):
+  KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
+  dma-contiguous: simplify cma_early_percent_memory()
+  arm, xtensa: simplify initialization of high memory pages
+  arm64: numa: simplify dummy_numa_init()
+  h8300, nds32, openrisc: simplify detection of memory extents
+  riscv: drop unneeded node initialization
+  mircoblaze: drop unneeded NUMA and sparsemem initializations
+  memblock: make for_each_memblock_type() iterator private
+  memblock: make memblock_debug and related functionality private
+  memblock: reduce number of parameters in for_each_mem_range()
+  arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
+  arch, drivers: replace for_each_membock() with for_each_mem_range()
+  x86/setup: simplify initrd relocation and reservation
+  x86/setup: simplify reserve_crashkernel()
+  memblock: remove unused memblock_mem_size()
+  memblock: implement for_each_reserved_mem_region() using __next_mem_region()
+  memblock: use separate iterators for memory and reserved regions
+
+ .clang-format                            |  4 +-
+ arch/arm/kernel/setup.c                  | 18 +++--
+ arch/arm/mm/init.c                       | 59 ++++------------
+ arch/arm/mm/mmu.c                        | 39 ++++-------
+ arch/arm/mm/pmsa-v7.c                    | 20 +++---
+ arch/arm/mm/pmsa-v8.c                    | 17 +++--
+ arch/arm/xen/mm.c                        |  7 +-
+ arch/arm64/kernel/machine_kexec_file.c   |  6 +-
+ arch/arm64/kernel/setup.c                |  4 +-
+ arch/arm64/mm/init.c                     | 11 ++-
+ arch/arm64/mm/kasan_init.c               | 10 +--
+ arch/arm64/mm/mmu.c                      | 11 +--
+ arch/arm64/mm/numa.c                     | 15 ++---
+ arch/c6x/kernel/setup.c                  |  9 +--
+ arch/h8300/kernel/setup.c                |  8 +--
+ arch/microblaze/mm/init.c                | 24 ++-----
+ arch/mips/cavium-octeon/dma-octeon.c     | 12 ++--
+ arch/mips/kernel/setup.c                 | 31 +++++----
+ arch/mips/netlogic/xlp/setup.c           |  2 +-
+ arch/nds32/kernel/setup.c                |  8 +--
+ arch/openrisc/kernel/setup.c             |  9 +--
+ arch/openrisc/mm/init.c                  |  8 ++-
+ arch/powerpc/kernel/fadump.c             | 57 ++++++++--------
+ arch/powerpc/kvm/book3s_hv_builtin.c     | 11 +--
+ arch/powerpc/mm/book3s64/hash_utils.c    | 16 ++---
+ arch/powerpc/mm/book3s64/radix_pgtable.c | 11 ++-
+ arch/powerpc/mm/kasan/kasan_init_32.c    |  8 +--
+ arch/powerpc/mm/mem.c                    | 33 +++++----
+ arch/powerpc/mm/numa.c                   |  7 +-
+ arch/powerpc/mm/pgtable_32.c             |  8 +--
+ arch/riscv/mm/init.c                     | 34 +++-------
+ arch/riscv/mm/kasan_init.c               | 10 +--
+ arch/s390/kernel/crash_dump.c            |  8 +--
+ arch/s390/kernel/setup.c                 | 31 +++++----
+ arch/s390/mm/page-states.c               |  6 +-
+ arch/s390/mm/vmem.c                      | 16 +++--
+ arch/sh/mm/init.c                        |  9 +--
+ arch/sparc/mm/init_64.c                  | 12 ++--
+ arch/x86/kernel/setup.c                  | 56 +++++-----------
+ arch/x86/mm/numa.c                       |  2 +-
+ arch/xtensa/mm/init.c                    | 55 +++------------
+ drivers/bus/mvebu-mbus.c                 | 12 ++--
+ drivers/irqchip/irq-gic-v3-its.c         |  2 +-
+ drivers/s390/char/zcore.c                |  9 +--
+ include/linux/memblock.h                 | 65 +++++++++---------
+ kernel/dma/contiguous.c                  | 11 +--
+ mm/memblock.c                            | 85 ++++++++----------------
+ mm/page_alloc.c                          | 11 ++-
+ mm/sparse.c                              | 10 ++-
+ 49 files changed, 366 insertions(+), 561 deletions(-)
+
 -- 
-2.28.0
+2.26.2
