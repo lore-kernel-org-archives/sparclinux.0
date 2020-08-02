@@ -1,70 +1,119 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Mon, 03 Aug 2020 09:45:16 +0000
-Subject: Re: [sparc64] unable to build v5.8 / master on sparc64 , bisect attached
-Message-Id: <CADxRZqzd1qGV17Q1QuQAb4O7Yu5HP1Aa_DE1wGqfOt4hSy5hOg@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 02 Aug 2020 16:35:58 +0000
+Subject: [PATCH v2 14/17] x86/setup: simplify reserve_crashkernel()
+Message-Id: <20200802163601.8189-15-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqzyxzN9yC79kjhtdpL9QT6ybgTsSCb3G1U8zJHZy-W_9w@mail.gmail.com>
- <de07ba39-4cd4-0174-3331-92cb7148a653@physik.fu-berlin.de>
-In-Reply-To: <de07ba39-4cd4-0174-3331-92cb7148a653@physik.fu-berlin.de>
+References: <20200802163601.8189-1-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
 
-On Mon, Aug 3, 2020 at 12:24 PM John Paul Adrian Glaubitz
-<glaubitz@physik.fu-berlin.de> wrote:
->
-> Hi Anatoly!
->
-> On 8/3/20 11:18 AM, Anatoly Pugachev wrote:
-> > # bad: [bcf876870b95592b52519ed4aafcf9d95999bc9c] Linux 5.8
-> > git bisect bad bcf876870b95592b52519ed4aafcf9d95999bc9c
-> > # good: [92ed301919932f777713b9172e525674157e983d] Linux 5.8-rc7
-> > git bisect good 92ed301919932f777713b9172e525674157e983d
-> > # bad: [0ae3495b6502cf93634cbd027cb2f6f9f83a406f] Merge tag
-> > 'for-linus-2020-08-01' of
-> > git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux
-> > git bisect bad 0ae3495b6502cf93634cbd027cb2f6f9f83a406f
-> > # bad: [aa54ea903abb02303bf55855fb51e3fcee135d70] ARM: percpu.h: fix build error
-> > git bisect bad aa54ea903abb02303bf55855fb51e3fcee135d70
-> > # good: [c2f3850df7f95537e79c561f7be49df2e4ad8060] Merge tag
-> > 'drm-fixes-2020-07-29' of git://anongit.freedesktop.org/drm/drm into
-> > master
-> > git bisect good c2f3850df7f95537e79c561f7be49df2e4ad8060
-> > # bad: [0513b9d75c07cbcdfda3778b636d3d131d679eb1] Merge tag
-> > 'io_uring-5.8-2020-07-30' of git://git.kernel.dk/linux-block
-> > git bisect bad 0513b9d75c07cbcdfda3778b636d3d131d679eb1
-> > # good: [d3590ebf6f91350192737dd1d1b219c05277f067] Merge tag
-> > 'audit-pr-20200729' of
-> > git://git.kernel.org/pub/scm/linux/kernel/git/pcmoore/audit
-> > git bisect good d3590ebf6f91350192737dd1d1b219c05277f067
-> > # good: [4ae6dbd683860b9edc254ea8acf5e04b5ae242e5] io_uring: fix
-> > lockup in io_fail_links()
-> > git bisect good 4ae6dbd683860b9edc254ea8acf5e04b5ae242e5
-> > # bad: [1c9df907da83812e4f33b59d3d142c864d9da57f] random: fix circular
-> > include dependency on arm64 after addition of percpu.h
-> > git bisect bad 1c9df907da83812e4f33b59d3d142c864d9da57f
->
-> Did you find the offending commit?
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-the last one v5.8-rc7-41-g1c9df907da83 ? In commit log it tells about
-"x86_64, arm64, arm, and mips" and nothing about sparc,
-probably forgotten, i'm not an expert , but the following code change
-fixes kernel compilation for me:
+* Replace magic numbers with defines
+* Replace memblock_find_in_range() + memblock_reserve() with
+  memblock_phys_alloc_range()
+* Stop checking for low memory size in reserve_crashkernel_low(). The
+  allocation from limited range will anyway fail if there is no enough
+  memory, so there is no need for extra traversal of memblock.memory
 
-linux-2.6$ git diff
-diff --git a/arch/sparc/include/asm/percpu.h b/arch/sparc/include/asm/percpu.h
-index 0cd704ef5ff9..fe284c508f01 100644
---- a/arch/sparc/include/asm/percpu.h
-+++ b/arch/sparc/include/asm/percpu.h
-@@ -1,6 +1,9 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- #ifndef ___ASM_SPARC_PERCPU_H
- #define ___ASM_SPARC_PERCPU_H
-+
-+#include <linux/threads.h>
-+
- #if defined(__sparc__) && defined(__arch64__)
- #include <asm/percpu_64.h>
- #else
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/x86/kernel/setup.c | 40 ++++++++++++++--------------------------
+ 1 file changed, 14 insertions(+), 26 deletions(-)
+
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index d8de4053c5e8..d7ced6982524 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -419,13 +419,13 @@ static int __init reserve_crashkernel_low(void)
+ {
+ #ifdef CONFIG_X86_64
+ 	unsigned long long base, low_base = 0, low_size = 0;
+-	unsigned long total_low_mem;
++	unsigned long low_mem_limit;
+ 	int ret;
+ 
+-	total_low_mem = memblock_mem_size(1UL << (32 - PAGE_SHIFT));
++	low_mem_limit = min(memblock_phys_mem_size(), CRASH_ADDR_LOW_MAX);
+ 
+ 	/* crashkernel=Y,low */
+-	ret = parse_crashkernel_low(boot_command_line, total_low_mem, &low_size, &base);
++	ret = parse_crashkernel_low(boot_command_line, low_mem_limit, &low_size, &base);
+ 	if (ret) {
+ 		/*
+ 		 * two parts from kernel/dma/swiotlb.c:
+@@ -443,23 +443,17 @@ static int __init reserve_crashkernel_low(void)
+ 			return 0;
+ 	}
+ 
+-	low_base = memblock_find_in_range(0, 1ULL << 32, low_size, CRASH_ALIGN);
++	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
+ 	if (!low_base) {
+ 		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
+ 		       (unsigned long)(low_size >> 20));
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = memblock_reserve(low_base, low_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel low memblock.\n", __func__);
+-		return ret;
+-	}
+-
+-	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (System low RAM: %ldMB)\n",
++	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (low RAM limit: %ldMB)\n",
+ 		(unsigned long)(low_size >> 20),
+ 		(unsigned long)(low_base >> 20),
+-		(unsigned long)(total_low_mem >> 20));
++		(unsigned long)(low_mem_limit >> 20));
+ 
+ 	crashk_low_res.start = low_base;
+ 	crashk_low_res.end   = low_base + low_size - 1;
+@@ -503,13 +497,13 @@ static void __init reserve_crashkernel(void)
+ 		 * unless "crashkernel=size[KMG],high" is specified.
+ 		 */
+ 		if (!high)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_LOW_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_LOW_MAX);
+ 		if (!crash_base)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_HIGH_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_HIGH_MAX);
+ 		if (!crash_base) {
+ 			pr_info("crashkernel reservation failed - No suitable area found.\n");
+ 			return;
+@@ -517,19 +511,13 @@ static void __init reserve_crashkernel(void)
+ 	} else {
+ 		unsigned long long start;
+ 
+-		start = memblock_find_in_range(crash_base,
+-					       crash_base + crash_size,
+-					       crash_size, 1 << 20);
++		start = memblock_phys_alloc_range(crash_size, SZ_1M, crash_base,
++						  crash_base + crash_size);
+ 		if (start != crash_base) {
+ 			pr_info("crashkernel reservation failed - memory is in use.\n");
+ 			return;
+ 		}
+ 	}
+-	ret = memblock_reserve(crash_base, crash_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel memblock.\n", __func__);
+-		return;
+-	}
+ 
+ 	if (crash_base >= (1ULL << 32) && reserve_crashkernel_low()) {
+ 		memblock_free(crash_base, crash_size);
+-- 
+2.26.2
