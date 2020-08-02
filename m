@@ -1,89 +1,193 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Wed, 19 Aug 2020 20:48:48 +0000
-Subject: Re: [PATCH v3 09/17] memblock: make memblock_debug and related functionality private
-Message-Id: <20200819204848.GX752365@kernel.org>
+Date: Sun, 02 Aug 2020 16:36:00 +0000
+Subject: [PATCH v2 16/17] memblock: implement for_each_reserved_mem_region() using __next_mem_region()
+Message-Id: <20200802163601.8189-17-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818151634.14343-1-rppt@kernel.org>
- <20200818151634.14343-10-rppt@kernel.org>
- <20200819122405.88e9719e86ac7c3c44b4db32@linux-foundation.org>
-In-Reply-To: <20200819122405.88e9719e86ac7c3c44b4db32@linux-foundation.org>
+References: <20200802163601.8189-1-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-1-rppt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
+To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Emil Renner Berthing <kernel-sKpHZLTYfq0@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-riscv-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Will Deacon <will-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Mike Rapoport <rppt-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, clang-built-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, uclinux-h8-devel-5NWGOfrQmneRv+LV9MX5uooqe+aC9MnS@public.gmane.org, linux-xtensa@linux-xt
 
-On Wed, Aug 19, 2020 at 12:24:05PM -0700, Andrew Morton wrote:
-> On Tue, 18 Aug 2020 18:16:26 +0300 Mike Rapoport <rppt@kernel.org> wrote:
-> 
-> > From: Mike Rapoport <rppt@linux.ibm.com>
-> > 
-> > The only user of memblock_dbg() outside memblock was s390 setup code and it
-> > is converted to use pr_debug() instead.
-> > This allows to stop exposing memblock_debug and memblock_dbg() to the rest
-> > of the kernel.
-> > 
-> > --- a/mm/memblock.c
-> > +++ b/mm/memblock.c
-> > @@ -137,7 +137,10 @@ struct memblock_type physmem = {
-> >  	     i < memblock_type->cnt;					\
-> >  	     i++, rgn = &memblock_type->regions[i])
-> >  
-> > -int memblock_debug __initdata_memblock;
-> > +#define memblock_dbg(fmt, ...) \
-> > +	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-> > +
-> 
-> checkpatch doesn't like this much.
-> 
-> ERROR: Macros starting with if should be enclosed by a do - while loop to avoid possible if/else logic defects
-> #101: FILE: mm/memblock.c:140:
-> +#define memblock_dbg(fmt, ...) \
-> +	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-> 
-> WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
-> #102: FILE: mm/memblock.c:141:
-> +	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-> 
-> ERROR: trailing statements should be on next line
-> #102: FILE: mm/memblock.c:141:
-> +	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-> 
-> 
-> The first one is significant:
-> 
-> 	if (foo)
-> 		memblock_dbg(...);
-> 	else
-> 		save_the_world();
-> 
-> could end up inadvertently destroying the planet.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Well, it didn't till now ;-)
+Iteration over memblock.reserved with for_each_reserved_mem_region() used
+__next_reserved_mem_region() that implemented a subset of
+__next_mem_region().
 
-> This?
-> 
-> --- a/mm/memblock.c~memblock-make-memblock_debug-and-related-functionality-private-fix
-> +++ a/mm/memblock.c
-> @@ -137,8 +137,11 @@ struct memblock_type physmem = {
->  	     i < memblock_type->cnt;					\
->  	     i++, rgn = &memblock_type->regions[i])
->  
-> -#define memblock_dbg(fmt, ...) \
-> -	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-> +#define memblock_dbg(fmt, ...)						\
-> +	do {								\
-> +		if (memblock_debug)					\
-> +			pr_info(fmt, ##__VA_ARGS__);			\
-> +	} while (0)
+Use __for_each_mem_range() and, essentially, __next_mem_region() with
+appropriate parameters to reduce code duplication.
 
-Sure, thanks!
+While on it, rename for_each_reserved_mem_region() to
+for_each_reserved_mem_range() for consistency.
 
->  static int memblock_debug __initdata_memblock;
->  static bool system_has_some_mirror __initdata_memblock = false;
-> _
-> 
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ .clang-format                    |  2 +-
+ arch/arm64/kernel/setup.c        |  2 +-
+ drivers/irqchip/irq-gic-v3-its.c |  2 +-
+ include/linux/memblock.h         | 12 +++------
+ mm/memblock.c                    | 46 +++++++-------------------------
+ 5 files changed, 17 insertions(+), 47 deletions(-)
 
+diff --git a/.clang-format b/.clang-format
+index 52ededab25ce..e28a849a1c58 100644
+--- a/.clang-format
++++ b/.clang-format
+@@ -266,7 +266,7 @@ ForEachMacros:
+   - 'for_each_process_thread'
+   - 'for_each_property_of_node'
+   - 'for_each_registered_fb'
+-  - 'for_each_reserved_mem_region'
++  - 'for_each_reserved_mem_range'
+   - 'for_each_rtd_codec_dais'
+   - 'for_each_rtd_codec_dais_rollback'
+   - 'for_each_rtd_components'
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 93b3844cf442..f3aec7244aab 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -257,7 +257,7 @@ static int __init reserve_memblock_reserved_regions(void)
+ 		if (!memblock_is_region_reserved(mem->start, mem_size))
+ 			continue;
+ 
+-		for_each_reserved_mem_region(j, &r_start, &r_end) {
++		for_each_reserved_mem_range(j, &r_start, &r_end) {
+ 			resource_size_t start, end;
+ 
+ 			start = max(PFN_PHYS(PFN_DOWN(r_start)), mem->start);
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index beac4caefad9..9971fd8cf6b6 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -2192,7 +2192,7 @@ static bool gic_check_reserved_range(phys_addr_t addr, unsigned long size)
+ 
+ 	addr_end = addr + size - 1;
+ 
+-	for_each_reserved_mem_region(i, &start, &end) {
++	for_each_reserved_mem_range(i, &start, &end) {
+ 		if (addr >= start && addr_end <= end)
+ 			return true;
+ 	}
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index ec2fd8f32a19..9e51b3fd4134 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -136,9 +136,6 @@ void __next_mem_range_rev(u64 *idx, int nid, enum memblock_flags flags,
+ 			  struct memblock_type *type_b, phys_addr_t *out_start,
+ 			  phys_addr_t *out_end, int *out_nid);
+ 
+-void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
+-				phys_addr_t *out_end);
+-
+ void __memblock_free_late(phys_addr_t base, phys_addr_t size);
+ 
+ /**
+@@ -193,7 +190,7 @@ void __memblock_free_late(phys_addr_t base, phys_addr_t size);
+ 			     MEMBLOCK_NONE, p_start, p_end, NULL)
+ 
+ /**
+- * for_each_reserved_mem_region - iterate over all reserved memblock areas
++ * for_each_reserved_mem_range - iterate over all reserved memblock areas
+  * @i: u64 used as loop variable
+  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
+  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
+@@ -201,10 +198,9 @@ void __memblock_free_late(phys_addr_t base, phys_addr_t size);
+  * Walks over reserved areas of memblock. Available as soon as memblock
+  * is initialized.
+  */
+-#define for_each_reserved_mem_region(i, p_start, p_end)			\
+-	for (i = 0UL, __next_reserved_mem_region(&i, p_start, p_end);	\
+-	     i != (u64)ULLONG_MAX;					\
+-	     __next_reserved_mem_region(&i, p_start, p_end))
++#define for_each_reserved_mem_range(i, p_start, p_end)			\
++	__for_each_mem_range(i, &memblock.reserved, NULL, NUMA_NO_NODE,	\
++			     MEMBLOCK_NONE, p_start, p_end, NULL)
+ 
+ static inline bool memblock_is_hotpluggable(struct memblock_region *m)
+ {
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 48d614352b25..dadf579f7c53 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -946,42 +946,16 @@ int __init_memblock memblock_clear_nomap(phys_addr_t base, phys_addr_t size)
+ 	return memblock_setclr_flag(base, size, 0, MEMBLOCK_NOMAP);
+ }
+ 
+-/**
+- * __next_reserved_mem_region - next function for for_each_reserved_region()
+- * @idx: pointer to u64 loop variable
+- * @out_start: ptr to phys_addr_t for start address of the region, can be %NULL
+- * @out_end: ptr to phys_addr_t for end address of the region, can be %NULL
+- *
+- * Iterate over all reserved memory regions.
+- */
+-void __init_memblock __next_reserved_mem_region(u64 *idx,
+-					   phys_addr_t *out_start,
+-					   phys_addr_t *out_end)
+-{
+-	struct memblock_type *type = &memblock.reserved;
+-
+-	if (*idx < type->cnt) {
+-		struct memblock_region *r = &type->regions[*idx];
+-		phys_addr_t base = r->base;
+-		phys_addr_t size = r->size;
+-
+-		if (out_start)
+-			*out_start = base;
+-		if (out_end)
+-			*out_end = base + size - 1;
+-
+-		*idx += 1;
+-		return;
+-	}
+-
+-	/* signal end of iteration */
+-	*idx = ULLONG_MAX;
+-}
+-
+-static bool should_skip_region(struct memblock_region *m, int nid, int flags)
++static bool __init_memblock should_skip_region(struct memblock_type *type,
++					       struct memblock_region *m,
++					       int nid, int flags)
+ {
+ 	int m_nid = memblock_get_region_node(m);
+ 
++	/* we never skip regions when iterating memblock.reserved */
++	if (type = &memblock.reserved)
++		return false;
++
+ 	/* only memory regions are associated with nodes, check it */
+ 	if (nid != NUMA_NO_NODE && nid != m_nid)
+ 		return true;
+@@ -1048,7 +1022,7 @@ void __init_memblock __next_mem_range(u64 *idx, int nid,
+ 		phys_addr_t m_end = m->base + m->size;
+ 		int	    m_nid = memblock_get_region_node(m);
+ 
+-		if (should_skip_region(m, nid, flags))
++		if (should_skip_region(type_a, m, nid, flags))
+ 			continue;
+ 
+ 		if (!type_b) {
+@@ -1152,7 +1126,7 @@ void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
+ 		phys_addr_t m_end = m->base + m->size;
+ 		int m_nid = memblock_get_region_node(m);
+ 
+-		if (should_skip_region(m, nid, flags))
++		if (should_skip_region(type_a, m, nid, flags))
+ 			continue;
+ 
+ 		if (!type_b) {
+@@ -1977,7 +1951,7 @@ static unsigned long __init free_low_memory_core_early(void)
+ 
+ 	memblock_clear_hotplug(0, -1);
+ 
+-	for_each_reserved_mem_region(i, &start, &end)
++	for_each_reserved_mem_range(i, &start, &end)
+ 		reserve_bootmem_region(start, end);
+ 
+ 	/*
 -- 
-Sincerely yours,
-Mike.
+2.26.2
