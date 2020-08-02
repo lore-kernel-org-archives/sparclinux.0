@@ -1,40 +1,59 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Wed, 19 Aug 2020 10:46:46 +0000
-Subject: [PATCH v2 02/11] h8300: switch to kernel_clone()
-Message-Id: <20200819104655.436656-3-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 02 Aug 2020 16:35:52 +0000
+Subject: [PATCH v2 08/17] memblock: make for_each_memblock_type() iterator private
+Message-Id: <20200802163601.8189-9-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+References: <20200802163601.8189-1-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
 
-The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-The latter adheres to naming conventions for kernel internal syscall helpers.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+for_each_memblock_type() is not used outside mm/memblock.c, move it there
+from include/linux/memblock.h
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 ---
-/* v2 */
-unchanged
----
- arch/h8300/kernel/process.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memblock.h | 5 -----
+ mm/memblock.c            | 5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/h8300/kernel/process.c b/arch/h8300/kernel/process.c
-index 83ce3caf7313..aea0a40b77a9 100644
---- a/arch/h8300/kernel/process.c
-+++ b/arch/h8300/kernel/process.c
-@@ -172,5 +172,5 @@ asmlinkage int sys_clone(unsigned long __user *args)
- 	kargs.exit_signal	= (lower_32_bits(clone_flags) & CSIGNAL);
- 	kargs.stack		= newsp;
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 017fae833d4a..220b5f0dad42 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -532,11 +532,6 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
  
--	return _do_fork(&kargs);
-+	return kernel_clone(&kargs);
- }
+-#define for_each_memblock_type(i, memblock_type, rgn)			\
+-	for (i = 0, rgn = &memblock_type->regions[0];			\
+-	     i < memblock_type->cnt;					\
+-	     i++, rgn = &memblock_type->regions[i])
+-
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 39aceafc57f6..a5b9b3df81fc 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -129,6 +129,11 @@ struct memblock memblock __initdata_memblock = {
+ 	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
+ };
+ 
++#define for_each_memblock_type(i, memblock_type, rgn)			\
++	for (i = 0, rgn = &memblock_type->regions[0];			\
++	     i < memblock_type->cnt;					\
++	     i++, rgn = &memblock_type->regions[i])
++
+ int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
 -- 
-2.28.0
+2.26.2
