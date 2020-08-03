@@ -1,59 +1,45 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 18 Aug 2020 15:16:25 +0000
-Subject: [PATCH v3 08/17] memblock: make for_each_memblock_type() iterator private
-Message-Id: <20200818151634.14343-9-rppt@kernel.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 03 Aug 2020 09:57:51 +0000
+Subject: Re: Build regressions/improvements in v5.8
+Message-Id: <CAMuHMdW=tzsK=bsQHQmFAUF041XZ8-msfgNZPpKQurxq1dsjGg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818151634.14343-1-rppt@kernel.org>
-In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
+References: <20200803095048.20102-1-geert@linux-m68k.org>
+In-Reply-To: <20200803095048.20102-1-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: sparclinux <sparclinux@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+On Mon, Aug 3, 2020 at 11:53 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> JFYI, when comparing v5.8[1] to v5.8-rc7[3], the summaries are:
+>   - build errors: +2/-3
 
-for_each_memblock_type() is not used outside mm/memblock.c, move it there
-from include/linux/memblock.h
+  + /kisskb/src/arch/powerpc/include/asm/mmu.h: error: unknown type
+name 'next_tlbcam_idx':  => 139:22
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
----
- include/linux/memblock.h | 5 -----
- mm/memblock.c            | 5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+v5.8/powerpc-gcc4.9/corenet64_smp_defconfig
+v5.8/powerpc-gcc4.9/ppc64_book3e_allmodconfig
+v5.8/powerpc-gcc4.9/ppc64e_defconfig
+v5.8/powerpc-gcc9/ppc64_book3e_allmodconfig
+(fix available)
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 9d925db0d355..550faf69fc1c 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -552,11 +552,6 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
- 
--#define for_each_memblock_type(i, memblock_type, rgn)			\
--	for (i = 0, rgn = &memblock_type->regions[0];			\
--	     i < memblock_type->cnt;					\
--	     i++, rgn = &memblock_type->regions[i])
--
- extern void *alloc_large_system_hash(const char *tablename,
- 				     unsigned long bucketsize,
- 				     unsigned long numentries,
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 45f198750be9..59f3998ae5db 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -132,6 +132,11 @@ struct memblock_type physmem = {
- };
- #endif
- 
-+#define for_each_memblock_type(i, memblock_type, rgn)			\
-+	for (i = 0, rgn = &memblock_type->regions[0];			\
-+	     i < memblock_type->cnt;					\
-+	     i++, rgn = &memblock_type->regions[i])
-+
- int memblock_debug __initdata_memblock;
- static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
+  + /kisskb/src/arch/sparc/include/asm/trap_block.h: error: 'NR_CPUS'
+undeclared here (not in a function):  => 54:39
+
+v5.8/sparc64/sparc64-allmodconfig
+v5.8/sparc64/sparc64-defconfig
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/bcf876870b95592b52519ed4aafcf9d95999bc9c/ (192 out of 194 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/92ed301919932f777713b9172e525674157e983d/ (192 out of 194 configs)
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 -- 
-2.26.2
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
