@@ -1,20 +1,18 @@
-From: Ingo Molnar <mingo@kernel.org>
-Date: Sun, 02 Aug 2020 18:03:04 +0000
+From: Baoquan He <bhe@redhat.com>
+Date: Wed, 05 Aug 2020 09:29:48 +0000
 Subject: Re: [PATCH v2 17/17] memblock: use separate iterators for memory and reserved regions
-Message-Id: <20200802180304.GC86614@gmail.com>
+Message-Id: <20200805092948.GX10792@MiWiFi-R3L-srv>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200802163601.8189-1-rppt@kernel.org>
  <20200802163601.8189-18-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-18-rppt@kernel.org>
+In-Reply-To: <20200802163601.8189-18-rppt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradea>
+To: Mike Rapoport <rppt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Emil Renner Berthing <kernel-sKpHZLTYfq0@public.gmane.org>, linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-mips-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Max Filippov <jcmvbkbc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-riscv-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Will Deacon <will-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stafford Horne <shorne-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arch-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-c6x-dev-jPsnJVOj+W6hPH1hqNUYSQ@public.gmane.org, Yoshinori Sato <ysato-Rn4VEauK+AKRv+LV9MX5uooqe+aC9MnS@public.gmane.org>, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, Russell King <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Mike Rapoport <rppt-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, clang-built-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, uclinux-h8-devel-5NWGOfrQmneRv+LV9MX5uooqe+aC9MnS@public.gmane.org, linux-xtens
 
-
-* Mike Rapoport <rppt@kernel.org> wrote:
-
+On 08/02/20 at 07:36pm, Mike Rapoport wrote:
 > From: Mike Rapoport <rppt@linux.ibm.com>
 > 
 > for_each_memblock() is used to iterate over memblock.memory in
@@ -35,11 +33,26 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@kernel.org>
 >  mm/memblock.c                  |  4 ++--
 >  mm/page_alloc.c                |  8 ++++----
 >  8 files changed, 28 insertions(+), 14 deletions(-)
+> 
+...
 
-The x86 part:
+> diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+> index 9e51b3fd4134..a6970e058bd7 100644
+> --- a/include/linux/memblock.h
+> +++ b/include/linux/memblock.h
+> @@ -522,9 +522,22 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
+>  	return PFN_UP(reg->base + reg->size);
+>  }
+>  
+> -#define for_each_memblock(memblock_type, region)					\
+> -	for (region = memblock.memblock_type.regions;					\
+> -	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+> +/**
+> + * for_each_mem_region - itereate over registered memory regions
+                                          ~~~~~~~~~~~~~~~~~
 
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Wonder why emphasize 'registered' memory.
 
-Thanks,
+Other than this confusion to me, this patch looks good.
 
-	Ingo
+Reviewed-by: Baoquan He <bhe@redhat.com>
