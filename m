@@ -1,59 +1,20 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:52 +0000
-Subject: [PATCH v2 08/17] memblock: make for_each_memblock_type() iterator private
-Message-Id: <20200802163601.8189-9-rppt@kernel.org>
+From: campbellclark016@gmail.com
+Date: Thu, 06 Aug 2020 06:49:45 +0000
+Subject: INVESTMENT
+Message-Id: <WIN-DAONO245HJFlNa400aab523@WIN-DAONO245HJF>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: sparclinux@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
 
-for_each_memblock_type() is not used outside mm/memblock.c, move it there
-from include/linux/memblock.h
+Good day,
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
----
- include/linux/memblock.h | 5 -----
- mm/memblock.c            | 5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ You were recommended by a mutual associate. I write you regarding an investment of bearer bonds I made on behalf of a client. The investment was made in 2009 and has been under my management. The said investor is deceased. The window is now available to assign these bonds to any name or company of my choice. I have all the necessary information to achieve this within 10 banking days. The total value of the bond is 100 million pounds sterling, in a million pound denominations. If you can handle this, do contact me at your earliest convenience via my email campbell.clark24@yahoo.com So we can discuss the finer details
 
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 017fae833d4a..220b5f0dad42 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -532,11 +532,6 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
- 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
- 	     region++)
- 
--#define for_each_memblock_type(i, memblock_type, rgn)			\
--	for (i = 0, rgn = &memblock_type->regions[0];			\
--	     i < memblock_type->cnt;					\
--	     i++, rgn = &memblock_type->regions[i])
--
- extern void *alloc_large_system_hash(const char *tablename,
- 				     unsigned long bucketsize,
- 				     unsigned long numentries,
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 39aceafc57f6..a5b9b3df81fc 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -129,6 +129,11 @@ struct memblock memblock __initdata_memblock = {
- 	.current_limit		= MEMBLOCK_ALLOC_ANYWHERE,
- };
- 
-+#define for_each_memblock_type(i, memblock_type, rgn)			\
-+	for (i = 0, rgn = &memblock_type->regions[0];			\
-+	     i < memblock_type->cnt;					\
-+	     i++, rgn = &memblock_type->regions[i])
-+
- int memblock_debug __initdata_memblock;
- static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
--- 
-2.26.2
+
+Thank you
+
+
+Mr Campbell Clark
