@@ -1,8 +1,10 @@
 From: info@furshetcrimea.ru
-Date: Fri, 07 Aug 2020 13:22:09 +0000
+Date: Fri, 07 Aug 2020 14:45:40 +0000
 Subject: Bei Interesse antworten.
-Message-Id: <auto-000011097453@furshetcrimea.ru>
+Message-Id: <auto-000011133008@furshetcrimea.ru>
 List-Id: <sparclinux.vger.kernel.org>
+References: <auto-000011097453@furshetcrimea.ru>
+In-Reply-To: <auto-000011097453@furshetcrimea.ru>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
