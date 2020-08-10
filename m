@@ -1,139 +1,122 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Wed, 19 Aug 2020 10:46:45 +0000
-Subject: [PATCH v2 01/11] fork: introduce kernel_clone()
-Message-Id: <20200819104655.436656-2-christian.brauner@ubuntu.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 10 Aug 2020 15:21:22 +0000
+Subject: [PATCH 5.4 35/67] drm/drm_fb_helper: fix fbdev with sparc64
+Message-Id: <20200810151811.171538668@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+References: <20200810151809.438685785@linuxfoundation.org>
+In-Reply-To: <20200810151809.438685785@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>, Ingo Molnar <mingo@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>, kernel test robot <lkp@intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Thomas Zimmermann <tzimmermann@suse.de>, Gerd Hoffmann <kraxel@redhat.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sasha Levin <sashal@kernel.org>
 
-The old _do_fork() helper doesn't follow naming conventions of in-kernel
-helpers for syscalls. The process creation cleanup in [1] didn't change the
-name to something more reasonable mainly because _do_fork() was used in quite a
-few places. So sending this as a separate series seemed the better strategy.
+From: Sam Ravnborg <sam@ravnborg.org>
 
-This commit does two things:
-1. renames _do_fork() to kernel_clone() but keeps _do_fork() as a simple static
-   inline wrapper around kernel_clone().
-2. Changes the return type from long to pid_t. This aligns kernel_thread() and
-   kernel_clone(). Also, the return value from kernel_clone that is surfaced in
-   fork(), vfork(), clone(), and clone3() is taken from pid_vrn() which returns
-   a pid_t too.
+[ Upstream commit 2a1658bf922ffd9b7907e270a7d9cdc9643fc45d ]
 
-Follow-up patches will switch each caller of _do_fork() and each place where it
-is referenced over to kernel_clone(). After all these changes are done, we can
-remove _do_fork() completely and will only be left with kernel_clone().
+Recent kernels have been reported to panic using the bochs_drm
+framebuffer under qemu-system-sparc64 which was bisected to
+commit 7a0483ac4ffc ("drm/bochs: switch to generic drm fbdev emulation").
 
-[1]: 9ba27414f2ec ("Merge tag 'fork-v5.9' of git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux")
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+The backtrace indicates that the shadow framebuffer copy in
+drm_fb_helper_dirty_blit_real() is trying to access the real
+framebuffer using a virtual address rather than use an IO access
+typically implemented using a physical (ASI_PHYS) access on SPARC.
+
+The fix is to replace the memcpy with memcpy_toio() from io.h.
+
+memcpy_toio() uses writeb() where the original fbdev code
+used sbus_memcpy_toio(). The latter uses sbus_writeb().
+
+The difference between writeb() and sbus_memcpy_toio() is
+that writeb() writes bytes in little-endian, where sbus_writeb() writes
+bytes in big-endian. As endian does not matter for byte writes they are
+the same. So we can safely use memcpy_toio() here.
+
+Note that this only fixes bochs, in general fbdev helpers still have
+issues with mixing up system memory and __iomem space. Fixing that will
+require a lot more work.
+
+v3:
+  - Improved changelog (Daniel)
+  - Added FIXME to fbdev_use_iomem (Daniel)
+
+v2:
+  - Added missing __iomem cast (kernel test robot)
+  - Made changelog readable and fix typos (Mark)
+  - Add flag to select iomem - and set it in the bochs driver
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Reported-by: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+Reported-by: kernel test robot <lkp@intel.com>
+Tested-by: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Mark Cave-Ayland <mark.cave-ayland@ilande.co.uk>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: Gerd Hoffmann <kraxel@redhat.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Link: https://patchwork.freedesktop.org/patch/msgid/20200709193016.291267-1-sam@ravnborg.org
+Link: https://patchwork.freedesktop.org/patch/msgid/20200725191012.GA434957@ravnborg.org
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-/* v2 */
-- Matthew Wilcox (Oracle) <willy@infradead.org>:
-  - make kernel_clone() return pid_t
----
- include/linux/sched/task.h |  6 +++++-
- kernel/fork.c              | 16 ++++++++--------
- 2 files changed, 13 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/bochs/bochs_kms.c |  1 +
+ drivers/gpu/drm/drm_fb_helper.c   |  6 +++++-
+ include/drm/drm_mode_config.h     | 12 ++++++++++++
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
-index a98965007eef..d4428039c3c1 100644
---- a/include/linux/sched/task.h
-+++ b/include/linux/sched/task.h
-@@ -83,7 +83,11 @@ extern void do_group_exit(int);
- extern void exit_files(struct task_struct *);
- extern void exit_itimers(struct signal_struct *);
+diff --git a/drivers/gpu/drm/bochs/bochs_kms.c b/drivers/gpu/drm/bochs/bochs_kms.c
+index 02a9c1ed165bb..fa50ab2523d4b 100644
+--- a/drivers/gpu/drm/bochs/bochs_kms.c
++++ b/drivers/gpu/drm/bochs/bochs_kms.c
+@@ -194,6 +194,7 @@ int bochs_kms_init(struct bochs_device *bochs)
+ 	bochs->dev->mode_config.preferred_depth = 24;
+ 	bochs->dev->mode_config.prefer_shadow = 0;
+ 	bochs->dev->mode_config.prefer_shadow_fbdev = 1;
++	bochs->dev->mode_config.fbdev_use_iomem = true;
+ 	bochs->dev->mode_config.quirk_addfb_prefer_host_byte_order = true;
  
--extern long _do_fork(struct kernel_clone_args *kargs);
-+extern pid_t kernel_clone(struct kernel_clone_args *kargs);
-+static inline long _do_fork(struct kernel_clone_args *kargs)
-+{
-+	return kernel_clone(kargs);
-+}
- struct task_struct *fork_idle(int);
- struct mm_struct *copy_init_mm(void);
- extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
-diff --git a/kernel/fork.c b/kernel/fork.c
-index 4d32190861bd..d822c7a4b9c4 100644
---- a/kernel/fork.c
-+++ b/kernel/fork.c
-@@ -2384,14 +2384,14 @@ struct mm_struct *copy_init_mm(void)
-  *
-  * args->exit_signal is expected to be checked for sanity by the caller.
-  */
--long _do_fork(struct kernel_clone_args *args)
-+pid_t kernel_clone(struct kernel_clone_args *args)
- {
- 	u64 clone_flags = args->flags;
- 	struct completion vfork;
- 	struct pid *pid;
- 	struct task_struct *p;
- 	int trace = 0;
--	long nr;
-+	pid_t nr;
+ 	bochs->dev->mode_config.funcs = &bochs_mode_funcs;
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index 8d193a58363d4..6b8502bcf0fd3 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -390,7 +390,11 @@ static void drm_fb_helper_dirty_blit_real(struct drm_fb_helper *fb_helper,
+ 	unsigned int y;
  
- 	/*
- 	 * For legacy clone() calls, CLONE_PIDFD uses the parent_tid argument
-@@ -2477,7 +2477,7 @@ pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
- 		.stack_size	= (unsigned long)arg,
- 	};
+ 	for (y = clip->y1; y < clip->y2; y++) {
+-		memcpy(dst, src, len);
++		if (!fb_helper->dev->mode_config.fbdev_use_iomem)
++			memcpy(dst, src, len);
++		else
++			memcpy_toio((void __iomem *)dst, src, len);
++
+ 		src += fb->pitches[0];
+ 		dst += fb->pitches[0];
+ 	}
+diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
+index 3bcbe30339f04..198b9d0600081 100644
+--- a/include/drm/drm_mode_config.h
++++ b/include/drm/drm_mode_config.h
+@@ -865,6 +865,18 @@ struct drm_mode_config {
+ 	 */
+ 	bool prefer_shadow_fbdev;
  
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- }
- 
- #ifdef __ARCH_WANT_SYS_FORK
-@@ -2488,7 +2488,7 @@ SYSCALL_DEFINE0(fork)
- 		.exit_signal = SIGCHLD,
- 	};
- 
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- #else
- 	/* can not support in nommu mode */
- 	return -EINVAL;
-@@ -2504,7 +2504,7 @@ SYSCALL_DEFINE0(vfork)
- 		.exit_signal	= SIGCHLD,
- 	};
- 
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- }
- #endif
- 
-@@ -2542,7 +2542,7 @@ SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
- 		.tls		= tls,
- 	};
- 
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- }
- #endif
- 
-@@ -2700,7 +2700,7 @@ SYSCALL_DEFINE2(clone3, struct clone_args __user *, uargs, size_t, size)
- 	if (!clone3_args_valid(&kargs))
- 		return -EINVAL;
- 
--	return _do_fork(&kargs);
-+	return kernel_clone(&kargs);
- }
- #endif
- 
-@@ -2863,7 +2863,7 @@ int unshare_fd(unsigned long unshare_flags, unsigned int max_fds,
- /*
-  * unshare allows a process to 'unshare' part of the process
-  * context which was originally shared using clone.  copy_*
-- * functions used by _do_fork() cannot be used here directly
-+ * functions used by kernel_clone() cannot be used here directly
-  * because they modify an inactive task_struct that is being
-  * constructed. Here we are modifying the current, active,
-  * task_struct.
++	/**
++	 * @fbdev_use_iomem:
++	 *
++	 * Set to true if framebuffer reside in iomem.
++	 * When set to true memcpy_toio() is used when copying the framebuffer in
++	 * drm_fb_helper.drm_fb_helper_dirty_blit_real().
++	 *
++	 * FIXME: This should be replaced with a per-mapping is_iomem
++	 * flag (like ttm does), and then used everywhere in fbdev code.
++	 */
++	bool fbdev_use_iomem;
++
+ 	/**
+ 	 * @quirk_addfb_prefer_xbgr_30bpp:
+ 	 *
 -- 
-2.28.0
+2.25.1
