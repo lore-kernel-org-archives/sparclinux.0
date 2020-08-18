@@ -1,57 +1,56 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Wed, 19 Aug 2020 10:46:48 +0000
-Subject: [PATCH v2 04/11] m68k: switch to kernel_clone()
-Message-Id: <20200819104655.436656-5-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:19 +0000
+Subject: [PATCH v3 02/17] dma-contiguous: simplify cma_early_percent_memory()
+Message-Id: <20200818151634.14343-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
 
-The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-The latter adheres to naming conventions for kernel internal syscall helpers.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Kars de Jong <jongk@linux-m68k.org>
-Cc: linux-m68k@lists.linux-m68k.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+The memory size calculation in cma_early_percent_memory() traverses
+memblock.memory rather than simply call memblock_phys_mem_size(). The
+comment in that function suggests that at some point there should have been
+call to memblock_analyze() before memblock_phys_mem_size() could be used.
+As of now, there is no memblock_analyze() at all and
+memblock_phys_mem_size() can be used as soon as cold-plug memory is
+registerd with memblock.
+
+Replace loop over memblock.memory with a call to memblock_phys_mem_size().
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 ---
-/* v2 */
-unchanged
----
- arch/m68k/kernel/process.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/dma/contiguous.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/arch/m68k/kernel/process.c b/arch/m68k/kernel/process.c
-index 6492a2c54dbc..08359a6e058f 100644
---- a/arch/m68k/kernel/process.c
-+++ b/arch/m68k/kernel/process.c
-@@ -107,10 +107,10 @@ void flush_thread(void)
-  * on top of pt_regs, which means that sys_clone() arguments would be
-  * buried.  We could, of course, copy them, but it's too costly for no
-  * good reason - generic clone() would have to copy them *again* for
-- * _do_fork() anyway.  So in this case it's actually better to pass pt_regs *
-- * and extract arguments for _do_fork() from there.  Eventually we might
-- * go for calling _do_fork() directly from the wrapper, but only after we
-- * are finished with _do_fork() prototype conversion.
-+ * kernel_clone() anyway.  So in this case it's actually better to pass pt_regs *
-+ * and extract arguments for kernel_clone() from there.  Eventually we might
-+ * go for calling kernel_clone() directly from the wrapper, but only after we
-+ * are finished with kernel_clone() prototype conversion.
-  */
- asmlinkage int m68k_clone(struct pt_regs *regs)
+diff --git a/kernel/dma/contiguous.c b/kernel/dma/contiguous.c
+index cff7e60968b9..0369fd5fda8f 100644
+--- a/kernel/dma/contiguous.c
++++ b/kernel/dma/contiguous.c
+@@ -73,16 +73,7 @@ early_param("cma", early_cma);
+ 
+ static phys_addr_t __init __maybe_unused cma_early_percent_memory(void)
  {
-@@ -125,7 +125,7 @@ asmlinkage int m68k_clone(struct pt_regs *regs)
- 		.tls		= regs->d5,
- 	};
+-	struct memblock_region *reg;
+-	unsigned long total_pages = 0;
+-
+-	/*
+-	 * We cannot use memblock_phys_mem_size() here, because
+-	 * memblock_analyze() has not been called yet.
+-	 */
+-	for_each_memblock(memory, reg)
+-		total_pages += memblock_region_memory_end_pfn(reg) -
+-			       memblock_region_memory_base_pfn(reg);
++	unsigned long total_pages = PHYS_PFN(memblock_phys_mem_size());
  
--	return _do_fork(&args);
-+	return kernel_clone(&args);
+ 	return (total_pages * CONFIG_CMA_SIZE_PERCENTAGE / 100) << PAGE_SHIFT;
  }
- 
- /*
 -- 
-2.28.0
+2.26.2
