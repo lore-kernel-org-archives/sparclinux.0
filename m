@@ -1,24 +1,54 @@
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Wed, 05 Aug 2020 17:11:30 +0000
-Subject: Re: [PATCH v2 16/17] memblock: implement for_each_reserved_mem_region() using __next_mem_region()
-Message-Id: <CANiq72k-hZwbnttADQhi3+NrHkLDVe95jxLAPvLbvSOW41+HaQ@mail.gmail.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 18 Aug 2020 17:34:04 +0000
+Subject: [PATCH 04/11] m68k: switch to kernel_clone()
+Message-Id: <20200818173411.404104-5-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
- <20200802163601.8189-17-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-17-rppt@kernel.org>
+References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Emil Renner Berthing <kernel@esmil.dk>, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-arch <linux-arch@vger.kernel.org>, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Baoquan He <bhe@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux <clang-built-linux@googlegroups.com>, Ingo
+To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
 
-On Sun, Aug 2, 2020 at 6:40 PM Mike Rapoport <rppt@kernel.org> wrote:
->
->  .clang-format                    |  2 +-
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-The .clang-format bit:
+Cc: Kars de Jong <jongk@linux-m68k.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: linux-m68k@lists.linux-m68k.org
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+---
+ arch/m68k/kernel/process.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-Acked-by: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-
-Cheers,
-Miguel
+diff --git a/arch/m68k/kernel/process.c b/arch/m68k/kernel/process.c
+index 6492a2c54dbc..08359a6e058f 100644
+--- a/arch/m68k/kernel/process.c
++++ b/arch/m68k/kernel/process.c
+@@ -107,10 +107,10 @@ void flush_thread(void)
+  * on top of pt_regs, which means that sys_clone() arguments would be
+  * buried.  We could, of course, copy them, but it's too costly for no
+  * good reason - generic clone() would have to copy them *again* for
+- * _do_fork() anyway.  So in this case it's actually better to pass pt_regs *
+- * and extract arguments for _do_fork() from there.  Eventually we might
+- * go for calling _do_fork() directly from the wrapper, but only after we
+- * are finished with _do_fork() prototype conversion.
++ * kernel_clone() anyway.  So in this case it's actually better to pass pt_regs *
++ * and extract arguments for kernel_clone() from there.  Eventually we might
++ * go for calling kernel_clone() directly from the wrapper, but only after we
++ * are finished with kernel_clone() prototype conversion.
+  */
+ asmlinkage int m68k_clone(struct pt_regs *regs)
+ {
+@@ -125,7 +125,7 @@ asmlinkage int m68k_clone(struct pt_regs *regs)
+ 		.tls		= regs->d5,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ 
+ /*
+-- 
+2.28.0
