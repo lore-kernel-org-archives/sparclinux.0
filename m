@@ -1,85 +1,121 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Wed, 19 Aug 2020 10:46:44 +0000
-Subject: [PATCH v2 00/11] Introduce kernel_clone(), kill _do_fork()
-Message-Id: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:31 +0000
+Subject: [PATCH v3 14/17] x86/setup: simplify reserve_crashkernel()
+Message-Id: <20200818151634.14343-15-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org, Ingo Molnar <mingo@kernel.org>
 
-Hey everyone,
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-This is a follow-up to the fork-related cleanup. It's based on a brief
-discussion after the initial series was merged.
-Last cycle we removed copy_thread_tls() and the associated Kconfig
-option for each architecture. Now we are only left with copy_thread().
-Part of this work was removing the old do_fork() legacy clone()-style
-calling convention in favor of the new struct kernel_clone args calling
-convention.
-The only remaining function callable outside of kernel/fork.c is
-_do_fork(). It doesn't really follow the naming of kernel-internal
-syscall helpers as Christoph righly pointed out. Switch all callers and
-references to kernel_clone() and remove _do_fork() once and for all also
-switching the return value for kernel_clone() from long to pid_t since
-that's what we use in all other places where we're dealing with process
-identifiers.
+* Replace magic numbers with defines
+* Replace memblock_find_in_range() + memblock_reserve() with
+  memblock_phys_alloc_range()
+* Stop checking for low memory size in reserve_crashkernel_low(). The
+  allocation from limited range will anyway fail if there is no enough
+  memory, so there is no need for extra traversal of memblock.memory
 
-For all architectures I have done a full git rebase v5.9-rc1 -x "make
--j31". There were no built failures and the changes were fairly
-mechanical.
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+---
+ arch/x86/kernel/setup.c | 40 ++++++++++++++--------------------------
+ 1 file changed, 14 insertions(+), 26 deletions(-)
 
-The only helpers we have left now are kernel_thread() and kernel_clone()
-where kernel_thread() just calls kernel_clone().
-
-Thanks!
-Christian
-
-Christian Brauner (11):
-  fork: introduce kernel_clone()
-  h8300: switch to kernel_clone()
-  ia64: switch to kernel_clone()
-  m68k: switch to kernel_clone()
-  nios2: switch to kernel_clone()
-  sparc: switch to kernel_clone()
-  x86: switch to kernel_clone()
-  kprobes: switch to kernel_clone()
-  kgdbts: switch to kernel_clone()
-  tracing: switch to kernel_clone()
-  sched: remove _do_fork()
-
- Documentation/trace/histogram.rst             |  4 +-
- arch/h8300/kernel/process.c                   |  2 +-
- arch/ia64/kernel/process.c                    |  4 +-
- arch/m68k/kernel/process.c                    | 10 ++--
- arch/nios2/kernel/process.c                   |  2 +-
- arch/sparc/kernel/process.c                   |  6 +--
- arch/x86/kernel/sys_ia32.c                    |  2 +-
- drivers/misc/kgdbts.c                         | 48 +++++++++----------
- include/linux/sched/task.h                    |  2 +-
- kernel/fork.c                                 | 16 +++----
- samples/kprobes/kprobe_example.c              |  6 +--
- samples/kprobes/kretprobe_example.c           |  4 +-
- .../test.d/dynevent/add_remove_kprobe.tc      |  2 +-
- .../test.d/dynevent/clear_select_events.tc    |  2 +-
- .../test.d/dynevent/generic_clear_event.tc    |  2 +-
- .../test.d/ftrace/func-filter-stacktrace.tc   |  4 +-
- .../ftrace/test.d/kprobe/add_and_remove.tc    |  2 +-
- .../ftrace/test.d/kprobe/busy_check.tc        |  2 +-
- .../ftrace/test.d/kprobe/kprobe_args.tc       |  4 +-
- .../ftrace/test.d/kprobe/kprobe_args_comm.tc  |  2 +-
- .../test.d/kprobe/kprobe_args_string.tc       |  4 +-
- .../test.d/kprobe/kprobe_args_symbol.tc       | 10 ++--
- .../ftrace/test.d/kprobe/kprobe_args_type.tc  |  2 +-
- .../ftrace/test.d/kprobe/kprobe_ftrace.tc     | 14 +++---
- .../ftrace/test.d/kprobe/kprobe_multiprobe.tc |  2 +-
- .../test.d/kprobe/kprobe_syntax_errors.tc     | 12 ++---
- .../ftrace/test.d/kprobe/kretprobe_args.tc    |  4 +-
- .../selftests/ftrace/test.d/kprobe/profile.tc |  2 +-
- 28 files changed, 88 insertions(+), 88 deletions(-)
-
-
-base-commit: 9123e3a74ec7b934a4a099e98af6a61c2f80bbf5
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 2cac39ade2e3..52e83ba607b3 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -420,13 +420,13 @@ static int __init reserve_crashkernel_low(void)
+ {
+ #ifdef CONFIG_X86_64
+ 	unsigned long long base, low_base = 0, low_size = 0;
+-	unsigned long total_low_mem;
++	unsigned long low_mem_limit;
+ 	int ret;
+ 
+-	total_low_mem = memblock_mem_size(1UL << (32 - PAGE_SHIFT));
++	low_mem_limit = min(memblock_phys_mem_size(), CRASH_ADDR_LOW_MAX);
+ 
+ 	/* crashkernel=Y,low */
+-	ret = parse_crashkernel_low(boot_command_line, total_low_mem, &low_size, &base);
++	ret = parse_crashkernel_low(boot_command_line, low_mem_limit, &low_size, &base);
+ 	if (ret) {
+ 		/*
+ 		 * two parts from kernel/dma/swiotlb.c:
+@@ -444,23 +444,17 @@ static int __init reserve_crashkernel_low(void)
+ 			return 0;
+ 	}
+ 
+-	low_base = memblock_find_in_range(0, 1ULL << 32, low_size, CRASH_ALIGN);
++	low_base = memblock_phys_alloc_range(low_size, CRASH_ALIGN, 0, CRASH_ADDR_LOW_MAX);
+ 	if (!low_base) {
+ 		pr_err("Cannot reserve %ldMB crashkernel low memory, please try smaller size.\n",
+ 		       (unsigned long)(low_size >> 20));
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = memblock_reserve(low_base, low_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel low memblock.\n", __func__);
+-		return ret;
+-	}
+-
+-	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (System low RAM: %ldMB)\n",
++	pr_info("Reserving %ldMB of low memory at %ldMB for crashkernel (low RAM limit: %ldMB)\n",
+ 		(unsigned long)(low_size >> 20),
+ 		(unsigned long)(low_base >> 20),
+-		(unsigned long)(total_low_mem >> 20));
++		(unsigned long)(low_mem_limit >> 20));
+ 
+ 	crashk_low_res.start = low_base;
+ 	crashk_low_res.end   = low_base + low_size - 1;
+@@ -504,13 +498,13 @@ static void __init reserve_crashkernel(void)
+ 		 * unless "crashkernel=size[KMG],high" is specified.
+ 		 */
+ 		if (!high)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_LOW_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_LOW_MAX);
+ 		if (!crash_base)
+-			crash_base = memblock_find_in_range(CRASH_ALIGN,
+-						CRASH_ADDR_HIGH_MAX,
+-						crash_size, CRASH_ALIGN);
++			crash_base = memblock_phys_alloc_range(crash_size,
++						CRASH_ALIGN, CRASH_ALIGN,
++						CRASH_ADDR_HIGH_MAX);
+ 		if (!crash_base) {
+ 			pr_info("crashkernel reservation failed - No suitable area found.\n");
+ 			return;
+@@ -518,19 +512,13 @@ static void __init reserve_crashkernel(void)
+ 	} else {
+ 		unsigned long long start;
+ 
+-		start = memblock_find_in_range(crash_base,
+-					       crash_base + crash_size,
+-					       crash_size, 1 << 20);
++		start = memblock_phys_alloc_range(crash_size, SZ_1M, crash_base,
++						  crash_base + crash_size);
+ 		if (start != crash_base) {
+ 			pr_info("crashkernel reservation failed - memory is in use.\n");
+ 			return;
+ 		}
+ 	}
+-	ret = memblock_reserve(crash_base, crash_size);
+-	if (ret) {
+-		pr_err("%s: Error reserving crashkernel memblock.\n", __func__);
+-		return;
+-	}
+ 
+ 	if (crash_base >= (1ULL << 32) && reserve_crashkernel_low()) {
+ 		memblock_free(crash_base, crash_size);
 -- 
-2.28.0
+2.26.2
