@@ -1,10 +1,8 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 18 Aug 2020 15:16:22 +0000
-Subject: [PATCH v3 05/17] h8300, nds32, openrisc: simplify detection of memory extents
-Message-Id: <20200818151634.14343-6-rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:17 +0000
+Subject: [PATCH v3 00/17] memblock: seasonal cleaning^w cleanup
+Message-Id: <20200818151634.14343-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818151634.14343-1-rppt@kernel.org>
-In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -13,84 +11,105 @@ Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Her
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-Instead of traversing memblock.memory regions to find memory_start and
-memory_end, simply query memblock_{start,end}_of_DRAM().
+Hi,
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Stafford Horne <shorne@gmail.com>
----
- arch/h8300/kernel/setup.c    | 8 +++-----
- arch/nds32/kernel/setup.c    | 8 ++------
- arch/openrisc/kernel/setup.c | 9 ++-------
- 3 files changed, 7 insertions(+), 18 deletions(-)
+These patches simplify several uses of memblock iterators and hide some of
+the memblock implementation details from the rest of the system.
 
-diff --git a/arch/h8300/kernel/setup.c b/arch/h8300/kernel/setup.c
-index 28ac88358a89..0281f92eea3d 100644
---- a/arch/h8300/kernel/setup.c
-+++ b/arch/h8300/kernel/setup.c
-@@ -74,17 +74,15 @@ static void __init bootmem_init(void)
- 	memory_end = memory_start = 0;
- 
- 	/* Find main memory where is the kernel */
--	for_each_memblock(memory, region) {
--		memory_start = region->base;
--		memory_end = region->base + region->size;
--	}
-+	memory_start = memblock_start_of_DRAM();
-+	memory_end = memblock_end_of_DRAM();
- 
- 	if (!memory_end)
- 		panic("No memory!");
- 
- 	/* setup bootmem globals (we use no_bootmem, but mm still depends on this) */
- 	min_low_pfn = PFN_UP(memory_start);
--	max_low_pfn = PFN_DOWN(memblock_end_of_DRAM());
-+	max_low_pfn = PFN_DOWN(memory_end);
- 	max_pfn = max_low_pfn;
- 
- 	memblock_reserve(__pa(_stext), _end - _stext);
-diff --git a/arch/nds32/kernel/setup.c b/arch/nds32/kernel/setup.c
-index a066efbe53c0..c356e484dcab 100644
---- a/arch/nds32/kernel/setup.c
-+++ b/arch/nds32/kernel/setup.c
-@@ -249,12 +249,8 @@ static void __init setup_memory(void)
- 	memory_end = memory_start = 0;
- 
- 	/* Find main memory where is the kernel */
--	for_each_memblock(memory, region) {
--		memory_start = region->base;
--		memory_end = region->base + region->size;
--		pr_info("%s: Memory: 0x%x-0x%x\n", __func__,
--			memory_start, memory_end);
--	}
-+	memory_start = memblock_start_of_DRAM();
-+	memory_end = memblock_end_of_DRAM();
- 
- 	if (!memory_end) {
- 		panic("No memory!");
-diff --git a/arch/openrisc/kernel/setup.c b/arch/openrisc/kernel/setup.c
-index b18e775f8be3..5a5940f7ebb1 100644
---- a/arch/openrisc/kernel/setup.c
-+++ b/arch/openrisc/kernel/setup.c
-@@ -48,17 +48,12 @@ static void __init setup_memory(void)
- 	unsigned long ram_start_pfn;
- 	unsigned long ram_end_pfn;
- 	phys_addr_t memory_start, memory_end;
--	struct memblock_region *region;
- 
- 	memory_end = memory_start = 0;
- 
- 	/* Find main memory where is the kernel, we assume its the only one */
--	for_each_memblock(memory, region) {
--		memory_start = region->base;
--		memory_end = region->base + region->size;
--		printk(KERN_INFO "%s: Memory: 0x%x-0x%x\n", __func__,
--		       memory_start, memory_end);
--	}
-+	memory_start = memblock_start_of_DRAM();
-+	memory_end = memblock_end_of_DRAM();
- 
- 	if (!memory_end) {
- 		panic("No memory!");
+The patches are on top of v5.9-rc1
+
+v3 changes:
+* rebase on v5.9-rc1, as the result this required some non-trivial changes
+  in patches 10 and 16. I didn't add Baoquan's Reviewed-by to theses
+  patches, but I keept Thomas and Miguel
+* Add Acked-by from Thomas and Miguel as there were changes in MIPS and
+  only trivial changes in .clang-format
+* Added Reviewed-by from Baoquan except for the patches 10 and 16
+* Fixed misc build errors and warnings reported by kbuild bot
+* Updated PowerPC KVM reservation size (patch 2), as per Daniel's comment
+
+v2 changes:
+* replace for_each_memblock() with two versions, one for memblock.memory
+  and another one for memblock.reserved
+* fix overzealous cleanup of powerpc fadamp: keep the traversal over the
+  memblocks, but use better suited iterators
+* don't remove traversal over memblock.reserved in x86 numa cleanup but
+  replace for_each_memblock() with new for_each_reserved_mem_region()
+* simplify ramdisk and crash kernel allocations on x86
+* drop more redundant and unused code: __next_reserved_mem_region() and
+  memblock_mem_size()
+* add description of numa initialization fix on arm64 (thanks Jonathan)
+* add Acked and Reviewed tags
+
+Mike Rapoport (17):
+  KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
+  dma-contiguous: simplify cma_early_percent_memory()
+  arm, xtensa: simplify initialization of high memory pages
+  arm64: numa: simplify dummy_numa_init()
+  h8300, nds32, openrisc: simplify detection of memory extents
+  riscv: drop unneeded node initialization
+  mircoblaze: drop unneeded NUMA and sparsemem initializations
+  memblock: make for_each_memblock_type() iterator private
+  memblock: make memblock_debug and related functionality private
+  memblock: reduce number of parameters in for_each_mem_range()
+  arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
+  arch, drivers: replace for_each_membock() with for_each_mem_range()
+  x86/setup: simplify initrd relocation and reservation
+  x86/setup: simplify reserve_crashkernel()
+  memblock: remove unused memblock_mem_size()
+  memblock: implement for_each_reserved_mem_region() using
+    __next_mem_region()
+  memblock: use separate iterators for memory and reserved regions
+
+ .clang-format                            |  5 +-
+ arch/arm/kernel/setup.c                  | 18 +++--
+ arch/arm/mm/init.c                       | 59 +++------------
+ arch/arm/mm/mmu.c                        | 39 ++++------
+ arch/arm/mm/pmsa-v7.c                    | 23 +++---
+ arch/arm/mm/pmsa-v8.c                    | 17 ++---
+ arch/arm/xen/mm.c                        |  7 +-
+ arch/arm64/kernel/machine_kexec_file.c   |  6 +-
+ arch/arm64/kernel/setup.c                |  4 +-
+ arch/arm64/mm/init.c                     | 11 +--
+ arch/arm64/mm/kasan_init.c               | 10 +--
+ arch/arm64/mm/mmu.c                      | 11 +--
+ arch/arm64/mm/numa.c                     | 15 ++--
+ arch/c6x/kernel/setup.c                  |  9 ++-
+ arch/h8300/kernel/setup.c                |  8 +-
+ arch/microblaze/mm/init.c                | 21 ++----
+ arch/mips/cavium-octeon/dma-octeon.c     | 12 +--
+ arch/mips/kernel/setup.c                 | 31 ++++----
+ arch/mips/netlogic/xlp/setup.c           |  2 +-
+ arch/nds32/kernel/setup.c                |  8 +-
+ arch/openrisc/kernel/setup.c             |  9 +--
+ arch/openrisc/mm/init.c                  |  8 +-
+ arch/powerpc/kernel/fadump.c             | 57 +++++++-------
+ arch/powerpc/kexec/file_load_64.c        | 16 ++--
+ arch/powerpc/kvm/book3s_hv_builtin.c     | 12 +--
+ arch/powerpc/mm/book3s64/hash_utils.c    | 16 ++--
+ arch/powerpc/mm/book3s64/radix_pgtable.c | 10 +--
+ arch/powerpc/mm/kasan/kasan_init_32.c    |  8 +-
+ arch/powerpc/mm/mem.c                    | 33 ++++----
+ arch/powerpc/mm/numa.c                   |  7 +-
+ arch/powerpc/mm/pgtable_32.c             |  8 +-
+ arch/riscv/mm/init.c                     | 36 +++------
+ arch/riscv/mm/kasan_init.c               | 10 +--
+ arch/s390/kernel/setup.c                 | 27 ++++---
+ arch/s390/mm/page-states.c               |  6 +-
+ arch/s390/mm/vmem.c                      |  7 +-
+ arch/sh/mm/init.c                        |  9 +--
+ arch/sparc/mm/init_64.c                  | 12 +--
+ arch/x86/kernel/setup.c                  | 56 +++++---------
+ arch/x86/mm/numa.c                       |  2 +-
+ arch/xtensa/mm/init.c                    | 55 +++-----------
+ drivers/bus/mvebu-mbus.c                 | 12 +--
+ drivers/irqchip/irq-gic-v3-its.c         |  2 +-
+ include/linux/memblock.h                 | 88 +++++++++++++---------
+ kernel/dma/contiguous.c                  | 11 +--
+ mm/memblock.c                            | 95 ++++++++++--------------
+ mm/page_alloc.c                          | 11 ++-
+ mm/sparse.c                              | 10 +--
+ 48 files changed, 387 insertions(+), 562 deletions(-)
+
 -- 
 2.26.2
