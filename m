@@ -1,105 +1,111 @@
 From: Nicholas Piggin <npiggin@gmail.com>
-Date: Wed, 26 Aug 2020 14:52:46 +0000
-Subject: [PATCH v2 20/23] sparc: use asm-generic/mmu_context.h for no-op implementations
-Message-Id: <20200826145249.745432-21-npiggin@gmail.com>
+Date: Tue, 18 Aug 2020 03:34:05 +0000
+Subject: [RFC PATCH 2/2] powerpc/64s/radix: Fix mm_cpumask trimming race vs kthread_use_mm
+Message-Id: <20200818033405.170457-2-npiggin@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200826145249.745432-1-npiggin@gmail.com>
-In-Reply-To: <20200826145249.745432-1-npiggin@gmail.com>
+References: <20200818033405.170457-1-npiggin@gmail.com>
+In-Reply-To: <20200818033405.170457-1-npiggin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org
-Cc: Nicholas Piggin <npiggin@gmail.com>, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Arnd Bergmann <arnd@arndb.de>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: Nicholas Piggin <npiggin@gmail.com>, Jens Axboe <axboe@kernel.dk>, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Commit 0cef77c7798a7 ("powerpc/64s/radix: flush remote CPUs out of
+single-threaded mm_cpumask") added a mechanism to trim the mm_cpumask of
+a process under certain conditions. One of the assumptions is that
+mm_users would not be incremented via a reference outside the process
+context with mmget_not_zero() then go on to kthread_use_mm() via that
+reference.
+
+That invariant was broken by io_uring code (see previous sparc64 fix),
+but I'll point Fixes: to the original powerpc commit because we are
+changing that assumption going forward, so this will make backports
+match up.
+
+Fix this by no longer relying on that assumption, but by having each CPU
+check the mm is not being used, and clearing their own bit from the mask
+if it's okay. This relies on commit 38cf307c1f20 ("mm: fix
+kthread_use_mm() vs TLB invalidate") to disable irqs over the mm switch.
+
+Fixes: 0cef77c7798a7 ("powerpc/64s/radix: flush remote CPUs out of single-threaded mm_cpumask")
+not-yet-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
- arch/sparc/include/asm/mmu_context_32.h | 10 ++++------
- arch/sparc/include/asm/mmu_context_64.h | 10 +++++-----
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ arch/powerpc/include/asm/tlb.h       | 13 -------------
+ arch/powerpc/mm/book3s64/radix_tlb.c | 23 ++++++++++++++++-------
+ 2 files changed, 16 insertions(+), 20 deletions(-)
 
-diff --git a/arch/sparc/include/asm/mmu_context_32.h b/arch/sparc/include/asm/mmu_context_32.h
-index 7ddcb8badf70..509043f81560 100644
---- a/arch/sparc/include/asm/mmu_context_32.h
-+++ b/arch/sparc/include/asm/mmu_context_32.h
-@@ -6,13 +6,10 @@
- 
- #include <asm-generic/mm_hooks.h>
- 
--static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
--{
--}
--
- /* Initialize a new mmu context.  This is invoked when a new
-  * address space instance (unique or shared) is instantiated.
-  */
-+#define init_new_context init_new_context
- int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
- 
- /* Destroy a dead context.  This occurs when mmput drops the
-@@ -20,17 +17,18 @@ int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
-  * all the page tables have been flushed.  Our job is to destroy
-  * any remaining processor-specific state.
-  */
-+#define destroy_context destroy_context
- void destroy_context(struct mm_struct *mm);
- 
- /* Switch the current MM context. */
- void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
- 	       struct task_struct *tsk);
- 
--#define deactivate_mm(tsk,mm)	do { } while (0)
--
- /* Activate a new MM instance for the current task. */
- #define activate_mm(active_mm, mm) switch_mm((active_mm), (mm), NULL)
- 
-+#include <asm-generic/mmu_context.h>
-+
- #endif /* !(__ASSEMBLY__) */
- 
- #endif /* !(__SPARC_MMU_CONTEXT_H) */
-diff --git a/arch/sparc/include/asm/mmu_context_64.h b/arch/sparc/include/asm/mmu_context_64.h
-index 312fcee8df2b..7a8380c63aab 100644
---- a/arch/sparc/include/asm/mmu_context_64.h
-+++ b/arch/sparc/include/asm/mmu_context_64.h
-@@ -16,17 +16,16 @@
- #include <asm-generic/mm_hooks.h>
- #include <asm/percpu.h>
- 
--static inline void enter_lazy_tlb(struct mm_struct *mm, struct task_struct *tsk)
--{
--}
--
- extern spinlock_t ctx_alloc_lock;
- extern unsigned long tlb_context_cache;
- extern unsigned long mmu_context_bmap[];
- 
- DECLARE_PER_CPU(struct mm_struct *, per_cpu_secondary_mm);
- void get_new_mmu_context(struct mm_struct *mm);
-+
-+#define init_new_context init_new_context
- int init_new_context(struct task_struct *tsk, struct mm_struct *mm);
-+#define destroy_context destroy_context
- void destroy_context(struct mm_struct *mm);
- 
- void __tsb_context_switch(unsigned long pgd_pa,
-@@ -136,7 +135,6 @@ static inline void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm, str
- 	spin_unlock_irqrestore(&mm->context.lock, flags);
+diff --git a/arch/powerpc/include/asm/tlb.h b/arch/powerpc/include/asm/tlb.h
+index fbc6f3002f23..d97f061fecac 100644
+--- a/arch/powerpc/include/asm/tlb.h
++++ b/arch/powerpc/include/asm/tlb.h
+@@ -66,19 +66,6 @@ static inline int mm_is_thread_local(struct mm_struct *mm)
+ 		return false;
+ 	return cpumask_test_cpu(smp_processor_id(), mm_cpumask(mm));
  }
+-static inline void mm_reset_thread_local(struct mm_struct *mm)
+-{
+-	WARN_ON(atomic_read(&mm->context.copros) > 0);
+-	/*
+-	 * It's possible for mm_access to take a reference on mm_users to
+-	 * access the remote mm from another thread, but it's not allowed
+-	 * to set mm_cpumask, so mm_users may be > 1 here.
+-	 */
+-	WARN_ON(current->mm != mm);
+-	atomic_set(&mm->context.active_cpus, 1);
+-	cpumask_clear(mm_cpumask(mm));
+-	cpumask_set_cpu(smp_processor_id(), mm_cpumask(mm));
+-}
+ #else /* CONFIG_PPC_BOOK3S_64 */
+ static inline int mm_is_thread_local(struct mm_struct *mm)
+ {
+diff --git a/arch/powerpc/mm/book3s64/radix_tlb.c b/arch/powerpc/mm/book3s64/radix_tlb.c
+index 0d233763441f..a421a0e3f930 100644
+--- a/arch/powerpc/mm/book3s64/radix_tlb.c
++++ b/arch/powerpc/mm/book3s64/radix_tlb.c
+@@ -645,19 +645,29 @@ static void do_exit_flush_lazy_tlb(void *arg)
+ 	struct mm_struct *mm = arg;
+ 	unsigned long pid = mm->context.id;
  
--#define deactivate_mm(tsk,mm)	do { } while (0)
- #define activate_mm(active_mm, mm) switch_mm(active_mm, mm, NULL)
++	/*
++	 * A kthread could have done a mmget_not_zero() after the flushing CPU
++	 * checked mm_users = 1, and be in the process of kthread_use_mm when
++	 * interrupted here. In that case, current->mm will be set to mm,
++	 * because kthread_use_mm() setting ->mm and switching to the mm is
++	 * done with interrupts off.
++	 */
+ 	if (current->mm = mm)
+-		return; /* Local CPU */
++		goto out_flush;
  
- #define  __HAVE_ARCH_START_CONTEXT_SWITCH
-@@ -187,6 +185,8 @@ static inline void finish_arch_post_lock_switch(void)
+ 	if (current->active_mm = mm) {
+-		/*
+-		 * Must be a kernel thread because sender is single-threaded.
+-		 */
+-		BUG_ON(current->mm);
++		WARN_ON_ONCE(current->mm != NULL);
++		/* Is a kernel thread and is using mm as the lazy tlb */
+ 		mmgrab(&init_mm);
+-		switch_mm(mm, &init_mm, current);
+ 		current->active_mm = &init_mm;
++		switch_mm_irqs_off(mm, &init_mm, current);
+ 		mmdrop(mm);
  	}
++
++	atomic_dec(&mm->context.active_cpus);
++	cpumask_clear_cpu(smp_processor_id(), mm_cpumask(mm));
++
++out_flush:
+ 	_tlbiel_pid(pid, RIC_FLUSH_ALL);
  }
  
-+#include <asm-generic/mmu_context.h>
-+
- #endif /* !(__ASSEMBLY__) */
+@@ -672,7 +682,6 @@ static void exit_flush_lazy_tlbs(struct mm_struct *mm)
+ 	 */
+ 	smp_call_function_many(mm_cpumask(mm), do_exit_flush_lazy_tlb,
+ 				(void *)mm, 1);
+-	mm_reset_thread_local(mm);
+ }
  
- #endif /* !(__SPARC64_MMU_CONTEXT_H) */
+ void radix__flush_tlb_mm(struct mm_struct *mm)
 -- 
 2.23.0
