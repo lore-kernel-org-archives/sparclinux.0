@@ -1,92 +1,120 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Mon, 31 Aug 2020 20:38:09 +0000
-Subject: [RESEND][PATCH 5/7] sparc: Avoid overflow at boundary_size
-Message-Id: <20200831203811.8494-6-nicoleotsuka@gmail.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 18 Aug 2020 17:34:01 +0000
+Subject: [PATCH 01/11] fork: introduce kernel_clone()
+Message-Id: <20200818173411.404104-2-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
-In-Reply-To: <20200831203811.8494-1-nicoleotsuka@gmail.com>
+References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de
-Cc: sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
+To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>, Ingo Molnar <mingo@kernel.org>
 
-The boundary_size might be as large as ULONG_MAX, which means
-that a device has no specific boundary limit. So either "+ 1"
-or passing it to ALIGN() would potentially overflow.
+The old _do_fork() helper doesn't follow naming conventions of in-kernel
+helpers for syscalls. The process creation cleanup in [1] didn't change the
+name to something more reasonable mainly because _do_fork() was used in quite a
+few places. So sending this as a separate series seemed the better strategy.
 
-According to kernel defines:
-    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
+This commit renames _do_fork() to kernel_clone() but keeps _do_fork() as a
+simple static inline wrapper around kernel_clone().
+Follow-up patches will switch each caller of _do_fork() and each place where it
+is referenced over to kernel_clone(). After all these changes are done, we can
+remove _do_fork() completely and will only be left with kernel_clone().
 
-We can simplify the logic here:
-  ALIGN(boundary + 1, 1 << shift) >> shift
-= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-= [b + 1 + (1 << s) - 1] >> s
-= [b + (1 << s)] >> s
-= (b >> s) + 1
-
-So fixing a potential overflow with the safer shortcut.
-
-Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+[1]: 9ba27414f2ec ("Merge tag 'fork-v5.9' of git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux")
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- arch/sparc/kernel/iommu-common.c | 9 +++------
- arch/sparc/kernel/iommu.c        | 4 ++--
- arch/sparc/kernel/pci_sun4v.c    | 4 ++--
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ include/linux/sched/task.h |  6 +++++-
+ kernel/fork.c              | 14 +++++++-------
+ 2 files changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/arch/sparc/kernel/iommu-common.c b/arch/sparc/kernel/iommu-common.c
-index 59cb16691322..843e71894d04 100644
---- a/arch/sparc/kernel/iommu-common.c
-+++ b/arch/sparc/kernel/iommu-common.c
-@@ -166,13 +166,10 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
- 		}
- 	}
+diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
+index a98965007eef..d9ef07359c96 100644
+--- a/include/linux/sched/task.h
++++ b/include/linux/sched/task.h
+@@ -83,7 +83,11 @@ extern void do_group_exit(int);
+ extern void exit_files(struct task_struct *);
+ extern void exit_itimers(struct signal_struct *);
  
--	if (dev)
--		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				      1 << iommu->table_shift);
--	else
--		boundary_size = ALIGN(1ULL << 32, 1 << iommu->table_shift);
-+	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
+-extern long _do_fork(struct kernel_clone_args *kargs);
++extern int kernel_clone(struct kernel_clone_args *kargs);
++static inline long _do_fork(struct kernel_clone_args *kargs)
++{
++	return kernel_clone(kargs);
++}
+ struct task_struct *fork_idle(int);
+ struct mm_struct *copy_init_mm(void);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 4d32190861bd..34e37cee239f 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -2384,7 +2384,7 @@ struct mm_struct *copy_init_mm(void)
+  *
+  * args->exit_signal is expected to be checked for sanity by the caller.
+  */
+-long _do_fork(struct kernel_clone_args *args)
++int kernel_clone(struct kernel_clone_args *args)
+ {
+ 	u64 clone_flags = args->flags;
+ 	struct completion vfork;
+@@ -2477,7 +2477,7 @@ pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
+ 		.stack_size	= (unsigned long)arg,
+ 	};
  
--	boundary_size = boundary_size >> iommu->table_shift;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	boundary_size = (boundary_size >> iommu->table_shift) + 1;
- 	/*
- 	 * if the skip_span_boundary_check had been set during init, we set
- 	 * things up so that iommu_is_span_boundary() merely checks if the
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 4ae7388b1bff..d981c37305ae 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -472,8 +472,8 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 	outs->dma_length = 0;
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
  
- 	max_seg_size = dma_get_max_seg_size(dev);
--	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
- 	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
- 	for_each_sg(sglist, s, nelems, i) {
- 		unsigned long paddr, npages, entry, out_entry = 0, slen;
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 14b93c5564e3..233fe8a20cec 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -508,8 +508,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	iommu_batch_start(dev, prot, ~0UL);
+ #ifdef __ARCH_WANT_SYS_FORK
+@@ -2488,7 +2488,7 @@ SYSCALL_DEFINE0(fork)
+ 		.exit_signal = SIGCHLD,
+ 	};
  
- 	max_seg_size = dma_get_max_seg_size(dev);
--	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ #else
+ 	/* can not support in nommu mode */
+ 	return -EINVAL;
+@@ -2504,7 +2504,7 @@ SYSCALL_DEFINE0(vfork)
+ 		.exit_signal	= SIGCHLD,
+ 	};
  
- 	mask = *dev->dma_mask;
- 	if (!iommu_use_atu(iommu, mask))
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ #endif
+ 
+@@ -2542,7 +2542,7 @@ SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
+ 		.tls		= tls,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ #endif
+ 
+@@ -2700,7 +2700,7 @@ SYSCALL_DEFINE2(clone3, struct clone_args __user *, uargs, size_t, size)
+ 	if (!clone3_args_valid(&kargs))
+ 		return -EINVAL;
+ 
+-	return _do_fork(&kargs);
++	return kernel_clone(&kargs);
+ }
+ #endif
+ 
+@@ -2863,7 +2863,7 @@ int unshare_fd(unsigned long unshare_flags, unsigned int max_fds,
+ /*
+  * unshare allows a process to 'unshare' part of the process
+  * context which was originally shared using clone.  copy_*
+- * functions used by _do_fork() cannot be used here directly
++ * functions used by kernel_clone() cannot be used here directly
+  * because they modify an inactive task_struct that is being
+  * constructed. Here we are modifying the current, active,
+  * task_struct.
 -- 
-2.17.1
+2.28.0
