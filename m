@@ -1,56 +1,89 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Tue, 18 Aug 2020 17:34:06 +0000
-Subject: [PATCH 06/11] sparc: switch to kernel_clone()
-Message-Id: <20200818173411.404104-7-christian.brauner@ubuntu.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:30 +0000
+Subject: [PATCH v3 13/17] x86/setup: simplify initrd relocation and reservation
+Message-Id: <20200818151634.14343-14-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org, Ingo Molnar <mingo@kernel.org>
 
-The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-The latter adheres to naming conventions for kernel internal syscall helpers.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+Currently, initrd image is reserved very early during setup and then it
+might be relocated and re-reserved after the initial physical memory
+mapping is created. The "late" reservation of memblock verifies that mapped
+memory size exceeds the size of initrd, then checks whether the relocation
+required and, if yes, relocates inirtd to a new memory allocated from
+memblock and frees the old location.
+
+The check for memory size is excessive as memblock allocation will anyway
+fail if there is not enough memory. Besides, there is no point to allocate
+memory from memblock using memblock_find_in_range() + memblock_reserve()
+when there exists memblock_phys_alloc_range() with required functionality.
+
+Remove the redundant check and simplify memblock allocation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 ---
- arch/sparc/kernel/process.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/setup.c | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
-diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
-index 5234b5ccc0b9..0442ab00518d 100644
---- a/arch/sparc/kernel/process.c
-+++ b/arch/sparc/kernel/process.c
-@@ -25,7 +25,7 @@ asmlinkage long sparc_fork(struct pt_regs *regs)
- 		.stack		= regs->u_regs[UREG_FP],
- 	};
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index 3511736fbc74..2cac39ade2e3 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -263,16 +263,12 @@ static void __init relocate_initrd(void)
+ 	u64 area_size     = PAGE_ALIGN(ramdisk_size);
  
--	ret = _do_fork(&args);
-+	ret = kernel_clone(&args);
+ 	/* We need to move the initrd down into directly mapped mem */
+-	relocated_ramdisk = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
+-						   area_size, PAGE_SIZE);
+-
++	relocated_ramdisk = memblock_phys_alloc_range(area_size, PAGE_SIZE, 0,
++						      PFN_PHYS(max_pfn_mapped));
+ 	if (!relocated_ramdisk)
+ 		panic("Cannot find place for new RAMDISK of size %lld\n",
+ 		      ramdisk_size);
  
- 	/* If we get an error and potentially restart the system
- 	 * call, we're screwed because copy_thread() clobbered
-@@ -50,7 +50,7 @@ asmlinkage long sparc_vfork(struct pt_regs *regs)
- 		.stack		= regs->u_regs[UREG_FP],
- 	};
+-	/* Note: this includes all the mem currently occupied by
+-	   the initrd, we rely on that fact to keep the data intact. */
+-	memblock_reserve(relocated_ramdisk, area_size);
+ 	initrd_start = relocated_ramdisk + PAGE_OFFSET;
+ 	initrd_end   = initrd_start + ramdisk_size;
+ 	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
+@@ -299,13 +295,13 @@ static void __init early_reserve_initrd(void)
  
--	ret = _do_fork(&args);
-+	ret = kernel_clone(&args);
+ 	memblock_reserve(ramdisk_image, ramdisk_end - ramdisk_image);
+ }
++
+ static void __init reserve_initrd(void)
+ {
+ 	/* Assume only end is not page aligned */
+ 	u64 ramdisk_image = get_ramdisk_image();
+ 	u64 ramdisk_size  = get_ramdisk_size();
+ 	u64 ramdisk_end   = PAGE_ALIGN(ramdisk_image + ramdisk_size);
+-	u64 mapped_size;
  
- 	/* If we get an error and potentially restart the system
- 	 * call, we're screwed because copy_thread() clobbered
-@@ -96,7 +96,7 @@ asmlinkage long sparc_clone(struct pt_regs *regs)
- 	else
- 		args.stack = regs->u_regs[UREG_FP];
+ 	if (!boot_params.hdr.type_of_loader ||
+ 	    !ramdisk_image || !ramdisk_size)
+@@ -313,12 +309,6 @@ static void __init reserve_initrd(void)
  
--	ret = _do_fork(&args);
-+	ret = kernel_clone(&args);
+ 	initrd_start = 0;
  
- 	/* If we get an error and potentially restart the system
- 	 * call, we're screwed because copy_thread() clobbered
+-	mapped_size = memblock_mem_size(max_pfn_mapped);
+-	if (ramdisk_size >= (mapped_size>>1))
+-		panic("initrd too large to handle, "
+-		       "disabling initrd (%lld needed, %lld available)\n",
+-		       ramdisk_size, mapped_size>>1);
+-
+ 	printk(KERN_INFO "RAMDISK: [mem %#010llx-%#010llx]\n", ramdisk_image,
+ 			ramdisk_end - 1);
+ 
 -- 
-2.28.0
+2.26.2
