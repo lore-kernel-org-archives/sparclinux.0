@@ -1,40 +1,37 @@
-From: Joe Perches <joe@perches.com>
-Date: Tue, 25 Aug 2020 04:56:01 +0000
-Subject: [PATCH 04/29] sparc: Avoid comma separated statements
-Message-Id: <9dade53620b9532ff76a726320a497c67138264c.1598331148.git.joe@perches.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 18 Aug 2020 17:34:02 +0000
+Subject: [PATCH 02/11] h8300: switch to kernel_clone()
+Message-Id: <20200818173411.404104-3-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1598331148.git.joe@perches.com>
-In-Reply-To: <cover.1598331148.git.joe@perches.com>
+References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
 
-Use semicolons and braces.
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: uclinux-h8-devel@lists.sourceforge.jp
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- arch/sparc/kernel/smp_64.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/h8300/kernel/process.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index e286e2badc8a..28c11f7871cd 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -186,8 +186,11 @@ static inline long get_delta (long *rt, long *master)
- 		wmb();
- 		t1 = tick_ops->get_tick();
+diff --git a/arch/h8300/kernel/process.c b/arch/h8300/kernel/process.c
+index 83ce3caf7313..aea0a40b77a9 100644
+--- a/arch/h8300/kernel/process.c
++++ b/arch/h8300/kernel/process.c
+@@ -172,5 +172,5 @@ asmlinkage int sys_clone(unsigned long __user *args)
+ 	kargs.exit_signal	= (lower_32_bits(clone_flags) & CSIGNAL);
+ 	kargs.stack		= newsp;
  
--		if (t1 - t0 < best_t1 - best_t0)
--			best_t0 = t0, best_t1 = t1, best_tm = tm;
-+		if (t1 - t0 < best_t1 - best_t0) {
-+			best_t0 = t0;
-+			best_t1 = t1;
-+			best_tm = tm;
-+		}
- 	}
- 
- 	*rt = best_t1 - best_t0;
+-	return _do_fork(&kargs);
++	return kernel_clone(&kargs);
+ }
 -- 
-2.26.0
+2.28.0
