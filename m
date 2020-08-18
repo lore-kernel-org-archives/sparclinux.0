@@ -1,64 +1,56 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:51 +0000
-Subject: [PATCH v2 07/17] mircoblaze: drop unneeded NUMA and sparsemem initializations
-Message-Id: <20200802163601.8189-8-rppt@kernel.org>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 18 Aug 2020 17:34:08 +0000
+Subject: [PATCH 08/11] kprobes: switch to kernel_clone()
+Message-Id: <20200818173411.404104-9-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
+References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-microblaze does not support neither NUMA not SPARSMEM, so there is no point
-to call memblock_set_node() and sparse_memory_present_with_active_regions()
-functions during microblaze memory initialization.
-
-Remove these calls and the surrounding code.
-
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Alexandre Chartre <alexandre.chartre@oracle.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- arch/microblaze/mm/init.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ samples/kprobes/kprobe_example.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index 521b59ba716c..49e0c241f9b1 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -105,9 +105,8 @@ static void __init paging_init(void)
+diff --git a/samples/kprobes/kprobe_example.c b/samples/kprobes/kprobe_example.c
+index 240f2435ce6f..a02f53836ee1 100644
+--- a/samples/kprobes/kprobe_example.c
++++ b/samples/kprobes/kprobe_example.c
+@@ -2,13 +2,13 @@
+ /*
+  * NOTE: This example is works on x86 and powerpc.
+  * Here's a sample kernel module showing the use of kprobes to dump a
+- * stack trace and selected registers when _do_fork() is called.
++ * stack trace and selected registers when kernel_clone() is called.
+  *
+  * For more information on theory of operation of kprobes, see
+  * Documentation/staging/kprobes.rst
+  *
+  * You will see the trace data in /var/log/messages and on the console
+- * whenever _do_fork() is invoked to create a new process.
++ * whenever kernel_clone() is invoked to create a new process.
+  */
  
- void __init setup_memory(void)
- {
--	struct memblock_region *reg;
--
- #ifndef CONFIG_MMU
-+	struct memblock_region *reg;
- 	u32 kernel_align_start, kernel_align_size;
+ #include <linux/kernel.h>
+@@ -16,7 +16,7 @@
+ #include <linux/kprobes.h>
  
- 	/* Find main memory where is the kernel */
-@@ -161,20 +160,6 @@ void __init setup_memory(void)
- 	pr_info("%s: max_low_pfn: %#lx\n", __func__, max_low_pfn);
- 	pr_info("%s: max_pfn: %#lx\n", __func__, max_pfn);
+ #define MAX_SYMBOL_LEN	64
+-static char symbol[MAX_SYMBOL_LEN] = "_do_fork";
++static char symbol[MAX_SYMBOL_LEN] = "kernel_clone";
+ module_param_string(symbol, symbol, sizeof(symbol), 0644);
  
--	/* Add active regions with valid PFNs */
--	for_each_memblock(memory, reg) {
--		unsigned long start_pfn, end_pfn;
--
--		start_pfn = memblock_region_memory_base_pfn(reg);
--		end_pfn = memblock_region_memory_end_pfn(reg);
--		memblock_set_node(start_pfn << PAGE_SHIFT,
--				  (end_pfn - start_pfn) << PAGE_SHIFT,
--				  &memblock.memory, 0);
--	}
--
--	/* XXX need to clip this if using highmem? */
--	sparse_memory_present_with_active_regions(0);
--
- 	paging_init();
- }
- 
+ /* For each probe you need to allocate a kprobe structure */
 -- 
-2.26.2
+2.28.0
