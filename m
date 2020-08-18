@@ -1,120 +1,108 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:53 +0000
-Subject: [PATCH v2 09/17] memblock: make memblock_debug and related functionality private
-Message-Id: <20200802163601.8189-10-rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:21 +0000
+Subject: [PATCH v3 04/17] arm64: numa: simplify dummy_numa_init()
+Message-Id: <20200818151634.14343-5-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org, Jonathan Cameron <Jonathan.Cameron@huawei.com>
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-The only user of memblock_dbg() outside memblock was s390 setup code and it
-is converted to use pr_debug() instead.
-This allows to stop exposing memblock_debug and memblock_dbg() to the rest
-of the kernel.
+dummy_numa_init() loops over memblock.memory and passes nid=0 to
+numa_add_memblk() which essentially wraps memblock_set_node(). However,
+memblock_set_node() can cope with entire memory span itself, so the loop
+over memblock.memory regions is redundant.
+
+Using a single call to memblock_set_node() rather than a loop also fixes an
+issue with a buggy ACPI firmware in which the SRAT table covers some but
+not all of the memory in the EFI memory map.
+
+Jonathan Cameron says:
+
+  This issue can be easily triggered by having an SRAT table which fails
+  to cover all elements of the EFI memory map.
+
+  This firmware error is detected and a warning printed. e.g.
+  "NUMA: Warning: invalid memblk node 64 [mem 0x240000000-0x27fffffff]"
+  At that point we fall back to dummy_numa_init().
+
+  However, the failed ACPI init has left us with our memblocks all broken
+  up as we split them when trying to assign them to NUMA nodes.
+
+  We then iterate over the memblocks and add them to node 0.
+
+  numa_add_memblk() calls memblock_set_node() which merges regions that
+  were previously split up during the earlier attempt to add them to different
+  nodes during parsing of SRAT.
+
+  This means elements are moved in the memblock array and we can end up
+  in a different memblock after the call to numa_add_memblk().
+  Result is:
+
+  Unable to handle kernel paging request at virtual address 0000000000003a40
+  Mem abort info:
+    ESR = 0x96000004
+    EC = 0x25: DABT (current EL), IL = 32 bits
+    SET = 0, FnV = 0
+    EA = 0, S1PTW = 0
+  Data abort info:
+    ISV = 0, ISS = 0x00000004
+    CM = 0, WnR = 0
+  [0000000000003a40] user address but active_mm is swapper
+  Internal error: Oops: 96000004 [#1] PREEMPT SMP
+
+  ...
+
+  Call trace:
+    sparse_init_nid+0x5c/0x2b0
+    sparse_init+0x138/0x170
+    bootmem_init+0x80/0xe0
+    setup_arch+0x2a0/0x5fc
+    start_kernel+0x8c/0x648
+
+Replace the loop with a single call to memblock_set_node() to the entire
+memory.
 
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 ---
- arch/s390/kernel/setup.c |  4 ++--
- include/linux/memblock.h | 12 +-----------
- mm/memblock.c            | 13 +++++++++++--
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ arch/arm64/mm/numa.c | 13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
-index 07aa15ba43b3..8b284cf6e199 100644
---- a/arch/s390/kernel/setup.c
-+++ b/arch/s390/kernel/setup.c
-@@ -776,8 +776,8 @@ static void __init memblock_add_mem_detect_info(void)
- 	unsigned long start, end;
- 	int i;
+diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+index 73f8b49d485c..8a97cd3d2dfe 100644
+--- a/arch/arm64/mm/numa.c
++++ b/arch/arm64/mm/numa.c
+@@ -423,19 +423,16 @@ static int __init numa_init(int (*init_func)(void))
+  */
+ static int __init dummy_numa_init(void)
+ {
++	phys_addr_t start = memblock_start_of_DRAM();
++	phys_addr_t end = memblock_end_of_DRAM();
+ 	int ret;
+-	struct memblock_region *mblk;
  
--	memblock_dbg("physmem info source: %s (%hhd)\n",
--		     get_mem_info_source(), mem_detect.info_source);
-+	pr_debug("physmem info source: %s (%hhd)\n",
-+		 get_mem_info_source(), mem_detect.info_source);
- 	/* keep memblock lists close to the kernel */
- 	memblock_set_bottom_up(true);
- 	for_each_mem_detect_block(i, &start, &end) {
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 220b5f0dad42..e6a23b3db696 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -90,7 +90,6 @@ struct memblock {
- };
- 
- extern struct memblock memblock;
--extern int memblock_debug;
- 
- #ifndef CONFIG_ARCH_KEEP_MEMBLOCK
- #define __init_memblock __meminit
-@@ -102,9 +101,6 @@ void memblock_discard(void);
- static inline void memblock_discard(void) {}
- #endif
- 
--#define memblock_dbg(fmt, ...) \
--	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+ 	if (numa_off)
+ 		pr_info("NUMA disabled\n"); /* Forced off on command line. */
+-	pr_info("Faking a node at [mem %#018Lx-%#018Lx]\n",
+-		memblock_start_of_DRAM(), memblock_end_of_DRAM() - 1);
 -
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
- void memblock_allow_resize(void);
-@@ -456,13 +452,7 @@ bool memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
- bool memblock_is_reserved(phys_addr_t addr);
- bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
+-	for_each_memblock(memory, mblk) {
+-		ret = numa_add_memblk(0, mblk->base, mblk->base + mblk->size);
+-		if (!ret)
+-			continue;
++	pr_info("Faking a node at [mem %#018Lx-%#018Lx]\n", start, end - 1);
  
--extern void __memblock_dump_all(void);
--
--static inline void memblock_dump_all(void)
--{
--	if (memblock_debug)
--		__memblock_dump_all();
--}
-+void memblock_dump_all(void);
- 
- /**
-  * memblock_set_current_limit - Set the current allocation limit to allow
-diff --git a/mm/memblock.c b/mm/memblock.c
-index a5b9b3df81fc..824938849f6d 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -134,7 +134,10 @@ struct memblock memblock __initdata_memblock = {
- 	     i < memblock_type->cnt;					\
- 	     i++, rgn = &memblock_type->regions[i])
- 
--int memblock_debug __initdata_memblock;
-+#define memblock_dbg(fmt, ...) \
-+	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
-+
-+static int memblock_debug __initdata_memblock;
- static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
- static int memblock_memory_in_slab __initdata_memblock = 0;
-@@ -1919,7 +1922,7 @@ static void __init_memblock memblock_dump(struct memblock_type *type)
++	ret = numa_add_memblk(0, start, end);
++	if (ret) {
+ 		pr_err("NUMA init failed\n");
+ 		return ret;
  	}
- }
- 
--void __init_memblock __memblock_dump_all(void)
-+static void __init_memblock __memblock_dump_all(void)
- {
- 	pr_info("MEMBLOCK configuration:\n");
- 	pr_info(" memory size = %pa reserved size = %pa\n",
-@@ -1933,6 +1936,12 @@ void __init_memblock __memblock_dump_all(void)
- #endif
- }
- 
-+void __init_memblock memblock_dump_all(void)
-+{
-+	if (memblock_debug)
-+		__memblock_dump_all();
-+}
-+
- void __init memblock_allow_resize(void)
- {
- 	memblock_can_resize = 1;
 -- 
 2.26.2
