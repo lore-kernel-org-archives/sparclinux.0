@@ -1,7 +1,7 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 18 Aug 2020 15:16:32 +0000
-Subject: [PATCH v3 15/17] memblock: remove unused memblock_mem_size()
-Message-Id: <20200818151634.14343-16-rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:25 +0000
+Subject: [PATCH v3 08/17] memblock: make for_each_memblock_type() iterator private
+Message-Id: <20200818151634.14343-9-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200818151634.14343-1-rppt@kernel.org>
 In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
@@ -13,53 +13,47 @@ Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Her
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-The only user of memblock_mem_size() was x86 setup code, it is gone now and
-memblock_mem_size() funciton can be removed.
+for_each_memblock_type() is not used outside mm/memblock.c, move it there
+from include/linux/memblock.h
 
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Reviewed-by: Baoquan He <bhe@redhat.com>
 ---
- include/linux/memblock.h |  1 -
- mm/memblock.c            | 15 ---------------
- 2 files changed, 16 deletions(-)
+ include/linux/memblock.h | 5 -----
+ mm/memblock.c            | 5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index 27c3b84d1615..15ed119701c1 100644
+index 9d925db0d355..550faf69fc1c 100644
 --- a/include/linux/memblock.h
 +++ b/include/linux/memblock.h
-@@ -481,7 +481,6 @@ static inline bool memblock_bottom_up(void)
+@@ -552,11 +552,6 @@ static inline unsigned long memblock_region_reserved_end_pfn(const struct memblo
+ 	     region < (memblock.memblock_type.regions + memblock.memblock_type.cnt);	\
+ 	     region++)
  
- phys_addr_t memblock_phys_mem_size(void);
- phys_addr_t memblock_reserved_size(void);
--phys_addr_t memblock_mem_size(unsigned long limit_pfn);
- phys_addr_t memblock_start_of_DRAM(void);
- phys_addr_t memblock_end_of_DRAM(void);
- void memblock_enforce_memory_limit(phys_addr_t memory_limit);
+-#define for_each_memblock_type(i, memblock_type, rgn)			\
+-	for (i = 0, rgn = &memblock_type->regions[0];			\
+-	     i < memblock_type->cnt;					\
+-	     i++, rgn = &memblock_type->regions[i])
+-
+ extern void *alloc_large_system_hash(const char *tablename,
+ 				     unsigned long bucketsize,
+ 				     unsigned long numentries,
 diff --git a/mm/memblock.c b/mm/memblock.c
-index 567e454ce0a1..eb4f866bea34 100644
+index 45f198750be9..59f3998ae5db 100644
 --- a/mm/memblock.c
 +++ b/mm/memblock.c
-@@ -1657,21 +1657,6 @@ phys_addr_t __init_memblock memblock_reserved_size(void)
- 	return memblock.reserved.total_size;
- }
+@@ -132,6 +132,11 @@ struct memblock_type physmem = {
+ };
+ #endif
  
--phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
--{
--	unsigned long pages = 0;
--	unsigned long start_pfn, end_pfn;
--	int i;
--
--	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
--		start_pfn = min_t(unsigned long, start_pfn, limit_pfn);
--		end_pfn = min_t(unsigned long, end_pfn, limit_pfn);
--		pages += end_pfn - start_pfn;
--	}
--
--	return PFN_PHYS(pages);
--}
--
- /* lowest address */
- phys_addr_t __init_memblock memblock_start_of_DRAM(void)
- {
++#define for_each_memblock_type(i, memblock_type, rgn)			\
++	for (i = 0, rgn = &memblock_type->regions[0];			\
++	     i < memblock_type->cnt;					\
++	     i++, rgn = &memblock_type->regions[i])
++
+ int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
 -- 
 2.26.2
