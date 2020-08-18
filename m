@@ -1,82 +1,120 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Date: Fri, 28 Aug 2020 17:06:08 +0000
-Subject: Re: Flushing transparent hugepages
-Message-Id: <20200828170608.GJ3169@gaia>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:26 +0000
+Subject: [PATCH v3 09/17] memblock: make memblock_debug and related functionality private
+Message-Id: <20200818151634.14343-10-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818150736.GQ17456@casper.infradead.org>
- <20200818160815.GA16191@willie-the-truck>
-In-Reply-To: <20200818160815.GA16191@willie-the-truck>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Will Deacon <will@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>, linux-arch@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, linux-arm-kernel@lists.infradead.org, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, linux-mm@kvack.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
 
-On Tue, Aug 18, 2020 at 05:08:16PM +0100, Will Deacon wrote:
-> On Tue, Aug 18, 2020 at 04:07:36PM +0100, Matthew Wilcox wrote:
-> > For example, arm64 seems confused in this scenario:
-> > 
-> > void flush_dcache_page(struct page *page)
-> > {
-> >         if (test_bit(PG_dcache_clean, &page->flags))
-> >                 clear_bit(PG_dcache_clean, &page->flags);
-> > }
-> > 
-> > ...
-> > 
-> > void __sync_icache_dcache(pte_t pte)
-> > {
-> >         struct page *page = pte_page(pte);
-> > 
-> >         if (!test_and_set_bit(PG_dcache_clean, &page->flags))
-> >                 sync_icache_aliases(page_address(page), page_size(page));
-> > }
-> > 
-> > So arm64 keeps track on a per-page basis which ones have been flushed.
-> > page_size() will return PAGE_SIZE if called on a tail page or regular
-> > page, but will return PAGE_SIZE << compound_order if called on a head
-> > page.  So this will either over-flush, or it's missing the opportunity
-> > to clear the bits on all the subpages which have now been flushed.
-> 
-> Hmm, that seems to go all the way back to 2014 as the result of a bug fix
-> in 923b8f5044da ("arm64: mm: Make icache synchronisation logic huge page
-> aware") which has a Reported-by Mark and a CC stable, suggesting something
-> _was_ going wrong at the time :/ Was there a point where the tail pages
-> could end up with PG_arch_1 uncleared on allocation?
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-In my experience, it's the other way around: you can end up with
-PG_arch_1 cleared in a tail page when the head one was set (splitting
-THP).
+The only user of memblock_dbg() outside memblock was s390 setup code and it
+is converted to use pr_debug() instead.
+This allows to stop exposing memblock_debug and memblock_dbg() to the rest
+of the kernel.
 
-> > What would you _like_ to see?  Would you rather flush_dcache_page()
-> > were called once for each subpage, or would you rather maintain
-> > the page-needs-flushing state once per compound page?  We could also
-> > introduce flush_dcache_thp() if some architectures would prefer it one
-> > way and one the other, although that brings into question what to do
-> > for hugetlbfs pages.
-> 
-> For arm64, we'd like to see PG_arch_1 preserved during huge page splitting
-> [1], but there was a worry that it might break x86 and s390. It's also not
-> clear to me that we can change __sync_icache_dcache() as it's called when
-> we're installing the entry in the page-table, so why would it be called
-> again for the tail pages?
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
+---
+ arch/s390/kernel/setup.c |  4 ++--
+ include/linux/memblock.h | 12 +-----------
+ mm/memblock.c            | 13 +++++++++++--
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
-Indeed, __sync_icache_dcache() is called from set_pte_at() on the head
-page, though it could always iterate and flush the tail pages
-individually (I think we could have done this in commit 923b8f5044da).
-Currently I suspect it does some over-flushing if you use THP on
-executable pages (it's a no-op on non-exec pages).
-
-With MTE (arm64 memory tagging) I'm introducing a PG_arch_2 flag and
-losing this is more problematic as it can lead to clearing valid tags.
-In the subsequent patch [2], mte_sync_tags() (also called from
-set_pte_at()) checks the PG_arch_2 in each page of a compound one.
-
-My preference would be to treat both PG_arch_1 and _2 similarly.
-
-> [1] https://lore.kernel.org/linux-arch/20200703153718.16973-8-catalin.marinas@arm.com/
-
-[2] https://lore.kernel.org/linux-arch/20200703153718.16973-9-catalin.marinas@arm.com/
-
+diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
+index e600f6953d7c..68089eabae27 100644
+--- a/arch/s390/kernel/setup.c
++++ b/arch/s390/kernel/setup.c
+@@ -776,8 +776,8 @@ static void __init memblock_add_mem_detect_info(void)
+ 	unsigned long start, end;
+ 	int i;
+ 
+-	memblock_dbg("physmem info source: %s (%hhd)\n",
+-		     get_mem_info_source(), mem_detect.info_source);
++	pr_debug("physmem info source: %s (%hhd)\n",
++		 get_mem_info_source(), mem_detect.info_source);
+ 	/* keep memblock lists close to the kernel */
+ 	memblock_set_bottom_up(true);
+ 	for_each_mem_detect_block(i, &start, &end) {
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 550faf69fc1c..47a76e237fca 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -86,7 +86,6 @@ struct memblock {
+ };
+ 
+ extern struct memblock memblock;
+-extern int memblock_debug;
+ 
+ #ifndef CONFIG_ARCH_KEEP_MEMBLOCK
+ #define __init_memblock __meminit
+@@ -98,9 +97,6 @@ void memblock_discard(void);
+ static inline void memblock_discard(void) {}
+ #endif
+ 
+-#define memblock_dbg(fmt, ...) \
+-	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+-
+ phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
+ 				   phys_addr_t size, phys_addr_t align);
+ void memblock_allow_resize(void);
+@@ -476,13 +472,7 @@ bool memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
+ bool memblock_is_reserved(phys_addr_t addr);
+ bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
+ 
+-extern void __memblock_dump_all(void);
+-
+-static inline void memblock_dump_all(void)
+-{
+-	if (memblock_debug)
+-		__memblock_dump_all();
+-}
++void memblock_dump_all(void);
+ 
+ /**
+  * memblock_set_current_limit - Set the current allocation limit to allow
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 59f3998ae5db..799513f3d6a9 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -137,7 +137,10 @@ struct memblock_type physmem = {
+ 	     i < memblock_type->cnt;					\
+ 	     i++, rgn = &memblock_type->regions[i])
+ 
+-int memblock_debug __initdata_memblock;
++#define memblock_dbg(fmt, ...) \
++	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
++
++static int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+ static int memblock_can_resize __initdata_memblock;
+ static int memblock_memory_in_slab __initdata_memblock = 0;
+@@ -1920,7 +1923,7 @@ static void __init_memblock memblock_dump(struct memblock_type *type)
+ 	}
+ }
+ 
+-void __init_memblock __memblock_dump_all(void)
++static void __init_memblock __memblock_dump_all(void)
+ {
+ 	pr_info("MEMBLOCK configuration:\n");
+ 	pr_info(" memory size = %pa reserved size = %pa\n",
+@@ -1934,6 +1937,12 @@ void __init_memblock __memblock_dump_all(void)
+ #endif
+ }
+ 
++void __init_memblock memblock_dump_all(void)
++{
++	if (memblock_debug)
++		__memblock_dump_all();
++}
++
+ void __init memblock_allow_resize(void)
+ {
+ 	memblock_can_resize = 1;
 -- 
-Catalin
+2.26.2
