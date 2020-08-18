@@ -1,90 +1,65 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Thu, 20 Aug 2020 23:20:44 +0000
-Subject: [RFT][PATCH 5/7] sparc: Avoid overflow at boundary_size
-Message-Id: <20200820232044.23887-1-nicoleotsuka@gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:32 +0000
+Subject: [PATCH v3 15/17] memblock: remove unused memblock_mem_size()
+Message-Id: <20200818151634.14343-16-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200818151634.14343-1-rppt@kernel.org>
+In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: hch@lst.de, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
 
-The boundary_size might be as large as ULONG_MAX, which means
-that a device has no specific boundary limit. So either "+ 1"
-or passing it to ALIGN() would potentially overflow.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-According to kernel defines:
-    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
+The only user of memblock_mem_size() was x86 setup code, it is gone now and
+memblock_mem_size() funciton can be removed.
 
-We can simplify the logic here:
-  ALIGN(boundary + 1, 1 << shift) >> shift
-= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-= [b + 1 + (1 << s) - 1] >> s
-= [b + (1 << s)] >> s
-= (b >> s) + 1
-
-So fixing a potential overflow with the safer shortcut.
-
-Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Baoquan He <bhe@redhat.com>
 ---
- arch/sparc/kernel/iommu-common.c | 9 +++------
- arch/sparc/kernel/iommu.c        | 4 ++--
- arch/sparc/kernel/pci_sun4v.c    | 4 ++--
- 3 files changed, 7 insertions(+), 10 deletions(-)
+ include/linux/memblock.h |  1 -
+ mm/memblock.c            | 15 ---------------
+ 2 files changed, 16 deletions(-)
 
-diff --git a/arch/sparc/kernel/iommu-common.c b/arch/sparc/kernel/iommu-common.c
-index 59cb16691322..843e71894d04 100644
---- a/arch/sparc/kernel/iommu-common.c
-+++ b/arch/sparc/kernel/iommu-common.c
-@@ -166,13 +166,10 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
- 		}
- 	}
+diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+index 27c3b84d1615..15ed119701c1 100644
+--- a/include/linux/memblock.h
++++ b/include/linux/memblock.h
+@@ -481,7 +481,6 @@ static inline bool memblock_bottom_up(void)
  
--	if (dev)
--		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				      1 << iommu->table_shift);
--	else
--		boundary_size = ALIGN(1ULL << 32, 1 << iommu->table_shift);
-+	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
+ phys_addr_t memblock_phys_mem_size(void);
+ phys_addr_t memblock_reserved_size(void);
+-phys_addr_t memblock_mem_size(unsigned long limit_pfn);
+ phys_addr_t memblock_start_of_DRAM(void);
+ phys_addr_t memblock_end_of_DRAM(void);
+ void memblock_enforce_memory_limit(phys_addr_t memory_limit);
+diff --git a/mm/memblock.c b/mm/memblock.c
+index 567e454ce0a1..eb4f866bea34 100644
+--- a/mm/memblock.c
++++ b/mm/memblock.c
+@@ -1657,21 +1657,6 @@ phys_addr_t __init_memblock memblock_reserved_size(void)
+ 	return memblock.reserved.total_size;
+ }
  
--	boundary_size = boundary_size >> iommu->table_shift;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	boundary_size = (boundary_size >> iommu->table_shift) + 1;
- 	/*
- 	 * if the skip_span_boundary_check had been set during init, we set
- 	 * things up so that iommu_is_span_boundary() merely checks if the
-diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
-index 4ae7388b1bff..d981c37305ae 100644
---- a/arch/sparc/kernel/iommu.c
-+++ b/arch/sparc/kernel/iommu.c
-@@ -472,8 +472,8 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
- 	outs->dma_length = 0;
- 
- 	max_seg_size = dma_get_max_seg_size(dev);
--	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
- 	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
- 	for_each_sg(sglist, s, nelems, i) {
- 		unsigned long paddr, npages, entry, out_entry = 0, slen;
-diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
-index 14b93c5564e3..233fe8a20cec 100644
---- a/arch/sparc/kernel/pci_sun4v.c
-+++ b/arch/sparc/kernel/pci_sun4v.c
-@@ -508,8 +508,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
- 	iommu_batch_start(dev, prot, ~0UL);
- 
- 	max_seg_size = dma_get_max_seg_size(dev);
--	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
- 
- 	mask = *dev->dma_mask;
- 	if (!iommu_use_atu(iommu, mask))
+-phys_addr_t __init memblock_mem_size(unsigned long limit_pfn)
+-{
+-	unsigned long pages = 0;
+-	unsigned long start_pfn, end_pfn;
+-	int i;
+-
+-	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, NULL) {
+-		start_pfn = min_t(unsigned long, start_pfn, limit_pfn);
+-		end_pfn = min_t(unsigned long, end_pfn, limit_pfn);
+-		pages += end_pfn - start_pfn;
+-	}
+-
+-	return PFN_PHYS(pages);
+-}
+-
+ /* lowest address */
+ phys_addr_t __init_memblock memblock_start_of_DRAM(void)
+ {
 -- 
-2.17.1
+2.26.2
