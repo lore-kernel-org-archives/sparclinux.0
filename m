@@ -1,7 +1,7 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Tue, 18 Aug 2020 15:16:30 +0000
-Subject: [PATCH v3 13/17] x86/setup: simplify initrd relocation and reservation
-Message-Id: <20200818151634.14343-14-rppt@kernel.org>
+Date: Tue, 18 Aug 2020 15:16:22 +0000
+Subject: [PATCH v3 05/17] h8300, nds32, openrisc: simplify detection of memory extents
+Message-Id: <20200818151634.14343-6-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200818151634.14343-1-rppt@kernel.org>
 In-Reply-To: <20200818151634.14343-1-rppt@kernel.org>
@@ -9,81 +9,88 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org, Ingo Molnar <mingo@kernel.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Daniel Axtens <dja@axtens.net>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>, Russell King <linux@armlinux.org.uk>, Stafford Horne <shorne@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, clang-built-linux@googlegroups.com, iommu@lists.linux-foundation.org, linux-arch@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-c6x-dev@linux-c6x.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-mm@kvack.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org, sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, x86@kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-Currently, initrd image is reserved very early during setup and then it
-might be relocated and re-reserved after the initial physical memory
-mapping is created. The "late" reservation of memblock verifies that mapped
-memory size exceeds the size of initrd, then checks whether the relocation
-required and, if yes, relocates inirtd to a new memory allocated from
-memblock and frees the old location.
-
-The check for memory size is excessive as memblock allocation will anyway
-fail if there is not enough memory. Besides, there is no point to allocate
-memory from memblock using memblock_find_in_range() + memblock_reserve()
-when there exists memblock_phys_alloc_range() with required functionality.
-
-Remove the redundant check and simplify memblock allocation.
+Instead of traversing memblock.memory regions to find memory_start and
+memory_end, simply query memblock_{start,end}_of_DRAM().
 
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Reviewed-by: Baoquan He <bhe@redhat.com>
+Acked-by: Stafford Horne <shorne@gmail.com>
 ---
- arch/x86/kernel/setup.c | 16 +++-------------
- 1 file changed, 3 insertions(+), 13 deletions(-)
+ arch/h8300/kernel/setup.c    | 8 +++-----
+ arch/nds32/kernel/setup.c    | 8 ++------
+ arch/openrisc/kernel/setup.c | 9 ++-------
+ 3 files changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 3511736fbc74..2cac39ade2e3 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -263,16 +263,12 @@ static void __init relocate_initrd(void)
- 	u64 area_size     = PAGE_ALIGN(ramdisk_size);
+diff --git a/arch/h8300/kernel/setup.c b/arch/h8300/kernel/setup.c
+index 28ac88358a89..0281f92eea3d 100644
+--- a/arch/h8300/kernel/setup.c
++++ b/arch/h8300/kernel/setup.c
+@@ -74,17 +74,15 @@ static void __init bootmem_init(void)
+ 	memory_end = memory_start = 0;
  
- 	/* We need to move the initrd down into directly mapped mem */
--	relocated_ramdisk = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
--						   area_size, PAGE_SIZE);
--
-+	relocated_ramdisk = memblock_phys_alloc_range(area_size, PAGE_SIZE, 0,
-+						      PFN_PHYS(max_pfn_mapped));
- 	if (!relocated_ramdisk)
- 		panic("Cannot find place for new RAMDISK of size %lld\n",
- 		      ramdisk_size);
+ 	/* Find main memory where is the kernel */
+-	for_each_memblock(memory, region) {
+-		memory_start = region->base;
+-		memory_end = region->base + region->size;
+-	}
++	memory_start = memblock_start_of_DRAM();
++	memory_end = memblock_end_of_DRAM();
  
--	/* Note: this includes all the mem currently occupied by
--	   the initrd, we rely on that fact to keep the data intact. */
--	memblock_reserve(relocated_ramdisk, area_size);
- 	initrd_start = relocated_ramdisk + PAGE_OFFSET;
- 	initrd_end   = initrd_start + ramdisk_size;
- 	printk(KERN_INFO "Allocated new RAMDISK: [mem %#010llx-%#010llx]\n",
-@@ -299,13 +295,13 @@ static void __init early_reserve_initrd(void)
+ 	if (!memory_end)
+ 		panic("No memory!");
  
- 	memblock_reserve(ramdisk_image, ramdisk_end - ramdisk_image);
- }
-+
- static void __init reserve_initrd(void)
- {
- 	/* Assume only end is not page aligned */
- 	u64 ramdisk_image = get_ramdisk_image();
- 	u64 ramdisk_size  = get_ramdisk_size();
- 	u64 ramdisk_end   = PAGE_ALIGN(ramdisk_image + ramdisk_size);
--	u64 mapped_size;
+ 	/* setup bootmem globals (we use no_bootmem, but mm still depends on this) */
+ 	min_low_pfn = PFN_UP(memory_start);
+-	max_low_pfn = PFN_DOWN(memblock_end_of_DRAM());
++	max_low_pfn = PFN_DOWN(memory_end);
+ 	max_pfn = max_low_pfn;
  
- 	if (!boot_params.hdr.type_of_loader ||
- 	    !ramdisk_image || !ramdisk_size)
-@@ -313,12 +309,6 @@ static void __init reserve_initrd(void)
+ 	memblock_reserve(__pa(_stext), _end - _stext);
+diff --git a/arch/nds32/kernel/setup.c b/arch/nds32/kernel/setup.c
+index a066efbe53c0..c356e484dcab 100644
+--- a/arch/nds32/kernel/setup.c
++++ b/arch/nds32/kernel/setup.c
+@@ -249,12 +249,8 @@ static void __init setup_memory(void)
+ 	memory_end = memory_start = 0;
  
- 	initrd_start = 0;
+ 	/* Find main memory where is the kernel */
+-	for_each_memblock(memory, region) {
+-		memory_start = region->base;
+-		memory_end = region->base + region->size;
+-		pr_info("%s: Memory: 0x%x-0x%x\n", __func__,
+-			memory_start, memory_end);
+-	}
++	memory_start = memblock_start_of_DRAM();
++	memory_end = memblock_end_of_DRAM();
  
--	mapped_size = memblock_mem_size(max_pfn_mapped);
--	if (ramdisk_size >= (mapped_size>>1))
--		panic("initrd too large to handle, "
--		       "disabling initrd (%lld needed, %lld available)\n",
--		       ramdisk_size, mapped_size>>1);
--
- 	printk(KERN_INFO "RAMDISK: [mem %#010llx-%#010llx]\n", ramdisk_image,
- 			ramdisk_end - 1);
+ 	if (!memory_end) {
+ 		panic("No memory!");
+diff --git a/arch/openrisc/kernel/setup.c b/arch/openrisc/kernel/setup.c
+index b18e775f8be3..5a5940f7ebb1 100644
+--- a/arch/openrisc/kernel/setup.c
++++ b/arch/openrisc/kernel/setup.c
+@@ -48,17 +48,12 @@ static void __init setup_memory(void)
+ 	unsigned long ram_start_pfn;
+ 	unsigned long ram_end_pfn;
+ 	phys_addr_t memory_start, memory_end;
+-	struct memblock_region *region;
  
+ 	memory_end = memory_start = 0;
+ 
+ 	/* Find main memory where is the kernel, we assume its the only one */
+-	for_each_memblock(memory, region) {
+-		memory_start = region->base;
+-		memory_end = region->base + region->size;
+-		printk(KERN_INFO "%s: Memory: 0x%x-0x%x\n", __func__,
+-		       memory_start, memory_end);
+-	}
++	memory_start = memblock_start_of_DRAM();
++	memory_end = memblock_end_of_DRAM();
+ 
+ 	if (!memory_end) {
+ 		panic("No memory!");
 -- 
 2.26.2
