@@ -1,32 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 11 Aug 2020 23:42:18 +0000
-Subject: Re: sparc vs sparc64: O_NDELAY and O_NONBLOCK mismatch in kernel and in glibc
-Message-Id: <20200811.164218.846363035312807388.davem@davemloft.net>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Tue, 18 Aug 2020 17:34:05 +0000
+Subject: [PATCH 05/11] nios2: switch to kernel_clone()
+Message-Id: <20200818173411.404104-6-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
 
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Date: Fri, 29 May 2020 10:40:19 +0100
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-> Question time:
-> 
-> 1. Why is sparc32 special? Does it have something to do with
->    compatibility to other OSes of that time? (Solaris? BSD?)
-> 
->    fs/fcntl.c has kernel handling:
->         /* required for strict SunOS emulation */
->         if (O_NONBLOCK != O_NDELAY)
->                if (arg & O_NDELAY)
->                    arg |= O_NONBLOCK;
->    but why does it leak to to userspace header definition?
-> 
->    I think it should not.
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+---
+ arch/nios2/kernel/process.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-The original sparc value was meant to match the SunOS value
-exactly in order to make the SunOS emulation support easier.
-
-The current situation is a mess and I don't doubt that it accounts
-for various kinds of weird behavior we've seen over the years :-/
+diff --git a/arch/nios2/kernel/process.c b/arch/nios2/kernel/process.c
+index 88a4ec03edab..4ffe857e6ada 100644
+--- a/arch/nios2/kernel/process.c
++++ b/arch/nios2/kernel/process.c
+@@ -266,5 +266,5 @@ asmlinkage int nios2_clone(unsigned long clone_flags, unsigned long newsp,
+ 		.tls		= tls,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+-- 
+2.28.0
