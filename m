@@ -1,57 +1,38 @@
-From: "MR.ANDY CECERE" <barrister.justice.emmenuel@gmail.com>
-Date: Fri, 14 Aug 2020 23:00:34 +0000
-Subject: REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$5Million)
-Message-Id: <CAM4bvQdC0U-ZxXnUp4qcG2-dhYA3T8zP1tzP9fkQbpqX5nW23A@mail.gmail.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Wed, 19 Aug 2020 10:46:49 +0000
+Subject: [PATCH v2 05/11] nios2: switch to kernel_clone()
+Message-Id: <20200819104655.436656-6-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
 
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
+
+Cc: Ley Foon Tan <ley.foon.tan@intel.com>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+---
+/* v2 */
+unchanged
+---
+ arch/nios2/kernel/process.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/nios2/kernel/process.c b/arch/nios2/kernel/process.c
+index 88a4ec03edab..4ffe857e6ada 100644
+--- a/arch/nios2/kernel/process.c
++++ b/arch/nios2/kernel/process.c
+@@ -266,5 +266,5 @@ asmlinkage int nios2_clone(unsigned long clone_flags, unsigned long newsp,
+ 		.tls		= tls,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
 -- 
-Us Bank.1025 Connecticut Ave.
-NW, Ste. 510. Washington, DC 20036.
-Tell: (213) 537-2170
-E-mail: info.usbanking1@gmail.com
-
-REF:- INSTRUCTION TO CREDIT YOUR ACCOUNT WITH THE SUM OF (US$5Million)
-
-This is the second time we are notifying you about this said fund. After
-due vetting and evaluation of your file that was sent to us by the Nigerian
-Government in conjunction with the Ministry of Finance and Central Bank of
-the Federal Republic of Nigeria.
-
-This bank has an instruction to see to the immediate release of the sum of
-(US $5Million) of your claim that has been holding since is transferred
-into your bank Account from their Domiciliary Account with this bank.
-
-We were meant to understand from our findings that you have been going
-through hard ways by paying a lot of charges to see to the release of your
-fund (US$5Million), which has been the handwork of some miscreant elements
-from that Country.
-
-We advice that you stop further communication with any correspondence from
-any bank , or anywhere concerning your funds as you will receive your fund
-from this bank if you follow our instruction.
-
-We know your representatives in Nigeria or anywhere will advice you to
-still go ahead with them, which will be on your own risk. Your
-(US$5Million) will reflect in your designated bank account within five Bank
-working days.
-
-Do not go through anybody again but through this Bank if you really want
-your fund. Finally, you are advice to re-confirm these to us,
-
-Your Full Name,
-Contact address,
-Occupation
-Telephone and Fax Number for easy communication.
-
-We need your second email gmail or hotmail for security and private reasons.
-
-Yours sincerely,
-MR.ANDY CECERE,
-Tel:.(213) 537-2170
-Assistance Secretary,
-U.S Bank.
-Email address ( info.usbanking1@gmail.com )
+2.28.0
