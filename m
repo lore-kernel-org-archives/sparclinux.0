@@ -1,70 +1,167 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Tue, 25 Aug 2020 23:19:00 +0000
-Subject: Re: [RFT][PATCH 0/7] Avoid overflow at boundary_size
-Message-Id: <20200825231900.GA4726@Asurada-Nvidia>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Wed, 19 Aug 2020 10:46:53 +0000
+Subject: [PATCH v2 09/11] kgdbts: switch to kernel_clone()
+Message-Id: <20200819104655.436656-10-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200820231923.23678-1-nicoleotsuka@gmail.com>
- <4321af30-9554-6897-5281-05afd88f2631@linux.ibm.com>
-In-Reply-To: <4321af30-9554-6897-5281-05afd88f2631@linux.ibm.com>
+References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de, sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>, Douglas Anderson <dianders@chromium.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Thompson <daniel.thompson@linaro.org>, Jason Wessel <jason.wessel@windriver.com>
 
-Hi Niklas,
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-On Tue, Aug 25, 2020 at 12:16:27PM +0200, Niklas Schnelle wrote:
-> On 8/21/20 1:19 AM, Nicolin Chen wrote:
-> > We are expending the default DMA segmentation boundary to its
-> > possible maximum value (ULONG_MAX) to indicate that a device
-> > doesn't specify a boundary limit. So all dma_get_seg_boundary
-> > callers should take a precaution with the return values since
-> > it would easily get overflowed.
-> > 
-> > I scanned the entire kernel tree for all the existing callers
-> > and found that most of callers may get overflowed in two ways:
-> > either "+ 1" or passing it to ALIGN() that does "+ mask".
-> > 
-> > According to kernel defines:
-> >     #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-> >     #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
-> > 
-> > We can simplify the logic here:
-> >   ALIGN(boundary + 1, 1 << shift) >> shift
-> > = ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-> > = {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-> > = [b + 1 + (1 << s) - 1] >> s
-> > = [b + (1 << s)] >> s
-> > = (b >> s) + 1
-> > 
-> > So this series of patches fix the potential overflow with this
-> > overflow-free shortcut.
+Cc: Douglas Anderson <dianders@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Thompson <daniel.thompson@linaro.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: kgdb-bugreport@lists.sourceforge.net
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+---
+/* v2 */
+unchanged
+---
+ drivers/misc/kgdbts.c | 48 +++++++++++++++++++++----------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/misc/kgdbts.c b/drivers/misc/kgdbts.c
+index d5d2af4d10e6..945701bce553 100644
+--- a/drivers/misc/kgdbts.c
++++ b/drivers/misc/kgdbts.c
+@@ -33,16 +33,16 @@
+  * You can also specify optional tests:
+  * N## = Go to sleep with interrupts of for ## seconds
+  *       to test the HW NMI watchdog
+- * F## = Break at do_fork for ## iterations
++ * F## = Break at kernel_clone for ## iterations
+  * S## = Break at sys_open for ## iterations
+  * I## = Run the single step test ## iterations
+  *
+- * NOTE: that the do_fork and sys_open tests are mutually exclusive.
++ * NOTE: that the kernel_clone and sys_open tests are mutually exclusive.
+  *
+  * To invoke the kgdb test suite from boot you use a kernel start
+  * argument as follows:
+  * 	kgdbts=V1 kgdbwait
+- * Or if you wanted to perform the NMI test for 6 seconds and do_fork
++ * Or if you wanted to perform the NMI test for 6 seconds and kernel_clone
+  * test for 100 forks, you could use:
+  * 	kgdbts=V1N6F100 kgdbwait
+  *
+@@ -74,7 +74,7 @@
+  * echo kgdbts=V1S10000 > /sys/module/kgdbts/parameters/kgdbts
+  * fg # and hit control-c
+  * fg # and hit control-c
+- * ## This tests break points on do_fork
++ * ## This tests break points on kernel_clone
+  * while [ 1 ] ; do date > /dev/null ; done &
+  * while [ 1 ] ; do date > /dev/null ; done &
+  * echo kgdbts=V1F1000 > /sys/module/kgdbts/parameters/kgdbts
+@@ -209,8 +209,8 @@ static unsigned long lookup_addr(char *arg)
+ 		addr = (unsigned long)kgdbts_break_test;
+ 	else if (!strcmp(arg, "sys_open"))
+ 		addr = (unsigned long)do_sys_open;
+-	else if (!strcmp(arg, "do_fork"))
+-		addr = (unsigned long)_do_fork;
++	else if (!strcmp(arg, "kernel_clone"))
++		addr = (unsigned long)kernel_clone;
+ 	else if (!strcmp(arg, "hw_break_val"))
+ 		addr = (unsigned long)&hw_break_val;
+ 	addr = (unsigned long) dereference_function_descriptor((void *)addr);
+@@ -310,7 +310,7 @@ static int check_and_rewind_pc(char *put_str, char *arg)
  
-> haven't seen any other feedback from other maintainers,
-
-I am wondering this too...whether I sent correctly or not.
-
-> so I guess you will resend this?
-
-Do I need to? Though I won't mind doing so if it's necessary..
-
-> On first glance it seems to make sense.
-> I'm a little confused why it is only a "potential overflow"
-> while this part
-> 
-> "We are expending the default DMA segmentation boundary to its
->  possible maximum value (ULONG_MAX) to indicate that a device
->  doesn't specify a boundary limit"
-> 
-> sounds to me like ULONG_MAX is actually used, does that
-> mean there are currently no devices which do not specify a
-> boundary limit?
-
-Sorry for the confusion. We actually applied ULONG_MAX change
-last week but reverted it right after, due to a bug report at
-one of these "potential" overflows. So at this moment the top
-of the tree doesn't set default boundary to ULONG_MAX yet.
-
-Thanks
-Nic
+ 	if (arch_needs_sstep_emulation && sstep_addr &&
+ 	    ip + offset = sstep_addr &&
+-	    ((!strcmp(arg, "sys_open") || !strcmp(arg, "do_fork")))) {
++	    ((!strcmp(arg, "sys_open") || !strcmp(arg, "kernel_clone")))) {
+ 		/* This is special case for emulated single step */
+ 		v2printk("Emul: rewind hit single step bp\n");
+ 		restart_from_top_after_write = 1;
+@@ -596,19 +596,19 @@ static struct test_struct singlestep_break_test[] = {
+ };
+ 
+ /*
+- * Test for hitting a breakpoint at do_fork for what ever the number
++ * Test for hitting a breakpoint at kernel_clone for what ever the number
+  * of iterations required by the variable repeat_test.
+  */
+-static struct test_struct do_fork_test[] = {
++static struct test_struct do_kernel_clone_test[] = {
+ 	{ "?", "S0*" }, /* Clear break points */
+-	{ "do_fork", "OK", sw_break, }, /* set sw breakpoint */
++	{ "kernel_clone", "OK", sw_break, }, /* set sw breakpoint */
+ 	{ "c", "T0*", NULL, get_thread_id_continue }, /* Continue */
+-	{ "do_fork", "OK", sw_rem_break }, /*remove breakpoint */
+-	{ "g", "do_fork", NULL, check_and_rewind_pc }, /* check location */
++	{ "kernel_clone", "OK", sw_rem_break }, /*remove breakpoint */
++	{ "g", "kernel_clone", NULL, check_and_rewind_pc }, /* check location */
+ 	{ "write", "OK", write_regs, emul_reset }, /* Write registers */
+ 	{ "s", "T0*", emul_sstep_get, emul_sstep_put }, /* Single step */
+-	{ "g", "do_fork", NULL, check_single_step },
+-	{ "do_fork", "OK", sw_break, }, /* set sw breakpoint */
++	{ "g", "kernel_clone", NULL, check_single_step },
++	{ "kernel_clone", "OK", sw_break, }, /* set sw breakpoint */
+ 	{ "7", "T0*", skip_back_repeat_test }, /* Loop based on repeat_test */
+ 	{ "D", "OK", NULL, final_ack_set }, /* detach and unregister I/O */
+ 	{ "", "", get_cont_catch, put_cont_catch },
+@@ -935,11 +935,11 @@ static void run_bad_read_test(void)
+ 	kgdb_breakpoint();
+ }
+ 
+-static void run_do_fork_test(void)
++static void run_kernel_clone_test(void)
+ {
+ 	init_simple_test();
+-	ts.tst = do_fork_test;
+-	ts.name = "do_fork_test";
++	ts.tst = do_kernel_clone_test;
++	ts.name = "do_kernel_clone_test";
+ 	/* Activate test with initial breakpoint */
+ 	kgdb_breakpoint();
+ }
+@@ -967,7 +967,7 @@ static void run_singlestep_break_test(void)
+ static void kgdbts_run_tests(void)
+ {
+ 	char *ptr;
+-	int fork_test = 0;
++	int clone_test = 0;
+ 	int do_sys_open_test = 0;
+ 	int sstep_test = 1000;
+ 	int nmi_sleep = 0;
+@@ -981,7 +981,7 @@ static void kgdbts_run_tests(void)
+ 
+ 	ptr = strchr(config, 'F');
+ 	if (ptr)
+-		fork_test = simple_strtol(ptr + 1, NULL, 10);
++		clone_test = simple_strtol(ptr + 1, NULL, 10);
+ 	ptr = strchr(config, 'S');
+ 	if (ptr)
+ 		do_sys_open_test = simple_strtol(ptr + 1, NULL, 10);
+@@ -1025,16 +1025,16 @@ static void kgdbts_run_tests(void)
+ 		run_nmi_sleep_test(nmi_sleep);
+ 	}
+ 
+-	/* If the do_fork test is run it will be the last test that is
++	/* If the kernel_clone test is run it will be the last test that is
+ 	 * executed because a kernel thread will be spawned at the very
+ 	 * end to unregister the debug hooks.
+ 	 */
+-	if (fork_test) {
+-		repeat_test = fork_test;
+-		printk(KERN_INFO "kgdbts:RUN do_fork for %i breakpoints\n",
++	if (clone_test) {
++		repeat_test = clone_test;
++		printk(KERN_INFO "kgdbts:RUN kernel_clone for %i breakpoints\n",
+ 			repeat_test);
+ 		kthread_run(kgdbts_unreg_thread, NULL, "kgdbts_unreg");
+-		run_do_fork_test();
++		run_kernel_clone_test();
+ 		return;
+ 	}
+ 
+-- 
+2.28.0
