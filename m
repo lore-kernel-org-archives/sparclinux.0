@@ -1,54 +1,139 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Mon, 31 Aug 2020 20:38:10 +0000
-Subject: [RESEND][PATCH 6/7] x86/amd_gart: Avoid overflow at boundary_size
-Message-Id: <20200831203811.8494-7-nicoleotsuka@gmail.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Wed, 19 Aug 2020 10:46:45 +0000
+Subject: [PATCH v2 01/11] fork: introduce kernel_clone()
+Message-Id: <20200819104655.436656-2-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
-In-Reply-To: <20200831203811.8494-1-nicoleotsuka@gmail.com>
+References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de
-Cc: sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>, Ingo Molnar <mingo@kernel.org>
 
-The boundary_size might be as large as ULONG_MAX, which means
-that a device has no specific boundary limit. So either "+ 1"
-or passing it to ALIGN() would potentially overflow.
+The old _do_fork() helper doesn't follow naming conventions of in-kernel
+helpers for syscalls. The process creation cleanup in [1] didn't change the
+name to something more reasonable mainly because _do_fork() was used in quite a
+few places. So sending this as a separate series seemed the better strategy.
 
-According to kernel defines:
-    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
+This commit does two things:
+1. renames _do_fork() to kernel_clone() but keeps _do_fork() as a simple static
+   inline wrapper around kernel_clone().
+2. Changes the return type from long to pid_t. This aligns kernel_thread() and
+   kernel_clone(). Also, the return value from kernel_clone that is surfaced in
+   fork(), vfork(), clone(), and clone3() is taken from pid_vrn() which returns
+   a pid_t too.
 
-We can simplify the logic here:
-  ALIGN(boundary + 1, 1 << shift) >> shift
-= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-= [b + 1 + (1 << s) - 1] >> s
-= [b + (1 << s)] >> s
-= (b >> s) + 1
+Follow-up patches will switch each caller of _do_fork() and each place where it
+is referenced over to kernel_clone(). After all these changes are done, we can
+remove _do_fork() completely and will only be left with kernel_clone().
 
-So fixing a potential overflow with the safer shortcut.
-
-Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
+[1]: 9ba27414f2ec ("Merge tag 'fork-v5.9' of git://git.kernel.org/pub/scm/linux/kernel/git/brauner/linux")
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
 ---
- arch/x86/kernel/amd_gart_64.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+/* v2 */
+- Matthew Wilcox (Oracle) <willy@infradead.org>:
+  - make kernel_clone() return pid_t
+---
+ include/linux/sched/task.h |  6 +++++-
+ kernel/fork.c              | 16 ++++++++--------
+ 2 files changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/arch/x86/kernel/amd_gart_64.c b/arch/x86/kernel/amd_gart_64.c
-index e89031e9c847..7fa0bb490065 100644
---- a/arch/x86/kernel/amd_gart_64.c
-+++ b/arch/x86/kernel/amd_gart_64.c
-@@ -96,8 +96,8 @@ static unsigned long alloc_iommu(struct device *dev, int size,
+diff --git a/include/linux/sched/task.h b/include/linux/sched/task.h
+index a98965007eef..d4428039c3c1 100644
+--- a/include/linux/sched/task.h
++++ b/include/linux/sched/task.h
+@@ -83,7 +83,11 @@ extern void do_group_exit(int);
+ extern void exit_files(struct task_struct *);
+ extern void exit_itimers(struct signal_struct *);
  
- 	base_index = ALIGN(iommu_bus_base & dma_get_seg_boundary(dev),
- 			   PAGE_SIZE) >> PAGE_SHIFT;
--	boundary_size = ALIGN((u64)dma_get_seg_boundary(dev) + 1,
--			      PAGE_SIZE) >> PAGE_SHIFT;
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	boundary_size = (dma_get_seg_boundary(dev) >> PAGE_SHIFT) + 1;
+-extern long _do_fork(struct kernel_clone_args *kargs);
++extern pid_t kernel_clone(struct kernel_clone_args *kargs);
++static inline long _do_fork(struct kernel_clone_args *kargs)
++{
++	return kernel_clone(kargs);
++}
+ struct task_struct *fork_idle(int);
+ struct mm_struct *copy_init_mm(void);
+ extern pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags);
+diff --git a/kernel/fork.c b/kernel/fork.c
+index 4d32190861bd..d822c7a4b9c4 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -2384,14 +2384,14 @@ struct mm_struct *copy_init_mm(void)
+  *
+  * args->exit_signal is expected to be checked for sanity by the caller.
+  */
+-long _do_fork(struct kernel_clone_args *args)
++pid_t kernel_clone(struct kernel_clone_args *args)
+ {
+ 	u64 clone_flags = args->flags;
+ 	struct completion vfork;
+ 	struct pid *pid;
+ 	struct task_struct *p;
+ 	int trace = 0;
+-	long nr;
++	pid_t nr;
  
- 	spin_lock_irqsave(&iommu_bitmap_lock, flags);
- 	offset = iommu_area_alloc(iommu_gart_bitmap, iommu_pages, next_bit,
+ 	/*
+ 	 * For legacy clone() calls, CLONE_PIDFD uses the parent_tid argument
+@@ -2477,7 +2477,7 @@ pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
+ 		.stack_size	= (unsigned long)arg,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ 
+ #ifdef __ARCH_WANT_SYS_FORK
+@@ -2488,7 +2488,7 @@ SYSCALL_DEFINE0(fork)
+ 		.exit_signal = SIGCHLD,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ #else
+ 	/* can not support in nommu mode */
+ 	return -EINVAL;
+@@ -2504,7 +2504,7 @@ SYSCALL_DEFINE0(vfork)
+ 		.exit_signal	= SIGCHLD,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ #endif
+ 
+@@ -2542,7 +2542,7 @@ SYSCALL_DEFINE5(clone, unsigned long, clone_flags, unsigned long, newsp,
+ 		.tls		= tls,
+ 	};
+ 
+-	return _do_fork(&args);
++	return kernel_clone(&args);
+ }
+ #endif
+ 
+@@ -2700,7 +2700,7 @@ SYSCALL_DEFINE2(clone3, struct clone_args __user *, uargs, size_t, size)
+ 	if (!clone3_args_valid(&kargs))
+ 		return -EINVAL;
+ 
+-	return _do_fork(&kargs);
++	return kernel_clone(&kargs);
+ }
+ #endif
+ 
+@@ -2863,7 +2863,7 @@ int unshare_fd(unsigned long unshare_flags, unsigned int max_fds,
+ /*
+  * unshare allows a process to 'unshare' part of the process
+  * context which was originally shared using clone.  copy_*
+- * functions used by _do_fork() cannot be used here directly
++ * functions used by kernel_clone() cannot be used here directly
+  * because they modify an inactive task_struct that is being
+  * constructed. Here we are modifying the current, active,
+  * task_struct.
 -- 
-2.17.1
+2.28.0
