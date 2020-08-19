@@ -1,101 +1,85 @@
-From: Joe Perches <joe@perches.com>
-Date: Tue, 25 Aug 2020 04:55:57 +0000
-Subject: [PATCH 00/29] treewide: Convert comma separated statements
-Message-Id: <cover.1598331148.git.joe@perches.com>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Wed, 19 Aug 2020 10:46:44 +0000
+Subject: [PATCH v2 00/11] Introduce kernel_clone(), kill _do_fork()
+Message-Id: <20200819104655.436656-1-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jiri Kosina <trivial@kernel.org>, oprofile-list@lists.sf.net, linux-ide@vger.kernel.org, drbd-dev@lists.linbit.com, linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, intel-gfx@lists.freedesktop.org, linux-hwmon@vger.kernel.org, linux-input@vger.kernel.org, linux-bcache@vger.kernel.org, netdev@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org, linux-fsdevel@vger.kernel.org, reiserfs-devel@vger.kernel.org, linux-nfs@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, linux-fbdev@vger.kernel.org, linux-ia64@vger.kernel.org, linux-scsi@vger.kernel.org, linux-doc@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-block@vger.kernel.org, linux-mtd@lists.infradead.org, linux-kselftest@vger.kernel.org, linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
 
-There are many comma separated statements in the kernel.
-See:https://lore.kernel.org/lkml/alpine.DEB.2.22.394.2008201856110.2524@hadrien/
+Hey everyone,
 
-Convert the comma separated statements that are in if/do/while blocks
-to use braces and semicolons.
+This is a follow-up to the fork-related cleanup. It's based on a brief
+discussion after the initial series was merged.
+Last cycle we removed copy_thread_tls() and the associated Kconfig
+option for each architecture. Now we are only left with copy_thread().
+Part of this work was removing the old do_fork() legacy clone()-style
+calling convention in favor of the new struct kernel_clone args calling
+convention.
+The only remaining function callable outside of kernel/fork.c is
+_do_fork(). It doesn't really follow the naming of kernel-internal
+syscall helpers as Christoph righly pointed out. Switch all callers and
+references to kernel_clone() and remove _do_fork() once and for all also
+switching the return value for kernel_clone() from long to pid_t since
+that's what we use in all other places where we're dealing with process
+identifiers.
 
-Many comma separated statements still exist but those are changes for
-another day.
+For all architectures I have done a full git rebase v5.9-rc1 -x "make
+-j31". There were no built failures and the changes were fairly
+mechanical.
 
-Joe Perches (29):
-  coding-style.rst: Avoid comma statements
-  alpha: Avoid comma separated statements
-  ia64: Avoid comma separated statements
-  sparc: Avoid comma separated statements
-  ata: Avoid comma separated statements
-  drbd: Avoid comma separated statements
-  lp: Avoid comma separated statements
-  dma-buf: Avoid comma separated statements
-  drm/gma500: Avoid comma separated statements
-  drm/i915: Avoid comma separated statements
-  hwmon: (scmi-hwmon): Avoid comma separated statements
-  Input: MT - Avoid comma separated statements
-  bcache: Avoid comma separated statements
-  media: Avoid comma separated statements
-  mtd: Avoid comma separated statements
-  8390: Avoid comma separated statements
-  fs_enet: Avoid comma separated statements
-  wan: sbni: Avoid comma separated statements
-  s390/tty3270: Avoid comma separated statements
-  scai/arm: Avoid comma separated statements
-  media: atomisp: Avoid comma separated statements
-  video: fbdev: Avoid comma separated statements
-  fuse: Avoid comma separated statements
-  reiserfs: Avoid comma separated statements
-  lib/zlib: Avoid comma separated statements
-  lib: zstd: Avoid comma separated statements
-  ipv6: fib6: Avoid comma separated statements
-  sunrpc: Avoid comma separated statements
-  tools: Avoid comma separated statements
+The only helpers we have left now are kernel_thread() and kernel_clone()
+where kernel_thread() just calls kernel_clone().
 
- Documentation/process/coding-style.rst        |  17 +
- arch/alpha/kernel/pci_iommu.c                 |   8 +-
- arch/alpha/oprofile/op_model_ev4.c            |  22 +-
- arch/alpha/oprofile/op_model_ev5.c            |   8 +-
- arch/ia64/kernel/smpboot.c                    |   7 +-
- arch/sparc/kernel/smp_64.c                    |   7 +-
- drivers/ata/pata_icside.c                     |  21 +-
- drivers/block/drbd/drbd_receiver.c            |   6 +-
- drivers/char/lp.c                             |   6 +-
- drivers/dma-buf/st-dma-fence.c                |   7 +-
- drivers/gpu/drm/gma500/mdfld_intel_display.c  |  44 ++-
- drivers/gpu/drm/i915/gt/gen8_ppgtt.c          |   8 +-
- drivers/gpu/drm/i915/gt/intel_gt_requests.c   |   6 +-
- .../gpu/drm/i915/gt/selftest_workarounds.c    |   6 +-
- drivers/gpu/drm/i915/intel_runtime_pm.c       |   6 +-
- drivers/hwmon/scmi-hwmon.c                    |   6 +-
- drivers/input/input-mt.c                      |  11 +-
- drivers/md/bcache/bset.c                      |  12 +-
- drivers/md/bcache/sysfs.c                     |   6 +-
- drivers/media/i2c/msp3400-kthreads.c          |  12 +-
- drivers/media/pci/bt8xx/bttv-cards.c          |   6 +-
- drivers/media/pci/saa7134/saa7134-video.c     |   7 +-
- drivers/mtd/devices/lart.c                    |  10 +-
- drivers/net/ethernet/8390/axnet_cs.c          |  19 +-
- drivers/net/ethernet/8390/lib8390.c           |  14 +-
- drivers/net/ethernet/8390/pcnet_cs.c          |   6 +-
- .../ethernet/freescale/fs_enet/fs_enet-main.c |  11 +-
- drivers/net/wan/sbni.c                        | 101 +++---
- drivers/s390/char/tty3270.c                   |   6 +-
- drivers/scsi/arm/cumana_2.c                   |  19 +-
- drivers/scsi/arm/eesox.c                      |   9 +-
- drivers/scsi/arm/powertec.c                   |   9 +-
- .../media/atomisp/pci/atomisp_subdev.c        |   6 +-
- drivers/video/fbdev/tgafb.c                   |  12 +-
- fs/fuse/dir.c                                 |  24 +-
- fs/reiserfs/fix_node.c                        |  36 ++-
- lib/zlib_deflate/deftree.c                    |  49 ++-
- lib/zstd/compress.c                           | 120 ++++---
- lib/zstd/fse_compress.c                       |  24 +-
- lib/zstd/huf_compress.c                       |   6 +-
- net/ipv6/ip6_fib.c                            |  12 +-
- net/sunrpc/sysctl.c                           |   6 +-
- tools/lib/subcmd/help.c                       |  10 +-
- tools/power/cpupower/utils/cpufreq-set.c      |  14 +-
- tools/testing/selftests/vm/gup_benchmark.c    |  18 +-
- tools/testing/selftests/vm/userfaultfd.c      | 296 +++++++++++-------
- 46 files changed, 694 insertions(+), 382 deletions(-)
+Thanks!
+Christian
 
+Christian Brauner (11):
+  fork: introduce kernel_clone()
+  h8300: switch to kernel_clone()
+  ia64: switch to kernel_clone()
+  m68k: switch to kernel_clone()
+  nios2: switch to kernel_clone()
+  sparc: switch to kernel_clone()
+  x86: switch to kernel_clone()
+  kprobes: switch to kernel_clone()
+  kgdbts: switch to kernel_clone()
+  tracing: switch to kernel_clone()
+  sched: remove _do_fork()
+
+ Documentation/trace/histogram.rst             |  4 +-
+ arch/h8300/kernel/process.c                   |  2 +-
+ arch/ia64/kernel/process.c                    |  4 +-
+ arch/m68k/kernel/process.c                    | 10 ++--
+ arch/nios2/kernel/process.c                   |  2 +-
+ arch/sparc/kernel/process.c                   |  6 +--
+ arch/x86/kernel/sys_ia32.c                    |  2 +-
+ drivers/misc/kgdbts.c                         | 48 +++++++++----------
+ include/linux/sched/task.h                    |  2 +-
+ kernel/fork.c                                 | 16 +++----
+ samples/kprobes/kprobe_example.c              |  6 +--
+ samples/kprobes/kretprobe_example.c           |  4 +-
+ .../test.d/dynevent/add_remove_kprobe.tc      |  2 +-
+ .../test.d/dynevent/clear_select_events.tc    |  2 +-
+ .../test.d/dynevent/generic_clear_event.tc    |  2 +-
+ .../test.d/ftrace/func-filter-stacktrace.tc   |  4 +-
+ .../ftrace/test.d/kprobe/add_and_remove.tc    |  2 +-
+ .../ftrace/test.d/kprobe/busy_check.tc        |  2 +-
+ .../ftrace/test.d/kprobe/kprobe_args.tc       |  4 +-
+ .../ftrace/test.d/kprobe/kprobe_args_comm.tc  |  2 +-
+ .../test.d/kprobe/kprobe_args_string.tc       |  4 +-
+ .../test.d/kprobe/kprobe_args_symbol.tc       | 10 ++--
+ .../ftrace/test.d/kprobe/kprobe_args_type.tc  |  2 +-
+ .../ftrace/test.d/kprobe/kprobe_ftrace.tc     | 14 +++---
+ .../ftrace/test.d/kprobe/kprobe_multiprobe.tc |  2 +-
+ .../test.d/kprobe/kprobe_syntax_errors.tc     | 12 ++---
+ .../ftrace/test.d/kprobe/kretprobe_args.tc    |  4 +-
+ .../selftests/ftrace/test.d/kprobe/profile.tc |  2 +-
+ 28 files changed, 88 insertions(+), 88 deletions(-)
+
+
+base-commit: 9123e3a74ec7b934a4a099e98af6a61c2f80bbf5
 -- 
-2.26.0
+2.28.0
