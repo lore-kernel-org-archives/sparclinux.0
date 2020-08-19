@@ -1,41 +1,59 @@
-From: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Date: Wed, 05 Aug 2020 11:00:35 +0000
-Subject: Re: [PATCH v2 12/17] arch, drivers: replace for_each_membock() with for_each_mem_range()
-Message-Id: <20200805110035.GB11658@alpha.franken.de>
+From: Christian Brauner <christian.brauner@ubuntu.com>
+Date: Wed, 19 Aug 2020 10:46:50 +0000
+Subject: [PATCH v2 06/11] sparc: switch to kernel_clone()
+Message-Id: <20200819104655.436656-7-christian.brauner@ubuntu.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
- <20200802163601.8189-13-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-13-rppt@kernel.org>
+References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
+In-Reply-To: <20200819104655.436656-1-christian.brauner@ubuntu.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Emil Renner Berthing <kernel@esmil.dk>, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mips@vger.kernel.org, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org, Will Deacon <will@kernel.org>, Christoph Hellwig <hch@lst.de>, Marek Szyprowski <m.szyprowski@samsung.com>, linux-arch@vger.kernel.org, linux-s390@vger.kernel.org, linux-c6x-dev@linux-c6x.org, Baoquan He <bhe@redhat.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@linux.ibm.com>, clang-built-linux@googlegroups.com, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.mari>
+To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Christoph Hewllig <hch@infradead.org>, Matthew Wilcox <willy@infradead.org>, Christian Brauner <christian.brauner@ubuntu.com>
 
-On Sun, Aug 02, 2020 at 07:35:56PM +0300, Mike Rapoport wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
-> 
-> There are several occurrences of the following pattern:
-> 
-> 	for_each_memblock(memory, reg) {
-> 		start = __pfn_to_phys(memblock_region_memory_base_pfn(reg);
-> 		end = __pfn_to_phys(memblock_region_memory_end_pfn(reg));
-> 
-> 		/* do something with start and end */
-> 	}
-> 
-> Using for_each_mem_range() iterator is more appropriate in such cases and
-> allows simpler and cleaner code.
-> 
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> ---
->  arch/mips/cavium-octeon/dma-octeon.c     | 12 +++---
->  arch/mips/kernel/setup.c                 | 31 +++++++--------
+The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
+The latter adheres to naming conventions for kernel internal syscall helpers.
 
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+---
+/* v2 */
+unchanged
+---
+ arch/sparc/kernel/process.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thomas.
-
+diff --git a/arch/sparc/kernel/process.c b/arch/sparc/kernel/process.c
+index 5234b5ccc0b9..0442ab00518d 100644
+--- a/arch/sparc/kernel/process.c
++++ b/arch/sparc/kernel/process.c
+@@ -25,7 +25,7 @@ asmlinkage long sparc_fork(struct pt_regs *regs)
+ 		.stack		= regs->u_regs[UREG_FP],
+ 	};
+ 
+-	ret = _do_fork(&args);
++	ret = kernel_clone(&args);
+ 
+ 	/* If we get an error and potentially restart the system
+ 	 * call, we're screwed because copy_thread() clobbered
+@@ -50,7 +50,7 @@ asmlinkage long sparc_vfork(struct pt_regs *regs)
+ 		.stack		= regs->u_regs[UREG_FP],
+ 	};
+ 
+-	ret = _do_fork(&args);
++	ret = kernel_clone(&args);
+ 
+ 	/* If we get an error and potentially restart the system
+ 	 * call, we're screwed because copy_thread() clobbered
+@@ -96,7 +96,7 @@ asmlinkage long sparc_clone(struct pt_regs *regs)
+ 	else
+ 		args.stack = regs->u_regs[UREG_FP];
+ 
+-	ret = _do_fork(&args);
++	ret = kernel_clone(&args);
+ 
+ 	/* If we get an error and potentially restart the system
+ 	 * call, we're screwed because copy_thread() clobbered
 -- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+2.28.0
