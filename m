@@ -1,65 +1,28 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Mon, 31 Aug 2020 20:38:05 +0000
-Subject: [RESEND][PATCH 1/7] powerpc/iommu: Avoid overflow at boundary_size
-Message-Id: <20200831203811.8494-2-nicoleotsuka@gmail.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Thu, 20 Aug 2020 19:36:12 +0000
+Subject: [sparc32] userland unaligned access
+Message-Id: <20200820193612.GG1236603@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
-In-Reply-To: <20200831203811.8494-1-nicoleotsuka@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de
-Cc: sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
+To: sparclinux@vger.kernel.org
 
-The boundary_size might be as large as ULONG_MAX, which means
-that a device has no specific boundary limit. So either "+ 1"
-or passing it to ALIGN() would potentially overflow.
+	We have
+asmlinkage void user_unaligned_trap(struct pt_regs *regs, unsigned int insn)
+{
+        enum direction dir;
 
-According to kernel defines:
-    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
+        if(!(current->thread.flags & SPARC_FLAG_UNALIGNED) ||
+           (((insn >> 30) & 3) != 3))
+                goto kill_user;
 
-We can simplify the logic here:
-  ALIGN(boundary + 1, 1 << shift) >> shift
-= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-= [b + 1 + (1 << s) - 1] >> s
-= [b + (1 << s)] >> s
-= (b >> s) + 1
+there, followed by some work on emulating the insn.  So while the default
+behaviour is to hit the process with SIGBUS, it can overridden by setting
+SPARC_FLAG_UNALIGNED in current->thread.flags.  Fair enough, but...  Just
+what could possibly set that flag?
 
-So fixing a potential overflow with the safer shortcut.
+That stuff had been introduced back in 2.1.9 and even there (or through
+the 2.2, etc.) I don't see anything that would ever set it.
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
-Cc: Christoph Hellwig <hch@lst.de>
----
- arch/powerpc/kernel/iommu.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
-index 9704f3f76e63..c01ccbf8afdd 100644
---- a/arch/powerpc/kernel/iommu.c
-+++ b/arch/powerpc/kernel/iommu.c
-@@ -236,15 +236,14 @@ static unsigned long iommu_range_alloc(struct device *dev,
- 		}
- 	}
- 
--	if (dev)
--		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
--				      1 << tbl->it_page_shift);
--	else
--		boundary_size = ALIGN(1UL << 32, 1 << tbl->it_page_shift);
- 	/* 4GB boundary for iseries_hv_alloc and iseries_hv_map */
-+	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
-+
-+	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-+	boundary_size = (boundary_size >> tbl->it_page_shift) + 1;
- 
- 	n = iommu_area_alloc(tbl->it_map, limit, start, npages, tbl->it_offset,
--			     boundary_size >> tbl->it_page_shift, align_mask);
-+			     boundary_size, align_mask);
- 	if (n = -1) {
- 		if (likely(pass = 0)) {
- 			/* First try the pool from the start */
--- 
-2.17.1
+Am I missing something, or had it really been dead code all along?
