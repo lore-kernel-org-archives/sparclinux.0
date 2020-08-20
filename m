@@ -1,108 +1,90 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:44 +0000
-Subject: [PATCH v2 00/17] memblock: seasonal cleaning^w cleanup
-Message-Id: <20200802163601.8189-1-rppt@kernel.org>
+From: Nicolin Chen <nicoleotsuka@gmail.com>
+Date: Thu, 20 Aug 2020 23:20:44 +0000
+Subject: [RFT][PATCH 5/7] sparc: Avoid overflow at boundary_size
+Message-Id: <20200820232044.23887-1-nicoleotsuka@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: davem@davemloft.net
+Cc: hch@lst.de, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+The boundary_size might be as large as ULONG_MAX, which means
+that a device has no specific boundary limit. So either "+ 1"
+or passing it to ALIGN() would potentially overflow.
 
-Hi,
+According to kernel defines:
+    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
 
-These patches simplify several uses of memblock iterators and hide some of
-the memblock implementation details from the rest of the system.
+We can simplify the logic here:
+  ALIGN(boundary + 1, 1 << shift) >> shift
+= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
+= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
+= [b + 1 + (1 << s) - 1] >> s
+= [b + (1 << s)] >> s
+= (b >> s) + 1
 
-The patches are on top of v5.8-rc7 + cherry-pick of "mm/sparse: cleanup the
-code surrounding memory_present()" [1] from mmotm tree.
+So fixing a potential overflow with the safer shortcut.
 
-v2 changes:
-* replace for_each_memblock() with two versions, one for memblock.memory
-  and another one for memblock.reserved
-* fix overzealous cleanup of powerpc fadamp: keep the traversal over the
-  memblocks, but use better suited iterators
-* don't remove traversal over memblock.reserved in x86 numa cleanup but
-  replace for_each_memblock() with new for_each_reserved_mem_region()
-* simplify ramdisk and crash kernel allocations on x86
-* drop more redundant and unused code: __next_reserved_mem_region() and
-  memblock_mem_size()
-* add description of numa initialization fix on arm64 (thanks Jonathan)
-* add Acked and Reviewed tags
+Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+---
+ arch/sparc/kernel/iommu-common.c | 9 +++------
+ arch/sparc/kernel/iommu.c        | 4 ++--
+ arch/sparc/kernel/pci_sun4v.c    | 4 ++--
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-[1] http://lkml.kernel.org/r/20200712083130.22919-1-rppt@kernel.org 
-
-Mike Rapoport (17):
-  KVM: PPC: Book3S HV: simplify kvm_cma_reserve()
-  dma-contiguous: simplify cma_early_percent_memory()
-  arm, xtensa: simplify initialization of high memory pages
-  arm64: numa: simplify dummy_numa_init()
-  h8300, nds32, openrisc: simplify detection of memory extents
-  riscv: drop unneeded node initialization
-  mircoblaze: drop unneeded NUMA and sparsemem initializations
-  memblock: make for_each_memblock_type() iterator private
-  memblock: make memblock_debug and related functionality private
-  memblock: reduce number of parameters in for_each_mem_range()
-  arch, mm: replace for_each_memblock() with for_each_mem_pfn_range()
-  arch, drivers: replace for_each_membock() with for_each_mem_range()
-  x86/setup: simplify initrd relocation and reservation
-  x86/setup: simplify reserve_crashkernel()
-  memblock: remove unused memblock_mem_size()
-  memblock: implement for_each_reserved_mem_region() using __next_mem_region()
-  memblock: use separate iterators for memory and reserved regions
-
- .clang-format                            |  4 +-
- arch/arm/kernel/setup.c                  | 18 +++--
- arch/arm/mm/init.c                       | 59 ++++------------
- arch/arm/mm/mmu.c                        | 39 ++++-------
- arch/arm/mm/pmsa-v7.c                    | 20 +++---
- arch/arm/mm/pmsa-v8.c                    | 17 +++--
- arch/arm/xen/mm.c                        |  7 +-
- arch/arm64/kernel/machine_kexec_file.c   |  6 +-
- arch/arm64/kernel/setup.c                |  4 +-
- arch/arm64/mm/init.c                     | 11 ++-
- arch/arm64/mm/kasan_init.c               | 10 +--
- arch/arm64/mm/mmu.c                      | 11 +--
- arch/arm64/mm/numa.c                     | 15 ++---
- arch/c6x/kernel/setup.c                  |  9 +--
- arch/h8300/kernel/setup.c                |  8 +--
- arch/microblaze/mm/init.c                | 24 ++-----
- arch/mips/cavium-octeon/dma-octeon.c     | 12 ++--
- arch/mips/kernel/setup.c                 | 31 +++++----
- arch/mips/netlogic/xlp/setup.c           |  2 +-
- arch/nds32/kernel/setup.c                |  8 +--
- arch/openrisc/kernel/setup.c             |  9 +--
- arch/openrisc/mm/init.c                  |  8 ++-
- arch/powerpc/kernel/fadump.c             | 57 ++++++++--------
- arch/powerpc/kvm/book3s_hv_builtin.c     | 11 +--
- arch/powerpc/mm/book3s64/hash_utils.c    | 16 ++---
- arch/powerpc/mm/book3s64/radix_pgtable.c | 11 ++-
- arch/powerpc/mm/kasan/kasan_init_32.c    |  8 +--
- arch/powerpc/mm/mem.c                    | 33 +++++----
- arch/powerpc/mm/numa.c                   |  7 +-
- arch/powerpc/mm/pgtable_32.c             |  8 +--
- arch/riscv/mm/init.c                     | 34 +++-------
- arch/riscv/mm/kasan_init.c               | 10 +--
- arch/s390/kernel/crash_dump.c            |  8 +--
- arch/s390/kernel/setup.c                 | 31 +++++----
- arch/s390/mm/page-states.c               |  6 +-
- arch/s390/mm/vmem.c                      | 16 +++--
- arch/sh/mm/init.c                        |  9 +--
- arch/sparc/mm/init_64.c                  | 12 ++--
- arch/x86/kernel/setup.c                  | 56 +++++-----------
- arch/x86/mm/numa.c                       |  2 +-
- arch/xtensa/mm/init.c                    | 55 +++------------
- drivers/bus/mvebu-mbus.c                 | 12 ++--
- drivers/irqchip/irq-gic-v3-its.c         |  2 +-
- drivers/s390/char/zcore.c                |  9 +--
- include/linux/memblock.h                 | 65 +++++++++---------
- kernel/dma/contiguous.c                  | 11 +--
- mm/memblock.c                            | 85 ++++++++----------------
- mm/page_alloc.c                          | 11 ++-
- mm/sparse.c                              | 10 ++-
- 49 files changed, 366 insertions(+), 561 deletions(-)
-
+diff --git a/arch/sparc/kernel/iommu-common.c b/arch/sparc/kernel/iommu-common.c
+index 59cb16691322..843e71894d04 100644
+--- a/arch/sparc/kernel/iommu-common.c
++++ b/arch/sparc/kernel/iommu-common.c
+@@ -166,13 +166,10 @@ unsigned long iommu_tbl_range_alloc(struct device *dev,
+ 		}
+ 	}
+ 
+-	if (dev)
+-		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+-				      1 << iommu->table_shift);
+-	else
+-		boundary_size = ALIGN(1ULL << 32, 1 << iommu->table_shift);
++	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
+ 
+-	boundary_size = boundary_size >> iommu->table_shift;
++	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
++	boundary_size = (boundary_size >> iommu->table_shift) + 1;
+ 	/*
+ 	 * if the skip_span_boundary_check had been set during init, we set
+ 	 * things up so that iommu_is_span_boundary() merely checks if the
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index 4ae7388b1bff..d981c37305ae 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -472,8 +472,8 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	outs->dma_length = 0;
+ 
+ 	max_seg_size = dma_get_max_seg_size(dev);
+-	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+-				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
++	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
++	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
+ 	base_shift = iommu->tbl.table_map_base >> IO_PAGE_SHIFT;
+ 	for_each_sg(sglist, s, nelems, i) {
+ 		unsigned long paddr, npages, entry, out_entry = 0, slen;
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 14b93c5564e3..233fe8a20cec 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -508,8 +508,8 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	iommu_batch_start(dev, prot, ~0UL);
+ 
+ 	max_seg_size = dma_get_max_seg_size(dev);
+-	seg_boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+-				  IO_PAGE_SIZE) >> IO_PAGE_SHIFT;
++	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
++	seg_boundary_size = (dma_get_seg_boundary(dev) >> IO_PAGE_SHIFT) + 1;
+ 
+ 	mask = *dev->dma_mask;
+ 	if (!iommu_use_atu(iommu, mask))
 -- 
-2.26.2
+2.17.1
