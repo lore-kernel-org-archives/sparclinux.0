@@ -2,147 +2,57 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	FROM_LOCAL_NOVOWEL,HEADER_FROM_DIFFERENT_DOMAINS,HK_RANDOM_FROM,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DATE_IN_PAST_96_XX,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A135AC43216
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 18:04:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58D35C432BE
+	for <sparclinux@archiver.kernel.org>; Tue,  3 Aug 2021 10:11:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A1F760F51
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 18:04:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 32C4560ED6
+	for <sparclinux@archiver.kernel.org>; Tue,  3 Aug 2021 10:11:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230237AbhHBSEW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 Aug 2021 14:04:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46760 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbhHBSEU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Aug 2021 14:04:20 -0400
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E8A3C06175F;
-        Mon,  2 Aug 2021 11:04:10 -0700 (PDT)
-Received: by mail-ej1-x62a.google.com with SMTP id hs10so23585135ejc.0;
-        Mon, 02 Aug 2021 11:04:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KpOmQ9FDFdEDp1DRxCOS4/jNxSUC+b7VQifrd/M4FUE=;
-        b=bllfssUh1l3Cfof1I9S9zG5MovjfwF9CypWcpRvDmWpOEx759rPpO8GjtwWqnstMf2
-         1QwJGh+kGvZKoMFQKf6FhnPOMkpo3JEJzP0z2jokepgekez40su6FDqDQO76azQW4aaY
-         ndpMqrh8QhqQUbO9PB7UVTzGgkGjnuiB8BDrnOUlo6IfpOOOD5wRbVnNH3nzFEb8Jlvv
-         f2sHv6d82OwwrINjEhGy7L8YhBy8Uq7x29x9aN5cqnZAFpZ+YseiNvbNJLRthMaSdJt+
-         GNYBQGlDLHbH2bDQodG8T6OzjQiYO36wOgJ2MGUlCkSsxnL4jcZpqW+jXXGFabstpv3T
-         roTQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KpOmQ9FDFdEDp1DRxCOS4/jNxSUC+b7VQifrd/M4FUE=;
-        b=PjNcQwlRjxVa2YwO23EZZMXn5H79DHlbuuAWiZ+1YxpF44VSe9lptdak9uFQ6OiL8A
-         VoVdsiBq/bJoOjs0xeyf6EuEm9ZgA7Ww5nnCCfmJJt3mBnd3aTt/E6OO8AnvGex9ndtN
-         CHEUxRErukckZSef2TzHc2lrnSL4MsK7tkxZmtaNTkVlAAk9d9QIv29MsuOWh4EDuTXi
-         rQ/wTnJnrQ01M/OofmC8O0eC9dCE9GA5I3neDjCRxcIOdbBkyW4+FcZseM6r64WGgqT+
-         rBVKBgCvhVRWtMgkvUFc4qMyu0a0rxDoEen1EKlvxVnWAuXfHN2mBLm3s8w3iRkeHs+/
-         jGOg==
-X-Gm-Message-State: AOAM533PYzYdnpnM1+6CVaz8TkKfxInhWHXHPq1WS+kKbQqR/6qDTZpd
-        SwOkg9orqEUrAncKP8LQhthxt7p8BNS+/W/Ou4I=
-X-Google-Smtp-Source: ABdhPJx4CTYoE1N/7r5r3Yv59NCnUgpiXyVEWPBrQR2H8OPpQmdyOckhCi7flWDeCgEu3pc8T6+GCYt+gQKqcxApyio=
-X-Received: by 2002:a17:906:34da:: with SMTP id h26mr16470323ejb.376.1627927449046;
- Mon, 02 Aug 2021 11:04:09 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210731052233.4703-1-masahiroy@kernel.org> <20210731052233.4703-2-masahiroy@kernel.org>
-In-Reply-To: <20210731052233.4703-2-masahiroy@kernel.org>
-From:   Max Filippov <jcmvbkbc@gmail.com>
-Date:   Mon, 2 Aug 2021 11:03:57 -0700
-Message-ID: <CAMo8BfLDjw71xiCDo8uk4pQFuOzqAoak0k3R4YJDnRsA2hoCtw@mail.gmail.com>
-Subject: Re: [PATCH 2/3] trace: refactor TRACE_IRQFLAGS_SUPPORT in Kconfig
-To:     Masahiro Yamada <masahiroy@kernel.org>
-Cc:     Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>, Arnd Bergmann <arnd@arndb.de>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Borislav Petkov <bp@alien8.de>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Ley Foon Tan <ley.foon.tan@intel.com>,
-        "maintainer:X86 ARCHITECTURE..." <x86@kernel.org>,
-        linux-mips@vger.kernel.org,
-        "open list:SPARC + UltraSPAR..." <sparclinux@vger.kernel.org>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Nick Hu <nickhu@andestech.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mike Rapoport <rppt@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        linux-riscv@lists.infradead.org, YiFei Zhu <yifeifz2@illinois.edu>,
-        Greentime Hu <green.hu@gmail.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Michal Simek <monstr@monstr.eu>, Helge Deller <deller@gmx.de>,
-        "open list:SUPERH" <linux-sh@vger.kernel.org>,
-        Vineet Gupta <vgupta@synopsys.com>,
-        =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, Guo Ren <guoren@kernel.org>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Richard Weinberger <richard@nod.at>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Rich Felker <dalias@libc.org>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Jeff Dike <jdike@addtoit.com>,
-        "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        Will Deacon <will@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        linux-um@lists.infradead.org,
-        Andrey Konovalov <andreyknvl@gmail.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Brian Cain <bcain@codeaurora.org>, linux-csky@vger.kernel.org,
-        Stafford Horne <shorne@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Chris Zankel <chris@zankel.net>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        linux-snps-arc@lists.infradead.org,
-        Jonas Bonn <jonas@southpole.se>,
-        "open list:PARISC ARCHITECTURE" <linux-parisc@vger.kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Vincent Chen <deanbo422@gmail.com>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Paul Mackerras <paulus@samba.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org
-Content-Type: text/plain; charset="UTF-8"
+        id S234998AbhHCKLy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 3 Aug 2021 06:11:54 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:36080 "EHLO
+        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234506AbhHCKLw (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 3 Aug 2021 06:11:52 -0400
+Received: from localhost (unknown [149.11.102.75])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 2E1124D9F6213;
+        Tue,  3 Aug 2021 03:11:35 -0700 (PDT)
+Date:   Thu, 20 Aug 2020 17:19:47 -0700 (PDT)
+Message-Id: <20200820.171947.876981661045565142.davem@davemloft.net>
+To:     viro@zeniv.linux.org.uk
+Cc:     sparclinux@vger.kernel.org
+Subject: Re: [sparc32] userland unaligned access
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20200821000002.GI1236603@ZenIV.linux.org.uk>
+References: <20200820233730.GH1236603@ZenIV.linux.org.uk>
+        <20200820.164708.2016059081784711542.davem@davemloft.net>
+        <20200821000002.GI1236603@ZenIV.linux.org.uk>
+X-Mailer: Mew version 6.8 on Emacs 26.3
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Tue, 03 Aug 2021 03:11:36 -0700 (PDT)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jul 30, 2021 at 10:24 PM Masahiro Yamada <masahiroy@kernel.org> wrote:
->
-> Make architectures select TRACE_IRQFLAGS_SUPPORT instead of
-> having many defines.
->
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-> ---
->  arch/xtensa/Kconfig           | 4 +---
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 21 Aug 2020 01:00:02 +0100
 
-Acked-by: Max Filippov <jcmvbkbc@gmail.com>
--- 
-Thanks.
--- Max
+> On Thu, Aug 20, 2020 at 04:47:08PM -0700, David Miller wrote:
+> 
+>> > I don't have sunos toolchain to try and build such a binary and test it on
+>> > a 2.2 kernel, but I would be rather surprised if that had been it.
+>> > 
+>> > Anyway, it really looks like that's dead code these days...
+>> 
+>> %100 it is dead code.
+> 
+> 	Could you check if you are OK with
+> git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git #work.sparc?
+
+Looks good to me.
