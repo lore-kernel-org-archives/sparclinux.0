@@ -1,48 +1,40 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 02 Aug 2020 16:35:50 +0000
-Subject: [PATCH v2 06/17] riscv: drop unneeded node initialization
-Message-Id: <20200802163601.8189-7-rppt@kernel.org>
+From: Joe Perches <joe@perches.com>
+Date: Tue, 25 Aug 2020 04:56:01 +0000
+Subject: [PATCH 04/29] sparc: Avoid comma separated statements
+Message-Id: <9dade53620b9532ff76a726320a497c67138264c.1598331148.git.joe@perches.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200802163601.8189-1-rppt@kernel.org>
-In-Reply-To: <20200802163601.8189-1-rppt@kernel.org>
+References: <cover.1598331148.git.joe@perches.com>
+In-Reply-To: <cover.1598331148.git.joe@perches.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Baoquan He <bhe@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Borislav Petkov <bp@alien8.de>, Catalin Marinas <catalin.marinas@arm.com>, Christoph Hellwig <hch@lst.de>, Dave Hansen <dave.hansen@linux.intel.com>, Emil Renner Berthing <kernel@esmil.dk>, Ingo Molnar <mingo@redhat.com>, Hari Bathini <hbathini@linux.ibm.com>, Marek Szyprowski <m.szyprowski@samsung.com>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Michal Simek <monstr@monstr.eu>, Mike Rapoport <rppt@linux.ibm.com>, Mike Rapoport <rppt@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Paul Mackerras <paulus@samba.org>, Paul Walmsley <paul.walmsley@sifive.com>, Peter Zijlstra <peterz@infradead.org>
+To: Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+Use semicolons and braces.
 
-RISC-V does not (yet) support NUMA  and for UMA architectures node 0 is
-used implicitly during early memory initialization.
-
-There is no need to call memblock_set_node(), remove this call and the
-surrounding code.
-
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- arch/riscv/mm/init.c | 9 ---------
- 1 file changed, 9 deletions(-)
+ arch/sparc/kernel/smp_64.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/arch/riscv/mm/init.c b/arch/riscv/mm/init.c
-index 79e9d55bdf1a..7440ba2cdaaa 100644
---- a/arch/riscv/mm/init.c
-+++ b/arch/riscv/mm/init.c
-@@ -191,15 +191,6 @@ void __init setup_bootmem(void)
- 	early_init_fdt_scan_reserved_mem();
- 	memblock_allow_resize();
- 	memblock_dump_all();
--
--	for_each_memblock(memory, reg) {
--		unsigned long start_pfn = memblock_region_memory_base_pfn(reg);
--		unsigned long end_pfn = memblock_region_memory_end_pfn(reg);
--
--		memblock_set_node(PFN_PHYS(start_pfn),
--				  PFN_PHYS(end_pfn - start_pfn),
--				  &memblock.memory, 0);
--	}
- }
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index e286e2badc8a..28c11f7871cd 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -186,8 +186,11 @@ static inline long get_delta (long *rt, long *master)
+ 		wmb();
+ 		t1 = tick_ops->get_tick();
  
- #ifdef CONFIG_MMU
+-		if (t1 - t0 < best_t1 - best_t0)
+-			best_t0 = t0, best_t1 = t1, best_tm = tm;
++		if (t1 - t0 < best_t1 - best_t0) {
++			best_t0 = t0;
++			best_t1 = t1;
++			best_tm = tm;
++		}
+ 	}
+ 
+ 	*rt = best_t1 - best_t0;
 -- 
-2.26.2
+2.26.0
