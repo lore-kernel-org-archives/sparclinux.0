@@ -1,48 +1,179 @@
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Tue, 18 Aug 2020 17:34:03 +0000
-Subject: [PATCH 03/11] ia64: switch to kernel_clone()
-Message-Id: <20200818173411.404104-4-christian.brauner@ubuntu.com>
+From: Nicholas Piggin <npiggin@gmail.com>
+Date: Fri, 28 Aug 2020 10:00:21 +0000
+Subject: [PATCH 3/4] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
+Message-Id: <20200828100022.1099682-4-npiggin@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200818173411.404104-1-christian.brauner@ubuntu.com>
-In-Reply-To: <20200818173411.404104-1-christian.brauner@ubuntu.com>
+References: <20200828100022.1099682-1-npiggin@gmail.com>
+In-Reply-To: <20200828100022.1099682-1-npiggin@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hewllig <hch@infradead.org>, linux-kernel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arch@vger.kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>, Yoshinori Sato <ysato@users.sourceforge.jp>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Ley Foon Tan <ley.foon.tan@intel.com>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, Arnd Bergmann <arnd@arndb.de>, Steven Rostedt <rostedt@goodmis.org>, Stafford Horne <shorne@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Kars de Jong <jongk@linux-m68k.org>, Kees Cook <keescook@chromium.org>, Greentime Hu <green.hu@gmail.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Mauro Carvalho Chehab <mchehab+huawei@kernel.org>, Alexandre Chartre <alexandre.chartre@oracle.com>, Masami Hiramatsu <mhiramat@kernel.org>, Tom Zanussi <zanussi@kernel.org>, Xiao Yang <yangx.jy@cn.fujitsu.com>, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, Christian Brauner <christian.brauner@ubuntu.com>
+To: linux-mm@kvack.org
+Cc: Nicholas Piggin <npiggin@gmail.com>, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-The latter adheres to naming conventions for kernel internal syscall helpers.
+The de facto (and apparently uncommented) standard for using an mm had,
+thanks to this code in sparc if nothing else, been that you must have a
+reference on mm_users *and that reference must have been obtained with
+mmget()*, i.e., from a thread with a reference to mm_users that had used
+the mm.
 
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: linux-ia64@vger.kernel.org
-Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+The introduction of mmget_not_zero() in commit d2005e3f41d4
+("userfaultfd: don't pin the user memory in userfaultfd_file_create()")
+allowed mm_count holders to aoperate on user mappings asynchronously
+from the actual threads using the mm, but they were not to load those
+mappings into their TLB (i.e., walking vmas and page tables is okay,
+kthread_use_mm() is not).
+
+io_uring 2b188cc1bb857 ("Add io_uring IO interface") added code which
+does a kthread_use_mm() from a mmget_not_zero() refcount.
+
+The problem with this is code which previously assumed mm = current->mm
+and mm->mm_users = 1 implies the mm will remain single-threaded at
+least until this thread creates another mm_users reference, has now
+broken.
+
+arch/sparc/kernel/smp_64.c:
+
+    if (atomic_read(&mm->mm_users) = 1) {
+        cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+        goto local_flush_and_out;
+    }
+
+vs fs/io_uring.c
+
+    if (unlikely(!(ctx->flags & IORING_SETUP_SQPOLL) ||
+                 !mmget_not_zero(ctx->sqo_mm)))
+        return -EFAULT;
+    kthread_use_mm(ctx->sqo_mm);
+
+mmget_not_zero() could come in right after the mm_users = 1 test, then
+kthread_use_mm() which sets its CPU in the mm_cpumask. That update could
+be lost if cpumask_copy() occurs afterward.
+
+I propose we fix this by allowing mmget_not_zero() to be a first-class
+reference, and not have this obscure undocumented and unchecked
+restriction.
+
+The basic fix for sparc64 is to remove its mm_cpumask clearing code. The
+optimisation could be effectively restored by sending IPIs to mm_cpumask
+members and having them remove themselves from mm_cpumask. This is more
+tricky so I leave it as an exercise for someone with a sparc64 SMP.
+powerpc has a (currently similarly broken) example.
+
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 ---
- arch/ia64/kernel/process.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/smp_64.c | 65 ++++++++------------------------------
+ 1 file changed, 14 insertions(+), 51 deletions(-)
 
-diff --git a/arch/ia64/kernel/process.c b/arch/ia64/kernel/process.c
-index f19cb97c0098..126f72490ec7 100644
---- a/arch/ia64/kernel/process.c
-+++ b/arch/ia64/kernel/process.c
-@@ -310,7 +310,7 @@ ia64_load_extra (struct task_struct *task)
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index e286e2badc8a..e38d8bf454e8 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1039,38 +1039,9 @@ void smp_fetch_global_pmu(void)
+  * are flush_tlb_*() routines, and these run after flush_cache_*()
+  * which performs the flushw.
   *
-  *	<clone syscall>	        <some kernel call frames>
-  *	sys_clone		   :
-- *	_do_fork		_do_fork
-+ *	kernel_clone		kernel_clone
-  *	copy_thread		copy_thread
-  *
-  * This means that the stack layout is as follows:
-@@ -455,7 +455,7 @@ asmlinkage long ia64_clone(unsigned long clone_flags, unsigned long stack_start,
- 		.tls		= tls,
- 	};
+- * The SMP TLB coherency scheme we use works as follows:
+- *
+- * 1) mm->cpu_vm_mask is a bit mask of which cpus an address
+- *    space has (potentially) executed on, this is the heuristic
+- *    we use to avoid doing cross calls.
+- *
+- *    Also, for flushing from kswapd and also for clones, we
+- *    use cpu_vm_mask as the list of cpus to make run the TLB.
+- *
+- * 2) TLB context numbers are shared globally across all processors
+- *    in the system, this allows us to play several games to avoid
+- *    cross calls.
+- *
+- *    One invariant is that when a cpu switches to a process, and
+- *    that processes tsk->active_mm->cpu_vm_mask does not have the
+- *    current cpu's bit set, that tlb context is flushed locally.
+- *
+- *    If the address space is non-shared (ie. mm->count = 1) we avoid
+- *    cross calls when we want to flush the currently running process's
+- *    tlb state.  This is done by clearing all cpu bits except the current
+- *    processor's in current->mm->cpu_vm_mask and performing the
+- *    flush locally only.  This will force any subsequent cpus which run
+- *    this task to flush the context from the local tlb if the process
+- *    migrates to another cpu (again).
+- *
+- * 3) For shared address spaces (threads) and swapping we bite the
+- *    bullet for most cases and perform the cross call (but only to
+- *    the cpus listed in cpu_vm_mask).
+- *
+- *    The performance gain from "optimizing" away the cross call for threads is
+- *    questionable (in theory the big win for threads is the massive sharing of
+- *    address space state across processors).
++ * mm->cpu_vm_mask is a bit mask of which cpus an address
++ * space has (potentially) executed on, this is the heuristic
++ * we use to limit cross calls.
+  */
  
--	return _do_fork(&args);
-+	return kernel_clone(&args);
- }
+ /* This currently is only used by the hugetlb arch pre-fault
+@@ -1080,18 +1051,13 @@ void smp_fetch_global_pmu(void)
+ void smp_flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	u32 ctx = CTX_HWBITS(mm->context);
+-	int cpu = get_cpu();
  
- static void
+-	if (atomic_read(&mm->mm_users) = 1) {
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-		goto local_flush_and_out;
+-	}
++	get_cpu();
+ 
+ 	smp_cross_call_masked(&xcall_flush_tlb_mm,
+ 			      ctx, 0, 0,
+ 			      mm_cpumask(mm));
+ 
+-local_flush_and_out:
+ 	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
+ 
+ 	put_cpu();
+@@ -1114,17 +1080,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+ {
+ 	u32 ctx = CTX_HWBITS(mm->context);
+ 	struct tlb_pending_info info;
+-	int cpu = get_cpu();
++
++	get_cpu();
+ 
+ 	info.ctx = ctx;
+ 	info.nr = nr;
+ 	info.vaddrs = vaddrs;
+ 
+-	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-	else
+-		smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
+-				       &info, 1);
++	smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
++			       &info, 1);
+ 
+ 	__flush_tlb_pending(ctx, nr, vaddrs);
+ 
+@@ -1134,14 +1098,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+ void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
+ {
+ 	unsigned long context = CTX_HWBITS(mm->context);
+-	int cpu = get_cpu();
+ 
+-	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-	else
+-		smp_cross_call_masked(&xcall_flush_tlb_page,
+-				      context, vaddr, 0,
+-				      mm_cpumask(mm));
++	get_cpu();
++
++	smp_cross_call_masked(&xcall_flush_tlb_page,
++			      context, vaddr, 0,
++			      mm_cpumask(mm));
++
+ 	__flush_tlb_page(context, vaddr);
+ 
+ 	put_cpu();
 -- 
-2.28.0
+2.23.0
