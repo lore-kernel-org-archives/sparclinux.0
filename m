@@ -1,25 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Date: Wed, 19 Aug 2020 20:02:22 +0000
-Subject: Re: [PATCH v2 06/11] sparc: switch to kernel_clone()
-Message-Id: <20200819.130222.1915954815957844234.davem@davemloft.net>
+From: Nicolin Chen <nicoleotsuka@gmail.com>
+Date: Mon, 31 Aug 2020 20:38:05 +0000
+Subject: [RESEND][PATCH 1/7] powerpc/iommu: Avoid overflow at boundary_size
+Message-Id: <20200831203811.8494-2-nicoleotsuka@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200819104655.436656-1-christian.brauner@ubuntu.com>
-        <20200819104655.436656-7-christian.brauner@ubuntu.com>
-In-Reply-To: <20200819104655.436656-7-christian.brauner@ubuntu.com>
+References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
+In-Reply-To: <20200831203811.8494-1-nicoleotsuka@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: christian.brauner@ubuntu.com
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, corbet@lwn.net, ysato@users.sourceforge.jp, tony.luck@intel.com, fenghua.yu@intel.com, geert@linux-m68k.org, ley.foon.tan@intel.com, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, arnd@arndb.de, rostedt@goodmis.org, shorne@gmail.com, peterz@infradead.org, jongk@linux-m68k.org, keescook@chromium.org, green.hu@gmail.com, ebiederm@xmission.com, mchehab+huawei@kernel.org, alexandre.chartre@oracle.com, mhiramat@kernel.org, zanussi@kernel.org, yangx.jy@cn.fujitsu.com, linux-doc@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, kgdb-bugreport@lists.sourceforge.net, linux-kselftest@vger.kernel.org, torvalds@linux-foundation.org, hch@infradead.org, willy@infradead.org
+To: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de
+Cc: sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
 
-From: Christian Brauner <christian.brauner@ubuntu.com>
-Date: Wed, 19 Aug 2020 12:46:50 +0200
+The boundary_size might be as large as ULONG_MAX, which means
+that a device has no specific boundary limit. So either "+ 1"
+or passing it to ALIGN() would potentially overflow.
 
-> The old _do_fork() helper is removed in favor of the new kernel_clone() helper.
-> The latter adheres to naming conventions for kernel internal syscall helpers.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Signed-off-by: Christian Brauner <christian.brauner@ubuntu.com>
+According to kernel defines:
+    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
 
-Acked-by: David S. Miller <davem@davemloft.net>
+We can simplify the logic here:
+  ALIGN(boundary + 1, 1 << shift) >> shift
+= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
+= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
+= [b + 1 + (1 << s) - 1] >> s
+= [b + (1 << s)] >> s
+= (b >> s) + 1
+
+So fixing a potential overflow with the safer shortcut.
+
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
+---
+ arch/powerpc/kernel/iommu.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
+index 9704f3f76e63..c01ccbf8afdd 100644
+--- a/arch/powerpc/kernel/iommu.c
++++ b/arch/powerpc/kernel/iommu.c
+@@ -236,15 +236,14 @@ static unsigned long iommu_range_alloc(struct device *dev,
+ 		}
+ 	}
+ 
+-	if (dev)
+-		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
+-				      1 << tbl->it_page_shift);
+-	else
+-		boundary_size = ALIGN(1UL << 32, 1 << tbl->it_page_shift);
+ 	/* 4GB boundary for iseries_hv_alloc and iseries_hv_map */
++	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
++
++	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
++	boundary_size = (boundary_size >> tbl->it_page_shift) + 1;
+ 
+ 	n = iommu_area_alloc(tbl->it_map, limit, start, npages, tbl->it_offset,
+-			     boundary_size >> tbl->it_page_shift, align_mask);
++			     boundary_size, align_mask);
+ 	if (n = -1) {
+ 		if (likely(pass = 0)) {
+ 			/* First try the pool from the start */
+-- 
+2.17.1
