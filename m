@@ -1,179 +1,65 @@
-From: Nicholas Piggin <npiggin@gmail.com>
-Date: Fri, 28 Aug 2020 10:00:21 +0000
-Subject: [PATCH 3/4] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
-Message-Id: <20200828100022.1099682-4-npiggin@gmail.com>
+From: Nicolin Chen <nicoleotsuka@gmail.com>
+Date: Mon, 31 Aug 2020 20:38:06 +0000
+Subject: [RESEND][PATCH 2/7] alpha: Avoid overflow at boundary_size
+Message-Id: <20200831203811.8494-3-nicoleotsuka@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200828100022.1099682-1-npiggin@gmail.com>
-In-Reply-To: <20200828100022.1099682-1-npiggin@gmail.com>
+References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
+In-Reply-To: <20200831203811.8494-1-nicoleotsuka@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-mm@kvack.org
-Cc: Nicholas Piggin <npiggin@gmail.com>, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Peter Zijlstra <peterz@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de
+Cc: sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
 
-The de facto (and apparently uncommented) standard for using an mm had,
-thanks to this code in sparc if nothing else, been that you must have a
-reference on mm_users *and that reference must have been obtained with
-mmget()*, i.e., from a thread with a reference to mm_users that had used
-the mm.
+The boundary_size might be as large as ULONG_MAX, which means
+that a device has no specific boundary limit. So "+ 1" would
+potentially overflow.
 
-The introduction of mmget_not_zero() in commit d2005e3f41d4
-("userfaultfd: don't pin the user memory in userfaultfd_file_create()")
-allowed mm_count holders to aoperate on user mappings asynchronously
-from the actual threads using the mm, but they were not to load those
-mappings into their TLB (i.e., walking vmas and page tables is okay,
-kthread_use_mm() is not).
+Also, by following other places in the kernel, boundary_size
+should align with the PAGE_SIZE before right shifting by the
+PAGE_SHIFT. However, passing it to ALIGN() would potentially
+overflow too.
 
-io_uring 2b188cc1bb857 ("Add io_uring IO interface") added code which
-does a kthread_use_mm() from a mmget_not_zero() refcount.
+According to kernel defines:
+    #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+    #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
 
-The problem with this is code which previously assumed mm = current->mm
-and mm->mm_users = 1 implies the mm will remain single-threaded at
-least until this thread creates another mm_users reference, has now
-broken.
+We can simplify the logic here:
+  ALIGN(boundary + 1, 1 << shift) >> shift
+= ALIGN_MASK(b + 1, (1 << s) - 1) >> s
+= {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
+= [b + 1 + (1 << s) - 1] >> s
+= [b + (1 << s)] >> s
+= (b >> s) + 1
 
-arch/sparc/kernel/smp_64.c:
+So fixing a potential overflow with the safer shortcut.
 
-    if (atomic_read(&mm->mm_users) = 1) {
-        cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
-        goto local_flush_and_out;
-    }
-
-vs fs/io_uring.c
-
-    if (unlikely(!(ctx->flags & IORING_SETUP_SQPOLL) ||
-                 !mmget_not_zero(ctx->sqo_mm)))
-        return -EFAULT;
-    kthread_use_mm(ctx->sqo_mm);
-
-mmget_not_zero() could come in right after the mm_users = 1 test, then
-kthread_use_mm() which sets its CPU in the mm_cpumask. That update could
-be lost if cpumask_copy() occurs afterward.
-
-I propose we fix this by allowing mmget_not_zero() to be a first-class
-reference, and not have this obscure undocumented and unchecked
-restriction.
-
-The basic fix for sparc64 is to remove its mm_cpumask clearing code. The
-optimisation could be effectively restored by sending IPIs to mm_cpumask
-members and having them remove themselves from mm_cpumask. This is more
-tricky so I leave it as an exercise for someone with a sparc64 SMP.
-powerpc has a (currently similarly broken) example.
-
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
+Cc: Christoph Hellwig <hch@lst.de>
 ---
- arch/sparc/kernel/smp_64.c | 65 ++++++++------------------------------
- 1 file changed, 14 insertions(+), 51 deletions(-)
+ arch/alpha/kernel/pci_iommu.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index e286e2badc8a..e38d8bf454e8 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1039,38 +1039,9 @@ void smp_fetch_global_pmu(void)
-  * are flush_tlb_*() routines, and these run after flush_cache_*()
-  * which performs the flushw.
-  *
-- * The SMP TLB coherency scheme we use works as follows:
-- *
-- * 1) mm->cpu_vm_mask is a bit mask of which cpus an address
-- *    space has (potentially) executed on, this is the heuristic
-- *    we use to avoid doing cross calls.
-- *
-- *    Also, for flushing from kswapd and also for clones, we
-- *    use cpu_vm_mask as the list of cpus to make run the TLB.
-- *
-- * 2) TLB context numbers are shared globally across all processors
-- *    in the system, this allows us to play several games to avoid
-- *    cross calls.
-- *
-- *    One invariant is that when a cpu switches to a process, and
-- *    that processes tsk->active_mm->cpu_vm_mask does not have the
-- *    current cpu's bit set, that tlb context is flushed locally.
-- *
-- *    If the address space is non-shared (ie. mm->count = 1) we avoid
-- *    cross calls when we want to flush the currently running process's
-- *    tlb state.  This is done by clearing all cpu bits except the current
-- *    processor's in current->mm->cpu_vm_mask and performing the
-- *    flush locally only.  This will force any subsequent cpus which run
-- *    this task to flush the context from the local tlb if the process
-- *    migrates to another cpu (again).
-- *
-- * 3) For shared address spaces (threads) and swapping we bite the
-- *    bullet for most cases and perform the cross call (but only to
-- *    the cpus listed in cpu_vm_mask).
-- *
-- *    The performance gain from "optimizing" away the cross call for threads is
-- *    questionable (in theory the big win for threads is the massive sharing of
-- *    address space state across processors).
-+ * mm->cpu_vm_mask is a bit mask of which cpus an address
-+ * space has (potentially) executed on, this is the heuristic
-+ * we use to limit cross calls.
-  */
+diff --git a/arch/alpha/kernel/pci_iommu.c b/arch/alpha/kernel/pci_iommu.c
+index 81037907268d..1ef2c647bd3e 100644
+--- a/arch/alpha/kernel/pci_iommu.c
++++ b/arch/alpha/kernel/pci_iommu.c
+@@ -141,12 +141,10 @@ iommu_arena_find_pages(struct device *dev, struct pci_iommu_arena *arena,
+ 	unsigned long boundary_size;
  
- /* This currently is only used by the hugetlb arch pre-fault
-@@ -1080,18 +1051,13 @@ void smp_fetch_global_pmu(void)
- void smp_flush_tlb_mm(struct mm_struct *mm)
- {
- 	u32 ctx = CTX_HWBITS(mm->context);
--	int cpu = get_cpu();
- 
--	if (atomic_read(&mm->mm_users) = 1) {
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--		goto local_flush_and_out;
+ 	base = arena->dma_base >> PAGE_SHIFT;
+-	if (dev) {
+-		boundary_size = dma_get_seg_boundary(dev) + 1;
+-		boundary_size >>= PAGE_SHIFT;
+-	} else {
+-		boundary_size = 1UL << (32 - PAGE_SHIFT);
 -	}
-+	get_cpu();
- 
- 	smp_cross_call_masked(&xcall_flush_tlb_mm,
- 			      ctx, 0, 0,
- 			      mm_cpumask(mm));
- 
--local_flush_and_out:
- 	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
- 
- 	put_cpu();
-@@ -1114,17 +1080,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
- {
- 	u32 ctx = CTX_HWBITS(mm->context);
- 	struct tlb_pending_info info;
--	int cpu = get_cpu();
 +
-+	get_cpu();
++	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
++	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
++	boundary_size = (boundary_size >> PAGE_SHIFT) + 1;
  
- 	info.ctx = ctx;
- 	info.nr = nr;
- 	info.vaddrs = vaddrs;
- 
--	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--	else
--		smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
--				       &info, 1);
-+	smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
-+			       &info, 1);
- 
- 	__flush_tlb_pending(ctx, nr, vaddrs);
- 
-@@ -1134,14 +1098,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
- void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
- {
- 	unsigned long context = CTX_HWBITS(mm->context);
--	int cpu = get_cpu();
- 
--	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--	else
--		smp_cross_call_masked(&xcall_flush_tlb_page,
--				      context, vaddr, 0,
--				      mm_cpumask(mm));
-+	get_cpu();
-+
-+	smp_cross_call_masked(&xcall_flush_tlb_page,
-+			      context, vaddr, 0,
-+			      mm_cpumask(mm));
-+
- 	__flush_tlb_page(context, vaddr);
- 
- 	put_cpu();
+ 	/* Search forward for the first mask-aligned sequence of N free ptes */
+ 	ptes = arena->ptes;
 -- 
-2.23.0
+2.17.1
