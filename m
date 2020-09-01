@@ -1,162 +1,49 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Sat, 19 Sep 2020 09:18:01 +0000
-Subject: [patch RFC 10/15] powerpc/mm/highmem: Switch to generic kmap atomic
-Message-Id: <20200919092616.829295857@linutronix.de>
+From: Nicolin Chen <nicoleotsuka@gmail.com>
+Date: Tue, 01 Sep 2020 22:16:46 +0000
+Subject: [PATCH 2/2] dma-mapping: set default segment_boundary_mask to ULONG_MAX
+Message-Id: <20200901221646.26491-3-nicoleotsuka@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200919091751.011116649@linutronix.de>
+References: <20200901221646.26491-1-nicoleotsuka@gmail.com>
+In-Reply-To: <20200901221646.26491-1-nicoleotsuka@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Guo Ren <guoren@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
+To: hch@lst.de
+Cc: sfr@canb.auug.org.au, mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, linux-alpha@vger.kernel.org, tony.luck@intel.com, fenghua.yu@intel.com, linux-ia64@vger.kernel.org, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, linux-s390@vger.kernel.org, davem@davemloft.net, sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de, linux-parisc@vger.kernel.org
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: linuxppc-dev@lists.ozlabs.org
----
-Note: Completely untested
----
- arch/powerpc/Kconfig               |    1 
- arch/powerpc/include/asm/highmem.h |    6 ++-
- arch/powerpc/mm/Makefile           |    1 
- arch/powerpc/mm/highmem.c          |   67 -------------------------------------
- arch/powerpc/mm/mem.c              |    7 ---
- 5 files changed, 6 insertions(+), 76 deletions(-)
+The default segment_boundary_mask was set to DMA_BIT_MAKS(32)
+a decade ago by referencing SCSI/block subsystem, as a 32-bit
+mask was good enough for most of the devices.
 
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -406,6 +406,7 @@ menu "Kernel options"
- config HIGHMEM
- 	bool "High memory support"
- 	depends on PPC32
-+        select KMAP_ATOMIC_GENERIC
- 
- source "kernel/Kconfig.hz"
- 
---- a/arch/powerpc/include/asm/highmem.h
-+++ b/arch/powerpc/include/asm/highmem.h
-@@ -29,7 +29,6 @@
- #include <asm/page.h>
- #include <asm/fixmap.h>
- 
--extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
- 
- /*
-@@ -60,6 +59,11 @@ extern pte_t *pkmap_page_table;
- 
- #define flush_cache_kmaps()	flush_cache_all()
- 
-+#define arch_kmap_temp_post_map(vaddr, pteval)	\
-+	local_flush_tlb_page(NULL, vaddr)
-+#define arch_kmap_temp_post_unmap(vaddr)	\
-+	local_flush_tlb_page(NULL, vaddr)
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_HIGHMEM_H */
---- a/arch/powerpc/mm/Makefile
-+++ b/arch/powerpc/mm/Makefile
-@@ -16,7 +16,6 @@ obj-$(CONFIG_NEED_MULTIPLE_NODES) += num
- obj-$(CONFIG_PPC_MM_SLICES)	+= slice.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
- obj-$(CONFIG_NOT_COHERENT_CACHE) += dma-noncoherent.o
--obj-$(CONFIG_HIGHMEM)		+= highmem.o
- obj-$(CONFIG_PPC_COPRO_BASE)	+= copro_fault.o
- obj-$(CONFIG_PPC_PTDUMP)	+= ptdump/
- obj-$(CONFIG_KASAN)		+= kasan/
---- a/arch/powerpc/mm/highmem.c
-+++ /dev/null
-@@ -1,67 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * highmem.c: virtual kernel memory mappings for high memory
-- *
-- * PowerPC version, stolen from the i386 version.
-- *
-- * Used in CONFIG_HIGHMEM systems for memory pages which
-- * are not addressable by direct kernel virtual addresses.
-- *
-- * Copyright (C) 1999 Gerhard Wichert, Siemens AG
-- *		      Gerhard.Wichert@pdb.siemens.de
-- *
-- *
-- * Redesigned the x86 32-bit VM architecture to deal with
-- * up to 16 Terrabyte physical memory. With current x86 CPUs
-- * we now support up to 64 Gigabytes physical RAM.
-- *
-- * Copyright (C) 1999 Ingo Molnar <mingo@redhat.com>
-- *
-- * Reworked for PowerPC by various contributors. Moved from
-- * highmem.h by Benjamin Herrenschmidt (c) 2009 IBM Corp.
-- */
--
--#include <linux/highmem.h>
--#include <linux/module.h>
--
--void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
--{
--	unsigned long vaddr;
--	int idx, type;
--
--	type = kmap_atomic_idx_push();
--	idx = type + KM_TYPE_NR*smp_processor_id();
--	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--	WARN_ON(IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !pte_none(*(kmap_pte - idx)));
--	__set_pte_at(&init_mm, vaddr, kmap_pte-idx, mk_pte(page, prot), 1);
--	local_flush_tlb_page(NULL, vaddr);
--
--	return (void*) vaddr;
--}
--EXPORT_SYMBOL(kmap_atomic_high_prot);
--
--void kunmap_atomic_high(void *kvaddr)
--{
--	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
--
--	if (vaddr < __fix_to_virt(FIX_KMAP_END))
--		return;
--
--	if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM)) {
--		int type = kmap_atomic_idx();
--		unsigned int idx;
--
--		idx = type + KM_TYPE_NR * smp_processor_id();
--		WARN_ON(vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
--
--		/*
--		 * force other mappings to Oops if they'll try to access
--		 * this pte without first remap it
--		 */
--		pte_clear(&init_mm, vaddr, kmap_pte-idx);
--		local_flush_tlb_page(NULL, vaddr);
--	}
--
--	kmap_atomic_idx_pop();
--}
--EXPORT_SYMBOL(kunmap_atomic_high);
---- a/arch/powerpc/mm/mem.c
-+++ b/arch/powerpc/mm/mem.c
-@@ -60,11 +60,6 @@
- unsigned long long memory_limit;
- bool init_mem_is_free;
- 
--#ifdef CONFIG_HIGHMEM
--pte_t *kmap_pte;
--EXPORT_SYMBOL(kmap_pte);
--#endif
--
- pgprot_t phys_mem_access_prot(struct file *file, unsigned long pfn,
- 			      unsigned long size, pgprot_t vma_prot)
+Now more and more drivers set dma_masks above DMA_BIT_MAKS(32)
+while only a handful of them call dma_set_seg_boundary(). This
+means that most drivers have a 4GB segmention boundary because
+DMA API returns a 32-bit default value, though they might not
+really have such a limit.
+
+The default segment_boundary_mask should mean "no limit" since
+the device doesn't explicitly set the mask. But a 32-bit mask
+certainly limits those devices capable of 32+ bits addressing.
+
+So this patch sets default segment_boundary_mask to ULONG_MAX.
+
+Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
+---
+ include/linux/dma-mapping.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/dma-mapping.h b/include/linux/dma-mapping.h
+index faab0a8210b9..df0bff2ea750 100644
+--- a/include/linux/dma-mapping.h
++++ b/include/linux/dma-mapping.h
+@@ -629,7 +629,7 @@ static inline unsigned long dma_get_seg_boundary(struct device *dev)
  {
-@@ -233,8 +228,6 @@ void __init paging_init(void)
+ 	if (dev->dma_parms && dev->dma_parms->segment_boundary_mask)
+ 		return dev->dma_parms->segment_boundary_mask;
+-	return DMA_BIT_MASK(32);
++	return ULONG_MAX;
+ }
  
- 	map_kernel_page(PKMAP_BASE, 0, __pgprot(0));	/* XXX gross */
- 	pkmap_page_table = virt_to_kpte(PKMAP_BASE);
--
--	kmap_pte = virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
- #endif /* CONFIG_HIGHMEM */
- 
- 	printk(KERN_DEBUG "Top of RAM: 0x%llx, Total RAM: 0x%llx\n",
+ /**
+-- 
+2.17.1
