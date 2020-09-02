@@ -1,16 +1,16 @@
 From: "Nassir Uddin" <fkinneyofd@tampabay.rr.com>
-Date: Tue, 01 Sep 2020 20:34:41 +0000
+Date: Wed, 02 Sep 2020 00:38:00 +0000
 Subject: Dear Sir/Madam
-Message-Id: <1$6dq33mfuvdwr0382c94$65@j26lepo1>
+Message-Id: <6-7zcvpb2w1l913$4fdt@18n6.kdnm>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary=".E_E7A215_FE5BD6.C4B_.A"
+Content-Type: multipart/mixed; boundary="19C_E4.7C.98_B6BD36_4_8"
 List-Id: <sparclinux.vger.kernel.org>
 References: <20150205233414.1E816BF3B3E@swamp.lans.lt>
 In-Reply-To: <20150205233414.1E816BF3B3E@swamp.lans.lt>
 To: sparclinux@vger.kernel.org
 
 
---.E_E7A215_FE5BD6.C4B_.A
+--19C_E4.7C.98_B6BD36_4_8
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -25,4 +25,4 @@ Kindly express your interest to partner with us.
 Regards.
 Nassir Uddin
 
---.E_E7A215_FE5BD6.C4B_.A--
+--19C_E4.7C.98_B6BD36_4_8--
