@@ -1,16 +1,16 @@
 From: "William Saha" <wils@send.com>
-Date: Fri, 04 Sep 2020 23:34:27 +0000
+Date: Sun, 06 Sep 2020 04:47:49 +0000
 Subject: Greetings
-Message-Id: <jev-t$y-olj3-$6@erc.3.d.9m.bgj>
+Message-Id: <6l--9-asiu-$53up4$11y8q0-3@i76.y.f4b>
 MIME-Version: 1
-Content-Type: multipart/mixed; boundary="_F.6A.332C_8C"
+Content-Type: multipart/mixed; boundary="F.13A3E_.5_.C5CD_6C_"
 List-Id: <sparclinux.vger.kernel.org>
 References: <857644639.401414.1328735789901.JavaMail.root@yzbmbs10>
 In-Reply-To: <857644639.401414.1328735789901.JavaMail.root@yzbmbs10>
 To: sparclinux@vger.kernel.org
 
 
---_F.6A.332C_8C
+--F.13A3E_.5_.C5CD_6C_
 Content-Type: text/plain;
 Content-Transfer-Encoding: quoted-printable
 
@@ -35,4 +35,4 @@ Yours faithfully,
 William Saha.
 fkinneyofd@tampabay.rr.com
 
---_F.6A.332C_8C--
+--F.13A3E_.5_.C5CD_6C_--
