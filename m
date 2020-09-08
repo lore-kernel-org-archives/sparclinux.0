@@ -1,45 +1,102 @@
-From: Jason Gunthorpe <jgg@ziepe.ca>
-Date: Tue, 08 Sep 2020 13:26:10 +0000
+From: Alexander Gordeev <agordeev@linux.ibm.com>
+Date: Tue, 08 Sep 2020 14:15:55 +0000
 Subject: Re: [RFC PATCH v2 2/3] mm: make pXd_addr_end() functions page-table entry aware
-Message-Id: <20200908132610.GB87483@ziepe.ca>
+Message-Id: <20200908141554.GA20558@oc3871087118.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
  <20200907180058.64880-3-gerald.schaefer@linux.ibm.com>
-In-Reply-To: <20200907180058.64880-3-gerald.schaefer@linux.ibm.com>
+ <31dfb3ed-a0cc-3024-d389-ab9bd19e881f@csgroup.eu>
+ <20200908074638.GA19099@oc3871087118.ibm.com>
+ <5d4f5546-afd0-0b8f-664d-700ae346b9ec@csgroup.eu>
+In-Reply-To: <5d4f5546-afd0-0b8f-664d-700ae346b9ec@csgroup.eu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: John Hubbard <jhubbard@nvidia.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-arch <linux-arch@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Arnd Bergmann <arnd@arndb.de>, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-x86 <x86@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, linux-sparc <sparclinux@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-s390 <linux-s390@vger.kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>
+To: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-sparc <sparclinux@vger.kernel.org>, Claudio Imbrenda <imbrenda@linux.ibm.com>, Will Deacon <will@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Richard Weinberger <richard@nod.at>, linux-x86 <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Heiko Carstens <hca@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Jeff Dike <jdike@addtoit.com>, linux-um <linux-um@lists.infradead.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>
 
-On Mon, Sep 07, 2020 at 08:00:57PM +0200, Gerald Schaefer wrote:
-> From: Alexander Gordeev <agordeev@linux.ibm.com>
+On Tue, Sep 08, 2020 at 10:16:49AM +0200, Christophe Leroy wrote:
+> >Yes, and also two more sources :/
+> >	arch/powerpc/mm/kasan/8xx.c
+> >	arch/powerpc/mm/kasan/kasan_init_32.c
+> >
+> >But these two are not quite obvious wrt pgd_addr_end() used
+> >while traversing pmds. Could you please clarify a bit?
+> >
+> >
+> >diff --git a/arch/powerpc/mm/kasan/8xx.c b/arch/powerpc/mm/kasan/8xx.c
+> >index 2784224..89c5053 100644
+> >--- a/arch/powerpc/mm/kasan/8xx.c
+> >+++ b/arch/powerpc/mm/kasan/8xx.c
+> >@@ -15,8 +15,8 @@
+> >  	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block += SZ_8M) {
+> >  		pte_basic_t *new;
+> >-		k_next = pgd_addr_end(k_cur, k_end);
+> >-		k_next = pgd_addr_end(k_next, k_end);
+> >+		k_next = pmd_addr_end(k_cur, k_end);
+> >+		k_next = pmd_addr_end(k_next, k_end);
 > 
-> Unlike all other page-table abstractions pXd_addr_end() do not take
-> into account a particular table entry in which context the functions
-> are called. On architectures with dynamic page-tables folding that
-> might lead to lack of necessary information that is difficult to
-> obtain other than from the table entry itself. That already led to
-> a subtle memory corruption issue on s390.
+> No, I don't think so.
+> On powerpc32 we have only two levels, so pgd and pmd are more or
+> less the same.
+> But pmd_addr_end() as defined in include/asm-generic/pgtable-nopmd.h
+> is a no-op, so I don't think it will work.
 > 
-> By letting pXd_addr_end() functions know about the page-table entry
-> we allow archs not only make extra checks, but also optimizations.
-> 
-> As result of this change the pXd_addr_end_folded() functions used
-> in gup_fast traversal code become unnecessary and get replaced with
-> universal pXd_addr_end() variants.
-> 
-> The arch-specific updates not only add dereferencing of page-table
-> entry pointers, but also small changes to the code flow to make those
-> dereferences possible, at least for x86 and powerpc. Also for arm64,
-> but in way that should not have any impact.
-> 
-> So, even though the dereferenced page-table entries are not used on
-> archs other than s390, and are optimized out by the compiler, there
-> is a small change in kernel size and this is what bloat-o-meter reports:
+> It is likely that this function should iterate on pgd, then you get
+> pmd = pmd_offset(pud_offset(p4d_offset(pgd)));
 
-This looks pretty clean and straightfoward, only
-__munlock_pagevec_fill() had any real increased complexity.
+It looks like the code iterates over single pmd table while using
+pgd_addr_end() only to skip all the middle levels and bail out
+from the loop.
 
-Thanks,
-Jason
+I would be wary for switching from pmds to pgds, since we are
+trying to minimize impact (especially functional) and the
+rework does not seem that obvious.
+
+Assuming pmd and pgd are the same would actually such approach
+work for now?
+
+diff --git a/arch/powerpc/mm/kasan/8xx.c b/arch/powerpc/mm/kasan/8xx.c
+index 2784224..94466cc 100644
+--- a/arch/powerpc/mm/kasan/8xx.c
++++ b/arch/powerpc/mm/kasan/8xx.c
+@@ -15,8 +15,8 @@
+ 	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block += SZ_8M) {
+ 		pte_basic_t *new;
+ 
+-		k_next = pgd_addr_end(k_cur, k_end);
+-		k_next = pgd_addr_end(k_next, k_end);
++		k_next = pgd_addr_end(__pgd(pmd_val(*pmd)), k_cur, k_end);
++		k_next = pgd_addr_end(__pgd(pmd_val(*(pmd + 1))), k_next, k_end);
+ 		if ((void *)pmd_page_vaddr(*pmd) != kasan_early_shadow_pte)
+ 			continue;
+ 
+diff --git a/arch/powerpc/mm/kasan/kasan_init_32.c b/arch/powerpc/mm/kasan/kasan_init_32.c
+index fb29404..c0bcd64 100644
+--- a/arch/powerpc/mm/kasan/kasan_init_32.c
++++ b/arch/powerpc/mm/kasan/kasan_init_32.c
+@@ -38,7 +38,7 @@ int __init kasan_init_shadow_page_tables(unsigned long k_start, unsigned long k_
+ 	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd++) {
+ 		pte_t *new;
+ 
+-		k_next = pgd_addr_end(k_cur, k_end);
++		k_next = pgd_addr_end(__pgd(pmd_val(*pmd)), k_cur, k_end);
+ 		if ((void *)pmd_page_vaddr(*pmd) != kasan_early_shadow_pte)
+ 			continue;
+ 
+@@ -196,7 +196,7 @@ void __init kasan_early_init(void)
+ 	kasan_populate_pte(kasan_early_shadow_pte, PAGE_KERNEL);
+ 
+ 	do {
+-		next = pgd_addr_end(addr, end);
++		next = pgd_addr_end(__pgd(pmd_val(*pmd)), addr, end);
+ 		pmd_populate_kernel(&init_mm, pmd, kasan_early_shadow_pte);
+ 	} while (pmd++, addr = next, addr != end);
+ 
+
+Alternatively we could pass invalid pgd to keep the code structure
+intact, but that of course is less nice.
+
+Thanks!
+
+> Christophe
