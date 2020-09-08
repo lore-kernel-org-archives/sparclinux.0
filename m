@@ -1,86 +1,74 @@
 From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Date: Tue, 08 Sep 2020 13:38:57 +0000
+Date: Tue, 08 Sep 2020 17:59:44 +0000
 Subject: Re: [RFC PATCH v2 1/3] mm/gup: fix gup_fast with dynamic page table folding
-Message-Id: <20200908153857.08d09581@thinkpad>
+Message-Id: <20200908195944.1a25d1bb@thinkpad>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
         <20200907180058.64880-2-gerald.schaefer@linux.ibm.com>
-        <82fbe8f9-f199-5fc2-4168-eb43ad0b0346@csgroup.eu>
-        <70a3dcb5-5ed1-6efa-6158-d0573d6927da@de.ibm.com>
-        <96b80926-cf5b-1afa-9b7a-949a2188e61f@csgroup.eu>
-In-Reply-To: <96b80926-cf5b-1afa-9b7a-949a2188e61f@csgroup.eu>
+        <0dbc6ec8-45ea-0853-4856-2bc1e661a5a5@intel.com>
+In-Reply-To: <0dbc6ec8-45ea-0853-4856-2bc1e661a5a5@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-sparc <sparclinux@vger.kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>, Will Deacon <will@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Richard Weinberger <richard@nod.at>, linux-x86 <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Heiko Carstens <hca@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Jeff Dike <jdike@addtoit.com>, linux-um <linux-um@lists.infradead.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-arch <linux-arch@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Arnd Bergmann <arnd@arndb.de>, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-x86 <x86@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, linux-sparc <sparclinux@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-s390 <linux-s390@vger.kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>
 
-On Tue, 8 Sep 2020 14:40:10 +0200
-Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
+On Tue, 8 Sep 2020 07:30:50 -0700
+Dave Hansen <dave.hansen@intel.com> wrote:
+
+> On 9/7/20 11:00 AM, Gerald Schaefer wrote:
+> > Commit 1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast
+> > code") introduced a subtle but severe bug on s390 with gup_fast, due to
+> > dynamic page table folding.
+> 
+> Would it be fair to say that the "fake" page table entries s390
+> allocates on the stack are what's causing the trouble here?  That might
+> be a nice thing to open up with here.  "Dynamic page table folding"
+> really means nothing to me.
+
+We do not really allocate anything on the stack, it is the generic logic
+from gup_fast that passes over pXd values (read once before), and using
+pointers to such (stack) variables instead of real pXd pointers.
+That, combined with the fact that we just return the passed in pointer in
+pXd_offset() for folded levels.
+
+That works similar on x86 IIUC, but with static folding, and thus also
+proper pXd_addr_end() results because of statically (and correspondingly)
+defined Pxd_INDEX/SHIFT. We always have static 5-level PxD_INDEX/SHIFT, and
+that cannot really be made dynamic, so we just make pXd_addr_end()
+dynamic instead, and that requires the pXd value to determine the correct
+pagetable level.
+
+Still makes my head spin when trying to explain, sorry. It is a very
+special s390 oddity, or lets call it "feature", because I don't think any
+other architecture has "dynamic pagetable folding" capability, depending
+on process requirements, for whatever it is worth...
 
 > 
+> > @@ -2521,7 +2521,7 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+> >  	do {
+> >  		pmd_t pmd = READ_ONCE(*pmdp);
+> >  
+> > -		next = pmd_addr_end(addr, end);
+> > +		next = pmd_addr_end_folded(pmd, addr, end);
+> >  		if (!pmd_present(pmd))
+> >  			return 0;
 > 
-> Le 08/09/2020 à 14:09, Christian Borntraeger a écrit :
-> > 
-> > 
-> > On 08.09.20 07:06, Christophe Leroy wrote:
-> >>
-> >>
-> >> Le 07/09/2020 à 20:00, Gerald Schaefer a écrit :
-> >>> From: Alexander Gordeev <agordeev@linux.ibm.com>
-> >>>
-> >>> Commit 1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast
-> >>> code") introduced a subtle but severe bug on s390 with gup_fast, due to
-> >>> dynamic page table folding.
-> >>>
-> >>> The question "What would it require for the generic code to work for s390"
-> >>> has already been discussed here
-> >>> https://lkml.kernel.org/r/20190418100218.0a4afd51@mschwideX1
-> >>> and ended with a promising approach here
-> >>> https://lkml.kernel.org/r/20190419153307.4f2911b5@mschwideX1
-> >>> which in the end unfortunately didn't quite work completely.
-> >>>
-> >>> We tried to mimic static level folding by changing pgd_offset to always
-> >>> calculate top level page table offset, and do nothing in folded pXd_offset.
-> >>> What has been overlooked is that PxD_SIZE/MASK and thus pXd_addr_end do
-> >>> not reflect this dynamic behaviour, and still act like static 5-level
-> >>> page tables.
-> >>>
-> >>
-> >> [...]
-> >>
-> >>>
-> >>> Fix this by introducing new pXd_addr_end_folded helpers, which take an
-> >>> additional pXd entry value parameter, that can be used on s390
-> >>> to determine the correct page table level and return corresponding
-> >>> end / boundary. With that, the pointer iteration will always
-> >>> happen in gup_pgd_range for s390. No change for other architectures
-> >>> introduced.
-> >>
-> >> Not sure pXd_addr_end_folded() is the best understandable name, allthough I don't have any alternative suggestion at the moment.
-> >> Maybe could be something like pXd_addr_end_fixup() as it will disappear in the next patch, or pXd_addr_end_gup() ?
-> >>
-> >> Also, if it happens to be acceptable to get patch 2 in stable, I think you should switch patch 1 and patch 2 to avoid the step through pXd_addr_end_folded()
-> > 
-> > given that this fixes a data corruption issue, wouldnt it be the best to go forward
-> > with this patch ASAP and then handle the other patches on top with all the time that
-> > we need?
-> 
-> I have no strong opinion on this, but I feel rather tricky to have to 
-> change generic part of GUP to use a new fonction then revert that change 
-> in the following patch, just because you want the first patch in stable 
-> and not the second one.
-> 
-> Regardless, I was wondering, why do we need a reference to the pXd at 
-> all when calling pXd_addr_end() ?
-> 
-> Couldn't S390 retrieve the pXd by using the pXd_offset() dance with the 
-> passed addr ?
+> It looks like you fix this up later, but this would be a problem if left
+> this way.  There's no documentation for whether I use
+> pmd_addr_end_folded() or pmd_addr_end() when writing a page table walker.
 
-Apart from performance impact when re-doing that what has already been
-done by the caller, I think we would also break the READ_ONCE semantics.
-After all, the pXd_offset() would also require some pXd pointer input,
-which we don't have. So we would need to start over again from mm->pgd.
+Yes, that is very unfortunate. We did have some lengthy comment in
+include/linux/pgtable.h where the pXd_addr_end(_folded) were defined.
+But that was moved to arch/s390/include/asm/pgtable.h in this version,
+probably because we already had the generalization in mind, where we
+would not need such explanation in common header any more.
 
-Also, it seems to be more in line with other primitives that take
-a pXd value or pointer.
+So, it might help better understand the issue that we have with
+dynamic page table folding and READ_ONCE-style pagetable walkers
+when looking at that comment.
+
+Thanks for pointing out, that comment should definitely go into
+include/linux/pgtable.h again. At least if we would still go for
+that "s390 fix first, generalization second" approach, but it
+seems we have other / better options now.
