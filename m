@@ -1,7 +1,7 @@
 From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Date: Tue, 08 Sep 2020 17:59:44 +0000
+Date: Wed, 09 Sep 2020 12:29:04 +0000
 Subject: Re: [RFC PATCH v2 1/3] mm/gup: fix gup_fast with dynamic page table folding
-Message-Id: <20200908195944.1a25d1bb@thinkpad>
+Message-Id: <20200909142904.00b72921@thinkpad>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
         <20200907180058.64880-2-gerald.schaefer@linux.ibm.com>
@@ -26,49 +26,27 @@ Dave Hansen <dave.hansen@intel.com> wrote:
 > be a nice thing to open up with here.  "Dynamic page table folding"
 > really means nothing to me.
 
-We do not really allocate anything on the stack, it is the generic logic
-from gup_fast that passes over pXd values (read once before), and using
-pointers to such (stack) variables instead of real pXd pointers.
-That, combined with the fact that we just return the passed in pointer in
-pXd_offset() for folded levels.
+Sorry, I guess my previous reply does not really explain "what the heck
+is dynamic page table folding?".
 
-That works similar on x86 IIUC, but with static folding, and thus also
-proper pXd_addr_end() results because of statically (and correspondingly)
-defined Pxd_INDEX/SHIFT. We always have static 5-level PxD_INDEX/SHIFT, and
-that cannot really be made dynamic, so we just make pXd_addr_end()
-dynamic instead, and that requires the pXd value to determine the correct
-pagetable level.
+On s390, we can have different number of page table levels for different
+processes / mms. We always start with 3 levels, and update dynamically
+on process demand to 4 or 5 levels, hence the dynamic folding. Still,
+the PxD_SIZE/SHIFT is defined statically, so that e.g. pXd_addr_end() will
+not reflect this dynamic behavior.
 
-Still makes my head spin when trying to explain, sorry. It is a very
-special s390 oddity, or lets call it "feature", because I don't think any
-other architecture has "dynamic pagetable folding" capability, depending
-on process requirements, for whatever it is worth...
+For the various pagetable walkers using pXd_addr_end() (w/o READ_ONCE
+logic) this is no problem. With static folding, iteration over the folded
+levels will always happen at pgd level (top-level folding). For s390,
+we stay at the respective level and iterate there (dynamic middle-level
+folding), only return to pgd level if there really were 5 levels.
 
-> 
-> > @@ -2521,7 +2521,7 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
-> >  	do {
-> >  		pmd_t pmd = READ_ONCE(*pmdp);
-> >  
-> > -		next = pmd_addr_end(addr, end);
-> > +		next = pmd_addr_end_folded(pmd, addr, end);
-> >  		if (!pmd_present(pmd))
-> >  			return 0;
-> 
-> It looks like you fix this up later, but this would be a problem if left
-> this way.  There's no documentation for whether I use
-> pmd_addr_end_folded() or pmd_addr_end() when writing a page table walker.
+This only works well as long there are real pagetable pointers involved,
+that can also be used for iteration. For gup_fast, or any other future
+pagetable walkers using the READ_ONCE logic w/o lock, that is not true.
+There are pointers involved to local pXd values on the stack, because of
+the READ_ONCE logic, and our middle-level iteration will suddenly iterate
+over such stack pointers instead of pagetable pointers.
 
-Yes, that is very unfortunate. We did have some lengthy comment in
-include/linux/pgtable.h where the pXd_addr_end(_folded) were defined.
-But that was moved to arch/s390/include/asm/pgtable.h in this version,
-probably because we already had the generalization in mind, where we
-would not need such explanation in common header any more.
-
-So, it might help better understand the issue that we have with
-dynamic page table folding and READ_ONCE-style pagetable walkers
-when looking at that comment.
-
-Thanks for pointing out, that comment should definitely go into
-include/linux/pgtable.h again. At least if we would still go for
-that "s390 fix first, generalization second" approach, but it
-seems we have other / better options now.
+This will be addressed by making the pXd_addr_end() dynamic, for which
+we need to see the pXd value in order to determine its level / type.
