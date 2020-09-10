@@ -1,63 +1,56 @@
-From: John Hubbard <jhubbard@nvidia.com>
-Date: Thu, 10 Sep 2020 22:17:55 +0000
+From: Jason Gunthorpe <jgg@ziepe.ca>
+Date: Thu, 10 Sep 2020 23:21:06 +0000
 Subject: Re: [RFC PATCH v2 1/3] mm/gup: fix gup_fast with dynamic page table folding
-Message-Id: <7188221f-37db-9792-4885-d2fa14ff894d@nvidia.com>
+Message-Id: <20200910232106.GR87483@ziepe.ca>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200907180058.64880-2-gerald.schaefer@linux.ibm.com>
+References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
+ <20200907180058.64880-2-gerald.schaefer@linux.ibm.com>
  <0dbc6ec8-45ea-0853-4856-2bc1e661a5a5@intel.com>
  <20200909142904.00b72921@thinkpad>
  <aacad1b7-f121-44a5-f01d-385cb0f6351e@intel.com>
- <20200909192534.442f8984@thinkpad> <20200909180324.GI87483@ziepe.ca>
+ <20200909192534.442f8984@thinkpad>
+ <20200909180324.GI87483@ziepe.ca>
  <20200910093925.GB29166@oc3871087118.ibm.com>
- <CAHk-=wh4SuNvThq1nBiqk0N-fW6NsY5w=VawC=rJs7ekmjAhjA@mail.gmail.com>
- <20200910181319.GO87483@ziepe.ca>
- <0c9bcb54-914b-e582-dd6d-3861267b6c94@nvidia.com>
- <20200910221116.GQ87483@ziepe.ca>
-In-Reply-To: <20200910221116.GQ87483@ziepe.ca>
+ <20200910130233.GK87483@ziepe.ca>
+ <20200910195749.795232d1@thinkpad>
+In-Reply-To: <20200910195749.795232d1@thinkpad>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Dave Hansen <dave.hansen@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-arch <linux-arch@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Arnd Bergmann <arnd@arndb.de>, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-x86 <x86@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, linux-sparc <sparclinux@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>
+To: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Alexander Gordeev <agordeev@linux.ibm.com>, Dave Hansen <dave.hansen@intel.com>, John Hubbard <jhubbard@nvidia.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-arch <linux-arch@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Arnd Bergmann <arnd@arndb.de>, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-x86 <x86@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, linux-sparc <sparclinux@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Heiko Carstens <hca@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>
 
-On 9/10/20 3:11 PM, Jason Gunthorpe wrote:
-> On Thu, Sep 10, 2020 at 02:22:37PM -0700, John Hubbard wrote:
+On Thu, Sep 10, 2020 at 07:57:49PM +0200, Gerald Schaefer wrote:
+> On Thu, 10 Sep 2020 10:02:33 -0300
+> Jason Gunthorpe <jgg@ziepe.ca> wrote:
 > 
->> Or am I way off here, and it really is possible (aside from the current
->> s390 situation) to observe something that "is no longer a page table"?
+> > On Thu, Sep 10, 2020 at 11:39:25AM +0200, Alexander Gordeev wrote:
+> > 
+> > > As Gerald mentioned, it is very difficult to explain in a clear way.
+> > > Hopefully, one could make sense ot of it.
+> > 
+> > I would say the page table API requires this invariant:
+> > 
+> >         pud = pud_offset(p4d, addr);
+> >         do {
+> > 		WARN_ON(pud != pud_offset(p4d, addr);
+> >                 next = pud_addr_end(addr, end);
+> >         } while (pud++, addr = next, addr != end);
+> > 
+> > ie pud++ is supposed to be a shortcut for 
+> >   pud_offset(p4d, next)
+> > 
 > 
-> Yes, that is the issue. Remember there is no locking for GUP
-> fast. While a page table cannot be freed there is nothing preventing
-> the page table entry from being concurrently modified.
-> 
+> Hmm, IIUC, all architectures with static folding will simply return
+> the passed-in p4d pointer for pud_offset(p4d, addr), for 3-level
+> pagetables.
 
-OK, then we are saying the same thing after all, good.
+It is probably moot now, but since other arch's don't crash they also
+return pud_addr_end() = end so the loop only does one iteration.
 
-> Without the stack variable it looks like this:
-> 
->         pud_t pud = READ_ONCE(*pudp);
->         if (!pud_present(pud))
->              return
->         pmd_offset(pudp, address);
-> 
-> And pmd_offset() expands to
-> 
->      return (pmd_t *)pud_page_vaddr(*pud) + pmd_index(address);
-> 
-> Between the READ_ONCE(*pudp) and (*pud) inside pmd_offset() the value
-> of *pud can change, eg to !pud_present.
-> 
-> Then pud_page_vaddr(*pud) will crash. It is not use after free, it
-> is using data that has not been validated.
-> 
+ie pud = pud_offset(p4d, addr) for all iterations as the pud++ never
+happens.
 
-Right, that matches what I had in mind, too: you can still have a problem
-even though you're in the same page table. I just wanted to confirm that
-there's not some odd way to launch out into completely non-page-table
-memory.
+Which is what this addr_end patch does for s390..
 
-
-thanks,
--- 
-John Hubbard
-NVIDIA
+Jason
