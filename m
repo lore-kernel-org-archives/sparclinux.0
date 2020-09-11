@@ -1,95 +1,251 @@
-From: Nicolin Chen <nicoleotsuka@gmail.com>
-Date: Tue, 01 Sep 2020 20:53:47 +0000
-Subject: Re: [RESEND][PATCH 1/7] powerpc/iommu: Avoid overflow at boundary_size
-Message-Id: <20200901205346.GA17362@Asurada-Nvidia>
+From: Vasily Gorbik <gor@linux.ibm.com>
+Date: Fri, 11 Sep 2020 19:03:06 +0000
+Subject: [PATCH] mm/gup: fix gup_fast with dynamic page table folding
+Message-Id: <patch.git-2c4880212370.your-ad-here.call-01599849957-ext-4686@work.hours>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200831203811.8494-1-nicoleotsuka@gmail.com>
- <20200831203811.8494-2-nicoleotsuka@gmail.com>
- <87lfht1vav.fsf@mpe.ellerman.id.au>
-In-Reply-To: <87lfht1vav.fsf@mpe.ellerman.id.au>
+References: <20200911070939.GB1362448@hirez.programming.kicks-ass.net>
+In-Reply-To: <20200911070939.GB1362448@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: benh@kernel.crashing.org, paulus@samba.org, rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com, tony.luck@intel.com, fenghua.yu@intel.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com, davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com, James.Bottomley@HansenPartnership.com, deller@gmx.de, sfr@canb.auug.org.au, hch@lst.de, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Alexander Gordeev <agordeev@linux.ibm.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-mm <linux-mm@kvack.org>, linux-arch <linux-arch@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Russell King <linux@armlinux.org.uk>, Mike Rapoport <rppt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Jeff Dike <jdike@addtoit.com>, Richard Weinberger <richard@nod.at>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, Arnd Bergmann <arnd@arndb.de>, Andrey Ryabinin <aryabinin@virtuozzo.com>, linux-x86 <x86@kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, linux-sparc <sparclinux@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, linux-s390 <linux-s390@vger.kernel.org>, Heiko Carstens <hca@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>
 
-On Tue, Sep 01, 2020 at 11:27:36PM +1000, Michael Ellerman wrote:
-> Nicolin Chen <nicoleotsuka@gmail.com> writes:
-> > The boundary_size might be as large as ULONG_MAX, which means
-> > that a device has no specific boundary limit. So either "+ 1"
-> > or passing it to ALIGN() would potentially overflow.
-> >
-> > According to kernel defines:
-> >     #define ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-> >     #define ALIGN(x, a)	ALIGN_MASK(x, (typeof(x))(a) - 1)
-> >
-> > We can simplify the logic here:
-> >   ALIGN(boundary + 1, 1 << shift) >> shift
-> > = ALIGN_MASK(b + 1, (1 << s) - 1) >> s
-> > = {[b + 1 + (1 << s) - 1] & ~[(1 << s) - 1]} >> s
-> > = [b + 1 + (1 << s) - 1] >> s
-> > = [b + (1 << s)] >> s
-> > = (b >> s) + 1
-> >
-> > So fixing a potential overflow with the safer shortcut.
-> >
-> > Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-> > Signed-off-by: Nicolin Chen <nicoleotsuka@gmail.com>
-> > Cc: Christoph Hellwig <hch@lst.de>
-> > ---
-> >  arch/powerpc/kernel/iommu.c | 11 +++++------
-> >  1 file changed, 5 insertions(+), 6 deletions(-)
-> 
-> Are you asking for acks, or for maintainers to merge the patches
-> individually?
+Currently to make sure that every page table entry is read just once
+gup_fast walks perform READ_ONCE and pass pXd value down to the next
+gup_pXd_range function by value e.g.:
 
-I was expecting that but Christoph just suggested me to squash them
-into one so he would merge it: https://lkml.org/lkml/2020/9/1/159
+static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+                         unsigned int flags, struct page **pages, int *nr)
+...
+        pudp = pud_offset(&p4d, addr);
 
-Though I feel it'd be nice to get maintainers' acks before merging.
+This function passes a reference on that local value copy to pXd_offset,
+and might get the very same pointer in return. This happens when the
+level is folded (on most arches), and that pointer should not be iterated.
 
-> > diff --git a/arch/powerpc/kernel/iommu.c b/arch/powerpc/kernel/iommu.c
-> > index 9704f3f76e63..c01ccbf8afdd 100644
-> > --- a/arch/powerpc/kernel/iommu.c
-> > +++ b/arch/powerpc/kernel/iommu.c
-> > @@ -236,15 +236,14 @@ static unsigned long iommu_range_alloc(struct device *dev,
-> >  		}
-> >  	}
-> >  
-> > -	if (dev)
-> > -		boundary_size = ALIGN(dma_get_seg_boundary(dev) + 1,
-> > -				      1 << tbl->it_page_shift);
-> > -	else
-> > -		boundary_size = ALIGN(1UL << 32, 1 << tbl->it_page_shift);
-> >  	/* 4GB boundary for iseries_hv_alloc and iseries_hv_map */
-> > +	boundary_size = dev ? dma_get_seg_boundary(dev) : U32_MAX;
-> 
-> Is there any path that passes a NULL dev anymore?
-> 
-> Both iseries_hv_alloc() and iseries_hv_map() were removed years ago.
-> See:
->   8ee3e0d69623 ("powerpc: Remove the main legacy iSerie platform code")
-> 
-> 
-> So maybe we should do a lead-up patch that drops the NULL dev support,
-> which will then make this patch simpler.
+On s390 due to the fact that each task might have different 5,4 or
+3-level address translation and hence different levels folded the logic
+is more complex and non-iteratable pointer to a local copy leads to
+severe problems.
 
-The next version of this change will follow Christoph's suggestion
-by having a helper function that takes care of !dev internally.
+Here is an example of what happens with gup_fast on s390, for a task
+with 3-levels paging, crossing a 2 GB pud boundary:
 
-Thanks
-Nic
+// addr = 0x1007ffff000, end = 0x10080001000
+static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+                         unsigned int flags, struct page **pages, int *nr)
+{
+        unsigned long next;
+        pud_t *pudp;
 
-> 
-> 
-> > +	/* Overflow-free shortcut for: ALIGN(b + 1, 1 << s) >> s */
-> > +	boundary_size = (boundary_size >> tbl->it_page_shift) + 1;
-> >  
-> >  	n = iommu_area_alloc(tbl->it_map, limit, start, npages, tbl->it_offset,
-> > -			     boundary_size >> tbl->it_page_shift, align_mask);
-> > +			     boundary_size, align_mask);
-> >  	if (n = -1) {
-> >  		if (likely(pass = 0)) {
-> >  			/* First try the pool from the start */
-> > -- 
-> > 2.17.1
+        // pud_offset returns &p4d itself (a pointer to a value on stack)
+        pudp = pud_offset(&p4d, addr);
+        do {
+                // on second iteratation reading "random" stack value
+                pud_t pud = READ_ONCE(*pudp);
+
+                // next = 0x10080000000, due to PUD_SIZE/MASK != PGDIR_SIZE/MASK on s390
+                next = pud_addr_end(addr, end);
+                ...
+        } while (pudp++, addr = next, addr != end); // pudp++ iterating over stack
+
+        return 1;
+}
+
+This happens since s390 moved to common gup code with
+commit d1874a0c2805 ("s390/mm: make the pxd_offset functions more robust")
+and commit 1a42010cdc26 ("s390/mm: convert to the generic
+get_user_pages_fast code"). s390 tried to mimic static level folding by
+changing pXd_offset primitives to always calculate top level page table
+offset in pgd_offset and just return the value passed when pXd_offset
+has to act as folded.
+
+What is crucial for gup_fast and what has been overlooked is
+that PxD_SIZE/MASK and thus pXd_addr_end should also change
+correspondingly. And the latter is not possible with dynamic folding.
+
+To fix the issue in addition to pXd values pass original
+pXdp pointers down to gup_pXd_range functions. And introduce
+pXd_offset_lockless helpers, which take an additional pXd
+entry value parameter. This has already been discussed in
+https://lkml.kernel.org/r/20190418100218.0a4afd51@mschwideX1
+
+Cc: <stable@vger.kernel.org> # 5.2+
+Fixes: 1a42010cdc26 ("s390/mm: convert to the generic get_user_pages_fast code")
+Reviewed-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Reviewed-by: Alexander Gordeev <agordeev@linux.ibm.com>
+Signed-off-by: Vasily Gorbik <gor@linux.ibm.com>
+---
+ arch/s390/include/asm/pgtable.h | 42 +++++++++++++++++++++++----------
+ include/linux/pgtable.h         | 10 ++++++++
+ mm/gup.c                        | 18 +++++++-------
+ 3 files changed, 49 insertions(+), 21 deletions(-)
+
+diff --git a/arch/s390/include/asm/pgtable.h b/arch/s390/include/asm/pgtable.h
+index 7eb01a5459cd..b55561cc8786 100644
+--- a/arch/s390/include/asm/pgtable.h
++++ b/arch/s390/include/asm/pgtable.h
+@@ -1260,26 +1260,44 @@ static inline pgd_t *pgd_offset_raw(pgd_t *pgd, unsigned long address)
+ 
+ #define pgd_offset(mm, address) pgd_offset_raw(READ_ONCE((mm)->pgd), address)
+ 
+-static inline p4d_t *p4d_offset(pgd_t *pgd, unsigned long address)
++static inline p4d_t *p4d_offset_lockless(pgd_t *pgdp, pgd_t pgd, unsigned long address)
+ {
+-	if ((pgd_val(*pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
+-		return (p4d_t *) pgd_deref(*pgd) + p4d_index(address);
+-	return (p4d_t *) pgd;
++	if ((pgd_val(pgd) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R1)
++		return (p4d_t *) pgd_deref(pgd) + p4d_index(address);
++	return (p4d_t *) pgdp;
+ }
++#define p4d_offset_lockless p4d_offset_lockless
+ 
+-static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
++static inline p4d_t *p4d_offset(pgd_t *pgdp, unsigned long address)
+ {
+-	if ((p4d_val(*p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
+-		return (pud_t *) p4d_deref(*p4d) + pud_index(address);
+-	return (pud_t *) p4d;
++	return p4d_offset_lockless(pgdp, *pgdp, address);
++}
++
++static inline pud_t *pud_offset_lockless(p4d_t *p4dp, p4d_t p4d, unsigned long address)
++{
++	if ((p4d_val(p4d) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R2)
++		return (pud_t *) p4d_deref(p4d) + pud_index(address);
++	return (pud_t *) p4dp;
++}
++#define pud_offset_lockless pud_offset_lockless
++
++static inline pud_t *pud_offset(p4d_t *p4dp, unsigned long address)
++{
++	return pud_offset_lockless(p4dp, *p4dp, address);
+ }
+ #define pud_offset pud_offset
+ 
+-static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
++static inline pmd_t *pmd_offset_lockless(pud_t *pudp, pud_t pud, unsigned long address)
++{
++	if ((pud_val(pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
++		return (pmd_t *) pud_deref(pud) + pmd_index(address);
++	return (pmd_t *) pudp;
++}
++#define pmd_offset_lockless pmd_offset_lockless
++
++static inline pmd_t *pmd_offset(pud_t *pudp, unsigned long address)
+ {
+-	if ((pud_val(*pud) & _REGION_ENTRY_TYPE_MASK) >= _REGION_ENTRY_TYPE_R3)
+-		return (pmd_t *) pud_deref(*pud) + pmd_index(address);
+-	return (pmd_t *) pud;
++	return pmd_offset_lockless(pudp, *pudp, address);
+ }
+ #define pmd_offset pmd_offset
+ 
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index e8cbc2e795d5..e899d3506671 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -1427,6 +1427,16 @@ typedef unsigned int pgtbl_mod_mask;
+ #define mm_pmd_folded(mm)	__is_defined(__PAGETABLE_PMD_FOLDED)
+ #endif
+ 
++#ifndef p4d_offset_lockless
++#define p4d_offset_lockless(pgdp, pgd, address) p4d_offset(&pgd, address)
++#endif
++#ifndef pud_offset_lockless
++#define pud_offset_lockless(p4dp, p4d, address) pud_offset(&p4d, address)
++#endif
++#ifndef pmd_offset_lockless
++#define pmd_offset_lockless(pudp, pud, address) pmd_offset(&pud, address)
++#endif
++
+ /*
+  * p?d_leaf() - true if this entry is a final mapping to a physical address.
+  * This differs from p?d_huge() by the fact that they are always available (if
+diff --git a/mm/gup.c b/mm/gup.c
+index e5739a1974d5..578bf5bd8bf8 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2485,13 +2485,13 @@ static int gup_huge_pgd(pgd_t orig, pgd_t *pgdp, unsigned long addr,
+ 	return 1;
+ }
+ 
+-static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
++static int gup_pmd_range(pud_t *pudp, pud_t pud, unsigned long addr, unsigned long end,
+ 		unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+ 	pmd_t *pmdp;
+ 
+-	pmdp = pmd_offset(&pud, addr);
++	pmdp = pmd_offset_lockless(pudp, pud, addr);
+ 	do {
+ 		pmd_t pmd = READ_ONCE(*pmdp);
+ 
+@@ -2528,13 +2528,13 @@ static int gup_pmd_range(pud_t pud, unsigned long addr, unsigned long end,
+ 	return 1;
+ }
+ 
+-static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
++static int gup_pud_range(p4d_t *p4dp, p4d_t p4d, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+ 	pud_t *pudp;
+ 
+-	pudp = pud_offset(&p4d, addr);
++	pudp = pud_offset_lockless(p4dp, p4d, addr);
+ 	do {
+ 		pud_t pud = READ_ONCE(*pudp);
+ 
+@@ -2549,20 +2549,20 @@ static int gup_pud_range(p4d_t p4d, unsigned long addr, unsigned long end,
+ 			if (!gup_huge_pd(__hugepd(pud_val(pud)), addr,
+ 					 PUD_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pmd_range(pud, addr, next, flags, pages, nr))
++		} else if (!gup_pmd_range(pudp, pud, addr, next, flags, pages, nr))
+ 			return 0;
+ 	} while (pudp++, addr = next, addr != end);
+ 
+ 	return 1;
+ }
+ 
+-static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
++static int gup_p4d_range(pgd_t *pgdp, pgd_t pgd, unsigned long addr, unsigned long end,
+ 			 unsigned int flags, struct page **pages, int *nr)
+ {
+ 	unsigned long next;
+ 	p4d_t *p4dp;
+ 
+-	p4dp = p4d_offset(&pgd, addr);
++	p4dp = p4d_offset_lockless(pgdp, pgd, addr);
+ 	do {
+ 		p4d_t p4d = READ_ONCE(*p4dp);
+ 
+@@ -2574,7 +2574,7 @@ static int gup_p4d_range(pgd_t pgd, unsigned long addr, unsigned long end,
+ 			if (!gup_huge_pd(__hugepd(p4d_val(p4d)), addr,
+ 					 P4D_SHIFT, next, flags, pages, nr))
+ 				return 0;
+-		} else if (!gup_pud_range(p4d, addr, next, flags, pages, nr))
++		} else if (!gup_pud_range(p4dp, p4d, addr, next, flags, pages, nr))
+ 			return 0;
+ 	} while (p4dp++, addr = next, addr != end);
+ 
+@@ -2602,7 +2602,7 @@ static void gup_pgd_range(unsigned long addr, unsigned long end,
+ 			if (!gup_huge_pd(__hugepd(pgd_val(pgd)), addr,
+ 					 PGDIR_SHIFT, next, flags, pages, nr))
+ 				return;
+-		} else if (!gup_p4d_range(pgd, addr, next, flags, pages, nr))
++		} else if (!gup_p4d_range(pgdp, pgd, addr, next, flags, pages, nr))
+ 			return;
+ 	} while (pgdp++, addr = next, addr != end);
+ }
+-- 
+⣿⣿⣿⣿⢋⡀⣀⠹⣿⣿⣿⣿
+⣿⣿⣿⣿⠠⣶⡦⠀⣿⣿⣿⣿
+⣿⣿⣿⠏⣴⣮⣴⣧⠈⢿⣿⣿
+⣿⣿⡏⢰⣿⠖⣠⣿⡆⠈⣿⣿
+⣿⢛⣵⣄⠙⣶⣶⡟⣅⣠⠹⣿
+⣿⣜⣛⠻⢎⣉⣉⣀⠿⣫⣵⣿
