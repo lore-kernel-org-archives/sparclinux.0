@@ -1,21 +1,44 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Fri, 25 Sep 2020 15:23:45 +0000
-Subject: Re: let import_iovec deal with compat_iovecs as well v4
-Message-Id: <20200925152345.GX3421308@ZenIV.linux.org.uk>
+From: Jing Xiangfeng <jingxiangfeng@huawei.com>
+Date: Fri, 11 Sep 2020 07:13:41 +0000
+Subject: [PATCH] sbus: char: Remove meaningless jump label out_free
+Message-Id: <20200911071341.101397-1-jingxiangfeng@huawei.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200925045146.1283714-1-hch@lst.de>
-In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+To: davem@davemloft.net, dan.j.williams@intel.com, dvhart@infradead.org, mchehab+samsung@kernel.org, gregkh@linuxfoundation.org, dsterba@suse.com, arnd@arndb.de
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, jingxiangfeng@huawei.com
 
-On Fri, Sep 25, 2020 at 06:51:37AM +0200, Christoph Hellwig wrote:
-> Hi Al,
-> 
-> this series changes import_iovec to transparently deal with compat iovec
-> structures, and then cleanups up a lot of code dupliation.
+After commit 57a4a3d7f756 ("display7seg: Introduce the use of the managed
+version of kzalloc"), The out_free jump label has nothing to do but goto
+out. So remove it.
 
-OK, I can live with that.  Applied, let's see if it passes smoke tests
-into -next it goes.
+Signed-off-by: Jing Xiangfeng <jingxiangfeng@huawei.com>
+---
+ drivers/sbus/char/display7seg.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index fad936eb845f..00e72b97d0b6 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -186,7 +186,7 @@ static int d7s_probe(struct platform_device *op)
+ 	p->regs = of_ioremap(&op->resource[0], 0, sizeof(u8), "d7s");
+ 	if (!p->regs) {
+ 		printk(KERN_ERR PFX "Cannot map chip registers\n");
+-		goto out_free;
++		goto out;
+ 	}
+ 
+ 	err = misc_register(&d7s_miscdev);
+@@ -228,8 +228,6 @@ static int d7s_probe(struct platform_device *op)
+ 
+ out_iounmap:
+ 	of_iounmap(&op->resource[0], p->regs, sizeof(u8));
+-
+-out_free:
+ 	goto out;
+ }
+ 
+-- 
+2.17.1
