@@ -1,38 +1,53 @@
-From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Date: Wed, 09 Sep 2020 16:12:11 +0000
-Subject: Re: [RFC PATCH v2 0/3] mm/gup: fix gup_fast with dynamic page table folding
-Message-Id: <20200909181211.1cad8d28@thinkpad>
+From: Nicholas Piggin <npiggin@gmail.com>
+Date: Mon, 14 Sep 2020 04:52:15 +0000
+Subject: [PATCH v2 0/4] more mm switching vs TLB shootdown and lazy tlb fixes
+Message-Id: <20200914045219.3736466-1-npiggin@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
-        <20200907201256.GC1976319@kernel.org>
-        <9bde9857-fdfd-e384-ea27-a14e5a06f1e6@csgroup.eu>
-        <20200908193650.1c1511d0@thinkpad>
-In-Reply-To: <20200908193650.1c1511d0@thinkpad>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Mike Rapoport <rppt@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-sparc <sparclinux@vger.kernel.org>, Alexander Gordeev <agordeev@linux.ibm.com>, Claudio Imbrenda <imbrenda@linux.ibm.com>, Will Deacon <will@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Richard Weinberger <richard@nod.at>, linux-x86 <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Jason Gunthorpe <jgg@ziepe.ca>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Heiko Carstens <hca@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, John Hubbard <jhubbard@nvidia.com>, Jeff Dike <jdike@addtoit.com>, linux-um <linux-um@lists.infradead.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: "linux-mm @ kvack . org" <linux-mm@kvack.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Peter Zijlstra <peterz@infradead.org>, "David S . Miller" <davem@davemloft.net>
 
-On Tue, 8 Sep 2020 19:36:50 +0200
-Gerald Schaefer <gerald.schaefer@linux.ibm.com> wrote:
+This is an attempt to fix a few different related issues around
+switching mm, TLB flushing, and lazy tlb mm handling.
 
-[..]
-> 
-> It seems now that the generalization is very well accepted so far,
-> apart from some apparent issues on arm. Also, merging 2 + 3 and
-> putting them first seems to be acceptable, so we could do that for
-> v3, if there are no objections.
-> 
-> Of course, we first need to address the few remaining issues for
-> arm(32?), which do look quite confusing to me so far. BTW, sorry for
-> the compile error with patch 3, I guess we did the cross-compile only
-> for 1 + 2 applied, to see the bloat-o-meter changes. But I guess
-> patch 3 already proved its usefulness by that :-)
+This will require all architectures to eventually move to disabling
+irqs over activate_mm, but it's possible we could add another arch
+call after irqs are re-enabled for those few which can't do their
+entire activation with irqs disabled.
 
-Umm, replace "arm" with "power", sorry. No issues on arm so far, but
-also no ack I think.
+Testing so far indicates this has fixed a mm refcounting bug that
+powerpc was running into (via distro report and backport). I haven't
+had any real feedback on this series outside powerpc (and it doesn't
+really affect other archs), so I propose patches 1,2,4 go via the
+powerpc tree.
 
-Thanks to Christophe for the power change, and to Mike for volunteering
-for some cross compilation and cross-arch testing. Will send v3 with
-merged and re-ordered patches after some more testing.
+There is no dependency between them and patch 3, I put it there only
+because it follows the history of the code (powerpc code was written
+using the sparc64 logic), but I guess they have to go via different arch
+trees. Dave, I'll leave patch 3 with you.
+
+Thanks,
+Nick
+
+Since v1:
+- Updates from Michael Ellerman's review comments.
+
+Nicholas Piggin (4):
+  mm: fix exec activate_mm vs TLB shootdown and lazy tlb switching race
+  powerpc: select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+  sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
+  powerpc/64s/radix: Fix mm_cpumask trimming race vs kthread_use_mm
+
+ arch/Kconfig                           |  7 +++
+ arch/powerpc/Kconfig                   |  1 +
+ arch/powerpc/include/asm/mmu_context.h |  2 +-
+ arch/powerpc/include/asm/tlb.h         | 13 ------
+ arch/powerpc/mm/book3s64/radix_tlb.c   | 23 ++++++---
+ arch/sparc/kernel/smp_64.c             | 65 ++++++--------------------
+ fs/exec.c                              | 17 ++++++-
+ 7 files changed, 54 insertions(+), 74 deletions(-)
+
+-- 
+2.23.0
