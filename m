@@ -1,34 +1,72 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Wed, 23 Sep 2020 13:22:54 +0000
-Subject: Re: [PATCH 1/9] kernel: add a PF_FORCE_COMPAT flag
-Message-Id: <20200923132254.GI3421308@ZenIV.linux.org.uk>
+From: Thomas Zimmermann <tzimmermann@suse.de>
+Date: Mon, 14 Sep 2020 11:25:18 +0000
+Subject: [PATCH 0/3] dma-buf: Flag vmap'ed memory as system or I/O memory
+Message-Id: <20200914112521.1327-1-tzimmermann@suse.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <563138b5-7073-74bc-f0c5-b2bad6277e87@gmail.com>
- <486c92d0-0f2e-bd61-1ab8-302524af5e08@gmail.com>
- <CALCETrW3rwGsgfLNnu_0JAcL5jvrPVTLTWM3JpbB5P9Hye6Fdw@mail.gmail.com>
- <d5c6736a-2cb4-4e22-78da-a667bda5c05a@gmail.com>
- <CALCETrUEC81va8-fuUXG1uA5rbKxnKDYsDOXC70_HtKD4LAeAg@mail.gmail.com>
- <e0a1b4d1-ff47-18d1-d535-c62812cb3105@gmail.com>
- <CAK8P3a2-6JNS38EbZcLrk=cTT526oP=Rf0aoqWNSJ-k4XTYehQ@mail.gmail.com>
- <f25b4708-eba6-78d6-03f9-5bfb04e07627@gmail.com>
- <CAK8P3a39jN+t2hhLg0oKZnbYATQXmYE2-Z1JkmFyc1EPdg1HXw@mail.gmail.com>
- <91209170-dcb4-d9ee-afa0-a819f8877b86@gmail.com>
-In-Reply-To: <91209170-dcb4-d9ee-afa0-a819f8877b86@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Pavel Begunkov <asml.silence@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Andy Lutomirski <luto@kernel.org>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "open list:MIPS" <linux-mips@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, linux-aio <linux-aio@kvack.org>, io-uring@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, Network Development <netdev@vger.kernel.org>, keyrings@vger.kernel.org, LSM List <linux-security-module@vger.kernel.org>
+To: sumit.semwal@linaro.org, christian.koenig@amd.com, daniel@ffwll.ch, airlied@linux.ie, sam@ravnborg.org, mark.cave-ayland@ilande.co.uk, kraxel@redhat.com, davem@davemloft.net, maarten.lankhorst@linux.intel.com, mripard@kernel.org, l.stach@pengutronix.de, linux+etnaviv@armlinux.org.uk, christian.gmeiner@gmail.com, jani.nikula@linux.intel.com, joonas.lahtinen@linux.intel.com, rodrigo.vivi@intel.com, thierry.reding@gmail.com, jonathanh@nvidia.com, pawel@osciak.com, m.szyprowski@samsung.com, kyungmin.park@samsung.com, tfiga@chromium.org, mchehab@kernel.org, chris@chris-wilson.co.uk, matthew.auld@intel.com, thomas.hellstrom@intel.com
+Cc: intel-gfx@lists.freedesktop.org, etnaviv@lists.freedesktop.org, dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org, sparclinux@vger.kernel.org, Thomas Zimmermann <tzimmermann@suse.de>, linux-tegra@vger.kernel.org, linux-media@vger.kernel.org
 
-On Wed, Sep 23, 2020 at 11:01:34AM +0300, Pavel Begunkov wrote:
+Dma-buf provides vmap() and vunmap() for retrieving and releasing mappings
+of dma-buf memory in kernel address space. The functions operate with plain
+addresses and the assumption is that the memory can be accessed with load
+and store operations. This is not the case on some architectures (e.g.,
+sparc64) where I/O memory can only be accessed with dedicated instructions.
 
-> > I'm not following why that would be considered a valid option,
-> > as that clearly breaks existing users that update from a 32-bit
-> > kernel to a 64-bit one.
-> 
-> Do you mean users who move 32-bit binaries (without recompiling) to a
-> new x64 kernel? Does the kernel guarantees that to work?
+This patchset introduces struct dma_buf_map, which contains the address of
+a buffer and a flag that tells whether system- or I/O-memory instructions
+are required.
 
-Yes.
+Some background: updating the DRM framebuffer console on sparc64 makes the
+kernel panic. This is because the framebuffer memory cannot be accessed with
+system-memory instructions. We currently employ a workaround in DRM to
+address this specific problem. [1]
 
-No further (printable) comments for now...
+To resolve the problem, we'd like to address it at the most common point,
+which is the dma-buf framework. The dma-buf mapping ideally knows if I/O
+instructions are required and exports this information to it's users. The
+new structure struct dma_buf_map stores the buffer address and a flag that
+signals I/O memory. Affected users of the buffer (e.g., drivers, frameworks)
+can then access the memory accordingly.
+
+This patchset only introduces struct dma_buf_map, and updates struct dma_buf
+and it's interfaces. Further patches can update dma-buf users. For example,
+there's a prototype patchset for DRM that fixes the framebuffer problem. [2]
+
+Further work: TTM, one of DRM's memory managers, already exports an
+is_iomem flag of its own. It could later be switched over to exporting struct
+dma_buf_map, thus simplifying some code. Several DRM drivers expect their
+fbdev console to operate on I/O memory. These could possibly be switched over
+to the generic fbdev emulation, as soon as the generic code uses struct
+dma_buf_map.
+
+[1] https://lore.kernel.org/dri-devel/20200725191012.GA434957@ravnborg.org/
+[2] https://lore.kernel.org/dri-devel/20200806085239.4606-1-tzimmermann@suse.de/
+
+Thomas Zimmermann (3):
+  dma-buf: Add struct dma-buf-map for storing struct dma_buf.vaddr_ptr
+  dma-buf: Use struct dma_buf_map in dma_buf_vmap() interfaces
+  dma-buf: Use struct dma_buf_map in dma_buf_vunmap() interfaces
+
+ Documentation/driver-api/dma-buf.rst          |   3 +
+ drivers/dma-buf/dma-buf.c                     |  40 +++---
+ drivers/gpu/drm/drm_gem_cma_helper.c          |  16 ++-
+ drivers/gpu/drm/drm_gem_shmem_helper.c        |  17 ++-
+ drivers/gpu/drm/drm_prime.c                   |  14 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gem_prime.c   |  13 +-
+ drivers/gpu/drm/i915/gem/i915_gem_dmabuf.c    |  13 +-
+ .../drm/i915/gem/selftests/i915_gem_dmabuf.c  |  18 ++-
+ drivers/gpu/drm/tegra/gem.c                   |  23 ++--
+ .../common/videobuf2/videobuf2-dma-contig.c   |  17 ++-
+ .../media/common/videobuf2/videobuf2-dma-sg.c |  19 ++-
+ .../common/videobuf2/videobuf2-vmalloc.c      |  21 ++-
+ include/drm/drm_prime.h                       |   5 +-
+ include/linux/dma-buf-map.h                   | 126 ++++++++++++++++++
+ include/linux/dma-buf.h                       |  11 +-
+ 15 files changed, 274 insertions(+), 82 deletions(-)
+ create mode 100644 include/linux/dma-buf-map.h
+
+--
+2.28.0
