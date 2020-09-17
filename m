@@ -1,34 +1,25 @@
-From: Blue Oak Mortgage and Loans <em@rusoil.net>
-Date: Mon, 21 Sep 2020 23:47:32 +0000
-Subject: Wir finanzieren Projekte und Unternehmen
-Message-Id: <1675156963.908920.1600732052360.JavaMail.zimbra@rusoil.net>
+From: "Nicola W. Samir" <nicola@brighenti.net>
+Date: Thu, 17 Sep 2020 05:22:24 +0000
+Subject: LUCRATIVE PROJECT VENTURE
+Message-Id: <u-$ctv-3c$e-to8-$99v86@1bya44>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="7E87.4AB_3A0"
 List-Id: <sparclinux.vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 To: sparclinux@vger.kernel.org
 
 
+--7E87.4AB_3A0
+Content-Type: text/plain;
+Content-Transfer-Encoding: quoted-printable
 
-Dies ist ein Newsletter von Blue Oak Mortgage and Loans. Bitte melden Sie sich ab, wenn Sie keine E-Mail mehr von uns erhalten möchten.
+I am an Independent Financial Consultant, I have a reputable client who is=
+ seeking for an experienced individual or company that can profitably inve=
+st $51,000.000 United State Dollars privately for TPI. 
 
+Your swift response is highly needed.
+The modalities is 100% risk free
 
-Eine kurze Einführung.
+Best Regard
+Nicola Samir Wahiba
 
-Wir sind ein führendes Finanzierungsunternehmen in Europa. Wir finanzieren Startups / etablierte Unternehmen, finanzieren Großprojekte (Bau, Landwirtschaft, Immobilien und dergleichen) zu einem niedrigen Zinssatz von 2% pro Jahr.
-
-
-Darlehensverfahren
-
-1. Sie müssen das Online-Bewerbungsformular ausfüllen und eine ordnungsgemäß unterschriebene Kopie an uns zurücksenden.
-
-2. Möglicherweise müssen Sie Finanzdokumente als unterstützenden Nachweis für die Fähigkeit zur Rückzahlung von Krediten vorlegen.
-
-3. Wenn Ihr Darlehen genehmigt wurde, müssen Sie eine Versicherungsgarantie für die Darlehenssicherheit vorlegen. Wir empfehlen eine Versicherungsgesellschaft. Sie sind allein verantwortlich für die Zahlung und den Erwerb der Anleihe, die als Sicherheit dienen. Die Höhe der Anleihe hängt von Ihrem Darlehensbetrag ab. Die Versicherungsgesellschaft wird Sie durch den Prozess führen. (Für Großprojekte)
-
-4. Ihr Überweisungsprozess wird eingeleitet, sobald die Versicherungsanleihe überprüft wurde. Ihr Darlehensrückzahlungsplan wird im NC-Darlehensvertragsformular aufgeführt.
-
-Wenn die Bedingungen Sie beruhigen, können Sie uns über die WhatsApp-Nummer / E-Mail kontaktieren und auch unsere Website besuchen, um weitere Informationen zu erhalten. Wir freuen uns darauf, von Ihnen zu hören.
-
-WhatsApp: + 90-552-365-3483
-E-Mail: info@bluelmtg.net
+--7E87.4AB_3A0--
