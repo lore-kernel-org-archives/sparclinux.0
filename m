@@ -1,50 +1,37 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Mon, 21 Sep 2020 16:27:53 +0000
-Subject: Re: [PATCH 02/11] mm: call import_iovec() instead of rw_copy_check_uvector() in process_vm_rw()
-Message-Id: <20200921162753.GY3421308@ZenIV.linux.org.uk>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 18 Sep 2020 12:45:26 +0000
+Subject: [PATCH 2/9] compat.h: fix a spelling error in <linux/compat.h>
+Message-Id: <20200918124533.3487701-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200921143434.707844-1-hch@lst.de>
- <20200921143434.707844-3-hch@lst.de>
- <20200921150211.GS3421308@ZenIV.linux.org.uk>
- <ef67787edb2f48548d69caaaff6997ba@AcuMS.aculab.com>
- <20200921152937.GX3421308@ZenIV.linux.org.uk>
- <226e03bf941844eba4d64af31633c177@AcuMS.aculab.com>
-In-Reply-To: <226e03bf941844eba4d64af31633c177@AcuMS.aculab.com>
+References: <20200918124533.3487701-1-hch@lst.de>
+In-Reply-To: <20200918124533.3487701-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Laight <David.Laight@aculab.com>
-Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
-On Mon, Sep 21, 2020 at 03:44:00PM +0000, David Laight wrote:
-> From: Al Viro
-> > Sent: 21 September 2020 16:30
-> > 
-> > On Mon, Sep 21, 2020 at 03:21:35PM +0000, David Laight wrote:
-> > 
-> > > You really don't want to be looping through the array twice.
-> > 
-> > Profiles, please.
-> 
-> I did some profiling of send() v sendmsg() much earlier in the year.
-> I can't remember the exact details but the extra cost of sendmsg()
-> is far more than you might expect.
-> (I was timing sending fully built IPv4 UDP packets using a raw socket.)
-> 
-> About half the difference does away if you change the
-> copy_from_user() to __copy_from_user() when reading the struct msghdr
-> and iov[] from userspace (user copy hardening is expensive).
+We only have not compat_sys_readv64v2 syscall, only a
+compat_sys_preadv64v2 syscall one.  This probably worked given that the
+syscall was not referenced from anywhere but the x86 syscall table.
 
-Wha...?  So the difference is within 4 times the overhead of the
-hardening checks done for one call of copy_from_user()?
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/compat.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> The rest is just code path, my gut feeling is that a lot of that
-> is in import_iovec().
-> 
-> Remember semdmsg() is likely to be called with an iov count of 1.
-
-... which makes that loop unlikely to be noticable in the entire
-mess, whether you pass it once or twice.  IOW, unless you can show
-profiles where that loop is sufficiently hot or if you can show
-the timings change from splitting it in two, I'll remain very
-sceptical about that assertion.
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index 685066f7ad325f..69968c124b3cad 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -812,7 +812,7 @@ asmlinkage ssize_t compat_sys_pwritev2(compat_ulong_t fd,
+ 		const struct compat_iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
+-asmlinkage long  compat_sys_readv64v2(unsigned long fd,
++asmlinkage long  compat_sys_preadv64v2(unsigned long fd,
+ 		const struct compat_iovec __user *vec,
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+-- 
+2.28.0
