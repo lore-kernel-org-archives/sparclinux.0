@@ -1,108 +1,152 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 21 Sep 2020 14:34:34 +0000
-Subject: [PATCH 11/11] security/keys: remove compat_keyctl_instantiate_key_iov
-Message-Id: <20200921143434.707844-12-hch@lst.de>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Sat, 19 Sep 2020 09:17:59 +0000
+Subject: [patch RFC 08/15] mips/mm/highmem: Switch to generic kmap atomic
+Message-Id: <20200919092616.639345384@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200921143434.707844-1-hch@lst.de>
-In-Reply-To: <20200921143434.707844-1-hch@lst.de>
+References: <20200919091751.011116649@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch@vger.kernel.org, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev@lists.ozlabs.org, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
 
-Now that import_iovec handles compat iovecs, the native version of
-keyctl_instantiate_key_iov can be used for the compat case as well.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: linux-mips@vger.kernel.org
 ---
- security/keys/compat.c   | 36 ++----------------------------------
- security/keys/internal.h |  5 -----
- security/keys/keyctl.c   |  2 +-
- 3 files changed, 3 insertions(+), 40 deletions(-)
+Note: Completely untested
+---
+ arch/mips/Kconfig               |    1 
+ arch/mips/include/asm/highmem.h |    4 +-
+ arch/mips/mm/highmem.c          |   77 ----------------------------------------
+ arch/mips/mm/init.c             |    3 -
+ 4 files changed, 3 insertions(+), 82 deletions(-)
 
-diff --git a/security/keys/compat.c b/security/keys/compat.c
-index 7ae531db031cf8..1545efdca56227 100644
---- a/security/keys/compat.c
-+++ b/security/keys/compat.c
-@@ -11,38 +11,6 @@
- #include <linux/slab.h>
- #include "internal.h"
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -2654,6 +2654,7 @@ config MIPS_CRC_SUPPORT
+ config HIGHMEM
+ 	bool "High Memory Support"
+ 	depends on 32BIT && CPU_SUPPORTS_HIGHMEM && SYS_SUPPORTS_HIGHMEM && !CPU_MIPS32_3_5_EVA
++	select KMAP_ATOMIC_GENERIC
  
--/*
-- * Instantiate a key with the specified compatibility multipart payload and
-- * link the key into the destination keyring if one is given.
-- *
-- * The caller must have the appropriate instantiation permit set for this to
-- * work (see keyctl_assume_authority).  No other permissions are required.
-- *
-- * If successful, 0 will be returned.
-- */
--static long compat_keyctl_instantiate_key_iov(
--	key_serial_t id,
--	const struct compat_iovec __user *_payload_iov,
--	unsigned ioc,
--	key_serial_t ringid)
+ config CPU_SUPPORTS_HIGHMEM
+ 	bool
+--- a/arch/mips/include/asm/highmem.h
++++ b/arch/mips/include/asm/highmem.h
+@@ -48,11 +48,11 @@ extern pte_t *pkmap_page_table;
+ 
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void *kmap_atomic_pfn(unsigned long pfn);
+ 
+ #define flush_cache_kmaps()	BUG_ON(cpu_has_dc_aliases)
+ 
+-extern void kmap_init(void);
++#define arch_kmap_temp_post_map(vaddr, pteval)	local_flush_tlb_one(vaddr)
++#define arch_kmap_temp_post_unmap(vaddr)	local_flush_tlb_one(vaddr)
+ 
+ #endif /* __KERNEL__ */
+ 
+--- a/arch/mips/mm/highmem.c
++++ b/arch/mips/mm/highmem.c
+@@ -8,8 +8,6 @@
+ #include <asm/fixmap.h>
+ #include <asm/tlbflush.h>
+ 
+-static pte_t *kmap_pte;
+-
+ unsigned long highstart_pfn, highend_pfn;
+ 
+ void kmap_flush_tlb(unsigned long addr)
+@@ -17,78 +15,3 @@ void kmap_flush_tlb(unsigned long addr)
+ 	flush_tlb_one(addr);
+ }
+ EXPORT_SYMBOL(kmap_flush_tlb);
+-
+-void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
 -{
--	struct iovec iovstack[UIO_FASTIOV], *iov = iovstack;
--	struct iov_iter from;
--	long ret;
+-	unsigned long vaddr;
+-	int idx, type;
 -
--	if (!_payload_iov)
--		ioc = 0;
+-	type = kmap_atomic_idx_push();
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	BUG_ON(!pte_none(*(kmap_pte - idx)));
+-#endif
+-	set_pte(kmap_pte-idx, mk_pte(page, prot));
+-	local_flush_tlb_one((unsigned long)vaddr);
 -
--	ret = import_iovec(WRITE, (const struct iovec __user *)_payload_iov,
--			   ioc, ARRAY_SIZE(iovstack), &iov, &from);
--	if (ret < 0)
--		return ret;
+-	return (void*) vaddr;
+-}
+-EXPORT_SYMBOL(kmap_atomic_high_prot);
 -
--	ret = keyctl_instantiate_key_common(id, &from, ringid);
--	kfree(iov);
--	return ret;
+-void kunmap_atomic_high(void *kvaddr)
+-{
+-	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
+-	int type __maybe_unused;
+-
+-	if (vaddr < FIXADDR_START)
+-		return;
+-
+-	type = kmap_atomic_idx();
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	{
+-		int idx = type + KM_TYPE_NR * smp_processor_id();
+-
+-		BUG_ON(vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
+-
+-		/*
+-		 * force other mappings to Oops if they'll try to access
+-		 * this pte without first remap it
+-		 */
+-		pte_clear(&init_mm, vaddr, kmap_pte-idx);
+-		local_flush_tlb_one(vaddr);
+-	}
+-#endif
+-	kmap_atomic_idx_pop();
+-}
+-EXPORT_SYMBOL(kunmap_atomic_high);
+-
+-/*
+- * This is the same as kmap_atomic() but can map memory that doesn't
+- * have a struct page associated with it.
+- */
+-void *kmap_atomic_pfn(unsigned long pfn)
+-{
+-	unsigned long vaddr;
+-	int idx, type;
+-
+-	preempt_disable();
+-	pagefault_disable();
+-
+-	type = kmap_atomic_idx_push();
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+-	set_pte(kmap_pte-idx, pfn_pte(pfn, PAGE_KERNEL));
+-	flush_tlb_one(vaddr);
+-
+-	return (void*) vaddr;
 -}
 -
- /*
-  * The key control system call, 32-bit compatibility version for 64-bit archs
-  */
-@@ -113,8 +81,8 @@ COMPAT_SYSCALL_DEFINE5(keyctl, u32, option,
- 		return keyctl_reject_key(arg2, arg3, arg4, arg5);
- 
- 	case KEYCTL_INSTANTIATE_IOV:
--		return compat_keyctl_instantiate_key_iov(
--			arg2, compat_ptr(arg3), arg4, arg5);
-+		return keyctl_instantiate_key_iov(arg2, compat_ptr(arg3), arg4,
-+						  arg5);
- 
- 	case KEYCTL_INVALIDATE:
- 		return keyctl_invalidate_key(arg2);
-diff --git a/security/keys/internal.h b/security/keys/internal.h
-index 338a526cbfa516..9b9cf3b6fcbb4d 100644
---- a/security/keys/internal.h
-+++ b/security/keys/internal.h
-@@ -262,11 +262,6 @@ extern long keyctl_instantiate_key_iov(key_serial_t,
- 				       const struct iovec __user *,
- 				       unsigned, key_serial_t);
- extern long keyctl_invalidate_key(key_serial_t);
+-void __init kmap_init(void)
+-{
+-	unsigned long kmap_vstart;
 -
--struct iov_iter;
--extern long keyctl_instantiate_key_common(key_serial_t,
--					  struct iov_iter *,
--					  key_serial_t);
- extern long keyctl_restrict_keyring(key_serial_t id,
- 				    const char __user *_type,
- 				    const char __user *_restriction);
-diff --git a/security/keys/keyctl.c b/security/keys/keyctl.c
-index 9febd37a168fd0..e26bbccda7ccee 100644
---- a/security/keys/keyctl.c
-+++ b/security/keys/keyctl.c
-@@ -1164,7 +1164,7 @@ static int keyctl_change_reqkey_auth(struct key *key)
-  *
-  * If successful, 0 will be returned.
-  */
--long keyctl_instantiate_key_common(key_serial_t id,
-+static long keyctl_instantiate_key_common(key_serial_t id,
- 				   struct iov_iter *from,
- 				   key_serial_t ringid)
- {
--- 
-2.28.0
+-	/* cache the first kmap pte */
+-	kmap_vstart = __fix_to_virt(FIX_KMAP_BEGIN);
+-	kmap_pte = virt_to_kpte(kmap_vstart);
+-}
+--- a/arch/mips/mm/init.c
++++ b/arch/mips/mm/init.c
+@@ -402,9 +402,6 @@ void __init paging_init(void)
+ 
+ 	pagetable_init();
+ 
+-#ifdef CONFIG_HIGHMEM
+-	kmap_init();
+-#endif
+ #ifdef CONFIG_ZONE_DMA
+ 	max_zone_pfns[ZONE_DMA] = MAX_DMA_PFN;
+ #endif
