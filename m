@@ -1,142 +1,72 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Sat, 19 Sep 2020 10:37:53 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sat, 19 Sep 2020 17:18:54 +0000
 Subject: Re: [patch RFC 00/15] mm/highmem: Provide a preemptible variant of kmap_atomic & friends
-Message-Id: <CAKMK7uENFDANQKebS_H0bhHeQRijrp1aVHQqyZPute3KBZ+fVQ@mail.gmail.com>
+Message-Id: <CAHk-=wiYGyrFRbA1cc71D2-nc5U9LM9jUJesXGqpPnB7E4X1YQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200919091751.011116649@linutronix.de>
- <CAKMK7uHTVJL2jGtCg61zG=myiF1BSk+yDdRYikcm-Mq_1TQWMQ@mail.gmail.com>
-In-Reply-To: <CAKMK7uHTVJL2jGtCg61zG=myiF1BSk+yDdRYikcm-Mq_1TQWMQ@mail.gmail.com>
+In-Reply-To: <20200919091751.011116649@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juri Lelli <juri.lelli@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, "open list:GENERIC INCLUDE/A..." <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, X86 ML <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, arcml <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Vineet Gupta <vgupta@synopsys.com>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Steven Rostedt <rostedt@goodmis.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Vineet Gupta <vgupta@synopsys.com>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
 
-On Sat, Sep 19, 2020 at 12:35 PM Daniel Vetter <daniel@ffwll.ch> wrote:
+On Sat, Sep 19, 2020 at 2:50 AM Thomas Gleixner <tglx@linutronix.de> wrote:
 >
-> On Sat, Sep 19, 2020 at 11:50 AM Thomas Gleixner <tglx@linutronix.de> wrote:
-> >
-> > First of all, sorry for the horribly big Cc list!
-> >
-> > Following up to the discussion in:
-> >
-> >   https://lore.kernel.org/r/20200914204209.256266093@linutronix.de
-> >
-> > this provides a preemptible variant of kmap_atomic & related
-> > interfaces. This is achieved by:
-> >
-> >  - Consolidating all kmap atomic implementations in generic code
-> >
-> >  - Switching from per CPU storage of the kmap index to a per task storage
-> >
-> >  - Adding a pteval array to the per task storage which contains the ptevals
-> >    of the currently active temporary kmaps
-> >
-> >  - Adding context switch code which checks whether the outgoing or the
-> >    incoming task has active temporary kmaps. If so, the outgoing task's
-> >    kmaps are removed and the incoming task's kmaps are restored.
-> >
-> >  - Adding new interfaces k[un]map_temporary*() which are not disabling
-> >    preemption and can be called from any context (except NMI).
-> >
-> >    Contrary to kmap() which provides preemptible and "persistant" mappings,
-> >    these interfaces are meant to replace the temporary mappings provided by
-> >    kmap_atomic*() today.
-> >
-> > This allows to get rid of conditional mapping choices and allows to have
-> > preemptible short term mappings on 64bit which are today enforced to be
-> > non-preemptible due to the highmem constraints. It clearly puts overhead on
-> > the highmem users, but highmem is slow anyway.
-> >
-> > This is not a wholesale conversion which makes kmap_atomic magically
-> > preemptible because there might be usage sites which rely on the implicit
-> > preempt disable. So this needs to be done on a case by case basis and the
-> > call sites converted to kmap_temporary.
-> >
-> > Note, that this is only lightly tested on X86 and completely untested on
-> > all other architectures.
-> >
-> > The lot is also available from
-> >
-> >    git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel.git highmem
->
-> I think it should be the case, but I want to double check: Will
-> copy_*_user be allowed within a kmap_temporary section? This would
-> allow us to ditch an absolute pile of slowpaths.
+> this provides a preemptible variant of kmap_atomic & related
+> interfaces. This is achieved by:
 
-(coffee just kicked in) copy_*_user is ofc allowed, but if you hit a
-page fault you get a short read/write. This looks like it would remove
-the need to handle these in a slowpath, since page faults can now be
-served in this new kmap_temporary sections. But this sounds too good
-to be true, so I'm wondering what I'm missing.
--Daniel
->
-> >
-> > Thanks,
-> >
-> >         tglx
-> > ---
-> >  a/arch/arm/mm/highmem.c               |  121 ---------------------
-> >  a/arch/microblaze/mm/highmem.c        |   78 -------------
-> >  a/arch/nds32/mm/highmem.c             |   48 --------
-> >  a/arch/powerpc/mm/highmem.c           |   67 -----------
-> >  a/arch/sparc/mm/highmem.c             |  115 --------------------
-> >  arch/arc/Kconfig                      |    1
-> >  arch/arc/include/asm/highmem.h        |    8 +
-> >  arch/arc/mm/highmem.c                 |   44 -------
-> >  arch/arm/Kconfig                      |    1
-> >  arch/arm/include/asm/highmem.h        |   30 +++--
-> >  arch/arm/mm/Makefile                  |    1
-> >  arch/csky/Kconfig                     |    1
-> >  arch/csky/include/asm/highmem.h       |    4
-> >  arch/csky/mm/highmem.c                |   75 -------------
-> >  arch/microblaze/Kconfig               |    1
-> >  arch/microblaze/include/asm/highmem.h |    6 -
-> >  arch/microblaze/mm/Makefile           |    1
-> >  arch/microblaze/mm/init.c             |    6 -
-> >  arch/mips/Kconfig                     |    1
-> >  arch/mips/include/asm/highmem.h       |    4
-> >  arch/mips/mm/highmem.c                |   77 -------------
-> >  arch/mips/mm/init.c                   |    3
-> >  arch/nds32/Kconfig.cpu                |    1
-> >  arch/nds32/include/asm/highmem.h      |   21 ++-
-> >  arch/nds32/mm/Makefile                |    1
-> >  arch/powerpc/Kconfig                  |    1
-> >  arch/powerpc/include/asm/highmem.h    |    6 -
-> >  arch/powerpc/mm/Makefile              |    1
-> >  arch/powerpc/mm/mem.c                 |    7 -
-> >  arch/sparc/Kconfig                    |    1
-> >  arch/sparc/include/asm/highmem.h      |    7 -
-> >  arch/sparc/mm/Makefile                |    3
-> >  arch/sparc/mm/srmmu.c                 |    2
-> >  arch/x86/include/asm/fixmap.h         |    1
-> >  arch/x86/include/asm/highmem.h        |   12 +-
-> >  arch/x86/include/asm/iomap.h          |   29 +++--
-> >  arch/x86/mm/highmem_32.c              |   59 ----------
-> >  arch/x86/mm/init_32.c                 |   15 --
-> >  arch/x86/mm/iomap_32.c                |   57 ----------
-> >  arch/xtensa/Kconfig                   |    1
-> >  arch/xtensa/include/asm/highmem.h     |    9 +
-> >  arch/xtensa/mm/highmem.c              |   44 -------
-> >  b/arch/x86/Kconfig                    |    3
-> >  include/linux/highmem.h               |  141 +++++++++++++++---------
-> >  include/linux/io-mapping.h            |    2
-> >  include/linux/sched.h                 |    9 +
-> >  kernel/sched/core.c                   |   10 +
-> >  mm/Kconfig                            |    3
-> >  mm/highmem.c                          |  192 ++++++++++++++++++++++++++++++++--
-> >  49 files changed, 422 insertions(+), 909 deletions(-)
->
->
->
-> --
-> Daniel Vetter
-> Software Engineer, Intel Corporation
-> http://blog.ffwll.ch
+Ack. This looks really nice, even apart from the new capability.
 
+The only thing I really reacted to is that the name doesn't make sense
+to me: "kmap_temporary()" seems a bit odd.
 
+Particularly for an interface that really is basically meant as a
+better replacement of "kmap_atomic()" (but is perhaps also a better
+replacement for "kmap()").
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+I think I understand how the name came about: I think the "temporary"
+is there as a distinction from the "longterm" regular kmap(). So I
+think it makes some sense from an internal implementation angle, but I
+don't think it makes a lot of sense from an interface name.
+
+I don't know what might be a better name, but if we want to emphasize
+that it's thread-private and a one-off, maybe "local" would be a
+better naming, and make it distinct from the "global" nature of the
+old kmap() interface?
+
+However, another solution might be to just use this new preemptible
+"local" kmap(), and remove the old global one entirely. Yes, the old
+global one caches the page table mapping and that sounds really
+efficient and nice. But it's actually horribly horribly bad, because
+it means that we need to use locking for them. Your new "temporary"
+implementation seems to be fundamentally better locking-wise, and only
+need preemption disabling as locking (and is equally fast for the
+non-highmem case).
+
+So I wonder if the single-page TLB flush isn't a better model, and
+whether it wouldn't be a lot simpler to just get rid of the old
+complex kmap() entirely, and replace it with this?
+
+I agree we can't replace the kmap_atomic() version, because maybe
+people depend on the preemption disabling it also implied. But what
+about replacing the non-atomic kmap()?
+
+Maybe I've missed something.  Is it because the new interface still
+does "pagefault_disable()" perhaps?
+
+But does it even need the pagefault_disable() at all? Yes, the
+*atomic* one obviously needed it. But why does this new one need to
+disable page faults?
+
+[ I'm just reading the patches, I didn't try to apply them and look at
+the end result, so I might have missed something ]
+
+The only other worry I would have is just test coverage of this
+change. I suspect very few developers use HIGHMEM. And I know the
+various test robots don't tend to test 32-bit either.
+
+But apart from that question about naming (and perhaps replacing
+kmap() entirely), I very much like it.
+
+                        Linus
