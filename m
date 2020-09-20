@@ -1,7 +1,7 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Sun, 20 Sep 2020 18:41:57 +0000
+From: Matthew Wilcox <willy@infradead.org>
+Date: Sun, 20 Sep 2020 19:01:59 +0000
 Subject: Re: [PATCH 1/9] kernel: add a PF_FORCE_COMPAT flag
-Message-Id: <20200920184157.GP3421308@ZenIV.linux.org.uk>
+Message-Id: <20200920190159.GT32101@casper.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200918124533.3487701-1-hch@lst.de>
  <20200918124533.3487701-2-hch@lst.de>
@@ -9,48 +9,39 @@ References: <20200918124533.3487701-1-hch@lst.de>
  <20200920180742.GN3421308@ZenIV.linux.org.uk>
 In-Reply-To: <20200920180742.GN3421308@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-To: Matthew Wilcox <willy@infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
 On Sun, Sep 20, 2020 at 07:07:42PM +0100, Al Viro wrote:
+> 	2) a few drivers are really fucked in head.  They use different
+> *DATA* layouts for reads/writes, depending upon the calling process.
+> IOW, if you fork/exec a 32bit binary and your stdin is one of those,
+> reads from stdin in parent and child will yield different data layouts.
+> On the same struct file.
+> 	That's what Christoph worries about (/dev/sg he'd mentioned is
+> one of those).
+> 
+> 	IMO we should simply have that dozen or so of pathological files
+> marked with FMODE_SHITTY_ABI; it's not about how they'd been opened -
+> it describes the userland ABI provided by those.  And it's cast in stone.
+> 
+> 	Any in_compat_syscall() in ->read()/->write() instances is an ABI
+> bug, plain and simple.  Some are unfixable for compatibility reasons, but
+> any new caller like that should be a big red flag.
 
+So an IOCB_COMPAT flag would let us know whether the caller is expecting
+a 32-bit or 64-bit layout?  And io_uring could set it based on the
+ctx->compat flag.
+
+> 	Current list of those turds:
+> /dev/sg (pointer-chasing, generally insane)
+> /sys/firmware/efi/vars/*/raw_var (fucked binary structure)
+> /sys/firmware/efi/vars/new_var (fucked binary structure)
+> /sys/firmware/efi/vars/del_var (fucked binary structure)
+> /dev/uhid	(pointer-chasing for one obsolete command)
+> /dev/input/event* (timestamps)
+> /dev/uinput (timestamps)
 > /proc/bus/input/devices (fucked bitmap-to-text representation)
-
-To illustrate the, er, beauty of that stuff:
-
-; cat32 /proc/bus/input/devices >/tmp/a
-; cat /proc/bus/input/devices >/tmp/b
-; diff -u /tmp/a /tmp/b|grep '^[-+]'
---- /tmp/a      2020-09-20 14:28:43.442560691 -0400
-+++ /tmp/b      2020-09-20 14:28:49.018543230 -0400
--B: KEY=1100f 2902000 8380307c f910f001 feffffdf ffefffff ffffffff fffffffe
-+B: KEY=1100f02902000 8380307cf910f001 feffffdfffefffff fffffffffffffffe
--B: KEYp000 0 0 0 0 0 0 0 0
-+B: KEYp000 0 0 0 0
--B: KEYB0 0 70000 0 0 0 0 0 0 0 0
-+B: KEYB0 70000 0 0 0 0
--B: KEY=100000 0 0 0
-+B: KEY=10000000000000 0
--B: KEY@00 0 0 0 0
-+B: KEY@00 0 0
--B: KEY=8000 0 0 0 0 0 1100b 800 2 200000 0 0 0 0
-+B: KEY=800000000000 0 0 1100b00000800 200200000 0 0
--B: KEY>000b 0 0 0 0 0 0 0
-+B: KEY>000b00000000 0 0 0
--B: KEY=FFffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffff=
-fffe
-+B: KEY=FFffffffffffffff ffffffffffffffff ffffffffffffffff fffffffffffffffe
-;=20
-(cat32 being a 32bit binary of cat)
-All the differences are due to homegrown bitmap-to-text conversion.
-
-Note that feeding that into a pipe leaves the recepient with a lovely probl=
-em -
-you can't go by the width of words (they are not zero-padded) and you can't
-go by the number of words either - it varies from device to device.
-
-And there's nothing we can do with that - it's a userland ABI, can't be
-changed without breaking stuff.  I would prefer to avoid additional examples
-like that, TYVM...
+> /sys/class/input/*/capabilities/* (fucked bitmap-to-text representation)
