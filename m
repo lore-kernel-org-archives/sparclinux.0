@@ -1,32 +1,62 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 21 Sep 2020 04:28:15 +0000
+From: Pavel Begunkov <asml.silence@gmail.com>
+Date: Mon, 21 Sep 2020 16:10:20 +0000
 Subject: Re: [PATCH 1/9] kernel: add a PF_FORCE_COMPAT flag
-Message-Id: <20200921042815.GA16281@lst.de>
+Message-Id: <563138b5-7073-74bc-f0c5-b2bad6277e87@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200918124533.3487701-1-hch@lst.de> <20200918124533.3487701-2-hch@lst.de> <20200920151510.GS32101@casper.infradead.org> <20200920180742.GN3421308@ZenIV.linux.org.uk> <CALCETrWHW4wHG+Z-mxsY-kvjSi+S6gRUQ+LHd9syPcm5bhi3cw@mail.gmail.com>
-In-Reply-To: <CALCETrWHW4wHG+Z-mxsY-kvjSi+S6gRUQ+LHd9syPcm5bhi3cw@mail.gmail.com>
+References: <CAK8P3a2Mi+1yttyGk4k7HxRVrMtmFqJewouVhynqUL0PJycmog@mail.gmail.com>
+ <D0791499-1190-4C3F-A984-0A313ECA81C7@amacapital.net>
+In-Reply-To: <D0791499-1190-4C3F-A984-0A313ECA81C7@amacapital.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, Matthew Wilcox <willy@infradead.org>, Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "open list:MIPS" <linux-mips@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, linux-aio <linux-aio@kvack.org>, io-uring@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, Network Development <netdev@vger.kernel.org>, keyrings@vger.kernel.org, LSM List <linux-security-module@vger.kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Andy Lutomirski <luto@amacapital.net>, Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Lutomirski <luto@kernel.org>, Christoph Hellwig <hch@lst.de>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, "open list:MIPS" <linux-mips@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>, Linux SCSI List <linux-scsi@vger.kernel.org>, Linux FS Devel <linux-fsdevel@vger.kernel.org>, linux-aio <linux-aio@kvack.org>, io-uring@vger.kernel.org, linux-arch <linux-arch@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, Network Development <netdev@vger.kernel.org>, keyrings@vger.kernel.org, LSM List <linux-security-module@vger.kernel.org>
 
-On Sun, Sep 20, 2020 at 12:14:49PM -0700, Andy Lutomirski wrote:
-> I wonder if this is really quite cast in stone.  We could also have
-> FMODE_SHITTY_COMPAT and set that when a file like this is *opened* in
-> compat mode.  Then that particular struct file would be read and
-> written using the compat data format.  The change would be
-> user-visible, but the user that would see it would be very strange
-> indeed.
-> 
-> I don't have a strong opinion as to whether that is better or worse
-> than denying io_uring access to these things, but at least it moves
-> the special case out of io_uring.
+On 20/09/2020 01:22, Andy Lutomirski wrote:
+>=20
+>> On Sep 19, 2020, at 2:16 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>>
+>> =EF=BB=BFOn Sat, Sep 19, 2020 at 6:21 PM Andy Lutomirski <luto@kernel.or=
+g> wrote:
+>>>> On Fri, Sep 18, 2020 at 8:16 AM Christoph Hellwig <hch@lst.de> wrote:
+>>>> On Fri, Sep 18, 2020 at 02:58:22PM +0100, Al Viro wrote:
+>>>>> Said that, why not provide a variant that would take an explicit
+>>>>> "is it compat" argument and use it there?  And have the normal
+>>>>> one pass in_compat_syscall() to that...
+>>>>
+>>>> That would help to not introduce a regression with this series yes.
+>>>> But it wouldn't fix existing bugs when io_uring is used to access
+>>>> read or write methods that use in_compat_syscall().  One example that
+>>>> I recently ran into is drivers/scsi/sg.c.
+>>
+>> Ah, so reading /dev/input/event* would suffer from the same issue,
+>> and that one would in fact be broken by your patch in the hypothetical
+>> case that someone tried to use io_uring to read /dev/input/event on x32.=
+..
+>>
+>> For reference, I checked the socket timestamp handling that has a
+>> number of corner cases with time32/time64 formats in compat mode,
+>> but none of those appear to be affected by the problem.
+>>
+>>> Aside from the potentially nasty use of per-task variables, one thing
+>>> I don't like about PF_FORCE_COMPAT is that it's one-way.  If we're
+>>> going to have a generic mechanism for this, shouldn't we allow a full
+>>> override of the syscall arch instead of just allowing forcing compat
+>>> so that a compat syscall can do a non-compat operation?
+>>
+>> The only reason it's needed here is that the caller is in a kernel
+>> thread rather than a system call. Are there any possible scenarios
+>> where one would actually need the opposite?
+>>
+>=20
+> I can certainly imagine needing to force x32 mode from a kernel thread.
+>=20
+> As for the other direction: what exactly are the desired bitness/arch sem=
+antics of io_uring?  Is the operation bitness chosen by the io_uring creati=
+on or by the io_uring_enter() bitness?
 
-open could have happened through an io_uring thread a well, so I don't
-see how this would do anything but move the problem to a different
-place.
+It's rather the second one. Even though AFAIR it wasn't discussed
+specifically, that how it works now (_partially_).
 
-> 
-> --Andy
----end quoted text---
+--=20
+Pavel Begunkov
