@@ -1,347 +1,172 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 25 Sep 2020 04:51:42 +0000
-Subject: [PATCH 5/9] fs: remove various compat readv/writev helpers
-Message-Id: <20200925045146.1283714-6-hch@lst.de>
+From: Bill Wendling <morbo@google.com>
+Date: Tue, 22 Sep 2020 23:21:40 +0000
+Subject: [PATCH] kbuild: explicitly specify the build id style
+Message-Id: <20200922232140.1994390-1-morbo@google.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200925045146.1283714-1-hch@lst.de>
-In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: linux-kbuild@vger.kernel.org
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Andy Lutomirski <luto@kernel.org>, Michal Marek <michal.lkml@markovi.net>, Catalin Marinas <catalin.marinas@arm.com>, "David S . Miller" <davem@davemloft.net>, Will Deacon <will@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, netdev@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Nathan Chancellor <natechancellor@gmail.com>, Bill Wendling <morbo@google.com>
 
-Now that import_iovec handles compat iovecs as well, all the duplicated
-code in the compat readv/writev helpers is not needed.  Remove them
-and switch the compat syscall handlers to use the native helpers.
+ld's --build-id defaults to "sha1" style, while lld defaults to "fast".
+The build IDs are very different between the two, which may confuse
+programs that reference them.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Bill Wendling <morbo@google.com>
 ---
- fs/read_write.c        | 179 +++++++----------------------------------
- include/linux/compat.h |  20 ++---
- 2 files changed, 40 insertions(+), 159 deletions(-)
+ Makefile                             | 4 ++--
+ arch/arm/vdso/Makefile               | 2 +-
+ arch/arm64/kernel/vdso/Makefile      | 2 +-
+ arch/arm64/kernel/vdso32/Makefile    | 2 +-
+ arch/mips/vdso/Makefile              | 2 +-
+ arch/riscv/kernel/vdso/Makefile      | 2 +-
+ arch/s390/kernel/vdso64/Makefile     | 2 +-
+ arch/sparc/vdso/Makefile             | 2 +-
+ arch/x86/entry/vdso/Makefile         | 2 +-
+ tools/testing/selftests/bpf/Makefile | 2 +-
+ 10 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/fs/read_write.c b/fs/read_write.c
-index 0a68037580b455..eab427b7cc0a3f 100644
---- a/fs/read_write.c
-+++ b/fs/read_write.c
-@@ -1068,226 +1068,107 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
- 	return do_pwritev(fd, vec, vlen, pos, flags);
- }
- 
-+/*
-+ * Various compat syscalls.  Note that they all pretend to take a native
-+ * iovec - import_iovec will properly treat those as compat_iovecs based on
-+ * in_compat_syscall().
-+ */
- #ifdef CONFIG_COMPAT
--static size_t compat_readv(struct file *file,
--			   const struct compat_iovec __user *vec,
--			   unsigned long vlen, loff_t *pos, rwf_t flags)
--{
--	struct iovec iovstack[UIO_FASTIOV];
--	struct iovec *iov = iovstack;
--	struct iov_iter iter;
--	ssize_t ret;
--
--	ret = import_iovec(READ, (const struct iovec __user *)vec, vlen,
--			   UIO_FASTIOV, &iov, &iter);
--	if (ret >= 0) {
--		ret = do_iter_read(file, &iter, pos, flags);
--		kfree(iov);
--	}
--	if (ret > 0)
--		add_rchar(current, ret);
--	inc_syscr(current);
--	return ret;
--}
--
--static size_t do_compat_readv(compat_ulong_t fd,
--				 const struct compat_iovec __user *vec,
--				 compat_ulong_t vlen, rwf_t flags)
--{
--	struct fd f = fdget_pos(fd);
--	ssize_t ret;
--	loff_t pos;
--
--	if (!f.file)
--		return -EBADF;
--	pos = f.file->f_pos;
--	ret = compat_readv(f.file, vec, vlen, &pos, flags);
--	if (ret >= 0)
--		f.file->f_pos = pos;
--	fdput_pos(f);
--	return ret;
--
--}
--
- COMPAT_SYSCALL_DEFINE3(readv, compat_ulong_t, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		compat_ulong_t, vlen)
- {
--	return do_compat_readv(fd, vec, vlen, 0);
--}
--
--static long do_compat_preadv64(unsigned long fd,
--				  const struct compat_iovec __user *vec,
--				  unsigned long vlen, loff_t pos, rwf_t flags)
--{
--	struct fd f;
--	ssize_t ret;
--
--	if (pos < 0)
--		return -EINVAL;
--	f = fdget(fd);
--	if (!f.file)
--		return -EBADF;
--	ret = -ESPIPE;
--	if (f.file->f_mode & FMODE_PREAD)
--		ret = compat_readv(f.file, vec, vlen, &pos, flags);
--	fdput(f);
--	return ret;
-+	return do_readv(fd, vec, vlen, 0);
- }
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64
- COMPAT_SYSCALL_DEFINE4(preadv64, unsigned long, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		unsigned long, vlen, loff_t, pos)
- {
--	return do_compat_preadv64(fd, vec, vlen, pos, 0);
-+	return do_preadv(fd, vec, vlen, pos, 0);
- }
- #endif
- 
- COMPAT_SYSCALL_DEFINE5(preadv, compat_ulong_t, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 
--	return do_compat_preadv64(fd, vec, vlen, pos, 0);
-+	return do_preadv(fd, vec, vlen, pos, 0);
- }
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
- COMPAT_SYSCALL_DEFINE5(preadv64v2, unsigned long, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		unsigned long, vlen, loff_t, pos, rwf_t, flags)
- {
- 	if (pos = -1)
--		return do_compat_readv(fd, vec, vlen, flags);
--
--	return do_compat_preadv64(fd, vec, vlen, pos, flags);
-+		return do_readv(fd, vec, vlen, flags);
-+	return do_preadv(fd, vec, vlen, pos, flags);
- }
- #endif
- 
- COMPAT_SYSCALL_DEFINE6(preadv2, compat_ulong_t, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high,
- 		rwf_t, flags)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 
- 	if (pos = -1)
--		return do_compat_readv(fd, vec, vlen, flags);
--
--	return do_compat_preadv64(fd, vec, vlen, pos, flags);
--}
--
--static size_t compat_writev(struct file *file,
--			    const struct compat_iovec __user *vec,
--			    unsigned long vlen, loff_t *pos, rwf_t flags)
--{
--	struct iovec iovstack[UIO_FASTIOV];
--	struct iovec *iov = iovstack;
--	struct iov_iter iter;
--	ssize_t ret;
--
--	ret = import_iovec(WRITE, (const struct iovec __user *)vec, vlen,
--			   UIO_FASTIOV, &iov, &iter);
--	if (ret >= 0) {
--		file_start_write(file);
--		ret = do_iter_write(file, &iter, pos, flags);
--		file_end_write(file);
--		kfree(iov);
--	}
--	if (ret > 0)
--		add_wchar(current, ret);
--	inc_syscw(current);
--	return ret;
--}
--
--static size_t do_compat_writev(compat_ulong_t fd,
--				  const struct compat_iovec __user* vec,
--				  compat_ulong_t vlen, rwf_t flags)
--{
--	struct fd f = fdget_pos(fd);
--	ssize_t ret;
--	loff_t pos;
--
--	if (!f.file)
--		return -EBADF;
--	pos = f.file->f_pos;
--	ret = compat_writev(f.file, vec, vlen, &pos, flags);
--	if (ret >= 0)
--		f.file->f_pos = pos;
--	fdput_pos(f);
--	return ret;
-+		return do_readv(fd, vec, vlen, flags);
-+	return do_preadv(fd, vec, vlen, pos, flags);
- }
- 
- COMPAT_SYSCALL_DEFINE3(writev, compat_ulong_t, fd,
--		const struct compat_iovec __user *, vec,
-+		const struct iovec __user *, vec,
- 		compat_ulong_t, vlen)
- {
--	return do_compat_writev(fd, vec, vlen, 0);
--}
--
--static long do_compat_pwritev64(unsigned long fd,
--				   const struct compat_iovec __user *vec,
--				   unsigned long vlen, loff_t pos, rwf_t flags)
--{
--	struct fd f;
--	ssize_t ret;
--
--	if (pos < 0)
--		return -EINVAL;
--	f = fdget(fd);
--	if (!f.file)
--		return -EBADF;
--	ret = -ESPIPE;
--	if (f.file->f_mode & FMODE_PWRITE)
--		ret = compat_writev(f.file, vec, vlen, &pos, flags);
--	fdput(f);
--	return ret;
-+	return do_writev(fd, vec, vlen, 0);
- }
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64
- COMPAT_SYSCALL_DEFINE4(pwritev64, unsigned long, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		unsigned long, vlen, loff_t, pos)
- {
--	return do_compat_pwritev64(fd, vec, vlen, pos, 0);
-+	return do_pwritev(fd, vec, vlen, pos, 0);
- }
- #endif
- 
- COMPAT_SYSCALL_DEFINE5(pwritev, compat_ulong_t, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *,vec,
- 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 
--	return do_compat_pwritev64(fd, vec, vlen, pos, 0);
-+	return do_pwritev(fd, vec, vlen, pos, 0);
- }
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
- COMPAT_SYSCALL_DEFINE5(pwritev64v2, unsigned long, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *, vec,
- 		unsigned long, vlen, loff_t, pos, rwf_t, flags)
- {
- 	if (pos = -1)
--		return do_compat_writev(fd, vec, vlen, flags);
--
--	return do_compat_pwritev64(fd, vec, vlen, pos, flags);
-+		return do_writev(fd, vec, vlen, flags);
-+	return do_pwritev(fd, vec, vlen, pos, flags);
- }
- #endif
- 
- COMPAT_SYSCALL_DEFINE6(pwritev2, compat_ulong_t, fd,
--		const struct compat_iovec __user *,vec,
-+		const struct iovec __user *,vec,
- 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high, rwf_t, flags)
- {
- 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
- 
- 	if (pos = -1)
--		return do_compat_writev(fd, vec, vlen, flags);
--
--	return do_compat_pwritev64(fd, vec, vlen, pos, flags);
-+		return do_writev(fd, vec, vlen, flags);
-+	return do_pwritev(fd, vec, vlen, pos, flags);
- }
--
--#endif
-+#endif /* CONFIG_COMPAT */
- 
- static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
- 		  	   size_t count, loff_t max)
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index b930de791ff16b..306ea7e1172d8d 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -546,25 +546,25 @@ asmlinkage long compat_sys_getdents(unsigned int fd,
- /* fs/read_write.c */
- asmlinkage long compat_sys_lseek(unsigned int, compat_off_t, unsigned int);
- asmlinkage ssize_t compat_sys_readv(compat_ulong_t fd,
--		const struct compat_iovec __user *vec, compat_ulong_t vlen);
-+		const struct iovec __user *vec, compat_ulong_t vlen);
- asmlinkage ssize_t compat_sys_writev(compat_ulong_t fd,
--		const struct compat_iovec __user *vec, compat_ulong_t vlen);
-+		const struct iovec __user *vec, compat_ulong_t vlen);
- /* No generic prototype for pread64 and pwrite64 */
- asmlinkage ssize_t compat_sys_preadv(compat_ulong_t fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
- asmlinkage ssize_t compat_sys_pwritev(compat_ulong_t fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
- #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64
- asmlinkage long compat_sys_preadv64(unsigned long fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		unsigned long vlen, loff_t pos);
- #endif
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64
- asmlinkage long compat_sys_pwritev64(unsigned long fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		unsigned long vlen, loff_t pos);
- #endif
- 
-@@ -800,20 +800,20 @@ asmlinkage long compat_sys_execveat(int dfd, const char __user *filename,
- 		     const compat_uptr_t __user *argv,
- 		     const compat_uptr_t __user *envp, int flags);
- asmlinkage ssize_t compat_sys_preadv2(compat_ulong_t fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
- asmlinkage ssize_t compat_sys_pwritev2(compat_ulong_t fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
- #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
- asmlinkage long  compat_sys_preadv64v2(unsigned long fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		unsigned long vlen, loff_t pos, rwf_t flags);
- #endif
- 
- #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
- asmlinkage long compat_sys_pwritev64v2(unsigned long fd,
--		const struct compat_iovec __user *vec,
-+		const struct iovec __user *vec,
- 		unsigned long vlen, loff_t pos, rwf_t flags);
- #endif
- 
--- 
-2.28.0
+diff --git a/Makefile b/Makefile
+index 2b66d3398878..7e6f41c9803a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -973,8 +973,8 @@ KBUILD_CPPFLAGS +=3D $(KCPPFLAGS)
+ KBUILD_AFLAGS   +=3D $(KAFLAGS)
+ KBUILD_CFLAGS   +=3D $(KCFLAGS)
+=20
+-KBUILD_LDFLAGS_MODULE +=3D --build-id
+-LDFLAGS_vmlinux +=3D --build-id
++KBUILD_LDFLAGS_MODULE +=3D --build-id=3Dsha1
++LDFLAGS_vmlinux +=3D --build-id=3Dsha1
+=20
+ ifeq ($(CONFIG_STRIP_ASM_SYMS),y)
+ LDFLAGS_vmlinux	+=3D $(call ld-option, -X,)
+diff --git a/arch/arm/vdso/Makefile b/arch/arm/vdso/Makefile
+index a54f70731d9f..150ce6e6a5d3 100644
+--- a/arch/arm/vdso/Makefile
++++ b/arch/arm/vdso/Makefile
+@@ -19,7 +19,7 @@ ccflags-y +=3D -DDISABLE_BRANCH_PROFILING -DBUILD_VDSO32
+ ldflags-$(CONFIG_CPU_ENDIAN_BE8) :=3D --be8
+ ldflags-y :=3D -Bsymbolic --no-undefined -soname=3Dlinux-vdso.so.1 \
+ 	    -z max-page-size@96 -nostdlib -shared $(ldflags-y) \
+-	    --hash-style=3Dsysv --build-id \
++	    --hash-style=3Dsysv --build-id=3Dsha1 \
+ 	    -T
+=20
+ obj-$(CONFIG_VDSO) +=3D vdso.o
+diff --git a/arch/arm64/kernel/vdso/Makefile b/arch/arm64/kernel/vdso/Makef=
+ile
+index 45d5cfe46429..871915097f9d 100644
+--- a/arch/arm64/kernel/vdso/Makefile
++++ b/arch/arm64/kernel/vdso/Makefile
+@@ -24,7 +24,7 @@ btildflags-$(CONFIG_ARM64_BTI_KERNEL) +=3D -z force-bti
+ # routines, as x86 does (see 6f121e548f83 ("x86, vdso: Reimplement vdso.so
+ # preparation in build-time C")).
+ ldflags-y :=3D -shared -nostdlib -soname=3Dlinux-vdso.so.1 --hash-style=3D=
+sysv	\
+-	     -Bsymbolic $(call ld-option, --no-eh-frame-hdr) --build-id -n	\
++	     -Bsymbolic $(call ld-option, --no-eh-frame-hdr) --build-id=3Dsha1 -n=
+	\
+ 	     $(btildflags-y) -T
+=20
+ ccflags-y :=3D -fno-common -fno-builtin -fno-stack-protector -ffixed-x18
+diff --git a/arch/arm64/kernel/vdso32/Makefile b/arch/arm64/kernel/vdso32/M=
+akefile
+index d6adb4677c25..4fa4b3fe8efb 100644
+--- a/arch/arm64/kernel/vdso32/Makefile
++++ b/arch/arm64/kernel/vdso32/Makefile
+@@ -128,7 +128,7 @@ VDSO_LDFLAGS +=3D -Wl,-Bsymbolic -Wl,--no-undefined -Wl=
+,-soname=3Dlinux-vdso.so.1
+ VDSO_LDFLAGS +=3D -Wl,-z,max-page-size@96 -Wl,-z,common-page-size@96
+ VDSO_LDFLAGS +=3D -nostdlib -shared -mfloat-abi=3Dsoft
+ VDSO_LDFLAGS +=3D -Wl,--hash-style=3Dsysv
+-VDSO_LDFLAGS +=3D -Wl,--build-id
++VDSO_LDFLAGS +=3D -Wl,--build-id=3Dsha1
+ VDSO_LDFLAGS +=3D $(call cc32-ldoption,-fuse-ld=BFd)
+=20
+=20
+diff --git a/arch/mips/vdso/Makefile b/arch/mips/vdso/Makefile
+index 57fe83235281..5810cc12bc1d 100644
+--- a/arch/mips/vdso/Makefile
++++ b/arch/mips/vdso/Makefile
+@@ -61,7 +61,7 @@ endif
+ # VDSO linker flags.
+ ldflags-y :=3D -Bsymbolic --no-undefined -soname=3Dlinux-vdso.so.1 \
+ 	$(filter -E%,$(KBUILD_CFLAGS)) -nostdlib -shared \
+-	-G 0 --eh-frame-hdr --hash-style=3Dsysv --build-id -T
++	-G 0 --eh-frame-hdr --hash-style=3Dsysv --build-id=3Dsha1 -T
+=20
+ CFLAGS_REMOVE_vdso.o =3D -pg
+=20
+diff --git a/arch/riscv/kernel/vdso/Makefile b/arch/riscv/kernel/vdso/Makef=
+ile
+index 478e7338ddc1..7d6a94d45ec9 100644
+--- a/arch/riscv/kernel/vdso/Makefile
++++ b/arch/riscv/kernel/vdso/Makefile
+@@ -49,7 +49,7 @@ $(obj)/vdso.so.dbg: $(src)/vdso.lds $(obj-vdso) FORCE
+ # refer to these symbols in the kernel code rather than hand-coded address=
+es.
+=20
+ SYSCFLAGS_vdso.so.dbg =3D -shared -s -Wl,-soname=3Dlinux-vdso.so.1 \
+-	-Wl,--build-id -Wl,--hash-style=3Dboth
++	-Wl,--build-id=3Dsha1 -Wl,--hash-style=3Dboth
+ $(obj)/vdso-dummy.o: $(src)/vdso.lds $(obj)/rt_sigreturn.o FORCE
+ 	$(call if_changed,vdsold)
+=20
+diff --git a/arch/s390/kernel/vdso64/Makefile b/arch/s390/kernel/vdso64/Mak=
+efile
+index 4a66a1cb919b..edc473b32e42 100644
+--- a/arch/s390/kernel/vdso64/Makefile
++++ b/arch/s390/kernel/vdso64/Makefile
+@@ -19,7 +19,7 @@ KBUILD_AFLAGS_64 +=3D -m64 -s
+ KBUILD_CFLAGS_64 :=3D $(filter-out -m64,$(KBUILD_CFLAGS))
+ KBUILD_CFLAGS_64 +=3D -m64 -fPIC -shared -fno-common -fno-builtin
+ ldflags-y :=3D -fPIC -shared -nostdlib -soname=3Dlinux-vdso64.so.1 \
+-	     --hash-style=3Dboth --build-id -T
++	     --hash-style=3Dboth --build-id=3Dsha1 -T
+=20
+ $(targets:%=3D$(obj)/%.dbg): KBUILD_CFLAGS =3D $(KBUILD_CFLAGS_64)
+ $(targets:%=3D$(obj)/%.dbg): KBUILD_AFLAGS =3D $(KBUILD_AFLAGS_64)
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index f44355e46f31..469dd23887ab 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -115,7 +115,7 @@ quiet_cmd_vdso =3D VDSO    $@
+ 		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
+ 		sh $(srctree)/$(src)/checkundef.sh '$(OBJDUMP)' '$@'
+=20
+-VDSO_LDFLAGS =3D -shared --hash-style=3Dboth --build-id -Bsymbolic
++VDSO_LDFLAGS =3D -shared --hash-style=3Dboth --build-id=3Dsha1 -Bsymbolic
+ GCOV_PROFILE :=3D n
+=20
+ #
+diff --git a/arch/x86/entry/vdso/Makefile b/arch/x86/entry/vdso/Makefile
+index 215376d975a2..ebba25ed9a38 100644
+--- a/arch/x86/entry/vdso/Makefile
++++ b/arch/x86/entry/vdso/Makefile
+@@ -176,7 +176,7 @@ quiet_cmd_vdso =3D VDSO    $@
+ 		       -T $(filter %.lds,$^) $(filter %.o,$^) && \
+ 		 sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
+=20
+-VDSO_LDFLAGS =3D -shared --hash-style=3Dboth --build-id \
++VDSO_LDFLAGS =3D -shared --hash-style=3Dboth --build-id=3Dsha1 \
+ 	$(call ld-option, --eh-frame-hdr) -Bsymbolic
+ GCOV_PROFILE :=3D n
+=20
+diff --git a/tools/testing/selftests/bpf/Makefile b/tools/testing/selftests=
+/bpf/Makefile
+index fc946b7ac288..daf186f88a63 100644
+--- a/tools/testing/selftests/bpf/Makefile
++++ b/tools/testing/selftests/bpf/Makefile
+@@ -133,7 +133,7 @@ $(OUTPUT)/%:%.c
+=20
+ $(OUTPUT)/urandom_read: urandom_read.c
+ 	$(call msg,BINARY,,$@)
+-	$(Q)$(CC) $(LDFLAGS) -o $@ $< $(LDLIBS) -Wl,--build-id
++	$(Q)$(CC) $(LDFLAGS) -o $@ $< $(LDLIBS) -Wl,--build-id=3Dsha1
+=20
+ $(OUTPUT)/test_stub.o: test_stub.c $(BPFOBJ)
+ 	$(call msg,CC,,$@)
+--=20
+2.28.0.681.g6f77f65b4e-goog
