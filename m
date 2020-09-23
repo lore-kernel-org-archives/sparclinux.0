@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 18 Sep 2020 12:45:30 +0000
+Date: Wed, 23 Sep 2020 06:05:44 +0000
 Subject: [PATCH 6/9] fs: remove the compat readv/writev syscalls
-Message-Id: <20200918124533.3487701-7-hch@lst.de>
+Message-Id: <20200923060547.16903-7-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200918124533.3487701-1-hch@lst.de>
-In-Reply-To: <20200918124533.3487701-1-hch@lst.de>
+References: <20200923060547.16903-1-hch@lst.de>
+In-Reply-To: <20200923060547.16903-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
 Now that import_iovec handles compat iovecs, the native readv and writev
 syscalls can be used for the compat case as well.
@@ -185,10 +185,10 @@ index f30d6ae9a6883c..b1e59957c5c51c 100644
  518	x32	sendmsg			compat_sys_sendmsg
  519	x32	recvmsg			compat_sys_recvmsg
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 9eb63c53da78f2..560d1b0bdef7bc 100644
+index eab427b7cc0a3f..6c13f744c34a38 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -1217,13 +1217,6 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
+@@ -1074,13 +1074,6 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
   * in_compat_syscall().
   */
  #ifdef CONFIG_COMPAT
@@ -202,7 +202,7 @@ index 9eb63c53da78f2..560d1b0bdef7bc 100644
  #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64
  COMPAT_SYSCALL_DEFINE4(preadv64, unsigned long, fd,
  		const struct iovec __user *, vec,
-@@ -1265,13 +1258,6 @@ COMPAT_SYSCALL_DEFINE6(preadv2, compat_ulong_t, fd,
+@@ -1122,13 +1115,6 @@ COMPAT_SYSCALL_DEFINE6(preadv2, compat_ulong_t, fd,
  	return do_preadv(fd, vec, vlen, pos, flags);
  }
  
@@ -217,7 +217,7 @@ index 9eb63c53da78f2..560d1b0bdef7bc 100644
  COMPAT_SYSCALL_DEFINE4(pwritev64, unsigned long, fd,
  		const struct iovec __user *, vec,
 diff --git a/include/linux/compat.h b/include/linux/compat.h
-index ad6dc56e8828d6..0ff848234df8ba 100644
+index b930de791ff16b..fa39b7a5488d70 100644
 --- a/include/linux/compat.h
 +++ b/include/linux/compat.h
 @@ -545,10 +545,6 @@ asmlinkage long compat_sys_getdents(unsigned int fd,
