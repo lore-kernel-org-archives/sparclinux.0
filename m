@@ -1,15 +1,15 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 18 Sep 2020 12:45:29 +0000
+Date: Wed, 23 Sep 2020 06:05:43 +0000
 Subject: [PATCH 5/9] fs: remove various compat readv/writev helpers
-Message-Id: <20200918124533.3487701-6-hch@lst.de>
+Message-Id: <20200923060547.16903-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200918124533.3487701-1-hch@lst.de>
-In-Reply-To: <20200918124533.3487701-1-hch@lst.de>
+References: <20200923060547.16903-1-hch@lst.de>
+In-Reply-To: <20200923060547.16903-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, linux-arm-kernel@lists.infradead.org, x86@kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
 Now that import_iovec handles compat iovecs as well, all the duplicated
 code in the compat readv/writev helpers is not needed.  Remove them
@@ -21,10 +21,10 @@ Signed-off-by: Christoph Hellwig <hch@lst.de>
  1 file changed, 30 insertions(+), 149 deletions(-)
 
 diff --git a/fs/read_write.c b/fs/read_write.c
-index 2f961c653ce561..9eb63c53da78f2 100644
+index 0a68037580b455..eab427b7cc0a3f 100644
 --- a/fs/read_write.c
 +++ b/fs/read_write.c
-@@ -1211,226 +1211,107 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
+@@ -1068,226 +1068,107 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
  	return do_pwritev(fd, vec, vlen, pos, flags);
  }
  
