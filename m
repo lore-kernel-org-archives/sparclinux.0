@@ -1,133 +1,36 @@
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Date: Wed, 09 Sep 2020 08:38:31 +0000
-Subject: Re: [RFC PATCH v2 2/3] mm: make pXd_addr_end() functions page-table entry aware
-Message-Id: <1599640711.14692.1.camel@po17688vm.idsi0.si.c-s.fr>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 23 Sep 2020 06:05:39 +0000
+Subject: [PATCH 1/9] compat.h: fix a spelling error in <linux/compat.h>
+Message-Id: <20200923060547.16903-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200907180058.64880-1-gerald.schaefer@linux.ibm.com>
-         <20200907180058.64880-3-gerald.schaefer@linux.ibm.com>
-         <31dfb3ed-a0cc-3024-d389-ab9bd19e881f@csgroup.eu>
-         <20200908074638.GA19099@oc3871087118.ibm.com>
-         <5d4f5546-afd0-0b8f-664d-700ae346b9ec@csgroup.eu>
-         <20200908141554.GA20558@oc3871087118.ibm.com>
-In-Reply-To: <20200908141554.GA20558@oc3871087118.ibm.com>
+References: <20200923060547.16903-1-hch@lst.de>
+In-Reply-To: <20200923060547.16903-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Gordeev <agordeev@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>, Gerald Schaefer <gerald.schaefer@linux.ibm.com>, Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-sparc <sparclinux@vger.kernel.org>, Claudio Imbrenda <imbrenda@linux.ibm.com>, Will Deacon <will@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, linux-s390 <linux-s390@vger.kernel.org>, Vasily Gorbik <gor@linux.ibm.com>, Richard Weinberger <richard@nod.at>, linux-x86 <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Andrey Ryabinin <aryabinin@virtuozzo.com>, Heiko Carstens <hca@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Jeff Dike <jdike@addtoit.com>, linux-um <linux-um@lists.infradead.org>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-arm <linux-arm-kernel@lists.infradead.org>, linux-power <linuxppc-dev@lists.ozlabs.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Mike Rapoport <rppt@kernel.org>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
-On Tue, 2020-09-08 at 16:15 +0200, Alexander Gordeev wrote:
-> On Tue, Sep 08, 2020 at 10:16:49AM +0200, Christophe Leroy wrote:
-> > >Yes, and also two more sources :/
-> > >	arch/powerpc/mm/kasan/8xx.c
-> > >	arch/powerpc/mm/kasan/kasan_init_32.c
-> > >
-> > >But these two are not quite obvious wrt pgd_addr_end() used
-> > >while traversing pmds. Could you please clarify a bit?
-> > >
-> > >
-> > >diff --git a/arch/powerpc/mm/kasan/8xx.c b/arch/powerpc/mm/kasan/8xx.c
-> > >index 2784224..89c5053 100644
-> > >--- a/arch/powerpc/mm/kasan/8xx.c
-> > >+++ b/arch/powerpc/mm/kasan/8xx.c
-> > >@@ -15,8 +15,8 @@
-> > >  	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block += SZ_8M) {
-> > >  		pte_basic_t *new;
-> > >-		k_next = pgd_addr_end(k_cur, k_end);
-> > >-		k_next = pgd_addr_end(k_next, k_end);
-> > >+		k_next = pmd_addr_end(k_cur, k_end);
-> > >+		k_next = pmd_addr_end(k_next, k_end);
-> > 
-> > No, I don't think so.
-> > On powerpc32 we have only two levels, so pgd and pmd are more or
-> > less the same.
-> > But pmd_addr_end() as defined in include/asm-generic/pgtable-nopmd.h
-> > is a no-op, so I don't think it will work.
-> > 
-> > It is likely that this function should iterate on pgd, then you get
-> > pmd = pmd_offset(pud_offset(p4d_offset(pgd)));
-> 
-> It looks like the code iterates over single pmd table while using
-> pgd_addr_end() only to skip all the middle levels and bail out
-> from the loop.
-> 
-> I would be wary for switching from pmds to pgds, since we are
-> trying to minimize impact (especially functional) and the
-> rework does not seem that obvious.
-> 
+There is no compat_sys_readv64v2 syscall, only a compat_sys_preadv64v2
+one.
 
-I've just tested the following change, it works and should fix the
-oddity:
-
-diff --git a/arch/powerpc/mm/kasan/8xx.c b/arch/powerpc/mm/kasan/8xx.c
-index 2784224054f8..8e53ddf57b84 100644
---- a/arch/powerpc/mm/kasan/8xx.c
-+++ b/arch/powerpc/mm/kasan/8xx.c
-@@ -9,11 +9,12 @@
- static int __init
- kasan_init_shadow_8M(unsigned long k_start, unsigned long k_end, void
-*block)
- {
--	pmd_t *pmd = pmd_off_k(k_start);
-+	pgd_t *pgd = pgd_offset_k(k_start);
- 	unsigned long k_cur, k_next;
- 
--	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd += 2, block
-+= SZ_8M) {
-+	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pgd += 2, block
-+= SZ_8M) {
- 		pte_basic_t *new;
-+		pmd_t *pmd = pmd_offset(pud_offset(p4d_offset(pgd, k_cur), k_cur),
-k_cur);
- 
- 		k_next = pgd_addr_end(k_cur, k_end);
- 		k_next = pgd_addr_end(k_next, k_end);
-diff --git a/arch/powerpc/mm/kasan/kasan_init_32.c
-b/arch/powerpc/mm/kasan/kasan_init_32.c
-index fb294046e00e..e5f524fa71a7 100644
---- a/arch/powerpc/mm/kasan/kasan_init_32.c
-+++ b/arch/powerpc/mm/kasan/kasan_init_32.c
-@@ -30,13 +30,12 @@ static void __init kasan_populate_pte(pte_t *ptep,
-pgprot_t prot)
- 
- int __init kasan_init_shadow_page_tables(unsigned long k_start,
-unsigned long k_end)
- {
--	pmd_t *pmd;
-+	pgd_t *pgd = pgd_offset_k(k_start);
- 	unsigned long k_cur, k_next;
- 
--	pmd = pmd_off_k(k_start);
--
--	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pmd++) {
-+	for (k_cur = k_start; k_cur != k_end; k_cur = k_next, pgd++) {
- 		pte_t *new;
-+		pmd_t *pmd = pmd_offset(pud_offset(p4d_offset(pgd, k_cur), k_cur),
-k_cur);
- 
- 		k_next = pgd_addr_end(k_cur, k_end);
- 		if ((void *)pmd_page_vaddr(*pmd) != kasan_early_shadow_pte)
-@@ -189,16 +188,18 @@ void __init kasan_early_init(void)
- 	unsigned long addr = KASAN_SHADOW_START;
- 	unsigned long end = KASAN_SHADOW_END;
- 	unsigned long next;
--	pmd_t *pmd = pmd_off_k(addr);
-+	pgd_t *pgd = pgd_offset_k(addr);
- 
- 	BUILD_BUG_ON(KASAN_SHADOW_START & ~PGDIR_MASK);
- 
- 	kasan_populate_pte(kasan_early_shadow_pte, PAGE_KERNEL);
- 
- 	do {
-+		pmd_t *pmd = pmd_offset(pud_offset(p4d_offset(pgd, addr), addr),
-addr);
-+
- 		next = pgd_addr_end(addr, end);
- 		pmd_populate_kernel(&init_mm, pmd, kasan_early_shadow_pte);
--	} while (pmd++, addr = next, addr != end);
-+	} while (pgd++, addr = next, addr != end);
- 
- 	if (early_mmu_has_feature(MMU_FTR_HPTE_TABLE))
- 		kasan_early_hash_table();
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
-Christophe
+ include/linux/compat.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index b354ce58966e2d..654c1ec36671a4 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -812,7 +812,7 @@ asmlinkage ssize_t compat_sys_pwritev2(compat_ulong_t fd,
+ 		const struct compat_iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
+-asmlinkage long  compat_sys_readv64v2(unsigned long fd,
++asmlinkage long  compat_sys_preadv64v2(unsigned long fd,
+ 		const struct compat_iovec __user *vec,
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+-- 
+2.28.0
