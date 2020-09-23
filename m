@@ -1,7 +1,7 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Wed, 23 Sep 2020 14:38:24 +0000
-Subject: RE: [PATCH 3/9] iov_iter: refactor rw_copy_check_uvector and import_iovec
-Message-Id: <200cf2b9ce5e408f8838948fda7ce9a0@AcuMS.aculab.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Wed, 23 Sep 2020 14:40:25 +0000
+Subject: Re: [PATCH 3/9] iov_iter: refactor rw_copy_check_uvector and import_iovec
+Message-Id: <20200923144025.GL3421308@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200923060547.16903-1-hch@lst.de>
  <20200923060547.16903-4-hch@lst.de>
@@ -10,12 +10,10 @@ In-Reply-To: <20200923141654.GJ3421308@ZenIV.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Al Viro' <viro@zeniv.linux.org.uk>, Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>
 
-From: Al Viro
-> Sent: 23 September 2020 15:17
-> 
+On Wed, Sep 23, 2020 at 03:16:54PM +0100, Al Viro wrote:
 > On Wed, Sep 23, 2020 at 08:05:41AM +0200, Christoph Hellwig wrote:
 > 
 > > +struct iovec *iovec_from_user(const struct iovec __user *uvec,
@@ -28,19 +26,32 @@ From: Al Viro
 > The thing is, import_iovec() takes unsigned int there.  Which is fine
 > (hell, the maximal value that can be accepted in 1024), except that
 > we do pass unsigned long syscall argument to it in some places.
+> 
+> E.g. vfs_readv() quietly truncates vlen to 32 bits, and vlen can
+> come unchanged through sys_readv() -> do_readv() -> vfs_readv().
+> With unsigned long passed by syscall glue.
+> 
+> AFAICS, passing 4G+1 as the third argument to readv(2) on 64bit box
+> will be quietly treated as 1 these days.  Which would be fine, except
+> that before "switch {compat_,}do_readv_writev() to {compat_,}import_iovec()"
+> it used to fail with -EINVAL.
+> 
+> Userland, BTW, describes readv(2) iovcnt as int; process_vm_readv(),
+> OTOH, has these counts unsigned long from the userland POV...
+> 
+> I suppose we ought to switch import_iovec() to unsigned long for nr_segs ;-/
+> Strictly speaking that had been a userland ABI change, even though nothing
+> except regression tests checking for expected errors would've been likely
+> to notice.  And it looks like no regression tests covered that one...
+> 
+> Linus, does that qualify for your "if no userland has noticed the change,
+> it's not a breakage"?
 
-It will make diddly-squit difference.
-The parameters end up in registers on most calling conventions.
-Plausibly you get an extra 'REX' byte on x86 for the 64bit value.
-What you want to avoid is explicit sign/zero extension and value
-masking after arithmetic.
+Egads...  We have sys_readv() with unsigned long for file descriptor, since
+1.3.31 when it had been introduced.  And originally it did comparison with
+NR_OPEN right in sys_readv().  Then in 2.1.60 it had been switched to
+fget(), which used to take unsigned long at that point.  And in 2.1.90pre1
+it went unsigned int, so non-zero upper 32 bits in readv(2) first argument
+ceased to cause EBADF...
 
-On x86-64 the 'horrid' type is actually 'signed int'.
-It often needs sign extending to 64bits (eg when being
-used as an array subscript).
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+Of course, libc had it as int fd all along.
