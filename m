@@ -1,126 +1,76 @@
-From: Ira Weiny <ira.weiny@intel.com>
-Date: Mon, 21 Sep 2020 19:58:25 +0000
+From: peterz@infradead.org
+Date: Wed, 23 Sep 2020 08:40:32 +0000
 Subject: Re: [patch RFC 00/15] mm/highmem: Provide a preemptible variant of kmap_atomic & friends
-Message-Id: <20200921195824.GM2540965@iweiny-DESK2.sc.intel.com>
+Message-Id: <20200923084032.GU1362448@hirez.programming.kicks-ass.net>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200919091751.011116649@linutronix.de>
  <CAHk-=wiYGyrFRbA1cc71D2-nc5U9LM9jUJesXGqpPnB7E4X1YQ@mail.gmail.com>
- <20200919173906.GQ32101@casper.infradead.org>
-In-Reply-To: <20200919173906.GQ32101@casper.infradead.org>
+ <87mu1lc5mp.fsf@nanos.tec.linutronix.de>
+ <87k0wode9a.fsf@nanos.tec.linutronix.de>
+ <CAHk-=wgbmwsTOKs23Z=71EBTrULoeaH2U3TNqT2atHEWvkBKdw@mail.gmail.com>
+ <87eemwcpnq.fsf@nanos.tec.linutronix.de>
+ <CAHk-=wgF-upZVpqJWK=TK7MS9H-Rp1ZxGfOG+dDW=JThtxAzVQ@mail.gmail.com>
+ <87a6xjd1dw.fsf@nanos.tec.linutronix.de>
+ <CAHk-=wjhxzx3KHHOMvdDj3Aw-_Mk5eRiNTUBB=tFf=vTkw1FeA@mail.gmail.com>
+ <87sgbbaq0y.fsf@nanos.tec.linutronix.de>
+In-Reply-To: <87sgbbaq0y.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Steven Rostedt <rostedt@goodmis.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juri Lelli <juri.lelli@redhat.com>, David Airlie <airlied@linux.ie>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Steven Rostedt <rostedt@goodmis.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, Greentime Hu <green.hu@gmail.com>
 
-On Sat, Sep 19, 2020 at 06:39:06PM +0100, Matthew Wilcox wrote:
-> On Sat, Sep 19, 2020 at 10:18:54AM -0700, Linus Torvalds wrote:
-> > On Sat, Sep 19, 2020 at 2:50 AM Thomas Gleixner <tglx@linutronix.de> wrote:
-> > >
-> > > this provides a preemptible variant of kmap_atomic & related
-> > > interfaces. This is achieved by:
-> > 
-> > Ack. This looks really nice, even apart from the new capability.
-> > 
-> > The only thing I really reacted to is that the name doesn't make sense
-> > to me: "kmap_temporary()" seems a bit odd.
-> > 
-> > Particularly for an interface that really is basically meant as a
-> > better replacement of "kmap_atomic()" (but is perhaps also a better
-> > replacement for "kmap()").
-> > 
-> > I think I understand how the name came about: I think the "temporary"
-> > is there as a distinction from the "longterm" regular kmap(). So I
-> > think it makes some sense from an internal implementation angle, but I
-> > don't think it makes a lot of sense from an interface name.
-> > 
-> > I don't know what might be a better name, but if we want to emphasize
-> > that it's thread-private and a one-off, maybe "local" would be a
-> > better naming, and make it distinct from the "global" nature of the
-> > old kmap() interface?
-> > 
-> > However, another solution might be to just use this new preemptible
-> > "local" kmap(), and remove the old global one entirely. Yes, the old
-> > global one caches the page table mapping and that sounds really
-> > efficient and nice. But it's actually horribly horribly bad, because
-> > it means that we need to use locking for them. Your new "temporary"
-> > implementation seems to be fundamentally better locking-wise, and only
-> > need preemption disabling as locking (and is equally fast for the
-> > non-highmem case).
-> > 
-> > So I wonder if the single-page TLB flush isn't a better model, and
-> > whether it wouldn't be a lot simpler to just get rid of the old
-> > complex kmap() entirely, and replace it with this?
-> > 
-> > I agree we can't replace the kmap_atomic() version, because maybe
-> > people depend on the preemption disabling it also implied. But what
-> > about replacing the non-atomic kmap()?
+On Mon, Sep 21, 2020 at 09:27:57PM +0200, Thomas Gleixner wrote:
+> On Mon, Sep 21 2020 at 09:24, Linus Torvalds wrote:
+> > On Mon, Sep 21, 2020 at 12:39 AM Thomas Gleixner <tglx@linutronix.de> wrote:
+> >>
+> >> If a task is migrated to a different CPU then the mapping address will
+> >> change which will explode in colourful ways.
+> >
+> > Right you are.
+> >
+> > Maybe we really *could* call this new kmap functionality something
+> > like "kmap_percpu()" (or maybe "local" is good enough), and make it
+> > act like your RT code does for spinlocks - not disable preemption, but
+> > only disabling CPU migration.
 > 
-> My concern with that is people might use kmap() and then pass the address
-> to a different task.  So we need to audit the current users of kmap()
-> and convert any that do that into using vmap() instead.
-> 
+> I"m all for it, but the scheduler people have opinions :)
 
-I've done some of this work.[3]  PKS and pmem stray write protection[2] depend
-on kmap to enable the correct PKS settings.  After working through the
-exception handling we realized that some users of kmap() seem to be doing just
-this; passing the address to a different task.
+Right, so I'm concerned. migrate_disable() wrecks pretty much all
+Real-Time scheduler theory we have, and PREEMPRT_RT bringing it in is
+somewhat ironic.
 
-From what I have found ~90% of kmap() callers are 'kmap_thread()' and the other
-~10% are kmap().[3]  But of those 10% I'm not familiar with the code enough to
-know if they really require a 'global' map.  What I do know is they save an
-address which appears to be used in other threads.  But I could be wrong.
+Yes, it allows breaking up non-preemptible regions of non-deterministic
+duration, and thereby both reduce and bound the scheduling latency, the
+cost for doing that is that the theory on CPU utilization/bandwidth go
+out the window.
 
-For PKS I added a 'global' implementation which could then be called by kmap()
-and added a new kmap_thread() call which used the original 'local' version of
-the PKS interface.  The PKS work is still being reviewed internally for the TIP
-core code.  But I've pushed it all to git hub for purposes of this
-discussion.[1]
+To easily see this consider an SMP system with a number of tasks equal
+to the number of CPUs. On a regular (preempt_disable) kernel we can
+always run each task, by virtue of always having an idle CPU to take the
+task.
 
-> I like kmap_local().  Or kmap_thread().
+However, with migrate_disable() we can have each task preempted in a
+migrate_disable() region, worse we can stack them all on the _same_ CPU
+(super ridiculous odds, sure). And then we end up only able to run one
+task, with the rest of the CPUs picking their nose.
 
-I chose kmap_thread() so that makes sense to me.  I also thought about using
-kmap_global() as an alternative interface which would change just ~10% of the
-callers and make the series much smaller.  But internal discussions lead me to
-chose kmap_thread() as the new interface so that we don't change the semantics
-of kmap().
-
-Ira
+The end result is that, like with unbounded latency, we will still miss
+our deadline, simply because we got starved for CPU.
 
 
-[1] https://github.com/weiny2/linux-kernel/tree/lm-pks-pmem-for-5.10-v3
+Now, while we could (with a _lot_ of work) rework the kernel to not rely
+on the implicit per-cpu ness of things like spinlock_t, the moment we
+bring in basic primitives that rely on migrate_disable() we're stuck
+with it.
 
-[2] https://lore.kernel.org/lkml/20200717072056.73134-1-ira.weiny@intel.com/
 
-[3]
-12:42:06 > git grep ' kmap(' *.c | grep -v '* ' | wc -l
-22
+The problem is; afaict there's been no research into this problem. There
+might be scheduling (read: balancing) schemes that can mitigate/solve
+this problem, or it might prove to be a 'hard' problem, I just don't
+know. But once we start down this road, it's going to be hell to get rid
+of it.
 
-12:43:32 > git grep ' kmap_thread(' *.c | grep -v '* ' | wc -l
-204
-
-Here are the callers which hand an address to another thread.
-
-12:45:25 > git grep ' kmap(' *.c | grep -v '* '
-arch/x86/mm/dump_pagetables.c:  [PKMAP_BASE_NR]         = { 0UL, "Persistent kmap() Area" },
-drivers/firewire/net.c:         ptr = kmap(dev->broadcast_rcv_buffer.pages[u]);
-drivers/gpu/drm/i915/gem/i915_gem_pages.c:              return kmap(sg_page(sgt->sgl));
-drivers/gpu/drm/i915/selftests/i915_perf.c:     scratch = kmap(ce->vm->scratch[0].base.page);
-drivers/gpu/drm/ttm/ttm_bo_util.c:              map->virtual = kmap(map->page);
-drivers/infiniband/hw/qib/qib_user_sdma.c:      mpage = kmap(page);
-drivers/misc/vmw_vmci/vmci_host.c:      context->notify = kmap(context->notify_page) + (uva & (PAGE_SIZE - 1));
-drivers/misc/xilinx_sdfec.c:            addr = kmap(pages[i]);
-drivers/mmc/host/usdhi6rol0.c:  host->pg.mapped         = kmap(host->pg.page);
-drivers/mmc/host/usdhi6rol0.c:  host->pg.mapped = kmap(host->pg.page);
-drivers/mmc/host/usdhi6rol0.c:  host->pg.mapped = kmap(host->pg.page);
-drivers/nvme/target/tcp.c:              iov->iov_base = kmap(sg_page(sg)) + sg->offset + sg_offset;
-drivers/scsi/libiscsi_tcp.c:            segment->sg_mapped = kmap(sg_page(sg));
-drivers/target/iscsi/iscsi_target.c:            iov[i].iov_base = kmap(sg_page(sg)) + sg->offset + page_off;
-drivers/target/target_core_transport.c:         return kmap(sg_page(sg)) + sg->offset;
-fs/btrfs/check-integrity.c:             block_ctx->datav[i] = kmap(block_ctx->pagev[i]);
-fs/ceph/dir.c:          cache_ctl->dentries = kmap(cache_ctl->page);
-fs/ceph/inode.c:                ctl->dentries = kmap(ctl->page);
-lib/scatterlist.c:              miter->addr = kmap(miter->page) + miter->__offset;
-net/ceph/pagelist.c:    pl->mapped_tail = kmap(page);
-net/ceph/pagelist.c:            pl->mapped_tail = kmap(page);
-virt/kvm/kvm_main.c:                    hva = kmap(page);
+That's why I've been arguing (for many years) to strictly limit this to
+PREEMPT_RT and only as a gap-stop, not a fundamental primitive to build
+on.
