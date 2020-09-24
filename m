@@ -1,23 +1,29 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 22 Sep 2020 23:50:30 +0000
-Subject: Re: [PATCH] kbuild: explicitly specify the build id style
-Message-Id: <20200922.165030.2291105439162323404.davem@davemloft.net>
+From: Sedat Dilek <sedat.dilek@gmail.com>
+Date: Thu, 24 Sep 2020 13:50:14 +0000
+Subject: [PATCH] kbuild: explicitly specify the build id style
+Message-Id: <CA+icZUX+AX4GAG0z2PAnvJSEmKozYLa7oHjxGkjv2_9Rcs0J7A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200922232140.1994390-1-morbo@google.com>
 In-Reply-To: <20200922232140.1994390-1-morbo@google.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: morbo@google.com
-Cc: linux-kbuild@vger.kernel.org, yamada.masahiro@socionext.com, luto@kernel.org, michal.lkml@markovi.net, catalin.marinas@arm.com, will@kernel.org, hpa@zytor.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, netdev@vger.kernel.org, tglx@linutronix.de, natechancellor@gmail.com
+To: Bill Wendling <morbo@google.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>, Andy Lutomirski <luto@kernel.org>, Michal Marek <michal.lkml@markovi.net>, Catalin Marinas <catalin.marinas@arm.com>, "David S . Miller" <davem@davemloft.net>, Will Deacon <will@kernel.org>, "H . Peter Anvin" <hpa@zytor.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, bpf@vger.kernel.org, linux-kselftest@vger.kernel.org, netdev@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Nathan Chancellor <natechancellor@gmail.com>, Sami Tolvanen <samitolvanen@google.com>
 
-From: Bill Wendling <morbo@google.com>
-Date: Tue, 22 Sep 2020 16:21:40 -0700
+[ Please CC me I am not subscribed to all MLs ]
+[ CC Sami ]
 
-> ld's --build-id defaults to "sha1" style, while lld defaults to "fast".
-> The build IDs are very different between the two, which may confuse
-> programs that reference them.
-> 
-> Signed-off-by: Bill Wendling <morbo@google.com>
+Hi Bill,
 
-Acked-by: David S. Miller <davem@davemloft.net>
+I have tested your patch on top of Sami's latest clang-cfi Git branch.
+
+Feel free to add...
+
+Tested-by: Sedat Dilek <sedat.dilek@gmail.com> # LLVM toolchain
+version 11.0.0-rc3 on x86-64
+
+Thanks for the patch.
+
+Regards,
+- Sedat -
