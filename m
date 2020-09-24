@@ -1,7 +1,7 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Wed, 23 Sep 2020 21:12:34 +0000
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 24 Sep 2020 06:57:52 +0000
 Subject: Re: [patch RFC 00/15] mm/highmem: Provide a preemptible variant of kmap_atomic & friends
-Message-Id: <20200923171234.0001402d@oasis.local.home>
+Message-Id: <871riracgf.fsf@nanos.tec.linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200919091751.011116649@linutronix.de>
  <CAHk-=wiYGyrFRbA1cc71D2-nc5U9LM9jUJesXGqpPnB7E4X1YQ@mail.gmail.com>
@@ -16,49 +16,60 @@ References: <20200919091751.011116649@linutronix.de>
  <20200923084032.GU1362448@hirez.programming.kicks-ass.net>
  <20200923115251.7cc63a7e@oasis.local.home>
  <874kno9pr9.fsf@nanos.tec.linutronix.de>
-In-Reply-To: <874kno9pr9.fsf@nanos.tec.linutronix.de>
+ <20200923171234.0001402d@oasis.local.home>
+In-Reply-To: <20200923171234.0001402d@oasis.local.home>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
+To: Steven Rostedt <rostedt@goodmis.org>
 Cc: Juri Lelli <juri.lelli@redhat.com>, peterz@infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Greentime Hu <green.hu@gmail.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>
 
-On Wed, 23 Sep 2020 22:55:54 +0200
-Thomas Gleixner <tglx@linutronix.de> wrote:
+On Wed, Sep 23 2020 at 17:12, Steven Rostedt wrote:
+> On Wed, 23 Sep 2020 22:55:54 +0200
+> Then scratch the idea of having anonymous local_lock() and just bring
+> local_lock in directly? Then have a kmap local lock, which would only
+> block those that need to do a kmap.
 
-> > Perhaps make migrate_disable() an anonymous local_lock()?
-> >
-> > This should lower the SHC in theory, if you can't have stacked migrate
-> > disables on the same CPU.  
-> 
-> I'm pretty sure this ends up in locking hell pretty fast and aside of
-> that it's not working for scenarios like:
-> 
->      kmap_local();
->        migrate_disable();
->        ...
-> 
->      copy_from_user()
->         -> #PF
->            -> schedule()  
-> 
-> which brought us into that discussion in the first place. You would stop
-> any other migrate disable user from running until the page fault is
-> resolved...
+That's still going to end up in lock ordering nightmares and you lose
+the ability to use kmap_local from arbitrary contexts which was again
+one of the goals of this exercise.
 
-Then scratch the idea of having anonymous local_lock() and just bring
-local_lock in directly? Then have a kmap local lock, which would only
-block those that need to do a kmap.
+Aside of that you're imposing reentrancy protections on something which
+does not need it in the first place.
 
-Now as for migration disabled nesting, at least now we would have
-groupings of this, and perhaps the theorists can handle that. I mean,
-how is this much different that having a bunch of tasks blocked on a
-mutex with the owner is pinned on a CPU?
+> Now as for migration disabled nesting, at least now we would have
+> groupings of this, and perhaps the theorists can handle that. I mean,
+> how is this much different that having a bunch of tasks blocked on a
+> mutex with the owner is pinned on a CPU?
+>
+> migrate_disable() is a BKL of pinning affinity.
 
-migrate_disable() is a BKL of pinning affinity. If we only have
-local_lock() available (even on !RT), then it makes the blocking in
-groups. At least this way you could grep for all the different
-local_locks in the system and plug that into the algorithm for WCS,
-just like one would with a bunch of mutexes.
+No. That's just wrong. preempt disable is a concurrency control,
+i.e. protecting against reentrancy on a given CPU. But it's a cpu global
+protection which means that it's not protecting a specific code path.
 
--- Steve
+Contrary to preempt disable, migrate disable is not protecting against
+reentrancy on a given CPU. It's a temporary restriction to the scheduler
+on placement.
+
+The fact that disabling preemption implicitely disables migration does
+not make them semantically equivalent.
+
+> If we only have local_lock() available (even on !RT), then it makes
+> the blocking in groups. At least this way you could grep for all the
+> different local_locks in the system and plug that into the algorithm
+> for WCS, just like one would with a bunch of mutexes.
+
+You cannot do that on RT at all where migrate disable is substituting
+preempt disable in spin and rw locks. The result would be the same as
+with a !RT kernel just with horribly bad performance.
+
+That means the stacking problem has to be solved anyway.
+
+So why on earth do you want to create yet another special duct tape case
+for kamp_local() which proliferates inconsistency instead of aiming for
+consistency accross all preemption models?
+
+Thanks,
+
+        tglx
