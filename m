@@ -1,9 +1,11 @@
-From: peterz@infradead.org
-Date: Thu, 24 Sep 2020 08:27:17 +0000
+From: Steven Rostedt <rostedt@goodmis.org>
+Date: Thu, 24 Sep 2020 12:32:41 +0000
 Subject: Re: [patch RFC 00/15] mm/highmem: Provide a preemptible variant of kmap_atomic & friends
-Message-Id: <20200924082717.GA1362448@hirez.programming.kicks-ass.net>
+Message-Id: <20200924083241.314f2102@gandalf.local.home>
 List-Id: <sparclinux.vger.kernel.org>
-References: <87mu1lc5mp.fsf@nanos.tec.linutronix.de>
+References: <20200919091751.011116649@linutronix.de>
+ <CAHk-=wiYGyrFRbA1cc71D2-nc5U9LM9jUJesXGqpPnB7E4X1YQ@mail.gmail.com>
+ <87mu1lc5mp.fsf@nanos.tec.linutronix.de>
  <87k0wode9a.fsf@nanos.tec.linutronix.de>
  <CAHk-=wgbmwsTOKs23Z=71EBTrULoeaH2U3TNqT2atHEWvkBKdw@mail.gmail.com>
  <87eemwcpnq.fsf@nanos.tec.linutronix.de>
@@ -13,91 +15,68 @@ References: <87mu1lc5mp.fsf@nanos.tec.linutronix.de>
  <87sgbbaq0y.fsf@nanos.tec.linutronix.de>
  <20200923084032.GU1362448@hirez.programming.kicks-ass.net>
  <20200923115251.7cc63a7e@oasis.local.home>
-In-Reply-To: <20200923115251.7cc63a7e@oasis.local.home>
+ <874kno9pr9.fsf@nanos.tec.linutronix.de>
+ <20200923171234.0001402d@oasis.local.home>
+ <871riracgf.fsf@nanos.tec.linutronix.de>
+In-Reply-To: <871riracgf.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, David Airlie <airlied@linux.ie>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Greentime Hu <green.hu@gmail.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Juri Lelli <juri.lelli@redhat.com>, peterz@infradead.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, linux-mips@vger.kernel.org, Ben Segall <bsegall@google.com>, Max Filippov <jcmvbkbc@gmail.com>, Guo Ren <guoren@kernel.org>, linux-sparc <sparclinux@vger.kernel.org>, Vincent Chen <deanbo422@gmail.com>, Will Deacon <will@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Herbert Xu <herbert@gondor.apana.org.au>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, David Airlie <airlied@linux.ie>, Mel Gorman <mgorman@suse.de>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Greentime Hu <green.hu@gmail.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Linus Torvalds <torvalds@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>, Paul Mackerras <paulus@samba.org>, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>
 
-On Wed, Sep 23, 2020 at 11:52:51AM -0400, Steven Rostedt wrote:
-> On Wed, 23 Sep 2020 10:40:32 +0200
-> peterz@infradead.org wrote:
+On Thu, 24 Sep 2020 08:57:52 +0200
+Thomas Gleixner <tglx@linutronix.de> wrote:
+
+> > Now as for migration disabled nesting, at least now we would have
+> > groupings of this, and perhaps the theorists can handle that. I mean,
+> > how is this much different that having a bunch of tasks blocked on a
+> > mutex with the owner is pinned on a CPU?
+> >
+> > migrate_disable() is a BKL of pinning affinity.  
 > 
-> > However, with migrate_disable() we can have each task preempted in a
-> > migrate_disable() region, worse we can stack them all on the _same_ CPU
-> > (super ridiculous odds, sure). And then we end up only able to run one
-> > task, with the rest of the CPUs picking their nose.
+> No. That's just wrong. preempt disable is a concurrency control,
+
+I think you totally misunderstood what I was saying. The above wasn't about
+comparing preempt_disable to migrate_disable. It was comparing
+migrate_disable to a chain of tasks blocked on mutexes where the top owner
+has preempt_disable set. You still have a bunch of tasks that can't move to
+other CPUs.
+
+
+> > If we only have local_lock() available (even on !RT), then it makes
+> > the blocking in groups. At least this way you could grep for all the
+> > different local_locks in the system and plug that into the algorithm
+> > for WCS, just like one would with a bunch of mutexes.  
 > 
-> What if we just made migrate_disable() a local_lock() available for !RT?
+> You cannot do that on RT at all where migrate disable is substituting
+> preempt disable in spin and rw locks. The result would be the same as
+> with a !RT kernel just with horribly bad performance.
 
-Can't, neiter migrate_disable() nor migrate_enable() are allowed to
-block -- which is what makes their implementation so 'interesting'.
+Note, the spin and rwlocks already have a lock associated with them. Why
+would it be any different on RT? I wasn't suggesting adding another lock
+inside a spinlock. Why would I recommend THAT? I wasn't recommending
+blindly replacing migrate_disable() with local_lock(). I just meant expose
+local_lock() but not migrate_disable().
 
-> This should lower the SHC in theory, if you can't have stacked migrate
-> disables on the same CPU.
+> 
+> That means the stacking problem has to be solved anyway.
+> 
+> So why on earth do you want to create yet another special duct tape case
+> for kamp_local() which proliferates inconsistency instead of aiming for
+> consistency accross all preemption models?
 
-See this email in that other thread (you're on Cc too IIRC):
+The idea was to help with the scheduling issue.
 
-  https://lkml.kernel.org/r/20200923170809.GY1362448@hirez.programming.kicks-ass.net
+Anyway, instead of blocking. What about having a counter of number of
+migrate disabled tasks per cpu, and when taking a migrate_disable(), and there's
+already another task with migrate_disabled() set, and the current task has
+an affinity greater than 1, it tries to migrate to another CPU?
 
-I think that is we 'frob' the balance PULL, we'll end up with something
-similar.
+This way migrate_disable() is less likely to have a bunch of tasks blocked
+on one CPU serialized by each task exiting the migrate_disable() section.
 
-Whichever way around we turn this thing, the migrate_disable() runtime
-(we'll have to add a tracer for that), will be an interference term on
-the lower priority task, exactly like preempt_disable() would be. We'll
-just not exclude a higher priority task from running.
+Yes, there's more overhead, but it only happens if multiple tasks are in a
+migrate disable section on the same CPU.
 
-
-AFAICT; the best case is a single migrate_disable() nesting, where a
-higher priority task preempts in a migrate_disable() section -- this is
-per design.
-
-When this preempted task becomes elegible to run under the ideal model
-(IOW it becomes one of the M highest priority tasks), it might still
-have to wait for the preemptee's migrate_disable() section to complete.
-Thereby suffering interference in the exact duration of
-migrate_disable() section.
-
-Per this argument, the change from preempt_disable() to
-migrate_disable() gets us:
-
- - higher priority tasks gain reduced wake-up latency
- - lower priority tasks are unchanged and are subject to the exact same
-   interference term as if the higher priority task were using
-   preempt_disable().
-
-Since we've already established this term is unbounded, any task but the
-highest priority task is basically buggered.
-
-TL;DR, if we get balancing fixed and achieve (near) the optimal case
-above, migrate_disable() is an over-all win. But it's provably
-non-deterministic as long as the migrate_disable() sections are
-non-deterministic.
-
-
-The reason this all mostly works in practise is (I think) because:
-
- - People care most about the higher prio RT tasks and craft them to
-   mostly avoid the migrate_disable() infected code.
-
- - The preemption scenario is most pronounced at higher utilization
-   scenarios, and I suspect this is fairly rare to begin with.
-
- - And while many of these migrate_disable() regions are unbound in
-   theory, in practise they're often fairly reasonable.
-
-
-So my current todo list is:
-
- - Change RT PULL
- - Change DL PULL
- - Add migrate_disable() tracer; exactly like preempt/irqoff, except
-   measuring task-runtime instead of cpu-time.
- - Add a mode that measures actual interference.
- - Add a traceevent to detect preemption in migrate_disable().
-
-
-And then I suppose I should twist Daniel's arm to update his model to
-include these scenarios and numbers.
+-- Steve
