@@ -1,43 +1,347 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Wed, 23 Sep 2020 21:30:25 +0000
-Subject: RE: [PATCH 5/9] fs: remove various compat readv/writev helpers
-Message-Id: <2e11ea867c644c5d96f8e4930e5c730d@AcuMS.aculab.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 25 Sep 2020 04:51:42 +0000
+Subject: [PATCH 5/9] fs: remove various compat readv/writev helpers
+Message-Id: <20200925045146.1283714-6-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200923060547.16903-1-hch@lst.de>
- <20200923060547.16903-6-hch@lst.de>
- <20200923142549.GK3421308@ZenIV.linux.org.uk> <20200923143251.GA14062@lst.de>
- <20200923145901.GN3421308@ZenIV.linux.org.uk>
- <20200923163831.GO3421308@ZenIV.linux.org.uk>
- <CAK8P3a3nkLUOkR+jwz2_2LcYTUTqdVf8JOtZqKWbtEDotNhFZA@mail.gmail.com>
-In-Reply-To: <CAK8P3a3nkLUOkR+jwz2_2LcYTUTqdVf8JOtZqKWbtEDotNhFZA@mail.gmail.com>
+References: <20200925045146.1283714-1-hch@lst.de>
+In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Arnd Bergmann' <arnd@arndb.de>, Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, linux-s390 <linux-s390@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linux-block <linux-block@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, linux-aio <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, Linux-MM <linux-mm@kvack.org>, Networking <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, LSM List <linux-security-module@vger.kernel.org>
+To: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
-RnJvbTogQXJuZCBCZXJnbWFubg0KPiBTZW50OiAyMyBTZXB0ZW1iZXIgMjAyMCAxOTo0Ng0KLi4u
-DQo+IFJlZ2FyZGxlc3Mgb2YgdGhhdCwgYW5vdGhlciBhZHZhbnRhZ2Ugb2YgaGF2aW5nIHRoZSBT
-WVNDQUxMX0RFQ0xBUkV4KCkNCj4gd291bGQgYmUgdGhlIGFiaWxpdHkgdG8gaW5jbHVkZSB0aGF0
-IGhlYWRlciBmaWxlIGZyb20gZWxzZXdoZXJlIHdpdGggYSBkaWZmZXJlbnQNCj4gbWFjcm8gZGVm
-aW5pdGlvbiB0byBjcmVhdGUgYSBtYWNoaW5lLXJlYWRhYmxlIHZlcnNpb24gb2YgdGhlIGludGVy
-ZmFjZSB3aGVuDQo+IGNvbWJpbmVkIHdpdGggdGhlIHN5c2NhbGwudGJsIGZpbGVzLiBUaGlzIGNv
-dWxkIGJlIHVzZWQgdG8gY3JlYXRlIGEgdXNlcg0KPiBzcGFjZSBzdHViIGZvciBjYWxsaW5nIGlu
-dG8gdGhlIGxvdy1sZXZlbCBzeXNjYWxsIHJlZ2FyZGxlc3Mgb2YgdGhlDQo+IGxpYmMgaW50ZXJm
-YWNlcywNCj4gb3IgZm9yIHN5bmNocm9uaXppbmcgdGhlIGludGVyZmFjZXMgd2l0aCBzdHJhY2Us
-IHFlbXUtdXNlciwgb3IgYW55dGhpbmcgdGhhdA0KPiBuZWVkcyB0byBkZWFsIHdpdGggdGhlIGxv
-dy1sZXZlbCBpbnRlcmZhY2UuDQoNCkEgc2ltaWxhciAndHJpY2snICh0aGF0IHByb2JhYmx5IHdv
-bid0IHdvcmsgaGVyZSkgaXMgdG8gcGFzcw0KdGhlIG5hbWUgb2YgYSAjZGVmaW5lIGZ1bmN0aW9u
-IGFzIGEgcGFyYW1ldGVyIHRvIGFub3RoZXIgZGVmaW5lLg0KVXNlZnVsIGZvciBkZWZpbmluZyBj
-b25zdGFudHMgYW5kIGVycm9yIHN0cmluZ3MgdG9nZXRoZXIuIGVnOg0KI2RlZmluZSBUUkFGRklD
-X0xJR0hUUyh4KSBcDQoJeChSRUQsIDAsICJSZWQiKSBcDQoJeChZRUxMT1csIDEsICJZZWxsb3cp
-IFwNCgl4KEdSRUVOLCAyLCAiR1JFRU4pDQoNCllvdSBjYW4gdGhlbiBkbyB0aGluZyBsaWtlOg0K
-I2RlZmluZSB4KHRva2VuLCB2YWx1ZSwgc3RyaW5nKSB0b2tlbiA9IHZhbHVlLA0KZW51bSB7VFJB
-RkZJQ19MSUdIVFMoeCkgTlVNX0xJR0hUU307DQojdW5kZWYgeA0KI2RlZmluZSB4KHRva2VuLCB2
-YWx1ZSwgc3RyaW5nKSBbdmFsdWVdID0gc3RyaW5nLA0KY29uc3QgY2hhciAqY29sb3Vyc1tdID0g
-e1RSQUZGSUNfTElHSFRTKHgpfTsNCiN1bmRlZiB4DQp0byBpbml0aWFsaXNlIGNvbnN0YW50cyBh
-bmQgYSBuYW1lIHRhYmxlIHRoYXQgYXJlIGFsd2F5cyBpbiBzeW5jLg0KDQpJdCBpcyBhbHNvIGEg
-Z29vZCB3YXkgdG8gZ2VuZXJhdGUgc291cmNlIGxpbmVzIHRoYXQgYXJlIG92ZXIgMU1CLg0KDQoJ
-RGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBBZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQsIE1v
-dW50IEZhcm0sIE1pbHRvbiBLZXluZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86IDEz
-OTczODYgKFdhbGVzKQ0K
+Now that import_iovec handles compat iovecs as well, all the duplicated
+code in the compat readv/writev helpers is not needed.  Remove them
+and switch the compat syscall handlers to use the native helpers.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ fs/read_write.c        | 179 +++++++----------------------------------
+ include/linux/compat.h |  20 ++---
+ 2 files changed, 40 insertions(+), 159 deletions(-)
+
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 0a68037580b455..eab427b7cc0a3f 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -1068,226 +1068,107 @@ SYSCALL_DEFINE6(pwritev2, unsigned long, fd, const struct iovec __user *, vec,
+ 	return do_pwritev(fd, vec, vlen, pos, flags);
+ }
+ 
++/*
++ * Various compat syscalls.  Note that they all pretend to take a native
++ * iovec - import_iovec will properly treat those as compat_iovecs based on
++ * in_compat_syscall().
++ */
+ #ifdef CONFIG_COMPAT
+-static size_t compat_readv(struct file *file,
+-			   const struct compat_iovec __user *vec,
+-			   unsigned long vlen, loff_t *pos, rwf_t flags)
+-{
+-	struct iovec iovstack[UIO_FASTIOV];
+-	struct iovec *iov = iovstack;
+-	struct iov_iter iter;
+-	ssize_t ret;
+-
+-	ret = import_iovec(READ, (const struct iovec __user *)vec, vlen,
+-			   UIO_FASTIOV, &iov, &iter);
+-	if (ret >= 0) {
+-		ret = do_iter_read(file, &iter, pos, flags);
+-		kfree(iov);
+-	}
+-	if (ret > 0)
+-		add_rchar(current, ret);
+-	inc_syscr(current);
+-	return ret;
+-}
+-
+-static size_t do_compat_readv(compat_ulong_t fd,
+-				 const struct compat_iovec __user *vec,
+-				 compat_ulong_t vlen, rwf_t flags)
+-{
+-	struct fd f = fdget_pos(fd);
+-	ssize_t ret;
+-	loff_t pos;
+-
+-	if (!f.file)
+-		return -EBADF;
+-	pos = f.file->f_pos;
+-	ret = compat_readv(f.file, vec, vlen, &pos, flags);
+-	if (ret >= 0)
+-		f.file->f_pos = pos;
+-	fdput_pos(f);
+-	return ret;
+-
+-}
+-
+ COMPAT_SYSCALL_DEFINE3(readv, compat_ulong_t, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		compat_ulong_t, vlen)
+ {
+-	return do_compat_readv(fd, vec, vlen, 0);
+-}
+-
+-static long do_compat_preadv64(unsigned long fd,
+-				  const struct compat_iovec __user *vec,
+-				  unsigned long vlen, loff_t pos, rwf_t flags)
+-{
+-	struct fd f;
+-	ssize_t ret;
+-
+-	if (pos < 0)
+-		return -EINVAL;
+-	f = fdget(fd);
+-	if (!f.file)
+-		return -EBADF;
+-	ret = -ESPIPE;
+-	if (f.file->f_mode & FMODE_PREAD)
+-		ret = compat_readv(f.file, vec, vlen, &pos, flags);
+-	fdput(f);
+-	return ret;
++	return do_readv(fd, vec, vlen, 0);
+ }
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64
+ COMPAT_SYSCALL_DEFINE4(preadv64, unsigned long, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		unsigned long, vlen, loff_t, pos)
+ {
+-	return do_compat_preadv64(fd, vec, vlen, pos, 0);
++	return do_preadv(fd, vec, vlen, pos, 0);
+ }
+ #endif
+ 
+ COMPAT_SYSCALL_DEFINE5(preadv, compat_ulong_t, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
+ {
+ 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+ 
+-	return do_compat_preadv64(fd, vec, vlen, pos, 0);
++	return do_preadv(fd, vec, vlen, pos, 0);
+ }
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
+ COMPAT_SYSCALL_DEFINE5(preadv64v2, unsigned long, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		unsigned long, vlen, loff_t, pos, rwf_t, flags)
+ {
+ 	if (pos = -1)
+-		return do_compat_readv(fd, vec, vlen, flags);
+-
+-	return do_compat_preadv64(fd, vec, vlen, pos, flags);
++		return do_readv(fd, vec, vlen, flags);
++	return do_preadv(fd, vec, vlen, pos, flags);
+ }
+ #endif
+ 
+ COMPAT_SYSCALL_DEFINE6(preadv2, compat_ulong_t, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high,
+ 		rwf_t, flags)
+ {
+ 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+ 
+ 	if (pos = -1)
+-		return do_compat_readv(fd, vec, vlen, flags);
+-
+-	return do_compat_preadv64(fd, vec, vlen, pos, flags);
+-}
+-
+-static size_t compat_writev(struct file *file,
+-			    const struct compat_iovec __user *vec,
+-			    unsigned long vlen, loff_t *pos, rwf_t flags)
+-{
+-	struct iovec iovstack[UIO_FASTIOV];
+-	struct iovec *iov = iovstack;
+-	struct iov_iter iter;
+-	ssize_t ret;
+-
+-	ret = import_iovec(WRITE, (const struct iovec __user *)vec, vlen,
+-			   UIO_FASTIOV, &iov, &iter);
+-	if (ret >= 0) {
+-		file_start_write(file);
+-		ret = do_iter_write(file, &iter, pos, flags);
+-		file_end_write(file);
+-		kfree(iov);
+-	}
+-	if (ret > 0)
+-		add_wchar(current, ret);
+-	inc_syscw(current);
+-	return ret;
+-}
+-
+-static size_t do_compat_writev(compat_ulong_t fd,
+-				  const struct compat_iovec __user* vec,
+-				  compat_ulong_t vlen, rwf_t flags)
+-{
+-	struct fd f = fdget_pos(fd);
+-	ssize_t ret;
+-	loff_t pos;
+-
+-	if (!f.file)
+-		return -EBADF;
+-	pos = f.file->f_pos;
+-	ret = compat_writev(f.file, vec, vlen, &pos, flags);
+-	if (ret >= 0)
+-		f.file->f_pos = pos;
+-	fdput_pos(f);
+-	return ret;
++		return do_readv(fd, vec, vlen, flags);
++	return do_preadv(fd, vec, vlen, pos, flags);
+ }
+ 
+ COMPAT_SYSCALL_DEFINE3(writev, compat_ulong_t, fd,
+-		const struct compat_iovec __user *, vec,
++		const struct iovec __user *, vec,
+ 		compat_ulong_t, vlen)
+ {
+-	return do_compat_writev(fd, vec, vlen, 0);
+-}
+-
+-static long do_compat_pwritev64(unsigned long fd,
+-				   const struct compat_iovec __user *vec,
+-				   unsigned long vlen, loff_t pos, rwf_t flags)
+-{
+-	struct fd f;
+-	ssize_t ret;
+-
+-	if (pos < 0)
+-		return -EINVAL;
+-	f = fdget(fd);
+-	if (!f.file)
+-		return -EBADF;
+-	ret = -ESPIPE;
+-	if (f.file->f_mode & FMODE_PWRITE)
+-		ret = compat_writev(f.file, vec, vlen, &pos, flags);
+-	fdput(f);
+-	return ret;
++	return do_writev(fd, vec, vlen, 0);
+ }
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64
+ COMPAT_SYSCALL_DEFINE4(pwritev64, unsigned long, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		unsigned long, vlen, loff_t, pos)
+ {
+-	return do_compat_pwritev64(fd, vec, vlen, pos, 0);
++	return do_pwritev(fd, vec, vlen, pos, 0);
+ }
+ #endif
+ 
+ COMPAT_SYSCALL_DEFINE5(pwritev, compat_ulong_t, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *,vec,
+ 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high)
+ {
+ 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+ 
+-	return do_compat_pwritev64(fd, vec, vlen, pos, 0);
++	return do_pwritev(fd, vec, vlen, pos, 0);
+ }
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
+ COMPAT_SYSCALL_DEFINE5(pwritev64v2, unsigned long, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *, vec,
+ 		unsigned long, vlen, loff_t, pos, rwf_t, flags)
+ {
+ 	if (pos = -1)
+-		return do_compat_writev(fd, vec, vlen, flags);
+-
+-	return do_compat_pwritev64(fd, vec, vlen, pos, flags);
++		return do_writev(fd, vec, vlen, flags);
++	return do_pwritev(fd, vec, vlen, pos, flags);
+ }
+ #endif
+ 
+ COMPAT_SYSCALL_DEFINE6(pwritev2, compat_ulong_t, fd,
+-		const struct compat_iovec __user *,vec,
++		const struct iovec __user *,vec,
+ 		compat_ulong_t, vlen, u32, pos_low, u32, pos_high, rwf_t, flags)
+ {
+ 	loff_t pos = ((loff_t)pos_high << 32) | pos_low;
+ 
+ 	if (pos = -1)
+-		return do_compat_writev(fd, vec, vlen, flags);
+-
+-	return do_compat_pwritev64(fd, vec, vlen, pos, flags);
++		return do_writev(fd, vec, vlen, flags);
++	return do_pwritev(fd, vec, vlen, pos, flags);
+ }
+-
+-#endif
++#endif /* CONFIG_COMPAT */
+ 
+ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
+ 		  	   size_t count, loff_t max)
+diff --git a/include/linux/compat.h b/include/linux/compat.h
+index b930de791ff16b..306ea7e1172d8d 100644
+--- a/include/linux/compat.h
++++ b/include/linux/compat.h
+@@ -546,25 +546,25 @@ asmlinkage long compat_sys_getdents(unsigned int fd,
+ /* fs/read_write.c */
+ asmlinkage long compat_sys_lseek(unsigned int, compat_off_t, unsigned int);
+ asmlinkage ssize_t compat_sys_readv(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec, compat_ulong_t vlen);
++		const struct iovec __user *vec, compat_ulong_t vlen);
+ asmlinkage ssize_t compat_sys_writev(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec, compat_ulong_t vlen);
++		const struct iovec __user *vec, compat_ulong_t vlen);
+ /* No generic prototype for pread64 and pwrite64 */
+ asmlinkage ssize_t compat_sys_preadv(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
+ asmlinkage ssize_t compat_sys_pwritev(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high);
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64
+ asmlinkage long compat_sys_preadv64(unsigned long fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		unsigned long vlen, loff_t pos);
+ #endif
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64
+ asmlinkage long compat_sys_pwritev64(unsigned long fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		unsigned long vlen, loff_t pos);
+ #endif
+ 
+@@ -800,20 +800,20 @@ asmlinkage long compat_sys_execveat(int dfd, const char __user *filename,
+ 		     const compat_uptr_t __user *argv,
+ 		     const compat_uptr_t __user *envp, int flags);
+ asmlinkage ssize_t compat_sys_preadv2(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
+ asmlinkage ssize_t compat_sys_pwritev2(compat_ulong_t fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
+ #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
+ asmlinkage long  compat_sys_preadv64v2(unsigned long fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+ 
+ #ifdef __ARCH_WANT_COMPAT_SYS_PWRITEV64V2
+ asmlinkage long compat_sys_pwritev64v2(unsigned long fd,
+-		const struct compat_iovec __user *vec,
++		const struct iovec __user *vec,
+ 		unsigned long vlen, loff_t pos, rwf_t flags);
+ #endif
+ 
+-- 
+2.28.0
