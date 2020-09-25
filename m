@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 23 Sep 2020 06:05:39 +0000
+Date: Fri, 25 Sep 2020 04:51:38 +0000
 Subject: [PATCH 1/9] compat.h: fix a spelling error in <linux/compat.h>
-Message-Id: <20200923060547.16903-2-hch@lst.de>
+Message-Id: <20200925045146.1283714-2-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200923060547.16903-1-hch@lst.de>
-In-Reply-To: <20200923060547.16903-1-hch@lst.de>
+References: <20200925045146.1283714-1-hch@lst.de>
+In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
