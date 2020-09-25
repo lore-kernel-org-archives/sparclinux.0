@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 23 Sep 2020 06:05:45 +0000
+Date: Fri, 25 Sep 2020 04:51:44 +0000
 Subject: [PATCH 7/9] fs: remove compat_sys_vmsplice
-Message-Id: <20200923060547.16903-8-hch@lst.de>
+Message-Id: <20200925045146.1283714-8-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200923060547.16903-1-hch@lst.de>
-In-Reply-To: <20200923060547.16903-1-hch@lst.de>
+References: <20200925045146.1283714-1-hch@lst.de>
+In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -259,7 +259,7 @@ index 132d42b9871f9b..18d84544030b39 100644
  SYSCALL_DEFINE6(splice, int, fd_in, loff_t __user *, off_in,
  		int, fd_out, loff_t __user *, off_out,
 diff --git a/include/linux/compat.h b/include/linux/compat.h
-index fa39b7a5488d70..14d8bf412bd02e 100644
+index 0f1620988267e6..9e8aa148651455 100644
 --- a/include/linux/compat.h
 +++ b/include/linux/compat.h
 @@ -597,10 +597,6 @@ asmlinkage long compat_sys_signalfd4(int ufd,
