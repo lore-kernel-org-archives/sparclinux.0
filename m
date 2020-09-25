@@ -1,7 +1,7 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 23 Sep 2020 06:05:38 +0000
-Subject: let import_iovec deal with compat_iovecs as well v3
-Message-Id: <20200923060547.16903-1-hch@lst.de>
+Date: Fri, 25 Sep 2020 04:51:37 +0000
+Subject: let import_iovec deal with compat_iovecs as well v4
+Message-Id: <20200925045146.1283714-1-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200918124533.3487701-1-hch@lst.de>
 In-Reply-To: <20200918124533.3487701-1-hch@lst.de>
@@ -13,8 +13,11 @@ Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arn
 
 Hi Al,
 
-this series changes import_iovec to transparently deal with comat iovec
+this series changes import_iovec to transparently deal with compat iovec
 structures, and then cleanups up a lot of code dupliation.
+
+Changes since v3:
+ - fix up changed prototypes in compat.h as well
 
 Changes since v2:
  - revert the switch of the access process vm sysclls to iov_iter
