@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 23 Sep 2020 06:05:44 +0000
+Date: Fri, 25 Sep 2020 04:51:43 +0000
 Subject: [PATCH 6/9] fs: remove the compat readv/writev syscalls
-Message-Id: <20200923060547.16903-7-hch@lst.de>
+Message-Id: <20200925045146.1283714-7-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200923060547.16903-1-hch@lst.de>
-In-Reply-To: <20200923060547.16903-1-hch@lst.de>
+References: <20200925045146.1283714-1-hch@lst.de>
+In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -217,7 +217,7 @@ index eab427b7cc0a3f..6c13f744c34a38 100644
  COMPAT_SYSCALL_DEFINE4(pwritev64, unsigned long, fd,
  		const struct iovec __user *, vec,
 diff --git a/include/linux/compat.h b/include/linux/compat.h
-index b930de791ff16b..fa39b7a5488d70 100644
+index 306ea7e1172d8d..0f1620988267e6 100644
 --- a/include/linux/compat.h
 +++ b/include/linux/compat.h
 @@ -545,10 +545,6 @@ asmlinkage long compat_sys_getdents(unsigned int fd,
@@ -225,12 +225,12 @@ index b930de791ff16b..fa39b7a5488d70 100644
  /* fs/read_write.c */
  asmlinkage long compat_sys_lseek(unsigned int, compat_off_t, unsigned int);
 -asmlinkage ssize_t compat_sys_readv(compat_ulong_t fd,
--		const struct compat_iovec __user *vec, compat_ulong_t vlen);
+-		const struct iovec __user *vec, compat_ulong_t vlen);
 -asmlinkage ssize_t compat_sys_writev(compat_ulong_t fd,
--		const struct compat_iovec __user *vec, compat_ulong_t vlen);
+-		const struct iovec __user *vec, compat_ulong_t vlen);
  /* No generic prototype for pread64 and pwrite64 */
  asmlinkage ssize_t compat_sys_preadv(compat_ulong_t fd,
- 		const struct compat_iovec __user *vec,
+ 		const struct iovec __user *vec,
 diff --git a/include/uapi/asm-generic/unistd.h b/include/uapi/asm-generic/unistd.h
 index 995b36c2ea7d8a..211c9eacbda6eb 100644
 --- a/include/uapi/asm-generic/unistd.h
