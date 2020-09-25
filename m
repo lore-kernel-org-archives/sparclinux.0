@@ -1,10 +1,10 @@
 From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 23 Sep 2020 06:05:42 +0000
+Date: Fri, 25 Sep 2020 04:51:41 +0000
 Subject: [PATCH 4/9] iov_iter: transparently handle compat iovecs in import_iovec
-Message-Id: <20200923060547.16903-5-hch@lst.de>
+Message-Id: <20200925045146.1283714-5-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200923060547.16903-1-hch@lst.de>
-In-Reply-To: <20200923060547.16903-1-hch@lst.de>
+References: <20200925045146.1283714-1-hch@lst.de>
+In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -96,10 +96,10 @@ index d5ec303855669d..c45c20d875388c 100644
  
  static inline void aio_rw_done(struct kiocb *req, ssize_t ret)
 diff --git a/fs/io_uring.c b/fs/io_uring.c
-index 3790c7fe9fee22..ba84ecea7cb1a4 100644
+index 8b426aa29668cb..8c27dc28da182a 100644
 --- a/fs/io_uring.c
 +++ b/fs/io_uring.c
-@@ -2837,13 +2837,8 @@ static ssize_t __io_import_iovec(int rw, struct io_kiocb *req,
+@@ -2852,13 +2852,8 @@ static ssize_t __io_import_iovec(int rw, struct io_kiocb *req,
  		return ret;
  	}
  
@@ -115,7 +115,7 @@ index 3790c7fe9fee22..ba84ecea7cb1a4 100644
  }
  
  static ssize_t io_import_iovec(int rw, struct io_kiocb *req,
-@@ -4179,8 +4174,9 @@ static int __io_recvmsg_copy_hdr(struct io_kiocb *req,
+@@ -4200,8 +4195,9 @@ static int __io_recvmsg_copy_hdr(struct io_kiocb *req,
  				sr->len);
  		iomsg->iov = NULL;
  	} else {
@@ -127,7 +127,7 @@ index 3790c7fe9fee22..ba84ecea7cb1a4 100644
  		if (ret > 0)
  			ret = 0;
  	}
-@@ -4220,9 +4216,9 @@ static int __io_compat_recvmsg_copy_hdr(struct io_kiocb *req,
+@@ -4241,9 +4237,9 @@ static int __io_compat_recvmsg_copy_hdr(struct io_kiocb *req,
  		sr->len = iomsg->iov[0].iov_len;
  		iomsg->iov = NULL;
  	} else {
