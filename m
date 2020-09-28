@@ -1,36 +1,34 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Fri, 25 Sep 2020 04:51:38 +0000
-Subject: [PATCH 1/9] compat.h: fix a spelling error in <linux/compat.h>
-Message-Id: <20200925045146.1283714-2-hch@lst.de>
+From: Jann Horn <jannh@google.com>
+Date: Mon, 28 Sep 2020 12:14:11 +0000
+Subject: SPARC version of arch_validate_prot() looks broken (UAF read)
+Message-Id: <CAG48ez3YsfTfOFKa-Po58e4PNp7FK54MFbkK3aUPSRt3LWtxQA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200925045146.1283714-1-hch@lst.de>
-In-Reply-To: <20200925045146.1283714-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux-MM <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, Khalid Aziz <khalid@gonehiking.org>
+Cc: kernel list <linux-kernel@vger.kernel.org>, Anthony Yznaga <anthony.yznaga@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
 
-There is no compat_sys_readv64v2 syscall, only a compat_sys_preadv64v2
-one.
+From what I can tell from looking at the code:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/compat.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+SPARC's arch_validate_prot() looks up the VMA and peeks at it; that's
+not permitted though. do_mprotect_pkey() calls arch_validate_prot()
+before taking the mmap lock, so we can hit use-after-free reads if
+someone concurrently deletes a VMA we're looking at.
 
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index b354ce58966e2d..654c1ec36671a4 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -812,7 +812,7 @@ asmlinkage ssize_t compat_sys_pwritev2(compat_ulong_t fd,
- 		const struct compat_iovec __user *vec,
- 		compat_ulong_t vlen, u32 pos_low, u32 pos_high, rwf_t flags);
- #ifdef __ARCH_WANT_COMPAT_SYS_PREADV64V2
--asmlinkage long  compat_sys_readv64v2(unsigned long fd,
-+asmlinkage long  compat_sys_preadv64v2(unsigned long fd,
- 		const struct compat_iovec __user *vec,
- 		unsigned long vlen, loff_t pos, rwf_t flags);
- #endif
--- 
-2.28.0
+Additionally, arch_validate_prot() currently only accepts the start
+address as a parameter, but the SPARC code probably should be checking
+the entire given range, which might consist of multiple VMAs?
+
+I'm not sure what the best fix is here; it kinda seems like what SPARC
+really wants is a separate hook that is called from inside the loop in
+do_mprotect_pkey() that iterates over the VMAs? So maybe commit
+9035cf9a97e4 ("mm: Add address parameter to arch_validate_prot()")
+should be reverted, and a separate hook should be created?
+
+(Luckily the ordering of the vmacache operations works out such that
+AFAICS, despite calling find_vma() without holding the mmap_sem, we
+can never end up establishing a vmacache entry with a dangling pointer
+that might be considered valid on a subsequent call. So this should be
+limited to a rather boring UAF data read, and not be exploitable for a
+UAF write or UAF function pointer read.)
