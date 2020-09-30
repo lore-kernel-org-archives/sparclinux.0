@@ -1,25 +1,21 @@
-From: "Nicola W. Samir" <nicola@brighenti.net>
-Date: Thu, 17 Sep 2020 05:22:24 +0000
-Subject: LUCRATIVE PROJECT VENTURE
-Message-Id: <u-$ctv-3c$e-to8-$99v86@1bya44>
-MIME-Version: 1
-Content-Type: multipart/mixed; boundary="7E87.4AB_3A0"
+From: "Mrs. Susan Carter" <test@mail.bless.gov.my>
+Date: Wed, 30 Sep 2020 00:11:20 +0000
+Subject: Good day,
+Message-Id: <20200930001059.1B8FB68500F4@mail.bless.gov.my>
 List-Id: <sparclinux.vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
+Good day,
 
---7E87.4AB_3A0
-Content-Type: text/plain;
-Content-Transfer-Encoding: quoted-printable
+My name are Mrs. Susan Carter an America but a United Kingdom Citizen, I???m 57 years old, widow, married to late Eng Martins Carter who is a British, who until his death worked with Dutch Filtration for Twenty-Six years before he died in the year 2015 after a brief illness that lasted only five days.
 
-I am an Independent Financial Consultant, I have a reputable client who is=
- seeking for an experienced individual or company that can profitably inve=
-st $51,000.000 United State Dollars privately for TPI. 
+When my late husband was alive he deposited the sum of US$50 Million in bank USA through his Financial Lawyer in the United State of America and we all agreed as a couple to donate all of that to charity. Following my health (Lung Cancer), my Doctor told me that I may not live longer than required due to my health condition.
 
-Your swift response is highly needed.
-The modalities is 100% risk free
+Looking forward to seeing someone who can use the money for charitable work.
 
-Best Regard
-Nicola Samir Wahiba
-
---7E87.4AB_3A0--
+Best Regards
+Yours sincerely
+Mrs. Susan Carter
