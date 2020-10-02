@@ -1,181 +1,28 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 29 Oct 2020 22:18:07 +0000
-Subject: [patch V2 01/18] sched: Make migrate_disable/enable() independent of RT
-Message-Id: <20201029222650.648971542@linutronix.de>
+From: "Mr. Marvin" <chi1grant22@gmail.com>
+Date: Fri, 02 Oct 2020 17:06:15 +0000
+Subject: Gute Nachrichten !
+Message-Id: <274d2685-668c-4238-9c38-5e7c25764722@VMMAIL2010.pompeya.local>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: sparclinux@vger.kernel.org
 
-Now that the scheduler can deal with migrate disable properly, there is no
-real compelling reason to make it only available for RT.
+Die letzten Monate waren nicht gut f=FCr Unternehmen, Institutionen und Ein=
+zelpersonen auf der ganzen Welt. Die globale Epidemie (Covid-19) hat alle f=
+inanziell ersch=F6pft und Sie wurden nicht freigestellt. Ihr Hilferuf wurde=
+ geh=F6rt und wir sind bereit, Ihnen unsere freundliche Geste anzubieten. S=
+ie geh=F6ren zu den 3. Chargen, die von unserem Fondsprogramm profitieren, =
+und ich muss aufrichtig sagen, dass die 1. und 2. Charge f=FCr die von uns =
+geleistete Hilfe dankbar ist. Sie haben erfolgreich die kumulierte Gesamtsu=
+mme von (50.000,00 USD) als Gemeinschaftsspende von Oxfam Aid erhalten. Ant=
+worten Sie zur=FCck, um weitere Informationen und Anweisungen zur Beantragu=
+ng Ihres Zuschusses zu erhalten.
 
-There are quite some code pathes which needlessly disable preemption in
-order to prevent migration and some constructs like kmap_atomic() enforce
-it implicitly.
+Denken Sie daran, immer in Sicherheit zu bleiben und soziale Distanzierung =
+zu =FCben. Befolgen Sie immer die Anweisungen der =F6rtlichen Beh=F6rden.
 
-Making it available independent of RT allows to provide a preemptible
-variant of kmap_atomic() and makes the code more consistent in general.
+Herr Marvin Sims,
 
-FIXME: Rework the comment in preempt.h
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
----
- include/linux/preempt.h |   38 +++-----------------------------------
- include/linux/sched.h   |    2 +-
- kernel/sched/core.c     |   12 ++----------
- kernel/sched/sched.h    |    2 +-
- lib/smp_processor_id.c  |    2 +-
- 5 files changed, 8 insertions(+), 48 deletions(-)
-
---- a/include/linux/preempt.h
-+++ b/include/linux/preempt.h
-@@ -322,7 +322,7 @@ static inline void preempt_notifier_init
- 
- #endif
- 
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 
- /*
-  * Migrate-Disable and why it is undesired.
-@@ -382,43 +382,11 @@ static inline void preempt_notifier_init
- extern void migrate_disable(void);
- extern void migrate_enable(void);
- 
--#elif defined(CONFIG_PREEMPT_RT)
-+#else
- 
- static inline void migrate_disable(void) { }
- static inline void migrate_enable(void) { }
- 
--#else /* !CONFIG_PREEMPT_RT */
--
--/**
-- * migrate_disable - Prevent migration of the current task
-- *
-- * Maps to preempt_disable() which also disables preemption. Use
-- * migrate_disable() to annotate that the intent is to prevent migration,
-- * but not necessarily preemption.
-- *
-- * Can be invoked nested like preempt_disable() and needs the corresponding
-- * number of migrate_enable() invocations.
-- */
--static __always_inline void migrate_disable(void)
--{
--	preempt_disable();
--}
--
--/**
-- * migrate_enable - Allow migration of the current task
-- *
-- * Counterpart to migrate_disable().
-- *
-- * As migrate_disable() can be invoked nested, only the outermost invocation
-- * reenables migration.
-- *
-- * Currently mapped to preempt_enable().
-- */
--static __always_inline void migrate_enable(void)
--{
--	preempt_enable();
--}
--
--#endif /* CONFIG_SMP && CONFIG_PREEMPT_RT */
-+#endif /* CONFIG_SMP */
- 
- #endif /* __LINUX_PREEMPT_H */
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -715,7 +715,7 @@ struct task_struct {
- 	const cpumask_t			*cpus_ptr;
- 	cpumask_t			cpus_mask;
- 	void				*migration_pending;
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 	unsigned short			migration_disabled;
- #endif
- 	unsigned short			migration_flags;
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -1696,8 +1696,6 @@ void check_preempt_curr(struct rq *rq, s
- 
- #ifdef CONFIG_SMP
- 
--#ifdef CONFIG_PREEMPT_RT
--
- static void
- __do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask, u32 flags);
- 
-@@ -1772,8 +1770,6 @@ static inline bool rq_has_pinned_tasks(s
- 	return rq->nr_pinned;
- }
- 
--#endif
--
- /*
-  * Per-CPU kthreads are allowed to run on !active && online CPUs, see
-  * __set_cpus_allowed_ptr() and select_fallback_rq().
-@@ -2841,7 +2837,7 @@ void sched_set_stop_task(int cpu, struct
- 	}
- }
- 
--#else
-+#else /* CONFIG_SMP */
- 
- static inline int __set_cpus_allowed_ptr(struct task_struct *p,
- 					 const struct cpumask *new_mask,
-@@ -2850,10 +2846,6 @@ static inline int __set_cpus_allowed_ptr
- 	return set_cpus_allowed_ptr(p, new_mask);
- }
- 
--#endif /* CONFIG_SMP */
--
--#if !defined(CONFIG_SMP) || !defined(CONFIG_PREEMPT_RT)
--
- static inline void migrate_disable_switch(struct rq *rq, struct task_struct *p) { }
- 
- static inline bool rq_has_pinned_tasks(struct rq *rq)
-@@ -2861,7 +2853,7 @@ static inline bool rq_has_pinned_tasks(s
- 	return false;
- }
- 
--#endif
-+#endif /* !CONFIG_SMP */
- 
- static void
- ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
---- a/kernel/sched/sched.h
-+++ b/kernel/sched/sched.h
-@@ -1056,7 +1056,7 @@ struct rq {
- 	struct cpuidle_state	*idle_state;
- #endif
- 
--#if defined(CONFIG_PREEMPT_RT) && defined(CONFIG_SMP)
-+#if CONFIG_SMP
- 	unsigned int		nr_pinned;
- #endif
- 	unsigned int		push_busy;
---- a/lib/smp_processor_id.c
-+++ b/lib/smp_processor_id.c
-@@ -26,7 +26,7 @@ unsigned int check_preemption_disabled(c
- 	if (current->nr_cpus_allowed = 1)
- 		goto out;
- 
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 	if (current->migration_disabled)
- 		goto out;
- #endif
+Supervisor (Oxfam Finanzabteilung)
+Oxfam International Inc
