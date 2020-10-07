@@ -1,112 +1,63 @@
-From: Khalid Aziz <khalid.aziz@oracle.com>
-Date: Wed, 07 Oct 2020 20:15:28 +0000
-Subject: Re: [PATCH 2/2] sparc: Check VMA range in sparc_validate_prot()
-Message-Id: <230d612d-75e8-34e0-00d6-b0f7274e692c@oracle.com>
+From: Jann Horn <jannh@google.com>
+Date: Wed, 07 Oct 2020 00:45:39 +0000
+Subject: Re: SPARC version of arch_validate_prot() looks broken (UAF read)
+Message-Id: <CAG48ez3istGAOA=G8fvrQkbMs4MroT8bj=Z=Wmnj0k73K0AFRA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201007073932.865218-1-jannh@google.com>
- <20201007073932.865218-2-jannh@google.com>
-In-Reply-To: <20201007073932.865218-2-jannh@google.com>
+References: <CAG48ez3YsfTfOFKa-Po58e4PNp7FK54MFbkK3aUPSRt3LWtxQA@mail.gmail.com>
+ <0fb905cc-77a2-4beb-dc9c-0c2849a6f0ae@oracle.com>
+In-Reply-To: <0fb905cc-77a2-4beb-dc9c-0c2849a6f0ae@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jann Horn <jannh@google.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>, Catalin Marinas <catalin.marinas@arm.com>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Anthony Yznaga <anthony.yznaga@oracle.com>, Will Deacon <will@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux-MM <linux-mm@kvack.org>, Khalid Aziz <khalid@gonehiking.org>, kernel list <linux-kernel@vger.kernel.org>, Anthony Yznaga <anthony.yznaga@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
 
-On 10/7/20 1:39 AM, Jann Horn wrote:
-> sparc_validate_prot() is called from do_mprotect_pkey() as
-> arch_validate_prot(); it tries to ensure that an mprotect() call can't
-> enable ADI on incompatible VMAs.
-> The current implementation only checks that the VMA at the start address
-> matches the rules for ADI mappings; instead, check all VMAs that will be
-> affected by mprotect().
-> 
-> (This hook is called before mprotect() makes sure that the specified range
-> is actually covered by VMAs, and mprotect() returns specific error codes
-> when that's not the case. In order for mprotect() to still generate the
-> same error codes for mprotect(<unmapped_ptr>, <len>, ...|PROT_ADI), we need
-> to *accept* cases where the range is not fully covered by VMAs.)
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 74a04967482f ("sparc64: Add support for ADI (Application Data Integrity)")
-> Signed-off-by: Jann Horn <jannh@google.com>
-> ---
-> compile-tested only, I don't have a Sparc ADI setup - might be nice if some
-> Sparc person could test this?
-> 
->  arch/sparc/include/asm/mman.h | 50 +++++++++++++++++++++--------------
->  1 file changed, 30 insertions(+), 20 deletions(-)
+On Tue, Sep 29, 2020 at 7:30 PM Khalid Aziz <khalid.aziz@oracle.com> wrote:
+> On 9/28/20 6:14 AM, Jann Horn wrote:
+> > From what I can tell from looking at the code:
+> >
+> > SPARC's arch_validate_prot() looks up the VMA and peeks at it; that's
+> > not permitted though. do_mprotect_pkey() calls arch_validate_prot()
+> > before taking the mmap lock, so we can hit use-after-free reads if
+> > someone concurrently deletes a VMA we're looking at.
+>
+> That makes sense. It will be a good idea to encapsulate vma access
+> inside sparc_validate_prot() between mmap_read_lock() and
+> mmap_read_unlock().
+>
+> >
+> > Additionally, arch_validate_prot() currently only accepts the start
+> > address as a parameter, but the SPARC code probably should be checking
+> > the entire given range, which might consist of multiple VMAs?
+> >
+> > I'm not sure what the best fix is here; it kinda seems like what SPARC
+> > really wants is a separate hook that is called from inside the loop in
+> > do_mprotect_pkey() that iterates over the VMAs? So maybe commit
+> > 9035cf9a97e4 ("mm: Add address parameter to arch_validate_prot()")
+> > should be reverted, and a separate hook should be created?
+> >
+> > (Luckily the ordering of the vmacache operations works out suIch that
+> > AFAICS, despite calling find_vma() without holding the mmap_sem, we
+> > can never end up establishing a vmacache entry with a dangling pointer
+> > that might be considered valid on a subsequent call. So this should be
+> > limited to a rather boring UAF data read, and not be exploitable for a
+> > UAF write or UAF function pointer read.)
+> >
+>
+> I think arch_validate_prot() is still the right hook to validate the
+> protection bits. sparc_validate_prot() can iterate over VMAs with read
+> lock. This will, of course, require range as well to be passed to
+> arch_validate_prot().
 
-
-Looks good to me.
-
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-
-
-> 
-> diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-> index e85222c76585..6dced75567c3 100644
-> --- a/arch/sparc/include/asm/mman.h
-> +++ b/arch/sparc/include/asm/mman.h
-> @@ -60,31 +60,41 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr,
->  	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
->  		return 0;
->  	if (prot & PROT_ADI) {
-> +		struct vm_area_struct *vma, *next;
-> +
->  		if (!adi_capable())
->  			return 0;
->  
-> -		if (addr) {
-> -			struct vm_area_struct *vma;
-> +		vma = find_vma(current->mm, addr);
-> +		/* if @addr is unmapped, let mprotect() deal with it */
-> +		if (!vma || vma->vm_start > addr)
-> +			return 1;
-> +		while (1) {
-> +			/* ADI can not be enabled on PFN
-> +			 * mapped pages
-> +			 */
-> +			if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-> +				return 0;
->  
-> -			vma = find_vma(current->mm, addr);
-> -			if (vma) {
-> -				/* ADI can not be enabled on PFN
-> -				 * mapped pages
-> -				 */
-> -				if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-> -					return 0;
-> +			/* Mergeable pages can become unmergeable
-> +			 * if ADI is enabled on them even if they
-> +			 * have identical data on them. This can be
-> +			 * because ADI enabled pages with identical
-> +			 * data may still not have identical ADI
-> +			 * tags on them. Disallow ADI on mergeable
-> +			 * pages.
-> +			 */
-> +			if (vma->vm_flags & VM_MERGEABLE)
-> +				return 0;
->  
-> -				/* Mergeable pages can become unmergeable
-> -				 * if ADI is enabled on them even if they
-> -				 * have identical data on them. This can be
-> -				 * because ADI enabled pages with identical
-> -				 * data may still not have identical ADI
-> -				 * tags on them. Disallow ADI on mergeable
-> -				 * pages.
-> -				 */
-> -				if (vma->vm_flags & VM_MERGEABLE)
-> -					return 0;
-> -			}
-> +			/* reached the end of the range without errors? */
-> +			if (addr+len <= vma->vm_end)
-> +				return 1;
-> +			next = vma->vm_next;
-> +			/* if a VMA hole follows, let mprotect() deal with it */
-> +			if (!next || next->vm_start != vma->vm_end)
-> +				return 1;
-> +			vma = next;
->  		}
->  	}
->  	return 1;
-> 
+In that case, do you want to implement this?
+When I try to figure out how to implement this based on your
+suggestion, it ends up a bit ugly because either mprotect has to do
+some extra checks before calling the hook or the hook has to deal with
+potentially (partly) unmapped userspace ranges in the supplied range
+and then figure out what to do about those. (And for extra fun, it
+also has to be safe against concurrent find_extend_vma() but should
+probably also not change what happens when the first half of the given
+address range is mapped and the second half is not mapped? Or does the
+latter not matter?)
+It'd also be annoying for me to test since I don't have any setup for
+testing SPARC stuff (let alone SPARC ADI).
