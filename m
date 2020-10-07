@@ -1,120 +1,197 @@
-From: Jens Axboe <axboe@kernel.dk>
-Date: Thu, 29 Oct 2020 16:22:41 +0000
-Subject: [PATCH] sparc: add support for TIF_NOTIFY_SIGNAL
-Message-Id: <c2ddcd10-55ba-dad9-c9c5-02a8bd2aa3f6@kernel.dk>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 07 Oct 2020 07:44:46 +0000
+Subject: [PATCH 2/3] fbdev/sbuslib: refactor sbusfb_ioctl_helper
+Message-Id: <20201007074447.797968-3-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201007074447.797968-1-hch@lst.de>
+In-Reply-To: <20201007074447.797968-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Geert Uytterhoeven <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-Wire up TIF_NOTIFY_SIGNAL handling for sparc.
+Refactor sbusfb_ioctl_helper into a bunch of self-contained helpers,
+to prepare for improvements to the compat ioctl handler.
 
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
+ drivers/video/fbdev/sbuslib.c | 157 ++++++++++++++++------------------
+ 1 file changed, 75 insertions(+), 82 deletions(-)
 
-5.11 has support queued up for TIF_NOTIFY_SIGNAL, see this posting
-for details:
-
-https://lore.kernel.org/io-uring/20201026203230.386348-1-axboe@kernel.dk/
-
-As part of that work, I'm adding TIF_NOTIFY_SIGNAL support to all archs,
-as that will enable a set of cleanups once all of them support it. I'm
-happy carrying this patch if need be, or it can be funelled through the
-arch tree. Let me know.
-
- arch/sparc/include/asm/thread_info_32.h | 4 +++-
- arch/sparc/include/asm/thread_info_64.h | 6 ++++--
- arch/sparc/kernel/signal_32.c           | 2 +-
- arch/sparc/kernel/signal_64.c           | 2 +-
- 4 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
-index 548b366165dd..45b4955b253f 100644
---- a/arch/sparc/include/asm/thread_info_32.h
-+++ b/arch/sparc/include/asm/thread_info_32.h
-@@ -104,6 +104,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
- #define TIF_SIGPENDING		2	/* signal pending */
- #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
- #define TIF_RESTORE_SIGMASK	4	/* restore signal mask in do_signal() */
-+#define TIF_NOTIFY_SIGNAL	5	/* signal notifications exist */
- #define TIF_USEDFPU		8	/* FPU was used by this task
- 					 * this quantum (SMP) */
- #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
-@@ -115,11 +116,12 @@ register struct thread_info *current_thread_info_reg asm("g6");
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
-+#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
- #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
- #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
+diff --git a/drivers/video/fbdev/sbuslib.c b/drivers/video/fbdev/sbuslib.c
+index 176dbfb5d3efca..1c3bf1cb8dccd7 100644
+--- a/drivers/video/fbdev/sbuslib.c
++++ b/drivers/video/fbdev/sbuslib.c
+@@ -97,94 +97,87 @@ int sbusfb_mmap_helper(struct sbus_mmap_map *map,
+ }
+ EXPORT_SYMBOL(sbusfb_mmap_helper);
  
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
--					 _TIF_SIGPENDING)
-+					 _TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL)
- 
- #define is_32bit_task()	(1)
- 
-diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
-index 20255471e653..42cd4cd3892e 100644
---- a/arch/sparc/include/asm/thread_info_64.h
-+++ b/arch/sparc/include/asm/thread_info_64.h
-@@ -180,7 +180,7 @@ extern struct thread_info *current_thread_info(void);
- #define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
- #define TIF_SIGPENDING		2	/* signal pending */
- #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
--/* flag bit 4 is available */
-+#define TIF_NOTIFY_SIGNAL	4	/* signal notifications exist */
- #define TIF_UNALIGNED		5	/* allowed to do unaligned accesses */
- #define TIF_UPROBE		6	/* breakpointed or singlestepped */
- #define TIF_32BIT		7	/* 32-bit binary */
-@@ -200,6 +200,7 @@ extern struct thread_info *current_thread_info(void);
- #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
- #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
- #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
-+#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
- #define _TIF_UNALIGNED		(1<<TIF_UNALIGNED)
- #define _TIF_UPROBE		(1<<TIF_UPROBE)
- #define _TIF_32BIT		(1<<TIF_32BIT)
-@@ -213,7 +214,8 @@ extern struct thread_info *current_thread_info(void);
- 				 _TIF_DO_NOTIFY_RESUME_MASK | \
- 				 _TIF_NEED_RESCHED)
- #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
--					 _TIF_SIGPENDING | _TIF_UPROBE)
-+					 _TIF_SIGPENDING | _TIF_UPROBE | \
-+					 _TIF_NOTIFY_SIGNAL)
- 
- #define is_32bit_task()	(test_thread_flag(TIF_32BIT))
- 
-diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
-index 741d0701003a..11cf2281b581 100644
---- a/arch/sparc/kernel/signal_32.c
-+++ b/arch/sparc/kernel/signal_32.c
-@@ -521,7 +521,7 @@ static void do_signal(struct pt_regs *regs, unsigned long orig_i0)
- void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
- 		      unsigned long thread_info_flags)
+-int sbusfb_ioctl_helper(unsigned long cmd, unsigned long arg,
+-			struct fb_info *info,
+-			int type, int fb_depth, unsigned long fb_size)
++static int sbufsfb_ioctl_gtype(struct fbtype __user *f, struct fb_info *info,
++		int type, int fb_depth, unsigned long fb_size)
  {
--	if (thread_info_flags & _TIF_SIGPENDING)
-+	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
- 		do_signal(regs, orig_i0);
- 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
- 		tracehook_notify_resume(regs);
-diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index f7ef7edcd5c1..a0eec62c825d 100644
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -549,7 +549,7 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
- 	user_exit();
- 	if (thread_info_flags & _TIF_UPROBE)
- 		uprobe_notify_resume(regs);
--	if (thread_info_flags & _TIF_SIGPENDING)
-+	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
- 		do_signal(regs, orig_i0);
- 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
- 		tracehook_notify_resume(regs);
+-	switch(cmd) {
+-	case FBIOGTYPE: {
+-		struct fbtype __user *f = (struct fbtype __user *) arg;
+-
+-		if (put_user(type, &f->fb_type) ||
+-		    put_user(info->var.yres, &f->fb_height) ||
+-		    put_user(info->var.xres, &f->fb_width) ||
+-		    put_user(fb_depth, &f->fb_depth) ||
+-		    put_user(0, &f->fb_cmsize) ||
+-		    put_user(fb_size, &f->fb_cmsize))
+-			return -EFAULT;
+-		return 0;
+-	}
+-	case FBIOPUTCMAP_SPARC: {
+-		struct fbcmap __user *c = (struct fbcmap __user *) arg;
+-		struct fb_cmap cmap;
+-		u16 red, green, blue;
+-		u8 red8, green8, blue8;
+-		unsigned char __user *ured;
+-		unsigned char __user *ugreen;
+-		unsigned char __user *ublue;
+-		unsigned int index, count, i;
+-
+-		if (get_user(index, &c->index) ||
+-		    get_user(count, &c->count) ||
+-		    get_user(ured, &c->red) ||
+-		    get_user(ugreen, &c->green) ||
+-		    get_user(ublue, &c->blue))
++	if (put_user(type, &f->fb_type) ||
++	    put_user(info->var.yres, &f->fb_height) ||
++	    put_user(info->var.xres, &f->fb_width) ||
++	    put_user(fb_depth, &f->fb_depth) ||
++	    put_user(fb_size, &f->fb_cmsize))
++		return -EFAULT;
++	return 0;
++}
++
++static int sbusfb_ioctl_putcmap(struct fbcmap *c, struct fb_info *info)
++{
++	u8 red8, green8, blue8;
++	u16 red, green, blue;
++	struct fb_cmap cmap;
++	unsigned int i;
++	int err;
++
++	cmap.len = 1;
++	cmap.red = &red;
++	cmap.green = &green;
++	cmap.blue = &blue;
++	cmap.transp = NULL;
++	for (i = 0; i < c->count; i++) {
++		if (get_user(red8, c->red + i) ||
++		    get_user(green8, c->green + i) ||
++		    get_user(blue8, c->blue + i))
+ 			return -EFAULT;
+ 
+-		cmap.len = 1;
+-		cmap.red = &red;
+-		cmap.green = &green;
+-		cmap.blue = &blue;
+-		cmap.transp = NULL;
+-		for (i = 0; i < count; i++) {
+-			int err;
+-
+-			if (get_user(red8, &ured[i]) ||
+-			    get_user(green8, &ugreen[i]) ||
+-			    get_user(blue8, &ublue[i]))
+-				return -EFAULT;
+-
+-			red = red8 << 8;
+-			green = green8 << 8;
+-			blue = blue8 << 8;
+-
+-			cmap.start = index + i;
+-			err = fb_set_cmap(&cmap, info);
+-			if (err)
+-				return err;
+-		}
+-		return 0;
++		red = red8 << 8;
++		green = green8 << 8;
++		blue = blue8 << 8;
++
++		cmap.start = c->index + i;
++		err = fb_set_cmap(&cmap, info);
++		if (err)
++			return err;
+ 	}
+-	case FBIOGETCMAP_SPARC: {
+-		struct fbcmap __user *c = (struct fbcmap __user *) arg;
+-		unsigned char __user *ured;
+-		unsigned char __user *ugreen;
+-		unsigned char __user *ublue;
+-		struct fb_cmap *cmap = &info->cmap;
+-		unsigned int index, count, i;
+-		u8 red, green, blue;
+-
+-		if (get_user(index, &c->index) ||
+-		    get_user(count, &c->count) ||
+-		    get_user(ured, &c->red) ||
+-		    get_user(ugreen, &c->green) ||
+-		    get_user(ublue, &c->blue))
+-			return -EFAULT;
++	return 0;
++}
+ 
+-		if (index > cmap->len || count > cmap->len - index)
+-			return -EINVAL;
+-
+-		for (i = 0; i < count; i++) {
+-			red = cmap->red[index + i] >> 8;
+-			green = cmap->green[index + i] >> 8;
+-			blue = cmap->blue[index + i] >> 8;
+-			if (put_user(red, &ured[i]) ||
+-			    put_user(green, &ugreen[i]) ||
+-			    put_user(blue, &ublue[i]))
+-				return -EFAULT;
+-		}
+-		return 0;
++static int sbusfb_ioctl_getcmap(struct fbcmap *c, struct fb_info *info)
++{
++	unsigned int i;
++
++	if (c->index > info->cmap.len || c->count > info->cmap.len - c->index)
++		return -EINVAL;
++
++	for (i = 0; i < c->count; i++) {
++		u8 red = info->cmap.red[c->index + i] >> 8;
++		u8 green = info->cmap.green[c->index + i] >> 8;
++		u8 blue = info->cmap.blue[c->index + i] >> 8;
++
++		if (put_user(red, c->red + i) ||
++		    put_user(green, c->green + i) ||
++		    put_user(blue, c->blue + i))
++			return -EFAULT;
+ 	}
++	return 0;
++}
++
++int sbusfb_ioctl_helper(unsigned long cmd, unsigned long arg,
++			struct fb_info *info,
++			int type, int fb_depth, unsigned long fb_size)
++{
++	void __user *argp = (void __user *)arg;
++	struct fbcmap kc;
++
++	switch (cmd) {
++	case FBIOGTYPE:
++		return sbufsfb_ioctl_gtype(argp, info, type, fb_depth, fb_size);
++	case FBIOPUTCMAP_SPARC:
++		if (copy_from_user(&kc, argp, sizeof(kc)))
++			return -EFAULT;
++		return sbusfb_ioctl_putcmap(&kc, info);
++	case FBIOGETCMAP_SPARC:
++		if (copy_from_user(&kc, argp, sizeof(kc)))
++			return -EFAULT;
++		return sbusfb_ioctl_getcmap(&kc, info);
+ 	default:
+ 		return -EINVAL;
+ 	}
 -- 
-2.29.0
-
--- 
-Jens Axboe
+2.28.0
