@@ -1,84 +1,61 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Sat, 24 Oct 2020 21:12:11 +0000
-Subject: RE: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
-Message-Id: <7c642593ca08469f8c00c0de10a09540@AcuMS.aculab.com>
+From: Christoph Hellwig <hch@lst.de>
+Date: Wed, 07 Oct 2020 07:44:47 +0000
+Subject: [PATCH 3/3] fbdev/sbuslib: avoid compat_alloc_user_space in fbiogetputcmap
+Message-Id: <20201007074447.797968-4-hch@lst.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201022104805.GA1503673@kroah.com>
- <20201022121849.GA1664412@kroah.com>
- <98d9df88-b7ef-fdfb-7d90-2fa7a9d7bab5@redhat.com>
- <20201022125759.GA1685526@kroah.com> <20201022135036.GA1787470@kroah.com>
- <134f162d711d466ebbd88906fae35b33@AcuMS.aculab.com>
- <935f7168-c2f5-dd14-7124-412b284693a2@redhat.com>
- <20201023175857.GA3576660@ZenIV.linux.org.uk>
- <20201023182713.GG2672@gate.crashing.org>
- <e9a3136ead214186877804aabde74b38@AcuMS.aculab.com>
- <20201024172903.GK2672@gate.crashing.org>
-In-Reply-To: <20201024172903.GK2672@gate.crashing.org>
+References: <20201007074447.797968-1-hch@lst.de>
+In-Reply-To: <20201007074447.797968-1-hch@lst.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Segher Boessenkool' <segher@kernel.crashing.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>, David Hildenbrand <david@redhat.com>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, David Howells <dhowells@redhat.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, Christoph Hellwig <hch@lst.de>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "kernel-team@android.com" <kernel-team@android.com>, Arnd Bergmann <arnd@arndb.de>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jens Axboe <axboe@kernel.dk>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, 'Greg KH' <gregkh@linuxfoundation.org>, Nick Desaulniers <ndesaulniers@google.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
 
-From: Segher Boessenkool
-> Sent: 24 October 2020 18:29
-> 
-> On Fri, Oct 23, 2020 at 09:28:59PM +0000, David Laight wrote:
-> > From: Segher Boessenkool
-> > > Sent: 23 October 2020 19:27
-> > > On Fri, Oct 23, 2020 at 06:58:57PM +0100, Al Viro wrote:
-> > > > On Fri, Oct 23, 2020 at 03:09:30PM +0200, David Hildenbrand wrote:
-> > > > On arm64 when callee expects a 32bit argument, the caller is *not* responsible
-> > > > for clearing the upper half of 64bit register used to pass the value - it only
-> > > > needs to store the actual value into the lower half.  The callee must consider
-> > > > the contents of the upper half of that register as undefined.  See AAPCS64 (e.g.
-> > > > https://github.com/ARM-software/abi-aa/blob/master/aapcs64/aapcs64.rst#parameter-passing-rules
-> > > > ); AFAICS, the relevant bit is
-> > > > 	"Unlike in the 32-bit AAPCS, named integral values must be narrowed by
-> > > > the callee rather than the caller."
-> > >
-> > > Or the formal rule:
-> > >
-> > > C.9 	If the argument is an Integral or Pointer Type, the size of the
-> > > 	argument is less than or equal to 8 bytes and the NGRN is less
-> > > 	than 8, the argument is copied to the least significant bits in
-> > > 	x[NGRN]. The NGRN is incremented by one. The argument has now
-> > > 	been allocated.
-> >
-> > So, in essence, if the value is in a 64bit register the calling
-> > code is independent of the actual type of the formal parameter.
-> > Clearly a value might need explicit widening.
-> 
-> No, this says that if you pass a 32-bit integer in a 64-bit register,
-> then the top 32 bits of that register hold an undefined value.
+Rewrite fbiogetputcmap to call the low-level sbusfb_ioctl_{put,get}cmap
+helpers directly and thus avoid usage of the deprecated
+compat_alloc_user_space API.
 
-That's sort of what I meant.
-The 'normal' junk in the hight bits will there because the variable
-in the calling code is wider.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/video/fbdev/sbuslib.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-> > I've found a copy of the 64 bit arm instruction set.
-> > Unfortunately it is alpha sorted and repetitive so shows none
-> > of the symmetry and makes things difficult to find.
-> 
-> All of this is ABI, not ISA.  Look at the AAPCS64 pointed to above.
-> 
-> > But, contrary to what someone suggested most register writes
-> > (eg from arithmetic) seem to zero/extend the high bits.
-> 
-> Everything that writes a "w" does, yes.  But that has nothing to do with
-> the parameter passing rules, that is ABI.  It just means that very often
-> a 32-bit integer will be passed zero-extended in a 64-bit register, but
-> that is just luck (or not, it makes finding bugs harder ;-) )
-
-Working out why the code is wrong is more of an ISA issue than an ABI one.
-It may be an ABI one, but the analysis is ISA.
-
-I've written a lot of asm over the years - decoding compiler generated
-asm isn't that hard.
-At least ARM doesn't have annulled delay slots.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+diff --git a/drivers/video/fbdev/sbuslib.c b/drivers/video/fbdev/sbuslib.c
+index 1c3bf1cb8dccd7..ef74e3e6326a06 100644
+--- a/drivers/video/fbdev/sbuslib.c
++++ b/drivers/video/fbdev/sbuslib.c
+@@ -188,23 +188,23 @@ EXPORT_SYMBOL(sbusfb_ioctl_helper);
+ static int fbiogetputcmap(struct fb_info *info, unsigned int cmd, unsigned long arg)
+ {
+ 	struct fbcmap32 __user *argp = (void __user *)arg;
+-	struct fbcmap __user *p = compat_alloc_user_space(sizeof(*p));
++	struct fbcmap kc;
+ 	u32 addr;
+ 	int ret;
+ 
+-	ret = copy_in_user(p, argp, 2 * sizeof(int));
++	ret = get_user(kc.index, &argp->index);
++	ret |= get_user(kc.count, &argp->count);
+ 	ret |= get_user(addr, &argp->red);
+-	ret |= put_user(compat_ptr(addr), &p->red);
++	kc.red = compat_ptr(addr);
+ 	ret |= get_user(addr, &argp->green);
+-	ret |= put_user(compat_ptr(addr), &p->green);
++	kc.green = compat_ptr(addr);
+ 	ret |= get_user(addr, &argp->blue);
+-	ret |= put_user(compat_ptr(addr), &p->blue);
++	kc.blue = compat_ptr(addr);
+ 	if (ret)
+ 		return -EFAULT;
+-	return info->fbops->fb_ioctl(info,
+-			(cmd = FBIOPUTCMAP32) ?
+-			FBIOPUTCMAP_SPARC : FBIOGETCMAP_SPARC,
+-			(unsigned long)p);
++	if (cmd = FBIOPUTCMAP32)
++		return sbusfb_ioctl_putcmap(&kc, info);
++	return sbusfb_ioctl_getcmap(&kc, info);
+ }
+ 
+ int sbusfb_compat_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
+-- 
+2.28.0
