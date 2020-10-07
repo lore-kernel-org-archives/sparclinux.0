@@ -1,7 +1,7 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 07 Oct 2020 08:05:36 +0000
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 07 Oct 2020 08:54:19 +0000
 Subject: Re: [PATCH 1/3] fbdev/sbuslib: remove FBIOSCURSOR/FBIOGCURSOR leftovers
-Message-Id: <CAMuHMdV4EQpT1iGKj6KfMueGVd13nzCXajyY_vq=Bm=rN9V9Lg@mail.gmail.com>
+Message-Id: <CAK8P3a0UHEsND+vJjhtj2GKQpMjMCqD55vQ9+2u-SCrThe3wTw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201007074447.797968-1-hch@lst.de> <20201007074447.797968-2-hch@lst.de>
 In-Reply-To: <20201007074447.797968-2-hch@lst.de>
@@ -9,24 +9,21 @@ MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: Christoph Hellwig <hch@lst.de>
-Cc: "David S. Miller" <davem@davemloft.net>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Arnd Bergmann <arnd@arndb.de>, linux-m68k <linux-m68k@lists.linux-m68k.org>, sparclinux <sparclinux@vger.kernel.org>, Linux Fbdev development list <linux-fbdev@vger.kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, linux-m68k <linux-m68k@lists.linux-m68k.org>, sparclinux <sparclinux@vger.kernel.org>, Linux Fbdev development list <linux-fbdev@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>
 
 On Wed, Oct 7, 2020 at 9:44 AM Christoph Hellwig <hch@lst.de> wrote:
+>
 > There are no actual implementations of FBIOSCURSOR/FBIOGCURSOR left, so
 > don't bother with a compat handler for it, and remove the remaining
 > definitions as well.
 >
 > Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+I had submitted a similar patch earlier, and Sam Ravnborg applied it to the
+drm-misc tree, but it doesn't seem to be in linux-next, so I don't know
+what the state is.
 
-Gr{oetje,eeting}s,
+My version only removed the compat handling, not the data structures,
+so I'm happy to see your version used instead if mine got lost.
 
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Acked-by: Arnd Bergmann <arnd@arndb.de>
