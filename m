@@ -1,37 +1,41 @@
-From: Wolf Ruediger Spielmann <RSpielmann@gmx.de>
-Date: Fri, 09 Oct 2020 20:46:29 +0000
-Subject: Re: SMP is broken on sparc64 with kernel 4.x/5.x
-Message-Id: <20201009224629.c4eb482d0d8f51e5e8097d4b@gmx.de>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Thu, 08 Oct 2020 19:53:57 +0000
+Subject: Re: [PATCH] sparc: Fix handling of page table constructor failure
+Message-Id: <20201008195357.GO20115@casper.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201009161924.c8f031c079dd852941307870@gmx.de>
-In-Reply-To: <20201009161924.c8f031c079dd852941307870@gmx.de>
+References: <20200927151950.32725-1-willy@infradead.org>
+In-Reply-To: <20200927151950.32725-1-willy@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Hi Adrian,
+ping
 
-On Fri, 9 Oct 2020 16:49:32 +0200
-John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de> wrote:
-> > It's (in my opinion) pcpu-alloc:
-> > kernel 4.x/5.x: pcpu-alloc: [0] 0 1=20
-> > kernel 3.x: pcpu-alloc: [0] 0 2=20
->=20
-> Interesting. I have not yet seen this issue on any of our Debian developm=
-ent
-> machines. What distribution are you running? Is this Gentoo?
->=20
-> Our of curiosity, could you give it a go with Debian?
->=20
-> > https://cdimage.debian.org/cdimage/ports/2020-08-19/debian-10.0.0-sparc=
-64-NETINST-1.iso
-
-OK - tested this ISO-image:
-- boots to bootloader GRUB
-- I chose two options ("expert install" and "rescue shell")
-- SUN loads and boots kernel, but I never reach installer nor rescue shell
-Boot-process stalls middle in nowhere and shows me a blinking cursor foreve=
-r.
-
-R=FCdiger
+On Sun, Sep 27, 2020 at 04:19:50PM +0100, Matthew Wilcox (Oracle) wrote:
+> The page has just been allocated, so its refcount is 1.  free_unref_page()
+> is for use on pages which have a zero refcount.  Use __free_page()
+> like the other implementations of pte_alloc_one().
+> 
+> Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
+> Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+> ---
+>  arch/sparc/mm/init_64.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+> index fad6d3129904..4288f08a5736 100644
+> --- a/arch/sparc/mm/init_64.c
+> +++ b/arch/sparc/mm/init_64.c
+> @@ -2898,7 +2898,7 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
+>  	if (!page)
+>  		return NULL;
+>  	if (!pgtable_pte_page_ctor(page)) {
+> -		free_unref_page(page);
+> +		__free_page(page);
+>  		return NULL;
+>  	}
+>  	return (pte_t *) page_address(page);
+> -- 
+> 2.28.0
+> 
