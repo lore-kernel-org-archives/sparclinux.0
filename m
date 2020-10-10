@@ -1,44 +1,110 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Date: Thu, 08 Oct 2020 11:03:07 +0000
+Date: Sat, 10 Oct 2020 11:09:50 +0000
 Subject: Re: [PATCH 1/2] mm/mprotect: Call arch_validate_prot under mmap_lock and with length
-Message-Id: <20201008110307.GH7661@gaia>
+Message-Id: <20201010110949.GA32545@gaia>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201007073932.865218-1-jannh@google.com>
- <20201007123544.GA11433@infradead.org>
- <CAG48ez3kjTeVtQcjQerYYRs7sX5qq3O7SU-FEaYLNXisFmAeOg@mail.gmail.com>
- <87o8ld0zwt.fsf@mpe.ellerman.id.au>
-In-Reply-To: <87o8ld0zwt.fsf@mpe.ellerman.id.au>
+ <d5332a7b-c300-6d28-18b9-4b7d4110ef86@oracle.com>
+In-Reply-To: <d5332a7b-c300-6d28-18b9-4b7d4110ef86@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Dave Kleikamp <shaggy@linux.vnet.ibm.com>, Will Deacon <will@kernel.org>, Jann Horn <jannh@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, kernel list <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Linux-MM <linux-mm@kvack.org>, Khalid Aziz <khalid.aziz@oracle.com>, Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org, Anthony Yznaga <anthony.yznaga@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: Jann Horn <jannh@google.com>, Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, sparclinux@vger.kernel.org, Anthony Yznaga <anthony.yznaga@oracle.com>, Andrew Morton <akpm@linux-foundation.org>, Will Deacon <will@kernel.org>, "David S. Miller" <davem@davemloft.net>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Oct 08, 2020 at 09:34:26PM +1100, Michael Ellerman wrote:
-> Jann Horn <jannh@google.com> writes:
-> > So while the mprotect() case
-> > checks the flags and refuses unknown values, the mmap() code just lets
-> > the architecture figure out which bits are actually valid to set (via
-> > arch_calc_vm_prot_bits()) and silently ignores the rest?
-> >
-> > And powerpc apparently decided that they do want to error out on bogus
-> > prot values passed to their version of mmap(), and in exchange, assume
-> > in arch_calc_vm_prot_bits() that the protection bits are valid?
-> 
-> I don't think we really decided that, it just happened by accident and
-> no one noticed/complained.
-> 
-> Seems userspace is pretty well behaved when it comes to passing prot
-> values to mmap().
+Hi Khalid,
 
-It's not necessarily about well behaved but whether it can have security
-implications. On arm64, if the underlying memory does not support MTE
-(say some DAX mmap) but we still allow PROT_MTE driven by user, it will
-lead to an SError which brings the whole machine down.
+On Wed, Oct 07, 2020 at 02:14:09PM -0600, Khalid Aziz wrote:
+> On 10/7/20 1:39 AM, Jann Horn wrote:
+> > arch_validate_prot() is a hook that can validate whether a given set of
+> > protection flags is valid in an mprotect() operation. It is given the set
+> > of protection flags and the address being modified.
+> > 
+> > However, the address being modified can currently not actually be used in
+> > a meaningful way because:
+> > 
+> > 1. Only the address is given, but not the length, and the operation can
+> >    span multiple VMAs. Therefore, the callee can't actually tell which
+> >    virtual address range, or which VMAs, are being targeted.
+> > 2. The mmap_lock is not held, meaning that if the callee were to check
+> >    the VMA at @addr, that VMA would be unrelated to the one the
+> >    operation is performed on.
+> > 
+> > Currently, custom arch_validate_prot() handlers are defined by
+> > arm64, powerpc and sparc.
+> > arm64 and powerpc don't care about the address range, they just check the
+> > flags against CPU support masks.
+> > sparc's arch_validate_prot() attempts to look at the VMA, but doesn't take
+> > the mmap_lock.
+> > 
+> > Change the function signature to also take a length, and move the
+> > arch_validate_prot() call in mm/mprotect.c down into the locked region.
+[...]
+> As Chris pointed out, the call to arch_validate_prot() from do_mmap2()
+> is made without holding mmap_lock. Lock is not acquired until
+> vm_mmap_pgoff(). This variance is uncomfortable but I am more
+> uncomfortable forcing all implementations of validate_prot to require
+> mmap_lock be held when non-sparc implementations do not have such need
+> yet. Since do_mmap2() is in powerpc specific code, for now this patch
+> solves a current problem.
 
-Not sure whether ADI has similar requirements but at least for arm64 we
-addressed the mmap() case as well (see my other email on the details; I
-think the approach would work on SPARC as well).
+I still think sparc should avoid walking the vmas in
+arch_validate_prot(). The core code already has the vmas, though not
+when calling arch_validate_prot(). That's one of the reasons I added
+arch_validate_flags() with the MTE patches. For sparc, this could be
+(untested, just copied the arch_validate_prot() code):
+
+static inline bool arch_validate_flags(unsigned long vm_flags)
+{
+	if (!(vm_flags & VM_SPARC_ADI))
+		return true;
+
+	if (!adi_capable())
+		return false;
+
+	/* ADI can not be enabled on PFN mapped pages */
+	if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+		return false;
+
+	/*
+	 * Mergeable pages can become unmergeable if ADI is enabled on
+	 * them even if they have identical data on them. This can be
+	 * because ADI enabled pages with identical data may still not
+	 * have identical ADI tags on them. Disallow ADI on mergeable
+	 * pages.
+	 */
+	if (vma->vm_flags & VM_MERGEABLE)
+		return false;
+
+	return true;
+}
+
+> That leaves open the question of should
+> generic mmap call arch_validate_prot and return EINVAL for invalid
+> combination of protection bits, but that is better addressed in a
+> separate patch.
+
+The above would cover mmap() as well.
+
+The current sparc_validate_prot() relies on finding the vma for the
+corresponding address. However, if you call this early in the mmap()
+path, there's no such vma. It is only created later in mmap_region()
+which no longer has the original PROT_* flags (all converted to VM_*
+flags).
+
+Calling arch_validate_flags() on mmap() has a small side-effect on the
+user ABI: if the CPU is not adi_capable(), PROT_ADI is currently ignored
+on mmap() but rejected by sparc_validate_prot(). Powerpc already does
+this already and I think it should be fine for arm64 (it needs checking
+though as we have another flag, PROT_BTI, hopefully dynamic loaders
+don't pass this flag unconditionally).
+
+However, as I said above, it doesn't solve the mmap() PROT_ADI checking
+for sparc since there's no vma yet. I'd strongly recommend the
+arch_validate_flags() approach and reverting the "start" parameter added
+to arch_validate_prot() if you go for the flags route.
+
+Thanks.
 
 -- 
 Catalin
