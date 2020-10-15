@@ -1,8 +1,10 @@
-From: Kunio Uematsu <admin@flexfilm.com>
-Date: Tue, 13 Oct 2020 16:00:53 +0000
+From: "Kunio Uematsu" <admin@flexfilm.com>
+Date: Thu, 15 Oct 2020 06:27:31 +0000
 Subject: Dearest Beloved !!!
-Message-Id: <ed6fb590-5c79-4823-a97f-52f3745eedcf@O2SVC048.oscars.local>
+Message-Id: <20201015062731.A3EF912D9261@ms1.s-word.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <ed6fb590-5c79-4823-a97f-52f3745eedcf@O2SVC048.oscars.local>
+In-Reply-To: <ed6fb590-5c79-4823-a97f-52f3745eedcf@O2SVC048.oscars.local>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -52,4 +54,4 @@ BANK WHERE FUND IS DEPOSITED.
 Regards,
 Kunio Uematsu
 (Japan)
-Email:KunioUematsu01@protonmail.ch
+Email:uekunio3@gmail.com
