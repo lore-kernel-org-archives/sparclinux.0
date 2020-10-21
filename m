@@ -1,26 +1,25 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Date: Wed, 21 Oct 2020 20:59:43 +0000
-Subject: RE: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
-Message-Id: <b416290b76684ac392e8c43d764645f8@AcuMS.aculab.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Wed, 21 Oct 2020 23:39:14 +0000
+Subject: Re: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
+Message-Id: <20201021233914.GR3576660@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20200925045146.1283714-1-hch@lst.de>
- <20200925045146.1283714-3-hch@lst.de> <20201021161301.GA1196312@kroah.com>
+ <20200925045146.1283714-3-hch@lst.de>
+ <20201021161301.GA1196312@kroah.com>
 In-Reply-To: <20201021161301.GA1196312@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: 'Greg KH' <gregkh@linuxfoundation.org>, Christoph Hellwig <hch@lst.de>, "kernel-team@android.com" <kernel-team@android.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Christoph Hellwig <hch@lst.de>, kernel-team@android.com, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, David Laight <David.Laight@aculab.com>, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-scsi@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-aio@kvack.org, io-uring@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org, keyrings@vger.kernel.org, linux-security-module@vger.kernel.org
 
-From: Greg KH
-> Sent: 21 October 2020 17:13
-> 
+On Wed, Oct 21, 2020 at 06:13:01PM +0200, Greg KH wrote:
 > On Fri, Sep 25, 2020 at 06:51:39AM +0200, Christoph Hellwig wrote:
 > > From: David Laight <David.Laight@ACULAB.COM>
-> >
+> > 
 > > This lets the compiler inline it into import_iovec() generating
 > > much better code.
-> >
+> > 
 > > Signed-off-by: David Laight <david.laight@aculab.com>
 > > Signed-off-by: Christoph Hellwig <hch@lst.de>
 > > ---
@@ -36,20 +35,10 @@ From: Greg KH
 > thing in the testing framework, so any hints that people can provide
 > would be most appreciated.
 
-My original commit just moved the function source from one file to another.
-So it is odd that it makes any difference.
-I don't even know if it gets inlined by Christoph's actual patch.
-(I have another patch that depended on it that I need to resubmit.)
+It's a pure move - modulo changed line breaks in the argument lists
+the functions involved are identical before and after that (just checked
+that directly, by checking out the trees before and after, extracting two
+functions in question from fs/read_write.c and lib/iov_iter.c (before and
+after, resp.) and checking the diff between those.
 
-Some of the other changes from Christoph's same patch set might
-make a difference though.
-
-Might be worth forcing it to be not inlined - so it is no change.
-Or try adding a kernel log to import_iovec() or the associated
-copy failing.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+How certain is your bisection?
