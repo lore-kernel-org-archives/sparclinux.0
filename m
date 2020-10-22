@@ -1,64 +1,37 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Thu, 22 Oct 2020 21:28:28 +0000
-Subject: Re: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
-Message-Id: <20201022212828.GZ3576660@ZenIV.linux.org.uk>
+From: David Laight <David.Laight@ACULAB.COM>
+Date: Thu, 22 Oct 2020 22:04:04 +0000
+Subject: RE: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
+Message-Id: <15c3f5926f9c4f67b53f1ed26c41a62e@AcuMS.aculab.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201022090155.GA1483166@kroah.com>
+References: <20201021233914.GR3576660@ZenIV.linux.org.uk>
+ <20201022082654.GA1477657@kroah.com>
+ <80a2e5fa-718a-8433-1ab0-dd5b3e3b5416@redhat.com>
+ <5d2ecb24db1e415b8ff88261435386ec@AcuMS.aculab.com>
+ <df2e0758-b8ed-5aec-6adc-a18f499c0179@redhat.com>
+ <20201022090155.GA1483166@kroah.com>
  <e04d0c5d-e834-a15b-7844-44dcc82785cc@redhat.com>
  <a1533569-948a-1d5b-e231-5531aa988047@redhat.com>
  <bc0a091865f34700b9df332c6e9dcdfd@AcuMS.aculab.com>
  <5fd6003b-55a6-2c3c-9a28-8fd3a575ca78@redhat.com>
  <20201022132342.GB8781@lst.de>
  <8f1fff0c358b4b669d51cc80098dbba1@AcuMS.aculab.com>
- <20201022164040.GV20115@casper.infradead.org>
- <CAKwvOdnq-yYLcF_coo=jMV-RH-SkuNp_kMB+KCBF5cz3PwiB8g@mail.gmail.com>
- <20201022205932.GB3613750@gmail.com>
-In-Reply-To: <20201022205932.GB3613750@gmail.com>
+ <CAKwvOdnix6YGFhsmT_mY8ORNPTOsN3HwS33Dr0Ykn-pyJ6e-Bw@mail.gmail.com>
+ <CAK8P3a3LjG+ZvmQrkb9zpgov8xBkQQWrkHBPgjfYSqBKGrwT4w@mail.gmail.com>
+ <CAKwvOdnhONvrHLAuz_BrAuEpnF5mD9p0YPGJs=NZZ0EZNo7dFQ@mail.gmail.com>
+In-Reply-To: <CAKwvOdnhONvrHLAuz_BrAuEpnF5mD9p0YPGJs=NZZ0EZNo7dFQ@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Eric Biggers <ebiggers@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Nick Desaulniers <ndesaulniers@google.com>, Matthew Wilcox <willy@infradead.org>, David Laight <David.Laight@aculab.com>, Christoph Hellwig <hch@lst.de>, David Hildenbrand <david@redhat.com>, Greg KH <gregkh@linuxfoundation.org>, "kernel-team@android.com" <kernel-team@android.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, Arnd Bergmann <arnd@arndb.de>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
+To: 'Nick Desaulniers' <ndesaulniers@google.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>, David Hildenbrand <david@redhat.com>, Greg KH <gregkh@linuxfoundation.org>, Al Viro <viro@zeniv.linux.org.uk>, "kernel-team@android.com" <kernel-team@android.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
 
-On Thu, Oct 22, 2020 at 01:59:32PM -0700, Eric Biggers wrote:
-
-> Also note the following program succeeds on Linux 5.9 on x86_64.  On kernels
-> that have this bug, it should fail.  (I couldn't get it to actually fail, so it
-> must depend on the compiler and/or the kernel config...)
-
-It doesn't.  See https://www.spinics.net/lists/linux-scsi/msg147836.html for
-discussion of that mess.
-
-ssize_t vfs_readv(struct file *file, const struct iovec __user *vec,
-                  unsigned long vlen, loff_t *pos, rwf_t flags)
-{
-        struct iovec iovstack[UIO_FASTIOV];
-        struct iovec *iov = iovstack;
-        struct iov_iter iter;
-        ssize_t ret;
-
-        ret = import_iovec(READ, vec, vlen, ARRAY_SIZE(iovstack), &iov, &iter);
-        if (ret >= 0) {
-                ret = do_iter_read(file, &iter, pos, flags);
-                kfree(iov);
-        }
-
-        return ret;
-}
-
-and import_iovec() takes unsigned int as the third argument, so it *will*
-truncate to 32 bits, no matter what.  Has done so since 0504c074b546
-"switch {compat_,}do_readv_writev() to {compat_,}import_iovec()" back in
-March 2015.  Yes, it was an incompatible userland ABI change, even though
-nothing that used glibc/uclibc/dietlibc would've noticed.
-
-Better yet, up until 2.1.90pre1 passing a 64bit value as the _first_ argument
-of readv(2) used to fail with -EBADF if it was too large; at that point it
-started to get quietly truncated to 32bit first.  And again, no libc users
-would've noticed (neither would anything except deliberate regression test
-looking for that specific behaviour).
-
-Note that we also have process_madvise(2) with size_t for vlen (huh?  It's
-a number of array elements, not an object size) and process_vm_{read,write}v(2),
-that have unsigned long for the same thing.  And the last two *are* using
-the same unsigned long from glibc POV.
+RnJvbTogTmljayBEZXNhdWxuaWVycw0KPiBTZW50OiAyMiBPY3RvYmVyIDIwMjAgMjA6MDUNCj4g
+DQouLi4NCj4gUGFzc2luZyBhbiBgdW5zaWduZWQgbG9uZ2AgYXMgYW4gYHVuc2lnbmVkIGludGAg
+ZG9lcyBubyBzdWNoDQo+IG5hcnJvd2luZzogaHR0cHM6Ly9nb2Rib2x0Lm9yZy96L1R2Zk14ZSAo
+c2FtZSB2aWNlLXZlcnNhLCBqdXN0IHRhaWwNCj4gY2FsbHMsIG5vIG1hc2tpbmcgaW5zdHJ1Y3Rp
+b25zKS4NCg0KUmlnaHQgYnV0IGlzIHRoZSBjYWxsZWQgZnVuY3Rpb24gZ29pbmcgdG8gdXNlIDMy
+Yml0IG9wcw0KYW5kL29yIG1hc2sgdGhlIHJlZ2lzdGVyPw0KQ2VydGFpbmx5IHRoYXQgaXMgbGlr
+ZWx5IG9uIHg4Ni02NC4NCg0KSSd2ZSByYXRoZXIgbG9zdCB0cmFjayBvZiB3aGVyZSB0aGUgbWFz
+a2luZyBpcyBleHBlY3RlZA0KdG8gaGFwcGVuLg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBB
+ZGRyZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQsIE1vdW50IEZhcm0sIE1pbHRvbiBLZXluZXMs
+IE1LMSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86IDEzOTczODYgKFdhbGVzKQ0K
