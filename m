@@ -1,73 +1,46 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Date: Thu, 22 Oct 2020 14:40:21 +0000
-Subject: Re: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
-Message-Id: <20201022144021.GA1969554@kroah.com>
+From: David Laight <David.Laight@ACULAB.COM>
+Date: Thu, 22 Oct 2020 16:15:05 +0000
+Subject: RE: Buggy commit tracked to: "Re: [PATCH 2/9] iov_iter: move rw_copy_check_uvector() into lib/iov_it
+Message-Id: <80332728fbc3438f806aee74003e26c1@AcuMS.aculab.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <e04d0c5d-e834-a15b-7844-44dcc82785cc@redhat.com>
  <a1533569-948a-1d5b-e231-5531aa988047@redhat.com>
  <bc0a091865f34700b9df332c6e9dcdfd@AcuMS.aculab.com>
  <5fd6003b-55a6-2c3c-9a28-8fd3a575ca78@redhat.com>
- <20201022104805.GA1503673@kroah.com>
- <20201022121849.GA1664412@kroah.com>
+ <20201022104805.GA1503673@kroah.com> <20201022121849.GA1664412@kroah.com>
  <98d9df88-b7ef-fdfb-7d90-2fa7a9d7bab5@redhat.com>
- <20201022125759.GA1685526@kroah.com>
- <20201022135036.GA1787470@kroah.com>
+ <20201022125759.GA1685526@kroah.com> <20201022135036.GA1787470@kroah.com>
  <CAK8P3a1B7OVdyzW0-97JwzZiwp0D0fnSfyete16QTvPp_1m07A@mail.gmail.com>
-In-Reply-To: <CAK8P3a1B7OVdyzW0-97JwzZiwp0D0fnSfyete16QTvPp_1m07A@mail.gmail.com>
+ <20201022144021.GA1969554@kroah.com>
+In-Reply-To: <20201022144021.GA1969554@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@redhat.com>, David Laight <David.Laight@aculab.com>, Al Viro <viro@zeniv.linux.org.uk>, Nick Desaulniers <ndesaulniers@google.com>, Christoph Hellwig <hch@lst.de>, "kernel-team@android.com" <kernel-team@android.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
+To: 'Greg KH' <gregkh@linuxfoundation.org>, Arnd Bergmann <arnd@arndb.de>
+Cc: David Hildenbrand <david@redhat.com>, Al Viro <viro@zeniv.linux.org.uk>, Nick Desaulniers <ndesaulniers@google.com>, Christoph Hellwig <hch@lst.de>, "kernel-team@android.com" <kernel-team@android.com>, Andrew Morton <akpm@linux-foundation.org>, Jens Axboe <axboe@kernel.dk>, David Howells <dhowells@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>, "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "linux-block@vger.kernel.org" <linux-block@vger.kernel.org>, "linux-scsi@vger.kernel.org" <linux-scsi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-aio@kvack.org" <linux-aio@kvack.org>, "io-uring@vger.kernel.org" <io-uring@vger.kernel.org>, "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "keyrings@vger.kernel.org" <keyrings@vger.kernel.org>, "linux-security-module@vger.kernel.org" <linux-security-module@vger.kernel.org>
 
-On Thu, Oct 22, 2020 at 04:28:20PM +0200, Arnd Bergmann wrote:
-> On Thu, Oct 22, 2020 at 3:50 PM Greg KH <gregkh@linuxfoundation.org> wrote:
-> > On Thu, Oct 22, 2020 at 02:57:59PM +0200, Greg KH wrote:
-> > > On Thu, Oct 22, 2020 at 02:42:24PM +0200, David Hildenbrand wrote:
+From: Greg KH
+> Sent: 22 October 2020 15:40
 > 
-> > > >  struct iovec *iovec_from_user(const struct iovec __user *uvec,
-> > > > -               unsigned long nr_segs, unsigned long fast_segs,
-> > > > +               unsigned nr_segs, unsigned fast_segs,
-> > > >                 struct iovec *fast_iov, bool compat)
-> > > >  {
-> > > >         struct iovec *iov = fast_iov;
-> > > > @@ -1738,7 +1738,7 @@ ssize_t __import_iovec(int type, const struct
-> > > > iovec __user *uvec,
-> > > >                  struct iov_iter *i, bool compat)
-> > > >  {
-> > > >         ssize_t total_len = 0;
-> > > > -       unsigned long seg;
-> > > > +       unsigned seg;
-> > > >         struct iovec *iov;
-> > > >
-> > > >         iov = iovec_from_user(uvec, nr_segs, fast_segs, *iovp, compat);
-> > > >
-> > >
-> > > Ah, I tested the other way around, making everything "unsigned long"
-> > > instead.  Will go try this too, as other tests are still running...
-> >
-> > Ok, no, this didn't work either.
-> >
-> > Nick, I think I need some compiler help here.  Any ideas?
+> On Thu, Oct 22, 2020 at 04:28:20PM +0200, Arnd Bergmann wrote:
+...
+> > Can you attach the iov_iter.s files from the broken build, plus the
+> > one with 'noinline' for comparison? Maybe something can be seen
+> > in there.
 > 
-> I don't think the patch above would reliably clear the upper bits if they
-> contain garbage.
-> 
-> If the integer extension is the problem, the way I'd try it is to make the
-> function take an 'unsigned long' and then explictly mask the upper
-> bits with
-> 
->      seg = lower_32_bits(seg);
-> 
-> Can you attach the iov_iter.s files from the broken build, plus the
-> one with 'noinline' for comparison? Maybe something can be seen
-> in there.
+> I don't know how to extract the .s files easily from the AOSP build
+> system, I'll look into that.  I'm also now testing by downgrading to an
+> older version of clang (10 instead of 11), to see if that matters at all
+> or not...
 
-I don't know how to extract the .s files easily from the AOSP build
-system, I'll look into that.  I'm also now testing by downgrading to an
-older version of clang (10 instead of 11), to see if that matters at all
-or not...
+Back from a day out - after it stopped raining.
+Trying to use up leave before the end of the year.
 
-thanks,
+Can you use objdump on the kernel binary itself and cut out
+the single function?
 
-greg k-h
+	David
+
+-
+Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+Registration No: 1397386 (Wales)
