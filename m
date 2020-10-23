@@ -1,67 +1,106 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Date: Wed, 14 Oct 2020 06:40:28 +0000
-Subject: Re: [RFC] openprom: Fix 'opiocnextprop'; ensure integer conversions; use string size
-Message-Id: <c1329005-fa37-e02e-0105-2634ee566f55@infradead.org>
+From: Khalid Aziz <khalid.aziz@oracle.com>
+Date: Fri, 23 Oct 2020 17:56:11 +0000
+Subject: [PATCH] sparc64: Use arch_validate_flags() to validate ADI flag
+Message-Id: <20201023175611.12819-1-khalid.aziz@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <a5515efeaad94666a87f264dbf65bdbd@gmail.com>
-In-Reply-To: <a5515efeaad94666a87f264dbf65bdbd@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Witten <mfwitten@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: jannh@google.com, hch@infradead.org, catalin.marinas@arm.com, davem@davemloft.net, akpm@linux-foundation.org
+Cc: Khalid Aziz <khalid.aziz@oracle.com>, anthony.yznaga@oracle.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-Hi,
+When userspace calls mprotect() to enable ADI on an address range,
+do_mprotect_pkey() calls arch_validate_prot() to validate new
+protection flags. arch_validate_prot() for sparc looks at the first
+VMA associated with address range to verify if ADI can indeed be
+enabled on this address range. This has two issues - (1) Address
+range might cover multiple VMAs while arch_validate_prot() looks at
+only the first VMA, (2) arch_validate_prot() peeks at VMA without
+holding mmap lock which can result in race condition.
 
-On 9/4/20 12:40 PM, Michael Witten wrote:
-> The following patch improves the quality and correctness of the openprom code.
-> 
-> 
-> --8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<----8<--
-> 
-> ---
->   arch/sparc/include/asm/prom.h   |   2 +-
->   arch/sparc/kernel/prom_common.c |  14 +--
->   drivers/sbus/char/openprom.c    | 263 ++++++++++++++++++++++++++++------------
->   3 files changed, 194 insertions(+), 85 deletions(-)
-> 
-> diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
-> index 30b9751aad30..9bc2877aa09a 100644
-> --- a/drivers/sbus/char/openprom.c
-> +++ b/drivers/sbus/char/openprom.c
->   	/* If the bufsize is too large, just limit it.
->   	 * Fix from Jason Rappleye.
->   	 */
+arch_validate_flags() from commit c462ac288f2c ("mm: Introduce
+arch_validate_flags()") allows for VMA flags to be validated for all
+VMAs that cover the address range given by user while holding mmap
+lock. This patch updates sparc code to move the VMA check from
+arch_validate_prot() to arch_validate_flags() to fix above two
+issues.
 
-The sparc cross-compiler that I am using does not like to see type
-casting in preprocessor lines.
-SIZE_MAX is #defined as (~(size_t)0) and for the #if line below,
+Suggested-by: Jann Horn <jannh@google.com>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
+---
+ arch/sparc/include/asm/mman.h | 54 +++++++++++++++++++----------------
+ 1 file changed, 29 insertions(+), 25 deletions(-)
 
-> +	#if OPROMMAXPARAM > SIZE_MAX/2
-> +		if (bufsize > SIZE_MAX/2)
-> +			return -EFAULT;
-> +	#endif
-
-gcc (cpp) says:
-
-In file included from ../drivers/sbus/char/openprom.c:19:
-../include/linux/limits.h:9:21: warning: "size_t" is not defined, 
-evaluates to 0 [-Wundef]
-     9 | #define SIZE_MAX (~(size_t)0)
-       |                     ^~~~~~
-../drivers/sbus/char/openprom.c:95:22: note: in expansion of macro 
-'SIZE_MAX'
-    95 |  #if OPROMMAXPARAM > SIZE_MAX/2
-       |                      ^~~~~~~~
-../include/linux/limits.h:9:28: error: missing binary operator before 
-token "0"
-     9 | #define SIZE_MAX (~(size_t)0)
-       |                            ^
-../drivers/sbus/char/openprom.c:95:22: note: in expansion of macro 
-'SIZE_MAX'
-    95 |  #if OPROMMAXPARAM > SIZE_MAX/2
-       |                      ^~~~~~~~
-
-causing a build error.
-
---
-~Randy
+diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
+index f94532f25db1..274217e7ed70 100644
+--- a/arch/sparc/include/asm/mman.h
++++ b/arch/sparc/include/asm/mman.h
+@@ -57,35 +57,39 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+ {
+ 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
+ 		return 0;
+-	if (prot & PROT_ADI) {
+-		if (!adi_capable())
+-			return 0;
++	return 1;
++}
+ 
+-		if (addr) {
+-			struct vm_area_struct *vma;
++#define arch_validate_flags(vm_flags) arch_validate_flags(vm_flags)
++/* arch_validate_flags() - Ensure combination of flags is valid for a
++ *	VMA.
++ */
++static inline bool arch_validate_flags(unsigned long vm_flags)
++{
++	/* If ADI is being enabled on this VMA, check for ADI
++	 * capability on the platform and ensure VMA is suitable
++	 * for ADI
++	 */
++	if (vm_flags & VM_SPARC_ADI) {
++		if (!adi_capable())
++			return false;
+ 
+-			vma = find_vma(current->mm, addr);
+-			if (vma) {
+-				/* ADI can not be enabled on PFN
+-				 * mapped pages
+-				 */
+-				if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+-					return 0;
++		/* ADI can not be enabled on PFN mapped pages */
++		if (vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
++			return false;
+ 
+-				/* Mergeable pages can become unmergeable
+-				 * if ADI is enabled on them even if they
+-				 * have identical data on them. This can be
+-				 * because ADI enabled pages with identical
+-				 * data may still not have identical ADI
+-				 * tags on them. Disallow ADI on mergeable
+-				 * pages.
+-				 */
+-				if (vma->vm_flags & VM_MERGEABLE)
+-					return 0;
+-			}
+-		}
++		/* Mergeable pages can become unmergeable
++		 * if ADI is enabled on them even if they
++		 * have identical data on them. This can be
++		 * because ADI enabled pages with identical
++		 * data may still not have identical ADI
++		 * tags on them. Disallow ADI on mergeable
++		 * pages.
++		 */
++		if (vm_flags & VM_MERGEABLE)
++			return false;
+ 	}
+-	return 1;
++	return true;
+ }
+ #endif /* CONFIG_SPARC64 */
+ 
+-- 
+2.25.1
