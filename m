@@ -1,41 +1,172 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Thu, 08 Oct 2020 19:53:57 +0000
-Subject: Re: [PATCH] sparc: Fix handling of page table constructor failure
-Message-Id: <20201008195357.GO20115@casper.infradead.org>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 25 Oct 2020 10:15:52 +0000
+Subject: [PATCH 1/4] mm: introduce debug_pagealloc_map_pages() helper
+Message-Id: <20201025101555.3057-2-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20200927151950.32725-1-willy@infradead.org>
-In-Reply-To: <20200927151950.32725-1-willy@infradead.org>
+References: <20201025101555.3057-1-rppt@kernel.org>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-ping
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-On Sun, Sep 27, 2020 at 04:19:50PM +0100, Matthew Wilcox (Oracle) wrote:
-> The page has just been allocated, so its refcount is 1.  free_unref_page()
-> is for use on pages which have a zero refcount.  Use __free_page()
-> like the other implementations of pte_alloc_one().
-> 
-> Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
-> Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-> ---
->  arch/sparc/mm/init_64.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index fad6d3129904..4288f08a5736 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -2898,7 +2898,7 @@ pgtable_t pte_alloc_one(struct mm_struct *mm)
->  	if (!page)
->  		return NULL;
->  	if (!pgtable_pte_page_ctor(page)) {
-> -		free_unref_page(page);
-> +		__free_page(page);
->  		return NULL;
->  	}
->  	return (pte_t *) page_address(page);
-> -- 
-> 2.28.0
-> 
+When CONFIG_DEBUG_PAGEALLOC is enabled, it unmaps pages from the kernel
+direct mapping after free_pages(). The pages than need to be mapped back
+before they could be used. Theese mapping operations use
+__kernel_map_pages() guarded with with debug_pagealloc_enabled().
+
+The only place that calls __kernel_map_pages() without checking whether
+DEBUG_PAGEALLOC is enabled is the hibernation code that presumes
+availability of this function when ARCH_HAS_SET_DIRECT_MAP is set.
+Still, on arm64, __kernel_map_pages() will bail out when DEBUG_PAGEALLOC is
+not enabled but set_direct_map_invalid_noflush() may render some pages not
+present in the direct map and hibernation code won't be able to save such
+pages.
+
+To make page allocation debugging and hibernation interaction more robust,
+the dependency on DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP has to be made
+more explicit.
+
+Start with combining the guard condition and the call to
+__kernel_map_pages() into a single debug_pagealloc_map_pages() function to
+emphasize that __kernel_map_pages() should not be called without
+DEBUG_PAGEALLOC and use this new function to map/unmap pages when page
+allocation debug is enabled.
+
+As the only remaining user of kernel_map_pages() is the hibernation code,
+mode that function into kernel/power/snapshot.c closer to a caller.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ include/linux/mm.h      | 16 +++++++---------
+ kernel/power/snapshot.c | 11 +++++++++++
+ mm/memory_hotplug.c     |  3 +--
+ mm/page_alloc.c         |  6 ++----
+ mm/slab.c               |  8 +++-----
+ 5 files changed, 24 insertions(+), 20 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ef360fe70aaf..14e397f3752c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2927,21 +2927,19 @@ static inline bool debug_pagealloc_enabled_static(void)
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+-/*
+- * When called in DEBUG_PAGEALLOC context, the call should most likely be
+- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
+- */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
++static inline void debug_pagealloc_map_pages(struct page *page,
++					     int numpages, int enable)
+ {
+-	__kernel_map_pages(page, numpages, enable);
++	if (debug_pagealloc_enabled_static())
++		__kernel_map_pages(page, numpages, enable);
+ }
++
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
++static inline void debug_pagealloc_map_pages(struct page *page,
++					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif	/* CONFIG_HIBERNATION */
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 46b1804c1ddf..fa499466f645 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,6 +76,17 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
++#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
++static inline void
++kernel_map_pages(struct page *page, int numpages, int enable)
++{
++	__kernel_map_pages(page, numpages, enable);
++}
++#else
++static inline void
++kernel_map_pages(struct page *page, int numpages, int enable) {}
++#endif
++
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index b44d4c7ba73b..e2b6043a4428 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -614,8 +614,7 @@ void generic_online_page(struct page *page, unsigned int order)
+ 	 * so we should map it first. This is better than introducing a special
+ 	 * case in page freeing fast path.
+ 	 */
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 1);
++	debug_pagealloc_map_pages(page, 1 << order, 1);
+ 	__free_pages_core(page, order);
+ 	totalram_pages_add(1UL << order);
+ #ifdef CONFIG_HIGHMEM
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 23f5066bd4a5..9a66a1ff9193 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -1272,8 +1272,7 @@ static __always_inline bool free_pages_prepare(struct page *page,
+ 	 */
+ 	arch_free_page(page, order);
+ 
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 0);
++	debug_pagealloc_map_pages(page, 1 << order, 0);
+ 
+ 	kasan_free_nondeferred_pages(page, order);
+ 
+@@ -2270,8 +2269,7 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 	set_page_refcounted(page);
+ 
+ 	arch_alloc_page(page, order);
+-	if (debug_pagealloc_enabled_static())
+-		kernel_map_pages(page, 1 << order, 1);
++	debug_pagealloc_map_pages(page, 1 << order, 1);
+ 	kasan_alloc_pages(page, order);
+ 	kernel_poison_pages(page, 1 << order, 1);
+ 	set_page_owner(page, order, gfp_flags);
+diff --git a/mm/slab.c b/mm/slab.c
+index b1113561b98b..340db0ce74c4 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -1431,10 +1431,8 @@ static bool is_debug_pagealloc_cache(struct kmem_cache *cachep)
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ static void slab_kernel_map(struct kmem_cache *cachep, void *objp, int map)
+ {
+-	if (!is_debug_pagealloc_cache(cachep))
+-		return;
+-
+-	kernel_map_pages(virt_to_page(objp), cachep->size / PAGE_SIZE, map);
++	debug_pagealloc_map_pages(virt_to_page(objp),
++				  cachep->size / PAGE_SIZE, map);
+ }
+ 
+ #else
+@@ -2062,7 +2060,7 @@ int __kmem_cache_create(struct kmem_cache *cachep, slab_flags_t flags)
+ 
+ #if DEBUG
+ 	/*
+-	 * If we're going to use the generic kernel_map_pages()
++	 * If we're going to use the generic debug_pagealloc_map_pages()
+ 	 * poisoning, then it's going to smash the contents of
+ 	 * the redzone and userword anyhow, so switch them off.
+ 	 */
+-- 
+2.28.0
