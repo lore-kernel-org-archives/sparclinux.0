@@ -1,168 +1,306 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 29 Oct 2020 22:18:14 +0000
-Subject: [patch V2 08/18] microblaze/mm/highmem: Switch to generic kmap atomic
-Message-Id: <20201029222651.395482379@linutronix.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 25 Oct 2020 10:15:54 +0000
+Subject: [PATCH 3/4] arch, mm: restore dependency of __kernel_map_pages() of DEBUG_PAGEALLOC
+Message-Id: <20201025101555.3057-4-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201029221806.189523375@linutronix.de>
+References: <20201025101555.3057-1-rppt@kernel.org>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Michal Simek <monstr@monstr.eu>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-No reason having the same code in every architecture.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michal Simek <monstr@monstr.eu>
+The design of DEBUG_PAGEALLOC presumes that __kernel_map_pages() must never
+fail. With this assumption is wouldn't be safe to allow general usage of
+this function.
 
-diff --git a/arch/microblaze/Kconfig b/arch/microblaze/Kconfig
-index d262ac0c8714..186a0526564c 100644
---- a/arch/microblaze/Kconfig
-+++ b/arch/microblaze/Kconfig
-@@ -170,6 +170,7 @@ config XILINX_UNCACHED_SHADOW
- config HIGHMEM
- 	bool "High memory support"
- 	depends on MMU
-+	select KMAP_LOCAL
- 	help
- 	  The address space of Microblaze processors is only 4 Gigabytes large
- 	  and it has to accommodate user address space, kernel address
-diff --git a/arch/microblaze/include/asm/highmem.h b/arch/microblaze/include/asm/highmem.h
-index 284ca8fb54c1..4418633fb163 100644
---- a/arch/microblaze/include/asm/highmem.h
-+++ b/arch/microblaze/include/asm/highmem.h
-@@ -25,7 +25,6 @@
- #include <linux/uaccess.h>
- #include <asm/fixmap.h>
+Moreover, some architectures that implement __kernel_map_pages() have this
+function guarded by #ifdef DEBUG_PAGEALLOC and some refuse to map/unmap
+pages when page allocation debugging is disabled at runtime.
+
+As all the users of __kernel_map_pages() were converted to use
+debug_pagealloc_map_pages() it is safe to make it available only when
+DEBUG_PAGEALLOC is set.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/Kconfig                     |  3 +++
+ arch/arm64/Kconfig               |  4 +---
+ arch/arm64/mm/pageattr.c         |  6 ++++--
+ arch/powerpc/Kconfig             |  5 +----
+ arch/riscv/Kconfig               |  4 +---
+ arch/riscv/include/asm/pgtable.h |  2 --
+ arch/riscv/mm/pageattr.c         |  2 ++
+ arch/s390/Kconfig                |  4 +---
+ arch/sparc/Kconfig               |  4 +---
+ arch/x86/Kconfig                 |  4 +---
+ arch/x86/mm/pat/set_memory.c     |  2 ++
+ include/linux/mm.h               | 10 +++++++---
+ 12 files changed, 24 insertions(+), 26 deletions(-)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 56b6ccc0e32d..56d4752b6db6 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -1028,6 +1028,9 @@ config HAVE_STATIC_CALL_INLINE
+ 	bool
+ 	depends on HAVE_STATIC_CALL
  
--extern pte_t *kmap_pte;
- extern pte_t *pkmap_page_table;
- 
- /*
-@@ -52,6 +51,11 @@ extern pte_t *pkmap_page_table;
- 
- #define flush_cache_kmaps()	{ flush_icache(); flush_dcache(); }
- 
-+#define arch_kmap_local_post_map(vaddr, pteval)	\
-+	local_flush_tlb_page(NULL, vaddr);
-+#define arch_kmap_local_post_unmap(vaddr)	\
-+	local_flush_tlb_page(NULL, vaddr);
++config ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	bool
 +
- #endif /* __KERNEL__ */
+ source "kernel/gcov/Kconfig"
  
- #endif /* _ASM_HIGHMEM_H */
-diff --git a/arch/microblaze/mm/Makefile b/arch/microblaze/mm/Makefile
-index 1b16875cea70..8ced71100047 100644
---- a/arch/microblaze/mm/Makefile
-+++ b/arch/microblaze/mm/Makefile
-@@ -6,4 +6,3 @@
- obj-y := consistent.o init.o
+ source "scripts/gcc-plugins/Kconfig"
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 08fa3a1c50f0..1d4da0843668 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -71,6 +71,7 @@ config ARM64
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_USE_SYM_ANNOTATIONS
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if CC_HAVE_SHADOW_CALL_STACK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+@@ -1004,9 +1005,6 @@ config HOLES_IN_ZONE
  
- obj-$(CONFIG_MMU) += pgtable.o mmu_context.o fault.o
--obj-$(CONFIG_HIGHMEM) += highmem.o
-diff --git a/arch/microblaze/mm/highmem.c b/arch/microblaze/mm/highmem.c
-deleted file mode 100644
-index 92e0890416c9..000000000000
---- a/arch/microblaze/mm/highmem.c
-+++ /dev/null
-@@ -1,78 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0
--/*
-- * highmem.c: virtual kernel memory mappings for high memory
-- *
-- * PowerPC version, stolen from the i386 version.
-- *
-- * Used in CONFIG_HIGHMEM systems for memory pages which
-- * are not addressable by direct kernel virtual addresses.
-- *
-- * Copyright (C) 1999 Gerhard Wichert, Siemens AG
-- *		      Gerhard.Wichert@pdb.siemens.de
-- *
-- *
-- * Redesigned the x86 32-bit VM architecture to deal with
-- * up to 16 Terrabyte physical memory. With current x86 CPUs
-- * we now support up to 64 Gigabytes physical RAM.
-- *
-- * Copyright (C) 1999 Ingo Molnar <mingo@redhat.com>
-- *
-- * Reworked for PowerPC by various contributors. Moved from
-- * highmem.h by Benjamin Herrenschmidt (c) 2009 IBM Corp.
-- */
--
--#include <linux/export.h>
--#include <linux/highmem.h>
--
--/*
-- * The use of kmap_atomic/kunmap_atomic is discouraged - kmap/kunmap
-- * gives a more generic (and caching) interface. But kmap_atomic can
-- * be used in IRQ contexts, so in some (very limited) cases we need
-- * it.
-- */
--#include <asm/tlbflush.h>
--
--void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
--{
--
--	unsigned long vaddr;
--	int idx, type;
--
--	type = kmap_atomic_idx_push();
--	idx = type + KM_TYPE_NR*smp_processor_id();
--	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--#ifdef CONFIG_DEBUG_HIGHMEM
--	BUG_ON(!pte_none(*(kmap_pte-idx)));
--#endif
--	set_pte_at(&init_mm, vaddr, kmap_pte-idx, mk_pte(page, prot));
--	local_flush_tlb_page(NULL, vaddr);
--
--	return (void *) vaddr;
--}
--EXPORT_SYMBOL(kmap_atomic_high_prot);
--
--void kunmap_atomic_high(void *kvaddr)
--{
--	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
--	int type;
--	unsigned int idx;
--
--	if (vaddr < __fix_to_virt(FIX_KMAP_END))
--		return;
--
--	type = kmap_atomic_idx();
--
--	idx = type + KM_TYPE_NR * smp_processor_id();
--#ifdef CONFIG_DEBUG_HIGHMEM
--	BUG_ON(vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
--#endif
--	/*
--	 * force other mappings to Oops if they'll try to access
--	 * this pte without first remap it
--	 */
--	pte_clear(&init_mm, vaddr, kmap_pte-idx);
--	local_flush_tlb_page(NULL, vaddr);
--
--	kmap_atomic_idx_pop();
--}
--EXPORT_SYMBOL(kunmap_atomic_high);
-diff --git a/arch/microblaze/mm/init.c b/arch/microblaze/mm/init.c
-index 3344d4a1fe89..3f4e41787a4e 100644
---- a/arch/microblaze/mm/init.c
-+++ b/arch/microblaze/mm/init.c
-@@ -49,17 +49,11 @@ unsigned long lowmem_size;
- EXPORT_SYMBOL(min_low_pfn);
- EXPORT_SYMBOL(max_low_pfn);
+ source "kernel/Kconfig.hz"
  
--#ifdef CONFIG_HIGHMEM
--pte_t *kmap_pte;
--EXPORT_SYMBOL(kmap_pte);
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
 -
- static void __init highmem_init(void)
- {
- 	pr_debug("%x\n", (u32)PKMAP_BASE);
- 	map_page(PKMAP_BASE, 0, 0);	/* XXX gross */
- 	pkmap_page_table = virt_to_kpte(PKMAP_BASE);
--
--	kmap_pte = virt_to_kpte(__fix_to_virt(FIX_KMAP_BEGIN));
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+ 	select SPARSEMEM_VMEMMAP_ENABLE
+diff --git a/arch/arm64/mm/pageattr.c b/arch/arm64/mm/pageattr.c
+index 1b94f5b82654..18613d8834db 100644
+--- a/arch/arm64/mm/pageattr.c
++++ b/arch/arm64/mm/pageattr.c
+@@ -178,13 +178,15 @@ int set_direct_map_default_noflush(struct page *page)
+ 				   PAGE_SIZE, change_page_range, &data);
  }
  
- static void highmem_setup(void)
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!rodata_full)
+ 		return;
+ 
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
+ }
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+ /*
+  * This function is used to determine if a linear map page has been marked as
+@@ -204,7 +206,7 @@ bool kernel_page_present(struct page *page)
+ 	pte_t *ptep;
+ 	unsigned long addr = (unsigned long)page_address(page);
+ 
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!rodata_full)
+ 		return true;
+ 
+ 	pgdp = pgd_offset_k(addr);
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index e9f13fe08492..ad8a83f3ddca 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -146,6 +146,7 @@ config PPC
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+ 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+@@ -355,10 +356,6 @@ config PPC_OF_PLATFORM_PCI
+ 	depends on PCI
+ 	depends on PPC64 # not supported on 32 bits yet
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	depends on PPC32 || PPC_BOOK3S_64
+-	def_bool y
+-
+ config ARCH_SUPPORTS_UPROBES
+ 	def_bool y
+ 
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index d5e7ca08f22c..c704562ba45e 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -14,6 +14,7 @@ config RISCV
+ 	def_bool y
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
+ 	select ARCH_HAS_BINFMT_FLAT
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
+@@ -153,9 +154,6 @@ config ARCH_SELECT_MEMORY_MODEL
+ config ARCH_WANT_GENERAL_HUGETLB
+ 	def_bool y
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config SYS_SUPPORTS_HUGETLBFS
+ 	depends on MMU
+ 	def_bool y
+diff --git a/arch/riscv/include/asm/pgtable.h b/arch/riscv/include/asm/pgtable.h
+index 183f1f4b2ae6..41a72861987c 100644
+--- a/arch/riscv/include/asm/pgtable.h
++++ b/arch/riscv/include/asm/pgtable.h
+@@ -461,8 +461,6 @@ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+ #define VMALLOC_START		0
+ #define VMALLOC_END		TASK_SIZE
+ 
+-static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
+-
+ #endif /* !CONFIG_MMU */
+ 
+ #define kern_addr_valid(addr)   (1) /* FIXME */
+diff --git a/arch/riscv/mm/pageattr.c b/arch/riscv/mm/pageattr.c
+index 19fecb362d81..321b09d2e2ea 100644
+--- a/arch/riscv/mm/pageattr.c
++++ b/arch/riscv/mm/pageattr.c
+@@ -184,6 +184,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (!debug_pagealloc_enabled())
+@@ -196,3 +197,4 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 		__set_memory((unsigned long)page_address(page), numpages,
+ 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+ }
++#endif
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 34371539a9b9..0a42d457bff4 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -35,9 +35,6 @@ config GENERIC_LOCKBREAK
+ config PGSTE
+ 	def_bool y if KVM
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config AUDIT_ARCH
+ 	def_bool y
+ 
+@@ -106,6 +103,7 @@ config S390
+ 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a6ca135442f9..2c729b8d097a 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -88,6 +88,7 @@ config SPARC64
+ 	select HAVE_C_RECORDMCOUNT
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select HAVE_NMI
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select ARCH_USE_QUEUED_RWLOCKS
+@@ -148,9 +149,6 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y if SPARC32
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y if SPARC64
+-
+ config PGTABLE_LEVELS
+ 	default 4 if 64BIT
+ 	default 3
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index f6946b81f74a..0db3fb1da70c 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -91,6 +91,7 @@ config X86
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ACPI
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_QUEUED_RWLOCKS
+@@ -329,9 +330,6 @@ config ZONE_DMA32
+ config AUDIT_ARCH
+ 	def_bool y if X86_64
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config KASAN_SHADOW_OFFSET
+ 	hex
+ 	depends on KASAN
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 40baa90e74f4..7f248fc45317 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -2194,6 +2194,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 	return __set_pages_p(page, 1);
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (PageHighMem(page))
+@@ -2225,6 +2226,7 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 
+ 	arch_flush_lazy_mmu_mode();
+ }
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef CONFIG_HIBERNATION
+ bool kernel_page_present(struct page *page)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 14e397f3752c..ab0ef6bd351d 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2924,7 +2924,11 @@ static inline bool debug_pagealloc_enabled_static(void)
+ 	return static_branch_unlikely(&_debug_pagealloc_enabled);
+ }
+ 
+-#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
++#ifdef CONFIG_DEBUG_PAGEALLOC
++/*
++ * To support DEBUG_PAGEALLOC architecture must ensure that
++ * __kernel_map_pages() never fails
++ */
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+ static inline void debug_pagealloc_map_pages(struct page *page,
+@@ -2937,13 +2941,13 @@ static inline void debug_pagealloc_map_pages(struct page *page,
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+-#else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#else	/* CONFIG_DEBUG_PAGEALLOC */
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif	/* CONFIG_HIBERNATION */
+-#endif	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#endif	/* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef __HAVE_ARCH_GATE_AREA
+ extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
+-- 
+2.28.0
