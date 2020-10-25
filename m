@@ -1,54 +1,166 @@
-From: Jann Horn <jannh@google.com>
-Date: Wed, 07 Oct 2020 06:31:08 +0000
-Subject: Re: SPARC version of arch_validate_prot() looks broken (UAF read)
-Message-Id: <CAG48ez3pwkpoeHTSSuRHpmdn7X5AVuGjw5n3VhD88S1p0cjsUg@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 25 Oct 2020 10:15:55 +0000
+Subject: [PATCH 4/4] arch, mm: make kernel_page_present() always available
+Message-Id: <20201025101555.3057-5-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAG48ez3YsfTfOFKa-Po58e4PNp7FK54MFbkK3aUPSRt3LWtxQA@mail.gmail.com>
- <0fb905cc-77a2-4beb-dc9c-0c2849a6f0ae@oracle.com> <CAG48ez3istGAOA=G8fvrQkbMs4MroT8bj=Z=Wmnj0k73K0AFRA@mail.gmail.com>
- <20201007061659.GA21685@infradead.org>
-In-Reply-To: <20201007061659.GA21685@infradead.org>
+References: <20201025101555.3057-1-rppt@kernel.org>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Linux-MM <linux-mm@kvack.org>, Khalid Aziz <khalid@gonehiking.org>, kernel list <linux-kernel@vger.kernel.org>, Anthony Yznaga <anthony.yznaga@oracle.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-On Wed, Oct 7, 2020 at 8:17 AM Christoph Hellwig <hch@infradead.org> wrote:
-> On Wed, Oct 07, 2020 at 02:45:39AM +0200, Jann Horn wrote:
-> > > I think arch_validate_prot() is still the right hook to validate the
-> > > protection bits. sparc_validate_prot() can iterate over VMAs with read
-> > > lock. This will, of course, require range as well to be passed to
-> > > arch_validate_prot().
-> >
-> > In that case, do you want to implement this?
->
-> Any reason to not just call arch_validate_prot after taking the mmap
-> lock?
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Then the next easy steps are:
+For architectures that enable ARCH_HAS_SET_MEMORY having the ability to
+verify that a page is mapped in the kernel direct map can be useful
+regardless of hibernation.
 
- - change the signature of arch_validate_prot() to also accept a
-length or end parameter (because a start address without an end
-address is completely useless)
- - add a loop over the VMAs in that range in SPARC's arch_validate_prot()
+Add RISC-V implementation of kernel_page_present() and update its forward
+declarations and stubs to be a part of set_memory API.
 
-And then comes the annoying part: figure out what to do in that loop
-if the range is not fully covered by VMAs. To fully avoid changing the
-normal mprotect() ABI, you'd have to accept cases where parts of the
-range are unmapped - but hopefully nobody relies on that particular
-weirdness, so maybe you can just throw an error in that case? Even so,
-the normal error code for that is -ENOMEM, but arch_validate_prot()
-has a boolean return, so for that, you'd have to change the return
-type, too. I guess the cleanest approach might be to just validate up
-to the first gap and then return "everything's good" and rely on
-mprotect() bailing out on its own?
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/riscv/include/asm/set_memory.h |  1 +
+ arch/riscv/mm/pageattr.c            | 29 +++++++++++++++++++++++++++++
+ arch/x86/include/asm/set_memory.h   |  1 +
+ arch/x86/mm/pat/set_memory.c        |  2 --
+ include/linux/mm.h                  |  7 -------
+ include/linux/set_memory.h          |  5 +++++
+ 7 files changed, 37 insertions(+), 9 deletions(-)
 
-Ah - at first I thought that you'd also have to deal with concurrent
-stack VMA expansion from find_expand_vma() (which we really should get
-rid of somehow sometime), but luckily that still at least holds the
-mmap lock in read mode, and here we hold it in write mode, so we don't
-have to worry about that. So I guess that'd be the way to go for this
-approach?
-
-Alright, I guess I'll send patches after all, hopefully after at least
-compile-testing them...
+diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+index 9384fd8fc13c..45217f21f1fe 100644
+--- a/arch/arm64/include/asm/cacheflush.h
++++ b/arch/arm64/include/asm/cacheflush.h
+@@ -140,6 +140,7 @@ int set_memory_valid(unsigned long addr, int numpages, int enable);
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
+ 
+ #include <asm-generic/cacheflush.h>
+ 
+diff --git a/arch/riscv/include/asm/set_memory.h b/arch/riscv/include/asm/set_memory.h
+index 4c5bae7ca01c..d690b08dff2a 100644
+--- a/arch/riscv/include/asm/set_memory.h
++++ b/arch/riscv/include/asm/set_memory.h
+@@ -24,6 +24,7 @@ static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+diff --git a/arch/riscv/mm/pageattr.c b/arch/riscv/mm/pageattr.c
+index 321b09d2e2ea..87ba5a68bbb8 100644
+--- a/arch/riscv/mm/pageattr.c
++++ b/arch/riscv/mm/pageattr.c
+@@ -198,3 +198,32 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+ }
+ #endif
++
++bool kernel_page_present(struct page *page)
++{
++	unsigned long addr = (unsigned long)page_address(page);
++	pgd_t *pgd;
++	pud_t *pud;
++	p4d_t *p4d;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	pgd = pgd_offset_k(addr);
++	if (!pgd_present(*pgd))
++		return false;
++
++	p4d = p4d_offset(pgd, addr);
++	if (!p4d_present(*p4d))
++		return false;
++
++	pud = pud_offset(p4d, addr);
++	if (!pud_present(*pud))
++		return false;
++
++	pmd = pmd_offset(pud, addr);
++	if (!pmd_present(*pmd))
++		return false;
++
++	pte = pte_offset_kernel(pmd, addr);
++	return pte_present(*pte);
++}
+diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
+index 5948218f35c5..4352f08bfbb5 100644
+--- a/arch/x86/include/asm/set_memory.h
++++ b/arch/x86/include/asm/set_memory.h
+@@ -82,6 +82,7 @@ int set_pages_rw(struct page *page, int numpages);
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
+ 
+ extern int kernel_set_to_readonly;
+ 
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 7f248fc45317..16f878c26667 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -2228,7 +2228,6 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ }
+ #endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+-#ifdef CONFIG_HIBERNATION
+ bool kernel_page_present(struct page *page)
+ {
+ 	unsigned int level;
+@@ -2240,7 +2239,6 @@ bool kernel_page_present(struct page *page)
+ 	pte = lookup_address((unsigned long)page_address(page), &level);
+ 	return (pte_val(*pte) & _PAGE_PRESENT);
+ }
+-#endif /* CONFIG_HIBERNATION */
+ 
+ int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
+ 				   unsigned numpages, unsigned long page_flags)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index ab0ef6bd351d..44b82f22e76a 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2937,16 +2937,9 @@ static inline void debug_pagealloc_map_pages(struct page *page,
+ 	if (debug_pagealloc_enabled_static())
+ 		__kernel_map_pages(page, numpages, enable);
+ }
+-
+-#ifdef CONFIG_HIBERNATION
+-extern bool kernel_page_present(struct page *page);
+-#endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC */
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable) {}
+-#ifdef CONFIG_HIBERNATION
+-static inline bool kernel_page_present(struct page *page) { return true; }
+-#endif	/* CONFIG_HIBERNATION */
+ #endif	/* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef __HAVE_ARCH_GATE_AREA
+diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
+index 860e0f843c12..fe1aa4e54680 100644
+--- a/include/linux/set_memory.h
++++ b/include/linux/set_memory.h
+@@ -23,6 +23,11 @@ static inline int set_direct_map_default_noflush(struct page *page)
+ {
+ 	return 0;
+ }
++
++static inline bool kernel_page_present(struct page *page)
++{
++	return true;
++}
+ #endif
+ 
+ #ifndef set_mce_nospec
+-- 
+2.28.0
