@@ -1,57 +1,88 @@
-From: "Kunio Uematsu" <admin@flexfilm.com>
-Date: Thu, 15 Oct 2020 06:27:31 +0000
-Subject: Dearest Beloved !!!
-Message-Id: <20201015062731.A3EF912D9261@ms1.s-word.net>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 25 Oct 2020 10:15:53 +0000
+Subject: [PATCH 2/4] PM: hibernate: improve robustness of mapping pages in the direct map
+Message-Id: <20201025101555.3057-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <ed6fb590-5c79-4823-a97f-52f3745eedcf@O2SVC048.oscars.local>
-In-Reply-To: <ed6fb590-5c79-4823-a97f-52f3745eedcf@O2SVC048.oscars.local>
+References: <20201025101555.3057-1-rppt@kernel.org>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-Dearest Beloved,
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-As you read this, I don't want you to feel sorry for
-me.......because......I believe everyone will die someday. I have been
-diagnosed with esophageal cancer. It has defiled all forms of medical
-treatment, and right now I have only about a few months to live,
-according to medical experts. The situation has gotten complicated
-recently with my inability to hear or speak (being deaf and dump now).
-I have not particularly lived my life so well, as I never really cared
-for anyone (not even myself) but my business. Though I am very rich, I
-was never generous, I was always hostile to people and only focused on
-my business as that was the only thing I cared for. But now I regret
-all this as I now know that there is more to life than just wanting to
-have or make all the money in the world.
+When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
+not present in the direct map and has to be explicitly mapped before it
+could be copied.
 
-I have willed and given most of my property and assets to my immediate
-and extended family members as well as a few close friends. I have
-decided to give also to charity organizations, as I want this to be
-one of the last good deeds I do on earth.
+On arm64 it is possible that a page would be removed from the direct map
+using set_direct_map_invalid_noflush() but __kernel_map_pages() will refuse
+to map this page back if DEBUG_PAGEALLOC is disabled.
 
-So far, I have distributed money to some charity organizations in the U.A.E, Algeria, Malaysia
-and some countries in Africa. Now that my health has deteriorated so
-badly, I cannot do this myself anymore. I once asked members of my
-family to close one of my accounts and distribute the money which I
-have there to charity organization in Europe; they refused and kept
-the money to themselves. Hence, I do not trust them anymore, as they
-seem not to be contended with what I have left for them. The last of
-my money which no one knows of is the huge cash sum of Forty-Five
-Million US Dollars (US$45,000,000.00) that I deposited sometime ago in
-an offshore account as I operated my business there before my
-sickness. I will want you to help me collect these deposited funds and
-use the funds to help the orphans, less privileged, handicapped
-persons, homeless, refugees, other charity organizations and do other
-good humanitarian works.  You shall only collect 25% of the funds for
-your reward for your time and also any expenses that you might incur
-during this great task.
+Explicitly use set_direct_map_{default,invalid}_noflush() for
+ARCH_HAS_SET_DIRECT_MAP case and debug_pagealloc_map_pages() for
+DEBUG_PAGEALLOC case.
 
-PLEASE SEND YOUR RESPONSE TO ME WITH YOUR
-DETAILED INFORMATION AND IDENTIFICATION SO THAT I CAN FORWARD TO THE
-BANK WHERE FUND IS DEPOSITED.
+While on that, rename kernel_map_pages() to hibernate_map_page() and drop
+numpages parameter.
 
-Regards,
-Kunio Uematsu
-(Japan)
-Email:uekunio3@gmail.com
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ kernel/power/snapshot.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index fa499466f645..ecb7b32ce77c 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,16 +76,25 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
+-#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
++static inline void hibernate_map_page(struct page *page, int enable)
+ {
+-	__kernel_map_pages(page, numpages, enable);
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		unsigned long addr = (unsigned long)page_address(page);
++		int ret;
++
++		if (enable)
++			ret = set_direct_map_default_noflush(page);
++		else
++			ret = set_direct_map_invalid_noflush(page);
++
++		if (WARN_ON(ret))
++			return;
++
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	} else {
++		debug_pagealloc_map_pages(page, 1, enable);
++	}
+ }
+-#else
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
+-#endif
+ 
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+@@ -1366,9 +1375,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
+ 	if (kernel_page_present(s_page)) {
+ 		do_copy_page(dst, page_address(s_page));
+ 	} else {
+-		kernel_map_pages(s_page, 1, 1);
++		hibernate_map_page(s_page, 1);
+ 		do_copy_page(dst, page_address(s_page));
+-		kernel_map_pages(s_page, 1, 0);
++		hibernate_map_page(s_page, 0);
+ 	}
+ }
+ 
+-- 
+2.28.0
