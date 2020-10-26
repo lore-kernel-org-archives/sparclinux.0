@@ -1,65 +1,21 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 25 Oct 2020 10:15:51 +0000
-Subject: [PATCH 0/4] arch, mm: improve robustness of direct map manipulation
-Message-Id: <20201025101555.3057-1-rppt@kernel.org>
+From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
+Date: Mon, 26 Oct 2020 01:13:52 +0000
+Subject: Re: [PATCH 0/4] arch, mm: improve robustness of direct map manipulation
+Message-Id: <ae82f905a0092adb7e0f0ac206335c1883b3170f.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201025101555.3057-1-rppt@kernel.org>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
- Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
+To: "rppt@kernel.org" <rppt@kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "david@redhat.com" <david@redhat.com>, "peterz@infradead.org" <peterz@infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "paulus@samba.org" <paulus@samba.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "hpa@zytor.com" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "cl@linux.com" <cl@linux.com>, "will@kernel.org" <will@kernel.org>, "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "mpe@ellerman.id.au" <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "borntraeger@de.ibm.com" <borntraeger@de.ibm.com>, "mingo@redhat.com" <mingo@redhat.com>, "rientjes@google.com" <rientjes@google.com>, "Brown,
+ Len" <len.brown@intel.com>, "aou@eecs.berkeley.edu" <aou@eecs.berkeley.edu>, "gor@linux.ibm.com" <gor@linux.ibm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "hca@linux.ibm.com" <hca@linux.ibm.com>, "bp@alien8.de" <bp@alien8.de>, "luto@kernel.org" <luto@kernel.org>, "paul.walmsley@sifive.com" <paul.walmsley@sifive.com>, "kirill@shutemov.name" <kirill@shutemov.name>, "tglx@linutronix.de" <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "penberg@kernel.org" <penberg@kernel.org>, "palmer@dabbelt.com" <palmer@dabbelt.com>, "iamjoonsoo.kim@lge.com" <iamjoonsoo.kim@lge.com>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "davem@davemloft.net" <davem@davemloft.net>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-
-Hi,
-
-During recent discussion about KVM protected memory, David raised a concern
-about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
-
-Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
-possible that __kernel_map_pages() would fail, but since this function is
-void, the failure will go unnoticed.
-
-Moreover, there's lack of consistency of __kernel_map_pages() semantics
-across architectures as some guard this function with
-#ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
-allocation debugging is disabled at run time and some allow modifying the
-direct map regardless of DEBUG_PAGEALLOC settings.
-
-This set straightens this out by restoring dependency of
-__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
-accordingly. 
-
-[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
-
-Mike Rapoport (4):
-  mm: introduce debug_pagealloc_map_pages() helper
-  PM: hibernate: improve robustness of mapping pages in the direct map
-  arch, mm: restore dependency of __kernel_map_pages() of DEBUG_PAGEALLOC
-  arch, mm: make kernel_page_present() always available
-
- arch/Kconfig                        |  3 +++
- arch/arm64/Kconfig                  |  4 +---
- arch/arm64/include/asm/cacheflush.h |  1 +
- arch/arm64/mm/pageattr.c            |  6 +++--
- arch/powerpc/Kconfig                |  5 +----
- arch/riscv/Kconfig                  |  4 +---
- arch/riscv/include/asm/pgtable.h    |  2 --
- arch/riscv/include/asm/set_memory.h |  1 +
- arch/riscv/mm/pageattr.c            | 31 +++++++++++++++++++++++++
- arch/s390/Kconfig                   |  4 +---
- arch/sparc/Kconfig                  |  4 +---
- arch/x86/Kconfig                    |  4 +---
- arch/x86/include/asm/set_memory.h   |  1 +
- arch/x86/mm/pat/set_memory.c        |  4 ++--
- include/linux/mm.h                  | 35 +++++++++++++----------------
- include/linux/set_memory.h          |  5 +++++
- kernel/power/snapshot.c             | 24 ++++++++++++++++++--
- mm/memory_hotplug.c                 |  3 +--
- mm/page_alloc.c                     |  6 ++---
- mm/slab.c                           |  8 +++----
- 20 files changed, 97 insertions(+), 58 deletions(-)
-
--- 
-2.28.0
+T24gU3VuLCAyMDIwLTEwLTI1IGF0IDEyOjE1ICswMjAwLCBNaWtlIFJhcG9wb3J0IHdyb3RlOg0K
+PiBJbmRlZWQsIGZvciBhcmNoaXRlY3R1cmVzIHRoYXQgZGVmaW5lIENPTkZJR19BUkNIX0hBU19T
+RVRfRElSRUNUX01BUA0KPiBpdCBpcw0KPiBwb3NzaWJsZSB0aGF0IF9fa2VybmVsX21hcF9wYWdl
+cygpIHdvdWxkIGZhaWwsIGJ1dCBzaW5jZSB0aGlzDQo+IGZ1bmN0aW9uIGlzDQo+IHZvaWQsIHRo
+ZSBmYWlsdXJlIHdpbGwgZ28gdW5ub3RpY2VkLg0KDQpDb3VsZCB5b3UgZWxhYm9yYXRlIG9uIGhv
+dyB0aGlzIGNvdWxkIGhhcHBlbj8gRG8geW91IG1lYW4gZHVyaW5nDQpydW50aW1lIHRvZGF5IG9y
+IGlmIHNvbWV0aGluZyBuZXcgd2FzIGludHJvZHVjZWQ/DQoNCg=
