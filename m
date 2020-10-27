@@ -1,7 +1,7 @@
 From: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Date: Mon, 26 Oct 2020 18:57:32 +0000
+Date: Tue, 27 Oct 2020 01:10:11 +0000
 Subject: Re: [PATCH 2/4] PM: hibernate: improve robustness of mapping pages in the direct map
-Message-Id: <a28d8248057e7dc01716764da9edfd666722ff62.camel@intel.com>
+Message-Id: <3568e23fb551ae4b8d583c3e6bfdbed505e460e9.camel@intel.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201025101555.3057-1-rppt@kernel.org>
  <20201025101555.3057-3-rppt@kernel.org>
@@ -16,33 +16,11 @@ Cc: "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "david@redhat.com" <d
  Len" <len.brown@intel.com>, "aou@eecs.berkeley.edu" <aou@eecs.berkeley.edu>, "gor@linux.ibm.com" <gor@linux.ibm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "hca@linux.ibm.com" <hca@linux.ibm.com>, "bp@alien8.de" <bp@alien8.de>, "luto@kernel.org" <luto@kernel.org>, "paul.walmsley@sifive.com" <paul.walmsley@sifive.com>, "kirill@shutemov.name" <kirill@shutemov.name>, "tglx@linutronix.de" <tglx@linutronix.de>, "iamjoonsoo.kim@lge.com" <iamjoonsoo.kim@lge.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "penberg@kernel.org" <penberg@kernel.org>, "palmer@dabbelt.com" <palmer@dabbelt.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "davem@davemloft.net" <davem@davemloft.net>
 
 T24gTW9uLCAyMDIwLTEwLTI2IGF0IDExOjE1ICswMjAwLCBNaWtlIFJhcG9wb3J0IHdyb3RlOg0K
-PiBPbiBNb24sIE9jdCAyNiwgMjAyMCBhdCAxMjozODozMkFNICswMDAwLCBFZGdlY29tYmUsIFJp
-Y2sgUCB3cm90ZToNCj4gPiBPbiBTdW4sIDIwMjAtMTAtMjUgYXQgMTI6MTUgKzAyMDAsIE1pa2Ug
-UmFwb3BvcnQgd3JvdGU6DQo+ID4gPiBGcm9tOiBNaWtlIFJhcG9wb3J0IDxycHB0QGxpbnV4Lmli
-bS5jb20+DQo+ID4gPiANCj4gPiA+IFdoZW4gREVCVUdfUEFHRUFMTE9DIG9yIEFSQ0hfSEFTX1NF
-VF9ESVJFQ1RfTUFQIGlzIGVuYWJsZWQgYSBwYWdlDQo+ID4gPiBtYXkNCj4gPiA+IGJlDQo+ID4g
-PiBub3QgcHJlc2VudCBpbiB0aGUgZGlyZWN0IG1hcCBhbmQgaGFzIHRvIGJlIGV4cGxpY2l0bHkg
-bWFwcGVkDQo+ID4gPiBiZWZvcmUNCj4gPiA+IGl0DQo+ID4gPiBjb3VsZCBiZSBjb3BpZWQuDQo+
-ID4gPiANCj4gPiA+IE9uIGFybTY0IGl0IGlzIHBvc3NpYmxlIHRoYXQgYSBwYWdlIHdvdWxkIGJl
-IHJlbW92ZWQgZnJvbSB0aGUNCj4gPiA+IGRpcmVjdA0KPiA+ID4gbWFwDQo+ID4gPiB1c2luZyBz
-ZXRfZGlyZWN0X21hcF9pbnZhbGlkX25vZmx1c2goKSBidXQgX19rZXJuZWxfbWFwX3BhZ2VzKCkN
-Cj4gPiA+IHdpbGwNCj4gPiA+IHJlZnVzZQ0KPiA+ID4gdG8gbWFwIHRoaXMgcGFnZSBiYWNrIGlm
-IERFQlVHX1BBR0VBTExPQyBpcyBkaXNhYmxlZC4NCj4gPiANCj4gPiBJdCBsb29rcyB0byBtZSB0
-aGF0IGFybTY0IF9fa2VybmVsX21hcF9wYWdlcygpIHdpbGwgc3RpbGwgYXR0ZW1wdA0KPiA+IHRv
-DQo+ID4gbWFwIGl0IGlmIHJvZGF0YV9mdWxsIGlzIHRydWUsIGhvdyBkb2VzIHRoaXMgaGFwcGVu
-Pw0KPiANCj4gVW5sZXNzIEkgbWlzcmVhZCB0aGUgY29kZSwgYXJtNjQgcmVxdWlyZXMgYm90aCBy
-b2RhdGFfZnVsbCBhbmQNCj4gZGVidWdfcGFnZWFsbG9jX2VuYWJsZWQoKSB0byBiZSB0cnVlIGZv
-ciBfX2tlcm5lbF9tYXBfcGFnZXMoKSB0byBkbw0KPiBhbnl0aGluZy4NCj4gQnV0IHJvZGF0YV9m
-dWxsIGNvbmRpdGlvbiBhcHBsaWVzIHRvIHNldF9kaXJlY3RfbWFwXypfbm9mbHVzaCgpIGFzDQo+
-IHdlbGwsDQo+IHNvIHdpdGggIXJvZGF0YV9mdWxsIHRoZSBsaW5lYXIgbWFwIHdvbid0IGJlIGV2
-ZXIgY2hhbmdlZC4NCg0KSG1tLCBsb29rcyB0byBtZSB0aGF0IF9fa2VybmVsX21hcF9wYWdlcygp
-IHdpbGwgb25seSBza2lwIGl0IGlmIGJvdGgNCmRlYnVnIHBhZ2VhbGxvYyBhbmQgcm9kYXRhX2Z1
-bGwgYXJlIGZhbHNlLg0KDQpCdXQgbm93IEknbSB3b25kZXJpbmcgaWYgbWF5YmUgd2UgY291bGQg
-c2ltcGxpZnkgdGhpbmdzIGJ5IGp1c3QgbW92aW5nDQp0aGUgaGliZXJuYXRlIHVubWFwcGVkIHBh
-Z2UgbG9naWMgb2ZmIG9mIHRoZSBkaXJlY3QgbWFwLiBPbiB4ODYsDQp0ZXh0X3Bva2UoKSB1c2Vk
-IHRvIHVzZSB0aGlzIHJlc2VydmVkIGZpeG1hcCBwdGUgdGhpbmcgdGhhdCBpdCBjb3VsZA0KcmVs
-eSBvbiB0byByZW1hcCBtZW1vcnkgd2l0aC4gSWYgaGliZXJuYXRlIGhhZCBzb21lIHNlcGFyYXRl
-IHB0ZSBmb3INCnJlbWFwcGluZyBsaWtlIHRoYXQsIHRoZW4gd2UgY291bGQgbm90IGhhdmUgYW55
-IGRpcmVjdCBtYXAgcmVzdHJpY3Rpb25zDQpjYXVzZWQgYnkgaXQva2VybmVsX21hcF9wYWdlcygp
-LCBhbmQgaXQgd291bGRuJ3QgaGF2ZSB0byB3b3JyeSBhYm91dA0KcmVseWluZyBvbiBhbnl0aGlu
-ZyBlbHNlLg0K
+PiBUaGUgaW50ZW50aW9uIG9mIHRoaXMgc2VyaWVzIGlzIHRvIGRpc2FsbG93IHVzYWdlIG9mDQo+
+IF9fa2VybmVsX21hcF9wYWdlcygpIHdoZW4gREVCVUdfUEFHRUFMTE9DPW4uIEknbGwgdXBkYXRl
+IHRoaXMgcGF0Y2gNCj4gdG8NCj4gYmV0dGVyIGhhbmRsZSBwb3NzaWJsZSBlcnJvcnMsIGJ1dCBJ
+IHN0aWxsIHdhbnQgdG8ga2VlcCBXQVJOIGluIHRoZQ0KPiBjYWxsZXIuDQoNClNvcnJ5LCBJIG1p
+c3NlZCB0aGlzIHNuaXBwZXQgYXQgdGhlIGJvdHRvbSwgdGhhdCB5b3VyIGludGVudGlvbiB3YXMg
+dG8NCmFjdHVhbGx5IGhhbmRsZSBlcnJvcnMgc29tZWhvdyBpbiB0aGUgaGliZXJuYXRlIGNvZGUu
+IFBsZWFzZSBpZ25vcmUgbXkNCm90aGVyIGNvbW1lbnQgdGhhdCBhc3N1bWVkIHlvdSB3YW50ZWQg
+dG8ganVzdCBhZGQgYSB3YXJuLg0K
