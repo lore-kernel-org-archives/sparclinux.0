@@ -1,79 +1,186 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 29 Oct 2020 22:18:24 +0000
-Subject: [patch V2 18/18] io-mapping: Provide iomap_local variant
-Message-Id: <20201029222652.396632514@linutronix.de>
+From: Sasha Levin <sashal@kernel.org>
+Date: Tue, 27 Oct 2020 00:10:16 +0000
+Subject: [PATCH AUTOSEL 4.9 02/30] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
+Message-Id: <20201027001044.1027349-2-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201029221806.189523375@linutronix.de>
+References: <20201027001044.1027349-1-sashal@kernel.org>
+In-Reply-To: <20201027001044.1027349-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Nicholas Piggin <npiggin@gmail.com>, "David S . Miller" <davem@davemloft.net>, Michael Ellerman <mpe@ellerman.id.au>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-Similar to kmap local provide a iomap local variant which only disables
-migration, but neither disables pagefaults nor preemption.
+From: Nicholas Piggin <npiggin@gmail.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+[ Upstream commit bafb056ce27940c9994ea905336aa8f27b4f7275 ]
+
+The de facto (and apparently uncommented) standard for using an mm had,
+thanks to this code in sparc if nothing else, been that you must have a
+reference on mm_users *and that reference must have been obtained with
+mmget()*, i.e., from a thread with a reference to mm_users that had used
+the mm.
+
+The introduction of mmget_not_zero() in commit d2005e3f41d4
+("userfaultfd: don't pin the user memory in userfaultfd_file_create()")
+allowed mm_count holders to aoperate on user mappings asynchronously
+from the actual threads using the mm, but they were not to load those
+mappings into their TLB (i.e., walking vmas and page tables is okay,
+kthread_use_mm() is not).
+
+io_uring 2b188cc1bb857 ("Add io_uring IO interface") added code which
+does a kthread_use_mm() from a mmget_not_zero() refcount.
+
+The problem with this is code which previously assumed mm = current->mm
+and mm->mm_users = 1 implies the mm will remain single-threaded at
+least until this thread creates another mm_users reference, has now
+broken.
+
+arch/sparc/kernel/smp_64.c:
+
+    if (atomic_read(&mm->mm_users) = 1) {
+        cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+        goto local_flush_and_out;
+    }
+
+vs fs/io_uring.c
+
+    if (unlikely(!(ctx->flags & IORING_SETUP_SQPOLL) ||
+                 !mmget_not_zero(ctx->sqo_mm)))
+        return -EFAULT;
+    kthread_use_mm(ctx->sqo_mm);
+
+mmget_not_zero() could come in right after the mm_users = 1 test, then
+kthread_use_mm() which sets its CPU in the mm_cpumask. That update could
+be lost if cpumask_copy() occurs afterward.
+
+I propose we fix this by allowing mmget_not_zero() to be a first-class
+reference, and not have this obscure undocumented and unchecked
+restriction.
+
+The basic fix for sparc64 is to remove its mm_cpumask clearing code. The
+optimisation could be effectively restored by sending IPIs to mm_cpumask
+members and having them remove themselves from mm_cpumask. This is more
+tricky so I leave it as an exercise for someone with a sparc64 SMP.
+powerpc has a (currently similarly broken) example.
+
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
+Link: https://lore.kernel.org/r/20200914045219.3736466-4-npiggin@gmail.com
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
-V2: Split out from the large combo patch and add the !IOMAP_ATOMIC variants
----
- include/linux/io-mapping.h |   34 ++++++++++++++++++++++++++++++++--
- 1 file changed, 32 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/smp_64.c | 65 ++++++++------------------------------
+ 1 file changed, 14 insertions(+), 51 deletions(-)
 
---- a/include/linux/io-mapping.h
-+++ b/include/linux/io-mapping.h
-@@ -83,6 +83,23 @@ io_mapping_unmap_atomic(void __iomem *va
- }
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index ca7cb8e57ab0f..b81cdd53d0906 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1034,38 +1034,9 @@ void smp_fetch_global_pmu(void)
+  * are flush_tlb_*() routines, and these run after flush_cache_*()
+  * which performs the flushw.
+  *
+- * The SMP TLB coherency scheme we use works as follows:
+- *
+- * 1) mm->cpu_vm_mask is a bit mask of which cpus an address
+- *    space has (potentially) executed on, this is the heuristic
+- *    we use to avoid doing cross calls.
+- *
+- *    Also, for flushing from kswapd and also for clones, we
+- *    use cpu_vm_mask as the list of cpus to make run the TLB.
+- *
+- * 2) TLB context numbers are shared globally across all processors
+- *    in the system, this allows us to play several games to avoid
+- *    cross calls.
+- *
+- *    One invariant is that when a cpu switches to a process, and
+- *    that processes tsk->active_mm->cpu_vm_mask does not have the
+- *    current cpu's bit set, that tlb context is flushed locally.
+- *
+- *    If the address space is non-shared (ie. mm->count = 1) we avoid
+- *    cross calls when we want to flush the currently running process's
+- *    tlb state.  This is done by clearing all cpu bits except the current
+- *    processor's in current->mm->cpu_vm_mask and performing the
+- *    flush locally only.  This will force any subsequent cpus which run
+- *    this task to flush the context from the local tlb if the process
+- *    migrates to another cpu (again).
+- *
+- * 3) For shared address spaces (threads) and swapping we bite the
+- *    bullet for most cases and perform the cross call (but only to
+- *    the cpus listed in cpu_vm_mask).
+- *
+- *    The performance gain from "optimizing" away the cross call for threads is
+- *    questionable (in theory the big win for threads is the massive sharing of
+- *    address space state across processors).
++ * mm->cpu_vm_mask is a bit mask of which cpus an address
++ * space has (potentially) executed on, this is the heuristic
++ * we use to limit cross calls.
+  */
  
- static inline void __iomem *
-+io_mapping_map_local_wc(struct io_mapping *mapping, unsigned long offset)
-+{
-+	resource_size_t phys_addr;
+ /* This currently is only used by the hugetlb arch pre-fault
+@@ -1075,18 +1046,13 @@ void smp_fetch_global_pmu(void)
+ void smp_flush_tlb_mm(struct mm_struct *mm)
+ {
+ 	u32 ctx = CTX_HWBITS(mm->context);
+-	int cpu = get_cpu();
+ 
+-	if (atomic_read(&mm->mm_users) = 1) {
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-		goto local_flush_and_out;
+-	}
++	get_cpu();
+ 
+ 	smp_cross_call_masked(&xcall_flush_tlb_mm,
+ 			      ctx, 0, 0,
+ 			      mm_cpumask(mm));
+ 
+-local_flush_and_out:
+ 	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
+ 
+ 	put_cpu();
+@@ -1109,17 +1075,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+ {
+ 	u32 ctx = CTX_HWBITS(mm->context);
+ 	struct tlb_pending_info info;
+-	int cpu = get_cpu();
 +
-+	BUG_ON(offset >= mapping->size);
-+	phys_addr = mapping->base + offset;
-+	migrate_disable();
-+	return __iomap_local_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
-+}
++	get_cpu();
+ 
+ 	info.ctx = ctx;
+ 	info.nr = nr;
+ 	info.vaddrs = vaddrs;
+ 
+-	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-	else
+-		smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
+-				       &info, 1);
++	smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
++			       &info, 1);
+ 
+ 	__flush_tlb_pending(ctx, nr, vaddrs);
+ 
+@@ -1129,14 +1093,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+ void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
+ {
+ 	unsigned long context = CTX_HWBITS(mm->context);
+-	int cpu = get_cpu();
+ 
+-	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
+-		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
+-	else
+-		smp_cross_call_masked(&xcall_flush_tlb_page,
+-				      context, vaddr, 0,
+-				      mm_cpumask(mm));
++	get_cpu();
 +
-+static inline void io_mapping_unmap_local(void __iomem *vaddr)
-+{
-+	kunmap_local_indexed((void __force *)vaddr);
-+	migrate_enable();
-+}
++	smp_cross_call_masked(&xcall_flush_tlb_page,
++			      context, vaddr, 0,
++			      mm_cpumask(mm));
 +
-+static inline void __iomem *
- io_mapping_map_wc(struct io_mapping *mapping,
- 		  unsigned long offset,
- 		  unsigned long size)
-@@ -101,7 +118,7 @@ io_mapping_unmap(void __iomem *vaddr)
- 	iounmap(vaddr);
- }
+ 	__flush_tlb_page(context, vaddr);
  
--#else
-+#else  /* HAVE_ATOMIC_IOMAP */
- 
- #include <linux/uaccess.h>
- 
-@@ -166,7 +183,20 @@ io_mapping_unmap_atomic(void __iomem *va
- 	preempt_enable();
- }
- 
--#endif /* HAVE_ATOMIC_IOMAP */
-+static inline void __iomem *
-+io_mapping_map_local_wc(struct io_mapping *mapping, unsigned long offset)
-+{
-+	migrate_disable();
-+	return io_mapping_map_wc(mapping, offset, PAGE_SIZE);
-+}
-+
-+static inline void io_mapping_unmap_local(void __iomem *vaddr)
-+{
-+	io_mapping_unmap(vaddr);
-+	migrate_enable();
-+}
-+
-+#endif /* !HAVE_ATOMIC_IOMAP */
- 
- static inline struct io_mapping *
- io_mapping_create_wc(resource_size_t base,
+ 	put_cpu();
+-- 
+2.25.1
