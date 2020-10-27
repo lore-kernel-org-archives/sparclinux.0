@@ -1,10 +1,10 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Mon, 26 Oct 2020 23:49:59 +0000
-Subject: [PATCH AUTOSEL 5.8 007/132] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
-Message-Id: <20201026235205.1023962-7-sashal@kernel.org>
+Date: Tue, 27 Oct 2020 00:03:18 +0000
+Subject: [PATCH AUTOSEL 4.19 03/60] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
+Message-Id: <20201027000415.1026364-3-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201026235205.1023962-1-sashal@kernel.org>
-In-Reply-To: <20201026235205.1023962-1-sashal@kernel.org>
+References: <20201027000415.1026364-1-sashal@kernel.org>
+In-Reply-To: <20201027000415.1026364-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -74,10 +74,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 14 insertions(+), 51 deletions(-)
 
 diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 0085e28bf019a..d88467758ee87 100644
+index d3ea1f3c06a00..a7d7b7ade42fc 100644
 --- a/arch/sparc/kernel/smp_64.c
 +++ b/arch/sparc/kernel/smp_64.c
-@@ -1038,38 +1038,9 @@ void smp_fetch_global_pmu(void)
+@@ -1039,38 +1039,9 @@ void smp_fetch_global_pmu(void)
   * are flush_tlb_*() routines, and these run after flush_cache_*()
   * which performs the flushw.
   *
@@ -119,7 +119,7 @@ index 0085e28bf019a..d88467758ee87 100644
   */
  
  /* This currently is only used by the hugetlb arch pre-fault
-@@ -1079,18 +1050,13 @@ void smp_fetch_global_pmu(void)
+@@ -1080,18 +1051,13 @@ void smp_fetch_global_pmu(void)
  void smp_flush_tlb_mm(struct mm_struct *mm)
  {
  	u32 ctx = CTX_HWBITS(mm->context);
@@ -139,7 +139,7 @@ index 0085e28bf019a..d88467758ee87 100644
  	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
  
  	put_cpu();
-@@ -1113,17 +1079,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+@@ -1114,17 +1080,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
  {
  	u32 ctx = CTX_HWBITS(mm->context);
  	struct tlb_pending_info info;
@@ -161,7 +161,7 @@ index 0085e28bf019a..d88467758ee87 100644
  
  	__flush_tlb_pending(ctx, nr, vaddrs);
  
-@@ -1133,14 +1097,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
+@@ -1134,14 +1098,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
  void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
  {
  	unsigned long context = CTX_HWBITS(mm->context);
