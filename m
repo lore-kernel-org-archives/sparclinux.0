@@ -1,22 +1,120 @@
-From: Kim Leang <mechanik@kilargo.pl>
-Date: Thu, 15 Oct 2020 11:20:57 +0000
-Subject: Greeting! !!
-Message-Id: <f0cb03c542b34506930f40d96b791657@mail.kilargo.pl>
+From: Jens Axboe <axboe@kernel.dk>
+Date: Thu, 29 Oct 2020 16:22:41 +0000
+Subject: [PATCH] sparc: add support for TIF_NOTIFY_SIGNAL
+Message-Id: <c2ddcd10-55ba-dad9-c9c5-02a8bd2aa3f6@kernel.dk>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Greeting!
+Wire up TIF_NOTIFY_SIGNAL handling for sparc.
 
-I am contacting you to receive and share with me an abandoned fund ( $21,537.000.00 ) left in our bank by a deceased customer. I was going through the Internet search when I found your email address. My name is Mr. Kim Leang.
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+---
 
-I want to utilize this opportunity and make use of this fund if I should present your name to the bank to stand as his business associate/ trustee for the fund to be released to you via Visa card for easy withdrawals in any VISA ATM machine anywhere in the World.
+5.11 has support queued up for TIF_NOTIFY_SIGNAL, see this posting
+for details:
 
-The bank will also give you international online transfer options. With these you can transfer the funds without any risk.
+https://lore.kernel.org/io-uring/20201026203230.386348-1-axboe@kernel.dk/
 
-Should you be interested in working with me in this project? Please reply back and let's benefit from this golden opportunity.You are my first contact. I shall wait a few days and if I do not hear from you, I shall look for another person.
+As part of that work, I'm adding TIF_NOTIFY_SIGNAL support to all archs,
+as that will enable a set of cleanups once all of them support it. I'm
+happy carrying this patch if need be, or it can be funelled through the
+arch tree. Let me know.
 
-Thanks and have a nice day,
-Mr. Kim Leang.
+ arch/sparc/include/asm/thread_info_32.h | 4 +++-
+ arch/sparc/include/asm/thread_info_64.h | 6 ++++--
+ arch/sparc/kernel/signal_32.c           | 2 +-
+ arch/sparc/kernel/signal_64.c           | 2 +-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/arch/sparc/include/asm/thread_info_32.h b/arch/sparc/include/asm/thread_info_32.h
+index 548b366165dd..45b4955b253f 100644
+--- a/arch/sparc/include/asm/thread_info_32.h
++++ b/arch/sparc/include/asm/thread_info_32.h
+@@ -104,6 +104,7 @@ register struct thread_info *current_thread_info_reg asm("g6");
+ #define TIF_SIGPENDING		2	/* signal pending */
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+ #define TIF_RESTORE_SIGMASK	4	/* restore signal mask in do_signal() */
++#define TIF_NOTIFY_SIGNAL	5	/* signal notifications exist */
+ #define TIF_USEDFPU		8	/* FPU was used by this task
+ 					 * this quantum (SMP) */
+ #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
+@@ -115,11 +116,12 @@ register struct thread_info *current_thread_info_reg asm("g6");
+ #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
++#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
+ #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
+ #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
+ 
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+-					 _TIF_SIGPENDING)
++					 _TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL)
+ 
+ #define is_32bit_task()	(1)
+ 
+diff --git a/arch/sparc/include/asm/thread_info_64.h b/arch/sparc/include/asm/thread_info_64.h
+index 20255471e653..42cd4cd3892e 100644
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -180,7 +180,7 @@ extern struct thread_info *current_thread_info(void);
+ #define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
+ #define TIF_SIGPENDING		2	/* signal pending */
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+-/* flag bit 4 is available */
++#define TIF_NOTIFY_SIGNAL	4	/* signal notifications exist */
+ #define TIF_UNALIGNED		5	/* allowed to do unaligned accesses */
+ #define TIF_UPROBE		6	/* breakpointed or singlestepped */
+ #define TIF_32BIT		7	/* 32-bit binary */
+@@ -200,6 +200,7 @@ extern struct thread_info *current_thread_info(void);
+ #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
++#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
+ #define _TIF_UNALIGNED		(1<<TIF_UNALIGNED)
+ #define _TIF_UPROBE		(1<<TIF_UPROBE)
+ #define _TIF_32BIT		(1<<TIF_32BIT)
+@@ -213,7 +214,8 @@ extern struct thread_info *current_thread_info(void);
+ 				 _TIF_DO_NOTIFY_RESUME_MASK | \
+ 				 _TIF_NEED_RESCHED)
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+-					 _TIF_SIGPENDING | _TIF_UPROBE)
++					 _TIF_SIGPENDING | _TIF_UPROBE | \
++					 _TIF_NOTIFY_SIGNAL)
+ 
+ #define is_32bit_task()	(test_thread_flag(TIF_32BIT))
+ 
+diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
+index 741d0701003a..11cf2281b581 100644
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -521,7 +521,7 @@ static void do_signal(struct pt_regs *regs, unsigned long orig_i0)
+ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
+ 		      unsigned long thread_info_flags)
+ {
+-	if (thread_info_flags & _TIF_SIGPENDING)
++	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
+ 		do_signal(regs, orig_i0);
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+ 		tracehook_notify_resume(regs);
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index f7ef7edcd5c1..a0eec62c825d 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -549,7 +549,7 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+ 	user_exit();
+ 	if (thread_info_flags & _TIF_UPROBE)
+ 		uprobe_notify_resume(regs);
+-	if (thread_info_flags & _TIF_SIGPENDING)
++	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
+ 		do_signal(regs, orig_i0);
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+ 		tracehook_notify_resume(regs);
+-- 
+2.29.0
+
+-- 
+Jens Axboe
