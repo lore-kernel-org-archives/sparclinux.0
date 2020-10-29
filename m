@@ -1,197 +1,216 @@
-From: Christoph Hellwig <hch@lst.de>
-Date: Wed, 07 Oct 2020 07:44:46 +0000
-Subject: [PATCH 2/3] fbdev/sbuslib: refactor sbusfb_ioctl_helper
-Message-Id: <20201007074447.797968-3-hch@lst.de>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 29 Oct 2020 22:18:12 +0000
+Subject: [patch V2 06/18] ARM: highmem: Switch to generic kmap atomic
+Message-Id: <20201029222651.209698448@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201007074447.797968-1-hch@lst.de>
-In-Reply-To: <20201007074447.797968-1-hch@lst.de>
+References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>, "David S. Miller" <davem@davemloft.net>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org, linux-fbdev@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
 
-Refactor sbusfb_ioctl_helper into a bunch of self-contained helpers,
-to prepare for improvements to the compat ioctl handler.
+No reason having the same code in every architecture.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/video/fbdev/sbuslib.c | 157 ++++++++++++++++------------------
- 1 file changed, 75 insertions(+), 82 deletions(-)
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org
 
-diff --git a/drivers/video/fbdev/sbuslib.c b/drivers/video/fbdev/sbuslib.c
-index 176dbfb5d3efca..1c3bf1cb8dccd7 100644
---- a/drivers/video/fbdev/sbuslib.c
-+++ b/drivers/video/fbdev/sbuslib.c
-@@ -97,94 +97,87 @@ int sbusfb_mmap_helper(struct sbus_mmap_map *map,
- }
- EXPORT_SYMBOL(sbusfb_mmap_helper);
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index e00d94b16658..410235e350cc 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1499,6 +1499,7 @@ config HAVE_ARCH_PFN_VALID
+ config HIGHMEM
+ 	bool "High Memory Support"
+ 	depends on MMU
++	select KMAP_LOCAL
+ 	help
+ 	  The address space of ARM processors is only 4 Gigabytes large
+ 	  and it has to accommodate user address space, kernel address
+diff --git a/arch/arm/include/asm/highmem.h b/arch/arm/include/asm/highmem.h
+index 31811be38d78..99a99862c474 100644
+--- a/arch/arm/include/asm/highmem.h
++++ b/arch/arm/include/asm/highmem.h
+@@ -46,19 +46,32 @@ extern pte_t *pkmap_page_table;
  
--int sbusfb_ioctl_helper(unsigned long cmd, unsigned long arg,
--			struct fb_info *info,
--			int type, int fb_depth, unsigned long fb_size)
-+static int sbufsfb_ioctl_gtype(struct fbtype __user *f, struct fb_info *info,
-+		int type, int fb_depth, unsigned long fb_size)
+ #ifdef ARCH_NEEDS_KMAP_HIGH_GET
+ extern void *kmap_high_get(struct page *page);
+-#else
++
++static inline void *arch_kmap_local_high_get(struct page *page)
++{
++	if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !cache_is_vivt())
++		return NULL;
++	return kmap_high_get(page);
++}
++#define arch_kmap_local_high_get arch_kmap_local_high_get
++
++#else /* ARCH_NEEDS_KMAP_HIGH_GET */
+ static inline void *kmap_high_get(struct page *page)
  {
--	switch(cmd) {
--	case FBIOGTYPE: {
--		struct fbtype __user *f = (struct fbtype __user *) arg;
+ 	return NULL;
+ }
+-#endif
++#endif /* !ARCH_NEEDS_KMAP_HIGH_GET */
+ 
+-/*
+- * The following functions are already defined by <linux/highmem.h>
+- * when CONFIG_HIGHMEM is not set.
+- */
+-#ifdef CONFIG_HIGHMEM
+-extern void *kmap_atomic_pfn(unsigned long pfn);
+-#endif
++#define arch_kmap_local_post_map(vaddr, pteval)				\
++	local_flush_tlb_kernel_page(vaddr)
++
++#define arch_kmap_local_pre_unmap(vaddr)				\
++do {									\
++	if (cache_is_vivt())						\
++		__cpuc_flush_dcache_area((void *)vaddr, PAGE_SIZE);	\
++} while (0)
++
++#define arch_kmap_local_post_unmap(vaddr)				\
++	local_flush_tlb_kernel_page(vaddr)
+ 
+ #endif
+diff --git a/arch/arm/mm/Makefile b/arch/arm/mm/Makefile
+index 7cb1699fbfc4..c4ce477c5261 100644
+--- a/arch/arm/mm/Makefile
++++ b/arch/arm/mm/Makefile
+@@ -19,7 +19,6 @@ obj-$(CONFIG_MODULES)		+= proc-syms.o
+ obj-$(CONFIG_DEBUG_VIRTUAL)	+= physaddr.o
+ 
+ obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
+-obj-$(CONFIG_HIGHMEM)		+= highmem.o
+ obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
+ obj-$(CONFIG_ARM_PV_FIXUP)	+= pv-fixup-asm.o
+ 
+diff --git a/arch/arm/mm/highmem.c b/arch/arm/mm/highmem.c
+deleted file mode 100644
+index 187fab227b50..000000000000
+--- a/arch/arm/mm/highmem.c
++++ /dev/null
+@@ -1,121 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * arch/arm/mm/highmem.c -- ARM highmem support
+- *
+- * Author:	Nicolas Pitre
+- * Created:	september 8, 2008
+- * Copyright:	Marvell Semiconductors Inc.
+- */
 -
--		if (put_user(type, &f->fb_type) ||
--		    put_user(info->var.yres, &f->fb_height) ||
--		    put_user(info->var.xres, &f->fb_width) ||
--		    put_user(fb_depth, &f->fb_depth) ||
--		    put_user(0, &f->fb_cmsize) ||
--		    put_user(fb_size, &f->fb_cmsize))
--			return -EFAULT;
--		return 0;
+-#include <linux/module.h>
+-#include <linux/highmem.h>
+-#include <linux/interrupt.h>
+-#include <asm/fixmap.h>
+-#include <asm/cacheflush.h>
+-#include <asm/tlbflush.h>
+-#include "mm.h"
+-
+-static inline void set_fixmap_pte(int idx, pte_t pte)
+-{
+-	unsigned long vaddr = __fix_to_virt(idx);
+-	pte_t *ptep = virt_to_kpte(vaddr);
+-
+-	set_pte_ext(ptep, pte, 0);
+-	local_flush_tlb_kernel_page(vaddr);
+-}
+-
+-static inline pte_t get_fixmap_pte(unsigned long vaddr)
+-{
+-	pte_t *ptep = virt_to_kpte(vaddr);
+-
+-	return *ptep;
+-}
+-
+-void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+-{
+-	unsigned int idx;
+-	unsigned long vaddr;
+-	void *kmap;
+-	int type;
+-
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	/*
+-	 * There is no cache coherency issue when non VIVT, so force the
+-	 * dedicated kmap usage for better debugging purposes in that case.
+-	 */
+-	if (!cache_is_vivt())
+-		kmap = NULL;
+-	else
+-#endif
+-		kmap = kmap_high_get(page);
+-	if (kmap)
+-		return kmap;
+-
+-	type = kmap_atomic_idx_push();
+-
+-	idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
+-	vaddr = __fix_to_virt(idx);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	/*
+-	 * With debugging enabled, kunmap_atomic forces that entry to 0.
+-	 * Make sure it was indeed properly unmapped.
+-	 */
+-	BUG_ON(!pte_none(get_fixmap_pte(vaddr)));
+-#endif
+-	/*
+-	 * When debugging is off, kunmap_atomic leaves the previous mapping
+-	 * in place, so the contained TLB flush ensures the TLB is updated
+-	 * with the new mapping.
+-	 */
+-	set_fixmap_pte(idx, mk_pte(page, prot));
+-
+-	return (void *)vaddr;
+-}
+-EXPORT_SYMBOL(kmap_atomic_high_prot);
+-
+-void kunmap_atomic_high(void *kvaddr)
+-{
+-	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
+-	int idx, type;
+-
+-	if (kvaddr >= (void *)FIXADDR_START) {
+-		type = kmap_atomic_idx();
+-		idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
+-
+-		if (cache_is_vivt())
+-			__cpuc_flush_dcache_area((void *)vaddr, PAGE_SIZE);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-		BUG_ON(vaddr != __fix_to_virt(idx));
+-		set_fixmap_pte(idx, __pte(0));
+-#else
+-		(void) idx;  /* to kill a warning */
+-#endif
+-		kmap_atomic_idx_pop();
+-	} else if (vaddr >= PKMAP_ADDR(0) && vaddr < PKMAP_ADDR(LAST_PKMAP)) {
+-		/* this address was obtained through kmap_high_get() */
+-		kunmap_high(pte_page(pkmap_page_table[PKMAP_NR(vaddr)]));
 -	}
--	case FBIOPUTCMAP_SPARC: {
--		struct fbcmap __user *c = (struct fbcmap __user *) arg;
--		struct fb_cmap cmap;
--		u16 red, green, blue;
--		u8 red8, green8, blue8;
--		unsigned char __user *ured;
--		unsigned char __user *ugreen;
--		unsigned char __user *ublue;
--		unsigned int index, count, i;
+-}
+-EXPORT_SYMBOL(kunmap_atomic_high);
 -
--		if (get_user(index, &c->index) ||
--		    get_user(count, &c->count) ||
--		    get_user(ured, &c->red) ||
--		    get_user(ugreen, &c->green) ||
--		    get_user(ublue, &c->blue))
-+	if (put_user(type, &f->fb_type) ||
-+	    put_user(info->var.yres, &f->fb_height) ||
-+	    put_user(info->var.xres, &f->fb_width) ||
-+	    put_user(fb_depth, &f->fb_depth) ||
-+	    put_user(fb_size, &f->fb_cmsize))
-+		return -EFAULT;
-+	return 0;
-+}
-+
-+static int sbusfb_ioctl_putcmap(struct fbcmap *c, struct fb_info *info)
-+{
-+	u8 red8, green8, blue8;
-+	u16 red, green, blue;
-+	struct fb_cmap cmap;
-+	unsigned int i;
-+	int err;
-+
-+	cmap.len = 1;
-+	cmap.red = &red;
-+	cmap.green = &green;
-+	cmap.blue = &blue;
-+	cmap.transp = NULL;
-+	for (i = 0; i < c->count; i++) {
-+		if (get_user(red8, c->red + i) ||
-+		    get_user(green8, c->green + i) ||
-+		    get_user(blue8, c->blue + i))
- 			return -EFAULT;
- 
--		cmap.len = 1;
--		cmap.red = &red;
--		cmap.green = &green;
--		cmap.blue = &blue;
--		cmap.transp = NULL;
--		for (i = 0; i < count; i++) {
--			int err;
+-void *kmap_atomic_pfn(unsigned long pfn)
+-{
+-	unsigned long vaddr;
+-	int idx, type;
+-	struct page *page = pfn_to_page(pfn);
 -
--			if (get_user(red8, &ured[i]) ||
--			    get_user(green8, &ugreen[i]) ||
--			    get_user(blue8, &ublue[i]))
--				return -EFAULT;
+-	preempt_disable();
+-	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
 -
--			red = red8 << 8;
--			green = green8 << 8;
--			blue = blue8 << 8;
+-	type = kmap_atomic_idx_push();
+-	idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
+-	vaddr = __fix_to_virt(idx);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	BUG_ON(!pte_none(get_fixmap_pte(vaddr)));
+-#endif
+-	set_fixmap_pte(idx, pfn_pte(pfn, kmap_prot));
 -
--			cmap.start = index + i;
--			err = fb_set_cmap(&cmap, info);
--			if (err)
--				return err;
--		}
--		return 0;
-+		red = red8 << 8;
-+		green = green8 << 8;
-+		blue = blue8 << 8;
-+
-+		cmap.start = c->index + i;
-+		err = fb_set_cmap(&cmap, info);
-+		if (err)
-+			return err;
- 	}
--	case FBIOGETCMAP_SPARC: {
--		struct fbcmap __user *c = (struct fbcmap __user *) arg;
--		unsigned char __user *ured;
--		unsigned char __user *ugreen;
--		unsigned char __user *ublue;
--		struct fb_cmap *cmap = &info->cmap;
--		unsigned int index, count, i;
--		u8 red, green, blue;
--
--		if (get_user(index, &c->index) ||
--		    get_user(count, &c->count) ||
--		    get_user(ured, &c->red) ||
--		    get_user(ugreen, &c->green) ||
--		    get_user(ublue, &c->blue))
--			return -EFAULT;
-+	return 0;
-+}
- 
--		if (index > cmap->len || count > cmap->len - index)
--			return -EINVAL;
--
--		for (i = 0; i < count; i++) {
--			red = cmap->red[index + i] >> 8;
--			green = cmap->green[index + i] >> 8;
--			blue = cmap->blue[index + i] >> 8;
--			if (put_user(red, &ured[i]) ||
--			    put_user(green, &ugreen[i]) ||
--			    put_user(blue, &ublue[i]))
--				return -EFAULT;
--		}
--		return 0;
-+static int sbusfb_ioctl_getcmap(struct fbcmap *c, struct fb_info *info)
-+{
-+	unsigned int i;
-+
-+	if (c->index > info->cmap.len || c->count > info->cmap.len - c->index)
-+		return -EINVAL;
-+
-+	for (i = 0; i < c->count; i++) {
-+		u8 red = info->cmap.red[c->index + i] >> 8;
-+		u8 green = info->cmap.green[c->index + i] >> 8;
-+		u8 blue = info->cmap.blue[c->index + i] >> 8;
-+
-+		if (put_user(red, c->red + i) ||
-+		    put_user(green, c->green + i) ||
-+		    put_user(blue, c->blue + i))
-+			return -EFAULT;
- 	}
-+	return 0;
-+}
-+
-+int sbusfb_ioctl_helper(unsigned long cmd, unsigned long arg,
-+			struct fb_info *info,
-+			int type, int fb_depth, unsigned long fb_size)
-+{
-+	void __user *argp = (void __user *)arg;
-+	struct fbcmap kc;
-+
-+	switch (cmd) {
-+	case FBIOGTYPE:
-+		return sbufsfb_ioctl_gtype(argp, info, type, fb_depth, fb_size);
-+	case FBIOPUTCMAP_SPARC:
-+		if (copy_from_user(&kc, argp, sizeof(kc)))
-+			return -EFAULT;
-+		return sbusfb_ioctl_putcmap(&kc, info);
-+	case FBIOGETCMAP_SPARC:
-+		if (copy_from_user(&kc, argp, sizeof(kc)))
-+			return -EFAULT;
-+		return sbusfb_ioctl_getcmap(&kc, info);
- 	default:
- 		return -EINVAL;
- 	}
--- 
-2.28.0
+-	return (void *)vaddr;
+-}
