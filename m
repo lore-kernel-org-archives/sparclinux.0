@@ -1,186 +1,145 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 27 Oct 2020 00:11:00 +0000
-Subject: [PATCH AUTOSEL 4.4 02/25] sparc64: remove mm_cpumask clearing to fix kthread_use_mm race
-Message-Id: <20201027001123.1027642-2-sashal@kernel.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 29 Oct 2020 22:18:13 +0000
+Subject: [patch V2 07/18] csky/mm/highmem: Switch to generic kmap atomic
+Message-Id: <20201029222651.303553207@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201027001123.1027642-1-sashal@kernel.org>
-In-Reply-To: <20201027001123.1027642-1-sashal@kernel.org>
+References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Nicholas Piggin <npiggin@gmail.com>, "David S . Miller" <davem@davemloft.net>, Michael Ellerman <mpe@ellerman.id.au>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
 
-From: Nicholas Piggin <npiggin@gmail.com>
+No reason having the same code in every architecture.
 
-[ Upstream commit bafb056ce27940c9994ea905336aa8f27b4f7275 ]
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Guo Ren <guoren@kernel.org>
+Cc: linux-csky@vger.kernel.org
 
-The de facto (and apparently uncommented) standard for using an mm had,
-thanks to this code in sparc if nothing else, been that you must have a
-reference on mm_users *and that reference must have been obtained with
-mmget()*, i.e., from a thread with a reference to mm_users that had used
-the mm.
-
-The introduction of mmget_not_zero() in commit d2005e3f41d4
-("userfaultfd: don't pin the user memory in userfaultfd_file_create()")
-allowed mm_count holders to aoperate on user mappings asynchronously
-from the actual threads using the mm, but they were not to load those
-mappings into their TLB (i.e., walking vmas and page tables is okay,
-kthread_use_mm() is not).
-
-io_uring 2b188cc1bb857 ("Add io_uring IO interface") added code which
-does a kthread_use_mm() from a mmget_not_zero() refcount.
-
-The problem with this is code which previously assumed mm = current->mm
-and mm->mm_users = 1 implies the mm will remain single-threaded at
-least until this thread creates another mm_users reference, has now
-broken.
-
-arch/sparc/kernel/smp_64.c:
-
-    if (atomic_read(&mm->mm_users) = 1) {
-        cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
-        goto local_flush_and_out;
-    }
-
-vs fs/io_uring.c
-
-    if (unlikely(!(ctx->flags & IORING_SETUP_SQPOLL) ||
-                 !mmget_not_zero(ctx->sqo_mm)))
-        return -EFAULT;
-    kthread_use_mm(ctx->sqo_mm);
-
-mmget_not_zero() could come in right after the mm_users = 1 test, then
-kthread_use_mm() which sets its CPU in the mm_cpumask. That update could
-be lost if cpumask_copy() occurs afterward.
-
-I propose we fix this by allowing mmget_not_zero() to be a first-class
-reference, and not have this obscure undocumented and unchecked
-restriction.
-
-The basic fix for sparc64 is to remove its mm_cpumask clearing code. The
-optimisation could be effectively restored by sending IPIs to mm_cpumask
-members and having them remove themselves from mm_cpumask. This is more
-tricky so I leave it as an exercise for someone with a sparc64 SMP.
-powerpc has a (currently similarly broken) example.
-
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Michael Ellerman <mpe@ellerman.id.au>
-Link: https://lore.kernel.org/r/20200914045219.3736466-4-npiggin@gmail.com
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/kernel/smp_64.c | 65 ++++++++------------------------------
- 1 file changed, 14 insertions(+), 51 deletions(-)
+ arch/csky/Kconfig               |    1 
+ arch/csky/include/asm/highmem.h |    4 +-
+ arch/csky/mm/highmem.c          |   75 ----------------------------------------
+ 3 files changed, 5 insertions(+), 75 deletions(-)
 
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index 46866b2097e81..bd27e86ce36db 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1030,38 +1030,9 @@ void smp_fetch_global_pmu(void)
-  * are flush_tlb_*() routines, and these run after flush_cache_*()
-  * which performs the flushw.
-  *
-- * The SMP TLB coherency scheme we use works as follows:
-- *
-- * 1) mm->cpu_vm_mask is a bit mask of which cpus an address
-- *    space has (potentially) executed on, this is the heuristic
-- *    we use to avoid doing cross calls.
-- *
-- *    Also, for flushing from kswapd and also for clones, we
-- *    use cpu_vm_mask as the list of cpus to make run the TLB.
-- *
-- * 2) TLB context numbers are shared globally across all processors
-- *    in the system, this allows us to play several games to avoid
-- *    cross calls.
-- *
-- *    One invariant is that when a cpu switches to a process, and
-- *    that processes tsk->active_mm->cpu_vm_mask does not have the
-- *    current cpu's bit set, that tlb context is flushed locally.
-- *
-- *    If the address space is non-shared (ie. mm->count = 1) we avoid
-- *    cross calls when we want to flush the currently running process's
-- *    tlb state.  This is done by clearing all cpu bits except the current
-- *    processor's in current->mm->cpu_vm_mask and performing the
-- *    flush locally only.  This will force any subsequent cpus which run
-- *    this task to flush the context from the local tlb if the process
-- *    migrates to another cpu (again).
-- *
-- * 3) For shared address spaces (threads) and swapping we bite the
-- *    bullet for most cases and perform the cross call (but only to
-- *    the cpus listed in cpu_vm_mask).
-- *
-- *    The performance gain from "optimizing" away the cross call for threads is
-- *    questionable (in theory the big win for threads is the massive sharing of
-- *    address space state across processors).
-+ * mm->cpu_vm_mask is a bit mask of which cpus an address
-+ * space has (potentially) executed on, this is the heuristic
-+ * we use to limit cross calls.
-  */
+--- a/arch/csky/Kconfig
++++ b/arch/csky/Kconfig
+@@ -286,6 +286,7 @@ config NR_CPUS
+ config HIGHMEM
+ 	bool "High Memory Support"
+ 	depends on !CPU_CK610
++	select KMAP_LOCAL
+ 	default y
  
- /* This currently is only used by the hugetlb arch pre-fault
-@@ -1071,18 +1042,13 @@ void smp_fetch_global_pmu(void)
- void smp_flush_tlb_mm(struct mm_struct *mm)
- {
- 	u32 ctx = CTX_HWBITS(mm->context);
--	int cpu = get_cpu();
+ config FORCE_MAX_ZONEORDER
+--- a/arch/csky/include/asm/highmem.h
++++ b/arch/csky/include/asm/highmem.h
+@@ -32,10 +32,12 @@ extern pte_t *pkmap_page_table;
  
--	if (atomic_read(&mm->mm_users) = 1) {
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--		goto local_flush_and_out;
--	}
-+	get_cpu();
+ #define ARCH_HAS_KMAP_FLUSH_TLB
+ extern void kmap_flush_tlb(unsigned long addr);
+-extern void *kmap_atomic_pfn(unsigned long pfn);
  
- 	smp_cross_call_masked(&xcall_flush_tlb_mm,
- 			      ctx, 0, 0,
- 			      mm_cpumask(mm));
+ #define flush_cache_kmaps() do {} while (0)
  
--local_flush_and_out:
- 	__flush_tlb_mm(ctx, SECONDARY_CONTEXT);
- 
- 	put_cpu();
-@@ -1105,17 +1071,15 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
- {
- 	u32 ctx = CTX_HWBITS(mm->context);
- 	struct tlb_pending_info info;
--	int cpu = get_cpu();
++#define arch_kmap_local_post_map(vaddr, pteval)	kmap_flush_tlb(vaddr)
++#define arch_kmap_local_post_unmap(vaddr)	kmap_flush_tlb(vaddr)
 +
-+	get_cpu();
+ extern void kmap_init(void);
  
- 	info.ctx = ctx;
- 	info.nr = nr;
- 	info.vaddrs = vaddrs;
+ #endif /* __KERNEL__ */
+--- a/arch/csky/mm/highmem.c
++++ b/arch/csky/mm/highmem.c
+@@ -9,8 +9,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/cacheflush.h>
  
--	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--	else
--		smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
--				       &info, 1);
-+	smp_call_function_many(mm_cpumask(mm), tlb_pending_func,
-+			       &info, 1);
+-static pte_t *kmap_pte;
+-
+ unsigned long highstart_pfn, highend_pfn;
  
- 	__flush_tlb_pending(ctx, nr, vaddrs);
+ void kmap_flush_tlb(unsigned long addr)
+@@ -19,67 +17,7 @@ void kmap_flush_tlb(unsigned long addr)
+ }
+ EXPORT_SYMBOL(kmap_flush_tlb);
  
-@@ -1125,14 +1089,13 @@ void smp_flush_tlb_pending(struct mm_struct *mm, unsigned long nr, unsigned long
- void smp_flush_tlb_page(struct mm_struct *mm, unsigned long vaddr)
+-void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+-{
+-	unsigned long vaddr;
+-	int idx, type;
+-
+-	type = kmap_atomic_idx_push();
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	BUG_ON(!pte_none(*(kmap_pte - idx)));
+-#endif
+-	set_pte(kmap_pte-idx, mk_pte(page, prot));
+-	flush_tlb_one((unsigned long)vaddr);
+-
+-	return (void *)vaddr;
+-}
+-EXPORT_SYMBOL(kmap_atomic_high_prot);
+-
+-void kunmap_atomic_high(void *kvaddr)
+-{
+-	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
+-	int idx;
+-
+-	if (vaddr < FIXADDR_START)
+-		return;
+-
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	idx = KM_TYPE_NR*smp_processor_id() + kmap_atomic_idx();
+-
+-	BUG_ON(vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
+-
+-	pte_clear(&init_mm, vaddr, kmap_pte - idx);
+-	flush_tlb_one(vaddr);
+-#else
+-	(void) idx; /* to kill a warning */
+-#endif
+-	kmap_atomic_idx_pop();
+-}
+-EXPORT_SYMBOL(kunmap_atomic_high);
+-
+-/*
+- * This is the same as kmap_atomic() but can map memory that doesn't
+- * have a struct page associated with it.
+- */
+-void *kmap_atomic_pfn(unsigned long pfn)
+-{
+-	unsigned long vaddr;
+-	int idx, type;
+-
+-	pagefault_disable();
+-
+-	type = kmap_atomic_idx_push();
+-	idx = type + KM_TYPE_NR*smp_processor_id();
+-	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+-	set_pte(kmap_pte-idx, pfn_pte(pfn, PAGE_KERNEL));
+-	flush_tlb_one(vaddr);
+-
+-	return (void *) vaddr;
+-}
+-
+-static void __init kmap_pages_init(void)
++void __init kmap_init(void)
  {
- 	unsigned long context = CTX_HWBITS(mm->context);
--	int cpu = get_cpu();
- 
--	if (mm = current->mm && atomic_read(&mm->mm_users) = 1)
--		cpumask_copy(mm_cpumask(mm), cpumask_of(cpu));
--	else
--		smp_cross_call_masked(&xcall_flush_tlb_page,
--				      context, vaddr, 0,
--				      mm_cpumask(mm));
-+	get_cpu();
-+
-+	smp_cross_call_masked(&xcall_flush_tlb_page,
-+			      context, vaddr, 0,
-+			      mm_cpumask(mm));
-+
- 	__flush_tlb_page(context, vaddr);
- 
- 	put_cpu();
--- 
-2.25.1
+ 	unsigned long vaddr;
+ 	pgd_t *pgd;
+@@ -96,14 +34,3 @@ static void __init kmap_pages_init(void)
+ 	pte = pte_offset_kernel(pmd, vaddr);
+ 	pkmap_page_table = pte;
+ }
+-
+-void __init kmap_init(void)
+-{
+-	unsigned long vaddr;
+-
+-	kmap_pages_init();
+-
+-	vaddr = __fix_to_virt(FIX_KMAP_BEGIN);
+-
+-	kmap_pte = pte_offset_kernel((pmd_t *)pgd_offset_k(vaddr), vaddr);
+-}
