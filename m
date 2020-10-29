@@ -1,96 +1,47 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Thu, 29 Oct 2020 08:12:25 +0000
+From: David Hildenbrand <david@redhat.com>
+Date: Thu, 29 Oct 2020 08:15:47 +0000
 Subject: Re: [PATCH 0/4] arch, mm: improve robustness of direct map manipulation
-Message-Id: <20201029081225.GK1428094@kernel.org>
+Message-Id: <30075bb8-caed-c4de-c09e-e0f6fb964a8d@redhat.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201025101555.3057-1-rppt@kernel.org>
- <ae82f905a0092adb7e0f0ac206335c1883b3170f.camel@intel.com>
- <20201026090526.GA1154158@kernel.org>
- <a0212b073b3b2f62c3dbf1bf398f03fa402997be.camel@intel.com>
- <20201027083816.GG1154158@kernel.org>
- <20201028112011.GB27927@willie-the-truck>
- <20201028113059.GG1428094@kernel.org>
- <9e77d0a939eda3029d6ae89bd14d7f1465b0559d.camel@intel.com>
-In-Reply-To: <9e77d0a939eda3029d6ae89bd14d7f1465b0559d.camel@intel.com>
+In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>
-Cc: "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "david@redhat.com" <david@redhat.com>, "peterz@infradead.org" <peterz@infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "dave.hansen@linux.intel.com" <dave.hansen@linux.intel.com>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "paulus@samba.org" <paulus@samba.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "hpa@zytor.com" <hpa@zytor.com>, "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>, "cl@linux.com" <cl@linux.com>, "will@kernel.org" <will@kernel.org>, "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>, "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>, "mpe@ellerman.id.au" <mpe@ellerman.id.au>, "x86@kernel.org" <x86@kernel.org>, "rppt@linux.ibm.com" <rppt@linux.ibm.com>, "borntraeger@de.ibm.com" <borntraeger@de.ibm.com>, "mingo@redhat.com" <mingo@redhat.com>, "rientjes@google.com" <rientjes@google.com>, "Brown,
- Len" <len.brown@intel.com>, "aou@eecs.berkeley.edu" <aou@eecs.berkeley.edu>, "gor@linux.ibm.com" <gor@linux.ibm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "hca@linux.ibm.com" <hca@linux.ibm.com>, "bp@alien8.de" <bp@alien8.de>, "luto@kernel.org" <luto@kernel.org>, "paul.walmsley@sifive.com" <paul.walmsley@sifive.com>, "kirill@shutemov.name" <kirill@shutemov.name>, "tglx@linutronix.de" <tglx@linutronix.de>, "iamjoonsoo.kim@lge.com" <iamjoonsoo.kim@lge.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "penberg@kernel.org" <penberg@kernel.org>, "palmer@dabbelt.com" <palmer@dabbelt.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>, "davem@davemloft.net" <davem@davemloft.net>
+To: Mike Rapoport <rppt@kernel.org>, Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
 
-On Wed, Oct 28, 2020 at 09:03:31PM +0000, Edgecombe, Rick P wrote:
+On 25.10.20 11:15, Mike Rapoport wrote:
+> From: Mike Rapoport <rppt@linux.ibm.com>
+> 
+> Hi,
+> 
+> During recent discussion about KVM protected memory, David raised a concern
+> about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
+> 
+> Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
+> possible that __kernel_map_pages() would fail, but since this function is
+> void, the failure will go unnoticed.
+> 
+> Moreover, there's lack of consistency of __kernel_map_pages() semantics
+> across architectures as some guard this function with
+> #ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
+> allocation debugging is disabled at run time and some allow modifying the
+> direct map regardless of DEBUG_PAGEALLOC settings.
+> 
+> This set straightens this out by restoring dependency of
+> __kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
+> accordingly.
+> 
 
-> > On Wed, Oct 28, 2020 at 11:20:12AM +0000, Will Deacon wrote:
-> > > On Tue, Oct 27, 2020 at 10:38:16AM +0200, Mike Rapoport wrote:
-> > > > 					   	
-> > > > This is a theoretical bug, but it is still not nice :) 		
-> > > > 					
-> > > 
-> > > Just to clarify: this patch series fixes this problem, right?
-> > 
-> > Yes.
-> > 
-> 
-> Well, now I'm confused again.
-> 
-> As David pointed, __vunmap() should not be executing simultaneously
-> with the hibernate operation because hibernate can't snapshot while
-> data it needs to save is still updating. If a thread was paused when a
-> page was in an "invalid" state, it should be remapped by hibernate
-> before the copy.
-> 
-> To level set, before reading this mail, my takeaways from the
-> discussions on potential hibernate/debug page alloc problems were:
-> 
-> Potential RISC-V issue:
-> Doesn't have hibernate support
-> 
-> Potential ARM issue:
-> The logic around when it's cpa determines pages might be unmapped looks
-> correct for current callers.
-> 
-> Potential x86 page break issue:
-> Seems to be ok for now, but a new set_memory_np() caller could violate
-> assumptions in hibernate.
-> 
-> Non-obvious thorny logic: 
-> General agreement it would be good to separate dependencies.
-> 
-> Behavior of V1 of this patchset:
-> No functional change other than addition of a warn in hibernate.
-
-There is a change that adds explicit use of set_direct_map() to
-hibernate. Currently, in case of arm64 with DEBUG_PAGEALLOC=n if a
-thread was paused when a page was in an "invalid" state hibernate will
-access an unmapped data because __kernel_map_pages() will bail out.
-After the change set_direct_map_default_noflush() would be used and the
-page will get mapped before copy.
-
-> So "does this fix the problem", "yes" leaves me a bit confused... Not
-> saying there couldn't be any problems, especially due to the thorniness
-> and cross arch stride, but what is it exactly and how does this series
-> fix it?
-
-This series goal was primarily to separate dependincies and make it
-clearer what DEBUG_PAGEALLOC and what SET_DIRECT_MAP are. As it turned
-out, there is also some lack of consistency between architectures that
-implement either of this so I tried to improve this as well.
-
-Honestly, I don't know if a thread can be paused at the time __vunmap()
-left invalid pages, but it could, there is an issue on arm64 with
-DEBUG_PAGEALLOC=n and this set fixes it.
-
-__vunmap()
-    vm_remove_mappings()
-        set_direct_map_invalid()
-	/* thread is frozen */
- 					safe_copy_page()	
- 					    __kernel_map_pages()
-						if (!debug_pagealloc())
- 					    	    return
- 					    do_copy_page() -> fault
+So, I was primarily wondering if we really have to touch direct mappings 
+in hibernation code, or if we can avoid doing that. I was wondering if 
+we cannot simply do something like kmap() when trying to access a 
+!mapped page. Similar to reading old-os memory after kexec when in 
+kdump. Just a thought.
 
 -- 
-Sincerely yours,
-Mike.
+Thanks,
+
+David / dhildenb
