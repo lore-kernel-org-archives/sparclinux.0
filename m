@@ -1,10 +1,8 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 25 Oct 2020 10:15:54 +0000
-Subject: [PATCH 3/4] arch, mm: restore dependency of __kernel_map_pages() of DEBUG_PAGEALLOC
-Message-Id: <20201025101555.3057-4-rppt@kernel.org>
+Date: Thu, 29 Oct 2020 16:18:58 +0000
+Subject: [PATCH v2 0/4] arch, mm: improve robustness of direct map manipulation
+Message-Id: <20201029161902.19272-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201025101555.3057-1-rppt@kernel.org>
-In-Reply-To: <20201025101555.3057-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,293 +12,66 @@ Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>,
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-The design of DEBUG_PAGEALLOC presumes that __kernel_map_pages() must never
-fail. With this assumption is wouldn't be safe to allow general usage of
-this function.
+Hi,
 
-Moreover, some architectures that implement __kernel_map_pages() have this
-function guarded by #ifdef DEBUG_PAGEALLOC and some refuse to map/unmap
-pages when page allocation debugging is disabled at runtime.
+During recent discussion about KVM protected memory, David raised a concern
+about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
 
-As all the users of __kernel_map_pages() were converted to use
-debug_pagealloc_map_pages() it is safe to make it available only when
-DEBUG_PAGEALLOC is set.
+Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
+possible that __kernel_map_pages() would fail, but since this function is
+void, the failure will go unnoticed.
 
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
----
- arch/Kconfig                     |  3 +++
- arch/arm64/Kconfig               |  4 +---
- arch/arm64/mm/pageattr.c         |  6 ++++--
- arch/powerpc/Kconfig             |  5 +----
- arch/riscv/Kconfig               |  4 +---
- arch/riscv/include/asm/pgtable.h |  2 --
- arch/riscv/mm/pageattr.c         |  2 ++
- arch/s390/Kconfig                |  4 +---
- arch/sparc/Kconfig               |  4 +---
- arch/x86/Kconfig                 |  4 +---
- arch/x86/mm/pat/set_memory.c     |  2 ++
- include/linux/mm.h               | 10 +++++++---
- 12 files changed, 24 insertions(+), 26 deletions(-)
+Moreover, there's lack of consistency of __kernel_map_pages() semantics
+across architectures as some guard this function with
+#ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
+allocation debugging is disabled at run time and some allow modifying the
+direct map regardless of DEBUG_PAGEALLOC settings.
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 56b6ccc0e32d..56d4752b6db6 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -1028,6 +1028,9 @@ config HAVE_STATIC_CALL_INLINE
- 	bool
- 	depends on HAVE_STATIC_CALL
- 
-+config ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	bool
-+
- source "kernel/gcov/Kconfig"
- 
- source "scripts/gcc-plugins/Kconfig"
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 08fa3a1c50f0..1d4da0843668 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -71,6 +71,7 @@ config ARM64
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
- 	select ARCH_USE_SYM_ANNOTATIONS
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_MEMORY_FAILURE
- 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if CC_HAVE_SHADOW_CALL_STACK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-@@ -1004,9 +1005,6 @@ config HOLES_IN_ZONE
- 
- source "kernel/Kconfig.hz"
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config ARCH_SPARSEMEM_ENABLE
- 	def_bool y
- 	select SPARSEMEM_VMEMMAP_ENABLE
-diff --git a/arch/arm64/mm/pageattr.c b/arch/arm64/mm/pageattr.c
-index 1b94f5b82654..18613d8834db 100644
---- a/arch/arm64/mm/pageattr.c
-+++ b/arch/arm64/mm/pageattr.c
-@@ -178,13 +178,15 @@ int set_direct_map_default_noflush(struct page *page)
- 				   PAGE_SIZE, change_page_range, &data);
- }
- 
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
--	if (!debug_pagealloc_enabled() && !rodata_full)
-+	if (!rodata_full)
- 		return;
- 
- 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
- }
-+#endif /* CONFIG_DEBUG_PAGEALLOC */
- 
- /*
-  * This function is used to determine if a linear map page has been marked as
-@@ -204,7 +206,7 @@ bool kernel_page_present(struct page *page)
- 	pte_t *ptep;
- 	unsigned long addr = (unsigned long)page_address(page);
- 
--	if (!debug_pagealloc_enabled() && !rodata_full)
-+	if (!rodata_full)
- 		return true;
- 
- 	pgdp = pgd_offset_k(addr);
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index e9f13fe08492..ad8a83f3ddca 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -146,6 +146,7 @@ config PPC
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
- 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
-@@ -355,10 +356,6 @@ config PPC_OF_PLATFORM_PCI
- 	depends on PCI
- 	depends on PPC64 # not supported on 32 bits yet
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	depends on PPC32 || PPC_BOOK3S_64
--	def_bool y
--
- config ARCH_SUPPORTS_UPROBES
- 	def_bool y
- 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index d5e7ca08f22c..c704562ba45e 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -14,6 +14,7 @@ config RISCV
- 	def_bool y
- 	select ARCH_CLOCKSOURCE_INIT
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
- 	select ARCH_HAS_BINFMT_FLAT
- 	select ARCH_HAS_DEBUG_VM_PGTABLE
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
-@@ -153,9 +154,6 @@ config ARCH_SELECT_MEMORY_MODEL
- config ARCH_WANT_GENERAL_HUGETLB
- 	def_bool y
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config SYS_SUPPORTS_HUGETLBFS
- 	depends on MMU
- 	def_bool y
-diff --git a/arch/riscv/include/asm/pgtable.h b/arch/riscv/include/asm/pgtable.h
-index 183f1f4b2ae6..41a72861987c 100644
---- a/arch/riscv/include/asm/pgtable.h
-+++ b/arch/riscv/include/asm/pgtable.h
-@@ -461,8 +461,6 @@ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
- #define VMALLOC_START		0
- #define VMALLOC_END		TASK_SIZE
- 
--static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
--
- #endif /* !CONFIG_MMU */
- 
- #define kern_addr_valid(addr)   (1) /* FIXME */
-diff --git a/arch/riscv/mm/pageattr.c b/arch/riscv/mm/pageattr.c
-index 19fecb362d81..321b09d2e2ea 100644
---- a/arch/riscv/mm/pageattr.c
-+++ b/arch/riscv/mm/pageattr.c
-@@ -184,6 +184,7 @@ int set_direct_map_default_noflush(struct page *page)
- 	return ret;
- }
- 
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (!debug_pagealloc_enabled())
-@@ -196,3 +197,4 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
- 		__set_memory((unsigned long)page_address(page), numpages,
- 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
- }
-+#endif
-diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
-index 34371539a9b9..0a42d457bff4 100644
---- a/arch/s390/Kconfig
-+++ b/arch/s390/Kconfig
-@@ -35,9 +35,6 @@ config GENERIC_LOCKBREAK
- config PGSTE
- 	def_bool y if KVM
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config AUDIT_ARCH
- 	def_bool y
- 
-@@ -106,6 +103,7 @@ config S390
- 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_NUMA_BALANCING
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_CMPXCHG_LOCKREF
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index a6ca135442f9..2c729b8d097a 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -88,6 +88,7 @@ config SPARC64
- 	select HAVE_C_RECORDMCOUNT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select HAVE_NMI
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
-@@ -148,9 +149,6 @@ config GENERIC_ISA_DMA
- 	bool
- 	default y if SPARC32
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y if SPARC64
--
- config PGTABLE_LEVELS
- 	default 4 if 64BIT
- 	default 3
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index f6946b81f74a..0db3fb1da70c 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -91,6 +91,7 @@ config X86
- 	select ARCH_STACKWALK
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_USE_BUILTIN_BSWAP
- 	select ARCH_USE_QUEUED_RWLOCKS
-@@ -329,9 +330,6 @@ config ZONE_DMA32
- config AUDIT_ARCH
- 	def_bool y if X86_64
- 
--config ARCH_SUPPORTS_DEBUG_PAGEALLOC
--	def_bool y
--
- config KASAN_SHADOW_OFFSET
- 	hex
- 	depends on KASAN
-diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
-index 40baa90e74f4..7f248fc45317 100644
---- a/arch/x86/mm/pat/set_memory.c
-+++ b/arch/x86/mm/pat/set_memory.c
-@@ -2194,6 +2194,7 @@ int set_direct_map_default_noflush(struct page *page)
- 	return __set_pages_p(page, 1);
- }
- 
-+#ifdef CONFIG_DEBUG_PAGEALLOC
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (PageHighMem(page))
-@@ -2225,6 +2226,7 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
- 
- 	arch_flush_lazy_mmu_mode();
- }
-+#endif /* CONFIG_DEBUG_PAGEALLOC */
- 
- #ifdef CONFIG_HIBERNATION
- bool kernel_page_present(struct page *page)
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 14e397f3752c..ab0ef6bd351d 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2924,7 +2924,11 @@ static inline bool debug_pagealloc_enabled_static(void)
- 	return static_branch_unlikely(&_debug_pagealloc_enabled);
- }
- 
--#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
-+#ifdef CONFIG_DEBUG_PAGEALLOC
-+/*
-+ * To support DEBUG_PAGEALLOC architecture must ensure that
-+ * __kernel_map_pages() never fails
-+ */
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
- 
- static inline void debug_pagealloc_map_pages(struct page *page,
-@@ -2937,13 +2941,13 @@ static inline void debug_pagealloc_map_pages(struct page *page,
- #ifdef CONFIG_HIBERNATION
- extern bool kernel_page_present(struct page *page);
- #endif	/* CONFIG_HIBERNATION */
--#else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
-+#else	/* CONFIG_DEBUG_PAGEALLOC */
- static inline void debug_pagealloc_map_pages(struct page *page,
- 					     int numpages, int enable) {}
- #ifdef CONFIG_HIBERNATION
- static inline bool kernel_page_present(struct page *page) { return true; }
- #endif	/* CONFIG_HIBERNATION */
--#endif	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
-+#endif	/* CONFIG_DEBUG_PAGEALLOC */
- 
- #ifdef __HAVE_ARCH_GATE_AREA
- extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
+This set straightens this out by restoring dependency of
+__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
+accordingly. 
+
+Since currently the only user of __kernel_map_pages() outside
+DEBUG_PAGEALLOC, it is updated to make direct map accesses there more
+explicit.
+
+[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
+
+v2 changes:
+* Rephrase patch 2 changelog to better describe the change intentions and
+implications
+* Move removal of kernel_map_pages() from patch 1 to patch 2, per David
+
+v1:
+https://lore.kernel.org/lkml/20201025101555.3057-1-rppt@kernel.org
+
+Mike Rapoport (4):
+  mm: introduce debug_pagealloc_map_pages() helper
+  PM: hibernate: make direct map manipulations more explicit
+  arch, mm: restore dependency of __kernel_map_pages() of DEBUG_PAGEALLOC
+  arch, mm: make kernel_page_present() always available
+
+ arch/Kconfig                        |  3 +++
+ arch/arm64/Kconfig                  |  4 +---
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/arm64/mm/pageattr.c            |  6 +++--
+ arch/powerpc/Kconfig                |  5 +----
+ arch/riscv/Kconfig                  |  4 +---
+ arch/riscv/include/asm/pgtable.h    |  2 --
+ arch/riscv/include/asm/set_memory.h |  1 +
+ arch/riscv/mm/pageattr.c            | 31 +++++++++++++++++++++++++
+ arch/s390/Kconfig                   |  4 +---
+ arch/sparc/Kconfig                  |  4 +---
+ arch/x86/Kconfig                    |  4 +---
+ arch/x86/include/asm/set_memory.h   |  1 +
+ arch/x86/mm/pat/set_memory.c        |  4 ++--
+ include/linux/mm.h                  | 35 +++++++++++++----------------
+ include/linux/set_memory.h          |  5 +++++
+ kernel/power/snapshot.c             | 30 +++++++++++++++++++++++--
+ mm/memory_hotplug.c                 |  3 +--
+ mm/page_alloc.c                     |  6 ++---
+ mm/slab.c                           |  8 +++----
+ 20 files changed, 103 insertions(+), 58 deletions(-)
+
 -- 
 2.28.0
