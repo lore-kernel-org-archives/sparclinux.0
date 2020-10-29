@@ -1,54 +1,122 @@
-From: Arnd Bergmann <arnd@kernel.org>
-Date: Sat, 31 Oct 2020 21:33:33 +0000
-Subject: Re: [patch V2 00/18] mm/highmem: Preemptible variant of kmap_atomic & friends
-Message-Id: <CAK8P3a3uY0ASRGcPi-OZdRyL_xLY81nJfu+O6z-Ovxu9YCR4dQ@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Thu, 29 Oct 2020 16:19:00 +0000
+Subject: [PATCH v2 2/4] PM: hibernate: make direct map manipulations more explicit
+Message-Id: <20201029161902.19272-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201029221806.189523375@linutronix.de> <CAHk-=wiFxxGapdOyZHE-7LbFPk+jdfoqdeeJg0zWNQ86WvJGXg@mail.gmail.com>
- <87pn50ob0s.fsf@nanos.tec.linutronix.de> <87blgknjcw.fsf@nanos.tec.linutronix.de>
- <CAHk-=whsJv0bwWRVZHsLoSe48ykAea6T7Oi=G+r8ckLrZ0YUpg@mail.gmail.com>
- <87sg9vl59i.fsf@nanos.tec.linutronix.de> <CAHk-=wjjO9BtTUAsLraqZqdzaPGJ-qvubZfwUsmRUX896eHcGw@mail.gmail.com>
- <CAK8P3a3FyKTHDSAPCyP8e7UA0LN3OvAatNK_vQ3tnBsdbou4sA@mail.gmail.com> <20201031160539.Horde.n5yNbG9LoUSWqtuPQW_h3w1@messagerie.c-s.fr>
-In-Reply-To: <20201031160539.Horde.n5yNbG9LoUSWqtuPQW_h3w1@messagerie.c-s.fr>
+References: <20201029161902.19272-1-rppt@kernel.org>
+In-Reply-To: <20201029161902.19272-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: "David S. Miller" <davem@davemloft.net>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Paul Mackerras <paulus@samba.org>, Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>, LKML <linux-kernel@vger.kernel.org>, Vineet Gupta <vgupta@synopsys.com>, Max Filippov <jcmvbkbc@gmail.com>, Nick Hu <nickhu@andestech.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Michal Simek <monstr@monstr.eu>, Chris Zankel <chris@zankel.net>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Greentime Hu <green.hu@gmail.com>, Steven Rostedt <rostedt@goodmis.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Paul McKenney <paulmck@kernel.org>, Ard Biesheuvel <ardb@kernel.org>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, Mel Gorman <mgorman@suse.de>, David Airlie <airlied@linux.ie>, Christoph Hellwig <hch@lst.de>, linux-csky@vger.kernel.org, Russell King <linux@armlinux.org.uk>, the arch/x86 maintainers <x86@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Vincent Guittot <vincent.guittot@linaro.org>, linux-arch <linux-arch@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Vincent Chen <deanbo422@gmail.com>, linux-sparc <sparclinux@vger.kernel.org>, Matthew Wilcox <willy@infradead.org>, Guo Ren <guoren@kernel.org>, Linux-MM <linux-mm@kvack.org>, Ben Segall <bsegall@google.com>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Peter Zijlstra <peterz@infradead.org>, linux-xtensa@linux-xtensa.org, Juri Lelli <juri.lelli@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-On Sat, Oct 31, 2020 at 4:04 PM Christophe Leroy
-<christophe.leroy@csgroup.eu> wrote:
-> > There are also some users on 10+ year old 32-bit netbooks or
-> > business laptops, both x86 and Apple G4.
-> > The longest-lived 32-bit embedded systems with large memory
-> > (other than Arm) are probably NXP QorIQ P20xx/P40xx used in
-> > military VME bus systems, and low-end embedded systems based
-> > on Vortex86.
-> > I'm less worried about all of these because upstream kernel
-> > support for ppc32 and x86-32 is already bitrotting and they will
-> > likely get stuck on the last working kernel before the
-> > TI/Renesas/NXP Arm systems do.
-> >
->
-> Upstream kernel support for ppc32 is bitrotting, seriously ? What do
-> you mean exactly ?
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-I was thinking more of the platform support: out of the twelve
-32-bit platforms in arch/powerpc/platforms/, your 8xx is the only
-one listed as 'maintained' or 'supported' in the maintainers list,
-and that seems to accurately describe the current state.
+When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
+not present in the direct map and has to be explicitly mapped before it
+could be copied.
 
-Freescale seems to have practically stopped contributing to any of
-their 32-bit platforms in 2016 after the NXP acquisition and no longer
-employing either of the maintainers. Similarly, Ben seems to have
-stopped working on powermac in 2016, which was ten years after
-the last 32-bit hardware shipped for that platform.
+On arm64 it is possible that a page would be removed from the direct map
+using set_direct_map_invalid_noflush() but __kernel_map_pages() will refuse
+to map this page back if DEBUG_PAGEALLOC is disabled.
 
-> ppc32 is actively supported, with recent addition of support of
-> hugepages, kasan, uaccess protection, VMAP stack, etc ...
+Introduce hibernate_map_page() that will explicitly use
+set_direct_map_{default,invalid}_noflush() for ARCH_HAS_SET_DIRECT_MAP case
+and debug_pagealloc_map_pages() for DEBUG_PAGEALLOC case.
 
-That is good to hear, I didn't know about these additions.
-What platforms are people using to develop these? Is this
-mainly your 8xx work, or is there ongoing development for
-platforms that need highmem?
+The remapping of the pages in safe_copy_page() presumes that it only
+changes protection bits in an existing PTE and so it is safe to ignore
+return value of set_direct_map_{default,invalid}_noflush().
 
-         Arnd
+Still, add a WARN_ON() so that future changes in set_memory APIs will not
+silently break hibernation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+---
+ include/linux/mm.h      | 12 ------------
+ kernel/power/snapshot.c | 30 ++++++++++++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 14 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 1fc0609056dc..14e397f3752c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2927,16 +2927,6 @@ static inline bool debug_pagealloc_enabled_static(void)
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+-/*
+- * When called in DEBUG_PAGEALLOC context, the call should most likely be
+- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
+- */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
+-{
+-	__kernel_map_pages(page, numpages, enable);
+-}
+-
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable)
+ {
+@@ -2948,8 +2938,6 @@ static inline void debug_pagealloc_map_pages(struct page *page,
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 46b1804c1ddf..054c8cce4236 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,6 +76,32 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
++static inline void hibernate_map_page(struct page *page, int enable)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		unsigned long addr = (unsigned long)page_address(page);
++		int ret;
++
++		/*
++		 * This should not fail because remapping a page here means
++		 * that we only update protection bits in an existing PTE.
++		 * It is still worth to have WARN_ON() here if something
++		 * changes and this will no longer be the case.
++		 */
++		if (enable)
++			ret = set_direct_map_default_noflush(page);
++		else
++			ret = set_direct_map_invalid_noflush(page);
++
++		if (WARN_ON(ret))
++			return;
++
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	} else {
++		debug_pagealloc_map_pages(page, 1, enable);
++	}
++}
++
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+@@ -1355,9 +1381,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
+ 	if (kernel_page_present(s_page)) {
+ 		do_copy_page(dst, page_address(s_page));
+ 	} else {
+-		kernel_map_pages(s_page, 1, 1);
++		hibernate_map_page(s_page, 1);
+ 		do_copy_page(dst, page_address(s_page));
+-		kernel_map_pages(s_page, 1, 0);
++		hibernate_map_page(s_page, 0);
+ 	}
+ }
+ 
+-- 
+2.28.0
