@@ -1,116 +1,181 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 29 Oct 2020 22:18:11 +0000
-Subject: [patch V2 05/18] arc/mm/highmem: Use generic kmap atomic implementation
-Message-Id: <20201029222651.114375025@linutronix.de>
+Date: Thu, 29 Oct 2020 22:18:07 +0000
+Subject: [patch V2 01/18] sched: Make migrate_disable/enable() independent of RT
+Message-Id: <20201029222650.648971542@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
+Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
 
-Adopt the map ordering to match the other architectures and the generic
-code.
+Now that the scheduler can deal with migrate disable properly, there is no
+real compelling reason to make it only available for RT.
+
+There are quite some code pathes which needlessly disable preemption in
+order to prevent migration and some constructs like kmap_atomic() enforce
+it implicitly.
+
+Making it available independent of RT allows to provide a preemptible
+variant of kmap_atomic() and makes the code more consistent in general.
+
+FIXME: Rework the comment in preempt.h
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: linux-snps-arc@lists.infradead.org
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>
+Cc: Vincent Guittot <vincent.guittot@linaro.org>
+Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ben Segall <bsegall@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
 ---
- arch/arc/Kconfig               |    1 
- arch/arc/include/asm/highmem.h |    8 ++++++-
- arch/arc/mm/highmem.c          |   44 -----------------------------------------
- 3 files changed, 9 insertions(+), 44 deletions(-)
+ include/linux/preempt.h |   38 +++-----------------------------------
+ include/linux/sched.h   |    2 +-
+ kernel/sched/core.c     |   12 ++----------
+ kernel/sched/sched.h    |    2 +-
+ lib/smp_processor_id.c  |    2 +-
+ 5 files changed, 8 insertions(+), 48 deletions(-)
 
---- a/arch/arc/Kconfig
-+++ b/arch/arc/Kconfig
-@@ -507,6 +507,7 @@ config LINUX_RAM_BASE
- config HIGHMEM
- 	bool "High Memory Support"
- 	select ARCH_DISCONTIGMEM_ENABLE
-+	select KMAP_LOCAL
- 	help
- 	  With ARC 2G:2G address split, only upper 2G is directly addressable by
- 	  kernel. Enable this to potentially allow access to rest of 2G and PAE
---- a/arch/arc/include/asm/highmem.h
-+++ b/arch/arc/include/asm/highmem.h
-@@ -15,7 +15,10 @@
- #define FIXMAP_BASE		(PAGE_OFFSET - FIXMAP_SIZE - PKMAP_SIZE)
- #define FIXMAP_SIZE		PGDIR_SIZE	/* only 1 PGD worth */
- #define KM_TYPE_NR		((FIXMAP_SIZE >> PAGE_SHIFT)/NR_CPUS)
--#define FIXMAP_ADDR(nr)		(FIXMAP_BASE + ((nr) << PAGE_SHIFT))
-+
-+#define FIX_KMAP_BEGIN		(0)
-+#define FIX_KMAP_END		((FIXMAP_SIZE >> PAGE_SHIFT) - 1)
-+#define FIXADDR_TOP		(FIXMAP_BASE + FIXMAP_SIZE - PAGE_SIZE)
+--- a/include/linux/preempt.h
++++ b/include/linux/preempt.h
+@@ -322,7 +322,7 @@ static inline void preempt_notifier_init
  
- /* start after fixmap area */
- #define PKMAP_BASE		(FIXMAP_BASE + FIXMAP_SIZE)
-@@ -29,6 +32,9 @@
+ #endif
  
- extern void kmap_init(void);
+-#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
++#ifdef CONFIG_SMP
  
-+#define arch_kmap_local_post_unmap(vaddr)			\
-+	local_flush_tlb_kernel_range(vaddr, vaddr + PAGE_SIZE)
-+
- static inline void flush_cache_kmaps(void)
- {
- 	flush_cache_all();
---- a/arch/arc/mm/highmem.c
-+++ b/arch/arc/mm/highmem.c
-@@ -47,48 +47,6 @@
-  */
+ /*
+  * Migrate-Disable and why it is undesired.
+@@ -382,43 +382,11 @@ static inline void preempt_notifier_init
+ extern void migrate_disable(void);
+ extern void migrate_enable(void);
  
- extern pte_t * pkmap_page_table;
--static pte_t * fixmap_page_table;
+-#elif defined(CONFIG_PREEMPT_RT)
++#else
+ 
+ static inline void migrate_disable(void) { }
+ static inline void migrate_enable(void) { }
+ 
+-#else /* !CONFIG_PREEMPT_RT */
 -
--void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
+-/**
+- * migrate_disable - Prevent migration of the current task
+- *
+- * Maps to preempt_disable() which also disables preemption. Use
+- * migrate_disable() to annotate that the intent is to prevent migration,
+- * but not necessarily preemption.
+- *
+- * Can be invoked nested like preempt_disable() and needs the corresponding
+- * number of migrate_enable() invocations.
+- */
+-static __always_inline void migrate_disable(void)
 -{
--	int idx, cpu_idx;
--	unsigned long vaddr;
--
--	cpu_idx = kmap_atomic_idx_push();
--	idx = cpu_idx + KM_TYPE_NR * smp_processor_id();
--	vaddr = FIXMAP_ADDR(idx);
--
--	set_pte_at(&init_mm, vaddr, fixmap_page_table + idx,
--		   mk_pte(page, prot));
--
--	return (void *)vaddr;
+-	preempt_disable();
 -}
--EXPORT_SYMBOL(kmap_atomic_high_prot);
 -
--void kunmap_atomic_high(void *kv)
+-/**
+- * migrate_enable - Allow migration of the current task
+- *
+- * Counterpart to migrate_disable().
+- *
+- * As migrate_disable() can be invoked nested, only the outermost invocation
+- * reenables migration.
+- *
+- * Currently mapped to preempt_enable().
+- */
+-static __always_inline void migrate_enable(void)
 -{
--	unsigned long kvaddr = (unsigned long)kv;
--
--	if (kvaddr >= FIXMAP_BASE && kvaddr < (FIXMAP_BASE + FIXMAP_SIZE)) {
--
--		/*
--		 * Because preemption is disabled, this vaddr can be associated
--		 * with the current allocated index.
--		 * But in case of multiple live kmap_atomic(), it still relies on
--		 * callers to unmap in right order.
--		 */
--		int cpu_idx = kmap_atomic_idx();
--		int idx = cpu_idx + KM_TYPE_NR * smp_processor_id();
--
--		WARN_ON(kvaddr != FIXMAP_ADDR(idx));
--
--		pte_clear(&init_mm, kvaddr, fixmap_page_table + idx);
--		local_flush_tlb_kernel_range(kvaddr, kvaddr + PAGE_SIZE);
--
--		kmap_atomic_idx_pop();
--	}
+-	preempt_enable();
 -}
--EXPORT_SYMBOL(kunmap_atomic_high);
+-
+-#endif /* CONFIG_SMP && CONFIG_PREEMPT_RT */
++#endif /* CONFIG_SMP */
  
- static noinline pte_t * __init alloc_kmap_pgtable(unsigned long kvaddr)
- {
-@@ -113,5 +71,5 @@ void __init kmap_init(void)
- 	pkmap_page_table = alloc_kmap_pgtable(PKMAP_BASE);
+ #endif /* __LINUX_PREEMPT_H */
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -715,7 +715,7 @@ struct task_struct {
+ 	const cpumask_t			*cpus_ptr;
+ 	cpumask_t			cpus_mask;
+ 	void				*migration_pending;
+-#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
++#ifdef CONFIG_SMP
+ 	unsigned short			migration_disabled;
+ #endif
+ 	unsigned short			migration_flags;
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1696,8 +1696,6 @@ void check_preempt_curr(struct rq *rq, s
  
- 	BUILD_BUG_ON(LAST_PKMAP > PTRS_PER_PTE);
--	fixmap_page_table = alloc_kmap_pgtable(FIXMAP_BASE);
-+	alloc_kmap_pgtable(FIXMAP_BASE);
+ #ifdef CONFIG_SMP
+ 
+-#ifdef CONFIG_PREEMPT_RT
+-
+ static void
+ __do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask, u32 flags);
+ 
+@@ -1772,8 +1770,6 @@ static inline bool rq_has_pinned_tasks(s
+ 	return rq->nr_pinned;
  }
+ 
+-#endif
+-
+ /*
+  * Per-CPU kthreads are allowed to run on !active && online CPUs, see
+  * __set_cpus_allowed_ptr() and select_fallback_rq().
+@@ -2841,7 +2837,7 @@ void sched_set_stop_task(int cpu, struct
+ 	}
+ }
+ 
+-#else
++#else /* CONFIG_SMP */
+ 
+ static inline int __set_cpus_allowed_ptr(struct task_struct *p,
+ 					 const struct cpumask *new_mask,
+@@ -2850,10 +2846,6 @@ static inline int __set_cpus_allowed_ptr
+ 	return set_cpus_allowed_ptr(p, new_mask);
+ }
+ 
+-#endif /* CONFIG_SMP */
+-
+-#if !defined(CONFIG_SMP) || !defined(CONFIG_PREEMPT_RT)
+-
+ static inline void migrate_disable_switch(struct rq *rq, struct task_struct *p) { }
+ 
+ static inline bool rq_has_pinned_tasks(struct rq *rq)
+@@ -2861,7 +2853,7 @@ static inline bool rq_has_pinned_tasks(s
+ 	return false;
+ }
+ 
+-#endif
++#endif /* !CONFIG_SMP */
+ 
+ static void
+ ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -1056,7 +1056,7 @@ struct rq {
+ 	struct cpuidle_state	*idle_state;
+ #endif
+ 
+-#if defined(CONFIG_PREEMPT_RT) && defined(CONFIG_SMP)
++#if CONFIG_SMP
+ 	unsigned int		nr_pinned;
+ #endif
+ 	unsigned int		push_busy;
+--- a/lib/smp_processor_id.c
++++ b/lib/smp_processor_id.c
+@@ -26,7 +26,7 @@ unsigned int check_preemption_disabled(c
+ 	if (current->nr_cpus_allowed = 1)
+ 		goto out;
+ 
+-#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
++#ifdef CONFIG_SMP
+ 	if (current->migration_disabled)
+ 		goto out;
+ #endif
