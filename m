@@ -1,154 +1,88 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Date: Thu, 29 Oct 2020 22:18:15 +0000
-Subject: [patch V2 09/18] mips/mm/highmem: Switch to generic kmap atomic
-Message-Id: <20201029222651.490984112@linutronix.de>
+Date: Thu, 29 Oct 2020 22:18:21 +0000
+Subject: [patch V2 15/18] io-mapping: Cleanup atomic iomap
+Message-Id: <20201029222652.084086429@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
+Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
 
-No reason having the same code in every architecture
+Switch the atomic iomap implementation over to kmap_local and stick the
+preempt/pagefault mechanics into the generic code similar to the
+kmap_atomic variants.
+
+Rename the x86 map function in preparation for a non-atomic variant.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: linux-mips@vger.kernel.org
+---
+V2: New patch to make review easier
+---
+ arch/x86/include/asm/iomap.h |    9 +--------
+ arch/x86/mm/iomap_32.c       |    6 ++----
+ include/linux/io-mapping.h   |    8 ++++++--
+ 3 files changed, 9 insertions(+), 14 deletions(-)
 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 8f328298f8cc..ed6b3de944a8 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -2654,6 +2654,7 @@ config MIPS_CRC_SUPPORT
- config HIGHMEM
- 	bool "High Memory Support"
- 	depends on 32BIT && CPU_SUPPORTS_HIGHMEM && SYS_SUPPORTS_HIGHMEM && !CPU_MIPS32_3_5_EVA
-+	select KMAP_LOCAL
- 
- config CPU_SUPPORTS_HIGHMEM
- 	bool
-diff --git a/arch/mips/include/asm/highmem.h b/arch/mips/include/asm/highmem.h
-index f1f788b57166..cb2e0fb8483b 100644
---- a/arch/mips/include/asm/highmem.h
-+++ b/arch/mips/include/asm/highmem.h
-@@ -48,11 +48,11 @@ extern pte_t *pkmap_page_table;
- 
- #define ARCH_HAS_KMAP_FLUSH_TLB
- extern void kmap_flush_tlb(unsigned long addr);
--extern void *kmap_atomic_pfn(unsigned long pfn);
- 
- #define flush_cache_kmaps()	BUG_ON(cpu_has_dc_aliases)
- 
--extern void kmap_init(void);
-+#define arch_kmap_local_post_map(vaddr, pteval)	local_flush_tlb_one(vaddr)
-+#define arch_kmap_local_post_unmap(vaddr)	local_flush_tlb_one(vaddr)
- 
- #endif /* __KERNEL__ */
- 
-diff --git a/arch/mips/mm/highmem.c b/arch/mips/mm/highmem.c
-index 5fec7f45d79a..57e2f08f00d0 100644
---- a/arch/mips/mm/highmem.c
-+++ b/arch/mips/mm/highmem.c
-@@ -8,8 +8,6 @@
- #include <asm/fixmap.h>
+--- a/arch/x86/include/asm/iomap.h
++++ b/arch/x86/include/asm/iomap.h
+@@ -13,14 +13,7 @@
+ #include <asm/cacheflush.h>
  #include <asm/tlbflush.h>
  
--static pte_t *kmap_pte;
+-void __iomem *iomap_atomic_pfn_prot(unsigned long pfn, pgprot_t prot);
 -
- unsigned long highstart_pfn, highend_pfn;
+-static inline void iounmap_atomic(void __iomem *vaddr)
+-{
+-	kunmap_local_indexed((void __force *)vaddr);
+-	pagefault_enable();
+-	preempt_enable();
+-}
++void __iomem *__iomap_local_pfn_prot(unsigned long pfn, pgprot_t prot);
  
- void kmap_flush_tlb(unsigned long addr)
-@@ -17,78 +15,3 @@ void kmap_flush_tlb(unsigned long addr)
- 	flush_tlb_one(addr);
+ int iomap_create_wc(resource_size_t base, unsigned long size, pgprot_t *prot);
+ 
+--- a/arch/x86/mm/iomap_32.c
++++ b/arch/x86/mm/iomap_32.c
+@@ -44,7 +44,7 @@ void iomap_free(resource_size_t base, un
  }
- EXPORT_SYMBOL(kmap_flush_tlb);
--
--void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
--{
--	unsigned long vaddr;
--	int idx, type;
--
--	type = kmap_atomic_idx_push();
--	idx = type + KM_TYPE_NR*smp_processor_id();
--	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--#ifdef CONFIG_DEBUG_HIGHMEM
--	BUG_ON(!pte_none(*(kmap_pte - idx)));
--#endif
--	set_pte(kmap_pte-idx, mk_pte(page, prot));
--	local_flush_tlb_one((unsigned long)vaddr);
--
--	return (void*) vaddr;
--}
--EXPORT_SYMBOL(kmap_atomic_high_prot);
--
--void kunmap_atomic_high(void *kvaddr)
--{
--	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
--	int type __maybe_unused;
--
--	if (vaddr < FIXADDR_START)
--		return;
--
--	type = kmap_atomic_idx();
--#ifdef CONFIG_DEBUG_HIGHMEM
--	{
--		int idx = type + KM_TYPE_NR * smp_processor_id();
--
--		BUG_ON(vaddr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
--
--		/*
--		 * force other mappings to Oops if they'll try to access
--		 * this pte without first remap it
--		 */
--		pte_clear(&init_mm, vaddr, kmap_pte-idx);
--		local_flush_tlb_one(vaddr);
--	}
--#endif
--	kmap_atomic_idx_pop();
--}
--EXPORT_SYMBOL(kunmap_atomic_high);
--
--/*
-- * This is the same as kmap_atomic() but can map memory that doesn't
-- * have a struct page associated with it.
-- */
--void *kmap_atomic_pfn(unsigned long pfn)
--{
--	unsigned long vaddr;
--	int idx, type;
--
+ EXPORT_SYMBOL_GPL(iomap_free);
+ 
+-void __iomem *iomap_atomic_pfn_prot(unsigned long pfn, pgprot_t prot)
++void __iomem *__iomap_local_pfn_prot(unsigned long pfn, pgprot_t prot)
+ {
+ 	/*
+ 	 * For non-PAT systems, translate non-WB request to UC- just in
+@@ -60,8 +60,6 @@ void __iomem *iomap_atomic_pfn_prot(unsi
+ 	/* Filter out unsupported __PAGE_KERNEL* bits: */
+ 	pgprot_val(prot) &= __default_kernel_pte_mask;
+ 
 -	preempt_disable();
 -	pagefault_disable();
--
--	type = kmap_atomic_idx_push();
--	idx = type + KM_TYPE_NR*smp_processor_id();
--	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
--	set_pte(kmap_pte-idx, pfn_pte(pfn, PAGE_KERNEL));
--	flush_tlb_one(vaddr);
--
--	return (void*) vaddr;
--}
--
--void __init kmap_init(void)
--{
--	unsigned long kmap_vstart;
--
--	/* cache the first kmap pte */
--	kmap_vstart = __fix_to_virt(FIX_KMAP_BEGIN);
--	kmap_pte = virt_to_kpte(kmap_vstart);
--}
-diff --git a/arch/mips/mm/init.c b/arch/mips/mm/init.c
-index 6c7bbfe35ba3..e5de8e9c2ede 100644
---- a/arch/mips/mm/init.c
-+++ b/arch/mips/mm/init.c
-@@ -402,9 +402,6 @@ void __init paging_init(void)
+ 	return (void __force __iomem *)__kmap_local_pfn_prot(pfn, prot);
+ }
+-EXPORT_SYMBOL_GPL(iomap_atomic_pfn_prot);
++EXPORT_SYMBOL_GPL(__iomap_local_pfn_prot);
+--- a/include/linux/io-mapping.h
++++ b/include/linux/io-mapping.h
+@@ -69,13 +69,17 @@ io_mapping_map_atomic_wc(struct io_mappi
  
- 	pagetable_init();
+ 	BUG_ON(offset >= mapping->size);
+ 	phys_addr = mapping->base + offset;
+-	return iomap_atomic_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
++	preempt_disable();
++	pagefault_disable();
++	return __iomap_local_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
+ }
  
--#ifdef CONFIG_HIGHMEM
--	kmap_init();
--#endif
- #ifdef CONFIG_ZONE_DMA
- 	max_zone_pfns[ZONE_DMA] = MAX_DMA_PFN;
- #endif
+ static inline void
+ io_mapping_unmap_atomic(void __iomem *vaddr)
+ {
+-	iounmap_atomic(vaddr);
++	kunmap_local_indexed((void __force *)vaddr);
++	pagefault_enable();
++	preempt_enable();
+ }
+ 
+ static inline void __iomem *
