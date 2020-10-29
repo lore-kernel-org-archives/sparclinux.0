@@ -1,107 +1,300 @@
-From: David Hildenbrand <david@redhat.com>
-Date: Mon, 26 Oct 2020 11:55:37 +0000
-Subject: Re: [PATCH 1/4] mm: introduce debug_pagealloc_map_pages() helper
-Message-Id: <67e342cd-5ac4-4ba5-77f7-946c9415534e@redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Thu, 29 Oct 2020 22:18:22 +0000
+Subject: [patch V2 16/18] sched: highmem: Store local kmaps in task struct
+Message-Id: <20201029222652.194349374@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201025101555.3057-1-rppt@kernel.org>
- <20201025101555.3057-2-rppt@kernel.org>
- <8720c067-7dc5-2b02-918b-e54dd642bfd6@redhat.com>
- <20201026115443.GF1154158@kernel.org>
-In-Reply-To: <20201026115443.GF1154158@kernel.org>
+References: <20201029221806.189523375@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: linux-arch@vger.kernel.org, Linus Torvalds <torvalds@linuxfoundation.org>, Peter Zijlstra <peterz@infradead.org>, Paul McKenney <paulmck@kernel.org>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel@ffwll.ch>, Ard Biesheuvel <ardb@kernel.org>, Herbert Xu <herbert@gondor.apana.org.au>, Christoph Hellwig <hch@lst.de>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Juri Lelli <juri.lelli@redhat.com>, Vincent Guittot <vincent.guittot@linaro.org>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Steven Rostedt <rostedt@goodmis.org>, Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>, Daniel Bristot de Oliveira <bristot@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, x86@kernel.org, Vineet Gupta <vgupta@synopsys.com>, linux-snps-arc@lists.infradead.org, Russell King <linux@armlinux.org.uk>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, linux-mips@vger.kernel.org, Nick Hu <nickhu@andestech.com>, Greentime Hu <green.hu@gmail.com>, Vincent Chen <deanbo422@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, linux-xtensa@linux-xtensa.org
 
-On 26.10.20 12:54, Mike Rapoport wrote:
-> On Mon, Oct 26, 2020 at 12:05:13PM +0100, David Hildenbrand wrote:
->> On 25.10.20 11:15, Mike Rapoport wrote:
->>> From: Mike Rapoport <rppt@linux.ibm.com>
->>>
->>> When CONFIG_DEBUG_PAGEALLOC is enabled, it unmaps pages from the
->>> kernel direct mapping after free_pages(). The pages than need to be
->>> mapped back before they could be used. Theese mapping operations use 
->>> __kernel_map_pages() guarded with with debug_pagealloc_enabled().
->>>
->>> The only place that calls __kernel_map_pages() without checking
->>> whether DEBUG_PAGEALLOC is enabled is the hibernation code that
->>> presumes availability of this function when ARCH_HAS_SET_DIRECT_MAP
->>> is set. Still, on arm64, __kernel_map_pages() will bail out when
->>> DEBUG_PAGEALLOC is not enabled but set_direct_map_invalid_noflush()
->>> may render some pages not present in the direct map and hibernation
->>> code won't be able to save such pages.
->>>
->>> To make page allocation debugging and hibernation interaction more
->>> robust, the dependency on DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP
->>> has to be made more explicit.
->>>
->>> Start with combining the guard condition and the call to 
->>> __kernel_map_pages() into a single debug_pagealloc_map_pages()
->>> function to emphasize that __kernel_map_pages() should not be called
->>> without DEBUG_PAGEALLOC and use this new function to map/unmap pages
->>> when page allocation debug is enabled.
->>>
->>> As the only remaining user of kernel_map_pages() is the hibernation
->>> code, mode that function into kernel/power/snapshot.c closer to a
->>> caller.
->>
->> s/mode/move/
->>
->>>
->>> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com> --- 
->>> include/linux/mm.h      | 16 +++++++--------- kernel/power/snapshot.c
->>> | 11 +++++++++++ mm/memory_hotplug.c     |  3 +-- mm/page_alloc.c
->>> |  6 ++---- mm/slab.c               |  8 +++----- 5 files changed, 24
->>> insertions(+), 20 deletions(-)
->>>
->>> diff --git a/include/linux/mm.h b/include/linux/mm.h index
->>> ef360fe70aaf..14e397f3752c 100644 --- a/include/linux/mm.h +++
->>> b/include/linux/mm.h @@ -2927,21 +2927,19 @@ static inline bool
->>> debug_pagealloc_enabled_static(void) #if
->>> defined(CONFIG_DEBUG_PAGEALLOC) ||
->>> defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP) extern void
->>> __kernel_map_pages(struct page *page, int numpages, int enable);
->>>
->>> -/* - * When called in DEBUG_PAGEALLOC context, the call should most
->>> likely be - * guarded by debug_pagealloc_enabled() or
->>> debug_pagealloc_enabled_static() - */ -static inline void 
->>> -kernel_map_pages(struct page *page, int numpages, int enable) 
->>> +static inline void debug_pagealloc_map_pages(struct page *page, +
->>> int numpages, int enable) { -	__kernel_map_pages(page, numpages,
->>> enable); +	if (debug_pagealloc_enabled_static()) +
->>> __kernel_map_pages(page, numpages, enable); } + #ifdef
->>> CONFIG_HIBERNATION extern bool kernel_page_present(struct page
->>> *page); #endif	/* CONFIG_HIBERNATION */ #else	/*
->>> CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */ -static
->>> inline void -kernel_map_pages(struct page *page, int numpages, int
->>> enable) {} +static inline void debug_pagealloc_map_pages(struct page
->>> *page, +					     int numpages, int enable) {} #ifdef
->>> CONFIG_HIBERNATION static inline bool kernel_page_present(struct page
->>> *page) { return true; } #endif	/* CONFIG_HIBERNATION */ diff --git
->>> a/kernel/power/snapshot.c b/kernel/power/snapshot.c index
->>> 46b1804c1ddf..fa499466f645 100644 --- a/kernel/power/snapshot.c +++
->>> b/kernel/power/snapshot.c @@ -76,6 +76,17 @@ static inline void
->>> hibernate_restore_protect_page(void *page_address) {} static inline
->>> void hibernate_restore_unprotect_page(void *page_address) {} #endif
->>> /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
->>>
->>> +#if defined(CONFIG_DEBUG_PAGEALLOC) ||
->>> defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP) +static inline void 
->>> +kernel_map_pages(struct page *page, int numpages, int enable) +{ +
->>> __kernel_map_pages(page, numpages, enable); +} +#else +static inline
->>> void +kernel_map_pages(struct page *page, int numpages, int enable)
->>> {} +#endif +
->>
->> That change should go into a separate patch.
->  
-> Hmm, I beleive you refer to moving kernel_map_pages() to snapshot.c,
-> right?
+Instead of storing the map per CPU provide and use per task storage. That
+prepares for local kmaps which are preemptible.
 
-Sorry, yes!
+The context switch code is preparatory and not yet in use because
+kmap_atomic() runs with preemption disabled. Will be made usable in the
+next step.
 
+The context switch logic is safe even when an interrupt happens after
+clearing or before restoring the kmaps. The kmap index in task struct is
+not modified so any nesting kmap in an interrupt will use unused indices
+and on return the counter is the same as before.
 
--- 
-Thanks,
+Also add an assert into the return to user space code. Going back to user
+space with an active kmap local is a nono.
 
-David / dhildenb
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/highmem.h |   10 +++++
+ include/linux/sched.h   |    9 ++++
+ kernel/entry/common.c   |    2 +
+ kernel/fork.c           |    1 
+ kernel/sched/core.c     |   18 +++++++++
+ mm/highmem.c            |   96 +++++++++++++++++++++++++++++++++++++++++-------
+ 6 files changed, 123 insertions(+), 13 deletions(-)
+
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -38,6 +38,16 @@ static inline void invalidate_kernel_vma
+ void *__kmap_local_pfn_prot(unsigned long pfn, pgprot_t prot);
+ void *__kmap_local_page_prot(struct page *page, pgprot_t prot);
+ void kunmap_local_indexed(void *vaddr);
++void kmap_local_fork(struct task_struct *tsk);
++void __kmap_local_sched_out(void);
++void __kmap_local_sched_in(void);
++static inline void kmap_assert_nomap(void)
++{
++	DEBUG_LOCKS_WARN_ON(current->kmap_ctrl.idx);
++}
++#else
++static inline void kmap_local_fork(struct task_struct *tsk) { }
++static inline void kmap_assert_nomap(void) { }
+ #endif
+ 
+ #ifdef CONFIG_HIGHMEM
+--- a/include/linux/sched.h
++++ b/include/linux/sched.h
+@@ -34,6 +34,7 @@
+ #include <linux/rseq.h>
+ #include <linux/seqlock.h>
+ #include <linux/kcsan.h>
++#include <asm/kmap_types.h>
+ 
+ /* task_struct member predeclarations (sorted alphabetically): */
+ struct audit_context;
+@@ -629,6 +630,13 @@ struct wake_q_node {
+ 	struct wake_q_node *next;
+ };
+ 
++struct kmap_ctrl {
++#ifdef CONFIG_KMAP_LOCAL
++	int				idx;
++	pte_t				pteval[KM_TYPE_NR];
++#endif
++};
++
+ struct task_struct {
+ #ifdef CONFIG_THREAD_INFO_IN_TASK
+ 	/*
+@@ -1294,6 +1302,7 @@ struct task_struct {
+ 	unsigned int			sequential_io;
+ 	unsigned int			sequential_io_avg;
+ #endif
++	struct kmap_ctrl		kmap_ctrl;
+ #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
+ 	unsigned long			task_state_change;
+ #endif
+--- a/kernel/entry/common.c
++++ b/kernel/entry/common.c
+@@ -2,6 +2,7 @@
+ 
+ #include <linux/context_tracking.h>
+ #include <linux/entry-common.h>
++#include <linux/highmem.h>
+ #include <linux/livepatch.h>
+ #include <linux/audit.h>
+ 
+@@ -194,6 +195,7 @@ static void exit_to_user_mode_prepare(st
+ 
+ 	/* Ensure that the address limit is intact and no locks are held */
+ 	addr_limit_user_check();
++	kmap_assert_nomap();
+ 	lockdep_assert_irqs_disabled();
+ 	lockdep_sys_exit();
+ }
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -930,6 +930,7 @@ static struct task_struct *dup_task_stru
+ 	account_kernel_stack(tsk, 1);
+ 
+ 	kcov_task_init(tsk);
++	kmap_local_fork(tsk);
+ 
+ #ifdef CONFIG_FAULT_INJECTION
+ 	tsk->fail_nth = 0;
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -4053,6 +4053,22 @@ static inline void finish_lock_switch(st
+ # define finish_arch_post_lock_switch()	do { } while (0)
+ #endif
+ 
++static inline void kmap_local_sched_out(void)
++{
++#ifdef CONFIG_KMAP_LOCAL
++	if (unlikely(current->kmap_ctrl.idx))
++		__kmap_local_sched_out();
++#endif
++}
++
++static inline void kmap_local_sched_in(void)
++{
++#ifdef CONFIG_KMAP_LOCAL
++	if (unlikely(current->kmap_ctrl.idx))
++		__kmap_local_sched_in();
++#endif
++}
++
+ /**
+  * prepare_task_switch - prepare to switch tasks
+  * @rq: the runqueue preparing to switch
+@@ -4075,6 +4091,7 @@ prepare_task_switch(struct rq *rq, struc
+ 	perf_event_task_sched_out(prev, next);
+ 	rseq_preempt(prev);
+ 	fire_sched_out_preempt_notifiers(prev, next);
++	kmap_local_sched_out();
+ 	prepare_task(next);
+ 	prepare_arch_switch(next);
+ }
+@@ -4141,6 +4158,7 @@ static struct rq *finish_task_switch(str
+ 	finish_lock_switch(rq);
+ 	finish_arch_post_lock_switch();
+ 	kcov_finish_switch(current);
++	kmap_local_sched_in();
+ 
+ 	fire_sched_in_preempt_notifiers(current);
+ 	/*
+--- a/mm/highmem.c
++++ b/mm/highmem.c
+@@ -367,27 +367,24 @@ EXPORT_SYMBOL(kunmap_high);
+ 
+ #ifdef CONFIG_KMAP_LOCAL
+ 
+-static DEFINE_PER_CPU(int, __kmap_atomic_idx);
+-
+-static inline int kmap_atomic_idx_push(void)
++static inline int kmap_local_idx_push(void)
+ {
+-	int idx = __this_cpu_inc_return(__kmap_atomic_idx) - 1;
++	int idx = current->kmap_ctrl.idx++;
+ 
+ 	WARN_ON_ONCE(in_irq() && !irqs_disabled());
+ 	BUG_ON(idx >= KM_TYPE_NR);
+ 	return idx;
+ }
+ 
+-static inline int kmap_atomic_idx(void)
++static inline int kmap_local_idx(void)
+ {
+-	return __this_cpu_read(__kmap_atomic_idx) - 1;
++	return current->kmap_ctrl.idx - 1;
+ }
+ 
+-static inline void kmap_atomic_idx_pop(void)
++static inline void kmap_local_idx_pop(void)
+ {
+-	int idx = __this_cpu_dec_return(__kmap_atomic_idx);
+-
+-	BUG_ON(idx < 0);
++	current->kmap_ctrl.idx--;
++	BUG_ON(current->kmap_ctrl.idx < 0);
+ }
+ 
+ #ifndef arch_kmap_local_post_map
+@@ -447,12 +444,13 @@ void *__kmap_local_pfn_prot(unsigned lon
+ 	int idx;
+ 
+ 	preempt_disable();
+-	idx = arch_kmap_local_map_idx(kmap_atomic_idx_push(), pfn);
++	idx = arch_kmap_local_map_idx(kmap_local_idx_push(), pfn);
+ 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
+ 	BUG_ON(!pte_none(*(kmap_pte - idx)));
+ 	pteval = pfn_pte(pfn, prot);
+ 	set_pte_at(&init_mm, vaddr, kmap_pte - idx, pteval);
+ 	arch_kmap_local_post_map(vaddr, pteval);
++	current->kmap_ctrl.pteval[kmap_local_idx()] = pteval;
+ 	preempt_enable();
+ 
+ 	return (void *)vaddr;
+@@ -491,16 +489,88 @@ void kunmap_local_indexed(void *vaddr)
+ 	}
+ 
+ 	preempt_disable();
+-	idx = arch_kmap_local_unmap_idx(kmap_atomic_idx(), addr);
++	idx = arch_kmap_local_unmap_idx(kmap_local_idx(), addr);
+ 	WARN_ON_ONCE(addr != __fix_to_virt(FIX_KMAP_BEGIN + idx));
+ 
+ 	arch_kmap_local_pre_unmap(addr);
+ 	pte_clear(&init_mm, addr, kmap_pte - idx);
+ 	arch_kmap_local_post_unmap(addr);
+-	kmap_atomic_idx_pop();
++	current->kmap_ctrl.pteval[kmap_local_idx()] = __pte(0);
++	kmap_local_idx_pop();
+ 	preempt_enable();
+ }
+ EXPORT_SYMBOL(kunmap_local_indexed);
++
++/*
++ * Invoked before switch_to(). This is safe even when during or after
++ * clearing the maps an interrupt which needs a kmap_local happens because
++ * the task::kmap_ctrl.idx is not modified by the unmapping code so a
++ * nested kmap_local will use the next unused index and restore the index
++ * on unmap. The already cleared kmaps of the outgoing task are irrelevant
++ * because the interrupt context does not know about them. The same applies
++ * when scheduling back in for an interrupt which happens before the
++ * restore is complete.
++ */
++void __kmap_local_sched_out(void)
++{
++	struct task_struct *tsk = current;
++	pte_t *kmap_pte = kmap_get_pte();
++	int i;
++
++	/* Clear kmaps */
++	for (i = 0; i < tsk->kmap_ctrl.idx; i++) {
++		pte_t pteval = tsk->kmap_ctrl.pteval[i];
++		unsigned long addr;
++		int idx;
++
++		if (WARN_ON_ONCE(pte_none(pteval)))
++			continue;
++
++		/*
++		 * This is a horrible hack for XTENSA to calculate the
++		 * coloured PTE index. Uses the PFN encoded into the pteval
++		 * and the map index calculation because the actual mapped
++		 * virtual address is not stored in task::kmap_ctrl.
++		 * For any sane architecture this is optimized out.
++		 */
++		idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
++
++		addr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
++		arch_kmap_local_pre_unmap(addr);
++		pte_clear(&init_mm, addr, kmap_pte - idx);
++		arch_kmap_local_post_unmap(addr);
++	}
++}
++
++void __kmap_local_sched_in(void)
++{
++	struct task_struct *tsk = current;
++	pte_t *kmap_pte = kmap_get_pte();
++	int i;
++
++	/* Restore kmaps */
++	for (i = 0; i < tsk->kmap_ctrl.idx; i++) {
++		pte_t pteval = tsk->kmap_ctrl.pteval[i];
++		unsigned long addr;
++		int idx;
++
++		if (WARN_ON_ONCE(pte_none(pteval)))
++			continue;
++
++		/* See comment in __kmap_local_sched_out() */
++		idx = arch_kmap_local_map_idx(i, pte_pfn(pteval));
++		addr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
++		set_pte_at(&init_mm, addr, kmap_pte - idx, pteval);
++		arch_kmap_local_post_map(addr, pteval);
++	}
++}
++
++void kmap_local_fork(struct task_struct *tsk)
++{
++	if (WARN_ON_ONCE(tsk->kmap_ctrl.idx))
++		memset(&tsk->kmap_ctrl, 0, sizeof(tsk->kmap_ctrl));
++}
++
+ #endif
+ 
+ #if defined(HASHED_PAGE_VIRTUAL)
