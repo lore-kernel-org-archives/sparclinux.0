@@ -1,81 +1,119 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 26 Nov 2020 10:46:51 +0000
-Subject: Re: [PATCH 0/5] perf/mm: Fix PERF_SAMPLE_*_PAGE_SIZE
-Message-Id: <20201126104651.GG3092@hirez.programming.kicks-ass.net>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 01 Nov 2020 17:08:13 +0000
+Subject: [PATCH v3 2/4] PM: hibernate: make direct map manipulations more explicit
+Message-Id: <20201101170815.9795-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201113111901.743573013@infradead.org>
- <16ad8cab-08e2-27a7-6803-baadc6b8721b@csgroup.eu>
- <2a32b00b-2214-3283-58e0-9cb0ff4bd728@csgroup.eu>
- <20201120122004.GG3021@hirez.programming.kicks-ass.net>
-In-Reply-To: <20201120122004.GG3021@hirez.programming.kicks-ass.net>
+References: <20201101170815.9795-1-rppt@kernel.org>
+In-Reply-To: <20201101170815.9795-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-On Fri, Nov 20, 2020 at 01:20:04PM +0100, Peter Zijlstra wrote:
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-> > > I can help with powerpc 8xx. It is a 32 bits powerpc. The PGD has 1024
-> > > entries, that means each entry maps 4M.
-> > > 
-> > > Page sizes are 4k, 16k, 512k and 8M.
-> > > 
-> > > For the 8M pages we use hugepd with a single entry. The two related PGD
-> > > entries point to the same hugepd.
-> > > 
-> > > For the other sizes, they are in standard page tables. 16k pages appear
-> > > 4 times in the page table. 512k entries appear 128 times in the page
-> > > table.
-> > > 
-> > > When the PGD entry has _PMD_PAGE_8M bits, the PMD entry points to a
-> > > hugepd with holds the single 8M entry.
-> > > 
-> > > In the PTE, we have two bits: _PAGE_SPS and _PAGE_HUGE
-> > > 
-> > > _PAGE_HUGE means it is a 512k page
-> > > _PAGE_SPS means it is not a 4k page
-> > > 
-> > > The kernel can by build either with 4k pages as standard page size, or
-> > > 16k pages. It doesn't change the page table layout though.
-> > > 
-> > > Hope this is clear. Now I don't really know to wire that up to your series.
+When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
+not present in the direct map and has to be explicitly mapped before it
+could be copied.
 
-Does the below accurately reflect things?
+Introduce hibernate_map_page() that will explicitly use
+set_direct_map_{default,invalid}_noflush() for ARCH_HAS_SET_DIRECT_MAP case
+and debug_pagealloc_map_pages() for DEBUG_PAGEALLOC case.
 
-Let me go find a suitable cross-compiler ..
+The remapping of the pages in safe_copy_page() presumes that it only
+changes protection bits in an existing PTE and so it is safe to ignore
+return value of set_direct_map_{default,invalid}_noflush().
 
-diff --git a/arch/powerpc/include/asm/nohash/32/pte-8xx.h b/arch/powerpc/include/asm/nohash/32/pte-8xx.h
-index 1581204467e1..fcc48d590d88 100644
---- a/arch/powerpc/include/asm/nohash/32/pte-8xx.h
-+++ b/arch/powerpc/include/asm/nohash/32/pte-8xx.h
-@@ -135,6 +135,29 @@ static inline pte_t pte_mkhuge(pte_t pte)
+Still, add a WARN_ON() so that future changes in set_memory APIs will not
+silently break hibernation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ include/linux/mm.h      | 12 ------------
+ kernel/power/snapshot.c | 30 ++++++++++++++++++++++++++++--
+ 2 files changed, 28 insertions(+), 14 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 1fc0609056dc..14e397f3752c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2927,16 +2927,6 @@ static inline bool debug_pagealloc_enabled_static(void)
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+-/*
+- * When called in DEBUG_PAGEALLOC context, the call should most likely be
+- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
+- */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
+-{
+-	__kernel_map_pages(page, numpages, enable);
+-}
+-
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable)
+ {
+@@ -2948,8 +2938,6 @@ static inline void debug_pagealloc_map_pages(struct page *page,
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 46b1804c1ddf..054c8cce4236 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,6 +76,32 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
++static inline void hibernate_map_page(struct page *page, int enable)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		unsigned long addr = (unsigned long)page_address(page);
++		int ret;
++
++		/*
++		 * This should not fail because remapping a page here means
++		 * that we only update protection bits in an existing PTE.
++		 * It is still worth to have WARN_ON() here if something
++		 * changes and this will no longer be the case.
++		 */
++		if (enable)
++			ret = set_direct_map_default_noflush(page);
++		else
++			ret = set_direct_map_invalid_noflush(page);
++
++		if (WARN_ON(ret))
++			return;
++
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	} else {
++		debug_pagealloc_map_pages(page, 1, enable);
++	}
++}
++
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+@@ -1355,9 +1381,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
+ 	if (kernel_page_present(s_page)) {
+ 		do_copy_page(dst, page_address(s_page));
+ 	} else {
+-		kernel_map_pages(s_page, 1, 1);
++		hibernate_map_page(s_page, 1);
+ 		do_copy_page(dst, page_address(s_page));
+-		kernel_map_pages(s_page, 1, 0);
++		hibernate_map_page(s_page, 0);
+ 	}
  }
  
- #define pte_mkhuge pte_mkhuge
-+
-+static inline unsigned long pgd_leaf_size(pgd_t pgd)
-+{
-+	if (pgd_val(pgd) & _PMD_PAGE_8M)
-+		return SZ_8M;
-+	return SZ_4M;
-+}
-+
-+#define pgd_leaf_size pgd_leaf_size
-+
-+static inline unsigned long pte_leaf_size(pte_t pte)
-+{
-+	pte_basic_t val = pte_val(pte);
-+
-+	if (val & _PAGE_HUGE)
-+		return SZ_512K;
-+	if (val & _PAGE_SPS)
-+		return SZ_16K;
-+	return SZ_4K;
-+}
-+
-+#define pte_leaf_size pte_leaf_size
-+
- #endif
- 
- #endif /* __KERNEL__ */
+-- 
+2.28.0
