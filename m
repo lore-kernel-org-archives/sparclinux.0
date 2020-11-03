@@ -1,42 +1,123 @@
-From: Arnd Bergmann <arnd@kernel.org>
-Date: Tue, 03 Nov 2020 12:25:27 +0000
-Subject: Re: [patch V3 05/37] asm-generic: Provide kmap_size.h
-Message-Id: <CAK8P3a3q1O=vTLHpjkufNhspj+OJFn0BkMD6XaPZvN_0D+=FFQ@mail.gmail.com>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Tue, 03 Nov 2020 16:20:55 +0000
+Subject: [PATCH v4 2/4] PM: hibernate: make direct map manipulations more explicit
+Message-Id: <20201103162057.22916-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
- <20201103095857.078043987@linutronix.de>
-In-Reply-To: <20201103095857.078043987@linutronix.de>
+References: <20201103162057.22916-1-rppt@kernel.org>
+In-Reply-To: <20201103162057.22916-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio <linux-aio@kvack.org>, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel <dri-devel@lists.freedesktop.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux <sparclinux@vger.kernel.org>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, the arch/x86 maintainers <x86@kernel.org>, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, ML nouveau <nouveau@lists.freedesktop.org>, Dave Airlie <airlied@redhat.com>, "open list:SYNOPSYS ARC ARCHITECTURE" <linux-snps-arc@lists.infradead.org>, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, Intel Graphics <intel-gfx@lists.freedesktop.org>, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, virtualization@lists.linux-foundation.org, Dietmar Eggemann <dietmar.eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Linux-MM <linux-mm@kvack.org>, Vineet Gupta <vgupta@synopsys.com>, LKML <linux-kernel@vger.kernel.org>, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, "David S. Miller" <davem@davemloft.net>, linux-btrfs <linux-btrfs@vger.kernel.org>, Greentime Hu <green.hu@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-On Tue, Nov 3, 2020 at 10:27 AM Thomas Gleixner <tglx@linutronix.de> wrote:
->
-> kmap_types.h is a misnomer because the old atomic MAP based array does not
-> exist anymore and the whole indirection of architectures including
-> kmap_types.h is inconinstent and does not allow to provide guard page
-> debugging for this misfeature.
->
-> Add a common header file which defines the mapping stack size for all
-> architectures. Will be used when converting architectures over to a
-> generic kmap_local/atomic implementation.
->
-> The array size is chosen with the following constraints in mind:
->
->     - The deepest nest level in one context is 3 according to code
->       inspection.
->
->     - The worst case nesting for the upcoming reemptible version would be:
->
->       2 maps in task context and a fault inside
->       2 maps in the fault handler
->       3 maps in softirq
->       2 maps in interrupt
->
-> So a total of 16 is sufficient and probably overestimated.
->
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
+not present in the direct map and has to be explicitly mapped before it
+could be copied.
+
+Introduce hibernate_map_page() that will explicitly use
+set_direct_map_{default,invalid}_noflush() for ARCH_HAS_SET_DIRECT_MAP case
+and debug_pagealloc_map_pages() for DEBUG_PAGEALLOC case.
+
+The remapping of the pages in safe_copy_page() presumes that it only
+changes protection bits in an existing PTE and so it is safe to ignore
+return value of set_direct_map_{default,invalid}_noflush().
+
+Still, add a pr_warn() so that future changes in set_memory APIs will not
+silently break hibernation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+---
+ include/linux/mm.h      | 12 ------------
+ kernel/power/snapshot.c | 32 ++++++++++++++++++++++++++++++--
+ 2 files changed, 30 insertions(+), 14 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 1fc0609056dc..14e397f3752c 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2927,16 +2927,6 @@ static inline bool debug_pagealloc_enabled_static(void)
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+-/*
+- * When called in DEBUG_PAGEALLOC context, the call should most likely be
+- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
+- */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
+-{
+-	__kernel_map_pages(page, numpages, enable);
+-}
+-
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable)
+ {
+@@ -2948,8 +2938,6 @@ static inline void debug_pagealloc_map_pages(struct page *page,
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
+ static inline void debug_pagealloc_map_pages(struct page *page,
+ 					     int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 46b1804c1ddf..57d54b9d84bb 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,6 +76,34 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
++static inline void hibernate_map_page(struct page *page, int enable)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		unsigned long addr = (unsigned long)page_address(page);
++		int ret;
++
++		/*
++		 * This should not fail because remapping a page here means
++		 * that we only update protection bits in an existing PTE.
++		 * It is still worth to have a warning here if something
++		 * changes and this will no longer be the case.
++		 */
++		if (enable)
++			ret = set_direct_map_default_noflush(page);
++		else
++			ret = set_direct_map_invalid_noflush(page);
++
++		if (ret) {
++			pr_warn_once("Failed to remap page\n");
++			return;
++		}
++
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	} else {
++		debug_pagealloc_map_pages(page, 1, enable);
++	}
++}
++
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+@@ -1355,9 +1383,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
+ 	if (kernel_page_present(s_page)) {
+ 		do_copy_page(dst, page_address(s_page));
+ 	} else {
+-		kernel_map_pages(s_page, 1, 1);
++		hibernate_map_page(s_page, 1);
+ 		do_copy_page(dst, page_address(s_page));
+-		kernel_map_pages(s_page, 1, 0);
++		hibernate_map_page(s_page, 0);
+ 	}
+ }
+ 
+-- 
+2.28.0
