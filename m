@@ -1,169 +1,76 @@
 From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:48 +0000
-Subject: [patch V3 36/37] drm/i915: Replace io_mapping_map_atomic_wc()
-Message-Id: <20201103095900.254775994@linutronix.de>
+Date: Tue, 03 Nov 2020 09:27:43 +0000
+Subject: [patch V3 31/37] drm/ttm: Replace kmap_atomic() usage
+Message-Id: <20201103095859.726187546@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201103092712.714480842@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, linux-mm@kvack.org, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Dave Airlie <airlied@redhat.com>, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, Steven Rostedt <rostedt@goodmis.org>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, VMware Graphics <linux-graphics-maintainer@vmware.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Rodrigo Vivi <rodrigo.vivi@intel.com>, David Sterba <dsterba@suse.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Chris Mason <clm@fb.com>, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, spice-devel@lists.freedesktop.org, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, linux-mm@kvack.org, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, Chris Mason <clm@fb.com>, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
 
-None of these mapping requires the side effect of disabling pagefaults and
-preemption.
+There is no reason to disable pagefaults and preemption as a side effect of
+kmap_atomic_prot().
 
-Use io_mapping_map_local_wc() instead, and clean up gtt_user_read() and
-gtt_user_write() to use a plain copy_from_user() as the local maps are not
-disabling pagefaults.
+Use kmap_local_page_prot() instead and document the reasoning for the
+mapping usage with the given pgprot.
+
+Remove the NULL pointer check for the map. These functions return a valid
+address for valid pages and the return was bogus anyway as it would have
+left preemption and pagefaults disabled.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Christian Koenig <christian.koenig@amd.com>
+Cc: Huang Rui <ray.huang@amd.com>
 Cc: David Airlie <airlied@linux.ie>
 Cc: Daniel Vetter <daniel@ffwll.ch>
-Cc: intel-gfx@lists.freedesktop.org
 Cc: dri-devel@lists.freedesktop.org
 ---
 V3: New patch
 ---
- drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c |    7 +---
- drivers/gpu/drm/i915/i915_gem.c                |   40 ++++++++-----------------
- drivers/gpu/drm/i915/selftests/i915_gem.c      |    4 +-
- drivers/gpu/drm/i915/selftests/i915_gem_gtt.c  |    8 ++---
- 4 files changed, 22 insertions(+), 37 deletions(-)
+ drivers/gpu/drm/ttm/ttm_bo_util.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
---- a/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
-+++ b/drivers/gpu/drm/i915/gem/i915_gem_execbuffer.c
-@@ -1081,7 +1081,7 @@ static void reloc_cache_reset(struct rel
- 		struct i915_ggtt *ggtt = cache_to_ggtt(cache);
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -181,13 +181,15 @@ static int ttm_copy_io_ttm_page(struct t
+ 		return -ENOMEM;
  
- 		intel_gt_flush_ggtt_writes(ggtt->vm.gt);
--		io_mapping_unmap_atomic((void __iomem *)vaddr);
-+		io_mapping_unmap_local((void __iomem *)vaddr);
+ 	src = (void *)((unsigned long)src + (page << PAGE_SHIFT));
+-	dst = kmap_atomic_prot(d, prot);
+-	if (!dst)
+-		return -ENOMEM;
++	/*
++	 * Ensure that a highmem page is mapped with the correct
++	 * pgprot. For non highmem the mapping is already there.
++	 */
++	dst = kmap_local_page_prot(d, prot);
  
- 		if (drm_mm_node_allocated(&cache->node)) {
- 			ggtt->vm.clear_range(&ggtt->vm,
-@@ -1147,7 +1147,7 @@ static void *reloc_iomap(struct drm_i915
+ 	memcpy_fromio(dst, src, PAGE_SIZE);
  
- 	if (cache->vaddr) {
- 		intel_gt_flush_ggtt_writes(ggtt->vm.gt);
--		io_mapping_unmap_atomic((void __force __iomem *) unmask_page(cache->vaddr));
-+		io_mapping_unmap_local((void __force __iomem *) unmask_page(cache->vaddr));
- 	} else {
- 		struct i915_vma *vma;
- 		int err;
-@@ -1195,8 +1195,7 @@ static void *reloc_iomap(struct drm_i915
- 		offset += page << PAGE_SHIFT;
- 	}
+-	kunmap_atomic(dst);
++	kunmap_local(dst);
  
--	vaddr = (void __force *)io_mapping_map_atomic_wc(&ggtt->iomap,
--							 offset);
-+	vaddr = (void __force *)io_mapping_map_local_wc(&ggtt->iomap, offset);
- 	cache->page = page;
- 	cache->vaddr = (unsigned long)vaddr;
- 
---- a/drivers/gpu/drm/i915/i915_gem.c
-+++ b/drivers/gpu/drm/i915/i915_gem.c
-@@ -379,22 +379,15 @@ gtt_user_read(struct io_mapping *mapping
- 	      char __user *user_data, int length)
- {
- 	void __iomem *vaddr;
--	unsigned long unwritten;
-+	bool fail = false;
- 
- 	/* We can use the cpu mem copy function because this is X86. */
--	vaddr = io_mapping_map_atomic_wc(mapping, base);
--	unwritten = __copy_to_user_inatomic(user_data,
--					    (void __force *)vaddr + offset,
--					    length);
--	io_mapping_unmap_atomic(vaddr);
--	if (unwritten) {
--		vaddr = io_mapping_map_wc(mapping, base, PAGE_SIZE);
--		unwritten = copy_to_user(user_data,
--					 (void __force *)vaddr + offset,
--					 length);
--		io_mapping_unmap(vaddr);
--	}
--	return unwritten;
-+	vaddr = io_mapping_map_local_wc(mapping, base);
-+	if (copy_to_user(user_data, (void __force *)vaddr + offset, length))
-+		fail = true;
-+	io_mapping_unmap_local(vaddr);
-+
-+	return fail;
+ 	return 0;
  }
+@@ -203,13 +205,15 @@ static int ttm_copy_ttm_io_page(struct t
+ 		return -ENOMEM;
  
- static int
-@@ -557,21 +550,14 @@ ggtt_write(struct io_mapping *mapping,
- 	   char __user *user_data, int length)
- {
- 	void __iomem *vaddr;
--	unsigned long unwritten;
-+	bool fail = false;
+ 	dst = (void *)((unsigned long)dst + (page << PAGE_SHIFT));
+-	src = kmap_atomic_prot(s, prot);
+-	if (!src)
+-		return -ENOMEM;
++	/*
++	 * Ensure that a highmem page is mapped with the correct
++	 * pgprot. For non highmem the mapping is already there.
++	 */
++	src = kmap_local_page_prot(s, prot);
  
- 	/* We can use the cpu mem copy function because this is X86. */
--	vaddr = io_mapping_map_atomic_wc(mapping, base);
--	unwritten = __copy_from_user_inatomic_nocache((void __force *)vaddr + offset,
--						      user_data, length);
--	io_mapping_unmap_atomic(vaddr);
--	if (unwritten) {
--		vaddr = io_mapping_map_wc(mapping, base, PAGE_SIZE);
--		unwritten = copy_from_user((void __force *)vaddr + offset,
--					   user_data, length);
--		io_mapping_unmap(vaddr);
--	}
--
--	return unwritten;
-+	vaddr = io_mapping_map_local_wc(mapping, base);
-+	if (copy_from_user((void __force *)vaddr + offset, user_data, length))
-+		fail = true;
-+	io_mapping_unmap_local(vaddr);
-+	return fail;
+ 	memcpy_toio(dst, src, PAGE_SIZE);
+ 
+-	kunmap_atomic(src);
++	kunmap_local(src);
+ 
+ 	return 0;
  }
- 
- /**
---- a/drivers/gpu/drm/i915/selftests/i915_gem.c
-+++ b/drivers/gpu/drm/i915/selftests/i915_gem.c
-@@ -57,12 +57,12 @@ static void trash_stolen(struct drm_i915
- 
- 		ggtt->vm.insert_page(&ggtt->vm, dma, slot, I915_CACHE_NONE, 0);
- 
--		s = io_mapping_map_atomic_wc(&ggtt->iomap, slot);
-+		s = io_mapping_map_local_wc(&ggtt->iomap, slot);
- 		for (x = 0; x < PAGE_SIZE / sizeof(u32); x++) {
- 			prng = next_pseudo_random32(prng);
- 			iowrite32(prng, &s[x]);
- 		}
--		io_mapping_unmap_atomic(s);
-+		io_mapping_unmap_local(s);
- 	}
- 
- 	ggtt->vm.clear_range(&ggtt->vm, slot, PAGE_SIZE);
---- a/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
-+++ b/drivers/gpu/drm/i915/selftests/i915_gem_gtt.c
-@@ -1200,9 +1200,9 @@ static int igt_ggtt_page(void *arg)
- 		u64 offset = tmp.start + order[n] * PAGE_SIZE;
- 		u32 __iomem *vaddr;
- 
--		vaddr = io_mapping_map_atomic_wc(&ggtt->iomap, offset);
-+		vaddr = io_mapping_map_local_wc(&ggtt->iomap, offset);
- 		iowrite32(n, vaddr + n);
--		io_mapping_unmap_atomic(vaddr);
-+		io_mapping_unmap_local(vaddr);
- 	}
- 	intel_gt_flush_ggtt_writes(ggtt->vm.gt);
- 
-@@ -1212,9 +1212,9 @@ static int igt_ggtt_page(void *arg)
- 		u32 __iomem *vaddr;
- 		u32 val;
- 
--		vaddr = io_mapping_map_atomic_wc(&ggtt->iomap, offset);
-+		vaddr = io_mapping_map_local_wc(&ggtt->iomap, offset);
- 		val = ioread32(vaddr + n);
--		io_mapping_unmap_atomic(vaddr);
-+		io_mapping_unmap_local(vaddr);
- 
- 		if (val != n) {
- 			pr_err("insert page failed: found %d, expected %d\n",
