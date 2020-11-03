@@ -1,94 +1,137 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Sun, 08 Nov 2020 06:57:53 +0000
-Subject: [PATCH v5 0/5] arch, mm: improve robustness of direct map manipulation
-Message-Id: <20201108065758.1815-1-rppt@kernel.org>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 03 Nov 2020 09:27:31 +0000
+Subject: [patch V3 19/37] mm/highmem: Remove the old kmap_atomic cruft
+Message-Id: <20201103095858.516281567@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201103092712.714480842@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
- Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+All users gone.
 
-Hi,
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ include/linux/highmem.h |   63 +++---------------------------------------------
+ mm/highmem.c            |    7 -----
+ 2 files changed, 5 insertions(+), 65 deletions(-)
 
-During recent discussion about KVM protected memory, David raised a concern
-about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
-
-Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
-possible that __kernel_map_pages() would fail, but since this function is
-void, the failure will go unnoticed.
-
-Moreover, there's lack of consistency of __kernel_map_pages() semantics
-across architectures as some guard this function with
-#ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
-allocation debugging is disabled at run time and some allow modifying the
-direct map regardless of DEBUG_PAGEALLOC settings.
-
-This set straightens this out by restoring dependency of
-__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
-accordingly. 
-
-Since currently the only user of __kernel_map_pages() outside
-DEBUG_PAGEALLOC is hibernation, it is updated to make direct map accesses
-there more explicit.
-
-[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
-
-v5 changes:
-* use pairs of _map()/_unmap() functions instead of _map(..., int enable) as
-  Vlastimil suggested
-
-v4 changes:
-* s/WARN_ON/pr_warn_once/ per David and Kirill
-* rebase on v5.10-rc2
-* add Acked/Reviewed tags
-https://lore.kernel.org/lkml/20201103162057.22916-1-rppt@kernel.org
-
-v3 changes:
-* update arm64 changes to avoid regression, per Rick's comments
-* fix bisectability
-https://lore.kernel.org/lkml/20201101170815.9795-1-rppt@kernel.org
-
-v2 changes:
-* Rephrase patch 2 changelog to better describe the change intentions and
-implications
-* Move removal of kernel_map_pages() from patch 1 to patch 2, per David
-https://lore.kernel.org/lkml/20201029161902.19272-1-rppt@kernel.org
-
-v1:
-https://lore.kernel.org/lkml/20201025101555.3057-1-rppt@kernel.org
-
-Mike Rapoport (5):
-  mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
-  slab: debug: split slab_kernel_map() to map and unmap variants
-  PM: hibernate: make direct map manipulations more explicit
-  arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
-  arch, mm: make kernel_page_present() always available
-
- arch/Kconfig                        |  3 +++
- arch/arm64/Kconfig                  |  4 +--
- arch/arm64/include/asm/cacheflush.h |  1 +
- arch/arm64/mm/pageattr.c            |  6 +++--
- arch/powerpc/Kconfig                |  5 +---
- arch/riscv/Kconfig                  |  4 +--
- arch/riscv/include/asm/pgtable.h    |  2 --
- arch/riscv/include/asm/set_memory.h |  1 +
- arch/riscv/mm/pageattr.c            | 31 ++++++++++++++++++++++
- arch/s390/Kconfig                   |  4 +--
- arch/sparc/Kconfig                  |  4 +--
- arch/x86/Kconfig                    |  4 +--
- arch/x86/include/asm/set_memory.h   |  1 +
- arch/x86/mm/pat/set_memory.c        |  4 +--
- include/linux/mm.h                  | 40 ++++++++++++++---------------
- include/linux/set_memory.h          |  5 ++++
- kernel/power/snapshot.c             | 38 +++++++++++++++++++++++++--
- mm/memory_hotplug.c                 |  3 +--
- mm/page_alloc.c                     |  6 ++---
- mm/slab.c                           | 26 ++++++++++---------
- 20 files changed, 127 insertions(+), 65 deletions(-)
-
--- 
-2.28.0
+--- a/include/linux/highmem.h
++++ b/include/linux/highmem.h
+@@ -86,31 +86,16 @@ static inline void kunmap(struct page *p
+  * be used in IRQ contexts, so in some (very limited) cases we need
+  * it.
+  */
+-
+-#ifndef CONFIG_KMAP_LOCAL
+-void *kmap_atomic_high_prot(struct page *page, pgprot_t prot);
+-void kunmap_atomic_high(void *kvaddr);
+-
+ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+ {
+ 	preempt_disable();
+ 	pagefault_disable();
+-	if (!PageHighMem(page))
+-		return page_address(page);
+-	return kmap_atomic_high_prot(page, prot);
+-}
+-
+-static inline void __kunmap_atomic(void *vaddr)
+-{
+-	kunmap_atomic_high(vaddr);
++	return __kmap_local_page_prot(page, prot);
+ }
+-#else /* !CONFIG_KMAP_LOCAL */
+ 
+-static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
++static inline void *kmap_atomic(struct page *page)
+ {
+-	preempt_disable();
+-	pagefault_disable();
+-	return __kmap_local_page_prot(page, prot);
++	return kmap_atomic_prot(page, kmap_prot);
+ }
+ 
+ static inline void *kmap_atomic_pfn(unsigned long pfn)
+@@ -125,13 +110,6 @@ static inline void __kunmap_atomic(void
+ 	kunmap_local_indexed(addr);
+ }
+ 
+-#endif /* CONFIG_KMAP_LOCAL */
+-
+-static inline void *kmap_atomic(struct page *page)
+-{
+-	return kmap_atomic_prot(page, kmap_prot);
+-}
+-
+ /* declarations for linux/mm/highmem.c */
+ unsigned int nr_free_highpages(void);
+ extern atomic_long_t _totalhigh_pages;
+@@ -212,41 +190,8 @@ static inline void __kunmap_atomic(void
+ 
+ #define kmap_flush_unused()	do {} while(0)
+ 
+-#endif /* CONFIG_HIGHMEM */
+-
+-#if !defined(CONFIG_KMAP_LOCAL)
+-#if defined(CONFIG_HIGHMEM)
+-
+-DECLARE_PER_CPU(int, __kmap_atomic_idx);
+-
+-static inline int kmap_atomic_idx_push(void)
+-{
+-	int idx = __this_cpu_inc_return(__kmap_atomic_idx) - 1;
+-
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	WARN_ON_ONCE(in_irq() && !irqs_disabled());
+-	BUG_ON(idx >= KM_TYPE_NR);
+-#endif
+-	return idx;
+-}
+-
+-static inline int kmap_atomic_idx(void)
+-{
+-	return __this_cpu_read(__kmap_atomic_idx) - 1;
+-}
+ 
+-static inline void kmap_atomic_idx_pop(void)
+-{
+-#ifdef CONFIG_DEBUG_HIGHMEM
+-	int idx = __this_cpu_dec_return(__kmap_atomic_idx);
+-
+-	BUG_ON(idx < 0);
+-#else
+-	__this_cpu_dec(__kmap_atomic_idx);
+-#endif
+-}
+-#endif
+-#endif
++#endif /* CONFIG_HIGHMEM */
+ 
+ /*
+  * Prevent people trying to call kunmap_atomic() as if it were kunmap()
+--- a/mm/highmem.c
++++ b/mm/highmem.c
+@@ -31,12 +31,6 @@
+ #include <asm/tlbflush.h>
+ #include <linux/vmalloc.h>
+ 
+-#ifndef CONFIG_KMAP_LOCAL
+-#ifdef CONFIG_HIGHMEM
+-DEFINE_PER_CPU(int, __kmap_atomic_idx);
+-#endif
+-#endif
+-
+ /*
+  * Virtual_count is not a pure "count".
+  *  0 means that it is not mapped, and has not been mapped
+@@ -410,6 +404,7 @@ static inline void kmap_local_idx_pop(vo
+ #ifndef arch_kmap_local_post_map
+ # define arch_kmap_local_post_map(vaddr, pteval)	do { } while (0)
+ #endif
++
+ #ifndef arch_kmap_local_pre_unmap
+ # define arch_kmap_local_pre_unmap(vaddr)		do { } while (0)
+ #endif
