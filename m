@@ -1,10 +1,10 @@
 From: Mike Rapoport <rppt@kernel.org>
-Date: Mon, 09 Nov 2020 16:24:12 +0000
-Subject: [PATCH v6 1/4] mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
-Message-Id: <20201109162415.13764-2-rppt@kernel.org>
+Date: Sun, 08 Nov 2020 06:57:55 +0000
+Subject: [PATCH v5 2/5] slab: debug: split slab_kernel_map() to map and unmap variants
+Message-Id: <20201108065758.1815-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201109162415.13764-1-rppt@kernel.org>
-In-Reply-To: <20201109162415.13764-1-rppt@kernel.org>
+References: <20201108065758.1815-1-rppt@kernel.org>
+In-Reply-To: <20201108065758.1815-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -14,109 +14,83 @@ Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>,
 
 From: Mike Rapoport <rppt@linux.ibm.com>
 
-When CONFIG_DEBUG_PAGEALLOC is enabled, it unmaps pages from the kernel
-direct mapping after free_pages(). The pages than need to be mapped back
-before they could be used. Theese mapping operations use
-__kernel_map_pages() guarded with with debug_pagealloc_enabled().
-
-The only place that calls __kernel_map_pages() without checking whether
-DEBUG_PAGEALLOC is enabled is the hibernation code that presumes
-availability of this function when ARCH_HAS_SET_DIRECT_MAP is set.
-Still, on arm64, __kernel_map_pages() will bail out when DEBUG_PAGEALLOC is
-not enabled but set_direct_map_invalid_noflush() may render some pages not
-present in the direct map and hibernation code won't be able to save such
-pages.
-
-To make page allocation debugging and hibernation interaction more robust,
-the dependency on DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP has to be made
-more explicit.
-
-Start with combining the guard condition and the call to
-__kernel_map_pages() into debug_pagealloc_map_pages() and
-debug_pagealloc_unmap_pages() functions to emphasize that
-__kernel_map_pages() should not be called without DEBUG_PAGEALLOC and use
-these new functions to map/unmap pages when page allocation debugging is
-enabled.
+Instead of using slab_kernel_map() with 'map' parameter to remap pages when
+DEBUG_PAGEALLOC is enabled, use dedicated helpers slab_kernel_map() and
+slab_kernel_unmap().
 
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 ---
- include/linux/mm.h  | 15 +++++++++++++++
- mm/memory_hotplug.c |  3 +--
- mm/page_alloc.c     |  6 ++----
- 3 files changed, 18 insertions(+), 6 deletions(-)
+ mm/slab.c | 26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index ef360fe70aaf..bb8c70178f4e 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2936,12 +2936,27 @@ kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	__kernel_map_pages(page, numpages, enable);
+diff --git a/mm/slab.c b/mm/slab.c
+index 07317386e150..0719421d69f7 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -1428,17 +1428,21 @@ static bool is_debug_pagealloc_cache(struct kmem_cache *cachep)
+ 	return false;
  }
-+
-+static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
-+{
-+	if (debug_pagealloc_enabled_static())
-+		__kernel_map_pages(page, numpages, 1);
+ 
+-static void slab_kernel_map(struct kmem_cache *cachep, void *objp, int map)
++static void slab_kernel_map(struct kmem_cache *cachep, void *objp)
+ {
+ 	if (!is_debug_pagealloc_cache(cachep))
+ 		return;
+ 
+-	if (map)
+-		debug_pagealloc_map_pages(virt_to_page(objp),
+-					  cachep->size / PAGE_SIZE);
+-	else
+-		debug_pagealloc_unmap_pages(virt_to_page(objp),
+-					    cachep->size / PAGE_SIZE);
++	debug_pagealloc_map_pages(virt_to_page(objp), cachep->size / PAGE_SIZE);
 +}
 +
-+static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages)
++static void slab_kernel_unmap(struct kmem_cache *cachep, void *objp)
 +{
-+	if (debug_pagealloc_enabled_static())
-+		__kernel_map_pages(page, numpages, 0);
-+}
++	if (!is_debug_pagealloc_cache(cachep))
++		return;
 +
- #ifdef CONFIG_HIBERNATION
- extern bool kernel_page_present(struct page *page);
- #endif	/* CONFIG_HIBERNATION */
- #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
- static inline void
- kernel_map_pages(struct page *page, int numpages, int enable) {}
-+static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
-+static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
- #ifdef CONFIG_HIBERNATION
- static inline bool kernel_page_present(struct page *page) { return true; }
- #endif	/* CONFIG_HIBERNATION */
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index b44d4c7ba73b..f18f86ba2a68 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -614,8 +614,7 @@ void generic_online_page(struct page *page, unsigned int order)
- 	 * so we should map it first. This is better than introducing a special
- 	 * case in page freeing fast path.
- 	 */
--	if (debug_pagealloc_enabled_static())
--		kernel_map_pages(page, 1 << order, 1);
-+	debug_pagealloc_map_pages(page, 1 << order);
- 	__free_pages_core(page, order);
- 	totalram_pages_add(1UL << order);
- #ifdef CONFIG_HIGHMEM
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 23f5066bd4a5..db1bf70458d0 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -1272,8 +1272,7 @@ static __always_inline bool free_pages_prepare(struct page *page,
- 	 */
- 	arch_free_page(page, order);
++	debug_pagealloc_unmap_pages(virt_to_page(objp),
++				    cachep->size / PAGE_SIZE);
+ }
  
--	if (debug_pagealloc_enabled_static())
--		kernel_map_pages(page, 1 << order, 0);
-+	debug_pagealloc_unmap_pages(page, 1 << order);
+ static void poison_obj(struct kmem_cache *cachep, void *addr, unsigned char val)
+@@ -1585,7 +1589,7 @@ static void slab_destroy_debugcheck(struct kmem_cache *cachep,
  
- 	kasan_free_nondeferred_pages(page, order);
+ 		if (cachep->flags & SLAB_POISON) {
+ 			check_poison_obj(cachep, objp);
+-			slab_kernel_map(cachep, objp, 1);
++			slab_kernel_map(cachep, objp);
+ 		}
+ 		if (cachep->flags & SLAB_RED_ZONE) {
+ 			if (*dbg_redzone1(cachep, objp) != RED_INACTIVE)
+@@ -2360,7 +2364,7 @@ static void cache_init_objs_debug(struct kmem_cache *cachep, struct page *page)
+ 		/* need to poison the objs? */
+ 		if (cachep->flags & SLAB_POISON) {
+ 			poison_obj(cachep, objp, POISON_FREE);
+-			slab_kernel_map(cachep, objp, 0);
++			slab_kernel_unmap(cachep, objp);
+ 		}
+ 	}
+ #endif
+@@ -2728,7 +2732,7 @@ static void *cache_free_debugcheck(struct kmem_cache *cachep, void *objp,
  
-@@ -2270,8 +2269,7 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
- 	set_page_refcounted(page);
- 
- 	arch_alloc_page(page, order);
--	if (debug_pagealloc_enabled_static())
--		kernel_map_pages(page, 1 << order, 1);
-+	debug_pagealloc_map_pages(page, 1 << order);
- 	kasan_alloc_pages(page, order);
- 	kernel_poison_pages(page, 1 << order, 1);
- 	set_page_owner(page, order, gfp_flags);
+ 	if (cachep->flags & SLAB_POISON) {
+ 		poison_obj(cachep, objp, POISON_FREE);
+-		slab_kernel_map(cachep, objp, 0);
++		slab_kernel_unmap(cachep, objp);
+ 	}
+ 	return objp;
+ }
+@@ -2993,7 +2997,7 @@ static void *cache_alloc_debugcheck_after(struct kmem_cache *cachep,
+ 		return objp;
+ 	if (cachep->flags & SLAB_POISON) {
+ 		check_poison_obj(cachep, objp);
+-		slab_kernel_map(cachep, objp, 1);
++		slab_kernel_map(cachep, objp);
+ 		poison_obj(cachep, objp, POISON_INUSE);
+ 	}
+ 	if (cachep->flags & SLAB_STORE_USER)
 -- 
 2.28.0
