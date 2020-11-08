@@ -1,203 +1,322 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:12 +0000
-Subject: [patch V3 00/37] mm/highmem: Preemptible variant of kmap_atomic & friends
-Message-Id: <20201103092712.714480842@linutronix.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Sun, 08 Nov 2020 06:57:57 +0000
+Subject: [PATCH v5 4/5] arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
+Message-Id: <20201108065758.1815-5-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201108065758.1815-1-rppt@kernel.org>
+In-Reply-To: <20201108065758.1815-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-Rm9sbG93aW5nIHVwIHRvIHRoZSBkaXNjdXNzaW9uIGluOgoKICBodHRwczovL2xvcmUua2VybmVs
-Lm9yZy9yLzIwMjAwOTE0MjA0MjA5LjI1NjI2NjA5M0BsaW51dHJvbml4LmRlCgphbmQgdGhlIHNl
-Y29uZCB2ZXJzaW9uIG9mIHRoaXM6CgogIGh0dHBzOi8vbG9yZS5rZXJuZWwub3JnL3IvMjAyMDEw
-MjkyMjE4MDYuMTg5NTIzMzc1QGxpbnV0cm9uaXguZGUKCnRoaXMgc2VyaWVzIHByb3ZpZGVzIGEg
-cHJlZW1wdGlibGUgdmFyaWFudCBvZiBrbWFwX2F0b21pYyAmIHJlbGF0ZWQKaW50ZXJmYWNlcy4K
-ClRoaXMgaXMgYWNoaWV2ZWQgYnk6CgogLSBSZW1vdmluZyB0aGUgUlQgZGVwZW5kZW5jeSBmcm9t
-IG1pZ3JhdGVfZGlzYWJsZS9lbmFibGUoKQoKIC0gQ29uc29saWRhdGluZyBhbGwga21hcCBhdG9t
-aWMgaW1wbGVtZW50YXRpb25zIGluIGdlbmVyaWMgY29kZSBpbmNsdWRpbmcKICAgYSB1c2VmdWwg
-dmVyc2lvbiBvZiB0aGUgQ09ORklHX0RFQlVHX0hJR0hNRU0gd2hpY2ggcHJvdmlkZXMgZ3VhcmQg
-cGFnZXMKICAgYmV0d2VlbiB0aGUgaW5kaXZpZHVhbCBtYXBzIGluc3RlYWQgb2YganVzdCBpbmNy
-ZWFzaW5nIHRoZSBtYXAgc2l6ZS4KCiAtIFN3aXRjaGluZyBmcm9tIHBlciBDUFUgc3RvcmFnZSBv
-ZiB0aGUga21hcCBpbmRleCB0byBhIHBlciB0YXNrIHN0b3JhZ2UKCiAtIEFkZGluZyBhIHB0ZXZh
-bCBhcnJheSB0byB0aGUgcGVyIHRhc2sgc3RvcmFnZSB3aGljaCBjb250YWlucyB0aGUgcHRldmFs
-cwogICBvZiB0aGUgY3VycmVudGx5IGFjdGl2ZSB0ZW1wb3Jhcnkga21hcHMKCiAtIEFkZGluZyBj
-b250ZXh0IHN3aXRjaCBjb2RlIHdoaWNoIGNoZWNrcyB3aGV0aGVyIHRoZSBvdXRnb2luZyBvciB0
-aGUKICAgaW5jb21pbmcgdGFzayBoYXMgYWN0aXZlIHRlbXBvcmFyeSBrbWFwcy4gSWYgc28sIHRo
-ZSBvdXRnb2luZyB0YXNrJ3MKICAga21hcHMgYXJlIHJlbW92ZWQgYW5kIHRoZSBpbmNvbWluZyB0
-YXNrJ3Mga21hcHMgYXJlIHJlc3RvcmVkLgoKIC0gQWRkaW5nIG5ldyBpbnRlcmZhY2VzIGtbdW5d
-bWFwX2xvY2FsKigpIHdoaWNoIGFyZSBub3QgZGlzYWJsaW5nCiAgIHByZWVtcHRpb24gYW5kIGNh
-biBiZSBjYWxsZWQgZnJvbSBhbnkgY29udGV4dCAoZXhjZXB0IE5NSSkuCgogICBDb250cmFyeSB0
-byBrbWFwKCkgd2hpY2ggcHJvdmlkZXMgcHJlZW1wdGlibGUgYW5kICJwZXJzaXN0YW50IiBtYXBw
-aW5ncywKICAgdGhlc2UgaW50ZXJmYWNlcyBhcmUgbWVhbnQgdG8gcmVwbGFjZSB0aGUgdGVtcG9y
-YXJ5IG1hcHBpbmdzIHByb3ZpZGVkIGJ5CiAgIGttYXBfYXRvbWljKigpIHRvZGF5LgoKVGhpcyBh
-bGxvd3MgdG8gZ2V0IHJpZCBvZiBjb25kaXRpb25hbCBtYXBwaW5nIGNob2ljZXMgYW5kIGFsbG93
-cyB0byBoYXZlCnByZWVtcHRpYmxlIHNob3J0IHRlcm0gbWFwcGluZ3Mgb24gNjRiaXQgd2hpY2gg
-YXJlIHRvZGF5IGVuZm9yY2VkIHRvIGJlCm5vbi1wcmVlbXB0aWJsZSBkdWUgdG8gdGhlIGhpZ2ht
-ZW0gY29uc3RyYWludHMuIEl0IGNsZWFybHkgcHV0cyBvdmVyaGVhZCBvbgp0aGUgaGlnaG1lbSB1
-c2VycywgYnV0IGhpZ2htZW0gaXMgc2xvdyBhbnl3YXkuCgpUaGlzIGlzIG5vdCBhIHdob2xlc2Fs
-ZSBjb252ZXJzaW9uIHdoaWNoIG1ha2VzIGttYXBfYXRvbWljIG1hZ2ljYWxseQpwcmVlbXB0aWJs
-ZSBiZWNhdXNlIHRoZXJlIG1pZ2h0IGJlIHVzYWdlIHNpdGVzIHdoaWNoIHJlbHkgb24gdGhlIGlt
-cGxpY2l0CnByZWVtcHQgZGlzYWJsZS4gU28gdGhpcyBuZWVkcyB0byBiZSBkb25lIG9uIGEgY2Fz
-ZSBieSBjYXNlIGJhc2lzIGFuZCB0aGUKY2FsbCBzaXRlcyBjb252ZXJ0ZWQgdG8ga21hcF9sb2Nh
-bCgpLgoKTm90ZSwgdGhhdCB0aGlzIGlzIG9ubHkgdGVzdGVkIG9uIFg4NiBhbmQgY29tcGxldGVs
-eSB1bnRlc3RlZCBvbiBhbGwgb3RoZXIKYXJjaGl0ZWN0dXJlcyAoYXQgbGVhc3QgaXQgY29tcGls
-ZXMgZXhjZXB0IG9uIGNza3kgd2hpY2ggZG9lcyBub3QgY29tcGlsZQp3aXRoIHRoZSBuZXdlc3Qg
-Y3Jvc3MgdG9vbHMgZnJvbSBrZXJuZWwub3JnIGluZGVwZW5kZW50IG9mIHRoaXMgY2hhbmdlKS4K
-ClRoZSBsb3QgaXMgYXZhaWxhYmxlIGZyb20KCiAgIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9z
-Y20vbGludXgva2VybmVsL2dpdC90Z2x4L2RldmVsLmdpdCBoaWdobWVtCgpJdCBpcyBiYXNlZCBv
-biBQZXRlciBaaWpsc3RyYXMgbWlncmF0ZSBkaXNhYmxlIGJyYW5jaCB3aGljaCBpcyBjbG9zZSB0
-byBiZQptZXJnZWQgaW50byB0aGUgdGlwIHRyZWUsIGJ1dCBzdGlsbCBub3QgZmluYWxpemVkOgoK
-ICAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3BldGVyei9x
-dWV1ZS5naXQgc2NoZWQvbWlncmF0ZS1kaXNhYmxlCgpUaGUgc2VyaWVzIGhhcyB0aGUgZm9sbG93
-aW5nIHBhcnRzOgoKICAgIFBhdGNoZXMgIDEgLSAyMjogQ29uc29saWRhdGlvbiB3b3JrIHdoaWNo
-IGlzIGluZGVwZW5kZW50IG9mIHRoZSBzY2hlZHVsZXIKICAgIAkgICAgICAgCSAgICAgY2hhbmdl
-cwoKCQkgICAgIDc5IGZpbGVzIGNoYW5nZWQsIDU5NSBpbnNlcnRpb25zKCspLCAxMjk2IGRlbGV0
-aW9ucygtKQoKICAgIFBhdGNoICAgMjM6ICAgICAgTmVlZHMgdG8gYmUgZm9sZGVkIGJhY2sgaW50
-byB0aGUgc2NoZWQvbWlncmF0ZS1kaXNhYmxlCgogICAgUGF0Y2hlcyAyNCAtIDI2OiBUaGUgcHJl
-ZW1wdGlibGUga21hcF9sb2NhbCgpIGltcGxlbWVudGF0aW9uCgogICAgCSAgICAgICAJICAgICA5
-IGZpbGVzIGNoYW5nZWQsIDI4MyBpbnNlcnRpb25zKCspLCA1NyBkZWxldGlvbnMoLSkKCiAgICBQ
-YXRjaGVzIDI3IC0gMzc6IENsZWFudXAgb2YgdGhlIGxlc3MgY29tbW9uIGttYXAvaW9fbWFwX2F0
-b21pYyB1c2VycwoKICAgIAkgICAgICAgCSAgICAgMTkgZmlsZXMgY2hhbmdlZCwgMTE0IGluc2Vy
-dGlvbnMoKyksIDI1NiBkZWxldGlvbnMoLSkKClZzLiBtZXJnaW5nIHRoaXMgcGlsZToKCklmIGV2
-ZXJ5b25lIGFncmVlcywgSSdkIGxpa2UgdG8gdGFrZSB0aGUgZmlyc3QgcGFydCAoMS0yMikgdGhy
-b3VnaCB0aXAgc28KdGhhdCB0aGUgcHJlZW1wdGlibGUgaW1wbGVtZW50YXRpb24gY2FuIGJlIHNv
-cnRlZCBpbiB0aXAgb25jZSB0aGUgc2NoZWR1bGVyCnByZXJlcXVpc2l0ZXMgYXJlIHRoZXJlLiBU
-aGUgaW5pdGlhbCBjbGVhbnVwcyAoMjctMzcpIG1pZ2h0IGhhdmUgdG8gd2FpdCBpZgp0aGVyZSBh
-cmUgY29uZmxpY3RzIHZzLiB0aGUgZHJtL2dwdSB0cmVlLiBXZSdsbCBzZWUuCgo+RnJvbSB3aGF0
-IEkgY2FuIHRlbGwga21hcF9hdG9taWMoKSBjYW4gYmUgcmVtb3ZlZCBhbGwgdG9nZXRoZXIgYW5k
-CmNvbXBsZXRseSByZXBsYWNlZCBieSBrbWFwX2xvY2FsKCkuIE1vc3Qgb2YgdGhlIHVzYWdlIHNp
-dGVzIGFyZSB0cml2aWFsIGFuZApqdXN0IGRvaW5nIG1lbWNweSgpLCBtZW1zZXQoKSBvciB0cml2
-aWFsIG9wZXJhdGlvbnMgb24gdGhlIHRlbXBvcmFyaWx5Cm1hcHBlZCBwYWdlLiBUaGUgaW50ZXJl
-c3Rpbmcgb25lcyBhcmUgdGhvc2Ugd2hpY2ggZG8gZWl0aGVyIGNvbmRpdGlvbmFsCnN0dWZmIG9y
-IGhhdmUgY29weV8uKl91c2VyX2luYXRvbWljKCkgaW5zaWRlLiBBcyBzaG93biB3aXRoIHRoZSBj
-cmFzaCBhbmQKZHJtL2dwdSBjbGVhbnVwcyB0aGlzIGFsbG93cyB0byBzaW1wbGlmeSB0aGUgY29k
-ZSBxdWl0ZSBhIGJpdC4KCkNoYW5nZXMgdnMuIFYyOgoKICAtIFJlbW92ZSB0aGUgbWlncmF0ZSBk
-aXNhYmxlIGZyb20ga21hcF9sb2NhbCBhbmQgb25seSBpc3N1ZSB0aGF0IHdoZW4gdGhlCiAgICB0
-aGVyZSBpcyBhbiBhY3R1YWwgaGlnaG1lbSBtYXBwaW5nLiAoTGludXMpCiAgLSBSZW9yZGVyZWQg
-dGhlIHNlcmllcyBzbyB0aGUgY29uc29saWRhdGlvbiBpcyB1cGZyb250CiAgLSBHZXQgcmlkIG9m
-IGttYXBfdHlwZXMuaCBhbmQgdGhlIGFzc29jaWF0ZWQgY3J1ZnQKICAtIEZpeHVwIGRvY3VtZW50
-YXRpb24gYW5kIGFkZCBmdW5jdGlvbiBkb2N1bWVudGF0aW9uIGZvciBrbWFwXyoKICAtIFNwbGl0
-b3V0IHRoZSBpbnRlcm5hbCBpbXBsZW1lbnRhdGlvbiBpbnRvIGEgc2VwZXJhdGUgaGVhZGVyCiAg
-LSBNb3JlIGNsZWFudXBzIC0gcmVtb3ZhbCBvZiB1bnVzZWQgZnVuY3Rpb25zCiAgLSBSZXBsYWNl
-IGEgZmV3IG9mIHRoZSBsZXNzIGZyZXF1ZW50bHkgdXNlZCBrbWFwX2F0b21pYyBhbmQKICAgIGlv
-X21hcHBpbmdfbWFwX2F0b21pYyB2YXJpYW50cyBhbmQgcmVtb3ZlIHRob3NlIGludGVyZmFjZXMu
-CgpUaGFua3MsCgoJdGdseAotLS0KIGFyY2gvYWxwaGEvaW5jbHVkZS9hc20va21hcF90eXBlcy5o
-ICAgICAgICAgICAgICAgICAgIHwgICAxNSAKIGFyY2gvYXJjL2luY2x1ZGUvYXNtL2ttYXBfdHlw
-ZXMuaCAgICAgICAgICAgICAgICAgICAgIHwgICAxNCAKIGFyY2gvYXJtL2luY2x1ZGUvYXNtL2tt
-YXBfdHlwZXMuaCAgICAgICAgICAgICAgICAgICAgIHwgICAxMCAKIGFyY2gvYXJtL21tL2hpZ2ht
-ZW0uYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDEyMSAtLS0tLS0tCiBhcmNo
-L2lhNjQvaW5jbHVkZS9hc20va21hcF90eXBlcy5oICAgICAgICAgICAgICAgICAgICB8ICAgMTMg
-CiBhcmNoL21pY3JvYmxhemUvbW0vaGlnaG1lbS5jICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgNzggLS0tLQogYXJjaC9taXBzL2luY2x1ZGUvYXNtL2ttYXBfdHlwZXMuaCAgICAgICAgICAg
-ICAgICAgICAgfCAgIDEzIAogYXJjaC9uZHMzMi9tbS9oaWdobWVtLmMgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgfCAgIDQ4IC0tCiBhcmNoL3BhcmlzYy9pbmNsdWRlL2FzbS9rbWFwX3R5
-cGVzLmggICAgICAgICAgICAgICAgICB8ICAgMTMgCiBhcmNoL3Bvd2VycGMvaW5jbHVkZS9hc20v
-a21hcF90eXBlcy5oICAgICAgICAgICAgICAgICB8ICAgMTMgCiBhcmNoL3Bvd2VycGMvbW0vaGln
-aG1lbS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgNjcgLS0tLQogYXJjaC9zaC9p
-bmNsdWRlL2FzbS9rbWFwX3R5cGVzLmggICAgICAgICAgICAgICAgICAgICAgfCAgIDE1IAogYXJj
-aC9zcGFyYy9pbmNsdWRlL2FzbS9rbWFwX3R5cGVzLmggICAgICAgICAgICAgICAgICAgfCAgIDEx
-IAogYXJjaC9zcGFyYy9tbS9oaWdobWVtLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-fCAgMTE1IC0tLS0tLS0KIGFyY2gvdW0vaW5jbHVkZS9hc20va21hcF90eXBlcy5oICAgICAgICAg
-ICAgICAgICAgICAgIHwgICAxMyAKIGFyY2gveDg2L2luY2x1ZGUvYXNtL2ttYXBfdHlwZXMuaCAg
-ICAgICAgICAgICAgICAgICAgIHwgICAxMyAKIGIvRG9jdW1lbnRhdGlvbi9kcml2ZXItYXBpL2lv
-LW1hcHBpbmcucnN0ICAgICAgICAgICAgIHwgICA5MiArKy0tLQogYi9hcmNoL2FyYy9LY29uZmln
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxIAogYi9hcmNoL2FyYy9p
-bmNsdWRlL2FzbS9oaWdobWVtLmggICAgICAgICAgICAgICAgICAgICAgfCAgIDI2ICsKIGIvYXJj
-aC9hcmMvbW0vaGlnaG1lbS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICA1NCAt
-LS0KIGIvYXJjaC9hcm0vS2NvbmZpZyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAgMSAKIGIvYXJjaC9hcm0vaW5jbHVkZS9hc20vZml4bWFwLmggICAgICAgICAgICAgICAg
-ICAgICAgIHwgICAgNCAKIGIvYXJjaC9hcm0vaW5jbHVkZS9hc20vaGlnaG1lbS5oICAgICAgICAg
-ICAgICAgICAgICAgIHwgICAzMyArLQogYi9hcmNoL2FybS9tbS9NYWtlZmlsZSAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgfCAgICAxIAogYi9hcmNoL2FybS9tbS9jYWNoZS1mZXJvY2Vv
-bi1sMi5jICAgICAgICAgICAgICAgICAgICAgfCAgICA2IAogYi9hcmNoL2FybS9tbS9jYWNoZS14
-c2MzbDIuYyAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICA0IAogYi9hcmNoL2Nza3kvS2Nv
-bmZpZyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxIAogYi9hcmNoL2Nz
-a3kvaW5jbHVkZS9hc20vZml4bWFwLmggICAgICAgICAgICAgICAgICAgICAgfCAgICA0IAogYi9h
-cmNoL2Nza3kvaW5jbHVkZS9hc20vaGlnaG1lbS5oICAgICAgICAgICAgICAgICAgICAgfCAgICA2
-IAogYi9hcmNoL2Nza3kvbW0vaGlnaG1lbS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-fCAgIDc1IC0tLS0KIGIvYXJjaC9taWNyb2JsYXplL0tjb25maWcgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgIHwgICAgMSAKIGIvYXJjaC9taWNyb2JsYXplL2luY2x1ZGUvYXNtL2ZpeG1hcC5o
-ICAgICAgICAgICAgICAgIHwgICAgNCAKIGIvYXJjaC9taWNyb2JsYXplL2luY2x1ZGUvYXNtL2hp
-Z2htZW0uaCAgICAgICAgICAgICAgIHwgICAgNiAKIGIvYXJjaC9taWNyb2JsYXplL21tL01ha2Vm
-aWxlICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMSAKIGIvYXJjaC9taWNyb2JsYXplL21t
-L2luaXQuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgNiAKIGIvYXJjaC9taXBzL0tj
-b25maWcgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMSAKIGIvYXJjaC9t
-aXBzL2luY2x1ZGUvYXNtL2ZpeG1hcC5oICAgICAgICAgICAgICAgICAgICAgIHwgICAgNCAKIGIv
-YXJjaC9taXBzL2luY2x1ZGUvYXNtL2hpZ2htZW0uaCAgICAgICAgICAgICAgICAgICAgIHwgICAg
-NiAKIGIvYXJjaC9taXBzL2tlcm5lbC9jcmFzaF9kdW1wLmMgICAgICAgICAgICAgICAgICAgICAg
-IHwgICA0MiAtLQogYi9hcmNoL21pcHMvbW0vaGlnaG1lbS5jICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgfCAgIDc3IC0tLS0KIGIvYXJjaC9taXBzL21tL2luaXQuYyAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHwgICAgNCAKIGIvYXJjaC9uZHMzMi9LY29uZmlnLmNwdSAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMSAKIGIvYXJjaC9uZHMzMi9pbmNsdWRlL2Fz
-bS9maXhtYXAuaCAgICAgICAgICAgICAgICAgICAgIHwgICAgNCAKIGIvYXJjaC9uZHMzMi9pbmNs
-dWRlL2FzbS9oaWdobWVtLmggICAgICAgICAgICAgICAgICAgIHwgICAyMiAtCiBiL2FyY2gvbmRz
-MzIvbW0vTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgCiBiL2Fy
-Y2gvb3BlbnJpc2MvbW0vaW5pdC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEg
-CiBiL2FyY2gvb3BlbnJpc2MvbW0vaW9yZW1hcC5jICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgIDEgCiBiL2FyY2gvcG93ZXJwYy9LY29uZmlnICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB8ICAgIDEgCiBiL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2FzbS9maXhtYXAuaCAgICAgICAg
-ICAgICAgICAgICB8ICAgIDQgCiBiL2FyY2gvcG93ZXJwYy9pbmNsdWRlL2FzbS9oaWdobWVtLmgg
-ICAgICAgICAgICAgICAgICB8ICAgIDcgCiBiL2FyY2gvcG93ZXJwYy9tbS9NYWtlZmlsZSAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgCiBiL2FyY2gvcG93ZXJwYy9tbS9tZW0uYyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDcgCiBiL2FyY2gvc2gvaW5jbHVkZS9h
-c20vZml4bWFwLmggICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDggCiBiL2FyY2gvc2gvbW0v
-aW5pdC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDggCiBiL2FyY2gv
-c3BhcmMvS2NvbmZpZyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDEgCiBi
-L2FyY2gvc3BhcmMvaW5jbHVkZS9hc20vaGlnaG1lbS5oICAgICAgICAgICAgICAgICAgICB8ICAg
-IDggCiBiL2FyY2gvc3BhcmMvaW5jbHVkZS9hc20vdmFkZHJzLmggICAgICAgICAgICAgICAgICAg
-ICB8ICAgIDQgCiBiL2FyY2gvc3BhcmMvbW0vTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAgIDMgCiBiL2FyY2gvc3BhcmMvbW0vc3JtbXUuYyAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICB8ICAgIDIgCiBiL2FyY2gvdW0vaW5jbHVkZS9hc20vZml4bWFwLmggICAg
-ICAgICAgICAgICAgICAgICAgICB8ICAgIDEgCiBiL2FyY2gveDg2L0tjb25maWcgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDMgCiBiL2FyY2gveDg2L2luY2x1ZGUvYXNt
-L2ZpeG1hcC5oICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDUgCiBiL2FyY2gveDg2L2luY2x1
-ZGUvYXNtL2hpZ2htZW0uaCAgICAgICAgICAgICAgICAgICAgICB8ICAgMTMgCiBiL2FyY2gveDg2
-L2luY2x1ZGUvYXNtL2lvbWFwLmggICAgICAgICAgICAgICAgICAgICAgICB8ICAgMTMgCiBiL2Fy
-Y2gveDg2L2luY2x1ZGUvYXNtL3BhcmF2aXJ0X3R5cGVzLmggICAgICAgICAgICAgICB8ICAgIDEg
-CiBiL2FyY2gveDg2L2tlcm5lbC9jcmFzaF9kdW1wXzMyLmMgICAgICAgICAgICAgICAgICAgICB8
-ICAgNDggLS0KIGIvYXJjaC94ODYvbW0vaGlnaG1lbV8zMi5jICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHwgICA1OSAtLS0KIGIvYXJjaC94ODYvbW0vaW5pdF8zMi5jICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIHwgICAxNSAKIGIvYXJjaC94ODYvbW0vaW9tYXBfMzIuYyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIHwgICA1NyAtLS0KIGIvYXJjaC94dGVuc2EvS2NvbmZpZyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMSAKIGIvYXJjaC94dGVuc2EvaW5j
-bHVkZS9hc20vZml4bWFwLmggICAgICAgICAgICAgICAgICAgIHwgICAgNCAKIGIvYXJjaC94dGVu
-c2EvaW5jbHVkZS9hc20vaGlnaG1lbS5oICAgICAgICAgICAgICAgICAgIHwgICAxMiAKIGIvYXJj
-aC94dGVuc2EvbW0vaGlnaG1lbS5jICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICA0NiAt
-LQogYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9nZW0vaTkxNV9nZW1fZXhlY2J1ZmZlci5jICAgICAg
-fCAgICA3IAogYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jICAgICAgICAgICAgICAg
-ICAgICAgfCAgIDQwIC0tCiBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L3NlbGZ0ZXN0cy9pOTE1X2dl
-bS5jICAgICAgICAgICB8ICAgIDQgCiBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L3NlbGZ0ZXN0cy9p
-OTE1X2dlbV9ndHQuYyAgICAgICB8ICAgIDggCiBiL2RyaXZlcnMvZ3B1L2RybS9ub3V2ZWF1L252
-a20vc3ViZGV2L2RldmluaXQvZmJtZW0uaCB8ICAgIDggCiBiL2RyaXZlcnMvZ3B1L2RybS9xeGwv
-cXhsX2ltYWdlLmMgICAgICAgICAgICAgICAgICAgICB8ICAgMTggLQogYi9kcml2ZXJzL2dwdS9k
-cm0vcXhsL3F4bF9pb2N0bC5jICAgICAgICAgICAgICAgICAgICAgfCAgIDI3IC0KIGIvZHJpdmVy
-cy9ncHUvZHJtL3F4bC9xeGxfb2JqZWN0LmMgICAgICAgICAgICAgICAgICAgIHwgICAxMiAKIGIv
-ZHJpdmVycy9ncHUvZHJtL3F4bC9xeGxfb2JqZWN0LmggICAgICAgICAgICAgICAgICAgIHwgICAg
-NCAKIGIvZHJpdmVycy9ncHUvZHJtL3F4bC9xeGxfcmVsZWFzZS5jICAgICAgICAgICAgICAgICAg
-IHwgICAgNCAKIGIvZHJpdmVycy9ncHUvZHJtL3R0bS90dG1fYm9fdXRpbC5jICAgICAgICAgICAg
-ICAgICAgIHwgICAyMCAtCiBiL2RyaXZlcnMvZ3B1L2RybS92bXdnZngvdm13Z2Z4X2JsaXQuYyAg
-ICAgICAgICAgICAgICB8ICAgMzAgLQogYi9mcy9haW8uYyAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgfCAgICAxIAogYi9mcy9idHJmcy9jdHJlZS5oICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxIAogYi9pbmNsdWRlL2FzbS1nZW5lcmlj
-L0tidWlsZCAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAyIAogYi9pbmNsdWRlL2FzbS1n
-ZW5lcmljL2ttYXBfc2l6ZS5oICAgICAgICAgICAgICAgICAgICAgfCAgIDEyIAogYi9pbmNsdWRl
-L2xpbnV4L2hpZ2htZW0taW50ZXJuYWwuaCAgICAgICAgICAgICAgICAgICAgfCAgMjEwICsrKysr
-KysrKysrKwogYi9pbmNsdWRlL2xpbnV4L2hpZ2htZW0uaCAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgfCAgMjk0ICsrKysrKy0tLS0tLS0tLS0tLQogYi9pbmNsdWRlL2xpbnV4L2lvLW1hcHBp
-bmcuaCAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgIDI4IC0KIGIvaW5jbHVkZS9saW51eC9r
-ZXJuZWwuaCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAyMSAtCiBiL2luY2x1ZGUv
-bGludXgvcHJlZW1wdC5oICAgICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgMzggLS0KIGIv
-aW5jbHVkZS9saW51eC9zY2hlZC5oICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAx
-MSAKIGIva2VybmVsL2VudHJ5L2NvbW1vbi5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHwgICAgMiAKIGIva2VybmVsL2ZvcmsuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgIHwgICAgMSAKIGIva2VybmVsL3NjaGVkL2NvcmUuYyAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgIHwgICA2MyArKysKIGIva2VybmVsL3NjaGVkL3NjaGVkLmggICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIHwgICAgNCAKIGIvbGliL3NtcF9wcm9jZXNzb3JfaWQuYyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMiAKIGIvbW0vS2NvbmZpZyAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgMyAKIGIvbW0vaGlnaG1lbS5j
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDI1NSArKysrKysrKysr
-KysrKy0KIGluY2x1ZGUvYXNtLWdlbmVyaWMva21hcF90eXBlcy5oICAgICAgICAgICAgICAgICAg
-ICAgIHwgICAxMSAKIDEwMyBmaWxlcyBjaGFuZ2VkLCA5NTkgaW5zZXJ0aW9ucygrKSwgMTU3NiBk
-ZWxldGlvbnMoLSkK
+From: Mike Rapoport <rppt@linux.ibm.com>
+
+The design of DEBUG_PAGEALLOC presumes that __kernel_map_pages() must never
+fail. With this assumption is wouldn't be safe to allow general usage of
+this function.
+
+Moreover, some architectures that implement __kernel_map_pages() have this
+function guarded by #ifdef DEBUG_PAGEALLOC and some refuse to map/unmap
+pages when page allocation debugging is disabled at runtime.
+
+As all the users of __kernel_map_pages() were converted to use
+debug_pagealloc_map_pages() it is safe to make it available only when
+DEBUG_PAGEALLOC is set.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+---
+ arch/Kconfig                     |  3 +++
+ arch/arm64/Kconfig               |  4 +---
+ arch/arm64/mm/pageattr.c         |  8 ++++++--
+ arch/powerpc/Kconfig             |  5 +----
+ arch/riscv/Kconfig               |  4 +---
+ arch/riscv/include/asm/pgtable.h |  2 --
+ arch/riscv/mm/pageattr.c         |  2 ++
+ arch/s390/Kconfig                |  4 +---
+ arch/sparc/Kconfig               |  4 +---
+ arch/x86/Kconfig                 |  4 +---
+ arch/x86/mm/pat/set_memory.c     |  2 ++
+ include/linux/mm.h               | 10 +++++++---
+ 12 files changed, 26 insertions(+), 26 deletions(-)
+
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 56b6ccc0e32d..56d4752b6db6 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -1028,6 +1028,9 @@ config HAVE_STATIC_CALL_INLINE
+ 	bool
+ 	depends on HAVE_STATIC_CALL
+ 
++config ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	bool
++
+ source "kernel/gcov/Kconfig"
+ 
+ source "scripts/gcc-plugins/Kconfig"
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 1d466addb078..a932810cfd90 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -71,6 +71,7 @@ config ARM64
+ 	select ARCH_USE_QUEUED_RWLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS
+ 	select ARCH_USE_SYM_ANNOTATIONS
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_MEMORY_FAILURE
+ 	select ARCH_SUPPORTS_SHADOW_CALL_STACK if CC_HAVE_SHADOW_CALL_STACK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+@@ -1025,9 +1026,6 @@ config HOLES_IN_ZONE
+ 
+ source "kernel/Kconfig.hz"
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config ARCH_SPARSEMEM_ENABLE
+ 	def_bool y
+ 	select SPARSEMEM_VMEMMAP_ENABLE
+diff --git a/arch/arm64/mm/pageattr.c b/arch/arm64/mm/pageattr.c
+index 1b94f5b82654..439325532be1 100644
+--- a/arch/arm64/mm/pageattr.c
++++ b/arch/arm64/mm/pageattr.c
+@@ -155,7 +155,7 @@ int set_direct_map_invalid_noflush(struct page *page)
+ 		.clear_mask = __pgprot(PTE_VALID),
+ 	};
+ 
+-	if (!rodata_full)
++	if (!debug_pagealloc_enabled() && !rodata_full)
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -170,7 +170,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 		.clear_mask = __pgprot(PTE_RDONLY),
+ 	};
+ 
+-	if (!rodata_full)
++	if (!debug_pagealloc_enabled() && !rodata_full)
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -178,6 +178,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 				   PAGE_SIZE, change_page_range, &data);
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (!debug_pagealloc_enabled() && !rodata_full)
+@@ -186,6 +187,7 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
+ }
+ 
++#ifdef CONFIG_HIBERNATION
+ /*
+  * This function is used to determine if a linear map page has been marked as
+  * not-valid. Walk the page table and check the PTE_VALID bit. This is based
+@@ -232,3 +234,5 @@ bool kernel_page_present(struct page *page)
+ 	ptep = pte_offset_kernel(pmdp, addr);
+ 	return pte_valid(READ_ONCE(*ptep));
+ }
++#endif /* CONFIG_HIBERNATION */
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index e9f13fe08492..ad8a83f3ddca 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -146,6 +146,7 @@ config PPC
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_OPTIONAL_KERNEL_RWX		if ARCH_HAS_STRICT_KERNEL_RWX
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC	if PPC32 || PPC_BOOK3S_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+ 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+@@ -355,10 +356,6 @@ config PPC_OF_PLATFORM_PCI
+ 	depends on PCI
+ 	depends on PPC64 # not supported on 32 bits yet
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	depends on PPC32 || PPC_BOOK3S_64
+-	def_bool y
+-
+ config ARCH_SUPPORTS_UPROBES
+ 	def_bool y
+ 
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 44377fd7860e..9283c6f9ae2a 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -14,6 +14,7 @@ config RISCV
+ 	def_bool y
+ 	select ARCH_CLOCKSOURCE_INIT
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC if MMU
+ 	select ARCH_HAS_BINFMT_FLAT
+ 	select ARCH_HAS_DEBUG_VM_PGTABLE
+ 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
+@@ -153,9 +154,6 @@ config ARCH_SELECT_MEMORY_MODEL
+ config ARCH_WANT_GENERAL_HUGETLB
+ 	def_bool y
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config SYS_SUPPORTS_HUGETLBFS
+ 	depends on MMU
+ 	def_bool y
+diff --git a/arch/riscv/include/asm/pgtable.h b/arch/riscv/include/asm/pgtable.h
+index 183f1f4b2ae6..41a72861987c 100644
+--- a/arch/riscv/include/asm/pgtable.h
++++ b/arch/riscv/include/asm/pgtable.h
+@@ -461,8 +461,6 @@ static inline int ptep_clear_flush_young(struct vm_area_struct *vma,
+ #define VMALLOC_START		0
+ #define VMALLOC_END		TASK_SIZE
+ 
+-static inline void __kernel_map_pages(struct page *page, int numpages, int enable) {}
+-
+ #endif /* !CONFIG_MMU */
+ 
+ #define kern_addr_valid(addr)   (1) /* FIXME */
+diff --git a/arch/riscv/mm/pageattr.c b/arch/riscv/mm/pageattr.c
+index 19fecb362d81..321b09d2e2ea 100644
+--- a/arch/riscv/mm/pageattr.c
++++ b/arch/riscv/mm/pageattr.c
+@@ -184,6 +184,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (!debug_pagealloc_enabled())
+@@ -196,3 +197,4 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 		__set_memory((unsigned long)page_address(page), numpages,
+ 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+ }
++#endif
+diff --git a/arch/s390/Kconfig b/arch/s390/Kconfig
+index 4a2a12be04c9..991a850a6c0b 100644
+--- a/arch/s390/Kconfig
++++ b/arch/s390/Kconfig
+@@ -35,9 +35,6 @@ config GENERIC_LOCKBREAK
+ config PGSTE
+ 	def_bool y if KVM
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config AUDIT_ARCH
+ 	def_bool y
+ 
+@@ -106,6 +103,7 @@ config S390
+ 	select ARCH_INLINE_WRITE_UNLOCK_IRQRESTORE
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a6ca135442f9..2c729b8d097a 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -88,6 +88,7 @@ config SPARC64
+ 	select HAVE_C_RECORDMCOUNT
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select HAVE_NMI
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select ARCH_USE_QUEUED_RWLOCKS
+@@ -148,9 +149,6 @@ config GENERIC_ISA_DMA
+ 	bool
+ 	default y if SPARC32
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y if SPARC64
+-
+ config PGTABLE_LEVELS
+ 	default 4 if 64BIT
+ 	default 3
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index f6946b81f74a..0db3fb1da70c 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -91,6 +91,7 @@ config X86
+ 	select ARCH_STACKWALK
+ 	select ARCH_SUPPORTS_ACPI
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
+ 	select ARCH_USE_QUEUED_RWLOCKS
+@@ -329,9 +330,6 @@ config ZONE_DMA32
+ config AUDIT_ARCH
+ 	def_bool y if X86_64
+ 
+-config ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	def_bool y
+-
+ config KASAN_SHADOW_OFFSET
+ 	hex
+ 	depends on KASAN
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index 40baa90e74f4..bc9be96b777f 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -2194,6 +2194,7 @@ int set_direct_map_default_noflush(struct page *page)
+ 	return __set_pages_p(page, 1);
+ }
+ 
++#ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+ 	if (PageHighMem(page))
+@@ -2239,6 +2240,7 @@ bool kernel_page_present(struct page *page)
+ 	return (pte_val(*pte) & _PAGE_PRESENT);
+ }
+ #endif /* CONFIG_HIBERNATION */
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+ int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
+ 				   unsigned numpages, unsigned long page_flags)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index e198b938f5c5..260113ba660a 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2924,7 +2924,11 @@ static inline bool debug_pagealloc_enabled_static(void)
+ 	return static_branch_unlikely(&_debug_pagealloc_enabled);
+ }
+ 
+-#if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
++#ifdef CONFIG_DEBUG_PAGEALLOC
++/*
++ * To support DEBUG_PAGEALLOC architecture must ensure that
++ * __kernel_map_pages() never fails
++ */
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+ 
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
+@@ -2942,13 +2946,13 @@ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages)
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+-#else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#else	/* CONFIG_DEBUG_PAGEALLOC */
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
+ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif	/* CONFIG_HIBERNATION */
+-#endif	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++#endif	/* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef __HAVE_ARCH_GATE_AREA
+ extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
+-- 
+2.28.0
