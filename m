@@ -1,50 +1,131 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:33 +0000
-Subject: [patch V3 21/37] Documentation/io-mapping: Remove outdated blurb
-Message-Id: <20201103095858.734064977@linutronix.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Mon, 09 Nov 2020 19:21:26 +0000
+Subject: [PATCH v7 2/4] PM: hibernate: make direct map manipulations more explicit
+Message-Id: <20201109192128.960-3-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
+References: <20201109192128.960-1-rppt@kernel.org>
+In-Reply-To: <20201109192128.960-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-The implementation details in the documentation are outdated and not really
-helpful. Remove them.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
+not present in the direct map and has to be explicitly mapped before it
+could be copied.
+
+Introduce hibernate_map_page() and hibernation_unmap_page() that will
+explicitly use set_direct_map_{default,invalid}_noflush() for
+ARCH_HAS_SET_DIRECT_MAP case and debug_pagealloc_{map,unmap}_pages() for
+DEBUG_PAGEALLOC case.
+
+The remapping of the pages in safe_copy_page() presumes that it only
+changes protection bits in an existing PTE and so it is safe to ignore
+return value of set_direct_map_{default,invalid}_noflush().
+
+Still, add a pr_warn() so that future changes in set_memory APIs will not
+silently break hibernation.
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 ---
-V3: New patch
----
- Documentation/driver-api/io-mapping.rst |   22 ----------------------
- 1 file changed, 22 deletions(-)
+ include/linux/mm.h      | 12 ------------
+ kernel/power/snapshot.c | 38 ++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 36 insertions(+), 14 deletions(-)
 
---- a/Documentation/driver-api/io-mapping.rst
-+++ b/Documentation/driver-api/io-mapping.rst
-@@ -73,25 +73,3 @@ for pages mapped with io_mapping_map_wc.
- At driver close time, the io_mapping object must be freed::
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index bb8c70178f4e..e198b938f5c5 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2927,16 +2927,6 @@ static inline bool debug_pagealloc_enabled_static(void)
+ #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
  
- 	void io_mapping_free(struct io_mapping *mapping)
+-/*
+- * When called in DEBUG_PAGEALLOC context, the call should most likely be
+- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
+- */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable)
+-{
+-	__kernel_map_pages(page, numpages, enable);
+-}
 -
--Current Implementation
--===========
--
--The initial implementation of these functions uses existing mapping
--mechanisms and so provides only an abstraction layer and no new
--functionality.
--
--On 64-bit processors, io_mapping_create_wc calls ioremap_wc for the whole
--range, creating a permanent kernel-visible mapping to the resource. The
--map_atomic and map functions add the requested offset to the base of the
--virtual address returned by ioremap_wc.
--
--On 32-bit processors with HIGHMEM defined, io_mapping_map_atomic_wc uses
--kmap_atomic_pfn to map the specified page in an atomic fashion;
--kmap_atomic_pfn isn't really supposed to be used with device pages, but it
--provides an efficient mapping for this usage.
--
--On 32-bit processors without HIGHMEM defined, io_mapping_map_atomic_wc and
--io_mapping_map_wc both use ioremap_wc, a terribly inefficient function which
--performs an IPI to inform all processors about the new mapping. This results
--in a significant performance penalty.
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
+ {
+ 	if (debug_pagealloc_enabled_static())
+@@ -2953,8 +2943,6 @@ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages)
+ extern bool kernel_page_present(struct page *page);
+ #endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+-static inline void
+-kernel_map_pages(struct page *page, int numpages, int enable) {}
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
+ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
+ #ifdef CONFIG_HIBERNATION
+diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
+index 46b1804c1ddf..d848377dd8dc 100644
+--- a/kernel/power/snapshot.c
++++ b/kernel/power/snapshot.c
+@@ -76,6 +76,40 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
+ static inline void hibernate_restore_unprotect_page(void *page_address) {}
+ #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ 
++
++/*
++ * The calls to set_direct_map_*() should not fail because remapping a page
++ * here means that we only update protection bits in an existing PTE.
++ * It is still worth to have a warning here if something changes and this
++ * will no longer be the case.
++ */
++static inline void hibernate_map_page(struct page *page)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		int ret = set_direct_map_default_noflush(page);
++
++		if (ret)
++			pr_warn_once("Failed to remap page\n");
++	} else {
++		debug_pagealloc_map_pages(page, 1);
++	}
++}
++
++static inline void hibernate_unmap_page(struct page *page)
++{
++	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
++		unsigned long addr = (unsigned long)page_address(page);
++		int ret  = set_direct_map_invalid_noflush(page);
++
++		if (ret)
++			pr_warn_once("Failed to remap page\n");
++
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	} else {
++		debug_pagealloc_unmap_pages(page, 1);
++	}
++}
++
+ static int swsusp_page_is_free(struct page *);
+ static void swsusp_set_page_forbidden(struct page *);
+ static void swsusp_unset_page_forbidden(struct page *);
+@@ -1355,9 +1389,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
+ 	if (kernel_page_present(s_page)) {
+ 		do_copy_page(dst, page_address(s_page));
+ 	} else {
+-		kernel_map_pages(s_page, 1, 1);
++		hibernate_map_page(s_page);
+ 		do_copy_page(dst, page_address(s_page));
+-		kernel_map_pages(s_page, 1, 0);
++		hibernate_unmap_page(s_page);
+ 	}
+ }
+ 
+-- 
+2.28.0
