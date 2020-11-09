@@ -1,101 +1,193 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:39 +0000
-Subject: [patch V3 27/37] x86/crashdump/32: Simplify copy_oldmem_page()
-Message-Id: <20201103095859.335366302@linutronix.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Mon, 09 Nov 2020 16:24:15 +0000
+Subject: [PATCH v6 4/4] arch, mm: make kernel_page_present() always available
+Message-Id: <20201109162415.13764-5-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
+References: <20201109162415.13764-1-rppt@kernel.org>
+In-Reply-To: <20201109162415.13764-1-rppt@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-Replace kmap_atomic_pfn() with kmap_local_pfn() which is preemptible and
-can take page faults.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-Remove the indirection of the dump page and the related cruft which is not
-longer required.
+For architectures that enable ARCH_HAS_SET_MEMORY having the ability to
+verify that a page is mapped in the kernel direct map can be useful
+regardless of hibernation.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Add RISC-V implementation of kernel_page_present(), update its forward
+declarations and stubs to be a part of set_memory API and remove ugly
+ifdefery in inlcude/linux/mm.h around current declarations of
+kernel_page_present().
+
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 ---
-V3: New patch
----
- arch/x86/kernel/crash_dump_32.c |   48 ++++++++--------------------------------
- 1 file changed, 10 insertions(+), 38 deletions(-)
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/arm64/mm/pageattr.c            |  4 +---
+ arch/riscv/include/asm/set_memory.h |  1 +
+ arch/riscv/mm/pageattr.c            | 29 +++++++++++++++++++++++++++++
+ arch/x86/include/asm/set_memory.h   |  1 +
+ arch/x86/mm/pat/set_memory.c        |  4 +---
+ include/linux/mm.h                  |  7 -------
+ include/linux/set_memory.h          |  5 +++++
+ 8 files changed, 39 insertions(+), 13 deletions(-)
 
---- a/arch/x86/kernel/crash_dump_32.c
-+++ b/arch/x86/kernel/crash_dump_32.c
-@@ -13,8 +13,6 @@
+diff --git a/arch/arm64/include/asm/cacheflush.h b/arch/arm64/include/asm/cacheflush.h
+index 9384fd8fc13c..45217f21f1fe 100644
+--- a/arch/arm64/include/asm/cacheflush.h
++++ b/arch/arm64/include/asm/cacheflush.h
+@@ -140,6 +140,7 @@ int set_memory_valid(unsigned long addr, int numpages, int enable);
  
- #include <linux/uaccess.h>
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
  
--static void *kdump_buf_page;
--
- static inline bool is_crashed_pfn_valid(unsigned long pfn)
- {
- #ifndef CONFIG_X86_PAE
-@@ -41,15 +39,11 @@ static inline bool is_crashed_pfn_valid(
-  * @userbuf: if set, @buf is in user address space, use copy_to_user(),
-  *	otherwise @buf is in kernel address space, use memcpy().
-  *
-- * Copy a page from "oldmem". For this page, there is no pte mapped
-- * in the current kernel. We stitch up a pte, similar to kmap_atomic.
-- *
-- * Calling copy_to_user() in atomic context is not desirable. Hence first
-- * copying the data to a pre-allocated kernel page and then copying to user
-- * space in non-atomic context.
-+ * Copy a page from "oldmem". For this page, there might be no pte mapped
-+ * in the current kernel.
-  */
--ssize_t copy_oldmem_page(unsigned long pfn, char *buf,
--                               size_t csize, unsigned long offset, int userbuf)
-+ssize_t copy_oldmem_page(unsigned long pfn, char *buf, size_t csize,
-+			 unsigned long offset, int userbuf)
- {
- 	void  *vaddr;
+ #include <asm-generic/cacheflush.h>
  
-@@ -59,38 +53,16 @@ ssize_t copy_oldmem_page(unsigned long p
- 	if (!is_crashed_pfn_valid(pfn))
- 		return -EFAULT;
+diff --git a/arch/arm64/mm/pageattr.c b/arch/arm64/mm/pageattr.c
+index 439325532be1..92eccaf595c8 100644
+--- a/arch/arm64/mm/pageattr.c
++++ b/arch/arm64/mm/pageattr.c
+@@ -186,8 +186,8 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
  
--	vaddr = kmap_atomic_pfn(pfn);
-+	vaddr = kmap_local_pfn(pfn);
- 
- 	if (!userbuf) {
--		memcpy(buf, (vaddr + offset), csize);
--		kunmap_atomic(vaddr);
-+		memcpy(buf, vaddr + offset, csize);
- 	} else {
--		if (!kdump_buf_page) {
--			printk(KERN_WARNING "Kdump: Kdump buffer page not"
--				" allocated\n");
--			kunmap_atomic(vaddr);
--			return -EFAULT;
--		}
--		copy_page(kdump_buf_page, vaddr);
--		kunmap_atomic(vaddr);
--		if (copy_to_user(buf, (kdump_buf_page + offset), csize))
--			return -EFAULT;
-+		if (copy_to_user(buf, vaddr + offset, csize))
-+			csize = -EFAULT;
- 	}
- 
--	return csize;
--}
-+	kunmap_local(vaddr);
- 
--static int __init kdump_buf_page_init(void)
--{
--	int ret = 0;
--
--	kdump_buf_page = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if (!kdump_buf_page) {
--		printk(KERN_WARNING "Kdump: Failed to allocate kdump buffer"
--			 " page\n");
--		ret = -ENOMEM;
--	}
--
--	return ret;
-+	return csize;
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
  }
--arch_initcall(kdump_buf_page_init);
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+-#ifdef CONFIG_HIBERNATION
+ /*
+  * This function is used to determine if a linear map page has been marked as
+  * not-valid. Walk the page table and check the PTE_VALID bit. This is based
+@@ -234,5 +234,3 @@ bool kernel_page_present(struct page *page)
+ 	ptep = pte_offset_kernel(pmdp, addr);
+ 	return pte_valid(READ_ONCE(*ptep));
+ }
+-#endif /* CONFIG_HIBERNATION */
+-#endif /* CONFIG_DEBUG_PAGEALLOC */
+diff --git a/arch/riscv/include/asm/set_memory.h b/arch/riscv/include/asm/set_memory.h
+index 4c5bae7ca01c..d690b08dff2a 100644
+--- a/arch/riscv/include/asm/set_memory.h
++++ b/arch/riscv/include/asm/set_memory.h
+@@ -24,6 +24,7 @@ static inline int set_memory_nx(unsigned long addr, int numpages) { return 0; }
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
+ 
+ #endif /* __ASSEMBLY__ */
+ 
+diff --git a/arch/riscv/mm/pageattr.c b/arch/riscv/mm/pageattr.c
+index 321b09d2e2ea..87ba5a68bbb8 100644
+--- a/arch/riscv/mm/pageattr.c
++++ b/arch/riscv/mm/pageattr.c
+@@ -198,3 +198,32 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 			     __pgprot(0), __pgprot(_PAGE_PRESENT));
+ }
+ #endif
++
++bool kernel_page_present(struct page *page)
++{
++	unsigned long addr = (unsigned long)page_address(page);
++	pgd_t *pgd;
++	pud_t *pud;
++	p4d_t *p4d;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	pgd = pgd_offset_k(addr);
++	if (!pgd_present(*pgd))
++		return false;
++
++	p4d = p4d_offset(pgd, addr);
++	if (!p4d_present(*p4d))
++		return false;
++
++	pud = pud_offset(p4d, addr);
++	if (!pud_present(*pud))
++		return false;
++
++	pmd = pmd_offset(pud, addr);
++	if (!pmd_present(*pmd))
++		return false;
++
++	pte = pte_offset_kernel(pmd, addr);
++	return pte_present(*pte);
++}
+diff --git a/arch/x86/include/asm/set_memory.h b/arch/x86/include/asm/set_memory.h
+index 5948218f35c5..4352f08bfbb5 100644
+--- a/arch/x86/include/asm/set_memory.h
++++ b/arch/x86/include/asm/set_memory.h
+@@ -82,6 +82,7 @@ int set_pages_rw(struct page *page, int numpages);
+ 
+ int set_direct_map_invalid_noflush(struct page *page);
+ int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
+ 
+ extern int kernel_set_to_readonly;
+ 
+diff --git a/arch/x86/mm/pat/set_memory.c b/arch/x86/mm/pat/set_memory.c
+index bc9be96b777f..16f878c26667 100644
+--- a/arch/x86/mm/pat/set_memory.c
++++ b/arch/x86/mm/pat/set_memory.c
+@@ -2226,8 +2226,8 @@ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ 
+ 	arch_flush_lazy_mmu_mode();
+ }
++#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+-#ifdef CONFIG_HIBERNATION
+ bool kernel_page_present(struct page *page)
+ {
+ 	unsigned int level;
+@@ -2239,8 +2239,6 @@ bool kernel_page_present(struct page *page)
+ 	pte = lookup_address((unsigned long)page_address(page), &level);
+ 	return (pte_val(*pte) & _PAGE_PRESENT);
+ }
+-#endif /* CONFIG_HIBERNATION */
+-#endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+ int __init kernel_map_pages_in_pgd(pgd_t *pgd, u64 pfn, unsigned long address,
+ 				   unsigned numpages, unsigned long page_flags)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 260113ba660a..fe9a8d35a6eb 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -2942,16 +2942,9 @@ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages)
+ 	if (debug_pagealloc_enabled_static())
+ 		__kernel_map_pages(page, numpages, 0);
+ }
+-
+-#ifdef CONFIG_HIBERNATION
+-extern bool kernel_page_present(struct page *page);
+-#endif	/* CONFIG_HIBERNATION */
+ #else	/* CONFIG_DEBUG_PAGEALLOC */
+ static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
+ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
+-#ifdef CONFIG_HIBERNATION
+-static inline bool kernel_page_present(struct page *page) { return true; }
+-#endif	/* CONFIG_HIBERNATION */
+ #endif	/* CONFIG_DEBUG_PAGEALLOC */
+ 
+ #ifdef __HAVE_ARCH_GATE_AREA
+diff --git a/include/linux/set_memory.h b/include/linux/set_memory.h
+index 860e0f843c12..fe1aa4e54680 100644
+--- a/include/linux/set_memory.h
++++ b/include/linux/set_memory.h
+@@ -23,6 +23,11 @@ static inline int set_direct_map_default_noflush(struct page *page)
+ {
+ 	return 0;
+ }
++
++static inline bool kernel_page_present(struct page *page)
++{
++	return true;
++}
+ #endif
+ 
+ #ifndef set_mce_nospec
+-- 
+2.28.0
