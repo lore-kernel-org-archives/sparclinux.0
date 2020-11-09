@@ -1,282 +1,134 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:35 +0000
-Subject: [patch V3 23/37] sched: Make migrate_disable/enable() independent of RT
-Message-Id: <20201103095858.928160966@linutronix.de>
+From: Mike Rapoport <rppt@kernel.org>
+Date: Mon, 09 Nov 2020 19:21:24 +0000
+Subject: [PATCH v7 0/4] arch, mm: improve robustness of direct map manipulation
+Message-Id: <20201109192128.960-1-rppt@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Ingo Molnar <mingo@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Paul McKenney <paulmck@kernel.org>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Daniel Bristot de Oliveira <bristot@redhat.com>, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
+ Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
 
-Now that the scheduler can deal with migrate disable properly, there is no
-real compelling reason to make it only available for RT.
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-There are quite some code pathes which needlessly disable preemption in
-order to prevent migration and some constructs like kmap_atomic() enforce
-it implicitly.
+Hi,
 
-Making it available independent of RT allows to provide a preemptible
-variant of kmap_atomic() and makes the code more consistent in general.
+During recent discussion about KVM protected memory, David raised a concern
+about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
 
-FIXME: Rework the comment in preempt.h
+Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
+possible that __kernel_map_pages() would fail, but since this function is
+void, the failure will go unnoticed.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Dietmar Eggemann <dietmar.eggemann@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ben Segall <bsegall@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Daniel Bristot de Oliveira <bristot@redhat.com>
----
- include/linux/kernel.h  |   21 ++++++++++++++-------
- include/linux/preempt.h |   38 +++-----------------------------------
- include/linux/sched.h   |    2 +-
- kernel/sched/core.c     |   45 +++++++++++++++++++++++++++++++++++----------
- kernel/sched/sched.h    |    4 ++--
- lib/smp_processor_id.c  |    2 +-
- 6 files changed, 56 insertions(+), 56 deletions(-)
+Moreover, there's lack of consistency of __kernel_map_pages() semantics
+across architectures as some guard this function with
+#ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
+allocation debugging is disabled at run time and some allow modifying the
+direct map regardless of DEBUG_PAGEALLOC settings.
 
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -204,6 +204,7 @@ extern int _cond_resched(void);
- extern void ___might_sleep(const char *file, int line, int preempt_offset);
- extern void __might_sleep(const char *file, int line, int preempt_offset);
- extern void __cant_sleep(const char *file, int line, int preempt_offset);
-+extern void __cant_migrate(const char *file, int line);
- 
- /**
-  * might_sleep - annotation for functions that can sleep
-@@ -227,6 +228,18 @@ extern void __cant_sleep(const char *fil
- # define cant_sleep() \
- 	do { __cant_sleep(__FILE__, __LINE__, 0); } while (0)
- # define sched_annotate_sleep()	(current->task_state_change = 0)
-+
-+/**
-+ * cant_migrate - annotation for functions that cannot migrate
-+ *
-+ * Will print a stack trace if executed in code which is migratable
-+ */
-+# define cant_migrate()							\
-+	do {								\
-+		if (IS_ENABLED(CONFIG_SMP))				\
-+			__cant_migrate(__FILE__, __LINE__);		\
-+	} while (0)
-+
- /**
-  * non_block_start - annotate the start of section where sleeping is prohibited
-  *
-@@ -251,6 +264,7 @@ extern void __cant_sleep(const char *fil
- 				   int preempt_offset) { }
- # define might_sleep() do { might_resched(); } while (0)
- # define cant_sleep() do { } while (0)
-+# define cant_migrate()		do { } while (0)
- # define sched_annotate_sleep() do { } while (0)
- # define non_block_start() do { } while (0)
- # define non_block_end() do { } while (0)
-@@ -258,13 +272,6 @@ extern void __cant_sleep(const char *fil
- 
- #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
- 
--#ifndef CONFIG_PREEMPT_RT
--# define cant_migrate()		cant_sleep()
--#else
--  /* Placeholder for now */
--# define cant_migrate()		do { } while (0)
--#endif
--
- /**
-  * abs - return absolute value of an argument
-  * @x: the value.  If it is unsigned type, it is converted to signed type first.
---- a/include/linux/preempt.h
-+++ b/include/linux/preempt.h
-@@ -322,7 +322,7 @@ static inline void preempt_notifier_init
- 
- #endif
- 
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 
- /*
-  * Migrate-Disable and why it is undesired.
-@@ -382,43 +382,11 @@ static inline void preempt_notifier_init
- extern void migrate_disable(void);
- extern void migrate_enable(void);
- 
--#elif defined(CONFIG_PREEMPT_RT)
-+#else
- 
- static inline void migrate_disable(void) { }
- static inline void migrate_enable(void) { }
- 
--#else /* !CONFIG_PREEMPT_RT */
--
--/**
-- * migrate_disable - Prevent migration of the current task
-- *
-- * Maps to preempt_disable() which also disables preemption. Use
-- * migrate_disable() to annotate that the intent is to prevent migration,
-- * but not necessarily preemption.
-- *
-- * Can be invoked nested like preempt_disable() and needs the corresponding
-- * number of migrate_enable() invocations.
-- */
--static __always_inline void migrate_disable(void)
--{
--	preempt_disable();
--}
--
--/**
-- * migrate_enable - Allow migration of the current task
-- *
-- * Counterpart to migrate_disable().
-- *
-- * As migrate_disable() can be invoked nested, only the outermost invocation
-- * reenables migration.
-- *
-- * Currently mapped to preempt_enable().
-- */
--static __always_inline void migrate_enable(void)
--{
--	preempt_enable();
--}
--
--#endif /* CONFIG_SMP && CONFIG_PREEMPT_RT */
-+#endif /* CONFIG_SMP */
- 
- #endif /* __LINUX_PREEMPT_H */
---- a/include/linux/sched.h
-+++ b/include/linux/sched.h
-@@ -715,7 +715,7 @@ struct task_struct {
- 	const cpumask_t			*cpus_ptr;
- 	cpumask_t			cpus_mask;
- 	void				*migration_pending;
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 	unsigned short			migration_disabled;
- #endif
- 	unsigned short			migration_flags;
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -1696,8 +1696,6 @@ void check_preempt_curr(struct rq *rq, s
- 
- #ifdef CONFIG_SMP
- 
--#ifdef CONFIG_PREEMPT_RT
--
- static void
- __do_set_cpus_allowed(struct task_struct *p, const struct cpumask *new_mask, u32 flags);
- 
-@@ -1772,8 +1770,6 @@ static inline bool rq_has_pinned_tasks(s
- 	return rq->nr_pinned;
- }
- 
--#endif
--
- /*
-  * Per-CPU kthreads are allowed to run on !active && online CPUs, see
-  * __set_cpus_allowed_ptr() and select_fallback_rq().
-@@ -2841,7 +2837,7 @@ void sched_set_stop_task(int cpu, struct
- 	}
- }
- 
--#else
-+#else /* CONFIG_SMP */
- 
- static inline int __set_cpus_allowed_ptr(struct task_struct *p,
- 					 const struct cpumask *new_mask,
-@@ -2850,10 +2846,6 @@ static inline int __set_cpus_allowed_ptr
- 	return set_cpus_allowed_ptr(p, new_mask);
- }
- 
--#endif /* CONFIG_SMP */
--
--#if !defined(CONFIG_SMP) || !defined(CONFIG_PREEMPT_RT)
--
- static inline void migrate_disable_switch(struct rq *rq, struct task_struct *p) { }
- 
- static inline bool rq_has_pinned_tasks(struct rq *rq)
-@@ -2861,7 +2853,7 @@ static inline bool rq_has_pinned_tasks(s
- 	return false;
- }
- 
--#endif
-+#endif /* !CONFIG_SMP */
- 
- static void
- ttwu_stat(struct task_struct *p, int cpu, int wake_flags)
-@@ -7883,6 +7875,39 @@ void __cant_sleep(const char *file, int
- 	add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
- }
- EXPORT_SYMBOL_GPL(__cant_sleep);
-+
-+#ifdef CONFIG_SMP
-+void __cant_migrate(const char *file, int line)
-+{
-+	static unsigned long prev_jiffy;
-+
-+	if (irqs_disabled())
-+		return;
-+
-+	if (is_migration_disabled(current))
-+		return;
-+
-+	if (!IS_ENABLED(CONFIG_PREEMPT_COUNT))
-+		return;
-+
-+	if (preempt_count() > 0)
-+		return;
-+
-+	if (time_before(jiffies, prev_jiffy + HZ) && prev_jiffy)
-+		return;
-+	prev_jiffy = jiffies;
-+
-+	pr_err("BUG: assuming non migratable context at %s:%d\n", file, line);
-+	pr_err("in_atomic(): %d, irqs_disabled(): %d, migration_disabled() %u pid: %d, name: %s\n",
-+	       in_atomic(), irqs_disabled(), is_migration_disabled(current),
-+	       current->pid, current->comm);
-+
-+	debug_show_held_locks(current);
-+	dump_stack();
-+	add_taint(TAINT_WARN, LOCKDEP_STILL_OK);
-+}
-+EXPORT_SYMBOL_GPL(__cant_migrate);
-+#endif
- #endif
- 
- #ifdef CONFIG_MAGIC_SYSRQ
---- a/kernel/sched/sched.h
-+++ b/kernel/sched/sched.h
-@@ -1056,7 +1056,7 @@ struct rq {
- 	struct cpuidle_state	*idle_state;
- #endif
- 
--#if defined(CONFIG_PREEMPT_RT) && defined(CONFIG_SMP)
-+#ifdef CONFIG_SMP
- 	unsigned int		nr_pinned;
- #endif
- 	unsigned int		push_busy;
-@@ -1092,7 +1092,7 @@ static inline int cpu_of(struct rq *rq)
- 
- static inline bool is_migration_disabled(struct task_struct *p)
- {
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 	return p->migration_disabled;
- #else
- 	return false;
---- a/lib/smp_processor_id.c
-+++ b/lib/smp_processor_id.c
-@@ -26,7 +26,7 @@ unsigned int check_preemption_disabled(c
- 	if (current->nr_cpus_allowed = 1)
- 		goto out;
- 
--#if defined(CONFIG_SMP) && defined(CONFIG_PREEMPT_RT)
-+#ifdef CONFIG_SMP
- 	if (current->migration_disabled)
- 		goto out;
- #endif
+This set straightens this out by restoring dependency of
+__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
+accordingly. 
+
+Since currently the only user of __kernel_map_pages() outside
+DEBUG_PAGEALLOC is hibernation, it is updated to make direct map accesses
+there more explicit.
+
+[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
+
+v7 changes:
+* fix a rebase error that sneaked into v6 after removal of slab changes
+
+v6 changes:
+* revert slab changes to avoid redundant check of static key
+https://lore.kernel.org/lkml/20201109162415.13764-1-rppt@kernel.org
+
+v5 changes:
+* use pairs of _map()/_unmap() functions instead of _map(..., int enable) as
+  Vlastimil suggested
+https://lore.kernel.org/lkml/20201108065758.1815-1-rppt@kernel.org
+
+v4 changes:
+* s/WARN_ON/pr_warn_once/ per David and Kirill
+* rebase on v5.10-rc2
+* add Acked/Reviewed tags
+https://lore.kernel.org/lkml/20201103162057.22916-1-rppt@kernel.org
+
+v3 changes:
+* update arm64 changes to avoid regression, per Rick's comments
+* fix bisectability
+https://lore.kernel.org/lkml/20201101170815.9795-1-rppt@kernel.org
+
+v2 changes:
+* Rephrase patch 2 changelog to better describe the change intentions and
+implications
+* Move removal of kernel_map_pages() from patch 1 to patch 2, per David
+https://lore.kernel.org/lkml/20201029161902.19272-1-rppt@kernel.org
+
+v1:
+https://lore.kernel.org/lkml/20201025101555.3057-1-rppt@kernel.org
+
+Mike Rapoport (4):
+  mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
+  PM: hibernate: make direct map manipulations more explicit
+  arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
+  arch, mm: make kernel_page_present() always available
+
+ arch/Kconfig                        |  3 +++
+ arch/arm64/Kconfig                  |  4 +--
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/arm64/mm/pageattr.c            |  6 +++--
+ arch/powerpc/Kconfig                |  5 +---
+ arch/riscv/Kconfig                  |  4 +--
+ arch/riscv/include/asm/pgtable.h    |  2 --
+ arch/riscv/include/asm/set_memory.h |  1 +
+ arch/riscv/mm/pageattr.c            | 31 ++++++++++++++++++++++
+ arch/s390/Kconfig                   |  4 +--
+ arch/sparc/Kconfig                  |  4 +--
+ arch/x86/Kconfig                    |  4 +--
+ arch/x86/include/asm/set_memory.h   |  1 +
+ arch/x86/mm/pat/set_memory.c        |  4 +--
+ include/linux/mm.h                  | 40 ++++++++++++++---------------
+ include/linux/set_memory.h          |  5 ++++
+ kernel/power/snapshot.c             | 38 +++++++++++++++++++++++++--
+ mm/memory_hotplug.c                 |  3 +--
+ mm/page_alloc.c                     |  6 ++---
+ 19 files changed, 113 insertions(+), 53 deletions(-)
+
+-- 
+2.28.0
+
+*** BLURB HERE ***
+
+Mike Rapoport (4):
+  mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
+  PM: hibernate: make direct map manipulations more explicit
+  arch, mm: restore dependency of __kernel_map_pages() on
+    DEBUG_PAGEALLOC
+  arch, mm: make kernel_page_present() always available
+
+ arch/Kconfig                        |  3 +++
+ arch/arm64/Kconfig                  |  4 +--
+ arch/arm64/include/asm/cacheflush.h |  1 +
+ arch/arm64/mm/pageattr.c            |  6 +++--
+ arch/powerpc/Kconfig                |  5 +---
+ arch/riscv/Kconfig                  |  4 +--
+ arch/riscv/include/asm/pgtable.h    |  2 --
+ arch/riscv/include/asm/set_memory.h |  1 +
+ arch/riscv/mm/pageattr.c            | 31 ++++++++++++++++++++++
+ arch/s390/Kconfig                   |  4 +--
+ arch/sparc/Kconfig                  |  4 +--
+ arch/x86/Kconfig                    |  4 +--
+ arch/x86/include/asm/set_memory.h   |  1 +
+ arch/x86/mm/pat/set_memory.c        |  4 +--
+ include/linux/mm.h                  | 40 ++++++++++++++---------------
+ include/linux/set_memory.h          |  5 ++++
+ kernel/power/snapshot.c             | 38 +++++++++++++++++++++++++--
+ mm/memory_hotplug.c                 |  3 +--
+ mm/page_alloc.c                     |  6 ++---
+ mm/slab.c                           |  2 +-
+ 20 files changed, 114 insertions(+), 54 deletions(-)
+
+-- 
+2.28.0
