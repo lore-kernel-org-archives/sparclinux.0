@@ -1,258 +1,73 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:22 +0000
-Subject: [patch V3 10/37] ARM: highmem: Switch to generic kmap atomic
-Message-Id: <20201103095857.582196476@linutronix.de>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Thu, 12 Nov 2020 08:10:34 +0000
+Subject: Re: [patch V3 10/37] ARM: highmem: Switch to generic kmap atomic
+Message-Id: <c07bae0c-68dd-2693-948f-00e8a50f3053@samsung.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201103092712.714480842@linutronix.de>
+ <20201103095857.582196476@linutronix.de>
+ <CGME20201112081036eucas1p14e135a370d3bccab311727fd2e89f4df@eucas1p1.samsung.com>
+In-Reply-To: <20201103095857.582196476@linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+To: Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>
+Cc: linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, nouveau@lists.freedesktop.org, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, linux-mm@kvack.org, Huang Rui <ray.huang@amd.com>, sparclinux@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Paul McKenney <paulmck@kernel.org>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Mel Gorman <mgorman@suse.de>, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, Christian Koenig <christian.koenig@amd.com>, linux-btrfs@vger.kernel.org
 
-No reason having the same code in every architecture.
+Hi Thomas,
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org
----
-V3: Remove the kmap types cruft
----
- arch/arm/Kconfig                  |    1 
- arch/arm/include/asm/fixmap.h     |    4 -
- arch/arm/include/asm/highmem.h    |   33 +++++++---
- arch/arm/include/asm/kmap_types.h |   10 ---
- arch/arm/mm/Makefile              |    1 
- arch/arm/mm/highmem.c             |  121 --------------------------------------
- 6 files changed, 26 insertions(+), 144 deletions(-)
+On 03.11.2020 10:27, Thomas Gleixner wrote:
+> No reason having the same code in every architecture.
+>
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Russell King <linux@armlinux.org.uk>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: linux-arm-kernel@lists.infradead.org
 
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -1498,6 +1498,7 @@ config HAVE_ARCH_PFN_VALID
- config HIGHMEM
- 	bool "High Memory Support"
- 	depends on MMU
-+	select KMAP_LOCAL
- 	help
- 	  The address space of ARM processors is only 4 Gigabytes large
- 	  and it has to accommodate user address space, kernel address
---- a/arch/arm/include/asm/fixmap.h
-+++ b/arch/arm/include/asm/fixmap.h
-@@ -7,14 +7,14 @@
- #define FIXADDR_TOP		(FIXADDR_END - PAGE_SIZE)
- 
- #include <linux/pgtable.h>
--#include <asm/kmap_types.h>
-+#include <asm/kmap_size.h>
- 
- enum fixed_addresses {
- 	FIX_EARLYCON_MEM_BASE,
- 	__end_of_permanent_fixed_addresses,
- 
- 	FIX_KMAP_BEGIN = __end_of_permanent_fixed_addresses,
--	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_TYPE_NR * NR_CPUS) - 1,
-+	FIX_KMAP_END = FIX_KMAP_BEGIN + (KM_MAX_IDX * NR_CPUS) - 1,
- 
- 	/* Support writing RO kernel text via kprobes, jump labels, etc. */
- 	FIX_TEXT_POKE0,
---- a/arch/arm/include/asm/highmem.h
-+++ b/arch/arm/include/asm/highmem.h
-@@ -2,7 +2,7 @@
- #ifndef _ASM_HIGHMEM_H
- #define _ASM_HIGHMEM_H
- 
--#include <asm/kmap_types.h>
-+#include <asm/kmap_size.h>
- 
- #define PKMAP_BASE		(PAGE_OFFSET - PMD_SIZE)
- #define LAST_PKMAP		PTRS_PER_PTE
-@@ -46,19 +46,32 @@ extern pte_t *pkmap_page_table;
- 
- #ifdef ARCH_NEEDS_KMAP_HIGH_GET
- extern void *kmap_high_get(struct page *page);
--#else
-+
-+static inline void *arch_kmap_local_high_get(struct page *page)
-+{
-+	if (IS_ENABLED(CONFIG_DEBUG_HIGHMEM) && !cache_is_vivt())
-+		return NULL;
-+	return kmap_high_get(page);
-+}
-+#define arch_kmap_local_high_get arch_kmap_local_high_get
-+
-+#else /* ARCH_NEEDS_KMAP_HIGH_GET */
- static inline void *kmap_high_get(struct page *page)
- {
- 	return NULL;
- }
--#endif
-+#endif /* !ARCH_NEEDS_KMAP_HIGH_GET */
- 
--/*
-- * The following functions are already defined by <linux/highmem.h>
-- * when CONFIG_HIGHMEM is not set.
-- */
--#ifdef CONFIG_HIGHMEM
--extern void *kmap_atomic_pfn(unsigned long pfn);
--#endif
-+#define arch_kmap_local_post_map(vaddr, pteval)				\
-+	local_flush_tlb_kernel_page(vaddr)
-+
-+#define arch_kmap_local_pre_unmap(vaddr)				\
-+do {									\
-+	if (cache_is_vivt())						\
-+		__cpuc_flush_dcache_area((void *)vaddr, PAGE_SIZE);	\
-+} while (0)
-+
-+#define arch_kmap_local_post_unmap(vaddr)				\
-+	local_flush_tlb_kernel_page(vaddr)
- 
- #endif
---- a/arch/arm/include/asm/kmap_types.h
-+++ /dev/null
-@@ -1,10 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef __ARM_KMAP_TYPES_H
--#define __ARM_KMAP_TYPES_H
--
--/*
-- * This is the "bare minimum".  AIO seems to require this.
-- */
--#define KM_TYPE_NR 16
--
--#endif
---- a/arch/arm/mm/Makefile
-+++ b/arch/arm/mm/Makefile
-@@ -19,7 +19,6 @@ obj-$(CONFIG_MODULES)		+= proc-syms.o
- obj-$(CONFIG_DEBUG_VIRTUAL)	+= physaddr.o
- 
- obj-$(CONFIG_ALIGNMENT_TRAP)	+= alignment.o
--obj-$(CONFIG_HIGHMEM)		+= highmem.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
- obj-$(CONFIG_ARM_PV_FIXUP)	+= pv-fixup-asm.o
- 
---- a/arch/arm/mm/highmem.c
-+++ /dev/null
-@@ -1,121 +0,0 @@
--// SPDX-License-Identifier: GPL-2.0-only
--/*
-- * arch/arm/mm/highmem.c -- ARM highmem support
-- *
-- * Author:	Nicolas Pitre
-- * Created:	september 8, 2008
-- * Copyright:	Marvell Semiconductors Inc.
-- */
--
--#include <linux/module.h>
--#include <linux/highmem.h>
--#include <linux/interrupt.h>
--#include <asm/fixmap.h>
--#include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
--#include "mm.h"
--
--static inline void set_fixmap_pte(int idx, pte_t pte)
--{
--	unsigned long vaddr = __fix_to_virt(idx);
--	pte_t *ptep = virt_to_kpte(vaddr);
--
--	set_pte_ext(ptep, pte, 0);
--	local_flush_tlb_kernel_page(vaddr);
--}
--
--static inline pte_t get_fixmap_pte(unsigned long vaddr)
--{
--	pte_t *ptep = virt_to_kpte(vaddr);
--
--	return *ptep;
--}
--
--void *kmap_atomic_high_prot(struct page *page, pgprot_t prot)
--{
--	unsigned int idx;
--	unsigned long vaddr;
--	void *kmap;
--	int type;
--
--#ifdef CONFIG_DEBUG_HIGHMEM
--	/*
--	 * There is no cache coherency issue when non VIVT, so force the
--	 * dedicated kmap usage for better debugging purposes in that case.
--	 */
--	if (!cache_is_vivt())
--		kmap = NULL;
--	else
--#endif
--		kmap = kmap_high_get(page);
--	if (kmap)
--		return kmap;
--
--	type = kmap_atomic_idx_push();
--
--	idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
--	vaddr = __fix_to_virt(idx);
--#ifdef CONFIG_DEBUG_HIGHMEM
--	/*
--	 * With debugging enabled, kunmap_atomic forces that entry to 0.
--	 * Make sure it was indeed properly unmapped.
--	 */
--	BUG_ON(!pte_none(get_fixmap_pte(vaddr)));
--#endif
--	/*
--	 * When debugging is off, kunmap_atomic leaves the previous mapping
--	 * in place, so the contained TLB flush ensures the TLB is updated
--	 * with the new mapping.
--	 */
--	set_fixmap_pte(idx, mk_pte(page, prot));
--
--	return (void *)vaddr;
--}
--EXPORT_SYMBOL(kmap_atomic_high_prot);
--
--void kunmap_atomic_high(void *kvaddr)
--{
--	unsigned long vaddr = (unsigned long) kvaddr & PAGE_MASK;
--	int idx, type;
--
--	if (kvaddr >= (void *)FIXADDR_START) {
--		type = kmap_atomic_idx();
--		idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
--
--		if (cache_is_vivt())
--			__cpuc_flush_dcache_area((void *)vaddr, PAGE_SIZE);
--#ifdef CONFIG_DEBUG_HIGHMEM
--		BUG_ON(vaddr != __fix_to_virt(idx));
--		set_fixmap_pte(idx, __pte(0));
--#else
--		(void) idx;  /* to kill a warning */
--#endif
--		kmap_atomic_idx_pop();
--	} else if (vaddr >= PKMAP_ADDR(0) && vaddr < PKMAP_ADDR(LAST_PKMAP)) {
--		/* this address was obtained through kmap_high_get() */
--		kunmap_high(pte_page(pkmap_page_table[PKMAP_NR(vaddr)]));
--	}
--}
--EXPORT_SYMBOL(kunmap_atomic_high);
--
--void *kmap_atomic_pfn(unsigned long pfn)
--{
--	unsigned long vaddr;
--	int idx, type;
--	struct page *page = pfn_to_page(pfn);
--
--	preempt_disable();
--	pagefault_disable();
--	if (!PageHighMem(page))
--		return page_address(page);
--
--	type = kmap_atomic_idx_push();
--	idx = FIX_KMAP_BEGIN + type + KM_TYPE_NR * smp_processor_id();
--	vaddr = __fix_to_virt(idx);
--#ifdef CONFIG_DEBUG_HIGHMEM
--	BUG_ON(!pte_none(get_fixmap_pte(vaddr)));
--#endif
--	set_fixmap_pte(idx, pfn_pte(pfn, kmap_prot));
--
--	return (void *)vaddr;
--}
+This patch landed in linux-next 20201109 as commit 2a15ba82fa6c ("ARM: 
+highmem: Switch to generic kmap atomic"). However it causes a following 
+warning on my test boards (Samsung Exynos SoC based):
+
+Run /sbin/init as init process
+INIT: version 2.88 booting
+------------[ cut here ]------------
+WARNING: CPU: 3 PID: 120 at mm/highmem.c:502 
+kunmap_local_indexed+0x194/0x1d0
+Modules linked in:
+CPU: 3 PID: 120 Comm: init Not tainted 5.10.0-rc2-00010-g2a15ba82fa6c #1924
+Hardware name: Samsung Exynos (Flattened Device Tree)
+[<c0111514>] (unwind_backtrace) from [<c010ceb8>] (show_stack+0x10/0x14)
+[<c010ceb8>] (show_stack) from [<c0b1b408>] (dump_stack+0xb4/0xd4)
+[<c0b1b408>] (dump_stack) from [<c0126988>] (__warn+0x98/0x104)
+[<c0126988>] (__warn) from [<c0126aa4>] (warn_slowpath_fmt+0xb0/0xb8)
+[<c0126aa4>] (warn_slowpath_fmt) from [<c028e22c>] 
+(kunmap_local_indexed+0x194/0x1d0)
+[<c028e22c>] (kunmap_local_indexed) from [<c02d37f4>] 
+(remove_arg_zero+0xa0/0x158)
+[<c02d37f4>] (remove_arg_zero) from [<c034cfc8>] (load_script+0x250/0x318)
+[<c034cfc8>] (load_script) from [<c02d2f7c>] (bprm_execve+0x3d0/0x930)
+[<c02d2f7c>] (bprm_execve) from [<c02d3dc8>] 
+(do_execveat_common+0x174/0x184)
+[<c02d3dc8>] (do_execveat_common) from [<c02d4cec>] (sys_execve+0x30/0x38)
+[<c02d4cec>] (sys_execve) from [<c0100060>] (ret_fast_syscall+0x0/0x28)
+Exception stack(0xc4561fa8 to 0xc4561ff0)
+1fa0:                   b6f2bab8 bef7dac4 bef7dac4 bef7d8fc 004b9b58 
+bef7dac8
+1fc0: b6f2bab8 bef7dac4 bef7d8fc 0000000b 004b8000 004bac44 bef7da3c 
+bef7d8dc
+1fe0: 0000002f bef7d89c b6d6dc74 b6d6d65c
+irq event stamp: 1283
+hardirqs last  enabled at (1293): [<c019f564>] console_unlock+0x430/0x6b0
+hardirqs last disabled at (1302): [<c019f55c>] console_unlock+0x428/0x6b0
+softirqs last  enabled at (1282): [<c0101768>] __do_softirq+0x528/0x674
+softirqs last disabled at (1269): [<c012fed4>] irq_exit+0x1dc/0x1e8
+---[ end trace 6f32a2fb4294655f ]---
+
+I can do more tests to help fixing this issue. Just let me know what to do.
+
+...
+
+Best regards
+
+-- 
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
