@@ -1,152 +1,47 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Thu, 05 Nov 2020 11:31:54 +0000
-Subject: Re: [PATCH v4 1/4] mm: introduce debug_pagealloc_map_pages() helper
-Message-Id: <20201105113154.GX4879@kernel.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Fri, 13 Nov 2020 11:19:03 +0000
+Subject: [PATCH 2/5] mm: Introduce pXX_leaf_size()
+Message-Id: <20201113113426.465239104@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103162057.22916-1-rppt@kernel.org>
- <20201103162057.22916-2-rppt@kernel.org>
- <971e9638-2395-daf4-d19e-fe3cf5d34b98@suse.cz>
-In-Reply-To: <971e9638-2395-daf4-d19e-fe3cf5d34b98@suse.cz>
+References: <20201113111901.743573013@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
+To: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com
+Cc: christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, peterz@infradead.org
 
-On Wed, Nov 04, 2020 at 06:35:50PM +0100, Vlastimil Babka wrote:
-> On 11/3/20 5:20 PM, Mike Rapoport wrote:
-> > From: Mike Rapoport <rppt@linux.ibm.com>
-> > 
-> > When CONFIG_DEBUG_PAGEALLOC is enabled, it unmaps pages from the kernel
-> > direct mapping after free_pages(). The pages than need to be mapped back
-> > before they could be used. Theese mapping operations use
-> > __kernel_map_pages() guarded with with debug_pagealloc_enabled().
-> > 
-> > The only place that calls __kernel_map_pages() without checking whether
-> > DEBUG_PAGEALLOC is enabled is the hibernation code that presumes
-> > availability of this function when ARCH_HAS_SET_DIRECT_MAP is set.
-> > Still, on arm64, __kernel_map_pages() will bail out when DEBUG_PAGEALLOC is
-> > not enabled but set_direct_map_invalid_noflush() may render some pages not
-> > present in the direct map and hibernation code won't be able to save such
-> > pages.
-> > 
-> > To make page allocation debugging and hibernation interaction more robust,
-> > the dependency on DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP has to be made
-> > more explicit.
-> > 
-> > Start with combining the guard condition and the call to
-> > __kernel_map_pages() into a single debug_pagealloc_map_pages() function to
-> > emphasize that __kernel_map_pages() should not be called without
-> > DEBUG_PAGEALLOC and use this new function to map/unmap pages when page
-> > allocation debug is enabled.
-> > 
-> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > Reviewed-by: David Hildenbrand <david@redhat.com>
-> > Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-> 
-> Acked-by: Vlastimil Babka <vbabka@suse.cz>
-> 
-> But, the "enable" param is hideous. I would rather have map and unmap
-> variants (and just did the same split for page poisoning) and this seems to
-> be a good opportunity. If David didn't propose it already, I'm surprised ;)
+A number of architectures have non-pagetable aligned huge/large pages.
+For such architectures a leaf can actually be part of a larger TLB
+entry.
 
-I'm ok with map and unmap, and no, David didn't propose it already :)
+Provide generic helpers to determine the TLB size of a page-table
+leaf.
 
-> > ---
-> >   include/linux/mm.h  | 10 ++++++++++
-> >   mm/memory_hotplug.c |  3 +--
-> >   mm/page_alloc.c     |  6 ++----
-> >   mm/slab.c           |  8 +++-----
-> >   4 files changed, 16 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/include/linux/mm.h b/include/linux/mm.h
-> > index ef360fe70aaf..1fc0609056dc 100644
-> > --- a/include/linux/mm.h
-> > +++ b/include/linux/mm.h
-> > @@ -2936,12 +2936,22 @@ kernel_map_pages(struct page *page, int numpages, int enable)
-> >   {
-> >   	__kernel_map_pages(page, numpages, enable);
-> >   }
-> > +
-> > +static inline void debug_pagealloc_map_pages(struct page *page,
-> > +					     int numpages, int enable)
-> > +{
-> > +	if (debug_pagealloc_enabled_static())
-> > +		__kernel_map_pages(page, numpages, enable);
-> > +}
-> > +
-> >   #ifdef CONFIG_HIBERNATION
-> >   extern bool kernel_page_present(struct page *page);
-> >   #endif	/* CONFIG_HIBERNATION */
-> >   #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
-> >   static inline void
-> >   kernel_map_pages(struct page *page, int numpages, int enable) {}
-> > +static inline void debug_pagealloc_map_pages(struct page *page,
-> > +					     int numpages, int enable) {}
-> >   #ifdef CONFIG_HIBERNATION
-> >   static inline bool kernel_page_present(struct page *page) { return true; }
-> >   #endif	/* CONFIG_HIBERNATION */
-> > diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> > index b44d4c7ba73b..e2b6043a4428 100644
-> > --- a/mm/memory_hotplug.c
-> > +++ b/mm/memory_hotplug.c
-> > @@ -614,8 +614,7 @@ void generic_online_page(struct page *page, unsigned int order)
-> >   	 * so we should map it first. This is better than introducing a special
-> >   	 * case in page freeing fast path.
-> >   	 */
-> > -	if (debug_pagealloc_enabled_static())
-> > -		kernel_map_pages(page, 1 << order, 1);
-> > +	debug_pagealloc_map_pages(page, 1 << order, 1);
-> >   	__free_pages_core(page, order);
-> >   	totalram_pages_add(1UL << order);
-> >   #ifdef CONFIG_HIGHMEM
-> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> > index 23f5066bd4a5..9a66a1ff9193 100644
-> > --- a/mm/page_alloc.c
-> > +++ b/mm/page_alloc.c
-> > @@ -1272,8 +1272,7 @@ static __always_inline bool free_pages_prepare(struct page *page,
-> >   	 */
-> >   	arch_free_page(page, order);
-> > -	if (debug_pagealloc_enabled_static())
-> > -		kernel_map_pages(page, 1 << order, 0);
-> > +	debug_pagealloc_map_pages(page, 1 << order, 0);
-> >   	kasan_free_nondeferred_pages(page, order);
-> > @@ -2270,8 +2269,7 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
-> >   	set_page_refcounted(page);
-> >   	arch_alloc_page(page, order);
-> > -	if (debug_pagealloc_enabled_static())
-> > -		kernel_map_pages(page, 1 << order, 1);
-> > +	debug_pagealloc_map_pages(page, 1 << order, 1);
-> >   	kasan_alloc_pages(page, order);
-> >   	kernel_poison_pages(page, 1 << order, 1);
-> >   	set_page_owner(page, order, gfp_flags);
-> > diff --git a/mm/slab.c b/mm/slab.c
-> > index b1113561b98b..340db0ce74c4 100644
-> > --- a/mm/slab.c
-> > +++ b/mm/slab.c
-> > @@ -1431,10 +1431,8 @@ static bool is_debug_pagealloc_cache(struct kmem_cache *cachep)
-> >   #ifdef CONFIG_DEBUG_PAGEALLOC
-> >   static void slab_kernel_map(struct kmem_cache *cachep, void *objp, int map)
-> >   {
-> > -	if (!is_debug_pagealloc_cache(cachep))
-> > -		return;
-> > -
-> > -	kernel_map_pages(virt_to_page(objp), cachep->size / PAGE_SIZE, map);
-> > +	debug_pagealloc_map_pages(virt_to_page(objp),
-> > +				  cachep->size / PAGE_SIZE, map);
-> >   }
-> >   #else
-> > @@ -2062,7 +2060,7 @@ int __kmem_cache_create(struct kmem_cache *cachep, slab_flags_t flags)
-> >   #if DEBUG
-> >   	/*
-> > -	 * If we're going to use the generic kernel_map_pages()
-> > +	 * If we're going to use the generic debug_pagealloc_map_pages()
-> >   	 * poisoning, then it's going to smash the contents of
-> >   	 * the redzone and userword anyhow, so switch them off.
-> >   	 */
-> > 
-> 
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ include/linux/pgtable.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
--- 
-Sincerely yours,
-Mike.
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -1536,4 +1536,20 @@ typedef unsigned int pgtbl_mod_mask;
+ #define pmd_leaf(x)	0
+ #endif
+ 
++#ifndef pgd_leaf_size
++#define pgd_leaf_size(x) PGD_SIZE
++#endif
++#ifndef p4d_leaf_size
++#define p4d_leaf_size(x) P4D_SIZE
++#endif
++#ifndef pud_leaf_size
++#define pud_leaf_size(x) PUD_SIZE
++#endif
++#ifndef pmd_leaf_size
++#define pmd_leaf_size(x) PMD_SIZE
++#endif
++#ifndef pte_leaf_size
++#define pte_leaf_size(x) PAGE_SIZE
++#endif
++
+ #endif /* _LINUX_PGTABLE_H */
