@@ -1,8 +1,10 @@
 From: "Investment  Corporate" <financialcapability6@gmail.com>
-Date: Fri, 13 Nov 2020 10:32:17 +0000
+Date: Fri, 13 Nov 2020 16:09:21 +0000
 Subject: Corporate and Personal Loan::,
-Message-Id: <20201113113204.6D26991467E@mail.tigeramira.ro>
+Message-Id: <20201113170908.65A53999162@mail.tigeramira.ro>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201113113204.6D26991467E@mail.tigeramira.ro>
+In-Reply-To: <20201113113204.6D26991467E@mail.tigeramira.ro>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
