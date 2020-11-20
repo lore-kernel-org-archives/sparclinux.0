@@ -1,26 +1,103 @@
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Date: Tue, 03 Nov 2020 11:15:23 +0000
-Subject: Re: [PATCH v3 0/4] arch, mm: improve robustness of direct map manipulation
-Message-Id: <20201103111523.zt5q5ypnnccdlque@box>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Date: Fri, 20 Nov 2020 18:01:20 +0000
+Subject: Re: [PATCH] sparc64: Use arch_validate_flags() to validate ADI flag
+Message-Id: <20201120180119.GM24344@gaia>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201101170815.9795-1-rppt@kernel.org>
-In-Reply-To: <20201101170815.9795-1-rppt@kernel.org>
+References: <20201023175611.12819-1-khalid.aziz@oracle.com>
+In-Reply-To: <20201023175611.12819-1-khalid.aziz@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, Thomas Gleixner <tglx@linutronix.de>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, Andrew Morton <akpm@linux-foundation.org>, "Edgecombe, Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>
+To: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: jannh@google.com, hch@infradead.org, davem@davemloft.net, akpm@linux-foundation.org, anthony.yznaga@oracle.com, linux-mm@kvack.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-On Sun, Nov 01, 2020 at 07:08:11PM +0200, Mike Rapoport wrote:
-> Mike Rapoport (4):
->   mm: introduce debug_pagealloc_map_pages() helper
->   PM: hibernate: make direct map manipulations more explicit
->   arch, mm: restore dependency of __kernel_map_pages() of DEBUG_PAGEALLOC
->   arch, mm: make kernel_page_present() always available
+Hi Khalid,
 
-The series looks good to me (apart from the minor nit):
+On Fri, Oct 23, 2020 at 11:56:11AM -0600, Khalid Aziz wrote:
+> diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
+> index f94532f25db1..274217e7ed70 100644
+> --- a/arch/sparc/include/asm/mman.h
+> +++ b/arch/sparc/include/asm/mman.h
+> @@ -57,35 +57,39 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+>  {
+>  	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
+>  		return 0;
+> -	if (prot & PROT_ADI) {
+> -		if (!adi_capable())
+> -			return 0;
+> +	return 1;
+> +}
 
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+We kept the equivalent of !adi_capable() check in the arm64
+arch_validate_prot() and left arch_validate_flags() more relaxed. I.e.
+you can pass PROT_MTE to mmap() even if the hardware doesn't support
+MTE. This is in line with the pre-MTE ABI where unknown mmap() flags
+would be ignored while mprotect() would reject them. This discrepancy
+isn't nice but we decided to preserve the pre-MTE mmap ABI behaviour.
+Anyway, it's up to you if you want to change the sparc behaviour, I
+don't think it matters in practice.
 
--- 
- Kirill A. Shutemov
+I think with this patch, arch_validate_prot() no longer needs the 'addr'
+argument. Maybe you can submit an additional patch to remove them (not
+urgent, the compiler should get rid of them).
+
+>  
+> -		if (addr) {
+> -			struct vm_area_struct *vma;
+> +#define arch_validate_flags(vm_flags) arch_validate_flags(vm_flags)
+> +/* arch_validate_flags() - Ensure combination of flags is valid for a
+> + *	VMA.
+> + */
+> +static inline bool arch_validate_flags(unsigned long vm_flags)
+> +{
+> +	/* If ADI is being enabled on this VMA, check for ADI
+> +	 * capability on the platform and ensure VMA is suitable
+> +	 * for ADI
+> +	 */
+> +	if (vm_flags & VM_SPARC_ADI) {
+> +		if (!adi_capable())
+> +			return false;
+>  
+> -			vma = find_vma(current->mm, addr);
+> -			if (vma) {
+> -				/* ADI can not be enabled on PFN
+> -				 * mapped pages
+> -				 */
+> -				if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+> -					return 0;
+> +		/* ADI can not be enabled on PFN mapped pages */
+> +		if (vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
+> +			return false;
+>  
+> -				/* Mergeable pages can become unmergeable
+> -				 * if ADI is enabled on them even if they
+> -				 * have identical data on them. This can be
+> -				 * because ADI enabled pages with identical
+> -				 * data may still not have identical ADI
+> -				 * tags on them. Disallow ADI on mergeable
+> -				 * pages.
+> -				 */
+> -				if (vma->vm_flags & VM_MERGEABLE)
+> -					return 0;
+> -			}
+> -		}
+> +		/* Mergeable pages can become unmergeable
+> +		 * if ADI is enabled on them even if they
+> +		 * have identical data on them. This can be
+> +		 * because ADI enabled pages with identical
+> +		 * data may still not have identical ADI
+> +		 * tags on them. Disallow ADI on mergeable
+> +		 * pages.
+> +		 */
+> +		if (vm_flags & VM_MERGEABLE)
+> +			return false;
+
+Ah, you added a check to the madvise(MADV_MERGEABLE) path to ignore the
+flag if VM_SPARC_ADI. On arm64 we intercept memcmp_pages() but we have a
+PG_arch_2 flag to mark a page as containing tags. Either way should
+work.
+
+FWIW, if you are happy with the mmap() rejecting PROT_ADI on
+!adi_capable() hardware:
+
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
