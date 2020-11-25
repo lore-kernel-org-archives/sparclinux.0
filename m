@@ -1,7 +1,7 @@
-From: David Hildenbrand <david@redhat.com>
-Date: Wed, 25 Nov 2020 08:43:38 +0000
+From: Mike Rapoport <rppt@kernel.org>
+Date: Wed, 25 Nov 2020 08:58:18 +0000
 Subject: Re: [PATCH 2/2] mm: Move free_unref_page to mm/internal.h
-Message-Id: <4e989b22-a144-3778-6d71-f04137a523e4@redhat.com>
+Message-Id: <20201125085818.GM8537@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201125034655.27687-1-willy@infradead.org>
  <20201125034655.27687-2-willy@infradead.org>
@@ -9,14 +9,17 @@ In-Reply-To: <20201125034655.27687-2-willy@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Matthew Wilcox (Oracle)" <willy@infradead.org>, akpm@linux-foundation.org
-Cc: davem@davemloft.net, rppt@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: akpm@linux-foundation.org, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On 25.11.20 04:46, Matthew Wilcox (Oracle) wrote:
+On Wed, Nov 25, 2020 at 03:46:55AM +0000, Matthew Wilcox (Oracle) wrote:
 > Code outside mm/ should not be calling free_unref_page().  Also
 > move free_unref_page_list().
 > 
 > Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+
 > ---
 >  include/linux/gfp.h | 2 --
 >  mm/internal.h       | 3 +++
@@ -49,11 +52,10 @@ On 25.11.20 04:46, Matthew Wilcox (Oracle) wrote:
 >  extern void zone_pcp_update(struct zone *zone);
 >  extern void zone_pcp_reset(struct zone *zone);
 >  extern void zone_pcp_disable(struct zone *zone);
+> -- 
+> 2.29.2
 > 
 
-Reviewed-by: David Hildenbrand <david@redhat.com>
-
 -- 
-Thanks,
-
-David / dhildenb
+Sincerely yours,
+Mike.
