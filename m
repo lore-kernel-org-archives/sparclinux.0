@@ -1,23 +1,26 @@
-From: David Hildenbrand <david@redhat.com>
-Date: Wed, 25 Nov 2020 08:43:15 +0000
+From: Mike Rapoport <rppt@kernel.org>
+Date: Wed, 25 Nov 2020 08:57:50 +0000
 Subject: Re: [PATCH 1/2] sparc: Fix handling of page table constructor failure
-Message-Id: <b761abc9-12de-f003-b8c4-26e7e506700e@redhat.com>
+Message-Id: <20201125085750.GL8537@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201125034655.27687-1-willy@infradead.org>
 In-Reply-To: <20201125034655.27687-1-willy@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: "Matthew Wilcox (Oracle)" <willy@infradead.org>, akpm@linux-foundation.org
-Cc: davem@davemloft.net, rppt@kernel.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: akpm@linux-foundation.org, davem@davemloft.net, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On 25.11.20 04:46, Matthew Wilcox (Oracle) wrote:
+On Wed, Nov 25, 2020 at 03:46:54AM +0000, Matthew Wilcox (Oracle) wrote:
 > The page has just been allocated, so its refcount is 1.  free_unref_page()
 > is for use on pages which have a zero refcount.  Use __free_page()
 > like the other implementations of pte_alloc_one().
 > 
 > Fixes: 1ae9ae5f7df7 ("sparc: handle pgtable_page_ctor() fail")
 > Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+
 > ---
 >  arch/sparc/mm/init_64.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
@@ -35,14 +38,10 @@ On 25.11.20 04:46, Matthew Wilcox (Oracle) wrote:
 >  		return NULL;
 >  	}
 >  	return (pte_t *) page_address(page);
+> -- 
+> 2.29.2
 > 
 
-I wonder if reusing __pte_alloc_one() - e.g., internally - would be even
-cleaner.
-
-Reviewed-by: David Hildenbrand <david@redhat.com>
-
 -- 
-Thanks,
-
-David / dhildenb
+Sincerely yours,
+Mike.
