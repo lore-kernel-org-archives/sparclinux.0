@@ -1,45 +1,23 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Date: Thu, 26 Nov 2020 12:01:16 +0000
-Subject: [PATCH v2 2/6] mm: Introduce pXX_leaf_size()
-Message-Id: <20201126121121.102580109@infradead.org>
+From: Matthew Wilcox <willy@infradead.org>
+Date: Thu, 26 Nov 2020 12:43:49 +0000
+Subject: Re: [PATCH v2 2/6] mm: Introduce pXX_leaf_size()
+Message-Id: <20201126124349.GQ4327@casper.infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201126120114.071913521@infradead.org>
+ <20201126121121.102580109@infradead.org>
+In-Reply-To: <20201126121121.102580109@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com
-Cc: christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, peterz@infradead.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com, christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com
 
-A number of architectures have non-pagetable aligned huge/large pages.
-For such architectures a leaf can actually be part of a larger entry.
+On Thu, Nov 26, 2020 at 01:01:16PM +0100, Peter Zijlstra wrote:
+> A number of architectures have non-pagetable aligned huge/large pages.
+> For such architectures a leaf can actually be part of a larger entry.
+> 
+> Provide generic helpers to determine the size of a page-table leaf.
+> 
+> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 
-Provide generic helpers to determine the size of a page-table leaf.
-
-Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
----
- include/linux/pgtable.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -1536,4 +1536,20 @@ typedef unsigned int pgtbl_mod_mask;
- #define pmd_leaf(x)	0
- #endif
- 
-+#ifndef pgd_leaf_size
-+#define pgd_leaf_size(x) (1ULL << PGDIR_SHIFT)
-+#endif
-+#ifndef p4d_leaf_size
-+#define p4d_leaf_size(x) P4D_SIZE
-+#endif
-+#ifndef pud_leaf_size
-+#define pud_leaf_size(x) PUD_SIZE
-+#endif
-+#ifndef pmd_leaf_size
-+#define pmd_leaf_size(x) PMD_SIZE
-+#endif
-+#ifndef pte_leaf_size
-+#define pte_leaf_size(x) PAGE_SIZE
-+#endif
-+
- #endif /* _LINUX_PGTABLE_H */
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
