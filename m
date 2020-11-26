@@ -1,131 +1,83 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Mon, 09 Nov 2020 19:21:26 +0000
-Subject: [PATCH v7 2/4] PM: hibernate: make direct map manipulations more explicit
-Message-Id: <20201109192128.960-3-rppt@kernel.org>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 26 Nov 2020 12:01:19 +0000
+Subject: [PATCH v2 5/6] sparc64/mm: Implement pXX_leaf_size() support
+Message-Id: <20201126121121.301768209@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201109192128.960-1-rppt@kernel.org>
-In-Reply-To: <20201109192128.960-1-rppt@kernel.org>
+References: <20201126120114.071913521@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
- Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
+To: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com
+Cc: christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, peterz@infradead.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+Sparc64 has non-pagetable aligned large page support; wire up the
+pXX_leaf_size() functions to report the correct pagetable page size.
 
-When DEBUG_PAGEALLOC or ARCH_HAS_SET_DIRECT_MAP is enabled a page may be
-not present in the direct map and has to be explicitly mapped before it
-could be copied.
+This enables PERF_SAMPLE_{DATA,CODE}_PAGE_SIZE to report accurate
+pagetable leaf sizes.
 
-Introduce hibernate_map_page() and hibernation_unmap_page() that will
-explicitly use set_direct_map_{default,invalid}_noflush() for
-ARCH_HAS_SET_DIRECT_MAP case and debug_pagealloc_{map,unmap}_pages() for
-DEBUG_PAGEALLOC case.
-
-The remapping of the pages in safe_copy_page() presumes that it only
-changes protection bits in an existing PTE and so it is safe to ignore
-return value of set_direct_map_{default,invalid}_noflush().
-
-Still, add a pr_warn() so that future changes in set_memory APIs will not
-silently break hibernation.
-
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- include/linux/mm.h      | 12 ------------
- kernel/power/snapshot.c | 38 ++++++++++++++++++++++++++++++++++++--
- 2 files changed, 36 insertions(+), 14 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |   13 +++++++++++++
+ arch/sparc/mm/hugetlbpage.c         |   19 +++++++++++++------
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index bb8c70178f4e..e198b938f5c5 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -2927,16 +2927,6 @@ static inline bool debug_pagealloc_enabled_static(void)
- #if defined(CONFIG_DEBUG_PAGEALLOC) || defined(CONFIG_ARCH_HAS_SET_DIRECT_MAP)
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -1121,6 +1121,19 @@ extern unsigned long cmdline_memory_size
  
--/*
-- * When called in DEBUG_PAGEALLOC context, the call should most likely be
-- * guarded by debug_pagealloc_enabled() or debug_pagealloc_enabled_static()
-- */
--static inline void
--kernel_map_pages(struct page *page, int numpages, int enable)
--{
--	__kernel_map_pages(page, numpages, enable);
--}
--
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages)
- {
- 	if (debug_pagealloc_enabled_static())
-@@ -2953,8 +2943,6 @@ static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages)
- extern bool kernel_page_present(struct page *page);
- #endif	/* CONFIG_HIBERNATION */
- #else	/* CONFIG_DEBUG_PAGEALLOC || CONFIG_ARCH_HAS_SET_DIRECT_MAP */
--static inline void
--kernel_map_pages(struct page *page, int numpages, int enable) {}
- static inline void debug_pagealloc_map_pages(struct page *page, int numpages) {}
- static inline void debug_pagealloc_unmap_pages(struct page *page, int numpages) {}
- #ifdef CONFIG_HIBERNATION
-diff --git a/kernel/power/snapshot.c b/kernel/power/snapshot.c
-index 46b1804c1ddf..d848377dd8dc 100644
---- a/kernel/power/snapshot.c
-+++ b/kernel/power/snapshot.c
-@@ -76,6 +76,40 @@ static inline void hibernate_restore_protect_page(void *page_address) {}
- static inline void hibernate_restore_unprotect_page(void *page_address) {}
- #endif /* CONFIG_STRICT_KERNEL_RWX  && CONFIG_ARCH_HAS_SET_MEMORY */
+ asmlinkage void do_sparc64_fault(struct pt_regs *regs);
  
++#ifdef CONFIG_HUGETLB_PAGE
 +
-+/*
-+ * The calls to set_direct_map_*() should not fail because remapping a page
-+ * here means that we only update protection bits in an existing PTE.
-+ * It is still worth to have a warning here if something changes and this
-+ * will no longer be the case.
-+ */
-+static inline void hibernate_map_page(struct page *page)
-+{
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
-+		int ret = set_direct_map_default_noflush(page);
++#define pud_leaf_size pud_leaf_size
++extern unsigned long pud_leaf_size(pud_t pud);
 +
-+		if (ret)
-+			pr_warn_once("Failed to remap page\n");
-+	} else {
-+		debug_pagealloc_map_pages(page, 1);
-+	}
-+}
++#define pmd_leaf_size pmd_leaf_size
++extern unsigned long pmd_leaf_size(pmd_t pmd);
 +
-+static inline void hibernate_unmap_page(struct page *page)
-+{
-+	if (IS_ENABLED(CONFIG_ARCH_HAS_SET_DIRECT_MAP)) {
-+		unsigned long addr = (unsigned long)page_address(page);
-+		int ret  = set_direct_map_invalid_noflush(page);
++#define pte_leaf_size pte_leaf_size
++extern unsigned long pte_leaf_size(pte_t pte);
 +
-+		if (ret)
-+			pr_warn_once("Failed to remap page\n");
++#endif /* CONFIG_HUGETLB_PAGE */
 +
-+		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-+	} else {
-+		debug_pagealloc_unmap_pages(page, 1);
-+	}
-+}
-+
- static int swsusp_page_is_free(struct page *);
- static void swsusp_set_page_forbidden(struct page *);
- static void swsusp_unset_page_forbidden(struct page *);
-@@ -1355,9 +1389,9 @@ static void safe_copy_page(void *dst, struct page *s_page)
- 	if (kernel_page_present(s_page)) {
- 		do_copy_page(dst, page_address(s_page));
- 	} else {
--		kernel_map_pages(s_page, 1, 1);
-+		hibernate_map_page(s_page);
- 		do_copy_page(dst, page_address(s_page));
--		kernel_map_pages(s_page, 1, 0);
-+		hibernate_unmap_page(s_page);
- 	}
+ #endif /* !(__ASSEMBLY__) */
+ 
+ #endif /* !(_SPARC64_PGTABLE_H) */
+--- a/arch/sparc/mm/hugetlbpage.c
++++ b/arch/sparc/mm/hugetlbpage.c
+@@ -247,14 +247,17 @@ static unsigned int sun4u_huge_tte_to_sh
+ 	return shift;
  }
  
--- 
-2.28.0
+-static unsigned int huge_tte_to_shift(pte_t entry)
++static unsigned long tte_to_shift(pte_t entry)
+ {
+-	unsigned long shift;
+-
+ 	if (tlb_type = hypervisor)
+-		shift = sun4v_huge_tte_to_shift(entry);
+-	else
+-		shift = sun4u_huge_tte_to_shift(entry);
++		return sun4v_huge_tte_to_shift(entry);
++
++	return sun4u_huge_tte_to_shift(entry);
++}
++
++static unsigned int huge_tte_to_shift(pte_t entry)
++{
++	unsigned long shift = tte_to_shift(entry);
+ 
+ 	if (shift = PAGE_SHIFT)
+ 		WARN_ONCE(1, "tto_to_shift: invalid hugepage tte=0x%lx\n",
+@@ -272,6 +275,10 @@ static unsigned long huge_tte_to_size(pt
+ 	return size;
+ }
+ 
++unsigned long pud_leaf_size(pud_t pud) { return 1UL << tte_to_shift((pte_t)pud); }
++unsigned long pmd_leaf_size(pmd_t pmd) { return 1UL << tte_to_shift((pte_t)pmd); }
++unsigned long pte_leaf_size(pte_t pte) { return 1UL << tte_to_shift((pte_t)pte); }
++
+ pte_t *huge_pte_alloc(struct mm_struct *mm,
+ 			unsigned long addr, unsigned long sz)
+ {
