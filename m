@@ -1,40 +1,46 @@
-From: Matthew Wilcox <willy@infradead.org>
-Date: Thu, 26 Nov 2020 13:27:47 +0000
-Subject: Re: [PATCH v2 3/6] perf/core: Fix arch_perf_get_page_size()
-Message-Id: <20201126132747.GS4327@casper.infradead.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Date: Thu, 26 Nov 2020 00:39:57 +0000
+Subject: [PATCH] fbdev: aty: SPARC64 requires FB_ATY_CT
+Message-Id: <20201126003957.19604-1-rdunlap@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201126120114.071913521@infradead.org>
- <20201126121121.164675154@infradead.org>
- <20201126123458.GO4327@casper.infradead.org>
- <20201126124207.GM3040@hirez.programming.kicks-ass.net>
- <20201126125606.GR4327@casper.infradead.org>
- <20201126130619.GI2414@hirez.programming.kicks-ass.net>
-In-Reply-To: <20201126130619.GI2414@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com, christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com
+To: linux-kernel@vger.kernel.org
+Cc: linux-fbdev@vger.kernel.org, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, Randy Dunlap <rdunlap@infradead.org>, dri-devel@lists.freedesktop.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-On Thu, Nov 26, 2020 at 02:06:19PM +0100, Peter Zijlstra wrote:
-> On Thu, Nov 26, 2020 at 12:56:06PM +0000, Matthew Wilcox wrote:
-> > On Thu, Nov 26, 2020 at 01:42:07PM +0100, Peter Zijlstra wrote:
-> > > +	pgdp = pgd_offset(mm, addr);
-> > > +	pgd = READ_ONCE(*pgdp);
-> > 
-> > I forget how x86-32-PAE maps to Linux's PGD/P4D/PUD/PMD scheme, but
-> > according to volume 3, section 4.4.2, PAE paging uses a 64-bit PDE, so
-> > whether a PDE is a PGD or a PMD, we're only reading it with READ_ONCE
-> > rather than the lockless-retry method used by ptep_get_lockless().
-> > So it's potentially racy?  Do we need a pmdp_get_lockless() or
-> > pgdp_get_lockless()?
-> 
-> Oh gawd... this isn't new here though, right? Current gup_fast also gets
-> that wrong, if it is in deed wrong.
-> 
-> I suppose it's a race far more likely today, with THP and all, than it
-> ever was back then.
+It looks like SPARC64 requires FB_ATY_CT to build without errors,
+so adjust the Kconfig entry of FB_ATY_CT so that it is always 'y'
+for SPARC64 && PCI by disabling the prompt for SPARC64 && PCI.
 
-Right, it's not new.  I wouldn't block this patchset for that fix.
-Just want to get the problem on your radar ;-)  I just never reviewed
-the gup fast codepath before, and this jumped out at me.
+As it currently is, FB_ATY_CT can be disabled, resulting in build
+errors:
+
+ERROR: modpost: "aty_postdividers" [drivers/video/fbdev/aty/atyfb.ko] undefined!
+ERROR: modpost: "aty_ld_pll_ct" [drivers/video/fbdev/aty/atyfb.ko] undefined!
+
+Fixes: f7018c213502 ("video: move fbdev to drivers/video/fbdev")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+---
+ drivers/video/fbdev/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-next-20201124.orig/drivers/video/fbdev/Kconfig
++++ linux-next-20201124/drivers/video/fbdev/Kconfig
+@@ -1277,7 +1277,7 @@ config FB_ATY
+ 	  module will be called atyfb.
+ 
+ config FB_ATY_CT
+-	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
++	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support" if !(SPARC64 && PCI)
+ 	depends on PCI && FB_ATY
+ 	default y if SPARC64 && PCI
+ 	help
