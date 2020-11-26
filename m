@@ -1,51 +1,45 @@
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Fri, 27 Nov 2020 15:14:37 +0000
-Subject: Re: [PATCH v2] fbdev: aty: SPARC64 requires FB_ATY_CT
-Message-Id: <20201127151437.GH401619@phenom.ffwll.local>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 26 Nov 2020 12:01:16 +0000
+Subject: [PATCH v2 2/6] mm: Introduce pXX_leaf_size()
+Message-Id: <20201126121121.102580109@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201127031752.10371-1-rdunlap@infradead.org>
- <CAMuHMdWup4D9A-giF9xDEhva8PPH4Yhg2NHYx3+0q_=Uoi+iRA@mail.gmail.com>
-In-Reply-To: <CAMuHMdWup4D9A-giF9xDEhva8PPH4Yhg2NHYx3+0q_=Uoi+iRA@mail.gmail.com>
+References: <20201126120114.071913521@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linux Fbdev development list <linux-fbdev@vger.kernel.org>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Daniel Vetter <daniel.vetter@ffwll.ch>, Randy Dunlap <rdunlap@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, DRI Development <dri-devel@lists.freedesktop.org>, Tomi Valkeinen <tomi.valkeinen@ti.com>, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
+To: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com
+Cc: christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, peterz@infradead.org
 
-On Fri, Nov 27, 2020 at 10:15:49AM +0100, Geert Uytterhoeven wrote:
-> On Fri, Nov 27, 2020 at 4:18 AM Randy Dunlap <rdunlap@infradead.org> wrote:
-> > It looks like SPARC64 requires FB_ATY_CT to build without errors,
-> > so have FB_ATY select FB_ATY_CT if both SPARC64 and PCI are enabled
-> > instead of using "default y if SPARC64 && PCI", which is not strong
-> > enough to prevent build errors.
-> >
-> > As it currently is, FB_ATY_CT can be disabled, resulting in build
-> > errors:
-> >
-> > ERROR: modpost: "aty_postdividers" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-> > ERROR: modpost: "aty_ld_pll_ct" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-> >
-> > Fixes: f7018c213502 ("video: move fbdev to drivers/video/fbdev")
-> > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> 
-> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+A number of architectures have non-pagetable aligned huge/large pages.
+For such architectures a leaf can actually be part of a larger entry.
 
-Applied to drm-misc-next, thanks for the patch&review.
--Daniel
+Provide generic helpers to determine the size of a page-table leaf.
 
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> -- 
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ include/linux/pgtable.h |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -1536,4 +1536,20 @@ typedef unsigned int pgtbl_mod_mask;
+ #define pmd_leaf(x)	0
+ #endif
+ 
++#ifndef pgd_leaf_size
++#define pgd_leaf_size(x) (1ULL << PGDIR_SHIFT)
++#endif
++#ifndef p4d_leaf_size
++#define p4d_leaf_size(x) P4D_SIZE
++#endif
++#ifndef pud_leaf_size
++#define pud_leaf_size(x) PUD_SIZE
++#endif
++#ifndef pmd_leaf_size
++#define pmd_leaf_size(x) PMD_SIZE
++#endif
++#ifndef pte_leaf_size
++#define pte_leaf_size(x) PAGE_SIZE
++#endif
++
+ #endif /* _LINUX_PGTABLE_H */
