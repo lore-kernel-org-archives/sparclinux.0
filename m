@@ -1,22 +1,160 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 13:49:44 +0000
-Subject: Re: [patch V3 24/37] sched: highmem: Store local kmaps in task struct
-Message-Id: <87blge7don.fsf@nanos.tec.linutronix.de>
+From: Peter Zijlstra <peterz@infradead.org>
+Date: Thu, 26 Nov 2020 12:01:15 +0000
+Subject: [PATCH v2 1/6] mm/gup: Provide gup_get_pte() more generic
+Message-Id: <20201126121121.036370527@infradead.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
- <20201103095859.038791330@linutronix.de>
-In-Reply-To: <20201103095859.038791330@linutronix.de>
+References: <20201126120114.071913521@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David
- S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: kan.liang@linux.intel.com, mingo@kernel.org, acme@kernel.org, mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, eranian@google.com
+Cc: christophe.leroy@csgroup.eu, npiggin@gmail.com, linuxppc-dev@lists.ozlabs.org, mpe@ellerman.id.au, will@kernel.org, willy@infradead.org, aneesh.kumar@linux.ibm.com, sparclinux@vger.kernel.org, davem@davemloft.net, catalin.marinas@arm.com, linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org, ak@linux.intel.com, dave.hansen@intel.com, kirill.shutemov@linux.intel.com, peterz@infradead.org
 
-On Tue, Nov 03 2020 at 10:27, Thomas Gleixner wrote:
-> +struct kmap_ctrl {
-> +#ifdef CONFIG_KMAP_LOCAL
-> +	int				idx;
-> +	pte_t				pteval[KM_TYPE_NR];
+In order to write another lockless page-table walker, we need
+gup_get_pte() exposed. While doing that, rename it to
+ptep_get_lockless() to match the existing ptep_get() naming.
 
-I'm a moron. Fixed it on the test machine ...
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+---
+ include/linux/pgtable.h |   55 +++++++++++++++++++++++++++++++++++++++++++++
+ mm/gup.c                |   58 ------------------------------------------------
+ 2 files changed, 56 insertions(+), 57 deletions(-)
+
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -258,6 +258,61 @@ static inline pte_t ptep_get(pte_t *ptep
+ }
+ #endif
+ 
++#ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
++/*
++ * WARNING: only to be used in the get_user_pages_fast() implementation.
++ *
++ * With get_user_pages_fast(), we walk down the pagetables without taking any
++ * locks.  For this we would like to load the pointers atomically, but sometimes
++ * that is not possible (e.g. without expensive cmpxchg8b on x86_32 PAE).  What
++ * we do have is the guarantee that a PTE will only either go from not present
++ * to present, or present to not present or both -- it will not switch to a
++ * completely different present page without a TLB flush in between; something
++ * that we are blocking by holding interrupts off.
++ *
++ * Setting ptes from not present to present goes:
++ *
++ *   ptep->pte_high = h;
++ *   smp_wmb();
++ *   ptep->pte_low = l;
++ *
++ * And present to not present goes:
++ *
++ *   ptep->pte_low = 0;
++ *   smp_wmb();
++ *   ptep->pte_high = 0;
++ *
++ * We must ensure here that the load of pte_low sees 'l' IFF pte_high sees 'h'.
++ * We load pte_high *after* loading pte_low, which ensures we don't see an older
++ * value of pte_high.  *Then* we recheck pte_low, which ensures that we haven't
++ * picked up a changed pte high. We might have gotten rubbish values from
++ * pte_low and pte_high, but we are guaranteed that pte_low will not have the
++ * present bit set *unless* it is 'l'. Because get_user_pages_fast() only
++ * operates on present ptes we're safe.
++ */
++static inline pte_t ptep_get_lockless(pte_t *ptep)
++{
++	pte_t pte;
++
++	do {
++		pte.pte_low = ptep->pte_low;
++		smp_rmb();
++		pte.pte_high = ptep->pte_high;
++		smp_rmb();
++	} while (unlikely(pte.pte_low != ptep->pte_low));
++
++	return pte;
++}
++#else /* CONFIG_GUP_GET_PTE_LOW_HIGH */
++/*
++ * We require that the PTE can be read atomically.
++ */
++static inline pte_t ptep_get_lockless(pte_t *ptep)
++{
++	return ptep_get(ptep);
++}
++#endif /* CONFIG_GUP_GET_PTE_LOW_HIGH */
++
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #ifndef __HAVE_ARCH_PMDP_HUGE_GET_AND_CLEAR
+ static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm,
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -2079,62 +2079,6 @@ static void put_compound_head(struct pag
+ 	put_page(page);
+ }
+ 
+-#ifdef CONFIG_GUP_GET_PTE_LOW_HIGH
+-
+-/*
+- * WARNING: only to be used in the get_user_pages_fast() implementation.
+- *
+- * With get_user_pages_fast(), we walk down the pagetables without taking any
+- * locks.  For this we would like to load the pointers atomically, but sometimes
+- * that is not possible (e.g. without expensive cmpxchg8b on x86_32 PAE).  What
+- * we do have is the guarantee that a PTE will only either go from not present
+- * to present, or present to not present or both -- it will not switch to a
+- * completely different present page without a TLB flush in between; something
+- * that we are blocking by holding interrupts off.
+- *
+- * Setting ptes from not present to present goes:
+- *
+- *   ptep->pte_high = h;
+- *   smp_wmb();
+- *   ptep->pte_low = l;
+- *
+- * And present to not present goes:
+- *
+- *   ptep->pte_low = 0;
+- *   smp_wmb();
+- *   ptep->pte_high = 0;
+- *
+- * We must ensure here that the load of pte_low sees 'l' IFF pte_high sees 'h'.
+- * We load pte_high *after* loading pte_low, which ensures we don't see an older
+- * value of pte_high.  *Then* we recheck pte_low, which ensures that we haven't
+- * picked up a changed pte high. We might have gotten rubbish values from
+- * pte_low and pte_high, but we are guaranteed that pte_low will not have the
+- * present bit set *unless* it is 'l'. Because get_user_pages_fast() only
+- * operates on present ptes we're safe.
+- */
+-static inline pte_t gup_get_pte(pte_t *ptep)
+-{
+-	pte_t pte;
+-
+-	do {
+-		pte.pte_low = ptep->pte_low;
+-		smp_rmb();
+-		pte.pte_high = ptep->pte_high;
+-		smp_rmb();
+-	} while (unlikely(pte.pte_low != ptep->pte_low));
+-
+-	return pte;
+-}
+-#else /* CONFIG_GUP_GET_PTE_LOW_HIGH */
+-/*
+- * We require that the PTE can be read atomically.
+- */
+-static inline pte_t gup_get_pte(pte_t *ptep)
+-{
+-	return ptep_get(ptep);
+-}
+-#endif /* CONFIG_GUP_GET_PTE_LOW_HIGH */
+-
+ static void __maybe_unused undo_dev_pagemap(int *nr, int nr_start,
+ 					    unsigned int flags,
+ 					    struct page **pages)
+@@ -2160,7 +2104,7 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 
+ 	ptem = ptep = pte_offset_map(&pmd, addr);
+ 	do {
+-		pte_t pte = gup_get_pte(ptep);
++		pte_t pte = ptep_get_lockless(ptep);
+ 		struct page *head, *page;
+ 
+ 		/*
