@@ -1,88 +1,187 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 03 Nov 2020 09:27:32 +0000
-Subject: [patch V3 20/37] io-mapping: Cleanup atomic iomap
-Message-Id: <20201103095858.625310005@linutronix.de>
+From: Youling Tang <tangyouling@loongson.cn>
+Date: Fri, 27 Nov 2020 03:58:50 +0000
+Subject: [PATCH] sparc: Removes code duplication between arch_ptrace and compat_arch_ptrace
+Message-Id: <1606449530-14319-1-git-send-email-tangyouling@loongson.cn>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201103092712.714480842@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Juri Lelli <juri.lelli@redhat.com>, linux-aio@kvack.org, Peter Zijlstra <peterz@infradead.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, dri-devel@lists.freedesktop.org, virtualization@lists.linux-foundation.org, Ben Segall <bsegall@google.com>, Chris Mason <clm@fb.com>, Huang Rui <ray.huang@amd.com>, Paul Mackerras <paulus@samba.org>, Gerd Hoffmann <kraxel@redhat.com>, Daniel Bristot de Oliveira <bristot@redhat.com>, sparclinux@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>, Christoph Hellwig <hch@lst.de>, Vincent Guittot <vincent.guittot@linaro.org>, Paul McKenney <paulmck@kernel.org>, Max Filippov <jcmvbkbc@gmail.com>, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Russell King <linux@armlinux.org.uk>, linux-csky@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, David Airlie <airlied@linux.ie>, VMware Graphics <linux-graphics-maintainer@vmware.com>, Mel Gorman <mgorman@suse.de>, nouveau@lists.freedesktop.org, Dave Airlie <airlied@redhat.com>, linux-snps-arc@lists.infradead.org, Ben Skeggs <bskeggs@redhat.com>, linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>, intel-gfx@lists.freedesktop.org, Roland Scheidegger <sroland@vmware.com>, Josef Bacik <josef@toxicpanda.com>, Steven Rostedt <rostedt@goodmis.org>, Linus Torvalds <torvalds@linuxfoundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, spice-devel@lists.freedesktop.org, David Sterba <dsterba@suse.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, linux-arm-kernel@lists.infradead.org, Chris Zankel <chris@zankel.net>, Michal Simek <monstr@monstr.eu>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Nick Hu <nickhu@andestech.com>, linux-mm@kvack.org, Vineet Gupta <vgupta@synopsys.com>, linux-mips@vger.kernel.org, Christian Koenig <christian.koenig@amd.com>, Benjamin LaHaise <bcrl@kvack.org>, linux-fsdevel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, linux-btrfs@vger.kernel.org, Greentime Hu <green.hu@gmail.com>
+To: Oleg Nesterov <oleg@redhat.com>, "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Switch the atomic iomap implementation over to kmap_local and stick the
-preempt/pagefault mechanics into the generic code similar to the
-kmap_atomic variants.
+The patch removes code duplication between arch_ptrace and
+compat_arch_ptrace, in large part by having the former call
+into the later for all requests that don't need any special
+"compat" treatment.
 
-Rename the x86 map function in preparation for a non-atomic variant.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Youling Tang <tangyouling@loongson.cn>
 ---
-V2: New patch to make review easier
----
- arch/x86/include/asm/iomap.h |    9 +--------
- arch/x86/mm/iomap_32.c       |    6 ++----
- include/linux/io-mapping.h   |    8 ++++++--
- 3 files changed, 9 insertions(+), 14 deletions(-)
+ arch/sparc/kernel/ptrace_64.c | 71 +++++++++++--------------------------------
+ 1 file changed, 17 insertions(+), 54 deletions(-)
 
---- a/arch/x86/include/asm/iomap.h
-+++ b/arch/x86/include/asm/iomap.h
-@@ -13,14 +13,7 @@
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
+diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
+index 2b92155d..4fd8c33 100644
+--- a/arch/sparc/kernel/ptrace_64.c
++++ b/arch/sparc/kernel/ptrace_64.c
+@@ -929,78 +929,51 @@ struct compat_fps {
+ long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
+ 			compat_ulong_t caddr, compat_ulong_t cdata)
+ {
+-	compat_ulong_t caddr2 = task_pt_regs(current)->u_regs[UREG_I4];
+ 	struct pt_regs32 __user *pregs;
+ 	struct compat_fps __user *fps;
+-	unsigned long addr2 = caddr2;
+ 	unsigned long addr = caddr;
+ 	unsigned long data = cdata;
+-	int ret;
  
--void __iomem *iomap_atomic_pfn_prot(unsigned long pfn, pgprot_t prot);
+ 	pregs = (struct pt_regs32 __user *) addr;
+ 	fps = (struct compat_fps __user *) addr;
+ 
+ 	switch (request) {
+-	case PTRACE_PEEKUSR:
+-		ret = (addr != 0) ? -EIO : 0;
+-		break;
 -
--static inline void iounmap_atomic(void __iomem *vaddr)
--{
--	kunmap_local_indexed((void __force *)vaddr);
--	pagefault_enable();
--	preempt_enable();
--}
-+void __iomem *__iomap_local_pfn_prot(unsigned long pfn, pgprot_t prot);
+ 	case PTRACE_GETREGS:
+-		ret = copy_regset_to_user(child, &ptrace32_view,
++		return copy_regset_to_user(child, &ptrace32_view,
+ 					  REGSET_GENERAL, 0,
+ 					  19 * sizeof(u32),
+ 					  pregs);
+-		break;
  
- int iomap_create_wc(resource_size_t base, unsigned long size, pgprot_t *prot);
+ 	case PTRACE_SETREGS:
+-		ret = copy_regset_from_user(child, &ptrace32_view,
++		return copy_regset_from_user(child, &ptrace32_view,
+ 					  REGSET_GENERAL, 0,
+ 					  19 * sizeof(u32),
+ 					  pregs);
+-		break;
  
---- a/arch/x86/mm/iomap_32.c
-+++ b/arch/x86/mm/iomap_32.c
-@@ -44,7 +44,7 @@ void iomap_free(resource_size_t base, un
+ 	case PTRACE_GETFPREGS:
+-		ret = copy_regset_to_user(child, &ptrace32_view,
++		return copy_regset_to_user(child, &ptrace32_view,
+ 					  REGSET_FP, 0,
+ 					  68 * sizeof(u32),
+ 					  fps);
+-		break;
+ 
+ 	case PTRACE_SETFPREGS:
+-		ret = copy_regset_from_user(child, &ptrace32_view,
++		return copy_regset_from_user(child, &ptrace32_view,
+ 					  REGSET_FP, 0,
+ 					  33 * sizeof(u32),
+ 					  fps);
+-		break;
+ 
++	case PTRACE_PEEKUSR:
+ 	case PTRACE_READTEXT:
+ 	case PTRACE_READDATA:
+-		ret = ptrace_readdata(child, addr,
+-				      (char __user *)addr2, data);
+-		if (ret = data)
+-			ret = 0;
+-		else if (ret >= 0)
+-			ret = -EIO;
+-		break;
+-
+ 	case PTRACE_WRITETEXT:
+ 	case PTRACE_WRITEDATA:
+-		ret = ptrace_writedata(child, (char __user *) addr2,
+-				       addr, data);
+-		if (ret = data)
+-			ret = 0;
+-		else if (ret >= 0)
+-			ret = -EIO;
+-		break;
++		return arch_ptrace(child, request, addr, data);
+ 
+ 	default:
+ 		if (request = PTRACE_SPARC_DETACH)
+ 			request = PTRACE_DETACH;
+-		ret = compat_ptrace_request(child, request, addr, data);
+-		break;
++		return compat_ptrace_request(child, request, addr, data);
+ 	}
+-
+-	return ret;
  }
- EXPORT_SYMBOL_GPL(iomap_free);
+ #endif /* CONFIG_COMPAT */
  
--void __iomem *iomap_atomic_pfn_prot(unsigned long pfn, pgprot_t prot)
-+void __iomem *__iomap_local_pfn_prot(unsigned long pfn, pgprot_t prot)
- {
- 	/*
- 	 * For non-PAT systems, translate non-WB request to UC- just in
-@@ -60,8 +60,6 @@ void __iomem *iomap_atomic_pfn_prot(unsi
- 	/* Filter out unsupported __PAGE_KERNEL* bits: */
- 	pgprot_val(prot) &= __default_kernel_pte_mask;
+@@ -1025,63 +998,53 @@ long arch_ptrace(struct task_struct *child, long request,
  
--	preempt_disable();
--	pagefault_disable();
- 	return (void __force __iomem *)__kmap_local_pfn_prot(pfn, prot);
+ 	switch (request) {
+ 	case PTRACE_PEEKUSR:
+-		ret = (addr != 0) ? -EIO : 0;
+-		break;
++		return ((addr != 0) ? -EIO : 0);
+ 
+ 	case PTRACE_GETREGS64:
+-		ret = copy_regset_to_user(child, &ptrace64_view,
++		return copy_regset_to_user(child, &ptrace64_view,
+ 					  REGSET_GENERAL, 0,
+ 					  19 * sizeof(u64),
+ 					  pregs);
+-		break;
+ 
+ 	case PTRACE_SETREGS64:
+-		ret = copy_regset_from_user(child, &ptrace64_view,
++		return copy_regset_from_user(child, &ptrace64_view,
+ 					  REGSET_GENERAL, 0,
+ 					  19 * sizeof(u64),
+ 					  pregs);
+-		break;
+ 
+ 	case PTRACE_GETFPREGS64:
+-		ret = copy_regset_to_user(child, view, REGSET_FP,
++		return copy_regset_to_user(child, view, REGSET_FP,
+ 					  0 * sizeof(u64),
+ 					  33 * sizeof(u64),
+ 					  fps);
+-		break;
+ 
+ 	case PTRACE_SETFPREGS64:
+-		ret = copy_regset_from_user(child, view, REGSET_FP,
++		return copy_regset_from_user(child, view, REGSET_FP,
+ 					  0 * sizeof(u64),
+ 					  33 * sizeof(u64),
+ 					  fps);
+-		break;
+ 
+ 	case PTRACE_READTEXT:
+ 	case PTRACE_READDATA:
+ 		ret = ptrace_readdata(child, addr, addr2p, data);
+ 		if (ret = data)
+-			ret = 0;
++			return 0;
+ 		else if (ret >= 0)
+-			ret = -EIO;
+-		break;
++			return -EIO;
+ 
+ 	case PTRACE_WRITETEXT:
+ 	case PTRACE_WRITEDATA:
+ 		ret = ptrace_writedata(child, addr2p, addr, data);
+ 		if (ret = data)
+-			ret = 0;
++			return 0;
+ 		else if (ret >= 0)
+-			ret = -EIO;
+-		break;
++			return -EIO;
+ 
+ 	default:
+ 		if (request = PTRACE_SPARC_DETACH)
+ 			request = PTRACE_DETACH;
+-		ret = ptrace_request(child, request, addr, data);
+-		break;
++		return ptrace_request(child, request, addr, data);
+ 	}
+-
+-	return ret;
  }
--EXPORT_SYMBOL_GPL(iomap_atomic_pfn_prot);
-+EXPORT_SYMBOL_GPL(__iomap_local_pfn_prot);
---- a/include/linux/io-mapping.h
-+++ b/include/linux/io-mapping.h
-@@ -69,13 +69,17 @@ io_mapping_map_atomic_wc(struct io_mappi
  
- 	BUG_ON(offset >= mapping->size);
- 	phys_addr = mapping->base + offset;
--	return iomap_atomic_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
-+	preempt_disable();
-+	pagefault_disable();
-+	return __iomap_local_pfn_prot(PHYS_PFN(phys_addr), mapping->prot);
- }
- 
- static inline void
- io_mapping_unmap_atomic(void __iomem *vaddr)
- {
--	iounmap_atomic(vaddr);
-+	kunmap_local_indexed((void __force *)vaddr);
-+	pagefault_enable();
-+	preempt_enable();
- }
- 
- static inline void __iomem *
+ asmlinkage int syscall_trace_enter(struct pt_regs *regs)
+-- 
+2.1.0
