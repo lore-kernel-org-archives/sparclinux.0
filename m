@@ -1,49 +1,29 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Tue, 08 Dec 2020 11:25:38 +0000
-Subject: Re: [sparc64] current git kernel networking is broken
-Message-Id: <CADxRZqzdME66_xzh565vSOG7=ep0dmF1p3DCNW5VTeggr5LMKw@mail.gmail.com>
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Tue, 08 Dec 2020 21:48:23 +0000
+Subject: [git pull] [brown paperbag] regression in sparc64 this cycle
+Message-Id: <20201208214823.GJ3579531@ZenIV.linux.org.uk>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CADxRZqwn0uUi+J3bN=uLYMpXYhcYpkQb68Vkgmg70Tn87mhzOw@mail.gmail.com>
- <20201208004227.GF3579531@ZenIV.linux.org.uk>
-In-Reply-To: <20201208004227.GF3579531@ZenIV.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, debian-sparc <debian-sparc@lists.debian.org>, Linux Kernel list <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Dec 8, 2020 at 3:42 AM Al Viro <viro@zeniv.linux.org.uk> wrote:
->
-> On Tue, Dec 08, 2020 at 03:09:47AM +0300, Anatoly Pugachev wrote:
-> > Hello!
-> >
-> > Sorry for the late report, being 5.10-rc7 is out, but current git
-> > kernel (git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git)
-> > is broken with the networking. It affects my openvpn tunnel and even
-> > internet networking.
-> >
-> > ping to a local ethernet network (i.e. gateway ping) works, but i
-> > cannot download files from the internet.
-> > openvpn tunnel does not work.
->
-> <eyes commit in question>
-> <swears>
-> Could you check if the following typo fix is sufficient for your
-> reproducer?
->
-> diff --git a/arch/sparc/lib/csum_copy.S b/arch/sparc/lib/csum_copy.S
-> index 0c0268e77155..d839956407a7 100644
-> --- a/arch/sparc/lib/csum_copy.S
-> +++ b/arch/sparc/lib/csum_copy.S
-> @@ -71,7 +71,7 @@
->  FUNC_NAME:             /* %o0=src, %o1=dst, %o2=len */
->         LOAD(prefetch, %o0 + 0x000, #n_reads)
->         xor             %o0, %o1, %g1
-> -       mov             1, %o3
-> +       mov             -1, %o3
->         clr             %o4
->         andcc           %g1, 0x3, %g0
->         bne,pn          %icc, 95f
+The following changes since commit 4bbf439b09c5ac3f8b3e9584fe080375d8d0ad2d:
 
+  fix return values of seq_read_iter() (2020-11-15 22:12:53 -0500)
 
-Thanks Al, this patch fixes networking for me.
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git fixes
+
+for you to fetch changes up to 6220e48d9640538ff700f2e7d24c2f9277555fd6:
+
+  [regression fix] really dumb fuckup in sparc64 __csum_partial_copy() changes (2020-12-08 16:37:47 -0500)
+
+----------------------------------------------------------------
+Al Viro (1):
+      [regression fix] really dumb fuckup in sparc64 __csum_partial_copy() changes
+
+ arch/sparc/lib/csum_copy.S | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
