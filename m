@@ -1,29 +1,25 @@
-From: Al Viro <viro@zeniv.linux.org.uk>
-Date: Tue, 08 Dec 2020 21:48:23 +0000
-Subject: [git pull] [brown paperbag] regression in sparc64 this cycle
-Message-Id: <20201208214823.GJ3579531@ZenIV.linux.org.uk>
+From: pr-tracker-bot@kernel.org
+Date: Tue, 08 Dec 2020 23:07:47 +0000
+Subject: Re: [git pull] [brown paperbag] regression in sparc64 this cycle
+Message-Id: <160746886787.32435.14588690235445646420.pr-tracker-bot@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201208214823.GJ3579531@ZenIV.linux.org.uk>
+In-Reply-To: <20201208214823.GJ3579531@ZenIV.linux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The following changes since commit 4bbf439b09c5ac3f8b3e9584fe080375d8d0ad2d:
+The pull request you sent on Tue, 8 Dec 2020 21:48:23 +0000:
 
-  fix return values of seq_read_iter() (2020-11-15 22:12:53 -0500)
+> git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git fixes
 
-are available in the git repository at:
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/c6f7e1510b872c281ff603a3108c084b6548d35c
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs.git fixes
+Thank you!
 
-for you to fetch changes up to 6220e48d9640538ff700f2e7d24c2f9277555fd6:
-
-  [regression fix] really dumb fuckup in sparc64 __csum_partial_copy() changes (2020-12-08 16:37:47 -0500)
-
-----------------------------------------------------------------
-Al Viro (1):
-      [regression fix] really dumb fuckup in sparc64 __csum_partial_copy() changes
-
- arch/sparc/lib/csum_copy.S | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-- 
+Deet-doot-dot, I am a bot.
+https://korg.docs.kernel.org/prtracker.html
