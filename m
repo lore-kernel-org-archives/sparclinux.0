@@ -1,45 +1,108 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Mon, 21 Dec 2020 09:27:27 +0000
-Subject: Re: [PATCH 01/23] kernel: irq: irqdescs: warn on spurious IRQ
-Message-Id: <CAHp75VeGs-x0-XgpLS0uB2oZmxKZREfUKM1ByUwmRquqFc2FPg@mail.gmail.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 14 Dec 2020 15:59:02 +0000
+Subject: [sparc64] ftrace: kernel startup-tests unaligned access
+Message-Id: <CADxRZqzXQRYgKc=y-KV=S_yHL+Y8Ay2mh5ezeZUnpRvg+syWKw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218143122.19459-1-info@metux.net> <20201218143122.19459-2-info@metux.net>
- <CAHp75VfYz_K2BYOxqmSx0q+1F2F9Lp1eb70RrNYzJHs3FX+quQ@mail.gmail.com> <87ft3zyaqa.fsf@mpe.ellerman.id.au>
-In-Reply-To: <87ft3zyaqa.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Enrico Weigelt, metux IT consult" <info@metux.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, Alexander Shishkin <alexander.shishkin@linux.intel.com>, Jiri Olsa <jolsa@redhat.com>, Namhyung Kim <namhyung@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will@kernel.org>, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, Geert Uytterhoeven <geert@linux-m68k.org>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, James Bottomley <James.Bottomley@hansenpartnership.com>, Helge Deller <deller@gmx.de>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Yoshinori Sato <ysato@users.sourceforge.jp>, Rich Felker <dalias@libc.org>, "David S. Miller" <davem@davemloft.net>, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@alien8.de>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Marc Zyngier <maz@kernel.org>, Tony Lindgren <tony@atomide.com>, Arnd Bergmann <arnd@arndb.de>, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT" <linuxppc-dev@lists.ozlabs.org>, linux-s390@vger.kernel.org, Linux-SH <linux-sh@vger.kernel.org>, sparclinux@vger.kernel.org, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel.org>
+To: Linux Kernel list <linux-kernel@vger.kernel.org>, Sparc kernel list <sparclinux@vger.kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>, Ingo Molnar <mingo@redhat.com>
 
-On Mon, Dec 21, 2020 at 7:44 AM Michael Ellerman <mpe@ellerman.id.au> wrote:
-> Andy Shevchenko <andy.shevchenko@gmail.com> writes:
-> > On Fri, Dec 18, 2020 at 4:37 PM Enrico Weigelt, metux IT consult
-> > <info@metux.net> wrote:
-> >
-> >> +               if (printk_ratelimit())
-> >> +                       pr_warn("spurious IRQ: irq=%d hwirq=%d nr_irqs=%d\n",
-> >> +                               irq, hwirq, nr_irqs);
-> >
-> > Perhaps you missed pr_warn_ratelimit() macro which is already in the
-> > kernel for a long time.
->
-> pr_warn_ratelimited() which calls printk_ratelimited().
+Hello!
 
-I stand corrected.
-Right, that's what I had in mind (actually didn't know that there are variants).
+Enabled ftrace startup tests on a sparc64 test VM/LDOM:
 
-Thanks!
-
-> And see the comment above printk_ratelimit():
->
-> /*
->  * Please don't use printk_ratelimit(), because it shares ratelimiting state
->  * with all other unrelated printk_ratelimit() callsites.  Instead use
->  * printk_ratelimited() or plain old __ratelimit().
->  */
+$ diff -u <(gzip -dc ~/dmesg/config-5.10.0.gz) <(gzip -dc /proc/config.gz)
+--- /dev/fd/63  2020-12-14 16:19:38.239372599 +0300
++++ /dev/fd/62  2020-12-14 16:19:38.235372433 +0300
+@@ -2842,7 +2842,10 @@
+ # CONFIG_TRACEPOINT_BENCHMARK is not set
+ # CONFIG_RING_BUFFER_BENCHMARK is not set
+ # CONFIG_TRACE_EVAL_MAP_FILE is not set
+-# CONFIG_FTRACE_STARTUP_TEST is not set
++CONFIG_FTRACE_SELFTEST=y
++CONFIG_FTRACE_STARTUP_TEST=y
++CONFIG_EVENT_TRACE_STARTUP_TEST=y
++# CONFIG_EVENT_TRACE_TEST_SYSCALLS is not set
+ # CONFIG_RING_BUFFER_STARTUP_TEST is not set
+ # CONFIG_PREEMPTIRQ_DELAY_TEST is not set
+ # CONFIG_KPROBE_EVENT_GEN_TEST is not set
 
 
--- 
-With Best Regards,
-Andy Shevchenko
+Got the following results with kernel boot logs:
+
+Dec 14 13:48:15 kernel: clocksource: jiffies: mask: 0xffffffff
+max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+Dec 14 13:48:15 kernel: futex hash table entries: 65536 (order: 9,
+4194304 bytes, linear)
+Dec 14 13:48:15 kernel: Running postponed tracer tests:
+Dec 14 13:48:15 kernel: Testing tracer function:
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[552a20]
+trace_function+0x40/0x140
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[552a24]
+trace_function+0x44/0x140
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[552a20]
+trace_function+0x40/0x140
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[552a24]
+trace_function+0x44/0x140
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[552a20]
+trace_function+0x40/0x140
+Dec 14 13:48:15 kernel: PASSED
+Dec 14 13:48:15 kernel: Testing dynamic ftrace: PASSED
+...
+Dec 14 13:48:15 kernel: Testing event workqueue_execute_end:
+Dec 14 13:48:15 kernel: log_unaligned: 194175 callbacks suppressed
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[47faa4]
+trace_event_raw_event_workqueue_execute_end+0x44/0xa0
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[47fab0]
+trace_event_raw_event_workqueue_execute_end+0x50/0xa0
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[47faa4]
+trace_event_raw_event_workqueue_execute_end+0x44/0xa0
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[47fab0]
+trace_event_raw_event_workqueue_execute_end+0x50/0xa0
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[47faa4]
+trace_event_raw_event_workqueue_execute_end+0x44/0xa0
+Dec 14 13:48:15 kernel: OK
+...
+Dec 14 13:48:15 kernel: Testing event sched_waking: OK
+Dec 14 13:48:15 kernel: Testing event sched_kthread_stop_ret:
+Dec 14 13:48:15 kernel: log_unaligned: 401755 callbacks suppressed
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[f4c538]
+function_test_events_call+0x84/0x188
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[f4c53c]
+function_test_events_call+0x88/0x188
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[f4c538]
+function_test_events_call+0x84/0x188
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[f4c53c]
+function_test_events_call+0x88/0x188
+Dec 14 13:48:15 kernel: Kernel unaligned access at TPC[f4c538]
+function_test_events_call+0x84/0x188
+Dec 14 13:48:15 kernel: OK
+Dec 14 13:48:15 kernel: Testing event sched_kthread_stop: OK
+...
+
+full log is at  https://gist.github.com/mator/a44eb39d5103aaaea2f1b2f3856c391d
+
+Looking at the most encountered function list in dmesg (journalctl -b
+-k) output:
+
+$ zgrep 'Kernel unaligned access at TPC' kernel-ftrace.log.gz | awk
+'{print $NF}' | cut -f1 -d'+' | sort  | uniq -c
+    313 function_test_events_call
+      4 trace_event_raw_event_kmem_alloc
+      4 trace_event_raw_event_kmem_free
+      1 trace_event_raw_event_mm_page
+      1 trace_event_raw_event_mm_page_alloc
+      2 trace_event_raw_event_rcu_utilization
+      5 trace_event_raw_event_sched_switch
+      3 trace_event_raw_event_timer_class
+      2 trace_event_raw_event_timer_expire_entry
+      8 trace_event_raw_event_workqueue_execute_end
+      2 trace_event_raw_event_workqueue_execute_start
+      5 trace_function
+
+Can someone look for unaligned access at least in
+function_test_events_call() to fix it?
+
+Thanks.
