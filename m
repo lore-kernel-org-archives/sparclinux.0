@@ -1,63 +1,63 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:28 +0000
-Subject: [PATCH 05/23] arch: ia64: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-6-info@metux.net>
+From: Arnd Bergmann <arnd@kernel.org>
+Date: Mon, 14 Dec 2020 13:15:26 +0000
+Subject: Re: [PATCH 1/2] futex: mark futex_detect_cmpxchg() as 'noinline'
+Message-Id: <CAK8P3a0LWjNgwm605TM4dKCsn078X7NC3sEfdBSgcMNEocQ5iA@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20190307091514.2489338-1-arnd@arndb.de> <X9S28TcEXd2zghzp@elver.google.com>
+ <87czzeg5ep.fsf@nanos.tec.linutronix.de>
+In-Reply-To: <87czzeg5ep.fsf@nanos.tec.linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Marco Elver <elver@google.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Darren Hart <dvhart@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Davidlohr Bueso <dave@stgolabs.net>, Elena Reshetova <elena.reshetova@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Guo Ren <guoren@kernel.org>, linux-csky@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
 
-The warning in ack_bad_irq() is misleading in several ways:
-* the term "vector" isn't quite correct
-* the printing format isn't consistent across the archs: some print decimal,
-  some hex, some hex w/o "0x" prefix.
-* the printed linux irq isn't meaningful in all cases - we actually would
-  want it to print the hw irq.
+On Sat, Dec 12, 2020 at 9:01 PM Thomas Gleixner <tglx@linutronix.de> wrote:
+>
+> On Sat, Dec 12 2020 at 13:26, Marco Elver wrote:
+> > On Thu, Mar 07, 2019 at 10:14AM +0100, Arnd Bergmann wrote:
+> >> -static void __init futex_detect_cmpxchg(void)
+> >> +static noinline void futex_detect_cmpxchg(void)
+> >>  {
+> >>  #ifndef CONFIG_HAVE_FUTEX_CMPXCHG
+> >>      u32 curval;
+> >
+> > What ever happened to this patch?
+>
+> It obviously fell through the cracks.
+>
+> > I'm seeing this again with the attached config + next-20201211 (for
+> > testing https://bugs.llvm.org/show_bug.cgi?idH492). Had to apply this
+> > patch to build the kernel.
+>
+> What really bothers me is to remove the __init from a function which is
+> clearly only used during init. And looking deeper it's simply a hack.
+>
+> This function is only needed when an architecture has to runtime
+> discover whether the CPU supports it or not. ARM has unconditional
+> support for this, so the obvious thing to do is the below.
+>
 
-Since all call sites already print out more detailed and correct information,
-we just don't need to duplicate this in each single arch. So just drop it.
+Ah perfect, that is clearly the right solution here.
 
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
----
- arch/ia64/include/asm/hardirq.h | 2 +-
- arch/ia64/kernel/irq.c          | 9 ---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+> --- a/arch/arm/Kconfig
+> +++ b/arch/arm/Kconfig
+> @@ -86,6 +86,7 @@ config ARM
+>         select HAVE_FTRACE_MCOUNT_RECORD if !XIP_KERNEL
+>         select HAVE_FUNCTION_GRAPH_TRACER if !THUMB2_KERNEL && !CC_IS_CLANG
+>         select HAVE_FUNCTION_TRACER if !XIP_KERNEL
+> +       select HAVE_FUTEX_CMPXCHG if FUTEX
+>         select HAVE_GCC_PLUGINS
+>         select HAVE_HW_BREAKPOINT if PERF_EVENTS && (CPU_V6 || CPU_V6K || CPU_V7)
+>         select HAVE_IDE if PCI || ISA || PCMCIA
 
-diff --git a/arch/ia64/include/asm/hardirq.h b/arch/ia64/include/asm/hardirq.h
-index ccde7c2ba00f..dddaafaf84e0 100644
---- a/arch/ia64/include/asm/hardirq.h
-+++ b/arch/ia64/include/asm/hardirq.h
-@@ -22,6 +22,6 @@
- 
- extern void __iomem *ipi_base_addr;
- 
--void ack_bad_irq(unsigned int irq);
-+#define ack_bad_irq(irq)
- 
- #endif /* _ASM_IA64_HARDIRQ_H */
-diff --git a/arch/ia64/kernel/irq.c b/arch/ia64/kernel/irq.c
-index ecef17c7c35b..1365c7cf2095 100644
---- a/arch/ia64/kernel/irq.c
-+++ b/arch/ia64/kernel/irq.c
-@@ -28,15 +28,6 @@
- #include <asm/xtp.h>
- 
- /*
-- * 'what should we do if we get a hw irq event on an illegal vector'.
-- * each architecture has to answer this themselves.
-- */
--void ack_bad_irq(unsigned int irq)
--{
--	printk(KERN_ERR "Unexpected irq vector 0x%x on CPU %u!\n", irq, smp_processor_id());
--}
--
--/*
-  * Interrupt statistics:
-  */
- 
--- 
-2.11.0
+I had a look at what other architectures always implement
+futex_atomic_cmpxchg_inatomic() or can use the asm-generic non-SMP version,
+and I found that it's pretty much all of them, the odd ones being just sparc32
+and csky, which use asm-generic/futex.h but do have an SMP option,
+as well as xtensa
+
+I would guess that for csky, this is a mistake, as the architecture is fairly
+new and should be able to implement it. Not sure about sparc32.
+
+       Arnd
