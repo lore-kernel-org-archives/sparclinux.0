@@ -1,59 +1,271 @@
-From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:34 +0000
-Subject: [PATCH 11/23] arch: sparc: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-12-info@metux.net>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 18 Dec 2020 18:43:35 +0000
+Subject: [PATCH v1 01/13] sparc32: Drop sun4m/sun4d support from head_32.S
+Message-Id: <20201218184347.2180772-2-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20201218184347.2180772-1-sam@ravnborg.org>
+In-Reply-To: <20201218184347.2180772-1-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
+To: David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>, Christian Brauner <christian.brauner@ubuntu.com>, Denis Efremov <efremov@linux.com>, Dmitry Safonov <0x7f454c46@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@kernel.org>, Pekka Enberg <penberg@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org, debian-sparc@lists.debian.org, gentoo-sparc@l.g.o
 
-The warning in ack_bad_irq() is misleading in several ways:
-* the term "vector" isn't quite correct
-* the printing format isn't consistent across the archs: some print decimal,
-  some hex, some hex w/o 0x prefix.
-* the printed linux irq isn't meaningful in all cases - we actually would
-  want it to print the hw irq.
+Remove the most obvious parts of sun4* support from head_32.S.
+Use a single print if a sun4* machine is detected thus restricting
+boots to LEON machines.
 
-Since all call sites already print out more detailed and correct information,
-we just don't need to duplicate this in each single arch. So just drop it.
-
-Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/hardirq_64.h | 2 +-
- arch/sparc/kernel/irq_64.c          | 5 -----
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ arch/sparc/kernel/head_32.S | 190 ++----------------------------------
+ 1 file changed, 9 insertions(+), 181 deletions(-)
 
-diff --git a/arch/sparc/include/asm/hardirq_64.h b/arch/sparc/include/asm/hardirq_64.h
-index 75b92bfe04b5..874151f520de 100644
---- a/arch/sparc/include/asm/hardirq_64.h
-+++ b/arch/sparc/include/asm/hardirq_64.h
-@@ -14,6 +14,6 @@
- #define local_softirq_pending_ref \
- 	__cpu_data.__softirq_pending
+diff --git a/arch/sparc/kernel/head_32.S b/arch/sparc/kernel/head_32.S
+index be30c8d4cc73..b7b14250cbe0 100644
+--- a/arch/sparc/kernel/head_32.S
++++ b/arch/sparc/kernel/head_32.S
+@@ -45,11 +45,7 @@ cputypvar:
+ 	.align 4
  
--void ack_bad_irq(unsigned int irq);
-+#define ack_bad_irq(irq)
- 
- #endif /* !(__SPARC64_HARDIRQ_H) */
-diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
-index 3ec9f1402aad..ea2a52f7fe53 100644
---- a/arch/sparc/kernel/irq_64.c
-+++ b/arch/sparc/kernel/irq_64.c
-@@ -284,11 +284,6 @@ static unsigned int sysino_exists(u32 devhandle, unsigned int devino)
- 	return irq;
- }
- 
--void ack_bad_irq(unsigned int irq)
--{
--	pr_crit("BAD IRQ ack %d\n", irq);
--}
+ notsup:
+-	.asciz	"Sparc-Linux sun4/sun4c or MMU-less not supported\n\n"
+-	.align 4
 -
- void irq_install_pre_handler(int irq,
- 			     void (*func)(unsigned int, void *, void *),
- 			     void *arg1, void *arg2)
+-sun4e_notsup:
+-        .asciz  "Sparc-Linux sun4e support does not exist\n\n"
++	.asciz	"Sparc-Linux sun4* or MMU-less not supported\n\n"
+ 	.align 4
+ 
+ /* The trap-table - located in the __HEAD section */
+@@ -215,114 +211,10 @@ not_a_sun4:
+ 		be	leon_remap		/* It is a LEON - jump */
+ 		 nop
+ 
+-		/* Sanity-check, is MMU enabled */
+-		lda	[%g0] ASI_M_MMUREGS, %g1
+-		andcc	%g1, 1, %g0
+-		be	halt_notsup
+-		 nop
+-
+-		/* Check for a viking (TI) module. */
+-		cmp	%g3, PSR_IMPL_TI
+-		bne	srmmu_not_viking
+-		 nop
+-
+-		/* Figure out what kind of viking we are on.
+-		 * We need to know if we have to play with the
+-		 * AC bit and disable traps or not.
+-		 */
+-
+-		/* I've only seen MicroSparc's on SparcClassics with this
+-		 * bit set.
+-		 */
+-		set	0x800, %g2
+-		lda	[%g0] ASI_M_MMUREGS, %g3	! peek in the control reg
+-		and	%g2, %g3, %g3
+-		subcc	%g3, 0x0, %g0
+-		bnz	srmmu_not_viking			! is in mbus mode
+-		 nop
+-
+-		rd	%psr, %g3			! DO NOT TOUCH %g3
+-		andn	%g3, PSR_ET, %g2
+-		wr	%g2, 0x0, %psr
+-		WRITE_PAUSE
+-
+-		/* Get context table pointer, then convert to
+-		 * a physical address, which is 36 bits.
+-		 */
+-		set	AC_M_CTPR, %g4
+-		lda	[%g4] ASI_M_MMUREGS, %g4
+-		sll	%g4, 0x4, %g4			! We use this below
+-							! DO NOT TOUCH %g4
+-
+-		/* Set the AC bit in the Viking's MMU control reg. */
+-		lda	[%g0] ASI_M_MMUREGS, %g5	! DO NOT TOUCH %g5
+-		set	0x8000, %g6			! AC bit mask
+-		or	%g5, %g6, %g6			! Or it in...
+-		sta	%g6, [%g0] ASI_M_MMUREGS	! Close your eyes...
+-
+-		/* Grrr, why does it seem like every other load/store
+-		 * on the sun4m is in some ASI space...
+-		 * Fine with me, let's get the pointer to the level 1
+-		 * page table directory and fetch its entry.
+-		 */
+-		lda	[%g4] ASI_M_BYPASS, %o1		! This is a level 1 ptr
+-		srl	%o1, 0x4, %o1			! Clear low 4 bits
+-		sll	%o1, 0x8, %o1			! Make physical
+-
+-		/* Ok, pull in the PTD. */
+-		lda	[%o1] ASI_M_BYPASS, %o2		! This is the 0x0 16MB pgd
+-
+-		/* Calculate to KERNBASE entry. */
+-		add	%o1, KERNBASE >> (PGDIR_SHIFT - 2), %o3
+-
+-		/* Poke the entry into the calculated address. */
+-		sta	%o2, [%o3] ASI_M_BYPASS
+-
+-		/* I don't get it Sun, if you engineered all these
+-		 * boot loaders and the PROM (thank you for the debugging
+-		 * features btw) why did you not have them load kernel
+-		 * images up in high address space, since this is necessary
+-		 * for ABI compliance anyways?  Does this low-mapping provide
+-		 * enhanced interoperability?
+-		 *
+-		 * "The PROM is the computer."
+-		 */
+-
+-		/* Ok, restore the MMU control register we saved in %g5 */
+-		sta	%g5, [%g0] ASI_M_MMUREGS	! POW... ouch
+-
+-		/* Turn traps back on.  We saved it in %g3 earlier. */
+-		wr	%g3, 0x0, %psr			! tick tock, tick tock
+-
+-		/* Now we burn precious CPU cycles due to bad engineering. */
+-		WRITE_PAUSE
+-
+-		/* Wow, all that just to move a 32-bit value from one
+-		 * place to another...  Jump to high memory.
+-		 */
+-		b	go_to_highmem
++		/* Not LEON - halt */
++		ba	halt_notsup
+ 		 nop
+ 
+-srmmu_not_viking:
+-		/* This works on viking's in Mbus mode and all
+-		 * other MBUS modules.  It is virtually the same as
+-		 * the above madness sans turning traps off and flipping
+-		 * the AC bit.
+-		 */
+-		set	AC_M_CTPR, %g1
+-		lda	[%g1] ASI_M_MMUREGS, %g1	! get ctx table ptr
+-		sll	%g1, 0x4, %g1			! make physical addr
+-		lda	[%g1] ASI_M_BYPASS, %g1		! ptr to level 1 pg_table
+-		srl	%g1, 0x4, %g1
+-		sll	%g1, 0x8, %g1			! make phys addr for l1 tbl
+-
+-		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
+-		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
+-		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
+-		b	go_to_highmem
+-		 nop					! wheee....
+-
+-
+ leon_remap:
+ 		/* Sanity-check, is MMU enabled */
+ 		lda	[%g0] ASI_LEON_MMUREGS, %g1
+@@ -343,8 +235,6 @@ leon_remap:
+ 		lda	[%g1] ASI_M_BYPASS, %g2		! get level1 entry for 0x0
+ 		add	%g1, KERNBASE >> (PGDIR_SHIFT - 2), %g3
+ 		sta	%g2, [%g3] ASI_M_BYPASS		! place at KERNBASE entry
+-		b	go_to_highmem
+-		 nop					! wheee....
+ 
+ /* Now do a non-relative jump so that PC is in high-memory */
+ go_to_highmem:
+@@ -413,13 +303,13 @@ execute_in_high_mem:
+ 		ldub	[%o2 + 0x4], %l1
+ 
+ 		cmp	%l1, 'm'
+-		be	sun4m_init
++		be	no_sun4_here		! sun4m
+ 		 cmp	%l1, 's'
+-		be	sun4m_init
++		be	no_sun4_here		! sun4m
+ 		 cmp	%l1, 'd'
+-		be	sun4d_init
++		be	no_sun4_here		! sun4d
+ 		 cmp	%l1, 'e'
+-		be	no_sun4e_here		! Could be a sun4e.
++		be	no_sun4_here		! Could be a sun4e.
+ 		 nop
+ 		b	no_sun4u_here		! AIEEE, a V9 sun4u... Get our BIG BROTHER kernel :))
+ 		 nop
+@@ -441,68 +331,6 @@ leon_init:
+ 		/* Update boot_cpu_id only on boot cpu */
+ 		stub	%g1, [%g2 + %lo(boot_cpu_id)]
+ 
+-		ba continue_boot
+-		 nop
+-
+-/* CPUID in bootbus can be found at PA 0xff0140000 */
+-#define SUN4D_BOOTBUS_CPUID     0xf0140000
+-
+-sun4d_init:
+-	/* Need to patch call to handler_irq */
+-	set	patch_handler_irq, %g4
+-	set	sun4d_handler_irq, %g5
+-	sethi	%hi(0x40000000), %g3		! call
+-	sub	%g5, %g4, %g5
+-	srl	%g5, 2, %g5
+-	or	%g5, %g3, %g5
+-	st	%g5, [%g4]
+-
+-#ifdef CONFIG_SMP
+-	/* Get our CPU id out of bootbus */
+-	set     SUN4D_BOOTBUS_CPUID, %g3
+-	lduba   [%g3] ASI_M_CTL, %g3
+-	and     %g3, 0xf8, %g3
+-	srl     %g3, 3, %g4
+-	sta     %g4, [%g0] ASI_M_VIKING_TMP1
+-	sethi	%hi(boot_cpu_id), %g5
+-	stb	%g4, [%g5 + %lo(boot_cpu_id)]
+-#endif
+-
+-	/* Fall through to sun4m_init */
+-
+-sun4m_init:
+-/* Ok, the PROM could have done funny things and apple cider could still
+- * be sitting in the fault status/address registers.  Read them all to
+- * clear them so we don't get magic faults later on.
+- */
+-/* This sucks, apparently this makes Vikings call prom panic, will fix later */
+-2:
+-		rd	%psr, %o1
+-		srl	%o1, PSR_IMPL_SHIFT, %o1	! Get a type of the CPU
+-
+-		subcc	%o1, PSR_IMPL_TI, %g0		! TI: Viking or MicroSPARC
+-		be	continue_boot
+-		 nop
+-
+-		set	AC_M_SFSR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		set	AC_M_SFAR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-
+-		/* Fujitsu MicroSPARC-II has no asynchronous flavors of FARs */
+-		subcc	%o1, 0, %g0
+-		be	continue_boot
+-		 nop
+-
+-		set	AC_M_AFSR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		set	AC_M_AFAR, %o0
+-		lda	[%o0] ASI_M_MMUREGS, %g0
+-		 nop
+-
+-
+-continue_boot:
+-
+ /* Aieee, now set PC and nPC, enable traps, give ourselves a stack and it's
+  * show-time!
+  */
+@@ -670,9 +498,9 @@ continue_boot:
+ 		call	halt_me
+ 		 nop
+ 
+-no_sun4e_here:
++no_sun4_here:
+ 		ld	[%g7 + 0x68], %o1
+-		set	sun4e_notsup, %o0
++		set	notsup, %o0
+ 		call	%o1
+ 		 nop
+ 		b	halt_me
 -- 
-2.11.0
+2.27.0
