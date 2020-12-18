@@ -1,48 +1,50 @@
-From: Moussa <moutraore02@sysriacomms.com>
-Date: Sat, 12 Dec 2020 01:37:48 +0000
-Subject: Get Back To Me
-Message-Id: <20201212013747.D809577EF5B5B44A@sysriacomms.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Fri, 18 Dec 2020 14:57:23 +0000
+Subject: (repost) cleaning up handling of bad IRQs
+Message-Id: <20201218145746.24205-1-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
 
-Greeetings from Mali. I am sorry for contacting you like this but=20
-I do have a very urgent matter that I want to discuss with you.=20
-Before I proceed, I want you to keep an open mind while reading=20
-this proposal. My name is Moussa Traore, I am the Personal=20
-Assistant to Mr. Issa Saley Maiga who was the head of the civil=20
-aviation agency in Mali during the tenure of Ibrahim Boubacar=20
-Ke=C3=AFta, the former president of Mali. His tenure was overtaken by=20
-the military during a coup d'etat. I am sure you would have read=20
-about this in your country because it was covered by the=20
-international news agencies worldwide.=20
+Hello friends,
 
-Anyway, my boss was also affected by the coup d'etat and he was=20
-arrested along with other high profile politicians. Also, all of=20
-his local assets (bother property and financial assets) were=20
-seized by the Government. Due to this situation, my boss belives=20
-that he is at risk and he is now very scared for the safety of=20
-his family especially his wife and kids. In order to ensure that=20
-his family is taken care of and protected incase anything happens=20
-to him, he has asked me to help him find a foreign investor who=20
-can help him accommodate and manage the finanical assets that he=20
-has in Europe. These assets was secured with the help of a proxy=20
-and it is currently held with an offshore financial bank so it is=20
-safe so secure. Also, the Government of his country do not know=20
-of this asset hence why they are unable to seize it as they have=20
-done his other assets.
+ << reposting, since first queue didn't go through completely, due to mailer problem >>
 
-My proposal to you is for you to help us manage these funds, and=20
-invest it in lucrative projects in your country that will yeild=20
-good profits. You also do not have to worry about if this is safe=20
-or not because everything will be handled in a legal and=20
-transparent manner. You will also be handosmely rewarded for your=20
-help if you decide to work with us. If this proposal interests=20
-you, please kindly respond so that I can give you more details. I=20
-hope to hear from you soon.
+here's a patch queue for cleaning up the IRQ handling. Inspired by a
+discussion we had on a previous patch of mine:
 
-Regards,
+    "arch: fix 'unexpected IRQ trap at vector' warnings"
+    https://www.spinics.net/lists/kernel/msg3763137.html
 
-Moussa.
+Turned out that the whole message, as it is right now, doesn't make much
+sense at at all - not just incorrect wording, but also not quite useful
+information. And the whole ack_bad_irq() thing deserves a cleanup anyways.
+
+So, I've had a closer look and came to these conclusions:
+
+1. The warning message doesn't need to be duplicated in the per architecture
+   ack_bad_irq() functions. All, but one callers already do their own warning.
+   Thus just adding a pr_warn() call there, printing out more useful data
+   like the hardware IRQ number, and dropping all warnings from all the
+   ack_bad_irq() functions.
+
+2. Many of the ack_bad_irq()'s count up the spurious interrupts - lots of
+   duplications over the various archs. Some of them using atomic_t, some
+   just plain ints. Consolidating this by introducing a global counter
+   with inline'd accessors and doing the upcounting in the (currently 3)
+   call sites of ack_bad_irq(). After that, step by step changing all
+   archs to use the new counter.
+
+3. For all but one arch (x86), ack_bad_irq() became a no-op.
+
+   On x86, it's just a call to ack_APIC_irq(), in order to prevent lockups
+   when IRQs missed to be ack'ed on the APIC. Could we perhaps do this in
+   some better place ? In that case, ack_bad_irq() could easily be removed
+   entirely.
+
+have fun,
+
+--mtx
