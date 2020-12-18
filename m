@@ -1,10 +1,10 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:35 +0000
-Subject: [PATCH 12/23] arch: x86: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-13-info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:05 +0000
+Subject: [PATCH 06/23] arch: mips: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-7-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,22 +23,43 @@ we just don't need to duplicate this in each single arch. So just drop it.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- arch/x86/kernel/irq.c | 3 ---
- 1 file changed, 3 deletions(-)
+ arch/mips/include/asm/hardirq.h | 3 +--
+ arch/mips/kernel/irq.c          | 9 ---------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
-index c5dd50369e2f..5c66c44b6b60 100644
---- a/arch/x86/kernel/irq.c
-+++ b/arch/x86/kernel/irq.c
-@@ -36,9 +36,6 @@ atomic_t irq_err_count;
-  */
- void ack_bad_irq(unsigned int irq)
- {
--	if (printk_ratelimit())
--		pr_err("unexpected IRQ trap at vector %02x\n", irq);
+diff --git a/arch/mips/include/asm/hardirq.h b/arch/mips/include/asm/hardirq.h
+index c977a86c2c65..75444120e6cb 100644
+--- a/arch/mips/include/asm/hardirq.h
++++ b/arch/mips/include/asm/hardirq.h
+@@ -10,8 +10,7 @@
+ #ifndef _ASM_HARDIRQ_H
+ #define _ASM_HARDIRQ_H
+ 
+-extern void ack_bad_irq(unsigned int irq);
+-#define ack_bad_irq ack_bad_irq
++#define ack_bad_irq(irq)
+ 
+ #include <asm-generic/hardirq.h>
+ 
+diff --git a/arch/mips/kernel/irq.c b/arch/mips/kernel/irq.c
+index 85b6c60f285d..c98be305fab6 100644
+--- a/arch/mips/kernel/irq.c
++++ b/arch/mips/kernel/irq.c
+@@ -27,15 +27,6 @@
+ 
+ void *irq_stack[NR_CPUS];
+ 
+-/*
+- * 'what should we do if we get a hw irq event on an illegal vector'.
+- * each architecture has to answer this themselves.
+- */
+-void ack_bad_irq(unsigned int irq)
+-{
+-	printk("unexpected IRQ # %d\n", irq);
+-}
 -
- 	/*
- 	 * Currently unexpected vectors happen only on SMP and APIC.
- 	 * We _must_ ack these because every local APIC has only N
+ atomic_t irq_err_count;
+ 
+ int arch_show_interrupts(struct seq_file *p, int prec)
 -- 
 2.11.0
