@@ -1,117 +1,322 @@
-From: Steven Rostedt <rostedt@goodmis.org>
-Date: Mon, 14 Dec 2020 17:41:43 +0000
-Subject: [PATCH] Revert: "ring-buffer: Remove HAVE_64BIT_ALIGNED_ACCESS"
-Message-Id: <20201214124143.675d78bf@gandalf.local.home>
+From: Sam Ravnborg <sam@ravnborg.org>
+Date: Fri, 18 Dec 2020 18:43:46 +0000
+Subject: [PATCH v1 12/13] sparc32: drop check for sparc_model
+Message-Id: <20201218184347.2180772-13-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201218184347.2180772-1-sam@ravnborg.org>
+In-Reply-To: <20201218184347.2180772-1-sam@ravnborg.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Anatoly Pugachev <matorola@gmail.com>, Sparc kernel list <sparclinux@vger.kernel.org>, Jessica Clarke <jrtc27@jrtc27.com>
+To: David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>, Christian Brauner <christian.brauner@ubuntu.com>, Denis Efremov <efremov@linux.com>, Dmitry Safonov <0x7f454c46@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@kernel.org>, Pekka Enberg <penberg@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org, debian-sparc@lists.debian.org, gentoo-sparc@l.g.o
 
-From: "Steven Rostedt (VMware)" <rostedt@goodmis.org>
+sparc32 is always LEON, so no need to check for the model.
 
-It was believed that metag was the only architecture that required the ring
-buffer to keep 8 byte words aligned on 8 byte architectures, and with its
-removal, it was assumed that the ring buffer code did not need to handle
-this case. It appears that sparc64 also requires this.
-
-The following was reported on a sparc64 boot up:
-
-   kernel: futex hash table entries: 65536 (order: 9, 4194304 bytes, linear)
-   kernel: Running postponed tracer tests:
-   kernel: Testing tracer function:
-   kernel: Kernel unaligned access at TPC[552a20] trace_function+0x40/0x140
-   kernel: Kernel unaligned access at TPC[552a24] trace_function+0x44/0x140
-   kernel: Kernel unaligned access at TPC[552a20] trace_function+0x40/0x140
-   kernel: Kernel unaligned access at TPC[552a24] trace_function+0x44/0x140
-   kernel: Kernel unaligned access at TPC[552a20] trace_function+0x40/0x140
-   kernel: PASSED
-
-Need to put back the 64BIT aligned code for the ring buffer.
-
-Link: https://lore.kernel.org/r/CADxRZqzXQRYgKc=y-KV=S_yHL+Y8Ay2mh5ezeZUnpRvg+syWKw@mail.gmail.com
-
-Cc: stable@vger.kernel.org
-Fixes: 86b3de60a0b6 ("ring-buffer: Remove HAVE_64BIT_ALIGNED_ACCESS")
-Reported-by: Anatoly Pugachev <matorola@gmail.com>
-Signed-off-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Will Deacon <will@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arvind Sankar <nivedita@alum.mit.edu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Arnd Bergmann <arnd@kernel.org>
+Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/Kconfig               | 16 ++++++++++++++++
- kernel/trace/ring_buffer.c | 17 +++++++++++++----
- 2 files changed, 29 insertions(+), 4 deletions(-)
+ arch/sparc/include/asm/cpu_type.h   | 18 -------
+ arch/sparc/include/asm/io_32.h      |  4 +-
+ arch/sparc/include/asm/pgtable_32.h | 24 ---------
+ arch/sparc/kernel/devices.c         |  7 +--
+ arch/sparc/kernel/ioport.c          |  6 +--
+ arch/sparc/kernel/leon_pmc.c        | 14 +++--
+ arch/sparc/kernel/setup_32.c        | 79 +----------------------------
+ 7 files changed, 12 insertions(+), 140 deletions(-)
 
-diff --git a/arch/Kconfig b/arch/Kconfig
-index 56b6ccc0e32d..fa716994f77e 100644
---- a/arch/Kconfig
-+++ b/arch/Kconfig
-@@ -143,6 +143,22 @@ config UPROBES
- 	    managed by the kernel and kept transparent to the probed
- 	    application. )
+diff --git a/arch/sparc/include/asm/cpu_type.h b/arch/sparc/include/asm/cpu_type.h
+index 2b59799859d1..3e0154c3f41d 100644
+--- a/arch/sparc/include/asm/cpu_type.h
++++ b/arch/sparc/include/asm/cpu_type.h
+@@ -2,28 +2,10 @@
+ #ifndef __ASM_CPU_TYPE_H
+ #define __ASM_CPU_TYPE_H
  
-+config HAVE_64BIT_ALIGNED_ACCESS
-+	def_bool 64BIT && !HAVE_EFFICIENT_UNALIGNED_ACCESS
-+	help
-+	  Some architectures require 64 bit accesses to be 64 bit
-+	  aligned, which also requires structs containing 64 bit values
-+	  to be 64 bit aligned too. This includes some 32 bit
-+	  architectures which can do 64 bit accesses, as well as 64 bit
-+	  architectures without unaligned access.
-+
-+	  This symbol should be selected by an architecture if 64 bit
-+	  accesses are required to be 64 bit aligned in this way even
-+	  though it is not a 64 bit architecture.
-+
-+	  See Documentation/unaligned-memory-access.txt for more
-+	  information on the topic of unaligned memory accesses.
-+
- config HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	bool
- 	help
-diff --git a/kernel/trace/ring_buffer.c b/kernel/trace/ring_buffer.c
-index e03bc4e5d482..926845eb5ab5 100644
---- a/kernel/trace/ring_buffer.c
-+++ b/kernel/trace/ring_buffer.c
-@@ -130,7 +130,16 @@ int ring_buffer_print_entry_header(struct trace_seq *s)
- #define RB_ALIGNMENT		4U
- #define RB_MAX_SMALL_DATA	(RB_ALIGNMENT * RINGBUF_TYPE_DATA_TYPE_LEN_MAX)
- #define RB_EVNT_MIN_SIZE	8U	/* two 32bit words */
--#define RB_ALIGN_DATA		__aligned(RB_ALIGNMENT)
-+
-+#ifndef CONFIG_HAVE_64BIT_ALIGNED_ACCESS
-+# define RB_FORCE_8BYTE_ALIGNMENT	0
-+# define RB_ARCH_ALIGNMENT		RB_ALIGNMENT
-+#else
-+# define RB_FORCE_8BYTE_ALIGNMENT	1
-+# define RB_ARCH_ALIGNMENT		8U
-+#endif
-+
-+#define RB_ALIGN_DATA		__aligned(RB_ARCH_ALIGNMENT)
+-/*
+- * Sparc (general) CPU types
+- */
+-enum sparc_cpu {
+-  sun4m       = 0x00,
+-  sun4d       = 0x01,
+-  sun4e       = 0x02,
+-  sun4u       = 0x03, /* V8 ploos ploos */
+-  sun_unknown = 0x04,
+-  ap1000      = 0x05, /* almost a sun4m */
+-  sparc_leon  = 0x06, /* Leon SoC */
+-};
+-
+ #ifdef CONFIG_SPARC32
+-extern enum sparc_cpu sparc_cpu_model;
  
- /* define RINGBUF_TYPE_DATA for 'case RINGBUF_TYPE_DATA:' */
- #define RINGBUF_TYPE_DATA 0 ... RINGBUF_TYPE_DATA_TYPE_LEN_MAX
-@@ -2718,7 +2727,7 @@ rb_update_event(struct ring_buffer_per_cpu *cpu_buffer,
+ #define SUN4M_NCPUS            4              /* Architectural limit of sun4m. */
  
- 	event->time_delta = delta;
- 	length -= RB_EVNT_HDR_SIZE;
--	if (length > RB_MAX_SMALL_DATA) {
-+	if (length > RB_MAX_SMALL_DATA || RB_FORCE_8BYTE_ALIGNMENT) {
- 		event->type_len = 0;
- 		event->array[0] = length;
- 	} else
-@@ -2733,11 +2742,11 @@ static unsigned rb_calculate_event_length(unsigned length)
- 	if (!length)
- 		length++;
+-#else
+-
+-#define sparc_cpu_model sun4u
+-
+ #endif
  
--	if (length > RB_MAX_SMALL_DATA)
-+	if (length > RB_MAX_SMALL_DATA || RB_FORCE_8BYTE_ALIGNMENT)
- 		length += sizeof(event.array[0]);
+ #endif /* __ASM_CPU_TYPE_H */
+diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
+index 549f0a72280d..83abe709d120 100644
+--- a/arch/sparc/include/asm/io_32.h
++++ b/arch/sparc/include/asm/io_32.h
+@@ -138,11 +138,11 @@ void pci_iounmap(struct pci_dev *dev, void __iomem *);
  
- 	length += RB_EVNT_HDR_SIZE;
--	length = ALIGN(length, RB_ALIGNMENT);
-+	length = ALIGN(length, RB_ARCH_ALIGNMENT);
+ static inline int sbus_can_dma_64bit(void)
+ {
+-	return 0; /* actually, sparc_cpu_model=sun4d */
++	return 0;
+ }
+ static inline int sbus_can_burst64(void)
+ {
+-	return 0; /* actually, sparc_cpu_model=sun4d */
++	return 0;
+ }
+ struct device;
+ void sbus_set_sbus64(struct device *, int);
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 632cdb959542..9c4da6ed81ef 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -356,30 +356,6 @@ static inline swp_entry_t __swp_entry(unsigned long type, unsigned long offset)
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
- 	/*
- 	 * In case the time delta is larger than the 27 bits for it
+-static inline unsigned long
+-__get_phys (unsigned long addr)
+-{
+-	switch (sparc_cpu_model){
+-	case sun4m:
+-	case sun4d:
+-		return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
+-	default:
+-		return 0;
+-	}
+-}
+-
+-static inline int
+-__get_iospace (unsigned long addr)
+-{
+-	switch (sparc_cpu_model){
+-	case sun4m:
+-	case sun4d:
+-		return (srmmu_get_pte (addr) >> 28);
+-	default:
+-		return -1;
+-	}
+-}
+-
+ extern unsigned long *sparc_valid_addr_bitmap;
+ 
+ /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
+diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
+index b3c2d51b22c4..2963e89611a3 100644
+--- a/arch/sparc/kernel/devices.c
++++ b/arch/sparc/kernel/devices.c
+@@ -26,8 +26,6 @@
+ 
+ static char *cpu_mid_prop(void)
+ {
+-	if (sparc_cpu_model = sun4d)
+-		return "cpu-id";
+ 	return "mid";
+ }
+ 
+@@ -40,8 +38,6 @@ static int check_cpu_node(phandle nd, int *cur_inst,
+ 			*prom_node = nd;
+ 		if (mid) {
+ 			*mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
+-			if (sparc_cpu_model = sun4m)
+-				*mid &= 3;
+ 		}
+ 		return 0;
+ 	}
+@@ -92,8 +88,7 @@ static int cpu_mid_compare(phandle nd, int instance, void *_arg)
+ 	int this_mid;
+ 
+ 	this_mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
+-	if (this_mid = desired_mid
+-	    || (sparc_cpu_model = sun4m && (this_mid & 3) = desired_mid))
++	if (this_mid = desired_mid)
+ 		return 0;
+ 	return -ENODEV;
+ }
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 8e1d72a16759..50fb0a8431aa 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -57,10 +57,8 @@
+  */
+ static inline void dma_make_coherent(unsigned long pa, unsigned long len)
+ {
+-	if (sparc_cpu_model = sparc_leon) {
+-		if (!sparc_leon3_snooping_enabled())
+-			leon_flush_dcache_all();
+-	}
++	if (!sparc_leon3_snooping_enabled())
++		leon_flush_dcache_all();
+ }
+ 
+ static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);
+diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
+index 396f46bca52e..625924dd0e5b 100644
+--- a/arch/sparc/kernel/leon_pmc.c
++++ b/arch/sparc/kernel/leon_pmc.c
+@@ -75,15 +75,13 @@ static void pmc_leon_idle(void)
+ /* Install LEON Power Down function */
+ static int __init leon_pmc_install(void)
+ {
+-	if (sparc_cpu_model = sparc_leon) {
+-		/* Assign power management IDLE handler */
+-		if (pmc_leon_need_fixup())
+-			sparc_idle = pmc_leon_idle_fixup;
+-		else
+-			sparc_idle = pmc_leon_idle;
++	/* Assign power management IDLE handler */
++	if (pmc_leon_need_fixup())
++		sparc_idle = pmc_leon_idle_fixup;
++	else
++		sparc_idle = pmc_leon_idle;
+ 
+-		printk(KERN_INFO "leon: power management initialized\n");
+-	}
++	printk(KERN_INFO "leon: power management initialized\n");
+ 
+ 	return 0;
+ }
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index b6fd87928c73..91c0c043a95d 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -202,30 +202,12 @@ static void __init per_cpu_patch(void)
+ {
+ 	struct cpuid_patch_entry *p;
+ 
+-	if (sparc_cpu_model = sun4m) {
+-		/* Nothing to do, this is what the unpatched code
+-		 * targets.
+-		 */
+-		return;
+-	}
+-
+ 	p = &__cpuid_patch;
+ 	while (p < &__cpuid_patch_end) {
+ 		unsigned long addr = p->addr;
+ 		unsigned int *insns;
+ 
+-		switch (sparc_cpu_model) {
+-		case sun4d:
+-			insns = &p->sun4d[0];
+-			break;
+-
+-		case sparc_leon:
+-			insns = &p->leon[0];
+-			break;
+-		default:
+-			prom_printf("Unknown cpu type, halting.\n");
+-			prom_halt();
+-		}
++		insns = &p->leon[0];
+ 		*(unsigned int *) (addr + 0) = insns[0];
+ 		flushi(addr + 0);
+ 		*(unsigned int *) (addr + 4) = insns[1];
+@@ -237,31 +219,9 @@ static void __init per_cpu_patch(void)
+ 	}
+ }
+ 
+-struct leon_1insn_patch_entry {
+-	unsigned int addr;
+-	unsigned int insn;
+-};
+-
+-enum sparc_cpu sparc_cpu_model;
+-EXPORT_SYMBOL(sparc_cpu_model);
+-
+ static __init void leon_patch(void)
+ {
+-	struct leon_1insn_patch_entry *start = (void *)__leon_1insn_patch;
+-	struct leon_1insn_patch_entry *end = (void *)__leon_1insn_patch_end;
+-
+ 	/* Default instruction is leon - no patching */
+-	if (sparc_cpu_model = sparc_leon)
+-		return;
+-
+-	while (start < end) {
+-		unsigned long addr = start->addr;
+-
+-		*(unsigned int *)(addr) = start->insn;
+-		flushi(addr);
+-
+-		start++;
+-	}
+ }
+ 
+ struct tt_entry *sparc_ttable;
+@@ -273,22 +233,6 @@ static struct pt_regs fake_swapper_regs;
+ void __init sparc32_start_kernel(struct linux_romvec *rp)
+ {
+ 	prom_init(rp);
+-
+-	/* Set sparc_cpu_model */
+-	sparc_cpu_model = sun_unknown;
+-	if (!strcmp(&cputypval[0], "sun4m"))
+-		sparc_cpu_model = sun4m;
+-	if (!strcmp(&cputypval[0], "sun4s"))
+-		sparc_cpu_model = sun4m; /* CP-1200 with PROM 2.30 -E */
+-	if (!strcmp(&cputypval[0], "sun4d"))
+-		sparc_cpu_model = sun4d;
+-	if (!strcmp(&cputypval[0], "sun4e"))
+-		sparc_cpu_model = sun4e;
+-	if (!strcmp(&cputypval[0], "sun4u"))
+-		sparc_cpu_model = sun4u;
+-	if (!strncmp(&cputypval[0], "leon" , 4))
+-		sparc_cpu_model = sparc_leon;
+-
+ 	leon_patch();
+ 	start_kernel();
+ }
+@@ -309,27 +253,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	register_console(&prom_early_console);
+ 
+-	switch(sparc_cpu_model) {
+-	case sun4m:
+-		pr_info("ARCH: SUN4M\n");
+-		break;
+-	case sun4d:
+-		pr_info("ARCH: SUN4D\n");
+-		break;
+-	case sun4e:
+-		pr_info("ARCH: SUN4E\n");
+-		break;
+-	case sun4u:
+-		pr_info("ARCH: SUN4U\n");
+-		break;
+-	case sparc_leon:
+-		pr_info("ARCH: LEON\n");
+-		break;
+-	default:
+-		pr_info("ARCH: UNKNOWN!\n");
+-		break;
+-	}
+-
+ 	idprom_init();
+ 	load_mmu();
+ 
 -- 
-2.25.4
+2.27.0
