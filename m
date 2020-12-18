@@ -1,50 +1,42 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Date: Tue, 22 Dec 2020 23:52:28 +0000
-Subject: Re: sparc32: Init process fails to load with generic kmap atomic
-Message-Id: <87v9ctcsar.fsf@nanos.tec.linutronix.de>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:01 +0000
+Subject: [PATCH 02/23] arch: alpha: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-3-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <c1dc2579-17b1-493b-ef23-0b9ed1ec13c3@gaisler.com>
-In-Reply-To: <c1dc2579-17b1-493b-ef23-0b9ed1ec13c3@gaisler.com>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andreas Larsson <andreas@gaisler.com>, sparclinux <sparclinux@vger.kernel.org>, linux-mm@kvack.org
-Cc: "David S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>
+To: linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
 
-On Tue, Dec 22 2020 at 18:58, Andreas Larsson wrote:
->  From as far as I have gotten into hunting down the problem, I get a
-> failure from load_elf_binary here:
->
-> 	/* First of all, some simple consistency checks */
-> 	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
-> 		goto out;
->
-> at least seemingly due to the kaddr from copy_page_to_iter in
-> lib/iov_iter.c
->
-> 	if (i->type & (ITER_BVEC|ITER_KVEC)) {
-> 		void *kaddr = kmap_atomic(page);
-> 		size_t wanted = copy_to_iter(kaddr + offset, bytes, i);
->
-> where kaddr points to memory with all zeroes (from an earlier bzero) in 
-> this context:
+The warning in ack_bad_irq() is misleading in several ways:
+* the term "vector" isn't quite correct
+* the printing format isn't consistent across the archs: some print decimal,
+  some hex, some hex w/o 0x prefix.
+* the printed linux irq isn't meaningful in all cases - we actually would
+  want it to print the hw irq.
 
-The kaddr might be misleading you here. If the code flow is:
+Since all call sites already print out more detailed and correct information,
+we just don't need to duplicate this in each single arch. So just drop it.
 
-    kaddr1 = kmap_atomic(page1);
-    ...
-    kunmap_atomic(kaddr1);
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ arch/alpha/kernel/irq.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-    kaddr2 = kmap_atomic(page2);
-
-Then kaddr1 = kaddr2, but first it maps page1 and then page2, but that
-was the same in the original code.
-
-> I will have to continue to dig deeper into this in January. If anyone
-> has any ideas how this could stem from this kmap patch, I am all ears.
-
-I can't spot it either. I'll send you a debug patch after the holidays.
-
-Thanks,
-
-        tglx
+diff --git a/arch/alpha/kernel/irq.c b/arch/alpha/kernel/irq.c
+index f6d2946edbd2..c1980eea75a6 100644
+--- a/arch/alpha/kernel/irq.c
++++ b/arch/alpha/kernel/irq.c
+@@ -35,7 +35,6 @@ DEFINE_PER_CPU(unsigned long, irq_pmi_count);
+ void ack_bad_irq(unsigned int irq)
+ {
+ 	irq_err_count++;
+-	printk(KERN_CRIT "Unexpected IRQ trap at vector %u\n", irq);
+ }
+ 
+ #ifdef CONFIG_SMP 
+-- 
+2.11.0
