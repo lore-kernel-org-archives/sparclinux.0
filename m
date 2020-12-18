@@ -1,134 +1,42 @@
-From: Mike Rapoport <rppt@kernel.org>
-Date: Mon, 09 Nov 2020 19:21:24 +0000
-Subject: [PATCH v7 0/4] arch, mm: improve robustness of direct map manipulation
-Message-Id: <20201109192128.960-1-rppt@kernel.org>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:06 +0000
+Subject: [PATCH 07/23] arch: parisc: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-8-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Pavel Machek <pavel@ucw.cz>, "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org, Christoph Lameter <cl@linux.com>, Will Deacon <will@kernel.org>, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, x86@kernel.org, Mike Rapoport <rppt@linux.ibm.com>, Christian Borntraeger <borntraeger@de.ibm.com>, Ingo Molnar <mingo@redhat.com>, linux-arm-kernel@lists.infradead.org, Catalin Marinas <catalin.marinas@arm.com>, Len Brown <len.brown@intel.com>, Albert Ou <aou@eecs.berkeley.edu>, Vasily Gorbik <gor@linux.ibm.com>, linux-pm@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>, David Rientjes <rientjes@google.com>, Borislav Petkov <bp@alien8.de>, Andy Lutomirski <luto@kernel.org>, Paul Walmsley <paul.walmsley@sifive.com>, "Kirill A. Shutemov" <kirill@shutemov.name>, Thomas Gleixner <tglx@linutronix.de>, Vlastimil Babka <vbabka@suse.cz>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Pekka Enberg <penberg@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>, "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, "Edgecombe,
- Rick P" <rick.p.edgecombe@intel.com>, linuxppc-dev@lists.ozlabs.org, "David S. Miller" <davem@davemloft.net>, Mike Rapoport <rppt@kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
+The warning in ack_bad_irq() is misleading in several ways:
+* the term "vector" isn't quite correct
+* the printing format isn't consistent across the archs: some print decimal,
+  some hex, some hex w/o 0x prefix.
+* the printed linux irq isn't meaningful in all cases - we actually would
+  want it to print the hw irq.
 
-Hi,
+Since all call sites already print out more detailed and correct information,
+we just don't need to duplicate this in each single arch. So just drop it.
 
-During recent discussion about KVM protected memory, David raised a concern
-about usage of __kernel_map_pages() outside of DEBUG_PAGEALLOC scope [1].
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ arch/parisc/include/asm/hardirq.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Indeed, for architectures that define CONFIG_ARCH_HAS_SET_DIRECT_MAP it is
-possible that __kernel_map_pages() would fail, but since this function is
-void, the failure will go unnoticed.
-
-Moreover, there's lack of consistency of __kernel_map_pages() semantics
-across architectures as some guard this function with
-#ifdef DEBUG_PAGEALLOC, some refuse to update the direct map if page
-allocation debugging is disabled at run time and some allow modifying the
-direct map regardless of DEBUG_PAGEALLOC settings.
-
-This set straightens this out by restoring dependency of
-__kernel_map_pages() on DEBUG_PAGEALLOC and updating the call sites
-accordingly. 
-
-Since currently the only user of __kernel_map_pages() outside
-DEBUG_PAGEALLOC is hibernation, it is updated to make direct map accesses
-there more explicit.
-
-[1] https://lore.kernel.org/lkml/2759b4bf-e1e3-d006-7d86-78a40348269d@redhat.com
-
-v7 changes:
-* fix a rebase error that sneaked into v6 after removal of slab changes
-
-v6 changes:
-* revert slab changes to avoid redundant check of static key
-https://lore.kernel.org/lkml/20201109162415.13764-1-rppt@kernel.org
-
-v5 changes:
-* use pairs of _map()/_unmap() functions instead of _map(..., int enable) as
-  Vlastimil suggested
-https://lore.kernel.org/lkml/20201108065758.1815-1-rppt@kernel.org
-
-v4 changes:
-* s/WARN_ON/pr_warn_once/ per David and Kirill
-* rebase on v5.10-rc2
-* add Acked/Reviewed tags
-https://lore.kernel.org/lkml/20201103162057.22916-1-rppt@kernel.org
-
-v3 changes:
-* update arm64 changes to avoid regression, per Rick's comments
-* fix bisectability
-https://lore.kernel.org/lkml/20201101170815.9795-1-rppt@kernel.org
-
-v2 changes:
-* Rephrase patch 2 changelog to better describe the change intentions and
-implications
-* Move removal of kernel_map_pages() from patch 1 to patch 2, per David
-https://lore.kernel.org/lkml/20201029161902.19272-1-rppt@kernel.org
-
-v1:
-https://lore.kernel.org/lkml/20201025101555.3057-1-rppt@kernel.org
-
-Mike Rapoport (4):
-  mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
-  PM: hibernate: make direct map manipulations more explicit
-  arch, mm: restore dependency of __kernel_map_pages() on DEBUG_PAGEALLOC
-  arch, mm: make kernel_page_present() always available
-
- arch/Kconfig                        |  3 +++
- arch/arm64/Kconfig                  |  4 +--
- arch/arm64/include/asm/cacheflush.h |  1 +
- arch/arm64/mm/pageattr.c            |  6 +++--
- arch/powerpc/Kconfig                |  5 +---
- arch/riscv/Kconfig                  |  4 +--
- arch/riscv/include/asm/pgtable.h    |  2 --
- arch/riscv/include/asm/set_memory.h |  1 +
- arch/riscv/mm/pageattr.c            | 31 ++++++++++++++++++++++
- arch/s390/Kconfig                   |  4 +--
- arch/sparc/Kconfig                  |  4 +--
- arch/x86/Kconfig                    |  4 +--
- arch/x86/include/asm/set_memory.h   |  1 +
- arch/x86/mm/pat/set_memory.c        |  4 +--
- include/linux/mm.h                  | 40 ++++++++++++++---------------
- include/linux/set_memory.h          |  5 ++++
- kernel/power/snapshot.c             | 38 +++++++++++++++++++++++++--
- mm/memory_hotplug.c                 |  3 +--
- mm/page_alloc.c                     |  6 ++---
- 19 files changed, 113 insertions(+), 53 deletions(-)
-
+diff --git a/arch/parisc/include/asm/hardirq.h b/arch/parisc/include/asm/hardirq.h
+index fad29aa6f45f..78b581f00bb3 100644
+--- a/arch/parisc/include/asm/hardirq.h
++++ b/arch/parisc/include/asm/hardirq.h
+@@ -34,6 +34,6 @@ DECLARE_PER_CPU_SHARED_ALIGNED(irq_cpustat_t, irq_stat);
+ #define __ARCH_IRQ_STAT
+ #define inc_irq_stat(member)	this_cpu_inc(irq_stat.member)
+ #define __inc_irq_stat(member)	__this_cpu_inc(irq_stat.member)
+-#define ack_bad_irq(irq) WARN(1, "unexpected IRQ trap at vector %02x\n", irq)
++#define ack_bad_irq(irq)
+ 
+ #endif /* _PARISC_HARDIRQ_H */
 -- 
-2.28.0
-
-*** BLURB HERE ***
-
-Mike Rapoport (4):
-  mm: introduce debug_pagealloc_{map,unmap}_pages() helpers
-  PM: hibernate: make direct map manipulations more explicit
-  arch, mm: restore dependency of __kernel_map_pages() on
-    DEBUG_PAGEALLOC
-  arch, mm: make kernel_page_present() always available
-
- arch/Kconfig                        |  3 +++
- arch/arm64/Kconfig                  |  4 +--
- arch/arm64/include/asm/cacheflush.h |  1 +
- arch/arm64/mm/pageattr.c            |  6 +++--
- arch/powerpc/Kconfig                |  5 +---
- arch/riscv/Kconfig                  |  4 +--
- arch/riscv/include/asm/pgtable.h    |  2 --
- arch/riscv/include/asm/set_memory.h |  1 +
- arch/riscv/mm/pageattr.c            | 31 ++++++++++++++++++++++
- arch/s390/Kconfig                   |  4 +--
- arch/sparc/Kconfig                  |  4 +--
- arch/x86/Kconfig                    |  4 +--
- arch/x86/include/asm/set_memory.h   |  1 +
- arch/x86/mm/pat/set_memory.c        |  4 +--
- include/linux/mm.h                  | 40 ++++++++++++++---------------
- include/linux/set_memory.h          |  5 ++++
- kernel/power/snapshot.c             | 38 +++++++++++++++++++++++++--
- mm/memory_hotplug.c                 |  3 +--
- mm/page_alloc.c                     |  6 ++---
- mm/slab.c                           |  2 +-
- 20 files changed, 114 insertions(+), 54 deletions(-)
-
--- 
-2.28.0
+2.11.0
