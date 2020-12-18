@@ -1,7 +1,7 @@
 From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 18 Dec 2020 18:43:46 +0000
-Subject: [PATCH v1 12/13] sparc32: drop check for sparc_model
-Message-Id: <20201218184347.2180772-13-sam@ravnborg.org>
+Date: Fri, 18 Dec 2020 18:43:41 +0000
+Subject: [PATCH v1 07/13] sparc32: Drop sun4m/sun4d specific irq handling
+Message-Id: <20201218184347.2180772-8-sam@ravnborg.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20201218184347.2180772-1-sam@ravnborg.org>
 In-Reply-To: <20201218184347.2180772-1-sam@ravnborg.org>
@@ -11,312 +11,903 @@ Content-Transfer-Encoding: 7bit
 To: David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>, Christian Brauner <christian.brauner@ubuntu.com>, Denis Efremov <efremov@linux.com>, Dmitry Safonov <0x7f454c46@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@kernel.org>, Pekka Enberg <penberg@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org, debian-sparc@lists.debian.org, gentoo-sparc@l.g.o
 
-sparc32 is always LEON, so no need to check for the model.
+Some of the sun4m irq infrastructure is used by LEON too,
+so keep that and drop the rest.
 
 Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Will Deacon <will@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arvind Sankar <nivedita@alum.mit.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Arnd Bergmann <arnd@kernel.org>
 Cc: Andreas Larsson <andreas@gaisler.com>
 ---
- arch/sparc/include/asm/cpu_type.h   | 18 -------
- arch/sparc/include/asm/io_32.h      |  4 +-
- arch/sparc/include/asm/pgtable_32.h | 24 ---------
- arch/sparc/kernel/devices.c         |  7 +--
- arch/sparc/kernel/ioport.c          |  6 +--
- arch/sparc/kernel/leon_pmc.c        | 14 +++--
- arch/sparc/kernel/setup_32.c        | 79 +----------------------------
- 7 files changed, 12 insertions(+), 140 deletions(-)
+ arch/sparc/include/asm/irq_32.h |   1 -
+ arch/sparc/kernel/Makefile      |   2 +-
+ arch/sparc/kernel/irq_32.c      |  30 +-
+ arch/sparc/kernel/kernel.h      |  13 -
+ arch/sparc/kernel/sun4d_irq.c   | 494 --------------------------------
+ arch/sparc/kernel/sun4m_irq.c   | 240 ----------------
+ arch/sparc/mm/io-unit.c         |   2 -
+ 7 files changed, 2 insertions(+), 780 deletions(-)
+ delete mode 100644 arch/sparc/kernel/sun4d_irq.c
 
-diff --git a/arch/sparc/include/asm/cpu_type.h b/arch/sparc/include/asm/cpu_type.h
-index 2b59799859d1..3e0154c3f41d 100644
---- a/arch/sparc/include/asm/cpu_type.h
-+++ b/arch/sparc/include/asm/cpu_type.h
-@@ -2,28 +2,10 @@
- #ifndef __ASM_CPU_TYPE_H
- #define __ASM_CPU_TYPE_H
+diff --git a/arch/sparc/include/asm/irq_32.h b/arch/sparc/include/asm/irq_32.h
+index 43ec2609b811..c820a6e967ae 100644
+--- a/arch/sparc/include/asm/irq_32.h
++++ b/arch/sparc/include/asm/irq_32.h
+@@ -18,7 +18,6 @@
+ #define irq_canonicalize(irq)	(irq)
  
--/*
-- * Sparc (general) CPU types
+ void __init init_IRQ(void);
+-void __init sun4d_init_sbi_irq(void);
+ 
+ #define NO_IRQ		0xffffffff
+ 
+diff --git a/arch/sparc/kernel/Makefile b/arch/sparc/kernel/Makefile
+index b2735fb29c89..92a9fdbba0a5 100644
+--- a/arch/sparc/kernel/Makefile
++++ b/arch/sparc/kernel/Makefile
+@@ -30,7 +30,7 @@ obj-y                   += traps_$(BITS).o
+ 
+ # IRQ
+ obj-y                   += irq_$(BITS).o
+-obj-$(CONFIG_SPARC32)   += sun4m_irq.o sun4d_irq.o
++obj-$(CONFIG_SPARC32)   += sun4m_irq.o
+ 
+ obj-y                   += process_$(BITS).o
+ obj-y                   += process.o
+diff --git a/arch/sparc/kernel/irq_32.c b/arch/sparc/kernel/irq_32.c
+index 510184c3aa17..135170f362c1 100644
+--- a/arch/sparc/kernel/irq_32.c
++++ b/arch/sparc/kernel/irq_32.c
+@@ -235,36 +235,8 @@ void handler_irq(unsigned int pil, struct pt_regs *regs)
+ 	set_irq_regs(old_regs);
+ }
+ 
+-/* djhr
+- * This could probably be made indirect too and assigned in the CPU
+- * bits of the code. That would be much nicer I think and would also
+- * fit in with the idea of being able to tune your kernel for your machine
+- * by removing unrequired machine and device support.
+- *
 - */
--enum sparc_cpu {
--  sun4m       = 0x00,
--  sun4d       = 0x01,
--  sun4e       = 0x02,
--  sun4u       = 0x03, /* V8 ploos ploos */
--  sun_unknown = 0x04,
--  ap1000      = 0x05, /* almost a sun4m */
--  sparc_leon  = 0x06, /* Leon SoC */
+-
+ void __init init_IRQ(void)
+ {
+-	switch (sparc_cpu_model) {
+-	case sun4m:
+-		pcic_probe();
+-		if (pcic_present())
+-			sun4m_pci_init_IRQ();
+-		else
+-			sun4m_init_IRQ();
+-		break;
+-
+-	case sun4d:
+-		sun4d_init_IRQ();
+-		break;
+-
+-	case sparc_leon:
+-		leon_init_IRQ();
+-		break;
+-
+-	default:
+-		prom_printf("Cannot initialize IRQs on this Sun machine...");
+-		break;
+-	}
++	leon_init_IRQ();
+ }
+ 
+diff --git a/arch/sparc/kernel/kernel.h b/arch/sparc/kernel/kernel.h
+index e313d2e15ba9..8b7cc8899122 100644
+--- a/arch/sparc/kernel/kernel.h
++++ b/arch/sparc/kernel/kernel.h
+@@ -94,7 +94,6 @@ void unexpected_irq(int irq, void *dev_id, struct pt_regs * regs);
+ void init_IRQ(void);
+ 
+ /* sun4m_irq.c */
+-void sun4m_init_IRQ(void);
+ void sun4m_unmask_profile_irq(void);
+ void sun4m_clear_profile_irq(int cpu);
+ 
+@@ -107,18 +106,6 @@ void __init smp4m_smp_done(void);
+ void smp4m_cross_call_irq(void);
+ void smp4m_percpu_timer_interrupt(struct pt_regs *regs);
+ 
+-/* sun4d_irq.c */
+-extern spinlock_t sun4d_imsk_lock;
+-
+-void sun4d_init_IRQ(void);
+-int sun4d_request_irq(unsigned int irq,
+-                      irq_handler_t handler,
+-                      unsigned long irqflags,
+-                      const char *devname, void *dev_id);
+-int show_sun4d_interrupts(struct seq_file *, void *);
+-void sun4d_distribute_irqs(void);
+-void sun4d_free_irq(unsigned int irq, void *dev_id);
+-
+ /* sun4d_smp.c */
+ void sun4d_cpu_pre_starting(void *arg);
+ void sun4d_cpu_pre_online(void *arg);
+diff --git a/arch/sparc/kernel/sun4d_irq.c b/arch/sparc/kernel/sun4d_irq.c
+deleted file mode 100644
+index 7140cff04b54..000000000000
+--- a/arch/sparc/kernel/sun4d_irq.c
++++ /dev/null
+@@ -1,494 +0,0 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * SS1000/SC2000 interrupt handling.
+- *
+- *  Copyright (C) 1997,1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)
+- *  Heavily based on arch/sparc/kernel/irq.c.
+- */
+-
+-#include <linux/kernel_stat.h>
+-#include <linux/slab.h>
+-#include <linux/seq_file.h>
+-
+-#include <asm/timer.h>
+-#include <asm/traps.h>
+-#include <asm/irq.h>
+-#include <asm/io.h>
+-#include <asm/sbi.h>
+-#include <asm/cacheflush.h>
+-#include <asm/setup.h>
+-#include <asm/oplib.h>
+-
+-#include "kernel.h"
+-#include "irq.h"
+-
+-/* Sun4d interrupts fall roughly into two categories.  SBUS and
+- * cpu local.  CPU local interrupts cover the timer interrupts
+- * and whatnot, and we encode those as normal PILs between
+- * 0 and 15.
+- * SBUS interrupts are encodes as a combination of board, level and slot.
+- */
+-
+-struct sun4d_handler_data {
+-	unsigned int cpuid;    /* target cpu */
+-	unsigned int real_irq; /* interrupt level */
 -};
 -
- #ifdef CONFIG_SPARC32
--extern enum sparc_cpu sparc_cpu_model;
- 
- #define SUN4M_NCPUS            4              /* Architectural limit of sun4m. */
- 
+-
+-static unsigned int sun4d_encode_irq(int board, int lvl, int slot)
+-{
+-	return (board + 1) << 5 | (lvl << 2) | slot;
+-}
+-
+-struct sun4d_timer_regs {
+-	u32	l10_timer_limit;
+-	u32	l10_cur_countx;
+-	u32	l10_limit_noclear;
+-	u32	ctrl;
+-	u32	l10_cur_count;
+-};
+-
+-static struct sun4d_timer_regs __iomem *sun4d_timers;
+-
+-#define SUN4D_TIMER_IRQ        10
+-
+-/* Specify which cpu handle interrupts from which board.
+- * Index is board - value is cpu.
+- */
+-static unsigned char board_to_cpu[32];
+-
+-static int pil_to_sbus[] = {
+-	0,
+-	0,
+-	1,
+-	2,
+-	0,
+-	3,
+-	0,
+-	4,
+-	0,
+-	5,
+-	0,
+-	6,
+-	0,
+-	7,
+-	0,
+-	0,
+-};
+-
+-/* Exported for sun4d_smp.c */
+-DEFINE_SPINLOCK(sun4d_imsk_lock);
+-
+-/* SBUS interrupts are encoded integers including the board number
+- * (plus one), the SBUS level, and the SBUS slot number.  Sun4D
+- * IRQ dispatch is done by:
+- *
+- * 1) Reading the BW local interrupt table in order to get the bus
+- *    interrupt mask.
+- *
+- *    This table is indexed by SBUS interrupt level which can be
+- *    derived from the PIL we got interrupted on.
+- *
+- * 2) For each bus showing interrupt pending from #1, read the
+- *    SBI interrupt state register.  This will indicate which slots
+- *    have interrupts pending for that SBUS interrupt level.
+- *
+- * 3) Call the genreric IRQ support.
+- */
+-static void sun4d_sbus_handler_irq(int sbusl)
+-{
+-	unsigned int bus_mask;
+-	unsigned int sbino, slot;
+-	unsigned int sbil;
+-
+-	bus_mask = bw_get_intr_mask(sbusl) & 0x3ffff;
+-	bw_clear_intr_mask(sbusl, bus_mask);
+-
+-	sbil = (sbusl << 2);
+-	/* Loop for each pending SBI */
+-	for (sbino = 0; bus_mask; sbino++, bus_mask >>= 1) {
+-		unsigned int idx, mask;
+-
+-		if (!(bus_mask & 1))
+-			continue;
+-		/* XXX This seems to ACK the irq twice.  acquire_sbi()
+-		 * XXX uses swap, therefore this writes 0xf << sbil,
+-		 * XXX then later release_sbi() will write the individual
+-		 * XXX bits which were set again.
+-		 */
+-		mask = acquire_sbi(SBI2DEVID(sbino), 0xf << sbil);
+-		mask &= (0xf << sbil);
+-
+-		/* Loop for each pending SBI slot */
+-		slot = (1 << sbil);
+-		for (idx = 0; mask != 0; idx++, slot <<= 1) {
+-			unsigned int pil;
+-			struct irq_bucket *p;
+-
+-			if (!(mask & slot))
+-				continue;
+-
+-			mask &= ~slot;
+-			pil = sun4d_encode_irq(sbino, sbusl, idx);
+-
+-			p = irq_map[pil];
+-			while (p) {
+-				struct irq_bucket *next;
+-
+-				next = p->next;
+-				generic_handle_irq(p->irq);
+-				p = next;
+-			}
+-			release_sbi(SBI2DEVID(sbino), slot);
+-		}
+-	}
+-}
+-
+-void sun4d_handler_irq(unsigned int pil, struct pt_regs *regs)
+-{
+-	struct pt_regs *old_regs;
+-	/* SBUS IRQ level (1 - 7) */
+-	int sbusl = pil_to_sbus[pil];
+-
+-	/* FIXME: Is this necessary?? */
+-	cc_get_ipen();
+-
+-	cc_set_iclr(1 << pil);
+-
+-#ifdef CONFIG_SMP
+-	/*
+-	 * Check IPI data structures after IRQ has been cleared. Hard and Soft
+-	 * IRQ can happen at the same time, so both cases are always handled.
+-	 */
+-	if (pil = SUN4D_IPI_IRQ)
+-		sun4d_ipi_interrupt();
+-#endif
+-
+-	old_regs = set_irq_regs(regs);
+-	irq_enter();
+-	if (sbusl = 0) {
+-		/* cpu interrupt */
+-		struct irq_bucket *p;
+-
+-		p = irq_map[pil];
+-		while (p) {
+-			struct irq_bucket *next;
+-
+-			next = p->next;
+-			generic_handle_irq(p->irq);
+-			p = next;
+-		}
+-	} else {
+-		/* SBUS interrupt */
+-		sun4d_sbus_handler_irq(sbusl);
+-	}
+-	irq_exit();
+-	set_irq_regs(old_regs);
+-}
+-
+-
+-static void sun4d_mask_irq(struct irq_data *data)
+-{
+-	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
+-	unsigned int real_irq;
+-#ifdef CONFIG_SMP
+-	int cpuid = handler_data->cpuid;
+-	unsigned long flags;
+-#endif
+-	real_irq = handler_data->real_irq;
+-#ifdef CONFIG_SMP
+-	spin_lock_irqsave(&sun4d_imsk_lock, flags);
+-	cc_set_imsk_other(cpuid, cc_get_imsk_other(cpuid) | (1 << real_irq));
+-	spin_unlock_irqrestore(&sun4d_imsk_lock, flags);
 -#else
+-	cc_set_imsk(cc_get_imsk() | (1 << real_irq));
+-#endif
+-}
 -
--#define sparc_cpu_model sun4u
--
- #endif
- 
- #endif /* __ASM_CPU_TYPE_H */
-diff --git a/arch/sparc/include/asm/io_32.h b/arch/sparc/include/asm/io_32.h
-index 549f0a72280d..83abe709d120 100644
---- a/arch/sparc/include/asm/io_32.h
-+++ b/arch/sparc/include/asm/io_32.h
-@@ -138,11 +138,11 @@ void pci_iounmap(struct pci_dev *dev, void __iomem *);
- 
- static inline int sbus_can_dma_64bit(void)
- {
--	return 0; /* actually, sparc_cpu_model=sun4d */
-+	return 0;
- }
- static inline int sbus_can_burst64(void)
- {
--	return 0; /* actually, sparc_cpu_model=sun4d */
-+	return 0;
- }
- struct device;
- void sbus_set_sbus64(struct device *, int);
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index 632cdb959542..9c4da6ed81ef 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -356,30 +356,6 @@ static inline swp_entry_t __swp_entry(unsigned long type, unsigned long offset)
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--static inline unsigned long
--__get_phys (unsigned long addr)
+-static void sun4d_unmask_irq(struct irq_data *data)
 -{
--	switch (sparc_cpu_model){
--	case sun4m:
--	case sun4d:
--		return ((srmmu_get_pte (addr) & 0xffffff00) << 4);
--	default:
--		return 0;
+-	struct sun4d_handler_data *handler_data = irq_data_get_irq_handler_data(data);
+-	unsigned int real_irq;
+-#ifdef CONFIG_SMP
+-	int cpuid = handler_data->cpuid;
+-	unsigned long flags;
+-#endif
+-	real_irq = handler_data->real_irq;
+-
+-#ifdef CONFIG_SMP
+-	spin_lock_irqsave(&sun4d_imsk_lock, flags);
+-	cc_set_imsk_other(cpuid, cc_get_imsk_other(cpuid) & ~(1 << real_irq));
+-	spin_unlock_irqrestore(&sun4d_imsk_lock, flags);
+-#else
+-	cc_set_imsk(cc_get_imsk() & ~(1 << real_irq));
+-#endif
+-}
+-
+-static unsigned int sun4d_startup_irq(struct irq_data *data)
+-{
+-	irq_link(data->irq);
+-	sun4d_unmask_irq(data);
+-	return 0;
+-}
+-
+-static void sun4d_shutdown_irq(struct irq_data *data)
+-{
+-	sun4d_mask_irq(data);
+-	irq_unlink(data->irq);
+-}
+-
+-static struct irq_chip sun4d_irq = {
+-	.name		= "sun4d",
+-	.irq_startup	= sun4d_startup_irq,
+-	.irq_shutdown	= sun4d_shutdown_irq,
+-	.irq_unmask	= sun4d_unmask_irq,
+-	.irq_mask	= sun4d_mask_irq,
+-};
+-
+-#ifdef CONFIG_SMP
+-/* Setup IRQ distribution scheme. */
+-void __init sun4d_distribute_irqs(void)
+-{
+-	struct device_node *dp;
+-
+-	int cpuid = cpu_logical_map(1);
+-
+-	if (cpuid = -1)
+-		cpuid = cpu_logical_map(0);
+-	for_each_node_by_name(dp, "sbi") {
+-		int devid = of_getintprop_default(dp, "device-id", 0);
+-		int board = of_getintprop_default(dp, "board#", 0);
+-		board_to_cpu[board] = cpuid;
+-		set_sbi_tid(devid, cpuid << 3);
+-	}
+-	printk(KERN_ERR "All sbus IRQs directed to CPU%d\n", cpuid);
+-}
+-#endif
+-
+-static void sun4d_clear_clock_irq(void)
+-{
+-	sbus_readl(&sun4d_timers->l10_timer_limit);
+-}
+-
+-static void sun4d_load_profile_irq(int cpu, unsigned int limit)
+-{
+-	unsigned int value = limit ? timer_value(limit) : 0;
+-	bw_set_prof_limit(cpu, value);
+-}
+-
+-static void __init sun4d_load_profile_irqs(void)
+-{
+-	int cpu = 0, mid;
+-
+-	while (!cpu_find_by_instance(cpu, NULL, &mid)) {
+-		sun4d_load_profile_irq(mid >> 3, 0);
+-		cpu++;
 -	}
 -}
 -
--static inline int
--__get_iospace (unsigned long addr)
+-static unsigned int _sun4d_build_device_irq(unsigned int real_irq,
+-                                            unsigned int pil,
+-                                            unsigned int board)
 -{
--	switch (sparc_cpu_model){
--	case sun4m:
--	case sun4d:
--		return (srmmu_get_pte (addr) >> 28);
--	default:
--		return -1;
+-	struct sun4d_handler_data *handler_data;
+-	unsigned int irq;
+-
+-	irq = irq_alloc(real_irq, pil);
+-	if (irq = 0) {
+-		prom_printf("IRQ: allocate for %d %d %d failed\n",
+-			real_irq, pil, board);
+-		goto err_out;
+-	}
+-
+-	handler_data = irq_get_handler_data(irq);
+-	if (unlikely(handler_data))
+-		goto err_out;
+-
+-	handler_data = kzalloc(sizeof(struct sun4d_handler_data), GFP_ATOMIC);
+-	if (unlikely(!handler_data)) {
+-		prom_printf("IRQ: kzalloc(sun4d_handler_data) failed.\n");
+-		prom_halt();
+-	}
+-	handler_data->cpuid    = board_to_cpu[board];
+-	handler_data->real_irq = real_irq;
+-	irq_set_chip_and_handler_name(irq, &sun4d_irq,
+-	                              handle_level_irq, "level");
+-	irq_set_handler_data(irq, handler_data);
+-
+-err_out:
+-	return irq;
+-}
+-
+-
+-
+-static unsigned int sun4d_build_device_irq(struct platform_device *op,
+-                                           unsigned int real_irq)
+-{
+-	struct device_node *dp = op->dev.of_node;
+-	struct device_node *board_parent, *bus = dp->parent;
+-	char *bus_connection;
+-	const struct linux_prom_registers *regs;
+-	unsigned int pil;
+-	unsigned int irq;
+-	int board, slot;
+-	int sbusl;
+-
+-	irq = real_irq;
+-	while (bus) {
+-		if (of_node_name_eq(bus, "sbi")) {
+-			bus_connection = "io-unit";
+-			break;
+-		}
+-
+-		if (of_node_name_eq(bus, "bootbus")) {
+-			bus_connection = "cpu-unit";
+-			break;
+-		}
+-
+-		bus = bus->parent;
+-	}
+-	if (!bus)
+-		goto err_out;
+-
+-	regs = of_get_property(dp, "reg", NULL);
+-	if (!regs)
+-		goto err_out;
+-
+-	slot = regs->which_io;
+-
+-	/*
+-	 * If Bus nodes parent is not io-unit/cpu-unit or the io-unit/cpu-unit
+-	 * lacks a "board#" property, something is very wrong.
+-	 */
+-	if (!of_node_name_eq(bus->parent, bus_connection)) {
+-		printk(KERN_ERR "%pOF: Error, parent is not %s.\n",
+-			bus, bus_connection);
+-		goto err_out;
+-	}
+-	board_parent = bus->parent;
+-	board = of_getintprop_default(board_parent, "board#", -1);
+-	if (board = -1) {
+-		printk(KERN_ERR "%pOF: Error, lacks board# property.\n",
+-			board_parent);
+-		goto err_out;
+-	}
+-
+-	sbusl = pil_to_sbus[real_irq];
+-	if (sbusl)
+-		pil = sun4d_encode_irq(board, sbusl, slot);
+-	else
+-		pil = real_irq;
+-
+-	irq = _sun4d_build_device_irq(real_irq, pil, board);
+-err_out:
+-	return irq;
+-}
+-
+-static unsigned int sun4d_build_timer_irq(unsigned int board,
+-                                          unsigned int real_irq)
+-{
+-	return _sun4d_build_device_irq(real_irq, real_irq, board);
+-}
+-
+-
+-static void __init sun4d_init_timers(void)
+-{
+-	struct device_node *dp;
+-	struct resource res;
+-	unsigned int irq;
+-	const u32 *reg;
+-	int err;
+-	int board;
+-
+-	dp = of_find_node_by_name(NULL, "cpu-unit");
+-	if (!dp) {
+-		prom_printf("sun4d_init_timers: Unable to find cpu-unit\n");
+-		prom_halt();
+-	}
+-
+-	/* Which cpu-unit we use is arbitrary, we can view the bootbus timer
+-	 * registers via any cpu's mapping.  The first 'reg' property is the
+-	 * bootbus.
+-	 */
+-	reg = of_get_property(dp, "reg", NULL);
+-	if (!reg) {
+-		prom_printf("sun4d_init_timers: No reg property\n");
+-		prom_halt();
+-	}
+-
+-	board = of_getintprop_default(dp, "board#", -1);
+-	if (board = -1) {
+-		prom_printf("sun4d_init_timers: No board# property on cpu-unit\n");
+-		prom_halt();
+-	}
+-
+-	of_node_put(dp);
+-
+-	res.start = reg[1];
+-	res.end = reg[2] - 1;
+-	res.flags = reg[0] & 0xff;
+-	sun4d_timers = of_ioremap(&res, BW_TIMER_LIMIT,
+-				  sizeof(struct sun4d_timer_regs), "user timer");
+-	if (!sun4d_timers) {
+-		prom_printf("sun4d_init_timers: Can't map timer regs\n");
+-		prom_halt();
+-	}
+-
+-#ifdef CONFIG_SMP
+-	sparc_config.cs_period = SBUS_CLOCK_RATE * 2;  /* 2 seconds */
+-#else
+-	sparc_config.cs_period = SBUS_CLOCK_RATE / HZ; /* 1/HZ sec  */
+-	sparc_config.features |= FEAT_L10_CLOCKEVENT;
+-#endif
+-	sparc_config.features |= FEAT_L10_CLOCKSOURCE;
+-	sbus_writel(timer_value(sparc_config.cs_period),
+-		    &sun4d_timers->l10_timer_limit);
+-
+-	master_l10_counter = &sun4d_timers->l10_cur_count;
+-
+-	irq = sun4d_build_timer_irq(board, SUN4D_TIMER_IRQ);
+-	err = request_irq(irq, timer_interrupt, IRQF_TIMER, "timer", NULL);
+-	if (err) {
+-		prom_printf("sun4d_init_timers: request_irq() failed with %d\n",
+-		             err);
+-		prom_halt();
+-	}
+-	sun4d_load_profile_irqs();
+-}
+-
+-void __init sun4d_init_sbi_irq(void)
+-{
+-	struct device_node *dp;
+-	int target_cpu;
+-
+-	target_cpu = boot_cpu_id;
+-	for_each_node_by_name(dp, "sbi") {
+-		int devid = of_getintprop_default(dp, "device-id", 0);
+-		int board = of_getintprop_default(dp, "board#", 0);
+-		unsigned int mask;
+-
+-		set_sbi_tid(devid, target_cpu << 3);
+-		board_to_cpu[board] = target_cpu;
+-
+-		/* Get rid of pending irqs from PROM */
+-		mask = acquire_sbi(devid, 0xffffffff);
+-		if (mask) {
+-			printk(KERN_ERR "Clearing pending IRQs %08x on SBI %d\n",
+-			       mask, board);
+-			release_sbi(devid, mask);
+-		}
 -	}
 -}
 -
- extern unsigned long *sparc_valid_addr_bitmap;
+-void __init sun4d_init_IRQ(void)
+-{
+-	local_irq_disable();
+-
+-	sparc_config.init_timers      = sun4d_init_timers;
+-	sparc_config.build_device_irq = sun4d_build_device_irq;
+-	sparc_config.clock_rate       = SBUS_CLOCK_RATE;
+-	sparc_config.clear_clock_irq  = sun4d_clear_clock_irq;
+-	sparc_config.load_profile_irq = sun4d_load_profile_irq;
+-
+-	/* Cannot enable interrupts until OBP ticker is disabled. */
+-}
+diff --git a/arch/sparc/kernel/sun4m_irq.c b/arch/sparc/kernel/sun4m_irq.c
+index 1079638986b5..1a220a2b9ac3 100644
+--- a/arch/sparc/kernel/sun4m_irq.c
++++ b/arch/sparc/kernel/sun4m_irq.c
+@@ -187,103 +187,6 @@ static unsigned long sun4m_imask[0x50] = {
+ 	0, SUN4M_INT_VME(6), 0, 0
+ };
  
- /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
-diff --git a/arch/sparc/kernel/devices.c b/arch/sparc/kernel/devices.c
-index b3c2d51b22c4..2963e89611a3 100644
---- a/arch/sparc/kernel/devices.c
-+++ b/arch/sparc/kernel/devices.c
-@@ -26,8 +26,6 @@
+-static void sun4m_mask_irq(struct irq_data *data)
+-{
+-	struct sun4m_handler_data *handler_data;
+-	int cpu = smp_processor_id();
+-
+-	handler_data = irq_data_get_irq_handler_data(data);
+-	if (handler_data->mask) {
+-		unsigned long flags;
+-
+-		local_irq_save(flags);
+-		if (handler_data->percpu) {
+-			sbus_writel(handler_data->mask, &sun4m_irq_percpu[cpu]->set);
+-		} else {
+-			sbus_writel(handler_data->mask, &sun4m_irq_global->mask_set);
+-		}
+-		local_irq_restore(flags);
+-	}
+-}
+-
+-static void sun4m_unmask_irq(struct irq_data *data)
+-{
+-	struct sun4m_handler_data *handler_data;
+-	int cpu = smp_processor_id();
+-
+-	handler_data = irq_data_get_irq_handler_data(data);
+-	if (handler_data->mask) {
+-		unsigned long flags;
+-
+-		local_irq_save(flags);
+-		if (handler_data->percpu) {
+-			sbus_writel(handler_data->mask, &sun4m_irq_percpu[cpu]->clear);
+-		} else {
+-			sbus_writel(handler_data->mask, &sun4m_irq_global->mask_clear);
+-		}
+-		local_irq_restore(flags);
+-	}
+-}
+-
+-static unsigned int sun4m_startup_irq(struct irq_data *data)
+-{
+-	irq_link(data->irq);
+-	sun4m_unmask_irq(data);
+-	return 0;
+-}
+-
+-static void sun4m_shutdown_irq(struct irq_data *data)
+-{
+-	sun4m_mask_irq(data);
+-	irq_unlink(data->irq);
+-}
+-
+-static struct irq_chip sun4m_irq = {
+-	.name		= "sun4m",
+-	.irq_startup	= sun4m_startup_irq,
+-	.irq_shutdown	= sun4m_shutdown_irq,
+-	.irq_mask	= sun4m_mask_irq,
+-	.irq_unmask	= sun4m_unmask_irq,
+-};
+-
+-
+-static unsigned int sun4m_build_device_irq(struct platform_device *op,
+-					   unsigned int real_irq)
+-{
+-	struct sun4m_handler_data *handler_data;
+-	unsigned int irq;
+-	unsigned int pil;
+-
+-	if (real_irq >= OBP_INT_LEVEL_VME) {
+-		prom_printf("Bogus sun4m IRQ %u\n", real_irq);
+-		prom_halt();
+-	}
+-	pil = (real_irq & 0xf);
+-	irq = irq_alloc(real_irq, pil);
+-
+-	if (irq = 0)
+-		goto out;
+-
+-	handler_data = irq_get_handler_data(irq);
+-	if (unlikely(handler_data))
+-		goto out;
+-
+-	handler_data = kzalloc(sizeof(struct sun4m_handler_data), GFP_ATOMIC);
+-	if (unlikely(!handler_data)) {
+-		prom_printf("IRQ: kzalloc(sun4m_handler_data) failed.\n");
+-		prom_halt();
+-	}
+-
+-	handler_data->mask = sun4m_imask[real_irq];
+-	handler_data->percpu = real_irq < OBP_INT_LEVEL_ONBOARD;
+-	irq_set_chip_and_handler_name(irq, &sun4m_irq,
+-	                              handle_level_irq, "level");
+-	irq_set_handler_data(irq, handler_data);
+-
+-out:
+-	return irq;
+-}
+-
+ struct sun4m_timer_percpu {
+ 	u32		l14_limit;
+ 	u32		l14_count;
+@@ -293,21 +196,6 @@ struct sun4m_timer_percpu {
  
- static char *cpu_mid_prop(void)
+ static struct sun4m_timer_percpu __iomem *timers_percpu[SUN4M_NCPUS];
+ 
+-struct sun4m_timer_global {
+-	u32		l10_limit;
+-	u32		l10_count;
+-	u32		l10_limit_noclear;
+-	u32		reserved;
+-	u32		timer_config;
+-};
+-
+-static struct sun4m_timer_global __iomem *timers_global;
+-
+-static void sun4m_clear_clock_irq(void)
+-{
+-	sbus_readl(&timers_global->l10_limit);
+-}
+-
+ void sun4m_nmi(struct pt_regs *regs)
  {
--	if (sparc_cpu_model = sun4d)
--		return "cpu-id";
- 	return "mid";
+ 	unsigned long afsr, afar, si;
+@@ -348,131 +236,3 @@ void sun4m_clear_profile_irq(int cpu)
+ {
+ 	sbus_readl(&timers_percpu[cpu]->l14_limit);
  }
- 
-@@ -40,8 +38,6 @@ static int check_cpu_node(phandle nd, int *cur_inst,
- 			*prom_node = nd;
- 		if (mid) {
- 			*mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
--			if (sparc_cpu_model = sun4m)
--				*mid &= 3;
- 		}
- 		return 0;
+-
+-static void sun4m_load_profile_irq(int cpu, unsigned int limit)
+-{
+-	unsigned int value = limit ? timer_value(limit) : 0;
+-	sbus_writel(value, &timers_percpu[cpu]->l14_limit);
+-}
+-
+-static void __init sun4m_init_timers(void)
+-{
+-	struct device_node *dp = of_find_node_by_name(NULL, "counter");
+-	int i, err, len, num_cpu_timers;
+-	unsigned int irq;
+-	const u32 *addr;
+-
+-	if (!dp) {
+-		printk(KERN_ERR "sun4m_init_timers: No 'counter' node.\n");
+-		return;
+-	}
+-
+-	addr = of_get_property(dp, "address", &len);
+-	of_node_put(dp);
+-	if (!addr) {
+-		printk(KERN_ERR "sun4m_init_timers: No 'address' prop.\n");
+-		return;
+-	}
+-
+-	num_cpu_timers = (len / sizeof(u32)) - 1;
+-	for (i = 0; i < num_cpu_timers; i++) {
+-		timers_percpu[i] = (void __iomem *)
+-			(unsigned long) addr[i];
+-	}
+-	timers_global = (void __iomem *)
+-		(unsigned long) addr[num_cpu_timers];
+-
+-	/* Every per-cpu timer works in timer mode */
+-	sbus_writel(0x00000000, &timers_global->timer_config);
+-
+-#ifdef CONFIG_SMP
+-	sparc_config.cs_period = SBUS_CLOCK_RATE * 2;  /* 2 seconds */
+-	sparc_config.features |= FEAT_L14_ONESHOT;
+-#else
+-	sparc_config.cs_period = SBUS_CLOCK_RATE / HZ; /* 1/HZ sec  */
+-	sparc_config.features |= FEAT_L10_CLOCKEVENT;
+-#endif
+-	sparc_config.features |= FEAT_L10_CLOCKSOURCE;
+-	sbus_writel(timer_value(sparc_config.cs_period),
+-	            &timers_global->l10_limit);
+-
+-	master_l10_counter = &timers_global->l10_count;
+-
+-	irq = sun4m_build_device_irq(NULL, SUN4M_TIMER_IRQ);
+-
+-	err = request_irq(irq, timer_interrupt, IRQF_TIMER, "timer", NULL);
+-	if (err) {
+-		printk(KERN_ERR "sun4m_init_timers: Register IRQ error %d.\n",
+-			err);
+-		return;
+-	}
+-
+-	for (i = 0; i < num_cpu_timers; i++)
+-		sbus_writel(0, &timers_percpu[i]->l14_limit);
+-	if (num_cpu_timers = 4)
+-		sbus_writel(SUN4M_INT_E14, &sun4m_irq_global->mask_set);
+-
+-#ifdef CONFIG_SMP
+-	{
+-		unsigned long flags;
+-		struct tt_entry *trap_table = &sparc_ttable[SP_TRAP_IRQ1 + (14 - 1)];
+-
+-		/* For SMP we use the level 14 ticker, however the bootup code
+-		 * has copied the firmware's level 14 vector into the boot cpu's
+-		 * trap table, we must fix this now or we get squashed.
+-		 */
+-		local_irq_save(flags);
+-		trap_table->inst_one = lvl14_save[0];
+-		trap_table->inst_two = lvl14_save[1];
+-		trap_table->inst_three = lvl14_save[2];
+-		trap_table->inst_four = lvl14_save[3];
+-		local_ops->cache_all();
+-		local_irq_restore(flags);
+-	}
+-#endif
+-}
+-
+-void __init sun4m_init_IRQ(void)
+-{
+-	struct device_node *dp = of_find_node_by_name(NULL, "interrupt");
+-	int len, i, mid, num_cpu_iregs;
+-	const u32 *addr;
+-
+-	if (!dp) {
+-		printk(KERN_ERR "sun4m_init_IRQ: No 'interrupt' node.\n");
+-		return;
+-	}
+-
+-	addr = of_get_property(dp, "address", &len);
+-	of_node_put(dp);
+-	if (!addr) {
+-		printk(KERN_ERR "sun4m_init_IRQ: No 'address' prop.\n");
+-		return;
+-	}
+-
+-	num_cpu_iregs = (len / sizeof(u32)) - 1;
+-	for (i = 0; i < num_cpu_iregs; i++) {
+-		sun4m_irq_percpu[i] = (void __iomem *)
+-			(unsigned long) addr[i];
+-	}
+-	sun4m_irq_global = (void __iomem *)
+-		(unsigned long) addr[num_cpu_iregs];
+-
+-	local_irq_disable();
+-
+-	sbus_writel(~SUN4M_INT_MASKALL, &sun4m_irq_global->mask_set);
+-	for (i = 0; !cpu_find_by_instance(i, NULL, &mid); i++)
+-		sbus_writel(~0x17fff, &sun4m_irq_percpu[mid]->clear);
+-
+-	if (num_cpu_iregs = 4)
+-		sbus_writel(0, &sun4m_irq_global->interrupt_target);
+-
+-	sparc_config.init_timers      = sun4m_init_timers;
+-	sparc_config.build_device_irq = sun4m_build_device_irq;
+-	sparc_config.clock_rate       = SBUS_CLOCK_RATE;
+-	sparc_config.clear_clock_irq  = sun4m_clear_clock_irq;
+-	sparc_config.load_profile_irq = sun4m_load_profile_irq;
+-
+-
+-	/* Cannot enable interrupts until OBP ticker is disabled. */
+-}
+diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
+index bf3e6d2fe5d9..49ded623995f 100644
+--- a/arch/sparc/mm/io-unit.c
++++ b/arch/sparc/mm/io-unit.c
+@@ -85,8 +85,6 @@ static int __init iounit_init(void)
+ 		of_propagate_archdata(op);
  	}
-@@ -92,8 +88,7 @@ static int cpu_mid_compare(phandle nd, int instance, void *_arg)
- 	int this_mid;
  
- 	this_mid = prom_getintdefault(nd, cpu_mid_prop(), 0);
--	if (this_mid = desired_mid
--	    || (sparc_cpu_model = sun4m && (this_mid & 3) = desired_mid))
-+	if (this_mid = desired_mid)
- 		return 0;
- 	return -ENODEV;
- }
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 8e1d72a16759..50fb0a8431aa 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -57,10 +57,8 @@
-  */
- static inline void dma_make_coherent(unsigned long pa, unsigned long len)
- {
--	if (sparc_cpu_model = sparc_leon) {
--		if (!sparc_leon3_snooping_enabled())
--			leon_flush_dcache_all();
--	}
-+	if (!sparc_leon3_snooping_enabled())
-+		leon_flush_dcache_all();
- }
- 
- static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);
-diff --git a/arch/sparc/kernel/leon_pmc.c b/arch/sparc/kernel/leon_pmc.c
-index 396f46bca52e..625924dd0e5b 100644
---- a/arch/sparc/kernel/leon_pmc.c
-+++ b/arch/sparc/kernel/leon_pmc.c
-@@ -75,15 +75,13 @@ static void pmc_leon_idle(void)
- /* Install LEON Power Down function */
- static int __init leon_pmc_install(void)
- {
--	if (sparc_cpu_model = sparc_leon) {
--		/* Assign power management IDLE handler */
--		if (pmc_leon_need_fixup())
--			sparc_idle = pmc_leon_idle_fixup;
--		else
--			sparc_idle = pmc_leon_idle;
-+	/* Assign power management IDLE handler */
-+	if (pmc_leon_need_fixup())
-+		sparc_idle = pmc_leon_idle_fixup;
-+	else
-+		sparc_idle = pmc_leon_idle;
- 
--		printk(KERN_INFO "leon: power management initialized\n");
--	}
-+	printk(KERN_INFO "leon: power management initialized\n");
- 
+-	sun4d_init_sbi_irq();
+-
  	return 0;
  }
-diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
-index b6fd87928c73..91c0c043a95d 100644
---- a/arch/sparc/kernel/setup_32.c
-+++ b/arch/sparc/kernel/setup_32.c
-@@ -202,30 +202,12 @@ static void __init per_cpu_patch(void)
- {
- 	struct cpuid_patch_entry *p;
- 
--	if (sparc_cpu_model = sun4m) {
--		/* Nothing to do, this is what the unpatched code
--		 * targets.
--		 */
--		return;
--	}
--
- 	p = &__cpuid_patch;
- 	while (p < &__cpuid_patch_end) {
- 		unsigned long addr = p->addr;
- 		unsigned int *insns;
- 
--		switch (sparc_cpu_model) {
--		case sun4d:
--			insns = &p->sun4d[0];
--			break;
--
--		case sparc_leon:
--			insns = &p->leon[0];
--			break;
--		default:
--			prom_printf("Unknown cpu type, halting.\n");
--			prom_halt();
--		}
-+		insns = &p->leon[0];
- 		*(unsigned int *) (addr + 0) = insns[0];
- 		flushi(addr + 0);
- 		*(unsigned int *) (addr + 4) = insns[1];
-@@ -237,31 +219,9 @@ static void __init per_cpu_patch(void)
- 	}
- }
- 
--struct leon_1insn_patch_entry {
--	unsigned int addr;
--	unsigned int insn;
--};
--
--enum sparc_cpu sparc_cpu_model;
--EXPORT_SYMBOL(sparc_cpu_model);
--
- static __init void leon_patch(void)
- {
--	struct leon_1insn_patch_entry *start = (void *)__leon_1insn_patch;
--	struct leon_1insn_patch_entry *end = (void *)__leon_1insn_patch_end;
--
- 	/* Default instruction is leon - no patching */
--	if (sparc_cpu_model = sparc_leon)
--		return;
--
--	while (start < end) {
--		unsigned long addr = start->addr;
--
--		*(unsigned int *)(addr) = start->insn;
--		flushi(addr);
--
--		start++;
--	}
- }
- 
- struct tt_entry *sparc_ttable;
-@@ -273,22 +233,6 @@ static struct pt_regs fake_swapper_regs;
- void __init sparc32_start_kernel(struct linux_romvec *rp)
- {
- 	prom_init(rp);
--
--	/* Set sparc_cpu_model */
--	sparc_cpu_model = sun_unknown;
--	if (!strcmp(&cputypval[0], "sun4m"))
--		sparc_cpu_model = sun4m;
--	if (!strcmp(&cputypval[0], "sun4s"))
--		sparc_cpu_model = sun4m; /* CP-1200 with PROM 2.30 -E */
--	if (!strcmp(&cputypval[0], "sun4d"))
--		sparc_cpu_model = sun4d;
--	if (!strcmp(&cputypval[0], "sun4e"))
--		sparc_cpu_model = sun4e;
--	if (!strcmp(&cputypval[0], "sun4u"))
--		sparc_cpu_model = sun4u;
--	if (!strncmp(&cputypval[0], "leon" , 4))
--		sparc_cpu_model = sparc_leon;
--
- 	leon_patch();
- 	start_kernel();
- }
-@@ -309,27 +253,6 @@ void __init setup_arch(char **cmdline_p)
- 
- 	register_console(&prom_early_console);
- 
--	switch(sparc_cpu_model) {
--	case sun4m:
--		pr_info("ARCH: SUN4M\n");
--		break;
--	case sun4d:
--		pr_info("ARCH: SUN4D\n");
--		break;
--	case sun4e:
--		pr_info("ARCH: SUN4E\n");
--		break;
--	case sun4u:
--		pr_info("ARCH: SUN4U\n");
--		break;
--	case sparc_leon:
--		pr_info("ARCH: LEON\n");
--		break;
--	default:
--		pr_info("ARCH: UNKNOWN!\n");
--		break;
--	}
--
- 	idprom_init();
- 	load_mmu();
  
 -- 
 2.27.0
