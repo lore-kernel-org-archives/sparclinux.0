@@ -1,10 +1,10 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:33 +0000
-Subject: [PATCH 10/23] arch: sh: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-11-info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:08 +0000
+Subject: [PATCH 09/23] arch: s390: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-10-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,20 +23,23 @@ we just don't need to duplicate this in each single arch. So just drop it.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- arch/sh/kernel/irq.c | 1 -
- 1 file changed, 1 deletion(-)
+ arch/s390/include/asm/hardirq.h | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/arch/sh/kernel/irq.c b/arch/sh/kernel/irq.c
-index ab5f790b0cd2..c14a142efe60 100644
---- a/arch/sh/kernel/irq.c
-+++ b/arch/sh/kernel/irq.c
-@@ -31,7 +31,6 @@ atomic_t irq_err_count;
- void ack_bad_irq(unsigned int irq)
- {
- 	atomic_inc(&irq_err_count);
--	printk("unexpected IRQ trap at vector %02x\n", irq);
- }
+diff --git a/arch/s390/include/asm/hardirq.h b/arch/s390/include/asm/hardirq.h
+index dfbc3c6c0674..56d95fcb310a 100644
+--- a/arch/s390/include/asm/hardirq.h
++++ b/arch/s390/include/asm/hardirq.h
+@@ -21,9 +21,6 @@
+ #define __ARCH_HAS_DO_SOFTIRQ
+ #define __ARCH_IRQ_EXIT_IRQS_DISABLED
  
- #if defined(CONFIG_PROC_FS)
+-static inline void ack_bad_irq(unsigned int irq)
+-{
+-	printk(KERN_CRIT "unexpected IRQ trap at vector %02x\n", irq);
+-}
++#define ack_bad_irq(irq)
+ 
+ #endif /* __ASM_HARDIRQ_H */
 -- 
 2.11.0
