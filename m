@@ -1,10 +1,10 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:36 +0000
-Subject: [PATCH 13/23] arch: generic: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-14-info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:11 +0000
+Subject: [PATCH 12/23] arch: x86: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-13-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,20 +23,22 @@ we just don't need to duplicate this in each single arch. So just drop it.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- include/asm-generic/hardirq.h | 1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/irq.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/include/asm-generic/hardirq.h b/include/asm-generic/hardirq.h
-index 7317e8258b48..f5a0240cbf52 100644
---- a/include/asm-generic/hardirq.h
-+++ b/include/asm-generic/hardirq.h
-@@ -19,7 +19,6 @@ DECLARE_PER_CPU_ALIGNED(irq_cpustat_t, irq_stat);
- #ifndef ack_bad_irq
- static inline void ack_bad_irq(unsigned int irq)
+diff --git a/arch/x86/kernel/irq.c b/arch/x86/kernel/irq.c
+index c5dd50369e2f..5c66c44b6b60 100644
+--- a/arch/x86/kernel/irq.c
++++ b/arch/x86/kernel/irq.c
+@@ -36,9 +36,6 @@ atomic_t irq_err_count;
+  */
+ void ack_bad_irq(unsigned int irq)
  {
--	printk(KERN_CRIT "unexpected IRQ trap at vector %02x\n", irq);
- }
- #endif
- 
+-	if (printk_ratelimit())
+-		pr_err("unexpected IRQ trap at vector %02x\n", irq);
+-
+ 	/*
+ 	 * Currently unexpected vectors happen only on SMP and APIC.
+ 	 * We _must_ ack these because every local APIC has only N
 -- 
 2.11.0
