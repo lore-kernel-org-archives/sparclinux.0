@@ -1,10 +1,10 @@
 From: "Enrico Weigelt, metux IT consult" <info@metux.net>
-Date: Fri, 18 Dec 2020 14:57:25 +0000
-Subject: [PATCH 02/23] arch: alpha: drop misleading warning on spurious IRQ
-Message-Id: <20201218145746.24205-3-info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:09 +0000
+Subject: [PATCH 10/23] arch: sh: drop misleading warning on spurious IRQ
+Message-Id: <20201218143122.19459-11-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218145746.24205-1-info@metux.net>
-In-Reply-To: <20201218145746.24205-1-info@metux.net>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,20 +23,20 @@ we just don't need to duplicate this in each single arch. So just drop it.
 
 Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
 ---
- arch/alpha/kernel/irq.c | 1 -
+ arch/sh/kernel/irq.c | 1 -
  1 file changed, 1 deletion(-)
 
-diff --git a/arch/alpha/kernel/irq.c b/arch/alpha/kernel/irq.c
-index f6d2946edbd2..c1980eea75a6 100644
---- a/arch/alpha/kernel/irq.c
-+++ b/arch/alpha/kernel/irq.c
-@@ -35,7 +35,6 @@ DEFINE_PER_CPU(unsigned long, irq_pmi_count);
+diff --git a/arch/sh/kernel/irq.c b/arch/sh/kernel/irq.c
+index ab5f790b0cd2..c14a142efe60 100644
+--- a/arch/sh/kernel/irq.c
++++ b/arch/sh/kernel/irq.c
+@@ -31,7 +31,6 @@ atomic_t irq_err_count;
  void ack_bad_irq(unsigned int irq)
  {
- 	irq_err_count++;
--	printk(KERN_CRIT "Unexpected IRQ trap at vector %u\n", irq);
+ 	atomic_inc(&irq_err_count);
+-	printk("unexpected IRQ trap at vector %02x\n", irq);
  }
  
- #ifdef CONFIG_SMP 
+ #if defined(CONFIG_PROC_FS)
 -- 
 2.11.0
