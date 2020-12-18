@@ -1,62 +1,83 @@
-From: Guo Ren <guoren@kernel.org>
-Date: Mon, 21 Dec 2020 02:58:38 +0000
-Subject: Re: [PATCH 1/2] futex: mark futex_detect_cmpxchg() as 'noinline'
-Message-Id: <CAJF2gTSc5FS-iUZUiEygviFwa17e=iBncmL+mZ_BORbSthmxiQ@mail.gmail.com>
+From: "Enrico Weigelt, metux IT consult" <info@metux.net>
+Date: Fri, 18 Dec 2020 14:31:18 +0000
+Subject: [PATCH 19/23] arch: c6x: use generic irq error counter
+Message-Id: <20201218143122.19459-20-info@metux.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20190307091514.2489338-1-arnd@arndb.de> <X9S28TcEXd2zghzp@elver.google.com>
- <87czzeg5ep.fsf@nanos.tec.linutronix.de> <CAK8P3a0LWjNgwm605TM4dKCsn078X7NC3sEfdBSgcMNEocQ5iA@mail.gmail.com>
- <CAJF2gTRLEbBfZJ7Y6UNOMq-cwG5OYRW=+8Pfauz6v6R8ntBjYA@mail.gmail.com>
- <CAK8P3a3+WaQNyJ6Za2qfu6=0mBgU1hApnRXrdp1b1=P7wwyRUg@mail.gmail.com>
- <CAJF2gTQUPXzRL4P2ghoSt6t+pyAJ7A9dqdD6VWYNdOmJjd2HQg@mail.gmail.com> <CAK8P3a3mrD7U__T-X2jr1Mw9Xk=dBE=Fuid_BHNE85GcX0g-rg@mail.gmail.com>
-In-Reply-To: <CAK8P3a3mrD7U__T-X2jr1Mw9Xk=dBE=Fuid_BHNE85GcX0g-rg@mail.gmail.com>
+References: <20201218143122.19459-1-info@metux.net>
+In-Reply-To: <20201218143122.19459-1-info@metux.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Arnd Bergmann <arnd@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Marco Elver <elver@google.com>, Arnd Bergmann <arnd@arndb.de>, Russell King <linux@armlinux.org.uk>, Ingo Molnar <mingo@redhat.com>, Peter Zijlstra <peterz@infradead.org>, Darren Hart <dvhart@infradead.org>, Nick Desaulniers <ndesaulniers@google.com>, Davidlohr Bueso <dave@stgolabs.net>, Elena Reshetova <elena.reshetova@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-csky@vger.kernel.org, sparclinux <sparclinux@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
+To: linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, alexander.shishkin@linux.intel.com, jolsa@redhat.com, namhyung@kernel.org, catalin.marinas@arm.com, will@kernel.org, msalter@redhat.com, jacquiot.aurelien@gmail.com, gerg@linux-m68k.org, geert@linux-m68k.org, tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com, deller@gmx.de, benh@kernel.crashing.org, paulus@samba.org, ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net, tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com, linus.walleij@linaro.org, bgolaszewski@baylibre.com, maz@kernel.org, tony@atomide.com, arnd@arndb.de, linux-alpha@vger.kernel.org, linux-c6x-dev@linux-c6x.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-gpio@vger.kernel.org, linux-omap@vger.kernel.org, linux-arch@vger.kernel.org
 
-Hi Arnd,
+Use the newly introduced irq error counter, that's already maintained
+by all callers of ack_bad_irq(), in order to remove duplicate code.
 
-On Mon, Dec 21, 2020 at 1:49 AM Arnd Bergmann <arnd@kernel.org> wrote:
->
-> On Sun, Dec 20, 2020 at 4:46 PM Guo Ren <guoren@kernel.org> wrote:
-> > On Tue, Dec 15, 2020 at 7:26 PM Arnd Bergmann <arnd@kernel.org> wrote:
-> > >
-> > > On Tue, Dec 15, 2020 at 7:09 AM Guo Ren <guoren@kernel.org> wrote:
-> > > > On Mon, Dec 14, 2020 at 9:15 PM Arnd Bergmann <arnd@kernel.org> wrote:
-> > > > > I had a look at what other architectures always implement
-> > > > > futex_atomic_cmpxchg_inatomic() or can use the asm-generic non-SMP version,
-> > > > > and I found that it's pretty much all of them, the odd ones being just sparc32
-> > > > > and csky, which use asm-generic/futex.h but do have an SMP option,
-> > > > > as well as xtensa
-> > > > >
-> > > > > I would guess that for csky, this is a mistake, as the architecture is fairly
-> > > > > new and should be able to implement it. Not sure about sparc32.
-> > > >
-> > > > The c610, c807, c810 don't support SMP, so futex_cmpxchg_enabled = 1
-> > > > with asm-generic's implementation.
-> > > > For c860, there is no HAVE_FUTEX_CMPXCHG and cmpxchg_inatomic/inuser
-> > > > implementation, so futex_cmpxchg_enabled = 0.
-> > > >
-> > > > Thx for point it out, we'll implement cmpxchg_inatomic/inuser for C860
-> > > > and still use asm-generic for non-smp CPUs.
-> > >
-> > > Sounds good to me.
-> > Done: https://lore.kernel.org/linux-csky/1608478763-60148-3-git-send-email-guoren@kernel.org/T/#u
->
-> Thanks!
->
-> Can you clarify if there are any dependencies on the other patches in
-> that series?
-No dependency.
+Signed-off-by: Enrico Weigelt, metux IT consult <info@metux.net>
+---
+ arch/c6x/include/asm/hardirq.h |  3 ---
+ arch/c6x/include/asm/irq.h     |  2 --
+ arch/c6x/kernel/irq.c          | 11 ++---------
+ 3 files changed, 2 insertions(+), 14 deletions(-)
 
->
-> I'd like to take the futex patch through the asm-generic tree along with the
-> patches for the other architectures.
-You take the futex patch and I'll remove it from my tree.
-
+diff --git a/arch/c6x/include/asm/hardirq.h b/arch/c6x/include/asm/hardirq.h
+index f37d07d31040..f70f6113e53a 100644
+--- a/arch/c6x/include/asm/hardirq.h
++++ b/arch/c6x/include/asm/hardirq.h
+@@ -9,9 +9,6 @@
+ #ifndef _ASM_C6X_HARDIRQ_H
+ #define _ASM_C6X_HARDIRQ_H
+ 
+-extern void ack_bad_irq(int irq);
+-#define ack_bad_irq ack_bad_irq
+-
+ #include <asm-generic/hardirq.h>
+ 
+ #endif /* _ASM_C6X_HARDIRQ_H */
+diff --git a/arch/c6x/include/asm/irq.h b/arch/c6x/include/asm/irq.h
+index 9da4d1afd0d7..f42c5747c3ee 100644
+--- a/arch/c6x/include/asm/irq.h
++++ b/arch/c6x/include/asm/irq.h
+@@ -45,6 +45,4 @@ struct pt_regs;
+ 
+ extern asmlinkage void c6x_do_IRQ(unsigned int prio, struct pt_regs *regs);
+ 
+-extern unsigned long irq_err_count;
+-
+ #endif /* _ASM_C6X_IRQ_H */
+diff --git a/arch/c6x/kernel/irq.c b/arch/c6x/kernel/irq.c
+index b9f7cfa2ed21..9f9d798925de 100644
+--- a/arch/c6x/kernel/irq.c
++++ b/arch/c6x/kernel/irq.c
+@@ -21,12 +21,10 @@
+ #include <linux/of_irq.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel_stat.h>
+-
++#include <asm-generic/irq-err.h>
+ #include <asm/megamod-pic.h>
+ #include <asm/special_insns.h>
+ 
+-unsigned long irq_err_count;
+-
+ static DEFINE_RAW_SPINLOCK(core_irq_lock);
+ 
+ static void mask_core_irq(struct irq_data *data)
+@@ -114,13 +112,8 @@ void __init init_IRQ(void)
+ 	set_creg(ICR, 0xfff0);
+ }
+ 
+-void ack_bad_irq(int irq)
+-{
+-	irq_err_count++;
+-}
+-
+ int arch_show_interrupts(struct seq_file *p, int prec)
+ {
+-	seq_printf(p, "%*s: %10lu\n", prec, "Err", irq_err_count);
++	seq_printf(p, "%*s: %10lu\n", prec, "Err", irq_err_get());
+ 	return 0;
+ }
 -- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+2.11.0
