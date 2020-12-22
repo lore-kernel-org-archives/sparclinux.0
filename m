@@ -1,34 +1,82 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 18 Dec 2020 21:18:53 +0000
-Subject: Re: [PATCH v1 01/13] sparc32: Drop sun4m/sun4d support from head_32.S
-Message-Id: <20201218211840.GB2421393@ravnborg.org>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Tue, 22 Dec 2020 17:58:59 +0000
+Subject: sparc32: Init process fails to load with generic kmap atomic
+Message-Id: <c1dc2579-17b1-493b-ef23-0b9ed1ec13c3@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218184347.2180772-1-sam@ravnborg.org>
- <20201218184347.2180772-2-sam@ravnborg.org>
- <sq2nqr43-21s-21sn-219r-9o83o310r5s9@vanv.qr>
-In-Reply-To: <sq2nqr43-21s-21sn-219r-9o83o310r5s9@vanv.qr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh@inai.de>
-Cc: David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>, Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>, Christian Brauner <christian.brauner@ubuntu.com>, Denis Efremov <efremov@linux.com>, Dmitry Safonov <0x7f454c46@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@kernel.org>, Pekka Enberg <penberg@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org, debian-sparc@lists.debian.org
+To: Thomas Gleixner <tglx@linutronix.de>, sparclinux <sparclinux@vger.kernel.org>, linux-mm@kvack.org
+Cc: "David S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Sam Ravnborg <sam@ravnborg.org>
 
-Hi Jan,
 
-On Fri, Dec 18, 2020 at 07:52:08PM +0100, Jan Engelhardt wrote:
-> 
-> On Friday 2020-12-18 19:43, Sam Ravnborg wrote:
-> > notsup:
-> >-	.asciz	"Sparc-Linux sun4/sun4c or MMU-less not supported\n\n"
-> >-	.align 4
-> >-
-> >-sun4e_notsup:
-> >-        .asciz  "Sparc-Linux sun4e support does not exist\n\n"
-> >+	.asciz	"Sparc-Linux sun4* or MMU-less not supported\n\n"
-> > 	.align 4
-> 
-> The asterisk may lead to a moment of bewilderment; sun4u/sun4v are still 
-> supported.
-Noted, I will come up with something better.
+Unfortunately I did not see this problem before I encountered it in
+master. Commit 3293efa9780712ad8504689e0c296d2bd33827d5
 
-	Sam
+    sparc/mm/highmem: Switch to generic kmap atomic
+
+     No reason having the same code in every architecture
+
+     Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+     Cc: "David S. Miller" <davem@davemloft.net>
+     Cc: Arnd Bergmann <arnd@arndb.de>
+     Link: https://lore.kernel.org/r/20201103095858.197568209@linutronix.de
+
+prevents the init process to be started for me on a sparc32 LEON. On the
+commit before this it works. Details below from that commit but I get
+the same behavior on current master.
+
+ From as far as I have gotten into hunting down the problem, I get a
+failure from load_elf_binary here:
+
+	/* First of all, some simple consistency checks */
+	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+		goto out;
+
+at least seemingly due to the kaddr from copy_page_to_iter in
+lib/iov_iter.c
+
+	if (i->type & (ITER_BVEC|ITER_KVEC)) {
+		void *kaddr = kmap_atomic(page);
+		size_t wanted = copy_to_iter(kaddr + offset, bytes, i);
+
+where kaddr points to memory with all zeroes (from an earlier bzero) in 
+this context:
+
+#0  _copy_to_iter (addr=0xfcffe000, bytes=0x100, i=0xf201fd78)
+                at lib/iov_iter.c:635
+#1  copy_to_iter (i=0xf201fd78, bytes=0x1ce, addr=0xfcffe000)
+                at include/linux/uio.h:137
+#2  copy_page_to_iter (page=0xf137ede0, offset=0x0, bytes=0x1ce, 
+i=0xf201fd78)
+                at lib/iov_iter.c:920
+#3  shmem_file_read_iter (iocb=0xf201fd90, to=0xf201fd78)
+                at mm/shmem.c:2661
+#4  __kernel_read (file=0xf2103900, buf=0xf241365c, count=0x100, 
+pos=0xf201fe80)
+                at fs/read_write.c:454
+#5  kernel_read (file=0xf2103900, buf=0xf241365c, count=0x100, 
+pos=0xf201fe80)
+                at fs/read_write.c:472
+#6  prepare_binprm (bprm=0xf2413600)
+                at fs/exec.c:1633
+#7  search_binary_handler (bprm=0xf2413600)
+                at fs/exec.c:1687
+#8  exec_binprm (bprm=0xf2413600)
+                at fs/exec.c:1744
+#9  bprm_execve (bprm=0xf2413600, fd=<opt>, filename=<opt>, flags=<opt>)
+                at fs/exec.c:1820
+#10 kernel_execve (kernel_filename=<opt>,
+                    argv=0xf050d4f0 <argv_init>,
+                    envp=0xf050d468 <envp_init>)
+                at fs/exec.c:1969
+#11 kernel_init (unused=0x0)
+                at init/main.c:1427
+
+I will have to continue to dig deeper into this in January. If anyone
+has any ideas how this could stem from this kmap patch, I am all ears.
+
+-- 
+Andreas Larsson
+Software Engineer
+Cobham Gaisler
