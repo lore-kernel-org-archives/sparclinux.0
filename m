@@ -1,2928 +1,415 @@
-From: Sam Ravnborg <sam@ravnborg.org>
-Date: Fri, 18 Dec 2020 18:43:45 +0000
-Subject: [PATCH v1 11/13] sparc32: Drop unused mmu models
-Message-Id: <20201218184347.2180772-12-sam@ravnborg.org>
+From: kernel test robot <lkp@intel.com>
+Date: Wed, 30 Dec 2020 06:26:06 +0000
+Subject: Re: [PATCH v1 11/13] sparc32: Drop unused mmu models
+Message-Id: <202012301434.63egGHkb-lkp@intel.com>
+MIME-Version: 1
+Content-Type: multipart/mixed; boundary="BXVAT5kNtrzKuDFl"
 List-Id: <sparclinux.vger.kernel.org>
-References: <20201218184347.2180772-1-sam@ravnborg.org>
-In-Reply-To: <20201218184347.2180772-1-sam@ravnborg.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>, Christian Brauner <christian.brauner@ubuntu.com>, Denis Efremov <efremov@linux.com>, Dmitry Safonov <0x7f454c46@gmail.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ira Weiny <ira.weiny@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mike Rapoport <rppt@kernel.org>, Pekka Enberg <penberg@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Sam Ravnborg <sam@ravnborg.org>, Stephen Rothwell <sfr@canb.auug.org.au>, Thomas Gleixner <tglx@linutronix.de>, Will Deacon <will@kernel.org>, Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org, debian-sparc@lists.debian.org, gentoo-sparc@l.g.o
+References: <20201218184347.2180772-12-sam@ravnborg.org>
+In-Reply-To: <20201218184347.2180772-12-sam@ravnborg.org>
+To: Sam Ravnborg <sam@ravnborg.org>, David S Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Andreas Larsson <andreas@gaisler.com>, Arnd Bergmann <arnd@kernel.org>
+Cc: kbuild-all@lists.01.org, Alexey Dobriyan <adobriyan@gmail.com>, Al Viro <viro@zeniv.linux.org.uk>, Andrew Morton <akpm@linux-foundation.org>, Linux Memory Management List <linux-mm@kvack.org>, Anshuman Khandual <anshuman.khandual@arm.com>, Arvind Sankar <nivedita@alum.mit.edu>
 
-Drop mmu models not used by LEON, including their header files.
-This includes removal of unused includes in various files to fix the
-build.
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Will Deacon <will@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Arnd Bergmann <arnd@kernel.org>
-Cc: Andreas Larsson <andreas@gaisler.com>
+--BXVAT5kNtrzKuDFl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Sam,
+
+I love your patch! Perhaps something to improve:
+
+[auto build test WARNING on soc/for-next]
+[also build test WARNING on sparc/master v5.11-rc1 next-20201223]
+[cannot apply to sparc-next/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch]
+
+url:    https://github.com/0day-ci/linux/commits/Sam-Ravnborg/sparc32-sunset-sun4m-and-sun4d/20201219-025354
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/soc/soc.git for-next
+config: sparc-randconfig-c004-20201229 (attached as .config)
+compiler: sparc-linux-gcc (GCC) 9.3.0
+
+If you fix the issue, kindly add following tag as appropriate
+Reported-by: kernel test robot <lkp@intel.com>
+
+
+"coccinelle warnings: (new ones prefixed by >>)"
+>> arch/sparc/mm/srmmu.c:317:42-43: WARNING comparing pointer to 0
+>> arch/sparc/mm/srmmu.c:317:42-43: WARNING comparing pointer to 0
+
+Please review and possibly fold the followup patch.
+
 ---
- arch/sparc/include/asm/mxcc.h    | 138 ------
- arch/sparc/include/asm/ross.h    | 192 --------
- arch/sparc/include/asm/swift.h   | 107 -----
- arch/sparc/include/asm/tsunami.h |  65 ---
- arch/sparc/include/asm/viking.h  | 255 ----------
- arch/sparc/kernel/entry.S        |   1 -
- arch/sparc/mm/Makefile           |   1 -
- arch/sparc/mm/hypersparc.S       | 414 -----------------
- arch/sparc/mm/io-unit.c          |   1 -
- arch/sparc/mm/iommu.c            |  31 +-
- arch/sparc/mm/mm_32.h            |   1 -
- arch/sparc/mm/srmmu.c            | 776 +------------------------------
- arch/sparc/mm/swift.S            | 256 ----------
- arch/sparc/mm/tsunami.S          | 132 ------
- arch/sparc/mm/viking.S           | 284 -----------
- 15 files changed, 21 insertions(+), 2633 deletions(-)
- delete mode 100644 arch/sparc/include/asm/mxcc.h
- delete mode 100644 arch/sparc/include/asm/ross.h
- delete mode 100644 arch/sparc/include/asm/swift.h
- delete mode 100644 arch/sparc/include/asm/tsunami.h
- delete mode 100644 arch/sparc/include/asm/viking.h
- delete mode 100644 arch/sparc/mm/hypersparc.S
- delete mode 100644 arch/sparc/mm/swift.S
- delete mode 100644 arch/sparc/mm/tsunami.S
- delete mode 100644 arch/sparc/mm/viking.S
+0-DAY CI Kernel Test Service, Intel Corporation
+https://lists.01.org/hyperkitty/list/kbuild-all@lists.01.org
 
-diff --git a/arch/sparc/include/asm/mxcc.h b/arch/sparc/include/asm/mxcc.h
-deleted file mode 100644
-index 3a2561bea4dd..000000000000
---- a/arch/sparc/include/asm/mxcc.h
-+++ /dev/null
-@@ -1,138 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * mxcc.h:  Definitions of the Viking MXCC registers
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_MXCC_H
--#define _SPARC_MXCC_H
--
--/* These registers are accessed through ASI 0x2. */
--#define MXCC_DATSTREAM       0x1C00000  /* Data stream register */
--#define MXCC_SRCSTREAM       0x1C00100  /* Source stream register */
--#define MXCC_DESSTREAM       0x1C00200  /* Destination stream register */
--#define MXCC_RMCOUNT         0x1C00300  /* Count of references and misses */
--#define MXCC_STEST           0x1C00804  /* Internal self-test */
--#define MXCC_CREG            0x1C00A04  /* Control register */
--#define MXCC_SREG            0x1C00B00  /* Status register */
--#define MXCC_RREG            0x1C00C04  /* Reset register */
--#define MXCC_EREG            0x1C00E00  /* Error code register */
--#define MXCC_PREG            0x1C00F04  /* Address port register */
--
--/* Some MXCC constants. */
--#define MXCC_STREAM_SIZE     0x20       /* Size in bytes of one stream r/w */
--
--/* The MXCC Control Register:
-- *
-- * ----------------------------------------------------------------------
-- * |                                   | RRC | RSV |PRE|MCE|PARE|ECE|RSV|
-- * ----------------------------------------------------------------------
-- *  31                              10    9    8-6   5   4    3   2  1-0
-- *
-- * RRC: Controls what you read from MXCC_RMCOUNT reg.
-- *      0=Misses 1=References
-- * PRE: Prefetch enable
-- * MCE: Multiple Command Enable
-- * PARE: Parity enable
-- * ECE: External cache enable
-- */
--
--#define MXCC_CTL_RRC   0x00000200
--#define MXCC_CTL_PRE   0x00000020
--#define MXCC_CTL_MCE   0x00000010
--#define MXCC_CTL_PARE  0x00000008
--#define MXCC_CTL_ECE   0x00000004
--
--/* The MXCC Error Register:
-- *
-- * --------------------------------------------------------
-- * |ME| RSV|CE|PEW|PEE|ASE|EIV| MOPC|ECODE|PRIV|RSV|HPADDR|
-- * --------------------------------------------------------
-- *  31   30 29  28  27  26  25 24-15  14-7   6  5-3   2-0
-- *
-- * ME: Multiple Errors have occurred
-- * CE: Cache consistency Error
-- * PEW: Parity Error during a Write operation
-- * PEE: Parity Error involving the External cache
-- * ASE: ASynchronous Error
-- * EIV: This register is toast
-- * MOPC: MXCC Operation Code for instance causing error
-- * ECODE: The Error CODE
-- * PRIV: A privileged mode error? 0=no 1=yes
-- * HPADDR: High PhysicalADDRess bits (35-32)
-- */
--
--#define MXCC_ERR_ME     0x80000000
--#define MXCC_ERR_CE     0x20000000
--#define MXCC_ERR_PEW    0x10000000
--#define MXCC_ERR_PEE    0x08000000
--#define MXCC_ERR_ASE    0x04000000
--#define MXCC_ERR_EIV    0x02000000
--#define MXCC_ERR_MOPC   0x01FF8000
--#define MXCC_ERR_ECODE  0x00007F80
--#define MXCC_ERR_PRIV   0x00000040
--#define MXCC_ERR_HPADDR 0x0000000f
--
--/* The MXCC Port register:
-- *
-- * -----------------------------------------------------
-- * |                | MID |                            |
-- * -----------------------------------------------------
-- *  31            21 20-18 17                         0
-- *
-- * MID: The moduleID of the cpu your read this from.
-- */
--
--#ifndef __ASSEMBLY__
--
--static inline void mxcc_set_stream_src(unsigned long *paddr)
--{
--	unsigned long data0 = paddr[0];
--	unsigned long data1 = paddr[1];
--
--	__asm__ __volatile__ ("or %%g0, %0, %%g2\n\t"
--			      "or %%g0, %1, %%g3\n\t"
--			      "stda %%g2, [%2] %3\n\t" : :
--			      "r" (data0), "r" (data1),
--			      "r" (MXCC_SRCSTREAM),
--			      "i" (ASI_M_MXCC) : "g2", "g3");
--}
--
--static inline void mxcc_set_stream_dst(unsigned long *paddr)
--{
--	unsigned long data0 = paddr[0];
--	unsigned long data1 = paddr[1];
--
--	__asm__ __volatile__ ("or %%g0, %0, %%g2\n\t"
--			      "or %%g0, %1, %%g3\n\t"
--			      "stda %%g2, [%2] %3\n\t" : :
--			      "r" (data0), "r" (data1),
--			      "r" (MXCC_DESSTREAM),
--			      "i" (ASI_M_MXCC) : "g2", "g3");
--}
--
--static inline unsigned long mxcc_get_creg(void)
--{
--	unsigned long mxcc_control;
--
--	__asm__ __volatile__("set 0xffffffff, %%g2\n\t"
--			     "set 0xffffffff, %%g3\n\t"
--			     "stda %%g2, [%1] %2\n\t"
--			     "lda [%3] %2, %0\n\t" :
--			     "=r" (mxcc_control) :
--			     "r" (MXCC_EREG), "i" (ASI_M_MXCC),
--			     "r" (MXCC_CREG) : "g2", "g3");
--	return mxcc_control;
--}
--
--static inline void mxcc_set_creg(unsigned long mxcc_control)
--{
--	__asm__ __volatile__("sta %0, [%1] %2\n\t" : :
--			     "r" (mxcc_control), "r" (MXCC_CREG),
--			     "i" (ASI_M_MXCC));
--}
--
--#endif /* !__ASSEMBLY__ */
--
--#endif /* !(_SPARC_MXCC_H) */
-diff --git a/arch/sparc/include/asm/ross.h b/arch/sparc/include/asm/ross.h
-deleted file mode 100644
-index 79a54d66a2c0..000000000000
---- a/arch/sparc/include/asm/ross.h
-+++ /dev/null
-@@ -1,192 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * ross.h: Ross module specific definitions and defines.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_ROSS_H
--#define _SPARC_ROSS_H
--
--#include <asm/asi.h>
--#include <asm/page.h>
--
--/* Ross made Hypersparcs have a %psr 'impl' field of '0001'.  The 'vers'
-- * field has '1111'.
-- */
--
--/* The MMU control register fields on the HyperSparc.
-- *
-- * -----------------------------------------------------------------
-- * |implvers| RSV |CWR|SE|WBE| MID |BM| C|CS|MR|CM|RSV|CE|RSV|NF|ME|
-- * -----------------------------------------------------------------
-- *  31    24 23-22 21  20  19 18-15 14 13 12 11 10  9   8 7-2  1  0
-- *
-- * Phew, lots of fields there ;-)
-- *
-- * CWR: Cache Wrapping Enabled, if one cache wrapping is on.
-- * SE: Snoop Enable, turns on bus snooping for cache activity if one.
-- * WBE: Write Buffer Enable, one turns it on.
-- * MID: The ModuleID of the chip for MBus transactions.
-- * BM: Boot-Mode. One indicates the MMU is in boot mode.
-- * C: Indicates whether accesses are cachable while the MMU is
-- *    disabled.
-- * CS: Cache Size -- 0 = 128k, 1 = 256k
-- * MR: Memory Reflection, one indicates that the memory bus connected
-- *     to the MBus supports memory reflection.
-- * CM: Cache Mode -- 0 = write-through, 1 = copy-back
-- * CE: Cache Enable -- 0 = no caching, 1 = cache is on
-- * NF: No Fault -- 0 = faults trap the CPU from supervisor mode
-- *                 1 = faults from supervisor mode do not generate traps
-- * ME: MMU Enable -- 0 = MMU is off, 1 = MMU is on
-- */
--
--#define HYPERSPARC_CWENABLE   0x00200000
--#define HYPERSPARC_SBENABLE   0x00100000
--#define HYPERSPARC_WBENABLE   0x00080000
--#define HYPERSPARC_MIDMASK    0x00078000
--#define HYPERSPARC_BMODE      0x00004000
--#define HYPERSPARC_ACENABLE   0x00002000
--#define HYPERSPARC_CSIZE      0x00001000
--#define HYPERSPARC_MRFLCT     0x00000800
--#define HYPERSPARC_CMODE      0x00000400
--#define HYPERSPARC_CENABLE    0x00000100
--#define HYPERSPARC_NFAULT     0x00000002
--#define HYPERSPARC_MENABLE    0x00000001
--
--
--/* The ICCR instruction cache register on the HyperSparc.
-- *
-- * -----------------------------------------------
-- * |                                 | FTD | ICE |
-- * -----------------------------------------------
-- *  31                                  1     0
-- *
-- * This register is accessed using the V8 'wrasr' and 'rdasr'
-- * opcodes, since not all assemblers understand them and those
-- * that do use different semantics I will just hard code the
-- * instruction with a '.word' statement.
-- *
-- * FTD:  If set to one flush instructions executed during an
-- *       instruction cache hit occurs, the corresponding line
-- *       for said cache-hit is invalidated.  If FTD is zero,
-- *       an unimplemented 'flush' trap will occur when any
-- *       flush is executed by the processor.
-- *
-- * ICE:  If set to one, the instruction cache is enabled.  If
-- *       zero, the cache will not be used for instruction fetches.
-- *
-- * All other bits are read as zeros, and writes to them have no
-- * effect.
-- *
-- * Wheee, not many assemblers understand the %iccr register nor
-- * the generic asr r/w instructions.
-- *
-- *  1000 0011 0100 0111 1100 0000 0000 0000   ! rd %iccr, %g1
-- *
-- * 0x  8    3    4    7    c    0    0    0   ! 0x8347c000
-- *
-- *  1011 1111 1000 0000 0110 0000 0000 0000   ! wr %g1, 0x0, %iccr
-- *
-- * 0x  b    f    8    0    6    0    0    0   ! 0xbf806000
-- *
-- */
--
--#define HYPERSPARC_ICCR_FTD     0x00000002
--#define HYPERSPARC_ICCR_ICE     0x00000001
--
--#ifndef __ASSEMBLY__
--
--static inline unsigned int get_ross_icr(void)
--{
--	unsigned int icreg;
--
--	__asm__ __volatile__(".word 0x8347c000\n\t" /* rd %iccr, %g1 */
--			     "mov %%g1, %0\n\t"
--			     : "=r" (icreg)
--			     : /* no inputs */
--			     : "g1", "memory");
--
--	return icreg;
--}
--
--static inline void put_ross_icr(unsigned int icreg)
--{
--	__asm__ __volatile__("or %%g0, %0, %%g1\n\t"
--			     ".word 0xbf806000\n\t" /* wr %g1, 0x0, %iccr */
--			     "nop\n\t"
--			     "nop\n\t"
--			     "nop\n\t"
--			     : /* no outputs */
--			     : "r" (icreg)
--			     : "g1", "memory");
--
--	return;
--}
--
--/* HyperSparc specific cache flushing. */
--
--/* This is for the on-chip instruction cache. */
--static inline void hyper_flush_whole_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_FLUSH_IWHOLE)
--			     : "memory");
--	return;
--}
--
--extern int vac_cache_size;
--extern int vac_line_size;
--
--static inline void hyper_clear_all_tags(void)
--{
--	unsigned long addr;
--
--	for(addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_DATAC_TAG)
--				     : "memory");
--}
--
--static inline void hyper_flush_unconditional_combined(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_FLUSH_CTX)
--				     : "memory");
--}
--
--static inline void hyper_flush_cache_user(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < vac_cache_size; addr += vac_line_size)
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (addr), "i" (ASI_M_FLUSH_USER)
--				     : "memory");
--}
--
--static inline void hyper_flush_cache_page(unsigned long page)
--{
--	unsigned long end;
--
--	page &= PAGE_MASK;
--	end = page + PAGE_SIZE;
--	while (page < end) {
--		__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--				     : /* no outputs */
--				     : "r" (page), "i" (ASI_M_FLUSH_PAGE)
--				     : "memory");
--		page += vac_line_size;
--	}
--}
--
--#endif /* !(__ASSEMBLY__) */
--
--#endif /* !(_SPARC_ROSS_H) */
-diff --git a/arch/sparc/include/asm/swift.h b/arch/sparc/include/asm/swift.h
-deleted file mode 100644
-index 96f6526b964e..000000000000
---- a/arch/sparc/include/asm/swift.h
-+++ /dev/null
-@@ -1,107 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/* swift.h: Specific definitions for the _broken_ Swift SRMMU
-- *          MMU module.
-- *
-- * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_SWIFT_H
--#define _SPARC_SWIFT_H
--
--/* Swift is so brain damaged, here is the mmu control register. */
--#define SWIFT_ST       0x00800000   /* SW tablewalk enable */
--#define SWIFT_WP       0x00400000   /* Watchpoint enable   */
--
--/* Branch folding (buggy, disable on production systems!)  */
--#define SWIFT_BF       0x00200000
--#define SWIFT_PMC      0x00180000   /* Page mode control   */
--#define SWIFT_PE       0x00040000   /* Parity enable       */
--#define SWIFT_PC       0x00020000   /* Parity control      */
--#define SWIFT_AP       0x00010000   /* Graphics page mode control (TCX/SX) */
--#define SWIFT_AC       0x00008000   /* Alternate Cacheability (see viking.h) */
--#define SWIFT_BM       0x00004000   /* Boot mode */
--#define SWIFT_RC       0x00003c00   /* DRAM refresh control */
--#define SWIFT_IE       0x00000200   /* Instruction cache enable */
--#define SWIFT_DE       0x00000100   /* Data cache enable */
--#define SWIFT_SA       0x00000080   /* Store Allocate */
--#define SWIFT_NF       0x00000002   /* No fault mode */
--#define SWIFT_EN       0x00000001   /* MMU enable */
--
--/* Bits [13:5] select one of 512 instruction cache tags */
--static inline void swift_inv_insn_tag(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_TXTC_TAG)
--			     : "memory");
--}
--
--/* Bits [12:4] select one of 512 data cache tags */
--static inline void swift_inv_data_tag(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_DATAC_TAG)
--			     : "memory");
--}
--
--static inline void swift_flush_dcache(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x2000; addr += 0x10)
--		swift_inv_data_tag(addr);
--}
--
--static inline void swift_flush_icache(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x4000; addr += 0x20)
--		swift_inv_insn_tag(addr);
--}
--
--static inline void swift_idflash_clear(void)
--{
--	unsigned long addr;
--
--	for (addr = 0; addr < 0x2000; addr += 0x10) {
--		swift_inv_insn_tag(addr<<1);
--		swift_inv_data_tag(addr);
--	}
--}
--
--/* Swift is so broken, it isn't even safe to use the following. */
--static inline void swift_flush_page(unsigned long page)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (page), "i" (ASI_M_FLUSH_PAGE)
--			     : "memory");
--}
--
--static inline void swift_flush_segment(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_FLUSH_SEG)
--			     : "memory");
--}
--
--static inline void swift_flush_region(unsigned long addr)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (addr), "i" (ASI_M_FLUSH_REGION)
--			     : "memory");
--}
--
--static inline void swift_flush_context(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_FLUSH_CTX)
--			     : "memory");
--}
--
--#endif /* !(_SPARC_SWIFT_H) */
-diff --git a/arch/sparc/include/asm/tsunami.h b/arch/sparc/include/asm/tsunami.h
-deleted file mode 100644
-index acaf014eff46..000000000000
---- a/arch/sparc/include/asm/tsunami.h
-+++ /dev/null
-@@ -1,65 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * tsunami.h:  Module specific definitions for Tsunami V8 Sparcs
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#ifndef _SPARC_TSUNAMI_H
--#define _SPARC_TSUNAMI_H
--
--#include <asm/asi.h>
--
--/* The MMU control register on the Tsunami:
-- *
-- * -----------------------------------------------------------------------
-- * | implvers |SW|AV|DV|MV| RSV |PC|ITD|ALC| RSV |PE| RC |IE|DE|RSV|NF|ME|
-- * -----------------------------------------------------------------------
-- *  31      24 23 22 21 20 19-18 17  16 14  13-12 11 10-9  8  7 6-2  1  0
-- *
-- * SW: Enable Software Table Walks  0=off 1=on
-- * AV: Address View bit
-- * DV: Data View bit
-- * MV: Memory View bit
-- * PC: Parity Control
-- * ITD: ITBR disable
-- * ALC: Alternate Cacheable
-- * PE: Parity Enable   0=off 1=on
-- * RC: Refresh Control
-- * IE: Instruction cache Enable  0=off 1=on
-- * DE: Data cache Enable  0=off 1=on
-- * NF: No Fault, same as all other SRMMUs
-- * ME: MMU Enable, same as all other SRMMUs
-- */
--
--#define TSUNAMI_SW        0x00800000
--#define TSUNAMI_AV        0x00400000
--#define TSUNAMI_DV        0x00200000
--#define TSUNAMI_MV        0x00100000
--#define TSUNAMI_PC        0x00020000
--#define TSUNAMI_ITD       0x00010000
--#define TSUNAMI_ALC       0x00008000
--#define TSUNAMI_PE        0x00001000
--#define TSUNAMI_RCMASK    0x00000C00
--#define TSUNAMI_IENAB     0x00000200
--#define TSUNAMI_DENAB     0x00000100
--#define TSUNAMI_NF        0x00000002
--#define TSUNAMI_ME        0x00000001
--
--static inline void tsunami_flush_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void tsunami_flush_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--#endif /* !(_SPARC_TSUNAMI_H) */
-diff --git a/arch/sparc/include/asm/viking.h b/arch/sparc/include/asm/viking.h
-deleted file mode 100644
-index 08ffc605035f..000000000000
---- a/arch/sparc/include/asm/viking.h
-+++ /dev/null
-@@ -1,255 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * viking.h:  Defines specific to the GNU/Viking MBUS module.
-- *            This is SRMMU stuff.
-- *
-- * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)
-- */
--#ifndef _SPARC_VIKING_H
--#define _SPARC_VIKING_H
--
--#include <asm/asi.h>
--#include <asm/mxcc.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--
--/* Bits in the SRMMU control register for GNU/Viking modules.
-- *
-- * -----------------------------------------------------------
-- * |impl-vers| RSV |TC|AC|SP|BM|PC|MBM|SB|IC|DC|PSO|RSV|NF|ME|
-- * -----------------------------------------------------------
-- *  31     24 23-17 16 15 14 13 12 11  10  9  8  7  6-2  1  0
-- *
-- * TC: Tablewalk Cacheable -- 0 = Twalks are not cacheable in E-cache
-- *                            1 = Twalks are cacheable in E-cache
-- *
-- * GNU/Viking will only cache tablewalks in the E-cache (mxcc) if present
-- * and never caches them internally (or so states the docs).  Therefore
-- * for machines lacking an E-cache (ie. in MBUS mode) this bit must
-- * remain cleared.
-- *
-- * AC: Alternate Cacheable -- 0 = Passthru physical accesses not cacheable
-- *                            1 = Passthru physical accesses cacheable
-- *
-- * This indicates whether accesses are cacheable when no cachable bit
-- * is present in the pte when the processor is in boot-mode or the
-- * access does not need pte's for translation (ie. pass-thru ASI's).
-- * "Cachable" is only referring to E-cache (if present) and not the
-- * on chip split I/D caches of the GNU/Viking.
-- *
-- * SP: SnooP Enable -- 0 = bus snooping off, 1 = bus snooping on
-- *
-- * This enables snooping on the GNU/Viking bus.  This must be on
-- * for the hardware cache consistency mechanisms of the GNU/Viking
-- * to work at all.  On non-mxcc GNU/Viking modules the split I/D
-- * caches will snoop regardless of whether they are enabled, this
-- * takes care of the case where the I or D or both caches are turned
-- * off yet still contain valid data.  Note also that this bit does
-- * not affect GNU/Viking store-buffer snoops, those happen if the
-- * store-buffer is enabled no matter what.
-- *
-- * BM: Boot Mode -- 0 = not in boot mode, 1 = in boot mode
-- *
-- * This indicates whether the GNU/Viking is in boot-mode or not,
-- * if it is then all instruction fetch physical addresses are
-- * computed as 0xff0000000 + low 28 bits of requested address.
-- * GNU/Viking boot-mode does not affect data accesses.  Also,
-- * in boot mode instruction accesses bypass the split on chip I/D
-- * caches, they may be cached by the GNU/MXCC if present and enabled.
-- *
-- * MBM: MBus Mode -- 0 = not in MBus mode, 1 = in MBus mode
-- *
-- * This indicated the GNU/Viking configuration present.  If in
-- * MBUS mode, the GNU/Viking lacks a GNU/MXCC E-cache.  If it is
-- * not then the GNU/Viking is on a module VBUS connected directly
-- * to a GNU/MXCC cache controller.  The GNU/MXCC can be thus connected
-- * to either an GNU/MBUS (sun4m) or the packet-switched GNU/XBus (sun4d).
-- *
-- * SB: StoreBuffer enable -- 0 = store buffer off, 1 = store buffer on
-- *
-- * The GNU/Viking store buffer allows the chip to continue execution
-- * after a store even if the data cannot be placed in one of the
-- * caches during that cycle.  If disabled, all stores operations
-- * occur synchronously.
-- *
-- * IC: Instruction Cache -- 0 = off, 1 = on
-- * DC: Data Cache -- 0 = off, 1 = 0n
-- *
-- * These bits enable the on-cpu GNU/Viking split I/D caches.  Note,
-- * as mentioned above, these caches will snoop the bus in GNU/MBUS
-- * configurations even when disabled to avoid data corruption.
-- *
-- * NF: No Fault -- 0 = faults generate traps, 1 = faults don't trap
-- * ME: MMU enable -- 0 = mmu not translating, 1 = mmu translating
-- *
-- */
--
--#define VIKING_MMUENABLE    0x00000001
--#define VIKING_NOFAULT      0x00000002
--#define VIKING_PSO          0x00000080
--#define VIKING_DCENABLE     0x00000100   /* Enable data cache */
--#define VIKING_ICENABLE     0x00000200   /* Enable instruction cache */
--#define VIKING_SBENABLE     0x00000400   /* Enable store buffer */
--#define VIKING_MMODE        0x00000800   /* MBUS mode */
--#define VIKING_PCENABLE     0x00001000   /* Enable parity checking */
--#define VIKING_BMODE        0x00002000   
--#define VIKING_SPENABLE     0x00004000   /* Enable bus cache snooping */
--#define VIKING_ACENABLE     0x00008000   /* Enable alternate caching */
--#define VIKING_TCENABLE     0x00010000   /* Enable table-walks to be cached */
--#define VIKING_DPENABLE     0x00040000   /* Enable the data prefetcher */
--
--/*
-- * GNU/Viking Breakpoint Action Register fields.
-- */
--#define VIKING_ACTION_MIX   0x00001000   /* Enable multiple instructions */
--
--/*
-- * GNU/Viking Cache Tags.
-- */
--#define VIKING_PTAG_VALID   0x01000000   /* Cache block is valid */
--#define VIKING_PTAG_DIRTY   0x00010000   /* Block has been modified */
--#define VIKING_PTAG_SHARED  0x00000100   /* Shared with some other cache */
--
--#ifndef __ASSEMBLY__
--
--static inline void viking_flush_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_flush_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%%g0] %0\n\t"
--			     : /* no outputs */
--			     : "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_unlock_icache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (0x80000000), "i" (ASI_M_IC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_unlock_dcache(void)
--{
--	__asm__ __volatile__("sta %%g0, [%0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (0x80000000), "i" (ASI_M_DC_FLCLEAR)
--			     : "memory");
--}
--
--static inline void viking_set_bpreg(unsigned long regval)
--{
--	__asm__ __volatile__("sta %0, [%%g0] %1\n\t"
--			     : /* no outputs */
--			     : "r" (regval), "i" (ASI_M_ACTION)
--			     : "memory");
--}
--
--static inline unsigned long viking_get_bpreg(void)
--{
--	unsigned long regval;
--
--	__asm__ __volatile__("lda [%%g0] %1, %0\n\t"
--			     : "=r" (regval)
--			     : "i" (ASI_M_ACTION));
--	return regval;
--}
--
--static inline void viking_get_dcache_ptag(int set, int block,
--					      unsigned long *data)
--{
--	unsigned long ptag = ((set & 0x7f) << 5) | ((block & 0x3) << 26) |
--			     0x80000000;
--	unsigned long info, page;
--
--	__asm__ __volatile__ ("ldda [%2] %3, %%g2\n\t"
--			      "or %%g0, %%g2, %0\n\t"
--			      "or %%g0, %%g3, %1\n\t"
--			      : "=r" (info), "=r" (page)
--			      : "r" (ptag), "i" (ASI_M_DATAC_TAG)
--			      : "g2", "g3");
--	data[0] = info;
--	data[1] = page;
--}
--
--static inline void viking_mxcc_turn_off_parity(unsigned long *mregp,
--						   unsigned long *mxcc_cregp)
--{
--	unsigned long mreg = *mregp;
--	unsigned long mxcc_creg = *mxcc_cregp;
--
--	mreg &= ~(VIKING_PCENABLE);
--	mxcc_creg &= ~(MXCC_CTL_PARE);
--
--	__asm__ __volatile__ ("set 1f, %%g2\n\t"
--			      "andcc %%g2, 4, %%g0\n\t"
--			      "bne 2f\n\t"
--			      " nop\n"
--			      "1:\n\t"
--			      "sta %0, [%%g0] %3\n\t"
--			      "sta %1, [%2] %4\n\t"
--			      "b 1f\n\t"
--			      " nop\n\t"
--			      "nop\n"
--			      "2:\n\t"
--			      "sta %0, [%%g0] %3\n\t"
--			      "sta %1, [%2] %4\n"
--			      "1:\n\t"
--			      : /* no output */
--			      : "r" (mreg), "r" (mxcc_creg),
--			        "r" (MXCC_CREG), "i" (ASI_M_MMUREGS),
--			        "i" (ASI_M_MXCC)
--			      : "g2", "memory", "cc");
--	*mregp = mreg;
--	*mxcc_cregp = mxcc_creg;
--}
--
--static inline unsigned long viking_hwprobe(unsigned long vaddr)
--{
--	unsigned long val;
--
--	vaddr &= PAGE_MASK;
--	/* Probe all MMU entries. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
--	if (!val)
--		return 0;
--
--	/* Probe region. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x200), "i" (ASI_M_FLUSH_PROBE));
--	if ((val & SRMMU_ET_MASK) = SRMMU_ET_PTE) {
--		vaddr &= ~PGDIR_MASK;
--		vaddr >>= PAGE_SHIFT;
--		return val | (vaddr << 8);
--	}
--
--	/* Probe segment. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr | 0x100), "i" (ASI_M_FLUSH_PROBE));
--	if ((val & SRMMU_ET_MASK) = SRMMU_ET_PTE) {
--		vaddr &= ~PMD_MASK;
--		vaddr >>= PAGE_SHIFT;
--		return val | (vaddr << 8);
--	}
--
--	/* Probe page. */
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     : "=r" (val)
--			     : "r" (vaddr), "i" (ASI_M_FLUSH_PROBE));
--	return val;
--}
--
--#endif /* !__ASSEMBLY__ */
--
--#endif /* !(_SPARC_VIKING_H) */
-diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
-index 451eaae85760..a24dcfa44e19 100644
---- a/arch/sparc/kernel/entry.S
-+++ b/arch/sparc/kernel/entry.S
-@@ -24,7 +24,6 @@
- #include <asm/winmacro.h>
- #include <asm/signal.h>
- #include <asm/obio.h>
--#include <asm/mxcc.h>
- #include <asm/thread_info.h>
- #include <asm/param.h>
- #include <asm/unistd.h>
-diff --git a/arch/sparc/mm/Makefile b/arch/sparc/mm/Makefile
-index 68db1f859b02..087d35e81e7b 100644
---- a/arch/sparc/mm/Makefile
-+++ b/arch/sparc/mm/Makefile
-@@ -10,7 +10,6 @@ obj-y                   += fault_$(BITS).o
- obj-y                   += init_$(BITS).o
- obj-$(CONFIG_SPARC32)   += extable.o srmmu.o iommu.o io-unit.o
- obj-$(CONFIG_SPARC32)   += srmmu_access.o
--obj-$(CONFIG_SPARC32)   += hypersparc.o viking.o tsunami.o swift.o
- obj-$(CONFIG_SPARC32)   += leon_mm.o
- 
- # Only used by sparc64
-diff --git a/arch/sparc/mm/hypersparc.S b/arch/sparc/mm/hypersparc.S
-deleted file mode 100644
-index 6c2521e85a42..000000000000
---- a/arch/sparc/mm/hypersparc.S
-+++ /dev/null
-@@ -1,414 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * hypersparc.S: High speed Hypersparc mmu/cache operations.
-- *
-- * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <asm/ptrace.h>
--#include <asm/psr.h>
--#include <asm/asm-offsets.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--#include <linux/init.h>
--
--	.text
--	.align	4
--
--	.globl	hypersparc_flush_cache_all, hypersparc_flush_cache_mm
--	.globl	hypersparc_flush_cache_range, hypersparc_flush_cache_page
--	.globl	hypersparc_flush_page_to_ram
--	.globl	hypersparc_flush_page_for_dma, hypersparc_flush_sig_insns
--	.globl	hypersparc_flush_tlb_all, hypersparc_flush_tlb_mm
--	.globl	hypersparc_flush_tlb_range, hypersparc_flush_tlb_page
--
--hypersparc_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--	sethi	%hi(vac_cache_size), %g4
--	ld	[%g4 + %lo(vac_cache_size)], %g5
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %g2
--1:	
--	subcc	%g5, %g2, %g5			! hyper_flush_unconditional_combined
--	bne	1b
--	 sta	%g0, [%g5] ASI_M_FLUSH_CTX
--	retl
--	 sta	%g0, [%g0] ASI_M_FLUSH_IWHOLE	! hyper_flush_whole_icache
--
--	/* We expand the window flush to get maximum performance. */
--hypersparc_flush_cache_mm:
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	be	hypersparc_flush_cache_mm_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
--
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o1
--	sethi	%hi(vac_cache_size), %g2
--	ld	[%g2 + %lo(vac_cache_size)], %o0
--	add	%o1, %o1, %g1
--	add	%o1, %g1, %g2
--	add	%o1, %g2, %g3
--	add	%o1, %g3, %g4
--	add	%o1, %g4, %g5
--	add	%o1, %g5, %o4
--	add	%o1, %o4, %o5
--
--	/* BLAMMO! */
--1:
--	subcc	%o0, %o5, %o0				! hyper_flush_cache_user
--	sta	%g0, [%o0 + %g0] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %o1] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g1] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g4] ASI_M_FLUSH_USER
--	sta	%g0, [%o0 + %g5] ASI_M_FLUSH_USER
--	bne	1b
--	 sta	%g0, [%o0 + %o4] ASI_M_FLUSH_USER
--hypersparc_flush_cache_mm_out:
--	retl
--	 nop
--
--	/* The things we do for performance... */
--hypersparc_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	be	hypersparc_flush_cache_range_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
--
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	sethi	%hi(vac_cache_size), %g2
--	ld	[%g2 + %lo(vac_cache_size)], %o3
--
--	/* Here comes the fun part... */
--	add	%o2, (PAGE_SIZE - 1), %o2
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	add	%o4, %o4, %o5
--	andn	%o2, (PAGE_SIZE - 1), %o2
--	add	%o4, %o5, %g1
--	sub	%o2, %o1, %g4
--	add	%o4, %g1, %g2
--	sll	%o3, 2, %g5
--	add	%o4, %g2, %g3
--	cmp	%g4, %g5
--	add	%o4, %g3, %g4
--	blu	0f
--	 add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
--
--	/* Flush entire user space, believe it or not this is quicker
--	 * than page at a time flushings for range > (cache_size<<2).
--	 */
--1:
--	subcc	%o3, %g7, %o3
--	sta	%g0, [%o3 + %g0] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %o4] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %o5] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g1] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g2] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g3] ASI_M_FLUSH_USER
--	sta	%g0, [%o3 + %g4] ASI_M_FLUSH_USER
--	bne	1b
--	 sta	%g0, [%o3 + %g5] ASI_M_FLUSH_USER
--	retl
--	 nop
--
--	/* Below our threshold, flush one page at a time. */
--0:
--	ld	[%o0 + AOFF_mm_context], %o0
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %o3
--	sta	%o0, [%g7] ASI_M_MMUREGS
--	add	%o2, -PAGE_SIZE, %o0
--1:
--	or	%o0, 0x400, %g7
--	lda	[%g7] ASI_M_FLUSH_PROBE, %g7
--	orcc	%g7, 0, %g0
--	be,a	3f
--	 mov	%o0, %o2
--	add	%o4, %g5, %g7
--2:
--	sub	%o2, %g7, %o2
--	sta	%g0, [%o2 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o2 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o2, 0xffc, %g0
--	sta	%g0, [%o2 + %g4] ASI_M_FLUSH_PAGE
--	bne	2b
--	 sta	%g0, [%o2 + %g5] ASI_M_FLUSH_PAGE
--3:
--	cmp	%o2, %o1
--	bne	1b
--	 add	%o2, -PAGE_SIZE, %o0
--	mov	SRMMU_FAULT_STATUS, %g5
--	lda	[%g5] ASI_M_MMUREGS, %g0
--	mov	SRMMU_CTX_REG, %g7
--	sta	%o3, [%g7] ASI_M_MMUREGS
--hypersparc_flush_cache_range_out:
--	retl
--	 nop
--
--	/* HyperSparc requires a valid mapping where we are about to flush
--	 * in order to check for a physical tag match during the flush.
--	 */
--	/* Verified, my ass... */
--hypersparc_flush_cache_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %g2
--#ifndef CONFIG_SMP
--	cmp	%g2, -1
--	be	hypersparc_flush_cache_page_out
--#endif
--	WINDOW_FLUSH(%g4, %g5)
--
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	mov	SRMMU_CTX_REG, %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	lda	[%o3] ASI_M_MMUREGS, %o2
--	sta	%g2, [%o3] ASI_M_MMUREGS
--	or	%o1, 0x400, %o5
--	lda	[%o5] ASI_M_FLUSH_PROBE, %g1
--	orcc	%g0, %g1, %g0
--	be	2f
--	 add	%o4, %o4, %o5
--	sub	%o1, -PAGE_SIZE, %o1
--	add	%o4, %o5, %g1
--	add	%o4, %g1, %g2
--	add	%o4, %g2, %g3
--	add	%o4, %g3, %g4
--	add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
--
--	/* BLAMMO! */
--1:
--	sub	%o1, %g7, %o1
--	sta	%g0, [%o1 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o1, 0xffc, %g0
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	bne	1b
--	 sta	%g0, [%o1 + %g5] ASI_M_FLUSH_PAGE
--2:
--	mov	SRMMU_FAULT_STATUS, %g7
--	mov	SRMMU_CTX_REG, %g4
--	lda	[%g7] ASI_M_MMUREGS, %g0
--	sta	%o2, [%g4] ASI_M_MMUREGS
--hypersparc_flush_cache_page_out:
--	retl
--	 nop
--
--hypersparc_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	/* HyperSparc is copy-back. */
--hypersparc_flush_page_to_ram:
--	sethi	%hi(vac_line_size), %g1
--	ld	[%g1 + %lo(vac_line_size)], %o4
--	andn	%o0, (PAGE_SIZE - 1), %o0
--	add	%o4, %o4, %o5
--	or	%o0, 0x400, %g7
--	lda	[%g7] ASI_M_FLUSH_PROBE, %g5
--	add	%o4, %o5, %g1
--	orcc	%g5, 0, %g0
--	be	2f
--	 add	%o4, %g1, %g2
--	add	%o4, %g2, %g3
--	sub	%o0, -PAGE_SIZE, %o0
--	add	%o4, %g3, %g4
--	add	%o4, %g4, %g5
--	add	%o4, %g5, %g7
--
--	/* BLAMMO! */
--1:
--	sub	%o0, %g7, %o0
--	sta	%g0, [%o0 + %g0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g1] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_PAGE
--	andcc	%o0, 0xffc, %g0
--	sta	%g0, [%o0 + %g4] ASI_M_FLUSH_PAGE
--	bne	1b
--	 sta	%g0, [%o0 + %g5] ASI_M_FLUSH_PAGE
--2:
--	mov	SRMMU_FAULT_STATUS, %g1
--	retl
--	 lda	[%g1] ASI_M_MMUREGS, %g0
--
--	/* HyperSparc is IO cache coherent. */
--hypersparc_flush_page_for_dma:
--	retl
--	 nop
--
--	/* It was noted that at boot time a TLB flush all in a delay slot
--	 * can deliver an illegal instruction to the processor if the timing
--	 * is just right...
--	 */
--hypersparc_flush_tlb_all:
--	mov	0x400, %g1
--	sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--	retl
--	 nop
--
--hypersparc_flush_tlb_mm:
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o1, -1
--	be	hypersparc_flush_tlb_mm_out
--#endif
--	 mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_mm_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--hypersparc_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	hypersparc_flush_tlb_range_out
--#endif
--	 sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--1:
--	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	1b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_range_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--hypersparc_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	hypersparc_flush_tlb_page_out
--#endif
--	 lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--hypersparc_flush_tlb_page_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--	__INIT
--	
--	/* High speed page clear/copy. */
--hypersparc_bzero_1page:
--/* NOTE: This routine has to be shorter than 40insns --jj */
--	clr	%g1
--	mov	32, %g2
--	mov	64, %g3
--	mov	96, %g4
--	mov	128, %g5
--	mov	160, %g7
--	mov	192, %o2
--	mov	224, %o3
--	mov	16, %o1
--1:
--	stda	%g0, [%o0 + %g0] ASI_M_BFILL
--	stda	%g0, [%o0 + %g2] ASI_M_BFILL
--	stda	%g0, [%o0 + %g3] ASI_M_BFILL
--	stda	%g0, [%o0 + %g4] ASI_M_BFILL
--	stda	%g0, [%o0 + %g5] ASI_M_BFILL
--	stda	%g0, [%o0 + %g7] ASI_M_BFILL
--	stda	%g0, [%o0 + %o2] ASI_M_BFILL
--	stda	%g0, [%o0 + %o3] ASI_M_BFILL
--	subcc	%o1, 1, %o1
--	bne	1b
--	 add	%o0, 256, %o0
--
--	retl
--	 nop
--
--hypersparc_copy_1page:
--/* NOTE: This routine has to be shorter than 70insns --jj */
--	sub	%o1, %o0, %o2		! difference
--	mov	16, %g1
--1:
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	add	%o0, 32, %o0
--	sta	%o0, [%o0 + %o2] ASI_M_BCOPY
--	subcc	%g1, 1, %g1
--	bne	1b
--	 add	%o0, 32, %o0
--
--	retl
--	 nop
--
--	.globl	hypersparc_setup_blockops
--hypersparc_setup_blockops:
--	sethi	%hi(bzero_1page), %o0
--	or	%o0, %lo(bzero_1page), %o0
--	sethi	%hi(hypersparc_bzero_1page), %o1
--	or	%o1, %lo(hypersparc_bzero_1page), %o1
--	sethi	%hi(hypersparc_copy_1page), %o2
--	or	%o2, %lo(hypersparc_copy_1page), %o2
--	ld	[%o1], %o4
--1:
--	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	 ld	[%o1], %o4
--	sethi	%hi(__copy_1page), %o0
--	or	%o0, %lo(__copy_1page), %o0
--	sethi	%hi(hypersparc_setup_blockops), %o2
--	or	%o2, %lo(hypersparc_setup_blockops), %o2
--	ld	[%o1], %o4
--1:
--	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	 ld	[%o1], %o4
--	sta	%g0, [%g0] ASI_M_FLUSH_IWHOLE
--	retl
--	 nop
-diff --git a/arch/sparc/mm/io-unit.c b/arch/sparc/mm/io-unit.c
-index 49ded623995f..779bc9384989 100644
---- a/arch/sparc/mm/io-unit.c
-+++ b/arch/sparc/mm/io-unit.c
-@@ -17,7 +17,6 @@
- 
- #include <asm/io.h>
- #include <asm/io-unit.h>
--#include <asm/mxcc.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/dma.h>
-diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
-index 125a3e96e3d2..1df742119ac5 100644
---- a/arch/sparc/mm/iommu.c
-+++ b/arch/sparc/mm/iommu.c
-@@ -17,7 +17,6 @@
- #include <linux/of_device.h>
- 
- #include <asm/io.h>
--#include <asm/mxcc.h>
- #include <asm/cacheflush.h>
- #include <asm/tlbflush.h>
- #include <asm/bitext.h>
-@@ -36,11 +35,6 @@
- #define IOMMU_NPTES	(IOMMU_WINSIZE/PAGE_SIZE)	/* 64K PTEs, 256KB */
- #define IOMMU_ORDER	6				/* 4096 * (1<<6) */
- 
--static int viking_flush;
--/* viking.S */
--extern void viking_flush_page(unsigned long page);
--extern void viking_mxcc_flush_page(unsigned long page);
--
- /*
-  * Values precomputed according to CPU type.
-  */
-@@ -155,21 +149,9 @@ static void iommu_flush_iotlb(iopte_t *iopte, unsigned int niopte)
- 	start = (unsigned long)iopte;
- 	end = PAGE_ALIGN(start + niopte*sizeof(iopte_t));
- 	start &= PAGE_MASK;
--	if (viking_mxcc_present) {
--		while(start < end) {
--			viking_mxcc_flush_page(start);
--			start += PAGE_SIZE;
--		}
--	} else if (viking_flush) {
--		while(start < end) {
--			viking_flush_page(start);
--			start += PAGE_SIZE;
--		}
--	} else {
--		while(start < end) {
--			__flush_page_to_ram(start);
--			start += PAGE_SIZE;
--		}
-+	while(start < end) {
-+		__flush_page_to_ram(start);
-+		start += PAGE_SIZE;
- 	}
- }
- 
-@@ -343,12 +325,7 @@ static void *sbus_iommu_alloc(struct device *dev, size_t len,
- 			pmd_t *pmdp;
- 			pte_t *ptep;
- 
--			if (viking_mxcc_present)
--				viking_mxcc_flush_page(page);
--			else if (viking_flush)
--				viking_flush_page(page);
--			else
--				__flush_page_to_ram(page);
-+			__flush_page_to_ram(page);
- 
- 			pmdp = pmd_off_k(addr);
- 			ptep = pte_offset_map(pmdp, addr);
-diff --git a/arch/sparc/mm/mm_32.h b/arch/sparc/mm/mm_32.h
-index ce750a99eea9..759d6f7de798 100644
---- a/arch/sparc/mm/mm_32.h
-+++ b/arch/sparc/mm/mm_32.h
-@@ -11,7 +11,6 @@ void window_ret_fault(struct pt_regs *regs);
- 
- /* srmmu.c */
- extern char *srmmu_name;
--extern int viking_mxcc_present;
- extern int flush_page_for_dma_global;
- 
- extern void (*poke_srmmu)(void);
-diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
-index 802529aa02b9..d96dcc46387c 100644
---- a/arch/sparc/mm/srmmu.c
-+++ b/arch/sparc/mm/srmmu.c
-@@ -40,13 +40,7 @@
- #include <asm/io.h>
- 
- /* Now the cpu specific definitions. */
--#include <asm/turbosparc.h>
--#include <asm/tsunami.h>
--#include <asm/viking.h>
--#include <asm/swift.h>
- #include <asm/leon.h>
--#include <asm/mxcc.h>
--#include <asm/ross.h>
- 
- #include "mm_32.h"
- 
-@@ -65,12 +59,6 @@ EXPORT_SYMBOL(sparc32_cachetlb_ops);
- 
- #ifdef CONFIG_SMP
- const struct sparc32_cachetlb_ops *local_ops;
--
--#define FLUSH_BEGIN(mm)
--#define FLUSH_END
--#else
--#define FLUSH_BEGIN(mm) if ((mm)->context != NO_CONTEXT) {
--#define FLUSH_END	}
- #endif
- 
- int flush_page_for_dma_global = 1;
-@@ -80,11 +68,8 @@ char *srmmu_name;
- ctxd_t *srmmu_ctx_table_phys;
- static ctxd_t *srmmu_context_table;
- 
--int viking_mxcc_present;
- static DEFINE_SPINLOCK(srmmu_context_spinlock);
- 
--static int is_hypersparc;
--
- static int srmmu_cache_pagetables;
- 
- /* these will be initialized in srmmu_nocache_calcsize() */
-@@ -112,25 +97,6 @@ static inline void srmmu_ctxd_set(ctxd_t *ctxp, pgd_t *pgdp)
- 	set_pte((pte_t *)ctxp, pte);
- }
- 
--/*
-- * Locations of MSI Registers.
-- */
--#define MSI_MBUS_ARBEN	0xe0001008	/* MBus Arbiter Enable register */
--
--/*
-- * Useful bits in the MSI Registers.
-- */
--#define MSI_ASYNC_MODE  0x80000000	/* Operate the MSI asynchronously */
--
--static void msi_set_sync(void)
--{
--	__asm__ __volatile__ ("lda [%0] %1, %%g3\n\t"
--			      "andn %%g3, %2, %%g3\n\t"
--			      "sta %%g3, [%0] %1\n\t" : :
--			      "r" (MSI_MBUS_ARBEN),
--			      "i" (ASI_M_CTL), "r" (MSI_ASYNC_MODE) : "g3");
--}
--
- void pmd_set(pmd_t *pmdp, pte_t *ptep)
- {
- 	unsigned long ptp = __nocache_pa(ptep) >> 4;
-@@ -477,11 +443,7 @@ void switch_mm(struct mm_struct *old_mm, struct mm_struct *mm,
- 		srmmu_ctxd_set(&srmmu_context_table[mm->context], mm->pgd);
- 	}
- 
--	if (sparc_cpu_model = sparc_leon)
--		leon_switch_mm();
--
--	if (is_hypersparc)
--		hyper_flush_whole_icache();
-+	leon_switch_mm();
- 
- 	srmmu_set_context(mm->context);
- }
-@@ -556,110 +518,6 @@ void srmmu_unmapiorange(unsigned long virt_addr, unsigned int len)
- 	flush_tlb_all();
- }
- 
--/* tsunami.S */
--extern void tsunami_flush_cache_all(void);
--extern void tsunami_flush_cache_mm(struct mm_struct *mm);
--extern void tsunami_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void tsunami_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void tsunami_flush_page_to_ram(unsigned long page);
--extern void tsunami_flush_page_for_dma(unsigned long page);
--extern void tsunami_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void tsunami_flush_tlb_all(void);
--extern void tsunami_flush_tlb_mm(struct mm_struct *mm);
--extern void tsunami_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void tsunami_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--extern void tsunami_setup_blockops(void);
--
--/* swift.S */
--extern void swift_flush_cache_all(void);
--extern void swift_flush_cache_mm(struct mm_struct *mm);
--extern void swift_flush_cache_range(struct vm_area_struct *vma,
--				    unsigned long start, unsigned long end);
--extern void swift_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void swift_flush_page_to_ram(unsigned long page);
--extern void swift_flush_page_for_dma(unsigned long page);
--extern void swift_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void swift_flush_tlb_all(void);
--extern void swift_flush_tlb_mm(struct mm_struct *mm);
--extern void swift_flush_tlb_range(struct vm_area_struct *vma,
--				  unsigned long start, unsigned long end);
--extern void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--
--#if 0  /* P3: deadwood to debug precise flushes on Swift. */
--void swift_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
--{
--	int cctx, ctx1;
--
--	page &= PAGE_MASK;
--	if ((ctx1 = vma->vm_mm->context) != -1) {
--		cctx = srmmu_get_context();
--/* Is context # ever different from current context? P3 */
--		if (cctx != ctx1) {
--			printk("flush ctx %02x curr %02x\n", ctx1, cctx);
--			srmmu_set_context(ctx1);
--			swift_flush_page(page);
--			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--					"r" (page), "i" (ASI_M_FLUSH_PROBE));
--			srmmu_set_context(cctx);
--		} else {
--			 /* Rm. prot. bits from virt. c. */
--			/* swift_flush_cache_all(); */
--			/* swift_flush_cache_page(vma, page); */
--			swift_flush_page(page);
--
--			__asm__ __volatile__("sta %%g0, [%0] %1\n\t" : :
--				"r" (page), "i" (ASI_M_FLUSH_PROBE));
--			/* same as above: srmmu_flush_tlb_page() */
--		}
--	}
--}
--#endif
--
--/*
-- * The following are all MBUS based SRMMU modules, and therefore could
-- * be found in a multiprocessor configuration.  On the whole, these
-- * chips seems to be much more touchy about DVMA and page tables
-- * with respect to cache coherency.
-- */
--
--/* viking.S */
--extern void viking_flush_cache_all(void);
--extern void viking_flush_cache_mm(struct mm_struct *mm);
--extern void viking_flush_cache_range(struct vm_area_struct *vma, unsigned long start,
--				     unsigned long end);
--extern void viking_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void viking_flush_page_to_ram(unsigned long page);
--extern void viking_flush_page_for_dma(unsigned long page);
--extern void viking_flush_sig_insns(struct mm_struct *mm, unsigned long addr);
--extern void viking_flush_page(unsigned long page);
--extern void viking_mxcc_flush_page(unsigned long page);
--extern void viking_flush_tlb_all(void);
--extern void viking_flush_tlb_mm(struct mm_struct *mm);
--extern void viking_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
--				   unsigned long end);
--extern void viking_flush_tlb_page(struct vm_area_struct *vma,
--				  unsigned long page);
--extern void sun4dsmp_flush_tlb_all(void);
--extern void sun4dsmp_flush_tlb_mm(struct mm_struct *mm);
--extern void sun4dsmp_flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
--				   unsigned long end);
--extern void sun4dsmp_flush_tlb_page(struct vm_area_struct *vma,
--				  unsigned long page);
--
--/* hypersparc.S */
--extern void hypersparc_flush_cache_all(void);
--extern void hypersparc_flush_cache_mm(struct mm_struct *mm);
--extern void hypersparc_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void hypersparc_flush_cache_page(struct vm_area_struct *vma, unsigned long page);
--extern void hypersparc_flush_page_to_ram(unsigned long page);
--extern void hypersparc_flush_page_for_dma(unsigned long page);
--extern void hypersparc_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr);
--extern void hypersparc_flush_tlb_all(void);
--extern void hypersparc_flush_tlb_mm(struct mm_struct *mm);
--extern void hypersparc_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end);
--extern void hypersparc_flush_tlb_page(struct vm_area_struct *vma, unsigned long page);
--extern void hypersparc_setup_blockops(void);
--
- /*
-  * NOTE: All of this startup code assumes the low 16mb (approx.) of
-  *       kernel mappings are done with one single contiguous chunk of
-@@ -746,18 +604,7 @@ static void __init srmmu_allocate_ptable_skeleton(unsigned long start,
- /* These flush types are not available on all chips... */
- static inline unsigned long srmmu_probe(unsigned long vaddr)
- {
--	unsigned long retval;
--
--	if (sparc_cpu_model != sparc_leon) {
--
--		vaddr &= PAGE_MASK;
--		__asm__ __volatile__("lda [%1] %2, %0\n\t" :
--				     "=r" (retval) :
--				     "r" (vaddr | 0x400), "i" (ASI_M_FLUSH_PROBE));
--	} else {
--		retval = leon_swprobe(vaddr, NULL);
--	}
--	return retval;
-+	return leon_swprobe(vaddr, NULL);
- }
- 
- /*
-@@ -903,20 +750,16 @@ void __init srmmu_paging_init(void)
- 	init_mm.context = (unsigned long) NO_CONTEXT;
- 	sparc_iomap.start = SUN4M_IOBASE_VADDR;	/* 16MB of IOSPACE on all sun4m's. */
- 
--	if (sparc_cpu_model = sun4d)
--		num_contexts = 65536; /* We know it is Viking */
--	else {
--		/* Find the number of contexts on the srmmu. */
--		cpunode = prom_getchild(prom_root_node);
--		num_contexts = 0;
--		while (cpunode != 0) {
--			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
--			if (!strcmp(node_str, "cpu")) {
--				num_contexts = prom_getintdefault(cpunode, "mmu-nctx", 0x8);
--				break;
--			}
--			cpunode = prom_getsibling(cpunode);
-+	/* Find the number of contexts on the srmmu. */
-+	cpunode = prom_getchild(prom_root_node);
-+	num_contexts = 0;
-+	while (cpunode != 0) {
-+		prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
-+		if (!strcmp(node_str, "cpu")) {
-+			num_contexts = prom_getintdefault(cpunode, "mmu-nctx", 0x8);
-+			break;
- 		}
-+		cpunode = prom_getsibling(cpunode);
- 	}
- 
- 	if (!num_contexts) {
-@@ -1013,577 +856,6 @@ void destroy_context(struct mm_struct *mm)
- 	}
- }
- 
--/* Init various srmmu chip types. */
--static void __init srmmu_is_bad(void)
--{
--	prom_printf("Could not determine SRMMU chip type.\n");
--	prom_halt();
--}
--
--static void __init init_vac_layout(void)
--{
--	phandle nd;
--	int cache_lines;
--	char node_str[128];
--#ifdef CONFIG_SMP
--	int cpu = 0;
--	unsigned long max_size = 0;
--	unsigned long min_line_size = 0x10000000;
--#endif
--
--	nd = prom_getchild(prom_root_node);
--	while ((nd = prom_getsibling(nd)) != 0) {
--		prom_getstring(nd, "device_type", node_str, sizeof(node_str));
--		if (!strcmp(node_str, "cpu")) {
--			vac_line_size = prom_getint(nd, "cache-line-size");
--			if (vac_line_size = -1) {
--				prom_printf("can't determine cache-line-size, halting.\n");
--				prom_halt();
--			}
--			cache_lines = prom_getint(nd, "cache-nlines");
--			if (cache_lines = -1) {
--				prom_printf("can't determine cache-nlines, halting.\n");
--				prom_halt();
--			}
--
--			vac_cache_size = cache_lines * vac_line_size;
--#ifdef CONFIG_SMP
--			if (vac_cache_size > max_size)
--				max_size = vac_cache_size;
--			if (vac_line_size < min_line_size)
--				min_line_size = vac_line_size;
--			//FIXME: cpus not contiguous!!
--			cpu++;
--			if (cpu >= nr_cpu_ids || !cpu_online(cpu))
--				break;
--#else
--			break;
--#endif
--		}
--	}
--	if (nd = 0) {
--		prom_printf("No CPU nodes found, halting.\n");
--		prom_halt();
--	}
--#ifdef CONFIG_SMP
--	vac_cache_size = max_size;
--	vac_line_size = min_line_size;
--#endif
--	printk("SRMMU: Using VAC size of %d bytes, line size %d bytes.\n",
--	       (int)vac_cache_size, (int)vac_line_size);
--}
--
--static void poke_hypersparc(void)
--{
--	volatile unsigned long clear;
--	unsigned long mreg = srmmu_get_mmureg();
--
--	hyper_flush_unconditional_combined();
--
--	mreg &= ~(HYPERSPARC_CWENABLE);
--	mreg |= (HYPERSPARC_CENABLE | HYPERSPARC_WBENABLE);
--	mreg |= (HYPERSPARC_CMODE);
--
--	srmmu_set_mmureg(mreg);
--
--#if 0 /* XXX I think this is bad news... -DaveM */
--	hyper_clear_all_tags();
--#endif
--
--	put_ross_icr(HYPERSPARC_ICCR_FTD | HYPERSPARC_ICCR_ICE);
--	hyper_flush_whole_icache();
--	clear = srmmu_get_faddr();
--	clear = srmmu_get_fstatus();
--}
--
--static const struct sparc32_cachetlb_ops hypersparc_ops = {
--	.cache_all	= hypersparc_flush_cache_all,
--	.cache_mm	= hypersparc_flush_cache_mm,
--	.cache_page	= hypersparc_flush_cache_page,
--	.cache_range	= hypersparc_flush_cache_range,
--	.tlb_all	= hypersparc_flush_tlb_all,
--	.tlb_mm		= hypersparc_flush_tlb_mm,
--	.tlb_page	= hypersparc_flush_tlb_page,
--	.tlb_range	= hypersparc_flush_tlb_range,
--	.page_to_ram	= hypersparc_flush_page_to_ram,
--	.sig_insns	= hypersparc_flush_sig_insns,
--	.page_for_dma	= hypersparc_flush_page_for_dma,
--};
--
--static void __init init_hypersparc(void)
--{
--	srmmu_name = "ROSS HyperSparc";
--
--	init_vac_layout();
--
--	is_hypersparc = 1;
--	sparc32_cachetlb_ops = &hypersparc_ops;
--
--	poke_srmmu = poke_hypersparc;
--
--	hypersparc_setup_blockops();
--}
--
--static void poke_swift(void)
--{
--	unsigned long mreg;
--
--	/* Clear any crap from the cache or else... */
--	swift_flush_cache_all();
--
--	/* Enable I & D caches */
--	mreg = srmmu_get_mmureg();
--	mreg |= (SWIFT_IE | SWIFT_DE);
--	/*
--	 * The Swift branch folding logic is completely broken.  At
--	 * trap time, if things are just right, if can mistakenly
--	 * think that a trap is coming from kernel mode when in fact
--	 * it is coming from user mode (it mis-executes the branch in
--	 * the trap code).  So you see things like crashme completely
--	 * hosing your machine which is completely unacceptable.  Turn
--	 * this shit off... nice job Fujitsu.
--	 */
--	mreg &= ~(SWIFT_BF);
--	srmmu_set_mmureg(mreg);
--}
--
--static const struct sparc32_cachetlb_ops swift_ops = {
--	.cache_all	= swift_flush_cache_all,
--	.cache_mm	= swift_flush_cache_mm,
--	.cache_page	= swift_flush_cache_page,
--	.cache_range	= swift_flush_cache_range,
--	.tlb_all	= swift_flush_tlb_all,
--	.tlb_mm		= swift_flush_tlb_mm,
--	.tlb_page	= swift_flush_tlb_page,
--	.tlb_range	= swift_flush_tlb_range,
--	.page_to_ram	= swift_flush_page_to_ram,
--	.sig_insns	= swift_flush_sig_insns,
--	.page_for_dma	= swift_flush_page_for_dma,
--};
--
--#define SWIFT_MASKID_ADDR  0x10003018
--static void __init init_swift(void)
--{
--	unsigned long swift_rev;
--
--	__asm__ __volatile__("lda [%1] %2, %0\n\t"
--			     "srl %0, 0x18, %0\n\t" :
--			     "=r" (swift_rev) :
--			     "r" (SWIFT_MASKID_ADDR), "i" (ASI_M_BYPASS));
--	srmmu_name = "Fujitsu Swift";
--
--	sparc32_cachetlb_ops = &swift_ops;
--	flush_page_for_dma_global = 0;
--
--	/*
--	 * Are you now convinced that the Swift is one of the
--	 * biggest VLSI abortions of all time?  Bravo Fujitsu!
--	 * Fujitsu, the !#?!%$'d up processor people.  I bet if
--	 * you examined the microcode of the Swift you'd find
--	 * XXX's all over the place.
--	 */
--	poke_srmmu = poke_swift;
--}
--
--static void turbosparc_flush_cache_all(void)
--{
--	flush_user_windows();
--	turbosparc_idflash_clear();
--}
--
--static void turbosparc_flush_cache_mm(struct mm_struct *mm)
--{
--	FLUSH_BEGIN(mm)
--	flush_user_windows();
--	turbosparc_idflash_clear();
--	FLUSH_END
--}
--
--static void turbosparc_flush_cache_range(struct vm_area_struct *vma, unsigned long start, unsigned long end)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	flush_user_windows();
--	turbosparc_idflash_clear();
--	FLUSH_END
--}
--
--static void turbosparc_flush_cache_page(struct vm_area_struct *vma, unsigned long page)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	flush_user_windows();
--	if (vma->vm_flags & VM_EXEC)
--		turbosparc_flush_icache();
--	turbosparc_flush_dcache();
--	FLUSH_END
--}
--
--/* TurboSparc is copy-back, if we turn it on, but this does not work. */
--static void turbosparc_flush_page_to_ram(unsigned long page)
--{
--#ifdef TURBOSPARC_WRITEBACK
--	volatile unsigned long clear;
--
--	if (srmmu_probe(page))
--		turbosparc_flush_page_cache(page);
--	clear = srmmu_get_fstatus();
--#endif
--}
--
--static void turbosparc_flush_sig_insns(struct mm_struct *mm, unsigned long insn_addr)
--{
--}
--
--static void turbosparc_flush_page_for_dma(unsigned long page)
--{
--	turbosparc_flush_dcache();
--}
--
--static void turbosparc_flush_tlb_all(void)
--{
--	srmmu_flush_whole_tlb();
--}
--
--static void turbosparc_flush_tlb_mm(struct mm_struct *mm)
--{
--	FLUSH_BEGIN(mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--static void turbosparc_flush_tlb_range(struct vm_area_struct *vma, unsigned long start, unsigned long end)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--static void turbosparc_flush_tlb_page(struct vm_area_struct *vma, unsigned long page)
--{
--	FLUSH_BEGIN(vma->vm_mm)
--	srmmu_flush_whole_tlb();
--	FLUSH_END
--}
--
--
--static void poke_turbosparc(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--	unsigned long ccreg;
--
--	/* Clear any crap from the cache or else... */
--	turbosparc_flush_cache_all();
--	/* Temporarily disable I & D caches */
--	mreg &= ~(TURBOSPARC_ICENABLE | TURBOSPARC_DCENABLE);
--	mreg &= ~(TURBOSPARC_PCENABLE);		/* Don't check parity */
--	srmmu_set_mmureg(mreg);
--
--	ccreg = turbosparc_get_ccreg();
--
--#ifdef TURBOSPARC_WRITEBACK
--	ccreg |= (TURBOSPARC_SNENABLE);		/* Do DVMA snooping in Dcache */
--	ccreg &= ~(TURBOSPARC_uS2 | TURBOSPARC_WTENABLE);
--			/* Write-back D-cache, emulate VLSI
--			 * abortion number three, not number one */
--#else
--	/* For now let's play safe, optimize later */
--	ccreg |= (TURBOSPARC_SNENABLE | TURBOSPARC_WTENABLE);
--			/* Do DVMA snooping in Dcache, Write-thru D-cache */
--	ccreg &= ~(TURBOSPARC_uS2);
--			/* Emulate VLSI abortion number three, not number one */
--#endif
--
--	switch (ccreg & 7) {
--	case 0: /* No SE cache */
--	case 7: /* Test mode */
--		break;
--	default:
--		ccreg |= (TURBOSPARC_SCENABLE);
--	}
--	turbosparc_set_ccreg(ccreg);
--
--	mreg |= (TURBOSPARC_ICENABLE | TURBOSPARC_DCENABLE); /* I & D caches on */
--	mreg |= (TURBOSPARC_ICSNOOP);		/* Icache snooping on */
--	srmmu_set_mmureg(mreg);
--}
--
--static const struct sparc32_cachetlb_ops turbosparc_ops = {
--	.cache_all	= turbosparc_flush_cache_all,
--	.cache_mm	= turbosparc_flush_cache_mm,
--	.cache_page	= turbosparc_flush_cache_page,
--	.cache_range	= turbosparc_flush_cache_range,
--	.tlb_all	= turbosparc_flush_tlb_all,
--	.tlb_mm		= turbosparc_flush_tlb_mm,
--	.tlb_page	= turbosparc_flush_tlb_page,
--	.tlb_range	= turbosparc_flush_tlb_range,
--	.page_to_ram	= turbosparc_flush_page_to_ram,
--	.sig_insns	= turbosparc_flush_sig_insns,
--	.page_for_dma	= turbosparc_flush_page_for_dma,
--};
--
--static void __init init_turbosparc(void)
--{
--	srmmu_name = "Fujitsu TurboSparc";
--	sparc32_cachetlb_ops = &turbosparc_ops;
--	poke_srmmu = poke_turbosparc;
--}
--
--static void poke_tsunami(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--
--	tsunami_flush_icache();
--	tsunami_flush_dcache();
--	mreg &= ~TSUNAMI_ITD;
--	mreg |= (TSUNAMI_IENAB | TSUNAMI_DENAB);
--	srmmu_set_mmureg(mreg);
--}
--
--static const struct sparc32_cachetlb_ops tsunami_ops = {
--	.cache_all	= tsunami_flush_cache_all,
--	.cache_mm	= tsunami_flush_cache_mm,
--	.cache_page	= tsunami_flush_cache_page,
--	.cache_range	= tsunami_flush_cache_range,
--	.tlb_all	= tsunami_flush_tlb_all,
--	.tlb_mm		= tsunami_flush_tlb_mm,
--	.tlb_page	= tsunami_flush_tlb_page,
--	.tlb_range	= tsunami_flush_tlb_range,
--	.page_to_ram	= tsunami_flush_page_to_ram,
--	.sig_insns	= tsunami_flush_sig_insns,
--	.page_for_dma	= tsunami_flush_page_for_dma,
--};
--
--static void __init init_tsunami(void)
--{
--	/*
--	 * Tsunami's pretty sane, Sun and TI actually got it
--	 * somewhat right this time.  Fujitsu should have
--	 * taken some lessons from them.
--	 */
--
--	srmmu_name = "TI Tsunami";
--	sparc32_cachetlb_ops = &tsunami_ops;
--	poke_srmmu = poke_tsunami;
--
--	tsunami_setup_blockops();
--}
--
--static void poke_viking(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--	static int smp_catch;
--
--	if (viking_mxcc_present) {
--		unsigned long mxcc_control = mxcc_get_creg();
--
--		mxcc_control |= (MXCC_CTL_ECE | MXCC_CTL_PRE | MXCC_CTL_MCE);
--		mxcc_control &= ~(MXCC_CTL_RRC);
--		mxcc_set_creg(mxcc_control);
--
--		/*
--		 * We don't need memory parity checks.
--		 * XXX This is a mess, have to dig out later. ecd.
--		viking_mxcc_turn_off_parity(&mreg, &mxcc_control);
--		 */
--
--		/* We do cache ptables on MXCC. */
--		mreg |= VIKING_TCENABLE;
--	} else {
--		unsigned long bpreg;
--
--		mreg &= ~(VIKING_TCENABLE);
--		if (smp_catch++) {
--			/* Must disable mixed-cmd mode here for other cpu's. */
--			bpreg = viking_get_bpreg();
--			bpreg &= ~(VIKING_ACTION_MIX);
--			viking_set_bpreg(bpreg);
--
--			/* Just in case PROM does something funny. */
--			msi_set_sync();
--		}
--	}
--
--	mreg |= VIKING_SPENABLE;
--	mreg |= (VIKING_ICENABLE | VIKING_DCENABLE);
--	mreg |= VIKING_SBENABLE;
--	mreg &= ~(VIKING_ACENABLE);
--	srmmu_set_mmureg(mreg);
--}
--
--static struct sparc32_cachetlb_ops viking_ops __ro_after_init = {
--	.cache_all	= viking_flush_cache_all,
--	.cache_mm	= viking_flush_cache_mm,
--	.cache_page	= viking_flush_cache_page,
--	.cache_range	= viking_flush_cache_range,
--	.tlb_all	= viking_flush_tlb_all,
--	.tlb_mm		= viking_flush_tlb_mm,
--	.tlb_page	= viking_flush_tlb_page,
--	.tlb_range	= viking_flush_tlb_range,
--	.page_to_ram	= viking_flush_page_to_ram,
--	.sig_insns	= viking_flush_sig_insns,
--	.page_for_dma	= viking_flush_page_for_dma,
--};
--
--#ifdef CONFIG_SMP
--/* On sun4d the cpu broadcasts local TLB flushes, so we can just
-- * perform the local TLB flush and all the other cpus will see it.
-- * But, unfortunately, there is a bug in the sun4d XBUS backplane
-- * that requires that we add some synchronization to these flushes.
-- *
-- * The bug is that the fifo which keeps track of all the pending TLB
-- * broadcasts in the system is an entry or two too small, so if we
-- * have too many going at once we'll overflow that fifo and lose a TLB
-- * flush resulting in corruption.
-- *
-- * Our workaround is to take a global spinlock around the TLB flushes,
-- * which guarentees we won't ever have too many pending.  It's a big
-- * hammer, but a semaphore like system to make sure we only have N TLB
-- * flushes going at once will require SMP locking anyways so there's
-- * no real value in trying any harder than this.
-- */
--static struct sparc32_cachetlb_ops viking_sun4d_smp_ops __ro_after_init = {
--	.cache_all	= viking_flush_cache_all,
--	.cache_mm	= viking_flush_cache_mm,
--	.cache_page	= viking_flush_cache_page,
--	.cache_range	= viking_flush_cache_range,
--	.tlb_all	= sun4dsmp_flush_tlb_all,
--	.tlb_mm		= sun4dsmp_flush_tlb_mm,
--	.tlb_page	= sun4dsmp_flush_tlb_page,
--	.tlb_range	= sun4dsmp_flush_tlb_range,
--	.page_to_ram	= viking_flush_page_to_ram,
--	.sig_insns	= viking_flush_sig_insns,
--	.page_for_dma	= viking_flush_page_for_dma,
--};
--#endif
--
--static void __init init_viking(void)
--{
--	unsigned long mreg = srmmu_get_mmureg();
--
--	/* Ahhh, the viking.  SRMMU VLSI abortion number two... */
--	if (mreg & VIKING_MMODE) {
--		srmmu_name = "TI Viking";
--		viking_mxcc_present = 0;
--		msi_set_sync();
--
--		/*
--		 * We need this to make sure old viking takes no hits
--		 * on it's cache for dma snoops to workaround the
--		 * "load from non-cacheable memory" interrupt bug.
--		 * This is only necessary because of the new way in
--		 * which we use the IOMMU.
--		 */
--		viking_ops.page_for_dma = viking_flush_page;
--#ifdef CONFIG_SMP
--		viking_sun4d_smp_ops.page_for_dma = viking_flush_page;
--#endif
--		flush_page_for_dma_global = 0;
--	} else {
--		srmmu_name = "TI Viking/MXCC";
--		viking_mxcc_present = 1;
--		srmmu_cache_pagetables = 1;
--	}
--
--	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
--		&viking_ops;
--#ifdef CONFIG_SMP
--	if (sparc_cpu_model = sun4d)
--		sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
--			&viking_sun4d_smp_ops;
--#endif
--
--	poke_srmmu = poke_viking;
--}
--
--/* Probe for the srmmu chip version. */
--static void __init get_srmmu_type(void)
--{
--	unsigned long mreg, psr;
--	unsigned long mod_typ, mod_rev, psr_typ, psr_vers;
--
--	mreg = srmmu_get_mmureg(); psr = get_psr();
--	mod_typ = (mreg & 0xf0000000) >> 28;
--	mod_rev = (mreg & 0x0f000000) >> 24;
--	psr_typ = (psr >> 28) & 0xf;
--	psr_vers = (psr >> 24) & 0xf;
--
--	/* First, check for sparc-leon. */
--	if (sparc_cpu_model = sparc_leon) {
--		init_leon();
--		return;
--	}
--
--	/* Second, check for HyperSparc or Cypress. */
--	if (mod_typ = 1) {
--		switch (mod_rev) {
--		case 7:
--			/* UP or MP Hypersparc */
--			init_hypersparc();
--			break;
--		case 0:
--		case 2:
--		case 10:
--		case 11:
--		case 12:
--		case 13:
--		case 14:
--		case 15:
--		default:
--			prom_printf("Sparc-Linux Cypress support does not longer exit.\n");
--			prom_halt();
--			break;
--		}
--		return;
--	}
--
--	/* Now Fujitsu TurboSparc. It might happen that it is
--	 * in Swift emulation mode, so we will check later...
--	 */
--	if (psr_typ = 0 && psr_vers = 5) {
--		init_turbosparc();
--		return;
--	}
--
--	/* Next check for Fujitsu Swift. */
--	if (psr_typ = 0 && psr_vers = 4) {
--		phandle cpunode;
--		char node_str[128];
--
--		/* Look if it is not a TurboSparc emulating Swift... */
--		cpunode = prom_getchild(prom_root_node);
--		while ((cpunode = prom_getsibling(cpunode)) != 0) {
--			prom_getstring(cpunode, "device_type", node_str, sizeof(node_str));
--			if (!strcmp(node_str, "cpu")) {
--				if (!prom_getintdefault(cpunode, "psr-implementation", 1) &&
--				    prom_getintdefault(cpunode, "psr-version", 1) = 5) {
--					init_turbosparc();
--					return;
--				}
--				break;
--			}
--		}
--
--		init_swift();
--		return;
--	}
--
--	/* Now the Viking family of srmmu. */
--	if (psr_typ = 4 &&
--	   ((psr_vers = 0) ||
--	    ((psr_vers = 1) && (mod_typ = 0) && (mod_rev = 0)))) {
--		init_viking();
--		return;
--	}
--
--	/* Finally the Tsunami. */
--	if (psr_typ = 4 && psr_vers = 1 && (mod_typ || mod_rev)) {
--		init_tsunami();
--		return;
--	}
--
--	/* Oh well */
--	srmmu_is_bad();
--}
--
- #ifdef CONFIG_SMP
- /* Local cross-calls. */
- static void smp_flush_page_for_dma(unsigned long page)
-@@ -1736,34 +1008,20 @@ static struct sparc32_cachetlb_ops smp_cachetlb_ops __ro_after_init = {
- };
- #endif
- 
--/* Load up routines and constants for sun4m and sun4d mmu */
-+/* Load up routines and constants for mmu */
- void __init load_mmu(void)
- {
- 	/* Functions */
--	get_srmmu_type();
-+	init_leon();
- 
- #ifdef CONFIG_SMP
- 	/* El switcheroo... */
- 	local_ops = sparc32_cachetlb_ops;
- 
--	if (sparc_cpu_model = sun4d || sparc_cpu_model = sparc_leon) {
--		smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
--		smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
--		smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
--		smp_cachetlb_ops.tlb_page = local_ops->tlb_page;
--	}
--
--	if (poke_srmmu = poke_viking) {
--		/* Avoid unnecessary cross calls. */
--		smp_cachetlb_ops.cache_all = local_ops->cache_all;
--		smp_cachetlb_ops.cache_mm = local_ops->cache_mm;
--		smp_cachetlb_ops.cache_range = local_ops->cache_range;
--		smp_cachetlb_ops.cache_page = local_ops->cache_page;
--
--		smp_cachetlb_ops.page_to_ram = local_ops->page_to_ram;
--		smp_cachetlb_ops.sig_insns = local_ops->sig_insns;
--		smp_cachetlb_ops.page_for_dma = local_ops->page_for_dma;
--	}
-+	smp_cachetlb_ops.tlb_all = local_ops->tlb_all;
-+	smp_cachetlb_ops.tlb_mm = local_ops->tlb_mm;
-+	smp_cachetlb_ops.tlb_range = local_ops->tlb_range;
-+	smp_cachetlb_ops.tlb_page = local_ops->tlb_page;
- 
- 	/* It really is const after this point. */
- 	sparc32_cachetlb_ops = (const struct sparc32_cachetlb_ops *)
-diff --git a/arch/sparc/mm/swift.S b/arch/sparc/mm/swift.S
-deleted file mode 100644
-index f414bfd8d899..000000000000
---- a/arch/sparc/mm/swift.S
-+++ /dev/null
-@@ -1,256 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * swift.S: MicroSparc-II mmu/cache operations.
-- *
-- * Copyright (C) 1999 David S. Miller (davem@redhat.com)
-- */
--
--#include <asm/psr.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtsrmmu.h>
--#include <asm/asm-offsets.h>
--
--	.text
--	.align	4
--
--#if 1	/* XXX screw this, I can't get the VAC flushes working
--	 * XXX reliably... -DaveM
--	 */
--	.globl	swift_flush_cache_all, swift_flush_cache_mm
--	.globl	swift_flush_cache_range, swift_flush_cache_page
--	.globl	swift_flush_page_for_dma
--	.globl	swift_flush_page_to_ram
--
--swift_flush_cache_all:
--swift_flush_cache_mm:
--swift_flush_cache_range:
--swift_flush_cache_page:
--swift_flush_page_for_dma:
--swift_flush_page_to_ram:
--	sethi	%hi(0x2000), %o0
--1:	subcc	%o0, 0x10, %o0
--	add	%o0, %o0, %o1
--	sta	%g0, [%o0] ASI_M_DATAC_TAG
--	bne	1b
--	 sta	%g0, [%o1] ASI_M_TXTC_TAG
--	retl
--	 nop
--#else
--
--	.globl	swift_flush_cache_all
--swift_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--
--	/* Just clear out all the tags. */
--	sethi	%hi(16 * 1024), %o0
--1:	subcc	%o0, 16, %o0
--	sta	%g0, [%o0] ASI_M_TXTC_TAG
--	bne	1b
--	 sta	%g0, [%o0] ASI_M_DATAC_TAG
--	retl
--	 nop
--
--	.globl	swift_flush_cache_mm
--swift_flush_cache_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_cache_mm_out
--	WINDOW_FLUSH(%g4, %g5)
--	rd	%psr, %g1
--	andn	%g1, PSR_ET, %g3
--	wr	%g3, 0x0, %psr
--	nop
--	nop
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %g5
--	sta	%g2, [%g7] ASI_M_MMUREGS
--
--#if 1
--	sethi	%hi(0x2000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o0] ASI_M_FLUSH_CTX
--	bne	1b
--	 nop
--#else
--	clr	%o0
--	or	%g0, 2048, %g7
--	or	%g0, 2048, %o1
--	add	%o1, 2048, %o2
--	add	%o2, 2048, %o3
--	mov	16, %o4
--	add	%o4, 2048, %o5
--	add	%o5, 2048, %g2
--	add	%g2, 2048, %g3
--1:	sta	%g0, [%o0      ] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o1] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o2] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o3] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o4] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %o5] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %g2] ASI_M_FLUSH_CTX
--	sta	%g0, [%o0 + %g3] ASI_M_FLUSH_CTX
--	subcc	%g7, 32, %g7
--	bne	1b
--	 add	%o0, 32, %o0
--#endif
--
--	mov	SRMMU_CTX_REG, %g7
--	sta	%g5, [%g7] ASI_M_MMUREGS
--	wr	%g1, 0x0, %psr
--	nop
--	nop
--swift_flush_cache_mm_out:
--	retl
--	 nop
--
--	.globl	swift_flush_cache_range
--swift_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	sub	%o2, %o1, %o2
--	sethi	%hi(4096), %o3
--	cmp	%o2, %o3
--	bgu	swift_flush_cache_mm
--	 nop
--	b	70f
--	 nop
--
--	.globl	swift_flush_cache_page
--swift_flush_cache_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--70:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_cache_page_out
--	WINDOW_FLUSH(%g4, %g5)
--	rd	%psr, %g1
--	andn	%g1, PSR_ET, %g3
--	wr	%g3, 0x0, %psr
--	nop
--	nop
--	mov	SRMMU_CTX_REG, %g7
--	lda	[%g7] ASI_M_MMUREGS, %g5
--	sta	%g2, [%g7] ASI_M_MMUREGS
--
--	andn	%o1, (PAGE_SIZE - 1), %o1
--#if 1
--	sethi	%hi(0x1000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	bne	1b
--	 nop
--#else
--	or	%g0, 512, %g7
--	or	%g0, 512, %o0
--	add	%o0, 512, %o2
--	add	%o2, 512, %o3
--	add	%o3, 512, %o4
--	add	%o4, 512, %o5
--	add	%o5, 512, %g3
--	add	%g3, 512, %g4
--1:	sta	%g0, [%o1      ] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	subcc	%g7, 16, %g7
--	bne	1b
--	 add	%o1, 16, %o1
--#endif
--
--	mov	SRMMU_CTX_REG, %g7
--	sta	%g5, [%g7] ASI_M_MMUREGS
--	wr	%g1, 0x0, %psr
--	nop
--	nop
--swift_flush_cache_page_out:
--	retl
--	 nop
--
--	/* Swift is write-thru, however it is not
--	 * I/O nor TLB-walk coherent.  Also it has
--	 * caches which are virtually indexed and tagged.
--	 */
--	.globl	swift_flush_page_for_dma
--	.globl	swift_flush_page_to_ram
--swift_flush_page_for_dma:
--swift_flush_page_to_ram:
--	andn	%o0, (PAGE_SIZE - 1), %o1
--#if 1
--	sethi	%hi(0x1000), %o0
--1:	subcc	%o0, 0x10, %o0
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	bne	1b
--	 nop
--#else
--	or	%g0, 512, %g7
--	or	%g0, 512, %o0
--	add	%o0, 512, %o2
--	add	%o2, 512, %o3
--	add	%o3, 512, %o4
--	add	%o4, 512, %o5
--	add	%o5, 512, %g3
--	add	%g3, 512, %g4
--1:	sta	%g0, [%o1      ] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o0] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o2] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o4] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %o5] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g3] ASI_M_FLUSH_PAGE
--	sta	%g0, [%o1 + %g4] ASI_M_FLUSH_PAGE
--	subcc	%g7, 16, %g7
--	bne	1b
--	 add	%o1, 16, %o1
--#endif
--	retl
--	 nop
--#endif
--
--	.globl	swift_flush_sig_insns
--swift_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	.globl	swift_flush_tlb_mm
--	.globl	swift_flush_tlb_range
--	.globl	swift_flush_tlb_all
--swift_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--swift_flush_tlb_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	swift_flush_tlb_all_out
--swift_flush_tlb_all:
--	mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--swift_flush_tlb_all_out:
--	retl
--	 nop
--
--	.globl	swift_flush_tlb_page
--swift_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	cmp	%o3, -1
--	be	swift_flush_tlb_page_out
--	 nop
--#if 1
--	mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE	
--#else
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PAGE	/* rem. virt. cache. prot. */
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--#endif
--swift_flush_tlb_page_out:
--	retl
--	 nop
-diff --git a/arch/sparc/mm/tsunami.S b/arch/sparc/mm/tsunami.S
-deleted file mode 100644
-index 62b742df65dc..000000000000
---- a/arch/sparc/mm/tsunami.S
-+++ /dev/null
-@@ -1,132 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * tsunami.S: High speed MicroSparc-I mmu/cache operations.
-- *
-- * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)
-- */
--
--#include <asm/ptrace.h>
--#include <asm/asm-offsets.h>
--#include <asm/psr.h>
--#include <asm/asi.h>
--#include <asm/page.h>
--#include <asm/pgtsrmmu.h>
--
--	.text
--	.align	4
--
--	.globl	tsunami_flush_cache_all, tsunami_flush_cache_mm
--	.globl	tsunami_flush_cache_range, tsunami_flush_cache_page
--	.globl	tsunami_flush_page_to_ram, tsunami_flush_page_for_dma
--	.globl	tsunami_flush_sig_insns
--	.globl	tsunami_flush_tlb_all, tsunami_flush_tlb_mm
--	.globl	tsunami_flush_tlb_range, tsunami_flush_tlb_page
--
--	/* Sliiick... */
--tsunami_flush_cache_page:
--tsunami_flush_cache_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--tsunami_flush_cache_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	tsunami_flush_cache_out
--tsunami_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--tsunami_flush_page_for_dma:
--	sta	%g0, [%g0] ASI_M_IC_FLCLEAR
--	sta	%g0, [%g0] ASI_M_DC_FLCLEAR
--tsunami_flush_cache_out:
--tsunami_flush_page_to_ram:
--	retl
--	 nop
--
--tsunami_flush_sig_insns:
--	flush	%o1
--	retl
--	 flush	%o1 + 4
--
--	/* More slick stuff... */
--tsunami_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--tsunami_flush_tlb_mm:
--	ld	[%o0 + AOFF_mm_context], %g2
--	cmp	%g2, -1
--	be	tsunami_flush_tlb_out
--tsunami_flush_tlb_all:
--	 mov	0x400, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	nop
--	nop
--	nop
--	nop
--	nop
--tsunami_flush_tlb_out:
--	retl
--	 nop
--
--	/* This one can be done in a fine grained manner... */
--tsunami_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	andn	%o1, (PAGE_SIZE - 1), %o1
--	cmp	%o3, -1
--	be	tsunami_flush_tlb_page_out
--	 lda	[%g1] ASI_M_MMUREGS, %g5
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	nop
--	nop
--	nop
--	nop
--	nop
--tsunami_flush_tlb_page_out:
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--
--#define MIRROR_BLOCK(dst, src, offset, t0, t1, t2, t3) \
--	ldd	[src + offset + 0x18], t0; \
--	std	t0, [dst + offset + 0x18]; \
--	ldd	[src + offset + 0x10], t2; \
--	std	t2, [dst + offset + 0x10]; \
--	ldd	[src + offset + 0x08], t0; \
--	std	t0, [dst + offset + 0x08]; \
--	ldd	[src + offset + 0x00], t2; \
--	std	t2, [dst + offset + 0x00];
--
--tsunami_copy_1page:
--/* NOTE: This routine has to be shorter than 70insns --jj */
--	or	%g0, (PAGE_SIZE >> 8), %g1
--1:
--	MIRROR_BLOCK(%o0, %o1, 0x00, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x20, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x40, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x60, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0x80, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xa0, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xc0, %o2, %o3, %o4, %o5)
--	MIRROR_BLOCK(%o0, %o1, 0xe0, %o2, %o3, %o4, %o5)
--	subcc	%g1, 1, %g1
--	add	%o0, 0x100, %o0
--	bne	1b
--	 add	%o1, 0x100, %o1
--
--	.globl	tsunami_setup_blockops
--tsunami_setup_blockops:
--	sethi	%hi(__copy_1page), %o0
--	or	%o0, %lo(__copy_1page), %o0
--	sethi	%hi(tsunami_copy_1page), %o1
--	or	%o1, %lo(tsunami_copy_1page), %o1
--	sethi	%hi(tsunami_setup_blockops), %o2
--	or	%o2, %lo(tsunami_setup_blockops), %o2
--	ld	[%o1], %o4
--1:	add	%o1, 4, %o1
--	st	%o4, [%o0]
--	add	%o0, 4, %o0
--	cmp	%o1, %o2
--	bne	1b
--	ld	[%o1], %o4
--	sta	%g0, [%g0] ASI_M_IC_FLCLEAR
--	sta	%g0, [%g0] ASI_M_DC_FLCLEAR
--	retl
--	 nop
-diff --git a/arch/sparc/mm/viking.S b/arch/sparc/mm/viking.S
-deleted file mode 100644
-index 48f062de7a7f..000000000000
---- a/arch/sparc/mm/viking.S
-+++ /dev/null
-@@ -1,284 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--/*
-- * viking.S: High speed Viking cache/mmu operations
-- *
-- * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)
-- * Copyright (C) 1997,1998,1999  Jakub Jelinek  (jj@ultra.linux.cz)
-- * Copyright (C) 1999  Pavel Semerad  (semerad@ss1000.ms.mff.cuni.cz)
-- */
--
--#include <asm/ptrace.h>
--#include <asm/psr.h>
--#include <asm/asm-offsets.h>
--#include <asm/asi.h>
--#include <asm/mxcc.h>
--#include <asm/page.h>
--#include <asm/pgtable.h>
--#include <asm/pgtsrmmu.h>
--#include <asm/viking.h>
--
--#ifdef CONFIG_SMP
--	.data
--	.align	4
--sun4dsmp_flush_tlb_spin:
--	.word	0
--#endif
--
--	.text
--	.align	4
--
--	.globl	viking_flush_cache_all, viking_flush_cache_mm
--	.globl	viking_flush_cache_range, viking_flush_cache_page
--	.globl	viking_flush_page, viking_mxcc_flush_page
--	.globl	viking_flush_page_for_dma, viking_flush_page_to_ram
--	.globl	viking_flush_sig_insns
--	.globl	viking_flush_tlb_all, viking_flush_tlb_mm
--	.globl	viking_flush_tlb_range, viking_flush_tlb_page
--
--viking_flush_page:
--	sethi	%hi(PAGE_OFFSET), %g2
--	sub	%o0, %g2, %g3
--	srl	%g3, 12, %g1		! ppage >> 12
--
--	clr	%o1			! set counter, 0 - 127
--	sethi	%hi(PAGE_OFFSET + PAGE_SIZE - 0x80000000), %o3
--	sethi	%hi(0x80000000), %o4
--	sethi	%hi(VIKING_PTAG_VALID), %o5
--	sethi	%hi(2*PAGE_SIZE), %o0
--	sethi	%hi(PAGE_SIZE), %g7
--	clr	%o2			! block counter, 0 - 3
--5:
--	sll	%o1, 5, %g4
--	or	%g4, %o4, %g4		! 0x80000000 | (set << 5)
--
--	sll	%o2, 26, %g5		! block << 26
--6:
--	or	%g5, %g4, %g5
--	ldda	[%g5] ASI_M_DATAC_TAG, %g2
--	cmp	%g3, %g1		! ptag = ppage?
--	bne	7f
--	 inc	%o2
--
--	andcc	%g2, %o5, %g0		! ptag VALID?
--	be	7f
--	 add	%g4, %o3, %g2		! (PAGE_OFFSET + PAGE_SIZE) | (set << 5)
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	ld	[%g2 + %g7], %g3
--	add	%g2, %o0, %g2
--	ld	[%g2], %g3
--	b	8f
--	 ld	[%g2 + %g7], %g3
--
--7:
--	cmp	%o2, 3
--	ble	6b
--	 sll	%o2, 26, %g5			! block << 26
--
--8:	inc	%o1
--	cmp	%o1, 0x7f
--	ble	5b
--	 clr	%o2
--
--9:	retl
--	 nop
--
--viking_mxcc_flush_page:
--	sethi	%hi(PAGE_OFFSET), %g2
--	sub	%o0, %g2, %g3
--	sub	%g3, -PAGE_SIZE, %g3		! ppage + PAGE_SIZE
--	sethi	%hi(MXCC_SRCSTREAM), %o3	! assume %hi(MXCC_SRCSTREAM) = %hi(MXCC_DESTSTREAM)
--	mov	0x10, %g2			! set cacheable bit
--	or	%o3, %lo(MXCC_SRCSTREAM), %o2
--	or	%o3, %lo(MXCC_DESSTREAM), %o3
--	sub	%g3, MXCC_STREAM_SIZE, %g3
--6:
--	stda	%g2, [%o2] ASI_M_MXCC
--	stda	%g2, [%o3] ASI_M_MXCC
--	andncc	%g3, PAGE_MASK, %g0
--	bne	6b
--	 sub	%g3, MXCC_STREAM_SIZE, %g3
--
--9:	retl
--	 nop
--
--viking_flush_cache_page:
--viking_flush_cache_range:
--#ifndef CONFIG_SMP
--	ld	[%o0 + VMA_VM_MM], %o0
--#endif
--viking_flush_cache_mm:
--#ifndef CONFIG_SMP
--	ld	[%o0 + AOFF_mm_context], %g1
--	cmp	%g1, -1
--	bne	viking_flush_cache_all
--	 nop
--	b,a	viking_flush_cache_out
--#endif
--viking_flush_cache_all:
--	WINDOW_FLUSH(%g4, %g5)
--viking_flush_cache_out:
--	retl
--	 nop
--
--viking_flush_tlb_all:
--	mov	0x400, %g1
--	retl
--	 sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--
--viking_flush_tlb_mm:
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o1, -1
--	be	1f
--#endif
--	mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--1:	retl
--	 nop
--#endif
--
--viking_flush_tlb_range:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	2f
--#endif
--	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--1:	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	1b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--2:	retl
--	 nop
--#endif
--
--viking_flush_tlb_page:
--	ld	[%o0 + VMA_VM_MM], %o0
--	mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--#ifndef CONFIG_SMP
--	cmp	%o3, -1
--	be	1f
--#endif
--	and	%o1, PAGE_MASK, %o1
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	retl
--	 sta	%g5, [%g1] ASI_M_MMUREGS
--#ifndef CONFIG_SMP
--1:	retl
--	 nop
--#endif
--
--viking_flush_page_to_ram:
--viking_flush_page_for_dma:
--viking_flush_sig_insns:
--	retl
--	 nop
--
--#ifdef CONFIG_SMP
--	.globl	sun4dsmp_flush_tlb_all, sun4dsmp_flush_tlb_mm
--	.globl	sun4dsmp_flush_tlb_range, sun4dsmp_flush_tlb_page
--sun4dsmp_flush_tlb_all:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	0x400, %g1
--	sta	%g0, [%g1] ASI_M_FLUSH_PROBE
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_mm:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + AOFF_mm_context], %o1
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	mov	0x300, %g2
--	sta	%o1, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%g2] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_range:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	3f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	sethi	%hi(~((1 << PGDIR_SHIFT) - 1)), %o4
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	and	%o1, %o4, %o1
--	add	%o1, 0x200, %o1
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--2:	sub	%o1, %o4, %o1
--	cmp	%o1, %o2
--	blu,a	2b
--	 sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--3:	tst	%g5
--	bne,a	3b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--
--sun4dsmp_flush_tlb_page:
--	sethi	%hi(sun4dsmp_flush_tlb_spin), %g3
--1:	ldstub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	tst	%g5
--	bne	2f
--	 mov	SRMMU_CTX_REG, %g1
--	ld	[%o0 + VMA_VM_MM], %o0
--	ld	[%o0 + AOFF_mm_context], %o3
--	lda	[%g1] ASI_M_MMUREGS, %g5
--	and	%o1, PAGE_MASK, %o1
--	sta	%o3, [%g1] ASI_M_MMUREGS
--	sta	%g0, [%o1] ASI_M_FLUSH_PROBE
--	sta	%g5, [%g1] ASI_M_MMUREGS
--	retl
--	 stb	%g0, [%g3 + %lo(sun4dsmp_flush_tlb_spin)]
--2:	tst	%g5
--	bne,a	2b
--	 ldub	[%g3 + %lo(sun4dsmp_flush_tlb_spin)], %g5
--	b,a	1b
--	 nop
--#endif
--- 
-2.27.0
+--BXVAT5kNtrzKuDFl
+Content-Type: application/gzip
+Content-Disposition: attachment; filename=".config.gz"
+Content-Transfer-Encoding: base64
+
+H4sICPMK7F8AAy5jb25maWcAnDxbc9u20u/9FZz0pZ05SXSxfJlv/ACCoISIJGgClGS/cBSZ
+STSVJY8k9zT//izAGwBCbubrTNtod7FYLBZ7A5jff/vdQ2/nw8v6vN2sd7uf3vdyXx7X5/LZ
++7bdlf/nBcxLmPBIQMUnII62+7d/Pp9e18eNN/k0HHwafDxubrx5edyXOw8f9t+2399g/Paw
+/+333zBLQjotMC4WJOOUJYUgK3H/QY3/uJO8Pn7fbLw/phj/6d19Gn8afNAGUV4A4v5nA5p2
+jO7vBuPBoEFEQQsfja8G6p+WT4SSaYvuhmhjBtqcM8QLxONiygTrZtYQNIloQjoUzR6KJcvm
+AIEV/+5NlQJ33qk8v712OvAzNidJASrgcaqNTqgoSLIoUAYy0ZiK+/EIuDTzsjilEQG1ceFt
+T97+cJaM20UwjKJmFR8+uMAFyvWF+DmFhXMUCY0+ICHKI6GEcYBnjIsExeT+wx/7w77880Mn
+H1+iVJerQzzyBU2xE7dEAs+Kh5zkxInHGeO8iEnMsscCCYHwzEmXcxJRX0epDYAN8U5vX08/
+T+fypduAKUlIRrHaLz5jS82sNAxNvhAspDqNDQ5YjKgF4zR2ERUzSjKU4dmje4aA+Pk05ID8
+3Sv3z97hmyWxPQjDds7JgiSCNzYmti/l8eRapaB4DkZGYIWim3/2VKTAiwUUq3lrcMIkhgYR
+cdiWQmos6HRWZITDDDFYli5+T5puhjQjJE4FMEtcczToBYvyRKDsUZeuRvb2F6f5Z7E+/eWd
+YV5vDTKczuvzyVtvNoe3/Xm7/26pAwYUCGMGU9Bkqk/h8wCmYZiAvQGFcJpZyqkJr5f9C3Io
+eTOce9y1U8ljAbhOxfCjICvYKG3nuEGhxlggxOdcDa3txYHqgfKAuOAiQ7hBtMu3UGADKChi
+36kSc6kdDzqv/uDUL53PgCXYlNPBSZcVwoGlobgf3nSGQxMxBz8WEptmXGmdb36Uz2+78uh9
+K9fnt2N5UuBaUAdW8z/TjOUpdwor/SBPQRduNJ4RPE8ZCCfPimCZ28NxoAuUZ1ZTXfKgIQdv
+AccAI0ECJ1FGIvTo0JsfzWHoQnn0LDDDTYZiYMxZnmGiefssKKZPNNW3HkA+gEbuqYMieoqR
+Y3LArJ4sPtETc1NGT1faCQiKJy40eX3GRFH92QjGLAU3RJ9IEbJMujb4X4wSTPRZbTIOf3DI
+MEMLUuQ0GF5rp+6RYxHBYcQkFSptkeaviZWG3Q/7yFq8YgihFEJVpsvGp0TEcLDUTCiKHHJV
++1/jO3bhDCXgsA1HyThd1X7Z6WTlWdFTANMHIg76yZ0yhDnka9rc8meRUn04SZlbfDpNUBQG
+uvMCAXWAimk6gM8g6OvMEXVZDWVFnlWevKELFhRWUSuLa8onsY+yjCrt17C5JHmMeR9SGJpu
+oUpD8qQJujCNQNueTp8AhjMbMRQ4ZJeGoLIqte5Oi7FPgoC4RqR4OLhqAn+dZ6fl8dvh+LLe
+b0qP/F3uIeogcGxYxh0Ixbqn+8URnSiLuNqYQgVMy6SMxBQJyGrnbucVIf8CIvdd1hIxX7MD
+GA1bl01Jk4PqNpKHIWTEKQIsqB5SXXCzZt7AQgo5+tQZosz0vBt1feVTV4oNzj7TYqr6OR5p
+pgeZnsohCohxGakKnM5VQerhy/1NAoq0/BHlUE+psZqtxlpAlulWdRhqwBNkUEUQI0dSyZGJ
+SKcC+aCiCPYRDkMdENPjYVOeToejd/75WuUrRmRsFhi7wxEkisPB4BJqNLmIGpujDHYDPUW9
+H2pVWxUhZ5lM4PpLni0J6Ef0EXAYqZ9BuATDgcio+RpwwzKKFjhOV3im+Q4IDZDZxGilVMwy
+yERkEtHIkSdFqm0DHF+KIhmSODO9sLIM0DlLnHb3nvqV/v23k3d4lYXzyfsjxdQrz5tPf3b5
+IvdzzWXJX3iGNLcmJWUpScAWY7O8uMBZzRpvT5u6qFcL8J6P278rF+LgS5mZGQbg/MHk+XAw
+KnIsssi59ItzGPXy+rj5sT2XG6mSj8/lKwwGN9UIrslDRBFqmlDxm1WHnlhgdThV7J4x5rAj
+MHZV/hRiJtNa61SPR+ASChaGhbD58riIWVCX2Nwat0TgPaH4BR+VQeRo6vPuoLMgj6CSglhQ
+kChUocWagKxgZlsoFgRFJmRkRVaJymRNT6c857BRQQ/ektvuu1qhDMyOIyp9FxSBJAwppjIg
+hLraZVGqB4q2Np1itvj4dX0qn72/qtjzejx82+6quqyVQJIVc5IlxG0077Kxnfm/2E6bXgrI
+xsBBE20dKrjzWAbxYSddvUXOzJrpHkkm2hxzCpv4kEPGb2JkCu7zqRMIjqoPh0yNTDMqHt9B
+FWI46KOl8wpMMI4D2aqqzDAzcUtf9ABF/GAkMoozZItw3C6UGBwcKktRZA+remQQ9XD2qBLo
+XhGfro/nrdwdT4A7NCIQiCuoyrohrZNJvSsrinnAeEdqukEHmITUAHd+2RJEX178UCwojGGN
+bUM62laOmksCOsqqiBXAiTX7gxpy/ujr+9CA/fDB6AYZk7SehSdDrcZIahXzlCbwqzZKJST5
+p9y8nddfd6Vq4Xoq7ztr4vo0CWMhXY+mnyiU6YtmExURxxlNRQ8cU45Nf5KRILdTh3pBlwSq
+AlD5cjj+9OL1fv29fHF6/BAit5ELSQC4poDI/B5Ct9ZP5WkEHi0Vyj2BB+P3d+qf1qlJx9dz
+hyqZzKCUyYSVNzabSKeQVVijfPB72OU551wTtumixiAn8JFWHWT3V4O767bTRsAIoIZUHndu
+FEA4InACEJiJOwt31t9PKWNaHfPk55pjeBqHEBW038r3MWM3G1jBBXLlxCpkKp3J2Do3SrEw
+Q7GMebjKyhsFk0wuTvLj+kzTPC18cBOzGNmVRJM8XLQPrSlDXFKqQIplOfaFiuZwBOXfWyiB
+AjvLUcSQGxlWgalT6ynGKAt6Lk0Fo+2m5u0x24zzKlrOSJTqXsAAg1bFTDZl2snAt4s4Dd1V
+GOgzCVB0sbmqOIc0i5cIShPV+28UEW6PL/9dH0tvd1g/l0fttC0LWbvqIrYgtemB7Lbp7Q8w
+gnYSraHUjZJFb2/dTnQRguH5SI+wHZ08uxnhRm5rL6MZpXIwGRcbz6TlaGDaywu4S1AZBYMM
+yn+j0qzhZJE5U4UKLa9u6rHgYmKmtxDSuHiAMDbP5S2QqNKHlnsFrUemF++AMjI1PGD1u6Aj
+3IPxiMZGFVHD4yqxtxhkD30GGGtJCxSdUI7DpiuLCPXNlagQzjVpO2dmztY/Jm0N9KxOqJER
+xDMKM3Cnf9CHaH4l4e4TEwtXNsE0e2ayfcNikRFiAOfM/6JvD4BgLzN3/xVSDRlMtJ2uADI9
+8VOjydpg0Or29ubu+jKzYji6vepzTBjEO22v64SwnyEmeRTJH1p3IoCFaqEAXLf5q1hCwknq
+89iFB4mpr+eaAOBUdjNzxFjac5dB5gfe8/Yk84Jn72u5Wb+dSk91UsDbQZ1MpVuvhuwgtS+f
+tQymZmwIrAGrkuR+eO3CyT6wEX+VGop0LnCwCCztNODawvn9rRu9VEG6G1zljbW61XqTBVRZ
+/O319XA8dyuR0KLOvLp4JoGqbyzDgfseQpLMlrGZWuvIEPlQ4mqHvYLi3kQCZVMinIfLkLnr
+F3RHtHGpwWQ0WRVBql86akDTG4FzjR9N/wKC3o1H/Gqg5bjgPiLGcwhcEB8WFOtVG0oDfnc7
+GKHISCcoj0Z3g8HYlbMo1EirnDhJOMt4IQAzmTgQ/mx4c+OAq8nvBlpjfBbj6/FE6woGfHh9
+q/3mlaW2gq5kg3JV8CAk7jvydJGihGJXWT6qPUuV7BPprLyTbVcVvEBidKXPW4MjMkXY5bdq
+fIxW17c3E8fIuzFeXTslrgloIIrbu1lK+Ooyf0KGg8GVHhWsdVS33OU/65NH96fz8e1FtaxP
+PyDUP3vn43p/knTebrsvpRPZbF/lH/XG9/9jtJZY1VsdUT6WxutYCooEgcQHUrDUqH8JnjF3
+JqsfHSPvpIH+nkT9qIrkXbkGn3gqIWE9bNQq1Muaz9vnUv776Xg6y2rK+1HuXj9v998OHtSx
+wKDqsGkHFGBgC8i8umk7C4DkgHVm+qSYBoZw8FuyMo5dC03dGbM2E3bFXw0PPIjNW15BQ7WM
+RdSLInKxmx/bVwA0xvP569v3b9t/9OU3/FMoHOVVYaNg2bmpt6R/hFRbJ2ba6jNE5SpFpjdi
+gcr8VTfjuwlqzlXj9w+wt7/+453Xr+V/PBx8BKv/U891GlG5S094llVIR5+Ja+lXSzd1wPQ7
+ByVv62gtOPxZFhhmxaYwEZtO3YWyQnOMoMzljwk29CCag3eylMxT6lIrGCVv4aYAEhNRH/53
+UYYs1cY21/6WGL1lLdWdyYU7e7m1M+fRdtlR6yeE1tyVx0y9p9JCGUAgj/SZ7AZnmV41S5S6
+njDWL6Fp3E+o8GF/Ph52smvk/Xd7/gHY/Uceht4enMbfpbeVN33f1ptS077khWaY6ieju32V
+CEwWyKkPhX1gGX1wOUfgC1O32w9SbGzxNm+n8+HFC2QPoy+a5ODH+lGSHsrJSJEBTeUzf5GM
+so+H/e6nTdoJkCo9O9SiELJKqHEXGwHf1rvd1/XmL++ztyu/rzc/tcuVriBxnfMqJSvMjpzA
+EF2t9rOEyXsPvX6TsLR2S+00MgWXebwz2+uywb5/3b++nS+6SJqkuWbK6ickFwG3YWEoC4ao
+Kd4NnHxAAI7J/TZIUXDVwZ7H5ltDgyRGIqOreVUJK8nzU3ncyWu21rgMvdfDWM7J+5N/YY8W
+gYEmi6rYskaRBdT+F7TZ60FZY+fk0WdWh8kl90WZQGRuXpw2kAIlCJy3CzE2HiR08IA65mnR
+mPkZcrCbhiPX9NOMphfARezE5DSKoNQUDpy8EYHyUzjl5pAZLGkSkOw98UUcYBfnnte1UMVo
+PHqP71I+OjGfJbS4GE1JFKHEub2d/PKRGctcjyVMGt94tNLhZCebuCUQSxrAj/dYP81IMsuR
+c3jg3703dIpigvW7l27eHMLcNEPhym1qfDIYDt9XizyN1j1DX/fRHOxicKMXky025BRd+7Z/
+Ug8mNBurfje3/UuEWXzVP+SC5XjGcUaIezPrs0q5q37IYnpleXgFMht3EsJj34KEg3EfoqRl
+FnwU1LWMTT8c9iAjGzIe9CBXPYhhIxVscuV+MVghJz23OFsfn1UTl35mnp0gmotSF+yxfPzR
+tOxbCq14A0BBbwdXrjNaYeG/dRltDYNQM/ddMblCQ9KZcr2wV9AMLfuc6gIRyC9yA1xsvm6q
+Rma4cMyCUtfc07RipAuQK5RjWnk2zcZkAykSPpnc6kxaTHTlTHpdu9beYbrShirSQRG+3kBE
+7neRhH7tvTD2BlfvbWS7MeGRuolz93cXoqF13QgttYc73YAOLK83A+M6K0/o6u62SMWj/vZB
+tU8uAuvu42hyreVfAXgB9eLXfhhYJbeQMK53jsc3lQMiKIseDZ9aI25HZuOqBWoPh9Ur2OqV
+imGhDeXwejIZQA2CAATF3gVjbahDGXXnl3hd1r1OFZOkiPWbBB2ZZEWOMig6r1zYTD7ij0lL
+4pSCrARJ3K8pdTLEU3nzupC8Li0oWLqLQV0kMbq9dTW7aiKtVGh7wVCZybFArfZdtQf6DYhq
+/Hwa+EUSU4eIUvKIinf0zfPE7i53mCcKueDlsWZw0oD9U9ScH5nL94ZwGhoPZw1wn1eDxjhZ
+pS7BFcJlan3K4TXlN6t3NmeagUcHV0d5RDLpYWtj+AWqi5LXjv+LQFMnNwv/q3w6J/WYIs4v
+kb83pWITo5V06/0DphP5KA/kO8r74XAy0p5l9ikvSV+3uFPulshEOx9U1nNlruypRoY8KqL0
+wgHukL9iLIqaJmFEVnLIe8ciISt1vUynFIM/zxxz94n+3TdKt/g0HE/6RyHVv+HQgIbaml6U
+GUrsOeQrTZUzOIROqoZfYNWeTT7AoiCkfGbGaR1axSnXXqq7R6Bw9TqqL4tYLvQL5ArKaaJV
+kbMF7i7hTcnVm7rcFeLUjb5cM8wuzd4lAUhufyTRwapn1PdaLFdws67scKm7WVDfBzpUQ9OY
+FtVHHa5SFdC+XAQFdahpQ+NLFMhdICUKmNGhaoHVNxeUxSR2StsR+uhqPHSnTDVF+xLOMRqD
+hp3t4I5kRdMZ0VsFsCbraw+AzC1Jm8oBLXs7L19sKzhZcDPXEhj+TV18wOlEj8YLiAZSPQHo
+vu3rZalaGVOrNsu5UB8oVc9T+s2eEXZ0zPTqDn4UqtMDboeZ4OqBrgWbAanVbAJwnK+cmytx
+9asamXe6bGskn0BX+mhFRrvvh+P2/OPlZEgNPn/KfCrs2SU4xeEF7hUW6aq15mjnbcsJ+aKj
+01unSvVRofdVvveofJv3x8vhdN799MqXr+Xzc/nsfa6pPkJ+JW+FjJsVpUK51dL7XZA3IPK7
+JfVaysx+LCTUIIvLWC3d0whITBYjE1T7YQtSNF9jf7Fe0UmCOYlT/f2ehDEpKzdhoHVn91ri
+svnYlRIpc6CxIJaJVqH6vn1eCsdiDxEGUJ/BemA/1s/rV3VW7PJFCWI/hZFAgRgvwAE0TNn5
+B4zvOGq7rN/pXrQTYwn9vVGg+vLZhZFPq+RrK3tH5fstO33uMNK4L9qRJGgikiZ9T+Cx+Y42
+SLiEgXfjwhkPgqWGN+Jd6mrU8jTWridn3PxheJ+qFcOpdR3SgXdbeY2uvZmUd4TGNyhpyo0f
+lR46UCLSmqa6hEl5w1U78Vos5QWO1KcHcxXILkTclkoV2f9GVNuj651VR1QfzFbK+m/FOBx7
+rikVKazhsPnLRpC9evGczh7lX1IgLyISIuRfFFEASAVmyLXiVF6jng/qjh/OABylZ/UaHc6X
+4nr6pNt/fzJtiTSxv8BpUjRYjPG1QQ0AP8OFfGFU/8UTk+GooYCa1fRNzRCaPeCZ+ZVwZesX
+nKryZ+pTVpMXWLr+Rq0FFYuhBe0+a9ffi7+sX1/B4atZe25Hjbu5Wq2sl40KXtUu9tQQwRM9
+r1LQYAmlntESU95ZyP8Nhq7P2nSJne63IshsbZn4WbR0X/4oLNTsFC/cdq4IYv/2GqreS+JB
+mfE0HN1Ya+UoRpNgBGbE/NzGWQV8DWQrG/TIsd6kUsAlDu7GVzZpG1OMrYmDIlTPE+zn367t
+bjMDBS3/eYUzZt2nVVyDdDK5vb2sLxQkrguFaquWRRVuLRWj1c34wueQHcHInZhVHVuM7ibO
+MNyh9cdnNTS8ndzYahMpxaNb9VGQEWssvVTHJwx+SV+jd9aGMvrEEtdzIYX2g5vh7ejWEtIP
+YD3DeLno6bLKaC5x+x9l19YcOaqk/4qfNubE7kQLEBJ6mAeVpCprLFWpherieanw9njOOLbb
+nrDde2b31y8XXbgkcu9Du6PySyAFSUJCAk1Hspg4mTUdS8nFy0mSaUKDii/aJE2wV6l5I0ZT
+h9gXdKDMLZcPrR2dpOu/IJRlwaYcOp7QiCVeqwkyRszPTgIZWmmAkQO+l0FzfG4vDI7T0/i5
+iSMStGDnlhHq1pMgZpkVtAcok92fd7u+2uXWHFa3xKG4OxrbvWc0mXf087+exrld+/D27ujn
+GY0Tn2vJcczgCjCZ0BlyAxcOe5Bb6HxXmx8KSGVKy78+WNF2Ip9xXilc3tbKX9O5dZxpJsuP
+imgIYEFA3clin5qwOBAxlcxODAWcWxw4mJhFUFezEps7iDaAQkBYVkKuBbgYaHOxUAY0gvqo
+yZGygLwpC8jLqigOISgFdGjUlXnOeTircyHc3H02iI6Guoi6ZcZZ/TR5mqHAGYX7icnXDgnB
+5EO2sbQP+fRE4AfZNOmwhdYQ+krdANMezAjZMRmIyYj1FoZ0yfzYdc09THXdFQtTwfZWPZe5
+5gDkFkMNyzDVuKEfyq7O1GXFSp4RCuUlXaydXMQR43KUGHq4yQdhq+6vxRlHiPp0qbdJBNNZ
+iI5MuSwE1qKJhW+gncNJdoFC+W4+4/QCbs9MHKIiURrFEZR6xNblUkwYQWVMwqnGiiy7M0Fy
+RoHTlbTuSvqS5z7frTZnM5CEIihtWQ1q4UfJHicUMtGW7FkKZSMqN0Z07cMVRxaFEmO69uWS
+IzU3KwyAinJhgGURDGQMAHi7IXHq0/WUCspqnFWlvnbv8uOu0gYxBjrRtI/hZ9kPWUwpVEnH
+gqMogsI75i8rsyyjZtDMng4JYq5hmIyL+fN6qi3HQxPHRSnhg3sLznsd5wsEEYznVso0RoYs
+Fp1B9BZF2FJRG4KGf5sjCeWaBQASLA6lKdjRDZ5MzGdWRRrSC4IO9AggDgMBkQSUwKE9Bkca
+BROnq9XHCXj0iBfCg0EAcKmv23wvN5iG/tBAKWWwA0AfLh34gYX4k9fyUHoPL1VMjGpjZqjA
+oLyZhyfQ0St5TAr6mq3wICO6hcSSEMNbOGxhYqEkpdzPdscLn9gWiKSMiDYBwF1DEeMtJIiA
+cMQh92LmEKNvDuQpWhCg6oX/vY/c1rcJIkDt1QNLIcl+LQKBbxoWpqdHGGoOeaOEGLWgPLXd
+XNNYzZECuWrA3vqywAzsJAIS4xe0KWlyYETBXGOMcShXbH8IzJOsmRLNAfYbOWgnUbJegmJC
+UBitxZEAVlkCGdjuAiEoBb16gyVJYJOuIPKBSEkSA7qrAOgEpQLWhM3gVY6lb3ZEjEArMg1F
+QmMw/2q/xWjTFsFTsjNnn4qeTAAtahMCqlCbQidMDZgGkkHzKQMGWrtpGdRRWwbKywIFs/WC
+M7CIDGhpQQULFj4mAZtBQfFqJ1YcoOBdwVKSrKuI5InBKfrEsR8KvRBT88GN1Rk5ikF0tbU2
+lRwp3KwCEt4U7ITMPF3RhsLQps/YMppZHbNrnTsP3CTndhwwvPL47YDWDZDgWO1XAid/+y0t
+yAUwXpdtJQwPYPsrMbrGEdiLBIRRBK85GDyJdG7XBG15EactaNImLFsbDjXThsBmig8DTyl8
+KGHJoU3AVedlulcgzEpmL/YuKBfONbw/MfOIimCrDVbvcxxlUP4SucA7EQYLwR/Y2RTwHIbb
+tqDg4D20HfqgUyiWtU6nGACbKOjWRQEmHZpNCjpFgNk6DQjDk/szI2lK1uaYkoMhYD4tgSwI
+4BAAdhGFrCmWYGhSRp0TuhaYwMd0F54Ep7fgTFtj1S20LjfzOBsFys7mjUdQNz/V8gQO97FK
+XfW6l8Hz40qgvr3z2vLlaYaJ2VuGm4ADJOcEyntM1J2oQ193HEo+XdO1O8jj1VV3PdccjheF
+Umylp6TuwlkRwkyg7jxS57f8+rAzhPFZRBjeyDcv5B8YXitd35RqXZ43Qa1zAei0oTYxgNVV
+5lmU4FUW9SBECYei842835rXGyvEmG+sH1de1gd5rBrmnWFLzQV9vFwpELuwKdrczHBZW3Tu
+XdM7q9+/vj/98f35i7pMcDz64q3FtNvSiyiStLwYmPCv4KPWioGTNHA4boIxNMx1bV1MW7pe
+ofmAWRopgaBFbMkytFVzlUHRhRk6tUC3TWE6zhIQ1UOz6HJxqNAGsMrn0uHo4t6yYbG0MsAS
+rhv1fVLHCDzEyeQSpni1BMUCmdoJTLArt6LC85cRRhTyxSS4y4dKxgI5axLqWwtELm7ljUTb
+h1ZAhxOcuaLd1sJPQ6puoKDcQUbl8bqwBh1JFdk7W/FWtvVnnmBoFitBNzBR0hjrhP8SQUTq
+yqzISRRuRbUaTkEfaoSn3X03maAH7qdeGAK75QtDFm5qxcBiaC4zwiyLUqfh9A4RQLQnoguZ
+hbIfEpI4dSxpmVvi5BG72ffVcAx+m3BMqFDz8Mf3A41I6NO9MApFvGPmtE6R9LK4TeRVAdpK
+XsdpcvGsls3TYObqsgm31JxBziRvP0chd/dMaB5kXfPNhUaRJ2W+IShatatTJIk+/Te0T19e
+X9Q1Z68vz09f3m4UflNPVxdAlwUoFt+oTcdAfjxPS64phMuqgaEWHggh9HIdeCG8mcBHubE6
+msZS5jSsyK4xL7tXeuZE4ciNHBSZ20h608dcpteU1LGVfrzNQs0igGptF03yTRFGPpkmFMyE
+ebUm6SwJGcwpzgfILDPPYpvUcQBwixE2Fjy9MYb5OLHsKtGIyIcI7Evdz00Sxau6e24QTgmQ
+adMSSpz2H4OjHKIKT3I/pDkUt/t8l4Mb6nKioOPOnFmIJvojY8HjtMGxTTy3VLilbsGSCoZz
+anA0yS7Na29BjQMxgSNMkDfPcRho5JUkIwa8r5uDsUwjerhtdfTd5eLKNmFiHhQaR5bk2DXE
+g5xJuPZyaLdOs3qhnr0KduoW+zgFjq3NlefE1U56ItbVBRPJjdRYgG19kWd6D83g7GQsLPIk
+03F8xOEYCitf2KWzpHylH00gZjI7uNtbPPbMaIGkK8BMG2NAJSUZgxB/zm1gc5sCwo76siqs
+OXX3W2KaHEMIRuAnKgSBzZfvKaH2druDMgb3sYUt4M8tDDVvMhKBVSygBKcohwUQFi4Bg3YN
+FjEIpuC3KQQHMpaBJh9lbA9JNkLBr1nGq0CZDLIGBos232DWAkrSBILkTJ2yEOTE4FoYS2Kw
+MAUlwVTW7NqBcODrFQhO6hweez7ufArDUHSOwTQ6bs5FLxaeMhIoQYAMXLw2eTokJjZgB2w7
+GqMkkHfHGIV2+2yWBFS4tvucZrarZYDC90DQbMRmwQTMWSAUtHCum2MjGagA86QSEFNG2McB
+t9Dg2h5/q0IPHxlsJ2GVwB1jh4eBX6CgLFCf3Rk+vLtwfC4OrTrptVq+4jryzfXk3gE+MvQ5
+7zZV3993tXm1kbxGsd7fw8KNDt4HAiqPb1U4zwE0IDEvCRQ+xAzcHDJZ2hNsbThuuzxCcM4S
+5B8oMactSxNQ73izo/bzVgY2T6agcoWnGSXwSpfFxXC8PloonnQPSSAcBooSApoMw+0CCpYo
+Du3I2mzCJEGLAi5TulKSdOJ+IIsMrGaFIRIYbie/70c+RHh2P8KWgR6ExwTXuvbGAtPVwLG+
+hWN2HIDU2lH42DA0+abemPeM+WsvvTx2CkV5NXVveaXyzQ1JUwHYgddD5RnZ4uA++2rj6tJv
+oLwCWhiqyjpXSB9Y5Z0ZZEA3fAJU84y4n/sIyBs3Q/c/TIybsj+pY/e8aqrCf8S4ffz96WHy
+fN7HJ5BsSfNW3S89C2Oh+h7H63AKMch7Rwbh5IQ5+ryUR5pgkJd9CJqONYZwFcxu1uF8lM/7
+ZKMqvry8AheMnuqyOtjPGYy1c1Bxjo316MRp43uafuaq0NPT748vsXqUzn9wSJd6ihujsy40
+2xk36LLVK9HqXe3CeXmaPdZZVTSk/dW23qsBeL8LPCysCtg2Ob+V96vKR+051DM023mvDz7M
+tQB9rVX304Fvvy7c6pa1DFWwl4N+5OHpn0/vD19vhpOfs2yu1nq6RFHyi6iuvJMvjxoPOEio
+vN/ncrdHVZY1q1No1R4vcs1YPR3WyCfkndutLPZjU+kmAVdPAbnNbusvxurONAkeNC3C0sog
+7uVGNpXHl5dv3+Q6iH4RBVbHzXGLHS9ioQOqqujykQ7zSL6RYn71aYR4y6+8zveHa1sO1h7d
+ggQsqyh9MQp6SzWoxFIkLI/oAHxG67jZWfII07RWnG6otvgkd31vRG7T/RRmSLz8Jtliwkxb
+fVJIaDzYExLPZLHVV9TwWHu21TPPLGvSw/OXp69fH17/x98k1pah7kdLoxLl339/ehHW88uL
+PGf5H/I1RP2e6Ju6W+Db099AFsNpWt+1yWWexvbUaAYyBsbQj3iVJzGiBZBSIjicsuUdic0J
+sSYXnBBzL2iiUhJTiNoQnAOFNyeCo7wuMIFfHdZsxzJHBAyN1riYKjkxfgvdDox1GE4dTnnb
+QRNyzcAP+/vrZtgKx/liKsePNapq/77kM6NpeMYC8jzxzriPhVgpl8HPzM0drGT4vV8PGoBm
+9Qseswsw+KWJeUrSIssZGQSx2Bt8RzKUYjMwlPkSCzKF93VnPFnD73iEwNjSUakbloiPMH3A
+uTlShDxt12SvgtQaWxoTQLFHRH7yipjDqaMI9AcNnHriCHIaRV41D2fMohgQ5pxlYLyeASd+
+ZlnmV8SpuxB9AsHQR6nxD1aHcDVT1Z/tMY6m4YKpY7fsuQ/YAR6fV4rBcKMyzyypXpGGugt4
+yGfBibldapAzQBkkQAMhQBNHRli2ZgLzO8YQHGIxttctZ9hd7rJqcq41oyafvgnL9d/6eUb1
+GotbpceuTISHiwDjrSF3Cckq0s9+GRI/aRYxhfrrVZhOuZ8ESiAtZErxLffsbzAHvTdf9jfv
+35/FvMzJVk5DxGQVo3HImPbdHf751axHMdg/P758f1Ov9fj5zfWfkshTipbiNPO6EeCIcHnf
+eFeX4yan8fRQoHw9ljx8e3x9EFX/LB8o9y5mHnVHTFr30v1r3EJva0oTv2XrVtQOfBW4wQCt
+QS8w9SYHkpp6o4mkAhXUXgjKICoFxvnDCScrkx8JU2CQkfTAlpTBELYDhxNNYk90RfWMjaKm
+kAxJAgabLclSsIgULCIDayfFgUD4mQHewprhJAbMpKSna6KnKVQ7jEEqdzhl602YJRSUARFG
+4WW+ccTiSYLXdLkdsjaK1upHcYDPRiw4MndFZ3IXEYg8RBFIRsgb0wX5FIF5nyLIEZAAWh1r
+eB+RqCvA02aaY3847COkeIACaHtowBUMBfdlXrTYa/b+Vxrvva/g9C7Jc5AKDKOCHlfFbmWy
+Tu/oJt8CKds676D1Tw1XA6vumGl2YbOqLG4jaCHHLy8pw9CE4i4lKXysZ1wnO2cpgtZ6Fzjx
+7Kmgsii9norWFN2ST0m8/frw9mdwbCjlLiRQ2zIkCNwXm+EkTsyC7WL0ENzV7pi5DLcu5qxF
+HvdqhVCPcurBqaf/fZTLOmqM9ta5FL+8BLMzQ8hNTLjIyL5130GZNQ55oBWt5uVrBg44aMZY
+GgCrnKZJKKUCAynbAdtx2g6WBL5EYVZrOyhOoJ0bhwmRgMyfB2TF+ZnYpcCRHctiozSKwEgu
+iynWe3Ow9JdG5EHDa3gmWwrsEox4Ececgf6SxSZnkHaAhq8VgQ0ok3FbRKG3czw2aAjymMia
+mlrhiQZaxdamp52pmMuF1Imxniciqb+XoAs95pk11tmdFSMa0O96yJB9T5yJ9sLKhneB5mYm
+Eeq3AUVtUYlEbcU4VIbi2IhPg99QgUySaaveHtUC5vb15fldJJnvY1UBdG/vwmV+eP395qe3
+h3cxvX96f/zHzR8Gq7XgzYdNxDJotj2iCTLbThNPURb9DRCRz5kgBLAmyD5hp5b4RdexI86g
+b/qirk/995v3x1fhlr3LS+1Xvq7sL3ehxdrRsha4LF1RpPKARzeVnHvGYjtgayETT36B/cyD
+bWFkUFxwjNwaVET7rjVV2EAC9/xJ9LdGtBmBTO2CZk6b0FsU27OLqVVx4JLMST9gyzqnztyS
+tE5AKuUQ5cAYmacEpmaLrDDuiRWbY51adK84umRu+tEClHYgxgLpZvBLFflfXP7c7xw6eQIR
+U6hp3YoQmndxy+E4cvlKTpzBSqnFhiU5CjW8rrp0vlRRauZw81OwJ5lidWKa4WuHpMLLRuMH
+4jSoHBrFgBoSr2+Jbgwd2ZBQIxxfhiAdiS9uNvvL4Gqr26vAyL+p1xDqqEVZb2QztBtP4BGA
+l2dHjlRyBIob4c4rL/PVVn8tc2WoCrTaM0niKWSJxdjXuxkpeozge8dl1ZRIDIZyp1W9ijzr
+VjFa66BWyQ7KfKOjPwg8d27AxLcgWIX76UXAgYvi9y+v73/e5N/ku6sPz5/uXl4fH55vhkXh
+PxVqOCmHU1BIoTQ4ipwueegpskKVJyLylXdTCGcHjAJS+rsrB0Lc/EcqdaliWHINhuwxkWNj
+8yOjGEO0q96H9OmnuAEyRrOxqHn549Yiw8hTXBayVzjy92lVafao+W//LxGGQp7tdKpADdEx
+md8smLbzjQxv1Ou/esr1qWsaO1drkXMZMsTXCbvq6/EC2hfaaPe1Kqb4iMmvVY+2q/mCXaww
+fyS73P/qaMN+c4tdDZG0zKN1bnsomlM7MsQ9dlVOEd3Umuh0QOnhEldfOds11K0XRQbPFqh8
+ho2Y+BPIKiQJ/TtoUOuLcL8p/GSvanzpTeDwZCXfZhFxPuD20B+5/ZSlYuXFYcDQOSiVqGqq
+/XyIr9BBHMvxup+qPY0wRv8wo2O8JZ/J7kZZ5pbOO7zmNHi+gRJjeHn5+iZfFBCq9vj15a+b
+58d/hfpOeWzb++sWCJjygxP0y9avD3/9KY8SOm8d5H1rrAwt2ysGWa8hvT58e7z5z+9//CGq
+onSXkraiJtpSXkK2NI6g7Q9Dvb03SWZFbeu+VY+uCKcLmjrITMW/bd00fVUMVs4SKA7dvUie
+e0At3+ndNLWdhN9zOC8JgHlJAM5re+irere/VnvhL1pnLgW4OQy3IwJqumQR//kcCy7KG5pq
+yd75CisyaCsDqLZV31fl1QwYkcXkxV0jX1y1qDK0c3xeiDuiD3WjPla+QOxZQ0sF/pzecvG6
+hchm1592TlVagetStDO2221HnN+J9XsoLo6sxQ5cMBVIlyF7HJM1WkHnigRw6Kq98wiPlFf4
+/uNZfjMXddI41Kj1pr3uLkNMQfslq2W5qNRMNx5qC2XbVkN/2B9ayJZJkZwVT0nicrZnXWEN
+dl/VqpuHL//19emff76L0bspyuCD8QLTsYtjdK/5ERKb4roAKWc1DGawcNwNJabQ0tvCMp9V
+BZJ34K3xC+6d3V8gFUt9bqoSzhl4WwHiYSyJghlIB+2jT0uIefOkA2Vw1k3HKIWdPIsJPjNm
+1J58H63P4UKgwHuPyT2EbxR/ErWXNtAmzMK0KYW3ngbqry8uxR4ymAvPeGoVrL+xYccO8YHa
+T+lvS/UI0zhNeH57EZ7I709vf319mMZXv6fosblwH9e0yOL/5tju+S8sgvH+cJZv4xmWoM/b
+anPcbivwPcplirEupdFpD7sDmIM3VZgk5Ifj3rwFS/68ymhd57lZi36Vjxk3eW1cQcOtXPal
+fuvQJnWFneDKq8+L4TDofX5u67K2iaJweRmSTWzri6i7g/X+qi5pJC5xqgtZ2LXjrt6Dt/mN
+XID0tz1A9IKgTdnyy7XI+5L/QrD11eO5BTFyjNHplpCnqt8ceDW+dxmQ0TlwPZOm1DZUDM31
+lDd16dwkNbbBUT621ANNI7U3wO3XuUwx1tF0t5bPIJv1Wp2qfQDzqWIk9YG2O8YRcp+ylZXg
+RgErov8deXM4dDYJLmjo8pNL4knsyqnff1Zvd0OSeooo2r/N9/gSezOy2/JnFQdlztxnmqWP
+8sEDMb2VgeNixvBb9UsS26XwLg/EiCv08H+MXclyG7my/RWFV90R3c+cRS16AaKKJMyaVCiK
+pDYVsky7GS1LDomK275f/zKBGjAk6LuxzDyJoTAmgBy4XzgI7d7at3Ycn4uoDzNQlXG2qtZk
+IcAIE5kYwFsixyZKl39c/3F8xPsBrJknlmJCNqlibviJVzRebvduCYpYk3EtFFxYIpcibbF5
+bdoiTjYis2l8jWaaLk3AL5eYb1esdCuWMg6dSAXjRbQo80hsYjO2vcpKPWs5tAOMB+kwQh+s
+8qy0fNP1NGgPmz1OpaZZVUSrqTwQtBbhe6hgoP6rOF0IM2CyIi7NQDyKkuSlyO2YwUi/E7Bw
+RSJYNBSsjGPDDAdKyEZkx5LKXAR0cfFO5pngTu0OpbN0IlVgnDqHVDmET2xhC19IrHYiWwdO
+kvqjMgmntYp0lIwMCXcjFiAxjlxClt/lDi1fCX/CtFT8UVjhBDvEnjgWXm7TRRIXLBrR0wt5
+VjeTgTOwkLxbx3EiQ5nr2bESPIWRQXuX0iwJHqcCbZWyg7LUsr8YTtZqEthU2MrLXObLyiHn
+GOo5dmYzCCOVUIPP7d+somy/EYF1P97Y2YCAjt4YYfwb3WcQvSlaxBVLDma4PkXFuOY8IonO
+JY2JdMJ0aPlp+IJZw6jzJm2LcUGbZSqehKERG0w1Sg7TK58AEcouVTKhG9DKS7JUbumI14hi
+qIXEjl2O5CpmqZdTheMRdqKA4Z/i2WYgQIZqXVoRXnHtQKt9JoW1CnTE8IYkU5BuPuUHLMuQ
+KQyqNzIq4U53WOBk7K4L1RoWl9SlYQDtLo5tg5hUr7Qtbu91Icc2eSdEmlex27J7kaV05ApE
+7+MydxvVZjhEsIEHJ7n2gFuvtwunkzWdw1egUwb1y9nkk8JSQqcEjj4qtiUfdRVUsb2F46nR
+DJJsJuuEOoPYSUZyUedrLrzLwq4o5LhgMZ0aG1exK1GAjilid8PUq8mkvF6AKEmeONA2b+sE
+NsMEaHnna44oYz9t77d+eTvj8bW9cCcc52E+numngckIGqT/gI5Uo4Un5yDwWCevHi+Sapm6
+NdZQvqxZySR5VWtzVbYXeAuMdjyVa9J/WMfmhbLtoSX+NSOJ9FAqkkXMtpWN+UGRkLqFJGJW
+5omTE7/12m0tb21CWm2o4vcgOGSBz6Z9DvQMLJ2ZEZZSECgrYcZCbCndGdYIJCzPp8d/CDe9
+bZJtJtkyxnh129RsUwlSsh69JrGjeCWEh2WTOIt37c7WSivwS991UrTaETEMRIkJsB/awQ4U
+w6LEnTeDIVyvdxilKlvFkTefgNVvEpWeZePBaHrDnHKZHM8mU4+KrvvHDnHB09nYdDDXU6cu
+Vd3RDijiyPsyfZ9LyYINOpuQiWY3pM1CBw+Gey/ZhWiJCtexfWm1LcUQDP+si0U3mrStQYcH
+Yjo2+HRAvrq26FQ5pEodR+odOqIfJ3o83MyAzohmLuZT0k9Pi2oPoV6iecDTTN/IZHi7Dp6N
+/b7TvlKCqXapM9wIL4R6xEajuanUpOtcjac37ojvnW9bY6hz/GVSK87QKY5LTfj0ZrgnBqL2
+T3Zh/E6n/7oFG26ATTq+mcxu3C8ScjxcJuOh6cHTBEb7TsmiXzWUesPnp9PzP78Nf78CAeKq
+XC0UDhV9x0DBlNBz9VsvKv5u7te6vVGepp5lFOq7rdXfmuyh/0KJ0LGjl0T7pm2mRyil75xW
+12KVjoeTgdkg1evp2zd/Ha1gHV5Z14Ym2b0MtrAcVu91XvkVb/BIyE141rRc6xiEK9jx6Viu
+FuulA5vFyIttsFaMw1FBVIdfF3d5bey+somlYPeRavbTjzPqer1dnXXb94MuO56/np7OaCvy
+8vz19O3qN+yi88Prt+PZH3FdZ5QskyLOfv39ymNPsAnghC0o0c1hwnvOLND3nrdeLY6KhUic
+tm3wsuIg2ZtunYDgyBRIWvMqlwea2D6YfHg9Pw4+mAwAVnB4sFM1RCdVV2NkIfyuGKgK4ev1
+KiBXp1a3xphOmEJk1RLLXTofoOiW8yCTWm9FXDcPPHb1yjv6nIEnK6yHJxu1qbRX1z2VIVss
+pvexDHjK65ji/J50ytgx7OemCmFLj2T3Vk8iNYfxuy1DQ6RlNO1qDfrseuTT14d0PrWNgFoo
+7Fi0YcC4cJYWuAE4zjxNwHxyt4Ab8tMpx/4OS+uK3ktbyikfX5OuNxsOIZPhyPRdYgMjoska
+ZOYje6ATH6eiglmOMk1gQLe+wsaByBQW04z00GdyzImy08mwmlN9p+j1Lqp8bHE7Hm3IeaY9
+312qh+MYvkvpuU/v+q4LOuB3K0c3k7Qvl5ZHwkHiZsAuVGkJ27zjra/NH6bnMOAesWeZzmkJ
+28xlRBt6tixxCgcxSvDr8rgbD0bE6ET6mBibJbogJdtMTimxq0MjWF7mrciD5pjBFRIvrZh6
+JRQmP/r9+OXKGkk4cRHV1nQ3frIxhkeWJw+rdW74iOxDhflhI1WFi6eHM0i3339V2+FoTkxz
+oE8tv9cGfUpMNVx759N6yVKRHKi6aoaLI0WxXNpTgOF6ZEeONKHJr/OHxZ6yobJyIftuNLEd
+zXSIF1rHHXXVZnhdMWJ8p5N5RTU90sfU/gH06Q1Bl+lsRNV6cTuZD+iBU0w57Y62YcCBRaxX
+hPvOBrk/ZLd2XGU1CF+e/wRZ2xmCXuLmIvBi5y0r+N+A9lzaNoQbj6gDXLfLbTNcjwedNQGe
+76S2f784YyitxgjDPnk+QLVCf8oW26XvKk8eMo76uXYM452i0wrjKqM6ze/iRtH4EpuMkyVK
+hvSrQcMER6vCYWi9Ctq1bivNtns4tBUJM5/7osnk2nbCJdIVKqQLgU9j1KtENZxtTMX2gpVK
+7QcOHnFikuFnC/YB9hpymavmM3TGNKDvCusUjhtsRQ8qDHqvXvgwGB/1yGQyWId1A1DXmkRa
+5yOaFGYm28C5ETVjL/jzQ9g+VGkKXpRsKf6osL0YwW983aBYVUg6kVeJcQK7awLRWTxYlkuT
+XFqqWpqKxQWLwrdk2bzhwMlxxfihu4zGaEBvL1/PV+ufP46vf95dfXs/vp2tx6XOW9Bl1rbM
+VRkfLI1sWbGVMGMO8hyVRtzfri5ZR9VHejXRxH1cbxZ/jQaT+QU2kPBNzoExojRzKiS/0PcN
+l5CMcjTZoAVPQpH3DI4RpUZu4rNA1qTw2+Pz4YhOOB/SnutMDtqet+NIx9cBnzYNC0uLBNpP
+5KPBAFspXFPNWfDReIaMRJU7jtnYzcplhek3D1hvmhzU6awdJIybl7MdFWShdEjRB/Om2kQK
+imrFbjGYA/TZZEB1Y1SN5gFTAIOD9ENv4hO/SCRPAyUG3J4bHOSTSIun6XjEKq/IZTId+k3O
+8M1U5MNRPScxIcq8JppY4PgUo8GGexCf7dG5de4BacFnI78tWHQ7HC08cgZIVbPR0Ba9bJTe
+UUyeNLDrODzDGbVl90wJWxQ8MHNgorILqQGOWGCVSH9RPeAIbZtto+Jj4i19mdCwyCkZBKVB
+56Op3ydAnJLEmpiEG/3Xusf0lx16VlPdrtra27XqVr9RW7Q9f3l9OX2xrNkaUv/9rdCq72WJ
+JljJelms2CK37+u3mZAHicqy1MO22sjztMizOLMjOytIKcaT3aFg5VcplG0kUtNzi5JO7IBy
+zZ5eY5XLnBJqWg5HpbYlh14KOjxfkcnyvMCHBvLDWialgniRg1b/bdE7sSjtp7zuc0sRreKo
+LtYHH2zMURxqoOFC0VpaXAZGSgM3Oi/a2vLh7Z/jmTKsdJA2k71IarYXaKG4NG34RJxEmLl1
+Fb5O8TkfC4XPN6U4NJFpENLNPiZUx4QsNnXhi1TAmJBibHkaNKLRIodxWuzCT2j4bmbunL7i
+STfXClGYGq9oq8MTQwsDfuDlPgyozbbwGVGDHSZebC0M6JPdzqSjdbfIzvpqwDcT8vrDYHIi
+nhqIFNPxZBjIG8GAy0Wbi7RhtFkmk1D51wMS4RGPrwezIOYE1jJRZX1dc0ptxyxax9ghC3Av
+fU3IfKI36Hd8StKJgIgG2oRfSMlJud7JQmSmSg9/enn850q+vL9awb37JRjVeflaFDBMq9nE
+ccXbGldRmXQTholkkRvXLZ2r+3RtPa8yjEHC6hSYqeVeZ6PesaxLBPj0LaXPpx/Zjt9fzkf0
+Qk7c1MSoZAkT33zv62gwJGLL7z2RlS7ix/e3b0TuRSrNeI74UxtTrmxFWhdBgosaR/q2Nlap
+xtUQbqY7YYc61TfTOb/6Tf58Ox+/X+XPV/zv04/fr95Qa+Hr6dFQ39LSwvenl29Ali/2jVwr
+ORCwNpt9fXn48vjyPZSQxBVDti8+Ll+Px7fHh6fj1e3Lq7gNZfIrVv1o/n/pPpSBhynw9v3h
+CQNXhFKRuNnyvLaV1lXi/enp9Pyvl2e/wYlsD1N9S04sKnGnZfs/9adx65Xidrks41tidsX7
+iqsbLFW5+N/z48tzYxDta/Zp5nopGWwU1lmjQYIaDw0OW8x4PKVv4XsWVxHIZdFLavBj6qLK
+bCfxDb2s5jfXtmuMBpHpdEoewhscNYe9eNqwYpT0Hasg12BruYcf7js/kpz7JCTBoStO6nUC
+O5WfxVIm9bJyiG7waqQpJTL7aURVQQXSpr4B0WpHW+E3WJ0QGpeivFX+SyldbwaVFXSQby9Z
+W3lRgCxti3WNyaAocl6ZNmZlLOOKFPQ0sih5KqsF/uJ+OpFV0M6rnfV6oZBKNFpZ/hva+nAl
+3z+/qcnYz5PGIM+RwXuicmxeRxa84Gm9wfDPMNZGdkpM0TyB1CBmlpYFqAk2Ofb9ZGBSxGVJ
+XXtZTCy5y90ccIyJdD9Pb7FugRzQmDixvsvKo9izejTP0notBaU5ZPFgC9gfmPM4ySvs+Ci2
+LA7sDuiS4OmKm/GYUr6wfsAcsc48JfNfZsyDczuAs6jMA8YK/qE6YpQ8o5SC+sqon+5S0BDx
+ICIjZkoFTRjqGEWVtF2217ur8+vD4+n5m2+BKs3VAX7ggafK6wWTglMAqklZchZCygqYXAoQ
+BdGjbGJKO1b4PlOnrdeXrSdetfYp9aqyntE6uqyoh5UOTuWWTFZUtDFkxxAOo0U0cXcoLUzn
+Lo0wW5SwPnmh/TxQycTEp2CezVHeyxp28vg+9tBGoihKFY5wW1gLoMoPDqqWHWa+dOhdPRU5
+WgZ8sEjKQk8KU9THX7V/4yATkS5sQ1UkaSHYDQ5pdU8J/8+c8IPdGWibWZZXsCHWt1sWRWZ0
+nf48U8H0h8Wh2ppH59R6ytI3V845wJGKtA+gEwiievUxPYlrfwExNBW+TkqrchJPLubaBDLG
+qDZnf0Oo96yqLLXeFihyKfY141QszZZHxnxbiurgpB8DRqeauHWYWEU5+UzMMkLC2iRonKTA
+zTYTlTrXGQV/WkTWBTD+DmYDdUgXnPG1FZFaQIMDYulQtkRg5bb6Vs+uG5wo5lObW1+rX/TC
+J7sHDKoXPFGxVqwSaKZD9c3e+Rb83frBuLOUThC53eYV/SS1D9XZ4ihpPWqE8gw9mtWSl1tK
+DECWHSszt0ahzlst5chp1kWle4KsQiYSnYJelUZeyga5z7PYaUJnYHeDEtvUrlFL0/ZQde7q
+Q7QZiiSukUOQprRLfMrm5aGwDeEtMizvK9v/mESPJLQ29FJ2vuR6ccPX+ugWUIV4ZgJLdkFR
+xBtIJp1XRrthcNiltNcPTXO6d7lFrwlUH+XwpQk7WFn0NLQ4F+inroY/lxlYsmPKJVyS5JYo
+bzCLLIopycxgSWP4xrzodA74w+PfloM/2a46RncpUnC4KxTHiXkZ2NGMdaELuaGK1MVHf4K4
+9zG6i9SO4204QuY3s9nAar5PeSLMa+17YDLxbbRsu6ctkS5Fqynl8uOSVR/jPf6bVXQ9ALPq
+kEpI5wyCO81EDWoAWp0IDKhcMJBvJuNrczYGE2eVM8cVwTlPK1q5s3b1Sx+mD3lvx/cvL1df
+rQ/uTzd4ZRhYk/R14lokEZzZiDpv4jIzq9yeAroM4HROfqz+08+v9jTk19S80JVaoQzNGuKU
+bMPEbL9Edr6IPpzeXubz6c2fQ8P+ARnabqqhm+hF22S6HlN6vjaLGcbJQub267aD0UaEDhP1
+tuGwXIdKN50YO8gwiIzCNSaVQh2WyYXkv/6W2SxYr5tgxjekD36bZRpqihtTr9lGJjehypiW
+GojAMoVDzdSysBIMRxcGwjAU2Au5lMph4OvaUod0ZUY0eUyTvX5rgVCntfiMzu+aJnu92H1E
+aGx1DMEaDkNV3ORiXpd2RRRt62aVMl7DPhLw0dNy8BhNu3/BAue6bUndpXYsZQ6Ss+3mocMO
+pUgS8rqpZVmxODGvQTo6HLE3PllApZnprK8Dsq3pEddqBctjbYvA4XNjPQojsK2WxqCHwxHP
+TR9JDaHO8jKFA+a98qrUKfIatyd5vbs1twXrkKqfhI6P76+n809f7bjxltU1Jv4G6ep2i3Gi
+lbhC73RxKeEAAx2GKUqQgukdsRF3Y+V8itqCgFxHa/RCq71GWde++jxVR2ks1d1sVQpu31Vd
+OpC2ILmjqhMYVxIy+gPW7oDN+zECRhPH9V8fPr59Pj1/fH87vn5/+XL8U8fw6qwLW4Gmrz0z
+7ZVl+tcHfET98vKf5z9+Pnx/+OPp5eHLj9PzH28PX49QwdOXP9BY8Bt21x+ff3z9oHtwc3x9
+Pj4pt8PHZ7yV6nvS8NhwdXo+nU8PT6f/PiBqCIx48oaPgiNNlpteqhWgDiPoGq+3TbXv0zQP
+XkQFzFcNJ9xkPVo4/Bnda5c7VDsZCAdS3gnorz9/nDH06evx6uW1CaRmymmaHQSgghSoNApH
+MO1VkiKPfHrMIpLos8oNF8XaHFIO4CdZW14xDKLPWlqqyh2NZPQdTLYVD9aEhSq/KQqfe1MU
+fg6oBuazwvIIu7afb0O3NQEtCI3D2QIO3Z4RA80e76uSuXdNDc9qORzNLfeoDZBtE5pIVUz9
+IZUbmybYVmtY/rz84mwlet/7xfvnp9Pjn/8cf149qiH9Db3P/iRGckkrMWsw8kdOzImyebQm
+PiXmZRTSa25GbUqqLDctsS3v4tF0quLV6qeU9/Pfx+fz6fHhfPxyFT+rT8PwxP85YbCTt7eX
+x5OCoofzQ79KtfnxlKjkilM6fW2SNWxVbDQo8uQwtIKSdLN0JdC0jchYxrfiLpx1DBnDCnjX
+fttC6cDg0v/m13zBqZGypK7PWrDypwMnBm1svmg1tKTcEcXll4ordBVt4p4oDzbmXcn8mZ2t
+w22MxhvVNvXrLmXffmuMkhlovpT5lVtTxD31GXeas42bcnw7+yWUfDzyUyqyX8i+WZLdFl4k
+bBOPLrSyZvAbFcqphoNILKnxvabNh9qOC7V6Gk0IGsEnYCCrN1v/+8s0oucGAmQQ1B4fTWdU
+fmPTXrCdaWs2pIhUFkC2tfI78tgnpgStAmllkfv7ZLUqhzd+xrtCF6dX3tOPvy1NmG4V8fsU
+aHUlyFGS71Dv89K6io434MxyYWXnTCtVW1bCBuZ3NFL99oyIqi/VX2pJZIlkpLN/Z731mz0u
+C0tfoesif5RWu9zWlLXp/Ve3UWraKPdev4CIkzDTnWy7QN7nHm0+8Ts/ufdrB7S1P1PuZdUF
+ECsfnr+8fL/K3r9/Pr5erY7Px1dH7G6HSCZFzQtKaovKxcqxoTORZvFz+0dj7PLYUkycfOAy
+OLxyPwn04xKjUk1x8FAsFA4ES1cQfzp9fsWgO68v7+fTM7G2J2JBTh+kN8tlqzJziYfE9Gg0
+krtN0TOFG0PxdJLMxbpYAo8PU1MN6e0SDqIcuiAfXmK5VLyxFYQ/tJeFLn9yYPld74gV5K5R
+ThPEFtqjlODZo1jeYMJIjk771YfQl+Gex754jiDnsNZT0wRLTdF3Mq9Xe+rdlslDigFmgAFv
+IqqDqaFvgMV2kTQ8cruw2fbTwU3NY6j6UnDUAnBVAIoNl3N00XuHKOZBcVy3Fso9qifY8fWM
+mp4gL+voa2+nb88P53c4+D7+fXz8B07RphU53vXXFbqi1ZcupWXW6uPyrw8fHFSfnYwv8tJ7
+HNqp/mRwMzNub/IsYuWBqEx/RaOzg7mNjrpkd5lEK5//Dw2hvZcF1yJ8z2ZlXaJBuKmJydRD
+bk9YCJAe0KjW+PRWnw8Ei4wXh3pZ5mn7wkqwJHHmoDwvI3NGo8/mGI6X6cJyp6bvwUx9xU6T
+UDlyTW2hnMPohxXbIllWif9f2dH1Nm7D/kofN2Arrt1h28seHFtO3MRR6o8mzYuRpUFRdP1A
+kw7380dSsk3KdO72cMVFpGWJlkhK/AKMTudkbVlVN/IpqQHDT37XyLYWQWA3mMn9SJQuR1Hj
+OxxCVKyjygw7B+rrD/0upHQsf/HUg9lkqOjH7K610+w7mi8Tm8sZexCoCxTTJqsFYCu6XYXt
+W2SpIB6lNrJ1UiFoBeVE6RlbtZ5BHVGxQUnR2/XxgfqioFOzhr/ZNs6rqvfwoJZm86cew+3B
+5JG50q7iPUIWSWuXb44KPQatB1cz2DDj/VIdj3D8zSS+UV4WZkrz0J4OzXSb8fK2PWCzVZuF
+HsnavdYY7Ge6c5VRfVFZ2jgDDnBnYLKFyKsRkScZ9yV1TeQYJLgCtic5k7HwoxFF85YGGHLp
+AAsqSxLAEAB90kU4F4kFFj6ISpeuBJFS26ZPZO+KVoNUCaK54REz5XThSMEotLAT+UvZmR0Z
+KwtnWsEbFtumikQe/6y4Rb1J0wHylQzQtVTyYAriiBcqKdHN2PKSSsCmBNXRPLGcSqbpRddA
+Isk7/VaIU+v7x9Pr6ZlySz28HI78pp85GmC9I0q2OeKIQHCslaKWRI59lS1QjRYg5xbdHfEf
+oxi3NXqXfO2I5nWVQQ8dBsbhtgNJjEgR01aCCpcIbw6Lat3nE4sqmCkKwOIFWggb/vXlnDq6
+j9KyO1E+/XP49fT04lWII6HuXfuHRnn3NjwAaV6OS7qizms8snvHQw+i8mXOXe7qy/VXvmZW
+sOvRIzwX/otRQn0BiC/jGbSDtgADgI2prma/v0xM1sI8K/Oo4iVMQgiNCV39pG8Z9QJ7OzZN
+Wi9j77CGNT9/u56oa44/sjbRHG2EyBl0Xe5HSe/CifFo/bRvN0xy+Pvz8RGtR9nr8fTx+XJ4
+PfEM6FgFBVXLgmdw7xs7E5b7XH99+XalYbmoE70HH5HSVvhiKrSnQhmuz7QkHrfGvwqhS7Jv
+EEKO7s3nKNz2hIY8LfQzItkBX3Y+TRhbG/5qpxF3pfp6MzCCx/NFEXieaHK4npTcAE4/MRHt
+KmybYABjGbai1xLfwT/06SWp0cvKKETGrgdBH95e2fXbLyPyL4GDDtYXkvZQ1x3CSWzpHJgO
+cjbDAkmqi6jrxE5ujLjtF82K0JPwNDj3SijlYtZsZRJtbYv5eCdFXBPXObMiW1TY8LDfW//8
+777Xc8tWcFwFHIyM1TUKGXFiBL6aeKBZJo7NnhnbnWY08uuBAvrIuj2c/iybzoJkvq1kjEkB
+mmNJDOWaxkGRpqgMLC1gZRVmeoqSxOvWobG8X3wBCWYZsTBn0ECkC/v2fvzlYvG2f/58dxxz
+tnt9lLoBJmtGc721qulbwDF0oTYilVoW08KxNWZY6+lu0wr9nesVDK6C72f1D4ygZlbD1Kuo
+nPN163huB+pecnXdvR1VBtDfo5yh0YjYyXwMxc+kW0XrW5BsIN8SK7xsz5PROcuAPHr4pFIX
+jCv0DgoKOFw9OLe5MSutjDS+lfGxn47vT69oUoQBvXyeDt8O8J/DaX95efnzUPFATb+uzMaM
+b2sW+C+Xu3tuuNSLdRm4hwYITsGGAz3M6Ayad4cnLV9NN9ieTdGxHtYPBuQ0krut126YCuMr
+4zR8qFev/wdJ+1GT4gMcHCulwJHHJP4aYJSyc8e5+Dnrzmj6J9uwz05uPexOuwsUWHu8r1I0
+Srz9Gn3xCqHDD1fqmcgdkDz9s4D/94EXyIeXTRJVESraRU0hCaqqdnYe4VvjAgi5rECrGMZX
+giTR5Ozgo7YqMAgejNs1Y+d0RDj3cGHSkQ4EGugmsaZHIczcKgE8NDByRWum+CzKvczqQaJy
+zvKrAody2nIRnqDdiqJ9AgoIXmNLrzfMHaWkFj2+7z72KolpmCBM0kU07YKJ+A4KH+Xn0+pw
+POG2QjYZv/17+Ng9HpgDYR3ITxflRXNQPe/6KDCmjVKb2dDEBh/TQXGnjrGUdrHj6dAWINJv
+3CmH9+LkTwcal+wgsWN754nG020VoNfglS2OwqXd4ma7xTypxFkN0Whfg/AcibIilDxbUubV
+cYzw+XYTgxLkRonsMiBpMUED+HBj0MWPXVhMIzO6LygCEwRq0/Wh2U78vYvCrGnUM7NJ6nw1
+IIm/J3E+lTp7avHKeKX7dhLCHDAqNYcMgenuIQ0G1V3ayK7qOtNcuQi2aS/i5CMYPZTCOWx8
+fAVeMleo5I7jjBpxCZoluldWmoHqC1NpJnD8nOVRoVWiox7SrMhB0AkdGh6kxFpuY2nOsfcl
+lsHWdqqz0nBA160wroyvLXj7Gaj7GnRfNDYlUMvjCD5v8GXpTOCV+QBdaSVfVjykyTR1Jh+O
+TLqu6txw4N/qrvT+A3DLCQKlKgEA
+
+--BXVAT5kNtrzKuDFl--
