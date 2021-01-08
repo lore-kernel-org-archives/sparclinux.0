@@ -1,37 +1,20 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 28 Jan 2021 07:58:32 +0000
-Subject: Re: [PATCH 11/27] m68k: add missing FORCE and fix 'targets' to make if_changed work
-Message-Id: <CAMuHMdWTK7Xa-6E2yLHxv8sGkD-VYgDF2SMRCj4_tDTVS2Uw1A@mail.gmail.com>
+From: Paul Cercueil <paul@crapouillou.net>
+Date: Fri, 08 Jan 2021 20:20:43 +0000
+Subject: Re: [patch V3 13/37] mips/mm/highmem: Switch to generic kmap atomic
+Message-Id: <JUTMMQ.NNFWKIUV7UUJ1@crapouillou.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org> <20210128005110.2613902-12-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-12-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Linux-Arch <linux-arch@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, Parisc List <linux-parisc@vger.kernel.org>, linux-kbuild <linux-kbuild@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>, linux-um <linux-um@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, alpha <linux-alpha@vger.kernel.org>, sparclinux <sparclinux@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>
+To: tglx@linutronix.de
+Cc: juri.lelli@redhat.com, linux-aio@kvack.org, airlied@linux.ie, nouveau@lists.freedesktop.org, bigeasy@linutronix.de, dri-devel@lists.freedesktop.org, linux-mips@vger.kernel.org, bsegall@google.com, jcmvbkbc@gmail.com, ray.huang@amd.com, paulus@samba.org, kraxel@redhat.com, sparclinux@vger.kernel.org, deanbo422@gmail.com, hch@lst.de, paulmck@kernel.org, mpe@ellerman.id.au, x86@kernel.org, linux@armlinux.org.uk, linux-csky@vger.kernel.org, mingo@kernel.org, peterz@infradead.org, linux-graphics-maintainer@vmware.com, bskeggs@redhat.com, airlied@redhat.com, linux-snps-arc@lists.infradead.org, linux-mm@kvack.org, mgorman@suse.de, linux-xtensa@linux-xtensa.org, arnd@arndb.de, intel-gfx@lists.freedesktop.org, sroland@vmware.com, josef@toxicpanda.com, rostedt@goodmis.org, torvalds@linuxfoundation.org, green.hu@gmail.com, dsterba@suse.com, virtualization@lists.linux-foundation.org, dietmar.eggemann@arm.com, linux-arm-kernel@lists.infradead.org, chris@zankel.net, monstr@monstr.eu, tsbogend@alpha.franken.de, nickhu@andestech.com, clm@fb.com, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, christian.koenig@amd.com, bcrl@kvack.org, spice-devel@lists.freedesktop.org, vgupta@synopsys.com, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, bristot@redhat.com, davem@davemloft.net, linux-btrfs@vger.kernel.org, viro@zeniv.linux.org.uk
 
-On Thu, Jan 28, 2021 at 1:54 AM Masahiro Yamada <masahiroy@kernel.org> wrote:
-> The rules in this Makefile cannot detect the command line change because
-> the prerequisite 'FORCE' is missing.
->
-> Adding 'FORCE' will result in the headers being rebuilt every time
-> because the 'targets' addition is also wrong; the file paths in
-> 'targets' must be relative to the current Makefile.
->
-> Fix all of them so the if_changed rules work correctly.
->
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Hi Thomas,
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+5.11 does not boot anymore on Ingenic SoCs, I bisected it to this 
+commit.
 
-Gr{oetje,eeting}s,
+Any idea what could be happening?
 
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Cheers,
+-Paul
