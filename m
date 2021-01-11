@@ -1,76 +1,68 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Mon, 11 Jan 2021 08:05:17 +0000
+From: chase rayfield <cusbrar1@gmail.com>
+Date: Mon, 11 Jan 2021 14:55:13 +0000
 Subject: Re: Old platforms: bring out your dead
-Message-Id: <df42946e-5b1f-c433-fc6b-a2950f3d8dab@physik.fu-berlin.de>
+Message-Id: <CACwypyNS+fVoPVspSr36v8YjFbkrnYb+amcYRqVmA2kD2uD1Wg@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <CAK8P3a2VW8T+yYUG1pn1yR-5eU4jJXe1+M_ot6DAvfr2KyXCzQ@mail.gmail.com>
  <ef1dc21f-694b-2433-e1c6-aa121320173e@physik.fu-berlin.de>
- <20210110214653.GA1693373@ravnborg.org>
-In-Reply-To: <20210110214653.GA1693373@ravnborg.org>
+ <20210110214653.GA1693373@ravnborg.org> <df42946e-5b1f-c433-fc6b-a2950f3d8dab@physik.fu-berlin.de>
+In-Reply-To: <df42946e-5b1f-c433-fc6b-a2950f3d8dab@physik.fu-berlin.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Sam Ravnborg <sam@ravnborg.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Sparc kernel list <sparclinux@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+To: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Sparc kernel list <sparclinux@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 
-Hello!
+On Mon, Jan 11, 2021 at 3:09 AM John Paul Adrian Glaubitz
+<glaubitz@physik.fu-berlin.de> wrote:
 
-On 1/10/21 10:46 PM, Sam Ravnborg wrote:
->> I don't think this has reached any agreement yet. Multiple people want it to stay.
-> 
-> None of the people that replied have any real use of the sun4m port,
-> they only wanted it to stay because they had some machines or such.
-> In other words - people will be sad if we sunset sun4m, but it will not
-> hurt anyone as there are no users left.
-> 
-> I will include the above summary when I post v2 of the patch to sunset
-> sun4m and sun4d. Then we will see what we conclude in the end.
+>
+> I'm not sure I understand the reasoning for doing this. The SPARC architecture
+> isn't going to see any new hardware developments in the future after Oracle
+> let go of most of the SPARC developers. So it's not that we need to make room
+> for new hardware.
+>
+My take is that there *would* be more interest in Sparc sun4m / Sun4d
+from enthusiasts at the very least if it was possible to actually boot
+the bloat hog that is Linux these days in a fully usable configuration
+that probably means some modifications to SILO and Linux required.
 
-I'm not sure I understand the reasoning for doing this. The SPARC architecture
-isn't going to see any new hardware developments in the future after Oracle
-let go of most of the SPARC developers. So it's not that we need to make room
-for new hardware.
+The problem is as I understand it, SILO only sets up a 16Mb mapping
+(either due to having to assume 4MB minimum dram stick size or due to
+mapping limitations not sure, most of these machines have at least
+16MB in slot one...these days though that wasn't the case for sun4c),
+loads Linux into it and says good Luck. This isn't enough for a modern
+kernel with any  hardware support built in. So you might for instance
+get a kernel to fit but only if you dropped all of networking support
+etc... I'm guessing the fix for this would be to modify silo to map a
+larger amount in a way that Linux expects so it can remap it as it
+likes, or just have SILO map the full memory as Linux would. Anyway
+that is THE main demotivation for these architectures.... otherwise
+they have plenty of ram and performance to do basic router/server
+tasks sans SSL.
 
-And I also disagree with Arnd's stance that a port seems broken because it
-doesn't see frequent or recent changes. As pointed out by Thomas Bogendoerfer
-in this thread [1], missing updates don't necessarily mean that something
-is broken but it can also just mean the hardware is fully supported and
-working, so why fix something that isn't broken?
+This has been the status quo for since the last of the 2.6 series of
+kernels which it was still possible to just barely squeeze a usable
+kernel out of... If someone wanted to take a few hours and fix this
+issue, and keep these architectures around I'd be happy to "buy them a
+round of pizza", though I recognize that many people that work on this
+already have nice jobs, and just don't have time.
 
-On the other hand, there are really serious bugs in the kernel that easily
-allow crashing the whole machine (here on POWER [2] or here on SPARC [3])
-that never get addressed.
+Also Sparc would probably be a good project for someone to extend/test
+Andi Keen's Linux LTO patch set so we could reduce the kernel binary
+size that way also even if sun4 architectures are dropped, it would
+still be useful for embedded sparc. Also there is a port of Temlib to
+the Mister hardware now, 3 cores roughly equivalent to a mid 90s
+machine, at least 128MB ram is possible ( more if a way to map the ARM
+system memory also 1GB is available there, it would have higher
+latency though).
 
-We have a $10k IBM POWER server in Debian Ports which hosts a big-endian
-PowerKVM build server instance and regularly hard-crashes because of the
-bug in [2]. This bug has remained unfixed for almost a year now.
+It is perfectly viable to build Sparc v7 or v8 32bit binaries in a
+chroot on a fast machine also, and I would recommend this if you wish
+to retain sanity rather than attempting cross compiler voodoo, unless
+that is your thing.
 
-On top of that, some of the tree-wide conversions like [4] have completely
-broken the Linux kernel on certain machines so that any larger ia64 servers
-are stuck on the 4.14 kernel with no fix in sight. Before that, the kernel
-worked perfectly fine on these machines.
+Anyways it could be that people that want this get around to fixing
+SILO eventually and just sit on this last kernel version... *shrugs*
 
-I understand that cleaning up code and modernizing things is important, but
-I think that the top priority should be to deliver something that is stable
-and usable by the enduser.
-
-But kernel development shouldn't be about scratching an itch which I sometimes
-have the impression is the main driver behind some changes in the kernel.
-
-I have personally invested a lot of time and effort in the past years to get
-Debian into shape on exotic and older architectures and I feel all this effort
-goes to waste when upstream projects just decide to kill of a certain platform
-in the kernel or toolchain like it already happened with PowerPCSPE in GCC.
-
-Adrian
-
-> [1] https://lore.kernel.org/lkml/20210108234430.GA17487@alpha.franken.de/
-> [2] https://bugzilla.kernel.org/show_bug.cgi?id 6669
-> [3] https://marc.info/?l=linux-sparc&m0967865029609&w=2
-> [4] https://marc.info/?l=linux-ia64&m6144480821712&w=2
-
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+Chase
