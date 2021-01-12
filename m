@@ -1,35 +1,34 @@
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Thu, 21 Jan 2021 08:03:35 +0000
-Subject: Re: soft lockups on T5120
-Message-Id: <63c23957-cfb0-ecdb-babf-31fe19c0661f@physik.fu-berlin.de>
+From: Thomas Gleixner <tglx@linutronix.de>
+Date: Tue, 12 Jan 2021 17:01:39 +0000
+Subject: [patch 3/4] mips/mm/highmem: Use set_pte() for kmap_local()
+Message-Id: <20210112170411.187513575@linutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <65a62b7c6e752dfb1b46624aa579d5e2@sf-tec.de>
-In-Reply-To: <65a62b7c6e752dfb1b46624aa579d5e2@sf-tec.de>
+References: <20210112170136.078559026@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org, Peter Zijlstra <peterz@infradead.org>, Paul Cercueil <paul@crapouillou.net>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, Andreas Larsson <andreas@gaisler.com>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>, linuxppc-dev@lists.ozlabs.org
 
-Hi Rolf!
+set_pte_at() on MIPS invokes update_cache() which might recurse into
+kmap_local(). Use set_pte() like the original MIPS highmem implementation
+did.
 
-On 1/21/21 8:23 AM, Rolf Eike Beer wrote:
->> The kernel currently is 5.10.3, but I hit this for quite a while
->>
->> Here is what came out of dmesg today. I found no signs of trouble
->> earlier than this:
-> 
-> And here it is again:
-> (...)
+Fixes: a4c33e83bca1 ("mips/mm/highmem: Switch to generic kmap atomic")
+Reported-by: Paul Cercueil <paul@crapouillou.net>
+Reported-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+---
+ arch/mips/include/asm/highmem.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-Anatoly found a reproducer for this bug [1]. So it might be an idea to bisect
-the issue with the help of the reproducer.
-
-Adrian
-
-> [1] https://marc.info/?l=linux-sparc&m0967865029609&w=2
-
--- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+--- a/arch/mips/include/asm/highmem.h
++++ b/arch/mips/include/asm/highmem.h
+@@ -51,6 +51,7 @@ extern void kmap_flush_tlb(unsigned long
+ 
+ #define flush_cache_kmaps()	BUG_ON(cpu_has_dc_aliases)
+ 
++#define arch_kmap_local_set_pte(mm, vaddr, ptep, ptev)	set_pte(ptep, ptev)
+ #define arch_kmap_local_post_map(vaddr, pteval)	local_flush_tlb_one(vaddr)
+ #define arch_kmap_local_post_unmap(vaddr)	local_flush_tlb_one(vaddr)
+ 
