@@ -1,82 +1,75 @@
 From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 12 Jan 2021 14:37:32 +0000
+Date: Tue, 12 Jan 2021 14:44:44 +0000
 Subject: Re: Old platforms: bring out your dead
-Message-Id: <4c42f2ce-7702-55cd-a2c0-558d3dd208f2@physik.fu-berlin.de>
+Message-Id: <cb5a2e11-d423-96ec-3d43-3568a109e37f@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <CAK8P3a2VW8T+yYUG1pn1yR-5eU4jJXe1+M_ot6DAvfr2KyXCzQ@mail.gmail.com>
- <ef1dc21f-694b-2433-e1c6-aa121320173e@physik.fu-berlin.de>
- <20210110214653.GA1693373@ravnborg.org>
- <df42946e-5b1f-c433-fc6b-a2950f3d8dab@physik.fu-berlin.de>
- <CACwypyNS+fVoPVspSr36v8YjFbkrnYb+amcYRqVmA2kD2uD1Wg@mail.gmail.com>
-In-Reply-To: <CACwypyNS+fVoPVspSr36v8YjFbkrnYb+amcYRqVmA2kD2uD1Wg@mail.gmail.com>
+References: <ef1dc21f-694b-2433-e1c6-aa121320173e@physik.fu-berlin.de>
+ <f48bcf43-9dcc-e48b-d29d-f75f3814398b@gmx.net>
+In-Reply-To: <f48bcf43-9dcc-e48b-d29d-f75f3814398b@gmx.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: chase rayfield <cusbrar1@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>, Arnd Bergmann <arnd@arndb.de>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Sparc kernel list <sparclinux@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
+To: Gerhard Pircher <gerhard_pircher@gmx.net>, Arnd Bergmann <arnd@arndb.de>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-m68k <linux-m68k@lists.linux-m68k.org>, Sparc kernel list <sparclinux@vger.kernel.org>, Linux-sh list <linux-sh@vger.kernel.org>
 
-Hello!
+Hello Gerhard!
 
-On 1/11/21 3:55 PM, chase rayfield wrote:
-> My take is that there *would* be more interest in Sparc sun4m / Sun4d
-> from enthusiasts at the very least if it was possible to actually boot
-> the bloat hog that is Linux these days in a fully usable configuration
-> that probably means some modifications to SILO and Linux required.
+On 1/11/21 4:04 PM, Gerhard Pircher wrote:
+>>> * powerpc/cell: I'm the maintainer and I promised to send a patch to remove it.
+>>>    it's in my backlog but I will get to it. This is separate from PS3,
+>>>    which is actively maintained and used; spufs will move to ps3
+>>> * powerpc/chrp (32-bit rs6000, pegasos2): last updated in 2009
+>>
+>> I'm still using this. Please keep it.
+>
+> I can also confirm that Pegasos2 users in the Amiga scene are running Linux
+> (Debian) on these machines.
 
-The Linux kernel is configurable. If you want a small kernel, then just
-configure one. No one expects you to boot a fully-fledged distribution
-kernel on these machines.
+Thanks for raising your voice. It's nice and reliable hardware after all and
+still fast enough to run a recent version of Debian unstable with a lean
+desktop such as XFCE or MATE.
+ 
+>>> * powerpc/amigaone: last updated in 2009
+>
+> I still have 2 of the 3 types of the first generation AmigaOne machines (not
+> to be confused with the newer AmigaOne X1000 and X5000 machines based on
+> PASemi and P5020 CPUs) working here. A third machine needs a repair of the
+> G4 CPU module (replacement parts already available).
 
-> The problem is as I understand it, SILO only sets up a 16Mb mapping
-> (either due to having to assume 4MB minimum dram stick size or due to
-> mapping limitations not sure, most of these machines have at least
-> 16MB in slot one...these days though that wasn't the case for sun4c),
-> loads Linux into it and says good Luck. This isn't enough for a modern
-> kernel with any  hardware support built in. So you might for instance
-> get a kernel to fit but only if you dropped all of networking support
-> etc...
+Cool.
 
-That makes no sense. It worked in the past, why shouldn't it work nowadays?
+> I have to admit however that I yet have to setup an environment that allows
+> me to regularly test new Linux kernel versions on these machines. Especially
+> because there are not many Linux users for these machines - which is likely
+> due to the fact that no distribution officially supports these machines out
+> of the box (the Pegasos2 platform had more luck here). Inputs on how to
+> automate tests would therefore be very welcome!
 
-As I said, you disable everything you don't need. I'm booting my SH-7785LCR
-SuperH board with a kernel that is less than 4 MB in size and which includes
-everything I need.
+Are you on the debian-powerpc mailing list? If not, please subscribe and post
+your issues there:
 
-> I'm guessing the fix for this would be to modify silo to map a
-> larger amount in a way that Linux expects so it can remap it as it
-> likes, or just have SILO map the full memory as Linux would. Anyway
-> that is THE main demotivation for these architectures.... otherwise
-> they have plenty of ram and performance to do basic router/server
-> tasks sans SSL.
+> https://lists.debian.org/debian-powerpc/
 
-Or just configure a smaller kernel.
+> Given however that the Debian PowerPC port has a proper maintainer again
+> (kudos to Adrian!) and there is also another new PowerPC distro (Void Linux),
+> I would like to ask for a period of grace. After all this is just a hobby
+> project for me, so keeping up with the pace of the Linux development isn't
+> always that easy (and no, work on this did not stop in 2009, but shifted more
+> towards distro support since then).
 
-> This has been the status quo for since the last of the 2.6 series of
-> kernels which it was still possible to just barely squeeze a usable
-> kernel out of... If someone wanted to take a few hours and fix this
-> issue, and keep these architectures around I'd be happy to "buy them a
-> round of pizza", though I recognize that many people that work on this
-> already have nice jobs, and just don't have time.
+Yeah, I have the same impression that's the strong commercial interest pushes
+hobbyist use of the Linux kernel a bit down. A lot of these changes feel like
+they're motivated by corporate decisions.
 
-I haven't gotten around to setup my SPARCstation 5 yet, but I will certainly
-going to do that later this year to give it a try.
+There has to be a healthy balance between hobbyist and commercial use. I understand
+that from a commercial point of view, it doesn't make much sense to run Linux
+on a 30-year-old computer. But it's a hobbyist project for many people and hacking
+Linux stuff for these old machines has a very entertaining and educational factor.
 
-> Also Sparc would probably be a good project for someone to extend/test
-> Andi Keen's Linux LTO patch set so we could reduce the kernel binary
-> size that way also even if sun4 architectures are dropped, it would
-> still be useful for embedded sparc. Also there is a port of Temlib to
-> the Mister hardware now, 3 cores roughly equivalent to a mid 90s
-> machine, at least 128MB ram is possible ( more if a way to map the ARM
-> system memory also 1GB is available there, it would have higher
-> latency though).
-> 
-> It is perfectly viable to build Sparc v7 or v8 32bit binaries in a
-> chroot on a fast machine also, and I would recommend this if you wish
-> to retain sanity rather than attempting cross compiler voodoo, unless
-> that is your thing.
-
-We build anything SPARC on a SPARC T5 that we have for Debian, no need
-for cross-compilation and that machine is actually quite fast.
+Plus, as Thomas Bogendoerfer already mentioned in this thread, most of the old ports
+run just fine. I have an Alpha XP-1000 building Debian packages for the Debian
+Alpha port and it runs 24/7 without a hick and is regularly kept up-to-date with
+dist-upgrades.
 
 Adrian
 
