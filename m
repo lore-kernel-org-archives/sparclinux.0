@@ -1,40 +1,44 @@
-From: Lijun Pan <lijunp213@gmail.com>
-Date: Fri, 29 Jan 2021 19:08:45 +0000
-Subject: Re: [PATCH] vio: make remove callback return void
-Message-Id: <CAOhMmr4ZMXS+R3AcdKm3qcePfuaZeC-0dNWvsSzowbv5hXo2-Q@mail.gmail.com>
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=  <u.kleine-koenig@pengutronix.de>
+Date: Thu, 14 Jan 2021 17:57:18 +0000
+Subject: [PATCH 3/3] tty: vcc: Drop impossible to hit WARN_ON
+Message-Id: <20210114175718.137483-4-u.kleine-koenig@pengutronix.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210127215010.99954-1-uwe@kleine-koenig.org>
-In-Reply-To: <20210127215010.99954-1-uwe@kleine-koenig.org>
+References: <20210114175718.137483-1-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <20210114175718.137483-1-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <uwe@kleine-koenig.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, "David S. Miller" <davem@davemloft.net>, Jens Axboe <axboe@kernel.dk>, Matt Mackall <mpm@selenic.com>, Herbert Xu <herbert@gondor.apana.org.au>, Peter Huewe <peterhuewe@gmx.de>, Jarkko Sakkinen <jarkko@kernel.org>, Jason Gunthorpe <jgg@ziepe.ca>, Haren Myneni <haren@us.ibm.com>, =?UTF-8?Q?Breno_Leit=C3=A3o?= <leitao@debian.org>, Nayna Jain <nayna@linux.ibm.com>, Paulo Flabiano Smorigo <pfsmorigo@gmail.com>, Steven Royer <seroyer@linux.ibm.com>, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Cristobal Forno <cforno12@linux.ibm.com>, Jakub Kicinski <kuba@kernel.org>, Dany Madden <drt@linux.ibm.com>, Lijun Pan <ljp@linux.ibm.com>, Sukadev Bhattiprolu <sukadev@linux.ibm.com>, Tyrel Datwyler <tyreld@linux.ibm.com>, "James E.J. Bottomley" <jejb@linux.ibm.com>, "Martin K. Petersen" <martin.petersen@oracle.com>, Michael Cyr <mikecyr@linux.ibm.com>, Jiri Slaby <jirislaby@kernel.org>, linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, linux-block@vger.kernel.org, linux-crypto@vger.kernel.org, linux-integrity@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jirislaby@kernel.org>
+Cc: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
 
-On Wed, Jan 27, 2021 at 6:41 PM Uwe Kleine-König <uwe@kleine-koenig.org> wrote:
->
-> The driver core ignores the return value of struct bus_type::remove()
-> because there is only little that can be done. To simplify the quest to
-> make this function return void, let struct vio_driver::remove() return
-> void, too. All users already unconditionally return 0, this commit makes
-> it obvious that returning an error code is a bad idea and makes it
-> obvious for future driver authors that returning an error code isn't
-> intended.
->
-> Note there are two nominally different implementations for a vio bus:
-> one in arch/sparc/kernel/vio.c and the other in
-> arch/powerpc/platforms/pseries/vio.c. I didn't care to check which
-> driver is using which of these busses (or if even some of them can be
-> used with both) and simply adapt all drivers and the two bus codes in
-> one go.
->
-> Note that for the powerpc implementation there is a semantical change:
-> Before this patch for a device that was bound to a driver without a
-> remove callback vio_cmo_bus_remove(viodev) wasn't called. As the device
-> core still considers the device unbound after vio_bus_remove() returns
-> calling this unconditionally is the consistent behaviour which is
-> implemented here.
->
-> Signed-off-by: Uwe Kleine-König <uwe@kleine-koenig.org>
+vcc_get() returns the port that has provided port->index. As the port that
+is about to be removed isn't removed yet this trivially will find this
+port. So simplify the call to not assign an identical value to the port
+pointer and drop the warning that is never hit.
 
-Acked-by: Lijun Pan <ljp@linux.ibm.com>
+Signed-off-by: Uwe Kleine-K=C3=B6nig <u.kleine-koenig@pengutronix.de>
+---
+ drivers/tty/vcc.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index d9b0dc6deae9..e2d6205f83ce 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -692,12 +692,9 @@ static int vcc_remove(struct vio_dev *vdev)
+ 		tty_vhangup(port->tty);
+=20
+ 	/* Get exclusive reference to VCC, ensures that there are no other
+-	 * clients to this port
++	 * clients to this port. This cannot fail.
+ 	 */
+-	port =3D vcc_get(port->index, true);
+-
+-	if (WARN_ON(!port))
+-		return -ENODEV;
++	vcc_get(port->index, true);
+=20
+ 	tty_unregister_device(vcc_tty_driver, port->index);
+=20
+--=20
+2.29.2
