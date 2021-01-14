@@ -1,92 +1,192 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 28 Jan 2021 00:51:02 +0000
-Subject: [PATCH 20/27] sh: syscalls: switch to generic syscalltbl.sh
-Message-Id: <20210128005110.2613902-21-masahiroy@kernel.org>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Date: Thu, 14 Jan 2021 11:47:27 +0000
+Subject: [PATCH 14/18] arch: sparc: Remove CONFIG_OPROFILE support
+Message-Id: <048b9e7918a847a6ad549350e30855a1b5d7c58e.1610622251.git.viresh.kumar@linaro.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
+References: <cover.1610622251.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1610622251.git.viresh.kumar@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, x86@kernel.org
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Robert Richter <rric@kernel.org>, Masahiro Yamada <masahiroy@kernel.org>, Michal Marek <michal.lkml@markovi.net>, Jonathan Corbet <corbet@lwn.net>, "David S. Miller" <davem@davemloft.net>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>, Vincent Guittot <vincent.guittot@linaro.org>, Arnd Bergmann <arnd@kernel.org>, oprofile-list@lists.sf.net, William Cohen <wcohen@redhat.com>, Alexander Viro <viro@zeniv.linux.org.uk>, anmar.oueja@linaro.org, Christoph Hellwig <hch@infradead.org>, linux-kbuild@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
 
-As of v5.11-rc1, 12 architectures duplicate similar shell scripts in
-order to generate syscall table headers. My goal is to unify them into
-the single scripts/syscalltbl.sh.
+The "oprofile" user-space tools don't use the kernel OPROFILE support
+any more, and haven't in a long time. User-space has been converted to
+the perf interfaces.
 
-This commit converts sh to use scripts/syscalltbl.sh.
+Remove the old oprofile's architecture specific support.
 
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 ---
+ Documentation/kbuild/makefiles.rst   |  1 -
+ arch/sparc/Kconfig                   |  1 -
+ arch/sparc/Makefile                  |  1 -
+ arch/sparc/configs/sparc64_defconfig |  1 -
+ arch/sparc/oprofile/Makefile         | 10 ----
+ arch/sparc/oprofile/init.c           | 87 ----------------------------
+ 6 files changed, 101 deletions(-)
+ delete mode 100644 arch/sparc/oprofile/Makefile
+ delete mode 100644 arch/sparc/oprofile/init.c
 
- arch/sh/kernel/syscalls/Makefile      |  7 ++----
- arch/sh/kernel/syscalls/syscalltbl.sh | 32 ---------------------------
- 2 files changed, 2 insertions(+), 37 deletions(-)
- delete mode 100644 arch/sh/kernel/syscalls/syscalltbl.sh
-
-diff --git a/arch/sh/kernel/syscalls/Makefile b/arch/sh/kernel/syscalls/Makefile
-index 1c42d2d2926d..6610130c67bc 100644
---- a/arch/sh/kernel/syscalls/Makefile
-+++ b/arch/sh/kernel/syscalls/Makefile
-@@ -7,7 +7,7 @@ _dummy := $(shell [ -d '$(uapi)' ] || mkdir -p '$(uapi)')	\
+diff --git a/Documentation/kbuild/makefiles.rst b/Documentation/kbuild/makefiles.rst
+index 9f6a11881951..d7b2e027c1f8 100644
+--- a/Documentation/kbuild/makefiles.rst
++++ b/Documentation/kbuild/makefiles.rst
+@@ -1317,7 +1317,6 @@ a few targets.
+ 		libs-y                 += arch/sparc/lib/
  
- syscall := $(srctree)/$(src)/syscall.tbl
- syshdr := $(srctree)/$(src)/syscallhdr.sh
--systbl := $(srctree)/$(src)/syscalltbl.sh
-+systbl := $(srctree)/scripts/syscalltbl.sh
+ 		drivers-$(CONFIG_PM) += arch/sparc/power/
+-		drivers-$(CONFIG_OPROFILE)	+= arch/sparc/oprofile/
  
- quiet_cmd_syshdr = SYSHDR  $@
-       cmd_syshdr = $(CONFIG_SHELL) '$(syshdr)' '$<' '$@'	\
-@@ -16,10 +16,7 @@ quiet_cmd_syshdr = SYSHDR  $@
- 		   '$(syshdr_offset_$(basetarget))'
+ 7.5 Architecture-specific boot images
+ -------------------------------------
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index c9c34dc52b7d..caf95e61162b 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -20,7 +20,6 @@ config SPARC
+ 	select OF_PROMTREE
+ 	select HAVE_ASM_MODVERSIONS
+ 	select HAVE_IDE
+-	select HAVE_OPROFILE
+ 	select HAVE_ARCH_KGDB if !SMP || SPARC64
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_SECCOMP if SPARC64
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index 4a0919581697..bee99e65fe23 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -65,7 +65,6 @@ libs-y                 += arch/sparc/prom/
+ libs-y                 += arch/sparc/lib/
  
- quiet_cmd_systbl = SYSTBL  $@
--      cmd_systbl = $(CONFIG_SHELL) '$(systbl)' '$<' '$@'	\
--		   '$(systbl_abis_$(basetarget))'		\
--		   '$(systbl_abi_$(basetarget))'		\
--		   '$(systbl_offset_$(basetarget))'
-+      cmd_systbl = $(CONFIG_SHELL) $(systbl) $< $@
+ drivers-$(CONFIG_PM) += arch/sparc/power/
+-drivers-$(CONFIG_OPROFILE)	+= arch/sparc/oprofile/
  
- $(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
- 	$(call if_changed,syshdr)
-diff --git a/arch/sh/kernel/syscalls/syscalltbl.sh b/arch/sh/kernel/syscalls/syscalltbl.sh
+ boot := arch/sparc/boot
+ 
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index bde4d21a8ac8..d91eb6a76dd1 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -8,7 +8,6 @@ CONFIG_PERF_EVENTS=y
+ # CONFIG_COMPAT_BRK is not set
+ CONFIG_SLAB=y
+ CONFIG_PROFILING=y
+-CONFIG_OPROFILE=m
+ CONFIG_KPROBES=y
+ CONFIG_MODULES=y
+ CONFIG_MODULE_UNLOAD=y
+diff --git a/arch/sparc/oprofile/Makefile b/arch/sparc/oprofile/Makefile
 deleted file mode 100644
-index 904b8e6e625d..000000000000
---- a/arch/sh/kernel/syscalls/syscalltbl.sh
+index fe906e403d3a..000000000000
+--- a/arch/sparc/oprofile/Makefile
 +++ /dev/null
-@@ -1,32 +0,0 @@
--#!/bin/sh
--# SPDX-License-Identifier: GPL-2.0
+@@ -1,10 +0,0 @@
+-# SPDX-License-Identifier: GPL-2.0-only
+-obj-$(CONFIG_OPROFILE) += oprofile.o
 -
--in="$1"
--out="$2"
--my_abis=`echo "($3)" | tr ',' '|'`
--my_abi="$4"
--offset="$5"
+-DRIVER_OBJS = $(addprefix ../../../drivers/oprofile/, \
+-		oprof.o cpu_buffer.o buffer_sync.o \
+-		event_buffer.o oprofile_files.o \
+-		oprofilefs.o oprofile_stats.o \
+-		timer_int.o )
 -
--emit() {
--	t_nxt="$1"
--	t_nr="$2"
--	t_entry="$3"
+-oprofile-y				:= $(DRIVER_OBJS) init.o
+diff --git a/arch/sparc/oprofile/init.c b/arch/sparc/oprofile/init.c
+deleted file mode 100644
+index 43730c9b1c86..000000000000
+--- a/arch/sparc/oprofile/init.c
++++ /dev/null
+@@ -1,87 +0,0 @@
+-/**
+- * @file init.c
+- *
+- * @remark Copyright 2002 OProfile authors
+- * @remark Read the file COPYING
+- *
+- * @author John Levon <levon@movementarian.org>
+- */
 -
--	while [ $t_nxt -lt $t_nr ]; do
--		printf "__SYSCALL(%s,sys_ni_syscall)\n" "${t_nxt}"
--		t_nxt=$((t_nxt+1))
--	done
--	printf "__SYSCALL(%s,%s)\n" "${t_nxt}" "${t_entry}"
+-#include <linux/kernel.h>
+-#include <linux/oprofile.h>
+-#include <linux/errno.h>
+-#include <linux/init.h>
+-#include <linux/param.h>	/* for HZ */
+- 
+-#ifdef CONFIG_SPARC64
+-#include <linux/notifier.h>
+-#include <linux/rcupdate.h>
+-#include <linux/kdebug.h>
+-#include <asm/nmi.h>
+-
+-static int profile_timer_exceptions_notify(struct notifier_block *self,
+-					   unsigned long val, void *data)
+-{
+-	struct die_args *args = data;
+-	int ret = NOTIFY_DONE;
+-
+-	switch (val) {
+-	case DIE_NMI:
+-		oprofile_add_sample(args->regs, 0);
+-		ret = NOTIFY_STOP;
+-		break;
+-	default:
+-		break;
+-	}
+-	return ret;
 -}
 -
--grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my_abis}" "$in" | sort -n | (
--	nxt=0
--	if [ -z "$offset" ]; then
--		offset=0
--	fi
+-static struct notifier_block profile_timer_exceptions_nb = {
+-	.notifier_call	= profile_timer_exceptions_notify,
+-};
 -
--	while read nr abi name entry ; do
--		emit $((nxt+offset)) $((nr+offset)) $entry
--		nxt=$((nr+1))
--	done
--) > "$out"
+-static int timer_start(void)
+-{
+-	if (register_die_notifier(&profile_timer_exceptions_nb))
+-		return 1;
+-	nmi_adjust_hz(HZ);
+-	return 0;
+-}
+-
+-
+-static void timer_stop(void)
+-{
+-	nmi_adjust_hz(1);
+-	unregister_die_notifier(&profile_timer_exceptions_nb);
+-	synchronize_rcu();  /* Allow already-started NMIs to complete. */
+-}
+-
+-static int op_nmi_timer_init(struct oprofile_operations *ops)
+-{
+-	if (atomic_read(&nmi_active) <= 0)
+-		return -ENODEV;
+-
+-	ops->start = timer_start;
+-	ops->stop = timer_stop;
+-	ops->cpu_type = "timer";
+-	printk(KERN_INFO "oprofile: Using perfctr NMI timer interrupt.\n");
+-	return 0;
+-}
+-#endif
+-
+-int __init oprofile_arch_init(struct oprofile_operations *ops)
+-{
+-	int ret = -ENODEV;
+-
+-#ifdef CONFIG_SPARC64
+-	ret = op_nmi_timer_init(ops);
+-	if (!ret)
+-		return ret;
+-#endif
+-
+-	return ret;
+-}
+-
+-void oprofile_arch_exit(void)
+-{
+-}
 -- 
-2.27.0
+2.25.0.rc1.19.g042ed3e048af
