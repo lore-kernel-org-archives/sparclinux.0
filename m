@@ -1,78 +1,49 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 28 Jan 2021 00:51:04 +0000
-Subject: [PATCH 22/27] sparc: add missing FORCE and fix 'targets' to make if_changed work
-Message-Id: <20210128005110.2613902-23-masahiroy@kernel.org>
+From: "Mr. Antonio Guterres" <jp5416544@gmail.com>
+Date: Thu, 21 Jan 2021 13:01:11 +0000
+Subject: contact me on WhatsApp+13313366360
+Message-Id: <CANbLV0JEMAuwXev88m5H2uUj8WNLUAVMQRb8ybXvqK70R6rM8A@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, x86@kernel.org
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
+To: sparclinux@vger.kernel.org
 
-The rules in this Makefile cannot detect the command line change because
-the prerequisite 'FORCE' is missing.
-
-Adding 'FORCE' will result in the headers being rebuilt every time
-because the 'targets' addition is also wrong; the file paths in
-'targets' must be relative to the current Makefile.
-
-Fix all of them so the if_changed rules work correctly.
-
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
----
-
- arch/sparc/kernel/syscalls/Makefile | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
-
-diff --git a/arch/sparc/kernel/syscalls/Makefile b/arch/sparc/kernel/syscalls/Makefile
-index c22a21c39f30..556fe30a6c8f 100644
---- a/arch/sparc/kernel/syscalls/Makefile
-+++ b/arch/sparc/kernel/syscalls/Makefile
-@@ -22,24 +22,24 @@ quiet_cmd_systbl = SYSTBL  $@
- 		   '$(systbl_offset_$(basetarget))'
- 
- syshdr_abis_unistd_32 := common,32
--$(uapi)/unistd_32.h: $(syscall) $(syshdr)
-+$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
- 	$(call if_changed,syshdr)
- 
- syshdr_abis_unistd_64 := common,64
--$(uapi)/unistd_64.h: $(syscall) $(syshdr)
-+$(uapi)/unistd_64.h: $(syscall) $(syshdr) FORCE
- 	$(call if_changed,syshdr)
- 
- systbl_abis_syscall_table_32 := common,32
--$(kapi)/syscall_table_32.h: $(syscall) $(systbl)
-+$(kapi)/syscall_table_32.h: $(syscall) $(systbl) FORCE
- 	$(call if_changed,systbl)
- 
- systbl_abis_syscall_table_64 := common,64
--$(kapi)/syscall_table_64.h: $(syscall) $(systbl)
-+$(kapi)/syscall_table_64.h: $(syscall) $(systbl) FORCE
- 	$(call if_changed,systbl)
- 
- systbl_abis_syscall_table_c32 := common,32
- systbl_abi_syscall_table_c32 := c32
--$(kapi)/syscall_table_c32.h: $(syscall) $(systbl)
-+$(kapi)/syscall_table_c32.h: $(syscall) $(systbl) FORCE
- 	$(call if_changed,systbl)
- 
- uapisyshdr-y		+= unistd_32.h unistd_64.h
-@@ -47,9 +47,10 @@ kapisyshdr-y		+= syscall_table_32.h		\
- 			   syscall_table_64.h		\
- 			   syscall_table_c32.h
- 
--targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
-+uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
-+kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
-+targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
- 
- PHONY += all
--all: $(addprefix $(uapi)/,$(uapisyshdr-y))
--all: $(addprefix $(kapi)/,$(kapisyshdr-y))
-+all: $(uapisyshdr-y) $(kapisyshdr-y)
- 	@:
 -- 
-2.27.0
+Attention please,
+
+I just received an email from Mr. Michael Cobbins the Director Of NEW
+IDEAS COURIER SERVICE that the ATM CARD valued the sum of ($2.5
+Million Dollars) which was sent to you as COVID-19 relief fund was
+returned back due to wrong address provided, They need the
+reconfirmation of the below details:
+
+
+Your Full Name:
+Your Address:
+Your Country
+Your Occupation
+Your Phone Number:
+Your ID:
+
+Contact them with the following information immediately:
+
+Contact Person: Mr. Michael Cobbins
+Email: michaelcobbins220@gmail.com
+Phone: +13313366360
+
+They will ask you to pay for Delivery Fee, please do not hesitate to
+pay it immediately so they will recommence the shipment and also
+forward your tracking information to you. Just send me a brief email
+as soon as you receive the shipment.
+
+
+Your registration code is (NLAPL), use it as your subject when
+contacting them so they will recognize you and attend to you without
+any delay.
+
+Thanks and have a nice day.
+
+Best Regards
+
+Mr. Antonio Guterres
+United Nations Secretary General
