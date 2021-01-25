@@ -1,59 +1,44 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 28 Jan 2021 00:51:08 +0000
-Subject: [PATCH 26/27] xtensa: add missing FORCE and fix 'targets' to make if_changed work
-Message-Id: <20210128005110.2613902-27-masahiroy@kernel.org>
+From: steve Johnson <stevenchancejohn@gmail.com>
+Date: Mon, 25 Jan 2021 14:06:57 +0000
+Subject: Urgent Attention
+Message-Id: <CAEzg4tjjR2jUx=ZsLfcK=-58ocuWfJO_aU6KgLu884nbc7AJhw@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, x86@kernel.org
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
+To: sparclinux@vger.kernel.org
 
-The rules in this Makefile cannot detect the command line change because
-the prerequisite 'FORCE' is missing.
+Hey Dear Friend,
 
-Adding 'FORCE' will result in the headers being rebuilt every time
-because the 'targets' addition is also wrong; the file paths in
-'targets' must be relative to the current Makefile.
+My name is Steven Chance Johnson a USA citizen. I am a retired US Navy officer
+and i have as well worked as a retail Insurance and risk management
+agent for 30yrs. I am married with two grown daughters.
 
-Fix all of them so the if_changed rules work correctly.
+I am interested in relocating my funds to a secured location.
+Can you handle large amount of funds?
+Can you send me your business profile?
 
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
----
+The reasons I am transferring my funds from its current location are;
 
- arch/xtensa/kernel/syscalls/Makefile | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+1. I received a letter from my bank, UBS in Switzerland requesting to
+provide account for the transfer as my account is to be closed on or
+before end of February, 2021.
 
-diff --git a/arch/xtensa/kernel/syscalls/Makefile b/arch/xtensa/kernel/syscalls/Makefile
-index 659faefdcb1d..1c42d2d2926d 100644
---- a/arch/xtensa/kernel/syscalls/Makefile
-+++ b/arch/xtensa/kernel/syscalls/Makefile
-@@ -21,18 +21,19 @@ quiet_cmd_systbl = SYSTBL  $@
- 		   '$(systbl_abi_$(basetarget))'		\
- 		   '$(systbl_offset_$(basetarget))'
- 
--$(uapi)/unistd_32.h: $(syscall) $(syshdr)
-+$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
- 	$(call if_changed,syshdr)
- 
--$(kapi)/syscall_table.h: $(syscall) $(systbl)
-+$(kapi)/syscall_table.h: $(syscall) $(systbl) FORCE
- 	$(call if_changed,systbl)
- 
- uapisyshdr-y		+= unistd_32.h
- kapisyshdr-y		+= syscall_table.h
- 
--targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
-+uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
-+kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
-+targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
- 
- PHONY += all
--all: $(addprefix $(uapi)/,$(uapisyshdr-y))
--all: $(addprefix $(kapi)/,$(kapisyshdr-y))
-+all: $(uapisyshdr-y) $(kapisyshdr-y)
- 	@:
--- 
-2.27.0
+
+2. The bank chooses to close my account in view of the current legal
+battle with the US.
+
+3. I cannot order this fund directly to my US bank account due to the matter on
+ground between the UBS AG and the US Government.
+
+Get more of the latest news:
+
+http://www.reuters.com/article/businessNews/idUSTRE55T3NR20090630
+http://content.time.com/time/business/article/0,8599,1910389,00.html
+
+
+If you are sure you can handle this, let me know as soon as you read
+this message.
+
+Kind regards,
+Steven C.Johnson
