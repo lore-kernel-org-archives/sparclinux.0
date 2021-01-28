@@ -1,14 +1,29 @@
-From: "Mrs. Mavis" <z.benamor@univ-alger.dz>
-Date: Mon, 11 Jan 2021 11:55:59 +0000
-Subject: =?utf-8?q?Sie_haben_eine_Spende_von_=E2=82=AC_5=2E800=2E000=2C00=2E?=
-Message-Id: <20210111115613.3942B4D44030@mail.univ-alger.dz>
+From: Nut Grove Manor <manornutgrovemanor@gmail.com>
+Date: Thu, 28 Jan 2021 18:12:38 +0000
+Subject: Invitation To Quote
+Message-Id: <bc9a5f43f3caae762f95ca676f59aca0@gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-Sie haben eine Spende von € 5.800.000,00. von Mavis Wanczyk antworten Sie mit diesem Code [MW530342019], um die Spende zu erhalten
+Good Day Sir
 
+We are please to invite you/your company to quote the following item
+listed
+below:
 
-Vous avez un don de 5 800 000,00 €. de Mavis Wanczyk répondez avec ce code [MW530342019] pour recevoir le don
+Product/Model No: TM9653 PRESSURE REGULATOR
+Product Name:MEKO
+Qty. 30 units
+
+Compulsory,Kindly send your quotation
+for immediate approval.
+
+Kind Regards,
+Albert Bourla
+PFIZER B.V Supply Chain Manager
+Tel: +31(0)208080 880
+ADDRESS: Rivium Westlaan 142, 2909 LD
+Capelle aan den IJssel, Netherlands
