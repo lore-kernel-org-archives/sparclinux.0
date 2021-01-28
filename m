@@ -1,49 +1,91 @@
-From: "Mr. Antonio Guterres" <jp5416544@gmail.com>
-Date: Thu, 21 Jan 2021 13:01:11 +0000
-Subject: contact me on WhatsApp+13313366360
-Message-Id: <CANbLV0JEMAuwXev88m5H2uUj8WNLUAVMQRb8ybXvqK70R6rM8A@mail.gmail.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:50:45 +0000
+Subject: [PATCH 03/27] x86/build: add missing FORCE and fix 'targets' to make if_changed work
+Message-Id: <20210128005110.2613902-4-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
+The rules in this Makefile cannot detect the command line change because
+the prerequisite 'FORCE' is missing.
+
+Adding 'FORCE' will result in the headers being rebuilt every time
+because the 'targets' addition is also wrong; the file paths in
+'targets' must be relative to the current Makefile.
+
+Fix all of them so the if_changed rules work correctly.
+
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
+
+ arch/x86/entry/syscalls/Makefile | 23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
+
+diff --git a/arch/x86/entry/syscalls/Makefile b/arch/x86/entry/syscalls/Makefile
+index 6fb9b57ed5ba..e1c7ddb7546b 100644
+--- a/arch/x86/entry/syscalls/Makefile
++++ b/arch/x86/entry/syscalls/Makefile
+@@ -24,34 +24,34 @@ quiet_cmd_hypercalls = HYPERCALLS $@
+       cmd_hypercalls = $(CONFIG_SHELL) '$<' $@ $(filter-out $<,$^)
+ 
+ syshdr_abi_unistd_32 := i386
+-$(uapi)/unistd_32.h: $(syscall32) $(syshdr)
++$(uapi)/unistd_32.h: $(syscall32) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_abi_unistd_32_ia32 := i386
+ syshdr_pfx_unistd_32_ia32 := ia32_
+-$(out)/unistd_32_ia32.h: $(syscall32) $(syshdr)
++$(out)/unistd_32_ia32.h: $(syscall32) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_abi_unistd_x32 := common,x32
+ syshdr_offset_unistd_x32 := __X32_SYSCALL_BIT
+-$(uapi)/unistd_x32.h: $(syscall64) $(syshdr)
++$(uapi)/unistd_x32.h: $(syscall64) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_abi_unistd_64 := common,64
+-$(uapi)/unistd_64.h: $(syscall64) $(syshdr)
++$(uapi)/unistd_64.h: $(syscall64) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_abi_unistd_64_x32 := x32
+ syshdr_pfx_unistd_64_x32 := x32_
+-$(out)/unistd_64_x32.h: $(syscall64) $(syshdr)
++$(out)/unistd_64_x32.h: $(syscall64) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+-$(out)/syscalls_32.h: $(syscall32) $(systbl)
++$(out)/syscalls_32.h: $(syscall32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+-$(out)/syscalls_64.h: $(syscall64) $(systbl)
++$(out)/syscalls_64.h: $(syscall64) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+-$(out)/xen-hypercalls.h: $(srctree)/scripts/xen-hypercalls.sh
++$(out)/xen-hypercalls.h: $(srctree)/scripts/xen-hypercalls.sh FORCE
+ 	$(call if_changed,hypercalls)
+ 
+ $(out)/xen-hypercalls.h: $(srctree)/include/xen/interface/xen*.h
+@@ -62,9 +62,10 @@ syshdr-$(CONFIG_X86_64)		+= unistd_32_ia32.h unistd_64_x32.h
+ syshdr-$(CONFIG_X86_64)		+= syscalls_64.h
+ syshdr-$(CONFIG_XEN)		+= xen-hypercalls.h
+ 
+-targets	+= $(uapisyshdr-y) $(syshdr-y)
++uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
++syshdr-y	:= $(addprefix $(out)/, $(syshdr-y))
++targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(syshdr-y))
+ 
+ PHONY += all
+-all: $(addprefix $(uapi)/,$(uapisyshdr-y))
+-all: $(addprefix $(out)/,$(syshdr-y))
++all: $(uapisyshdr-y) $(syshdr-y)
+ 	@:
 -- 
-Attention please,
-
-I just received an email from Mr. Michael Cobbins the Director Of NEW
-IDEAS COURIER SERVICE that the ATM CARD valued the sum of ($2.5
-Million Dollars) which was sent to you as COVID-19 relief fund was
-returned back due to wrong address provided, They need the
-reconfirmation of the below details:
-
-
-Your Full Name:
-Your Address:
-Your Country
-Your Occupation
-Your Phone Number:
-Your ID:
-
-Contact them with the following information immediately:
-
-Contact Person: Mr. Michael Cobbins
-Email: michaelcobbins220@gmail.com
-Phone: +13313366360
-
-They will ask you to pay for Delivery Fee, please do not hesitate to
-pay it immediately so they will recommence the shipment and also
-forward your tracking information to you. Just send me a brief email
-as soon as you receive the shipment.
-
-
-Your registration code is (NLAPL), use it as your subject when
-contacting them so they will recognize you and attend to you without
-any delay.
-
-Thanks and have a nice day.
-
-Best Regards
-
-Mr. Antonio Guterres
-United Nations Secretary General
+2.27.0
