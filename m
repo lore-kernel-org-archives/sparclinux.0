@@ -1,53 +1,70 @@
-From: Andreas Larsson <andreas@gaisler.com>
-Date: Thu, 28 Jan 2021 11:05:28 +0000
-Subject: Re: sparc32: boot fails with > 256 MB memory after switch to NO_BOOTMEM
-Message-Id: <fd127ef4-7890-8274-7642-c8affcd5b384@gaisler.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:50:44 +0000
+Subject: [PATCH 02/27] x86/syscalls: fix -Wmissing-prototypes warnings from COND_SYSCALL()
+Message-Id: <20210128005110.2613902-3-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <5adb7c41-ad71-b904-6b73-35aef4dfcafe@gaisler.com>
- <20210128093541.GC299309@linux.ibm.com>
-In-Reply-To: <20210128093541.GC299309@linux.ibm.com>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Sparc kernel list <sparclinux@vger.kernel.org>, linux-mm@kvack.org, Mike Rapoport <rppt@linux.vnet.ibm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Sam Ravnborg <sam@ravnborg.org>, Michal Hocko <mhocko@kernel.org>
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
-On 2021-01-28 10:35, Mike Rapoport wrote:
-> On Wed, Jan 27, 2021 at 04:03:00PM +0100, Andreas Larsson wrote:
->>
->>
->> Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 makes sparc32 use
->> memblocks instead of the previous bootmem solution. Unfortunately, due
->> to this:
->>
->> #define PAGE_OFFSET  0xf0000000
->> #define __va(x)	     ((void *)((unsigned long) (x) - phys_base +
->> PAGE_OFFSET))
->> #define phys_to_virt __va
->>
->> it makes physical addresses >= 0x10000000 past phys_base wrap around the
->> 32-bit memory space when converted to virtual addresses, e.g. in
->> memblock_alloc_try_nid. Physical memory exactly 0x10000000 past
->> phys_base is returned as an unintended NULL pointer, leading to a panic
->> in my boot when percpu memory allocation fails due to it.
->>
->> Unfortunately I have had 256 MB memory or less in a lot of my testing,
->> so this old one has slipped by me.
->>
->> Does anyone has any ideas or pointers on how to resolve this?
-> 
-> I think the simplest way to work around this is to limit early allocations
-> to 256M with addition of
-> 
-> 	memblock_set_current_limit(SZ_256M);
->   
-> somewhere at setup_arch().
-> 
-> The page allocator will anyway see the entire memory, so I cannot think of
-> any downside here.
+Building kernel/sys_ni.c with W=1 omits tons of -Wmissing-prototypes
+warnings.
 
-That works like a charm! Thank you! I'll submit a patch.
+$ make W=1 kernel/sys_ni.o
+  [ snip ]
+  CC      kernel/sys_ni.o
+In file included from kernel/sys_ni.c:10:
+./arch/x86/include/asm/syscall_wrapper.h:83:14: warning: no previous prototype for '__x64_sys_io_setup' [-Wmissing-prototypes]
+   83 |  __weak long __##abi##_##name(const struct pt_regs *__unused) \
+      |              ^~
+./arch/x86/include/asm/syscall_wrapper.h:100:2: note: in expansion of macro '__COND_SYSCALL'
+  100 |  __COND_SYSCALL(x64, sys_##name)
+      |  ^~~~~~~~~~~~~~
+./arch/x86/include/asm/syscall_wrapper.h:256:2: note: in expansion of macro '__X64_COND_SYSCALL'
+  256 |  __X64_COND_SYSCALL(name)     \
+      |  ^~~~~~~~~~~~~~~~~~
+kernel/sys_ni.c:39:1: note: in expansion of macro 'COND_SYSCALL'
+   39 | COND_SYSCALL(io_setup);
+      | ^~~~~~~~~~~~
+./arch/x86/include/asm/syscall_wrapper.h:83:14: warning: no previous prototype for '__ia32_sys_io_setup' [-Wmissing-prototypes]
+   83 |  __weak long __##abi##_##name(const struct pt_regs *__unused) \
+      |              ^~
+./arch/x86/include/asm/syscall_wrapper.h:120:2: note: in expansion of macro '__COND_SYSCALL'
+  120 |  __COND_SYSCALL(ia32, sys_##name)
+      |  ^~~~~~~~~~~~~~
+./arch/x86/include/asm/syscall_wrapper.h:257:2: note: in expansion of macro '__IA32_COND_SYSCALL'
+  257 |  __IA32_COND_SYSCALL(name)
+      |  ^~~~~~~~~~~~~~~~~~~
+kernel/sys_ni.c:39:1: note: in expansion of macro 'COND_SYSCALL'
+   39 | COND_SYSCALL(io_setup);
+      | ^~~~~~~~~~~~
+  ...
 
+__SYS_STUB0() and __SYS_STUBx() defined a few lines above have forward
+declarations. Let's do likewise for __COND_SYSCALL() to fix the
+warnings.
+
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
+
+ arch/x86/include/asm/syscall_wrapper.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/x86/include/asm/syscall_wrapper.h b/arch/x86/include/asm/syscall_wrapper.h
+index a84333adeef2..80c08c7d5e72 100644
+--- a/arch/x86/include/asm/syscall_wrapper.h
++++ b/arch/x86/include/asm/syscall_wrapper.h
+@@ -80,6 +80,7 @@ extern long __ia32_sys_ni_syscall(const struct pt_regs *regs);
+ 	}
+ 
+ #define __COND_SYSCALL(abi, name)					\
++	__weak long __##abi##_##name(const struct pt_regs *__unused);	\
+ 	__weak long __##abi##_##name(const struct pt_regs *__unused)	\
+ 	{								\
+ 		return sys_ni_syscall();				\
 -- 
-Andreas Larsson
-Cobham Gaisler
+2.27.0
