@@ -1,45 +1,86 @@
-From: Corentin Labbe <clabbe@baylibre.com>
-Date: Mon, 18 Jan 2021 08:23:45 +0000
-Subject: [PATCH v2] sparc: sparc64_defconfig: add necessary configs for qemu
-Message-Id: <20210118082345.16163-1-clabbe@baylibre.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:51:06 +0000
+Subject: [PATCH 24/27] powerpc: add missing FORCE and fix 'targets' to make if_changed work
+Message-Id: <20210128005110.2613902-25-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
-The sparc64 qemu machines uses sunhme network hardware by default, so for
-simple NFS boot testing using qemu, having CONFIG_HAPPYMEAL is useful.
-And so we need also IP_PNP_DHCP for NFS boot.
-For the same reason we need to enable its storage which is a PATA_CMD64.
-And finally, we need CONFIG_DEVTMPFS for handling recent udev/systemd.
+The rules in this Makefile cannot detect the command line change because
+the prerequisite 'FORCE' is missing.
 
-All those options will permit to enable boot testing in both kernelCI
-and gentoo's kernelCI.
+Adding 'FORCE' will result in the headers being rebuilt every time
+because the 'targets' addition is also wrong; the file paths in
+'targets' must be relative to the current Makefile.
 
-Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+Fix all of them so the if_changed rules work correctly.
+
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 ---
-Changes since v1:
-- Added CONFIG_DEVTMPFS for udev
-- Changed PCNET32 to HAPPYMEAL, as the default netword card is sunhme
 
- arch/sparc/configs/sparc64_defconfig | 6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/powerpc/kernel/syscalls/Makefile | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
-index bde4d21a8ac8..439ec8bc6dca 100644
---- a/arch/sparc/configs/sparc64_defconfig
-+++ b/arch/sparc/configs/sparc64_defconfig
-@@ -236,3 +236,9 @@ CONFIG_CRYPTO_TWOFISH=m
- CONFIG_CRC16=m
- CONFIG_LIBCRC32C=m
- CONFIG_VCC=m
-+CONFIG_ATA=y
-+CONFIG_PATA_CMD64X=y
-+CONFIG_HAPPYMEAL=y
-+CONFIG_IP_PNP=y
-+CONFIG_IP_PNP_DHCP=y
-+CONFIG_DEVTMPFS=y
+diff --git a/arch/powerpc/kernel/syscalls/Makefile b/arch/powerpc/kernel/syscalls/Makefile
+index 27b48954808d..d609f0040b2a 100644
+--- a/arch/powerpc/kernel/syscalls/Makefile
++++ b/arch/powerpc/kernel/syscalls/Makefile
+@@ -22,31 +22,31 @@ quiet_cmd_systbl = SYSTBL  $@
+ 		   '$(systbl_offset_$(basetarget))'
+ 
+ syshdr_abis_unistd_32 := common,nospu,32
+-$(uapi)/unistd_32.h: $(syscall) $(syshdr)
++$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_abis_unistd_64 := common,nospu,64
+-$(uapi)/unistd_64.h: $(syscall) $(syshdr)
++$(uapi)/unistd_64.h: $(syscall) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ systbl_abis_syscall_table_32 := common,nospu,32
+ systbl_abi_syscall_table_32 := 32
+-$(kapi)/syscall_table_32.h: $(syscall) $(systbl)
++$(kapi)/syscall_table_32.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abis_syscall_table_64 := common,nospu,64
+ systbl_abi_syscall_table_64 := 64
+-$(kapi)/syscall_table_64.h: $(syscall) $(systbl)
++$(kapi)/syscall_table_64.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abis_syscall_table_c32 := common,nospu,32
+ systbl_abi_syscall_table_c32 := c32
+-$(kapi)/syscall_table_c32.h: $(syscall) $(systbl)
++$(kapi)/syscall_table_c32.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abis_syscall_table_spu := common,spu
+ systbl_abi_syscall_table_spu := spu
+-$(kapi)/syscall_table_spu.h: $(syscall) $(systbl)
++$(kapi)/syscall_table_spu.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ uapisyshdr-y		+= unistd_32.h unistd_64.h
+@@ -55,9 +55,10 @@ kapisyshdr-y		+= syscall_table_32.h		\
+ 			   syscall_table_c32.h		\
+ 			   syscall_table_spu.h
+ 
+-targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
++uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
++kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
++targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
+ 
+ PHONY += all
+-all: $(addprefix $(uapi)/,$(uapisyshdr-y))
+-all: $(addprefix $(kapi)/,$(kapisyshdr-y))
++all: $(uapisyshdr-y) $(kapisyshdr-y)
+ 	@:
 -- 
-2.26.2
+2.27.0
