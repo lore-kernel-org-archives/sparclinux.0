@@ -1,44 +1,109 @@
-From: Joe Perches <joe@perches.com>
-Date: Sat, 30 Jan 2021 18:56:17 +0000
-Subject: Re: [PATCH 04/29] sparc: Avoid comma separated statements
-Message-Id: <537f6b211185eec4e511bc146d1863f448e7d6c7.camel@perches.com>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:50:57 +0000
+Subject: [PATCH 15/27] mips: add missing FORCE and fix 'targets' to make if_changed work
+Message-Id: <20210128005110.2613902-16-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <cover.1598331148.git.joe@perches.com>
-         <9dade53620b9532ff76a726320a497c67138264c.1598331148.git.joe@perches.com>
-In-Reply-To: <9dade53620b9532ff76a726320a497c67138264c.1598331148.git.joe@perches.com>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-To: Jiri Kosina <trivial@kernel.org>, linux-kernel@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
-On Mon, 2020-08-24 at 21:56 -0700, Joe Perches wrote:
-> Use semicolons and braces.
+The rules in this Makefile cannot detect the command line change because
+the prerequisite 'FORCE' is missing.
 
-ping?
+Adding 'FORCE' will result in the headers being rebuilt every time
+because the 'targets' addition is also wrong; the file paths in
+'targets' must be relative to the current Makefile.
 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
-> =A0arch/sparc/kernel/smp_64.c | 7 +++++--
-> =A01 file changed, 5 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-> index e286e2badc8a..28c11f7871cd 100644
-> --- a/arch/sparc/kernel/smp_64.c
-> +++ b/arch/sparc/kernel/smp_64.c
-> @@ -186,8 +186,11 @@ static inline long get_delta (long *rt, long *master)
-> =A0		wmb();
-> =A0		t1 =3D tick_ops->get_tick();
-> =A0
->=20
-> -		if (t1 - t0 < best_t1 - best_t0)
-> -			best_t0 =3D t0, best_t1 =3D t1, best_tm =3D tm;
-> +		if (t1 - t0 < best_t1 - best_t0) {
-> +			best_t0 =3D t0;
-> +			best_t1 =3D t1;
-> +			best_tm =3D tm;
-> +		}
-> =A0	}
-> =A0
->=20
-> =A0	*rt =3D best_t1 - best_t0;
+Fix all of them so the if_changed rules work correctly.
+
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
+
+ arch/mips/kernel/syscalls/Makefile | 27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/arch/mips/kernel/syscalls/Makefile b/arch/mips/kernel/syscalls/Makefile
+index 6efb2f6889a7..f15842bda464 100644
+--- a/arch/mips/kernel/syscalls/Makefile
++++ b/arch/mips/kernel/syscalls/Makefile
+@@ -31,50 +31,50 @@ quiet_cmd_systbl = SYSTBL  $@
+ 		   '$(systbl_offset_$(basetarget))'
+ 
+ syshdr_offset_unistd_n32 := __NR_Linux
+-$(uapi)/unistd_n32.h: $(syscalln32) $(syshdr)
++$(uapi)/unistd_n32.h: $(syscalln32) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_offset_unistd_n64 := __NR_Linux
+-$(uapi)/unistd_n64.h: $(syscalln64) $(syshdr)
++$(uapi)/unistd_n64.h: $(syscalln64) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ syshdr_offset_unistd_o32 := __NR_Linux
+-$(uapi)/unistd_o32.h: $(syscallo32) $(syshdr)
++$(uapi)/unistd_o32.h: $(syscallo32) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+ sysnr_pfx_unistd_nr_n32 := N32
+ sysnr_offset_unistd_nr_n32 := 6000
+-$(uapi)/unistd_nr_n32.h: $(syscalln32) $(sysnr)
++$(uapi)/unistd_nr_n32.h: $(syscalln32) $(sysnr) FORCE
+ 	$(call if_changed,sysnr)
+ 
+ sysnr_pfx_unistd_nr_n64 := 64
+ sysnr_offset_unistd_nr_n64 := 5000
+-$(uapi)/unistd_nr_n64.h: $(syscalln64) $(sysnr)
++$(uapi)/unistd_nr_n64.h: $(syscalln64) $(sysnr) FORCE
+ 	$(call if_changed,sysnr)
+ 
+ sysnr_pfx_unistd_nr_o32 := O32
+ sysnr_offset_unistd_nr_o32 := 4000
+-$(uapi)/unistd_nr_o32.h: $(syscallo32) $(sysnr)
++$(uapi)/unistd_nr_o32.h: $(syscallo32) $(sysnr) FORCE
+ 	$(call if_changed,sysnr)
+ 
+ systbl_abi_syscall_table_32_o32 := 32_o32
+ systbl_offset_syscall_table_32_o32 := 4000
+-$(kapi)/syscall_table_32_o32.h: $(syscallo32) $(systbl)
++$(kapi)/syscall_table_32_o32.h: $(syscallo32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abi_syscall_table_64_n32 := 64_n32
+ systbl_offset_syscall_table_64_n32 := 6000
+-$(kapi)/syscall_table_64_n32.h: $(syscalln32) $(systbl)
++$(kapi)/syscall_table_64_n32.h: $(syscalln32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abi_syscall_table_64_n64 := 64_n64
+ systbl_offset_syscall_table_64_n64 := 5000
+-$(kapi)/syscall_table_64_n64.h: $(syscalln64) $(systbl)
++$(kapi)/syscall_table_64_n64.h: $(syscalln64) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ systbl_abi_syscall_table_64_o32 := 64_o32
+ systbl_offset_syscall_table_64_o32 := 4000
+-$(kapi)/syscall_table_64_o32.h: $(syscallo32) $(systbl)
++$(kapi)/syscall_table_64_o32.h: $(syscallo32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ uapisyshdr-y		+= unistd_n32.h			\
+@@ -88,9 +88,10 @@ kapisyshdr-y		+= syscall_table_32_o32.h	\
+ 			   syscall_table_64_n64.h	\
+ 			   syscall_table_64_o32.h
+ 
+-targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
++uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
++kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
++targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
+ 
+ PHONY += all
+-all: $(addprefix $(uapi)/,$(uapisyshdr-y))
+-all: $(addprefix $(kapi)/,$(kapisyshdr-y))
++all: $(uapisyshdr-y) $(kapisyshdr-y)
+ 	@:
+-- 
+2.27.0
