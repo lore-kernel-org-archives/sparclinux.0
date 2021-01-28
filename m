@@ -1,48 +1,59 @@
-From: Jiri Slaby <jirislaby@kernel.org>
-Date: Fri, 15 Jan 2021 08:20:24 +0000
-Subject: Re: [PATCH 2/3] tty: vcc: Drop unnecessary if block
-Message-Id: <9a1c68fc-f3bf-79e7-e2ae-238059241e2f@kernel.org>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:50:53 +0000
+Subject: [PATCH 11/27] m68k: add missing FORCE and fix 'targets' to make if_changed work
+Message-Id: <20210128005110.2613902-12-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210114175718.137483-1-u.kleine-koenig@pengutronix.de>
- <20210114175718.137483-3-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <20210114175718.137483-3-u.kleine-koenig@pengutronix.de>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-To: =?UTF-8?Q?Uwe_Kleine-K=c3=b6nig?= <u.kleine-koenig@pengutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, "David S . Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
-On 14. 01. 21, 18:57, Uwe Kleine-König wrote:
-> If vcc_probe() succeeded dev_set_drvdata() is called with a non-NULL
-> value, and if vcc_probe() failed vcc_remove() isn't called.
-> 
-> So there is no way dev_get_drvdata() can return NULL in vcc_remove() and
-> the check can just go away.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+The rules in this Makefile cannot detect the command line change because
+the prerequisite 'FORCE' is missing.
 
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
+Adding 'FORCE' will result in the headers being rebuilt every time
+because the 'targets' addition is also wrong; the file paths in
+'targets' must be relative to the current Makefile.
 
-> ---
->   drivers/tty/vcc.c | 3 ---
->   1 file changed, 3 deletions(-)
-> 
-> diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-> index 9ffd42e333b8..d9b0dc6deae9 100644
-> --- a/drivers/tty/vcc.c
-> +++ b/drivers/tty/vcc.c
-> @@ -681,9 +681,6 @@ static int vcc_remove(struct vio_dev *vdev)
->   {
->   	struct vcc_port *port = dev_get_drvdata(&vdev->dev);
->   
-> -	if (!port)
-> -		return -ENODEV;
-> -
->   	del_timer_sync(&port->rx_timer);
->   	del_timer_sync(&port->tx_timer);
->   
-> 
+Fix all of them so the if_changed rules work correctly.
 
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
 
+ arch/m68k/kernel/syscalls/Makefile | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/arch/m68k/kernel/syscalls/Makefile b/arch/m68k/kernel/syscalls/Makefile
+index 659faefdcb1d..1c42d2d2926d 100644
+--- a/arch/m68k/kernel/syscalls/Makefile
++++ b/arch/m68k/kernel/syscalls/Makefile
+@@ -21,18 +21,19 @@ quiet_cmd_systbl = SYSTBL  $@
+ 		   '$(systbl_abi_$(basetarget))'		\
+ 		   '$(systbl_offset_$(basetarget))'
+ 
+-$(uapi)/unistd_32.h: $(syscall) $(syshdr)
++$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+-$(kapi)/syscall_table.h: $(syscall) $(systbl)
++$(kapi)/syscall_table.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ uapisyshdr-y		+= unistd_32.h
+ kapisyshdr-y		+= syscall_table.h
+ 
+-targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
++uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
++kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
++targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
+ 
+ PHONY += all
+-all: $(addprefix $(uapi)/,$(uapisyshdr-y))
+-all: $(addprefix $(kapi)/,$(kapisyshdr-y))
++all: $(uapisyshdr-y) $(kapisyshdr-y)
+ 	@:
 -- 
-js
+2.27.0
