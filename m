@@ -1,298 +1,219 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 05 Jan 2021 00:59:11 +0000
-Subject: [PATCH AUTOSEL 5.10 13/17] local64.h: make <asm/local64.h> mandatory
-Message-Id: <20210105005915.3954208-13-sashal@kernel.org>
+From: Masahiro Yamada <masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:50:58 +0000
+Subject: [PATCH 16/27] mips: syscalls: switch to generic syscalltbl.sh
+Message-Id: <20210128005110.2613902-17-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210105005915.3954208-1-sashal@kernel.org>
-In-Reply-To: <20210105005915.3954208-1-sashal@kernel.org>
+References: <20210128005110.2613902-1-masahiroy@kernel.org>
+In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Randy Dunlap <rdunlap@infradead.org>, Christoph Hellwig <hch@infradead.org>, Masahiro Yamada <masahiroy@kernel.org>, Jens Axboe <axboe@kernel.dk>, Ley Foon Tan <ley.foon.tan@intel.com>, Mark Salter <msalter@redhat.com>, Aurelien Jacquiot <jacquiot.aurelien@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Arnd Bergmann <arnd@arndb.de>, Andrew Morton <akpm@linux-foundation.org>, Linus Torvalds <torvalds@linux-foundation.org>, Sasha Levin <sashal@kernel.org>, linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org, linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp, linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org, linux-arch@vger.kernel.org
+To: linux-arch@vger.kernel.org, x86@kernel.org
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+As of v5.11-rc1, 12 architectures duplicate similar shell scripts in
+order to generate syscall table headers. My goal is to unify them into
+the single scripts/syscalltbl.sh.
 
-[ Upstream commit 87dbc209ea04645fd2351981f09eff5d23f8e2e9 ]
+This commit converts mips to use scripts/syscalltbl.sh. This also
+unifies syscall_table_32_o32.h and syscall_table_64_o32.h into
+syscall_table_o32.h.
 
-Make <asm-generic/local64.h> mandatory in include/asm-generic/Kbuild and
-remove all arch/*/include/asm/local64.h arch-specific files since they
-only #include <asm-generic/local64.h>.
-
-This fixes build errors on arch/c6x/ and arch/nios2/ for
-block/blk-iocost.c.
-
-Build-tested on 21 of 25 arch-es.  (tools problems on the others)
-
-Yes, we could even rename <asm-generic/local64.h> to
-<linux/local64.h> and change all #includes to use
-<linux/local64.h> instead.
-
-Link: https://lkml.kernel.org/r/20201227024446.17018-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Aurelien Jacquiot <jacquiot.aurelien@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 ---
- arch/alpha/include/asm/local64.h   | 1 -
- arch/arc/include/asm/Kbuild        | 1 -
- arch/arm/include/asm/Kbuild        | 1 -
- arch/arm64/include/asm/Kbuild      | 1 -
- arch/csky/include/asm/Kbuild       | 1 -
- arch/h8300/include/asm/Kbuild      | 1 -
- arch/hexagon/include/asm/Kbuild    | 1 -
- arch/ia64/include/asm/local64.h    | 1 -
- arch/m68k/include/asm/Kbuild       | 1 -
- arch/microblaze/include/asm/Kbuild | 1 -
- arch/mips/include/asm/Kbuild       | 1 -
- arch/nds32/include/asm/Kbuild      | 1 -
- arch/parisc/include/asm/Kbuild     | 1 -
- arch/powerpc/include/asm/Kbuild    | 1 -
- arch/riscv/include/asm/Kbuild      | 1 -
- arch/s390/include/asm/Kbuild       | 1 -
- arch/sh/include/asm/Kbuild         | 1 -
- arch/sparc/include/asm/Kbuild      | 1 -
- arch/x86/include/asm/local64.h     | 1 -
- arch/xtensa/include/asm/Kbuild     | 1 -
- include/asm-generic/Kbuild         | 1 +
- 21 files changed, 1 insertion(+), 20 deletions(-)
- delete mode 100644 arch/alpha/include/asm/local64.h
- delete mode 100644 arch/ia64/include/asm/local64.h
- delete mode 100644 arch/x86/include/asm/local64.h
 
-diff --git a/arch/alpha/include/asm/local64.h b/arch/alpha/include/asm/local64.h
-deleted file mode 100644
-index 36c93b5cc239b..0000000000000
---- a/arch/alpha/include/asm/local64.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/local64.h>
-diff --git a/arch/arc/include/asm/Kbuild b/arch/arc/include/asm/Kbuild
-index 81f4edec0c2a9..3c1afa524b9c2 100644
---- a/arch/arc/include/asm/Kbuild
-+++ b/arch/arc/include/asm/Kbuild
-@@ -1,7 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- generic-y += extable.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
- generic-y += user.h
-diff --git a/arch/arm/include/asm/Kbuild b/arch/arm/include/asm/Kbuild
-index 383635b68763c..f1398b9267c08 100644
---- a/arch/arm/include/asm/Kbuild
-+++ b/arch/arm/include/asm/Kbuild
-@@ -2,7 +2,6 @@
- generic-y += early_ioremap.h
- generic-y += extable.h
- generic-y += flat.h
--generic-y += local64.h
- generic-y += parport.h
- generic-y += seccomp.h
- 
-diff --git a/arch/arm64/include/asm/Kbuild b/arch/arm64/include/asm/Kbuild
-index ff9cbb6312128..07ac208edc894 100644
---- a/arch/arm64/include/asm/Kbuild
-+++ b/arch/arm64/include/asm/Kbuild
-@@ -1,6 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
- generic-y += early_ioremap.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += qrwlock.h
- generic-y += qspinlock.h
-diff --git a/arch/csky/include/asm/Kbuild b/arch/csky/include/asm/Kbuild
-index 64876e59e2ef9..2a5a4d94fafad 100644
---- a/arch/csky/include/asm/Kbuild
-+++ b/arch/csky/include/asm/Kbuild
-@@ -2,7 +2,6 @@
- generic-y += asm-offsets.h
- generic-y += gpio.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += qrwlock.h
- generic-y += seccomp.h
- generic-y += user.h
-diff --git a/arch/h8300/include/asm/Kbuild b/arch/h8300/include/asm/Kbuild
-index ddf04f32b5467..60ee7f0d60a8f 100644
---- a/arch/h8300/include/asm/Kbuild
-+++ b/arch/h8300/include/asm/Kbuild
-@@ -2,7 +2,6 @@
- generic-y += asm-offsets.h
- generic-y += extable.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
- generic-y += spinlock.h
-diff --git a/arch/hexagon/include/asm/Kbuild b/arch/hexagon/include/asm/Kbuild
-index 373964bb177e4..3ece3c93fe086 100644
---- a/arch/hexagon/include/asm/Kbuild
-+++ b/arch/hexagon/include/asm/Kbuild
-@@ -2,5 +2,4 @@
- generic-y += extable.h
- generic-y += iomap.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
-diff --git a/arch/ia64/include/asm/local64.h b/arch/ia64/include/asm/local64.h
-deleted file mode 100644
-index 36c93b5cc239b..0000000000000
---- a/arch/ia64/include/asm/local64.h
-+++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/local64.h>
-diff --git a/arch/m68k/include/asm/Kbuild b/arch/m68k/include/asm/Kbuild
-index 1bff55aa2d54e..0dbf9c5c6faeb 100644
---- a/arch/m68k/include/asm/Kbuild
-+++ b/arch/m68k/include/asm/Kbuild
-@@ -2,6 +2,5 @@
- generated-y += syscall_table.h
- generic-y += extable.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += spinlock.h
-diff --git a/arch/microblaze/include/asm/Kbuild b/arch/microblaze/include/asm/Kbuild
-index 63bce836b9f10..29b0e557aa7c5 100644
---- a/arch/microblaze/include/asm/Kbuild
-+++ b/arch/microblaze/include/asm/Kbuild
-@@ -2,7 +2,6 @@
- generated-y += syscall_table.h
- generic-y += extable.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
- generic-y += syscalls.h
+ arch/mips/include/asm/Kbuild            |  7 +++--
+ arch/mips/kernel/scall32-o32.S          |  4 +--
+ arch/mips/kernel/scall64-n32.S          |  3 +--
+ arch/mips/kernel/scall64-n64.S          |  3 +--
+ arch/mips/kernel/scall64-o32.S          |  4 +--
+ arch/mips/kernel/syscalls/Makefile      | 34 ++++++++---------------
+ arch/mips/kernel/syscalls/syscalltbl.sh | 36 -------------------------
+ 7 files changed, 20 insertions(+), 71 deletions(-)
+ delete mode 100644 arch/mips/kernel/syscalls/syscalltbl.sh
+
 diff --git a/arch/mips/include/asm/Kbuild b/arch/mips/include/asm/Kbuild
-index 198b3bafdac97..95b4fa7bd0d1f 100644
+index 95b4fa7bd0d1..70b15857369d 100644
 --- a/arch/mips/include/asm/Kbuild
 +++ b/arch/mips/include/asm/Kbuild
-@@ -6,7 +6,6 @@ generated-y += syscall_table_64_n64.h
- generated-y += syscall_table_64_o32.h
- generic-y += export.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
- generic-y += qrwlock.h
-diff --git a/arch/nds32/include/asm/Kbuild b/arch/nds32/include/asm/Kbuild
-index ff1e94299317d..82a4453c9c2d5 100644
---- a/arch/nds32/include/asm/Kbuild
-+++ b/arch/nds32/include/asm/Kbuild
-@@ -4,6 +4,5 @@ generic-y += cmpxchg.h
- generic-y += export.h
- generic-y += gpio.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += parport.h
- generic-y += user.h
-diff --git a/arch/parisc/include/asm/Kbuild b/arch/parisc/include/asm/Kbuild
-index e3ee5c0bfe80f..a1bd2adc63e3a 100644
---- a/arch/parisc/include/asm/Kbuild
-+++ b/arch/parisc/include/asm/Kbuild
-@@ -3,7 +3,6 @@ generated-y += syscall_table_32.h
- generated-y += syscall_table_64.h
- generated-y += syscall_table_c32.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += seccomp.h
- generic-y += user.h
-diff --git a/arch/powerpc/include/asm/Kbuild b/arch/powerpc/include/asm/Kbuild
-index 90cd5c53af666..e1f9b4ea1c537 100644
---- a/arch/powerpc/include/asm/Kbuild
-+++ b/arch/powerpc/include/asm/Kbuild
-@@ -5,7 +5,6 @@ generated-y += syscall_table_c32.h
- generated-y += syscall_table_spu.h
- generic-y += export.h
- generic-y += kvm_types.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += qrwlock.h
- generic-y += vtime.h
-diff --git a/arch/riscv/include/asm/Kbuild b/arch/riscv/include/asm/Kbuild
-index 59dd7be550054..445ccc97305a5 100644
---- a/arch/riscv/include/asm/Kbuild
-+++ b/arch/riscv/include/asm/Kbuild
-@@ -3,6 +3,5 @@ generic-y += early_ioremap.h
- generic-y += extable.h
- generic-y += flat.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += user.h
- generic-y += vmlinux.lds.h
-diff --git a/arch/s390/include/asm/Kbuild b/arch/s390/include/asm/Kbuild
-index 319efa0e6d024..1a18d7b82f86d 100644
---- a/arch/s390/include/asm/Kbuild
-+++ b/arch/s390/include/asm/Kbuild
-@@ -7,5 +7,4 @@ generated-y += unistd_nr.h
- generic-y += asm-offsets.h
- generic-y += export.h
- generic-y += kvm_types.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
-diff --git a/arch/sh/include/asm/Kbuild b/arch/sh/include/asm/Kbuild
-index 7435182ef8465..fc44d9c88b419 100644
---- a/arch/sh/include/asm/Kbuild
-+++ b/arch/sh/include/asm/Kbuild
-@@ -1,6 +1,5 @@
+@@ -1,9 +1,8 @@
  # SPDX-License-Identifier: GPL-2.0
- generated-y += syscall_table.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += parport.h
-diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-index 5269a704801fa..3688fdae50e45 100644
---- a/arch/sparc/include/asm/Kbuild
-+++ b/arch/sparc/include/asm/Kbuild
-@@ -6,5 +6,4 @@ generated-y += syscall_table_64.h
- generated-y += syscall_table_c32.h
+ # MIPS headers
+-generated-y += syscall_table_32_o32.h
+-generated-y += syscall_table_64_n32.h
+-generated-y += syscall_table_64_n64.h
+-generated-y += syscall_table_64_o32.h
++generated-y += syscall_table_n32.h
++generated-y += syscall_table_n64.h
++generated-y += syscall_table_o32.h
  generic-y += export.h
  generic-y += kvm_para.h
--generic-y += local64.h
  generic-y += mcs_spinlock.h
-diff --git a/arch/x86/include/asm/local64.h b/arch/x86/include/asm/local64.h
+diff --git a/arch/mips/kernel/scall32-o32.S b/arch/mips/kernel/scall32-o32.S
+index b449b68662a9..84e8624e83a2 100644
+--- a/arch/mips/kernel/scall32-o32.S
++++ b/arch/mips/kernel/scall32-o32.S
+@@ -217,9 +217,9 @@ einval: li	v0, -ENOSYS
+ #define sys_sched_getaffinity	mipsmt_sys_sched_getaffinity
+ #endif /* CONFIG_MIPS_MT_FPAFF */
+ 
++#define __SYSCALL_WITH_COMPAT(nr, native, compat)	__SYSCALL(nr, native)
+ #define __SYSCALL(nr, entry) 	PTR entry
+ 	.align	2
+ 	.type	sys_call_table, @object
+ EXPORT(sys_call_table)
+-#include <asm/syscall_table_32_o32.h>
+-#undef __SYSCALL
++#include <asm/syscall_table_o32.h>
+diff --git a/arch/mips/kernel/scall64-n32.S b/arch/mips/kernel/scall64-n32.S
+index 35d8c86b160e..f650c55a17dc 100644
+--- a/arch/mips/kernel/scall64-n32.S
++++ b/arch/mips/kernel/scall64-n32.S
+@@ -104,5 +104,4 @@ not_n32_scall:
+ #define __SYSCALL(nr, entry)	PTR entry
+ 	.type	sysn32_call_table, @object
+ EXPORT(sysn32_call_table)
+-#include <asm/syscall_table_64_n32.h>
+-#undef __SYSCALL
++#include <asm/syscall_table_n32.h>
+diff --git a/arch/mips/kernel/scall64-n64.S b/arch/mips/kernel/scall64-n64.S
+index 23b2e2b1609c..c71c13f9fcbc 100644
+--- a/arch/mips/kernel/scall64-n64.S
++++ b/arch/mips/kernel/scall64-n64.S
+@@ -113,5 +113,4 @@ illegal_syscall:
+ 	.align	3
+ 	.type	sys_call_table, @object
+ EXPORT(sys_call_table)
+-#include <asm/syscall_table_64_n64.h>
+-#undef __SYSCALL
++#include <asm/syscall_table_n64.h>
+diff --git a/arch/mips/kernel/scall64-o32.S b/arch/mips/kernel/scall64-o32.S
+index 50c9a57e0d3a..cedc8bd88804 100644
+--- a/arch/mips/kernel/scall64-o32.S
++++ b/arch/mips/kernel/scall64-o32.S
+@@ -213,9 +213,9 @@ einval: li	v0, -ENOSYS
+ 	jr	ra
+ 	END(sys32_syscall)
+ 
++#define __SYSCALL_WITH_COMPAT(nr, native, compat)	__SYSCALL(nr, compat)
+ #define __SYSCALL(nr, entry)	PTR entry
+ 	.align	3
+ 	.type	sys32_call_table,@object
+ EXPORT(sys32_call_table)
+-#include <asm/syscall_table_64_o32.h>
+-#undef __SYSCALL
++#include <asm/syscall_table_o32.h>
+diff --git a/arch/mips/kernel/syscalls/Makefile b/arch/mips/kernel/syscalls/Makefile
+index f15842bda464..265dab4253ab 100644
+--- a/arch/mips/kernel/syscalls/Makefile
++++ b/arch/mips/kernel/syscalls/Makefile
+@@ -10,7 +10,7 @@ syscalln64 := $(srctree)/$(src)/syscall_n64.tbl
+ syscallo32 := $(srctree)/$(src)/syscall_o32.tbl
+ syshdr := $(srctree)/$(src)/syscallhdr.sh
+ sysnr := $(srctree)/$(src)/syscallnr.sh
+-systbl := $(srctree)/$(src)/syscalltbl.sh
++systbl := $(srctree)/scripts/syscalltbl.sh
+ 
+ quiet_cmd_syshdr = SYSHDR  $@
+       cmd_syshdr = $(CONFIG_SHELL) '$(syshdr)' '$<' '$@'	\
+@@ -25,10 +25,7 @@ quiet_cmd_sysnr = SYSNR   $@
+ 		  '$(sysnr_offset_$(basetarget))'
+ 
+ quiet_cmd_systbl = SYSTBL  $@
+-      cmd_systbl = $(CONFIG_SHELL) '$(systbl)' '$<' '$@'	\
+-		   '$(systbl_abis_$(basetarget))'		\
+-		   '$(systbl_abi_$(basetarget))'		\
+-		   '$(systbl_offset_$(basetarget))'
++      cmd_systbl = $(CONFIG_SHELL) $(systbl) $< $@ "" $(offset)
+ 
+ syshdr_offset_unistd_n32 := __NR_Linux
+ $(uapi)/unistd_n32.h: $(syscalln32) $(syshdr) FORCE
+@@ -57,24 +54,16 @@ sysnr_offset_unistd_nr_o32 := 4000
+ $(uapi)/unistd_nr_o32.h: $(syscallo32) $(sysnr) FORCE
+ 	$(call if_changed,sysnr)
+ 
+-systbl_abi_syscall_table_32_o32 := 32_o32
+-systbl_offset_syscall_table_32_o32 := 4000
+-$(kapi)/syscall_table_32_o32.h: $(syscallo32) $(systbl) FORCE
++$(kapi)/syscall_table_n32.h: offset := 6000
++$(kapi)/syscall_table_n32.h: $(syscalln32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+-systbl_abi_syscall_table_64_n32 := 64_n32
+-systbl_offset_syscall_table_64_n32 := 6000
+-$(kapi)/syscall_table_64_n32.h: $(syscalln32) $(systbl) FORCE
++$(kapi)/syscall_table_n64.h: offset := 5000
++$(kapi)/syscall_table_n64.h: $(syscalln64) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+-systbl_abi_syscall_table_64_n64 := 64_n64
+-systbl_offset_syscall_table_64_n64 := 5000
+-$(kapi)/syscall_table_64_n64.h: $(syscalln64) $(systbl) FORCE
+-	$(call if_changed,systbl)
+-
+-systbl_abi_syscall_table_64_o32 := 64_o32
+-systbl_offset_syscall_table_64_o32 := 4000
+-$(kapi)/syscall_table_64_o32.h: $(syscallo32) $(systbl) FORCE
++$(kapi)/syscall_table_o32.h: offset := 4000
++$(kapi)/syscall_table_o32.h: $(syscallo32) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ uapisyshdr-y		+= unistd_n32.h			\
+@@ -83,10 +72,9 @@ uapisyshdr-y		+= unistd_n32.h			\
+ 			   unistd_nr_n32.h		\
+ 			   unistd_nr_n64.h		\
+ 			   unistd_nr_o32.h
+-kapisyshdr-y		+= syscall_table_32_o32.h	\
+-			   syscall_table_64_n32.h	\
+-			   syscall_table_64_n64.h	\
+-			   syscall_table_64_o32.h
++kapisyshdr-y		+= syscall_table_n32.h		\
++			   syscall_table_n64.h		\
++			   syscall_table_o32.h
+ 
+ uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
+ kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
+diff --git a/arch/mips/kernel/syscalls/syscalltbl.sh b/arch/mips/kernel/syscalls/syscalltbl.sh
 deleted file mode 100644
-index 36c93b5cc239b..0000000000000
---- a/arch/x86/include/asm/local64.h
+index 1e2570740c20..000000000000
+--- a/arch/mips/kernel/syscalls/syscalltbl.sh
 +++ /dev/null
-@@ -1 +0,0 @@
--#include <asm-generic/local64.h>
-diff --git a/arch/xtensa/include/asm/Kbuild b/arch/xtensa/include/asm/Kbuild
-index c59c42a1221a8..adefb1636f7ae 100644
---- a/arch/xtensa/include/asm/Kbuild
-+++ b/arch/xtensa/include/asm/Kbuild
-@@ -2,7 +2,6 @@
- generated-y += syscall_table.h
- generic-y += extable.h
- generic-y += kvm_para.h
--generic-y += local64.h
- generic-y += mcs_spinlock.h
- generic-y += param.h
- generic-y += qrwlock.h
-diff --git a/include/asm-generic/Kbuild b/include/asm-generic/Kbuild
-index e78bbb9a07e90..d1300c6e0a471 100644
---- a/include/asm-generic/Kbuild
-+++ b/include/asm-generic/Kbuild
-@@ -34,6 +34,7 @@ mandatory-y += kmap_types.h
- mandatory-y += kprobes.h
- mandatory-y += linkage.h
- mandatory-y += local.h
-+mandatory-y += local64.h
- mandatory-y += mm-arch-hooks.h
- mandatory-y += mmiowb.h
- mandatory-y += mmu.h
+@@ -1,36 +0,0 @@
+-#!/bin/sh
+-# SPDX-License-Identifier: GPL-2.0
+-
+-in="$1"
+-out="$2"
+-my_abis=`echo "($3)" | tr ',' '|'`
+-my_abi="$4"
+-offset="$5"
+-
+-emit() {
+-	t_nxt="$1"
+-	t_nr="$2"
+-	t_entry="$3"
+-
+-	while [ $t_nxt -lt $t_nr ]; do
+-		printf "__SYSCALL(%s,sys_ni_syscall)\n" "${t_nxt}"
+-		t_nxt=$((t_nxt+1))
+-	done
+-	printf "__SYSCALL(%s,%s)\n" "${t_nxt}" "${t_entry}"
+-}
+-
+-grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my_abis}" "$in" | sort -n | (
+-	nxt=0
+-	if [ -z "$offset" ]; then
+-		offset=0
+-	fi
+-
+-	while read nr abi name entry compat ; do
+-		if [ "$my_abi" = "64_o32" ] && [ ! -z "$compat" ]; then
+-			emit $((nxt+offset)) $((nr+offset)) $compat
+-		else
+-			emit $((nxt+offset)) $((nr+offset)) $entry
+-		fi
+-		nxt=$((nr+1))
+-	done
+-) > "$out"
 -- 
 2.27.0
