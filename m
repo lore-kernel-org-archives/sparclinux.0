@@ -1,7 +1,7 @@
 From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 28 Jan 2021 00:50:51 +0000
-Subject: [PATCH 09/27] ia64: add missing FORCE and fix 'targets' to make if_changed work
-Message-Id: <20210128005110.2613902-10-masahiroy@kernel.org>
+Date: Thu, 28 Jan 2021 00:51:01 +0000
+Subject: [PATCH 19/27] sh: add missing FORCE and fix 'targets' to make if_changed work
+Message-Id: <20210128005110.2613902-20-masahiroy@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20210128005110.2613902-1-masahiroy@kernel.org>
 In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
@@ -23,27 +23,26 @@ Fix all of them so the if_changed rules work correctly.
 Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 ---
 
- arch/ia64/kernel/syscalls/Makefile | 11 ++++++-----
+ arch/sh/kernel/syscalls/Makefile | 11 ++++++-----
  1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/arch/ia64/kernel/syscalls/Makefile b/arch/ia64/kernel/syscalls/Makefile
-index 813a58cba39c..b9bfd186295f 100644
---- a/arch/ia64/kernel/syscalls/Makefile
-+++ b/arch/ia64/kernel/syscalls/Makefile
-@@ -22,19 +22,20 @@ quiet_cmd_systbl = SYSTBL  $@
+diff --git a/arch/sh/kernel/syscalls/Makefile b/arch/sh/kernel/syscalls/Makefile
+index 659faefdcb1d..1c42d2d2926d 100644
+--- a/arch/sh/kernel/syscalls/Makefile
++++ b/arch/sh/kernel/syscalls/Makefile
+@@ -21,18 +21,19 @@ quiet_cmd_systbl = SYSTBL  $@
+ 		   '$(systbl_abi_$(basetarget))'		\
  		   '$(systbl_offset_$(basetarget))'
  
- syshdr_offset_unistd_64 := __NR_Linux
--$(uapi)/unistd_64.h: $(syscall) $(syshdr)
-+$(uapi)/unistd_64.h: $(syscall) $(syshdr) FORCE
+-$(uapi)/unistd_32.h: $(syscall) $(syshdr)
++$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
  	$(call if_changed,syshdr)
  
- systbl_offset_syscall_table := 1024
 -$(kapi)/syscall_table.h: $(syscall) $(systbl)
 +$(kapi)/syscall_table.h: $(syscall) $(systbl) FORCE
  	$(call if_changed,systbl)
  
- uapisyshdr-y		+= unistd_64.h
+ uapisyshdr-y		+= unistd_32.h
  kapisyshdr-y		+= syscall_table.h
  
 -targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
