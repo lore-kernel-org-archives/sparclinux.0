@@ -1,59 +1,35 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Thu, 28 Jan 2021 00:50:49 +0000
-Subject: [PATCH 07/27] alpha: add missing FORCE and fix 'targets' to make if_changed work
-Message-Id: <20210128005110.2613902-8-masahiroy@kernel.org>
+From: "Ms. Reem" <support@digitalsol.in>
+Date: Sat, 30 Jan 2021 14:17:34 +0000
+Subject: Re:read
+Message-Id: <3251FE42-7810-471E-AFFF-52618D9455C6@optinix.in>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-1-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch@vger.kernel.org, x86@kernel.org
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org, Masahiro Yamada <masahiroy@kernel.org>
+To: sparclinux@vger.kernel.org
 
-The rules in this Makefile cannot detect the command line change because
-the prerequisite 'FORCE' is missing.
+Hello,
 
-Adding 'FORCE' will result in the headers being rebuilt every time
-because the 'targets' addition is also wrong; the file paths in
-'targets' must be relative to the current Makefile.
+My name is Ms. Reem Ebrahim Al-Hashimi, I am the "Minister of state
+and Petroleum" also "Minister of State for International Cooperation"
+in UAE. I write to you on behalf of my other "three (3) colleagues"
+who has approved me to solicit for your "partnership in claiming of
+{us$47=Million}" from a Financial Home in Cambodia on their behalf and
+for our "Mutual Benefits".
 
-Fix all of them so the if_changed rules work correctly.
+The Fund {us$47=Million} is our share from the (over-invoiced) Oil/Gas
+deal with Cambodian/Vietnam Government within 2013/2014, however, we
+don't want our government to know about the fund. If this proposal
+interests you, let me know, by sending me an email and I will send to
+you detailed information on how this business would be successfully
+transacted. Be informed that nobody knows about the secret of this
+fund except us, and we know how to carry out the entire transaction.
+So I am compelled to ask, that you will stand on our behalf and
+receive this fund into any account that is solely controlled by you.
 
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
----
+We will compensate you with 15% of the total amount involved as
+gratification for being our partner in this transaction. Reply to:
+ms.reem@yandex.com
 
- arch/alpha/kernel/syscalls/Makefile | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/arch/alpha/kernel/syscalls/Makefile b/arch/alpha/kernel/syscalls/Makefile
-index 659faefdcb1d..1c42d2d2926d 100644
---- a/arch/alpha/kernel/syscalls/Makefile
-+++ b/arch/alpha/kernel/syscalls/Makefile
-@@ -21,18 +21,19 @@ quiet_cmd_systbl = SYSTBL  $@
- 		   '$(systbl_abi_$(basetarget))'		\
- 		   '$(systbl_offset_$(basetarget))'
- 
--$(uapi)/unistd_32.h: $(syscall) $(syshdr)
-+$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
- 	$(call if_changed,syshdr)
- 
--$(kapi)/syscall_table.h: $(syscall) $(systbl)
-+$(kapi)/syscall_table.h: $(syscall) $(systbl) FORCE
- 	$(call if_changed,systbl)
- 
- uapisyshdr-y		+= unistd_32.h
- kapisyshdr-y		+= syscall_table.h
- 
--targets	+= $(uapisyshdr-y) $(kapisyshdr-y)
-+uapisyshdr-y	:= $(addprefix $(uapi)/, $(uapisyshdr-y))
-+kapisyshdr-y	:= $(addprefix $(kapi)/, $(kapisyshdr-y))
-+targets		+= $(addprefix ../../../../, $(uapisyshdr-y) $(kapisyshdr-y))
- 
- PHONY += all
--all: $(addprefix $(uapi)/,$(uapisyshdr-y))
--all: $(addprefix $(kapi)/,$(kapisyshdr-y))
-+all: $(uapisyshdr-y) $(kapisyshdr-y)
- 	@:
--- 
-2.27.0
+Regards,
+Ms. Reem.
