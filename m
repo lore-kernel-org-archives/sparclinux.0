@@ -1,48 +1,35 @@
-From: Masahiro Yamada <masahiroy@kernel.org>
-Date: Sun, 14 Feb 2021 17:00:35 +0000
-Subject: Re: [PATCH 21/27] sparc: remove wrong comment from arch/sparc/include/asm/Kbuild
-Message-Id: <CAK7LNAQDcfqSCsCeG9+ytrJNfD5mS8OLS2uZS8WRBuTHRL1qRg@mail.gmail.com>
+From: "Ms. Reem" <support@digitalsol.in>
+Date: Mon, 01 Feb 2021 20:59:04 +0000
+Subject: Re:read
+Message-Id: <5BA4B256-4FF0-4328-8A30-74C339C7489A@optinix.in>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210128005110.2613902-1-masahiroy@kernel.org> <20210128005110.2613902-22-masahiroy@kernel.org>
-In-Reply-To: <20210128005110.2613902-22-masahiroy@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-arch <linux-arch@vger.kernel.org>, X86 ML <x86@kernel.org>
-Cc: Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-alpha@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-ia64@vger.kernel.org, linux-m68k <linux-m68k@lists.linux-m68k.org>, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, Linux-sh list <linux-sh@vger.kernel.org>, linux-um@lists.infradead.org, "open list:TENSILICA XTENSA PORT (xtensa)" <linux-xtensa@linux-xtensa.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, sparclinux <sparclinux@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On Thu, Jan 28, 2021 at 9:52 AM Masahiro Yamada <masahiroy@kernel.org> wrote:
->
-> These are NOT exported to userspace.
->
-> The headers listed in arch/sparc/include/uapi/asm/Kbuild are exported.
->
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Hello,
 
-Applied to linux-kbuild/fixes.
+My name is Ms. Reem Ebrahim Al-Hashimi, I am the "Minister of state
+and Petroleum" also "Minister of State for International Cooperation"
+in UAE. I write to you on behalf of my other "three (3) colleagues"
+who has approved me to solicit for your "partnership in claiming of
+{us$47=Million}" from a Financial Home in Cambodia on their behalf and
+for our "Mutual Benefits".
 
+The Fund {us$47=Million} is our share from the (over-invoiced) Oil/Gas
+deal with Cambodian/Vietnam Government within 2013/2014, however, we
+don't want our government to know about the fund. If this proposal
+interests you, let me know, by sending me an email and I will send to
+you detailed information on how this business would be successfully
+transacted. Be informed that nobody knows about the secret of this
+fund except us, and we know how to carry out the entire transaction.
+So I am compelled to ask, that you will stand on our behalf and
+receive this fund into any account that is solely controlled by you.
 
-> ---
->
->  arch/sparc/include/asm/Kbuild | 2 --
->  1 file changed, 2 deletions(-)
->
-> diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
-> index 3688fdae50e4..aec20406145e 100644
-> --- a/arch/sparc/include/asm/Kbuild
-> +++ b/arch/sparc/include/asm/Kbuild
-> @@ -1,6 +1,4 @@
->  # SPDX-License-Identifier: GPL-2.0
-> -# User exported sparc header files
-> -
->  generated-y += syscall_table_32.h
->  generated-y += syscall_table_64.h
->  generated-y += syscall_table_c32.h
-> --
-> 2.27.0
->
+We will compensate you with 15% of the total amount involved as
+gratification for being our partner in this transaction. Reply to:
+ms.reem@yandex.com
 
-
--- 
-Best Regards
-Masahiro Yamada
+Regards,
+Ms. Reem.
