@@ -1,133 +1,87 @@
-From: Paolo Bonzini <pbonzini@redhat.com>
-Date: Wed, 10 Feb 2021 18:33:01 +0000
-Subject: [PATCH] locking/arch: Move qrwlock.h include after qspinlock.h
-Message-Id: <20210210183301.453422-1-pbonzini@redhat.com>
+From: Andreas Larsson <andreas@gaisler.com>
+Date: Thu, 04 Feb 2021 16:23:41 +0000
+Subject: [PATCH] sparc32: Preserve clone syscall flags argument for restarts due to signals
+Message-Id: <20210204162341.4218-1-andreas@gaisler.com>
 List-Id: <sparclinux.vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, kvm@vger.kernel.org
-Cc: Guenter Roeck <linux@roeck-us.net>, Waiman Long <longman@redhat.com>, Ben Gardon <bgardon@google.com>, Peter Zijlstra <peterz@infradead.org>, Ingo Molnar <mingo@redhat.com>, Will Deacon <will@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "David S. Miller" <davem@davemloft.net>, Chris Zankel <chris@zankel.net>, Max Filippov <jcmvbkbc@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>, Davidlohr Bueso <dbueso@suse.de>, "moderated list:ARM64 PORT
-        AARCH64 ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, "open list:MIPS" <linux-mips@vger.kernel.org>, "open list:SPARC + UltraSPARC
-        sparc/sparc64" <sparclinux@vger.kernel.org>, "open list:TENSILICA XTENSA PORT xtensa" <linux-xtensa@linux-xtensa.org>, "open list:GENERIC INCLUDE/ASM HEADER FILES" <linux-arch@vger.kernel.org>, "open list:C-SKY ARCHITECTURE" <linux-csky@vger.kernel.org>
+To: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>, linux-kernel@vger.kernel.org, software@gaisler.com
 
-include/asm-generic/qrwlock.h was trying to get arch_spin_is_locked via
-asm-generic/qspinlock.h.  However, this does not work because architectures
-might be using queued rwlocks but not queued spinlocks (csky), or because they
-might be defining their own queued_* macros before including asm/qspinlock.h.
+This fixes a bug where a clone syscall that is restarted due to a
+pending signal is restarted with garbage in the register %o0 that holds
+the clone flags.
 
-To fix this, ensure that asm/spinlock.h always includes qrwlock.h after
-defining arch_spin_is_locked (either directly for csky, or via
-asm/qspinlock.h for other architectures).  The only inclusion elsewhere
-is in kernel/locking/qrwlock.c.  That one is really unnecessary because
-the file is only compiled in SMP configurations (config QUEUED_RWLOCKS
-depends on SMP) and in that case linux/spinlock.h already includes
-asm/qrwlock.h if needed, via asm/spinlock.h.
+This keep the original %i0 of a syscall (as seen from the trap handler)
+in %l6 rather than %l5. This is done because for clone (and also qfork)
+%l5 is used as a temporary variable in the same register window. Before
+this, that temporary value would be the value that was then incorrectly
+used as the orig_i0 argument to do_notify_resume.
 
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Waiman Long <longman@redhat.com>
-Fixes: 26128cb6c7e6 ("locking/rwlocks: Add contention detection for rwlocks")
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: Ben Gardon <bgardon@google.com>
-Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+In order to preserve %l6, the temporary usage of %l6 in ret_sys_call is
+changed to use %l5 instead and the setting %l6 to 0 or 1 was removed.
+The use of that 0 or 1 value in %l6 was removed in commit
+28e6103665301ce60634e8a77f0b657c6cc099de.
+
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 ---
-	v1->v2: Fix sparc too.  Add a comment in qrwlock.h itself.
-	Remove unnecessary inclusion in kernel/locking/qrwlock.c
+ arch/sparc/kernel/entry.S    | 8 +++-----
+ arch/sparc/kernel/rtrap_32.S | 2 +-
+ 2 files changed, 4 insertions(+), 6 deletions(-)
 
- arch/arm64/include/asm/spinlock.h    | 2 +-
- arch/mips/include/asm/spinlock.h     | 2 +-
- arch/sparc/include/asm/spinlock_64.h | 2 +-
- arch/xtensa/include/asm/spinlock.h   | 2 +-
- include/asm-generic/qrwlock.h        | 3 ++-
- kernel/locking/qrwlock.c             | 1 -
- 6 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm64/include/asm/spinlock.h b/arch/arm64/include/asm/spinlock.h
-index 9083d6992603..0525c0b089ed 100644
---- a/arch/arm64/include/asm/spinlock.h
-+++ b/arch/arm64/include/asm/spinlock.h
-@@ -5,8 +5,8 @@
- #ifndef __ASM_SPINLOCK_H
- #define __ASM_SPINLOCK_H
+diff --git a/arch/sparc/kernel/entry.S b/arch/sparc/kernel/entry.S
+index d58940280f8d..a269ad2fe6df 100644
+--- a/arch/sparc/kernel/entry.S
++++ b/arch/sparc/kernel/entry.S
+@@ -994,7 +994,7 @@ do_syscall:
+ 	andcc	%l5, _TIF_SYSCALL_TRACE, %g0
+ 	mov	%i4, %o4
+ 	bne	linux_syscall_trace
+-	 mov	%i0, %l5
++	 mov	%i0, %l6
+ 2:
+ 	call	%l7
+ 	 mov	%i5, %o5
+@@ -1003,16 +1003,15 @@ do_syscall:
+ 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
  
--#include <asm/qrwlock.h>
- #include <asm/qspinlock.h>
-+#include <asm/qrwlock.h>
+ ret_sys_call:
+-	ld	[%curptr + TI_FLAGS], %l6
++	ld	[%curptr + TI_FLAGS], %l5
+ 	cmp	%o0, -ERESTART_RESTARTBLOCK
+ 	ld	[%sp + STACKFRAME_SZ + PT_PSR], %g3
+ 	set	PSR_C, %g2
+ 	bgeu	1f
+-	 andcc	%l6, _TIF_SYSCALL_TRACE, %g0
++	 andcc	%l5, _TIF_SYSCALL_TRACE, %g0
  
- /* See include/linux/spinlock.h */
- #define smp_mb__after_spinlock()	smp_mb()
-diff --git a/arch/mips/include/asm/spinlock.h b/arch/mips/include/asm/spinlock.h
-index 8a88eb265516..6ce2117e49f6 100644
---- a/arch/mips/include/asm/spinlock.h
-+++ b/arch/mips/include/asm/spinlock.h
-@@ -10,7 +10,6 @@
- #define _ASM_SPINLOCK_H
+ 	/* System call success, clear Carry condition code. */
+ 	andn	%g3, %g2, %g3
+-	clr	%l6
+ 	st	%g3, [%sp + STACKFRAME_SZ + PT_PSR]	
+ 	bne	linux_syscall_trace2
+ 	 ld	[%sp + STACKFRAME_SZ + PT_NPC], %l1 /* pc = npc */
+@@ -1027,7 +1026,6 @@ ret_sys_call:
+ 	sub	%g0, %o0, %o0
+ 	or	%g3, %g2, %g3
+ 	st	%o0, [%sp + STACKFRAME_SZ + PT_I0]
+-	mov	1, %l6
+ 	st	%g3, [%sp + STACKFRAME_SZ + PT_PSR]
+ 	bne	linux_syscall_trace2
+ 	 ld	[%sp + STACKFRAME_SZ + PT_NPC], %l1 /* pc = npc */
+diff --git a/arch/sparc/kernel/rtrap_32.S b/arch/sparc/kernel/rtrap_32.S
+index dca8ed810046..8931fe266346 100644
+--- a/arch/sparc/kernel/rtrap_32.S
++++ b/arch/sparc/kernel/rtrap_32.S
+@@ -75,7 +75,7 @@ signal_p:
+ 	 ld	[%sp + STACKFRAME_SZ + PT_PSR], %t_psr
  
- #include <asm/processor.h>
--#include <asm/qrwlock.h>
+ 	mov	%g2, %o2
+-	mov	%l5, %o1
++	mov	%l6, %o1
+ 	call	do_notify_resume
+ 	 add	%sp, STACKFRAME_SZ, %o0	! pt_regs ptr
  
- #include <asm-generic/qspinlock_types.h>
- 
-@@ -27,5 +26,6 @@ static inline void queued_spin_unlock(struct qspinlock *lock)
- }
- 
- #include <asm/qspinlock.h>
-+#include <asm/qrwlock.h>
- 
- #endif /* _ASM_SPINLOCK_H */
-diff --git a/arch/sparc/include/asm/spinlock_64.h b/arch/sparc/include/asm/spinlock_64.h
-index 7fc82a233f49..3a9a0b0c7465 100644
---- a/arch/sparc/include/asm/spinlock_64.h
-+++ b/arch/sparc/include/asm/spinlock_64.h
-@@ -11,8 +11,8 @@
- 
- #include <asm/processor.h>
- #include <asm/barrier.h>
--#include <asm/qrwlock.h>
- #include <asm/qspinlock.h>
-+#include <asm/qrwlock.h>
- 
- #endif /* !(__ASSEMBLY__) */
- 
-diff --git a/arch/xtensa/include/asm/spinlock.h b/arch/xtensa/include/asm/spinlock.h
-index 584b0de6f2ca..41c449ece2d8 100644
---- a/arch/xtensa/include/asm/spinlock.h
-+++ b/arch/xtensa/include/asm/spinlock.h
-@@ -12,8 +12,8 @@
- #define _XTENSA_SPINLOCK_H
- 
- #include <asm/barrier.h>
--#include <asm/qrwlock.h>
- #include <asm/qspinlock.h>
-+#include <asm/qrwlock.h>
- 
- #define smp_mb__after_spinlock()	smp_mb()
- 
-diff --git a/include/asm-generic/qrwlock.h b/include/asm-generic/qrwlock.h
-index 0020d3b820a7..7ae0ece07b4e 100644
---- a/include/asm-generic/qrwlock.h
-+++ b/include/asm-generic/qrwlock.h
-@@ -14,7 +14,8 @@
- #include <asm/processor.h>
- 
- #include <asm-generic/qrwlock_types.h>
--#include <asm-generic/qspinlock.h>
-+
-+/* Must be included from asm/spinlock.h after defining arch_spin_is_locked.  */
- 
- /*
-  * Writer states & reader shift and bias.
-diff --git a/kernel/locking/qrwlock.c b/kernel/locking/qrwlock.c
-index fe9ca92faa2a..4786dd271b45 100644
---- a/kernel/locking/qrwlock.c
-+++ b/kernel/locking/qrwlock.c
-@@ -12,7 +12,6 @@
- #include <linux/percpu.h>
- #include <linux/hardirq.h>
- #include <linux/spinlock.h>
--#include <asm/qrwlock.h>
- 
- /**
-  * queued_read_lock_slowpath - acquire read lock of a queue rwlock
 -- 
-2.26.2
+2.17.1
