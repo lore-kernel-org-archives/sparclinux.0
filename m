@@ -1,40 +1,51 @@
-From: Andreas Larsson <andreas@gaisler.com>
-Date: Thu, 04 Feb 2021 16:20:53 +0000
-Subject: [PATCH] sparc32: Limit memblock allocation to low memory
-Message-Id: <20210204162053.3954-1-andreas@gaisler.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Date: Thu, 04 Feb 2021 17:19:27 +0000
+Subject: Re: [PATCH] sparc32: Limit memblock allocation to low memory
+Message-Id: <20210204171927.GK299309@linux.ibm.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20210204162053.3954-1-andreas@gaisler.com>
+In-Reply-To: <20210204162053.3954-1-andreas@gaisler.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org
-Cc: Mike Rapoport <rppt@linux.ibm.com>, Sam Ravnborg <sam@ravnborg.org>, linux-kernel@vger.kernel.org, software@gaisler.com
+To: Andreas Larsson <andreas@gaisler.com>
+Cc: David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, linux-kernel@vger.kernel.org, software@gaisler.com
 
-Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
-memblocks instead of bootmem, but also made high memory available via
-memblock allocation which does work together with e.g. phys_to_virt and
-leads to crashes.
+On Thu, Feb 04, 2021 at 05:20:53PM +0100, Andreas Larsson wrote:
+> Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
+> memblocks instead of bootmem, but also made high memory available via
+> memblock allocation which does work together with e.g. phys_to_virt and
+> leads to crashes.
+> 
+> This changes back to only low memory being allocatable in the early
+> stages, now using memblock allocation.
+> 
+> Signed-off-by: Andreas Larsson <andreas@gaisler.com>
 
-This changes back to only low memory being allocatable in the early
-stages, now using memblock allocation.
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 
-Signed-off-by: Andreas Larsson <andreas@gaisler.com>
----
- arch/sparc/mm/init_32.c | 3 +++
- 1 file changed, 3 insertions(+)
+> ---
+>  arch/sparc/mm/init_32.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+> index eb2946b1df8a..6139c5700ccc 100644
+> --- a/arch/sparc/mm/init_32.c
+> +++ b/arch/sparc/mm/init_32.c
+> @@ -197,6 +197,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+>  	size = memblock_phys_mem_size() - memblock_reserved_size();
+>  	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
+>  
+> +	/* Only allow low memory to be allocated via memblock allocation */
+> +	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
+> +
+>  	return max_pfn;
+>  }
+>  
+> -- 
+> 2.17.1
+> 
 
-diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-index eb2946b1df8a..6139c5700ccc 100644
---- a/arch/sparc/mm/init_32.c
-+++ b/arch/sparc/mm/init_32.c
-@@ -197,6 +197,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
- 	size = memblock_phys_mem_size() - memblock_reserved_size();
- 	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
- 
-+	/* Only allow low memory to be allocated via memblock allocation */
-+	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
-+
- 	return max_pfn;
- }
- 
 -- 
-2.17.1
+Sincerely yours,
+Mike.
