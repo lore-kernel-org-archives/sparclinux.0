@@ -1,66 +1,94 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Wed, 10 Feb 2021 14:51:32 +0000
-Subject: Re: [PATCH bpf 1/4] net: add SO_NETNS_COOKIE socket option
-Message-Id: <a922e31d-efce-35c3-c584-cf1bdcf93c5d@gmail.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Date: Wed, 17 Feb 2021 08:00:00 +0000
+Subject: [PATCH] sparc: make copy_thread honor pid namespaces
+Message-Id: <20210217080000.GA25861@altlinux.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210210120425.53438-1-lmb@cloudflare.com>
- <20210210120425.53438-2-lmb@cloudflare.com>
-In-Reply-To: <20210210120425.53438-2-lmb@cloudflare.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Lorenz Bauer <lmb@cloudflare.com>, Richard Henderson <rth@twiddle.net>, Ivan Kokshaysky <ink@jurassic.park.msu.ru>, Matt Turner <mattst88@gmail.com>, Thomas Bogendoerfer <tsbogend@alpha.franken.de>, "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>, Helge Deller <deller@gmx.de>, "David S. Miller" <davem@davemloft.net>, Arnd Bergmann <arnd@arndb.de>, Alexei Starovoitov <ast@kernel.org>, Daniel Borkmann <daniel@iogearbox.net>, Andrii Nakryiko <andrii@kernel.org>, Jakub Kicinski <kuba@kernel.org>
-Cc: kernel-team@cloudflare.com, linux-api@vger.kernel.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org, linux-arch@vger.kernel.org, netdev@vger.kernel.org, bpf@vger.kernel.org
+To: "David S. Miller" <davem@davemloft.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>, Alexey Gladkov <gladkov.alexey@gmail.com>, Gleb Fotengauer-Malinovskiy <glebfm@altlinux.org>, Anatoly Pugachev <matorola@gmail.com>, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On sparc, fork and clone syscalls have an unusual semantics of
+returning the pid of the parent process to the child process.
 
+Apparently, the implementation did not honor pid namespaces at all,
+so the child used to get the pid of its parent in the init namespace.
 
-On 2/10/21 1:04 PM, Lorenz Bauer wrote:
-> We need to distinguish which network namespace a socket belongs to.
-> BPF has the useful bpf_get_netns_cookie helper for this, but accessing
-> it from user space isn't possible. Add a read-only socket option that
-> returns the netns cookie, similar to SO_COOKIE. If network namespaces
-> are disabled, SO_NETNS_COOKIE returns the cookie of init_net.
-> 
-> The BPF helpers change slightly: instead of returning 0 when network
-> namespaces are disabled we return the init_net cookie as for the
-> socket option.
-> 
-> Cc: linux-api@vger.kernel.org
-> Signed-off-by: Lorenz Bauer <lmb@cloudflare.com>
-> ---
+This bug was found by strace test suite.
 
-...
+Reproducer:
 
->  
-> +static inline u64 __sock_gen_netns_cookie(struct sock *sk)
-> +{
-> +#ifdef CONFIG_NET_NS
-> +	return __net_gen_cookie(sk->sk_net.net);
-> +#else
-> +	return __net_gen_cookie(&init_net);
-> +#endif
-> +}
-> +
-> +static inline u64 sock_gen_netns_cookie(struct sock *sk)
-> +{
-> +	u64 cookie;
-> +
-> +	preempt_disable();
-> +	cookie = __sock_gen_netns_cookie(sk);
-> +	preempt_enable();
-> +
-> +	return cookie;
-> +}
-> +
-> 
+  $ gcc -Wall -O2 -xc - <<'EOF'
+  #define _GNU_SOURCE
+  #include <err.h>
+  #include <errno.h>
+  #include <sched.h>
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <sys/wait.h>
+  #include <unistd.h>
+  #include <asm/unistd.h>
+  #include <linux/sched.h>
+  int main(void)
+  {
+    if (unshare(CLONE_NEWPID | CLONE_NEWUSER) < 0)
+      err(1, "unshare");
+    int pid = syscall(__NR_fork);
+    if (pid < 0)
+      err(1, "fork");
+    fprintf(stderr, "current: %d, parent: %d, fork returned: %d\n",
+            getpid(), getppid(), pid);
+    int status;
+    if (wait(&status) < 0) {
+      if (errno = ECHILD)
+        _exit(0);
+      err(1, "wait");
+    }
+    return !WIFEXITED(status) || WEXITSTATUS(status) != 0;
+  }
+  EOF
+  $ sh -c ./a.out
+  current: 10001, parent: 10000, fork returned: 10002
+  current: 1, parent: 0, fork returned: 10001
 
-I suggest we make net->net_cookie a mere u64 initialized in setup_net(),
-instead of having to preempt_disable() around reading it.
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
 
-(Here and in your patch 2/4)
+Although the fix seems to be obvious, I have no means to test it myself,
+so any help with the testing is much appreciated.
 
-Your patches would be much simpler.
+ arch/sparc/kernel/process_32.c | 2 +-
+ arch/sparc/kernel/process_64.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Cleanup patch :
-
-https://patchwork.kernel.org/project/netdevbpf/patch/20210210144144.24284-1-eric.dumazet@gmail.com/
+diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
+index a02363735915..7a89969befa8 100644
+--- a/arch/sparc/kernel/process_32.c
++++ b/arch/sparc/kernel/process_32.c
+@@ -368,7 +368,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp, unsigned long arg,
+ #endif
+ 
+ 	/* Set the return value for the child. */
+-	childregs->u_regs[UREG_I0] = current->pid;
++	childregs->u_regs[UREG_I0] = task_pid_nr_ns(current, task_active_pid_ns(p));
+ 	childregs->u_regs[UREG_I1] = 1;
+ 
+ 	/* Set the return value for the parent. */
+diff --git a/arch/sparc/kernel/process_64.c b/arch/sparc/kernel/process_64.c
+index 6f8c7822fc06..ec97217ab970 100644
+--- a/arch/sparc/kernel/process_64.c
++++ b/arch/sparc/kernel/process_64.c
+@@ -629,7 +629,7 @@ int copy_thread(unsigned long clone_flags, unsigned long sp, unsigned long arg,
+ 		t->utraps[0]++;
+ 
+ 	/* Set the return value for the child. */
+-	t->kregs->u_regs[UREG_I0] = current->pid;
++	t->kregs->u_regs[UREG_I0] = task_pid_nr_ns(current, task_active_pid_ns(p));
+ 	t->kregs->u_regs[UREG_I1] = 1;
+ 
+ 	/* Set the second return value for the parent. */
+-- 
+ldv
