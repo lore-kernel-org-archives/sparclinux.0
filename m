@@ -1,31 +1,61 @@
-From: Anatoly Pugachev <matorola@gmail.com>
-Date: Tue, 09 Mar 2021 14:52:15 +0000
-Subject: Re: [PATCH] sparc64: Fix opcode filtering in handling of no fault loads
-Message-Id: <CADxRZqybON2s+_BWx4LzruuR8dsshiLC=9PcPZ4Svi22Kf3eJg@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:10:41 +0000
+Subject: [PATCH 5.11 473/775] sparc: fix led.c driver when PROC_FS is not enabled
+Message-Id: <20210301161224.917464211@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
-In-Reply-To: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
+References: <20210301161201.679371205@linuxfoundation.org>
+In-Reply-To: <20210301161201.679371205@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, kernel test robot <lkp@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Lars Kotthoff <metalhead@metalhead.ws>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sasha Levin <sashal@kernel.org>
 
-On Mon, Mar 1, 2021 at 7:03 PM Anatoly Pugachev <matorola@gmail.com> wrote:
->
-> On Mon, Mar 1, 2021 at 9:09 AM Rob Gardner <rob.gardner@oracle.com> wrote:
-> >
-> > is_no_fault_exception() has two bugs which were discovered via random
-> > opcode testing with stress-ng. Both are caused by improper filtering
-> > of opcodes.
->
-> fixes the issue for me. thanks again
->
-> Tested-by: Anatoly Pugachev <matorola@gmail.com>
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Rob,
+[ Upstream commit b3554aa2470b5db1222c31e08ec9c29ab33eabc7 ]
 
-you might want to add:
+Fix Sparc build when CONFIG_PROC_FS is not enabled.
 
-Fixes: b6fe1089667a7afcc2cf92cdaec590c7b8381715
+Fixes this build error:
+arch/sparc/kernel/led.c:107:30: error: 'led_proc_ops' defined but not used [-Werror=unused-const-variable=]
+     107 | static const struct proc_ops led_proc_ops = {
+         |                              ^~~~~~~~~~~~
+   cc1: all warnings being treated as errors
 
-as well , on a patch submission.
+Fixes: 97a32539b956 ("proc: convert everything to "struct proc_ops"")
+Reported-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Lars Kotthoff <metalhead@metalhead.ws>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/sparc/kernel/led.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+index bd48575172c32..3a66e62eb2a0e 100644
+--- a/arch/sparc/kernel/led.c
++++ b/arch/sparc/kernel/led.c
+@@ -50,6 +50,7 @@ static void led_blink(struct timer_list *unused)
+ 	add_timer(&led_blink_timer);
+ }
+ 
++#ifdef CONFIG_PROC_FS
+ static int led_proc_show(struct seq_file *m, void *v)
+ {
+ 	if (get_auxio() & AUXIO_LED)
+@@ -111,6 +112,7 @@ static const struct proc_ops led_proc_ops = {
+ 	.proc_release	= single_release,
+ 	.proc_write	= led_proc_write,
+ };
++#endif
+ 
+ static struct proc_dir_entry *led;
+ 
+-- 
+2.27.0
