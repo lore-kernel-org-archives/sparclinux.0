@@ -1,115 +1,69 @@
-From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 02 Mar 2021 11:57:33 +0000
-Subject: [PATCH AUTOSEL 5.4 17/33] sparc64: Use arch_validate_flags() to validate ADI flag
-Message-Id: <20210302115749.62653-17-sashal@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:10:14 +0000
+Subject: [PATCH 5.4 070/340] fbdev: aty: SPARC64 requires FB_ATY_CT
+Message-Id: <20210301161051.770571449@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210302115749.62653-1-sashal@kernel.org>
-In-Reply-To: <20210302115749.62653-1-sashal@kernel.org>
+References: <20210301161048.294656001@linuxfoundation.org>
+In-Reply-To: <20210301161048.294656001@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, Jann Horn <jannh@google.com>, Christoph Hellwig <hch@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Sasha Levin <sashal@kernel.org>, linux-fbdev@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, stable@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, dri-devel@lists.freedesktop.org, Daniel Vetter <daniel.vetter@ffwll.ch>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
+From: Randy Dunlap <rdunlap@infradead.org>
 
-[ Upstream commit 147d8622f2a26ef34beacc60e1ed8b66c2fa457f ]
+[ Upstream commit c6c90c70db4d9a0989111d6b994d545659410f7a ]
 
-When userspace calls mprotect() to enable ADI on an address range,
-do_mprotect_pkey() calls arch_validate_prot() to validate new
-protection flags. arch_validate_prot() for sparc looks at the first
-VMA associated with address range to verify if ADI can indeed be
-enabled on this address range. This has two issues - (1) Address
-range might cover multiple VMAs while arch_validate_prot() looks at
-only the first VMA, (2) arch_validate_prot() peeks at VMA without
-holding mmap lock which can result in race condition.
+It looks like SPARC64 requires FB_ATY_CT to build without errors,
+so have FB_ATY select FB_ATY_CT if both SPARC64 and PCI are enabled
+instead of using "default y if SPARC64 && PCI", which is not strong
+enough to prevent build errors.
 
-arch_validate_flags() from commit c462ac288f2c ("mm: Introduce
-arch_validate_flags()") allows for VMA flags to be validated for all
-VMAs that cover the address range given by user while holding mmap
-lock. This patch updates sparc code to move the VMA check from
-arch_validate_prot() to arch_validate_flags() to fix above two
-issues.
+As it currently is, FB_ATY_CT can be disabled, resulting in build
+errors:
 
-Suggested-by: Jann Horn <jannh@google.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+ERROR: modpost: "aty_postdividers" [drivers/video/fbdev/aty/atyfb.ko] undefined!
+ERROR: modpost: "aty_ld_pll_ct" [drivers/video/fbdev/aty/atyfb.ko] undefined!
+
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Fixes: f7018c213502 ("video: move fbdev to drivers/video/fbdev")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-fbdev@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Link: https://patchwork.freedesktop.org/patch/msgid/20201127031752.10371-1-rdunlap@infradead.org
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/include/asm/mman.h | 54 +++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 25 deletions(-)
+ drivers/video/fbdev/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-index f94532f25db1..274217e7ed70 100644
---- a/arch/sparc/include/asm/mman.h
-+++ b/arch/sparc/include/asm/mman.h
-@@ -57,35 +57,39 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
- {
- 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
- 		return 0;
--	if (prot & PROT_ADI) {
--		if (!adi_capable())
--			return 0;
-+	return 1;
-+}
- 
--		if (addr) {
--			struct vm_area_struct *vma;
-+#define arch_validate_flags(vm_flags) arch_validate_flags(vm_flags)
-+/* arch_validate_flags() - Ensure combination of flags is valid for a
-+ *	VMA.
-+ */
-+static inline bool arch_validate_flags(unsigned long vm_flags)
-+{
-+	/* If ADI is being enabled on this VMA, check for ADI
-+	 * capability on the platform and ensure VMA is suitable
-+	 * for ADI
-+	 */
-+	if (vm_flags & VM_SPARC_ADI) {
-+		if (!adi_capable())
-+			return false;
- 
--			vma = find_vma(current->mm, addr);
--			if (vma) {
--				/* ADI can not be enabled on PFN
--				 * mapped pages
--				 */
--				if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
--					return 0;
-+		/* ADI can not be enabled on PFN mapped pages */
-+		if (vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-+			return false;
- 
--				/* Mergeable pages can become unmergeable
--				 * if ADI is enabled on them even if they
--				 * have identical data on them. This can be
--				 * because ADI enabled pages with identical
--				 * data may still not have identical ADI
--				 * tags on them. Disallow ADI on mergeable
--				 * pages.
--				 */
--				if (vma->vm_flags & VM_MERGEABLE)
--					return 0;
--			}
--		}
-+		/* Mergeable pages can become unmergeable
-+		 * if ADI is enabled on them even if they
-+		 * have identical data on them. This can be
-+		 * because ADI enabled pages with identical
-+		 * data may still not have identical ADI
-+		 * tags on them. Disallow ADI on mergeable
-+		 * pages.
-+		 */
-+		if (vm_flags & VM_MERGEABLE)
-+			return false;
- 	}
--	return 1;
-+	return true;
- }
- #endif /* CONFIG_SPARC64 */
- 
+diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
+index 1e70e838530ee..a7e5f12687b70 100644
+--- a/drivers/video/fbdev/Kconfig
++++ b/drivers/video/fbdev/Kconfig
+@@ -1269,6 +1269,7 @@ config FB_ATY
+ 	select FB_CFB_IMAGEBLIT
+ 	select FB_BACKLIGHT if FB_ATY_BACKLIGHT
+ 	select FB_MACMODES if PPC
++	select FB_ATY_CT if SPARC64 && PCI
+ 	help
+ 	  This driver supports graphics boards with the ATI Mach64 chips.
+ 	  Say Y if you have such a graphics board.
+@@ -1279,7 +1280,6 @@ config FB_ATY
+ config FB_ATY_CT
+ 	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
+ 	depends on PCI && FB_ATY
+-	default y if SPARC64 && PCI
+ 	help
+ 	  Say Y here to support use of ATI's 64-bit Rage boards (or other
+ 	  boards based on the Mach64 CT, VT, GT, and LT chipsets) as a
 -- 
-2.30.1
+2.27.0
