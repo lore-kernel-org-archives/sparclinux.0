@@ -1,10 +1,10 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:12:32 +0000
-Subject: [PATCH 4.4 20/93] fbdev: aty: SPARC64 requires FB_ATY_CT
-Message-Id: <20210301161007.892764932@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:11:33 +0000
+Subject: [PATCH 4.19 073/247] fbdev: aty: SPARC64 requires FB_ATY_CT
+Message-Id: <20210301161035.261994907@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161006.881950696@linuxfoundation.org>
-In-Reply-To: <20210301161006.881950696@linuxfoundation.org>
+References: <20210301161031.684018251@linuxfoundation.org>
+In-Reply-To: <20210301161031.684018251@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -46,10 +46,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 6873be0344486..e24e77e31529e 100644
+index f99558d006bf4..97c4319797d5c 100644
 --- a/drivers/video/fbdev/Kconfig
 +++ b/drivers/video/fbdev/Kconfig
-@@ -1397,6 +1397,7 @@ config FB_ATY
+@@ -1303,6 +1303,7 @@ config FB_ATY
  	select FB_CFB_IMAGEBLIT
  	select FB_BACKLIGHT if FB_ATY_BACKLIGHT
  	select FB_MACMODES if PPC
@@ -57,7 +57,7 @@ index 6873be0344486..e24e77e31529e 100644
  	help
  	  This driver supports graphics boards with the ATI Mach64 chips.
  	  Say Y if you have such a graphics board.
-@@ -1407,7 +1408,6 @@ config FB_ATY
+@@ -1313,7 +1314,6 @@ config FB_ATY
  config FB_ATY_CT
  	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
  	depends on PCI && FB_ATY
