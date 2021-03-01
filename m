@@ -1,10 +1,10 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:12:24 +0000
-Subject: [PATCH 5.4 200/340] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
-Message-Id: <20210301161058.150461450@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:12:53 +0000
+Subject: [PATCH 4.19 153/247] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
+Message-Id: <20210301161039.153818631@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161048.294656001@linuxfoundation.org>
-In-Reply-To: <20210301161048.294656001@linuxfoundation.org>
+References: <20210301161031.684018251@linuxfoundation.org>
+In-Reply-To: <20210301161031.684018251@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -38,10 +38,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 18e9fb6fcf1bf..349e27771ceaf 100644
+index e6f2a38d2e61e..1f1a7583fa905 100644
 --- a/arch/sparc/Kconfig
 +++ b/arch/sparc/Kconfig
-@@ -524,7 +524,7 @@ config COMPAT
+@@ -554,7 +554,7 @@ config COMPAT
  	bool
  	depends on SPARC64
  	default y
