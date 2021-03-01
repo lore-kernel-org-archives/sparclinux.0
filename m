@@ -1,54 +1,61 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:12:53 +0000
-Subject: [PATCH 4.19 153/247] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
-Message-Id: <20210301161039.153818631@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:10:39 +0000
+Subject: [PATCH 5.10 391/663] sparc: fix led.c driver when PROC_FS is not enabled
+Message-Id: <20210301161201.209095372@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161031.684018251@linuxfoundation.org>
-In-Reply-To: <20210301161031.684018251@linuxfoundation.org>
+References: <20210301161141.760350206@linuxfoundation.org>
+In-Reply-To: <20210301161141.760350206@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Sasha Levin <sashal@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, kernel test robot <lkp@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Lars Kotthoff <metalhead@metalhead.ws>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sasha Levin <sashal@kernel.org>
 
 From: Randy Dunlap <rdunlap@infradead.org>
 
-[ Upstream commit 80bddf5c93a99e11fc9faf7e4b575d01cecd45d3 ]
+[ Upstream commit b3554aa2470b5db1222c31e08ec9c29ab33eabc7 ]
 
-Currently COMPAT on SPARC64 selects COMPAT_BINFMT_ELF unconditionally,
-even when BINFMT_ELF is not enabled. This causes a kconfig warning.
+Fix Sparc build when CONFIG_PROC_FS is not enabled.
 
-Instead, just select COMPAT_BINFMT_ELF if BINFMT_ELF is enabled.
-This builds cleanly with no kconfig warnings.
+Fixes this build error:
+arch/sparc/kernel/led.c:107:30: error: 'led_proc_ops' defined but not used [-Werror=unused-const-variable=]
+     107 | static const struct proc_ops led_proc_ops = {
+         |                              ^~~~~~~~~~~~
+   cc1: all warnings being treated as errors
 
-WARNING: unmet direct dependencies detected for COMPAT_BINFMT_ELF
-  Depends on [n]: COMPAT [=y] && BINFMT_ELF [=n]
-  Selected by [y]:
-  - COMPAT [=y] && SPARC64 [=y]
-
-Fixes: 26b4c912185a ("sparc,sparc64: unify Kconfig files")
+Fixes: 97a32539b956 ("proc: convert everything to "struct proc_ops"")
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Lars Kotthoff <metalhead@metalhead.ws>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/kernel/led.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index e6f2a38d2e61e..1f1a7583fa905 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -554,7 +554,7 @@ config COMPAT
- 	bool
- 	depends on SPARC64
- 	default y
--	select COMPAT_BINFMT_ELF
-+	select COMPAT_BINFMT_ELF if BINFMT_ELF
- 	select HAVE_UID16
- 	select ARCH_WANT_OLD_COMPAT_IPC
- 	select COMPAT_OLD_SIGACTION
+diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
+index bd48575172c32..3a66e62eb2a0e 100644
+--- a/arch/sparc/kernel/led.c
++++ b/arch/sparc/kernel/led.c
+@@ -50,6 +50,7 @@ static void led_blink(struct timer_list *unused)
+ 	add_timer(&led_blink_timer);
+ }
+ 
++#ifdef CONFIG_PROC_FS
+ static int led_proc_show(struct seq_file *m, void *v)
+ {
+ 	if (get_auxio() & AUXIO_LED)
+@@ -111,6 +112,7 @@ static const struct proc_ops led_proc_ops = {
+ 	.proc_release	= single_release,
+ 	.proc_write	= led_proc_write,
+ };
++#endif
+ 
+ static struct proc_dir_entry *led;
+ 
 -- 
 2.27.0
