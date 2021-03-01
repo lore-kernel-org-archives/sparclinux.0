@@ -1,71 +1,35 @@
-From: Rob Gardner <rob.gardner@oracle.com>
-Date: Mon, 01 Mar 2021 05:48:16 +0000
-Subject: [PATCH] sparc64: Fix opcode filtering in handling of no fault loads
-Message-Id: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
+From: Anatoly Pugachev <matorola@gmail.com>
+Date: Mon, 01 Mar 2021 12:56:53 +0000
+Subject: Re: [PATCH] sparc64: Fix opcode filtering in handling of no fault loads
+Message-Id: <CADxRZqxScpzebDEh+LjyKmsgoQErqB=Lie=JUX2WWN2NOzqPcQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
+In-Reply-To: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: sparclinux@vger.kernel.org
 
-is_no_fault_exception() has two bugs which were discovered via random
-opcode testing with stress-ng. Both are caused by improper filtering
-of opcodes.
+On Mon, Mar 1, 2021 at 9:09 AM Rob Gardner <rob.gardner@oracle.com> wrote:
+>
+> is_no_fault_exception() has two bugs which were discovered via random
+> opcode testing with stress-ng. Both are caused by improper filtering
+> of opcodes.
 
-The first bug can be triggered by a floating point store with a no-fault
-ASI, for instance "sta %f0, [%g0] #ASI_PNF", opcode C1A01040.
+Rob, tested on my ldom, works perfectly now...
 
-The code first tests op3[5] (0x1000000), which denotes a floating
-point instruction, and then tests op3[2] (0x200000), which denotes a
-store instruction. But these bits are not mutually exclusive, and the
-above mentioned opcode has both bits set. The intent is to filter out
-stores, so the test for stores must be done first in order to have
-any effect.
+$ uname -a
+Linux ttip 5.12.0-rc1-dirty #195 SMP Mon Mar 1 15:46:15 MSK 2021
+sparc64 GNU/Linux
 
-The second bug can be triggered by a floating point load with one of
-the invalid ASI values 0x8e or 0x8f, which pass this check in
-is_no_fault_exception():
-     if ((asi & 0xf2) = ASI_PNF)
+$ stress-ng --opcode 1 --timeout 60 --metrics-brief
+stress-ng: info:  [945] dispatching hogs: 1 opcode
+stress-ng: info:  [945] successful run completed in 60.00s (1 min, 0.00 secs)
+stress-ng: info:  [945] stressor       bogo ops real time  usr time
+sys time   bogo ops/s   bogo ops/s
+stress-ng: info:  [945]                           (secs)    (secs)
+(secs)   (real time) (usr+sys time)
+stress-ng: info:  [945] opcode            17847     60.00     27.45
+ 34.03       297.45       290.29
 
-An example instruction is "ldqa [%l7 + %o7] #ASI 0x8f, %f38",
-opcode CF95D1EF. Asi values greater than 0x8b (ASI_SNFL) are fatal
-in handle_ldf_stq(), and is_no_fault_exception() must not allow these
-invalid asi values to make it that far.
-
-In both of these cases, handle_ldf_stq() reacts by calling
-sun4v_data_access_exception() or spitfire_data_access_exception(),
-which call is_no_fault_exception() and results in an infinite
-recursion.
-
-Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
----
- arch/sparc/kernel/traps_64.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
-
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index d92e5ea..a850dcc 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -275,14 +275,13 @@ bool is_no_fault_exception(struct pt_regs *regs)
- 			asi = (regs->tstate >> 24); /* saved %asi       */
- 		else
- 			asi = (insn >> 5);	    /* immediate asi    */
--		if ((asi & 0xf2) = ASI_PNF) {
--			if (insn & 0x1000000) {     /* op3[5:4]=3       */
--				handle_ldf_stq(insn, regs);
--				return true;
--			} else if (insn & 0x200000) { /* op3[2], stores */
-+		if ((asi & 0xf6) = ASI_PNF) {
-+			if (insn & 0x200000)        /* op3[2], stores   */
- 				return false;
--			}
--			handle_ld_nf(insn, regs);
-+			if (insn & 0x1000000)       /* op3[5:4]=3 (fp)  */
-+				handle_ldf_stq(insn, regs);
-+			else
-+				handle_ld_nf(insn, regs);
- 			return true;
- 		}
- 	}
--- 
-2.7.4
+Thank you for a quick fix.
