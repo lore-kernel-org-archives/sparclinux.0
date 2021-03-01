@@ -1,33 +1,71 @@
-From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Date: Wed, 10 Mar 2021 13:14:22 +0000
-Subject: Re: [GIT] SPARC
-Message-Id: <20210310131422.mk7sjmj3swrcz4g4@chatter.i7.local>
+From: Rob Gardner <rob.gardner@oracle.com>
+Date: Mon, 01 Mar 2021 05:48:16 +0000
+Subject: [PATCH] sparc64: Fix opcode filtering in handling of no fault loads
+Message-Id: <1614577696-27586-1-git-send-email-rob.gardner@oracle.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <37859f29-dc59-d6c2-6f92-abaae32ee4ab@physik.fu-berlin.de>
- <20210309.110812.234617387417457658.davem@davemloft.net>
- <CAHk-=whgiPiFy9Ye_t=fV9J8VdqgZW5XQcb-1z8PgpQbVBWqCQ@mail.gmail.com>
- <20210309.162454.822491855062735992.davem@davemloft.net>
- <CAMuHMdXAZzURKDWuLdUM=YZ8_OoYQAPuho8Qg3ckv3nkOujk4A@mail.gmail.com>
-In-Reply-To: <CAMuHMdXAZzURKDWuLdUM=YZ8_OoYQAPuho8Qg3ckv3nkOujk4A@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: David Miller <davem@davemloft.net>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, sparclinux <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: sparclinux@vger.kernel.org
 
-On Wed, Mar 10, 2021 at 11:40:47AM +0100, Geert Uytterhoeven wrote:
-> > > (And yes, I prefer lore.kernel.org over marc, although for single
-> > > patches it doesn't make much of a difference. For patch series, I find
-> > > 'b4' so convenient that I definitely want the patch to show up on
-> > > lore.kernel.org).
-> >
-> > Sadly, lore does not archive sparclinux@vger.kernel.org, so there
-> > isn't much choice in this case.
-> 
-> Which is only an "ask Konstantin" (CCed) away, isn't it?
+is_no_fault_exception() has two bugs which were discovered via random
+opcode testing with stress-ng. Both are caused by improper filtering
+of opcodes.
 
-I'm in the process of creating the remainder of vger archives on lore, so it
-would have happened anyway, but I'll bump sparclinux up in the queue.
+The first bug can be triggered by a floating point store with a no-fault
+ASI, for instance "sta %f0, [%g0] #ASI_PNF", opcode C1A01040.
 
-Best,
--K
+The code first tests op3[5] (0x1000000), which denotes a floating
+point instruction, and then tests op3[2] (0x200000), which denotes a
+store instruction. But these bits are not mutually exclusive, and the
+above mentioned opcode has both bits set. The intent is to filter out
+stores, so the test for stores must be done first in order to have
+any effect.
+
+The second bug can be triggered by a floating point load with one of
+the invalid ASI values 0x8e or 0x8f, which pass this check in
+is_no_fault_exception():
+     if ((asi & 0xf2) = ASI_PNF)
+
+An example instruction is "ldqa [%l7 + %o7] #ASI 0x8f, %f38",
+opcode CF95D1EF. Asi values greater than 0x8b (ASI_SNFL) are fatal
+in handle_ldf_stq(), and is_no_fault_exception() must not allow these
+invalid asi values to make it that far.
+
+In both of these cases, handle_ldf_stq() reacts by calling
+sun4v_data_access_exception() or spitfire_data_access_exception(),
+which call is_no_fault_exception() and results in an infinite
+recursion.
+
+Signed-off-by: Rob Gardner <rob.gardner@oracle.com>
+---
+ arch/sparc/kernel/traps_64.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index d92e5ea..a850dcc 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -275,14 +275,13 @@ bool is_no_fault_exception(struct pt_regs *regs)
+ 			asi = (regs->tstate >> 24); /* saved %asi       */
+ 		else
+ 			asi = (insn >> 5);	    /* immediate asi    */
+-		if ((asi & 0xf2) = ASI_PNF) {
+-			if (insn & 0x1000000) {     /* op3[5:4]=3       */
+-				handle_ldf_stq(insn, regs);
+-				return true;
+-			} else if (insn & 0x200000) { /* op3[2], stores */
++		if ((asi & 0xf6) = ASI_PNF) {
++			if (insn & 0x200000)        /* op3[2], stores   */
+ 				return false;
+-			}
+-			handle_ld_nf(insn, regs);
++			if (insn & 0x1000000)       /* op3[5:4]=3 (fp)  */
++				handle_ldf_stq(insn, regs);
++			else
++				handle_ld_nf(insn, regs);
+ 			return true;
+ 		}
+ 	}
+-- 
+2.7.4
