@@ -1,55 +1,54 @@
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Tue, 02 Mar 2021 06:21:56 +0000
-Subject: [PATCH 26/44] tty: vcc, drop version dump
-Message-Id: <20210302062214.29627-26-jslaby@suse.cz>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:10:38 +0000
+Subject: [PATCH 5.10 390/663] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
+Message-Id: <20210301161201.158319182@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210302062214.29627-1-jslaby@suse.cz>
-In-Reply-To: <20210302062214.29627-1-jslaby@suse.cz>
+References: <20210301161141.760350206@linuxfoundation.org>
+In-Reply-To: <20210301161141.760350206@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: gregkh@linuxfoundation.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Sasha Levin <sashal@kernel.org>
 
-The version number is artificial, no need to dump it to logs during
-initialization.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+[ Upstream commit 80bddf5c93a99e11fc9faf7e4b575d01cecd45d3 ]
+
+Currently COMPAT on SPARC64 selects COMPAT_BINFMT_ELF unconditionally,
+even when BINFMT_ELF is not enabled. This causes a kconfig warning.
+
+Instead, just select COMPAT_BINFMT_ELF if BINFMT_ELF is enabled.
+This builds cleanly with no kconfig warnings.
+
+WARNING: unmet direct dependencies detected for COMPAT_BINFMT_ELF
+  Depends on [n]: COMPAT [=y] && BINFMT_ELF [=n]
+  Selected by [y]:
+  - COMPAT [=y] && SPARC64 [=y]
+
+Fixes: 26b4c912185a ("sparc,sparc64: unify Kconfig files")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <sparclinux@vger.kernel.org>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/tty/vcc.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ arch/sparc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 50bf9011a0c4..31b8a9a77375 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -14,16 +14,9 @@
- #include <asm/vio.h>
- #include <asm/ldc.h>
- 
--#define DRV_MODULE_NAME		"vcc"
--#define DRV_MODULE_VERSION	"1.1"
--#define DRV_MODULE_RELDATE	"July 1, 2017"
--
--static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
--
- MODULE_DESCRIPTION("Sun LDOM virtual console concentrator driver");
- MODULE_LICENSE("GPL");
--MODULE_VERSION(DRV_MODULE_VERSION);
-+MODULE_VERSION("1.1");
- 
- struct vcc_port {
- 	struct vio_driver_state vio;
-@@ -1066,8 +1059,6 @@ static int vcc_tty_init(void)
- {
- 	int rv;
- 
--	pr_info("VCC: %s\n", version);
--
- 	vcc_tty_driver = tty_alloc_driver(VCC_MAX_PORTS, VCC_TTY_FLAGS);
- 	if (IS_ERR(vcc_tty_driver)) {
- 		pr_err("VCC: TTY driver alloc failed\n");
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index a6ca135442f9a..530b7ec5d3ca9 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -496,7 +496,7 @@ config COMPAT
+ 	bool
+ 	depends on SPARC64
+ 	default y
+-	select COMPAT_BINFMT_ELF
++	select COMPAT_BINFMT_ELF if BINFMT_ELF
+ 	select HAVE_UID16
+ 	select ARCH_WANT_OLD_COMPAT_IPC
+ 	select COMPAT_OLD_SIGACTION
 -- 
-2.30.1
+2.27.0
