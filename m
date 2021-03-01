@@ -1,48 +1,54 @@
-From: Corentin Labbe <clabbe@baylibre.com>
-Date: Mon, 08 Mar 2021 09:51:26 +0000
-Subject: [PATCH] sparc: sparc64_defconfig: remove duplicate CONFIGs
-Message-Id: <20210308095126.8514-1-clabbe@baylibre.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Mon, 01 Mar 2021 16:12:55 +0000
+Subject: [PATCH 4.14 102/176] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
+Message-Id: <20210301161026.043278363@linuxfoundation.org>
 List-Id: <sparclinux.vger.kernel.org>
+References: <20210301161020.931630716@linuxfoundation.org>
+In-Reply-To: <20210301161020.931630716@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: davem@davemloft.net
-Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Sasha Levin <sashal@kernel.org>
 
-After my patch there is CONFIG_ATA defined twice.
-Remove the duplicate one.
-Same problem for CONFIG_HAPPYMEAL, except I added as builtin for boot
-test with NFS.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Fixes: a57cdeb369ef ("sparc: sparc64_defconfig: add necessary configs for qemu")
-Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+[ Upstream commit 80bddf5c93a99e11fc9faf7e4b575d01cecd45d3 ]
+
+Currently COMPAT on SPARC64 selects COMPAT_BINFMT_ELF unconditionally,
+even when BINFMT_ELF is not enabled. This causes a kconfig warning.
+
+Instead, just select COMPAT_BINFMT_ELF if BINFMT_ELF is enabled.
+This builds cleanly with no kconfig warnings.
+
+WARNING: unmet direct dependencies detected for COMPAT_BINFMT_ELF
+  Depends on [n]: COMPAT [=y] && BINFMT_ELF [=n]
+  Selected by [y]:
+  - COMPAT [=y] && SPARC64 [=y]
+
+Fixes: 26b4c912185a ("sparc,sparc64: unify Kconfig files")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/configs/sparc64_defconfig | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ arch/sparc/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
-index 148f44b33890..12a4fb0bd52a 100644
---- a/arch/sparc/configs/sparc64_defconfig
-+++ b/arch/sparc/configs/sparc64_defconfig
-@@ -93,7 +93,7 @@ CONFIG_NETDEVICES=y
- CONFIG_NET_ETHERNET=y
- CONFIG_MII=m
- CONFIG_SUNLANCE=m
--CONFIG_HAPPYMEAL=m
-+CONFIG_HAPPYMEAL=y
- CONFIG_SUNGEM=m
- CONFIG_SUNVNET=m
- CONFIG_LDMVSW=m
-@@ -234,9 +234,7 @@ CONFIG_CRYPTO_TWOFISH=m
- CONFIG_CRC16=m
- CONFIG_LIBCRC32C=m
- CONFIG_VCC=m
--CONFIG_ATA=y
- CONFIG_PATA_CMD64X=y
--CONFIG_HAPPYMEAL=y
- CONFIG_IP_PNP=y
- CONFIG_IP_PNP_DHCP=y
- CONFIG_DEVTMPFS=y
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 4e83f950713e9..76734ec93e1f0 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -574,7 +574,7 @@ config COMPAT
+ 	bool
+ 	depends on SPARC64
+ 	default y
+-	select COMPAT_BINFMT_ELF
++	select COMPAT_BINFMT_ELF if BINFMT_ELF
+ 	select HAVE_UID16
+ 	select ARCH_WANT_OLD_COMPAT_IPC
+ 	select COMPAT_OLD_SIGACTION
 -- 
-2.26.2
+2.27.0
