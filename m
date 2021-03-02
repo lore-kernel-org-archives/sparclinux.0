@@ -1,54 +1,49 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:10:40 +0000
-Subject: [PATCH 5.11 472/775] sparc64: only select COMPAT_BINFMT_ELF if BINFMT_ELF is set
-Message-Id: <20210301161224.867983651@linuxfoundation.org>
+From: Sasha Levin <sashal@kernel.org>
+Date: Tue, 02 Mar 2021 11:58:23 +0000
+Subject: [PATCH AUTOSEL 4.19 09/21] sparc32: Limit memblock allocation to low memory
+Message-Id: <20210302115835.63269-9-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161201.679371205@linuxfoundation.org>
-In-Reply-To: <20210301161201.679371205@linuxfoundation.org>
+References: <20210302115835.63269-1-sashal@kernel.org>
+In-Reply-To: <20210302115835.63269-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>, Sasha Levin <sashal@kernel.org>
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andreas Larsson <andreas@gaisler.com>, Mike Rapoport <rppt@linux.ibm.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+From: Andreas Larsson <andreas@gaisler.com>
 
-[ Upstream commit 80bddf5c93a99e11fc9faf7e4b575d01cecd45d3 ]
+[ Upstream commit bda166930c37604ffa93f2425426af6921ec575a ]
 
-Currently COMPAT on SPARC64 selects COMPAT_BINFMT_ELF unconditionally,
-even when BINFMT_ELF is not enabled. This causes a kconfig warning.
+Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
+memblocks instead of bootmem, but also made high memory available via
+memblock allocation which does not work together with e.g. phys_to_virt
+and can lead to kernel panic.
 
-Instead, just select COMPAT_BINFMT_ELF if BINFMT_ELF is enabled.
-This builds cleanly with no kconfig warnings.
+This changes back to only low memory being allocatable in the early
+stages, now using memblock allocation.
 
-WARNING: unmet direct dependencies detected for COMPAT_BINFMT_ELF
-  Depends on [n]: COMPAT [=y] && BINFMT_ELF [=n]
-  Selected by [y]:
-  - COMPAT [=y] && SPARC64 [=y]
-
-Fixes: 26b4c912185a ("sparc,sparc64: unify Kconfig files")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/mm/init_32.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index c9c34dc52b7d8..639dde28124a2 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -494,7 +494,7 @@ config COMPAT
- 	bool
- 	depends on SPARC64
- 	default y
--	select COMPAT_BINFMT_ELF
-+	select COMPAT_BINFMT_ELF if BINFMT_ELF
- 	select HAVE_UID16
- 	select ARCH_WANT_OLD_COMPAT_IPC
- 	select COMPAT_OLD_SIGACTION
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 92634d4e440c..89a9244f2cf0 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -199,6 +199,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 	size = memblock_phys_mem_size() - memblock_reserved_size();
+ 	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
+ 
++	/* Only allow low memory to be allocated via memblock allocation */
++	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
++
+ 	return max_pfn;
+ }
+ 
 -- 
-2.27.0
+2.30.1
