@@ -1,61 +1,49 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:10:39 +0000
-Subject: [PATCH 5.10 391/663] sparc: fix led.c driver when PROC_FS is not enabled
-Message-Id: <20210301161201.209095372@linuxfoundation.org>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Tue, 02 Mar 2021 06:21:57 +0000
+Subject: [PATCH 27/44] tty: vcc, use name strings directly
+Message-Id: <20210302062214.29627-27-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161141.760350206@linuxfoundation.org>
-In-Reply-To: <20210301161141.760350206@linuxfoundation.org>
+References: <20210302062214.29627-1-jslaby@suse.cz>
+In-Reply-To: <20210302062214.29627-1-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, kernel test robot <lkp@intel.com>, Randy Dunlap <rdunlap@infradead.org>, Alexey Dobriyan <adobriyan@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Lars Kotthoff <metalhead@metalhead.ws>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org, Sasha Levin <sashal@kernel.org>
+To: gregkh@linuxfoundation.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Do not define global variables for driver/device names, use the strings
+directly.
 
-[ Upstream commit b3554aa2470b5db1222c31e08ec9c29ab33eabc7 ]
-
-Fix Sparc build when CONFIG_PROC_FS is not enabled.
-
-Fixes this build error:
-arch/sparc/kernel/led.c:107:30: error: 'led_proc_ops' defined but not used [-Werror=unused-const-variable=]
-     107 | static const struct proc_ops led_proc_ops = {
-         |                              ^~~~~~~~~~~~
-   cc1: all warnings being treated as errors
-
-Fixes: 97a32539b956 ("proc: convert everything to "struct proc_ops"")
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Lars Kotthoff <metalhead@metalhead.ws>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/kernel/led.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/tty/vcc.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sparc/kernel/led.c b/arch/sparc/kernel/led.c
-index bd48575172c32..3a66e62eb2a0e 100644
---- a/arch/sparc/kernel/led.c
-+++ b/arch/sparc/kernel/led.c
-@@ -50,6 +50,7 @@ static void led_blink(struct timer_list *unused)
- 	add_timer(&led_blink_timer);
- }
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 31b8a9a77375..a6cdbd170a61 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -52,8 +52,6 @@ struct vcc_port {
+ #define VCC_CTL_BREAK		-1
+ #define VCC_CTL_HUP		-2
  
-+#ifdef CONFIG_PROC_FS
- static int led_proc_show(struct seq_file *m, void *v)
- {
- 	if (get_auxio() & AUXIO_LED)
-@@ -111,6 +112,7 @@ static const struct proc_ops led_proc_ops = {
- 	.proc_release	= single_release,
- 	.proc_write	= led_proc_write,
- };
-+#endif
+-static const char vcc_driver_name[] = "vcc";
+-static const char vcc_device_node[] = "vcc";
+ static struct tty_driver *vcc_tty_driver;
  
- static struct proc_dir_entry *led;
+ static struct vcc_port *vcc_table[VCC_MAX_PORTS];
+@@ -1065,8 +1063,8 @@ static int vcc_tty_init(void)
+ 		return PTR_ERR(vcc_tty_driver);
+ 	}
  
+-	vcc_tty_driver->driver_name = vcc_driver_name;
+-	vcc_tty_driver->name = vcc_device_node;
++	vcc_tty_driver->driver_name = "vcc";
++	vcc_tty_driver->name = "vcc";
+ 
+ 	vcc_tty_driver->minor_start = VCC_MINOR_START;
+ 	vcc_tty_driver->type = TTY_DRIVER_TYPE_SYSTEM;
 -- 
-2.27.0
+2.30.1
