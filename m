@@ -1,79 +1,49 @@
-From: <gregkh@linuxfoundation.org>
-Date: Thu, 04 Mar 2021 08:02:14 +0000
-Subject: patch "tty: vcc, drop version dump" added to tty-next
-Message-Id: <1614844934106250@kroah.com>
+From: Sasha Levin <sashal@kernel.org>
+Date: Tue, 02 Mar 2021 11:59:16 +0000
+Subject: [PATCH AUTOSEL 4.9 05/10] sparc32: Limit memblock allocation to low memory
+Message-Id: <20210302115921.63636-5-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <16147990751818@kroah.com>
-In-Reply-To: <16147990751818@kroah.com>
+References: <20210302115921.63636-1-sashal@kernel.org>
+In-Reply-To: <20210302115921.63636-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: sparclinux@vger.kernel.org
+To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc: Andreas Larsson <andreas@gaisler.com>, Mike Rapoport <rppt@linux.ibm.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
+From: Andreas Larsson <andreas@gaisler.com>
 
-This is a note to let you know that I've just added the patch titled
+[ Upstream commit bda166930c37604ffa93f2425426af6921ec575a ]
 
-    tty: vcc, drop version dump
+Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
+memblocks instead of bootmem, but also made high memory available via
+memblock allocation which does not work together with e.g. phys_to_virt
+and can lead to kernel panic.
 
-to my tty git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-in the tty-next branch.
+This changes back to only low memory being allocatable in the early
+stages, now using memblock allocation.
 
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
-
-The patch will also be merged in the next major kernel release
-during the merge window.
-
-If you have any questions about this process, please let me know.
-
-
-From 43b849968559a1671fb313e271b0176d741d3a4c Mon Sep 17 00:00:00 2001
-From: Jiri Slaby <jslaby@suse.cz>
-Date: Tue, 2 Mar 2021 07:21:56 +0100
-Subject: tty: vcc, drop version dump
-
-The version number is artificial, no need to dump it to logs during
-initialization.
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: <sparclinux@vger.kernel.org>
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Link: https://lore.kernel.org/r/20210302062214.29627-26-jslaby@suse.cz
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/tty/vcc.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ arch/sparc/mm/init_32.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 50bf9011a0c4..31b8a9a77375 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -14,16 +14,9 @@
- #include <asm/vio.h>
- #include <asm/ldc.h>
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 3b7092d9ea8f..4abe4bf08377 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -240,6 +240,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 	reserve_bootmem((bootmap_pfn << PAGE_SHIFT), size, BOOTMEM_DEFAULT);
+ 	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
  
--#define DRV_MODULE_NAME		"vcc"
--#define DRV_MODULE_VERSION	"1.1"
--#define DRV_MODULE_RELDATE	"July 1, 2017"
--
--static char version[] -	DRV_MODULE_NAME ".c:v" DRV_MODULE_VERSION " (" DRV_MODULE_RELDATE ")";
--
- MODULE_DESCRIPTION("Sun LDOM virtual console concentrator driver");
- MODULE_LICENSE("GPL");
--MODULE_VERSION(DRV_MODULE_VERSION);
-+MODULE_VERSION("1.1");
++	/* Only allow low memory to be allocated via memblock allocation */
++	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
++
+ 	return max_pfn;
+ }
  
- struct vcc_port {
- 	struct vio_driver_state vio;
-@@ -1066,8 +1059,6 @@ static int vcc_tty_init(void)
- {
- 	int rv;
- 
--	pr_info("VCC: %s\n", version);
--
- 	vcc_tty_driver = tty_alloc_driver(VCC_MAX_PORTS, VCC_TTY_FLAGS);
- 	if (IS_ERR(vcc_tty_driver)) {
- 		pr_err("VCC: TTY driver alloc failed\n");
 -- 
 2.30.1
