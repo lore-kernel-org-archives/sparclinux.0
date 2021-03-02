@@ -1,69 +1,137 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:06:26 +0000
-Subject: [PATCH 5.10 138/663] fbdev: aty: SPARC64 requires FB_ATY_CT
-Message-Id: <20210301161148.585856050@linuxfoundation.org>
+From: Jiri Slaby <jslaby@suse.cz>
+Date: Tue, 02 Mar 2021 06:21:58 +0000
+Subject: [PATCH 28/44] tty: vcc, remove useless tty checks
+Message-Id: <20210302062214.29627-28-jslaby@suse.cz>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161141.760350206@linuxfoundation.org>
-In-Reply-To: <20210301161141.760350206@linuxfoundation.org>
+References: <20210302062214.29627-1-jslaby@suse.cz>
+In-Reply-To: <20210302062214.29627-1-jslaby@suse.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-fbdev@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, stable@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, dri-devel@lists.freedesktop.org, Daniel Vetter <daniel.vetter@ffwll.ch>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: gregkh@linuxfoundation.org
+Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>, "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+All these functions are called with a valid tty pointer, no need to
+check that.
 
-[ Upstream commit c6c90c70db4d9a0989111d6b994d545659410f7a ]
-
-It looks like SPARC64 requires FB_ATY_CT to build without errors,
-so have FB_ATY select FB_ATY_CT if both SPARC64 and PCI are enabled
-instead of using "default y if SPARC64 && PCI", which is not strong
-enough to prevent build errors.
-
-As it currently is, FB_ATY_CT can be disabled, resulting in build
-errors:
-
-ERROR: modpost: "aty_postdividers" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-ERROR: modpost: "aty_ld_pll_ct" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Fixes: f7018c213502 ("video: move fbdev to drivers/video/fbdev")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: sparclinux@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Link: https://patchwork.freedesktop.org/patch/msgid/20201127031752.10371-1-rdunlap@infradead.org
-Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- drivers/video/fbdev/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/tty/vcc.c | 45 ---------------------------------------------
+ 1 file changed, 45 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index cfb7f5612ef0f..4f02db65dedec 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -1269,6 +1269,7 @@ config FB_ATY
- 	select FB_CFB_IMAGEBLIT
- 	select FB_BACKLIGHT if FB_ATY_BACKLIGHT
- 	select FB_MACMODES if PPC
-+	select FB_ATY_CT if SPARC64 && PCI
- 	help
- 	  This driver supports graphics boards with the ATI Mach64 chips.
- 	  Say Y if you have such a graphics board.
-@@ -1279,7 +1280,6 @@ config FB_ATY
- config FB_ATY_CT
- 	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
- 	depends on PCI && FB_ATY
--	default y if SPARC64 && PCI
- 	help
- 	  Say Y here to support use of ATI's 64-bit Rage boards (or other
- 	  boards based on the Mach64 CT, VT, GT, and LT chipsets) as a
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index a6cdbd170a61..04a792749816 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -726,11 +726,6 @@ static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
+ {
+ 	struct vcc_port *port;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: open: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	if (tty->count > 1)
+ 		return -EBUSY;
+ 
+@@ -764,11 +759,6 @@ static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
+ 
+ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
+ {
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: close: Invalid TTY handle\n");
+-		return;
+-	}
+-
+ 	if (unlikely(tty->count > 1))
+ 		return;
+ 
+@@ -796,11 +786,6 @@ static void vcc_hangup(struct tty_struct *tty)
+ {
+ 	struct vcc_port *port;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: hangup: Invalid TTY handle\n");
+-		return;
+-	}
+-
+ 	port = vcc_get_ne(tty->index);
+ 	if (unlikely(!port)) {
+ 		pr_err("VCC: hangup: Failed to find VCC port\n");
+@@ -830,11 +815,6 @@ static int vcc_write(struct tty_struct *tty, const unsigned char *buf,
+ 	int tosend = 0;
+ 	int rv = -EINVAL;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: write: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	port = vcc_get_ne(tty->index);
+ 	if (unlikely(!port)) {
+ 		pr_err("VCC: write: Failed to find VCC port");
+@@ -895,11 +875,6 @@ static int vcc_write_room(struct tty_struct *tty)
+ 	struct vcc_port *port;
+ 	u64 num;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: write_room: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	port = vcc_get_ne(tty->index);
+ 	if (unlikely(!port)) {
+ 		pr_err("VCC: write_room: Failed to find VCC port\n");
+@@ -918,11 +893,6 @@ static int vcc_chars_in_buffer(struct tty_struct *tty)
+ 	struct vcc_port *port;
+ 	u64 num;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: chars_in_buffer: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	port = vcc_get_ne(tty->index);
+ 	if (unlikely(!port)) {
+ 		pr_err("VCC: chars_in_buffer: Failed to find VCC port\n");
+@@ -941,11 +911,6 @@ static int vcc_break_ctl(struct tty_struct *tty, int state)
+ 	struct vcc_port *port;
+ 	unsigned long flags;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: break_ctl: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	port = vcc_get_ne(tty->index);
+ 	if (unlikely(!port)) {
+ 		pr_err("VCC: break_ctl: Failed to find VCC port\n");
+@@ -976,11 +941,6 @@ static int vcc_install(struct tty_driver *driver, struct tty_struct *tty)
+ 	struct tty_port *port_tty;
+ 	int ret;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: install: Invalid TTY handle\n");
+-		return -ENXIO;
+-	}
+-
+ 	if (tty->index >= VCC_MAX_PORTS)
+ 		return -EINVAL;
+ 
+@@ -1015,11 +975,6 @@ static void vcc_cleanup(struct tty_struct *tty)
+ {
+ 	struct vcc_port *port;
+ 
+-	if (unlikely(!tty)) {
+-		pr_err("VCC: cleanup: Invalid TTY handle\n");
+-		return;
+-	}
+-
+ 	port = vcc_get(tty->index, true);
+ 	if (port) {
+ 		port->tty = NULL;
 -- 
-2.27.0
+2.30.1
