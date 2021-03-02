@@ -1,115 +1,49 @@
 From: Sasha Levin <sashal@kernel.org>
-Date: Tue, 02 Mar 2021 11:56:23 +0000
-Subject: [PATCH AUTOSEL 5.10 24/47] sparc64: Use arch_validate_flags() to validate ADI flag
-Message-Id: <20210302115646.62291-24-sashal@kernel.org>
+Date: Tue, 02 Mar 2021 11:57:32 +0000
+Subject: [PATCH AUTOSEL 5.4 16/33] sparc32: Limit memblock allocation to low memory
+Message-Id: <20210302115749.62653-16-sashal@kernel.org>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210302115646.62291-1-sashal@kernel.org>
-In-Reply-To: <20210302115646.62291-1-sashal@kernel.org>
+References: <20210302115749.62653-1-sashal@kernel.org>
+In-Reply-To: <20210302115749.62653-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 To: linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc: Khalid Aziz <khalid.aziz@oracle.com>, Jann Horn <jannh@google.com>, Christoph Hellwig <hch@infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+Cc: Andreas Larsson <andreas@gaisler.com>, Mike Rapoport <rppt@linux.ibm.com>, "David S . Miller" <davem@davemloft.net>, Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
 
-From: Khalid Aziz <khalid.aziz@oracle.com>
+From: Andreas Larsson <andreas@gaisler.com>
 
-[ Upstream commit 147d8622f2a26ef34beacc60e1ed8b66c2fa457f ]
+[ Upstream commit bda166930c37604ffa93f2425426af6921ec575a ]
 
-When userspace calls mprotect() to enable ADI on an address range,
-do_mprotect_pkey() calls arch_validate_prot() to validate new
-protection flags. arch_validate_prot() for sparc looks at the first
-VMA associated with address range to verify if ADI can indeed be
-enabled on this address range. This has two issues - (1) Address
-range might cover multiple VMAs while arch_validate_prot() looks at
-only the first VMA, (2) arch_validate_prot() peeks at VMA without
-holding mmap lock which can result in race condition.
+Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
+memblocks instead of bootmem, but also made high memory available via
+memblock allocation which does not work together with e.g. phys_to_virt
+and can lead to kernel panic.
 
-arch_validate_flags() from commit c462ac288f2c ("mm: Introduce
-arch_validate_flags()") allows for VMA flags to be validated for all
-VMAs that cover the address range given by user while holding mmap
-lock. This patch updates sparc code to move the VMA check from
-arch_validate_prot() to arch_validate_flags() to fix above two
-issues.
+This changes back to only low memory being allocatable in the early
+stages, now using memblock allocation.
 
-Suggested-by: Jann Horn <jannh@google.com>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Suggested-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Khalid Aziz <khalid.aziz@oracle.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/include/asm/mman.h | 54 +++++++++++++++++++----------------
- 1 file changed, 29 insertions(+), 25 deletions(-)
+ arch/sparc/mm/init_32.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-index f94532f25db1..274217e7ed70 100644
---- a/arch/sparc/include/asm/mman.h
-+++ b/arch/sparc/include/asm/mman.h
-@@ -57,35 +57,39 @@ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
- {
- 	if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_ADI))
- 		return 0;
--	if (prot & PROT_ADI) {
--		if (!adi_capable())
--			return 0;
-+	return 1;
-+}
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 906eda1158b4..40dd6cb4a413 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -197,6 +197,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
+ 	size = memblock_phys_mem_size() - memblock_reserved_size();
+ 	*pages_avail = (size >> PAGE_SHIFT) - high_pages;
  
--		if (addr) {
--			struct vm_area_struct *vma;
-+#define arch_validate_flags(vm_flags) arch_validate_flags(vm_flags)
-+/* arch_validate_flags() - Ensure combination of flags is valid for a
-+ *	VMA.
-+ */
-+static inline bool arch_validate_flags(unsigned long vm_flags)
-+{
-+	/* If ADI is being enabled on this VMA, check for ADI
-+	 * capability on the platform and ensure VMA is suitable
-+	 * for ADI
-+	 */
-+	if (vm_flags & VM_SPARC_ADI) {
-+		if (!adi_capable())
-+			return false;
- 
--			vma = find_vma(current->mm, addr);
--			if (vma) {
--				/* ADI can not be enabled on PFN
--				 * mapped pages
--				 */
--				if (vma->vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
--					return 0;
-+		/* ADI can not be enabled on PFN mapped pages */
-+		if (vm_flags & (VM_PFNMAP | VM_MIXEDMAP))
-+			return false;
- 
--				/* Mergeable pages can become unmergeable
--				 * if ADI is enabled on them even if they
--				 * have identical data on them. This can be
--				 * because ADI enabled pages with identical
--				 * data may still not have identical ADI
--				 * tags on them. Disallow ADI on mergeable
--				 * pages.
--				 */
--				if (vma->vm_flags & VM_MERGEABLE)
--					return 0;
--			}
--		}
-+		/* Mergeable pages can become unmergeable
-+		 * if ADI is enabled on them even if they
-+		 * have identical data on them. This can be
-+		 * because ADI enabled pages with identical
-+		 * data may still not have identical ADI
-+		 * tags on them. Disallow ADI on mergeable
-+		 * pages.
-+		 */
-+		if (vm_flags & VM_MERGEABLE)
-+			return false;
- 	}
--	return 1;
-+	return true;
++	/* Only allow low memory to be allocated via memblock allocation */
++	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
++
+ 	return max_pfn;
  }
- #endif /* CONFIG_SPARC64 */
  
 -- 
 2.30.1
