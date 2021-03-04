@@ -1,8 +1,10 @@
 From: <gregkh@linuxfoundation.org>
-Date: Wed, 03 Mar 2021 19:17:55 +0000
-Subject: patch "tty: vcc, drop version dump" added to tty-testing
-Message-Id: <16147990751818@kroah.com>
+Date: Thu, 04 Mar 2021 08:02:14 +0000
+Subject: patch "tty: vcc, drop version dump" added to tty-next
+Message-Id: <1614844934106250@kroah.com>
 List-Id: <sparclinux.vger.kernel.org>
+References: <16147990751818@kroah.com>
+In-Reply-To: <16147990751818@kroah.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -15,13 +17,13 @@ This is a note to let you know that I've just added the patch titled
 
 to my tty git tree which can be found at
     git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
-in the tty-testing branch.
+in the tty-next branch.
 
 The patch will show up in the next release of the linux-next tree
 (usually sometime within the next 24 hours during the week.)
 
-The patch will be merged to the tty-next branch sometime soon,
-after it passes testing, and the merge window is open.
+The patch will also be merged in the next major kernel release
+during the merge window.
 
 If you have any questions about this process, please let me know.
 
