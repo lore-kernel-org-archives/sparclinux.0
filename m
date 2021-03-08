@@ -1,69 +1,48 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date: Mon, 01 Mar 2021 16:11:54 +0000
-Subject: [PATCH 4.14 041/176] fbdev: aty: SPARC64 requires FB_ATY_CT
-Message-Id: <20210301161023.014716561@linuxfoundation.org>
+From: Corentin Labbe <clabbe@baylibre.com>
+Date: Mon, 08 Mar 2021 09:51:26 +0000
+Subject: [PATCH] sparc: sparc64_defconfig: remove duplicate CONFIGs
+Message-Id: <20210308095126.8514-1-clabbe@baylibre.com>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210301161020.931630716@linuxfoundation.org>
-In-Reply-To: <20210301161020.931630716@linuxfoundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: linux-kernel@vger.kernel.org
-Cc: Sasha Levin <sashal@kernel.org>, linux-fbdev@vger.kernel.org, Geert Uytterhoeven <geert+renesas@glider.be>, Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Randy Dunlap <rdunlap@infradead.org>, stable@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>, Geert Uytterhoeven <geert@linux-m68k.org>, dri-devel@lists.freedesktop.org, Daniel Vetter <daniel.vetter@ffwll.ch>, sparclinux@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+To: davem@davemloft.net
+Cc: linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+After my patch there is CONFIG_ATA defined twice.
+Remove the duplicate one.
+Same problem for CONFIG_HAPPYMEAL, except I added as builtin for boot
+test with NFS.
 
-[ Upstream commit c6c90c70db4d9a0989111d6b994d545659410f7a ]
-
-It looks like SPARC64 requires FB_ATY_CT to build without errors,
-so have FB_ATY select FB_ATY_CT if both SPARC64 and PCI are enabled
-instead of using "default y if SPARC64 && PCI", which is not strong
-enough to prevent build errors.
-
-As it currently is, FB_ATY_CT can be disabled, resulting in build
-errors:
-
-ERROR: modpost: "aty_postdividers" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-ERROR: modpost: "aty_ld_pll_ct" [drivers/video/fbdev/aty/atyfb.ko] undefined!
-
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Fixes: f7018c213502 ("video: move fbdev to drivers/video/fbdev")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-fbdev@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Link: https://patchwork.freedesktop.org/patch/msgid/20201127031752.10371-1-rdunlap@infradead.org
-Signed-off-by: Sasha Levin <sashal@kernel.org>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Fixes: a57cdeb369ef ("sparc: sparc64_defconfig: add necessary configs for qemu")
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
 ---
- drivers/video/fbdev/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sparc/configs/sparc64_defconfig | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
-index 5e58f5ec0a28e..d00588d9b0258 100644
---- a/drivers/video/fbdev/Kconfig
-+++ b/drivers/video/fbdev/Kconfig
-@@ -1411,6 +1411,7 @@ config FB_ATY
- 	select FB_CFB_IMAGEBLIT
- 	select FB_BACKLIGHT if FB_ATY_BACKLIGHT
- 	select FB_MACMODES if PPC
-+	select FB_ATY_CT if SPARC64 && PCI
- 	help
- 	  This driver supports graphics boards with the ATI Mach64 chips.
- 	  Say Y if you have such a graphics board.
-@@ -1421,7 +1422,6 @@ config FB_ATY
- config FB_ATY_CT
- 	bool "Mach64 CT/VT/GT/LT (incl. 3D RAGE) support"
- 	depends on PCI && FB_ATY
--	default y if SPARC64 && PCI
- 	help
- 	  Say Y here to support use of ATI's 64-bit Rage boards (or other
- 	  boards based on the Mach64 CT, VT, GT, and LT chipsets) as a
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index 148f44b33890..12a4fb0bd52a 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -93,7 +93,7 @@ CONFIG_NETDEVICES=y
+ CONFIG_NET_ETHERNET=y
+ CONFIG_MII=m
+ CONFIG_SUNLANCE=m
+-CONFIG_HAPPYMEAL=m
++CONFIG_HAPPYMEAL=y
+ CONFIG_SUNGEM=m
+ CONFIG_SUNVNET=m
+ CONFIG_LDMVSW=m
+@@ -234,9 +234,7 @@ CONFIG_CRYPTO_TWOFISH=m
+ CONFIG_CRC16=m
+ CONFIG_LIBCRC32C=m
+ CONFIG_VCC=m
+-CONFIG_ATA=y
+ CONFIG_PATA_CMD64X=y
+-CONFIG_HAPPYMEAL=y
+ CONFIG_IP_PNP=y
+ CONFIG_IP_PNP_DHCP=y
+ CONFIG_DEVTMPFS=y
 -- 
-2.27.0
+2.26.2
