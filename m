@@ -1,29 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Date: Tue, 09 Mar 2021 19:08:12 +0000
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 09 Mar 2021 19:27:41 +0000
 Subject: Re: [GIT] SPARC
-Message-Id: <20210309.110812.234617387417457658.davem@davemloft.net>
+Message-Id: <CAHk-=whgiPiFy9Ye_t=fV9J8VdqgZW5XQcb-1z8PgpQbVBWqCQ@mail.gmail.com>
 List-Id: <sparclinux.vger.kernel.org>
 References: <20210308.154619.729170517586257571.davem@davemloft.net>
-        <37859f29-dc59-d6c2-6f92-abaae32ee4ab@physik.fu-berlin.de>
-In-Reply-To: <37859f29-dc59-d6c2-6f92-abaae32ee4ab@physik.fu-berlin.de>
+ <37859f29-dc59-d6c2-6f92-abaae32ee4ab@physik.fu-berlin.de> <20210309.110812.234617387417457658.davem@davemloft.net>
+In-Reply-To: <20210309.110812.234617387417457658.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: glaubitz@physik.fu-berlin.de
-Cc: torvalds@linux-foundation.org, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, linux-sparc <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Date: Tue, 9 Mar 2021 01:19:05 +0100
+On Tue, Mar 9, 2021 at 11:08 AM David Miller <davem@davemloft.net> wrote:
+>
+> I'll make sure that gets into my next pull req, thanks.
 
-> Hi Dave!
-> 
-> On 3/9/21 12:46 AM, David Miller wrote:
->> Just some more random bits from Al,  including a conversion over to generic exytables.
-> 
-> Is there a chance we could include this important fix by Rob Gardner for 5.12 as well?
-> 
->> https://marc.info/?l=linux-sparc&m1457847223456&w=2
-> 
-> It fixes a hard kernel crash under certain loads which we have seen in Debian quite frequently.
+Note that it's obviously always easiest for me to just ignore
+something like sparc entirely, but on the other hand, particularly for
+low-volume trees it's also ok to just say "I don't have anything
+pending, here's the link to lore.kernel.org, can you apply that one
+patch directly".
 
-I'll ake sure that gets into my next pull req, thanks.
+(And yes, I prefer lore.kernel.org over marc, although for single
+patches it doesn't make much of a difference. For patch series, I find
+'b4' so convenient that I definitely want the patch to show up on
+lore.kernel.org).
+
+I'll await your pull request or 'I have nothing else, take it from
+xyz', this thread is otherwise archived for me as "done".
+
+              Linus
