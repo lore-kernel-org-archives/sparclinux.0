@@ -1,71 +1,32 @@
-From: David Miller <davem@davemloft.net>
-Date: Mon, 08 Mar 2021 23:46:19 +0000
-Subject: [GIT] SPARC
-Message-Id: <20210308.154619.729170517586257571.davem@davemloft.net>
+From: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
+Date: Tue, 09 Mar 2021 00:19:05 +0000
+Subject: Re: [GIT] SPARC
+Message-Id: <37859f29-dc59-d6c2-6f92-abaae32ee4ab@physik.fu-berlin.de>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20100329.131141.80866523.davem@davemloft.net>
-In-Reply-To: <20100329.131141.80866523.davem@davemloft.net>
+References: <20210308.154619.729170517586257571.davem@davemloft.net>
+In-Reply-To: <20210308.154619.729170517586257571.davem@davemloft.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: torvalds@linux-foundation.org
+To: David Miller <davem@davemloft.net>, torvalds@linux-foundation.org
 Cc: sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
+Hi Dave!
 
-Just some more random bits from Al,  including a conversion over to generic exytables.
+On 3/9/21 12:46 AM, David Miller wrote:
+> Just some more random bits from Al,  including a conversion over to generic exytables.
 
-Please pull, thanks a lot!
+Is there a chance we could include this important fix by Rob Gardner for 5.12 as well?
 
-The following changes since commit 062c84fccc4444805738d76a2699c4d3c95184ec:
+> https://marc.info/?l=linux-sparc&m1457847223456&w=2
 
-  Merge tag 'rproc-v5.12' of git://git.kernel.org/pub/scm/linux/kernel/git/andersson/remoteproc (2021-02-24 11:30:13 -0800)
+It fixes a hard kernel crash under certain loads which we have seen in Debian quite frequently.
 
-are available in the Git repository at:
+Thanks,
+Adrian
 
-  git://git.kernel.org:/pub/scm/linux/kernel/git/davem/sparc.git 
-
-for you to fetch changes up to cf64c2a905e0dabcc473ca70baf275fb3a61fac4:
-
-  Merge branch 'work.sparc32' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs (2021-02-26 16:16:24 -0800)
-
-----------------------------------------------------------------
-Al Viro (10):
-      sparc32: don't bother with lookup_fault() in __bzero()
-      sparc32: kill lookup_fault()
-      sparc32: switch __bzero() away from range exception table entries
-      sparc32: get rid of range exception table entries in checksum_32.S
-      sparc32: switch copy_user.S away from range exception table entries
-      sparc32: switch to generic extables
-      Merge remote-tracking branch 'sparc/master' into work.sparc32
-      sparc64: get rid of fake_swapper_regs
-      sparc32: get rid of fake_swapper_regs
-      sparc32: take ->thread.flags out
-
-David S. Miller (2):
-      Merge branch 'work.sparc' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs
-      Merge branch 'work.sparc32' of git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs
-
- arch/sparc/include/asm/elf_64.h                    |   1 -
- arch/sparc/include/asm/{extable_64.h => extable.h} |   4 +-
- arch/sparc/include/asm/processor_32.h              |   6 +-
- arch/sparc/include/asm/thread_info_64.h            |   1 +
- arch/sparc/include/asm/uaccess.h                   |   3 +
- arch/sparc/include/asm/uaccess_32.h                |  38 ----------
- arch/sparc/include/asm/uaccess_64.h                |   1 -
- arch/sparc/kernel/head_32.S                        |   2 +-
- arch/sparc/kernel/head_64.S                        |   2 +-
- arch/sparc/kernel/process_32.c                     |  12 ----
- arch/sparc/kernel/setup_32.c                       |   3 -
- arch/sparc/kernel/setup_64.c                       |   4 --
- arch/sparc/kernel/unaligned_32.c                   | 106 ++-------------------------
- arch/sparc/lib/checksum_32.S                       |  64 +++++++----------
- arch/sparc/lib/copy_user.S                         | 315 +++++++++++++++++++++++++++++----------------------------------------------------
- arch/sparc/lib/memset.S                            |  87 +++++++++--------------
- arch/sparc/mm/Makefile                             |   2 +-
- arch/sparc/mm/extable.c                            | 107 ----------------------------
- arch/sparc/mm/fault_32.c                           |  80 +++------------------
- arch/sparc/mm/mm_32.h                              |   2 -
- lib/extable.c                                      |   5 --
- 21 files changed, 198 insertions(+), 647 deletions(-)
- rename arch/sparc/include/asm/{extable_64.h => extable.h} (92%)
- delete mode 100644 arch/sparc/mm/extable.c
+-- 
+ .''`.  John Paul Adrian Glaubitz
+: :' :  Debian Developer - glaubitz@debian.org
+`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
+  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
