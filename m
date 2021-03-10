@@ -1,25 +1,28 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Wed, 10 Mar 2021 01:17:24 +0000
+From: David Miller <davem@davemloft.net>
+Date: Wed, 10 Mar 2021 01:18:52 +0000
 Subject: Re: [GIT] SPARC
-Message-Id: <CAHk-=wgvDZRBoWfynXPDOzTTyD7Ms3UzqVw_K1zzd5S2asn25g@mail.gmail.com>
+Message-Id: <20210309.171852.2017579796449386350.davem@davemloft.net>
 List-Id: <sparclinux.vger.kernel.org>
-References: <20210309.110812.234617387417457658.davem@davemloft.net>
- <CAHk-=whgiPiFy9Ye_t=fV9J8VdqgZW5XQcb-1z8PgpQbVBWqCQ@mail.gmail.com>
- <20210309.162454.822491855062735992.davem@davemloft.net> <20210309.171540.1612415953102779664.davem@davemloft.net>
-In-Reply-To: <20210309.171540.1612415953102779664.davem@davemloft.net>
+References: <20210309.162454.822491855062735992.davem@davemloft.net>
+        <20210309.171540.1612415953102779664.davem@davemloft.net>
+        <CAHk-=wgvDZRBoWfynXPDOzTTyD7Ms3UzqVw_K1zzd5S2asn25g@mail.gmail.com>
+In-Reply-To: <CAHk-=wgvDZRBoWfynXPDOzTTyD7Ms3UzqVw_K1zzd5S2asn25g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-To: David Miller <davem@davemloft.net>
-Cc: John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>, linux-sparc <sparclinux@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: torvalds@linux-foundation.org
+Cc: glaubitz@physik.fu-berlin.de, sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Mar 9, 2021 at 5:15 PM David Miller <davem@davemloft.net> wrote:
->
-> Somehow you pull didn't get commits:
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 9 Mar 2021 17:17:24 -0800
 
-Look closer at the pull date. That was before you had updated your branch.
+> On Tue, Mar 9, 2021 at 5:15 PM David Miller <davem@davemloft.net> wrote:
+>>
+>> Somehow you pull didn't get commits:
+> 
+> Look closer at the pull date. That was before you had updated your branch.
+> 
+> I did a second pull just moments ago, I'll push it out (along with the
+> networking one), after all my tests have passed.
 
-I did a second pull just moments ago, I'll push it out (along with the
-networking one), after all my tests have passed.
-
-            Linus
+Thank you.
