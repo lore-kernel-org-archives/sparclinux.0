@@ -2,97 +2,63 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,UNPARSEABLE_RELAY,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA922C433E0
-	for <sparclinux@archiver.kernel.org>; Fri, 12 Mar 2021 22:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9ACAC433E0
+	for <sparclinux@archiver.kernel.org>; Mon, 15 Mar 2021 07:22:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B24BE64E57
-	for <sparclinux@archiver.kernel.org>; Fri, 12 Mar 2021 22:13:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7970364E41
+	for <sparclinux@archiver.kernel.org>; Mon, 15 Mar 2021 07:22:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235505AbhCLWN0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 12 Mar 2021 17:13:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51196 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235515AbhCLWNP (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 12 Mar 2021 17:13:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15E7964F29;
-        Fri, 12 Mar 2021 22:13:15 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615587195;
-        bh=Nvw3iIumAKVNU+iGCXI9SbvQkjQr0AFRAf4higcMOEw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=UVT0V14xkHdol443H9g22gFldOK0zPvS37wYHYZ1Hh+0aAQHGjJe/UwAJ1PUpTu4m
-         JufMuT9outYElg7HBo46A1EhRuCvvlo+d+LW6Zr5e540Ax/92ueFqkAFeVqJBMNtwk
-         t/I2x88L7wcx4pmieEPVFSpI+1Yw8AqoV+GBq0B2SX1//sZ47G4JMByZ+fatna0mIa
-         rmO5V9zVwoDDr/XLgppLRdYCjqpQkP+y/gXck9vuLudh6YS6nTQCyBYv/+k0gzTbuR
-         4XVV0//CghhrcqWTaDNiWDQsSFINXsnreryJ6qiAQM9GRKLiCVoeC1IeRpyKLA8ViM
-         vPypirL48ifpQ==
-Date:   Fri, 12 Mar 2021 17:13:14 -0500
-From:   Sasha Levin <sashal@kernel.org>
-To:     Andreas Larsson <andreas@gaisler.com>
-Cc:     linux-kernel@vger.kernel.org, stable@vger.kernel.org,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH AUTOSEL 4.14 06/13] sparc32: Limit memblock allocation to
- low memory
-Message-ID: <YEvnenzIKNE1a0FL@sashalap>
-References: <20210302115903.63458-1-sashal@kernel.org>
- <20210302115903.63458-6-sashal@kernel.org>
- <ad613de2-6fd4-f7a3-25b1-61f3a093c811@gaisler.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <ad613de2-6fd4-f7a3-25b1-61f3a093c811@gaisler.com>
+        id S229807AbhCOHVh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 15 Mar 2021 03:21:37 -0400
+Received: from out4436.biz.mail.alibaba.com ([47.88.44.36]:63278 "EHLO
+        out4436.biz.mail.alibaba.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229679AbhCOHVZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 15 Mar 2021 03:21:25 -0400
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R381e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e01424;MF=jiapeng.chong@linux.alibaba.com;NM=1;PH=DS;RN=4;SR=0;TI=SMTPD_---0URx1q6._1615792861;
+Received: from j63c13417.sqa.eu95.tbsite.net(mailfrom:jiapeng.chong@linux.alibaba.com fp:SMTPD_---0URx1q6._1615792861)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Mon, 15 Mar 2021 15:21:13 +0800
+From:   Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+To:     davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Subject: [PATCH] sparc: fix warning comparing pointer to 0
+Date:   Mon, 15 Mar 2021 15:20:58 +0800
+Message-Id: <1615792858-79126-1-git-send-email-jiapeng.chong@linux.alibaba.com>
+X-Mailer: git-send-email 1.8.3.1
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Mar 03, 2021 at 09:19:38AM +0100, Andreas Larsson wrote:
->On 2021-03-02 12:58, Sasha Levin wrote:
->>From: Andreas Larsson <andreas@gaisler.com>
->>
->>[ Upstream commit bda166930c37604ffa93f2425426af6921ec575a ]
->>
->>Commit cca079ef8ac29a7c02192d2bad2ffe4c0c5ffdd0 changed sparc32 to use
->>memblocks instead of bootmem, but also made high memory available via
->>memblock allocation which does not work together with e.g. phys_to_virt
->>and can lead to kernel panic.
->>
->>This changes back to only low memory being allocatable in the early
->>stages, now using memblock allocation.
->>
->>Signed-off-by: Andreas Larsson <andreas@gaisler.com>
->>Acked-by: Mike Rapoport <rppt@linux.ibm.com>
->>Signed-off-by: David S. Miller <davem@davemloft.net>
->>Signed-off-by: Sasha Levin <sashal@kernel.org>
->>---
->>  arch/sparc/mm/init_32.c | 3 +++
->>  1 file changed, 3 insertions(+)
->>
->>diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
->>index 95fe4f081ba3..372a4f08ddf8 100644
->>--- a/arch/sparc/mm/init_32.c
->>+++ b/arch/sparc/mm/init_32.c
->>@@ -230,6 +230,9 @@ unsigned long __init bootmem_init(unsigned long *pages_avail)
->>  	reserve_bootmem((bootmap_pfn << PAGE_SHIFT), size, BOOTMEM_DEFAULT);
->>  	*pages_avail -= PAGE_ALIGN(size) >> PAGE_SHIFT;
->>+	/* Only allow low memory to be allocated via memblock allocation */
->>+	memblock_set_current_limit(max_low_pfn << PAGE_SHIFT);
->>+
->>  	return max_pfn;
->>  }
->>
->
->This is not needed for 4.14, and will not compile, as the problem it
->fixes was introduced in 4.19.
+Fix the following coccicheck warning:
 
-I'll drop it, thanks!
+./arch/sparc/prom/tree_64.c:335:15-16: WARNING comparing pointer to 0.
 
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+---
+ arch/sparc/prom/tree_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/prom/tree_64.c b/arch/sparc/prom/tree_64.c
+index 989e799..85b5101 100644
+--- a/arch/sparc/prom/tree_64.c
++++ b/arch/sparc/prom/tree_64.c
+@@ -332,7 +332,7 @@ int prom_node_has_property(phandle node, const char *prop)
+ 
+ 	if (size == 0)
+ 		return 0;
+-	if ((pname == 0) || (value == 0))
++	if (!pname || !value)
+ 		return 0;
+ 	
+ #ifdef CONFIG_SUN_LDOMS
 -- 
-Thanks,
-Sasha
+1.8.3.1
+
