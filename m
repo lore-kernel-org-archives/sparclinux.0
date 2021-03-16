@@ -7,158 +7,134 @@ X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D36BBC4332E
-	for <sparclinux@archiver.kernel.org>; Tue, 16 Mar 2021 15:46:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E0B4C4321A
+	for <sparclinux@archiver.kernel.org>; Tue, 16 Mar 2021 21:17:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B910A650F7
-	for <sparclinux@archiver.kernel.org>; Tue, 16 Mar 2021 15:46:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5D77564F94
+	for <sparclinux@archiver.kernel.org>; Tue, 16 Mar 2021 21:17:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237180AbhCPPpz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 16 Mar 2021 11:45:55 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:50937 "EHLO pegase1.c-s.fr"
+        id S232923AbhCPVQ4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 16 Mar 2021 17:16:56 -0400
+Received: from mga03.intel.com ([134.134.136.65]:64637 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229727AbhCPPpd (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 16 Mar 2021 11:45:33 -0400
-Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 4F0HgF01dsz9v0XB;
-        Tue, 16 Mar 2021 16:45:29 +0100 (CET)
-X-Virus-Scanned: Debian amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id sg5k9CghU-Mi; Tue, 16 Mar 2021 16:45:28 +0100 (CET)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 4F0HgD5LfFz9v0X9;
-        Tue, 16 Mar 2021 16:45:28 +0100 (CET)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 331988B7E6;
-        Tue, 16 Mar 2021 16:45:30 +0100 (CET)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id uxDOopJyTEv9; Tue, 16 Mar 2021 16:45:30 +0100 (CET)
-Received: from [192.168.4.90] (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 6A6858B7E1;
-        Tue, 16 Mar 2021 16:45:28 +0100 (CET)
-Subject: Re: [PATCH RESEND] mm: Move mem_init_print_info() into mm_init()
+        id S230146AbhCPVQl (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 16 Mar 2021 17:16:41 -0400
+IronPort-SDR: HErttJKRLYpRviYgutJcAI3XEW8pdZLdOcInu5VkurWJjIESC8uugSgF93406s9wIt0UgdW3en
+ +d5HIbbDQpkw==
+X-IronPort-AV: E=McAfee;i="6000,8403,9925"; a="189384816"
+X-IronPort-AV: E=Sophos;i="5.81,254,1610438400"; 
+   d="scan'208";a="189384816"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2021 14:16:36 -0700
+IronPort-SDR: kYzwUtCZYUqEOoEQHmu+gRoNCbFbQkLf55S1ZP+HniJETq66O3bvvnVX5rBICU1XLXYGfFFXYJ
+ J/+P228oqpbg==
+X-IronPort-AV: E=Sophos;i="5.81,254,1610438400"; 
+   d="scan'208";a="449852773"
+Received: from kcarrier-mobl.amr.corp.intel.com (HELO [10.209.124.168]) ([10.209.124.168])
+  by orsmga001-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2021 14:16:35 -0700
+Subject: Re: [PATCH] mm: Move mem_init_print_info() into mm_init()
 To:     Kefeng Wang <wangkefeng.wang@huawei.com>,
         linux-kernel@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>
-Cc:     linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org,
-        Peter Zijlstra <peterz@infradead.org>,
+Cc:     Russell King <linux@armlinux.org.uk>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>, linux-mm@kvack.org,
-        Guo Ren <guoren@kernel.org>, sparclinux@vger.kernel.org,
-        linux-riscv@lists.infradead.org, Jonas Bonn <jonas@southpole.se>,
-        linux-s390@vger.kernel.org,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-hexagon@vger.kernel.org, Huacai Chen <chenhuacai@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-csky@vger.kernel.org, Ingo Molnar <mingo@redhat.com>,
-        linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Heiko Carstens <hca@linux.ibm.com>,
-        linux-um@lists.infradead.org, linux-m68k@lists.linux-m68k.org,
-        openrisc@lists.librecores.org,
-        linux-arm-kernel@lists.infradead.org,
         Richard Henderson <rth@twiddle.net>,
-        linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org,
+        Guo Ren <guoren@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
         Palmer Dabbelt <palmer@dabbelt.com>,
-        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        "David S. Miller" <davem@davemloft.net>
+        Heiko Carstens <hca@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@redhat.com>, linux-alpha@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-xtensa@linux-xtensa.org, linux-mm@kvack.org
 References: <20210316142637.92193-1-wangkefeng.wang@huawei.com>
- <20210316152901.70662-1-wangkefeng.wang@huawei.com>
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Message-ID: <4d488195-7281-9238-b30d-9f89a6100fb9@csgroup.eu>
-Date:   Tue, 16 Mar 2021 16:45:19 +0100
-User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
+From:   Dave Hansen <dave.hansen@intel.com>
+Autocrypt: addr=dave.hansen@intel.com; keydata=
+ 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
+ z5cecg==
+Message-ID: <009553ee-8d7b-0b60-8457-f8ac66e27fb4@intel.com>
+Date:   Tue, 16 Mar 2021 14:16:35 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-In-Reply-To: <20210316152901.70662-1-wangkefeng.wang@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
+In-Reply-To: <20210316142637.92193-1-wangkefeng.wang@huawei.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On 3/16/21 7:26 AM, Kefeng Wang wrote:
+> diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+> index 5430c81eefc9..aa8387aab9c1 100644
+> --- a/arch/x86/mm/init_64.c
+> +++ b/arch/x86/mm/init_64.c
+> @@ -1350,8 +1350,6 @@ void __init mem_init(void)
+>  		kclist_add(&kcore_vsyscall, (void *)VSYSCALL_ADDR, PAGE_SIZE, KCORE_USER);
+>  
+>  	preallocate_vmalloc_pages();
+> -
+> -	mem_init_print_info(NULL);
+>  }
 
+Ignoring any issues with the printk...
 
-Le 16/03/2021 à 16:29, Kefeng Wang a écrit :
-> mem_init_print_info() is called in mem_init() on each architecture,
-> and pass NULL argument, so using void argument and move it into mm_init().
-> 
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> ---
-> 
-> Resend with 'str' line cleanup, and only test on ARM64 qemu.
-> 
->   arch/alpha/mm/init.c             | 1 -
->   arch/arc/mm/init.c               | 1 -
->   arch/arm/mm/init.c               | 2 --
->   arch/arm64/mm/init.c             | 2 --
->   arch/csky/mm/init.c              | 1 -
->   arch/h8300/mm/init.c             | 2 --
->   arch/hexagon/mm/init.c           | 1 -
->   arch/ia64/mm/init.c              | 1 -
->   arch/m68k/mm/init.c              | 1 -
->   arch/microblaze/mm/init.c        | 1 -
->   arch/mips/loongson64/numa.c      | 1 -
->   arch/mips/mm/init.c              | 1 -
->   arch/mips/sgi-ip27/ip27-memory.c | 1 -
->   arch/nds32/mm/init.c             | 1 -
->   arch/nios2/mm/init.c             | 1 -
->   arch/openrisc/mm/init.c          | 2 --
->   arch/parisc/mm/init.c            | 2 --
->   arch/powerpc/mm/mem.c            | 1 -
->   arch/riscv/mm/init.c             | 1 -
->   arch/s390/mm/init.c              | 2 --
->   arch/sh/mm/init.c                | 1 -
->   arch/sparc/mm/init_32.c          | 2 --
->   arch/sparc/mm/init_64.c          | 1 -
->   arch/um/kernel/mem.c             | 1 -
->   arch/x86/mm/init_32.c            | 2 --
->   arch/x86/mm/init_64.c            | 2 --
->   arch/xtensa/mm/init.c            | 1 -
->   include/linux/mm.h               | 2 +-
->   init/main.c                      | 1 +
->   mm/page_alloc.c                  | 6 +++---
->   30 files changed, 5 insertions(+), 40 deletions(-)
-> 
+Looks harmless enough on x86.  The 32-bit code has some cruft in
+mem_init() after mem_init_print_info(), so this patch will change the
+location of the mem_init_print_info(), but I think it's actually for the
+better, since it will be pushed later in boot.  As long as the x86
+pieces stay the same:
 
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index 55d938297ce6..cf5a2114c6d4 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -7728,7 +7728,7 @@ unsigned long free_reserved_area(void *start, void *end, int poison, const char
->   	return pages;
->   }
->   
-> -void __init mem_init_print_info(const char *str)
-> +void __init mem_init_print_info(void)
->   {
->   	unsigned long physpages, codesize, datasize, rosize, bss_size;
->   	unsigned long init_code_size, init_data_size;
-> @@ -7767,7 +7767,7 @@ void __init mem_init_print_info(const char *str)
->   #ifdef	CONFIG_HIGHMEM
->   		", %luK highmem"
->   #endif
-> -		"%s%s)\n",
-> +		"%s)\n",
->   		nr_free_pages() << (PAGE_SHIFT - 10),
->   		physpages << (PAGE_SHIFT - 10),
->   		codesize >> 10, datasize >> 10, rosize >> 10,
-> @@ -7777,7 +7777,7 @@ void __init mem_init_print_info(const char *str)
->   #ifdef	CONFIG_HIGHMEM
->   		totalhigh_pages() << (PAGE_SHIFT - 10),
->   #endif
-> -		str ? ", " : "", str ? str : "");
-> +		"");
->   }
->   
->   /**
-> 
-
-What is the benefit of a %s to print a constant "" ?
-
-You should tidy up completely.
-
-Christophe
+Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
