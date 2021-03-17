@@ -4,45 +4,45 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
-	autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E813AC4332D
-	for <sparclinux@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD427C43333
+	for <sparclinux@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A9A0764F10
-	for <sparclinux@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 87F1264FB2
+	for <sparclinux@archiver.kernel.org>; Wed, 17 Mar 2021 01:00:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232354AbhCQBAR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        id S229649AbhCQBAR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
         Tue, 16 Mar 2021 21:00:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36026 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36118 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231686AbhCQA6m (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 16 Mar 2021 20:58:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CF8E64FAE;
-        Wed, 17 Mar 2021 00:58:31 +0000 (UTC)
+        id S231954AbhCQA7M (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 16 Mar 2021 20:59:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0270765011;
+        Wed, 17 Mar 2021 00:59:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1615942712;
-        bh=tJppkkQxH6U1OjcQEgVnWQ7WGA+4wOLEyT5G0NsQy78=;
+        s=k20201202; t=1615942751;
+        bh=4b1tEAHbreg0k9BU17gZ4Fz/tfFYOrkQpGtKWm6Mkqw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=obikidQUdeF3SGbeE07+FsuV/Tpd5FVEltxdKNwGEPCieYFrkit9n4nTisxkfsWPQ
-         SUwoYGZYHHPqPqxPR9JHMpDshtQSXGb2nJ0d/3laI18Lvf1ECUokXfd8mN/pwU0sxR
-         M7JZFKRCMRb9ZRZKT3oUtIqz1vJUkyoF2Gvfe8gHhJZvCaviZIoWZa0VDr6EmZjiPl
-         HUp8B0qZ6yLpn+gFq/76OapCSrES9GpuyQ6GYaEN5Rsyb26Tz0nhBHuadT68rGLPXz
-         NQPhTt8tFGooDL4Q+cViOYHls4XXnii/JrbPMRGKyP/bWvCylSQ1CsEK7dmH6bZfMi
-         HVMY5KPlSMlbA==
+        b=DSjg+DNd05LqRgl02scGY0IkAHM5yQtL+J6U//ubDYLSa8ZZwVvQuTkCb10/x0KCV
+         +1y8CgmnEfqw5nMIcx2vFuZJVRf0YeFSjNSD4cHfnqdtgk1chblP+/Hb6MFWSIa/Ej
+         Jkg4JQ2yMfeLvCRMoyRX3FzXDXkpm6Nsg6EiFVY3PO5j3nHsXtgbaQeiTLCYedRPdt
+         w0olc5YAsScZPmo9I/QKIPKfmdxrwXBsQrNoPyvBIK6wB+TZKQMwgbvH9ID2RboABi
+         5k2nfIKln1Sl5ezTvjmWY+zZMHtGWHZuM+F5jkpSKQOjJN3Vu/tfB+IhX2lTUZuUEj
+         OrELKuVKoZWIg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Rob Gardner <rob.gardner@oracle.com>,
         Anatoly Pugachev <matorola@gmail.com>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 24/37] sparc64: Fix opcode filtering in handling of no fault loads
-Date:   Tue, 16 Mar 2021 20:57:49 -0400
-Message-Id: <20210317005802.725825-24-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 17/23] sparc64: Fix opcode filtering in handling of no fault loads
+Date:   Tue, 16 Mar 2021 20:58:43 -0400
+Message-Id: <20210317005850.726479-17-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.1
-In-Reply-To: <20210317005802.725825-1-sashal@kernel.org>
-References: <20210317005802.725825-1-sashal@kernel.org>
+In-Reply-To: <20210317005850.726479-1-sashal@kernel.org>
+References: <20210317005850.726479-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -93,10 +93,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 6 insertions(+), 7 deletions(-)
 
 diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 27778b65a965..f2b22c496fb9 100644
+index aa624ed79db1..86879c28910b 100644
 --- a/arch/sparc/kernel/traps_64.c
 +++ b/arch/sparc/kernel/traps_64.c
-@@ -275,14 +275,13 @@ bool is_no_fault_exception(struct pt_regs *regs)
+@@ -274,14 +274,13 @@ bool is_no_fault_exception(struct pt_regs *regs)
  			asi = (regs->tstate >> 24); /* saved %asi       */
  		else
  			asi = (insn >> 5);	    /* immediate asi    */
