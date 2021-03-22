@@ -2,220 +2,136 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+X-Spam-Status: No, score=-9.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87193C433E1
-	for <sparclinux@archiver.kernel.org>; Mon, 22 Mar 2021 13:36:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DC912C433C1
+	for <sparclinux@archiver.kernel.org>; Mon, 22 Mar 2021 21:36:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51E5A61998
-	for <sparclinux@archiver.kernel.org>; Mon, 22 Mar 2021 13:36:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2FD8619A3
+	for <sparclinux@archiver.kernel.org>; Mon, 22 Mar 2021 21:36:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230235AbhCVNgC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 22 Mar 2021 09:36:02 -0400
-Received: from mx2.suse.de ([195.135.220.15]:52782 "EHLO mx2.suse.de"
+        id S230018AbhCVVfd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 22 Mar 2021 17:35:33 -0400
+Received: from mout.web.de ([212.227.17.11]:37189 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230164AbhCVNfo (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 22 Mar 2021 09:35:44 -0400
-X-Virus-Scanned: by amavisd-new at test-mx.suse.de
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1616420142; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=bNwpWnU/mOEb8vDk9U6PPMjzkSSiO3GF6Uf0hvYy86c=;
-        b=T/88LUerDCEZ5aLb09F83ICr41UqeH2rh4J7zrGpXp20VeYsZHJpi/YuD6UnXQW4pyzMJd
-        jBAgDV46TT0Kz09FM1vI9JNZIIaETu438nFrfjiK/6ELDm8IlG80pWXjuPGHfOvQ9qSqDa
-        nwk9Za/1Mcrl0+PJNnBW15dSnFPW4Rw=
-Received: from relay2.suse.de (unknown [195.135.221.27])
-        by mx2.suse.de (Postfix) with ESMTP id 2DDD7AC1F;
-        Mon, 22 Mar 2021 13:35:42 +0000 (UTC)
-Date:   Mon, 22 Mar 2021 14:35:41 +0100
-From:   Michal Hocko <mhocko@suse.com>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Hillf Danton <hdanton@sina.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Minchan Kim <minchan@kernel.org>,
-        huang ying <huang.ying.caritas@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
-        Andrew Lunn <andrew@lunn.ch>,
-        Gregory Clement <gregory.clement@bootlin.com>,
-        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Brian Cain <bcain@codeaurora.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jonas Bonn <jonas@southpole.se>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        Stafford Horne <shorne@gmail.com>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Rob Herring <robh@kernel.org>,
-        "Pavel Machek (CIP)" <pavel@denx.de>,
-        Theodore Dubois <tblodt@icloud.com>,
-        "Alexander A. Klimov" <grandmaster@al2klimov.de>,
-        Pavel Machek <pavel@ucw.cz>, Sam Ravnborg <sam@ravnborg.org>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Xiaoming Ni <nixiaoming@huawei.com>,
-        Robert Richter <rric@kernel.org>,
-        William Cohen <wcohen@redhat.com>,
-        Corentin Labbe <clabbe@baylibre.com>,
-        Kairui Song <kasong@redhat.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        openrisc@lists.librecores.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-fsdevel@vger.kernel.org,
-        Linux API <linux-api@vger.kernel.org>
-Subject: Re: [PATCH RFC 1/3] drivers/char: remove /dev/kmem for good
-Message-ID: <YFidLVQs+/zw4aIF@dhcp22.suse.cz>
-References: <20210319143452.25948-1-david@redhat.com>
- <20210319143452.25948-2-david@redhat.com>
+        id S230046AbhCVVfT (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 22 Mar 2021 17:35:19 -0400
+X-Greylist: delayed 307 seconds by postgrey-1.27 at vger.kernel.org; Mon, 22 Mar 2021 17:35:18 EDT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
+        s=dbaedf251592; t=1616448915;
+        bh=8O57nGgEajETGYIUnkYM1B02zDnJ+Nk55KcU9sux+LE=;
+        h=X-UI-Sender-Class:To:Cc:From:Subject:Date;
+        b=h9N4X+JnZDdnavw65DCLtFgDpg/1qaT7ZKVy7FE63Z4MGPvip4n2KsokbKAIRmixQ
+         jxLQWwGx/cyzurYQWTqMBvr64hQBNh45LWXhWJpQXxMCXkkEAPBtRraXPsvqt4EtqW
+         /2v0rdGsXgm4C7Qm5f8S8E/s+BYYITY3m2bvTUY8=
+X-UI-Sender-Class: c548c8c5-30a9-4db5-a2e7-cb6cb037b8f9
+Received: from [192.168.178.30] ([87.155.239.151]) by smtp.web.de (mrweb103
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 0M6UxL-1lZwes3tCl-00yTIt; Mon, 22
+ Mar 2021 22:30:05 +0100
+To:     Sparc kernel list <sparclinux@vger.kernel.org>
+Cc:     debian-sparc <debian-sparc@lists.debian.org>,
+        Christoph Hellwig <hch@lst.de>
+From:   Frank Scheiner <frank.scheiner@web.de>
+Subject: Regression in 028abd92 for Sun UltraSPARC T1
+Message-ID: <9ffdf604-ce04-9200-65c9-dd8921a45038@web.de>
+Date:   Mon, 22 Mar 2021 22:30:05 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210319143452.25948-2-david@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:zLttw/P9oxwmuiaanaJHutRp99oz3ab3/gR0cuoDmLC4djmVhEg
+ xG54Gkcfk15fBSkuowY1B1WjgvcJ04j/ipfH7VZOCcP6aZPta6UVEIglrmbvfZlf4mHjViX
+ JSOaZIy2pIFI9Pjd6VIjs+kfLAME80DnKzm+ux+JX16qqtoKYfboYaatUfd0HMPeK+nMmIt
+ Mh1sNBdXwy5j+bvW+mp6Q==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:ql36dnQiUV8=:T2CQ3dEUSeyJiquEBxdMPu
+ +ruY/PUoiFjJZ46pmwKzf7pPVxNAoPQVrXa5DQ74gsPQ7fcR1fooE8KbmFfyvuYA9Ep3m1EBr
+ ynzNbJ7XvUT46F2y15xFYn4uCxpw7k7s3GCjnLbQVcPPNFvDJbp7/rEaQsXsWavdXJKVMWHLX
+ PGFPpINvaglxCPK2ucHZ5dEa7g52S36VHFYNPas2erxV5TRHKkr7XL1Z6R76RO4hlYNdQMvhe
+ n9TuIk/VJmCjLycH9qlg3SRlHhOs/DR5OMPcjRqsobclMEGTYJciH+Gt3zmABcChDiJAis9b3
+ EU0/HiugaeH9n32Bn/Jg89Z7UY7kDVgjgMFBig0p95YgLWNpQCzZ/J20PnA7RrMaXUQoXo4hT
+ s2Ookeb3Qck6jhe+UZH8ZcUwFcRQdJ8hTIGqdwFX+qidw4/gpu/2mcrEYS6glH5WO7w6JoMKQ
+ l5sFoUsLGB0bTV7RCIIhPRoUUGf6+rmtNhIb3k7WyyeRWCXp4H1ep1G0i8wGqKU+IcVVnHOuy
+ xFrnGCIBO8jVU6nQCJuMNc7OJdcu8HX4BZAeAsLFuJzvc8ynS+AF1//Qow4xKRN+OrbawZcTC
+ gBrp+sJVmrOQkeOJU83thKKPdXQjH1qR7WuKZDTrEbPyNJmh/7zaWurqhU4A1+FnULPJU4xxe
+ mGOIDUqN2Prvlb4AB62Gbw24fUa289kC4X+gFanYgqKLbeOVQJeR8LTGXhlNk2Ts1ChvSvGiB
+ zifxBfOslOqxb+Ew9xnIKHqOPIwruPbuFvtz3SoixIcplMT1le/GVtjoqO1oqYyt1dacm2n8C
+ loo9Jsp8fnbLWayAE7fT/2SrfRM5Knwojnh9MJf9m/oC3s6vLiMtSwvzmMUvPxyjGHiQ2PENb
+ nUJRC/baLs0VK2WttcCOeiCEDD4tO65wo5Oq4H6+uymPkcKoRgAg06gdcih6vg34gwHWKIIVX
+ DMSqJOkYZSHuuaDx0Ieu9dIJx2frQirYJUeaC4xFZmbpRdamq+3UlM9MeKQ4jajOHPuxkZVsy
+ O8z0CgRZUuOMXXkSpdQLJvzpsVUVxdmc3DLD/zgOg7uj/1BxOpO2aKeI/7fTrV7tdcD51IKGj
+ GQs7NoPRl8Jn7eHMZ2j6cLAPaBvUaKtLdUOoPf8M0OccvqFRj7Qm+fkcvaejyB1/9rtNEskRv
+ 5nor2dYjZo0gYgd2nc3AUA06HPnGsEwyVGxulfTuxIvTD1atktwy6XlyX5sUXLpxahTKIBlmq
+ bLE4Ng5xeyhFwI/lR
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri 19-03-21 15:34:50, David Hildenbrand wrote:
-> Exploring /dev/kmem and /dev/mem in the context of memory hot(un)plug and
-> memory ballooning, I started questioning the existance of /dev/kmem.
-> 
-> Comparing it with the /proc/kcore implementation, it does not seem to be
-> able to deal with things like
-> a) Pages unmapped from the direct mapping (e.g., to be used by secretmem)
->   -> kern_addr_valid(). virt_addr_valid() is not sufficient.
-> b) Special cases like gart aperture memory that is not to be touched
->   -> mem_pfn_is_ram()
-> Unless I am missing something, it's at least broken in some cases and might
-> fault/crash the machine.
-> 
-> Looks like its existance has been questioned before in 2005 and 2010
-> [1], after ~11 additional years, it might make sense to revive the
-> discussion.
-> 
-> CONFIG_DEVKMEM is only enabled in a single defconfig (on purpose or by
-> mistake?). All distributions I looked at disable it.
-> 
-> 1) /dev/kmem was popular for rootkits [2] before it got disabled
->    basically everywhere. Ubuntu documents [3] "There is no modern user of
->    /dev/kmem any more beyond attackers using it to load kernel rootkits.".
->    RHEL documents in a BZ [5] "it served no practical purpose other than to
->    serve as a potential security problem or to enable binary module drivers
->    to access structures/functions they shouldn't be touching"
-> 
-> 2) /proc/kcore is a decent interface to have a controlled way to read
->    kernel memory for debugging puposes. (will need some extensions to
->    deal with memory offlining/unplug, memory ballooning, and poisoned
->    pages, though)
-> 
-> 3) It might be useful for corner case debugging [1]. KDB/KGDB might be a
->    better fit, especially, to write random memory; harder to shoot
->    yourself into the foot.
-> 
-> 4) "Kernel Memory Editor" hasn't seen any updates since 2000 and seems
->    to be incompatible with 64bit [1]. For educational purposes,
->    /proc/kcore might be used to monitor value updates -- or older
->    kernels can be used.
-> 
-> 5) It's broken on arm64, and therefore, completely disabled there.
-> 
-> Looks like it's essentially unused and has been replaced by better
-> suited interfaces for individual tasks (/proc/kcore, KDB/KGDB). Let's
-> just remove it.
-> 
-> [1] https://lwn.net/Articles/147901/
-> [2] https://www.linuxjournal.com/article/10505
-> [3] https://wiki.ubuntu.com/Security/Features#A.2Fdev.2Fkmem_disabled
-> [4] https://sourceforge.net/projects/kme/
-> [5] https://bugzilla.redhat.com/show_bug.cgi?id=154796
-> 
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Hillf Danton <hdanton@sina.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Matthew Wilcox <willy@infradead.org>
-> Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-> Cc: Steven Rostedt <rostedt@goodmis.org>
-> Cc: Minchan Kim <minchan@kernel.org>
-> Cc: huang ying <huang.ying.caritas@gmail.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Russell King <linux@armlinux.org.uk>
-> Cc: Liviu Dudau <liviu.dudau@arm.com>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Andrew Lunn <andrew@lunn.ch>
-> Cc: Gregory Clement <gregory.clement@bootlin.com>
-> Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Brian Cain <bcain@codeaurora.org>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Jonas Bonn <jonas@southpole.se>
-> Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-> Cc: Stafford Horne <shorne@gmail.com>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Chris Zankel <chris@zankel.net>
-> Cc: Max Filippov <jcmvbkbc@gmail.com>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: "Pavel Machek (CIP)" <pavel@denx.de>
-> Cc: Theodore Dubois <tblodt@icloud.com>
-> Cc: "Alexander A. Klimov" <grandmaster@al2klimov.de>
-> Cc: Pavel Machek <pavel@ucw.cz>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: Alexandre Belloni <alexandre.belloni@bootlin.com>
-> Cc: Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>
-> Cc: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Krzysztof Kozlowski <krzk@kernel.org>
-> Cc: Viresh Kumar <viresh.kumar@linaro.org>
-> Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Xiaoming Ni <nixiaoming@huawei.com>
-> Cc: Robert Richter <rric@kernel.org>
-> Cc: William Cohen <wcohen@redhat.com>
-> Cc: Corentin Labbe <clabbe@baylibre.com>
-> Cc: Kairui Song <kasong@redhat.com>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: uclinux-h8-devel@lists.sourceforge.jp
-> Cc: linux-hexagon@vger.kernel.org
-> Cc: linux-m68k@lists.linux-m68k.org
-> Cc: openrisc@lists.librecores.org
-> Cc: linux-sh@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-xtensa@linux-xtensa.org
-> Cc: linux-fsdevel@vger.kernel.org
-> Cc: Linux API <linux-api@vger.kernel.org>
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+Dear all,
 
-Acked-by: Michal Hocko <mhocko@suse.com>
--- 
-Michal Hocko
-SUSE Labs
+Riccardo Mottola first recognized a problem with 5.10.x kernels on his
+Sun T2000 with UltraSPARC T1 (details in [this thread]). I could verify
+the problem also on my Sun T1000 and it looks like this specific issue
+breaks the mounting of the root FS or maybe mounting file systems at
+all. This affects both booting from disk and from network.
+
+[this thread]: https://lists.debian.org/debian-sparc/2021/03/msg00004.html
+
+I bisected the Linux kernel between:
+
+bbf5c979011a099af5dc76498918ed7df445635b (good)
+
+...and:
+
+3650b228f83adda7e5ee532e2b90429c03f7b9ec (bad)
+
+...and the process identified:
+
+028abd9222df0cf5855dab5014a5ebaf06f90565 ([1])
+
+...as first bad commit.
+
+```
+commit 028abd9222df0cf5855dab5014a5ebaf06f90565
+Author: Christoph Hellwig <hch@lst.de>
+Date:   Thu Sep 17 10:22:34 2020 +0200
+
+     fs: remove compat_sys_mount
+
+     compat_sys_mount is identical to the regular sys_mount now, so
+remove it
+     and use the native version everywhere.
+```
+
+[1]:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/=
+?id=3D028abd9222df0cf5855dab5014a5ebaf06f90565
+
+Details about the bisecting on [2].
+
+[2]: https://lists.debian.org/debian-sparc/2021/03/msg00042.html
+
+So far this only affects UltraSPARC T1 processors. I didn't see that
+problem on a T5220 with UltraSPARC T2 and I also didn't see that problem
+on a Sun Ultra Enterprise 450 with UltraSPARC II when testing a recent
+Debian installation media with 5.10.x kernel some weeks ago. Other
+UltraSPARC processors weren't tested yet. I plant to check UltraSPARC
+IIIi and maybe others if time allows.
+
+****
+
+Do you maybe have an idea, what could go wrong with 028abd92
+specifically on an UltraSPARC T1 processor?
+
+I can provide a full log of a broken (network) boot process if that's
+useful, I just need to re-create it. IIRC the kernel oopses for each
+hardware thread (similar to what Riccardo wrote on the debian-sparc
+mailing list above) and then stops.
+
+Cheers,
+Frank
