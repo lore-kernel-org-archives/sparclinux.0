@@ -2,94 +2,106 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA46C433E1
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 17:54:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A275C433C1
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 23:29:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90B6361A23
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 17:54:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E462361A17
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 23:29:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237298AbhCXRx5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 Mar 2021 13:53:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38134 "EHLO
+        id S231586AbhCXX3A (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 24 Mar 2021 19:29:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54346 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237121AbhCXRxj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 Mar 2021 13:53:39 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59F64C061763;
-        Wed, 24 Mar 2021 10:53:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=9/3k0AHtaMfdxAZXGbthGhLvgi4daNXj7PuUxegsSz8=; b=SNB16JGMv3nP/anwx6zdfPnYY/
-        hEF1sm4HF0sl37Lr+C95EDzFbmewzMHL7VgGYU0OmDPyZmpyzXLL+NDjlUSJXkB1pXBjgMF7j9OwT
-        joWNIhgoCofzgNAjgHRsyI4Q2zlSqu/DoC/b2ceyDzBYqAqeKJyaMJQYOSJ0X4iHULQgfiGXW56Aq
-        zDJSqJp5VlBpzhauIM41+iwd7K+dsmT5R5EHNKz9M7wiuQ7mSfnzD4+6Gn/kOuBar/QYcpCip8TDM
-        MJ5ml32+4giqdmrYrlZqHh7Clh06NvLdIF82lzMn6zGdqc+p4gJeBGKF6pO1lkBYbfJPFZzW2N6Yn
-        h52ae5Ag==;
-Received: from [2601:1c0:6280:3f0::3ba4]
-        by casper.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-        id 1lP7gm-00Begv-QS; Wed, 24 Mar 2021 17:53:16 +0000
-Subject: Re: [PATCH] sparc/traps_64.c: Mundane typo fixes
-To:     Bhaskar Chowdhury <unixbhaskar@gmail.com>, davem@davemloft.net,
-        akpm@linux-foundation.org, 0x7f454c46@gmail.com,
-        rob.gardner@oracle.com, rppt@kernel.org,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20210324060251.24208-1-unixbhaskar@gmail.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <7d4e516c-bf33-2bd8-9101-54126a994279@infradead.org>
-Date:   Wed, 24 Mar 2021 10:52:59 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
+        with ESMTP id S229624AbhCXX2i (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 Mar 2021 19:28:38 -0400
+Received: from mail-pf1-x429.google.com (mail-pf1-x429.google.com [IPv6:2607:f8b0:4864:20::429])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14229C06174A
+        for <sparclinux@vger.kernel.org>; Wed, 24 Mar 2021 16:28:38 -0700 (PDT)
+Received: by mail-pf1-x429.google.com with SMTP id y5so104891pfn.1
+        for <sparclinux@vger.kernel.org>; Wed, 24 Mar 2021 16:28:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=zMPjWd70KFrFjfBSIIPdDbtPfSy+a6K9fF4onrnkDLI=;
+        b=Y3vMo6uIFgxM6sdit3Y48ZcwGsY0oUVwDnjkImrirSGAiBHwxO2pRYPkOgAiSCIIHk
+         PHeuPo/MA63wo3rPPTNvxJh3p867PIXzlNgO5rjTDnULgIjSHJ3z4ZxzB9U+3PhrdSDS
+         HDVOxqZPPK/Habrw6Js6l7sTcttLC0fmev4OFMiP8EHWdWGALqqUpXtXEtgaVUbFW7MZ
+         wMpGVDOs/QFBHqFMzFqhHJW80aq8YqMhIQKUqUkuonOj9WbYVeV/dt0DfFRL/G0PRbXa
+         51f4T8WS43UlsJBeIJ/SJwDrr5jl/6S4Yx3nQ5O/bW2EPD02SnTZj4dnf5QlZ/+pvtS7
+         NV0A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=zMPjWd70KFrFjfBSIIPdDbtPfSy+a6K9fF4onrnkDLI=;
+        b=N+g9M37WOyW2yZVzIn7I+hZh1P1IJiRH/N+mdwGIiVicEq4FM7adG8jhhSBuU2cFK1
+         uWWg74IxwBh98CikDYdpyXh1/ZSc0Ezvc13T6DduCe9hxNw2szwSwwuEKrvvNQO5TsWu
+         IYdYEJnktp2AeeQayBsn9t7ldRYQnkzgN6yusKN6sTYYOdhGotWA1paaFQb4KMNzRZzO
+         rhkXIV0IzrS/vvH4nxKAqUlk2GDStJDYrj7J3MqPRYEzFvWMbMkZ/Wlmi7rAlb7YoooQ
+         VwtLraPzkSZYP8JhwkxlJOXyqdsM6+BGnxA4bABpJ38S0zDGwmHUafC3YG+ZE/m3eV8t
+         BsFA==
+X-Gm-Message-State: AOAM532Mb3ZIlUmivvEfXJUBed7FPfMazde+LWIm5Sw+ukdT+kbdKKxC
+        mKD2viFadeI2f/MPCCax8hs=
+X-Google-Smtp-Source: ABdhPJyHdrEywyxkXSbrenUecLuYOoW1JE5yG8XhBwrAeuo5l3eE6M3sJCc9TuWU+sc1HXHTYNagcA==
+X-Received: by 2002:a62:3646:0:b029:205:2117:f339 with SMTP id d67-20020a6236460000b02902052117f339mr5242606pfa.32.1616628517581;
+        Wed, 24 Mar 2021 16:28:37 -0700 (PDT)
+Received: from bobo.ibm.com ([1.132.133.45])
+        by smtp.gmail.com with ESMTPSA id u22sm3333292pgh.20.2021.03.24.16.28.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 24 Mar 2021 16:28:37 -0700 (PDT)
+From:   Nicholas Piggin <npiggin@gmail.com>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Nicholas Piggin <npiggin@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org,
+        Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH] sparc32: add stub pud_page define for walking huge vmalloc page tables
+Date:   Thu, 25 Mar 2021 09:28:25 +1000
+Message-Id: <20210324232825.1157363-1-npiggin@gmail.com>
+X-Mailer: git-send-email 2.23.0
 MIME-Version: 1.0
-In-Reply-To: <20210324060251.24208-1-unixbhaskar@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 3/23/21 11:02 PM, Bhaskar Chowdhury wrote:
-> s/conditon/condition/
-> s/periof/period/
-> 
-> Signed-off-by: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-> ---
->  arch/sparc/kernel/traps_64.c | 14 +++++++-------
->  1 file changed, 7 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-> index a850dccd78ea..2353ba7e1469 100644
-> --- a/arch/sparc/kernel/traps_64.c
-> +++ b/arch/sparc/kernel/traps_64.c
-> 
-> -/* Return the highest priority error conditon mentioned. */
-> +/* Return the highest priority error condition mentioned. */
-> @@ -1853,7 +1853,7 @@ struct sun4v_error_entry {
->  	/* ID of the CPU */
->  /*0x24*/u16		err_cpu;
-> 
-> -	/* Grace periof for shutdown, in seconds */
-> +	/* Grace period for shutdown, in seconds */
->  /*0x26*/u16		err_secs;
-> 
->  	/* Value of the %asi register */
-> --
+Similarly to the stub p4d_page in sparc64, add a stub pud_page, this
+is needed for hugepages in the vmap page tables to be walked without
+ifdefs, which should be no functional change for sparc32.
 
-Please fix line 378 (in linux-next) while you are
-touching this file:
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+---
 
-	 * is vectored thorugh data access exception trap with fault type
+This should go in Andrew's mm tree which has a compile error on sparc32
+introduced by the huge vmalloc pages, noticed by Stephen.
 
+Thanks,
+Nick
 
+ arch/sparc/include/asm/pgtable_32.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-thanks.
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index 632cdb959542..a5cf79c149fe 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -321,6 +321,9 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+ 		pgprot_val(newprot));
+ }
+ 
++/* only used by the huge vmap code, should never be called */
++#define pud_page(pud)			NULL
++
+ struct seq_file;
+ void mmu_info(struct seq_file *m);
+ 
 -- 
-~Randy
+2.23.0
 
