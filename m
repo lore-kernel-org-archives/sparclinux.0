@@ -2,396 +2,130 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-4.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE304C433E6
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 10:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 975FFC433DB
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 12:31:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D530D619E4
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 10:25:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D6A161A09
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Mar 2021 12:31:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233477AbhCXKZM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 Mar 2021 06:25:12 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:34590 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230185AbhCXKY7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 24 Mar 2021 06:24:59 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1616581499;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=qHfx8vK2bJ6NiabtEYVlGbcTEXhja7jcY1TtUw9aT1c=;
-        b=NDqgnxNGWRR6og6CsgIWk8IglP8DCXUV7uriiy2vMRi++h6iUQirIGNKDiJSURf7TTFSFY
-        iijgYQyKVEGniF5UBzysow23WnjJqqQLE+Y6I9aIhOD00quRQaLZCKb9xqJd2Ytq8BYFiu
-        HLIfo0l2Lu0VPF//EW+vMn5W8QLWG8w=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-64-8p-TOY-DMtiolINFG8Wvyw-1; Wed, 24 Mar 2021 06:24:57 -0400
-X-MC-Unique: 8p-TOY-DMtiolINFG8Wvyw-1
-Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 5CEE481746F;
-        Wed, 24 Mar 2021 10:24:56 +0000 (UTC)
-Received: from t480s.redhat.com (ovpn-115-66.ams2.redhat.com [10.36.115.66])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 33BEE10013D7;
-        Wed, 24 Mar 2021 10:24:42 +0000 (UTC)
-From:   David Hildenbrand <david@redhat.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     linux-mm@kvack.org, David Hildenbrand <david@redhat.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Brian Cain <bcain@codeaurora.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Mikulas Patocka <mpatocka@redhat.com>,
-        Luc Van Oostenryck <luc.vanoostenryck@gmail.com>,
-        Mike Rapoport <rppt@kernel.org>,
-        Palmer Dabbelt <palmerdabbelt@google.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Greentime Hu <green.hu@gmail.com>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Pierre Morel <pmorel@linux.ibm.com>,
-        Ingo Molnar <mingo@kernel.org>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Subject: [PATCH v1 2/3] mm: remove xlate_dev_kmem_ptr()
-Date:   Wed, 24 Mar 2021 11:23:50 +0100
-Message-Id: <20210324102351.6932-3-david@redhat.com>
-In-Reply-To: <20210324102351.6932-1-david@redhat.com>
-References: <20210324102351.6932-1-david@redhat.com>
+        id S231394AbhCXMbT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 24 Mar 2021 08:31:19 -0400
+Received: from mout.web.de ([212.227.17.12]:44371 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230481AbhCXMbH (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 24 Mar 2021 08:31:07 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=web.de;
+        s=dbaedf251592; t=1616589044;
+        bh=UvSbitkpBAEj3lE9szM/LJOpC6bIa3BnrXae8f9B5i0=;
+        h=X-UI-Sender-Class:Subject:To:Cc:References:From:Date:In-Reply-To;
+        b=lwng5RyhLel+Jnjq32cpH4LiXDQpKOVGGuM1D+cT5FpRtFlAz/LZscn0C9P2R7xaf
+         igVROmlGk+uorQOEFgW78U9sg3z1bl/ArmAmFtq/BLk3B4RPqv35+A2NJIs4YkkGnS
+         53o3cyytYNLhLKwa2LGKIp/QPPNS8xcfQYFGPEKU=
+X-UI-Sender-Class: c548c8c5-30a9-4db5-a2e7-cb6cb037b8f9
+Received: from [192.168.178.30] ([217.247.35.184]) by smtp.web.de (mrweb105
+ [213.165.67.124]) with ESMTPSA (Nemesis) id 1MjBVv-1lun2H3NYL-00eo7S; Wed, 24
+ Mar 2021 13:30:44 +0100
+Subject: Re: Regression in 028abd92 for Sun UltraSPARC T1
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     Jan Engelhardt <jengelh@inai.de>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        debian-sparc <debian-sparc@lists.debian.org>
+References: <9ffdf604-ce04-9200-65c9-dd8921a45038@web.de>
+ <186a7992-6e83-dc8a-1cfc-d07bb36935f5@physik.fu-berlin.de>
+ <4d033ff9-329e-77e7-20de-720aa65bba3e@web.de>
+ <n0n38p9-rn4s-213-n983-9o3o4oo8s54r@vanv.qr> <20210323165721.GA14577@lst.de>
+ <d68767c2-e010-f90e-9f2c-bb5250465c58@web.de> <20210324082817.GA2625@lst.de>
+From:   Frank Scheiner <frank.scheiner@web.de>
+Message-ID: <de572001-6238-8fda-aab4-f2ca443f2057@web.de>
+Date:   Wed, 24 Mar 2021 13:30:43 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.7.1
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
+In-Reply-To: <20210324082817.GA2625@lst.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: quoted-printable
+X-Provags-ID: V03:K1:rLgjpNfKTjeYd7k/Ff6dMH0FflFASjLQ3RagWhh7J+Xo502H9Qr
+ 6MVDStYtOeYrlLLft/WPxXrlTlDfqFBEJ/010A9sxm0JV3lX+UQWwvz2Wk8pzxjvIqIe5zl
+ 7Fnj8D6GSMpYTnyRVUmAff7WT3iXpMtSNgWgHIJTFcZXaRVZ45MU7r1h/HzVVOTW3gnxVry
+ UffgTmHNIygRsLW4vlCCA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:ku8vJSk788g=:V/X4geuLLtetAKUmDcH2Ko
+ YTPj6ioEyzpprGjfV0ucPypOqOPVB41d/eWeOI8+7UDNSR8trMnKiBrVLDss7GA1dw4CGCLTp
+ DGKt12a2L3LoDSrc6ndAL8ntz01Eu89cR+QPWm2DSbjr5ndRqM4pskfw8ba6EKFesijzccpGa
+ uwKeBXum+9CwdzmY7hC93Wk2b9rT53fQKUrHIlkJyofuhcnxXvd56Kbqr5oT9ag6y59TqEf6W
+ 9r/Drnxe7nOmIZcmOs80pATDfhZL44weTiDwd/DlLo7K9dfL6Q9k4OtMiCEMZZNiK9lJGvz5u
+ WZjyd2dDi/qTKEXzLMDVYKo9y+tz9GYg0ZjEkNclKHr2/8lolfq2fUVnCcgofxVTT3t/OZohY
+ XCPb1mH1BUlZcgdUXEBPhLAoGD+/96TvKHDagoxraE0wb4rmVivO1L2N/mgsaH/HLBP4P/Krt
+ iJ32gsxbwQWenDzxS0rtUTWMzKciRClL0etuWF48VIdaqlV5gan6QWcYSj/708Y4xZVSl48qB
+ zdEguhL3JD5dMlsvW4NNvLvhdVNIgtrN6PqB2cGVTetegSMZB0U6jfLw1AA+Mm4TgTvqa4QLz
+ /fAhxb/5Mu1Y+sgRpWWqNcpdGIkO7tAymBe6yKsNIFAm3oVepLLRLK3x2TyaqKAw/63ucqiua
+ nhmAuOM2a/msrbdly++Exr3Mf2DSJ4m+H8mqQ9xijZvuasAYQqdtFKqKbhkxnVU6UrKIHYlsh
+ CNiPLXbp7F09I4OV2uVYugKQmRUWF9QpEAzgepD2nvbz21zlitJRGAlY9M84bKbD1vYKW1m1I
+ y3SUk20rIPzuyApHD6DnZU66mHSGzT9qJuVQBr1zVa5e+tukQOrPS/pjWfivGQ7oXWO/V+At2
+ XwcU5I7WTj/HhMY2EhKA==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Since /dev/kmem has been removed, let's remove the xlate_dev_kmem_ptr()
-leftovers.
+On 24.03.21 09:28, Christoph Hellwig wrote:
+> On Tue, Mar 23, 2021 at 11:17:41PM +0100, Frank Scheiner wrote:
+>> 028abd9222df0cf5855dab5014a5ebaf06f90565
+>>
+>> ...is broken on my T1000.
+>>
+>> As I don't know how big attachments can be on this list, I put the logs
+>> on pastebin.
+>>
+>> A log for 028abd9222df is here:
+>>
+>> https://pastebin.com/ApPYsMcu
+>
+> Just do confirm:  in this tree line 304 in mm/slub.c is this BUG_ON:
+>
+> 	BUG_ON(object =3D=3D fp); /* naive detection of double free or corrupti=
+on */
+>
+> which would mean we have a double free.  In that case it would be
+> interesting which call to kfree this is, which could be done by
+> calling gdb on vmlinux and then typing;
+>
+> l *(sys_mount+0x114/0x1e0)
+>
+> Not that a double free caused by this conversion makes any sense to me..
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Krzysztof Kozlowski <krzk@kernel.org>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Pierre Morel <pmorel@linux.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: linux-alpha@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-ia64@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- arch/alpha/include/asm/io.h     |  5 -----
- arch/arm/include/asm/io.h       |  5 -----
- arch/hexagon/include/asm/io.h   |  1 -
- arch/ia64/include/asm/io.h      |  1 -
- arch/ia64/include/asm/uaccess.h | 18 ------------------
- arch/m68k/include/asm/io_mm.h   |  5 -----
- arch/mips/include/asm/io.h      |  5 -----
- arch/parisc/include/asm/io.h    |  5 -----
- arch/powerpc/include/asm/io.h   |  5 -----
- arch/s390/include/asm/io.h      |  5 -----
- arch/sh/include/asm/io.h        |  5 -----
- arch/sparc/include/asm/io_64.h  |  5 -----
- include/asm-generic/io.h        | 11 -----------
- 13 files changed, 76 deletions(-)
+Sorry, but I can't install `gdb` on my T1000 ATM, because it depends on
+"libpython3.8" for sparc64 (see [1]) and "libpython3.9" for the other
+architectures, but "libpython3.8" is actually not available for sparc64,
+"libpython3.9" is available for sparc64 though:
 
-diff --git a/arch/alpha/include/asm/io.h b/arch/alpha/include/asm/io.h
-index 1f6a909d1fa5..0fab5ac90775 100644
---- a/arch/alpha/include/asm/io.h
-+++ b/arch/alpha/include/asm/io.h
-@@ -602,11 +602,6 @@ extern void outsl (unsigned long port, const void *src, unsigned long count);
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #endif /* __KERNEL__ */
- 
- #endif /* __ALPHA_IO_H */
-diff --git a/arch/arm/include/asm/io.h b/arch/arm/include/asm/io.h
-index fc748122f1e0..f74944c6fe8d 100644
---- a/arch/arm/include/asm/io.h
-+++ b/arch/arm/include/asm/io.h
-@@ -430,11 +430,6 @@ extern void pci_iounmap(struct pci_dev *dev, void __iomem *addr);
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #include <asm-generic/io.h>
- 
- #ifdef CONFIG_MMU
-diff --git a/arch/hexagon/include/asm/io.h b/arch/hexagon/include/asm/io.h
-index bda2a9c2df78..c33241425a5c 100644
---- a/arch/hexagon/include/asm/io.h
-+++ b/arch/hexagon/include/asm/io.h
-@@ -64,7 +64,6 @@ static inline void *phys_to_virt(unsigned long address)
-  * convert a physical pointer to a virtual kernel pointer for
-  * /dev/mem access.
-  */
--#define xlate_dev_kmem_ptr(p)    __va(p)
- #define xlate_dev_mem_ptr(p)    __va(p)
- 
- /*
-diff --git a/arch/ia64/include/asm/io.h b/arch/ia64/include/asm/io.h
-index 3d666a11a2de..6d93b923b379 100644
---- a/arch/ia64/include/asm/io.h
-+++ b/arch/ia64/include/asm/io.h
-@@ -277,7 +277,6 @@ extern void memset_io(volatile void __iomem *s, int c, long n);
- #define memcpy_fromio memcpy_fromio
- #define memcpy_toio memcpy_toio
- #define memset_io memset_io
--#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
- #include <asm-generic/io.h>
- #undef PCI_IOBASE
-diff --git a/arch/ia64/include/asm/uaccess.h b/arch/ia64/include/asm/uaccess.h
-index 179243c3dfc7..e19d2dcc0ced 100644
---- a/arch/ia64/include/asm/uaccess.h
-+++ b/arch/ia64/include/asm/uaccess.h
-@@ -272,22 +272,4 @@ xlate_dev_mem_ptr(phys_addr_t p)
- 	return ptr;
- }
- 
--/*
-- * Convert a virtual cached kernel memory pointer to an uncached pointer
-- */
--static __inline__ void *
--xlate_dev_kmem_ptr(void *p)
--{
--	struct page *page;
--	void *ptr;
--
--	page = virt_to_page((unsigned long)p);
--	if (PageUncached(page))
--		ptr = (void *)__pa(p) + __IA64_UNCACHED_OFFSET;
--	else
--		ptr = p;
--
--	return ptr;
--}
--
- #endif /* _ASM_IA64_UACCESS_H */
-diff --git a/arch/m68k/include/asm/io_mm.h b/arch/m68k/include/asm/io_mm.h
-index 819f611dccf2..d41fa488453b 100644
---- a/arch/m68k/include/asm/io_mm.h
-+++ b/arch/m68k/include/asm/io_mm.h
-@@ -397,11 +397,6 @@ static inline void isa_delay(void)
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define readb_relaxed(addr)	readb(addr)
- #define readw_relaxed(addr)	readw(addr)
- #define readl_relaxed(addr)	readl(addr)
-diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
-index 78537aa23500..e6373e7ac892 100644
---- a/arch/mips/include/asm/io.h
-+++ b/arch/mips/include/asm/io.h
-@@ -552,11 +552,6 @@ extern void (*_dma_cache_inv)(unsigned long start, unsigned long size);
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- void __ioread64_copy(void *to, const void __iomem *from, size_t count);
- 
- #endif /* _ASM_IO_H */
-diff --git a/arch/parisc/include/asm/io.h b/arch/parisc/include/asm/io.h
-index 8a11b8cf4719..0b5259102319 100644
---- a/arch/parisc/include/asm/io.h
-+++ b/arch/parisc/include/asm/io.h
-@@ -316,11 +316,6 @@ extern void iowrite64be(u64 val, void __iomem *addr);
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- extern int devmem_is_allowed(unsigned long pfn);
- 
- #endif
-diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
-index 273edd208ec5..f130783c8301 100644
---- a/arch/powerpc/include/asm/io.h
-+++ b/arch/powerpc/include/asm/io.h
-@@ -662,11 +662,6 @@ static inline void name at					\
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- /*
-  * We don't do relaxed operations yet, at least not with this semantic
-  */
-diff --git a/arch/s390/include/asm/io.h b/arch/s390/include/asm/io.h
-index 28664ee0abc1..e3882b012bfa 100644
---- a/arch/s390/include/asm/io.h
-+++ b/arch/s390/include/asm/io.h
-@@ -20,11 +20,6 @@ void *xlate_dev_mem_ptr(phys_addr_t phys);
- #define unxlate_dev_mem_ptr unxlate_dev_mem_ptr
- void unxlate_dev_mem_ptr(phys_addr_t phys, void *addr);
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define IO_SPACE_LIMIT 0
- 
- void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot);
-diff --git a/arch/sh/include/asm/io.h b/arch/sh/include/asm/io.h
-index 6d5c6463bc07..cf9a3ec32406 100644
---- a/arch/sh/include/asm/io.h
-+++ b/arch/sh/include/asm/io.h
-@@ -283,11 +283,6 @@ static inline void __iomem *ioremap_prot(phys_addr_t offset, unsigned long size,
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #define ARCH_HAS_VALID_PHYS_ADDR_RANGE
- int valid_phys_addr_range(phys_addr_t addr, size_t size);
- int valid_mmap_phys_addr_range(unsigned long pfn, size_t size);
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 9bb27e5c22f1..ff6fe387d78c 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -450,11 +450,6 @@ void sbus_set_sbus64(struct device *, int);
-  */
- #define xlate_dev_mem_ptr(p)	__va(p)
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#define xlate_dev_kmem_ptr(p)	p
--
- #endif
- 
- #endif /* !(__SPARC64_IO_H) */
-diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
-index c6af40ce03be..33d4746b086f 100644
---- a/include/asm-generic/io.h
-+++ b/include/asm-generic/io.h
-@@ -1045,17 +1045,6 @@ static inline void pci_iounmap(struct pci_dev *dev, void __iomem *p)
- #endif
- #endif /* CONFIG_GENERIC_IOMAP */
- 
--/*
-- * Convert a virtual cached pointer to an uncached pointer
-- */
--#ifndef xlate_dev_kmem_ptr
--#define xlate_dev_kmem_ptr xlate_dev_kmem_ptr
--static inline void *xlate_dev_kmem_ptr(void *addr)
--{
--	return addr;
--}
--#endif
--
- #ifndef xlate_dev_mem_ptr
- #define xlate_dev_mem_ptr xlate_dev_mem_ptr
- static inline void *xlate_dev_mem_ptr(phys_addr_t addr)
--- 
-2.29.2
+```
+root@t1000:~# apt install gdb
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+Some packages could not be installed. This may mean that you have
+requested an impossible situation or if you are using the unstable
+distribution that some required packages have not yet been created
+or been moved out of Incoming.
+The following information may help to resolve the situation:
+
+The following packages have unmet dependencies:
+  gdb : Depends: libpython3.8 (>=3D 3.8.2) but it is not installable
+        Recommends: libc-dbg
+E: Unable to correct problems, you have held broken packages.
+```
+
+[1]: https://packages.debian.org/sid/gdb
+
+Something wrong with the dependencies. Any suggestions?
+
+Cheers,
+Frank
 
