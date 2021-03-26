@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D113C433FB
-	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDC5C4345A
+	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56E0A61A45
-	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D7D261A2A
+	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231183AbhCZNqz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Mar 2021 09:46:55 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:58830 "EHLO pegase1.c-s.fr"
+        id S231195AbhCZNq4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Mar 2021 09:46:56 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:54132 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230218AbhCZNp1 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 26 Mar 2021 09:45:27 -0400
+        id S230108AbhCZNpa (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 26 Mar 2021 09:45:30 -0400
 Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 4F6NWW4kcBz9v03H;
-        Fri, 26 Mar 2021 14:44:55 +0100 (CET)
+        by localhost (Postfix) with ESMTP id 4F6NWg6LQyz9v03Q;
+        Fri, 26 Mar 2021 14:45:03 +0100 (CET)
 X-Virus-Scanned: Debian amavisd-new at c-s.fr
 Received: from pegase1.c-s.fr ([192.168.12.234])
         by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id X6tAOk3XRuAU; Fri, 26 Mar 2021 14:44:55 +0100 (CET)
+        with ESMTP id zJCa16S0wtXm; Fri, 26 Mar 2021 14:45:03 +0100 (CET)
 Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 4F6NWW3rR4z9v03B;
-        Fri, 26 Mar 2021 14:44:55 +0100 (CET)
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4F6NWb59d2z9v03M;
+        Fri, 26 Mar 2021 14:44:59 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 665048B8C9;
-        Fri, 26 Mar 2021 14:44:56 +0100 (CET)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 8FD6D8B8C7;
+        Fri, 26 Mar 2021 14:45:00 +0100 (CET)
 X-Virus-Scanned: amavisd-new at c-s.fr
 Received: from messagerie.si.c-s.fr ([127.0.0.1])
         by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id pdElShztt2nj; Fri, 26 Mar 2021 14:44:56 +0100 (CET)
+        with ESMTP id hUWtC_m1pLjs; Fri, 26 Mar 2021 14:45:00 +0100 (CET)
 Received: from po16121vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 0CE3F8B8C7;
-        Fri, 26 Mar 2021 14:44:56 +0100 (CET)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 485328B8CB;
+        Fri, 26 Mar 2021 14:45:00 +0100 (CET)
 Received: by po16121vm.idsi0.si.c-s.fr (Postfix, from userid 0)
-        id 8E34E67611; Fri, 26 Mar 2021 13:44:56 +0000 (UTC)
-Message-Id: <85b1dc6339351cbc46d179e8fdb9dfc398e58303.1616765870.git.christophe.leroy@csgroup.eu>
+        id C232D67611; Fri, 26 Mar 2021 13:45:00 +0000 (UTC)
+Message-Id: <3a5407b76a256affa124902d9c2285a98d2516dc.1616765870.git.christophe.leroy@csgroup.eu>
 In-Reply-To: <cover.1616765869.git.christophe.leroy@csgroup.eu>
 References: <cover.1616765869.git.christophe.leroy@csgroup.eu>
 From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: [PATCH v3 09/17] nios2: Convert to GENERIC_CMDLINE
+Subject: [PATCH v3 13/17] sparc: Convert to GENERIC_CMDLINE
 To:     will@kernel.org, danielwa@cisco.com, robh@kernel.org,
         daniel@gimpelevich.san-francisco.ca.us
 Cc:     linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
@@ -57,7 +57,7 @@ Cc:     linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
         linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
         x86@kernel.org, linux-xtensa@linux-xtensa.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Date:   Fri, 26 Mar 2021 13:44:56 +0000 (UTC)
+Date:   Fri, 26 Mar 2021 13:45:00 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -66,85 +66,59 @@ This converts the architecture to GENERIC_CMDLINE.
 
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 ---
- arch/nios2/Kconfig        | 24 +-----------------------
- arch/nios2/kernel/setup.c | 13 ++++---------
- 2 files changed, 5 insertions(+), 32 deletions(-)
+ arch/sparc/Kconfig           | 18 +-----------------
+ arch/sparc/prom/bootstr_64.c |  2 +-
+ 2 files changed, 2 insertions(+), 18 deletions(-)
 
-diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
-index c24955c81c92..f66c97b15813 100644
---- a/arch/nios2/Kconfig
-+++ b/arch/nios2/Kconfig
-@@ -90,31 +90,9 @@ config NIOS2_ALIGNMENT_TRAP
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 164a5254c91c..2a197f3a2549 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -50,6 +50,7 @@ config SPARC
+ 	select NEED_DMA_MAP_STATE
+ 	select NEED_SG_DMA_LENGTH
+ 	select SET_FS
++	select GENERIC_CMDLINE if SPARC64
  
- comment "Boot options"
+ config SPARC32
+ 	def_bool !64BIT
+@@ -313,23 +314,6 @@ config SCHED_MC
+ 	  making when dealing with multi-core CPU chips at a cost of slightly
+ 	  increased overhead in some places. If unsure say N here.
  
 -config CMDLINE_BOOL
 -	bool "Default bootloader kernel arguments"
--	default y
+-	depends on SPARC64
 -
 -config CMDLINE
--	string "Default kernel command string"
--	default ""
+-	string "Initial kernel command string"
 -	depends on CMDLINE_BOOL
+-	default "console=ttyS0,9600 root=/dev/sda1"
 -	help
--	  On some platforms, there is currently no way for the boot loader to
--	  pass arguments to the kernel. For these platforms, you can supply
--	  some command-line options at build time by entering them here.  In
--	  other cases you can specify kernel args so that you don't have
--	  to set them up in board prom initialization routines.
+-	  Say Y here if you want to be able to pass default arguments to
+-	  the kernel. This will be overridden by the bootloader, if you
+-	  use one (such as SILO). This is most useful if you want to boot
+-	  a kernel from TFTP, and want default options to be available
+-	  with having them passed on the command line.
 -
--config CMDLINE_FORCE
--	bool "Force default kernel command string"
--	depends on CMDLINE_BOOL
--	help
--	  Set this to have arguments from the default kernel command string
--	  override those passed by the boot loader.
+-	  NOTE: This option WILL override the PROM bootargs setting!
 -
- config NIOS2_CMDLINE_IGNORE_DTB
- 	bool "Ignore kernel command string from DTB"
--	depends on CMDLINE_BOOL
-+	depends on CMDLINE != ""
- 	depends on !CMDLINE_FORCE
- 	default y
- 	help
-diff --git a/arch/nios2/kernel/setup.c b/arch/nios2/kernel/setup.c
-index d2f21957e99c..42464f457a6d 100644
---- a/arch/nios2/kernel/setup.c
-+++ b/arch/nios2/kernel/setup.c
-@@ -20,6 +20,7 @@
- #include <linux/initrd.h>
- #include <linux/of_fdt.h>
- #include <linux/screen_info.h>
-+#include <linux/cmdline.h>
- 
- #include <asm/mmu_context.h>
- #include <asm/sections.h>
-@@ -108,7 +109,7 @@ asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned r6,
- 				       unsigned r7)
- {
- 	unsigned dtb_passed = 0;
--	char cmdline_passed[COMMAND_LINE_SIZE] __maybe_unused = { 0, };
-+	char cmdline_passed[COMMAND_LINE_SIZE] = { 0, };
- 
- #if defined(CONFIG_NIOS2_PASS_CMDLINE)
- 	if (r4 == 0x534f494e) { /* r4 is magic NIOS */
-@@ -127,14 +128,8 @@ asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned r6,
- 
- 	early_init_devtree((void *)dtb_passed);
- 
--#ifndef CONFIG_CMDLINE_FORCE
--	if (cmdline_passed[0])
--		strlcpy(boot_command_line, cmdline_passed, COMMAND_LINE_SIZE);
--#ifdef CONFIG_NIOS2_CMDLINE_IGNORE_DTB
--	else
--		strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
--#endif
--#endif
-+	if (cmdline_passed[0] || IS_ENABLED(CONFIG_NIOS2_CMDLINE_IGNORE_DTB))
-+		cmdline_build(boot_command_line, cmdline_passed, COMMAND_LINE_SIZE);
- 
- 	parse_early_param();
- }
+ config SUN_PM
+ 	bool
+ 	default y if SPARC32
+diff --git a/arch/sparc/prom/bootstr_64.c b/arch/sparc/prom/bootstr_64.c
+index f1cc34d99eec..4853a45b3de9 100644
+--- a/arch/sparc/prom/bootstr_64.c
++++ b/arch/sparc/prom/bootstr_64.c
+@@ -25,7 +25,7 @@ struct {
+ 	char bootstr_buf[BARG_LEN];
+ } bootstr_info = {
+ 	.bootstr_len = BARG_LEN,
+-#ifdef CONFIG_CMDLINE
++#if CONFIG_CMDLINE != ""
+ 	.bootstr_valid = 1,
+ 	.bootstr_buf = CONFIG_CMDLINE,
+ #endif
 -- 
 2.25.0
 
