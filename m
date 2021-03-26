@@ -7,45 +7,45 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 171CDC43445
-	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D113C433FB
+	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD48961A2A
+	by mail.kernel.org (Postfix) with ESMTP id 56E0A61A45
 	for <sparclinux@archiver.kernel.org>; Fri, 26 Mar 2021 13:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231201AbhCZNq5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Mar 2021 09:46:57 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:30423 "EHLO pegase1.c-s.fr"
+        id S231183AbhCZNqz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Mar 2021 09:46:55 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:58830 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230221AbhCZNpa (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 26 Mar 2021 09:45:30 -0400
+        id S230218AbhCZNp1 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 26 Mar 2021 09:45:27 -0400
 Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 4F6NWY5C3mz9v03L;
-        Fri, 26 Mar 2021 14:44:57 +0100 (CET)
+        by localhost (Postfix) with ESMTP id 4F6NWW4kcBz9v03H;
+        Fri, 26 Mar 2021 14:44:55 +0100 (CET)
 X-Virus-Scanned: Debian amavisd-new at c-s.fr
 Received: from pegase1.c-s.fr ([192.168.12.234])
         by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id 4mW1M94fWAEi; Fri, 26 Mar 2021 14:44:57 +0100 (CET)
+        with ESMTP id X6tAOk3XRuAU; Fri, 26 Mar 2021 14:44:55 +0100 (CET)
 Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 4F6NWY4Gn8z9v03B;
-        Fri, 26 Mar 2021 14:44:57 +0100 (CET)
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4F6NWW3rR4z9v03B;
+        Fri, 26 Mar 2021 14:44:55 +0100 (CET)
 Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 6E7728B8C7;
-        Fri, 26 Mar 2021 14:44:58 +0100 (CET)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 665048B8C9;
+        Fri, 26 Mar 2021 14:44:56 +0100 (CET)
 X-Virus-Scanned: amavisd-new at c-s.fr
 Received: from messagerie.si.c-s.fr ([127.0.0.1])
         by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id lzygznqtzRZ7; Fri, 26 Mar 2021 14:44:58 +0100 (CET)
+        with ESMTP id pdElShztt2nj; Fri, 26 Mar 2021 14:44:56 +0100 (CET)
 Received: from po16121vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 1C1488B8C9;
-        Fri, 26 Mar 2021 14:44:58 +0100 (CET)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 0CE3F8B8C7;
+        Fri, 26 Mar 2021 14:44:56 +0100 (CET)
 Received: by po16121vm.idsi0.si.c-s.fr (Postfix, from userid 0)
-        id 9B96867611; Fri, 26 Mar 2021 13:44:58 +0000 (UTC)
-Message-Id: <46745e07b04139a22b5bd01dc37df97e6981e643.1616765870.git.christophe.leroy@csgroup.eu>
+        id 8E34E67611; Fri, 26 Mar 2021 13:44:56 +0000 (UTC)
+Message-Id: <85b1dc6339351cbc46d179e8fdb9dfc398e58303.1616765870.git.christophe.leroy@csgroup.eu>
 In-Reply-To: <cover.1616765869.git.christophe.leroy@csgroup.eu>
 References: <cover.1616765869.git.christophe.leroy@csgroup.eu>
 From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: [PATCH v3 11/17] riscv: Convert to GENERIC_CMDLINE
+Subject: [PATCH v3 09/17] nios2: Convert to GENERIC_CMDLINE
 To:     will@kernel.org, danielwa@cisco.com, robh@kernel.org,
         daniel@gimpelevich.san-francisco.ca.us
 Cc:     linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
@@ -57,7 +57,7 @@ Cc:     linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
         linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
         x86@kernel.org, linux-xtensa@linux-xtensa.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Date:   Fri, 26 Mar 2021 13:44:58 +0000 (UTC)
+Date:   Fri, 26 Mar 2021 13:44:56 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -66,96 +66,85 @@ This converts the architecture to GENERIC_CMDLINE.
 
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 ---
- arch/riscv/Kconfig        | 44 +--------------------------------------
- arch/riscv/kernel/setup.c |  5 ++---
- 2 files changed, 3 insertions(+), 46 deletions(-)
+ arch/nios2/Kconfig        | 24 +-----------------------
+ arch/nios2/kernel/setup.c | 13 ++++---------
+ 2 files changed, 5 insertions(+), 32 deletions(-)
 
-diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-index 87d7b52f278f..3dbd50bed037 100644
---- a/arch/riscv/Kconfig
-+++ b/arch/riscv/Kconfig
-@@ -39,6 +39,7 @@ config RISCV
- 	select EDAC_SUPPORT
- 	select GENERIC_ARCH_TOPOLOGY if SMP
- 	select GENERIC_ATOMIC64 if !64BIT
-+	select GENERIC_CMDLINE
- 	select GENERIC_EARLY_IOREMAP
- 	select GENERIC_GETTIMEOFDAY if HAVE_GENERIC_VDSO
- 	select GENERIC_IOREMAP
-@@ -390,49 +391,6 @@ endmenu
+diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig
+index c24955c81c92..f66c97b15813 100644
+--- a/arch/nios2/Kconfig
++++ b/arch/nios2/Kconfig
+@@ -90,31 +90,9 @@ config NIOS2_ALIGNMENT_TRAP
  
- menu "Boot options"
+ comment "Boot options"
  
+-config CMDLINE_BOOL
+-	bool "Default bootloader kernel arguments"
+-	default y
+-
 -config CMDLINE
--	string "Built-in kernel command line"
+-	string "Default kernel command string"
+-	default ""
+-	depends on CMDLINE_BOOL
 -	help
--	  For most platforms, the arguments for the kernel's command line
--	  are provided at run-time, during boot. However, there are cases
--	  where either no arguments are being provided or the provided
--	  arguments are insufficient or even invalid.
--
--	  When that occurs, it is possible to define a built-in command
--	  line here and choose how the kernel should use it later on.
--
--choice
--	prompt "Built-in command line usage" if CMDLINE != ""
--	default CMDLINE_FALLBACK
--	help
--	  Choose how the kernel will handle the provided built-in command
--	  line.
--
--config CMDLINE_FALLBACK
--	bool "Use bootloader kernel arguments if available"
--	help
--	  Use the built-in command line as fallback in case we get nothing
--	  during boot. This is the default behaviour.
--
--config CMDLINE_EXTEND
--	bool "Extend bootloader kernel arguments"
--	help
--	  The command-line arguments provided during boot will be
--	  appended to the built-in command line. This is useful in
--	  cases where the provided arguments are insufficient and
--	  you don't want to or cannot modify them.
--
+-	  On some platforms, there is currently no way for the boot loader to
+-	  pass arguments to the kernel. For these platforms, you can supply
+-	  some command-line options at build time by entering them here.  In
+-	  other cases you can specify kernel args so that you don't have
+-	  to set them up in board prom initialization routines.
 -
 -config CMDLINE_FORCE
--	bool "Always use the default kernel command string"
+-	bool "Force default kernel command string"
+-	depends on CMDLINE_BOOL
 -	help
--	  Always use the built-in command line, even if we get one during
--	  boot. This is useful in case you need to override the provided
--	  command line on systems where you don't have or want control
--	  over it.
+-	  Set this to have arguments from the default kernel command string
+-	  override those passed by the boot loader.
 -
--endchoice
--
- config EFI_STUB
- 	bool
- 
-diff --git a/arch/riscv/kernel/setup.c b/arch/riscv/kernel/setup.c
-index f8f15332caa2..e7c91ee478d1 100644
---- a/arch/riscv/kernel/setup.c
-+++ b/arch/riscv/kernel/setup.c
+ config NIOS2_CMDLINE_IGNORE_DTB
+ 	bool "Ignore kernel command string from DTB"
+-	depends on CMDLINE_BOOL
++	depends on CMDLINE != ""
+ 	depends on !CMDLINE_FORCE
+ 	default y
+ 	help
+diff --git a/arch/nios2/kernel/setup.c b/arch/nios2/kernel/setup.c
+index d2f21957e99c..42464f457a6d 100644
+--- a/arch/nios2/kernel/setup.c
++++ b/arch/nios2/kernel/setup.c
 @@ -20,6 +20,7 @@
- #include <linux/swiotlb.h>
- #include <linux/smp.h>
- #include <linux/efi.h>
+ #include <linux/initrd.h>
+ #include <linux/of_fdt.h>
+ #include <linux/screen_info.h>
 +#include <linux/cmdline.h>
  
- #include <asm/cpu_ops.h>
- #include <asm/early_ioremap.h>
-@@ -228,10 +229,8 @@ static void __init parse_dtb(void)
- 	}
+ #include <asm/mmu_context.h>
+ #include <asm/sections.h>
+@@ -108,7 +109,7 @@ asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned r6,
+ 				       unsigned r7)
+ {
+ 	unsigned dtb_passed = 0;
+-	char cmdline_passed[COMMAND_LINE_SIZE] __maybe_unused = { 0, };
++	char cmdline_passed[COMMAND_LINE_SIZE] = { 0, };
  
- 	pr_err("No DTB passed to the kernel\n");
--#ifdef CONFIG_CMDLINE_FORCE
--	strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
-+	cmdline_build(boot_command_line, NULL, COMMAND_LINE_SIZE);
- 	pr_info("Forcing kernel command line to: %s\n", boot_command_line);
+ #if defined(CONFIG_NIOS2_PASS_CMDLINE)
+ 	if (r4 == 0x534f494e) { /* r4 is magic NIOS */
+@@ -127,14 +128,8 @@ asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned r6,
+ 
+ 	early_init_devtree((void *)dtb_passed);
+ 
+-#ifndef CONFIG_CMDLINE_FORCE
+-	if (cmdline_passed[0])
+-		strlcpy(boot_command_line, cmdline_passed, COMMAND_LINE_SIZE);
+-#ifdef CONFIG_NIOS2_CMDLINE_IGNORE_DTB
+-	else
+-		strlcpy(boot_command_line, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
 -#endif
- }
+-#endif
++	if (cmdline_passed[0] || IS_ENABLED(CONFIG_NIOS2_CMDLINE_IGNORE_DTB))
++		cmdline_build(boot_command_line, cmdline_passed, COMMAND_LINE_SIZE);
  
- void __init setup_arch(char **cmdline_p)
+ 	parse_early_param();
+ }
 -- 
 2.25.0
 
