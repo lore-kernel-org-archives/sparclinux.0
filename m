@@ -2,112 +2,115 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23E7CC433E2
-	for <sparclinux@archiver.kernel.org>; Sat, 27 Mar 2021 19:57:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 242D6C433E0
+	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 06:31:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F054E619B4
-	for <sparclinux@archiver.kernel.org>; Sat, 27 Mar 2021 19:57:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F0F006197C
+	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 06:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230473AbhC0T5Z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 27 Mar 2021 15:57:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34088 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230305AbhC0T4e (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 27 Mar 2021 15:56:34 -0400
-Received: from mail-lj1-x229.google.com (mail-lj1-x229.google.com [IPv6:2a00:1450:4864:20::229])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D7A6C0613B1;
-        Sat, 27 Mar 2021 12:56:33 -0700 (PDT)
-Received: by mail-lj1-x229.google.com with SMTP id u10so11313654lju.7;
-        Sat, 27 Mar 2021 12:56:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=bQsYw1ulUIO0dY5gSmv/3K4yj4XoeNoUj5DbKPEh9Qw=;
-        b=oTcDvUNVUKy9l34jnk2Y6fGNlsSkpob0U6AudT8Jb4AZQ8OeHPq+nUwasmV8okfR2M
-         sR+8behyvuMSz9G1EzjXiQj6LC23cs5XP3Vtcv+ivzmEp+gJdLhO3WJ40Yu3TtD1au7A
-         T2jV+Uq24Bl7S6ZHZM5oSMX9h9l/f1+MOn3mPiOLuzagBTUVMcux0Bnq5Xe4bP3kjH5q
-         cOfrKoS7RFKuRrrys834C8IvbAfjTmLd3SoJ3gcxp2e3UMkXWjaDO2oyj+t/e0vR3RWH
-         GnqgmytnivfuzoKSm30v5UZFTROIHD61oXNxfqGvB1wgJHok2AYNnD/KhZd0qbUWpVgO
-         h/5w==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=bQsYw1ulUIO0dY5gSmv/3K4yj4XoeNoUj5DbKPEh9Qw=;
-        b=Kw6rXYjV/XEpTfvKNVr5+DJ0w+jgjiclU0+lOX3hGxQZXsljBfGc3Mzi0QE7IhTwKh
-         lEaEro8EF/rzP9F/sxGEy45eoHN4Zb/Z2oOLHax5RDk6rhYdaKwSUOOL4cAmyCr/al0i
-         pmW2yL34CFFvOyqBYqwW9UdHa41kK7JnAZCnCZFhsawA0XskiZ/gD1TiZ3EyFkIt06SG
-         2Tdno6LASVje7WPgUUarjHHN+xiCZJnB0KZVSNTBscRd8ElB8QudRgVgT/iGZz9Od69V
-         tK6YLD15LH0FFl782xFPkQD3zKtp5qMYuharyIbdWztpPkDEz4d3TTzX/jeiuCZiUwET
-         3/zw==
-X-Gm-Message-State: AOAM532ucvH+nH28Ybm/wLgEZ++eoggA+myx6vWwBoV+rbszF7iuMOvV
-        GdUzXi1KMd9yXMA7qO8ldPR55WWTTco=
-X-Google-Smtp-Source: ABdhPJxLBeDCGTGncf7vPJx9segmdfmBAwHxFr43PJcjHagfyVIArjRrzp4osMA8qrzDEZfwYnOCVQ==
-X-Received: by 2002:a2e:981a:: with SMTP id a26mr12854352ljj.204.1616874991681;
-        Sat, 27 Mar 2021 12:56:31 -0700 (PDT)
-Received: from [192.168.1.101] ([31.173.82.142])
-        by smtp.gmail.com with ESMTPSA id u14sm1345822lfl.40.2021.03.27.12.56.30
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 27 Mar 2021 12:56:31 -0700 (PDT)
-Subject: Re: [PATCH 2/4] exec: remove compat_do_execve
-To:     Christoph Hellwig <hch@lst.de>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Al Viro <viro@zeniv.linux.org.uk>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Brian Gerst <brgerst@gmail.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        linux-arm-kernel@lists.infradead.org, x86@kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20210326143831.1550030-1-hch@lst.de>
- <20210326143831.1550030-3-hch@lst.de>
-From:   Sergei Shtylyov <sergei.shtylyov@gmail.com>
-Message-ID: <596ca191-0176-e991-7318-f9a0f3361cb3@gmail.com>
-Date:   Sat, 27 Mar 2021 22:56:29 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.0
-MIME-Version: 1.0
-In-Reply-To: <20210326143831.1550030-3-hch@lst.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S229542AbhC1GbU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 28 Mar 2021 02:31:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56672 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229485AbhC1GbR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sun, 28 Mar 2021 02:31:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A43E36197C;
+        Sun, 28 Mar 2021 06:31:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1616913076;
+        bh=fIYmtiiVahTZKgHaQD+jDuMxYY5AvOy62Q+boojOK1E=;
+        h=From:To:Cc:Subject:Date:From;
+        b=TZ3ei7zBeAgVBpKeSMgUIfT7cFEsCeH1gjJAc1Xka+xh1tEnN6M+Juhcxj4cMHSJ6
+         WmILreZnGkimmxPtbMXMLKfedRa/wD37UVBmGCsKO3FB75rnREvgypwcEkfIe51j4u
+         /lAcvsk3EEHh9Hg1GmHcvDQb7ilTxctp3FsxA13LHoejLlR7k2ECSFxo9LF+OTle7G
+         sS1dndQX+pK0CxgW0gsgWvaFbWNF+lH/vurb0mQGAd1dG3eq4gg6flYOpQa4HmQrua
+         0CR5asMfgeWZ1rL4qzvhyivvy1moujsSCNT4SCYn4sfSp0zU71oleIAtjphFxp9yb1
+         MVZVtA9yLHxfA==
+From:   guoren@kernel.org
+To:     guoren@kernel.org
+Cc:     linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-arch@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-xtensa@linux-xtensa.org,
+        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
+        Guo Ren <guoren@linux.alibaba.com>
+Subject: [PATCH v5 0/7] riscv: Add qspinlock/qrwlock
+Date:   Sun, 28 Mar 2021 06:30:21 +0000
+Message-Id: <1616913028-83376-1-git-send-email-guoren@kernel.org>
+X-Mailer: git-send-email 2.7.4
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 3/26/21 5:38 PM, Christoph Hellwig wrote:
+From: Guo Ren <guoren@linux.alibaba.com>
 
-> Just call compat_do_execve instead.
+Current riscv is still using baby spinlock implementation. It'll cause
+fairness and cache line bouncing problems. Many people are involved
+and pay the efforts to improve it:
 
-   compat_do_execveat(), maybe?
+ - The first version of patch was made in 2019.1:
+   https://lore.kernel.org/linux-riscv/20190211043829.30096-1-michaeljclark@mac.com/#r
 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  fs/exec.c | 17 +----------------
->  1 file changed, 1 insertion(+), 16 deletions(-)
-> 
-> diff --git a/fs/exec.c b/fs/exec.c
-> index b63fb020909075..06e07278b456fa 100644
-> --- a/fs/exec.c
-> +++ b/fs/exec.c
-[...]
-> @@ -2072,7 +2057,7 @@ COMPAT_SYSCALL_DEFINE3(execve, const char __user *, filename,
->  	const compat_uptr_t __user *, argv,
->  	const compat_uptr_t __user *, envp)
->  {
-> -	return compat_do_execve(getname(filename), argv, envp);
-> +	return compat_do_execveat(AT_FDCWD, getname(filename), argv, envp, 0);
->  }
->  
->  COMPAT_SYSCALL_DEFINE5(execveat, int, fd,
+ - The second version was made in 2020.11:
+   https://lore.kernel.org/linux-riscv/1606225437-22948-2-git-send-email-guoren@kernel.org/
 
-MBR, Sergei
+ - A good discussion at Platform HSC.2021-03-08:
+   https://drive.google.com/drive/folders/1ooqdnIsYx7XKor5O1XTtM6D1CHp4hc0p
+
+Hope your comments and Tested-by or Co-developed-by or Reviewed-by ...
+
+Let's kick the qspinlock into riscv right now (Also for the
+architecture which hasn't xchg16 atomic instruction.)
+
+Change V5:
+ - Fixup #endif comment typo by Waiman
+ - Remove cmpxchg coding convention patches which will get into a
+   separate patchset later by Arnd's advice
+ - Try to involve more architectures in the discussion
+
+Change V4:
+ - Remove custom sub-word xchg implementation
+ - Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32 in locking/qspinlock
+
+Change V3:
+ - Coding convention by Peter Zijlstra's advices
+
+Change V2:
+ - Coding convention in cmpxchg.h
+ - Re-implement short xchg
+ - Remove char & cmpxchg implementations
+
+Guo Ren (6):
+  locking/qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+  csky: Convert custom spinlock/rwlock to generic qspinlock/qrwlock
+  powerpc/qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+  openrisc: qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+  sparc: qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+  xtensa: qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+
+Michael Clark (1):
+  riscv: Convert custom spinlock/rwlock to generic qspinlock/qrwlock
+
+ arch/csky/Kconfig                       |   2 +
+ arch/csky/include/asm/Kbuild            |   2 +
+ arch/csky/include/asm/spinlock.h        |  82 +--------------
+ arch/csky/include/asm/spinlock_types.h  |  16 +--
+ arch/openrisc/Kconfig                   |   1 +
+ arch/powerpc/Kconfig                    |   1 +
+ arch/riscv/Kconfig                      |   3 +
+ arch/riscv/include/asm/Kbuild           |   3 +
+ arch/riscv/include/asm/spinlock.h       | 126 +-----------------------
+ arch/riscv/include/asm/spinlock_types.h |  15 +--
+ arch/sparc/Kconfig                      |   1 +
+ arch/xtensa/Kconfig                     |   1 +
+ kernel/Kconfig.locks                    |   3 +
+ kernel/locking/qspinlock.c              |  46 +++++----
+ 14 files changed, 49 insertions(+), 253 deletions(-)
+
+-- 
+2.17.1
+
