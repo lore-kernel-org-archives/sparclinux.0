@@ -2,86 +2,107 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9140C43446
-	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 06:32:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36A76C433C1
+	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 11:15:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A52361981
-	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 06:32:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFD6161998
+	for <sparclinux@archiver.kernel.org>; Sun, 28 Mar 2021 11:15:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231218AbhC1Gb4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 28 Mar 2021 02:31:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56878 "EHLO mail.kernel.org"
+        id S230509AbhC1LPC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 28 Mar 2021 07:15:02 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:31264 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230502AbhC1Gbj (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sun, 28 Mar 2021 02:31:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFCCB61999;
-        Sun, 28 Mar 2021 06:31:36 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1616913099;
-        bh=O2KxmIPB+fHLZecH69jIXhtq++wb564lj/icyjeUAfo=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=RIkij08xlS8DB8+yEsaHfhkJ4frVk8aqcXZKUjc8aZRsRg14dDqPdSr8TSjbqYWar
-         YZa7xXiDmepsbU0aY2OQB+g9ZqgA6O0epYM/s/Lq/CGXTTUZR/qeGjvktEkSawSenY
-         6uspD6vEI92SJzbXoQjxXYH9frX6UTrSuMhM5XRheYpddQnE2p8LoyPEDQ5x0vhDc+
-         aPIyENu/RTIQJgeveEE/LmORCiHcAjMknUD4XEEpdndhKUefcId80TspfCdlvafStJ
-         6CIxmOlQadSXN+7398RrpGZOq23MCSKdY+hW6nlsOKJHvtdBV75Hz84ouhtYXGQH+u
-         8EGq83B9rHGOg==
-From:   guoren@kernel.org
+        id S229577AbhC1LOm (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sun, 28 Mar 2021 07:14:42 -0400
+Received: from localhost (mailhub1-int [192.168.12.234])
+        by localhost (Postfix) with ESMTP id 4F7Y521DWmz9tyJZ;
+        Sun, 28 Mar 2021 13:14:30 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
+        with ESMTP id Vbw5Z44eDhdj; Sun, 28 Mar 2021 13:14:30 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4F7Y516Sdvz9v03k;
+        Sun, 28 Mar 2021 13:14:29 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 8C8A48B782;
+        Sun, 28 Mar 2021 13:14:30 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id N7crepemd7QU; Sun, 28 Mar 2021 13:14:30 +0200 (CEST)
+Received: from [192.168.4.90] (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id EA0E48B75F;
+        Sun, 28 Mar 2021 13:14:29 +0200 (CEST)
+Subject: Re: [PATCH v5 4/7] powerpc/qspinlock: Add
+ ARCH_USE_QUEUED_SPINLOCKS_XCHG32
 To:     guoren@kernel.org
-Cc:     linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-arch@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-xtensa@linux-xtensa.org,
-        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
+Cc:     linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org,
         Guo Ren <guoren@linux.alibaba.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Rob Gardner <rob.gardner@oracle.com>
-Subject: [PATCH v5 6/7] sparc: qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
-Date:   Sun, 28 Mar 2021 06:30:27 +0000
-Message-Id: <1616913028-83376-7-git-send-email-guoren@kernel.org>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1616913028-83376-1-git-send-email-guoren@kernel.org>
+        linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
+        openrisc@lists.librecores.org, Paul Mackerras <paulus@samba.org>,
+        sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org
 References: <1616913028-83376-1-git-send-email-guoren@kernel.org>
+ <1616913028-83376-5-git-send-email-guoren@kernel.org>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Message-ID: <e27af5e0-a462-cb75-6311-1b5a6b4ee4f1@csgroup.eu>
+Date:   Sun, 28 Mar 2021 13:14:28 +0200
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.9.0
+MIME-Version: 1.0
+In-Reply-To: <1616913028-83376-5-git-send-email-guoren@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Guo Ren <guoren@linux.alibaba.com>
 
-We don't have native hw xchg16 instruction, so let qspinlock
-generic code to deal with it.
 
-Using the full-word atomic xchg instructions implement xchg16 has
-the semantic risk for atomic operations.
+Le 28/03/2021 à 08:30, guoren@kernel.org a écrit :
+> From: Guo Ren <guoren@linux.alibaba.com>
+> 
+> We don't have native hw xchg16 instruction, so let qspinlock
+> generic code to deal with it.
 
-This patch cancels the dependency of on qspinlock generic code on
-architecture's xchg16.
+We have lharx/sthcx pair on some versions of powerpc.
 
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Rob Gardner <rob.gardner@oracle.com>
----
- arch/sparc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+See https://patchwork.ozlabs.org/project/linuxppc-dev/patch/20201107032328.2454582-1-npiggin@gmail.com/
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 164a5254c91c..1079fe3f058c 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -91,6 +91,7 @@ config SPARC64
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
-+	select ARCH_USE_QUEUED_SPINLOCKS_XCHG32
- 	select GENERIC_TIME_VSYSCALL
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_HAS_PTE_SPECIAL
--- 
-2.17.1
+Christophe
 
+> 
+> Using the full-word atomic xchg instructions implement xchg16 has
+> the semantic risk for atomic operations.
+> 
+> This patch cancels the dependency of on qspinlock generic code on
+> architecture's xchg16.
+> 
+> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Paul Mackerras <paulus@samba.org>
+> ---
+>   arch/powerpc/Kconfig | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+> index 386ae12d8523..69ec4ade6521 100644
+> --- a/arch/powerpc/Kconfig
+> +++ b/arch/powerpc/Kconfig
+> @@ -151,6 +151,7 @@ config PPC
+>   	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+>   	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+>   	select ARCH_USE_QUEUED_SPINLOCKS	if PPC_QUEUED_SPINLOCKS
+> +	select ARCH_USE_QUEUED_SPINLOCKS_XCHG32	if PPC_QUEUED_SPINLOCKS
+>   	select ARCH_WANT_IPC_PARSE_VERSION
+>   	select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+>   	select ARCH_WANT_LD_ORPHAN_WARN
+> 
