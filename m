@@ -2,278 +2,374 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,PDS_BAD_THREAD_QP_64,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC13C433DB
-	for <sparclinux@archiver.kernel.org>; Mon, 29 Mar 2021 01:36:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B475DC433E0
+	for <sparclinux@archiver.kernel.org>; Mon, 29 Mar 2021 08:49:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BBEA6146B
-	for <sparclinux@archiver.kernel.org>; Mon, 29 Mar 2021 01:36:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8602961585
+	for <sparclinux@archiver.kernel.org>; Mon, 29 Mar 2021 08:49:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230271AbhC2Bfk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 28 Mar 2021 21:35:40 -0400
-Received: from mga04.intel.com ([192.55.52.120]:9888 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230209AbhC2BfY (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sun, 28 Mar 2021 21:35:24 -0400
-IronPort-SDR: BRoDK96CPyFbcNjiCvLWg45CcrNFuxzxn+q5jWwNKCmRDBayVKlN6KoMcyKDkwarh+nZmZbgrw
- rdarzxtR43HQ==
-X-IronPort-AV: E=McAfee;i="6000,8403,9937"; a="189204133"
-X-IronPort-AV: E=Sophos;i="5.81,285,1610438400"; 
-   d="scan'208";a="189204133"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 28 Mar 2021 18:35:24 -0700
-IronPort-SDR: 3OnYc4reE3mBx0xx2TBrBEdlwziLi7HjDKDFWRUBHfunsKIJDM1QQWrb+BVf58G1M5KJOojGGq
- lI3XkuczvN6g==
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.81,285,1610438400"; 
-   d="scan'208";a="606193074"
-Received: from orsmsx606.amr.corp.intel.com ([10.22.229.19])
-  by fmsmga006.fm.intel.com with ESMTP; 28 Mar 2021 18:35:23 -0700
-Received: from orsmsx609.amr.corp.intel.com (10.22.229.22) by
- ORSMSX606.amr.corp.intel.com (10.22.229.19) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2106.2; Sun, 28 Mar 2021 18:35:23 -0700
-Received: from orsedg603.ED.cps.intel.com (10.7.248.4) by
- orsmsx609.amr.corp.intel.com (10.22.229.22) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2106.2
- via Frontend Transport; Sun, 28 Mar 2021 18:35:23 -0700
-Received: from NAM11-DM6-obe.outbound.protection.outlook.com (104.47.57.169)
- by edgegateway.intel.com (134.134.137.100) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.1.2106.2; Sun, 28 Mar 2021 18:35:23 -0700
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=VbvUume1AMZG1bMZ0EK31cV+xchex/cexicm6ztwC/xZQYIxuWC3o4YUu7oHbxu/kHDEEmd/olcsjLAhiwq3Fhc6TViO/G1kPfyz5Ka+rVkb6thfa4HZO7qNvsKBMIss978mmIrc4tSSOumCgtDMARLObK9r89v7Y7S4wzaJEUZSqb3OShD+DrStEdzrbBZEj+PMEPmDSeefTN7NmVlB35fZzE8Fis/0D3kCeT4cxZqUWKkqnxZcyJOKx9xJS7SG7J2MdXygv01DECh8W77ogJXQxoLJm5pyK1NZZJw4cHPd/wKcGdDCQM81/PNEgrfHq0sR6UBUzPwlXx3giicIMQ==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/ay8TMmJ++2GJdBf7EWjPTAnf1cCb7gNzJ19byz4mjw=;
- b=YVzKE4WosVRut8kCQTTj//0akhjfIfLdr3SC/zO8EYIzRo14v+nIzzwakYtF5jg9ud6s0tKOyeT+KBiDQqOxF76CRrHWZhZgjv4HgZ7KEqQYRv8ajy8r9UgSDnZdBOhKUh+PgN5oEG0snHNB4/gkXt8mtWFpoO6ymY6j280eW+qqQtp+nQTR5GdT6q+5yZYTbSWMtTs6zMVPTBfeduCwzYekECwGNRlRshEG3kKCZi+DoA6RfX7XLxxpP3XOYEPF0scVyw+I1+h+Y8VD+5/EYafnBHN07rS5Tu4ZS9TxV3ECAom+dKzfKLWC3keo8Nl8ESAfz3OpPj8ff6MbCssBIg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=intel.com; dmarc=pass action=none header.from=intel.com;
- dkim=pass header.d=intel.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=intel.onmicrosoft.com;
- s=selector2-intel-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=/ay8TMmJ++2GJdBf7EWjPTAnf1cCb7gNzJ19byz4mjw=;
- b=u/DX/kYhvaEdHbMUGTBhNPannLaSs2aqRDefhuYJOx8lA/ZONkC9mEysKJnE+KwH2IjHkNftja78aAwafaR7E8gNsMHdrjIzHD3+J+lcX49p94nISQoVItvKvzdZBu7WyCxMsAZ6S5ZXkhnnag3f8xpqZNyQyU361husRYP8uwY=
-Received: from BY5PR11MB3893.namprd11.prod.outlook.com (2603:10b6:a03:183::26)
- by BYAPR11MB3253.namprd11.prod.outlook.com (2603:10b6:a03:77::31) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.3977.26; Mon, 29 Mar
- 2021 01:35:22 +0000
-Received: from BY5PR11MB3893.namprd11.prod.outlook.com
- ([fe80::297b:a818:3bfb:f897]) by BY5PR11MB3893.namprd11.prod.outlook.com
- ([fe80::297b:a818:3bfb:f897%6]) with mapi id 15.20.3977.033; Mon, 29 Mar 2021
- 01:35:22 +0000
-From:   "Tan, Ley Foon" <ley.foon.tan@intel.com>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "will@kernel.org" <will@kernel.org>,
-        "danielwa@cisco.com" <danielwa@cisco.com>,
-        "robh@kernel.org" <robh@kernel.org>,
-        "daniel@gimpelevich.san-francisco.ca.us" 
-        <daniel@gimpelevich.san-francisco.ca.us>
-CC:     "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        microblaze <monstr@monstr.eu>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "openrisc@lists.librecores.org" <openrisc@lists.librecores.org>,
-        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        "x86@kernel.org" <x86@kernel.org>,
-        "linux-xtensa@linux-xtensa.org" <linux-xtensa@linux-xtensa.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
-Subject: RE: [PATCH v3 09/17] nios2: Convert to GENERIC_CMDLINE
-Thread-Topic: [PATCH v3 09/17] nios2: Convert to GENERIC_CMDLINE
-Thread-Index: AQHXIkY9EWGkIZwlLUepcXMICy4iU6qaMsdw
-Date:   Mon, 29 Mar 2021 01:35:21 +0000
-Message-ID: <BY5PR11MB38934E74AF74D40379E46AB9CC7E9@BY5PR11MB3893.namprd11.prod.outlook.com>
-References: <cover.1616765869.git.christophe.leroy@csgroup.eu>
- <85b1dc6339351cbc46d179e8fdb9dfc398e58303.1616765870.git.christophe.leroy@csgroup.eu>
-In-Reply-To: <85b1dc6339351cbc46d179e8fdb9dfc398e58303.1616765870.git.christophe.leroy@csgroup.eu>
-Accept-Language: en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-dlp-reaction: no-action
-dlp-version: 11.5.1.3
-dlp-product: dlpe-windows
-authentication-results: csgroup.eu; dkim=none (message not signed)
- header.d=none;csgroup.eu; dmarc=none action=none header.from=intel.com;
-x-originating-ip: [42.189.153.48]
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 3136e626-5230-45dc-23e7-08d8f252eb33
-x-ms-traffictypediagnostic: BYAPR11MB3253:
-x-microsoft-antispam-prvs: <BYAPR11MB325308E3D7134732CEAD512ECC7E9@BYAPR11MB3253.namprd11.prod.outlook.com>
-x-ms-oob-tlc-oobclassifiers: OLM:6430;
-x-ms-exchange-senderadcheck: 1
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: sp4Dol+Ce3nl3hU/fv/D/GUIKDOUypkeJE/zMbaTQm+QnbmSVuL0jjK/ZMXtf2p7SdDLd0pSfuuiImYjWC2pohxUpt1MyaTp/n5BOxXpfN/WBOGp7vCgEznkbRin7gx1gHK5syIi7vYCGx6bo5oW/nQregC+QI2Lc8qopP2qA9DfcDk3t/JvlXYMZq4TEgdN/mJvI6XjsorSmY5zyom8Avm/HFtuAaNjka1tiEhIxIcZtUHfq4l9WC7+J8KYLdl5+olfQCFc7XfDN1T1MZmR4UU/UjID50WgHr/PtQ8N6gYizCrfwNDixADhfDSQmwqUI7NDVT4gWSrBU2L7yDNup4v7Yen8cG9V88vMkCYCborUb5Qdlz75Vsvyu5KuZNQ2okqrZO6KQOXbl3Q128Z8hMeMGBYzb6U58EGDrj1E6cStukiiNcoI0lkl5pLZ+yN7XKJb0yPfvQAC0nSLee/lB67769TkYbOvzbF3t6xeeG6FaLrn+6Fj/1YuIOjE3EZWL50BepT7041SZs3mEYdPjSb4c6g89nDqa70MC1WmyfoN3C38OC8qu38D4qSZqlMzrMkf2AsBvH+HkXAXJLE7g/ve9C0e351D1SjDMD7041qURhXVi7FyjSKfVIDn/IS6p73+6cVBrCMoSjHQPrx7A941nQU7qd0TUDdLvhlRXmqOh3fDsFehe9OH42eV9GNu
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR11MB3893.namprd11.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(346002)(136003)(396003)(366004)(376002)(8936002)(38100700001)(316002)(83380400001)(54906003)(76116006)(66946007)(66446008)(5660300002)(8676002)(66556008)(64756008)(66476007)(7416002)(478600001)(4326008)(110136005)(53546011)(2906002)(55016002)(9686003)(52536014)(86362001)(71200400001)(26005)(33656002)(186003)(7696005)(6506007)(41533002);DIR:OUT;SFP:1102;
-x-ms-exchange-antispam-messagedata: =?us-ascii?Q?qG30XGx1ArCsOPyfjuxDCzCGIxsdK9sVdtWTrycEB0bBZl1DAzQSe6MJaEOw?=
- =?us-ascii?Q?fKwOr7ob9iSZmk4lSHK+dVaRvtzc1/vvfzbQuvGjjq8Acx2Uzjj4QOCsAMA4?=
- =?us-ascii?Q?6DobvsLMhKufv6PsBcV3FoHHUqhSWwUzakvMWneHFqoyBFMiM5DcQPkxEM+V?=
- =?us-ascii?Q?eoArLPer2IGntmEqs8mNnmHIWABfd2uDS5oWEMD13fIoX9Schn07FRRHAotI?=
- =?us-ascii?Q?RXTrVZaAFm1qOg8y4JPH/YtfoxlbbS1lgxPRBi4ny36JeHdFCW77OFP1D8ua?=
- =?us-ascii?Q?lSB0vBoDd2qIhw8PXL3tiYfAkmy0ET/r/MeWMvWtX0gjZFD2rckSu3fd/4yZ?=
- =?us-ascii?Q?6d6P/njxZCCFWAyZl6DFrlJClVFIf2Lu1DP7hRNLwM4eQuz3fqzEHDed87Lk?=
- =?us-ascii?Q?ZvDH5sav+GwpUUjw1RAbwi16nHC5xwxiL1uiYiamrbDrv/ra4h2lXmCmF/yk?=
- =?us-ascii?Q?TzrhiYhxuYTgLsRxNJ5HZv7WzkEigvdq0QsCLlqyDgdkj+/0z/cLrVNeb80W?=
- =?us-ascii?Q?2wSvn8REbgHtejy1n3/b3om8NSEe+R7xgkTseEnFIbhj+aFJe7qKZdmBkiY5?=
- =?us-ascii?Q?do1zP2icP3vdavYhTj81JRCeI5R1Y13JoAJpEQnx/Cu9tdAQJx9fhM8luiyn?=
- =?us-ascii?Q?6mV3ygmDJvjUTGSknoQWLBNjAO7C7lNzb0t0MHV6qNi45QV+YMyMBpBsuiMp?=
- =?us-ascii?Q?AK0rEuaMuYOvSZZwWdMjwLjULKPtX65KFgs7u0H4QZG+lIyfESMcu5K4mKfO?=
- =?us-ascii?Q?ljfN4MHne8IAXdoQUU8SvOodGvEAnDT9H1PJetgxUfiC7oa04tEGtEt1KG7c?=
- =?us-ascii?Q?aia5+lQEMGpVKDQPNDi2d0OyKUjRJ+J1uth0georYToydJMdG0wIY4rb5xgB?=
- =?us-ascii?Q?HXQJUFQfhTpHiTUAMD1fBoD9QkAyKkRiByUTj5AyqM4vWkUnO7K4+XZpwNVk?=
- =?us-ascii?Q?LjomyGnfjOrMIfrLfAIysCBW3G6xwqnpWtPjgV9mcvUMDP9+JDlNMmaKQlEp?=
- =?us-ascii?Q?+x9xQ/mpCxZu0BeG/6dE9aBUXXPxCI4MSTFbcnMKDa+snCvmFI+KMamONbGC?=
- =?us-ascii?Q?JU6yudXQYXtJqOUIWiSTlokL9qu1xx/vgyDTMcL8u2ArLjpFJbp2ScplBcPT?=
- =?us-ascii?Q?S2lWf5mcn0q83OUpHuGioRBeopGLkqtbHsweMOEpW5EDjXkz5U/gBcGfkI8J?=
- =?us-ascii?Q?00xd41Yk5sgyWZfN1omxCwnXbq2CVn2RXoaeI9MP2NYS5GKpAuj4U4wm6Zsd?=
- =?us-ascii?Q?0FbDXcF1H84zchNGCeIKFBgW6tI18NFXDiOExz+Ra5daCgTs2LyAEDCfdxMR?=
- =?us-ascii?Q?J2gtbbxgIAD8YK/c+DHzOsrf?=
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+        id S235120AbhC2ItE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 29 Mar 2021 04:49:04 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:55980 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235121AbhC2Isf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 29 Mar 2021 04:48:35 -0400
+Received: from 1-171-92-165.dynamic-ip.hinet.net ([1.171.92.165] helo=localhost)
+        by youngberry.canonical.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.86_2)
+        (envelope-from <kai.heng.feng@canonical.com>)
+        id 1lQnZ9-00057P-O2; Mon, 29 Mar 2021 08:48:08 +0000
+From:   Kai-Heng Feng <kai.heng.feng@canonical.com>
+To:     bhelgaas@google.com
+Cc:     Kai-Heng Feng <kai.heng.feng@canonical.com>,
+        Michal Simek <monstr@monstr.eu>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Arnd Bergmann <arnd@arndb.de>, Mike Rapoport <rppt@kernel.org>,
+        "Oliver O'Halloran" <oohall@gmail.com>,
+        Alexey Kardashevskiy <aik@ozlabs.ru>,
+        =?UTF-8?q?C=C3=A9dric=20Le=20Goater?= <clg@kaod.org>,
+        Frederic Barrat <fbarrat@linux.ibm.com>, Qian Cai <cai@lca.pw>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Qinglang Miao <miaoqinglang@huawei.com>,
+        Chen Zhou <chenzhou10@huawei.com>,
+        linux-kernel@vger.kernel.org (open list),
+        linuxppc-dev@lists.ozlabs.org (open list:LINUX FOR POWERPC (32-BIT AND
+        64-BIT)),
+        sparclinux@vger.kernel.org (open list:SPARC + UltraSPARC
+        (sparc/sparc64)),
+        linux-pci@vger.kernel.org (open list:PCI SUBSYSTEM)
+Subject: [PATCH] PCI: Try to find two continuous regions for child resource
+Date:   Mon, 29 Mar 2021 16:47:59 +0800
+Message-Id: <20210329084804.257526-1-kai.heng.feng@canonical.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: BY5PR11MB3893.namprd11.prod.outlook.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3136e626-5230-45dc-23e7-08d8f252eb33
-X-MS-Exchange-CrossTenant-originalarrivaltime: 29 Mar 2021 01:35:21.8933
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 46c98d88-e344-4ed4-8496-4ed7712e255d
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: EORUlTAMEmVGyPJ9IXxT10ifW8qQlyWaELYLStNmnpr+Szh6mpMwUAPTHgqsnwEvoe/BmzqwOe5+1m1EIpQbUA==
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: BYAPR11MB3253
-X-OriginatorOrg: intel.com
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Built-in grahpics on HP EliteDesk 805 G6 doesn't work because graphics
+can't get the BAR it needs:
+[    0.611504] pci_bus 0000:00: root bus resource [mem 0x10020200000-0x100303fffff window]
+[    0.611505] pci_bus 0000:00: root bus resource [mem 0x10030400000-0x100401fffff window]
+...
+[    0.638083] pci 0000:00:08.1:   bridge window [mem 0xd2000000-0xd23fffff]
+[    0.638086] pci 0000:00:08.1:   bridge window [mem 0x10030000000-0x100401fffff 64bit pref]
+[    0.962086] pci 0000:00:08.1: can't claim BAR 15 [mem 0x10030000000-0x100401fffff 64bit pref]: no compatible bridge window
+[    0.962086] pci 0000:00:08.1: [mem 0x10030000000-0x100401fffff 64bit pref] clipped to [mem 0x10030000000-0x100303fffff 64bit pref]
+[    0.962086] pci 0000:00:08.1:   bridge window [mem 0x10030000000-0x100303fffff 64bit pref]
+[    0.962086] pci 0000:07:00.0: can't claim BAR 0 [mem 0x10030000000-0x1003fffffff 64bit pref]: no compatible bridge window
+[    0.962086] pci 0000:07:00.0: can't claim BAR 2 [mem 0x10040000000-0x100401fffff 64bit pref]: no compatible bridge window
 
+However, the root bus has two continuous regions that can contain the
+child resource requested.
 
-> -----Original Message-----
-> From: Christophe Leroy <christophe.leroy@csgroup.eu>
-> Sent: Friday, March 26, 2021 9:45 PM
-> To: will@kernel.org; danielwa@cisco.com; robh@kernel.org;
-> daniel@gimpelevich.san-francisco.ca.us
-> Cc: linux-arch@vger.kernel.org; devicetree@vger.kernel.org; linuxppc-
-> dev@lists.ozlabs.org; linux-kernel@vger.kernel.org; linuxppc-
-> dev@lists.ozlabs.org; linux-arm-kernel@lists.infradead.org; microblaze
-> <monstr@monstr.eu>; linux-mips@vger.kernel.org; Tan, Ley Foon
-> <ley.foon.tan@intel.com>; openrisc@lists.librecores.org; linux-
-> hexagon@vger.kernel.org; linux-riscv@lists.infradead.org; x86@kernel.org;
-> linux-xtensa@linux-xtensa.org; linux-sh@vger.kernel.org;
-> sparclinux@vger.kernel.org
-> Subject: [PATCH v3 09/17] nios2: Convert to GENERIC_CMDLINE
->=20
-> This converts the architecture to GENERIC_CMDLINE.
->=20
-> Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-> ---
->  arch/nios2/Kconfig        | 24 +-----------------------
->  arch/nios2/kernel/setup.c | 13 ++++---------
->  2 files changed, 5 insertions(+), 32 deletions(-)
->=20
-> diff --git a/arch/nios2/Kconfig b/arch/nios2/Kconfig index
-> c24955c81c92..f66c97b15813 100644
-> --- a/arch/nios2/Kconfig
-> +++ b/arch/nios2/Kconfig
-> @@ -90,31 +90,9 @@ config NIOS2_ALIGNMENT_TRAP
->=20
->  comment "Boot options"
->=20
-> -config CMDLINE_BOOL
-> -	bool "Default bootloader kernel arguments"
-> -	default y
-> -
-> -config CMDLINE
-> -	string "Default kernel command string"
-> -	default ""
-> -	depends on CMDLINE_BOOL
-> -	help
-> -	  On some platforms, there is currently no way for the boot loader to
-> -	  pass arguments to the kernel. For these platforms, you can supply
-> -	  some command-line options at build time by entering them here.  In
-> -	  other cases you can specify kernel args so that you don't have
-> -	  to set them up in board prom initialization routines.
-> -
-> -config CMDLINE_FORCE
-> -	bool "Force default kernel command string"
-> -	depends on CMDLINE_BOOL
-> -	help
-> -	  Set this to have arguments from the default kernel command string
-> -	  override those passed by the boot loader.
-> -
->  config NIOS2_CMDLINE_IGNORE_DTB
->  	bool "Ignore kernel command string from DTB"
-> -	depends on CMDLINE_BOOL
-> +	depends on CMDLINE !=3D ""
->  	depends on !CMDLINE_FORCE
->  	default y
->  	help
+So try to find another parent region if two regions are continuous and
+can contain child resource. This change makes the grahpics works on the
+system in question.
 
-Missing " select GENERIC_CMDLINE" ?
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=212013
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+---
+ arch/microblaze/pci/pci-common.c |  4 +--
+ arch/powerpc/kernel/pci-common.c |  8 ++---
+ arch/sparc/kernel/pci.c          |  4 +--
+ drivers/pci/pci.c                | 60 +++++++++++++++++++++++++++-----
+ drivers/pci/setup-res.c          | 21 +++++++----
+ drivers/pcmcia/rsrc_nonstatic.c  |  4 +--
+ include/linux/pci.h              |  6 ++--
+ 7 files changed, 80 insertions(+), 27 deletions(-)
 
-
-
-
-> diff --git a/arch/nios2/kernel/setup.c b/arch/nios2/kernel/setup.c index
-> d2f21957e99c..42464f457a6d 100644
-> --- a/arch/nios2/kernel/setup.c
-> +++ b/arch/nios2/kernel/setup.c
-> @@ -20,6 +20,7 @@
->  #include <linux/initrd.h>
->  #include <linux/of_fdt.h>
->  #include <linux/screen_info.h>
-> +#include <linux/cmdline.h>
->=20
->  #include <asm/mmu_context.h>
->  #include <asm/sections.h>
-> @@ -108,7 +109,7 @@ asmlinkage void __init nios2_boot_init(unsigned r4,
-> unsigned r5, unsigned r6,
->  				       unsigned r7)
->  {
->  	unsigned dtb_passed =3D 0;
-> -	char cmdline_passed[COMMAND_LINE_SIZE] __maybe_unused =3D
-> { 0, };
-> +	char cmdline_passed[COMMAND_LINE_SIZE] =3D { 0, };
->=20
->  #if defined(CONFIG_NIOS2_PASS_CMDLINE)
->  	if (r4 =3D=3D 0x534f494e) { /* r4 is magic NIOS */ @@ -127,14 +128,8 @@
-> asmlinkage void __init nios2_boot_init(unsigned r4, unsigned r5, unsigned=
- r6,
->=20
->  	early_init_devtree((void *)dtb_passed);
->=20
-> -#ifndef CONFIG_CMDLINE_FORCE
-> -	if (cmdline_passed[0])
-> -		strlcpy(boot_command_line, cmdline_passed,
-> COMMAND_LINE_SIZE);
-> -#ifdef CONFIG_NIOS2_CMDLINE_IGNORE_DTB
-> -	else
-> -		strlcpy(boot_command_line, CONFIG_CMDLINE,
-> COMMAND_LINE_SIZE);
-> -#endif
-> -#endif
-> +	if (cmdline_passed[0] ||
-> IS_ENABLED(CONFIG_NIOS2_CMDLINE_IGNORE_DTB))
-> +		cmdline_build(boot_command_line, cmdline_passed,
-> COMMAND_LINE_SIZE);
->=20
->  	parse_early_param();
->  }
-> --
-> 2.25.0
+diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
+index 557585f1be41..8e65832fb510 100644
+--- a/arch/microblaze/pci/pci-common.c
++++ b/arch/microblaze/pci/pci-common.c
+@@ -669,7 +669,7 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ {
+ 	struct pci_bus *b;
+ 	int i;
+-	struct resource *res, *pr;
++	struct resource *res, *pr = NULL;
+ 
+ 	pr_debug("PCI: Allocating bus resources for %04x:%02x...\n",
+ 		 pci_domain_nr(bus), bus->number);
+@@ -688,7 +688,7 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ 			 * and as such ensure proper re-allocation
+ 			 * later.
+ 			 */
+-			pr = pci_find_parent_resource(bus->self, res);
++			pci_find_parent_resource(bus->self, res, &pr, NULL);
+ 			if (pr == res) {
+ 				/* this happens when the generic PCI
+ 				 * code (wrongly) decides that this
+diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
+index 001e90cd8948..f865354b746d 100644
+--- a/arch/powerpc/kernel/pci-common.c
++++ b/arch/powerpc/kernel/pci-common.c
+@@ -1196,7 +1196,7 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ {
+ 	struct pci_bus *b;
+ 	int i;
+-	struct resource *res, *pr;
++	struct resource *res, *pr = NULL;
+ 
+ 	pr_debug("PCI: Allocating bus resources for %04x:%02x...\n",
+ 		 pci_domain_nr(bus), bus->number);
+@@ -1213,7 +1213,7 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ 			pr = (res->flags & IORESOURCE_IO) ?
+ 				&ioport_resource : &iomem_resource;
+ 		else {
+-			pr = pci_find_parent_resource(bus->self, res);
++			pci_find_parent_resource(bus->self, res, &pr, NULL);
+ 			if (pr == res) {
+ 				/* this happens when the generic PCI
+ 				 * code (wrongly) decides that this
+@@ -1265,12 +1265,12 @@ static void pcibios_allocate_bus_resources(struct pci_bus *bus)
+ 
+ static inline void alloc_resource(struct pci_dev *dev, int idx)
+ {
+-	struct resource *pr, *r = &dev->resource[idx];
++	struct resource *pr = NULL, *r = &dev->resource[idx];
+ 
+ 	pr_debug("PCI: Allocating %s: Resource %d: %pR\n",
+ 		 pci_name(dev), idx, r);
+ 
+-	pr = pci_find_parent_resource(dev, r);
++	pci_find_parent_resource(dev, r, &pr, NULL);
+ 	if (!pr || (pr->flags & IORESOURCE_UNSET) ||
+ 	    request_resource(pr, r) < 0) {
+ 		printk(KERN_WARNING "PCI: Cannot allocate resource region %d"
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 9c2b720bfd20..b4006798e4e1 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -621,7 +621,7 @@ static void pci_bus_register_of_sysfs(struct pci_bus *bus)
+ static void pci_claim_legacy_resources(struct pci_dev *dev)
+ {
+ 	struct pci_bus_region region;
+-	struct resource *p, *root, *conflict;
++	struct resource *p, *root = NULL, *conflict;
+ 
+ 	if ((dev->class >> 8) != PCI_CLASS_DISPLAY_VGA)
+ 		return;
+@@ -637,7 +637,7 @@ static void pci_claim_legacy_resources(struct pci_dev *dev)
+ 	region.end = region.start + 0x1ffffUL;
+ 	pcibios_bus_to_resource(dev->bus, p, &region);
+ 
+-	root = pci_find_parent_resource(dev, p);
++	pci_find_parent_resource(dev, p, &root, NULL);
+ 	if (!root) {
+ 		pci_info(dev, "can't claim VGA legacy %pR: no compatible bridge window\n", p);
+ 		goto err;
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 16a17215f633..abbcd2dcdc02 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -693,20 +693,25 @@ u8 pci_find_ht_capability(struct pci_dev *dev, int ht_cap)
+ EXPORT_SYMBOL_GPL(pci_find_ht_capability);
+ 
+ /**
+- * pci_find_parent_resource - return resource region of parent bus of given
++ * pci_find_parent_resource - find resource region of parent bus of given
+  *			      region
+  * @dev: PCI device structure contains resources to be searched
+  * @res: child resource record for which parent is sought
++ * @first: the first region that contains the child resource
++ * @second: the second region that combines with the first region to fully
++ * contains the child resource
+  *
+  * For given resource region of given device, return the resource region of
+  * parent bus the given region is contained in.
+  */
+-struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+-					  struct resource *res)
++void pci_find_parent_resource(const struct pci_dev *dev,
++					  struct resource *res,
++					  struct resource **first,
++					  struct resource **second)
+ {
+ 	const struct pci_bus *bus = dev->bus;
+ 	struct resource *r;
+-	int i;
++	int i, overlaps = 0;
+ 
+ 	pci_bus_for_each_resource(bus, r, i) {
+ 		if (!r)
+@@ -718,8 +723,10 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+ 			 * not, the allocator made a mistake.
+ 			 */
+ 			if (r->flags & IORESOURCE_PREFETCH &&
+-			    !(res->flags & IORESOURCE_PREFETCH))
+-				return NULL;
++			    !(res->flags & IORESOURCE_PREFETCH)) {
++				*first = NULL;
++				return;
++			}
+ 
+ 			/*
+ 			 * If we're below a transparent bridge, there may
+@@ -729,10 +736,47 @@ struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+ 			 * on pci_bus_for_each_resource() giving us those
+ 			 * first.
+ 			 */
+-			return r;
++			*first = r;
++			return;
+ 		}
+ 	}
+-	return NULL;
++
++	if (!second)
++		return;
++
++	pci_bus_for_each_resource(bus, r, i) {
++		if (!r)
++			continue;
++		if (resource_overlaps(r, res)) {
++			if (r->flags & IORESOURCE_PREFETCH &&
++			    !(res->flags & IORESOURCE_PREFETCH))
++				continue;
++
++			if (!overlaps++)
++				*first = r;
++			else {
++				*second = r;
++				break;
++			}
++		}
++	}
++
++	if (overlaps != 2)
++		goto out;
++
++	if ((*first)->start > (*second)->start)
++		swap(*first, *second);
++
++	if ((*first)->end + 1 != (*second)->start)
++		goto out;
++
++	if ((*first)->start <= res->start && (*second)->end >= res->end)
++		return;
++out:
++
++	*first = NULL;
++	*second = NULL;
++	return;
+ }
+ EXPORT_SYMBOL(pci_find_parent_resource);
+ 
+diff --git a/drivers/pci/setup-res.c b/drivers/pci/setup-res.c
+index 7f1acb3918d0..e39615321d81 100644
+--- a/drivers/pci/setup-res.c
++++ b/drivers/pci/setup-res.c
+@@ -131,7 +131,7 @@ void pci_update_resource(struct pci_dev *dev, int resno)
+ int pci_claim_resource(struct pci_dev *dev, int resource)
+ {
+ 	struct resource *res = &dev->resource[resource];
+-	struct resource *root, *conflict;
++	struct resource *first = NULL, *second = NULL, *conflict;
+ 
+ 	if (res->flags & IORESOURCE_UNSET) {
+ 		pci_info(dev, "can't claim BAR %d %pR: no address assigned\n",
+@@ -147,21 +147,28 @@ int pci_claim_resource(struct pci_dev *dev, int resource)
+ 	if (res->flags & IORESOURCE_ROM_SHADOW)
+ 		return 0;
+ 
+-	root = pci_find_parent_resource(dev, res);
+-	if (!root) {
++	pci_find_parent_resource(dev, res, &first, &second);
++	if (!first) {
+ 		pci_info(dev, "can't claim BAR %d %pR: no compatible bridge window\n",
+ 			 resource, res);
+ 		res->flags |= IORESOURCE_UNSET;
+ 		return -EINVAL;
+ 	}
+ 
+-	conflict = request_resource_conflict(root, res);
++	if (second)
++		first->end = second->end;
++
++	conflict = request_resource_conflict(first, res);
+ 	if (conflict) {
++		if (second)
++			first->end = second->start - 1;
++
+ 		pci_info(dev, "can't claim BAR %d %pR: address conflict with %s %pR\n",
+ 			 resource, res, conflict->name, conflict);
+ 		res->flags |= IORESOURCE_UNSET;
+ 		return -EBUSY;
+-	}
++	} else if (second)
++		second->start = second->end = 0;
+ 
+ 	return 0;
+ }
+@@ -195,7 +202,7 @@ resource_size_t __weak pcibios_retrieve_fw_addr(struct pci_dev *dev, int idx)
+ static int pci_revert_fw_address(struct resource *res, struct pci_dev *dev,
+ 		int resno, resource_size_t size)
+ {
+-	struct resource *root, *conflict;
++	struct resource *root = NULL, *conflict;
+ 	resource_size_t fw_addr, start, end;
+ 
+ 	fw_addr = pcibios_retrieve_fw_addr(dev, resno);
+@@ -208,7 +215,7 @@ static int pci_revert_fw_address(struct resource *res, struct pci_dev *dev,
+ 	res->end = res->start + size - 1;
+ 	res->flags &= ~IORESOURCE_UNSET;
+ 
+-	root = pci_find_parent_resource(dev, res);
++	pci_find_parent_resource(dev, res, &root, NULL);
+ 	if (!root) {
+ 		if (res->flags & IORESOURCE_IO)
+ 			root = &ioport_resource;
+diff --git a/drivers/pcmcia/rsrc_nonstatic.c b/drivers/pcmcia/rsrc_nonstatic.c
+index 3b05760e69d6..2fba42d7486e 100644
+--- a/drivers/pcmcia/rsrc_nonstatic.c
++++ b/drivers/pcmcia/rsrc_nonstatic.c
+@@ -73,7 +73,7 @@ static struct resource *
+ claim_region(struct pcmcia_socket *s, resource_size_t base,
+ 		resource_size_t size, int type, char *name)
+ {
+-	struct resource *res, *parent;
++	struct resource *res, *parent = NULL;
+ 
+ 	parent = type & IORESOURCE_MEM ? &iomem_resource : &ioport_resource;
+ 	res = pcmcia_make_resource(base, size, type | IORESOURCE_BUSY, name);
+@@ -81,7 +81,7 @@ claim_region(struct pcmcia_socket *s, resource_size_t base,
+ 	if (res) {
+ #ifdef CONFIG_PCI
+ 		if (s && s->cb_dev)
+-			parent = pci_find_parent_resource(s->cb_dev, res);
++			pci_find_parent_resource(s->cb_dev, res, &parent, NULL);
+ #endif
+ 		if (!parent || request_resource(parent, res)) {
+ 			kfree(res);
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 86c799c97b77..dd1455be5247 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1049,8 +1049,10 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus);
+ unsigned int pci_scan_child_bus(struct pci_bus *bus);
+ void pci_bus_add_device(struct pci_dev *dev);
+ void pci_read_bridge_bases(struct pci_bus *child);
+-struct resource *pci_find_parent_resource(const struct pci_dev *dev,
+-					  struct resource *res);
++void pci_find_parent_resource(const struct pci_dev *dev,
++					  struct resource *res,
++					  struct resource **first,
++					  struct resource **second);
+ u8 pci_swizzle_interrupt_pin(const struct pci_dev *dev, u8 pin);
+ int pci_get_interrupt_pin(struct pci_dev *dev, struct pci_dev **bridge);
+ u8 pci_common_swizzle(struct pci_dev *dev, u8 *pinp);
+-- 
+2.30.2
 
