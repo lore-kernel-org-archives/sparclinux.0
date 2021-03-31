@@ -7,30 +7,30 @@ X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B200C43617
-	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8BCEC43460
+	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E07F61008
-	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF67861005
+	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236158AbhCaOc7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 31 Mar 2021 10:32:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44146 "EHLO mail.kernel.org"
+        id S236084AbhCaOd1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 31 Mar 2021 10:33:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236067AbhCaOck (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 31 Mar 2021 10:32:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 717C960FF1;
-        Wed, 31 Mar 2021 14:32:34 +0000 (UTC)
+        id S236076AbhCaOc4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 31 Mar 2021 10:32:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 012EC60FF1;
+        Wed, 31 Mar 2021 14:32:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617201160;
-        bh=O2KxmIPB+fHLZecH69jIXhtq++wb564lj/icyjeUAfo=;
+        s=k20201202; t=1617201176;
+        bh=Ot/5PmXwS11uulWq3qWA2topEHV4IQyVTJcB7EIJEto=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=MuD7utNvxc71QnlLEo6eyoz8UG0sDZiPBtJt3hag6/s4X/dkfRLDhQ5OqJXJFt+j6
-         9qXx33FPUmx3G35TT6KpggWZk8CzgnRPRkmBuxb41XLDNB+DLsaZLfn7okWhGAP/fd
-         XIcnJzsaYKQDC+07SeSrpysX9+39Fr229UOr1ud5VmRf3ZrA9MM7B1eQrw7Q9Xqnw1
-         QLPvIZ3ogIZFd7LK13OYk2vgisiZmroVX6LOouaaODc0ya16hQUPWrUf3ielzPGQMu
-         g+xqdXQe1Wujk2SS7zfx9ORiUOU/DX/5BKyLBaTlndIEiV02In4jpH7PAyTKRovgEx
-         KBwMY3BPTvyjg==
+        b=K4mj3Ucq0o81O2XyVG3hmXxx3WMjl1D+IiWQy6y3glymXCyXz7HvUH0Y/fnYr9f1h
+         1wUUw0fx8O0SKe53NjW/bj/Ou5QXwaPc1g1UvmKUHfz4nwx525LvJmbfcYf5RgZhWk
+         XZR9y8fM+4DYoaAJXNL2jgLdlXBwoOnIc/jSJ3r/9sKttJ2VVol/puJBKAjtvOtqgj
+         YTwPsq2+RWCppmBEqhKeWazUtN2PGYkR30QcO8bTOPCiOzxjHuAOCNJtEBr/pnFukQ
+         2743V9mO+HynrrCRbhsuAOsY5f1+RMF3zawK3FR7K+l/QgZF57ChVKoxlykrytyZNk
+         r7q5BWtdFi1iw==
 From:   guoren@kernel.org
 To:     guoren@kernel.org
 Cc:     linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
@@ -38,12 +38,13 @@ Cc:     linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-xtensa@linux-xtensa.org,
         openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
         Guo Ren <guoren@linux.alibaba.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Rob Gardner <rob.gardner@oracle.com>
-Subject: [PATCH v6 7/9] sparc: qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
-Date:   Wed, 31 Mar 2021 14:30:38 +0000
-Message-Id: <1617201040-83905-8-git-send-email-guoren@kernel.org>
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>
+Subject: [PATCH v6 9/9] powerpc/qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+Date:   Wed, 31 Mar 2021 14:30:40 +0000
+Message-Id: <1617201040-83905-10-git-send-email-guoren@kernel.org>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1617201040-83905-1-git-send-email-guoren@kernel.org>
 References: <1617201040-83905-1-git-send-email-guoren@kernel.org>
@@ -62,26 +63,30 @@ the semantic risk for atomic operations.
 This patch cancels the dependency of on qspinlock generic code on
 architecture's xchg16.
 
+Also no need when PPC_LBARX_LWARX is enabled, see the link below.
+
 Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Rob Gardner <rob.gardner@oracle.com>
+Link: https://patchwork.ozlabs.org/project/linuxppc-dev/patch/20201107032328.2454582-1-npiggin@gmail.com/
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 ---
- arch/sparc/Kconfig | 1 +
+ arch/powerpc/Kconfig | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 164a5254c91c..1079fe3f058c 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -91,6 +91,7 @@ config SPARC64
- 	select HAVE_REGS_AND_STACK_ACCESS_API
- 	select ARCH_USE_QUEUED_RWLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS
-+	select ARCH_USE_QUEUED_SPINLOCKS_XCHG32
- 	select GENERIC_TIME_VSYSCALL
- 	select ARCH_CLOCKSOURCE_DATA
- 	select ARCH_HAS_PTE_SPECIAL
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index 386ae12d8523..6133ad51690e 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -151,6 +151,7 @@ config PPC
+ 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
+ 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
+ 	select ARCH_USE_QUEUED_SPINLOCKS	if PPC_QUEUED_SPINLOCKS
++	select ARCH_USE_QUEUED_SPINLOCKS_XCHG32	if PPC_QUEUED_SPINLOCKS && !PPC_LBARX_LWARX
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
+ 	select ARCH_WANT_LD_ORPHAN_WARN
 -- 
 2.17.1
 
