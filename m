@@ -2,148 +2,54 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=0.0 required=3.0 tests=BAYES_50,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A118C433C1
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Mar 2021 18:31:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EBD0C433F4
+	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 07:31:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6E38619CB
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Mar 2021 18:31:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E9BA619E7
+	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 07:31:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232831AbhC3SbZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Mar 2021 14:31:25 -0400
-Received: from alln-iport-5.cisco.com ([173.37.142.92]:36927 "EHLO
-        alln-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232637AbhC3Sax (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Mar 2021 14:30:53 -0400
-X-Greylist: delayed 428 seconds by postgrey-1.27 at vger.kernel.org; Tue, 30 Mar 2021 14:30:53 EDT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=cisco.com; i=@cisco.com; l=2604; q=dns/txt; s=iport;
-  t=1617129053; x=1618338653;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=xMStwoujyvRVt+OuzbkoYXvA32+qhvWOh/uecqwPFaM=;
-  b=b7CsenLExQDRVKThXUgDAuxYyJ3nqTLSo7bQxjzSqZLGwv27xS00z31x
-   +6ig7mOZFRnQExUm2S8IbOnRHwe2PGzOQCf52MJmT080mwbT9SokB/O8P
-   Rq0l4xoX9LOV1/X/3UG2QlbkS/lF8gcoSVjHh6a20z8bkJoFgOkS3NV7r
-   Y=;
-X-IPAS-Result: =?us-ascii?q?A0ADAAC0a2NgmJldJa1aGgEBAQEBAQEBAQEDAQEBARIBA?=
- =?us-ascii?q?QEBAgIBAQEBQIE8BQEBAQELAYN2ATkxjGWJLpAIFopFgXwLAQEBDQEBNAQBA?=
- =?us-ascii?q?YRQAoF6AiU0CQ4CAwEBAQMCAwEBAQEBBQEBAQIBBgQUAQEBAQEBAQGGQ4ZFA?=
- =?us-ascii?q?QIDOj8QCxguPBsGE4JwgwirOXWBNIkLgUQigRcBjUkmHIFJQoESgm4uPoo2B?=
- =?us-ascii?q?IJHgQ6CMCyUAYpMmw6BFIMRgSObNjEQpEK4EgIEBgUCFoFUOIFbMxoIGxWDJ?=
- =?us-ascii?q?FAZDY44jk8hAy84AgYKAQEDCYZaLIIZAQE?=
-IronPort-HdrOrdr: A9a23:OGIYBqgWvJdablCjWRAu+Iu5lnBQXmcji2hD6mlwRA09T+Wzna
- mV88gz/xnylToXRTUMmcqYPrOBXHPb8vdOkOwsFJ2lWxTrv3btEZF64eLZsl/dMgD36+I178
- 1dWodkDtmYNzVHpOb8pDK1CtMxhOSAmZrY4dv261dIYUVUZ7p77wF/YzzrcXFeYAVdH5I2GN
- 69y6N8xgaIQngcYsSlCnRtZYGqzOHjr57obQULABQq8mC17Q+A0qLwEBSTw34lPQ9n/LFKyw
- T4uj28wLm/uPemzRKZ8Gnf4/1t6b3c4+oGItCQgc4ILTipsCKUXcBKXr2Puy1dmpDJ1GoX
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-AV: E=Sophos;i="5.81,291,1610409600"; 
-   d="scan'208";a="689174954"
-Received: from rcdn-core-2.cisco.com ([173.37.93.153])
-  by alln-iport-5.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 30 Mar 2021 18:23:43 +0000
-Received: from zorba ([10.24.8.123])
-        by rcdn-core-2.cisco.com (8.15.2/8.15.2) with ESMTPS id 12UINdP0017615
-        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-        Tue, 30 Mar 2021 18:23:41 GMT
-Date:   Tue, 30 Mar 2021 11:23:39 -0700
-From:   Daniel Walker <danielwa@cisco.com>
-To:     "H. Nikolaus Schaller" <hns@goldelico.com>
-Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>, will@kernel.org,
-        Rob Herring <robh@kernel.org>,
-        daniel@gimpelevich.san-francisco.ca.us, linux-arch@vger.kernel.org,
-        devicetree <devicetree@vger.kernel.org>,
-        linuxppc-dev@lists.ozlabs.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        microblaze <monstr@monstr.eu>,
-        linux-mips <linux-mips@vger.kernel.org>,
-        nios2 <ley.foon.tan@intel.com>, openrisc@lists.librecores.org,
-        linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
-        x86@kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 01/17] cmdline: Add generic function to build command
- line.
-Message-ID: <20210330182339.GU109100@zorba>
-References: <cover.1616765869.git.christophe.leroy@csgroup.eu>
- <878228ad88df38f8914c7aa25dede3ed05c50f48.1616765869.git.christophe.leroy@csgroup.eu>
- <20210330172714.GR109100@zorba>
- <D8C1FBF6-E5C0-4233-BCB8-694274EA28F9@goldelico.com>
+        id S234075AbhCaHap convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 31 Mar 2021 03:30:45 -0400
+Received: from bizcloud-power.sawafuji.co.jp ([128.199.220.203]:47845 "EHLO
+        mta0.sawafuji.co.jp" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S234106AbhCaHaS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 31 Mar 2021 03:30:18 -0400
+X-Greylist: delayed 635 seconds by postgrey-1.27 at vger.kernel.org; Wed, 31 Mar 2021 03:30:18 EDT
+From:   Albert Bourla <info@universalautomation.com.pk>
+To:     sparclinux@vger.kernel.org
+Subject: Bidding invitation
+Date:   31 Mar 2021 09:16:18 +0200
+Message-ID: <20210331091617.41ED0899CD77D1FB@universalautomation.com.pk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <D8C1FBF6-E5C0-4233-BCB8-694274EA28F9@goldelico.com>
-X-Outbound-SMTP-Client: 10.24.8.123, [10.24.8.123]
-X-Outbound-Node: rcdn-core-2.cisco.com
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Mar 30, 2021 at 08:07:30PM +0200, H. Nikolaus Schaller wrote:
-> 
-> > Am 30.03.2021 um 19:27 schrieb Daniel Walker <danielwa@cisco.com>:
-> > 
-> > On Fri, Mar 26, 2021 at 01:44:48PM +0000, Christophe Leroy wrote:
-> >> This code provides architectures with a way to build command line
-> >> based on what is built in the kernel and what is handed over by the
-> >> bootloader, based on selected compile-time options.
-> >> 
-> >> Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-> >> ---
-> >> v3:
-> >> - Addressed comments from Will
-> >> - Added capability to have src == dst
-> >> ---
-> >> include/linux/cmdline.h | 57 +++++++++++++++++++++++++++++++++++++++++
-> >> 1 file changed, 57 insertions(+)
-> >> create mode 100644 include/linux/cmdline.h
-> >> 
-> >> diff --git a/include/linux/cmdline.h b/include/linux/cmdline.h
-> >> new file mode 100644
-> >> index 000000000000..dea87edd41be
-> >> --- /dev/null
-> >> +++ b/include/linux/cmdline.h
-> >> @@ -0,0 +1,57 @@
-> >> +/* SPDX-License-Identifier: GPL-2.0 */
-> >> +#ifndef _LINUX_CMDLINE_H
-> >> +#define _LINUX_CMDLINE_H
-> >> +
-> >> +#include <linux/string.h>
-> >> +
-> >> +/* Allow architectures to override strlcat, powerpc can't use strings so early */
-> >> +#ifndef cmdline_strlcat
-> >> +#define cmdline_strlcat strlcat
-> >> +#endif
-> >> +
-> >> +/*
-> >> + * This function will append or prepend a builtin command line to the command
-> >> + * line provided by the bootloader. Kconfig options can be used to alter
-> >> + * the behavior of this builtin command line.
-> >> + * @dst: The destination of the final appended/prepended string.
-> >> + * @src: The starting string or NULL if there isn't one.
-> >> + * @len: the length of dest buffer.
-> >> + */
-> > 
-> > Append or prepend ? Cisco requires both at the same time. This is why my
-> > implementation provides both. I can't use this with both at once.
-> 
-> Just an idea: what about defining CMDLINE as a pattern where e.g. "$$" or "%%"
-> is replaced by the boot loader command line?
-> 
-> Then you can formulate replace, prepend, append, prepend+append with a single
-> CONFIG setting.
-> 
-> It may be a little more complex in code (scanning for the pattern and replacing
-> it and take care to temporary memory) but IMHO it could be worth to consider.
+Good Day Sir/Ms,
 
-In some cases this code could be used extremely early in boot up. For example in the
-prom_init.c powerpc code, or in efi changes. The flexibility to find and replace
-like that is not always an option due to the nature of the environment. It's not
-impossible of course.
+We are please to invite you or your company to quote the 
+following item listed below:
+ 
+Product/Model No: A702TH FYNE PRESSURE REGULATOR
+Model Number: A702TH
+Qty. 30 units
 
-Daniel
+
+Compulsory,Kindly send your quotation to: 
+quotation@pfizerbvsupply.com 
+for immediate approval.
+
+Kind Regards,
+Albert Bourla
+PFIZER B.V Supply Chain Manager
+Tel: +31(0)208080 880
+ADDRESS: Rivium Westlaan 142, 2909 LD
+Capelle aan den IJssel, Netherlands
