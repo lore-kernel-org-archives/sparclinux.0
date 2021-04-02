@@ -2,91 +2,119 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-19.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8BCEC43460
-	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE50C433B4
+	for <sparclinux@archiver.kernel.org>; Fri,  2 Apr 2021 15:18:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF67861005
-	for <sparclinux@archiver.kernel.org>; Wed, 31 Mar 2021 14:33:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 140EA610C9
+	for <sparclinux@archiver.kernel.org>; Fri,  2 Apr 2021 15:18:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236084AbhCaOd1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 31 Mar 2021 10:33:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44356 "EHLO mail.kernel.org"
+        id S235327AbhDBPSK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 2 Apr 2021 11:18:10 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:28528 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236076AbhCaOc4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 31 Mar 2021 10:32:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 012EC60FF1;
-        Wed, 31 Mar 2021 14:32:48 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617201176;
-        bh=Ot/5PmXwS11uulWq3qWA2topEHV4IQyVTJcB7EIJEto=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=K4mj3Ucq0o81O2XyVG3hmXxx3WMjl1D+IiWQy6y3glymXCyXz7HvUH0Y/fnYr9f1h
-         1wUUw0fx8O0SKe53NjW/bj/Ou5QXwaPc1g1UvmKUHfz4nwx525LvJmbfcYf5RgZhWk
-         XZR9y8fM+4DYoaAJXNL2jgLdlXBwoOnIc/jSJ3r/9sKttJ2VVol/puJBKAjtvOtqgj
-         YTwPsq2+RWCppmBEqhKeWazUtN2PGYkR30QcO8bTOPCiOzxjHuAOCNJtEBr/pnFukQ
-         2743V9mO+HynrrCRbhsuAOsY5f1+RMF3zawK3FR7K+l/QgZF57ChVKoxlykrytyZNk
-         r7q5BWtdFi1iw==
-From:   guoren@kernel.org
-To:     guoren@kernel.org
-Cc:     linux-riscv@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-arch@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-xtensa@linux-xtensa.org,
-        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
-        Guo Ren <guoren@linux.alibaba.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>
-Subject: [PATCH v6 9/9] powerpc/qspinlock: Add ARCH_USE_QUEUED_SPINLOCKS_XCHG32
-Date:   Wed, 31 Mar 2021 14:30:40 +0000
-Message-Id: <1617201040-83905-10-git-send-email-guoren@kernel.org>
-X-Mailer: git-send-email 2.7.4
-In-Reply-To: <1617201040-83905-1-git-send-email-guoren@kernel.org>
-References: <1617201040-83905-1-git-send-email-guoren@kernel.org>
+        id S234981AbhDBPSH (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 2 Apr 2021 11:18:07 -0400
+Received: from localhost (mailhub1-int [192.168.12.234])
+        by localhost (Postfix) with ESMTP id 4FBkFk2Qtfz9v2lw;
+        Fri,  2 Apr 2021 17:18:02 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
+        with ESMTP id awj2GZXCOGXI; Fri,  2 Apr 2021 17:18:02 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4FBkFk1Y3Hz9v2ls;
+        Fri,  2 Apr 2021 17:18:02 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 1EA028BB7B;
+        Fri,  2 Apr 2021 17:18:04 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id CXPejaJgMc2o; Fri,  2 Apr 2021 17:18:04 +0200 (CEST)
+Received: from po16121vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 9A88B8BB79;
+        Fri,  2 Apr 2021 17:18:03 +0200 (CEST)
+Received: by po16121vm.idsi0.si.c-s.fr (Postfix, from userid 0)
+        id 7710067989; Fri,  2 Apr 2021 15:18:03 +0000 (UTC)
+Message-Id: <b39c6cfefe9c8391a64ebfca3ae39fcc49e5c607.1617375802.git.christophe.leroy@csgroup.eu>
+In-Reply-To: <cover.1617375802.git.christophe.leroy@csgroup.eu>
+References: <cover.1617375802.git.christophe.leroy@csgroup.eu>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: [PATCH v4 02/20] drivers: of: use cmdline building function
+To:     will@kernel.org, danielwa@cisco.com, robh@kernel.org,
+        daniel@gimpelevich.san-francisco.ca.us, arnd@kernel.org,
+        akpm@linux-foundation.org
+Cc:     linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org,
+        microblaze <monstr@monstr.eu>, linux-mips@vger.kernel.org,
+        nios2 <ley.foon.tan@intel.com>, openrisc@lists.librecores.org,
+        linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
+        x86@kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-mm@kvack.org
+Date:   Fri,  2 Apr 2021 15:18:03 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Guo Ren <guoren@linux.alibaba.com>
+This patch uses the new cmdline building function to
+concatenate the of provided cmdline with built-in parts
+based on compile-time options.
 
-We don't have native hw xchg16 instruction, so let qspinlock
-generic code to deal with it.
-
-Using the full-word atomic xchg instructions implement xchg16 has
-the semantic risk for atomic operations.
-
-This patch cancels the dependency of on qspinlock generic code on
-architecture's xchg16.
-
-Also no need when PPC_LBARX_LWARX is enabled, see the link below.
-
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Link: https://patchwork.ozlabs.org/project/linuxppc-dev/patch/20201107032328.2454582-1-npiggin@gmail.com/
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 ---
- arch/powerpc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/of/fdt.c | 23 ++++-------------------
+ 1 file changed, 4 insertions(+), 19 deletions(-)
 
-diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-index 386ae12d8523..6133ad51690e 100644
---- a/arch/powerpc/Kconfig
-+++ b/arch/powerpc/Kconfig
-@@ -151,6 +151,7 @@ config PPC
- 	select ARCH_USE_CMPXCHG_LOCKREF		if PPC64
- 	select ARCH_USE_QUEUED_RWLOCKS		if PPC_QUEUED_SPINLOCKS
- 	select ARCH_USE_QUEUED_SPINLOCKS	if PPC_QUEUED_SPINLOCKS
-+	select ARCH_USE_QUEUED_SPINLOCKS_XCHG32	if PPC_QUEUED_SPINLOCKS && !PPC_LBARX_LWARX
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select ARCH_WANT_IRQS_OFF_ACTIVATE_MM
- 	select ARCH_WANT_LD_ORPHAN_WARN
+diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+index dcc1dd96911a..7c5e9fb6039b 100644
+--- a/drivers/of/fdt.c
++++ b/drivers/of/fdt.c
+@@ -25,6 +25,7 @@
+ #include <linux/serial_core.h>
+ #include <linux/sysfs.h>
+ #include <linux/random.h>
++#include <linux/cmdline.h>
+ 
+ #include <asm/setup.h>  /* for COMMAND_LINE_SIZE */
+ #include <asm/page.h>
+@@ -1050,26 +1051,10 @@ int __init early_init_dt_scan_chosen(unsigned long node, const char *uname,
+ 
+ 	/* Retrieve command line */
+ 	p = of_get_flat_dt_prop(node, "bootargs", &l);
+-	if (p != NULL && l > 0)
+-		strlcpy(data, p, min(l, COMMAND_LINE_SIZE));
++	if (l <= 0)
++		p = NULL;
+ 
+-	/*
+-	 * CONFIG_CMDLINE is meant to be a default in case nothing else
+-	 * managed to set the command line, unless CONFIG_CMDLINE_FORCE
+-	 * is set in which case we override whatever was found earlier.
+-	 */
+-#ifdef CONFIG_CMDLINE
+-#if defined(CONFIG_CMDLINE_EXTEND)
+-	strlcat(data, " ", COMMAND_LINE_SIZE);
+-	strlcat(data, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+-#elif defined(CONFIG_CMDLINE_FORCE)
+-	strlcpy(data, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+-#else
+-	/* No arguments from boot loader, use kernel's  cmdl*/
+-	if (!((char *)data)[0])
+-		strlcpy(data, CONFIG_CMDLINE, COMMAND_LINE_SIZE);
+-#endif
+-#endif /* CONFIG_CMDLINE */
++	cmdline_build(data, p);
+ 
+ 	pr_debug("Command line is: %s\n", (char *)data);
+ 
 -- 
-2.17.1
+2.25.0
 
