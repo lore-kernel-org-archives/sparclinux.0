@@ -2,270 +2,188 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B181FC43461
-	for <sparclinux@archiver.kernel.org>; Mon,  5 Apr 2021 05:54:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60902C433B4
+	for <sparclinux@archiver.kernel.org>; Mon,  5 Apr 2021 17:16:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 697C96139F
-	for <sparclinux@archiver.kernel.org>; Mon,  5 Apr 2021 05:54:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2FF81613B2
+	for <sparclinux@archiver.kernel.org>; Mon,  5 Apr 2021 17:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229601AbhDEFy2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 5 Apr 2021 01:54:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35920 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229454AbhDEFy2 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 5 Apr 2021 01:54:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D5B56138A;
-        Mon,  5 Apr 2021 05:54:22 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617602062;
-        bh=JiFMrkMx+0KZ/H6wRs19a5D3wV0zK+NjPnMfiNxQllA=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=QNV74FvKtTR9UWwWW+SVs18ha4h/JXOf8Hs2t+2QmXZVdvqcSBPR42ZmtUYOUo57+
-         Mj3YxaF4PDmMtM1uJxe5nTi3vMmiOtjn9W159VMvjvQGEXuk371bXB7VOwahT/FSPt
-         onxcn8oVPb4yH5yk/jhVKhP5KaXFsBI7iCcwJoTwEXUm1PBvOnz47o9H2Xb2Gx4zj+
-         3jF9sGLK3f43MBgVDvN0PfITOLgXRPuBndWMnJ3A0fiJZhZc9NH2AAvdZdm0hq2vg5
-         fkwZAkpHfs0xTP5hqAlNBJGM90pEjNCXNG/hJ3K1XkdM4XMcy/UORm/1zziAFcVw+F
-         F94+MvWAMjARg==
-Received: by mail-lf1-f53.google.com with SMTP id m12so15903401lfq.10;
-        Sun, 04 Apr 2021 22:54:22 -0700 (PDT)
-X-Gm-Message-State: AOAM530dLRTiZWXDXLkors4BfTcK8zMYzZdsUQDE+Akjbvp3ZuhojLyN
-        A/Sz4DbkpGt8xD3/koeAn5PpH7CrVAvteA1AEtA=
-X-Google-Smtp-Source: ABdhPJyzXhAKMVnILTiaRfbn+YIno4HeobyVoyCH/zyVOKo0SkJt6gv50ATy9e1+w5v2g1FpxbFE78pIt8C0WBtlsG8=
-X-Received: by 2002:a05:6512:3ca7:: with SMTP id h39mr16908838lfv.346.1617602060393;
- Sun, 04 Apr 2021 22:54:20 -0700 (PDT)
+        id S237242AbhDERQt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 5 Apr 2021 13:16:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48958 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237161AbhDERQp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 5 Apr 2021 13:16:45 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C39DC0617A7
+        for <sparclinux@vger.kernel.org>; Mon,  5 Apr 2021 10:16:38 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id x21-20020a17090a5315b029012c4a622e4aso6185312pjh.2
+        for <sparclinux@vger.kernel.org>; Mon, 05 Apr 2021 10:16:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=ai3CdCbkrXPSlQhahzdlfMoVkl12Ktt9EKKlkNpbqIk=;
+        b=T5OZIJi1a+S0UmB8ju9dRtp9RWLpyoSfUudALSFJBsooFu63xRQSZft0M3qzy93k0r
+         z7x2JAHldp19Jlo5384VoYUVNQ2yeLvjJ5z5R7QVmttinVeV9VjzoAdj8fejaeiR8lyF
+         62143nJ12x8hml5vfS8LwEeOZj9TXLo/W5cC4=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ai3CdCbkrXPSlQhahzdlfMoVkl12Ktt9EKKlkNpbqIk=;
+        b=H6COzIFgTzn/oK/zBaQb5GE4+GodkEmkrdAHrVcr/43QeUe9zKM7+xH2yRqHW7viT9
+         JcIPTto5HQn5gnPIk+XWysgMvv6LJrJzQcDEWYpPI7HDNbhwEndVkJc7D6AIx2uJ19KD
+         rsNjp/xTzSpBCeRAU82eE8aFHB7gGpacyktk+UVw8kEICCrKzMxMQYk+NYbiCC1ADohw
+         z+aTakI8re3xYezN2ia2Qast+nLW4zylGFiKMnz4YlzkpjgFdYiJ0ilRgA4GpuUWfrEN
+         aRardW5JIqzpn2zqbWEuMtwwYOe7H2cUsKqQgO+5ahYvxXBRc33yTTyxccwjBtibcPi7
+         RKNw==
+X-Gm-Message-State: AOAM533f/MnyepJOSs7vHrEILZT8vYcd24W6rQrtEQrKf+OUMze3jUbO
+        Ge+2TZYSrohjqdivJISIJTM6YXdYjLuQuQ==
+X-Google-Smtp-Source: ABdhPJz2wXjLIg6rNu7hKfJ8t7qCHdoSv+LbFw67gBgLuT/syvhnAuVwrV+h3lzUsevbyEgwDBzhiQ==
+X-Received: by 2002:a17:902:6546:b029:e9:1e31:3351 with SMTP id d6-20020a1709026546b02900e91e313351mr3882734pln.26.1617642997543;
+        Mon, 05 Apr 2021 10:16:37 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id t18sm16339996pfh.57.2021.04.05.10.16.36
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 05 Apr 2021 10:16:36 -0700 (PDT)
+Date:   Mon, 5 Apr 2021 10:16:35 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hillf Danton <hdanton@sina.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Minchan Kim <minchan@kernel.org>,
+        huang ying <huang.ying.caritas@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Gregory Clement <gregory.clement@bootlin.com>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Brian Cain <bcain@codeaurora.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Stafford Horne <shorne@gmail.com>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Rob Herring <robh@kernel.org>,
+        "Pavel Machek (CIP)" <pavel@denx.de>,
+        Theodore Dubois <tblodt@icloud.com>,
+        "Alexander A. Klimov" <grandmaster@al2klimov.de>,
+        Pavel Machek <pavel@ucw.cz>, Sam Ravnborg <sam@ravnborg.org>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Andrey Zhizhikin <andrey.zhizhikin@leica-geosystems.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Xiaoming Ni <nixiaoming@huawei.com>,
+        Robert Richter <rric@kernel.org>,
+        William Cohen <wcohen@redhat.com>,
+        Corentin Labbe <clabbe@baylibre.com>,
+        Kairui Song <kasong@redhat.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        openrisc@lists.librecores.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-fsdevel@vger.kernel.org,
+        Linux API <linux-api@vger.kernel.org>
+Subject: Re: [PATCH RFC 1/3] drivers/char: remove /dev/kmem for good
+Message-ID: <202104051013.F432CAC4@keescook>
+References: <20210319143452.25948-1-david@redhat.com>
+ <20210319143452.25948-2-david@redhat.com>
 MIME-Version: 1.0
-References: <1617201040-83905-1-git-send-email-guoren@kernel.org> <1617201040-83905-4-git-send-email-guoren@kernel.org>
-In-Reply-To: <1617201040-83905-4-git-send-email-guoren@kernel.org>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Mon, 5 Apr 2021 13:54:08 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTRWc1R7UHc2qjskA75OhSPgx+LQkcE_XtWppf4rGi-U8Q@mail.gmail.com>
-Message-ID: <CAJF2gTRWc1R7UHc2qjskA75OhSPgx+LQkcE_XtWppf4rGi-U8Q@mail.gmail.com>
-Subject: Re: [PATCH v6 3/9] riscv: locks: Introduce ticket-based spinlock implementation
-To:     Guo Ren <guoren@kernel.org>
-Cc:     linux-riscv <linux-riscv@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-csky@vger.kernel.org,
-        linux-arch <linux-arch@vger.kernel.org>,
-        linuxppc-dev@lists.ozlabs.org, linux-xtensa@linux-xtensa.org,
-        openrisc@lists.librecores.org,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Anup Patel <anup@brainfault.org>, Arnd Bergmann <arnd@arndb.de>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210319143452.25948-2-david@redhat.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Mar 31, 2021 at 10:32 PM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> This patch introduces a ticket lock implementation for riscv, along the
-> same lines as the implementation for arch/arm & arch/csky.
->
-> We still use qspinlock as default.
->
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Anup Patel <anup@brainfault.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> ---
->  arch/riscv/Kconfig                      |  7 ++-
->  arch/riscv/include/asm/spinlock.h       | 84 +++++++++++++++++++++++++
->  arch/riscv/include/asm/spinlock_types.h | 17 +++++
->  3 files changed, 107 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-> index 67cc65ba1ea1..34d0276f01d5 100644
-> --- a/arch/riscv/Kconfig
-> +++ b/arch/riscv/Kconfig
-> @@ -34,7 +34,7 @@ config RISCV
->         select ARCH_WANT_FRAME_POINTERS
->         select ARCH_WANT_HUGE_PMD_SHARE if 64BIT
->         select ARCH_USE_QUEUED_RWLOCKS
-> -       select ARCH_USE_QUEUED_SPINLOCKS
-> +       select ARCH_USE_QUEUED_SPINLOCKS        if !RISCV_TICKET_LOCK
->         select ARCH_USE_QUEUED_SPINLOCKS_XCHG32
->         select CLONE_BACKWARDS
->         select CLINT_TIMER if !MMU
-> @@ -344,6 +344,11 @@ config NEED_PER_CPU_EMBED_FIRST_CHUNK
->         def_bool y
->         depends on NUMA
->
-> +config RISCV_TICKET_LOCK
-> +       bool "Ticket-based spin-locking"
-> +       help
-> +         Say Y here to use ticket-based spin-locking.
-> +
->  config RISCV_ISA_C
->         bool "Emit compressed instructions when building Linux"
->         default y
-> diff --git a/arch/riscv/include/asm/spinlock.h b/arch/riscv/include/asm/spinlock.h
-> index a557de67a425..90b7eaa950cf 100644
-> --- a/arch/riscv/include/asm/spinlock.h
-> +++ b/arch/riscv/include/asm/spinlock.h
-> @@ -7,7 +7,91 @@
->  #ifndef _ASM_RISCV_SPINLOCK_H
->  #define _ASM_RISCV_SPINLOCK_H
->
-> +#ifdef CONFIG_RISCV_TICKET_LOCK
-> +#ifdef CONFIG_32BIT
-> +#define __ASM_SLLIW "slli\t"
-> +#define __ASM_SRLIW "srli\t"
-> +#else
-> +#define __ASM_SLLIW "slliw\t"
-> +#define __ASM_SRLIW "srliw\t"
-> +#endif
-> +
-> +/*
-> + * Ticket-based spin-locking.
-> + */
-> +static inline void arch_spin_lock(arch_spinlock_t *lock)
-> +{
-> +       arch_spinlock_t lockval;
-> +       u32 tmp;
-> +
-> +       asm volatile (
-> +               "1:     lr.w    %0, %2          \n"
-> +               "       mv      %1, %0          \n"
-> +               "       addw    %0, %0, %3      \n"
-> +               "       sc.w    %0, %0, %2      \n"
-> +               "       bnez    %0, 1b          \n"
-> +               : "=&r" (tmp), "=&r" (lockval), "+A" (lock->lock)
-> +               : "r" (1 << TICKET_NEXT)
-> +               : "memory");
-It's could be optimized by amoadd.w with Anup advice, and I'll update
-it in the next patchset version:
-diff --git a/arch/riscv/include/asm/spinlock.h
-b/arch/riscv/include/asm/spinlock.h
-index 90b7eaa950cf..435286ad342b 100644
---- a/arch/riscv/include/asm/spinlock.h
-+++ b/arch/riscv/include/asm/spinlock.h
-@@ -22,15 +22,10 @@
- static inline void arch_spin_lock(arch_spinlock_t *lock)
- {
-        arch_spinlock_t lockval;
--       u32 tmp;
+On Fri, Mar 19, 2021 at 03:34:50PM +0100, David Hildenbrand wrote:
+> Exploring /dev/kmem and /dev/mem in the context of memory hot(un)plug and
+> memory ballooning, I started questioning the existance of /dev/kmem.
+> 
+> Comparing it with the /proc/kcore implementation, it does not seem to be
+> able to deal with things like
+> a) Pages unmapped from the direct mapping (e.g., to be used by secretmem)
+>   -> kern_addr_valid(). virt_addr_valid() is not sufficient.
+> b) Special cases like gart aperture memory that is not to be touched
+>   -> mem_pfn_is_ram()
+> Unless I am missing something, it's at least broken in some cases and might
+> fault/crash the machine.
+> 
+> Looks like its existance has been questioned before in 2005 and 2010
+> [1], after ~11 additional years, it might make sense to revive the
+> discussion.
+> 
+> CONFIG_DEVKMEM is only enabled in a single defconfig (on purpose or by
+> mistake?). All distributions I looked at disable it.
+> 
+> 1) /dev/kmem was popular for rootkits [2] before it got disabled
+>    basically everywhere. Ubuntu documents [3] "There is no modern user of
+>    /dev/kmem any more beyond attackers using it to load kernel rootkits.".
+>    RHEL documents in a BZ [5] "it served no practical purpose other than to
+>    serve as a potential security problem or to enable binary module drivers
+>    to access structures/functions they shouldn't be touching"
+> 
+> 2) /proc/kcore is a decent interface to have a controlled way to read
+>    kernel memory for debugging puposes. (will need some extensions to
+>    deal with memory offlining/unplug, memory ballooning, and poisoned
+>    pages, though)
+> 
+> 3) It might be useful for corner case debugging [1]. KDB/KGDB might be a
+>    better fit, especially, to write random memory; harder to shoot
+>    yourself into the foot.
+> 
+> 4) "Kernel Memory Editor" hasn't seen any updates since 2000 and seems
+>    to be incompatible with 64bit [1]. For educational purposes,
+>    /proc/kcore might be used to monitor value updates -- or older
+>    kernels can be used.
+> 
+> 5) It's broken on arm64, and therefore, completely disabled there.
+> 
+> Looks like it's essentially unused and has been replaced by better
+> suited interfaces for individual tasks (/proc/kcore, KDB/KGDB). Let's
+> just remove it.
+> 
+> [1] https://lwn.net/Articles/147901/
+> [2] https://www.linuxjournal.com/article/10505
+> [3] https://wiki.ubuntu.com/Security/Features#A.2Fdev.2Fkmem_disabled
+> [4] https://sourceforge.net/projects/kme/
+> [5] https://bugzilla.redhat.com/show_bug.cgi?id=154796
+> 
+> [...]
+> Cc: Linux API <linux-api@vger.kernel.org>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-        asm volatile (
--               "1:     lr.w    %0, %2          \n"
--               "       mv      %1, %0          \n"
--               "       addw    %0, %0, %3      \n"
--               "       sc.w    %0, %0, %2      \n"
--               "       bnez    %0, 1b          \n"
--               : "=&r" (tmp), "=&r" (lockval), "+A" (lock->lock)
-+               "   amoadd.w    %0, %2, %1      \n"
-+               : "=&r" (lockval), "+A" (lock->lock)
-                : "r" (1 << TICKET_NEXT)
-                : "memory");
+Yes please! As James Troup pointed out already, this was turned off in
+Ubuntu in 2008. I don't remember a single complaint from anyone who
+wasn't a rootkit author. ;)
 
+Acked-by: Kees Cook <keescook@chromium.org>
 
-
-
-> +
-> +       smp_cond_load_acquire(&lock->tickets.owner,
-> +                                       VAL == lockval.tickets.next);
-> +}
-> +
-> +static inline int arch_spin_trylock(arch_spinlock_t *lock)
-> +{
-> +       u32 tmp, contended, res;
-> +
-> +       do {
-> +               asm volatile (
-> +               "       lr.w    %0, %3          \n"
-> +               __ASM_SRLIW    "%1, %0, %5      \n"
-> +               __ASM_SLLIW    "%2, %0, %5      \n"
-> +               "       or      %1, %2, %1      \n"
-> +               "       li      %2, 0           \n"
-> +               "       sub     %1, %1, %0      \n"
-> +               "       bnez    %1, 1f          \n"
-> +               "       addw    %0, %0, %4      \n"
-> +               "       sc.w    %2, %0, %3      \n"
-> +               "1:                             \n"
-> +               : "=&r" (tmp), "=&r" (contended), "=&r" (res),
-> +                 "+A" (lock->lock)
-> +               : "r" (1 << TICKET_NEXT), "I" (TICKET_NEXT)
-> +               : "memory");
-> +       } while (res);
-> +
-> +       if (!contended)
-> +               __atomic_acquire_fence();
-> +
-> +       return !contended;
-> +}
-> +
-> +static inline void arch_spin_unlock(arch_spinlock_t *lock)
-> +{
-> +       smp_store_release(&lock->tickets.owner, lock->tickets.owner + 1);
-> +}
-> +
-> +static inline int arch_spin_value_unlocked(arch_spinlock_t lock)
-> +{
-> +       return lock.tickets.owner == lock.tickets.next;
-> +}
-> +
-> +static inline int arch_spin_is_locked(arch_spinlock_t *lock)
-> +{
-> +       return !arch_spin_value_unlocked(READ_ONCE(*lock));
-> +}
-> +
-> +static inline int arch_spin_is_contended(arch_spinlock_t *lock)
-> +{
-> +       struct __raw_tickets tickets = READ_ONCE(lock->tickets);
-> +
-> +       return (tickets.next - tickets.owner) > 1;
-> +}
-> +#define arch_spin_is_contended arch_spin_is_contended
-> +#else /* CONFIG_RISCV_TICKET_LOCK */
->  #include <asm/qspinlock.h>
-> +#endif /* CONFIG_RISCV_TICKET_LOCK */
-> +
->  #include <asm/qrwlock.h>
->
->  #endif /* _ASM_RISCV_SPINLOCK_H */
-> diff --git a/arch/riscv/include/asm/spinlock_types.h b/arch/riscv/include/asm/spinlock_types.h
-> index d033a973f287..afbb19841d0f 100644
-> --- a/arch/riscv/include/asm/spinlock_types.h
-> +++ b/arch/riscv/include/asm/spinlock_types.h
-> @@ -10,7 +10,24 @@
->  # error "please don't include this file directly"
->  #endif
->
-> +#ifdef CONFIG_RISCV_TICKET_LOCK
-> +#define TICKET_NEXT    16
-> +
-> +typedef struct {
-> +       union {
-> +               u32 lock;
-> +               struct __raw_tickets {
-> +                       /* little endian */
-> +                       u16 owner;
-> +                       u16 next;
-> +               } tickets;
-> +       };
-> +} arch_spinlock_t;
-> +
-> +#define __ARCH_SPIN_LOCK_UNLOCKED      { { 0 } }
-> +#else
->  #include <asm-generic/qspinlock_types.h>
-> +#endif
->  #include <asm-generic/qrwlock_types.h>
->
->  #endif /* _ASM_RISCV_SPINLOCK_TYPES_H */
-> --
-> 2.17.1
->
-
-
---
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+-- 
+Kees Cook
