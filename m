@@ -2,112 +2,131 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A06C0C43461
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Apr 2021 17:38:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2B82C433B4
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Apr 2021 23:52:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 725F8613D3
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Apr 2021 17:38:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B87C661380
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Apr 2021 23:52:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346998AbhDFRit (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Apr 2021 13:38:49 -0400
-Received: from rcdn-iport-5.cisco.com ([173.37.86.76]:4421 "EHLO
-        rcdn-iport-5.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244714AbhDFRit (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Apr 2021 13:38:49 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=cisco.com; i=@cisco.com; l=1449; q=dns/txt; s=iport;
-  t=1617730721; x=1618940321;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=wHC75exw7z/XvWxaqurh75hAcW+P/hc1Ce2AN8KLAVE=;
-  b=G8CemyZRO1sUomjCmS+YE/C6uWze7voF3/OnkJPzCjlApsHtQw/NACu6
-   IbzaOOj9YEiobtqOgYiAKbgbugARDCXIRPa+ZrNQSpdtmv1Zjt672WTLx
-   0k1ILORDVGZtFP7Z+NpOxvDGSwgPkZcfBivMfAolYWZryTkHbcjWyFPfw
-   w=;
-IronPort-HdrOrdr: =?us-ascii?q?A9a23=3Ad70PFKyAZuY1VAyfgTLAKrPwkb1zdoIgy1?=
- =?us-ascii?q?knxilNYDZeG/b2q+mFmvMH2RjozBsQQmgng9CcOK+GKEmskKJdy48XILukQU?=
- =?us-ascii?q?3aqHKlRbsSj7fK7jX8F0TFnNJ1+rxnd8FFZeHYLV8/tsri5Rn9LtBI+qjizI?=
- =?us-ascii?q?mNpcPzi0hgVhtrbaYI1XYbNi++HldtTAdLQboVfaD82uN9qzCteWsaY62Abx?=
- =?us-ascii?q?FvY8H5q9LGj57gaxIdbiRG1CC1kTiq5LTmeiL34j4iVVp0rYsKwCzijxHz4L?=
- =?us-ascii?q?mlvrWdzBLRvlWjiah+qZ/G1sZJAtCKh4wuDgjUziysZIhnRtS5zVcInN0=3D?=
-X-IronPort-Anti-Spam-Filtered: true
-X-IronPort-Anti-Spam-Result: =?us-ascii?q?A0AGAAAsnGxg/4YNJK1aGgEBAQEBAQE?=
- =?us-ascii?q?BAQEDAQEBARIBAQEBAgIBAQEBQIE+BQEBAQELAYIqgU0BOY0XiTGQDYpcgXw?=
- =?us-ascii?q?LAQEBDQEBNAQBAYRQAoF2AiU0CQ4CAwEBDAEBBQEBAQIBBgRxE4VdhkUBBTo?=
- =?us-ascii?q?6BRALGC48GwaGDKtXdYE0gQGIH4FEIoEXAY1MJxyBSUKBE4MiPoo5BIJHghe?=
- =?us-ascii?q?gOZwpgxWBJptHMhCkYS24EQIEBgUCFoFUOoFZMxoIGxWDJU8ZDo4rFo5HIQN?=
- =?us-ascii?q?nAgYKAQEDCYw0XQEB?=
-X-IronPort-AV: E=Sophos;i="5.82,201,1613433600"; 
-   d="scan'208";a="611888528"
-Received: from alln-core-12.cisco.com ([173.36.13.134])
-  by rcdn-iport-5.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 06 Apr 2021 17:38:39 +0000
-Received: from zorba ([10.24.14.212])
-        by alln-core-12.cisco.com (8.15.2/8.15.2) with ESMTPS id 136HcajD016593
-        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
-        Tue, 6 Apr 2021 17:38:37 GMT
-Date:   Tue, 6 Apr 2021 10:38:36 -0700
-From:   Daniel Walker <danielwa@cisco.com>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     will@kernel.org, robh@kernel.org,
-        daniel@gimpelevich.san-francisco.ca.us, arnd@kernel.org,
-        akpm@linux-foundation.org, linux-arch@vger.kernel.org,
-        devicetree@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        microblaze <monstr@monstr.eu>, linux-mips@vger.kernel.org,
-        nios2 <ley.foon.tan@intel.com>, openrisc@lists.librecores.org,
-        linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
-        x86@kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: Re: [PATCH v4 19/20] mips: Convert to GENERIC_CMDLINE
-Message-ID: <20210406173836.GW2469518@zorba>
-References: <cover.1617375802.git.christophe.leroy@csgroup.eu>
- <a01b6cdbae01fff77e26f7a5c40ee5260e1952b5.1617375802.git.christophe.leroy@csgroup.eu>
+        id S245119AbhDFXwX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Apr 2021 19:52:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53632 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233629AbhDFXwW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Apr 2021 19:52:22 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFEEEC06174A;
+        Tue,  6 Apr 2021 16:52:11 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id b8-20020a17090a5508b029014d0fbe9b64so286002pji.5;
+        Tue, 06 Apr 2021 16:52:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=r0Ha/Gv3pAkjmgqqsKcPiH9tlZnqWzms79uqmOiSHMs=;
+        b=DoH08R29BGwmuj6eSbyG3BUk0CMYUOgrE7l1ib0WohqefmBPVt3sY22jJOdDf2ba3M
+         OraAYZNzGMrAjzLBt/oLKxSGP5xVkpQwVYlEyQ+FCAxk1AucZMSXaKaX4yes8IpuX9bx
+         k/PK2mwZ7S6C7V1Otv/hHIYsXqEQzWVrSgtZ7Smoc3vdWQK5bfkyy5fWevoxUBoneWfM
+         UlLNvmrFvT/LKV17m0n35Iq2WXwO1WQ94cKquKeKdq4Eo0jQbOkxVxjhAnmnUDMrZ/jw
+         sjVzOf22KCT3mTqKrrakDQ7hCLtkS68PqKVrr3avChCGt1YUrsIst96sJ5oXc8I6D0zL
+         +AxA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=r0Ha/Gv3pAkjmgqqsKcPiH9tlZnqWzms79uqmOiSHMs=;
+        b=aSfq4wLV33gZoxXuQxAynvZwOvSHfBBeqCtoVnLo8iFCLJGj+NsK/Rpc3EAgbou/0s
+         X/0lvT5XDgYjvocVAxntjaMiBxsxokPy/MuHLBOvDKBpY8kmOQOuPwr7s6t/8iDPvGSe
+         /VlkWvbiJXnL8tee6A/M4hWLcjiIDDVZXgcccO2UfFCxX4E7HuesGtqTSxnc2ENzv83d
+         ynONeFI0S6Ih1TbyXY2svmCGT+VQS0H7+hT+/RO7Tgu4ZLlH9k0+gWJladRdDxgZBSSu
+         GQZ+s7U194ACcRGOq8HEtSlkdT/CqDA5J2x2HixvC4u1daaGh7pxv9ogNy4AWbF9b+3k
+         Guqg==
+X-Gm-Message-State: AOAM533y51c6yROMdvXiUe/0YwWezevgdqIaUz3M1gHFSG2NFwTBPU9f
+        iZsDQbYWmnIZc3PGUj0JcxI=
+X-Google-Smtp-Source: ABdhPJxtumeckyy0f77HdPuOn8G6N6f+xOhLUrB9QPIL+nP1d3kOEbilw2AHpr0vnTb2lu4tnB14Mw==
+X-Received: by 2002:a17:90a:6385:: with SMTP id f5mr590598pjj.212.1617753131320;
+        Tue, 06 Apr 2021 16:52:11 -0700 (PDT)
+Received: from localhost (g139.124-45-193.ppp.wakwak.ne.jp. [124.45.193.139])
+        by smtp.gmail.com with ESMTPSA id k21sm19587938pfi.28.2021.04.06.16.52.10
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 06 Apr 2021 16:52:10 -0700 (PDT)
+Date:   Wed, 7 Apr 2021 08:52:08 +0900
+From:   Stafford Horne <shorne@gmail.com>
+To:     Boqun Feng <boqun.feng@gmail.com>
+Cc:     guoren@kernel.org, linux-arch@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, Guo Ren <guoren@linux.alibaba.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Will Deacon <will@kernel.org>, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, openrisc@lists.librecores.org,
+        Anup Patel <anup@brainfault.org>, sparclinux@vger.kernel.org,
+        Waiman Long <longman@redhat.com>,
+        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        Ingo Molnar <mingo@redhat.com>
+Subject: Re: [OpenRISC] [PATCH v6 1/9] locking/qspinlock: Add
+ ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+Message-ID: <20210406235208.GG3288043@lianli.shorne-pla.net>
+References: <1617201040-83905-1-git-send-email-guoren@kernel.org>
+ <1617201040-83905-2-git-send-email-guoren@kernel.org>
+ <YGyRrBjomDCPOBUd@boqun-archlinux>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <a01b6cdbae01fff77e26f7a5c40ee5260e1952b5.1617375802.git.christophe.leroy@csgroup.eu>
-X-Outbound-SMTP-Client: 10.24.14.212, [10.24.14.212]
-X-Outbound-Node: alln-core-12.cisco.com
+In-Reply-To: <YGyRrBjomDCPOBUd@boqun-archlinux>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Apr 02, 2021 at 03:18:21PM +0000, Christophe Leroy wrote:
-> -config CMDLINE_BOOL
-> -	bool "Built-in kernel command line"
-> -	help
-> -	  For most systems, it is firmware or second stage bootloader that
-> -	  by default specifies the kernel command line options.  However,
-> -	  it might be necessary or advantageous to either override the
-> -	  default kernel command line or add a few extra options to it.
-> -	  For such cases, this option allows you to hardcode your own
-> -	  command line options directly into the kernel.  For that, you
-> -	  should choose 'Y' here, and fill in the extra boot arguments
-> -	  in CONFIG_CMDLINE.
-> -
-> -	  The built-in options will be concatenated to the default command
-> -	  line if CMDLINE_OVERRIDE is set to 'N'. Otherwise, the default
-> -	  command line will be ignored and replaced by the built-in string.
-> -
-> -	  Most MIPS systems will normally expect 'N' here and rely upon
-> -	  the command line from the firmware or the second-stage bootloader.
-> -
+On Wed, Apr 07, 2021 at 12:51:56AM +0800, Boqun Feng wrote:
+> Hi,
+> 
+> On Wed, Mar 31, 2021 at 02:30:32PM +0000, guoren@kernel.org wrote:
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> > 
+> > Some architectures don't have sub-word swap atomic instruction,
+> > they only have the full word's one.
+> > 
+> > The sub-word swap only improve the performance when:
+> > NR_CPUS < 16K
+> >  *  0- 7: locked byte
+> >  *     8: pending
+> >  *  9-15: not used
+> >  * 16-17: tail index
+> >  * 18-31: tail cpu (+1)
+> > 
+> > The 9-15 bits are wasted to use xchg16 in xchg_tail.
+> > 
+> > Please let architecture select xchg16/xchg32 to implement
+> > xchg_tail.
+> > 
+> 
+> If the architecture doesn't have sub-word swap atomic, won't it generate
+> the same/similar code no matter which version xchg_tail() is used? That
+> is even CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y, xchg_tail() acts
+> similar to an xchg16() implemented by cmpxchg(), which means we still
+> don't have forward progress guarantee. So this configuration doesn't
+> solve the problem.
+> 
+> I think it's OK to introduce this config and don't provide xchg16() for
+> risc-v. But I don't see the point of converting other architectures to
+> use it.
 
+Hello,
 
-See how you complained that I have CMDLINE_BOOL in my changed, and you think it
-shouldn't exist.
+For OpenRISC I did ack the patch to convert to
+CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y.  But I think you are right, the
+generic code in xchg_tail and the xchg16 emulation code in produced by OpenRISC
+using xchg32 would produce very similar code.  I have not compared instructions,
+but it does seem like duplicate functionality.
 
-Yet here mips has it, and you just deleted it with no feature parity in your
-changes for this.
+Why doesn't RISC-V add the xchg16 emulation code similar to OpenRISC?  For
+OpenRISC we added xchg16 and xchg8 emulation code to enable qspinlocks.  So
+one thought is with CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y, can we remove our
+xchg16/xchg8 emulation code?
 
-In my changes I tried to maintain as much feature parity as I could with the
-architectures. I did the same huge conversion a long time ago you've done here to be sure all
-platforms have the features needed.
-
-Daniel
+-Stafford
