@@ -2,49 +2,62 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61541C433B4
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 09:48:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32CD3C43460
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 20:13:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 378AC613A7
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 09:48:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0045C611C1
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 20:13:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350287AbhDGJsp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 7 Apr 2021 05:48:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42312 "EHLO
+        id S1349261AbhDGUNM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 7 Apr 2021 16:13:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39102 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350284AbhDGJsp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Apr 2021 05:48:45 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3D6EC061756;
-        Wed,  7 Apr 2021 02:48:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=+qSokmLjMhdEnOSkSopblq5MKalEi8UUYD3QbqGxqos=; b=eC2rQ34nM7cRrzDAhzzhEN3wPe
-        kTzKVXiPYsQriyTitj8XaOZiOMYSs2CmPna+vSZrzx2X+AyYzDfGkh6XwDeUaP/R2Sdhw0fUQHZoE
-        xcIkVZ9BgwAGrHrQdPx1JVxc28uo8a4iZ5LllVP7TnFFfJ9CG+a4lOMAZ0xT4W5AUDITT4PKOzipn
-        iYX5eNIGnsNYC8ByBciAnWPp9g9vDQf8R7DSJ/g+l6EF+CP1ntsJaOLY4qb8I0kMJDUqs+viQJKqd
-        up6N4jP4nowpqWEIhSTtf6tIwQksMPnvi+P/KtQNQPk3PhCqoIF2gV1qmvrv5jzGvLRrNMJHVDhzZ
-        FeCH/O7Q==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-        id 1lU4ms-00EGP6-RS; Wed, 07 Apr 2021 09:47:54 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 44BCF300119;
-        Wed,  7 Apr 2021 11:47:49 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 27BB724403DB8; Wed,  7 Apr 2021 11:47:49 +0200 (CEST)
-Date:   Wed, 7 Apr 2021 11:47:49 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Stafford Horne <shorne@gmail.com>
+        with ESMTP id S1349257AbhDGUNM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Apr 2021 16:13:12 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10FDAC06175F;
+        Wed,  7 Apr 2021 13:13:01 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id y16so135811pfc.5;
+        Wed, 07 Apr 2021 13:13:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=dwldfrHGB7cvjNDHe6gxp+OQ0DSzEe0anuIQnT5lIYc=;
+        b=dKW4tyxbGX73iHxH5Iha60EvcjCvKI+5hrpqwPPcbjELczGr/kzgfdsnLJJsWtOJbP
+         ubOwwaB3iZb/RBJ+1QPkWGQAjFPjPBqh2IboNE1nH7H1pZZqyeSqspXh1PeeRkVlyVq3
+         D+oq7t34NOHRn9OQqu4dUPDeY2QjjFesL1gh9WM+knJrz1i5ZQMIlvyZpNZOQKqZbOKS
+         4CB8O8zOE9mVX0eyokxf96eDPzy8oTdAAN584lU799CDSvkBRtjLRtC/rvSTel9pIKWP
+         gshTMF9nTcU8N6w8UNgn+aG83qEZcXRIQj51bqqxl3MvzOMunlFLxakjAhVMSVBe674a
+         jRAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=dwldfrHGB7cvjNDHe6gxp+OQ0DSzEe0anuIQnT5lIYc=;
+        b=rXerty21UGmpdCTPjnHq5rg76oOHvDDEyFJL1khsUyGRbvZeSDVdY5dzOhNdrM2Om8
+         VkyHV2tS+1jS7mRmPcVAzULtI+vfypUy7acOl1qwHvOzSjUuPK4Xv/l8nmLjfbfvblmR
+         W6YA2LUNl6vyqVLJYPO4ntfczXIfVgKSKYiQ0OSSo23zZO+QaCtW1ZlHzsdxApDcGfzJ
+         xK1lW/QR5Jt4wE3ARF4KlVqqxqfKPXLcvpJMbiJ7u4VwVJa6CCojDtj3CViPO6+g3DEG
+         yO9QcoVJg/w2I9dU+IiXi4RSDxPBHeTqDuh9n6laLY/UCbcm1TSUGMUiqUpGFQ+YuY4D
+         rWDg==
+X-Gm-Message-State: AOAM533JmvcVa4xtOni6+me2ZLjO1ov8C3oFKJPiMJwoU/M9fBfIF9/t
+        ZVW/sIPL5PS1j98PdUKq5V8=
+X-Google-Smtp-Source: ABdhPJx1TzjDHM8SCpdazwwikZp8MB63xmALxAEXVlHdCjBoBVsMzPPllM88y4Piph/rcIdj06SGPw==
+X-Received: by 2002:a65:610f:: with SMTP id z15mr4931593pgu.360.1617826380553;
+        Wed, 07 Apr 2021 13:13:00 -0700 (PDT)
+Received: from localhost (g191.124-44-145.ppp.wakwak.ne.jp. [124.44.145.191])
+        by smtp.gmail.com with ESMTPSA id m1sm5878421pjk.24.2021.04.07.13.12.59
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 07 Apr 2021 13:12:59 -0700 (PDT)
+Date:   Thu, 8 Apr 2021 05:12:58 +0900
+From:   Stafford Horne <shorne@gmail.com>
+To:     Peter Zijlstra <peterz@infradead.org>
 Cc:     Boqun Feng <boqun.feng@gmail.com>, guoren@kernel.org,
         linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org,
         Guo Ren <guoren@linux.alibaba.com>,
@@ -56,32 +69,40 @@ Cc:     Boqun Feng <boqun.feng@gmail.com>, guoren@kernel.org,
         Ingo Molnar <mingo@redhat.com>
 Subject: Re: [OpenRISC] [PATCH v6 1/9] locking/qspinlock: Add
  ARCH_USE_QUEUED_SPINLOCKS_XCHG32
-Message-ID: <YG1/xRgWlLHD4j/8@hirez.programming.kicks-ass.net>
+Message-ID: <20210407201258.GH3288043@lianli.shorne-pla.net>
 References: <1617201040-83905-1-git-send-email-guoren@kernel.org>
  <1617201040-83905-2-git-send-email-guoren@kernel.org>
  <YGyRrBjomDCPOBUd@boqun-archlinux>
  <20210406235208.GG3288043@lianli.shorne-pla.net>
+ <YG1/xRgWlLHD4j/8@hirez.programming.kicks-ass.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210406235208.GG3288043@lianli.shorne-pla.net>
+In-Reply-To: <YG1/xRgWlLHD4j/8@hirez.programming.kicks-ass.net>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Apr 07, 2021 at 08:52:08AM +0900, Stafford Horne wrote:
-> Why doesn't RISC-V add the xchg16 emulation code similar to OpenRISC?  For
-> OpenRISC we added xchg16 and xchg8 emulation code to enable qspinlocks.  So
-> one thought is with CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y, can we remove our
-> xchg16/xchg8 emulation code?
+On Wed, Apr 07, 2021 at 11:47:49AM +0200, Peter Zijlstra wrote:
+> On Wed, Apr 07, 2021 at 08:52:08AM +0900, Stafford Horne wrote:
+> > Why doesn't RISC-V add the xchg16 emulation code similar to OpenRISC?  For
+> > OpenRISC we added xchg16 and xchg8 emulation code to enable qspinlocks.  So
+> > one thought is with CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y, can we remove our
+> > xchg16/xchg8 emulation code?
+> 
+> CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32 is guaranteed crap.
+>
+> All the architectures that have wanted it are RISC style LL/SC archs,
+> and for them a cmpxchg loop is a daft thing to do, since it reduces the
+> chance of it behaving sanely.
+> 
+> Why would we provide something that's known to be suboptimal? If an
+> architecture chooses to not care about determinism and or fwd progress,
+> then that's their choice. But not one, I feel, we should encourage.
 
-CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32 is guaranteed crap.
+Thanks, this is the response I was hoping my comment would provoke.
 
-All the architectures that have wanted it are RISC style LL/SC archs,
-and for them a cmpxchg loop is a daft thing to do, since it reduces the
-chance of it behaving sanely.
+So not enabling CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32 for architectures
+unless they really want it should be the way.
 
-Why would we provide something that's known to be suboptimal? If an
-architecture chooses to not care about determinism and or fwd progress,
-then that's their choice. But not one, I feel, we should encourage.
-
+-Stafford
