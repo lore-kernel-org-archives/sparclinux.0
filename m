@@ -2,147 +2,86 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28159C433B4
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 05:35:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61541C433B4
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 09:48:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2325613AF
-	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 05:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 378AC613A7
+	for <sparclinux@archiver.kernel.org>; Wed,  7 Apr 2021 09:48:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348770AbhDGFfZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 7 Apr 2021 01:35:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38762 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348781AbhDGFfQ (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 7 Apr 2021 01:35:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BFBBB613CD;
-        Wed,  7 Apr 2021 05:35:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1617773707;
-        bh=uMG/cQRFUC9+CiAgPW7FU6n8MPg87Dm5ua+Jwmm6WYA=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ZlwIWx3BIdtOtnYiA1p8yWZWvoPQEghJXqRP2JQKxUI/OF6UCCJP6MiYTe/TxvjzT
-         eNB1gk9ja2C7kL4id3Oof1ETOCNFQJcjP5aSareWcq6dRwxzD/tjzOOWXBTozxaLxC
-         HyjTynB5PghiAbL+DTWfDGCNLCyxqb+VzwOZTq3Q=
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Masahiro Yamada <masahiroy@kernel.org>,
-        Michal Marek <michal.lkml@markovi.net>
-Cc:     linux-kbuild@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: [PATCH 19/20] kbuild: sparc: use common install script
-Date:   Wed,  7 Apr 2021 07:34:18 +0200
-Message-Id: <20210407053419.449796-20-gregkh@linuxfoundation.org>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210407053419.449796-1-gregkh@linuxfoundation.org>
-References: <20210407053419.449796-1-gregkh@linuxfoundation.org>
+        id S1350287AbhDGJsp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 7 Apr 2021 05:48:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42312 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1350284AbhDGJsp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 7 Apr 2021 05:48:45 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3D6EC061756;
+        Wed,  7 Apr 2021 02:48:35 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=+qSokmLjMhdEnOSkSopblq5MKalEi8UUYD3QbqGxqos=; b=eC2rQ34nM7cRrzDAhzzhEN3wPe
+        kTzKVXiPYsQriyTitj8XaOZiOMYSs2CmPna+vSZrzx2X+AyYzDfGkh6XwDeUaP/R2Sdhw0fUQHZoE
+        xcIkVZ9BgwAGrHrQdPx1JVxc28uo8a4iZ5LllVP7TnFFfJ9CG+a4lOMAZ0xT4W5AUDITT4PKOzipn
+        iYX5eNIGnsNYC8ByBciAnWPp9g9vDQf8R7DSJ/g+l6EF+CP1ntsJaOLY4qb8I0kMJDUqs+viQJKqd
+        up6N4jP4nowpqWEIhSTtf6tIwQksMPnvi+P/KtQNQPk3PhCqoIF2gV1qmvrv5jzGvLRrNMJHVDhzZ
+        FeCH/O7Q==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1lU4ms-00EGP6-RS; Wed, 07 Apr 2021 09:47:54 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 44BCF300119;
+        Wed,  7 Apr 2021 11:47:49 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 27BB724403DB8; Wed,  7 Apr 2021 11:47:49 +0200 (CEST)
+Date:   Wed, 7 Apr 2021 11:47:49 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Stafford Horne <shorne@gmail.com>
+Cc:     Boqun Feng <boqun.feng@gmail.com>, guoren@kernel.org,
+        linux-arch@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        Guo Ren <guoren@linux.alibaba.com>,
+        Arnd Bergmann <arnd@arndb.de>, Will Deacon <will@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-csky@vger.kernel.org,
+        openrisc@lists.librecores.org, Anup Patel <anup@brainfault.org>,
+        sparclinux@vger.kernel.org, Waiman Long <longman@redhat.com>,
+        linux-riscv@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        Ingo Molnar <mingo@redhat.com>
+Subject: Re: [OpenRISC] [PATCH v6 1/9] locking/qspinlock: Add
+ ARCH_USE_QUEUED_SPINLOCKS_XCHG32
+Message-ID: <YG1/xRgWlLHD4j/8@hirez.programming.kicks-ass.net>
+References: <1617201040-83905-1-git-send-email-guoren@kernel.org>
+ <1617201040-83905-2-git-send-email-guoren@kernel.org>
+ <YGyRrBjomDCPOBUd@boqun-archlinux>
+ <20210406235208.GG3288043@lianli.shorne-pla.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210406235208.GG3288043@lianli.shorne-pla.net>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The common scripts/install.sh script will now work for sparc, all that
-is needed is to add it to the list of arches that do not put the version
-number in the installed file name.
+On Wed, Apr 07, 2021 at 08:52:08AM +0900, Stafford Horne wrote:
+> Why doesn't RISC-V add the xchg16 emulation code similar to OpenRISC?  For
+> OpenRISC we added xchg16 and xchg8 emulation code to enable qspinlocks.  So
+> one thought is with CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32=y, can we remove our
+> xchg16/xchg8 emulation code?
 
-With that we can remove the sparc-only version of the install script.
+CONFIG_ARCH_USE_QUEUED_SPINLOCKS_XCHG32 is guaranteed crap.
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/sparc/boot/Makefile   |  2 +-
- arch/sparc/boot/install.sh | 50 --------------------------------------
- scripts/install.sh         |  2 +-
- 3 files changed, 2 insertions(+), 52 deletions(-)
- delete mode 100644 arch/sparc/boot/install.sh
+All the architectures that have wanted it are RISC style LL/SC archs,
+and for them a cmpxchg loop is a daft thing to do, since it reduces the
+chance of it behaving sanely.
 
-diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-index 380e2b018992..952f8e7a40ec 100644
---- a/arch/sparc/boot/Makefile
-+++ b/arch/sparc/boot/Makefile
-@@ -72,5 +72,5 @@ $(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback System.map $(ROOT_IMG) FORCE
- 	$(call if_changed,piggy)
- 
- install:
--	sh $(srctree)/$(src)/install.sh $(KERNELRELEASE) $(obj)/zImage \
-+	sh $(srctree)/scripts/install.sh $(KERNELRELEASE) $(obj)/zImage \
- 		System.map "$(INSTALL_PATH)"
-diff --git a/arch/sparc/boot/install.sh b/arch/sparc/boot/install.sh
-deleted file mode 100644
-index b32851eae693..000000000000
---- a/arch/sparc/boot/install.sh
-+++ /dev/null
-@@ -1,50 +0,0 @@
--#!/bin/sh
--#
--# This file is subject to the terms and conditions of the GNU General Public
--# License.  See the file "COPYING" in the main directory of this archive
--# for more details.
--#
--# Copyright (C) 1995 by Linus Torvalds
--#
--# Adapted from code in arch/i386/boot/Makefile by H. Peter Anvin
--#
--# "make install" script for SPARC architecture
--#
--# Arguments:
--#   $1 - kernel version
--#   $2 - kernel image file
--#   $3 - kernel map file
--#   $4 - default install path (blank if root directory)
--#
--
--verify () {
--	if [ ! -f "$1" ]; then
--		echo ""                                                   1>&2
--		echo " *** Missing file: $1"                              1>&2
--		echo ' *** You need to run "make" before "make install".' 1>&2
--		echo ""                                                   1>&2
--		exit 1
--	fi
--}
--
--# Make sure the files actually exist
--verify "$2"
--verify "$3"
--
--# User may have a custom install script
--
--if [ -x ~/bin/${INSTALLKERNEL} ]; then exec ~/bin/${INSTALLKERNEL} "$@"; fi
--if [ -x /sbin/${INSTALLKERNEL} ]; then exec /sbin/${INSTALLKERNEL} "$@"; fi
--
--# Default install - same as make zlilo
--
--if [ -f $4/vmlinuz ]; then
--	mv $4/vmlinuz $4/vmlinuz.old
--fi
--
--if [ -f $4/System.map ]; then
--	mv $4/System.map $4/System.old
--fi
--
--cat $2 > $4/vmlinuz
--cp $3 $4/System.map
-diff --git a/scripts/install.sh b/scripts/install.sh
-index 67c0a5f74af2..225b19bbbfa6 100644
---- a/scripts/install.sh
-+++ b/scripts/install.sh
-@@ -67,7 +67,7 @@ fi
- # Some architectures name their files based on version number, and
- # others do not.  Call out the ones that do not to make it obvious.
- case "${ARCH}" in
--	ia64 | m68k | nios2 | powerpc | x86)
-+	ia64 | m68k | nios2 | powerpc | sparc | x86)
- 		version=""
- 		;;
- 	*)
--- 
-2.31.1
+Why would we provide something that's known to be suboptimal? If an
+architecture chooses to not care about determinism and or fwd progress,
+then that's their choice. But not one, I feel, we should encourage.
 
