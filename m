@@ -2,99 +2,122 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 418F5C43461
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Apr 2021 20:08:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 962BDC43462
+	for <sparclinux@archiver.kernel.org>; Fri,  9 Apr 2021 01:24:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17B1A610E8
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Apr 2021 20:08:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 71D336113C
+	for <sparclinux@archiver.kernel.org>; Fri,  9 Apr 2021 01:24:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232196AbhDHUIZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 8 Apr 2021 16:08:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58688 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231451AbhDHUIY (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 8 Apr 2021 16:08:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E98DF61132;
-        Thu,  8 Apr 2021 20:08:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1617912493;
-        bh=lJBvFSudiDrxZs+SnGh4YtxaarzP38H043H9PsxfbKw=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=tBubWWY3+neAkzvUwVEoCp09FqswXCDaRx0c5tqpOKjvcYtVCmFe8JHZ54TSymAUN
-         LcUpHK9kiXHWgsLiDmBkRkBjUyBdxgg10Kg/vhYMlvwhM6Td33Bu/fEAPoZH7Rwzg3
-         y/02Yh1kIkod5A/25l6gmVy/uGkdg25wTAzvSArNYFnlkxuDzKdqut3U9ckR8RDs9P
-         vDjyKsx0P5LjQjJsrua6oISbMFMHmtnTHx3DuSW049FdIe7WaniCJJy7rcIwUJrymm
-         s/dYmx64TzuZ1Bdy4C5SW9baPR3AZmbYAPa+qWcEfy3HARHgLptgEEwfQza7x3mWiq
-         CQZwA4HwhhFsA==
-Received: by mail-ed1-f41.google.com with SMTP id e7so3875940edu.10;
-        Thu, 08 Apr 2021 13:08:12 -0700 (PDT)
-X-Gm-Message-State: AOAM532MiIY6kAZq95BJu9tubGyyd7/DL4oJw+thkRKSDYMiwaxoJhQV
-        gQ4jjRQ5aOfzJxMQjGXOu1ZN4nPcKxa0JK0RbQ==
-X-Google-Smtp-Source: ABdhPJyQM3sGNyB4lBHJyB/vMz0AuBm9hT4GnsJ9rwYhPZ4h1PIVlO3IzyI5ADQSr6ra6UOvePCEFavpVtRgMZ1GG6I=
-X-Received: by 2002:a05:6402:212:: with SMTP id t18mr13947421edv.165.1617912491462;
- Thu, 08 Apr 2021 13:08:11 -0700 (PDT)
+        id S233183AbhDIBYN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 8 Apr 2021 21:24:13 -0400
+Received: from alln-iport-6.cisco.com ([173.37.142.93]:29249 "EHLO
+        alln-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232426AbhDIBYL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Apr 2021 21:24:11 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=cisco.com; i=@cisco.com; l=1925; q=dns/txt; s=iport;
+  t=1617931440; x=1619141040;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=WkzLqPqjAxF6Ch0t2FT084suyCe7GM/KMpezthHSR4s=;
+  b=Gap38DrgAFYo7ZYtYj3EvA00VRAvBXaTMJHcOvwkNJVDT4HPXjse3J2D
+   Wam4qRi03A5ot7Rf2AqNJn295G4c85LGxBe56kFeO3V2wvq1mgqITfilJ
+   drIjp9AFnBn0GO22oASshvs+nTKSZIL5IUvC5aRimTMSDO6kDRejFhvAH
+   w=;
+X-IPAS-Result: =?us-ascii?q?A0ABAAAUrG9gmIENJK1aGgEBAQEBAQEBAQEDAQEBARIBA?=
+ =?us-ascii?q?QEBAgIBAQEBQIE+BQEBAQELAYN3ATmNF4k1kA2KXIF8CwEBAQ0BATQEAQGEU?=
+ =?us-ascii?q?AKBdwIlNAkOAgMBAQEDAgMBAQEBAQUBAQECAQYEFAEBAQEBAQEBaIVdhkUBA?=
+ =?us-ascii?q?gM6OgUQCxIGLjwNDgaDBIMIqjx1gTSBAYgUgUQigRcBjUwnHIFJQoETgyI+i?=
+ =?us-ascii?q?jkEgkeCNaAbikiRYYMVgSabRzIQpGEtszuEVgIEBgUCFoFUOIFbMxoIGxWDJ?=
+ =?us-ascii?q?U8ZDo44jlAhA2cCBgoBAQMJjDRdAQE?=
+IronPort-HdrOrdr: A9a23:QdBVtK4Vqwy1Ov3XkQPXwHXXdLJzesId70hD6mlaQ3VuHfCwvc
+ aogfgdyFvYiCwJXmshhNCHP8C7MBbh3LRy5pQcOqrnYRn+tAKTXeNfxKbr3jGIIUfD38FH06
+ MIScVDIf32SWN3lMPrpDS/euxQpOWv1ICNqaPgw2x2TQdsApsQjDtRLgqACEV5SE1nKPMCda
+ a03cZMqzq+dXl/VK3SbUUtZOTNq8bGk5jre3c9ZyIP0hWEjj+j9dfBfSSw4xF2aV9y6IZn13
+ TZmArk4ajmlPe3xnbnpgnuxqUTvsf9wd1eA8HJsOwpE3HHjwalY5kJYczkgAwI
+X-IronPort-Anti-Spam-Filtered: true
+X-IronPort-AV: E=Sophos;i="5.82,208,1613433600"; 
+   d="scan'208";a="717254170"
+Received: from alln-core-9.cisco.com ([173.36.13.129])
+  by alln-iport-6.cisco.com with ESMTP/TLS/DHE-RSA-SEED-SHA; 09 Apr 2021 01:23:53 +0000
+Received: from zorba ([10.24.9.242])
+        by alln-core-9.cisco.com (8.15.2/8.15.2) with ESMTPS id 1391Nnm8027721
+        (version=TLSv1.2 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=NO);
+        Fri, 9 Apr 2021 01:23:51 GMT
+Date:   Thu, 8 Apr 2021 18:23:49 -0700
+From:   Daniel Walker <danielwa@cisco.com>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>, will@kernel.org,
+        daniel@gimpelevich.san-francisco.ca.us, arnd@kernel.org,
+        akpm@linux-foundation.org, linux-arch@vger.kernel.org,
+        devicetree@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        microblaze <monstr@monstr.eu>, linux-mips@vger.kernel.org,
+        nios2 <ley.foon.tan@intel.com>, openrisc@lists.librecores.org,
+        linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
+        x86@kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: Re: [PATCH v4 19/20] mips: Convert to GENERIC_CMDLINE
+Message-ID: <20210409012349.GG3981976@zorba>
+References: <cover.1617375802.git.christophe.leroy@csgroup.eu>
+ <a01b6cdbae01fff77e26f7a5c40ee5260e1952b5.1617375802.git.christophe.leroy@csgroup.eu>
+ <20210406173836.GW2469518@zorba>
+ <20210408190408.GA1724284@robh.at.kernel.org>
 MIME-Version: 1.0
-References: <34d20d1dbb88f26d418b33985557b0475374a1a5.1617556785.git.christophe.leroy@csgroup.eu>
-In-Reply-To: <34d20d1dbb88f26d418b33985557b0475374a1a5.1617556785.git.christophe.leroy@csgroup.eu>
-From:   Rob Herring <robh@kernel.org>
-Date:   Thu, 8 Apr 2021 15:08:00 -0500
-X-Gmail-Original-Message-ID: <CAL_JsqJ=UNfptbNHR5XAS9BQRv3C5+YonW9rwypA5gGt2N7bGQ@mail.gmail.com>
-Message-ID: <CAL_JsqJ=UNfptbNHR5XAS9BQRv3C5+YonW9rwypA5gGt2N7bGQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v6 1/1] cmdline: Add capability to both append and
- prepend at the same time
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     Will Deacon <will@kernel.org>, Daniel Walker <danielwa@cisco.com>,
-        Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>,
-        Arnd Bergmann <arnd@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "open list:GENERIC INCLUDE/ASM HEADER FILES" 
-        <linux-arch@vger.kernel.org>, devicetree@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        microblaze <monstr@monstr.eu>,
-        "open list:MIPS" <linux-mips@vger.kernel.org>,
-        nios2 <ley.foon.tan@intel.com>,
-        Openrisc <openrisc@lists.librecores.org>,
-        linux-hexagon@vger.kernel.org,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org,
-        SH-Linux <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210408190408.GA1724284@robh.at.kernel.org>
+X-Outbound-SMTP-Client: 10.24.9.242, [10.24.9.242]
+X-Outbound-Node: alln-core-9.cisco.com
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Apr 4, 2021 at 12:20 PM Christophe Leroy
-<christophe.leroy@csgroup.eu> wrote:
->
-> One user has expressed the need to both append and prepend some
-> built-in parameters to the command line provided by the bootloader.
->
-> Allthough it is a corner case, it is easy to implement so let's do it.
->
-> When the user chooses to prepend the bootloader provided command line
-> with the built-in command line, he is offered the possibility to enter
-> an additionnal built-in command line to be appended after the
-> bootloader provided command line.
->
-> It is a complementary feature which has no impact on the already
-> existing ones and/or the existing defconfig.
->
-> Suggested-by: Daniel Walker <danielwa@cisco.com>
-> Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-> ---
-> Sending this out as an RFC, applies on top of the series
-> ("Implement GENERIC_CMDLINE"). I will add it to the series next spin
-> unless someone is against it.
+On Thu, Apr 08, 2021 at 02:04:08PM -0500, Rob Herring wrote:
+> On Tue, Apr 06, 2021 at 10:38:36AM -0700, Daniel Walker wrote:
+> > On Fri, Apr 02, 2021 at 03:18:21PM +0000, Christophe Leroy wrote:
+> > > -config CMDLINE_BOOL
+> > > -	bool "Built-in kernel command line"
+> > > -	help
+> > > -	  For most systems, it is firmware or second stage bootloader that
+> > > -	  by default specifies the kernel command line options.  However,
+> > > -	  it might be necessary or advantageous to either override the
+> > > -	  default kernel command line or add a few extra options to it.
+> > > -	  For such cases, this option allows you to hardcode your own
+> > > -	  command line options directly into the kernel.  For that, you
+> > > -	  should choose 'Y' here, and fill in the extra boot arguments
+> > > -	  in CONFIG_CMDLINE.
+> > > -
+> > > -	  The built-in options will be concatenated to the default command
+> > > -	  line if CMDLINE_OVERRIDE is set to 'N'. Otherwise, the default
+> > > -	  command line will be ignored and replaced by the built-in string.
+> > > -
+> > > -	  Most MIPS systems will normally expect 'N' here and rely upon
+> > > -	  the command line from the firmware or the second-stage bootloader.
+> > > -
+> > 
+> > 
+> > See how you complained that I have CMDLINE_BOOL in my changed, and you think it
+> > shouldn't exist.
+> > 
+> > Yet here mips has it, and you just deleted it with no feature parity in your
+> > changes for this.
+> 
+> AFAICT, CMDLINE_BOOL equates to a non-empty or empty CONFIG_CMDLINE. You 
+> seem to need it just because you have CMDLINE_PREPEND and 
+> CMDLINE_APPEND. If that's not it, what feature is missing? CMDLINE_BOOL 
+> is not a feature, but an implementation detail.
 
-Well, it works, but you are working around the existing kconfig and
-the result is not great. You'd never design it this way.
+Not true.
 
-Rob
+It makes it easier to turn it all off inside the Kconfig , so it's for usability
+and multiple architecture have it even with just CMDLINE as I was commenting
+here.
+
+Daniel
