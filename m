@@ -2,185 +2,250 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3F42C43619
-	for <sparclinux@archiver.kernel.org>; Fri,  9 Apr 2021 22:40:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB2CC433B4
+	for <sparclinux@archiver.kernel.org>; Sun, 11 Apr 2021 13:05:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6434611C1
-	for <sparclinux@archiver.kernel.org>; Fri,  9 Apr 2021 22:40:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C8FAC610C8
+	for <sparclinux@archiver.kernel.org>; Sun, 11 Apr 2021 13:05:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235130AbhDIWkr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 9 Apr 2021 18:40:47 -0400
-Received: from elvis.franken.de ([193.175.24.41]:37276 "EHLO elvis.franken.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234960AbhDIWko (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 9 Apr 2021 18:40:44 -0400
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1lUznc-00038n-02; Sat, 10 Apr 2021 00:40:24 +0200
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id EDAA4C24FC; Sat, 10 Apr 2021 00:39:11 +0200 (CEST)
-Date:   Sat, 10 Apr 2021 00:39:11 +0200
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc:     Alexander Lobakin <alobakin@pm.me>, Wei Liu <wei.liu@kernel.org>,
-        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Mike Rapoport <rppt@kernel.org>,
-        Corey Minyard <cminyard@mvista.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        "Jason J. Herne" <jjherne@linux.ibm.com>,
-        Joerg Roedel <jroedel@suse.de>,
-        Michael Kelley <mikelley@microsoft.com>,
-        Joe Perches <joe@perches.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Scott Branden <scott.branden@broadcom.com>,
-        Olof Johansson <olof@lixom.net>,
-        Mihai Carabas <mihai.carabas@oracle.com>,
-        Wang Wenhu <wenhu.wang@vivo.com>,
-        Marek Czerski <ma.czerski@gmail.com>,
-        Hongbo Yao <yaohongbo@huawei.com>,
-        Mathieu Poirier <mathieu.poirier@linaro.org>,
-        Vineeth Vijayan <vneethv@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Peter Oberparleiter <oberpar@linux.ibm.com>,
-        Alexander Egorenkov <egorenar@linux.ibm.com>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        "Steven Rostedt (VMware)" <rostedt@goodmis.org>,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-hyperv@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-xtensa@linux-xtensa.org,
-        openipmi-developer@lists.sourceforge.net,
-        linux-clk@vger.kernel.org, linux-edac@vger.kernel.org,
-        coresight@lists.linaro.org, linux-leds@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com, netdev@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-staging@lists.linux.dev, dri-devel@lists.freedesktop.org,
-        linux-fbdev@vger.kernel.org, linux-arch@vger.kernel.org,
-        kexec@lists.infradead.org, rcu@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jeff Dike <jdike@addtoit.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
-        "K. Y. Srinivasan" <kys@microsoft.com>,
-        Haiyang Zhang <haiyangz@microsoft.com>,
-        Stephen Hemminger <sthemmin@microsoft.com>,
-        Boris Ostrovsky <boris.ostrovsky@oracle.com>,
-        Juergen Gross <jgross@suse.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Corey Minyard <minyard@acm.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Tony Luck <tony.luck@intel.com>,
-        James Morse <james.morse@arm.com>,
-        Robert Richter <rric@kernel.org>,
-        Suzuki K Poulose <suzuki.poulose@arm.com>,
-        Mike Leach <mike.leach@linaro.org>,
-        Leo Yan <leo.yan@linaro.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Pavel Machek <pavel@ucw.cz>, Alex Elder <elder@kernel.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Sebastian Reichel <sre@kernel.org>,
-        Ohad Ben-Cohen <ohad@wizery.com>,
-        Jens Frederich <jfrederich@gmail.com>,
-        Daniel Drake <dsd@laptop.org>,
-        Jon Nettleton <jon.nettleton@gmail.com>,
-        Eric Biederman <ebiederm@xmission.com>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Mathieu Desnoyers <mathieu.desnoyers@efficios.com>,
-        Lai Jiangshan <jiangshanlai@gmail.com>,
-        Joel Fernandes <joel@joelfernandes.org>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Iurii Zaikin <yzaikin@google.com>,
-        Mike Rapoport <rppt@linux.ibm.com>
-Subject: Re: [PATCH v2 1/1] kernel.h: Split out panic and oops helpers
-Message-ID: <20210409223911.GA21445@alpha.franken.de>
-References: <20210409100250.25922-1-andriy.shevchenko@linux.intel.com>
+        id S235594AbhDKNFX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 11 Apr 2021 09:05:23 -0400
+Received: from condef-09.nifty.com ([202.248.20.74]:18642 "EHLO
+        condef-09.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235569AbhDKNFX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 11 Apr 2021 09:05:23 -0400
+X-Greylist: delayed 449 seconds by postgrey-1.27 at vger.kernel.org; Sun, 11 Apr 2021 09:05:22 EDT
+Received: from conssluserg-03.nifty.com ([10.126.8.82])by condef-09.nifty.com with ESMTP id 13BCsZrv005796
+        for <sparclinux@vger.kernel.org>; Sun, 11 Apr 2021 21:54:35 +0900
+Received: from mail-pj1-f50.google.com (mail-pj1-f50.google.com [209.85.216.50]) (authenticated)
+        by conssluserg-03.nifty.com with ESMTP id 13BCs7tp029971;
+        Sun, 11 Apr 2021 21:54:07 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-03.nifty.com 13BCs7tp029971
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1618145647;
+        bh=kYvj6hvm8jlmAX1g3RDq6TVy4tWUNVkGgzR+eUkJ8x4=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=mGD8NwNcV2r3xxRTPTrzVmSaKiT75l2+jXUNOJhN158XwjYkyhJ2tiZKofoEFil0Y
+         NTbjjvxJwaCEUdObEtXMH6+/ScBY8SuoopIGOo7QqZMEQod/JrOtITkEAAxbRvxLbR
+         h8A1ydMSDOIr6k9mlie6QEEW3+uWsfiB546bvjU4wHrqVSQxD0I1/AtCQP8DBQUUjP
+         EEhbrO5E7vwFIli9lweuVpmG0byeS7JFCdqIStjHN5ipNsSyOMcTvqjfc/aM+/w2nN
+         0r+YtVxfGiHXfJuELcjo+FivaQeae5sMg/PcInsnEbHYsKNkUHpEoMlYwiYFj5oMh5
+         PNlv/CJm2mW+g==
+X-Nifty-SrcIP: [209.85.216.50]
+Received: by mail-pj1-f50.google.com with SMTP id nm3-20020a17090b19c3b029014e1bbf6c60so1349645pjb.4;
+        Sun, 11 Apr 2021 05:54:07 -0700 (PDT)
+X-Gm-Message-State: AOAM530rs20a3S3+TEW6bqnIWp04z8Fua1FUCoUZxD7qKj9u2LvIvXOb
+        odS7sDtRuoHg2ZPTYjZK7erGU65VM0z/PMGbVPQ=
+X-Google-Smtp-Source: ABdhPJxLJpTl6hQzx5iKsr9iCxCNXh5RPfX81SkInh/0YW5yNK0RK/Eav/KW2FE1/KiGB8XNyq0wFOW9L+lEs0JyIcg=
+X-Received: by 2002:a17:90a:28a1:: with SMTP id f30mr23966534pjd.198.1618145646535;
+ Sun, 11 Apr 2021 05:54:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210409100250.25922-1-andriy.shevchenko@linux.intel.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20210301145102.358960-1-masahiroy@kernel.org>
+In-Reply-To: <20210301145102.358960-1-masahiroy@kernel.org>
+From:   Masahiro Yamada <masahiroy@kernel.org>
+Date:   Sun, 11 Apr 2021 21:53:29 +0900
+X-Gmail-Original-Message-ID: <CAK7LNASHwnZKZBUc6O9ywyueiZ5MYeTx2XKsep0E+cWAeXNBRA@mail.gmail.com>
+Message-ID: <CAK7LNASHwnZKZBUc6O9ywyueiZ5MYeTx2XKsep0E+cWAeXNBRA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] sparc: syscalls: switch to generic syscalltbl.sh
+To:     "David S . Miller" <davem@davemloft.net>,
+        sparclinux <sparclinux@vger.kernel.org>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Randy Dunlap <rdunlap@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Apr 09, 2021 at 01:02:50PM +0300, Andy Shevchenko wrote:
-> kernel.h is being used as a dump for all kinds of stuff for a long time.
-> Here is the attempt to start cleaning it up by splitting out panic and
-> oops helpers.
-> 
-> There are several purposes of doing this:
-> - dropping dependency in bug.h
-> - dropping a loop by moving out panic_notifier.h
-> - unload kernel.h from something which has its own domain
-> 
-> At the same time convert users tree-wide to use new headers, although
-> for the time being include new header back to kernel.h to avoid twisted
-> indirected includes for existing users.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Reviewed-by: Bjorn Andersson <bjorn.andersson@linaro.org>
-> Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-> Acked-by: Corey Minyard <cminyard@mvista.com>
-> Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-> Acked-by: Kees Cook <keescook@chromium.org>
-> Acked-by: Wei Liu <wei.liu@kernel.org>
-> Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> v2:
->  - fixed all errors with allmodconfig on x86_64 (Andrew)
->  - checked with allyesconfig on x86_64
->  - additionally grepped source code for panic notifier list usage
->    and converted all users
->  - elaborated commit message (Luis)
->  - collected given tags (incl. Andrew's SoB, see below)
-> 
-> I added Andrew's SoB since part of the fixes I took from him. Andrew,
-> feel free to amend or tell me how you want me to do.
-> 
->  arch/mips/kernel/relocate.c                   |  1 +
->  arch/mips/sgi-ip22/ip22-reset.c               |  1 +
->  arch/mips/sgi-ip32/ip32-reset.c               |  1 +
+On Mon, Mar 1, 2021 at 11:51 PM Masahiro Yamada <masahiroy@kernel.org> wrote:
+>
+> Many architectures duplicate similar shell scripts.
+>
+> This commit converts sparc to use scripts/syscalltbl.sh. This also
+> unifies syscall_table_64.h and syscall_table_c32.h.
+>
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Could you check this series, please?
+
+Thanks.
+Masahiro
+
+
+
+
+> ---
+>
+>  arch/sparc/include/asm/Kbuild            |  1 -
+>  arch/sparc/kernel/syscalls/Makefile      | 19 ++++---------
+>  arch/sparc/kernel/syscalls/syscalltbl.sh | 36 ------------------------
+>  arch/sparc/kernel/systbls_32.S           |  4 +--
+>  arch/sparc/kernel/systbls_64.S           |  8 ++++--
+>  5 files changed, 12 insertions(+), 56 deletions(-)
+>  delete mode 100644 arch/sparc/kernel/syscalls/syscalltbl.sh
+>
+> diff --git a/arch/sparc/include/asm/Kbuild b/arch/sparc/include/asm/Kbuild
+> index aec20406145e..0b9d98ced34a 100644
+> --- a/arch/sparc/include/asm/Kbuild
+> +++ b/arch/sparc/include/asm/Kbuild
+> @@ -1,7 +1,6 @@
+>  # SPDX-License-Identifier: GPL-2.0
+>  generated-y += syscall_table_32.h
+>  generated-y += syscall_table_64.h
+> -generated-y += syscall_table_c32.h
+>  generic-y += export.h
+>  generic-y += kvm_para.h
+>  generic-y += mcs_spinlock.h
+> diff --git a/arch/sparc/kernel/syscalls/Makefile b/arch/sparc/kernel/syscalls/Makefile
+> index 283f64407b07..11424f1c8d9e 100644
+> --- a/arch/sparc/kernel/syscalls/Makefile
+> +++ b/arch/sparc/kernel/syscalls/Makefile
+> @@ -7,7 +7,7 @@ _dummy := $(shell [ -d '$(uapi)' ] || mkdir -p '$(uapi)')       \
+>
+>  syscall := $(src)/syscall.tbl
+>  syshdr := $(srctree)/$(src)/syscallhdr.sh
+> -systbl := $(srctree)/$(src)/syscalltbl.sh
+> +systbl := $(srctree)/scripts/syscalltbl.sh
+>
+>  quiet_cmd_syshdr = SYSHDR  $@
+>        cmd_syshdr = $(CONFIG_SHELL) '$(syshdr)' '$<' '$@'       \
+> @@ -16,10 +16,7 @@ quiet_cmd_syshdr = SYSHDR  $@
+>                    '$(syshdr_offset_$(basetarget))'
+>
+>  quiet_cmd_systbl = SYSTBL  $@
+> -      cmd_systbl = $(CONFIG_SHELL) '$(systbl)' '$<' '$@'       \
+> -                  '$(systbl_abis_$(basetarget))'               \
+> -                  '$(systbl_abi_$(basetarget))'                \
+> -                  '$(systbl_offset_$(basetarget))'
+> +      cmd_systbl = $(CONFIG_SHELL) $(systbl) --abis $(abis) $< $@
+>
+>  syshdr_abis_unistd_32 := common,32
+>  $(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
+> @@ -29,23 +26,17 @@ syshdr_abis_unistd_64 := common,64
+>  $(uapi)/unistd_64.h: $(syscall) $(syshdr) FORCE
+>         $(call if_changed,syshdr)
+>
+> -systbl_abis_syscall_table_32 := common,32
+> +$(kapi)/syscall_table_32.h: abis := common,32
+>  $(kapi)/syscall_table_32.h: $(syscall) $(systbl) FORCE
+>         $(call if_changed,systbl)
+>
+> -systbl_abis_syscall_table_64 := common,64
+> +$(kapi)/syscall_table_64.h: abis := common,64
+>  $(kapi)/syscall_table_64.h: $(syscall) $(systbl) FORCE
+>         $(call if_changed,systbl)
+>
+> -systbl_abis_syscall_table_c32 := common,32
+> -systbl_abi_syscall_table_c32 := c32
+> -$(kapi)/syscall_table_c32.h: $(syscall) $(systbl) FORCE
+> -       $(call if_changed,systbl)
+> -
+>  uapisyshdr-y           += unistd_32.h unistd_64.h
+>  kapisyshdr-y           += syscall_table_32.h           \
+> -                          syscall_table_64.h           \
+> -                          syscall_table_c32.h
+> +                          syscall_table_64.h
+>
+>  uapisyshdr-y   := $(addprefix $(uapi)/, $(uapisyshdr-y))
+>  kapisyshdr-y   := $(addprefix $(kapi)/, $(kapisyshdr-y))
+> diff --git a/arch/sparc/kernel/syscalls/syscalltbl.sh b/arch/sparc/kernel/syscalls/syscalltbl.sh
+> deleted file mode 100644
+> index 77cf0143ba19..000000000000
+> --- a/arch/sparc/kernel/syscalls/syscalltbl.sh
+> +++ /dev/null
+> @@ -1,36 +0,0 @@
+> -#!/bin/sh
+> -# SPDX-License-Identifier: GPL-2.0
+> -
+> -in="$1"
+> -out="$2"
+> -my_abis=`echo "($3)" | tr ',' '|'`
+> -my_abi="$4"
+> -offset="$5"
+> -
+> -emit() {
+> -       t_nxt="$1"
+> -       t_nr="$2"
+> -       t_entry="$3"
+> -
+> -       while [ $t_nxt -lt $t_nr ]; do
+> -               printf "__SYSCALL(%s, sys_nis_syscall, )\n" "${t_nxt}"
+> -               t_nxt=$((t_nxt+1))
+> -       done
+> -       printf "__SYSCALL(%s, %s, )\n" "${t_nxt}" "${t_entry}"
+> -}
+> -
+> -grep -E "^[0-9A-Fa-fXx]+[[:space:]]+${my_abis}" "$in" | sort -n | (
+> -       nxt=0
+> -       if [ -z "$offset" ]; then
+> -               offset=0
+> -       fi
+> -
+> -       while read nr abi name entry compat ; do
+> -               if [ "$my_abi" = "c32" ] && [ ! -z "$compat" ]; then
+> -                       emit $((nxt+offset)) $((nr+offset)) $compat
+> -               else
+> -                       emit $((nxt+offset)) $((nr+offset)) $entry
+> -               fi
+> -               nxt=$((nr+1))
+> -       done
+> -) > "$out"
+> diff --git a/arch/sparc/kernel/systbls_32.S b/arch/sparc/kernel/systbls_32.S
+> index ab9e4d57685a..3aaffa017706 100644
+> --- a/arch/sparc/kernel/systbls_32.S
+> +++ b/arch/sparc/kernel/systbls_32.S
+> @@ -9,10 +9,10 @@
+>   * Copyright (C) 1995 Adrian M. Rodriguez (adrian@remus.rutgers.edu)
+>   */
+>
+> -#define __SYSCALL(nr, entry, nargs) .long entry
+> +#define __SYSCALL_WITH_COMPAT(nr, native, compat)      __SYSCALL(nr, native)
+> +#define __SYSCALL(nr, entry) .long entry
+>         .data
+>         .align 4
+>         .globl sys_call_table
+>  sys_call_table:
+>  #include <asm/syscall_table_32.h>      /* 32-bit native syscalls */
+> -#undef __SYSCALL
+> diff --git a/arch/sparc/kernel/systbls_64.S b/arch/sparc/kernel/systbls_64.S
+> index a27394bf7d7f..398fe449dd34 100644
+> --- a/arch/sparc/kernel/systbls_64.S
+> +++ b/arch/sparc/kernel/systbls_64.S
+> @@ -10,18 +10,20 @@
+>   * Copyright (C) 1995 Adrian M. Rodriguez (adrian@remus.rutgers.edu)
+>   */
+>
+> -#define __SYSCALL(nr, entry, nargs) .word entry
+> +#define __SYSCALL(nr, entry) .word entry
+>         .text
+>         .align  4
+>  #ifdef CONFIG_COMPAT
+>         .globl sys_call_table32
+>  sys_call_table32:
+> -#include <asm/syscall_table_c32.h>     /* Compat syscalls */
+> +#define __SYSCALL_WITH_COMPAT(nr, native, compat)      __SYSCALL(nr, compat)
+> +#include <asm/syscall_table_32.h>      /* Compat syscalls */
+> +#undef __SYSCALL_WITH_COMPAT
+>  #endif /* CONFIG_COMPAT */
+>
+>         .align  4
+>         .globl sys_call_table64, sys_call_table
+>  sys_call_table64:
+>  sys_call_table:
+> +#define __SYSCALL_WITH_COMPAT(nr, native, compat)      __SYSCALL(nr, native)
+>  #include <asm/syscall_table_64.h>      /* 64-bit native syscalls */
+> -#undef __SYSCALL
+> --
+> 2.27.0
+>
+
 
 -- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+Best Regards
+Masahiro Yamada
