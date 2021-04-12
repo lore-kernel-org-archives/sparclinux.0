@@ -6,39 +6,32 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2C7DC433ED
-	for <sparclinux@archiver.kernel.org>; Mon, 12 Apr 2021 11:26:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CCCCC433ED
+	for <sparclinux@archiver.kernel.org>; Mon, 12 Apr 2021 13:11:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C96D461027
-	for <sparclinux@archiver.kernel.org>; Mon, 12 Apr 2021 11:26:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06DA0610CA
+	for <sparclinux@archiver.kernel.org>; Mon, 12 Apr 2021 13:11:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239947AbhDLL0h (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 12 Apr 2021 07:26:37 -0400
-Received: from mout.kundenserver.de ([212.227.126.187]:35015 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237626AbhDLL0g (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Apr 2021 07:26:36 -0400
-Received: from mail-wr1-f45.google.com ([209.85.221.45]) by
- mrelayeu.kundenserver.de (mreue012 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1Movrq-1ltfTa2lXK-00qUJw; Mon, 12 Apr 2021 13:26:16 +0200
-Received: by mail-wr1-f45.google.com with SMTP id s7so12420841wru.6;
-        Mon, 12 Apr 2021 04:26:16 -0700 (PDT)
-X-Gm-Message-State: AOAM5323SZB/5C97kuwT92PB6TfwI9kQSSxviIBzSwo/OBKlNl/Zd+bz
-        TOrvQMXSUKuceqA2ASb3AYksfeR6qRF3vqSCovY=
-X-Google-Smtp-Source: ABdhPJy46sI91TDF91SxINRlLS3vYTwc1YeMRJCymXnpPG5ap8cTdjbAP71XB76ODq1s/TL2YmK09N0XG1Vr80EDjdY=
-X-Received: by 2002:adf:c70b:: with SMTP id k11mr31632710wrg.165.1618226776291;
- Mon, 12 Apr 2021 04:26:16 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210412085545.2595431-1-hch@lst.de> <20210412085545.2595431-6-hch@lst.de>
- <15be19af19174c7692dd795297884096@AcuMS.aculab.com> <5c3635a2b44a496b88d665e8686d9436@AcuMS.aculab.com>
-In-Reply-To: <5c3635a2b44a496b88d665e8686d9436@AcuMS.aculab.com>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Mon, 12 Apr 2021 13:26:00 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a1JZ=JerasdkntzX_ApaCF7C29ZS1E31aPQATOts0ZiLw@mail.gmail.com>
-Message-ID: <CAK8P3a1JZ=JerasdkntzX_ApaCF7C29ZS1E31aPQATOts0ZiLw@mail.gmail.com>
-Subject: Re: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
-To:     David Laight <David.Laight@aculab.com>
-Cc:     Christoph Hellwig <hch@lst.de>,
+        id S241777AbhDLNMO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 12 Apr 2021 09:12:14 -0400
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:35762 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S241771AbhDLNMH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 12 Apr 2021 09:12:07 -0400
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
+ TLS) by relay.mimecast.com with ESMTP id
+ uk-mta-107-jlA7rlBNM9W_p6yNzfFSUA-1; Mon, 12 Apr 2021 14:11:46 +0100
+X-MC-Unique: jlA7rlBNM9W_p6yNzfFSUA-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.2; Mon, 12 Apr 2021 14:11:45 +0100
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.012; Mon, 12 Apr 2021 14:11:45 +0100
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Arnd Bergmann' <arnd@arndb.de>
+CC:     Christoph Hellwig <hch@lst.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
@@ -59,53 +52,75 @@ Cc:     Christoph Hellwig <hch@lst.de>,
         "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
         "linux-arm-kernel@lists.infradead.org" 
         <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:ry5qE36iTjjdSwzAcL8h8BXii7Lhlh98QV8EyNEqwW+LuSKlGh4
- 8NBpO+ZKGIKdQ6RR1HuFLLQggTJPjETQbl0Rt0gsezdbZs/2uY1hZmO25GbYsJOVCwi4MG0
- c+FdeGvY6HY6K4phyVjGP15zuM514kYs4+j448yQXSg2kYBIqo3YphmyjFVflKaW49pbLEi
- Jyz4TnRH0bzl7LDE7JPAQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:FHKdfwr0Mls=:H46YUUEUGTT9Qoa9VQtGun
- RuMFYLKVnW8xBofB+zmI0u56rIjfmCyL30LMEE2Fd6UzlCyJ4oBnBVGdVz+wQ9DDNk2yMxz+i
- /Gdshu4u0ewFe5o+i8GzjWPKK2sfIgIiq2afIuvL+SQzfpgLcD9ILbFi5AAuobdu/9ySvpoGv
- 04kcB2mwbfYu9yiwPK6tPtcaGEoax7pa/LfRLVIMv2xhQryRT7VZVE4bt8HpACEYKruO3hbXe
- bnQg6eNaHWgrKDp8nW1ixIyN3gQBPGq/QibUWg/9uwGtNiJBRtEQJ+VsGboPAcWYt8bGTuozb
- +uaafmgm5GfuSMh8YuRUyWZM34lMwjLSPEPRRSrxe0beVFTfJK7yHsb4H/H48BsKa/qxbpn/4
- rqMaj6WJU3rQSYwd766LtLoveS2Tjlue2aA6QeyLOid3HGt1p6iMNZ8Lh4YvUvIYGklumxGXd
- T9iZYLVuFIBbotcZ/lMEwEe48u8DHCBxO2tVP/9VZLRGk6LX5BkeeSpZG5a5hl97qwAXgl/FH
- wv2PjUEuyUj4ulnlvJ+WTmWmgCGo1XoOcAnvAOD1N8JBHueEyh924AaiOIloaHWVcHpK+Bp6A
- yKxwEO3ykjARw9Hv/iUAWjW/yBqj8nzTV7
+Subject: RE: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
+Thread-Topic: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
+Thread-Index: AQHXL3nAXViKKuH90kqxIUkBtWSuL6qwmWXwgAATjVCAAACRAIAAKVLA
+Date:   Mon, 12 Apr 2021 13:11:45 +0000
+Message-ID: <0bef075082b244d2b7a5a140336a40d5@AcuMS.aculab.com>
+References: <20210412085545.2595431-1-hch@lst.de>
+ <20210412085545.2595431-6-hch@lst.de>
+ <15be19af19174c7692dd795297884096@AcuMS.aculab.com>
+ <5c3635a2b44a496b88d665e8686d9436@AcuMS.aculab.com>
+ <CAK8P3a1JZ=JerasdkntzX_ApaCF7C29ZS1E31aPQATOts0ZiLw@mail.gmail.com>
+In-Reply-To: <CAK8P3a1JZ=JerasdkntzX_ApaCF7C29ZS1E31aPQATOts0ZiLw@mail.gmail.com>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
+MIME-Version: 1.0
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Apr 12, 2021 at 12:54 PM David Laight <David.Laight@aculab.com> wrote:
-> From: David Laight > Sent: 12 April 2021 10:37
-> ...
-> > I'm guessing that compat_pid_t is 16 bits?
-> > So the native 32bit version has an unnamed 2 byte structure pad.
-> > The 'packed' removes this pad from the compat structure.
-> >
-> > AFAICT (apart from mips) the __ARCH_COMPAT_FLOCK_PAD is just
-> > adding an explicit pad for the implicit pad the compiler
-> > would generate because compat_pid_t is 16 bits.
->
-> I've just looked at the header.
-> compat_pid_t is 32 bits.
-> So Linux must have gained 32bit pids at some earlier time.
-> (Historically Unix pids were 16 bit - even on 32bit systems.)
->
-> Which makes the explicit pad in 'sparc' rather 'interesting'.
+RnJvbTogQXJuZCBCZXJnbWFubg0KPiBTZW50OiAxMiBBcHJpbCAyMDIxIDEyOjI2DQo+IA0KPiBP
+biBNb24sIEFwciAxMiwgMjAyMSBhdCAxMjo1NCBQTSBEYXZpZCBMYWlnaHQgPERhdmlkLkxhaWdo
+dEBhY3VsYWIuY29tPiB3cm90ZToNCj4gPiBGcm9tOiBEYXZpZCBMYWlnaHQgPiBTZW50OiAxMiBB
+cHJpbCAyMDIxIDEwOjM3DQo+ID4gLi4uDQo+ID4gPiBJJ20gZ3Vlc3NpbmcgdGhhdCBjb21wYXRf
+cGlkX3QgaXMgMTYgYml0cz8NCj4gPiA+IFNvIHRoZSBuYXRpdmUgMzJiaXQgdmVyc2lvbiBoYXMg
+YW4gdW5uYW1lZCAyIGJ5dGUgc3RydWN0dXJlIHBhZC4NCj4gPiA+IFRoZSAncGFja2VkJyByZW1v
+dmVzIHRoaXMgcGFkIGZyb20gdGhlIGNvbXBhdCBzdHJ1Y3R1cmUuDQo+ID4gPg0KPiA+ID4gQUZB
+SUNUIChhcGFydCBmcm9tIG1pcHMpIHRoZSBfX0FSQ0hfQ09NUEFUX0ZMT0NLX1BBRCBpcyBqdXN0
+DQo+ID4gPiBhZGRpbmcgYW4gZXhwbGljaXQgcGFkIGZvciB0aGUgaW1wbGljaXQgcGFkIHRoZSBj
+b21waWxlcg0KPiA+ID4gd291bGQgZ2VuZXJhdGUgYmVjYXVzZSBjb21wYXRfcGlkX3QgaXMgMTYg
+Yml0cy4NCj4gPg0KPiA+IEkndmUganVzdCBsb29rZWQgYXQgdGhlIGhlYWRlci4NCj4gPiBjb21w
+YXRfcGlkX3QgaXMgMzIgYml0cy4NCj4gPiBTbyBMaW51eCBtdXN0IGhhdmUgZ2FpbmVkIDMyYml0
+IHBpZHMgYXQgc29tZSBlYXJsaWVyIHRpbWUuDQo+ID4gKEhpc3RvcmljYWxseSBVbml4IHBpZHMg
+d2VyZSAxNiBiaXQgLSBldmVuIG9uIDMyYml0IHN5c3RlbXMuKQ0KPiA+DQo+ID4gV2hpY2ggbWFr
+ZXMgdGhlIGV4cGxpY2l0IHBhZCBpbiAnc3BhcmMnIHJhdGhlciAnaW50ZXJlc3RpbmcnLg0KPiAN
+Cj4gSSBzYXcgaXQgd2FzIHRoZXJlIHNpbmNlIHRoZSBzcGFyYyBrZXJuZWwgc3VwcG9ydCBnb3Qg
+bWVyZ2VkIGluDQo+IGxpbnV4LTEuMywgcG9zc2libHkgY29waWVkIGZyb20gYW4gb2xkZXIgc3Vu
+b3MgdmVyc2lvbi4NCg0KV2hpY2ggaGFkIGEgMTZiaXQgcGlkIHdoZW4gSSB1c2VkIGl0Lg0KU28g
+dGhpcyBpcyBhIGJ1ZyBpbiB0aGUgc3BhcmMgbWVyZ2UhDQoNClRoZSBleHBsaWNpdCAnc2hvcnQn
+IHBhZCBjb3VsZCBiZSByZW1vdmVkIGZyb20gdGhlIDY0Yml0IHZhcmlhbnQNCmJlY2F1c2UgdGhl
+cmUgYXJlIGFsd2F5cyA0IGJ5dGVzIG9mIHBhZCBhZnRlciBsX3BpZC4NCkJ1dCBpdCBkb2VzIGV4
+dGVuZCB0aGUgYXBwbGljYXRpb24gc3RydWN0dXJlIG9uIDMyYml0IHNwYXJjIHNvIG11c3QNCnJl
+bWFpbiBpbiB0aGUgdWFwaSBoZWFkZXIuDQpJdCBkb2Vzbid0IG5lZWQgdG8gYmUgaW4gdGhlICdj
+b21wYXQnIGRlZmluaXRpb24uDQoNCj4gPiBvaCAtIGNvbXBhdF9sb2ZmX3QgaXMgb25seSB1c2Vk
+IGluIGEgY291cGxlIG9mIG90aGVyIHBsYWNlcy4NCj4gPiBuZWl0aGVyIGNhcmUgaW4gYW55IHdh
+eSBhYm91dCB0aGUgYWxpZ25tZW50Lg0KPiA+IChQcm92aWRlZCBnZXRfdXNlcigpIGRvZXNuJ3Qg
+ZmF1bHQgb24gYSA4bis0IGFsaWduZWQgYWRkcmVzcy4pDQo+IA0KPiBBaCByaWdodCwgSSBhbHNv
+IHNlZSB0aGF0IGFmdGVyIHRoaXMgc2VyaWVzIGl0J3Mgb25seSB1c2VkIGluIHRvIG90aGVyDQo+
+IHBsYWNlczogIGNvbXBhdF9yZXN1bWVfc3dhcF9hcmVhLCB3aGljaCBjb3VsZCBhbHNvIGxvc2Ug
+dGhlDQo+IF9fcGFja2VkIGFubm90YXRpb24sDQoNClRoYXQgc3RydWN0dXJlIGp1c3QgZGVmaW5l
+cyAwIGFuZCA4LCB0aGUgc3RydWN0dXJlIHNpemUgZG9lc24ndA0KbWF0dGVyIGFuZCB0aGUgb2Zm
+c2V0cyBhcmUgJ3Bhc3NlZCB0bycgZ2V0X3VzZXIoKSBzbyBieXRlDQphY2Nlc3NlcyBhcmVuJ3Qg
+cGVyZm9ybWVkLg0KDQo+IGFuZCBpbiB0aGUgZGVjbGFyYXRpb24gb2YNCj4gY29tcGF0X3N5c19z
+ZW5kZmlsZTY0LCB3aGVyZSBpdCBtYWtlcyBubyBkaWZmZXJlbmNlLg0KDQpXaGljaCBzaG91bGQg
+cHJvYmFibHkgdXNlIGdldF91c2VyKCkgcmF0aGVyIHRoYW4gY29weV9mcm9tX3VzZXIoKS4NCg0K
+QWx0aG91Z2ggc29tZSBhcmNoaXRlY3R1cmVzIG1heSBuZWVkIGZhbGxiYWNrIGNvZGUgZm9yDQpt
+aXNhbGlnbmVkIGdldF91c2VyKCkgPw0KT3IgaXMgdGhlcmUgYSBnZW5lcmFsICdjb3Agb3V0JyB0
+aGF0IHN0cnVjdHVyZXMgcGFzc2VkIHRvIHRoZQ0Ka2VybmVsIGFyZSByZXF1aXJlZCB0byBiZSBj
+b3JyZWN0bHkgYWxpZ25lZC4NClRoZXkgc2hvdWxkIGJlIGFsaWduZWQgdW5sZXNzIHRoZSBrZXJu
+ZWwgaXMgJ3BsYXlpbmcgZ2FtZXMnDQpsaWtlIHJlYWRpbmcgJ3N0cnVjdCBwb2xsZmQnIGFzIGEg
+NjRiaXQgaXRlbS4NCg0KCURhdmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVzcyBMYWtlc2lkZSwg
+QnJhbWxleSBSb2FkLCBNb3VudCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEgMVBULCBVSw0KUmVn
+aXN0cmF0aW9uIE5vOiAxMzk3Mzg2IChXYWxlcykNCg==
 
-I saw it was there since the sparc kernel support got merged in
-linux-1.3, possibly copied from an older sunos version.
-
-> oh - compat_loff_t is only used in a couple of other places.
-> neither care in any way about the alignment.
-> (Provided get_user() doesn't fault on a 8n+4 aligned address.)
-
-Ah right, I also see that after this series it's only used in to other
-places:  compat_resume_swap_area, which could also lose the
-__packed annotation, and in the declaration of
-compat_sys_sendfile64, where it makes no difference.
-
-      Arnd
