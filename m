@@ -2,121 +2,148 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BE4BC433B4
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 15:41:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D694C43462
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 23:49:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8FD661158
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 15:41:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B4186109D
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 23:49:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233558AbhDOPlv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 15 Apr 2021 11:41:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54446 "EHLO
+        id S235827AbhDOXuO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 15 Apr 2021 19:50:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231137AbhDOPlu (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Apr 2021 11:41:50 -0400
-Received: from mail-wr1-x429.google.com (mail-wr1-x429.google.com [IPv6:2a00:1450:4864:20::429])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E619C061574
-        for <sparclinux@vger.kernel.org>; Thu, 15 Apr 2021 08:41:27 -0700 (PDT)
-Received: by mail-wr1-x429.google.com with SMTP id p6so17048318wrn.9
-        for <sparclinux@vger.kernel.org>; Thu, 15 Apr 2021 08:41:27 -0700 (PDT)
+        with ESMTP id S235576AbhDOXuN (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Apr 2021 19:50:13 -0400
+Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80220C061574;
+        Thu, 15 Apr 2021 16:49:49 -0700 (PDT)
+Received: by mail-lf1-x12f.google.com with SMTP id j4so2383135lfp.0;
+        Thu, 15 Apr 2021 16:49:49 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=isovalent-com.20150623.gappssmtp.com; s=20150623;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-language:content-transfer-encoding;
-        bh=qzCmIc5xh7d+ubWNy7gZo3UPfbkyUvg8kMmWmppBNes=;
-        b=BEj/1/8XPncnjRfRK8mLiZ1SoZ2+BwrE+a39LxPwB/MsIFJnzBAICQLZ2jiwGGbQov
-         4zqh7un0jhEP1iNaKM1PurWOo4uOYi/n2gtxwCVm76y8egSWq0m6KnadRWC5DH8hi34C
-         K41+UsN0jCiClEebcR9kPZsL0Lx6/VJV5Li9dNkP8mG/+bW6Uxqyyarpphfbe13+sVlb
-         FizX/3RV1YXqCKanusixVoY8OxsNOXFXCWpfkOB2NeLmRvAHXodqwMYxxCYasGQZQftV
-         OsBicx1g9iYrnNMRoDBiJ4p9GtlEji++P0zPJAhhkeDvxObWb1E6q5IO+XBq+ah9VkM2
-         b8CQ==
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=93RaKIcPxj4ed/vj3/T6taZCo8gljqrXH2nCGhdkM1Q=;
+        b=aBCM67HeOS1RQpmZ9d1xkBbfZ9OjHVKizD6JMJntC1jztjXCaMAD4PxLVP6PE65ty3
+         cKPeKzgiEbgw3SQZ8eR83qtBjTP2OYUdbnqkzhUAbE0u+1hOdGsAn8xKem5MzABFlQgD
+         mRXyEbRdJWemOBA5ZL1H2F5rm/kMfg/eeqCccq1PGYnduzRrD+ZOmE6Jc8ZifznL8idv
+         FrDgLXsLKsMduLqpBFFg7xH0u5XmXHclHLbXV0TX9HDDr95c+SXlKyzlZoT5Ez5tEE8O
+         yL7SLoB/UGXylkkP0jVvQUti3azG7QIpldbt+d5lTdgqR0VqbJM4y+Fb3QAjnu0TlNPa
+         AWGw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=qzCmIc5xh7d+ubWNy7gZo3UPfbkyUvg8kMmWmppBNes=;
-        b=s0qa1xTM8KP0GUuZZMxAua5/xP+WmcoF8WY8YsphlVv2mz1+dREWRQ6/Duv0TOq8Us
-         QrUWY6cUYUcCNhpJnUfZCMfhJgGaFrWXc67xgqEsxmcF8Oot0hw5poT5q2O6K6/UzpXQ
-         4fdKO63GYqonEapB8KdDIEi7vPclGm5HL/CN7hogh9e9qx5xPmgzm5FB0KU/TLkOsHZm
-         4ojWKAJAwp86uu/Cav4LJ6VoHewgu7GfTAw/NAYUw/c5DTv+1leDr7fLDPyXnrId83Ip
-         Y1fxjd/7q5qf7lM/R2/KqxFsx8VaNFUC/bGAOCmRJ9y4myujqmTMI9ndvuQ42ZepLJJ2
-         f2KA==
-X-Gm-Message-State: AOAM530fd9PWxq8Xl1CUkMR/evT0h/PtpnZnb1E1S0QR4w06Axf3acBd
-        AcCW2kzks727qVvAFubG3rDB/w==
-X-Google-Smtp-Source: ABdhPJyLNMOWPYjLpplPAmINNkz2Fou+qVJXho8kWclmtHcejA/NRHvG9yzn7ifRTNHYBMXjICP1Nw==
-X-Received: by 2002:a05:6000:ca:: with SMTP id q10mr4272021wrx.104.1618501286182;
-        Thu, 15 Apr 2021 08:41:26 -0700 (PDT)
-Received: from [192.168.1.8] ([149.86.87.196])
-        by smtp.gmail.com with ESMTPSA id l14sm1920076wmq.4.2021.04.15.08.41.24
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 15 Apr 2021 08:41:25 -0700 (PDT)
-Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
-To:     Daniel Borkmann <daniel@iogearbox.net>,
-        Jianlin Lv <Jianlin.Lv@arm.com>, bpf@vger.kernel.org
-Cc:     corbet@lwn.net, ast@kernel.org, andrii@kernel.org, kafai@fb.com,
-        songliubraving@fb.com, yhs@fb.com, john.fastabend@gmail.com,
-        kpsingh@kernel.org, davem@davemloft.net, kuba@kernel.org,
-        illusionist.neo@gmail.com, linux@armlinux.org.uk,
-        zlim.lnx@gmail.com, catalin.marinas@arm.com, will@kernel.org,
-        paulburton@kernel.org, tsbogend@alpha.franken.de,
-        naveen.n.rao@linux.ibm.com, sandipan@linux.ibm.com,
-        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
-        luke.r.nels@gmail.com, xi.wang@gmail.com, bjorn@kernel.org,
-        paul.walmsley@sifive.com, palmer@dabbelt.com,
-        aou@eecs.berkeley.edu, iii@linux.ibm.com, hca@linux.ibm.com,
-        gor@linux.ibm.com, borntraeger@de.ibm.com, yoshfuji@linux-ipv6.org,
-        dsahern@kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, x86@kernel.org, hpa@zytor.com, udknight@gmail.com,
-        mchehab+huawei@kernel.org, dvyukov@google.com, maheshb@google.com,
-        horms@verge.net.au, nicolas.dichtel@6wind.com,
-        viro@zeniv.linux.org.uk, masahiroy@kernel.org,
-        keescook@chromium.org, tklauser@distanz.ch, grantseltzer@gmail.com,
-        irogers@google.com, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        iecedge@gmail.com
-References: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
- <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
-From:   Quentin Monnet <quentin@isovalent.com>
-Message-ID: <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
-Date:   Thu, 15 Apr 2021 16:41:23 +0100
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.1
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=93RaKIcPxj4ed/vj3/T6taZCo8gljqrXH2nCGhdkM1Q=;
+        b=NBeeKEl+SDqHxh0WzmN7s/knZGZEHz9+ow9jKXLEnCkg8ZCNlAK8VquipOILHOPasM
+         G6PX5iw5kJFSM/WWJQdJFnxhnGANHBNakvIkAgPKiC3eHVS65skz8zcNslTG/8GeJPeX
+         D+KY5lvbBuvNfEOUcMl6oTYR05yesWVw/iX2LbOj4YzVvuL7R+Wl0KayDpLfR4p1z/Cz
+         aF2TWgaOdOiKC5qW9nKluFNK77YYTM/OwywIEzkTlqXh3q6DO6WSShNGLpqEXkUfq+dW
+         o6cXoVD0x5kjaWeo0yMAI+B5q+XrSUbF1ONuX+O9VEtOY0xofyCkNZ3OxQ13ZtCK8gaG
+         Dgog==
+X-Gm-Message-State: AOAM533kX0OdH+H6rXq5RAVhK167nyX6Qf7HgnHu+iQQszdYyqGY76hQ
+        57otHoWt+UXRfpV77SDnzsBgyrpvEbjNSULikuk=
+X-Google-Smtp-Source: ABdhPJyNhOogFP8g+e8x1hnSTCcEzJfdpg/9ifXfqOKSgpR6Q7EyYPjeRQKWzaeLUb3+uY3vv8XYIkkzgMMMfdz4tQA=
+X-Received: by 2002:ac2:4d4d:: with SMTP id 13mr1106974lfp.540.1618530588068;
+ Thu, 15 Apr 2021 16:49:48 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+References: <20210415093250.3391257-1-Jianlin.Lv@arm.com> <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
+ <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
+In-Reply-To: <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Thu, 15 Apr 2021 16:49:36 -0700
+Message-ID: <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
+Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
+To:     Quentin Monnet <quentin@isovalent.com>
+Cc:     Daniel Borkmann <daniel@iogearbox.net>,
+        Jianlin Lv <Jianlin.Lv@arm.com>, bpf <bpf@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Shubham Bansal <illusionist.neo@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Zi Shen Lim <zlim.lnx@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, paulburton@kernel.org,
+        tsbogend@alpha.franken.de,
+        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+        Sandipan Das <sandipan@linux.ibm.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Luke Nelson <luke.r.nels@gmail.com>,
+        Xi Wang <xi.wang@gmail.com>,
+        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Ilya Leoshkevich <iii@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
+        Wang YanQing <udknight@gmail.com>,
+        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Mahesh Bandewar <maheshb@google.com>,
+        Simon Horman <horms@verge.net.au>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Tobias Klauser <tklauser@distanz.ch>, grantseltzer@gmail.com,
+        Ian Rogers <irogers@google.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Network Development <netdev@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-mips@vger.kernel.org,
+        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux@vger.kernel.org, iecedge@gmail.com
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
-> On 4/15/21 11:32 AM, Jianlin Lv wrote:
->> For debugging JITs, dumping the JITed image to kernel log is discouraged,
->> "bpftool prog dump jited" is much better way to examine JITed dumps.
->> This patch get rid of the code related to bpf_jit_enable=2 mode and
->> update the proc handler of bpf_jit_enable, also added auxiliary
->> information to explain how to use bpf_jit_disasm tool after this change.
->>
->> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> wrote:
+>
+> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
+> > On 4/15/21 11:32 AM, Jianlin Lv wrote:
+> >> For debugging JITs, dumping the JITed image to kernel log is discouraged,
+> >> "bpftool prog dump jited" is much better way to examine JITed dumps.
+> >> This patch get rid of the code related to bpf_jit_enable=2 mode and
+> >> update the proc handler of bpf_jit_enable, also added auxiliary
+> >> information to explain how to use bpf_jit_disasm tool after this change.
+> >>
+> >> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+>
+> Hello,
+>
+> For what it's worth, I have already seen people dump the JIT image in
+> kernel logs in Qemu VMs running with just a busybox, not for kernel
+> development, but in a context where buiding/using bpftool was not
+> possible.
 
-Hello,
-
-For what it's worth, I have already seen people dump the JIT image in
-kernel logs in Qemu VMs running with just a busybox, not for kernel
-development, but in a context where buiding/using bpftool was not
-possible. Maybe not a common case, but still, removing the debugging
-mode will make that impossible. Is there a particular incentive to
-remove the feature?
-
-Best regards,
-Quentin
+If building/using bpftool is not possible then majority of selftests won't
+be exercised. I don't think such environment is suitable for any kind
+of bpf development. Much so for JIT debugging.
+While bpf_jit_enable=2 is nothing but the debugging tool for JIT developers.
+I'd rather nuke that code instead of carrying it from kernel to kernel.
