@@ -2,244 +2,359 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.3 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33322C43470
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 04:40:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70D79C43470
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 09:33:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0568B60E0B
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 04:39:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 538266113B
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 09:33:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbhDOEkU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 15 Apr 2021 00:40:20 -0400
-Received: from foss.arm.com ([217.140.110.172]:37228 "EHLO foss.arm.com"
+        id S231918AbhDOJdn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 15 Apr 2021 05:33:43 -0400
+Received: from foss.arm.com ([217.140.110.172]:41198 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229450AbhDOEkT (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 15 Apr 2021 00:40:19 -0400
+        id S230260AbhDOJdm (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 15 Apr 2021 05:33:42 -0400
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E0098113E;
-        Wed, 14 Apr 2021 21:39:55 -0700 (PDT)
-Received: from [10.163.73.114] (unknown [10.163.73.114])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6A6073F73B;
-        Wed, 14 Apr 2021 21:39:49 -0700 (PDT)
-Subject: Re: [PATCH] mm: Define ARCH_HAS_FIRST_USER_ADDRESS
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>, linux-mm@kvack.org,
-        akpm@linux-foundation.org
-Cc:     linux-s390@vger.kernel.org, x86@kernel.org,
-        linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-sh@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-mips@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        openrisc@lists.librecores.org, linux-alpha@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-arm-kernel@lists.infradead.org
-References: <1618368899-20311-1-git-send-email-anshuman.khandual@arm.com>
- <f29ba8e2-3071-c963-1e9f-e8c88526ed8d@csgroup.eu>
- <6d24d3cc-b2df-f0d7-f4bf-f505f679c77e@arm.com>
- <ec7bbb30-dbbd-197b-4d65-eb3600fe6413@csgroup.eu>
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-Message-ID: <e9d1a342-b444-efd5-d11f-79aa4d11fabc@arm.com>
-Date:   Thu, 15 Apr 2021 10:10:38 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 6837612FC;
+        Thu, 15 Apr 2021 02:33:19 -0700 (PDT)
+Received: from net-arm-thunderx2-02.shanghai.arm.com (net-arm-thunderx2-02.shanghai.arm.com [10.169.208.215])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 2ACE53F694;
+        Thu, 15 Apr 2021 02:33:01 -0700 (PDT)
+From:   Jianlin Lv <Jianlin.Lv@arm.com>
+To:     bpf@vger.kernel.org
+Cc:     corbet@lwn.net, ast@kernel.org, daniel@iogearbox.net,
+        andrii@kernel.org, kafai@fb.com, songliubraving@fb.com, yhs@fb.com,
+        john.fastabend@gmail.com, kpsingh@kernel.org, davem@davemloft.net,
+        kuba@kernel.org, illusionist.neo@gmail.com, linux@armlinux.org.uk,
+        zlim.lnx@gmail.com, catalin.marinas@arm.com, will@kernel.org,
+        paulburton@kernel.org, tsbogend@alpha.franken.de,
+        naveen.n.rao@linux.ibm.com, sandipan@linux.ibm.com,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        luke.r.nels@gmail.com, xi.wang@gmail.com, bjorn@kernel.org,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, iii@linux.ibm.com, hca@linux.ibm.com,
+        gor@linux.ibm.com, borntraeger@de.ibm.com, yoshfuji@linux-ipv6.org,
+        dsahern@kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, x86@kernel.org, hpa@zytor.com, udknight@gmail.com,
+        mchehab+huawei@kernel.org, dvyukov@google.com, maheshb@google.com,
+        horms@verge.net.au, nicolas.dichtel@6wind.com,
+        viro@zeniv.linux.org.uk, masahiroy@kernel.org,
+        keescook@chromium.org, quentin@isovalent.com, tklauser@distanz.ch,
+        grantseltzer@gmail.com, irogers@google.com,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        netdev@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, Jianlin.Lv@arm.com, iecedge@gmail.com
+Subject: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
+Date:   Thu, 15 Apr 2021 17:32:49 +0800
+Message-Id: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-In-Reply-To: <ec7bbb30-dbbd-197b-4d65-eb3600fe6413@csgroup.eu>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 4/14/21 11:40 AM, Christophe Leroy wrote:
-> 
-> 
-> Le 14/04/2021 à 07:59, Anshuman Khandual a écrit :
->>
->>
->> On 4/14/21 10:52 AM, Christophe Leroy wrote:
->>>
->>>
->>> Le 14/04/2021 à 04:54, Anshuman Khandual a écrit :
->>>> Currently most platforms define FIRST_USER_ADDRESS as 0UL duplicating the
->>>> same code all over. Instead define a new option ARCH_HAS_FIRST_USER_ADDRESS
->>>> for those platforms which would override generic default FIRST_USER_ADDRESS
->>>> value 0UL. This makes it much cleaner with reduced code.
->>>>
->>>> Cc: linux-alpha@vger.kernel.org
->>>> Cc: linux-snps-arc@lists.infradead.org
->>>> Cc: linux-arm-kernel@lists.infradead.org
->>>> Cc: linux-csky@vger.kernel.org
->>>> Cc: linux-hexagon@vger.kernel.org
->>>> Cc: linux-ia64@vger.kernel.org
->>>> Cc: linux-m68k@lists.linux-m68k.org
->>>> Cc: linux-mips@vger.kernel.org
->>>> Cc: openrisc@lists.librecores.org
->>>> Cc: linux-parisc@vger.kernel.org
->>>> Cc: linuxppc-dev@lists.ozlabs.org
->>>> Cc: linux-riscv@lists.infradead.org
->>>> Cc: linux-s390@vger.kernel.org
->>>> Cc: linux-sh@vger.kernel.org
->>>> Cc: sparclinux@vger.kernel.org
->>>> Cc: linux-um@lists.infradead.org
->>>> Cc: linux-xtensa@linux-xtensa.org
->>>> Cc: x86@kernel.org
->>>> Cc: linux-mm@kvack.org
->>>> Cc: linux-kernel@vger.kernel.org
->>>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
->>>> ---
->>>>    arch/alpha/include/asm/pgtable.h             | 1 -
->>>>    arch/arc/include/asm/pgtable.h               | 6 ------
->>>>    arch/arm/Kconfig                             | 1 +
->>>>    arch/arm64/include/asm/pgtable.h             | 2 --
->>>>    arch/csky/include/asm/pgtable.h              | 1 -
->>>>    arch/hexagon/include/asm/pgtable.h           | 3 ---
->>>>    arch/ia64/include/asm/pgtable.h              | 1 -
->>>>    arch/m68k/include/asm/pgtable_mm.h           | 1 -
->>>>    arch/microblaze/include/asm/pgtable.h        | 2 --
->>>>    arch/mips/include/asm/pgtable-32.h           | 1 -
->>>>    arch/mips/include/asm/pgtable-64.h           | 1 -
->>>>    arch/nds32/Kconfig                           | 1 +
->>>>    arch/nios2/include/asm/pgtable.h             | 2 --
->>>>    arch/openrisc/include/asm/pgtable.h          | 1 -
->>>>    arch/parisc/include/asm/pgtable.h            | 2 --
->>>>    arch/powerpc/include/asm/book3s/pgtable.h    | 1 -
->>>>    arch/powerpc/include/asm/nohash/32/pgtable.h | 1 -
->>>>    arch/powerpc/include/asm/nohash/64/pgtable.h | 2 --
->>>>    arch/riscv/include/asm/pgtable.h             | 2 --
->>>>    arch/s390/include/asm/pgtable.h              | 2 --
->>>>    arch/sh/include/asm/pgtable.h                | 2 --
->>>>    arch/sparc/include/asm/pgtable_32.h          | 1 -
->>>>    arch/sparc/include/asm/pgtable_64.h          | 3 ---
->>>>    arch/um/include/asm/pgtable-2level.h         | 1 -
->>>>    arch/um/include/asm/pgtable-3level.h         | 1 -
->>>>    arch/x86/include/asm/pgtable_types.h         | 2 --
->>>>    arch/xtensa/include/asm/pgtable.h            | 1 -
->>>>    include/linux/mm.h                           | 4 ++++
->>>>    mm/Kconfig                                   | 4 ++++
->>>>    29 files changed, 10 insertions(+), 43 deletions(-)
->>>>
->>>> diff --git a/include/linux/mm.h b/include/linux/mm.h
->>>> index 8ba434287387..47098ccd715e 100644
->>>> --- a/include/linux/mm.h
->>>> +++ b/include/linux/mm.h
->>>> @@ -46,6 +46,10 @@ extern int sysctl_page_lock_unfairness;
->>>>      void init_mm_internals(void);
->>>>    +#ifndef ARCH_HAS_FIRST_USER_ADDRESS
->>>
->>> I guess you didn't test it ..... :)
->>
->> In fact I did :) Though just booted it on arm64 and cross compiled on
->> multiple others platforms.
+For debugging JITs, dumping the JITed image to kernel log is discouraged,
+"bpftool prog dump jited" is much better way to examine JITed dumps.
+This patch get rid of the code related to bpf_jit_enable=2 mode and
+update the proc handler of bpf_jit_enable, also added auxiliary
+information to explain how to use bpf_jit_disasm tool after this change.
 
-I guess for all platforms, ARCH_HAS_FIRST_USER_ADDRESS would have just
-evaluated to be false hence falling back on the generic definition. So
-this never complained during build any where or during boot on arm64.
+Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+---
+ arch/arm/net/bpf_jit_32.c         |  4 ----
+ arch/arm64/net/bpf_jit_comp.c     |  4 ----
+ arch/mips/net/bpf_jit.c           |  4 ----
+ arch/mips/net/ebpf_jit.c          |  4 ----
+ arch/powerpc/net/bpf_jit_comp.c   | 10 ----------
+ arch/powerpc/net/bpf_jit_comp64.c | 11 -----------
+ arch/riscv/net/bpf_jit_core.c     |  3 ---
+ arch/s390/net/bpf_jit_comp.c      |  4 ----
+ arch/sparc/net/bpf_jit_comp_32.c  |  3 ---
+ arch/sparc/net/bpf_jit_comp_64.c  | 13 -------------
+ arch/x86/net/bpf_jit_comp.c       |  3 ---
+ arch/x86/net/bpf_jit_comp32.c     |  3 ---
+ net/core/sysctl_net_core.c        | 14 +++-----------
+ tools/bpf/bpf_jit_disasm.c        |  2 +-
+ tools/bpf/bpftool/feature.c       |  3 ---
+ 15 files changed, 4 insertions(+), 81 deletions(-)
 
->>
->>>
->>> should be #ifndef CONFIG_ARCH_HAS_FIRST_USER_ADDRESS
->>
->> Right, meant that instead.
->>
->>>
->>>> +#define FIRST_USER_ADDRESS    0UL
->>>> +#endif
->>>
->>> But why do we need a config option at all for that ?
->>>
->>> Why not just:
->>>
->>> #ifndef FIRST_USER_ADDRESS
->>> #define FIRST_USER_ADDRESS    0UL
->>> #endif
->>
->> This sounds simpler. But just wondering, would not there be any possibility
->> of build problems due to compilation sequence between arch and generic code ?
->>
-> 
-> For sure it has to be addresses carefully, but there are already a lot of stuff like that around pgtables.h
-> 
-> For instance, pte_offset_kernel() has a generic definition in linux/pgtables.h based on whether it is already defined or not.
-> 
-> Taking into account that FIRST_USER_ADDRESS is today in the architectures's asm/pgtables.h, I think putting the fallback definition in linux/pgtable.h would do the trick.
-
-Agreed, <linux/pgtable.h> includes <asm/pgtable.h> at the beginning and
-if the arch defines FIRST_USER_ADDRESS, the generic one afterwards would
-be skipped. The following change builds on multiple platforms.
-
-diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
-index ad086e6d7155..5da96f5df48f 100644
---- a/arch/arm/Kconfig
-+++ b/arch/arm/Kconfig
-@@ -7,7 +7,6 @@ config ARM
- 	select ARCH_HAS_DEBUG_VIRTUAL if MMU
- 	select ARCH_HAS_DMA_WRITE_COMBINE if !ARM_DMA_MEM_BUFFERABLE
- 	select ARCH_HAS_ELF_RANDOMIZE
--	select ARCH_HAS_FIRST_USER_ADDRESS
- 	select ARCH_HAS_FORTIFY_SOURCE
- 	select ARCH_HAS_KEEPINITRD
- 	select ARCH_HAS_KCOV
-diff --git a/arch/nds32/Kconfig b/arch/nds32/Kconfig
-index 23ec4fcc0d0f..62313902d75d 100644
---- a/arch/nds32/Kconfig
-+++ b/arch/nds32/Kconfig
-@@ -8,7 +8,6 @@ config NDS32
- 	def_bool y
- 	select ARCH_32BIT_OFF_T
- 	select ARCH_HAS_DMA_PREP_COHERENT
--	select ARCH_HAS_FIRST_USER_ADDRESS
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
- 	select ARCH_HAS_SYNC_DMA_FOR_DEVICE
- 	select ARCH_WANT_FRAME_POINTERS if FTRACE
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 47098ccd715e..8ba434287387 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -46,10 +46,6 @@ extern int sysctl_page_lock_unfairness;
+diff --git a/arch/arm/net/bpf_jit_32.c b/arch/arm/net/bpf_jit_32.c
+index 897634d0a67c..92d669c0b2d3 100644
+--- a/arch/arm/net/bpf_jit_32.c
++++ b/arch/arm/net/bpf_jit_32.c
+@@ -1997,10 +1997,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 	}
+ 	flush_icache_range((u32)header, (u32)(ctx.target + ctx.idx));
  
- void init_mm_internals(void);
- 
--#ifndef ARCH_HAS_FIRST_USER_ADDRESS
--#define FIRST_USER_ADDRESS	0UL
--#endif
+-	if (bpf_jit_enable > 1)
+-		/* there are 2 passes here */
+-		bpf_jit_dump(prog->len, image_size, 2, ctx.target);
 -
- #ifndef CONFIG_NEED_MULTIPLE_NODES	/* Don't use mapnrs, do it properly */
- extern unsigned long max_mapnr;
+ 	bpf_jit_binary_lock_ro(header);
+ 	prog->bpf_func = (void *)ctx.target;
+ 	prog->jited = 1;
+diff --git a/arch/arm64/net/bpf_jit_comp.c b/arch/arm64/net/bpf_jit_comp.c
+index f7b194878a99..a13b83ac4ca8 100644
+--- a/arch/arm64/net/bpf_jit_comp.c
++++ b/arch/arm64/net/bpf_jit_comp.c
+@@ -1090,10 +1090,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 		goto out_off;
+ 	}
  
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 5e772392a379..f3da6a5cc35a 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -28,6 +28,10 @@
- #define USER_PGTABLES_CEILING	0UL
- #endif
+-	/* And we're done. */
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(prog->len, prog_size, 2, ctx.image);
+-
+ 	bpf_flush_icache(header, ctx.image + ctx.idx);
  
-+#ifndef FIRST_USER_ADDRESS
-+#define FIRST_USER_ADDRESS	0UL
-+#endif
-+
- /*
-  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+ 	if (!prog->is_func || extra_pass) {
+diff --git a/arch/mips/net/bpf_jit.c b/arch/mips/net/bpf_jit.c
+index 0af88622c619..b5221282dd88 100644
+--- a/arch/mips/net/bpf_jit.c
++++ b/arch/mips/net/bpf_jit.c
+@@ -1250,10 +1250,6 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 	/* Update the icache */
+ 	flush_icache_range((ptr)ctx.target, (ptr)(ctx.target + ctx.idx));
+ 
+-	if (bpf_jit_enable > 1)
+-		/* Dump JIT code */
+-		bpf_jit_dump(fp->len, alloc_size, 2, ctx.target);
+-
+ 	fp->bpf_func = (void *)ctx.target;
+ 	fp->jited = 1;
+ 
+diff --git a/arch/mips/net/ebpf_jit.c b/arch/mips/net/ebpf_jit.c
+index 939dd06764bc..dac5a1fc2462 100644
+--- a/arch/mips/net/ebpf_jit.c
++++ b/arch/mips/net/ebpf_jit.c
+@@ -1910,10 +1910,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 	flush_icache_range((unsigned long)ctx.target,
+ 			   (unsigned long)&ctx.target[ctx.idx]);
+ 
+-	if (bpf_jit_enable > 1)
+-		/* Dump JIT code */
+-		bpf_jit_dump(prog->len, image_size, 2, ctx.target);
+-
+ 	bpf_jit_binary_lock_ro(header);
+ 	prog->bpf_func = (void *)ctx.target;
+ 	prog->jited = 1;
+diff --git a/arch/powerpc/net/bpf_jit_comp.c b/arch/powerpc/net/bpf_jit_comp.c
+index e809cb5a1631..ebca629de2d1 100644
+--- a/arch/powerpc/net/bpf_jit_comp.c
++++ b/arch/powerpc/net/bpf_jit_comp.c
+@@ -646,18 +646,8 @@ void bpf_jit_compile(struct bpf_prog *fp)
+ 		bpf_jit_build_prologue(fp, code_base, &cgctx);
+ 		bpf_jit_build_body(fp, code_base, &cgctx, addrs);
+ 		bpf_jit_build_epilogue(code_base, &cgctx);
+-
+-		if (bpf_jit_enable > 1)
+-			pr_info("Pass %d: shrink = %d, seen = 0x%x\n", pass,
+-				proglen - (cgctx.idx * 4), cgctx.seen);
+ 	}
+ 
+-	if (bpf_jit_enable > 1)
+-		/* Note that we output the base address of the code_base
+-		 * rather than image, since opcodes are in code_base.
+-		 */
+-		bpf_jit_dump(flen, proglen, pass, code_base);
+-
+ 	bpf_flush_icache(code_base, code_base + (proglen/4));
+ 
+ #ifdef CONFIG_PPC64
+diff --git a/arch/powerpc/net/bpf_jit_comp64.c b/arch/powerpc/net/bpf_jit_comp64.c
+index aaf1a887f653..26243399ef2e 100644
+--- a/arch/powerpc/net/bpf_jit_comp64.c
++++ b/arch/powerpc/net/bpf_jit_comp64.c
+@@ -1215,20 +1215,9 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *fp)
+ 		bpf_jit_build_prologue(code_base, &cgctx);
+ 		bpf_jit_build_body(fp, code_base, &cgctx, addrs, extra_pass);
+ 		bpf_jit_build_epilogue(code_base, &cgctx);
+-
+-		if (bpf_jit_enable > 1)
+-			pr_info("Pass %d: shrink = %d, seen = 0x%x\n", pass,
+-				proglen - (cgctx.idx * 4), cgctx.seen);
+ 	}
+ 
+ skip_codegen_passes:
+-	if (bpf_jit_enable > 1)
+-		/*
+-		 * Note that we output the base address of the code_base
+-		 * rather than image, since opcodes are in code_base.
+-		 */
+-		bpf_jit_dump(flen, proglen, pass, code_base);
+-
+ #ifdef PPC64_ELF_ABI_v1
+ 	/* Function descriptor nastiness: Address + TOC */
+ 	((u64 *)image)[0] = (u64)code_base;
+diff --git a/arch/riscv/net/bpf_jit_core.c b/arch/riscv/net/bpf_jit_core.c
+index 3630d447352c..856b84fb3947 100644
+--- a/arch/riscv/net/bpf_jit_core.c
++++ b/arch/riscv/net/bpf_jit_core.c
+@@ -142,9 +142,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 	}
+ 	bpf_jit_build_epilogue(ctx);
+ 
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(prog->len, image_size, pass, ctx->insns);
+-
+ 	prog->bpf_func = (void *)ctx->insns;
+ 	prog->jited = 1;
+ 	prog->jited_len = image_size;
+diff --git a/arch/s390/net/bpf_jit_comp.c b/arch/s390/net/bpf_jit_comp.c
+index 63cae0476bb4..aa8b94ba694f 100644
+--- a/arch/s390/net/bpf_jit_comp.c
++++ b/arch/s390/net/bpf_jit_comp.c
+@@ -1842,10 +1842,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *fp)
+ 		fp = orig_fp;
+ 		goto free_addrs;
+ 	}
+-	if (bpf_jit_enable > 1) {
+-		bpf_jit_dump(fp->len, jit.size, pass, jit.prg_buf);
+-		print_fn_code(jit.prg_buf, jit.size_prg);
+-	}
+ 	if (!fp->is_func || extra_pass) {
+ 		bpf_jit_binary_lock_ro(header);
+ 	} else {
+diff --git a/arch/sparc/net/bpf_jit_comp_32.c b/arch/sparc/net/bpf_jit_comp_32.c
+index b1dbf2fa8c0a..cb4c55422730 100644
+--- a/arch/sparc/net/bpf_jit_comp_32.c
++++ b/arch/sparc/net/bpf_jit_comp_32.c
+@@ -743,9 +743,6 @@ cond_branch:			f_offset = addrs[i + filter[i].jf];
+ 		oldproglen = proglen;
+ 	}
+ 
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(flen, proglen, pass + 1, image);
+-
+ 	if (image) {
+ 		fp->bpf_func = (void *)image;
+ 		fp->jited = 1;
+diff --git a/arch/sparc/net/bpf_jit_comp_64.c b/arch/sparc/net/bpf_jit_comp_64.c
+index 4b8d3c65d266..09ebd48c4f1b 100644
+--- a/arch/sparc/net/bpf_jit_comp_64.c
++++ b/arch/sparc/net/bpf_jit_comp_64.c
+@@ -1546,16 +1546,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 		}
+ 		build_epilogue(&ctx);
+ 
+-		if (bpf_jit_enable > 1)
+-			pr_info("Pass %d: size = %u, seen = [%c%c%c%c%c%c]\n", pass,
+-				ctx.idx * 4,
+-				ctx.tmp_1_used ? '1' : ' ',
+-				ctx.tmp_2_used ? '2' : ' ',
+-				ctx.tmp_3_used ? '3' : ' ',
+-				ctx.saw_frame_pointer ? 'F' : ' ',
+-				ctx.saw_call ? 'C' : ' ',
+-				ctx.saw_tail_call ? 'T' : ' ');
+-
+ 		if (ctx.idx * 4 == prev_image_size)
+ 			break;
+ 		prev_image_size = ctx.idx * 4;
+@@ -1593,9 +1583,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 		goto out_off;
+ 	}
+ 
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(prog->len, image_size, pass, ctx.image);
+-
+ 	bpf_flush_icache(header, (u8 *)header + (header->pages * PAGE_SIZE));
+ 
+ 	if (!prog->is_func || extra_pass) {
+diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
+index 9eead60f0301..0a511f42a2a7 100644
+--- a/arch/x86/net/bpf_jit_comp.c
++++ b/arch/x86/net/bpf_jit_comp.c
+@@ -2311,9 +2311,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 		cond_resched();
+ 	}
+ 
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(prog->len, proglen, pass + 1, image);
+-
+ 	if (image) {
+ 		if (!prog->is_func || extra_pass) {
+ 			bpf_tail_call_direct_fixup(prog);
+diff --git a/arch/x86/net/bpf_jit_comp32.c b/arch/x86/net/bpf_jit_comp32.c
+index 0a7a2870f111..8d36b4658076 100644
+--- a/arch/x86/net/bpf_jit_comp32.c
++++ b/arch/x86/net/bpf_jit_comp32.c
+@@ -2566,9 +2566,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+ 		cond_resched();
+ 	}
+ 
+-	if (bpf_jit_enable > 1)
+-		bpf_jit_dump(prog->len, proglen, pass + 1, image);
+-
+ 	if (image) {
+ 		bpf_jit_binary_lock_ro(header);
+ 		prog->bpf_func = (void *)image;
+diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
+index c8496c1142c9..990b1720c7a4 100644
+--- a/net/core/sysctl_net_core.c
++++ b/net/core/sysctl_net_core.c
+@@ -273,16 +273,8 @@ static int proc_dointvec_minmax_bpf_enable(struct ctl_table *table, int write,
+ 
+ 	tmp.data = &jit_enable;
+ 	ret = proc_dointvec_minmax(&tmp, write, buffer, lenp, ppos);
+-	if (write && !ret) {
+-		if (jit_enable < 2 ||
+-		    (jit_enable == 2 && bpf_dump_raw_ok(current_cred()))) {
+-			*(int *)table->data = jit_enable;
+-			if (jit_enable == 2)
+-				pr_warn("bpf_jit_enable = 2 was set! NEVER use this in production, only for JIT debugging!\n");
+-		} else {
+-			ret = -EPERM;
+-		}
+-	}
++	if (write && !ret)
++		*(int *)table->data = jit_enable;
+ 	return ret;
+ }
+ 
+@@ -389,7 +381,7 @@ static struct ctl_table net_core_table[] = {
+ 		.extra2		= SYSCTL_ONE,
+ # else
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_ONE,
+ # endif
+ 	},
+ # ifdef CONFIG_HAVE_EBPF_JIT
+diff --git a/tools/bpf/bpf_jit_disasm.c b/tools/bpf/bpf_jit_disasm.c
+index c8ae95804728..efa4b17ae016 100644
+--- a/tools/bpf/bpf_jit_disasm.c
++++ b/tools/bpf/bpf_jit_disasm.c
+@@ -7,7 +7,7 @@
   *
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 373fbe377075..4494501aa403 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -807,9 +807,6 @@ config VMAP_PFN
- config ARCH_USES_HIGH_VMA_FLAGS
- 	bool
- 
--config ARCH_HAS_FIRST_USER_ADDRESS
--	bool
--
- config ARCH_HAS_PKEYS
- 	bool
- 
+  * To get the disassembly of the JIT code, do the following:
+  *
+- *  1) `echo 2 > /proc/sys/net/core/bpf_jit_enable`
++ *  1) Insert bpf_jit_dump() and recompile the kernel to output JITed image into log
+  *  2) Load a BPF filter (e.g. `tcpdump -p -n -s 0 -i eth1 host 192.168.20.0/24`)
+  *  3) Run e.g. `bpf_jit_disasm -o` to read out the last JIT code
+  *
+diff --git a/tools/bpf/bpftool/feature.c b/tools/bpf/bpftool/feature.c
+index 40a88df275f9..98c7eec2923f 100644
+--- a/tools/bpf/bpftool/feature.c
++++ b/tools/bpf/bpftool/feature.c
+@@ -203,9 +203,6 @@ static void probe_jit_enable(void)
+ 		case 1:
+ 			printf("JIT compiler is enabled\n");
+ 			break;
+-		case 2:
+-			printf("JIT compiler is enabled with debugging traces in kernel logs\n");
+-			break;
+ 		case -1:
+ 			printf("Unable to retrieve JIT-compiler status\n");
+ 			break;
 -- 
-2.20.1
+2.25.1
+
