@@ -2,148 +2,208 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D694C43462
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 23:49:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BAD4C43470
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Apr 2021 13:38:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B4186109D
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Apr 2021 23:49:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2D071610FA
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Apr 2021 13:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235827AbhDOXuO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 15 Apr 2021 19:50:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48188 "EHLO
+        id S235629AbhDPNjQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Apr 2021 09:39:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235576AbhDOXuN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Apr 2021 19:50:13 -0400
-Received: from mail-lf1-x12f.google.com (mail-lf1-x12f.google.com [IPv6:2a00:1450:4864:20::12f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80220C061574;
-        Thu, 15 Apr 2021 16:49:49 -0700 (PDT)
-Received: by mail-lf1-x12f.google.com with SMTP id j4so2383135lfp.0;
-        Thu, 15 Apr 2021 16:49:49 -0700 (PDT)
+        with ESMTP id S244220AbhDPNjK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Apr 2021 09:39:10 -0400
+Received: from mail-yb1-xb2d.google.com (mail-yb1-xb2d.google.com [IPv6:2607:f8b0:4864:20::b2d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B607C061574;
+        Fri, 16 Apr 2021 06:38:46 -0700 (PDT)
+Received: by mail-yb1-xb2d.google.com with SMTP id p3so9480338ybk.0;
+        Fri, 16 Apr 2021 06:38:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=93RaKIcPxj4ed/vj3/T6taZCo8gljqrXH2nCGhdkM1Q=;
-        b=aBCM67HeOS1RQpmZ9d1xkBbfZ9OjHVKizD6JMJntC1jztjXCaMAD4PxLVP6PE65ty3
-         cKPeKzgiEbgw3SQZ8eR83qtBjTP2OYUdbnqkzhUAbE0u+1hOdGsAn8xKem5MzABFlQgD
-         mRXyEbRdJWemOBA5ZL1H2F5rm/kMfg/eeqCccq1PGYnduzRrD+ZOmE6Jc8ZifznL8idv
-         FrDgLXsLKsMduLqpBFFg7xH0u5XmXHclHLbXV0TX9HDDr95c+SXlKyzlZoT5Ez5tEE8O
-         yL7SLoB/UGXylkkP0jVvQUti3azG7QIpldbt+d5lTdgqR0VqbJM4y+Fb3QAjnu0TlNPa
-         AWGw==
+        bh=0mHucleBm3GX7Z1SOPiFjIocZZ3cy927o5LfpjbehY0=;
+        b=LHOOZCdmhtYRgZeIr5lEhO6KXFFYOEi/8AF39AtF41E0Kj5ox6YUrLbD1vh18P9Lgw
+         sAVjw8PPsAkREA+eH+IscJhlq1h6M6yaFa7D2Ul9LpLgbbeOdwpmPXCeDFpcWsTP6nHq
+         SCI7Oj+YXaVgCPpr7CLkYRTDlBDXPOunOileWzKluP9csVXr0LkmjxeyoNNj/y0KHa8o
+         m1iDnTxmuwSUOqb9QqmuJjAcD1igAGYaIOj4rbRGNsMZcZ9Vp6C8Phtn32KKQWyVGS+x
+         HZbKvd+3/cmY7P4s96LQpYPFB1lT9xTMKroDuLgw++dQkCoTbyaprK8bjyaAEOyDTD6R
+         ve0w==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=93RaKIcPxj4ed/vj3/T6taZCo8gljqrXH2nCGhdkM1Q=;
-        b=NBeeKEl+SDqHxh0WzmN7s/knZGZEHz9+ow9jKXLEnCkg8ZCNlAK8VquipOILHOPasM
-         G6PX5iw5kJFSM/WWJQdJFnxhnGANHBNakvIkAgPKiC3eHVS65skz8zcNslTG/8GeJPeX
-         D+KY5lvbBuvNfEOUcMl6oTYR05yesWVw/iX2LbOj4YzVvuL7R+Wl0KayDpLfR4p1z/Cz
-         aF2TWgaOdOiKC5qW9nKluFNK77YYTM/OwywIEzkTlqXh3q6DO6WSShNGLpqEXkUfq+dW
-         o6cXoVD0x5kjaWeo0yMAI+B5q+XrSUbF1ONuX+O9VEtOY0xofyCkNZ3OxQ13ZtCK8gaG
-         Dgog==
-X-Gm-Message-State: AOAM533kX0OdH+H6rXq5RAVhK167nyX6Qf7HgnHu+iQQszdYyqGY76hQ
-        57otHoWt+UXRfpV77SDnzsBgyrpvEbjNSULikuk=
-X-Google-Smtp-Source: ABdhPJyNhOogFP8g+e8x1hnSTCcEzJfdpg/9ifXfqOKSgpR6Q7EyYPjeRQKWzaeLUb3+uY3vv8XYIkkzgMMMfdz4tQA=
-X-Received: by 2002:ac2:4d4d:: with SMTP id 13mr1106974lfp.540.1618530588068;
- Thu, 15 Apr 2021 16:49:48 -0700 (PDT)
+        bh=0mHucleBm3GX7Z1SOPiFjIocZZ3cy927o5LfpjbehY0=;
+        b=avI6i2cLrkGRhuyQJsbwHAzrzNF8/W2Yl8whYx56hVm2gGVJEjih6hz2fSpC5ZLu2p
+         y90prW8cLdFeLzhEh5Aq0cLbvx3IWMjd2PtD6Cqxd3gfcfepYY4VjW6OSfZL2FmgWSjU
+         ZjQE3XHHJVcUOnwYcP0JzTljPfSmc59M8dZwfwk+7/6ahF/vXBwCzzp19iOYKwMEjSNW
+         kCzGLnbY+Jf1bwq4YAYR6732HAFgcxSUQlTmllq/FbykQ/3ljLBsavH15OT/KQk+iJs2
+         1OVB6e5gwvluNeJIrvoyJKra6RPJeIvvrCUJ14CqJ7vxMZNWmyQzf6VvQEOYUflPKl2b
+         bDVQ==
+X-Gm-Message-State: AOAM531CKZXVqg0Y5bQn/WMLg6+LAOCXkbwvLwQlZ3DR9+LoqCFCOKHl
+        EwV2ZBjn0vjc1gUTiXEWxeorwDk2Z4QCD9yepuk=
+X-Google-Smtp-Source: ABdhPJw5sY0mgMHNVNaARBdH4/XL7aCQwPNekTw5pB2njQeJlgreCNQsgFDRpI0R7ZiYJLGMXF7BF2idqTBCgkAwAiE=
+X-Received: by 2002:a25:7004:: with SMTP id l4mr12503620ybc.304.1618580325409;
+ Fri, 16 Apr 2021 06:38:45 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210415093250.3391257-1-Jianlin.Lv@arm.com> <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
- <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
-In-Reply-To: <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Thu, 15 Apr 2021 16:49:36 -0700
-Message-ID: <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
+In-Reply-To: <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
+From:   Jianlin Lv <iecedge@gmail.com>
+Date:   Fri, 16 Apr 2021 21:38:33 +0800
+Message-ID: <CAFA-uR8H2MMy_vjQ_ZL96ifKcVg2goK3nozOFavN+gnJ+=V6Rw@mail.gmail.com>
 Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
-To:     Quentin Monnet <quentin@isovalent.com>
-Cc:     Daniel Borkmann <daniel@iogearbox.net>,
-        Jianlin Lv <Jianlin.Lv@arm.com>, bpf <bpf@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Alexei Starovoitov <ast@kernel.org>,
+To:     Daniel Borkmann <daniel@iogearbox.net>
+Cc:     Jianlin Lv <Jianlin.Lv@arm.com>, bpf <bpf@vger.kernel.org>,
+        corbet@lwn.net, Alexei Starovoitov <ast@kernel.org>,
         Andrii Nakryiko <andrii@kernel.org>,
         Martin KaFai Lau <kafai@fb.com>,
         Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
         John Fastabend <john.fastabend@gmail.com>,
         KP Singh <kpsingh@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Shubham Bansal <illusionist.neo@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Zi Shen Lim <zlim.lnx@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
+        Jakub Kicinski <kuba@kernel.org>, illusionist.neo@gmail.com,
+        linux@armlinux.org.uk, zlim.lnx@gmail.com, catalin.marinas@arm.com,
         Will Deacon <will@kernel.org>, paulburton@kernel.org,
-        tsbogend@alpha.franken.de,
-        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
-        Sandipan Das <sandipan@linux.ibm.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Luke Nelson <luke.r.nels@gmail.com>,
-        Xi Wang <xi.wang@gmail.com>,
-        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Ilya Leoshkevich <iii@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        David Ahern <dsahern@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        Wang YanQing <udknight@gmail.com>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        tsbogend@alpha.franken.de, naveen.n.rao@linux.ibm.com,
+        sandipan@linux.ibm.com, mpe@ellerman.id.au,
+        benh@kernel.crashing.org, paulus@samba.org, luke.r.nels@gmail.com,
+        xi.wang@gmail.com, bjorn@kernel.org, paul.walmsley@sifive.com,
+        palmer@dabbelt.com, aou@eecs.berkeley.edu, iii@linux.ibm.com,
+        hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com,
+        yoshfuji@linux-ipv6.org, dsahern@kernel.org, tglx@linutronix.de,
+        mingo@redhat.com, bp@alien8.de, x86@kernel.org, hpa@zytor.com,
+        udknight@gmail.com, mchehab+huawei@kernel.org,
         Dmitry Vyukov <dvyukov@google.com>,
-        Mahesh Bandewar <maheshb@google.com>,
-        Simon Horman <horms@verge.net.au>,
+        Mahesh Bandewar <maheshb@google.com>, horms@verge.net.au,
         Nicolas Dichtel <nicolas.dichtel@6wind.com>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
         Masahiro Yamada <masahiroy@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Tobias Klauser <tklauser@distanz.ch>, grantseltzer@gmail.com,
-        Ian Rogers <irogers@google.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
+        Kees Cook <keescook@chromium.org>, quentin@isovalent.com,
+        tklauser@distanz.ch, grantseltzer@gmail.com, irogers@google.com,
+        linux-doc@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
         Network Development <netdev@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-mips@vger.kernel.org,
-        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux@vger.kernel.org, iecedge@gmail.com
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> wrote:
+On Thu, Apr 15, 2021 at 10:38 PM Daniel Borkmann <daniel@iogearbox.net> wrote:
 >
-> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
-> > On 4/15/21 11:32 AM, Jianlin Lv wrote:
-> >> For debugging JITs, dumping the JITed image to kernel log is discouraged,
-> >> "bpftool prog dump jited" is much better way to examine JITed dumps.
-> >> This patch get rid of the code related to bpf_jit_enable=2 mode and
-> >> update the proc handler of bpf_jit_enable, also added auxiliary
-> >> information to explain how to use bpf_jit_disasm tool after this change.
-> >>
-> >> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+> On 4/15/21 11:32 AM, Jianlin Lv wrote:
+> > For debugging JITs, dumping the JITed image to kernel log is discouraged,
+> > "bpftool prog dump jited" is much better way to examine JITed dumps.
+> > This patch get rid of the code related to bpf_jit_enable=2 mode and
+> > update the proc handler of bpf_jit_enable, also added auxiliary
+> > information to explain how to use bpf_jit_disasm tool after this change.
+> >
+> > Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+> [...]
+> > diff --git a/arch/x86/net/bpf_jit_comp32.c b/arch/x86/net/bpf_jit_comp32.c
+> > index 0a7a2870f111..8d36b4658076 100644
+> > --- a/arch/x86/net/bpf_jit_comp32.c
+> > +++ b/arch/x86/net/bpf_jit_comp32.c
+> > @@ -2566,9 +2566,6 @@ struct bpf_prog *bpf_int_jit_compile(struct bpf_prog *prog)
+> >               cond_resched();
+> >       }
+> >
+> > -     if (bpf_jit_enable > 1)
+> > -             bpf_jit_dump(prog->len, proglen, pass + 1, image);
+> > -
+> >       if (image) {
+> >               bpf_jit_binary_lock_ro(header);
+> >               prog->bpf_func = (void *)image;
+> > diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
+> > index c8496c1142c9..990b1720c7a4 100644
+> > --- a/net/core/sysctl_net_core.c
+> > +++ b/net/core/sysctl_net_core.c
+> > @@ -273,16 +273,8 @@ static int proc_dointvec_minmax_bpf_enable(struct ctl_table *table, int write,
+> >
+> >       tmp.data = &jit_enable;
+> >       ret = proc_dointvec_minmax(&tmp, write, buffer, lenp, ppos);
+> > -     if (write && !ret) {
+> > -             if (jit_enable < 2 ||
+> > -                 (jit_enable == 2 && bpf_dump_raw_ok(current_cred()))) {
+> > -                     *(int *)table->data = jit_enable;
+> > -                     if (jit_enable == 2)
+> > -                             pr_warn("bpf_jit_enable = 2 was set! NEVER use this in production, only for JIT debugging!\n");
+> > -             } else {
+> > -                     ret = -EPERM;
+> > -             }
+> > -     }
+> > +     if (write && !ret)
+> > +             *(int *)table->data = jit_enable;
+> >       return ret;
+> >   }
+> >
+> > @@ -389,7 +381,7 @@ static struct ctl_table net_core_table[] = {
+> >               .extra2         = SYSCTL_ONE,
+> >   # else
+> >               .extra1         = SYSCTL_ZERO,
+> > -             .extra2         = &two,
+> > +             .extra2         = SYSCTL_ONE,
+> >   # endif
+> >       },
+> >   # ifdef CONFIG_HAVE_EBPF_JIT
+> > diff --git a/tools/bpf/bpf_jit_disasm.c b/tools/bpf/bpf_jit_disasm.c
+> > index c8ae95804728..efa4b17ae016 100644
+> > --- a/tools/bpf/bpf_jit_disasm.c
+> > +++ b/tools/bpf/bpf_jit_disasm.c
+> > @@ -7,7 +7,7 @@
+> >    *
+> >    * To get the disassembly of the JIT code, do the following:
+> >    *
+> > - *  1) `echo 2 > /proc/sys/net/core/bpf_jit_enable`
+> > + *  1) Insert bpf_jit_dump() and recompile the kernel to output JITed image into log
 >
-> Hello,
+> Hmm, if we remove bpf_jit_dump(), the next drive-by cleanup patch will be thrown
+> at bpf@vger stating that bpf_jit_dump() has no in-tree users and should be removed.
+> Maybe we should be removing bpf_jit_disasm.c along with it as well as bpf_jit_dump()
+> itself ... I guess if it's ever needed in those rare occasions for JIT debugging we
+> can resurrect it from old kernels just locally. But yeah, bpftool's jit dump should
+> suffice for vast majority of use cases.
 >
-> For what it's worth, I have already seen people dump the JIT image in
-> kernel logs in Qemu VMs running with just a busybox, not for kernel
-> development, but in a context where buiding/using bpftool was not
-> possible.
+> There was a recent set for ppc32 jit which was merged into ppc tree which will create
+> a merge conflict with this one [0]. So we would need a rebase and take it maybe during
+> merge win once the ppc32 landed..
+>
+>    [0] https://lore.kernel.org/bpf/cover.1616430991.git.christophe.leroy@csgroup.eu/
+>
+> >    *  2) Load a BPF filter (e.g. `tcpdump -p -n -s 0 -i eth1 host 192.168.20.0/24`)
+> >    *  3) Run e.g. `bpf_jit_disasm -o` to read out the last JIT code
+> >    *
+> > diff --git a/tools/bpf/bpftool/feature.c b/tools/bpf/bpftool/feature.c
+> > index 40a88df275f9..98c7eec2923f 100644
+> > --- a/tools/bpf/bpftool/feature.c
+> > +++ b/tools/bpf/bpftool/feature.c
+> > @@ -203,9 +203,6 @@ static void probe_jit_enable(void)
+> >               case 1:
+> >                       printf("JIT compiler is enabled\n");
+> >                       break;
+> > -             case 2:
+> > -                     printf("JIT compiler is enabled with debugging traces in kernel logs\n");
+> > -                     break;
+>
+> This would still need to be there for older kernels ...
 
-If building/using bpftool is not possible then majority of selftests won't
-be exercised. I don't think such environment is suitable for any kind
-of bpf development. Much so for JIT debugging.
-While bpf_jit_enable=2 is nothing but the debugging tool for JIT developers.
-I'd rather nuke that code instead of carrying it from kernel to kernel.
+I will submit another version after ppc32 landed to remove
+bpf_jit_disasm.c and restore bpftool/feature.c
+
+Jianlin
+
+
+>
+> >               case -1:
+> >                       printf("Unable to retrieve JIT-compiler status\n");
+> >                       break;
+> >
+>
