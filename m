@@ -2,189 +2,162 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C4DC43470
-	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 03:28:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 480A8C43462
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 16:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B581661168
-	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 03:28:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08A8B61003
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 16:05:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229701AbhDTD3Z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 19 Apr 2021 23:29:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47638 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229508AbhDTD3Y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Apr 2021 23:29:24 -0400
-Received: from mail-lf1-x133.google.com (mail-lf1-x133.google.com [IPv6:2a00:1450:4864:20::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10933C06174A;
-        Mon, 19 Apr 2021 20:28:54 -0700 (PDT)
-Received: by mail-lf1-x133.google.com with SMTP id j4so19800989lfp.0;
-        Mon, 19 Apr 2021 20:28:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc:content-transfer-encoding;
-        bh=sjA5c4MI/V/Us5khupc3zlEWJtPk9Lba1kHWIn9xqrM=;
-        b=aZSJaNW84mZRYAHIY5t88erflreGTdYjaH3FYtF1qHJPn6VWs0jryZT46tcKmPEGha
-         /og/FC8vcGojrzKljv51Y7lWbKJNsViPSNua0KzzWTeHQBaA77mtr8NCMQ4THd2QTzcC
-         W4NX+bAwjkGszUu3wkPlccw0aoYiZjMS+T4JTPsVHoVH+R4TOOISLvGTXFbJ16T+Dgur
-         kbNEKiwtz58pU2SAt4AjUcSxyUGvQb0yQueu6ghHyatn+Cc/mNZXXrnsQvXgxCwKXuNp
-         sZTyXkoz02r+DOAERoaXyqJHUX8rL4MjlDqKs+1CuVe940UruGYC9kE+b/nNTgV9xhkG
-         purg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=sjA5c4MI/V/Us5khupc3zlEWJtPk9Lba1kHWIn9xqrM=;
-        b=LgJPb5MBlEKi1REqgkAuvdlJjsp0gQpZhNPuzFcdyfII3Wkdw2WUL93Hhz5Yp/9s/z
-         Zg3K4GmkMz47pxCriTVhhLFa+EON2SMq/RUwepb7LMM7I0nyTU2HjfRMS/O5k2DUF7h6
-         dYKaMX88np5drCkQ3VCx9WuUfiml+evx0IN99nW0ssu3Vb9/aYOurM+c3WnyiX1Lyejn
-         q7uNJZm6MC/WC35f4g+0UdSpmrkh4zRUSH+bmQZU1DEIARkeRedC9zVo5cTd52D9b2Hz
-         8Lg8v95BMLJEnyFKvMm+eBXFz/WhbJ0o918UxMIpL4vwo2eI8q+SZCX0nZ1SqGGk/LrS
-         Exkw==
-X-Gm-Message-State: AOAM530Nb75ftxe060+0oeBb+vVmav6/Y7uUN3xTz1ok6Q2Z0C9FT6Bl
-        CF9Mupz/vZH60+Tz8lPd7DAow43Kjj+6XiluqSo=
-X-Google-Smtp-Source: ABdhPJxtNTC6hNyk2mAr0jYIRtC3Pnw65n4y2IU2BFaZPz0SzJ5eF0gkFi6YsfR4xYcNBc9nZPkqaJatjNPZ02gYJpQ=
-X-Received: by 2002:ac2:510d:: with SMTP id q13mr13835296lfb.75.1618889332453;
- Mon, 19 Apr 2021 20:28:52 -0700 (PDT)
+        id S233054AbhDTQGW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 20 Apr 2021 12:06:22 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:23168 "EHLO pegase1.c-s.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232174AbhDTQGV (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 20 Apr 2021 12:06:21 -0400
+Received: from localhost (mailhub1-int [192.168.12.234])
+        by localhost (Postfix) with ESMTP id 4FPpST5fYSz9tyMJ;
+        Tue, 20 Apr 2021 18:05:45 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
+        with ESMTP id 6qTfVqAOsH66; Tue, 20 Apr 2021 18:05:45 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4FPpST4Shgz9tyMF;
+        Tue, 20 Apr 2021 18:05:45 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 2B5AD8B807;
+        Tue, 20 Apr 2021 18:05:47 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id ZiEcE-0Tlz-R; Tue, 20 Apr 2021 18:05:47 +0200 (CEST)
+Received: from [192.168.4.90] (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 0267E8B7ED;
+        Tue, 20 Apr 2021 18:05:45 +0200 (CEST)
+Subject: Re: [PATCH v4 19/20] mips: Convert to GENERIC_CMDLINE
+To:     Daniel Walker <danielwa@cisco.com>, Rob Herring <robh@kernel.org>
+Cc:     will@kernel.org, daniel@gimpelevich.san-francisco.ca.us,
+        arnd@kernel.org, akpm@linux-foundation.org,
+        linux-arch@vger.kernel.org, devicetree@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        microblaze <monstr@monstr.eu>, linux-mips@vger.kernel.org,
+        nios2 <ley.foon.tan@intel.com>, openrisc@lists.librecores.org,
+        linux-hexagon@vger.kernel.org, linux-riscv@lists.infradead.org,
+        x86@kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-mm@kvack.org
+References: <cover.1617375802.git.christophe.leroy@csgroup.eu>
+ <a01b6cdbae01fff77e26f7a5c40ee5260e1952b5.1617375802.git.christophe.leroy@csgroup.eu>
+ <20210406173836.GW2469518@zorba>
+ <20210408190408.GA1724284@robh.at.kernel.org>
+ <20210409012349.GG3981976@zorba>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Message-ID: <d92f99bf-20b7-a4b6-3d86-5b859e42cad8@csgroup.eu>
+Date:   Tue, 20 Apr 2021 18:05:44 +0200
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.9.1
 MIME-Version: 1.0
-References: <20210415093250.3391257-1-Jianlin.Lv@arm.com> <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
- <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com> <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
- <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
-In-Reply-To: <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Mon, 19 Apr 2021 20:28:41 -0700
-Message-ID: <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
-Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     Quentin Monnet <quentin@isovalent.com>,
-        Ian Rogers <irogers@google.com>,
-        Song Liu <songliubraving@fb.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Zi Shen Lim <zlim.lnx@gmail.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Sandipan Das <sandipan@linux.ibm.com>,
-        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
-        Shubham Bansal <illusionist.neo@gmail.com>,
-        Mahesh Bandewar <maheshb@google.com>,
-        Will Deacon <will@kernel.org>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Ilya Leoshkevich <iii@linux.ibm.com>, paulburton@kernel.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        X86 ML <x86@kernel.org>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Tobias Klauser <tklauser@distanz.ch>,
-        linux-mips@vger.kernel.org, grantseltzer@gmail.com,
-        Xi Wang <xi.wang@gmail.com>, Albert Ou <aou@eecs.berkeley.edu>,
-        Kees Cook <keescook@chromium.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Luke Nelson <luke.r.nels@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        KP Singh <kpsingh@kernel.org>, iecedge@gmail.com,
-        Simon Horman <horms@verge.net.au>,
-        Borislav Petkov <bp@alien8.de>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Yonghong Song <yhs@fb.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Dmitry Vyukov <dvyukov@google.com>, tsbogend@alpha.franken.de,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Network Development <netdev@vger.kernel.org>,
-        David Ahern <dsahern@kernel.org>,
-        Wang YanQing <udknight@gmail.com>,
-        Martin KaFai Lau <kafai@fb.com>,
-        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
-        Palmer Dabbelt <palmer@dabbelt.com>, bpf <bpf@vger.kernel.org>,
-        Jianlin Lv <Jianlin.Lv@arm.com>,
-        "David S. Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20210409012349.GG3981976@zorba>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Apr 17, 2021 at 1:16 AM Christophe Leroy
-<christophe.leroy@csgroup.eu> wrote:
->
->
->
-> Le 16/04/2021 =C3=A0 01:49, Alexei Starovoitov a =C3=A9crit :
-> > On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> =
-wrote:
-> >>
-> >> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
-> >>> On 4/15/21 11:32 AM, Jianlin Lv wrote:
-> >>>> For debugging JITs, dumping the JITed image to kernel log is discour=
-aged,
-> >>>> "bpftool prog dump jited" is much better way to examine JITed dumps.
-> >>>> This patch get rid of the code related to bpf_jit_enable=3D2 mode an=
-d
-> >>>> update the proc handler of bpf_jit_enable, also added auxiliary
-> >>>> information to explain how to use bpf_jit_disasm tool after this cha=
-nge.
-> >>>>
-> >>>> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
-> >>
-> >> Hello,
-> >>
-> >> For what it's worth, I have already seen people dump the JIT image in
-> >> kernel logs in Qemu VMs running with just a busybox, not for kernel
-> >> development, but in a context where buiding/using bpftool was not
-> >> possible.
-> >
-> > If building/using bpftool is not possible then majority of selftests wo=
-n't
-> > be exercised. I don't think such environment is suitable for any kind
-> > of bpf development. Much so for JIT debugging.
-> > While bpf_jit_enable=3D2 is nothing but the debugging tool for JIT deve=
-lopers.
-> > I'd rather nuke that code instead of carrying it from kernel to kernel.
-> >
->
-> When I implemented JIT for PPC32, it was extremely helpfull.
->
-> As far as I understand, for the time being bpftool is not usable in my en=
-vironment because it
-> doesn't support cross compilation when the target's endianess differs fro=
-m the building host
-> endianess, see discussion at
-> https://lore.kernel.org/bpf/21e66a09-514f-f426-b9e2-13baab0b938b@csgroup.=
-eu/
->
-> That's right that selftests can't be exercised because they don't build.
->
-> The question might be candid as I didn't investigate much about the repla=
-cement of "bpf_jit_enable=3D2
-> debugging mode" by bpftool, how do we use bpftool exactly for that ? Espe=
-cially when using the BPF
-> test module ?
 
-the kernel developers can add any amount of printk and dumps to debug
-their code,
-but such debugging aid should not be part of the production kernel.
-That sysctl was two things at once: debugging tool for kernel devs and
-introspection for users.
-bpftool jit dump solves the 2nd part. It provides JIT introspection to user=
-s.
-Debugging of the kernel can be done with any amount of auxiliary code
-including calling print_hex_dump() during jiting.
+
+Le 09/04/2021 à 03:23, Daniel Walker a écrit :
+> On Thu, Apr 08, 2021 at 02:04:08PM -0500, Rob Herring wrote:
+>> On Tue, Apr 06, 2021 at 10:38:36AM -0700, Daniel Walker wrote:
+>>> On Fri, Apr 02, 2021 at 03:18:21PM +0000, Christophe Leroy wrote:
+>>>> -config CMDLINE_BOOL
+>>>> -	bool "Built-in kernel command line"
+>>>> -	help
+>>>> -	  For most systems, it is firmware or second stage bootloader that
+>>>> -	  by default specifies the kernel command line options.  However,
+>>>> -	  it might be necessary or advantageous to either override the
+>>>> -	  default kernel command line or add a few extra options to it.
+>>>> -	  For such cases, this option allows you to hardcode your own
+>>>> -	  command line options directly into the kernel.  For that, you
+>>>> -	  should choose 'Y' here, and fill in the extra boot arguments
+>>>> -	  in CONFIG_CMDLINE.
+>>>> -
+>>>> -	  The built-in options will be concatenated to the default command
+>>>> -	  line if CMDLINE_OVERRIDE is set to 'N'. Otherwise, the default
+>>>> -	  command line will be ignored and replaced by the built-in string.
+>>>> -
+>>>> -	  Most MIPS systems will normally expect 'N' here and rely upon
+>>>> -	  the command line from the firmware or the second-stage bootloader.
+>>>> -
+>>>
+>>>
+>>> See how you complained that I have CMDLINE_BOOL in my changed, and you think it
+>>> shouldn't exist.
+>>>
+>>> Yet here mips has it, and you just deleted it with no feature parity in your
+>>> changes for this.
+>>
+>> AFAICT, CMDLINE_BOOL equates to a non-empty or empty CONFIG_CMDLINE. You
+>> seem to need it just because you have CMDLINE_PREPEND and
+>> CMDLINE_APPEND. If that's not it, what feature is missing? CMDLINE_BOOL
+>> is not a feature, but an implementation detail.
+> 
+> Not true.
+> 
+> It makes it easier to turn it all off inside the Kconfig , so it's for usability
+> and multiple architecture have it even with just CMDLINE as I was commenting
+> here.
+> 
+
+Among the 13 architectures having CONFIG_CMDLINE, todayb only 6 have a CONFIG_CMDLINE_BOOL in addition:
+
+arch/arm/Kconfig:config CMDLINE
+arch/arm64/Kconfig:config CMDLINE
+arch/hexagon/Kconfig:config CMDLINE
+arch/microblaze/Kconfig:config CMDLINE
+arch/mips/Kconfig.debug:config CMDLINE
+arch/nios2/Kconfig:config CMDLINE
+arch/openrisc/Kconfig:config CMDLINE
+arch/powerpc/Kconfig:config CMDLINE
+arch/riscv/Kconfig:config CMDLINE
+arch/sh/Kconfig:config CMDLINE
+arch/sparc/Kconfig:config CMDLINE
+arch/x86/Kconfig:config CMDLINE
+arch/xtensa/Kconfig:config CMDLINE
+
+arch/microblaze/Kconfig:config CMDLINE_BOOL
+arch/mips/Kconfig.debug:config CMDLINE_BOOL
+arch/nios2/Kconfig:config CMDLINE_BOOL
+arch/sparc/Kconfig:config CMDLINE_BOOL
+arch/x86/Kconfig:config CMDLINE_BOOL
+arch/xtensa/Kconfig:config CMDLINE_BOOL
+
+
+In the begining I hesitated about the CMDLINE_BOOL, at the end I decided to go the same way as what 
+is done today in the kernel for initramfs with CONFIG_INITRAMFS_SOURCE.
+
+The problem I see within adding CONFIG_CMDLINE_BOOL for every architecture which don't have it today 
+is that when doing a "make oldconfig" on their custom configs, thousands of users will loose their 
+CMDLINE without notice.
+
+When we do the other way round, removing CONFIG_CMDLINE_BOOL on the 6 architectures that have it 
+today will have no impact on existing config.
+
+Also, in order to avoid tons of #ifdefs in the code as mandated by Kernel Codying Style §21, we have 
+to have CONFIG_CMDLINE defined at all time, so at the end CONFIG_CMDLINE_BOOL is really redundant 
+with an empty CONFIG_CMDLINE.
+
+Unlike you, the approach I took for my series is to minimise the impact on existing implementation 
+and existing configurations as much as possible.
+
+I know you have a different approach where you break every existing config anyway.
+
+https://www.kernel.org/doc/html/latest/process/coding-style.html#conditional-compilation
+
+Christophe
