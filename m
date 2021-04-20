@@ -2,47 +2,68 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F32F2C43470
-	for <sparclinux@archiver.kernel.org>; Sat, 17 Apr 2021 08:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C4DC43470
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 03:28:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D111061208
-	for <sparclinux@archiver.kernel.org>; Sat, 17 Apr 2021 08:16:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B581661168
+	for <sparclinux@archiver.kernel.org>; Tue, 20 Apr 2021 03:28:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235724AbhDQIQ5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 17 Apr 2021 04:16:57 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:1364 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhDQIQ4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sat, 17 Apr 2021 04:16:56 -0400
-Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 4FMmBL3B3mz9vBnD;
-        Sat, 17 Apr 2021 10:16:26 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id KdXChgWPk-BP; Sat, 17 Apr 2021 10:16:26 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 4FMmBL21vRz9vBnC;
-        Sat, 17 Apr 2021 10:16:26 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 312848B777;
-        Sat, 17 Apr 2021 10:16:27 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id efFKgaQ79CvE; Sat, 17 Apr 2021 10:16:27 +0200 (CEST)
-Received: from [192.168.4.90] (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 3BFFF8B75B;
-        Sat, 17 Apr 2021 10:16:24 +0200 (CEST)
+        id S229701AbhDTD3Z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 19 Apr 2021 23:29:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47638 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229508AbhDTD3Y (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Apr 2021 23:29:24 -0400
+Received: from mail-lf1-x133.google.com (mail-lf1-x133.google.com [IPv6:2a00:1450:4864:20::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10933C06174A;
+        Mon, 19 Apr 2021 20:28:54 -0700 (PDT)
+Received: by mail-lf1-x133.google.com with SMTP id j4so19800989lfp.0;
+        Mon, 19 Apr 2021 20:28:53 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=sjA5c4MI/V/Us5khupc3zlEWJtPk9Lba1kHWIn9xqrM=;
+        b=aZSJaNW84mZRYAHIY5t88erflreGTdYjaH3FYtF1qHJPn6VWs0jryZT46tcKmPEGha
+         /og/FC8vcGojrzKljv51Y7lWbKJNsViPSNua0KzzWTeHQBaA77mtr8NCMQ4THd2QTzcC
+         W4NX+bAwjkGszUu3wkPlccw0aoYiZjMS+T4JTPsVHoVH+R4TOOISLvGTXFbJ16T+Dgur
+         kbNEKiwtz58pU2SAt4AjUcSxyUGvQb0yQueu6ghHyatn+Cc/mNZXXrnsQvXgxCwKXuNp
+         sZTyXkoz02r+DOAERoaXyqJHUX8rL4MjlDqKs+1CuVe940UruGYC9kE+b/nNTgV9xhkG
+         purg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=sjA5c4MI/V/Us5khupc3zlEWJtPk9Lba1kHWIn9xqrM=;
+        b=LgJPb5MBlEKi1REqgkAuvdlJjsp0gQpZhNPuzFcdyfII3Wkdw2WUL93Hhz5Yp/9s/z
+         Zg3K4GmkMz47pxCriTVhhLFa+EON2SMq/RUwepb7LMM7I0nyTU2HjfRMS/O5k2DUF7h6
+         dYKaMX88np5drCkQ3VCx9WuUfiml+evx0IN99nW0ssu3Vb9/aYOurM+c3WnyiX1Lyejn
+         q7uNJZm6MC/WC35f4g+0UdSpmrkh4zRUSH+bmQZU1DEIARkeRedC9zVo5cTd52D9b2Hz
+         8Lg8v95BMLJEnyFKvMm+eBXFz/WhbJ0o918UxMIpL4vwo2eI8q+SZCX0nZ1SqGGk/LrS
+         Exkw==
+X-Gm-Message-State: AOAM530Nb75ftxe060+0oeBb+vVmav6/Y7uUN3xTz1ok6Q2Z0C9FT6Bl
+        CF9Mupz/vZH60+Tz8lPd7DAow43Kjj+6XiluqSo=
+X-Google-Smtp-Source: ABdhPJxtNTC6hNyk2mAr0jYIRtC3Pnw65n4y2IU2BFaZPz0SzJ5eF0gkFi6YsfR4xYcNBc9nZPkqaJatjNPZ02gYJpQ=
+X-Received: by 2002:ac2:510d:: with SMTP id q13mr13835296lfb.75.1618889332453;
+ Mon, 19 Apr 2021 20:28:52 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210415093250.3391257-1-Jianlin.Lv@arm.com> <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
+ <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com> <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
+ <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
+In-Reply-To: <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
+From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Date:   Mon, 19 Apr 2021 20:28:41 -0700
+Message-ID: <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
 Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
-To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>,
-        Quentin Monnet <quentin@isovalent.com>
-Cc:     Ian Rogers <irogers@google.com>, Song Liu <songliubraving@fb.com>,
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc:     Quentin Monnet <quentin@isovalent.com>,
+        Ian Rogers <irogers@google.com>,
+        Song Liu <songliubraving@fb.com>,
         "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
         Zi Shen Lim <zlim.lnx@gmail.com>,
         Paul Walmsley <paul.walmsley@sifive.com>,
@@ -96,63 +117,74 @@ Cc:     Ian Rogers <irogers@google.com>, Song Liu <songliubraving@fb.com>,
         Palmer Dabbelt <palmer@dabbelt.com>, bpf <bpf@vger.kernel.org>,
         Jianlin Lv <Jianlin.Lv@arm.com>,
         "David S. Miller" <davem@davemloft.net>
-References: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
- <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
- <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
- <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Message-ID: <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
-Date:   Sat, 17 Apr 2021 10:16:22 +0200
-User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.1
-MIME-Version: 1.0
-In-Reply-To: <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On Sat, Apr 17, 2021 at 1:16 AM Christophe Leroy
+<christophe.leroy@csgroup.eu> wrote:
+>
+>
+>
+> Le 16/04/2021 =C3=A0 01:49, Alexei Starovoitov a =C3=A9crit :
+> > On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> =
+wrote:
+> >>
+> >> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
+> >>> On 4/15/21 11:32 AM, Jianlin Lv wrote:
+> >>>> For debugging JITs, dumping the JITed image to kernel log is discour=
+aged,
+> >>>> "bpftool prog dump jited" is much better way to examine JITed dumps.
+> >>>> This patch get rid of the code related to bpf_jit_enable=3D2 mode an=
+d
+> >>>> update the proc handler of bpf_jit_enable, also added auxiliary
+> >>>> information to explain how to use bpf_jit_disasm tool after this cha=
+nge.
+> >>>>
+> >>>> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+> >>
+> >> Hello,
+> >>
+> >> For what it's worth, I have already seen people dump the JIT image in
+> >> kernel logs in Qemu VMs running with just a busybox, not for kernel
+> >> development, but in a context where buiding/using bpftool was not
+> >> possible.
+> >
+> > If building/using bpftool is not possible then majority of selftests wo=
+n't
+> > be exercised. I don't think such environment is suitable for any kind
+> > of bpf development. Much so for JIT debugging.
+> > While bpf_jit_enable=3D2 is nothing but the debugging tool for JIT deve=
+lopers.
+> > I'd rather nuke that code instead of carrying it from kernel to kernel.
+> >
+>
+> When I implemented JIT for PPC32, it was extremely helpfull.
+>
+> As far as I understand, for the time being bpftool is not usable in my en=
+vironment because it
+> doesn't support cross compilation when the target's endianess differs fro=
+m the building host
+> endianess, see discussion at
+> https://lore.kernel.org/bpf/21e66a09-514f-f426-b9e2-13baab0b938b@csgroup.=
+eu/
+>
+> That's right that selftests can't be exercised because they don't build.
+>
+> The question might be candid as I didn't investigate much about the repla=
+cement of "bpf_jit_enable=3D2
+> debugging mode" by bpftool, how do we use bpftool exactly for that ? Espe=
+cially when using the BPF
+> test module ?
 
-
-Le 16/04/2021 à 01:49, Alexei Starovoitov a écrit :
-> On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> wrote:
->>
->> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
->>> On 4/15/21 11:32 AM, Jianlin Lv wrote:
->>>> For debugging JITs, dumping the JITed image to kernel log is discouraged,
->>>> "bpftool prog dump jited" is much better way to examine JITed dumps.
->>>> This patch get rid of the code related to bpf_jit_enable=2 mode and
->>>> update the proc handler of bpf_jit_enable, also added auxiliary
->>>> information to explain how to use bpf_jit_disasm tool after this change.
->>>>
->>>> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
->>
->> Hello,
->>
->> For what it's worth, I have already seen people dump the JIT image in
->> kernel logs in Qemu VMs running with just a busybox, not for kernel
->> development, but in a context where buiding/using bpftool was not
->> possible.
-> 
-> If building/using bpftool is not possible then majority of selftests won't
-> be exercised. I don't think such environment is suitable for any kind
-> of bpf development. Much so for JIT debugging.
-> While bpf_jit_enable=2 is nothing but the debugging tool for JIT developers.
-> I'd rather nuke that code instead of carrying it from kernel to kernel.
-> 
-
-When I implemented JIT for PPC32, it was extremely helpfull.
-
-As far as I understand, for the time being bpftool is not usable in my environment because it 
-doesn't support cross compilation when the target's endianess differs from the building host 
-endianess, see discussion at 
-https://lore.kernel.org/bpf/21e66a09-514f-f426-b9e2-13baab0b938b@csgroup.eu/
-
-That's right that selftests can't be exercised because they don't build.
-
-The question might be candid as I didn't investigate much about the replacement of "bpf_jit_enable=2 
-debugging mode" by bpftool, how do we use bpftool exactly for that ? Especially when using the BPF 
-test module ?
-
+the kernel developers can add any amount of printk and dumps to debug
+their code,
+but such debugging aid should not be part of the production kernel.
+That sysctl was two things at once: debugging tool for kernel devs and
+introspection for users.
+bpftool jit dump solves the 2nd part. It provides JIT introspection to user=
+s.
+Debugging of the kernel can be done with any amount of auxiliary code
+including calling print_hex_dump() during jiting.
