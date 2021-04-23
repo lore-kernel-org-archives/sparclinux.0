@@ -2,361 +2,191 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA303C43460
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 07:48:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FCD2C433B4
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 10:26:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B82AD61450
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 07:48:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7173F6144D
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 10:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241211AbhDWHtP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 23 Apr 2021 03:49:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50972 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229456AbhDWHtO (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 23 Apr 2021 03:49:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 57E79611C2;
-        Fri, 23 Apr 2021 07:48:34 +0000 (UTC)
-Date:   Fri, 23 Apr 2021 09:48:31 +0200
-From:   Christian Brauner <christian.brauner@ubuntu.com>
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, x86@kernel.org,
+        id S241995AbhDWK06 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 23 Apr 2021 06:26:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45064 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229961AbhDWK05 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 23 Apr 2021 06:26:57 -0400
+Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7E51C06138B
+        for <sparclinux@vger.kernel.org>; Fri, 23 Apr 2021 03:26:20 -0700 (PDT)
+Received: by mail-wm1-x329.google.com with SMTP id z6so7908107wmg.1
+        for <sparclinux@vger.kernel.org>; Fri, 23 Apr 2021 03:26:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=isovalent-com.20150623.gappssmtp.com; s=20150623;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-language:content-transfer-encoding;
+        bh=pZC3bOQbN5+fqyuA7H9ye81q8uOWfqddKhA+GXdAbe0=;
+        b=aSb/o1mV8h0CcE9ai+0+GIlXRSGlsJTPumKNmGEJ88Z4i3bGRbY+GZu4y+9bXJ2Ej0
+         Gnr1pQPVFxw/OkuLgXzy8PcFfaYDEZW1fihUNP/VtK/ltQ5OgS+ABY7Byb2o9rvuH3w9
+         aiiyIdPgdOTZ+hKQKeseFBSIHuPOG3wEViDcm9o+RO0YnIbhhMqz+iQQf7AY04+ybwHf
+         2nC4MhrVKh/73RRSCeoHklo+CLEPmhYLF8BmrTl+dusVmM5VfEfslHL7IoEnP1IXaaeU
+         +VlpWeuLfKHGTov0axRspP5fwSgIZ4r+kUdG1PRmBmRYDbmUFoGKlyjNhDcKQj1tRsaO
+         5EEA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=pZC3bOQbN5+fqyuA7H9ye81q8uOWfqddKhA+GXdAbe0=;
+        b=HSr3OPSTJmx8bsTFSMxUx1OzyJ7WMZG3ShMUznUYox1g7Xoc7D1NxMckuLdigKKw3o
+         2gHTvAHhx9IxgUWJYol0BpyLQx9MZYpA8caW88AU4BdfeWHdxQGHF7hntdGmH7zBBx5D
+         fWqQCcimpPAih9cj8551tipDFutWxh/RmTnf2CQTQCPL6X4fdI/B7omQPmCHofuHrowR
+         z4HIP9SZNyIj2tw0kgE5KfVThRplhmftlU1Z0z5oBFapTHGCaVJI++EFcMt9e0R7F50P
+         V3yDidHkAWFP6WaM45Kk9lRUkr9s+thTTPN72TZ5nD8tnTCsZ+5Opd+eFynEsjR3lw0O
+         BSWA==
+X-Gm-Message-State: AOAM531XU/EN5XKg0V1pQ/1iPuwLLf8VPqloon6hmMhKC3PewMZ6zIHR
+        BygFZ2fkaDydTg4g1E6AVuBDrA==
+X-Google-Smtp-Source: ABdhPJwzRkVz3Ofbfxh8n0buCkcX7vCmdhQBvEZ1KP3t4/FvoWzwFRVeYSa0K9So4C2Yfv4k3szanw==
+X-Received: by 2002:a1c:b743:: with SMTP id h64mr3431829wmf.35.1619173579445;
+        Fri, 23 Apr 2021 03:26:19 -0700 (PDT)
+Received: from [192.168.1.8] ([149.86.88.56])
+        by smtp.gmail.com with ESMTPSA id b15sm8464544wrt.57.2021.04.23.03.26.17
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 23 Apr 2021 03:26:18 -0700 (PDT)
+Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     Ian Rogers <irogers@google.com>, Song Liu <songliubraving@fb.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Zi Shen Lim <zlim.lnx@gmail.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Sandipan Das <sandipan@linux.ibm.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
+        Shubham Bansal <illusionist.neo@gmail.com>,
+        Mahesh Bandewar <maheshb@google.com>,
+        Will Deacon <will@kernel.org>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Ilya Leoshkevich <iii@linux.ibm.com>, paulburton@kernel.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        X86 ML <x86@kernel.org>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
+        linux-mips@vger.kernel.org, grantseltzer@gmail.com,
+        Xi Wang <xi.wang@gmail.com>, Albert Ou <aou@eecs.berkeley.edu>,
+        Kees Cook <keescook@chromium.org>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Luke Nelson <luke.r.nels@gmail.com>,
         LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, Aleksa Sarai <cyphar@cyphar.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        KP Singh <kpsingh@kernel.org>, iecedge@gmail.com,
+        Simon Horman <horms@verge.net.au>,
+        Borislav Petkov <bp@alien8.de>,
         Alexander Viro <viro@zeniv.linux.org.uk>,
-        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
-        Eric Paris <eparis@parisplace.org>,
-        linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH 1/2] audit: add support for the openat2 syscall
-Message-ID: <20210423074831.lc4jqqtyuun2fnws@wittgenstein>
-References: <cover.1616031035.git.rgb@redhat.com>
- <49510cacfb5fbbaa312a4a389f3a6619675007ab.1616031035.git.rgb@redhat.com>
- <20210318104843.uiga6tmmhn5wfhbs@wittgenstein>
- <20210318120801.GK3141668@madcap2.tricolour.ca>
- <20210423023408.GB2174828@madcap2.tricolour.ca>
+        Yonghong Song <yhs@fb.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Dmitry Vyukov <dvyukov@google.com>, tsbogend@alpha.franken.de,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Network Development <netdev@vger.kernel.org>,
+        David Ahern <dsahern@kernel.org>,
+        Wang YanQing <udknight@gmail.com>,
+        Martin KaFai Lau <kafai@fb.com>,
+        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
+        Palmer Dabbelt <palmer@dabbelt.com>, bpf <bpf@vger.kernel.org>,
+        Jianlin Lv <Jianlin.Lv@arm.com>,
+        "David S. Miller" <davem@davemloft.net>
+References: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
+ <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
+ <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
+ <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
+ <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
+ <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
+ <be132117-f267-5817-136d-e1aeb8409c2a@csgroup.eu>
+From:   Quentin Monnet <quentin@isovalent.com>
+Message-ID: <58296f87-ad00-a0f5-954b-2150aa84efc4@isovalent.com>
+Date:   Fri, 23 Apr 2021 11:26:16 +0100
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
 MIME-Version: 1.0
+In-Reply-To: <be132117-f267-5817-136d-e1aeb8409c2a@csgroup.eu>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20210423023408.GB2174828@madcap2.tricolour.ca>
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Apr 22, 2021 at 10:34:08PM -0400, Richard Guy Briggs wrote:
-> On 2021-03-18 08:08, Richard Guy Briggs wrote:
-> > On 2021-03-18 11:48, Christian Brauner wrote:
-> > > [+Cc Aleksa, the author of openat2()]
-> > 
-> > Ah!  Thanks for pulling in Aleksa.  I thought I caught everyone...
-> > 
-> > > and a comment below. :)
-> > 
-> > Same...
-> > 
-> > > On Wed, Mar 17, 2021 at 09:47:17PM -0400, Richard Guy Briggs wrote:
-> > > > The openat2(2) syscall was added in kernel v5.6 with commit fddb5d430ad9
-> > > > ("open: introduce openat2(2) syscall")
-> > > > 
-> > > > Add the openat2(2) syscall to the audit syscall classifier.
-> > > > 
-> > > > See the github issue
-> > > > https://github.com/linux-audit/audit-kernel/issues/67
-> > > > 
-> > > > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > > > ---
-> > > >  arch/alpha/kernel/audit.c          | 2 ++
-> > > >  arch/ia64/kernel/audit.c           | 2 ++
-> > > >  arch/parisc/kernel/audit.c         | 2 ++
-> > > >  arch/parisc/kernel/compat_audit.c  | 2 ++
-> > > >  arch/powerpc/kernel/audit.c        | 2 ++
-> > > >  arch/powerpc/kernel/compat_audit.c | 2 ++
-> > > >  arch/s390/kernel/audit.c           | 2 ++
-> > > >  arch/s390/kernel/compat_audit.c    | 2 ++
-> > > >  arch/sparc/kernel/audit.c          | 2 ++
-> > > >  arch/sparc/kernel/compat_audit.c   | 2 ++
-> > > >  arch/x86/ia32/audit.c              | 2 ++
-> > > >  arch/x86/kernel/audit_64.c         | 2 ++
-> > > >  kernel/auditsc.c                   | 3 +++
-> > > >  lib/audit.c                        | 4 ++++
-> > > >  lib/compat_audit.c                 | 4 ++++
-> > > >  15 files changed, 35 insertions(+)
-> > > > 
-> > > > diff --git a/arch/alpha/kernel/audit.c b/arch/alpha/kernel/audit.c
-> > > > index 96a9d18ff4c4..06a911b685d1 100644
-> > > > --- a/arch/alpha/kernel/audit.c
-> > > > +++ b/arch/alpha/kernel/audit.c
-> > > > @@ -42,6 +42,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  		return 3;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/ia64/kernel/audit.c b/arch/ia64/kernel/audit.c
-> > > > index 5192ca899fe6..5eaa888c8fd3 100644
-> > > > --- a/arch/ia64/kernel/audit.c
-> > > > +++ b/arch/ia64/kernel/audit.c
-> > > > @@ -43,6 +43,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  		return 3;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/parisc/kernel/audit.c b/arch/parisc/kernel/audit.c
-> > > > index 9eb47b2225d2..fc721a7727ba 100644
-> > > > --- a/arch/parisc/kernel/audit.c
-> > > > +++ b/arch/parisc/kernel/audit.c
-> > > > @@ -52,6 +52,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  		return 3;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/parisc/kernel/compat_audit.c b/arch/parisc/kernel/compat_audit.c
-> > > > index 20c39c9d86a9..fc6d35918c44 100644
-> > > > --- a/arch/parisc/kernel/compat_audit.c
-> > > > +++ b/arch/parisc/kernel/compat_audit.c
-> > > > @@ -35,6 +35,8 @@ int parisc32_classify_syscall(unsigned syscall)
-> > > >  		return 3;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 1;
-> > > >  	}
-> > > > diff --git a/arch/powerpc/kernel/audit.c b/arch/powerpc/kernel/audit.c
-> > > > index a2dddd7f3d09..8f32700b0baa 100644
-> > > > --- a/arch/powerpc/kernel/audit.c
-> > > > +++ b/arch/powerpc/kernel/audit.c
-> > > > @@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/powerpc/kernel/compat_audit.c b/arch/powerpc/kernel/compat_audit.c
-> > > > index 55c6ccda0a85..ebe45534b1c9 100644
-> > > > --- a/arch/powerpc/kernel/compat_audit.c
-> > > > +++ b/arch/powerpc/kernel/compat_audit.c
-> > > > @@ -38,6 +38,8 @@ int ppc32_classify_syscall(unsigned syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 1;
-> > > >  	}
-> > > > diff --git a/arch/s390/kernel/audit.c b/arch/s390/kernel/audit.c
-> > > > index d395c6c9944c..d964cb94cfaf 100644
-> > > > --- a/arch/s390/kernel/audit.c
-> > > > +++ b/arch/s390/kernel/audit.c
-> > > > @@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/s390/kernel/compat_audit.c b/arch/s390/kernel/compat_audit.c
-> > > > index 444fb1f66944..f7b32933ce0e 100644
-> > > > --- a/arch/s390/kernel/compat_audit.c
-> > > > +++ b/arch/s390/kernel/compat_audit.c
-> > > > @@ -39,6 +39,8 @@ int s390_classify_syscall(unsigned syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 1;
-> > > >  	}
-> > > > diff --git a/arch/sparc/kernel/audit.c b/arch/sparc/kernel/audit.c
-> > > > index a6e91bf34d48..b6dcca9c6520 100644
-> > > > --- a/arch/sparc/kernel/audit.c
-> > > > +++ b/arch/sparc/kernel/audit.c
-> > > > @@ -55,6 +55,8 @@ int audit_classify_syscall(int abi, unsigned int syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/arch/sparc/kernel/compat_audit.c b/arch/sparc/kernel/compat_audit.c
-> > > > index 10eeb4f15b20..d2652a1083ad 100644
-> > > > --- a/arch/sparc/kernel/compat_audit.c
-> > > > +++ b/arch/sparc/kernel/compat_audit.c
-> > > > @@ -39,6 +39,8 @@ int sparc32_classify_syscall(unsigned int syscall)
-> > > >  		return 4;
-> > > >  	case __NR_execve:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 1;
-> > > >  	}
-> > > > diff --git a/arch/x86/ia32/audit.c b/arch/x86/ia32/audit.c
-> > > > index 6efe6cb3768a..57a02ade5503 100644
-> > > > --- a/arch/x86/ia32/audit.c
-> > > > +++ b/arch/x86/ia32/audit.c
-> > > > @@ -39,6 +39,8 @@ int ia32_classify_syscall(unsigned syscall)
-> > > >  	case __NR_execve:
-> > > >  	case __NR_execveat:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 1;
-> > > >  	}
-> > > > diff --git a/arch/x86/kernel/audit_64.c b/arch/x86/kernel/audit_64.c
-> > > > index 83d9cad4e68b..39de1e021258 100644
-> > > > --- a/arch/x86/kernel/audit_64.c
-> > > > +++ b/arch/x86/kernel/audit_64.c
-> > > > @@ -53,6 +53,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
-> > > >  	case __NR_execve:
-> > > >  	case __NR_execveat:
-> > > >  		return 5;
-> > > > +	case __NR_openat2:
-> > > > +		return 6;
-> > > >  	default:
-> > > >  		return 0;
-> > > >  	}
-> > > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > > > index 8bb9ac84d2fb..f5616e70d129 100644
-> > > > --- a/kernel/auditsc.c
-> > > > +++ b/kernel/auditsc.c
-> > > > @@ -76,6 +76,7 @@
-> > > >  #include <linux/fsnotify_backend.h>
-> > > >  #include <uapi/linux/limits.h>
-> > > >  #include <uapi/linux/netfilter/nf_tables.h>
-> > > > +#include <uapi/linux/openat2.h>
-> > > >  
-> > > >  #include "audit.h"
-> > > >  
-> > > > @@ -195,6 +196,8 @@ static int audit_match_perm(struct audit_context *ctx, int mask)
-> > > >  		return ((mask & AUDIT_PERM_WRITE) && ctx->argv[0] == SYS_BIND);
-> > > >  	case 5: /* execve */
-> > > >  		return mask & AUDIT_PERM_EXEC;
-> > > > +	case 6: /* openat2 */
-> > > > +		return mask & ACC_MODE((u32)((struct open_how *)ctx->argv[2])->flags);
-> > > 
-> > > That looks a bit dodgy. Maybe sm like the below would be a bit better?
-> > 
-> > Ah, ok, fair enough, since original flags use a u32 and this was picked
-> > as u64 for alignment.  It was just occurring to me last night that I
-> > might have the dubious honour of being the first usage of 0%llo format
-> > specifier in the kernel...  ;-)
-> 
-> > > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > > index 47fb48f42c93..531e882a5096 100644
-> > > --- a/kernel/auditsc.c
-> > > +++ b/kernel/auditsc.c
-> > > @@ -159,6 +159,7 @@ static const struct audit_nfcfgop_tab audit_nfcfgs[] = {
-> > > 
-> > >  static int audit_match_perm(struct audit_context *ctx, int mask)
-> > >  {
-> > > +       struct open_how *openat2;
-> > >         unsigned n;
-> > >         if (unlikely(!ctx))
-> > >                 return 0;
-> > > @@ -195,6 +196,12 @@ static int audit_match_perm(struct audit_context *ctx, int mask)
-> > >                 return ((mask & AUDIT_PERM_WRITE) && ctx->argv[0] == SYS_BIND);
-> > >         case 5: /* execve */
-> > >                 return mask & AUDIT_PERM_EXEC;
-> > > +       case 6: /* openat2 */
-> > > +               openat2 = ctx->argv[2];
-> > > +               if (upper_32_bits(openat2->flags))
-> > > +                       pr_warn("Some sensible warning about unknown flags");
-> > > +
-> > > +               return mask & ACC_MODE(lower_32_bits(openat2->flags));
-> > >         default:
-> > >                 return 0;
-> > >         }
-> > > 
-> > > (Ideally we'd probably notice at build-time that we've got flags
-> > > exceeding 32bits. Could probably easily been done by exposing an all
-> > > flags macro somewhere and then we can place a BUILD_BUG_ON() or sm into
-> > > such places.)
-> 
-> open_how arguments are translated to open_flags which is limited to 32 bits.
-> 
-> This code is shared with the other open functions that are limited to 32 bits
-> in open_flags.  openat2 was created to avoid the limitations of openat, so at
-> some point it isn't unreasonable that flags exceed 32 bits, but open_flags
-> would have to be modified at that point to accommodate.
-> 
-> This value is handed in from userspace, and could be handed in without being
-> defined in the kernel, so those values need to be properly checked regardless
-> of the flags defined in the kernel.
-> 
-> The openat2 syscall claims to check all flags but no check is done on the top
-> 32 bits.
+2021-04-23 09:19 UTC+0200 ~ Christophe Leroy <christophe.leroy@csgroup.eu>
 
-Hm, I think this is an oversight because of the different semantics for
-openat() and openat2(). We should check that no upper 32 bits are set
-for openat2(). That's the intended semantics. For old openat()
-we can't error on unknown flags because it has traditionally ignored
-unknown flags.
+[...]
+
+> I finally managed to cross compile bpftool with libbpf, libopcodes,
+> readline, ncurses, libcap, libz and all needed stuff. Was not easy but I
+> made it.
+
+Libcap is optional and bpftool does not use readline or ncurses. May I
+ask how you tried to build it?
 
 > 
-> build_open_flags() assigns how->flags to an int, effectively dropping the top
-> 32 bits, before being checked against ~VALID_OPEN_FLAGS.  This happens after
-> audit mode filtering, but has the same result.
+> Now, how do I use it ?
+> 
+> Let say I want to dump the jitted code generated from a call to
+> 'tcpdump'. How do I do that with 'bpftool prog dump jited' ?
+> 
+> I thought by calling this line I would then get programs dumped in a way
+> or another just like when setting 'bpf_jit_enable=2', but calling that
+> line just provides me some bpftool help text.
 
-Right. That's at bug we should return an error to userspace. We do for
-any unkown values that fall within the lower 32 bit range so it's silly
-to ignore unknown values in the upper 32 bit range.
+Well the purpose of this text is to help you find the way to call
+bpftool to do what you want :). For dumping your programs' instructions,
+you need to tell bpftool what program to dump: Bpftool isn't waiting
+until you load a program to dump it, instead you need to load your
+program first and then tell bpftool to retrieve the instructions from
+the kernel. To reference your program you could use a pinned path, or
+first list the programs on your system with "bpftool prog show":
+
+
+    # bpftool prog show
+    138: tracing  name foo  tag e54c922dfa54f65f  gpl
+            loaded_at 2021-02-25T01:32:30+0000  uid 0
+            xlated 256B  jited 154B  memlock 4096B  map_ids 64
+            btf_id 235
+
+Then you can use for example the program id displayed on the first line
+to reference and dump your program:
+
+    # bpftool prog dump jited id 138
+
+You should find additional documentation under
+tools/bpf/bpftool/Documentation.
 
 > 
-> Audit mode filtering using ACC_MODE() already masks out all but the lowest two
-> bits with O_ACCMODE, so there is no danger of overflowing a u32.
+> By the way, I would be nice to have a kernel OPTION that selects all
+> OPTIONS required for building bpftool. Because you discover them one by
+> one at every build failure. I had to had CONFIG_IPV6, CONFIG_DEBUG_BTF,
+> CONFIG_CGROUPS, ... If there could be an option like "Build a 'bpftool'
+> ready kernel" that selected all those, it would be great.
 > 
-> tomoyo_check_open_permission() assigns ACC_MODE() to u8 without a check.
-> 
-> All FMODE_* flags are clamped at u32.
-> 
-> 6 bits remain at top and 4 bits just above O_ACCMODE, so there is no immediate
-> danger of overflow and if any additional mode bits are needed they are
-> available.
-> 000377777703 used
-> 037777777777 available
-> 10 bits remaining
-> 
-> So, I don't think a check at this point in the code is useful, but do agree
+> Christophe
 
-Maybe but note that a defensive posture here might be a good thing
-instead of tripping over the issue later.
+I do not believe any of these are required to build bpftool.
 
-> that there should be some changes and checks added in sys_openat2 and
-> build_open_flags().
-> 
-> 
-> Also noticed: It looks like fddb5d430ad9f left in VALID_UPGRADE_FLAGS for
-> how->upgrade_mask that was removed.  This may be used at a later date, but at
-> this point is dead code.
-
-I'll take a look now.
-
-Christian
+Quentin
