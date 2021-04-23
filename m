@@ -2,93 +2,193 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7470C433ED
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 06:56:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13A04C43460
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 07:19:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8AAB8611ED
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 06:56:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E02EE613DB
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 07:19:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237014AbhDWG4l (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 23 Apr 2021 02:56:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55194 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229982AbhDWG4l (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 23 Apr 2021 02:56:41 -0400
-Received: from mail-pg1-x52d.google.com (mail-pg1-x52d.google.com [IPv6:2607:f8b0:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9BA2DC061574;
-        Thu, 22 Apr 2021 23:56:05 -0700 (PDT)
-Received: by mail-pg1-x52d.google.com with SMTP id q10so34555794pgj.2;
-        Thu, 22 Apr 2021 23:56:05 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
-        bh=YwCnxkXVRrLVAcaZu7Tt0zFvI7AfeBQzqeihkPgPDZI=;
-        b=NaWkQ+BKCNjiXFDZ7Gm7qkfb+cJ/DGSYgJRYtzo2BQ/S0kNrXOG/tOEvqPoFozf41I
-         V9kBPzwz334k6KoPzxFPxUcB0zk11tsoFDO6yAYzzRvTGP9ecUIcqyrig+GgVz2OC9Cd
-         8PeScAxx+jY4wnRFFfqNxhCD8RFlecYKzTeTaFtMffcuTquHcqX7ojsmA3W4mEDlgRab
-         Zn0qrMm2GgQ7Grsm2Sr2CzNN23g5nSqHqISvx4KBUulvAdXlmU8YQhjoya08B1LY0aHw
-         k9VUhUTl4bPNZdDRPw8l8f4K14YF34yexHFY9LDDDspiUGpQxfhL+lExtjWlVqzuaSlT
-         SJOg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition;
-        bh=YwCnxkXVRrLVAcaZu7Tt0zFvI7AfeBQzqeihkPgPDZI=;
-        b=RdtRp7SiXfJHkgGBnCE6GpDLXtdu5gtRLBaWFNsYzORqEr8EKvkaa0wh8mS7NXK4rO
-         fyXF4pp0J1PiK8LbcuR8gRun/xR0/95G0Ap9qp2QHy+R0FylxSYzdsnnoHkBOmM8Erij
-         IkcE2kotJhJN7wXFrTXX9TVCb2UHx2MBnkOK4Yor1XsZ9FK12cmMrCE9H8sOrOtCHEie
-         kVt2zGgh5d1vUor9JB/L8BmsuGaUH0qsTX6uVPsua+ffhgaej1SQAJX4KvTgi5aJ1Adc
-         SWXDabqFuvny6DoVNDlOudUF2KN1kps87kcS4SCG4FqPaWULrLPHgCtSU6wI0rHv/wjk
-         k6lg==
-X-Gm-Message-State: AOAM530DMZ9EsIn2yDZRyM/OsQH4bwhiqQ+oE5sdxcb1c/qFKVaU2QrU
-        e/izZ+lzzORKSa7OWbW1HuBypymYQBr++xFx
-X-Google-Smtp-Source: ABdhPJyJGsZ5F+USbYFqWRFWnoyY8uMqzjmeA4ZPw6lDk25CG2uV6vZifGZvrq8auO/UhvauDrZ/Rg==
-X-Received: by 2002:a63:d915:: with SMTP id r21mr2444317pgg.69.1619160965221;
-        Thu, 22 Apr 2021 23:56:05 -0700 (PDT)
-Received: from shreya-VirtualBox ([122.167.91.182])
-        by smtp.gmail.com with ESMTPSA id 31sm3872335pgw.3.2021.04.22.23.56.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 22 Apr 2021 23:56:03 -0700 (PDT)
-Date:   Fri, 23 Apr 2021 12:25:58 +0530
-From:   Shreya Ajith <shreya.ajithchb@gmail.com>
-To:     davem@davemloft.net
-Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-        davem@davemloft.net
-Subject: [PATCH]sbus:char:bbc_i2c:Replaced header file asm/io.h with
- linux/io.h
-Message-ID: <20210423065558.d5gy3zpxus6gsyc2@shreya-VirtualBox>
+        id S240985AbhDWHTt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 23 Apr 2021 03:19:49 -0400
+Received: from pegase1.c-s.fr ([93.17.236.30]:18001 "EHLO pegase1.c-s.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229935AbhDWHTs (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 23 Apr 2021 03:19:48 -0400
+Received: from localhost (mailhub1-int [192.168.12.234])
+        by localhost (Postfix) with ESMTP id 4FRQdS46lvz9tynk;
+        Fri, 23 Apr 2021 09:19:08 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at c-s.fr
+Received: from pegase1.c-s.fr ([192.168.12.234])
+        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
+        with ESMTP id 0oQPQKgd4ski; Fri, 23 Apr 2021 09:19:08 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase1.c-s.fr (Postfix) with ESMTP id 4FRQdS3HSvz9tynf;
+        Fri, 23 Apr 2021 09:19:08 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id C25808B798;
+        Fri, 23 Apr 2021 09:19:09 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id QeOANgzeLlXn; Fri, 23 Apr 2021 09:19:09 +0200 (CEST)
+Received: from [192.168.4.90] (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id D2C2E8B765;
+        Fri, 23 Apr 2021 09:19:06 +0200 (CEST)
+Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
+To:     Alexei Starovoitov <alexei.starovoitov@gmail.com>
+Cc:     Quentin Monnet <quentin@isovalent.com>,
+        Ian Rogers <irogers@google.com>,
+        Song Liu <songliubraving@fb.com>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Zi Shen Lim <zlim.lnx@gmail.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Sandipan Das <sandipan@linux.ibm.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
+        Shubham Bansal <illusionist.neo@gmail.com>,
+        Mahesh Bandewar <maheshb@google.com>,
+        Will Deacon <will@kernel.org>,
+        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Ilya Leoshkevich <iii@linux.ibm.com>, paulburton@kernel.org,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        X86 ML <x86@kernel.org>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Ingo Molnar <mingo@redhat.com>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
+        linux-mips@vger.kernel.org, grantseltzer@gmail.com,
+        Xi Wang <xi.wang@gmail.com>, Albert Ou <aou@eecs.berkeley.edu>,
+        Kees Cook <keescook@chromium.org>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Luke Nelson <luke.r.nels@gmail.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        KP Singh <kpsingh@kernel.org>, iecedge@gmail.com,
+        Simon Horman <horms@verge.net.au>,
+        Borislav Petkov <bp@alien8.de>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Yonghong Song <yhs@fb.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Dmitry Vyukov <dvyukov@google.com>, tsbogend@alpha.franken.de,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Network Development <netdev@vger.kernel.org>,
+        David Ahern <dsahern@kernel.org>,
+        Wang YanQing <udknight@gmail.com>,
+        Martin KaFai Lau <kafai@fb.com>,
+        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
+        Palmer Dabbelt <palmer@dabbelt.com>, bpf <bpf@vger.kernel.org>,
+        Jianlin Lv <Jianlin.Lv@arm.com>,
+        "David S. Miller" <davem@davemloft.net>
+References: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
+ <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
+ <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
+ <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
+ <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
+ <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Message-ID: <be132117-f267-5817-136d-e1aeb8409c2a@csgroup.eu>
+Date:   Fri, 23 Apr 2021 09:19:06 +0200
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.9.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Replaced header file asm/io.h with linux/io.h
 
-Signed-off-by:Shreya Ajith <shreya.ajithchb@gmail.com>
----
- drivers/sbus/char/bbc_i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
-index 537e55cd038d..a4a38a405b6f 100644
---- a/drivers/sbus/char/bbc_i2c.c
-+++ b/drivers/sbus/char/bbc_i2c.c
-@@ -16,7 +16,7 @@
- #include <linux/of.h>
- #include <linux/of_device.h>
- #include <asm/bbc.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- 
- #include "bbc_i2c.h"
- 
--- 
-2.25.1
+Le 20/04/2021 à 05:28, Alexei Starovoitov a écrit :
+> On Sat, Apr 17, 2021 at 1:16 AM Christophe Leroy
+> <christophe.leroy@csgroup.eu> wrote:
+>>
+>>
+>>
+>> Le 16/04/2021 à 01:49, Alexei Starovoitov a écrit :
+>>> On Thu, Apr 15, 2021 at 8:41 AM Quentin Monnet <quentin@isovalent.com> wrote:
+>>>>
+>>>> 2021-04-15 16:37 UTC+0200 ~ Daniel Borkmann <daniel@iogearbox.net>
+>>>>> On 4/15/21 11:32 AM, Jianlin Lv wrote:
+>>>>>> For debugging JITs, dumping the JITed image to kernel log is discouraged,
+>>>>>> "bpftool prog dump jited" is much better way to examine JITed dumps.
+>>>>>> This patch get rid of the code related to bpf_jit_enable=2 mode and
+>>>>>> update the proc handler of bpf_jit_enable, also added auxiliary
+>>>>>> information to explain how to use bpf_jit_disasm tool after this change.
+>>>>>>
+>>>>>> Signed-off-by: Jianlin Lv <Jianlin.Lv@arm.com>
+>>>>
+>>>> Hello,
+>>>>
+>>>> For what it's worth, I have already seen people dump the JIT image in
+>>>> kernel logs in Qemu VMs running with just a busybox, not for kernel
+>>>> development, but in a context where buiding/using bpftool was not
+>>>> possible.
+>>>
+>>> If building/using bpftool is not possible then majority of selftests won't
+>>> be exercised. I don't think such environment is suitable for any kind
+>>> of bpf development. Much so for JIT debugging.
+>>> While bpf_jit_enable=2 is nothing but the debugging tool for JIT developers.
+>>> I'd rather nuke that code instead of carrying it from kernel to kernel.
+>>>
+>>
+>> When I implemented JIT for PPC32, it was extremely helpfull.
+>>
+>> As far as I understand, for the time being bpftool is not usable in my environment because it
+>> doesn't support cross compilation when the target's endianess differs from the building host
+>> endianess, see discussion at
+>> https://lore.kernel.org/bpf/21e66a09-514f-f426-b9e2-13baab0b938b@csgroup.eu/
+>>
+>> That's right that selftests can't be exercised because they don't build.
+>>
+>> The question might be candid as I didn't investigate much about the replacement of "bpf_jit_enable=2
+>> debugging mode" by bpftool, how do we use bpftool exactly for that ? Especially when using the BPF
+>> test module ?
+> 
+> the kernel developers can add any amount of printk and dumps to debug
+> their code,
+> but such debugging aid should not be part of the production kernel.
+> That sysctl was two things at once: debugging tool for kernel devs and
+> introspection for users.
+> bpftool jit dump solves the 2nd part. It provides JIT introspection to users.
+> Debugging of the kernel can be done with any amount of auxiliary code
+> including calling print_hex_dump() during jiting.
+> 
 
+I finally managed to cross compile bpftool with libbpf, libopcodes, readline, ncurses, libcap, libz 
+and all needed stuff. Was not easy but I made it.
+
+Now, how do I use it ?
+
+Let say I want to dump the jitted code generated from a call to 'tcpdump'. How do I do that with 
+'bpftool prog dump jited' ?
+
+I thought by calling this line I would then get programs dumped in a way or another just like when 
+setting 'bpf_jit_enable=2', but calling that line just provides me some bpftool help text.
+
+By the way, I would be nice to have a kernel OPTION that selects all OPTIONS required for building 
+bpftool. Because you discover them one by one at every build failure. I had to had CONFIG_IPV6, 
+CONFIG_DEBUG_BTF, CONFIG_CGROUPS, ... If there could be an option like "Build a 'bpftool' ready 
+kernel" that selected all those, it would be great.
+
+Christophe
