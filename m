@@ -2,156 +2,49 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84081C43462
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 11:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43AADC433B4
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 20:33:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4EA47613B2
-	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 11:30:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E75D61001
+	for <sparclinux@archiver.kernel.org>; Fri, 23 Apr 2021 20:33:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbhDWLan (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 23 Apr 2021 07:30:43 -0400
-Received: from pegase1.c-s.fr ([93.17.236.30]:21264 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229479AbhDWLal (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 23 Apr 2021 07:30:41 -0400
-Received: from localhost (mailhub1-int [192.168.12.234])
-        by localhost (Postfix) with ESMTP id 4FRXBx1czYz9ttBT;
-        Fri, 23 Apr 2021 13:30:01 +0200 (CEST)
-X-Virus-Scanned: Debian amavisd-new at c-s.fr
-Received: from pegase1.c-s.fr ([192.168.12.234])
-        by localhost (pegase1.c-s.fr [192.168.12.234]) (amavisd-new, port 10024)
-        with ESMTP id VRzNkODV-j7U; Fri, 23 Apr 2021 13:30:01 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase1.c-s.fr (Postfix) with ESMTP id 4FRXBx07wyz9ttBK;
-        Fri, 23 Apr 2021 13:30:01 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id B72208B849;
-        Fri, 23 Apr 2021 13:30:02 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id b6jQpDb8KpiG; Fri, 23 Apr 2021 13:30:02 +0200 (CEST)
-Received: from [192.168.4.90] (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 9748F8B765;
-        Fri, 23 Apr 2021 13:29:59 +0200 (CEST)
-Subject: Re: [PATCH bpf-next 1/2] bpf: Remove bpf_jit_enable=2 debugging mode
-To:     Quentin Monnet <quentin@isovalent.com>,
-        Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Cc:     Ian Rogers <irogers@google.com>, Song Liu <songliubraving@fb.com>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Zi Shen Lim <zlim.lnx@gmail.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Sandipan Das <sandipan@linux.ibm.com>,
-        "H. Peter Anvin" <hpa@zytor.com>, sparclinux@vger.kernel.org,
-        Shubham Bansal <illusionist.neo@gmail.com>,
-        Mahesh Bandewar <maheshb@google.com>,
-        Will Deacon <will@kernel.org>,
-        Nicolas Dichtel <nicolas.dichtel@6wind.com>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Ilya Leoshkevich <iii@linux.ibm.com>, paulburton@kernel.org,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab+huawei@kernel.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        X86 ML <x86@kernel.org>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Ingo Molnar <mingo@redhat.com>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        "Naveen N . Rao" <naveen.n.rao@linux.ibm.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Tobias Klauser <tklauser@distanz.ch>,
-        linux-mips@vger.kernel.org, grantseltzer@gmail.com,
-        Xi Wang <xi.wang@gmail.com>, Albert Ou <aou@eecs.berkeley.edu>,
-        Kees Cook <keescook@chromium.org>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Luke Nelson <luke.r.nels@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        ppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        KP Singh <kpsingh@kernel.org>, iecedge@gmail.com,
-        Simon Horman <horms@verge.net.au>,
-        Borislav Petkov <bp@alien8.de>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Yonghong Song <yhs@fb.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Dmitry Vyukov <dvyukov@google.com>, tsbogend@alpha.franken.de,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Network Development <netdev@vger.kernel.org>,
-        David Ahern <dsahern@kernel.org>,
-        Wang YanQing <udknight@gmail.com>,
-        Martin KaFai Lau <kafai@fb.com>,
-        =?UTF-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>,
-        Palmer Dabbelt <palmer@dabbelt.com>, bpf <bpf@vger.kernel.org>,
-        Jianlin Lv <Jianlin.Lv@arm.com>,
-        "David S. Miller" <davem@davemloft.net>
-References: <20210415093250.3391257-1-Jianlin.Lv@arm.com>
- <9c4a78d2-f73c-832a-e6e2-4b4daa729e07@iogearbox.net>
- <d3949501-8f7d-57c4-b3fe-bcc3b24c09d8@isovalent.com>
- <CAADnVQJ2oHbYfgY9jqM_JMxUsoZxaNrxKSVFYfgCXuHVpDehpQ@mail.gmail.com>
- <0dea05ba-9467-0d84-4515-b8766f60318e@csgroup.eu>
- <CAADnVQ+oQT6C7Qv7P5TV-x7im54omKoCYYKtYhcnhb1Uv3LPMQ@mail.gmail.com>
- <be132117-f267-5817-136d-e1aeb8409c2a@csgroup.eu>
- <58296f87-ad00-a0f5-954b-2150aa84efc4@isovalent.com>
- <6a809d3f-c9e3-0eb7-9c1d-a202ad848424@csgroup.eu>
- <ab1c3803-179c-7882-2bba-9eeda5211ad1@isovalent.com>
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Message-ID: <90e2da42-6924-4246-f2f6-cfb2778cd804@csgroup.eu>
-Date:   Fri, 23 Apr 2021 13:29:59 +0200
-User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.10.0
-MIME-Version: 1.0
-In-Reply-To: <ab1c3803-179c-7882-2bba-9eeda5211ad1@isovalent.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+        id S229691AbhDWUdj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 23 Apr 2021 16:33:39 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:59056 "EHLO
+        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229549AbhDWUdh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 23 Apr 2021 16:33:37 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 8E61D4D25A19E;
+        Fri, 23 Apr 2021 13:33:00 -0700 (PDT)
+Date:   Fri, 23 Apr 2021 13:33:00 -0700 (PDT)
+Message-Id: <20210423.133300.1671385649231876076.davem@davemloft.net>
+To:     shreya.ajithchb@gmail.com
+Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH]sbus:char:bbc_i2c:Replaced header file asm/io.h with
+ linux/io.h
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20210423065558.d5gy3zpxus6gsyc2@shreya-VirtualBox>
+References: <20210423065558.d5gy3zpxus6gsyc2@shreya-VirtualBox>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Fri, 23 Apr 2021 13:33:00 -0700 (PDT)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+From: Shreya Ajith <shreya.ajithchb@gmail.com>
+Date: Fri, 23 Apr 2021 12:25:58 +0530
 
-
-Le 23/04/2021 à 12:59, Quentin Monnet a écrit :
-> 2021-04-23 12:46 UTC+0200 ~ Christophe Leroy <christophe.leroy@csgroup.eu>
->>
->>
->> Le 23/04/2021 à 12:26, Quentin Monnet a écrit :
->>> 2021-04-23 09:19 UTC+0200 ~ Christophe Leroy
->>> <christophe.leroy@csgroup.eu>
->>>
->>> [...]
->>>
->>>> I finally managed to cross compile bpftool with libbpf, libopcodes,
->>>> readline, ncurses, libcap, libz and all needed stuff. Was not easy but I
->>>> made it.
->>>
->>> Libcap is optional and bpftool does not use readline or ncurses. May I
->>> ask how you tried to build it?
->>
->> cd tools/bpf/
->>
->> make ARCH=powerpc CROSS_COMPILE=ppc-linux-
+> Replaced header file asm/io.h with linux/io.h
 > 
-> Ok, you could try running directly from tools/bpf/bpftool/ next time
-> instead.
-> 
-> Readline at least is for a different tool under tools/bpf/, bpf_dbg (But
-> I'm still not sure where that ncurses requirement was pulled from). The
-> requirements for specific kernel options probably came from yet another
-> tool (runqslower, I think).
-> 
+> Signed-off-by:Shreya Ajith <shreya.ajithchb@gmail.com>
 
-ncurses (or termcap) is required by readline
-
-Christophe
+Acked-by: David S. Miller <davem@davemloft.net>
