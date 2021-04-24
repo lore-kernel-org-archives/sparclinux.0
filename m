@@ -2,68 +2,96 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B11DC433ED
-	for <sparclinux@archiver.kernel.org>; Sat, 24 Apr 2021 06:36:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A158C433ED
+	for <sparclinux@archiver.kernel.org>; Sat, 24 Apr 2021 12:16:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FA176101B
-	for <sparclinux@archiver.kernel.org>; Sat, 24 Apr 2021 06:36:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47B4D61482
+	for <sparclinux@archiver.kernel.org>; Sat, 24 Apr 2021 12:16:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231701AbhDXGgo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 24 Apr 2021 02:36:44 -0400
-Received: from outpost1.zedat.fu-berlin.de ([130.133.4.66]:43349 "EHLO
-        outpost1.zedat.fu-berlin.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S230178AbhDXGgo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Sat, 24 Apr 2021 02:36:44 -0400
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.94)
-          with esmtps (TLS1.2)
-          tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1laBtc-001Gjk-Vk; Sat, 24 Apr 2021 08:36:05 +0200
-Received: from p5b13a1ac.dip0.t-ipconnect.de ([91.19.161.172] helo=[192.168.178.139])
-          by inpost2.zedat.fu-berlin.de (Exim 4.94)
-          with esmtpsa (TLS1.2)
-          tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1laBtc-000KlB-Li; Sat, 24 Apr 2021 08:36:04 +0200
-Subject: Re: [PATCH]sbus:char:bbc_i2c:Replaced header file asm/io.h with
+        id S232867AbhDXMQr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 24 Apr 2021 08:16:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43348 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231836AbhDXMQo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 24 Apr 2021 08:16:44 -0400
+Received: from mail-pj1-x1030.google.com (mail-pj1-x1030.google.com [IPv6:2607:f8b0:4864:20::1030])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EA02FC061574;
+        Sat, 24 Apr 2021 05:16:05 -0700 (PDT)
+Received: by mail-pj1-x1030.google.com with SMTP id nk8so11282623pjb.3;
+        Sat, 24 Apr 2021 05:16:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=date:from:to:cc:subject:message-id:mime-version:content-disposition;
+        bh=r1gXv13coxNNVVcBOEf3L5qiNAnvOA7HW7SOkda9D54=;
+        b=kYRgP5XiPLgbHJe4oC/WtWzxVkZUMMJtMKtbrsOXJ4/9+LCtE6D13ykYEC2QTTu646
+         JR/ZPDaWdJkgcDkeH/30EW8Adn+OtmDUOOYu/M3H9ULIq9PtkxJhmcYZbVLLnyBA6B/K
+         O4ipvTEIAyx4KE8gfS8Ktb/ymD9W9EEXVDZDz+bn+evThuaYRQ5PKJvi/wKMcG/agrZa
+         zA73L4EBgIiZoP67TG+GRXZXoA5TWq6jTVrHGX/uWZTb7I5j2xaU9eEU526clkn9xh+3
+         wI3Bsb0g9NzWZ7AA+DbEnSJyunWzhwhV1kyB/dzeezvWebKfqFoq8CVhpDKE8eCU+fg/
+         CA8g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
+         :content-disposition;
+        bh=r1gXv13coxNNVVcBOEf3L5qiNAnvOA7HW7SOkda9D54=;
+        b=lzbs3czZlye7tPsqADnPNIGEszUbxhRxUSCXeWS/0xHbApiN/gv0RPkC5tZKUJFur9
+         2PDgTzvOj01NaB4fkRnaQR6/f2w48Kd0dcNZ/evmRdIzNhU8fN00xEFYiCXo7nYn6w/M
+         QON+5TbbhWr29Yetdef7ADpR/qz5jzaod/r0WgMq/bs25cyh3YCYKw80ibsRw4di50vY
+         8vBFfPv4hGlN19FkdbfrG351ZH6ASsWN3nV5Tvaz8engI5V+IDD1/uG++v0ruVLCmRHb
+         CZjb64dyraHeR+59Y0lzIQkIbX7qV5cutC8hY05fAk8NbxtIxxoE4LaGgQr3/k6t6vV7
+         8cnQ==
+X-Gm-Message-State: AOAM532cpFPIBYNwKufDrCH7u9B79kDhzwy4RfnfZD/lK4XFXK0JodEg
+        aatDbl+HAxJQ9jXudVwUUx+y1X80KnM=
+X-Google-Smtp-Source: ABdhPJz0jN9trmZRph4TDy9/C1Fz7+hfi1CxGXWxd8ZUP6FzR1JngHBNXrhLTWk5Q9usIHGdCtEFtA==
+X-Received: by 2002:a17:90a:c209:: with SMTP id e9mr11134321pjt.104.1619266565523;
+        Sat, 24 Apr 2021 05:16:05 -0700 (PDT)
+Received: from shreya-VirtualBox ([49.207.225.77])
+        by smtp.gmail.com with ESMTPSA id e8sm1167308pfv.177.2021.04.24.05.16.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 24 Apr 2021 05:16:05 -0700 (PDT)
+Date:   Sat, 24 Apr 2021 17:46:00 +0530
+From:   Shreya Ajith <shreya.ajithchb@gmail.com>
+To:     davem@davemloft.net
+Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        davem@davemloft.net
+Subject: [PATCH v2]sbus: char: bbc_i2c: Replaced header file asm/io.h with
  linux/io.h
-To:     Shreya Ajith <shreya.ajithchb@gmail.com>, davem@davemloft.net
-Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-References: <20210423065558.d5gy3zpxus6gsyc2@shreya-VirtualBox>
-From:   John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-Message-ID: <a1136512-6074-d392-2dde-779f9eddda59@physik.fu-berlin.de>
-Date:   Sat, 24 Apr 2021 08:36:04 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.9.1
+Message-ID: <20210424121600.GA2036@shreya-VirtualBox>
 MIME-Version: 1.0
-In-Reply-To: <20210423065558.d5gy3zpxus6gsyc2@shreya-VirtualBox>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-Originating-IP: 91.19.161.172
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 4/23/21 8:55 AM, Shreya Ajith wrote:
-> Replaced header file asm/io.h with linux/io.h
+Replaced header file asm/io.h with linux/io.h
 
-I would fix the missing spaces in the subject, i.e.:
+Signed-off-by:Shreya Ajith <shreya.ajithchb@gmail.com
+---
+v1->v2:
+Fixed missing spaces in the subject
 
-"sbus: char: bbc_i2c: Replaced header file asm/io.h with linux/io.h"
+ drivers/sbus/char/bbc_i2c.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks,
-Adrian
-
+diff --git a/drivers/sbus/char/bbc_i2c.c b/drivers/sbus/char/bbc_i2c.c
+index 537e55cd038d..a4a38a405b6f 100644
+--- a/drivers/sbus/char/bbc_i2c.c
++++ b/drivers/sbus/char/bbc_i2c.c
+@@ -16,7 +16,7 @@
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <asm/bbc.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ 
+ #include "bbc_i2c.h"
+ 
 -- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer - glaubitz@debian.org
-`. `'   Freie Universitaet Berlin - glaubitz@physik.fu-berlin.de
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+2.25.1
+
