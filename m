@@ -2,155 +2,167 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-26.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
-	autolearn=no autolearn_force=no version=3.4.0
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_GIT,USER_IN_DEF_DKIM_WL autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A73FC43462
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 18:47:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67B52C433ED
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 19:16:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 007C061408
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 18:47:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B79561077
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 19:16:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241070AbhD2Srt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Apr 2021 14:47:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41144 "EHLO
+        id S232291AbhD2TR0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Apr 2021 15:17:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45782 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241046AbhD2Srs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Apr 2021 14:47:48 -0400
-Received: from mail-oo1-xc2c.google.com (mail-oo1-xc2c.google.com [IPv6:2607:f8b0:4864:20::c2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 576A9C06138E
-        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 11:47:01 -0700 (PDT)
-Received: by mail-oo1-xc2c.google.com with SMTP id s1-20020a4ac1010000b02901cfd9170ce2so14896487oop.12
-        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 11:47:01 -0700 (PDT)
+        with ESMTP id S238513AbhD2TIk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Apr 2021 15:08:40 -0400
+Received: from mail-wm1-x34a.google.com (mail-wm1-x34a.google.com [IPv6:2a00:1450:4864:20::34a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E495C06138C
+        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 12:07:53 -0700 (PDT)
+Received: by mail-wm1-x34a.google.com with SMTP id h17-20020a05600c3511b0290145a421f785so205641wmq.5
+        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 12:07:53 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=8+UJwrU2MphE2H9pVBe4Va+3pVl8MrgEBW+di5Ar9x8=;
-        b=YheD8PJ4vjevdlZN9xjnFDpXx4r8xj2WfocSQQ4FGrmpUl25K4XoAHracDIHAGonKN
-         Jv3mQKHDRRNGM9uEqJMtY4Yp9sJ3Z6THXD+9dAm2ae5aXwuyvkAQ/SuhvQyXFZNln9i2
-         akSju72aiY34YA1tJymgIHYtICD8WkUWRdIjCAjzxQr8A9Poah+p2KGQoWPwUYfMK1g7
-         aLIoo8lvbq17uIsuedHL2iNKfjB94cT0cHbrYZbZxc/kkTs6hyLzneEYpH3ZydvnAXZ0
-         jvxrcdJ+BRzf2j1qvZOSHDGDCPF+loGh+oihiIW+0yzNjgqWWgkE7+/VoNUsYlxK75OI
-         yKow==
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=a+M03Ojo2ep3ZRi34mKtUekE+PIXB83y3AJCXMraWzo=;
+        b=dF9WJLioSQrbRuzCoNwwUPt/Vr8RLQvQyQyo0LOsjAWYk3FM7a+nBqYqettaUNAlHa
+         LiiTz1VGyiB+mykTMwMpeky8vvhoXMMUkWzQhh9qLmw34bugTcqySao7tleast8c469n
+         mKLzci3S4T7bmY+tjxRBZkJVvu3H0vxlySV1fPvpHl/g+2NuEs0zv5XxBIkqwaLWX5Xf
+         tE/a6xOOsLQ7ukUvb0tNay98YLQrFMVfm8vBxxuj+gkBPTue2rY2GErFnLTLjYr0C6pP
+         h40iwUYuB60pwe4+YNd7YDP/yNBBflO0HATK8xylCNstpMKY4Vaw9pnIRfR9tjWRti+M
+         gtdg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=8+UJwrU2MphE2H9pVBe4Va+3pVl8MrgEBW+di5Ar9x8=;
-        b=g3dLBO2juMbUpyvZjFDEEcEvGtM4OVKUhw+Mvif0owrR0Y656G+7jzXoHm9AFwUE8c
-         50n82LQgJWEf2TIYUjdjqvaSGCnVteiDIh/ROx0LPGYvqPCd8PIn7kb+WbRn51jM8kyf
-         QmZXxCjezCa8LEq0HJYXlEgonRCY0Eck0EbSV6d0pPDxLAPehSL612t4qWc75AVzuNke
-         xiikC8ZFzcPQsu9pTRwvlZUHBOSJfyjdqW+zjmrcqbb6EC2rDHO0uysp9IZrj+Keyx8G
-         LY+M4FXYDGDS82nlmD4fuLkkH4PpaKa+i3jFzvKkvpR9s46NMe0F5LDajEWm4gj4FHLG
-         7n2Q==
-X-Gm-Message-State: AOAM532dJh+8wTs6GlKqlDV9mBYqA9ngRHK+5d76u2jQi50qNpacDAl+
-        JN6aUg3Fk5DWrs/m3OJf9y429yi+pAqpX5w84Yv51g==
-X-Google-Smtp-Source: ABdhPJxg+cX3WOkcKuWZN0i123++XM7omVXz3QzNsOO657nSkyD05K2ZNT5GkuRpNxSGCUdZmf57iALTgxI/591rfdA=
-X-Received: by 2002:a4a:96e3:: with SMTP id t32mr1153302ooi.14.1619722020332;
- Thu, 29 Apr 2021 11:47:00 -0700 (PDT)
-MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
-In-Reply-To: <m11rat9f85.fsf@fess.ebiederm.org>
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=a+M03Ojo2ep3ZRi34mKtUekE+PIXB83y3AJCXMraWzo=;
+        b=H6XzuU3EoAfok4qGcmdP0TTH9LI1fDv3B2H/5qQFrdvrAsKrItCmQkG25STD4xTlDY
+         CI0WaD567eBQh50KzbIZPhACEGxreS5pWc9GstU3wkG18MvbN02c2TJOCa/gEMJYLyLr
+         2aOOPWSjtLX4qffmldyPxJIKJqOGWkyZYiuHiJCyBKdgTaiWaj7jCmBOc15fG8AxEK/D
+         1FRuIT/en/17stBHDY/mWBcXI4f8OcqiaJOfZF9lwqGANN1x9G0SrHobj3ZBYvIR4h+8
+         I42ceyjHdA7R+pKPPBcvYpKqszIJz60U/A/n/jeLwEm5njagCgOBM6+SoV5fohhVeXrU
+         UUZA==
+X-Gm-Message-State: AOAM5335J6+WdjGmMRYvKuDIrtpj1F/CxsjpxAw/sjXEJFNRSNvB4CHN
+        ybn1ubGgZ78QPnBTJfffTL+eHsz5rg==
+X-Google-Smtp-Source: ABdhPJzlg1wh/uLXKKhwRP5BcTAKO6bbMsP7iOQaaVlBytkU4SUateXusjlaHr17ej3J+IyJeoI9N2H4hA==
+X-Received: from elver.muc.corp.google.com ([2a00:79e0:15:13:4399:f8b0:aefa:628])
+ (user=elver job=sendgmr) by 2002:a1c:c915:: with SMTP id f21mr1249320wmb.0.1619723271698;
+ Thu, 29 Apr 2021 12:07:51 -0700 (PDT)
+Date:   Thu, 29 Apr 2021 21:07:32 +0200
+Message-Id: <20210429190734.624918-1-elver@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.31.1.527.g47e6f16901-goog
+Subject: [PATCH 1/3] sparc64: Add compile-time asserts for siginfo_t offsets
 From:   Marco Elver <elver@google.com>
-Date:   Thu, 29 Apr 2021 20:46:48 +0200
-Message-ID: <CANpmjNNeH7+7H3y-5BCNGx+Yo11HG-F3M5TLqCAXd11Up5PTWA@mail.gmail.com>
-Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux@vger.kernel.org,
-        linux-arch <linux-arch@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, linux-api@vger.kernel.org,
-        kasan-dev <kasan-dev@googlegroups.com>
+To:     elver@google.com, ebiederm@xmission.com
+Cc:     linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org,
+        davem@davemloft.net, mark.rutland@arm.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, 29 Apr 2021 at 19:24, Eric W. Biederman <ebiederm@xmission.com> wrote:
-[...]
-> > Granted, nobody seems to have noticed because I don't even know if these
-> > fields have use on sparc64. But I don't yet see this as justification to
-> > leave things as-is...
-> >
-> > The collateral damage of this, and the acute problem that I'm having is
-> > defining si_perf in a sort-of readable and portable way in siginfo_t
-> > definitions that live outside the kernel, where sparc64 does not yet
-> > have broken si_addr_lsb. And the same difficulty applies to the kernel
-> > if we want to unbreak sparc64, while not wanting to move si_perf for
-> > other architectures.
-> >
-> > There are 2 options I see to solve this:
-> >
-> > 1. Make things simple again. We could just revert the change moving
-> >    si_addr_lsb into the union, and sadly accept we'll have to live with
-> >    that legacy "design" mistake. (si_perf stays in the union, but will
-> >    unfortunately change its offset for all architectures... this one-off
-> >    move might be ok because it's new.)
-> >
-> > 2. Add special cases to retain si_addr_lsb in the union on architectures
-> >    that do not have __ARCH_SI_TRAPNO (the majority). I have added a
-> >    draft patch that would do this below (with some refactoring so that
-> >    it remains sort-of readable), as an experiment to see how complicated
-> >    this gets.
-> >
-> > Which option do you prefer? Are there better options?
->
-> Personally the most important thing to have is a single definition
-> shared by all architectures so that we consolidate testing.
->
-> A little piece of me cries a little whenever I see how badly we
-> implemented the POSIX design.  As specified by POSIX the fields can be
-> place in siginfo such that 32bit and 64bit share a common definition.
-> Unfortunately we did not addpadding after si_addr on 32bit to
-> accommodate a 64bit si_addr.
+To help catch ABI breaks at compile-time, add compile-time assertions to
+verify the siginfo_t layout. Unlike other architectures, sparc64 is
+special, because it is one of few architectures requiring si_trapno.
+ABI breaks around that field would only be caught here.
 
-I think it's even worse than that, see the fun I had with siginfo last
-week: https://lkml.kernel.org/r/20210422191823.79012-1-elver@google.com
-... because of the 3 initial ints and no padding after them, we can't
-portably add __u64 fields to siginfo, and are forever forced to have
-subtly different behaviour between 32-bit and 64-bit architectures.
-:-/
+Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
+Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
+Signed-off-by: Marco Elver <elver@google.com>
+---
+ arch/sparc/kernel/signal32.c  | 34 ++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/signal_64.c | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+)
 
-> I find it unfortunate that we are adding yet another definition that
-> requires translation between 32bit and 64bit, but I am glad
-> that at least the translation is not architecture specific.  That common
-> definition is what has allowed this potential issue to be caught
-> and that makes me very happy to see.
->
-> Let's go with Option 3.
->
-> Confirm BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR are not
-> in use on any architecture that defines __ARCH_SI_TRAPNO, and then fixup
-> the userspace definitions of these fields.
->
-> To the kernel I would add some BUILD_BUG_ON's to whatever the best
-> maintained architecture (sparc64?) that implements __ARCH_SI_TRAPNO just
-> to confirm we don't create future regressions by accident.
->
-> I did a quick search and the architectures that define __ARCH_SI_TRAPNO
-> are sparc, mips, and alpha.  All have 64bit implementations.  A further
-> quick search shows that none of those architectures have faults that
-> use BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR, nor do
-> they appear to use mm/memory-failure.c
->
-> So it doesn't look like we have an ABI regression to fix.
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index e9695a06492f..778ed5c26d4a 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -745,3 +745,37 @@ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp)
+ out:
+ 	return ret;
+ }
++
++/*
++ * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
++ * changes likely come with new fields that should be added below.
++ */
++static_assert(NSIGILL	== 11);
++static_assert(NSIGFPE	== 15);
++static_assert(NSIGSEGV	== 9);
++static_assert(NSIGBUS	== 5);
++static_assert(NSIGTRAP	== 6);
++static_assert(NSIGCHLD	== 6);
++static_assert(NSIGSYS	== 2);
++static_assert(offsetof(compat_siginfo_t, si_signo)	== 0x00);
++static_assert(offsetof(compat_siginfo_t, si_errno)	== 0x04);
++static_assert(offsetof(compat_siginfo_t, si_code)	== 0x08);
++static_assert(offsetof(compat_siginfo_t, si_pid)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_uid)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_tid)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_overrun)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_status)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_utime)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_stime)	== 0x1c);
++static_assert(offsetof(compat_siginfo_t, si_value)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_int)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_ptr)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_addr)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_trapno)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_addr_lsb)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_lower)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_upper)	== 0x1c);
++static_assert(offsetof(compat_siginfo_t, si_pkey)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_perf)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_band)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_fd)		== 0x10);
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index a0eec62c825d..c9bbf5f29078 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -556,3 +556,36 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+ 	user_enter();
+ }
+ 
++/*
++ * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
++ * changes likely come with new fields that should be added below.
++ */
++static_assert(NSIGILL	== 11);
++static_assert(NSIGFPE	== 15);
++static_assert(NSIGSEGV	== 9);
++static_assert(NSIGBUS	== 5);
++static_assert(NSIGTRAP	== 6);
++static_assert(NSIGCHLD	== 6);
++static_assert(NSIGSYS	== 2);
++static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
++static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
++static_assert(offsetof(siginfo_t, si_code)	== 0x08);
++static_assert(offsetof(siginfo_t, si_pid)	== 0x10);
++static_assert(offsetof(siginfo_t, si_uid)	== 0x14);
++static_assert(offsetof(siginfo_t, si_tid)	== 0x10);
++static_assert(offsetof(siginfo_t, si_overrun)	== 0x14);
++static_assert(offsetof(siginfo_t, si_status)	== 0x18);
++static_assert(offsetof(siginfo_t, si_utime)	== 0x20);
++static_assert(offsetof(siginfo_t, si_stime)	== 0x28);
++static_assert(offsetof(siginfo_t, si_value)	== 0x18);
++static_assert(offsetof(siginfo_t, si_int)	== 0x18);
++static_assert(offsetof(siginfo_t, si_ptr)	== 0x18);
++static_assert(offsetof(siginfo_t, si_addr)	== 0x10);
++static_assert(offsetof(siginfo_t, si_trapno)	== 0x18);
++static_assert(offsetof(siginfo_t, si_addr_lsb)	== 0x20);
++static_assert(offsetof(siginfo_t, si_lower)	== 0x28);
++static_assert(offsetof(siginfo_t, si_upper)	== 0x30);
++static_assert(offsetof(siginfo_t, si_pkey)	== 0x28);
++static_assert(offsetof(siginfo_t, si_perf)	== 0x20);
++static_assert(offsetof(siginfo_t, si_band)	== 0x10);
++static_assert(offsetof(siginfo_t, si_fd)	== 0x14);
+-- 
+2.31.1.527.g47e6f16901-goog
 
-That sounds fine to me -- my guess was that they're not used on these
-architectures, but I just couldn't make that call.
-
-I have patches adding compile-time asserts for sparc64, arm, arm64
-ready to go. I'll send them after some more testing.
-
-Thanks,
--- Marco
