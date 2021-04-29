@@ -2,63 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-24.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1,USER_IN_DEF_DKIM_WL autolearn=unavailable
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64FEEC43460
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 07:48:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFE59C43461
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 17:24:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BEAA6145A
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 07:48:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97C6C61456
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 17:24:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239672AbhD2HtN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Apr 2021 03:49:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36286 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239563AbhD2HtI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Apr 2021 03:49:08 -0400
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A695DC06138B
-        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 00:48:20 -0700 (PDT)
-Received: by mail-wr1-x42c.google.com with SMTP id q9so11615561wrs.6
-        for <sparclinux@vger.kernel.org>; Thu, 29 Apr 2021 00:48:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=date:from:to:cc:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=BpYrN5HcmOywbaw+z2lQkv5C1/K+LRrq5c9nfbi+Y18=;
-        b=JcIUqcHrwEEUIrK8eQIfevaimISQgkglEN9be726HSuGNOosQiIBpj36PaV8Ucnp5u
-         9NxIQMi1yPtrPQPenV7Kz4l/CXRSi9QqFQe4kSLcpv/PW90R4cQ8WUN2ildfIa2JeGZl
-         8yIAMi4iXAvSAxYZwr1VW6MRcxe8X5rLEKcG8TMt07J9F5JKqtzDbtpi26+0ffY/rTza
-         pf13/jHc7SLkCJYL5U88wQwtC2Mnb34B7psULAykrLvMYPCm5+MzIdU4mOh4+kXN6yhW
-         Psc5tBvD+24PXoPWLo+O9mKYgMkGF2Pq8T+TdNhvi3Aywql2ZXNnTr3V1KozPtgK6zJZ
-         eknQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=BpYrN5HcmOywbaw+z2lQkv5C1/K+LRrq5c9nfbi+Y18=;
-        b=fwhbBG4YrsuMwRyUK7dcspf3s/Uv1ypNoF8skaCYcasQO7gcxKj8kuLYsDOdUJnRLi
-         uvg5+12AK3jNuBNsaXOeaMkklS1qVidahnVvhbqpw4UyRP57dK5AC021G3ukaVsyiMJL
-         ok8uhe1+bKZd4pbPRYpseWG0+hocpdh+VjAv+/JcVMOIgpjWHeiewrUQVBU6w5SBDqp0
-         zhGg5FOZIZw+Jaz+I0DoGH1bLYBzniCiWcShMjJD0LlDWaskw2tRG9qJPwAGj/ux1rv9
-         on+e5MFEFwbeRZsvpHBaJAcEc7B0RIn9TK89Q7D60exZVniZ+s/QkmcuGEUmqHsUUurS
-         oQKw==
-X-Gm-Message-State: AOAM5324EeTPtDiQuiVDgyaNRubo9D1R78CO0FMu6TR8D+UGEC6VBvDs
-        5kpqf7uwcof9rg7cCunKs6ol5w==
-X-Google-Smtp-Source: ABdhPJyr0jiAuOvDT1Z+V8GkwzkBVN754Ae6Efaf0Fi+YrTrKm1160jW+hdV67dq0vpM7vh/OfmSvA==
-X-Received: by 2002:a5d:610d:: with SMTP id v13mr11811010wrt.173.1619682499142;
-        Thu, 29 Apr 2021 00:48:19 -0700 (PDT)
-Received: from elver.google.com ([2a00:79e0:15:13:fdf0:ddee:bee4:b3ce])
-        by smtp.gmail.com with ESMTPSA id m81sm2571110wmf.26.2021.04.29.00.48.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Apr 2021 00:48:18 -0700 (PDT)
-Date:   Thu, 29 Apr 2021 09:48:12 +0200
-From:   Marco Elver <elver@google.com>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
+        id S240928AbhD2RYx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Apr 2021 13:24:53 -0400
+Received: from out02.mta.xmission.com ([166.70.13.232]:43086 "EHLO
+        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240917AbhD2RYv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Apr 2021 13:24:51 -0400
+Received: from in02.mta.xmission.com ([166.70.13.52])
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcAOP-00A9RZ-9c; Thu, 29 Apr 2021 11:24:01 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcAON-003grI-4Z; Thu, 29 Apr 2021 11:24:00 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Marco Elver <elver@google.com>
 Cc:     Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Arnd Bergmann <arnd@arndb.de>,
@@ -71,344 +43,159 @@ Cc:     Florian Weimer <fweimer@redhat.com>,
         sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-api@vger.kernel.org,
         kasan-dev@googlegroups.com
-Subject: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
-Message-ID: <YIpkvGrBFGlB5vNj@elver.google.com>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+Date:   Thu, 29 Apr 2021 12:23:54 -0500
+In-Reply-To: <YIpkvGrBFGlB5vNj@elver.google.com> (Marco Elver's message of
+        "Thu, 29 Apr 2021 09:48:12 +0200")
+Message-ID: <m11rat9f85.fsf@fess.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/2.0.5 (2021-01-21)
+Content-Type: text/plain
+X-XM-SPF: eid=1lcAON-003grI-4Z;;;mid=<m11rat9f85.fsf@fess.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1/NeTTsYSLfDWkTV21ICkdFJSQGTcmp1BQ=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hello,  Eric,
+Marco Elver <elver@google.com> writes:
 
-By inspecting the logs I've seen that about 3 years ago there had been a
-number of siginfo_t cleanups. This included moving si_addr_lsb:
+> Hello,  Eric,
+>
+> By inspecting the logs I've seen that about 3 years ago there had been a
+> number of siginfo_t cleanups. This included moving si_addr_lsb:
+>
+> 	b68a68d3dcc1 ("signal: Move addr_lsb into the _sigfault union for clarity")
+> 	859d880cf544 ("signal: Correct the offset of si_pkey in struct siginfo")
+>  	8420f71943ae ("signal: Correct the offset of si_pkey and si_lower in struct siginfo on m68k")
+>
+> In an ideal world, we could just have si_addr + the union in _sigfault,
+> but it seems there are more corner cases. :-/
+>
+> The reason I've stumbled upon this is that I wanted to add the just
+> merged si_perf [1] field to glibc. But what I noticed is that glibc's
+> definition and ours are vastly different around si_addr_lsb, si_lower,
+> si_upper, and si_pkey.
+>
+> [1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=42dec9a936e7696bea1f27d3c5a0068cd9aa95fd
+>
+> In our current definition of siginfo_t, si_addr_lsb is placed into the
+> same union as si_lower, si_upper, and si_pkey (and now si_perf). From
+> the logs I see that si_lower, si_upper, and si_pkey are padded because
+> si_addr_lsb used to be outside the union, which goes back to
+> "signal: Move addr_lsb into the _sigfault union for clarity".
+>
+> Since then, si_addr_lsb must also be pointer-aligned, because the union
+> containing it must be pointer-aligned (because si_upper, si_lower). On
+> all architectures where si_addr_lsb is right after si_addr, this is
+> perfectly fine, because si_addr itself is a pointer...
+>
+> ... except for the anomaly that are 64-bit architectures that define
+> __ARCH_SI_TRAPNO and want that 'int si_trapno'. Like, for example
+> sparc64, which means siginfo_t's ABI has been subtly broken on sparc64
+> since v4.16.
+>
+> The following static asserts illustrate this:
+>
+> --- a/arch/sparc/kernel/signal_64.c
+> +++ b/arch/sparc/kernel/signal_64.c
+> @@ -556,3 +556,37 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+>  	user_enter();
+>  }
+>  
+> +static_assert(offsetof(siginfo_t, si_signo)	== 0);
+> +static_assert(offsetof(siginfo_t, si_errno)	== 4);
+> +static_assert(offsetof(siginfo_t, si_code)	== 8);
+> +static_assert(offsetof(siginfo_t, si_pid)	== 16);
+> +static_assert(offsetof(siginfo_t, si_uid)	== 20);
+> +static_assert(offsetof(siginfo_t, si_tid)	== 16);
+> +static_assert(offsetof(siginfo_t, si_overrun)	== 20);
+> +static_assert(offsetof(siginfo_t, si_status)	== 24);
+> +static_assert(offsetof(siginfo_t, si_utime)	== 32);
+> +static_assert(offsetof(siginfo_t, si_stime)	== 40);
+> +static_assert(offsetof(siginfo_t, si_value)	== 24);
+> +static_assert(offsetof(siginfo_t, si_int)	== 24);
+> +static_assert(offsetof(siginfo_t, si_ptr)	== 24);
+> +static_assert(offsetof(siginfo_t, si_addr)	== 16);
+> +static_assert(offsetof(siginfo_t, si_trapno)	== 24);
+> +#if 1 /* Correct offsets, obtained from v4.14 */
+> +static_assert(offsetof(siginfo_t, si_addr_lsb)	== 28);
+> +static_assert(offsetof(siginfo_t, si_lower)	== 32);
+> +static_assert(offsetof(siginfo_t, si_upper)	== 40);
+> +static_assert(offsetof(siginfo_t, si_pkey)	== 32);
+> +#else /* Current offsets, as of v4.16 */
+> +static_assert(offsetof(siginfo_t, si_addr_lsb)	== 32);
+> +static_assert(offsetof(siginfo_t, si_lower)	== 40);
+> +static_assert(offsetof(siginfo_t, si_upper)	== 48);
+> +static_assert(offsetof(siginfo_t, si_pkey)	== 40);
+> +#endif
+> +static_assert(offsetof(siginfo_t, si_band)	== 16);
+> +static_assert(offsetof(siginfo_t, si_fd)	== 20);
+>
+> ---
+>
+> Granted, nobody seems to have noticed because I don't even know if these
+> fields have use on sparc64. But I don't yet see this as justification to
+> leave things as-is...
+>
+> The collateral damage of this, and the acute problem that I'm having is
+> defining si_perf in a sort-of readable and portable way in siginfo_t
+> definitions that live outside the kernel, where sparc64 does not yet
+> have broken si_addr_lsb. And the same difficulty applies to the kernel
+> if we want to unbreak sparc64, while not wanting to move si_perf for
+> other architectures.
+>
+> There are 2 options I see to solve this:
+>
+> 1. Make things simple again. We could just revert the change moving
+>    si_addr_lsb into the union, and sadly accept we'll have to live with
+>    that legacy "design" mistake. (si_perf stays in the union, but will
+>    unfortunately change its offset for all architectures... this one-off
+>    move might be ok because it's new.)
+>
+> 2. Add special cases to retain si_addr_lsb in the union on architectures
+>    that do not have __ARCH_SI_TRAPNO (the majority). I have added a
+>    draft patch that would do this below (with some refactoring so that
+>    it remains sort-of readable), as an experiment to see how complicated
+>    this gets.
+>
+> Which option do you prefer? Are there better options?
 
-	b68a68d3dcc1 ("signal: Move addr_lsb into the _sigfault union for clarity")
-	859d880cf544 ("signal: Correct the offset of si_pkey in struct siginfo")
- 	8420f71943ae ("signal: Correct the offset of si_pkey and si_lower in struct siginfo on m68k")
+Personally the most important thing to have is a single definition
+shared by all architectures so that we consolidate testing.
 
-In an ideal world, we could just have si_addr + the union in _sigfault,
-but it seems there are more corner cases. :-/
+A little piece of me cries a little whenever I see how badly we
+implemented the POSIX design.  As specified by POSIX the fields can be
+place in siginfo such that 32bit and 64bit share a common definition.
+Unfortunately we did not addpadding after si_addr on 32bit to
+accommodate a 64bit si_addr.
 
-The reason I've stumbled upon this is that I wanted to add the just
-merged si_perf [1] field to glibc. But what I noticed is that glibc's
-definition and ours are vastly different around si_addr_lsb, si_lower,
-si_upper, and si_pkey.
+I find it unfortunate that we are adding yet another definition that
+requires translation between 32bit and 64bit, but I am glad
+that at least the translation is not architecture specific.  That common
+definition is what has allowed this potential issue to be caught
+and that makes me very happy to see.
 
-[1] https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=42dec9a936e7696bea1f27d3c5a0068cd9aa95fd
+Let's go with Option 3.
 
-In our current definition of siginfo_t, si_addr_lsb is placed into the
-same union as si_lower, si_upper, and si_pkey (and now si_perf). From
-the logs I see that si_lower, si_upper, and si_pkey are padded because
-si_addr_lsb used to be outside the union, which goes back to
-"signal: Move addr_lsb into the _sigfault union for clarity".
+Confirm BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR are not
+in use on any architecture that defines __ARCH_SI_TRAPNO, and then fixup
+the userspace definitions of these fields.
 
-Since then, si_addr_lsb must also be pointer-aligned, because the union
-containing it must be pointer-aligned (because si_upper, si_lower). On
-all architectures where si_addr_lsb is right after si_addr, this is
-perfectly fine, because si_addr itself is a pointer...
+To the kernel I would add some BUILD_BUG_ON's to whatever the best
+maintained architecture (sparc64?) that implements __ARCH_SI_TRAPNO just
+to confirm we don't create future regressions by accident.
 
-... except for the anomaly that are 64-bit architectures that define
-__ARCH_SI_TRAPNO and want that 'int si_trapno'. Like, for example
-sparc64, which means siginfo_t's ABI has been subtly broken on sparc64
-since v4.16.
+I did a quick search and the architectures that define __ARCH_SI_TRAPNO
+are sparc, mips, and alpha.  All have 64bit implementations.  A further
+quick search shows that none of those architectures have faults that
+use BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR, nor do
+they appear to use mm/memory-failure.c
 
-The following static asserts illustrate this:
+So it doesn't look like we have an ABI regression to fix.
 
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -556,3 +556,37 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
- 	user_enter();
- }
- 
-+static_assert(offsetof(siginfo_t, si_signo)	== 0);
-+static_assert(offsetof(siginfo_t, si_errno)	== 4);
-+static_assert(offsetof(siginfo_t, si_code)	== 8);
-+static_assert(offsetof(siginfo_t, si_pid)	== 16);
-+static_assert(offsetof(siginfo_t, si_uid)	== 20);
-+static_assert(offsetof(siginfo_t, si_tid)	== 16);
-+static_assert(offsetof(siginfo_t, si_overrun)	== 20);
-+static_assert(offsetof(siginfo_t, si_status)	== 24);
-+static_assert(offsetof(siginfo_t, si_utime)	== 32);
-+static_assert(offsetof(siginfo_t, si_stime)	== 40);
-+static_assert(offsetof(siginfo_t, si_value)	== 24);
-+static_assert(offsetof(siginfo_t, si_int)	== 24);
-+static_assert(offsetof(siginfo_t, si_ptr)	== 24);
-+static_assert(offsetof(siginfo_t, si_addr)	== 16);
-+static_assert(offsetof(siginfo_t, si_trapno)	== 24);
-+#if 1 /* Correct offsets, obtained from v4.14 */
-+static_assert(offsetof(siginfo_t, si_addr_lsb)	== 28);
-+static_assert(offsetof(siginfo_t, si_lower)	== 32);
-+static_assert(offsetof(siginfo_t, si_upper)	== 40);
-+static_assert(offsetof(siginfo_t, si_pkey)	== 32);
-+#else /* Current offsets, as of v4.16 */
-+static_assert(offsetof(siginfo_t, si_addr_lsb)	== 32);
-+static_assert(offsetof(siginfo_t, si_lower)	== 40);
-+static_assert(offsetof(siginfo_t, si_upper)	== 48);
-+static_assert(offsetof(siginfo_t, si_pkey)	== 40);
-+#endif
-+static_assert(offsetof(siginfo_t, si_band)	== 16);
-+static_assert(offsetof(siginfo_t, si_fd)	== 20);
-
----
-
-Granted, nobody seems to have noticed because I don't even know if these
-fields have use on sparc64. But I don't yet see this as justification to
-leave things as-is...
-
-The collateral damage of this, and the acute problem that I'm having is
-defining si_perf in a sort-of readable and portable way in siginfo_t
-definitions that live outside the kernel, where sparc64 does not yet
-have broken si_addr_lsb. And the same difficulty applies to the kernel
-if we want to unbreak sparc64, while not wanting to move si_perf for
-other architectures.
-
-There are 2 options I see to solve this:
-
-1. Make things simple again. We could just revert the change moving
-   si_addr_lsb into the union, and sadly accept we'll have to live with
-   that legacy "design" mistake. (si_perf stays in the union, but will
-   unfortunately change its offset for all architectures... this one-off
-   move might be ok because it's new.)
-
-2. Add special cases to retain si_addr_lsb in the union on architectures
-   that do not have __ARCH_SI_TRAPNO (the majority). I have added a
-   draft patch that would do this below (with some refactoring so that
-   it remains sort-of readable), as an experiment to see how complicated
-   this gets.
-
-Option (1) means we'll forever be wasting the space where si_addr_lsb
-lives (including the padding). It'd also mean we'd move si_perf for
-_all_ architectures -- this might be acceptable, given there is no
-stable release with it yet -- the fix just needs to be merged before the
-release of v5.13! It is the simpler option though -- and I don't know if
-we need all this complexity.
-
-Option (2) perhaps results in better space utilization. Maybe that's
-better long-term if we worry about space in some rather distant future
--- where we need those 8 bytes on 64-bit architectures to not exceed 128
-bytes. This option, however, doesn't just make us carry this complexity
-forever, but also forces it onto everyone else, like glibc and other
-libcs (including those in other languages with C FFIs) which have their
-own definition of siginfo_t.
-
-Which option do you prefer? Are there better options?
-
-Many thanks,
--- Marco
-
------- >8 ------
-
-Option #2 draft:
-
-diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-index a0eec62c825d..150ee27b1423 100644
---- a/arch/sparc/kernel/signal_64.c
-+++ b/arch/sparc/kernel/signal_64.c
-@@ -556,3 +556,37 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
- 	user_enter();
- }
- 
-+/*
-+ * Compile-time assertions for siginfo_t offsets. Unlike other architectures,
-+ * sparc64 is special, because it requires si_trapno (int), and the following
-+ * si_addr_lsb (short) need not be word aligned. Accidental changes around the
-+ * offset of si_addr_lsb and the following fields would only be caught here.
-+ */
-+static_assert(offsetof(siginfo_t, si_signo)	== 0);
-+static_assert(offsetof(siginfo_t, si_errno)	== 4);
-+static_assert(offsetof(siginfo_t, si_code)	== 8);
-+static_assert(offsetof(siginfo_t, si_pid)	== 16);
-+static_assert(offsetof(siginfo_t, si_uid)	== 20);
-+static_assert(offsetof(siginfo_t, si_tid)	== 16);
-+static_assert(offsetof(siginfo_t, si_overrun)	== 20);
-+static_assert(offsetof(siginfo_t, si_status)	== 24);
-+static_assert(offsetof(siginfo_t, si_utime)	== 32);
-+static_assert(offsetof(siginfo_t, si_stime)	== 40);
-+static_assert(offsetof(siginfo_t, si_value)	== 24);
-+static_assert(offsetof(siginfo_t, si_int)	== 24);
-+static_assert(offsetof(siginfo_t, si_ptr)	== 24);
-+static_assert(offsetof(siginfo_t, si_addr)	== 16);
-+static_assert(offsetof(siginfo_t, si_trapno)	== 24);
-+#if 1 /* Correct offsets, obtained from v4.14 */
-+static_assert(offsetof(siginfo_t, si_addr_lsb)	== 28);
-+static_assert(offsetof(siginfo_t, si_lower)	== 32);
-+static_assert(offsetof(siginfo_t, si_upper)	== 40);
-+static_assert(offsetof(siginfo_t, si_pkey)	== 32);
-+#else /* Current offsets, as of v4.16 */
-+static_assert(offsetof(siginfo_t, si_addr_lsb)	== 32);
-+static_assert(offsetof(siginfo_t, si_lower)	== 40);
-+static_assert(offsetof(siginfo_t, si_upper)	== 48);
-+static_assert(offsetof(siginfo_t, si_pkey)	== 40);
-+#endif
-+static_assert(offsetof(siginfo_t, si_band)	== 16);
-+static_assert(offsetof(siginfo_t, si_fd)	== 20);
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index f0d2dd35d408..5ea9f9c748dd 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -158,6 +158,31 @@ typedef union compat_sigval {
- 	compat_uptr_t	sival_ptr;
- } compat_sigval_t;
- 
-+struct __compat_sigfault_addin {
-+#ifdef __ARCH_SI_TRAPNO
-+	int _trapno;	/* TRAP # which caused the signal */
-+#endif
-+	/*
-+	 * used when si_code=BUS_MCEERR_AR or
-+	 * used when si_code=BUS_MCEERR_AO
-+	 */
-+	short int _addr_lsb;	/* Valid LSB of the reported address. */
-+
-+/* See include/asm-generic/uapi/siginfo.h */
-+#ifdef __ARCH_SI_TRAPNO
-+#	define __COMPAT_SIGFAULT_ADDIN_FIXED struct __compat_sigfault_addin _addin;
-+#	define __COMPAT_SIGFAULT_ADDIN_UNION
-+#	define __COMPAT_SIGFAULT_LEGACY_UNION_PAD
-+#else
-+#	define __COMPAT_SIGFAULT_ADDIN_FIXED
-+#	define __COMPAT_SIGFAULT_ADDIN_UNION struct __compat_sigfault_addin _addin;
-+#	define __COMPAT_SIGFAULT_LEGACY_UNION_PAD				\
-+		char _unused[__alignof__(compat_uptr_t) < sizeof(short) ?       \
-+				   sizeof(short) :				\
-+				   __alignof__(compat_uptr_t)];
-+#endif
-+};
-+
- typedef struct compat_siginfo {
- 	int si_signo;
- #ifndef __ARCH_HAS_SWAPPED_SIGINFO
-@@ -214,26 +239,18 @@ typedef struct compat_siginfo {
- 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGTRAP, SIGEMT */
- 		struct {
- 			compat_uptr_t _addr;	/* faulting insn/memory ref. */
--#ifdef __ARCH_SI_TRAPNO
--			int _trapno;	/* TRAP # which caused the signal */
--#endif
--#define __COMPAT_ADDR_BND_PKEY_PAD  (__alignof__(compat_uptr_t) < sizeof(short) ? \
--				     sizeof(short) : __alignof__(compat_uptr_t))
-+			__COMPAT_SIGFAULT_ADDIN_FIXED
- 			union {
--				/*
--				 * used when si_code=BUS_MCEERR_AR or
--				 * used when si_code=BUS_MCEERR_AO
--				 */
--				short int _addr_lsb;	/* Valid LSB of the reported address. */
-+				__COMPAT_SIGFAULT_ADDIN_UNION
- 				/* used when si_code=SEGV_BNDERR */
- 				struct {
--					char _dummy_bnd[__COMPAT_ADDR_BND_PKEY_PAD];
-+					__COMPAT_SIGFAULT_LEGACY_UNION_PAD
- 					compat_uptr_t _lower;
- 					compat_uptr_t _upper;
- 				} _addr_bnd;
- 				/* used when si_code=SEGV_PKUERR */
- 				struct {
--					char _dummy_pkey[__COMPAT_ADDR_BND_PKEY_PAD];
-+					__COMPAT_SIGFAULT_LEGACY_UNION_PAD
- 					u32 _pkey;
- 				} _addr_pkey;
- 				/* used when si_code=TRAP_PERF */
-diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
-index 03d6f6d2c1fe..f1c1a0300ac8 100644
---- a/include/uapi/asm-generic/siginfo.h
-+++ b/include/uapi/asm-generic/siginfo.h
-@@ -29,6 +29,45 @@ typedef union sigval {
- #define __ARCH_SI_ATTRIBUTES
- #endif
- 
-+/*
-+ * The _sigfault portion of __sifields after si_addr varies depending on
-+ * architecture; capture these rules here.
-+ */
-+struct __sifields_sigfault_addin {
-+#ifdef __ARCH_SI_TRAPNO
-+	int _trapno;	/* TRAP # which caused the signal */
-+#endif
-+	/*
-+	 * used when si_code=BUS_MCEERR_AR or
-+	 * used when si_code=BUS_MCEERR_AO
-+	 */
-+	short _addr_lsb; /* LSB of the reported address */
-+
-+#if defined(__ARCH_SI_TRAPNO)
-+/*
-+ * If we have si_trapno between si_addr and si_addr_lsb, we cannot safely move
-+ * it inside the union due to alignment of si_trapno+si_addr_lsb vs. the union.
-+ */
-+#	define __SI_SIGFAULT_ADDIN_FIXED struct __sifields_sigfault_addin _addin;
-+#	define __SI_SIGFAULT_ADDIN_UNION
-+#	define __SI_SIGFAULT_LEGACY_UNION_PAD
-+#else
-+/*
-+ * Safe to move si_addr_lsb inside the union. We will benefit from better space
-+ * usage for new fields added to the union.
-+ *
-+ * Fields that were added after si_addr_lsb, before it become part of the union,
-+ * require padding to retain the ABI. New fields do not require padding.
-+ */
-+#	define __SI_SIGFAULT_ADDIN_FIXED
-+#	define __SI_SIGFAULT_ADDIN_UNION struct __sifields_sigfault_addin _addin;
-+#	define __SI_SIGFAULT_LEGACY_UNION_PAD				\
-+		char _unused[__alignof__(void *) < sizeof(short) ?	\
-+					   sizeof(short) :		\
-+					   __alignof__(void *)];
-+#endif
-+};
-+
- union __sifields {
- 	/* kill() */
- 	struct {
-@@ -63,32 +102,23 @@ union __sifields {
- 	/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGTRAP, SIGEMT */
- 	struct {
- 		void __user *_addr; /* faulting insn/memory ref. */
--#ifdef __ARCH_SI_TRAPNO
--		int _trapno;	/* TRAP # which caused the signal */
--#endif
- #ifdef __ia64__
- 		int _imm;		/* immediate value for "break" */
- 		unsigned int _flags;	/* see ia64 si_flags */
- 		unsigned long _isr;	/* isr */
- #endif
--
--#define __ADDR_BND_PKEY_PAD  (__alignof__(void *) < sizeof(short) ? \
--			      sizeof(short) : __alignof__(void *))
-+		__SI_SIGFAULT_ADDIN_FIXED
- 		union {
--			/*
--			 * used when si_code=BUS_MCEERR_AR or
--			 * used when si_code=BUS_MCEERR_AO
--			 */
--			short _addr_lsb; /* LSB of the reported address */
-+			__SI_SIGFAULT_ADDIN_UNION
- 			/* used when si_code=SEGV_BNDERR */
- 			struct {
--				char _dummy_bnd[__ADDR_BND_PKEY_PAD];
-+				__SI_SIGFAULT_LEGACY_UNION_PAD
- 				void __user *_lower;
- 				void __user *_upper;
- 			} _addr_bnd;
- 			/* used when si_code=SEGV_PKUERR */
- 			struct {
--				char _dummy_pkey[__ADDR_BND_PKEY_PAD];
-+				__SI_SIGFAULT_LEGACY_UNION_PAD
- 				__u32 _pkey;
- 			} _addr_pkey;
- 			/* used when si_code=TRAP_PERF */
-@@ -151,9 +181,9 @@ typedef struct siginfo {
- #define si_ptr		_sifields._rt._sigval.sival_ptr
- #define si_addr		_sifields._sigfault._addr
- #ifdef __ARCH_SI_TRAPNO
--#define si_trapno	_sifields._sigfault._trapno
-+#define si_trapno	_sifields._sigfault._addin._trapno
- #endif
--#define si_addr_lsb	_sifields._sigfault._addr_lsb
-+#define si_addr_lsb	_sifields._sigfault._addin._addr_lsb
- #define si_lower	_sifields._sigfault._addr_bnd._lower
- #define si_upper	_sifields._sigfault._addr_bnd._upper
- #define si_pkey		_sifields._sigfault._addr_pkey._pkey
+Eric
