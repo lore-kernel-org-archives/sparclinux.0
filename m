@@ -2,220 +2,131 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8877DC433ED
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:15:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A949C43460
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:36:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 689346146D
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:15:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EFB6A60C3E
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:36:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235866AbhD3UQY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 16:16:24 -0400
-Received: from out02.mta.xmission.com ([166.70.13.232]:60950 "EHLO
-        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235383AbhD3UQY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 16:16:24 -0400
-Received: from in01.mta.xmission.com ([166.70.13.51])
-        by out02.mta.xmission.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lcZXv-00CEwB-EO; Fri, 30 Apr 2021 14:15:31 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
-        by in01.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.87)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lcZXp-0000S1-Nv; Fri, 30 Apr 2021 14:15:30 -0600
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     Marco Elver <elver@google.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-References: <YIpkvGrBFGlB5vNj@elver.google.com>
-        <m11rat9f85.fsf@fess.ebiederm.org>
-        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
-        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
-Date:   Fri, 30 Apr 2021 15:15:20 -0500
-In-Reply-To: <YIxVWkT03TqcJLY3@elver.google.com> (Marco Elver's message of
-        "Fri, 30 Apr 2021 21:07:06 +0200")
-Message-ID: <m17dkjttpj.fsf@fess.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        id S235420AbhD3UhY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 16:37:24 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:52547 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S233761AbhD3UhX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 30 Apr 2021 16:37:23 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1619814994;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=6dBy9l8QU+7ZgqdM7cr2pe0TQ8wrq76o+ZpCXmDmlQY=;
+        b=ErxdZRdaUS0ZSGl4/ww7oH5MOTwN2+9ZUoZ/SX7JXQM8AWIBsMN2Byn5g8ryVslaajH9Ua
+        RuVWcljNPxy0MkdTlb1KoHzCUchkh3Si8gxlhr2X134f0OfxHKmEFV8fsjIm3gVXjmsMHj
+        5NmfJ4KvJ7fZ/2oTP/xUCrmeesEXF2Q=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-251-T2MzehsUP4mNxEb4snvoHg-1; Fri, 30 Apr 2021 16:36:30 -0400
+X-MC-Unique: T2MzehsUP4mNxEb4snvoHg-1
+Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 4B0C318B613D;
+        Fri, 30 Apr 2021 20:36:28 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.3.128.45])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 4939C614EF;
+        Fri, 30 Apr 2021 20:36:15 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>,
+        Eric Paris <eparis@parisplace.org>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Richard Guy Briggs <rgb@redhat.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Eric Paris <eparis@redhat.com>, x86@kernel.org,
+        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        Aleksa Sarai <cyphar@cyphar.com>,
+        Arnd Bergmann <arnd@kernel.org>
+Subject: [PATCH v3 0/3] audit: add support for openat2
+Date:   Fri, 30 Apr 2021 16:35:20 -0400
+Message-Id: <cover.1619811762.git.rgb@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1lcZXp-0000S1-Nv;;;mid=<m17dkjttpj.fsf@fess.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX1+N6RHdIHHOmi2pb7aC1y1Z6j2yxh0sqxg=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
-X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
-X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Marco Elver <elver@google.com> writes:
+The openat2(2) syscall was added in v5.6.  Add support for openat2 to the
+audit syscall classifier and for recording openat2 parameters that cannot
+be captured in the syscall parameters of the SYSCALL record.
 
-> On Fri, Apr 30, 2021 at 12:08PM -0500, Eric W. Biederman wrote:
->> Arnd Bergmann <arnd@arndb.de> writes:
-> [...] 
->> >> I did a quick search and the architectures that define __ARCH_SI_TRAPNO
->> >> are sparc, mips, and alpha.  All have 64bit implementations.  A further
->> >> quick search shows that none of those architectures have faults that
->> >> use BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR, nor do
->> >> they appear to use mm/memory-failure.c
->> >>
->> >> So it doesn't look like we have an ABI regression to fix.
->> >
->> > Even better!
->> >
->> > So if sparc is the only user of _trapno and it uses none of the later
->> > fields in _sigfault, I wonder if we could take even more liberty at
->> > trying to have a slightly saner definition. Can you think of anything that
->> > might break if we put _trapno inside of the union along with _perf
->> > and _addr_lsb?
->> 
->> On sparc si_trapno is only set when SIGILL ILL_TRP is set.  So we can
->> limit si_trapno to that combination, and it should not be a problem for
->> a new signal/si_code pair to use that storage.  Precisely because it is
->> new.
->> 
->> Similarly on alpha si_trapno is only set for:
->> 
->> SIGFPE {FPE_INTOVF, FPE_INTDIV, FPE_FLTOVF, FPE_FLTDIV, FPE_FLTUND,
->> FPE_FLTINV, FPE_FLTRES, FPE_FLTUNK} and SIGTRAP {TRAP_UNK}.
->> 
->> Placing si_trapno into the union would also make the problem that the
->> union is pointer aligned a non-problem as then the union immediate
->> follows a pointer.
->> 
->> I hadn't had a chance to look before but we must deal with this.  The
->> definition of perf_sigtrap in 42dec9a936e7696bea1f27d3c5a0068cd9aa95fd
->> is broken on sparc, alpha, and ia64 as it bypasses the code in
->> kernel/signal.c that ensures the si_trapno or the ia64 special fields
->> are set.
->> 
->> Not to mention that perf_sigtrap appears to abuse si_errno.
->
-> There are a few other places in the kernel that repurpose si_errno
-> similarly, e.g. arch/arm64/kernel/ptrace.c, kernel/seccomp.c -- it was
-> either that or introduce another field or not have it. It is likely we
-> could do without, but if there are different event types the user would
-> have to sacrifice a few bits of si_perf to encode the event type, and
-> I'd rather keep those bits for something else. Thus the decision fell to
-> use si_errno.
+Supporting userspace code can be found in
+https://github.com/rgbriggs/audit-userspace/tree/ghau-openat2
 
-arm64 only abuses si_errno in compat code for bug compatibility with
-arm32.
+Supporting test case can be found in
+https://github.com/linux-audit/audit-testsuite/pull/103
 
-> Given it'd be wasted space otherwise, and we define the semantics of
-> whatever is stored in siginfo on the new signal, it'd be good to keep.
+Changelog:
+v3:
+- re-add commit descriptions that somehow got dropped
+- add new file to MAINTAINERS
 
-Except you don't completely.  You are not defining a new signal.  You
-are extending the definition of SIGTRAP.  Anything generic that
-responds to all SIGTRAPs can reasonably be looking at si_errno.
+v2:
+- add include/linux/auditscm.h for audit syscall class macros due to syscall redefinition warnings:
+        arch/x86/ia32/audit.c:3:
+        ./include/linux/audit.h:12,
+        ./include/linux/sched.h:22,
+        ./include/linux/seccomp.h:21,
+        ./arch/x86/include/asm/seccomp.h:5,
+        ./arch/x86/include/asm/unistd.h:20,
+        ./arch/x86/include/generated/uapi/asm/unistd_64.h:4: warning: "__NR_read" redefined #define __NR_read 0
+	...
+        ./arch/x86/include/generated/uapi/asm/unistd_64.h:338: warning: "__NR_rseq" redefined #define __NR_rseq 334
+    previous:
+        arch/x86/ia32/audit.c:2:
+        ./arch/x86/include/generated/uapi/asm/unistd_32.h:7: note: this is the location of the previous definition #define __NR_read 3                                                                                                      
+	...
+        ./arch/x86/include/generated/uapi/asm/unistd_32.h:386: note: this is the location of the previous definition #define __NR_rseq 386
 
-Further you are already adding a field with si_perf you can just as
-easily add a second field with well defined semantics for that data.
+Richard Guy Briggs (3):
+  audit: replace magic audit syscall class numbers with macros
+  audit: add support for the openat2 syscall
+  audit: add OPENAT2 record to list how
 
->> The code is only safe if the analysis that says we can move si_trapno
->> and perhaps the ia64 fields into the union is correct.  It looks like
->> ia64 much more actively uses it's signal extension fields including for
->> SIGTRAP, so I am not at all certain the generic definition of
->> perf_sigtrap is safe on ia64.
->
-> Trying to understand the requirements of si_trapno myself: safe here
-> would mean that si_trapno is not required if we fire our SIGTRAP /
-> TRAP_PERF.
->
-> As far as I can tell that is the case -- see below.
->
->> > I suppose in theory sparc64 or alpha might start using the other
->> > fields in the future, and an application might be compiled against
->> > mismatched headers, but that is unlikely and is already broken
->> > with the current headers.
->> 
->> If we localize the use of si_trapno to just a few special cases on alpha
->> and sparc I think we don't even need to worry about breaking userspace
->> on any architecture.  It will complicate siginfo_layout, but it is a
->> complication that reflects reality.
->> 
->> I don't have a clue how any of this affects ia64.  Does perf work on
->> ia64?  Does perf work on sparc, and alpha?
->> 
->> If perf works on ia64 we need to take a hard look at what is going on
->> there as well.
->
-> No perf on ia64, but it seems alpha and sparc have perf:
->
-> 	$ git grep 'select.*HAVE_PERF_EVENTS$' -- arch/
-> 	arch/alpha/Kconfig:	select HAVE_PERF_EVENTS    <--
-> 	arch/arc/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/arm/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/arm64/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/csky/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/hexagon/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/mips/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/nds32/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/parisc/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/powerpc/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/riscv/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/s390/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/sh/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/sparc/Kconfig:	select HAVE_PERF_EVENTS    <--
-> 	arch/x86/Kconfig:	select HAVE_PERF_EVENTS
-> 	arch/xtensa/Kconfig:	select HAVE_PERF_EVENTS
->
-> Now, given ia64 is not an issue, I wanted to understand the semantics of
-> si_trapno. Per https://man7.org/linux/man-pages/man2/sigaction.2.html, I
-> see:
->
-> 	int si_trapno;    /* Trap number that caused
-> 			     hardware-generated signal
-> 			     (unused on most architectures) */
->
-> ... its intended semantics seem to suggest it would only be used by some
-> architecture-specific signal like you identified above. So if the
-> semantics is some code of a hardware trap/fault, then we're fine and do
-> not need to set it.
->
-> Also bearing in mind we define the semantics any new signal, and given
-> most architectures do not have si_trapno, definitions of new generic
-> signals should probably not include odd architecture specific details
-> related to old architectures.
->
-> From all this, my understanding now is that we can move si_trapno into
-> the union, correct? What else did you have in mind?
+ MAINTAINERS                        |  1 +
+ arch/alpha/kernel/audit.c          | 10 ++++++----
+ arch/ia64/kernel/audit.c           | 10 ++++++----
+ arch/parisc/kernel/audit.c         | 10 ++++++----
+ arch/parisc/kernel/compat_audit.c  | 11 +++++++----
+ arch/powerpc/kernel/audit.c        | 12 +++++++-----
+ arch/powerpc/kernel/compat_audit.c | 13 ++++++++-----
+ arch/s390/kernel/audit.c           | 12 +++++++-----
+ arch/s390/kernel/compat_audit.c    | 13 ++++++++-----
+ arch/sparc/kernel/audit.c          | 12 +++++++-----
+ arch/sparc/kernel/compat_audit.c   | 13 ++++++++-----
+ arch/x86/ia32/audit.c              | 13 ++++++++-----
+ arch/x86/kernel/audit_64.c         | 10 ++++++----
+ fs/open.c                          |  2 ++
+ include/linux/audit.h              | 11 +++++++++++
+ include/linux/auditscm.h           | 24 +++++++++++++++++++++++
+ include/uapi/linux/audit.h         |  1 +
+ kernel/audit.h                     |  2 ++
+ kernel/auditsc.c                   | 31 ++++++++++++++++++++++++------
+ lib/audit.c                        | 14 +++++++++-----
+ lib/compat_audit.c                 | 15 ++++++++++-----
+ 21 files changed, 169 insertions(+), 71 deletions(-)
+ create mode 100644 include/linux/auditscm.h
 
-Yes.  Let's move si_trapno into the union.
-
-That implies a few things like siginfo_layout needs to change.
-
-The helpers in kernel/signal.c can change to not imply that
-if you define __ARCH_SI_TRAPNO you must always define and
-pass in si_trapno.  A force_sig_trapno could be defined instead
-to handle the cases that alpha and sparc use si_trapno.
-
-It would be nice if a force_sig_perf_trap could be factored
-out of perf_trap and placed in kernel/signal.c.
-
-My experience (especially this round) is that it becomes much easier to
-audit the users of siginfo if there is a dedicated function in
-kernel/signal.c that is simply passed the parameters that need
-to be placed in siginfo.
-
-So I would very much like to see if I can make force_sig_info static.
-
-Eric
+-- 
+2.27.0
 
