@@ -2,57 +2,92 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47914C433ED
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6984EC433ED
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:49:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DA3A6147F
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:23:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BDD061289
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:49:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231342AbhD3WXx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 18:23:53 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:54024 "EHLO
-        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230378AbhD3WXx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 18:23:53 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        by mail.monkeyblade.net (Postfix) with ESMTPSA id 5D5F24F7E7593;
-        Fri, 30 Apr 2021 15:23:02 -0700 (PDT)
-Date:   Fri, 30 Apr 2021 15:22:58 -0700 (PDT)
-Message-Id: <20210430.152258.729887124786441756.davem@davemloft.net>
-To:     elver@google.com
-Cc:     ebiederm@xmission.com, linux@armlinux.org.uk,
-        catalin.marinas@arm.com, will@kernel.org, mark.rutland@arm.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH 1/3] sparc64: Add compile-time asserts for siginfo_t
- offsets
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20210429190734.624918-1-elver@google.com>
-References: <20210429190734.624918-1-elver@google.com>
-X-Mailer: Mew version 6.8 on Emacs 27.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Fri, 30 Apr 2021 15:23:02 -0700 (PDT)
+        id S231924AbhD3Wul (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 18:50:41 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:56124 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230378AbhD3Wul (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 18:50:41 -0400
+Received: from in01.mta.xmission.com ([166.70.13.51])
+        by out03.mta.xmission.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcbxF-004Atp-LD; Fri, 30 Apr 2021 16:49:49 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
+        by in01.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.87)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcbxF-00038q-0D; Fri, 30 Apr 2021 16:49:49 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Marco Elver <elver@google.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+        <m11rat9f85.fsf@fess.ebiederm.org>
+        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
+Date:   Fri, 30 Apr 2021 17:49:45 -0500
+In-Reply-To: <YIxVWkT03TqcJLY3@elver.google.com> (Marco Elver's message of
+        "Fri, 30 Apr 2021 21:07:06 +0200")
+Message-ID: <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain
+X-XM-SPF: eid=1lcbxF-00038q-0D;;;mid=<m1zgxfs7zq.fsf_-_@fess.ebiederm.org>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX194HKcbJ3hzROboO3aXmacGQftTa4VgQr0=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: [RFC][PATCH 0/3] signal: Move si_trapno into the _si_fault union
+X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Date: Thu, 29 Apr 2021 21:07:32 +0200
 
-> To help catch ABI breaks at compile-time, add compile-time assertions to
-> verify the siginfo_t layout. Unlike other architectures, sparc64 is
-> special, because it is one of few architectures requiring si_trapno.
-> ABI breaks around that field would only be caught here.
-> 
-> Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
-> Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
-> Signed-off-by: Marco Elver <elver@google.com>
+Eric W. Biederman (3):
+      siginfo: Move si_trapno inside the union inside _si_fault
+      signal: Implement SIL_FAULT_TRAPNO
+      signal: Use dedicated helpers to send signals with si_trapno set
 
-Acked-by: David S. Miller <davem@davemloft.net>
+ arch/alpha/kernel/osf_sys.c        |  2 +-
+ arch/alpha/kernel/signal.c         |  4 +-
+ arch/alpha/kernel/traps.c          | 24 ++++++------
+ arch/alpha/mm/fault.c              |  4 +-
+ arch/sparc/kernel/process_64.c     |  2 +-
+ arch/sparc/kernel/sys_sparc_32.c   |  2 +-
+ arch/sparc/kernel/sys_sparc_64.c   |  2 +-
+ arch/sparc/kernel/traps_32.c       | 22 +++++------
+ arch/sparc/kernel/traps_64.c       | 44 ++++++++++------------
+ arch/sparc/kernel/unaligned_32.c   |  2 +-
+ arch/sparc/mm/fault_32.c           |  2 +-
+ arch/sparc/mm/fault_64.c           |  2 +-
+ fs/signalfd.c                      |  7 +---
+ include/linux/compat.h             |  4 +-
+ include/linux/sched/signal.h       | 12 ++----
+ include/linux/signal.h             |  1 +
+ include/uapi/asm-generic/siginfo.h |  6 +--
+ kernel/signal.c                    | 77 ++++++++++++++++++++++----------------
+ 18 files changed, 107 insertions(+), 112 deletions(-)
+
