@@ -2,311 +2,165 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F741C433B4
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 17:35:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AAFCC43460
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 17:42:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A45561469
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 17:35:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D24961469
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 17:42:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231526AbhD3RgI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 13:36:08 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:24901 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231441AbhD3RgC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 30 Apr 2021 13:36:02 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1619804113;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=SQYw3zCy9t/k2wahs4H0j/BC6DtksIRtIBmPuRS8DNY=;
-        b=Dg6Hx7m2uWS2Yz5GKRsTmNryWAcSV3H6d+8rarrRqL3z65GroCsA+B6D0ZOjLM3PVzAXIe
-        C9FlDeom67x9QbuT+QZYrY+jLX+7+oF7H5+cI6SaAQvMfkeuctoOWsdqpqba6Zj0fFkNAb
-        NnSvbfYSQNUlc4K50owDZPeWSR1JSYg=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-334-xUmCy0L5OOGm4rR5KcxFMw-1; Fri, 30 Apr 2021 13:35:11 -0400
-X-MC-Unique: xUmCy0L5OOGm4rR5KcxFMw-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 825BF1020C20;
-        Fri, 30 Apr 2021 17:35:09 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.3.128.45])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 99E6D2B196;
-        Fri, 30 Apr 2021 17:35:02 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Eric Paris <eparis@redhat.com>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>
-Subject: [PATCH v2 2/3] audit: add support for the openat2 syscall
-Date:   Fri, 30 Apr 2021 13:29:36 -0400
-Message-Id: <83b87c0fef646d0fc2ea1441c7a1bccde65eb2bc.1619729297.git.rgb@redhat.com>
-In-Reply-To: <cover.1619729297.git.rgb@redhat.com>
-References: <cover.1619729297.git.rgb@redhat.com>
+        id S230106AbhD3RnP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 13:43:15 -0400
+Received: from out02.mta.xmission.com ([166.70.13.232]:56792 "EHLO
+        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229750AbhD3RnO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 13:43:14 -0400
+Received: from in02.mta.xmission.com ([166.70.13.52])
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcX9h-00C12U-B1; Fri, 30 Apr 2021 11:42:21 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1lcX9f-006Y7x-7J; Fri, 30 Apr 2021 11:42:20 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Marco Elver <elver@google.com>
+Cc:     linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org,
+        davem@davemloft.net, mark.rutland@arm.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org
+References: <20210429190734.624918-1-elver@google.com>
+Date:   Fri, 30 Apr 2021 12:42:15 -0500
+In-Reply-To: <20210429190734.624918-1-elver@google.com> (Marco Elver's message
+        of "Thu, 29 Apr 2021 21:07:32 +0200")
+Message-ID: <m1im43zn2g.fsf@fess.ebiederm.org>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
+Content-Type: text/plain
+X-XM-SPF: eid=1lcX9f-006Y7x-7J;;;mid=<m1im43zn2g.fsf@fess.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1/xpTyeVtWIoPQ2FBsR3t2FfJi/LIl7zG4=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH 1/3] sparc64: Add compile-time asserts for siginfo_t offsets
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- arch/alpha/kernel/audit.c          | 2 ++
- arch/ia64/kernel/audit.c           | 2 ++
- arch/parisc/kernel/audit.c         | 2 ++
- arch/parisc/kernel/compat_audit.c  | 2 ++
- arch/powerpc/kernel/audit.c        | 2 ++
- arch/powerpc/kernel/compat_audit.c | 2 ++
- arch/s390/kernel/audit.c           | 2 ++
- arch/s390/kernel/compat_audit.c    | 2 ++
- arch/sparc/kernel/audit.c          | 2 ++
- arch/sparc/kernel/compat_audit.c   | 2 ++
- arch/x86/ia32/audit.c              | 2 ++
- arch/x86/kernel/audit_64.c         | 2 ++
- include/linux/auditscm.h           | 1 +
- kernel/auditsc.c                   | 3 +++
- lib/audit.c                        | 4 ++++
- lib/compat_audit.c                 | 4 ++++
- 16 files changed, 36 insertions(+)
+Marco Elver <elver@google.com> writes:
 
-diff --git a/arch/alpha/kernel/audit.c b/arch/alpha/kernel/audit.c
-index 81cbd804e375..3ab04709784a 100644
---- a/arch/alpha/kernel/audit.c
-+++ b/arch/alpha/kernel/audit.c
-@@ -42,6 +42,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/ia64/kernel/audit.c b/arch/ia64/kernel/audit.c
-index dba6a74c9ab3..ec61f20ca61f 100644
---- a/arch/ia64/kernel/audit.c
-+++ b/arch/ia64/kernel/audit.c
-@@ -43,6 +43,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/parisc/kernel/audit.c b/arch/parisc/kernel/audit.c
-index 14244e83db75..f420b5552140 100644
---- a/arch/parisc/kernel/audit.c
-+++ b/arch/parisc/kernel/audit.c
-@@ -52,6 +52,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/parisc/kernel/compat_audit.c b/arch/parisc/kernel/compat_audit.c
-index 0c181bb39f34..02cfd9d1ebeb 100644
---- a/arch/parisc/kernel/compat_audit.c
-+++ b/arch/parisc/kernel/compat_audit.c
-@@ -36,6 +36,8 @@ int parisc32_classify_syscall(unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/powerpc/kernel/audit.c b/arch/powerpc/kernel/audit.c
-index 6eb18ef77dff..1bcfca5fdf67 100644
---- a/arch/powerpc/kernel/audit.c
-+++ b/arch/powerpc/kernel/audit.c
-@@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/powerpc/kernel/compat_audit.c b/arch/powerpc/kernel/compat_audit.c
-index f250777f6365..1fa0c902be8a 100644
---- a/arch/powerpc/kernel/compat_audit.c
-+++ b/arch/powerpc/kernel/compat_audit.c
-@@ -39,6 +39,8 @@ int ppc32_classify_syscall(unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/s390/kernel/audit.c b/arch/s390/kernel/audit.c
-index 7e331e1831d4..02051a596b87 100644
---- a/arch/s390/kernel/audit.c
-+++ b/arch/s390/kernel/audit.c
-@@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/s390/kernel/compat_audit.c b/arch/s390/kernel/compat_audit.c
-index b2a2ed5d605a..320b5e7d96f0 100644
---- a/arch/s390/kernel/compat_audit.c
-+++ b/arch/s390/kernel/compat_audit.c
-@@ -40,6 +40,8 @@ int s390_classify_syscall(unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/sparc/kernel/audit.c b/arch/sparc/kernel/audit.c
-index 50fab35bdaba..b092274eca79 100644
---- a/arch/sparc/kernel/audit.c
-+++ b/arch/sparc/kernel/audit.c
-@@ -55,6 +55,8 @@ int audit_classify_syscall(int abi, unsigned int syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/sparc/kernel/compat_audit.c b/arch/sparc/kernel/compat_audit.c
-index fdf0d70b569b..b0a7d0112b96 100644
---- a/arch/sparc/kernel/compat_audit.c
-+++ b/arch/sparc/kernel/compat_audit.c
-@@ -40,6 +40,8 @@ int sparc32_classify_syscall(unsigned int syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/x86/ia32/audit.c b/arch/x86/ia32/audit.c
-index d3dc8b57df81..8f6bf3a46a3a 100644
---- a/arch/x86/ia32/audit.c
-+++ b/arch/x86/ia32/audit.c
-@@ -40,6 +40,8 @@ int ia32_classify_syscall(unsigned syscall)
- 	case __NR_execve:
- 	case __NR_execveat:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/x86/kernel/audit_64.c b/arch/x86/kernel/audit_64.c
-index 2a6cc9c9c881..44c3601cfdc4 100644
---- a/arch/x86/kernel/audit_64.c
-+++ b/arch/x86/kernel/audit_64.c
-@@ -53,6 +53,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 	case __NR_execve:
- 	case __NR_execveat:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/include/linux/auditscm.h b/include/linux/auditscm.h
-index 1c4f0ead5931..0893c373e12b 100644
---- a/include/linux/auditscm.h
-+++ b/include/linux/auditscm.h
-@@ -16,6 +16,7 @@ enum auditsc_class_t {
- 	AUDITSC_OPENAT,
- 	AUDITSC_SOCKETCALL,
- 	AUDITSC_EXECVE,
-+	AUDITSC_OPENAT2,
- 
- 	AUDITSC_NVALS /* count */
- };
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 8807afa6e237..27c747e0d5ab 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -76,6 +76,7 @@
- #include <linux/fsnotify_backend.h>
- #include <uapi/linux/limits.h>
- #include <uapi/linux/netfilter/nf_tables.h>
-+#include <uapi/linux/openat2.h>
- 
- #include "audit.h"
- 
-@@ -195,6 +196,8 @@ static int audit_match_perm(struct audit_context *ctx, int mask)
- 		return ((mask & AUDIT_PERM_WRITE) && ctx->argv[0] == SYS_BIND);
- 	case AUDITSC_EXECVE:
- 		return mask & AUDIT_PERM_EXEC;
-+	case AUDITSC_OPENAT2:
-+		return mask & ACC_MODE((u32)((struct open_how *)ctx->argv[2])->flags);
- 	default:
- 		return 0;
- 	}
-diff --git a/lib/audit.c b/lib/audit.c
-index 3ec1a94d8d64..738bda22dd39 100644
---- a/lib/audit.c
-+++ b/lib/audit.c
-@@ -60,6 +60,10 @@ int audit_classify_syscall(int abi, unsigned syscall)
- #endif
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+#ifdef __NR_openat2
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
-+#endif
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/lib/compat_audit.c b/lib/compat_audit.c
-index 63125ad2edc0..7ed9461b52b7 100644
---- a/lib/compat_audit.c
-+++ b/lib/compat_audit.c
-@@ -46,6 +46,10 @@ int audit_classify_compat_syscall(int abi, unsigned syscall)
- #endif
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+#ifdef __NR_openat2
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
-+#endif
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
--- 
-2.27.0
+> To help catch ABI breaks at compile-time, add compile-time assertions to
+> verify the siginfo_t layout. Unlike other architectures, sparc64 is
+> special, because it is one of few architectures requiring si_trapno.
+> ABI breaks around that field would only be caught here.
 
+Arnd Bergman recently pointed out that we can move si_trapno into the
+union and make it specific to a handful of signals.  Like we do other
+items in the union.
+
+Given that the code of perf_sigtrap is pretty much broken if si_trapno
+needs to be filled out.  I think we should make that change before
+we set this ABI in stone like this.
+
+Otherwise this looks good.
+
+Eric
+
+> Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
+> Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
+> Signed-off-by: Marco Elver <elver@google.com>
+> ---
+>  arch/sparc/kernel/signal32.c  | 34 ++++++++++++++++++++++++++++++++++
+>  arch/sparc/kernel/signal_64.c | 33 +++++++++++++++++++++++++++++++++
+>  2 files changed, 67 insertions(+)
+>
+> diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+> index e9695a06492f..778ed5c26d4a 100644
+> --- a/arch/sparc/kernel/signal32.c
+> +++ b/arch/sparc/kernel/signal32.c
+> @@ -745,3 +745,37 @@ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp)
+>  out:
+>  	return ret;
+>  }
+> +
+> +/*
+> + * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
+> + * changes likely come with new fields that should be added below.
+> + */
+> +static_assert(NSIGILL	== 11);
+> +static_assert(NSIGFPE	== 15);
+> +static_assert(NSIGSEGV	== 9);
+> +static_assert(NSIGBUS	== 5);
+> +static_assert(NSIGTRAP	== 6);
+> +static_assert(NSIGCHLD	== 6);
+> +static_assert(NSIGSYS	== 2);
+> +static_assert(offsetof(compat_siginfo_t, si_signo)	== 0x00);
+> +static_assert(offsetof(compat_siginfo_t, si_errno)	== 0x04);
+> +static_assert(offsetof(compat_siginfo_t, si_code)	== 0x08);
+> +static_assert(offsetof(compat_siginfo_t, si_pid)	== 0x0c);
+> +static_assert(offsetof(compat_siginfo_t, si_uid)	== 0x10);
+> +static_assert(offsetof(compat_siginfo_t, si_tid)	== 0x0c);
+> +static_assert(offsetof(compat_siginfo_t, si_overrun)	== 0x10);
+> +static_assert(offsetof(compat_siginfo_t, si_status)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_utime)	== 0x18);
+> +static_assert(offsetof(compat_siginfo_t, si_stime)	== 0x1c);
+> +static_assert(offsetof(compat_siginfo_t, si_value)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_int)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_ptr)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_addr)	== 0x0c);
+> +static_assert(offsetof(compat_siginfo_t, si_trapno)	== 0x10);
+> +static_assert(offsetof(compat_siginfo_t, si_addr_lsb)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_lower)	== 0x18);
+> +static_assert(offsetof(compat_siginfo_t, si_upper)	== 0x1c);
+> +static_assert(offsetof(compat_siginfo_t, si_pkey)	== 0x18);
+> +static_assert(offsetof(compat_siginfo_t, si_perf)	== 0x14);
+> +static_assert(offsetof(compat_siginfo_t, si_band)	== 0x0c);
+> +static_assert(offsetof(compat_siginfo_t, si_fd)		== 0x10);
+> diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+> index a0eec62c825d..c9bbf5f29078 100644
+> --- a/arch/sparc/kernel/signal_64.c
+> +++ b/arch/sparc/kernel/signal_64.c
+> @@ -556,3 +556,36 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+>  	user_enter();
+>  }
+>  
+> +/*
+> + * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
+> + * changes likely come with new fields that should be added below.
+> + */
+> +static_assert(NSIGILL	== 11);
+> +static_assert(NSIGFPE	== 15);
+> +static_assert(NSIGSEGV	== 9);
+> +static_assert(NSIGBUS	== 5);
+> +static_assert(NSIGTRAP	== 6);
+> +static_assert(NSIGCHLD	== 6);
+> +static_assert(NSIGSYS	== 2);
+> +static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
+> +static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
+> +static_assert(offsetof(siginfo_t, si_code)	== 0x08);
+> +static_assert(offsetof(siginfo_t, si_pid)	== 0x10);
+> +static_assert(offsetof(siginfo_t, si_uid)	== 0x14);
+> +static_assert(offsetof(siginfo_t, si_tid)	== 0x10);
+> +static_assert(offsetof(siginfo_t, si_overrun)	== 0x14);
+> +static_assert(offsetof(siginfo_t, si_status)	== 0x18);
+> +static_assert(offsetof(siginfo_t, si_utime)	== 0x20);
+> +static_assert(offsetof(siginfo_t, si_stime)	== 0x28);
+> +static_assert(offsetof(siginfo_t, si_value)	== 0x18);
+> +static_assert(offsetof(siginfo_t, si_int)	== 0x18);
+> +static_assert(offsetof(siginfo_t, si_ptr)	== 0x18);
+> +static_assert(offsetof(siginfo_t, si_addr)	== 0x10);
+> +static_assert(offsetof(siginfo_t, si_trapno)	== 0x18);
+> +static_assert(offsetof(siginfo_t, si_addr_lsb)	== 0x20);
+> +static_assert(offsetof(siginfo_t, si_lower)	== 0x28);
+> +static_assert(offsetof(siginfo_t, si_upper)	== 0x30);
+> +static_assert(offsetof(siginfo_t, si_pkey)	== 0x28);
+> +static_assert(offsetof(siginfo_t, si_perf)	== 0x20);
+> +static_assert(offsetof(siginfo_t, si_band)	== 0x10);
+> +static_assert(offsetof(siginfo_t, si_fd)	== 0x14);
