@@ -2,320 +2,111 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83490C433ED
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:36:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A52F5C433B4
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:43:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 649F26145B
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:36:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 832D36145A
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233756AbhD3Uhc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 16:37:32 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:23069 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S235886AbhD3Uha (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 30 Apr 2021 16:37:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1619815001;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=88ObglMi23PFhsx5xuK+j7sB27VL+IqmOJ432hGAy4o=;
-        b=Mr/OvA24tk8sa+X02QIEhyVGcEivq78XyFAh2oSAuy8FqISWSCXWgi/9qfrGI11ruL2fKN
-        MZ0y0mb/NgjrnRqb0FsR5qJZLYyn1THdAWEZ4q/FC3a3g/iWXrkjbXzgH9B1XAm1npp2hE
-        sU5PSnpJ/kUYzNcm6jYz60jPNnGpTcQ=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-369-LbToS9TlOeqCAV1sGlyDkA-1; Fri, 30 Apr 2021 16:36:38 -0400
-X-MC-Unique: LbToS9TlOeqCAV1sGlyDkA-1
-Received: from smtp.corp.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.13])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 96090107ACE3;
-        Fri, 30 Apr 2021 20:36:36 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.3.128.45])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id DE0F93807;
-        Fri, 30 Apr 2021 20:36:32 +0000 (UTC)
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org
-Cc:     Paul Moore <paul@paul-moore.com>,
-        Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Richard Guy Briggs <rgb@redhat.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Eric Paris <eparis@redhat.com>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Arnd Bergmann <arnd@kernel.org>
-Subject: [PATCH v3 2/3] audit: add support for the openat2 syscall
-Date:   Fri, 30 Apr 2021 16:35:22 -0400
-Message-Id: <29e7068e8121aee22bdd9f4c9a6d08a1762b20e9.1619811762.git.rgb@redhat.com>
-In-Reply-To: <cover.1619811762.git.rgb@redhat.com>
-References: <cover.1619811762.git.rgb@redhat.com>
+        id S233605AbhD3Uoj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 16:44:39 -0400
+Received: from mout.kundenserver.de ([217.72.192.73]:54357 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231325AbhD3Uoj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 16:44:39 -0400
+Received: from mail-wr1-f47.google.com ([209.85.221.47]) by
+ mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1MPGJf-1lvUSH3dvB-00PeWe; Fri, 30 Apr 2021 22:43:48 +0200
+Received: by mail-wr1-f47.google.com with SMTP id x5so21688547wrv.13;
+        Fri, 30 Apr 2021 13:43:48 -0700 (PDT)
+X-Gm-Message-State: AOAM532Fd+80CDAQiJ4dOI5oYtlGRKoV1X6wNkWhf9P0klr/OCIMcsPU
+        mQxAr2GNWF6OKzcgxXkglDhw8V1ReNniXhYMa/I=
+X-Google-Smtp-Source: ABdhPJxA6TybANagJ0qyIQ6FUChGGFgSMR1TlFRyQOZs01sNXca04Touthsa7NzRGXFDTEGZCWPvtHhkVKpp9VirFF4=
+X-Received: by 2002:a05:6000:1843:: with SMTP id c3mr9808647wri.361.1619815428535;
+ Fri, 30 Apr 2021 13:43:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.13
+References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
+ <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com> <m15z031z0a.fsf@fess.ebiederm.org>
+In-Reply-To: <m15z031z0a.fsf@fess.ebiederm.org>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Fri, 30 Apr 2021 22:43:09 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a3mb6X4+4Q1WBQp22O2Bvc3w-Q=L25jh+WPvp2kJFwHiQ@mail.gmail.com>
+Message-ID: <CAK8P3a3mb6X4+4Q1WBQp22O2Bvc3w-Q=L25jh+WPvp2kJFwHiQ@mail.gmail.com>
+Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Marco Elver <elver@google.com>,
+        Florian Weimer <fweimer@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:1T39EDIEGbC+K2EWO8vif5PitZfwh83eNXC5FhSEd6gpm6wI/mg
+ 0LsG6tKV2Wbj1GzC2XsrKRG/oSKE85phpvLwKPkcyh5KLDaOBzIsM52bwsO8uSACBGsYFX+
+ PzRDHD5mjgShUF7QVg6NwyzXadfx+3T7hAgSIr/cGcEKL6vqK/cIlbp4au1xdWJa74NG9Lw
+ vWkkVu41JAR1YOI6ToAVA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:bD7bHAN+nZg=:nbPLcZgrKRCeaw9/+G+s4P
+ 6vCC3nyX46/35Fso9jkovVD1ok6BDjyqpM1cJtPfYGNbfl4kNZ8w50HaCWWtjoD+YD94sC38b
+ 69F+/x5Vyx0FzCaFh8CQTdyKRNAhHV6KWA3AVMeYvA0UzrGJyGb9mprWPbPblC2XNPMts4i8+
+ loDDg/qQRc3KMrtDDn5KnBG+g2X7e6Z17zSyVmjd/Cy4Ygg/zPuM3X7RP7J04WpkQkC019exW
+ A6HeWvSvI/4/3BXGx8xsgcGYEwDs6vFrK9lWHnlxzSVjWwmOwXhoG5Sm6gpMP5nkjMbP0inwo
+ n+TQhS6i9Cxl8VLAL7gP1qFTuR4uBoL0iMeVRKb8Ej1KpFOmImiB04cORNmIOLMlIZwl3sLjZ
+ 9T3u738ZckAnS0cE7yALGh6uif/D10BOo4WGBMa4vxfVZ2PxyDgdUjdmDU0OzyFf66W2LS7SB
+ bVNdtUQkMufFwZBsP/7t/uz0xc+deDtLPrvZBSYO7GyU82DY+NCrzfxv5vZky4s4WsoWPUyi6
+ 2p0pzDkSUvQTXZJTFg3Rc8=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The openat2(2) syscall was added in kernel v5.6 with commit fddb5d430ad9
-("open: introduce openat2(2) syscall")
+On Fri, Apr 30, 2021 at 7:08 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
+>
+> The code is only safe if the analysis that says we can move si_trapno
+> and perhaps the ia64 fields into the union is correct.  It looks like
+> ia64 much more actively uses it's signal extension fields including for
+> SIGTRAP, so I am not at all certain the generic definition of
+> perf_sigtrap is safe on ia64.
+>
+> > I suppose in theory sparc64 or alpha might start using the other
+> > fields in the future, and an application might be compiled against
+> > mismatched headers, but that is unlikely and is already broken
+> > with the current headers.
+>
+> If we localize the use of si_trapno to just a few special cases on alpha
+> and sparc I think we don't even need to worry about breaking userspace
+> on any architecture.  It will complicate siginfo_layout, but it is a
+> complication that reflects reality.
 
-Add the openat2(2) syscall to the audit syscall classifier.
+Ok.
 
-See the github issue
-https://github.com/linux-audit/audit-kernel/issues/67
+> I don't have a clue how any of this affects ia64.  Does perf work on
+> ia64?  Does perf work on sparc, and alpha?
+>
+> If perf works on ia64 we need to take a hard look at what is going on
+> there as well.
 
-Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
----
- arch/alpha/kernel/audit.c          | 2 ++
- arch/ia64/kernel/audit.c           | 2 ++
- arch/parisc/kernel/audit.c         | 2 ++
- arch/parisc/kernel/compat_audit.c  | 2 ++
- arch/powerpc/kernel/audit.c        | 2 ++
- arch/powerpc/kernel/compat_audit.c | 2 ++
- arch/s390/kernel/audit.c           | 2 ++
- arch/s390/kernel/compat_audit.c    | 2 ++
- arch/sparc/kernel/audit.c          | 2 ++
- arch/sparc/kernel/compat_audit.c   | 2 ++
- arch/x86/ia32/audit.c              | 2 ++
- arch/x86/kernel/audit_64.c         | 2 ++
- include/linux/auditscm.h           | 1 +
- kernel/auditsc.c                   | 3 +++
- lib/audit.c                        | 4 ++++
- lib/compat_audit.c                 | 4 ++++
- 16 files changed, 36 insertions(+)
+ia64 never had perf support. It had oprofile until very recently, and it
+had a custom thing before that. My feeling is that it's increasingly
+unlikely to ever gain perf support in the future, given that oprofile
+(in user space) has required kernel perf support (in kernel) for a
+long time and nobody cared about that being broken either.
 
-diff --git a/arch/alpha/kernel/audit.c b/arch/alpha/kernel/audit.c
-index 81cbd804e375..3ab04709784a 100644
---- a/arch/alpha/kernel/audit.c
-+++ b/arch/alpha/kernel/audit.c
-@@ -42,6 +42,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/ia64/kernel/audit.c b/arch/ia64/kernel/audit.c
-index dba6a74c9ab3..ec61f20ca61f 100644
---- a/arch/ia64/kernel/audit.c
-+++ b/arch/ia64/kernel/audit.c
-@@ -43,6 +43,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/parisc/kernel/audit.c b/arch/parisc/kernel/audit.c
-index 14244e83db75..f420b5552140 100644
---- a/arch/parisc/kernel/audit.c
-+++ b/arch/parisc/kernel/audit.c
-@@ -52,6 +52,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/parisc/kernel/compat_audit.c b/arch/parisc/kernel/compat_audit.c
-index 0c181bb39f34..02cfd9d1ebeb 100644
---- a/arch/parisc/kernel/compat_audit.c
-+++ b/arch/parisc/kernel/compat_audit.c
-@@ -36,6 +36,8 @@ int parisc32_classify_syscall(unsigned syscall)
- 		return AUDITSC_OPENAT;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/powerpc/kernel/audit.c b/arch/powerpc/kernel/audit.c
-index 6eb18ef77dff..1bcfca5fdf67 100644
---- a/arch/powerpc/kernel/audit.c
-+++ b/arch/powerpc/kernel/audit.c
-@@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/powerpc/kernel/compat_audit.c b/arch/powerpc/kernel/compat_audit.c
-index f250777f6365..1fa0c902be8a 100644
---- a/arch/powerpc/kernel/compat_audit.c
-+++ b/arch/powerpc/kernel/compat_audit.c
-@@ -39,6 +39,8 @@ int ppc32_classify_syscall(unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/s390/kernel/audit.c b/arch/s390/kernel/audit.c
-index 7e331e1831d4..02051a596b87 100644
---- a/arch/s390/kernel/audit.c
-+++ b/arch/s390/kernel/audit.c
-@@ -54,6 +54,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/s390/kernel/compat_audit.c b/arch/s390/kernel/compat_audit.c
-index b2a2ed5d605a..320b5e7d96f0 100644
---- a/arch/s390/kernel/compat_audit.c
-+++ b/arch/s390/kernel/compat_audit.c
-@@ -40,6 +40,8 @@ int s390_classify_syscall(unsigned syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/sparc/kernel/audit.c b/arch/sparc/kernel/audit.c
-index 50fab35bdaba..b092274eca79 100644
---- a/arch/sparc/kernel/audit.c
-+++ b/arch/sparc/kernel/audit.c
-@@ -55,6 +55,8 @@ int audit_classify_syscall(int abi, unsigned int syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/arch/sparc/kernel/compat_audit.c b/arch/sparc/kernel/compat_audit.c
-index fdf0d70b569b..b0a7d0112b96 100644
---- a/arch/sparc/kernel/compat_audit.c
-+++ b/arch/sparc/kernel/compat_audit.c
-@@ -40,6 +40,8 @@ int sparc32_classify_syscall(unsigned int syscall)
- 		return AUDITSC_SOCKETCALL;
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/x86/ia32/audit.c b/arch/x86/ia32/audit.c
-index d3dc8b57df81..8f6bf3a46a3a 100644
---- a/arch/x86/ia32/audit.c
-+++ b/arch/x86/ia32/audit.c
-@@ -40,6 +40,8 @@ int ia32_classify_syscall(unsigned syscall)
- 	case __NR_execve:
- 	case __NR_execveat:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
-diff --git a/arch/x86/kernel/audit_64.c b/arch/x86/kernel/audit_64.c
-index 2a6cc9c9c881..44c3601cfdc4 100644
---- a/arch/x86/kernel/audit_64.c
-+++ b/arch/x86/kernel/audit_64.c
-@@ -53,6 +53,8 @@ int audit_classify_syscall(int abi, unsigned syscall)
- 	case __NR_execve:
- 	case __NR_execveat:
- 		return AUDITSC_EXECVE;
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/include/linux/auditscm.h b/include/linux/auditscm.h
-index 1c4f0ead5931..0893c373e12b 100644
---- a/include/linux/auditscm.h
-+++ b/include/linux/auditscm.h
-@@ -16,6 +16,7 @@ enum auditsc_class_t {
- 	AUDITSC_OPENAT,
- 	AUDITSC_SOCKETCALL,
- 	AUDITSC_EXECVE,
-+	AUDITSC_OPENAT2,
- 
- 	AUDITSC_NVALS /* count */
- };
-diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-index 8807afa6e237..27c747e0d5ab 100644
---- a/kernel/auditsc.c
-+++ b/kernel/auditsc.c
-@@ -76,6 +76,7 @@
- #include <linux/fsnotify_backend.h>
- #include <uapi/linux/limits.h>
- #include <uapi/linux/netfilter/nf_tables.h>
-+#include <uapi/linux/openat2.h>
- 
- #include "audit.h"
- 
-@@ -195,6 +196,8 @@ static int audit_match_perm(struct audit_context *ctx, int mask)
- 		return ((mask & AUDIT_PERM_WRITE) && ctx->argv[0] == SYS_BIND);
- 	case AUDITSC_EXECVE:
- 		return mask & AUDIT_PERM_EXEC;
-+	case AUDITSC_OPENAT2:
-+		return mask & ACC_MODE((u32)((struct open_how *)ctx->argv[2])->flags);
- 	default:
- 		return 0;
- 	}
-diff --git a/lib/audit.c b/lib/audit.c
-index 3ec1a94d8d64..738bda22dd39 100644
---- a/lib/audit.c
-+++ b/lib/audit.c
-@@ -60,6 +60,10 @@ int audit_classify_syscall(int abi, unsigned syscall)
- #endif
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+#ifdef __NR_openat2
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
-+#endif
- 	default:
- 		return AUDITSC_NATIVE;
- 	}
-diff --git a/lib/compat_audit.c b/lib/compat_audit.c
-index 63125ad2edc0..7ed9461b52b7 100644
---- a/lib/compat_audit.c
-+++ b/lib/compat_audit.c
-@@ -46,6 +46,10 @@ int audit_classify_compat_syscall(int abi, unsigned syscall)
- #endif
- 	case __NR_execve:
- 		return AUDITSC_EXECVE;
-+#ifdef __NR_openat2
-+	case __NR_openat2:
-+		return AUDITSC_OPENAT2;
-+#endif
- 	default:
- 		return AUDITSC_COMPAT;
- 	}
--- 
-2.27.0
+sparc64 has perf support for Sun UltraSPARC 3/3+/3i/4+/T1/T2/T3
+and Oracle SPARC T4/T5/M7 but lacks support for most CPUs from
+Oracle, Fujitsu and the rest, in particular anything from the last
+ten years.
+Alpha has perf support for EV67, EV68, EV7, EV79, and EV69, i.e.
+anything from 1996 to the end in 2004.
 
+      Arnd
