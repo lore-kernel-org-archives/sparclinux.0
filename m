@@ -2,188 +2,210 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-14.8 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1,
+	USER_IN_DEF_DKIM_WL autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A66EBC433B4
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 18:11:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A5D8C433ED
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 19:07:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 811956146D
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 18:11:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C73F46128C
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 19:07:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230462AbhD3SM2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 14:12:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40178 "EHLO
+        id S231886AbhD3TIG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 15:08:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52460 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230329AbhD3SM1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 14:12:27 -0400
-Received: from mail-ot1-x32a.google.com (mail-ot1-x32a.google.com [IPv6:2607:f8b0:4864:20::32a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D581EC06174A
-        for <sparclinux@vger.kernel.org>; Fri, 30 Apr 2021 11:11:38 -0700 (PDT)
-Received: by mail-ot1-x32a.google.com with SMTP id n32-20020a9d1ea30000b02902a53d6ad4bdso10196092otn.3
-        for <sparclinux@vger.kernel.org>; Fri, 30 Apr 2021 11:11:38 -0700 (PDT)
+        with ESMTP id S231809AbhD3TID (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 15:08:03 -0400
+Received: from mail-wm1-x333.google.com (mail-wm1-x333.google.com [IPv6:2a00:1450:4864:20::333])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D658C06138D
+        for <sparclinux@vger.kernel.org>; Fri, 30 Apr 2021 12:07:14 -0700 (PDT)
+Received: by mail-wm1-x333.google.com with SMTP id m5so11622421wmf.1
+        for <sparclinux@vger.kernel.org>; Fri, 30 Apr 2021 12:07:14 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=vf2+S1x6r/e/FcKWzWWIRvMeVi3Dg4asX+PnCt1Zm1M=;
-        b=BdzY8EOhoBQLTLtrVJMYviKEWJlUGJb4q8AoIXnB9KZMggfTz9LDL3Lr9vOR6ZpH13
-         y4UMwzaN2tWVSm3h9bLgXcM8pjfp/EWXhNMJzrw8JweoLuSnFXFmmEut+vxb/RpxKPFk
-         KS8edKMlFL6AF99NnjkC5H5mybGYPAnJRFUM+os1Iy+nppzVamfYx1Slf1+v2+c3Ymio
-         7ozrLVU/NDeeaM+/u0eQEw1IRf/WQ5xzq9Py5Crg0CPc7EcRbocZ505dcbP5QGk1U6xg
-         GfqvB0CkXG42IOxTtquxQhWDBUp/sPEvlwrY91NI2vjO2AiVjmJqAaj8vT2Bml6fltMM
-         VmuQ==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to:user-agent;
+        bh=QsIOjRVDObuzB3TAj/QUXyHP2hTbDXsiJXpMnud8bTw=;
+        b=feNJVQ1RjmiP25z0XbDMVEl3Wt/CAfZNpYgdwRSY9Wh2+n0aM8JgX8jY0QwDZgMchX
+         Ups7Y3KALpWGD3bV3U8n/QnNnUitq+p4g/Gr1Whcokp7pVBff36nf6A7RGqYn18dJtGH
+         2wwrQ+RcyNFulDrIRN5DxCjp/98T8R/hXzPOBw+SSjANKqZRdGJvPoT2HfmOzpAGy0r6
+         1+yDwfdq2MLhyqfYd21/L/j8eRS9P8HtE5KNJe3xHCLruZEn91N7DcV3mRLCrQkPwsMd
+         j+4llQf4dyL1rVltTM6lZD5/PXY8JvsN9DQFroofvOnMC6/gQW40X1GAVLwKjemIC8Ok
+         TjBQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=vf2+S1x6r/e/FcKWzWWIRvMeVi3Dg4asX+PnCt1Zm1M=;
-        b=APORxyQbool6UbBH9SgdUIu1HJNyXsbUggdx+G77YnFpAE08ahlEJy6D0OrBwCqXcH
-         DbABlMjIRfdO0aGvaRfrCELQmzKwb1AVanUnb57kesNPAEym/wTfTNk2KQdwuJJzFRJe
-         g7Xn0YqNF2HcEHPUURj3SYIgbpgizpIvOo8UMUu3B3e8G6MBJJ3gdz3j483kB8z1Lruk
-         D1/5LhBa0nl/DpP7anbqxtg9250Xk0Tf57D1DHZiA26xqq5pDUqAzF1FzRY9XoWWgOwt
-         lkjBPJ40qyI3HtqHTclwJKAxvCSCoVoGLOFNkY/1WmIl3JKqVtd14HOUvIQYDKq8ntAs
-         9qmg==
-X-Gm-Message-State: AOAM532MMEd3z/8mvTkKWY6e0qLUG7eIlwgahUxb0W/8wN2/H4KWp6ur
-        E9Ok6MZCZrapwEfesV9949I2f05EL+1hL808W8lwgQ==
-X-Google-Smtp-Source: ABdhPJw6A5NO8ufHNyJhyR5vHTtTeI1hfXYafTfJa00BpLpdODn4quTFm5wLD0i7Z8HZs3TwO1SDIchfi3B9nR+H06Y=
-X-Received: by 2002:a9d:60c8:: with SMTP id b8mr4635783otk.17.1619806298042;
- Fri, 30 Apr 2021 11:11:38 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210429190734.624918-1-elver@google.com> <m1im43zn2g.fsf@fess.ebiederm.org>
-In-Reply-To: <m1im43zn2g.fsf@fess.ebiederm.org>
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to:user-agent;
+        bh=QsIOjRVDObuzB3TAj/QUXyHP2hTbDXsiJXpMnud8bTw=;
+        b=IIqUjDHvO1MdCicS72bi+Xgs1X+hXYhemDrQ1CKhoS/D1Ba3gjm+dhARk27EhmvmT6
+         L0EHBui8EmGL8wJ1LIbH2w7K+LLo/tqbo59qFFyKjoGUrUzYTm15+rdscO4yjfOsSuNG
+         4xpGPWptnFPGe3OsGc5Ku4oSQeGPJ9EEO3op/HneUbmLNvNFui8F0U32qXpzQbgGdJkn
+         BSlDGZA1nR43HdL77cUQ67shK48fvgWsscDUdinm0udvsD7IXD6r+Q1RAOZrKmtT/4bb
+         PGQ224y6Lv9BiTdcNUzezB2KAHy/2uDWuu3IFZiGo3mb68tU4tBplmnlF0snIUTlmq2u
+         /bsA==
+X-Gm-Message-State: AOAM530vh6UTFD1jC0eCeMUf1hGJPPCqcmuLfA5Yfkx5rLlTQhJ0o40u
+        h7ubRgu3mh+juVvRLonMBIOarA==
+X-Google-Smtp-Source: ABdhPJxl3CmvBsFsTgbZKT8UBCmij5XM7DUxig/6GHwehvyMQxbQwicz0ECpF7YdTMQ9sty2UELYvA==
+X-Received: by 2002:a1c:545c:: with SMTP id p28mr18332214wmi.118.1619809633033;
+        Fri, 30 Apr 2021 12:07:13 -0700 (PDT)
+Received: from elver.google.com ([2a00:79e0:15:13:8eae:7187:8db5:a3e])
+        by smtp.gmail.com with ESMTPSA id a9sm3801655wmj.1.2021.04.30.12.07.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 30 Apr 2021 12:07:12 -0700 (PDT)
+Date:   Fri, 30 Apr 2021 21:07:06 +0200
 From:   Marco Elver <elver@google.com>
-Date:   Fri, 30 Apr 2021 20:11:26 +0200
-Message-ID: <CANpmjNMxehkR+NHyJpqfSBYo9Ru7Hbs8j7c=G0Q5+966orQunw@mail.gmail.com>
-Subject: Re: [PATCH 1/3] sparc64: Add compile-time asserts for siginfo_t offsets
 To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Russell King - ARM Linux admin <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
+Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
+Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
+Message-ID: <YIxVWkT03TqcJLY3@elver.google.com>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+ <m11rat9f85.fsf@fess.ebiederm.org>
+ <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+ <m15z031z0a.fsf@fess.ebiederm.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m15z031z0a.fsf@fess.ebiederm.org>
+User-Agent: Mutt/2.0.5 (2021-01-21)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 30 Apr 2021 at 19:42, Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Marco Elver <elver@google.com> writes:
->
-> > To help catch ABI breaks at compile-time, add compile-time assertions to
-> > verify the siginfo_t layout. Unlike other architectures, sparc64 is
-> > special, because it is one of few architectures requiring si_trapno.
-> > ABI breaks around that field would only be caught here.
->
-> Arnd Bergman recently pointed out that we can move si_trapno into the
-> union and make it specific to a handful of signals.  Like we do other
-> items in the union.
->
-> Given that the code of perf_sigtrap is pretty much broken if si_trapno
-> needs to be filled out.  I think we should make that change before
-> we set this ABI in stone like this.
->
-> Otherwise this looks good.
+On Fri, Apr 30, 2021 at 12:08PM -0500, Eric W. Biederman wrote:
+> Arnd Bergmann <arnd@arndb.de> writes:
+[...] 
+> >> I did a quick search and the architectures that define __ARCH_SI_TRAPNO
+> >> are sparc, mips, and alpha.  All have 64bit implementations.  A further
+> >> quick search shows that none of those architectures have faults that
+> >> use BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR, nor do
+> >> they appear to use mm/memory-failure.c
+> >>
+> >> So it doesn't look like we have an ABI regression to fix.
+> >
+> > Even better!
+> >
+> > So if sparc is the only user of _trapno and it uses none of the later
+> > fields in _sigfault, I wonder if we could take even more liberty at
+> > trying to have a slightly saner definition. Can you think of anything that
+> > might break if we put _trapno inside of the union along with _perf
+> > and _addr_lsb?
+> 
+> On sparc si_trapno is only set when SIGILL ILL_TRP is set.  So we can
+> limit si_trapno to that combination, and it should not be a problem for
+> a new signal/si_code pair to use that storage.  Precisely because it is
+> new.
+> 
+> Similarly on alpha si_trapno is only set for:
+> 
+> SIGFPE {FPE_INTOVF, FPE_INTDIV, FPE_FLTOVF, FPE_FLTDIV, FPE_FLTUND,
+> FPE_FLTINV, FPE_FLTRES, FPE_FLTUNK} and SIGTRAP {TRAP_UNK}.
+> 
+> Placing si_trapno into the union would also make the problem that the
+> union is pointer aligned a non-problem as then the union immediate
+> follows a pointer.
+> 
+> I hadn't had a chance to look before but we must deal with this.  The
+> definition of perf_sigtrap in 42dec9a936e7696bea1f27d3c5a0068cd9aa95fd
+> is broken on sparc, alpha, and ia64 as it bypasses the code in
+> kernel/signal.c that ensures the si_trapno or the ia64 special fields
+> are set.
+> 
+> Not to mention that perf_sigtrap appears to abuse si_errno.
 
-Thanks, that's reasonable -- I'll reply to the other thread in a few minutes.
+There are a few other places in the kernel that repurpose si_errno
+similarly, e.g. arch/arm64/kernel/ptrace.c, kernel/seccomp.c -- it was
+either that or introduce another field or not have it. It is likely we
+could do without, but if there are different event types the user would
+have to sacrifice a few bits of si_perf to encode the event type, and
+I'd rather keep those bits for something else. Thus the decision fell to
+use si_errno.
 
+Given it'd be wasted space otherwise, and we define the semantics of
+whatever is stored in siginfo on the new signal, it'd be good to keep.
+
+> The code is only safe if the analysis that says we can move si_trapno
+> and perhaps the ia64 fields into the union is correct.  It looks like
+> ia64 much more actively uses it's signal extension fields including for
+> SIGTRAP, so I am not at all certain the generic definition of
+> perf_sigtrap is safe on ia64.
+
+Trying to understand the requirements of si_trapno myself: safe here
+would mean that si_trapno is not required if we fire our SIGTRAP /
+TRAP_PERF.
+
+As far as I can tell that is the case -- see below.
+
+> > I suppose in theory sparc64 or alpha might start using the other
+> > fields in the future, and an application might be compiled against
+> > mismatched headers, but that is unlikely and is already broken
+> > with the current headers.
+> 
+> If we localize the use of si_trapno to just a few special cases on alpha
+> and sparc I think we don't even need to worry about breaking userspace
+> on any architecture.  It will complicate siginfo_layout, but it is a
+> complication that reflects reality.
+> 
+> I don't have a clue how any of this affects ia64.  Does perf work on
+> ia64?  Does perf work on sparc, and alpha?
+> 
+> If perf works on ia64 we need to take a hard look at what is going on
+> there as well.
+
+No perf on ia64, but it seems alpha and sparc have perf:
+
+	$ git grep 'select.*HAVE_PERF_EVENTS$' -- arch/
+	arch/alpha/Kconfig:	select HAVE_PERF_EVENTS    <--
+	arch/arc/Kconfig:	select HAVE_PERF_EVENTS
+	arch/arm/Kconfig:	select HAVE_PERF_EVENTS
+	arch/arm64/Kconfig:	select HAVE_PERF_EVENTS
+	arch/csky/Kconfig:	select HAVE_PERF_EVENTS
+	arch/hexagon/Kconfig:	select HAVE_PERF_EVENTS
+	arch/mips/Kconfig:	select HAVE_PERF_EVENTS
+	arch/nds32/Kconfig:	select HAVE_PERF_EVENTS
+	arch/parisc/Kconfig:	select HAVE_PERF_EVENTS
+	arch/powerpc/Kconfig:	select HAVE_PERF_EVENTS
+	arch/riscv/Kconfig:	select HAVE_PERF_EVENTS
+	arch/s390/Kconfig:	select HAVE_PERF_EVENTS
+	arch/sh/Kconfig:	select HAVE_PERF_EVENTS
+	arch/sparc/Kconfig:	select HAVE_PERF_EVENTS    <--
+	arch/x86/Kconfig:	select HAVE_PERF_EVENTS
+	arch/xtensa/Kconfig:	select HAVE_PERF_EVENTS
+
+Now, given ia64 is not an issue, I wanted to understand the semantics of
+si_trapno. Per https://man7.org/linux/man-pages/man2/sigaction.2.html, I
+see:
+
+	int si_trapno;    /* Trap number that caused
+			     hardware-generated signal
+			     (unused on most architectures) */
+
+... its intended semantics seem to suggest it would only be used by some
+architecture-specific signal like you identified above. So if the
+semantics is some code of a hardware trap/fault, then we're fine and do
+not need to set it.
+
+Also bearing in mind we define the semantics any new signal, and given
+most architectures do not have si_trapno, definitions of new generic
+signals should probably not include odd architecture specific details
+related to old architectures.
+
+From all this, my understanding now is that we can move si_trapno into
+the union, correct? What else did you have in mind?
+
+Thanks,
 -- Marco
-
-> Eric
->
-> > Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
-> > Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
-> > Signed-off-by: Marco Elver <elver@google.com>
-> > ---
-> >  arch/sparc/kernel/signal32.c  | 34 ++++++++++++++++++++++++++++++++++
-> >  arch/sparc/kernel/signal_64.c | 33 +++++++++++++++++++++++++++++++++
-> >  2 files changed, 67 insertions(+)
-> >
-> > diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-> > index e9695a06492f..778ed5c26d4a 100644
-> > --- a/arch/sparc/kernel/signal32.c
-> > +++ b/arch/sparc/kernel/signal32.c
-> > @@ -745,3 +745,37 @@ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp)
-> >  out:
-> >       return ret;
-> >  }
-> > +
-> > +/*
-> > + * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
-> > + * changes likely come with new fields that should be added below.
-> > + */
-> > +static_assert(NSIGILL        == 11);
-> > +static_assert(NSIGFPE        == 15);
-> > +static_assert(NSIGSEGV       == 9);
-> > +static_assert(NSIGBUS        == 5);
-> > +static_assert(NSIGTRAP       == 6);
-> > +static_assert(NSIGCHLD       == 6);
-> > +static_assert(NSIGSYS        == 2);
-> > +static_assert(offsetof(compat_siginfo_t, si_signo)   == 0x00);
-> > +static_assert(offsetof(compat_siginfo_t, si_errno)   == 0x04);
-> > +static_assert(offsetof(compat_siginfo_t, si_code)    == 0x08);
-> > +static_assert(offsetof(compat_siginfo_t, si_pid)     == 0x0c);
-> > +static_assert(offsetof(compat_siginfo_t, si_uid)     == 0x10);
-> > +static_assert(offsetof(compat_siginfo_t, si_tid)     == 0x0c);
-> > +static_assert(offsetof(compat_siginfo_t, si_overrun) == 0x10);
-> > +static_assert(offsetof(compat_siginfo_t, si_status)  == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_utime)   == 0x18);
-> > +static_assert(offsetof(compat_siginfo_t, si_stime)   == 0x1c);
-> > +static_assert(offsetof(compat_siginfo_t, si_value)   == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_int)     == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_ptr)     == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_addr)    == 0x0c);
-> > +static_assert(offsetof(compat_siginfo_t, si_trapno)  == 0x10);
-> > +static_assert(offsetof(compat_siginfo_t, si_addr_lsb)        == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_lower)   == 0x18);
-> > +static_assert(offsetof(compat_siginfo_t, si_upper)   == 0x1c);
-> > +static_assert(offsetof(compat_siginfo_t, si_pkey)    == 0x18);
-> > +static_assert(offsetof(compat_siginfo_t, si_perf)    == 0x14);
-> > +static_assert(offsetof(compat_siginfo_t, si_band)    == 0x0c);
-> > +static_assert(offsetof(compat_siginfo_t, si_fd)              == 0x10);
-> > diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-> > index a0eec62c825d..c9bbf5f29078 100644
-> > --- a/arch/sparc/kernel/signal_64.c
-> > +++ b/arch/sparc/kernel/signal_64.c
-> > @@ -556,3 +556,36 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
-> >       user_enter();
-> >  }
-> >
-> > +/*
-> > + * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
-> > + * changes likely come with new fields that should be added below.
-> > + */
-> > +static_assert(NSIGILL        == 11);
-> > +static_assert(NSIGFPE        == 15);
-> > +static_assert(NSIGSEGV       == 9);
-> > +static_assert(NSIGBUS        == 5);
-> > +static_assert(NSIGTRAP       == 6);
-> > +static_assert(NSIGCHLD       == 6);
-> > +static_assert(NSIGSYS        == 2);
-> > +static_assert(offsetof(siginfo_t, si_signo)  == 0x00);
-> > +static_assert(offsetof(siginfo_t, si_errno)  == 0x04);
-> > +static_assert(offsetof(siginfo_t, si_code)   == 0x08);
-> > +static_assert(offsetof(siginfo_t, si_pid)    == 0x10);
-> > +static_assert(offsetof(siginfo_t, si_uid)    == 0x14);
-> > +static_assert(offsetof(siginfo_t, si_tid)    == 0x10);
-> > +static_assert(offsetof(siginfo_t, si_overrun)        == 0x14);
-> > +static_assert(offsetof(siginfo_t, si_status) == 0x18);
-> > +static_assert(offsetof(siginfo_t, si_utime)  == 0x20);
-> > +static_assert(offsetof(siginfo_t, si_stime)  == 0x28);
-> > +static_assert(offsetof(siginfo_t, si_value)  == 0x18);
-> > +static_assert(offsetof(siginfo_t, si_int)    == 0x18);
-> > +static_assert(offsetof(siginfo_t, si_ptr)    == 0x18);
-> > +static_assert(offsetof(siginfo_t, si_addr)   == 0x10);
-> > +static_assert(offsetof(siginfo_t, si_trapno) == 0x18);
-> > +static_assert(offsetof(siginfo_t, si_addr_lsb)       == 0x20);
-> > +static_assert(offsetof(siginfo_t, si_lower)  == 0x28);
-> > +static_assert(offsetof(siginfo_t, si_upper)  == 0x30);
-> > +static_assert(offsetof(siginfo_t, si_pkey)   == 0x28);
-> > +static_assert(offsetof(siginfo_t, si_perf)   == 0x20);
-> > +static_assert(offsetof(siginfo_t, si_band)   == 0x10);
-> > +static_assert(offsetof(siginfo_t, si_fd)     == 0x14);
