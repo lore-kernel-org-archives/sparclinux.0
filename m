@@ -2,133 +2,125 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9351C433B4
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 20:49:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86918C433ED
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 11:16:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF258613B1
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Apr 2021 20:49:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5711761107
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 11:16:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235536AbhD2UuJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Apr 2021 16:50:09 -0400
-Received: from mout.kundenserver.de ([217.72.192.74]:54623 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231201AbhD2UuG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Apr 2021 16:50:06 -0400
-Received: from mail-wm1-f41.google.com ([209.85.128.41]) by
- mrelayeu.kundenserver.de (mreue108 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1N4yyQ-1lUlMv1UpQ-010wy8; Thu, 29 Apr 2021 22:49:17 +0200
-Received: by mail-wm1-f41.google.com with SMTP id 4-20020a05600c26c4b0290146e1feccd8so521816wmv.1;
-        Thu, 29 Apr 2021 13:49:17 -0700 (PDT)
-X-Gm-Message-State: AOAM533Lsa8YXw7vetbN82yaMhNUIX/cxsJQ3o0zJumPSHkeUDH4ZlrO
-        E2NdMfX1mGTztpCj5Y3ak1IEvnDZGYHfo9QU+VU=
-X-Google-Smtp-Source: ABdhPJwlxMNdSsRwR0fdPNqNypLLItyjoOqUJmBY9r3HaMsASmwKpwt6rd7DUEn1wPswZS5VmrYEijB1isok1r6KSGg=
-X-Received: by 2002:a7b:c4da:: with SMTP id g26mr2183043wmk.43.1619729356972;
- Thu, 29 Apr 2021 13:49:16 -0700 (PDT)
+        id S230149AbhD3LRp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 07:17:45 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:46188 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229543AbhD3LRo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 30 Apr 2021 07:17:44 -0400
+Received: from pps.filterd (m0098396.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 13UB2oDJ123712;
+        Fri, 30 Apr 2021 07:16:47 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : content-transfer-encoding
+ : mime-version; s=pp1; bh=XvBJtBdp5qCpVVR5UOW7+oNegjIfVg+bHWvvNQMpCVU=;
+ b=WuGCOcL0vZviRLAeOhcx+DQXwGCf1Ic2Jzm8OIS+LQtuhQWDYqAU8ENdko/63lX7T7zr
+ 3OzP3IvbYx3plDUnHvrp/DWWNGM95rb+iv3kbkKoHsG3fzcwM+YAtUGrEOocfm1zJIPb
+ ys+kXbYclNtThPf5miiwiW59m66nih6sYcxGcyK+z63yi9PJ/08VX7AS3DRGw3K/qTlm
+ MDf6NT7siTUF6IqDq+NlzrVrLYuVHqTV3cdyK/nrg+vNeyRcjIe1Cu8JnUtKDxHrr389
+ /KQHPsERrKAMwf98QuHDQabDrGBl0OZbf9BdPxQHfgVb5ovby124kEkB5ODAT0ifTxpc Zg== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 388fxy1m7v-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 30 Apr 2021 07:16:47 -0400
+Received: from m0098396.ppops.net (m0098396.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 13UB2tHh124132;
+        Fri, 30 Apr 2021 07:16:46 -0400
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 388fxy1m70-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 30 Apr 2021 07:16:46 -0400
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+        by ppma04ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 13UBCWiq019691;
+        Fri, 30 Apr 2021 11:16:44 GMT
+Received: from b06cxnps4075.portsmouth.uk.ibm.com (d06relay12.portsmouth.uk.ibm.com [9.149.109.197])
+        by ppma04ams.nl.ibm.com with ESMTP id 384ay8k1kb-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Fri, 30 Apr 2021 11:16:44 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+        by b06cxnps4075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 13UBGgW252429120
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Fri, 30 Apr 2021 11:16:42 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 47187A4055;
+        Fri, 30 Apr 2021 11:16:42 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id DDCC0A4051;
+        Fri, 30 Apr 2021 11:16:41 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+        by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Fri, 30 Apr 2021 11:16:41 +0000 (GMT)
+From:   Niklas Schnelle <schnelle@linux.ibm.com>
+To:     Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        clang-built-linux@googlegroups.com, linux-arch@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org
+Subject: [PATCH v4 1/3] sparc: explicitly set PCI_IOBASE to 0
+Date:   Fri, 30 Apr 2021 13:16:39 +0200
+Message-Id: <20210430111641.1911207-2-schnelle@linux.ibm.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210430111641.1911207-1-schnelle@linux.ibm.com>
+References: <20210430111641.1911207-1-schnelle@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: aOBsCEszn3Lco3QOlLLQP5kxxAK5xZjL
+X-Proofpoint-ORIG-GUID: lmhjLN6Yhs8bT2MpBmfgUuFqDq22n_s4
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
-In-Reply-To: <m11rat9f85.fsf@fess.ebiederm.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 29 Apr 2021 22:48:40 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
-Message-ID: <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
-Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Marco Elver <elver@google.com>,
-        Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:Y5+kRV9UPqKJX/D/7aStG7U/Py7dIw+sGe7g3Wp8tNykx536WRq
- iv7bhZcLn7MPQIK+Gsjut2r2Itj6RnUpzjoS5iGld/vCXEhrGh/Df0y2laAfdIIVWqQjYsF
- qJI0oQN0aJfc67ZCbPr2aLvhIAp+UGPF3D9E0vMbh/JrPrLq+vGNDfq5TQtBp+fTWKRYaCR
- rOsFCo+6OdKTmhFtRMwow==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:0gnD6TDUOGU=:VQyZMBvfQy1PO9+fgiyh4r
- ueF8VvNBMmTBRRaDtlb+077rlOEFzdMgDjMwS8Okn2sDCgz5IB1TForHNfA5k5lhFjLK0S7sa
- BxWimh/mdubIO40EmLhbOs2XjMv1rr4YzC2flihFITSBaO5rL9M1fldhPs0zLjfveHNV63g1D
- BB5XqARpRCbi81hm89Yn56Qy0c3NWBA/6SZBrw0KaUjiQGPY3F3j5bozH7lhroDbXOEbW8l0W
- +cklcRFYePQw18i4fS0Z9l5WohNFS21H3x5xVSZuaerf1tDra5KIZDBQyN0SBga36FYnO55Gp
- RC1JrkceZDDqfYOMmRjkWp5jRdcN9CsCDOlwZyZTnzOoSW/OpgbIMYl5CurgWd0ugiETJDykW
- x93WVKNNyY8jyryfbqgyUdBjfpQHpPFnTbvlBkn8hsZyuMnTPj+XWRDHdZ9SF7fez1BWkcHb6
- Y3rBRdFmnueYn6OdAW+QeId4qwhnyb5NNmxUUa9H0Nw/qb65slp5VdjlBYnAqNTeX+mT6Vkpl
- P0p7x9WVPIkywSg84RUSk0=
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-04-30_06:2021-04-30,2021-04-30 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 spamscore=0 bulkscore=0
+ mlxscore=0 malwarescore=0 phishscore=0 clxscore=1015 priorityscore=1501
+ impostorscore=0 adultscore=0 suspectscore=0 lowpriorityscore=0
+ mlxlogscore=999 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104060000 definitions=main-2104300080
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Apr 29, 2021 at 7:23 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
+Instead of relying on the fallback in asm-generic/io.h which sets
+PCI_IOBASE 0 if it is not defined set it explicitly.
 
-> > Which option do you prefer? Are there better options?
->
-> Personally the most important thing to have is a single definition
-> shared by all architectures so that we consolidate testing.
->
-> A little piece of me cries a little whenever I see how badly we
-> implemented the POSIX design.  As specified by POSIX the fields can be
-> place in siginfo such that 32bit and 64bit share a common definition.
-> Unfortunately we did not addpadding after si_addr on 32bit to
-> accommodate a 64bit si_addr.
->
-> I find it unfortunate that we are adding yet another definition that
-> requires translation between 32bit and 64bit, but I am glad
-> that at least the translation is not architecture specific.  That common
-> definition is what has allowed this potential issue to be caught
-> and that makes me very happy to see.
->
-> Let's go with Option 3.
->
-> Confirm BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR are not
-> in use on any architecture that defines __ARCH_SI_TRAPNO, and then fixup
-> the userspace definitions of these fields.
->
-> To the kernel I would add some BUILD_BUG_ON's to whatever the best
-> maintained architecture (sparc64?) that implements __ARCH_SI_TRAPNO just
-> to confirm we don't create future regressions by accident.
->
-> I did a quick search and the architectures that define __ARCH_SI_TRAPNO
-> are sparc, mips, and alpha.  All have 64bit implementations.
+Link: https://lore.kernel.org/lkml/CAK8P3a3PK9zyeP4ymELtc2ZYnymECoACiigw9Za+pvSJpCk5=g@mail.gmail.com/
+Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
+---
+ arch/sparc/include/asm/io.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-I think you (slightly) misread: mips has "#undef __ARCH_SI_TRAPNO", not
-"#define __ARCH_SI_TRAPNO". This means it's only sparc and
-alpha.
+diff --git a/arch/sparc/include/asm/io.h b/arch/sparc/include/asm/io.h
+index 2eefa526b38f..c019e50702c1 100644
+--- a/arch/sparc/include/asm/io.h
++++ b/arch/sparc/include/asm/io.h
+@@ -1,6 +1,14 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef ___ASM_SPARC_IO_H
+ #define ___ASM_SPARC_IO_H
++
++/*
++ * On LEON PCI addresses below 64k are converted to IO accesses.
++ * io_remap_xxx() returns a kernel virtual address in the PCI window so
++ * inb() doesn't need to add an offset.
++ */
++#define PCI_IOBASE ((void __iomem *)0)
++
+ #if defined(__sparc__) && defined(__arch64__)
+ #include <asm/io_64.h>
+ #else
+-- 
+2.31.1
 
-I can see that the alpha instance was added to the kernel during linux-2.5,
-but never made it into the glibc or uclibc copy of the struct definition, and
-musl doesn't support alpha or sparc. Debian codesearch only turns up
-sparc (and BSD) references to si_trapno.
-
-> I did a quick search and the architectures that define __ARCH_SI_TRAPNO
-> are sparc, mips, and alpha.  All have 64bit implementations.  A further
-> quick search shows that none of those architectures have faults that
-> use BUS_MCEERR_AR, BUS_MCEERR_AO, SEGV_BNDERR, SEGV_PKUERR, nor do
-> they appear to use mm/memory-failure.c
->
-> So it doesn't look like we have an ABI regression to fix.
-
-Even better!
-
-So if sparc is the only user of _trapno and it uses none of the later
-fields in _sigfault, I wonder if we could take even more liberty at
-trying to have a slightly saner definition. Can you think of anything that
-might break if we put _trapno inside of the union along with _perf
-and _addr_lsb?
-
-I suppose in theory sparc64 or alpha might start using the other
-fields in the future, and an application might be compiled against
-mismatched headers, but that is unlikely and is already broken
-with the current headers.
-
-       Arnd
