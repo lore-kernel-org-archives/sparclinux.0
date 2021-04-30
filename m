@@ -2,111 +2,57 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A52F5C433B4
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47914C433ED
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:23:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 832D36145A
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 20:43:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DA3A6147F
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Apr 2021 22:23:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233605AbhD3Uoj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Apr 2021 16:44:39 -0400
-Received: from mout.kundenserver.de ([217.72.192.73]:54357 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231325AbhD3Uoj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 16:44:39 -0400
-Received: from mail-wr1-f47.google.com ([209.85.221.47]) by
- mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1MPGJf-1lvUSH3dvB-00PeWe; Fri, 30 Apr 2021 22:43:48 +0200
-Received: by mail-wr1-f47.google.com with SMTP id x5so21688547wrv.13;
-        Fri, 30 Apr 2021 13:43:48 -0700 (PDT)
-X-Gm-Message-State: AOAM532Fd+80CDAQiJ4dOI5oYtlGRKoV1X6wNkWhf9P0klr/OCIMcsPU
-        mQxAr2GNWF6OKzcgxXkglDhw8V1ReNniXhYMa/I=
-X-Google-Smtp-Source: ABdhPJxA6TybANagJ0qyIQ6FUChGGFgSMR1TlFRyQOZs01sNXca04Touthsa7NzRGXFDTEGZCWPvtHhkVKpp9VirFF4=
-X-Received: by 2002:a05:6000:1843:: with SMTP id c3mr9808647wri.361.1619815428535;
- Fri, 30 Apr 2021 13:43:48 -0700 (PDT)
-MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
- <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com> <m15z031z0a.fsf@fess.ebiederm.org>
-In-Reply-To: <m15z031z0a.fsf@fess.ebiederm.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Fri, 30 Apr 2021 22:43:09 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a3mb6X4+4Q1WBQp22O2Bvc3w-Q=L25jh+WPvp2kJFwHiQ@mail.gmail.com>
-Message-ID: <CAK8P3a3mb6X4+4Q1WBQp22O2Bvc3w-Q=L25jh+WPvp2kJFwHiQ@mail.gmail.com>
-Subject: Re: siginfo_t ABI break on sparc64 from si_addr_lsb move 3y ago
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Marco Elver <elver@google.com>,
-        Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:1T39EDIEGbC+K2EWO8vif5PitZfwh83eNXC5FhSEd6gpm6wI/mg
- 0LsG6tKV2Wbj1GzC2XsrKRG/oSKE85phpvLwKPkcyh5KLDaOBzIsM52bwsO8uSACBGsYFX+
- PzRDHD5mjgShUF7QVg6NwyzXadfx+3T7hAgSIr/cGcEKL6vqK/cIlbp4au1xdWJa74NG9Lw
- vWkkVu41JAR1YOI6ToAVA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:bD7bHAN+nZg=:nbPLcZgrKRCeaw9/+G+s4P
- 6vCC3nyX46/35Fso9jkovVD1ok6BDjyqpM1cJtPfYGNbfl4kNZ8w50HaCWWtjoD+YD94sC38b
- 69F+/x5Vyx0FzCaFh8CQTdyKRNAhHV6KWA3AVMeYvA0UzrGJyGb9mprWPbPblC2XNPMts4i8+
- loDDg/qQRc3KMrtDDn5KnBG+g2X7e6Z17zSyVmjd/Cy4Ygg/zPuM3X7RP7J04WpkQkC019exW
- A6HeWvSvI/4/3BXGx8xsgcGYEwDs6vFrK9lWHnlxzSVjWwmOwXhoG5Sm6gpMP5nkjMbP0inwo
- n+TQhS6i9Cxl8VLAL7gP1qFTuR4uBoL0iMeVRKb8Ej1KpFOmImiB04cORNmIOLMlIZwl3sLjZ
- 9T3u738ZckAnS0cE7yALGh6uif/D10BOo4WGBMa4vxfVZ2PxyDgdUjdmDU0OzyFf66W2LS7SB
- bVNdtUQkMufFwZBsP/7t/uz0xc+deDtLPrvZBSYO7GyU82DY+NCrzfxv5vZky4s4WsoWPUyi6
- 2p0pzDkSUvQTXZJTFg3Rc8=
+        id S231342AbhD3WXx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 30 Apr 2021 18:23:53 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:54024 "EHLO
+        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230378AbhD3WXx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Apr 2021 18:23:53 -0400
+Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 5D5F24F7E7593;
+        Fri, 30 Apr 2021 15:23:02 -0700 (PDT)
+Date:   Fri, 30 Apr 2021 15:22:58 -0700 (PDT)
+Message-Id: <20210430.152258.729887124786441756.davem@davemloft.net>
+To:     elver@google.com
+Cc:     ebiederm@xmission.com, linux@armlinux.org.uk,
+        catalin.marinas@arm.com, will@kernel.org, mark.rutland@arm.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH 1/3] sparc64: Add compile-time asserts for siginfo_t
+ offsets
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20210429190734.624918-1-elver@google.com>
+References: <20210429190734.624918-1-elver@google.com>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Fri, 30 Apr 2021 15:23:02 -0700 (PDT)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Apr 30, 2021 at 7:08 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> The code is only safe if the analysis that says we can move si_trapno
-> and perhaps the ia64 fields into the union is correct.  It looks like
-> ia64 much more actively uses it's signal extension fields including for
-> SIGTRAP, so I am not at all certain the generic definition of
-> perf_sigtrap is safe on ia64.
->
-> > I suppose in theory sparc64 or alpha might start using the other
-> > fields in the future, and an application might be compiled against
-> > mismatched headers, but that is unlikely and is already broken
-> > with the current headers.
->
-> If we localize the use of si_trapno to just a few special cases on alpha
-> and sparc I think we don't even need to worry about breaking userspace
-> on any architecture.  It will complicate siginfo_layout, but it is a
-> complication that reflects reality.
+From: Marco Elver <elver@google.com>
+Date: Thu, 29 Apr 2021 21:07:32 +0200
 
-Ok.
+> To help catch ABI breaks at compile-time, add compile-time assertions to
+> verify the siginfo_t layout. Unlike other architectures, sparc64 is
+> special, because it is one of few architectures requiring si_trapno.
+> ABI breaks around that field would only be caught here.
+> 
+> Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
+> Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
+> Signed-off-by: Marco Elver <elver@google.com>
 
-> I don't have a clue how any of this affects ia64.  Does perf work on
-> ia64?  Does perf work on sparc, and alpha?
->
-> If perf works on ia64 we need to take a hard look at what is going on
-> there as well.
-
-ia64 never had perf support. It had oprofile until very recently, and it
-had a custom thing before that. My feeling is that it's increasingly
-unlikely to ever gain perf support in the future, given that oprofile
-(in user space) has required kernel perf support (in kernel) for a
-long time and nobody cared about that being broken either.
-
-sparc64 has perf support for Sun UltraSPARC 3/3+/3i/4+/T1/T2/T3
-and Oracle SPARC T4/T5/M7 but lacks support for most CPUs from
-Oracle, Fujitsu and the rest, in particular anything from the last
-ten years.
-Alpha has perf support for EV67, EV68, EV7, EV79, and EV69, i.e.
-anything from 1996 to the end in 2004.
-
-      Arnd
+Acked-by: David S. Miller <davem@davemloft.net>
