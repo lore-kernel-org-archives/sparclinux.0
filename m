@@ -7,60 +7,59 @@ X-Spam-Status: No, score=-13.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AC09C433B4
-	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 16:24:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CE08C433B4
+	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 16:26:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C360C613CA
-	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 16:24:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53C2561090
+	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 16:26:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230450AbhEAQZ0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 1 May 2021 12:25:26 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45404 "EHLO
+        id S230450AbhEAQ1V (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 1 May 2021 12:27:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45824 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230250AbhEAQZ0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 May 2021 12:25:26 -0400
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54363C06138B
-        for <sparclinux@vger.kernel.org>; Sat,  1 May 2021 09:24:36 -0700 (PDT)
-Received: by mail-ot1-x32f.google.com with SMTP id d3-20020a9d29030000b029027e8019067fso1260500otb.13
-        for <sparclinux@vger.kernel.org>; Sat, 01 May 2021 09:24:36 -0700 (PDT)
+        with ESMTP id S231603AbhEAQ1U (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 May 2021 12:27:20 -0400
+Received: from mail-oi1-x236.google.com (mail-oi1-x236.google.com [IPv6:2607:f8b0:4864:20::236])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9679CC06138D
+        for <sparclinux@vger.kernel.org>; Sat,  1 May 2021 09:26:29 -0700 (PDT)
+Received: by mail-oi1-x236.google.com with SMTP id l17so1251079oil.11
+        for <sparclinux@vger.kernel.org>; Sat, 01 May 2021 09:26:29 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=CyRw8Tn64/8GQf/qvRpik9Jpd4CoRgx2tUKy0Z4v2kk=;
-        b=eF/f5QKwpZj4P0iRgwV9mG08ATE6TtljmgOwFiZt6YvZXdccsD5UWUHr3XvSwu//qG
-         NPJJumNb1Zr68wu1wpu1k66hY/gXorsicuXcYJFtGZGJhTD3zkyGC1NlFeVevEyC1VJY
-         CRmSkGTGR/sM1sCwBRfLDIx4qq1Z1WbZpsa+rKG3t/LR2XoiQJovPWIT4VkR5fc/nAs8
-         4wn6Tzmc2CG2whHqu1l7tRE+chGrFt3lXNXaaWepgbANGpj6o05TW6iLrAseEa03Iw23
-         5lXhasqa0NDzEaj1UbE6BGTHoKHGohYMhVnJdcWhiNjg0tp9CJUZrIoy5Teb9U/6Cem1
-         5g/A==
+        bh=64NGINXN7ynqOlzs0BXPYhgqQOU3tvwvuitkM9gE7fk=;
+        b=ZOy4ilx8G6e/EJLATpOC/TY/fj94iX8L+cJ9hsNgXo2Fwdw1iGCYFuJEtRcc8/4UsI
+         3MDk5B6mxWDQuvRwmUkpVPa36usLK7yRP0rwQ25RDhqsA016eNkML3Uf92soKyMHPpK5
+         HvbnVIEPJ339ufd7qHJbUdQWNgYAoUnaRNJBREhUkPl0m0wqrFS+U6A+Wf5OFWlACIen
+         CiPQ7B/FlCGlplOU708S9fT01eLuThQFIsksO8AMlFq+nBhn8YcEpPCQU7Ooqg550ROE
+         44vcQnb7GJK3P8in+Cb6BbsdwDrG62T2Yw3LbRiUDeaTrxe4/StG3eL4Trd+iWfdBUKc
+         Ffow==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=CyRw8Tn64/8GQf/qvRpik9Jpd4CoRgx2tUKy0Z4v2kk=;
-        b=QLXMrQNdw3NYbhTq4MsynNZ+eahDJEzqtCX3RXPbvsOjDI/iXxSNuKcdoEzCgrcKMm
-         lLYNao49YxnERHyAJEFUDSm2XWJAcY0nsttuYJZzI/BvlVldm/zcAccURamz7/MCwvJs
-         DGfqEsCJKXYot5EEHkVibouj/LBDkINA63l8cJRPTwUhJv00gryTD18i/kMY/T2IPz7V
-         Zy/Hm57nlxNLLMxVV6R7DFqDdtn1l8iErA+4yAR3HmS7OVvD9LKN9CsQV+d2oJCj2CW2
-         c0ymFPp8jr0E7QcUh2mFeXw6v0JC3zvLcgfYnQjtJ/BmHA/1hz3c70RESyULGNGUqUE8
-         2AZw==
-X-Gm-Message-State: AOAM533ZKmIUmkfIiwlk1IE27PWV5zAjkX5KBAnXL9Kt4k9XVZuI65lg
-        vLhY/kWSF0p2JAIt7N3Hzkhq/qRj7monAdbV0OuGsw==
-X-Google-Smtp-Source: ABdhPJxP2xABVwsxq8iuIy2TqPxCCxagtYWhXnnuGIb0YzWKLQ9rVYtpLctNHuotNan+7uHcpM+rhlw76MQT8E/rFJ8=
-X-Received: by 2002:a9d:60c8:: with SMTP id b8mr8272179otk.17.1619886275343;
- Sat, 01 May 2021 09:24:35 -0700 (PDT)
+        bh=64NGINXN7ynqOlzs0BXPYhgqQOU3tvwvuitkM9gE7fk=;
+        b=uHJC+mUTL86/j8yiRIsBNgQcvAkzHjdAFeTwojBGwpfJzH4QUFgU00S30OTHI2srOY
+         nwRzU2IZZo2kWdIM7n+ZuYvwY4s/o1hVUCBaexDvafc7DQxIylbYry0HRmEswvgOW2zD
+         lue0PWq/cD546PdeuUIMPJLZHOkDkesNtgRds53+rX7MCg/KQBFnVTH+7UI6GmtCdVl3
+         aX7UD+cj1xWXZ0I+e9ZN0ZVtHs4EfvO9VMOyeM83G2fu4NItHbknSwN5hoNTUNWztXSe
+         6Q+rhECP1Rlfq92/UtMziBmLqFVEovuSkpIzLs7xbL9Zioj7eIXAj01cqPYF9nQwmfl1
+         Nwfg==
+X-Gm-Message-State: AOAM533uIYX8M8+oN3Xmin169Ji5LWmndNSQEi+oE7vGoHudU1BTZoS+
+        2Cf93Km7VwuVELgViZiybcRiUdC5ZsuAsvw5PAsYVg==
+X-Google-Smtp-Source: ABdhPJwK3vxrHpc74PcP54SlShb5rcBnkDMbWtN/Ywx+yZThHR0NVpaPVicFg1bqnl0bVxyrrx7FOb+J1Ci4wM4Z36I=
+X-Received: by 2002:aca:408a:: with SMTP id n132mr8271992oia.70.1619886388654;
+ Sat, 01 May 2021 09:26:28 -0700 (PDT)
 MIME-Version: 1.0
 References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
  <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
  <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m1r1irpc5v.fsf@fess.ebiederm.org>
- <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com> <m1czuapjpx.fsf@fess.ebiederm.org>
-In-Reply-To: <m1czuapjpx.fsf@fess.ebiederm.org>
+ <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m1r1irpc5v.fsf@fess.ebiederm.org> <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
+In-Reply-To: <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
 From:   Marco Elver <elver@google.com>
-Date:   Sat, 1 May 2021 18:24:24 +0200
-Message-ID: <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
+Date:   Sat, 1 May 2021 18:26:17 +0200
+Message-ID: <CANpmjNMtM7JyxTiA-QpEmqd0MuQ+uZTjfZ3+_r4D=rrGpFU8RA@mail.gmail.com>
 Subject: Re: [RFC][PATCH 0/3] signal: Move si_trapno into the _si_fault union
 To:     "Eric W. Biederman" <ebiederm@xmission.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
@@ -81,52 +80,34 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, 1 May 2021 at 17:17, Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Marco Elver <elver@google.com> writes:
->
-> > On Sat, 1 May 2021 at 01:48, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >>
-> >> Well with 7 patches instead of 3 that was a little more than I thought
-> >> I was going to send.
-> >>
-> >> However that does demonstrate what I am thinking, and I think most of
-> >> the changes are reasonable at this point.
-> >>
-> >> I am very curious how synchronous this all is, because if this code
-> >> is truly synchronous updating signalfd to handle this class of signal
-> >> doesn't really make sense.
-> >>
-> >> If the code is not synchronous using force_sig is questionable.
-> >>
-> >> Eric W. Biederman (7):
-> >>       siginfo: Move si_trapno inside the union inside _si_fault
-> >>       signal: Implement SIL_FAULT_TRAPNO
-> >>       signal: Use dedicated helpers to send signals with si_trapno set
-> >>       signal: Remove __ARCH_SI_TRAPNO
-> >>       signal: Rename SIL_PERF_EVENT SIL_FAULT_PERF_EVENT for consistency
-> >>       signal: Factor force_sig_perf out of perf_sigtrap
-> >>       signal: Deliver all of the perf_data in si_perf
+On Sat, 1 May 2021 at 02:37, Marco Elver <elver@google.com> wrote:
+> On Sat, 1 May 2021 at 01:48, Eric W. Biederman <ebiederm@xmission.com> wrote:
 > >
-> > Thank you for doing this so quickly -- it looks much cleaner. I'll
-> > have a more detailed look next week and also run some tests myself.
+> > Well with 7 patches instead of 3 that was a little more than I thought
+> > I was going to send.
 > >
-> > At a first glance, you've broken our tests in
-> > tools/testing/selftests/perf_events/ -- needs a
-> > s/si_perf/si_perf.data/, s/si_errno/si_perf.type/
->
-> Yeah.  I figured I did, but I couldn't figure out where the tests were
-> and I didn't have a lot of time.  I just wanted to get this out so we
-> can do as much as reasonable before the ABI starts being actively used
-> by userspace and we can't change it.
+> > However that does demonstrate what I am thinking, and I think most of
+> > the changes are reasonable at this point.
+> >
+> > I am very curious how synchronous this all is, because if this code
+> > is truly synchronous updating signalfd to handle this class of signal
+> > doesn't really make sense.
 
-No worries, and agreed. I've run tools/testing/selftests/perf_events
-tests on x86-64 (native + 32-bit compat), and compile-tested x86-32,
-arm64, arm (with my static asserts), m68k, and sparc64. Some trivial
-breakages, note comments in other patches.
+Just a note on this: the reason for adding signalfd support was based
+on the comment at SIL_FAULT_PKUERR:
 
-With the trivial fixes this looks good to me. I'll happily retest v2
-when you send it.
+>                 /*
+>                   * Fall through to the SIL_FAULT case.  Both SIL_FAULT_BNDERR
+>                   * and SIL_FAULT_PKUERR are only generated by faults that
+>                   * deliver them synchronously to userspace.  In case someone
+>                   * injects one of these signals and signalfd catches it treat
+>                   * it as SIL_FAULT.
+>                   */
+
+The same would hold for SIL_FAULT_PERF_EVENT, where somebody injects
+(re-injects perhaps?) such an event. But otherwise, yes,
+non-synchronous handling of SIGTRAP/TRAP_PERF is pretty useless for
+almost all usecases I can think of.
 
 Thanks,
 -- Marco
