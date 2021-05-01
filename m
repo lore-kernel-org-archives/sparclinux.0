@@ -8,61 +8,60 @@ X-Spam-Status: No, score=-23.2 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
 	URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53765C433ED
-	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 10:35:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3D22C433B4
+	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 10:46:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24605601FF
-	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 10:35:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7765E613E7
+	for <sparclinux@archiver.kernel.org>; Sat,  1 May 2021 10:46:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231871AbhEAKgb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 1 May 2021 06:36:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55238 "EHLO
+        id S231882AbhEAKqv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 1 May 2021 06:46:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231833AbhEAKga (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 May 2021 06:36:30 -0400
-Received: from mail-oi1-x236.google.com (mail-oi1-x236.google.com [IPv6:2607:f8b0:4864:20::236])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D43DCC06138D
-        for <sparclinux@vger.kernel.org>; Sat,  1 May 2021 03:35:40 -0700 (PDT)
-Received: by mail-oi1-x236.google.com with SMTP id l6so723073oii.1
-        for <sparclinux@vger.kernel.org>; Sat, 01 May 2021 03:35:40 -0700 (PDT)
+        with ESMTP id S231833AbhEAKqv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 May 2021 06:46:51 -0400
+Received: from mail-oo1-xc35.google.com (mail-oo1-xc35.google.com [IPv6:2607:f8b0:4864:20::c35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CE314C06138B
+        for <sparclinux@vger.kernel.org>; Sat,  1 May 2021 03:46:01 -0700 (PDT)
+Received: by mail-oo1-xc35.google.com with SMTP id s1-20020a4ac1010000b02901cfd9170ce2so189046oop.12
+        for <sparclinux@vger.kernel.org>; Sat, 01 May 2021 03:46:01 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20161025;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=bTlI6z8vmo0ApTJAefLbFgioHKc+K8OTZdLV1HoxLWY=;
-        b=Fi/veP+riYdnYBcroOoHdp0w+G4l6nXmceQSUisY40BGdG5FxBV2lqjZLmi9UPiQGl
-         FLNlAMXUMZn6iwibpySUr4IHlAAL7+exI8JG2nrCVuZIYQuYvDo4mxmqbZbNzdGGRbLG
-         /N9+FL1SiGxs82j8H3KOZMcwtSFpSJlDKCuiQVnN6ky9vW/gqJyy7oalcYNs/PfvyVws
-         0ZRQM0ZwJ0sFo36fs4FULL6PJjA/FsXbApMg5EwZZMjI2MuT+OMGQ+Bt255jO6ZSo0WV
-         tHBKD6FhjsbxqaPmgUlRlxuqxU0BbWcCiGy05YDsW0quVIJQtQID0uoWUHFNWD5rqLEM
-         hygg==
+        bh=dER8WYp4YE8meKl/Etoz17guMOCTTHD//33hX1fp/nc=;
+        b=IMwXPYTHlYOoD5VsAO4X3ijzUYSqjzTkipTMXSJAa4Ec/Z91vBXmKGZpM1LZjGeTfi
+         A2o8QHkEc0HHPO6HcyVHnWNCcxhjLYl8fWYOkaGxOeT4X9gjXlrseEIRapNH06M1B6X4
+         qgtgd/nxRmuOBVpKTW2uycdyqLuBlpjyjlEjbIeY+HjuqazrkOFRppFAukWodMJjucbM
+         bS37OSIMjLyekZH3aBAYORVOonEqHQJMQIxfJsX8ODMCx0YvN3l6Kgrsb+eVbO+XZehq
+         2cPOsLocLN9qX2CesXNgiS8rbKeuUPpSsvSo9ixyAf/4Fgs9AhVmnYqvR6B5Spba4fhd
+         hucQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=bTlI6z8vmo0ApTJAefLbFgioHKc+K8OTZdLV1HoxLWY=;
-        b=uZZj75qyNIesQWU4+yydhpEPx9077YPTFaiA0y44dxkJohSJbq8xiM3Rl77aOXE3Zk
-         O1dacw/IE5WgK5Srf8SLnhY0WDZSJ+0gfivIsGr2Nv/cb/rt9d4rBqA9wK/2iFiICPKb
-         HOKLcd+LdqxQbCRwrQFWybttk4OF7wlwjMR6wztKEMqcwRibvOkpCzZ0XUI2tX+i3ilh
-         KLw11+0mSzvggakZgJsipyrzPqmw06Y69bDWi4tzs3DVW5rzMeTxa6gkHkaZHmlCtLm4
-         tYvS5rsYjMtSTPYjw/7z41pjwehhfjtoW9uEtN758bRDaifk4LAf0bmxSeA7ddJqpkD3
-         49dg==
-X-Gm-Message-State: AOAM530R66fR/DbXuPohcY0gcN3VKp7cIDgaZ4USDNqfW92VQeHRHFhm
-        WXRIh8dr0pj768hBI75R9tCZajoiF1fD1Uj0ar3h4A==
-X-Google-Smtp-Source: ABdhPJxg5qa1WjYAQ1qDJp1BRy7nPfKGZCWOqMpRWLkbpR5sXctS+omrS1cgEFBccSeNB0ph9iwT30GiV9lKLmQhX/I=
-X-Received: by 2002:aca:bb06:: with SMTP id l6mr7103289oif.121.1619865339999;
- Sat, 01 May 2021 03:35:39 -0700 (PDT)
+        bh=dER8WYp4YE8meKl/Etoz17guMOCTTHD//33hX1fp/nc=;
+        b=XmHcaWwgXsKiSve/mhiot6RVvOYk/e1yC12IUe3d4XH2JN5NVNw3AS8OVc+oqLb1nr
+         ttRP8pn0rZkbBfceAdrqm3dSy7yCse5NtjnBGaEMJgmHKK03mvbeJuPz8X+VMYsEvZq2
+         CbN+7N7f8HszKiRLckp0XB8MOx9pAODbXfP9C2si8eFxv5hInVhT7COR5aCdJVktGgnn
+         HFfSqYl1O7o6XjRfvvgIeuI/dRZ/s18j2FZUG5Mar14n2bIexPo0xBZOxvidMRWaqoLV
+         nvTHhEAVIEOnL69XkuYWN3tWWNsaa+dbDOJti+aa9ewfaHKPMYY5c4He8/K20OFjoHop
+         tSUQ==
+X-Gm-Message-State: AOAM531otCW7EHc1sTT6V2pCZiE4I8DuaZq56dt6AYqKO9wjJf23s+IL
+        C1/MLzfXMR2aSoQy/GlA57EHrBbfI9jYJlwGZSfyMA==
+X-Google-Smtp-Source: ABdhPJwyZTajujDBWMyTAvPK3N6DFZiw8JB3v4N76NVXdHr3uBrbQQQI6dyNnFx9xWQBWMw406Q9oqavmAutfHaQ36Q=
+X-Received: by 2002:a4a:3511:: with SMTP id l17mr7963113ooa.36.1619865960952;
+ Sat, 01 May 2021 03:46:00 -0700 (PDT)
 MIME-Version: 1.0
 References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
  <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
  <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m1czubqqz0.fsf_-_@fess.ebiederm.org>
-In-Reply-To: <m1czubqqz0.fsf_-_@fess.ebiederm.org>
+ <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m17dkjqqxz.fsf_-_@fess.ebiederm.org>
+In-Reply-To: <m17dkjqqxz.fsf_-_@fess.ebiederm.org>
 From:   Marco Elver <elver@google.com>
-Date:   Sat, 1 May 2021 12:35:28 +0200
-Message-ID: <CANpmjNP_FSvVEWjoW3y5ihgnA2swisSXXiH5E2tOUmwoKFeSsg@mail.gmail.com>
-Subject: Re: [PATCH 5/3] signal: Rename SIL_PERF_EVENT SIL_FAULT_PERF_EVENT
- for consistency
+Date:   Sat, 1 May 2021 12:45:49 +0200
+Message-ID: <CANpmjNP32SRsnJBBfhjX63fcMyPAMgj8VDuMPdJXeut_+g2x_A@mail.gmail.com>
+Subject: Re: [PATCH 6/3] signal: Factor force_sig_perf out of perf_sigtrap
 To:     "Eric W. Biederman" <ebiederm@xmission.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -84,97 +83,84 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 On Sat, 1 May 2021 at 01:43, Eric W. Biederman <ebiederm@xmission.com> wrote:
 >
-> It helps to know which part of the siginfo structure the siginfo_layout
-> value is talking about.
-
-Your Signed-off-by seems to be missing.
-
-Otherwise,
-
-Acked-by: Marco Elver <elver@google.com>
-
-
-> ---
->  fs/signalfd.c          |  2 +-
->  include/linux/signal.h |  2 +-
->  kernel/signal.c        | 10 +++++-----
->  3 files changed, 7 insertions(+), 7 deletions(-)
+> Separate generating the signal from deciding it needs to be sent.
 >
-> diff --git a/fs/signalfd.c b/fs/signalfd.c
-> index e87e59581653..83130244f653 100644
-> --- a/fs/signalfd.c
-> +++ b/fs/signalfd.c
-> @@ -132,7 +132,7 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
->                 new.ssi_addr = (long) kinfo->si_addr;
->                 new.ssi_addr_lsb = (short) kinfo->si_addr_lsb;
->                 break;
-> -       case SIL_PERF_EVENT:
-> +       case SIL_FAULT_PERF_EVENT:
->                 new.ssi_addr = (long) kinfo->si_addr;
->                 new.ssi_perf = kinfo->si_perf;
->                 break;
-> diff --git a/include/linux/signal.h b/include/linux/signal.h
-> index 5160fd45e5ca..ed896d790e46 100644
-> --- a/include/linux/signal.h
-> +++ b/include/linux/signal.h
-> @@ -44,7 +44,7 @@ enum siginfo_layout {
->         SIL_FAULT_MCEERR,
->         SIL_FAULT_BNDERR,
->         SIL_FAULT_PKUERR,
-> -       SIL_PERF_EVENT,
-> +       SIL_FAULT_PERF_EVENT,
->         SIL_CHLD,
->         SIL_RT,
->         SIL_SYS,
+> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+> ---
+>  include/linux/sched/signal.h |  1 +
+>  kernel/events/core.c         | 11 ++---------
+>  kernel/signal.c              | 13 +++++++++++++
+>  3 files changed, 16 insertions(+), 9 deletions(-)
+>
+> diff --git a/include/linux/sched/signal.h b/include/linux/sched/signal.h
+> index 7daa425f3055..1e2f61a1a512 100644
+> --- a/include/linux/sched/signal.h
+> +++ b/include/linux/sched/signal.h
+> @@ -318,6 +318,7 @@ int send_sig_mceerr(int code, void __user *, short, struct task_struct *);
+>
+>  int force_sig_bnderr(void __user *addr, void __user *lower, void __user *upper);
+>  int force_sig_pkuerr(void __user *addr, u32 pkey);
+> +int force_sig_perf(void __user *addr, u32 type, u64 sig_data);
+>
+>  int force_sig_fault_trapno(int sig, int code, void __user *addr, int trapno);
+>  int send_sig_fault_trapno(int sig, int code, void __user *addr, int trapno,
+> diff --git a/kernel/events/core.c b/kernel/events/core.c
+> index 928b166d888e..48ea8863183b 100644
+> --- a/kernel/events/core.c
+> +++ b/kernel/events/core.c
+> @@ -6394,8 +6394,6 @@ void perf_event_wakeup(struct perf_event *event)
+>
+>  static void perf_sigtrap(struct perf_event *event)
+>  {
+> -       struct kernel_siginfo info;
+> -
+>         /*
+>          * We'd expect this to only occur if the irq_work is delayed and either
+>          * ctx->task or current has changed in the meantime. This can be the
+> @@ -6410,13 +6408,8 @@ static void perf_sigtrap(struct perf_event *event)
+>         if (current->flags & PF_EXITING)
+>                 return;
+>
+> -       clear_siginfo(&info);
+> -       info.si_signo = SIGTRAP;
+> -       info.si_code = TRAP_PERF;
+> -       info.si_errno = event->attr.type;
+> -       info.si_perf = event->attr.sig_data;
+> -       info.si_addr = (void __user *)event->pending_addr;
+> -       force_sig_info(&info);
+> +       force_sig_perf((void __user *)event->pending_addr,
+> +                      event->attr.type, event->attr.sig_data);
+>  }
+>
+>  static void perf_pending_event_disable(struct perf_event *event)
 > diff --git a/kernel/signal.c b/kernel/signal.c
-> index 0517ff950d38..690921960d8b 100644
+> index 690921960d8b..5b1ad7f080ab 100644
 > --- a/kernel/signal.c
 > +++ b/kernel/signal.c
-> @@ -1198,7 +1198,7 @@ static inline bool has_si_pid_and_uid(struct kernel_siginfo *info)
->         case SIL_FAULT_MCEERR:
->         case SIL_FAULT_BNDERR:
->         case SIL_FAULT_PKUERR:
-> -       case SIL_PERF_EVENT:
-> +       case SIL_FAULT_PERF_EVENT:
->         case SIL_SYS:
->                 ret = false;
->                 break;
-> @@ -2553,7 +2553,7 @@ static void hide_si_addr_tag_bits(struct ksignal *ksig)
->         case SIL_FAULT_MCEERR:
->         case SIL_FAULT_BNDERR:
->         case SIL_FAULT_PKUERR:
-> -       case SIL_PERF_EVENT:
-> +       case SIL_FAULT_PERF_EVENT:
->                 ksig->info.si_addr = arch_untagged_si_addr(
->                         ksig->info.si_addr, ksig->sig, ksig->info.si_code);
->                 break;
-> @@ -3242,7 +3242,7 @@ enum siginfo_layout siginfo_layout(unsigned sig, int si_code)
->                                 layout = SIL_FAULT_PKUERR;
+> @@ -1753,6 +1753,19 @@ int force_sig_pkuerr(void __user *addr, u32 pkey)
+>  }
 >  #endif
->                         else if ((sig == SIGTRAP) && (si_code == TRAP_PERF))
-> -                               layout = SIL_PERF_EVENT;
-> +                               layout = SIL_FAULT_PERF_EVENT;
->                 }
->                 else if (si_code <= NSIGPOLL)
->                         layout = SIL_POLL;
-> @@ -3364,7 +3364,7 @@ void copy_siginfo_to_external32(struct compat_siginfo *to,
->                 to->si_addr = ptr_to_compat(from->si_addr);
->                 to->si_pkey = from->si_pkey;
->                 break;
-> -       case SIL_PERF_EVENT:
-> +       case SIL_FAULT_PERF_EVENT:
->                 to->si_addr = ptr_to_compat(from->si_addr);
->                 to->si_perf = from->si_perf;
->                 break;
-> @@ -3440,7 +3440,7 @@ static int post_copy_siginfo_from_user32(kernel_siginfo_t *to,
->                 to->si_addr = compat_ptr(from->si_addr);
->                 to->si_pkey = from->si_pkey;
->                 break;
-> -       case SIL_PERF_EVENT:
-> +       case SIL_FAULT_PERF_EVENT:
->                 to->si_addr = compat_ptr(from->si_addr);
->                 to->si_perf = from->si_perf;
->                 break;
+>
+> +int force_sig_perf(void __user *pending_addr, u32 type, u64 sig_data)
+
+s/pending_addr/addr/
+
+to match force_sig_perf() declaration.
+
+> +{
+> +       struct kernel_siginfo info;
+> +
+> +       clear_siginfo(&info);
+> +       info.si_signo = SIGTRAP;
+> +       info.si_errno = type;
+> +       info.si_code  = TRAP_PERF;
+> +       info.si_addr  = pending_addr;
+> +       info.si_perf  = sig_data;
+> +       return force_sig_info(&info);
+> +}
+> +
+>  #if IS_ENABLED(SPARC)
+>  int force_sig_fault_trapno(int sig, int code, void __user *addr, int trapno)
+>  {
 > --
 > 2.30.1
->
