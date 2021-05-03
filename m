@@ -2,70 +2,52 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E173C43461
-	for <sparclinux@archiver.kernel.org>; Sun,  2 May 2021 19:13:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ECA18C43460
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 12:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C4AF611C2
-	for <sparclinux@archiver.kernel.org>; Sun,  2 May 2021 19:13:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0A84611EE
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 12:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230036AbhEBTOj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 2 May 2021 15:14:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51960 "EHLO
+        id S233335AbhECMrn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 May 2021 08:47:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54610 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231909AbhEBTOi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 2 May 2021 15:14:38 -0400
-Received: from mail-oo1-xc30.google.com (mail-oo1-xc30.google.com [IPv6:2607:f8b0:4864:20::c30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B78FFC06138D
-        for <sparclinux@vger.kernel.org>; Sun,  2 May 2021 12:13:46 -0700 (PDT)
-Received: by mail-oo1-xc30.google.com with SMTP id p6-20020a4adc060000b02901f9a8fc324fso785348oov.10
-        for <sparclinux@vger.kernel.org>; Sun, 02 May 2021 12:13:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=emMfiYi99q3nX4v+CBQmuXsA/kqjvpixR7oLzYPLuiM=;
-        b=eRrh8/FTxx8mY93zg7f5u2PqJag/AV+2CsamonnCrPl50D5ybWNE9RjM9IHFNGK0Hp
-         tsQCQr9ZC0GehGcA6cOcwWjxeWjJU/S5VN/vJm45DBqcCLu0rlO90skMuIBy2K9DlLkg
-         ukIAGtF3hQFZqp6AexAJ9ojqZ6R6plqZsdvVHcD+Q3hnqs3zSlCcUxdIXr8zVrKT0b90
-         K9S1dNQqshSjqZqacgx4pkJCgXGhv7suX4I0XIqsmEW7olqA2qVrMj9ulfZezJAI479J
-         Sc35Ku4NkEnOxygYrD+m2aeiOpvlD9SRGRymQrSXXTsljf/pKMCvCCY++dEYJEDOAYfq
-         T+PQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=emMfiYi99q3nX4v+CBQmuXsA/kqjvpixR7oLzYPLuiM=;
-        b=K2EMEF/pIH4MGnUTlN+ic1Ka3DI5F/DPX0RHikhyZev78EQquhGfeDfw3rQLP7xx2t
-         fVWWhFK+zE19GlYcifGHtzT4vzZLH6o94rld6YhQPv20RorTVkDpG9tHQNRsZ95XZG72
-         QbEg0G5FZrb68Rj4R+kr30QIiWEAFHLAtXAwfuKJMDQpH7I0j5HBWSKlsktNj27/af3t
-         RHucvLIdQfCWYfW4dGkBNdwE0ku/FF7+J4TVX4I86mEBOtfK6chhH4GNXX6BExqWDTxu
-         hU/9yhBrAANjLw+vWLZJzDYyfMIeOt8pETuNaNZ7WMpfN9BJjaQWAxyLH+ffu+5V6MBT
-         6HVg==
-X-Gm-Message-State: AOAM530bSYF2zxunM+67IZklbP9msv9mEtnPfMZBTcDIjd/J8BAuO2td
-        vdJTHzDtfDhGZafleUsuRTnyfe91wOw5BB1p2GB5WA==
-X-Google-Smtp-Source: ABdhPJxwRjSJbo3C+Nwhf9lgspATPfUeP4Li99I0sKmagHuY+vIt3q37BWEwAiuogCr1O2KSyZDFBjA9IZlwBT6otMg=
-X-Received: by 2002:a4a:e715:: with SMTP id y21mr2293005oou.54.1619982825669;
- Sun, 02 May 2021 12:13:45 -0700 (PDT)
-MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
- <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
- <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m11rarqqx2.fsf_-_@fess.ebiederm.org>
- <CANpmjNNJ_MnNyD4R2+9i24E=9xPHKnwTh6zwWtBYkuAq1Xo6-w@mail.gmail.com> <m1wnshm14b.fsf@fess.ebiederm.org>
-In-Reply-To: <m1wnshm14b.fsf@fess.ebiederm.org>
-From:   Marco Elver <elver@google.com>
-Date:   Sun, 2 May 2021 21:13:34 +0200
-Message-ID: <CANpmjNNpsdqCp51_P=NCM=fMREhN6HWQL7aiOdyfqu=aUmkR7A@mail.gmail.com>
-Subject: Re: [PATCH 7/3] signal: Deliver all of the perf_data in si_perf
+        with ESMTP id S233158AbhECMrm (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 May 2021 08:47:42 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1BF8C06174A;
+        Mon,  3 May 2021 05:46:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=QfWmNFzhd1S/Ji2/R39Bqc12Zh4EulMnH47lj47aGq8=; b=XumoXk4rcDMvg1IUtUvmE938GI
+        b9X1L0f/kTqhp+eUmDneBVIM+VLK4tcedpSWvAruEG9FrIV+dDDkG6tk9dPnLUIw2aULil5oYw5OZ
+        l3hYxn7VHpVQXPZiVHyY5oS/cRee2er8krYJO9JDfWWTji6bid8Jc0oVN5trfSQc6fw0MfF6NldLt
+        fRrPh5i+52JaYvSqjmnyptQdJ/EQl3DkIWZzPd9/yn0b22j2Uta1ux3PhjLV+HJwWlJxLi0oFVYV2
+        +/cY512qd4rCd23VnD6vVYYYURxouR+zJIFvt03xYQ6SB/LUBlP3xHPpRXnVRnzD4t1wWmG2P1FRB
+        9sCS/Ibw==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by desiato.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1ldXvz-00Dt54-Ne; Mon, 03 May 2021 12:46:28 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id DF9C83001D0;
+        Mon,  3 May 2021 14:44:21 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id B0B282CEAF0C5; Mon,  3 May 2021 14:44:21 +0200 (CEST)
+Date:   Mon, 3 May 2021 14:44:21 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
 To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
+Cc:     Marco Elver <elver@google.com>, Arnd Bergmann <arnd@arndb.de>,
+        Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
         Ingo Molnar <mingo@kernel.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Peter Collingbourne <pcc@google.com>,
@@ -76,53 +58,46 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
         kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 7/3] signal: Deliver all of the perf_data in si_perf
+Message-ID: <YI/wJSwQitisM8Xf@hirez.programming.kicks-ass.net>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+ <m11rat9f85.fsf@fess.ebiederm.org>
+ <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+ <m15z031z0a.fsf@fess.ebiederm.org>
+ <YIxVWkT03TqcJLY3@elver.google.com>
+ <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
+ <m11rarqqx2.fsf_-_@fess.ebiederm.org>
+ <CANpmjNNJ_MnNyD4R2+9i24E=9xPHKnwTh6zwWtBYkuAq1Xo6-w@mail.gmail.com>
+ <m1wnshm14b.fsf@fess.ebiederm.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m1wnshm14b.fsf@fess.ebiederm.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, 2 May 2021 at 20:39, Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Marco Elver <elver@google.com> writes:
->
-> > On Sat, 1 May 2021 at 01:44, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >>
-> >> Don't abuse si_errno and deliver all of the perf data in si_perf.
-> >>
-> >> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
-> >> ---
-> >
-> > Thank you for the fix, this looks cleaner.
-> >
-> > Just note that this patch needs to include updates to
-> > tools/testing/selftests/perf_events. This should do it:
-> >>  sed -i 's/si_perf/si_perf.data/g; s/si_errno/si_perf.type/g' tools/testing/selftests/perf_events/*.c
-> >
-> > Subject: s/perf_data/perf data/ ?
-> >
-> > For uapi, need to switch to __u32, see below.
->
-> Good point.
->
+On Sun, May 02, 2021 at 01:39:16PM -0500, Eric W. Biederman wrote:
+
 > The one thing that this doesn't do is give you a 64bit field
 > on 32bit architectures.
->
+> 
 > On 32bit builds the layout is:
->
->         int si_signo;
->         int si_errno;
->         int si_code;
->         void __user *_addr;
->
+> 
+> 	int si_signo;
+> 	int si_errno;
+> 	int si_code;
+> 	void __user *_addr;
+>         
 > So I believe if the first 3 fields were moved into the _sifields union
 > si_perf could define a 64bit field as it's first member and it would not
 > break anything else.
->
+> 
 > Given that the data field is 64bit that seems desirable.
 
-Yes, it's quite unfortunate -- it was __u64 at first, but then we
-noticed it broke 32-bit architectures like arm:
-https://lore.kernel.org/linux-arch/20210422191823.79012-1-elver@google.com/
+The data field is fundamentally an address, it is internally a u64
+because the perf ring buffer has u64 alignment and it saves on compat
+crap etc.
 
-Thanks,
--- Marco
+So for the 32bit/compat case the high bits will always be 0 and
+truncating into an unsigned long is fine.
