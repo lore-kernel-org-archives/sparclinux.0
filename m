@@ -2,102 +2,107 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ECA18C43460
-	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 12:46:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1211C433ED
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 16:08:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0A84611EE
-	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 12:46:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59ACE61183
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 16:08:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233335AbhECMrn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 3 May 2021 08:47:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54610 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233158AbhECMrm (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 May 2021 08:47:42 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1BF8C06174A;
-        Mon,  3 May 2021 05:46:49 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=QfWmNFzhd1S/Ji2/R39Bqc12Zh4EulMnH47lj47aGq8=; b=XumoXk4rcDMvg1IUtUvmE938GI
-        b9X1L0f/kTqhp+eUmDneBVIM+VLK4tcedpSWvAruEG9FrIV+dDDkG6tk9dPnLUIw2aULil5oYw5OZ
-        l3hYxn7VHpVQXPZiVHyY5oS/cRee2er8krYJO9JDfWWTji6bid8Jc0oVN5trfSQc6fw0MfF6NldLt
-        fRrPh5i+52JaYvSqjmnyptQdJ/EQl3DkIWZzPd9/yn0b22j2Uta1ux3PhjLV+HJwWlJxLi0oFVYV2
-        +/cY512qd4rCd23VnD6vVYYYURxouR+zJIFvt03xYQ6SB/LUBlP3xHPpRXnVRnzD4t1wWmG2P1FRB
-        9sCS/Ibw==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
-        id 1ldXvz-00Dt54-Ne; Mon, 03 May 2021 12:46:28 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (2048 bits))
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id DF9C83001D0;
-        Mon,  3 May 2021 14:44:21 +0200 (CEST)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id B0B282CEAF0C5; Mon,  3 May 2021 14:44:21 +0200 (CEST)
-Date:   Mon, 3 May 2021 14:44:21 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Marco Elver <elver@google.com>, Arnd Bergmann <arnd@arndb.de>,
-        Florian Weimer <fweimer@redhat.com>,
+        id S230285AbhECQJV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 May 2021 12:09:21 -0400
+Received: from mout.kundenserver.de ([217.72.192.75]:47955 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230210AbhECQJV (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 May 2021 12:09:21 -0400
+Received: from mail-wm1-f46.google.com ([209.85.128.46]) by
+ mrelayeu.kundenserver.de (mreue107 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1N4h7p-1lWxI52Z1j-011nEf; Mon, 03 May 2021 18:08:26 +0200
+Received: by mail-wm1-f46.google.com with SMTP id k4-20020a7bc4040000b02901331d89fb83so3824109wmi.5;
+        Mon, 03 May 2021 09:08:26 -0700 (PDT)
+X-Gm-Message-State: AOAM531V/p+Kd8tUJwf5HIvQg1LXfkIK7Uns8T2Yi46cXrrlcPNWIQ/5
+        /0zto/t2nLrSYTS+Y3xgPMxpt5rJcNmG/TXsZjo=
+X-Google-Smtp-Source: ABdhPJxYMTQJVWw4WAAd9FKPLJo6XWwuPeyfNnK3keAI5ERAvz63WNcWg2FiOjsFOVj9CWG/OQW083WJQcY7aApQpDg=
+X-Received: by 2002:a7b:c846:: with SMTP id c6mr32166374wml.75.1620058106200;
+ Mon, 03 May 2021 09:08:26 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210430111641.1911207-1-schnelle@linux.ibm.com>
+In-Reply-To: <20210430111641.1911207-1-schnelle@linux.ibm.com>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Mon, 3 May 2021 18:07:41 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a3mCujxC0=_cL6Z88Xh2cb=OY_Ct7DVpJNvRn1v9=FhkQ@mail.gmail.com>
+Message-ID: <CAK8P3a3mCujxC0=_cL6Z88Xh2cb=OY_Ct7DVpJNvRn1v9=FhkQ@mail.gmail.com>
+Subject: Re: [PATCH v4 0/3] asm-generic/io.h: Silence -Wnull-pointer-arithmetic
+ warning on PCI_IOBASE
+To:     Niklas Schnelle <schnelle@linux.ibm.com>
+Cc:     Vineet Gupta <vgupta@synopsys.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        clang-built-linux <clang-built-linux@googlegroups.com>,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Subject: Re: [PATCH 7/3] signal: Deliver all of the perf_data in si_perf
-Message-ID: <YI/wJSwQitisM8Xf@hirez.programming.kicks-ass.net>
-References: <YIpkvGrBFGlB5vNj@elver.google.com>
- <m11rat9f85.fsf@fess.ebiederm.org>
- <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
- <m15z031z0a.fsf@fess.ebiederm.org>
- <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
- <m11rarqqx2.fsf_-_@fess.ebiederm.org>
- <CANpmjNNJ_MnNyD4R2+9i24E=9xPHKnwTh6zwWtBYkuAq1Xo6-w@mail.gmail.com>
- <m1wnshm14b.fsf@fess.ebiederm.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m1wnshm14b.fsf@fess.ebiederm.org>
+        linux-s390 <linux-s390@vger.kernel.org>,
+        "open list:SYNOPSYS ARC ARCHITECTURE" 
+        <linux-snps-arc@lists.infradead.org>,
+        sparclinux <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:ttSkI0gIoMXApQ/NBgONSZBhlv+vaN7DOdJfzbslazuqcGkP+6H
+ zYKG9HAdkR7tAYwUPZNv8X6mYjOFVpYg1Lhxzah2tOWyriam/QFjvSLRZcobJN6S8vbwTFc
+ bepQ0B7o9Bs0sIEiZV5RHF9TzhIeVoroYF3/D7pUVCaWiXBSpeXIdCtCLdLr3otNnFjhJy7
+ /5x8cJck19z7A3E0ws28A==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:MuVa7V+jiQg=:RIpZ9QCoWYxQBrCcu2dzUS
+ PIZ6R/5v5sSAxKQ+nuH/yVsu3Uox4mrrxgxRvsnKo1BNY2xYQgYoFyEwbNvBCZNjdtpjQQ5Op
+ bTvJ3JO29LSMldV9WF1DeTDKZMkPawd5ZI+H2stUxS6nKDZF2UjKrY61DF5gXWWGdGVkivAhS
+ Uckf0Ah3BCjv5b0quFY0QAEFz3f1PbqhcmlzEErbQFj1Yjt+8mvzSlepaXgVD+l67uWuanItU
+ dhQCA9AoKBTSkKOLbwrmMa8ItR3LYcAvH7I8XJ2MwJl+ouTgJ51T3akf9zkIatNqrJ/n7qNgP
+ K/LDindeju1wJ0m1nltOaJ2AoKPCGSzm4tAPS911fIRpr1SOTGz+/MP4Yhk7H3dzQ0BRWhSO/
+ AR+TXu5lqZQjrbYhDVsQfuijMU7zxjtz0mTKuk3CPnNM34h66JzXBfL7piWGN6tJoJFie8Drm
+ yCGKpko2IeFw5JzPpQHT0xsNoeqP4U0QixWWzJQ7GjMip38EN1taKYgtY4YFA6OnzuKfcv7ks
+ V9kecgcNEhQDk0FPfAlLpG/adqAIPMPmYM5t+2GBHQE1nQtAArN0pX8p27IKEpahwKaTZn77M
+ CsFxrcSUu9665NQiWW6EcGGzznpWwM2tT1AamvpJXlGs/7XQwHTNkf8wx63InB6eSJq7Gw1YC
+ hS5Y=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, May 02, 2021 at 01:39:16PM -0500, Eric W. Biederman wrote:
+On Fri, Apr 30, 2021 at 1:16 PM Niklas Schnelle <schnelle@linux.ibm.com> wrote:
+>
+> From: Niklas Schnelle <niklas@komani.de>
+>
+> This is version 4 of my attempt to get rid of a clang
+> -Wnull-pointer-arithmetic warning for the use of PCI_IOBASE in
+> asm-generic/io.h. This was originally found on s390 but should apply to
+> all platforms leaving PCI_IOBASE undefined while making use of the inb()
+> and friends helpers from asm-generic/io.h.
+>
+> This applies cleanly and was compile tested on top of v5.12 for the
+> previously broken ARC, nds32, h8300 and risc-v architecture
+>
+> I did boot test this only on x86_64 and s390x the former implements
+> inb() itself while the latter would emit a WARN_ONCE() but no drivers
+> use inb().
 
-> The one thing that this doesn't do is give you a 64bit field
-> on 32bit architectures.
-> 
-> On 32bit builds the layout is:
-> 
-> 	int si_signo;
-> 	int si_errno;
-> 	int si_code;
-> 	void __user *_addr;
->         
-> So I believe if the first 3 fields were moved into the _sifields union
-> si_perf could define a 64bit field as it's first member and it would not
-> break anything else.
-> 
-> Given that the data field is 64bit that seems desirable.
+This looks all fine to me, but with the merge window open right now, I
+can't add it into linux-next yet, and it wouldn't qualify as a bugfix for 5.13.
 
-The data field is fundamentally an address, it is internally a u64
-because the perf ring buffer has u64 alignment and it saves on compat
-crap etc.
+Please resend them to me after -rc1 is out so I can merge it for
+5.14 through the asm-generic tree.
 
-So for the 32bit/compat case the high bits will always be 0 and
-truncating into an unsigned long is fine.
+Please add two small changes to the changelog texts:
+
+- for patch 3, please include a 'Link: tag' to the lore archive of the
+  previous discussion, that should cover any questions that people
+  may have
+
+- for the risc-v patch, I would suggest explaining that this fixes
+  an existing runtime bug, not just a compiler error:
+  | This is already broken, as accessing a fixed I/O port number of
+  | an ISA device on NOMMU RISC-V would turn into a NULL pointer
+  | dereference.
+  Feel free to either copy this, or use your own explanation.
+
+       Arnd
