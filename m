@@ -2,33 +2,34 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7491CC433ED
-	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 20:25:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3E4DC433ED
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 20:38:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40667611EE
-	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 20:25:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0B73611C9
+	for <sparclinux@archiver.kernel.org>; Mon,  3 May 2021 20:38:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229596AbhECU0Q (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 3 May 2021 16:26:16 -0400
-Received: from out01.mta.xmission.com ([166.70.13.231]:53206 "EHLO
-        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229472AbhECU0P (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 May 2021 16:26:15 -0400
+        id S229665AbhECUju (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 May 2021 16:39:50 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:50890 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229650AbhECUju (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 May 2021 16:39:50 -0400
 Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        by out03.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.93)
         (envelope-from <ebiederm@xmission.com>)
-        id 1ldf84-00HHMf-1u; Mon, 03 May 2021 14:25:20 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
+        id 1ldfLA-008iZv-9j; Mon, 03 May 2021 14:38:52 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.int.ebiederm.org)
         by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
         (Exim 4.93)
         (envelope-from <ebiederm@xmission.com>)
-        id 1ldf82-00E4Fb-WD; Mon, 03 May 2021 14:25:19 -0600
-From:   ebiederm@xmission.com (Eric W. Biederman)
+        id 1ldfL8-00E76Y-Uu; Mon, 03 May 2021 14:38:51 -0600
+From:   "Eric W. Beiderman" <ebiederm@xmission.com>
 To:     Marco Elver <elver@google.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -42,103 +43,126 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-References: <YIpkvGrBFGlB5vNj@elver.google.com>
-        <m11rat9f85.fsf@fess.ebiederm.org>
-        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
-        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
-        <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
-        <m1r1irpc5v.fsf@fess.ebiederm.org>
-        <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
-        <m1czuapjpx.fsf@fess.ebiederm.org>
-        <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
-Date:   Mon, 03 May 2021 15:25:14 -0500
-In-Reply-To: <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
-        (Marco Elver's message of "Sat, 1 May 2021 18:24:24 +0200")
-Message-ID: <m14kfjh8et.fsf_-_@fess.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        kasan-dev <kasan-dev@googlegroups.com>,
+        "Eric W . Biederman" <ebiederm@xmission.com>
+Date:   Mon,  3 May 2021 15:38:03 -0500
+Message-Id: <20210503203814.25487-1-ebiederm@xmission.com>
+X-Mailer: git-send-email 2.30.1
+In-Reply-To: <m14kfjh8et.fsf_-_@fess.ebiederm.org>
+References: <m14kfjh8et.fsf_-_@fess.ebiederm.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1ldf82-00E4Fb-WD;;;mid=<m14kfjh8et.fsf_-_@fess.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX18lnlSrS5P8asB0qraFg/G+UpSTOXbUemI=
+Content-Transfer-Encoding: 8bit
+X-XM-SPF: eid=1ldfL8-00E76Y-Uu;;;mid=<20210503203814.25487-1-ebiederm@xmission.com>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX18STfyarBjtdliqv0clSO0JOJDgI0ahPbM=
 X-SA-Exim-Connect-IP: 68.227.160.95
 X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: [PATCH 00/12] signal: sort out si_trapno and si_perf
+Subject: [PATCH 01/12] sparc64: Add compile-time asserts for siginfo_t offsets
 X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
 X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+From: Marco Elver <elver@google.com>
 
-This is my attempt to sort out the ABI issues with SIGTRAP TRAP_PERF
-before any userspace code starts using the new ABI.
+To help catch ABI breaks at compile-time, add compile-time assertions to
+verify the siginfo_t layout. Unlike other architectures, sparc64 is
+special, because it is one of few architectures requiring si_trapno.
+ABI breaks around that field would only be caught here.
 
-The big ideas are:
-- Placing the asserts first to prevent unexpected ABI changes
-- si_trapno can become an ordinary fault subfield.
-- Reworking siginfo so that si_perf_data can be a 64bit field.
-- struct signalfd_siginfo is almost full
+Link: https://lkml.kernel.org/r/m11rat9f85.fsf@fess.ebiederm.org
+Suggested-by: Eric W. Biederman <ebiederm@xmission.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Marco Elver <elver@google.com>
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+---
+ arch/sparc/kernel/signal32.c  | 34 ++++++++++++++++++++++++++++++++++
+ arch/sparc/kernel/signal_64.c | 33 +++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+)
 
-Marco I have incorporated your static_assert changes and built
-on them to prevent having unexpected ABI changes.
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index e9695a06492f..778ed5c26d4a 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -745,3 +745,37 @@ asmlinkage int do_sys32_sigstack(u32 u_ssptr, u32 u_ossptr, unsigned long sp)
+ out:
+ 	return ret;
+ }
++
++/*
++ * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
++ * changes likely come with new fields that should be added below.
++ */
++static_assert(NSIGILL	== 11);
++static_assert(NSIGFPE	== 15);
++static_assert(NSIGSEGV	== 9);
++static_assert(NSIGBUS	== 5);
++static_assert(NSIGTRAP	== 6);
++static_assert(NSIGCHLD	== 6);
++static_assert(NSIGSYS	== 2);
++static_assert(offsetof(compat_siginfo_t, si_signo)	== 0x00);
++static_assert(offsetof(compat_siginfo_t, si_errno)	== 0x04);
++static_assert(offsetof(compat_siginfo_t, si_code)	== 0x08);
++static_assert(offsetof(compat_siginfo_t, si_pid)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_uid)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_tid)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_overrun)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_status)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_utime)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_stime)	== 0x1c);
++static_assert(offsetof(compat_siginfo_t, si_value)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_int)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_ptr)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_addr)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_trapno)	== 0x10);
++static_assert(offsetof(compat_siginfo_t, si_addr_lsb)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_lower)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_upper)	== 0x1c);
++static_assert(offsetof(compat_siginfo_t, si_pkey)	== 0x18);
++static_assert(offsetof(compat_siginfo_t, si_perf)	== 0x14);
++static_assert(offsetof(compat_siginfo_t, si_band)	== 0x0c);
++static_assert(offsetof(compat_siginfo_t, si_fd)		== 0x10);
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index a0eec62c825d..c9bbf5f29078 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -556,3 +556,36 @@ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0, unsigned long
+ 	user_enter();
+ }
+ 
++/*
++ * Compile-time assertions for siginfo_t offsets. Check NSIG* as well, as
++ * changes likely come with new fields that should be added below.
++ */
++static_assert(NSIGILL	== 11);
++static_assert(NSIGFPE	== 15);
++static_assert(NSIGSEGV	== 9);
++static_assert(NSIGBUS	== 5);
++static_assert(NSIGTRAP	== 6);
++static_assert(NSIGCHLD	== 6);
++static_assert(NSIGSYS	== 2);
++static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
++static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
++static_assert(offsetof(siginfo_t, si_code)	== 0x08);
++static_assert(offsetof(siginfo_t, si_pid)	== 0x10);
++static_assert(offsetof(siginfo_t, si_uid)	== 0x14);
++static_assert(offsetof(siginfo_t, si_tid)	== 0x10);
++static_assert(offsetof(siginfo_t, si_overrun)	== 0x14);
++static_assert(offsetof(siginfo_t, si_status)	== 0x18);
++static_assert(offsetof(siginfo_t, si_utime)	== 0x20);
++static_assert(offsetof(siginfo_t, si_stime)	== 0x28);
++static_assert(offsetof(siginfo_t, si_value)	== 0x18);
++static_assert(offsetof(siginfo_t, si_int)	== 0x18);
++static_assert(offsetof(siginfo_t, si_ptr)	== 0x18);
++static_assert(offsetof(siginfo_t, si_addr)	== 0x10);
++static_assert(offsetof(siginfo_t, si_trapno)	== 0x18);
++static_assert(offsetof(siginfo_t, si_addr_lsb)	== 0x20);
++static_assert(offsetof(siginfo_t, si_lower)	== 0x28);
++static_assert(offsetof(siginfo_t, si_upper)	== 0x30);
++static_assert(offsetof(siginfo_t, si_pkey)	== 0x28);
++static_assert(offsetof(siginfo_t, si_perf)	== 0x20);
++static_assert(offsetof(siginfo_t, si_band)	== 0x10);
++static_assert(offsetof(siginfo_t, si_fd)	== 0x14);
+-- 
+2.30.1
 
-The field si_trapno is changed to become an ordinary extension of the
-_sigfault member of siginfo.
-
-The code is refactored a bit and then si_perf_data is made a 64bit,
-and si_perf_type is made distinct from si_errno.
-
-Finally the signalfd_siginfo fields are removed as they appear to be
-filling up the structure without userspace actually being able to use
-them.
-
-v1: https://lkml.kernel.org/r/m1zgxfs7zq.fsf_-_@fess.ebiederm.org
-
-Eric W. Biederman (9):
-      siginfo: Move si_trapno inside the union inside _si_fault
-      signal: Implement SIL_FAULT_TRAPNO
-      signal: Use dedicated helpers to send signals with si_trapno set
-      signal: Remove __ARCH_SI_TRAPNO
-      signal: Rename SIL_PERF_EVENT SIL_FAULT_PERF_EVENT for consistency
-      signal: Factor force_sig_perf out of perf_sigtrap
-      signal: Redefine signinfo so 64bit fields are possible
-      signal: Deliver all of the siginfo perf data in _perf
-      signalfd: Remove SIL_FAULT_PERF_EVENT fields from signalfd_siginfo
-
-Marco Elver (3):
-      sparc64: Add compile-time asserts for siginfo_t offsets
-      arm: Add compile-time asserts for siginfo_t offsets
-      arm64: Add compile-time asserts for siginfo_t offsets
-
- arch/alpha/include/uapi/asm/siginfo.h              |   2 -
- arch/alpha/kernel/osf_sys.c                        |   2 +-
- arch/alpha/kernel/signal.c                         |   4 +-
- arch/alpha/kernel/traps.c                          |  24 ++---
- arch/alpha/mm/fault.c                              |   4 +-
- arch/arm/kernel/signal.c                           |  37 +++++++
- arch/arm64/kernel/signal.c                         |  37 +++++++
- arch/arm64/kernel/signal32.c                       |  37 +++++++
- arch/mips/include/uapi/asm/siginfo.h               |   2 -
- arch/sparc/include/uapi/asm/siginfo.h              |   3 -
- arch/sparc/kernel/process_64.c                     |   2 +-
- arch/sparc/kernel/signal32.c                       |  35 +++++++
- arch/sparc/kernel/signal_64.c                      |  34 +++++++
- arch/sparc/kernel/sys_sparc_32.c                   |   2 +-
- arch/sparc/kernel/sys_sparc_64.c                   |   2 +-
- arch/sparc/kernel/traps_32.c                       |  22 ++--
- arch/sparc/kernel/traps_64.c                       |  44 ++++----
- arch/sparc/kernel/unaligned_32.c                   |   2 +-
- arch/sparc/mm/fault_32.c                           |   2 +-
- arch/sparc/mm/fault_64.c                           |   2 +-
- arch/x86/kernel/signal_compat.c                    |  20 ++--
- fs/signalfd.c                                      |  23 ++---
- include/linux/compat.h                             |  38 ++++---
- include/linux/sched/signal.h                       |  13 +--
- include/linux/signal.h                             |   3 +-
- include/uapi/asm-generic/siginfo.h                 |  57 +++++++----
- include/uapi/linux/signalfd.h                      |   4 +-
- kernel/events/core.c                               |  11 +-
- kernel/signal.c                                    | 113 +++++++++++++--------
- .../selftests/perf_events/sigtrap_threads.c        |  12 +--
- 30 files changed, 402 insertions(+), 191 deletions(-)
