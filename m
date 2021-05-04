@@ -2,146 +2,162 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_IN_DEF_DKIM_WL autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_2 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6868AC433B4
-	for <sparclinux@archiver.kernel.org>; Tue,  4 May 2021 04:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B98CFC43460
+	for <sparclinux@archiver.kernel.org>; Tue,  4 May 2021 07:40:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4303A61183
-	for <sparclinux@archiver.kernel.org>; Tue,  4 May 2021 04:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 909D5611CB
+	for <sparclinux@archiver.kernel.org>; Tue,  4 May 2021 07:40:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229722AbhEDEEI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 May 2021 00:04:08 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59950 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229687AbhEDEEG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 May 2021 00:04:06 -0400
-Received: from mail-il1-x12a.google.com (mail-il1-x12a.google.com [IPv6:2607:f8b0:4864:20::12a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CDAAC061761
-        for <sparclinux@vger.kernel.org>; Mon,  3 May 2021 21:03:12 -0700 (PDT)
-Received: by mail-il1-x12a.google.com with SMTP id y10so5343421ilv.0
-        for <sparclinux@vger.kernel.org>; Mon, 03 May 2021 21:03:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=56mc9V9A73cEiKQwEt/CmT2tfj/Xb7ZTWRyNvK3LPcU=;
-        b=sjWwmwPLHvAZ5OYHc8laaQYJ21h6DUy3a/1ZbzgvzYBL1ettIr/V1Cda+PHn6Ur1bg
-         2TNC/juaaivWrbPCDKEXruL5l+jEg2iWLD2viU7ONt/7oMJQxYhKwYMC8toQQ8BymCah
-         pDHDsCeU1JtG7utkSDDiS3o3kQmYwjw7y7jdBAVwmZgNqHYlXRcsQdh/zTWFLMRkZhqe
-         khaOLGwoJ9kaQ0L5KF7nt2PfuwSqsy5zvq6NUna1Y+LUuLXlCpTPh66tMZU/dtKPCe6t
-         XXDjme+ultGz/SXeYKpqZ1Omm+KnStWrmCtnr4HshaFWTL3YHKT4LhLCohAbniuX5wPv
-         WNtQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=56mc9V9A73cEiKQwEt/CmT2tfj/Xb7ZTWRyNvK3LPcU=;
-        b=OcDVZV+PJIw9nUXYi29+dFCrBUN2yAPTrEolu+swfkP9CN10A6orKtaDqeDPI622SZ
-         6zECm4+dPeuaZL5WzN9TRGgE6fEND5u5Aa0SNhmqc0gR2gt/DqhPFWgHlpRK8HjDEUdK
-         CBkKtJU05jg+sv95wVO3B8AC2mKPYN4SBNo66ODk5JBix3eI9SJ/3bwDDOC0qWkeFFXZ
-         Rm4f4GWB0zRT4dv1M2J0fxgQG6wFYNOLSTuGp5ufVIh9cKHeSD8d6zqYBYoHV6psx+at
-         REjExaJfEc+HMmCvK39DfZHLm6nB2hJlI+xn19d+oeP/HHNGkpPtO5nc2I8zLrDqKbsj
-         xmQA==
-X-Gm-Message-State: AOAM531mbesbkPoGpxa1ycr6kkcGFWjzSimS9DAtTLqw1HSIKppVOo4H
-        cNXWe/4i9ApQSR10Sn1qaQJMTOAdkodtASoC1AokSQ==
-X-Google-Smtp-Source: ABdhPJxYw4qW/PxhIAcTsJBYVxgjOPDbZGLD0/ZW+c9jDDL5xLTlCYuGYFR46HXp51APom4CyuALzoxPZmKV/tvT+ME=
-X-Received: by 2002:a05:6e02:13d3:: with SMTP id v19mr18182359ilj.56.1620100991437;
- Mon, 03 May 2021 21:03:11 -0700 (PDT)
-MIME-Version: 1.0
-References: <m14kfjh8et.fsf_-_@fess.ebiederm.org> <20210503203814.25487-1-ebiederm@xmission.com>
- <20210503203814.25487-10-ebiederm@xmission.com> <m1o8drfs1m.fsf@fess.ebiederm.org>
- <CANpmjNNOK6Mkxkjx5nD-t-yPQ-oYtaW5Xui=hi3kpY_-Y0=2JA@mail.gmail.com> <m1lf8vb1w8.fsf@fess.ebiederm.org>
-In-Reply-To: <m1lf8vb1w8.fsf@fess.ebiederm.org>
-From:   Peter Collingbourne <pcc@google.com>
-Date:   Mon, 3 May 2021 21:03:00 -0700
-Message-ID: <CAMn1gO7+wMzHoGtp2t3=jJxRmPAGEbhnUDFLQQ0vFXZ2NP8stg@mail.gmail.com>
-Subject: Re: [PATCH 10/12] signal: Redefine signinfo so 64bit fields are possible
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Marco Elver <elver@google.com>, Arnd Bergmann <arnd@arndb.de>,
-        Florian Weimer <fweimer@redhat.com>,
+        id S230083AbhEDHlj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 May 2021 03:41:39 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:4764 "EHLO
+        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229922AbhEDHl3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 May 2021 03:41:29 -0400
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 1447Y8TK073727;
+        Tue, 4 May 2021 03:39:46 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ mime-version : content-transfer-encoding; s=pp1;
+ bh=SNzRA80G7BEoftP4TQQcROGHJxxlHWljovtZ2dqle6M=;
+ b=VrfZxHOxJy0a7qA1nJsTVskQWqLvq0kcXTsg0caPlHMlfWsUMMXrxBvmsfeIaevXaUa6
+ oT8Wk9PKn4dwM5pNRt0jCewGcrC/ut0yk2M2ALJiQL3dGoa4D7V/nu+7weMFhsRipRqB
+ GzhiFDOW51PbmbWyWkPC0Q8g/UQBQ5fuhPn217d6oexoCtgA3dfmugMyI5SOwORC/ebW
+ itzLKdpLo/3IFtZ6INwLE7Y3bu+QKnDJlI7IZIqYo8lw80swysip031S2PlCNfxxAhXk
+ b0zmOlIzEOuJhVN3vE9IYY3gGyRJuqGWLRK232po6k5yy9SHXAAATGAXogvTI9e0+YKQ kQ== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 38b1wb09kp-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 04 May 2021 03:39:46 -0400
+Received: from m0098417.ppops.net (m0098417.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 1447Yca9075458;
+        Tue, 4 May 2021 03:39:46 -0400
+Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 38b1wb09k2-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 04 May 2021 03:39:46 -0400
+Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
+        by ppma03ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 1447WEC0016838;
+        Tue, 4 May 2021 07:39:44 GMT
+Received: from b06avi18626390.portsmouth.uk.ibm.com (b06avi18626390.portsmouth.uk.ibm.com [9.149.26.192])
+        by ppma03ams.nl.ibm.com with ESMTP id 388xm8h27c-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 04 May 2021 07:39:44 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06avi18626390.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1447dGux30474742
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 4 May 2021 07:39:16 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id A213FAE055;
+        Tue,  4 May 2021 07:39:41 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 19DA5AE045;
+        Tue,  4 May 2021 07:39:41 +0000 (GMT)
+Received: from sig-9-145-90-245.uk.ibm.com (unknown [9.145.90.245])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Tue,  4 May 2021 07:39:41 +0000 (GMT)
+Message-ID: <9e52895227515143bf3cd9197876ff1ed596682b.camel@linux.ibm.com>
+Subject: Re: [PATCH v4 0/3] asm-generic/io.h: Silence
+ -Wnull-pointer-arithmetic warning on PCI_IOBASE
+From:   Niklas Schnelle <schnelle@linux.ibm.com>
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Vineet Gupta <vgupta@synopsys.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        clang-built-linux <clang-built-linux@googlegroups.com>,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
+        linux-s390 <linux-s390@vger.kernel.org>,
+        "open list:SYNOPSYS ARC ARCHITECTURE" 
+        <linux-snps-arc@lists.infradead.org>,
+        sparclinux <sparclinux@vger.kernel.org>
+Date:   Tue, 04 May 2021 09:39:40 +0200
+In-Reply-To: <CAK8P3a3mCujxC0=_cL6Z88Xh2cb=OY_Ct7DVpJNvRn1v9=FhkQ@mail.gmail.com>
+References: <20210430111641.1911207-1-schnelle@linux.ibm.com>
+         <CAK8P3a3mCujxC0=_cL6Z88Xh2cb=OY_Ct7DVpJNvRn1v9=FhkQ@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
+X-Mailer: Evolution 3.28.5 (3.28.5-14.el8) 
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: 1Pftu_AEJr1ccZfm4uSBQRSXbzHt5fUN
+X-Proofpoint-GUID: NnNsF52RJSWhrfL8DmTT5s-OsatqEN8Z
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-05-04_02:2021-05-04,2021-05-04 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ clxscore=1015 malwarescore=0 mlxscore=0 suspectscore=0 adultscore=0
+ lowpriorityscore=0 mlxlogscore=880 bulkscore=0 phishscore=0
+ impostorscore=0 spamscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.12.0-2104060000 definitions=main-2105040057
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, May 3, 2021 at 8:42 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Marco Elver <elver@google.com> writes:
->
-> > On Mon, 3 May 2021 at 23:04, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >> "Eric W. Beiderman" <ebiederm@xmission.com> writes:
-> >> > From: "Eric W. Biederman" <ebiederm@xmission.com>
-> >> >
-> >> > The si_perf code really wants to add a u64 field.  This change enables
-> >> > that by reorganizing the definition of siginfo_t, so that a 64bit
-> >> > field can be added without increasing the alignment of other fields.
-> >
-> > If you can, it'd be good to have an explanation for this, because it's
-> > not at all obvious -- some future archeologist will wonder how we ever
-> > came up with this definition of siginfo...
-> >
-> > (I see the trick here is that before the union would have changed
-> > alignment, introducing padding after the 3 ints -- but now because the
-> > 3 ints are inside the union the union's padding no longer adds padding
-> > for these ints.  Perhaps you can explain it better than I can. Also
-> > see below.)
->
-> Yes.  The big idea is adding a 64bit field into the second union
-> in the _sigfault case will increase the alignment of that second
-> union to 64bit.
->
-> In the 64bit case the alignment is already 64bit so it is not an
-> issue.
->
-> In the 32bit case there are 3 ints followed by a pointer.  When the
-> 64bit member is added the alignment of _segfault becomes 64bit.  That
-> 64bit alignment after 3 ints changes the location of the 32bit pointer.
->
-> By moving the 3 preceding ints into _segfault that does not happen.
->
->
->
-> There remains one very subtle issue that I think isn't a problem
-> but I would appreciate someone else double checking me.
->
->
-> The old definition of siginfo_t on 32bit almost certainly had 32bit
-> alignment.  With the addition of a 64bit member siginfo_t gains 64bit
-> alignment.  This difference only matters if the 64bit field is accessed.
-> Accessing a 64bit field with 32bit alignment will cause unaligned access
-> exceptions on some (most?) architectures.
->
-> For the 64bit field to be accessed the code needs to be recompiled with
-> the new headers.  Which implies that when everything is recompiled
-> siginfo_t will become 64bit aligned.
->
->
-> So the change should be safe unless someone is casting something with
-> 32bit alignment into siginfo_t.
+On Mon, 2021-05-03 at 18:07 +0200, Arnd Bergmann wrote:
+> On Fri, Apr 30, 2021 at 1:16 PM Niklas Schnelle <schnelle@linux.ibm.com> wrote:
+> > From: Niklas Schnelle <niklas@komani.de>
+> > 
+> > This is version 4 of my attempt to get rid of a clang
+> > -Wnull-pointer-arithmetic warning for the use of PCI_IOBASE in
+> > asm-generic/io.h. This was originally found on s390 but should apply to
+> > all platforms leaving PCI_IOBASE undefined while making use of the inb()
+> > and friends helpers from asm-generic/io.h.
+> > 
+> > This applies cleanly and was compile tested on top of v5.12 for the
+> > previously broken ARC, nds32, h8300 and risc-v architecture
+> > 
+> > I did boot test this only on x86_64 and s390x the former implements
+> > inb() itself while the latter would emit a WARN_ONCE() but no drivers
+> > use inb().
+> 
+> This looks all fine to me, but with the merge window open right now, I
+> can't add it into linux-next yet, and it wouldn't qualify as a bugfix for 5.13.
+> 
+> Please resend them to me after -rc1 is out so I can merge it for
+> 5.14 through the asm-generic tree.
 
-How about if someone has a field of type siginfo_t as an element of a
-struct? For example:
+Thanks for the great feedback I appreciate it. Will do the resend of
+course.
 
-struct foo {
-  int x;
-  siginfo_t y;
-};
+> 
+> Please add two small changes to the changelog texts:
+> 
+> - for patch 3, please include a 'Link: tag' to the lore archive of the
+>   previous discussion, that should cover any questions that people
+>   may have
 
-With this change wouldn't the y field move from offset 4 to offset 8?
+Done
 
-Peter
+> 
+> - for the risc-v patch, I would suggest explaining that this fixes
+>   an existing runtime bug, not just a compiler error:
+>   | This is already broken, as accessing a fixed I/O port number of
+>   | an ISA device on NOMMU RISC-V would turn into a NULL pointer
+>   | dereference.
+>   Feel free to either copy this, or use your own explanation.
+
+I mixed the above in with the current commit message:
+
+    Without MMU support PCI_IOBASE is left undefined because PCI_IO_END is
+    VMEMMAP_START. Nevertheless the in*()/out*() helper macros are left
+    defined with uses of PCI_IOBASE. At the moment this only compiles
+    because asm-generic/io.h defines PCI_IOBASE as 0 if it is undefined and
+    so at macro expansion PCI_IOBASE is defined. This leads to compilation
+    errors when asm-generic/io.h is changed to leave PCI_IOBASE undefined.
+    More importantly it is currently broken at runtime, as accessing a fixed
+    I/O port number of an ISA device on NOMMU RISC-V would turn into a NULL
+    pointer dereference. Instead only define the in*()/out*() helper macros
+    with MMU support and fall back to the asm-generic/io.h helper stubs
+    otherwise.
+
+
+
+> 
+>        Arnd
+
