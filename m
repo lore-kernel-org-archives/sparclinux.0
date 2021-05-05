@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B99C43460
-	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 14:12:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C21C43462
+	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 14:12:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9A70610E7
-	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 14:12:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAFA8613C9
+	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 14:12:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233952AbhEEONC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 May 2021 10:13:02 -0400
-Received: from out01.mta.xmission.com ([166.70.13.231]:57952 "EHLO
+        id S233988AbhEEONQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 May 2021 10:13:16 -0400
+Received: from out01.mta.xmission.com ([166.70.13.231]:57986 "EHLO
         out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233889AbhEEOMo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 May 2021 10:12:44 -0400
+        with ESMTP id S233922AbhEEOMu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 May 2021 10:12:50 -0400
 Received: from in01.mta.xmission.com ([166.70.13.51])
         by out01.mta.xmission.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
         (Exim 4.93)
         (envelope-from <ebiederm@xmission.com>)
-        id 1leIFf-003DOB-9a; Wed, 05 May 2021 08:11:47 -0600
+        id 1leIFl-003DPE-6X; Wed, 05 May 2021 08:11:53 -0600
 Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.int.ebiederm.org)
         by in01.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
         (Exim 4.87)
         (envelope-from <ebiederm@xmission.com>)
-        id 1leIFe-00007y-Cl; Wed, 05 May 2021 08:11:47 -0600
+        id 1leIFk-00007y-9b; Wed, 05 May 2021 08:11:52 -0600
 From:   "Eric W. Beiderman" <ebiederm@xmission.com>
 To:     Marco Elver <elver@google.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
@@ -45,19 +45,19 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         Linux API <linux-api@vger.kernel.org>,
         kasan-dev <kasan-dev@googlegroups.com>,
         "Eric W. Biederman" <ebiederm@xmission.com>
-Date:   Wed,  5 May 2021 09:10:59 -0500
-Message-Id: <20210505141101.11519-10-ebiederm@xmission.com>
+Date:   Wed,  5 May 2021 09:11:01 -0500
+Message-Id: <20210505141101.11519-12-ebiederm@xmission.com>
 X-Mailer: git-send-email 2.30.1
 In-Reply-To: <20210505141101.11519-1-ebiederm@xmission.com>
 References: <m1tuni8ano.fsf_-_@fess.ebiederm.org>
  <20210505141101.11519-1-ebiederm@xmission.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
-X-XM-SPF: eid=1leIFe-00007y-Cl;;;mid=<20210505141101.11519-10-ebiederm@xmission.com>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX18/BcOddtsgsGDN6U/7RxhaSYKdZmJUfIA=
+X-XM-SPF: eid=1leIFk-00007y-9b;;;mid=<20210505141101.11519-12-ebiederm@xmission.com>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1+ZMXXVL6ruQ7cgP0DEKoYUOz/jMeRC+JY=
 X-SA-Exim-Connect-IP: 68.227.160.95
 X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: [PATCH v3 10/12] signal: Factor force_sig_perf out of perf_sigtrap
+Subject: [PATCH v3 12/12] signalfd: Remove SIL_FAULT_PERF_EVENT fields from signalfd_siginfo
 X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
 X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
@@ -66,81 +66,84 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: "Eric W. Biederman" <ebiederm@xmission.com>
 
-Separate generating the signal from deciding it needs to be sent.
+With the addition of ssi_perf_data and ssi_perf_type struct signalfd_siginfo
+is dangerously close to running out of space.  All that remains is just
+enough space for two additional 64bit fields.  A practice of adding all
+possible siginfo_t fields into struct singalfd_siginfo can not be supported
+as adding the missing fields ssi_lower, ssi_upper, and ssi_pkey would
+require two 64bit fields and one 32bit fields.  In practice the fields
+ssi_perf_data and ssi_perf_type can never be used by signalfd as the signal
+that generates them always delivers them synchronously to the thread that
+triggers them.
 
-v1: https://lkml.kernel.org/r/m17dkjqqxz.fsf_-_@fess.ebiederm.org
+Therefore until someone actually needs the fields ssi_perf_data and
+ssi_perf_type in signalfd_siginfo remove them.  This leaves a bit more room
+for future expansion.
+
+v1: https://lkml.kernel.org/r/20210503203814.25487-12-ebiederm@xmission.com
 Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
 ---
- include/linux/sched/signal.h |  1 +
- kernel/events/core.c         | 11 ++---------
- kernel/signal.c              | 13 +++++++++++++
- 3 files changed, 16 insertions(+), 9 deletions(-)
+ fs/signalfd.c                 | 16 ++++++----------
+ include/uapi/linux/signalfd.h |  4 +---
+ 2 files changed, 7 insertions(+), 13 deletions(-)
 
-diff --git a/include/linux/sched/signal.h b/include/linux/sched/signal.h
-index 7daa425f3055..1e2f61a1a512 100644
---- a/include/linux/sched/signal.h
-+++ b/include/linux/sched/signal.h
-@@ -318,6 +318,7 @@ int send_sig_mceerr(int code, void __user *, short, struct task_struct *);
+diff --git a/fs/signalfd.c b/fs/signalfd.c
+index 335ad39f3900..040e1cf90528 100644
+--- a/fs/signalfd.c
++++ b/fs/signalfd.c
+@@ -114,12 +114,13 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
+ 		break;
+ 	case SIL_FAULT_BNDERR:
+ 	case SIL_FAULT_PKUERR:
++	case SIL_FAULT_PERF_EVENT:
+ 		/*
+-		 * Fall through to the SIL_FAULT case.  Both SIL_FAULT_BNDERR
+-		 * and SIL_FAULT_PKUERR are only generated by faults that
+-		 * deliver them synchronously to userspace.  In case someone
+-		 * injects one of these signals and signalfd catches it treat
+-		 * it as SIL_FAULT.
++		 * Fall through to the SIL_FAULT case.  SIL_FAULT_BNDERR,
++		 * SIL_FAULT_PKUERR, and SIL_FAULT_PERF_EVENT are only
++		 * generated by faults that deliver them synchronously to
++		 * userspace.  In case someone injects one of these signals
++		 * and signalfd catches it treat it as SIL_FAULT.
+ 		 */
+ 	case SIL_FAULT:
+ 		new.ssi_addr = (long) kinfo->si_addr;
+@@ -132,11 +133,6 @@ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
+ 		new.ssi_addr = (long) kinfo->si_addr;
+ 		new.ssi_addr_lsb = (short) kinfo->si_addr_lsb;
+ 		break;
+-	case SIL_FAULT_PERF_EVENT:
+-		new.ssi_addr = (long) kinfo->si_addr;
+-		new.ssi_perf_type = kinfo->si_perf_type;
+-		new.ssi_perf_data = kinfo->si_perf_data;
+-		break;
+ 	case SIL_CHLD:
+ 		new.ssi_pid    = kinfo->si_pid;
+ 		new.ssi_uid    = kinfo->si_uid;
+diff --git a/include/uapi/linux/signalfd.h b/include/uapi/linux/signalfd.h
+index e78dddf433fc..83429a05b698 100644
+--- a/include/uapi/linux/signalfd.h
++++ b/include/uapi/linux/signalfd.h
+@@ -39,8 +39,6 @@ struct signalfd_siginfo {
+ 	__s32 ssi_syscall;
+ 	__u64 ssi_call_addr;
+ 	__u32 ssi_arch;
+-	__u32 ssi_perf_type;
+-	__u64 ssi_perf_data;
  
- int force_sig_bnderr(void __user *addr, void __user *lower, void __user *upper);
- int force_sig_pkuerr(void __user *addr, u32 pkey);
-+int force_sig_perf(void __user *addr, u32 type, u64 sig_data);
- 
- int force_sig_fault_trapno(int sig, int code, void __user *addr, int trapno);
- int send_sig_fault_trapno(int sig, int code, void __user *addr, int trapno,
-diff --git a/kernel/events/core.c b/kernel/events/core.c
-index 928b166d888e..48ea8863183b 100644
---- a/kernel/events/core.c
-+++ b/kernel/events/core.c
-@@ -6394,8 +6394,6 @@ void perf_event_wakeup(struct perf_event *event)
- 
- static void perf_sigtrap(struct perf_event *event)
- {
--	struct kernel_siginfo info;
--
  	/*
- 	 * We'd expect this to only occur if the irq_work is delayed and either
- 	 * ctx->task or current has changed in the meantime. This can be the
-@@ -6410,13 +6408,8 @@ static void perf_sigtrap(struct perf_event *event)
- 	if (current->flags & PF_EXITING)
- 		return;
+ 	 * Pad strcture to 128 bytes. Remember to update the
+@@ -51,7 +49,7 @@ struct signalfd_siginfo {
+ 	 * comes out of a read(2) and we really don't want to have
+ 	 * a compat on read(2).
+ 	 */
+-	__u8 __pad[16];
++	__u8 __pad[28];
+ };
  
--	clear_siginfo(&info);
--	info.si_signo = SIGTRAP;
--	info.si_code = TRAP_PERF;
--	info.si_errno = event->attr.type;
--	info.si_perf = event->attr.sig_data;
--	info.si_addr = (void __user *)event->pending_addr;
--	force_sig_info(&info);
-+	force_sig_perf((void __user *)event->pending_addr,
-+		       event->attr.type, event->attr.sig_data);
- }
  
- static void perf_pending_event_disable(struct perf_event *event)
-diff --git a/kernel/signal.c b/kernel/signal.c
-index 697c5fe58db8..49560ceac048 100644
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -1753,6 +1753,19 @@ int force_sig_pkuerr(void __user *addr, u32 pkey)
- }
- #endif
- 
-+int force_sig_perf(void __user *addr, u32 type, u64 sig_data)
-+{
-+	struct kernel_siginfo info;
-+
-+	clear_siginfo(&info);
-+	info.si_signo = SIGTRAP;
-+	info.si_errno = type;
-+	info.si_code  = TRAP_PERF;
-+	info.si_addr  = addr;
-+	info.si_perf  = sig_data;
-+	return force_sig_info(&info);
-+}
-+
- #if IS_ENABLED(CONFIG_SPARC)
- int force_sig_fault_trapno(int sig, int code, void __user *addr, int trapno)
- {
 -- 
 2.30.1
 
