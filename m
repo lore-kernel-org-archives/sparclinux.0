@@ -4,60 +4,108 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3FC2C433B4
-	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 20:27:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C73B3C433ED
+	for <sparclinux@archiver.kernel.org>; Thu,  6 May 2021 06:11:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A7A29613D8
-	for <sparclinux@archiver.kernel.org>; Wed,  5 May 2021 20:27:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A4F446112D
+	for <sparclinux@archiver.kernel.org>; Thu,  6 May 2021 06:11:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235405AbhEEU2r convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 5 May 2021 16:28:47 -0400
-Received: from shards.monkeyblade.net ([23.128.96.9]:59200 "EHLO
-        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235428AbhEEU2m (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 May 2021 16:28:42 -0400
-Received: from localhost (unknown [IPv6:2601:601:9f00:477::3d5])
-        by mail.monkeyblade.net (Postfix) with ESMTPSA id CA4824FDDC141;
-        Wed,  5 May 2021 13:27:43 -0700 (PDT)
-Date:   Wed, 05 May 2021 13:27:39 -0700 (PDT)
-Message-Id: <20210505.132739.2022645880622422332.davem@davemloft.net>
-To:     u.kleine-koenig@pengutronix.de
-Cc:     axboe@kernel.dk, kuba@kernel.org, gregkh@linuxfoundation.org,
-        jirislaby@kernel.org, sparclinux@vger.kernel.org,
-        linux-block@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kernel@pengutronix.de
+        id S231864AbhEFGMa (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 May 2021 02:12:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49064 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229769AbhEFGM0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 May 2021 02:12:26 -0400
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0DA2C061763
+        for <sparclinux@vger.kernel.org>; Wed,  5 May 2021 23:11:28 -0700 (PDT)
+Received: from ptx.hi.pengutronix.de ([2001:67c:670:100:1d::c0])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1leXEI-0001Oq-SB; Thu, 06 May 2021 08:11:22 +0200
+Received: from ukl by ptx.hi.pengutronix.de with local (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1leXEH-0006OC-76; Thu, 06 May 2021 08:11:21 +0200
+Date:   Thu, 6 May 2021 08:11:21 +0200
+From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To:     David Miller <davem@davemloft.net>
+Cc:     axboe@kernel.dk, gregkh@linuxfoundation.org,
+        linux-kernel@vger.kernel.org, linux-block@vger.kernel.org,
+        kernel@pengutronix.de, netdev@vger.kernel.org,
+        sparclinux@vger.kernel.org, kuba@kernel.org, jirislaby@kernel.org
 Subject: Re: [PATCH] sparc/vio: make remove callback return void
-From:   David Miller <davem@davemloft.net>
-In-Reply-To: <20210505201449.195627-1-u.kleine-koenig@pengutronix.de>
+Message-ID: <20210506061121.3flqmvm4jok6zj5z@pengutronix.de>
 References: <20210505201449.195627-1-u.kleine-koenig@pengutronix.de>
-X-Mailer: Mew version 6.8 on Emacs 27.1
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Wed, 05 May 2021 13:27:44 -0700 (PDT)
+ <20210505.132739.2022645880622422332.davem@davemloft.net>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="7ykpqbhtw2snraxa"
+Content-Disposition: inline
+In-Reply-To: <20210505.132739.2022645880622422332.davem@davemloft.net>
+X-SA-Exim-Connect-IP: 2001:67c:670:100:1d::c0
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: sparclinux@vger.kernel.org
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Date: Wed,  5 May 2021 22:14:49 +0200
 
-> The driver core ignores the return value of struct bus_type::remove()
-> because there is only little that can be done. To simplify the quest to
-> make this function return void, let struct vio_driver::remove() return
-> void, too. All users already unconditionally return 0, this commit makes
-> it obvious that returning an error code is a bad idea and should prevent
-> that future driver authors consider returning an error code.
-> 
-> Note there are two nominally different implementations for a vio bus:
-> one in arch/sparc/kernel/vio.c and the other in
-> arch/powerpc/platforms/pseries/vio.c. This patch only addresses the
-> former.
-> 
-> Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+--7ykpqbhtw2snraxa
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: David S. Miller <davem@davemloft.net>
+Hi Dave,
+
+On Wed, May 05, 2021 at 01:27:39PM -0700, David Miller wrote:
+> From: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+> Date: Wed,  5 May 2021 22:14:49 +0200
+>=20
+> > The driver core ignores the return value of struct bus_type::remove()
+> > because there is only little that can be done. To simplify the quest to
+> > make this function return void, let struct vio_driver::remove() return
+> > void, too. All users already unconditionally return 0, this commit makes
+> > it obvious that returning an error code is a bad idea and should prevent
+> > that future driver authors consider returning an error code.
+> >=20
+> > Note there are two nominally different implementations for a vio bus:
+> > one in arch/sparc/kernel/vio.c and the other in
+> > arch/powerpc/platforms/pseries/vio.c. This patch only addresses the
+> > former.
+> >=20
+> > Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+>=20
+> Acked-by: David S. Miller <davem@davemloft.net>
+
+Thanks for your Ack. My expectation was that this patch will go via a
+sparc tree. Does your Ack mean that you think it should take a different
+path?
+
+Best regards
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | https://www.pengutronix.de/ |
+
+--7ykpqbhtw2snraxa
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmCTiIYACgkQwfwUeK3K
+7Akyewf9GGuVOF+VCCZkBtEvuUsC2Pxxc/JoxB5DmIocsggrrpOh06j+LsYO0PKf
+SUD3UB48kEWMEn7yvaPyYqM/5A5GZy/vvJb65UEMOrGjWz+x8nJUwxeUZZ9oUgje
+mZglUAbfvEQfUCVAgnxjzn9Wp0WQAQ3RaShkT8QvFJ63fZHrbjkGbm9eRDf2Kktk
+/V3ZULOJ1kHPT+XF8lGBQ58KRktmYht0T6+Mykc90usi+v7xQW6Wv/bRBETpOI3q
+8nZQDDUdjxI/6AfPUPHReZwffZW8d8uEWvGoQhN+s+vfD0MgDua+EYPibke7VQQL
+LPvVc0yb5Ye5diDYK6uaKxDbwBeLdg==
+=OqA9
+-----END PGP SIGNATURE-----
+
+--7ykpqbhtw2snraxa--
