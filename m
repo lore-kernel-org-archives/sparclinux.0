@@ -2,66 +2,218 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46F5EC433ED
-	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 17:29:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C4C4C43600
+	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 22:09:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE434613ED
-	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 17:29:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F1826140E
+	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 22:09:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230455AbhEGRa5 convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 May 2021 13:30:57 -0400
-Received: from sss.pgh.pa.us ([66.207.139.130]:33417 "EHLO sss.pgh.pa.us"
+        id S229812AbhEGWKG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 May 2021 18:10:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230453AbhEGRa4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 7 May 2021 13:30:56 -0400
-Received: from sss1.sss.pgh.pa.us (localhost [127.0.0.1])
-        by sss.pgh.pa.us (8.15.2/8.15.2) with ESMTP id 147HTVt0043933;
-        Fri, 7 May 2021 13:29:31 -0400
-From:   Tom Lane <tgl@sss.pgh.pa.us>
-To:     Anatoly Pugachev <matorola@gmail.com>
-cc:     GCC Compile Farm administrators 
-        <cfarm-admins@lists.tetaneutral.net>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        Sparc kernel list <sparclinux@vger.kernel.org>
-Subject: Re: [cfarm-admins] gcc202 is occasionally returning EIO from fdatasync(2)
-In-reply-to: <34248.1620397342@sss.pgh.pa.us>
-References: <520.1620350498@sss.pgh.pa.us> <CADxRZqyzbEo6kiC_DD6y9sFOtVJ4z8Ss+raccv8sy-XXdjzQHw@mail.gmail.com> <33336.1620396305@sss.pgh.pa.us> <34248.1620397342@sss.pgh.pa.us>
-Comments: In-reply-to Tom Lane <tgl@sss.pgh.pa.us>
-        message dated "Fri, 07 May 2021 10:22:22 -0400"
+        id S229713AbhEGWKE (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 7 May 2021 18:10:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AA33B60BD3;
+        Fri,  7 May 2021 22:08:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1620425342;
+        bh=pLN/AlAGxiGZnqtkHzoskF1g1y+Og1zx70nNd/gvob8=;
+        h=From:To:Cc:Subject:Date:From;
+        b=GZ13BdKpryifxhRwUeXYiDxMV+BWySTA7GY7/CWwvuCWkusUFDxkw2jKiOlfzjbCr
+         So4fZaGkAyPTwA8Q1TjLVhcTwgJc8xvHUXFTKFHcbAkEIqYdWcKh0axCM+T92qoOrQ
+         bkgNUSiGEeKqAdmwuN3qiVKoII2y7FbwOUX6mX301a6kiRL+VhsHKLQbMnh2CNRIHJ
+         HKxjre312EfivKKOz+Q2DN/Jdax+mgS6zOKiXtE7A5jQN2E+WeTOOh+m15wqAaIqSp
+         vmCijYogutqPzDP5KIogDPopYspUOizf4eB1toyhkfcE7uWw2BB6nwUsTEL9hofb0l
+         fr7hse6Wb3kJA==
+From:   Arnd Bergmann <arnd@kernel.org>
+To:     linux-arch@vger.kernel.org
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Amitkumar Karwar <amitkarwar@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Eric Dumazet <edumazet@google.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ganapathi Bhat <ganapathi017@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        James Morris <jmorris@namei.org>, Jens Axboe <axboe@kernel.dk>,
+        John Johansen <john.johansen@canonical.com>,
+        Jonas Bonn <jonas@southpole.se>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Paul Mackerras <paulus@samba.org>,
+        Rich Felker <dalias@libc.org>,
+        "Richard Russon (FlatCap)" <ldm@flatcap.org>,
+        Russell King <linux@armlinux.org.uk>,
+        "Serge E. Hallyn" <serge@hallyn.com>,
+        Sharvari Harisangam <sharvari.harisangam@nxp.com>,
+        Stafford Horne <shorne@gmail.com>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vladimir Oltean <vladimir.oltean@nxp.com>,
+        Xinming Hu <huxinming820@gmail.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>, x86@kernel.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-m68k@lists.linux-m68k.org, linux-crypto@vger.kernel.org,
+        openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-ntfs-dev@lists.sourceforge.net, linux-block@vger.kernel.org,
+        linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+        linux-security-module@vger.kernel.org
+Subject: [RFC 0/12] Unify asm/unaligned.h around struct helper
+Date:   Sat,  8 May 2021 00:07:45 +0200
+Message-Id: <20210507220813.365382-1-arnd@kernel.org>
+X-Mailer: git-send-email 2.29.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-ID: <43931.1620408571.1@sss.pgh.pa.us>
-Content-Transfer-Encoding: 8BIT
-Date:   Fri, 07 May 2021 13:29:31 -0400
-Message-ID: <43932.1620408571@sss.pgh.pa.us>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-I wrote:
-> Oh, one more thing: that buildfarm instance has been running this
-> same test case about once a day for a good long time.  We never
-> saw this type of error before, but now we have two such failures
-> in its last ten runs.  So it seems pretty clear that the issue
-> started in mid-April.
+From: Arnd Bergmann <arnd@arndb.de>
 
-Oh ... I lied.  I realized that Postgres' handling of this error has
-varied in different branches, and when I looked for straight reports
-of "Input/output error" I found a few more:
+The get_unaligned()/put_unaligned() helpers are traditionally architecture
+specific, with the two main variants being the "access-ok.h" version
+that assumes unaligned pointer accesses always work on a particular
+architecture, and the "le-struct.h" version that casts the data to a
+byte aligned type before dereferencing, for architectures that cannot
+always do unaligned accesses in hardware.
 
-2021-03-20 00:48:48.117 MSK [4089174:11] 008_fsm_truncation.pl PANIC:  could not fdatasync file "000000010000000000000002": Input/output error
-2021-04-06 19:30:54.103 MSK [3355008:11] 008_fsm_truncation.pl PANIC:  could not fdatasync file "000000010000000000000002": Input/output error
-pg_basebackup: could not fsync file "000000010000000000000013": Input/output error
+Based on the discussion linked below, it appears that the access-ok
+version is not realiable on any architecture, but the struct version
+probably has no downsides. This series changes the code to use the
+same implementation on all architectures, addressing the few exceptions
+separately.
 
-The last one is harder to get an exact timestamp for, but it
-was approximately 2021-04-12 05:47:07 MSK.  In any case, it
-seems this has been going on at least since mid-March.
-I don't see any other similar failures in our logs, going
-back six months.
+I've pushed the patches to the asm-generic git tree for testing.
 
-			regards, tom lane
+	Arnd
+
+Link: https://lore.kernel.org/lkml/75d07691-1e4f-741f-9852-38c0b4f520bc@synopsys.com/
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=100363
+Link: git://git.kernel.org/pub/scm/linux/kernel/git/arnd/asm-generic.git unaligned-rework
+
+Arnd Bergmann (12):
+  asm-generic: use asm-generic/unaligned.h for most architectures
+  openrisc: always use unaligned-struct header
+  sh: remove unaligned access for sh4a
+  m68k: select CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+  powerpc: use linux/unaligned/le_struct.h on LE power7
+  asm-generic: unaligned: remove byteshift helpers
+  asm-generic: unaligned always use struct helpers
+  partitions: msdos: fix one-byte get_unaligned()
+  apparmor: use get_unaligned() only for multi-byte words
+  mwifiex: re-fix for unaligned accesses
+  netpoll: avoid put_unaligned() on single character
+  asm-generic: simplify asm/unaligned.h
+
+ arch/alpha/include/asm/unaligned.h          |  12 --
+ arch/arm/include/asm/unaligned.h            |  27 ---
+ arch/ia64/include/asm/unaligned.h           |  12 --
+ arch/m68k/Kconfig                           |   1 +
+ arch/m68k/include/asm/unaligned.h           |  26 ---
+ arch/microblaze/include/asm/unaligned.h     |  27 ---
+ arch/mips/crypto/crc32-mips.c               |   2 +-
+ arch/openrisc/include/asm/unaligned.h       |  47 -----
+ arch/parisc/include/asm/unaligned.h         |   6 +-
+ arch/powerpc/include/asm/unaligned.h        |  22 ---
+ arch/sh/include/asm/unaligned-sh4a.h        | 199 --------------------
+ arch/sh/include/asm/unaligned.h             |  13 --
+ arch/sparc/include/asm/unaligned.h          |  11 --
+ arch/x86/include/asm/unaligned.h            |  15 --
+ arch/xtensa/include/asm/unaligned.h         |  29 ---
+ block/partitions/ldm.h                      |   2 +-
+ block/partitions/msdos.c                    |   2 +-
+ drivers/net/wireless/marvell/mwifiex/pcie.c |  10 +-
+ include/asm-generic/unaligned.h             | 149 ++++++++++++---
+ include/linux/unaligned/access_ok.h         |  68 -------
+ include/linux/unaligned/be_byteshift.h      |  71 -------
+ include/linux/unaligned/be_memmove.h        |  37 ----
+ include/linux/unaligned/be_struct.h         |  37 ----
+ include/linux/unaligned/generic.h           | 115 -----------
+ include/linux/unaligned/le_byteshift.h      |  71 -------
+ include/linux/unaligned/le_memmove.h        |  37 ----
+ include/linux/unaligned/le_struct.h         |  37 ----
+ include/linux/unaligned/memmove.h           |  46 -----
+ net/core/netpoll.c                          |   4 +-
+ security/apparmor/policy_unpack.c           |   2 +-
+ 30 files changed, 137 insertions(+), 1000 deletions(-)
+ delete mode 100644 arch/alpha/include/asm/unaligned.h
+ delete mode 100644 arch/arm/include/asm/unaligned.h
+ delete mode 100644 arch/ia64/include/asm/unaligned.h
+ delete mode 100644 arch/m68k/include/asm/unaligned.h
+ delete mode 100644 arch/microblaze/include/asm/unaligned.h
+ delete mode 100644 arch/openrisc/include/asm/unaligned.h
+ delete mode 100644 arch/powerpc/include/asm/unaligned.h
+ delete mode 100644 arch/sh/include/asm/unaligned-sh4a.h
+ delete mode 100644 arch/sh/include/asm/unaligned.h
+ delete mode 100644 arch/sparc/include/asm/unaligned.h
+ delete mode 100644 arch/x86/include/asm/unaligned.h
+ delete mode 100644 arch/xtensa/include/asm/unaligned.h
+ delete mode 100644 include/linux/unaligned/access_ok.h
+ delete mode 100644 include/linux/unaligned/be_byteshift.h
+ delete mode 100644 include/linux/unaligned/be_memmove.h
+ delete mode 100644 include/linux/unaligned/be_struct.h
+ delete mode 100644 include/linux/unaligned/generic.h
+ delete mode 100644 include/linux/unaligned/le_byteshift.h
+ delete mode 100644 include/linux/unaligned/le_memmove.h
+ delete mode 100644 include/linux/unaligned/le_struct.h
+ delete mode 100644 include/linux/unaligned/memmove.h
+
+Cc: Amitkumar Karwar <amitkarwar@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Florian Fainelli <f.fainelli@gmail.com>
+Cc: Ganapathi Bhat <ganapathi017@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: James Morris <jmorris@namei.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: John Johansen <john.johansen@canonical.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: "Richard Russon (FlatCap)" <ldm@flatcap.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Sharvari Harisangam <sharvari.harisangam@nxp.com>
+Cc: Stafford Horne <shorne@gmail.com>
+Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Oltean <vladimir.oltean@nxp.com>
+Cc: Xinming Hu <huxinming820@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: x86@kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-crypto@vger.kernel.org
+Cc: openrisc@lists.librecores.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-ntfs-dev@lists.sourceforge.net
+Cc: linux-block@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-security-module@vger.kernel.org
+
+-- 
+2.29.2
+
