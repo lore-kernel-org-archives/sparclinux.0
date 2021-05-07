@@ -2,143 +2,130 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A307C433B4
-	for <sparclinux@archiver.kernel.org>; Thu,  6 May 2021 15:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A3EBC433ED
+	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 08:40:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D627C61C22
-	for <sparclinux@archiver.kernel.org>; Thu,  6 May 2021 15:29:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22398613CD
+	for <sparclinux@archiver.kernel.org>; Fri,  7 May 2021 08:40:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235147AbhEFPaQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 6 May 2021 11:30:16 -0400
-Received: from out01.mta.xmission.com ([166.70.13.231]:54040 "EHLO
-        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235730AbhEFP3s (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 May 2021 11:29:48 -0400
-Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lefvf-005iqR-MM; Thu, 06 May 2021 09:28:43 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
-        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lefvd-006sGN-K7; Thu, 06 May 2021 09:28:43 -0600
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     Marco Elver <elver@google.com>
-Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-References: <m15z031z0a.fsf@fess.ebiederm.org>
-        <YIxVWkT03TqcJLY3@elver.google.com>
-        <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
-        <m1r1irpc5v.fsf@fess.ebiederm.org>
-        <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
-        <m1czuapjpx.fsf@fess.ebiederm.org>
-        <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
-        <m14kfjh8et.fsf_-_@fess.ebiederm.org>
-        <m1tuni8ano.fsf_-_@fess.ebiederm.org>
-        <CAMuHMdUXh45iNmzrqqQc1kwD_OELHpujpst1BTMXDYTe7vKSCg@mail.gmail.com>
-        <YJPIO7r2uLXsW9uK@elver.google.com>
-Date:   Thu, 06 May 2021 10:28:37 -0500
-In-Reply-To: <YJPIO7r2uLXsW9uK@elver.google.com> (Marco Elver's message of
-        "Thu, 6 May 2021 12:43:07 +0200")
-Message-ID: <m14kff6fve.fsf@fess.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        id S234145AbhEGIlR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 May 2021 04:41:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35552 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233340AbhEGIlR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 May 2021 04:41:17 -0400
+Received: from mail-yb1-xb36.google.com (mail-yb1-xb36.google.com [IPv6:2607:f8b0:4864:20::b36])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C49A8C061574
+        for <sparclinux@vger.kernel.org>; Fri,  7 May 2021 01:40:17 -0700 (PDT)
+Received: by mail-yb1-xb36.google.com with SMTP id h202so10937801ybg.11
+        for <sparclinux@vger.kernel.org>; Fri, 07 May 2021 01:40:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=YWypHOf38xNpYW1uVedzbi/0kVxnKQP8/NX23zX3pi0=;
+        b=qQRbnyL/pwQdh+m/LiLW/3Alr8x4nJTs12b5br50CPHCgsatFNpIbj0qz9PWBfktN1
+         WyqUL1EqhYyQe2vnDbzxDuryZDd4M0bwJKdNjTLgeT/kjOnV4yr2HNLUcGE4vuPa+oza
+         U8v9fj/CBqLTJdwospng8hBB3+lh1/QJ5fX1fLfA5kGm26G8boCphptwZJjwbcXSJhep
+         Hm0KwQnQTMqYxS6cV3oU69Zk7HwoBM8EC0ahNLqvkfEcgbWP1ldOV2cHQstognu3DIov
+         2+FxDHyQ0h4hon/zVdBS2OQ3KMclA7/9fMRF41sWamM/Bhd0z2WrJauy3UN/Zdh4zcDm
+         adQg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=YWypHOf38xNpYW1uVedzbi/0kVxnKQP8/NX23zX3pi0=;
+        b=BzlvrVIxCb/Q/DlzSKRLmTKNKhVks4cdkXQUWkJpdrJ8OXTQVDBrvpn1KcQEFnAMxO
+         JhRTOmvJrfNRaM+AqbTpa6pl+qp3JccEDeLyGfKF7rWQ2VHtFxeFJNMoWzcKuPaDOjkG
+         STI5tda1NoDnV5jwkaKdvW41a3LrqKy8e50nIt7xTPzSruKD0GACMgsPEp02ADA4H1J+
+         bP/jOW0sjSUvko6ddWZZ2WJSZEZXPUgo4FI+4WGuZlDyfRGFioPm+p871RISQRIVZV9Z
+         AzTb9hLXLZGvXPAw9Q5kpXEc0xx6OQpWEbbcllfMTIrXh/1U3X0ZSTj4P479TP2178zG
+         +ByQ==
+X-Gm-Message-State: AOAM531EaXifr3oenxEpgvKVzvgmgaqGedpxv7lFAmq7WyRVl6w1ea19
+        FqENkNmH1vNAdyfB8SKrQ2Wu6lqv/zSmjR7svHk=
+X-Google-Smtp-Source: ABdhPJynqVkgXpQ+Hq3PHvqhcbt575JVGRMZgh69oOIKvgjMEfG+PE0viklAsx3MMmOna5PVFtY0SwP+9jwlzKcNoXQ=
+X-Received: by 2002:a25:df8a:: with SMTP id w132mr5513654ybg.287.1620376817067;
+ Fri, 07 May 2021 01:40:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1lefvd-006sGN-K7;;;mid=<m14kff6fve.fsf@fess.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX18VBUwGkvjVT/EuvDccLGPbA1rUG9welZ4=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [PATCH v3 00/12] signal: sort out si_trapno and si_perf
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
+References: <520.1620350498@sss.pgh.pa.us>
+In-Reply-To: <520.1620350498@sss.pgh.pa.us>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Fri, 7 May 2021 11:40:06 +0300
+Message-ID: <CADxRZqyzbEo6kiC_DD6y9sFOtVJ4z8Ss+raccv8sy-XXdjzQHw@mail.gmail.com>
+Subject: Re: [cfarm-admins] gcc202 is occasionally returning EIO from fdatasync(2)
+To:     Tom Lane <tgl@sss.pgh.pa.us>
+Cc:     GCC Compile Farm administrators 
+        <cfarm-admins@lists.tetaneutral.net>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        Sparc kernel list <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On Fri, May 7, 2021 at 4:22 AM Tom Lane via cfarm-admins
+<cfarm-admins@lists.tetaneutral.net> wrote:
+>
+> Hi folks,
+>
+> I thought you ought to know about $SUBJECT.  Maybe it's some
+> weird kernel glitch, but if it is reflecting real I/O errors,
+> maybe that machine is about to have a disk failure.  Poking
+> into its SMART logs (if any) might be useful.
+>
+> I got interested in this because a Postgres buildfarm instance
+> that runs periodically on that machine reported a couple of
+> unexplainable failures in the last few weeks [1].  I was able
+> to reproduce the failure and determine that it's a fault in
+> the logic that ought to report a failure from fdatasync(2).
+> Looking in the core file shows that errno = 5 (EIO) is what
+> was reported.  So we (PG) have some things to fix, but meanwhile
+> I felt you'd better know about the possibility of a hardware
+> issue.
+>
+>                         regards, tom lane
+>
+> [1] https://www.postgresql.org/message-id/CA+hUKGLhc0Nwnn9u60oYrx4MAUga+qEvj+4pBqPwrmPKDNtFmA@mail.gmail.com
 
-For the moment I am adding this to my for-next branch.  I plan to
-respin and fold this in but I am not certain what my schedule looks like
-today.  So I figure making certain I have a fix out (so I stop breaking
-m68k) is more important than having a perfect patch.
+Tom,
 
-Eric
+just checked /home filesystem, there's no errors... And yes, there's
+sometimes (sporadically) I see kernel messages like those in logs:
 
-From: "Eric W. Biederman" <ebiederm@xmission.com>
-Date: Thu, 6 May 2021 10:17:10 -0500
-Subject: [PATCH] signal: Remove the last few si_perf references
+May 07 03:26:45 gcc202 kernel: sunvdc: vdc_tx_trigger() failure, err=-11
+May 07 03:26:45 gcc202 kernel: blk_update_request: I/O error, dev
+vdiskc, sector 159273120 op 0x1:(WRITE) flags 0x4800 phys_seg 17 prio
+class 0
+May 07 03:31:39 gcc202 kernel: dm-0: writeback error on inode
+2148294407, offset 0, sector 159239256
+May 07 03:31:39 gcc202 kernel: sunvdc: vdc_tx_trigger() failure, err=-11
+May 07 03:31:39 gcc202 kernel: blk_update_request: I/O error, dev
+vdiskc, sector 157618896 op 0x1:(WRITE) flags 0x4800 phys_seg 16 prio
+class 0
+May 07 03:35:06 gcc202 kernel: dm-0: writeback error on inode
+155142134, offset 0, sector 157584576
+May 07 03:35:06 gcc202 kernel: sunvdc: vdc_tx_trigger() failure, err=-11
+May 07 03:35:06 gcc202 kernel: blk_update_request: I/O error, dev
+vdiskc, sector 657284672 op 0x1:(WRITE) flags 0x1000 phys_seg 4 prio
+class 0
+May 07 03:35:06 gcc202 kernel: XFS (dm-0): metadata I/O error in
+"xfs_buf_ioend+0x2cc/0x640 [xfs]" at daddr 0x272d5640 len 32 error 5
 
-I accidentially overlooked a few references to si_perf when sorting
-out the ABI update those references now.
+I can't find a reproducer for it to start debugging the issue, but
+going to run xfstests [1] on my sparc64 test LDOM to see if it would
+catch something...
 
-Fixes: f6a2c711f1e3 ("signal: Deliver all of the siginfo perf data in _perf")
-Suggested-by: Marco Elver <elver@google.com>
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- arch/m68k/kernel/signal.c                             | 3 ++-
- include/uapi/linux/perf_event.h                       | 2 +-
- tools/testing/selftests/perf_events/sigtrap_threads.c | 2 +-
- 3 files changed, 4 insertions(+), 3 deletions(-)
+By the way, there are no SMART disk diagnostics available, since the
+machine is a LDOM (read virtual machine) and backend storage is zfs
+volume (OS is solaris 11 sparc), which is living on older Hitachi
+AMS2000 (over FC).
 
-diff --git a/arch/m68k/kernel/signal.c b/arch/m68k/kernel/signal.c
-index a4b7ee1df211..8f215e79e70e 100644
---- a/arch/m68k/kernel/signal.c
-+++ b/arch/m68k/kernel/signal.c
-@@ -623,7 +623,8 @@ static inline void siginfo_build_tests(void)
- 	BUILD_BUG_ON(offsetof(siginfo_t, si_pkey) != 0x12);
- 
- 	/* _sigfault._perf */
--	BUILD_BUG_ON(offsetof(siginfo_t, si_perf) != 0x10);
-+	BUILD_BUG_ON(offsetof(siginfo_t, si_perf_data) != 0x10);
-+	BUILD_BUG_ON(offsetof(siginfo_t, si_perf_type) != 0x14);
- 
- 	/* _sigpoll */
- 	BUILD_BUG_ON(offsetof(siginfo_t, si_band)   != 0x0c);
-diff --git a/include/uapi/linux/perf_event.h b/include/uapi/linux/perf_event.h
-index e54e639248c8..7b14753b3d38 100644
---- a/include/uapi/linux/perf_event.h
-+++ b/include/uapi/linux/perf_event.h
-@@ -464,7 +464,7 @@ struct perf_event_attr {
- 
- 	/*
- 	 * User provided data if sigtrap=1, passed back to user via
--	 * siginfo_t::si_perf, e.g. to permit user to identify the event.
-+	 * siginfo_t::si_perf_data, e.g. to permit user to identify the event.
- 	 */
- 	__u64	sig_data;
- };
-diff --git a/tools/testing/selftests/perf_events/sigtrap_threads.c b/tools/testing/selftests/perf_events/sigtrap_threads.c
-index fde123066a8c..8e83cf91513a 100644
---- a/tools/testing/selftests/perf_events/sigtrap_threads.c
-+++ b/tools/testing/selftests/perf_events/sigtrap_threads.c
-@@ -43,7 +43,7 @@ static struct {
- 	siginfo_t first_siginfo;	/* First observed siginfo_t. */
- } ctx;
- 
--/* Unique value to check si_perf is correctly set from perf_event_attr::sig_data. */
-+/* Unique value to check si_perf_data is correctly set from perf_event_attr::sig_data. */
- #define TEST_SIG_DATA(addr) (~(unsigned long)(addr))
- 
- static struct perf_event_attr make_event_attr(bool enabled, volatile void *addr)
--- 
-2.30.1
+Thanks for your report anyway.
 
+1. https://git.kernel.org/pub/scm/fs/xfs/xfstests-dev.git
