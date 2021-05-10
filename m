@@ -2,113 +2,122 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4853EC433ED
-	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 13:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBDE6C43470
+	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 14:54:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 22AD761076
-	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 13:42:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CDA8C61040
+	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 14:54:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232029AbhEJNnB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 10 May 2021 09:43:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43526 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352184AbhEJNOI (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 10 May 2021 09:14:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 012C56128D;
-        Mon, 10 May 2021 13:13:03 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620652384;
-        bh=PSzgBT970qRtHokrpRLHj29TDKDvchKrZWRzijLqSCs=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=MUrtxCT/+rGukywuzRkfaC1xwjapGbNy2+3e8bzZ3aQ0cOAmyYUq3azbb6IhtO0Nw
-         p5XyHu4VOgBYEa957EVxU3BgA230WNLISuTb4U+Pxccg2CidCpYSBYUsyP2pl1C4D6
-         Ssp9VBJpOqOM9as1+ff4+s82GbQYrLj4/Ccvp6Fe5+4Wjf0bmQsntVsK1aQkAHLaNN
-         OiwPqMreqj7coc2PgsKzQusD9bUl92VBwDav2aumK3/lvRA4sE3dFXc1aRT3/acR7J
-         3ZcBejsOp9FNMrKrm2GMmyruGRR0lg3Ay1HMkJhYM5TQBY6g2bR+aDaeYkug9UNRRC
-         ZfVFhhHeOiFKw==
-Received: by mail-wr1-f46.google.com with SMTP id s8so16591678wrw.10;
-        Mon, 10 May 2021 06:13:03 -0700 (PDT)
-X-Gm-Message-State: AOAM530yLHNKu70tP3ZjE5Rfa0f7Af+BTvdHN58iYf7/Bd/8PSIEi1ZQ
-        n4iy879wTfBE8H+d7X/3M6VzC4naLMBWVuYiF1Q=
-X-Google-Smtp-Source: ABdhPJx5k3kdp4Lxo7eGFl+4v6Wmh8JO5Yw79c4lK0swD2DYw4OcpNkLlTJxYpDd9aQetiy3UvM5cENTcxibXnZaD3k=
-X-Received: by 2002:a5d:6a52:: with SMTP id t18mr31871475wrw.361.1620652382506;
- Mon, 10 May 2021 06:13:02 -0700 (PDT)
+        id S239701AbhEJOzW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 May 2021 10:55:22 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:7712 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S240278AbhEJOx4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 10 May 2021 10:53:56 -0400
+Received: from pps.filterd (m0098416.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14AEoIdq184371;
+        Mon, 10 May 2021 10:52:39 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : content-transfer-encoding
+ : mime-version; s=pp1; bh=mp/51zQTwU0ypyrfGm7d48XnTdWhVBfdFjEkqW1sSTI=;
+ b=oq69rh0YK6QO9Vj4ywqahWisbHFpUHdMJAoafl724vqZbwP/rLnDOW0KQizIskhiAgAA
+ 9osKksohAh+yD0sKHP4dquUDqzUq4xc32O17ZcbM3IyEP2Hyekr4W0A9CBKPVAFZ8WqP
+ OJX0eBv/jKtaSjh/zPtcxELur0+xnYCd3KfYr+n6216jb/dt54a788enZxvbP+qEX3Tb
+ 1s0Uje/NJzFTufnc1uGENJcqKpW2QwN08bYLnu5bh14lAEpBJz09gD09T3aYfS7BumPq
+ +2ieEynkW8nmQ6dCi4CX0cTn5mRjHwu5GMebgczRROXBHj7Hp11B35Flb5oS3m7s8tzs zA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 38f6xt01ak-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 10 May 2021 10:52:39 -0400
+Received: from m0098416.ppops.net (m0098416.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 14AEpp51190897;
+        Mon, 10 May 2021 10:52:39 -0400
+Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 38f6xt01a8-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 10 May 2021 10:52:39 -0400
+Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
+        by ppma06ams.nl.ibm.com (8.16.0.43/8.16.0.43) with SMTP id 14AEmBHM025927;
+        Mon, 10 May 2021 14:52:37 GMT
+Received: from b06cxnps4076.portsmouth.uk.ibm.com (d06relay13.portsmouth.uk.ibm.com [9.149.109.198])
+        by ppma06ams.nl.ibm.com with ESMTP id 38dhwh91vr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Mon, 10 May 2021 14:52:37 +0000
+Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
+        by b06cxnps4076.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14AEqZIE37814710
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 10 May 2021 14:52:35 GMT
+Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 18BFB52050;
+        Mon, 10 May 2021 14:52:35 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id AA76452051;
+        Mon, 10 May 2021 14:52:34 +0000 (GMT)
+From:   Niklas Schnelle <schnelle@linux.ibm.com>
+To:     Arnd Bergmann <arnd@arndb.de>, Vineet Gupta <vgupta@synopsys.com>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        clang-built-linux@googlegroups.com, linux-arch@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org
+Subject: [PATCH v6 1/3] sparc: explicitly set PCI_IOBASE to 0
+Date:   Mon, 10 May 2021 16:52:32 +0200
+Message-Id: <20210510145234.594814-2-schnelle@linux.ibm.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <20210510145234.594814-1-schnelle@linux.ibm.com>
+References: <20210510145234.594814-1-schnelle@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: gY60jVdT9BfNYmq5tr-k84tUJE5i3gZe
+X-Proofpoint-GUID: khRcgKtN16v846p8gRFfwt4YMf7XtDTg
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-References: <20210507220813.365382-1-arnd@kernel.org> <20210507220813.365382-2-arnd@kernel.org>
- <CAMuHMdV1=mJzbr1cLwo-zUnThh9J8BmdW870dJCvp_Kft8kM2w@mail.gmail.com>
-In-Reply-To: <CAMuHMdV1=mJzbr1cLwo-zUnThh9J8BmdW870dJCvp_Kft8kM2w@mail.gmail.com>
-From:   Arnd Bergmann <arnd@kernel.org>
-Date:   Mon, 10 May 2021 15:12:09 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a15W5vV9ivk6YnR2aGMvDjTrPGrzsszf2kD6kv1TfrpbQ@mail.gmail.com>
-Message-ID: <CAK8P3a15W5vV9ivk6YnR2aGMvDjTrPGrzsszf2kD6kv1TfrpbQ@mail.gmail.com>
-Subject: Re: [RFC 01/12] asm-generic: use asm-generic/unaligned.h for most architectures
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Vineet Gupta <vgupta@synopsys.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Michal Simek <monstr@monstr.eu>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        alpha <linux-alpha@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>
-Content-Type: text/plain; charset="UTF-8"
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-05-10_07:2021-05-10,2021-05-10 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 phishscore=0 spamscore=0
+ mlxscore=0 suspectscore=0 adultscore=0 bulkscore=0 lowpriorityscore=0
+ priorityscore=1501 impostorscore=0 mlxlogscore=999 clxscore=1015
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2105100105
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, May 10, 2021 at 12:16 PM Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> On Sat, May 8, 2021 at 12:09 AM Arnd Bergmann <arnd@kernel.org> wrote:
-> > From: Arnd Bergmann <arnd@arndb.de>
-> >
-> > There are several architectures that just duplicate the contents
-> > of asm-generic/unaligned.h, so change those over to use the
-> > file directly, to make future modifications easier.
-> >
-> > The exceptions are:
-> >
-> > - arm32 sets HAVE_EFFICIENT_UNALIGNED_ACCESS, but wants the
-> >   unaligned-struct version
-> >
-> > - ppc64le disables HAVE_EFFICIENT_UNALIGNED_ACCESS but includes
-> >   the access-ok version
-> >
-> > - m68k (non-dragonball) also uses the access-ok version without
-> >   setting HAVE_EFFICIENT_UNALIGNED_ACCESS.
->
-> This not only applies to dragonball, which has the CPU32 core, but also
-> to plain 68000, and any SoCs including the 68EC000 core.
+Instead of relying on the fallback in asm-generic/io.h which sets
+PCI_IOBASE 0 if it is not defined set it explicitly.
 
-I meant out of the machines that are currently supported in the kernel.
-As far as I can tell, the only 68000 variants that are supported are
-all Dragonball CONFIG_M68328, CONFIG_M68EZ328 and
-CONFIG_M68VZ328.
+Link: https://lore.kernel.org/lkml/CAK8P3a3PK9zyeP4ymELtc2ZYnymECoACiigw9Za+pvSJpCk5=g@mail.gmail.com/
+Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
+---
+ arch/sparc/include/asm/io.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-CONFIG_MCPU32 has been dead since a3595962d824 ("m68knommu:
-remove obsolete 68360 support")
+diff --git a/arch/sparc/include/asm/io.h b/arch/sparc/include/asm/io.h
+index 2eefa526b38f..c019e50702c1 100644
+--- a/arch/sparc/include/asm/io.h
++++ b/arch/sparc/include/asm/io.h
+@@ -1,6 +1,14 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+ #ifndef ___ASM_SPARC_IO_H
+ #define ___ASM_SPARC_IO_H
++
++/*
++ * On LEON PCI addresses below 64k are converted to IO accesses.
++ * io_remap_xxx() returns a kernel virtual address in the PCI window so
++ * inb() doesn't need to add an offset.
++ */
++#define PCI_IOBASE ((void __iomem *)0)
++
+ #if defined(__sparc__) && defined(__arch64__)
+ #include <asm/io_64.h>
+ #else
+-- 
+2.25.1
 
-> Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-
-Thanks!
-
-        Arnd
