@@ -2,53 +2,54 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D922C43460
-	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 10:16:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4853EC433ED
+	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 13:42:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4051B6100C
-	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 10:16:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22AD761076
+	for <sparclinux@archiver.kernel.org>; Mon, 10 May 2021 13:42:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230415AbhEJKRj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 10 May 2021 06:17:39 -0400
-Received: from mail-vs1-f52.google.com ([209.85.217.52]:35626 "EHLO
-        mail-vs1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230393AbhEJKR3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 May 2021 06:17:29 -0400
-Received: by mail-vs1-f52.google.com with SMTP id j13so8124988vsf.2;
-        Mon, 10 May 2021 03:16:24 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=sVvVN78+/ymEH+RZL6HvoVCZVksTZw7UVoQH006DAA8=;
-        b=uiiBmkHlh6s5t0Q6ekUiP2RK7fY7IrsyQ4X30oiYA8nOMTOpVbsOvsK7rvWIFRp5nB
-         Iyz9R163vNvnPCJjmJnKmSm9EVCKvRl3B8XAu/IQq0hbrCjB938R2BQfS2eqOpwdotGZ
-         9pFwtE0SkDsLD9aCYyjTNEeofBctawz9Do4erZDD9m6RaGkVyXC24qrPpqEUloTKapnG
-         6uYgPdJG0ouqCMdUKazKPGQj0VRN81LNyPxfW1MDE2XhFnh97MuO/gmBH6LojXMha+eq
-         K00aTjCBMcVu5XyNmqHszmx9GMMcQg4BSKMLVtzRWmxVcIZGbF9YWM1CgN4dKUh3KZ7S
-         ao/A==
-X-Gm-Message-State: AOAM531JjyLLwBGwA+OJvXqPpY+9fUftJOP2AN9bNMe6nZntmYtHtYJa
-        9mls5DQUw1KnpELouF1hp176F5u0ZHy/VKgocUs=
-X-Google-Smtp-Source: ABdhPJwCjZFq7knTQzQamMPg7B/M6YwpWZB1FCmai2ATFOyJJM+uqtP/4aHsoLXiIPOmyugP+gy2CWFKz8LbQiDSA/c=
-X-Received: by 2002:a67:8745:: with SMTP id j66mr19115560vsd.18.1620641784321;
- Mon, 10 May 2021 03:16:24 -0700 (PDT)
+        id S232029AbhEJNnB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 May 2021 09:43:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43526 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1352184AbhEJNOI (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 10 May 2021 09:14:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 012C56128D;
+        Mon, 10 May 2021 13:13:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1620652384;
+        bh=PSzgBT970qRtHokrpRLHj29TDKDvchKrZWRzijLqSCs=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=MUrtxCT/+rGukywuzRkfaC1xwjapGbNy2+3e8bzZ3aQ0cOAmyYUq3azbb6IhtO0Nw
+         p5XyHu4VOgBYEa957EVxU3BgA230WNLISuTb4U+Pxccg2CidCpYSBYUsyP2pl1C4D6
+         Ssp9VBJpOqOM9as1+ff4+s82GbQYrLj4/Ccvp6Fe5+4Wjf0bmQsntVsK1aQkAHLaNN
+         OiwPqMreqj7coc2PgsKzQusD9bUl92VBwDav2aumK3/lvRA4sE3dFXc1aRT3/acR7J
+         3ZcBejsOp9FNMrKrm2GMmyruGRR0lg3Ay1HMkJhYM5TQBY6g2bR+aDaeYkug9UNRRC
+         ZfVFhhHeOiFKw==
+Received: by mail-wr1-f46.google.com with SMTP id s8so16591678wrw.10;
+        Mon, 10 May 2021 06:13:03 -0700 (PDT)
+X-Gm-Message-State: AOAM530yLHNKu70tP3ZjE5Rfa0f7Af+BTvdHN58iYf7/Bd/8PSIEi1ZQ
+        n4iy879wTfBE8H+d7X/3M6VzC4naLMBWVuYiF1Q=
+X-Google-Smtp-Source: ABdhPJx5k3kdp4Lxo7eGFl+4v6Wmh8JO5Yw79c4lK0swD2DYw4OcpNkLlTJxYpDd9aQetiy3UvM5cENTcxibXnZaD3k=
+X-Received: by 2002:a5d:6a52:: with SMTP id t18mr31871475wrw.361.1620652382506;
+ Mon, 10 May 2021 06:13:02 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210507220813.365382-1-arnd@kernel.org> <20210507220813.365382-2-arnd@kernel.org>
-In-Reply-To: <20210507220813.365382-2-arnd@kernel.org>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 10 May 2021 12:16:13 +0200
-Message-ID: <CAMuHMdV1=mJzbr1cLwo-zUnThh9J8BmdW870dJCvp_Kft8kM2w@mail.gmail.com>
+ <CAMuHMdV1=mJzbr1cLwo-zUnThh9J8BmdW870dJCvp_Kft8kM2w@mail.gmail.com>
+In-Reply-To: <CAMuHMdV1=mJzbr1cLwo-zUnThh9J8BmdW870dJCvp_Kft8kM2w@mail.gmail.com>
+From:   Arnd Bergmann <arnd@kernel.org>
+Date:   Mon, 10 May 2021 15:12:09 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a15W5vV9ivk6YnR2aGMvDjTrPGrzsszf2kD6kv1TfrpbQ@mail.gmail.com>
+Message-ID: <CAK8P3a15W5vV9ivk6YnR2aGMvDjTrPGrzsszf2kD6kv1TfrpbQ@mail.gmail.com>
 Subject: Re: [RFC 01/12] asm-generic: use asm-generic/unaligned.h for most architectures
-To:     Arnd Bergmann <arnd@kernel.org>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
 Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Vineet Gupta <vgupta@synopsys.com>,
-        Arnd Bergmann <arnd@arndb.de>,
         Richard Henderson <rth@twiddle.net>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Matt Turner <mattst88@gmail.com>,
@@ -74,52 +75,40 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Arnd,
-
-On Sat, May 8, 2021 at 12:09 AM Arnd Bergmann <arnd@kernel.org> wrote:
-> From: Arnd Bergmann <arnd@arndb.de>
+On Mon, May 10, 2021 at 12:16 PM Geert Uytterhoeven
+<geert@linux-m68k.org> wrote:
+> On Sat, May 8, 2021 at 12:09 AM Arnd Bergmann <arnd@kernel.org> wrote:
+> > From: Arnd Bergmann <arnd@arndb.de>
+> >
+> > There are several architectures that just duplicate the contents
+> > of asm-generic/unaligned.h, so change those over to use the
+> > file directly, to make future modifications easier.
+> >
+> > The exceptions are:
+> >
+> > - arm32 sets HAVE_EFFICIENT_UNALIGNED_ACCESS, but wants the
+> >   unaligned-struct version
+> >
+> > - ppc64le disables HAVE_EFFICIENT_UNALIGNED_ACCESS but includes
+> >   the access-ok version
+> >
+> > - m68k (non-dragonball) also uses the access-ok version without
+> >   setting HAVE_EFFICIENT_UNALIGNED_ACCESS.
 >
-> There are several architectures that just duplicate the contents
-> of asm-generic/unaligned.h, so change those over to use the
-> file directly, to make future modifications easier.
->
-> The exceptions are:
->
-> - arm32 sets HAVE_EFFICIENT_UNALIGNED_ACCESS, but wants the
->   unaligned-struct version
->
-> - ppc64le disables HAVE_EFFICIENT_UNALIGNED_ACCESS but includes
->   the access-ok version
->
-> - m68k (non-dragonball) also uses the access-ok version without
->   setting HAVE_EFFICIENT_UNALIGNED_ACCESS.
+> This not only applies to dragonball, which has the CPU32 core, but also
+> to plain 68000, and any SoCs including the 68EC000 core.
 
-This not only applies to dragonball, which has the CPU32 core, but also
-to plain 68000, and any SoCs including the 68EC000 core.
+I meant out of the machines that are currently supported in the kernel.
+As far as I can tell, the only 68000 variants that are supported are
+all Dragonball CONFIG_M68328, CONFIG_M68EZ328 and
+CONFIG_M68VZ328.
 
-It also applies to early Coldfire, but AFAIK Linux doesn't support these
-(see dfe1d26d4a90287e ("m68knommu: Allow ColdFire CPUs to use unaligned
- accesses")).
+CONFIG_MCPU32 has been dead since a3595962d824 ("m68knommu:
+remove obsolete 68360 support")
 
- > - sh4a has a custom inline asm version
->
-> - openrisc is the only one using the memmove version that
->   generally leads to worse code.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
->  arch/m68k/include/asm/unaligned.h       |  9 +-------
+Thanks!
 
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+        Arnd
