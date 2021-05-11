@@ -2,170 +2,195 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.9 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 318BAC43461
-	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:50:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A516C43460
+	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:52:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 069B961919
-	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:50:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 233C361919
+	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:52:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231877AbhEKSvh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 May 2021 14:51:37 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:56648 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231851AbhEKSvh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 11 May 2021 14:51:37 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1620759030;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=3sGuDkwY1rpAMVCQJVmhxPq9zjMod4hGpJJ6eXBTmJw=;
-        b=PMWoLHRK/uq3ae2wG3xTAHtRTS/nwPsmx+LcaWrSaKbdUoe9OAp9bvp0cXrwDcEnAQ39Qs
-        eXYfE/nO9U/NkfQiwZI30FDtlPwpBPsaSIW46pEoWsPqJdcPgFGFiT84Y1DQKIkkh1wrdL
-        +H2OHYB/VWpBZq+WoH3JVr1w4YzYW80=
-Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
- [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-280-wJc_w8FvMFOfP0IN4Jn3vw-1; Tue, 11 May 2021 14:50:26 -0400
-X-MC-Unique: wJc_w8FvMFOfP0IN4Jn3vw-1
-Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 9BF5B8015DB;
-        Tue, 11 May 2021 18:50:24 +0000 (UTC)
-Received: from madcap2.tricolour.ca (unknown [10.3.128.45])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 525D42C14A;
-        Tue, 11 May 2021 18:50:13 +0000 (UTC)
-Date:   Tue, 11 May 2021 14:50:11 -0400
-From:   Richard Guy Briggs <rgb@redhat.com>
-To:     Paul Moore <paul@paul-moore.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Eric Paris <eparis@redhat.com>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Arnd Bergmann <arnd@kernel.org>
-Subject: Re: [PATCH v3 1/3] audit: replace magic audit syscall class numbers
- with macros
-Message-ID: <20210511185011.GP3141668@madcap2.tricolour.ca>
-References: <cover.1619811762.git.rgb@redhat.com>
- <bda073f2a8b11000ef40cf8b965305409ee88f44.1619811762.git.rgb@redhat.com>
- <CAHC9VhShi4u26h5OsahveQDNxO_uZ+KgzGOYEp5W7w6foA-uKg@mail.gmail.com>
+        id S232263AbhEKSxG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 May 2021 14:53:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52320 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232269AbhEKSwx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 May 2021 14:52:53 -0400
+Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3F16C061761;
+        Tue, 11 May 2021 11:51:45 -0700 (PDT)
+Received: by mail-il1-x129.google.com with SMTP id e14so18027070ils.12;
+        Tue, 11 May 2021 11:51:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=a/h54JdNC5kR17fX7/LoX7g8+9V1SkM6LPGM//jz9YE=;
+        b=TyuPG2wOFQrgKxI20nIja2mzk8NJAyGwIiLGj/NpdzrU1nuGJ3oPGW2TGiZg9bh6wd
+         30l/Phnddorg+Dvatg6e2gDVLUG7R3rAPN2Tgd3NmEqqFan8p6PHC/BHRVy8iRfaJKO/
+         amPeFT9M8GsyJElzvFaLAn6XDBv4c2LfW0nsjuUlmr8W6BpEzw+zMNtu2oMoNGHvcG8n
+         gogAnm+letvJoMK/VTjaueLYu4SHHfVbY1uWf04y/zmGK7thYghUd94dqrU5FliesezB
+         8v5dWnyTDFWI0iz9wFXKfwg5Mi5uV4qoD9KMqGpRrSNSx29CnxRTbSnLd/H57hp6QPlO
+         bPRw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=a/h54JdNC5kR17fX7/LoX7g8+9V1SkM6LPGM//jz9YE=;
+        b=SfWk9/dohsluSxgFdf5l+Kxz3LNJB8yVCuDYi4H2rnapxnnX4LUGCNU5UD1sOjkPr1
+         YEsUPQX/CoIyL5A3T7294VMPA1VRD6z4lC6cD/94R9HJibkqoZX30radqRg2EZkl2nS7
+         ms+nadk3Cg9TEN7YPweySogjxOe5B1nxfEOo/c5LxIrS08iwoys4SxbHWPpHQtCNrjxj
+         XAYLG98lvCzSri7Cxvc21a67Cst3pzpV3BnOqdnwPe2LbAu9w1Vp8ZNdT/j8HXgZIQ49
+         64qJ//Xsm35MhnjSSMHLPSzW6h6d6OguVETypu91Uh5Ert3LFWPTLkkXpYjWjJrcf2sj
+         ZECg==
+X-Gm-Message-State: AOAM5333cGgU7JUFGwU9WOc6l03JfH9ZbZe0ahd4Ie7zRX3Efu9BMBD0
+        e0TLIU9pt7o+uc97R4JMlOg=
+X-Google-Smtp-Source: ABdhPJzcb33bvz5DI0nPKr87rXTBl99c1OgYhzBNlqj59Pxj7WEvcQRq6DDiruZk26m5IctEX86qCA==
+X-Received: by 2002:a05:6e02:1b85:: with SMTP id h5mr186059ili.303.1620759105380;
+        Tue, 11 May 2021 11:51:45 -0700 (PDT)
+Received: from frodo.mearth (c-24-9-77-57.hsd1.co.comcast.net. [24.9.77.57])
+        by smtp.googlemail.com with ESMTPSA id t10sm405096ils.36.2021.05.11.11.51.43
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 May 2021 11:51:44 -0700 (PDT)
+From:   Jim Cromie <jim.cromie@gmail.com>
+To:     Russell King <linux@armlinux.org.uk>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Bill Wendling <morbo@google.com>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        Jim Cromie <jim.cromie@gmail.com>,
+        Arvind Sankar <nivedita@alum.mit.edu>,
+        Joerg Roedel <jroedel@suse.de>, Nick Terrell <terrelln@fb.com>,
+        Dave Young <dyoung@redhat.com>,
+        Pingfan Liu <kernelfans@gmail.com>,
+        Atish Patra <atish.patra@wdc.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-efi@vger.kernel.org
+Cc:     linux-mm@kvack.org, lkp@intel.com
+Subject: [RFC PATCH v5 17/28] dyndbg: prevent build bugs via -DNO_DYNAMIC_DEBUG_TABLE
+Date:   Tue, 11 May 2021 12:50:46 -0600
+Message-Id: <20210511185057.3815777-18-jim.cromie@gmail.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210511185057.3815777-1-jim.cromie@gmail.com>
+References: <20210511185057.3815777-1-jim.cromie@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHC9VhShi4u26h5OsahveQDNxO_uZ+KgzGOYEp5W7w6foA-uKg@mail.gmail.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
-X-Scanned-By: MIMEDefang 2.79 on 10.5.11.11
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2021-05-10 21:23, Paul Moore wrote:
-> On Fri, Apr 30, 2021 at 4:36 PM Richard Guy Briggs <rgb@redhat.com> wrote:
-> >
-> > Replace audit syscall class magic numbers with macros.
-> >
-> > This required putting the macros into new header file
-> > include/linux/auditscm.h since the syscall macros were included for both 64
-> > bit and 32 bit in any compat code, causing redefinition warnings.
-> 
-> The ifndef/define didn't protect against redeclaration?  Huh.  Maybe
-> I'm not thinking about this correctly, or the arch specific code is
-> doing something wonky ...
+The next patch adds DEFINE_DYNAMIC_DEBUG_TABLE(), which broke several
+subtrees, including efi, vdso, and some of arch/*/boot/compressed,
+with various relocation errors, iirc.
 
-I had a chat with Arnd about it in IRC upstream and started digging
-deeper and it got quite messy.  As seen from the cover letter, audit.h
-pulled in a chain of things which weren't entirely unreasonable given it
-was compiling compat support in with native support by default.  I
-suppose I could have defined _ASM_X86_UNISTD_64_H to prevent it from
-being added, but that would be ugly on a generated file, have caused a
-failure elsewhere and would need to be done for each compat file.  I
-thought of defining CONFIG_X86_32 in arch/x86/ia32/audit.c but that
-would cause other problems.  This was the cleanest solution.  Otherwise
-I leave them as magic numbers like in V1.
+Avoid those problems by adding a define to suppress the "transparent"
+DEFINE_DYNAMIC_DEBUG_TABLE() invocation.  I found the x86 problems
+myself, lkp@intel.com found arm & sparc problems, and may yet find
+others.
 
-> Regardless, assuming that it is necessary, I would prefer if we called
-> it auditsc.h instead of auditscm.h; the latter makes me think of
-> sockets and not syscalls.
-> 
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > ---
-> >  MAINTAINERS                        |  1 +
-> >  arch/alpha/kernel/audit.c          |  8 ++++----
-> >  arch/ia64/kernel/audit.c           |  8 ++++----
-> >  arch/parisc/kernel/audit.c         |  8 ++++----
-> >  arch/parisc/kernel/compat_audit.c  |  9 +++++----
-> >  arch/powerpc/kernel/audit.c        | 10 +++++-----
-> >  arch/powerpc/kernel/compat_audit.c | 11 ++++++-----
-> >  arch/s390/kernel/audit.c           | 10 +++++-----
-> >  arch/s390/kernel/compat_audit.c    | 11 ++++++-----
-> >  arch/sparc/kernel/audit.c          | 10 +++++-----
-> >  arch/sparc/kernel/compat_audit.c   | 11 ++++++-----
-> >  arch/x86/ia32/audit.c              | 11 ++++++-----
-> >  arch/x86/kernel/audit_64.c         |  8 ++++----
-> >  include/linux/audit.h              |  1 +
-> >  include/linux/auditscm.h           | 23 +++++++++++++++++++++++
-> >  kernel/auditsc.c                   | 12 ++++++------
-> >  lib/audit.c                        | 10 +++++-----
-> >  lib/compat_audit.c                 | 11 ++++++-----
-> >  18 files changed, 102 insertions(+), 71 deletions(-)
-> >  create mode 100644 include/linux/auditscm.h
-> 
-> ...
-> 
-> > diff --git a/include/linux/auditscm.h b/include/linux/auditscm.h
-> > new file mode 100644
-> > index 000000000000..1c4f0ead5931
-> > --- /dev/null
-> > +++ b/include/linux/auditscm.h
-> > @@ -0,0 +1,23 @@
-> > +/* SPDX-License-Identifier: GPL-2.0-or-later */
-> > +/* auditscm.h -- Auditing support syscall macros
-> > + *
-> > + * Copyright 2021 Red Hat Inc., Durham, North Carolina.
-> > + * All Rights Reserved.
-> > + *
-> > + * Author: Richard Guy Briggs <rgb@redhat.com>
-> > + */
-> > +#ifndef _LINUX_AUDITSCM_H_
-> > +#define _LINUX_AUDITSCM_H_
-> > +
-> > +enum auditsc_class_t {
-> > +       AUDITSC_NATIVE = 0,
-> > +       AUDITSC_COMPAT,
-> > +       AUDITSC_OPEN,
-> > +       AUDITSC_OPENAT,
-> > +       AUDITSC_SOCKETCALL,
-> > +       AUDITSC_EXECVE,
-> > +
-> > +       AUDITSC_NVALS /* count */
-> > +};
-> > +
-> > +#endif
-> 
-> -- 
-> paul moore
-> www.paul-moore.com
-> 
+Reported-by: <lkp@intel.com> # on [jimc:lkp-test/dyndbg-diet] recently
+Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+---
+ arch/arm/boot/compressed/Makefile     | 2 ++
+ arch/sparc/vdso/Makefile              | 2 ++
+ arch/x86/boot/compressed/Makefile     | 1 +
+ arch/x86/entry/vdso/Makefile          | 3 +++
+ arch/x86/purgatory/Makefile           | 1 +
+ drivers/firmware/efi/libstub/Makefile | 3 ++-
+ 6 files changed, 11 insertions(+), 1 deletion(-)
 
-- RGB
-
---
-Richard Guy Briggs <rgb@redhat.com>
-Sr. S/W Engineer, Kernel Security, Base Operating Systems
-Remote, Ottawa, Red Hat Canada
-IRC: rgb, SunRaycer
-Voice: +1.647.777.2635, Internal: (81) 32635
+diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
+index fd94e27ba4fa..72f056a00ad4 100644
+--- a/arch/arm/boot/compressed/Makefile
++++ b/arch/arm/boot/compressed/Makefile
+@@ -82,6 +82,8 @@ compress-$(CONFIG_KERNEL_LZMA) = lzma
+ compress-$(CONFIG_KERNEL_XZ)   = xzkern
+ compress-$(CONFIG_KERNEL_LZ4)  = lz4
+ 
++KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++
+ libfdt_objs := fdt_rw.o fdt_ro.o fdt_wip.o fdt.o
+ 
+ ifeq ($(CONFIG_ARM_ATAG_DTB_COMPAT),y)
+diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
+index c5e1545bc5cf..960ed0fb6804 100644
+--- a/arch/sparc/vdso/Makefile
++++ b/arch/sparc/vdso/Makefile
+@@ -30,6 +30,8 @@ obj-y += $(vdso_img_objs)
+ targets += $(vdso_img_cfiles)
+ targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
+ 
++KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++
+ CPPFLAGS_vdso.lds += -P -C
+ 
+ VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 --no-undefined \
+diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
+index e0bc3988c3fa..ada4eb960d95 100644
+--- a/arch/x86/boot/compressed/Makefile
++++ b/arch/x86/boot/compressed/Makefile
+@@ -31,6 +31,7 @@ targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
+ KBUILD_CFLAGS := -m$(BITS) -O2
+ KBUILD_CFLAGS += -fno-strict-aliasing -fPIE
+ KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
++KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
+ cflags-$(CONFIG_X86_32) := -march=i386
+ cflags-$(CONFIG_X86_64) := -mcmodel=small -mno-red-zone
+ KBUILD_CFLAGS += $(cflags-y)
+diff --git a/arch/x86/entry/vdso/Makefile b/arch/x86/entry/vdso/Makefile
+index 05c4abc2fdfd..619878f2c427 100644
+--- a/arch/x86/entry/vdso/Makefile
++++ b/arch/x86/entry/vdso/Makefile
+@@ -29,6 +29,9 @@ vobjs32-y := vdso32/note.o vdso32/system_call.o vdso32/sigreturn.o
+ vobjs32-y += vdso32/vclock_gettime.o
+ vobjs-$(CONFIG_X86_SGX)	+= vsgx.o
+ 
++# avoid a x86_64_RELATIVE error
++KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++
+ # files to link into kernel
+ obj-y				+= vma.o extable.o
+ KASAN_SANITIZE_vma.o		:= y
+diff --git a/arch/x86/purgatory/Makefile b/arch/x86/purgatory/Makefile
+index 95ea17a9d20c..95ba7b18410f 100644
+--- a/arch/x86/purgatory/Makefile
++++ b/arch/x86/purgatory/Makefile
+@@ -35,6 +35,7 @@ PURGATORY_CFLAGS_REMOVE := -mcmodel=kernel
+ PURGATORY_CFLAGS := -mcmodel=large -ffreestanding -fno-zero-initialized-in-bss -g0
+ PURGATORY_CFLAGS += $(DISABLE_STACKLEAK_PLUGIN) -DDISABLE_BRANCH_PROFILING
+ PURGATORY_CFLAGS += -fno-stack-protector
++PURGATORY_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
+ 
+ # Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
+ # in turn leaves some undefined symbols like __fentry__ in purgatory and not
+diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
+index c23466e05e60..def8febefbd3 100644
+--- a/drivers/firmware/efi/libstub/Makefile
++++ b/drivers/firmware/efi/libstub/Makefile
+@@ -13,7 +13,8 @@ cflags-$(CONFIG_X86)		+= -m$(BITS) -D__KERNEL__ \
+ 				   -Wno-pointer-sign \
+ 				   $(call cc-disable-warning, address-of-packed-member) \
+ 				   $(call cc-disable-warning, gnu) \
+-				   -fno-asynchronous-unwind-tables
++				   -fno-asynchronous-unwind-tables \
++				   -DNO_DYNAMIC_DEBUG_TABLE
+ 
+ # arm64 uses the full KBUILD_CFLAGS so it's necessary to explicitly
+ # disable the stackleak plugin
+-- 
+2.31.1
 
