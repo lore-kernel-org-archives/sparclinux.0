@@ -2,51 +2,64 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D921AC43600
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 14:57:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77033C433B4
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 20:35:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A55EE61422
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 14:57:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 439C361408
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 20:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232403AbhELO6e (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 May 2021 10:58:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46930 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232400AbhELO46 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 12 May 2021 10:56:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB0B461462;
-        Wed, 12 May 2021 14:55:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1620831330;
-        bh=DvKCo+D/uNmFT6p2+ZAdmHSuFl+XPHUCcdtAgp8SinQ=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=s5UJXp5A1ehWLquNUtUygQzPoAeGL5vtitKRKqK7MMfGQM/4qJn2NWXsr8zyxrZ/f
-         HVOO6bUKiOk+O0GZJb/rcyUJjbSOy1I8xiww4X3IxU1yGTogCaAilw0MakKjs1PRcH
-         frdF8sGqgOtHULizm4fHwXMlYKr5RomnwES0YNA163ZT3kWYtzIK0Pch44oBAiyN4W
-         SAf4wOMGM42IYPgwOPYpC3CH+FQehusJtnW72j8gB6j7jjFTgkK74L6VQdmFjbTaj0
-         CBwWNOzBK1NzWOzItpfXq91+yiTuujcXFW4lojWbqTqx3KlX2F4pKS5OPUzK6XPSif
-         Yzjrm2O71TopA==
-Received: by mail-ot1-f52.google.com with SMTP id u19-20020a0568302493b02902d61b0d29adso20019145ots.10;
-        Wed, 12 May 2021 07:55:30 -0700 (PDT)
-X-Gm-Message-State: AOAM532/qr4HFQUQb4Fzkox8mMJ0HYtGWjH9aDehaCVmkMzjg9zydB+1
-        WMGsoyACcQn+DU/Y7jDM7AD9nUOuu7xiGt2wxZw=
-X-Google-Smtp-Source: ABdhPJzYb9Oaloykf1CG+pTRbJVzjiXnCPWHMEzD/y4/q2A9ig0gIcqKYlTWZovopNvMJ5IO7bPdtjymQwkgeuAUOVI=
-X-Received: by 2002:a05:6830:4da:: with SMTP id s26mr30866699otd.77.1620831329825;
- Wed, 12 May 2021 07:55:29 -0700 (PDT)
+        id S239307AbhELUgM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 May 2021 16:36:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53952 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1353016AbhELSGk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 May 2021 14:06:40 -0400
+Received: from mail-vk1-xa34.google.com (mail-vk1-xa34.google.com [IPv6:2607:f8b0:4864:20::a34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2261C061344;
+        Wed, 12 May 2021 11:04:14 -0700 (PDT)
+Received: by mail-vk1-xa34.google.com with SMTP id l124so4877686vkh.7;
+        Wed, 12 May 2021 11:04:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=d6PyBDz5Hz+HLZJQx9m2fhDjeQhvfMXZj/HKgsByeXo=;
+        b=EwWfS3nUxUd6F4Hza9Wih48U/DhHt7dkvd7SLfXZB9AGGY0vfd4pqFrdusmN8cEYyS
+         lQKD0SvIknzYN1dLg9K0qeIpr0aJTt96qaYa6V4J/wf4mjLc7k/lK18/sRp6PhSws5dv
+         r14mRXobZqw+H/tl/bTwJK1xulWqG1EF93+eSdX519DzA3USBFSPV3TRhpryr/imW6/h
+         IWEqrrl1Wlc5lDzEUm25bGumfYBqVBftmsSBUcMiOFXjEvh3NzJaGQVLR8+NzPj8bhpr
+         mLyRO8xnT7z4aaJ9s2rAEczBml/s9ZWy6r7SvVTO0mFtUSciYzUZLTWk7D1GcQbJdi3a
+         CZFQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=d6PyBDz5Hz+HLZJQx9m2fhDjeQhvfMXZj/HKgsByeXo=;
+        b=FICTEHw+dI4MVkehfttBwt7859WgoZR71tvf924gYIJl4v44TJr4k4yGz7a1IIvBYT
+         5R5DLcALZmqinI7+vLKcB/rWBXKQe0YBPwXl4dn4wynYsYUYhMRtLsc6jBpeu9IUX9qt
+         xZJkFYyJ8c/aFRC+Kf4ejdEVgF3NunRk50/izw8Dj8ybey0TvSXomFixi8LAi5KMlAox
+         oZKrkeuWMGMn7U/Juzmzx7gUk81SKGQNKbQVH4cwhe4DetU8SXFAXy88OaJBdxV06O/W
+         U2e4WmjEFvSWNBGFpdFC/0N43U00wMWVtvzPindH1FVStgnyZrgFo0TPp29tFngbw8xV
+         Oxew==
+X-Gm-Message-State: AOAM530Z3YfLqwLBQFjajtXDHVMNa/SsFXJgsLnqfFwPJ/FZnbC79yWY
+        rQxCDnt3obiX1IYuEfm94z5QoW4LVuf+CFH3qJs=
+X-Google-Smtp-Source: ABdhPJzu/KIleZZfDrE9427pC4pMWBUduSAchOxtS5+3xBoN5DZNk5IQG0YwqS/XFE66PwTAAAZ4EwHDIAjCHjv9kbA=
+X-Received: by 2002:a1f:20c9:: with SMTP id g192mr4453848vkg.8.1620842654032;
+ Wed, 12 May 2021 11:04:14 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210511185057.3815777-1-jim.cromie@gmail.com> <20210511185057.3815777-18-jim.cromie@gmail.com>
-In-Reply-To: <20210511185057.3815777-18-jim.cromie@gmail.com>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Wed, 12 May 2021 16:55:18 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
-Message-ID: <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
+References: <20210511185057.3815777-1-jim.cromie@gmail.com>
+ <20210511185057.3815777-18-jim.cromie@gmail.com> <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
+In-Reply-To: <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
+From:   jim.cromie@gmail.com
+Date:   Wed, 12 May 2021 12:03:47 -0600
+Message-ID: <CAJfuBxz+vW_aT=ZVM+UgDxDxwph4D+MKB6r518J9vk2YopX+KA@mail.gmail.com>
 Subject: Re: [RFC PATCH v5 17/28] dyndbg: prevent build bugs via -DNO_DYNAMIC_DEBUG_TABLE
-To:     Jim Cromie <jim.cromie@gmail.com>
+To:     Ard Biesheuvel <ardb@kernel.org>
 Cc:     Russell King <linux@armlinux.org.uk>,
         "David S. Miller" <davem@davemloft.net>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -78,112 +91,74 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 11 May 2021 at 20:51, Jim Cromie <jim.cromie@gmail.com> wrote:
+On Wed, May 12, 2021 at 8:55 AM Ard Biesheuvel <ardb@kernel.org> wrote:
 >
-> The next patch adds DEFINE_DYNAMIC_DEBUG_TABLE(), which broke several
-> subtrees, including efi, vdso, and some of arch/*/boot/compressed,
-> with various relocation errors, iirc.
+> On Tue, 11 May 2021 at 20:51, Jim Cromie <jim.cromie@gmail.com> wrote:
+> >
+> > The next patch adds DEFINE_DYNAMIC_DEBUG_TABLE(), which broke several
+> > subtrees, including efi, vdso, and some of arch/*/boot/compressed,
+> > with various relocation errors, iirc.
+> >
+> > Avoid those problems by adding a define to suppress the "transparent"
+> > DEFINE_DYNAMIC_DEBUG_TABLE() invocation.  I found the x86 problems
+> > myself, lkp@intel.com found arm & sparc problems, and may yet find
+> > others.
+> >
 >
-> Avoid those problems by adding a define to suppress the "transparent"
-> DEFINE_DYNAMIC_DEBUG_TABLE() invocation.  I found the x86 problems
-> myself, lkp@intel.com found arm & sparc problems, and may yet find
-> others.
+> Given that I was only cc'ed on this patch in isolation, would you mind
+> adding more clarification here? What is DEFINE_DYNAMIC_DEBUG_TABLE()
+> supposed to do, and why is it breaking standalone binaries?
+>
 >
 
-Given that I was only cc'ed on this patch in isolation, would you mind
-adding more clarification here? What is DEFINE_DYNAMIC_DEBUG_TABLE()
-supposed to do, and why is it breaking standalone binaries?
+hi Ard,
+
+the thread starts here:
+https://lore.kernel.org/linux-mm/20210511185057.3815777-1-jim.cromie@gmail.com/
+
+the _TABLE macro derives from DEFINE_DYNAMIC_DEBUG_METADATA,
+which puts private static struct _ddebug's in section("__dyndbg")
+the _TABLE macro populates a different section(".gnu.linkonce.dyndbg"),
+which is then placed by linker script at the start of the section.
+
+ISTM that the new section might be whats breaking things.
+And maybe that the vmlinux linker script isnt involved.
+so the storage the _TABLE wants to define is unbound
+(and unused, since there are no pr_debugs)
+I did see relocation errors somewhere...
+
+This is my 1st time doing something creative with the linker
 
 
-> Reported-by: <lkp@intel.com> # on [jimc:lkp-test/dyndbg-diet] recently
-> Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
-> ---
->  arch/arm/boot/compressed/Makefile     | 2 ++
->  arch/sparc/vdso/Makefile              | 2 ++
->  arch/x86/boot/compressed/Makefile     | 1 +
->  arch/x86/entry/vdso/Makefile          | 3 +++
->  arch/x86/purgatory/Makefile           | 1 +
->  drivers/firmware/efi/libstub/Makefile | 3 ++-
->  6 files changed, 11 insertions(+), 1 deletion(-)
->
-> diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
-> index fd94e27ba4fa..72f056a00ad4 100644
-> --- a/arch/arm/boot/compressed/Makefile
-> +++ b/arch/arm/boot/compressed/Makefile
-> @@ -82,6 +82,8 @@ compress-$(CONFIG_KERNEL_LZMA) = lzma
->  compress-$(CONFIG_KERNEL_XZ)   = xzkern
->  compress-$(CONFIG_KERNEL_LZ4)  = lz4
->
-> +KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
-> +
->  libfdt_objs := fdt_rw.o fdt_ro.o fdt_wip.o fdt.o
->
->  ifeq ($(CONFIG_ARM_ATAG_DTB_COMPAT),y)
-> diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-> index c5e1545bc5cf..960ed0fb6804 100644
-> --- a/arch/sparc/vdso/Makefile
-> +++ b/arch/sparc/vdso/Makefile
-> @@ -30,6 +30,8 @@ obj-y += $(vdso_img_objs)
->  targets += $(vdso_img_cfiles)
->  targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
->
-> +KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
-> +
->  CPPFLAGS_vdso.lds += -P -C
->
->  VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 --no-undefined \
-> diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
-> index e0bc3988c3fa..ada4eb960d95 100644
-> --- a/arch/x86/boot/compressed/Makefile
-> +++ b/arch/x86/boot/compressed/Makefile
-> @@ -31,6 +31,7 @@ targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
->  KBUILD_CFLAGS := -m$(BITS) -O2
->  KBUILD_CFLAGS += -fno-strict-aliasing -fPIE
->  KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
-> +KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
->  cflags-$(CONFIG_X86_32) := -march=i386
->  cflags-$(CONFIG_X86_64) := -mcmodel=small -mno-red-zone
->  KBUILD_CFLAGS += $(cflags-y)
-> diff --git a/arch/x86/entry/vdso/Makefile b/arch/x86/entry/vdso/Makefile
-> index 05c4abc2fdfd..619878f2c427 100644
-> --- a/arch/x86/entry/vdso/Makefile
-> +++ b/arch/x86/entry/vdso/Makefile
-> @@ -29,6 +29,9 @@ vobjs32-y := vdso32/note.o vdso32/system_call.o vdso32/sigreturn.o
->  vobjs32-y += vdso32/vclock_gettime.o
->  vobjs-$(CONFIG_X86_SGX)        += vsgx.o
->
-> +# avoid a x86_64_RELATIVE error
-> +KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
-> +
->  # files to link into kernel
->  obj-y                          += vma.o extable.o
->  KASAN_SANITIZE_vma.o           := y
-> diff --git a/arch/x86/purgatory/Makefile b/arch/x86/purgatory/Makefile
-> index 95ea17a9d20c..95ba7b18410f 100644
-> --- a/arch/x86/purgatory/Makefile
-> +++ b/arch/x86/purgatory/Makefile
-> @@ -35,6 +35,7 @@ PURGATORY_CFLAGS_REMOVE := -mcmodel=kernel
->  PURGATORY_CFLAGS := -mcmodel=large -ffreestanding -fno-zero-initialized-in-bss -g0
->  PURGATORY_CFLAGS += $(DISABLE_STACKLEAK_PLUGIN) -DDISABLE_BRANCH_PROFILING
->  PURGATORY_CFLAGS += -fno-stack-protector
-> +PURGATORY_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
->
->  # Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
->  # in turn leaves some undefined symbols like __fentry__ in purgatory and not
-> diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
-> index c23466e05e60..def8febefbd3 100644
-> --- a/drivers/firmware/efi/libstub/Makefile
-> +++ b/drivers/firmware/efi/libstub/Makefile
-> @@ -13,7 +13,8 @@ cflags-$(CONFIG_X86)          += -m$(BITS) -D__KERNEL__ \
->                                    -Wno-pointer-sign \
->                                    $(call cc-disable-warning, address-of-packed-member) \
->                                    $(call cc-disable-warning, gnu) \
-> -                                  -fno-asynchronous-unwind-tables
-> +                                  -fno-asynchronous-unwind-tables \
-> +                                  -DNO_DYNAMIC_DEBUG_TABLE
->
->  # arm64 uses the full KBUILD_CFLAGS so it's necessary to explicitly
->  # disable the stackleak plugin
-> --
-> 2.31.1
->
+As to larger purpose, I'll try to restate the patchset mission:
+
+theres ~45kb savings possible by compressing the highly redundant data (~70kb)
+ which decorates pr_debug messages.
+
+1 - split the compressible/decoration columns to a different
+section|block, for block compression
+      this adds temporary .site pointer from _ddebug -> _ddebug_site
+
+2 -  change code so !site is safe.
+
+
+_TABLEs only real job is to provide a header record, at the beginning
+of the section/array,
+for a single .site pointer to the _dyndbg_sites section added in 1.
+Because the header has a fixed offset from any pr_debug in the vector,
+all pr_debugs can use the headers copy of .site, and dont need their own.
+specialize & unionize
+
+So it allows to drop the temporary pointer, restoring memory size
+parity with master.
+And we then have the _dyndbg_sites  section, full of redundant data,
+ready to compress.
+
+suppression with -DNO_DYNAMIC_DEBUG was a workaround, didnt think
+about it afterwards
+
+does this clarify ?
+
+
+thanks
+Jim
