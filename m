@@ -2,195 +2,155 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A516C43460
-	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:52:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B038BC433ED
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 233C361919
-	for <sparclinux@archiver.kernel.org>; Tue, 11 May 2021 18:52:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 863486143A
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232263AbhEKSxG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 May 2021 14:53:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52320 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232269AbhEKSwx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 May 2021 14:52:53 -0400
-Received: from mail-il1-x129.google.com (mail-il1-x129.google.com [IPv6:2607:f8b0:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3F16C061761;
-        Tue, 11 May 2021 11:51:45 -0700 (PDT)
-Received: by mail-il1-x129.google.com with SMTP id e14so18027070ils.12;
-        Tue, 11 May 2021 11:51:45 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=a/h54JdNC5kR17fX7/LoX7g8+9V1SkM6LPGM//jz9YE=;
-        b=TyuPG2wOFQrgKxI20nIja2mzk8NJAyGwIiLGj/NpdzrU1nuGJ3oPGW2TGiZg9bh6wd
-         30l/Phnddorg+Dvatg6e2gDVLUG7R3rAPN2Tgd3NmEqqFan8p6PHC/BHRVy8iRfaJKO/
-         amPeFT9M8GsyJElzvFaLAn6XDBv4c2LfW0nsjuUlmr8W6BpEzw+zMNtu2oMoNGHvcG8n
-         gogAnm+letvJoMK/VTjaueLYu4SHHfVbY1uWf04y/zmGK7thYghUd94dqrU5FliesezB
-         8v5dWnyTDFWI0iz9wFXKfwg5Mi5uV4qoD9KMqGpRrSNSx29CnxRTbSnLd/H57hp6QPlO
-         bPRw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=a/h54JdNC5kR17fX7/LoX7g8+9V1SkM6LPGM//jz9YE=;
-        b=SfWk9/dohsluSxgFdf5l+Kxz3LNJB8yVCuDYi4H2rnapxnnX4LUGCNU5UD1sOjkPr1
-         YEsUPQX/CoIyL5A3T7294VMPA1VRD6z4lC6cD/94R9HJibkqoZX30radqRg2EZkl2nS7
-         ms+nadk3Cg9TEN7YPweySogjxOe5B1nxfEOo/c5LxIrS08iwoys4SxbHWPpHQtCNrjxj
-         XAYLG98lvCzSri7Cxvc21a67Cst3pzpV3BnOqdnwPe2LbAu9w1Vp8ZNdT/j8HXgZIQ49
-         64qJ//Xsm35MhnjSSMHLPSzW6h6d6OguVETypu91Uh5Ert3LFWPTLkkXpYjWjJrcf2sj
-         ZECg==
-X-Gm-Message-State: AOAM5333cGgU7JUFGwU9WOc6l03JfH9ZbZe0ahd4Ie7zRX3Efu9BMBD0
-        e0TLIU9pt7o+uc97R4JMlOg=
-X-Google-Smtp-Source: ABdhPJzcb33bvz5DI0nPKr87rXTBl99c1OgYhzBNlqj59Pxj7WEvcQRq6DDiruZk26m5IctEX86qCA==
-X-Received: by 2002:a05:6e02:1b85:: with SMTP id h5mr186059ili.303.1620759105380;
-        Tue, 11 May 2021 11:51:45 -0700 (PDT)
-Received: from frodo.mearth (c-24-9-77-57.hsd1.co.comcast.net. [24.9.77.57])
-        by smtp.googlemail.com with ESMTPSA id t10sm405096ils.36.2021.05.11.11.51.43
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 11 May 2021 11:51:44 -0700 (PDT)
-From:   Jim Cromie <jim.cromie@gmail.com>
-To:     Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
-        Andy Lutomirski <luto@kernel.org>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Bill Wendling <morbo@google.com>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Jim Cromie <jim.cromie@gmail.com>,
-        Arvind Sankar <nivedita@alum.mit.edu>,
-        Joerg Roedel <jroedel@suse.de>, Nick Terrell <terrelln@fb.com>,
-        Dave Young <dyoung@redhat.com>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Atish Patra <atish.patra@wdc.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-efi@vger.kernel.org
-Cc:     linux-mm@kvack.org, lkp@intel.com
-Subject: [RFC PATCH v5 17/28] dyndbg: prevent build bugs via -DNO_DYNAMIC_DEBUG_TABLE
-Date:   Tue, 11 May 2021 12:50:46 -0600
-Message-Id: <20210511185057.3815777-18-jim.cromie@gmail.com>
-X-Mailer: git-send-email 2.31.1
-In-Reply-To: <20210511185057.3815777-1-jim.cromie@gmail.com>
-References: <20210511185057.3815777-1-jim.cromie@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S229952AbhELFV0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 May 2021 01:21:26 -0400
+Received: from pegase2.c-s.fr ([93.17.235.10]:59443 "EHLO pegase2.c-s.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229704AbhELFVZ (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 12 May 2021 01:21:25 -0400
+X-Greylist: delayed 1157 seconds by postgrey-1.27 at vger.kernel.org; Wed, 12 May 2021 01:21:25 EDT
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+        by localhost (Postfix) with ESMTP id 4Fg2gL0zrDz9sf3;
+        Wed, 12 May 2021 07:01:02 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id dA1m01dIGbmI; Wed, 12 May 2021 07:01:02 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fg2gK3TDCz9sdw;
+        Wed, 12 May 2021 07:01:01 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 4F1538B7D6;
+        Wed, 12 May 2021 07:01:01 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id rQhrgmmPfChw; Wed, 12 May 2021 07:01:01 +0200 (CEST)
+Received: from po15610vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id F18CB8B769;
+        Wed, 12 May 2021 07:01:00 +0200 (CEST)
+Received: by po15610vm.idsi0.si.c-s.fr (Postfix, from userid 0)
+        id CC0C064164; Wed, 12 May 2021 05:01:00 +0000 (UTC)
+Message-Id: <fb3ccc73377832ac6708181ec419128a2f98ce36.1620795204.git.christophe.leroy@csgroup.eu>
+In-Reply-To: <cover.1620795204.git.christophe.leroy@csgroup.eu>
+References: <cover.1620795204.git.christophe.leroy@csgroup.eu>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: [PATCH v2 3/5] mm/vmalloc: Enable mapping of huge pages at pte level
+ in vmap
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>
+Cc:     linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org
+Date:   Wed, 12 May 2021 05:01:00 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The next patch adds DEFINE_DYNAMIC_DEBUG_TABLE(), which broke several
-subtrees, including efi, vdso, and some of arch/*/boot/compressed,
-with various relocation errors, iirc.
+On some architectures like powerpc, there are huge pages that
+are mapped at pte level.
 
-Avoid those problems by adding a define to suppress the "transparent"
-DEFINE_DYNAMIC_DEBUG_TABLE() invocation.  I found the x86 problems
-myself, lkp@intel.com found arm & sparc problems, and may yet find
-others.
+Enable it in vmap.
 
-Reported-by: <lkp@intel.com> # on [jimc:lkp-test/dyndbg-diet] recently
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
+For that, architectures can provide arch_vmap_pte_range_map_size()
+that returns the size of pages to map at pte level.
+
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 ---
- arch/arm/boot/compressed/Makefile     | 2 ++
- arch/sparc/vdso/Makefile              | 2 ++
- arch/x86/boot/compressed/Makefile     | 1 +
- arch/x86/entry/vdso/Makefile          | 3 +++
- arch/x86/purgatory/Makefile           | 1 +
- drivers/firmware/efi/libstub/Makefile | 3 ++-
- 6 files changed, 11 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |  8 ++++++++
+ mm/vmalloc.c            | 21 ++++++++++++++++++---
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/compressed/Makefile b/arch/arm/boot/compressed/Makefile
-index fd94e27ba4fa..72f056a00ad4 100644
---- a/arch/arm/boot/compressed/Makefile
-+++ b/arch/arm/boot/compressed/Makefile
-@@ -82,6 +82,8 @@ compress-$(CONFIG_KERNEL_LZMA) = lzma
- compress-$(CONFIG_KERNEL_XZ)   = xzkern
- compress-$(CONFIG_KERNEL_LZ4)  = lz4
+diff --git a/include/linux/vmalloc.h b/include/linux/vmalloc.h
+index 4d668abb6391..13c9b19ec923 100644
+--- a/include/linux/vmalloc.h
++++ b/include/linux/vmalloc.h
+@@ -104,6 +104,14 @@ static inline bool arch_vmap_pmd_supported(pgprot_t prot)
+ }
+ #endif
  
-+KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++#ifndef arch_vmap_pte_range_map_size
++static inline unsigned long arch_vmap_pte_range_map_size(unsigned long addr, unsigned long end,
++							 u64 pfn, unsigned int max_page_shift)
++{
++	return PAGE_SIZE;
++}
++#endif
 +
- libfdt_objs := fdt_rw.o fdt_ro.o fdt_wip.o fdt.o
+ /*
+  *	Highlevel APIs for driver use
+  */
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index a13ac524f6ff..783d23b8c2f7 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -36,6 +36,7 @@
+ #include <linux/overflow.h>
+ #include <linux/pgtable.h>
+ #include <linux/uaccess.h>
++#include <linux/hugetlb.h>
+ #include <asm/tlbflush.h>
+ #include <asm/shmparam.h>
  
- ifeq ($(CONFIG_ARM_ATAG_DTB_COMPAT),y)
-diff --git a/arch/sparc/vdso/Makefile b/arch/sparc/vdso/Makefile
-index c5e1545bc5cf..960ed0fb6804 100644
---- a/arch/sparc/vdso/Makefile
-+++ b/arch/sparc/vdso/Makefile
-@@ -30,6 +30,8 @@ obj-y += $(vdso_img_objs)
- targets += $(vdso_img_cfiles)
- targets += $(vdso_img_sodbg) $(vdso_img-y:%=vdso%.so)
+@@ -83,10 +84,11 @@ static void free_work(struct work_struct *w)
+ /*** Page table manipulation functions ***/
+ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			phys_addr_t phys_addr, pgprot_t prot,
+-			pgtbl_mod_mask *mask)
++			unsigned int max_page_shift, pgtbl_mod_mask *mask)
+ {
+ 	pte_t *pte;
+ 	u64 pfn;
++	unsigned long size = PAGE_SIZE;
  
-+KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
+ 	pfn = phys_addr >> PAGE_SHIFT;
+ 	pte = pte_alloc_kernel_track(pmd, addr, mask);
+@@ -94,9 +96,22 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 		return -ENOMEM;
+ 	do {
+ 		BUG_ON(!pte_none(*pte));
 +
- CPPFLAGS_vdso.lds += -P -C
- 
- VDSO_LDFLAGS_vdso.lds = -m elf64_sparc -soname linux-vdso.so.1 --no-undefined \
-diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
-index e0bc3988c3fa..ada4eb960d95 100644
---- a/arch/x86/boot/compressed/Makefile
-+++ b/arch/x86/boot/compressed/Makefile
-@@ -31,6 +31,7 @@ targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
- KBUILD_CFLAGS := -m$(BITS) -O2
- KBUILD_CFLAGS += -fno-strict-aliasing -fPIE
- KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
-+KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
- cflags-$(CONFIG_X86_32) := -march=i386
- cflags-$(CONFIG_X86_64) := -mcmodel=small -mno-red-zone
- KBUILD_CFLAGS += $(cflags-y)
-diff --git a/arch/x86/entry/vdso/Makefile b/arch/x86/entry/vdso/Makefile
-index 05c4abc2fdfd..619878f2c427 100644
---- a/arch/x86/entry/vdso/Makefile
-+++ b/arch/x86/entry/vdso/Makefile
-@@ -29,6 +29,9 @@ vobjs32-y := vdso32/note.o vdso32/system_call.o vdso32/sigreturn.o
- vobjs32-y += vdso32/vclock_gettime.o
- vobjs-$(CONFIG_X86_SGX)	+= vsgx.o
- 
-+# avoid a x86_64_RELATIVE error
-+KBUILD_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++#ifdef CONFIG_HUGETLB_PAGE
++		size = arch_vmap_pte_range_map_size(addr, end, pfn, max_page_shift);
++		if (size != PAGE_SIZE) {
++			pte_t entry = pfn_pte(pfn, prot);
 +
- # files to link into kernel
- obj-y				+= vma.o extable.o
- KASAN_SANITIZE_vma.o		:= y
-diff --git a/arch/x86/purgatory/Makefile b/arch/x86/purgatory/Makefile
-index 95ea17a9d20c..95ba7b18410f 100644
---- a/arch/x86/purgatory/Makefile
-+++ b/arch/x86/purgatory/Makefile
-@@ -35,6 +35,7 @@ PURGATORY_CFLAGS_REMOVE := -mcmodel=kernel
- PURGATORY_CFLAGS := -mcmodel=large -ffreestanding -fno-zero-initialized-in-bss -g0
- PURGATORY_CFLAGS += $(DISABLE_STACKLEAK_PLUGIN) -DDISABLE_BRANCH_PROFILING
- PURGATORY_CFLAGS += -fno-stack-protector
-+PURGATORY_CFLAGS += -DNO_DYNAMIC_DEBUG_TABLE
++			entry = pte_mkhuge(entry);
++			entry = arch_make_huge_pte(entry, ilog2(size), 0);
++			set_huge_pte_at(&init_mm, addr, pte, entry);
++			pfn += PFN_DOWN(size);
++			continue;
++		}
++#endif
+ 		set_pte_at(&init_mm, addr, pte, pfn_pte(pfn, prot));
+ 		pfn++;
+-	} while (pte++, addr += PAGE_SIZE, addr != end);
++	} while (pte += PFN_DOWN(size), addr += size, addr != end);
+ 	*mask |= PGTBL_PTE_MODIFIED;
+ 	return 0;
+ }
+@@ -145,7 +160,7 @@ static int vmap_pmd_range(pud_t *pud, unsigned long addr, unsigned long end,
+ 			continue;
+ 		}
  
- # Default KBUILD_CFLAGS can have -pg option set when FTRACE is enabled. That
- # in turn leaves some undefined symbols like __fentry__ in purgatory and not
-diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
-index c23466e05e60..def8febefbd3 100644
---- a/drivers/firmware/efi/libstub/Makefile
-+++ b/drivers/firmware/efi/libstub/Makefile
-@@ -13,7 +13,8 @@ cflags-$(CONFIG_X86)		+= -m$(BITS) -D__KERNEL__ \
- 				   -Wno-pointer-sign \
- 				   $(call cc-disable-warning, address-of-packed-member) \
- 				   $(call cc-disable-warning, gnu) \
--				   -fno-asynchronous-unwind-tables
-+				   -fno-asynchronous-unwind-tables \
-+				   -DNO_DYNAMIC_DEBUG_TABLE
- 
- # arm64 uses the full KBUILD_CFLAGS so it's necessary to explicitly
- # disable the stackleak plugin
+-		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, mask))
++		if (vmap_pte_range(pmd, addr, next, phys_addr, prot, max_page_shift, mask))
+ 			return -ENOMEM;
+ 	} while (pmd++, phys_addr += (next - addr), addr = next, addr != end);
+ 	return 0;
 -- 
-2.31.1
+2.25.0
 
