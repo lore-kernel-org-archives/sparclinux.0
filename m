@@ -7,45 +7,46 @@ X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5F77C43460
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C0FC433B4
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA7E561370
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65AF9613E9
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230102AbhELFVg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 May 2021 01:21:36 -0400
+        id S230026AbhELFVi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 May 2021 01:21:38 -0400
 Received: from pegase2.c-s.fr ([93.17.235.10]:36271 "EHLO pegase2.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230026AbhELFVf (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 12 May 2021 01:21:35 -0400
+        id S230095AbhELFVh (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 12 May 2021 01:21:37 -0400
 Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
-        by localhost (Postfix) with ESMTP id 4Fg2gK2rF4z9sf2;
-        Wed, 12 May 2021 07:01:01 +0200 (CEST)
+        by localhost (Postfix) with ESMTP id 4Fg2gM6bvBz9sf5;
+        Wed, 12 May 2021 07:01:03 +0200 (CEST)
 X-Virus-Scanned: amavisd-new at c-s.fr
 Received: from pegase2.c-s.fr ([172.26.127.65])
         by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id kXoQp0A-XejD; Wed, 12 May 2021 07:01:01 +0200 (CEST)
+        with ESMTP id uaQLlcVkEpMb; Wed, 12 May 2021 07:01:03 +0200 (CEST)
 Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fg2gJ3MPKz9sdw;
-        Wed, 12 May 2021 07:01:00 +0200 (CEST)
+        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fg2gL5p7cz9sdw;
+        Wed, 12 May 2021 07:01:02 +0200 (CEST)
 Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 2B9508B7D6;
-        Wed, 12 May 2021 07:01:00 +0200 (CEST)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 713888B7D6;
+        Wed, 12 May 2021 07:01:02 +0200 (CEST)
 X-Virus-Scanned: amavisd-new at c-s.fr
 Received: from messagerie.si.c-s.fr ([127.0.0.1])
         by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id aGrEm4CDExDn; Wed, 12 May 2021 07:01:00 +0200 (CEST)
+        with ESMTP id nr1Qn5Y6fAJk; Wed, 12 May 2021 07:01:02 +0200 (CEST)
 Received: from po15610vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id E88BA8B769;
-        Wed, 12 May 2021 07:00:59 +0200 (CEST)
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 006F48B769;
+        Wed, 12 May 2021 07:01:01 +0200 (CEST)
 Received: by po15610vm.idsi0.si.c-s.fr (Postfix, from userid 0)
-        id C4EAA64164; Wed, 12 May 2021 05:00:59 +0000 (UTC)
-Message-Id: <5ac5976419350e8e048d463a64cae449eb3ba4b0.1620795204.git.christophe.leroy@csgroup.eu>
+        id D2BC764164; Wed, 12 May 2021 05:01:01 +0000 (UTC)
+Message-Id: <2c717e3b1fba1894d890feb7669f83025bfa314d.1620795204.git.christophe.leroy@csgroup.eu>
 In-Reply-To: <cover.1620795204.git.christophe.leroy@csgroup.eu>
 References: <cover.1620795204.git.christophe.leroy@csgroup.eu>
 From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: [PATCH v2 2/5] mm/pgtable: Add stubs for {pmd/pub}_{set/clear}_huge
+Subject: [PATCH v2 4/5] mm/vmalloc: Enable mapping of huge pages at pte level
+ in vmalloc
 To:     Andrew Morton <akpm@linux-foundation.org>,
         Nicholas Piggin <npiggin@gmail.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
@@ -53,59 +54,75 @@ To:     Andrew Morton <akpm@linux-foundation.org>,
 Cc:     linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         sparclinux@vger.kernel.org, linux-mm@kvack.org
-Date:   Wed, 12 May 2021 05:00:59 +0000 (UTC)
+Date:   Wed, 12 May 2021 05:01:01 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-For architectures with no PMD and/or no PUD, add stubs
-similar to what we have for architectures without P4D.
+On some architectures like powerpc, there are huge pages that
+are mapped at pte level.
+
+Enable it in vmalloc.
+
+For that, architectures can provide arch_vmap_pte_supported_shift()
+that returns the shift for pages to map at pte level.
 
 Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
 ---
- include/linux/pgtable.h | 26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |  7 +++++++
+ mm/vmalloc.c            | 13 +++++++------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
-index 46b13780c2c8..d41474a2d255 100644
---- a/include/linux/pgtable.h
-+++ b/include/linux/pgtable.h
-@@ -1371,10 +1371,34 @@ static inline int p4d_clear_huge(p4d_t *p4d)
+diff --git a/include/linux/vmalloc.h b/include/linux/vmalloc.h
+index 13c9b19ec923..bf0a1b7a824e 100644
+--- a/include/linux/vmalloc.h
++++ b/include/linux/vmalloc.h
+@@ -112,6 +112,13 @@ static inline unsigned long arch_vmap_pte_range_map_size(unsigned long addr, uns
  }
- #endif /* !__PAGETABLE_P4D_FOLDED */
+ #endif
  
-+#ifndef __PAGETABLE_PUD_FOLDED
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
--int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
- int pud_clear_huge(pud_t *pud);
-+#else
-+static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
++#ifndef arch_vmap_pte_supported_shift
++static inline int arch_vmap_pte_supported_shift(unsigned long size)
 +{
-+	return 0;
++	return PAGE_SHIFT;
 +}
-+static inline int pud_clear_huge(pud_t *pud)
-+{
-+	return 0;
-+}
-+#endif /* !__PAGETABLE_PUD_FOLDED */
++#endif
 +
-+#ifndef __PAGETABLE_PMD_FOLDED
-+int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
- int pmd_clear_huge(pmd_t *pmd);
-+#else
-+static inline int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
-+{
-+	return 0;
-+}
-+static inline int pmd_clear_huge(pmd_t *pmd)
-+{
-+	return 0;
-+}
-+#endif /* !__PAGETABLE_PMD_FOLDED */
+ /*
+  *	Highlevel APIs for driver use
+  */
+diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+index 783d23b8c2f7..3de5291c20cd 100644
+--- a/mm/vmalloc.c
++++ b/mm/vmalloc.c
+@@ -2895,8 +2895,7 @@ void *__vmalloc_node_range(unsigned long size, unsigned long align,
+ 		return NULL;
+ 	}
+ 
+-	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP) &&
+-			arch_vmap_pmd_supported(prot)) {
++	if (vmap_allow_huge && !(vm_flags & VM_NO_HUGE_VMAP)) {
+ 		unsigned long size_per_node;
+ 
+ 		/*
+@@ -2909,11 +2908,13 @@ void *__vmalloc_node_range(unsigned long size, unsigned long align,
+ 		size_per_node = size;
+ 		if (node == NUMA_NO_NODE)
+ 			size_per_node /= num_online_nodes();
+-		if (size_per_node >= PMD_SIZE) {
++		if (arch_vmap_pmd_supported(prot) && size_per_node >= PMD_SIZE)
+ 			shift = PMD_SHIFT;
+-			align = max(real_align, 1UL << shift);
+-			size = ALIGN(real_size, 1UL << shift);
+-		}
++		else
++			shift = arch_vmap_pte_supported_shift(size_per_node);
 +
- int p4d_free_pud_page(p4d_t *p4d, unsigned long addr);
- int pud_free_pmd_page(pud_t *pud, unsigned long addr);
- int pmd_free_pte_page(pmd_t *pmd, unsigned long addr);
++		align = max(real_align, 1UL << shift);
++		size = ALIGN(real_size, 1UL << shift);
+ 	}
+ 
+ again:
 -- 
 2.25.0
 
