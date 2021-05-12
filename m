@@ -2,113 +2,376 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE239C433B4
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE089C43461
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 08:06:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 873B4613E9
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 05:20:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99719611C9
+	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 08:06:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230111AbhELFVk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 May 2021 01:21:40 -0400
-Received: from pegase2.c-s.fr ([93.17.235.10]:36271 "EHLO pegase2.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230095AbhELFVk (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 12 May 2021 01:21:40 -0400
-Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
-        by localhost (Postfix) with ESMTP id 4Fg2gH0m2Rz9sdy;
-        Wed, 12 May 2021 07:00:59 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase2.c-s.fr ([172.26.127.65])
-        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id XsPm6W350ZRE; Wed, 12 May 2021 07:00:59 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fg2gG6sQxz9sdw;
-        Wed, 12 May 2021 07:00:58 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 79F568B7D6;
-        Wed, 12 May 2021 07:00:58 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id xwiuG9ynOkOh; Wed, 12 May 2021 07:00:58 +0200 (CEST)
-Received: from po15610vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 015118B769;
-        Wed, 12 May 2021 07:00:57 +0200 (CEST)
-Received: by po15610vm.idsi0.si.c-s.fr (Postfix, from userid 0)
-        id AE30264164; Wed, 12 May 2021 05:00:57 +0000 (UTC)
-Message-Id: <cover.1620795204.git.christophe.leroy@csgroup.eu>
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: [PATCH v2 0/5] Implement huge VMAP and VMALLOC on powerpc 8xx
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>
-Cc:     linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        sparclinux@vger.kernel.org, linux-mm@kvack.org
-Date:   Wed, 12 May 2021 05:00:57 +0000 (UTC)
+        id S230300AbhELIIE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 12 May 2021 04:08:04 -0400
+Received: from condef-01.nifty.com ([202.248.20.66]:36595 "EHLO
+        condef-01.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230265AbhELIIC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 May 2021 04:08:02 -0400
+Received: from conuserg-07.nifty.com ([10.126.8.70])by condef-01.nifty.com with ESMTP id 14C84U3t002321;
+        Wed, 12 May 2021 17:04:30 +0900
+Received: from grover.RMN.KIBA.LAB.jp (133-32-232-101.west.xps.vectant.ne.jp [133.32.232.101]) (authenticated)
+        by conuserg-07.nifty.com with ESMTP id 14C7vbPs028192;
+        Wed, 12 May 2021 16:57:38 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-07.nifty.com 14C7vbPs028192
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1620806261;
+        bh=wIUNhcOB6btFOL0gSpr92RlYruAqiaKJ+SP4MHn4OAA=;
+        h=From:To:Cc:Subject:Date:From;
+        b=MEPfaL+dgaQHelu1aORa4dkshKUoXyML9ToegfF2X/+DDlDkT2NTxvVtRobsDkp3y
+         w6q0OMUPClkMLevvjlJySVaAGk9chQn5JmHYb+Sby+ocz18EmUyh5EfwgbghPbCUMs
+         BfqHu2GczlJunlpKBWtiGYnb5THa+fwMAHT17a+4GK1J+KWFOc18MvDzUYfMdu9apT
+         X6Smfz3LDGjObml+5VUPVmYQNjXkkTpqKOuY3LDfkxKy7PEEqqJdMx9ujR6UWsgJpM
+         n0Q+gHtNpnXSYPWFtp4AhWmiwdi6gcYpdR3mkS/pbX/h/3dXftILrjdVKvAqW4utJB
+         bGXpxDJOBDv8Q==
+X-Nifty-SrcIP: [133.32.232.101]
+From:   Masahiro Yamada <masahiroy@kernel.org>
+To:     linux-kbuild@vger.kernel.org
+Cc:     Masahiro Yamada <masahiroy@kernel.org>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Brian Cain <bcain@codeaurora.org>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Chris Zankel <chris@zankel.net>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greentime Hu <green.hu@gmail.com>, Guo Ren <guoren@kernel.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>, Ingo Molnar <mingo@redhat.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Jeff Dike <jdike@addtoit.com>, Jonas Bonn <jonas@southpole.se>,
+        Ley Foon Tan <ley.foon.tan@intel.com>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Marek <michal.lkml@markovi.net>,
+        Michal Simek <monstr@monstr.eu>,
+        Nick Hu <nickhu@andestech.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Rich Felker <dalias@libc.org>,
+        Richard Henderson <rth@twiddle.net>,
+        Richard Weinberger <richard@nod.at>,
+        Russell King <linux@armlinux.org.uk>,
+        Stafford Horne <shorne@gmail.com>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        Vineet Gupta <vgupta@synopsys.com>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org,
+        sparclinux@vger.kernel.org, uclinux-h8-devel@lists.sourceforge.jp,
+        x86@kernel.org
+Subject: [PATCH 1/5] kbuild: require all architectures to have arch/$(SRCARCH)/Kbuild
+Date:   Wed, 12 May 2021 16:57:25 +0900
+Message-Id: <20210512075729.60291-1-masahiroy@kernel.org>
+X-Mailer: git-send-email 2.27.0
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This series implements huge VMAP and VMALLOC on powerpc 8xx.
+arch/$(SRCARCH)/Kbuild is useful for Makefile cleanups because you can
+use the obj-y syntax.
 
-Powerpc 8xx has 4 page sizes:
-- 4k
-- 16k
-- 512k
-- 8M
+Add an empty file if it is missing in arch/$(SRCARCH)/.
 
-At the time being, vmalloc and vmap only support huge pages which are
-leaf at PMD level.
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
 
-Here the PMD level is 4M, it doesn't correspond to any supported
-page size.
+ Makefile               | 2 +-
+ arch/alpha/Kbuild      | 1 +
+ arch/arc/Makefile      | 3 ---
+ arch/arm/Makefile      | 1 -
+ arch/arm64/Makefile    | 1 -
+ arch/csky/Kbuild       | 1 +
+ arch/h8300/Kbuild      | 1 +
+ arch/hexagon/Kbuild    | 1 +
+ arch/ia64/Kbuild       | 1 +
+ arch/microblaze/Kbuild | 1 +
+ arch/mips/Makefile     | 3 ---
+ arch/nds32/Kbuild      | 1 +
+ arch/nios2/Kbuild      | 1 +
+ arch/openrisc/Makefile | 1 -
+ arch/parisc/Kbuild     | 1 +
+ arch/powerpc/Makefile  | 3 ---
+ arch/riscv/Makefile    | 1 -
+ arch/s390/Makefile     | 3 ---
+ arch/sh/Kbuild         | 1 +
+ arch/sparc/Makefile    | 3 ---
+ arch/um/Kbuild         | 1 +
+ arch/x86/Makefile      | 3 ---
+ arch/xtensa/Kbuild     | 1 +
+ 23 files changed, 13 insertions(+), 23 deletions(-)
+ create mode 100644 arch/alpha/Kbuild
+ create mode 100644 arch/csky/Kbuild
+ create mode 100644 arch/h8300/Kbuild
+ create mode 100644 arch/hexagon/Kbuild
+ create mode 100644 arch/ia64/Kbuild
+ create mode 100644 arch/microblaze/Kbuild
+ create mode 100644 arch/nds32/Kbuild
+ create mode 100644 arch/nios2/Kbuild
+ create mode 100644 arch/parisc/Kbuild
+ create mode 100644 arch/sh/Kbuild
+ create mode 100644 arch/um/Kbuild
+ create mode 100644 arch/xtensa/Kbuild
 
-For now, implement use of 16k and 512k pages which is done
-at PTE level.
-
-Support of 8M pages will be implemented later, it requires use of
-hugepd tables.
-
-To allow this, the architecture provides two functions:
-- arch_vmap_pte_range_map_size() which tells vmap_pte_range() what
-page size to use. A stub returning PAGE_SIZE is provided when the
-architecture doesn't provide this function.
-- arch_vmap_pte_supported_shift() which tells __vmalloc_node_range()
-what page shift to use for a given area size. A stub returning
-PAGE_SHIFT is provided when the architecture doesn't provide this
-function.
-
-The main change in v2 compared to the RFC is that powerpc 8xx
-specificities are not plugged anymore directly inside vmalloc code.
-
-Christophe Leroy (5):
-  mm/hugetlb: Change parameters of arch_make_huge_pte()
-  mm/pgtable: Add stubs for {pmd/pub}_{set/clear}_huge
-  mm/vmalloc: Enable mapping of huge pages at pte level in vmap
-  mm/vmalloc: Enable mapping of huge pages at pte level in vmalloc
-  powerpc/8xx: Add support for huge pages on VMAP and VMALLOC
-
- arch/arm64/include/asm/hugetlb.h              |  3 +-
- arch/arm64/mm/hugetlbpage.c                   |  5 +--
- arch/powerpc/Kconfig                          |  2 +-
- .../include/asm/nohash/32/hugetlb-8xx.h       |  5 +--
- arch/powerpc/include/asm/nohash/32/mmu-8xx.h  | 43 +++++++++++++++++++
- arch/sparc/include/asm/pgtable_64.h           |  3 +-
- arch/sparc/mm/hugetlbpage.c                   |  6 +--
- include/linux/hugetlb.h                       |  4 +-
- include/linux/pgtable.h                       | 26 ++++++++++-
- include/linux/vmalloc.h                       | 15 +++++++
- mm/hugetlb.c                                  |  6 ++-
- mm/migrate.c                                  |  4 +-
- mm/vmalloc.c                                  | 34 +++++++++++----
- 13 files changed, 126 insertions(+), 30 deletions(-)
-
+diff --git a/Makefile b/Makefile
+index 15b6476d0f89..7df040b1b023 100644
+--- a/Makefile
++++ b/Makefile
+@@ -658,7 +658,7 @@ endif
+ 
+ ifeq ($(KBUILD_EXTMOD),)
+ # Objects we will link into vmlinux / subdirs we need to visit
+-core-y		:= init/ usr/
++core-y		:= init/ usr/ arch/$(SRCARCH)/
+ drivers-y	:= drivers/ sound/
+ drivers-$(CONFIG_SAMPLES) += samples/
+ drivers-$(CONFIG_NET) += net/
+diff --git a/arch/alpha/Kbuild b/arch/alpha/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/alpha/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/arc/Makefile b/arch/arc/Makefile
+index 4392c9c189c4..3e6d4b84797f 100644
+--- a/arch/arc/Makefile
++++ b/arch/arc/Makefile
+@@ -85,9 +85,6 @@ KBUILD_LDFLAGS	+= $(ldflags-y)
+ 
+ head-y		:= arch/arc/kernel/head.o
+ 
+-# See arch/arc/Kbuild for content of core part of the kernel
+-core-y		+= arch/arc/
+-
+ # w/o this dtb won't embed into kernel binary
+ core-y		+= arch/arc/boot/dts/
+ 
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+index 415c3514573a..173da685a52e 100644
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -252,7 +252,6 @@ endif
+ 
+ export	TEXT_OFFSET GZFLAGS MMUEXT
+ 
+-core-y				+= arch/arm/
+ # If we have a machine-specific directory, then include it in the build.
+ core-y				+= $(machdirs) $(platdirs)
+ 
+diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
+index 7ef44478560d..b73c151f3a53 100644
+--- a/arch/arm64/Makefile
++++ b/arch/arm64/Makefile
+@@ -149,7 +149,6 @@ KBUILD_CFLAGS += -DKASAN_SHADOW_SCALE_SHIFT=$(KASAN_SHADOW_SCALE_SHIFT)
+ KBUILD_CPPFLAGS += -DKASAN_SHADOW_SCALE_SHIFT=$(KASAN_SHADOW_SCALE_SHIFT)
+ KBUILD_AFLAGS += -DKASAN_SHADOW_SCALE_SHIFT=$(KASAN_SHADOW_SCALE_SHIFT)
+ 
+-core-y		+= arch/arm64/
+ libs-y		:= arch/arm64/lib/ $(libs-y)
+ libs-$(CONFIG_EFI_STUB) += $(objtree)/drivers/firmware/efi/libstub/lib.a
+ 
+diff --git a/arch/csky/Kbuild b/arch/csky/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/csky/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/h8300/Kbuild b/arch/h8300/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/h8300/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/hexagon/Kbuild b/arch/hexagon/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/hexagon/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/ia64/Kbuild b/arch/ia64/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/ia64/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/microblaze/Kbuild b/arch/microblaze/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/microblaze/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/mips/Makefile b/arch/mips/Makefile
+index 258234c35a09..4e942b7ef022 100644
+--- a/arch/mips/Makefile
++++ b/arch/mips/Makefile
+@@ -332,9 +332,6 @@ head-y := arch/mips/kernel/head.o
+ libs-y			+= arch/mips/lib/
+ libs-$(CONFIG_MIPS_FP_SUPPORT) += arch/mips/math-emu/
+ 
+-# See arch/mips/Kbuild for content of core part of the kernel
+-core-y += arch/mips/
+-
+ drivers-y			+= arch/mips/crypto/
+ 
+ # suspend and hibernation support
+diff --git a/arch/nds32/Kbuild b/arch/nds32/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/nds32/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/nios2/Kbuild b/arch/nios2/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/nios2/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/openrisc/Makefile b/arch/openrisc/Makefile
+index 410e7abfac69..c52de526e518 100644
+--- a/arch/openrisc/Makefile
++++ b/arch/openrisc/Makefile
+@@ -42,7 +42,6 @@ endif
+ 
+ head-y 		:= arch/openrisc/kernel/head.o
+ 
+-core-y		+= arch/openrisc/
+ libs-y		+= $(LIBGCC)
+ 
+ PHONY += vmlinux.bin
+diff --git a/arch/parisc/Kbuild b/arch/parisc/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/parisc/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/powerpc/Makefile b/arch/powerpc/Makefile
+index 3212d076ac6a..af669aa75b73 100644
+--- a/arch/powerpc/Makefile
++++ b/arch/powerpc/Makefile
+@@ -267,9 +267,6 @@ head-$(CONFIG_PPC_FPU)		+= arch/powerpc/kernel/fpu.o
+ head-$(CONFIG_ALTIVEC)		+= arch/powerpc/kernel/vector.o
+ head-$(CONFIG_PPC_OF_BOOT_TRAMPOLINE)  += arch/powerpc/kernel/prom_init.o
+ 
+-# See arch/powerpc/Kbuild for content of core part of the kernel
+-core-y += arch/powerpc/
+-
+ # Default to zImage, override when needed
+ all: zImage
+ 
+diff --git a/arch/riscv/Makefile b/arch/riscv/Makefile
+index 3eb9590a0775..c5f359540862 100644
+--- a/arch/riscv/Makefile
++++ b/arch/riscv/Makefile
+@@ -90,7 +90,6 @@ endif
+ 
+ head-y := arch/riscv/kernel/head.o
+ 
+-core-y += arch/riscv/
+ core-$(CONFIG_RISCV_ERRATA_ALTERNATIVE) += arch/riscv/errata/
+ 
+ libs-y += arch/riscv/lib/
+diff --git a/arch/s390/Makefile b/arch/s390/Makefile
+index e443ed9947bd..37b61645694c 100644
+--- a/arch/s390/Makefile
++++ b/arch/s390/Makefile
+@@ -128,9 +128,6 @@ OBJCOPYFLAGS	:= -O binary
+ 
+ head-y		:= arch/s390/kernel/head64.o
+ 
+-# See arch/s390/Kbuild for content of core part of the kernel
+-core-y		+= arch/s390/
+-
+ libs-y		+= arch/s390/lib/
+ drivers-y	+= drivers/s390/
+ 
+diff --git a/arch/sh/Kbuild b/arch/sh/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/sh/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
+index bee99e65fe23..4e65245bc755 100644
+--- a/arch/sparc/Makefile
++++ b/arch/sparc/Makefile
+@@ -58,9 +58,6 @@ endif
+ 
+ head-y                 := arch/sparc/kernel/head_$(BITS).o
+ 
+-# See arch/sparc/Kbuild for the core part of the kernel
+-core-y                 += arch/sparc/
+-
+ libs-y                 += arch/sparc/prom/
+ libs-y                 += arch/sparc/lib/
+ 
+diff --git a/arch/um/Kbuild b/arch/um/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/um/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
+diff --git a/arch/x86/Makefile b/arch/x86/Makefile
+index c77c5d8a7b3e..4307bf48ec53 100644
+--- a/arch/x86/Makefile
++++ b/arch/x86/Makefile
+@@ -239,9 +239,6 @@ head-y += arch/x86/kernel/platform-quirks.o
+ 
+ libs-y  += arch/x86/lib/
+ 
+-# See arch/x86/Kbuild for content of core part of the kernel
+-core-y += arch/x86/
+-
+ # drivers-y are linked after core-y
+ drivers-$(CONFIG_MATH_EMULATION) += arch/x86/math-emu/
+ drivers-$(CONFIG_PCI)            += arch/x86/pci/
+diff --git a/arch/xtensa/Kbuild b/arch/xtensa/Kbuild
+new file mode 100644
+index 000000000000..a4e40e534e6a
+--- /dev/null
++++ b/arch/xtensa/Kbuild
+@@ -0,0 +1 @@
++# SPDX-License-Identifier: GPL-2.0-only
 -- 
-2.25.0
+2.27.0
 
