@@ -2,163 +2,135 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-2.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77033C433B4
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 20:35:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 903DDC43460
+	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 18:27:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 439C361408
-	for <sparclinux@archiver.kernel.org>; Wed, 12 May 2021 20:35:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C5AB6143D
+	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 18:27:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239307AbhELUgM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 12 May 2021 16:36:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53952 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353016AbhELSGk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 12 May 2021 14:06:40 -0400
-Received: from mail-vk1-xa34.google.com (mail-vk1-xa34.google.com [IPv6:2607:f8b0:4864:20::a34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2261C061344;
-        Wed, 12 May 2021 11:04:14 -0700 (PDT)
-Received: by mail-vk1-xa34.google.com with SMTP id l124so4877686vkh.7;
-        Wed, 12 May 2021 11:04:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=d6PyBDz5Hz+HLZJQx9m2fhDjeQhvfMXZj/HKgsByeXo=;
-        b=EwWfS3nUxUd6F4Hza9Wih48U/DhHt7dkvd7SLfXZB9AGGY0vfd4pqFrdusmN8cEYyS
-         lQKD0SvIknzYN1dLg9K0qeIpr0aJTt96qaYa6V4J/wf4mjLc7k/lK18/sRp6PhSws5dv
-         r14mRXobZqw+H/tl/bTwJK1xulWqG1EF93+eSdX519DzA3USBFSPV3TRhpryr/imW6/h
-         IWEqrrl1Wlc5lDzEUm25bGumfYBqVBftmsSBUcMiOFXjEvh3NzJaGQVLR8+NzPj8bhpr
-         mLyRO8xnT7z4aaJ9s2rAEczBml/s9ZWy6r7SvVTO0mFtUSciYzUZLTWk7D1GcQbJdi3a
-         CZFQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=d6PyBDz5Hz+HLZJQx9m2fhDjeQhvfMXZj/HKgsByeXo=;
-        b=FICTEHw+dI4MVkehfttBwt7859WgoZR71tvf924gYIJl4v44TJr4k4yGz7a1IIvBYT
-         5R5DLcALZmqinI7+vLKcB/rWBXKQe0YBPwXl4dn4wynYsYUYhMRtLsc6jBpeu9IUX9qt
-         xZJkFYyJ8c/aFRC+Kf4ejdEVgF3NunRk50/izw8Dj8ybey0TvSXomFixi8LAi5KMlAox
-         oZKrkeuWMGMn7U/Juzmzx7gUk81SKGQNKbQVH4cwhe4DetU8SXFAXy88OaJBdxV06O/W
-         U2e4WmjEFvSWNBGFpdFC/0N43U00wMWVtvzPindH1FVStgnyZrgFo0TPp29tFngbw8xV
-         Oxew==
-X-Gm-Message-State: AOAM530Z3YfLqwLBQFjajtXDHVMNa/SsFXJgsLnqfFwPJ/FZnbC79yWY
-        rQxCDnt3obiX1IYuEfm94z5QoW4LVuf+CFH3qJs=
-X-Google-Smtp-Source: ABdhPJzu/KIleZZfDrE9427pC4pMWBUduSAchOxtS5+3xBoN5DZNk5IQG0YwqS/XFE66PwTAAAZ4EwHDIAjCHjv9kbA=
-X-Received: by 2002:a1f:20c9:: with SMTP id g192mr4453848vkg.8.1620842654032;
- Wed, 12 May 2021 11:04:14 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210511185057.3815777-1-jim.cromie@gmail.com>
- <20210511185057.3815777-18-jim.cromie@gmail.com> <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
-In-Reply-To: <CAMj1kXGLKJ19oThbXPhboHzCHfX_oZscxRHn6M7s4jt9Gk8SEA@mail.gmail.com>
-From:   jim.cromie@gmail.com
-Date:   Wed, 12 May 2021 12:03:47 -0600
-Message-ID: <CAJfuBxz+vW_aT=ZVM+UgDxDxwph4D+MKB6r518J9vk2YopX+KA@mail.gmail.com>
-Subject: Re: [RFC PATCH v5 17/28] dyndbg: prevent build bugs via -DNO_DYNAMIC_DEBUG_TABLE
-To:     Ard Biesheuvel <ardb@kernel.org>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        X86 ML <x86@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        Andy Lutomirski <luto@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Geert Uytterhoeven <geert+renesas@glider.be>,
-        Bill Wendling <morbo@google.com>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Arvind Sankar <nivedita@alum.mit.edu>,
-        Joerg Roedel <jroedel@suse.de>, Nick Terrell <terrelln@fb.com>,
-        Dave Young <dyoung@redhat.com>,
-        Pingfan Liu <kernelfans@gmail.com>,
-        Atish Patra <atish.patra@wdc.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:SPARC + UltraSPARC (sparc/sparc64)" 
-        <sparclinux@vger.kernel.org>,
-        linux-efi <linux-efi@vger.kernel.org>,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        kbuild test robot <lkp@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+        id S231445AbhEMS2y (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 13 May 2021 14:28:54 -0400
+Received: from pegase2.c-s.fr ([93.17.235.10]:56641 "EHLO pegase2.c-s.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231442AbhEMS2w (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 13 May 2021 14:28:52 -0400
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+        by localhost (Postfix) with ESMTP id 4Fh0WV5zxjz9sbr;
+        Thu, 13 May 2021 20:27:34 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id LL05n4DFH1gO; Thu, 13 May 2021 20:27:34 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fh0WV4zx3z9sbW;
+        Thu, 13 May 2021 20:27:34 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 734808B7F5;
+        Thu, 13 May 2021 20:27:34 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id 64lJF8fVAvhj; Thu, 13 May 2021 20:27:34 +0200 (CEST)
+Received: from po15610vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 306B48B76C;
+        Thu, 13 May 2021 20:27:34 +0200 (CEST)
+Received: by po15610vm.idsi0.si.c-s.fr (Postfix, from userid 0)
+        id EB777641B5; Thu, 13 May 2021 18:27:33 +0000 (UTC)
+Message-Id: <7fbf1b6bc3e15c07c24fa45278d57064f14c896b.1620930415.git.christophe.leroy@csgroup.eu>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: [PATCH] x86: Define only {pud/pmd}_{set/clear}_huge when usefull
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>, rdunlap@infradead.org
+Cc:     linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org
+Date:   Thu, 13 May 2021 18:27:33 +0000 (UTC)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 12, 2021 at 8:55 AM Ard Biesheuvel <ardb@kernel.org> wrote:
->
-> On Tue, 11 May 2021 at 20:51, Jim Cromie <jim.cromie@gmail.com> wrote:
-> >
-> > The next patch adds DEFINE_DYNAMIC_DEBUG_TABLE(), which broke several
-> > subtrees, including efi, vdso, and some of arch/*/boot/compressed,
-> > with various relocation errors, iirc.
-> >
-> > Avoid those problems by adding a define to suppress the "transparent"
-> > DEFINE_DYNAMIC_DEBUG_TABLE() invocation.  I found the x86 problems
-> > myself, lkp@intel.com found arm & sparc problems, and may yet find
-> > others.
-> >
->
-> Given that I was only cc'ed on this patch in isolation, would you mind
-> adding more clarification here? What is DEFINE_DYNAMIC_DEBUG_TABLE()
-> supposed to do, and why is it breaking standalone binaries?
->
->
+When PUD and/or PMD are folded, those functions are useless
+and we have a stub in linux/pgtable.h
 
-hi Ard,
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+---
+ arch/x86/mm/pgtable.c | 34 +++++++++++++++++++---------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
-the thread starts here:
-https://lore.kernel.org/linux-mm/20210511185057.3815777-1-jim.cromie@gmail.com/
+diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
+index d27cf69e811d..1303ff6ef7be 100644
+--- a/arch/x86/mm/pgtable.c
++++ b/arch/x86/mm/pgtable.c
+@@ -682,6 +682,7 @@ int p4d_clear_huge(p4d_t *p4d)
+ }
+ #endif
+ 
++#if CONFIG_PGTABLE_LEVELS > 3
+ /**
+  * pud_set_huge - setup kernel PUD mapping
+  *
+@@ -720,6 +721,23 @@ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+ 	return 1;
+ }
+ 
++/**
++ * pud_clear_huge - clear kernel PUD mapping when it is set
++ *
++ * Returns 1 on success and 0 on failure (no PUD map is found).
++ */
++int pud_clear_huge(pud_t *pud)
++{
++	if (pud_large(*pud)) {
++		pud_clear(pud);
++		return 1;
++	}
++
++	return 0;
++}
++#endif
++
++#if CONFIG_PGTABLE_LEVELS > 2
+ /**
+  * pmd_set_huge - setup kernel PMD mapping
+  *
+@@ -750,21 +768,6 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
+ 	return 1;
+ }
+ 
+-/**
+- * pud_clear_huge - clear kernel PUD mapping when it is set
+- *
+- * Returns 1 on success and 0 on failure (no PUD map is found).
+- */
+-int pud_clear_huge(pud_t *pud)
+-{
+-	if (pud_large(*pud)) {
+-		pud_clear(pud);
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+ /**
+  * pmd_clear_huge - clear kernel PMD mapping when it is set
+  *
+@@ -779,6 +782,7 @@ int pmd_clear_huge(pmd_t *pmd)
+ 
+ 	return 0;
+ }
++#endif
+ 
+ #ifdef CONFIG_X86_64
+ /**
+-- 
+2.25.0
 
-the _TABLE macro derives from DEFINE_DYNAMIC_DEBUG_METADATA,
-which puts private static struct _ddebug's in section("__dyndbg")
-the _TABLE macro populates a different section(".gnu.linkonce.dyndbg"),
-which is then placed by linker script at the start of the section.
-
-ISTM that the new section might be whats breaking things.
-And maybe that the vmlinux linker script isnt involved.
-so the storage the _TABLE wants to define is unbound
-(and unused, since there are no pr_debugs)
-I did see relocation errors somewhere...
-
-This is my 1st time doing something creative with the linker
-
-
-As to larger purpose, I'll try to restate the patchset mission:
-
-theres ~45kb savings possible by compressing the highly redundant data (~70kb)
- which decorates pr_debug messages.
-
-1 - split the compressible/decoration columns to a different
-section|block, for block compression
-      this adds temporary .site pointer from _ddebug -> _ddebug_site
-
-2 -  change code so !site is safe.
-
-
-_TABLEs only real job is to provide a header record, at the beginning
-of the section/array,
-for a single .site pointer to the _dyndbg_sites section added in 1.
-Because the header has a fixed offset from any pr_debug in the vector,
-all pr_debugs can use the headers copy of .site, and dont need their own.
-specialize & unionize
-
-So it allows to drop the temporary pointer, restoring memory size
-parity with master.
-And we then have the _dyndbg_sites  section, full of redundant data,
-ready to compress.
-
-suppression with -DNO_DYNAMIC_DEBUG was a workaround, didnt think
-about it afterwards
-
-does this clarify ?
-
-
-thanks
-Jim
