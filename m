@@ -2,135 +2,78 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 903DDC43460
-	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 18:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E61FC433ED
+	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 19:57:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C5AB6143D
-	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 18:27:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00BBA61442
+	for <sparclinux@archiver.kernel.org>; Thu, 13 May 2021 19:57:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231445AbhEMS2y (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 13 May 2021 14:28:54 -0400
-Received: from pegase2.c-s.fr ([93.17.235.10]:56641 "EHLO pegase2.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231442AbhEMS2w (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 13 May 2021 14:28:52 -0400
-Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
-        by localhost (Postfix) with ESMTP id 4Fh0WV5zxjz9sbr;
-        Thu, 13 May 2021 20:27:34 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from pegase2.c-s.fr ([172.26.127.65])
-        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id LL05n4DFH1gO; Thu, 13 May 2021 20:27:34 +0200 (CEST)
-Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
-        by pegase2.c-s.fr (Postfix) with ESMTP id 4Fh0WV4zx3z9sbW;
-        Thu, 13 May 2021 20:27:34 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 734808B7F5;
-        Thu, 13 May 2021 20:27:34 +0200 (CEST)
-X-Virus-Scanned: amavisd-new at c-s.fr
-Received: from messagerie.si.c-s.fr ([127.0.0.1])
-        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
-        with ESMTP id 64lJF8fVAvhj; Thu, 13 May 2021 20:27:34 +0200 (CEST)
-Received: from po15610vm.idsi0.si.c-s.fr (unknown [192.168.4.90])
-        by messagerie.si.c-s.fr (Postfix) with ESMTP id 306B48B76C;
-        Thu, 13 May 2021 20:27:34 +0200 (CEST)
-Received: by po15610vm.idsi0.si.c-s.fr (Postfix, from userid 0)
-        id EB777641B5; Thu, 13 May 2021 18:27:33 +0000 (UTC)
-Message-Id: <7fbf1b6bc3e15c07c24fa45278d57064f14c896b.1620930415.git.christophe.leroy@csgroup.eu>
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: [PATCH] x86: Define only {pud/pmd}_{set/clear}_huge when usefull
-To:     Andrew Morton <akpm@linux-foundation.org>,
+        id S232244AbhEMT6P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 13 May 2021 15:58:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60040 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231939AbhEMT6P (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 May 2021 15:58:15 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2FBFC061574;
+        Thu, 13 May 2021 12:57:05 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
+        Subject:Sender:Reply-To:Content-ID:Content-Description;
+        bh=9ZAZ+z881JDgTJzeQAm+Bs/QG0gxkchxMNdqqahoJwQ=; b=ZRIwz8JsMo8S7kk7JJ2nYXyVn8
+        i2CmwCoP+e+egCGimcWStyryMxR1DwYJifPYyMcUlVx721k9SSkIDIMItviFvzwcVkkthACsC1QtG
+        maatHXBOERsuuLf62eHRpCIhDw9XI3fXHpqJOCWVbbQWqC1jR74Nnm+LP4sMnhl+4M395djjm2Xj1
+        2NtwFYxdxD8zBcHtxyRn5U2iU6pgmZG2zsyQdlVRfFEaRxkp6InoHMMXAtCR1rKqkBZMl2I4WF2uM
+        KJH1oX6/hZ2l9jWAl8BXd7ahfQcZ8hSlmNLwMpCTupGwj8ZbBi2vUg6EVYomPDOFMVgl6+BhGGLZ2
+        GEqAIkXQ==;
+Received: from c-73-157-219-8.hsd1.or.comcast.net ([73.157.219.8] helo=[10.0.0.253])
+        by bombadil.infradead.org with esmtpsa (Exim 4.94 #2 (Red Hat Linux))
+        id 1lhHS9-00BUYB-13; Thu, 13 May 2021 19:57:01 +0000
+Subject: Re: [PATCH] x86: Define only {pud/pmd}_{set/clear}_huge when usefull
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Nicholas Piggin <npiggin@gmail.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Mike Rapoport <rppt@kernel.org>, rdunlap@infradead.org
+        Mike Rapoport <rppt@kernel.org>
 Cc:     linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         sparclinux@vger.kernel.org, linux-mm@kvack.org
-Date:   Thu, 13 May 2021 18:27:33 +0000 (UTC)
+References: <7fbf1b6bc3e15c07c24fa45278d57064f14c896b.1620930415.git.christophe.leroy@csgroup.eu>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <d18bec2b-8a6e-b218-f92b-87016db8a3a7@infradead.org>
+Date:   Thu, 13 May 2021 12:56:59 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.0
+MIME-Version: 1.0
+In-Reply-To: <7fbf1b6bc3e15c07c24fa45278d57064f14c896b.1620930415.git.christophe.leroy@csgroup.eu>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-When PUD and/or PMD are folded, those functions are useless
-and we have a stub in linux/pgtable.h
+On 5/13/21 11:27 AM, Christophe Leroy wrote:
+> When PUD and/or PMD are folded, those functions are useless
+> and we have a stub in linux/pgtable.h
+> 
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+> ---
+>  arch/x86/mm/pgtable.c | 34 +++++++++++++++++++---------------
+>  1 file changed, 19 insertions(+), 15 deletions(-)
 
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
----
- arch/x86/mm/pgtable.c | 34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+WorksForMe. Thanks.
 
-diff --git a/arch/x86/mm/pgtable.c b/arch/x86/mm/pgtable.c
-index d27cf69e811d..1303ff6ef7be 100644
---- a/arch/x86/mm/pgtable.c
-+++ b/arch/x86/mm/pgtable.c
-@@ -682,6 +682,7 @@ int p4d_clear_huge(p4d_t *p4d)
- }
- #endif
- 
-+#if CONFIG_PGTABLE_LEVELS > 3
- /**
-  * pud_set_huge - setup kernel PUD mapping
-  *
-@@ -720,6 +721,23 @@ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
- 	return 1;
- }
- 
-+/**
-+ * pud_clear_huge - clear kernel PUD mapping when it is set
-+ *
-+ * Returns 1 on success and 0 on failure (no PUD map is found).
-+ */
-+int pud_clear_huge(pud_t *pud)
-+{
-+	if (pud_large(*pud)) {
-+		pud_clear(pud);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+#if CONFIG_PGTABLE_LEVELS > 2
- /**
-  * pmd_set_huge - setup kernel PMD mapping
-  *
-@@ -750,21 +768,6 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
- 	return 1;
- }
- 
--/**
-- * pud_clear_huge - clear kernel PUD mapping when it is set
-- *
-- * Returns 1 on success and 0 on failure (no PUD map is found).
-- */
--int pud_clear_huge(pud_t *pud)
--{
--	if (pud_large(*pud)) {
--		pud_clear(pud);
--		return 1;
--	}
--
--	return 0;
--}
--
- /**
-  * pmd_clear_huge - clear kernel PMD mapping when it is set
-  *
-@@ -779,6 +782,7 @@ int pmd_clear_huge(pmd_t *pmd)
- 
- 	return 0;
- }
-+#endif
- 
- #ifdef CONFIG_X86_64
- /**
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+
 -- 
-2.25.0
+~Randy
 
