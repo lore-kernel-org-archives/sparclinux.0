@@ -2,72 +2,87 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C6FDC433B4
-	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 03:59:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F1C4C43461
+	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 06:28:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 00283613FA
-	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 03:59:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01BCE61183
+	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 06:28:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229490AbhEOEAR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 15 May 2021 00:00:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51056 "EHLO mail.kernel.org"
+        id S231129AbhEOG3p (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 15 May 2021 02:29:45 -0400
+Received: from pegase2.c-s.fr ([93.17.235.10]:39263 "EHLO pegase2.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229441AbhEOEAR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sat, 15 May 2021 00:00:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F220613F6;
-        Sat, 15 May 2021 03:59:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1621051144;
-        bh=Z1sccg2vrpIeTClwluNbqzKfuQ+iCA6YJXcgWJREDvo=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=AJGtllVDTxzsfnQoqk8BsCbL64losT+Ty47Mg00VeF0nf6O82MPJ4NXwclyYvMmjU
-         6To2isk6gBN6F7TMXgX3O8djMUZfQn6d2WNAOfFd2afdfKBNfYGfuEHSiKRQT8Q984
-         ImdElmlY38m5D0beV6Ke2Gkbgyor8Kfx1/LnuM81Fi6X9ghxMu/2J4wek/8dVZ998P
-         f1JqGJTkRYzzXMKKduiP/OHQM/m56qOQcav6Jt//03j3VosRZ77UWA5SZdukjMT/39
-         3MqPRJ2WKfoOXg+d7S1Puls51F/EiiR0wRlp1htvcOFmyrWwq7yB6acKq7gw4x0K/2
-         UqF1mdOKHOuRQ==
-Date:   Fri, 14 May 2021 20:58:58 -0700
-From:   Nathan Chancellor <nathan@kernel.org>
+        id S229980AbhEOG3o (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sat, 15 May 2021 02:29:44 -0400
+Received: from localhost (mailhub3.si.c-s.fr [172.26.127.67])
+        by localhost (Postfix) with ESMTP id 4FhwSs2YMvz9sbb;
+        Sat, 15 May 2021 08:28:29 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from pegase2.c-s.fr ([172.26.127.65])
+        by localhost (pegase2.c-s.fr [127.0.0.1]) (amavisd-new, port 10024)
+        with ESMTP id zEapEaUkxjZf; Sat, 15 May 2021 08:28:29 +0200 (CEST)
+Received: from messagerie.si.c-s.fr (messagerie.si.c-s.fr [192.168.25.192])
+        by pegase2.c-s.fr (Postfix) with ESMTP id 4FhwSs1YWcz9sbT;
+        Sat, 15 May 2021 08:28:29 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 1A8538B76E;
+        Sat, 15 May 2021 08:28:29 +0200 (CEST)
+X-Virus-Scanned: amavisd-new at c-s.fr
+Received: from messagerie.si.c-s.fr ([127.0.0.1])
+        by localhost (messagerie.si.c-s.fr [127.0.0.1]) (amavisd-new, port 10023)
+        with ESMTP id TQ3BUIWyNMAO; Sat, 15 May 2021 08:28:29 +0200 (CEST)
+Received: from [192.168.4.90] (unknown [192.168.4.90])
+        by messagerie.si.c-s.fr (Postfix) with ESMTP id 5554B8B765;
+        Sat, 15 May 2021 08:28:28 +0200 (CEST)
+Subject: Re: [PATCH] arm64: Define only {pud/pmd}_{set/clear}_huge when
+ usefull
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Nicholas Piggin <npiggin@gmail.com>,
+Cc:     Nicholas Piggin <npiggin@gmail.com>,
         Mike Kravetz <mike.kravetz@oracle.com>,
         Mike Rapoport <rppt@kernel.org>, naresh.kamboju@linaro.org,
         linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         sparclinux@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH] arm64: Define only {pud/pmd}_{set/clear}_huge when
- usefull
-Message-ID: <YJ9HAg+o8nd2xmix@archlinux-ax161>
 References: <73ec95f40cafbbb69bdfb43a7f53876fd845b0ce.1620990479.git.christophe.leroy@csgroup.eu>
  <20210514144200.b49ee77c9b2a7f9998ffbf22@linux-foundation.org>
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+Message-ID: <ae1be8a1-8412-1288-31d4-23dc2cf4e5e7@csgroup.eu>
+Date:   Sat, 15 May 2021 08:28:25 +0200
+User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <20210514144200.b49ee77c9b2a7f9998ffbf22@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, May 14, 2021 at 02:42:00PM -0700, Andrew Morton wrote:
+
+
+Le 14/05/2021 à 23:42, Andrew Morton a écrit :
 > On Fri, 14 May 2021 11:08:53 +0000 (UTC) Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
 > 
-> > When PUD and/or PMD are folded, those functions are useless
-> > and we now have a stub in linux/pgtable.h
+>> When PUD and/or PMD are folded, those functions are useless
+>> and we now have a stub in linux/pgtable.h
 > 
 > OK, help me out here please.  What patch does this fix?
 > 
 
-Naresh's original report is here it seems:
+Both this one and the x86 one from the day before fix 1cff41494b15cd82c1ec418bb5c ("mm/pgtable: add 
+stubs for {pmd/pub}_{set/clear}_huge")
 
-https://lore.kernel.org/r/CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com/
+I think both the x86 fix and the arm64 fix should be squashed into that patch at the end.
 
-I can reproduce the failure that he reported with
-ARCH=arm64 allmodconfig and this patch resolves it for me.
+I checked, the only other architecture involving pud_set_huge() and friends is powerpc, and powerpc 
+doesn't have this problem as it only defined those for book3s/64 platforms which have 4 level page 
+tables by definition.
 
-Cheers,
-Nathan
+Thanks
+Christophe
