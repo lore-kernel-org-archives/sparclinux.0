@@ -2,136 +2,72 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B9BAC433ED
-	for <sparclinux@archiver.kernel.org>; Fri, 14 May 2021 22:38:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C6FDC433B4
+	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 03:59:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 33898613BB
-	for <sparclinux@archiver.kernel.org>; Fri, 14 May 2021 22:38:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 00283613FA
+	for <sparclinux@archiver.kernel.org>; Sat, 15 May 2021 03:59:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233927AbhENWjs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 14 May 2021 18:39:48 -0400
-Received: from out01.mta.xmission.com ([166.70.13.231]:42680 "EHLO
-        out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230330AbhENWjs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 14 May 2021 18:39:48 -0400
-Received: from in02.mta.xmission.com ([166.70.13.52])
-        by out01.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lhgS0-004tzQ-9N; Fri, 14 May 2021 16:38:32 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.xmission.com)
-        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lhgRz-004D3L-AH; Fri, 14 May 2021 16:38:31 -0600
-From:   ebiederm@xmission.com (Eric W. Biederman)
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Marco Elver <elver@google.com>
-References: <YIpkvGrBFGlB5vNj@elver.google.com>
-        <m11rat9f85.fsf@fess.ebiederm.org>
-        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
-        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
-        <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
-        <m1r1irpc5v.fsf@fess.ebiederm.org>
-        <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
-        <m1czuapjpx.fsf@fess.ebiederm.org>
-        <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
-        <m14kfjh8et.fsf_-_@fess.ebiederm.org>
-        <m1tuni8ano.fsf_-_@fess.ebiederm.org>
-        <m1a6oxewym.fsf_-_@fess.ebiederm.org>
-        <CAHk-=wikDD+gCUECg9NZAVSV6W_FUdyZFHzK4isfrwES_+sH-w@mail.gmail.com>
-        <m14kf5aufb.fsf@fess.ebiederm.org>
-Date:   Fri, 14 May 2021 17:38:25 -0500
-In-Reply-To: <m14kf5aufb.fsf@fess.ebiederm.org> (Eric W. Biederman's message
-        of "Fri, 14 May 2021 16:15:36 -0500")
-Message-ID: <m1tun57xge.fsf@fess.ebiederm.org>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        id S229490AbhEOEAR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 15 May 2021 00:00:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51056 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229441AbhEOEAR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sat, 15 May 2021 00:00:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F220613F6;
+        Sat, 15 May 2021 03:59:02 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1621051144;
+        bh=Z1sccg2vrpIeTClwluNbqzKfuQ+iCA6YJXcgWJREDvo=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=AJGtllVDTxzsfnQoqk8BsCbL64losT+Ty47Mg00VeF0nf6O82MPJ4NXwclyYvMmjU
+         6To2isk6gBN6F7TMXgX3O8djMUZfQn6d2WNAOfFd2afdfKBNfYGfuEHSiKRQT8Q984
+         ImdElmlY38m5D0beV6Ke2Gkbgyor8Kfx1/LnuM81Fi6X9ghxMu/2J4wek/8dVZ998P
+         f1JqGJTkRYzzXMKKduiP/OHQM/m56qOQcav6Jt//03j3VosRZ77UWA5SZdukjMT/39
+         3MqPRJ2WKfoOXg+d7S1Puls51F/EiiR0wRlp1htvcOFmyrWwq7yB6acKq7gw4x0K/2
+         UqF1mdOKHOuRQ==
+Date:   Fri, 14 May 2021 20:58:58 -0700
+From:   Nathan Chancellor <nathan@kernel.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        Mike Rapoport <rppt@kernel.org>, naresh.kamboju@linaro.org,
+        linux-arch@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        sparclinux@vger.kernel.org, linux-mm@kvack.org
+Subject: Re: [PATCH] arm64: Define only {pud/pmd}_{set/clear}_huge when
+ usefull
+Message-ID: <YJ9HAg+o8nd2xmix@archlinux-ax161>
+References: <73ec95f40cafbbb69bdfb43a7f53876fd845b0ce.1620990479.git.christophe.leroy@csgroup.eu>
+ <20210514144200.b49ee77c9b2a7f9998ffbf22@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-XM-SPF: eid=1lhgRz-004D3L-AH;;;mid=<m1tun57xge.fsf@fess.ebiederm.org>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX19odSp5HEfI42QhPUSRdilH+u4toHAL8FY=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: Re: [GIT PULL] siginfo: ABI fixes for v5.13-rc2
-X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
-X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210514144200.b49ee77c9b2a7f9998ffbf22@linux-foundation.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-ebiederm@xmission.com (Eric W. Biederman) writes:
+On Fri, May 14, 2021 at 02:42:00PM -0700, Andrew Morton wrote:
+> On Fri, 14 May 2021 11:08:53 +0000 (UTC) Christophe Leroy <christophe.leroy@csgroup.eu> wrote:
+> 
+> > When PUD and/or PMD are folded, those functions are useless
+> > and we now have a stub in linux/pgtable.h
+> 
+> OK, help me out here please.  What patch does this fix?
+> 
 
-> Linus Torvalds <torvalds@linux-foundation.org> writes:
->
->> On Thu, May 13, 2021 at 9:55 PM Eric W. Biederman <ebiederm@xmission.com> wrote:
->>>
->>> Please pull the for-v5.13-rc2 branch from the git tree:
->>
->> I really don't like this tree.
->>
->> The immediate cause for "no" is the silly
->>
->>  #if IS_ENABLED(CONFIG_SPARC)
->>
->> and
->>
->>  #if IS_ENABLED(CONFIG_ALPHA)
->>
->> code in kernel/signal.c. It has absolutely zero business being there,
->> when those architectures have a perfectly fine arch/*/kernel/signal.c
->> file where that code would make much more sense *WITHOUT* any odd
->> preprocessor games.
->
-> The code is generic it just happens those functions are only used on
-> sparc and alpha.  Further I really want to make filling out siginfo_t
-> happen in dedicated functions as much as possible in kernel/signal.c.
-> The probably of getting it wrong without a helper functions is very
-> strong.  As the code I am fixing demonstrates.
->
-> The IS_ENABLED(arch) is mostly there so we can delete the code if/when
-> the architectures are retired in another decade or so.
+Naresh's original report is here it seems:
 
-There is also the question of why alpha allows userspace to block
-SIGFPE.
+https://lore.kernel.org/r/CA+G9fYv79t0+2W4Rt3wDkBShc4eY3M3utC5BHqUgGDwMYExYMw@mail.gmail.com/
 
-If it turns out that alpha is just silly by allowing synchronous
-exceptions to be blocked, then the code really becomes generic and
-shared shared between sparc and alpha.
+I can reproduce the failure that he reported with
+ARCH=arm64 allmodconfig and this patch resolves it for me.
 
-Which is really why the code does not make sense in some architecture
-specific version of signal.c.  That and the fact the two functions
-are almost identical.
-
-If you want I can remove the #ifdefs and we can take up slightly more
-space until someone implements -ffunction-sections.
-
-Do you know if alpha will be stuck triggering the same floating point
-error if the SIGFPE is blocked or can alpha somehow continue past it?
-
-If alpha using send_sig instead of force_sig is historical and does not
-reflect the reality of the hardware alpha can be converted and several
-of the send_sig variants can be removed.  Otherwise alpha remains the
-odd man out, and the code can remain until all of the alpha hardware
-dies.  (I don't think anyone is manufacturing alpha hardware anymore).
-
-I would look it up but I have lost access to whatever alpha
-documentation I had.
-
-Eric
+Cheers,
+Nathan
