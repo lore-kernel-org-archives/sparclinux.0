@@ -2,35 +2,69 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28613C43461
-	for <sparclinux@archiver.kernel.org>; Mon, 17 May 2021 20:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1EC7C433B4
+	for <sparclinux@archiver.kernel.org>; Mon, 17 May 2021 20:53:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 030CF60FF2
-	for <sparclinux@archiver.kernel.org>; Mon, 17 May 2021 20:05:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6FB4C611BF
+	for <sparclinux@archiver.kernel.org>; Mon, 17 May 2021 20:53:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237466AbhEQUG1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 17 May 2021 16:06:27 -0400
-Received: from out02.mta.xmission.com ([166.70.13.232]:49328 "EHLO
-        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236497AbhEQUG0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 17 May 2021 16:06:26 -0400
-Received: from in01.mta.xmission.com ([166.70.13.51])
-        by out02.mta.xmission.com with esmtps  (TLS1.2) tls TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-        (Exim 4.93)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lijUD-008wn0-6v; Mon, 17 May 2021 14:05:09 -0600
-Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95] helo=fess.int.ebiederm.org)
-        by in01.mta.xmission.com with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.87)
-        (envelope-from <ebiederm@xmission.com>)
-        id 1lijNr-0001rb-0e; Mon, 17 May 2021 13:58:35 -0600
-From:   "Eric W. Beiderman" <ebiederm@xmission.com>
-To:     Marco Elver <elver@google.com>
+        id S244529AbhEQUyx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 17 May 2021 16:54:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42952 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244525AbhEQUyx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 17 May 2021 16:54:53 -0400
+Received: from mail-oi1-x22b.google.com (mail-oi1-x22b.google.com [IPv6:2607:f8b0:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB752C061573
+        for <sparclinux@vger.kernel.org>; Mon, 17 May 2021 13:53:32 -0700 (PDT)
+Received: by mail-oi1-x22b.google.com with SMTP id z3so7713669oib.5
+        for <sparclinux@vger.kernel.org>; Mon, 17 May 2021 13:53:32 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=tYiKNumB/sG3g6UoDTpwUaKhoLR3TJj2KrtveF22its=;
+        b=E4IYESmDgLDJKTJfDF4vUoPzJf3sI7MEpeT+1/mAXEdTQsZpiuuMol/4F+vLlpLrIE
+         sah8VFk6mwDiaNaEeoOzMK/Y6GiT3emWiXvBt3HP8YHmEZmkum/YGqd1Md+A1uvOpenb
+         uAHx856RtWQ1SJrIHA/Cb42hLyw1yEAs1zEkG/KI9N7mAWFbOIVyKZ5V5irdXysHT9UW
+         B0KlW/e/W866hpDt9/A9Rs93Aqhp8wNb73AI5+CVeIl5W51ZF4FsfNLPcj7xvUhSVLVP
+         mMFLmI9uzK/wK0RHafAEZbf7zEXFb9f5nQ/5UtJlXGrumhfnXfSWF4OQIGZRyq620vbs
+         6KgA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=tYiKNumB/sG3g6UoDTpwUaKhoLR3TJj2KrtveF22its=;
+        b=DAGKOSHcx46Pl4C7grWEgv1VZDzEwkIZpD55hVXN2BEz8Ta51oEgBXs6ViUtF7Rd0x
+         yUhsPMo9KZ6Xu+E+lRgoi5L7hmIqvHf9LFiJMKpbx2+YqOFtYhIg7VHZQV1hVXxyDjb8
+         JECHNIJ0uH954LER29DWLCQ65skhkvBkSfCmvEyigRghcbBiX48ackYa4fIKCIQQuj0d
+         ql7tEBr0zwgOrAT4eqGzsLgjYGMd3tfLAServWrHmehyr+Za/YkxUf17kQ24FiZDxteu
+         RP0ktFMJ+Zl6EoVgl0Eb5qwzitqZwWkAxRgh3LYab5AIPdHzy2Q6nBTguIIwPqJJBTAd
+         XwvA==
+X-Gm-Message-State: AOAM530JjnQtnqXvVOCBoLgUm7pqayygReCU3Js9EJesnV3a+o9gV6ET
+        lOr+6V5xv0LXR93Qm1RHTBUXYfLYyUSjKhEzD+0f+g==
+X-Google-Smtp-Source: ABdhPJydkSsTkVe66YjNSKFDH6L71UKujfw4XIMG1b/yqvx8GCOTa67p4xK47kkdF1AolTKy50FI6BZbal8CMHvsKAc=
+X-Received: by 2002:a05:6808:f94:: with SMTP id o20mr1223000oiw.121.1621284811977;
+ Mon, 17 May 2021 13:53:31 -0700 (PDT)
+MIME-Version: 1.0
+References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
+ <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+ <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
+ <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m1r1irpc5v.fsf@fess.ebiederm.org>
+ <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
+ <m1czuapjpx.fsf@fess.ebiederm.org> <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
+ <m14kfjh8et.fsf_-_@fess.ebiederm.org> <m1tuni8ano.fsf_-_@fess.ebiederm.org> <m1a6ot5e2h.fsf_-_@fess.ebiederm.org>
+In-Reply-To: <m1a6ot5e2h.fsf_-_@fess.ebiederm.org>
+From:   Marco Elver <elver@google.com>
+Date:   Mon, 17 May 2021 22:53:20 +0200
+Message-ID: <CANpmjNM6rzyTp_+myecf8_773HLWDyJDbxFM6rWvzfKTLkXbhQ@mail.gmail.com>
+Subject: Re: [PATCH v4 0/5] siginfo: ABI fixes for TRAP_PERF
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         "David S. Miller" <davem@davemloft.net>,
         Peter Zijlstra <peterz@infradead.org>,
@@ -43,142 +77,66 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Date:   Mon, 17 May 2021 14:57:44 -0500
-Message-Id: <20210517195748.8880-1-ebiederm@xmission.com>
-X-Mailer: git-send-email 2.30.1
-In-Reply-To: <m1a6ot5e2h.fsf_-_@fess.ebiederm.org>
-References: <m1a6ot5e2h.fsf_-_@fess.ebiederm.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-XM-SPF: eid=1lijNr-0001rb-0e;;;mid=<20210517195748.8880-1-ebiederm@xmission.com>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
-X-XM-AID: U2FsdGVkX1/fN9eCwd6Pf3euOoMd6UjKgwMo0ARlihE=
-X-SA-Exim-Connect-IP: 68.227.160.95
-X-SA-Exim-Mail-From: ebiederm@xmission.com
-Subject: [PATCH v4 1/5] siginfo: Move si_trapno inside the union inside _si_fault
-X-SA-Exim-Version: 4.2.1 (built Thu, 05 May 2016 13:38:54 -0600)
-X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
+        kasan-dev <kasan-dev@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: "Eric W. Biederman" <ebiederm@xmission.com>
+On Mon, 17 May 2021 at 21:58, Eric W. Biederman <ebiederm@xmission.com> wrote:
+>
+> During the merge window an issue with si_perf and the siginfo ABI came
+> up.  The alpha and sparc siginfo structure layout had changed with the
+> addition of SIGTRAP TRAP_PERF and the new field si_perf.
+>
+> The reason only alpha and sparc were affected is that they are the
+> only architectures that use si_trapno.
+>
+> Looking deeper it was discovered that si_trapno is used for only
+> a few select signals on alpha and sparc, and that none of the
+> other _sigfault fields past si_addr are used at all.  Which means
+> technically no regression on alpha and sparc.
+>
+> While the alignment concerns might be dismissed the abuse of
+> si_errno by SIGTRAP TRAP_PERF does have the potential to cause
+> regressions in existing userspace.
+>
+> While we still have time before userspace starts using and depending on
+> the new definition siginfo for SIGTRAP TRAP_PERF this set of changes
+> cleans up siginfo_t.
+>
+> - The si_trapno field is demoted from magic alpha and sparc status and
+>   made an ordinary union member of the _sigfault member of siginfo_t.
+>   Without moving it of course.
+>
+> - si_perf is replaced with si_perf_data and si_perf_type ending the
+>   abuse of si_errno.
+>
+> - Unnecessary additions to signalfd_siginfo are removed.
+>
+> v3: https://lkml.kernel.org/r/m1tuni8ano.fsf_-_@fess.ebiederm.org
+> v2: https://lkml.kernel.org/r/m14kfjh8et.fsf_-_@fess.ebiederm.org
+> v1: https://lkml.kernel.org/r/m1zgxfs7zq.fsf_-_@fess.ebiederm.org
+>
+> This version drops the tests and fine grained handling of si_trapno
+> on alpha and sparc (replaced assuming si_trapno is valid for
+> all but the faults that defined different data).
 
-It turns out that linux uses si_trapno very sparingly, and as such it
-can be considered extra information for a very narrow selection of
-signals, rather than information that is present with every fault
-reported in siginfo.
+And just to clarify, the rest of the series (including static-asserts)
+for the next merge-window will be sent once this series is all sorted,
+correct?
 
-As such move si_trapno inside the union inside of _si_fault.  This
-results in no change in placement, and makes it eaiser
-to extend _si_fault in the future as this reduces the number of
-special cases.  In particular with si_trapno included in the union it
-is no longer a concern that the union must be pointer aligned on most
-architectures because the union follows immediately after si_addr
-which is a pointer.
+> Eric W. Biederman (5):
+>       siginfo: Move si_trapno inside the union inside _si_fault
+>       signal: Implement SIL_FAULT_TRAPNO
+>       signal: Factor force_sig_perf out of perf_sigtrap
+>       signal: Deliver all of the siginfo perf data in _perf
+>       signalfd: Remove SIL_PERF_EVENT fields from signalfd_siginfo
 
-This change results in a difference in siginfo field placement on
-sparc and alpha for the fields si_addr_lsb, si_lower, si_upper,
-si_pkey, and si_perf.  These architectures do not implement the
-signals that would use si_addr_lsb, si_lower, si_upper, si_pkey, and
-si_perf.  Further these architecture have not yet implemented the
-userspace that would use si_perf.
+Looks good, thank you! I build-tested (defconfig -- x86_64, i386, arm,
+arm64, m68k, sparc, alpha) this series together with a local patch to
+pull in the static asserts from v3. Also re-ran perf_events kselftests
+on x86_64 (native and 32bit compat).
 
-The point of this change is in fact to correct these placement issues
-before sparc or alpha grow userspace that cares.  This change was
-discussed[1] and the agreement is that this change is currently safe.
-
-[1]: https://lkml.kernel.org/r/CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com
-Acked-by: Marco Elver <elver@google.com>
-v1: https://lkml.kernel.org/r/m1tunns7yf.fsf_-_@fess.ebiederm.org
-v2: https://lkml.kernel.org/r/20210505141101.11519-5-ebiederm@xmission.com
-Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
----
- arch/x86/kernel/signal_compat.c    | 3 +++
- include/linux/compat.h             | 5 ++---
- include/uapi/asm-generic/siginfo.h | 7 ++-----
- kernel/signal.c                    | 1 +
- 4 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
-index 0e5d0a7e203b..a9fcabd8a5e5 100644
---- a/arch/x86/kernel/signal_compat.c
-+++ b/arch/x86/kernel/signal_compat.c
-@@ -127,6 +127,9 @@ static inline void signal_compat_build_tests(void)
- 	BUILD_BUG_ON(offsetof(siginfo_t, si_addr) != 0x10);
- 	BUILD_BUG_ON(offsetof(compat_siginfo_t, si_addr) != 0x0C);
- 
-+	BUILD_BUG_ON(offsetof(siginfo_t, si_trapno) != 0x18);
-+	BUILD_BUG_ON(offsetof(compat_siginfo_t, si_trapno) != 0x10);
-+
- 	BUILD_BUG_ON(offsetof(siginfo_t, si_addr_lsb) != 0x18);
- 	BUILD_BUG_ON(offsetof(compat_siginfo_t, si_addr_lsb) != 0x10);
- 
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index f0d2dd35d408..6af7bef15e94 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -214,12 +214,11 @@ typedef struct compat_siginfo {
- 		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGTRAP, SIGEMT */
- 		struct {
- 			compat_uptr_t _addr;	/* faulting insn/memory ref. */
--#ifdef __ARCH_SI_TRAPNO
--			int _trapno;	/* TRAP # which caused the signal */
--#endif
- #define __COMPAT_ADDR_BND_PKEY_PAD  (__alignof__(compat_uptr_t) < sizeof(short) ? \
- 				     sizeof(short) : __alignof__(compat_uptr_t))
- 			union {
-+				/* used on alpha and sparc */
-+				int _trapno;	/* TRAP # which caused the signal */
- 				/*
- 				 * used when si_code=BUS_MCEERR_AR or
- 				 * used when si_code=BUS_MCEERR_AO
-diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
-index 03d6f6d2c1fe..e663bf117b46 100644
---- a/include/uapi/asm-generic/siginfo.h
-+++ b/include/uapi/asm-generic/siginfo.h
-@@ -63,9 +63,6 @@ union __sifields {
- 	/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGTRAP, SIGEMT */
- 	struct {
- 		void __user *_addr; /* faulting insn/memory ref. */
--#ifdef __ARCH_SI_TRAPNO
--		int _trapno;	/* TRAP # which caused the signal */
--#endif
- #ifdef __ia64__
- 		int _imm;		/* immediate value for "break" */
- 		unsigned int _flags;	/* see ia64 si_flags */
-@@ -75,6 +72,8 @@ union __sifields {
- #define __ADDR_BND_PKEY_PAD  (__alignof__(void *) < sizeof(short) ? \
- 			      sizeof(short) : __alignof__(void *))
- 		union {
-+			/* used on alpha and sparc */
-+			int _trapno;	/* TRAP # which caused the signal */
- 			/*
- 			 * used when si_code=BUS_MCEERR_AR or
- 			 * used when si_code=BUS_MCEERR_AO
-@@ -150,9 +149,7 @@ typedef struct siginfo {
- #define si_int		_sifields._rt._sigval.sival_int
- #define si_ptr		_sifields._rt._sigval.sival_ptr
- #define si_addr		_sifields._sigfault._addr
--#ifdef __ARCH_SI_TRAPNO
- #define si_trapno	_sifields._sigfault._trapno
--#endif
- #define si_addr_lsb	_sifields._sigfault._addr_lsb
- #define si_lower	_sifields._sigfault._addr_bnd._lower
- #define si_upper	_sifields._sigfault._addr_bnd._upper
-diff --git a/kernel/signal.c b/kernel/signal.c
-index c3017aa8024a..65888aec65a0 100644
---- a/kernel/signal.c
-+++ b/kernel/signal.c
-@@ -4607,6 +4607,7 @@ static inline void siginfo_buildtime_checks(void)
- 
- 	/* sigfault */
- 	CHECK_OFFSET(si_addr);
-+	CHECK_OFFSET(si_trapno);
- 	CHECK_OFFSET(si_addr_lsb);
- 	CHECK_OFFSET(si_lower);
- 	CHECK_OFFSET(si_upper);
--- 
-2.30.1
-
+Thanks,
+-- Marco
