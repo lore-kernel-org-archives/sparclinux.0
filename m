@@ -2,161 +2,134 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+X-Spam-Status: No, score=-16.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBF48C433ED
-	for <sparclinux@archiver.kernel.org>; Tue, 18 May 2021 06:44:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B09EC43460
+	for <sparclinux@archiver.kernel.org>; Wed, 19 May 2021 20:01:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE9E060240
-	for <sparclinux@archiver.kernel.org>; Tue, 18 May 2021 06:44:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1C1276124C
+	for <sparclinux@archiver.kernel.org>; Wed, 19 May 2021 20:01:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346824AbhERGpi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 May 2021 02:45:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33206 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346820AbhERGpd (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 May 2021 02:45:33 -0400
-Received: from mail-oi1-x22a.google.com (mail-oi1-x22a.google.com [IPv6:2607:f8b0:4864:20::22a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 522E1C061761
-        for <sparclinux@vger.kernel.org>; Mon, 17 May 2021 23:44:15 -0700 (PDT)
-Received: by mail-oi1-x22a.google.com with SMTP id u11so8841767oiv.1
-        for <sparclinux@vger.kernel.org>; Mon, 17 May 2021 23:44:15 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=Bcn5fb5DZjb4YtyFgvoiwHqnuY6hbdNmIIbEt5dAaVo=;
-        b=XDBwjWcK7W4iYUwj/u/gw3oqWIeA5hEElNrFlEm/M/WFUJONMDfGqLm0lYCC+OjVVz
-         mBgaZXFe6JWlW8DEdYhnwpSSaIRw0JBMAxOW0eBVYiQFPbdWqcu54BOcbIVGfHSisc53
-         0eyg+JwZ9Zva8VFoFU411tL9M2+QC38Hjni0baTANedHQf4FpzkVI0oa6ycvizeUlS3n
-         5kPELVbFvsBKGkfPkPB8Sc/9Eg/h0xc520RY7bKeRNVQmlg8SXch0vnHz/n109DuhTYB
-         8K9AfhJC/iujNgus17kDXKo/Uh34SKdrvrUQDCjtSEc9j/VfiBuN4vjJ0FXUFAU/LtOV
-         +NUA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=Bcn5fb5DZjb4YtyFgvoiwHqnuY6hbdNmIIbEt5dAaVo=;
-        b=HnLaMBCFjyApLo9hzV4ZdapyUVskj/8ErbenZxLTHmRDne22oiloRsuv/M3Ylz1d/p
-         pIP8naKqRTziRUvXRGedYzPDggYBCYkcNu0NUvEodEuwrKKYqsz8Ca8B+B5WF4VZJEid
-         Wxn8neBT5cUF7hfhrZBYTCjljytkTyInP+L1/jxhH8+Bgj4IwhLRuLqUYnov6IhRRb/g
-         G5Zpe29i0rSlgW7/AKO8kTE4e3gIBrVV+MqYUFYrk4fMLGLyhvAkZlfqEynl0/W+wbwB
-         00Jifeb+qtah8yZZSEyzfaUQ4HnEYpg8G8W2VEqEEsMDwPBicPyGAAX/dBhyaBi9QdRN
-         KWIA==
-X-Gm-Message-State: AOAM533I6BWJGJ3DWIX/Ya8rIVG6O733UVHEu70BNLtp07U0/ejyGrD9
-        qGliKXRIBZ3EYSkysBTDrvBVUrYTK9bH2KMfl2N0XA==
-X-Google-Smtp-Source: ABdhPJyZJEKSXeod3K8VlVQioQOKfP1BRvVdjkXF95l+TeGhJwUZcia8n6Cqhfj41s9XfUXYiQJrlqfEJySBhCKYcEE=
-X-Received: by 2002:a05:6808:144f:: with SMTP id x15mr2779174oiv.172.1621320254598;
- Mon, 17 May 2021 23:44:14 -0700 (PDT)
+        id S232514AbhESUDP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 19 May 2021 16:03:15 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:56702 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S232503AbhESUDO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 19 May 2021 16:03:14 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1621454514;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=oqR82qYZ5cHPW+jMmb6LKw1zBxDgfEa0K+Sm55MnPRw=;
+        b=EPf+1bHeNhuGn0Rrr6sUg9QfQAd3pj66II1RbGEWOtigcjPVeLdlvnzLgdbZ4Y3Ml5/UY+
+        JV4+aRg24ZyBhNCJp+s2XFZ1vidOVJ/5Fg0FSke4zSpY4N3zWQdfhJSfd69xWB+3HO+5KU
+        EsCQ+Uui8eWob2LecfwVc6NOTIvYi0s=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-587-6OHx4A6KP1SdsuldedHntQ-1; Wed, 19 May 2021 16:01:50 -0400
+X-MC-Unique: 6OHx4A6KP1SdsuldedHntQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id 65013107AFA7;
+        Wed, 19 May 2021 20:01:48 +0000 (UTC)
+Received: from madcap2.tricolour.ca (unknown [10.3.128.45])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 7788D60BF1;
+        Wed, 19 May 2021 20:01:44 +0000 (UTC)
+From:   Richard Guy Briggs <rgb@redhat.com>
+To:     Linux-Audit Mailing List <linux-audit@redhat.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        linux-fsdevel@vger.kernel.org
+Cc:     Paul Moore <paul@paul-moore.com>,
+        Eric Paris <eparis@parisplace.org>,
+        Steve Grubb <sgrubb@redhat.com>,
+        Richard Guy Briggs <rgb@redhat.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Eric Paris <eparis@redhat.com>, x86@kernel.org,
+        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        Aleksa Sarai <cyphar@cyphar.com>,
+        Arnd Bergmann <arnd@kernel.org>
+Subject: [PATCH v4 0/3] audit: add support for openat2
+Date:   Wed, 19 May 2021 16:00:19 -0400
+Message-Id: <cover.1621363275.git.rgb@redhat.com>
 MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
- <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
- <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <m1r1irpc5v.fsf@fess.ebiederm.org>
- <CANpmjNNfiSgntiOzgMc5Y41KVAV_3VexdXCMADekbQEqSP3vqQ@mail.gmail.com>
- <m1czuapjpx.fsf@fess.ebiederm.org> <CANpmjNNyifBNdpejc6ofT6+n6FtUw-Cap_z9Z9YCevd7Wf3JYQ@mail.gmail.com>
- <m14kfjh8et.fsf_-_@fess.ebiederm.org> <m1tuni8ano.fsf_-_@fess.ebiederm.org>
- <m1a6ot5e2h.fsf_-_@fess.ebiederm.org> <CANpmjNM6rzyTp_+myecf8_773HLWDyJDbxFM6rWvzfKTLkXbhQ@mail.gmail.com>
- <m1lf8c4sc4.fsf@fess.ebiederm.org>
-In-Reply-To: <m1lf8c4sc4.fsf@fess.ebiederm.org>
-From:   Marco Elver <elver@google.com>
-Date:   Tue, 18 May 2021 08:44:03 +0200
-Message-ID: <CANpmjNOcZkC3YDSK8rA7yagRNBLCxyNRcUSKNbx69sR9PSW-2w@mail.gmail.com>
-Subject: Re: [PATCH v4 0/5] siginfo: ABI fixes for TRAP_PERF
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 2.79 on 10.5.11.12
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 18 May 2021 at 05:47, Eric W. Biederman <ebiederm@xmission.com> wrote:
->
-> Marco Elver <elver@google.com> writes:
->
-> > On Mon, 17 May 2021 at 21:58, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> >>
-> >> During the merge window an issue with si_perf and the siginfo ABI came
-> >> up.  The alpha and sparc siginfo structure layout had changed with the
-> >> addition of SIGTRAP TRAP_PERF and the new field si_perf.
-> >>
-> >> The reason only alpha and sparc were affected is that they are the
-> >> only architectures that use si_trapno.
-> >>
-> >> Looking deeper it was discovered that si_trapno is used for only
-> >> a few select signals on alpha and sparc, and that none of the
-> >> other _sigfault fields past si_addr are used at all.  Which means
-> >> technically no regression on alpha and sparc.
-> >>
-> >> While the alignment concerns might be dismissed the abuse of
-> >> si_errno by SIGTRAP TRAP_PERF does have the potential to cause
-> >> regressions in existing userspace.
-> >>
-> >> While we still have time before userspace starts using and depending on
-> >> the new definition siginfo for SIGTRAP TRAP_PERF this set of changes
-> >> cleans up siginfo_t.
-> >>
-> >> - The si_trapno field is demoted from magic alpha and sparc status and
-> >>   made an ordinary union member of the _sigfault member of siginfo_t.
-> >>   Without moving it of course.
-> >>
-> >> - si_perf is replaced with si_perf_data and si_perf_type ending the
-> >>   abuse of si_errno.
-> >>
-> >> - Unnecessary additions to signalfd_siginfo are removed.
-> >>
-> >> v3: https://lkml.kernel.org/r/m1tuni8ano.fsf_-_@fess.ebiederm.org
-> >> v2: https://lkml.kernel.org/r/m14kfjh8et.fsf_-_@fess.ebiederm.org
-> >> v1: https://lkml.kernel.org/r/m1zgxfs7zq.fsf_-_@fess.ebiederm.org
-> >>
-> >> This version drops the tests and fine grained handling of si_trapno
-> >> on alpha and sparc (replaced assuming si_trapno is valid for
-> >> all but the faults that defined different data).
-> >
-> > And just to clarify, the rest of the series (including static-asserts)
-> > for the next merge-window will be sent once this series is all sorted,
-> > correct?
->
-> That is the plan.
->
-> I really wonder about alphas use of si_trapno, and alphas use send_sig
-> instead of force_sig.  It could be worth looking into those as it
-> has the potential to simplify the code.
->
-> >> Eric W. Biederman (5):
-> >>       siginfo: Move si_trapno inside the union inside _si_fault
-> >>       signal: Implement SIL_FAULT_TRAPNO
-> >>       signal: Factor force_sig_perf out of perf_sigtrap
-> >>       signal: Deliver all of the siginfo perf data in _perf
-> >>       signalfd: Remove SIL_PERF_EVENT fields from signalfd_siginfo
-> >
-> > Looks good, thank you! I build-tested (defconfig -- x86_64, i386, arm,
-> > arm64, m68k, sparc, alpha) this series together with a local patch to
-> > pull in the static asserts from v3. Also re-ran perf_events kselftests
-> > on x86_64 (native and 32bit compat).
->
-> Thanks,
->
-> Can I have your Tested-by?
+The openat2(2) syscall was added in v5.6.  Add support for openat2 to the
+audit syscall classifier and for recording openat2 parameters that cannot
+be captured in the syscall parameters of the SYSCALL record.
 
-Of course,
+Supporting userspace code can be found in
+https://github.com/rgbriggs/audit-userspace/tree/ghau-openat2
 
-  Tested-by: Marco Elver <elver@google.com>
+Supporting test case can be found in
+https://github.com/linux-audit/audit-testsuite/pull/103
 
-Thanks,
--- Marco
+Changelog:
+v4:
+- change filename include/linux/auditscm.h to auditsc_classmacros.h to avoid socket association
+
+v3:
+- re-add commit descriptions that somehow got dropped
+- add new file to MAINTAINERS
+
+v2:
+- add include/linux/auditscm.h for audit syscall class macros due to syscall redefinition warnings:
+        arch/x86/ia32/audit.c:3:
+        ./include/linux/audit.h:12,
+        ./include/linux/sched.h:22,
+        ./include/linux/seccomp.h:21,
+        ./arch/x86/include/asm/seccomp.h:5,
+        ./arch/x86/include/asm/unistd.h:20,
+        ./arch/x86/include/generated/uapi/asm/unistd_64.h:4: warning: "__NR_read" redefined #define __NR_read 0
+	...
+        ./arch/x86/include/generated/uapi/asm/unistd_64.h:338: warning: "__NR_rseq" redefined #define __NR_rseq 334
+    previous:
+        arch/x86/ia32/audit.c:2:
+        ./arch/x86/include/generated/uapi/asm/unistd_32.h:7: note: this is the location of the previous definition #define __NR_read 3                                                                                                      
+	...
+        ./arch/x86/include/generated/uapi/asm/unistd_32.h:386: note: this is the location of the previous definition #define __NR_rseq 386
+
+Richard Guy Briggs (3):
+  audit: replace magic audit syscall class numbers with macros
+  audit: add support for the openat2 syscall
+  audit: add OPENAT2 record to list how
+
+ MAINTAINERS                         |  1 +
+ arch/alpha/kernel/audit.c           | 10 ++++++----
+ arch/ia64/kernel/audit.c            | 10 ++++++----
+ arch/parisc/kernel/audit.c          | 10 ++++++----
+ arch/parisc/kernel/compat_audit.c   | 11 ++++++----
+ arch/powerpc/kernel/audit.c         | 12 ++++++-----
+ arch/powerpc/kernel/compat_audit.c  | 13 +++++++-----
+ arch/s390/kernel/audit.c            | 12 ++++++-----
+ arch/s390/kernel/compat_audit.c     | 13 +++++++-----
+ arch/sparc/kernel/audit.c           | 12 ++++++-----
+ arch/sparc/kernel/compat_audit.c    | 13 +++++++-----
+ arch/x86/ia32/audit.c               | 13 +++++++-----
+ arch/x86/kernel/audit_64.c          | 10 ++++++----
+ fs/open.c                           |  2 ++
+ include/linux/audit.h               | 11 ++++++++++
+ include/linux/auditsc_classmacros.h | 24 ++++++++++++++++++++++
+ include/uapi/linux/audit.h          |  1 +
+ kernel/audit.h                      |  2 ++
+ kernel/auditsc.c                    | 31 +++++++++++++++++++++++------
+ lib/audit.c                         | 14 ++++++++-----
+ lib/compat_audit.c                  | 15 +++++++++-----
+ 21 files changed, 169 insertions(+), 71 deletions(-)
+ create mode 100644 include/linux/auditsc_classmacros.h
+
+-- 
+2.27.0
+
