@@ -2,67 +2,106 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F606C47084
-	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 09:24:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35EA8C4707F
+	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 13:01:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 64A1C61378
-	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 09:24:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 194A76141C
+	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 13:01:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232487AbhEYJ0A (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 25 May 2021 05:26:00 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34160 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232132AbhEYJZ7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 May 2021 05:25:59 -0400
-X-Greylist: delayed 398 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 25 May 2021 02:24:28 PDT
-Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 691E0C061574
-        for <sparclinux@vger.kernel.org>; Tue, 25 May 2021 02:24:28 -0700 (PDT)
-Received: (qmail 19418 invoked from network); 25 May 2021 09:16:11 -0000
-Received: from mail.sf-mail.de ([2a01:4f8:1c17:6fae:616d:6c69:616d:6c69]:34074 HELO webmail.sf-mail.de) (auth=eike@sf-mail.de)
-        by mail.sf-mail.de (Qsmtpd 0.37dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
-        for <sparclinux@vger.kernel.org>; Tue, 25 May 2021 11:16:11 +0200
+        id S233019AbhEYNDO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 May 2021 09:03:14 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:41529 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S232991AbhEYNDN (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 25 May 2021 09:03:13 -0400
+Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 14PCheeH098926;
+        Tue, 25 May 2021 09:01:36 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : mime-version : content-transfer-encoding; s=pp1;
+ bh=heKL48jhTKHG+0Zf7GGx5pc2nTO7LUu6qGQW5p/pJiw=;
+ b=m+/4Csr7PprAgzVd7tgMLPdGfwtdhI119P5i2v1HdcKKhFo64NrJyc+6Ei9Ab7omwQZ7
+ B0bLzR/CDFgvT4MysPx8NzkYJ0ids4UnNh+vdyJgBmssuvpPbhk1Z9Drn6NRW1xUGO/U
+ xDp2cRIr6fh1CSmh2c+wpOBYck7IYDF1o1yBXkdra6DVuGc37u9FqO+lLCqrDo1ssJv8
+ sY6fEw4WQJumzHHRbVrSE2w8qQQWn86xQSAb4ZpwArFnBNb8th6CttmtXV8fN5QeuxU1
+ jeTWrwFRJm4yhs1aQw9N3Dub0dtJRkbkfhztnKekRGOFe6BijRefbpndUsF0aEfoM30j Fg== 
+Received: from ppma04ams.nl.ibm.com (63.31.33a9.ip4.static.sl-reverse.com [169.51.49.99])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 38s1g68kum-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 25 May 2021 09:01:35 -0400
+Received: from pps.filterd (ppma04ams.nl.ibm.com [127.0.0.1])
+        by ppma04ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 14PD0KAf002901;
+        Tue, 25 May 2021 13:01:33 GMT
+Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
+        by ppma04ams.nl.ibm.com with ESMTP id 38s1r48016-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 25 May 2021 13:01:33 +0000
+Received: from d06av26.portsmouth.uk.ibm.com (d06av26.portsmouth.uk.ibm.com [9.149.105.62])
+        by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 14PD1VqW28705204
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 25 May 2021 13:01:31 GMT
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 4A19BAE055;
+        Tue, 25 May 2021 13:01:31 +0000 (GMT)
+Received: from d06av26.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id F2DB9AE04D;
+        Tue, 25 May 2021 13:01:30 +0000 (GMT)
+Received: from tuxmaker.boeblingen.de.ibm.com (unknown [9.152.85.9])
+        by d06av26.portsmouth.uk.ibm.com (Postfix) with ESMTP;
+        Tue, 25 May 2021 13:01:30 +0000 (GMT)
+From:   Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+To:     Andrew Morton <akpm@linux-foundation.org>,
+        Anshuman Khandual <anshuman.khandual@arm.com>
+Cc:     linux-mm <linux-mm@kvack.org>, LKML <linux-kernel@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        linux-sparc <sparclinux@vger.kernel.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Subject: [PATCH 0/1] mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
+Date:   Tue, 25 May 2021 15:00:42 +0200
+Message-Id: <20210525130043.186290-1-gerald.schaefer@linux.ibm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Date:   Tue, 25 May 2021 11:16:11 +0200
-From:   Rolf Eike Beer <eike-kernel@sf-tec.de>
-To:     sparclinux@vger.kernel.org
-Subject: Re: soft lockups on T5120
-In-Reply-To: <63c23957-cfb0-ecdb-babf-31fe19c0661f@physik.fu-berlin.de>
-References: <65a62b7c6e752dfb1b46624aa579d5e2@sf-tec.de>
- <d9e79cfa4b80373e2c54e1358d110335@sf-tec.de>
- <63c23957-cfb0-ecdb-babf-31fe19c0661f@physik.fu-berlin.de>
-User-Agent: Roundcube Webmail/1.4.11
-Message-ID: <c024bc4bb808a9c5717ec60bcde2e6d4@sf-tec.de>
-X-Sender: eike-kernel@sf-tec.de
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: UaPDqLmwIwnWKJEQumuWDv4XxDdjtyjp
+X-Proofpoint-ORIG-GUID: UaPDqLmwIwnWKJEQumuWDv4XxDdjtyjp
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-05-25_06:2021-05-25,2021-05-25 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ spamscore=0 impostorscore=0 clxscore=1011 phishscore=0 mlxlogscore=683
+ adultscore=0 lowpriorityscore=0 bulkscore=0 suspectscore=0 mlxscore=0
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2105250077
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Am 2021-01-21 09:03, schrieb John Paul Adrian Glaubitz:
-> Hi Rolf!
-> 
-> On 1/21/21 8:23 AM, Rolf Eike Beer wrote:
->>> The kernel currently is 5.10.3, but I hit this for quite a while
->>> 
->>> Here is what came out of dmesg today. I found no signs of trouble
->>> earlier than this:
->> 
->> And here it is again:
->> (...)
-> 
-> Anatoly found a reproducer for this bug [1]. So it might be an idea to 
-> bisect
-> the issue with the help of the reproducer.
+We sometimes see a "BUG task_struct (Not tainted): Padding overwritten"
+on s390, directly after running debug_vm_pgtable. This is because of
+wrong vaddr alignment in pmd/pud_advanced_tests(), leading to memory
+corruption at least on s390, see patch description.
 
-As there was at least one fix in recent kernels referring to opcode 
-decoding: I still see the soft lockup with 5.12.4, and this time I did 
-not run the gcc testsuite AFAICT.
+At first glance, other architectures do not seem to care about vaddr in
+their xxx_get_and_clear() implementations, so they should not be affected.
+One exception is sparc, where the addr is passed over to some tlb_batch
+code, but I'm not sure what implication the wrongly aligned vaddr would
+have in this case.
 
-Eike
+Also adding linux-arch, just to make sure.
+
+Gerald Schaefer (1):
+  mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
+
+ mm/debug_vm_pgtable.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+-- 
+2.25.1
+
