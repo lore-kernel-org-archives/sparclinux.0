@@ -2,150 +2,67 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DB26C47084
-	for <sparclinux@archiver.kernel.org>; Mon, 24 May 2021 23:04:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F606C47084
+	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 09:24:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFEF26138C
-	for <sparclinux@archiver.kernel.org>; Mon, 24 May 2021 23:04:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64A1C61378
+	for <sparclinux@archiver.kernel.org>; Tue, 25 May 2021 09:24:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229600AbhEXXFt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 24 May 2021 19:05:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36258 "EHLO
+        id S232487AbhEYJ0A (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 25 May 2021 05:26:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229547AbhEXXFt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 May 2021 19:05:49 -0400
-Received: from mail-ej1-x630.google.com (mail-ej1-x630.google.com [IPv6:2a00:1450:4864:20::630])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37679C061574
-        for <sparclinux@vger.kernel.org>; Mon, 24 May 2021 16:04:20 -0700 (PDT)
-Received: by mail-ej1-x630.google.com with SMTP id l1so44239830ejb.6
-        for <sparclinux@vger.kernel.org>; Mon, 24 May 2021 16:04:20 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=uHnwU/8zVxK9/bfw4gLk9ClQH8SbH6WwTZFdoRwbAtE=;
-        b=QQB024vhpmn4hq25e6Gkh0zhdrnh3KHdtxH6hg6RDKH7CnpR3mYJd6drz35kPPn+vq
-         h6264Me+UgyGvlpwu30FVPeTMz+AEc12Q0M+XUT2JohzSMatCOapVMLXEXEiejzFf7ti
-         ktfb2nZNhIlo275VOb2O2BOnbc3ySbclEou9yYwi6+PYR4gUlNFMkKIpexQj+R7biYK9
-         xXDP+mzIofYbIEFKZVe3ZXLMSxK2QP8MWFHo5cfoJS3ZJay5Rqyq5UdBp1+zLKULS08J
-         lwUq6hGqLZp80Ar+2xFbnq6NvtyQI7K0uQTTZPi/naCAAye6mC44N7eH6EQPj41saYzr
-         cNUA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=uHnwU/8zVxK9/bfw4gLk9ClQH8SbH6WwTZFdoRwbAtE=;
-        b=kF0SEX93n7gMbc4eZ6PLSLfMLNxh89Zqui9+ji5nVnR1vHzrkS+s/P/9XyjZMgtxgO
-         iAIwph2W34zgLrusj1eT4bxhMMqfKCizyBG11d8QwktDXO5GwCkIsm1sKXiPnijlcE81
-         7zTDiCRYgeY6YxrYm/T8rnDI9uqGlzbp9YkADD+IayI/+apW523mNwWadNpB45YyDGer
-         Z8H8Xtc822BDldOmXWfNkWJeHVRDxnZHk9Yh/u0wlT5zuPUDMAo7i0o2uO6WJpd236ED
-         owFP3E/ufC6ugASZWv3H8wFlsBDlea3WEjxbHuyBiWXQm0KNla8WlZc/E2cRh9ZfOl+b
-         /5jA==
-X-Gm-Message-State: AOAM533y0u7bXsLslaYGTnHLBM8VAIE+cBnhxmCIp+eEcY3R66CpE1q0
-        P5SmwXqKzZtglVRBZyQ1md23xsjGmlXtCK3Ni5uS
-X-Google-Smtp-Source: ABdhPJzHdwSaxqdMgKRFDcoSWE+vBddUp/NzMoTBPda3nQNAVt0QAUQEdTUit8AXk9QB29Wy0DPtdDjKh5nmDnbZhoc=
-X-Received: by 2002:a17:907:10d8:: with SMTP id rv24mr25356059ejb.542.1621897458726;
- Mon, 24 May 2021 16:04:18 -0700 (PDT)
+        with ESMTP id S232132AbhEYJZ7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 25 May 2021 05:25:59 -0400
+X-Greylist: delayed 398 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 25 May 2021 02:24:28 PDT
+Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 691E0C061574
+        for <sparclinux@vger.kernel.org>; Tue, 25 May 2021 02:24:28 -0700 (PDT)
+Received: (qmail 19418 invoked from network); 25 May 2021 09:16:11 -0000
+Received: from mail.sf-mail.de ([2a01:4f8:1c17:6fae:616d:6c69:616d:6c69]:34074 HELO webmail.sf-mail.de) (auth=eike@sf-mail.de)
+        by mail.sf-mail.de (Qsmtpd 0.37dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
+        for <sparclinux@vger.kernel.org>; Tue, 25 May 2021 11:16:11 +0200
 MIME-Version: 1.0
-References: <cover.1621363275.git.rgb@redhat.com> <f5f1a4d8699613f8c02ce762807228c841c2e26f.1621363275.git.rgb@redhat.com>
- <20210520075842.vnbwbw6yffkybk6z@wittgenstein>
-In-Reply-To: <20210520075842.vnbwbw6yffkybk6z@wittgenstein>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Mon, 24 May 2021 19:04:07 -0400
-Message-ID: <CAHC9VhTyAFou=_Xu7ZSZSY+19Yii=hQ1NW1LPisk49Ot9wg7rg@mail.gmail.com>
-Subject: Re: [PATCH v4 2/3] audit: add support for the openat2 syscall
-To:     Christian Brauner <christian.brauner@ubuntu.com>
-Cc:     Richard Guy Briggs <rgb@redhat.com>,
-        Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Eric Paris <eparis@redhat.com>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Arnd Bergmann <arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Date:   Tue, 25 May 2021 11:16:11 +0200
+From:   Rolf Eike Beer <eike-kernel@sf-tec.de>
+To:     sparclinux@vger.kernel.org
+Subject: Re: soft lockups on T5120
+In-Reply-To: <63c23957-cfb0-ecdb-babf-31fe19c0661f@physik.fu-berlin.de>
+References: <65a62b7c6e752dfb1b46624aa579d5e2@sf-tec.de>
+ <d9e79cfa4b80373e2c54e1358d110335@sf-tec.de>
+ <63c23957-cfb0-ecdb-babf-31fe19c0661f@physik.fu-berlin.de>
+User-Agent: Roundcube Webmail/1.4.11
+Message-ID: <c024bc4bb808a9c5717ec60bcde2e6d4@sf-tec.de>
+X-Sender: eike-kernel@sf-tec.de
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, May 20, 2021 at 3:58 AM Christian Brauner
-<christian.brauner@ubuntu.com> wrote:
-> On Wed, May 19, 2021 at 04:00:21PM -0400, Richard Guy Briggs wrote:
-> > The openat2(2) syscall was added in kernel v5.6 with commit fddb5d430ad9
-> > ("open: introduce openat2(2) syscall")
-> >
-> > Add the openat2(2) syscall to the audit syscall classifier.
-> >
-> > Link: https://github.com/linux-audit/audit-kernel/issues/67
-> > Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> > Link: https://lore.kernel.org/r/f5f1a4d8699613f8c02ce762807228c841c2e26f.1621363275.git.rgb@redhat.com
-> > ---
-> >  arch/alpha/kernel/audit.c           | 2 ++
-> >  arch/ia64/kernel/audit.c            | 2 ++
-> >  arch/parisc/kernel/audit.c          | 2 ++
-> >  arch/parisc/kernel/compat_audit.c   | 2 ++
-> >  arch/powerpc/kernel/audit.c         | 2 ++
-> >  arch/powerpc/kernel/compat_audit.c  | 2 ++
-> >  arch/s390/kernel/audit.c            | 2 ++
-> >  arch/s390/kernel/compat_audit.c     | 2 ++
-> >  arch/sparc/kernel/audit.c           | 2 ++
-> >  arch/sparc/kernel/compat_audit.c    | 2 ++
-> >  arch/x86/ia32/audit.c               | 2 ++
-> >  arch/x86/kernel/audit_64.c          | 2 ++
-> >  include/linux/auditsc_classmacros.h | 1 +
-> >  kernel/auditsc.c                    | 3 +++
-> >  lib/audit.c                         | 4 ++++
-> >  lib/compat_audit.c                  | 4 ++++
-> >  16 files changed, 36 insertions(+)
+Am 2021-01-21 09:03, schrieb John Paul Adrian Glaubitz:
+> Hi Rolf!
+> 
+> On 1/21/21 8:23 AM, Rolf Eike Beer wrote:
+>>> The kernel currently is 5.10.3, but I hit this for quite a while
+>>> 
+>>> Here is what came out of dmesg today. I found no signs of trouble
+>>> earlier than this:
+>> 
+>> And here it is again:
+>> (...)
+> 
+> Anatoly found a reproducer for this bug [1]. So it might be an idea to 
+> bisect
+> the issue with the help of the reproducer.
 
-...
+As there was at least one fix in recent kernels referring to opcode 
+decoding: I still see the soft lockup with 5.12.4, and this time I did 
+not run the gcc testsuite AFAICT.
 
-> > diff --git a/kernel/auditsc.c b/kernel/auditsc.c
-> > index d775ea16505b..3f59ab209dfd 100644
-> > --- a/kernel/auditsc.c
-> > +++ b/kernel/auditsc.c
-> > @@ -76,6 +76,7 @@
-> >  #include <linux/fsnotify_backend.h>
-> >  #include <uapi/linux/limits.h>
-> >  #include <uapi/linux/netfilter/nf_tables.h>
-> > +#include <uapi/linux/openat2.h>
-> >
-> >  #include "audit.h"
-> >
-> > @@ -196,6 +197,8 @@ static int audit_match_perm(struct audit_context *ctx, int mask)
-> >               return ((mask & AUDIT_PERM_WRITE) && ctx->argv[0] == SYS_BIND);
-> >       case AUDITSC_EXECVE:
-> >               return mask & AUDIT_PERM_EXEC;
-> > +     case AUDITSC_OPENAT2:
-> > +             return mask & ACC_MODE((u32)((struct open_how *)ctx->argv[2])->flags);
->
-> That's a lot of dereferncing, casting and masking all at once. Maybe a
-> small static inline helper would be good for the sake of legibility? Sm
-> like:
->
-> static inline u32 audit_openat2_acc(struct open_how *how, int mask)
-> {
->         u32 flags = how->flags;
->         return mask & ACC_MODE(flags);
-> }
->
-> but not sure. Just seems more legible to me.
-> Otherwise.
-
-I'm on the fence about this.  I understand Christian's concern, but I
-have a bit of hatred towards single caller functions like this.  Since
-this function isn't really high-touch, and I don't expect that to
-change in the near future, let's leave the casting mess as-is.
-
--- 
-paul moore
-www.paul-moore.com
+Eike
