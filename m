@@ -2,96 +2,82 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6A15C47082
-	for <sparclinux@archiver.kernel.org>; Wed, 26 May 2021 12:35:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0206C47089
+	for <sparclinux@archiver.kernel.org>; Wed, 26 May 2021 13:36:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A839613BC
-	for <sparclinux@archiver.kernel.org>; Wed, 26 May 2021 12:35:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2829613BA
+	for <sparclinux@archiver.kernel.org>; Wed, 26 May 2021 13:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233413AbhEZMhS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 26 May 2021 08:37:18 -0400
-Received: from foss.arm.com ([217.140.110.172]:43918 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233221AbhEZMhR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 26 May 2021 08:37:17 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id F2C7D1516;
-        Wed, 26 May 2021 05:35:45 -0700 (PDT)
-Received: from [10.163.81.152] (unknown [10.163.81.152])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 429983F73B;
-        Wed, 26 May 2021 05:35:43 -0700 (PDT)
-Subject: Re: [PATCH 1/1] mm/debug_vm_pgtable: fix alignment for
- pmd/pud_advanced_tests()
-To:     Anatoly Pugachev <matorola@gmail.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        id S234295AbhEZNhy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 26 May 2021 09:37:54 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49096 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232829AbhEZNhy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 26 May 2021 09:37:54 -0400
+Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D5E8EC061574;
+        Wed, 26 May 2021 06:36:21 -0700 (PDT)
+Received: by mail-yb1-xb29.google.com with SMTP id z38so2059587ybh.5;
+        Wed, 26 May 2021 06:36:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=iFL5PNWXPS1rh53vwqSPIbk+0/gTsiYmqV4fuzzxBUA=;
+        b=FzT4OTBFNeRbMEDIl1/gOpXnFSWr1fmLO0y3S3SAfelHXi3E4MTdptws8/tgrn3BcD
+         Yz4UBZYic7J2ocmgSKoCYVIqTtd6DO3Xg7Uzek4YPa+5kbE7Lu0XgSe3uOy+lkYwoFM6
+         riinqBB1RW+Hr3bNvH0DKE7OK8a7zbSZdtlqomoZBHPKJIxzxpA5yTzh4ObW2gosjHp7
+         NtCJtKpz+i2FFcldBI21KRXHmU65Go2VnbPjqDBtqEaDdB/iAD1fnEpAh7fnzIAorL5G
+         fzpwtLGlYaJ7PuMrwZ0RVArfW/788ctt4L/mNnwfr6SWG5eNyalX4/Kq7XiOPx0NWH3k
+         +2pA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=iFL5PNWXPS1rh53vwqSPIbk+0/gTsiYmqV4fuzzxBUA=;
+        b=OdZO2Zbt0aSgtZrDH2MX0YBbc37kjDiC3lAn60C4oFrbwA7C7th2Oa+03/1OEP0icC
+         jzFUCUijoBLMP86XO3asExqIEb2LjafCAIT6EQ+NrOCBgdQjCh1alw8uhEUm3JIraNN5
+         hrDIDtRAzEk1rPQY3QQ4Suvnnfw7l3MvZmJEV1U1bwtu2R530/38zk9g1u2oZnC99fNz
+         xmCfqOBNr3fXxs3FKaaE7ArUvBxzizu5zD6BqZCa6glLtAG8RmQvIuEDdrhVL5XI0wS0
+         CIDt66V8MuNA514ccUs7KJgkiF7B+eCpLXFyurz1F0WlpEDEdEgNtfKoWE/bjlMCUP+x
+         FIZQ==
+X-Gm-Message-State: AOAM532q0CpGpgdYE80EC5hhd3LN5NuXxBqyducOLvlSyhU4RfHhIEZH
+        PWHURpM7Tbxg2GNUbI/rW6b++u0Z9BucgmeOr7c=
+X-Google-Smtp-Source: ABdhPJxDriuXtomCkO+vTu34Wdq2ggIF2h//mY2b7hbw86SINmkcT/Xha8Q9csfHatY/78s4PuJ6++W1rIW+pW6iefo=
+X-Received: by 2002:a25:3a41:: with SMTP id h62mr47838671yba.500.1622036180722;
+ Wed, 26 May 2021 06:36:20 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210525130043.186290-1-gerald.schaefer@linux.ibm.com>
+ <20210525130043.186290-2-gerald.schaefer@linux.ibm.com> <CADxRZqxdPodO8y+u=R4HB_727pjmXZFt8M5PPhg_qSsT1S-saQ@mail.gmail.com>
+ <3aadc76c-3a8c-d5d6-5ad2-e83c09f08213@arm.com>
+In-Reply-To: <3aadc76c-3a8c-d5d6-5ad2-e83c09f08213@arm.com>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Wed, 26 May 2021 16:36:09 +0300
+Message-ID: <CADxRZqxWkUdSJJ61WbFCjBFTq1h7nkS3O932St8nMcMpzZy=jA@mail.gmail.com>
+Subject: Re: [PATCH 1/1] mm/debug_vm_pgtable: fix alignment for pmd/pud_advanced_tests()
+To:     Anshuman Khandual <anshuman.khandual@arm.com>
+Cc:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         linux-mm <linux-mm@kvack.org>,
         LKML <linux-kernel@vger.kernel.org>,
         linux-arch <linux-arch@vger.kernel.org>,
         linux-sparc <sparclinux@vger.kernel.org>,
         linux-s390 <linux-s390@vger.kernel.org>, stable@vger.kernel.org
-References: <20210525130043.186290-1-gerald.schaefer@linux.ibm.com>
- <20210525130043.186290-2-gerald.schaefer@linux.ibm.com>
- <CADxRZqxdPodO8y+u=R4HB_727pjmXZFt8M5PPhg_qSsT1S-saQ@mail.gmail.com>
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-Message-ID: <3aadc76c-3a8c-d5d6-5ad2-e83c09f08213@arm.com>
-Date:   Wed, 26 May 2021 18:06:25 +0530
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
-MIME-Version: 1.0
-In-Reply-To: <CADxRZqxdPodO8y+u=R4HB_727pjmXZFt8M5PPhg_qSsT1S-saQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On Wed, May 26, 2021 at 3:35 PM Anshuman Khandual
+<anshuman.khandual@arm.com> wrote:
+> spac64 does not enable ARCH_HAS_DEBUG_VM_PGTABLE, did you enable it
+> before running the test ? Did the entire test debug_vm_pgtable() run
+> successfully on sparc64 ?
 
-
-On 5/26/21 4:57 PM, Anatoly Pugachev wrote:
-> On Tue, May 25, 2021 at 4:03 PM Gerald Schaefer
-> <gerald.schaefer@linux.ibm.com> wrote:
->>
->> In pmd/pud_advanced_tests(), the vaddr is aligned up to the next pmd/pud
->> entry, and so it does not match the given pmdp/pudp and (aligned down) pfn
->> any more.
->>
->> For s390, this results in memory corruption, because the IDTE instruction
->> used e.g. in xxx_get_and_clear() will take the vaddr for some calculations,
->> in combination with the given pmdp. It will then end up with a wrong table
->> origin, ending on ...ff8, and some of those wrongly set low-order bits will
->> also select a wrong pagetable level for the index addition. IDTE could
->> therefore invalidate (or 0x20) something outside of the page tables,
->> depending on the wrongly picked index, which in turn depends on the random
->> vaddr.
->>
->> As result, we sometimes see "BUG task_struct (Not tainted): Padding
->> overwritten" on s390, where one 0x5a padding value got overwritten with
->> 0x7a.
->>
->> Fix this by aligning down, similar to how the pmd/pud_aligned pfns are
->> calculated.
->>
->> Fixes: a5c3b9ffb0f40 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
->> Cc: <stable@vger.kernel.org> # v5.9+
->> Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-> 
-> boot tested on sparc64 with quick run of stress-ng ( --class memory
-> --sequential -1 --timeout 10s -v --pathological --oomable
-> --metrics-brief )
-> stress-ng: debug: [371408] system: Linux ttip
-> 5.13.0-rc3-00043-gad9f25d33860-dirty #218 SMP Wed May 26 11:55:54 MSK
-> 2021 sparc64
-> 
-> Tested-by: Anatoly Pugachev <matorola@gmail.com>
-> 
-
-spac64 does not enable ARCH_HAS_DEBUG_VM_PGTABLE, did you enable it
-before running the test ? Did the entire test debug_vm_pgtable() run
-successfully on sparc64 ?
+Ahh.. Sorry for the noise then... Thought that
+CONFIG_TRANSPARENT_HUGEPAGE would be enough...
