@@ -2,76 +2,97 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5376CC47089
-	for <sparclinux@archiver.kernel.org>; Thu, 27 May 2021 17:43:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 727F8C47087
+	for <sparclinux@archiver.kernel.org>; Fri, 28 May 2021 04:08:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 377FE613C9
-	for <sparclinux@archiver.kernel.org>; Thu, 27 May 2021 17:43:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 538AF610FA
+	for <sparclinux@archiver.kernel.org>; Fri, 28 May 2021 04:08:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235365AbhE0RpE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 27 May 2021 13:45:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38398 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229811AbhE0RpA (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 27 May 2021 13:45:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B02F6610A0;
-        Thu, 27 May 2021 17:43:23 +0000 (UTC)
-Date:   Thu, 27 May 2021 18:43:21 +0100
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-mm@kvack.org,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Russell King <linux@armlinux.org.uk>
-Subject: Re: [PATCH] mm: generalize ZONE_[DMA|DMA32]
-Message-ID: <20210527174321.GI8661@arm.com>
-References: <20210527143047.123611-1-wangkefeng.wang@huawei.com>
+        id S229608AbhE1EJj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 28 May 2021 00:09:39 -0400
+Received: from conuserg-10.nifty.com ([210.131.2.77]:50669 "EHLO
+        conuserg-10.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229810AbhE1EJi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 28 May 2021 00:09:38 -0400
+X-Greylist: delayed 135290 seconds by postgrey-1.27 at vger.kernel.org; Fri, 28 May 2021 00:09:38 EDT
+Received: from localhost.localdomain (133-32-232-101.west.xps.vectant.ne.jp [133.32.232.101]) (authenticated)
+        by conuserg-10.nifty.com with ESMTP id 14S47JsI029078;
+        Fri, 28 May 2021 13:07:19 +0900
+DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-10.nifty.com 14S47JsI029078
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
+        s=dec2015msa; t=1622174839;
+        bh=eCaXXEaS9iNAFPd8MjrkGhV7FV2xPRig2DCKM2Obfno=;
+        h=From:To:Cc:Subject:Date:From;
+        b=s4NjdZwR7kUHALBOMuoO71qORYQnyaQ8x9S+/eaYmCZ8s9h+8fNKxB7GuXPj1vRX5
+         fV/IXsNZV+2JzttplssmphqGXaqHtfXXlFSKFN/mJBXrSAunYMVbfwA/+MrvxmnpJG
+         x8DBfdW/NBa20Auie9l++veei3ekKBCut4FYJqvgEojdYfnwHGvNM2B98KrwHsP0AQ
+         a8e6tNUgqO7hK53nrEK+ZlJD9DmcFAXEPPoB3Sc6+Ideuicy6nrv0n7Dp5QLHm1CZz
+         Vb4HrrFAxjN/7u+qz/5bkEvJIRmwnsdhQwxlnKbUo9kE6aoO2/t4h4A248Iyp9yz62
+         XeXALSyS0eJOw==
+X-Nifty-SrcIP: [133.32.232.101]
+From:   Masahiro Yamada <masahiroy@kernel.org>
+To:     "David S . Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] sparc: syscalls: use pattern rules to generate syscall headers
+Date:   Fri, 28 May 2021 13:07:17 +0900
+Message-Id: <20210528040717.2162382-1-masahiroy@kernel.org>
+X-Mailer: git-send-email 2.27.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210527143047.123611-1-wangkefeng.wang@huawei.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, May 27, 2021 at 10:30:47PM +0800, Kefeng Wang wrote:
-> ZONE_[DMA|DMA32] configs have duplicate definitions on platforms
-> that subscribe them. Instead, just make them generic options which
-> can be selected on applicable platforms.
-> 
-> Also only x86/arm64 architectures could enable both ZONE_DMA and
-> ZONE_DMA32 if EXPERT, add ARCH_HAS_ZONE_DMA_SET to make dma zone
-> configurable and visible on the two architectures.
-> 
-> Cc: Andrew Morton <akpm@linux-foundation.org> 
-> Cc: Catalin Marinas <catalin.marinas@arm.com> 
-> Cc: Will Deacon <will@kernel.org> 
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org> 
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de> 
-> Cc: "David S. Miller" <davem@davemloft.net> 
-> Cc: Ingo Molnar <mingo@redhat.com> 
-> Cc: Borislav Petkov <bp@alien8.de> 
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Richard Henderson <rth@twiddle.net> 
-> Cc: Russell King <linux@armlinux.org.uk>
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Use pattern rules to unify similar build rules between 32-bit and 64-bit.
 
-For arm64:
+Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+---
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+ arch/sparc/kernel/syscalls/Makefile | 18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
+
+diff --git a/arch/sparc/kernel/syscalls/Makefile b/arch/sparc/kernel/syscalls/Makefile
+index 0f2ea5bcb0d7..d63f18dd058d 100644
+--- a/arch/sparc/kernel/syscalls/Makefile
++++ b/arch/sparc/kernel/syscalls/Makefile
+@@ -10,25 +10,15 @@ syshdr := $(srctree)/scripts/syscallhdr.sh
+ systbl := $(srctree)/scripts/syscalltbl.sh
+ 
+ quiet_cmd_syshdr = SYSHDR  $@
+-      cmd_syshdr = $(CONFIG_SHELL) $(syshdr) --emit-nr --abis $(abis) $< $@
++      cmd_syshdr = $(CONFIG_SHELL) $(syshdr) --emit-nr --abis common,$* $< $@
+ 
+ quiet_cmd_systbl = SYSTBL  $@
+-      cmd_systbl = $(CONFIG_SHELL) $(systbl) --abis $(abis) $< $@
++      cmd_systbl = $(CONFIG_SHELL) $(systbl) --abis common,$* $< $@
+ 
+-$(uapi)/unistd_32.h: abis := common,32
+-$(uapi)/unistd_32.h: $(syscall) $(syshdr) FORCE
++$(uapi)/unistd_%.h: $(syscall) $(syshdr) FORCE
+ 	$(call if_changed,syshdr)
+ 
+-$(uapi)/unistd_64.h: abis := common,64
+-$(uapi)/unistd_64.h: $(syscall) $(syshdr) FORCE
+-	$(call if_changed,syshdr)
+-
+-$(kapi)/syscall_table_32.h: abis := common,32
+-$(kapi)/syscall_table_32.h: $(syscall) $(systbl) FORCE
+-	$(call if_changed,systbl)
+-
+-$(kapi)/syscall_table_64.h: abis := common,64
+-$(kapi)/syscall_table_64.h: $(syscall) $(systbl) FORCE
++$(kapi)/syscall_table_%.h: $(syscall) $(systbl) FORCE
+ 	$(call if_changed,systbl)
+ 
+ uapisyshdr-y		+= unistd_32.h unistd_64.h
+-- 
+2.27.0
+
