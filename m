@@ -2,49 +2,38 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA850C47097
-	for <sparclinux@archiver.kernel.org>; Wed,  2 Jun 2021 11:26:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C416C4708F
+	for <sparclinux@archiver.kernel.org>; Wed,  2 Jun 2021 14:03:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1F52613FA
-	for <sparclinux@archiver.kernel.org>; Wed,  2 Jun 2021 11:26:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5B973613BF
+	for <sparclinux@archiver.kernel.org>; Wed,  2 Jun 2021 14:03:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232927AbhFBL2B (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 2 Jun 2021 07:28:01 -0400
-Received: from mail-ua1-f52.google.com ([209.85.222.52]:35815 "EHLO
-        mail-ua1-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232946AbhFBL1U (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 2 Jun 2021 07:27:20 -0400
-Received: by mail-ua1-f52.google.com with SMTP id n61so1093903uan.2;
-        Wed, 02 Jun 2021 04:25:36 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=AV6hHV9w+Q9HOaDxt1MduQbvvUP04JEJ1UZD5l/XTkY=;
-        b=gc2Ix2WYXrd5WBa8hgBCxI97fp6w5lfgSq5y19jK6xflsjm/7Qi77LTamSm8IRE/vZ
-         lnVGmmHIYKQplMfJJVLivjdoBII+fcGDZXQIFroxtfBnu/RLUbZkCtLwK0XcdSpflOn+
-         xER2ZqTNbCQ0NCRucaAE6MlNe0/kI7sh73nUh/FWk8GeLaGfUiF3FwdD6+zrFuR+0ORf
-         K1CCdcfJ+XJ0xQKFMxoeLAvuJ26AHtIo80w4dZe33lMo2RCUovhhCDrjV8a81vMQpegO
-         qg5fCQxWEgo8pa/jjVdVqcH/m+lg/4ZdMb3vn8BJTpJAo4JHPXB7eev+FIxZUakZslDF
-         TSrg==
-X-Gm-Message-State: AOAM5326kVIsA7qV6Ik1uDmkr2fUbjOvpkXbVdz1tzudDiEm6BIC/rPA
-        w2ybBhMHmRFC9mAddyxm9vN17wr6GLWCdLUpMZY=
-X-Google-Smtp-Source: ABdhPJyzzWa9paQxXHYFBMFScAZBlkmtyILKANDBBOx9rPPA/yxyu03vLu3qpQ9izu7tVqpx2AMkJo4APWbgLQB/p8I=
-X-Received: by 2002:ab0:26d8:: with SMTP id b24mr14134972uap.58.1622633136111;
- Wed, 02 Jun 2021 04:25:36 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210602105348.13387-1-rppt@kernel.org> <20210602105348.13387-5-rppt@kernel.org>
-In-Reply-To: <20210602105348.13387-5-rppt@kernel.org>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Wed, 2 Jun 2021 13:25:24 +0200
-Message-ID: <CAMuHMdUUzMNcWNXCjwZmH-VBC+jH1ShBpeg6EBCdRXv3mwHxsQ@mail.gmail.com>
-Subject: Re: [PATCH 4/9] m68k: remove support for DISCONTIGMEM
-To:     Mike Rapoport <rppt@kernel.org>
+        id S230196AbhFBOE7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 2 Jun 2021 10:04:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46842 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229654AbhFBOE6 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 2 Jun 2021 10:04:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8CE12613B8;
+        Wed,  2 Jun 2021 14:03:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1622642595;
+        bh=rVTIekozkKZiHFO8KV73KQ3u8bmmogfis0wnY/V9zMk=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=j8vmJNJ02mTS2qujW9AuK34CyGewsKEQa3NJI4x54mI/kZ6TFkXgNShYSldLi9wwR
+         iVZIZpo10XmlpdD1gKCLSxI2hAconHrCrMCgpriX/VTH8VoFXTo8owedKrPE/jIZ0c
+         D0z4cOoqJMINruzqON7gaCTnozO9ZlPYtavKjKyFVVT2dZ+EtfNVi3gYHbuLNepcSX
+         +gq/yzfSnUELMMLNTwhQ6DbA0qs/Rfv2LkuAbudO4aFFo53imu8k7hO2V3DMiMK48/
+         BPzuDC2hRRaPw3diNLbn7YRlcBUV1pB+YMb1s77Dpt31JAkWDkRc6hv1mITOzdI2oz
+         pUQhhp2WADSpA==
+Date:   Wed, 2 Jun 2021 17:03:01 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Arnd Bergmann <arnd@arndb.de>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
@@ -70,87 +59,102 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         <linux-xtensa@linux-xtensa.org>,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
         sparclinux <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 4/9] m68k: remove support for DISCONTIGMEM
+Message-ID: <YLePlSaXR0XvtZki@kernel.org>
+References: <20210602105348.13387-1-rppt@kernel.org>
+ <20210602105348.13387-5-rppt@kernel.org>
+ <CAMuHMdUUzMNcWNXCjwZmH-VBC+jH1ShBpeg6EBCdRXv3mwHxsQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdUUzMNcWNXCjwZmH-VBC+jH1ShBpeg6EBCdRXv3mwHxsQ@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Mike,
+On Wed, Jun 02, 2021 at 01:25:24PM +0200, Geert Uytterhoeven wrote:
+> Hi Mike,
+> 
+> On Wed, Jun 2, 2021 at 12:54 PM Mike Rapoport <rppt@kernel.org> wrote:
+> > From: Mike Rapoport <rppt@linux.ibm.com>
+> >
+> > DISCONTIGMEM was replaced by FLATMEM with freeing of the unused memory map
+> > in v5.11.
+> >
+> > Remove the support for DISCONTIGMEM entirely.
+> >
+> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+> 
+> Thanks for your patch!
+> 
+> Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> 
+> > --- a/arch/m68k/include/asm/page_mm.h
+> > +++ b/arch/m68k/include/asm/page_mm.h
+> > @@ -126,25 +126,7 @@ static inline void *__va(unsigned long x)
+> >
+> >  extern int m68k_virt_to_node_shift;
+> >
+> > -#ifndef CONFIG_DISCONTIGMEM
+> >  #define __virt_to_node(addr)   (&pg_data_map[0])
+> 
+> With pg_data_map[] removed, this definition can go as well.
+> Seems to be a leftover from 1008a11590b966b4 ("m68k: switch to MEMBLOCK
+>  + NO_BOOTMEM")
+> 
+> There are a few more:
+> arch/m68k/include/asm/mmzone.h:extern pg_data_t pg_data_map[];
+> arch/m68k/include/asm/mmzone.h:#define NODE_DATA(nid)
+> (&pg_data_map[nid])
 
-On Wed, Jun 2, 2021 at 12:54 PM Mike Rapoport <rppt@kernel.org> wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> DISCONTIGMEM was replaced by FLATMEM with freeing of the unused memory map
-> in v5.11.
->
-> Remove the support for DISCONTIGMEM entirely.
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+It seems that arch/m68k/include/asm/mmzone.h can be simply removed.
+ 
+> > -#else
+> > -extern struct pglist_data *pg_data_table[];
+> > -
+> > -static inline __attribute_const__ int __virt_to_node_shift(void)
+> > -{
+> > -       int shift;
+> > -
+> > -       asm (
+> > -               "1:     moveq   #0,%0\n"
+> > -               m68k_fixup(%c1, 1b)
+> > -               : "=d" (shift)
+> > -               : "i" (m68k_fixup_vnode_shift));
+> > -       return shift;
+> > -}
+> > -
+> > -#define __virt_to_node(addr)   (pg_data_table[(unsigned long)(addr) >> __virt_to_node_shift()])
+> > -#endif
+> 
+> > --- a/arch/m68k/mm/init.c
+> > +++ b/arch/m68k/mm/init.c
+> > @@ -44,28 +44,8 @@ EXPORT_SYMBOL(empty_zero_page);
+> >
+> >  int m68k_virt_to_node_shift;
+> >
+> > -#ifdef CONFIG_DISCONTIGMEM
+> > -pg_data_t pg_data_map[MAX_NUMNODES];
+> > -EXPORT_SYMBOL(pg_data_map);
+> > -
+> > -pg_data_t *pg_data_table[65];
+> > -EXPORT_SYMBOL(pg_data_table);
+> > -#endif
+> > -
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> 
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
 
-Thanks for your patch!
-
-Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-
-> --- a/arch/m68k/include/asm/page_mm.h
-> +++ b/arch/m68k/include/asm/page_mm.h
-> @@ -126,25 +126,7 @@ static inline void *__va(unsigned long x)
->
->  extern int m68k_virt_to_node_shift;
->
-> -#ifndef CONFIG_DISCONTIGMEM
->  #define __virt_to_node(addr)   (&pg_data_map[0])
-
-With pg_data_map[] removed, this definition can go as well.
-Seems to be a leftover from 1008a11590b966b4 ("m68k: switch to MEMBLOCK
- + NO_BOOTMEM")
-
-There are a few more:
-arch/m68k/include/asm/mmzone.h:extern pg_data_t pg_data_map[];
-arch/m68k/include/asm/mmzone.h:#define NODE_DATA(nid)
-(&pg_data_map[nid])
-
-> -#else
-> -extern struct pglist_data *pg_data_table[];
-> -
-> -static inline __attribute_const__ int __virt_to_node_shift(void)
-> -{
-> -       int shift;
-> -
-> -       asm (
-> -               "1:     moveq   #0,%0\n"
-> -               m68k_fixup(%c1, 1b)
-> -               : "=d" (shift)
-> -               : "i" (m68k_fixup_vnode_shift));
-> -       return shift;
-> -}
-> -
-> -#define __virt_to_node(addr)   (pg_data_table[(unsigned long)(addr) >> __virt_to_node_shift()])
-> -#endif
-
-> --- a/arch/m68k/mm/init.c
-> +++ b/arch/m68k/mm/init.c
-> @@ -44,28 +44,8 @@ EXPORT_SYMBOL(empty_zero_page);
->
->  int m68k_virt_to_node_shift;
->
-> -#ifdef CONFIG_DISCONTIGMEM
-> -pg_data_t pg_data_map[MAX_NUMNODES];
-> -EXPORT_SYMBOL(pg_data_map);
-> -
-> -pg_data_t *pg_data_table[65];
-> -EXPORT_SYMBOL(pg_data_table);
-> -#endif
-> -
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+Sincerely yours,
+Mike.
