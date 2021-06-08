@@ -2,49 +2,38 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88525C48BC2
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Jun 2021 08:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46EAEC48BCF
+	for <sparclinux@archiver.kernel.org>; Tue,  8 Jun 2021 05:45:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E8EF60E08
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Jun 2021 08:53:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EE556127A
+	for <sparclinux@archiver.kernel.org>; Tue,  8 Jun 2021 05:45:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230313AbhFGIzM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 7 Jun 2021 04:55:12 -0400
-Received: from mail-ua1-f50.google.com ([209.85.222.50]:38531 "EHLO
-        mail-ua1-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230252AbhFGIzL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Jun 2021 04:55:11 -0400
-Received: by mail-ua1-f50.google.com with SMTP id d13so8588144uav.5;
-        Mon, 07 Jun 2021 01:53:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=y7XwbZyFAy9rqQo5J7t8DRS+d/mueoOLl5p+cSQb+8Y=;
-        b=c1QgfpCrjDUVTkAyyBp8WpGyHfrCmwlqwtVXwHahbmua8An8O/eClybf1j+oMHclTg
-         rMIvMWrYrB9Gj2TD3pRIwvdsxkB7d9icqIhx+1ZvDF7Hagiw9U5kXikrzk61x3JjITC7
-         8pG70uh9P/71b9Fu0L2APErbzHJ58IttG/qzIbOqza9sBBKYsJ3QPxRl1kmblPcGDkaK
-         NPkTJVaQoCn/VaRb1KszZ/Q39MTWlQvqB+mnpFRoIOjOQUQjsnSYUteF7Dj4qVL9u+Xb
-         ECq++QQ7vbqY3EDwo1oBHc8szh/J74Mct3oP7UWWUTuzXWOG+5vhy1QPhID0bwAgs6ws
-         QMyA==
-X-Gm-Message-State: AOAM532XV40qPaFsEC/GJkAhhxOwX05CIufouWf1JTWpIJDVLxJyQyBP
-        gmz4WkdAf7f5Mky/jxlESS/KPFB5bvNH7j6p8/o=
-X-Google-Smtp-Source: ABdhPJw70xfmNroh3KIu5QGmqKsYwQ+PKLyHQ50n7DeatYgE4iGl6TNz+FWGTOL2BBcrgRRRH99rMYwIPPT469OpB6M=
-X-Received: by 2002:ab0:63d9:: with SMTP id i25mr6682382uap.106.1623055999326;
- Mon, 07 Jun 2021 01:53:19 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210604064916.26580-1-rppt@kernel.org> <20210604064916.26580-9-rppt@kernel.org>
-In-Reply-To: <20210604064916.26580-9-rppt@kernel.org>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 7 Jun 2021 10:53:08 +0200
-Message-ID: <CAMuHMdVa29gUQAdHjKh-qDNpOJaoGwXtUkBM2qnOTi1DWV70xA@mail.gmail.com>
-Subject: Re: [PATCH v2 8/9] mm: replace CONFIG_NEED_MULTIPLE_NODES with CONFIG_NUMA
-To:     Mike Rapoport <rppt@kernel.org>
+        id S230222AbhFHFrN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 8 Jun 2021 01:47:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55326 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229507AbhFHFrL (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 8 Jun 2021 01:47:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5D8361029;
+        Tue,  8 Jun 2021 05:45:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1623131119;
+        bh=49fVzdt4MSY+UspP64EgJQ791zimRP1gxTciSlJZXt4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=G0Rtshf8pvTrv3vEhpsoWQuj5JjeNYokUzfYJ5STkCXI/OnFwZ+jzE319giZq9upk
+         Ip6wZYmg/mXX1RsKoBHJISuKRrHfu3i7LKK8o6lrdj3F/wsMYKU4KSiTq0yf0Te/9Y
+         EXkEDnDuymhI/7Es9g0unojNazWzSj6FWZpsSVsuRv7SkD+TKqrUPOkH42sn/s2o3k
+         YyeAtmie679nER7vSNNhYu+t0T8vpaLE8THVLmZUT2dI3k363OIVX5xgUfeXV7EiTs
+         ihyAaoDmjCZhWOCiJEmXQBaJ0yMnS1SK6yRX7SpN+JL1ZvqVGV5DXW68K81QTP/SNc
+         ubRqN6fNQU7pg==
+Date:   Tue, 8 Jun 2021 08:45:07 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Arnd Bergmann <arnd@arndb.de>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
@@ -70,61 +59,81 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         <linux-xtensa@linux-xtensa.org>,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
         sparclinux <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v2 8/9] mm: replace CONFIG_NEED_MULTIPLE_NODES with
+ CONFIG_NUMA
+Message-ID: <YL8D47Ty8iXZJsK3@kernel.org>
+References: <20210604064916.26580-1-rppt@kernel.org>
+ <20210604064916.26580-9-rppt@kernel.org>
+ <CAMuHMdVa29gUQAdHjKh-qDNpOJaoGwXtUkBM2qnOTi1DWV70xA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdVa29gUQAdHjKh-qDNpOJaoGwXtUkBM2qnOTi1DWV70xA@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Mike,
+Hi,
 
-On Fri, Jun 4, 2021 at 8:50 AM Mike Rapoport <rppt@kernel.org> wrote:
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> After removal of DISCINTIGMEM the NEED_MULTIPLE_NODES and NUMA
-> configuration options are equivalent.
->
-> Drop CONFIG_NEED_MULTIPLE_NODES and use CONFIG_NUMA instead.
->
-> Done with
->
->         $ sed -i 's/CONFIG_NEED_MULTIPLE_NODES/CONFIG_NUMA/' \
->                 $(git grep -wl CONFIG_NEED_MULTIPLE_NODES)
->         $ sed -i 's/NEED_MULTIPLE_NODES/NUMA/' \
->                 $(git grep -wl NEED_MULTIPLE_NODES)
->
-> with manual tweaks afterwards.
->
-> Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+On Mon, Jun 07, 2021 at 10:53:08AM +0200, Geert Uytterhoeven wrote:
+> Hi Mike,
+> 
+> On Fri, Jun 4, 2021 at 8:50 AM Mike Rapoport <rppt@kernel.org> wrote:
+> > From: Mike Rapoport <rppt@linux.ibm.com>
+> >
+> > After removal of DISCINTIGMEM the NEED_MULTIPLE_NODES and NUMA
+> > configuration options are equivalent.
+> >
+> > Drop CONFIG_NEED_MULTIPLE_NODES and use CONFIG_NUMA instead.
+> >
+> > Done with
+> >
+> >         $ sed -i 's/CONFIG_NEED_MULTIPLE_NODES/CONFIG_NUMA/' \
+> >                 $(git grep -wl CONFIG_NEED_MULTIPLE_NODES)
+> >         $ sed -i 's/NEED_MULTIPLE_NODES/NUMA/' \
+> >                 $(git grep -wl NEED_MULTIPLE_NODES)
+> >
+> > with manual tweaks afterwards.
+> >
+> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+> 
+> Thanks for your patch!
+> 
+> As you dropped the following hunk from v2 of PATCH 5/9, there's now
+> one reference left of CONFIG_NEED_MULTIPLE_NODES
+> (plus the discontigmem comment):
 
-Thanks for your patch!
+Aargh, indeed. Thanks for catching this.
 
-As you dropped the following hunk from v2 of PATCH 5/9, there's now
-one reference left of CONFIG_NEED_MULTIPLE_NODES
-(plus the discontigmem comment):
-
--diff --git a/mm/memory.c b/mm/memory.c
--index f3ffab9b9e39157b..fd0ebb63be3304f5 100644
----- a/mm/memory.c
--+++ b/mm/memory.c
--@@ -90,8 +90,7 @@
-- #warning Unfortunate NUMA and NUMA Balancing config, growing
-page-frame for last_cpupid.
-- #endif
--
---#ifndef CONFIG_NEED_MULTIPLE_NODES
---/* use the per-pgdat data instead for discontigmem - mbligh */
--+#ifdef CONFIG_FLATMEM
-- unsigned long max_mapnr;
-- EXPORT_SYMBOL(max_mapnr);
--
-
-Gr{oetje,eeting}s,
-
-                        Geert
+And I wondered why you suggested to fix spelling in cover letter for v3 :)
+ 
+> -diff --git a/mm/memory.c b/mm/memory.c
+> -index f3ffab9b9e39157b..fd0ebb63be3304f5 100644
+> ---- a/mm/memory.c
+> -+++ b/mm/memory.c
+> -@@ -90,8 +90,7 @@
+> - #warning Unfortunate NUMA and NUMA Balancing config, growing
+> page-frame for last_cpupid.
+> - #endif
+> -
+> --#ifndef CONFIG_NEED_MULTIPLE_NODES
+> --/* use the per-pgdat data instead for discontigmem - mbligh */
+> -+#ifdef CONFIG_FLATMEM
+> - unsigned long max_mapnr;
+> - EXPORT_SYMBOL(max_mapnr);
+> -
+> 
+> Gr{oetje,eeting}s,
+> 
+>                         Geert
+> 
+> -- 
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> 
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
 
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Sincerely yours,
+Mike.
