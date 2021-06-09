@@ -2,41 +2,37 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-11.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 029D7C48BE5
-	for <sparclinux@archiver.kernel.org>; Wed,  9 Jun 2021 11:32:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 523C1C48BE0
+	for <sparclinux@archiver.kernel.org>; Wed,  9 Jun 2021 14:51:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DC849613B6
-	for <sparclinux@archiver.kernel.org>; Wed,  9 Jun 2021 11:32:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34ED1613B9
+	for <sparclinux@archiver.kernel.org>; Wed,  9 Jun 2021 14:51:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238954AbhFILeb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 9 Jun 2021 07:34:31 -0400
-Received: from mout.kundenserver.de ([217.72.192.73]:56329 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234695AbhFILea (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 9 Jun 2021 07:34:30 -0400
-Received: from mail-wm1-f47.google.com ([209.85.128.47]) by
- mrelayeu.kundenserver.de (mreue107 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1MeTHG-1lIhYi06xY-00aXJb; Wed, 09 Jun 2021 13:32:32 +0200
-Received: by mail-wm1-f47.google.com with SMTP id l18-20020a1ced120000b029014c1adff1edso4037255wmh.4;
-        Wed, 09 Jun 2021 04:32:31 -0700 (PDT)
-X-Gm-Message-State: AOAM531MtLqkz6c784MFtQZns9lthn21/JNIrLLelOQnk1FoPQu8fEM0
-        GWOQGmM2juT/VRjRxeEztY/WzXmANm1nRMzNoGU=
-X-Google-Smtp-Source: ABdhPJzoAPnjJWGlDyxsxVrxhheEMZ1P753dKM++est77A1JSiUJC5TRRvOf+sTRALv47GHRkLWv+YzLbHb9Ukp7IwY=
-X-Received: by 2002:a1c:7d15:: with SMTP id y21mr9135927wmc.120.1623238351528;
- Wed, 09 Jun 2021 04:32:31 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210604064916.26580-1-rppt@kernel.org>
-In-Reply-To: <20210604064916.26580-1-rppt@kernel.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Wed, 9 Jun 2021 13:30:39 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2tZDJDqgr9-1vJrnbDhd_36eKq8LMEznDkU7rvuAnAag@mail.gmail.com>
-Message-ID: <CAK8P3a2tZDJDqgr9-1vJrnbDhd_36eKq8LMEznDkU7rvuAnAag@mail.gmail.com>
-Subject: Re: [PATCH v2 0/9] Remove DISCINTIGMEM memory model
-To:     Mike Rapoport <rppt@kernel.org>
+        id S238286AbhFIOw4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 9 Jun 2021 10:52:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59320 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S238257AbhFIOw4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 9 Jun 2021 10:52:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2163C6128A;
+        Wed,  9 Jun 2021 14:50:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1623250261;
+        bh=svcXYr1x4uog0gl91R41ozY2Q0KNDzZmG4YRGTMMy2A=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=YkHX/JVfHqUvpWvWXkgg3rdrkk7agHtEIKqaX0vfSpX504lTGaDjO7Qz7iARqzkGp
+         DWsHVY+tAbRsBUSVBkbhVjgZvGY6y/wRIXGMo+CgzooB/zqPomfgnsHX9y3mgTbMXc
+         xGiW+RangNEk+pKIT8UX8w6paGaFQZLDQ+McKqTpjqFKueMHIVGMXJpalfW0Fph76r
+         Lcm2WPwzewVnde/Vu5ujWTdQssxwNbFghUliAxp8Ku3YbSQHaHnLbkGz+awfGrnWGJ
+         yu4qANQoP9p9s4/vzkSPeJiYpDnHVlRdjW4xbBVW2tivL4go8M8laNS3QaNsdGKKc0
+         R1JEjjJpSG45g==
+Date:   Wed, 9 Jun 2021 17:50:50 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Arnd Bergmann <arnd@arndb.de>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
@@ -63,54 +59,57 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         <linux-xtensa@linux-xtensa.org>,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
         sparclinux <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:H5v968KC2M79DkfYJyPJxj8yupcPqCQCJ1N4Z1HmTCSClKb4RJo
- ba0OO00j+bQ0/ZfbbpxKSiQVStQhbD856cKnMY+4A0fxTdaC6uxId9Y1ipxTmxRBkJuctyA
- Y1reZ/b/kYT1BSOx482r5mSswn4b7jlFqgsC78pIMEkGVNc1cjI0RWjJZWCt4GG6WoMXbNZ
- Ljxrl+h40xce8+eZXhgpw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:5bmpDHZqtKc=:Snj2gFdCvD9hMNFA7myfNf
- S7TJYfwc92EMXo9TCc/9co0khSPe0xtvvBaf8aiHVsurZ3oP2AmcRX6BVUP7Xkj9BDw9JrZ8r
- Z2wILA9mD/T8ZjTMdp8kP7qRSEOVHhc7Au1DQbVYZorVj7P2leDN1uEjVAhYCl9pkDkOhflPK
- vR3qGESRcP/fRxk0ek/C5PAEwYFJjR5/IGZq2vJEr7WZdjAI+bQjrRwd+D7thELunwixQ+PpT
- WI8xpyv1ks8xUxKZI9AWGNw6UhNUsBufMWKZ85ybM1bhKHgP4NQsoHnWhobO8rOzd7mmp+jxB
- EQh62WMcePgVMwuNW5SPP4rcyv9jVb4grdp2JrCbcR8rqJzreIfWKIdLr156lCln5HUoPhyOz
- ntXk9hTPzQ2q7S3c/MqI0in2kpmJVNcVYFmVrGCmGA8tZ7xuH9IOakNeAFkCRFqBUgKX/IXpl
- UEQflHiNkQiWJe4xHAM7PtCA+SqMph+XVbJl6LVS/uvozw/5S4vyBWrztTOXrWo7TaJflWn5P
- kgirFMtxuf9q5XsoobMr8Ol4RQnTDMy8uXmfTDS58mC/9bsqrpXrOnVt7H9AxIUxbuWsocMKR
- GATG5+nWJuFn2SSP0/UPYKl4jJ1LD+cCBubY6cirUnIUoYxqSzBOh21rRTqGQSReM2zHPuCDc
- 5yks=
+Subject: Re: [PATCH v2 0/9] Remove DISCINTIGMEM memory model
+Message-ID: <YMDVSu00xXGmdCtC@kernel.org>
+References: <20210604064916.26580-1-rppt@kernel.org>
+ <CAK8P3a2tZDJDqgr9-1vJrnbDhd_36eKq8LMEznDkU7rvuAnAag@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a2tZDJDqgr9-1vJrnbDhd_36eKq8LMEznDkU7rvuAnAag@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jun 4, 2021 at 8:49 AM Mike Rapoport <rppt@kernel.org> wrote:
->
-> From: Mike Rapoport <rppt@linux.ibm.com>
->
-> Hi,
->
-> SPARSEMEM memory model was supposed to entirely replace DISCONTIGMEM a
-> (long) while ago. The last architectures that used DISCONTIGMEM were
-> updated to use other memory models in v5.11 and it is about the time to
-> entirely remove DISCONTIGMEM from the kernel.
->
-> This set removes DISCONTIGMEM from alpha, arc and m68k, simplifies memory
-> model selection in mm/Kconfig and replaces usage of redundant
-> CONFIG_NEED_MULTIPLE_NODES and CONFIG_FLAT_NODE_MEM_MAP with CONFIG_NUMA
-> and CONFIG_FLATMEM respectively.
->
-> I've also removed NUMA support on alpha that was BROKEN for more than 15
-> years.
->
-> There were also minor updates all over arch/ to remove mentions of
-> DISCONTIGMEM in comments and #ifdefs.
+Hi Arnd,
 
-Hi Mike and Andrew,
+On Wed, Jun 09, 2021 at 01:30:39PM +0200, Arnd Bergmann wrote:
+> On Fri, Jun 4, 2021 at 8:49 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > From: Mike Rapoport <rppt@linux.ibm.com>
+> >
+> > Hi,
+> >
+> > SPARSEMEM memory model was supposed to entirely replace DISCONTIGMEM a
+> > (long) while ago. The last architectures that used DISCONTIGMEM were
+> > updated to use other memory models in v5.11 and it is about the time to
+> > entirely remove DISCONTIGMEM from the kernel.
+> >
+> > This set removes DISCONTIGMEM from alpha, arc and m68k, simplifies memory
+> > model selection in mm/Kconfig and replaces usage of redundant
+> > CONFIG_NEED_MULTIPLE_NODES and CONFIG_FLAT_NODE_MEM_MAP with CONFIG_NUMA
+> > and CONFIG_FLATMEM respectively.
+> >
+> > I've also removed NUMA support on alpha that was BROKEN for more than 15
+> > years.
+> >
+> > There were also minor updates all over arch/ to remove mentions of
+> > DISCONTIGMEM in comments and #ifdefs.
+> 
+> Hi Mike and Andrew,
+> 
+> It looks like everyone is happy with this version so far. How should we merge it
+> for linux-next? I'm happy to take it through the asm-generic tree, but linux-mm
+> would fit at least as well. In case we go for linux-mm, feel free to add
 
-It looks like everyone is happy with this version so far. How should we merge it
-for linux-next? I'm happy to take it through the asm-generic tree, but linux-mm
-would fit at least as well. In case we go for linux-mm, feel free to add
+Andrew already took to mmotm.
+ 
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Thanks!
 
-for the whole series.
+> for the whole series.
+
+-- 
+Sincerely yours,
+Mike.
