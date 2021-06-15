@@ -2,277 +2,320 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.2 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA1A9C49EA6
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Jun 2021 05:43:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 53950C49361
+	for <sparclinux@archiver.kernel.org>; Tue, 15 Jun 2021 11:31:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA89B613B8
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Jun 2021 05:43:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30C9861107
+	for <sparclinux@archiver.kernel.org>; Tue, 15 Jun 2021 11:31:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230400AbhFLFpp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 12 Jun 2021 01:45:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38704 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229446AbhFLFpn (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sat, 12 Jun 2021 01:45:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5410B61019;
-        Sat, 12 Jun 2021 05:43:37 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1623476624;
-        bh=jXSf9kPU6/p3Pl02zFLTjgmsn62vO+wR89LkyYwqjYE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=jQzBYFAXgxUH9zPpsPc2S9koB6TyWpzCJ1FcyoOFUPs7glHYtJWXiwaYLZbOYr1MD
-         e8dUX72/dMktQcP+MfbQLugr1DigtCWPruv02QxyYGEBDlYcEvhTSF63D1F76zo+eL
-         vOmDN5XDSPdJfrU5UpdF1koBNLPwdNgaB2Yne6m3YDq4mBcFE1Twi6f4e9jRCCYQMf
-         fXFfPo4RoZ3j+NJMVPgoFRy/0IXayxTFHiwh1+yLk0mxoQNt6KiYCSMshhiOPS7yS1
-         6HDTiCLiwW9bME21jEq92F8Esv4cZpDqtMIPSa1vd/42SwMmpCSE4nvcQy4brkpojX
-         7a11xyl6jl4EA==
-Date:   Sat, 12 Jun 2021 08:43:33 +0300
-From:   Mike Rapoport <rppt@kernel.org>
-To:     Stephen Brennan <stephen@brennan.io>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Matt Turner <mattst88@gmail.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Vineet Gupta <vgupta@synopsys.com>, kexec@lists.infradead.org,
-        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-doc@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
+        id S230076AbhFOLeB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 15 Jun 2021 07:34:01 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:7394 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229659AbhFOLeA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 15 Jun 2021 07:34:00 -0400
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 15FBB46P063562;
+        Tue, 15 Jun 2021 07:31:05 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=from : to : cc : subject
+ : date : message-id : in-reply-to : references : content-transfer-encoding
+ : mime-version; s=pp1; bh=46lRDQvPDCMptNp8KPNFjxHnQhG6dR0aecdnO90y5zY=;
+ b=jKcOlBHhGIfgGnqdP/XmHzlW9TZpQtHvF+GSdiBeRW4b5r4eLE+1+OBzHpb7PxV/BI1S
+ 12Q0a/IZSky1B4fLZFAnSdt5kGuow/Ra2l3LOXC34BhVvbwZD7nBLWJSxm1LrlivhLE6
+ ltZc9alf5qb9wBvCTDVZiByBSEc3R5Z5mlu0YUpHu2j4nYQlONKr/FLO+LXozFQ7jz7K
+ QhXyCZ8tI5Ak4i6aheaRwZLeJPmRFrwYrTGVxoShJxCfZFvebp74ehuBpf/hjT9yYpCZ
+ 1AFuYjC1KojjhfosdvvwB0hQeRUrqkb+eqWnFF7Du+24ONS8vH7Oi8qM8weUfsC1lsC/ vw== 
+Received: from ppma01wdc.us.ibm.com (fd.55.37a9.ip4.static.sl-reverse.com [169.55.85.253])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 396tq4s28y-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 15 Jun 2021 07:31:04 -0400
+Received: from pps.filterd (ppma01wdc.us.ibm.com [127.0.0.1])
+        by ppma01wdc.us.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 15FBNNI9020401;
+        Tue, 15 Jun 2021 11:31:03 GMT
+Received: from b01cxnp23032.gho.pok.ibm.com (b01cxnp23032.gho.pok.ibm.com [9.57.198.27])
+        by ppma01wdc.us.ibm.com with ESMTP id 394mj97b34-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 15 Jun 2021 11:31:03 +0000
+Received: from b01ledav005.gho.pok.ibm.com (b01ledav005.gho.pok.ibm.com [9.57.199.110])
+        by b01cxnp23032.gho.pok.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 15FBV29Y30147066
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 15 Jun 2021 11:31:02 GMT
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 1977EAE0DA;
+        Tue, 15 Jun 2021 11:09:24 +0000 (GMT)
+Received: from b01ledav005.gho.pok.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 530C0AE06D;
+        Tue, 15 Jun 2021 11:09:19 +0000 (GMT)
+Received: from skywalker.ibmuc.com (unknown [9.199.54.82])
+        by b01ledav005.gho.pok.ibm.com (Postfix) with ESMTP;
+        Tue, 15 Jun 2021 11:09:19 +0000 (GMT)
+From:   "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+To:     linux-mm@kvack.org
+Cc:     akpm@linux-foundation.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
         linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-mm@kvack.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v3 5/9] mm: remove CONFIG_DISCONTIGMEM
-Message-ID: <YMRJhezHRZrbrO0Y@kernel.org>
-References: <20210608091316.3622-1-rppt@kernel.org>
- <20210608091316.3622-6-rppt@kernel.org>
- <87r1h886n7.fsf@stepbren-lnx.us.oracle.com>
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-arch@vger.kernel.org
+Subject: [PATCH v2 2/2] mm: rename p4d_page_vaddr to p4d_pgtable and make it return pud_t *
+Date:   Tue, 15 Jun 2021 16:38:59 +0530
+Message-Id: <20210615110859.320299-2-aneesh.kumar@linux.ibm.com>
+X-Mailer: git-send-email 2.31.1
+In-Reply-To: <20210615110859.320299-1-aneesh.kumar@linux.ibm.com>
+References: <20210615110859.320299-1-aneesh.kumar@linux.ibm.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-ORIG-GUID: _LkL_3fJzhGn91Y5tgVoMjM15-XPwyMY
+X-Proofpoint-GUID: _LkL_3fJzhGn91Y5tgVoMjM15-XPwyMY
+Content-Transfer-Encoding: 8bit
+X-Proofpoint-UnRewURL: 0 URL was un-rewritten
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87r1h886n7.fsf@stepbren-lnx.us.oracle.com>
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.761
+ definitions=2021-06-15_04:2021-06-14,2021-06-15 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 clxscore=1011 bulkscore=0
+ spamscore=0 malwarescore=0 phishscore=0 adultscore=0 suspectscore=0
+ impostorscore=0 lowpriorityscore=0 priorityscore=1501 mlxscore=0
+ mlxlogscore=848 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2106150070
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jun 11, 2021 at 01:53:48PM -0700, Stephen Brennan wrote:
-> Mike Rapoport <rppt@kernel.org> writes:
-> > From: Mike Rapoport <rppt@linux.ibm.com>
-> >
-> > There are no architectures that support DISCONTIGMEM left.
-> >
-> > Remove the configuration option and the dead code it was guarding in the
-> > generic memory management code.
-> >
-> > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > ---
-> >  include/asm-generic/memory_model.h | 37 ++++--------------------------
-> >  include/linux/mmzone.h             |  8 ++++---
-> >  mm/Kconfig                         | 25 +++-----------------
-> >  mm/page_alloc.c                    | 13 -----------
-> >  4 files changed, 12 insertions(+), 71 deletions(-)
-> >
-> > diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
-> > index 7637fb46ba4f..a2c8ed60233a 100644
-> > --- a/include/asm-generic/memory_model.h
-> > +++ b/include/asm-generic/memory_model.h
-> > @@ -6,47 +6,18 @@
-> >  
-> >  #ifndef __ASSEMBLY__
-> >  
-> > +/*
-> > + * supports 3 memory models.
-> > + */
-> 
-> This comment could either be updated to reflect 2 memory models, or
-> removed entirely.
+No functional change in this patch.
 
-I counted SPARSE and SPARSE_VMEMMAP as 2.
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-arch@vger.kernel.org
 
-The code below has three clauses: one for FLATMEM, one for SPARSE and one
-for VMEMMAP.
+Link: https://lore.kernel.org/linuxppc-dev/CAHk-=wi+J+iodze9FtjM3Zi4j4OeS+qqbKxME9QN4roxPEXH9Q@mail.gmail.com/
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+---
+ arch/arm64/include/asm/pgtable.h                | 4 ++--
+ arch/ia64/include/asm/pgtable.h                 | 2 +-
+ arch/mips/include/asm/pgtable-64.h              | 4 ++--
+ arch/powerpc/include/asm/book3s/64/pgtable.h    | 5 ++++-
+ arch/powerpc/include/asm/nohash/64/pgtable-4k.h | 6 +++++-
+ arch/powerpc/mm/book3s64/radix_pgtable.c        | 2 +-
+ arch/powerpc/mm/pgtable_64.c                    | 2 +-
+ arch/sparc/include/asm/pgtable_64.h             | 4 ++--
+ arch/x86/include/asm/pgtable.h                  | 4 ++--
+ arch/x86/mm/init_64.c                           | 4 ++--
+ include/asm-generic/pgtable-nop4d.h             | 2 +-
+ include/asm-generic/pgtable-nopud.h             | 2 +-
+ include/linux/pgtable.h                         | 2 +-
+ 13 files changed, 25 insertions(+), 18 deletions(-)
+
+diff --git a/arch/arm64/include/asm/pgtable.h b/arch/arm64/include/asm/pgtable.h
+index 53a415b329b0..fde06639fff8 100644
+--- a/arch/arm64/include/asm/pgtable.h
++++ b/arch/arm64/include/asm/pgtable.h
+@@ -697,9 +697,9 @@ static inline phys_addr_t p4d_page_paddr(p4d_t p4d)
+ 	return __p4d_to_phys(p4d);
+ }
  
-> Thanks,
-> Stephen
-> 
-> >  #if defined(CONFIG_FLATMEM)
-> >  
-> >  #ifndef ARCH_PFN_OFFSET
-> >  #define ARCH_PFN_OFFSET		(0UL)
-> >  #endif
-> >  
-> > -#elif defined(CONFIG_DISCONTIGMEM)
-> > -
-> > -#ifndef arch_pfn_to_nid
-> > -#define arch_pfn_to_nid(pfn)	pfn_to_nid(pfn)
-> > -#endif
-> > -
-> > -#ifndef arch_local_page_offset
-> > -#define arch_local_page_offset(pfn, nid)	\
-> > -	((pfn) - NODE_DATA(nid)->node_start_pfn)
-> > -#endif
-> > -
-> > -#endif /* CONFIG_DISCONTIGMEM */
-> > -
-> > -/*
-> > - * supports 3 memory models.
-> > - */
-> > -#if defined(CONFIG_FLATMEM)
-> > -
-> >  #define __pfn_to_page(pfn)	(mem_map + ((pfn) - ARCH_PFN_OFFSET))
-> >  #define __page_to_pfn(page)	((unsigned long)((page) - mem_map) + \
-> >  				 ARCH_PFN_OFFSET)
-> > -#elif defined(CONFIG_DISCONTIGMEM)
-> > -
-> > -#define __pfn_to_page(pfn)			\
-> > -({	unsigned long __pfn = (pfn);		\
-> > -	unsigned long __nid = arch_pfn_to_nid(__pfn);  \
-> > -	NODE_DATA(__nid)->node_mem_map + arch_local_page_offset(__pfn, __nid);\
-> > -})
-> > -
-> > -#define __page_to_pfn(pg)						\
-> > -({	const struct page *__pg = (pg);					\
-> > -	struct pglist_data *__pgdat = NODE_DATA(page_to_nid(__pg));	\
-> > -	(unsigned long)(__pg - __pgdat->node_mem_map) +			\
-> > -	 __pgdat->node_start_pfn;					\
-> > -})
-> >  
-> >  #elif defined(CONFIG_SPARSEMEM_VMEMMAP)
-> >  
-> > @@ -70,7 +41,7 @@
-> >  	struct mem_section *__sec = __pfn_to_section(__pfn);	\
-> >  	__section_mem_map_addr(__sec) + __pfn;		\
-> >  })
-> > -#endif /* CONFIG_FLATMEM/DISCONTIGMEM/SPARSEMEM */
-> > +#endif /* CONFIG_FLATMEM/SPARSEMEM */
-> >  
-> >  /*
-> >   * Convert a physical address to a Page Frame Number and back
-> > diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-> > index 0d53eba1c383..700032e99419 100644
-> > --- a/include/linux/mmzone.h
-> > +++ b/include/linux/mmzone.h
-> > @@ -738,10 +738,12 @@ struct zonelist {
-> >  	struct zoneref _zonerefs[MAX_ZONES_PER_ZONELIST + 1];
-> >  };
-> >  
-> > -#ifndef CONFIG_DISCONTIGMEM
-> > -/* The array of struct pages - for discontigmem use pgdat->lmem_map */
-> > +/*
-> > + * The array of struct pages for flatmem.
-> > + * It must be declared for SPARSEMEM as well because there are configurations
-> > + * that rely on that.
-> > + */
-> >  extern struct page *mem_map;
-> > -#endif
-> >  
-> >  #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-> >  struct deferred_split {
-> > diff --git a/mm/Kconfig b/mm/Kconfig
-> > index 02d44e3420f5..218b96ccc84a 100644
-> > --- a/mm/Kconfig
-> > +++ b/mm/Kconfig
-> > @@ -19,7 +19,7 @@ choice
-> >  
-> >  config FLATMEM_MANUAL
-> >  	bool "Flat Memory"
-> > -	depends on !(ARCH_DISCONTIGMEM_ENABLE || ARCH_SPARSEMEM_ENABLE) || ARCH_FLATMEM_ENABLE
-> > +	depends on !ARCH_SPARSEMEM_ENABLE || ARCH_FLATMEM_ENABLE
-> >  	help
-> >  	  This option is best suited for non-NUMA systems with
-> >  	  flat address space. The FLATMEM is the most efficient
-> > @@ -32,21 +32,6 @@ config FLATMEM_MANUAL
-> >  
-> >  	  If unsure, choose this option (Flat Memory) over any other.
-> >  
-> > -config DISCONTIGMEM_MANUAL
-> > -	bool "Discontiguous Memory"
-> > -	depends on ARCH_DISCONTIGMEM_ENABLE
-> > -	help
-> > -	  This option provides enhanced support for discontiguous
-> > -	  memory systems, over FLATMEM.  These systems have holes
-> > -	  in their physical address spaces, and this option provides
-> > -	  more efficient handling of these holes.
-> > -
-> > -	  Although "Discontiguous Memory" is still used by several
-> > -	  architectures, it is considered deprecated in favor of
-> > -	  "Sparse Memory".
-> > -
-> > -	  If unsure, choose "Sparse Memory" over this option.
-> > -
-> >  config SPARSEMEM_MANUAL
-> >  	bool "Sparse Memory"
-> >  	depends on ARCH_SPARSEMEM_ENABLE
-> > @@ -62,17 +47,13 @@ config SPARSEMEM_MANUAL
-> >  
-> >  endchoice
-> >  
-> > -config DISCONTIGMEM
-> > -	def_bool y
-> > -	depends on (!SELECT_MEMORY_MODEL && ARCH_DISCONTIGMEM_ENABLE) || DISCONTIGMEM_MANUAL
-> > -
-> >  config SPARSEMEM
-> >  	def_bool y
-> >  	depends on (!SELECT_MEMORY_MODEL && ARCH_SPARSEMEM_ENABLE) || SPARSEMEM_MANUAL
-> >  
-> >  config FLATMEM
-> >  	def_bool y
-> > -	depends on (!DISCONTIGMEM && !SPARSEMEM) || FLATMEM_MANUAL
-> > +	depends on !SPARSEMEM || FLATMEM_MANUAL
-> >  
-> >  config FLAT_NODE_MEM_MAP
-> >  	def_bool y
-> > @@ -85,7 +66,7 @@ config FLAT_NODE_MEM_MAP
-> >  #
-> >  config NEED_MULTIPLE_NODES
-> >  	def_bool y
-> > -	depends on DISCONTIGMEM || NUMA
-> > +	depends on NUMA
-> >  
-> >  #
-> >  # SPARSEMEM_EXTREME (which is the default) does some bootmem
-> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> > index aaa1655cf682..6fc22482eaa8 100644
-> > --- a/mm/page_alloc.c
-> > +++ b/mm/page_alloc.c
-> > @@ -331,20 +331,7 @@ compound_page_dtor * const compound_page_dtors[NR_COMPOUND_DTORS] = {
-> >  
-> >  int min_free_kbytes = 1024;
-> >  int user_min_free_kbytes = -1;
-> > -#ifdef CONFIG_DISCONTIGMEM
-> > -/*
-> > - * DiscontigMem defines memory ranges as separate pg_data_t even if the ranges
-> > - * are not on separate NUMA nodes. Functionally this works but with
-> > - * watermark_boost_factor, it can reclaim prematurely as the ranges can be
-> > - * quite small. By default, do not boost watermarks on discontigmem as in
-> > - * many cases very high-order allocations like THP are likely to be
-> > - * unsupported and the premature reclaim offsets the advantage of long-term
-> > - * fragmentation avoidance.
-> > - */
-> > -int watermark_boost_factor __read_mostly;
-> > -#else
-> >  int watermark_boost_factor __read_mostly = 15000;
-> > -#endif
-> >  int watermark_scale_factor = 10;
-> >  
-> >  static unsigned long nr_kernel_pages __initdata;
-> > -- 
-> > 2.28.0
-> 
-> _______________________________________________
-> linux-riscv mailing list
-> linux-riscv@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-riscv
-
+-static inline unsigned long p4d_page_vaddr(p4d_t p4d)
++static inline pud_t *p4d_pgtable(p4d_t p4d)
+ {
+-	return (unsigned long)__va(p4d_page_paddr(p4d));
++	return (pud_t *)__va(p4d_page_paddr(p4d));
+ }
+ 
+ /* Find an entry in the frst-level page table. */
+diff --git a/arch/ia64/include/asm/pgtable.h b/arch/ia64/include/asm/pgtable.h
+index b2ddfbe70365..a2d5098b299a 100644
+--- a/arch/ia64/include/asm/pgtable.h
++++ b/arch/ia64/include/asm/pgtable.h
+@@ -282,7 +282,7 @@ ia64_phys_addr_valid (unsigned long addr)
+ #define p4d_bad(p4d)			(!ia64_phys_addr_valid(p4d_val(p4d)))
+ #define p4d_present(p4d)		(p4d_val(p4d) != 0UL)
+ #define p4d_clear(p4dp)			(p4d_val(*(p4dp)) = 0UL)
+-#define p4d_page_vaddr(p4d)		((unsigned long) __va(p4d_val(p4d) & _PFN_MASK))
++#define p4d_pgtable(p4d)		((pud_t *) __va(p4d_val(p4d) & _PFN_MASK))
+ #define p4d_page(p4d)			virt_to_page((p4d_val(p4d) + PAGE_OFFSET))
+ #endif
+ 
+diff --git a/arch/mips/include/asm/pgtable-64.h b/arch/mips/include/asm/pgtable-64.h
+index ab305453e90f..b865edff2670 100644
+--- a/arch/mips/include/asm/pgtable-64.h
++++ b/arch/mips/include/asm/pgtable-64.h
+@@ -210,9 +210,9 @@ static inline void p4d_clear(p4d_t *p4dp)
+ 	p4d_val(*p4dp) = (unsigned long)invalid_pud_table;
+ }
+ 
+-static inline unsigned long p4d_page_vaddr(p4d_t p4d)
++static inline pud_t *p4d_pgtable(p4d_t p4d)
+ {
+-	return p4d_val(p4d);
++	return (pud_t *)p4d_val(p4d);
+ }
+ 
+ #define p4d_phys(p4d)		virt_to_phys((void *)p4d_val(p4d))
+diff --git a/arch/powerpc/include/asm/book3s/64/pgtable.h b/arch/powerpc/include/asm/book3s/64/pgtable.h
+index 40bafe1e80c9..cbedc7c8959d 100644
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h
++++ b/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -1048,7 +1048,10 @@ extern struct page *p4d_page(p4d_t p4d);
+ /* Pointers in the page table tree are physical addresses */
+ #define __pgtable_ptr_val(ptr)	__pa(ptr)
+ 
+-#define p4d_page_vaddr(p4d)	__va(p4d_val(p4d) & ~P4D_MASKED_BITS)
++static inline pud_t *p4d_pgtable(p4d_t p4d)
++{
++	return (pud_t *)__va(p4d_val(p4d) & ~P4D_MASKED_BITS);
++}
+ 
+ static inline pmd_t *pud_pgtable(pud_t pud)
+ {
+diff --git a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h b/arch/powerpc/include/asm/nohash/64/pgtable-4k.h
+index fe2f4c9acd9e..10f5cf444d72 100644
+--- a/arch/powerpc/include/asm/nohash/64/pgtable-4k.h
++++ b/arch/powerpc/include/asm/nohash/64/pgtable-4k.h
+@@ -56,10 +56,14 @@
+ #define p4d_none(p4d)		(!p4d_val(p4d))
+ #define p4d_bad(p4d)		(p4d_val(p4d) == 0)
+ #define p4d_present(p4d)	(p4d_val(p4d) != 0)
+-#define p4d_page_vaddr(p4d)	(p4d_val(p4d) & ~P4D_MASKED_BITS)
+ 
+ #ifndef __ASSEMBLY__
+ 
++static inline pud_t *p4d_pgtable(p4d_t p4d)
++{
++	return (pud_t *) (p4d_val(p4d) & ~P4D_MASKED_BITS);
++}
++
+ static inline void p4d_clear(p4d_t *p4dp)
+ {
+ 	*p4dp = __p4d(0);
+diff --git a/arch/powerpc/mm/book3s64/radix_pgtable.c b/arch/powerpc/mm/book3s64/radix_pgtable.c
+index b663d8f9f05c..1ba6d9291c10 100644
+--- a/arch/powerpc/mm/book3s64/radix_pgtable.c
++++ b/arch/powerpc/mm/book3s64/radix_pgtable.c
+@@ -859,7 +859,7 @@ static void __meminit remove_pagetable(unsigned long start, unsigned long end)
+ 			continue;
+ 		}
+ 
+-		pud_base = (pud_t *)p4d_page_vaddr(*p4d);
++		pud_base = p4d_pgtable(*p4d);
+ 		remove_pud_table(pud_base, addr, next);
+ 		free_pud_table(pud_base, p4d);
+ 	}
+diff --git a/arch/powerpc/mm/pgtable_64.c b/arch/powerpc/mm/pgtable_64.c
+index 4ba311808bdb..78c8cf01db5f 100644
+--- a/arch/powerpc/mm/pgtable_64.c
++++ b/arch/powerpc/mm/pgtable_64.c
+@@ -105,7 +105,7 @@ struct page *p4d_page(p4d_t p4d)
+ 		VM_WARN_ON(!p4d_huge(p4d));
+ 		return pte_page(p4d_pte(p4d));
+ 	}
+-	return virt_to_page(p4d_page_vaddr(p4d));
++	return virt_to_page(p4d_pgtable(p4d));
+ }
+ #endif
+ 
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 534ec872fa2c..c0f56da1c205 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -860,8 +860,8 @@ static inline pmd_t *pud_pgtable(pud_t pud)
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pud_present(pud)		(pud_val(pud) != 0U)
+ #define pud_clear(pudp)			(pud_val(*(pudp)) = 0UL)
+-#define p4d_page_vaddr(p4d)		\
+-	((unsigned long) __va(p4d_val(p4d)))
++#define p4d_pgtable(p4d)		\
++	((pud_t *) __va(p4d_val(p4d)))
+ #define p4d_present(p4d)		(p4d_val(p4d) != 0U)
+ #define p4d_clear(p4dp)			(p4d_val(*(p4dp)) = 0UL)
+ 
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 35a34ca6f2e9..b6c97b8f59ec 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -906,9 +906,9 @@ static inline int p4d_present(p4d_t p4d)
+ 	return p4d_flags(p4d) & _PAGE_PRESENT;
+ }
+ 
+-static inline unsigned long p4d_page_vaddr(p4d_t p4d)
++static inline pud_t *p4d_pgtable(p4d_t p4d)
+ {
+-	return (unsigned long)__va(p4d_val(p4d) & p4d_pfn_mask(p4d));
++	return (pud_t *)__va(p4d_val(p4d) & p4d_pfn_mask(p4d));
+ }
+ 
+ /*
+diff --git a/arch/x86/mm/init_64.c b/arch/x86/mm/init_64.c
+index e527d829e1ed..ffb3da2cb038 100644
+--- a/arch/x86/mm/init_64.c
++++ b/arch/x86/mm/init_64.c
+@@ -193,8 +193,8 @@ static void sync_global_pgds_l4(unsigned long start, unsigned long end)
+ 			spin_lock(pgt_lock);
+ 
+ 			if (!p4d_none(*p4d_ref) && !p4d_none(*p4d))
+-				BUG_ON(p4d_page_vaddr(*p4d)
+-				       != p4d_page_vaddr(*p4d_ref));
++				BUG_ON(p4d_pgtable(*p4d)
++				       != p4d_pgtable(*p4d_ref));
+ 
+ 			if (p4d_none(*p4d))
+ 				set_p4d(p4d, *p4d_ref);
+diff --git a/include/asm-generic/pgtable-nop4d.h b/include/asm-generic/pgtable-nop4d.h
+index ce2cbb3c380f..982de5102fc1 100644
+--- a/include/asm-generic/pgtable-nop4d.h
++++ b/include/asm-generic/pgtable-nop4d.h
+@@ -42,7 +42,7 @@ static inline p4d_t *p4d_offset(pgd_t *pgd, unsigned long address)
+ #define __p4d(x)				((p4d_t) { __pgd(x) })
+ 
+ #define pgd_page(pgd)				(p4d_page((p4d_t){ pgd }))
+-#define pgd_page_vaddr(pgd)			(p4d_page_vaddr((p4d_t){ pgd }))
++#define pgd_page_vaddr(pgd)			(p4d_pgtable((p4d_t){ pgd }))
+ 
+ /*
+  * allocating and freeing a p4d is trivial: the 1-entry p4d is
+diff --git a/include/asm-generic/pgtable-nopud.h b/include/asm-generic/pgtable-nopud.h
+index 7cbd15f70bf5..eb70c6d7ceff 100644
+--- a/include/asm-generic/pgtable-nopud.h
++++ b/include/asm-generic/pgtable-nopud.h
+@@ -49,7 +49,7 @@ static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
+ #define __pud(x)				((pud_t) { __p4d(x) })
+ 
+ #define p4d_page(p4d)				(pud_page((pud_t){ p4d }))
+-#define p4d_page_vaddr(p4d)			(pud_pgtable((pud_t){ p4d }))
++#define p4d_pgtable(p4d)			((pud_t *)(pud_pgtable((pud_t){ p4d })))
+ 
+ /*
+  * allocating and freeing a pud is trivial: the 1-entry pud is
+diff --git a/include/linux/pgtable.h b/include/linux/pgtable.h
+index 311984f87cf9..d355290bf70e 100644
+--- a/include/linux/pgtable.h
++++ b/include/linux/pgtable.h
+@@ -96,7 +96,7 @@ static inline pmd_t *pmd_offset(pud_t *pud, unsigned long address)
+ #ifndef pud_offset
+ static inline pud_t *pud_offset(p4d_t *p4d, unsigned long address)
+ {
+-	return (pud_t *)p4d_page_vaddr(*p4d) + pud_index(address);
++	return p4d_pgtable(*p4d) + pud_index(address);
+ }
+ #define pud_offset pud_offset
+ #endif
 -- 
-Sincerely yours,
-Mike.
+2.31.1
+
