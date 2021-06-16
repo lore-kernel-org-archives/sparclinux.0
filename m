@@ -2,90 +2,102 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,USER_AGENT_GIT autolearn=ham autolearn_force=no version=3.4.0
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_GIT autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45609C48BE5
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Jun 2021 10:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE93DC48BE8
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Jun 2021 10:45:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 259AE6115C
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Jun 2021 10:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2393611CE
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Jun 2021 10:45:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232171AbhFPKrr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Jun 2021 06:47:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59032 "EHLO
+        id S232306AbhFPKrt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Jun 2021 06:47:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231922AbhFPKrq (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Jun 2021 06:47:46 -0400
-Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 657E8C061574
-        for <sparclinux@vger.kernel.org>; Wed, 16 Jun 2021 03:45:40 -0700 (PDT)
-Received: by mail-pl1-x62c.google.com with SMTP id x19so920456pln.2
-        for <sparclinux@vger.kernel.org>; Wed, 16 Jun 2021 03:45:40 -0700 (PDT)
+        with ESMTP id S231922AbhFPKrs (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Jun 2021 06:47:48 -0400
+Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92409C061574
+        for <sparclinux@vger.kernel.org>; Wed, 16 Jun 2021 03:45:42 -0700 (PDT)
+Received: by mail-pj1-x1029.google.com with SMTP id m13-20020a17090b068db02901656cc93a75so3717987pjz.3
+        for <sparclinux@vger.kernel.org>; Wed, 16 Jun 2021 03:45:42 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=cL0z04MoIuU3DhnpT7qPDYno1SAi/d+kJd/UfCfTcBY=;
-        b=X1z8dwdPBmZ76un8PJTAfhmu4ZREVCwyktEuYAcMNrZ3hqQBfnbsF+MYNoX21K6odw
-         jj3CxW/4W9TKr/vhaEZpuojvQWPEEnImoVjhH2261T4hQoCPTGKg5N1f6F0RU/qos9OZ
-         wooAmVj5gYYfys+BZ+wR6m5F8T5RE9UzJZ1t3uDOauG6aNNSCUaGTpWtmkGlMTLhl8cJ
-         /g8zyY+jx+3XY/Bp/aPjmEg2v/FfJr2+4FcPGpZxFamqwp6n9f0Y52QiiiofQyKXDcEL
-         URGgnyEO0/rLbS0ovlEeQMCmPhI1uH56kCbBnK55k1+jyLEmjJWQCOe16RyboAiAka1b
-         0/mA==
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=UPUA9WxBDvsPSFmUad8+sPLmPKHUzRsn1OY2xtUh6GI=;
+        b=tih2UFKa/U+KPfUOj4qCnP7XTaAYavsduoKbBLr0k4PSJnU3sh41ilFjAU9yk2k/ca
+         Tu0NjqUuaPF5RNuDQxvurFycx7HzU5TgyrlLd1/5zDSvjaEalIkI17Yftvi7EdbmPHMy
+         Hp7zstpPhE/GucPaMjLNykWQ5hGNVxHGOnexxBuTJekaUbWUES3eUQimg0KkTU7jecq/
+         UTsLKcPCDyZQY1B6loq1wD9Dk/AEmBiMY+QjILbcCzIVT8PuggwhdxJE0o0qZkeybMOT
+         nw8c3Kmi3MhIuiDz74/tYsQy+e8yBO+X7F9NdbSt/t5oiXwAByO2iWDHhyNoCVJjcXUw
+         1AIg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=cL0z04MoIuU3DhnpT7qPDYno1SAi/d+kJd/UfCfTcBY=;
-        b=icr2gRIRB8DiSe+g6Yj1PjHZ9ykKy3+GU6EoljbepfHIsQgwQXx4uL9yPVDSJikvsm
-         Z/sJAdqAqpnFpdU3wd1Y/QBRaC0GMXEidNsiyoSZLLRsHr9rvC2Ea4yUaFEAvJg9Pftn
-         9BEqncg+I+F+vjY0sC5pa8pW/45Fsi1XENMVeIVtmJdbRssqV6qA3JOUayhTIpLqR8LS
-         ja4AzbXqTz3zrlNvedQGzrMY8zBKHD2mnz8kIz/6j6Ag12CPl6bHSJtPQCZkNTCQaP0X
-         KF0wEdmOfN+x6BCPty8TZomoHN0krI3MbBkw2PN4UIQJVkviCbctTLOvCZ1m3XunmoAy
-         wi+A==
-X-Gm-Message-State: AOAM531ozF8wGIXb7OQ8JkPytqc66pfhxZKt5zfx2n9NROR2VxX1hbpR
-        ypUitUNB2iWwNzd1kmlaaX8=
-X-Google-Smtp-Source: ABdhPJwpNJhMjjs+QHN/g+7LWAMQTpzscUv8f2y7+zDM2xbihSlErjNH5QII/ruaqLcJ4CjFddXamw==
-X-Received: by 2002:a17:90a:d598:: with SMTP id v24mr4133734pju.185.1623840339996;
-        Wed, 16 Jun 2021 03:45:39 -0700 (PDT)
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=UPUA9WxBDvsPSFmUad8+sPLmPKHUzRsn1OY2xtUh6GI=;
+        b=ZQA8KS4zZsA7Wt48PrXL3m3ca2KDMoamWDR6uUp68TIfNbKzVvD+DbgaA2nlVlyGE9
+         FWsQIbCQLDbddrpB5b4LF+GAvoqy9XrDgIFRD+oI4VfTDwkqcgZDHI3tYJ4swrdt8QMP
+         7PadubLVVHY2oEVjcaCXjOYbmQW41mOw6MSezmYhXy/BymmBgA6T2O+VB8dnL/gsb7N1
+         HMBPCvjr59dmFghaM/r7y8sLfZ337rSxHnFonwWya8IshZe/J+/rMfURnotHzfBLB3pQ
+         W7OJiRBos6Vi/slvUqBbCDnTuHDnYvQx5forMVr56gJh3DmptgWGK1H3yHoD9E0vgJaZ
+         Y3Ug==
+X-Gm-Message-State: AOAM5330f6Y/LGV+kIQA5jMbpU4Lkr4C83q5G95hsfNpoPRa9MfFqoqn
+        ibw8QW1JldE14/SgE1T6EyE=
+X-Google-Smtp-Source: ABdhPJwjUTxf5oa0gws933dwA7V7v35sXjKseiNQ5wEWd4/rHghfHVZF92Aw38DR+FMzfo0KfhA5Mw==
+X-Received: by 2002:a17:90b:2405:: with SMTP id nr5mr4183143pjb.184.1623840342202;
+        Wed, 16 Jun 2021 03:45:42 -0700 (PDT)
 Received: from bobo.ibm.com (60-242-147-73.tpgi.com.au. [60.242.147.73])
-        by smtp.gmail.com with ESMTPSA id d22sm1937614pgb.15.2021.06.16.03.45.38
+        by smtp.gmail.com with ESMTPSA id d22sm1937614pgb.15.2021.06.16.03.45.40
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Jun 2021 03:45:39 -0700 (PDT)
+        Wed, 16 Jun 2021 03:45:42 -0700 (PDT)
 From:   Nicholas Piggin <npiggin@gmail.com>
 To:     "David S. Miller" <davem@davemloft.net>
 Cc:     Nicholas Piggin <npiggin@gmail.com>, sparclinux@vger.kernel.org
-Subject: [PATCH 0/2] couple of sparc 32 mm fixes
-Date:   Wed, 16 Jun 2021 20:45:32 +1000
-Message-Id: <20210616104534.1614087-1-npiggin@gmail.com>
+Subject: [PATCH 1/2] sparc32: remove mm_cpumask clearing to fix kthread_use_mm race
+Date:   Wed, 16 Jun 2021 20:45:33 +1000
+Message-Id: <20210616104534.1614087-2-npiggin@gmail.com>
 X-Mailer: git-send-email 2.23.0
+In-Reply-To: <20210616104534.1614087-1-npiggin@gmail.com>
+References: <20210616104534.1614087-1-npiggin@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-I was able to test patch 2 in SMP qemu and verify there were cases
-where a cpu's active_mm does not have that CPU set in the mm_cpumask
-before the patch, and do not observe it afterwards.
+Commit bafb056ce279 ("sparc64: remove mm_cpumask clearing to fix
+kthread_use_mm race") fixed this for sparc64, but missed the same bug in
+sparc32. Fix it similarly.
 
-I haven't observed any actual corruption from the bugs, but I didn't
-stress it much, and only what qemu can do.
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+---
+ arch/sparc/mm/srmmu.c | 6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-Thanks,
-Nick
-
-Nicholas Piggin (2):
-  sparc32: remove mm_cpumask clearing to fix kthread_use_mm race
-  sparc32: fix mm_cpumask maintenance causing missing TLB flushing
-
- arch/sparc/include/asm/switch_to_32.h | 1 -
- arch/sparc/mm/srmmu.c                 | 9 ++++-----
- 2 files changed, 4 insertions(+), 6 deletions(-)
-
+diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+index a9aa6a92c7fe..fefbd08bdc91 100644
+--- a/arch/sparc/mm/srmmu.c
++++ b/arch/sparc/mm/srmmu.c
+@@ -1670,12 +1670,8 @@ static void smp_flush_tlb_mm(struct mm_struct *mm)
+ 		cpumask_t cpu_mask;
+ 		cpumask_copy(&cpu_mask, mm_cpumask(mm));
+ 		cpumask_clear_cpu(smp_processor_id(), &cpu_mask);
+-		if (!cpumask_empty(&cpu_mask)) {
++		if (!cpumask_empty(&cpu_mask))
+ 			xc1((smpfunc_t) local_ops->tlb_mm, (unsigned long) mm);
+-			if (atomic_read(&mm->mm_users) == 1 && current->active_mm == mm)
+-				cpumask_copy(mm_cpumask(mm),
+-					     cpumask_of(smp_processor_id()));
+-		}
+ 		local_ops->tlb_mm(mm);
+ 	}
+ }
 -- 
 2.23.0
 
