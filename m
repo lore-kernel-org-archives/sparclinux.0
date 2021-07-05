@@ -2,248 +2,401 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D43B5C07E99
-	for <sparclinux@archiver.kernel.org>; Mon,  5 Jul 2021 15:17:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F97C07E99
+	for <sparclinux@archiver.kernel.org>; Mon,  5 Jul 2021 19:57:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B66136194B
-	for <sparclinux@archiver.kernel.org>; Mon,  5 Jul 2021 15:17:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6505161483
+	for <sparclinux@archiver.kernel.org>; Mon,  5 Jul 2021 19:57:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231569AbhGEPTj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 5 Jul 2021 11:19:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35326 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231543AbhGEPTj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 5 Jul 2021 11:19:39 -0400
-Received: from mail-yb1-xb2a.google.com (mail-yb1-xb2a.google.com [IPv6:2607:f8b0:4864:20::b2a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 21BFDC061574;
-        Mon,  5 Jul 2021 08:17:01 -0700 (PDT)
-Received: by mail-yb1-xb2a.google.com with SMTP id i4so29654924ybe.2;
-        Mon, 05 Jul 2021 08:17:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=mime-version:from:date:message-id:subject:to:cc
-         :content-transfer-encoding;
-        bh=6BfvqL2TwWJutuMPMXBqQIKciTSZyE9YY2SXs3fguC0=;
-        b=TleNc/ypyUph4YVB3S6G0b46yD6HIC4q6WhX8CNkcW4G8rlY5Npuj5eBOCWpzG2SRJ
-         yn2hElZi9hBRY51QV+CJfczUHgGIMnTElaHJU04AtBDqJqC31j/7/olbi48vv7oI9uV1
-         nsWMFJMXr3xxxzcUIaKTtKA4XGaBkQx6HckINr1QKdkARhKxfpCiWWAgUdKXBsasf+uq
-         orHKIjwTgBu1FJLSGX+fI9SnySTICmgnkUCYO3asSRj7f4uWoOXk9mlebN82uE/TT5mW
-         /ukv+nqBfhlu72rC6BlcMcUkyp/aLVKJAmXTsgorw16psJtJkyQmeTiOhkunapR7QDCk
-         ujdQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc
-         :content-transfer-encoding;
-        bh=6BfvqL2TwWJutuMPMXBqQIKciTSZyE9YY2SXs3fguC0=;
-        b=g1qnoo6Jh7nrLAV08yfOnWKs+NdvvAxXXHJVRi4ydjGvWnQbP1C/Fofu0Ms2LLi3XU
-         vPz5so3ANhEjK/ZNf/nz1QD3nRSCeBGGspsBQVFA1az3Uhl88KREbjqblMarBTEGOGNy
-         Xu7u1bfT8cRk6Sj4ispSHzxkophnkeoYrCcT+Nac7JHa9HfA1ZgtMzU4q9GpUJ1LWjEb
-         QZSXKQtjQFMT65HfgSQEIOSRe5dNLNuXgGnxjM07EYGNN7i11ajW8Yd5VhtSEXN5cdOK
-         bERcdIIitNddvKv2iWVwQvJA0p07xUlg/5pbcH7CQSI+RzGO8eL6tMq+98vUaCC33utH
-         0Pgg==
-X-Gm-Message-State: AOAM531EMK8Uska/dDh6Vvy/jXuYWYdJRMd1XBryLmMHIkFsy6L5Xp2U
-        UTLidJdbW0xPm30JDCrJ/EkIDsLRA7EnbtVx6D6eJH0CZNk=
-X-Google-Smtp-Source: ABdhPJzQVEAO+irznBeOZfwOKSJg059CWYpmum1cvzmYO6dzfhqSCJeMLCkRFeHa1gLBfGLWTsC5jBUHwVBoC3lhUA0=
-X-Received: by 2002:a25:bc0f:: with SMTP id i15mr698571ybh.233.1625498220266;
- Mon, 05 Jul 2021 08:17:00 -0700 (PDT)
+        id S229698AbhGET7n (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 5 Jul 2021 15:59:43 -0400
+Received: from foss.arm.com ([217.140.110.172]:53510 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229565AbhGET7n (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 5 Jul 2021 15:59:43 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id ECABA1FB;
+        Mon,  5 Jul 2021 12:57:05 -0700 (PDT)
+Received: from C02TD0UTHF1T.local (unknown [10.57.8.66])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 93D6B3F73B;
+        Mon,  5 Jul 2021 12:57:04 -0700 (PDT)
+Date:   Mon, 5 Jul 2021 20:56:54 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     Anatoly Pugachev <matorola@gmail.com>
+Cc:     Linux Kernel list <linux-kernel@vger.kernel.org>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        debian-sparc <debian-sparc@lists.debian.org>,
+        Peter Zijlstra <peterz@lists.infradead.org>
+Subject: Re: [sparc64] locking/atomic, kernel OOPS on running stress-ng
+Message-ID: <20210705195638.GA53988@C02TD0UTHF1T.local>
+References: <CADxRZqzcrnSMzy50T+kWb_mQVguWDCMu6RoXsCc+-fNDPYXbaw@mail.gmail.com>
 MIME-Version: 1.0
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Mon, 5 Jul 2021 18:16:49 +0300
-Message-ID: <CADxRZqzcrnSMzy50T+kWb_mQVguWDCMu6RoXsCc+-fNDPYXbaw@mail.gmail.com>
-Subject: [sparc64] locking/atomic, kernel OOPS on running stress-ng
-To:     Linux Kernel list <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc:     Sparc kernel list <sparclinux@vger.kernel.org>,
-        debian-sparc <debian-sparc@lists.debian.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADxRZqzcrnSMzy50T+kWb_mQVguWDCMu6RoXsCc+-fNDPYXbaw@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hello!
+On Mon, Jul 05, 2021 at 06:16:49PM +0300, Anatoly Pugachev wrote:
+> Hello!
 
-latest sparc64 git kernel produces the following OOPS on running stress-ng =
-as :
+Hi Anatoly,
 
-$ stress-ng -v --mmap 1 -t 30s
+> latest sparc64 git kernel produces the following OOPS on running stress-ng as :
+> 
+> $ stress-ng -v --mmap 1 -t 30s
+> 
+> kernel OOPS (console logs):
+> 
+> [   27.276719] Unable to handle kernel NULL pointer dereference
+> [   27.276782] tsk->{mm,active_mm}->context = 00000000000003cb
+> [   27.276818] tsk->{mm,active_mm}->pgd = fff800003a2a0000
+> [   27.276853]               \|/ ____ \|/
+> [   27.276853]               "@'/ .. \`@"
+> [   27.276853]               /_| \__/ |_\
+> [   27.276853]                  \__U_/
+> [   27.276927] stress-ng(928): Oops [#1]
 
-kernel OOPS (console logs):
+I can reproduce this under QEMU; following your bisection (and working
+around the missing ifdeferry that breaks bisection), I can confirm that
+the first broken commit is:
 
-[   27.276719] Unable to handle kernel NULL pointer dereference
-[   27.276782] tsk->{mm,active_mm}->context =3D 00000000000003cb
-[   27.276818] tsk->{mm,active_mm}->pgd =3D fff800003a2a0000
-[   27.276853]               \|/ ____ \|/
-[   27.276853]               "@'/ .. \`@"
-[   27.276853]               /_| \__/ |_\
-[   27.276853]                  \__U_/
-[   27.276927] stress-ng(928): Oops [#1]
-[   27.276961] CPU: 0 PID: 928 Comm: stress-ng Tainted: G            E
-    5.13.0-rc1-00111-g8e6a4b3afe64 #257
-[   27.277021] TSTATE: 0000009911001603 TPC: 000000000044f3c4 TNPC:
-000000000044f3c8 Y: 00000000    Tainted: G            E
-[   27.277084] TPC: <pmdp_invalidate+0x24/0xc0>
-[   27.277129] g0: 0000000000000000 g1: 3d0000004d800653 g2:
-0000000000000000 g3: 0006000000000000
-[   27.277180] g4: fff80000370a9c00 g5: fff8000229666000 g6:
-fff8000047404000 g7: 0000000000090014
-[   27.277231] o0: 0000000000000001 o1: 0000000000000000 o2:
-fff80000370aa4b8 o3: 0000000000000000
-[   27.277283] o4: 2ec9091000000000 o5: 0000000000f86c00 sp:
-fff8000047406ec1 ret_pc: 00000000004d197c
-[   27.277337] RPC: <lock_acquire+0x1bc/0x200>
-[   27.277377] l0: 000000000119b1c0 l1: 0000000000000000 l2:
-0000000001205e48 l3: 81123ddb8627a322
-[   27.277432] l4: c269484aab0b613a l5: 000000000148f800 l6:
-ffffffff7c8086d1 l7: 0000000001204788
-[   27.277487] i0: fff8000043c9ce40 i1: fff8000104800000 i2:
-fff80000424d9048 i3: bd0000004d800653
-[   27.277540] i4: 3d0000004d800653 i5: bd0000004d800653 i6:
-fff8000047406f71 i7: 000000000069e4ac
-[   27.277593] I7: <__split_huge_pmd_locked+0x1ec/0x5e0>
-[   27.277639] Call Trace:
-[   27.277662] [<000000000069e4ac>] __split_huge_pmd_locked+0x1ec/0x5e0
-[   27.277708] [<000000000069ff48>] __split_huge_pmd+0x288/0x2e0
-[   27.277751] [<00000000006a0638>] split_huge_pmd_address+0x78/0xa0
-[   27.277797] [<00000000006a0780>] vma_adjust_trans_huge+0x120/0x160
-[   27.277843] [<000000000065ac70>] __vma_adjust+0x1d0/0xb00
-[   27.277887] [<000000000065bfb0>] __split_vma+0xf0/0x180
-[   27.277927] [<0000000000675704>] madvise_behavior+0x224/0x2a0
-[   27.277972] [<0000000000677418>] do_madvise+0x478/0x600
-[   27.278011] [<0000000000677778>] sys_madvise+0x18/0x40
-[   27.278050] [<0000000000406274>] linux_sparc_syscall+0x34/0x44
-[   27.278100] Disabling lock debugging due to kernel taint
-[   27.278112] Caller[000000000069e4ac]: __split_huge_pmd_locked+0x1ec/0x5e=
-0
-[   27.278130] Caller[000000000069ff48]: __split_huge_pmd+0x288/0x2e0
-[   27.278146] Caller[00000000006a0638]: split_huge_pmd_address+0x78/0xa0
-[   27.278161] Caller[00000000006a0780]: vma_adjust_trans_huge+0x120/0x160
-[   27.278177] Caller[000000000065ac70]: __vma_adjust+0x1d0/0xb00
-[   27.278191] Caller[000000000065bfb0]: __split_vma+0xf0/0x180
-[   27.278208] Caller[0000000000675704]: madvise_behavior+0x224/0x2a0
-[   27.278222] Caller[0000000000677418]: do_madvise+0x478/0x600
-[   27.278237] Caller[0000000000677778]: sys_madvise+0x18/0x40
-[   27.278253] Caller[0000000000406274]: linux_sparc_syscall+0x34/0x44
-[   27.278267] Caller[00000100000bd02c]: 0x100000bd02c
-[   27.278281] Instruction DUMP:
-[   27.278285]  ba10001b
-[   27.278295]  8210001c
-[   27.278304]  84102000
-[   27.278313] <c3f0901d>
-[   27.278321]  80a0401d
-[   27.278330]  22600004
-[   27.278338]  d05e2040
-[   27.278346]  106ffffa
-[   27.278354]  fa5e8000
-[   27.278363]
+  ff5b4f1ed580 ("locking/atomic: sparc: move to ARCH_ATOMIC")
 
-tried to bisect this OOPS, but was unable to find the latest commit
-id, without cherry-pick:
+Sorry about this.
+ 
+> Can someone please look at this commit ids?
 
-linux-2.6$ git describe
-v5.13-rc1-111-gb9b12978a8e9
+From digging into this, I can't spot an obvious bug in the commit above.
 
-linux-2.6$ make
-  CC      kernel/bounds.s
-In file included from ./include/linux/atomic.h:87,
-                 from ./include/asm-generic/bitops/lock.h:5,
-                 from ./arch/sparc/include/asm/bitops_64.h:52,
-                 from ./arch/sparc/include/asm/bitops.h:5,
-                 from ./include/linux/bitops.h:32,
-                 from ./include/linux/kernel.h:12,
-                 from ./include/asm-generic/bug.h:20,
-                 from ./arch/sparc/include/asm/bug.h:25,
-                 from ./include/linux/bug.h:5,
-                 from ./include/linux/page-flags.h:10,
-                 from kernel/bounds.c:10:
-./include/asm-generic/atomic-long.h: In function =E2=80=98atomic_long_add_r=
-eturn=E2=80=99:
-./include/asm-generic/atomic-long.h:59:9: error: implicit declaration
-of function =E2=80=98atomic64_add_return=E2=80=99; did you mean =E2=80=98at=
-omic64_dec_return=E2=80=99?
-[-Werror=3Dimplicit-function-declaration]
-   59 |  return atomic64_add_return(i, v);
-      |         ^~~~~~~~~~~~~~~~~~~
-      |         atomic64_dec_return
-./include/asm-generic/atomic-long.h: In function =E2=80=98atomic_long_fetch=
-_add=E2=80=99:
-./include/asm-generic/atomic-long.h:83:9: error: implicit declaration
-of function =E2=80=98atomic64_fetch_add=E2=80=99; did you mean =E2=80=98ato=
-mic64_fetch_dec=E2=80=99?
-[-Werror=3Dimplicit-function-declaration]
-   83 |  return atomic64_fetch_add(i, v);
-      |         ^~~~~~~~~~~~~~~~~~
-      |         atomic64_fetch_dec
+It looks like this happens when some of the xchg/cmpxchg variants are
+wrapped by <asm-generic/atomic-instrumented.h>, but I can't immediately
+explain why. This might be a latent bug that's being tickled by the
+structure of the wrappers, or some subtlety with the typecasting that
+happens in the wrappers.
 
+Starting with:
 
-$ git bisect log
-# bad: [3dbdb38e286903ec220aaf1fb29a8d94297da246] Merge branch
-'for-5.14' of git://git.kernel.org/pub/scm/linux/kernel/git/tj/cgroup
-# good: [62fb9874f5da54fdb243003b386128037319b219] Linux 5.13
-git bisect start '3dbdb38e2869' 'v5.13' 'mm/'
-# bad: [a6eaf3850cb171c328a8b0db6d3c79286a1eba9d] Merge tag
-'sched-urgent-2021-06-30' of
-git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-git bisect bad a6eaf3850cb171c328a8b0db6d3c79286a1eba9d
-# bad: [31e798fd6f0ff0acdc49c1a358b581730936a09a] Merge tag
-'media/v5.14-1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media
-git bisect bad 31e798fd6f0ff0acdc49c1a358b581730936a09a
-# bad: [9840cfcb97fc8b6aa7b36cec3cc3fd763f14052e] Merge tag
-'arm64-upstream' of
-git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux
-git bisect bad 9840cfcb97fc8b6aa7b36cec3cc3fd763f14052e
-# good: [b89c07dea16137696d0f2d479ef665ef7c1022ab] Merge tags
-'objtool-urgent-2021-06-28' and 'objtool-core-2021-06-28' of
-git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-git bisect good b89c07dea16137696d0f2d479ef665ef7c1022ab
-# bad: [8e4d7a78f08a788a839bd88a2710ba7a71a86e24] Merge tag
-'x86-cleanups-2021-06-28' of
-git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-git bisect bad 8e4d7a78f08a788a839bd88a2710ba7a71a86e24
-# good: [adf3c31e18b765ea24eba7b0c1efc076b8ee3d55] sched/doc: Update
-the CPU capacity asymmetry bits
-git bisect good adf3c31e18b765ea24eba7b0c1efc076b8ee3d55
-# bad: [a15286c63d113d4296c58867994cd266a28f5d6d] Merge tag
-'locking-core-2021-06-28' of
-git://git.kernel.org/pub/scm/linux/kernel/git/tip/tip
-git bisect bad a15286c63d113d4296c58867994cd266a28f5d6d
-# good: [c7b5fd6faa1dc6cdc721a978d9d122cd31bbd7b1] locking/atomic:
-mips: move to ARCH_ATOMIC
-git bisect good c7b5fd6faa1dc6cdc721a978d9d122cd31bbd7b1
-# bad: [b8e00abe7d9fe21dd13609e2e3a707e38902b105] locking/lockdep:
-Reduce LOCKDEP dependency list
-git bisect bad b8e00abe7d9fe21dd13609e2e3a707e38902b105
-# good: [9efbb355831014ca004d241db8ede182c019b9bf] locking/atomic:
-riscv: move to ARCH_ATOMIC
-git bisect good 9efbb355831014ca004d241db8ede182c019b9bf
+  ff5b4f1ed580 ("locking/atomic: sparc: move to ARCH_ATOMIC")
 
-$ git desc b8e00abe7d9fe21dd13609e2e3a707e38902b105
-v5.13-rc1-115-gb8e00abe7d9f
-$ git desc 9efbb355831014ca004d241db8ede182c019b9bf
-v5.13-rc1-108-g9efbb3558310
+... and atop that, cherry-picking:
 
-$ git log --oneline 9efbb3558310..b8e00abe7d9f
-b8e00abe7d9f (refs/bisect/bad) locking/lockdep: Reduce LOCKDEP dependency l=
-ist
-fab6216fafdd locking/lockdep,doc: Improve readability of the block matrix
-bccf1ec369ac locking/atomics: atomic-instrumented: simplify ifdeffery
-3c1885187bc1 locking/atomic: delete !ARCH_ATOMIC remnants
-b9b12978a8e9 (HEAD) locking/atomic: xtensa: move to ARCH_ATOMIC
-ff5b4f1ed580 locking/atomic: sparc: move to ARCH_ATOMIC
-8c6417551309 locking/atomic: sh: move to ARCH_ATOMIC
+  bccf1ec369ac ("locking/atomics: atomic-instrumented: simplify ifdeffery")
 
-so ff5b4f1ed580 does not compile without cherry-picking
-bccf1ec369ac... and booting to this kernel (ff5b4f1ed580 +
-bccf1ec369ac) introduces stress-ng OOPS (shown above)
+... the below hack seems to make the stress-ng run pass without issue,
+even after running for multiple minutes (when it would usually fail in a
+few seconds).
 
-Can someone please look at this commit ids?
-Thanks!
+In case this is a codegen issue, I'm using the kernel.org GCC 10.3.0
+cross toolchain.
 
-PS: kernel config
-https://github.com/mator/sparc64-dmesg/blob/master/config-5.13.0.gz
+Thanks,
+Mark.
+
+---->8----
+From 9a77ebd7005a9d4492686c45207642eeb4d13a8c Mon Sep 17 00:00:00 2001
+From: Mark Rutland <mark.rutland@arm.com>
+Date: Mon, 5 Jul 2021 20:38:06 +0100
+Subject: [PATCH] HACK: disable instrumentation of xchg/cmpxchg
+
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+---
+ include/asm-generic/atomic-instrumented.h | 86 ++++++++++++++++++++++++++++++-
+ scripts/atomic/gen-atomic-instrumented.sh | 10 ++++
+ 2 files changed, 95 insertions(+), 1 deletion(-)
+
+diff --git a/include/asm-generic/atomic-instrumented.h b/include/asm-generic/atomic-instrumented.h
+index bc45af52c93b..7d0c38091c82 100644
+--- a/include/asm-generic/atomic-instrumented.h
++++ b/include/asm-generic/atomic-instrumented.h
+@@ -1177,90 +1177,139 @@ atomic64_dec_if_positive(atomic64_t *v)
+ 	return arch_atomic64_dec_if_positive(v);
+ }
+ 
++#if 0
+ #define xchg(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_xchg(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define xchg 	arch_xchg
++#endif
+ 
++#if 0
+ #define xchg_acquire(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_xchg_acquire(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define xchg_acquire 	arch_xchg_acquire
++#endif
+ 
++#if 0
+ #define xchg_release(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_xchg_release(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define xchg_release 	arch_xchg_release
++#endif
+ 
++#if 0
+ #define xchg_relaxed(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_xchg_relaxed(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define xchg_relaxed 	arch_xchg_relaxed
++#endif
+ 
++#if 0
+ #define cmpxchg(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg 	arch_cmpxchg
++#endif
+ 
++#if 0
+ #define cmpxchg_acquire(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_acquire(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_acquire 	arch_cmpxchg_acquire
++#endif
+ 
++#if 0
+ #define cmpxchg_release(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_release(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_release 	arch_cmpxchg_release
++#endif
+ 
++#if 0
+ #define cmpxchg_relaxed(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_relaxed(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_relaxed 	arch_cmpxchg_relaxed
++#endif
+ 
++#if 0
+ #define cmpxchg64(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg64(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg64 	arch_cmpxchg64
++#endif
+ 
++#if 0
+ #define cmpxchg64_acquire(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg64_acquire(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg64_acquire 	arch_cmpxchg64_acquire
++#endif
+ 
++#if 0
+ #define cmpxchg64_release(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg64_release(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg64_release 	arch_cmpxchg64_release
++#endif
+ 
++#if 0
+ #define cmpxchg64_relaxed(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg64_relaxed(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg64_relaxed 	arch_cmpxchg64_relaxed
++#endif
+ 
++#if 0
+ #define try_cmpxchg(ptr, oldp, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+@@ -1269,7 +1318,11 @@ atomic64_dec_if_positive(atomic64_t *v)
+ 	instrument_atomic_write(__ai_oldp, sizeof(*__ai_oldp)); \
+ 	arch_try_cmpxchg(__ai_ptr, __ai_oldp, __VA_ARGS__); \
+ })
++#else
++#define try_cmpxchg 	arch_try_cmpxchg
++#endif
+ 
++#if 0
+ #define try_cmpxchg_acquire(ptr, oldp, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+@@ -1278,7 +1331,11 @@ atomic64_dec_if_positive(atomic64_t *v)
+ 	instrument_atomic_write(__ai_oldp, sizeof(*__ai_oldp)); \
+ 	arch_try_cmpxchg_acquire(__ai_ptr, __ai_oldp, __VA_ARGS__); \
+ })
++#else
++#define try_cmpxchg_acquire 	arch_try_cmpxchg_acquire
++#endif
+ 
++#if 0
+ #define try_cmpxchg_release(ptr, oldp, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+@@ -1287,7 +1344,11 @@ atomic64_dec_if_positive(atomic64_t *v)
+ 	instrument_atomic_write(__ai_oldp, sizeof(*__ai_oldp)); \
+ 	arch_try_cmpxchg_release(__ai_ptr, __ai_oldp, __VA_ARGS__); \
+ })
++#else
++#define try_cmpxchg_release 	arch_try_cmpxchg_release
++#endif
+ 
++#if 0
+ #define try_cmpxchg_relaxed(ptr, oldp, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+@@ -1296,42 +1357,65 @@ atomic64_dec_if_positive(atomic64_t *v)
+ 	instrument_atomic_write(__ai_oldp, sizeof(*__ai_oldp)); \
+ 	arch_try_cmpxchg_relaxed(__ai_ptr, __ai_oldp, __VA_ARGS__); \
+ })
++#else
++#define try_cmpxchg_relaxed 	arch_try_cmpxchg_relaxed
++#endif
+ 
++#if 0
+ #define cmpxchg_local(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_local(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_local 	arch_cmpxchg_local
++#endif
+ 
++#if 0
+ #define cmpxchg64_local(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg64_local(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg64_local 	arch_cmpxchg64_local
++#endif
+ 
++#if 0
+ #define sync_cmpxchg(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, sizeof(*__ai_ptr)); \
+ 	arch_sync_cmpxchg(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define sync_cmpxchg 	arch_sync_cmpxchg
++#endif
+ 
++#if 0
+ #define cmpxchg_double(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, 2 * sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_double(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_double 	arch_cmpxchg_double
++#endif
+ 
+ 
++#if 0
+ #define cmpxchg_double_local(ptr, ...) \
+ ({ \
+ 	typeof(ptr) __ai_ptr = (ptr); \
+ 	instrument_atomic_write(__ai_ptr, 2 * sizeof(*__ai_ptr)); \
+ 	arch_cmpxchg_double_local(__ai_ptr, __VA_ARGS__); \
+ })
++#else
++#define cmpxchg_double_local 	arch_cmpxchg_double_local
++#endif
+ 
+ #endif /* _ASM_GENERIC_ATOMIC_INSTRUMENTED_H */
+-// 1d7c3a25aca5c7fb031c307be4c3d24c7b48fcd5
++// 2a4279557c0aea18c2784cefd4a26d58e6ee66d0
+diff --git a/scripts/atomic/gen-atomic-instrumented.sh b/scripts/atomic/gen-atomic-instrumented.sh
+index b0c45aee19d7..bfadca4046fb 100755
+--- a/scripts/atomic/gen-atomic-instrumented.sh
++++ b/scripts/atomic/gen-atomic-instrumented.sh
+@@ -80,6 +80,7 @@ gen_xchg()
+ 	if [ "${xchg%${xchg#try_cmpxchg}}" = "try_cmpxchg" ] ; then
+ 
+ cat <<EOF
++#if 0
+ #define ${xchg}(ptr, oldp, ...) \\
+ ({ \\
+ 	typeof(ptr) __ai_ptr = (ptr); \\
+@@ -88,17 +89,26 @@ cat <<EOF
+ 	instrument_atomic_write(__ai_oldp, ${mult}sizeof(*__ai_oldp)); \\
+ 	arch_${xchg}(__ai_ptr, __ai_oldp, __VA_ARGS__); \\
+ })
++#else
++#define ${xchg} \
++	arch_${xchg}
++#endif
+ EOF
+ 
+ 	else
+ 
+ cat <<EOF
++#if 0
+ #define ${xchg}(ptr, ...) \\
+ ({ \\
+ 	typeof(ptr) __ai_ptr = (ptr); \\
+ 	instrument_atomic_write(__ai_ptr, ${mult}sizeof(*__ai_ptr)); \\
+ 	arch_${xchg}(__ai_ptr, __VA_ARGS__); \\
+ })
++#else
++#define ${xchg} \
++	arch_${xchg}
++#endif
+ EOF
+ 
+ 	fi
+-- 
+2.11.0
+
