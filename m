@@ -4,33 +4,33 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,USER_AGENT_GIT
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE93C07E9B
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:25:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD7AC07E96
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:34:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BB5461EAF
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:25:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE36661363
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:34:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234627AbhGFL2P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jul 2021 07:28:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55940 "EHLO mail.kernel.org"
+        id S234937AbhGFLdu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jul 2021 07:33:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233349AbhGFLWU (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:22:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5539A61CD8;
-        Tue,  6 Jul 2021 11:17:53 +0000 (UTC)
+        id S235665AbhGFLaS (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:30:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 55E1561DD0;
+        Tue,  6 Jul 2021 11:21:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570274;
-        bh=KOu7qrupT3Xq1MPcezUqH3okfRUfVTjKqiEIPZ1rfEU=;
+        s=k20201202; t=1625570494;
+        bh=KSZ7rKJwOjkrmzpOVQugWhLbgtTy/OWflm3K4vutGBM=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=YN/lNI0u9PIMQ+tLXGiql6tKPJFmBMLIwNUm+lCFvexBYRI+bztqiMjGM96JcIhTd
-         YqO1XJvTYSha1a5EiBKbkMivpDEbnbA/4thf9fm3uAXKnvySUVfIM3gOKL4i11vqY7
-         2fRFL1fBPv2kqro/yQXN/aTcxD9j6x22ZJ4L0CX9SLsDW89gf1e1MsrBKi0HvAPxol
-         xPwgezk1vd+Yfcvl2za9DUJZj+EyhJsdwkk87KB2KwHtw9IAkqzDaikKo07ksojlrj
-         eJmdHHAQXaafuz6ysmKGAsUAyiIL9pVLcPFndwIxklnXwTpbiL5Dt30JPCX29o5Jfg
-         KUwokFVr1tS2A==
+        b=IGyYjOHa9T1sxZg0uDONOeJNZ9NzpFMxzwydXbLrZCy4NbYUCuRCJU8PiR25MvnZf
+         mCHcf82hs6FulTY2VIliTPaQixmO16bvxtC1hQIVHoXipjcCrGpTQLbQmF2uPggj5m
+         ofl9u8xFwHlCy1AY7MeFoPVvwDUA/ub6Wq5BSXmA0exrsSjF08Hg1gMMBPJNJ9tORx
+         6DvoMnGmZJGikJ6OguNMslDFiQ5lzDfxzB2hJ1I88Lzs7kVNhMtwZvymjrVVN53sci
+         AoVNCRMdn9RPOME9h2YiQ871rd6SjpPETaMC+ok6CoI/tDvKQIum24Ltp+E8VoAhiT
+         yFgdvZur0or4w==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Martynas Pumputis <m@lambda.lt>, Lorenz Bauer <lmb@cloudflare.com>,
@@ -40,12 +40,12 @@ Cc:     Martynas Pumputis <m@lambda.lt>, Lorenz Bauer <lmb@cloudflare.com>,
         linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
         netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.13 167/189] net: retrieve netns cookie via getsocketopt
-Date:   Tue,  6 Jul 2021 07:13:47 -0400
-Message-Id: <20210706111409.2058071-167-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.12 139/160] net: retrieve netns cookie via getsocketopt
+Date:   Tue,  6 Jul 2021 07:18:05 -0400
+Message-Id: <20210706111827.2060499-139-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210706111409.2058071-1-sashal@kernel.org>
-References: <20210706111409.2058071-1-sashal@kernel.org>
+In-Reply-To: <20210706111827.2060499-1-sashal@kernel.org>
+References: <20210706111827.2060499-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -166,7 +166,7 @@ index 4dcd13d097a9..d588c244ec2f 100644
  
  #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
 diff --git a/net/core/sock.c b/net/core/sock.c
-index 946888afef88..2003c5ebb4c2 100644
+index a266760cd65e..60750f9ae32d 100644
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
 @@ -1622,6 +1622,13 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
