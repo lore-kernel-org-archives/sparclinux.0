@@ -2,187 +2,83 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFD7AC07E96
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:34:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50797C07E9B
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 12:03:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE36661363
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:34:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39348620DC
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 12:03:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234937AbhGFLdu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jul 2021 07:33:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42404 "EHLO mail.kernel.org"
+        id S239083AbhGFMG3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jul 2021 08:06:29 -0400
+Received: from foss.arm.com ([217.140.110.172]:39928 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235665AbhGFLaS (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 6 Jul 2021 07:30:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 55E1561DD0;
-        Tue,  6 Jul 2021 11:21:33 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1625570494;
-        bh=KSZ7rKJwOjkrmzpOVQugWhLbgtTy/OWflm3K4vutGBM=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=IGyYjOHa9T1sxZg0uDONOeJNZ9NzpFMxzwydXbLrZCy4NbYUCuRCJU8PiR25MvnZf
-         mCHcf82hs6FulTY2VIliTPaQixmO16bvxtC1hQIVHoXipjcCrGpTQLbQmF2uPggj5m
-         ofl9u8xFwHlCy1AY7MeFoPVvwDUA/ub6Wq5BSXmA0exrsSjF08Hg1gMMBPJNJ9tORx
-         6DvoMnGmZJGikJ6OguNMslDFiQ5lzDfxzB2hJ1I88Lzs7kVNhMtwZvymjrVVN53sci
-         AoVNCRMdn9RPOME9h2YiQ871rd6SjpPETaMC+ok6CoI/tDvKQIum24Ltp+E8VoAhiT
-         yFgdvZur0or4w==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Martynas Pumputis <m@lambda.lt>, Lorenz Bauer <lmb@cloudflare.com>,
-        Eric Dumazet <edumazet@google.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, linux-alpha@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        netdev@vger.kernel.org, bpf@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.12 139/160] net: retrieve netns cookie via getsocketopt
-Date:   Tue,  6 Jul 2021 07:18:05 -0400
-Message-Id: <20210706111827.2060499-139-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210706111827.2060499-1-sashal@kernel.org>
-References: <20210706111827.2060499-1-sashal@kernel.org>
+        id S243070AbhGFMDP (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 6 Jul 2021 08:03:15 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id A9D411FB;
+        Tue,  6 Jul 2021 05:00:34 -0700 (PDT)
+Received: from C02TD0UTHF1T.local (unknown [10.57.31.83])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 6B83D3F73B;
+        Tue,  6 Jul 2021 05:00:33 -0700 (PDT)
+Date:   Tue, 6 Jul 2021 13:00:30 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
+To:     Anatoly Pugachev <matorola@gmail.com>,
+        Peter Zijlstra <peterz@lists.infradead.org>
+Cc:     Linux Kernel list <linux-kernel@vger.kernel.org>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        debian-sparc <debian-sparc@lists.debian.org>
+Subject: Re: [sparc64] locking/atomic, kernel OOPS on running stress-ng
+Message-ID: <20210706120030.GB69200@C02TD0UTHF1T.local>
+References: <CADxRZqzcrnSMzy50T+kWb_mQVguWDCMu6RoXsCc+-fNDPYXbaw@mail.gmail.com>
+ <20210705195638.GA53988@C02TD0UTHF1T.local>
+ <20210706091104.GA69200@C02TD0UTHF1T.local>
+ <CADxRZqxNdYBAs1daPJTAPKGeJx30D+v7xz87K2sB_dXYKdTrVg@mail.gmail.com>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CADxRZqxNdYBAs1daPJTAPKGeJx30D+v7xz87K2sB_dXYKdTrVg@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Martynas Pumputis <m@lambda.lt>
+On Tue, Jul 06, 2021 at 02:51:06PM +0300, Anatoly Pugachev wrote:
+> On Tue, Jul 6, 2021 at 12:11 PM Mark Rutland <mark.rutland@arm.com> wrote:
+> > Fixes: ff5b4f1ed580c59d ("locking/atomic: sparc: move to ARCH_ATOMIC")
+> > Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+> > Reported-by: Anatoly Pugachev <matorola@gmail.com>
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Peter Zijlstra <peterz@lists.infradead.org>
+> > ---
+> >  arch/sparc/include/asm/cmpxchg_64.h | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/cmpxchg_64.h
+> > index 8c39a9981187..12d00a42c0a3 100644
+> > --- a/arch/sparc/include/asm/cmpxchg_64.h
+> > +++ b/arch/sparc/include/asm/cmpxchg_64.h
+> > @@ -201,7 +201,7 @@ static inline unsigned long __cmpxchg_local(volatile void *ptr,
+> >  #define arch_cmpxchg64_local(ptr, o, n)                                        \
+> >    ({                                                                   \
+> >         BUILD_BUG_ON(sizeof(*(ptr)) != 8);                              \
+> > -       cmpxchg_local((ptr), (o), (n));                                 \
+> > +       arch_cmpxchg_local((ptr), (o), (n));                                    \
+> >    })
+> >  #define arch_cmpxchg64(ptr, o, n)      arch_cmpxchg64_local((ptr), (o), (n))
+> 
+> 
+> Mark, thanks, fixed...
+> tested on git kernel 5.13.0-11788-g79160a603bdb-dirty (dirty - cause
+> patch has been applied).
 
-[ Upstream commit e8b9eab99232c4e62ada9d7976c80fd5e8118289 ]
+Great! Thanks for confirming.
 
-It's getting more common to run nested container environments for
-testing cloud software. One of such examples is Kind [1] which runs a
-Kubernetes cluster in Docker containers on a single host. Each container
-acts as a Kubernetes node, and thus can run any Pod (aka container)
-inside the former. This approach simplifies testing a lot, as it
-eliminates complicated VM setups.
+Peter, are you happy to pick that (full commit in last mail), or should
+I send a new copy?
 
-Unfortunately, such a setup breaks some functionality when cgroupv2 BPF
-programs are used for load-balancing. The load-balancer BPF program
-needs to detect whether a request originates from the host netns or a
-container netns in order to allow some access, e.g. to a service via a
-loopback IP address. Typically, the programs detect this by comparing
-netns cookies with the one of the init ns via a call to
-bpf_get_netns_cookie(NULL). However, in nested environments the latter
-cannot be used given the Kubernetes node's netns is outside the init ns.
-To fix this, we need to pass the Kubernetes node netns cookie to the
-program in a different way: by extending getsockopt() with a
-SO_NETNS_COOKIE option, the orchestrator which runs in the Kubernetes
-node netns can retrieve the cookie and pass it to the program instead.
-
-Thus, this is following up on Eric's commit 3d368ab87cf6 ("net:
-initialize net->net_cookie at netns setup") to allow retrieval via
-SO_NETNS_COOKIE.  This is also in line in how we retrieve socket cookie
-via SO_COOKIE.
-
-  [1] https://kind.sigs.k8s.io/
-
-Signed-off-by: Lorenz Bauer <lmb@cloudflare.com>
-Signed-off-by: Martynas Pumputis <m@lambda.lt>
-Cc: Eric Dumazet <edumazet@google.com>
-Reviewed-by: Eric Dumazet <edumazet@google.com>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/alpha/include/uapi/asm/socket.h  | 2 ++
- arch/mips/include/uapi/asm/socket.h   | 2 ++
- arch/parisc/include/uapi/asm/socket.h | 2 ++
- arch/sparc/include/uapi/asm/socket.h  | 2 ++
- include/uapi/asm-generic/socket.h     | 2 ++
- net/core/sock.c                       | 7 +++++++
- 6 files changed, 17 insertions(+)
-
-diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
-index 57420356ce4c..6b3daba60987 100644
---- a/arch/alpha/include/uapi/asm/socket.h
-+++ b/arch/alpha/include/uapi/asm/socket.h
-@@ -127,6 +127,8 @@
- #define SO_PREFER_BUSY_POLL	69
- #define SO_BUSY_POLL_BUDGET	70
- 
-+#define SO_NETNS_COOKIE		71
-+
- #if !defined(__KERNEL__)
- 
- #if __BITS_PER_LONG == 64
-diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
-index 2d949969313b..cdf404a831b2 100644
---- a/arch/mips/include/uapi/asm/socket.h
-+++ b/arch/mips/include/uapi/asm/socket.h
-@@ -138,6 +138,8 @@
- #define SO_PREFER_BUSY_POLL	69
- #define SO_BUSY_POLL_BUDGET	70
- 
-+#define SO_NETNS_COOKIE		71
-+
- #if !defined(__KERNEL__)
- 
- #if __BITS_PER_LONG == 64
-diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
-index f60904329bbc..5b5351cdcb33 100644
---- a/arch/parisc/include/uapi/asm/socket.h
-+++ b/arch/parisc/include/uapi/asm/socket.h
-@@ -119,6 +119,8 @@
- #define SO_PREFER_BUSY_POLL	0x4043
- #define SO_BUSY_POLL_BUDGET	0x4044
- 
-+#define SO_NETNS_COOKIE		0x4045
-+
- #if !defined(__KERNEL__)
- 
- #if __BITS_PER_LONG == 64
-diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
-index 848a22fbac20..92675dc380fa 100644
---- a/arch/sparc/include/uapi/asm/socket.h
-+++ b/arch/sparc/include/uapi/asm/socket.h
-@@ -120,6 +120,8 @@
- #define SO_PREFER_BUSY_POLL	 0x0048
- #define SO_BUSY_POLL_BUDGET	 0x0049
- 
-+#define SO_NETNS_COOKIE          0x0050
-+
- #if !defined(__KERNEL__)
- 
- 
-diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
-index 4dcd13d097a9..d588c244ec2f 100644
---- a/include/uapi/asm-generic/socket.h
-+++ b/include/uapi/asm-generic/socket.h
-@@ -122,6 +122,8 @@
- #define SO_PREFER_BUSY_POLL	69
- #define SO_BUSY_POLL_BUDGET	70
- 
-+#define SO_NETNS_COOKIE		71
-+
- #if !defined(__KERNEL__)
- 
- #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
-diff --git a/net/core/sock.c b/net/core/sock.c
-index a266760cd65e..60750f9ae32d 100644
---- a/net/core/sock.c
-+++ b/net/core/sock.c
-@@ -1622,6 +1622,13 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
- 		v.val = sk->sk_bound_dev_if;
- 		break;
- 
-+	case SO_NETNS_COOKIE:
-+		lv = sizeof(u64);
-+		if (len != lv)
-+			return -EINVAL;
-+		v.val64 = sock_net(sk)->net_cookie;
-+		break;
-+
- 	default:
- 		/* We implement the SO_SNDLOWAT etc to not be settable
- 		 * (1003.1g 7).
--- 
-2.30.2
-
+Thanks,
+Mark.
