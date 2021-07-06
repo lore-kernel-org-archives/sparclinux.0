@@ -2,179 +2,187 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-20.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_NONE,URIBL_BLOCKED,USER_AGENT_GIT
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0C49C07E96
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 09:11:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1FE93C07E9B
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:25:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A5016198E
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 09:11:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BB5461EAF
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Jul 2021 11:25:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230472AbhGFJOG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Jul 2021 05:14:06 -0400
-Received: from foss.arm.com ([217.140.110.172]:35272 "EHLO foss.arm.com"
+        id S234627AbhGFL2P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Jul 2021 07:28:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55940 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230295AbhGFJOG (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 6 Jul 2021 05:14:06 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5DFF731B;
-        Tue,  6 Jul 2021 02:11:27 -0700 (PDT)
-Received: from C02TD0UTHF1T.local (unknown [10.57.31.83])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 2003C3F5A1;
-        Tue,  6 Jul 2021 02:11:25 -0700 (PDT)
-Date:   Tue, 6 Jul 2021 10:11:20 +0100
-From:   Mark Rutland <mark.rutland@arm.com>
-To:     Anatoly Pugachev <matorola@gmail.com>,
-        Peter Zijlstra <peterz@lists.infradead.org>
-Cc:     Linux Kernel list <linux-kernel@vger.kernel.org>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        debian-sparc <debian-sparc@lists.debian.org>
-Subject: Re: [sparc64] locking/atomic, kernel OOPS on running stress-ng
-Message-ID: <20210706091104.GA69200@C02TD0UTHF1T.local>
-References: <CADxRZqzcrnSMzy50T+kWb_mQVguWDCMu6RoXsCc+-fNDPYXbaw@mail.gmail.com>
- <20210705195638.GA53988@C02TD0UTHF1T.local>
+        id S233349AbhGFLWU (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 6 Jul 2021 07:22:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5539A61CD8;
+        Tue,  6 Jul 2021 11:17:53 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1625570274;
+        bh=KOu7qrupT3Xq1MPcezUqH3okfRUfVTjKqiEIPZ1rfEU=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=YN/lNI0u9PIMQ+tLXGiql6tKPJFmBMLIwNUm+lCFvexBYRI+bztqiMjGM96JcIhTd
+         YqO1XJvTYSha1a5EiBKbkMivpDEbnbA/4thf9fm3uAXKnvySUVfIM3gOKL4i11vqY7
+         2fRFL1fBPv2kqro/yQXN/aTcxD9j6x22ZJ4L0CX9SLsDW89gf1e1MsrBKi0HvAPxol
+         xPwgezk1vd+Yfcvl2za9DUJZj+EyhJsdwkk87KB2KwHtw9IAkqzDaikKo07ksojlrj
+         eJmdHHAQXaafuz6ysmKGAsUAyiIL9pVLcPFndwIxklnXwTpbiL5Dt30JPCX29o5Jfg
+         KUwokFVr1tS2A==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Martynas Pumputis <m@lambda.lt>, Lorenz Bauer <lmb@cloudflare.com>,
+        Eric Dumazet <edumazet@google.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        Sasha Levin <sashal@kernel.org>, linux-alpha@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        netdev@vger.kernel.org, bpf@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.13 167/189] net: retrieve netns cookie via getsocketopt
+Date:   Tue,  6 Jul 2021 07:13:47 -0400
+Message-Id: <20210706111409.2058071-167-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210706111409.2058071-1-sashal@kernel.org>
+References: <20210706111409.2058071-1-sashal@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210705195638.GA53988@C02TD0UTHF1T.local>
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jul 05, 2021 at 08:56:54PM +0100, Mark Rutland wrote:
-> On Mon, Jul 05, 2021 at 06:16:49PM +0300, Anatoly Pugachev wrote:
-> > Hello!
-> 
-> Hi Anatoly,
-> 
-> > latest sparc64 git kernel produces the following OOPS on running stress-ng as :
-> > 
-> > $ stress-ng -v --mmap 1 -t 30s
-> > 
-> > kernel OOPS (console logs):
-> > 
-> > [   27.276719] Unable to handle kernel NULL pointer dereference
-> > [   27.276782] tsk->{mm,active_mm}->context = 00000000000003cb
-> > [   27.276818] tsk->{mm,active_mm}->pgd = fff800003a2a0000
-> > [   27.276853]               \|/ ____ \|/
-> > [   27.276853]               "@'/ .. \`@"
-> > [   27.276853]               /_| \__/ |_\
-> > [   27.276853]                  \__U_/
-> > [   27.276927] stress-ng(928): Oops [#1]
-> 
-> I can reproduce this under QEMU; following your bisection (and working
-> around the missing ifdeferry that breaks bisection), I can confirm that
-> the first broken commit is:
-> 
->   ff5b4f1ed580 ("locking/atomic: sparc: move to ARCH_ATOMIC")
-> 
-> Sorry about this.
->  
-> > Can someone please look at this commit ids?
-> 
-> From digging into this, I can't spot an obvious bug in the commit above.
+From: Martynas Pumputis <m@lambda.lt>
 
-Looking again with fresh eyes, there is a trivial bug after all.
+[ Upstream commit e8b9eab99232c4e62ada9d7976c80fd5e8118289 ]
 
-Could you give the patch below a spin? It works for me locally under
-QEMU.
+It's getting more common to run nested container environments for
+testing cloud software. One of such examples is Kind [1] which runs a
+Kubernetes cluster in Docker containers on a single host. Each container
+acts as a Kubernetes node, and thus can run any Pod (aka container)
+inside the former. This approach simplifies testing a lot, as it
+eliminates complicated VM setups.
 
-Sorry again about this!
+Unfortunately, such a setup breaks some functionality when cgroupv2 BPF
+programs are used for load-balancing. The load-balancer BPF program
+needs to detect whether a request originates from the host netns or a
+container netns in order to allow some access, e.g. to a service via a
+loopback IP address. Typically, the programs detect this by comparing
+netns cookies with the one of the init ns via a call to
+bpf_get_netns_cookie(NULL). However, in nested environments the latter
+cannot be used given the Kubernetes node's netns is outside the init ns.
+To fix this, we need to pass the Kubernetes node netns cookie to the
+program in a different way: by extending getsockopt() with a
+SO_NETNS_COOKIE option, the orchestrator which runs in the Kubernetes
+node netns can retrieve the cookie and pass it to the program instead.
 
-Thanks,
-Mark
----->8----
-From afb683b2ce749dca426d27f05af3ea08455a52d7 Mon Sep 17 00:00:00 2001
-From: Mark Rutland <mark.rutland@arm.com>
-Date: Tue, 6 Jul 2021 09:55:56 +0100
-Subject: [PATCH] locking/atomic: sparc: fix arch_cmpxchg64_local()
+Thus, this is following up on Eric's commit 3d368ab87cf6 ("net:
+initialize net->net_cookie at netns setup") to allow retrieval via
+SO_NETNS_COOKIE.  This is also in line in how we retrieve socket cookie
+via SO_COOKIE.
 
-Anatoly reports that since commit:
+  [1] https://kind.sigs.k8s.io/
 
-  ff5b4f1ed580c59d ("locking/atomic: sparc: move to ARCH_ATOMIC")
-
-... it's possible to reliably trigger an oops by running:
-
-  stress-ng -v --mmap 1 -t 30s
-
-... which results in a NULL pointer dereference in
-__split_huge_pmd_locked().
-
-The underlying problem is that commit ff5b4f1ed580c59d left
-arch_cmpxchg64_local() defined in terms of cmpxchg_local() rather than
-arch_cmpxchg_local(). In <asm-generic/atomic-instrumented.h> we wrap
-these with macros which use identically-named variables. When
-cmpxchg_local() nests inside cmpxchg64_local(), this casues it to use an
-unitialized variable as the pointer, which can be NULL.
-
-This can also be seen in pmdp_establish(), where the compiler can
-generate the pointer with a `clr` instruction:
-
-0000000000000360 <pmdp_establish>:
- 360:   9d e3 bf 50     save  %sp, -176, %sp
- 364:   fa 5e 80 00     ldx  [ %i2 ], %i5
- 368:   82 10 00 1b     mov  %i3, %g1
- 36c:   84 10 20 00     clr  %g2
- 370:   c3 f0 90 1d     casx  [ %g2 ], %i5, %g1
- 374:   80 a7 40 01     cmp  %i5, %g1
- 378:   32 6f ff fc     bne,a   %xcc, 368 <pmdp_establish+0x8>
- 37c:   fa 5e 80 00     ldx  [ %i2 ], %i5
- 380:   d0 5e 20 40     ldx  [ %i0 + 0x40 ], %o0
- 384:   96 10 00 1b     mov  %i3, %o3
- 388:   94 10 00 1d     mov  %i5, %o2
- 38c:   92 10 00 19     mov  %i1, %o1
- 390:   7f ff ff 84     call  1a0 <__set_pmd_acct>
- 394:   b0 10 00 1d     mov  %i5, %i0
- 398:   81 cf e0 08     return  %i7 + 8
- 39c:   01 00 00 00     nop
-
-This patch fixes the problem by defining arch_cmpxchg64_local() in terms
-of arch_cmpxchg_local(), avoiding potential shadowing, and resulting in
-working cmpxchg64_local() and variants, e.g.
-
-0000000000000360 <pmdp_establish>:
- 360:   9d e3 bf 50     save  %sp, -176, %sp
- 364:   fa 5e 80 00     ldx  [ %i2 ], %i5
- 368:   82 10 00 1b     mov  %i3, %g1
- 36c:   c3 f6 90 1d     casx  [ %i2 ], %i5, %g1
- 370:   80 a7 40 01     cmp  %i5, %g1
- 374:   32 6f ff fd     bne,a   %xcc, 368 <pmdp_establish+0x8>
- 378:   fa 5e 80 00     ldx  [ %i2 ], %i5
- 37c:   d0 5e 20 40     ldx  [ %i0 + 0x40 ], %o0
- 380:   96 10 00 1b     mov  %i3, %o3
- 384:   94 10 00 1d     mov  %i5, %o2
- 388:   92 10 00 19     mov  %i1, %o1
- 38c:   7f ff ff 85     call  1a0 <__set_pmd_acct>
- 390:   b0 10 00 1d     mov  %i5, %i0
- 394:   81 cf e0 08     return  %i7 + 8
- 398:   01 00 00 00     nop
- 39c:   01 00 00 00     nop
-
-Fixes: ff5b4f1ed580c59d ("locking/atomic: sparc: move to ARCH_ATOMIC")
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Reported-by: Anatoly Pugachev <matorola@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Peter Zijlstra <peterz@lists.infradead.org>
+Signed-off-by: Lorenz Bauer <lmb@cloudflare.com>
+Signed-off-by: Martynas Pumputis <m@lambda.lt>
+Cc: Eric Dumazet <edumazet@google.com>
+Reviewed-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/include/asm/cmpxchg_64.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/alpha/include/uapi/asm/socket.h  | 2 ++
+ arch/mips/include/uapi/asm/socket.h   | 2 ++
+ arch/parisc/include/uapi/asm/socket.h | 2 ++
+ arch/sparc/include/uapi/asm/socket.h  | 2 ++
+ include/uapi/asm-generic/socket.h     | 2 ++
+ net/core/sock.c                       | 7 +++++++
+ 6 files changed, 17 insertions(+)
 
-diff --git a/arch/sparc/include/asm/cmpxchg_64.h b/arch/sparc/include/asm/cmpxchg_64.h
-index 8c39a9981187..12d00a42c0a3 100644
---- a/arch/sparc/include/asm/cmpxchg_64.h
-+++ b/arch/sparc/include/asm/cmpxchg_64.h
-@@ -201,7 +201,7 @@ static inline unsigned long __cmpxchg_local(volatile void *ptr,
- #define arch_cmpxchg64_local(ptr, o, n)					\
-   ({									\
- 	BUILD_BUG_ON(sizeof(*(ptr)) != 8);				\
--	cmpxchg_local((ptr), (o), (n));					\
-+	arch_cmpxchg_local((ptr), (o), (n));					\
-   })
- #define arch_cmpxchg64(ptr, o, n)	arch_cmpxchg64_local((ptr), (o), (n))
+diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
+index 57420356ce4c..6b3daba60987 100644
+--- a/arch/alpha/include/uapi/asm/socket.h
++++ b/arch/alpha/include/uapi/asm/socket.h
+@@ -127,6 +127,8 @@
+ #define SO_PREFER_BUSY_POLL	69
+ #define SO_BUSY_POLL_BUDGET	70
  
++#define SO_NETNS_COOKIE		71
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
+index 2d949969313b..cdf404a831b2 100644
+--- a/arch/mips/include/uapi/asm/socket.h
++++ b/arch/mips/include/uapi/asm/socket.h
+@@ -138,6 +138,8 @@
+ #define SO_PREFER_BUSY_POLL	69
+ #define SO_BUSY_POLL_BUDGET	70
+ 
++#define SO_NETNS_COOKIE		71
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
+index f60904329bbc..5b5351cdcb33 100644
+--- a/arch/parisc/include/uapi/asm/socket.h
++++ b/arch/parisc/include/uapi/asm/socket.h
+@@ -119,6 +119,8 @@
+ #define SO_PREFER_BUSY_POLL	0x4043
+ #define SO_BUSY_POLL_BUDGET	0x4044
+ 
++#define SO_NETNS_COOKIE		0x4045
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
+index 848a22fbac20..92675dc380fa 100644
+--- a/arch/sparc/include/uapi/asm/socket.h
++++ b/arch/sparc/include/uapi/asm/socket.h
+@@ -120,6 +120,8 @@
+ #define SO_PREFER_BUSY_POLL	 0x0048
+ #define SO_BUSY_POLL_BUDGET	 0x0049
+ 
++#define SO_NETNS_COOKIE          0x0050
++
+ #if !defined(__KERNEL__)
+ 
+ 
+diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
+index 4dcd13d097a9..d588c244ec2f 100644
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -122,6 +122,8 @@
+ #define SO_PREFER_BUSY_POLL	69
+ #define SO_BUSY_POLL_BUDGET	70
+ 
++#define SO_NETNS_COOKIE		71
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 946888afef88..2003c5ebb4c2 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -1622,6 +1622,13 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		v.val = sk->sk_bound_dev_if;
+ 		break;
+ 
++	case SO_NETNS_COOKIE:
++		lv = sizeof(u64);
++		if (len != lv)
++			return -EINVAL;
++		v.val64 = sock_net(sk)->net_cookie;
++		break;
++
+ 	default:
+ 		/* We implement the SO_SNDLOWAT etc to not be settable
+ 		 * (1003.1g 7).
 -- 
-2.11.0
+2.30.2
 
