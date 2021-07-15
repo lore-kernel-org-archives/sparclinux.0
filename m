@@ -2,103 +2,129 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.3 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF910C47E4D
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Jul 2021 16:56:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71C29C636CA
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Jul 2021 18:10:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D0B2613E9
-	for <sparclinux@archiver.kernel.org>; Thu, 15 Jul 2021 16:56:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 52C546120A
+	for <sparclinux@archiver.kernel.org>; Thu, 15 Jul 2021 18:10:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229735AbhGOQ70 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 15 Jul 2021 12:59:26 -0400
-Received: from ale.deltatee.com ([204.191.154.188]:50496 "EHLO
-        ale.deltatee.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235390AbhGOQ7P (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Jul 2021 12:59:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=deltatee.com; s=20200525; h=Subject:In-Reply-To:MIME-Version:Date:
-        Message-ID:From:References:Cc:To:content-disposition;
-        bh=zhc7pzLmZmjUsLXsFnMXewKeUUfUybMjLBdEKzxTgWI=; b=a4eD7Hw2j62J4jmrqG3qM9ka82
-        5k5K5mLQB+hZHZqXGBpC8vAokNP0Ip4On3I09UBGqNxaWIRq2dmyriwR06pgFKl9jIT5xqRBf9vsD
-        YwuOCb9uZhKtsGIHsKDWUmojgkYI2/2LwIaMUocRxIEBx7IUQ/6yxeiqqZGnSG4a85UbkDOZqICEa
-        lG9jcrA6QbuiJkY03RA7uB1x8xSEwzPTD/kmMZHa3L73KtXI/2a8MW52t16HXK3n1ZJYijnMXJyfP
-        O/wyAVK1kdSyrErsaIIRyaT5BgNIbq1xTAmZfgnfhUHzVRbyGsOS/vCEnIuD/1MU7ahfhlv+CI82Y
-        BmE/J6uw==;
-Received: from s0106a84e3fe8c3f3.cg.shawcable.net ([24.64.144.200] helo=[192.168.0.10])
-        by ale.deltatee.com with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.92)
-        (envelope-from <logang@deltatee.com>)
-        id 1m44eg-0002EB-Nd; Thu, 15 Jul 2021 10:56:11 -0600
-To:     "Russell King (Oracle)" <linux@armlinux.org.uk>
-Cc:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-parisc@vger.kernel.org,
-        xen-devel@lists.xenproject.org, Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Martin Oliveira <martin.oliveira@eideticom.com>
-References: <20210715164544.6827-1-logang@deltatee.com>
- <20210715165309.GO22278@shell.armlinux.org.uk>
-From:   Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <aa33d2bf-8324-5647-b800-3a2e3e774e80@deltatee.com>
-Date:   Thu, 15 Jul 2021 10:56:09 -0600
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+        id S237384AbhGOSN2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 15 Jul 2021 14:13:28 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:59026 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237256AbhGOSN1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 15 Jul 2021 14:13:27 -0400
+Received: from in01.mta.xmission.com ([166.70.13.51]:32868)
+        by out03.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m45oe-0027Qn-3X; Thu, 15 Jul 2021 12:10:32 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:56964 helo=email.xmission.com)
+        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m45od-00CSsZ-3J; Thu, 15 Jul 2021 12:10:31 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Marco Elver <elver@google.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+        <m11rat9f85.fsf@fess.ebiederm.org>
+        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
+        <m1zgxfs7zq.fsf_-_@fess.ebiederm.org>
+Date:   Thu, 15 Jul 2021 13:09:45 -0500
+In-Reply-To: <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> (Eric W. Biederman's
+        message of "Fri, 30 Apr 2021 17:49:45 -0500")
+Message-ID: <87a6mnzbx2.fsf_-_@disp2133>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-In-Reply-To: <20210715165309.GO22278@shell.armlinux.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-CA
-Content-Transfer-Encoding: 7bit
-X-SA-Exim-Connect-IP: 24.64.144.200
-X-SA-Exim-Rcpt-To: martin.oliveira@eideticom.com, sbates@raithlin.com, robin.murphy@arm.com, m.szyprowski@samsung.com, hch@lst.de, xen-devel@lists.xenproject.org, linux-parisc@vger.kernel.org, iommu@lists.linux-foundation.org, sparclinux@vger.kernel.org, linux-s390@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-mips@vger.kernel.org, linux-ia64@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org, linux@armlinux.org.uk
-X-SA-Exim-Mail-From: logang@deltatee.com
-Subject: Re: [PATCH v1 00/16] .map_sg() error cleanup
-X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
-X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
+Content-Type: text/plain
+X-XM-SPF: eid=1m45od-00CSsZ-3J;;;mid=<87a6mnzbx2.fsf_-_@disp2133>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX19QOntclRPIA/u9ynQgdmZ9S2p6E+o6EFA=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: [PATCH 0/6] Final si_trapno bits
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 
+As a part of a fix for the ABI of the newly added SIGTRAP TRAP_PERF a
+si_trapno was reduced to an ordinary extention of the _sigfault case
+of struct siginfo.
+
+When Linus saw the complete set of changes come in as a fix he requested
+that the set of changes be trimmed down to just what was necessary to
+fix the SIGTRAP TRAP_PERF ABI.
+
+I had intended to get the rest of the changes into the merge window for
+v5.14 but I dropped the ball.
+
+I have made the changes to stop using __ARCH_SI_TRAPNO be per
+architecture so they are easier to review.  In doing so I found one
+place on alpha where I used send_sig_fault instead of
+send_sig_fault_trapno(... si_trapno = 0).  That would not have changed
+the userspace behavior but it did make the kernel code less clear.
+
+My rule in these patches is everywhere that siginfo layout calls
+for SIL_FAULT_TRAPNO the code uses either force_sig_fault_trapno
+or send_sig_fault_trapno.
+
+And of course I have rebased and compile tested Marco's compile time
+assert patches.
+
+Eric
 
 
-On 2021-07-15 10:53 a.m., Russell King (Oracle) wrote:
-> On Thu, Jul 15, 2021 at 10:45:28AM -0600, Logan Gunthorpe wrote:
->> Hi,
->>
->> This series is spun out and expanded from my work to add P2PDMA support
->> to DMA map operations[1].
->>
->> The P2PDMA work requires distinguishing different error conditions in
->> a map_sg operation. dma_map_sgtable() already allows for returning an
->> error code (where as dma_map_sg() is only allowed to return zero)
->> however, it currently only returns -EINVAL when a .map_sg() call returns
->> zero.
->>
->> This series cleans up all .map_sg() implementations to return appropriate
->> error codes. After the cleanup, dma_map_sg() will still return zero,
->> however dma_map_sgtable() will pass the error code from the .map_sg()
->> call. Thanks go to Martn Oliveira for doing a lot of the cleanup of the
->> obscure implementations.
->>
->> The patch set is based off of v5.14-rc1 and a git repo can be found
->> here:
-> 
-> Have all the callers for dma_map_sg() been updated to check for error
-> codes? If not, isn't that a pre-requisit to this patch set?
+Eric W. Biederman (3):
+      signal/sparc: si_trapno is only used with SIGILL ILL_ILLTRP
+      signal/alpha: si_trapno is only used with SIGFPE and SIGTRAP TRAP_UNK
+      signal: Remove the generic __ARCH_SI_TRAPNO support
 
-No. Perhaps I wasn't clear enough: This series is changing only
-impelemntations of .map_sg(). It does *not* change the return code of
-dma_map_sg(). dma_map_sg() will continue to return zero on error for the
-foreseeable future. The dma_map_sgtable() call already allows returning
-error codes and it will pass the new error code through. This is what
-will be used in the P2PDMA work.
+Marco Elver (3):
+      sparc64: Add compile-time asserts for siginfo_t offsets
+      arm: Add compile-time asserts for siginfo_t offsets
+      arm64: Add compile-time asserts for siginfo_t offsets
 
-Logan
+ arch/alpha/include/uapi/asm/siginfo.h |  2 --
+ arch/alpha/kernel/osf_sys.c           |  2 +-
+ arch/alpha/kernel/signal.c            |  4 +--
+ arch/alpha/kernel/traps.c             | 26 +++++++++---------
+ arch/alpha/mm/fault.c                 |  4 +--
+ arch/arm/kernel/signal.c              | 37 +++++++++++++++++++++++++
+ arch/arm64/kernel/signal.c            | 37 +++++++++++++++++++++++++
+ arch/arm64/kernel/signal32.c          | 37 +++++++++++++++++++++++++
+ arch/mips/include/uapi/asm/siginfo.h  |  2 --
+ arch/sparc/include/uapi/asm/siginfo.h |  3 --
+ arch/sparc/kernel/process_64.c        |  2 +-
+ arch/sparc/kernel/signal32.c          | 35 +++++++++++++++++++++++
+ arch/sparc/kernel/signal_64.c         | 34 +++++++++++++++++++++++
+ arch/sparc/kernel/sys_sparc_32.c      |  2 +-
+ arch/sparc/kernel/sys_sparc_64.c      |  2 +-
+ arch/sparc/kernel/traps_32.c          | 22 +++++++--------
+ arch/sparc/kernel/traps_64.c          | 44 +++++++++++++----------------
+ arch/sparc/kernel/unaligned_32.c      |  2 +-
+ arch/sparc/mm/fault_32.c              |  2 +-
+ arch/sparc/mm/fault_64.c              |  2 +-
+ include/linux/sched/signal.h          | 11 ++------
+ kernel/signal.c                       | 52 ++++++++++++++++++++++++++---------
+ 22 files changed, 276 insertions(+), 88 deletions(-)
+
