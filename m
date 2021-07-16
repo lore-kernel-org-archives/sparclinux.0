@@ -2,72 +2,199 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=unavailable
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24CB0C636CB
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 12:19:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 675D6C636CA
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 16:07:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 05A7D613CF
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 12:19:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E77761289
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 16:07:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234357AbhGPMW1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jul 2021 08:22:27 -0400
-Received: from foss.arm.com ([217.140.110.172]:38338 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232024AbhGPMW0 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 16 Jul 2021 08:22:26 -0400
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 08358D6E;
-        Fri, 16 Jul 2021 05:19:31 -0700 (PDT)
-Received: from [10.57.36.240] (unknown [10.57.36.240])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id BF0533F774;
-        Fri, 16 Jul 2021 05:19:28 -0700 (PDT)
-Subject: Re: [PATCH v1 16/16] dma-mapping: Disallow .map_sg operations from
- returning zero on error
-To:     Christoph Hellwig <hch@lst.de>,
-        Logan Gunthorpe <logang@deltatee.com>
-Cc:     linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org,
-        Martin Oliveira <martin.oliveira@eideticom.com>,
-        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-alpha@vger.kernel.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-        Stephen Bates <sbates@raithlin.com>,
-        linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
-References: <20210715164544.6827-1-logang@deltatee.com>
- <20210715164544.6827-17-logang@deltatee.com> <20210716063332.GD13345@lst.de>
-From:   Robin Murphy <robin.murphy@arm.com>
-Message-ID: <21b7f2f1-ccac-4567-6933-a258dcad7099@arm.com>
-Date:   Fri, 16 Jul 2021 13:19:23 +0100
-User-Agent: Mozilla/5.0 (Windows NT 10.0; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+        id S231933AbhGPQKE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Jul 2021 12:10:04 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:33744 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230358AbhGPQKD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jul 2021 12:10:03 -0400
+Received: from in02.mta.xmission.com ([166.70.13.52]:60690)
+        by out03.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m4QMl-004cav-3N; Fri, 16 Jul 2021 10:07:07 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:59832 helo=email.xmission.com)
+        by in02.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m4QMj-00DIze-Nq; Fri, 16 Jul 2021 10:07:06 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Marco Elver <elver@google.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
+References: <YIpkvGrBFGlB5vNj@elver.google.com>
+        <m11rat9f85.fsf@fess.ebiederm.org>
+        <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+        <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
+        <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <87a6mnzbx2.fsf_-_@disp2133>
+Date:   Fri, 16 Jul 2021 11:06:26 -0500
+In-Reply-To: <87a6mnzbx2.fsf_-_@disp2133> (Eric W. Biederman's message of
+        "Thu, 15 Jul 2021 13:09:45 -0500")
+Message-ID: <875yxaxmyl.fsf_-_@disp2133>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-In-Reply-To: <20210716063332.GD13345@lst.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+X-XM-SPF: eid=1m4QMj-00DIze-Nq;;;mid=<875yxaxmyl.fsf_-_@disp2133>;;;hst=in02.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1/qXW5a3TFDnSO7his2S9IbRRvEYot9giY=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: [PATCH 7/7] signal: Verify the alignment and size of siginfo_t
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in02.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2021-07-16 07:33, Christoph Hellwig wrote:
-> On Thu, Jul 15, 2021 at 10:45:44AM -0600, Logan Gunthorpe wrote:
->> @@ -194,6 +194,8 @@ static int __dma_map_sg_attrs(struct device *dev, struct scatterlist *sg,
->>   	else
->>   		ents = ops->map_sg(dev, sg, nents, dir, attrs);
->>   
->> +	WARN_ON_ONCE(ents == 0);
-> 
-> Turns this into a negative error code while we're at it, just to keep
-> the callers sane?
 
-Right, by this point returning the 0 would pass through 
-dma_map_sg_attrs() OK, but AFAICS dma_map_sgtable() would now get 
-confused and return success but with sgt->nents = 0. Coercing it to an 
-error code (which dma_map_sg_attrs() would then just change right back) 
-seems sensible for the sake of easy robustness.
+Update the static assertions about siginfo_t to also describe
+it's alignment and size.
 
-Robin.
+While investigating if it was possible to add a 64bit field into
+siginfo_t[1] it became apparent that the alignment of siginfo_t
+is as much a part of the ABI as the size of the structure.
+
+If the alignment changes siginfo_t when embedded in another structure
+can move to a different offset.  Which is not acceptable from an ABI
+structure.
+
+So document that fact and add static assertions to notify developers
+if they change change the alignment by accident.
+
+[1] https://lkml.kernel.org/r/YJEZdhe6JGFNYlum@elver.google.com
+Acked-by: Marco Elver <elver@google.com>
+v1: https://lkml.kernel.org/r/20210505141101.11519-4-ebiederm@xmission.co
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+---
+ arch/arm/kernel/signal.c           | 2 ++
+ arch/arm64/kernel/signal.c         | 2 ++
+ arch/arm64/kernel/signal32.c       | 2 ++
+ arch/sparc/kernel/signal32.c       | 2 ++
+ arch/sparc/kernel/signal_64.c      | 2 ++
+ arch/x86/kernel/signal_compat.c    | 6 ++++++
+ include/uapi/asm-generic/siginfo.h | 5 +++++
+ 7 files changed, 21 insertions(+)
+
+diff --git a/arch/arm/kernel/signal.c b/arch/arm/kernel/signal.c
+index 7ef453e8a96f..f3800c0f428b 100644
+--- a/arch/arm/kernel/signal.c
++++ b/arch/arm/kernel/signal.c
+@@ -737,6 +737,8 @@ static_assert(NSIGBUS	== 5);
+ static_assert(NSIGTRAP	== 6);
+ static_assert(NSIGCHLD	== 6);
+ static_assert(NSIGSYS	== 2);
++static_assert(sizeof(siginfo_t) == 128);
++static_assert(__alignof__(siginfo_t) == 4);
+ static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
+ static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
+ static_assert(offsetof(siginfo_t, si_code)	== 0x08);
+diff --git a/arch/arm64/kernel/signal.c b/arch/arm64/kernel/signal.c
+index 4413b6a4e32a..d3721e01441b 100644
+--- a/arch/arm64/kernel/signal.c
++++ b/arch/arm64/kernel/signal.c
+@@ -1011,6 +1011,8 @@ static_assert(NSIGBUS	== 5);
+ static_assert(NSIGTRAP	== 6);
+ static_assert(NSIGCHLD	== 6);
+ static_assert(NSIGSYS	== 2);
++static_assert(sizeof(siginfo_t) == 128);
++static_assert(__alignof__(siginfo_t) == 8);
+ static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
+ static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
+ static_assert(offsetof(siginfo_t, si_code)	== 0x08);
+diff --git a/arch/arm64/kernel/signal32.c b/arch/arm64/kernel/signal32.c
+index ab1775216712..d3be01c46bec 100644
+--- a/arch/arm64/kernel/signal32.c
++++ b/arch/arm64/kernel/signal32.c
+@@ -469,6 +469,8 @@ static_assert(NSIGBUS	== 5);
+ static_assert(NSIGTRAP	== 6);
+ static_assert(NSIGCHLD	== 6);
+ static_assert(NSIGSYS	== 2);
++static_assert(sizeof(compat_siginfo_t) == 128);
++static_assert(__alignof__(compat_siginfo_t) == 4);
+ static_assert(offsetof(compat_siginfo_t, si_signo)	== 0x00);
+ static_assert(offsetof(compat_siginfo_t, si_errno)	== 0x04);
+ static_assert(offsetof(compat_siginfo_t, si_code)	== 0x08);
+diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
+index 65fd26ae9d25..4276b9e003ca 100644
+--- a/arch/sparc/kernel/signal32.c
++++ b/arch/sparc/kernel/signal32.c
+@@ -757,6 +757,8 @@ static_assert(NSIGBUS	== 5);
+ static_assert(NSIGTRAP	== 6);
+ static_assert(NSIGCHLD	== 6);
+ static_assert(NSIGSYS	== 2);
++static_assert(sizeof(compat_siginfo_t) == 128);
++static_assert(__alignof__(compat_siginfo_t) == 4);
+ static_assert(offsetof(compat_siginfo_t, si_signo)	== 0x00);
+ static_assert(offsetof(compat_siginfo_t, si_errno)	== 0x04);
+ static_assert(offsetof(compat_siginfo_t, si_code)	== 0x08);
+diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
+index a58e0cc45d24..cea23cf95600 100644
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -567,6 +567,8 @@ static_assert(NSIGBUS	== 5);
+ static_assert(NSIGTRAP	== 6);
+ static_assert(NSIGCHLD	== 6);
+ static_assert(NSIGSYS	== 2);
++static_assert(sizeof(siginfo_t) == 128);
++static_assert(__alignof__(siginfo_t) == 8);
+ static_assert(offsetof(siginfo_t, si_signo)	== 0x00);
+ static_assert(offsetof(siginfo_t, si_errno)	== 0x04);
+ static_assert(offsetof(siginfo_t, si_code)	== 0x08);
+diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
+index 06743ec054d2..b52407c56000 100644
+--- a/arch/x86/kernel/signal_compat.c
++++ b/arch/x86/kernel/signal_compat.c
+@@ -34,7 +34,13 @@ static inline void signal_compat_build_tests(void)
+ 	BUILD_BUG_ON(NSIGSYS  != 2);
+ 
+ 	/* This is part of the ABI and can never change in size: */
++	BUILD_BUG_ON(sizeof(siginfo_t) != 128);
+ 	BUILD_BUG_ON(sizeof(compat_siginfo_t) != 128);
++
++	/* This is a part of the ABI and can never change in alignment */
++	BUILD_BUG_ON(__alignof__(siginfo_t) != 8);
++	BUILD_BUG_ON(__alignof__(compat_siginfo_t) != 4);
++
+ 	/*
+ 	 * The offsets of all the (unioned) si_fields are fixed
+ 	 * in the ABI, of course.  Make sure none of them ever
+diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
+index 5a3c221f4c9d..3ba180f550d7 100644
+--- a/include/uapi/asm-generic/siginfo.h
++++ b/include/uapi/asm-generic/siginfo.h
+@@ -29,6 +29,11 @@ typedef union sigval {
+ #define __ARCH_SI_ATTRIBUTES
+ #endif
+ 
++/*
++ * Be careful when extending this union.  On 32bit siginfo_t is 32bit
++ * aligned.  Which means that a 64bit field or any other field that
++ * would increase the alignment of siginfo_t will break the ABI.
++ */
+ union __sifields {
+ 	/* kill() */
+ 	struct {
+-- 
+2.20.1
+
