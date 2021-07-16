@@ -2,170 +2,220 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-23.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 128B8C636CA
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 08:24:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30177C12002
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 11:48:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFD626128B
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 08:24:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0DF41613D4
+	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 11:48:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237586AbhGPI1j (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jul 2021 04:27:39 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:29638 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S237504AbhGPI1i (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 16 Jul 2021 04:27:38 -0400
-Received: from pps.filterd (m0098414.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16G82sot034778;
-        Fri, 16 Jul 2021 04:24:15 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=8Of+ionZ0K44S7zzH2G1wGenaNNg9cYQDtiQ0dQz6+E=;
- b=BMc79y1KhhQKUFZbOrAhtcEP61wGvhCcKpBh3YItmYniaHy7RinkekOStAMhwPcVbV8g
- tA8KdxQW6CmdQCUDo7HXnXeBDvsxeO1Bxcn4vmR46+BPBqB7+8Ctzlwih1eoet+d/O4e
- U7lnzCYwkCmnuQ2N7TeXEVQB0tNbOBoSC9rb2wWdVRh2ThxQaLFsKo3f4ZcKX5kegGXy
- lsJ/BZHBXKo8Vpdp79tRxovqbQ5nmEvbTtQHpKKZhzPMbI6YKxeWxAqOAKu0r38O+7Ex
- 7l5jIUCj1b6+Lwrw1Hy8lrhsFTfLuxB+ksipWyRyg3640fKq4qgCXYb8/oO8DK9d7iju gA== 
-Received: from ppma02fra.de.ibm.com (47.49.7a9f.ip4.static.sl-reverse.com [159.122.73.71])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 39tw3vn83n-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 16 Jul 2021 04:24:15 -0400
-Received: from pps.filterd (ppma02fra.de.ibm.com [127.0.0.1])
-        by ppma02fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16G8EkKq007904;
-        Fri, 16 Jul 2021 08:24:13 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-        by ppma02fra.de.ibm.com with ESMTP id 39s3p78tv5-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 16 Jul 2021 08:24:13 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16G8OAou20840890
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 16 Jul 2021 08:24:10 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 167C84C04A;
-        Fri, 16 Jul 2021 08:24:10 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 2C04E4C04E;
-        Fri, 16 Jul 2021 08:24:09 +0000 (GMT)
-Received: from sig-9-145-73-130.uk.ibm.com (unknown [9.145.73.130])
-        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Fri, 16 Jul 2021 08:24:09 +0000 (GMT)
-Message-ID: <352f2a35d62399fce1dca0ce1158974ecda3904c.camel@linux.ibm.com>
-Subject: Re: [PATCH v1 10/16] s390/pci: return error code from
- s390_dma_map_sg()
-From:   Niklas Schnelle <schnelle@linux.ibm.com>
-To:     Logan Gunthorpe <logang@deltatee.com>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-parisc@vger.kernel.org,
-        xen-devel@lists.xenproject.org
-Cc:     Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Martin Oliveira <martin.oliveira@eideticom.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>
-Date:   Fri, 16 Jul 2021 10:24:08 +0200
-In-Reply-To: <20210715164544.6827-11-logang@deltatee.com>
-References: <20210715164544.6827-1-logang@deltatee.com>
-         <20210715164544.6827-11-logang@deltatee.com>
+        id S232088AbhGPLv0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 16 Jul 2021 07:51:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34468 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232146AbhGPLv0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jul 2021 07:51:26 -0400
+Received: from mail-ot1-x334.google.com (mail-ot1-x334.google.com [IPv6:2607:f8b0:4864:20::334])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF5DDC061764
+        for <sparclinux@vger.kernel.org>; Fri, 16 Jul 2021 04:48:31 -0700 (PDT)
+Received: by mail-ot1-x334.google.com with SMTP id b14-20020a056830310eb02904c7e78705f4so9521739ots.13
+        for <sparclinux@vger.kernel.org>; Fri, 16 Jul 2021 04:48:31 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=SCAMfplbo3e2iODI9poYTm8lXc8h2ulhVqpOO6GIdUY=;
+        b=D8DMuB/NoSjS+60zzJxsOOILuPr+HxIwVzVsSJVfm6zUYFS1NK0YvlI3cpD03tai3C
+         GJ9bLATPo02qo5E8EMlSboDUJKP3a9sv6/pf4ZEmXdYHyqYE4X6+ykPYrw+cf9C+ZsZM
+         jy/vjWBZ+SwF6pCP9/yMw+4irHxJqozlpJZ+OAQ3CHtihG4wGuaWQk4a3h02e9VhfTPi
+         +PPAsxYybVsZirFe4ViK0/MrEuKSapzKgGNQIhj70Cun52P3cfjO8EJCZushXIiZI7sY
+         0LPINYDjuebVi0DTeW+nsHzfkaLeQrUyZfCZXYYOUXNifGO03KOWcSSlKWPOBWDNiPVl
+         VRpw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=SCAMfplbo3e2iODI9poYTm8lXc8h2ulhVqpOO6GIdUY=;
+        b=C3aHVpD2dCnc7qD8UdSljf0UILbw588YGvhnS/35sq2mMgxK6vc5uK3UEtzUVC8ES+
+         mtwRANmdw6+LUabOzSiNATDS5OfYJ3+k3AvqLQ0zIJA8PfyGhQ1nVfIyt52dWvF+I+cY
+         1ccncXxBr0Nijfvtj28jW9Rqr08iYi0AsLAYVDeNOAEvOya5dS+VU/M9mEkM844n144n
+         QHND1vVeIAbaXNs9htKW+LCoYMNIt2NBrXsRvoFNjOT+BuXgG3Lf9WWm7s0luHxwAVu3
+         W7FYDQ82mMyYG2XVWjqIJCxQN0Zi00e1zzuKWFQTSgZ8qtY6Nl8Ny9dz5P3fr6sjTIjw
+         H/Xw==
+X-Gm-Message-State: AOAM532drKAxVMHLrXZvpuXdJhH/tEy/pGG621iAhprZWx41gap8dZ4H
+        mdl9mHGadSVcBR9DzP9oP50Ib3R9A/GZ2wieX3VnMg==
+X-Google-Smtp-Source: ABdhPJy8/WDKQVEqrCCE9FT/HDZN1LH/+u7mcWBjJjvPWwuIfb0/MZ3akM15S+WvAyRkg2OWOZfb6zqLz9Sg7NCFv6c=
+X-Received: by 2002:a9d:d04:: with SMTP id 4mr8241154oti.251.1626436110870;
+ Fri, 16 Jul 2021 04:48:30 -0700 (PDT)
+MIME-Version: 1.0
+References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
+ <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
+ <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
+ <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <87a6mnzbx2.fsf_-_@disp2133> <87bl73xx6x.fsf_-_@disp2133>
+In-Reply-To: <87bl73xx6x.fsf_-_@disp2133>
+From:   Marco Elver <elver@google.com>
+Date:   Fri, 16 Jul 2021 13:48:18 +0200
+Message-ID: <CANpmjNOv4mf3PiEVvAUFAXkRaA3V37UBYoB2j2P7_qF868B6mA@mail.gmail.com>
+Subject: Re: [PATCH 6/6] signal: Remove the generic __ARCH_SI_TRAPNO support
+To:     "Eric W. Biederman" <ebiederm@xmission.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Peter Collingbourne <pcc@google.com>,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux API <linux-api@vger.kernel.org>,
+        kasan-dev <kasan-dev@googlegroups.com>
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-16.el8) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: Au675VXZyfEIxm3kG5FUCjrWY9DzzlcG
-X-Proofpoint-ORIG-GUID: Au675VXZyfEIxm3kG5FUCjrWY9DzzlcG
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-07-16_02:2021-07-16,2021-07-16 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
- lowpriorityscore=0 mlxlogscore=999 suspectscore=0 malwarescore=0
- phishscore=0 bulkscore=0 mlxscore=0 spamscore=0 clxscore=1011 adultscore=0
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2104190000 definitions=main-2107160048
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, 2021-07-15 at 10:45 -0600, Logan Gunthorpe wrote:
-> From: Martin Oliveira <martin.oliveira@eideticom.com>
-> 
-> The .map_sg() op now expects an error code instead of zero on failure.
-> 
-> So propagate the error from __s390_dma_map_sg() up.
-> 
-> Signed-off-by: Martin Oliveira <martin.oliveira@eideticom.com>
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-> Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: Vasily Gorbik <gor@linux.ibm.com>
-> Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+On Thu, 15 Jul 2021 at 20:13, Eric W. Biederman <ebiederm@xmission.com> wrote:
+> Now that __ARCH_SI_TRAPNO is no longer set by any architecture remove
+> all of the code it enabled from the kernel.
+>
+> On alpha and sparc a more explict approach of using
+> send_sig_fault_trapno or force_sig_fault_trapno in the very limited
+> circumstances where si_trapno was set to a non-zero value.
+>
+> The generic support that is being removed always set si_trapno on all
+> fault signals.  With only SIGILL ILL_ILLTRAP on sparc and SIGFPE and
+> SIGTRAP TRAP_UNK on alpla providing si_trapno values asking all senders
+> of fault signals to provide an si_trapno value does not make sense.
+>
+> Making si_trapno an ordinary extension of the fault siginfo layout has
+> enabled the architecture generic implementation of SIGTRAP TRAP_PERF,
+> and enables other faulting signals to grow architecture generic
+> senders as well.
+>
+> v1: https://lkml.kernel.org/r/m18s4zs7nu.fsf_-_@fess.ebiederm.org
+> v2: https://lkml.kernel.org/r/20210505141101.11519-8-ebiederm@xmission.com
+> Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+
+Reviewed-by: Marco Elver <elver@google.com>
+
 > ---
->  arch/s390/pci/pci_dma.c | 12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-> index ebc9a49523aa..c78b02012764 100644
-> --- a/arch/s390/pci/pci_dma.c
-> +++ b/arch/s390/pci/pci_dma.c
-> @@ -487,7 +487,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  	unsigned int max = dma_get_max_seg_size(dev);
->  	unsigned int size = s->offset + s->length;
->  	unsigned int offset = s->offset;
-> -	int count = 0, i;
-> +	int count = 0, i, ret;
->  
->  	for (i = 1; i < nr_elements; i++) {
->  		s = sg_next(s);
-> @@ -497,8 +497,9 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  
->  		if (s->offset || (size & ~PAGE_MASK) ||
->  		    size + s->length > max) {
-> -			if (__s390_dma_map_sg(dev, start, size,
-> -					      &dma->dma_address, dir))
-> +			ret = __s390_dma_map_sg(dev, start, size,
-> +						&dma->dma_address, dir);
-> +			if (ret)
->  				goto unmap;
->  
->  			dma->dma_address += offset;
-> @@ -511,7 +512,8 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  		}
->  		size += s->length;
->  	}
-> -	if (__s390_dma_map_sg(dev, start, size, &dma->dma_address, dir))
-> +	ret = __s390_dma_map_sg(dev, start, size, &dma->dma_address, dir);
-> +	if (ret)
->  		goto unmap;
->  
->  	dma->dma_address += offset;
-> @@ -523,7 +525,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  		s390_dma_unmap_pages(dev, sg_dma_address(s), sg_dma_len(s),
->  				     dir, attrs);
->  
-> -	return 0;
-> +	return ret;
+>  arch/mips/include/uapi/asm/siginfo.h |  2 --
+>  include/linux/sched/signal.h         |  8 --------
+>  kernel/signal.c                      | 14 --------------
+>  3 files changed, 24 deletions(-)
+>
+> diff --git a/arch/mips/include/uapi/asm/siginfo.h b/arch/mips/include/uapi/asm/siginfo.h
+> index c34c7eef0a1c..8cb8bd061a68 100644
+> --- a/arch/mips/include/uapi/asm/siginfo.h
+> +++ b/arch/mips/include/uapi/asm/siginfo.h
+> @@ -10,9 +10,7 @@
+>  #ifndef _UAPI_ASM_SIGINFO_H
+>  #define _UAPI_ASM_SIGINFO_H
+>
+> -
+>  #define __ARCH_SIGEV_PREAMBLE_SIZE (sizeof(long) + 2*sizeof(int))
+> -#undef __ARCH_SI_TRAPNO /* exception code needs to fill this ...  */
+>
+>  #define __ARCH_HAS_SWAPPED_SIGINFO
+>
+> diff --git a/include/linux/sched/signal.h b/include/linux/sched/signal.h
+> index 6657184cef07..928e0025d358 100644
+> --- a/include/linux/sched/signal.h
+> +++ b/include/linux/sched/signal.h
+> @@ -298,11 +298,6 @@ static inline void kernel_signal_stop(void)
+>
+>         schedule();
 >  }
->  
->  static void s390_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-
-So the error codes we return are -ENOMEM if allocating a DMA
-translation entry fails and -EINVAL if the DMA translation table hasn't
-been initialized or the caller tries to map 0 sized memory. Are these
-error codes that you would expect? If yes then this change looks good
-to me.
-
-Acked-by: Niklas Schnelle <schnelle@linux.ibm.com>
-
+> -#ifdef __ARCH_SI_TRAPNO
+> -# define ___ARCH_SI_TRAPNO(_a1) , _a1
+> -#else
+> -# define ___ARCH_SI_TRAPNO(_a1)
+> -#endif
+>  #ifdef __ia64__
+>  # define ___ARCH_SI_IA64(_a1, _a2, _a3) , _a1, _a2, _a3
+>  #else
+> @@ -310,14 +305,11 @@ static inline void kernel_signal_stop(void)
+>  #endif
+>
+>  int force_sig_fault_to_task(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr)
+>         , struct task_struct *t);
+>  int force_sig_fault(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr));
+>  int send_sig_fault(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr)
+>         , struct task_struct *t);
+>
+> diff --git a/kernel/signal.c b/kernel/signal.c
+> index ae06a424aa72..2181423e562a 100644
+> --- a/kernel/signal.c
+> +++ b/kernel/signal.c
+> @@ -1666,7 +1666,6 @@ void force_sigsegv(int sig)
+>  }
+>
+>  int force_sig_fault_to_task(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr)
+>         , struct task_struct *t)
+>  {
+> @@ -1677,9 +1676,6 @@ int force_sig_fault_to_task(int sig, int code, void __user *addr
+>         info.si_errno = 0;
+>         info.si_code  = code;
+>         info.si_addr  = addr;
+> -#ifdef __ARCH_SI_TRAPNO
+> -       info.si_trapno = trapno;
+> -#endif
+>  #ifdef __ia64__
+>         info.si_imm = imm;
+>         info.si_flags = flags;
+> @@ -1689,16 +1685,13 @@ int force_sig_fault_to_task(int sig, int code, void __user *addr
+>  }
+>
+>  int force_sig_fault(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr))
+>  {
+>         return force_sig_fault_to_task(sig, code, addr
+> -                                      ___ARCH_SI_TRAPNO(trapno)
+>                                        ___ARCH_SI_IA64(imm, flags, isr), current);
+>  }
+>
+>  int send_sig_fault(int sig, int code, void __user *addr
+> -       ___ARCH_SI_TRAPNO(int trapno)
+>         ___ARCH_SI_IA64(int imm, unsigned int flags, unsigned long isr)
+>         , struct task_struct *t)
+>  {
+> @@ -1709,9 +1702,6 @@ int send_sig_fault(int sig, int code, void __user *addr
+>         info.si_errno = 0;
+>         info.si_code  = code;
+>         info.si_addr  = addr;
+> -#ifdef __ARCH_SI_TRAPNO
+> -       info.si_trapno = trapno;
+> -#endif
+>  #ifdef __ia64__
+>         info.si_imm = imm;
+>         info.si_flags = flags;
+> @@ -3283,10 +3273,6 @@ enum siginfo_layout siginfo_layout(unsigned sig, int si_code)
+>                                  ((sig == SIGFPE) ||
+>                                   ((sig == SIGTRAP) && (si_code == TRAP_UNK))))
+>                                 layout = SIL_FAULT_TRAPNO;
+> -#ifdef __ARCH_SI_TRAPNO
+> -                       else if (layout == SIL_FAULT)
+> -                               layout = SIL_FAULT_TRAPNO;
+> -#endif
+>                 }
+>                 else if (si_code <= NSIGPOLL)
+>                         layout = SIL_POLL;
+> --
+> 2.20.1
+>
