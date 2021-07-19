@@ -2,139 +2,192 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.3 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02D4EC12002
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 17:16:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CCD4C07E95
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jul 2021 23:29:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D9F08613F8
-	for <sparclinux@archiver.kernel.org>; Fri, 16 Jul 2021 17:16:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FA3E6113C
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Jul 2021 23:29:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230476AbhGPRTG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 16 Jul 2021 13:19:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52010 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230431AbhGPRTG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 16 Jul 2021 13:19:06 -0400
-Received: from mail-oo1-xc30.google.com (mail-oo1-xc30.google.com [IPv6:2607:f8b0:4864:20::c30])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11957C061762
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jul 2021 10:16:08 -0700 (PDT)
-Received: by mail-oo1-xc30.google.com with SMTP id j27-20020a4a751b0000b029025fb3e97502so2589320ooc.12
-        for <sparclinux@vger.kernel.org>; Fri, 16 Jul 2021 10:16:08 -0700 (PDT)
+        id S1347661AbhGSWsI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 19 Jul 2021 18:48:08 -0400
+Received: from mx0b-00069f02.pphosted.com ([205.220.177.32]:64046 "EHLO
+        mx0b-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1386889AbhGSTm1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 19 Jul 2021 15:42:27 -0400
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16JKBCDb013444;
+        Mon, 19 Jul 2021 20:22:15 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=BNsCGg2QiqJt2o1wi4MUZO169T4Ki1eHlXiKgwijNKc=;
+ b=J9p544sL474mofe+xTQoq8YsvbFrw64oRD5IzTopdPOc91RntHYiswdp+l0iBRxeKsc+
+ LcbktqEYtgbIj618AUH+mwgxSMvNsZNUfmN5q0R4CqG4hanO3nDhSowI1eoszHWzWRwR
+ 4CTXr5nPlUhfI3A53N/MhA8T1pcmM9h5IOwEtui66Ny8pqW9rOmitzNSRdTLMNLrjSCF
+ b7BTflkgSt4xkLqJiSaD1JsInPlQnXw4sEV8jRW5VOcm2mhDN6hHGvGb3cFLOD4JnBRJ
+ ZbtIt8y0gtUaXpe/YLXPcV3r2J1dr2XHNnTNty3cujYk7RporaQh8GCy1b0AKWgPm6j4 lQ== 
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=subject : to : cc :
+ references : from : message-id : date : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2020-01-29;
+ bh=BNsCGg2QiqJt2o1wi4MUZO169T4Ki1eHlXiKgwijNKc=;
+ b=vAfFDN0FVWtFDBxChUpMGJe1jHbRAEf/DAYpK7h724vkUPKNPOp2KtwljQa40crfQb1D
+ SP/dBs0HPDzbDyts5CUSy/0ajs62rF2NwRnogKxFF36HN5se6O1/GIF4bqM2QYFOpmyH
+ 5p/EBPKSLDR5LUgwkXwM9NGmmpPHxhkbJQ3fTQL0AMbQ9tLNcLmI5CrZZDC80iypBKQ/
+ zNLH1fM+VmcD0+S8i21ETVE/gQW76CFIj7IoywDqJWGxxIUlA9HdwxMLF5lM7AgAK1uZ
+ Rn9HkvFK5T+Wvcpz8lUQvGMOLR2g3UoQSNwsLLHTMeQgrVXMAMLLLlIBUfd1ZbH9s5fz Fg== 
+Received: from aserp3020.oracle.com (aserp3020.oracle.com [141.146.126.70])
+        by mx0b-00069f02.pphosted.com with ESMTP id 39w83cs5eu-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 19 Jul 2021 20:22:15 +0000
+Received: from pps.filterd (aserp3020.oracle.com [127.0.0.1])
+        by aserp3020.oracle.com (8.16.0.42/8.16.0.42) with SMTP id 16JKF3i7160410;
+        Mon, 19 Jul 2021 20:22:14 GMT
+Received: from nam02-dm3-obe.outbound.protection.outlook.com (mail-dm3nam07lp2040.outbound.protection.outlook.com [104.47.56.40])
+        by aserp3020.oracle.com with ESMTP id 39uq15cccq-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 19 Jul 2021 20:22:14 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=i3fmxg4rVjpzHE5ssuXZZ0AIWBw6zeVhp3RyGArLeO579plKxIvOwEJlZP4MamhGsmXTyqIu/sPLgUnt8QxSqnNapwF4qB266MqchoU1M35EWTh/FyEw4g0AJFp87X7iE2z63sEmCEy3Boe61XDwufM8HiFhXw5czYFOiF0Ygp4ZH7P+7wjymMq8UCm8yMNRVHJpEXsmvKu85OXpVux/PZFz6n1UCWRTd3RaT0fxPQSI8fJ7CJxvMq2OhcF0Rga4ZsHMNDTeeO3MkNPP2x8fns56fsVS0JXDQeqGe/YVSfQ3Dhu/lP916Qr3QIiPwy6cDtkyDWSjAb02aKdEalcSTg==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=BNsCGg2QiqJt2o1wi4MUZO169T4Ki1eHlXiKgwijNKc=;
+ b=gNIVZDyCz2CmtpUJOew51Q8jOtkNPWNqUcy+Fg+BZjIaYd3TyenpHF22dnFbN8f+cHTttks2SHYvuMoGD1bPsVsuMBSqZAh4l+qabFuMFD591ka9UwVgCYAB/v5XQRTJhTY65gKqH1XsbV0MrCnKsCEaqz3hN68Abr+92LfCvi8KbQoqzsc6Aj8a5DNSmhgsPtU4xCYxI79YEPqsFlO6yW/OGBGWz1vUKljPBKcpgVC1fT6HI9U61CSBpCV2YHq6LJvyXJU6HTAwM8AE36VJdO5qB8mXEZhQ9sHItms8+48DEpRjYqPY+err1zXarcYowtIpifucQG5V8jw2l+z88A==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=jWbVndvTFPt8BOcGSAnZdQeZBgwQ39VLXMDadBgw6kk=;
-        b=kycsT8OTIWrycyqND/lL5jUMQFDjltZ92oujogdg2Ndlkp+0StM8kAIg7tLjtQfeG1
-         YtQp0RLCivg5nlV/zFSc1mTULVPHjZTq7Ex+9U/i2yTDKpEG7bpkN+bJ8s8tT1JaBqwM
-         y2TLzY9HoTp/Uz4id24PK7R/mXY9Jq6r81ZebQ+l6yf4sVQAbW1lEdfkLQRpnnjyDDmt
-         bgikzUbY3QcdoaR5eMFhAPwFnx5Vw+ejdfPoUKSNgoBP0WsPICAy2cHDBYAdl8Ac/wYr
-         kP06C8cTP2tL3t0qMqlAqnL33Dxo7e9FDTC/AFaZehjspePkLl7z/2H0fI4s4//TTHjd
-         wV8Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=jWbVndvTFPt8BOcGSAnZdQeZBgwQ39VLXMDadBgw6kk=;
-        b=KNfBE9tCvzoWAX32A4OhvXZNKJRmik9OTubyfbLE4GRXEgCqMKIbILMOBwBQZtDMm0
-         W3BQ+TWfl3GOq0c2PJ6xZMy9tQ2AjVUhV626MSlY5ztU9sQvihH4fQuvWsrLH5N7VsXL
-         wmI4+7I0gAcdChtED6YSrIgmJFRLeUl/jot+7x3a80yho/KsZtg5tp2EqmJi7kazfIfE
-         gVSFMPyTxos8NLFwLU1lr2dFCSCMKIFfOgwciNtILRP0Btr3mNL9+VChf2iT1udrj+gA
-         TWpzdq/rGtnbZVa5nqb0ReZwojfkQfLydKpX9GTykn5ERYB/9YZ3WLDoQ72WcUYv/Nn6
-         Jc2g==
-X-Gm-Message-State: AOAM5339yfMPG6rZdmuZSUTji9q7+hVlPON29sGr5XH7rqHGZNF/oYO7
-        nTFUCOrGZy4ACNbiZjSird6MwjaidlA4AFLK3Nlzow==
-X-Google-Smtp-Source: ABdhPJx9gk24ziK+bUUPctrm/fDAn5x21MphrWbNdm5y/1f6NtI1GUnsZkQdW2dgVWs4fHcFQbpBeYfuinN/+cxYnXU=
-X-Received: by 2002:a4a:956f:: with SMTP id n44mr8396820ooi.54.1626455767094;
- Fri, 16 Jul 2021 10:16:07 -0700 (PDT)
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=BNsCGg2QiqJt2o1wi4MUZO169T4Ki1eHlXiKgwijNKc=;
+ b=Z0bNny2Hn8+wx5EDqRhz5h639ftRumqbgaiVVQ4vUM2dMQ5J1J+75SbZT8ZCLv/vFqMEoFpgbe/5F/Rglo8hGwHz0n+L2lYm//xvCOn+IuFRlm6MuvY+Tib/9SWiWCVEd5BYNtXKHsCQ0GahVlCLStRq0vGBG6VgpsDsIlgyeBM=
+Authentication-Results: kernel.org; dkim=none (message not signed)
+ header.d=none;kernel.org; dmarc=none action=none header.from=oracle.com;
+Received: from BLAPR10MB5009.namprd10.prod.outlook.com (2603:10b6:208:321::10)
+ by BLAPR10MB5329.namprd10.prod.outlook.com (2603:10b6:208:307::24) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4331.22; Mon, 19 Jul
+ 2021 20:22:11 +0000
+Received: from BLAPR10MB5009.namprd10.prod.outlook.com
+ ([fe80::f10d:29d2:cb38:ed0]) by BLAPR10MB5009.namprd10.prod.outlook.com
+ ([fe80::f10d:29d2:cb38:ed0%8]) with mapi id 15.20.4331.033; Mon, 19 Jul 2021
+ 20:22:11 +0000
+Subject: Re: [PATCH v1 13/16] xen: swiotlb: return error code from
+ xen_swiotlb_map_sg()
+To:     Logan Gunthorpe <logang@deltatee.com>,
+        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-parisc@vger.kernel.org,
+        xen-devel@lists.xenproject.org
+Cc:     Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Martin Oliveira <martin.oliveira@eideticom.com>,
+        Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+        Juergen Gross <jgross@suse.com>,
+        Stefano Stabellini <sstabellini@kernel.org>
+References: <20210715164544.6827-1-logang@deltatee.com>
+ <20210715164544.6827-14-logang@deltatee.com>
+From:   Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Message-ID: <8cccf120-0b4b-4d66-0b96-4114af27a3d1@oracle.com>
+Date:   Mon, 19 Jul 2021 16:22:04 -0400
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.11.0
+In-Reply-To: <20210715164544.6827-14-logang@deltatee.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
+X-ClientProxiedBy: SA9PR13CA0017.namprd13.prod.outlook.com
+ (2603:10b6:806:21::22) To BLAPR10MB5009.namprd10.prod.outlook.com
+ (2603:10b6:208:321::10)
 MIME-Version: 1.0
-References: <YIpkvGrBFGlB5vNj@elver.google.com> <m11rat9f85.fsf@fess.ebiederm.org>
- <CAK8P3a0+uKYwL1NhY6Hvtieghba2hKYGD6hcKx5n8=4Gtt+pHA@mail.gmail.com>
- <m15z031z0a.fsf@fess.ebiederm.org> <YIxVWkT03TqcJLY3@elver.google.com>
- <m1zgxfs7zq.fsf_-_@fess.ebiederm.org> <87a6mnzbx2.fsf_-_@disp2133>
- <YPFybJQ7eviet341@elver.google.com> <87tukuw8a3.fsf@disp2133>
-In-Reply-To: <87tukuw8a3.fsf@disp2133>
-From:   Marco Elver <elver@google.com>
-Date:   Fri, 16 Jul 2021 19:15:55 +0200
-Message-ID: <CANpmjNMAxk5--iAmL3fL8XpPuDDFdufu1T=r0USnO+6Rn-A95A@mail.gmail.com>
-Subject: Re: [PATCH 0/6] Final si_trapno bits
-To:     "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Florian Weimer <fweimer@redhat.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Peter Collingbourne <pcc@google.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        kasan-dev <kasan-dev@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [10.74.102.166] (160.34.88.166) by SA9PR13CA0017.namprd13.prod.outlook.com (2603:10b6:806:21::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4352.9 via Frontend Transport; Mon, 19 Jul 2021 20:22:07 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: a216d6ca-9dee-431e-753d-08d94af2e391
+X-MS-TrafficTypeDiagnostic: BLAPR10MB5329:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <BLAPR10MB53295EB44276FE6AEA15CAD38AE19@BLAPR10MB5329.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4303;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: AiyY7elKT7NtOhGt2GzFvXpn9LtSNnhX9ehTyI8sETfsQV+K4tgFyeXf5D2NpKP+r1F56ND/56FfKOLi/Ad5IPWKQsc0rbn1QslGBFT3wa/lRS+5jz6C91ofQdVVAfwC+1CbW0HmfP9qy8mpnlYbmhuBwgdDJMtXfPLxUBBFw4TQN0InvGLT0mRLCxCWeaDJVVv/wcVjG0m2r5ndwoIyvfMUkOGSXsSn0ZCiARkK5J2XSA/h2bu4sMIcdFYJGpKcIwQOCrORrARr8h7xXgkJ6Oa3tHLTHXSOKDSSsIgnc7kjRjemqx8+S95PW6X/IGH9gI8F1WreDtlIwFEy5TZdtkpzj9v5MHuZT2uFfzdmpp38RTruOgxK8ZRTs8HLyrNsCnx02eKywjm+qDps2t+hHn0FuDDP3I/9JdpCme5w5qtCu5reQeb6c7wMEQz519mTSlnhprMYpj/POulMN+9hJc3tVNaz4rKlFrdPiqMrZI9cy6lbRyI69O9WBPutx2dCP+fG+1T2ke2rWoK3PDIuT4XQpAWbXgZrp7N9Ee2XkQ7PQKJFjDsuCGFO+R7r6HqpXbwQx0pEVuCR0DIIsNwYHJilc4lDrBlgGsG3/zfKTyoyv1C2f7MdDnGaDLsqj0pkm4gcWHrJ0BoY6R5dSzc5mWqawOOk7z0EOELuN+//Q+a9NYDxn3wazpPjCmriKcLBt2ZDBcYAWno+UgeetbJ6CoTmHS1kfZl3T8gE8s8/fgJ/L+AMlja7YDDdlVUL9GZW
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BLAPR10MB5009.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(39860400002)(396003)(366004)(346002)(376002)(136003)(6666004)(31696002)(31686004)(66476007)(66946007)(83380400001)(921005)(8676002)(86362001)(4744005)(5660300002)(38100700002)(6486002)(186003)(478600001)(53546011)(2906002)(54906003)(16576012)(36756003)(44832011)(316002)(8936002)(26005)(7416002)(956004)(4326008)(66556008)(2616005)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?QmZRb1ZkVjk2N092d1FOWm1TTFhxbGh0RFoza2MzZ3lycm8xdVMxUGhZaEh0?=
+ =?utf-8?B?QjBueXhvTHVSQXdpYUdUVmRSZDRYV1Z2bFRpbXptdXFVNzRGejhaRWRlRWd6?=
+ =?utf-8?B?aVQ5cXNFMFlCdVB5MUtDNjhVbUVpd3pWREZRWVdzYWp0U3FPbjdQVGs3US9R?=
+ =?utf-8?B?aDFJS0lQR1FqNDVKSTR2UU1xNEFSTXk3aDJleDdPR2NBL3J6Z1RPNnV2Nkwz?=
+ =?utf-8?B?eW1EVDhVSU9ITisrRkVZMEl0TFUvUmlNMlgvL0Z6SzJwYjFwMU5ldzhQclpM?=
+ =?utf-8?B?WG5LaFVZcU41VXpEVUJLUDF6bzhFbVBOZFNkWEcvTE0rb1VoZElUQkxKcVdY?=
+ =?utf-8?B?SmhnUkg0WmlxcTJUcWRTZVlnNHExaW85d2hRTy9nRzlNUXdBS2lHTlZKYm9j?=
+ =?utf-8?B?aXFuUjdsb01ldFQ2Y3d4YlBXVU1FVk1TSVl4ZjBNcUZCRU1hd3BYMFM5WldH?=
+ =?utf-8?B?SW93T0xHYUdFMzBvVEVBaExNUTNMZ25pOG9ncTNPN0ZmOHl3WUp2aGpBL3Vs?=
+ =?utf-8?B?RTZ4ckNFSjVGWTFONmpVRlQ2K05lWWdCZy9JVEdjT2dtWXpia043OFlmdDM2?=
+ =?utf-8?B?R2FQQnBUVXpZZkVMdGpvc21SZDFnclBKN1lyWk0vN0tGeGZad09wZzA1cDQr?=
+ =?utf-8?B?eUdxeXFsOGY2WTB5dVJ4NGxxb2MzMzVDNStsWm5Cb3Z0Y2h5aWNwZmdCRTJW?=
+ =?utf-8?B?ME9nK01sVnJBaSt6ZVpjOTE4YnlreEl1bmp5M1Vsc1ZXZ2g2U0J1RmpEenho?=
+ =?utf-8?B?SThNMWZ5MmlueStmakR5TTE1cnBvcmwxR0YzL1FNTUxIMTVMMkgxV2NqUzcx?=
+ =?utf-8?B?ZFJOZFpWOHlycEUrQVBzUXNNN3ZhRXdkc3dYZGtSQjBsdWZEWm5WdU9ZVGJp?=
+ =?utf-8?B?bjRUQ3JjdGNhdjJycXAyZXBBZmd6SjUzUE9zQjg1VkNEcDhsTnRLbkVXREpY?=
+ =?utf-8?B?RUtWMWhzdnRYNWtrZDl4SEg1K1dPRlByZ2cwRm9lVm9QRC9BVFN3N1VyM000?=
+ =?utf-8?B?TGwyeWNyVnA2V2k0c3Q1bmNueVRodDhBME83WTdIY085aG9QYUJneWFoemIz?=
+ =?utf-8?B?VnpxSExMK0JEZ0c4THNzd1k1NFNWR2ZiVGpDWFR3QnFNcm1jc0RXWVZBY1d5?=
+ =?utf-8?B?SjhEVTdDeVhHeHI2bGZ1SG53M0ErTTBzN1ZwSEFtb1dhbTBrdStWUHhIK3dC?=
+ =?utf-8?B?R0RYMjFoZVNFUlNRMXV0ZzBzNXVJSExDWHVyMk5RV3lkMDJuZkR2Q0kzWW1I?=
+ =?utf-8?B?clVVelZ1cXVOVDZycmg3aWdrMWVUN0tvN0xqNWE3WDdNSzdlbFhRb3lhT3VC?=
+ =?utf-8?B?Y21FVW81clhZU1A4SUphczhxbkN5cnd1WDdWUXYveHdTTzJPSWoxdUhURERJ?=
+ =?utf-8?B?WTluVGdTSjRlalFwMTY5dUgzWitmQUQ2NnIrSDViaEhHVmhCUzFFR2VobC9H?=
+ =?utf-8?B?SzZINlpmQ2xsbHBSY2ZvRE9nZmx6dXgvbkRqS3RQYTRvWExINHBWdVc3N3c0?=
+ =?utf-8?B?T1lhWkRSQVpSR0V2dFROQzZZZjNvM0U2WGFKRVNSNGxPYW1uZGZYRlNXUHF3?=
+ =?utf-8?B?cnpxcWNXd1RXYlRNNGpZTmlxMWhuSVlGazJUakpzVWRId01odnZrSFNVOS9N?=
+ =?utf-8?B?UTduWCswaEwxQytHdGpvcGVYenBmV1JIRHdoNlVpb25BU012Y042QXpoQkZn?=
+ =?utf-8?B?cktsMXlZdHNSQUdWbWZHZlk2eXZwVXZ1TVJ3dmNCWndaZ2tGWkxhV2NDVVM0?=
+ =?utf-8?Q?DBIJwv/jd/HznDJYxfZnFinYCAnKo9LlcvWSUWl?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a216d6ca-9dee-431e-753d-08d94af2e391
+X-MS-Exchange-CrossTenant-AuthSource: BLAPR10MB5009.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 19 Jul 2021 20:22:11.2965
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: K97vCe0npmkTp49QrAX4OWSxMu8DMopmlOiZzs9AQfGU1HVg1GS2LPNO7DOigqdxTluTquQ3cHxA7t8V0LFM5v3x2McQALVFOkBMOo5GQpA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BLAPR10MB5329
+X-Proofpoint-Virus-Version: vendor=nai engine=6200 definitions=10050 signatures=668682
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 malwarescore=0
+ mlxlogscore=999 suspectscore=0 bulkscore=0 spamscore=0 phishscore=0
+ mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2104190000 definitions=main-2107190115
+X-Proofpoint-GUID: PucKbcTaJehG5tuAIXx5icmYiBHWHK4A
+X-Proofpoint-ORIG-GUID: PucKbcTaJehG5tuAIXx5icmYiBHWHK4A
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 16 Jul 2021 at 18:09, Eric W. Biederman <ebiederm@xmission.com> wrote:
-> Marco Elver <elver@google.com> writes:
-> > On Thu, Jul 15, 2021 at 01:09PM -0500, Eric W. Biederman wrote:
-> >> As a part of a fix for the ABI of the newly added SIGTRAP TRAP_PERF a
-> >> si_trapno was reduced to an ordinary extention of the _sigfault case
-> >> of struct siginfo.
-> >>
-> >> When Linus saw the complete set of changes come in as a fix he requested
-> >> that the set of changes be trimmed down to just what was necessary to
-> >> fix the SIGTRAP TRAP_PERF ABI.
-> >>
-> >> I had intended to get the rest of the changes into the merge window for
-> >> v5.14 but I dropped the ball.
-> >>
-> >> I have made the changes to stop using __ARCH_SI_TRAPNO be per
-> >> architecture so they are easier to review.  In doing so I found one
-> >> place on alpha where I used send_sig_fault instead of
-> >> send_sig_fault_trapno(... si_trapno = 0).  That would not have changed
-> >> the userspace behavior but it did make the kernel code less clear.
-> >>
-> >> My rule in these patches is everywhere that siginfo layout calls
-> >> for SIL_FAULT_TRAPNO the code uses either force_sig_fault_trapno
-> >> or send_sig_fault_trapno.
-> >>
-> >> And of course I have rebased and compile tested Marco's compile time
-> >> assert patches.
-> >>
-> >> Eric
-> >>
-> >>
-> >> Eric W. Biederman (3):
-> >>       signal/sparc: si_trapno is only used with SIGILL ILL_ILLTRP
-> >>       signal/alpha: si_trapno is only used with SIGFPE and SIGTRAP TRAP_UNK
-> >>       signal: Remove the generic __ARCH_SI_TRAPNO support
-> >>
-> >> Marco Elver (3):
-> >>       sparc64: Add compile-time asserts for siginfo_t offsets
-> >>       arm: Add compile-time asserts for siginfo_t offsets
-> >>       arm64: Add compile-time asserts for siginfo_t offsets
-> >
-> > Nice, thanks for the respin. If I diffed it right, I see this is almost
-> > (modulo what you mentioned above) equivalent to:
-> >   https://lore.kernel.org/linux-api/m1tuni8ano.fsf_-_@fess.ebiederm.org/
-> > + what's already in mainline. It's only missing:
-> >
-> >       signal: Verify the alignment and size of siginfo_t
-> >       signal: Rename SIL_PERF_EVENT SIL_FAULT_PERF_EVENT for consistency
-> >
-> > Would this be appropriate for this series, or rather separately, or
-> > dropped completely?
+
+On 7/15/21 12:45 PM, Logan Gunthorpe wrote:
+> From: Martin Oliveira <martin.oliveira@eideticom.com>
 >
-> Appropriate I just overlooked them.
+> The .map_sg() op now expects an error code instead of zero on failure.
+>
+> xen_swiotlb_map_sg() may only fail if xen_swiotlb_map_page() fails, but
+> xen_swiotlb_map_page() only supports returning errors as
+> DMA_MAPPING_ERROR. So coalesce all errors into EINVAL.
 
-Full series with the 2 patches just sent looks good to me.
 
-Thanks,
--- Marco
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+
+
+
