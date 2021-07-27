@@ -2,40 +2,67 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68B05C4320E
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 15:15:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E75FFC43216
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 17:29:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C7DC61A03
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 15:15:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEB5860F91
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 17:29:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236703AbhG0PP2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Jul 2021 11:15:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59102 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232633AbhG0PP1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Jul 2021 11:15:27 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A97FC061757;
-        Tue, 27 Jul 2021 08:15:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=4JdE/aW6odLJdtfdNjxa/S0U0ePQHRA8MXvplpff6bM=; b=dBVptD61D5ANUSUouTM0t/zwCr
-        hQb89/AeDjkTjJ62t5BB3e6J9KJ5f1cTMzIrf1ugfiCbudRMBVEOgweNq2oME/ThYwLnwq95hjCwP
-        cfLhsa5xuolDjO3WxLHM7i8cVYScLHXI72C21lVChwvGg0dbnLkLk0aOkiXHG9H8xaeTXqK6iju+6
-        37pNYEiAG/RJUsfl05zRYM3mjjLrPEYwrnD1VAVA5AL2hCrdaXxNARoR7CRRNcItBSDq+juzm/WHD
-        mKOtTTAUmKuJGVMSpV0woMW7rbZo+g3TZvDNpRhhupubuqvfyAbaxq+gdWiEHwin800v0Aob1T4VL
-        mxOSBJfA==;
-Received: from hch by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1m8OiU-00F89m-Un; Tue, 27 Jul 2021 15:10:39 +0000
-Date:   Tue, 27 Jul 2021 16:09:58 +0100
-From:   Christoph Hellwig <hch@infradead.org>
+        id S230013AbhG0R3Z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Jul 2021 13:29:25 -0400
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:10858 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S229453AbhG0R3Y (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 27 Jul 2021 13:29:24 -0400
+Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 16RH8XT8135522;
+        Tue, 27 Jul 2021 13:27:29 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=pp1; bh=6bEhk6CA8+q+IY9gEhnRgyDjoAcMWP97ymU6QSxJwgM=;
+ b=Szegunf0HGyFNV2b8yLhhTiTbB2G11ULeAsSAs5IS8IBQ5XC2o9b4a/j9PiJsezf/SKf
+ 0BOR+eMlWzlDOmqZ9ccsvpqu8Ay0wDblV5m9FD2Uz4WCiTsFvja7DFv+sRM4YLe7/fpg
+ 9RfojCcPO1OiZi5uQZXTtvondsM0TMO2JY225Dsx1llsyv3lzbT6NiZgMtFn7h0MdwJn
+ G0hkj7TK3W6/IYODaFXW6l1VkmrkAOkyGP/SI9NQ2FwZipFi2yxS4r9CQ+fXoVeiEnp8
+ F2sTEFx/5xGJlYijzakq3eLf+nz68ZpvM4fxXGg3kfBbMtGCtFJQGYj5F1rM0I0xyfBd tA== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 3a2p1xs0sr-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 27 Jul 2021 13:27:29 -0400
+Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
+        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 16RHLP22195489;
+        Tue, 27 Jul 2021 13:27:28 -0400
+Received: from ppma05fra.de.ibm.com (6c.4a.5195.ip4.static.sl-reverse.com [149.81.74.108])
+        by mx0b-001b2d01.pphosted.com with ESMTP id 3a2p1xs0ru-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 27 Jul 2021 13:27:28 -0400
+Received: from pps.filterd (ppma05fra.de.ibm.com [127.0.0.1])
+        by ppma05fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 16RHRQ0Z015888;
+        Tue, 27 Jul 2021 17:27:26 GMT
+Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
+        by ppma05fra.de.ibm.com with ESMTP id 3a235prc4f-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Tue, 27 Jul 2021 17:27:26 +0000
+Received: from d06av23.portsmouth.uk.ibm.com (d06av23.portsmouth.uk.ibm.com [9.149.105.59])
+        by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 16RHOgEM27001256
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Tue, 27 Jul 2021 17:24:42 GMT
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 666B1A4051;
+        Tue, 27 Jul 2021 17:27:22 +0000 (GMT)
+Received: from d06av23.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 3EE6AA404D;
+        Tue, 27 Jul 2021 17:27:21 +0000 (GMT)
+Received: from osiris (unknown [9.145.19.157])
+        by d06av23.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+        Tue, 27 Jul 2021 17:27:21 +0000 (GMT)
+Date:   Tue, 27 Jul 2021 19:27:19 +0200
+From:   Heiko Carstens <hca@linux.ibm.com>
 To:     Arnd Bergmann <arnd@kernel.org>
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Arnd Bergmann <arnd@arndb.de>,
@@ -47,7 +74,6 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
         Paul Mackerras <paulus@samba.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
         Vasily Gorbik <gor@linux.ibm.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         "David S. Miller" <davem@davemloft.net>,
@@ -62,22 +88,47 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-api@vger.kernel.org, linux-mm@kvack.org
-Subject: Re: [PATCH v5 6/6] arch: remove compat_alloc_user_space
-Message-ID: <YQAhxgdPHt8xndEM@infradead.org>
+        linux-api@vger.kernel.org, linux-mm@kvack.org,
+        Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v5 4/6] mm: simplify compat numa syscalls
+Message-ID: <YQBB9yteAwtG2xyp@osiris>
 References: <20210727144859.4150043-1-arnd@kernel.org>
- <20210727144859.4150043-7-arnd@kernel.org>
+ <20210727144859.4150043-5-arnd@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210727144859.4150043-7-arnd@kernel.org>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by casper.infradead.org. See http://www.infradead.org/rpr.html
+In-Reply-To: <20210727144859.4150043-5-arnd@kernel.org>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: Mscltp_EWBx0evJ9yR5nijJF9sLL6ZBk
+X-Proofpoint-ORIG-GUID: Zo0_7XKq5kYAI3uc1Uuw3gP06noaQbBO
+X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
+ definitions=2021-07-27_10:2021-07-27,2021-07-27 signatures=0
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
+ suspectscore=0 impostorscore=0 clxscore=1011 adultscore=0 mlxscore=0
+ priorityscore=1501 spamscore=0 phishscore=0 malwarescore=0 mlxlogscore=911
+ bulkscore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2107140000 definitions=main-2107270103
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-finally!
+On Tue, Jul 27, 2021 at 04:48:57PM +0200, Arnd Bergmann wrote:
+> ---
+>  include/linux/compat.h |  17 ++--
+>  mm/mempolicy.c         | 175 +++++++++++++----------------------------
+>  2 files changed, 63 insertions(+), 129 deletions(-)
+...
+> +static int get_bitmap(unsigned long *mask, const unsigned long __user *nmask,
+> +		      unsigned long maxnode)
+> +{
+> +	unsigned long nlongs = BITS_TO_LONGS(maxnode);
+> +	int ret;
+> +
+> +	if (in_compat_syscall())
+> +		ret = compat_get_bitmap(mask,
+> +					(const compat_ulong_t __user *)nmask,
+> +					maxnode);
 
-Looks good,
-
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+compat_ptr() conversion for e.g. nmask is missing with the next patch
+which removes the compat system calls.
+Is that intended or am I missing something?
