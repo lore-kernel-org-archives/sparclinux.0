@@ -2,57 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.7 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF78C43216
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 20:42:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D29B6C43216
+	for <sparclinux@archiver.kernel.org>; Wed, 28 Jul 2021 16:10:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E87BD60FC0
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Jul 2021 20:42:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD9DC600D1
+	for <sparclinux@archiver.kernel.org>; Wed, 28 Jul 2021 16:10:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231445AbhG0Umh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:42:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50666 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230425AbhG0Umg (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:42:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D6DC060FA0;
-        Tue, 27 Jul 2021 20:42:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1627418555;
-        bh=d4JjFlDfF7N2eBt3m9sdZRk+eRhA4ZhBMt2Pq1TZ0cw=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=ZKlOgZHSGjAmEnyaCwMuVKafYPWKeXil2Iiwo9tfWrDpXPrP+nIx5u3FkbHHx9hE7
-         f/+uSzSaAFLY8z0zPS4rMNMGD3DTUb7OLkYFi3ipPjtLYS72UjSrIEZWHsniKmxxZK
-         Le59cWQyoKcdNBRC2NnQPaYKcr4Sl5SxpzzeT6TBVgHinsKuWcX4k1BjDbOE4supyn
-         HiZ19DR0bU/awUHcX41Rjheo1w+obLAaQrJ8Rjja+UBSy51OODPf7/DV6wZKbPG4vd
-         wTF3Um9UkJV8uDOE8zSUVipLRKY8TGL5cXoV09GMyL2Tz2E7xssC3kDmiC7uClw3Me
-         O9bSVwy2lubCA==
-Received: by mail-wm1-f48.google.com with SMTP id m38-20020a05600c3b26b02902161fccabf1so2791363wms.2;
-        Tue, 27 Jul 2021 13:42:35 -0700 (PDT)
-X-Gm-Message-State: AOAM532e/tUB7+Yevh5XKbWHbmLJ44fqx2jx8R5yJ6m8/z1ANBb4cKI8
-        EgRq50X0XEK5e2xk7awNte+MLSMqp1CiNR3aWK8=
-X-Google-Smtp-Source: ABdhPJzIeHa1hycZO5ufjXaaYbpY3YdQw4oHXjfZp2KwEfMcEIfJ5hSLrfTaLF7iY7hnR3dqnN2Y1Sv0AKkyrN9dOFM=
-X-Received: by 2002:a7b:c2fa:: with SMTP id e26mr6005968wmk.84.1627418543998;
- Tue, 27 Jul 2021 13:42:23 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210727144859.4150043-1-arnd@kernel.org> <YQAfa6iObAwwIpzb@infradead.org>
- <20210727131017.f151a81fc69db8f45f81a2b3@linux-foundation.org>
-In-Reply-To: <20210727131017.f151a81fc69db8f45f81a2b3@linux-foundation.org>
-From:   Arnd Bergmann <arnd@kernel.org>
-Date:   Tue, 27 Jul 2021 22:42:07 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2S4Oct4+a8u=ottrW1b+iRf-tRSJb0DvaLNR3CZARmTQ@mail.gmail.com>
-Message-ID: <CAK8P3a2S4Oct4+a8u=ottrW1b+iRf-tRSJb0DvaLNR3CZARmTQ@mail.gmail.com>
-Subject: Re: [PATCH v5 0/6] compat: remove compat_alloc_user_space
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Christoph Hellwig <hch@infradead.org>,
+        id S236830AbhG1QK5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 28 Jul 2021 12:10:57 -0400
+Received: from out03.mta.xmission.com ([166.70.13.233]:38752 "EHLO
+        out03.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237464AbhG1QKu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Jul 2021 12:10:50 -0400
+Received: from in01.mta.xmission.com ([166.70.13.51]:43296)
+        by out03.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m8m8j-00HGYH-Fq; Wed, 28 Jul 2021 10:10:37 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:41390 helo=email.xmission.com)
+        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1m8m8a-00AA3v-G4; Wed, 28 Jul 2021 10:10:31 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Arnd Bergmann <arnd@arndb.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
@@ -63,59 +47,180 @@ Cc:     Christoph Hellwig <hch@infradead.org>,
         "David S. Miller" <davem@davemloft.net>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
         Al Viro <viro@zeniv.linux.org.uk>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Christoph Hellwig <hch@infradead.org>,
         Feng Tang <feng.tang@intel.com>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux API <linux-api@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-api@vger.kernel.org, linux-mm@kvack.org
+References: <20210727144859.4150043-1-arnd@kernel.org>
+        <20210727144859.4150043-3-arnd@kernel.org>
+Date:   Wed, 28 Jul 2021 11:10:20 -0500
+In-Reply-To: <20210727144859.4150043-3-arnd@kernel.org> (Arnd Bergmann's
+        message of "Tue, 27 Jul 2021 16:48:55 +0200")
+Message-ID: <87a6m6fmhf.fsf@disp2133>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+MIME-Version: 1.0
+Content-Type: text/plain
+X-XM-SPF: eid=1m8m8a-00AA3v-G4;;;mid=<87a6m6fmhf.fsf@disp2133>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX18jESHy/qa/BMuMj4KVyetONWlkP5WqcQ8=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: Re: [PATCH v5 2/6] kexec: avoid compat_alloc_user_space
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jul 27, 2021 at 10:11 PM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> On Tue, 27 Jul 2021 15:59:55 +0100 Christoph Hellwig <hch@infradead.org> wrote:
->
-> > On Tue, Jul 27, 2021 at 04:48:53PM +0200, Arnd Bergmann wrote:
-> > > Since these patches are now all that remains, it would be nice to
-> > > merge it all through Andrew's Linux-mm tree, which is already based
-> > > on top of linux-next.
-> >
-> > Is it?
->
-> the -mm tree is structured as
->
-> <90% of stuff>
-> linux-next.patch
-> <the other 10% of stuff>
->
-> So things like Arnd's series which have a dependency on linux-next
-> material get added to the "other 10%" and are merged behind the
-> linux-next material and all is good.
->
-> If possible I'll queue things ahead of linux-next.patch.  Those few
-> things which have dependencies on linux-next material get sent to Linus
-> after the required linux-next material is merged into mainline.
+Arnd Bergmann <arnd@kernel.org> writes:
 
-The first five patches in my series should apply cleanly on mainline
-kernels and make sense by themselves, the last patch is the one that
-depends on this series as well as another series in the netdev tree,
-so that has to go behind linux-next.
+> From: Arnd Bergmann <arnd@arndb.de>
+>
+> kimage_alloc_init() expects a __user pointer, so compat_sys_kexec_load()
+> uses compat_alloc_user_space() to convert the layout and put it back
+> onto the user space caller stack.
+>
+> Moving the user space access into the syscall handler directly actually
+> makes the code simpler, as the conversion for compat mode can now be
+> done on kernel memory.
 
-I suppose I could also merge the first five through my asm-generic tree
-and send you the last one if you prefer, but then again two of the patches
-are actually memory management stuff.
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 
-         Arnd
+>
+> Co-developed-by: Eric Biederman <ebiederm@xmission.com>
+> Co-developed-by: Christoph Hellwig <hch@infradead.org>
+> Link: https://lore.kernel.org/lkml/YPbtsU4GX6PL7%2F42@infradead.org/
+> Link: https://lore.kernel.org/lkml/m1y2cbzmnw.fsf@fess.ebiederm.org/
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  kernel/kexec.c | 61 +++++++++++++++++++++-----------------------------
+>  1 file changed, 25 insertions(+), 36 deletions(-)
+>
+> diff --git a/kernel/kexec.c b/kernel/kexec.c
+> index 9c7aef8f4bb6..b5e40f069768 100644
+> --- a/kernel/kexec.c
+> +++ b/kernel/kexec.c
+> @@ -19,26 +19,9 @@
+>  
+>  #include "kexec_internal.h"
+>  
+> -static int copy_user_segment_list(struct kimage *image,
+> -				  unsigned long nr_segments,
+> -				  struct kexec_segment __user *segments)
+> -{
+> -	int ret;
+> -	size_t segment_bytes;
+> -
+> -	/* Read in the segments */
+> -	image->nr_segments = nr_segments;
+> -	segment_bytes = nr_segments * sizeof(*segments);
+> -	ret = copy_from_user(image->segment, segments, segment_bytes);
+> -	if (ret)
+> -		ret = -EFAULT;
+> -
+> -	return ret;
+> -}
+> -
+>  static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
+>  			     unsigned long nr_segments,
+> -			     struct kexec_segment __user *segments,
+> +			     struct kexec_segment *segments,
+>  			     unsigned long flags)
+>  {
+>  	int ret;
+> @@ -58,10 +41,8 @@ static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
+>  		return -ENOMEM;
+>  
+>  	image->start = entry;
+> -
+> -	ret = copy_user_segment_list(image, nr_segments, segments);
+> -	if (ret)
+> -		goto out_free_image;
+> +	image->nr_segments = nr_segments;
+> +	memcpy(image->segment, segments, nr_segments * sizeof(*segments));
+>  
+>  	if (kexec_on_panic) {
+>  		/* Enable special crash kernel control page alloc policy. */
+> @@ -104,7 +85,7 @@ static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
+>  }
+>  
+>  static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
+> -		struct kexec_segment __user *segments, unsigned long flags)
+> +		struct kexec_segment *segments, unsigned long flags)
+>  {
+>  	struct kimage **dest_image, *image;
+>  	unsigned long i;
+> @@ -250,7 +231,8 @@ static inline int kexec_load_check(unsigned long nr_segments,
+>  SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
+>  		struct kexec_segment __user *, segments, unsigned long, flags)
+>  {
+> -	int result;
+> +	struct kexec_segment *ksegments;
+> +	unsigned long result;
+>  
+>  	result = kexec_load_check(nr_segments, flags);
+>  	if (result)
+> @@ -261,7 +243,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
+>  		((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
+>  		return -EINVAL;
+>  
+> -	result = do_kexec_load(entry, nr_segments, segments, flags);
+> +	ksegments = memdup_user(segments, nr_segments * sizeof(ksegments[0]));
+> +	if (IS_ERR(ksegments))
+> +		return PTR_ERR(ksegments);
+> +
+> +	result = do_kexec_load(entry, nr_segments, ksegments, flags);
+> +	kfree(ksegments);
+>  
+>  	return result;
+>  }
+> @@ -273,7 +260,7 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
+>  		       compat_ulong_t, flags)
+>  {
+>  	struct compat_kexec_segment in;
+> -	struct kexec_segment out, __user *ksegments;
+> +	struct kexec_segment *ksegments;
+>  	unsigned long i, result;
+>  
+>  	result = kexec_load_check(nr_segments, flags);
+> @@ -286,24 +273,26 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compat_ulong_t, entry,
+>  	if ((flags & KEXEC_ARCH_MASK) == KEXEC_ARCH_DEFAULT)
+>  		return -EINVAL;
+>  
+> -	ksegments = compat_alloc_user_space(nr_segments * sizeof(out));
+> +	ksegments = kmalloc_array(nr_segments, sizeof(ksegments[0]),
+> +			GFP_KERNEL);
+> +	if (!ksegments)
+> +		return -ENOMEM;
+> +
+>  	for (i = 0; i < nr_segments; i++) {
+>  		result = copy_from_user(&in, &segments[i], sizeof(in));
+>  		if (result)
+> -			return -EFAULT;
+> +			goto fail;
+>  
+> -		out.buf   = compat_ptr(in.buf);
+> -		out.bufsz = in.bufsz;
+> -		out.mem   = in.mem;
+> -		out.memsz = in.memsz;
+> -
+> -		result = copy_to_user(&ksegments[i], &out, sizeof(out));
+> -		if (result)
+> -			return -EFAULT;
+> +		ksegments[i].buf   = compat_ptr(in.buf);
+> +		ksegments[i].bufsz = in.bufsz;
+> +		ksegments[i].mem   = in.mem;
+> +		ksegments[i].memsz = in.memsz;
+>  	}
+>  
+>  	result = do_kexec_load(entry, nr_segments, ksegments, flags);
+>  
+> +fail:
+> +	kfree(ksegments);
+>  	return result;
+>  }
+>  #endif
