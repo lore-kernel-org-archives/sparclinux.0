@@ -2,95 +2,148 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-17.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3067FC4338F
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 14:34:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDF18C4320E
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:15:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 19BD460D07
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 14:34:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0D7360041
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:15:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236736AbhG2OeZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jul 2021 10:34:25 -0400
-Received: from condef-09.nifty.com ([202.248.20.74]:49192 "EHLO
-        condef-09.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237402AbhG2OeZ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jul 2021 10:34:25 -0400
-X-Greylist: delayed 359 seconds by postgrey-1.27 at vger.kernel.org; Thu, 29 Jul 2021 10:34:24 EDT
-Received: from conuserg-12.nifty.com ([10.126.8.75])by condef-09.nifty.com with ESMTP id 16TEP8r2026625
-        for <sparclinux@vger.kernel.org>; Thu, 29 Jul 2021 23:25:08 +0900
-Received: from localhost.localdomain (133-32-232-101.west.xps.vectant.ne.jp [133.32.232.101]) (authenticated)
-        by conuserg-12.nifty.com with ESMTP id 16TEOfZU029590;
-        Thu, 29 Jul 2021 23:24:41 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conuserg-12.nifty.com 16TEOfZU029590
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-        s=dec2015msa; t=1627568681;
-        bh=oe92qc6oXS/tMkEcshM/u14k3ZMZbnu1S1iFNTswLHA=;
-        h=From:To:Cc:Subject:Date:From;
-        b=N+jeyjbx7vlpISrVUhxSFNsWG1IH38BLhpZilkt0jeU3YRExaqQd3NuV4TS5Uhy7K
-         sGO897Ivf7ZgLgC35/RSLdlqt3vsOJkp5vb17QTFqfrcyXhVWPZT6aKQyw1RP/7D/A
-         jHmNII0Pxo0NlVwhH10mRvW4GlnYocVOXzKT3M5dV6QkBOFawNIr72vtRh7ZrfG6kM
-         SZ776BYjMYDFQY2E+K32W8fAnzqWGnqRRKot19kzKAaWx0SeyfY6TdmAcRuuh9Zf+H
-         +ESCwIauNHb9nOcZ2bLoYKUQNwOBvRnnNYbX0qNcOOXsFl8qRgf5Q3QuOut+Biw2Ra
-         30Fmqx4F1U7hQ==
-X-Nifty-SrcIP: [133.32.232.101]
-From:   Masahiro Yamada <masahiroy@kernel.org>
-To:     "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org
-Cc:     Masahiro Yamada <masahiroy@kernel.org>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc: move the install rule to arch/sparc/Makefile
-Date:   Thu, 29 Jul 2021 23:24:40 +0900
-Message-Id: <20210729142440.446322-1-masahiroy@kernel.org>
-X-Mailer: git-send-email 2.27.0
+        id S232169AbhG2UP5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jul 2021 16:15:57 -0400
+Received: from ale.deltatee.com ([204.191.154.188]:59070 "EHLO
+        ale.deltatee.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229703AbhG2UP4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jul 2021 16:15:56 -0400
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=deltatee.com; s=20200525; h=Subject:MIME-Version:References:In-Reply-To:
+        Message-Id:Date:Cc:To:From:content-disposition;
+        bh=/XA9bvLAJiET8xClVyx9hB75GctlP2ewYMlZJlt3uAE=; b=FSTBqqnHJ7VntRb/GUL2Z5yKTq
+        JfAogRaPb+WVjHlf1NRCExtt0URwGzF1+pWVjp3v9jELMe1sVylEhpCokcScL/Pik/gQ8D9aVMzvZ
+        uoC9GV1+hK1crdrqvUeKMesCcmmz0glkvNT9qYfOPK6DdOiPOO102aJ534nrKtjvNc2ibTJtuP/TR
+        t6WErOWjGuYieypzGV2PhsY++SnraaQQ4FNRqKtOnq2TNO2E3YBXoBVkHkqc7fK1HwylkFoWZZTI2
+        wNrwlxU476Xj9XD9pqFKs+ZOh16XIR+O62g1eQS8XUIK9YHNwj+UhqtQn/TXl9FaMhBTj2klVY6f4
+        WFu1sJPg==;
+Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
+        by ale.deltatee.com with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <gunthorp@deltatee.com>)
+        id 1m9CRX-0008VO-5W; Thu, 29 Jul 2021 14:15:48 -0600
+Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.92)
+        (envelope-from <gunthorp@deltatee.com>)
+        id 1m9CRU-0001Tb-0B; Thu, 29 Jul 2021 14:15:44 -0600
+From:   Logan Gunthorpe <logang@deltatee.com>
+To:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        iommu@lists.linux-foundation.org, linux-parisc@vger.kernel.org,
+        xen-devel@lists.xenproject.org
+Cc:     Christoph Hellwig <hch@lst.de>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Robin Murphy <robin.murphy@arm.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Martin Oliveira <martin.oliveira@eideticom.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Joerg Roedel <joro@8bytes.org>, Will Deacon <will@kernel.org>
+Date:   Thu, 29 Jul 2021 14:15:22 -0600
+Message-Id: <20210729201539.5602-5-logang@deltatee.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <20210729201539.5602-1-logang@deltatee.com>
+References: <20210729201539.5602-1-logang@deltatee.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+X-SA-Exim-Connect-IP: 172.16.1.31
+X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, xen-devel@lists.xenproject.org, hch@lst.de, m.szyprowski@samsung.com, robin.murphy@arm.com, sbates@raithlin.com, martin.oliveira@eideticom.com, logang@deltatee.com, joro@8bytes.org, will@kernel.org
+X-SA-Exim-Mail-From: gunthorp@deltatee.com
+Subject: [PATCH v3 04/21] dma-iommu: Return error code from iommu_dma_map_sg()
+X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
+X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Currently, the install target in arch/sparc/Makefile descends into
-arch/sparc/boot/Makefile to invoke the shell script, but there is no
-good reason to do so.
+Return appropriate error codes EINVAL or ENOMEM from
+iommup_dma_map_sg(). If lower level code returns ENOMEM, then we
+return it, other errors are coalesced into EINVAL.
 
-arch/sparc/Makefile can run the shell script directly.
+iommu_dma_map_sg_swiotlb() returns -EIO as its an unknown error
+from a call that returns DMA_MAPPING_ERROR.
 
-Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
+Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Will Deacon <will@kernel.org>
 ---
+ drivers/iommu/dma-iommu.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
- arch/sparc/Makefile      | 3 ++-
- arch/sparc/boot/Makefile | 4 ----
- 2 files changed, 2 insertions(+), 5 deletions(-)
-
-diff --git a/arch/sparc/Makefile b/arch/sparc/Makefile
-index 4e65245bc755..24fb5a99f439 100644
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -72,7 +72,8 @@ image zImage uImage tftpboot.img vmlinux.aout: vmlinux
- 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
+index 98ba927aee1a..d9aaed080e68 100644
+--- a/drivers/iommu/dma-iommu.c
++++ b/drivers/iommu/dma-iommu.c
+@@ -972,7 +972,7 @@ static int iommu_dma_map_sg_swiotlb(struct device *dev, struct scatterlist *sg,
  
- install:
--	$(Q)$(MAKE) $(build)=$(boot) $@
-+	sh $(srctree)/$(boot)/install.sh $(KERNELRELEASE) $(KBUILD_IMAGE) \
-+		System.map "$(INSTALL_PATH)"
+ out_unmap:
+ 	iommu_dma_unmap_sg_swiotlb(dev, sg, i, dir, attrs | DMA_ATTR_SKIP_CPU_SYNC);
+-	return 0;
++	return -EIO;
+ }
  
- archclean:
- 	$(Q)$(MAKE) $(clean)=$(boot)
-diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-index 380e2b018992..849236d4eca4 100644
---- a/arch/sparc/boot/Makefile
-+++ b/arch/sparc/boot/Makefile
-@@ -70,7 +70,3 @@ $(obj)/image: vmlinux FORCE
- $(obj)/tftpboot.img: $(obj)/image $(obj)/piggyback System.map $(ROOT_IMG) FORCE
- 	$(call if_changed,elftoaout)
- 	$(call if_changed,piggy)
--
--install:
--	sh $(srctree)/$(src)/install.sh $(KERNELRELEASE) $(obj)/zImage \
--		System.map "$(INSTALL_PATH)"
+ /*
+@@ -993,11 +993,13 @@ static int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	dma_addr_t iova;
+ 	size_t iova_len = 0;
+ 	unsigned long mask = dma_get_seg_boundary(dev);
++	ssize_t ret;
+ 	int i;
+ 
+-	if (static_branch_unlikely(&iommu_deferred_attach_enabled) &&
+-	    iommu_deferred_attach(dev, domain))
+-		return 0;
++	if (static_branch_unlikely(&iommu_deferred_attach_enabled)) {
++		ret = iommu_deferred_attach(dev, domain);
++		goto out;
++	}
+ 
+ 	if (!(attrs & DMA_ATTR_SKIP_CPU_SYNC))
+ 		iommu_dma_sync_sg_for_device(dev, sg, nents, dir);
+@@ -1045,14 +1047,17 @@ static int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	}
+ 
+ 	iova = iommu_dma_alloc_iova(domain, iova_len, dma_get_mask(dev), dev);
+-	if (!iova)
++	if (!iova) {
++		ret = -ENOMEM;
+ 		goto out_restore_sg;
++	}
+ 
+ 	/*
+ 	 * We'll leave any physical concatenation to the IOMMU driver's
+ 	 * implementation - it knows better than we do.
+ 	 */
+-	if (iommu_map_sg_atomic(domain, iova, sg, nents, prot) < iova_len)
++	ret = iommu_map_sg_atomic(domain, iova, sg, nents, prot);
++	if (ret < iova_len)
+ 		goto out_free_iova;
+ 
+ 	return __finalise_sg(dev, sg, nents, iova);
+@@ -1061,7 +1066,11 @@ static int iommu_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	iommu_dma_free_iova(cookie, iova, iova_len, NULL);
+ out_restore_sg:
+ 	__invalidate_sg(sg, nents);
+-	return 0;
++out:
++	if (ret == -ENOMEM)
++		return ret;
++	else
++		return -EINVAL;
+ }
+ 
+ static void iommu_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
 -- 
-2.27.0
+2.20.1
 
