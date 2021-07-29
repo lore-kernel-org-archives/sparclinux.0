@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
 	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37B0EC19F3C
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:16:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3D7C2BBCF
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:16:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 191C660F23
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:16:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA66F60F23
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Jul 2021 20:16:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234283AbhG2UQe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Jul 2021 16:16:34 -0400
-Received: from ale.deltatee.com ([204.191.154.188]:59270 "EHLO
+        id S234221AbhG2UQd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Jul 2021 16:16:33 -0400
+Received: from ale.deltatee.com ([204.191.154.188]:59240 "EHLO
         ale.deltatee.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232950AbhG2UQD (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jul 2021 16:16:03 -0400
+        with ESMTP id S232869AbhG2UQC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Jul 2021 16:16:02 -0400
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=deltatee.com; s=20200525; h=Subject:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Cc:To:From:content-disposition;
-        bh=wMwfB+QVxoWPoNbugW7oseZQ2FEaT6sisUumX/+txWI=; b=ID/pq4C2aTQp2oDNVLghKs/nGq
-        /MY9zdoBCMMHh3c6T8MI3nnmvuQUSVCPLIfeepLGK/XGDLYHuElnVIv6Ocren27qwsmRloi4lA+k2
-        jUcV8AabILTLu9D+RA2F7MkSwG5Ubtk18ez7B6ZLKOLIi15PTQt0AW//JuASu5bJBrfxoubREfwb4
-        rkH6cVX/Fb8WXCP7sWran6zWw0+yy0j3rZnkl5dse4GfPUQvjKpOJdAzSOnscdDZg/XYmOpir/Dz+
-        rl+LrmmUPA5AvuG0H48DCHNFEeG+t1CHY5QhUZBIg4JK21d2e2IZnjFfVArCF81YGjKAKWB52iX16
-        QcWfwO7g==;
+        bh=6y6u7mqV1FaPPB3FCU6tc5JcXwZSIOmHMoiIHkmUZvc=; b=e4d60/OLYdyc6xXPUN9l5vbTgC
+        5kYPrlDotb8/CzFuWOeAmYTUwjYP2ETS2BEJBZnaRrMkl6QE2YK+Z0X4WLU3XVyZjIQPJd4KPKLVX
+        9z1RalZ7Rj3cm60xKdgm4DrLx9xVrQ5x6SIIDJnoY84I41lD3GvvjW8lGYIEkc8MCPIMSdYmjHOsX
+        G+3Dz3xqoaTHQ5lz6bICLu3UcD8WnMIwPrNA4AdT/XXsUGvw+HnZk86aH6Qn5dG1mndxUertWJyzN
+        1LaZJlW3gZ4l+iarh3qgXxqLmb6x2oqs+HVl63DPEgPGRsfIKlztFQlxYovSPreen45BHo7q/NT+l
+        G12R1I2g==;
 Received: from cgy1-donard.priv.deltatee.com ([172.16.1.31])
         by ale.deltatee.com with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
         (Exim 4.92)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1m9CRf-0008VO-Uv; Thu, 29 Jul 2021 14:15:56 -0600
+        id 1m9CRe-0008VN-G4; Thu, 29 Jul 2021 14:15:55 -0600
 Received: from gunthorp by cgy1-donard.priv.deltatee.com with local (Exim 4.92)
         (envelope-from <gunthorp@deltatee.com>)
-        id 1m9CRV-0001Tz-5J; Thu, 29 Jul 2021 14:15:45 -0600
+        id 1m9CRV-0001U5-El; Thu, 29 Jul 2021 14:15:45 -0600
 From:   Logan Gunthorpe <logang@deltatee.com>
 To:     linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
@@ -49,22 +49,20 @@ Cc:     Christoph Hellwig <hch@lst.de>,
         Stephen Bates <sbates@raithlin.com>,
         Martin Oliveira <martin.oliveira@eideticom.com>,
         Logan Gunthorpe <logang@deltatee.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Niklas Schnelle <schnelle@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>
-Date:   Thu, 29 Jul 2021 14:15:30 -0600
-Message-Id: <20210729201539.5602-13-logang@deltatee.com>
+        Michael Ellerman <mpe@ellerman.id.au>
+Date:   Thu, 29 Jul 2021 14:15:32 -0600
+Message-Id: <20210729201539.5602-15-logang@deltatee.com>
 X-Mailer: git-send-email 2.20.1
 In-Reply-To: <20210729201539.5602-1-logang@deltatee.com>
 References: <20210729201539.5602-1-logang@deltatee.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 X-SA-Exim-Connect-IP: 172.16.1.31
-X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, xen-devel@lists.xenproject.org, hch@lst.de, m.szyprowski@samsung.com, robin.murphy@arm.com, sbates@raithlin.com, martin.oliveira@eideticom.com, logang@deltatee.com, schnelle@linux.ibm.com, gerald.schaefer@linux.ibm.com, hca@linux.ibm.com, gor@linux.ibm.com, borntraeger@de.ibm.com
+X-SA-Exim-Rcpt-To: linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org, iommu@lists.linux-foundation.org, linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org, linux-s390@vger.kernel.org, sparclinux@vger.kernel.org, linux-parisc@vger.kernel.org, xen-devel@lists.xenproject.org, hch@lst.de, m.szyprowski@samsung.com, robin.murphy@arm.com, sbates@raithlin.com, martin.oliveira@eideticom.com, logang@deltatee.com, davem@davemloft.net, schnelle@linux.ibm.com, mpe@ellerman.id.au
 X-SA-Exim-Mail-From: gunthorp@deltatee.com
-Subject: [PATCH v3 12/21] s390/pci: return error code from s390_dma_map_sg()
+Subject: [PATCH v3 14/21] sparc/iommu: return error codes from .map_sg() ops
 X-SA-Exim-Version: 4.2.1 (built Wed, 08 May 2019 21:11:16 +0000)
 X-SA-Exim-Scanned: Yes (on ale.deltatee.com)
 Precedence: bulk
@@ -75,65 +73,78 @@ From: Martin Oliveira <martin.oliveira@eideticom.com>
 
 The .map_sg() op now expects an error code instead of zero on failure.
 
-So propagate the error from __s390_dma_map_sg() up. __s390_dma_map_sg()
-returns either -ENOMEM on allocation failure or -EINVAL which is
-the same as what's expected by dma_map_sgtable().
+Returning an errno from __sbus_iommu_map_sg() results in
+sbus_iommu_map_sg_gflush() and sbus_iommu_map_sg_pflush() returning an
+errno, as those functions are wrappers around __sbus_iommu_map_sg().
 
 Signed-off-by: Martin Oliveira <martin.oliveira@eideticom.com>
 Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-Acked-by: Niklas Schnelle <schnelle@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Niklas Schnelle <schnelle@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 ---
- arch/s390/pci/pci_dma.c | 12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/iommu.c     | 4 ++--
+ arch/sparc/kernel/pci_sun4v.c | 4 ++--
+ arch/sparc/mm/iommu.c         | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-index ebc9a49523aa..c78b02012764 100644
---- a/arch/s390/pci/pci_dma.c
-+++ b/arch/s390/pci/pci_dma.c
-@@ -487,7 +487,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 	unsigned int max = dma_get_max_seg_size(dev);
- 	unsigned int size = s->offset + s->length;
- 	unsigned int offset = s->offset;
--	int count = 0, i;
-+	int count = 0, i, ret;
+diff --git a/arch/sparc/kernel/iommu.c b/arch/sparc/kernel/iommu.c
+index a034f571d869..0589acd34201 100644
+--- a/arch/sparc/kernel/iommu.c
++++ b/arch/sparc/kernel/iommu.c
+@@ -448,7 +448,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	iommu = dev->archdata.iommu;
+ 	strbuf = dev->archdata.stc;
+ 	if (nelems == 0 || !iommu)
+-		return 0;
++		return -EINVAL;
  
- 	for (i = 1; i < nr_elements; i++) {
- 		s = sg_next(s);
-@@ -497,8 +497,9 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	spin_lock_irqsave(&iommu->lock, flags);
  
- 		if (s->offset || (size & ~PAGE_MASK) ||
- 		    size + s->length > max) {
--			if (__s390_dma_map_sg(dev, start, size,
--					      &dma->dma_address, dir))
-+			ret = __s390_dma_map_sg(dev, start, size,
-+						&dma->dma_address, dir);
-+			if (ret)
- 				goto unmap;
- 
- 			dma->dma_address += offset;
-@@ -511,7 +512,8 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 		}
- 		size += s->length;
+@@ -580,7 +580,7 @@ static int dma_4u_map_sg(struct device *dev, struct scatterlist *sglist,
  	}
--	if (__s390_dma_map_sg(dev, start, size, &dma->dma_address, dir))
-+	ret = __s390_dma_map_sg(dev, start, size, &dma->dma_address, dir);
-+	if (ret)
- 		goto unmap;
- 
- 	dma->dma_address += offset;
-@@ -523,7 +525,7 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
- 		s390_dma_unmap_pages(dev, sg_dma_address(s), sg_dma_len(s),
- 				     dir, attrs);
+ 	spin_unlock_irqrestore(&iommu->lock, flags);
  
 -	return 0;
-+	return ret;
++	return -EINVAL;
  }
  
- static void s390_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ /* If contexts are being used, they are the same in all of the mappings
+diff --git a/arch/sparc/kernel/pci_sun4v.c b/arch/sparc/kernel/pci_sun4v.c
+index 9de57e88f7a1..d90e80fa5705 100644
+--- a/arch/sparc/kernel/pci_sun4v.c
++++ b/arch/sparc/kernel/pci_sun4v.c
+@@ -486,7 +486,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 
+ 	iommu = dev->archdata.iommu;
+ 	if (nelems == 0 || !iommu)
+-		return 0;
++		return -EINVAL;
+ 	atu = iommu->atu;
+ 
+ 	prot = HV_PCI_MAP_ATTR_READ;
+@@ -619,7 +619,7 @@ static int dma_4v_map_sg(struct device *dev, struct scatterlist *sglist,
+ 	}
+ 	local_irq_restore(flags);
+ 
+-	return 0;
++	return -EINVAL;
+ }
+ 
+ static void dma_4v_unmap_sg(struct device *dev, struct scatterlist *sglist,
+diff --git a/arch/sparc/mm/iommu.c b/arch/sparc/mm/iommu.c
+index 0c0342e5b10d..9e3f6933ca13 100644
+--- a/arch/sparc/mm/iommu.c
++++ b/arch/sparc/mm/iommu.c
+@@ -256,7 +256,7 @@ static int __sbus_iommu_map_sg(struct device *dev, struct scatterlist *sgl,
+ 		sg->dma_address =__sbus_iommu_map_page(dev, sg_page(sg),
+ 				sg->offset, sg->length, per_page_flush);
+ 		if (sg->dma_address == DMA_MAPPING_ERROR)
+-			return 0;
++			return -EIO;
+ 		sg->dma_length = sg->length;
+ 	}
+ 
 -- 
 2.20.1
 
