@@ -2,179 +2,180 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00804C4338F
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 02:56:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B93C8C4320E
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 08:29:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E018961050
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 02:56:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C85A61057
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 08:29:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231639AbhHBC4r (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 1 Aug 2021 22:56:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51864 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229908AbhHBC4q (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 1 Aug 2021 22:56:46 -0400
-Received: from ozlabs.org (bilbo.ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7800CC06175F;
-        Sun,  1 Aug 2021 19:56:37 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4GdN1V04FQz9sW5;
-        Mon,  2 Aug 2021 12:56:13 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-        s=201909; t=1627872995;
-        bh=lgFF44D+VvUgGNOcyjoWgD9ieIKlVa+1W38G93yYucc=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=mk/OrQNAgyUtJh9QVu/sq6e2cVKMZEuh5t1elkMY1Gr3oABbY0LNl7+izatEJSZYL
-         zGYgU92C+VtRG3i2VpinkrgquF7osc3y3sT0rg1Dkyhhq3uC9pQ9Vyxzu9DIdALkJc
-         uVe/31b8NqskHAYnC6qUpRqajmu4XqURQ3LIDSg6AKfjRRV0hOE1uY7cgZepVTdX9e
-         8HP4jyVzz75vtA5OgyyRq7pJjgDvTYCj/aQ+sFQ1koQ2SqpBgqVF2xnWntozO8y/pw
-         uq0H9be0uwkFpXGGeabu1UoeiTG0mQrIQSbO5Gdvb2ehvStkNDQgftwpI5d9vMxe/C
-         vq3iTIN0uJtjQ==
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     Masahiro Yamada <masahiroy@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>
-Cc:     Masahiro Yamada <masahiroy@kernel.org>,
+        id S232757AbhHBI3d (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 Aug 2021 04:29:33 -0400
+Received: from mail-vi1eur05on2101.outbound.protection.outlook.com ([40.107.21.101]:47004
+        "EHLO EUR05-VI1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S229917AbhHBI3c (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 2 Aug 2021 04:29:32 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=OX6+V8TgSWYW+qU0MCjzgFjhL7I1vYPJSVmaeSEDceWuuBp/NuHpjLmUub492Jk5ti8hCKWyUBQT6/uZE6MC2HOEmkahfdQ3UarsL80F04kr5bUybanFA4NEMKJG+aRb6EEy6Sk1NS5p4Nh5EBR3vG6kson8KwbOf1rAiGGP0CVZEA5lY9O7/255JaWaiH6zksolkMrluBOctMh5u1F6dve6tYD32uaERpWeSTNhi6JV711Do6JOtbyVjocOOBNDaUK9Qy5iV9AFuarzyS+bb9ZPdr41b6zXYwZdZrkWmGfZTe+5Py7+LqFhyBEq0z7RvPBVA459cdKUT8M/hvH5Vw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9SgChE1/Tk0ANwL+qashItnlcpR56R4qP1RnylNcp6E=;
+ b=RaMbrJUtpLhBvw/ehvyeedilxRXswExJ57n3fsOWZTsbHN3/A9B9H9ZrZNRpacwGE0NKzwB6AR9PzXkKdrxkkmTuPZkTQlGM6GvQaZ9fgfeQThRSsdUgs0RCvkFihacckEpEBr5o0bbdp24+rTl3fyGQZ3C3hVsveMOMN9iQsoPSx572Tf9mzLp/eMGVjqMYFUOk08l8uShLoKSnscYoPACrQuEBLwl6o6ms7K1+238HzCNKEeB80V7vxbqvZuySMLJikCVTwW4GlxqFQ2vT5UTmyLGOQ732yUg8FcsuVJW0PED3dbH69xvJq54sKOWLMbk3weJ4Gra2qe9StLV7ZA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
+ header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=9SgChE1/Tk0ANwL+qashItnlcpR56R4qP1RnylNcp6E=;
+ b=nY2JdbwL53t0+7UQO4qE/sQeBNSAk5ncu797u6A0Nl8VmLg3abQKiAlNmV7XtCVROdz9lqIOs71Qv8WQ+VRTfI5QaZavilcHflKqDxj3uhEE5y72VtOVWyADq8wWHqo5L7UjK6dlaNat+AvEHSw93Upd8ZFEQxMXV6pgqyyE1mQ=
+Authentication-Results: gmail.com; dkim=none (message not signed)
+ header.d=none;gmail.com; dmarc=none action=none header.from=virtuozzo.com;
+Received: from VE1PR08MB4989.eurprd08.prod.outlook.com (2603:10a6:803:114::19)
+ by VI1PR08MB3341.eurprd08.prod.outlook.com (2603:10a6:803:42::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.26; Mon, 2 Aug
+ 2021 08:29:18 +0000
+Received: from VE1PR08MB4989.eurprd08.prod.outlook.com
+ ([fe80::c402:b828:df33:5694]) by VE1PR08MB4989.eurprd08.prod.outlook.com
+ ([fe80::c402:b828:df33:5694%7]) with mapi id 15.20.4373.026; Mon, 2 Aug 2021
+ 08:29:18 +0000
+Subject: Re: [PATCH v2] sock: allow reading and changing sk_userlocks with
+ setsockopt
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
         Arnd Bergmann <arnd@arndb.de>,
-        Ard Biesheuvel <ardb@kernel.org>,
-        Borislav Petkov <bp@alien8.de>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Ley Foon Tan <ley.foon.tan@intel.com>, x86@kernel.org,
-        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Nick Hu <nickhu@andestech.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mike Rapoport <rppt@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        linux-riscv@lists.infradead.org, YiFei Zhu <yifeifz2@illinois.edu>,
-        Greentime Hu <green.hu@gmail.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Michal Simek <monstr@monstr.eu>, Helge Deller <deller@gmx.de>,
-        linux-sh@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>,
-        Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= 
-        <u.kleine-koenig@pengutronix.de>, Guo Ren <guoren@kernel.org>,
-        Sami Tolvanen <samitolvanen@google.com>,
-        Richard Weinberger <richard@nod.at>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Rich Felker <dalias@libc.org>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Jeff Dike <jdike@addtoit.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        "H. Peter Anvin" <hpa@zytor.com>, Will Deacon <will@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        linux-s390@vger.kernel.org,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        linux-um@lists.infradead.org,
-        Andrey Konovalov <andreyknvl@gmail.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Brian Cain <bcain@codeaurora.org>, linux-csky@vger.kernel.org,
-        Stafford Horne <shorne@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-arm-kernel@lists.infradead.org,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Chris Zankel <chris@zankel.net>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        linux-snps-arc@lists.infradead.org,
-        Jonas Bonn <jonas@southpole.se>, linux-parisc@vger.kernel.org,
-        Kees Cook <keescook@chromium.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org
-Subject: Re: [PATCH 2/3] trace: refactor TRACE_IRQFLAGS_SUPPORT in Kconfig
-In-Reply-To: <20210731052233.4703-2-masahiroy@kernel.org>
-References: <20210731052233.4703-1-masahiroy@kernel.org>
- <20210731052233.4703-2-masahiroy@kernel.org>
-Date:   Mon, 02 Aug 2021 12:56:13 +1000
-Message-ID: <87lf5klfle.fsf@mpe.ellerman.id.au>
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, Andrei Vagin <avagin@gmail.com>
+References: <20210730160708.6544-1-ptikhomirov@virtuozzo.com>
+ <20210730094631.106b8bec@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+From:   Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Message-ID: <9ead0d04-f243-b637-355c-af11af45fb5a@virtuozzo.com>
+Date:   Mon, 2 Aug 2021 11:26:09 +0300
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.10.1
+In-Reply-To: <20210730094631.106b8bec@kicinski-fedora-pc1c0hjn.dhcp.thefacebook.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: PR1P264CA0014.FRAP264.PROD.OUTLOOK.COM
+ (2603:10a6:102:19e::19) To VE1PR08MB4989.eurprd08.prod.outlook.com
+ (2603:10a6:803:114::19)
 MIME-Version: 1.0
-Content-Type: text/plain
+X-MS-Exchange-MessageSentRepresentingType: 1
+Received: from [192.168.1.100] (46.39.230.13) by PR1P264CA0014.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:19e::19) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4373.18 via Frontend Transport; Mon, 2 Aug 2021 08:29:16 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 0951f286-a107-4cd1-fd8a-08d9558f9e97
+X-MS-TrafficTypeDiagnostic: VI1PR08MB3341:
+X-LD-Processed: 0bc7f26d-0264-416e-a6fc-8352af79c58f,ExtAddr
+X-Microsoft-Antispam-PRVS: <VI1PR08MB33419D3072394F7CE0F708C7B7EF9@VI1PR08MB3341.eurprd08.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:8882;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: GtJ7JSZ55AN6morDiZnafJWz+Jb08ea7e7h34cBXE9zkIQ+CbsVp/aqQy2T7AutlLlZ1uZNUVBz/4ev9RemQGN6FuC5MQrbE8FJ4XUpVi6L/V86TntHSwy2q07Y9bqiHZXCVsGiY/YxO90s8x23KUwnYJhnADdtKotdbkttSZLr4Oj+PNBLDjxqshw89cEVbsYA6BW/w1SLyOPmlV2YBp2M+gV+Fd2kZzHj9fvvbrM3yoJIvqQmfsRr6WcgGAJ06EdNKqEBpGvSYEXp6OUWKn8mweX2Qxe+mYUMsKbm93UpZvuJ1A5Eyh4+3UzVj1ZicaCOEsSJY43Y3qjbmcGIyrW3d2BnW2V3pyeWbsX5kdwDSym9zjNOisR/cJ6KXeNFbxA5F9LW6iqgvxd3xHn10XskTQ0uGTaRQHIZr6jTimMm8DGKm4Arp2kXZkARNNg1aIYfWR6YNlkWBXBUcg8jMMNEKt8Mj51teYrigQuyQfu3GAPcinQ5EoU4Pdj9qLReXthnHkz9ZGfDquEIkHwALQWvdaB5gzQ1r+p5ZvDSn/g0ZEeCQ2pYbrK86aj3RhWNxiiDBw+rN776OEI4piEhsARK0io1frP1vWmSgJhW29IZ87ejPDhYu1eH2fKTQjfmpVf8jSEQhQWct1dHPCDVwRoSwa+3wIrmRX+u0TOKxDPPYvMbmcA1eix94mD99LrdRb2ZX4xGjB4d5PDmGW9BfXa2oeHT+cPBRdmpEwYt3YhpzOldZStaviFlOeNrEkde6v1xuG0LP8NEApKvZSbDx1Cae1+iPaL4CGxTyMzk5iC2VHx7QyJVAGoh0SCUQFgQh10g+nkuVfddHQkfW/dzrJw==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VE1PR08MB4989.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(31696002)(53546011)(8676002)(86362001)(5660300002)(83380400001)(2906002)(186003)(8936002)(36756003)(6666004)(26005)(4326008)(38100700002)(66556008)(956004)(316002)(38350700002)(16576012)(6486002)(66476007)(31686004)(508600001)(6916009)(966005)(66946007)(54906003)(52116002)(7416002)(2616005)(45980500001)(43740500002);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?YVVDZUlUdTdUZlR4S3dvWTViZk9CQnRDbzVSTSsvL1BCdHRLK0o0NjN4WUhk?=
+ =?utf-8?B?WlVFUThsNWpRd2oxNnBEZE1nbnRaenBHUTQ2NmJBcnA3VmZyVGViZjFnTTBm?=
+ =?utf-8?B?SmpVckEwdnVFZDhNUFI4TFh5V3JTRklEUkdtYnFaREY0U3BIVjlXdzhPKzhz?=
+ =?utf-8?B?UU5BNFJsdXR0cFZHZ0VsZDdCM0owc1FlYzV5WEVwQngrMDBHbTRDcG1meTVB?=
+ =?utf-8?B?N3VhTXBrbTdieVlYSmJEV1hYNjk2eW9QbFN0dHNabHJjbmZKcUVLUnZzVHNz?=
+ =?utf-8?B?UkZUREdobUZ3NXU2b0x2UTNrZVZ1T1hZNU1qNkh3OU5Fa1hZQmF1Z3YwTXZr?=
+ =?utf-8?B?MkZ2enB2L28rb1phcTg4a1JUdFIrOGRxVE5MS1RpWkhpYjFGZnJkVThvcmdw?=
+ =?utf-8?B?NUpxK29COWdySkNqRTRRQ1VraUt0ZE1ROUNaSWpZcCt2aXR3RnFhYWdxTVhv?=
+ =?utf-8?B?K0VhVjQ5MTM4YkU3QkJTWDBHK1pKZEtaZ2Rvem4zSDdSbmh3Q1hvWng4MkFo?=
+ =?utf-8?B?Ly90N05YMGVSKzNkMGRjZnJUUkkxN3ZaNjJBdUpBVjFYaklGUjE4V2FiQ0NV?=
+ =?utf-8?B?bmdrUTF4NUlmZU9GWXZBUGFBcis1MnlLNURLUUlFekxGd0ZON0lZaHZIUzAz?=
+ =?utf-8?B?dDF1aDNTc3Ryai9ZTnZGSkx1Znhtc1AwQ2l4RWh6QWZEMW9VTTFwdi9QQ1Zh?=
+ =?utf-8?B?ZVdHOTZuRjJRdm1JbWt3S1hRS3E1ZThScXdlYTU4cWRmcTlGVGplWmhSWFV4?=
+ =?utf-8?B?ek1DMjBTZ2FTTy8wVjN1RHV0NktRUmYvTE5YVnRBUS9kSENKNHdRdnI3QzR6?=
+ =?utf-8?B?TkRMTnhtM2FNQ2RVajdaRzd0Z2N5OEFqb0Y0VHVoa0R2RCtDRDJWVGNvNzlm?=
+ =?utf-8?B?cnRsM2duL25OZUhFblVPNWl6UGMzMmFkcndUM09NbzBkR3Rmdnc2K1dzTDN6?=
+ =?utf-8?B?ZDE2VUVoaXF1eFUwc3pkVGJjbEMrNmNvV3pmdUJqbFlkQnVUUWlLRFBLWmQ1?=
+ =?utf-8?B?OWNiY1JVRlpSaUtuNVhrNkNxNWhUUGRpV2FORXRwb2ZFWnkycy9JbHJoUHp3?=
+ =?utf-8?B?QmNaNDN5azNmZFNobzNqZnMyZDZnb0VYcmxlOXNBZlVrdWhIMkVOeDRtb2Vq?=
+ =?utf-8?B?Tmk0T3RhZDJsbjNHU29NTHNYT2c0K3hxd2FNbFcxcStuLzN0RmFhZzBPRDFF?=
+ =?utf-8?B?R2Z4RjF4TFZKVENSSGhDSzJXODFIWUZFcVZrWGhjemJlam44akh3dVZZeTBK?=
+ =?utf-8?B?QlJLTWZXbllrMldHN3JiNkZkcVV0eVRNc0h6YTdXUlYyVjI1S1Qvc1JwQ3ZT?=
+ =?utf-8?B?SDBDaHU5ejgvbGpEQ04wQlpNMjBEZ3ZFRmRsSkZtekNORCtxcjRnWjI3N0xD?=
+ =?utf-8?B?M2FPM29YZjZtZk1nOGNuQ2gwbDNvNi91VEdaUjBVczZ0amZ3TmhnZEJRSHlB?=
+ =?utf-8?B?OEVmdDErZXdUbGdMSTR1RmxCVk5xV1ZXT1U4bFVEKy80K3pob09ocHZsanc3?=
+ =?utf-8?B?UU11ajZKN2U3WS9KendyQWZNSTlLN2tBc2NCRU10ZnErRnpRZ1VsVFduMUtp?=
+ =?utf-8?B?ZCtJTGo3VU1HYVJRWGVuZS95SGNSSW9KK2xHSlEwMld2Uk80aG9xY1lKY1gy?=
+ =?utf-8?B?RlpzcnVWRFB5M2JZL24rZktjY2UzVTYvbXJjZ2I3VFh6cjA1QUpBVkZPM0lr?=
+ =?utf-8?B?NHNmeU0zSDVxYUJpaDg1b0E0MTh5MXBQK01uV0szcDB3VXJCYWszSTdNS3RQ?=
+ =?utf-8?Q?Zx+nH8HRgj0G6W2fn29vbNyk3RL3uzC9zv8+K1L?=
+X-OriginatorOrg: virtuozzo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 0951f286-a107-4cd1-fd8a-08d9558f9e97
+X-MS-Exchange-CrossTenant-AuthSource: VE1PR08MB4989.eurprd08.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Aug 2021 08:29:18.1049
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: eiaCSeDsTPGuhUOH1bKO7e9pr3OqRMzXsREqEdHzNF3PQVuU1NuVPL7z1HVQZvabei574sLNCz4pX82z0MDK1maPMOYDVaY2lATdhE1zmnA=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR08MB3341
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Masahiro Yamada <masahiroy@kernel.org> writes:
-> Make architectures select TRACE_IRQFLAGS_SUPPORT instead of
-> having many defines.
->
-> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
-> ---
->
->  arch/Kconfig                  | 3 +++
->  arch/arc/Kconfig              | 4 +---
->  arch/arm/Kconfig              | 5 +----
->  arch/arm64/Kconfig            | 4 +---
->  arch/csky/Kconfig             | 4 +---
->  arch/hexagon/Kconfig          | 4 +---
->  arch/microblaze/Kconfig       | 1 +
->  arch/microblaze/Kconfig.debug | 5 -----
->  arch/mips/Kconfig             | 1 +
->  arch/mips/Kconfig.debug       | 4 ----
->  arch/nds32/Kconfig            | 4 +---
->  arch/nios2/Kconfig            | 3 ---
->  arch/openrisc/Kconfig         | 4 +---
->  arch/parisc/Kconfig           | 1 +
->  arch/parisc/Kconfig.debug     | 3 ---
->  arch/powerpc/Kconfig          | 5 +----
->  arch/riscv/Kconfig            | 4 +---
->  arch/s390/Kconfig             | 1 +
->  arch/s390/Kconfig.debug       | 3 ---
->  arch/sh/Kconfig               | 1 +
->  arch/sh/Kconfig.debug         | 3 ---
->  arch/sparc/Kconfig            | 1 +
->  arch/sparc/Kconfig.debug      | 4 ----
->  arch/um/Kconfig               | 5 +----
->  arch/x86/Kconfig              | 1 +
->  arch/x86/Kconfig.debug        | 3 ---
->  arch/xtensa/Kconfig           | 4 +---
->  27 files changed, 21 insertions(+), 64 deletions(-)
 
-> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
-> index d01e3401581d..76a28452c042 100644
-> --- a/arch/powerpc/Kconfig
-> +++ b/arch/powerpc/Kconfig
-> @@ -94,10 +94,6 @@ config STACKTRACE_SUPPORT
->  	bool
->  	default y
->  
-> -config TRACE_IRQFLAGS_SUPPORT
-> -	bool
-> -	default y
-> -
->  config LOCKDEP_SUPPORT
->  	bool
->  	default y
-> @@ -271,6 +267,7 @@ config PPC
->  	select STRICT_KERNEL_RWX if STRICT_MODULE_RWX
->  	select SYSCTL_EXCEPTION_TRACE
->  	select THREAD_INFO_IN_TASK
-> +	select TRACE_IRQFLAGS_SUPPORT
->  	select VIRT_TO_BUS			if !PPC64
->  	#
->  	# Please keep this list sorted alphabetically.
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+On 30.07.2021 19:46, Jakub Kicinski wrote:
+> On Fri, 30 Jul 2021 19:07:08 +0300 Pavel Tikhomirov wrote:
+>> SOCK_SNDBUF_LOCK and SOCK_RCVBUF_LOCK flags disable automatic socket
+>> buffers adjustment done by kernel (see tcp_fixup_rcvbuf() and
+>> tcp_sndbuf_expand()). If we've just created a new socket this adjustment
+>> is enabled on it, but if one changes the socket buffer size by
+>> setsockopt(SO_{SND,RCV}BUF*) it becomes disabled.
+>>
+>> CRIU needs to call setsockopt(SO_{SND,RCV}BUF*) on each socket on
+>> restore as it first needs to increase buffer sizes for packet queues
+>> restore and second it needs to restore back original buffer sizes. So
+>> after CRIU restore all sockets become non-auto-adjustable, which can
+>> decrease network performance of restored applications significantly.
+>>
+>> CRIU need to be able to restore sockets with enabled/disabled adjustment
+>> to the same state it was before dump, so let's add special setsockopt
+>> for it.
+>>
+>> Signed-off-by: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+> 
+> The patchwork bot is struggling to ingest this, please double check it
+> applies cleanly to net-next.
 
-cheers
+I checked that it applies cleanly to net-next:
+
+[snorch@fedora linux]$ git am 
+~/Downloads/patches/ptikhomirov/setsockopt-sk_userlocks/\[PATCH\ v2\]\ 
+sock\:\ allow\ reading\ and\ changing\ sk_userlocks\ with\ setsockopt.eml
+
+[snorch@fedora linux]$ git log --oneline
+c339520aadd5 (HEAD -> net-next) sock: allow reading and changing 
+sk_userlocks with setsockopt
+
+d39e8b92c341 (net-next/master) Merge 
+https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf-next
+
+
+Probably it was some temporary problem and now it's OK? 
+https://patchwork.kernel.org/project/netdevbpf/patch/20210730160708.6544-1-ptikhomirov@virtuozzo.com/
+
+> 
+
+-- 
+Best regards, Tikhomirov Pavel
+Software Developer, Virtuozzo.
