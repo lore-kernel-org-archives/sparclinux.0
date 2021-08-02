@@ -2,129 +2,108 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87D47C4320E
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 10:34:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40B3AC43216
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 15:55:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6A59E60F70
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 10:34:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 154B961101
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Aug 2021 15:55:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233248AbhHBKfB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 Aug 2021 06:35:01 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:26504 "EHLO
-        mx0b-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231881AbhHBKfB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Aug 2021 06:35:01 -0400
-Received: from pps.filterd (m0127361.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 172A4NG2173500;
-        Mon, 2 Aug 2021 06:34:20 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=r00k+UjFn2pP62ZTrfQkfAUimzcY0iIqFp/tRGXpoq0=;
- b=XB+IyIVRuwsaGl5Cf36GJrmEG3pUanAUVbJd0L+oKz2n9pFqA/PMFgwKaU8Fqyy8Lva3
- Kbt8Pm8E3v6Do/WIyQyINblL2EUrwMVz8/MgaVk9CKB/lYzJLp0Z77DY+Z/NLG27Hxbj
- E9qpS5txHaS6nt9qU2jVBdzVhvDQmwEAwKpzUg/IADG8yUZYRc/KRZKQB9m3YaMNAQ/V
- mqocdQdQhDdcY8hBX72GpQ0R0Ltra1dQR25fDeh1xYBUCQnH2894AsakTiIyquwCzLQd
- SFjOXifLtRwVjfMNlR/0nvfzPGZm64KH9KxFjtA2pZJTcvqIwBuMeqWbhKoD7NaDevz8 Aw== 
-Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3a5ks7xgv8-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 02 Aug 2021 06:34:20 -0400
-Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
-        by ppma04fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 172AY3xg012514;
-        Mon, 2 Aug 2021 10:34:18 GMT
-Received: from b06cxnps4074.portsmouth.uk.ibm.com (d06relay11.portsmouth.uk.ibm.com [9.149.109.196])
-        by ppma04fra.de.ibm.com with ESMTP id 3a4x594481-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Mon, 02 Aug 2021 10:34:18 +0000
-Received: from d06av21.portsmouth.uk.ibm.com (d06av21.portsmouth.uk.ibm.com [9.149.105.232])
-        by b06cxnps4074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 172AYEbo30605618
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Mon, 2 Aug 2021 10:34:14 GMT
-Received: from d06av21.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 99BA0520E2;
-        Mon,  2 Aug 2021 10:34:14 +0000 (GMT)
-Received: from sig-9-145-37-103.uk.ibm.com (unknown [9.145.37.103])
-        by d06av21.portsmouth.uk.ibm.com (Postfix) with ESMTP id AED60520D5;
-        Mon,  2 Aug 2021 10:34:13 +0000 (GMT)
-Message-ID: <a5a46d84866f69df8c9737ecd8b066b61f24960a.camel@linux.ibm.com>
-Subject: Re: [PATCH v2 13/21] s390/pci: don't set failed sg dma_address to
- DMA_MAPPING_ERROR
-From:   Niklas Schnelle <schnelle@linux.ibm.com>
-To:     Logan Gunthorpe <logang@deltatee.com>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        iommu@lists.linux-foundation.org, linux-parisc@vger.kernel.org,
-        xen-devel@lists.xenproject.org
-Cc:     Christoph Hellwig <hch@lst.de>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Martin Oliveira <martin.oliveira@eideticom.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
+        id S235338AbhHBPzq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 Aug 2021 11:55:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54854 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233995AbhHBPzp (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 2 Aug 2021 11:55:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3008461107;
+        Mon,  2 Aug 2021 15:55:25 +0000 (UTC)
+Date:   Mon, 2 Aug 2021 16:55:22 +0100
+From:   Catalin Marinas <catalin.marinas@arm.com>
+To:     Masahiro Yamada <masahiroy@kernel.org>
+Cc:     Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>, Arnd Bergmann <arnd@arndb.de>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Borislav Petkov <bp@alien8.de>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Ley Foon Tan <ley.foon.tan@intel.com>, x86@kernel.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Nick Hu <nickhu@andestech.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mike Rapoport <rppt@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        linux-riscv@lists.infradead.org, YiFei Zhu <yifeifz2@illinois.edu>,
+        Greentime Hu <green.hu@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Michal Simek <monstr@monstr.eu>, Helge Deller <deller@gmx.de>,
+        linux-sh@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>,
+        Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>, Guo Ren <guoren@kernel.org>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        Richard Weinberger <richard@nod.at>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Rich Felker <dalias@libc.org>,
+        Albert Ou <aou@eecs.berkeley.edu>,
         Heiko Carstens <hca@linux.ibm.com>,
+        Jeff Dike <jdike@addtoit.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        linux-hexagon@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        "H. Peter Anvin" <hpa@zytor.com>, Will Deacon <will@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        linux-s390@vger.kernel.org,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        linux-um@lists.infradead.org,
+        Andrey Konovalov <andreyknvl@gmail.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Brian Cain <bcain@codeaurora.org>, linux-csky@vger.kernel.org,
+        Stafford Horne <shorne@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        linux-arm-kernel@lists.infradead.org,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Chris Zankel <chris@zankel.net>,
         Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>
-Date:   Mon, 02 Aug 2021 12:34:13 +0200
-In-Reply-To: <20210723175008.22410-14-logang@deltatee.com>
-References: <20210723175008.22410-1-logang@deltatee.com>
-         <20210723175008.22410-14-logang@deltatee.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-16.el8) 
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: zc7l-lzfyaxYg5Vm8LQLNSA4emMVITXD
-X-Proofpoint-GUID: zc7l-lzfyaxYg5Vm8LQLNSA4emMVITXD
-Content-Transfer-Encoding: 7bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        linux-snps-arc@lists.infradead.org,
+        Jonas Bonn <jonas@southpole.se>, linux-parisc@vger.kernel.org,
+        Kees Cook <keescook@chromium.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@canonical.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-kernel@vger.kernel.org, Vincent Chen <deanbo422@gmail.com>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Paul Mackerras <paulus@samba.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        linuxppc-dev@lists.ozlabs.org, openrisc@lists.librecores.org
+Subject: Re: [PATCH 2/3] trace: refactor TRACE_IRQFLAGS_SUPPORT in Kconfig
+Message-ID: <20210802155521.GI18685@arm.com>
+References: <20210731052233.4703-1-masahiroy@kernel.org>
+ <20210731052233.4703-2-masahiroy@kernel.org>
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-08-02_01:2021-08-02,2021-08-02 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 mlxlogscore=999
- malwarescore=0 phishscore=0 suspectscore=0 spamscore=0 adultscore=0
- mlxscore=0 priorityscore=1501 lowpriorityscore=0 clxscore=1015 bulkscore=0
- impostorscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2107140000 definitions=main-2108020069
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210731052233.4703-2-masahiroy@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 2021-07-23 at 11:50 -0600, Logan Gunthorpe wrote:
-> Setting the ->dma_address to DMA_MAPPING_ERROR is not part of
-> the ->map_sg calling convention, so remove it.
+On Sat, Jul 31, 2021 at 02:22:32PM +0900, Masahiro Yamada wrote:
+> Make architectures select TRACE_IRQFLAGS_SUPPORT instead of
+> having many defines.
 > 
-> Link: https://lore.kernel.org/linux-mips/20210716063241.GC13345@lst.de/
-> Suggested-by: Christoph Hellwig <hch@lst.de>
-> Signed-off-by: Logan Gunthorpe <logang@deltatee.com>
-> Cc: Niklas Schnelle <schnelle@linux.ibm.com>
-> Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: Vasily Gorbik <gor@linux.ibm.com>
-> Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-> ---
->  arch/s390/pci/pci_dma.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
-> index c78b02012764..be48e5b5bfcf 100644
-> --- a/arch/s390/pci/pci_dma.c
-> +++ b/arch/s390/pci/pci_dma.c
-> @@ -492,7 +492,6 @@ static int s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
->  	for (i = 1; i < nr_elements; i++) {
->  		s = sg_next(s);
->  
-> -		s->dma_address = DMA_MAPPING_ERROR;
->  		s->dma_length = 0;
->  
->  		if (s->offset || (size & ~PAGE_MASK) ||
+> Signed-off-by: Masahiro Yamada <masahiroy@kernel.org>
 
-Acked-by: Niklas Schnelle <schnelle@linux.ibm.com>
+For arm64:
 
-Thanks!
-
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
