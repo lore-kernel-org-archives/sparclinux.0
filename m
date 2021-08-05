@@ -7,27 +7,27 @@ X-Spam-Status: No, score=-16.8 required=3.0 tests=BAYES_00,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E57FCC19F39
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 00:53:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 409F3C4320A
+	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 00:54:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C75F060EBB
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 00:53:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BE6160EBB
+	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 00:54:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236974AbhHEAyI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 4 Aug 2021 20:54:08 -0400
-Received: from mga02.intel.com ([134.134.136.20]:12129 "EHLO mga02.intel.com"
+        id S237107AbhHEAyT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 4 Aug 2021 20:54:19 -0400
+Received: from mga09.intel.com ([134.134.136.24]:27469 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236596AbhHEAxn (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 4 Aug 2021 20:53:43 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10066"; a="201215429"
+        id S236608AbhHEAyF (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 4 Aug 2021 20:54:05 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10066"; a="214027473"
 X-IronPort-AV: E=Sophos;i="5.84,296,1620716400"; 
-   d="scan'208";a="201215429"
+   d="scan'208";a="214027473"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2021 17:53:29 -0700
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2021 17:53:41 -0700
 X-IronPort-AV: E=Sophos;i="5.84,296,1620716400"; 
-   d="scan'208";a="437617203"
+   d="scan'208";a="437617259"
 Received: from mjkendri-mobl.amr.corp.intel.com (HELO skuppusw-desk1.amr.corp.intel.com) ([10.254.17.117])
-  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2021 17:53:27 -0700
+  by orsmga002-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Aug 2021 17:53:38 -0700
 From:   Kuppuswamy Sathyanarayanan 
         <sathyanarayanan.kuppuswamy@linux.intel.com>
 To:     Thomas Gleixner <tglx@linutronix.de>,
@@ -56,9 +56,9 @@ Cc:     Peter H Anvin <hpa@zytor.com>, Dave Hansen <dave.hansen@intel.com>,
         sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
         linux-doc@vger.kernel.org,
         virtualization@lists.linux-foundation.org
-Subject: [PATCH v4 04/15] x86/tdx: Add helper to do MapGPA hypercall
-Date:   Wed,  4 Aug 2021 17:52:07 -0700
-Message-Id: <20210805005218.2912076-5-sathyanarayanan.kuppuswamy@linux.intel.com>
+Subject: [PATCH v4 09/15] pci: Consolidate pci_iomap* and pci_iomap*wc
+Date:   Wed,  4 Aug 2021 17:52:12 -0700
+Message-Id: <20210805005218.2912076-10-sathyanarayanan.kuppuswamy@linux.intel.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20210805005218.2912076-1-sathyanarayanan.kuppuswamy@linux.intel.com>
 References: <20210805005218.2912076-1-sathyanarayanan.kuppuswamy@linux.intel.com>
@@ -68,118 +68,129 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+From: Andi Kleen <ak@linux.intel.com>
 
-MapGPA hypercall is used by TDX guests to request VMM convert
-the existing mapping of given GPA address range between
-private/shared.
+pci_iomap* and pci_iomap*wc are currently duplicated code, except
+that the _wc variant does not support IO ports. Replace them
+with a common helper and a callback for the mapping. I used
+wrappers for the maps because some architectures implement ioremap
+and friends with macros.
 
-tdx_hcall_gpa_intent() is the wrapper used for making MapGPA
-hypercall.
+This will allow to add more variants without excessive code
+duplications. This patch should have no behavior change.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-Reviewed-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Kuppuswamy Sathyanarayanan <sathyanarayanan.kuppuswamy@linux.intel.com>
 ---
+ lib/pci_iomap.c | 81 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 44 insertions(+), 37 deletions(-)
 
-Changes since v3:
- * None
-
-Changes since v1:
- * Modified tdx_hcall_gpa_intent() to use _tdx_hypercall() instead of
-   tdx_hypercall().
-
- arch/x86/include/asm/tdx.h | 18 ++++++++++++++++++
- arch/x86/kernel/tdx.c      | 25 +++++++++++++++++++++++++
- 2 files changed, 43 insertions(+)
-
-diff --git a/arch/x86/include/asm/tdx.h b/arch/x86/include/asm/tdx.h
-index 1e2a1c6a1898..665c8cf57d5b 100644
---- a/arch/x86/include/asm/tdx.h
-+++ b/arch/x86/include/asm/tdx.h
-@@ -56,6 +56,15 @@ struct ve_info {
- 	u32 instr_info;
- };
+diff --git a/lib/pci_iomap.c b/lib/pci_iomap.c
+index 2d3eb1cb73b8..6251c3f651c6 100644
+--- a/lib/pci_iomap.c
++++ b/lib/pci_iomap.c
+@@ -10,6 +10,46 @@
+ #include <linux/export.h>
  
+ #ifdef CONFIG_PCI
++
 +/*
-+ * Page mapping type enum. This is software construct not
-+ * part of any hardware or VMM ABI.
++ * Callback wrappers because some architectures define ioremap et.al.
++ * as macros.
 + */
-+enum tdx_map_type {
-+	TDX_MAP_PRIVATE,
-+	TDX_MAP_SHARED,
-+};
-+
- #ifdef CONFIG_INTEL_TDX_GUEST
- 
- void __init tdx_early_init(void);
-@@ -79,6 +88,9 @@ bool tdg_early_handle_ve(struct pt_regs *regs);
- 
- extern phys_addr_t tdg_shared_mask(void);
- 
-+extern int tdx_hcall_gpa_intent(phys_addr_t gpa, int numpages,
-+				enum tdx_map_type map_type);
-+
- /*
-  * To support I/O port access in decompressor or early kernel init
-  * code, since #VE exception handler cannot be used, use paravirt
-@@ -149,6 +161,12 @@ static inline bool tdg_early_handle_ve(struct pt_regs *regs) { return false; }
- 
- static inline phys_addr_t tdg_shared_mask(void) { return 0; }
- 
-+static inline int tdx_hcall_gpa_intent(phys_addr_t gpa, int numpages,
-+				       enum tdx_map_type map_type)
++static void __iomem *map_ioremap(phys_addr_t addr, size_t size)
 +{
-+	return -ENODEV;
++	return ioremap(addr, size);
 +}
 +
- #endif /* CONFIG_INTEL_TDX_GUEST */
- 
- #ifdef CONFIG_INTEL_TDX_GUEST_KVM
-diff --git a/arch/x86/kernel/tdx.c b/arch/x86/kernel/tdx.c
-index d316fe33f52f..ccbad600a422 100644
---- a/arch/x86/kernel/tdx.c
-+++ b/arch/x86/kernel/tdx.c
-@@ -18,6 +18,9 @@
- #define TDINFO				1
- #define TDGETVEINFO			3
- 
-+/* TDX hypercall Leaf IDs */
-+#define TDVMCALL_MAP_GPA		0x10001
-+
- #define VE_IS_IO_OUT(exit_qual)		(((exit_qual) & 8) ? 0 : 1)
- #define VE_GET_IO_SIZE(exit_qual)	(((exit_qual) & 7) + 1)
- #define VE_GET_PORT_NUM(exit_qual)	((exit_qual) >> 16)
-@@ -97,6 +100,28 @@ static void tdg_get_info(void)
- 	physical_mask &= ~tdg_shared_mask();
- }
- 
-+/*
-+ * Inform the VMM of the guest's intent for this physical page:
-+ * shared with the VMM or private to the guest.  The VMM is
-+ * expected to change its mapping of the page in response.
-+ *
-+ * Note: shared->private conversions require further guest
-+ * action to accept the page.
-+ */
-+int tdx_hcall_gpa_intent(phys_addr_t gpa, int numpages,
-+			 enum tdx_map_type map_type)
++static void __iomem *map_ioremap_wc(phys_addr_t addr, size_t size)
 +{
-+	u64 ret;
-+
-+	if (map_type == TDX_MAP_SHARED)
-+		gpa |= tdg_shared_mask();
-+
-+	ret = _tdx_hypercall(TDVMCALL_MAP_GPA, gpa, PAGE_SIZE * numpages, 0, 0,
-+			     NULL);
-+
-+	return ret ? -EIO : 0;
++	return ioremap_wc(addr, size);
 +}
 +
- static __cpuidle void tdg_halt(void)
++static void __iomem *pci_iomap_range_map(struct pci_dev *dev,
++					 int bar,
++					 unsigned long offset,
++					 unsigned long maxlen,
++					 void __iomem *(*mapm)(phys_addr_t,
++							       size_t))
++{
++	resource_size_t start = pci_resource_start(dev, bar);
++	resource_size_t len = pci_resource_len(dev, bar);
++	unsigned long flags = pci_resource_flags(dev, bar);
++
++	if (len <= offset || !start)
++		return NULL;
++	len -= offset;
++	start += offset;
++	if (maxlen && len > maxlen)
++		len = maxlen;
++	if (flags & IORESOURCE_IO)
++		return __pci_ioport_map(dev, start, len);
++	if (flags & IORESOURCE_MEM)
++		return mapm(start, len);
++	/* What? */
++	return NULL;
++}
++
+ /**
+  * pci_iomap_range - create a virtual mapping cookie for a PCI BAR
+  * @dev: PCI device that owns the BAR
+@@ -30,22 +70,8 @@ void __iomem *pci_iomap_range(struct pci_dev *dev,
+ 			      unsigned long offset,
+ 			      unsigned long maxlen)
  {
- 	u64 ret;
+-	resource_size_t start = pci_resource_start(dev, bar);
+-	resource_size_t len = pci_resource_len(dev, bar);
+-	unsigned long flags = pci_resource_flags(dev, bar);
+-
+-	if (len <= offset || !start)
+-		return NULL;
+-	len -= offset;
+-	start += offset;
+-	if (maxlen && len > maxlen)
+-		len = maxlen;
+-	if (flags & IORESOURCE_IO)
+-		return __pci_ioport_map(dev, start, len);
+-	if (flags & IORESOURCE_MEM)
+-		return ioremap(start, len);
+-	/* What? */
+-	return NULL;
++	return pci_iomap_range_map(dev, bar, offset, maxlen,
++				   map_ioremap);
+ }
+ EXPORT_SYMBOL(pci_iomap_range);
+ 
+@@ -70,27 +96,8 @@ void __iomem *pci_iomap_wc_range(struct pci_dev *dev,
+ 				 unsigned long offset,
+ 				 unsigned long maxlen)
+ {
+-	resource_size_t start = pci_resource_start(dev, bar);
+-	resource_size_t len = pci_resource_len(dev, bar);
+-	unsigned long flags = pci_resource_flags(dev, bar);
+-
+-
+-	if (flags & IORESOURCE_IO)
+-		return NULL;
+-
+-	if (len <= offset || !start)
+-		return NULL;
+-
+-	len -= offset;
+-	start += offset;
+-	if (maxlen && len > maxlen)
+-		len = maxlen;
+-
+-	if (flags & IORESOURCE_MEM)
+-		return ioremap_wc(start, len);
+-
+-	/* What? */
+-	return NULL;
++	return pci_iomap_range_map(dev, bar, offset, maxlen,
++				   map_ioremap_wc);
+ }
+ EXPORT_SYMBOL_GPL(pci_iomap_wc_range);
+ 
 -- 
 2.25.1
 
