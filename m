@@ -5,36 +5,33 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 008F4C432BE
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 09:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 76B67C43214
+	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 17:36:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D927A60E53
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 09:17:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6135160F42
+	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 17:36:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232258AbhHEJRf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 5 Aug 2021 05:17:35 -0400
-Received: from elvis.franken.de ([193.175.24.41]:46891 "EHLO elvis.franken.de"
+        id S240291AbhHERgz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 5 Aug 2021 13:36:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58014 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232009AbhHEJRe (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 5 Aug 2021 05:17:34 -0400
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1mBZV8-0005ti-05; Thu, 05 Aug 2021 11:17:18 +0200
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 92188C052F; Thu,  5 Aug 2021 11:16:03 +0200 (CEST)
-Date:   Thu, 5 Aug 2021 11:16:03 +0200
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+        id S239498AbhHERgz (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 5 Aug 2021 13:36:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0683E610A2;
+        Thu,  5 Aug 2021 17:36:32 +0000 (UTC)
+Date:   Thu, 5 Aug 2021 18:36:25 +0100
+From:   Catalin Marinas <catalin.marinas@arm.com>
 To:     Lee Jones <lee.jones@linaro.org>
 Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         Vineet Gupta <vgupta@synopsys.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
         Brian Cain <bcain@codeaurora.org>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
         Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         John Crispin <john@phrozen.org>,
         Ley Foon Tan <ley.foon.tan@intel.com>,
         Jonas Bonn <jonas@southpole.se>,
@@ -70,7 +67,7 @@ Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
 Subject: Re: [PATCH 1/3] arch: Export machine_restart() instances so they can
  be called from modules
-Message-ID: <20210805091603.GE5979@alpha.franken.de>
+Message-ID: <20210805173625.GH6719@arm.com>
 References: <20210805075032.723037-1-lee.jones@linaro.org>
  <20210805075032.723037-2-lee.jones@linaro.org>
 MIME-Version: 1.0
@@ -83,82 +80,20 @@ List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 On Thu, Aug 05, 2021 at 08:50:30AM +0100, Lee Jones wrote:
-> A recent attempt to convert the Power Reset Restart driver to tristate
-> failed because of the following compile error (reported once merged by
-> Stephen Rothwell via Linux Next):
-> 
->   ERROR: "machine_restart" [drivers/power/reset/restart-poweroff.ko] undefined!
-> 
-> This error occurs since some of the machine_restart() instances are
-> not currently exported for use in modules.  This patch aims to rectify
-> that.
-> 
-> Cc: Vineet Gupta <vgupta@synopsys.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Guo Ren <guoren@kernel.org>
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Brian Cain <bcain@codeaurora.org>
-> Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-> Cc: Michal Simek <monstr@monstr.eu>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: John Crispin <john@phrozen.org>
-> Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-> Cc: Jonas Bonn <jonas@southpole.se>
-> Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-> Cc: Stafford Horne <shorne@gmail.com>
-> Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-> Cc: Helge Deller <deller@gmx.de>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Paul Walmsley <paul.walmsley@sifive.com>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Albert Ou <aou@eecs.berkeley.edu>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: Vasily Gorbik <gor@linux.ibm.com>
-> Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-> Cc: Rich Felker <dalias@libc.org>
-> Cc: David S. Miller <davem@davemloft.net>
-> Cc: Jeff Dike <jdike@addtoit.com>
-> Cc: Richard Weinberger <richard@nod.at>
-> Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Chris Zankel <chris@zankel.net>
-> Cc: Max Filippov <jcmvbkbc@gmail.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Cc: linux-snps-arc@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-csky@vger.kernel.org
-> Cc: uclinux-h8-devel@lists.sourceforge.jp
-> Cc: linux-hexagon@vger.kernel.org
-> Cc: linux-m68k@lists.linux-m68k.org
-> Cc: linux-mips@vger.kernel.org
-> Cc: openrisc@lists.librecores.org
-> Cc: linux-parisc@vger.kernel.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-riscv@lists.infradead.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-um@lists.infradead.org
-> Cc: linux-xtensa@linux-xtensa.org
-> Signed-off-by: Lee Jones <lee.jones@linaro.org>
-> ---
-> 
-> The 2 patches this change supports have the required Acks already.
-> 
-> NB: If it's safe to omit some of these, let me know and I'll revise the patch.
-> 
->  [...]
->  arch/mips/kernel/reset.c           | 1 +
->  arch/mips/lantiq/falcon/reset.c    | 1 +
->  arch/mips/sgi-ip27/ip27-reset.c    | 1 +
+> diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
+> index b4bb67f17a2ca..cf89ce91d7145 100644
+> --- a/arch/arm64/kernel/process.c
+> +++ b/arch/arm64/kernel/process.c
+> @@ -212,6 +212,7 @@ void machine_restart(char *cmd)
+>  	printk("Reboot failed -- System halted\n");
+>  	while (1);
+>  }
+> +EXPORT_SYMBOL(machine_restart);
 
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Should we make this EXPORT_SYMBOL_GPL? I suppose it's not for general
+use by out of tree drivers and it matches the other pm_power_off symbol
+we export in this file.
 
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+Either way:
+
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
