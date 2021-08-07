@@ -2,158 +2,148 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.0 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B742C4320A
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 22:02:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA8AEC4320E
+	for <sparclinux@archiver.kernel.org>; Sat,  7 Aug 2021 20:50:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36BCC6115C
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Aug 2021 22:02:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8636960EC0
+	for <sparclinux@archiver.kernel.org>; Sat,  7 Aug 2021 20:50:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232968AbhHEWCQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 5 Aug 2021 18:02:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33250 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231663AbhHEWCQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 5 Aug 2021 18:02:16 -0400
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D251C06179C
-        for <sparclinux@vger.kernel.org>; Thu,  5 Aug 2021 15:01:59 -0700 (PDT)
-Received: by mail-ed1-x532.google.com with SMTP id y12so10443914edo.6
-        for <sparclinux@vger.kernel.org>; Thu, 05 Aug 2021 15:01:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=paul-moore-com.20150623.gappssmtp.com; s=20150623;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=c3urkHLQm5QwJdZ9O5/+QqeYs/qIDb1LdTwMX8UuIJo=;
-        b=Y9dxhU40Cp8veCcp+fcPVCm4ifcChrN1zCWT6snRwiYjugw4bnQknql6Al6HruhkGh
-         hRr2EK3dfowDwcLy/91ol0zhq75r4GYw/0FGGfHCvI9pwgM/NBpebJBtEgcpxjZPzh7X
-         6Qb4mLJ2AkRFR7FJQcLLLzFC1VGLUVsRMVl3aLy6lBeo2Y7pxZfomIrU+VomHL3c87QG
-         q3wIiaH3OeaFpPWo49uBcSya0/hSPyR98ZBBjPRupyhM1wN8h8eCnG23kWHKYe5oxTOx
-         ekDzNhD/GOj4/cx6e4T7C6fCiv+h+myJcrv4/jTtK0HBwN5TieASVgvaRp9YnmbuiQXC
-         4KhA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=c3urkHLQm5QwJdZ9O5/+QqeYs/qIDb1LdTwMX8UuIJo=;
-        b=VlqC1OXgeCOdOGhHVgFfTfET1hTBj9xMdgFL6eka4CWYDma/NXSVLk83dcxRCYAPAH
-         xDASaPDaIcOB1tomWQdT58CGvIB57ctjHjVfNoCQv4/NCBBjQ9l+6/gaap7EwrUx+4oq
-         Accb8HgTIepmDwfDIbcRelGfRDCnjlgJTlS+nv+o2DYxb41YjIaHI1NwXNO4TSgPsmuY
-         09GJdLIMZG9HIuxd9FhxX9byYJMAN7zO0VeqS4JEhd0/w8JvdJ1f5uHEnK4NY1SR/2JI
-         rv7Q3TnkBwb/DFA5+IfniGWTFONXuy+rsNQF74Ri+UYtyth8N2eu2FscsPUrmgtRoc8R
-         zR1w==
-X-Gm-Message-State: AOAM53047C8raiXAhdxu+3z7JKMSBx4PqIgBprD5BgWzBMJI+ufLcAwC
-        EyHxD6fE9321Y++FnUsAZsGogujt1u6/syTnF8ke
-X-Google-Smtp-Source: ABdhPJyUIiWYAz6aUFc6MPvieEo2GUkchlv7WYU/OChfOMJj/dkrDY3GEEK87ConDlVxbwRyeX2EW3ZWABWXQS8VcSk=
-X-Received: by 2002:a05:6402:b83:: with SMTP id cf3mr9240826edb.12.1628200918472;
- Thu, 05 Aug 2021 15:01:58 -0700 (PDT)
+        id S229919AbhHGUuT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 7 Aug 2021 16:50:19 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([216.205.24.124]:50419 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229882AbhHGUuS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 7 Aug 2021 16:50:18 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1628369400;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type;
+        bh=sz8B19iZOKGMJ6EdmHryUsLjJMtkphPwU0rE5odAY5c=;
+        b=JkaR+K+66bLuw9j2htzvgMW+BJRwSqn2vdy8B7iJ/hfGSC3FricjVk1OLs2x5yAoEhJU4/
+        ggojocBvX+TUJQCpADSzxO9ExnGnAa9qMP0yRvudzcQmcJeJzIwnPFKqmEKiGSwmKu5kHk
+        m3VL+S4yjfrmPztcHhLHCQv6Q6cjIro=
+Received: from mimecast-mx01.redhat.com (mimecast-mx01.redhat.com
+ [209.132.183.4]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-229-Egatw2qiNcyRuKj5p5975A-1; Sat, 07 Aug 2021 16:49:57 -0400
+X-MC-Unique: Egatw2qiNcyRuKj5p5975A-1
+Received: from smtp.corp.redhat.com (int-mx07.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx01.redhat.com (Postfix) with ESMTPS id D075C801AEB;
+        Sat,  7 Aug 2021 20:49:55 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (file01.intranet.prod.int.rdu2.redhat.com [10.11.5.7])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 96C331007606;
+        Sat,  7 Aug 2021 20:49:55 +0000 (UTC)
+Received: from file01.intranet.prod.int.rdu2.redhat.com (localhost [127.0.0.1])
+        by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4) with ESMTP id 177KnsfW003455;
+        Sat, 7 Aug 2021 16:49:54 -0400
+Received: from localhost (mpatocka@localhost)
+        by file01.intranet.prod.int.rdu2.redhat.com (8.14.4/8.14.4/Submit) with ESMTP id 177Knr6g003451;
+        Sat, 7 Aug 2021 16:49:54 -0400
+X-Authentication-Warning: file01.intranet.prod.int.rdu2.redhat.com: mpatocka owned process doing -bs
+Date:   Sat, 7 Aug 2021 16:49:53 -0400 (EDT)
+From:   Mikulas Patocka <mpatocka@redhat.com>
+X-X-Sender: mpatocka@file01.intranet.prod.int.rdu2.redhat.com
+To:     "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+cc:     Jakub Jelinek <jakub@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Milan Broz <gmazyland@gmail.com>
+Subject: [PATCH] sparc64: fix boot on UltraSparcIII+
+Message-ID: <alpine.LRH.2.02.2108071604110.30513@file01.intranet.prod.int.rdu2.redhat.com>
+User-Agent: Alpine 2.02 (LRH 1266 2009-07-14)
 MIME-Version: 1.0
-References: <cover.1621363275.git.rgb@redhat.com> <2300b1083a32aade7ae7efb95826e8f3f260b1df.1621363275.git.rgb@redhat.com>
-In-Reply-To: <2300b1083a32aade7ae7efb95826e8f3f260b1df.1621363275.git.rgb@redhat.com>
-From:   Paul Moore <paul@paul-moore.com>
-Date:   Thu, 5 Aug 2021 18:01:47 -0400
-Message-ID: <CAHC9VhRDYYOpUvCkcWw=2a_P0AJxtA5N5y_Kj5PAG-0BQ02COQ@mail.gmail.com>
-Subject: Re: [PATCH v4 1/3] audit: replace magic audit syscall class numbers
- with macros
-To:     Richard Guy Briggs <rgb@redhat.com>
-Cc:     Linux-Audit Mailing List <linux-audit@redhat.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-fsdevel@vger.kernel.org, Eric Paris <eparis@parisplace.org>,
-        Steve Grubb <sgrubb@redhat.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Eric Paris <eparis@redhat.com>, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        Aleksa Sarai <cyphar@cyphar.com>,
-        Arnd Bergmann <arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+X-Scanned-By: MIMEDefang 2.84 on 10.5.11.22
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 19, 2021 at 4:01 PM Richard Guy Briggs <rgb@redhat.com> wrote:
->
-> Replace audit syscall class magic numbers with macros.
->
-> This required putting the macros into new header file
-> include/linux/auditsc_classmacros.h since the syscall macros were
-> included for both 64 bit and 32 bit in any compat code, causing
-> redefinition warnings.
->
-> Signed-off-by: Richard Guy Briggs <rgb@redhat.com>
-> Link: https://lore.kernel.org/r/2300b1083a32aade7ae7efb95826e8f3f260b1df.1621363275.git.rgb@redhat.com
-> ---
->  MAINTAINERS                         |  1 +
->  arch/alpha/kernel/audit.c           |  8 ++++----
->  arch/ia64/kernel/audit.c            |  8 ++++----
->  arch/parisc/kernel/audit.c          |  8 ++++----
->  arch/parisc/kernel/compat_audit.c   |  9 +++++----
->  arch/powerpc/kernel/audit.c         | 10 +++++-----
->  arch/powerpc/kernel/compat_audit.c  | 11 ++++++-----
->  arch/s390/kernel/audit.c            | 10 +++++-----
->  arch/s390/kernel/compat_audit.c     | 11 ++++++-----
->  arch/sparc/kernel/audit.c           | 10 +++++-----
->  arch/sparc/kernel/compat_audit.c    | 11 ++++++-----
->  arch/x86/ia32/audit.c               | 11 ++++++-----
->  arch/x86/kernel/audit_64.c          |  8 ++++----
->  include/linux/audit.h               |  1 +
->  include/linux/auditsc_classmacros.h | 23 +++++++++++++++++++++++
->  kernel/auditsc.c                    | 12 ++++++------
->  lib/audit.c                         | 10 +++++-----
->  lib/compat_audit.c                  | 11 ++++++-----
->  18 files changed, 102 insertions(+), 71 deletions(-)
->  create mode 100644 include/linux/auditsc_classmacros.h
+Hi
 
-...
+I have Sun Blade 2000 with two UltraSparcIII+ processors and 8GB RAM. The 
+kernel doesn't work on it (the last working version is 3.17).
 
-> diff --git a/include/linux/auditsc_classmacros.h b/include/linux/auditsc_classmacros.h
-> new file mode 100644
-> index 000000000000..18757d270961
-> --- /dev/null
-> +++ b/include/linux/auditsc_classmacros.h
-> @@ -0,0 +1,23 @@
-> +/* SPDX-License-Identifier: GPL-2.0-or-later */
-> +/* auditsc_classmacros.h -- Auditing support syscall macros
-> + *
-> + * Copyright 2021 Red Hat Inc., Durham, North Carolina.
-> + * All Rights Reserved.
-> + *
-> + * Author: Richard Guy Briggs <rgb@redhat.com>
-> + */
-> +#ifndef _LINUX_AUDITSCM_H_
-> +#define _LINUX_AUDITSCM_H_
-> +
-> +enum auditsc_class_t {
-> +       AUDITSC_NATIVE = 0,
-> +       AUDITSC_COMPAT,
-> +       AUDITSC_OPEN,
-> +       AUDITSC_OPENAT,
-> +       AUDITSC_SOCKETCALL,
-> +       AUDITSC_EXECVE,
-> +
-> +       AUDITSC_NVALS /* count */
-> +};
-> +
-> +#endif
+If I put printk's at these two positions in kernel_physical_mapping_init():
+	printk("kernel_physical_mapping_init: %lx\n", (long)mem_section[0]);
+        kvmap_linear_patch[0] = 0x01000000; /* nop */
+        flushi(&kvmap_linear_patch[0]);
+        flush_all_kernel_tsbs();
+        __flush_tlb_all();
+	printk("kernel_physical_mapping_init: %lx\n", (long)mem_section[0]);
+I get different values (the second value is 0) which indicates that the
+linear bootmem mapping is not equivalent to the kernel page table mapping.
+This mismatch causes crash on boot.
 
-My apologies Richard, for some reason I had it in my mind that this
-series was waiting on you to answer a question and/or respin; however,
-now that I'm clearing my patch queues looking for any stragglers I see
-that isn't the case.  Looking over the patchset I think it looks okay
-to me, my only concern is that "auditsc_classmacros.h" is an awfully
-specific header file name and could prove to be annoying if we want to
-add to it in the future.  What do you think about something like
-"audit_arch.h" instead?
+When I compiled the kernel with CONFIG_DEBUG_PAGEALLOC, the kernel boots
+fine. CONFIG_DEBUG_PAGEALLOC disables 4M mapping, so the problem is with
+it.
 
-If that change is okay with you I can go ahead and do the rename while
-I'm merging the patches, I'll consider it penance for letting this
-patchset sit for so long :/
+I have created this patch that disables large pages on UltraSparcIII and
+UltraSparcIII+. It makes the kernel boot.
 
--- 
-paul moore
-www.paul-moore.com
+Do you have an idea why large pages don't work on UltraSparcIII? (they
+work on UltraSparcII fine) Do you have some idea what I should test to
+make them work?
+
+Signed-off-by: Mikulas Patocka <mpatocka@redhat.com>
+
+---
+ arch/sparc/kernel/ktlb.S |   11 +++++++++++
+ arch/sparc/mm/init_64.c  |    7 +++++++
+ 2 files changed, 18 insertions(+)
+
+Index: linux-stable/arch/sparc/mm/init_64.c
+===================================================================
+--- linux-stable.orig/arch/sparc/mm/init_64.c	2021-08-07 16:28:26.000000000 +0200
++++ linux-stable/arch/sparc/mm/init_64.c	2021-08-07 16:40:21.000000000 +0200
+@@ -1882,6 +1882,10 @@ static void __init kernel_physical_mappi
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	use_huge = false;
+ #endif
++
++	if (tlb_type == cheetah || tlb_type == cheetah_plus)
++		use_huge = false;
++
+ 	for (i = 0; i < pall_ents; i++) {
+ 		unsigned long phys_start, phys_end;
+ 
+@@ -2691,6 +2695,9 @@ static void __init sun4u_pgprot_init(voi
+ 	kern_linear_pte_xor[0] |= (_PAGE_CP_4U | _PAGE_CV_4U |
+ 				   _PAGE_P_4U | _PAGE_W_4U);
+ 
++	if (tlb_type == cheetah || tlb_type == cheetah_plus)
++		kern_linear_pte_xor[0] &= ~_PAGE_SZ4MB_4U;
++
+ 	for (i = 1; i < 4; i++)
+ 		kern_linear_pte_xor[i] = kern_linear_pte_xor[0];
+ 
+Index: linux-stable/arch/sparc/kernel/ktlb.S
+===================================================================
+--- linux-stable.orig/arch/sparc/kernel/ktlb.S	2021-08-07 16:28:26.000000000 +0200
++++ linux-stable/arch/sparc/kernel/ktlb.S	2021-08-07 17:03:45.000000000 +0200
+@@ -150,7 +150,18 @@ kvmap_dtlb_4v:
+ 	 */
+ 	KERN_TSB_LOOKUP_TL1(%g4, %g6, %g5, %g1, %g2, %g3, kvmap_dtlb_load)
+ #else
++	sethi		%hi(tlb_type), %g1
++	lduw		[%g1 + %lo(tlb_type)], %g1
++	sub		%g1, 1, %g1
++	cmp		%g1, 1
++	bgu,pt		%xcc, use_4m_tsb
++	 nop
++
++	KERN_TSB_LOOKUP_TL1(%g4, %g6, %g5, %g1, %g2, %g3, kvmap_dtlb_load)
++	ba,pt		%xcc, kvmap_linear_patch
++	 nop
+ 	/* Correct TAG_TARGET is already in %g6, check 4mb TSB.  */
++use_4m_tsb:
+ 	KERN_TSB4M_LOOKUP_TL1(%g6, %g5, %g1, %g2, %g3, kvmap_dtlb_load)
+ #endif
+ 	/* Linear mapping TSB lookup failed.  Fallthrough to kernel
+
