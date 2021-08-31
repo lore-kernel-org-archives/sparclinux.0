@@ -2,67 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B206C4320E
-	for <sparclinux@archiver.kernel.org>; Mon, 30 Aug 2021 21:00:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79096C43214
+	for <sparclinux@archiver.kernel.org>; Tue, 31 Aug 2021 00:23:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3186C60F5B
-	for <sparclinux@archiver.kernel.org>; Mon, 30 Aug 2021 21:00:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A1F26056B
+	for <sparclinux@archiver.kernel.org>; Tue, 31 Aug 2021 00:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236795AbhH3VAz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 30 Aug 2021 17:00:55 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:31928 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S236200AbhH3VAy (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 30 Aug 2021 17:00:54 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1630357199;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=ZDgZoaGxuF8+VxsBt8mWUj6L6RMapnQD42kDmE3TNZQ=;
-        b=GH03Om/445Kfh0spCpfgBXGkgopeKaJKIqsbbIqGNoDmAlnZTvAthA2tI2dz9Aq5cuTnHb
-        S/4bNzDF2aRH+g5BXDAau4HDRE6CwBE5H4ZiUVX0kxknRtFixsmYk2gTkESXfR+1kQusEc
-        NugrIp20O33foRVdV+QJ3G9RR3jW/9o=
-Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
- [209.85.128.71]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-30-efmVVf0iPvmnbX03_9PY6Q-1; Mon, 30 Aug 2021 16:59:57 -0400
-X-MC-Unique: efmVVf0iPvmnbX03_9PY6Q-1
-Received: by mail-wm1-f71.google.com with SMTP id 5-20020a1c00050000b02902e67111d9f0so5162039wma.4
-        for <sparclinux@vger.kernel.org>; Mon, 30 Aug 2021 13:59:57 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:content-transfer-encoding
-         :in-reply-to;
-        bh=ZDgZoaGxuF8+VxsBt8mWUj6L6RMapnQD42kDmE3TNZQ=;
-        b=ERFHmWJuZUMvEqA3YE1EmSDuh205E80D/FDTnC4WcBxFYNuHlnTykzpc/PkUur0LM5
-         VtYqEoX0N+k61O+YrXtmNzrPXQ3r5ll9xMuuAq4r4gLinDwnMM+eFsEUfPS/zVsFYGZo
-         lcDTq2yQV5Tf/OXpzlovyd0vAm2VOkdYxqyg8PvCvuO3Gv6wjbTHZD5Sizct0cTbBVjO
-         +HAwt/b5VsHA7TrjtZib7KlshtShEC5WZmOg+22PUMQoy4SdR3vFfQJizZLLMqIEbHH5
-         gzyAzFMUYW5slkj51Sl9xtnQjW347JfebVan0g0VxJ/egylVLmVCPkh5eoLpJuX+NLo0
-         PrOg==
-X-Gm-Message-State: AOAM530CoXeMRHZwC6UYX0B/MNVCLzJkvAC4XW/FikWSKhsqFE3Qz+C9
-        ZPZum5VizGS7FYJ4LyyQ6676GKRq4lWBaoq7Z9HItw6ZpeSmgQ5z5mD6A1eDj27E5GxUSPdi86L
-        HT6AQbIm+B0feWnIA8rA/6g==
-X-Received: by 2002:a1c:7f48:: with SMTP id a69mr887134wmd.166.1630357196523;
-        Mon, 30 Aug 2021 13:59:56 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJxjS6eag15Cf7xmVDHk/qvmWoQLzIdnk7dLXkY7XjvOHcTw6SiXs3ksmYcUzh73pyrAtLIGDA==
-X-Received: by 2002:a1c:7f48:: with SMTP id a69mr887093wmd.166.1630357196296;
-        Mon, 30 Aug 2021 13:59:56 -0700 (PDT)
-Received: from redhat.com ([2.55.138.60])
-        by smtp.gmail.com with ESMTPSA id z9sm12277068wre.11.2021.08.30.13.59.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 30 Aug 2021 13:59:55 -0700 (PDT)
-Date:   Mon, 30 Aug 2021 16:59:50 -0400
-From:   "Michael S. Tsirkin" <mst@redhat.com>
-To:     Andi Kleen <ak@linux.intel.com>
+        id S233055AbhHaAYP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 30 Aug 2021 20:24:15 -0400
+Received: from mga18.intel.com ([134.134.136.126]:4596 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230523AbhHaAYO (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 30 Aug 2021 20:24:14 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10092"; a="205506671"
+X-IronPort-AV: E=Sophos;i="5.84,364,1620716400"; 
+   d="scan'208";a="205506671"
+Received: from fmsmga002.fm.intel.com ([10.253.24.26])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2021 17:23:19 -0700
+X-IronPort-AV: E=Sophos;i="5.84,364,1620716400"; 
+   d="scan'208";a="540780855"
+Received: from akleen-mobl1.amr.corp.intel.com (HELO [10.212.223.22]) ([10.212.223.22])
+  by fmsmga002-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2021 17:23:18 -0700
+Subject: Re: [PATCH v4 11/15] pci: Add pci_iomap_shared{,_range}
+To:     "Michael S. Tsirkin" <mst@redhat.com>
 Cc:     Dan Williams <dan.j.williams@intel.com>,
         "Kuppuswamy, Sathyanarayanan" 
         <sathyanarayanan.kuppuswamy@linux.intel.com>,
@@ -92,8 +58,6 @@ Cc:     Dan Williams <dan.j.williams@intel.com>,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>,
         virtualization@lists.linux-foundation.org
-Subject: Re: [PATCH v4 11/15] pci: Add pci_iomap_shared{,_range}
-Message-ID: <20210830163723-mutt-send-email-mst@kernel.org>
 References: <20210823195409-mutt-send-email-mst@kernel.org>
  <26a3cce5-ddf7-cbe6-a41e-58a2aea48f78@linux.intel.com>
  <CAPcyv4iJVQKJ3bVwZhD08c8GNEP0jW2gx=H504NXcYK5o2t01A@mail.gmail.com>
@@ -104,76 +68,57 @@ References: <20210823195409-mutt-send-email-mst@kernel.org>
  <09b340dd-c8a8-689c-4dad-4fe0e36d39ae@linux.intel.com>
  <20210829181635-mutt-send-email-mst@kernel.org>
  <3a88a255-a528-b00a-912b-e71198d5f58f@linux.intel.com>
+ <20210830163723-mutt-send-email-mst@kernel.org>
+From:   Andi Kleen <ak@linux.intel.com>
+Message-ID: <69fc30f4-e3e2-add7-ec13-4db3b9cc0cbd@linux.intel.com>
+Date:   Mon, 30 Aug 2021 17:23:17 -0700
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <3a88a255-a528-b00a-912b-e71198d5f58f@linux.intel.com>
+In-Reply-To: <20210830163723-mutt-send-email-mst@kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Aug 29, 2021 at 10:11:46PM -0700, Andi Kleen wrote:
-> 
-> On 8/29/2021 3:26 PM, Michael S. Tsirkin wrote:
-> > On Sun, Aug 29, 2021 at 09:17:53AM -0700, Andi Kleen wrote:
-> > > Also I changing this single call really that bad? It's not that we changing
-> > > anything drastic here, just give the low level subsystem a better hint about
-> > > the intention. If you don't like the function name, could make it an
-> > > argument instead?
-> > My point however is that the API should say that the
-> > driver has been audited,
-> 
-> We have that status in the struct device. If you want to tie the ioremap to
-> that we could define a ioremap_device() with a device argument and decide
-> based on that.
 
-But it's not the device that is audited. And it's not the device
-that might be secure or insecure. It's the driver.
+On 8/30/2021 1:59 PM, Michael S. Tsirkin wrote:
+>
+>> Or we can add _audited to the name. ioremap_shared_audited?
+> But it's not the mapping that has to be done in handled special way.
+> It's any data we get from device, not all of it coming from IO, e.g.
+> there's DMA and interrupts that all have to be validated.
+> Wouldn't you say that what is really wanted is just not running
+> unaudited drivers in the first place?
 
-> Or we can add _audited to the name. ioremap_shared_audited?
 
-But it's not the mapping that has to be done in handled special way.
-It's any data we get from device, not all of it coming from IO, e.g.
-there's DMA and interrupts that all have to be validated.
-Wouldn't you say that what is really wanted is just not running
-unaudited drivers in the first place?
+Yes.
 
-> 
-> > not that the mapping has been
-> > done in some special way. For example the mapping can be
-> > in some kind of wrapper, not directly in the driver.
-> > However you want the driver validated, not the wrapper.
-> > 
-> > Here's an idea:
-> 
-> 
-> I don't think magic differences of API behavior based on some define are a
-> good idea.  That's easy to miss.
 
-Well ... my point is that actually there is no difference in API
-behaviour. the map is the same map, exactly same data goes to device. If
-anything any non-shared map is special in that encrypted data goes to
-device.
+>
+>> And we've been avoiding that drivers can self declare auditing, we've been
+>> trying to have a separate centralized list so that it's easier to enforce
+>> and avoids any cut'n'paste mistakes.
+>>
+>> -Andi
+> Now I'm confused. What is proposed here seems to be basically that,
+> drivers need to declare auditing by replacing ioremap with
+> ioremap_shared.
 
-> 
-> That's a "COME FROM" in API design.
-> 
-> Also it wouldn't handle the case that a driver has both private and shared
-> ioremaps, e.g. for BIOS structures.
+Auditing is declared on the device model level using a central allow list.
 
-Hmm. Interesting.  It's bios maps that are unusual and need to be private though ...
+But this cannot do anything to initcalls that run before probe, that's 
+why an extra level of defense of ioremap opt-in is useful. But it's not 
+the primary mechanism to declare a driver audited, that's the allow 
+list. The ioremap is just another mechanism to avoid having to touch a 
+lot of legacy drivers.
 
-> And we've been avoiding that drivers can self declare auditing, we've been
-> trying to have a separate centralized list so that it's easier to enforce
-> and avoids any cut'n'paste mistakes.
-> 
-> -Andi
+If we agree on that then the original proposed semantics of 
+"ioremap_shared" may be acceptable?
 
-Now I'm confused. What is proposed here seems to be basically that,
-drivers need to declare auditing by replacing ioremap with
-ioremap_shared.
+-Andi
 
--- 
-MST
+
 
