@@ -2,109 +2,99 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66ABAC43217
-	for <sparclinux@archiver.kernel.org>; Fri,  3 Sep 2021 08:23:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10930C43217
+	for <sparclinux@archiver.kernel.org>; Sat,  4 Sep 2021 12:00:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C27560FC0
-	for <sparclinux@archiver.kernel.org>; Fri,  3 Sep 2021 08:23:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08E5D60BD3
+	for <sparclinux@archiver.kernel.org>; Sat,  4 Sep 2021 12:00:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348366AbhICIYr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 3 Sep 2021 04:24:47 -0400
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:2482 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1348295AbhICIYq (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Sep 2021 04:24:46 -0400
-Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.43/8.16.0.43) with SMTP id 18384kVk094606;
-        Fri, 3 Sep 2021 04:22:03 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : references : mime-version : content-type :
- in-reply-to; s=pp1; bh=yvn3uRltpD6qua2hyp0D2c7Lx/IW7lVKvIh+1+hY8jc=;
- b=sxqFHGBuVldPs6+5K/rqtVS9JHaQU11EacvwcMXWaBbncc1l8OOnAuO55qpy/Yz7lvG8
- fHBGcdKnfMjUhSSKgEXpC9tfhTNXhCD4RL1rLoTx+ouZqYUheCwxI6sQQRKrEw+MIkfP
- NvtrSkjS+pOzrkJLiM4WrfcV3fsDP5VKqrtC2E9soOQhjwnWHr03qec/WayDpr2td3x+
- 3dJLfkNMsgjwswwo311zitvpYu/rAJHq1kjaBUQjEZ5HM8L/YTyT0zKUTr/71/uf3dON
- n8LL5RnLa43g60fHv/kVumN2Z4k8oa5+mK/9XJPoCXZpMKfS4mcMm6AYJ7LnhFAdfrNc 2Q== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3auftc8fse-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 03 Sep 2021 04:22:03 -0400
-Received: from m0098410.ppops.net (m0098410.ppops.net [127.0.0.1])
-        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 18384pMm095198;
-        Fri, 3 Sep 2021 04:22:02 -0400
-Received: from ppma04fra.de.ibm.com (6a.4a.5195.ip4.static.sl-reverse.com [149.81.74.106])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 3auftc8frg-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 03 Sep 2021 04:22:02 -0400
-Received: from pps.filterd (ppma04fra.de.ibm.com [127.0.0.1])
-        by ppma04fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18388C9c028085;
-        Fri, 3 Sep 2021 08:21:59 GMT
-Received: from b06cxnps3074.portsmouth.uk.ibm.com (d06relay09.portsmouth.uk.ibm.com [9.149.109.194])
-        by ppma04fra.de.ibm.com with ESMTP id 3au6q74x6c-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 03 Sep 2021 08:21:59 +0000
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (b06wcsmtp001.portsmouth.uk.ibm.com [9.149.105.160])
-        by b06cxnps3074.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 1838LtB930671224
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 3 Sep 2021 08:21:55 GMT
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 50DCEA4054;
-        Fri,  3 Sep 2021 08:21:55 +0000 (GMT)
-Received: from b06wcsmtp001.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id D5A24A405B;
-        Fri,  3 Sep 2021 08:21:53 +0000 (GMT)
-Received: from osiris (unknown [9.145.159.114])
-        by b06wcsmtp001.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-        Fri,  3 Sep 2021 08:21:53 +0000 (GMT)
-Date:   Fri, 3 Sep 2021 10:21:52 +0200
-From:   Heiko Carstens <hca@linux.ibm.com>
-To:     Weizhao Ouyang <o451686892@gmail.com>
-Cc:     rostedt@goodmis.org, mingo@redhat.com, linux@armlinux.org.uk,
-        catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org,
-        monstr@monstr.eu, tsbogend@alpha.franken.de, nickhu@andestech.com,
-        green.hu@gmail.com, deanbo422@gmail.com,
-        James.Bottomley@hansenpartnership.com, deller@gmx.de,
+        id S236368AbhIDMBA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 4 Sep 2021 08:01:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44638 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234198AbhIDMA7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 4 Sep 2021 08:00:59 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24AF6C061575;
+        Sat,  4 Sep 2021 04:59:58 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id w19-20020a17090aaf9300b00191e6d10a19so1376742pjq.1;
+        Sat, 04 Sep 2021 04:59:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=cSlbZmXpuYD8xFeqZ0DwF8X1WWOBci0BBC9riaxZUYA=;
+        b=V/PDsqjvnlJBrJ+JE89/2f5evnVWxc43lhab6iUxot8bmYz+k40WJyKDXQ4ADGSfpn
+         SP/aotyqNyc9kL2HYOrc9BpAmWTCKz8FSnqj1J0FsqZA5wkQ4FRt4kFsFVPOvt5Yb+sr
+         JmDzj4fa2KlG+O109gOcKvbkkoLWQBV0YL/i5AEuut3omZNT3FWgfwM2Oo14pv2N9o1L
+         kxMZLAkfy3GNBL2rPG08tKEF8IIomALvwgQjBC5qOE8Ag9YrjJxA3FstQiTkUf7ltZPL
+         8nv83RBDTNJCHU0CzhxrnbeL1pQOZRn+l3h1XXCV6RjYe52sAPWYc2fgymiBKkDrXJSZ
+         VFyQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=cSlbZmXpuYD8xFeqZ0DwF8X1WWOBci0BBC9riaxZUYA=;
+        b=F+iijATiqeW8liBaaIKLyWElO7Dtws0AdqIhUJ0zJXF8nOgxFn5icJ80VoimXbZnbc
+         cAd0MoGefQsMDVAXir1XoYKy2Ah17EixdKgf12dgusqgptKU7aABlZA3guagjoJW67us
+         p0w3i9McyJUbs7RRreeUsEjoPHeIk7nTxwhXJSwfuSfrU0yG7RjodZ8tv9+f6+gaslA6
+         G1M/hJ6ja07f+iuKauIDW7eVECWagyBQrLJ3lt+Ajxz3Nva/wm+Cehhj5y0F49N9IvDf
+         WxW4STMFtrBBVg0CQ48OBZPeDBoo0nJH7bC5GxYElSAOOqjiou0tSWeJPbxIdVTvNWhT
+         VV2g==
+X-Gm-Message-State: AOAM532P5As07dr75Vdmx+VLVVC9khmlEdh6HNerv4LEod2PpZUEIyiE
+        r1m6ocsz5uAoRXCswsIUAusj9AYNixodkGzQ
+X-Google-Smtp-Source: ABdhPJwgObY05FTJzW20N4IfqsEwUWKxifFXB24KxwFfOt7JwTfAmgET7xmnoFJ+rG39t5ClYQmC5w==
+X-Received: by 2002:a17:90b:4c4f:: with SMTP id np15mr3954617pjb.30.1630756797323;
+        Sat, 04 Sep 2021 04:59:57 -0700 (PDT)
+Received: from owniadeMacBook-Pro.local ([103.97.201.4])
+        by smtp.gmail.com with ESMTPSA id z11sm2306331pfr.157.2021.09.04.04.59.49
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sat, 04 Sep 2021 04:59:56 -0700 (PDT)
+Subject: Re: [PATCH] ftrace: Cleanup ftrace_dyn_arch_init()
+To:     rostedt@goodmis.org, mingo@redhat.com
+Cc:     linux@armlinux.org.uk, catalin.marinas@arm.com, will@kernel.org,
+        guoren@kernel.org, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        nickhu@andestech.com, green.hu@gmail.com, deanbo422@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
         mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
         paul.walmsley@sifive.com, palmer@dabbelt.com,
-        aou@eecs.berkeley.edu, gor@linux.ibm.com, borntraeger@de.ibm.com,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        tglx@linutronix.de, bp@alien8.de, x86@kernel.org, hpa@zytor.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        borntraeger@de.ibm.com, ysato@users.sourceforge.jp,
+        dalias@libc.org, davem@davemloft.net, tglx@linutronix.de,
+        bp@alien8.de, x86@kernel.org, hpa@zytor.com,
         linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
         linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
         linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
         linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org
-Subject: Re: [PATCH] ftrace: Cleanup ftrace_dyn_arch_init()
-Message-ID: <YTHbIMVw2EhNpDwO@osiris>
 References: <20210903071817.1162938-1-o451686892@gmail.com>
+From:   Weizhao Ouyang <o451686892@gmail.com>
+Message-ID: <609ef9ee-079a-8d46-4ebe-ef8ab3e1e7ab@gmail.com>
+Date:   Sat, 4 Sep 2021 19:59:48 +0800
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0)
+ Gecko/20100101 Thunderbird/78.13.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 In-Reply-To: <20210903071817.1162938-1-o451686892@gmail.com>
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: v7gSly151gMH4jiswwJLQJyae83ofpqz
-X-Proofpoint-ORIG-GUID: 5AAR1uAs7Bex_EJmpFQlQUops1ZiOFiF
-X-Proofpoint-Virus-Version: vendor=fsecure engine=2.50.10434:6.0.391,18.0.790
- definitions=2021-09-03_02:2021-09-03,2021-09-03 signatures=0
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
- clxscore=1011 adultscore=0 spamscore=0 bulkscore=0 phishscore=0
- impostorscore=0 lowpriorityscore=0 mlxlogscore=634 suspectscore=0
- malwarescore=0 mlxscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2108310000 definitions=main-2109030048
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Sep 03, 2021 at 03:18:17PM +0800, Weizhao Ouyang wrote:
+
+On 2021/9/3 15:18, Weizhao Ouyang wrote:
 > Most ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
 > ftrace_dyn_arch_init() to cleanup them.
-> 
+>
 > Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
 > ---
 >  arch/arm/kernel/ftrace.c          | 5 -----
@@ -124,6 +114,255 @@ On Fri, Sep 03, 2021 at 03:18:17PM +0800, Weizhao Ouyang wrote:
 >  include/linux/ftrace.h            | 1 -
 >  kernel/trace/ftrace.c             | 5 +++++
 >  16 files changed, 11 insertions(+), 62 deletions(-)
+>
+> diff --git a/arch/arm/kernel/ftrace.c b/arch/arm/kernel/ftrace.c
+> index 3c83b5d29697..a006585e1c09 100644
+> --- a/arch/arm/kernel/ftrace.c
+> +++ b/arch/arm/kernel/ftrace.c
+> @@ -193,11 +193,6 @@ int ftrace_make_nop(struct module *mod,
+>  
+>  	return ret;
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif /* CONFIG_DYNAMIC_FTRACE */
+>  
+>  #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+> diff --git a/arch/arm64/kernel/ftrace.c b/arch/arm64/kernel/ftrace.c
+> index 7f467bd9db7a..fc62dfe73f93 100644
+> --- a/arch/arm64/kernel/ftrace.c
+> +++ b/arch/arm64/kernel/ftrace.c
+> @@ -236,11 +236,6 @@ void arch_ftrace_update_code(int command)
+>  	command |= FTRACE_MAY_SLEEP;
+>  	ftrace_modify_all_code(command);
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif /* CONFIG_DYNAMIC_FTRACE */
+>  
+>  #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+> diff --git a/arch/csky/kernel/ftrace.c b/arch/csky/kernel/ftrace.c
+> index b4a7ec1517ff..50bfcf129078 100644
+> --- a/arch/csky/kernel/ftrace.c
+> +++ b/arch/csky/kernel/ftrace.c
+> @@ -133,11 +133,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
+>  				(unsigned long)func, true, true);
+>  	return ret;
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif /* CONFIG_DYNAMIC_FTRACE */
+>  
+>  #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
+> diff --git a/arch/ia64/kernel/ftrace.c b/arch/ia64/kernel/ftrace.c
+> index b2ab2d58fb30..d6360fd404ab 100644
+> --- a/arch/ia64/kernel/ftrace.c
+> +++ b/arch/ia64/kernel/ftrace.c
+> @@ -194,9 +194,3 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
+>  	flush_icache_range(addr, addr + 16);
+>  	return 0;
+>  }
+> -
+> -/* run from kstop_machine */
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+> diff --git a/arch/microblaze/kernel/ftrace.c b/arch/microblaze/kernel/ftrace.c
+> index 224eea40e1ee..188749d62709 100644
+> --- a/arch/microblaze/kernel/ftrace.c
+> +++ b/arch/microblaze/kernel/ftrace.c
+> @@ -163,11 +163,6 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
+>  	return ret;
+>  }
+>  
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+> -
+>  int ftrace_update_ftrace_func(ftrace_func_t func)
+>  {
+>  	unsigned long ip = (unsigned long)(&ftrace_call);
+> diff --git a/arch/mips/include/asm/ftrace.h b/arch/mips/include/asm/ftrace.h
+> index b463f2aa5a61..ed013e767390 100644
+> --- a/arch/mips/include/asm/ftrace.h
+> +++ b/arch/mips/include/asm/ftrace.h
+> @@ -76,6 +76,8 @@ do {						\
+>  
+>  
+>  #ifdef CONFIG_DYNAMIC_FTRACE
+> +int __init ftrace_dyn_arch_init(void);
+> +
+>  static inline unsigned long ftrace_call_adjust(unsigned long addr)
+>  {
+>  	return addr;
+> diff --git a/arch/nds32/kernel/ftrace.c b/arch/nds32/kernel/ftrace.c
+> index 0e23e3a8df6b..f0ef4842d191 100644
+> --- a/arch/nds32/kernel/ftrace.c
+> +++ b/arch/nds32/kernel/ftrace.c
+> @@ -84,11 +84,6 @@ void _ftrace_caller(unsigned long parent_ip)
+>  	/* restore all state needed by the compiler epilogue */
+>  }
+>  
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+> -
+>  static unsigned long gen_sethi_insn(unsigned long addr)
+>  {
+>  	unsigned long opcode = 0x46000000;
+> diff --git a/arch/parisc/kernel/ftrace.c b/arch/parisc/kernel/ftrace.c
+> index 0a1e75af5382..01581f715737 100644
+> --- a/arch/parisc/kernel/ftrace.c
+> +++ b/arch/parisc/kernel/ftrace.c
+> @@ -94,11 +94,6 @@ int ftrace_disable_ftrace_graph_caller(void)
+>  #endif
+>  
+>  #ifdef CONFIG_DYNAMIC_FTRACE
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  int ftrace_update_ftrace_func(ftrace_func_t func)
+>  {
+>  	return 0;
+> diff --git a/arch/powerpc/include/asm/ftrace.h b/arch/powerpc/include/asm/ftrace.h
+> index debe8c4f7062..4db83cf4283f 100644
+> --- a/arch/powerpc/include/asm/ftrace.h
+> +++ b/arch/powerpc/include/asm/ftrace.h
+> @@ -61,6 +61,10 @@ struct dyn_arch_ftrace {
+>  };
+>  #endif /* __ASSEMBLY__ */
+>  
+> +#ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
+> +int __init ftrace_dyn_arch_init(void);
+> +#endif
+> +
 
-For s390:
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
+Sorry there is a mistake CONFIG, I will send a v2 patch later.
+
+>  #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
+>  #define ARCH_SUPPORTS_FTRACE_OPS 1
+>  #endif
+> diff --git a/arch/riscv/kernel/ftrace.c b/arch/riscv/kernel/ftrace.c
+> index 7f1e5203de88..4716f4cdc038 100644
+> --- a/arch/riscv/kernel/ftrace.c
+> +++ b/arch/riscv/kernel/ftrace.c
+> @@ -154,11 +154,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
+>  
+>  	return ret;
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif
+>  
+>  #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
+> diff --git a/arch/s390/kernel/ftrace.c b/arch/s390/kernel/ftrace.c
+> index 0a464d328467..3fd80397ff52 100644
+> --- a/arch/s390/kernel/ftrace.c
+> +++ b/arch/s390/kernel/ftrace.c
+> @@ -262,11 +262,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
+>  	return 0;
+>  }
+>  
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+> -
+>  void arch_ftrace_update_code(int command)
+>  {
+>  	if (ftrace_shared_hotpatch_trampoline(NULL))
+> diff --git a/arch/sh/kernel/ftrace.c b/arch/sh/kernel/ftrace.c
+> index 295c43315bbe..930001bb8c6a 100644
+> --- a/arch/sh/kernel/ftrace.c
+> +++ b/arch/sh/kernel/ftrace.c
+> @@ -252,11 +252,6 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
+>  
+>  	return ftrace_modify_code(rec->ip, old, new);
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif /* CONFIG_DYNAMIC_FTRACE */
+>  
+>  #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+> diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
+> index 684b84ce397f..eaead3da8e03 100644
+> --- a/arch/sparc/kernel/ftrace.c
+> +++ b/arch/sparc/kernel/ftrace.c
+> @@ -82,11 +82,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
+>  	new = ftrace_call_replace(ip, (unsigned long)func);
+>  	return ftrace_modify_code(ip, old, new);
+>  }
+> -
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+>  #endif
+>  
+>  #ifdef CONFIG_FUNCTION_GRAPH_TRACER
+> diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
+> index 1b3ce3b4a2a2..23d221a9a3cd 100644
+> --- a/arch/x86/kernel/ftrace.c
+> +++ b/arch/x86/kernel/ftrace.c
+> @@ -252,11 +252,6 @@ void arch_ftrace_update_code(int command)
+>  	ftrace_modify_all_code(command);
+>  }
+>  
+> -int __init ftrace_dyn_arch_init(void)
+> -{
+> -	return 0;
+> -}
+> -
+>  /* Currently only x86_64 supports dynamic trampolines */
+>  #ifdef CONFIG_X86_64
+>  
+> diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
+> index 832e65f06754..f1eca123d89d 100644
+> --- a/include/linux/ftrace.h
+> +++ b/include/linux/ftrace.h
+> @@ -573,7 +573,6 @@ ftrace_set_early_filter(struct ftrace_ops *ops, char *buf, int enable);
+>  
+>  /* defined in arch */
+>  extern int ftrace_ip_converted(unsigned long ip);
+> -extern int ftrace_dyn_arch_init(void);
+>  extern void ftrace_replace_code(int enable);
+>  extern int ftrace_update_ftrace_func(ftrace_func_t func);
+>  extern void ftrace_caller(void);
+> diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
+> index 7efbc8aaf7f6..4c090323198d 100644
+> --- a/kernel/trace/ftrace.c
+> +++ b/kernel/trace/ftrace.c
+> @@ -6846,6 +6846,11 @@ void __init ftrace_free_init_mem(void)
+>  	ftrace_free_mem(NULL, start, end);
+>  }
+>  
+> +int __init __weak ftrace_dyn_arch_init(void)
+> +{
+> +	return 0;
+> +}
+> +
+>  void __init ftrace_init(void)
+>  {
+>  	extern unsigned long __start_mcount_loc[];
+
+Thanks.
