@@ -2,384 +2,156 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-19.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MSGID_FROM_MTA_HEADER,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5201C43219
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11559C433F5
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:25:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99E9F61107
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE75C610E9
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:25:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243761AbhIGKG4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Sep 2021 06:06:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38720 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231194AbhIGKGy (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Sep 2021 06:06:54 -0400
-Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AE0BC061575;
-        Tue,  7 Sep 2021 03:05:48 -0700 (PDT)
-Received: by mail-pj1-x1032.google.com with SMTP id m21-20020a17090a859500b00197688449c4so1314451pjn.0;
-        Tue, 07 Sep 2021 03:05:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=XsFH+qQagyYhml3ETf2vA7O/cJmrmxQNmknQNQS/89c=;
-        b=EPEtxHQW9yV2reHCWPlSiaCfwvz536XVy6+nVlEmEoHFIqWlNio/chou6bg3zuLD6R
-         DgWF28ZEC8RZbdDFpaMNkGQec2xJH0a5n2nRj4XWPMjwx/Ml29sjudUTFa01/GK7dKL9
-         JhTuUP1500A3CvAAeWxsXWkKJaWyDrb063krX61oHn+tpgWuwTGWcDkt8z6+KZC9/CgF
-         NVsQH5HZlIG/ffOdGblF4sjYArdVxmx9IQsC48kCqWwcGFFodQp9Do7mOs1EROYlWdV6
-         iAJP+W4py/eQ2HqozJwQfQhoND404sHsr7Knr8WYZy02EMz+SzQ3lxZ3W/3TGY7G3iQ4
-         WJ9A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=XsFH+qQagyYhml3ETf2vA7O/cJmrmxQNmknQNQS/89c=;
-        b=i6u8VtPdxIugu5KlYg6Jp8tI6hySnt0SuNq/GvbRnVXd7zXGGxMH5iaQirYHxInKh7
-         kCaTkmvXPqpgJ49rVwfWKjVvfWwyw+Z1tzamH//Eswg0RJjOiuAu23Ms847bzktOqxLA
-         YV65Bv+wobDjYddN+aI7yLZW1lphiMLVfBBhaxDyK0Qc8xwTXA6I2RxedZ8StIPcWV5s
-         xTkgmr9E0Hb+cnJH0N2fQlrQthrIMFhd/ZMyGLZTMREhuOGKzSrCMkyWYCJYH6jsEIWA
-         KRaTT/HnsB3qM7+VpT0yMoroGrNZ97BJ9rA03MdJGf7pXQEGEkW0vd89HJ20C0lyBTTj
-         6cJw==
-X-Gm-Message-State: AOAM530rGvl2HYvyVpPR3+2LJoh0ozpexXauoNe4IcZFb1U62HR9XKVn
-        IiZ7I6GFno4YPlX/KkliEc4=
-X-Google-Smtp-Source: ABdhPJwdxvq27bvyuBdou1sXQrmHEZ7qMV/BvFtlru+2WaV0e5/rX3mk5Mexx9s0y+UJtnE6jpKOlQ==
-X-Received: by 2002:a17:90a:be11:: with SMTP id a17mr3611354pjs.229.1631009147670;
-        Tue, 07 Sep 2021 03:05:47 -0700 (PDT)
-Received: from ownia.. ([173.248.225.217])
-        by smtp.gmail.com with ESMTPSA id x10sm10599983pfj.174.2021.09.07.03.05.40
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Sep 2021 03:05:47 -0700 (PDT)
-From:   Weizhao Ouyang <o451686892@gmail.com>
-To:     Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nick Hu <nickhu@andestech.com>,
-        Greentime Hu <green.hu@gmail.com>,
-        Vincent Chen <deanbo422@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, Weizhao Ouyang <o451686892@gmail.com>
-Subject: [PATCH v3] ftrace: Cleanup ftrace_dyn_arch_init()
-Date:   Tue,  7 Sep 2021 18:05:24 +0800
-Message-Id: <20210907100524.1454928-1-o451686892@gmail.com>
-X-Mailer: git-send-email 2.30.2
-MIME-Version: 1.0
+        id S233647AbhIGK0G (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Sep 2021 06:26:06 -0400
+Received: from mail-sn1anam02on2041.outbound.protection.outlook.com ([40.107.96.41]:49177
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S232704AbhIGK0F (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 7 Sep 2021 06:26:05 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=EZJHdLwCql6rTZMNxs4MxmjmEvP8M646rxKf2D46YOEr1oH5PcMN/7XGs1iv/3ZSzNuA/7Lu9OF5cn6wfyHA4rIpUERhsCZgI8O98U+10/bEZiCJdqyJlFsP923l6QzzBGAugK9Vyrb921l+hjNam6Bua/oQWYm2GgOJEeXV1zPqbMeSLCUNFwTfdh22y4esGmyHpJ7JL3Fa1IUiwhfQZTARPSTAXkspMKpPera4x/oTzspltbgZdXfuB04EWbJ0qqJPDtthJA7Pmfvt4sIs4Xt4W/GHEqwBJpAwnLYBP4BCLa1H9zmrU0dE0i75NCA04IquY37S538xxkDNzX2Stw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=5vt1YI7dmXn8HoU9ao1GNa0OIz+EYKgkVJa4432sV7s=;
+ b=jAOy7FQ7GB6Pcysr9Xxa/ep4bBoZ3LskOSlLwbUWSqQiImZKE5cQYloObk8ZYhjKH2qTIwpaSxWs5RCmaqmTUbNGiXPrTpkuimr3CHabTU8vk4ivTP7E+wghdSc03YYuWRapJ27qvg2KbMvcYZreX7H0TROy7HoYgHwhsZ+rmnMefjH82abILuRBnyaQUPZKZBsx89dg4fFCbgtO8VI2gb9WjZWpgWDaozMekSiRTZjcoedoV84Awi7vs7yw/YJWRuZdNAoXHtH3OQyBQinkbYvFBk6tc2PsxYQ1d59cf2jU058Z+wKaz42+8b+6SmSfHrcgiiT6oKpH0EUdSuwyZw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=amd.com; dmarc=pass action=none header.from=amd.com; dkim=pass
+ header.d=amd.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=5vt1YI7dmXn8HoU9ao1GNa0OIz+EYKgkVJa4432sV7s=;
+ b=l2PHom2yOKDUgCfZxbc245oa/gTCaKLPbR9qPC/YeVjiydHYSdUDzoJdWOEfZSAL9fN3AZfLuwHNC48CU4KfVrcvOfNrIdBy9IuI5xcptYb6V6rce9QNWBxDq9THTv4KJoz8iAxlESsl+vAeAk0S9+CEnZYTWeqWyRwpImzsfxc=
+Authentication-Results: vger.kernel.org; dkim=none (message not signed)
+ header.d=none;vger.kernel.org; dmarc=none action=none header.from=amd.com;
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com (2603:10b6:208:159::19)
+ by MN2PR12MB4191.namprd12.prod.outlook.com (2603:10b6:208:1d3::7) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.17; Tue, 7 Sep
+ 2021 10:24:58 +0000
+Received: from MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::dce2:96e5:aba2:66fe]) by MN2PR12MB3775.namprd12.prod.outlook.com
+ ([fe80::dce2:96e5:aba2:66fe%6]) with mapi id 15.20.4478.025; Tue, 7 Sep 2021
+ 10:24:58 +0000
+Subject: Re: [PATCH] drm/ttm: fix the type mismatch error on sparc64
+To:     Huang Rui <ray.huang@amd.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20210907100302.3684453-1-ray.huang@amd.com>
+From:   =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <5e365947-4ae1-47a0-7565-7f0cdde0bd84@amd.com>
+Date:   Tue, 7 Sep 2021 12:24:52 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
+In-Reply-To: <20210907100302.3684453-1-ray.huang@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
+Content-Language: en-US
+X-ClientProxiedBy: PR0P264CA0154.FRAP264.PROD.OUTLOOK.COM
+ (2603:10a6:100:1b::22) To MN2PR12MB3775.namprd12.prod.outlook.com
+ (2603:10b6:208:159::19)
+MIME-Version: 1.0
+Received: from [192.168.178.21] (91.14.161.181) by PR0P264CA0154.FRAP264.PROD.OUTLOOK.COM (2603:10a6:100:1b::22) with Microsoft SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4500.14 via Frontend Transport; Tue, 7 Sep 2021 10:24:56 +0000
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: a79d7bb0-f73b-460a-f2b3-08d971e9be10
+X-MS-TrafficTypeDiagnostic: MN2PR12MB4191:
+X-MS-Exchange-Transport-Forked: True
+X-Microsoft-Antispam-PRVS: <MN2PR12MB41910A7294F86CB75242AB2B83D39@MN2PR12MB4191.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: gsOQJDhGNvKlHAwgidTV0F+o0bmf5fKlW4o59IY7FzCDlyrkQET5e8/FLCm9RO3msPD2OgisSB4e5dXHasVDCN/DyXvCEFF7ldzzVyT6MS1AXH9rg08j4ELPSEihrATgtaE9S/Ker1xYT0p1HLS3zacPp50HSmpSVQCvuVht6+ZI4QCqigNPnoqQdEXV7YO/X2iKdlT7Z+Ta7UbJ02eAuLw2T8kzs3MCQTtHRuzWtJxF6QIID5AGeyB6+BXtjAYhKsVYgCi1FDab2USjtL+zxlEcLvKyTchXcbMtoQ6NjFFEPFi34zOc7Zs3vmejA7M/ioi1YC9tf5WvbAN5bTgXQQ7qXEtUY1KjfdXRP1ucFgJ0rq8H1WWyZWkeXDbNOvsFV8VMADpj1NdgzM7H9HnIuBDf3ULBHN4ICgDxWKEDJz8zeFrCUqYIjlwA4QdYvqMGZoeKGr69JfNeutEYW7DVclJV42GW39NXa0IHxGznsg4n2oY5IomPzHdOa9pTcsVuTA4dDVegwPsbqtlgKhXHN0EmNHX9XT0vg2wEpySDber88WShLi99d4iOZNnn2o7YSa7YcI0lk/4EUBBdeOSa46uAHU7Gn9gsty9izbdW6J42XdWpFSN66qy38UjUj75MplbMHJMD1Fn3zLwrjCVSIjvV2GiKi0V4XuliaR1pKXpLEaoGUUWbWGegbCWAHx+yUkxl4XMtiKML1tvkRf60kGsbpHvqFaAdBpQYlD30Yl0=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MN2PR12MB3775.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(396003)(39860400002)(346002)(376002)(136003)(366004)(186003)(83380400001)(66476007)(6666004)(66946007)(31686004)(66556008)(26005)(110136005)(16576012)(316002)(54906003)(478600001)(36756003)(8676002)(66574015)(8936002)(2906002)(86362001)(4326008)(31696002)(38100700002)(2616005)(5660300002)(6486002)(956004)(45980500001)(43740500002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?VjI1NkUxOHRaTDAwRHBJYjJicC9hU05FQjlSTFVKRjFWYXdZS3RrWk4zcXBk?=
+ =?utf-8?B?TllPZ2FVSzdzcklKdVBDVkdqNU5DZG9PcUtMMnoxaXBxSnlzbVQvTXBrMWNs?=
+ =?utf-8?B?WWkvQThwTkRIREIrcm5FdEg1YWNYY1IzOStQT09kbGFPMzJGWXNXUEZidUFQ?=
+ =?utf-8?B?dU54RXFtU2tRbWR4RXh3WXRSZU9Fanh2WXI2VGRLYTRkTFZaazBoWTZPSnd5?=
+ =?utf-8?B?NXk1eW42SC90RkN3RWYvSitTZVRkeVJGY2VZL1I3UTVmYkVCVXVIcnhVa0cr?=
+ =?utf-8?B?dXhQTGJWdXVZQ1pFdnpCZFJ0L202bWtQRHZaMys2M2U2NkNzZmJFaCs3M0hT?=
+ =?utf-8?B?eXFhbXhxV0hPWGowb2pqbU5xWUZVWFJuQmYvYnp5Nmc3aG1FcXRZTFF4SjhO?=
+ =?utf-8?B?dGFzNWdwL2cxSmhVZTd4WEVmR2s3NUo4ZWM5Wnhud05OODMxUEhndVNHdDUw?=
+ =?utf-8?B?bFZPbElPSWNXQVR5ekhuUEtveVJiQzNGWUFWZCtSQ2Y1eFZmZEFrYjgyU1lq?=
+ =?utf-8?B?SkNqWXVtM2JQZmU0eUhJc2xpNnVmajJ1SjlKMWhpclBFOC96R0E5a29MbGRz?=
+ =?utf-8?B?MERTQkJGemVWRmxKWjlHQzNVaTFMSW1oTEJaZGEwZ1dXeFE2ZVhPbUtMQ1Rr?=
+ =?utf-8?B?cWNvMWM1enRweFRkZG1oOFJ6S3VFdmx6Y2x6L3MrSEQ4TFdpUFhmTndqL3pQ?=
+ =?utf-8?B?V3ViTjJ1MStDcWk0WUtlNlIyT29zSytaaW9JaFkreE5KY2xlNDV1aFR2dGsw?=
+ =?utf-8?B?MTdhbExPbmJqWG1VUU9rc2kvL0ZYVDhQTmk0WlFhV0hhV0hINTQrdXpEUTZV?=
+ =?utf-8?B?cFNVaHBHV2NLcGpMWDRGVE1TTVJPenBLT0tod3BrNHlkMHVvSUhzSjc1QkUy?=
+ =?utf-8?B?anhYY3JqUGFPZHd0Wll6WGNnenJtWUtxTGJwNUdUa0RTSmoxRG1iYXArMEY5?=
+ =?utf-8?B?NC9NZmhxeXBpNlk5bWFSWlY5SVhUTjJRSk9JNEJ5SVM0UTc5czAvSWNveW54?=
+ =?utf-8?B?Y0lScVBodEh5U3BXR3hiNUg1SllIVE1ZRDdKOEZlUnNDL2pFNURsd3lqRHUx?=
+ =?utf-8?B?S0VZSXBpMndZcHA3OUlQRUs4R1lTT0lZQU41UU5hL2tZeVMyL05KWURNVjVl?=
+ =?utf-8?B?d0ROU1MxS05hNGVTb2tPbGJUOEU5S1VpdU9PVzkzSWtCQi9YR3g2emhRSG5w?=
+ =?utf-8?B?UzQzTFMrZzZ1WUczQnZpeG5kSTlDdzQwbkNFbHM4QlpvbjVCeDZlTkp5T084?=
+ =?utf-8?B?d0ZWSXBrMTFHekVnRm9ia2gwb1VLb3h4Y3VRYnZ5bTdWa2Fxckk5SndpTnJN?=
+ =?utf-8?B?NHVsTUQ5WHlQREF1bm52d211WWZTY2pzZ2RnNk9lamFpTUo0MTNieTV5VmNW?=
+ =?utf-8?B?MjVadG5WWUd3aXlLK1JIYW1xS2ZSNkVjWUt2T3RxUVl3SU1wU2JScXMvS2l0?=
+ =?utf-8?B?ZzFrZERQd0pqTVZpSUY4cnVoZ1dtbmRwZ2VrcExxUTJCckpEV3l0OFFxMExD?=
+ =?utf-8?B?S1prL0xnUDY2R29WMjJ4c2pVMmRYTnNCSC9URnBOQWk1a2tPUDZ2Zk9QaTVI?=
+ =?utf-8?B?ZzFoU01rU3JDcFJYOFhWaE1IdUpLOERyR3dRVjJTbHFvMmlHNVAzSzFxQWJM?=
+ =?utf-8?B?YTNFMVpPZUV0NVJSczdLYlZ3UEp4aUd1UDU0SWkwNWRsV01qRmYzV3E1RUtv?=
+ =?utf-8?B?enpJeXFaa2IzN05CTm1FRlhBNEtYc3hQOERQRHBpNURjOFlvRWh5bVBKeWJM?=
+ =?utf-8?Q?RLd9RZZiTbr/QlkPjmYFoYzTuqJWHZs1j5Hf7yL?=
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: a79d7bb0-f73b-460a-f2b3-08d971e9be10
+X-MS-Exchange-CrossTenant-AuthSource: MN2PR12MB3775.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2021 10:24:58.1515
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: Rs2ScRrqOxV0ntA4jvNAOIk6PEVC0dhBq/iUmKUhsrWWS9bPkWbnKfCHGRzlGnBr
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB4191
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Most of ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
-ftrace_dyn_arch_init() to cleanup them.
+Am 07.09.21 um 12:03 schrieb Huang Rui:
+> __fls() on sparc64 return "int", but here it is expected as "unsigned
+> long" (x86). It will cause the build errors because the warning becomes
+> fatal while it is using sparc configuration. As suggested by Linus, it
+> can use min_t instead of min to force the type as "unsigned int".
+>
+> Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+> Signed-off-by: Huang Rui <ray.huang@amd.com>
+> Cc: Christian König <christian.koenig@amd.com>
 
-Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
-Acked-by: Heiko Carstens <hca@linux.ibm.com> (s390)
-Acked-by: Helge Deller <deller@gmx.de> (parisc)
+Reviewed-by: Christian König <christian.koenig@amd.com>
 
----
-Changes in v3:
--- fix unrecognized opcode on PowerPC
-
-Changes in v2:
--- correct CONFIG_DYNAMIC_FTRACE on PowerPC
--- add Acked-by tag
-
----
- arch/arm/kernel/ftrace.c          | 5 -----
- arch/arm64/kernel/ftrace.c        | 5 -----
- arch/csky/kernel/ftrace.c         | 5 -----
- arch/ia64/kernel/ftrace.c         | 6 ------
- arch/microblaze/kernel/ftrace.c   | 5 -----
- arch/mips/include/asm/ftrace.h    | 2 ++
- arch/nds32/kernel/ftrace.c        | 5 -----
- arch/parisc/kernel/ftrace.c       | 5 -----
- arch/powerpc/include/asm/ftrace.h | 4 ++++
- arch/riscv/kernel/ftrace.c        | 5 -----
- arch/s390/kernel/ftrace.c         | 5 -----
- arch/sh/kernel/ftrace.c           | 5 -----
- arch/sparc/kernel/ftrace.c        | 5 -----
- arch/x86/kernel/ftrace.c          | 5 -----
- include/linux/ftrace.h            | 1 -
- kernel/trace/ftrace.c             | 5 +++++
- 16 files changed, 11 insertions(+), 62 deletions(-)
-
-diff --git a/arch/arm/kernel/ftrace.c b/arch/arm/kernel/ftrace.c
-index 3c83b5d29697..a006585e1c09 100644
---- a/arch/arm/kernel/ftrace.c
-+++ b/arch/arm/kernel/ftrace.c
-@@ -193,11 +193,6 @@ int ftrace_make_nop(struct module *mod,
- 
- 	return ret;
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif /* CONFIG_DYNAMIC_FTRACE */
- 
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
-diff --git a/arch/arm64/kernel/ftrace.c b/arch/arm64/kernel/ftrace.c
-index 7f467bd9db7a..fc62dfe73f93 100644
---- a/arch/arm64/kernel/ftrace.c
-+++ b/arch/arm64/kernel/ftrace.c
-@@ -236,11 +236,6 @@ void arch_ftrace_update_code(int command)
- 	command |= FTRACE_MAY_SLEEP;
- 	ftrace_modify_all_code(command);
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif /* CONFIG_DYNAMIC_FTRACE */
- 
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
-diff --git a/arch/csky/kernel/ftrace.c b/arch/csky/kernel/ftrace.c
-index b4a7ec1517ff..50bfcf129078 100644
---- a/arch/csky/kernel/ftrace.c
-+++ b/arch/csky/kernel/ftrace.c
-@@ -133,11 +133,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
- 				(unsigned long)func, true, true);
- 	return ret;
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif /* CONFIG_DYNAMIC_FTRACE */
- 
- #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
-diff --git a/arch/ia64/kernel/ftrace.c b/arch/ia64/kernel/ftrace.c
-index b2ab2d58fb30..d6360fd404ab 100644
---- a/arch/ia64/kernel/ftrace.c
-+++ b/arch/ia64/kernel/ftrace.c
-@@ -194,9 +194,3 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
- 	flush_icache_range(addr, addr + 16);
- 	return 0;
- }
--
--/* run from kstop_machine */
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
-diff --git a/arch/microblaze/kernel/ftrace.c b/arch/microblaze/kernel/ftrace.c
-index 224eea40e1ee..188749d62709 100644
---- a/arch/microblaze/kernel/ftrace.c
-+++ b/arch/microblaze/kernel/ftrace.c
-@@ -163,11 +163,6 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
- 	return ret;
- }
- 
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
--
- int ftrace_update_ftrace_func(ftrace_func_t func)
- {
- 	unsigned long ip = (unsigned long)(&ftrace_call);
-diff --git a/arch/mips/include/asm/ftrace.h b/arch/mips/include/asm/ftrace.h
-index b463f2aa5a61..ed013e767390 100644
---- a/arch/mips/include/asm/ftrace.h
-+++ b/arch/mips/include/asm/ftrace.h
-@@ -76,6 +76,8 @@ do {						\
- 
- 
- #ifdef CONFIG_DYNAMIC_FTRACE
-+int __init ftrace_dyn_arch_init(void);
-+
- static inline unsigned long ftrace_call_adjust(unsigned long addr)
- {
- 	return addr;
-diff --git a/arch/nds32/kernel/ftrace.c b/arch/nds32/kernel/ftrace.c
-index 0e23e3a8df6b..f0ef4842d191 100644
---- a/arch/nds32/kernel/ftrace.c
-+++ b/arch/nds32/kernel/ftrace.c
-@@ -84,11 +84,6 @@ void _ftrace_caller(unsigned long parent_ip)
- 	/* restore all state needed by the compiler epilogue */
- }
- 
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
--
- static unsigned long gen_sethi_insn(unsigned long addr)
- {
- 	unsigned long opcode = 0x46000000;
-diff --git a/arch/parisc/kernel/ftrace.c b/arch/parisc/kernel/ftrace.c
-index 0a1e75af5382..01581f715737 100644
---- a/arch/parisc/kernel/ftrace.c
-+++ b/arch/parisc/kernel/ftrace.c
-@@ -94,11 +94,6 @@ int ftrace_disable_ftrace_graph_caller(void)
- #endif
- 
- #ifdef CONFIG_DYNAMIC_FTRACE
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- int ftrace_update_ftrace_func(ftrace_func_t func)
- {
- 	return 0;
-diff --git a/arch/powerpc/include/asm/ftrace.h b/arch/powerpc/include/asm/ftrace.h
-index debe8c4f7062..b05c43f13a4d 100644
---- a/arch/powerpc/include/asm/ftrace.h
-+++ b/arch/powerpc/include/asm/ftrace.h
-@@ -126,6 +126,10 @@ static inline void this_cpu_enable_ftrace(void) { }
- static inline void this_cpu_set_ftrace_enabled(u8 ftrace_enabled) { }
- static inline u8 this_cpu_get_ftrace_enabled(void) { return 1; }
- #endif /* CONFIG_PPC64 */
-+
-+#ifdef CONFIG_DYNAMIC_FTRACE
-+int __init ftrace_dyn_arch_init(void);
-+#endif /* CONFIG_DYNAMIC_FTRACE */
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _ASM_POWERPC_FTRACE */
-diff --git a/arch/riscv/kernel/ftrace.c b/arch/riscv/kernel/ftrace.c
-index 7f1e5203de88..4716f4cdc038 100644
---- a/arch/riscv/kernel/ftrace.c
-+++ b/arch/riscv/kernel/ftrace.c
-@@ -154,11 +154,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
- 
- 	return ret;
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif
- 
- #ifdef CONFIG_DYNAMIC_FTRACE_WITH_REGS
-diff --git a/arch/s390/kernel/ftrace.c b/arch/s390/kernel/ftrace.c
-index 0a464d328467..3fd80397ff52 100644
---- a/arch/s390/kernel/ftrace.c
-+++ b/arch/s390/kernel/ftrace.c
-@@ -262,11 +262,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
- 	return 0;
- }
- 
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
--
- void arch_ftrace_update_code(int command)
- {
- 	if (ftrace_shared_hotpatch_trampoline(NULL))
-diff --git a/arch/sh/kernel/ftrace.c b/arch/sh/kernel/ftrace.c
-index 295c43315bbe..930001bb8c6a 100644
---- a/arch/sh/kernel/ftrace.c
-+++ b/arch/sh/kernel/ftrace.c
-@@ -252,11 +252,6 @@ int ftrace_make_call(struct dyn_ftrace *rec, unsigned long addr)
- 
- 	return ftrace_modify_code(rec->ip, old, new);
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif /* CONFIG_DYNAMIC_FTRACE */
- 
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
-diff --git a/arch/sparc/kernel/ftrace.c b/arch/sparc/kernel/ftrace.c
-index 684b84ce397f..eaead3da8e03 100644
---- a/arch/sparc/kernel/ftrace.c
-+++ b/arch/sparc/kernel/ftrace.c
-@@ -82,11 +82,6 @@ int ftrace_update_ftrace_func(ftrace_func_t func)
- 	new = ftrace_call_replace(ip, (unsigned long)func);
- 	return ftrace_modify_code(ip, old, new);
- }
--
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
- #endif
- 
- #ifdef CONFIG_FUNCTION_GRAPH_TRACER
-diff --git a/arch/x86/kernel/ftrace.c b/arch/x86/kernel/ftrace.c
-index 1b3ce3b4a2a2..23d221a9a3cd 100644
---- a/arch/x86/kernel/ftrace.c
-+++ b/arch/x86/kernel/ftrace.c
-@@ -252,11 +252,6 @@ void arch_ftrace_update_code(int command)
- 	ftrace_modify_all_code(command);
- }
- 
--int __init ftrace_dyn_arch_init(void)
--{
--	return 0;
--}
--
- /* Currently only x86_64 supports dynamic trampolines */
- #ifdef CONFIG_X86_64
- 
-diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
-index 832e65f06754..f1eca123d89d 100644
---- a/include/linux/ftrace.h
-+++ b/include/linux/ftrace.h
-@@ -573,7 +573,6 @@ ftrace_set_early_filter(struct ftrace_ops *ops, char *buf, int enable);
- 
- /* defined in arch */
- extern int ftrace_ip_converted(unsigned long ip);
--extern int ftrace_dyn_arch_init(void);
- extern void ftrace_replace_code(int enable);
- extern int ftrace_update_ftrace_func(ftrace_func_t func);
- extern void ftrace_caller(void);
-diff --git a/kernel/trace/ftrace.c b/kernel/trace/ftrace.c
-index 7efbc8aaf7f6..4c090323198d 100644
---- a/kernel/trace/ftrace.c
-+++ b/kernel/trace/ftrace.c
-@@ -6846,6 +6846,11 @@ void __init ftrace_free_init_mem(void)
- 	ftrace_free_mem(NULL, start, end);
- }
- 
-+int __init __weak ftrace_dyn_arch_init(void)
-+{
-+	return 0;
-+}
-+
- void __init ftrace_init(void)
- {
- 	extern unsigned long __start_mcount_loc[];
--- 
-2.30.2
+> ---
+>   drivers/gpu/drm/ttm/ttm_pool.c | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/gpu/drm/ttm/ttm_pool.c b/drivers/gpu/drm/ttm/ttm_pool.c
+> index af1b41369626..c961a788b519 100644
+> --- a/drivers/gpu/drm/ttm/ttm_pool.c
+> +++ b/drivers/gpu/drm/ttm/ttm_pool.c
+> @@ -382,7 +382,8 @@ int ttm_pool_alloc(struct ttm_pool *pool, struct ttm_tt *tt,
+>   	else
+>   		gfp_flags |= GFP_HIGHUSER;
+>   
+> -	for (order = min(MAX_ORDER - 1UL, __fls(num_pages)); num_pages;
+> +	for (order = min_t(unsigned int, MAX_ORDER - 1, __fls(num_pages));
+> +	     num_pages;
+>   	     order = min_t(unsigned int, order, __fls(num_pages))) {
+>   		bool apply_caching = false;
+>   		struct ttm_pool_type *pt;
 
