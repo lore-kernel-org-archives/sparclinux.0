@@ -2,265 +2,131 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-6.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-18.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89ADFC433EF
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 08:56:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12185C433F5
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:03:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6B6766109D
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 08:56:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E83E561106
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 10:03:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243101AbhIGI6E (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Sep 2021 04:58:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37816 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242828AbhIGI6E (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 7 Sep 2021 04:58:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 50391610E9;
-        Tue,  7 Sep 2021 08:56:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631005018;
-        bh=5FwQgdqHiCk4qrBnRBDZ7R7Y2Jv/W7kGMEfNG3K45Ow=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=IxBWPDbyminDJoUjkG8JLHkVQs53VG2rSy2PMTLjhNcpkmGV/rqRf7JS/LDrPOvvL
-         wSDxqqwD11o+Mfp/VnMhKJoxmiFXqP0yBBRy/QmAVinmfb7kO7IQ4bH1Y27Lrgpvjp
-         UJJ9zPVeRkZwwddAB3GMtVsFsQPM3dOXsSNZ+OFW49RhRp5t+02cxvMAUXwgVY4vvQ
-         URLmN+R8zK8gjZivYLS546CYX6mtWP/dJIJuKjQaY2QpNPyQ3QBYZ42tY5YfQdT9F9
-         xFvmc64wXVS0AVmJ/HKtdAWGix+Dq7GZjqsFl47aL4BYwjFz9n3fwn6Z+LcUfMDRsm
-         iPiRJAjY7D9sA==
-Received: by mail-wm1-f52.google.com with SMTP id m2so6272504wmm.0;
-        Tue, 07 Sep 2021 01:56:58 -0700 (PDT)
-X-Gm-Message-State: AOAM533yNAenEQkhiknSAHEo/BLeoi4iBidPQeKBSsrXIkbzXlCOkJxA
-        tvy/cGY1h7OHKmpi/bFmuDljPoeY/+9gsltPs5I=
-X-Google-Smtp-Source: ABdhPJyIHAJwziASQyXA9WKTYbsUInPiF9gmsApUbOfB+4JGIVFUSDgi+Cwpjh7mT4/KI95EIaWeWfoocM4PirSjR0s=
-X-Received: by 2002:a1c:3182:: with SMTP id x124mr2756387wmx.35.1631005016875;
- Tue, 07 Sep 2021 01:56:56 -0700 (PDT)
+        id S231447AbhIGKEe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Sep 2021 06:04:34 -0400
+Received: from mail-mw2nam08on2064.outbound.protection.outlook.com ([40.107.101.64]:43969
+        "EHLO NAM04-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S231194AbhIGKEd (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 7 Sep 2021 06:04:33 -0400
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=X8E0ZFsp8NUm4LSr6xkvzEburc5Wl+TvuBepFoP0uYTpCzaNHBf4F6kyid8D7JvaivKL2CoSgHccyxXoH4vkAC7T3mTNnqykhyH0SHgsjgKGZzok0B0Vs1CgD4M+5m0hHOiodm+bmqOXKKwLPDlr6nKCDPBlZOfw5GCpzyAhIe97r4gKTe8zjbSDe6yzvuuLCT1g2l5IhBdF72RPHJVy/KUfrmyQaBaZp83uhHEs4ckmhi3UQCE/0LX7ipjgXY5zryQCRdKsrpD/2mdA58o7PUAoQT/bTWZX0syLsvERtJ5pRBXPeB3agZA2XC4SXpNoRtkShOCeND4XV6jwdMMkNw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
+ bh=ymdB83v2h9vcJyo3O2Oe7vm75KEd8RwGnzSjAE6Z1fA=;
+ b=NR67NulNzByGMfWgySdiMF2JMXTfOx19787a2owJnYhalV/Y+01bpZu5LS5vjR9DTmQU+Yrba/pM5gle7jQsZsaaJptOgN8CpjqfC6Bv1onPMFLioiN1gv1AEhS8300kx0pBI0ivPGtyVE4ftErtJEdFdrtgu/aTpDUcPzLWeWkKi7F89lfWC0WzP0VRKewVAzCzZUcs3HcsLbOGW3l/9Pk/wDICvTWO/nbBbBTt85GE38/vRbA6WYizXbUbsNJKPMgf8i3Rj4jHFEAI6TgtW72dA1s+VnEeSFkvYgDJ4Va35qZ+GJPAW2ctHKyXgkJnXY9l53UemICnVEltfL0AhA==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass (sender ip is
+ 165.204.84.17) smtp.rcpttodomain=ffwll.ch smtp.mailfrom=amd.com; dmarc=pass
+ (p=quarantine sp=quarantine pct=100) action=none header.from=amd.com;
+ dkim=none (message not signed); arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=amd.com; s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=ymdB83v2h9vcJyo3O2Oe7vm75KEd8RwGnzSjAE6Z1fA=;
+ b=VKiajmruLe6AaeUWGbewWcEVQhE8/bJNqCiJNq1psJylxlk5Xeizp/VQXSiAJCS1sFSYaj/y/qMGwPyZME4vSVXbow1dIAEtWjyHmUqUdsvokXsdZMoUzfxf9f4TksyiQJ7bQ/Cl8BSvTwXN5ng3QH3c7LALu0YDYYGfp4NR2Yo=
+Received: from DM5PR12CA0006.namprd12.prod.outlook.com (2603:10b6:4:1::16) by
+ MN2PR12MB3264.namprd12.prod.outlook.com (2603:10b6:208:104::23) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.19; Tue, 7 Sep
+ 2021 10:03:21 +0000
+Received: from DM6NAM11FT047.eop-nam11.prod.protection.outlook.com
+ (2603:10b6:4:1:cafe::be) by DM5PR12CA0006.outlook.office365.com
+ (2603:10b6:4:1::16) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.19 via Frontend
+ Transport; Tue, 7 Sep 2021 10:03:21 +0000
+X-MS-Exchange-Authentication-Results: spf=pass (sender IP is 165.204.84.17)
+ smtp.mailfrom=amd.com; ffwll.ch; dkim=none (message not signed)
+ header.d=none;ffwll.ch; dmarc=pass action=none header.from=amd.com;
+Received-SPF: Pass (protection.outlook.com: domain of amd.com designates
+ 165.204.84.17 as permitted sender) receiver=protection.outlook.com;
+ client-ip=165.204.84.17; helo=SATLEXMB04.amd.com;
+Received: from SATLEXMB04.amd.com (165.204.84.17) by
+ DM6NAM11FT047.mail.protection.outlook.com (10.13.172.139) with Microsoft SMTP
+ Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.20.4478.19 via Frontend Transport; Tue, 7 Sep 2021 10:03:20 +0000
+Received: from hr-amd.amd.com (10.180.168.240) by SATLEXMB04.amd.com
+ (10.181.40.145) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.8; Tue, 7 Sep 2021
+ 05:03:18 -0500
+From:   Huang Rui <ray.huang@amd.com>
+To:     =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        "Daniel Vetter" <daniel.vetter@ffwll.ch>,
+        <dri-devel@lists.freedesktop.org>
+CC:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        <linux-kernel@vger.kernel.org>, <sparclinux@vger.kernel.org>,
+        Huang Rui <ray.huang@amd.com>
+Subject: [PATCH] drm/ttm: fix the type mismatch error on sparc64
+Date:   Tue, 7 Sep 2021 18:03:02 +0800
+Message-ID: <20210907100302.3684453-1-ray.huang@amd.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20210906142615.GA1917503@roeck-us.net> <CAHk-=wgjTePY1v_D-jszz4NrpTso0CdvB9PcdroPS=TNU1oZMQ@mail.gmail.com>
- <c3790fb9-b83f-9596-18a1-21ace987c850@roeck-us.net> <CAHk-=wi4NW3NC0xWykkw=6LnjQD6D_rtRtxY9g8gQAJXtQMi8A@mail.gmail.com>
- <20210906234921.GA1394069@roeck-us.net>
-In-Reply-To: <20210906234921.GA1394069@roeck-us.net>
-From:   Arnd Bergmann <arnd@kernel.org>
-Date:   Tue, 7 Sep 2021 10:56:40 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a2H6HMpz26myHXYr+5cR=PM1hbW8=afy5LaEJTj28a8WQ@mail.gmail.com>
-Message-ID: <CAK8P3a2H6HMpz26myHXYr+5cR=PM1hbW8=afy5LaEJTj28a8WQ@mail.gmail.com>
-Subject: Re: [PATCH] Enable '-Werror' by default for all kernel builds
-To:     Guenter Roeck <linux@roeck-us.net>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Christian Koenig <christian.koenig@amd.com>,
-        Huang Rui <ray.huang@amd.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sparc <sparclinux@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [10.180.168.240]
+X-ClientProxiedBy: SATLEXMB03.amd.com (10.181.40.144) To SATLEXMB04.amd.com
+ (10.181.40.145)
+X-EOPAttributedMessage: 0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 08ed54b0-b979-47b7-f14b-08d971e6b902
+X-MS-TrafficTypeDiagnostic: MN2PR12MB3264:
+X-Microsoft-Antispam-PRVS: <MN2PR12MB32642EABFEC95568D01B9892ECD39@MN2PR12MB3264.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7219;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: scZjuTrRTim9eC76wyqPXm6GV2YRxzqfKRhMMXAMQGEVGliD1vqNNOyH+NG+Zad3PGKF7rcR5KwJgL/hp97zCYPPGHkfk00icOKoqbmBjn3QLEHD5BQzahnfF121l3IwgMlrDa8WY55f4Vwhvr41Y4LDc2inc8QQ3wlpSP7zpauzaxmhOW2vjHlX3XDTnThd1zbLkuf2cEK0tOogFMcZsTuwTR7WJ9b4Ye+0M6LAnefqQitXKDCIyAIiGLg/JbxwLPjbOZLoLLwDAJL+6UFTi7OckYooa5Yf+S/QGWFhNNro+EKtVxqfZNMGPfC7dOHs/7d1Aj4FReEDxJNZgOiZdRiwPppCrx5N34C13JPVwttLPxIpF0JhctZwf402/RtPNCQF7HjEQHl/rEX4ZhWw6veB5mQ2N6hfuhyOA1HQPtS7dFpyFy/0eFxYq3c/mxHGxRvAogQebYwTDK9RvxckIruV1ZXikGct1CpOMfR5OmHOfJB2eYbR5/8DM58zXK3PYQZBllpnoUKUyVw797FCvTLiWWJLerOPERm6TjVZzFluXMPiKOHFQEAoDdQ9a/gWS7oVxRCltN7cl7jrkeZGJHc20elEbhUZxqwaNUwFyoHV3uoEiMszGrRKc0KfastXbB3ZKJkQqtA9GgG8IafItWBAdcoEtShSSI+R03eNQsr0mUFB/PnaYlF9yVLnrmqxhVQ4tXBhZ4oKaiyNiRhXLkihUyVEUTR9y4BdxfnrwRj5l55Tj7nOhe+nV2WyKBgm
+X-Forefront-Antispam-Report: CIP:165.204.84.17;CTRY:US;LANG:en;SCL:1;SRV:;IPV:CAL;SFV:NSPM;H:SATLEXMB04.amd.com;PTR:InfoDomainNonexistent;CAT:NONE;SFS:(4636009)(396003)(376002)(39860400002)(136003)(346002)(46966006)(36840700001)(6666004)(1076003)(47076005)(8936002)(4326008)(82740400003)(7696005)(356005)(81166007)(36860700001)(2906002)(26005)(82310400003)(336012)(66574015)(426003)(2616005)(16526019)(186003)(110136005)(478600001)(70586007)(70206006)(5660300002)(316002)(36756003)(83380400001)(54906003)(86362001)(8676002)(36900700001)(2101003);DIR:OUT;SFP:1101;
+X-OriginatorOrg: amd.com
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 07 Sep 2021 10:03:20.9160
+ (UTC)
+X-MS-Exchange-CrossTenant-Network-Message-Id: 08ed54b0-b979-47b7-f14b-08d971e6b902
+X-MS-Exchange-CrossTenant-Id: 3dd8961f-e488-4e60-8e11-a82d994e183d
+X-MS-Exchange-CrossTenant-OriginalAttributedTenantConnectingIp: TenantId=3dd8961f-e488-4e60-8e11-a82d994e183d;Ip=[165.204.84.17];Helo=[SATLEXMB04.amd.com]
+X-MS-Exchange-CrossTenant-AuthSource: DM6NAM11FT047.eop-nam11.prod.protection.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Anonymous
+X-MS-Exchange-CrossTenant-FromEntityHeader: HybridOnPrem
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR12MB3264
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Sep 7, 2021 at 1:51 AM Guenter Roeck <linux@roeck-us.net> wrote:
-> On Mon, Sep 06, 2021 at 04:06:04PM -0700, Linus Torvalds wrote:
-> > [ Adding some subsystem maintainers ]
-> >
-> > On Mon, Sep 6, 2021 at 10:06 AM Guenter Roeck <linux@roeck-us.net> wrot=
-e:
-> > >
-> > > > But hopefully most cases are just "people haven't cared enough" and
-> > > > easily fixed.
-> > >
-> > > We'll see. For my testbed I disabled the new configuration flag
-> > > for the time being because its primary focus is boot tests, and
-> > > there won't be any boot tests if images fail to build.
-> >
-> > Sure, reasonable.
-> >
-> > I've checked a few of the build errors by doing the appropriate cross
-> > compiles, and it doesn't seem bad - but it does seem like we have a
-> > number of really pointless long-standing warnings that should have
-> > been fixed long ago.
+__fls() on sparc64 return "int", but here it is expected as "unsigned
+long" (x86). It will cause the build errors because the warning becomes
+fatal while it is using sparc configuration. As suggested by Linus, it
+can use min_t instead of min to force the type as "unsigned int".
 
-I have a tree with fixes for anything that has hit on arm, arm64 or x86.
-There are many reasons why some patch never made it in, but usually
-it's because I was not persistent about resending the fix when the first
-version didn't make it. In other cases I wasn't sure about my own fix.
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Huang Rui <ray.huang@amd.com>
+Cc: Christian König <christian.koenig@amd.com>
+---
+ drivers/gpu/drm/ttm/ttm_pool.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-> > For example, looking at sparc64, there are several build errors due to
-> > those warnings now being fatal:
-> >
-> >  - drivers/gpu/drm/ttm/ttm_pool.c:386
-> >
-> >    This is a type mismatch error. It looks like __fls() on sparc64
-> > returns 'int'. And the ttm_pool.c code assumes it returns 'unsigned
-> > long'.
-> >    Oddly enough, the very line after that line does "min_t(unsigned
-> > int" to get the types in line.
-> >    So  the immediate reason is "sparc64 is different".
+diff --git a/drivers/gpu/drm/ttm/ttm_pool.c b/drivers/gpu/drm/ttm/ttm_pool.c
+index af1b41369626..c961a788b519 100644
+--- a/drivers/gpu/drm/ttm/ttm_pool.c
++++ b/drivers/gpu/drm/ttm/ttm_pool.c
+@@ -382,7 +382,8 @@ int ttm_pool_alloc(struct ttm_pool *pool, struct ttm_tt *tt,
+ 	else
+ 		gfp_flags |= GFP_HIGHUSER;
+ 
+-	for (order = min(MAX_ORDER - 1UL, __fls(num_pages)); num_pages;
++	for (order = min_t(unsigned int, MAX_ORDER - 1, __fls(num_pages));
++	     num_pages;
+ 	     order = min_t(unsigned int, order, __fls(num_pages))) {
+ 		bool apply_caching = false;
+ 		struct ttm_pool_type *pt;
+-- 
+2.25.1
 
-arc is the same as sparc here, but everything else uses unsigned long.
-We've come a long way in making all those helper functions consistent
-in their types, but there are still a number of exceptions.
-
-> > But the deeper
-> > reason seems to be that ttm_pool.c has odd type assumptions. But that
-> > warning should have been fixed long ago, either way.
-> >
-> >    Christian/Huang? I get the feeling that both lines in that file
-> > should use the min_t(). Hmm?
-> >
-> >  - drivers/input/joystick/analog.c:160
-> >
-> >    #warning Precise timer not defined for this architecture.
-> >
-> >    Unfortunate. I suspect that warning just has to be removed. It has
-> > never caused anything to be fixed, it's old to the point of predating
-> > the git history. Dmitry?
-> >
-> My solution would be to just remove the old code (that isn't using ktime)
-> including the module parameter that disables it. Sure, we want to be
-> backward compatible, but that code is 15+ years old and should really be
-> retired.
-
-Agreed. I added a couple of architectures to the #ifdef check over time,
-but realistically this driver is only ever used on x86-32 anyway, and
-we don't even care about the others here.
-
-If we remove the #else path here, I'd make it "depends on ISA ||
-COMPILE_TEST".
-
-> >  - at least a couple of stringop-overread errors. Attached is a
-> > possible for for one of them.
-> >
-> > The stringop overread is odd, because another one of them is
-> >
-> >    fs/qnx4/dir.c: In function =E2=80=98qnx4_readdir=E2=80=99:
-> >    fs/qnx4/dir.c:51:32: error: =E2=80=98strnlen=E2=80=99 specified boun=
-d 48 exceeds
-> > source size 16 [-Werror=3Dstringop-overread]
-> >       51 |                         size =3D strnlen(de->di_fname, size)=
-;
-> >          |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-> >
-> > but I'm not seeing why that one happens on sparc64, but not on arm64
-> > or x86-64. There doesn't seem to be anything architecture-specific
-> > anywhere in that area.
-> >
-> > Funky.
-> >
-> Not really. That is because de->di_fname is always 16 bytes but size
-> can be 48 if the node is really a link. The use of de is overloaded
-> in that case; de is struct qnx4_inode_entry (where di_fname is 16 bytes)
-> but the actual data is struct qnx4_link_info where the name is 48 bytes
-> long. A possible fix (compile tested only) is below.
->
-> I think the warning/error is only reported with gcc 11.x. Do you possibly
-> use an older compiler for x86/arm64 ?
->
-> Anyway, below is a partial list of build errors I have seen. Some of
-> them are easy to fix (such as the ones due to unused functions),
-> but others seem to be tricky.
-
-This one is worse, I think this is the same warning as the one I
-reported as a false-positive in
-https://gcc.gnu.org/bugzilla/show_bug.cgi?id=3D99673
-and https://gcc.gnu.org/bugzilla/show_bug.cgi?id=3D99578
-
-I submitted a patch in
-https://lore.kernel.org/all/20210322160253.4032422-6-arnd@kernel.org/
-
-To summarize the problems:
-
-- gcc and clang have different approaches to this type of warning: clang
-  tries to only produce diagnostics that are 100% reproducible regardless
-  of compiler internals, while gcc tries to use as much information as it h=
-as
-  to warn about things that may go wrong, including things that it only kno=
-ws
-  because of inlining. Making this warning reliable is a variation of the
-  halting problem, just like the -Wmaybe-uninitialized warnings. The diagno=
-stic
-  is definitely helpful and I found real bugs because of it, but you can ne=
-ver
-  be sure that you have found all instances.
-
-- Some of the -Wstringop-overread warnings (and related ones) from gcc are
-  actually wrong, because the object size is just a heuristic. If you
-have multiple
-  overlapping fixed-length fields in a union, gcc-11 picks one of the union
-  members to determine the size of the string buffer within the structure, =
-even
-  when the string operation uses a different union member as the output, an=
-d
-  that member has the correct size.
-  This is also a common problem: when a new warning option gets introduced
-  first, there are false positives that get fixed in subsequent
-compiler versions.
-
-
-> alpha.log:arch/alpha/kernel/setup.c:493:13: error: 'strcmp' reading 1 or =
-more bytes from a region of size 0 [-Werror=3Dstringop-overread]
-
-I sent a couple of fixes for these: this is another false-postive bug
-in gcc that made it
-into the release, and it triggers on every architecture that accesses
-the boot parameters
-at a fixed pointer. The problem is that gcc treats '(void *)0x12345'
-the same as 'NULL +
-0x12345', and decides that this is an invalid NULL pointer access, so
-the array has
-zero readable bytes.
-
-> alpha.log:drivers/atm/ambassador.c:1747:58: error: passing argument 1 of =
-'virt_to_bus' discards 'volatile' qualifier from pointer target type [-Werr=
-or=3Ddiscarded-qualifiers]
-
-Surely an alpha specific mistake, though we could fix all those
-drivers to drop the
-'volatile'.
-
-> alpha.log:drivers/net/ethernet/amd/ni65.c:751:37: error: cast from pointe=
-r to integer of different size [-Werror=3Dpointer-to-int-cast]
-
-Nobody tests ISA drivers on 64-bit architectures...
-
-> alpha.log:drivers/net/hamradio/6pack.c:71:41: error: unsigned conversion =
-from 'int' to 'unsigned char' changes value from '256' to '0' [-Werror=3Dov=
-erflow]
-
-This driver is apparently broken for any HZ >=3D 1024
-> ppc.log:drivers/net/ethernet/cirrus/cs89x0.c:897:41: error: implicit decl=
-aration of function 'isa_virt_to_bus' [-Werror=3Dimplicit-function-declarat=
-ion]
-
-My fix is in the network tree.
-
-> riscv32.log:drivers/gpu/drm/rockchip/cdn-dp-core.c:1126:12: error: 'cdn_d=
-p_resume' defined but not used [-Werror=3Dunused-function]
-> riscv.log:drivers/gpu/drm/rockchip/cdn-dp-core.c:1126:12: error: 'cdn_dp_=
-resume' defined but not used [-Werror=3Dunused-function]
-
-A fix was submitted today, we get at least a dozen of those for each
-kernel release, and there
-is a plan for avoiding them altogether, but it's a giant treewide
-change that nobody has managed
-to tackle.
-
-> s390.log:arch/s390/kernel/syscall.c:168:1: error: '__do_syscall' uses dyn=
-amic stack allocation [-Werror]
-
-This is add_random_kstack_offset(). No idea why it doesn't trigger on
-x86, but that
-warning should probably get shut up inside of the macro.
-
-> sparc64.log:arch/sparc/kernel/mdesc.c:647:22: error: 'strcmp' reading 1 o=
-r more bytes from a region of size 0 [-Werror=3Dstringop-overread]
-> sparc64.log:arch/sparc/kernel/mdesc.c:692:22: error: 'strcmp' reading 1 o=
-r more bytes from a region of size 0 [-Werror=3Dstringop-overread]
-> sparc64.log:arch/sparc/kernel/mdesc.c:719:21: error: 'strcmp' reading 1 o=
-r more bytes from a region of size 0 [-Werror=3Dstringop-overread]
-
-Same as on alpha
-
-       Arnd
