@@ -2,52 +2,66 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-13.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 514D8C433F5
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 15:56:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6D0C433F5
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 03:52:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39FD160724
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Sep 2021 15:56:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F5336113E
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 03:52:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245688AbhIGP50 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Sep 2021 11:57:26 -0400
-Received: from mail-eopbgr90057.outbound.protection.outlook.com ([40.107.9.57]:16379
-        "EHLO FRA01-MR2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1345527AbhIGP5I (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 7 Sep 2021 11:57:08 -0400
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Y1m3iBmNRqDSA5BzzQ53i5tAqP7kBIdW/ihRgcfldYOVPq3bNi4WnD9aprm4jfUKMWW2BgoJc5MzsNbllNofVBhql+LoU3mUQILrFCaes5vX3CM4BAPC80tOstHVgdL1ZHQJV5aNZcjJH+IHeNWg+q4VifFHXeiRQeTboZNrLWx7+zkGwKqDLMDtQv4N4DGzZLHgYcGfPNKjeg0NGjmUPZ8U/pUzGesRRJaLI75SbQRuMWSvTZ3pT8OT4QHYRlauBv6/IhB6/zvJ7mq/AqedZ/+DzTmlbgRIlH5rcHF/A5J5FwAlCRzRCJSWidedwWVCuhiHhr/nbFgAfHdKWumn9w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901; h=From:Date:Subject:Message-ID:Content-Type:MIME-Version;
- bh=1JmD07sVUCFruSZxPO0UXdnlEphtIZBqTNFWmee8LQ8=;
- b=cXol4WymK+Ox89HYoKTaRcQ1cAhW4XMWVMC5AoTmEWe3XaOf+6m18y/9FS7NfYNM9b6++KUxanFsHJQQWdi7QoJSBslTTL3IEeIHeBrDmGNlflMLBnn/UYHYoTT4UFKkeMP068/9HJ0ECoeTplbMrJEGbMXu5ng7W5EpAdu9Kitr4mVHYOl1/EhkjQh/MBRnMusDPT4wj6Wd7eG3In1w3gP06vBbeRhukKRnnlXeFgmbARJyMRHG5BWGaZP8+VmO5Sg0UtYXP2YLdhgVcaCg/f2zh0b9+m4w6hiCkp6j6J38k6RaundqmVOI9Qj8N3CuAFDCo0Jm7kn1VRWBAVvTGA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
- dkim=pass header.d=csgroup.eu; arc=none
+        id S1347630AbhIHDxx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56218 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232366AbhIHDxu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Sep 2021 23:53:50 -0400
+Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E49EC061575;
+        Tue,  7 Sep 2021 20:52:43 -0700 (PDT)
+Received: by mail-pf1-x433.google.com with SMTP id v123so872604pfb.11;
+        Tue, 07 Sep 2021 20:52:43 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=csgroupeu.onmicrosoft.com; s=selector1-csgroupeu-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=1JmD07sVUCFruSZxPO0UXdnlEphtIZBqTNFWmee8LQ8=;
- b=MD21JzuTaQ6eVX3ekGCS0qczgIkQB8/AaMBgVdGwloW3LfQUWP5siRH9qSrp0fkaLGvKVbEOL1RHuMdz3tHpAHtJD64P9U0VPh3jD6taF+CzSoWAuSFeiKW098aEJxD5rQTjUrvZr38K39f+H67ncTUD+vsFV805ApzOEIUv4h1T223Nyc30pkpPkp9K1iEl26rgNMK5n4F4OKHOSO6uN8m+H5bJ3GkBcXX0Blb+D/D/m5RxVr1AM4k+BPcnSZ7zj+XWikMKPNjDbOu7CQPX3HGX3l5kNPS8qQ36FLPv1L1xNldU2nXMfvDR7qAccGuB+sFen9B6m9Y4ywcbU6PvsA==
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
- by MRZP264MB3130.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:1b::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4478.20; Tue, 7 Sep
- 2021 15:55:58 +0000
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::a96f:bd29:7b7f:62d3]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::a96f:bd29:7b7f:62d3%9]) with mapi id 15.20.4478.026; Tue, 7 Sep 2021
- 15:55:58 +0000
-From:   LEROY Christophe <christophe.leroy@csgroup.eu>
-To:     Weizhao Ouyang <o451686892@gmail.com>,
+        d=gmail.com; s=20210112;
+        h=subject:to:cc:references:from:message-id:date:user-agent
+         :mime-version:in-reply-to:content-transfer-encoding:content-language;
+        bh=WSt+UMhq7R7h5hSLb95oV8jytbQKlUJH1lEwRLVcxwc=;
+        b=GLJfR0NMco+oS1HHyphViWc/H8Wf/bLjCDcmbtta6hyb801Md0ubjqPMWp6WdPvWq/
+         /NuGfVD1j9+XuSUMOGQz/eTCVbohXJ+Qkv9I2QMqTdEHfklDHNcvxpVFOWfbJPymvNFD
+         btC1KFw4ADbCa7XAeGte2pPkaEU5kZ7GcfmYZBMz4nJuY9zvGtKXL5+PeF7cVlAHFI2G
+         +TP44OHlZU2UYl/1A7zxdCsPyN+6gq/V8DFaKk1ZAfOPXKPdX2/k8aXmhsfoLio/obd/
+         fRBEBNg4S22eyDDVR3hvYvwYI6y0QYJteRexx8hn81tf7J0GoryM+zimw3uyq3VlSa06
+         cc0g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
+         :user-agent:mime-version:in-reply-to:content-transfer-encoding
+         :content-language;
+        bh=WSt+UMhq7R7h5hSLb95oV8jytbQKlUJH1lEwRLVcxwc=;
+        b=i+oW9IX37D+6Xk755PRVI+GqYDyVCobXsZn77xRd3s1QbU4zfeKNEp4BHWs6IVjca8
+         gL5fhNxplc3QGFaGCJBq95dsXqIaOQvczGpE8Xvn5Ti59BB7aOnhAZHYAta7M9siW0R0
+         3WZeJsXpt5GWGQt8oQQEQM8DAlNFkw10jg9+JYZ05zevEq9nhTksVOJhgVfcDt9Q0udY
+         kXQUgIZIYkTwYhKCpzUQKm6QvbvBRImuGvMwB72+elYbpSk/3n8ZdrqU3eBVuIT0uqv7
+         KC8ocZFF/xL9o1T2rX9B1WzHFAl4ReSqH/ZxYiREdxnLhPbR1hj/GXr61OABZzesXERA
+         HVcw==
+X-Gm-Message-State: AOAM533z4DNdfmhxrZUsZs6pTlsM8sHrNQJDM3iC0pkrVt8nAk0IfX3a
+        K7KIc8psogrrBJzpGfxhmRo=
+X-Google-Smtp-Source: ABdhPJzsF7/ZmS0a3POWsiDv6cT4l+YoAuvMs8kxVeVkGFJVzJ1fBZkDxrQQPMspQMKZVPXO7C92+Q==
+X-Received: by 2002:a63:30d:: with SMTP id 13mr1668901pgd.289.1631073162944;
+        Tue, 07 Sep 2021 20:52:42 -0700 (PDT)
+Received: from [192.168.30.11] ([173.248.225.217])
+        by smtp.gmail.com with ESMTPSA id p4sm647725pgc.15.2021.09.07.20.52.35
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Sep 2021 20:52:42 -0700 (PDT)
+Subject: Re: [PATCH v3] ftrace: Cleanup ftrace_dyn_arch_init()
+To:     LEROY Christophe <christophe.leroy@csgroup.eu>,
         Steven Rostedt <rostedt@goodmis.org>,
         Ingo Molnar <mingo@redhat.com>
-CC:     Rich Felker <dalias@libc.org>,
+Cc:     Rich Felker <dalias@libc.org>,
         "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
         "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
         "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
@@ -83,181 +97,126 @@ CC:     Rich Felker <dalias@libc.org>,
         Paul Mackerras <paulus@samba.org>,
         "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
         "David S. Miller" <davem@davemloft.net>
-Subject: RE: [PATCH v3] ftrace: Cleanup ftrace_dyn_arch_init()
-Thread-Topic: [PATCH v3] ftrace: Cleanup ftrace_dyn_arch_init()
-Thread-Index: AQHXo9AGcZMAst5pGUmuiVdX2ZKaD6uYuHhw
-Date:   Tue, 7 Sep 2021 15:55:58 +0000
-Message-ID: <MRZP264MB298824D80E6C0ADCB5EA1D9AEDD39@MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM>
 References: <20210907100524.1454928-1-o451686892@gmail.com>
-In-Reply-To: <20210907100524.1454928-1-o451686892@gmail.com>
-Accept-Language: fr-FR, en-US
-Content-Language: fr-FR
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_ActionId=38b895cc-cc20-4ae4-8b1f-a365da158b49;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_ContentBits=0;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_Enabled=true;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_Method=Standard;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_Name=Interne;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_SetDate=2021-09-07T15:50:14Z;MSIP_Label_f9bcc058-4ca5-480a-b672-6d2445a83388_SiteId=9914def7-b676-4fda-8815-5d49fb3b45c8;
-authentication-results: gmail.com; dkim=none (message not signed)
- header.d=none;gmail.com; dmarc=none action=none header.from=csgroup.eu;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 8ea835ca-1f0c-4abc-8db2-08d97217fc0b
-x-ms-traffictypediagnostic: MRZP264MB3130:
-x-microsoft-antispam-prvs: <MRZP264MB313038909459552331416B22EDD39@MRZP264MB3130.FRAP264.PROD.OUTLOOK.COM>
-x-ms-oob-tlc-oobclassifiers: OLM:8882;
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: QeG9cwjKfwxEX1BYFuOVsmrS+d4sAQEPqGu9OQr+gjkqZveRy0ITiiIlr2HZoDvqXHQIoSlTo11E2tuouG73uzoF8jNAZL6Q/pLorlHvvno28cU1K5xiYAaAffyxWVz9NeEFq0x7jqRPIPV37n8+XmPUxLQzz4R0J3KdE0oqBstdP8rsUG2yz78VqD0g7nUzioTSPCxmhFWJeE3UwXyRPCZJlyhyPxPzxwP7RY2tXCX8sgP3b5iPPjXanhuYr+WrRZx66uklTANSncJWcGbF2A4Ua+VBdoeHCjj8od7MumLDVjWEUt56M7RHQNB3o72rCciiahogODu5S1yznSq51YtoQE/xxSNibsXesv4KRfx7y4+b/8EFzk6SAT6wWG44NL3Sdbg7DyvEQQNoIBuR7i9gCRJ0qZ6yzJ/gBoEN17yxpJTQHPpcQr/326ERXUnURffD6IZaBB13/agb3GA5Kw7QwZM89y7Yq7yh3dfLWWFn706B327cXpKnA3RSAjC2znSl//PL031mcev6BkFXlhvMH8Vd1aH77wY7dbvizcZ1mnlghcneEuYpH7q4q+K/1O+64L0iuzdzCkdJ+5yRQdd5DH5AFgIz5RUJrPYpOXdbRvs23OFUAgbDoRPqO1DF8LVoNeYaAXkKkmU86oLiLlkpgVWptMbQHp3dskXC+AUa8/NN/AavnJRqW2Fz4FDbEBWphTO4GRnPJvhyaPCfMA==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(346002)(376002)(396003)(366004)(39850400004)(136003)(7416002)(7406005)(110136005)(5660300002)(54906003)(8676002)(38070700005)(478600001)(66476007)(76116006)(66946007)(316002)(55016002)(66446008)(52536014)(64756008)(66556008)(8936002)(71200400001)(4326008)(86362001)(33656002)(26005)(38100700002)(7696005)(6506007)(186003)(9686003)(122000001)(2906002)(83380400001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?bErSP+u5P1mjJDBt33HtL/ZSjresZXxgDawQe4NFraSl/OWaezZWuTGUyA?=
- =?iso-8859-1?Q?XFaTB6p0u7KynsqB6atrwNyujDnG6LU5E2ae2uUKmN/YvcmfpdoSD4iBy7?=
- =?iso-8859-1?Q?eplTAPmT6SE1q2rSWOTebgpKZmfGNq3oqi9VU5ll3ip5Ui8oe/1JQCT8kx?=
- =?iso-8859-1?Q?a/m5HF+aRRLRNRIV7cN9DXwyMrfq05inuE+Kn/XX42dbJqka4ELgejTWOV?=
- =?iso-8859-1?Q?Y4s+xk8oiCaTKj6bTy1QE8ZetQ0hthEF/W+EWqVO1z78Iu7j9gVKEmYKEy?=
- =?iso-8859-1?Q?aXl0zPAzmBSiwjXaPU1AO79HSSQXw/w0BmRo1d3HkaOSgFSvhZC/eFZ1/B?=
- =?iso-8859-1?Q?ohGuweITDD0pE4UcZS9sBKuY0Jyj4WT5ClqcIeEYPe5POhIi2xyC8TQPWE?=
- =?iso-8859-1?Q?OR+P64+dak3BHA4AeJkISjeuT0/3k1KKy30zcQePjq57NWaDaJFbx1R6EG?=
- =?iso-8859-1?Q?o2zWMLGBuO3JaiirM7hpEM/CtFcStYqwicOGrIZGj9NScLQ4eCCRWc6bAD?=
- =?iso-8859-1?Q?hTkftpBlwjRHlcpPeLSk80AR9ROuQMUQMn2kl2eg0emKLza8C+Skm/U6Us?=
- =?iso-8859-1?Q?dagWpOyaGOSGlIK9B8uecrALOMoaH5gslzy2qday9VIdw6Ffmi4w96ksf5?=
- =?iso-8859-1?Q?EoFDeuJgUeJUsRb2nuztCBfGCVN2dgatBhyxwt8JV+hALGdkKuuAUnxrcN?=
- =?iso-8859-1?Q?/53z3wC1kIUMj8GqrWPOwqTNBKqVajRwkUBNZPvgaSjJuPWr0smO+rjcvR?=
- =?iso-8859-1?Q?M4Ya9eQtA7oCHWLGsLxIm4KPqSBwG5P07cjOFNYzwT+Zis3hvKSdOesKn8?=
- =?iso-8859-1?Q?KIIRUd5dcCdf2t9AcHPTnEz5nBk3/aFQ0TFtQj5hiDQlt+5Ji865FtOCLb?=
- =?iso-8859-1?Q?jDZJDxbqwt3n4V5rwKQkbJNY9hgHZ15NKn7fuKMl4qZR65bI6Qu9wzwGCX?=
- =?iso-8859-1?Q?ziUj8/OZeCfVG9KD6DfuSY+3GVeMYM4sayiGH7qQsF4iCQZSoEfzMARIuO?=
- =?iso-8859-1?Q?B10uOta39c9sweC7crujMth272/WXLjY5OEJeZ34phMm/XCfRiGLbL2fIN?=
- =?iso-8859-1?Q?K4kIgcywSwQMFZODDJf5YhKcmmPvFVBKCppMhHIuO8Q2C1OH7aMjWAJZdc?=
- =?iso-8859-1?Q?j9NUcSNinQnzwzIWZQ1COjx+zogz/nVAp98SW2MoTeMH36QBEGDXSnFsq6?=
- =?iso-8859-1?Q?GUVmz/bMKQguSCkXVEoIbPpXQfUT3S9AtBhNCRIAjC5ikbWDQ3M65FWYlL?=
- =?iso-8859-1?Q?BZKt8L6ZYZ860tkFaLoNeBUoaJ3HKLftfNL5Ug++IYJ3lLoTHWhiyi9I/O?=
- =?iso-8859-1?Q?UvI4bNfHvFi/FzZKeU3OGFggtSwqjDxylnWadsnyIKN88jtjI1TZhE40uo?=
- =?iso-8859-1?Q?MQj0yg9el3?=
-x-ms-exchange-transport-forked: True
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+ <MRZP264MB298824D80E6C0ADCB5EA1D9AEDD39@MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM>
+From:   Weizhao Ouyang <o451686892@gmail.com>
+Message-ID: <f33570e2-a67d-b0cf-f127-040ccd9e5da9@gmail.com>
+Date:   Wed, 8 Sep 2021 11:52:33 +0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.13.0
 MIME-Version: 1.0
-X-OriginatorOrg: csgroup.eu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8ea835ca-1f0c-4abc-8db2-08d97217fc0b
-X-MS-Exchange-CrossTenant-originalarrivaltime: 07 Sep 2021 15:55:58.6811
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: zX+p+QvejYszGeEDdLVCHyAYKhGH5eshAdlUlsI3q8FdNgYX0K3efX5jODDxdDb1gbsZuiKFJoX0qzSbO54KsOWYjO+sQI+IKTsvFSBxDao=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MRZP264MB3130
+In-Reply-To: <MRZP264MB298824D80E6C0ADCB5EA1D9AEDD39@MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Thanks for reply.
 
-
-> -----Message d'origine-----
-> De : Linuxppc-dev <linuxppc-dev-
-> bounces+christophe.leroy=3Dcsgroup.eu@lists.ozlabs.org> De la part de Wei=
-zhao
-> Ouyang
+On 2021/9/7 23:55, LEROY Christophe wrote:
 >
-> Most of ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
-> ftrace_dyn_arch_init() to cleanup them.
+>> -----Message d'origine-----
+>> De : Linuxppc-dev <linuxppc-dev-
+>> bounces+christophe.leroy=csgroup.eu@lists.ozlabs.org> De la part de Weizhao
+>> Ouyang
+>>
+>> Most of ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
+>> ftrace_dyn_arch_init() to cleanup them.
+>>
+>> Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
+>> Acked-by: Heiko Carstens <hca@linux.ibm.com> (s390)
+>> Acked-by: Helge Deller <deller@gmx.de> (parisc)
+>>
+>> ---
+>> Changes in v3:
+>> -- fix unrecognized opcode on PowerPC
+>>
+>> Changes in v2:
+>> -- correct CONFIG_DYNAMIC_FTRACE on PowerPC
+>> -- add Acked-by tag
+>>
+>> ---
+>>  arch/arm/kernel/ftrace.c          | 5 -----
+>>  arch/arm64/kernel/ftrace.c        | 5 -----
+>>  arch/csky/kernel/ftrace.c         | 5 -----
+>>  arch/ia64/kernel/ftrace.c         | 6 ------
+>>  arch/microblaze/kernel/ftrace.c   | 5 -----
+>>  arch/mips/include/asm/ftrace.h    | 2 ++
+>>  arch/nds32/kernel/ftrace.c        | 5 -----
+>>  arch/parisc/kernel/ftrace.c       | 5 -----
+>>  arch/powerpc/include/asm/ftrace.h | 4 ++++
+>>  arch/riscv/kernel/ftrace.c        | 5 -----
+>>  arch/s390/kernel/ftrace.c         | 5 -----
+>>  arch/sh/kernel/ftrace.c           | 5 -----
+>>  arch/sparc/kernel/ftrace.c        | 5 -----
+>>  arch/x86/kernel/ftrace.c          | 5 -----
+>>  include/linux/ftrace.h            | 1 -
+>>  kernel/trace/ftrace.c             | 5 +++++
+>>  16 files changed, 11 insertions(+), 62 deletions(-)
+>>
+>> diff --git a/arch/mips/include/asm/ftrace.h b/arch/mips/include/asm/ftrace.h
+>> index b463f2aa5a61..ed013e767390 100644
+>> --- a/arch/mips/include/asm/ftrace.h
+>> +++ b/arch/mips/include/asm/ftrace.h
+>> @@ -76,6 +76,8 @@ do {                                                \
+>>
+>>
+>>  #ifdef CONFIG_DYNAMIC_FTRACE
+>> +int __init ftrace_dyn_arch_init(void);
+>> +
+> Why ?
 >
-> Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
-> Acked-by: Heiko Carstens <hca@linux.ibm.com> (s390)
-> Acked-by: Helge Deller <deller@gmx.de> (parisc)
 >
-> ---
-> Changes in v3:
-> -- fix unrecognized opcode on PowerPC
+>>  static inline unsigned long ftrace_call_adjust(unsigned long addr)
+>>  {
+>>       return addr;
+>> diff --git a/arch/powerpc/include/asm/ftrace.h
+>> b/arch/powerpc/include/asm/ftrace.h
+>> index debe8c4f7062..b05c43f13a4d 100644
+>> --- a/arch/powerpc/include/asm/ftrace.h
+>> +++ b/arch/powerpc/include/asm/ftrace.h
+>> @@ -126,6 +126,10 @@ static inline void this_cpu_enable_ftrace(void) { }
+>>  static inline void this_cpu_set_ftrace_enabled(u8 ftrace_enabled) { }
+>>  static inline u8 this_cpu_get_ftrace_enabled(void) { return 1; }
+>>  #endif /* CONFIG_PPC64 */
+>> +
+>> +#ifdef CONFIG_DYNAMIC_FTRACE
+>> +int __init ftrace_dyn_arch_init(void);
+>> +#endif /* CONFIG_DYNAMIC_FTRACE */
+> Why ?
 >
-> Changes in v2:
-> -- correct CONFIG_DYNAMIC_FTRACE on PowerPC
-> -- add Acked-by tag
+>>  #endif /* !__ASSEMBLY__ */
+>>
+>>  #endif /* _ASM_POWERPC_FTRACE */
+>> diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
+>> index 832e65f06754..f1eca123d89d 100644
+>> --- a/include/linux/ftrace.h
+>> +++ b/include/linux/ftrace.h
+>> @@ -573,7 +573,6 @@ ftrace_set_early_filter(struct ftrace_ops *ops, char
+>> *buf, int enable);
+>>
+>>  /* defined in arch */
+>>  extern int ftrace_ip_converted(unsigned long ip);
+>> -extern int ftrace_dyn_arch_init(void);
+> Why removing that ?
 >
-> ---
->  arch/arm/kernel/ftrace.c          | 5 -----
->  arch/arm64/kernel/ftrace.c        | 5 -----
->  arch/csky/kernel/ftrace.c         | 5 -----
->  arch/ia64/kernel/ftrace.c         | 6 ------
->  arch/microblaze/kernel/ftrace.c   | 5 -----
->  arch/mips/include/asm/ftrace.h    | 2 ++
->  arch/nds32/kernel/ftrace.c        | 5 -----
->  arch/parisc/kernel/ftrace.c       | 5 -----
->  arch/powerpc/include/asm/ftrace.h | 4 ++++
->  arch/riscv/kernel/ftrace.c        | 5 -----
->  arch/s390/kernel/ftrace.c         | 5 -----
->  arch/sh/kernel/ftrace.c           | 5 -----
->  arch/sparc/kernel/ftrace.c        | 5 -----
->  arch/x86/kernel/ftrace.c          | 5 -----
->  include/linux/ftrace.h            | 1 -
->  kernel/trace/ftrace.c             | 5 +++++
->  16 files changed, 11 insertions(+), 62 deletions(-)
+> Have you tried to build kernel/trace/ftrace.o with C=2 ? It will likely tell you that the function is not declared and that it should be static
+
+Yes I missed this check. Under the situation, the function should be static.
+
+> We could eventually consider that in the past, this generic declaration was unrelevant because the definitions where in the arch specific sections.
+> Now that you are implementing a generic weak version of this function, it would make sense to have a generic declaration as well.
 >
-> diff --git a/arch/mips/include/asm/ftrace.h b/arch/mips/include/asm/ftrac=
-e.h
-> index b463f2aa5a61..ed013e767390 100644
-> --- a/arch/mips/include/asm/ftrace.h
-> +++ b/arch/mips/include/asm/ftrace.h
-> @@ -76,6 +76,8 @@ do {                                                \
+> I really don't see the point in duplicating the declaration of the function in the arch specific headers.
+
+I use declaration in arch specific headers in tend to clarify the arch has implement ftrace_dyn_arch_init().
+Anyway, it maybe pointless, a generic declaration is enough. Will update it later.
+
+>>  extern void ftrace_replace_code(int enable);
+>>  extern int ftrace_update_ftrace_func(ftrace_func_t func);
+>>  extern void ftrace_caller(void);
+> Christophe
 >
->
->  #ifdef CONFIG_DYNAMIC_FTRACE
-> +int __init ftrace_dyn_arch_init(void);
-> +
-
-Why ?
-
-
->  static inline unsigned long ftrace_call_adjust(unsigned long addr)
->  {
->       return addr;
-> diff --git a/arch/powerpc/include/asm/ftrace.h
-> b/arch/powerpc/include/asm/ftrace.h
-> index debe8c4f7062..b05c43f13a4d 100644
-> --- a/arch/powerpc/include/asm/ftrace.h
-> +++ b/arch/powerpc/include/asm/ftrace.h
-> @@ -126,6 +126,10 @@ static inline void this_cpu_enable_ftrace(void) { }
->  static inline void this_cpu_set_ftrace_enabled(u8 ftrace_enabled) { }
->  static inline u8 this_cpu_get_ftrace_enabled(void) { return 1; }
->  #endif /* CONFIG_PPC64 */
-> +
-> +#ifdef CONFIG_DYNAMIC_FTRACE
-> +int __init ftrace_dyn_arch_init(void);
-> +#endif /* CONFIG_DYNAMIC_FTRACE */
-
-Why ?
-
->  #endif /* !__ASSEMBLY__ */
->
->  #endif /* _ASM_POWERPC_FTRACE */
-> diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
-> index 832e65f06754..f1eca123d89d 100644
-> --- a/include/linux/ftrace.h
-> +++ b/include/linux/ftrace.h
-> @@ -573,7 +573,6 @@ ftrace_set_early_filter(struct ftrace_ops *ops, char
-> *buf, int enable);
->
->  /* defined in arch */
->  extern int ftrace_ip_converted(unsigned long ip);
-> -extern int ftrace_dyn_arch_init(void);
-
-Why removing that ?
-
-Have you tried to build kernel/trace/ftrace.o with C=3D2 ? It will likely t=
-ell you that the function is not declared and that it should be static
-
-We could eventually consider that in the past, this generic declaration was=
- unrelevant because the definitions where in the arch specific sections.
-Now that you are implementing a generic weak version of this function, it w=
-ould make sense to have a generic declaration as well.
-
-I really don't see the point in duplicating the declaration of the function=
- in the arch specific headers.
-
->  extern void ftrace_replace_code(int enable);
->  extern int ftrace_update_ftrace_func(ftrace_func_t func);
->  extern void ftrace_caller(void);
-
-Christophe
-
-CS Group - Document Interne
+> CS Group - Document Interne
