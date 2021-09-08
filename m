@@ -2,221 +2,117 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.6 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C6D0C433F5
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 03:52:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19978C433EF
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 04:28:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F5336113E
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 03:52:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDFC861131
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 04:28:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347630AbhIHDxx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:53:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56218 "EHLO
+        id S230167AbhIHE3t (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Sep 2021 00:29:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232366AbhIHDxu (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Sep 2021 23:53:50 -0400
-Received: from mail-pf1-x433.google.com (mail-pf1-x433.google.com [IPv6:2607:f8b0:4864:20::433])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7E49EC061575;
-        Tue,  7 Sep 2021 20:52:43 -0700 (PDT)
-Received: by mail-pf1-x433.google.com with SMTP id v123so872604pfb.11;
-        Tue, 07 Sep 2021 20:52:43 -0700 (PDT)
+        with ESMTP id S229590AbhIHE3s (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Sep 2021 00:29:48 -0400
+Received: from mail-ot1-x332.google.com (mail-ot1-x332.google.com [IPv6:2607:f8b0:4864:20::332])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9618AC061575;
+        Tue,  7 Sep 2021 21:28:41 -0700 (PDT)
+Received: by mail-ot1-x332.google.com with SMTP id q11-20020a9d4b0b000000b0051acbdb2869so1319625otf.2;
+        Tue, 07 Sep 2021 21:28:41 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=subject:to:cc:references:from:message-id:date:user-agent
-         :mime-version:in-reply-to:content-transfer-encoding:content-language;
-        bh=WSt+UMhq7R7h5hSLb95oV8jytbQKlUJH1lEwRLVcxwc=;
-        b=GLJfR0NMco+oS1HHyphViWc/H8Wf/bLjCDcmbtta6hyb801Md0ubjqPMWp6WdPvWq/
-         /NuGfVD1j9+XuSUMOGQz/eTCVbohXJ+Qkv9I2QMqTdEHfklDHNcvxpVFOWfbJPymvNFD
-         btC1KFw4ADbCa7XAeGte2pPkaEU5kZ7GcfmYZBMz4nJuY9zvGtKXL5+PeF7cVlAHFI2G
-         +TP44OHlZU2UYl/1A7zxdCsPyN+6gq/V8DFaKk1ZAfOPXKPdX2/k8aXmhsfoLio/obd/
-         fRBEBNg4S22eyDDVR3hvYvwYI6y0QYJteRexx8hn81tf7J0GoryM+zimw3uyq3VlSa06
-         cc0g==
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=t9l5/k4D6pzjZ7MocPD2eimRV3thvGM8utNt6GK2WrQ=;
+        b=p+JOLQp9xHNZcwX7t+VbXx885EQaD3823d05jFB/l7sXsxIDt7OTyChvMv+t/TUYw5
+         WP2zc8DxsToZJZ5UBPUpi7lwxYY4HHTaZoC6akasQBRYfyax30iaTN+X2Z7uoVq8nKuM
+         2Sg5slGJlFgsDdDcE+RAy6hSQNMQdV7fuqj2FSgXBeblew1rjrBWlOCFare7pyIDek0u
+         tbfjwWunEOLk0mGSM/ai9bWPyKSxxJ8CUVPVMpxkhq4i4vnJtih/bJNZ3LGU60cjC/JV
+         T+uR+7HBnJ3mt7PWAYv9FxtfAvcYkAh/NZCoOplsKvpGoIM3l7xsYGtzQBCj/5n5v3+G
+         ugmg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:cc:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-transfer-encoding
-         :content-language;
-        bh=WSt+UMhq7R7h5hSLb95oV8jytbQKlUJH1lEwRLVcxwc=;
-        b=i+oW9IX37D+6Xk755PRVI+GqYDyVCobXsZn77xRd3s1QbU4zfeKNEp4BHWs6IVjca8
-         gL5fhNxplc3QGFaGCJBq95dsXqIaOQvczGpE8Xvn5Ti59BB7aOnhAZHYAta7M9siW0R0
-         3WZeJsXpt5GWGQt8oQQEQM8DAlNFkw10jg9+JYZ05zevEq9nhTksVOJhgVfcDt9Q0udY
-         kXQUgIZIYkTwYhKCpzUQKm6QvbvBRImuGvMwB72+elYbpSk/3n8ZdrqU3eBVuIT0uqv7
-         KC8ocZFF/xL9o1T2rX9B1WzHFAl4ReSqH/ZxYiREdxnLhPbR1hj/GXr61OABZzesXERA
-         HVcw==
-X-Gm-Message-State: AOAM533z4DNdfmhxrZUsZs6pTlsM8sHrNQJDM3iC0pkrVt8nAk0IfX3a
-        K7KIc8psogrrBJzpGfxhmRo=
-X-Google-Smtp-Source: ABdhPJzsF7/ZmS0a3POWsiDv6cT4l+YoAuvMs8kxVeVkGFJVzJ1fBZkDxrQQPMspQMKZVPXO7C92+Q==
-X-Received: by 2002:a63:30d:: with SMTP id 13mr1668901pgd.289.1631073162944;
-        Tue, 07 Sep 2021 20:52:42 -0700 (PDT)
-Received: from [192.168.30.11] ([173.248.225.217])
-        by smtp.gmail.com with ESMTPSA id p4sm647725pgc.15.2021.09.07.20.52.35
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 07 Sep 2021 20:52:42 -0700 (PDT)
-Subject: Re: [PATCH v3] ftrace: Cleanup ftrace_dyn_arch_init()
-To:     LEROY Christophe <christophe.leroy@csgroup.eu>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>
-Cc:     Rich Felker <dalias@libc.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Guo Ren <guoren@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        Vincent Chen <deanbo422@gmail.com>,
-        Will Deacon <will@kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Helge Deller <deller@gmx.de>,
-        "x86@kernel.org" <x86@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Greentime Hu <green.hu@gmail.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        Nick Hu <nickhu@andestech.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Paul Mackerras <paulus@samba.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "David S. Miller" <davem@davemloft.net>
-References: <20210907100524.1454928-1-o451686892@gmail.com>
- <MRZP264MB298824D80E6C0ADCB5EA1D9AEDD39@MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM>
-From:   Weizhao Ouyang <o451686892@gmail.com>
-Message-ID: <f33570e2-a67d-b0cf-f127-040ccd9e5da9@gmail.com>
-Date:   Wed, 8 Sep 2021 11:52:33 +0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=t9l5/k4D6pzjZ7MocPD2eimRV3thvGM8utNt6GK2WrQ=;
+        b=RLrS/z9eo/arT2nqBoU63P4v/aY9Bal/LJoYbwLzrju1MMtX5/zWxejSvZd5vkdmu9
+         GM9u7RtyWmQF011FyfLyCxu05KK+GGzAcaBPdePph150DFCSL3HohrknCTjTOseyprKN
+         q6bq8ZwacyEQVQDSTDFtR7dVINTbc+i+p7r3bkNc7z1u1iWUWEZn+qWaa/QNasppcZNn
+         WvED9s5s1oYCk2FddVWV7Hkp3tbLWuK7tlXm8LvkI8YxwHSTT+wnWjdVvYRf2a0cOEia
+         douyWYLakeA4FxBEZWTefJgOmL6EeTJoXHmUKOljhTV191jyQFhKmM41thXxAiBeQbgh
+         hHPw==
+X-Gm-Message-State: AOAM5338rHscZDU9TkLg5dEhx1HQzL5rJKWq/ysBq97sKxHzT+nPZxlP
+        pGcumTRBDIxhdmRPH3djKo4=
+X-Google-Smtp-Source: ABdhPJxn9DzmF4MYeHp3QkJ2JjtnP/zwdytkKBiRik1yXQEfMb9ir76v4xkyoHNgen/xGyfWEqsN+A==
+X-Received: by 2002:a9d:4a8d:: with SMTP id i13mr1559812otf.180.1631075321035;
+        Tue, 07 Sep 2021 21:28:41 -0700 (PDT)
+Received: from server.roeck-us.net ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id bf6sm256727oib.0.2021.09.07.21.28.39
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 07 Sep 2021 21:28:40 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Date:   Tue, 7 Sep 2021 21:28:38 -0700
+From:   Guenter Roeck <linux@roeck-us.net>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Christian Koenig <christian.koenig@amd.com>,
+        Huang Rui <ray.huang@amd.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-sparc <sparclinux@vger.kernel.org>
+Subject: Re: [PATCH] Enable '-Werror' by default for all kernel builds
+Message-ID: <20210908042838.GA2585993@roeck-us.net>
+References: <20210906142615.GA1917503@roeck-us.net>
+ <CAHk-=wgjTePY1v_D-jszz4NrpTso0CdvB9PcdroPS=TNU1oZMQ@mail.gmail.com>
+ <c3790fb9-b83f-9596-18a1-21ace987c850@roeck-us.net>
+ <CAHk-=wi4NW3NC0xWykkw=6LnjQD6D_rtRtxY9g8gQAJXtQMi8A@mail.gmail.com>
+ <20210906234921.GA1394069@roeck-us.net>
 MIME-Version: 1.0
-In-Reply-To: <MRZP264MB298824D80E6C0ADCB5EA1D9AEDD39@MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210906234921.GA1394069@roeck-us.net>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Thanks for reply.
+On Mon, Sep 06, 2021 at 04:49:21PM -0700, Guenter Roeck wrote:
+> On Mon, Sep 06, 2021 at 04:06:04PM -0700, Linus Torvalds wrote:
+[ ... ]
 
-On 2021/9/7 23:55, LEROY Christophe wrote:
->
->> -----Message d'origine-----
->> De : Linuxppc-dev <linuxppc-dev-
->> bounces+christophe.leroy=csgroup.eu@lists.ozlabs.org> De la part de Weizhao
->> Ouyang
->>
->> Most of ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
->> ftrace_dyn_arch_init() to cleanup them.
->>
->> Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
->> Acked-by: Heiko Carstens <hca@linux.ibm.com> (s390)
->> Acked-by: Helge Deller <deller@gmx.de> (parisc)
->>
->> ---
->> Changes in v3:
->> -- fix unrecognized opcode on PowerPC
->>
->> Changes in v2:
->> -- correct CONFIG_DYNAMIC_FTRACE on PowerPC
->> -- add Acked-by tag
->>
->> ---
->>  arch/arm/kernel/ftrace.c          | 5 -----
->>  arch/arm64/kernel/ftrace.c        | 5 -----
->>  arch/csky/kernel/ftrace.c         | 5 -----
->>  arch/ia64/kernel/ftrace.c         | 6 ------
->>  arch/microblaze/kernel/ftrace.c   | 5 -----
->>  arch/mips/include/asm/ftrace.h    | 2 ++
->>  arch/nds32/kernel/ftrace.c        | 5 -----
->>  arch/parisc/kernel/ftrace.c       | 5 -----
->>  arch/powerpc/include/asm/ftrace.h | 4 ++++
->>  arch/riscv/kernel/ftrace.c        | 5 -----
->>  arch/s390/kernel/ftrace.c         | 5 -----
->>  arch/sh/kernel/ftrace.c           | 5 -----
->>  arch/sparc/kernel/ftrace.c        | 5 -----
->>  arch/x86/kernel/ftrace.c          | 5 -----
->>  include/linux/ftrace.h            | 1 -
->>  kernel/trace/ftrace.c             | 5 +++++
->>  16 files changed, 11 insertions(+), 62 deletions(-)
->>
->> diff --git a/arch/mips/include/asm/ftrace.h b/arch/mips/include/asm/ftrace.h
->> index b463f2aa5a61..ed013e767390 100644
->> --- a/arch/mips/include/asm/ftrace.h
->> +++ b/arch/mips/include/asm/ftrace.h
->> @@ -76,6 +76,8 @@ do {                                                \
->>
->>
->>  #ifdef CONFIG_DYNAMIC_FTRACE
->> +int __init ftrace_dyn_arch_init(void);
->> +
-> Why ?
->
->
->>  static inline unsigned long ftrace_call_adjust(unsigned long addr)
->>  {
->>       return addr;
->> diff --git a/arch/powerpc/include/asm/ftrace.h
->> b/arch/powerpc/include/asm/ftrace.h
->> index debe8c4f7062..b05c43f13a4d 100644
->> --- a/arch/powerpc/include/asm/ftrace.h
->> +++ b/arch/powerpc/include/asm/ftrace.h
->> @@ -126,6 +126,10 @@ static inline void this_cpu_enable_ftrace(void) { }
->>  static inline void this_cpu_set_ftrace_enabled(u8 ftrace_enabled) { }
->>  static inline u8 this_cpu_get_ftrace_enabled(void) { return 1; }
->>  #endif /* CONFIG_PPC64 */
->> +
->> +#ifdef CONFIG_DYNAMIC_FTRACE
->> +int __init ftrace_dyn_arch_init(void);
->> +#endif /* CONFIG_DYNAMIC_FTRACE */
-> Why ?
->
->>  #endif /* !__ASSEMBLY__ */
->>
->>  #endif /* _ASM_POWERPC_FTRACE */
->> diff --git a/include/linux/ftrace.h b/include/linux/ftrace.h
->> index 832e65f06754..f1eca123d89d 100644
->> --- a/include/linux/ftrace.h
->> +++ b/include/linux/ftrace.h
->> @@ -573,7 +573,6 @@ ftrace_set_early_filter(struct ftrace_ops *ops, char
->> *buf, int enable);
->>
->>  /* defined in arch */
->>  extern int ftrace_ip_converted(unsigned long ip);
->> -extern int ftrace_dyn_arch_init(void);
-> Why removing that ?
->
-> Have you tried to build kernel/trace/ftrace.o with C=2 ? It will likely tell you that the function is not declared and that it should be static
+> >  - at least a couple of stringop-overread errors. Attached is a
+> > possible for for one of them.
+> > 
 
-Yes I missed this check. Under the situation, the function should be static.
+I keep seeing problems like this.
 
-> We could eventually consider that in the past, this generic declaration was unrelevant because the definitions where in the arch specific sections.
-> Now that you are implementing a generic weak version of this function, it would make sense to have a generic declaration as well.
->
-> I really don't see the point in duplicating the declaration of the function in the arch specific headers.
+drivers/net/ethernet/i825xx/82596.c: In function 'i82596_probe':
+./arch/m68k/include/asm/string.h:72:25: error: '__builtin_memcpy' reading 6 bytes from a region of size 0 [-Werror=stringop-overread]
+   72 | #define memcpy(d, s, n) __builtin_memcpy(d, s, n)
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~
+drivers/net/ethernet/i825xx/82596.c:1147:17: note: in expansion of macro 'memcpy'
+ 1147 |                 memcpy(eth_addr, (void *) 0xfffc1f2c, ETH_ALEN);        /* YUCK! Get addr from NOVRAM */
+      |                 ^~~~~~
+cc1: all warnings being treated as errors
 
-I use declaration in arch specific headers in tend to clarify the arch has implement ftrace_dyn_arch_init().
-Anyway, it maybe pointless, a generic declaration is enough. Will update it later.
+It is seen with gcc 11.x whenever a memXXX or strXXX function parameter
+is a pointer to a fixed address. gcc is happy if "(void *) 0xfffc1f2c"
+is passed to a global function which does nothing but return the address,
+such as:
 
->>  extern void ftrace_replace_code(int enable);
->>  extern int ftrace_update_ftrace_func(ftrace_func_t func);
->>  extern void ftrace_caller(void);
-> Christophe
->
-> CS Group - Document Interne
+void *sanitize_address(void *address)
+{
+	return address;
+}
+
+and:
+
+	memcpy(eth_addr, sanitize_address((void *) 0xfffc1f2c), ETH_ALEN);
+
+but that just seems weird. Is there a better solution ?
+
+Thanks,
+Guenter
