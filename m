@@ -6,36 +6,37 @@ X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C0C6C433EF
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 10:11:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2F02C433EF
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 10:22:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FB2B60EE1
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 10:11:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D7A3061132
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Sep 2021 10:22:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231723AbhIHKMS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Sep 2021 06:12:18 -0400
-Received: from mail-vs1-f47.google.com ([209.85.217.47]:43644 "EHLO
-        mail-vs1-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347877AbhIHKMQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Sep 2021 06:12:16 -0400
-Received: by mail-vs1-f47.google.com with SMTP id u1so1510814vsq.10;
-        Wed, 08 Sep 2021 03:11:09 -0700 (PDT)
+        id S1348527AbhIHKXM convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Sep 2021 06:23:12 -0400
+Received: from mail-vs1-f43.google.com ([209.85.217.43]:40846 "EHLO
+        mail-vs1-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1345299AbhIHKXD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Sep 2021 06:23:03 -0400
+Received: by mail-vs1-f43.google.com with SMTP id d6so1546877vsr.7;
+        Wed, 08 Sep 2021 03:21:55 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
+        d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=IbTzHHY/WI6T/MMG5snxRp97B/nG4as15XsvK/bKWX4=;
-        b=fBW3TtAosz9IDzfFHHzIYfivloccAdP+HvWiQ9qlFR/eD6A3PLK14QLW3XCckDFXlF
-         WNz9HVVNyOX+vuzJ2LyojJkdbW5euu3WxJ1zk1q7Pg3rwsXUQYcLAYExmMt9z6gpxA0I
-         OkU3lCqMqj1nWFZjksQRbWJQjjApdke4Yo/nRL8BQxtOM+4iZ24OD/7SNhTKy2fG2Zfp
-         kchTBnMKY02j7nRHPxCOpqOARzZTh4OWEq5n9JqZkZ33NWdnxKNylyL75vKDIHAaPytK
-         oze+QeIDquA63AUPP0OuSrQZvkWphVr+f5llLJ+PwZe0Ix7IpGxq6LUZDaC7GgN1Ja59
-         YMGQ==
-X-Gm-Message-State: AOAM533VbkLq61wlEcR1jBp1ACiS4uocyfBYO8GW0SorTMbXetosYlPU
-        R2FX/w24W3IDMTsmTx1dDxh/Shd73fe8+r+HCsw=
-X-Google-Smtp-Source: ABdhPJyphSeifnjOp7oNIUahNJmyU6J5WjkkLDF0tVnZsBz1aPZxxoo6jIFvaLs1SeQPQMM8/visQwCk23wD9oVuNPg=
-X-Received: by 2002:a67:cb0a:: with SMTP id b10mr1424921vsl.9.1631095868938;
- Wed, 08 Sep 2021 03:11:08 -0700 (PDT)
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=8g1MXx8tPZJgEtHuWN2FTujyN4+VHT0fVsMeMam6ogc=;
+        b=kcED//ERt5trE8d7hnPV7Qcgck0m/iuCWcHpc8bGLMS5U7rj1GS0G+dB5xUN33P+Dt
+         jo5kdiQKuznjnOMk8wn3lyATBtPRBT03MC7a1UfFCGQH+p0Nyh08OmpYUPwcWeJ4sKG8
+         StdQKQkc3Dy0eBgek3n/WD6ctZ899CyH0mNLp1ncbtBAgMbFuNfHKEiUV6/mQmgNJenR
+         TGRiGi/DO2Q2FQl8bOnjJ5BNJhP4XpeHqz9VaUMSurXjp/EyNQO0IfPWvGliSrjWpYxt
+         ChQV9S6YKeUi2smrMgNVClWNYDF6giiXl8mgp0xcuQpxFyMVL72l9/NdNv/GiJ8oYYE8
+         lalw==
+X-Gm-Message-State: AOAM532RL6BbbMVs+PIcHWTwMsnWTM+bKrTCs7V65oxMY80af1s230Mg
+        JMLhuEbODwlNX6qpglBHydd8X5PgQQl7wPiFk6c=
+X-Google-Smtp-Source: ABdhPJwesct4erqU/THhxBqimdnSW2qDvyqSXH/Z9bFCp2dBvUaImTAJYv/+9mlsSscBCDOvzxRNjcaQ/XqI3i97b5g=
+X-Received: by 2002:a05:6102:b10:: with SMTP id b16mr1287001vst.41.1631096515454;
+ Wed, 08 Sep 2021 03:21:55 -0700 (PDT)
 MIME-Version: 1.0
 References: <20210906142615.GA1917503@roeck-us.net> <CAHk-=wgjTePY1v_D-jszz4NrpTso0CdvB9PcdroPS=TNU1oZMQ@mail.gmail.com>
  <c3790fb9-b83f-9596-18a1-21ace987c850@roeck-us.net> <CAHk-=wi4NW3NC0xWykkw=6LnjQD6D_rtRtxY9g8gQAJXtQMi8A@mail.gmail.com>
@@ -44,8 +45,8 @@ References: <20210906142615.GA1917503@roeck-us.net> <CAHk-=wgjTePY1v_D-jszz4NrpT
  <CAMuHMdWhzL+aWosce71Xm-7dKsgXFyL42tQ2gV2HyEZp5r0N7A@mail.gmail.com> <CAK8P3a3yJHvJaFHUh2+5GPm2n_g9gSfX2rFbrSLzDt6yC4eDog@mail.gmail.com>
 In-Reply-To: <CAK8P3a3yJHvJaFHUh2+5GPm2n_g9gSfX2rFbrSLzDt6yC4eDog@mail.gmail.com>
 From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Wed, 8 Sep 2021 12:10:57 +0200
-Message-ID: <CAMuHMdV51YuBYg6bvoQW9fBXFv8BRtnG9YTZST3AnbFwOsdW9g@mail.gmail.com>
+Date:   Wed, 8 Sep 2021 12:21:44 +0200
+Message-ID: <CAMuHMdU5SWFVvMkuEWY5hvv4aro=cGogGi-Xw+Qtden-1m7fOQ@mail.gmail.com>
 Subject: Re: [PATCH] Enable '-Werror' by default for all kernel builds
 To:     Arnd Bergmann <arnd@kernel.org>
 Cc:     Guenter Roeck <linux@roeck-us.net>,
@@ -59,11 +60,10 @@ Cc:     Guenter Roeck <linux@roeck-us.net>,
         linux-sparc <sparclinux@vger.kernel.org>,
         Martin Sebor <msebor@gcc.gnu.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
-
-Hi Arnd,
 
 On Wed, Sep 8, 2021 at 11:50 AM Arnd Bergmann <arnd@kernel.org> wrote:
 > On Wed, Sep 8, 2021 at 9:49 AM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
@@ -94,23 +94,21 @@ On Wed, Sep 8, 2021 at 11:50 AM Arnd Bergmann <arnd@kernel.org> wrote:
 > fine here, as there are only a couple of instances, and for the network
 > driver, using volatile is probably appropriate as well.
 
-Yeah, volatile should be fine for drivers.
-In fact this is one of the few places where I/O registers are accessed
-without involving volatile.
+A related one, I guess, is:
 
-> I still hope this can be fixed in a future gcc-11.x release. Maybe we should
-> add further instances of the problem on the gcc bug to boost the priority?
->
-> > > I don't know the hardware, so I can not answer the ioremap() question.
-> >
-> > Yes it should.  But this driver dates back to 2.1.110, when only
-> > half of the architectures already had ioremap().
->
-> How does  mvme16x even create the mapping? Is this a virtual address
-> that is hardwired to the bus or do you have a static mapping somewhere?
+    arch/m68k/include/asm/string.h:72:25: error: argument 2 null where
+non-null expected [-Werror=nonnull]
+       72 | #define memcpy(d, s, n) __builtin_memcpy(d, s, n)
+          |                         ^~~~~~~~~~~~~~~~~~~~~~~~~
+    drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c:387:4:
+note: in expansion of macro ‘memcpy’
+      387 |    memcpy((char *)kmap(pages[0]) +
+          |    ^~~~~~
 
-It's part of the transparent mapping of the top address space for
-I/O devices in arch/m68k/kernel/head.S.
+Seen with my sun3-allmodconfig build.
+As NO_DMA=y, dmam_alloc_coherent() returns NULL, and the compiler
+discovers that g_fragments_base is never assigned to and thus must
+be NULL.
 
 Gr{oetje,eeting}s,
 
