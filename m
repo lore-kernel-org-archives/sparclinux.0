@@ -2,479 +2,119 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-18.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_2
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 464C3C433EF
-	for <sparclinux@archiver.kernel.org>; Thu,  9 Sep 2021 14:04:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 292ECC433F5
+	for <sparclinux@archiver.kernel.org>; Thu,  9 Sep 2021 23:39:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3063E610FF
-	for <sparclinux@archiver.kernel.org>; Thu,  9 Sep 2021 14:04:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 114256115A
+	for <sparclinux@archiver.kernel.org>; Thu,  9 Sep 2021 23:39:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351129AbhIIOFk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 9 Sep 2021 10:05:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38504 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347347AbhIIOFG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Sep 2021 10:05:06 -0400
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F5F4C0355C9
-        for <sparclinux@vger.kernel.org>; Thu,  9 Sep 2021 05:04:29 -0700 (PDT)
-Received: by mail-wm1-x329.google.com with SMTP id u15-20020a05600c19cf00b002f6445b8f55so1226445wmq.0
-        for <sparclinux@vger.kernel.org>; Thu, 09 Sep 2021 05:04:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references
-         :mime-version:content-transfer-encoding;
-        bh=K3vDDlqm04DaMwsoFUUJnAu6JgMCtAyVT1spCpUheAo=;
-        b=sDD09AQopSiJ3AtxBztVP873sDOz/Dm0FAdJM+v1ON/192NsLFcT7+8c5fkhkTgGRi
-         0Nd8zGb4B3fXELEQgOEbJKuJQrLwjie5Kl5kt/905SbdUrOuujw7TFNiWIzoW8hmDJuI
-         /B0ZvV08VGU+EeQkhZLkbYcsNb9Zi3VPDX5NBmeKIx4NHaRZNeLehKe5LrdsDEHygrW4
-         GrwVpG7zlf7ACbIZ+0ttCLiAuSA2XjfZfYzM/Q1uvzvIAR/XUa76+1HWzURzkqK3ZKm3
-         jfhgVXaA/Cr4zJc4Dkvy01s+QMYr3vWpbS8vixpLf7TPigpzhiFOFksKy2njYYyJiT4U
-         KKcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=K3vDDlqm04DaMwsoFUUJnAu6JgMCtAyVT1spCpUheAo=;
-        b=smgRm1+n8xGphgb9vSnWiYvusu9FZ7IPkG3sduS6LEN2NqGPam7Y9EVNpKRqTTJqGQ
-         YZ421CCnysRCt1GxgBRTj344IKP8gtrNVi5v/FwJPkA9B8yOBuU1JBYLhPfsz7KkZDw5
-         F4p4RAZ2JBO2kZX/0JdUsso2hoMbQdJn/EpToWlvhN1pSXj8s9PH2B/HaLNFk589u/Ts
-         G5vejMOJ5GeMsKo03GwnkbZqjzbv0/s1uXtO6yU1h1XXI+9aNg4/PdBGQZO0RXAObEQo
-         jJyORODnDWb2hNf12AaNGlGzrLl6NUhdxkq6k5rb7c9XUVvO2l40IACIBYvT1B6rMl4e
-         W1Sw==
-X-Gm-Message-State: AOAM531B8/oixqxO8FwYEKyG19deLNjwib+zeHWP5oC181JcgJ12wJFO
-        yOzOZJlD7gTdVPiAcz0GsG3oNg==
-X-Google-Smtp-Source: ABdhPJz0PFpr/wZU2BJPWEvtutySCqYGxgLOifcfTS5MAcWKT7qquZYWa46Z0XYFxy5mcPeu8yVcJQ==
-X-Received: by 2002:a1c:1d42:: with SMTP id d63mr1301620wmd.55.1631189067647;
-        Thu, 09 Sep 2021 05:04:27 -0700 (PDT)
-Received: from localhost.localdomain ([95.148.6.201])
-        by smtp.gmail.com with ESMTPSA id n66sm1437498wmn.2.2021.09.09.05.04.25
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 09 Sep 2021 05:04:27 -0700 (PDT)
-From:   Lee Jones <lee.jones@linaro.org>
-To:     lee.jones@linaro.org
-Cc:     linux-kernel@vger.kernel.org, Vineet Gupta <vgupta@synopsys.com>,
+        id S230058AbhIIXkY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 9 Sep 2021 19:40:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54360 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232591AbhIIXiK (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 9 Sep 2021 19:38:10 -0400
+Received: from gandalf.local.home (cpe-66-24-58-225.stny.res.rr.com [66.24.58.225])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 2AF536108D;
+        Thu,  9 Sep 2021 23:36:57 +0000 (UTC)
+Date:   Thu, 9 Sep 2021 19:36:55 -0400
+From:   Steven Rostedt <rostedt@goodmis.org>
+To:     Weizhao Ouyang <o451686892@gmail.com>
+Cc:     Ingo Molnar <mingo@redhat.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Brian Cain <bcain@codeaurora.org>,
         Michal Simek <monstr@monstr.eu>,
-        John Crispin <john@phrozen.org>,
-        Ley Foon Tan <ley.foon.tan@intel.com>,
-        Jonas Bonn <jonas@southpole.se>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        Stafford Horne <shorne@gmail.com>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Nick Hu <nickhu@andestech.com>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
         Helge Deller <deller@gmx.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
         Paul Walmsley <paul.walmsley@sifive.com>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Albert Ou <aou@eecs.berkeley.edu>,
         Heiko Carstens <hca@linux.ibm.com>,
         Vasily Gorbik <gor@linux.ibm.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Jeff Dike <jdike@addtoit.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        "David S. Miller" <davem@davemloft.net>,
         Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Subject: [PATCH v2 1/3] arch: Export machine_restart() instances so they can be called from modules
-Date:   Thu,  9 Sep 2021 13:04:19 +0100
-Message-Id: <20210909120421.1313908-2-lee.jones@linaro.org>
-X-Mailer: git-send-email 2.33.0.153.gba50c8fa24-goog
-In-Reply-To: <20210909120421.1313908-1-lee.jones@linaro.org>
-References: <20210909120421.1313908-1-lee.jones@linaro.org>
+        Borislav Petkov <bp@alien8.de>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH v4] ftrace: Cleanup ftrace_dyn_arch_init()
+Message-ID: <20210909193655.7bc715af@gandalf.local.home>
+In-Reply-To: <20210909090216.1955240-1-o451686892@gmail.com>
+References: <20210909090216.1955240-1-o451686892@gmail.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-A recent attempt to convert the Power Reset Restart driver to tristate
-failed because of the following compile error (reported once merged by
-Stephen Rothwell via Linux Next):
+On Thu,  9 Sep 2021 17:02:16 +0800
+Weizhao Ouyang <o451686892@gmail.com> wrote:
 
-  ERROR: "machine_restart" [drivers/power/reset/restart-poweroff.ko] undefined!
+> Most of ARCHs use empty ftrace_dyn_arch_init(), introduce a weak common
+> ftrace_dyn_arch_init() to cleanup them.
 
-This error occurs since some of the machine_restart() instances are
-not currently exported for use in modules.  This patch aims to rectify
-that.
+FYI,
 
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: John Crispin <john@phrozen.org>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: James E.J. Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Anton Ivanov <anton.ivanov@cambridgegreys.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: linux-snps-arc@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-csky@vger.kernel.org
-Cc: uclinux-h8-devel@lists.sourceforge.jp
-Cc: linux-hexagon@vger.kernel.org
-Cc: linux-m68k@lists.linux-m68k.org
-Cc: linux-mips@vger.kernel.org
-Cc: openrisc@lists.librecores.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linuxppc-dev@lists.ozlabs.org
-Cc: linux-riscv@lists.infradead.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Cc: sparclinux@vger.kernel.org
-Cc: linux-um@lists.infradead.org
-Cc: linux-xtensa@linux-xtensa.org
-Signed-off-by: Lee Jones <lee.jones@linaro.org>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
----
- arch/arc/kernel/reset.c            | 1 +
- arch/arm/kernel/reboot.c           | 1 +
- arch/arm64/kernel/process.c        | 1 +
- arch/csky/kernel/power.c           | 1 +
- arch/h8300/kernel/process.c        | 1 +
- arch/hexagon/kernel/reset.c        | 1 +
- arch/m68k/kernel/process.c         | 1 +
- arch/microblaze/kernel/reset.c     | 1 +
- arch/mips/kernel/reset.c           | 1 +
- arch/mips/lantiq/falcon/reset.c    | 1 +
- arch/mips/sgi-ip27/ip27-reset.c    | 1 +
- arch/nds32/kernel/process.c        | 2 +-
- arch/nios2/kernel/process.c        | 1 +
- arch/openrisc/kernel/process.c     | 1 +
- arch/parisc/kernel/process.c       | 1 +
- arch/powerpc/kernel/setup-common.c | 1 +
- arch/riscv/kernel/reset.c          | 1 +
- arch/s390/kernel/setup.c           | 1 +
- arch/sh/kernel/reboot.c            | 1 +
- arch/sparc/kernel/process_32.c     | 1 +
- arch/sparc/kernel/reboot.c         | 1 +
- arch/um/kernel/reboot.c            | 1 +
- arch/x86/kernel/reboot.c           | 1 +
- arch/xtensa/kernel/setup.c         | 1 +
- 24 files changed, 24 insertions(+), 1 deletion(-)
+I'm not ignoring this patch. I just wont be able to look at it until the
+merge window is over.
 
-diff --git a/arch/arc/kernel/reset.c b/arch/arc/kernel/reset.c
-index fd6c3eb930bad..1f5d8ce532e2f 100644
---- a/arch/arc/kernel/reset.c
-+++ b/arch/arc/kernel/reset.c
-@@ -20,6 +20,7 @@ void machine_restart(char *__unused)
- 	pr_info("Put your restart handler here\n");
- 	machine_halt();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_power_off(void)
- {
-diff --git a/arch/arm/kernel/reboot.c b/arch/arm/kernel/reboot.c
-index 3044fcb8d0736..95cdcb17251af 100644
---- a/arch/arm/kernel/reboot.c
-+++ b/arch/arm/kernel/reboot.c
-@@ -146,3 +146,4 @@ void machine_restart(char *cmd)
- 	printk("Reboot failed -- System halted\n");
- 	while (1);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
-diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-index c8989b999250d..d7557f649dbd6 100644
---- a/arch/arm64/kernel/process.c
-+++ b/arch/arm64/kernel/process.c
-@@ -148,6 +148,7 @@ void machine_restart(char *cmd)
- 	printk("Reboot failed -- System halted\n");
- 	while (1);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- #define bstr(suffix, str) [PSR_BTYPE_ ## suffix >> PSR_BTYPE_SHIFT] = str
- static const char *const btypes[] = {
-diff --git a/arch/csky/kernel/power.c b/arch/csky/kernel/power.c
-index 923ee4e381b81..1787de5b13ba6 100644
---- a/arch/csky/kernel/power.c
-+++ b/arch/csky/kernel/power.c
-@@ -28,3 +28,4 @@ void machine_restart(char *cmd)
- 	do_kernel_restart(cmd);
- 	asm volatile ("bkpt");
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
-diff --git a/arch/h8300/kernel/process.c b/arch/h8300/kernel/process.c
-index 2ac27e4248a46..f92f473a1934a 100644
---- a/arch/h8300/kernel/process.c
-+++ b/arch/h8300/kernel/process.c
-@@ -66,6 +66,7 @@ void machine_restart(char *__unused)
- 	local_irq_disable();
- 	__asm__("jmp @@0");
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/hexagon/kernel/reset.c b/arch/hexagon/kernel/reset.c
-index da36114d928f0..ed79e0e5a0318 100644
---- a/arch/hexagon/kernel/reset.c
-+++ b/arch/hexagon/kernel/reset.c
-@@ -19,6 +19,7 @@ void machine_halt(void)
- void machine_restart(char *cmd)
- {
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void (*pm_power_off)(void) = NULL;
- EXPORT_SYMBOL(pm_power_off);
-diff --git a/arch/m68k/kernel/process.c b/arch/m68k/kernel/process.c
-index db49f90917112..f891d9b4bdf2f 100644
---- a/arch/m68k/kernel/process.c
-+++ b/arch/m68k/kernel/process.c
-@@ -57,6 +57,7 @@ void machine_restart(char * __unused)
- 		mach_reset();
- 	for (;;);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/microblaze/kernel/reset.c b/arch/microblaze/kernel/reset.c
-index 5f4722908164d..7f47e59914c0d 100644
---- a/arch/microblaze/kernel/reset.c
-+++ b/arch/microblaze/kernel/reset.c
-@@ -41,3 +41,4 @@ void machine_restart(char *cmd)
- 	pr_emerg("Reboot failed -- System halted\n");
- 	while (1);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
-diff --git a/arch/mips/kernel/reset.c b/arch/mips/kernel/reset.c
-index 6288780b779e7..4fe2edc2d06d6 100644
---- a/arch/mips/kernel/reset.c
-+++ b/arch/mips/kernel/reset.c
-@@ -99,6 +99,7 @@ void machine_restart(char *command)
- 	pr_emerg("Reboot failed -- System halted\n");
- 	machine_hang();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/mips/lantiq/falcon/reset.c b/arch/mips/lantiq/falcon/reset.c
-index 261996c230cf6..70259dd09aaea 100644
---- a/arch/mips/lantiq/falcon/reset.c
-+++ b/arch/mips/lantiq/falcon/reset.c
-@@ -51,6 +51,7 @@ static void machine_restart(char *command)
- 		(void *)WDT_REG_BASE);
- 	unreachable();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- static void machine_halt(void)
- {
-diff --git a/arch/mips/sgi-ip27/ip27-reset.c b/arch/mips/sgi-ip27/ip27-reset.c
-index 5ac5ad6387343..35084653022ea 100644
---- a/arch/mips/sgi-ip27/ip27-reset.c
-+++ b/arch/mips/sgi-ip27/ip27-reset.c
-@@ -29,6 +29,7 @@
- #include "ip27-common.h"
- 
- void machine_restart(char *command) __noreturn;
-+EXPORT_SYMBOL_GPL(machine_restart);
- void machine_halt(void) __noreturn;
- void machine_power_off(void) __noreturn;
- 
-diff --git a/arch/nds32/kernel/process.c b/arch/nds32/kernel/process.c
-index 391895b54d13c..f60b70fcfaf3d 100644
---- a/arch/nds32/kernel/process.c
-+++ b/arch/nds32/kernel/process.c
-@@ -91,7 +91,7 @@ void machine_restart(char *cmd)
- 	while (1) ;
- }
- 
--EXPORT_SYMBOL(machine_restart);
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void show_regs(struct pt_regs *regs)
- {
-diff --git a/arch/nios2/kernel/process.c b/arch/nios2/kernel/process.c
-index 9ff37ba2bb603..ebc4940059de5 100644
---- a/arch/nios2/kernel/process.c
-+++ b/arch/nios2/kernel/process.c
-@@ -51,6 +51,7 @@ void machine_restart(char *__unused)
- 	: "r" (cpuinfo.reset_addr)
- 	: "r4");
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/openrisc/kernel/process.c b/arch/openrisc/kernel/process.c
-index eb62429681fc8..fba2aa6ae8470 100644
---- a/arch/openrisc/kernel/process.c
-+++ b/arch/openrisc/kernel/process.c
-@@ -61,6 +61,7 @@ void machine_restart(char *cmd)
- 	pr_emerg("Reboot failed -- System halted\n");
- 	while (1);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- /*
-  * Similar to machine_power_off, but don't shut off power.  Add code
-diff --git a/arch/parisc/kernel/process.c b/arch/parisc/kernel/process.c
-index 184ec3c1eae44..f39f7620d715d 100644
---- a/arch/parisc/kernel/process.c
-+++ b/arch/parisc/kernel/process.c
-@@ -96,6 +96,7 @@ void machine_restart(char *cmd)
- 	while (1) ;
- 
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void (*chassis_power_off)(void);
- 
-diff --git a/arch/powerpc/kernel/setup-common.c b/arch/powerpc/kernel/setup-common.c
-index aa9c2d01424af..dfd875d4f8478 100644
---- a/arch/powerpc/kernel/setup-common.c
-+++ b/arch/powerpc/kernel/setup-common.c
-@@ -158,6 +158,7 @@ void machine_restart(char *cmd)
- 
- 	machine_hang();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_power_off(void)
- {
-diff --git a/arch/riscv/kernel/reset.c b/arch/riscv/kernel/reset.c
-index ee5878d968cc1..5fd0aa3e12766 100644
---- a/arch/riscv/kernel/reset.c
-+++ b/arch/riscv/kernel/reset.c
-@@ -20,6 +20,7 @@ void machine_restart(char *cmd)
- 	do_kernel_restart(cmd);
- 	while (1);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
-index ff0f9e8389162..ce8afa1cf8645 100644
---- a/arch/s390/kernel/setup.c
-+++ b/arch/s390/kernel/setup.c
-@@ -278,6 +278,7 @@ void machine_restart(char *command)
- 		console_unblank();
- 	_machine_restart(command);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/sh/kernel/reboot.c b/arch/sh/kernel/reboot.c
-index 5c33f036418be..ea4b1bdada41a 100644
---- a/arch/sh/kernel/reboot.c
-+++ b/arch/sh/kernel/reboot.c
-@@ -83,6 +83,7 @@ void machine_restart(char *cmd)
- {
- 	machine_ops.restart(cmd);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
-diff --git a/arch/sparc/kernel/process_32.c b/arch/sparc/kernel/process_32.c
-index 93983d6d431de..de9106e386919 100644
---- a/arch/sparc/kernel/process_32.c
-+++ b/arch/sparc/kernel/process_32.c
-@@ -104,6 +104,7 @@ void machine_restart(char * cmd)
- 	prom_feval ("reset");
- 	panic("Reboot failed!");
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_power_off(void)
- {
-diff --git a/arch/sparc/kernel/reboot.c b/arch/sparc/kernel/reboot.c
-index 69c1b6c047d53..faebf958c4b5a 100644
---- a/arch/sparc/kernel/reboot.c
-+++ b/arch/sparc/kernel/reboot.c
-@@ -52,4 +52,5 @@ void machine_restart(char *cmd)
- 	prom_reboot("");
- 	panic("Reboot failed!");
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
-diff --git a/arch/um/kernel/reboot.c b/arch/um/kernel/reboot.c
-index 48c0610d506e0..7ca141cf4a0af 100644
---- a/arch/um/kernel/reboot.c
-+++ b/arch/um/kernel/reboot.c
-@@ -47,6 +47,7 @@ void machine_restart(char * __unused)
- 	uml_cleanup();
- 	reboot_skas();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_power_off(void)
- {
-diff --git a/arch/x86/kernel/reboot.c b/arch/x86/kernel/reboot.c
-index ebfb911082326..d378e80a60a1b 100644
---- a/arch/x86/kernel/reboot.c
-+++ b/arch/x86/kernel/reboot.c
-@@ -733,6 +733,7 @@ static void native_machine_restart(char *__unused)
- 		machine_shutdown();
- 	__machine_emergency_restart(0);
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- static void native_machine_halt(void)
- {
-diff --git a/arch/xtensa/kernel/setup.c b/arch/xtensa/kernel/setup.c
-index ed184106e4cf9..a70c1351cd59e 100644
---- a/arch/xtensa/kernel/setup.c
-+++ b/arch/xtensa/kernel/setup.c
-@@ -564,6 +564,7 @@ void machine_restart(char * cmd)
- {
- 	platform_restart();
- }
-+EXPORT_SYMBOL_GPL(machine_restart);
- 
- void machine_halt(void)
- {
--- 
-2.33.0.153.gba50c8fa24-goog
+-- Steve
 
+
+> 
+> Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
+> Acked-by: Heiko Carstens <hca@linux.ibm.com> (s390)
+> Acked-by: Helge Deller <deller@gmx.de> (parisc)
+> 
+> ---
+> Changes in v4:
+> -- revert the generic declaration
+> 
+> Changes in v3:
+> -- fix unrecognized opcode on PowerPC
+> 
+> Changes in v2:
+> -- correct CONFIG_DYNAMIC_FTRACE on PowerPC
+> -- add Acked-by tag
+> 
+> ---
+>  arch/arm/kernel/ftrace.c        | 5 -----
+>  arch/arm64/kernel/ftrace.c      | 5 -----
+>  arch/csky/kernel/ftrace.c       | 5 -----
+>  arch/ia64/kernel/ftrace.c       | 6 ------
+>  arch/microblaze/kernel/ftrace.c | 5 -----
+>  arch/nds32/kernel/ftrace.c      | 5 -----
+>  arch/parisc/kernel/ftrace.c     | 5 -----
+>  arch/riscv/kernel/ftrace.c      | 5 -----
+>  arch/s390/kernel/ftrace.c       | 5 -----
+>  arch/sh/kernel/ftrace.c         | 5 -----
+>  arch/sparc/kernel/ftrace.c      | 5 -----
+>  arch/x86/kernel/ftrace.c        | 5 -----
+>  kernel/trace/ftrace.c           | 5 +++++
+>  13 files changed, 5 insertions(+), 61 deletions(-)
+> 
+>
