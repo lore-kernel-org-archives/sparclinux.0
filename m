@@ -2,173 +2,180 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ADADC433F5
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 12:04:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C88FC433FE
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 12:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23029610FB
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 12:04:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C8B560F92
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 12:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232422AbhINMGG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Sep 2021 08:06:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59808 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232629AbhINMEb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Sep 2021 08:04:31 -0400
-Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30F33C061574;
-        Tue, 14 Sep 2021 05:03:14 -0700 (PDT)
-Received: by mail-yb1-xb29.google.com with SMTP id c206so27576232ybb.12;
-        Tue, 14 Sep 2021 05:03:14 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=pMuzqmLn8R49faYvkNEUgKWF6kt1oCNrbXKOw1AJ9/g=;
-        b=DsEtZ1gvFmXGkGEiFUBeat38tAyUQbLjHQG4pLWSFt4W5aD6/4my4JQwwdQ78/VMRq
-         IteK/4ej6cPcHmeTqYEs3SsJFPijWLn9nXkUQtfRwqnxSTFAaJIIUUC3BEoL2h/IAhxK
-         LRUTDC/EEXseM9a3uEC9QjOCnAyyrWovRAVkXNTL6P+ho8k9Biq6JEnxJ+z6gG8Y7tOm
-         rl7tjVC5Y1XnSWuSsJTToAKGLHupore67DgKm628AbFLFSfm7SG/zFcRXO2N8UBAjR43
-         JBIwIJzwspQme1FN5F9mH0IvxTp0wT2sdcl1B/n/ns276RN+W9/1GYm4jXh7O/herInH
-         Ulpg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=pMuzqmLn8R49faYvkNEUgKWF6kt1oCNrbXKOw1AJ9/g=;
-        b=F4eHnIJH9IEbvY0n19uFCrbb5oQZjGI03ThHo41E+rFrc54ea2c4C1FL6kn5t4yJ1/
-         VsIMibkZtq+Sxbqc4VDz6f1YSbow9vJmbUw3ImxgYtyyZSChZdR2va+HOJNDiu8RWp++
-         4VRRyw5wMa78unDu/eocXSVnwViFgsyHweLEFe1eJw8Aj0txzXJSEcEZWCntuxxKAaui
-         RBetB+V71iAaYPDUuEDc4XpajrkdhJKMBxddF3ERQUlCOKfmr2QVLzQ4tPVkF9rKjadl
-         EtAmO4aGB8h7meQgbkhuGLf+y9+txQzhsQvPtxkkEUgqrGJsXQcCY5jMJ6FQKE1zB0jO
-         rleQ==
-X-Gm-Message-State: AOAM531Yj1efgYZNktzDxUZYlikeUyVX5RgJZdoe+fe6BsIJcjfK4Pzo
-        ws4LNR2/cAAIJBDtHjP8z64J27SH9KRtUE7nH/c=
-X-Google-Smtp-Source: ABdhPJx3Xv+ZrAwReMnF+D+nYEmGsxevtbsIcDUCvtkX3v5AmCaUQqzaGf1EAFlMzJ9aveoWhQG6Yfuw/sg+1sJSESg=
-X-Received: by 2002:a05:6902:1505:: with SMTP id q5mr11829563ybu.244.1631620990398;
- Tue, 14 Sep 2021 05:03:10 -0700 (PDT)
+        id S232678AbhINMia (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Sep 2021 08:38:30 -0400
+Received: from mail.loongson.cn ([114.242.206.163]:42754 "EHLO loongson.cn"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S232524AbhINMia (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 14 Sep 2021 08:38:30 -0400
+Received: from [10.130.0.135] (unknown [113.200.148.30])
+        by mail.loongson.cn (Coremail) with SMTP id AQAAf9Dxn2tEl0BhhZgGAA--.14513S3;
+        Tue, 14 Sep 2021 20:36:22 +0800 (CST)
+From:   Tiezhu Yang <yangtiezhu@loongson.cn>
+Subject: Re: [PATCH bpf-next v2] bpf: Change value of MAX_TAIL_CALL_CNT from
+ 32 to 33
+To:     Daniel Borkmann <daniel@iogearbox.net>,
+        Shubham Bansal <illusionist.neo@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Zi Shen Lim <zlim.lnx@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Paul Burton <paulburton@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        naveen.n.rao@linux.ibm.com, Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Luke Nelson <luke.r.nels@gmail.com>,
+        Xi Wang <xi.wang@gmail.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>, bjorn@kernel.org,
+        davem@davemloft.net,
+        Johan Almbladh <johan.almbladh@anyfinetworks.com>,
+        Paul Chaignon <paul@cilium.io>
+References: <1631325361-9851-1-git-send-email-yangtiezhu@loongson.cn>
+ <0fb8d16f-67e7-7197-fce2-a4c17f1e5987@iogearbox.net>
+Cc:     netdev@vger.kernel.org, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
+Message-ID: <9ad382ca-a254-f897-9ec6-c9b1920a6174@loongson.cn>
+Date:   Tue, 14 Sep 2021 20:36:20 +0800
+User-Agent: Mozilla/5.0 (X11; Linux mips64; rv:45.0) Gecko/20100101
+ Thunderbird/45.4.0
 MIME-Version: 1.0
-References: <20210913163712.922188-1-linux@roeck-us.net> <YT+SPIAl0IdWOAn/@ravnborg.org>
- <d0a4b46a-2f0e-f6a2-1342-777e738d9525@roeck-us.net>
-In-Reply-To: <d0a4b46a-2f0e-f6a2-1342-777e738d9525@roeck-us.net>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Tue, 14 Sep 2021 15:02:59 +0300
-Message-ID: <CADxRZqwU6URhCpsUifon+B1QYHepx6gjExAFfK6SeXyu4JpF4w@mail.gmail.com>
-Subject: Re: [PATCH] sparc: mdesc: Fix compile error seen with gcc 11.x
-To:     Guenter Roeck <linux@roeck-us.net>,
-        Sparc kernel list <sparclinux@vger.kernel.org>
-Cc:     Sam Ravnborg <sam@ravnborg.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Linux Kernel list <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <0fb8d16f-67e7-7197-fce2-a4c17f1e5987@iogearbox.net>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+X-CM-TRANSID: AQAAf9Dxn2tEl0BhhZgGAA--.14513S3
+X-Coremail-Antispam: 1UD129KBjvJXoWxurW7Gw1DJw1UGw4xGFW3KFg_yoW5Ar43pr
+        WUJanakr4kXFyrC3ZrKa1xZay0vFZ8tryUGrWrK342yFn8Zrn5WF4xK3yFgF1UAryrta4F
+        9ayFkr95C3WkZFJanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
+        9KBjDU0xBIdaVrnRJUUU9Gb7Iv0xC_Kw4lb4IE77IF4wAFF20E14v26rWj6s0DM7CY07I2
+        0VC2zVCF04k26cxKx2IYs7xG6rWj6s0DM7CIcVAFz4kK6r1j6r18M28lY4IEw2IIxxk0rw
+        A2F7IY1VAKz4vEj48ve4kI8wA2z4x0Y4vE2Ix0cI8IcVAFwI0_Xr0_Ar1l84ACjcxK6xII
+        jxv20xvEc7CjxVAFwI0_Cr0_Gr1UM28EF7xvwVC2z280aVAFwI0_GcCE3s1l84ACjcxK6I
+        8E87Iv6xkF7I0E14v26rxl6s0DM2AIxVAIcxkEcVAq07x20xvEncxIr21l5I8CrVACY4xI
+        64kE6c02F40Ex7xfMcIj6xIIjxv20xvE14v26r106r15McIj6I8E87Iv67AKxVW8JVWxJw
+        Am72CE4IkC6x0Yz7v_Jr0_Gr1lF7xvr2IY64vIr41lFIxGxcIEc7CjxVA2Y2ka0xkIwI1l
+        c7I2V7IY0VAS07AlzVAYIcxG8wCY02Avz4vE14v_Xr1l42xK82IYc2Ij64vIr41l4I8I3I
+        0E4IkC6x0Yz7v_Jr0_Gr1lx2IqxVAqx4xG67AKxVWUJVWUGwC20s026x8GjcxK67AKxVWU
+        GVWUWwC2zVAF1VAY17CE14v26rWY6r4UJwCIc40Y0x0EwIxGrwCI42IY6xIIjxv20xvE14
+        v26r1j6r1xMIIF0xvE2Ix0cI8IcVCY1x0267AKxVW8JVWxJwCI42IY6xAIw20EY4v20xva
+        j40_Wr1j6rW3Jr1lIxAIcVC2z280aVAFwI0_Jr0_Gr1lIxAIcVC2z280aVCY1x0267AKxV
+        W8JVW8JrUvcSsGvfC2KfnxnUUI43ZEXa7IU5lsj5UUUUU==
+X-CM-SenderInfo: p1dqw3xlh2x3gn0dqz5rrqw2lrqou0/
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Sep 14, 2021 at 3:54 AM Guenter Roeck <linux@roeck-us.net> wrote:
+On 09/14/2021 03:30 PM, Daniel Borkmann wrote:
+> On 9/11/21 3:56 AM, Tiezhu Yang wrote:
+>>
+[...]
+>> With this patch, it does not change the current limit 33, 
+>> MAX_TAIL_CALL_CNT
+>> can reflect the actual max tail call count, the tailcall selftests 
+>> can work
+>> well, and also the above failed testcase in test_bpf can be fixed for 
+>> the
+>> interpreter (all archs) and the JIT (all archs except for x86).
+>>
+>>   # uname -m
+>>   x86_64
+>>   # echo 1 > /proc/sys/net/core/bpf_jit_enable
+>>   # modprobe test_bpf
+>>   # dmesg | grep -w FAIL
+>>   Tail call error path, max count reached jited:1 ret 33 != 34 FAIL
 >
-> On 9/13/21 11:02 AM, Sam Ravnborg wrote:
-> > Hi Guenter,
-> >
-> > On Mon, Sep 13, 2021 at 09:37:12AM -0700, Guenter Roeck wrote:
-> >> sparc64 images fail to compile with gcc 11.x, reporting the following
-> >> errors.
-> >>
-> >> arch/sparc/kernel/mdesc.c:647:22: error:
-> >>      'strcmp' reading 1 or more bytes from a region of size 0
-> >> arch/sparc/kernel/mdesc.c:692:22: error:
-> >>      'strcmp' reading 1 or more bytes from a region of size 0
-> >> arch/sparc/kernel/mdesc.c:719:21:
-> >>      error: 'strcmp' reading 1 or more bytes from a region of size 0
-> >>
-> >> The underlying problem is that node_block() returns a pointer beyond
-> >> the end of struct mdesc_hdr. gcc 11.x detects that and reports the error.
-> >> Adding an additional zero-length field to struct mdesc_hdr and pointing
-> >> to that field fixes the problem.
-> >>
-> >> Cc: Arnd Bergmann <arnd@kernel.org>
-> >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-> >> ---
-> >> My apologies if a similar patch was submitted already; I was unable to find it.
-> >> I did find the following patch:
-> >>      https://git.busybox.net/buildroot/commit/?id=6e1106b4a9aee25d1556310d5cd1cb6dde2e6e3f
-> >> but I failed to find it in patchwork or on lore.kernel.org, and it
-> >> seems to be more expensive than the solution suggested here.
-> >>
-> >>   arch/sparc/kernel/mdesc.c | 3 ++-
-> >>   1 file changed, 2 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-> >> index 8e645ddac58e..c67bdcc23727 100644
-> >> --- a/arch/sparc/kernel/mdesc.c
-> >> +++ b/arch/sparc/kernel/mdesc.c
-> >> @@ -39,6 +39,7 @@ struct mdesc_hdr {
-> >>      u32     node_sz; /* node block size */
-> >>      u32     name_sz; /* name block size */
-> >>      u32     data_sz; /* data block size */
-> >> +    char    data[0];
-> >>   } __attribute__((aligned(16)));
-> >
-> > I do not think this will works.
-> > See following comment:
-> >   * mdesc_hdr and mdesc_elem describe the layout of the data structure
-> >   * we get from the Hypervisor.
-> >
-> > With the above change you increased the size from 16 to 32 bytes,
-> > and any code using sizeof(struct mdesc_hdr) will now point too far in
-> > memory for the second and subsequent entries.
-> >
-> > I did not take any closer look, but this was from a quick analysis.
-> >
->
-> Sorry, I didn't realize that a field of size 0 increases the structure size
-> on sparc. I had checked the size of the old and the new structure with gcc
-> on x86_64 and didn't see a field size increase.
->
-> Guenter
->
-> ---
-> Test code I had used:
->
-> #include <stddef.h>
-> #include <stdio.h>
->
-> typedef unsigned int u32;
->
-> struct mdesc_hdr {
->          u32     version; /* Transport version */
->          u32     node_sz; /* node block size */
->          u32     name_sz; /* name block size */
->          u32     data_sz; /* data block size */
-> } __attribute__((aligned(16)));
->
-> struct mdesc_hdr2 {
->          u32     version; /* Transport version */
->          u32     node_sz; /* node block size */
->          u32     name_sz; /* name block size */
->          u32     data_sz; /* data block size */
->          char    data[0];
-> } __attribute__((aligned(16)));
->
-> int main()
-> {
->         printf("%ld %ld\n", sizeof(struct mdesc_hdr), sizeof(struct mdesc_hdr2));
->
->         return 0;
-> }
+> Could you also state in here which archs you have tested with this 
+> change? I
+> presume /every/ arch which has a JIT?
 
-used the code above on my sparc64 installation:
+OK, will do it in v3.
+I have tested on x86 and mips.
 
-copy-paste code to 123.c file
+>
+>> Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+>> ---
+>>
+>> v2:
+>>    -- fix the typos in the commit message and update the commit message.
+>>    -- fix the failed tailcall selftests for x86 jit.
+>>       I am not quite sure the change on x86 is proper, with this change,
+>>       tailcall selftests passed, but tailcall limit test in test_bpf.ko
+>>       failed, I do not know the reason now, I think this is another 
+>> issue,
+>>       maybe someone more versed in x86 jit could take a look.
+>
+> There should be a series from Johan coming today with regards to 
+> test_bpf.ko
+> that will fix the "tail call error path, max count reached" test which 
+> had an
+> assumption in that R0 would always be valid for the fall-through and 
+> could be
+> passed to the bpf_exit insn whereas it is not guaranteed and verifier, 
+> for
+> example, forbids a subsequent access to R0 w/o reinit. For your 
+> testing, I
+> would suggested to recheck once this series is out.
 
-$ gcc-11 123.c
-$ ./a.out
-16 16
-$ uname -a
-Linux ttip 5.15.0-rc1 #273 SMP Mon Sep 13 12:47:14 MSK 2021 sparc64 GNU/Linux
+I will test the following patch on x86 and mips:
+
+[PATCH bpf v4 13/14] bpf/tests: Fix error in tail call limit tests
+
+[...]
+
+>> diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
+>> index 0fe6aac..74a9e61 100644
+>> --- a/arch/x86/net/bpf_jit_comp.c
+>> +++ b/arch/x86/net/bpf_jit_comp.c
+>> @@ -402,7 +402,7 @@ static int get_pop_bytes(bool *callee_regs_used)
+>>    * ... bpf_tail_call(void *ctx, struct bpf_array *array, u64 index) 
+>> ...
+>>    *   if (index >= array->map.max_entries)
+>>    *     goto out;
+>> - *   if (++tail_call_cnt > MAX_TAIL_CALL_CNT)
+>> + *   if (tail_call_cnt++ == MAX_TAIL_CALL_CNT)
+>
+> Why such inconsistency to e.g. above with arm64 case but also compared to
+> x86 32 bit which uses JAE? If so, we should cleanly follow the reference
+> implementation (== interpreter) _everywhere_ and _not_ introduce 
+> additional
+> variants/implementations across JITs.
+
+In order tokeep consistencyand make as few changes as possible,
+<javascript:void(0);>I will modify the check condition as follows:
+
+#define MAX_TAIL_CALL_CNT 33
+(1) for x86, arm64, ... (0 ~ 32)
+tcc = 0;
+if (tcc == MAX_TAIL_CALL_CNT)
+     goto out;
+tcc++;
+
+(2) for mips, riscv (33 ~ 1)
+tcc = MAX_TAIL_CALL_CNT;
+if (tcc == 0)
+     goto out;
+tcc--;
+
+[...]
+
