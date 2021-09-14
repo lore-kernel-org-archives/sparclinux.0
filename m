@@ -2,95 +2,119 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C76C4C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 15:03:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 115C0C433F5
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 15:17:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A238F6103B
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 15:03:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E22BE60EE7
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 15:17:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233831AbhINPFM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Sep 2021 11:05:12 -0400
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:49650 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S233828AbhINPFL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 14 Sep 2021 11:05:11 -0400
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) (Using
- TLS) by relay.mimecast.com with ESMTP id
- uk-mta-171-uOHCrCrONzey65a0rqo3sw-1; Tue, 14 Sep 2021 16:03:52 +0100
-X-MC-Unique: uOHCrCrONzey65a0rqo3sw-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.23; Tue, 14 Sep 2021 16:03:51 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.023; Tue, 14 Sep 2021 16:03:51 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Arnd Bergmann' <arnd@kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>
-CC:     Sam Ravnborg <sam@ravnborg.org>,
+        id S233617AbhINPTH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Sep 2021 11:19:07 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49720 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232840AbhINPTH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Sep 2021 11:19:07 -0400
+Received: from mail-oi1-x230.google.com (mail-oi1-x230.google.com [IPv6:2607:f8b0:4864:20::230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C4762C061762;
+        Tue, 14 Sep 2021 08:17:49 -0700 (PDT)
+Received: by mail-oi1-x230.google.com with SMTP id w144so19431787oie.13;
+        Tue, 14 Sep 2021 08:17:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=NIqISq5kyGyxn6lso7aloBgg8et/zHxKVMufJ4ZAVqU=;
+        b=hQWeP0FIwUtKzXeWomGsCttQ4q1uiTlibaiX+8VKGgPFTz6cFjx9lZLqQ/5wwtfxW/
+         uL71c4jBsoTfAGshka+jeOEYYmOz/mor2uHIsgb4QK5idmE2UMNZkw7JlYjNYGvZ1Ogz
+         1jWxi0w5H+Rx4EeVeS/YXSkFN//okinFyiVmfXayhXg/XN/F3pkbj2LIeXB2+Q6vb2He
+         M6+Gvvb9jKL2pYY+bOQjeQliIOmI+HncWa00y0UG5UpHMPlyueWQpaYdt4grC1f9Wbhg
+         UA3TAOe7YOsV9JHaG0TkY6FshRBaPvDsP1ZBIgS8Zpbuf5e9z1UaFwicT2gBsSTdfhBl
+         weVw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=NIqISq5kyGyxn6lso7aloBgg8et/zHxKVMufJ4ZAVqU=;
+        b=r8l9t7ZGP8QdDkx49LEORlorbGyP9Ykvvj/+TO9Pvpe2n9Px38rioa3GouvaiOFiat
+         e0Y88r7KAB/qQE9FAzA8Y+FcTSvFLhYtOQf4kd7Jyjajgl9f9RYNr7Qf9YMgDJ88mlfq
+         ivW33IYZ6o85j0ayStw7A76X9HCobCmqxynVhzflNjhVCwmtUEkLMNWUQSnNBCpnVfuw
+         LbVMyjZ7jjfotGaXNn1uhA3ZskQ8nYWhbjesPpYh4VG9hj+KBY32sM9QCbSMLTb+dK3W
+         YkjXOWDCkEI4qYkwoaD9FAIoUneTBSODLFPmXP0VG/E7wOIV+qPhqAvBRP8AMzHiz2Xl
+         0RFA==
+X-Gm-Message-State: AOAM530G8u4wTiI5SGd6rrUv20oCGPb3qFMYHvO1iUjf/2bbz01+Qm9j
+        Ts3ZyS4NTVgMVE/+cy7wg7c=
+X-Google-Smtp-Source: ABdhPJypTuRytG8Hj20qO41Btjs5P/8rJs8mRBuu6YJZr3+NCsokUyKXObMKggPKKVM9J3Jh7Yd8qg==
+X-Received: by 2002:a05:6808:150:: with SMTP id h16mr1877835oie.25.1631632669230;
+        Tue, 14 Sep 2021 08:17:49 -0700 (PDT)
+Received: from server.roeck-us.net ([2600:1700:e321:62f0:329c:23ff:fee3:9d7c])
+        by smtp.gmail.com with ESMTPSA id d8sm2564662oij.53.2021.09.14.08.17.48
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 14 Sep 2021 08:17:48 -0700 (PDT)
+Sender: Guenter Roeck <groeck7@gmail.com>
+Date:   Tue, 14 Sep 2021 08:17:47 -0700
+From:   Guenter Roeck <linux@roeck-us.net>
+To:     David Laight <David.Laight@ACULAB.COM>
+Cc:     'Arnd Bergmann' <arnd@kernel.org>, Sam Ravnborg <sam@ravnborg.org>,
         "David S . Miller" <davem@davemloft.net>,
         "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH] sparc: mdesc: Fix compile error seen with gcc 11.x
-Thread-Topic: [PATCH] sparc: mdesc: Fix compile error seen with gcc 11.x
-Thread-Index: AQHXqNCRdjfpTL0To0ac+9sZuEahj6ujlB+QgAAK78OAAAFOoA==
-Date:   Tue, 14 Sep 2021 15:03:51 +0000
-Message-ID: <549b61046b134234bd4bffd85315f29a@AcuMS.aculab.com>
+Subject: Re: [PATCH] sparc: mdesc: Fix compile error seen with gcc 11.x
+Message-ID: <20210914151747.GC3457579@roeck-us.net>
 References: <20210913163712.922188-1-linux@roeck-us.net>
  <YT+SPIAl0IdWOAn/@ravnborg.org>
  <d0a4b46a-2f0e-f6a2-1342-777e738d9525@roeck-us.net>
  <2d8f45425f024fd9a3d91a4b4a1304cf@AcuMS.aculab.com>
  <3b069cde-6f15-1df1-fbed-e8d94d0ef173@roeck-us.net>
  <CAK8P3a1mrZHHfN0dK6nV3jpBmnYm+jG=M8j2u=1=ZPkLuf2DXQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a1mrZHHfN0dK6nV3jpBmnYm+jG=M8j2u=1=ZPkLuf2DXQ@mail.gmail.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+ <549b61046b134234bd4bffd85315f29a@AcuMS.aculab.com>
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <549b61046b134234bd4bffd85315f29a@AcuMS.aculab.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-RnJvbTogQXJuZCBCZXJnbWFubg0KPiBTZW50OiAxNCBTZXB0ZW1iZXIgMjAyMSAxNTo1NA0KPiAN
-Cj4gT24gVHVlLCBTZXAgMTQsIDIwMjEgYXQgNDoyNCBQTSBHdWVudGVyIFJvZWNrIDxsaW51eEBy
-b2Vjay11cy5uZXQ+IHdyb3RlOg0KPiA+IE9uIDkvMTQvMjEgNzoxNyBBTSwgRGF2aWQgTGFpZ2h0
-IHdyb3RlOg0KPiA+ID4+IFNvcnJ5LCBJIGRpZG4ndCByZWFsaXplIHRoYXQgYSBmaWVsZCBvZiBz
-aXplIDAgaW5jcmVhc2VzIHRoZSBzdHJ1Y3R1cmUgc2l6ZQ0KPiA+ID4+IG9uIHNwYXJjLiBJIGhh
-ZCBjaGVja2VkIHRoZSBzaXplIG9mIHRoZSBvbGQgYW5kIHRoZSBuZXcgc3RydWN0dXJlIHdpdGgg
-Z2NjDQo+ID4gPj4gb24geDg2XzY0IGFuZCBkaWRuJ3Qgc2VlIGEgZmllbGQgc2l6ZSBpbmNyZWFz
-ZS4NCj4gPiA+DQo+ID4gPiBjbGFuZyBvdXRwdXQgZG9lc24ndCBjaGFuZ2U6DQo+ID4gPg0KPiA+
-ID4gaHR0cHM6Ly9nb2Rib2x0Lm9yZy96L2JUZWVxMTlqMQ0KPiA+ID4NCj4gPiA+IGdjYyBvdWdo
-dCB0byBnZW5lcmF0ZSB0aGUgc2FtZSBzaXplLg0KPiA+ID4NCj4gPiA+IEl0IG91Z2h0IHRvIGJl
-ICdjaGFyIGRhdGFbXTsnIHRob3VnaC4NCj4gPiA+DQo+ID4NCj4gPiBJIGFtIG5ldmVyIHN1cmUg
-aWYgW10gb3IgWzBdIGlzICJjb3JyZWN0Ii4gQW55d2F5LCBpcyB0aGVyZSBhZ3JlZW1lbnQgdGhh
-dCB0aGlzDQo+ID4gaXMgYW4gYWNjZXB0YWJsZSBzb2x1dGlvbiA/IEknbGwgYmUgaGFwcHkgdG8g
-cmVzZW5kIGlmIHRoYXQgaXMgdGhlIGNhc2UuDQo+IA0KPiBZZXMsIGxvb2tzIGdvb2QgdG8gbWUs
-IGluIHRoZSBbXSB2ZXJzaW9uLiBJIHRoaW5rIHRoZSBbMF0gdmVyc2lvbiBjYW4gYmUNCj4gaW50
-ZXJwcmV0ZWQgYXMgYSB6ZXJvLWxlbmd0aCBhcnJheSB0aGF0IG1heSBub3QgYmUgYWNjZXNzZWQs
-IHdoaWxlIHRoZQ0KPiBbXSBmbGV4aWJsZSBhcnJheSBzeW50YXggY2xlYXJseSBtZWFucyB0aGF0
-IGV4dHJhIGRhdGEgZm9sbG93cywgYW5kIGl0J3MNCj4gcGFydCBvZiB0aGUgQyBzdGFuZGFyZCBu
-b3csIHdoaWxlIFswXSBpcyBhIGdjYyBleHRlbnNpb24uDQoNCk1vcmUgcHJvYmxlbWF0aWMgaXMg
-d2hlcmUgaXMgdGhlIGNvcnJlY3QgcGxhY2UgZm9yIHRoZSAnY2hhciBkYXRhW10nLg0KSXQgZm9s
-bG93cyB0aGUgaGVhZGVyIHJhdGhlciB0aGFuIGJlaW5nIHBhcnQgb2YgaXQuDQoNClNvIHRoZToN
-CglkYXRhID0gKHZvaWQgKikoaGRyICsgMSk7DQpjb25zdHJ1Y3QgKEkndmUgbG9zdCB0aGUgb3Jp
-Z2luYWwgcGF0Y2gpIGlzIGFic29sdXRlbHkgZGVzY3JpcHRpdmUuDQoNCmdjYyBpcyBnZXR0aW5n
-IHRvIGJlIGEgcmVhbCBQSVRBIGZvciBzeXN0ZW0gY29kaW5nLg0KDQpGb3IgdGhpcyBwYXJ0aWN1
-bGFyIGNoZWNrICdzaXplIDAnIG91Z2h0IHRvIGJlICdzaXplIHVua25vd24nDQphbmQgYWx3YXlz
-IHZhbGlkLg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBBZGRyZXNzIExha2VzaWRlLCBCcmFt
-bGV5IFJvYWQsIE1vdW50IEZhcm0sIE1pbHRvbiBLZXluZXMsIE1LMSAxUFQsIFVLDQpSZWdpc3Ry
-YXRpb24gTm86IDEzOTczODYgKFdhbGVzKQ0K
+On Tue, Sep 14, 2021 at 03:03:51PM +0000, David Laight wrote:
+> From: Arnd Bergmann
+> > Sent: 14 September 2021 15:54
+> > 
+> > On Tue, Sep 14, 2021 at 4:24 PM Guenter Roeck <linux@roeck-us.net> wrote:
+> > > On 9/14/21 7:17 AM, David Laight wrote:
+> > > >> Sorry, I didn't realize that a field of size 0 increases the structure size
+> > > >> on sparc. I had checked the size of the old and the new structure with gcc
+> > > >> on x86_64 and didn't see a field size increase.
+> > > >
+> > > > clang output doesn't change:
+> > > >
+> > > > https://godbolt.org/z/bTeeq19j1
+> > > >
+> > > > gcc ought to generate the same size.
+> > > >
+> > > > It ought to be 'char data[];' though.
+> > > >
+> > >
+> > > I am never sure if [] or [0] is "correct". Anyway, is there agreement that this
+> > > is an acceptable solution ? I'll be happy to resend if that is the case.
+> > 
+> > Yes, looks good to me, in the [] version. I think the [0] version can be
+> > interpreted as a zero-length array that may not be accessed, while the
+> > [] flexible array syntax clearly means that extra data follows, and it's
+> > part of the C standard now, while [0] is a gcc extension.
+> 
+> More problematic is where is the correct place for the 'char data[]'.
+> It follows the header rather than being part of it.
 
+I personally always prefer the simple solution, and I don't really care
+about such nuances. I take it as granted that a header is followed by data,
+and I think that a zero-length field at the end of a header is a perfectly
+valid means to express that, but that is just my personal opinion.
+
+Anyway, I take that as non-agreement and won't resend at this time.
+
+Thanks,
+Guenter
