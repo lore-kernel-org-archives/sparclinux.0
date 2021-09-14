@@ -2,47 +2,64 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E293DC433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 11:26:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6D69C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 11:40:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C55DB603E7
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 11:26:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B92F160FDA
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 11:40:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232065AbhINL2G (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Sep 2021 07:28:06 -0400
-Received: from verein.lst.de ([213.95.11.211]:59800 "EHLO verein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231941AbhINL2F (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 14 Sep 2021 07:28:05 -0400
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 642E967373; Tue, 14 Sep 2021 13:26:46 +0200 (CEST)
-Date:   Tue, 14 Sep 2021 13:26:46 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Andreas Larsson <andreas@gaisler.com>
-Cc:     Christoph Hellwig <hch@lst.de>, David Miller <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
+        id S232103AbhINLlg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Sep 2021 07:41:36 -0400
+Received: from shards.monkeyblade.net ([23.128.96.9]:52020 "EHLO
+        mail.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232093AbhINLle (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Sep 2021 07:41:34 -0400
+Received: from localhost (unknown [149.11.102.75])
+        by mail.monkeyblade.net (Postfix) with ESMTPSA id 8CB914F6D9FC8;
+        Tue, 14 Sep 2021 04:40:04 -0700 (PDT)
+Date:   Tue, 14 Sep 2021 12:39:59 +0100 (BST)
+Message-Id: <20210914.123959.2004307654918303528.davem@davemloft.net>
+To:     hch@lst.de
+Cc:     sam@ravnborg.org, andreas@gaisler.com, sparclinux@vger.kernel.org,
         linux-kernel@vger.kernel.org, software@gaisler.com
 Subject: Re: [PATCH] sparc32: Page align size in arch_dma_alloc
-Message-ID: <20210914112646.GA18171@lst.de>
-References: <20210908074822.16793-1-andreas@gaisler.com> <20210909060712.GA25485@lst.de> <3a653ab5-14d2-f61f-cb0a-cbeba93b4ac8@gaisler.com> <20210914061705.GB26679@lst.de> <87971ad4-9519-cf0d-76a8-6baa253d0122@gaisler.com> <20210914104256.GA14645@lst.de> <a5483206-0539-1d3f-c8e8-e66dbb6c8d96@gaisler.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a5483206-0539-1d3f-c8e8-e66dbb6c8d96@gaisler.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+From:   David Miller <davem@davemloft.net>
+In-Reply-To: <20210914061222.GA26679@lst.de>
+References: <20210908074822.16793-1-andreas@gaisler.com>
+        <YTjfJl6YmBCdZ8XB@ravnborg.org>
+        <20210914061222.GA26679@lst.de>
+X-Mailer: Mew version 6.8 on Emacs 27.1
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+X-Greylist: Sender succeeded SMTP AUTH, not delayed by milter-greylist-4.6.2 (mail.monkeyblade.net [0.0.0.0]); Tue, 14 Sep 2021 04:40:05 -0700 (PDT)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Sep 14, 2021 at 01:16:16PM +0200, Andreas Larsson wrote:
-> Before the patch, arch_dma_alloc did via srmmu_mapiorange set up pages with 
-> SRMMU_PRIV, which is all fine as it sets up kernel buffers. With your patch 
-> we get PAGE_KERNEL as an argument to dma_pgprot in the corresponding call 
-> path that earlier lead to arch_dma_alloc. PAGE_KERNEL already includes 
-> SRMMU_PRIV so adding it again should not be necessary.
+From: Christoph Hellwig <hch@lst.de>
+Date: Tue, 14 Sep 2021 08:12:22 +0200
 
-You're right, I missed that PAGE_KERNEL already includes SRMMU_PRIV.
+> On Wed, Sep 08, 2021 at 06:04:54PM +0200, Sam Ravnborg wrote:
+>> Hi Andreas,
+>> 
+>> On Wed, Sep 08, 2021 at 09:48:22AM +0200, Andreas Larsson wrote:
+>> > Commit 53b7670e5735 ("sparc: factor the dma coherent mapping into
+>> > helper") lost the page align for the calls to dma_make_coherent and
+>> > srmmu_unmapiorange. The latter cannot handle a non page aligned len
+>> > argument.
+>> 
+>> I wonder how you managed to track this down - well done.
+>> > 
+>> > Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+>> Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+>> 
+>> I assume David or Christoph picks it up.
+> 
+> I'll happily pick it up if that is ok.  Dave?
+
+Yep, it's ok.
