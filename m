@@ -2,233 +2,116 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67148C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 19:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E28DC433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 19:48:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 474546109E
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 19:41:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A028610CE
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 19:48:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbhINTmU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Sep 2021 15:42:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55132 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230390AbhINTmT (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 14 Sep 2021 15:42:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C1AB610CE;
-        Tue, 14 Sep 2021 19:41:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1631648461;
-        bh=baphM1piCC4FQbHOOAlCGasKXJ2VO8dPR0S2rdQl73Y=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=uEsayntVSbGMThYuwz5EWNI9w58RbWvnLNLegJILzXScm9/SXS83sLEJClPypfuK1
-         NpnlZRSQIS4jjIGMpdedw4L/n178xqDYld1jV7Jckh7wTb8LVStfLXYUR3GxnVzXLV
-         cj77pCNRMdLA966OG0aqD+kESfiowpk8HOqFV05QQuqyOIA3PWyVO8iJF8txql/vOc
-         kowII0gv5gsEqOAF3bOeNMhU/u9N91sN3pU9opoeeAM2OiBYJxFPEvF6moLn65CVRm
-         exNeCEbewWHw8Ms6ZwdFHSZm1Y0PJKzgddN4VEjRP1mJFGggsfd6wThwFcTqzmC6OK
-         lFIuOheqNzFkg==
-Date:   Tue, 14 Sep 2021 14:40:59 -0500
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Oliver O'Halloran <oohall@gmail.com>
-Cc:     Michal Simek <monstr@monstr.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
-        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-pci@vger.kernel.org
-Subject: Re: [PATCH] pci: Rename pcibios_add_device to match
-Message-ID: <20210914194059.GA1448850@bjorn-Precision-5520>
+        id S229869AbhINTuC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Sep 2021 15:50:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57856 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232265AbhINTuC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Sep 2021 15:50:02 -0400
+Received: from mail-oi1-x22c.google.com (mail-oi1-x22c.google.com [IPv6:2607:f8b0:4864:20::22c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 413A0C061574;
+        Tue, 14 Sep 2021 12:48:44 -0700 (PDT)
+Received: by mail-oi1-x22c.google.com with SMTP id bd1so812099oib.5;
+        Tue, 14 Sep 2021 12:48:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc:content-transfer-encoding;
+        bh=F6PsShm2+LtRfF7zvUBuZb6sWSvD0FefZC4vf11za4g=;
+        b=ftEVYmXtzBqtgPMuCUQK92nlXhVyaFSoDT+bYIlkiiKIMvqDadH4mSO1dIERn4gEEd
+         +mCNnBQyYzd05jfVb6q5g36anr9co8J9dyiiABNwHw03o68G4BNeRVVNhDFroiB76Pgy
+         J9A7KrlRcXjhoqiXdv1Kacuqks5rjrufLzjT6YSXt1n6aKj5bd00EqSTswj2YCnmYyu8
+         bW7q4vl4/62EpYskk3Y/MHbVEmrMLV0C78/i7u8ArT7KrN2QqJXDvr2CfH53djfockAA
+         XLbEolIWFIhVJgWPc7g1czGR/DoQRyuLptt1gjUjQ0oOcr88ArF+pixVCFa3ZXU63rrw
+         e3hQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc:content-transfer-encoding;
+        bh=F6PsShm2+LtRfF7zvUBuZb6sWSvD0FefZC4vf11za4g=;
+        b=X2rAlUbI9We4jqvVuGtAvHM91aJXP1obmZ36N9Vz1WDZOgio4PWRzrOjENdjdpfwjL
+         ZGizX0iCnYqytnAJCXf5YNud3M2Tjq/6PV88/VESAauTmy9AYcSsX5sf2tPUHDpp0C2l
+         KFygTYKdKruE6PmaodkUteonhbV39zdif+eEiIFd88k8Ph8douah3V+i/eZtXsxinVPD
+         bACEvK/JRbTPbsMljfxZJxL3bRhEpzP7nX0aXM0t4eK+ii+5Rj8LqMvSz0wh+BagXxZ8
+         AljFZVvbflCP3Abj9IE/EyxSTdjRpNGc6mrm98ukSLGdvzGJHBgQafjqj3jFuWaQEf4+
+         btRg==
+X-Gm-Message-State: AOAM5333wBg64sndmJqyHbKDGkaufY6jatPIo7Ssj3QZLfWjWl16AS4E
+        mtV8Cw/Cv6ssahjW62ppKIRo5Imp0RPR8Nk+qAQ=
+X-Google-Smtp-Source: ABdhPJzmulVOve408+d4uWpQ3W0uTIjd3laX3vXZVJhsV8TXYBfwuMi48nlWry2DHtJD3C+p6c+qNZFmnxMn9erjRwc=
+X-Received: by 2002:aca:ab06:: with SMTP id u6mr2676900oie.120.1631648922227;
+ Tue, 14 Sep 2021 12:48:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210913152709.48013-1-oohall@gmail.com>
+References: <20210907100302.3684453-1-ray.huang@amd.com> <5e365947-4ae1-47a0-7565-7f0cdde0bd84@amd.com>
+In-Reply-To: <5e365947-4ae1-47a0-7565-7f0cdde0bd84@amd.com>
+From:   Alex Deucher <alexdeucher@gmail.com>
+Date:   Tue, 14 Sep 2021 15:48:31 -0400
+Message-ID: <CADnq5_PXOXiob3k5Z+cZz6K2k5iSCdzwNm0ZxKQOuC+PvdJxxg@mail.gmail.com>
+Subject: Re: [PATCH] drm/ttm: fix the type mismatch error on sparc64
+To:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
+Cc:     Huang Rui <ray.huang@amd.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Maling list - DRI developers 
+        <dri-devel@lists.freedesktop.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        LKML <linux-kernel@vger.kernel.org>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Sep 14, 2021 at 01:27:08AM +1000, Oliver O'Halloran wrote:
-> The general convention for pcibios_* hooks is that they're named after
-> the corresponding pci_* function they provide a hook for. The exception
-> is pcibios_add_device() which provides a hook for pci_device_add(). This
-> has been irritating me for years so rename it.
-> 
-> Also, remove the export of the microblaze version. The only caller
-> must be compiled as a built-in so there's no reason for the export.
-> 
-> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+On Tue, Sep 7, 2021 at 6:25 AM Christian K=C3=B6nig <christian.koenig@amd.c=
+om> wrote:
+>
+> Am 07.09.21 um 12:03 schrieb Huang Rui:
+> > __fls() on sparc64 return "int", but here it is expected as "unsigned
+> > long" (x86). It will cause the build errors because the warning becomes
+> > fatal while it is using sparc configuration. As suggested by Linus, it
+> > can use min_t instead of min to force the type as "unsigned int".
+> >
+> > Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+> > Signed-off-by: Huang Rui <ray.huang@amd.com>
+> > Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+>
+> Reviewed-by: Christian K=C3=B6nig <christian.koenig@amd.com>
 
-I fixed up the subject so it matches previous history and applied to
-pci/enumeration for v5.16, thanks!
+Is one of you going to push this to drm-misc?
 
-Stuff like this really annoys me, too.
+Alex
 
-> ---
->  arch/microblaze/pci/pci-common.c           | 3 +--
->  arch/powerpc/kernel/pci-common.c           | 2 +-
->  arch/powerpc/platforms/powernv/pci-sriov.c | 2 +-
->  arch/s390/pci/pci.c                        | 2 +-
->  arch/sparc/kernel/pci.c                    | 2 +-
->  arch/x86/pci/common.c                      | 2 +-
->  drivers/pci/pci.c                          | 4 ++--
->  drivers/pci/probe.c                        | 4 ++--
->  include/linux/pci.h                        | 2 +-
->  9 files changed, 11 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-> index 557585f1be41..622a4867f9e9 100644
-> --- a/arch/microblaze/pci/pci-common.c
-> +++ b/arch/microblaze/pci/pci-common.c
-> @@ -587,13 +587,12 @@ static void pcibios_fixup_resources(struct pci_dev *dev)
->  }
->  DECLARE_PCI_FIXUP_HEADER(PCI_ANY_ID, PCI_ANY_ID, pcibios_fixup_resources);
->  
-> -int pcibios_add_device(struct pci_dev *dev)
-> +int pcibios_device_add(struct pci_dev *dev)
->  {
->  	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
->  
->  	return 0;
->  }
-> -EXPORT_SYMBOL(pcibios_add_device);
->  
->  /*
->   * Reparent resource children of pr that conflict with res
-> diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-> index c3573430919d..6749905932f4 100644
-> --- a/arch/powerpc/kernel/pci-common.c
-> +++ b/arch/powerpc/kernel/pci-common.c
-> @@ -1059,7 +1059,7 @@ void pcibios_bus_add_device(struct pci_dev *dev)
->  		ppc_md.pcibios_bus_add_device(dev);
->  }
->  
-> -int pcibios_add_device(struct pci_dev *dev)
-> +int pcibios_device_add(struct pci_dev *dev)
->  {
->  	struct irq_domain *d;
->  
-> diff --git a/arch/powerpc/platforms/powernv/pci-sriov.c b/arch/powerpc/platforms/powernv/pci-sriov.c
-> index 28aac933a439..486c2937b159 100644
-> --- a/arch/powerpc/platforms/powernv/pci-sriov.c
-> +++ b/arch/powerpc/platforms/powernv/pci-sriov.c
-> @@ -54,7 +54,7 @@
->   * to "new_size", calculated above. Implementing this is a convoluted process
->   * which requires several hooks in the PCI core:
->   *
-> - * 1. In pcibios_add_device() we call pnv_pci_ioda_fixup_iov().
-> + * 1. In pcibios_device_add() we call pnv_pci_ioda_fixup_iov().
->   *
->   *    At this point the device has been probed and the device's BARs are sized,
->   *    but no resource allocations have been done. The SR-IOV BARs are sized
-> diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-> index e7e6788d75a8..ded3321b7208 100644
-> --- a/arch/s390/pci/pci.c
-> +++ b/arch/s390/pci/pci.c
-> @@ -561,7 +561,7 @@ static void zpci_cleanup_bus_resources(struct zpci_dev *zdev)
->  	zdev->has_resources = 0;
->  }
->  
-> -int pcibios_add_device(struct pci_dev *pdev)
-> +int pcibios_device_add(struct pci_dev *pdev)
->  {
->  	struct zpci_dev *zdev = to_zpci(pdev);
->  	struct resource *res;
-> diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-> index 9c2b720bfd20..31b0c1983286 100644
-> --- a/arch/sparc/kernel/pci.c
-> +++ b/arch/sparc/kernel/pci.c
-> @@ -1010,7 +1010,7 @@ void pcibios_set_master(struct pci_dev *dev)
->  }
->  
->  #ifdef CONFIG_PCI_IOV
-> -int pcibios_add_device(struct pci_dev *dev)
-> +int pcibios_device_add(struct pci_dev *dev)
->  {
->  	struct pci_dev *pdev;
->  
-> diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-> index 3507f456fcd0..9e1e6b8d8876 100644
-> --- a/arch/x86/pci/common.c
-> +++ b/arch/x86/pci/common.c
-> @@ -632,7 +632,7 @@ static void set_dev_domain_options(struct pci_dev *pdev)
->  		pdev->hotplug_user_indicators = 1;
->  }
->  
-> -int pcibios_add_device(struct pci_dev *dev)
-> +int pcibios_device_add(struct pci_dev *dev)
->  {
->  	struct pci_setup_rom *rom;
->  	struct irq_domain *msidom;
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index ce2ab62b64cf..c63598c1cdd8 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -2091,14 +2091,14 @@ void pcim_pin_device(struct pci_dev *pdev)
->  EXPORT_SYMBOL(pcim_pin_device);
->  
->  /*
-> - * pcibios_add_device - provide arch specific hooks when adding device dev
-> + * pcibios_device_add - provide arch specific hooks when adding device dev
->   * @dev: the PCI device being added
->   *
->   * Permits the platform to provide architecture specific functionality when
->   * devices are added. This is the default implementation. Architecture
->   * implementations can override this.
->   */
-> -int __weak pcibios_add_device(struct pci_dev *dev)
-> +int __weak pcibios_device_add(struct pci_dev *dev)
->  {
->  	return 0;
->  }
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index d9fc02a71baa..2ba43b6adf31 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -2450,7 +2450,7 @@ static struct irq_domain *pci_dev_msi_domain(struct pci_dev *dev)
->  	struct irq_domain *d;
->  
->  	/*
-> -	 * If a domain has been set through the pcibios_add_device()
-> +	 * If a domain has been set through the pcibios_device_add()
->  	 * callback, then this is the one (platform code knows best).
->  	 */
->  	d = dev_get_msi_domain(&dev->dev);
-> @@ -2518,7 +2518,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
->  	list_add_tail(&dev->bus_list, &bus->devices);
->  	up_write(&pci_bus_sem);
->  
-> -	ret = pcibios_add_device(dev);
-> +	ret = pcibios_device_add(dev);
->  	WARN_ON(ret < 0);
->  
->  	/* Set up MSI IRQ domain */
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index cd8aa6fce204..7e0ce3a4d5a1 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -2126,7 +2126,7 @@ void pcibios_disable_device(struct pci_dev *dev);
->  void pcibios_set_master(struct pci_dev *dev);
->  int pcibios_set_pcie_reset_state(struct pci_dev *dev,
->  				 enum pcie_reset_state state);
-> -int pcibios_add_device(struct pci_dev *dev);
-> +int pcibios_device_add(struct pci_dev *dev);
->  void pcibios_release_device(struct pci_dev *dev);
->  #ifdef CONFIG_PCI
->  void pcibios_penalize_isa_irq(int irq, int active);
-> -- 
-> 2.31.1
-> 
+>
+> > ---
+> >   drivers/gpu/drm/ttm/ttm_pool.c | 3 ++-
+> >   1 file changed, 2 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/gpu/drm/ttm/ttm_pool.c b/drivers/gpu/drm/ttm/ttm_p=
+ool.c
+> > index af1b41369626..c961a788b519 100644
+> > --- a/drivers/gpu/drm/ttm/ttm_pool.c
+> > +++ b/drivers/gpu/drm/ttm/ttm_pool.c
+> > @@ -382,7 +382,8 @@ int ttm_pool_alloc(struct ttm_pool *pool, struct tt=
+m_tt *tt,
+> >       else
+> >               gfp_flags |=3D GFP_HIGHUSER;
+> >
+> > -     for (order =3D min(MAX_ORDER - 1UL, __fls(num_pages)); num_pages;
+> > +     for (order =3D min_t(unsigned int, MAX_ORDER - 1, __fls(num_pages=
+));
+> > +          num_pages;
+> >            order =3D min_t(unsigned int, order, __fls(num_pages))) {
+> >               bool apply_caching =3D false;
+> >               struct ttm_pool_type *pt;
+>
