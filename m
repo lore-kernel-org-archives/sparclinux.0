@@ -2,277 +2,262 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.2 required=3.0 tests=BAYES_00,
+X-Spam-Status: No, score=-17.2 required=3.0 tests=BAYES_00,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6157C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 06:17:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ADD37C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 07:31:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBC00606A5
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 06:17:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93BC860E74
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Sep 2021 07:31:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240054AbhINGSZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Sep 2021 02:18:25 -0400
-Received: from verein.lst.de ([213.95.11.211]:58609 "EHLO verein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240015AbhINGSY (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 14 Sep 2021 02:18:24 -0400
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 94E1467357; Tue, 14 Sep 2021 08:17:05 +0200 (CEST)
-Date:   Tue, 14 Sep 2021 08:17:05 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Andreas Larsson <andreas@gaisler.com>
-Cc:     Christoph Hellwig <hch@lst.de>, David Miller <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
-        linux-kernel@vger.kernel.org, software@gaisler.com
-Subject: Re: [PATCH] sparc32: Page align size in arch_dma_alloc
-Message-ID: <20210914061705.GB26679@lst.de>
-References: <20210908074822.16793-1-andreas@gaisler.com> <20210909060712.GA25485@lst.de> <3a653ab5-14d2-f61f-cb0a-cbeba93b4ac8@gaisler.com>
+        id S240786AbhINHdG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Sep 2021 03:33:06 -0400
+Received: from www62.your-server.de ([213.133.104.62]:41046 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240787AbhINHdF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Sep 2021 03:33:05 -0400
+Received: from sslproxy06.your-server.de ([78.46.172.3])
+        by www62.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92.3)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mQ2uD-000F8r-Bq; Tue, 14 Sep 2021 09:31:01 +0200
+Received: from [85.5.47.65] (helo=linux.home)
+        by sslproxy06.your-server.de with esmtpsa (TLSv1.3:TLS_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <daniel@iogearbox.net>)
+        id 1mQ2uC-0000Sp-Kk; Tue, 14 Sep 2021 09:31:00 +0200
+Subject: Re: [PATCH bpf-next v2] bpf: Change value of MAX_TAIL_CALL_CNT from
+ 32 to 33
+To:     Tiezhu Yang <yangtiezhu@loongson.cn>,
+        Shubham Bansal <illusionist.neo@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Martin KaFai Lau <kafai@fb.com>,
+        Song Liu <songliubraving@fb.com>, Yonghong Song <yhs@fb.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        KP Singh <kpsingh@kernel.org>,
+        Zi Shen Lim <zlim.lnx@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Paul Burton <paulburton@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        naveen.n.rao@linux.ibm.com, Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Luke Nelson <luke.r.nels@gmail.com>,
+        Xi Wang <xi.wang@gmail.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>, bjorn@kernel.org,
+        davem@davemloft.net,
+        Johan Almbladh <johan.almbladh@anyfinetworks.com>,
+        Paul Chaignon <paul@cilium.io>
+Cc:     netdev@vger.kernel.org, bpf@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
+References: <1631325361-9851-1-git-send-email-yangtiezhu@loongson.cn>
+From:   Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <0fb8d16f-67e7-7197-fce2-a4c17f1e5987@iogearbox.net>
+Date:   Tue, 14 Sep 2021 09:30:59 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101
+ Thunderbird/60.7.2
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="huq684BweRXVnRxX"
-Content-Disposition: inline
-In-Reply-To: <3a653ab5-14d2-f61f-cb0a-cbeba93b4ac8@gaisler.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <1631325361-9851-1-git-send-email-yangtiezhu@loongson.cn>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
+X-Authenticated-Sender: daniel@iogearbox.net
+X-Virus-Scanned: Clear (ClamAV 0.103.2/26293/Mon Sep 13 10:23:39 2021)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On 9/11/21 3:56 AM, Tiezhu Yang wrote:
+> In the current code, the actual max tail call count is 33 which is greater
+> than MAX_TAIL_CALL_CNT (defined as 32), the actual limit is not consistent
+> with the meaning of MAX_TAIL_CALL_CNT, there is some confusion and need to
+> spend some time to think about the reason at the first glance.
+> 
+> We can see the historical evolution from commit 04fd61ab36ec ("bpf: allow
+> bpf programs to tail-call other bpf programs") and commit f9dabe016b63
+> ("bpf: Undo off-by-one in interpreter tail call count limit").
+> 
+> In order to avoid changing existing behavior, the actual limit is 33 now,
+> this is reasonable.
+> 
+> After commit 874be05f525e ("bpf, tests: Add tail call test suite"), we can
+> see there exists failed testcase.
+> 
+> On all archs when CONFIG_BPF_JIT_ALWAYS_ON is not set:
+>   # echo 0 > /proc/sys/net/core/bpf_jit_enable
+>   # modprobe test_bpf
+>   # dmesg | grep -w FAIL
+>   Tail call error path, max count reached jited:0 ret 34 != 33 FAIL
+> 
+> On some archs:
+>   # echo 1 > /proc/sys/net/core/bpf_jit_enable
+>   # modprobe test_bpf
+>   # dmesg | grep -w FAIL
+>   Tail call error path, max count reached jited:1 ret 34 != 33 FAIL
+> 
+> So it is necessary to change the value of MAX_TAIL_CALL_CNT from 32 to 33,
+> then do some small changes of the related code.
+> 
+> With this patch, it does not change the current limit 33, MAX_TAIL_CALL_CNT
+> can reflect the actual max tail call count, the tailcall selftests can work
+> well, and also the above failed testcase in test_bpf can be fixed for the
+> interpreter (all archs) and the JIT (all archs except for x86).
+> 
+>   # uname -m
+>   x86_64
+>   # echo 1 > /proc/sys/net/core/bpf_jit_enable
+>   # modprobe test_bpf
+>   # dmesg | grep -w FAIL
+>   Tail call error path, max count reached jited:1 ret 33 != 34 FAIL
 
---huq684BweRXVnRxX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Could you also state in here which archs you have tested with this change? I
+presume /every/ arch which has a JIT?
 
-On Mon, Sep 13, 2021 at 03:18:38PM +0200, Andreas Larsson wrote:
->> Andreas - while I've got your attention:  I've been looking into fully
->> converting sparc32 to the generic DMA code.  Do you have any
->> documentation for the Leon cache handling in dma_make_coherent,
->> and more importantly how that applies to the dma coherent handling?
->> I could see how a flush might be required for the streaming DMA mappings,
->> that is mapping normal cached memory for I/O.  But for the coherent
->> allocations which can be accessed from the device and the cpu without
->> another DMA mapping call this seems really strange.
->
-> As long as the area passed to arch_dma_free is mapped by
-> arch_dma_allocate, I don't see why the call to dma_make_coherent in
-> arch_dma_free should be needed. I am not sure if there are any current
-> (or historical paths) where we nevertheless have a cacheable mapping
-> when we reach arch_dma_free (or the historical pci32_free_coherent).
+> Signed-off-by: Tiezhu Yang <yangtiezhu@loongson.cn>
+> ---
+> 
+> v2:
+>    -- fix the typos in the commit message and update the commit message.
+>    -- fix the failed tailcall selftests for x86 jit.
+>       I am not quite sure the change on x86 is proper, with this change,
+>       tailcall selftests passed, but tailcall limit test in test_bpf.ko
+>       failed, I do not know the reason now, I think this is another issue,
+>       maybe someone more versed in x86 jit could take a look.
 
-Note that the cacheable mapping in the kernel map still exists, but is
-is not used for any access.
+There should be a series from Johan coming today with regards to test_bpf.ko
+that will fix the "tail call error path, max count reached" test which had an
+assumption in that R0 would always be valid for the fall-through and could be
+passed to the bpf_exit insn whereas it is not guaranteed and verifier, for
+example, forbids a subsequent access to R0 w/o reinit. For your testing, I
+would suggested to recheck once this series is out.
 
-> The usual case for LEON systems is that cache snooping on the CPU side
-> invalidates cache lines matching DMA that the CPU sees on the bus. Under
-> the assumption that DMA accesses are seen on the processor bus, this is
-> the reason for only flushing if snooping is not enabled in
-> dma_make_coherent.
+>   arch/arm/net/bpf_jit_32.c         | 11 ++++++-----
+>   arch/arm64/net/bpf_jit_comp.c     |  7 ++++---
+>   arch/mips/net/ebpf_jit.c          |  4 ++--
+>   arch/powerpc/net/bpf_jit_comp32.c |  4 ++--
+>   arch/powerpc/net/bpf_jit_comp64.c | 12 ++++++------
+>   arch/riscv/net/bpf_jit_comp32.c   |  4 ++--
+>   arch/riscv/net/bpf_jit_comp64.c   |  4 ++--
+>   arch/sparc/net/bpf_jit_comp_64.c  |  8 ++++----
+>   arch/x86/net/bpf_jit_comp.c       | 10 +++++-----
+>   include/linux/bpf.h               |  2 +-
+>   kernel/bpf/core.c                 |  4 ++--
+>   11 files changed, 36 insertions(+), 34 deletions(-)
+[...]
+>   	/* prog = array->ptrs[index]
+> diff --git a/arch/arm64/net/bpf_jit_comp.c b/arch/arm64/net/bpf_jit_comp.c
+> index 41c23f4..5d6c843 100644
+> --- a/arch/arm64/net/bpf_jit_comp.c
+> +++ b/arch/arm64/net/bpf_jit_comp.c
+> @@ -286,14 +286,15 @@ static int emit_bpf_tail_call(struct jit_ctx *ctx)
+>   	emit(A64_CMP(0, r3, tmp), ctx);
+>   	emit(A64_B_(A64_COND_CS, jmp_offset), ctx);
+>   
+> -	/* if (tail_call_cnt > MAX_TAIL_CALL_CNT)
+> -	 *     goto out;
+> +	/*
+>   	 * tail_call_cnt++;
+> +	 * if (tail_call_cnt > MAX_TAIL_CALL_CNT)
+> +	 *     goto out;
+>   	 */
+> +	emit(A64_ADD_I(1, tcc, tcc, 1), ctx);
+>   	emit_a64_mov_i64(tmp, MAX_TAIL_CALL_CNT, ctx);
+>   	emit(A64_CMP(1, tcc, tmp), ctx);
+>   	emit(A64_B_(A64_COND_HI, jmp_offset), ctx);
+> -	emit(A64_ADD_I(1, tcc, tcc, 1), ctx);
+>   
+>   	/* prog = array->ptrs[index];
+>   	 * if (prog == NULL)
+[...]
+> diff --git a/arch/x86/net/bpf_jit_comp.c b/arch/x86/net/bpf_jit_comp.c
+> index 0fe6aac..74a9e61 100644
+> --- a/arch/x86/net/bpf_jit_comp.c
+> +++ b/arch/x86/net/bpf_jit_comp.c
+> @@ -402,7 +402,7 @@ static int get_pop_bytes(bool *callee_regs_used)
+>    * ... bpf_tail_call(void *ctx, struct bpf_array *array, u64 index) ...
+>    *   if (index >= array->map.max_entries)
+>    *     goto out;
+> - *   if (++tail_call_cnt > MAX_TAIL_CALL_CNT)
+> + *   if (tail_call_cnt++ == MAX_TAIL_CALL_CNT)
 
-Thanks.  Can you take a look and test the two patches below on top of
-your fix?  A git tree is also available here:
+Why such inconsistency to e.g. above with arm64 case but also compared to
+x86 32 bit which uses JAE? If so, we should cleanly follow the reference
+implementation (== interpreter) _everywhere_ and _not_ introduce additional
+variants/implementations across JITs.
 
-http://git.infradead.org/users/hch/misc.git/shortlog/refs/heads/sparc32-generic-dma
+>    *     goto out;
+>    *   prog = array->ptrs[index];
+>    *   if (prog == NULL)
+> @@ -452,13 +452,13 @@ static void emit_bpf_tail_call_indirect(u8 **pprog, bool *callee_regs_used,
+>   	EMIT2(X86_JBE, OFFSET1);                  /* jbe out */
+>   
+>   	/*
+> -	 * if (tail_call_cnt > MAX_TAIL_CALL_CNT)
+> +	 * if (tail_call_cnt++ == MAX_TAIL_CALL_CNT)
+>   	 *	goto out;
+>   	 */
+>   	EMIT2_off32(0x8B, 0x85, tcc_off);         /* mov eax, dword ptr [rbp - tcc_off] */
+>   	EMIT3(0x83, 0xF8, MAX_TAIL_CALL_CNT);     /* cmp eax, MAX_TAIL_CALL_CNT */
+>   #define OFFSET2 (off2 + RETPOLINE_RCX_BPF_JIT_SIZE)
+> -	EMIT2(X86_JA, OFFSET2);                   /* ja out */
+> +	EMIT2(X86_JE, OFFSET2);                   /* je out */
+>   	EMIT3(0x83, 0xC0, 0x01);                  /* add eax, 1 */
+>   	EMIT2_off32(0x89, 0x85, tcc_off);         /* mov dword ptr [rbp - tcc_off], eax */
+>   
+> @@ -530,12 +530,12 @@ static void emit_bpf_tail_call_direct(struct bpf_jit_poke_descriptor *poke,
+>   	}
+>   
+>   	/*
+> -	 * if (tail_call_cnt > MAX_TAIL_CALL_CNT)
+> +	 * if (tail_call_cnt++ == MAX_TAIL_CALL_CNT)
+>   	 *	goto out;
+>   	 */
+>   	EMIT2_off32(0x8B, 0x85, tcc_off);             /* mov eax, dword ptr [rbp - tcc_off] */
+>   	EMIT3(0x83, 0xF8, MAX_TAIL_CALL_CNT);         /* cmp eax, MAX_TAIL_CALL_CNT */
+> -	EMIT2(X86_JA, off1);                          /* ja out */
+> +	EMIT2(X86_JE, off1);                          /* je out */
+>   	EMIT3(0x83, 0xC0, 0x01);                      /* add eax, 1 */
+>   	EMIT2_off32(0x89, 0x85, tcc_off);             /* mov dword ptr [rbp - tcc_off], eax */
+>   
+> diff --git a/include/linux/bpf.h b/include/linux/bpf.h
+> index f4c16f1..224cc7e 100644
+> --- a/include/linux/bpf.h
+> +++ b/include/linux/bpf.h
+> @@ -1046,7 +1046,7 @@ struct bpf_array {
+>   };
+>   
+>   #define BPF_COMPLEXITY_LIMIT_INSNS      1000000 /* yes. 1M insns */
+> -#define MAX_TAIL_CALL_CNT 32
+> +#define MAX_TAIL_CALL_CNT 33
+>   
+>   #define BPF_F_ACCESS_MASK	(BPF_F_RDONLY |		\
+>   				 BPF_F_RDONLY_PROG |	\
+> diff --git a/kernel/bpf/core.c b/kernel/bpf/core.c
+> index 9f4636d..8edb1c3 100644
+> --- a/kernel/bpf/core.c
+> +++ b/kernel/bpf/core.c
+> @@ -1564,10 +1564,10 @@ static u64 ___bpf_prog_run(u64 *regs, const struct bpf_insn *insn)
+>   
+>   		if (unlikely(index >= array->map.max_entries))
+>   			goto out;
+> -		if (unlikely(tail_call_cnt > MAX_TAIL_CALL_CNT))
+> -			goto out;
+>   
+>   		tail_call_cnt++;
+> +		if (unlikely(tail_call_cnt > MAX_TAIL_CALL_CNT))
+> +			goto out;
+>   
+>   		prog = READ_ONCE(array->ptrs[index]);
+>   		if (!prog)
+> 
 
---huq684BweRXVnRxX
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: attachment; filename="0001-sparc32-remove-dma_make_coherent.patch"
-
-From 832183d0409a941788e4c27682b2ad5164aec5d9 Mon Sep 17 00:00:00 2001
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 13 Sep 2021 18:39:38 +0200
-Subject: sparc32: remove dma_make_coherent
-
-LEON only needs snooping when DMA accesses are not seen on the processor
-bus.  Given that coherent allocations are mapped uncached this can't
-happen for those, so open code the d-cache flushing logic in the only
-remaing place that needs it, arch_sync_dma_for_cpu.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/sparc/kernel/ioport.c | 26 ++++++++++----------------
- 1 file changed, 10 insertions(+), 16 deletions(-)
-
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 7ceae24b0ca99..3eb748e862220 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -52,17 +52,6 @@
- #include <asm/io-unit.h>
- #include <asm/leon.h>
- 
--/* This function must make sure that caches and memory are coherent after DMA
-- * On LEON systems without cache snooping it flushes the entire D-CACHE.
-- */
--static inline void dma_make_coherent(unsigned long pa, unsigned long len)
--{
--	if (sparc_cpu_model == sparc_leon) {
--		if (!sparc_leon3_snooping_enabled())
--			leon_flush_dcache_all();
--	}
--}
--
- static void __iomem *_sparc_ioremap(struct resource *res, u32 bus, u32 pa, int sz);
- static void __iomem *_sparc_alloc_io(unsigned int busno, unsigned long phys,
-     unsigned long size, char *name);
-@@ -361,18 +350,23 @@ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
- 	if (!sparc_dma_free_resource(cpu_addr, size))
- 		return;
- 
--	dma_make_coherent(dma_addr, size);
- 	srmmu_unmapiorange((unsigned long)cpu_addr, size);
- 	free_pages((unsigned long)phys_to_virt(dma_addr), get_order(size));
- }
- 
--/* IIep is write-through, not flushing on cpu to device transfer. */
--
-+/*
-+ * IIep is write-through, not flushing on cpu to device transfer.
-+ *
-+ * On LEON systems without cache snooping, the entire D-CACHE must be flushed to
-+ * make DMA to cacheable memory coherent.
-+ */
- void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t size,
- 		enum dma_data_direction dir)
- {
--	if (dir != PCI_DMA_TODEVICE)
--		dma_make_coherent(paddr, PAGE_ALIGN(size));
-+	if (dir != PCI_DMA_TODEVICE &&
-+	    sparc_cpu_model == sparc_leon &&
-+	    !sparc_leon3_snooping_enabled())
-+		leon_flush_dcache_all();
- }
- 
- #ifdef CONFIG_PROC_FS
--- 
-2.30.2
-
-
---huq684BweRXVnRxX
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: attachment; filename="0002-sparc32-use-DMA_DIRECT_REMAP.patch"
-
-From 0f612347699290a8d2f604a7640b5568e3d9af57 Mon Sep 17 00:00:00 2001
-From: Christoph Hellwig <hch@lst.de>
-Date: Mon, 13 Sep 2021 18:44:55 +0200
-Subject: sparc32: use DMA_DIRECT_REMAP
-
-Use the generic dma remapping allocator instead of open coding it.
-This also avoids setting up page tables from irq context which is
-generally dangerous and uses the atomic pool instead.
-
-The only interesting part is the architecture specific pgprot_dmacoherent
-definition that sets the SRMMU_PRIV bit as done by the old implementation.
-(I have no idea what it is useful for, though).
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/sparc/Kconfig                  |  3 +-
- arch/sparc/include/asm/pgtable_32.h |  8 +++++
- arch/sparc/kernel/ioport.c          | 54 -----------------------------
- 3 files changed, 10 insertions(+), 55 deletions(-)
-
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index f0c0f955e1695..8089258d6cc97 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -54,8 +54,9 @@ config SPARC32
- 	def_bool !64BIT
- 	select ARCH_32BIT_OFF_T
- 	select ARCH_HAS_SYNC_DMA_FOR_CPU
--	select GENERIC_ATOMIC64
- 	select CLZ_TAB
-+	select DMA_DIRECT_REMAP
-+	select GENERIC_ATOMIC64
- 	select HAVE_UID16
- 	select OLD_SIGACTION
- 	select ZONE_DMA
-diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-index ffccfe3b22ed3..1e7984ff7b320 100644
---- a/arch/sparc/include/asm/pgtable_32.h
-+++ b/arch/sparc/include/asm/pgtable_32.h
-@@ -313,6 +313,14 @@ static inline pgprot_t pgprot_noncached(pgprot_t prot)
- 	return prot;
- }
- 
-+#define pgprot_dmacoherent pgprot_dmacoherent
-+static inline pgprot_t pgprot_dmacoherent(pgprot_t prot)
-+{
-+	pgprot_val(prot) &= ~pgprot_val(__pgprot(SRMMU_CACHE));
-+	pgprot_val(prot) |= pgprot_val(__pgprot(SRMMU_PRIV));
-+	return prot;
-+}
-+
- static pte_t pte_modify(pte_t pte, pgprot_t newprot) __attribute_const__;
- static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- {
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index 3eb748e862220..57a72c46eddb0 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -300,60 +300,6 @@ arch_initcall(sparc_register_ioport);
- 
- #endif /* CONFIG_SBUS */
- 
--
--/* Allocate and map kernel buffer using consistent mode DMA for a device.
-- * hwdev should be valid struct pci_dev pointer for PCI devices.
-- */
--void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
--		gfp_t gfp, unsigned long attrs)
--{
--	unsigned long addr;
--	void *va;
--
--	if (!size || size > 256 * 1024)	/* __get_free_pages() limit */
--		return NULL;
--
--	size = PAGE_ALIGN(size);
--	va = (void *) __get_free_pages(gfp | __GFP_ZERO, get_order(size));
--	if (!va) {
--		printk("%s: no %zd pages\n", __func__, size >> PAGE_SHIFT);
--		return NULL;
--	}
--
--	addr = sparc_dma_alloc_resource(dev, size);
--	if (!addr)
--		goto err_nomem;
--
--	srmmu_mapiorange(0, virt_to_phys(va), addr, size);
--
--	*dma_handle = virt_to_phys(va);
--	return (void *)addr;
--
--err_nomem:
--	free_pages((unsigned long)va, get_order(size));
--	return NULL;
--}
--
--/* Free and unmap a consistent DMA buffer.
-- * cpu_addr is what was returned arch_dma_alloc, size must be the same as what
-- * was passed into arch_dma_alloc, and likewise dma_addr must be the same as
-- * what *dma_ndler was set to.
-- *
-- * References to the memory and mappings associated with cpu_addr/dma_addr
-- * past this call are illegal.
-- */
--void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
--		dma_addr_t dma_addr, unsigned long attrs)
--{
--	size = PAGE_ALIGN(size);
--
--	if (!sparc_dma_free_resource(cpu_addr, size))
--		return;
--
--	srmmu_unmapiorange((unsigned long)cpu_addr, size);
--	free_pages((unsigned long)phys_to_virt(dma_addr), get_order(size));
--}
--
- /*
-  * IIep is write-through, not flushing on cpu to device transfer.
-  *
--- 
-2.30.2
-
-
---huq684BweRXVnRxX--
