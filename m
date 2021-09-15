@@ -2,157 +2,91 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_2
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-11.4 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0D69C433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Sep 2021 10:15:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D797C433F5
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Sep 2021 14:04:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C8AA160EB4
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Sep 2021 10:15:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E96B361263
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Sep 2021 14:04:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232054AbhIOKQV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Sep 2021 06:16:21 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:34576 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S231940AbhIOKQU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 15 Sep 2021 06:16:20 -0400
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.0.43) with SMTP id 18F7Zmpq013104;
-        Wed, 15 Sep 2021 06:14:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- mime-version : content-transfer-encoding; s=pp1;
- bh=1CvBoL4UO9UE0U96hNF1qNekvPhdGJ/IHUjTEpXG+YU=;
- b=YEfNJhshjitTdfVh2SQ9IRmxiLu+hBc9JZhhRgA/541skcknTB+qjhIvHnJq1g+oUk7w
- k7PfKp0uAMT0dIneL2+ilosryXmj6pnAAyNFz/tkMKN19IUh2L9PjsXWqGYl4dmTnF16
- XAh9c0gwMOZOcyw74by1riil5QeOlcjxUznr13KzbG9jVGC8dVjGXJTeCJwBT51p8dvA
- FcfuITA+g9E2ITDemtBJe/ilVrDofRF2F9hbPSzRBDAdHvN9Zlv4MSO+3Sof6LmgaH8e
- mkkTvPVQNPci5GKuCcTmziz9O/YybnVcdo2LND9ImzRCZHoXMMoScCP9boR+mo34CKEf tA== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3b3cjtb89d-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Sep 2021 06:14:05 -0400
-Received: from m0098413.ppops.net (m0098413.ppops.net [127.0.0.1])
-        by pps.reinject (8.16.0.43/8.16.0.43) with SMTP id 18F9o6tF016868;
-        Wed, 15 Sep 2021 06:14:04 -0400
-Received: from ppma06ams.nl.ibm.com (66.31.33a9.ip4.static.sl-reverse.com [169.51.49.102])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3b3cjtb88r-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Sep 2021 06:14:04 -0400
-Received: from pps.filterd (ppma06ams.nl.ibm.com [127.0.0.1])
-        by ppma06ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18FA3PO2017375;
-        Wed, 15 Sep 2021 10:14:02 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-        by ppma06ams.nl.ibm.com with ESMTP id 3b0kqjwnas-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Wed, 15 Sep 2021 10:14:02 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18FA9Owo58065308
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Wed, 15 Sep 2021 10:09:24 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 1E3094C050;
-        Wed, 15 Sep 2021 10:13:58 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 357904C046;
-        Wed, 15 Sep 2021 10:13:57 +0000 (GMT)
-Received: from sig-9-145-34-225.uk.ibm.com (unknown [9.145.34.225])
-        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTP;
-        Wed, 15 Sep 2021 10:13:57 +0000 (GMT)
-Message-ID: <3cfa5c39151b415000b13f94edbd513940c272c4.camel@linux.ibm.com>
-Subject: Re: [PATCH] pci: Rename pcibios_add_device to match
-From:   Niklas Schnelle <schnelle@linux.ibm.com>
-To:     "Oliver O'Halloran" <oohall@gmail.com>,
-        Michal Simek <monstr@monstr.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Gerald Schaefer <gerald.schaefer@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>
-Cc:     linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-pci@vger.kernel.org
-Date:   Wed, 15 Sep 2021 12:13:56 +0200
-In-Reply-To: <20210913152709.48013-1-oohall@gmail.com>
-References: <20210913152709.48013-1-oohall@gmail.com>
+        id S234729AbhIOOF6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Sep 2021 10:05:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55550 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236295AbhIOOF5 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 15 Sep 2021 10:05:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C83FE61263;
+        Wed, 15 Sep 2021 14:04:38 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1631714678;
+        bh=H27IuGY14sfE01ZBOE3qbr+Aje0qknX6KxWJUz9aISY=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Mt8iYkeCpuvxp25RAeN9quGvNziHP1pgXw2GB8fKD/mymlhyyAxICQ7hbRwUyFg9Y
+         Dz6lOg2rFDJ1x29vlxBrU13sefeeVpzxfxhmMneSoMVFyYNw6dgVv/qeP2+fN8Is47
+         2Df2I+LHlOIw6U5A/kHf/wi/ketSqO0Jwrt5NNw8mH/ilzWxgVY7C0Co0ubil1VKC6
+         0mTZqCfioBEvADdChAheA181Hb78J/ZmnwKyEjZiEi4DnVJ9GgnI5G5RLxRohXR/HG
+         cAiCWcdQNM4yVMPvZMOcWEwIRFtHDlqQVihe+TYWg0OuNhev57eWppsU1mrNJYasbV
+         CrubNIu5XLMDw==
+Received: by mail-wm1-f46.google.com with SMTP id l7-20020a1c2507000000b002e6be5d86b3so2108261wml.3;
+        Wed, 15 Sep 2021 07:04:38 -0700 (PDT)
+X-Gm-Message-State: AOAM531DDI/AnaxIYwjTJl7kL5pkcS+mt92K6H74Ai7JdqYqe4Tms2J2
+        1uN4iSQurMHfRqhqkOzpa7Z1o8Qzb05KJl8tLkA=
+X-Google-Smtp-Source: ABdhPJyjXfJKM6vyDJu6ychD3He3pDf7+1/YRPwn/p4sPd8URfURxCd23cro1bdM922Ixa76Pgelwn3dchKZ3Lf21nE=
+X-Received: by 2002:a1c:4c14:: with SMTP id z20mr4802564wmf.82.1631714677368;
+ Wed, 15 Sep 2021 07:04:37 -0700 (PDT)
+MIME-Version: 1.0
+References: <20210914224709.601156-1-linux@roeck-us.net>
+In-Reply-To: <20210914224709.601156-1-linux@roeck-us.net>
+From:   Arnd Bergmann <arnd@kernel.org>
+Date:   Wed, 15 Sep 2021 16:04:22 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a36YHAnDyhy+nQEo9x=c2Dq8pf44sBsksXj2xb+Fnk-bA@mail.gmail.com>
+Message-ID: <CAK8P3a36YHAnDyhy+nQEo9x=c2Dq8pf44sBsksXj2xb+Fnk-bA@mail.gmail.com>
+Subject: Re: [PATCH v2] sparc: mdesc: Fix compile error seen with gcc 11.x
+To:     Guenter Roeck <linux@roeck-us.net>
+Cc:     "David S . Miller" <davem@davemloft.net>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        David Laight <David.Laight@aculab.com>,
+        Anatoly Pugachev <matorola@gmail.com>,
+        Sam Ravnborg <sam@ravnborg.org>
 Content-Type: text/plain; charset="UTF-8"
-X-Mailer: Evolution 3.28.5 (3.28.5-16.el8) 
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-TM-AS-GCONF: 00
-X-Proofpoint-GUID: qsgztY6656GojP5eot9j-my1z4nhin5e
-X-Proofpoint-ORIG-GUID: tinSbreoYB0apZL0qAvJHteIZSAXyVt9
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.182.1,Aquarius:18.0.687,Hydra:6.0.235,FMLib:17.0.607.475
- definitions=2020-10-13_15,2020-10-13_02,2020-04-07_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 lowpriorityscore=0
- phishscore=0 malwarescore=0 mlxscore=0 impostorscore=0 spamscore=0
- mlxlogscore=999 adultscore=0 bulkscore=0 suspectscore=0 priorityscore=1501
- clxscore=1011 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2109030001 definitions=main-2109150047
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 2021-09-14 at 01:27 +1000, Oliver O'Halloran wrote:
-> The general convention for pcibios_* hooks is that they're named after
-> the corresponding pci_* function they provide a hook for. The exception
-> is pcibios_add_device() which provides a hook for pci_device_add(). This
-> has been irritating me for years so rename it.
-> 
-> Also, remove the export of the microblaze version. The only caller
-> must be compiled as a built-in so there's no reason for the export.
-> 
-> Signed-off-by: Oliver O'Halloran <oohall@gmail.com>
+On Wed, Sep 15, 2021 at 12:47 AM Guenter Roeck <linux@roeck-us.net> wrote:
+>
+> sparc64 images fail to compile with gcc 11.x, reporting the following
+> errors.
+>
+> arch/sparc/kernel/mdesc.c:647:22: error:
+>         'strcmp' reading 1 or more bytes from a region of size 0
+> arch/sparc/kernel/mdesc.c:692:22: error:
+>         'strcmp' reading 1 or more bytes from a region of size 0
+> arch/sparc/kernel/mdesc.c:719:21:
+>         error: 'strcmp' reading 1 or more bytes from a region of size 0
+>
+> The underlying problem is that node_block() returns a pointer beyond
+> the end of struct mdesc_hdr. gcc 11.x detects that and reports the error.
+> Adding an additional zero-length field to struct mdesc_hdr and pointing
+> to that field fixes the problem.
+>
+> Cc: Arnd Bergmann <arnd@kernel.org>
+> Cc: David Laight <David.Laight@ACULAB.COM>
+> Cc: Anatoly Pugachev <matorola@gmail.com>
+> Cc: Sam Ravnborg <sam@ravnborg.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 > ---
->  arch/microblaze/pci/pci-common.c           | 3 +--
->  arch/powerpc/kernel/pci-common.c           | 2 +-
->  arch/powerpc/platforms/powernv/pci-sriov.c | 2 +-
->  arch/s390/pci/pci.c                        | 2 +-
->  arch/sparc/kernel/pci.c                    | 2 +-
->  arch/x86/pci/common.c                      | 2 +-
->  drivers/pci/pci.c                          | 4 ++--
->  drivers/pci/probe.c                        | 4 ++--
->  include/linux/pci.h                        | 2 +-
->  9 files changed, 11 insertions(+), 12 deletions(-)
-> 
-> 
-.. snip ..
-> diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-> index e7e6788d75a8..ded3321b7208 100644
-> --- a/arch/s390/pci/pci.c
-> +++ b/arch/s390/pci/pci.c
-> @@ -561,7 +561,7 @@ static void zpci_cleanup_bus_resources(struct zpci_dev *zdev)
->  	zdev->has_resources = 0;
->  }
->  
-> -int pcibios_add_device(struct pci_dev *pdev)
-> +int pcibios_device_add(struct pci_dev *pdev)
->  {
->  	struct zpci_dev *zdev = to_zpci(pdev);
->  	struct resource *res;
-> 
-.. snip ..
+> v2: data[0] => data[]
+>
+> I am not sure if there was agreement to accept this patch or not, but
+> I was asked to resend it with the above change, so here it is. An open
+> question was if it is acceptable to have a structure named xxx_hdr
+> include an element pointing to the data following that header.
 >
 
-
-I agree with your assesment this is indeed confusing. Interestingly
-pcibios_release_device() also doesn't follow the convention exactly as
-it is called from pci_release_dev() but at least that isn't very
-confusing.
-
-So for the arch/s390/pci bit:
-
-Acked-by: Niklas Schnelle <schnelle@linux.ibm.com>
-
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
