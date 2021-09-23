@@ -7,42 +7,42 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ADAF6C433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:43:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63F44C433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:43:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AFD360F4C
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:43:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5023260F4C
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:43:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239722AbhIWDo3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 22 Sep 2021 23:44:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42480 "EHLO mail.kernel.org"
+        id S239543AbhIWDpP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 22 Sep 2021 23:45:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239467AbhIWDmP (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 22 Sep 2021 23:42:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B30C561373;
-        Thu, 23 Sep 2021 03:40:12 +0000 (UTC)
+        id S239555AbhIWDnP (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 22 Sep 2021 23:43:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C35FA6128E;
+        Thu, 23 Sep 2021 03:40:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632368413;
-        bh=THXQOpyiCBG0lmMlyE/NXcty+U4u7ME3T/dh2T+KQ4A=;
+        s=k20201202; t=1632368440;
+        bh=Bz+E8LNs8ytPWUjTlv/NsRHobPvyXzz1g8nxTX45R58=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=aXPrYbTB5RTpXWoocAiGUCP5wwqIew9/19O8ACBMFxqLjWbjmWUX16D14E9WnZ1Qv
-         tI+effzTErX/KVX5RNGcq4n7nU8U2bpJa8cmvlJCG/1bsfo/1kSaNsE4rbDau1h3ch
-         Qfo/mKknpB62kUUE0CZyetQZaLY7CLIqYY2lcejvuDdEJQ4m8Z/uiS0RCu8sQRwNvU
-         ydLT/Nn1pe3Vv1eiHC+skDCTufxESuxkFCiOTCYqolHFzshM7ul+Lf3KyAYwr3Je4y
-         57kIVBL6gkOOGH5NpPb/GeTbeYjWJa8nPSpSCeZ6NtebAZ4alQjxlmCToBZtdGBeCG
-         gYLRK5+IhgLqw==
+        b=VZk+zHOV2T0FfKhg2zEHT6sh7varw7LvcTRHpI5IcKffAAsyyc4eWxeI87A3u1tvU
+         RaSNs2xn2NRdwJi/Pbw8I+i85MGBBHLbtfUP6OgEn7aHEjA4XuWyklunOlDuS6d5lc
+         KvTAucPiFh69TfwD9dVkmN6q+AQHK0RJR3b+woQinWgp+CqdKxpifEqef0KhFqFD9V
+         /gZxehVdRvYNWPxh1T/SYCLHlKePR1X8Vj8qrWHkE1MHr5Lt43WdKAr0fq9TpqCkqz
+         e0XZl4LIxviJc9Dul0a0Hd0fWa2XeCCE6hCYqUw0KDiMGy3fIcA55TqIHv+CR65AEI
+         bDPoGARM3rwjw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Guenter Roeck <linux@roeck-us.net>,
         "David S . Miller" <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.14 07/13] sparc: avoid stringop-overread errors
-Date:   Wed, 22 Sep 2021 23:39:53 -0400
-Message-Id: <20210923033959.1421662-7-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 05/11] sparc: avoid stringop-overread errors
+Date:   Wed, 22 Sep 2021 23:40:21 -0400
+Message-Id: <20210923034028.1421876-5-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210923033959.1421662-1-sashal@kernel.org>
-References: <20210923033959.1421662-1-sashal@kernel.org>
+In-Reply-To: <20210923034028.1421876-1-sashal@kernel.org>
+References: <20210923034028.1421876-1-sashal@kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 X-stable: review
@@ -86,10 +86,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+), 1 deletion(-)
 
 diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 8f24f3d60b8c..bfc30439a41d 100644
+index 8a6982dfd733..5aa33bf7139e 100644
 --- a/arch/sparc/kernel/mdesc.c
 +++ b/arch/sparc/kernel/mdesc.c
-@@ -38,6 +38,7 @@ struct mdesc_hdr {
+@@ -37,6 +37,7 @@ struct mdesc_hdr {
  	u32	node_sz; /* node block size */
  	u32	name_sz; /* name block size */
  	u32	data_sz; /* data block size */
@@ -97,7 +97,7 @@ index 8f24f3d60b8c..bfc30439a41d 100644
  } __attribute__((aligned(16)));
  
  struct mdesc_elem {
-@@ -611,7 +612,7 @@ EXPORT_SYMBOL(mdesc_get_node_info);
+@@ -369,7 +370,7 @@ void mdesc_update(void)
  
  static struct mdesc_elem *node_block(struct mdesc_hdr *mdesc)
  {
