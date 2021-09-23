@@ -2,70 +2,63 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 546D6C433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 16:02:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49E56C4321E
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 19:46:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BD1E60E9C
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 16:02:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 34F1B60EFF
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 19:46:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242401AbhIWQDs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 23 Sep 2021 12:03:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41646 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242387AbhIWQDp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Sep 2021 12:03:45 -0400
-Received: from mail-lj1-x233.google.com (mail-lj1-x233.google.com [IPv6:2a00:1450:4864:20::233])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41EE1C06175F
-        for <sparclinux@vger.kernel.org>; Thu, 23 Sep 2021 09:02:12 -0700 (PDT)
-Received: by mail-lj1-x233.google.com with SMTP id a26so202091ljp.2
-        for <sparclinux@vger.kernel.org>; Thu, 23 Sep 2021 09:02:12 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=DLOxhnwH/JaVIhRbDcxcZPpiYGHLJbtd0CRIGAWnOsw=;
-        b=QMXOiJ6n28J2emY/y7cY9+DD4h8Pn0KRvNWmJxYGi/2iw91Mhhsv5k4E/yi6SvFmH+
-         cwsdxpHCcIaSp+pnaMQx9j8vfDg38b4ujoTb2lzS4jvwjrgaoWuJfcNbrdzMUshkRDfy
-         wyxZpTZP4dsY0GDCSs5bbcT3wFiFu+kSB/Akk=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=DLOxhnwH/JaVIhRbDcxcZPpiYGHLJbtd0CRIGAWnOsw=;
-        b=X1uP9wdpOEQYtz6GDJVXTPkvJN+G2JWH67SutQwIWTLG/XXLA/yANxVrjw6Ufj/IkM
-         yj36PrNcbkPYw0Te+82jThzrJmlt3x3/YGCyJ4ABuOF9fw6ooqGxZ5WvH+VAOkLq4h8E
-         zdIubl/wIJ9bqe+pkDof8Z3AGNmTIPsYnqtbTSxRlw7ZRU1LXQjriTzOTltsB7c1HRtd
-         YyFaf6AvOOcxrHDAFq+3kVqacwC5R7ACUuYxJ7WuW+G1FrzmW/7Osu2YxZCB7X7WYDE4
-         oVWvQ+80PnrJQndEnDf5v9slpzn3iGY1MMyhhY1XqdiQ6eEPKprAROG/oAcvbqndQOoS
-         gwPw==
-X-Gm-Message-State: AOAM532waoJR0Wqg1d5uQcThwrTenHzPG0mIzAdwRaf32F3UaMH+/IQ+
-        nll00mSPN3P/pg8sMdjgWIz0e03PeQkQJSEx
-X-Google-Smtp-Source: ABdhPJxDhK4B2ZhfdPgn4N+J/CUGyxjA+aLysq6lSGNXf7ze9sqpX1Geq3zfXaMqSpIJbHcyx0u7Qw==
-X-Received: by 2002:a2e:9901:: with SMTP id v1mr5698133lji.384.1632412930357;
-        Thu, 23 Sep 2021 09:02:10 -0700 (PDT)
-Received: from mail-lj1-f170.google.com (mail-lj1-f170.google.com. [209.85.208.170])
-        by smtp.gmail.com with ESMTPSA id v4sm493110lfp.99.2021.09.23.09.02.02
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Sep 2021 09:02:05 -0700 (PDT)
-Received: by mail-lj1-f170.google.com with SMTP id m5so199824ljp.4
-        for <sparclinux@vger.kernel.org>; Thu, 23 Sep 2021 09:02:02 -0700 (PDT)
-X-Received: by 2002:a2e:3309:: with SMTP id d9mr5950451ljc.249.1632412922441;
- Thu, 23 Sep 2021 09:02:02 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210923074335.12583-1-rppt@kernel.org>
-In-Reply-To: <20210923074335.12583-1-rppt@kernel.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Thu, 23 Sep 2021 09:01:46 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wiJB8H5pZz-AKaSJ7ViRtdxQGJT7eOByp8DJx2OwZSYwA@mail.gmail.com>
-Message-ID: <CAHk-=wiJB8H5pZz-AKaSJ7ViRtdxQGJT7eOByp8DJx2OwZSYwA@mail.gmail.com>
-Subject: Re: [PATCH 0/3] memblock: cleanup memblock_free interface
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        id S242992AbhIWTrp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Sep 2021 15:47:45 -0400
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:10952 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S242861AbhIWTrn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 23 Sep 2021 15:47:43 -0400
+Received: from pps.filterd (m0098393.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18NJW36f031236;
+        Thu, 23 Sep 2021 15:45:59 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
+ subject : message-id : references : mime-version : content-type :
+ in-reply-to; s=pp1; bh=OlfxwL5SxCQJGsEygNnP+Bd9S5CycoibyIwI1T9qbFQ=;
+ b=o2g9xUdg4iWokOSpifGukNkZK7jrG3PCnBFvuz4C7oP+gzjHDglARWvYTHBDYKWgrmUN
+ nywTanPgUpTOTd5/xMfhi1L+mJwrCvVoKxej3UCLp5sG7C25GVynwAmr4q0nxjw5T5YF
+ XfSS+haqO/MAAWW7EoLHEph+pIjpH8koxcOuzA2lkqyOwZ+Lt0jX5schDBGsmjxT7nCn
+ nj0KpCKZ1MAIxT1dHKe+ArroeI/VY7R10b19vbUGLmbRaxdWWrC+tHtvcRU2gpGyiZee
+ fQz965XLLMlLTgvc9SCxBhiIocufoeoMuCL9s+OrHLUbKOqWsHzC5EoSrMfU3XKh1xK9 Bg== 
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 3b8wkuupat-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 23 Sep 2021 15:45:58 -0400
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+        by ppma03fra.de.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18NJRuDe003688;
+        Thu, 23 Sep 2021 19:45:56 GMT
+Received: from b06cxnps3075.portsmouth.uk.ibm.com (d06relay10.portsmouth.uk.ibm.com [9.149.109.195])
+        by ppma03fra.de.ibm.com with ESMTP id 3b7q6kd587-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 23 Sep 2021 19:45:56 +0000
+Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
+        by b06cxnps3075.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18NJjrxv44106172
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 23 Sep 2021 19:45:53 GMT
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id A19734C04A;
+        Thu, 23 Sep 2021 19:45:53 +0000 (GMT)
+Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id 903DC4C05A;
+        Thu, 23 Sep 2021 19:45:51 +0000 (GMT)
+Received: from linux.ibm.com (unknown [9.145.159.121])
+        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
+        Thu, 23 Sep 2021 19:45:51 +0000 (GMT)
+Date:   Thu, 23 Sep 2021 22:45:49 +0300
+From:   Mike Rapoport <rppt@linux.ibm.com>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Mike Rapoport <rppt@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
         devicetree <devicetree@vger.kernel.org>,
         iommu <iommu@lists.linux-foundation.org>,
         kasan-dev <kasan-dev@googlegroups.com>,
@@ -85,53 +78,58 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-usb@vger.kernel.org,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
         linux-sparc <sparclinux@vger.kernel.org>,
-        xen-devel@lists.xenproject.org, Mike Rapoport <rppt@linux.ibm.com>
-Content-Type: text/plain; charset="UTF-8"
+        xen-devel@lists.xenproject.org
+Subject: Re: [PATCH 0/3] memblock: cleanup memblock_free interface
+Message-ID: <YUzZberbgZE+7HEo@linux.ibm.com>
+References: <20210923074335.12583-1-rppt@kernel.org>
+ <CAHk-=wiJB8H5pZz-AKaSJ7ViRtdxQGJT7eOByp8DJx2OwZSYwA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHk-=wiJB8H5pZz-AKaSJ7ViRtdxQGJT7eOByp8DJx2OwZSYwA@mail.gmail.com>
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: NmcKtlYbna1qS7iyZ4wr-YnA7UP6mwwQ
+X-Proofpoint-ORIG-GUID: NmcKtlYbna1qS7iyZ4wr-YnA7UP6mwwQ
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.391,FMLib:17.0.607.475
+ definitions=2021-09-23_06,2021-09-23_01,2020-04-07_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 impostorscore=0
+ lowpriorityscore=0 mlxscore=0 malwarescore=0 spamscore=0
+ priorityscore=1501 bulkscore=0 clxscore=1015 suspectscore=0
+ mlxlogscore=691 adultscore=0 phishscore=0 classifier=spam adjust=0
+ reason=mlx scancount=1 engine=8.12.0-2109200000
+ definitions=main-2109230115
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Sep 23, 2021 at 12:43 AM Mike Rapoport <rppt@kernel.org> wrote:
->
-> The core change is in the third patch that makes memblock_free() a
-> counterpart of memblock_alloc() and adds memblock_phys_alloc() to be a
+Hi Linus,
 
-^^^^^^^^^^^^^^^^^^^
-> counterpart of memblock_phys_alloc().
+On Thu, Sep 23, 2021 at 09:01:46AM -0700, Linus Torvalds wrote:
+> On Thu, Sep 23, 2021 at 12:43 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> You need to be a LOT more careful.
+> 
+> From a trivial check - exactly because I looked at doing it with a
+> script, and decided it's not so easy - I found cases like this:
+> 
+> -               memblock_free(__pa(paca_ptrs) + new_ptrs_size,
+> +               memblock_free(paca_ptrs + new_ptrs_size,
+> 
+> which is COMPLETELY wrong.
 
-That should be 'memblock_phys_free()'
+I did use a coccinelle script that's slightly more robust that a sed you've
+sent, but then I did a manual review, hence the two small patches with
+fixes. Indeed I missed this one, so to be on the safe side I'll rename only
+the obvious cases where coccinelle can be used reliably and leave all the
+rest as it's now. If somebody cares enough they can update it later.
+ 
+> And no, making the scripting just replace '__pa(x)' with '(void *)(x)'
 
-HOWEVER.
+These were actually manual and they are required for variables that
+used as virtual addresses but have unsigned long type, like e.g.
+initrd_start. So it's either __pa(x) or (void *).
 
-The real reason I'm replying is that this patch is horribly buggy, and
-will cause subtle problems that are nasty to debug.
-
-You need to be a LOT more careful.
-
-From a trivial check - exactly because I looked at doing it with a
-script, and decided it's not so easy - I found cases like this:
-
--               memblock_free(__pa(paca_ptrs) + new_ptrs_size,
-+               memblock_free(paca_ptrs + new_ptrs_size,
-
-which is COMPLETELY wrong.
-
-Why? Because now that addition is done as _pointer_ addition, not as
-an integer addition, and the end result is something completely
-different.
-
-pcac_ptrs is of type 'struct paca_struct **', so when you add
-new_ptrs_size to it, it will add it in terms of that many pointers,
-not that many bytes.
-
-You need to use some smarter scripting, or some way to validate it.
-
-And no, making the scripting just replace '__pa(x)' with '(void *)(x)'
-- which _would_ be mindless and get the same result - is not
-acceptable either, because it avoids one of the big improvements from
-using the right interface, namely having compiler type checking (and
-saner code that people understand).
-
-So NAK. No broken automated scripting patches.
-
-               Linus
+-- 
+Sincerely yours,
+Mike.
