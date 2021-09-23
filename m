@@ -2,59 +2,88 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63D76C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 21 Sep 2021 11:32:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A73C433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:39:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 453A661166
-	for <sparclinux@archiver.kernel.org>; Tue, 21 Sep 2021 11:32:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9C8326115A
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:39:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232115AbhIULeL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 21 Sep 2021 07:34:11 -0400
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:22725 "EHLO
-        bin-mail-out-06.binero.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231743AbhIULeL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 21 Sep 2021 07:34:11 -0400
-X-Halon-ID: a092008c-1acf-11ec-ac84-005056917a89
-Authorized-sender: andreas@gaisler.com
-Received: from [192.168.10.22] (h-98-128-223-123.na.cust.bahnhof.se [98.128.223.123])
-        by bin-vsp-out-01.atm.binero.net (Halon) with ESMTPA
-        id a092008c-1acf-11ec-ac84-005056917a89;
-        Tue, 21 Sep 2021 13:32:40 +0200 (CEST)
-Subject: Re: [PATCH 1/2] sparc32: remove dma_make_coherent
-To:     Christoph Hellwig <hch@lst.de>, Sam Ravnborg <sam@ravnborg.org>
-Cc:     "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-References: <20210920113108.1299996-1-hch@lst.de>
- <20210920113108.1299996-2-hch@lst.de> <YUixtMGPMLWvv8S9@ravnborg.org>
- <20210921074151.GA26525@lst.de>
-From:   Andreas Larsson <andreas@gaisler.com>
-Message-ID: <7732120c-0165-5fb6-1c80-3a14f1d6f9c4@gaisler.com>
-Date:   Tue, 21 Sep 2021 13:32:39 +0200
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
+        id S239212AbhIWDlI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 22 Sep 2021 23:41:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41756 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S239356AbhIWDkj (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 22 Sep 2021 23:40:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 41D776121F;
+        Thu, 23 Sep 2021 03:39:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1632368349;
+        bh=BJnQJGKsBsmbmS6kpbj/l8IiwogKaf4AYawUXj+cxEw=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=URtvXQlWMuvgGG0LIq+yrkmp7pb2/+RIvLiHYuTgiNxDiJoDvS0bGpsKX/CKWloWM
+         +yJr2lMNg/ltAw38VhOJ3yIY+WECdydnxvNVktLejrPcgY2aXOogicEqpwvR29p1Pq
+         fx9bT8yom2AiLZKao2YvraU7sqR1+pvN5Lr174HHlNYO72g5jhTz4SfwrA4R/AHpcC
+         OMNQok4OwJQw2gfNm6MyREFKuDIHtUAIzCD2pBg0kXuCYri8X+ZRKU7QvA3js8Thro
+         nknOjqyJ4TB7RwO9QvuJR+hzbVUO+w6jGKPhel8NFEeF1RzldWml3TbCU4W0HqNX/I
+         +LlE0bjnsagIQ==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Andreas Larsson <andreas@gaisler.com>,
+        Sam Ravnborg <sam@ravnborg.org>,
+        Christoph Hellwig <hch@lst.de>,
+        Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
+        sparclinux@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 09/19] sparc32: page align size in arch_dma_alloc
+Date:   Wed, 22 Sep 2021 23:38:43 -0400
+Message-Id: <20210923033853.1421193-9-sashal@kernel.org>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20210923033853.1421193-1-sashal@kernel.org>
+References: <20210923033853.1421193-1-sashal@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20210921074151.GA26525@lst.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2021-09-21 09:41, Christoph Hellwig wrote:
-> Ok.  I'll respin with a more detailed commit log.
+From: Andreas Larsson <andreas@gaisler.com>
 
-These two patches works fine for me, so you can add a
+[ Upstream commit 59583f747664046aaae5588d56d5954fab66cce8 ]
 
-Tested-by: Andreas Larsson <andreas@gaisler.com>
+Commit 53b7670e5735 ("sparc: factor the dma coherent mapping into
+helper") lost the page align for the calls to dma_make_coherent and
+srmmu_unmapiorange. The latter cannot handle a non page aligned len
+argument.
 
-as well.
+Signed-off-by: Andreas Larsson <andreas@gaisler.com>
+Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/sparc/kernel/ioport.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index f89603855f1e..b87e0002131d 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -356,7 +356,9 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
+ void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
+ 		dma_addr_t dma_addr, unsigned long attrs)
+ {
+-	if (!sparc_dma_free_resource(cpu_addr, PAGE_ALIGN(size)))
++	size = PAGE_ALIGN(size);
++
++	if (!sparc_dma_free_resource(cpu_addr, size))
+ 		return;
+ 
+ 	dma_make_coherent(dma_addr, size);
 -- 
-Andreas Larsson
+2.30.2
 
