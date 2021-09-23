@@ -2,110 +2,143 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CB1C433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED231C4321E
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 07:43:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D66D60FE8
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:44:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D049361029
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 07:43:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239670AbhIWDqB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 22 Sep 2021 23:46:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42542 "EHLO mail.kernel.org"
+        id S239717AbhIWHpU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Sep 2021 03:45:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239963AbhIWDoL (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 22 Sep 2021 23:44:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A769A6113E;
-        Thu, 23 Sep 2021 03:41:02 +0000 (UTC)
+        id S239689AbhIWHpR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 23 Sep 2021 03:45:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3D07E60EC0;
+        Thu, 23 Sep 2021 07:43:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632368463;
-        bh=HCZIEz2iJyd8rqlOQHEWcGeYIH85CnkeUTti0ysOWos=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=naLsR5Uk6kZswOvFQsVo73thu9tii6EVsw5KhYe6muXlwcSij1Uuf8CZU0JARA/5S
-         6Tek5Xy8Uf1qqMt48a3qwCrvMPzHmBeJj0WA51OsL3i3PfBDOX8ah5EQ1dPUDLQEFM
-         tF2OiTiQCzScA5PbHaTGL64/4mgzsnfx93GvdHRWWBFFBgjDOwdL9mjmqpkZBVjAGY
-         AY9+6O0nJa9AHIIUxweTGGYWe35qE/yjEXkgzBmelCqM5AYGX8ukEBSLmBMGUlprP2
-         X9NDF2+NYneOUJuyM8Fdulb3XAdSgkDVCArZB54nbrqbLcuSwTtNccocWUrY9Jh3FE
-         Xf1jKHlrMl1kQ==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        "David S . Miller" <davem@davemloft.net>,
-        Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.4 04/10] sparc: avoid stringop-overread errors
-Date:   Wed, 22 Sep 2021 23:40:47 -0400
-Message-Id: <20210923034055.1422059-4-sashal@kernel.org>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20210923034055.1422059-1-sashal@kernel.org>
-References: <20210923034055.1422059-1-sashal@kernel.org>
+        s=k20201202; t=1632383025;
+        bh=3uVNPtFfbPBZRQaNfQKwTwtev9YVKUZqny4BWnp3ztY=;
+        h=From:To:Cc:Subject:Date:From;
+        b=Vold8Z9hLOut5Y57D9YqGfAPpL4eeU2GGKe6N2/G2K+rSChme5BK2bVJUGQMhNnD5
+         tlc7pIoxBTA8mtBmkSbcvxOA4ol2fbYKLvd84RUIoei3PfOrgW7d8UvcqmHNvAAnqH
+         2rTOLkAFW6DycEheiJuAByIZSW1Mb0ht/+wW3EsUTQK66rudMrHlsuHTSWtaF9pCtZ
+         zz2eXREGQLaTYVqwKNRZd1xLM2W36l4O1x9wg+UbZ8351+5wCVj9XzBQPxb3HkA2G0
+         kjff1rDe9w+gBCM2bpBWj7skIwT6XMoMhVQl3RcYgUgyL/ulxZSnczTeB3j1RHlvfS
+         d5Zxibdoq1rzA==
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        devicetree@vger.kernel.org, iommu@lists.linux-foundation.org,
+        kasan-dev@googlegroups.com, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-mm@kvack.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-um@lists.infradead.org, linux-usb@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        xen-devel@lists.xenproject.org, Mike Rapoport <rppt@linux.ibm.com>
+Subject: [PATCH 0/3] memblock: cleanup memblock_free interface
+Date:   Thu, 23 Sep 2021 10:43:32 +0300
+Message-Id: <20210923074335.12583-1-rppt@kernel.org>
+X-Mailer: git-send-email 2.28.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-X-stable: review
-X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Mike Rapoport <rppt@linux.ibm.com>
 
-[ Upstream commit fc7c028dcdbfe981bca75d2a7b95f363eb691ef3 ]
+Hi,
 
-The sparc mdesc code does pointer games with 'struct mdesc_hdr', but
-didn't describe to the compiler how that header is then followed by the
-data that the header describes.
+Following the discussion on [1] this is the fix for memblock freeing APIs
+mismatch. 
 
-As a result, gcc is now unhappy since it does stricter pointer range
-tracking, and doesn't understand about how these things work.  This
-results in various errors like:
+The first patch is a cleanup of numa_distance allocation in arch_numa I've
+spotted during the conversion.
+The second patch is a fix for Xen memory freeing on some of the error
+paths.
 
-    arch/sparc/kernel/mdesc.c: In function ‘mdesc_node_by_name’:
-    arch/sparc/kernel/mdesc.c:647:22: error: ‘strcmp’ reading 1 or more bytes from a region of size 0 [-Werror=stringop-overread]
-      647 |                 if (!strcmp(names + ep[ret].name_offset, name))
-          |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The core change is in the third patch that makes memblock_free() a
+counterpart of memblock_alloc() and adds memblock_phys_alloc() to be a
+counterpart of memblock_phys_alloc().
 
-which are easily avoided by just describing 'struct mdesc_hdr' better,
-and making the node_block() helper function look into that unsized
-data[] that follows the header.
+Since scripts/get_maintainer.pl returned more than 100 addresses I've
+trimmed the distribution list only to the relevant lists.
 
-This makes the sparc64 build happy again at least for my cross-compiler
-version (gcc version 11.2.1).
+[1] https://lore.kernel.org/all/CAHk-=wj9k4LZTz+svCxLYs5Y1=+yKrbAUArH1+ghyG3OLd8VVg@mail.gmail.com
 
-Link: https://lore.kernel.org/lkml/CAHk-=wi4NW3NC0xWykkw=6LnjQD6D_rtRtxY9g8gQAJXtQMi8A@mail.gmail.com/
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: David S. Miller <davem@davemloft.net>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/sparc/kernel/mdesc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Mike Rapoport (3):
+  arch_numa: simplify numa_distance allocation
+  xen/x86: free_p2m_page: use memblock_free_ptr() to free a virtual pointer
+  memblock: cleanup memblock_free interface
 
-diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
-index 6f80936e0eea..75445ba7e237 100644
---- a/arch/sparc/kernel/mdesc.c
-+++ b/arch/sparc/kernel/mdesc.c
-@@ -37,6 +37,7 @@ struct mdesc_hdr {
- 	u32	node_sz; /* node block size */
- 	u32	name_sz; /* name block size */
- 	u32	data_sz; /* data block size */
-+	char	data[];
- } __attribute__((aligned(16)));
- 
- struct mdesc_elem {
-@@ -369,7 +370,7 @@ void mdesc_update(void)
- 
- static struct mdesc_elem *node_block(struct mdesc_hdr *mdesc)
- {
--	return (struct mdesc_elem *) (mdesc + 1);
-+	return (struct mdesc_elem *) mdesc->data;
- }
- 
- static void *name_block(struct mdesc_hdr *mdesc)
+ arch/alpha/kernel/core_irongate.c         |  2 +-
+ arch/arc/mm/init.c                        |  2 +-
+ arch/arm/mach-hisi/platmcpm.c             |  2 +-
+ arch/arm/mm/init.c                        |  2 +-
+ arch/arm64/mm/mmu.c                       |  4 ++--
+ arch/mips/mm/init.c                       |  2 +-
+ arch/mips/sgi-ip30/ip30-setup.c           |  6 +++---
+ arch/powerpc/kernel/dt_cpu_ftrs.c         |  2 +-
+ arch/powerpc/kernel/paca.c                |  4 ++--
+ arch/powerpc/kernel/setup-common.c        |  2 +-
+ arch/powerpc/kernel/setup_64.c            |  2 +-
+ arch/powerpc/platforms/powernv/pci-ioda.c |  2 +-
+ arch/powerpc/platforms/pseries/svm.c      |  4 +---
+ arch/riscv/kernel/setup.c                 |  4 ++--
+ arch/s390/kernel/setup.c                  |  8 ++++----
+ arch/s390/kernel/smp.c                    |  4 ++--
+ arch/s390/kernel/uv.c                     |  2 +-
+ arch/s390/mm/kasan_init.c                 |  2 +-
+ arch/sh/boards/mach-ap325rxa/setup.c      |  2 +-
+ arch/sh/boards/mach-ecovec24/setup.c      |  4 ++--
+ arch/sh/boards/mach-kfr2r09/setup.c       |  2 +-
+ arch/sh/boards/mach-migor/setup.c         |  2 +-
+ arch/sh/boards/mach-se/7724/setup.c       |  4 ++--
+ arch/sparc/kernel/smp_64.c                |  2 +-
+ arch/um/kernel/mem.c                      |  2 +-
+ arch/x86/kernel/setup.c                   |  4 ++--
+ arch/x86/kernel/setup_percpu.c            |  2 +-
+ arch/x86/mm/init.c                        |  2 +-
+ arch/x86/mm/kasan_init_64.c               |  4 ++--
+ arch/x86/mm/numa.c                        |  2 +-
+ arch/x86/mm/numa_emulation.c              |  2 +-
+ arch/x86/xen/mmu_pv.c                     |  6 +++---
+ arch/x86/xen/p2m.c                        |  2 +-
+ arch/x86/xen/setup.c                      |  6 +++---
+ drivers/base/arch_numa.c                  | 10 ++++------
+ drivers/firmware/efi/memmap.c             |  2 +-
+ drivers/macintosh/smu.c                   |  2 +-
+ drivers/of/kexec.c                        |  2 +-
+ drivers/of/of_reserved_mem.c              |  4 ++--
+ drivers/s390/char/sclp_early.c            |  2 +-
+ drivers/usb/early/xhci-dbc.c              | 10 +++++-----
+ drivers/xen/swiotlb-xen.c                 |  2 +-
+ include/linux/memblock.h                  | 16 ++--------------
+ init/initramfs.c                          |  2 +-
+ init/main.c                               |  2 +-
+ kernel/dma/swiotlb.c                      |  2 +-
+ kernel/printk/printk.c                    |  4 ++--
+ lib/bootconfig.c                          |  2 +-
+ lib/cpumask.c                             |  2 +-
+ mm/cma.c                                  |  2 +-
+ mm/memblock.c                             | 20 ++++++++++----------
+ mm/memory_hotplug.c                       |  2 +-
+ mm/percpu.c                               |  8 ++++----
+ mm/sparse.c                               |  2 +-
+ tools/bootconfig/include/linux/memblock.h |  2 +-
+ 55 files changed, 94 insertions(+), 110 deletions(-)
+
+
+base-commit: e4e737bb5c170df6135a127739a9e6148ee3da82
 -- 
-2.30.2
+2.28.0
 
