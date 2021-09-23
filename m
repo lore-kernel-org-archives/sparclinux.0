@@ -7,44 +7,44 @@ X-Spam-Status: No, score=-20.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2A73C433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:39:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13D2EC433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:40:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9C8326115A
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:39:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF5E761351
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Sep 2021 03:40:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239212AbhIWDlI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 22 Sep 2021 23:41:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41756 "EHLO mail.kernel.org"
+        id S239642AbhIWDl6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 22 Sep 2021 23:41:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239356AbhIWDkj (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 22 Sep 2021 23:40:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 41D776121F;
-        Thu, 23 Sep 2021 03:39:08 +0000 (UTC)
+        id S239413AbhIWDky (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 22 Sep 2021 23:40:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6188861130;
+        Thu, 23 Sep 2021 03:39:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632368349;
-        bh=BJnQJGKsBsmbmS6kpbj/l8IiwogKaf4AYawUXj+cxEw=;
+        s=k20201202; t=1632368357;
+        bh=jRpoBRrs33NGMMP3Ob6zjTI4totY4yf1DXWMJpg9dD4=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=URtvXQlWMuvgGG0LIq+yrkmp7pb2/+RIvLiHYuTgiNxDiJoDvS0bGpsKX/CKWloWM
-         +yJr2lMNg/ltAw38VhOJ3yIY+WECdydnxvNVktLejrPcgY2aXOogicEqpwvR29p1Pq
-         fx9bT8yom2AiLZKao2YvraU7sqR1+pvN5Lr174HHlNYO72g5jhTz4SfwrA4R/AHpcC
-         OMNQok4OwJQw2gfNm6MyREFKuDIHtUAIzCD2pBg0kXuCYri8X+ZRKU7QvA3js8Thro
-         nknOjqyJ4TB7RwO9QvuJR+hzbVUO+w6jGKPhel8NFEeF1RzldWml3TbCU4W0HqNX/I
-         +LlE0bjnsagIQ==
+        b=Uvnk4ECiBAnSHnEYIonY5rp9rwZHGYWhZ1JrR12WcDGLcRHyxP3mKFmhg/yMiAPuT
+         SNg6FA1meLhm83ZGI0wv3VJBVUunWgbRMEcNQ1RF5ie+qKBOl+KmQDaEw8PAPpwcNQ
+         F4vctvW2uBNCKCMnbtiJmwa1b404TbHSMCNpPpFyEkap3UtoG1QwtCxAzj1cT25whS
+         GV0OE4y/D/U1A+o0HmUApQzKlZdfskb1Zy5GGLFzREENvoXXCHI4OgQilv96pvktbt
+         hFC3u6wzcJX1FmHQslwIesRRiRvrEvDNayvDSmOxOzt1cZXTFRdHkO2QYEFW17J04G
+         iaNXvdaN8onPQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Andreas Larsson <andreas@gaisler.com>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        Christoph Hellwig <hch@lst.de>,
-        Sasha Levin <sashal@kernel.org>, davem@davemloft.net,
-        sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.4 09/19] sparc32: page align size in arch_dma_alloc
-Date:   Wed, 22 Sep 2021 23:38:43 -0400
-Message-Id: <20210923033853.1421193-9-sashal@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Guenter Roeck <linux@roeck-us.net>,
+        "David S . Miller" <davem@davemloft.net>,
+        Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.4 13/19] sparc: avoid stringop-overread errors
+Date:   Wed, 22 Sep 2021 23:38:47 -0400
+Message-Id: <20210923033853.1421193-13-sashal@kernel.org>
 X-Mailer: git-send-email 2.30.2
 In-Reply-To: <20210923033853.1421193-1-sashal@kernel.org>
 References: <20210923033853.1421193-1-sashal@kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 X-stable: review
 X-Patchwork-Hint: Ignore
 Content-Transfer-Encoding: 8bit
@@ -52,38 +52,60 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Andreas Larsson <andreas@gaisler.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-[ Upstream commit 59583f747664046aaae5588d56d5954fab66cce8 ]
+[ Upstream commit fc7c028dcdbfe981bca75d2a7b95f363eb691ef3 ]
 
-Commit 53b7670e5735 ("sparc: factor the dma coherent mapping into
-helper") lost the page align for the calls to dma_make_coherent and
-srmmu_unmapiorange. The latter cannot handle a non page aligned len
-argument.
+The sparc mdesc code does pointer games with 'struct mdesc_hdr', but
+didn't describe to the compiler how that header is then followed by the
+data that the header describes.
 
-Signed-off-by: Andreas Larsson <andreas@gaisler.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+As a result, gcc is now unhappy since it does stricter pointer range
+tracking, and doesn't understand about how these things work.  This
+results in various errors like:
+
+    arch/sparc/kernel/mdesc.c: In function ‘mdesc_node_by_name’:
+    arch/sparc/kernel/mdesc.c:647:22: error: ‘strcmp’ reading 1 or more bytes from a region of size 0 [-Werror=stringop-overread]
+      647 |                 if (!strcmp(names + ep[ret].name_offset, name))
+          |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+which are easily avoided by just describing 'struct mdesc_hdr' better,
+and making the node_block() helper function look into that unsized
+data[] that follows the header.
+
+This makes the sparc64 build happy again at least for my cross-compiler
+version (gcc version 11.2.1).
+
+Link: https://lore.kernel.org/lkml/CAHk-=wi4NW3NC0xWykkw=6LnjQD6D_rtRtxY9g8gQAJXtQMi8A@mail.gmail.com/
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Sasha Levin <sashal@kernel.org>
 ---
- arch/sparc/kernel/ioport.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/mdesc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
-index f89603855f1e..b87e0002131d 100644
---- a/arch/sparc/kernel/ioport.c
-+++ b/arch/sparc/kernel/ioport.c
-@@ -356,7 +356,9 @@ void *arch_dma_alloc(struct device *dev, size_t size, dma_addr_t *dma_handle,
- void arch_dma_free(struct device *dev, size_t size, void *cpu_addr,
- 		dma_addr_t dma_addr, unsigned long attrs)
- {
--	if (!sparc_dma_free_resource(cpu_addr, PAGE_ALIGN(size)))
-+	size = PAGE_ALIGN(size);
-+
-+	if (!sparc_dma_free_resource(cpu_addr, size))
- 		return;
+diff --git a/arch/sparc/kernel/mdesc.c b/arch/sparc/kernel/mdesc.c
+index 8e645ddac58e..30f171b7b00c 100644
+--- a/arch/sparc/kernel/mdesc.c
++++ b/arch/sparc/kernel/mdesc.c
+@@ -39,6 +39,7 @@ struct mdesc_hdr {
+ 	u32	node_sz; /* node block size */
+ 	u32	name_sz; /* name block size */
+ 	u32	data_sz; /* data block size */
++	char	data[];
+ } __attribute__((aligned(16)));
  
- 	dma_make_coherent(dma_addr, size);
+ struct mdesc_elem {
+@@ -612,7 +613,7 @@ EXPORT_SYMBOL(mdesc_get_node_info);
+ 
+ static struct mdesc_elem *node_block(struct mdesc_hdr *mdesc)
+ {
+-	return (struct mdesc_elem *) (mdesc + 1);
++	return (struct mdesc_elem *) mdesc->data;
+ }
+ 
+ static void *name_block(struct mdesc_hdr *mdesc)
 -- 
 2.30.2
 
