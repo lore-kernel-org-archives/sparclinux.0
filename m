@@ -1,171 +1,206 @@
 Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-X-Spam-Level: 
-X-Spam-Status: No, score=-13.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
-	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B44D5C43219
-	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 05:32:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C1CC433EF
+	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 15:22:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 98FAB61260
-	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 05:32:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 399C46124C
+	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 15:22:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244145AbhIXFeV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 24 Sep 2021 01:34:21 -0400
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:51076 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S243369AbhIXFeU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 24 Sep 2021 01:34:20 -0400
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 18O4TxLE003727;
-        Fri, 24 Sep 2021 01:32:30 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=date : from : to : cc :
- subject : message-id : references : content-type : in-reply-to :
- content-transfer-encoding : mime-version; s=pp1;
- bh=LcclFexTC3W4CGWQ05F30N7TENmKQs3CWJF8lIJhAyA=;
- b=fM5r0pOd7rJd2mnURChsSfJfJrX/C+3BofObflhTYGzVXv/HEJS9Aw8BgIC//ggGIR4j
- CZ5JxdcP59VcALFL5IzVij2oY4zwlRyWWbJs8bYZFXoi5eLF6aEHqAyx0sRU0twQi+Nx
- uTzT35Ud5rz3mMLTSHcDte6njyO8gAKbwGxAXdnivxmbV3hoFkXGse9K5ImTnY3FP/yx
- Dcg6IMAClTzZSYBturZR2pFZSHk8drui/RqjiPVFtbOoDuEmvxDYqAtOWfweNAxqZrTZ
- HQI3Eeh+Tf3jj5APaqHV6+/E8KJV71sFQyUh51zWXPgx91EVjartcf89ESTdpFpWq0zU zQ== 
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 3b97px199p-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 24 Sep 2021 01:32:30 -0400
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-        by ppma03ams.nl.ibm.com (8.16.1.2/8.16.1.2) with SMTP id 18O5WBU3010032;
-        Fri, 24 Sep 2021 05:32:28 GMT
-Received: from b06avi18878370.portsmouth.uk.ibm.com (b06avi18878370.portsmouth.uk.ibm.com [9.149.26.194])
-        by ppma03ams.nl.ibm.com with ESMTP id 3b93gb1yvs-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Fri, 24 Sep 2021 05:32:28 +0000
-Received: from d06av22.portsmouth.uk.ibm.com (d06av22.portsmouth.uk.ibm.com [9.149.105.58])
-        by b06avi18878370.portsmouth.uk.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 18O5RWr150528586
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Fri, 24 Sep 2021 05:27:32 GMT
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id A77234C04E;
-        Fri, 24 Sep 2021 05:32:25 +0000 (GMT)
-Received: from d06av22.portsmouth.uk.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 26CB04C050;
-        Fri, 24 Sep 2021 05:32:23 +0000 (GMT)
-Received: from linux.ibm.com (unknown [9.145.159.121])
-        by d06av22.portsmouth.uk.ibm.com (Postfix) with ESMTPS;
-        Fri, 24 Sep 2021 05:32:23 +0000 (GMT)
-Date:   Fri, 24 Sep 2021 08:32:21 +0300
-From:   Mike Rapoport <rppt@linux.ibm.com>
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     Mike Rapoport <rppt@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        devicetree@vger.kernel.org, linux-efi@vger.kernel.org,
-        kvm@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        iommu@lists.linux-foundation.org, linux-usb@vger.kernel.org,
-        linux-alpha@vger.kernel.org, sparclinux@vger.kernel.org,
-        xen-devel@lists.xenproject.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-snps-arc@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 3/3] memblock: cleanup memblock_free interface
-Message-ID: <YU1i5YyldfS1HH0j@linux.ibm.com>
-References: <20210923074335.12583-1-rppt@kernel.org>
- <20210923074335.12583-4-rppt@kernel.org>
- <1101e3c7-fcb7-a632-8e22-47f4a01ea02e@csgroup.eu>
- <YUxsgN/uolhn1Ok+@linux.ibm.com>
- <96e3da9f-70ff-e5c0-ef2e-cf0b636e5695@csgroup.eu>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-In-Reply-To: <96e3da9f-70ff-e5c0-ef2e-cf0b636e5695@csgroup.eu>
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: EYYWPQtbK60SNKLXoEtnrAemGAQvCJn5
-X-Proofpoint-GUID: EYYWPQtbK60SNKLXoEtnrAemGAQvCJn5
-Content-Transfer-Encoding: 8bit
-X-Proofpoint-UnRewURL: 0 URL was un-rewritten
+        id S1347008AbhIXPXn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 24 Sep 2021 11:23:43 -0400
+Received: from out02.mta.xmission.com ([166.70.13.232]:45184 "EHLO
+        out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233099AbhIXPXn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 24 Sep 2021 11:23:43 -0400
+Received: from in01.mta.xmission.com ([166.70.13.51]:57368)
+        by out02.mta.xmission.com with esmtps  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1mTn1d-008ufT-0J; Fri, 24 Sep 2021 09:22:09 -0600
+Received: from ip68-227-160-95.om.om.cox.net ([68.227.160.95]:44582 helo=email.xmission.com)
+        by in01.mta.xmission.com with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.93)
+        (envelope-from <ebiederm@xmission.com>)
+        id 1mTn1b-00G4tc-Hf; Fri, 24 Sep 2021 09:22:08 -0600
+From:   ebiederm@xmission.com (Eric W. Biederman)
+To:     <linux-kernel@vger.kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Oleg Nesterov <oleg@redhat.com>,
+        Al Viro <viro@ZenIV.linux.org.uk>, <linux-api@vger.kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        David Miller <davem@davemloft.net>, sparclinux@vger.kernel.org,
+        linux-ia64@vger.kernel.org
+References: <87v92qx2c6.fsf@disp2133>
+Date:   Fri, 24 Sep 2021 10:22:00 -0500
+In-Reply-To: <87v92qx2c6.fsf@disp2133> (Eric W. Biederman's message of "Thu,
+        23 Sep 2021 19:08:09 -0500")
+Message-ID: <87k0j6q9rb.fsf@disp2133>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.182.1,Aquarius:18.0.790,Hydra:6.0.391,FMLib:17.0.607.475
- definitions=2021-09-24_01,2021-09-23_01,2020-04-07_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 malwarescore=0
- impostorscore=0 mlxscore=0 lowpriorityscore=0 bulkscore=0 spamscore=0
- clxscore=1015 mlxlogscore=856 adultscore=0 phishscore=0 suspectscore=0
- priorityscore=1501 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2109230001 definitions=main-2109240031
+Content-Type: text/plain
+X-XM-SPF: eid=1mTn1b-00G4tc-Hf;;;mid=<87k0j6q9rb.fsf@disp2133>;;;hst=in01.mta.xmission.com;;;ip=68.227.160.95;;;frm=ebiederm@xmission.com;;;spf=neutral
+X-XM-AID: U2FsdGVkX1+JsYl7ZmJh6QO3BOzEAQ2MuO1Dj3p7FPo=
+X-SA-Exim-Connect-IP: 68.227.160.95
+X-SA-Exim-Mail-From: ebiederm@xmission.com
+Subject: [PATCH 2/6] ptrace: Remove the unnecessary arguments from arch_ptrace_stop
+X-SA-Exim-Version: 4.2.1 (built Sat, 08 Feb 2020 21:53:50 +0000)
+X-SA-Exim-Scanned: Yes (on in01.mta.xmission.com)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Sep 23, 2021 at 03:54:46PM +0200, Christophe Leroy wrote:
-> 
-> Le 23/09/2021 à 14:01, Mike Rapoport a écrit :
-> > On Thu, Sep 23, 2021 at 11:47:48AM +0200, Christophe Leroy wrote:
-> > > 
-> > > 
-> > > Le 23/09/2021 à 09:43, Mike Rapoport a écrit :
-> > > > From: Mike Rapoport <rppt@linux.ibm.com>
-> > > > 
-> > > > For ages memblock_free() interface dealt with physical addresses even
-> > > > despite the existence of memblock_alloc_xx() functions that return a
-> > > > virtual pointer.
-> > > > 
-> > > > Introduce memblock_phys_free() for freeing physical ranges and repurpose
-> > > > memblock_free() to free virtual pointers to make the following pairing
-> > > > abundantly clear:
-> > > > 
-> > > > 	int memblock_phys_free(phys_addr_t base, phys_addr_t size);
-> > > > 	phys_addr_t memblock_phys_alloc(phys_addr_t base, phys_addr_t size);
-> > > > 
-> > > > 	void *memblock_alloc(phys_addr_t size, phys_addr_t align);
-> > > > 	void memblock_free(void *ptr, size_t size);
-> > > > 
-> > > > Replace intermediate memblock_free_ptr() with memblock_free() and drop
-> > > > unnecessary aliases memblock_free_early() and memblock_free_early_nid().
-> > > > 
-> > > > Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
-> > > > Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-> > > > ---
-> > > 
-> > > > diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
-> > > > index 1a04e5bdf655..37826d8c4f74 100644
-> > > > --- a/arch/s390/kernel/smp.c
-> > > > +++ b/arch/s390/kernel/smp.c
-> > > > @@ -723,7 +723,7 @@ void __init smp_save_dump_cpus(void)
-> > > >    			/* Get the CPU registers */
-> > > >    			smp_save_cpu_regs(sa, addr, is_boot_cpu, page);
-> > > >    	}
-> > > > -	memblock_free(page, PAGE_SIZE);
-> > > > +	memblock_phys_free(page, PAGE_SIZE);
-> > > >    	diag_amode31_ops.diag308_reset();
-> > > >    	pcpu_set_smt(0);
-> > > >    }
-> > > > @@ -880,7 +880,7 @@ void __init smp_detect_cpus(void)
-> > > >    	/* Add CPUs present at boot */
-> > > >    	__smp_rescan_cpus(info, true);
-> > > > -	memblock_free_early((unsigned long)info, sizeof(*info));
-> > > > +	memblock_free(info, sizeof(*info));
-> > > >    }
-> > > >    /*
-> > > 
-> > > I'm a bit lost. IIUC memblock_free_early() and memblock_free() where
-> > > identical.
-> > 
-> > Yes, they were, but all calls to memblock_free_early() were using
-> > __pa(vaddr) because they had a virtual address at hand.
-> 
-> I'm still not following. In the above memblock_free_early() was taking
-> (unsigned long)info . Was it a bug ? 
 
-Not really because s390 has pa == va:
+Both arch_ptrace_stop_needed and arch_ptrace_stop are called with an
+exit_code and a siginfo structure.  Neither argument is used by any of
+the implementations so just remove the unneeded arguments.
 
-https://elixir.bootlin.com/linux/latest/source/arch/s390/include/asm/page.h#L169
+The two arechitectures that implement arch_ptrace_stop are ia64 and
+sparc.  Both architectures flush their register stacks before a
+ptrace_stack so that all of the register information can be accessed
+by debuggers.
 
+As the question of if a register stack needs to be flushed is
+independent of why ptrace is stopping not needing arguments make sense.
 
+Cc: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+---
+
+Resent because my little one distracted me as I was sending this last
+night and I did not manage to copy the sparc and ia64 folks.
+
+ arch/ia64/include/asm/ptrace.h  |  4 ++--
+ arch/sparc/include/asm/ptrace.h |  8 ++++----
+ include/linux/ptrace.h          | 22 +++++++++-------------
+ kernel/signal.c                 |  4 ++--
+ 4 files changed, 17 insertions(+), 21 deletions(-)
+
+diff --git a/arch/ia64/include/asm/ptrace.h b/arch/ia64/include/asm/ptrace.h
+index 08179135905c..f15504f75f10 100644
+--- a/arch/ia64/include/asm/ptrace.h
++++ b/arch/ia64/include/asm/ptrace.h
+@@ -129,9 +129,9 @@ static inline long regs_return_value(struct pt_regs *regs)
+   extern void ia64_decrement_ip (struct pt_regs *pt);
+ 
+   extern void ia64_ptrace_stop(void);
+-  #define arch_ptrace_stop(code, info) \
++  #define arch_ptrace_stop() \
+ 	ia64_ptrace_stop()
+-  #define arch_ptrace_stop_needed(code, info) \
++  #define arch_ptrace_stop_needed() \
+ 	(!test_thread_flag(TIF_RESTORE_RSE))
+ 
+   extern void ptrace_attach_sync_user_rbs (struct task_struct *);
+diff --git a/arch/sparc/include/asm/ptrace.h b/arch/sparc/include/asm/ptrace.h
+index 71dd82b43cc5..d1419e669027 100644
+--- a/arch/sparc/include/asm/ptrace.h
++++ b/arch/sparc/include/asm/ptrace.h
+@@ -26,12 +26,12 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
+ 	return (regs->tstate &= ~TSTATE_SYSCALL);
+ }
+ 
+-#define arch_ptrace_stop_needed(exit_code, info) \
++#define arch_ptrace_stop_needed() \
+ ({	flush_user_windows(); \
+ 	get_thread_wsaved() != 0; \
+ })
+ 
+-#define arch_ptrace_stop(exit_code, info) \
++#define arch_ptrace_stop() \
+ 	synchronize_user_stack()
+ 
+ #define current_pt_regs() \
+@@ -129,12 +129,12 @@ static inline bool pt_regs_clear_syscall(struct pt_regs *regs)
+ 	return (regs->psr &= ~PSR_SYSCALL);
+ }
+ 
+-#define arch_ptrace_stop_needed(exit_code, info) \
++#define arch_ptrace_stop_needed() \
+ ({	flush_user_windows(); \
+ 	current_thread_info()->w_saved != 0;	\
+ })
+ 
+-#define arch_ptrace_stop(exit_code, info) \
++#define arch_ptrace_stop() \
+ 	synchronize_user_stack()
+ 
+ #define current_pt_regs() \
+diff --git a/include/linux/ptrace.h b/include/linux/ptrace.h
+index b5ebf6c01292..8aee2945ff08 100644
+--- a/include/linux/ptrace.h
++++ b/include/linux/ptrace.h
+@@ -362,29 +362,25 @@ static inline void user_single_step_report(struct pt_regs *regs)
+ #ifndef arch_ptrace_stop_needed
+ /**
+  * arch_ptrace_stop_needed - Decide whether arch_ptrace_stop() should be called
+- * @code:	current->exit_code value ptrace will stop with
+- * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
+  *
+  * This is called with the siglock held, to decide whether or not it's
+- * necessary to release the siglock and call arch_ptrace_stop() with the
+- * same @code and @info arguments.  It can be defined to a constant if
+- * arch_ptrace_stop() is never required, or always is.  On machines where
+- * this makes sense, it should be defined to a quick test to optimize out
+- * calling arch_ptrace_stop() when it would be superfluous.  For example,
+- * if the thread has not been back to user mode since the last stop, the
+- * thread state might indicate that nothing needs to be done.
++ * necessary to release the siglock and call arch_ptrace_stop().  It can be
++ * defined to a constant if arch_ptrace_stop() is never required, or always
++ * is.  On machines where this makes sense, it should be defined to a quick
++ * test to optimize out calling arch_ptrace_stop() when it would be
++ * superfluous.  For example, if the thread has not been back to user mode
++ * since the last stop, the thread state might indicate that nothing needs
++ * to be done.
+  *
+  * This is guaranteed to be invoked once before a task stops for ptrace and
+  * may include arch-specific operations necessary prior to a ptrace stop.
+  */
+-#define arch_ptrace_stop_needed(code, info)	(0)
++#define arch_ptrace_stop_needed()	(0)
+ #endif
+ 
+ #ifndef arch_ptrace_stop
+ /**
+  * arch_ptrace_stop - Do machine-specific work before stopping for ptrace
+- * @code:	current->exit_code value ptrace will stop with
+- * @info:	siginfo_t pointer (or %NULL) for signal ptrace will stop with
+  *
+  * This is called with no locks held when arch_ptrace_stop_needed() has
+  * just returned nonzero.  It is allowed to block, e.g. for user memory
+@@ -394,7 +390,7 @@ static inline void user_single_step_report(struct pt_regs *regs)
+  * we only do it when the arch requires it for this particular stop, as
+  * indicated by arch_ptrace_stop_needed().
+  */
+-#define arch_ptrace_stop(code, info)		do { } while (0)
++#define arch_ptrace_stop()		do { } while (0)
+ #endif
+ 
+ #ifndef current_pt_regs
+diff --git a/kernel/signal.c b/kernel/signal.c
+index 9f2dc9cf3208..c9759ff2cb43 100644
+--- a/kernel/signal.c
++++ b/kernel/signal.c
+@@ -2200,7 +2200,7 @@ static void ptrace_stop(int exit_code, int why, int clear_code, kernel_siginfo_t
+ {
+ 	bool gstop_done = false;
+ 
+-	if (arch_ptrace_stop_needed(exit_code, info)) {
++	if (arch_ptrace_stop_needed()) {
+ 		/*
+ 		 * The arch code has something special to do before a
+ 		 * ptrace stop.  This is allowed to block, e.g. for faults
+@@ -2210,7 +2210,7 @@ static void ptrace_stop(int exit_code, int why, int clear_code, kernel_siginfo_t
+ 		 * any signal bookkeeping like checking group_stop_count.
+ 		 */
+ 		spin_unlock_irq(&current->sighand->siglock);
+-		arch_ptrace_stop(exit_code, info);
++		arch_ptrace_stop();
+ 		spin_lock_irq(&current->sighand->siglock);
+ 	}
+ 
 -- 
-Sincerely yours,
-Mike.
+2.20.1
+
