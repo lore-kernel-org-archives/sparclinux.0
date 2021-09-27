@@ -2,101 +2,253 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEBDBC43217
-	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C788BC433FE
+	for <sparclinux@archiver.kernel.org>; Mon, 27 Sep 2021 03:21:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA52361288
-	for <sparclinux@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AA76061100
+	for <sparclinux@archiver.kernel.org>; Mon, 27 Sep 2021 03:21:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345356AbhIXWpT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 24 Sep 2021 18:45:19 -0400
-Received: from mga03.intel.com ([134.134.136.65]:22795 "EHLO mga03.intel.com"
+        id S232477AbhI0DWh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 26 Sep 2021 23:22:37 -0400
+Received: from foss.arm.com ([217.140.110.172]:41302 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345228AbhIXWpR (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 24 Sep 2021 18:45:17 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10117"; a="224233866"
-X-IronPort-AV: E=Sophos;i="5.85,321,1624345200"; 
-   d="scan'208";a="224233866"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2021 15:43:43 -0700
-X-IronPort-AV: E=Sophos;i="5.85,321,1624345200"; 
-   d="scan'208";a="704339730"
-Received: from akleen-mobl1.amr.corp.intel.com (HELO [10.251.20.113]) ([10.251.20.113])
-  by fmsmga006-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 24 Sep 2021 15:43:41 -0700
-Subject: Re: [PATCH v4 11/15] pci: Add pci_iomap_shared{,_range}
-To:     "Michael S. Tsirkin" <mst@redhat.com>
-Cc:     Dan Williams <dan.j.williams@intel.com>,
-        "Kuppuswamy, Sathyanarayanan" 
-        <sathyanarayanan.kuppuswamy@linux.intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Richard Henderson <rth@twiddle.net>,
+        id S230469AbhI0DWf (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sun, 26 Sep 2021 23:22:35 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2779FD6E;
+        Sun, 26 Sep 2021 20:20:58 -0700 (PDT)
+Received: from p8cg001049571a15.arm.com (unknown [10.163.73.35])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 0DB483F7B4;
+        Sun, 26 Sep 2021 20:20:54 -0700 (PDT)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org
+Cc:     Anshuman Khandual <anshuman.khandual@arm.com>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        James E J Bottomley <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Peter H Anvin <hpa@zytor.com>,
-        Dave Hansen <dave.hansen@intel.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Kirill Shutemov <kirill.shutemov@linux.intel.com>,
-        Sean Christopherson <seanjc@google.com>,
-        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
-        X86 ML <x86@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux PCI <linux-pci@vger.kernel.org>,
-        linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        virtualization@lists.linux-foundation.org
-References: <20210824053830-mutt-send-email-mst@kernel.org>
- <d21a2a2d-4670-ba85-ce9a-fc8ea80ef1be@linux.intel.com>
- <20210829112105-mutt-send-email-mst@kernel.org>
- <09b340dd-c8a8-689c-4dad-4fe0e36d39ae@linux.intel.com>
- <20210829181635-mutt-send-email-mst@kernel.org>
- <3a88a255-a528-b00a-912b-e71198d5f58f@linux.intel.com>
- <20210830163723-mutt-send-email-mst@kernel.org>
- <69fc30f4-e3e2-add7-ec13-4db3b9cc0cbd@linux.intel.com>
- <20210910054044-mutt-send-email-mst@kernel.org>
- <f672dc1c-5280-7bbc-7a56-7c7aab31725c@linux.intel.com>
- <20210911195006-mutt-send-email-mst@kernel.org>
-From:   Andi Kleen <ak@linux.intel.com>
-Message-ID: <ad1e41d1-3f4e-8982-16ea-18a3b2c04019@linux.intel.com>
-Date:   Fri, 24 Sep 2021 15:43:40 -0700
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
-MIME-Version: 1.0
-In-Reply-To: <20210911195006-mutt-send-email-mst@kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        "David S. Miller" <davem@davemloft.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] mm/mmap: Define index macros for protection_map[]
+Date:   Mon, 27 Sep 2021 08:52:00 +0530
+Message-Id: <1632712920-8171-1-git-send-email-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.7.4
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+protection_map[] maps the lower four bits from vm_flags into platform page
+protection mask. Default initialization (and possible re-initialization in
+the platform) does not make it clear that these indices are just derived
+from various vm_flags protections (VM_SHARED, VM_READ, VM_WRITE, VM_EXEC).
+This defines macros for protection_map[] indices which concatenate various
+vm_flag attributes, making it clear and explicit.
 
->> Hmm, yes that's true. I guess we can make it default to opt-in for
->> pci_iomap.
->>
->> It only really matters for device less ioremaps.
-> OK. And same thing for other things with device, such as
-> devm_platform_ioremap_resource.
-> If we agree on all that, this will basically remove virtio
-> changes from the picture ;)
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mips@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+---
+This applies on v5.15-rc3 after the following patch.
 
-Hi we revisited this now. One problem with removing the ioremap opt-in 
-is that it's still possible for drivers to get at devices without going 
-through probe. For example they can walk the PCI device list. Some 
-drivers do that for various reasons. So if we remove the opt-in we would 
-need to audit and possibly fix all that, which would be potentially a 
-lot of churn. That's why I think it's better to keep the opt-in.
+https://lore.kernel.org/all/20210924060821.1138281-1-guoren@kernel.org/
 
+ arch/mips/mm/cache.c    | 34 +++++++++++++++++-----------------
+ arch/sparc/mm/init_64.c | 32 ++++++++++++++++----------------
+ include/linux/mm.h      | 31 +++++++++++++++++++++++++++++++
+ mm/debug_vm_pgtable.c   |  8 ++++----
+ mm/mmap.c               | 18 ++++++++++++++++--
+ 5 files changed, 84 insertions(+), 39 deletions(-)
 
--Andi
-
+diff --git a/arch/mips/mm/cache.c b/arch/mips/mm/cache.c
+index 830ab91e574f..d0197cc1fb5a 100644
+--- a/arch/mips/mm/cache.c
++++ b/arch/mips/mm/cache.c
+@@ -161,24 +161,24 @@ EXPORT_SYMBOL(_page_cachable_default);
+ 
+ static inline void setup_protection_map(void)
+ {
+-	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[4]  = PM(_PAGE_PRESENT);
+-	protection_map[5]  = PM(_PAGE_PRESENT);
+-	protection_map[6]  = PM(_PAGE_PRESENT);
+-	protection_map[7]  = PM(_PAGE_PRESENT);
+-
+-	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
+-	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
+-	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
++	protection_map[PROTMAP_IDX_XXXX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[PROTMAP_IDX_XRXX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[PROTMAP_IDX_XXWX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[PROTMAP_IDX_XRWX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[PROTMAP_IDX_XXXE] = PM(_PAGE_PRESENT);
++	protection_map[PROTMAP_IDX_XRXE] = PM(_PAGE_PRESENT);
++	protection_map[PROTMAP_IDX_XXWE] = PM(_PAGE_PRESENT);
++	protection_map[PROTMAP_IDX_XRWE] = PM(_PAGE_PRESENT);
++
++	protection_map[PROTMAP_IDX_SXXX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++	protection_map[PROTMAP_IDX_SRXX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++	protection_map[PROTMAP_IDX_SXWX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
+ 				_PAGE_NO_READ);
+-	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
+-	protection_map[12] = PM(_PAGE_PRESENT);
+-	protection_map[13] = PM(_PAGE_PRESENT);
+-	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+-	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[PROTMAP_IDX_SRWX] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++	protection_map[PROTMAP_IDX_SXXE] = PM(_PAGE_PRESENT);
++	protection_map[PROTMAP_IDX_SRXE] = PM(_PAGE_PRESENT);
++	protection_map[PROTMAP_IDX_SXWE] = PM(_PAGE_PRESENT | _PAGE_WRITE);
++	protection_map[PROTMAP_IDX_SRWE] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+ }
+ 
+ #undef PM
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1b23639e2fcd..1a7fe97c8167 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -2642,22 +2642,22 @@ static void prot_init_common(unsigned long page_none,
+ 	PAGE_COPY = __pgprot(page_copy);
+ 	PAGE_SHARED = __pgprot(page_shared);
+ 
+-	protection_map[0x0] = __pgprot(page_none);
+-	protection_map[0x1] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0x2] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x3] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x4] = __pgprot(page_readonly);
+-	protection_map[0x5] = __pgprot(page_readonly);
+-	protection_map[0x6] = __pgprot(page_copy);
+-	protection_map[0x7] = __pgprot(page_copy);
+-	protection_map[0x8] = __pgprot(page_none);
+-	protection_map[0x9] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0xa] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xb] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xc] = __pgprot(page_readonly);
+-	protection_map[0xd] = __pgprot(page_readonly);
+-	protection_map[0xe] = __pgprot(page_shared);
+-	protection_map[0xf] = __pgprot(page_shared);
++	protection_map[PROTMAP_IDX_XXXX] = __pgprot(page_none);
++	protection_map[PROTMAP_IDX_XRXX] = __pgprot(page_readonly & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_XXWX] = __pgprot(page_copy & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_XRWX] = __pgprot(page_copy & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_XXXE] = __pgprot(page_readonly);
++	protection_map[PROTMAP_IDX_XRXE] = __pgprot(page_readonly);
++	protection_map[PROTMAP_IDX_XXWE] = __pgprot(page_copy);
++	protection_map[PROTMAP_IDX_XRWE] = __pgprot(page_copy);
++	protection_map[PROTMAP_IDX_SXXX] = __pgprot(page_none);
++	protection_map[PROTMAP_IDX_SRXX] = __pgprot(page_readonly & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_SXWX] = __pgprot(page_shared & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_SRWX] = __pgprot(page_shared & ~page_exec_bit);
++	protection_map[PROTMAP_IDX_SXXE] = __pgprot(page_readonly);
++	protection_map[PROTMAP_IDX_SRXE] = __pgprot(page_readonly);
++	protection_map[PROTMAP_IDX_SXWE] = __pgprot(page_shared);
++	protection_map[PROTMAP_IDX_SRWE] = __pgprot(page_shared);
+ }
+ 
+ static void __init sun4u_pgprot_init(void)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 73a52aba448f..4f99a49749a5 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -431,9 +431,40 @@ extern unsigned int kobjsize(const void *objp);
+ /*
+  * mapping from the currently active vm_flags protection bits (the
+  * low four bits) to a page protection mask..
++ *
++ * VM_EXEC ---------------------|
++ *                              |
++ * VM_WRITE ---------------|    |
++ *                         |    |
++ * VM_READ -----------|    |    |
++ *                    |    |    |
++ * VM_SHARED ----|    |    |    |
++ *               |    |    |    |
++ *               v    v    v    v
++ * PROTMAP_IDX_(S|X)(R|X)(W|X)(E|X)
++ *
++ * X - The protection flag is absent
++ *
+  */
+ extern pgprot_t protection_map[16];
+ 
++#define PROTMAP_IDX_XXXX (VM_NONE)
++#define PROTMAP_IDX_XRXX (VM_READ)
++#define PROTMAP_IDX_XXWX (VM_WRITE)
++#define PROTMAP_IDX_XRWX (VM_READ | VM_WRITE)
++#define PROTMAP_IDX_XXXE (VM_EXEC)
++#define PROTMAP_IDX_XRXE (VM_READ | VM_EXEC)
++#define PROTMAP_IDX_XXWE (VM_WRITE | VM_EXEC)
++#define PROTMAP_IDX_XRWE (VM_READ | VM_WRITE | VM_EXEC)
++#define PROTMAP_IDX_SXXX (VM_SHARED | VM_NONE)
++#define PROTMAP_IDX_SRXX (VM_SHARED | VM_READ)
++#define PROTMAP_IDX_SXWX (VM_SHARED | VM_WRITE)
++#define PROTMAP_IDX_SRWX (VM_SHARED | VM_READ | VM_WRITE)
++#define PROTMAP_IDX_SXXE (VM_SHARED | VM_EXEC)
++#define PROTMAP_IDX_SRXE (VM_SHARED | VM_READ | VM_EXEC)
++#define PROTMAP_IDX_SXWE (VM_SHARED | VM_WRITE | VM_EXEC)
++#define PROTMAP_IDX_SRWE (VM_SHARED | VM_READ | VM_WRITE | VM_EXEC)
++
+ /**
+  * enum fault_flag - Fault flag definitions.
+  * @FAULT_FLAG_WRITE: Fault was a write fault.
+diff --git a/mm/debug_vm_pgtable.c b/mm/debug_vm_pgtable.c
+index 228e3954b90c..2e01d0d395bb 100644
+--- a/mm/debug_vm_pgtable.c
++++ b/mm/debug_vm_pgtable.c
+@@ -1104,14 +1104,14 @@ static int __init init_args(struct pgtable_debug_args *args)
+ 	/*
+ 	 * Initialize the debugging data.
+ 	 *
+-	 * protection_map[0] (or even protection_map[8]) will help create
+-	 * page table entries with PROT_NONE permission as required for
+-	 * pxx_protnone_tests().
++	 * protection_map[PROTMAP_IDX_XXXX] (or even protection_map[PROTMAP_IDX_SXXX])
++	 * will help create page table entries with PROT_NONE permission as required
++	 * for pxx_protnone_tests().
+ 	 */
+ 	memset(args, 0, sizeof(*args));
+ 	args->vaddr              = get_random_vaddr();
+ 	args->page_prot          = vm_get_page_prot(VMFLAGS);
+-	args->page_prot_none     = protection_map[0];
++	args->page_prot_none     = protection_map[PROTMAP_IDX_XXXX];
+ 	args->is_contiguous_page = false;
+ 	args->pud_pfn            = ULONG_MAX;
+ 	args->pmd_pfn            = ULONG_MAX;
+diff --git a/mm/mmap.c b/mm/mmap.c
+index 88dcc5c25225..d38bd4e305f9 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -101,8 +101,22 @@ static void unmap_region(struct mm_struct *mm,
+  *								x: (yes) yes
+  */
+ pgprot_t protection_map[16] __ro_after_init = {
+-	__P000, __P001, __P010, __P011, __P100, __P101, __P110, __P111,
+-	__S000, __S001, __S010, __S011, __S100, __S101, __S110, __S111
++	[PROTMAP_IDX_XXXX] = __P000,
++	[PROTMAP_IDX_XRXX] = __P001,
++	[PROTMAP_IDX_XXWX] = __P010,
++	[PROTMAP_IDX_XRWX] = __P011,
++	[PROTMAP_IDX_XXXE] = __P100,
++	[PROTMAP_IDX_XRXE] = __P101,
++	[PROTMAP_IDX_XXWE] = __P110,
++	[PROTMAP_IDX_XRWE] = __P111,
++	[PROTMAP_IDX_SXXX] = __S000,
++	[PROTMAP_IDX_SRXX] = __S001,
++	[PROTMAP_IDX_SXWX] = __S010,
++	[PROTMAP_IDX_SRWX] = __S011,
++	[PROTMAP_IDX_SXXE] = __S100,
++	[PROTMAP_IDX_SRXE] = __S101,
++	[PROTMAP_IDX_SXWE] = __S110,
++	[PROTMAP_IDX_SRWE] = __S111
+ };
+ 
+ #ifndef CONFIG_ARCH_HAS_FILTER_PGPROT
+-- 
+2.20.1
 
