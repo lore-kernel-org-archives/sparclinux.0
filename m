@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33133C433F5
-	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 05:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4B22C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 05:59:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 169036113E
-	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 05:58:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 877286108F
+	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 05:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239509AbhI1F77 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 28 Sep 2021 01:59:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49936 "EHLO mail.kernel.org"
+        id S239276AbhI1GA7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 28 Sep 2021 02:00:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239308AbhI1F6w (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 28 Sep 2021 01:58:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E90E261350;
-        Tue, 28 Sep 2021 05:56:50 +0000 (UTC)
+        id S239446AbhI1F7f (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 28 Sep 2021 01:59:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C68B6137B;
+        Tue, 28 Sep 2021 05:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632808611;
+        s=k20201202; t=1632808629;
         bh=tXM17ftZo6zb9iZvoXX/Qu2JrcVS4VAYlpj1pqVIu9g=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=CTZzbzEPsirajhcMUKGWMBDzgo9uc34wBIrMaR2iQWQQA8mXa8dmF/Ygm2IJ+4Tvi
-         YTkhosmPxQgi8WobSMOiEXlUKePU9HAGhMzylBspmihQe2oGnl5cuek7MdiE/ijRw3
-         Vt/XYXdlDFkkzcZqt+KtYgVWYKcLWjYtox3muO5dXfvLzrsHcjF/EuvwLF5OALaUkz
-         IxmnH8L720a+rzJ4KgDKaDFUWI3Hnx32yZy6cD3zrWNlpvxV+m0+BX3fvsvXLmooRh
-         +oXiCikWT4ZNFvh7CYRnnZL8OI94t4o2flRKN9fCG1UImCUBIgv+07/g687Yb2t1S+
-         Rpih9daCowFvA==
+        b=sfIAaV5gm//1A4yqwY1AVFwidodIhkhjnoXIkh1n5eQo57QLGwH1BVI2nh1WT7n8z
+         gyVZPWiKFyx5qy4hQj5MZzkNDNe3cjZ4IZowIbZW5rjB7IhI8BSbSaYKqFXtHelo9N
+         oMqopLp/qegnhmTq0zeqzNiV0WvyNyEe7JIZajtZldUdi74twMXdpbkjSNh2qQ2TyA
+         TfzlmYI0FxHUIXQoA3+E2Au0jF7iv+Cdk9Ptdm0R3bYV1257CVoKybcIUesZUJ8Ihr
+         NDiWPUvR4qqhJSUJ54oASC7OfHbJixfipRf3oyoqn/rP0hZ4bhorsD8m3II+9UVU2Z
+         3px83+lIDqoQw==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Guenter Roeck <linux@roeck-us.net>,
         David Miller <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 09/23] sparc64: fix pci_iounmap() when CONFIG_PCI is not set
-Date:   Tue, 28 Sep 2021 01:56:30 -0400
-Message-Id: <20210928055645.172544-9-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.4 03/11] sparc64: fix pci_iounmap() when CONFIG_PCI is not set
+Date:   Tue, 28 Sep 2021 01:56:56 -0400
+Message-Id: <20210928055704.172814-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20210928055645.172544-1-sashal@kernel.org>
-References: <20210928055645.172544-1-sashal@kernel.org>
+In-Reply-To: <20210928055704.172814-1-sashal@kernel.org>
+References: <20210928055704.172814-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
