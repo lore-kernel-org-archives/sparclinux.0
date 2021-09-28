@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B6F1C433FE
-	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 06:01:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25937C43217
+	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 06:02:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44E3160E9B
-	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 06:01:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0ED086108F
+	for <sparclinux@archiver.kernel.org>; Tue, 28 Sep 2021 06:02:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239119AbhI1GCu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 28 Sep 2021 02:02:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48778 "EHLO mail.kernel.org"
+        id S239597AbhI1GET (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 28 Sep 2021 02:04:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239390AbhI1GAy (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 28 Sep 2021 02:00:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CAF926128B;
-        Tue, 28 Sep 2021 05:57:18 +0000 (UTC)
+        id S239864AbhI1GCs (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 28 Sep 2021 02:02:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8B456137E;
+        Tue, 28 Sep 2021 05:57:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1632808638;
-        bh=tXM17ftZo6zb9iZvoXX/Qu2JrcVS4VAYlpj1pqVIu9g=;
+        s=k20201202; t=1632808657;
+        bh=DD1/RWx0Jf0U3/++KX4FgO2svGaoEtvE0J5b5DS9k0o=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=L1mC73LJkaGKXU0w7L6jOonKj0YRIvNQwFF7tAaUgAcYKXHnNNEesN/buNVgmLRd+
-         KChLLSmsKd/3WlcDKc89DEAw6f+8wvS6JpPozIu+4rxgV1MZYlns+uFqQx/DwTXIsM
-         r/aKoijJMdjWcOP5Yhh7D3ra4QA10jtWOKk9xMZIeBB/fqwq3bfepf+Vt3+dqRobdd
-         DyU9TE3peDO3zvsV15pEU09lKxcFfIs7GroLzYeUaSAN+lZstNqWHRDYxcYOuRmVbG
-         Hn7FMdDANY306AiRTYNa/mGwdVZIddrE9L0HkTQZ1DLRnBfmdItC3Z/X5TB2DPMErO
-         lA+Rnd4iwm8cw==
+        b=J4Ikrqzxiy0D41G5E4UaWJJYj3OhQSTIDQYX+voNlcUN89IELtCeYwfme318JmsSu
+         wrHMb3H7UDXSAX2JtLxuNMjntS+0lxf8ztAoXIjZ8ZAPd994qxVSsoYOzUTf73C3Pe
+         1ARy1SZJOXC+bclsB7STqZZPWNn/v6Trwvur+CujSh1wbl3GNX55LfZJ497zTt27lf
+         ZHWP8uyDs+KbioGXefPW2kDXce1hwiDH5rLSdfrEd8QFrfFp3BiKKYfCtNORROPg36
+         0tUDVNcY97EyHIkoAmpdYZ0KImnbdIjysKLph4mwMJ3z1RLsWB7c3hrLDAWcP77Hjw
+         wJXYNi20iWaQQ==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         Guenter Roeck <linux@roeck-us.net>,
         David Miller <davem@davemloft.net>,
         Sasha Levin <sashal@kernel.org>, sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 4.19 03/10] sparc64: fix pci_iounmap() when CONFIG_PCI is not set
-Date:   Tue, 28 Sep 2021 01:57:09 -0400
-Message-Id: <20210928055716.172951-3-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.9 3/6] sparc64: fix pci_iounmap() when CONFIG_PCI is not set
+Date:   Tue, 28 Sep 2021 01:57:31 -0400
+Message-Id: <20210928055734.173182-3-sashal@kernel.org>
 X-Mailer: git-send-email 2.33.0
-In-Reply-To: <20210928055716.172951-1-sashal@kernel.org>
-References: <20210928055716.172951-1-sashal@kernel.org>
+In-Reply-To: <20210928055734.173182-1-sashal@kernel.org>
+References: <20210928055734.173182-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -72,10 +72,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  1 file changed, 2 insertions(+)
 
 diff --git a/arch/sparc/lib/iomap.c b/arch/sparc/lib/iomap.c
-index c9da9f139694..f3a8cd491ce0 100644
+index c4d42a50ebc0..fa4abbaf27de 100644
 --- a/arch/sparc/lib/iomap.c
 +++ b/arch/sparc/lib/iomap.c
-@@ -19,8 +19,10 @@ void ioport_unmap(void __iomem *addr)
+@@ -18,8 +18,10 @@ void ioport_unmap(void __iomem *addr)
  EXPORT_SYMBOL(ioport_map);
  EXPORT_SYMBOL(ioport_unmap);
  
