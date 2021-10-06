@@ -2,103 +2,139 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1871EC43217
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Sep 2021 22:10:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1468C433F5
+	for <sparclinux@archiver.kernel.org>; Wed,  6 Oct 2021 04:45:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBC7561882
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Sep 2021 22:10:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90BCC60FDA
+	for <sparclinux@archiver.kernel.org>; Wed,  6 Oct 2021 04:45:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348015AbhI3WMc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 30 Sep 2021 18:12:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33016 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230093AbhI3WMb (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 30 Sep 2021 18:12:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 965D361390;
-        Thu, 30 Sep 2021 22:10:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633039847;
-        bh=IwzBemW+hy1M1ewr7atFO0cSMjKx7nF1iOUj3EQWXE8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=VMFkm4a+fgdg4zYaCkaWnSOTeOZ8uAbKkitUxM0+m4BBfXT2b5oLMM7rDTLawyLAE
-         NhhBOznSRQz5yRbiTNsvbV6E0IU3T5qz407KpFRCdUtW5hyDqK4d2pDAOMg4JRadt6
-         KWrjYIXEm0KrNBVtP+JPzhB2VrG3+5vrqbM5hiSfUBy+07gwCIoejO0uW/sH7DYI6V
-         pgwC0QydyQR/hM9nqnvQyR6gIiVBVoszYMQd2xY8yoPecdNAhtt2AC8GtVh+C0O4VI
-         bPLArmwwdAbQbiLreQFVTZM6xuVy7lVHSRkS66W+8O7Twsm9hTlzsCUC2ioP79rEse
-         MlAOzYU2R7N3A==
-Date:   Thu, 30 Sep 2021 15:10:46 -0700
-From:   Mike Rapoport <rppt@kernel.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Juergen Gross <jgross@suse.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Shahab Vahedi <Shahab.Vahedi@synopsys.com>,
-        devicetree <devicetree@vger.kernel.org>,
-        iommu <iommu@lists.linux-foundation.org>,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        KVM list <kvm@vger.kernel.org>,
-        alpha <linux-alpha@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-efi <linux-efi@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        "open list:SYNOPSYS ARC ARCHITECTURE" 
-        <linux-snps-arc@lists.infradead.org>,
-        linux-um <linux-um@lists.infradead.org>,
-        linux-usb@vger.kernel.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-sparc <sparclinux@vger.kernel.org>,
-        xen-devel@lists.xenproject.org
-Subject: Re: [PATCH v2 0/6] memblock: cleanup memblock_free interface
-Message-ID: <YVY15nd56j8x8udh@kernel.org>
-References: <20210930185031.18648-1-rppt@kernel.org>
- <CAHk-=wjS76My8aJLWJAHd-5GnMEVC1D+kV7DgtV9GjcbtqZdig@mail.gmail.com>
+        id S229861AbhJFEre (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 6 Oct 2021 00:47:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44256 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229621AbhJFErd (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Oct 2021 00:47:33 -0400
+Received: from mail-pf1-x42d.google.com (mail-pf1-x42d.google.com [IPv6:2607:f8b0:4864:20::42d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 464FAC061749
+        for <sparclinux@vger.kernel.org>; Tue,  5 Oct 2021 21:45:42 -0700 (PDT)
+Received: by mail-pf1-x42d.google.com with SMTP id q19so807444pfl.4
+        for <sparclinux@vger.kernel.org>; Tue, 05 Oct 2021 21:45:42 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=quxNMOpbZ24MOq3KZoHOOn2yobNmyLXsT3D28csEkrA=;
+        b=YRE/jdD2nYQgI4h4Yk7HNHaVl9XRgi6izcHOr5AJu7TPFjGNIK7e+z2Kdd90LW7Ekp
+         reHJl1TBJZDHk89OeWYo3J3rRzSOeXd0QvcRO6AgKEbvT5RQPzjpMjYmenTguHRQczu7
+         9xabq9VgqQY2nBCStWAmAI3miJDxTJREtcZGU=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=quxNMOpbZ24MOq3KZoHOOn2yobNmyLXsT3D28csEkrA=;
+        b=d3WMGrLCdTb/ZdmaluotObZZhRXMU3cIkreve+tYjOdB6B34XVHvT6UI4cy9/M1HOV
+         s1zz3GiC1TZgomoNsnVGk9aszeythbW+sjs9aHxwoVVJu/Bg/mqBjN4eY1UerMssyTp7
+         MmqZZZCWjF2Vm896hEpdmBqqUAkvhNGi1VnZG0xu9OgwaCQNeNWUW9P90w416n0QPxAp
+         zGyOM6Nm2yIesM7p33rDLdx7Cu4D3V7XO6cbCZwahgoH4O56yifTuoHLSWPgOIp+KUhI
+         PQfdUD0GL827RR+rllVlOhM9q4z7oSpegrjqvlaBZWq3XXkuKMV726hiRn3qW8y33YQ3
+         enKA==
+X-Gm-Message-State: AOAM532NGfnhBArC/MSwJYoZQkm8hD+/IE5ia+cOoCrZg6mh3Wjuz7bp
+        HcwmDnFWtzhxR09V/Mig8uOisQ==
+X-Google-Smtp-Source: ABdhPJyZOnpykJxNG6K62ilDOaaSr5RnIEprCosrgWRRuMvHvONvOL87uxmFNVQ9silawNWqunsSYQ==
+X-Received: by 2002:a63:590e:: with SMTP id n14mr18571231pgb.434.1633495541757;
+        Tue, 05 Oct 2021 21:45:41 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id s37sm10837282pfg.44.2021.10.05.21.45.41
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 05 Oct 2021 21:45:41 -0700 (PDT)
+Date:   Tue, 5 Oct 2021 21:45:40 -0700
+From:   Kees Cook <keescook@chromium.org>
+To:     Masahiro Yamada <masahiroy@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
+        Nicolas Schier <n.schier@avm.de>, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-hardening@vger.kernel.org
+Subject: Re: [PATCH] sparc: Add missing "FORCE" target when using if_changed
+Message-ID: <202110052144.25B30F2D4F@keescook>
+References: <20210923215418.3936726-1-keescook@chromium.org>
+ <YU1WYLN4eptJhuIX@deb-nschier.ads.avm.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAHk-=wjS76My8aJLWJAHd-5GnMEVC1D+kV7DgtV9GjcbtqZdig@mail.gmail.com>
+In-Reply-To: <YU1WYLN4eptJhuIX@deb-nschier.ads.avm.de>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 02:20:33PM -0700, Linus Torvalds wrote:
-> On Thu, Sep 30, 2021 at 11:50 AM Mike Rapoport <rppt@kernel.org> wrote:
-> >
-> > The first patch is a cleanup of numa_distance allocation in arch_numa I've
-> > spotted during the conversion.
-> > The second patch is a fix for Xen memory freeing on some of the error
-> > paths.
+On Fri, Sep 24, 2021 at 06:38:56AM +0200, Nicolas Schier wrote:
+> On Thu, Sep 23, 2021 at 02:54:18PM -0700, Kees Cook wrote:
+> > Fix observed warning:
+> > 
+> >     /builds/linux/arch/sparc/boot/Makefile:35: FORCE prerequisite is missing
+> > 
+> > Fixes: e1f86d7b4b2a5213 ("kbuild: warn if FORCE is missing for if_changed(_dep,_rule) and filechk")
+> > Cc: "David S. Miller" <davem@davemloft.net>
+> > Cc: Masahiro Yamada <masahiroy@kernel.org>
+> > Cc: sparclinux@vger.kernel.org
+> > Signed-off-by: Kees Cook <keescook@chromium.org>
 > 
-> Well, at least patch 2 looks like something that should go into 5.15
-> and be marked for stable.
-> 
-> Patch 1 looks like a trivial local cleanup, and could go in
-> immediately. Patch 4 might be in that same category.
-> 
-> The rest look like "next merge window" to me, since they are spread
-> out and neither bugfixes nor tiny localized cleanups (iow renaming
-> functions, global resulting search-and-replace things).
-> 
-> So my gut feel is that two (maybe three) of these patches should go in
-> asap, with three (maybe four) be left for 5.16.
-> 
-> IOW, not trat this as a single series.
-> 
-> Hmm?
+> Acked-by: Nicolas Schier <n.schier@avm.de>
 
-Yes, why not :)
-I'd keep patch 4 for the next merge window, does not look urgent to me.
+Thanks!
 
-Andrew, can you please take care of this or you'd prefer me resending
-everything separately?
- 
->              Linus
+Masahiro, are you able to add this to your kbuild tree?
+
+-Kees
+
+> 
+> > ---
+> > I'm not sure if this should go via sparc or via kbuild. :)
+> > ---
+> >  arch/sparc/boot/Makefile | 8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
+> > index 849236d4eca4..45e5c76d449e 100644
+> > --- a/arch/sparc/boot/Makefile
+> > +++ b/arch/sparc/boot/Makefile
+> > @@ -22,7 +22,7 @@ ifeq ($(CONFIG_SPARC64),y)
+> >  
+> >  # Actual linking
+> >  
+> > -$(obj)/zImage: $(obj)/image
+> > +$(obj)/zImage: $(obj)/image FORCE
+> >  	$(call if_changed,gzip)
+> >  	@echo '  kernel: $@ is ready'
+> >  
+> > @@ -31,7 +31,7 @@ $(obj)/vmlinux.aout: vmlinux FORCE
+> >  	@echo '  kernel: $@ is ready'
+> >  else
+> >  
+> > -$(obj)/zImage: $(obj)/image
+> > +$(obj)/zImage: $(obj)/image FORCE
+> >  	$(call if_changed,strip)
+> >  	@echo '  kernel: $@ is ready'
+> >  
+> > @@ -44,7 +44,7 @@ OBJCOPYFLAGS_image.bin := -S -O binary -R .note -R .comment
+> >  $(obj)/image.bin: $(obj)/image FORCE
+> >  	$(call if_changed,objcopy)
+> >  
+> > -$(obj)/image.gz: $(obj)/image.bin
+> > +$(obj)/image.gz: $(obj)/image.bin FORCE
+> >  	$(call if_changed,gzip)
+> >  
+> >  UIMAGE_LOADADDR = $(CONFIG_UBOOT_LOAD_ADDR)
+> > @@ -56,7 +56,7 @@ quiet_cmd_uimage.o = UIMAGE.O $@
+> >                       -r -b binary $@ -o $@.o
+> >  
+> >  targets += uImage
+> > -$(obj)/uImage: $(obj)/image.gz
+> > +$(obj)/uImage: $(obj)/image.gz FORCE
+> >  	$(call if_changed,uimage)
+> >  	$(call if_changed,uimage.o)
+> >  	@echo '  Image $@ is ready'
+> > -- 
+> > 2.30.2
+> > 
 
 -- 
-Sincerely yours,
-Mike.
+Kees Cook
