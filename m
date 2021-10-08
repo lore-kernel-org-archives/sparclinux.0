@@ -2,144 +2,135 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F9D6C433F5
-	for <sparclinux@archiver.kernel.org>; Wed,  6 Oct 2021 13:02:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F0813C43217
+	for <sparclinux@archiver.kernel.org>; Fri,  8 Oct 2021 11:54:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A55860FD8
-	for <sparclinux@archiver.kernel.org>; Wed,  6 Oct 2021 13:02:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D853D60ED7
+	for <sparclinux@archiver.kernel.org>; Fri,  8 Oct 2021 11:54:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231538AbhJFNDx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 6 Oct 2021 09:03:53 -0400
-Received: from condef-08.nifty.com ([202.248.20.73]:56709 "EHLO
-        condef-08.nifty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231356AbhJFNDx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Oct 2021 09:03:53 -0400
-X-Greylist: delayed 347 seconds by postgrey-1.27 at vger.kernel.org; Wed, 06 Oct 2021 09:03:52 EDT
-Received: from conssluserg-06.nifty.com ([10.126.8.85])by condef-08.nifty.com with ESMTP id 196CsH2v011392
-        for <sparclinux@vger.kernel.org>; Wed, 6 Oct 2021 21:54:17 +0900
-Received: from mail-pj1-f53.google.com (mail-pj1-f53.google.com [209.85.216.53]) (authenticated)
-        by conssluserg-06.nifty.com with ESMTP id 196CrtAO003873;
-        Wed, 6 Oct 2021 21:53:56 +0900
-DKIM-Filter: OpenDKIM Filter v2.10.3 conssluserg-06.nifty.com 196CrtAO003873
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=nifty.com;
-        s=dec2015msa; t=1633524836;
-        bh=2urYqRpQOPLkXeqFaqK5WGjp3qwohqBRnzDNoFyjX5E=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=AkytsekUP+8dLZwCyk5z0xPlkYm/8Mp0dfCnumdu2uc/fgnYuV5MSYN6RosJo3hRB
-         wugNicRKwHBj3Gh1+jMX079WrZOi+davLkaACgA2Ravi8eriW8Gyy5XUF9gZtWet1f
-         PNwVFcEj8utSj6ZFJO1sDbtHIidOU09WO6JjStCJ/B/BpX5B7etevd1hDnniJK7hyo
-         olNWIo47pC1BzTWcQOxKb4xRnZhuIGlLj2G8kdUs2Y/U1CHXiryEljufWt3JDE87Lp
-         EU8SLUy7fDqQYtvjCixvBQbXTn2v9NL8LRngVGknFOkbrAAT/jdeYswWk0mVURTkFZ
-         eQIkX//kJRsDA==
-X-Nifty-SrcIP: [209.85.216.53]
-Received: by mail-pj1-f53.google.com with SMTP id na16-20020a17090b4c1000b0019f5bb661f9so2261176pjb.0;
-        Wed, 06 Oct 2021 05:53:56 -0700 (PDT)
-X-Gm-Message-State: AOAM531TaeeSCRqPpGaRbCiq/nho/eCcbSJOCCkrR+5Q7EE2ismK9qSY
-        z6lDT6QlZUXhFKA3dY01+uhvJV6KgDAzApKws5w=
-X-Google-Smtp-Source: ABdhPJwtZ1OJRVKlgVuSgn4O8szQOkDxdm0+QT605WYDW9qZNXDVj5R8bLV+NjFqsV6Wjz7uCmiLbK7ponM2TPTHoFY=
-X-Received: by 2002:a17:90a:9306:: with SMTP id p6mr10777738pjo.119.1633524835305;
- Wed, 06 Oct 2021 05:53:55 -0700 (PDT)
+        id S240689AbhJHL40 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 8 Oct 2021 07:56:26 -0400
+Received: from foss.arm.com ([217.140.110.172]:46280 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S240334AbhJHL4Z (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 8 Oct 2021 07:56:25 -0400
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 672C4ED1;
+        Fri,  8 Oct 2021 04:54:29 -0700 (PDT)
+Received: from e113632-lin.cambridge.arm.com (e113632-lin.cambridge.arm.com [10.1.196.57])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id B0B9C3F766;
+        Fri,  8 Oct 2021 04:54:21 -0700 (PDT)
+From:   Valentin Schneider <valentin.schneider@arm.com>
+To:     linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Cc:     Peter Zijlstra <peterz@infradead.org>, aubrey.li@linux.intel.com,
+        song.bao.hua@hisilicon.com, tim.c.chen@linux.intel.com,
+        jonathan.cameron@huawei.com, Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        x86@kernel.org, "H. Peter Anvin" <hpa@zytor.com>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Vincent Guittot <vincent.guittot@linaro.org>,
+        Dietmar Eggemann <dietmar.eggemann@arm.com>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ben Segall <bsegall@google.com>, Mel Gorman <mgorman@suse.de>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Geert Uytterhoeven <geert+renesas@glider.be>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Mike Rapoport <rppt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        YiFei Zhu <yifeifz2@illinois.edu>,
+        =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
+        Sergei Trofimovich <slyfox@gentoo.org>,
+        David Hildenbrand <david@redhat.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Kees Cook <keescook@chromium.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Chris Down <chris@chrisdown.name>,
+        Vipin Sharma <vipinsh@google.com>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Daniel Borkmann <daniel@iogearbox.net>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Hugh Dickins <hughd@google.com>,
+        Michal Hocko <mhocko@kernel.org>
+Subject: [PATCH 0/2] sched: cleanup CONFIG_SCHED_MC & friends
+Date:   Fri,  8 Oct 2021 12:53:45 +0100
+Message-Id: <20211008115347.425234-1-valentin.schneider@arm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-References: <20210923215418.3936726-1-keescook@chromium.org>
- <YU1WYLN4eptJhuIX@deb-nschier.ads.avm.de> <202110052144.25B30F2D4F@keescook>
-In-Reply-To: <202110052144.25B30F2D4F@keescook>
-From:   Masahiro Yamada <masahiroy@kernel.org>
-Date:   Wed, 6 Oct 2021 21:53:18 +0900
-X-Gmail-Original-Message-ID: <CAK7LNASWgdULqBJMQMkoy=mXtAj_xxcYXXXi0wYojMkWW4ktGA@mail.gmail.com>
-Message-ID: <CAK7LNASWgdULqBJMQMkoy=mXtAj_xxcYXXXi0wYojMkWW4ktGA@mail.gmail.com>
-Subject: Re: [PATCH] sparc: Add missing "FORCE" target when using if_changed
-To:     Kees Cook <keescook@chromium.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Nicolas Schier <n.schier@avm.de>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-hardening@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Oct 6, 2021 at 1:45 PM Kees Cook <keescook@chromium.org> wrote:
->
-> On Fri, Sep 24, 2021 at 06:38:56AM +0200, Nicolas Schier wrote:
-> > On Thu, Sep 23, 2021 at 02:54:18PM -0700, Kees Cook wrote:
-> > > Fix observed warning:
-> > >
-> > >     /builds/linux/arch/sparc/boot/Makefile:35: FORCE prerequisite is missing
-> > >
-> > > Fixes: e1f86d7b4b2a5213 ("kbuild: warn if FORCE is missing for if_changed(_dep,_rule) and filechk")
-> > > Cc: "David S. Miller" <davem@davemloft.net>
-> > > Cc: Masahiro Yamada <masahiroy@kernel.org>
-> > > Cc: sparclinux@vger.kernel.org
-> > > Signed-off-by: Kees Cook <keescook@chromium.org>
-> >
-> > Acked-by: Nicolas Schier <n.schier@avm.de>
->
-> Thanks!
->
-> Masahiro, are you able to add this to your kbuild tree?
+Hi folks,
 
-Sure, applied to linux-kbuild. Thanks.
+This stems from Barry introducing a new CONFIG_SCHED_CLUSTER which highlighted
+the current state of similar Kconfigs isn't great:
+  http://lore.kernel.org/r/CAGsJ_4xZD0sG0Df666f0bvHOzuPMjnw0dN_mArER5k1pJ6LPLw@mail.gmail.com
 
+The changes happen all in one big patch; the alternative would be to have one
+patch per arch that adds the ARCH_SUPPORTS_SCHED_* selection, then a final patch
+that adds the generic definitions and removes the arch ones (which I can do if
+that's a preferred approach).
 
-> -Kees
->
-> >
-> > > ---
-> > > I'm not sure if this should go via sparc or via kbuild. :)
-> > > ---
-> > >  arch/sparc/boot/Makefile | 8 ++++----
-> > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/arch/sparc/boot/Makefile b/arch/sparc/boot/Makefile
-> > > index 849236d4eca4..45e5c76d449e 100644
-> > > --- a/arch/sparc/boot/Makefile
-> > > +++ b/arch/sparc/boot/Makefile
-> > > @@ -22,7 +22,7 @@ ifeq ($(CONFIG_SPARC64),y)
-> > >
-> > >  # Actual linking
-> > >
-> > > -$(obj)/zImage: $(obj)/image
-> > > +$(obj)/zImage: $(obj)/image FORCE
-> > >     $(call if_changed,gzip)
-> > >     @echo '  kernel: $@ is ready'
-> > >
-> > > @@ -31,7 +31,7 @@ $(obj)/vmlinux.aout: vmlinux FORCE
-> > >     @echo '  kernel: $@ is ready'
-> > >  else
-> > >
-> > > -$(obj)/zImage: $(obj)/image
-> > > +$(obj)/zImage: $(obj)/image FORCE
-> > >     $(call if_changed,strip)
-> > >     @echo '  kernel: $@ is ready'
-> > >
-> > > @@ -44,7 +44,7 @@ OBJCOPYFLAGS_image.bin := -S -O binary -R .note -R .comment
-> > >  $(obj)/image.bin: $(obj)/image FORCE
-> > >     $(call if_changed,objcopy)
-> > >
-> > > -$(obj)/image.gz: $(obj)/image.bin
-> > > +$(obj)/image.gz: $(obj)/image.bin FORCE
-> > >     $(call if_changed,gzip)
-> > >
-> > >  UIMAGE_LOADADDR = $(CONFIG_UBOOT_LOAD_ADDR)
-> > > @@ -56,7 +56,7 @@ quiet_cmd_uimage.o = UIMAGE.O $@
-> > >                       -r -b binary $@ -o $@.o
-> > >
-> > >  targets += uImage
-> > > -$(obj)/uImage: $(obj)/image.gz
-> > > +$(obj)/uImage: $(obj)/image.gz FORCE
-> > >     $(call if_changed,uimage)
-> > >     $(call if_changed,uimage.o)
-> > >     @echo '  Image $@ is ready'
-> > > --
-> > > 2.30.2
-> > >
->
-> --
-> Kees Cook
+Briefly tested by setting ARCH=foo and playing around with menuconfig.
 
+Based on top of Peter's queue:
+  git://git.kernel.org/pub/scm/linux/kernel/git/peterz/queue.git -b sched/next
 
+Patches are also available at:
+  https://git.gitlab.arm.com/linux-arm/linux-vs.git -b mainline/sched/topo_kconfig_cleanup
 
--- 
-Best Regards
-Masahiro Yamada
+Cheers,
+Valentin
+
+Valentin Schneider (2):
+  sched: Move Kconfig.preempt to sched/Kconfig
+  sched: Centralize SCHED_{SMT, MC, CLUSTER} definitions
+
+ arch/arm/Kconfig                          | 18 ++--------
+ arch/arm64/Kconfig                        | 26 ++------------
+ arch/ia64/Kconfig                         |  9 +----
+ arch/mips/Kconfig                         | 10 +-----
+ arch/parisc/Kconfig                       |  9 +----
+ arch/powerpc/Kconfig                      |  9 +----
+ arch/s390/Kconfig                         |  8 ++---
+ arch/sh/Kconfig                           |  1 +
+ arch/sh/mm/Kconfig                        |  9 -----
+ arch/sparc/Kconfig                        | 20 ++---------
+ arch/x86/Kconfig                          | 26 ++------------
+ init/Kconfig                              |  2 +-
+ kernel/{Kconfig.preempt => sched/Kconfig} | 41 +++++++++++++++++++++++
+ 13 files changed, 59 insertions(+), 129 deletions(-)
+ rename kernel/{Kconfig.preempt => sched/Kconfig} (79%)
+
+--
+2.25.1
+
