@@ -2,36 +2,37 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEC0FC433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 17:55:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6C80C43219
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:37:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 95D25610CC
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 17:55:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABB7660EDF
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:37:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232858AbhJLR52 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Oct 2021 13:57:28 -0400
-Received: from mga07.intel.com ([134.134.136.100]:64303 "EHLO mga07.intel.com"
+        id S234676AbhJLSj7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Oct 2021 14:39:59 -0400
+Received: from mga03.intel.com ([134.134.136.65]:46818 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229554AbhJLR50 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 12 Oct 2021 13:57:26 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10135"; a="290720335"
+        id S234577AbhJLSj6 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 12 Oct 2021 14:39:58 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10135"; a="227195754"
 X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
-   d="scan'208";a="290720335"
+   d="scan'208";a="227195754"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 10:55:23 -0700
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:37:24 -0700
 X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
-   d="scan'208";a="562768804"
+   d="scan'208";a="562780711"
 Received: from akleen-mobl1.amr.corp.intel.com (HELO [10.209.115.208]) ([10.209.115.208])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 10:55:21 -0700
-Message-ID: <4fe8d60a-2522-f111-995c-dcbefd0d5e31@linux.intel.com>
-Date:   Tue, 12 Oct 2021 10:55:20 -0700
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:37:20 -0700
+Message-ID: <2c9e9cdc-041c-1310-8063-115b678974d3@linux.intel.com>
+Date:   Tue, 12 Oct 2021 11:37:19 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.2.0
-Subject: Re: [PATCH v5 16/16] x86/tdx: Add cmdline option to force use of
- ioremap_host_shared
+Subject: Re: [PATCH v5 12/16] PCI: Add pci_iomap_host_shared(),
+ pci_iomap_host_shared_range()
 Content-Language: en-US
-To:     "Michael S. Tsirkin" <mst@redhat.com>
+To:     Christoph Hellwig <hch@infradead.org>,
+        "Michael S. Tsirkin" <mst@redhat.com>
 Cc:     Kuppuswamy Sathyanarayanan 
         <sathyanarayanan.kuppuswamy@linux.intel.com>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -64,14 +65,13 @@ Cc:     Kuppuswamy Sathyanarayanan
         linux-doc@vger.kernel.org,
         virtualization@lists.linux-foundation.org
 References: <20211009003711.1390019-1-sathyanarayanan.kuppuswamy@linux.intel.com>
- <20211009003711.1390019-17-sathyanarayanan.kuppuswamy@linux.intel.com>
- <20211009070132-mutt-send-email-mst@kernel.org>
- <8c906de6-5efa-b87a-c800-6f07b98339d0@linux.intel.com>
- <20211011075945-mutt-send-email-mst@kernel.org>
- <9d0ac556-6a06-0f2e-c4ff-0c3ce742a382@linux.intel.com>
- <20211011142330-mutt-send-email-mst@kernel.org>
+ <20211009003711.1390019-13-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <YWPunfa+WK86Cgnv@infradead.org>
+ <a070274e-6a3a-fb0a-68ff-d320d0729377@linux.intel.com>
+ <20211011142956-mutt-send-email-mst@kernel.org>
+ <YWUdpik4SP/7QlbN@infradead.org>
 From:   Andi Kleen <ak@linux.intel.com>
-In-Reply-To: <20211011142330-mutt-send-email-mst@kernel.org>
+In-Reply-To: <YWUdpik4SP/7QlbN@infradead.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -79,17 +79,17 @@ List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 
-> I mean ... it's already wide spread.
+On 10/11/2021 10:31 PM, Christoph Hellwig wrote:
+> On Mon, Oct 11, 2021 at 03:09:09PM -0400, Michael S. Tsirkin wrote:
+>> The reason we have trouble is that it's not clear what does the API mean
+>> outside the realm of TDX.
+>> If we really, truly want an API that says "ioremap and it's a hardened
+>> driver" then I guess ioremap_hardened_driver is what you want.
+> Yes.  And why would be we ioremap the BIOS anyway?  It is not I/O memory
+> in any of the senses we generally use ioremap for.
 
-
-I meant wide spread usage with confidential guests.
-
-> If we support it with TDX
-> it will be used with TDX.
-
-It has some security trade offs. The main reason to use TDX is security. 
-Also when people take the VT-d tradeoffs they might be ok with the BIOS 
-trade offs too.
+I/O memory is anything outside the kernel memory map.
 
 -Andi
+
 
