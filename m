@@ -2,44 +2,43 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1B4FC4707F
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:39:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5C55C43219
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:42:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85EF260235
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:39:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8215061002
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Oct 2021 18:42:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234865AbhJLSlO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Oct 2021 14:41:14 -0400
-Received: from mga07.intel.com ([134.134.136.100]:3810 "EHLO mga07.intel.com"
+        id S235102AbhJLSoj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Oct 2021 14:44:39 -0400
+Received: from mga12.intel.com ([192.55.52.136]:25600 "EHLO mga12.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234738AbhJLSlN (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 12 Oct 2021 14:41:13 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10135"; a="290731356"
+        id S235100AbhJLSoi (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Tue, 12 Oct 2021 14:44:38 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10135"; a="207352546"
 X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
-   d="scan'208";a="290731356"
+   d="scan'208";a="207352546"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:38:55 -0700
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:35:07 -0700
 X-IronPort-AV: E=Sophos;i="5.85,368,1624345200"; 
-   d="scan'208";a="562781011"
+   d="scan'208";a="562780166"
 Received: from akleen-mobl1.amr.corp.intel.com (HELO [10.209.115.208]) ([10.209.115.208])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:38:53 -0700
-Message-ID: <f850d2d6-d427-8aeb-bd38-f9b5eb088191@linux.intel.com>
-Date:   Tue, 12 Oct 2021 11:38:53 -0700
+  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 12 Oct 2021 11:35:05 -0700
+Message-ID: <9302f1c2-b3f8-2c9e-52c5-d5a4a2987409@linux.intel.com>
+Date:   Tue, 12 Oct 2021 11:35:04 -0700
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
  Thunderbird/91.2.0
 Subject: Re: [PATCH v5 12/16] PCI: Add pci_iomap_host_shared(),
  pci_iomap_host_shared_range()
 Content-Language: en-US
-To:     "Reshetova, Elena" <elena.reshetova@intel.com>,
-        "Williams, Dan J" <dan.j.williams@intel.com>,
-        "Michael S. Tsirkin" <mst@redhat.com>
-Cc:     Kuppuswamy Sathyanarayanan 
+To:     Dan Williams <dan.j.williams@intel.com>
+Cc:     "Michael S. Tsirkin" <mst@redhat.com>,
+        Kuppuswamy Sathyanarayanan 
         <sathyanarayanan.kuppuswamy@linux.intel.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Peter Zijlstra <peterz@infradead.org>,
-        "Lutomirski, Andy" <luto@kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Richard Henderson <rth@twiddle.net>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
@@ -53,30 +52,28 @@ Cc:     Kuppuswamy Sathyanarayanan
         Andrea Arcangeli <aarcange@redhat.com>,
         Josh Poimboeuf <jpoimboe@redhat.com>,
         Peter H Anvin <hpa@zytor.com>,
-        "Hansen, Dave" <dave.hansen@intel.com>,
-        "Luck, Tony" <tony.luck@intel.com>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Tony Luck <tony.luck@intel.com>,
         Kirill Shutemov <kirill.shutemov@linux.intel.com>,
         Sean Christopherson <seanjc@google.com>,
         Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
         X86 ML <x86@kernel.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Linux PCI <linux-pci@vger.kernel.org>,
-        "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        linux-alpha@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-arch <linux-arch@vger.kernel.org>,
         Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        "virtualization@lists.linux-foundation.org" 
-        <virtualization@lists.linux-foundation.org>
+        virtualization@lists.linux-foundation.org,
+        "Reshetova, Elena" <elena.reshetova@intel.com>
 References: <20211009003711.1390019-1-sathyanarayanan.kuppuswamy@linux.intel.com>
  <20211009003711.1390019-13-sathyanarayanan.kuppuswamy@linux.intel.com>
  <20211009053103-mutt-send-email-mst@kernel.org>
  <CAPcyv4hDhjRXYCX_aiOboLF0eaTo6VySbZDa5NQu2ed9Ty2Ekw@mail.gmail.com>
  <0e6664ac-cbb2-96ff-0106-9301735c0836@linux.intel.com>
- <DM8PR11MB57501C8F8F5C8B315726882EE7B69@DM8PR11MB5750.namprd11.prod.outlook.com>
+ <CAPcyv4g0v0YHZ-okxf4wwVCYxHotxdKwsJpZGkoT+fhvvAJEFg@mail.gmail.com>
 From:   Andi Kleen <ak@linux.intel.com>
-In-Reply-To: <DM8PR11MB57501C8F8F5C8B315726882EE7B69@DM8PR11MB5750.namprd11.prod.outlook.com>
+In-Reply-To: <CAPcyv4g0v0YHZ-okxf4wwVCYxHotxdKwsJpZGkoT+fhvvAJEFg@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -84,25 +81,123 @@ List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 
-On 10/12/2021 11:36 AM, Reshetova, Elena wrote:
->> The 5.15 tree has something like ~2.4k IO accesses (including MMIO and
->> others) in init functions that also register drivers (thanks Elena for
->> the number)
-> To provide more numbers on this. What I can see so far from a smatch-based
-> analysis, we have 409 __init style functions (.probe & builtin/module_
-> _platform_driver_probe excluded) for 5.15 with allyesconfig. The number of
-> distinct individual IO reads (MSRs included) is much higher than 2.4k and on the
-> range of 30k because quite often there are more than a single IO read in the
-> same source function. The full list of accesses and the possible call paths is huge
-> for manually looking at, but here is the list of the 409 functions if anyone wants
-> to take a look:
+> The "better safe-than-sorry" argument is hard to build consensus
+> around. The spectre mitigations ran into similar problems where the
+> community rightly wanted to see the details and instrument the
+> problematic paths rather than blanket sprinkle lfence "just to be
+> safe".
+
+But that was due to performance problems in hot paths. Nothing of this 
+applies here.
+
+> In this case the rules about when a driver is suitably
+> "hardened" are vague and the overlapping policy engines are confusing.
+
+What is confusing exactly?
+
+For me it both seems very straight forward and simple (but then I'm biased)
+
+The policy is:
+
+- Have an allow list at driver registration.
+
+- Have an additional opt-in for MMIO mappings (and potentially config 
+space, but that's not currently there) to cover init calls completely.
+
+>
+> I'd rather see more concerted efforts focused/limited core changes
+> rather than leaf driver changes until there is a clearer definition of
+> hardened.
+
+A hardened driver is a driver that
+
+- Had similar security (not API) oriented review of its IO operations 
+(mainly MMIO access, but also PCI config space) as a non privileged user 
+interface (like a ioctl). That review should be focused on memory safety.
+
+- Had some fuzzing on these IO interfaces using to be released tools.
+
+Right now it's only three virtio drivers (console, net, block)
+
+Really it's no different than what we do for every new unprivileged user 
+interface.
 
 
-Thanks Elena.
+> I.e. instead of jumping to the assertion that fixing up
+> these init-path vulnerabilities are too big to fix, dig to the next
+> level to provide more evidence that per-driver opt-in is the only
+> viable option.
+>
+> For example, how many of these problematic paths are built-in to the
+> average kernel config?
+
+I don't think arguments from "the average kernel config" (if such a 
+thing even exists) are useful. That's would be just hand waving.
 
 
-I suspect the true number is even higher because that doesn't include IO 
-inside calls to other modules and indirect pointers, correct?
+> A strawman might be to add a sprinkling error
+> exits in the module_init() of the problematic drivers, and only fail
+> if the module is built-in, and let modprobe policy handle the rest.
+
+
+That would be already hundreds of changes. I have no idea how such a 
+thing could be maintained or sustained either.
+
+Really I don't even see how these alternatives can be considered. Tree 
+sweeps should always be last resort. They're a pain for everyone. But 
+here they're casually thrown around as alternatives to straight forward 
+one or two line changes.
+
+
+
+
+>
+>> Default policy in user space just seems to be a bad idea here. Who
+>> should know if a driver is hardened other than the kernel? Maintaining
+>> the list somewhere else just doesn't make sense to me.
+> I do not understand the maintenance burden correlation of where the
+> policy is driven vs where the list is maintained?
+
+All the hardening and auditing happens in the kernel tree. So it seems 
+the natural place to store the result is in the kernel tree.
+
+But there's no single package for initrd, so you would need custom 
+configurations for all the supported distros.
+
+Also we're really arguing about a list that currently has three entries.
+
+
+>   Even if I agreed
+> with the contention that out-of-tree userspace would have a hard time
+> tracking the "hardened" driver list there is still an in-tree
+> userspace path to explore. E.g. perf maintains lists of things tightly
+> coupled to the kernel, this authorized device list seems to be in the
+> same category of data.
+
+You mean the event list? perf is in the kernel tree, so it's maintained 
+together with the kernel.
+
+But we don't have a kernel initrd.
+
+
+
+>
+>> Also there is the more practical problem that some devices are needed
+>> for booting. For example in TDX we can't print something to the console
+>> with this mechanism, so you would never get any output before the
+>> initrd. Just seems like a nightmare for debugging anything. There really
+>> needs to be an authorization mechanism that works reasonably early.
+>>
+>> I can see a point of having user space overrides though, but we need to
+>> have a sane kernel default that works early.
+> Right, as I suggested [1], just enough early authorization to
+> bootstrap/debug initramfs and then that can authorize the remainder.
+
+But how do you debug the kernel then? Making early undebuggable seems 
+just bad policy to me.
+
+And if you fix if for the console why not add the two more entries for 
+virtio net and block too?
 
 
 -Andi
