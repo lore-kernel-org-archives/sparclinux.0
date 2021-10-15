@@ -2,81 +2,99 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C33FDC4332F
-	for <sparclinux@archiver.kernel.org>; Thu, 14 Oct 2021 20:28:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E68AC43217
+	for <sparclinux@archiver.kernel.org>; Fri, 15 Oct 2021 05:51:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9ACC361108
-	for <sparclinux@archiver.kernel.org>; Thu, 14 Oct 2021 20:28:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4088C61181
+	for <sparclinux@archiver.kernel.org>; Fri, 15 Oct 2021 05:51:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232103AbhJNUaH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 14 Oct 2021 16:30:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37556 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231408AbhJNUaG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Oct 2021 16:30:06 -0400
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FC0AC061570;
-        Thu, 14 Oct 2021 13:28:01 -0700 (PDT)
-Received: by mail-yb1-xb2c.google.com with SMTP id n65so17538579ybb.7;
-        Thu, 14 Oct 2021 13:28:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=X/5NOuaTC7GdG1HuEPP9I36zK6ViujDRxabRQSupDHo=;
-        b=mZSIsOvJHc61pRh6A/XJqJhCkjUDhzyZEDo0NiXq4EYG0pvrL6zmdtCQRc4MVmsnRu
-         W4bA9WqUDspnIcnE1LObWeijQbP2Fl0/5uDdIQ4qT3nxE/+dCQbziFDKajSfkPbjAgNq
-         IXnp9Qlrkvoc0bTXmxaJD/zWelOAZMHWoSqggSezx//cPL1hGkxfSNQyepSzibIqTrvm
-         VddHdN8lvISRpJDGlimsVktN+y7WaTFkTqlHJbVFTTu76vkxvCwvL+FDp+TCJs7fijDW
-         FNsAfXZsNMCAnyBhw/sxSuF5cmu3+WH911MqcwCx6X0wRCAPkya1XWVHvwxT6JEK/bNO
-         J5sw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=X/5NOuaTC7GdG1HuEPP9I36zK6ViujDRxabRQSupDHo=;
-        b=j6ZZiBF7dfSnYqJXdTMSD/SZD/e9dDLxbKoW7wnI/Wv7SCiUe7Qf/fhCbCotJKvdZZ
-         2bDD7xEf1C0JInG9FPeiJw3cUosh6T0GcuC5ygbuVoq7MOv0Ud+0dr/Nao+9tJQi41PT
-         YoiDMzsLieXgTnAoLM+yIBky2dNBUqxJi0QZ9PxEfAUCXpqRK/BxoTBY7tfPCdLvN5KQ
-         /tlz/lcY4ChgJQzLdR9hMYATf8N6hp5jI6L4+y1n2bGppsvOqoPfvl6Bpk98FqOnKdbd
-         HRC8+vOmKM0wPYZRXSLAV3lTxD7KWYyuMHbW8e5X/6oEIC4MmZSLXqEdaHol1wbqTRTN
-         WhQg==
-X-Gm-Message-State: AOAM530e7L5UWrGErIpqAHrmh0Vce8Q09GQtb3o80YkzhCfFDIMTbfOY
-        AeSULrKWOhI8jLbkeFgGTTy1cN9UdiewMz/EQfMaHDc6Jx0=
-X-Google-Smtp-Source: ABdhPJwg9lqbsJzFdH/trlT3Wp/VmvB1S90EPeLIHPlWMMDAImHpzO0Jlbu8yUrDRh7Hw2O5YBe/lCa4d7ooWPe4eYg=
-X-Received: by 2002:a25:45c6:: with SMTP id s189mr8443476yba.290.1634243280776;
- Thu, 14 Oct 2021 13:28:00 -0700 (PDT)
+        id S235422AbhJOFxJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 15 Oct 2021 01:53:09 -0400
+Received: from mga12.intel.com ([192.55.52.136]:44416 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229706AbhJOFxI (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Fri, 15 Oct 2021 01:53:08 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10137"; a="207968503"
+X-IronPort-AV: E=Sophos;i="5.85,374,1624345200"; 
+   d="scan'208";a="207968503"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2021 22:51:02 -0700
+X-IronPort-AV: E=Sophos;i="5.85,374,1624345200"; 
+   d="scan'208";a="481583984"
+Received: from akleen-mobl1.amr.corp.intel.com (HELO [10.209.55.104]) ([10.209.55.104])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Oct 2021 22:51:00 -0700
+Message-ID: <c2ce5ad8-4df7-3a37-b235-8762a76b1fd3@linux.intel.com>
+Date:   Thu, 14 Oct 2021 22:50:59 -0700
 MIME-Version: 1.0
-References: <20210809141744.1203023-1-hch@lst.de> <20210809141744.1203023-5-hch@lst.de>
- <20211014143123.GA22126@u164.east.ru> <20211014143243.GA25700@lst.de>
-In-Reply-To: <20211014143243.GA25700@lst.de>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Thu, 14 Oct 2021 23:27:50 +0300
-Message-ID: <CADxRZqxgu_A=BMOPVCAUteLfLUWAmL_b-S8+TBW1j-eW5O6dwA@mail.gmail.com>
-Subject: Re: [sparc64] kernel OOPS (was: [PATCH 4/5] block: move the bdi from
- the request_queue to the gendisk)
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Jens Axboe <axboe@kernel.dk>, Tejun Heo <tj@kernel.org>,
-        Jan Kara <jack@suse.cz>, linux-block@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        cgroups@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-mm <linux-mm@kvack.org>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        Linux Kernel list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.2.0
+Subject: Re: [PATCH v5 16/16] x86/tdx: Add cmdline option to force use of
+ ioremap_host_shared
+Content-Language: en-US
+To:     "Michael S. Tsirkin" <mst@redhat.com>
+Cc:     Kuppuswamy Sathyanarayanan 
+        <sathyanarayanan.kuppuswamy@linux.intel.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Richard Henderson <rth@twiddle.net>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        James E J Bottomley <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        "David S . Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        David Hildenbrand <david@redhat.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Josh Poimboeuf <jpoimboe@redhat.com>,
+        Peter H Anvin <hpa@zytor.com>,
+        Dave Hansen <dave.hansen@intel.com>,
+        Tony Luck <tony.luck@intel.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Kirill Shutemov <kirill.shutemov@linux.intel.com>,
+        Sean Christopherson <seanjc@google.com>,
+        Kuppuswamy Sathyanarayanan <knsathya@kernel.org>,
+        x86@kernel.org, linux-kernel@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-doc@vger.kernel.org,
+        virtualization@lists.linux-foundation.org
+References: <20211009003711.1390019-1-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20211009003711.1390019-17-sathyanarayanan.kuppuswamy@linux.intel.com>
+ <20211009070132-mutt-send-email-mst@kernel.org>
+ <8c906de6-5efa-b87a-c800-6f07b98339d0@linux.intel.com>
+ <20211011075945-mutt-send-email-mst@kernel.org>
+ <9d0ac556-6a06-0f2e-c4ff-0c3ce742a382@linux.intel.com>
+ <20211011142330-mutt-send-email-mst@kernel.org>
+ <4fe8d60a-2522-f111-995c-dcbefd0d5e31@linux.intel.com>
+ <20211012165705-mutt-send-email-mst@kernel.org>
+ <c09c961d-f433-4a68-0b38-208ffe8b36c7@linux.intel.com>
+ <20211012171846-mutt-send-email-mst@kernel.org>
+From:   Andi Kleen <ak@linux.intel.com>
+In-Reply-To: <20211012171846-mutt-send-email-mst@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Oct 14, 2021 at 5:32 PM Christoph Hellwig <hch@lst.de> wrote:
->
-> Hi Anatoly,
->
-> please try this patchset:
->
-> https://lore.kernel.org/linux-block/CAHj4cs8tYY-ShH=QdrVirwXqX4Uze6ewZAGew_oRKLL_CCLNJg@mail.gmail.com/T/#m6591be7882bf30f3538a8baafbac1712f0763ebb
 
-Christoph,
+> I thought you basically create an OperationRegion of SystemMemory type,
+> and off you go. Maybe the OSPM in Linux is clever and protects
+> some memory, I wouldn't know.
 
-thanks. Tested (with 5.15.0-rc5 + patchset) and no-more hangs with the
-test-suite. Thanks again.
+
+I investigated this now, and it looks like acpi is using 
+ioremap_cache(). We can hook into that and force non sharing. It's 
+probably safe to assume that this is not used on real IO devices.
+
+I think there are still some other BIOS mappings that use just plain 
+ioremap() though.
+
+
+-Andi
+
