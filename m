@@ -2,86 +2,77 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D7BCC433EF
-	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 02:21:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E416C4332F
+	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 10:13:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 406F361351
-	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 02:21:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A0CF610F8
+	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 10:13:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236396AbhKHCXo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 7 Nov 2021 21:23:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47060 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229757AbhKHCXn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 7 Nov 2021 21:23:43 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0EF2EC061570
-        for <sparclinux@vger.kernel.org>; Sun,  7 Nov 2021 18:20:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        MIME-Version:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:Content-ID:
-        Content-Description:In-Reply-To:References;
-        bh=CJChvlJAKWa55QVSfeUfSnCGmGNB7IQg3OhvF2RrHJs=; b=fx2FkO39E+WoiZ2xNaVE/kbN1R
-        rDMIbPYEth1qnK/ZvjQ8LmnUDNGjD4kIQMaLsvzTBR6CrK0kST37t8EYsfHYEuE6Tru0pfYUZOw/j
-        YwwDOwfCESln9YEoZkjclVLMecQdOc+Uhyv2cKB5xMlnqkTHxq8QJme1kQS8Ghs6DuTl57yzKwqt2
-        TB6Eoxv8UvFP4/OqaA4v6p6sK8klOl+YbxBSSbQCQlHatNvTigSgZITNkA5HgTIvBhvXkeioEhnXR
-        cHFG8Ah8oHRh9G7fARWySqf/0RJcPZQIDqX5bwk8OVJnoPtsG73tvxubv2qOipPIZB5dqY9/QTjAP
-        u/Sqdjhg==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mjuFt-0087RV-5s; Mon, 08 Nov 2021 02:19:47 +0000
-Date:   Mon, 8 Nov 2021 02:19:29 +0000
-From:   Matthew Wilcox <willy@infradead.org>
-To:     sparclinux@vger.kernel.org
-Cc:     "David S. Miller" <davem@davemloft.net>
-Subject: [PATCH] Fix W=1 builds on sparc
-Message-ID: <YYiJMeWiCgK8ECGP@casper.infradead.org>
+        id S238580AbhKHKQA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 8 Nov 2021 05:16:00 -0500
+Received: from mail.skyhub.de ([5.9.137.197]:38536 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231127AbhKHKPX (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 8 Nov 2021 05:15:23 -0500
+Received: from zn.tnic (p200300ec2f33110088892b77bd117736.dip0.t-ipconnect.de [IPv6:2003:ec:2f33:1100:8889:2b77:bd11:7736])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id 9F4841EC0529;
+        Mon,  8 Nov 2021 11:12:37 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
+        t=1636366357;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=+U0N1WhO/TgXQDOA2GkcCX7tzQA/fw5C7L0WOlLoySU=;
+        b=re3054RNR1F8oPYRTdcjLHrbluM61LEeuqGN9VtnP96HvckuRHz/SwnoYSxg9qQKgO9IbR
+        uxH8lXh81utOZ704plkssgA8gtNWufQdWLykUomCC+vbSQAVG5Aoa3DUjWM9nXuj5ILE8X
+        EuNi8BXpdljJ17IUvRwJfLuQVq202c4=
+From:   Borislav Petkov <bp@alien8.de>
+To:     LKML <linux-kernel@vger.kernel.org>
+Cc:     sparclinux@vger.kernel.org
+Subject: [PATCH v0 37/42] sparc: Check notifier registration return value
+Date:   Mon,  8 Nov 2021 11:11:52 +0100
+Message-Id: <20211108101157.15189-38-bp@alien8.de>
+X-Mailer: git-send-email 2.29.2
+In-Reply-To: <20211108101157.15189-1-bp@alien8.de>
+References: <20211108101157.15189-1-bp@alien8.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Running the following command:
+From: Borislav Petkov <bp@suse.de>
 
-$ make W=1 O=.sparc ARCH=sparc64 CROSS_COMPILE=sparc64-linux-gnu- mm/util.o
+Avoid homegrown notifier registration checks.
 
-  CC      arch/sparc/kernel/asm-offsets.s
-../arch/sparc/kernel/asm-offsets.c:29:5: error: no previous prototype for ‘sparc64_foo’ [-Werror=missing-prototypes]
-../arch/sparc/kernel/asm-offsets.c:48:5: error: no previous prototype for ‘foo’ [-Werror=missing-prototypes]
+No functional changes.
 
-These functions obviously aren't actually called from anywhere, so
-just silence the warning (and fix the build) by declaring them
-immediately before defining them.
+Signed-off-by: Borislav Petkov <bp@suse.de>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/sstate.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-
-diff --git a/arch/sparc/kernel/asm-offsets.c b/arch/sparc/kernel/asm-offsets.c
-index 5784f2df489a..354a4d4d7b37 100644
---- a/arch/sparc/kernel/asm-offsets.c
-+++ b/arch/sparc/kernel/asm-offsets.c
-@@ -19,6 +19,7 @@
- #include <asm/hibernate.h>
+diff --git a/arch/sparc/kernel/sstate.c b/arch/sparc/kernel/sstate.c
+index 3bcc4ddc6911..4e29e8977609 100644
+--- a/arch/sparc/kernel/sstate.c
++++ b/arch/sparc/kernel/sstate.c
+@@ -106,8 +106,10 @@ static int __init sstate_init(void)
  
- #ifdef CONFIG_SPARC32
-+int sparc32_foo(void);
- int sparc32_foo(void)
- {
- 	DEFINE(AOFF_thread_fork_kpsr,
-@@ -26,6 +27,7 @@ int sparc32_foo(void)
+ 	do_set_sstate(HV_SOFT_STATE_TRANSITION, booting_msg);
+ 
+-	atomic_notifier_chain_register(&panic_notifier_list,
+-				       &sstate_panic_block);
++	if (atomic_notifier_chain_register(&panic_notifier_list,
++					   &sstate_panic_block))
++		pr_warn("Soft state panic notifier already registered\n");
++
+ 	register_reboot_notifier(&sstate_reboot_notifier);
+ 
  	return 0;
- }
- #else
-+int sparc64_foo(void);
- int sparc64_foo(void)
- {
- #ifdef CONFIG_HIBERNATION
-@@ -45,6 +47,7 @@ int sparc64_foo(void)
- }
- #endif
- 
-+int foo(void);
- int foo(void)
- {
- 	BLANK();
+-- 
+2.29.2
+
