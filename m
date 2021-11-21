@@ -2,26 +2,26 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34313C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87F75C433FE
 	for <sparclinux@archiver.kernel.org>; Sun, 21 Nov 2021 09:25:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237944AbhKUJ2T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 21 Nov 2021 04:28:19 -0500
-Received: from szxga01-in.huawei.com ([45.249.212.187]:31892 "EHLO
+        id S237991AbhKUJ2W (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 21 Nov 2021 04:28:22 -0500
+Received: from szxga01-in.huawei.com ([45.249.212.187]:31893 "EHLO
         szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237930AbhKUJ2P (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 21 Nov 2021 04:28:15 -0500
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.55])
-        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4HxlHF09J3zcZxc;
-        Sun, 21 Nov 2021 17:20:09 +0800 (CST)
+        with ESMTP id S237950AbhKUJ2Q (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 21 Nov 2021 04:28:16 -0500
+Received: from dggpemm500023.china.huawei.com (unknown [172.30.72.54])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4HxlHH4bhmzcbDr;
+        Sun, 21 Nov 2021 17:20:11 +0800 (CST)
 Received: from dggpemm500001.china.huawei.com (7.185.36.107) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
+ dggpemm500023.china.huawei.com (7.185.36.83) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Sun, 21 Nov 2021 17:25:07 +0800
+ 15.1.2308.20; Sun, 21 Nov 2021 17:25:09 +0800
 Received: from localhost.localdomain.localdomain (10.175.113.25) by
  dggpemm500001.china.huawei.com (7.185.36.107) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Sun, 21 Nov 2021 17:25:05 +0800
+ 15.1.2308.20; Sun, 21 Nov 2021 17:25:08 +0800
 From:   Kefeng Wang <wangkefeng.wang@huawei.com>
 To:     <dennis@kernel.org>, <akpm@linux-foundation.org>,
         <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>
@@ -38,9 +38,9 @@ CC:     <tj@kernel.org>, <gregkh@linuxfoundation.org>, <cl@linux.com>,
         <linuxppc-dev@lists.ozlabs.org>, <linux-riscv@lists.infradead.org>,
         <sparclinux@vger.kernel.org>, <x86@kernel.org>,
         Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: [PATCH RFC 2/4] mm: percpu: Add pcpu_fc_cpu_to_node_fn_t typedef
-Date:   Sun, 21 Nov 2021 17:35:55 +0800
-Message-ID: <20211121093557.139034-3-wangkefeng.wang@huawei.com>
+Subject: [PATCH RFC 4/4] mm: percpu: Add generic pcpu_populate_pte() function
+Date:   Sun, 21 Nov 2021 17:35:57 +0800
+Message-ID: <20211121093557.139034-5-wangkefeng.wang@huawei.com>
 X-Mailer: git-send-email 2.26.2
 In-Reply-To: <20211121093557.139034-1-wangkefeng.wang@huawei.com>
 References: <20211121093557.139034-1-wangkefeng.wang@huawei.com>
@@ -55,340 +55,389 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Add pcpu_fc_cpu_to_node_fn_t and pass it into pcpu_fc_alloc_fn_t,
-pcpu first chunk allocation will call it to alloc memblock on the
-corresponding node by it.
+When NEED_PER_CPU_PAGE_FIRST_CHUNK enabled, we need a function to
+populate pte, add a generic pcpu populate pte function and switch
+to use it.
 
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 ---
- arch/mips/mm/init.c            | 12 +++++++++---
- arch/powerpc/kernel/setup_64.c | 14 +++++++++++---
- arch/sparc/kernel/smp_64.c     |  8 +++++---
- arch/x86/kernel/setup_percpu.c | 18 +++++++++++++-----
- drivers/base/arch_numa.c       |  8 +++++---
- include/linux/percpu.h         |  7 +++++--
- mm/percpu.c                    | 14 +++++++++-----
- 7 files changed, 57 insertions(+), 24 deletions(-)
+ arch/powerpc/kernel/setup_64.c | 47 +--------------------
+ arch/sparc/kernel/smp_64.c     | 57 +------------------------
+ arch/x86/kernel/setup_percpu.c |  5 +--
+ drivers/base/arch_numa.c       | 51 +---------------------
+ include/linux/percpu.h         |  5 +--
+ mm/percpu.c                    | 77 +++++++++++++++++++++++++++++++---
+ 6 files changed, 79 insertions(+), 163 deletions(-)
 
-diff --git a/arch/mips/mm/init.c b/arch/mips/mm/init.c
-index 325e1552cbea..ebbf6923532c 100644
---- a/arch/mips/mm/init.c
-+++ b/arch/mips/mm/init.c
-@@ -519,12 +519,17 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
- 	return node_distance(cpu_to_node(from), cpu_to_node(to));
- }
- 
--static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size,
--				       size_t align)
-+static int __init pcpu_cpu_to_node(int cpu)
-+{
-+	return cpu_to_node(cpu);
-+}
-+
-+static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align,
-+				   pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	return memblock_alloc_try_nid(size, align, __pa(MAX_DMA_ADDRESS),
- 				      MEMBLOCK_ALLOC_ACCESSIBLE,
--				      cpu_to_node(cpu));
-+				      cpu_to_nd_fun(cpu));
- }
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
-@@ -545,6 +550,7 @@ void __init setup_per_cpu_areas(void)
- 	rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
- 				    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
- 				    pcpu_cpu_distance,
-+				    pcpu_cpu_to_node,
- 				    pcpu_fc_alloc, pcpu_fc_free);
- 	if (rc < 0)
- 		panic("Failed to initialize percpu areas.");
 diff --git a/arch/powerpc/kernel/setup_64.c b/arch/powerpc/kernel/setup_64.c
-index 6052f5d5ded3..9a5609c821df 100644
+index 364b1567f822..1a17828af77f 100644
 --- a/arch/powerpc/kernel/setup_64.c
 +++ b/arch/powerpc/kernel/setup_64.c
-@@ -771,6 +771,12 @@ void __init emergency_stack_init(void)
- }
- 
- #ifdef CONFIG_SMP
-+
-+static __init int pcpu_cpu_to_node(int cpu)
-+{
-+	return IS_ENABLED(CONFIG_NUMA) ? early_cpu_to_node(cpu) : NUMA_NO_NODE;
-+}
-+
- /**
-  * pcpu_alloc_bootmem - NUMA friendly alloc_bootmem wrapper for percpu
-  * @cpu: cpu to allocate for
-@@ -784,12 +790,12 @@ void __init emergency_stack_init(void)
-  * RETURNS:
-  * Pointer to the allocated area on success, NULL on failure.
-  */
--static void * __init pcpu_alloc_bootmem(unsigned int cpu, size_t size,
--					size_t align)
-+static void * __init pcpu_alloc_bootmem(unsigned int cpu, size_t size, size_t align,
-+					pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	const unsigned long goal = __pa(MAX_DMA_ADDRESS);
- #ifdef CONFIG_NUMA
--	int node = early_cpu_to_node(cpu);
-+	int node = cpu_to_nd_fun(cpu);
- 	void *ptr;
- 
- 	if (!node_online(node) || !NODE_DATA(node)) {
-@@ -891,6 +897,7 @@ void __init setup_per_cpu_areas(void)
- 
- 	if (pcpu_chosen_fc != PCPU_FC_PAGE) {
- 		rc = pcpu_embed_first_chunk(0, dyn_size, atom_size, pcpu_cpu_distance,
-+					    pcpu_cpu_to_node,
- 					    pcpu_alloc_bootmem, pcpu_free_bootmem);
- 		if (rc)
- 			pr_warn("PERCPU: %s allocator failed (%d), "
-@@ -900,6 +907,7 @@ void __init setup_per_cpu_areas(void)
- 
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(0, pcpu_alloc_bootmem, pcpu_free_bootmem,
-+					   pcpu_cpu_to_node,
- 					   pcpu_populate_pte);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index b98a7bbe6728..026aa3ccbc30 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1539,12 +1539,12 @@ void smp_send_stop(void)
-  * RETURNS:
-  * Pointer to the allocated area on success, NULL on failure.
-  */
--static void * __init pcpu_alloc_bootmem(unsigned int cpu, size_t size,
--					size_t align)
-+static void * __init pcpu_alloc_bootmem(unsigned int cpu, size_t size, size_t align,
-+					pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	const unsigned long goal = __pa(MAX_DMA_ADDRESS);
- #ifdef CONFIG_NUMA
--	int node = cpu_to_node(cpu);
-+	int node = cpu_to_nd_fn(cpu);
- 	void *ptr;
- 
- 	if (!node_online(node) || !NODE_DATA(node)) {
-@@ -1641,6 +1641,7 @@ void __init setup_per_cpu_areas(void)
- 		rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
- 					    PERCPU_DYNAMIC_RESERVE, 4 << 20,
- 					    pcpu_cpu_distance,
-+					    cpu_to_node,
- 					    pcpu_alloc_bootmem,
- 					    pcpu_free_bootmem);
- 		if (rc)
-@@ -1652,6 +1653,7 @@ void __init setup_per_cpu_areas(void)
- 		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
- 					   pcpu_alloc_bootmem,
- 					   pcpu_free_bootmem,
-+					   cpu_to_node,
- 					   pcpu_populate_pte);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
-diff --git a/arch/x86/kernel/setup_percpu.c b/arch/x86/kernel/setup_percpu.c
-index 7b65275544b2..bba4fa174a16 100644
---- a/arch/x86/kernel/setup_percpu.c
-+++ b/arch/x86/kernel/setup_percpu.c
-@@ -97,12 +97,12 @@ static bool __init pcpu_need_numa(void)
-  * RETURNS:
-  * Pointer to the allocated area on success, NULL on failure.
-  */
--static void * __init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size,
--					unsigned long align)
-+static void * __init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size, unsigned long align,
-+					pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	const unsigned long goal = __pa(MAX_DMA_ADDRESS);
- #ifdef CONFIG_NUMA
--	int node = early_cpu_to_node(cpu);
-+	int node = cpu_to_nd_fn(cpu);
- 	void *ptr;
- 
- 	if (!node_online(node) || !NODE_DATA(node)) {
-@@ -128,9 +128,10 @@ static void * __init pcpu_alloc_bootmem(unsigned int cpu, unsigned long size,
- /*
-  * Helpers for first chunk memory allocation
-  */
--static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align)
-+static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align,
-+				   pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
--	return pcpu_alloc_bootmem(cpu, size, align);
-+	return pcpu_alloc_bootmem(cpu, size, align, cpu_to_nd_fn);
- }
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
-@@ -150,6 +151,11 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
- #endif
- }
- 
-+static int __init pcpu_cpu_to_node(int cpu)
-+{
-+	return IS_ENABLED(CONFIG_NUMA) ? early_cpu_to_node(cpu) : NUMA_NO_NODE;
-+}
-+
- static void __init pcpup_populate_pte(unsigned long addr)
- {
- 	populate_extra_pte(addr);
-@@ -205,6 +211,7 @@ void __init setup_per_cpu_areas(void)
- 		rc = pcpu_embed_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
- 					    dyn_size, atom_size,
- 					    pcpu_cpu_distance,
-+					    pcpu_cpu_to_node,
- 					    pcpu_fc_alloc, pcpu_fc_free);
- 		if (rc < 0)
- 			pr_warn("%s allocator failed (%d), falling back to page size\n",
-@@ -213,6 +220,7 @@ void __init setup_per_cpu_areas(void)
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
- 					   pcpu_fc_alloc, pcpu_fc_free,
-+					   pcpu_cpu_to_node,
- 					   pcpup_populate_pte);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
-diff --git a/drivers/base/arch_numa.c b/drivers/base/arch_numa.c
-index bc1876915457..273543d9ff85 100644
---- a/drivers/base/arch_numa.c
-+++ b/drivers/base/arch_numa.c
-@@ -155,10 +155,10 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
- 	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
- }
- 
--static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size,
--				       size_t align)
-+static void * __init pcpu_fc_alloc(unsigned int cpu, size_t size, size_t align,
-+				   pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
--	int nid = early_cpu_to_node(cpu);
-+	int nid = cpu_to_nd_fn(cpu);
- 
- 	return  memblock_alloc_try_nid(size, align,
- 			__pa(MAX_DMA_ADDRESS), MEMBLOCK_ALLOC_ACCESSIBLE, nid);
-@@ -229,6 +229,7 @@ void __init setup_per_cpu_areas(void)
- 		rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
- 					    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
- 					    pcpu_cpu_distance,
-+					    early_cpu_to_node,
- 					    pcpu_fc_alloc, pcpu_fc_free);
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
- 		if (rc < 0)
-@@ -242,6 +243,7 @@ void __init setup_per_cpu_areas(void)
- 		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
- 					   pcpu_fc_alloc,
- 					   pcpu_fc_free,
-+					   early_cpu_to_node,
- 					   pcpu_populate_pte);
- #endif
- 	if (rc < 0)
-diff --git a/include/linux/percpu.h b/include/linux/percpu.h
-index ae4004e7957e..41bb54715b0c 100644
---- a/include/linux/percpu.h
-+++ b/include/linux/percpu.h
-@@ -94,8 +94,9 @@ extern const char * const pcpu_fc_names[PCPU_FC_NR];
- 
- extern enum pcpu_fc pcpu_chosen_fc;
- 
--typedef void * (*pcpu_fc_alloc_fn_t)(unsigned int cpu, size_t size,
--				     size_t align);
-+typedef int (pcpu_fc_cpu_to_node_fn_t)(int cpu);
-+typedef void * (*pcpu_fc_alloc_fn_t)(unsigned int cpu, size_t size, size_t align,
-+				     pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
- typedef void (*pcpu_fc_free_fn_t)(void *ptr, size_t size);
- typedef void (*pcpu_fc_populate_pte_fn_t)(unsigned long addr);
- typedef int (pcpu_fc_cpu_distance_fn_t)(unsigned int from, unsigned int to);
-@@ -111,6 +112,7 @@ extern void __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
- extern int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
- 				size_t atom_size,
- 				pcpu_fc_cpu_distance_fn_t cpu_distance_fn,
-+				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
- 				pcpu_fc_alloc_fn_t alloc_fn,
- 				pcpu_fc_free_fn_t free_fn);
- #endif
-@@ -119,6 +121,7 @@ extern int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
- extern int __init pcpu_page_first_chunk(size_t reserved_size,
- 				pcpu_fc_alloc_fn_t alloc_fn,
- 				pcpu_fc_free_fn_t free_fn,
-+				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
- 				pcpu_fc_populate_pte_fn_t populate_pte_fn);
- #endif
- 
-diff --git a/mm/percpu.c b/mm/percpu.c
-index f5b2c2ea5a54..3f6cf1ff0be2 100644
---- a/mm/percpu.c
-+++ b/mm/percpu.c
-@@ -3001,6 +3001,7 @@ static struct pcpu_alloc_info * __init __flatten pcpu_build_alloc_info(
-  * @dyn_size: minimum free size for dynamic allocation in bytes
-  * @atom_size: allocation atom size
-  * @cpu_distance_fn: callback to determine distance between cpus, optional
-+ * @cpu_to_nd_fn: callback to convert cpu to it's node, optional
-  * @alloc_fn: function to allocate percpu page
-  * @free_fn: function to free percpu page
-  *
-@@ -3030,6 +3031,7 @@ static struct pcpu_alloc_info * __init __flatten pcpu_build_alloc_info(
- int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
- 				  size_t atom_size,
- 				  pcpu_fc_cpu_distance_fn_t cpu_distance_fn,
-+				  pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
- 				  pcpu_fc_alloc_fn_t alloc_fn,
- 				  pcpu_fc_free_fn_t free_fn)
- {
-@@ -3066,7 +3068,7 @@ int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
- 		BUG_ON(cpu == NR_CPUS);
- 
- 		/* allocate space for the whole group */
--		ptr = alloc_fn(cpu, gi->nr_units * ai->unit_size, atom_size);
-+		ptr = alloc_fn(cpu, gi->nr_units * ai->unit_size, atom_size, cpu_to_nd_fn);
- 		if (!ptr) {
- 			rc = -ENOMEM;
- 			goto out_free_areas;
-@@ -3145,6 +3147,7 @@ int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
-  * @reserved_size: the size of reserved percpu area in bytes
-  * @alloc_fn: function to allocate percpu page, always called with PAGE_SIZE
-  * @free_fn: function to free percpu page, always called with PAGE_SIZE
-+ * @cpu_to_nd_fn: callback to convert cpu to it's node, optional
-  * @populate_pte_fn: function to populate pte
-  *
-  * This is a helper to ease setting up page-remapped first percpu
-@@ -3159,6 +3162,7 @@ int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
- int __init pcpu_page_first_chunk(size_t reserved_size,
- 				 pcpu_fc_alloc_fn_t alloc_fn,
- 				 pcpu_fc_free_fn_t free_fn,
-+				 pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
- 				 pcpu_fc_populate_pte_fn_t populate_pte_fn)
- {
- 	static struct vm_struct vm;
-@@ -3201,7 +3205,7 @@ int __init pcpu_page_first_chunk(size_t reserved_size,
- 		for (i = 0; i < unit_pages; i++) {
- 			void *ptr;
- 
--			ptr = alloc_fn(cpu, PAGE_SIZE, PAGE_SIZE);
-+			ptr = alloc_fn(cpu, PAGE_SIZE, PAGE_SIZE, cpu_to_nd_fn);
- 			if (!ptr) {
- 				pr_warn("failed to allocate %s page for cpu%u\n",
- 						psize_str, cpu);
-@@ -3278,8 +3282,8 @@ int __init pcpu_page_first_chunk(size_t reserved_size,
+@@ -788,51 +788,6 @@ static int pcpu_cpu_distance(unsigned int from, unsigned int to)
  unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
  EXPORT_SYMBOL(__per_cpu_offset);
  
--static void * __init pcpu_dfl_fc_alloc(unsigned int cpu, size_t size,
--				       size_t align)
-+static void * __init pcpu_dfl_fc_alloc(unsigned int cpu, size_t size, size_t align,
-+				       pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
+-static void __init pcpu_populate_pte(unsigned long addr)
+-{
+-	pgd_t *pgd = pgd_offset_k(addr);
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	p4d = p4d_offset(pgd, addr);
+-	if (p4d_none(*p4d)) {
+-		pud_t *new;
+-
+-		new = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		p4d_populate(&init_mm, p4d, new);
+-	}
+-
+-	pud = pud_offset(p4d, addr);
+-	if (pud_none(*pud)) {
+-		pmd_t *new;
+-
+-		new = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pud_populate(&init_mm, pud, new);
+-	}
+-
+-	pmd = pmd_offset(pud, addr);
+-	if (!pmd_present(*pmd)) {
+-		pte_t *new;
+-
+-		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pmd_populate_kernel(&init_mm, pmd, new);
+-	}
+-
+-	return;
+-
+-err_alloc:
+-	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
+-	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-}
+-
+-
+ void __init setup_per_cpu_areas(void)
  {
- 	return  memblock_alloc_from(size, align, __pa(MAX_DMA_ADDRESS));
- }
-@@ -3300,7 +3304,7 @@ void __init setup_per_cpu_areas(void)
- 	 * what the legacy allocator did.
- 	 */
- 	rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
--				    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE, NULL,
-+				    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE, NULL, NULL,
- 				    pcpu_dfl_fc_alloc, pcpu_dfl_fc_free);
+ 	const size_t dyn_size = PERCPU_MODULE_RESERVE + PERCPU_DYNAMIC_RESERVE;
+@@ -861,7 +816,7 @@ void __init setup_per_cpu_areas(void)
+ 	}
+ 
  	if (rc < 0)
- 		panic("Failed to initialize percpu areas.");
+-		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node, pcpu_populate_pte);
++		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node);
+ 	if (rc < 0)
+ 		panic("cannot initialize percpu area (err=%d)", rc);
+ 
+diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+index 198dadddb75d..00dffe2d834b 100644
+--- a/arch/sparc/kernel/smp_64.c
++++ b/arch/sparc/kernel/smp_64.c
+@@ -1534,59 +1534,6 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
+ 		return REMOTE_DISTANCE;
+ }
+ 
+-static void __init pcpu_populate_pte(unsigned long addr)
+-{
+-	pgd_t *pgd = pgd_offset_k(addr);
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	if (pgd_none(*pgd)) {
+-		pud_t *new;
+-
+-		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pgd_populate(&init_mm, pgd, new);
+-	}
+-
+-	p4d = p4d_offset(pgd, addr);
+-	if (p4d_none(*p4d)) {
+-		pud_t *new;
+-
+-		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		p4d_populate(&init_mm, p4d, new);
+-	}
+-
+-	pud = pud_offset(p4d, addr);
+-	if (pud_none(*pud)) {
+-		pmd_t *new;
+-
+-		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pud_populate(&init_mm, pud, new);
+-	}
+-
+-	pmd = pmd_offset(pud, addr);
+-	if (!pmd_present(*pmd)) {
+-		pte_t *new;
+-
+-		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pmd_populate_kernel(&init_mm, pmd, new);
+-	}
+-
+-	return;
+-
+-err_alloc:
+-	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
+-	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-}
+-
+ void __init setup_per_cpu_areas(void)
+ {
+ 	unsigned long delta;
+@@ -1604,9 +1551,7 @@ void __init setup_per_cpu_areas(void)
+ 				pcpu_fc_names[pcpu_chosen_fc], rc);
+ 	}
+ 	if (rc < 0)
+-		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
+-					   cpu_to_node,
+-					   pcpu_populate_pte);
++		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, cpu_to_node);
+ 	if (rc < 0)
+ 		panic("cannot initialize percpu area (err=%d)", rc);
+ 
+diff --git a/arch/x86/kernel/setup_percpu.c b/arch/x86/kernel/setup_percpu.c
+index cd672bd46241..4eadbe45078e 100644
+--- a/arch/x86/kernel/setup_percpu.c
++++ b/arch/x86/kernel/setup_percpu.c
+@@ -101,7 +101,7 @@ static int __init pcpu_cpu_to_node(int cpu)
+ 	return IS_ENABLED(CONFIG_NUMA) ? early_cpu_to_node(cpu) : NUMA_NO_NODE;
+ }
+ 
+-static void __init pcpup_populate_pte(unsigned long addr)
++void __init pcpu_populate_pte(unsigned long addr)
+ {
+ 	populate_extra_pte(addr);
+ }
+@@ -163,8 +163,7 @@ void __init setup_per_cpu_areas(void)
+ 	}
+ 	if (rc < 0)
+ 		rc = pcpu_page_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
+-					   pcpu_cpu_to_node,
+-					   pcpup_populate_pte);
++					   pcpu_cpu_to_node);
+ 	if (rc < 0)
+ 		panic("cannot initialize percpu area (err=%d)", rc);
+ 
+diff --git a/drivers/base/arch_numa.c b/drivers/base/arch_numa.c
+index 23a10cc36165..eaa31e567d1e 100644
+--- a/drivers/base/arch_numa.c
++++ b/drivers/base/arch_numa.c
+@@ -14,7 +14,6 @@
+ #include <linux/of.h>
+ 
+ #include <asm/sections.h>
+-#include <asm/pgalloc.h>
+ 
+ struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
+ EXPORT_SYMBOL(node_data);
+@@ -155,52 +154,6 @@ static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
+ 	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
+ }
+ 
+-#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
+-static void __init pcpu_populate_pte(unsigned long addr)
+-{
+-	pgd_t *pgd = pgd_offset_k(addr);
+-	p4d_t *p4d;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	p4d = p4d_offset(pgd, addr);
+-	if (p4d_none(*p4d)) {
+-		pud_t *new;
+-
+-		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		p4d_populate(&init_mm, p4d, new);
+-	}
+-
+-	pud = pud_offset(p4d, addr);
+-	if (pud_none(*pud)) {
+-		pmd_t *new;
+-
+-		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pud_populate(&init_mm, pud, new);
+-	}
+-
+-	pmd = pmd_offset(pud, addr);
+-	if (!pmd_present(*pmd)) {
+-		pte_t *new;
+-
+-		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
+-		if (!new)
+-			goto err_alloc;
+-		pmd_populate_kernel(&init_mm, pmd, new);
+-	}
+-
+-	return;
+-
+-err_alloc:
+-	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
+-	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
+-}
+-#endif
+-
+ void __init setup_per_cpu_areas(void)
+ {
+ 	unsigned long delta;
+@@ -225,9 +178,7 @@ void __init setup_per_cpu_areas(void)
+ 
+ #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
+ 	if (rc < 0)
+-		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
+-					   early_cpu_to_node,
+-					   pcpu_populate_pte);
++		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, early_cpu_to_node);
+ #endif
+ 	if (rc < 0)
+ 		panic("Failed to initialize percpu areas (err=%d).", rc);
+diff --git a/include/linux/percpu.h b/include/linux/percpu.h
+index d73c97ef4ff4..f1ec5ad1351c 100644
+--- a/include/linux/percpu.h
++++ b/include/linux/percpu.h
+@@ -95,7 +95,6 @@ extern const char * const pcpu_fc_names[PCPU_FC_NR];
+ extern enum pcpu_fc pcpu_chosen_fc;
+ 
+ typedef int (pcpu_fc_cpu_to_node_fn_t)(int cpu);
+-typedef void (*pcpu_fc_populate_pte_fn_t)(unsigned long addr);
+ typedef int (pcpu_fc_cpu_distance_fn_t)(unsigned int from, unsigned int to);
+ 
+ extern struct pcpu_alloc_info * __init pcpu_alloc_alloc_info(int nr_groups,
+@@ -113,9 +112,9 @@ extern int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
+ #endif
+ 
+ #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
++void __init pcpu_populate_pte(unsigned long addr);
+ extern int __init pcpu_page_first_chunk(size_t reserved_size,
+-				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
+-				pcpu_fc_populate_pte_fn_t populate_pte_fn);
++				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
+ #endif
+ 
+ extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
+diff --git a/mm/percpu.c b/mm/percpu.c
+index efaa1cbaf73d..d907daed04eb 100644
+--- a/mm/percpu.c
++++ b/mm/percpu.c
+@@ -3162,11 +3162,80 @@ int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
+ #endif /* BUILD_EMBED_FIRST_CHUNK */
+ 
+ #ifdef BUILD_PAGE_FIRST_CHUNK
++#include <asm/pgalloc.h>
++
++#ifndef P4D_TABLE_SIZE
++#define P4D_TABLE_SIZE PAGE_SIZE
++#endif
++
++#ifndef PUD_TABLE_SIZE
++#define PUD_TABLE_SIZE PAGE_SIZE
++#endif
++
++#ifndef PMD_TABLE_SIZE
++#define PMD_TABLE_SIZE PAGE_SIZE
++#endif
++
++#ifndef PTE_TABLE_SIZE
++#define PTE_TABLE_SIZE PAGE_SIZE
++#endif
++void __init __weak pcpu_populate_pte(unsigned long addr)
++{
++	pgd_t *pgd = pgd_offset_k(addr);
++	p4d_t *p4d;
++	pud_t *pud;
++	pmd_t *pmd;
++
++	if (pgd_none(*pgd)) {
++		p4d_t *new;
++
++		new = memblock_alloc_from(P4D_TABLE_SIZE, P4D_TABLE_SIZE, PAGE_SIZE);
++		if (!new)
++			goto err_alloc;
++		pgd_populate(&init_mm, pgd, new);
++	}
++
++	p4d = p4d_offset(pgd, addr);
++	if (p4d_none(*p4d)) {
++		pud_t *new;
++
++		new = memblock_alloc_from(PUD_TABLE_SIZE, PUD_TABLE_SIZE, PAGE_SIZE);
++		if (!new)
++			goto err_alloc;
++		p4d_populate(&init_mm, p4d, new);
++	}
++
++	pud = pud_offset(p4d, addr);
++	if (pud_none(*pud)) {
++		pmd_t *new;
++
++		new = memblock_alloc_from(PMD_TABLE_SIZE, PMD_TABLE_SIZE, PAGE_SIZE);
++		if (!new)
++			goto err_alloc;
++		pud_populate(&init_mm, pud, new);
++	}
++
++	pmd = pmd_offset(pud, addr);
++	if (!pmd_present(*pmd)) {
++		pte_t *new;
++
++		new = memblock_alloc_from(PTE_TABLE_SIZE, PTE_TABLE_SIZE, PAGE_SIZE);
++		if (!new)
++			goto err_alloc;
++		pmd_populate_kernel(&init_mm, pmd, new);
++	}
++
++	return;
++
++err_alloc:
++	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
++	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
++}
++
+ /**
+  * pcpu_page_first_chunk - map the first chunk using PAGE_SIZE pages
+  * @reserved_size: the size of reserved percpu area in bytes
+  * @cpu_to_nd_fn: callback to convert cpu to it's node, optional
+- * @populate_pte_fn: function to populate pte
+  *
+  * This is a helper to ease setting up page-remapped first percpu
+  * chunk and can be called where pcpu_setup_first_chunk() is expected.
+@@ -3177,9 +3246,7 @@ int __init pcpu_embed_first_chunk(size_t reserved_size, size_t dyn_size,
+  * RETURNS:
+  * 0 on success, -errno on failure.
+  */
+-int __init pcpu_page_first_chunk(size_t reserved_size,
+-				 pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
+-				 pcpu_fc_populate_pte_fn_t populate_pte_fn)
++int __init pcpu_page_first_chunk(size_t reserved_size, pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
+ {
+ 	static struct vm_struct vm;
+ 	struct pcpu_alloc_info *ai;
+@@ -3243,7 +3310,7 @@ int __init pcpu_page_first_chunk(size_t reserved_size,
+ 			(unsigned long)vm.addr + unit * ai->unit_size;
+ 
+ 		for (i = 0; i < unit_pages; i++)
+-			populate_pte_fn(unit_addr + (i << PAGE_SHIFT));
++			pcpu_populate_pte(unit_addr + (i << PAGE_SHIFT));
+ 
+ 		/* pte already populated, the following shouldn't fail */
+ 		rc = __pcpu_map_pages(unit_addr, &pages[unit * unit_pages],
 -- 
 2.26.2
 
