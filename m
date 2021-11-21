@@ -1,126 +1,86 @@
 Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
-Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A098C2BB86
-	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 21:19:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11CDB610A5
-	for <sparclinux@archiver.kernel.org>; Mon,  8 Nov 2021 21:19:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6C4C433F5
+	for <sparclinux@archiver.kernel.org>; Sun, 21 Nov 2021 09:25:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240021AbhKHVW1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 8 Nov 2021 16:22:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49682 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239990AbhKHVVk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 8 Nov 2021 16:21:40 -0500
-Received: from mail.skyhub.de (mail.skyhub.de [IPv6:2a01:4f8:190:11c2::b:1457])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 24F44C061570;
-        Mon,  8 Nov 2021 13:18:55 -0800 (PST)
-Received: from zn.tnic (p200300ec2f3311007827e440708b1099.dip0.t-ipconnect.de [IPv6:2003:ec:2f33:1100:7827:e440:708b:1099])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by mail.skyhub.de (SuperMail on ZX Spectrum 128k) with ESMTPSA id E3BE71EC051F;
-        Mon,  8 Nov 2021 22:18:52 +0100 (CET)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=alien8.de; s=dkim;
-        t=1636406333;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:in-reply-to:in-reply-to:  references:references;
-        bh=AU7V4fSHGUK4yNvIX3QFWGgL2mpvsQwlJrzk1EYTZE4=;
-        b=HI4wHVqdPFUaTmLfTawRP0YuILjCSvy0XvR7UY6GhjpkLZ7Jcpensq3GPz/wKuSVQPh/ah
-        JjfisFcmsOLL77YybjTfUcF4SOtfsMptjoCY2iNpL/QAVX8IlmhT4tll2zqUciAF4fFC2q
-        GhOxoJIWWV9UKbtfg9ziQ2wDV7UERPU=
-Date:   Mon, 8 Nov 2021 22:18:47 +0100
-From:   Borislav Petkov <bp@alien8.de>
-To:     Alan Stern <stern@rowland.harvard.edu>
-Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Ayush Sawal <ayush.sawal@chelsio.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rohit Maheshwari <rohitm@chelsio.com>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Vinay Kumar Yadav <vinay.yadav@chelsio.com>,
-        ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-        bcm-kernel-feedback-list <bcm-kernel-feedback-list@broadcom.com>,
-        Intel Graphics Development <intel-gfx@lists.freedesktop.org>,
-        intel-gvt-dev@lists.freedesktop.org,
-        alpha <linux-alpha@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-clk <linux-clk@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        linux-edac@vger.kernel.org,
-        Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-        linux-hyperv@vger.kernel.org, linux-iio@vger.kernel.org,
-        linux-leds <linux-leds@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        "open list:REMOTE PROCESSOR (REMOTEPROC) SUBSYSTEM" 
-        <linux-remoteproc@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        scsi <linux-scsi@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        linux-staging@lists.linux.dev,
-        linux-tegra <linux-tegra@vger.kernel.org>,
-        linux-um <linux-um@lists.infradead.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>, netdev <netdev@vger.kernel.org>,
-        openipmi-developer@lists.sourceforge.net, rcu@vger.kernel.org,
-        sparclinux <sparclinux@vger.kernel.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        xen-devel@lists.xenproject.org
-Subject: Re: [PATCH v0 42/42] notifier: Return an error when callback is
- already registered
-Message-ID: <YYmUN69Y7z9xITas@zn.tnic>
-References: <20211108101157.15189-1-bp@alien8.de>
- <20211108101157.15189-43-bp@alien8.de>
- <CAMuHMdWH+txiSP_d7Jc4f_bU8Lf9iWpT4E3o5o7BJr-YdA6-VA@mail.gmail.com>
- <YYkyUEqcsOwQMb1S@zn.tnic>
- <CAMuHMdXiBEQyEXJagSfpH44hxVA2t0sDH7B7YubLGHrb2MJLLA@mail.gmail.com>
- <YYlJQYLiIrhjwOmT@zn.tnic>
- <CAMuHMdXHikGrmUzuq0WG5JRHUUE=5zsaVCTF+e4TiHpM5tc5kA@mail.gmail.com>
- <YYlOmd0AeA8DSluD@zn.tnic>
- <20211108205926.GA1678880@rowland.harvard.edu>
+        id S237838AbhKUJ2M (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 21 Nov 2021 04:28:12 -0500
+Received: from szxga02-in.huawei.com ([45.249.212.188]:15845 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235298AbhKUJ2M (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 21 Nov 2021 04:28:12 -0500
+Received: from dggpemm500024.china.huawei.com (unknown [172.30.72.54])
+        by szxga02-in.huawei.com (SkyGuard) with ESMTP id 4HxlNS4C08z90xJ;
+        Sun, 21 Nov 2021 17:24:40 +0800 (CST)
+Received: from dggpemm500001.china.huawei.com (7.185.36.107) by
+ dggpemm500024.china.huawei.com (7.185.36.203) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Sun, 21 Nov 2021 17:25:04 +0800
+Received: from localhost.localdomain.localdomain (10.175.113.25) by
+ dggpemm500001.china.huawei.com (7.185.36.107) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.20; Sun, 21 Nov 2021 17:25:03 +0800
+From:   Kefeng Wang <wangkefeng.wang@huawei.com>
+To:     <dennis@kernel.org>, <akpm@linux-foundation.org>,
+        <linux-kernel@vger.kernel.org>, <linux-mm@kvack.org>
+CC:     <tj@kernel.org>, <gregkh@linuxfoundation.org>, <cl@linux.com>,
+        <catalin.marinas@arm.com>, <will@kernel.org>,
+        <tsbogend@alpha.franken.de>, <mpe@ellerman.id.au>,
+        <benh@kernel.crashing.org>, <paulus@samba.org>,
+        <paul.walmsley@sifive.com>, <palmer@dabbelt.com>,
+        <aou@eecs.berkeley.edu>, <davem@davemloft.net>,
+        <tglx@linutronix.de>, <mingo@redhat.com>, <bp@alien8.de>,
+        <dave.hansen@linux.intel.com>, <hpa@zytor.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-ia64@vger.kernel.org>, <linux-mips@vger.kernel.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <linux-riscv@lists.infradead.org>,
+        <sparclinux@vger.kernel.org>, <x86@kernel.org>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: [PATCH RFC 0/4] mm: percpu: Cleanup percpu first chunk funciton
+Date:   Sun, 21 Nov 2021 17:35:53 +0800
+Message-ID: <20211121093557.139034-1-wangkefeng.wang@huawei.com>
+X-Mailer: git-send-email 2.26.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20211108205926.GA1678880@rowland.harvard.edu>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.113.25]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpemm500001.china.huawei.com (7.185.36.107)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Nov 08, 2021 at 03:59:26PM -0500, Alan Stern wrote:
-> Is there really any reason for returning an error code?  For example, is 
-> it anticipated that at some point in the future these registration calls 
-> might fail?
-> 
-> Currently, the only reason for failing...
+When support page mapping percpu first chunk allocator on arm64, we
+found there are lots of duplicated codes in percpu embed/page first
+chunk allocator. This patchset is aimed to cleanup them and should
+no funciton change, only test on arm64.
 
-Right, I believe with not making it return void we're leaving the door
-open for some, *hypothetical* future return values if we decide we need
-to return them too, at some point.
+Kefeng Wang (4):
+  mm: percpu: Generalize percpu related config
+  mm: percpu: Add pcpu_fc_cpu_to_node_fn_t typedef
+  mm: percpu: Add generic pcpu_fc_alloc/free funciton
+  mm: percpu: Add generic pcpu_populate_pte() function
 
-Yes, I can't think of another fact to state besides that the callback
-was already registered or return success but who knows what we wanna do
-in the future...
-
-And so if we change them all to void now, I think it'll be a lot more
-churn to switch back to returning a non-void value and having the
-callers who choose to handle that value, do so again.
-
-So, long story short, keeping the retval - albeit not very useful right
-now - is probably easier.
-
-I hope I'm making some sense here.
+ arch/arm64/Kconfig             |  20 +----
+ arch/ia64/Kconfig              |   9 +--
+ arch/mips/Kconfig              |  10 +--
+ arch/mips/mm/init.c            |  14 +---
+ arch/powerpc/Kconfig           |  17 +---
+ arch/powerpc/kernel/setup_64.c |  92 +--------------------
+ arch/riscv/Kconfig             |  10 +--
+ arch/sparc/Kconfig             |  12 +--
+ arch/sparc/kernel/smp_64.c     | 105 +-----------------------
+ arch/x86/Kconfig               |  17 +---
+ arch/x86/kernel/setup_percpu.c |  66 ++-------------
+ drivers/base/arch_numa.c       |  68 +---------------
+ include/linux/percpu.h         |  13 +--
+ mm/Kconfig                     |  12 +++
+ mm/percpu.c                    | 143 +++++++++++++++++++++++++--------
+ 15 files changed, 165 insertions(+), 443 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
+2.26.2
 
-https://people.kernel.org/tglx/notes-about-netiquette
