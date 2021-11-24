@@ -2,104 +2,87 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87582C433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Nov 2021 13:52:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20AD8C43217
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Nov 2021 14:07:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352925AbhKXNzX convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 Nov 2021 08:55:23 -0500
-Received: from mail-ua1-f51.google.com ([209.85.222.51]:45040 "EHLO
-        mail-ua1-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352453AbhKXNxQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 Nov 2021 08:53:16 -0500
-Received: by mail-ua1-f51.google.com with SMTP id p2so5164907uad.11;
-        Wed, 24 Nov 2021 05:50:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=Hf4rPGIgUhHt4w8e7uNMvl+iKhb8nrL9YmbQ22fq8VI=;
-        b=He5un5yk33f9sIF2Rhys52JnuelDkFQIoQ6fzJnOxBpZW8VATsvbqkv4vy07YWvpFO
-         Lb3+0fKkpCD/6bM4yWnKyxml529Qn8/RKTIJoIB/zsCPwUAhz8L9KSX12pIGArPABZHA
-         UWGRCKmwuygWgXe2lJwIvWIZmMVKKDTomA63vSe6O4RHGyTeXkx9gSbueiicxb8p1AFO
-         RwdpESkTvbVA3hxsYswpBSyvUEAdx0Ji4djseUttVRCnGY8lGuV0svTLkAhEe31JHjsU
-         3jP8vnK+Vv6Yoy2jZxkkUFPYiTVM/m9rDJoNZNKLII/gA4xAP+C4zrlYBLElNrobw7/f
-         N5kw==
-X-Gm-Message-State: AOAM531jSq5zO1r94A1/gIFOUQuYrlroeXoqzNcMnRJo1PTrjsvg8DVI
-        j/8VIN65YKKPeiBWee63CNIl1tZ4sQN/GA==
-X-Google-Smtp-Source: ABdhPJy6UEAseLrM6Q1evvVHNRW62Jer850vtXNQSRqM4LWjRZGo93VHt3L081Wgr2Hi4wmQpdestA==
-X-Received: by 2002:a9f:30cf:: with SMTP id k15mr10568219uab.21.1637761805306;
-        Wed, 24 Nov 2021 05:50:05 -0800 (PST)
-Received: from mail-ua1-f45.google.com (mail-ua1-f45.google.com. [209.85.222.45])
-        by smtp.gmail.com with ESMTPSA id d16sm7791179vko.29.2021.11.24.05.50.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 24 Nov 2021 05:50:04 -0800 (PST)
-Received: by mail-ua1-f45.google.com with SMTP id i6so5229072uae.6;
-        Wed, 24 Nov 2021 05:50:04 -0800 (PST)
-X-Received: by 2002:a67:c38f:: with SMTP id s15mr24413982vsj.50.1637761804180;
- Wed, 24 Nov 2021 05:50:04 -0800 (PST)
+        id S1354090AbhKXOKP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 24 Nov 2021 09:10:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55244 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1354174AbhKXOGX (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 24 Nov 2021 09:06:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC9E7633F8;
+        Wed, 24 Nov 2021 13:11:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1637759516;
+        bh=5eVFlKmiOGa5MfTM9+XMxFBysfDmMBpwdNLvuurY28g=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=zM6LTTXFnXabiz3uI2lYbRjzhrHESCOg2WQVpGi97C1eLbrFVTzAhGd2q6rymkORd
+         sn4fhgeyLQjBQcum2GQMQKsBNals5FDFENxaOuF2+0QDzuem81D95G+xnrzd6AHytf
+         weP/Njw1qOL7NOMNE/sJZZsbe9leGdrnbHzg7Qsc=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        stable@vger.kernel.org, David Miller <davem@davemloft.net>,
+        sparclinux@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Thomas Backlund <tmb@iki.fi>
+Subject: [PATCH 5.15 261/279] signal/sparc32: In setup_rt_frame and setup_fram use force_fatal_sig
+Date:   Wed, 24 Nov 2021 12:59:08 +0100
+Message-Id: <20211124115727.732846259@linuxfoundation.org>
+X-Mailer: git-send-email 2.34.0
+In-Reply-To: <20211124115718.776172708@linuxfoundation.org>
+References: <20211124115718.776172708@linuxfoundation.org>
+User-Agent: quilt/0.66
 MIME-Version: 1.0
-References: <CAK8P3a3pQW59NVF=5P+ZiBjNJmnWh+iTZUHvqHBrXkHA6pMd4g@mail.gmail.com>
- <20211124132112.11641-1-andrealmeid@collabora.com>
-In-Reply-To: <20211124132112.11641-1-andrealmeid@collabora.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Wed, 24 Nov 2021 14:49:53 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdViovyQ2xBeKaMRbAmYF5eMWKdYhQEPmnTyLJoF7a+xsg@mail.gmail.com>
-Message-ID: <CAMuHMdViovyQ2xBeKaMRbAmYF5eMWKdYhQEPmnTyLJoF7a+xsg@mail.gmail.com>
-Subject: Re: [PATCH 1/1] futex: Wireup futex_waitv syscall
-To:     =?UTF-8?Q?Andr=C3=A9_Almeida?= <andrealmeid@collabora.com>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Michal Simek <monstr@monstr.eu>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        alpha <linux-alpha@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Linux-Next <linux-next@vger.kernel.org>,
-        lkft-triage@lists.linaro.org, Waiman Long <longman@redhat.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Naresh Kamboju <naresh.kamboju@linaro.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Rob Landley <rob@landley.net>,
-        Sergey Senozhatsky <senozhatsky@chromium.org>,
-        Stephen Rothwell <sfr@canb.auug.org.au>,
-        Mike Galbraith <umgwanakikbuti@gmail.com>,
-        Will Deacon <will@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Nov 24, 2021 at 2:21 PM André Almeida <andrealmeid@collabora.com> wrote:
-> Wireup futex_waitv syscall for all remaining archs.
->
-> Signed-off-by: André Almeida <andrealmeid@collabora.com>
+From: Eric W. Biederman <ebiederm@xmission.com>
 
->  arch/m68k/kernel/syscalls/syscall.tbl       | 1 +
+commit 086ec444f86660e103de8945d0dcae9b67132ac9 upstream.
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Modify the 32bit version of setup_rt_frame and setup_frame to act
+similar to the 64bit version of setup_rt_frame and fail with a signal
+instead of calling do_exit.
 
-Gr{oetje,eeting}s,
+Replacing do_exit(SIGILL) with force_fatal_signal(SIGILL) ensures that
+the process will be terminated cleanly when the stack frame is
+invalid, instead of just killing off a single thread and leaving the
+process is a weird state.
 
-                        Geert
+Cc: David Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Link: https://lkml.kernel.org/r/20211020174406.17889-16-ebiederm@xmission.com
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Thomas Backlund <tmb@iki.fi>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/kernel/signal_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -244,7 +244,7 @@ static int setup_frame(struct ksignal *k
+ 		get_sigframe(ksig, regs, sigframe_size);
+ 
+ 	if (invalid_frame_pointer(sf, sigframe_size)) {
+-		do_exit(SIGILL);
++		force_fatal_sig(SIGILL);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -336,7 +336,7 @@ static int setup_rt_frame(struct ksignal
+ 	sf = (struct rt_signal_frame __user *)
+ 		get_sigframe(ksig, regs, sigframe_size);
+ 	if (invalid_frame_pointer(sf, sigframe_size)) {
+-		do_exit(SIGILL);
++		force_fatal_sig(SIGILL);
+ 		return -EINVAL;
+ 	}
+ 
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+
