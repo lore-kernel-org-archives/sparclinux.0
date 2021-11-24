@@ -2,144 +2,93 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45E4BC433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 24 Nov 2021 14:32:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75753C433F5
+	for <sparclinux@archiver.kernel.org>; Wed, 24 Nov 2021 15:56:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355731AbhKXOfc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 24 Nov 2021 09:35:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48170 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355709AbhKXOf3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 Nov 2021 09:35:29 -0500
-Received: from bhuna.collabora.co.uk (bhuna.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e3e3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AFF90C1A1D66;
-        Wed, 24 Nov 2021 05:21:27 -0800 (PST)
+        id S1347235AbhKXP7g (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 24 Nov 2021 10:59:36 -0500
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:56834 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230070AbhKXP7f (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 24 Nov 2021 10:59:35 -0500
 Received: from [127.0.0.1] (localhost [127.0.0.1])
         (Authenticated sender: tonyk)
-        with ESMTPSA id 1182B1F45A78
+        with ESMTPSA id 57F7C1F45BC8
 DKIM-Signature: v=1; a=rsa-sha256; c=simple/simple; d=collabora.com; s=mail;
-        t=1637760086; bh=LoUzXVbB3wCwxf1FW0gK/muFdQnGfNnGszLYYog+/lU=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=AD0LfFCbtCb0lPtiWFikSc0XLR5Z6wW44k1wjposhAtht5drHk8ffJYsQmH2Q5W6A
-         OlROj7cj/qCKWi5Dy1MbzY5H86DsVfJFk7ojLi7Q+lRqMMZTIpXqBvmpSyD8rLL7Wp
-         9kPDvyGRVZ0BUAwlZP0CdciKecpFD9161Ofc4WS13JQheyb+2y0tmzSTQuDIUs1XZR
-         xhtRWTu111op8oukvWLrydVcD3jHXnt1tVJE86ihwADP8qEbxXmPksbiVuBj1c5F00
-         8kQpWRI1dzZ24tdIJDn/KLdriVfjMzI/zPYHgirq4+XjZzqYI8aUe6ZhQqcmUlCDAI
-         7rJSFBekuqRXA==
-From:   =?UTF-8?q?Andr=C3=A9=20Almeida?= <andrealmeid@collabora.com>
-To:     linux-kernel@vger.kernel.org, arnd@arndb.de, geert@linux-m68k.org,
-        monstr@monstr.eu, mpe@ellerman.id.au, ysato@users.sourceforge.jp,
-        dalias@libc.org, davem@davemloft.net, chris@zankel.net,
-        jcmvbkbc@gmail.com, linux-alpha@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org
-Cc:     akpm@linux-foundation.org, andrealmeid@collabora.com,
-        bigeasy@linutronix.de, boqun.feng@gmail.com,
-        linux-next@vger.kernel.org, lkft-triage@lists.linaro.org,
-        longman@redhat.com, minchan@kernel.org, mingo@redhat.com,
-        naresh.kamboju@linaro.org, peterz@infradead.org, rob@landley.net,
-        senozhatsky@chromium.org, sfr@canb.auug.org.au,
-        umgwanakikbuti@gmail.com, will@kernel.org
-Subject: [PATCH 1/1] futex: Wireup futex_waitv syscall
-Date:   Wed, 24 Nov 2021 10:21:12 -0300
-Message-Id: <20211124132112.11641-1-andrealmeid@collabora.com>
-X-Mailer: git-send-email 2.33.1
-In-Reply-To: <CAK8P3a3pQW59NVF=5P+ZiBjNJmnWh+iTZUHvqHBrXkHA6pMd4g@mail.gmail.com>
-References: <CAK8P3a3pQW59NVF=5P+ZiBjNJmnWh+iTZUHvqHBrXkHA6pMd4g@mail.gmail.com>
+        t=1637769382; bh=zz/xw7PsWQON9rmJZojHTBxXbF24yxYHqhaUVP88TKs=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=E/pte9+S/xU8DdTZ/vKpNhA3ylTQYBGSinvyN6mt+xZdQFKKHEb6Mmt84KbEzM5mZ
+         OSPyhJ6sCmssRkBBHimK6onWi+F/fiAA5Ypad79m+N+kkn6BrMI3wqjRnjC5w47i2Q
+         aPNdfcTSLCdquNNhzIMYwK9OlGuMqJafLR38PMnBjrRL+zm9bD++8vMrP9KIyqazlB
+         tbunQevunpoo7PovcVIzyk1G/rHktU5H9JEaZdZEpb0Db+mq5nCjz2SQfKauqW6Gl0
+         yoYNuJa5aw5Hl9JNwgtzD1fRyYNxpu0YlbF5Voaz4iL2LRbsvhzZ/6BwDUd1b2lpYs
+         25pmRI9iK1Hpw==
+Message-ID: <91a64059-f301-4812-56ea-38755ccae5d7@collabora.com>
+Date:   Wed, 24 Nov 2021 12:56:09 -0300
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [PATCH 1/1] futex: Wireup futex_waitv syscall
+Content-Language: en-US
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        David Miller <davem@davemloft.net>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        alpha <linux-alpha@vger.kernel.org>, linux-ia64@vger.kernel.org,
+        linux-m68k <linux-m68k@lists.linux-m68k.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        "open list:TENSILICA XTENSA PORT (xtensa)" 
+        <linux-xtensa@linux-xtensa.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Linux-Next Mailing List <linux-next@vger.kernel.org>,
+        lkft-triage@lists.linaro.org, Waiman Long <longman@redhat.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Naresh Kamboju <naresh.kamboju@linaro.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Rob Landley <rob@landley.net>,
+        Sergey Senozhatsky <senozhatsky@chromium.org>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Mike Galbraith <umgwanakikbuti@gmail.com>,
+        Will Deacon <will@kernel.org>
+References: <CAK8P3a3pQW59NVF=5P+ZiBjNJmnWh+iTZUHvqHBrXkHA6pMd4g@mail.gmail.com>
+ <20211124132112.11641-1-andrealmeid@collabora.com>
+ <CAK8P3a2BXefTw68yoZ9U0F=ASC3=EZDc5PDQCJ16MmXtynd59g@mail.gmail.com>
+From:   =?UTF-8?Q?Andr=c3=a9_Almeida?= <andrealmeid@collabora.com>
+In-Reply-To: <CAK8P3a2BXefTw68yoZ9U0F=ASC3=EZDc5PDQCJ16MmXtynd59g@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Wireup futex_waitv syscall for all remaining archs.
+Às 11:29 de 24/11/21, Arnd Bergmann escreveu:
+> On Wed, Nov 24, 2021 at 2:21 PM André Almeida <andrealmeid@collabora.com> wrote:
+>>
+>> Wireup futex_waitv syscall for all remaining archs.
+>>
+>> Signed-off-by: André Almeida <andrealmeid@collabora.com>
+> 
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+> 
+> I double-checked that futex_waitv() doesn't need any architecture specific
+> hacks, and that the list above is complete.
 
-Signed-off-by: André Almeida <andrealmeid@collabora.com>
----
- arch/alpha/kernel/syscalls/syscall.tbl      | 1 +
- arch/ia64/kernel/syscalls/syscall.tbl       | 1 +
- arch/m68k/kernel/syscalls/syscall.tbl       | 1 +
- arch/microblaze/kernel/syscalls/syscall.tbl | 1 +
- arch/powerpc/kernel/syscalls/syscall.tbl    | 1 +
- arch/sh/kernel/syscalls/syscall.tbl         | 1 +
- arch/sparc/kernel/syscalls/syscall.tbl      | 1 +
- arch/xtensa/kernel/syscalls/syscall.tbl     | 1 +
- 8 files changed, 8 insertions(+)
+Thanks!
 
-diff --git a/arch/alpha/kernel/syscalls/syscall.tbl b/arch/alpha/kernel/syscalls/syscall.tbl
-index e4a041cd5715..ca5a32228cd6 100644
---- a/arch/alpha/kernel/syscalls/syscall.tbl
-+++ b/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -488,3 +488,4 @@
- 556	common	landlock_restrict_self		sys_landlock_restrict_self
- # 557 reserved for memfd_secret
- 558	common	process_mrelease		sys_process_mrelease
-+559	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/ia64/kernel/syscalls/syscall.tbl b/arch/ia64/kernel/syscalls/syscall.tbl
-index 6fea1844fb95..707ae121f6d3 100644
---- a/arch/ia64/kernel/syscalls/syscall.tbl
-+++ b/arch/ia64/kernel/syscalls/syscall.tbl
-@@ -369,3 +369,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/m68k/kernel/syscalls/syscall.tbl b/arch/m68k/kernel/syscalls/syscall.tbl
-index 7976dff8f879..45bc32a41b90 100644
---- a/arch/m68k/kernel/syscalls/syscall.tbl
-+++ b/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -448,3 +448,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/microblaze/kernel/syscalls/syscall.tbl b/arch/microblaze/kernel/syscalls/syscall.tbl
-index 6b0e11362bd2..2204bde3ce4a 100644
---- a/arch/microblaze/kernel/syscalls/syscall.tbl
-+++ b/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -454,3 +454,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/powerpc/kernel/syscalls/syscall.tbl b/arch/powerpc/kernel/syscalls/syscall.tbl
-index 7bef917cc84e..15109af9d075 100644
---- a/arch/powerpc/kernel/syscalls/syscall.tbl
-+++ b/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -528,3 +528,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/sh/kernel/syscalls/syscall.tbl b/arch/sh/kernel/syscalls/syscall.tbl
-index 208f131659c5..d9539d28bdaa 100644
---- a/arch/sh/kernel/syscalls/syscall.tbl
-+++ b/arch/sh/kernel/syscalls/syscall.tbl
-@@ -451,3 +451,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/sparc/kernel/syscalls/syscall.tbl b/arch/sparc/kernel/syscalls/syscall.tbl
-index c37764dc764d..46adabcb1720 100644
---- a/arch/sparc/kernel/syscalls/syscall.tbl
-+++ b/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -494,3 +494,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
-diff --git a/arch/xtensa/kernel/syscalls/syscall.tbl b/arch/xtensa/kernel/syscalls/syscall.tbl
-index 104b327f8ac9..3e3e1a506bed 100644
---- a/arch/xtensa/kernel/syscalls/syscall.tbl
-+++ b/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -419,3 +419,4 @@
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
- # 447 reserved for memfd_secret
- 448	common	process_mrelease		sys_process_mrelease
-+449	common  futex_waitv                     sys_futex_waitv
--- 
-2.33.1
-
+> 
+> Should I take this through the asm-generic tree, or would you send it
+> through the
+> tip tree?
+> 
+I think that adding it to asm-generic tree make sense to me.
