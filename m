@@ -2,36 +2,36 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1D2DC4707F
-	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:22:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B433C4167E
+	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:22:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347776AbhK0B0D (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Nov 2021 20:26:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36494 "EHLO
+        id S1347878AbhK0B0I (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Nov 2021 20:26:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345137AbhK0BX7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:23:59 -0500
+        with ESMTP id S1344510AbhK0BYF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:24:05 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD4C0C061763;
-        Fri, 26 Nov 2021 17:19:08 -0800 (PST)
-Message-ID: <20211126223825.264524206@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB7D8C0613F2;
+        Fri, 26 Nov 2021 17:19:25 -0800 (PST)
+Message-ID: <20211126223824.204004845@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1637975946;
+        s=2020; t=1637975964;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=N3CFGfVjsY7LgA1Yw7Ey6P6ZQR/J2nTOxZlFyVj+tfU=;
-        b=Fv0in+37WjQu8qaGw1d+sJDwVg72jTWmW4A0ir4m/M4Ok5n1Maj2zCuqkFlqoDcwKtFhN9
-        usAjQogUj8AjRYgg4XnitKY5rxgW2TkyutAVrKlGFCgr/QOORGiNR/7ULx+gebHewQ2s/A
-        /cIqE2xCgTcvSdjMl/o8jTzKo/rp+T2wCqIQmwW2CBFlppFIU1Ogv1xMa/PU+QvLJWk4QA
-        8ApzSw5z7JxXdKYOPEwzVrt2L/3gLDfjQsxsE0x31MpU5s4q2t0v8iWXAumITmxLRYrtTJ
-        iU+boulqpaCbZh/WpK684wQ0UEls6YBAyu7dgFYcD4eyOfwcT+9k0SAxWnS9Bw==
+         references:references; bh=yyhtvslqP4HLRieVFfAZFU9HV4/e0iOdDJgsQQb4EZc=;
+        b=2CGwSzv8GJU60xQIlfgVOaRi5g9Fn+D0hzWIX0d0pUqtFU4hdxgFID5ZAs4YMb4G+S5Wrv
+        avqCKVkAif5q5QbFxS7cEQhGnCY2S+6e28XQmeCnJRn2T0XoJ4u7U8UnVhTwn9fv4Dn0xB
+        SA+5dfMbSTbKf+A7DDFaxOGfTXkGGQ5SBh1bG9k//gWsSsiprWcstpFZ2e8h6B/VM2UFUJ
+        LdQV8C7hFqrZUfOS72q/yy+isOPS0nsKpb9++fl/GOil+WjZl8BRrzcF7WdwhFoz2N2PGF
+        3ivKoXc4RUormXF6RJNnnNMFOrPUmNhdaGzXzR1mfZQva9D/gVP49O9y4DcYJw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1637975946;
+        s=2020e; t=1637975964;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=N3CFGfVjsY7LgA1Yw7Ey6P6ZQR/J2nTOxZlFyVj+tfU=;
-        b=LToY0nY68kcZvyJBO8o4NrjRDqhd7lfHJRva1kjIMCQSN9rrfWrqKa7vfx0y47lZyVAi7T
-        hHRAYB/im3bzNaAA==
+         references:references; bh=yyhtvslqP4HLRieVFfAZFU9HV4/e0iOdDJgsQQb4EZc=;
+        b=0XCFh3K4IrRNY6L0MyY+vUemfrvkZlIFY/qYHFr3mYxeMx0ngocRG4o0KW8jALmJLkbbXC
+        ZNYbsj1qUqXZJQCw==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -53,47 +53,92 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Juergen Gross <jgross@suse.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch 20/22] PCI/MSI: Make pci_msi_domain_check_cap() static
+Subject: [patch 02/22] PCI/MSI: Fix pci_irq_vector()/pci_irq_get_attinity()
 References: <20211126222700.862407977@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Sat, 27 Nov 2021 02:19:05 +0100 (CET)
+Date:   Sat, 27 Nov 2021 02:19:23 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
-Message-ID: <20211127011905.GsWQFZpvbQRC09Jvb9pnyASXAj7B_AQIHd11B5H3qLU@z>
+Message-ID: <20211127011923.bBhaxlw0omtwpo7jofenNTEJClmXPplwHoFmjvHSwzA@z>
 
-No users outside of that file.
+pci_irq_vector() and pci_irq_get_affinity() use the list position to find the
+MSI-X descriptor at a given index. That's correct for the normal case where
+the entry number is the same as the list position.
 
+But it's wrong for cases where MSI-X was allocated with an entries array
+describing sparse entry numbers into the hardware message descriptor
+table. That's inconsistent at best.
+
+Make it always check the entry number because that's what the zero base
+index really means. This change won't break existing users which use a
+sparse entries array for allocation because these users retrieve the Linux
+interrupt number from the entries array after allocation and none of them
+uses pci_irq_vector() or pci_irq_get_affinity().
+
+Fixes: aff171641d18 ("PCI: Provide sensible IRQ vector alloc/free routines")
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/pci/msi/irqdomain.c |    5 +++--
- include/linux/msi.h         |    2 --
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/pci/msi.c |   26 ++++++++++++++++++--------
+ 1 file changed, 18 insertions(+), 8 deletions(-)
 
---- a/drivers/pci/msi/irqdomain.c
-+++ b/drivers/pci/msi/irqdomain.c
-@@ -79,8 +79,9 @@ static inline bool pci_msi_desc_is_multi
-  *  1 if Multi MSI is requested, but the domain does not support it
-  *  -ENOTSUPP otherwise
-  */
--int pci_msi_domain_check_cap(struct irq_domain *domain,
--			     struct msi_domain_info *info, struct device *dev)
-+static int pci_msi_domain_check_cap(struct irq_domain *domain,
-+				    struct msi_domain_info *info,
-+				    struct device *dev)
- {
- 	struct msi_desc *desc = first_pci_msi_entry(to_pci_dev(dev));
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -1187,19 +1187,24 @@ EXPORT_SYMBOL(pci_free_irq_vectors);
  
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -438,8 +438,6 @@ void *platform_msi_get_host_data(struct
- struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					     struct msi_domain_info *info,
- 					     struct irq_domain *parent);
--int pci_msi_domain_check_cap(struct irq_domain *domain,
--			     struct msi_domain_info *info, struct device *dev);
- u32 pci_msi_domain_get_msi_rid(struct irq_domain *domain, struct pci_dev *pdev);
- struct irq_domain *pci_msi_get_device_domain(struct pci_dev *pdev);
- bool pci_dev_has_special_msi_domain(struct pci_dev *pdev);
+ /**
+  * pci_irq_vector - return Linux IRQ number of a device vector
+- * @dev: PCI device to operate on
+- * @nr: device-relative interrupt vector index (0-based).
++ * @dev:	PCI device to operate on
++ * @nr:		Interrupt vector index (0-based)
++ *
++ * @nr has the following meanings depending on the interrupt mode:
++ *   MSI-X:	The index in the MSI-X vector table
++ *   MSI:	The index of the enabled MSI vectors
++ *   INTx:	Must be 0
++ *
++ * Return: The Linux interrupt number or -EINVAl if @nr is out of range.
+  */
+ int pci_irq_vector(struct pci_dev *dev, unsigned int nr)
+ {
+ 	if (dev->msix_enabled) {
+ 		struct msi_desc *entry;
+-		int i = 0;
+ 
+ 		for_each_pci_msi_entry(entry, dev) {
+-			if (i == nr)
++			if (entry->msi_attrib.entry_nr == nr)
+ 				return entry->irq;
+-			i++;
+ 		}
+ 		WARN_ON_ONCE(1);
+ 		return -EINVAL;
+@@ -1223,17 +1228,22 @@ EXPORT_SYMBOL(pci_irq_vector);
+  * pci_irq_get_affinity - return the affinity of a particular MSI vector
+  * @dev:	PCI device to operate on
+  * @nr:		device-relative interrupt vector index (0-based).
++ *
++ * @nr has the following meanings depending on the interrupt mode:
++ *   MSI-X:	The index in the MSI-X vector table
++ *   MSI:	The index of the enabled MSI vectors
++ *   INTx:	Must be 0
++ *
++ * Return: A cpumask pointer or NULL if @nr is out of range
+  */
+ const struct cpumask *pci_irq_get_affinity(struct pci_dev *dev, int nr)
+ {
+ 	if (dev->msix_enabled) {
+ 		struct msi_desc *entry;
+-		int i = 0;
+ 
+ 		for_each_pci_msi_entry(entry, dev) {
+-			if (i == nr)
++			if (entry->msi_attrib.entry_nr == nr)
+ 				return &entry->affinity->mask;
+-			i++;
+ 		}
+ 		WARN_ON_ONCE(1);
+ 		return NULL;
 
