@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6675BC3526D
-	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DF6EC43219
+	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:21:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345835AbhK0BYR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Nov 2021 20:24:17 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:35300 "EHLO
+        id S1344714AbhK0BY0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Nov 2021 20:24:26 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:35546 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344763AbhK0BWQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:22:16 -0500
-Message-ID: <20211126223825.034426787@linutronix.de>
+        with ESMTP id S1344503AbhK0BWX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:22:23 -0500
+Message-ID: <20211126223825.320724006@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1637975940;
+        s=2020; t=1637975948;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=/hUtpZoje77D8jXpCF4dVmu6dIuQVzxr12Tf8gEZrmw=;
-        b=hNIt8OdQYSBdhy1LPCcMUGRBqnREBl3UBjJaNo48wU+yitHyucClBw2FatgmLhmT+NU3Ql
-        4sNgzJGJwZh/ha6ppJ940OFjIokFLOJZrrZ9Hn+cAi1F4FyEZB5/WZGbdWx/0rI4gSVYXH
-        0ZAueHlXhJYar/+0Pt78nugjpObRWsEEvTI82qsArEFCxNUEKE1CjeVxpOaurVu/heD40x
-        svbwdGhLpDr+48E2XA7s2rBrW/D9QDT1vecScPJtMzmkyrDlH0t6HEPyqjKucfxxETkZq3
-        M3K9th4jI9ae1bWlJd5NI+WypKa6K5lyXJE2P5xEhwaQn0Ti6cqyZ6VpLW9nNw==
+         references:references; bh=kh2ZB8gumt7yFa2wjaDhpeN9tXzUfJvLkALkOS94EFA=;
+        b=rL3dSVq51HwJyrZ1GiK+2Uy987fWifzc93Kzd1rYDYc6CJES4RYQFW91VYz9giUBA4pc8g
+        3Gp8SO0SCSSci4EB0aGRBsqUldeO9DZdmixm6jmAcLXOjd3EDQN4ceHT5qIHtZ1M4OOjCs
+        5B1fwbTAHUDHkQfAY6r0w3SoQx1i3rzd1zp4I1umGTSQGLkl+Ug/rBlXyPGu1g3qmxiQdo
+        9/IiaSvnNmIreFZA0hbCMbgvbZt32iGcp6GO/Dw3rrPbcAK+xJsiiVNJEaCAM2vKSnhji3
+        6KWA27/ZxBzJeVpPdNFWb/PzJXwnrdawx9cM4YXt/mQphMHqQUhIcUngebAkPw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1637975940;
+        s=2020e; t=1637975948;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=/hUtpZoje77D8jXpCF4dVmu6dIuQVzxr12Tf8gEZrmw=;
-        b=VuXwjFCkRtJzwgPzd13igAMoSEEMu4NeLAa9wdlctBYjILYD2dtuDp0HaXuKf26rChjrKM
-        6+NREzi1mLkFLdBg==
+         references:references; bh=kh2ZB8gumt7yFa2wjaDhpeN9tXzUfJvLkALkOS94EFA=;
+        b=QLwf6Eyk3o45pGBEtsCZ2xr7a4DlyXTC6NnM3m6uL6iU2aPZXLRZf3PE6XQ/TuIY8Xwpt7
+        hQcta2kLnH2eixAg==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -50,130 +50,145 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Juergen Gross <jgross@suse.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch 16/22] PCI/MSI: Split out CONFIG_PCI_MSI independent part
+Subject: [patch 21/22] genirq/msi: Handle PCI/MSI allocation fail in core code
 References: <20211126222700.862407977@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Sat, 27 Nov 2021 02:18:59 +0100 (CET)
+Date:   Sat, 27 Nov 2021 02:19:07 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-These functions are required even when CONFIG_PCI_MSI is not set. Move them
-to their own file.
+Get rid of yet another irqdomain callback and let the core code return the
+already available information of how many descriptors could be allocated.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/pci/msi/Makefile     |    3 ++-
- drivers/pci/msi/msi.c        |   39 ---------------------------------------
- drivers/pci/msi/pcidev_msi.c |   43 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 45 insertions(+), 40 deletions(-)
+ drivers/pci/msi/irqdomain.c |   13 -------------
+ include/linux/msi.h         |    5 +----
+ kernel/irq/msi.c            |   29 +++++++++++++++++++++++++----
+ 3 files changed, 26 insertions(+), 21 deletions(-)
 
---- a/drivers/pci/msi/Makefile
-+++ b/drivers/pci/msi/Makefile
-@@ -1,4 +1,5 @@
- # SPDX-License-Identifier: GPL-2.0
- #
- # Makefile for the PCI/MSI
--obj-$(CONFIG_PCI)		+= msi.o
-+obj-$(CONFIG_PCI)		+= pcidev_msi.o
-+obj-$(CONFIG_PCI_MSI)		+= msi.o
---- a/drivers/pci/msi/msi.c
-+++ b/drivers/pci/msi/msi.c
-@@ -18,8 +18,6 @@
- 
- #include "../pci.h"
- 
--#ifdef CONFIG_PCI_MSI
--
- static int pci_msi_enable = 1;
- int pci_msi_ignore_mask;
- 
-@@ -1479,40 +1477,3 @@ bool pci_dev_has_special_msi_domain(stru
+--- a/drivers/pci/msi/irqdomain.c
++++ b/drivers/pci/msi/irqdomain.c
+@@ -95,16 +95,6 @@ static int pci_msi_domain_check_cap(stru
+ 	return 0;
  }
  
- #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
--#endif /* CONFIG_PCI_MSI */
--
--void pci_msi_init(struct pci_dev *dev)
+-static int pci_msi_domain_handle_error(struct irq_domain *domain,
+-				       struct msi_desc *desc, int error)
 -{
--	u16 ctrl;
+-	/* Special handling to support __pci_enable_msi_range() */
+-	if (pci_msi_desc_is_multi_msi(desc) && error == -ENOSPC)
+-		return 1;
 -
--	/*
--	 * Disable the MSI hardware to avoid screaming interrupts
--	 * during boot.  This is the power on reset default so
--	 * usually this should be a noop.
--	 */
--	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
--	if (!dev->msi_cap)
--		return;
--
--	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
--	if (ctrl & PCI_MSI_FLAGS_ENABLE)
--		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
--				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
--
--	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
--		dev->no_64bit_msi = 1;
+-	return error;
 -}
 -
--void pci_msix_init(struct pci_dev *dev)
--{
--	u16 ctrl;
--
--	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
--	if (!dev->msix_cap)
--		return;
--
--	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
--	if (ctrl & PCI_MSIX_FLAGS_ENABLE)
--		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
--				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
--}
---- /dev/null
-+++ b/drivers/pci/msi/pcidev_msi.c
-@@ -0,0 +1,43 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * MSI[X} related functions which are available unconditionally.
-+ */
-+#include "../pci.h"
-+
-+/*
-+ * Disable the MSI[X] hardware to avoid screaming interrupts during boot.
-+ * This is the power on reset default so usually this should be a noop.
-+ */
-+
-+void pci_msi_init(struct pci_dev *dev)
+ static void pci_msi_domain_set_desc(msi_alloc_info_t *arg,
+ 				    struct msi_desc *desc)
+ {
+@@ -115,7 +105,6 @@ static void pci_msi_domain_set_desc(msi_
+ static struct msi_domain_ops pci_msi_domain_ops_default = {
+ 	.set_desc	= pci_msi_domain_set_desc,
+ 	.msi_check	= pci_msi_domain_check_cap,
+-	.handle_error	= pci_msi_domain_handle_error,
+ };
+ 
+ static void pci_msi_domain_update_dom_ops(struct msi_domain_info *info)
+@@ -129,8 +118,6 @@ static void pci_msi_domain_update_dom_op
+ 			ops->set_desc = pci_msi_domain_set_desc;
+ 		if (ops->msi_check == NULL)
+ 			ops->msi_check = pci_msi_domain_check_cap;
+-		if (ops->handle_error == NULL)
+-			ops->handle_error = pci_msi_domain_handle_error;
+ 	}
+ }
+ 
+--- a/include/linux/msi.h
++++ b/include/linux/msi.h
+@@ -285,7 +285,6 @@ struct msi_domain_info;
+  * @msi_check:		Callback for verification of the domain/info/dev data
+  * @msi_prepare:	Prepare the allocation of the interrupts in the domain
+  * @set_desc:		Set the msi descriptor for an interrupt
+- * @handle_error:	Optional error handler if the allocation fails
+  * @domain_alloc_irqs:	Optional function to override the default allocation
+  *			function.
+  * @domain_free_irqs:	Optional function to override the default free
+@@ -294,7 +293,7 @@ struct msi_domain_info;
+  * @get_hwirq, @msi_init and @msi_free are callbacks used by the underlying
+  * irqdomain.
+  *
+- * @msi_check, @msi_prepare, @handle_error and @set_desc are callbacks used by
++ * @msi_check, @msi_prepare and @set_desc are callbacks used by
+  * msi_domain_alloc/free_irqs().
+  *
+  * @domain_alloc_irqs, @domain_free_irqs can be used to override the
+@@ -331,8 +330,6 @@ struct msi_domain_ops {
+ 				       msi_alloc_info_t *arg);
+ 	void		(*set_desc)(msi_alloc_info_t *arg,
+ 				    struct msi_desc *desc);
+-	int		(*handle_error)(struct irq_domain *domain,
+-					struct msi_desc *desc, int error);
+ 	int		(*domain_alloc_irqs)(struct irq_domain *domain,
+ 					     struct device *dev, int nvec);
+ 	void		(*domain_free_irqs)(struct irq_domain *domain,
+--- a/kernel/irq/msi.c
++++ b/kernel/irq/msi.c
+@@ -538,6 +538,27 @@ static bool msi_check_reservation_mode(s
+ 	return desc->pci.msi_attrib.is_msix || desc->pci.msi_attrib.can_mask;
+ }
+ 
++static int msi_handle_pci_fail(struct irq_domain *domain, struct msi_desc *desc,
++			       int allocated)
 +{
-+	u16 ctrl;
-+
-+	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
-+	if (!dev->msi_cap)
-+		return;
-+
-+	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
-+	if (ctrl & PCI_MSI_FLAGS_ENABLE) {
-+		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
-+				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
++	switch(domain->bus_token) {
++	case DOMAIN_BUS_PCI_MSI:
++	case DOMAIN_BUS_VMD_MSI:
++		if (IS_ENABLED(CONFIG_PCI_MSI))
++			break;
++		fallthrough;
++	default:
++		return -ENOSPC;
 +	}
 +
-+	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
-+		dev->no_64bit_msi = 1;
++	/* Let a failed PCI multi MSI allocation retry */
++	if (desc->nvec_used > 1)
++		return 1;
++
++	/* If there was a successful allocation let the caller know */
++	return allocated ? allocated : -ENOSPC;
 +}
 +
-+void pci_msix_init(struct pci_dev *dev)
-+{
-+	u16 ctrl;
-+
-+	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
-+	if (!dev->msix_cap)
-+		return;
-+
-+	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
-+	if (ctrl & PCI_MSIX_FLAGS_ENABLE) {
-+		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
-+				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
-+	}
-+}
+ int __msi_domain_alloc_irqs(struct irq_domain *domain, struct device *dev,
+ 			    int nvec)
+ {
+@@ -546,6 +567,7 @@ int __msi_domain_alloc_irqs(struct irq_d
+ 	struct irq_data *irq_data;
+ 	struct msi_desc *desc;
+ 	msi_alloc_info_t arg = { };
++	int allocated = 0;
+ 	int i, ret, virq;
+ 	bool can_reserve;
+ 
+@@ -560,16 +582,15 @@ int __msi_domain_alloc_irqs(struct irq_d
+ 					       dev_to_node(dev), &arg, false,
+ 					       desc->affinity);
+ 		if (virq < 0) {
+-			ret = -ENOSPC;
+-			if (ops->handle_error)
+-				ret = ops->handle_error(domain, desc, ret);
+-			return ret;
++			ret = msi_handle_pci_fail(domain, desc, allocated);
++			goto cleanup;
+ 		}
+ 
+ 		for (i = 0; i < desc->nvec_used; i++) {
+ 			irq_set_msi_desc_off(virq, i, desc);
+ 			irq_debugfs_copy_devname(virq + i, dev);
+ 		}
++		allocated++;
+ 	}
+ 
+ 	can_reserve = msi_check_reservation_mode(domain, info, dev);
 
