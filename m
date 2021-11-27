@@ -2,36 +2,36 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BDF4C41535
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00049C35268
 	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347942AbhK0B0K (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Nov 2021 20:26:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36538 "EHLO
+        id S1347988AbhK0B0L (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Nov 2021 20:26:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345485AbhK0BYJ (ORCPT
+        with ESMTP id S1345499AbhK0BYJ (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:24:09 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14311C0613F8;
-        Fri, 26 Nov 2021 17:19:32 -0800 (PST)
-Message-ID: <20211126223824.441771859@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35F56C0613F9;
+        Fri, 26 Nov 2021 17:19:35 -0800 (PST)
+Message-ID: <20211126223824.558746009@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1637975970;
+        s=2020; t=1637975973;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=EjQK06gGut8wpWxb3xXf7TaaLrkIbQLhpXZXlXqI+1E=;
-        b=3IN7G2Z+0trEJeykGv7kUnMltcrJgw6/YiiYZT8QXhspQzKvcIJW3i6gR+n0r+g0hsjZAO
-        6Y9KrK5zYseTHHVb7+c8IptjiFQeVXBeJDPflWUfULp3GtFjmbp9XFuGtmX1U+/q2euX+7
-        jbyTLqyRLHFcvAPwlksKJBmoQq5tScd89MT6QeCRCoLuq+1hECPKCcrJEwZqd6tTMvJfgo
-        omFGhCP0pUYeNAhfPERNfI16sLmeF3+3CoWsyDCxxVlEIkwnejxyxNkkc5/OsucKZ6M2Wz
-        9b3BXGVs3dTsq0Elas1wdnxn4Qa5k8MRI/8VEocHf7LWeYN/GB276k0tmU8dkg==
+         references:references; bh=t8fdQf5v0Re3s6aU2w+RDhHEUcAYg2OEvsShj+q+pN4=;
+        b=k3LK6nDtbjd4YGl8vOmrIZ02BVXh9ZMWUHEM7ttmKyvlCHnca06fC+l+4jF5F+hBFDP8GJ
+        DeFLPG5Xm8Bc4Hhc7h+t7TuaBGGeCCNzAQY1fycjhbU3S1JJSNFBZ/B+hMI9UeXnGhlu5e
+        s9r9oMIkbB8PwKngQi9dz5DWNT9SzXlJnBGen0GkHcDk9mxX6//4DR69MfrvwLonMK2RyY
+        Ri1QyvHxQPYj4iggM4CCqYBaXNV5935b9NWGlpqQNUWOFSmYwugOsdnBaNR8HB68mMOGgp
+        Q1CNhqjsN5RzNJqIYolTS3TdSOTjQbch31LUaXLFkpINATuH8IwjIXPeqJuyTg==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1637975970;
+        s=2020e; t=1637975973;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=EjQK06gGut8wpWxb3xXf7TaaLrkIbQLhpXZXlXqI+1E=;
-        b=tNxaZsUisx8qmcOuXzPTbk9OTikfV8u0CcSvhiEBov4PNCxknl15jCdw3kB2y8lH62s1JS
-        bmCvi3+Z0sDU1eBw==
+         references:references; bh=t8fdQf5v0Re3s6aU2w+RDhHEUcAYg2OEvsShj+q+pN4=;
+        b=x0q81IPAGM3E7Z9Q/NsuMzv2IhRo7nqzgjSuf3p2DFzivVtMHfHdpjxs9cJDYLObc3Ebzg
+        CVyOdwAICSw7CIAQ==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -53,77 +53,37 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Juergen Gross <jgross@suse.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch 06/22] PCI/MSI: Make pci_msi_domain_write_msg() static
+Subject: [patch 08/22] PCI/sysfs: Use pci_irq_vector()
 References: <20211126222700.862407977@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Sat, 27 Nov 2021 02:19:30 +0100 (CET)
+Date:   Sat, 27 Nov 2021 02:19:33 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
-Message-ID: <20211127011930.0v_dDbC_Z3YrKkC8u_H2m8Cg4vp_qBjl6afvh_HuPdg@z>
+Message-ID: <20211127011933.g4UrBunj6AH6ULK6nFQ03ZkDoNzdmKWxzh6DszOZbOc@z>
 
-There is no point to have this function public as it is set by the PCI core
-anyway when a PCI/MSI irqdomain is created.
+instead of fiddling with msi descriptors.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/irqchip/irq-gic-v2m.c            |    1 -
- drivers/irqchip/irq-gic-v3-its-pci-msi.c |    1 -
- drivers/irqchip/irq-gic-v3-mbi.c         |    1 -
- drivers/pci/msi.c                        |    2 +-
- include/linux/msi.h                      |    1 -
- 5 files changed, 1 insertion(+), 5 deletions(-)
+ drivers/pci/pci-sysfs.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -88,7 +88,6 @@ static struct irq_chip gicv2m_msi_irq_ch
- 	.irq_mask		= gicv2m_mask_msi_irq,
- 	.irq_unmask		= gicv2m_unmask_msi_irq,
- 	.irq_eoi		= irq_chip_eoi_parent,
--	.irq_write_msi_msg	= pci_msi_domain_write_msg,
- };
+--- a/drivers/pci/pci-sysfs.c
++++ b/drivers/pci/pci-sysfs.c
+@@ -62,11 +62,8 @@ static ssize_t irq_show(struct device *d
+ 	 * For MSI, show the first MSI IRQ; for all other cases including
+ 	 * MSI-X, show the legacy INTx IRQ.
+ 	 */
+-	if (pdev->msi_enabled) {
+-		struct msi_desc *desc = first_pci_msi_entry(pdev);
+-
+-		return sysfs_emit(buf, "%u\n", desc->irq);
+-	}
++	if (pdev->msi_enabled)
++		return sysfs_emit(buf, "%u\n", pci_irq_vector(pdev, 0));
+ #endif
  
- static struct msi_domain_info gicv2m_msi_domain_info = {
---- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-@@ -28,7 +28,6 @@ static struct irq_chip its_msi_irq_chip
- 	.irq_unmask		= its_unmask_msi_irq,
- 	.irq_mask		= its_mask_msi_irq,
- 	.irq_eoi		= irq_chip_eoi_parent,
--	.irq_write_msi_msg	= pci_msi_domain_write_msg,
- };
- 
- static int its_pci_msi_vec_count(struct pci_dev *pdev, void *data)
---- a/drivers/irqchip/irq-gic-v3-mbi.c
-+++ b/drivers/irqchip/irq-gic-v3-mbi.c
-@@ -171,7 +171,6 @@ static struct irq_chip mbi_msi_irq_chip
- 	.irq_unmask		= mbi_unmask_msi_irq,
- 	.irq_eoi		= irq_chip_eoi_parent,
- 	.irq_compose_msi_msg	= mbi_compose_msi_msg,
--	.irq_write_msi_msg	= pci_msi_domain_write_msg,
- };
- 
- static struct msi_domain_info mbi_msi_domain_info = {
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -1267,7 +1267,7 @@ EXPORT_SYMBOL_GPL(msi_desc_to_pci_sysdat
-  * @irq_data:	Pointer to interrupt data of the MSI interrupt
-  * @msg:	Pointer to the message
-  */
--void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg)
-+static void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg)
- {
- 	struct msi_desc *desc = irq_data_get_msi_desc(irq_data);
- 
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -454,7 +454,6 @@ void *platform_msi_get_host_data(struct
- #endif /* CONFIG_GENERIC_MSI_IRQ_DOMAIN */
- 
- #ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
--void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg);
- struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					     struct msi_domain_info *info,
- 					     struct irq_domain *parent);
+ 	return sysfs_emit(buf, "%u\n", pdev->irq);
 
