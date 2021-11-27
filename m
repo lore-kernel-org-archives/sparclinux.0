@@ -2,36 +2,36 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10258C4332F
-	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:24:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 836BCC43219
+	for <sparclinux@archiver.kernel.org>; Sat, 27 Nov 2021 01:24:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348122AbhK0B1v (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Nov 2021 20:27:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36016 "EHLO
+        id S1348323AbhK0B15 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Nov 2021 20:27:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242351AbhK0BZu (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:25:50 -0500
+        with ESMTP id S243404AbhK0BZz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Nov 2021 20:25:55 -0500
 Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02B7CC0613FB;
-        Fri, 26 Nov 2021 17:19:43 -0800 (PST)
-Message-ID: <20211126223824.855947162@linutronix.de>
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1848C0613FD;
+        Fri, 26 Nov 2021 17:19:47 -0800 (PST)
+Message-ID: <20211126223825.034426787@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1637975981;
+        s=2020; t=1637975986;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=lhIUE61Y2ARmaAA3RG1h6L7zHDs4cKgQsOndAjR5STU=;
-        b=3I27l9siS6/oWE1JVUleWaLVyIqltkA2MLPegdLeuNH4xABPDw/VJVaN4/5xZwR/ZGDZ/X
-        z+Yu7BvVlI1Y8bjNWoik91+y02TV4O1ndMArqPpxXOjDKZc7tlfYU+IDvy9/QevhvUBSSe
-        nyPwZJhyvMtFooayQnVqCf1qlIROsanIGmDDCCtFBXia2UMjMfl/6bOUpWxdL7U7K8o12E
-        JDsMmY+UavmvHDtkNDK/mVPz680wKGlII+yHcirzIllt9Z7FWCJTiaD8RGfRwVR8wCXrIw
-        Fm3H9jm1jwNh8R+ZVC5kx7Gidr5VdZYHXIY0uS6MsgUEApx3IIaeb7WLJgRlLA==
+         references:references; bh=/hUtpZoje77D8jXpCF4dVmu6dIuQVzxr12Tf8gEZrmw=;
+        b=kiIa3WnklR7w/ZeDbikmw6N61xfDMfnL6ZU/pOOseNiVV+omr9Aa6z+0BVgtzFMBCu6iMQ
+        zKsikuo1zFVGhoKSmUIEASSuBkvEd3ptUL2iOJdMyQ3DpnQuo+VIo5ifVixMvFUEzvNoNu
+        3f2nitVyliW8P6TzXAaFW55/Jm1WCxDf99/Fz3p6iH3FrRJBfIjc+FJfNcFSu5JrTV/hOF
+        5vLWCzkgjOJjajXnssaIYKp5J8LS4aL6X2YpJXn2eqN0373MUkl/B9A8NvGWVAer6wN7Qg
+        Q3WpDV96QQDz3VHeQEjDnHcYO8c9rPbBEjBtYtLeg990OTmzjYCl3GKUZdmhyA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1637975981;
+        s=2020e; t=1637975986;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=lhIUE61Y2ARmaAA3RG1h6L7zHDs4cKgQsOndAjR5STU=;
-        b=cSljuXSfhLC27NoLNfSXkLMLt2p1DhSlr0Y1CawLWxZ6xSqD3SbIMB5YfCzJcABWyjJgHj
-        cjBENAHWPOx02EDA==
+         references:references; bh=/hUtpZoje77D8jXpCF4dVmu6dIuQVzxr12Tf8gEZrmw=;
+        b=8oE5dILfIppEOM4uSmv1UhhF+8V1aTl25VsmBDW8Y6mgtC2SCQ+c3AwBH+9jTQgu7f5Oe3
+        TgJGtWPMxxBhbTDQ==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -53,50 +53,131 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Juergen Gross <jgross@suse.com>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch 13/22] PCI/MSI: Cleanup include zoo
+Subject: [patch 16/22] PCI/MSI: Split out CONFIG_PCI_MSI independent part
 References: <20211126222700.862407977@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Sat, 27 Nov 2021 02:19:41 +0100 (CET)
+Date:   Sat, 27 Nov 2021 02:19:45 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
-Message-ID: <20211127011941.bASBqTYci2dNWkRt0OtUGchArVsbU6rhDhsESdgLC2o@z>
+Message-ID: <20211127011945.aXvy772-gH7v9SHMvk26h0yhRyfYQ6HQgqSNkG2v1gs@z>
 
-Get rid of the pile of unneeded includes which accumulated over time.
+These functions are required even when CONFIG_PCI_MSI is not set. Move them
+to their own file.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 ---
- drivers/pci/msi.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ drivers/pci/msi/Makefile     |    3 ++-
+ drivers/pci/msi/msi.c        |   39 ---------------------------------------
+ drivers/pci/msi/pcidev_msi.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 45 insertions(+), 40 deletions(-)
 
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -7,22 +7,14 @@
-  * Copyright (C) 2016 Christoph Hellwig.
-  */
+--- a/drivers/pci/msi/Makefile
++++ b/drivers/pci/msi/Makefile
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ #
+ # Makefile for the PCI/MSI
+-obj-$(CONFIG_PCI)		+= msi.o
++obj-$(CONFIG_PCI)		+= pcidev_msi.o
++obj-$(CONFIG_PCI_MSI)		+= msi.o
+--- a/drivers/pci/msi/msi.c
++++ b/drivers/pci/msi/msi.c
+@@ -18,8 +18,6 @@
  
-+#include <linux/acpi_iort.h>
- #include <linux/err.h>
--#include <linux/mm.h>
--#include <linux/irq.h>
--#include <linux/interrupt.h>
- #include <linux/export.h>
--#include <linux/ioport.h>
--#include <linux/pci.h>
--#include <linux/proc_fs.h>
--#include <linux/msi.h>
--#include <linux/smp.h>
--#include <linux/errno.h>
--#include <linux/io.h>
--#include <linux/acpi_iort.h>
--#include <linux/slab.h>
-+#include <linux/irq.h>
- #include <linux/irqdomain.h>
-+#include <linux/msi.h>
- #include <linux/of_irq.h>
-+#include <linux/pci.h>
+ #include "../pci.h"
  
- #include "pci.h"
+-#ifdef CONFIG_PCI_MSI
+-
+ static int pci_msi_enable = 1;
+ int pci_msi_ignore_mask;
  
+@@ -1479,40 +1477,3 @@ bool pci_dev_has_special_msi_domain(stru
+ }
+ 
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+-#endif /* CONFIG_PCI_MSI */
+-
+-void pci_msi_init(struct pci_dev *dev)
+-{
+-	u16 ctrl;
+-
+-	/*
+-	 * Disable the MSI hardware to avoid screaming interrupts
+-	 * during boot.  This is the power on reset default so
+-	 * usually this should be a noop.
+-	 */
+-	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
+-	if (!dev->msi_cap)
+-		return;
+-
+-	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
+-	if (ctrl & PCI_MSI_FLAGS_ENABLE)
+-		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
+-				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
+-
+-	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
+-		dev->no_64bit_msi = 1;
+-}
+-
+-void pci_msix_init(struct pci_dev *dev)
+-{
+-	u16 ctrl;
+-
+-	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
+-	if (!dev->msix_cap)
+-		return;
+-
+-	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
+-	if (ctrl & PCI_MSIX_FLAGS_ENABLE)
+-		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
+-				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
+-}
+--- /dev/null
++++ b/drivers/pci/msi/pcidev_msi.c
+@@ -0,0 +1,43 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * MSI[X} related functions which are available unconditionally.
++ */
++#include "../pci.h"
++
++/*
++ * Disable the MSI[X] hardware to avoid screaming interrupts during boot.
++ * This is the power on reset default so usually this should be a noop.
++ */
++
++void pci_msi_init(struct pci_dev *dev)
++{
++	u16 ctrl;
++
++	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
++	if (!dev->msi_cap)
++		return;
++
++	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
++	if (ctrl & PCI_MSI_FLAGS_ENABLE) {
++		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
++				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
++	}
++
++	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
++		dev->no_64bit_msi = 1;
++}
++
++void pci_msix_init(struct pci_dev *dev)
++{
++	u16 ctrl;
++
++	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
++	if (!dev->msix_cap)
++		return;
++
++	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
++	if (ctrl & PCI_MSIX_FLAGS_ENABLE) {
++		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
++				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
++	}
++}
 
