@@ -2,119 +2,99 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 863F2C433FE
-	for <sparclinux@archiver.kernel.org>; Mon, 29 Nov 2021 10:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB232C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 29 Nov 2021 21:40:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235238AbhK2K1F (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 29 Nov 2021 05:27:05 -0500
-Received: from elvis.franken.de ([193.175.24.41]:48508 "EHLO elvis.franken.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232498AbhK2KZF (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 29 Nov 2021 05:25:05 -0500
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1mrdmz-0004dt-00; Mon, 29 Nov 2021 11:21:37 +0100
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 5E79DC2F89; Mon, 29 Nov 2021 11:21:16 +0100 (CET)
-Date:   Mon, 29 Nov 2021 11:21:16 +0100
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     Thomas Gleixner <tglx@linutronix.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>,
+        id S231493AbhK2VoF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 29 Nov 2021 16:44:05 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:56576 "EHLO
+        galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230335AbhK2VmF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 29 Nov 2021 16:42:05 -0500
+From:   Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1638221925;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=sTsTXZmVNEttdKActcp/MQ79Sqm2VlTHeENYuk8KrhE=;
+        b=ILyfVKGE5UZvmRThsq5XEtpixIVIivrUSBAXm+humQHTDLzWIKEX4H8+4OD+aeIfZ4DV92
+        9T+62U6FIpWYIpoyRwMMumiAWctcb/I9yr1yNfsu8sRnZChwXIMAcSaHOA+Rqc6gRrobwk
+        VD1hPi2gr2//sF+SQuC4nahdGSaDafaDW7sBy0aS8tR1r1meQJeCOwOOGRC5aIHAc9Xvk4
+        /FJzDlJKlE89PcGuwq4SuMSriWZnI0H29jLtYIq6CXQ6TOUli2NIXrPAh97GMsBqbXW+Qh
+        eBXpIwFI96/i9Jnc137e9kO89zceLA086wH/JPWoxTfUn5qn3H8Cfws4QVJy/w==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1638221925;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=sTsTXZmVNEttdKActcp/MQ79Sqm2VlTHeENYuk8KrhE=;
+        b=IFrPJPgHlzA5jXpCGMUgcnutoSn2o/emSpKWK3dUIvafMv+/N8+lm8fxoSszjkihxr/hYU
+        KzMXez+vjEq3dIDw==
+To:     =?utf-8?Q?C=C3=A9dric?= Le Goater <clg@kaod.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Cc:     linux-hyperv@vger.kernel.org, Paul Mackerras <paulus@samba.org>,
+        sparclinux@vger.kernel.org, Wei Liu <wei.liu@kernel.org>,
+        Ashok Raj <ashok.raj@intel.com>, Marc Zygnier <maz@kernel.org>,
+        x86@kernel.org, Christian Borntraeger <borntraeger@de.ibm.com>,
         Bjorn Helgaas <helgaas@kernel.org>,
-        Marc Zygnier <maz@kernel.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Kevin Tian <kevin.tian@intel.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Megha Dey <megha.dey@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org,
-        linux-mips@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>,
-        Paul Mackerras <paulus@samba.org>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        linuxppc-dev@lists.ozlabs.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        sparclinux@vger.kernel.org, x86@kernel.org,
+        Jason Gunthorpe <jgg@nvidia.com>, linux-pci@vger.kernel.org,
         xen-devel@lists.xenproject.org, ath11k@lists.infradead.org,
-        Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
+        Kevin Tian <kevin.tian@intel.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Megha Dey <megha.dey@intel.com>,
         Juergen Gross <jgross@suse.com>,
-        Christian Borntraeger <borntraeger@de.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>
-Subject: Re: [patch 09/22] MIPS: Octeon: Use arch_setup_msi_irq()
-Message-ID: <20211129102116.GA6158@alpha.franken.de>
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Subject: Re: [patch 05/22] genirq/msi: Fixup includes
+In-Reply-To: <b1a6d267-c7b4-c4b9-ab0e-f5cc32bfe9bf@kaod.org>
 References: <20211126222700.862407977@linutronix.de>
- <20211126223824.618089023@linutronix.de>
+ <20211126223824.382273262@linutronix.de>
+ <b1a6d267-c7b4-c4b9-ab0e-f5cc32bfe9bf@kaod.org>
+Date:   Mon, 29 Nov 2021 22:38:44 +0100
+Message-ID: <87tufud4m3.ffs@tglx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211126223824.618089023@linutronix.de>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Nov 27, 2021 at 02:18:48AM +0100, Thomas Gleixner wrote:
-> The core code provides the same loop code except for the MSI-X reject. Move
-> that to arch_setup_msi_irq() and remove the duplicated code.
-> 
-> No functional change.
-> 
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-> Cc: linux-mips@vger.kernel.org
-> ---
->  arch/mips/pci/msi-octeon.c |   32 +++-----------------------------
->  1 file changed, 3 insertions(+), 29 deletions(-)
-> 
-> --- a/arch/mips/pci/msi-octeon.c
-> +++ b/arch/mips/pci/msi-octeon.c
-> @@ -68,6 +68,9 @@ int arch_setup_msi_irq(struct pci_dev *d
->  	u64 search_mask;
->  	int index;
->  
-> +	if (desc->pci.msi_attrib.is_msix)
-> +		return -EINVAL;
-> +
->  	/*
->  	 * Read the MSI config to figure out how many IRQs this device
->  	 * wants.  Most devices only want 1, which will give
-> @@ -182,35 +185,6 @@ int arch_setup_msi_irq(struct pci_dev *d
->  	return 0;
->  }
->  
-> -int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-> -{
-> -	struct msi_desc *entry;
-> -	int ret;
-> -
-> -	/*
-> -	 * MSI-X is not supported.
-> -	 */
-> -	if (type == PCI_CAP_ID_MSIX)
-> -		return -EINVAL;
-> -
-> -	/*
-> -	 * If an architecture wants to support multiple MSI, it needs to
-> -	 * override arch_setup_msi_irqs()
-> -	 */
-> -	if (type == PCI_CAP_ID_MSI && nvec > 1)
-> -		return 1;
-> -
-> -	for_each_pci_msi_entry(entry, dev) {
-> -		ret = arch_setup_msi_irq(dev, entry);
-> -		if (ret < 0)
-> -			return ret;
-> -		if (ret > 0)
-> -			return -ENOSPC;
-> -	}
-> -
-> -	return 0;
-> -}
-> -
->  /**
->   * Called when a device no longer needs its MSI interrupts. All
->   * MSI interrupts for the device are freed.
+Cedric,
 
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+On Mon, Nov 29 2021 at 08:33, C=C3=A9dric Le Goater wrote:
+> On 11/27/21 02:18, Thomas Gleixner wrote:
+>> Remove the kobject.h include from msi.h as it's not required and add a
+>> sysfs.h include to the core code instead.
+>>=20
+>> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+>
+>
+> This patch breaks compile on powerpc :
+>
+>    CC      arch/powerpc/kernel/msi.o
+> In file included from ../arch/powerpc/kernel/msi.c:7:
+> ../include/linux/msi.h:410:65: error: =E2=80=98struct cpumask=E2=80=99 de=
+clared inside parameter list will not be visible outside of this definition=
+ or declaration [-Werror]
+>    410 | int msi_domain_set_affinity(struct irq_data *data, const struct =
+cpumask *mask,
+>        |                                                                 =
+^~~~~~~
+> cc1: all warnings being treated as errors
+>
+> Below is fix you can merge in patch 5.
 
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+thanks for having a look. I fixed up this and other fallout and pushed out =
+an
+updated series (all 4 parts) to:
+
+        git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel msi
+
+Thanks,
+
+        tglx
