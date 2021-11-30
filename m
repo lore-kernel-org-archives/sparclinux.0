@@ -2,84 +2,99 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EFC2C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Nov 2021 07:46:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DF59C433F5
+	for <sparclinux@archiver.kernel.org>; Tue, 30 Nov 2021 22:07:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239119AbhK3HuM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Nov 2021 02:50:12 -0500
-Received: from mail-vk1-f173.google.com ([209.85.221.173]:47004 "EHLO
-        mail-vk1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234539AbhK3HuL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Nov 2021 02:50:11 -0500
-Received: by mail-vk1-f173.google.com with SMTP id m16so11991888vkl.13;
-        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qH1mbhNXMXuJmqx9G5IiqTw6JnJwuBozKZoTCU8LW78=;
-        b=HzwLR6ksBcb92rf7Wsbs7g5gNXyh0UukK/UXjv58jVOaxPvj8evuCktYLFc159uMXd
-         Y91kNuxXSIVrzjHIzU9kXWTGe6u9wLJSdet/0d6GtWDhDNhIHxDzQHyQ6GIYtuFNzqKh
-         PXy4xe2QyoSVRyqxfj00YdkCYv8PS65q1mYkmkhUw4mSNZj/yq1+GjfaRw8cx3dSayJF
-         3naEoUWuFRZnbM33oBvztO2iBaZHhPPwYeD7383+4L3i2Ec7hILAGQyroBt/1868gaZG
-         l+JXH1ehbYy4STb63EqUmFZ9/BW3xe/IQ2hWkpPl8zzG8Z3tSSQX77I/nFrM94QMKQAk
-         Mizg==
-X-Gm-Message-State: AOAM533MoX12iXlOD68T6n0fK+/cSN3ktiv64t/g95AQt7NOxUG3t4cN
-        N+zT9sYjnO6LRfcVZCQMQMv3W5VnpDtm8w==
-X-Google-Smtp-Source: ABdhPJzE6vNC0CPq7tnv+JEVRzKv/QpkZi8kODnyF1xsqJhl35cPrlu2udvgXe2LXwBH01aLZI+oiA==
-X-Received: by 2002:a1f:9049:: with SMTP id s70mr42411250vkd.19.1638258412358;
-        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
-Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com. [209.85.221.176])
-        by smtp.gmail.com with ESMTPSA id 17sm10465203uaq.10.2021.11.29.23.46.52
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
-Received: by mail-vk1-f176.google.com with SMTP id m16so11991875vkl.13;
-        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
-X-Received: by 2002:a05:6122:104f:: with SMTP id z15mr38804710vkn.39.1638258411890;
- Mon, 29 Nov 2021 23:46:51 -0800 (PST)
+        id S1344497AbhK3WKY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 Nov 2021 17:10:24 -0500
+Received: from 5.mo552.mail-out.ovh.net ([188.165.45.220]:35977 "EHLO
+        5.mo552.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1344475AbhK3WKW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Nov 2021 17:10:22 -0500
+Received: from mxplan5.mail.ovh.net (unknown [10.109.143.123])
+        by mo552.mail-out.ovh.net (Postfix) with ESMTPS id 0AD47216DE;
+        Tue, 30 Nov 2021 21:48:24 +0000 (UTC)
+Received: from kaod.org (37.59.142.99) by DAG4EX1.mxp5.local (172.16.2.31)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.20; Tue, 30 Nov
+ 2021 22:48:23 +0100
+Authentication-Results: garm.ovh; auth=pass (GARM-99G00338e8fa02-b36d-46a2-a9ce-03d85f7b4222,
+                    1FE831E2BDC1BE20692CF32662DF656E64B35270) smtp.auth=clg@kaod.org
+X-OVh-ClientIp: 90.11.56.15
+Message-ID: <524d9b84-caa8-dd6f-bb5e-9fc906d279c0@kaod.org>
+Date:   Tue, 30 Nov 2021 22:48:22 +0100
 MIME-Version: 1.0
-References: <20211129122706.2719625-1-geert@linux-m68k.org>
-In-Reply-To: <20211129122706.2719625-1-geert@linux-m68k.org>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 30 Nov 2021 08:46:40 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdUSw=MdqMRJAf6W64YTKuu42iDYHKnv=T1x4h+SNUS1xQ@mail.gmail.com>
-Message-ID: <CAMuHMdUSw=MdqMRJAf6W64YTKuu42iDYHKnv=T1x4h+SNUS1xQ@mail.gmail.com>
-Subject: Re: Build regressions/improvements in v5.16-rc3
-To:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc:     sparclinux <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [patch 05/22] genirq/msi: Fixup includes
+Content-Language: en-US
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        LKML <linux-kernel@vger.kernel.org>
+CC:     <linux-hyperv@vger.kernel.org>, Paul Mackerras <paulus@samba.org>,
+        <sparclinux@vger.kernel.org>, Wei Liu <wei.liu@kernel.org>,
+        Ashok Raj <ashok.raj@intel.com>, Marc Zygnier <maz@kernel.org>,
+        <x86@kernel.org>, Christian Borntraeger <borntraeger@de.ibm.com>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Jason Gunthorpe <jgg@nvidia.com>, <linux-pci@vger.kernel.org>,
+        <xen-devel@lists.xenproject.org>, <ath11k@lists.infradead.org>,
+        Kevin Tian <kevin.tian@intel.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Megha Dey <megha.dey@intel.com>,
+        Juergen Gross <jgross@suse.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <linux-mips@vger.kernel.org>, <linuxppc-dev@lists.ozlabs.org>
+References: <20211126222700.862407977@linutronix.de>
+ <20211126223824.382273262@linutronix.de>
+ <b1a6d267-c7b4-c4b9-ab0e-f5cc32bfe9bf@kaod.org> <87tufud4m3.ffs@tglx>
+From:   =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>
+In-Reply-To: <87tufud4m3.ffs@tglx>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [37.59.142.99]
+X-ClientProxiedBy: DAG3EX2.mxp5.local (172.16.2.22) To DAG4EX1.mxp5.local
+ (172.16.2.31)
+X-Ovh-Tracer-GUID: 16c7449c-9f55-435d-bf3c-7f66bf2ab8fd
+X-Ovh-Tracer-Id: 11252243670229552028
+X-VR-SPAMSTATE: OK
+X-VR-SPAMSCORE: -100
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvuddriedugdduheehucetufdoteggodetrfdotffvucfrrhhofhhilhgvmecuqfggjfdpvefjgfevmfevgfenuceurghilhhouhhtmecuhedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmnecujfgurhepkfffgggfuffvfhfhjggtgfhisehtkeertddtfeejnecuhfhrohhmpeevrogurhhitggpnfgvpgfiohgrthgvrhcuoegtlhhgsehkrghougdrohhrgheqnecuggftrfgrthhtvghrnhepjeekvdfgudevkeefkeeltdejteekvdegffegudetgeettdffjeefheekfeelffdtnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucfkpheptddrtddrtddrtddpfeejrdehledrudegvddrleelnecuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmohguvgepshhmthhpohhuthdphhgvlhhopehmgihplhgrnhehrdhmrghilhdrohhvhhdrnhgvthdpihhnvghtpedtrddtrddtrddtpdhmrghilhhfrhhomheptghlgheskhgrohgurdhorhhgpdhrtghpthhtoheplhhinhhugihpphgtqdguvghvsehlihhsthhsrdhoiihlrggsshdrohhrgh
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Nov 29, 2021 at 1:27 PM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
-> JFYI, when comparing v5.16-rc3[1] to v5.16-rc2[3], the summaries are:
->   - build errors: +4/-8
+On 11/29/21 22:38, Thomas Gleixner wrote:
+> Cedric,
+> 
+> On Mon, Nov 29 2021 at 08:33, Cédric Le Goater wrote:
+>> On 11/27/21 02:18, Thomas Gleixner wrote:
+>>> Remove the kobject.h include from msi.h as it's not required and add a
+>>> sysfs.h include to the core code instead.
+>>>
+>>> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+>>
+>>
+>> This patch breaks compile on powerpc :
+>>
+>>     CC      arch/powerpc/kernel/msi.o
+>> In file included from ../arch/powerpc/kernel/msi.c:7:
+>> ../include/linux/msi.h:410:65: error: ‘struct cpumask’ declared inside parameter list will not be visible outside of this definition or declaration [-Werror]
+>>     410 | int msi_domain_set_affinity(struct irq_data *data, const struct cpumask *mask,
+>>         |                                                                 ^~~~~~~
+>> cc1: all warnings being treated as errors
+>>
+>> Below is fix you can merge in patch 5.
+> 
+> thanks for having a look. I fixed up this and other fallout and pushed out an
+> updated series (all 4 parts) to:
+> 
+>          git://git.kernel.org/pub/scm/linux/kernel/git/tglx/devel msi
 
-  + error: arch/sparc/kernel/head_32.o: relocation truncated to fit:
-R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100),
-(.head.text+0x5040)
-  + error: arch/sparc/kernel/head_32.o: relocation truncated to fit:
-R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text
-section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
-  + error: arch/sparc/kernel/process_32.o: relocation truncated to
-fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0xc), (.fixup+0x4)
-  + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit:
-R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0x10),
-(.fixup+0x34), (.fixup+0x1c), (.fixup+0x28)
+pSeries fails to allocate MSIs starting with this patch :
 
-sparc64/sparc-allmodconfig
+  [PATCH 049/101] powerpc/pseries/msi: Let core code check for contiguous ...
 
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/d58071a8a76d779eedab38033ae4c821c30295a5/ (all 90 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/136057256686de39cc3a07c2e39ef6bc43003ff6/ (all 90 configs)
+I will dig in later on.
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+C.
