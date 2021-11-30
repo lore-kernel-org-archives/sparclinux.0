@@ -2,132 +2,84 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1894C433FE
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Nov 2021 06:53:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EFC2C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 30 Nov 2021 07:46:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238829AbhK3G44 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Nov 2021 01:56:56 -0500
-Received: from szxga03-in.huawei.com ([45.249.212.189]:28194 "EHLO
-        szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232051AbhK3G44 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Nov 2021 01:56:56 -0500
-Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.53])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4J3CYk04yNz8vg4;
-        Tue, 30 Nov 2021 14:51:38 +0800 (CST)
-Received: from dggpemm500001.china.huawei.com (7.185.36.107) by
- dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2308.20; Tue, 30 Nov 2021 14:53:35 +0800
-Received: from [10.174.177.243] (10.174.177.243) by
- dggpemm500001.china.huawei.com (7.185.36.107) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256) id
- 15.1.2308.20; Tue, 30 Nov 2021 14:53:34 +0800
-Message-ID: <617f11ad-3033-473f-162e-cb7ecd67a78a@huawei.com>
-Date:   Tue, 30 Nov 2021 14:53:33 +0800
+        id S239119AbhK3HuM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 Nov 2021 02:50:12 -0500
+Received: from mail-vk1-f173.google.com ([209.85.221.173]:47004 "EHLO
+        mail-vk1-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234539AbhK3HuL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Nov 2021 02:50:11 -0500
+Received: by mail-vk1-f173.google.com with SMTP id m16so11991888vkl.13;
+        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=qH1mbhNXMXuJmqx9G5IiqTw6JnJwuBozKZoTCU8LW78=;
+        b=HzwLR6ksBcb92rf7Wsbs7g5gNXyh0UukK/UXjv58jVOaxPvj8evuCktYLFc159uMXd
+         Y91kNuxXSIVrzjHIzU9kXWTGe6u9wLJSdet/0d6GtWDhDNhIHxDzQHyQ6GIYtuFNzqKh
+         PXy4xe2QyoSVRyqxfj00YdkCYv8PS65q1mYkmkhUw4mSNZj/yq1+GjfaRw8cx3dSayJF
+         3naEoUWuFRZnbM33oBvztO2iBaZHhPPwYeD7383+4L3i2Ec7hILAGQyroBt/1868gaZG
+         l+JXH1ehbYy4STb63EqUmFZ9/BW3xe/IQ2hWkpPl8zzG8Z3tSSQX77I/nFrM94QMKQAk
+         Mizg==
+X-Gm-Message-State: AOAM533MoX12iXlOD68T6n0fK+/cSN3ktiv64t/g95AQt7NOxUG3t4cN
+        N+zT9sYjnO6LRfcVZCQMQMv3W5VnpDtm8w==
+X-Google-Smtp-Source: ABdhPJzE6vNC0CPq7tnv+JEVRzKv/QpkZi8kODnyF1xsqJhl35cPrlu2udvgXe2LXwBH01aLZI+oiA==
+X-Received: by 2002:a1f:9049:: with SMTP id s70mr42411250vkd.19.1638258412358;
+        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
+Received: from mail-vk1-f176.google.com (mail-vk1-f176.google.com. [209.85.221.176])
+        by smtp.gmail.com with ESMTPSA id 17sm10465203uaq.10.2021.11.29.23.46.52
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
+Received: by mail-vk1-f176.google.com with SMTP id m16so11991875vkl.13;
+        Mon, 29 Nov 2021 23:46:52 -0800 (PST)
+X-Received: by 2002:a05:6122:104f:: with SMTP id z15mr38804710vkn.39.1638258411890;
+ Mon, 29 Nov 2021 23:46:51 -0800 (PST)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.0
-Subject: Re: [PATCH RFC 0/4] mm: percpu: Cleanup percpu first chunk funciton
-Content-Language: en-US
-To:     Dennis Zhou <dennis@kernel.org>
-CC:     <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
-        <linux-mm@kvack.org>, <tj@kernel.org>,
-        <gregkh@linuxfoundation.org>, <cl@linux.com>,
-        <catalin.marinas@arm.com>, <will@kernel.org>,
-        <tsbogend@alpha.franken.de>, <mpe@ellerman.id.au>,
-        <benh@kernel.crashing.org>, <paulus@samba.org>,
-        <paul.walmsley@sifive.com>, <palmer@dabbelt.com>,
-        <aou@eecs.berkeley.edu>, <davem@davemloft.net>,
-        <tglx@linutronix.de>, <mingo@redhat.com>, <bp@alien8.de>,
-        <dave.hansen@linux.intel.com>, <hpa@zytor.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-ia64@vger.kernel.org>, <linux-mips@vger.kernel.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <linux-riscv@lists.infradead.org>,
-        <sparclinux@vger.kernel.org>, <x86@kernel.org>
-References: <20211121093557.139034-1-wangkefeng.wang@huawei.com>
- <YaVaTwjiZmWz8PKY@fedora>
-From:   Kefeng Wang <wangkefeng.wang@huawei.com>
-In-Reply-To: <YaVaTwjiZmWz8PKY@fedora>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-X-Originating-IP: [10.174.177.243]
-X-ClientProxiedBy: dggeme705-chm.china.huawei.com (10.1.199.101) To
- dggpemm500001.china.huawei.com (7.185.36.107)
-X-CFilter-Loop: Reflected
+References: <20211129122706.2719625-1-geert@linux-m68k.org>
+In-Reply-To: <20211129122706.2719625-1-geert@linux-m68k.org>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Tue, 30 Nov 2021 08:46:40 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdUSw=MdqMRJAf6W64YTKuu42iDYHKnv=T1x4h+SNUS1xQ@mail.gmail.com>
+Message-ID: <CAMuHMdUSw=MdqMRJAf6W64YTKuu42iDYHKnv=T1x4h+SNUS1xQ@mail.gmail.com>
+Subject: Re: Build regressions/improvements in v5.16-rc3
+To:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc:     sparclinux <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On Mon, Nov 29, 2021 at 1:27 PM Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> JFYI, when comparing v5.16-rc3[1] to v5.16-rc2[3], the summaries are:
+>   - build errors: +4/-8
 
-On 2021/11/30 6:55, Dennis Zhou wrote:
-> Hello,
->
-> On Sun, Nov 21, 2021 at 05:35:53PM +0800, Kefeng Wang wrote:
->> When support page mapping percpu first chunk allocator on arm64, we
->> found there are lots of duplicated codes in percpu embed/page first
->> chunk allocator. This patchset is aimed to cleanup them and should
->> no funciton change, only test on arm64.
->>
->> Kefeng Wang (4):
->>    mm: percpu: Generalize percpu related config
->>    mm: percpu: Add pcpu_fc_cpu_to_node_fn_t typedef
->>    mm: percpu: Add generic pcpu_fc_alloc/free funciton
->>    mm: percpu: Add generic pcpu_populate_pte() function
->>
->>   arch/arm64/Kconfig             |  20 +----
->>   arch/ia64/Kconfig              |   9 +--
->>   arch/mips/Kconfig              |  10 +--
->>   arch/mips/mm/init.c            |  14 +---
->>   arch/powerpc/Kconfig           |  17 +---
->>   arch/powerpc/kernel/setup_64.c |  92 +--------------------
->>   arch/riscv/Kconfig             |  10 +--
->>   arch/sparc/Kconfig             |  12 +--
->>   arch/sparc/kernel/smp_64.c     | 105 +-----------------------
->>   arch/x86/Kconfig               |  17 +---
->>   arch/x86/kernel/setup_percpu.c |  66 ++-------------
->>   drivers/base/arch_numa.c       |  68 +---------------
->>   include/linux/percpu.h         |  13 +--
->>   mm/Kconfig                     |  12 +++
->>   mm/percpu.c                    | 143 +++++++++++++++++++++++++--------
->>   15 files changed, 165 insertions(+), 443 deletions(-)
->>
->> -- 
->> 2.26.2
->>
-> I've made a few comments. I think this will be a little bit of a
-> challenge to get through due to it touching so many architectures. For
-> ease, it probably makes sense to run it through mny tree, but we'll need
-> explicit acks as I mentioned.
->
-> I like getting rid of the pcpu_alloc_bootmem()/pcpu_free_bootmem()
-> functions. However, let's keep the implementation identical to x86.
-ok , will change patch3 in v2
->
->
-> I don't think we should get rid of the populate_pte_fn(). I'm not
-> comfortable changing x86's implementation. Simply offer a NULL, and if
-> NULL use the default.
+  + error: arch/sparc/kernel/head_32.o: relocation truncated to fit:
+R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100),
+(.head.text+0x5040)
+  + error: arch/sparc/kernel/head_32.o: relocation truncated to fit:
+R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text
+section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+  + error: arch/sparc/kernel/process_32.o: relocation truncated to
+fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0xc), (.fixup+0x4)
+  + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit:
+R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0x10),
+(.fixup+0x34), (.fixup+0x1c), (.fixup+0x28)
 
-As replied in patch4, we use __weak method, and x86's implementation is
+sparc64/sparc-allmodconfig
 
-not changed in patch4, is this ok?
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/d58071a8a76d779eedab38033ae4c821c30295a5/ (all 90 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/136057256686de39cc3a07c2e39ef6bc43003ff6/ (all 90 configs)
 
->
-> Do you have a tree that intel pulls? I suggest cleaning up the patches
-> and pushing to a remote branch that they pick up. That would have caught
-> the mips typo. Send a PR creating a file in [1] for your branch, github
-> is fine. Basic validation needs to be done before I can pick this up
-> too on more than arm64.
+Gr{oetje,eeting}s,
 
-Ok, x86/arm64/riscv are tested, but I don't has ppc/mips/sparc compliler.
+                        Geert
 
-I will try to push new version into github and test by lkp.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Thanks.
-
->
-> [1] https://github.com/intel/lkp-tests/tree/master/repo/linux
->
-> Thanks,
-> Dennis
-> .
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
