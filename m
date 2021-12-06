@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 952D1C4332F
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:27:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC90C433EF
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:27:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357193AbhLFWbR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Dec 2021 17:31:17 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:45752 "EHLO
+        id S1357126AbhLFWbX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Dec 2021 17:31:23 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:45918 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242901AbhLFWbJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:09 -0500
-Message-ID: <20211206210224.319201379@linutronix.de>
+        with ESMTP id S1357095AbhLFWbP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:15 -0500
+Message-ID: <20211206210224.539281124@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1638829658;
+        s=2020; t=1638829665;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=gOhEwOl7pWXAdyfdjPv/xL32Zd5rtVvQRFE5wZzX1CM=;
-        b=dvaOjaxxL6xiDQA7FFy4cxQQ/uHU9sUdt6e/yyFwN1tu+bJ1yi46Si+LsK8MUpqWL66GBZ
-        2vYuDYX1gMzlWrQlXSNF7Gy5YE1JoRbELnLUr87259Kjgtgb01AkT3/PzG4pDRcVNe6nnu
-        ivxMXrLRTAd3saTznKV7mbiAHy2Rtw3hMMQvRO+thrnTc3FA0K+E4ppbPA/2gfw4NYQ+xk
-        oJH8E0LDjQDUOmg7euoxTjnOnIPyEBUSb+AO4mByR8WoxcxvvNGBpWjsmNaE7QFybpIRFg
-        x8MhqCDCTsZoEj80vUenfUClW3vGGZTwtNcCQ4Iw5T8t8x7oh0OUHc455oO1Ww==
+         references:references; bh=fpyg7awX8dijQzBRp+WIS78Jmos3C/8mTMn+TSrhxD8=;
+        b=pnGIDteYP84F0igC2k+ACUhibYQ3881OhRiiuaVIOBjTshXhjGeVdgZAA/lcK5sjvLEMoj
+        ROvDFYYNJX0JhR2QOKUEjXyWb04lLq7PP9xV81Z0D1FytvGg8OABck9JmC/ylB+YU2AvRJ
+        PZVaY5Ia3WuXqX49dyC//GQiLcA+5A6GZy5/1+M3d4XVPgxEHo1T/dGhvFuUZ1a4SJvQjn
+        ICbirvZcyT0c9k1KJC4jGdKAhnGZprc4Xqsi6XNBDU2/0hwWf55EV2aY3VwLmgUvxv9n/d
+        Nfe/m+FudbplubW4O/Khqp8m6T0J7JnGYcrRL/PejELQssL7PtUMHvHQVkjmhA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1638829658;
+        s=2020e; t=1638829665;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=gOhEwOl7pWXAdyfdjPv/xL32Zd5rtVvQRFE5wZzX1CM=;
-        b=jqiplyDoFdSA46RvOetOaqUacacbKtOW+CT5oA5zeEczBM+vXFTNHE6+JVcjlrsieqeQMT
-        qjTsGymloYl2PTAw==
+         references:references; bh=fpyg7awX8dijQzBRp+WIS78Jmos3C/8mTMn+TSrhxD8=;
+        b=RuOHGkoAA1Vj7KuipSnVapOZhwsUvKElxjyliNOso5sc0g+RXjuUG8oJb8SOmIunMIh0Pt
+        uWzxF181jxyPh3AQ==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -38,86 +38,66 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Megha Dey <megha.dey@intel.com>,
         Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org,
         Cedric Le Goater <clg@kaod.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org, Michael Ellerman <mpe@ellerman.id.au>,
+        Juergen Gross <jgross@suse.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
         Paul Mackerras <paulus@samba.org>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        linuxppc-dev@lists.ozlabs.org, Juergen Gross <jgross@suse.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org, Kalle Valo <kvalo@codeaurora.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         sparclinux@vger.kernel.org, x86@kernel.org,
         xen-devel@lists.xenproject.org, ath11k@lists.infradead.org,
         Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch V2 09/23] MIPS: Octeon: Use arch_setup_msi_irq()
+Subject: [patch V2 13/23] PCI/MSI: Cleanup include zoo
 References: <20211206210147.872865823@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Mon,  6 Dec 2021 23:27:38 +0100 (CET)
+Date:   Mon,  6 Dec 2021 23:27:44 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The core code provides the same loop code except for the MSI-X reject. Move
-that to arch_setup_msi_irq() and remove the duplicated code.
-
-No functional change.
+Get rid of the pile of unneeded includes which accumulated over time.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Tested-by: Juergen Gross <jgross@suse.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: linux-mips@vger.kernel.org
 ---
- arch/mips/pci/msi-octeon.c |   32 +++-----------------------------
- 1 file changed, 3 insertions(+), 29 deletions(-)
+V2: Address build fail on powerpc - Cedric
+---
+ drivers/pci/msi.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- a/arch/mips/pci/msi-octeon.c
-+++ b/arch/mips/pci/msi-octeon.c
-@@ -68,6 +68,9 @@ int arch_setup_msi_irq(struct pci_dev *d
- 	u64 search_mask;
- 	int index;
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -7,22 +7,14 @@
+  * Copyright (C) 2016 Christoph Hellwig.
+  */
  
-+	if (desc->pci.msi_attrib.is_msix)
-+		return -EINVAL;
-+
- 	/*
- 	 * Read the MSI config to figure out how many IRQs this device
- 	 * wants.  Most devices only want 1, which will give
-@@ -182,35 +185,6 @@ int arch_setup_msi_irq(struct pci_dev *d
- 	return 0;
- }
++#include <linux/acpi_iort.h>
+ #include <linux/err.h>
+-#include <linux/mm.h>
+-#include <linux/irq.h>
+-#include <linux/interrupt.h>
+ #include <linux/export.h>
+-#include <linux/ioport.h>
+-#include <linux/pci.h>
+-#include <linux/proc_fs.h>
+-#include <linux/msi.h>
+-#include <linux/smp.h>
+-#include <linux/errno.h>
+-#include <linux/io.h>
+-#include <linux/acpi_iort.h>
+-#include <linux/slab.h>
++#include <linux/irq.h>
+ #include <linux/irqdomain.h>
++#include <linux/msi.h>
+ #include <linux/of_irq.h>
++#include <linux/pci.h>
  
--int arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	struct msi_desc *entry;
--	int ret;
--
--	/*
--	 * MSI-X is not supported.
--	 */
--	if (type == PCI_CAP_ID_MSIX)
--		return -EINVAL;
--
--	/*
--	 * If an architecture wants to support multiple MSI, it needs to
--	 * override arch_setup_msi_irqs()
--	 */
--	if (type == PCI_CAP_ID_MSI && nvec > 1)
--		return 1;
--
--	for_each_pci_msi_entry(entry, dev) {
--		ret = arch_setup_msi_irq(dev, entry);
--		if (ret < 0)
--			return ret;
--		if (ret > 0)
--			return -ENOSPC;
--	}
--
--	return 0;
--}
--
- /**
-  * Called when a device no longer needs its MSI interrupts. All
-  * MSI interrupts for the device are freed.
+ #include "pci.h"
+ 
 
