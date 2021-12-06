@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97C12C433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:28:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C8BFC433EF
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:28:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357995AbhLFWbr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Dec 2021 17:31:47 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:46106 "EHLO
+        id S1357427AbhLFWbs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Dec 2021 17:31:48 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:45658 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357140AbhLFWbX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:23 -0500
-Message-ID: <20211206210224.763574089@linutronix.de>
+        with ESMTP id S1356744AbhLFWbM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:12 -0500
+Message-ID: <20211206210224.429625690@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1638829671;
+        s=2020; t=1638829661;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=yrY1ZB0NumM3iY3b+dL6tdvji5YdLo8YZzow0Pc98K0=;
-        b=yogWCLClZ5HawXr86pUvSu27UdiujY09fLCr9qODZ6WHG6tdy1jo4R5oUed+NZBlb4D+aL
-        7QpxacnGafJnNFuGA3Qr4uuaCUoNpqcC0RQIn/nv2i/ZqqOPRpDk41N3evYyZcNUIORUqQ
-        RmyJmVXQ4SgC9OEaoFrfssQoJ8Xwn+4ZyexyySLnXH1jXW3w7H7gjCvNcp6z/9YZb3iZef
-        SnjRI8A4v1jtxW1cvkAQLxfhlEO0mCCMG5y3BXvNH9MRSgIaMFqX4JKVHvpx5vMHBoS0Bb
-        XHborQKOUtJXUnqPXT77WiZSbh3UWDmLFWdvo+NEVEOm05/Ol4MBGoFkTWQRhw==
+         references:references; bh=0nldqX+BIdCQSZe/qG73eGbIrco+/ubuHfsykwvcOLw=;
+        b=hq7ndPqCIkYDSqc3aknpP0229cYCDRhoC9zQSCdYk5vM3i10WTZ7av+6rlEAZ6u05mIkbr
+        XQDS6b4vGsXFqVoC8oP4KMoWd1eM06kWded8LIrvh6OjRqXQSape8awI79GsZVK8u9eX85
+        aD0FDvGiqwvqK/Cp05pH8gDNLFxywYdDcwRzqFrfA9dJF6ZcS2GW43vxTzQkYENzlCGZky
+        BY7obUIDVSkFmUZxkFtoCauQiQu+i1InDE5QQr8JmsWmr3vI1aYNQ3VOuIyKzaHGlqfRLM
+        9QjgPuj7fL5uEDouHN+Uw0zGzemm1NJG4B4f588z9m3byoVyCwYZWW8vxb8wOA==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1638829671;
+        s=2020e; t=1638829661;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=yrY1ZB0NumM3iY3b+dL6tdvji5YdLo8YZzow0Pc98K0=;
-        b=xWk0QhW9rvUKaVhvOUrP23TOY6t2RbQv3eb8/ILfXzb+qQTtu1Dgw8jDLlkSfce65pUPAy
-        AUFj7t7KeK1aKUCQ==
+         references:references; bh=0nldqX+BIdCQSZe/qG73eGbIrco+/ubuHfsykwvcOLw=;
+        b=QKsxVt2/sl1syiew/XZKhTW9zsEcW7PxttjhPWSCOKgIZScBCrlr47vPlSJl0Ltkx0XjvV
+        If8/ySJn0kVVjADg==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -38,160 +38,132 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Megha Dey <megha.dey@intel.com>,
         Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org,
         Cedric Le Goater <clg@kaod.org>,
-        Juergen Gross <jgross@suse.com>,
+        Wei Liu <wei.liu@kernel.org>, x86@kernel.org,
+        linux-hyperv@vger.kernel.org,
         Michael Ellerman <mpe@ellerman.id.au>,
         Paul Mackerras <paulus@samba.org>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        linuxppc-dev@lists.ozlabs.org,
+        linuxppc-dev@lists.ozlabs.org, Juergen Gross <jgross@suse.com>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         linux-mips@vger.kernel.org, Kalle Valo <kvalo@codeaurora.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        sparclinux@vger.kernel.org, x86@kernel.org,
-        xen-devel@lists.xenproject.org, ath11k@lists.infradead.org,
-        Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        ath11k@lists.infradead.org,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch V2 17/23] PCI/MSI: Split out !IRQDOMAIN code
+Subject: [patch V2 11/23] x86/hyperv: Refactor hv_msi_domain_free_irqs()
 References: <20211206210147.872865823@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Mon,  6 Dec 2021 23:27:51 +0100 (CET)
+Date:   Mon,  6 Dec 2021 23:27:41 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Split out the non irqdomain code into its own file.
+No point in looking up things over and over. Just look up the associated
+irq data and work from there.
+
+No functional change.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Tested-by: Juergen Gross <jgross@suse.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Acked-by: Wei Liu <wei.liu@kernel.org>
+Cc: x86@kernel.org
+Cc: linux-hyperv@vger.kernel.org
 ---
-V2: Add proper includes and fix variable name - Cedric
----
- drivers/pci/msi/Makefile |    5 ++--
- drivers/pci/msi/legacy.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/msi/msi.c    |   46 -----------------------------------------
- 3 files changed, 55 insertions(+), 48 deletions(-)
+ arch/x86/hyperv/irqdomain.c |   55 +++++++++++++-------------------------------
+ 1 file changed, 17 insertions(+), 38 deletions(-)
 
---- a/drivers/pci/msi/Makefile
-+++ b/drivers/pci/msi/Makefile
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
- #
- # Makefile for the PCI/MSI
--obj-$(CONFIG_PCI)		+= pcidev_msi.o
--obj-$(CONFIG_PCI_MSI)		+= msi.o
-+obj-$(CONFIG_PCI)			+= pcidev_msi.o
-+obj-$(CONFIG_PCI_MSI)			+= msi.o
-+obj-$(CONFIG_PCI_MSI_ARCH_FALLBACKS)	+= legacy.o
---- /dev/null
-+++ b/drivers/pci/msi/legacy.c
-@@ -0,0 +1,52 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * PCI Message Signaled Interrupt (MSI).
-+ *
-+ * Legacy architecture specific setup and teardown mechanism.
-+ */
-+#include <linux/msi.h>
-+#include <linux/pci.h>
-+
-+/* Arch hooks */
-+int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
-+{
-+	return -EINVAL;
-+}
-+
-+void __weak arch_teardown_msi_irq(unsigned int irq)
-+{
-+}
-+
-+int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
-+{
-+	struct msi_desc *desc;
-+	int ret;
-+
-+	/*
-+	 * If an architecture wants to support multiple MSI, it needs to
-+	 * override arch_setup_msi_irqs()
-+	 */
-+	if (type == PCI_CAP_ID_MSI && nvec > 1)
-+		return 1;
-+
-+	for_each_pci_msi_entry(desc, dev) {
-+		ret = arch_setup_msi_irq(dev, desc);
-+		if (ret)
-+			return ret < 0 ? ret : -ENOSPC;
-+	}
-+
-+	return 0;
-+}
-+
-+void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
-+{
-+	struct msi_desc *desc;
-+	int i;
-+
-+	for_each_pci_msi_entry(desc, dev) {
-+		if (desc->irq) {
-+			for (i = 0; i < desc->nvec_used; i++)
-+				arch_teardown_msi_irq(desc->irq + i);
-+		}
-+	}
-+}
---- a/drivers/pci/msi/msi.c
-+++ b/drivers/pci/msi/msi.c
-@@ -50,52 +50,6 @@ static void pci_msi_teardown_msi_irqs(st
- #define pci_msi_teardown_msi_irqs	arch_teardown_msi_irqs
- #endif
+--- a/arch/x86/hyperv/irqdomain.c
++++ b/arch/x86/hyperv/irqdomain.c
+@@ -253,64 +253,43 @@ static int hv_unmap_msi_interrupt(struct
+ 	return hv_unmap_interrupt(hv_build_pci_dev_id(dev).as_uint64, old_entry);
+ }
  
--#ifdef CONFIG_PCI_MSI_ARCH_FALLBACKS
--/* Arch hooks */
--int __weak arch_setup_msi_irq(struct pci_dev *dev, struct msi_desc *desc)
--{
--	return -EINVAL;
--}
--
--void __weak arch_teardown_msi_irq(unsigned int irq)
--{
--}
--
--int __weak arch_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
--{
--	struct msi_desc *entry;
--	int ret;
--
--	/*
--	 * If an architecture wants to support multiple MSI, it needs to
--	 * override arch_setup_msi_irqs()
--	 */
--	if (type == PCI_CAP_ID_MSI && nvec > 1)
--		return 1;
--
--	for_each_pci_msi_entry(entry, dev) {
--		ret = arch_setup_msi_irq(dev, entry);
--		if (ret < 0)
--			return ret;
--		if (ret > 0)
--			return -ENOSPC;
+-static void hv_teardown_msi_irq_common(struct pci_dev *dev, struct msi_desc *msidesc, int irq)
++static void hv_teardown_msi_irq(struct pci_dev *dev, struct irq_data *irqd)
+ {
+-	u64 status;
+ 	struct hv_interrupt_entry old_entry;
+-	struct irq_desc *desc;
+-	struct irq_data *data;
+ 	struct msi_msg msg;
++	u64 status;
+ 
+-	desc = irq_to_desc(irq);
+-	if (!desc) {
+-		pr_debug("%s: no irq desc\n", __func__);
+-		return;
 -	}
 -
--	return 0;
--}
+-	data = &desc->irq_data;
+-	if (!data) {
+-		pr_debug("%s: no irq data\n", __func__);
+-		return;
+-	}
 -
--void __weak arch_teardown_msi_irqs(struct pci_dev *dev)
--{
+-	if (!data->chip_data) {
++	if (!irqd->chip_data) {
+ 		pr_debug("%s: no chip data\n!", __func__);
+ 		return;
+ 	}
+ 
+-	old_entry = *(struct hv_interrupt_entry *)data->chip_data;
++	old_entry = *(struct hv_interrupt_entry *)irqd->chip_data;
+ 	entry_to_msi_msg(&old_entry, &msg);
+ 
+-	kfree(data->chip_data);
+-	data->chip_data = NULL;
++	kfree(irqd->chip_data);
++	irqd->chip_data = NULL;
+ 
+ 	status = hv_unmap_msi_interrupt(dev, &old_entry);
+ 
+-	if (status != HV_STATUS_SUCCESS) {
++	if (status != HV_STATUS_SUCCESS)
+ 		pr_err("%s: hypercall failed, status %lld\n", __func__, status);
+-		return;
+-	}
+ }
+ 
+-static void hv_msi_domain_free_irqs(struct irq_domain *domain, struct device *dev)
++static void hv_msi_free_irq(struct irq_domain *domain,
++			    struct msi_domain_info *info, unsigned int virq)
+ {
 -	int i;
 -	struct msi_desc *entry;
--
--	for_each_pci_msi_entry(entry, dev)
--		if (entry->irq)
--			for (i = 0; i < entry->nvec_used; i++)
--				arch_teardown_msi_irq(entry->irq + i);
--}
--#endif /* CONFIG_PCI_MSI_ARCH_FALLBACKS */
--
+-	struct pci_dev *pdev;
++	struct irq_data *irqd = irq_get_irq_data(virq);
++	struct msi_desc *desc;
+ 
+-	if (WARN_ON_ONCE(!dev_is_pci(dev)))
++	if (!irqd)
+ 		return;
+ 
+-	pdev = to_pci_dev(dev);
++	desc = irq_data_get_msi_desc(irqd);
++	if (!desc || !desc->irq || WARN_ON_ONCE(!dev_is_pci(desc->dev)))
++		return;
+ 
+-	for_each_pci_msi_entry(entry, pdev) {
+-		if (entry->irq) {
+-			for (i = 0; i < entry->nvec_used; i++) {
+-				hv_teardown_msi_irq_common(pdev, entry, entry->irq + i);
+-				irq_domain_free_irqs(entry->irq + i, 1);
+-			}
+-		}
+-	}
++	hv_teardown_msi_irq(to_pci_dev(desc->dev), irqd);
+ }
+ 
  /*
-  * PCI 2.3 does not specify mask bits for each MSI interrupt.  Attempting to
-  * mask all MSI interrupts by clearing the MSI enable bit does not work
+@@ -329,7 +308,7 @@ static struct irq_chip hv_pci_msi_contro
+ };
+ 
+ static struct msi_domain_ops pci_msi_domain_ops = {
+-	.domain_free_irqs	= hv_msi_domain_free_irqs,
++	.msi_free		= hv_msi_free_irq,
+ 	.msi_prepare		= pci_msi_prepare,
+ };
+ 
 
