@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 14891C433EF
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:27:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6FDCC43219
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:27:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357170AbhLFWbQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Dec 2021 17:31:16 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:45684 "EHLO
+        id S1357132AbhLFWbP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Dec 2021 17:31:15 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:45658 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356856AbhLFWbI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:08 -0500
-Message-ID: <20211206210224.265589103@linutronix.de>
+        with ESMTP id S1356739AbhLFWbF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:05 -0500
+Message-ID: <20211206210224.210768199@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1638829657;
+        s=2020; t=1638829655;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=OKsXQmZewVMh9C4veaPA025YU+pW4cMZqzIAn23b/9c=;
-        b=vZzNCRO+uOrMt1rLYUlSjWHvY3GnOwXQ/odIk4OnimL55yM4E7H9Z+gKxR4cdWzJuc9jJT
-        M0aZip9AGf/BRov7wd4DUsRP6NuHKtBNXayKEfTNAPYWG4mlPDCTJXpLfq+Eq2Q7uel0c0
-        GCYlxK1amEskkZn0CPcuIPlwQANt3pdUSVU0mXb6Dh6glegghN2NwscVEl8RJS6xJpYmzr
-        0oSjRQ0h7Lm4xi7TTTOAuPFvY1F1jeW22TqUuxURSvBD6YjS5m5HOdgSgSZmuNW7/hljHH
-        0p6i/mhLMFw2u59Zr1gi+Goyq9OYh0ugIdb202nzF0CcX0f/aD/i2jlLaPiQJw==
+         references:references; bh=BDAIfQQJ/HYBQlNRSL+3v2qiAdmkDsDIsSFt3VNvN68=;
+        b=GUOH6mWh41yMRUMKAp98aOVCT8hYo1MhFqsH8cMnArd7Joaq5tWDId+1tzWGfmFp4MhkDK
+        fHIyaV3g98EAAJDH4thajAxgYu0m3cKfigGCoPT2xKRUJOay1yoB6gVJaZ4KQr73+lJIhF
+        217Vew7bGgy7Rg6jJWbryS3guIp3T2avsXNZqL5l2fzu6eAEZf94hGHdwrc0sDuVqRRr8F
+        YOFSttwR9zQl+lUR33+FUHV/lA4yrN4ussU95RvZHyirqbrl8Swdecf1BIQxTJKV9akSLD
+        72+bCTmvb3yxzwtxXQKS+Dp9IUTPEzYeXHcPBKvJp67pMRTXdzTjCaz75gvKWw==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1638829657;
+        s=2020e; t=1638829655;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=OKsXQmZewVMh9C4veaPA025YU+pW4cMZqzIAn23b/9c=;
-        b=M/NxrnxGKVPLqAlsqI5UQ6dl9IZUEhUwGcQJKRyC/Ho89KfJQzOP0MU4EFQc7/B84xAAnW
-        7QekxbEDbxz2NvAA==
+         references:references; bh=BDAIfQQJ/HYBQlNRSL+3v2qiAdmkDsDIsSFt3VNvN68=;
+        b=HGDrJvU5isVeAMd5DGIpUPfL17YjFqAjIDf/BKb6AVkDejEhNeX5X92R0PYs3gYuQD20lS
+        ukq3hUeso9wqpYBQ==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -51,38 +51,56 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch V2 08/23] PCI/sysfs: Use pci_irq_vector()
+Subject: [patch V2 07/23] PCI/MSI: Remove msi_desc_to_pci_sysdata()
 References: <20211206210147.872865823@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Mon,  6 Dec 2021 23:27:36 +0100 (CET)
+Date:   Mon,  6 Dec 2021 23:27:34 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-instead of fiddling with msi descriptors.
+Last user is gone long ago.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Juergen Gross <jgross@suse.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/pci/pci-sysfs.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/pci/msi.c   |    8 --------
+ include/linux/msi.h |    5 -----
+ 2 files changed, 13 deletions(-)
 
---- a/drivers/pci/pci-sysfs.c
-+++ b/drivers/pci/pci-sysfs.c
-@@ -62,11 +62,8 @@ static ssize_t irq_show(struct device *d
- 	 * For MSI, show the first MSI IRQ; for all other cases including
- 	 * MSI-X, show the legacy INTx IRQ.
- 	 */
--	if (pdev->msi_enabled) {
--		struct msi_desc *desc = first_pci_msi_entry(pdev);
--
--		return sysfs_emit(buf, "%u\n", desc->irq);
--	}
-+	if (pdev->msi_enabled)
-+		return sysfs_emit(buf, "%u\n", pci_irq_vector(pdev, 0));
- #endif
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -1267,14 +1267,6 @@ struct pci_dev *msi_desc_to_pci_dev(stru
+ }
+ EXPORT_SYMBOL(msi_desc_to_pci_dev);
  
- 	return sysfs_emit(buf, "%u\n", pdev->irq);
+-void *msi_desc_to_pci_sysdata(struct msi_desc *desc)
+-{
+-	struct pci_dev *dev = msi_desc_to_pci_dev(desc);
+-
+-	return dev->bus->sysdata;
+-}
+-EXPORT_SYMBOL_GPL(msi_desc_to_pci_sysdata);
+-
+ #ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
+ /**
+  * pci_msi_domain_write_msg - Helper to write MSI message to PCI config space
+--- a/include/linux/msi.h
++++ b/include/linux/msi.h
+@@ -218,13 +218,8 @@ static inline void msi_desc_set_iommu_co
+ 	for_each_msi_entry((desc), &(pdev)->dev)
+ 
+ struct pci_dev *msi_desc_to_pci_dev(struct msi_desc *desc);
+-void *msi_desc_to_pci_sysdata(struct msi_desc *desc);
+ void pci_write_msi_msg(unsigned int irq, struct msi_msg *msg);
+ #else /* CONFIG_PCI_MSI */
+-static inline void *msi_desc_to_pci_sysdata(struct msi_desc *desc)
+-{
+-	return NULL;
+-}
+ static inline void pci_write_msi_msg(unsigned int irq, struct msi_msg *msg)
+ {
+ }
 
