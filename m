@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80BDFC433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:27:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D201C433EF
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Dec 2021 22:28:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357130AbhLFWbZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Dec 2021 17:31:25 -0500
-Received: from Galois.linutronix.de ([193.142.43.55]:45612 "EHLO
+        id S1357721AbhLFWbb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Dec 2021 17:31:31 -0500
+Received: from Galois.linutronix.de ([193.142.43.55]:45684 "EHLO
         galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356824AbhLFWbR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:17 -0500
-Message-ID: <20211206210224.600351129@linutronix.de>
+        with ESMTP id S1357321AbhLFWbU (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Dec 2021 17:31:20 -0500
+Message-ID: <20211206210224.710137730@linutronix.de>
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1638829666;
+        s=2020; t=1638829670;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=C4aqXfAyJVKaI/8MMq5VzC8OB/kEeYXdYvUuhO7tMOc=;
-        b=o92QiOvGzQZzHfMpzPjv7r4xBNXDoXGJJvsICsdexRSxr3AhYBn+Fzw5huMDLf3tG2MlDP
-        WPSsWv+ttwoXNCO+kVRoYtBXd2056cZn+SXvjveHEIGW4wLgMSNBAD+EM1KCcz3isX+VnT
-        7oA+S94AQMnlPWXc6OAJe8Vh+beStrB/fVp0eysUbozportvEaGqCfzk+tSiRYaAb9ydmC
-        tUqitzzV2rJq9he1vqAIx8of13iw8IY3uTwV+VW+qoDZuhKvoTgvmfg6uyCTUe4lGxMUHD
-        D8um59x3FnVAH2aKssNe992rOhVmHhCOdInM7HatkhXksCk91x8Z5YuFrRqVxQ==
+         references:references; bh=ib3yuqujnroRqi+hLldSTb0C/KdcxiKhDFhBeAeajh8=;
+        b=YKghtY03bcoLP8OvEUv6g9Jjx1TFo+pzmg+zViZrV9C1Zqdyd+udciNW1BVKPTuIL8Z+sh
+        VkfSoebHJBGRLhECku0Xcu/1wA6jahAvvipQ9NOJi7sfSqnslLIaiWdUsi6UumMv8Ii0JT
+        2DbzczPuytoquIUE4qI7a+Rs+3SZz2k8vJC78RhGv6O3a0yi2pFj1Gt6yYNlPg+9HE8EhD
+        OMVLu3Q5kecJhaNaLyTGpaijaksYWeRdazPJXewvgHnUCQUGdmFPOc2DkNnsaNSCejEPc7
+        IQlwWECz6/FR1cQY3Dggy4ASx4++0pFep56S/3oZez+mph5GyIICQFrfOQSrhQ==
 DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1638829666;
+        s=2020e; t=1638829670;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         references:references; bh=C4aqXfAyJVKaI/8MMq5VzC8OB/kEeYXdYvUuhO7tMOc=;
-        b=1tAEn67IPG8WXGNZydrODGd+7PMJ5gxXdDqFiaHVsGUGG9TZGgvwu2VK3mH3VYJ+XD3fmr
-        KDMRzr5BxWyF64CA==
+         references:references; bh=ib3yuqujnroRqi+hLldSTb0C/KdcxiKhDFhBeAeajh8=;
+        b=A1eH8lsrzvvUb+UOPZHwegNVeviEvBxF3n2PgKLDm1Kz3CElL95PW6TVkRlKmYp31F7use
+        sr1vtn736Uy7EoCw==
 From:   Thomas Gleixner <tglx@linutronix.de>
 To:     LKML <linux-kernel@vger.kernel.org>
 Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
@@ -51,36 +51,132 @@ Cc:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: [patch V2 14/23] PCI/MSI: Make msix_update_entries() smarter
+Subject: [patch V2 16/23] PCI/MSI: Split out CONFIG_PCI_MSI independent part
 References: <20211206210147.872865823@linutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Date:   Mon,  6 Dec 2021 23:27:46 +0100 (CET)
+Date:   Mon,  6 Dec 2021 23:27:49 +0100 (CET)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-No need to walk the descriptors and check for each one whether the entries
-pointer function argument is NULL. Do it once.
+These functions are required even when CONFIG_PCI_MSI is not set. Move them
+to their own file.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Juergen Gross <jgross@suse.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 ---
- drivers/pci/msi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/msi/Makefile     |    3 ++-
+ drivers/pci/msi/msi.c        |   39 ---------------------------------------
+ drivers/pci/msi/pcidev_msi.c |   43 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 45 insertions(+), 40 deletions(-)
 
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -642,8 +642,8 @@ static void msix_update_entries(struct p
- {
- 	struct msi_desc *entry;
+--- a/drivers/pci/msi/Makefile
++++ b/drivers/pci/msi/Makefile
+@@ -1,4 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0
+ #
+ # Makefile for the PCI/MSI
+-obj-$(CONFIG_PCI)		+= msi.o
++obj-$(CONFIG_PCI)		+= pcidev_msi.o
++obj-$(CONFIG_PCI_MSI)		+= msi.o
+--- a/drivers/pci/msi/msi.c
++++ b/drivers/pci/msi/msi.c
+@@ -18,8 +18,6 @@
  
--	for_each_pci_msi_entry(entry, dev) {
--		if (entries) {
-+	if (entries) {
-+		for_each_pci_msi_entry(entry, dev) {
- 			entries->vector = entry->irq;
- 			entries++;
- 		}
+ #include "../pci.h"
+ 
+-#ifdef CONFIG_PCI_MSI
+-
+ static int pci_msi_enable = 1;
+ int pci_msi_ignore_mask;
+ 
+@@ -1493,40 +1491,3 @@ bool pci_dev_has_special_msi_domain(stru
+ }
+ 
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+-#endif /* CONFIG_PCI_MSI */
+-
+-void pci_msi_init(struct pci_dev *dev)
+-{
+-	u16 ctrl;
+-
+-	/*
+-	 * Disable the MSI hardware to avoid screaming interrupts
+-	 * during boot.  This is the power on reset default so
+-	 * usually this should be a noop.
+-	 */
+-	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
+-	if (!dev->msi_cap)
+-		return;
+-
+-	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
+-	if (ctrl & PCI_MSI_FLAGS_ENABLE)
+-		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
+-				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
+-
+-	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
+-		dev->no_64bit_msi = 1;
+-}
+-
+-void pci_msix_init(struct pci_dev *dev)
+-{
+-	u16 ctrl;
+-
+-	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
+-	if (!dev->msix_cap)
+-		return;
+-
+-	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
+-	if (ctrl & PCI_MSIX_FLAGS_ENABLE)
+-		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
+-				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
+-}
+--- /dev/null
++++ b/drivers/pci/msi/pcidev_msi.c
+@@ -0,0 +1,43 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * MSI[X} related functions which are available unconditionally.
++ */
++#include "../pci.h"
++
++/*
++ * Disable the MSI[X] hardware to avoid screaming interrupts during boot.
++ * This is the power on reset default so usually this should be a noop.
++ */
++
++void pci_msi_init(struct pci_dev *dev)
++{
++	u16 ctrl;
++
++	dev->msi_cap = pci_find_capability(dev, PCI_CAP_ID_MSI);
++	if (!dev->msi_cap)
++		return;
++
++	pci_read_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS, &ctrl);
++	if (ctrl & PCI_MSI_FLAGS_ENABLE) {
++		pci_write_config_word(dev, dev->msi_cap + PCI_MSI_FLAGS,
++				      ctrl & ~PCI_MSI_FLAGS_ENABLE);
++	}
++
++	if (!(ctrl & PCI_MSI_FLAGS_64BIT))
++		dev->no_64bit_msi = 1;
++}
++
++void pci_msix_init(struct pci_dev *dev)
++{
++	u16 ctrl;
++
++	dev->msix_cap = pci_find_capability(dev, PCI_CAP_ID_MSIX);
++	if (!dev->msix_cap)
++		return;
++
++	pci_read_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS, &ctrl);
++	if (ctrl & PCI_MSIX_FLAGS_ENABLE) {
++		pci_write_config_word(dev, dev->msix_cap + PCI_MSIX_FLAGS,
++				      ctrl & ~PCI_MSIX_FLAGS_ENABLE);
++	}
++}
 
