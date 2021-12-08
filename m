@@ -2,108 +2,173 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FE6C4332F
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Dec 2021 10:44:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 150C2C433FE
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Dec 2021 15:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231892AbhLHKsS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Dec 2021 05:48:18 -0500
-Received: from smtpout4.mo529.mail-out.ovh.net ([217.182.185.173]:40633 "EHLO
-        smtpout4.mo529.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S229449AbhLHKsR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Dec 2021 05:48:17 -0500
-Received: from mxplan5.mail.ovh.net (unknown [10.109.156.35])
-        by mo529.mail-out.ovh.net (Postfix) with ESMTPS id 4A0F4D092F09;
-        Wed,  8 Dec 2021 11:44:42 +0100 (CET)
-Received: from kaod.org (37.59.142.96) by DAG4EX1.mxp5.local (172.16.2.31)
- with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.20; Wed, 8 Dec
- 2021 11:44:40 +0100
-Authentication-Results: garm.ovh; auth=pass (GARM-96R001f5056120-68a4-4c0a-bc06-f617410d6d7e,
-                    EB01F339838E5AA67C986A6C3251B49097B81903) smtp.auth=clg@kaod.org
-X-OVh-ClientIp: 86.201.172.254
-Message-ID: <e92f2bb3-b5e1-c870-8151-3917a789a640@kaod.org>
-Date:   Wed, 8 Dec 2021 11:44:39 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.3.0
-Subject: Re: [patch V2 01/23] powerpc/4xx: Remove MSI support which never
- worked
-Content-Language: en-US
-To:     Thomas Gleixner <tglx@linutronix.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        LKML <linux-kernel@vger.kernel.org>
-CC:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
+        id S236016AbhLHPdD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Dec 2021 10:33:03 -0500
+Received: from mail-mw2nam12on2040.outbound.protection.outlook.com ([40.107.244.40]:29152
+        "EHLO NAM12-MW2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S229498AbhLHPdB (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 8 Dec 2021 10:33:01 -0500
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=cHrs/kPBvM6uI3pzYjhLLd/43CnFZ0tG7hin+v8VLrRPFgQSQ7xwdJK3xpfYRpfXdEk0mMVs8Aeyy+V897LZo62VX9+Pm1NQP/AErS9t57QHZ/hw7CRNf2MTfa0AK2m5ADpyyJY/UiIBNQc9NmpaToRCubLgNMSFe060ed4f6RVwOSSChjGAnDz94I56syrfGeBJeclZ+5cclTWX7Irb3vwZsrHb09JYif4SdacHkVpswQN2+Sh/ouhCbGEOtCkC63PVeH4YIqWX0XJq5VA5k5nMT8AUCeAjM9CcBqD2MHKNrb6IaRyrPy+GU8esciGQR4GzZZnvsqG/3PXqagsh6g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=EqIKwXBLinJdRbLsCXtGFLo3LB/oiMwLJPzx1nKQJQw=;
+ b=nikdS4aqQd/bQMgGAaoN6ukfZszz2ThAASRdrLXFANqjUriC+GBi9dINRFkj4eThaKbwgLgWTkWTATdD2GVrcQIhEhz4+yjAYZ7c2ECvJH0UJxITZBdh9dRlYMatsewSKkkuvLcKciiiMwXmzH7+5TIJs20VewUMQfp/rR2UiEwLIpkS2p2e6qDJsheJLNbNnEQjatruYkCIKQIyY+ZoYJi9JsXpNnciA/HNtWChPPreNJx/45TRnDUQVrA+IM3sp3Ux6GNvFLcY0OR1uhaAZu9OqplDCSRxYGeh6yzm3ql5XF2gq+/xF9PdRFL22s9uB9gEEIS9yM4Blih5Sef4Rw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
+ dkim=pass header.d=nvidia.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
+ s=selector2;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=EqIKwXBLinJdRbLsCXtGFLo3LB/oiMwLJPzx1nKQJQw=;
+ b=spS15JoopGFSv4KyzklfRP7r/1/fjYuQC0XvItGorKGo344ca3Ls/qajExfARxs+10UfJ+QdM4JqdDuyRb6xN+xU8h9FB5nu/5C0fOYQQzQ4HZi8GXtvh6sDxXODLgwKGvI4a5o+8IgyC5BuQx/7e+i5+ww1t22S6Hwmu8Rh6AtOMSs8FWLbou1vTHCRrre5UpFF/JrkccO+39LIpNcxb2dTU6Z5ZtzI2nFXJNAYmPem+nOBB/gvZ0sbfArBteHVd3n7Amj/ZXSSbT/konZrtF2I25EfgI92oNHYal1q+UUmguGlaidUkObUUWj5dpZVvFlKgb00CsY65DwiX5uzrQ==
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=nvidia.com;
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com (2603:10b6:208:1cb::22)
+ by BL1PR12MB5127.namprd12.prod.outlook.com (2603:10b6:208:31b::14) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4755.19; Wed, 8 Dec
+ 2021 15:29:28 +0000
+Received: from BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::d8be:e4e4:ce53:6d11]) by BL0PR12MB5506.namprd12.prod.outlook.com
+ ([fe80::d8be:e4e4:ce53:6d11%7]) with mapi id 15.20.4778.013; Wed, 8 Dec 2021
+ 15:29:28 +0000
+Date:   Wed, 8 Dec 2021 11:29:25 -0400
+From:   Jason Gunthorpe <jgg@nvidia.com>
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        Marc Zygnier <maz@kernel.org>,
         Alex Williamson <alex.williamson@redhat.com>,
         Kevin Tian <kevin.tian@intel.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
         Megha Dey <megha.dey@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>, <linux-pci@vger.kernel.org>,
+        Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org,
+        Cedric Le Goater <clg@kaod.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
         Paul Mackerras <paulus@samba.org>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        <linuxppc-dev@lists.ozlabs.org>, Juergen Gross <jgross@suse.com>,
+        linuxppc-dev@lists.ozlabs.org, Juergen Gross <jgross@suse.com>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        <linux-mips@vger.kernel.org>, Kalle Valo <kvalo@codeaurora.org>,
+        linux-mips@vger.kernel.org, Kalle Valo <kvalo@codeaurora.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <sparclinux@vger.kernel.org>, <x86@kernel.org>,
-        <xen-devel@lists.xenproject.org>, <ath11k@lists.infradead.org>,
-        Wei Liu <wei.liu@kernel.org>, <linux-hyperv@vger.kernel.org>,
+        sparclinux@vger.kernel.org, x86@kernel.org,
+        xen-devel@lists.xenproject.org, ath11k@lists.infradead.org,
+        Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
+Subject: Re: [patch V2 20/23] PCI/MSI: Move msi_lock to struct pci_dev
+Message-ID: <20211208152925.GU6385@nvidia.com>
 References: <20211206210147.872865823@linutronix.de>
- <20211206210223.872249537@linutronix.de>
- <8d1e9d2b-fbe9-2e15-6df6-03028902791a@kaod.org>
- <87ilw0odel.fsf@mpe.ellerman.id.au>
- <27f22e0e-8f84-a6d7-704b-d9eddc642d74@kaod.org> <8735n42lld.ffs@tglx>
-From:   =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>
-In-Reply-To: <8735n42lld.ffs@tglx>
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-X-Originating-IP: [37.59.142.96]
-X-ClientProxiedBy: DAG4EX1.mxp5.local (172.16.2.31) To DAG4EX1.mxp5.local
- (172.16.2.31)
-X-Ovh-Tracer-GUID: d54a9dd7-eba7-4e7f-a7a0-0dc7c43fc796
-X-Ovh-Tracer-Id: 10131410315672259365
-X-VR-SPAMSTATE: OK
-X-VR-SPAMSCORE: -100
-X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvuddrjeekgddulecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfqggfjpdevjffgvefmvefgnecuuegrihhlohhuthemucehtddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefkffggfgfuvfhfhfgjtgfgihesthekredttdefjeenucfhrhhomhepveorughrihgtpgfnvggpifhorghtvghruceotghlgheskhgrohgurdhorhhgqeenucggtffrrghtthgvrhhnpeeuveelvdejteegteefieevfeetffefvddvieekteevleefgeelgfeutedvfedvfeenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppedtrddtrddtrddtpdefjedrheelrddugedvrdelieenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhhouggvpehsmhhtphhouhhtpdhhvghlohepmhigphhlrghnhedrmhgrihhlrdhovhhhrdhnvghtpdhinhgvtheptddrtddrtddrtddpmhgrihhlfhhrohhmpegtlhhgsehkrghougdrohhrghdprhgtphhtthhopehhtggrsehlihhnuhigrdhisghmrdgtohhm
+ <20211206210224.925241961@linutronix.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211206210224.925241961@linutronix.de>
+X-ClientProxiedBy: SJ0PR13CA0003.namprd13.prod.outlook.com
+ (2603:10b6:a03:2c0::8) To BL0PR12MB5506.namprd12.prod.outlook.com
+ (2603:10b6:208:1cb::22)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: f90ec134-269d-4019-2b5c-08d9ba5f85ba
+X-MS-TrafficTypeDiagnostic: BL1PR12MB5127:EE_
+X-Microsoft-Antispam-PRVS: <BL1PR12MB51273842AE9FBFD29E22609FC26F9@BL1PR12MB5127.namprd12.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:7691;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: B3eVpYRpFFYTOU+vvrXBZ+ygMslxmtbo/hVH9fvie1kilzPEcIAdgCRxWgl6HWAfN/6/QzyX7KSKORKOcMDQkl6taLlAuB28200GaHKd419HPSjWCBFZ77PKRIBcuixHzKS4Yxxgnh2PEt/drqdKjJIhlhibXIyFgDioawlBMI/U4tDp1M/Jig7cGT0bn1iOk4r5f4Ec3SiYAh1xkbzjp5Lykm/j2B78ph65wX/R59ZHHk1FcWWnFWXSpx3End6NFtBai9BhOWGdCZDIb2s4vmk8SmodKXEBeqL5uFmAWivxfmx3wjPqC4SkzaKsi6lyOv2teNdHikDaQkN2TbtX8QDLN4kIJLD+KTUYy3BqKI4CTYEHOhrR3zG1lCo2bXDeyT7i6ke9zGGQl9K3LPA1OjAr27Dayf0u+aoZSlg1mmsJ7A47YA0htoC/u+1kGprlMUt8MpIEacGCAMZO5lDA6RXhOPOwc7EY5U5y6vgDDk4p3Z8NxOgsLtsGFdTI4hHYZRaiz1qL3We7RgCJ+u+18Oi/r5wu09zej02zql1QeT4uIV5qqnHUC+FM5NnTb4GGkEAapWrdnQlX78RU7FU7KLcH99lSQKcjZY/PpjCCQ5G0OG2381CiVlVcQpo6k26rUTfDo9AsZj/+ylmK1IxueA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BL0PR12MB5506.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(54906003)(26005)(6506007)(36756003)(38100700002)(316002)(83380400001)(508600001)(1076003)(8676002)(5660300002)(8936002)(6512007)(4326008)(6486002)(7416002)(66556008)(33656002)(66946007)(86362001)(2906002)(66476007)(2616005)(186003)(6916009)(6666004);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?4qHNKg1WQH+kBtj/dK9f8zuC0IkmRPAm3+jbYJTKYf3Vur1eVMhVVzr2+lwG?=
+ =?us-ascii?Q?czumodgEA+8VjQe7oHIEchjD9aOhAgV4/COqKYGIGrexW0TJ4SulZAEsMioE?=
+ =?us-ascii?Q?jn+T4A8G8Kskbq/xJOX7Ggu1oHb1z0roPtMDnxgAkzxqQpNQuQcs3iy3cgeS?=
+ =?us-ascii?Q?6kiDxYEJYmSw2hkSbOPn9CP73hKIXfRmP1KAzSVCv8/7/apybkKqMjsyoZYt?=
+ =?us-ascii?Q?ClOuzt/ewNWAugLjrEFS7NAnRn0T2fxcoTeDNPOhIakFWXYrWXKg7qemOt1L?=
+ =?us-ascii?Q?Z8ENKfX8YogRZLvd18s2gC4VzPfarVkIAW066jAPI5tvbkNsTm7TdzhtUoLP?=
+ =?us-ascii?Q?5gCJqHREls+EBI+Y7pSzwt9PUBl0edvuN95LEhYMb0ZI+GjDYxLQLY9Kx8AP?=
+ =?us-ascii?Q?kBpOfcTQTiEFArtuZ+fhg45mxcrRDdOPofagKG8OUPXXJAnaHcTjfKGrNUZh?=
+ =?us-ascii?Q?sxVNOtfl3iNjDOs9WADBtIWvaM9eiyS10KtgUBPit3of4Vw0C+mhuXQYqA+n?=
+ =?us-ascii?Q?Xg6o3AZxRLwDS1LO74Ax6zPTa72TqY6c4bV8q+vdUfZIN4/FxmDWY4L6k1Gm?=
+ =?us-ascii?Q?ESl3e5ZoZAMWX5xNmi/k6bNEDbKu+Hvxqx42gkkjeL5fJrFNtzQ7/LwH1lMM?=
+ =?us-ascii?Q?Hhhd8ZVYNngT4wme7g29/ukeftbxOfMm025p/BDxyw6+VRQ60Qt7I1WVoyHd?=
+ =?us-ascii?Q?7hyf75XN6KHNk5bh4LE+SpaI8CIkY/hZ+xgbluduy/bINR0KElraxxGx78rP?=
+ =?us-ascii?Q?GGkFVq/dmT+qkSn2W23tjCfEicvwoshnFFzWNpnAYAc7S1eAxhtJk7qKNiJ/?=
+ =?us-ascii?Q?wEVZoSM/t/d469Cu47BrH5hOX8RB5mtXpl4RdJds+mvvXv+89XjGLVCyA9nx?=
+ =?us-ascii?Q?yhr7943tLsjX0FJbPaDUztHShMMHPCciwxnx9s92+E89cHu5OnRqMtVBTS9i?=
+ =?us-ascii?Q?W9/dOZOHhG5//UZOrkFtNvzpcQR7o9Ruo60OTE18DDhCzJrj3N4fwouMtWEo?=
+ =?us-ascii?Q?VVOkgxfB3fm2FrGI6BZmCOBVpYQ7HVeY+FNrrdSXtXUBs2ezX1grCbjHaH6Y?=
+ =?us-ascii?Q?+gVS7c6AbxlNw+1ZGEK2mBLdhu/lfpNbBh7bHvP/gQFigicFZMlJQC9uJlce?=
+ =?us-ascii?Q?hcguvHjxZAcsE1YycbXIWF2BkfnmuaGjVZDULyvAORReXccmz5wPbF5LoVIj?=
+ =?us-ascii?Q?sj7gu52idywq5M5wGnFuUzjiwxt7aYqxviKjAevtRCVR6s+iBzyQ1c76mPKd?=
+ =?us-ascii?Q?gXcyPtf3qpEpfg2E9yg20NOG1aOmTaMDGBIG1DWwQJQXt92e4EsVkgKb+Zcc?=
+ =?us-ascii?Q?JvE0BkcdwAH3l9K5IIzdEpqS91wEG2Msmy+mhkb+MR80Vle8inGplLwEP9R2?=
+ =?us-ascii?Q?Ufq3aMvRMmMeqDMGi9UAyqiPs2SQFkdulATIT5Bl6qcI27/g9ByxoE0ozt1B?=
+ =?us-ascii?Q?sTRESsqyymdY64s2k9L285cOd2ar3wekv85B0GQ4bMwAJ08hsr3xxUKgFOVI?=
+ =?us-ascii?Q?OCQZZJ1OrVxujVpiYFUBz8EVfIAa+0eRNPSingf+iqndZgIWOyptWX2cqDFo?=
+ =?us-ascii?Q?2NYb/o05UKkV7cZ+3eY=3D?=
+X-OriginatorOrg: Nvidia.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: f90ec134-269d-4019-2b5c-08d9ba5f85ba
+X-MS-Exchange-CrossTenant-AuthSource: BL0PR12MB5506.namprd12.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 08 Dec 2021 15:29:27.9428
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: hfMTmdcaHlz/BZrC2JZXCui5mkQVZpKHJFa1nbioq5UXjn3RJ3Zj89JoFzfAoZYd
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: BL1PR12MB5127
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 12/7/21 21:42, Thomas Gleixner wrote:
-> Cedric,
+On Mon, Dec 06, 2021 at 11:27:56PM +0100, Thomas Gleixner wrote:
+> It's only required for PCI/MSI. So no point in having it in every struct
+> device.
 > 
-> On Tue, Dec 07 2021 at 16:50, Cédric Le Goater wrote:
->> On 12/7/21 12:36, Michael Ellerman wrote:
->>>
->>> This patch should drop those selects I guess. Can you send an
->>> incremental diff for Thomas to squash in?
->>
->> Sure.
->>
->>> Removing all the tendrils in various device tree files will probably
->>> require some archaeology, and it should be perfectly safe to leave those
->>> in the tree with the driver gone. So I think we can do that as a
->>> subsequent patch, rather than in this series.
->>
->> Here are the changes. Compiled tested with ppc40x and ppc44x defconfigs.
-> 
-> < Lots of patch skipped />
->> @@ -141,7 +138,6 @@ config REDWOOD
->>    	select FORCE_PCI
->>    	select PPC4xx_PCI_EXPRESS
->>    	select PCI_MSI
->> -	select PPC4xx_MSI
->>    	help
->>    	  This option enables support for the AMCC PPC460SX Redwood board.
-> 
-> While that is incremental it certainly is worth a patch on it's
-> own. Could you add a proper changelog and an SOB please?
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> ---
+> V2: New patch
+> ---
+>  drivers/base/core.c    |    1 -
+>  drivers/pci/msi/msi.c  |    2 +-
+>  drivers/pci/probe.c    |    4 +++-
+>  include/linux/device.h |    2 --
+>  include/linux/pci.h    |    1 +
+>  5 files changed, 5 insertions(+), 5 deletions(-)
 
-Here you are.
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+ 
+> --- a/drivers/base/core.c
+> +++ b/drivers/base/core.c
+> @@ -2875,7 +2875,6 @@ void device_initialize(struct device *de
+>  	device_pm_init(dev);
+>  	set_dev_node(dev, NUMA_NO_NODE);
+>  #ifdef CONFIG_GENERIC_MSI_IRQ
+> -	raw_spin_lock_init(&dev->msi_lock);
+>  	INIT_LIST_HEAD(&dev->msi_list);
+>  #endif
+>  	INIT_LIST_HEAD(&dev->links.consumers);
+> --- a/drivers/pci/msi/msi.c
+> +++ b/drivers/pci/msi/msi.c
+> @@ -18,7 +18,7 @@ int pci_msi_ignore_mask;
+>  
+>  static noinline void pci_msi_update_mask(struct msi_desc *desc, u32 clear, u32 set)
+>  {
+> -	raw_spinlock_t *lock = &desc->dev->msi_lock;
+> +	raw_spinlock_t *lock = &to_pci_dev(desc->dev)->msi_lock;
+>  	unsigned long flags;
+>  
+>  	if (!desc->pci.msi_attrib.can_mask)
 
-  https://github.com/legoater/linux/commit/75d2764b11fe8f6d8bf50d60a3feb599ce27b16d
+It looks like most of the time this is called by an irq_chip, except
+for a few special cases list pci_msi_shutdown()
 
-Thanks,
+Is this something that should ideally go away someday and use some
+lock in the irq_chip - not unlike what we've thought is needed for
+IMS?
 
-C.
+Jason
