@@ -2,145 +2,108 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC98FC433FE
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Dec 2021 21:02:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25FE6C4332F
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Dec 2021 10:44:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233065AbhLGVGU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Dec 2021 16:06:20 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:53224 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232369AbhLGVGN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Dec 2021 16:06:13 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EEC16B81E7D;
-        Tue,  7 Dec 2021 21:02:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5DF0FC341C1;
-        Tue,  7 Dec 2021 21:02:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1638910959;
-        bh=xQoYzuJZBtazlb9l9/rEZFpq4l8ZITO51ml+vNgPc6M=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:From;
-        b=e153nty81BUAPS50lzOeG3i/XMpm26Pk8TGxhpDoheH+aGOAhJjiCObFncc/cOH46
-         OXARkgcqJJlGa0F/Bsl/N/Hr8iyx5YBElDJEc4KBNNajc4emj6cdjk7cQoxzm32rM6
-         wS8QDvcYSbelmRSilLFSFpzwM4nEMGo1OciLG1fy1ib0RAXNhpEhAgwC7XOVLwtEMg
-         hUh+UVjgpZDPJcdCSkYndl3E5r7GBkkzKgk8s3NaLe/CmCRfbyieQFOca/oFRIERXj
-         HKyqHP6oyciLgO6YSOX23lsQkoLBX7Z1J+QJANGpc3FC3xvrJLcihkCi836KsOw4gQ
-         4SgZq/E6VBAOQ==
-Date:   Tue, 7 Dec 2021 15:02:38 -0600
-From:   Bjorn Helgaas <helgaas@kernel.org>
-To:     Thomas Gleixner <tglx@linutronix.de>
-Cc:     LKML <linux-kernel@vger.kernel.org>, Marc Zygnier <maz@kernel.org>,
+        id S231892AbhLHKsS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Dec 2021 05:48:18 -0500
+Received: from smtpout4.mo529.mail-out.ovh.net ([217.182.185.173]:40633 "EHLO
+        smtpout4.mo529.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S229449AbhLHKsR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Dec 2021 05:48:17 -0500
+Received: from mxplan5.mail.ovh.net (unknown [10.109.156.35])
+        by mo529.mail-out.ovh.net (Postfix) with ESMTPS id 4A0F4D092F09;
+        Wed,  8 Dec 2021 11:44:42 +0100 (CET)
+Received: from kaod.org (37.59.142.96) by DAG4EX1.mxp5.local (172.16.2.31)
+ with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2308.20; Wed, 8 Dec
+ 2021 11:44:40 +0100
+Authentication-Results: garm.ovh; auth=pass (GARM-96R001f5056120-68a4-4c0a-bc06-f617410d6d7e,
+                    EB01F339838E5AA67C986A6C3251B49097B81903) smtp.auth=clg@kaod.org
+X-OVh-ClientIp: 86.201.172.254
+Message-ID: <e92f2bb3-b5e1-c870-8151-3917a789a640@kaod.org>
+Date:   Wed, 8 Dec 2021 11:44:39 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.3.0
+Subject: Re: [patch V2 01/23] powerpc/4xx: Remove MSI support which never
+ worked
+Content-Language: en-US
+To:     Thomas Gleixner <tglx@linutronix.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        LKML <linux-kernel@vger.kernel.org>
+CC:     Bjorn Helgaas <helgaas@kernel.org>, Marc Zygnier <maz@kernel.org>,
         Alex Williamson <alex.williamson@redhat.com>,
         Kevin Tian <kevin.tian@intel.com>,
         Jason Gunthorpe <jgg@nvidia.com>,
         Megha Dey <megha.dey@intel.com>,
-        Ashok Raj <ashok.raj@intel.com>, linux-pci@vger.kernel.org,
-        Cedric Le Goater <clg@kaod.org>,
-        Juergen Gross <jgross@suse.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
+        Ashok Raj <ashok.raj@intel.com>, <linux-pci@vger.kernel.org>,
         Paul Mackerras <paulus@samba.org>,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        linuxppc-dev@lists.ozlabs.org,
+        <linuxppc-dev@lists.ozlabs.org>, Juergen Gross <jgross@suse.com>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org, Kalle Valo <kvalo@codeaurora.org>,
+        <linux-mips@vger.kernel.org>, Kalle Valo <kvalo@codeaurora.org>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        sparclinux@vger.kernel.org, x86@kernel.org,
-        xen-devel@lists.xenproject.org, ath11k@lists.infradead.org,
-        Wei Liu <wei.liu@kernel.org>, linux-hyperv@vger.kernel.org,
+        <sparclinux@vger.kernel.org>, <x86@kernel.org>,
+        <xen-devel@lists.xenproject.org>, <ath11k@lists.infradead.org>,
+        Wei Liu <wei.liu@kernel.org>, <linux-hyperv@vger.kernel.org>,
         Christian Borntraeger <borntraeger@de.ibm.com>,
         Heiko Carstens <hca@linux.ibm.com>
-Subject: Re: [patch V2 23/23] PCI/MSI: Move descriptor counting on allocation
- fail to the legacy code
-Message-ID: <20211207210238.GA77554@bhelgaas>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211206210225.101336873@linutronix.de>
+References: <20211206210147.872865823@linutronix.de>
+ <20211206210223.872249537@linutronix.de>
+ <8d1e9d2b-fbe9-2e15-6df6-03028902791a@kaod.org>
+ <87ilw0odel.fsf@mpe.ellerman.id.au>
+ <27f22e0e-8f84-a6d7-704b-d9eddc642d74@kaod.org> <8735n42lld.ffs@tglx>
+From:   =?UTF-8?Q?C=c3=a9dric_Le_Goater?= <clg@kaod.org>
+In-Reply-To: <8735n42lld.ffs@tglx>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
+X-Originating-IP: [37.59.142.96]
+X-ClientProxiedBy: DAG4EX1.mxp5.local (172.16.2.31) To DAG4EX1.mxp5.local
+ (172.16.2.31)
+X-Ovh-Tracer-GUID: d54a9dd7-eba7-4e7f-a7a0-0dc7c43fc796
+X-Ovh-Tracer-Id: 10131410315672259365
+X-VR-SPAMSTATE: OK
+X-VR-SPAMSCORE: -100
+X-VR-SPAMCAUSE: gggruggvucftvghtrhhoucdtuddrgedvuddrjeekgddulecutefuodetggdotefrodftvfcurfhrohhfihhlvgemucfqggfjpdevjffgvefmvefgnecuuegrihhlohhuthemucehtddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenucfjughrpefkffggfgfuvfhfhfgjtgfgihesthekredttdefjeenucfhrhhomhepveorughrihgtpgfnvggpifhorghtvghruceotghlgheskhgrohgurdhorhhgqeenucggtffrrghtthgvrhhnpeeuveelvdejteegteefieevfeetffefvddvieekteevleefgeelgfeutedvfedvfeenucffohhmrghinhepghhithhhuhgsrdgtohhmnecukfhppedtrddtrddtrddtpdefjedrheelrddugedvrdelieenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhhouggvpehsmhhtphhouhhtpdhhvghlohepmhigphhlrghnhedrmhgrihhlrdhovhhhrdhnvghtpdhinhgvtheptddrtddrtddrtddpmhgrihhlfhhrohhmpegtlhhgsehkrghougdrohhrghdprhgtphhtthhopehhtggrsehlihhnuhigrdhisghmrdgtohhm
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Dec 06, 2021 at 11:28:00PM +0100, Thomas Gleixner wrote:
-> The irqdomain code already returns the information. Move the loop to the
-> legacy code.
+On 12/7/21 21:42, Thomas Gleixner wrote:
+> Cedric,
 > 
-> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-> Tested-by: Juergen Gross <jgross@suse.com>
-> Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+> On Tue, Dec 07 2021 at 16:50, Cédric Le Goater wrote:
+>> On 12/7/21 12:36, Michael Ellerman wrote:
+>>>
+>>> This patch should drop those selects I guess. Can you send an
+>>> incremental diff for Thomas to squash in?
+>>
+>> Sure.
+>>
+>>> Removing all the tendrils in various device tree files will probably
+>>> require some archaeology, and it should be perfectly safe to leave those
+>>> in the tree with the driver gone. So I think we can do that as a
+>>> subsequent patch, rather than in this series.
+>>
+>> Here are the changes. Compiled tested with ppc40x and ppc44x defconfigs.
+> 
+> < Lots of patch skipped />
+>> @@ -141,7 +138,6 @@ config REDWOOD
+>>    	select FORCE_PCI
+>>    	select PPC4xx_PCI_EXPRESS
+>>    	select PCI_MSI
+>> -	select PPC4xx_MSI
+>>    	help
+>>    	  This option enables support for the AMCC PPC460SX Redwood board.
+> 
+> While that is incremental it certainly is worth a patch on it's
+> own. Could you add a proper changelog and an SOB please?
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Here you are.
 
-> ---
->  drivers/pci/msi/legacy.c |   20 +++++++++++++++++++-
->  drivers/pci/msi/msi.c    |   19 +------------------
->  2 files changed, 20 insertions(+), 19 deletions(-)
-> 
-> --- a/drivers/pci/msi/legacy.c
-> +++ b/drivers/pci/msi/legacy.c
-> @@ -50,9 +50,27 @@ void __weak arch_teardown_msi_irqs(struc
->  	}
->  }
->  
-> +static int pci_msi_setup_check_result(struct pci_dev *dev, int type, int ret)
-> +{
-> +	struct msi_desc *entry;
-> +	int avail = 0;
-> +
-> +	if (type != PCI_CAP_ID_MSIX || ret >= 0)
-> +		return ret;
-> +
-> +	/* Scan the MSI descriptors for successfully allocated ones. */
-> +	for_each_pci_msi_entry(entry, dev) {
-> +		if (entry->irq != 0)
-> +			avail++;
-> +	}
-> +	return avail ? avail : ret;
-> +}
-> +
->  int pci_msi_legacy_setup_msi_irqs(struct pci_dev *dev, int nvec, int type)
->  {
-> -	return arch_setup_msi_irqs(dev, nvec, type);
-> +	int ret = arch_setup_msi_irqs(dev, nvec, type);
-> +
-> +	return pci_msi_setup_check_result(dev, type, ret);
->  }
->  
->  void pci_msi_legacy_teardown_msi_irqs(struct pci_dev *dev)
-> --- a/drivers/pci/msi/msi.c
-> +++ b/drivers/pci/msi/msi.c
-> @@ -609,7 +609,7 @@ static int msix_capability_init(struct p
->  
->  	ret = pci_msi_setup_msi_irqs(dev, nvec, PCI_CAP_ID_MSIX);
->  	if (ret)
-> -		goto out_avail;
-> +		goto out_free;
->  
->  	/* Check if all MSI entries honor device restrictions */
->  	ret = msi_verify_entries(dev);
-> @@ -634,23 +634,6 @@ static int msix_capability_init(struct p
->  	pcibios_free_irq(dev);
->  	return 0;
->  
-> -out_avail:
-> -	if (ret < 0) {
-> -		/*
-> -		 * If we had some success, report the number of IRQs
-> -		 * we succeeded in setting up.
-> -		 */
-> -		struct msi_desc *entry;
-> -		int avail = 0;
-> -
-> -		for_each_pci_msi_entry(entry, dev) {
-> -			if (entry->irq != 0)
-> -				avail++;
-> -		}
-> -		if (avail != 0)
-> -			ret = avail;
-> -	}
-> -
->  out_free:
->  	free_msi_irqs(dev);
->  
-> 
+  https://github.com/legoater/linux/commit/75d2764b11fe8f6d8bf50d60a3feb599ce27b16d
+
+Thanks,
+
+C.
