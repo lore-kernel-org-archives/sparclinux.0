@@ -2,45 +2,40 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1366C433F5
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Dec 2021 18:26:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3885DC433F5
+	for <sparclinux@archiver.kernel.org>; Sat, 18 Dec 2021 00:38:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240349AbhLQS0n (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Dec 2021 13:26:43 -0500
-Received: from mga06.intel.com ([134.134.136.31]:22510 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231609AbhLQS0m (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Fri, 17 Dec 2021 13:26:42 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1639765602; x=1671301602;
-  h=subject:to:cc:references:from:message-id:date:
-   mime-version:in-reply-to:content-transfer-encoding;
-  bh=YH3sM3fKUYX2l1CxZa0lsGrLu2lfb36D5H5JhDFnQAI=;
-  b=L3PN1H3M/bNJzN62PNXnr/fCeY0SDdFFA9HKPQdtcERrk2MgQh2VxYR3
-   wWYGB7ASeCmhOf5lh7Z5lf4abSC6N9bFxsy0VPCBQ9Upjh7NYspr4aEn2
-   fbZMKfdQvBGhduI5VY9hBSGklM5KF0lnOzbcWfBG33ssS0+8hqp6+FCxp
-   9hYoRm/bIlmQmrw9cWOuQtuFcGzBd2f8vNTlqNF9Gk1NzhJkxae4DEjLz
-   TTo79K2RQ5CYEhhDwWcfzO2oXpZGon0gh5dVy+satjGx3jj9ZsIbX3NEI
-   Q2ZTb4vUxbOw94QTqU8/NApWGlkwo3jDqGD1T5CjqOhbOY75OF5tzwtJe
-   g==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10201"; a="300582268"
-X-IronPort-AV: E=Sophos;i="5.88,214,1635231600"; 
-   d="scan'208";a="300582268"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Dec 2021 10:26:41 -0800
-X-IronPort-AV: E=Sophos;i="5.88,214,1635231600"; 
-   d="scan'208";a="683475968"
-Received: from mkundu-mobl1.amr.corp.intel.com (HELO [10.212.216.75]) ([10.212.216.75])
-  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Dec 2021 10:26:40 -0800
-Subject: Re: [PATCH/RFC] mm: add and use batched version of
- __tlb_remove_table()
-To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
-        Will Deacon <will@kernel.org>,
+        id S230290AbhLRAiO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Dec 2021 19:38:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42214 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229632AbhLRAiN (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Dec 2021 19:38:13 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73D16C061574;
+        Fri, 17 Dec 2021 16:38:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=sCq6rslY7drSQhn+391lhYoVFDvXuHqn0QEvibUJ5GY=; b=kRLPRc3KYHA/rDKxe1vjh6sAJ1
+        ptZBfemd0PSCHTW9GaUoOLQXaxCf9lcb3uotP/L2xPEzpkt+i++L0n3kehN1+CnTRpagAHSLRyNZN
+        nxdOiJtfUmjzJzzggnjJbZHxJFYPJDDZNysr3wkoHfNfTtqZUs2W7JdRx7Je+oOZwjGbOaE7EUmFO
+        rtn6UXScKcPFCAiP/GT8qMDhFgMg9rAX38FagkzNmyG6EBSL+QAzys2mT3JKbRssqGCQ7Pt4Ph+MD
+        vNvhYARIA8YWF5acmxDPgl9db5lCWopjV73y4suQvd2vS2IpCjeD6im5AKuR34z4zKv5lKGEym71v
+        pdwLq93Q==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1myNjL-00HCNI-2U; Sat, 18 Dec 2021 00:37:43 +0000
+Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
+        id D740B9862C4; Sat, 18 Dec 2021 01:37:42 +0100 (CET)
+Date:   Sat, 18 Dec 2021 01:37:42 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
+Cc:     Will Deacon <will@kernel.org>,
         "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Nick Piggin <npiggin@gmail.com>,
-        Peter Zijlstra <peterz@infradead.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Heiko Carstens <hca@linux.ibm.com>,
         Vasily Gorbik <gor@linux.ibm.com>,
@@ -49,70 +44,24 @@ To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
         Dave Hansen <dave.hansen@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc:     x86@kernel.org, linux-kernel@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, kernel@openvz.org
+        Arnd Bergmann <arnd@arndb.de>, x86@kernel.org,
+        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        kernel@openvz.org
+Subject: Re: [PATCH/RFC] mm: add and use batched version of
+ __tlb_remove_table()
+Message-ID: <20211218003742.GL16608@worktop.programming.kicks-ass.net>
 References: <20211217081909.596413-1-nikita.yushchenko@virtuozzo.com>
-From:   Dave Hansen <dave.hansen@intel.com>
-Autocrypt: addr=dave.hansen@intel.com; keydata=
- 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
- z5cecg==
-Message-ID: <fcbb726d-fe6a-8fe4-20fd-6a10cdef007a@intel.com>
-Date:   Fri, 17 Dec 2021 10:26:38 -0800
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
- Thunderbird/68.10.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 In-Reply-To: <20211217081909.596413-1-nikita.yushchenko@virtuozzo.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 12/17/21 12:19 AM, Nikita Yushchenko wrote:
+On Fri, Dec 17, 2021 at 11:19:10AM +0300, Nikita Yushchenko wrote:
 > When batched page table freeing via struct mmu_table_batch is used, the
 > final freeing in __tlb_remove_table_free() executes a loop, calling
 > arch hook __tlb_remove_table() to free each table individually.
@@ -121,109 +70,173 @@ On 12/17/21 12:19 AM, Nikita Yushchenko wrote:
 > freeing multiple tables in a single release_pages() call. This is
 > faster than individual put_page() calls, especially with memcg
 > accounting enabled.
+> 
+> Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+> Signed-off-by: Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
+> ---
+>  arch/arm/include/asm/tlb.h                   |  5 ++++
+>  arch/arm64/include/asm/tlb.h                 |  5 ++++
+>  arch/powerpc/include/asm/book3s/32/pgalloc.h |  8 +++++++
+>  arch/powerpc/include/asm/book3s/64/pgalloc.h |  1 +
+>  arch/powerpc/include/asm/nohash/pgalloc.h    |  8 +++++++
+>  arch/powerpc/mm/book3s64/pgtable.c           |  8 +++++++
+>  arch/s390/include/asm/tlb.h                  |  1 +
+>  arch/s390/mm/pgalloc.c                       |  8 +++++++
+>  arch/sparc/include/asm/pgalloc_64.h          |  8 +++++++
+>  arch/x86/include/asm/tlb.h                   |  5 ++++
+>  include/asm-generic/tlb.h                    |  2 +-
+>  include/linux/swap.h                         |  5 +++-
+>  mm/mmu_gather.c                              |  6 +----
+>  mm/swap_state.c                              | 24 +++++++++++++++-----
+>  14 files changed, 81 insertions(+), 13 deletions(-)
 
-Could we quantify "faster"?  There's a non-trivial amount of code being
-added here and it would be nice to back it up with some cold-hard numbers.
+Oh gawd, that's terrible. Never, ever duplicate code like that.
 
-> --- a/mm/mmu_gather.c
-> +++ b/mm/mmu_gather.c
-> @@ -95,11 +95,7 @@ bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_
->  
->  static void __tlb_remove_table_free(struct mmu_table_batch *batch)
->  {
-> -	int i;
-> -
-> -	for (i = 0; i < batch->nr; i++)
-> -		__tlb_remove_table(batch->tables[i]);
-> -
-> +	__tlb_remove_tables(batch->tables, batch->nr);
->  	free_page((unsigned long)batch);
->  }
+I'm thinking the below does the same? But yes, please do as Dave said,
+give us actual numbers that show this is worth it.
 
-This leaves a single call-site for __tlb_remove_table():
+---
+ arch/Kconfig                 |  4 ++++
+ arch/arm/Kconfig             |  1 +
+ arch/arm/include/asm/tlb.h   |  5 -----
+ arch/arm64/Kconfig           |  1 +
+ arch/arm64/include/asm/tlb.h |  5 -----
+ arch/x86/Kconfig             |  1 +
+ arch/x86/include/asm/tlb.h   |  4 ----
+ mm/mmu_gather.c              | 22 +++++++++++++++++++---
+ 8 files changed, 26 insertions(+), 17 deletions(-)
 
-> static void tlb_remove_table_one(void *table)
-> {
->         tlb_remove_table_sync_one();
->         __tlb_remove_table(table);
-> }
-
-Is that worth it, or could it just be:
-
-	__tlb_remove_tables(&table, 1);
-
-?
-
-> -void free_pages_and_swap_cache(struct page **pages, int nr)
-> +static void __free_pages_and_swap_cache(struct page **pages, int nr,
-> +		bool do_lru)
->  {
-> -	struct page **pagep = pages;
->  	int i;
->  
-> -	lru_add_drain();
-> +	if (do_lru)
-> +		lru_add_drain();
->  	for (i = 0; i < nr; i++)
-> -		free_swap_cache(pagep[i]);
-> -	release_pages(pagep, nr);
-> +		free_swap_cache(pages[i]);
-> +	release_pages(pages, nr);
-> +}
-> +
-> +void free_pages_and_swap_cache(struct page **pages, int nr)
-> +{
-> +	__free_pages_and_swap_cache(pages, nr, true);
-> +}
-> +
-> +void free_pages_and_swap_cache_nolru(struct page **pages, int nr)
-> +{
-> +	__free_pages_and_swap_cache(pages, nr, false);
->  }
-
-This went unmentioned in the changelog.  But, it seems like there's a
-specific optimization here.  In the exiting code,
-free_pages_and_swap_cache() is wasteful if no page in pages[] is on the
-LRU.  It doesn't need the lru_add_drain().
-
-Any code that knows it is freeing all non-LRU pages can call
-free_pages_and_swap_cache_nolru() which should perform better than
-free_pages_and_swap_cache().
-
-Should we add this to the for loop in __free_pages_and_swap_cache()?
-
-	for (i = 0; i < nr; i++) {
-		if (!do_lru)
-			VM_WARN_ON_ONCE_PAGE(PageLRU(pagep[i]),
-					     pagep[i]);
-		free_swap_cache(...);
-	}
-
-But, even more than that, do all the architectures even need the
-free_swap_cache()?  PageSwapCache() will always be false on x86, which
-makes the loop kinda silly.  x86 could, for instance, just do:
-
-static inline void __tlb_remove_tables(void **tables, int nr)
-{
-	release_pages((struct page **)tables, nr);
-}
-
-I _think_ this will work everywhere that has whole pages as page tables.
- Taking that one step further, what if we only had one generic:
-
-static inline void tlb_remove_tables(void **tables, int nr)
-{
-	int i;
-
-#ifdef ARCH_PAGE_TABLES_ARE_FULL_PAGE
-	release_pages((struct page **)tables, nr);
-#else
-	arch_tlb_remove_tables(tables, i);
-#endif
-}
-
-Architectures that set ARCH_PAGE_TABLES_ARE_FULL_PAGE (or whatever)
-don't need to implement __tlb_remove_table() at all *and* can do
-release_pages() directly.
-
-This avoids all the  confusion with the swap cache and LRU naming.
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 26b8ed11639d..f2bd3f5af2b1 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -415,6 +415,10 @@ config HAVE_ARCH_JUMP_LABEL_RELATIVE
+ config MMU_GATHER_TABLE_FREE
+ 	bool
+ 
++config MMU_GATHER_TABLE_PAGE
++	bool
++	depends on MMU_GATHER_TABLE_FREE
++
+ config MMU_GATHER_RCU_TABLE_FREE
+ 	bool
+ 	select MMU_GATHER_TABLE_FREE
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index f0f9e8bec83a..11baaa5719c2 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -110,6 +110,7 @@ config ARM
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+ 	select MMU_GATHER_RCU_TABLE_FREE if SMP && ARM_LPAE
++	select MMU_GATHER_TABLE_PAGE if MMU
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_RSEQ
+ 	select HAVE_STACKPROTECTOR
+diff --git a/arch/arm/include/asm/tlb.h b/arch/arm/include/asm/tlb.h
+index b8cbe03ad260..9d9b21649ca0 100644
+--- a/arch/arm/include/asm/tlb.h
++++ b/arch/arm/include/asm/tlb.h
+@@ -29,11 +29,6 @@
+ #include <linux/swap.h>
+ #include <asm/tlbflush.h>
+ 
+-static inline void __tlb_remove_table(void *_table)
+-{
+-	free_page_and_swap_cache((struct page *)_table);
+-}
+-
+ #include <asm-generic/tlb.h>
+ 
+ static inline void
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index c4207cf9bb17..4aa28fb03f4f 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -196,6 +196,7 @@ config ARM64
+ 	select HAVE_FUNCTION_ARG_ACCESS_API
+ 	select HAVE_FUTEX_CMPXCHG if FUTEX
+ 	select MMU_GATHER_RCU_TABLE_FREE
++	select MMU_GATHER_TABLE_PAGE
+ 	select HAVE_RSEQ
+ 	select HAVE_STACKPROTECTOR
+ 	select HAVE_SYSCALL_TRACEPOINTS
+diff --git a/arch/arm64/include/asm/tlb.h b/arch/arm64/include/asm/tlb.h
+index c995d1f4594f..401826260a5c 100644
+--- a/arch/arm64/include/asm/tlb.h
++++ b/arch/arm64/include/asm/tlb.h
+@@ -11,11 +11,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/swap.h>
+ 
+-static inline void __tlb_remove_table(void *_table)
+-{
+-	free_page_and_swap_cache((struct page *)_table);
+-}
+-
+ #define tlb_flush tlb_flush
+ static void tlb_flush(struct mmu_gather *tlb);
+ 
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b9281fab4e3e..a22e653f4d0e 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -235,6 +235,7 @@ config X86
+ 	select HAVE_PERF_REGS
+ 	select HAVE_PERF_USER_STACK_DUMP
+ 	select MMU_GATHER_RCU_TABLE_FREE		if PARAVIRT
++	select MMU_GATHER_TABLE_PAGE
+ 	select HAVE_POSIX_CPU_TIMERS_TASK_WORK
+ 	select HAVE_REGS_AND_STACK_ACCESS_API
+ 	select HAVE_RELIABLE_STACKTRACE		if X86_64 && (UNWINDER_FRAME_POINTER || UNWINDER_ORC) && STACK_VALIDATION
+diff --git a/arch/x86/include/asm/tlb.h b/arch/x86/include/asm/tlb.h
+index 1bfe979bb9bc..dec5ffa3042a 100644
+--- a/arch/x86/include/asm/tlb.h
++++ b/arch/x86/include/asm/tlb.h
+@@ -32,9 +32,5 @@ static inline void tlb_flush(struct mmu_gather *tlb)
+  * below 'ifdef CONFIG_MMU_GATHER_RCU_TABLE_FREE' in include/asm-generic/tlb.h
+  * for more details.
+  */
+-static inline void __tlb_remove_table(void *table)
+-{
+-	free_page_and_swap_cache(table);
+-}
+ 
+ #endif /* _ASM_X86_TLB_H */
+diff --git a/mm/mmu_gather.c b/mm/mmu_gather.c
+index 1b9837419bf9..0195d0f13ed3 100644
+--- a/mm/mmu_gather.c
++++ b/mm/mmu_gather.c
+@@ -93,13 +93,29 @@ bool __tlb_remove_page_size(struct mmu_gather *tlb, struct page *page, int page_
+ 
+ #ifdef CONFIG_MMU_GATHER_TABLE_FREE
+ 
+-static void __tlb_remove_table_free(struct mmu_table_batch *batch)
++#ifdef CONFIG_MMU_GATHER_TABLE_PAGE
++static inline void __tlb_remove_table(void *table)
++{
++	free_page_and_swap_cache(table);
++}
++
++static inline void __tlb_remove_tables(void **tables, int nr)
++{
++	free_pages_and_swap_cache_nolru((struct page **)tables, nr);
++}
++#else
++static inline void __tlb_remove_tables(void **tables, int nr)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < batch->nr; i++)
+-		__tlb_remove_table(batch->tables[i]);
++	for (i = 0; i < nr; i++)
++		__tlb_remove_table(tables[i]);
++}
++#endif
+ 
++static void __tlb_remove_table_free(struct mmu_table_batch *batch)
++{
++	__tlb_remove_tables(batch->tables, batch->nr);
+ 	free_page((unsigned long)batch);
+ }
+ 
