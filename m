@@ -2,45 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00A69C433F5
-	for <sparclinux@archiver.kernel.org>; Sat, 18 Dec 2021 14:31:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FDE1C433FE
+	for <sparclinux@archiver.kernel.org>; Sun, 19 Dec 2021 01:34:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233453AbhLRObx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 18 Dec 2021 09:31:53 -0500
-Received: from mail-vi1eur05on2137.outbound.protection.outlook.com ([40.107.21.137]:19872
-        "EHLO EUR05-VI1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S230237AbhLRObx (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sat, 18 Dec 2021 09:31:53 -0500
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=c+WLDFqlZ4x5bhv5yU3vBV3d4X64hryHHuktuZx9YK9C9NP2/11Q4GwDW7a45XQVMHPU55dY+cDUoZ+BoOtH92MJNIRnOlQytf92k61C7rpjkZQjLnvwZBs6FW0/5X+FCWjhhttS3iQMKHXbfphn1uXfp9vRe9jjQZeOqueygzvqtGmbdkFx+OEaaMX6EXw3RcJre69Fc9lKnKPn+vV3LgnIZUXheASSlsimp5NtOuV7I5DQcqVjMzcwpkB4QMiI8E7bchEmwqc61THYasOapCg43DEUO7+zKj84FhY+j7YZCNc1Oxv7Wok7dKsaTenAEiF7/NPZIfeqLi4SFdQ1Jg==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=GxDT9bbu+LB4qwOjc5O4MNgs+jXEZ+Qpsn9QoQWCZUI=;
- b=T1cjSvKQiHXjzS0NHy+kjFrorvETOIquMzwfT9g5g0ViBNQFdxrF/0Yl0S/iYQ5O6pmkHG+fQGjO9mVcKajotlb9Ygu4ZoOPQs8/88CkyP4IHBF2WNa6ow8E0qInWGcOpI+hGSQ7btlc85EpI80gdLAmQxfIt+tG8g2qqu5b8PmwYRFcRvFpfiST3g9TTGGiUqEoRlVNY7m26Ej4nMd0R5w4kwEdiD3iiauhDb4zrOxosYJ7feWppvM1f4kV2gaXtdrlBPUMmHssuJz5lqlVB5ruPFDWd0HxpXe656OHzLbbomJkH9Ft60+4Wvq/K/110Uce78pZpRlprCiUTVE3fw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=virtuozzo.com; dmarc=pass action=none
- header.from=virtuozzo.com; dkim=pass header.d=virtuozzo.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=virtuozzo.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=GxDT9bbu+LB4qwOjc5O4MNgs+jXEZ+Qpsn9QoQWCZUI=;
- b=fNc6rF9+EKRQ55Q4JWXxC0TH+3/XsfB65MiweBcQzP6gM5xBKA30liofOAI98/yfKmlmEhYxeD+6PozBuyJA2PtpjElR9tAqB7s7PnBf4tM8eV7nkiA1cpFS485riHFkQZ3yJbJHmQNhSU7U1FLDvPCIKsdopnqoDvFh6kwIZxc=
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=virtuozzo.com;
-Received: from VE1PR08MB5630.eurprd08.prod.outlook.com (2603:10a6:800:1ae::7)
- by VI1PR08MB3997.eurprd08.prod.outlook.com (2603:10a6:803:e0::30) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4801.17; Sat, 18 Dec
- 2021 14:31:48 +0000
-Received: from VE1PR08MB5630.eurprd08.prod.outlook.com
- ([fe80::5807:e24c:a173:3b71]) by VE1PR08MB5630.eurprd08.prod.outlook.com
- ([fe80::5807:e24c:a173:3b71%4]) with mapi id 15.20.4801.017; Sat, 18 Dec 2021
- 14:31:48 +0000
+        id S232898AbhLSBeR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 18 Dec 2021 20:34:17 -0500
+Received: from mga17.intel.com ([192.55.52.151]:14836 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S232124AbhLSBeQ (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Sat, 18 Dec 2021 20:34:16 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1639877656; x=1671413656;
+  h=subject:to:cc:references:from:message-id:date:
+   mime-version:in-reply-to:content-transfer-encoding;
+  bh=cv74yQu4yaEw55arUJxxiaDLp4QaHtBmtA1P6ilYt3E=;
+  b=O5/OTkRYebyQw7PZ59bM+NBnbptArQN9zkRzP8WcX69LInZC20Y9p/8G
+   bhf3mNgRUskOU+YOR0UkPdUH4GIVV7OZstVTrPfJ53lgmPRTLSlRK9Jjx
+   bPgf5+HgvGqruqXuUE57ZsyC3tnE1oAvSosLrCSWetNE+/r10agMBp7BH
+   yeEd1at2ww/gjYN0RpNCjTGzqsbXjKm+eeEGvIY6PANB5vlX9nBhSQ71b
+   2kfizmIFHrI2PkzBoQleEEZM+0ZOSwuKlLwBsdpPpXtcd1jNCF8DXoYol
+   3YEr4Pp4BUcw5qzjuBmsRoIA3rLY6CAW4/HDEIEpug01wqjhEGRacZoJ0
+   g==;
+X-IronPort-AV: E=McAfee;i="6200,9189,10202"; a="220645226"
+X-IronPort-AV: E=Sophos;i="5.88,217,1635231600"; 
+   d="scan'208";a="220645226"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Dec 2021 17:34:16 -0800
+X-IronPort-AV: E=Sophos;i="5.88,217,1635231600"; 
+   d="scan'208";a="683817902"
+Received: from dravipat-mobl.amr.corp.intel.com (HELO [10.209.5.57]) ([10.209.5.57])
+  by orsmga005-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Dec 2021 17:34:15 -0800
 Subject: Re: [PATCH/RFC] mm: add and use batched version of
  __tlb_remove_table()
-To:     Dave Hansen <dave.hansen@intel.com>, Will Deacon <will@kernel.org>,
+To:     Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>,
+        Will Deacon <will@kernel.org>,
         "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Nick Piggin <npiggin@gmail.com>,
@@ -60,158 +56,104 @@ Cc:     x86@kernel.org, linux-kernel@vger.kernel.org,
         sparclinux@vger.kernel.org, kernel@openvz.org
 References: <20211217081909.596413-1-nikita.yushchenko@virtuozzo.com>
  <fcbb726d-fe6a-8fe4-20fd-6a10cdef007a@intel.com>
-From:   Nikita Yushchenko <nikita.yushchenko@virtuozzo.com>
-Message-ID: <d6094dc4-3976-e06f-696b-c55f696fe287@virtuozzo.com>
-Date:   Sat, 18 Dec 2021 17:31:43 +0300
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.14.0
-In-Reply-To: <fcbb726d-fe6a-8fe4-20fd-6a10cdef007a@intel.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
-X-ClientProxiedBy: AM6P194CA0074.EURP194.PROD.OUTLOOK.COM
- (2603:10a6:209:8f::15) To VE1PR08MB5630.eurprd08.prod.outlook.com
- (2603:10a6:800:1ae::7)
+ <d6094dc4-3976-e06f-696b-c55f696fe287@virtuozzo.com>
+From:   Dave Hansen <dave.hansen@intel.com>
+Autocrypt: addr=dave.hansen@intel.com; keydata=
+ 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
+ z5cecg==
+Message-ID: <290cfe1c-564f-9779-0757-5ca281055e77@intel.com>
+Date:   Sat, 18 Dec 2021 17:34:13 -0800
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 8f98acc0-fce1-403f-2641-08d9c2331fd8
-X-MS-TrafficTypeDiagnostic: VI1PR08MB3997:EE_
-X-Microsoft-Antispam-PRVS: <VI1PR08MB3997B05C6CAECD75EF97A8FCF4799@VI1PR08MB3997.eurprd08.prod.outlook.com>
-X-MS-Oob-TLC-OOBClassifiers: OLM:10000;
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: RzXu6fqi1R0YLR7mYCVba7pbvp5GjXce7rDCo0fK5vyCW2xE+WLhGeZTUCqWk2AvzE0E/eVKYtY/X6myCipZJOVaaiZhqI3pRxZVmZcHKkfpDRMY/aSk8k9ADO57rjbzccvIa1z0HXWpBrJv2JZZlzh+OGiV+7k8D7tbUKQyvaurJ0kk9WgU/7MOqwDKHvhPwSSUU2Z3YqsL9xOqVd0R8ZvbOzIunQtkxV2IdHTdjTPM42PQSJh2LPePbC16V/PnBTwm3OGmUa2ryjokw44ofYU8baafKE+9bmvfA+vFTyKVoH2kCxbb2ddavKyaz7Zw5St+ybO7ReTtAldduXUf16LH5I0K0C1ddKI52Dq1aUdnmX0qKslhRxJy4t5dy0TsLYDNJQixpzKzZkSi6gfDkzRF90pIkEanU0S3ji5PC2I2Z6q5+oI+odQ8hNmOSBBj1BqImCbn2+Bq5Y24UdxJ1Z66h1L6LQBR3MccRA2POyF9TPcWqrrORJ/u+SDmx+XjvhHdevgDW+QN+W1QgeesxC0xqSHc+jvE/HamFYNcmf7CuOfc98frP4BOlOQu+3RiSU7r9ncak8O+UDPbujjNHxkfYnRcB/mfONdhVBXotbdrymemFG1I/F0ABdlxDNqaQJr1UzPrGFDOTVlRoDgK/YdZKjCD1dl8HeypKKLB+IgZD/eyk/tGntRW8KXSsdmQbjU0kAmI/ewTqQxpkQHEpERsJpyIlMGym3VBGK3p0V2Jeg90XgMs2kWK9Js1qXX5
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:VE1PR08MB5630.eurprd08.prod.outlook.com;PTR:;CAT:NONE;SFS:(4636009)(366004)(921005)(31696002)(107886003)(6486002)(86362001)(5660300002)(66946007)(83380400001)(66556008)(6666004)(66476007)(186003)(8676002)(316002)(508600001)(36756003)(2616005)(6506007)(26005)(8936002)(44832011)(7416002)(38100700002)(6512007)(4326008)(110136005)(2906002)(31686004)(43740500002)(45980500001);DIR:OUT;SFP:1102;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?b01NT2hRZnA3RU0xQ0RqdXJWb0VIa2FSejlTQlB4Nzc0V3BmU0Fhb3VGSmY2?=
- =?utf-8?B?ekRtdWdKeDEvOWV3OFBGNDFjV3ppcjYvenpNNlpONE5PY3R3NzMzUzlUbTI1?=
- =?utf-8?B?UUFNRGRWUXl2NDM1T2hwYUFHbXJOTXdXcXFVa0ovYk5zam15UmkrUkVFQld3?=
- =?utf-8?B?TTBTUkh5Y0dIU1JTT3Z1RHF3cjNaQlJhMllJQlRBV3QrcjROamdBNEJLUi9s?=
- =?utf-8?B?ZEFMS3UrRDE1ZExPOVBYYVFremQrNkFPREdoejM2MmRUbFFDMEJiYk1JVFN6?=
- =?utf-8?B?Z1kvcVJyRVQyRkJyT25JN3ZHUjdublgyaEdOa0FjeHU2MlJsZmp4MndIWVJT?=
- =?utf-8?B?TjNkbG1ZUFhxNk5TeG1tL2pEamd0VG9DaFZYWS9tZlVJakg1RVl1Y2FEcGd6?=
- =?utf-8?B?aTgrdzE0Z1FrcExuam1YS2Q5SFZtQmVPdkVvalA0R3FYbkUvd1VESVlSUTkw?=
- =?utf-8?B?NXI3UjRPdm9SQUxuUGhJemI3RkhFdDlYVkt4eU1Jc2VCdXJsWExvSWVZNUR4?=
- =?utf-8?B?b3F6dk5GZmZnbGx0T3VCVE1WaTdTY0RTeGRod0lSekEvZVJML2dJQXM2dHhU?=
- =?utf-8?B?SXpVM2hwa0Z5M1VqZnRZWTNKcUMzSHp4Y1FnRmd4RCsyZWpMNDQ2YUV0UVcx?=
- =?utf-8?B?NmgwNFR3aVRwNU1XL1Q1SWorU2pFZStodER4TjBseDN0bFB0aFdPRHZOa0N3?=
- =?utf-8?B?RlpDb0ZCd2RFZ203MG82Ryt6STBZazBKL3hFVVhBQnhXc3YwcS9lSEp3YUdR?=
- =?utf-8?B?SURoREJqRXc5NnQ5Y2VvRDFMVEl6ak1GVGgxTUlsUytmZmVNNDRGUGJZN1Nt?=
- =?utf-8?B?Z0owNXRteVFlZy9rcDJaTE4xVTNDV1pYVDNQRFJLa0VEKzRXaWxhR3RDNFZ4?=
- =?utf-8?B?eUtQQ2hZTkplQWNRYUFNVHFuUE1UVzUybVROaGJxdEEzS0NrR1FDRGNFWUts?=
- =?utf-8?B?b1A1ZkErb2FQcFhJYTB3T1hCVUV6WWNoS0VGMHdWZFRoMUtqSGc1UHA3SmR5?=
- =?utf-8?B?NXJSNkdSTHdCTC8xNzRYRVU5WVZNMGgxN2dReG5yOUd1SE9QQnZoS1M0QTlP?=
- =?utf-8?B?TmhjbmdJYzgrSS82b3RHYnRlUWdGTTJxcW4xK01EZnFVVWlpbVd4aWRGMW55?=
- =?utf-8?B?SExvamVBL3M4VjNnMkdZdEdrK21RUXRJMDFCaEMwYUcrblo3SnpVTnMrNTdT?=
- =?utf-8?B?TWxvT2xhTnNhS0xMdFcxUXF4Q0x0Myt6Yk05TnZQMUZ6QW5MbDh2UFJlNzNP?=
- =?utf-8?B?WmlZMzZYdXVpc3ZnTEYvQXppemtxQmxHS2ZjRjc3YTBnYWpLMGZQTTdidC9F?=
- =?utf-8?B?RGprNVNaTkhiK3QxNVNaTlUrQWVCZk9KV1pjcTZwWWo2ZHhnV3B3ZU15bEtE?=
- =?utf-8?B?ZWhCSU1RQ1ZTdUhUcE1PZlFOVkhPRldFSVJ6N0dJSllnSmJsdVNnVU5WRnAv?=
- =?utf-8?B?eVQ2TVV4dWpOVXZ2VythRHA4WVM4SUdOVVl0VnB3SDZCeitoWUkvYnZXd0Rm?=
- =?utf-8?B?V2NoL1QzT0dxZDVsN2t6c3VJdnR2VU5PR1JYN3dqZEQ4Z1lRY1NyOHNqaU94?=
- =?utf-8?B?WHJ0cTNqK3p6UVJFOHNOSThqdTNkM21iTGdTRDRYdmpwWm1DenVBaFdIUGdK?=
- =?utf-8?B?MFZWTWJiT2pwczZiMTA4QktrOWc4SlhBY3BzZE9FVTh3RHI2TUF0bGphWmFt?=
- =?utf-8?B?MlJlbjluSHhuU3A3eXBnb0UrUXo2dE9rSUhhV3dtaWMySjlBTmVGYjN5SWxP?=
- =?utf-8?B?ZGNUd2dkc3dESFVIR0VJMVBWd0tsUHhBK0tkb0ZWaTZ4Yms3YTh6Um0xdGs1?=
- =?utf-8?B?Q0MxUnFEZDFpYWptRWJLRUpDbHA2blJVcmlaOWJwaCt1S3N2aEhyZ1ZTTzNJ?=
- =?utf-8?B?Zm9wNXFrbUxjclhTS0Q5T3JHQVlWVnhGblhYZUZ5b1NIUDhyQ2dwVG5xa0tp?=
- =?utf-8?B?MElxR1lZb3lKcUNqS1VyZEl2Z0l2KzFQZmsvd0U2aHNpOEJEam1GQXhWRVUr?=
- =?utf-8?B?THVvSHltdWhscmx1UnhSbjNtVHlFdVBTQXB1MGtZS1JFdVl3T3NqQmdSRGhX?=
- =?utf-8?B?ekphekd6WWFyWEdZL1B5NGplOFFHL3pjVTQwYU85ZEY4SGdWZmxBVzNyTVgr?=
- =?utf-8?B?eWhxelZKbm5mNlVrWTV0MjhrZFUyeGp5RlAvTTJoUTB0U0hKbVhnQ3V6S2gy?=
- =?utf-8?B?dStNSGVjSzBLeXBVOFFON0FjKzlCQi93aFVuMjBHUWNkRWhKeEUyS0ZCZUZB?=
- =?utf-8?B?Z1VJUFZIQWdPT1l3YlFNSisvWHlBPT0=?=
-X-OriginatorOrg: virtuozzo.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8f98acc0-fce1-403f-2641-08d9c2331fd8
-X-MS-Exchange-CrossTenant-AuthSource: VE1PR08MB5630.eurprd08.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 18 Dec 2021 14:31:48.4568
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 0bc7f26d-0264-416e-a6fc-8352af79c58f
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: Di02MfvmZq/ZzeKPwiVnRju+jpJ8HzLGAoa/XlQXOKBEaFBw4gGqhLhFEXSSuGqsus6a7rVb6e5N6FLVpEVy2tI8mYtpmuhom0qvwDsyVVU=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1PR08MB3997
+In-Reply-To: <d6094dc4-3976-e06f-696b-c55f696fe287@virtuozzo.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
->> This allows archs to optimize it, by
->> freeing multiple tables in a single release_pages() call. This is
->> faster than individual put_page() calls, especially with memcg
->> accounting enabled.
+On 12/18/21 6:31 AM, Nikita Yushchenko wrote:
+>>> This allows archs to optimize it, by
+>>> freeing multiple tables in a single release_pages() call. This is
+>>> faster than individual put_page() calls, especially with memcg
+>>> accounting enabled.
+>>
+>> Could we quantify "faster"?  There's a non-trivial amount of code being
+>> added here and it would be nice to back it up with some cold-hard
+>> numbers.
 > 
-> Could we quantify "faster"?  There's a non-trivial amount of code being
-> added here and it would be nice to back it up with some cold-hard numbers.
-
-I currently don't have numbers for this patch taken alone. This patch originates from work done some 
-years ago to reduce cost of memory accounting, and x86-only version of this patch was in 
-virtuozzo/openvz kernel since then. Other patches from that work have been upstreamed, but this one was 
-missed.
-
-Still it's obvious that release_pages() shall be faster that a loop calling put_page() - isn't that 
-exactly the reason why release_pages() exists and is different from a loop calling put_page()?
-
->>   static void __tlb_remove_table_free(struct mmu_table_batch *batch)
->>   {
->> -	int i;
->> -
->> -	for (i = 0; i < batch->nr; i++)
->> -		__tlb_remove_table(batch->tables[i]);
->> -
->> +	__tlb_remove_tables(batch->tables, batch->nr);
->>   	free_page((unsigned long)batch);
->>   }
+> I currently don't have numbers for this patch taken alone. This patch
+> originates from work done some years ago to reduce cost of memory
+> accounting, and x86-only version of this patch was in virtuozzo/openvz
+> kernel since then. Other patches from that work have been upstreamed,
+> but this one was missed.
 > 
-> This leaves a single call-site for __tlb_remove_table():
+> Still it's obvious that release_pages() shall be faster that a loop
+> calling put_page() - isn't that exactly the reason why release_pages()
+> exists and is different from a loop calling put_page()?
+
+Yep, but this patch does a bunch of stuff to some really hot paths.  It
+would be greatly appreciated if you could put in the effort to actually
+put some numbers behind this.  Plenty of weird stuff happens on
+computers that we suck at predicting.
+
+I'd be happy with even a quick little micro.  My favorite is:
+
+	https://github.com/antonblanchard/will-it-scale
+
+Although, I do wonder if anything will even be measurable.  Please at
+least try.
+
+...
+>> But, even more than that, do all the architectures even need the
+>> free_swap_cache()?
 > 
->> static void tlb_remove_table_one(void *table)
->> {
->>          tlb_remove_table_sync_one();
->>          __tlb_remove_table(table);
->> }
-> 
-> Is that worth it, or could it just be:
-> 
-> 	__tlb_remove_tables(&table, 1);
+> I was under impression that process page tables are a valid target for
+> swapping out. Although I can be wrong here.
 
-I was considering that while preparing the patch, however that resulted into even larger change in 
-archs, due to removal of non-batched call, and I decided not to follow this way.
-
-And, Peter's suggestion to integrate free_page_and_swap()-based implementation of __tlb_remove_table() 
-into mm/mmu_gather.c under ifdef, and then do the optimization locally in mm/mmu_gather.c, looks better.
-
->> +void free_pages_and_swap_cache_nolru(struct page **pages, int nr)
->> +{
->> +	__free_pages_and_swap_cache(pages, nr, false);
->>   }
-> 
-> This went unmentioned in the changelog.  But, it seems like there's a
-> specific optimization here.  In the exiting code,
-> free_pages_and_swap_cache() is wasteful if no page in pages[] is on the
-> LRU.  It doesn't need the lru_add_drain().
-
-This is a somewhat different topic.
-
-In scope of this patch, the _nolru version was added because there was no lru draining in the looped 
-call to __tlb_remove_table(). Having it added to the batched version, although won't break things, does 
-add overhead that was not there before, which is in direct conflict with the original goal.
-
-If the version with draining lru is indeed not needed, it can be cleaned out in scope of a different 
-patchset.
-
-> 		if (!do_lru)
-> 			VM_WARN_ON_ONCE_PAGE(PageLRU(pagep[i]),
-> 					     pagep[i]);
-> 		free_swap_cache(...);
-
-This looks like a good safety measure, will add it.
-
-> But, even more than that, do all the architectures even need the
-> free_swap_cache()?
-
-I was under impression that process page tables are a valid target for swapping out. Although I can be 
-wrong here.
-
-Nikita
+It's not out of the realm of possibilities.  But, last I checked, the
+only path we free page tables in was when VMAs are being torn down.  I
+have a longstanding TODO item to reclaim them if they're empty (all
+zeros) or to zero them out if they're mapping page cache.
