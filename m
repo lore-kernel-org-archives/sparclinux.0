@@ -2,34 +2,34 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BFCC433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Dec 2021 03:26:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2663C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 20 Dec 2021 08:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233971AbhLTD0o (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 19 Dec 2021 22:26:44 -0500
-Received: from smtpbg126.qq.com ([106.55.201.22]:42990 "EHLO smtpbg587.qq.com"
+        id S232429AbhLTIR5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 20 Dec 2021 03:17:57 -0500
+Received: from smtpbg126.qq.com ([106.55.201.22]:30871 "EHLO smtpbg587.qq.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S233995AbhLTD0o (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Sun, 19 Dec 2021 22:26:44 -0500
-X-QQ-mid: bizesmtp38t1639970789tau23sx0
+        id S231406AbhLTIR4 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 20 Dec 2021 03:17:56 -0500
+X-QQ-mid: bizesmtp50t1639988262tvk1z43j
 Received: from localhost.localdomain (unknown [118.121.67.96])
         by esmtp6.qq.com (ESMTP) with 
-        id ; Mon, 20 Dec 2021 11:26:27 +0800 (CST)
+        id ; Mon, 20 Dec 2021 16:17:40 +0800 (CST)
 X-QQ-SSF: 01000000002000D0K000B00A0000000
-X-QQ-FEAT: WGgATWfafh560fyrqOc26y4jR9QpUqCbeKlhvkrBAB3v+HIO3RE+uBsqWpNv/
-        +qYkPjeI7VXJEOj+if1jePWkHYOsI7rihNugCJq5ncXvS+30INt/QyhEfWYcVnTs49TH3Xe
-        GvEWh+OEs8Z6b4uUBb34g0RbT1qI62izkRgwL2c8W/g/1qj0vbOEHhODFwbMEtVUU1ZjTNz
-        A/C4qLVawZ737m7KQSY72ZWCUnDLQ35R870J0OUz7zdc5vHUEU12F007shEtFT/PonnWnLm
-        I+CtNavQFd0B1nPwNQDLLoVFLo71mgPuEQVegOj1T2zjO10+sGQPeGDaJTJbrN0zrwn7/Nh
-        pw5y/xNLh+NSY80bhWXj8jrV+c3V37uoV3lPn82
+X-QQ-FEAT: xoS364mEyr0ncuboHM9m7loKAPQJFzQty1PSKk5qn/G3DApA3q1+EbdTHpgpr
+        305N4cZmVXyestbkOPLM+Ru0nWaxFCMEI5kCK/SM22/7AQU+RW6NGTafx7frDLNYslkgetJ
+        Im8ypvINB28J30dZzGiWgL1FpGYWWjxlBM58WsVHPlfd4WOeNk5ZwPzk/Nzax8OijpHk8Io
+        XwB7SNnMzxz4IzC6uyRe2s5/JslH/ciDSfl4aAOm2R/zmCCmKQusoZs01w8DitV90CxVZu9
+        vTDGRtShPLcH2EIrDch2hE7gSlpsSZakJMU8GTrSVAyvrLueVaT+mkw25hmLHrgnnW/5Rfj
+        xLTWYczDKkbEDyG1Ju7Oxa/BRyuMJOJ9a74cOOdIMWyX9sdomA=
 X-QQ-GoodBg: 0
 From:   Jason Wang <wangborong@cdjrlc.com>
 To:     davem@davemloft.net
-Cc:     wangborong@cdjrlc.com, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc: use strscpy to copy strings
-Date:   Mon, 20 Dec 2021 11:26:23 +0800
-Message-Id: <20211220032623.634463-1-wangborong@cdjrlc.com>
+Cc:     viro@zeniv.linux.org.uk, wangborong@cdjrlc.com,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc64: use strscpy to copy strings
+Date:   Mon, 20 Dec 2021 16:17:29 +0800
+Message-Id: <20211220081729.918843-1-wangborong@cdjrlc.com>
 X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -52,22 +52,22 @@ Thus, replace strlcpy with strscpy.
 
 Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
 ---
- arch/sparc/prom/bootstr_32.c | 2 +-
+ arch/sparc/kernel/setup_64.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/sparc/prom/bootstr_32.c b/arch/sparc/prom/bootstr_32.c
-index e3b731ff00f0..1c7cd258b0dc 100644
---- a/arch/sparc/prom/bootstr_32.c
-+++ b/arch/sparc/prom/bootstr_32.c
-@@ -52,7 +52,7 @@ prom_getbootargs(void)
- 		 * V3 PROM cannot supply as with more than 128 bytes
- 		 * of an argument. But a smart bootstrap loader can.
- 		 */
--		strlcpy(barg_buf, *romvec->pv_v2bootargs.bootargs, sizeof(barg_buf));
-+		strscpy(barg_buf, *romvec->pv_v2bootargs.bootargs, sizeof(barg_buf));
- 		break;
- 	default:
- 		break;
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 48abee4eee29..6546ca9d4d3f 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -636,7 +636,7 @@ void __init setup_arch(char **cmdline_p)
+ {
+ 	/* Initialize PROM console and command line. */
+ 	*cmdline_p = prom_getbootargs();
+-	strlcpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
++	strscpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
+ 	parse_early_param();
+ 
+ 	boot_flags_init(*cmdline_p);
 -- 
 2.34.1
 
