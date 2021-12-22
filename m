@@ -2,22 +2,56 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69DF4C433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Dec 2021 09:23:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6927C433F5
+	for <sparclinux@archiver.kernel.org>; Wed, 22 Dec 2021 22:35:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232852AbhLTJXr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 20 Dec 2021 04:23:47 -0500
-Received: from out30-130.freemail.mail.aliyun.com ([115.124.30.130]:52249 "EHLO
-        out30-130.freemail.mail.aliyun.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S231521AbhLTJXd (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Mon, 20 Dec 2021 04:23:33 -0500
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04394;MF=tianjia.zhang@linux.alibaba.com;NM=1;PH=DS;RN=17;SR=0;TI=SMTPD_---0V.B9zcn_1639992206;
-Received: from localhost(mailfrom:tianjia.zhang@linux.alibaba.com fp:SMTPD_---0V.B9zcn_1639992206)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Mon, 20 Dec 2021 17:23:27 +0800
-From:   Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
-To:     Herbert Xu <herbert@gondor.apana.org.au>,
+        id S230435AbhLVWfh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 22 Dec 2021 17:35:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58564 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229665AbhLVWff (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 22 Dec 2021 17:35:35 -0500
+Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53739C061574;
+        Wed, 22 Dec 2021 14:35:35 -0800 (PST)
+Received: by mail-lf1-x12d.google.com with SMTP id j11so6631130lfg.3;
+        Wed, 22 Dec 2021 14:35:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=509cil0OJ5qdfWw2ojcCOYSwHBJ9P8vwyQkD+G8mLLA=;
+        b=ddZKfL8FvoJ0XwnKMMmKWLGJ3VqFSFGglRVDb0+PqM2DxuwldMzReXdg0Ebtk9Yobi
+         AVztMug/XvayfxM3v8GOeWIfRsrkU3pfCylaBXUmoqsMO81lth0cxfRUKMa/jua7By8h
+         fSZ6R/sGKPh5nSmA0ASRGeLeb6wdCjfYNft0YG0y8ivi5U/BpBfokB9hcGa9coBwNOMN
+         Gg+cjCxIPhQ2b7TcbEc1gjiCTijvdkgEF9rXZGv3s6zgXp/f1hq5bp68059Gc1Z9wTvm
+         bIqvGf1ZD6DqjfSFh05rCeUC0528fcV+nKXNDyihLdVmnm+p0/XORPV26mvKGpvGa4Zb
+         OjAw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=509cil0OJ5qdfWw2ojcCOYSwHBJ9P8vwyQkD+G8mLLA=;
+        b=fPeJNrcjM0I21LFplQ6E42/HD1nBdO6KIBrT2hzIxhad8b4k2Yon4YRl15g0szmmPg
+         c6Z0VReoQToYgyNI0e8EirDlkXtDc5rKJMvlhqC+RFFF8NE43rE79aAP4WzSM2Px96cM
+         WVyxHH8I78qg1D1BFMSTzc7P5ai3RkHE1X7A+/dIFV4/Cuw2eu6xmtYV5LbjxKYh+Qw7
+         kbLiH3vL6MbxaUcfFWHmGcDxKxvuY4kUpsGfTnqFRrKj5M37p/uawi96DHpsq2/iX7p5
+         G4C8WAm40iW/1mP1vlEq4HZY5klMQcbeE2W4+C7K9tq8kLp6Gisk1Qi/mVm3vZrlFmzp
+         6Jjg==
+X-Gm-Message-State: AOAM532L3Jo3ZsQYkTP6XdfVAzOy0FX5nfBkvqDDQ5Na9hI9XfW8dzBh
+        alHtqg6JaY8sIRWgGJ9SeCcgyvC275L6/aAk89DsfBPvaUM=
+X-Google-Smtp-Source: ABdhPJyfufBHYdDFQz+ah/Iw/iZGRxjmctUcUf2op+2vKNZiQPXrZB6SUilBWwF8JJMaI1eDbZeGr+HUSlFNJ5XDS4Q=
+X-Received: by 2002:a05:6512:3486:: with SMTP id v6mr3634731lfr.483.1640212533273;
+ Wed, 22 Dec 2021 14:35:33 -0800 (PST)
+MIME-Version: 1.0
+References: <20211220092318.5793-1-tianjia.zhang@linux.alibaba.com> <20211220092318.5793-2-tianjia.zhang@linux.alibaba.com>
+In-Reply-To: <20211220092318.5793-2-tianjia.zhang@linux.alibaba.com>
+From:   Julian Calaby <julian.calaby@gmail.com>
+Date:   Thu, 23 Dec 2021 09:35:21 +1100
+Message-ID: <CAGRGNgXE_5H20K+e9oejqybOGh8JezMpi2yrDJKqaZ4rWJkZdA@mail.gmail.com>
+Subject: Re: [PATCH 1/5] crypto: sha256 - remove duplicate generic hash init function
+To:     Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Cc:     Herbert Xu <herbert@gondor.apana.org.au>,
         "David S. Miller" <davem@davemloft.net>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
@@ -28,79 +62,62 @@ To:     Herbert Xu <herbert@gondor.apana.org.au>,
         Christian Borntraeger <borntraeger@linux.ibm.com>,
         Alexander Gordeev <agordeev@linux.ibm.com>,
         linux-crypto@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org
-Cc:     Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
-Subject: [PATCH 5/5] crypto: s390/sha512 - Use macros instead of direct IV numbers
-Date:   Mon, 20 Dec 2021 17:23:18 +0800
-Message-Id: <20211220092318.5793-6-tianjia.zhang@linux.alibaba.com>
-X-Mailer: git-send-email 2.32.0
-In-Reply-To: <20211220092318.5793-1-tianjia.zhang@linux.alibaba.com>
-References: <20211220092318.5793-1-tianjia.zhang@linux.alibaba.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        LKML <linux-kernel@vger.kernel.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In the init functions of sha512 and sha384, the initial hash value
-use macros instead of numbers.
+Hi Tianjia,
 
-Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
----
- arch/s390/crypto/sha512_s390.c | 32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+On Mon, Dec 20, 2021 at 8:25 PM Tianjia Zhang
+<tianjia.zhang@linux.alibaba.com> wrote:
+>
+> crypto_sha256_init() and sha256_base_init() are the same repeated
+> implementations, remove the crypto_sha256_init() in generic
+> implementation, sha224 is the same process.
+>
+> Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+> ---
+>  crypto/sha256_generic.c | 16 ++--------------
+>  1 file changed, 2 insertions(+), 14 deletions(-)
+>
+> diff --git a/crypto/sha256_generic.c b/crypto/sha256_generic.c
+> index 3b377197236e..bf147b01e313 100644
+> --- a/crypto/sha256_generic.c
+> +++ b/crypto/sha256_generic.c
+> @@ -72,7 +60,7 @@ EXPORT_SYMBOL(crypto_sha256_finup);
+>
+>  static struct shash_alg sha256_algs[2] = { {
+>         .digestsize     =       SHA256_DIGEST_SIZE,
+> -       .init           =       crypto_sha256_init,
+> +       .init           =       sha256_base_init,
+>         .update         =       crypto_sha256_update,
+>         .final          =       crypto_sha256_final,
+>         .finup          =       crypto_sha256_finup,
+> @@ -86,7 +74,7 @@ static struct shash_alg sha256_algs[2] = { {
+>         }
+>  }, {
+>         .digestsize     =       SHA224_DIGEST_SIZE,
+> -       .init           =       crypto_sha224_init,
+> +       .init           =       sha224_base_init,
+>         .update         =       crypto_sha256_update,
+>         .final          =       crypto_sha256_final,
+>         .finup          =       crypto_sha256_finup,
 
-diff --git a/arch/s390/crypto/sha512_s390.c b/arch/s390/crypto/sha512_s390.c
-index 29a6bd404c59..43ce4956df73 100644
---- a/arch/s390/crypto/sha512_s390.c
-+++ b/arch/s390/crypto/sha512_s390.c
-@@ -22,14 +22,14 @@ static int sha512_init(struct shash_desc *desc)
- {
- 	struct s390_sha_ctx *ctx = shash_desc_ctx(desc);
- 
--	*(__u64 *)&ctx->state[0] = 0x6a09e667f3bcc908ULL;
--	*(__u64 *)&ctx->state[2] = 0xbb67ae8584caa73bULL;
--	*(__u64 *)&ctx->state[4] = 0x3c6ef372fe94f82bULL;
--	*(__u64 *)&ctx->state[6] = 0xa54ff53a5f1d36f1ULL;
--	*(__u64 *)&ctx->state[8] = 0x510e527fade682d1ULL;
--	*(__u64 *)&ctx->state[10] = 0x9b05688c2b3e6c1fULL;
--	*(__u64 *)&ctx->state[12] = 0x1f83d9abfb41bd6bULL;
--	*(__u64 *)&ctx->state[14] = 0x5be0cd19137e2179ULL;
-+	*(__u64 *)&ctx->state[0] = SHA512_H0;
-+	*(__u64 *)&ctx->state[2] = SHA512_H1;
-+	*(__u64 *)&ctx->state[4] = SHA512_H2;
-+	*(__u64 *)&ctx->state[6] = SHA512_H3;
-+	*(__u64 *)&ctx->state[8] = SHA512_H4;
-+	*(__u64 *)&ctx->state[10] = SHA512_H5;
-+	*(__u64 *)&ctx->state[12] = SHA512_H6;
-+	*(__u64 *)&ctx->state[14] = SHA512_H7;
- 	ctx->count = 0;
- 	ctx->func = CPACF_KIMD_SHA_512;
- 
-@@ -87,14 +87,14 @@ static int sha384_init(struct shash_desc *desc)
- {
- 	struct s390_sha_ctx *ctx = shash_desc_ctx(desc);
- 
--	*(__u64 *)&ctx->state[0] = 0xcbbb9d5dc1059ed8ULL;
--	*(__u64 *)&ctx->state[2] = 0x629a292a367cd507ULL;
--	*(__u64 *)&ctx->state[4] = 0x9159015a3070dd17ULL;
--	*(__u64 *)&ctx->state[6] = 0x152fecd8f70e5939ULL;
--	*(__u64 *)&ctx->state[8] = 0x67332667ffc00b31ULL;
--	*(__u64 *)&ctx->state[10] = 0x8eb44a8768581511ULL;
--	*(__u64 *)&ctx->state[12] = 0xdb0c2e0d64f98fa7ULL;
--	*(__u64 *)&ctx->state[14] = 0x47b5481dbefa4fa4ULL;
-+	*(__u64 *)&ctx->state[0] = SHA384_H0;
-+	*(__u64 *)&ctx->state[2] = SHA384_H1;
-+	*(__u64 *)&ctx->state[4] = SHA384_H2;
-+	*(__u64 *)&ctx->state[6] = SHA384_H3;
-+	*(__u64 *)&ctx->state[8] = SHA384_H4;
-+	*(__u64 *)&ctx->state[10] = SHA384_H5;
-+	*(__u64 *)&ctx->state[12] = SHA384_H6;
-+	*(__u64 *)&ctx->state[14] = SHA384_H7;
- 	ctx->count = 0;
- 	ctx->func = CPACF_KIMD_SHA_512;
- 
+Aren't these two functions defined as static inline functions? It
+appears that these crypto_ wrappers were added so there's "actual"
+referenceable functions for these structs.
+
+Did this actually compile?
+
+Thanks,
+
 -- 
-2.32.0
+Julian Calaby
 
+Email: julian.calaby@gmail.com
+Profile: http://www.google.com/profiles/julian.calaby/
