@@ -2,50 +2,61 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD6AAC433F5
-	for <sparclinux@archiver.kernel.org>; Sun, 26 Dec 2021 09:43:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B3AE4C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 27 Dec 2021 10:44:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231735AbhLZJnN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 26 Dec 2021 04:43:13 -0500
-Received: from slot0.jllresort.com ([62.197.136.5]:47432 "EHLO
-        slot0.jllresort.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231772AbhLZJnN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 26 Dec 2021 04:43:13 -0500
-X-Greylist: delayed 746 seconds by postgrey-1.27 at vger.kernel.org; Sun, 26 Dec 2021 04:43:12 EST
-DKIM-Signature: v=1; a=rsa-sha1; c=relaxed/relaxed; s=dkim; d=jllresort.com;
- h=Reply-To:From:To:Subject:Date:Message-ID:MIME-Version:Content-Type:Content-Transfer-Encoding; i=ele.mon@jllresort.com;
- bh=oT1rD42Yughiks1999modDGh7ew=;
- b=eFU+n8Wg/4Us9oXeAMBmvkuJxuGL7pEXqKvYd9HBmT1qFhhB5MlXi666qi2kK5z/69LXXzLx6Afa
-   fNQiZ40qaH1VhP+BlvQpEsjjVz/TnyRel9EvGRzyggtL4feL4HPu3pP5kfF5t/NPddLhlEi2vLFL
-   5JDcvU5pGOOk3CKhNENiiPYnxSr64iMm5soL5BN6gmtHyYOdDHpv5zsTsD0D7gujJdoev4bP4TTQ
-   NDeriui8bQYbRWRa2XwjDH03N0e0XoeQn5ovc0Jygd5UZs2vWyOsiXX9euKO5UZTuVZ74FezGnW8
-   p1ELUHOgNp0mLUHkgExYgH5QrYg24zJZ8SLjgQ==
-DomainKey-Signature: a=rsa-sha1; c=nofws; q=dns; s=dkim; d=jllresort.com;
- b=saSRhj0yYBoSjk+wW2fzep/ZkwAYCLVgmuhDrxDREB/FrJgopDt5HD6i5Zo6ENnz3+DH+jIUE1Gy
-   pjvBEhPlmEpzBj6lz2MTRCmTHN1NwZ7sHHXqn/NKqI7s0kKEazgtWJtpF5MvAaUu42PhVWAs/Xav
-   Tgg3K2N6FbuXI645oq51A20jwkBJWSFc3/5bNOx1xfB6iPYzgSTrsJeCIGg4z64oPrQGv7RCVROu
-   u6tdtec26yMYVajnNDhKyTIZ3tRu+IhrOhFKz2a4q9uJ6zCZZfDE8NwIY15xSV5eiKD9Xke3o9J8
-   QEXb5aPJwUsic0uOMstL/okaZGVxLZxAPCExHw==;
-Reply-To: mustafa.ayvaz@ayvazburosu.com
-From:   ele.mon@jllresort.com
-To:     sparclinux@vger.kernel.org
-Subject: Happy Weekend:
-Date:   26 Dec 2021 10:29:36 +0100
-Message-ID: <20211226102855.4F948645F9ECF4D4@jllresort.com>
+        id S236128AbhL0KoG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 27 Dec 2021 05:44:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56224 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236125AbhL0KoF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Dec 2021 05:44:05 -0500
+Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E247C061401
+        for <sparclinux@vger.kernel.org>; Mon, 27 Dec 2021 02:44:05 -0800 (PST)
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed20:dd7:48a2:4f21:80d4])
+        by albert.telenet-ops.be with bizsmtp
+        id bNk2260010THM2Z06Nk2jY; Mon, 27 Dec 2021 11:44:02 +0100
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.93)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1n1nU1-0079Vm-NX; Mon, 27 Dec 2021 11:44:01 +0100
+Date:   Mon, 27 Dec 2021 11:44:01 +0100 (CET)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+X-X-Sender: geert@ramsan.of.borg
+To:     linux-kernel@vger.kernel.org
+cc:     linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org
+Subject: Re: Build regressions/improvements in v5.16-rc7
+In-Reply-To: <20211227083126.1153239-1-geert@linux-m68k.org>
+Message-ID: <alpine.DEB.2.22.394.2112271142250.1704790@ramsan.of.borg>
+References: <20211227083126.1153239-1-geert@linux-m68k.org>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Greetings to you sparclinux,
+On Mon, 27 Dec 2021, Geert Uytterhoeven wrote:
+> JFYI, when comparing v5.16-rc7[1] to v5.16-rc6[3], the summaries are:
+>  - build errors: +2/-1
 
-I was wondering if you got my previous email? I have been trying=20
-to reach you by email sparclinux@vger.kernel.org, kindly get back=20
-to me swiftly, it is very important and urgent.
+   + /kisskb/src/crypto/blake2b_generic.c: error: the frame size of 2288 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 109:1
 
-Thanks
-Mustafa Ayvaz
-Email: mustafa.ayvaz@ayvazburosu.com
+sparc64-gcc11/sparc-allmodconfig
+
+   + /kisskb/src/drivers/video/fbdev/nvidia/nvidia.c: error: passing argument 1 of 'iounmap' discards 'volatile' qualifier from pointer target type [-Werror=discarded-qualifiers]:  => 1439:10, 1414:10
+
+um-x86_64/um-all{mod,yes}config
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
