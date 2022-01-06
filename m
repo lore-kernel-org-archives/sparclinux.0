@@ -2,69 +2,138 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E50C6C433F5
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Jan 2022 09:04:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D84EFC433FE
+	for <sparclinux@archiver.kernel.org>; Thu,  6 Jan 2022 21:45:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229840AbiADJEH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Jan 2022 04:04:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35750 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229837AbiADJEG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Jan 2022 04:04:06 -0500
-Received: from sipsolutions.net (s3.sipsolutions.net [IPv6:2a01:4f8:191:4433::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C912C061761;
-        Tue,  4 Jan 2022 01:04:06 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=sipsolutions.net; s=mail; h=Content-Transfer-Encoding:MIME-Version:
-        Content-Type:References:In-Reply-To:Date:Cc:To:From:Subject:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description:Resent-Date:Resent-From:Resent-To:
-        Resent-Cc:Resent-Message-ID; bh=LIpGUA+BIUuIAA5mn06eiD0IWkKRl9vPozuSU1YrjFw=;
-        t=1641287046; x=1642496646; b=SF3yFNpMOZiMSIMDEKf8NpaBYrj1BVzrdHa0lJj+lLLZ9gR
-        CAUahblriIFZxAfzf0KOnJYktn8RggvQDIqFvfd4nekQBo6gFnWqiusk8B9xPceO2DiPF0IwcZ0PO
-        ouZzeEgVP/inR5ypXCFSvNWG5v/d5I3CwQ3jEThGmkbv6JjPzZYH0yjLlkLrZJMSf62+8+PO1l4nT
-        kMIh7gRy/i3yzfqz/vmwX4hTGNIr9i1kdRmOQbHYvp8QzumQqN9xBzi9SBcJSKgKTAdagMnIRz2cd
-        J1IYN4+8XpLpNVR+dggwhwhR5/diXH6zca3M2qPoPrjofPM/U4u94a/yqek9icWA==;
-Received: by sipsolutions.net with esmtpsa (TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256)
-        (Exim 4.95)
-        (envelope-from <johannes@sipsolutions.net>)
-        id 1n4fjg-001het-NC;
-        Tue, 04 Jan 2022 10:04:04 +0100
-Message-ID: <0523cc8788bfe47ffba185d0436a7c77c85c6e4c.camel@sipsolutions.net>
-Subject: Re: Build regressions/improvements in v5.16-rc7
-From:   Johannes Berg <johannes@sipsolutions.net>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-kernel@vger.kernel.org
-Cc:     linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org
-Date:   Tue, 04 Jan 2022 10:04:03 +0100
-In-Reply-To: <alpine.DEB.2.22.394.2112271142250.1704790@ramsan.of.borg>
-References: <20211227083126.1153239-1-geert@linux-m68k.org>
-         <alpine.DEB.2.22.394.2112271142250.1704790@ramsan.of.borg>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.42.2 (3.42.2-1.fc35) 
+        id S244421AbiAFVpb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 6 Jan 2022 16:45:31 -0500
+Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:62711 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244390AbiAFVpa (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 6 Jan 2022 16:45:30 -0500
+Received: from pop-os.home ([90.11.185.88])
+        by smtp.orange.fr with ESMTPA
+        id 5aZQntTbg2lVY5aZRnSkzN; Thu, 06 Jan 2022 22:45:28 +0100
+X-ME-Helo: pop-os.home
+X-ME-Auth: YWZlNiIxYWMyZDliZWIzOTcwYTEyYzlhMmU3ZiQ1M2U2MzfzZDfyZTMxZTBkMTYyNDBjNDJlZmQ3ZQ==
+X-ME-Date: Thu, 06 Jan 2022 22:45:28 +0100
+X-ME-IP: 90.11.185.88
+From:   Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To:     arnd@arndb.de, hch@infradead.org, akpm@linux-foundation.org,
+        rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        davem@davemloft.net, airlied@linux.ie, vkoul@kernel.org,
+        hao.wu@intel.com, trix@redhat.com, mdf@kernel.org,
+        yilun.xu@intel.com, awalls@md.metrocast.net, mchehab@kernel.org,
+        sathya.prakash@broadcom.com, sreekanth.reddy@broadcom.com,
+        suganath-prabu.subramani@broadcom.com, mporter@kernel.crashing.org,
+        alex.bou9@gmail.com, bhelgaas@google.com
+Cc:     linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-fpga@vger.kernel.org, linux-media@vger.kernel.org,
+        MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH 00/16] Remove usage of the deprecated "pci-dma-compat.h" API
+Date:   Thu,  6 Jan 2022 22:45:13 +0100
+Message-Id: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-X-malware-bazaar: not-scanned
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 2021-12-27 at 11:44 +0100, Geert Uytterhoeven wrote:
-> 
-> sparc64-gcc11/sparc-allmodconfig
-> 
->    + /kisskb/src/drivers/video/fbdev/nvidia/nvidia.c: error: passing argument 1 of 'iounmap' discards 'volatile' qualifier from pointer target type [-Werror=discarded-qualifiers]:  => 1439:10, 1414:10
-> 
+This serie axes all the remaining usages of the deprecated "pci-dma-compat.h"
+API.
 
-This should be fixed by
+All these patches have already been posted.
 
-commit 5f174ec3c1d62013f86db6597249174d8cb227b2
-Author: Al Viro <viro@zeniv.linux.org.uk>
-Date:   Mon Sep 20 21:32:49 2021 +0000
+They have been generated with a coccinelle script.
+The tricky parts are patches that use dma_alloc_coherent() because the correct
+GFP flag has to be used in place of the previous embedded GFP_ATOMIC.
 
-    logic_io instance of iounmap() needs volatile on argument
+Patches 1-3 are already Reviewed. References to the corresponding mail is
+given below the ---
+
+Patch 1-2,4-10 are just generated from the coccinelle script. Only too long
+lines have been hand modified. dma_alloc_coherent() modification are NOT part
+of these patches.
+
+Patch 3 also includes some 'dma_set_mask_and_coherent()' instead of
+'pci_set_dma_mask()/pci_set_consistent_dma_mask()'.
+I've left this additional modification because it was reviewed with it.
+
+Patch 10-15 are the tricky parts. Explanation of which GFP flag is the right one
+is given in each patch. It has been divided in several patches to ease review.
+
+Patch 15 is the only one I'm slighly unsure with. The old code was using a
+GFP_USER flag in the function. I'm not familiar with it.
+I *guess*  that GFP_KERNEL is fine, but maybe it should also be GFP_USER or left
+as GFP_ATOMIC so that nothing is changed.
+
+Patch 16 is the last step that remove "pci-dma-compat.h" and its only usage.
 
 
-when it lands.
+All patches, exept 1-2,6 that are architecture specific, have been compile tested.
 
-johannes
+
+After all that, a few rst files, 1 or 2 strings in error messages and some
+error branching labels should still need some attention. 
+This is some minor issues.
+
+
+Only the cover letter is sent to every one. Each patch is sent to the
+corresponding maintainer(s) + Andrew Morton, Christoph Hellwig and Arnd Bergmann.
+
+
+Best regards.
+
+
+Christophe JAILLET (16):
+  alpha: Remove usage of the deprecated "pci-dma-compat.h" API
+  floppy: Remove usage of the deprecated "pci-dma-compat.h" API
+  fpga: dfl: pci: Remove usage of the deprecated "pci-dma-compat.h" API
+  media: Remove usage of the deprecated "pci-dma-compat.h" API
+  agp/intel: Remove usage of the deprecated "pci-dma-compat.h" API
+  sparc: Remove usage of the deprecated "pci-dma-compat.h" API
+  dmaengine: pch_dma: Remove usage of the deprecated "pci-dma-compat.h"
+    API
+  rapidio/tsi721: Remove usage of the deprecated "pci-dma-compat.h" API
+  media: v4l2-pci-skeleton: Remove usage of the deprecated
+    "pci-dma-compat.h" API
+  scsi: message: fusion: Remove usage of the deprecated
+    "pci-dma-compat.h" API
+  scsi: mptbase: Use dma_alloc_coherent() in 'mpt_alloc_fw_memory()'
+  scsi: mptbase: Use dma_alloc_coherent()
+  scsi: mptsas: Use dma_alloc_coherent() in
+    mptsas_exp_repmanufacture_info()
+  scsi: mptsas: Use dma_alloc_coherent()
+  scsi: mptctl: Use dma_alloc_coherent()
+  PCI: Remove usage of the deprecated "pci-dma-compat.h" API
+
+ arch/alpha/include/asm/floppy.h     |   7 +-
+ arch/alpha/kernel/pci_iommu.c       |  12 +--
+ arch/powerpc/include/asm/floppy.h   |   8 +-
+ arch/sparc/kernel/ioport.c          |   2 +-
+ drivers/char/agp/intel-gtt.c        |  26 ++---
+ drivers/dma/pch_dma.c               |   2 +-
+ drivers/fpga/dfl-pci.c              |  14 +--
+ drivers/media/pci/cx18/cx18-queue.h |   6 +-
+ drivers/media/pci/ivtv/ivtv-queue.h |  25 +++--
+ drivers/media/pci/ivtv/ivtv-udma.h  |   8 +-
+ drivers/message/fusion/mptbase.c    | 149 ++++++++++++++++------------
+ drivers/message/fusion/mptctl.c     |  82 +++++++++------
+ drivers/message/fusion/mptlan.c     |  90 +++++++++--------
+ drivers/message/fusion/mptsas.c     |  94 +++++++++---------
+ drivers/rapidio/devices/tsi721.c    |   8 +-
+ include/linux/pci-dma-compat.h      | 129 ------------------------
+ include/linux/pci.h                 |   3 -
+ samples/v4l/v4l2-pci-skeleton.c     |   2 +-
+ 18 files changed, 289 insertions(+), 378 deletions(-)
+ delete mode 100644 include/linux/pci-dma-compat.h
+
+-- 
+2.32.0
+
