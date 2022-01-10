@@ -2,163 +2,162 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 735D9C4332F
-	for <sparclinux@archiver.kernel.org>; Mon, 10 Jan 2022 14:30:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E81DC433FE
+	for <sparclinux@archiver.kernel.org>; Mon, 10 Jan 2022 15:36:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235508AbiAJOad (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 10 Jan 2022 09:30:33 -0500
-Received: from mout.kundenserver.de ([212.227.126.130]:40055 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235510AbiAJO27 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Jan 2022 09:28:59 -0500
-Received: from mail-wr1-f54.google.com ([209.85.221.54]) by
- mrelayeu.kundenserver.de (mreue009 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1MyK9U-1m8X1J1Mpo-00yhft; Mon, 10 Jan 2022 15:28:57 +0100
-Received: by mail-wr1-f54.google.com with SMTP id v6so27050965wra.8;
-        Mon, 10 Jan 2022 06:28:57 -0800 (PST)
-X-Gm-Message-State: AOAM532VBMarH7QeVUHGoz8+ZXjU/9qZZeVZVz90AB9wVWVF/f/m2yjD
-        M7TXr0hBOeDI3wSDD6t42Wu4QNex4i4JfLRdij8=
-X-Google-Smtp-Source: ABdhPJwP2dj7vwEXcQpaQSkksNl0ZEmP7KqS5c95/LhZe5KvkABgHfbU/HDC2zAjxcbRJXknKfqyiFGKdYDX7S/ttBs=
-X-Received: by 2002:a05:6000:16c7:: with SMTP id h7mr17539097wrf.317.1641824936821;
- Mon, 10 Jan 2022 06:28:56 -0800 (PST)
+        id S236308AbiAJPgl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 Jan 2022 10:36:41 -0500
+Received: from mx0b-00069f02.pphosted.com ([205.220.177.32]:20182 "EHLO
+        mx0b-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S236243AbiAJPgj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 10 Jan 2022 10:36:39 -0500
+Received: from pps.filterd (m0246631.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 20AE6eTj015372;
+        Mon, 10 Jan 2022 15:35:33 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=to : cc : subject :
+ from : message-id : references : date : in-reply-to : content-type :
+ mime-version; s=corp-2021-07-09;
+ bh=g6Er+gI9i/erk3lqnCuNb3gG2mXN1WNzB/Xgz2fumEk=;
+ b=gtASKtuH+ZVZBEjz/kSNnfXv+hARVXLucL3c/IT5GVaI0NovHjGWmR6sFWB4cIxchDbV
+ c7hkkb1IU87WuxT737TfxoHodtP/Uu/OCadA0zLGmltOYpujhIiP32J5WeStsAFl3sta
+ SZGSLJfnyhawByJNtJ4WdIFcgRS+yfWIMla3NUGrfLlHF8rIZUGtQqtNCqPlvqpYEFub
+ 8hZF+6df7H/5ZYnMBLsdLiwh9LGzjUQfCdhU3eekl2yppGI3SCG3hfQKd1Cemij4pSi4
+ l7JnN33h0s0JN+enUZSH019qjY4Ic5eRryUxwJg8BrVsbwKGY+qvfAMcNeG6SOTuIt3C DA== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3dgjtg8r2q-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 10 Jan 2022 15:35:33 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 20AFVY6e162896;
+        Mon, 10 Jan 2022 15:35:31 GMT
+Received: from nam12-mw2-obe.outbound.protection.outlook.com (mail-mw2nam12lp2044.outbound.protection.outlook.com [104.47.66.44])
+        by userp3020.oracle.com with ESMTP id 3df42k4pyy-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Mon, 10 Jan 2022 15:35:31 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=Fya9TQpRWnW1G2nTVlSOIiZ71YJNwu17d9nWoERTKQI2QY/f8n8aM1BuKknHxrQJzvCBjad8PbUNzKiLGqxVjCZG/Y+io17J6p3lUcXjFQ8nVtKbk6hZHY4t5adPDG+dY6OnHpGmwigPnp8cdnA+0Nx+SHXcoymYGBYiQqC9qK2qoNH1ecw+ZwfdNBqc7MRjgiZN7oim/QN02pbdQtTqZR+5tvvbOMZ9Z6FPLRQGsGIxm3eUUSiBOej1QMHYPneJwsqcA6HGL1YNQIVqC/J2njSzllmTgkhGrhMjugnRMu36zZNYIUqyVA/JblvkUBXtcR07tFWpWfyq3oFlApXN5g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=g6Er+gI9i/erk3lqnCuNb3gG2mXN1WNzB/Xgz2fumEk=;
+ b=fYeONjFnZW4uulIaG7deD4ElfWGkiozF1i/Plj7VL3kg1xUziaXP8aWVyV7m3LQpZRGnzMGNc8V9A/RoUVCXl/M1fUz3hqSk6SR3IisfZB7PHwkns5FKYYAS78iA5tu1252buLCgond6SKmPtdoUewE5ykNabReQNlhT8aS/NUCWStvp017C/y3B5689VCDVvomIYeE7BduBCVdqWgpOMwgRfaZ6lxOmuFVz/yHOvJ6SNvIoiHErRM5PFECOgaNLRzobsg44TVrvkK27uZOn3qgfX/hh6yBvjNNjx+/bdsK8s8dda4QQ6Zbs0ADe7cIoYheRf8J8YJinyB9XuptAxw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
+ dkim=pass header.d=oracle.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=g6Er+gI9i/erk3lqnCuNb3gG2mXN1WNzB/Xgz2fumEk=;
+ b=JTc5YFbWgZmEkdKtwkTVB5RFh6n2cFyTarFFjx7WTyHWGBw8XcmiuvSKfbulQtmR6M/C2OE/E/i8G7zSfTsqGrt6AQ7BKWJLvNxQcBBceJKT9keb4xTrAfLoTDAMIYQLWahO/YTdwON2caofuOvZgisrkd1Hnr46MbOfNIP9hmU=
+Received: from PH0PR10MB4759.namprd10.prod.outlook.com (2603:10b6:510:3d::12)
+ by PH0PR10MB5561.namprd10.prod.outlook.com (2603:10b6:510:f0::17) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4867.11; Mon, 10 Jan
+ 2022 15:35:29 +0000
+Received: from PH0PR10MB4759.namprd10.prod.outlook.com
+ ([fe80::1053:7ae3:932b:f166]) by PH0PR10MB4759.namprd10.prod.outlook.com
+ ([fe80::1053:7ae3:932b:f166%7]) with mapi id 15.20.4867.011; Mon, 10 Jan 2022
+ 15:35:29 +0000
+To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc:     arnd@arndb.de, hch@infradead.org, akpm@linux-foundation.org,
+        rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        davem@davemloft.net, airlied@linux.ie, vkoul@kernel.org,
+        hao.wu@intel.com, trix@redhat.com, mdf@kernel.org,
+        yilun.xu@intel.com, awalls@md.metrocast.net, mchehab@kernel.org,
+        sathya.prakash@broadcom.com, sreekanth.reddy@broadcom.com,
+        suganath-prabu.subramani@broadcom.com, mporter@kernel.crashing.org,
+        alex.bou9@gmail.com, bhelgaas@google.com,
+        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-fpga@vger.kernel.org, linux-media@vger.kernel.org,
+        MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 00/16] Remove usage of the deprecated "pci-dma-compat.h"
+ API
+From:   "Martin K. Petersen" <martin.petersen@oracle.com>
+Organization: Oracle Corporation
+Message-ID: <yq1ee5ftxic.fsf@ca-mkp.ca.oracle.com>
+References: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
+Date:   Mon, 10 Jan 2022 10:35:26 -0500
+In-Reply-To: <cover.1641500561.git.christophe.jaillet@wanadoo.fr> (Christophe
+        JAILLET's message of "Thu, 6 Jan 2022 22:45:13 +0100")
+Content-Type: text/plain
+X-ClientProxiedBy: MN2PR05CA0060.namprd05.prod.outlook.com
+ (2603:10b6:208:236::29) To PH0PR10MB4759.namprd10.prod.outlook.com
+ (2603:10b6:510:3d::12)
 MIME-Version: 1.0
-References: <20211228143958.3409187-1-guoren@kernel.org> <20211228143958.3409187-12-guoren@kernel.org>
-In-Reply-To: <20211228143958.3409187-12-guoren@kernel.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Mon, 10 Jan 2022 15:28:40 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a0H2Nq=bFdzWGzzGuFWP85JA7=Td6_rb8GqOF3bYCRJBw@mail.gmail.com>
-Message-ID: <CAK8P3a0H2Nq=bFdzWGzzGuFWP85JA7=Td6_rb8GqOF3bYCRJBw@mail.gmail.com>
-Subject: Re: [PATCH V2 11/17] riscv: compat: Add elf.h implementation
-To:     Guo Ren <guoren@kernel.org>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
-        Anup Patel <anup.patel@wdc.com>,
-        gregkh <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        inux-parisc@vger.kernel.org,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:UXLcJaB2lA59YOxwVTQMBTB9Dxji9s7QCHe0L7WJKm/zT8kjwvJ
- LBjfwCCXJ/N9g7kU69rg+/0EvE2V8nB7GMF9P5FdaYUvOWUrZjBOg+gBanVkEGe4nGS+gU1
- 8Xf8k4fDqhQcn3LL+8hWphPJsrAxWcQ+EFPACTlxX+KeCmtT8e9jRJkmlC+eSDByMH3JQpC
- QwVuQNtUX5VMAzqJpf1qw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:HoS1Cfn33y0=:PConMlud95CuR/s+ENDO8j
- Ww8aJhs5Ekbl///6FhHqJvuP/JCTeh7mxyXPpzUN3+nHP50EYZO3IccdpdYDzS0i6rta7poqd
- 0+MHUB1dC5NHSXq7+K5fuC6JV6HEuW03p0s218WvrY1JS1WAeSg/U2oFd42Y0miGh+fbxeURe
- BEDN3EacpJJWsvZMIWaQB2c4E80LxGUcjLHVlTYy3cGvxXrWlewDSe9Q3YSHqX2OxHvFra9Y1
- iacjjPdOoSg28DTtAkE0lsgzWma34lAz8+2ZmqR5iqOsQ/UQMKc3lbKVjxyKb1h0dn7KDoKwQ
- 86zMwLCY6HwT2/4tH8Q2vo6dIABEbit3qXl+3+t2rlt0jaqJ1lRXy0WoV4yovKRXKgr9EQrLI
- vAHP/+Z/jGTTDOdxAs4Lz8jXaSA7n09S2iPz9muukRCtaV2vz7vSylhJFRyb176Yh+g73Sjwr
- /EV+kFNwU/5GaK5FtE894LoZPbfyYXtR80ccbWc4mzXcgiGSV4+kmmv5+HDKJuF/0Tvhmxb6V
- RaNcmGAeRt1uOrGShSUArpz48oCGx9sdsNJjLaO7/tjBntpjdEKo/b/z9GAWDb4MYFPox33vy
- JVhLLYUWb/hHQ3mn3KY7jcvAu8xogbG67nZWJe81LWlHUVBxnEi/mAbfz8f31bXlx3VR42/79
- zze8iRoiPpPNjzfW/V6GffCmJDtaTwbEcAcNtuJ2+3H5TsSbrGZgkdG7yvWiaaDGt0EXLFOb/
- PUCrDfBdyUw8e/nxfEaVOyb7qcc+UYeNif3GiE6TRCeqChpq4ET4SNU7YLpjmek18j2lkqmlq
- k1BGXt0oneRdhdFqllETd4UBBhB9R7DxyQOyTge6+EJPPGzwSA=
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 4b718c93-bc6e-45bc-239e-08d9d44ed486
+X-MS-TrafficTypeDiagnostic: PH0PR10MB5561:EE_
+X-Microsoft-Antispam-PRVS: <PH0PR10MB55613110E10AB4F20D97062F8E509@PH0PR10MB5561.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:4941;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: VhcD1Pl5+m/0sIZnkYYfHvpIVdZruh4aF28n1Si/+jqlxqdVptxD0dvO+gL6yWSr1ndv8Df4xG4Dx1eVUSTjd/CsbRTDmU4cJMmL/QNZ1I5JnlsdQ+Y5ZGcfIlBAw3xuwndjEP0cbOd2f13go+HZj4ptSi1e4PCF4O8Eb9D6UdVMurno6+TNM0xtxz2ZlS8VrcdEOkvoFAyujSnFEeMoMrnYP2ifjoled1RIiUwVOiFqXkD0bVd4aS2OZ3akyhBFKN9YfgY8x1EdvQ9mmoxYO2F6aIax1mRLWO+qWqI/KzO8LxmbuBRRDVprShMco1zslwLwETUN8tR1nO8I/z6jP/hYnOszG7nMBS1EAta1H2lXY/ZMlZSrCgtVZsIB02bD3p7oCmSpgceuguNOJHm0FOOzo6aMqF1IuaAUd8V6m40+BZb3RoOwspagOtkp7B2yEkvTsAmvBnPDzg3uuUtgXG+9uXE8XYUG4FguiUP2S4cM/2o04wTtGEXaGKoZG2gGDadAea8RjwSEW6XH0lREmDcqjTe+6o5jpdkAC2oC/S3Efw1jPn26EAB1NjKyXO+2zKIq0+fgmL6tGUzRty34Z6RVY/luZkGE6GXLZsa1/D3+uUu+P2CY5fydT4jqdbn0sopW9TmOAJQhWdvo0N7FuHM5VsItGf6iSE40Q4rzZcrNOVFRXqUcbX+5PPiX58XoO6zRhzf6HmWFG/+PiL3mow==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:PH0PR10MB4759.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(366004)(6916009)(8936002)(66476007)(6666004)(6506007)(558084003)(6486002)(86362001)(38350700002)(508600001)(7406005)(316002)(7416002)(52116002)(36916002)(66556008)(66946007)(186003)(4326008)(6512007)(26005)(2906002)(5660300002)(38100700002)(8676002);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?p6v03Xbu2mI5YjD1XS5925lImhtdq+l6J3QWJ9Lr9CfPAG3TGju6iQisptPh?=
+ =?us-ascii?Q?GrN16naZTBl6PdURPY5fue7zsrTe6sdxIP3kxhtN63D+r/8QZgCA54INRMcF?=
+ =?us-ascii?Q?o6hJH/B9kHQILZm3hST0564Hly/Qo6hbT3qsrnuzv5EJOq9WVJeo6tz5v3B4?=
+ =?us-ascii?Q?1zRSGtrMVmD7+Kf83vV4/FqTmNhrw53zp4ZuVgTO/dKBBjVvIPSp5TOOK9VU?=
+ =?us-ascii?Q?/PSb2dJzjA1N9uCBzZPHNKAh8fsGJu8Voj4CWZ1ybW7Sp9mNkmRUZgwjh2c7?=
+ =?us-ascii?Q?zF9bI79IAWBwCEU6TYk4eTKlZEbDQbQfTQzjsNCC/BuxxUo0y93LLWwUUPnR?=
+ =?us-ascii?Q?DLBsEA08Sc5HgrugwqryHFk5CYT5JCrSmVcWItll8OTh+lw1VHxK3JdQcBzb?=
+ =?us-ascii?Q?jluH63JWrXKDNX8/vEBGd7o1Hjn2LisErTyX2OcLPIywWvl/87YChIOYhn2B?=
+ =?us-ascii?Q?urlanpVEa9J3QtaunGAzrVyej/27srfjWElCshQFn6so82DzilmTyRM3vWlA?=
+ =?us-ascii?Q?4oMNsg9ZROZSoAKXQKpBfzJC1MBG0JrSOaSPrkEjhdUcozJYrERP9K8qsH6o?=
+ =?us-ascii?Q?tTmWucU1ZSiQcfH8DyKoiTScoTheN7aoJkeO0COfDeRHk2JDllARO6whD0/K?=
+ =?us-ascii?Q?05jS37TpJRmeu+WFINIfqlOdJoN0RHZs1feHg40SVR1AcP9qeMMAxFK0eU7t?=
+ =?us-ascii?Q?l0P6KKY3tQu4hy8dTRt3ueZ2qQmi0cLo7L4GSyOGPCDouwT67mDB6oE9I+jU?=
+ =?us-ascii?Q?IQZGfUvLSYA+y8nbBz66ZMw6cs1L71dH3AX3tlEuFMg90FDE5nJGfLkQZC4q?=
+ =?us-ascii?Q?xAHS/FsPXAJJ7+zU5INmjKZ5kpks6UkSI8Cpjx2ukXDBBF++2rBRTL4tmGWz?=
+ =?us-ascii?Q?Yctn2TTT0VT+gtvKfFmEgQQ9QfTP9NPXT50j4ZbU2UCCf+YIwmW+Lss0dgR+?=
+ =?us-ascii?Q?B8QwI2P1mTyMMhskJsZQUK1PNHbxFXbp/7zeD2nywXra5lSdgDn+yusWLiVv?=
+ =?us-ascii?Q?P6IyWlHB7Q6V75ZdASdt1aa+BS+nIThdZu+zk0es9u8AWV446UHel0HdUwkR?=
+ =?us-ascii?Q?46ZgJuJoi/+T9AxFYfC5+GkrMfiu6YApUwAR8K3aGH1lrjGrmMZD9iXqvaqN?=
+ =?us-ascii?Q?PfK7ve4PPEc+5MMH65e6Uyhpogrv/RaGwFOP6wkQMqaTnC7VfDqjAaZrIXJH?=
+ =?us-ascii?Q?WN3AEF6aKp77BhqkfbJ4Tx2MzUpQs3pScNKJMNoB47qQ6MQ0lPkYTbAhusSY?=
+ =?us-ascii?Q?qecXUV50tbmrTo2WC/MNdnqnV9iu7zJuHOvwbq8ssPeHTzxhXSSzo4S6/ySm?=
+ =?us-ascii?Q?PgIuXuIjXf1EnQri5Sg1b47SMV7LmVhpx9+NJBkzv2DyJ5KtXCwV4y7IdG5g?=
+ =?us-ascii?Q?Rsf/PNeVYqKILsbuYPSG5Tx7qerDY+jYzLgyBHrvJssMll2nETDEl4PIPzxQ?=
+ =?us-ascii?Q?I0XOW7JNsb+tbbFLTURAgwrtx99tkEbCVrUasNm8ew84Uyi4tVz/P5Q/b3CO?=
+ =?us-ascii?Q?Lm8GjqO8J8eJzG9evqyQvF+oBTnWRcE8o0wgyRtwtBK9lAORRdjrIuHmI3QB?=
+ =?us-ascii?Q?7AUsAAn9ZGNaR7JJ4WlMVmYcwY/UNBfvE4mNOrT0MCP494liWTi+unM5qM1m?=
+ =?us-ascii?Q?wu2yR+3fkeKUFn9rsCxuuiD1DuikFsnWbRUZCT1uWvWdvc7yC98Rxgr2bBam?=
+ =?us-ascii?Q?pqneYw=3D=3D?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 4b718c93-bc6e-45bc-239e-08d9d44ed486
+X-MS-Exchange-CrossTenant-AuthSource: PH0PR10MB4759.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 10 Jan 2022 15:35:28.8983
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: uE/cQ4vyObC3vBuAEKE+iXQMRZqN0F6enY9bxd/m10YlkWXcFmoEKaN5FmWv1oVJLM7bON1/+ZoTguHEWTXWoIBvo4YirMOygaoiToay+wc=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PH0PR10MB5561
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10223 signatures=668683
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 adultscore=0 mlxscore=0 phishscore=0
+ mlxlogscore=999 spamscore=0 bulkscore=0 malwarescore=0 suspectscore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2110150000
+ definitions=main-2201100108
+X-Proofpoint-GUID: Gg471IfcOv-uoBh7RYjn5ZS-0P248EWs
+X-Proofpoint-ORIG-GUID: Gg471IfcOv-uoBh7RYjn5ZS-0P248EWs
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Dec 28, 2021 at 3:39 PM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> Implement necessary type and macro for compat elf. See the code
-> comment for detail.
->
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Signed-off-by: Guo Ren <guoren@kernel.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
 
-This looks mostly correct,
+Christophe,
 
-> +/*
-> + * FIXME: not sure SET_PERSONALITY for compat process is right!
-> + */
-> +#define SET_PERSONALITY(ex)                                               \
-> +do {    if ((ex).e_ident[EI_CLASS] == ELFCLASS32)                         \
-> +               set_thread_flag(TIF_32BIT);                                \
-> +       else                                                               \
-> +               clear_thread_flag(TIF_32BIT);                              \
-> +       set_personality(PER_LINUX | (current->personality & (~PER_MASK))); \
-> +} while (0)
+> This serie axes all the remaining usages of the deprecated
+> "pci-dma-compat.h" API.
 
-This means the personality after exec is always set to PER_LINUX, not
-PER_LINUX32, which I think is wrong: you want the PER_LINUX32
-setting to stick, just like the upper bits do in the default implementation.
+Applied patches 10-15 to 5.17/scsi-staging, thanks!
 
-What the other ones do is:
-
-| arch/parisc/include/asm/elf.h-
-set_personality((current->personality & ~PER_MASK) | PER_LINUX); \
-
-This looks like the same problem you introduce here: always forcing PER_LINUX
-instead of PER_LINUX32 makes it impossible to use PER_LINUX32.
-
-| arch/alpha/include/asm/elf.h:#define SET_PERSONALITY(EX)
-                           \
-| arch/alpha/include/asm/elf.h-   set_personality(((EX).e_flags &
-EF_ALPHA_32BIT)         \
-| arch/alpha/include/asm/elf.h-      ? PER_LINUX_32BIT : PER_LINUX)
-| arch/csky/include/asm/elf.h:#define SET_PERSONALITY(ex)
-set_personality(PER_LINUX)
-| arch/nds32/include/asm/elf.h:#define SET_PERSONALITY(ex)
-set_personality(PER_LINUX)
-
-These look even worse: instead of forcing the lower bits to
-PER_LINUX/PER_LINUX32 and
-leaving the upper bits untouched, these also clear the upper bits
-unconditionally.
-
-| arch/arm64/include/asm/elf.h:#define SET_PERSONALITY(ex)
-                                   \
-| arch/arm64/include/asm/elf.h-   current->personality &=
-~READ_IMPLIES_EXEC;                     \
-| arch/x86/um/asm/elf.h:#define SET_PERSONALITY(ex) do {} while(0)
-| arch/x86/include/asm/elf.h:#define set_personality_64bit()      do {
-} while (0)
-| arch/x86/kernel/process_64.c:static void __set_personality_ia32(void)
-|         current->personality |= force_personality32;
-
-Inconsistent: does not enforce PER_LINUX/PER_LINUX32 as the default
-implementation
-does, but just leaves the value untouched (other than (re)setting
-READ_IMPLIES_EXEC).
-I think this is harmless otherwise, as we generally ignore the lower
-bits, except for the
-bit of code that checks for PER_LINUX32 in override_architecture() to mangle the
-output of sys_newuname() or in /proc/cpuinfo.
-
-| arch/s390/include/asm/elf.h-    if
-(personality(current->personality) != PER_LINUX32)   \
-| arch/s390/include/asm/elf.h-            set_personality(PER_LINUX |
-                   \
-| arch/s390/include/asm/elf.h-
-(current->personality & ~PER_MASK));    \
-| arch/powerpc/include/asm/elf.h- if
-(personality(current->personality) != PER_LINUX32)   \
-| arch/powerpc/include/asm/elf.h-         set_personality(PER_LINUX |
-                   \
-| arch/powerpc/include/asm/elf.h-
-(current->personality & (~PER_MASK)));  \
-| arch/sparc/include/asm/elf_64.h-        if
-(personality(current->personality) != PER_LINUX32)   \
-| arch/sparc/include/asm/elf_64.h-
-set_personality(PER_LINUX |             \
-| arch/sparc/include/asm/elf_64.h-
-(current->personality & (~PER_MASK)));  \
-
-This is probably the behavior you want to copy.
-
-      Arnd
+-- 
+Martin K. Petersen	Oracle Linux Engineering
