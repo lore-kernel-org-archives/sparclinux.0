@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70C35C433F5
-	for <sparclinux@archiver.kernel.org>; Mon, 10 Jan 2022 11:46:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C95CC43217
+	for <sparclinux@archiver.kernel.org>; Mon, 10 Jan 2022 13:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245143AbiAJLqe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 10 Jan 2022 06:46:34 -0500
-Received: from mout.kundenserver.de ([212.227.17.13]:46837 "EHLO
+        id S232642AbiAJNfj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 Jan 2022 08:35:39 -0500
+Received: from mout.kundenserver.de ([212.227.126.187]:53211 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245057AbiAJLor (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Jan 2022 06:44:47 -0500
-Received: from mail-wm1-f41.google.com ([209.85.128.41]) by
- mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1N6srB-1mIELs0cE3-018Ljf; Mon, 10 Jan 2022 12:44:43 +0100
-Received: by mail-wm1-f41.google.com with SMTP id a83-20020a1c9856000000b00344731e044bso7100925wme.1;
-        Mon, 10 Jan 2022 03:44:42 -0800 (PST)
-X-Gm-Message-State: AOAM533rbW8I/zhbzzufvc7FVVKccYs2HyUks/Txze1jfZ/j7XE332Xm
-        Bk2YP3WYRRlkZiX6t5B/nD4R+yzhVNZCNnGIh7U=
-X-Google-Smtp-Source: ABdhPJxOkVX5X/eP4ROAMmqEcBQO9QsPU/GNla4UTfIaHqTpDouNC4IkJVmWSHu8Rit8nW/iWcW7PE1EcM2YzrteSLk=
-X-Received: by 2002:a05:600c:287:: with SMTP id 7mr738103wmk.98.1641815082604;
- Mon, 10 Jan 2022 03:44:42 -0800 (PST)
+        with ESMTP id S232362AbiAJNfi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Jan 2022 08:35:38 -0500
+Received: from mail-wm1-f50.google.com ([209.85.128.50]) by
+ mrelayeu.kundenserver.de (mreue012 [213.165.67.97]) with ESMTPSA (Nemesis) id
+ 1M76jv-1n01kV0AKV-008Wk7; Mon, 10 Jan 2022 14:35:36 +0100
+Received: by mail-wm1-f50.google.com with SMTP id w26so2889549wmi.0;
+        Mon, 10 Jan 2022 05:35:35 -0800 (PST)
+X-Gm-Message-State: AOAM532MFWpxvbCxx+X/oeE0JToA4T3wqp321Pt2i1Hd2GSgB3W5pgGf
+        vHWkW/9LX14vQosawU7weRqiMFvL7P/LABu5sGc=
+X-Google-Smtp-Source: ABdhPJxi0Z/ZiBz/NSOKjhoGPprS74nLPOzeNY5wtnvdjs0k7wca4Io+stHgBpdw9GGPmWr9NuMWVabYObO8sOckUL0=
+X-Received: by 2002:a1c:4c19:: with SMTP id z25mr8601383wmf.173.1641821735504;
+ Mon, 10 Jan 2022 05:35:35 -0800 (PST)
 MIME-Version: 1.0
-References: <20211228143958.3409187-1-guoren@kernel.org> <20211228143958.3409187-3-guoren@kernel.org>
-In-Reply-To: <20211228143958.3409187-3-guoren@kernel.org>
+References: <20211228143958.3409187-1-guoren@kernel.org> <20211228143958.3409187-4-guoren@kernel.org>
+In-Reply-To: <20211228143958.3409187-4-guoren@kernel.org>
 From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Mon, 10 Jan 2022 12:44:26 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a3RALe7ihmhZ-5jucrH_0CZm3VyPaVfT-nC-96=1pKTcQ@mail.gmail.com>
-Message-ID: <CAK8P3a3RALe7ihmhZ-5jucrH_0CZm3VyPaVfT-nC-96=1pKTcQ@mail.gmail.com>
-Subject: Re: [PATCH V2 02/17] fs: stat: compat: Add __ARCH_WANT_COMPAT_STAT
+Date:   Mon, 10 Jan 2022 14:35:19 +0100
+X-Gmail-Original-Message-ID: <CAK8P3a2zn9M6X09WsjJ9HYiS9WnO_YPCvJLSBk+HaH+yZHQqfA@mail.gmail.com>
+Message-ID: <CAK8P3a2zn9M6X09WsjJ9HYiS9WnO_YPCvJLSBk+HaH+yZHQqfA@mail.gmail.com>
+Subject: Re: [PATCH V2 03/17] asm-generic: fcntl: compat: Remove duplicate definitions
 To:     Guo Ren <guoren@kernel.org>
 Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         Anup Patel <anup.patel@wdc.com>,
@@ -47,25 +47,28 @@ Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
         "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
+        Guo Ren <guoren@linux.alibaba.com>,
+        Jeff Layton <jlayton@kernel.org>,
+        "J. Bruce Fields" <bfields@fieldses.org>,
+        Linux FS-devel Mailing List <linux-fsdevel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:QcdpajMVdqePgdZs3xa0JNoXkGWZsqEGyIW4ADogHwcH7sEw3sc
- B6Sdrms+G3BiHqA+1duROp8eIXF5HRkaiSYuyQ8n5o0Tgy8/Z2VI2ZYq5WzkvDflqkuWZA2
- WXt7FJmbO0Sfj8IuxngKGVl+wMGrGDmXYiYvIF29XIJaKk2wqtDfl6T5Vm0ldkRjsZpCzoy
- 09PG46k5SIvkQ+r5Cx6lg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:/alrCxvyf30=:xd+QVZb4vLhBhl9WqKJCsl
- KHyain12c7ZXDs+xxhVJ+ZuondJEPviA2Y9XjboF+Z0SYK2zuSK0ZA5oJ92FGKocjul5mkzrR
- P/NWIWw6ni0hXK8zFOFyfYR+4wbaGshot7xigWvapHBvnYwfjAMOke7+RdruEkPBhpW78hBVJ
- KcVcLkxrryggCdZIgoGKQrkyf50Htvd3umV0Isp+dYG5FGVLT5IXuGneRgiSXWGi5FeMRm2F9
- kuXwcLCyqKaWsMrE5WRNgvFdpBZwUMC2G2T1GKKrvhts1DZy8+oRqOTxklOE+MdE3velfyPUP
- MpQ+0cMzifobCG3NMduXl0dPXH1v8jEaU0AvX9uHHncsNP7NmqIuK+xDHQvjpXq6JXM3k1fnC
- Ep30dBWoGgD8iKKzN5ycaWMDV7wfVp9YwCCpLuUFYi/zWEQLy0gRWW9F9EMX3BoV4Sj2af6Fo
- tR0qEibZ6OmWHwzN0Uh2OfYCggNGj65XGIS0GoALdHsXvMXCY5punoRClJ16yNFYaz25j0JrU
- RtUXH5jvSwX8XoF/6ak+ShK/KPPzynO21x/vz84ZY3NbAA8I3MmTFBtvZbLE5K0HJX0gwUBH5
- PLJfHSSPltQ+4PNDWwqC6RUN0XEu/z4e+zYp29euQJzlKHroZoX9pD+2jJK2aI9s/tgWEIVOL
- 2M66X8/3aSIKUmPfjF9oPoxnt4/X8V0KLkpuD3ViTZ/Z6OB3cNvtYLE6FAeAsHvC3axoZiUgk
- lsoKgitUGmAQkUjOue1ahu05yVml8G7orsz4294vomAvNIbJYSY6y3OqdW77Ul9Aagq9MEueG
- OrMvJ+pbN1Vl5uRFvAoHGnYk9GfLRHnr1rGVlDVvAU1dhr+VqA=
+X-Provags-ID: V03:K1:VpEEgoOWThxhQixjfpbEos42H1TvCPgcGI8o8I9o2XPlaGQHEJg
+ +ochkhXHJkoDcYX7WdO0YF6qmZsqV9i+JNq7tnyAps349sZDyX+w6yafKFBWb/9eV5r5yZv
+ 3SvHGUwopX7Vi5CkXf25eeiZufSGTVCL1JZhUnsEfo3F5ypep9VY577JGYB86kaQosT03n6
+ 2OHSwKnra3Mhb7C++W0gg==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:5ZNMXf9sxdg=:zWE9RxiaoQrl4scWs6UtFD
+ eDXCgOBPCpSzNlBDRlGb2LYPadMU6qGp+0YF/4Gp1Zg6IvG0ojkeTuOiebeV+a68nD7aSlzQ9
+ AlcrSV6OhoJhLlE10D3xZgRlw/GJxqrRQkiL7jJ156HTHrtgXZPr6g4yEExrWa2K/70q1+cW6
+ 3vEg12xrzfXFFCId8X98XivvVMBYIoJ6yy2FcjngfKYVqzgl42veBb2f/69h1L0dK1eiOdaky
+ jIWrEaje9akGfrXQgcomjz4Fz/ZTnDg8vj5OKDNBEioRXMqrTC72rez4Ae83/CoU2iix/FXtX
+ 3jBd5jLBRbjYky4PtX7sFV3L1w1fKQGUHf0uyh4GVIZW3jWX481OBmTNnB2LsocgdSf+NGxYq
+ OF4BPGNITowFmmCRC+mkihFQADoVE/HL4fl5j6np1Cr/0b7WXwYrfOPYCisdu/3b5PPGNk1y4
+ fOvtT4fBxuxUzYXPFnl+3sQfk4SwtnndGUQ6/qORYNOjkQb5TiFvMjxst5wHC4TOI+2d02vqC
+ gwHcDouioSLNbJY85SN9M2+8jD7Kc9fpXtXFTRs9a4sPwG9XnUxUFYlBFdDX4ZAcB3duJhfjU
+ Avu5p1SpyzH37+vigu464kdBKdaNS6t1z3WXiPlr4uT03jYchIBgzJ2ZQML8ASDE2m+52d1Yy
+ 745v4fHQ+H37Ozvbmh/7E6o7e8/72Ix1g1uTRZ7kODf+jCZKTAZDmm5NuK31zQEtEtpJC1W3W
+ Txq1AcgLAwcJonk3l8+07QOU7OiP1CAnzzp6KUtg/OmJU75PV9g7O4ckLUqePNXS+l+rKKQdH
+ pg/iqLbREtRyJVusbhvpE263c8IrdJ6tlU3dvSDQ+JZp6BxBsE=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
@@ -74,10 +77,49 @@ On Tue, Dec 28, 2021 at 3:39 PM <guoren@kernel.org> wrote:
 >
 > From: Guo Ren <guoren@linux.alibaba.com>
 >
-> RISC-V doesn't neeed compat_stat, so using __ARCH_WANT_COMPAT_STAT
-> to exclude unnecessary SYSCALL functions.
+> Remove duplicate F_GETLK64,F_SETLK64,F_SETLKW64 definitions in
+> arch/*/include/asm/compat.h.
 >
 > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 > Signed-off-by: Guo Ren <guoren@kernel.org>
+> Cc: Arnd Bergmann <arnd@arndb.de>
 
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Unfortunately, this one does not look correct to me:
+
+> @@ -116,7 +116,7 @@
+>  #define F_GETSIG       11      /* for sockets. */
+>  #endif
+>
+> -#ifndef CONFIG_64BIT
+> +#if !defined(CONFIG_64BIT) || defined(CONFIG_COMPAT)
+>  #ifndef F_GETLK64
+>  #define F_GETLK64      12      /*  using 'struct flock64' */
+>  #define F_SETLK64      13
+
+The problem here is that include/uapi/ headers cannot contain checks for
+CONFIG_* symbols because those may have different meanings in user space
+compared to kernel.
+
+This is a preexisting problem in the header, but I think the change
+makes it worse.
+
+With the current behavior, user space will always see the definitions,
+unless it happens to have its own definition for CONFIG_64BIT already.
+On 64-bit parisc, this has the effect of defining the macros to the
+same values as F_SETOWN/F_SETSIG/F_GETSIG, which is potentially
+harmful. On MIPS, it uses values that are different from the 32-bit numbers
+but are otherwise unused. Everywhere else, we get the definition from
+the 32-bit architecture in user space, which will do nothing in the kernel.
+
+The correct check for a uapi header would be to test for
+__BITS_PER_LONG==32. We should probably do that here, but
+this won't help you move the definitions, and it is a user-visible change
+as the incorrect definition will no longer be visible. [Adding Jeff and Bruce
+(the flock mainainers) to Cc for additional feedback on this]
+
+For your series, I would suggest just moving the macro definitions to
+include/linux/compat.h along with the 'struct compat_flock64'
+definition, and leaving the duplicate one in the uapi header unchanged
+until we have decided on a solution.
+
+        Arnd
