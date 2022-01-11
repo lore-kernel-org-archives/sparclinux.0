@@ -2,118 +2,108 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 612C8C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Jan 2022 09:52:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41033C43217
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Jan 2022 15:33:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237038AbiAKJwW convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Jan 2022 04:52:22 -0500
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:45335 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1343853AbiAKJwV (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Tue, 11 Jan 2022 04:52:21 -0500
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-405-rXUlX-ehMDyIXirCKi7aCg-1; Tue, 11 Jan 2022 09:52:18 +0000
-X-MC-Unique: rXUlX-ehMDyIXirCKi7aCg-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.26; Tue, 11 Jan 2022 09:52:18 +0000
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.026; Tue, 11 Jan 2022 09:52:17 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Christoph Hellwig' <hch@lst.de>, Arnd Bergmann <arnd@arndb.de>
-CC:     Guo Ren <guoren@kernel.org>, "x86@kernel.org" <x86@kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>
-Subject: RE: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
-Thread-Topic: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
-Thread-Index: AQHYBsZBTBglXUWeOki+cPQc77mslqxdkbpw
-Date:   Tue, 11 Jan 2022 09:52:17 +0000
-Message-ID: <f69d570127db4f78a6b30e1775a020c4@AcuMS.aculab.com>
-References: <20220111083515.502308-1-hch@lst.de>
- <20220111083515.502308-6-hch@lst.de>
-In-Reply-To: <20220111083515.502308-6-hch@lst.de>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        id S1343606AbiAKPdv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Jan 2022 10:33:51 -0500
+Received: from mout.kundenserver.de ([212.227.17.10]:52235 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S245121AbiAKPdu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Jan 2022 10:33:50 -0500
+Received: from mail-wm1-f51.google.com ([209.85.128.51]) by
+ mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1MwQKp-1mF4TW2esX-00sQ6O; Tue, 11 Jan 2022 16:33:47 +0100
+Received: by mail-wm1-f51.google.com with SMTP id bg19-20020a05600c3c9300b0034565e837b6so913789wmb.1;
+        Tue, 11 Jan 2022 07:33:47 -0800 (PST)
+X-Gm-Message-State: AOAM5302PD/H/LL+Ue9VnmV6tsOAQS6wR6H1gkAhTQflzf2S8jBCBdX/
+        TjFu3Kr+PKZUKQiES9tUFYMuAH5ZQ7q/xgW8rZA=
+X-Google-Smtp-Source: ABdhPJyFFinYnz2sZBS9mJMA0LPDw6WfY7Va14XdJpsCQCV44OO8uJYaRTfqzAgePL4Snx4fHkOYLxmTt0Ze2tTLQxc=
+X-Received: by 2002:a05:600c:287:: with SMTP id 7mr2989838wmk.98.1641915227093;
+ Tue, 11 Jan 2022 07:33:47 -0800 (PST)
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+References: <20220111083515.502308-1-hch@lst.de> <20220111083515.502308-5-hch@lst.de>
+In-Reply-To: <20220111083515.502308-5-hch@lst.de>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Tue, 11 Jan 2022 16:33:30 +0100
+X-Gmail-Original-Message-ID: <CAK8P3a0mHC5=OOGV=sGnC9JqZWxzsJyZbTefnCtryQU3o3PY_g@mail.gmail.com>
+Message-ID: <CAK8P3a0mHC5=OOGV=sGnC9JqZWxzsJyZbTefnCtryQU3o3PY_g@mail.gmail.com>
+Subject: Re: [PATCH 4/5] uapi: always define F_GETLK64/F_SETLK64/F_SETLKW64 in fcntl.h
+To:     Christoph Hellwig <hch@lst.de>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Guo Ren <guoren@kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Jeff Layton <jlayton@kernel.org>,
+        "J. Bruce Fields" <bfields@fieldses.org>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:tx6IPv0ygRrFwEX45u6YGmYZF4q2tKY6A4+hu9TKlEe4uh5NsZa
+ QRpuFp+LN4kZi2zmoTXgxqnhWVQYJtpEcjdI7819zEKV7QSqF/1EleKbktsn+kKtfz0h2D0
+ tLBfeFGy7Ju2xSluoAuZaQyn/drX0z0lM1dy3iNgwLxVTUjmFpAuZnGhsD8+jj/Lf4d8KEa
+ yR/p9izO+KVN844fr1GEQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:k9mBvFF1K44=:R1UiRCxQjZewR+TumBOQJH
+ KHbMrEAVPoyOjTjnVznPLlAeTuUXJCMXPe91vVSV1VPlK+9sFORPHJaE9Oqb5vWsDxiuX/umF
+ 2eOAOArrgNLa8V2xYqVDDXcexEn44g0mwV6PYp5JTV8WJ86CioJ+4Zf1xDGTIwSFFfIwPcX1l
+ Xw60AAonM7sdk6FZ63DylMTYHZdmpD8t22aR0vK2nNI5Lkal88BdvGjWt8JjHI8pJP03ebaXA
+ 6u3RaakXFV7mu2hpWDNRWKH55q/3CRUFseB8WIpIEKP00a5CfJ4acF4ioav3DECnj3pDk41c9
+ kdnovlyq4iCquGzzMa0jieTckQfP7biyZNOboS01neuWhtp6VDdqXbFkfyOzx73482ytgi/WG
+ +xa34Xth2dhJMU+Q0p5TKCojpbBB8UteuAf2j1BDMBRytXvmv6dHmq5QzrpgckqY8Xl1orx7I
+ K4i8BN3pjYlX9r42OXQrmW0YcrXqE3rlRyir5KN1+rVzLqNgnO5tLAc85E822sS5M+o3L2IxO
+ frzlC3Dno3fP62wpk2clzxEWqw0lngxh7kmbhZ+aW6f+eVnFmGr6rkL+uYudCm2n2X21go2Zc
+ /Ne6oWu73KoGx4CvZeeWD/0Qkn21H9pYDD9UwU8zm8fHrl6tcA+Iqp/RC5VUeSXlf/6JDKeLS
+ IpgJdcZT71vKDGZGhA5srpwjumfNrgJIyzUPUXlqby2b2f9YcNpgT4jQWKlPn/mWBO/I=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Christoph Hellwig
-> Sent: 11 January 2022 08:35
-> 
-> Provide a single common definition for the compat_flock and
-> compat_flock64 structures using the same tricks as for the native
-> variants.  Another extra define is added for the packing required on
-> x86.
-> 
-...
->  /*
-> - * IA32 uses 4 byte alignment for 64 bit quantities,
-> - * so we need to pack this structure.
-> + * IA32 uses 4 byte alignment for 64 bit quantities, so we need to pack the
-> + * compat flock64 structure.
->   */
-...
-> +#define __ARCH_NEED_COMPAT_FLOCK64_PACKED
+On Tue, Jan 11, 2022 at 9:35 AM Christoph Hellwig <hch@lst.de> wrote:
+>
+> The fcntl F_GETLK64/F_SETLK64/F_SETLKW64 are only implemented for the
+> 32-bit syscall APIs, but we also need them for compat handling on 64-bit
+> builds.  Redefining them is error prone (as shown by the example that
+> parisc gets it wrong currently), so we should use the same defines for
+> both case.  In theory we could try to hide them from userspace, but
+> given that only MIPS actually gets that right, while the asm-generic
+> version used by most architectures relies on a Kconfig symbol that can't
+> be relied on to be set properly by userspace is a clear indicator to not
+> bother.
+>
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+> ---
 
-Maybe:
-#define __ARCH_COMPAT_FLOCK64_ATTR (packed),(aligned(4)
+> diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
+> index 98f4ff165b776..43d7c44031be0 100644
+> --- a/include/uapi/asm-generic/fcntl.h
+> +++ b/include/uapi/asm-generic/fcntl.h
+> @@ -116,13 +116,11 @@
+>  #define F_GETSIG       11      /* for sockets. */
+>  #endif
+>
+> -#ifndef CONFIG_64BIT
+>  #ifndef F_GETLK64
+>  #define F_GETLK64      12      /*  using 'struct flock64' */
+>  #define F_SETLK64      13
+>  #define F_SETLKW64     14
+>  #endif
+> -#endif
+>
+>  #ifndef F_SETOWN_EX
+>  #define F_SETOWN_EX    15
 
-...
-Delete this bit:
-> +#ifdef __ARCH_NEED_COMPAT_FLOCK64_PACKED
-> +#define __ARCH_COMPAT_FLOCK64_PACK	__attribute__((packed))
-> +#else
-> +#define __ARCH_COMPAT_FLOCK64_PACK
-> +#endif
-...
-> +struct compat_flock64 {
-> +	short		l_type;
-> +	short		l_whence;
-> +	compat_loff_t	l_start;
-> +	compat_loff_t	l_len;
-> +	compat_pid_t	l_pid;
-> +#ifdef __ARCH_COMPAT_FLOCK64_PAD
-> +	__ARCH_COMPAT_FLOCK64_PAD
-> +#endif
-> +} __ARCH_COMPAT_FLOCK64_PACK;
+This is a very subtle change to the exported UAPI header contents:
+On 64-bit architectures, the three unusable numbers are now always
+shown, rather than depending on a user-controlled symbol.
 
-then:
-#ifdef __ARCH_COMPAT_FLOCK64_ATTR
-} __attribute__(__ARCH_COMPAT_FLOCK64_ATTR);
-#else
-};
-#endif
+This is probably what we want here for compatibility reasons, but I think
+it should be explained in the changelog text, and I'd like Jeff or Bruce
+to comment on it as well: the alternative here would be to make the
+uapi definition depend on __BITS_PER_LONG==32, which is
+technically the right thing to do but more a of a change.
 
-Makes it a bit more like the xxx_PAD bits.
-Although the trailing ; does cause a bit of grief.
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
-
+       Arnd
