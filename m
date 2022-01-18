@@ -2,104 +2,116 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C89CC43219
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Jan 2022 08:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56CC8C4332F
+	for <sparclinux@archiver.kernel.org>; Tue, 18 Jan 2022 11:48:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343932AbiARIJE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Jan 2022 03:09:04 -0500
-Received: from mout.kundenserver.de ([212.227.126.187]:49457 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236238AbiARIJC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jan 2022 03:09:02 -0500
-Received: from mail-ot1-f45.google.com ([209.85.210.45]) by
- mrelayeu.kundenserver.de (mreue010 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1MnJQq-1mQjd93nCG-00jLy4; Tue, 18 Jan 2022 09:09:00 +0100
-Received: by mail-ot1-f45.google.com with SMTP id c3-20020a9d6c83000000b00590b9c8819aso23176086otr.6;
-        Tue, 18 Jan 2022 00:08:58 -0800 (PST)
-X-Gm-Message-State: AOAM532fK7b9r2MQpFYeHxUhEZWuwrAtssHkw2podjFcPSr4466Mo9BB
-        ODCbufzb+b+yNetPHpg0G/w9K3nUrghvsNYorWk=
-X-Google-Smtp-Source: ABdhPJydwgmux0eMV8HI8b9BdklNP+7LV2ch1rDgfPNeEtqq30DY58YS5CzATVJf7L4CaVG1qsRotI3Rplk0R7Z1cCo=
-X-Received: by 2002:a05:6830:2095:: with SMTP id y21mr17140172otq.368.1642493337643;
- Tue, 18 Jan 2022 00:08:57 -0800 (PST)
-MIME-Version: 1.0
-References: <20220118044323.765038-1-walt@drummond.us> <20220118044323.765038-2-walt@drummond.us>
-In-Reply-To: <20220118044323.765038-2-walt@drummond.us>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Tue, 18 Jan 2022 09:08:41 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a0ohW+w8_A8qMNqxpTmFcvxQr+z9YR96RAu5-wtdG_5+g@mail.gmail.com>
-Message-ID: <CAK8P3a0ohW+w8_A8qMNqxpTmFcvxQr+z9YR96RAu5-wtdG_5+g@mail.gmail.com>
-Subject: Re: [PATCH 2/3] vstatus: Add user space API definitions for VSTATUS,
- NOKERNINFO and TIOCSTAT
-To:     Walt Drummond <walt@drummond.us>
+        id S241074AbiARLsX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 18 Jan 2022 06:48:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47776 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239760AbiARLsW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Jan 2022 06:48:22 -0500
+Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9383C061574;
+        Tue, 18 Jan 2022 03:48:21 -0800 (PST)
+Received: by mail-pl1-x62d.google.com with SMTP id c6so15653069plh.6;
+        Tue, 18 Jan 2022 03:48:21 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=Dejh5tcJ4gWGMzdNPEhsckEWG7ff8PXHm722G9XwW+k=;
+        b=lhyWQKxAG89IPXoDBrz6HFbtQzqa9iaOYj+PFdjDoTlmha8BtPoN/SFZIdB4e77qbZ
+         CBlTTcpb1QSpDDgbaKs/yMQRWx9xJEXXy+ObN+vGaqwEMUHvNvPJBcdihgIWzbIbwIyi
+         t0z3JbvURqorA6ScZQzlV6PZRhjt97uJ/0+BbBjzHQmSKSLHn+JB8eFs2Fs6o8tQ/mKQ
+         rUwpVZK3W7hmfBhNJ7b3ynsP/J30cSDxjWsJesM1dv+MWnERRqVLqHEqhrY7T3xefrk/
+         40Idt100/aXP2A0ckDAObcJP+ame/UJT0rubeLfx0tMIplSAiSL4vidJMCU86XCODEqc
+         kKAQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=Dejh5tcJ4gWGMzdNPEhsckEWG7ff8PXHm722G9XwW+k=;
+        b=tgEzA75tCdbW9465sQfcQT3i0XFvlMxqwWv3kN9Mpr6jfz1qolRforlEXQ6mHzJ1Dw
+         QMGk2L9t/7R+7Qo2aE/D6K4RVT3r22IH/hILpc7wCt26lZ38s+WSTwbVOdrrQwqGFXH7
+         Ri8ncBrtJMI9BgdpBtMNi+JI7STXjLsDFEYTuCN+zK3mt0mDDMKOk1FCpXhPwGgbr4Vc
+         FThCNaHghxjZyn386doOTPTw8SjcCEg5ZuHUveeWrFrKaYa3gk2T1Ut2g7szW1UokgON
+         21wAPqdtV07fMcIo7wVHFFVwUBKkeW9gmaFllQubSEYaVZAnNWeXnbzan0OJp6Kb+LW3
+         Uhhw==
+X-Gm-Message-State: AOAM5328p7rI41zU19zNU3qs4z9MRNmlW+5cZCytAVq1vpL8r+r/51Ry
+        3I9eiv/CR9HsoP4399HymsI=
+X-Google-Smtp-Source: ABdhPJxwzr02xBpJ396V3SpOF+QPWB4Svb44p09ND0mT7txf7kG/F8oGaHQopWM70s1EOb1e2640uQ==
+X-Received: by 2002:a17:902:ec83:b0:14a:3c28:6820 with SMTP id x3-20020a170902ec8300b0014a3c286820mr27820410plg.43.1642506501286;
+        Tue, 18 Jan 2022 03:48:21 -0800 (PST)
+Received: from localhost ([2409:10:24a0:4700:e8ad:216a:2a9d:6d0c])
+        by smtp.gmail.com with ESMTPSA id k9sm14959387pgr.47.2022.01.18.03.48.20
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 18 Jan 2022 03:48:20 -0800 (PST)
+Date:   Tue, 18 Jan 2022 20:48:17 +0900
+From:   Stafford Horne <shorne@gmail.com>
+To:     Christoph Hellwig <hch@lst.de>
 Cc:     Richard Henderson <rth@twiddle.net>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Matt Turner <mattst88@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.osdn.me>,
+        Vineet Gupta <vgupta@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Brian Cain <bcain@codeaurora.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Nick Hu <nickhu@andestech.com>,
+        Greentime Hu <green.hu@gmail.com>,
+        Vincent Chen <deanbo422@gmail.com>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         "David S. Miller" <davem@davemloft.net>,
         Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, ar@cs.msu.ru,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        alpha <linux-alpha@vger.kernel.org>, linux-ia64@vger.kernel.org,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>,
-        linux-arch <linux-arch@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:jroLeFEX00jpZO68/IoXmOXHzWxP7+RGfe7zZU/LWVRAmJVnGNv
- gfoJ7rRgSe65YOQp/O3YEeGDAfFcsSjHHsUjkcqrszvHWg5gBHfk3A3YFhGq/FHJpavxKjU
- roGZKdTzpl8vLd/uu2J1imMm3MThe3zqsntL/I34IuX5wJpdmQaX9h4PjCqbe58qz7w1Fkf
- 7f/exEH7NfiMcGfZ1sIcw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:wB2+zO+N3vY=:/xxomx9nt6MxOycubjZZYy
- xJGx9bTbvBhoDW38MMyjlL1FygVKIiNX15B07KZWwWYDLLJz5Qku+J61UsgVvA+NZ2ybs0GTy
- ZThv/7qJhh1Vo6vVUeLE8qwK7QH7nwP+SBbe43yzNoQTwN3N8h8UYUxFBjFCWb0LFypjiGskc
- 39NNBA/L6Cz+Ch+Kv1bGxsBLTIW7DpcqdijUrHfO3A8J9eTXT2MizvislYR3E4y2HF7kgBLDz
- wUz7d5vMGdv//PxHcmbDb69S1gpg32Ztb/INYb5oKX3vdo/xe5ynUS6QCFDDQuWw3JMgGl6IN
- GyICh17QWiGK/CU10BoUnaW9B7RXdZrlQZ4WrNPR5uGj1J62hRhk28AGveSizBc/tsOfjSFiN
- j++m5AIktQRGC+4mdSYmKzkcb3/zOpuYyygnk901obnlGL/eJ58/svq1M1oRu5sPVqj2RW+46
- qjNYKZs0TWBWBGIMcqjYhKGufFKxKkktY+7FKDVBB+I3lFTANKXbAQE6BJEiqDm1AWzFwoGRP
- 9oiyqtz8/3RlWgmHFlnI/gDVMQN4dXCkzuZD2kYsbvljhXqNrk7JPpOd3NWdNlGEQsTMvW+ll
- ovhpX0MuYPTEH0ZtZHoH4XloLH7cKpCTNPod40yg8aU55seCw2dAOv0K8/reVbpYyH5qxBQdW
- a23XMaPEBbU95U38zuZOC4N70hkYFlj0a+ViEb3T/N/WUSxHE6GtWsiGkaqeSZnZgxSHWJ6Dd
- 6HcU+2t0DTvSOTzpVKcEKtgtPYyOPizbAv8lWFtKKwYyHhzUMEO2yEX/Kb3AjoAUIbzr6ecKV
- T6BJ/0OKJ+D9Hlbef17QLHHCP5aDTXghnUzlddHSLWeuiHhpJQ=
+        Max Filippov <jcmvbkbc@gmail.com>, linux-alpha@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        linux-arch@linux-xtensa.org, linux-kernel@linux-xtensa.org
+Subject: Re: architectures that still need to remove set_fs()
+Message-ID: <YeapAai1NIuy0zV4@antec>
+References: <20220118074836.GA20994@lst.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220118074836.GA20994@lst.de>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jan 18, 2022 at 5:43 AM Walt Drummond <walt@drummond.us> wrote:
+Hi,
 
-> diff --git a/include/uapi/asm-generic/ioctls.h b/include/uapi/asm-generic/ioctls.h
-> index cdc9f4ca8c27..eafb662d6a0e 100644
-> --- a/include/uapi/asm-generic/ioctls.h
-> +++ b/include/uapi/asm-generic/ioctls.h
-> @@ -97,6 +97,7 @@
->
->  #define TIOCMIWAIT     0x545C  /* wait for a change on serial input line(s) */
->  #define TIOCGICOUNT    0x545D  /* read serial port inline interrupt counts */
-> +#define TIOCSTAT        0x545E /* display process group stats on tty */
->
->  /*
->   * Some arches already define FIOQSIZE due to a historical
+On Tue, Jan 18, 2022 at 08:48:36AM +0100, Christoph Hellwig wrote:
+> Hi all,
+> 
+> you are in this list because your architecture still implements and
+> uses address space overrides using set_fs(), which are deprecated and
+> have been removed from all mainstream architecture ports.  To help
+> cleanup the core kernel it would be great to make progress on removing
+> set_fs entirely.
+> 
+> The following steps are required:
+> 
+>  (1) implement the __get_kernel_nofault and __put_kernel_nofault
+>      helper to access kernel memory without page faults, replacing
+>      the get/put_user under set_fs(KERNEL_DS) abuse.  Mips has a good
+>      example for a trivial implementation for architectures that use
+>      a common address space in commit 04324f44cb69
 
-I don't see any advantage in using the old-style ioctl command definitions
-here, and looking through the history of this file, all recent additions used
-the now normal _IOWR() style macros, so please use those as well.
+Also see commit 08ee3a009f49a which is preparation for removing set_fs/get_fs
+this commit implements __get_kernel_nofault/__put_kernel_nofault for mips.
 
-       Arnd
+>  (2) remove any architecture specific use of such constructs.  This
+>      only affects ia64 and sh.
+>  (3) stop selecting the SET_FS and remove all the set_fs-related
+>      infrastructure.  The above mips commit is a good guide once again.
+> 
+> Thanks!
+
+I will look into this for OpenRISC.
+
+-Stafford
