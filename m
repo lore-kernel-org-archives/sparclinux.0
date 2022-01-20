@@ -2,93 +2,78 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0EDBBC433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 15:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C4A9C433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 17:17:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376542AbiATPqZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 20 Jan 2022 10:46:25 -0500
-Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:37964 "EHLO
-        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1376521AbiATPqX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>);
-        Thu, 20 Jan 2022 10:46:23 -0500
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-193-7WTwajXxOa6GXzO1g1m_hA-1; Thu, 20 Jan 2022 15:46:20 +0000
-X-MC-Unique: 7WTwajXxOa6GXzO1g1m_hA-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.28; Thu, 20 Jan 2022 15:46:18 +0000
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.028; Thu, 20 Jan 2022 15:46:18 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Arnd Bergmann' <arnd@arndb.de>, Guo Ren <guoren@kernel.org>
-CC:     Palmer Dabbelt <palmer@dabbelt.com>,
-        Anup Patel <anup@brainfault.org>,
-        gregkh <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@lst.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        "inux-parisc@vger.kernel.org" <inux-parisc@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Subject: RE: [PATCH V3 07/17] riscv: compat: Re-implement TASK_SIZE for
- COMPAT_32BIT
-Thread-Topic: [PATCH V3 07/17] riscv: compat: Re-implement TASK_SIZE for
- COMPAT_32BIT
-Thread-Index: AQHYDePReMzknTU7UkCjQWPLhaJn7Kxr3G8ggAAj9ueAAAuaMA==
-Date:   Thu, 20 Jan 2022 15:46:18 +0000
-Message-ID: <01a8da9e5a374373a922e569a1e10ee8@AcuMS.aculab.com>
-References: <20220120073911.99857-8-guoren@kernel.org>
- <CAK8P3a1UvqsS-D7cVXBkp4KCRWDfquQ6QTkvrQ=FqLxhsAi7Rw@mail.gmail.com>
- <f16cf10425a14c2e8183d5c90667ce72@AcuMS.aculab.com>
- <CAJF2gTRwh40xDBkoRJWZEUketKFDAy7_z=-WW7E=T46yH4zPvw@mail.gmail.com>
- <CAK8P3a3FLnqibdXCGR8c+mm92HSiuvocZDeW8MyoTO_L1sYT=w@mail.gmail.com>
-In-Reply-To: <CAK8P3a3FLnqibdXCGR8c+mm92HSiuvocZDeW8MyoTO_L1sYT=w@mail.gmail.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        id S1377259AbiATRRM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 20 Jan 2022 12:17:12 -0500
+Received: from 3i151im.cn ([42.240.135.190]:49463 "EHLO ts3card.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S243820AbiATRRM (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 20 Jan 2022 12:17:12 -0500
+Message-ID: <20220121011712548301@ts3card.com>
+From:   =?utf-8?B?44OI44Oo44K/44OV44Kh44Kk44OK44Oz44K55qCq5byP5Lya56S+?= 
+        <info@ts3card.com>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?utf-8?B?44CQVFMzIFRTIENVQklDQ0FSROOAkemHjeimgQ==?=
+        =?utf-8?B?OuW/heOBmuOBiuiqreOBv+OBj+OBoOOBleOBhA==?=
+Date:   Fri, 21 Jan 2022 01:17:01 +0800
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+        charset="utf-8"
 Content-Transfer-Encoding: base64
+X-mailer: Wae 5
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Li4uDQo+IE9uZSBleGFtcGxlIG9mIHNvZnR3YXJlIHRoYXQgcnVucyBpbnRvIHZpcnR1YWwgbWVt
-b3J5IHNpemUgbGltaXRhdGlvbnMgaXMNCj4gdGhlIGdudSBsaW5rZXIgd2hlbiBidWlsZGluZyBs
-YXJnZSBhcHBsaWNhdGlvbnMsIGJ1dCBpdCdzIHVubGlrZWx5IHRoYXQgeW91J2xsDQo+IGFjdHVh
-bGx5IG5lZWQgdG8gcnVuIGFwcGxpY2F0aW9ucyB0aGF0IHJ1biBpbnRvIHRoaXMsIHdoaWxlIGFs
-c28gbmVlZGluZyB0bw0KPiBidWlsZCB0aGVtIG5hdGl2ZWx5Lg0KDQpUaGVyZSBhcmUgYWxzbyBk
-YXRhYmFzZSBwcm9ncmFtcyB0aGF0IHdhbnQgdG8gbW1hcCgpIGxhcmdlIHNwYXJzZSBmaWxlcy4N
-ClRvIHNvbWUgZXh0ZW50IHRoYXQgaXMgd2hlcmUgdGhlIHByZXNzdXJlIGZvciA2NGJpdCBhZGRy
-ZXNzZXMgY29tZXMgZnJvbS4NCg0KV2hpbGUgKEkgdGhpbmspIG1vc3Qgb2YgdGhlIGN1cnJlbnQg
-cmlzY3Ygc3lzdGVtcyBhcmUgJ3RveScgb25lcw0KdGhlcmUgYXJlIGRlZmluaXRlbHkgcHJlc3Mg
-cmVwb3J0cyBvZiBzb21lIHF1aXRlIGhpZ2ggcG93ZXIgc3lzdGVtcy4NCg0KSSBzdXNwZWN0IHRo
-ZXkgYXJlIGxlc3MgJ3RveScgdGhhbiB0aGUgQWx0ZXJhIChJbnRlbCkgTmlvcyBwcm9jZXNzb3Jz
-DQp3ZSB1c2Ugb24gb3V0IGZwZ2EgLSB5b3UgY2FuIHJ1biBsaW51eCBvbiB0aGUgTmlvcyBjcHUs
-IGJ1dCB5b3UgcHJvYmFibHkNCmRvbid0IHJlYWxseSB3YW50IHRvIGRvIHNvLg0KQmV0dGVyIHRv
-IGZpbmQgYW4gZnBnYSB3aXRoIGEgJ3Byb3BlcicgQVJNIGNvcmUgaW4gdGhlIGNvcm5lci4NCg0K
-CURhdmlkDQoNCi0NClJlZ2lzdGVyZWQgQWRkcmVzcyBMYWtlc2lkZSwgQnJhbWxleSBSb2FkLCBN
-b3VudCBGYXJtLCBNaWx0b24gS2V5bmVzLCBNSzEgMVBULCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAx
-Mzk3Mzg2IChXYWxlcykNCg==
+4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB
+4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB
+4pSB4pSBDQoNCuKYheOAgi46KjpUUyBDVUJJQyBDQVJE5Lya5ZOh5YCL5Lq65oOF5aCx5aSJ5pu0
+44CC4piF44CCLjoqOg0KDQrilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHi
+lIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHi
+lIHilIHilIHilIHilIHilIHilIHilIENCg0KDQpUUyBDVUJJQyBDQVJE5Lya5ZOh5qijDQoNCuOB
+k+OBruOBn+OBs+OBr+OAgVRTIENVQklDIENBUkRF44Oh44O844Or44K144O844OT44K544KS44GU
+5Yip55So44GE44Gf44Gg44GN44GC44KK44GM44Go44GG44GU44GW44GE44G+44GZ44CCDQoNCuW9
+k+ekvuOBr+OCu+OCreODpeODquODhuOCo+OCt+OCueODhuODoOOBruWkp+W5heOBquOCouODg+OD
+l+OCsOODrOODvOODieOCkuWun+aWveOBl+OBpuOBhOOCi+OBn+OCgeOAgeWAi+S6uuaDheWgseOB
+rg0K5YaN6KqN6Ki844GM5a6M5LqG44GZ44KL44G+44Gn44CBVFMgQ1VCSUMgQ0FSROODoeODs+OD
+kOODvOOBruOCteODvOODk+OCueOBr+OBmeOBueOBpuWBnOatouOBleOCjOOBvuOBmeOAgg0KDQrm
+nKzml6XjgYvjgonjgIFUUyBDVUJJQyBDQVJE44Oh44Oz44OQ44O844Gu44Om44O844K244O844GM
+6YCa5bi45L2/55So44GX44Gf44GE5aC05ZCI44Gv44CBMjTmmYLplpPku6XlhoXjgasNCuS7peS4
+i+OBruWAi+S6uuaDheWgseaUueWWhOiqjeiovOOCkuihjOOBhuW/heimgeOBjOOBguOCiuOBvuOB
+meaJv+iqjeW+jOOBq+OBruOBv+S9v+eUqOOBp+OBjeOBvuOBmSANCg0K44Ot44Kw44Kk44Oz6KqN
+6Ki8Omh0dHBzOi8vbXktdHMzY2FyZC1jb20uOXUyeWEubmV0DQoNCuOBk+OBruOCteODvOODk+OC
+ueOBr+OAgVRTIENVQklDIENBUkTjg6Hjg47jg5Djg7zlsILnlKjjga7pgJrnn6XjgrXjg7zjg5Pj
+grnjgafjgZnjgILjgZPjga7jg6Hjg7zjg6vjga7lhoXlrrkNCuOBq+OBlOazqOaEj+OBhOOBn+OB
+oOOBjeOAgeS4jeW/heimgeOBque0m+WkseOCkumBv+OBkeOBpuOBj+OBoOOBleOBhOOAgg0KDQri
+lI/ilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHi
+lIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHilIHi
+lJMNCg0K44CA4pag5pys44Oh44O844Or44Gv6YCB5L+h5bCC55So44Gu44Gf44KB44CB44GT44Gh
+44KJ44Gu44Oh44O844Or44Ki44OJ44Os44K544Gr44GU6L+U5L+h44GE44Gf44Gg44GE44Gm44KC
+DQrjgIDjgIDlr77lv5zjga/jgYTjgZ/jgZfjgYvjga3jgb7jgZnjga7jgafjgZTkuobmib/jgY/j
+gaDjgZXjgYTjgIINCuOAgOOAgOOBquOBiuOAgeacrOODoeODvOODq+OBq+OBpOOBhOOBpuOBiuW/
+g+W9k+OBn+OCiuOBjOOBquOBhOWgtOWQiOOBq+OBr+OAgQ0K44CAIOOBiuaJi+aVsOOBp+OBmeOB
+jOOAgeS4i+iomOOBiuWVj+OBhOWQiOOCj+OBm+WFiOOBvuOBp+OBiumbu+ipseOBq+OBpumAo+e1
+oeOCkuOBiumhmOOBhOOBhOOBn+OBl+OBvuOBmeOAgg0KDQrjgIA9PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09DQoNCuOAgOKWoOeZ
+uuihjO+8mlRTIENVQklDIENBUkTjgIzjg4bjgqPjg7zjgqjjgrnjgq3jg6Xjg7zjg5Pjg4Pjgq/j
+gqvjg7zjg4njgI0NCuOAgOOAgOOAgOOAgOOAgCBodHRwczovL3RzY3ViaWMuY29tLw0K44CA44CA
+44CA44CA44CA44OI44Oo44K/44OV44Kh44Kk44OK44Oz44K55qCq5byP5Lya56S+DQrjgIDjgIDj
+gIDjgIDjgIDjgJI0NTEtNjAxNOOAgOaEm+efpeecjOWQjeWPpOWxi+W4guilv+WMuueJm+WztueU
+ujbnlaox5Y+3DQoNCuOAgOKWoOacrOODoeODvOODq+OBq+OBpOOBhOOBpuOBruOBiuWVj+OBhOWQ
+iOOCj+OBm++8mg0K4pePVE9ZT1RBLCBEQUlIQVRTVSwg44K444Kn44O844Og44K5LCDjg4jjg6jj
+gr/jg6zjg7Pjgr/jgqvjg7wgRkRD44GuDQrjgIDjgIDjgIDjgIDjgIDjgIBUUyBDVUJJQyBDQVJE
+LCBUUyBDVUJJQyBWSUVXIENBUkTjgpLjgYrmjIHjgaHjga7mlrnjga/jgZPjgaHjgokNCuOAgOOA
+gOOAgOOAgOOAgOOAgOOCpOODs+ODleOCqeODoeODvOOCt+ODp+ODs+ODh+OCueOCrw0K44CA44CA
+44CA44CA44CA44CAWyDmnbHkuqwgXeOAgDAz77yNNTYxN++8jTI1MTENCuOAgOOAgOOAgOOAgOOA
+gOOAgFvlkI3lj6TlsYtd44CAMDUy77yNMjM577yNMjUxMQ0KKDk6MDDvvZ4xNzozMCDlubTkuK3n
+hKHkvJEg5bm05pyr5bm05aeL6Zmk44GPKQ0K4peP5LiK6KiY5Lul5aSW44Gu44Kr44O844OJ5Lya
+5ZOh44GV44G+44Gv44CB44GK5omL5oyB44Gh44Gu44Kr44O844OJ5Yi46Z2i6KOP44Gr6KiY6LyJ
+44GuDQrjgIDjgIDjgIDjgIDjgIDjgIDjgqvjg7zjg4njgavplqLjgZnjgovjgYrllY/jgYTlkIjj
+go/jgZvpm7voqbHnlarlj7fjgavjgYrjgYvjgZHjgY/jgaDjgZXjgYQNCuOAgOOAgOOAgOOAgOOA
+gA0K4pSX4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB
+4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB4pSB
+4pSB4pSbDQo=
+
 
