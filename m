@@ -2,35 +2,30 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 322DFC433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 11:41:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38C3FC433F5
+	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 12:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231642AbiATLlx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 20 Jan 2022 06:41:53 -0500
-Received: from mout.kundenserver.de ([212.227.17.13]:49665 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231848AbiATLlx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 20 Jan 2022 06:41:53 -0500
-Received: from mail-lf1-f44.google.com ([209.85.167.44]) by
- mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1M5fUy-1nDGhp1Zu6-007BIW; Thu, 20 Jan 2022 12:41:51 +0100
-Received: by mail-lf1-f44.google.com with SMTP id y15so12271320lfa.9;
-        Thu, 20 Jan 2022 03:41:51 -0800 (PST)
-X-Gm-Message-State: AOAM530tvyQ5T4JV3gkrqe9AhUSyTnugciTj7DiHbp+8zbWWFJ9J3QcL
-        04n5wA1NFJmsAlHDfi7PJrwtL9MMOo2yncro9VY=
-X-Google-Smtp-Source: ABdhPJym7KyRCSRXKMerVMcQ/VMRiOiyKpoCP7tEcDc9DhkSEEWwSJxd9o5Jl5QZLGZ5wnpG9DwFk+lKhhVFjaoKItk=
-X-Received: by 2002:a5d:6488:: with SMTP id o8mr12004975wri.219.1642671600998;
- Thu, 20 Jan 2022 01:40:00 -0800 (PST)
-MIME-Version: 1.0
-References: <20220120073911.99857-16-guoren@kernel.org>
-In-Reply-To: <20220120073911.99857-16-guoren@kernel.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 20 Jan 2022 10:39:45 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a0Mr2m2dVoVss59cN-9X7GVBD29VQLo3m4xswRznk_WUQ@mail.gmail.com>
-Message-ID: <CAK8P3a0Mr2m2dVoVss59cN-9X7GVBD29VQLo3m4xswRznk_WUQ@mail.gmail.com>
-Subject: Re: [PATCH V3 15/17] riscv: compat: Add UXL_32 support in start_thread
-To:     Guo Ren <guoren@kernel.org>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
+        id S233969AbiATMyR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 20 Jan 2022 07:54:17 -0500
+Received: from eu-smtp-delivery-151.mimecast.com ([185.58.86.151]:53680 "EHLO
+        eu-smtp-delivery-151.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S245173AbiATMxR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Thu, 20 Jan 2022 07:53:17 -0500
+Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
+ relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ uk-mta-321-XSo6eQ28MlKlbqVx3cst0g-1; Thu, 20 Jan 2022 12:53:13 +0000
+X-MC-Unique: XSo6eQ28MlKlbqVx3cst0g-1
+Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
+ AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
+ Server (TLS) id 15.0.1497.28; Thu, 20 Jan 2022 12:53:11 +0000
+Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
+ AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
+ 15.00.1497.028; Thu, 20 Jan 2022 12:53:11 +0000
+From:   David Laight <David.Laight@ACULAB.COM>
+To:     'Arnd Bergmann' <arnd@arndb.de>, Guo Ren <guoren@kernel.org>
+CC:     Palmer Dabbelt <palmer@dabbelt.com>,
         Anup Patel <anup@brainfault.org>,
         gregkh <gregkh@linuxfoundation.org>,
         liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
@@ -40,47 +35,51 @@ Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         Christoph Hellwig <hch@infradead.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
+        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
         linux-s390 <linux-s390@vger.kernel.org>,
         sparclinux <sparclinux@vger.kernel.org>,
         linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        inux-parisc@vger.kernel.org,
+        "inux-parisc@vger.kernel.org" <inux-parisc@vger.kernel.org>,
         "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
         Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:Jnd6tXvVheyrbbh+xeAuIttBPYzIGn2pO6Pyy8MGiT7g0+tHTYg
- ppNX/NZb5qBasQ62aCGAhwBL+KVQ3j55clV2VBrd3V7EfaWg99achBw8Fs+nw6eqKCj6sb6
- Z0pBdcJ/OTLz+hwGXxFN1cZNSxla+WitNBAupt4x22wcNWGOv8qfEZ4LylMsFF/ugnh80Q3
- sybg53kul8jJBGqrQl8jw==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:uopUgF9nUW8=:DzrAYNFvXtQnHD9gAQ62SZ
- KDQrMUgKEJ3r8Gloo19zs/kHAS8ArUSOCjvLzo4kYqAuWXzoh/Qx+2OfOPZFggQVX62C/6tfq
- 7jC82Yjx+G9qjLVSo+fwksf/4XEDFPhPZsFU+tL9jgVx8xis2uS/FcvbD8hzRT15vBDzTi21j
- upGJyywC5RUB/z+gn/vOPmqym2BVQm7QhhFTEl9DoTiGYtum/7jjbP6le9v4ikC5aVqRRVIk8
- iqraqxSSHe69jfpKd7nwgXEEpJMLKq/vdF41u+Kr66X2Hj3VTpL/xvviv8SaYv+Iw04jpN4zw
- jKzSWeRQB7XPN2pjaWFV/WAhYJLmt/bwejY35v3exoNGsqxTbHpYc8hSddymWqU06GNQcKDha
- vNwH5Bz3QZC39Jv3bJd9PKYkT4c6DAlL1baTUfx7K2QH5+myoymmVXjRvBVDYAwFfYW5/Rg4V
- jbkQrGdilj4ccMATwBjp0XQagMyUByj5fmSBAlDUqaFwsYjJopR49yDUeJlpS4gXH8IBdjCMA
- nuxKrt9QVVDtgcHpVfY/F52nnHFqQfxvAdiRnFvlC7+PN40rAWmX1OofCeVBhUD8fQdf6kV4f
- lrA3353o+P/rXCYAjEESSUp+hHv7UUmaQsxjZaxjh6UaV6YsdFPrfwHcm1T4b8TY4GXakTmoP
- zQFQ52g6g+0KJMG2nCqOAZX1beilt8MCDzbHiMig81k7PrPWRrMFhyACyyIftYGqX++ssRNNG
- mWQpi7C3vm1O57Zt6PYmGEpUpDxqNX6uhsZMpYYb7+31boN3Z5ShNN7Cw5COmJd0y7lSoIH8n
- xHDVo/1L7a2oS1wf3nqZH9s3QIvxFTp9rUS+xs2mz7VhLn9U2GzyWnuQnWjH6Yow+qFgoD7
+Subject: RE: [PATCH V3 07/17] riscv: compat: Re-implement TASK_SIZE for
+ COMPAT_32BIT
+Thread-Topic: [PATCH V3 07/17] riscv: compat: Re-implement TASK_SIZE for
+ COMPAT_32BIT
+Thread-Index: AQHYDePReMzknTU7UkCjQWPLhaJn7Kxr3G8g
+Date:   Thu, 20 Jan 2022 12:53:11 +0000
+Message-ID: <f16cf10425a14c2e8183d5c90667ce72@AcuMS.aculab.com>
+References: <20220120073911.99857-8-guoren@kernel.org>
+ <CAK8P3a1UvqsS-D7cVXBkp4KCRWDfquQ6QTkvrQ=FqLxhsAi7Rw@mail.gmail.com>
+In-Reply-To: <CAK8P3a1UvqsS-D7cVXBkp4KCRWDfquQ6QTkvrQ=FqLxhsAi7Rw@mail.gmail.com>
+Accept-Language: en-GB, en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+x-ms-exchange-transport-fromentityheader: Hosted
+x-originating-ip: [10.202.205.107]
+MIME-Version: 1.0
+Authentication-Results: relay.mimecast.com;
+        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
+X-Mimecast-Spam-Score: 0
+X-Mimecast-Originator: aculab.com
+Content-Language: en-US
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jan 20, 2022 at 8:39 AM <guoren@kernel.org> wrote:
-> +
-> +#ifdef CONFIG_COMPAT
-> +       if (is_compat_task())
-> +               regs->status |= SR_UXL_32;
-> +#endif
+PiA+IExpbWl0IDMyLWJpdCBjb21wYXRpYmxlIHByb2Nlc3MgaW4gMC0yR0IgdmlydHVhbCBhZGRy
+ZXNzIHJhbmdlDQo+ID4gKHdoaWNoIGlzIGVub3VnaCBmb3IgcmVhbCBzY2VuYXJpb3MpLCBiZWNh
+dXNlIGl0IGNvdWxkIGF2b2lkDQo+ID4gYWRkcmVzcyBzaWduIGV4dGVuZCBwcm9ibGVtIHdoZW4g
+MzItYml0IGVudGVyIDY0LWJpdCBhbmQgZWFzZQ0KPiA+IHNvZnR3YXJlIGRlc2lnbi4NCg0KRWg/
+DQpJIHRob3VnaHQgbmVhcmx5IGFsbCB0aGUgb3RoZXIgMzJiaXQgdW5peCBwb3J0cyAob2YgYW55
+IGZsYXZvdXIpDQpwdXQgdGhlIHVzZXIta2VybmVsIGJvdW5kYXJ5IGF0IDNHQi4NCihBcGFydCBm
+cm9tIHNvbWUgdmVyeSBvbGQgc3BhcmMgb25lcyB0aGF0IHVzZSAzLjVHQi4pDQoNCjJHQiBpcyB1
+c2VkIGJ5IFdpbmRvd3MuDQoNCkkgdGhpbmsgdGhlIHg4Ni02NCAzMmJpdCBjb21wYXQgY29kZSBl
+dmVuIHB1dHMgdGhlIGJvdW5kYXJ5IGF0IDRHQi4NCg0KCURhdmlkDQoNCi0NClJlZ2lzdGVyZWQg
+QWRkcmVzcyBMYWtlc2lkZSwgQnJhbWxleSBSb2FkLCBNb3VudCBGYXJtLCBNaWx0b24gS2V5bmVz
+LCBNSzEgMVBULCBVSw0KUmVnaXN0cmF0aW9uIE5vOiAxMzk3Mzg2IChXYWxlcykNCg==
 
-
-You should not need that #ifdef, as the is_compat_task() definition is
-meant to drop the code at compile time, unless the SR_UXL_32
-definition is not visible here.
-
-         Arnd
