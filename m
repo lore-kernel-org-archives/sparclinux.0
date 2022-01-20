@@ -2,33 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35147C4332F
-	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 09:26:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE5CC43217
+	for <sparclinux@archiver.kernel.org>; Thu, 20 Jan 2022 09:55:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241268AbiATJ0j (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 20 Jan 2022 04:26:39 -0500
-Received: from mout.kundenserver.de ([212.227.126.135]:35575 "EHLO
+        id S239767AbiATJzJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 20 Jan 2022 04:55:09 -0500
+Received: from mout.kundenserver.de ([217.72.192.73]:57323 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234276AbiATJ0i (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 20 Jan 2022 04:26:38 -0500
-Received: from mail-oi1-f170.google.com ([209.85.167.170]) by
- mrelayeu.kundenserver.de (mreue010 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1MqbDs-1mX06m2Ey0-00mfPd; Thu, 20 Jan 2022 10:26:36 +0100
-Received: by mail-oi1-f170.google.com with SMTP id q186so8478481oih.8;
-        Thu, 20 Jan 2022 01:26:35 -0800 (PST)
-X-Gm-Message-State: AOAM530IS6cMCdv3arv1VITiCM41IZlTFYKedU3XPQQraoDSFQvHiYtB
-        lrVraWDG10iuGZ2ZJMFWfUsF1JRzoAeo78l1PK8=
-X-Google-Smtp-Source: ABdhPJwUHTIEKGF9B/deLoD+NLX/BPhPwhEAEkpKqsuu70hdzaWxQnSHkYBLqgySPz6euydrj/73VVU+G7+wmpaPV1k=
-X-Received: by 2002:a05:6808:2206:: with SMTP id bd6mr6829962oib.11.1642670794688;
- Thu, 20 Jan 2022 01:26:34 -0800 (PST)
+        with ESMTP id S237302AbiATJzJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 20 Jan 2022 04:55:09 -0500
+Received: from mail-wm1-f45.google.com ([209.85.128.45]) by
+ mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1MYvTy-1moVHW2eSO-00UoWY; Thu, 20 Jan 2022 10:55:06 +0100
+Received: by mail-wm1-f45.google.com with SMTP id bg19-20020a05600c3c9300b0034565e837b6so6510904wmb.1;
+        Thu, 20 Jan 2022 01:55:06 -0800 (PST)
+X-Gm-Message-State: AOAM533xnQaFQL7Fx8lrjkhk+jLGMH/6OOq675trPeMS9NuNO3/zP9Zv
+        /OCf0BFriz+p72xzpnVDLv0DovLP2WJBYo5IITQ=
+X-Google-Smtp-Source: ABdhPJxuH3ieTJMrWvtM18t+kt/eQKxNsX0S1JRfafUu0rov1od6UeEmq8/soY26aK2ZvAh1u2FgbOu1pscCT0xGmKw=
+X-Received: by 2002:a7b:ce96:: with SMTP id q22mr8086318wmj.82.1642671086465;
+ Thu, 20 Jan 2022 01:31:26 -0800 (PST)
 MIME-Version: 1.0
-References: <20220120073911.99857-5-guoren@kernel.org>
-In-Reply-To: <20220120073911.99857-5-guoren@kernel.org>
+References: <20220120073911.99857-8-guoren@kernel.org>
+In-Reply-To: <20220120073911.99857-8-guoren@kernel.org>
 From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 20 Jan 2022 10:26:18 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a3ixShQBKmdXWxf8QdB_aLeWr7TQB+7MqQBSgh0-shSSQ@mail.gmail.com>
-Message-ID: <CAK8P3a3ixShQBKmdXWxf8QdB_aLeWr7TQB+7MqQBSgh0-shSSQ@mail.gmail.com>
-Subject: Re: [PATCH V3 04/17] syscalls: compat: Fix the missing part for __SYSCALL_COMPAT
+Date:   Thu, 20 Jan 2022 10:31:09 +0100
+X-Gmail-Original-Message-ID: <CAK8P3a1UvqsS-D7cVXBkp4KCRWDfquQ6QTkvrQ=FqLxhsAi7Rw@mail.gmail.com>
+Message-ID: <CAK8P3a1UvqsS-D7cVXBkp4KCRWDfquQ6QTkvrQ=FqLxhsAi7Rw@mail.gmail.com>
+Subject: Re: [PATCH V3 07/17] riscv: compat: Re-implement TASK_SIZE for COMPAT_32BIT
 To:     Guo Ren <guoren@kernel.org>
 Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         Anup Patel <anup@brainfault.org>,
@@ -50,33 +50,43 @@ Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         "the arch/x86 maintainers" <x86@kernel.org>,
         Guo Ren <guoren@linux.alibaba.com>
 Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:9+M0fmdb5HxFeLZX9pIqezr+U7soQTbqk+JjtRs2FIL6hfst5O4
- 2BQfFrTCSQVRnaR/fgEHUJOO70yHaGyLxtJj4EYgVaqfAN5xJTyCv/VoAJcfB7BOoxCvwS3
- MYW00xSfV4tr14+j8/NYptBPa/Ix+5VygRkmhO2iqPTyB03zQLV5vryYNqFPR2w5k4x02Y6
- TsZpLJc0Xmc1lJsPQZRZg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:nUtO5XneSiM=:Dg12rz9J3w1TQnxrs/E87G
- iesAAgSk2cZqLybrx9KAQoiYkbu8unUjK1VJXdruvwBXb1OyXQoDIfLZsAx0aTt0YXKAa0A/H
- AOyz1OVRRpVA6uLccCRnnlUoqHceRjCBDgFyH9oWc3Az3c0OXlhJEycCggpc1NDn1t/XBg1Me
- y4mZNvF3ItCXVn8G2bkjcjRAB2rY64oE/2YNCAGld6AQppFrkRMLtM8gbc1bZgJO2Qdl4/+kX
- ob38D6pruMcguRg80vHYA+Jq32WcmYbY4LS/8l5l+zfsGcJxhYrjRvtmadwk3qasckMn4iJTV
- pxpWoWzAPDvrpwGb09ijS0uCUztqlBGZJawiizg10VZQsgtfqELHpw+lhibeUpGzMrlCy5ZK1
- 3EJDvtMx186UF8Ih7VZRpb2HVKXxry+rF0LdOuVwpsz36Aztw5StTL8I6sqVvpiZkG+syTS5L
- rvOruz6CL6Qz8wWyrQFKTZda1IwxALpBpan8aHexjjE+yvdbmme6ZAEq/gh57B5cL8ObHte/f
- rkXz4586yb0YgEBF5V2fX3BzUWrQHpnR13Xga/gVkQy2x4q2MPsdVNlWESuUkZxmZ11YDWL7T
- a5UQywC02JzoRKEti73luxoQ1K8rwExYfyUaBtzN46VajCjZ2iLa+5DZleXTz0b1CJyNIxDIh
- XugEsiMi8P1dH8pEa39CHcbWmQgDH8ixCYrx0eOm6xc+HMiKG5QB1HGf1uGLHJyUIqUZV2FKd
- w99m5jj8ake0mC8UFOr3AjYJsG/rwK2EC4t6lrdKPGrjRlduZQpg97LrkjJrHPD1CJxsdpjgA
- tivxNThey85wjJQBGsTjaQpN03Y8rBDs/vczTRjQDoJ396CASY=
+X-Provags-ID: V03:K1:xTBun3ZXxnLifiuOxxDufMcjML4rD9/1P/VhGe2XRM6qFE6b8Ac
+ 7p6cMbtbwHVRMZ8MEmdqJFUPmNo9pWAgN2OC+YQKB/aCY2hF2pPZqtYfpXT97nUAAY+4WqP
+ dxEHxNI1S9yKSh16dPEji4y+dWChqEIM2xxlibEmh7tQAzHtpD76+1R7qDZOFQcZ+T9IipA
+ tjD8PJ3zLMCyGrVEUODiA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:4sDz69w6jkA=:gWaTpMg+mdUCqDBMa3M/q0
+ k+aAL9D3GP0uqJfok98tMYLsQg95/nFhCEZL5xdhcRcpNBaUqz6ujo4SG+8eyzaC8hDdaU9eA
+ bc8Bb5x3otTSrevVd35HtXc6yoLHZx2KEQA0tuhJcIMKFznwbwBlw7U+vIIu5ROa7LIVoOsuH
+ o5CjYjEApeMWl+JUv/QrpyeTcFlINsPkfUW8/4Zttfs3/OKSHGC6A1up+VKkLtVhhTZp9tuAU
+ v6ZnkX5mu4b9D3SyekT561XTRaZEOvCobeTYlIjDfW6NQqcnOAmW1nSK121SkqeTgIgwf48vy
+ NKRM7yFmN6U0hR7bosJA0XWKiwwxFtpgb0lo1ItaP6gxOrvH+3GbLLhx6cDc2mhunwHvMpzZC
+ cb46KmNSqBQ/KMdPkoT5FNhSjK+gnfB3X66QxBudzqc4N7XAMv1cirzFJ9oJ5lNaTQJpq6S6L
+ jrrvjEWWPPP2+4JxAumtzwwJSHdlQ2MrlNRWncV6gkFFQsBZe7XlNw2OuefrL3xhqneiZGUK/
+ gjL+e+ZYNXoEADEu23N3p6R3rmdSbpClCjNnW7IQH6oj6dS3/KrUyo2DRs63DDvKRFJczoIze
+ wwtRvqVwIQAC7VN6PEQEN32uDZ/tUHe60EffNgwtjy4OoE1qBSpcE3ZTWo8u/wxkOoNW5lAHf
+ +NU3sBZRsZHsjDtIZ5uc8A9R1ayfqh0zs2dfV2INuF81wRibNpGDsIcEomVNlgAk0RDybYlGL
+ 6hln/osiMXMwIoBrOCAr7p1VAq2nkPXwqdVqszpMRiLN11gNvLAQE6lZlIVMEjJiyLIbKS1cQ
+ M7NuG42zhvW/+DgY9nxdIs9dE6dUcQ6lLur2e+0q6mL+4Ucp2Bf0hM+NfmhSJwpLquPebXN
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Jan 20, 2022 at 8:38 AM <guoren@kernel.org> wrote:
+On Thu, Jan 20, 2022 at 8:39 AM <guoren@kernel.org> wrote:
 >
 > From: Guo Ren <guoren@linux.alibaba.com>
 >
-> Make "uapi asm unistd.h" could be used for architectures' COMPAT
-> mode. The __SYSCALL_COMPAT is first used in riscv.
+> Make TASK_SIZE from const to dynamic detect TIF_32BIT flag
+> function. Refer to arm64 to implement DEFAULT_MAP_WINDOW_64 for
+> efi-stub.
+>
+> Limit 32-bit compatible process in 0-2GB virtual address range
+> (which is enough for real scenarios), because it could avoid
+> address sign extend problem when 32-bit enter 64-bit and ease
+> software design.
+>
+> The standard 32-bit TASK_SIZE is 0x9dc00000:FIXADDR_START, and
+> compared to a compatible 32-bit, it increases 476MB for the
+> application's virtual address.
 >
 > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 > Signed-off-by: Guo Ren <guoren@kernel.org>
