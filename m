@@ -2,119 +2,118 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E02DAC43217
-	for <sparclinux@archiver.kernel.org>; Fri, 21 Jan 2022 09:22:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C573C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 24 Jan 2022 07:55:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1379721AbiAUJWi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 21 Jan 2022 04:22:38 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:41276 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238087AbiAUJWh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 21 Jan 2022 04:22:37 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5FF73B81F86;
-        Fri, 21 Jan 2022 09:22:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F944C340E7;
-        Fri, 21 Jan 2022 09:22:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1642756954;
-        bh=DoEBSYVdhxCk2hRPozcTctknq4n34sTJPxtSYV1nfhs=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Rect2n4o+iX3RzSuMqm7blYH7Jp/hn6KvYVHNZi4gBL8iFIvMsCmxh1McTEwDN7si
-         Jp36PSgZTxLoEYXNkuZPZHbuOSaCX325CmGEKFE7qdL/bJYrG4zQFtGn5SCOJLFLuv
-         L3sc4NOwY7+X2UWdBb2ueG0AClbmiy7IwW458aaaf3XIv3BTv/IAj4XAqFCgdH7ih5
-         t6ToBIUrsVsbMOObBDp9gxf4Mq/Pzd4XB1xuRpofrh2pf52fyeSpwwMuzAAf2V+eki
-         7yzqCn4T+d70ueboR1lGAMbTJ8dL8zQnETPkZDzy+/H5QLqca4OHltjQ5kVikRSe2h
-         DVpmSiH6xAKgg==
-Received: by mail-ua1-f46.google.com with SMTP id 2so15760319uax.10;
-        Fri, 21 Jan 2022 01:22:34 -0800 (PST)
-X-Gm-Message-State: AOAM53196M1cZscAyKE2qAvkrAM3e+mKaqv9NIpY7NsFl6bZ8pNSBJ5p
-        JUbWbLwtnhhEob97KdWyPRCy46GVGgmGMTI5Qh8=
-X-Google-Smtp-Source: ABdhPJy/0MHzL1Lj83ABpPKlmasRjxPdpSw7edTfCXcU+fXON/ztRB09l8EfH009hsjqC4mDy1GaKsQom5NTP4rqtk4=
-X-Received: by 2002:a05:6102:34ec:: with SMTP id bi12mr1057047vsb.51.1642756953041;
- Fri, 21 Jan 2022 01:22:33 -0800 (PST)
+        id S241950AbiAXHzq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 24 Jan 2022 02:55:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57936 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241944AbiAXHzp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 24 Jan 2022 02:55:45 -0500
+Received: from xavier.telenet-ops.be (xavier.telenet-ops.be [IPv6:2a02:1800:120:4::f00:14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B3D1C061747
+        for <sparclinux@vger.kernel.org>; Sun, 23 Jan 2022 23:55:44 -0800 (PST)
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:20cc:b383:efc8:c1b8])
+        by xavier.telenet-ops.be with bizsmtp
+        id mXvh260014688xB01XvhAj; Mon, 24 Jan 2022 08:55:43 +0100
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.93)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1nBuCS-00BDqh-Mn; Mon, 24 Jan 2022 08:55:40 +0100
+Date:   Mon, 24 Jan 2022 08:55:40 +0100 (CET)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+X-X-Sender: geert@ramsan.of.borg
+To:     linux-kernel@vger.kernel.org
+cc:     linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org,
+        Lakshmi Sowjanya D <lakshmi.sowjanya.d@intel.com>,
+        kvm@vger.kernel.org, linux-mips@vger.kernel.org,
+        "Tobin C. Harding" <me@tobin.cc>, alsa-devel@alsa-project.org,
+        amd-gfx@lists.freedesktop.org, netdev@vger.kernel.org
+Subject: Re: Build regressions/improvements in v5.17-rc1
+In-Reply-To: <20220123125737.2658758-1-geert@linux-m68k.org>
+Message-ID: <alpine.DEB.2.22.394.2201240851560.2674757@ramsan.of.borg>
+References: <20220123125737.2658758-1-geert@linux-m68k.org>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-References: <20220120073911.99857-9-guoren@kernel.org> <CAK8P3a0LxB3we9wHOa4OPmNow6wz5NP49zeYhh7QXNv-MiR8UA@mail.gmail.com>
- <CAJF2gTQVUF4LSO0a6_MV8x-UAiJw32pAFyS1oPNLXhcEaemzqg@mail.gmail.com> <CAK8P3a1sOejkdOyoRUfw4ESS7ewX_8Wj9tQNrZ40OiuDqJnrmw@mail.gmail.com>
-In-Reply-To: <CAK8P3a1sOejkdOyoRUfw4ESS7ewX_8Wj9tQNrZ40OiuDqJnrmw@mail.gmail.com>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Fri, 21 Jan 2022 17:22:22 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTSzMym_PS36JgpWLQUdAO3nq+z7mdDWRT=EzQq+waPSpA@mail.gmail.com>
-Message-ID: <CAJF2gTSzMym_PS36JgpWLQUdAO3nq+z7mdDWRT=EzQq+waPSpA@mail.gmail.com>
-Subject: Re: [PATCH V3 08/17] riscv: compat: syscall: Add compat_sys_call_table
- implementation
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>,
-        Anup Patel <anup@brainfault.org>,
-        gregkh <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@lst.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        inux-parisc@vger.kernel.org,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jan 21, 2022 at 4:57 PM Arnd Bergmann <arnd@arndb.de> wrote:
+On Sun, 23 Jan 2022, Geert Uytterhoeven wrote:
+> Below is the list of build error/warning regressions/improvements in
+> v5.17-rc1[1] compared to v5.16[2].
 >
-> On Fri, Jan 21, 2022 at 7:25 AM Guo Ren <guoren@kernel.org> wrote:
-> > On Thu, Jan 20, 2022 at 10:43 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> > > On Thu, Jan 20, 2022 at 8:39 AM <guoren@kernel.org> wrote:
+> Summarized:
+>  - build errors: +17/-2
+>  - build warnings: +23/-25
 >
-> > > Are you sure these are the right calling conventions? According to [1],
-> > > I think the 64-bit argument should be in an aligned pair of registers,
-> > > which means you need an extra pad argument as in the arm64 version
-> > > of these functions. Same for ftruncate64, pread64, pwrite64, and
-> > > readahead.
-> >
-> > [1] has abandoned.
-> >
-> > See:
-> > https://github.com/riscv-non-isa/riscv-elf-psabi-doc/blob/master/riscv-cc.adoc
+> Note that there may be false regressions, as some logs are incomplete.
+> Still, they're build errors/warnings.
 >
-> Ok, thanks for the reference, I picked the first one that came up in
-> a google search and didn't expect this to ever have changed.
+> Happy fixing! ;-)
 >
-> > > I still feel like these should be the common implementations next to the
-> > > native handlers inside of an #ifdef CONFIG_COMPAT.
-> > >
-> > > The names clash with the custom versions defined for powerpc and sparc,
-> > > but the duplicates look compatible if you can account for the padded
-> > > argument and the lo/hi order of the pairs, so could just be removed here
-> > > (all other architectures use custom function names instead).
-> > I would try it later.
+> Thanks to the linux-next team for providing the build service.
 >
-> This becomes easier then, as powerpc and sparc already have the non-padded
-> calling conventions, so you could just generalize those without looking at
-> the other architectures or adding the padding. The powerpc version already
-> has the dual-endian version, so using that will work on big-endian sparc and
-> on little-endian riscv as well, though we may need to come up with a better name
-> for the arg_u32/arg_u64/merge_64 macros in order to put that into a global
-> header without namespace collisions.
-Sounds good, thanks!
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/e783362eb54cd99b2cac8b3a9aeac942e6f6ac07/ (all 99 configs)
+> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/df0cc57e057f18e44dac8e6c18aba47ab53202f9/ (98 out of 99 configs)
+>
+>
+> *** ERRORS ***
+>
+> 17 error regressions:
+>  + /kisskb/src/arch/powerpc/kernel/stacktrace.c: error: implicit declaration of function 'nmi_cpu_backtrace' [-Werror=implicit-function-declaration]:  => 171:2
+>  + /kisskb/src/arch/powerpc/kernel/stacktrace.c: error: implicit declaration of function 'nmi_trigger_cpumask_backtrace' [-Werror=implicit-function-declaration]:  => 226:2
 
->
->          Arnd
+powerpc-gcc5/skiroot_defconfig
 
+>  + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1756:13, 1639:13
+>  + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1674:29, 1662:29
+>  + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1767:21
+>  + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1741:29, 1726:29
+>  + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int,  long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1694:29, 1711:29
 
+sparc64-gcc11/sparc-allmodconfig
 
--- 
-Best Regards
- Guo Ren
+>  + /kisskb/src/arch/um/include/asm/processor-generic.h: error: called object is not a function or function pointer:  => 103:18
+>  + /kisskb/src/drivers/vfio/pci/vfio_pci_rdwr.c: error: assignment makes pointer from integer without a cast [-Werror=int-conversion]:  => 324:9, 317:9
+>  + /kisskb/src/drivers/vfio/pci/vfio_pci_rdwr.c: error: implicit declaration of function 'ioport_map' [-Werror=implicit-function-declaration]:  => 317:11
+>  + /kisskb/src/drivers/vfio/pci/vfio_pci_rdwr.c: error: implicit declaration of function 'ioport_unmap' [-Werror=implicit-function-declaration]:  => 338:15
 
-ML: https://lore.kernel.org/linux-csky/
+um-x86_64/um-allyesconfig
+
+>  + /kisskb/src/drivers/gpu/drm/amd/amdgpu/../amdkfd/kfd_topology.c: error: control reaches end of non-void function [-Werror=return-type]:  => 1560:1
+
+um-x86_64/um-all{mod,yes}config
+
+>  + /kisskb/src/drivers/net/ethernet/freescale/fec_mpc52xx.c: error: passing argument 2 of 'mpc52xx_fec_set_paddr' discards 'const' qualifier from pointer target type [-Werror=discarded-qualifiers]:  => 659:29
+
+powerpc-gcc5/ppc32_allmodconfig
+
+>  + /kisskb/src/drivers/pinctrl/pinctrl-thunderbay.c: error: assignment discards 'const' qualifier from pointer target type [-Werror=discarded-qualifiers]:  => 815:8, 815:29
+
+arm64-gcc5.4/arm64-allmodconfig
+arm64-gcc8/arm64-allmodconfig
+
+>  + /kisskb/src/lib/test_printf.c: error: "PTR" redefined [-Werror]:  => 247:0, 247
+>  + /kisskb/src/sound/pci/ca0106/ca0106.h: error: "PTR" redefined [-Werror]:  => 62, 62:0
+
+mips-gcc8/mips-allmodconfig
+mipsel/mips-allmodconfig
+
+>  + error: arch/powerpc/kvm/book3s_64_entry.o: relocation truncated to fit: R_PPC64_REL14 (stub) against symbol `machine_check_common' defined in .text section in arch/powerpc/kernel/head_64.o:  => (.text+0x3e4)
+
+powerpc-gcc5/powerpc-allyesconfig
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
