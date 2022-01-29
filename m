@@ -2,251 +2,149 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66C93C433EF
-	for <sparclinux@archiver.kernel.org>; Sat, 29 Jan 2022 12:20:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA13CC43219
+	for <sparclinux@archiver.kernel.org>; Sat, 29 Jan 2022 15:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350220AbiA2MUt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 29 Jan 2022 07:20:49 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:48480 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345915AbiA2MT1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Jan 2022 07:19:27 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7C09860BAA;
-        Sat, 29 Jan 2022 12:19:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1D2A0C340E5;
-        Sat, 29 Jan 2022 12:19:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643458762;
-        bh=qWtb6+cgEOxIhx/CvZddYYzDKOlMelvnzAQMykw6uB0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=m5J//ohlceAdks3ZShiqFPnKC4d/Xg1X/uzZV83pQaEZfMlwqoDk92/wlReoKkpA4
-         8TM3aionMNLtK78fMczZsndv/z1yDzu0EoGEHtbFxMeZXUosyPFCVzmre2KkVlAG9i
-         SzXTlIV1KSsf2yAJuF7UO04+o+Zi0skPJNAkpYF4oDM4OWSBh3pYBMYLmfgCBqS3Ea
-         gtFrWs6wAqO6bJmDBWnwBtyE7EN3rUMWQ6V3KF+JaqVx3uxjgpMVr/TozHhXHL0RoZ
-         27ySINuK/vDPPkasYxg9obfnDgBLg1OpNlt54BMGZEFQJa+1913Tb5NAwdvu98uTeE
-         mBnDl7j/LzrXw==
-From:   guoren@kernel.org
-To:     guoren@kernel.org, palmer@dabbelt.com, arnd@arndb.de,
-        anup@brainfault.org, gregkh@linuxfoundation.org,
-        liush@allwinnertech.com, wefu@redhat.com, drew@beagleboard.org,
-        wangjunqiang@iscas.ac.cn, hch@lst.de, hch@infradead.org
-Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-parisc@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        x86@kernel.org, Guo Ren <guoren@linux.alibaba.com>
-Subject: [PATCH V4 15/17] riscv: compat: ptrace: Add compat_arch_ptrace implement
-Date:   Sat, 29 Jan 2022 20:17:26 +0800
-Message-Id: <20220129121728.1079364-16-guoren@kernel.org>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220129121728.1079364-1-guoren@kernel.org>
-References: <20220129121728.1079364-1-guoren@kernel.org>
+        id S232848AbiA2PXn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 29 Jan 2022 10:23:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36502 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1350779AbiA2PXl (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 29 Jan 2022 10:23:41 -0500
+Received: from mail-lj1-x233.google.com (mail-lj1-x233.google.com [IPv6:2a00:1450:4864:20::233])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 077A5C06174A
+        for <sparclinux@vger.kernel.org>; Sat, 29 Jan 2022 07:23:39 -0800 (PST)
+Received: by mail-lj1-x233.google.com with SMTP id e17so13237352ljk.5
+        for <sparclinux@vger.kernel.org>; Sat, 29 Jan 2022 07:23:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=drummond.us; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=0mCWH6Tux8tcx0O8BuZbvK36ydxh3XeFUHA8Flrblcc=;
+        b=cmvGYiFpo2ar6tVj5q2BCQVYb9k8BBD0XwhyxqAVItAmy2DCdgiftAuj8oc7BBE49Q
+         LjK1fzbe0hOX97nInIogSNxADc9w4GpCfyauU6NFtNktDIG03u61lrQy9hqdUvd6EUft
+         C6I/tHY4kzyBauIRoXYOzo9LGSe929OK0jEzQ59wjAL3By0a+QjA0M9X3G7I1kcoxcb7
+         Q0AdPG8TS8c6yTTOUze5l0qFpdoVitgV/p2s3UNbwqPC0EG+SKAZieLlLnSPMO8rnFD5
+         +FIv54+PLtXCBluE0vkOLnAVfI1OEciJIeE6mtAgIHH1+Z3qSeTB6dFp5Kah63auycAx
+         k05w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=0mCWH6Tux8tcx0O8BuZbvK36ydxh3XeFUHA8Flrblcc=;
+        b=TsqkPnxr8827o7y91ka9llvpS7JQh9DaQa81M3O2Timh7UdUhUq2lixWpaUfdvRZ4Q
+         QA5+IJbOLARUOFAPbIYzZkdUjNublHCoA3ywJbt37gEPvAJlo4aZf+EdOGDmbyj28BuO
+         BLd3ccfSdgTPAYxwnkJEMc7HwI5B6kEjpGkTzJkiv6HzGsqjkDYBsKHWojV2cQLk2HOK
+         MSJ3i6if57WT4GVb5Fcnk3uuAuMd24bnjSTUwhh+HeSmQCzaPssvHrRiDxPPk/yVDN+V
+         vOmIMZscyM258h5mJnptPHI9pcGfoHk0zWhr0d4r9XUk6cQb1bKo+i/c4JCzkRdvf28T
+         /hww==
+X-Gm-Message-State: AOAM5300O6WlJBHZYG59BiKOrkLqVqE9JDGPXn0572pkCAb3bkXu7aIX
+        Ck3S+jvpx+mIz2u8Q/MhVzZgX+1YXEc+AbDl9bFn7Q==
+X-Google-Smtp-Source: ABdhPJzK4pFoabd9NoIBHHNS2OQ2X0frUhiKWXvHsU/uBjqxnLeu+8dmN2me2gLqvfH4JEfcPiamxCIYMad5ipU8E2c=
+X-Received: by 2002:a2e:994a:: with SMTP id r10mr8482884ljj.254.1643469817879;
+ Sat, 29 Jan 2022 07:23:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220118044259.764945-1-walt@drummond.us> <YfFQeC1cUVFmISMK@kroah.com>
+In-Reply-To: <YfFQeC1cUVFmISMK@kroah.com>
+From:   Walt Drummond <walt@drummond.us>
+Date:   Sat, 29 Jan 2022 07:23:26 -0800
+Message-ID: <CADCN6nyyChM=jb9nmc2jDg2UdHUoXp3E05=ifxRpcs=8k8t09Q@mail.gmail.com>
+Subject: Re: [PATCH 0/3] status: TTY status message request
+To:     Greg KH <gregkh@linuxfoundation.org>
+Cc:     agordeev@linux.ibm.com, arnd@arndb.de, benh@kernel.crashing.org,
+        borntraeger@linux.ibm.com, chris@zankel.net, davem@davemloft.net,
+        hca@linux.ibm.com, deller@gmx.de, ink@jurassic.park.msu.ru,
+        James.Bottomley@hansenpartnership.com, jirislaby@kernel.org,
+        mattst88@gmail.com, jcmvbkbc@gmail.com, mpe@ellerman.id.au,
+        paulus@samba.org, rth@twiddle.net, dalias@libc.org,
+        tsbogend@alpha.franken.de, gor@linux.ibm.com, ysato@users.osdn.me,
+        linux-kernel@vger.kernel.org, ar@cs.msu.ru,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Guo Ren <guoren@linux.alibaba.com>
+ACK, will do.
 
-Now, you can use native gdb on riscv64 for rv32 app debugging.
-
-$ uname -a
-Linux buildroot 5.16.0-rc4-00036-gbef6b82fdf23-dirty #53 SMP Mon Dec 20 23:06:53 CST 2021 riscv64 GNU/Linux
-$ cat /proc/cpuinfo
-processor       : 0
-hart            : 0
-isa             : rv64imafdcsuh
-mmu             : sv48
-
-$ file /bin/busybox
-/bin/busybox: setuid ELF 32-bit LSB shared object, UCB RISC-V, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-riscv32-ilp32d.so.1, for GNU/Linux 5.15.0, stripped
-$ file /usr/bin/gdb
-/usr/bin/gdb: ELF 32-bit LSB shared object, UCB RISC-V, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux-riscv32-ilp32d.so.1, for GNU/Linux 5.15.0, stripped
-$ /usr/bin/gdb /bin/busybox
-GNU gdb (GDB) 10.2
-Copyright (C) 2021 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
-...
-Reading symbols from /bin/busybox...
-(No debugging symbols found in /bin/busybox)
-(gdb) b main
-Breakpoint 1 at 0x8ddc
-(gdb) r
-Starting program: /bin/busybox
-Failed to read a valid object file image from memory.
-
-Breakpoint 1, 0x555a8ddc in main ()
-(gdb) i r
-ra             0x77df0b74       0x77df0b74
-sp             0x7fdd3d10       0x7fdd3d10
-gp             0x5567e800       0x5567e800 <bb_common_bufsiz1+160>
-tp             0x77f64280       0x77f64280
-t0             0x0      0
-t1             0x555a6fac       1431990188
-t2             0x77dd8db4       2011008436
-fp             0x7fdd3e34       0x7fdd3e34
-s1             0x7fdd3e34       2145205812
-a0             0xffffffff       -1
-a1             0x2000   8192
-a2             0x7fdd3e3c       2145205820
-a3             0x0      0
-a4             0x7fdd3d30       2145205552
-a5             0x555a8dc0       1431997888
-a6             0x77f2c170       2012397936
-a7             0x6a7c7a2f       1786542639
-s2             0x0      0
-s3             0x0      0
-s4             0x555a8dc0       1431997888
-s5             0x77f8a3a8       2012783528
-s6             0x7fdd3e3c       2145205820
-s7             0x5567cecc       1432866508
---Type <RET> for more, q to quit, c to continue without paging--
-s8             0x1      1
-s9             0x0      0
-s10            0x55634448       1432568904
-s11            0x0      0
-t3             0x77df0bb8       2011106232
-t4             0x42fc   17148
-t5             0x0      0
-t6             0x40     64
-pc             0x555a8ddc       0x555a8ddc <main+28>
-(gdb) si
-0x555a78f0 in mallopt@plt ()
-(gdb) c
-Continuing.
-BusyBox v1.34.1 (2021-12-19 22:39:48 CST) multi-call binary.
-BusyBox is copyrighted by many authors between 1998-2015.
-Licensed under GPLv2. See source distribution for detailed
-copyright notices.
-
-Usage: busybox [function [arguments]...]
-   or: busybox --list[-full]
-...
-[Inferior 1 (process 107) exited normally]
-(gdb) q
-
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Signed-off-by: Guo Ren <guoren@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
----
- arch/riscv/kernel/ptrace.c | 87 +++++++++++++++++++++++++++++++++++---
- 1 file changed, 82 insertions(+), 5 deletions(-)
-
-diff --git a/arch/riscv/kernel/ptrace.c b/arch/riscv/kernel/ptrace.c
-index a89243730153..bb387593a121 100644
---- a/arch/riscv/kernel/ptrace.c
-+++ b/arch/riscv/kernel/ptrace.c
-@@ -12,6 +12,7 @@
- #include <asm/thread_info.h>
- #include <asm/switch_to.h>
- #include <linux/audit.h>
-+#include <linux/compat.h>
- #include <linux/ptrace.h>
- #include <linux/elf.h>
- #include <linux/regset.h>
-@@ -111,11 +112,6 @@ static const struct user_regset_view riscv_user_native_view = {
- 	.n = ARRAY_SIZE(riscv_user_regset),
- };
- 
--const struct user_regset_view *task_user_regset_view(struct task_struct *task)
--{
--	return &riscv_user_native_view;
--}
--
- struct pt_regs_offset {
- 	const char *name;
- 	int offset;
-@@ -273,3 +269,84 @@ __visible void do_syscall_trace_exit(struct pt_regs *regs)
- 		trace_sys_exit(regs, regs_return_value(regs));
- #endif
- }
-+
-+#ifdef CONFIG_COMPAT
-+static int compat_riscv_gpr_get(struct task_struct *target,
-+				const struct user_regset *regset,
-+				struct membuf to)
-+{
-+	struct compat_user_regs_struct cregs;
-+
-+	regs_to_cregs(&cregs, task_pt_regs(target));
-+
-+	return membuf_write(&to, &cregs,
-+			    sizeof(struct compat_user_regs_struct));
-+}
-+
-+static int compat_riscv_gpr_set(struct task_struct *target,
-+				const struct user_regset *regset,
-+				unsigned int pos, unsigned int count,
-+				const void *kbuf, const void __user *ubuf)
-+{
-+	int ret;
-+	struct compat_user_regs_struct cregs;
-+
-+	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &cregs, 0, -1);
-+
-+	cregs_to_regs(&cregs, task_pt_regs(target));
-+
-+	return ret;
-+}
-+
-+static const struct user_regset compat_riscv_user_regset[] = {
-+	[REGSET_X] = {
-+		.core_note_type = NT_PRSTATUS,
-+		.n = ELF_NGREG,
-+		.size = sizeof(compat_elf_greg_t),
-+		.align = sizeof(compat_elf_greg_t),
-+		.regset_get = compat_riscv_gpr_get,
-+		.set = compat_riscv_gpr_set,
-+	},
-+#ifdef CONFIG_FPU
-+	[REGSET_F] = {
-+		.core_note_type = NT_PRFPREG,
-+		.n = ELF_NFPREG,
-+		.size = sizeof(elf_fpreg_t),
-+		.align = sizeof(elf_fpreg_t),
-+		.regset_get = riscv_fpr_get,
-+		.set = riscv_fpr_set,
-+	},
-+#endif
-+};
-+
-+static const struct user_regset_view compat_riscv_user_native_view = {
-+	.name = "riscv",
-+	.e_machine = EM_RISCV,
-+	.regsets = compat_riscv_user_regset,
-+	.n = ARRAY_SIZE(compat_riscv_user_regset),
-+};
-+
-+long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
-+			compat_ulong_t caddr, compat_ulong_t cdata)
-+{
-+	long ret = -EIO;
-+
-+	switch (request) {
-+	default:
-+		ret = compat_ptrace_request(child, request, caddr, cdata);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+#endif /* CONFIG_COMPAT */
-+
-+const struct user_regset_view *task_user_regset_view(struct task_struct *task)
-+{
-+#ifdef CONFIG_COMPAT
-+	if (test_tsk_thread_flag(task, TIF_32BIT))
-+		return &compat_riscv_user_native_view;
-+	else
-+#endif
-+		return &riscv_user_native_view;
-+}
--- 
-2.25.1
-
+On Wed, Jan 26, 2022 at 5:45 AM Greg KH <gregkh@linuxfoundation.org> wrote:
+>
+> On Mon, Jan 17, 2022 at 08:42:57PM -0800, Walt Drummond wrote:
+> > This patchset adds TTY status message request feature to the n_tty
+> > line dicipline.  This feature prints a brief message containing basic
+> > system and process group information to a user's TTY in response to a
+> > new control character in the line dicipline (default Ctrl-T) or the
+> > TIOCSTAT ioctl.  The message contains the current system load, the
+> > name and PID of an interesting process in the forground process group,
+> > it's run time, percent CPU usage and RSS.  An example of this message
+> > is:
+> >
+> >   load: 0.31  cmd: sleep 3616843 [sleeping] 0.36r 0.00u 0.00s 0% 696k
+> >
+> > User API visible changes are limited to:
+> >  - The addition of VSTATUS in termios.c_cc[]
+> >  - The addition of NOKERNINFO bit in termios.l_cflags
+> >  - The addition of the TIOCSTAT ioctl number
+> >
+> > None of these changes break the existing kernel api as the termios
+> > structure on all architectures has enough space in the control
+> > character array (.c_cc) for the new character, and the other changes
+> > are space agnostic.
+> >
+> > This feature is in many other Unix-like systems, both current and
+> > historical.  In other implementations, this feature would also send
+> > SIGINFO to the process group; this implementation does not.
+> >
+> > Walt Drummond (3):
+> >   vstatus: Allow the n_tty line dicipline to write to a user tty
+> >   vstatus: Add user space API definitions for VSTATUS, NOKERNINFO and
+> >     TIOCSTAT
+> >   status: Display an informational message when the VSTATUS character is
+> >     pressed or TIOCSTAT ioctl is called.
+> >
+> >  arch/alpha/include/asm/termios.h         |   4 +-
+> >  arch/alpha/include/uapi/asm/ioctls.h     |   1 +
+> >  arch/alpha/include/uapi/asm/termbits.h   |  34 ++---
+> >  arch/ia64/include/asm/termios.h          |   4 +-
+> >  arch/ia64/include/uapi/asm/termbits.h    |  34 ++---
+> >  arch/mips/include/asm/termios.h          |   4 +-
+> >  arch/mips/include/uapi/asm/ioctls.h      |   1 +
+> >  arch/mips/include/uapi/asm/termbits.h    |  36 ++---
+> >  arch/parisc/include/asm/termios.h        |   4 +-
+> >  arch/parisc/include/uapi/asm/ioctls.h    |   1 +
+> >  arch/parisc/include/uapi/asm/termbits.h  |  34 ++---
+> >  arch/powerpc/include/asm/termios.h       |   4 +-
+> >  arch/powerpc/include/uapi/asm/ioctls.h   |   2 +
+> >  arch/powerpc/include/uapi/asm/termbits.h |  34 ++---
+> >  arch/s390/include/asm/termios.h          |   4 +-
+> >  arch/sh/include/uapi/asm/ioctls.h        |   1 +
+> >  arch/sparc/include/uapi/asm/ioctls.h     |   1 +
+> >  arch/sparc/include/uapi/asm/termbits.h   |  38 +++---
+> >  arch/xtensa/include/uapi/asm/ioctls.h    |   1 +
+> >  drivers/tty/Makefile                     |   2 +-
+> >  drivers/tty/n_tty.c                      | 113 +++++++++++-----
+> >  drivers/tty/n_tty_status.c               | 162 +++++++++++++++++++++++
+> >  drivers/tty/tty_io.c                     |   2 +-
+> >  include/asm-generic/termios.h            |   4 +-
+> >  include/linux/tty.h                      | 123 ++++++++---------
+> >  include/uapi/asm-generic/ioctls.h        |   1 +
+> >  include/uapi/asm-generic/termbits.h      |  34 ++---
+> >  27 files changed, 461 insertions(+), 222 deletions(-)
+> >  create mode 100644 drivers/tty/n_tty_status.c
+> >
+> > --
+> > 2.30.2
+> >
+>
+> You forgot to cc: me on patch 2/3, which would be needed if I was to
+> take them all.
+>
+> Please fix up patch 2 and resend the whole series.
+>
+> thanks,
+>
+> greg k-h
