@@ -2,113 +2,129 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BC1FC43217
-	for <sparclinux@archiver.kernel.org>; Sun, 30 Jan 2022 14:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22281C43217
+	for <sparclinux@archiver.kernel.org>; Mon, 31 Jan 2022 06:23:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355292AbiA3O5Y (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 30 Jan 2022 09:57:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33484 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347212AbiA3O5X (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 30 Jan 2022 09:57:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3AE8C061714;
-        Sun, 30 Jan 2022 06:57:22 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S235661AbiAaGXJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 31 Jan 2022 01:23:09 -0500
+Received: from smtp-out1.suse.de ([195.135.220.28]:35030 "EHLO
+        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235225AbiAaGXI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 31 Jan 2022 01:23:08 -0500
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4710A61209;
-        Sun, 30 Jan 2022 14:57:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD710C340F4;
-        Sun, 30 Jan 2022 14:57:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1643554641;
-        bh=JxoHCxPtVM6TBwNWYVTkv4xgv4xXqSSrocAD8RhKPvQ=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=Kos3V8Vk5hA0UEtlbCmKfvDbCn6hgvFJPW0hutP471S22DT8zQZjqZYl8oPtPERRN
-         mHTKJGaAu0B69fJNmAFmItV05nnqnnpRKb/kYsBaVswrhiA3ecXak702UJ1xD+aRyO
-         Cyu417cH+tx6RjZLY1F4C0+gldC8KeEtNsbWOyaylils+pWq32+O/qNqqF6K8vS+Qa
-         DU2SBhQ6eWn63e/dlaU9XUJXP5eg51s3F1n6055BcvsAgOgE2YRIXu5gQZ14MzwtZF
-         RJhpqwiYSrbL56M0Y1luR1ep1hIfdzFS7gAvAKX1Hfe2YnV2vSbhGb9SEapKZC8pBf
-         gYvL1GNaKIrpg==
-Received: by mail-vk1-f177.google.com with SMTP id 48so6819292vki.0;
-        Sun, 30 Jan 2022 06:57:21 -0800 (PST)
-X-Gm-Message-State: AOAM531SRkd//thuARO2vrWnSGybN+UPIiums/Svgjjbto+7QjfzP2Sp
-        NGvD6y/C6qS73OI1JKaTS38670D5BDrYaFvVsh0=
-X-Google-Smtp-Source: ABdhPJwXaD5cftVV1gTUpOLnxRw19SJ6xh2ZrT8jBGfIh39KXnRkloqQEHlrygYgN8HHE2HZ4UXsJQOHGX4lm9oymh8=
-X-Received: by 2002:a05:6122:1c5:: with SMTP id h5mr6907805vko.2.1643554640709;
- Sun, 30 Jan 2022 06:57:20 -0800 (PST)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 622DD21116;
+        Mon, 31 Jan 2022 06:23:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1643610186; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=glFJZo9ETm7z/ROJWLizrW+pr8HZoGe/q8WkURW8RkQ=;
+        b=w8KMAEvyM5acD//MgH4CajE1JEJz8SxcqA0XTBpjOLdP3Y3DfOPgmknPgt6vMEQSu2UxKr
+        u3k9g5AC6FK3rteUS6oQ2W4X6pdLAj2nmcydWV74bIC4MaopLhoOsqvmK/IQCZkgUjj+nU
+        t+q5jmvCPZIh0ma+eKW6RgMXyvuYuxQ=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1643610186;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=glFJZo9ETm7z/ROJWLizrW+pr8HZoGe/q8WkURW8RkQ=;
+        b=TDQphaJNby4XljQkkKeL0ahZQdHJQgHaQp8Z41WoJRUMdR2cjZ5r7SYEkGg5JZegoMuWcn
+        bVZwx8tB3cZ/YtBg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id 4E00713A89;
+        Mon, 31 Jan 2022 06:23:04 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id kb0eD0iA92GYMAAAMHmgww
+        (envelope-from <osalvador@suse.de>); Mon, 31 Jan 2022 06:23:04 +0000
+Date:   Mon, 31 Jan 2022 07:23:02 +0100
+From:   Oscar Salvador <osalvador@suse.de>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH RFC v1] drivers/base/node: consolidate node device
+ subsystem initialization in node_dev_init()
+Message-ID: <YfeARpenqPii1WQH@localhost.localdomain>
+References: <20220128151540.164759-1-david@redhat.com>
 MIME-Version: 1.0
-References: <20220129121728.1079364-1-guoren@kernel.org> <20220129121728.1079364-9-guoren@kernel.org>
- <CAK8P3a3JGP6fLVOyLgdNw2YpRSmArbEX8orUhRrN=GHmcdk=1g@mail.gmail.com>
- <CAJF2gTQQnrUFNQ85vvoMkpxnCWuMw8iXtPZOJwWGaEA9f+rTwA@mail.gmail.com> <CAK8P3a12CygLFT7qoQ9K=sowvTgNpeRej6Zh6Pv2PL_e2zMhMQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a12CygLFT7qoQ9K=sowvTgNpeRej6Zh6Pv2PL_e2zMhMQ@mail.gmail.com>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Sun, 30 Jan 2022 22:57:09 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTSULHYYvAjfDvHiD-rJFsOy0-x58AKcD2upzpxaVf5sZQ@mail.gmail.com>
-Message-ID: <CAJF2gTSULHYYvAjfDvHiD-rJFsOy0-x58AKcD2upzpxaVf5sZQ@mail.gmail.com>
-Subject: Re: [PATCH V4 08/17] riscv: compat: syscall: Add compat_sys_call_table
- implementation
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>,
-        Anup Patel <anup@brainfault.org>,
-        gregkh <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@lst.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220128151540.164759-1-david@redhat.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Jan 30, 2022 at 7:32 PM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Sun, Jan 30, 2022 at 6:54 AM Guo Ren <guoren@kernel.org> wrote:
-> > On Sun, Jan 30, 2022 at 6:41 AM Arnd Bergmann <arnd@arndb.de> wrote:
-> > >
-> > > I would make these endian-specific, and reverse them on big-endian
-> > > architectures. That way it
-> > > should be possible to share them across all compat architectures
-> > > without needing the override
-> > > option.
-> > I hope it could be another patch. Because it's not clear to
-> > _LITTLE_ENDIAN definition in archs.
-> >
-> > eg: Names could be __ORDER_LITTLE_ENDIAN__ CPU_LITTLE_ENDIAN
-> > SYS_SUPPORTS_LITTLE_ENDIAN __LITTLE_ENDIAN
-> >
-> > riscv is little-endian, but no any LITTLE_ENDIAN definition.
-> >
-> > So let's keep them in the patch, first, Thx
->
-> The correct way to do it is to check for CONFIG_CPU_BIG_ENDIAN,
-> which works on all architectures. Since nothing else selects the
-> __ARCH_WANT_COMPAT_* symbols, there is also no risk for
-> regressions, so just use this and leave the #ifndef compat_arg_u64
-> check in place.
-Okay, got it.
+On Fri, Jan 28, 2022 at 04:15:40PM +0100, David Hildenbrand wrote:
+> ... and call node_dev_init() after memory_dev_init() from driver_init(),
+> so before any of the existing arch/subsys calls. All online nodes should
+> be known at that point.
+> 
+> This is in line with memory_dev_init(), which initializes the memory
+> device subsystem and creates all memory block devices.
+> 
+> Similar to memory_dev_init(), panic() if anything goes wrong, we don't
+> want to continue with such basic initialization errors.
+> 
+> The important part is that node_dev_init() gets called after
+> memory_dev_init() and after cpu_dev_init(), but before any of the
+> relevant archs call register_cpu() to register the new cpu device under
+> the node device. The latter should be the case for the current users
+> of topology_init().
 
->
->       Arnd
+So, before this change we had something like this:
 
+do_basic_setup
+ driver_init
+  memory_dev_init
+ do_init_calls
+  ...
+   topology_init
+    register_nodes/register_one_node
 
+And after the patch all happens in driver_init()
+
+driver_init
+ memory_dev_init
+ node_dev_init
+
+I guess this is fine as we do not have any ordering problems (aka: none
+of the functions we used to call before expect the nodes not to be
+there for some weird reason).
+
+So, no functional change, right?
+
+This certainly looks like an improvment. 
 
 -- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+Oscar Salvador
+SUSE Labs
