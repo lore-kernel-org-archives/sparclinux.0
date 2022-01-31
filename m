@@ -2,310 +2,156 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF3F8C433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 31 Jan 2022 06:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F856C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 31 Jan 2022 07:49:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1357814AbiAaGt7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 31 Jan 2022 01:49:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42746 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357779AbiAaGty (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 31 Jan 2022 01:49:54 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3AD90C061714;
-        Sun, 30 Jan 2022 22:49:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:To:From:Sender
-        :Reply-To:Content-Type:Content-ID:Content-Description;
-        bh=6AGTRKiyo3n1kN0MLVro9fLjev96qAcQ9JxUzJQ4Exg=; b=OX44eeG08FsSiBoK0NTB6AN//9
-        WIu9AG+Z0SnsQjPns4+rLEeJ03tiJ9hIOYUGPKGs1Kdsg18vV6uNY0yFPObKBNjxOUNM6qc4+gtPM
-        qId7I7d85PzGJ5Gyqf4lAqPHZQTor9mjoU7h4CVHaZxXVNnaNwcnx7xoCAkSEQVpRIB0MoI/n13xY
-        Ks30Ydhqt+0/wKst8QRww4+WaYdOEHk8FLpjLOAAqu5Zh+JyOF/Col3NH6cQiH+CEV37HfA5L1+0S
-        VVVpT2KgipBJputRepPJaYMifn502BXBVHQPx2JUJYoTlgug2M85LVPyT1Rx5R5TJSOgHKSUaq598
-        S1nRQ8xw==;
-Received: from [2001:4bb8:191:327d:13f5:1d0a:e266:6974] (helo=localhost)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nEQVb-008AX1-F1; Mon, 31 Jan 2022 06:49:51 +0000
-From:   Christoph Hellwig <hch@lst.de>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Guo Ren <guoren@kernel.org>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Subject: [PATCH 5/5] compat: consolidate the compat_flock{,64} definition
-Date:   Mon, 31 Jan 2022 07:49:33 +0100
-Message-Id: <20220131064933.3780271-6-hch@lst.de>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220131064933.3780271-1-hch@lst.de>
-References: <20220131064933.3780271-1-hch@lst.de>
+        id S238012AbiAaHtC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 31 Jan 2022 02:49:02 -0500
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:46701 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S237945AbiAaHtB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>);
+        Mon, 31 Jan 2022 02:49:01 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1643615340;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=ZAt16hzi0jARVC2SH2tfH/9B/mqcxkzoEuuB90n1AMk=;
+        b=DLNgAquRIbUZTcV6FsD5ygfGUQ5xtsO4FBrARcgfAJzBD3fJ8B+VGw/YqlADGy9tt7PXZp
+        7efpEfocNzPCn2ioe1ow3QnAT2/he84B3OcuQaGMgdXoqL+vYrHpVQ1M7G4OPLl0qDDlbB
+        sOq6wP8BgOlE2DOgLUmJ/UtqfL5HQhw=
+Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
+ [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-519--iHKBil-Nt614SvKQgO5sA-1; Mon, 31 Jan 2022 02:48:58 -0500
+X-MC-Unique: -iHKBil-Nt614SvKQgO5sA-1
+Received: by mail-wr1-f71.google.com with SMTP id j21-20020adfa555000000b001db55dd5a1dso4460658wrb.15
+        for <sparclinux@vger.kernel.org>; Sun, 30 Jan 2022 23:48:58 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:cc:references:from:organization:in-reply-to
+         :content-transfer-encoding;
+        bh=ZAt16hzi0jARVC2SH2tfH/9B/mqcxkzoEuuB90n1AMk=;
+        b=4OoA9rb1JEyIj1cqDNbwFt7dBIqEZIll0zC8YyW3hhw7tC8X4D1z8/sh9N0cYXRsmJ
+         kwsW6noHjxp1T1iVjlnLaOjMPUSLnf++6PJKMUgn9ToNr1uZkQy/4gOSW5K+KY7fUvID
+         7tS43Yk2YXu5FdgVaj4CGA/iH5UZzWON2vzpFtyk3pAP0L5NhpDjrMW6Bv8lY9v4EmRb
+         /e0h9+vNKr0g5WhD7wuW/tXercIW3yrCO/VfNmZ9cvQxMOUZzQtjT5nrowRSOj1auk7V
+         mOXr65WNSoRfhAeH4mW5p044dH2guYnVGt+6N8JcjvGCZBsQpsgKiStEzooR68Mc32UU
+         rUnw==
+X-Gm-Message-State: AOAM532Mae0TPppNdOhXPPRlTrBdaP+BN5eyfrfCxZDVOwHoQXglZ/MB
+        1KW6dTQeNxBQ3L9vRct15QQVNZiR2GwIPYZCuLGjydcP5cyKBw8SJBUfQaNdRdRwSqo8cxsHbu3
+        z3Jyg9U9KjdG3e5CJHCrHiQ==
+X-Received: by 2002:a05:6000:1008:: with SMTP id a8mr15911196wrx.563.1643615337602;
+        Sun, 30 Jan 2022 23:48:57 -0800 (PST)
+X-Google-Smtp-Source: ABdhPJziNLNeLdU3x1hO5PuIt8mvz7fg18Pv6lGvSgHdK7fS7xha3a7EYrVkbUytI3CwE4ViZc3ZTg==
+X-Received: by 2002:a05:6000:1008:: with SMTP id a8mr15911171wrx.563.1643615337390;
+        Sun, 30 Jan 2022 23:48:57 -0800 (PST)
+Received: from ?IPV6:2003:cb:c709:b200:f007:5a26:32e7:8ef5? (p200300cbc709b200f0075a2632e78ef5.dip0.t-ipconnect.de. [2003:cb:c709:b200:f007:5a26:32e7:8ef5])
+        by smtp.gmail.com with ESMTPSA id y6sm5081791wrl.46.2022.01.30.23.48.55
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 30 Jan 2022 23:48:56 -0800 (PST)
+Message-ID: <3be2e20c-f0b9-c080-adf4-b0e17c046eb0@redhat.com>
+Date:   Mon, 31 Jan 2022 08:48:54 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.4.0
+Subject: Re: [PATCH RFC v1] drivers/base/node: consolidate node device
+ subsystem initialization in node_dev_init()
+Content-Language: en-US
+To:     Oscar Salvador <osalvador@suse.de>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Michal Hocko <mhocko@suse.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+References: <20220128151540.164759-1-david@redhat.com>
+ <YfeARpenqPii1WQH@localhost.localdomain>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <YfeARpenqPii1WQH@localhost.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Provide a single common definition for the compat_flock and
-compat_flock64 structures using the same tricks as for the native
-variants.  Another extra define is added for the packing required on
-x86.
+On 31.01.22 07:23, Oscar Salvador wrote:
+> On Fri, Jan 28, 2022 at 04:15:40PM +0100, David Hildenbrand wrote:
+>> ... and call node_dev_init() after memory_dev_init() from driver_init(),
+>> so before any of the existing arch/subsys calls. All online nodes should
+>> be known at that point.
+>>
+>> This is in line with memory_dev_init(), which initializes the memory
+>> device subsystem and creates all memory block devices.
+>>
+>> Similar to memory_dev_init(), panic() if anything goes wrong, we don't
+>> want to continue with such basic initialization errors.
+>>
+>> The important part is that node_dev_init() gets called after
+>> memory_dev_init() and after cpu_dev_init(), but before any of the
+>> relevant archs call register_cpu() to register the new cpu device under
+>> the node device. The latter should be the case for the current users
+>> of topology_init().
+> 
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- arch/arm64/include/asm/compat.h   | 16 ----------------
- arch/mips/include/asm/compat.h    | 19 ++-----------------
- arch/parisc/include/asm/compat.h  | 16 ----------------
- arch/powerpc/include/asm/compat.h | 16 ----------------
- arch/s390/include/asm/compat.h    | 16 ----------------
- arch/sparc/include/asm/compat.h   | 18 +-----------------
- arch/x86/include/asm/compat.h     | 20 +++-----------------
- include/linux/compat.h            | 31 +++++++++++++++++++++++++++++++
- 8 files changed, 37 insertions(+), 115 deletions(-)
+Hi Oscar,
 
-diff --git a/arch/arm64/include/asm/compat.h b/arch/arm64/include/asm/compat.h
-index 2763287654081..e0faec1984a1c 100644
---- a/arch/arm64/include/asm/compat.h
-+++ b/arch/arm64/include/asm/compat.h
-@@ -65,22 +65,6 @@ struct compat_stat {
- 	compat_ulong_t	__unused4[2];
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	compat_pid_t	l_pid;
--};
--
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--};
--
- struct compat_statfs {
- 	int		f_type;
- 	int		f_bsize;
-diff --git a/arch/mips/include/asm/compat.h b/arch/mips/include/asm/compat.h
-index 6a350c1f70d7e..6d6e5a451f4d9 100644
---- a/arch/mips/include/asm/compat.h
-+++ b/arch/mips/include/asm/compat.h
-@@ -55,23 +55,8 @@ struct compat_stat {
- 	s32		st_pad4[14];
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	s32		l_sysid;
--	compat_pid_t	l_pid;
--	s32		pad[4];
--};
--
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--};
-+#define __ARCH_COMPAT_FLOCK_EXTRA_SYSID		s32 l_sysid;
-+#define __ARCH_COMPAT_FLOCK_PAD			s32 pad[4];
- 
- struct compat_statfs {
- 	int		f_type;
-diff --git a/arch/parisc/include/asm/compat.h b/arch/parisc/include/asm/compat.h
-index c04f5a637c390..a1e4534d80509 100644
---- a/arch/parisc/include/asm/compat.h
-+++ b/arch/parisc/include/asm/compat.h
-@@ -53,22 +53,6 @@ struct compat_stat {
- 	u32			st_spare4[3];
- };
- 
--struct compat_flock {
--	short			l_type;
--	short			l_whence;
--	compat_off_t		l_start;
--	compat_off_t		l_len;
--	compat_pid_t		l_pid;
--};
--
--struct compat_flock64 {
--	short			l_type;
--	short			l_whence;
--	compat_loff_t		l_start;
--	compat_loff_t		l_len;
--	compat_pid_t		l_pid;
--};
--
- struct compat_statfs {
- 	s32		f_type;
- 	s32		f_bsize;
-diff --git a/arch/powerpc/include/asm/compat.h b/arch/powerpc/include/asm/compat.h
-index 83d8f70779cbc..5ef3c7c83c343 100644
---- a/arch/powerpc/include/asm/compat.h
-+++ b/arch/powerpc/include/asm/compat.h
-@@ -44,22 +44,6 @@ struct compat_stat {
- 	u32		__unused4[2];
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	compat_pid_t	l_pid;
--};
--
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--};
--
- struct compat_statfs {
- 	int		f_type;
- 	int		f_bsize;
-diff --git a/arch/s390/include/asm/compat.h b/arch/s390/include/asm/compat.h
-index 0f14b3188b1bb..07f04d37068b6 100644
---- a/arch/s390/include/asm/compat.h
-+++ b/arch/s390/include/asm/compat.h
-@@ -102,22 +102,6 @@ struct compat_stat {
- 	u32		__unused5;
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	compat_pid_t	l_pid;
--};
--
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--};
--
- struct compat_statfs {
- 	u32		f_type;
- 	u32		f_bsize;
-diff --git a/arch/sparc/include/asm/compat.h b/arch/sparc/include/asm/compat.h
-index 108078751bb5a..d78fb44942e0f 100644
---- a/arch/sparc/include/asm/compat.h
-+++ b/arch/sparc/include/asm/compat.h
-@@ -75,23 +75,7 @@ struct compat_stat64 {
- 	unsigned int	__unused5;
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	compat_pid_t	l_pid;
--	short		__unused;
--};
--
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--	short		__unused;
--};
-+#define __ARCH_COMPAT_FLOCK_PAD		short __unused;
- 
- struct compat_statfs {
- 	int		f_type;
-diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
-index 8d19a212f4f26..de794d8958663 100644
---- a/arch/x86/include/asm/compat.h
-+++ b/arch/x86/include/asm/compat.h
-@@ -50,25 +50,11 @@ struct compat_stat {
- 	u32		__unused5;
- };
- 
--struct compat_flock {
--	short		l_type;
--	short		l_whence;
--	compat_off_t	l_start;
--	compat_off_t	l_len;
--	compat_pid_t	l_pid;
--};
--
- /*
-- * IA32 uses 4 byte alignment for 64 bit quantities,
-- * so we need to pack this structure.
-+ * IA32 uses 4 byte alignment for 64 bit quantities, so we need to pack the
-+ * compat flock64 structure.
-  */
--struct compat_flock64 {
--	short		l_type;
--	short		l_whence;
--	compat_loff_t	l_start;
--	compat_loff_t	l_len;
--	compat_pid_t	l_pid;
--} __attribute__((packed));
-+#define __ARCH_NEED_COMPAT_FLOCK64_PACKED
- 
- struct compat_statfs {
- 	int		f_type;
-diff --git a/include/linux/compat.h b/include/linux/compat.h
-index 1c758b0e03598..a0481fe6c5d51 100644
---- a/include/linux/compat.h
-+++ b/include/linux/compat.h
-@@ -258,6 +258,37 @@ struct compat_rlimit {
- 	compat_ulong_t	rlim_max;
- };
- 
-+#ifdef __ARCH_NEED_COMPAT_FLOCK64_PACKED
-+#define __ARCH_COMPAT_FLOCK64_PACK	__attribute__((packed))
-+#else
-+#define __ARCH_COMPAT_FLOCK64_PACK
-+#endif
-+
-+struct compat_flock {
-+	short			l_type;
-+	short			l_whence;
-+	compat_off_t		l_start;
-+	compat_off_t		l_len;
-+#ifdef __ARCH_COMPAT_FLOCK_EXTRA_SYSID
-+	__ARCH_COMPAT_FLOCK_EXTRA_SYSID
-+#endif
-+	compat_pid_t		l_pid;
-+#ifdef __ARCH_COMPAT_FLOCK_PAD
-+	__ARCH_COMPAT_FLOCK_PAD
-+#endif
-+};
-+
-+struct compat_flock64 {
-+	short		l_type;
-+	short		l_whence;
-+	compat_loff_t	l_start;
-+	compat_loff_t	l_len;
-+	compat_pid_t	l_pid;
-+#ifdef __ARCH_COMPAT_FLOCK64_PAD
-+	__ARCH_COMPAT_FLOCK64_PAD
-+#endif
-+} __ARCH_COMPAT_FLOCK64_PACK;
-+
- struct compat_rusage {
- 	struct old_timeval32 ru_utime;
- 	struct old_timeval32 ru_stime;
+> So, before this change we had something like this:
+> 
+> do_basic_setup
+>  driver_init
+>   memory_dev_init
+>  do_init_calls
+>   ...
+>    topology_init
+>     register_nodes/register_one_node
+> 
+> And after the patch all happens in driver_init()
+> 
+> driver_init
+>  memory_dev_init
+>  node_dev_init
+> 
+> I guess this is fine as we do not have any ordering problems (aka: none
+> of the functions we used to call before expect the nodes not to be
+> there for some weird reason).
+> 
+> So, no functional change, right?
+> 
+
+Right, and the idea is that the online state of nodes (+ node/zone
+ranges) already has to be known at that point in time, because
+otherwise, we'd be in bigger trouble.
+
+Thanks!
+
+
 -- 
-2.30.2
+Thanks,
+
+David / dhildenb
 
