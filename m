@@ -2,74 +2,129 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C439BC43219
-	for <sparclinux@archiver.kernel.org>; Wed,  2 Feb 2022 07:52:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C8ABC433FE
+	for <sparclinux@archiver.kernel.org>; Wed,  2 Feb 2022 09:38:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241464AbiBBHwG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 2 Feb 2022 02:52:06 -0500
-Received: from verein.lst.de ([213.95.11.211]:33222 "EHLO verein.lst.de"
+        id S245509AbiBBJi6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 2 Feb 2022 04:38:58 -0500
+Received: from foss.arm.com ([217.140.110.172]:47022 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231368AbiBBHwE (ORCPT <rfc822;sparclinux@vger.kernel.org>);
-        Wed, 2 Feb 2022 02:52:04 -0500
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id D45AE67373; Wed,  2 Feb 2022 08:51:59 +0100 (CET)
-Date:   Wed, 2 Feb 2022 08:51:59 +0100
-From:   Christoph Hellwig <hch@lst.de>
-To:     guoren@kernel.org
-Cc:     palmer@dabbelt.com, arnd@arndb.de, anup@brainfault.org,
-        gregkh@linuxfoundation.org, liush@allwinnertech.com,
-        wefu@redhat.com, drew@beagleboard.org, wangjunqiang@iscas.ac.cn,
-        hch@lst.de, linux-arch@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-s390@vger.kernel.org,
-        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-parisc@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, x86@kernel.org,
-        Guo Ren <guoren@linux.alibaba.com>
-Subject: Re: [PATCH V5 15/21] riscv: compat: Add hw capability check for elf
-Message-ID: <20220202075159.GB18398@lst.de>
-References: <20220201150545.1512822-1-guoren@kernel.org> <20220201150545.1512822-16-guoren@kernel.org>
+        id S244735AbiBBJi5 (ORCPT <rfc822;sparclinux@vger.kernel.org>);
+        Wed, 2 Feb 2022 04:38:57 -0500
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id E7BA61FB;
+        Wed,  2 Feb 2022 01:38:56 -0800 (PST)
+Received: from [10.163.43.221] (unknown [10.163.43.221])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 202483F40C;
+        Wed,  2 Feb 2022 01:38:52 -0800 (PST)
+Subject: Re: [PATCH] mm: Merge pte_mkhuge() call into arch_make_huge_pte()
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
+        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Paul Mackerras <paulus@samba.org>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Will Deacon <will@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        "linux-arm-kernel@lists.infradead.org" 
+        <linux-arm-kernel@lists.infradead.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+References: <1643780286-18798-1-git-send-email-anshuman.khandual@arm.com>
+ <a969f100-02fb-63f7-4469-b3c8e23d8cfb@csgroup.eu>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+Message-ID: <59ec5352-77eb-4c95-731e-100bcfa7003a@arm.com>
+Date:   Wed, 2 Feb 2022 15:08:47 +0530
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101
+ Thunderbird/68.10.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220201150545.1512822-16-guoren@kernel.org>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+In-Reply-To: <a969f100-02fb-63f7-4469-b3c8e23d8cfb@csgroup.eu>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Feb 01, 2022 at 11:05:39PM +0800, guoren@kernel.org wrote:
-> +bool compat_elf_check_arch(Elf32_Ehdr *hdr)
-> +{
-> +	if (compat_mode_support && (hdr->e_machine == EM_RISCV))
-> +		return true;
-> +	else
-> +		return false;
-> +}
 
-This can be simplified to:
 
-	return compat_mode_support && hdr->e_machine == EM_RISCV;
+On 2/2/22 11:50 AM, Christophe Leroy wrote:
+> 
+> Le 02/02/2022 à 06:38, Anshuman Khandual a écrit :
+>> Each call into pte_mkhuge() is invariably followed by arch_make_huge_pte().
+>> Instead arch_make_huge_pte() can accommodate pte_mkhuge() at the beginning.
+>> This updates generic fallback stub for arch_make_huge_pte() and available
+>> platforms definitions. This makes huge pte creation much cleaner and easier
+>> to follow.
+> I think it is a good cleanup. I always wonder why commit d9ed9faac283 
+> ("mm: add new arch_make_huge_pte() method for tile support") didn't move 
+> the pte_mkhuge() into arch_make_huge_pte().
 
-I'd also rename compat_mode_support to compat_mode_supported
++1
 
-> +
-> +static int compat_mode_detect(void)
-> +{
-> +	unsigned long tmp = csr_read(CSR_STATUS);
-> +
-> +	csr_write(CSR_STATUS, (tmp & ~SR_UXL) | SR_UXL_32);
-> +
-> +	if ((csr_read(CSR_STATUS) & SR_UXL) != SR_UXL_32) {
-> +		pr_info("riscv: 32bit compat mode detect failed\n");
-> +		compat_mode_support = false;
-> +	} else {
-> +		compat_mode_support = true;
-> +		pr_info("riscv: 32bit compat mode detected\n");
-> +	}
+> 
+> When I implemented arch_make_huge_pte() for powerpc 8xx, in one case 
+> arch_make_huge_pte() have to undo the things done by pte_mkhuge(), see below
+> 
+> As a second step we could probably try to get rid of pte_mkhuge() 
+> completely, at least in the core.
 
-I don't think we need these printks here.
+Sure.
 
-Also this could be simplified to:
+> 
+>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>> Cc: Will Deacon <will@kernel.org>
+>> Cc: Michael Ellerman <mpe@ellerman.id.au>
+>> Cc: Paul Mackerras <paulus@samba.org>
+>> Cc: "David S. Miller" <davem@davemloft.net>
+>> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linuxppc-dev@lists.ozlabs.org
+>> Cc: sparclinux@vger.kernel.org
+>> Cc: linux-mm@kvack.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+> Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+> 
+>> ---
+>>   arch/arm64/mm/hugetlbpage.c                      | 1 +
+>>   arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h | 1 +
+>>   arch/sparc/mm/hugetlbpage.c                      | 1 +
+>>   include/linux/hugetlb.h                          | 2 +-
+>>   mm/hugetlb.c                                     | 3 +--
+>>   mm/vmalloc.c                                     | 1 -
+>>   6 files changed, 5 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+>> index ffb9c229610a..228226c5fa80 100644
+>> --- a/arch/arm64/mm/hugetlbpage.c
+>> +++ b/arch/arm64/mm/hugetlbpage.c
+>> @@ -347,6 +347,7 @@ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags)
+>>   {
+>>   	size_t pagesize = 1UL << shift;
+>>   
+>> +	entry = pte_mkhuge(entry);
+>>   	if (pagesize == CONT_PTE_SIZE) {
+>>   		entry = pte_mkcont(entry);
+>>   	} else if (pagesize == CONT_PMD_SIZE) {
+>> diff --git a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h b/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> index 64b6c608eca4..e41e095158c7 100644
+>> --- a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> +++ b/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> @@ -70,6 +70,7 @@ static inline pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags
+>>   {
+>>   	size_t size = 1UL << shift;
+>>   
+>> +	entry = pte_mkhuge(entry);
+> Could drop that and replace the below by:
+> 
+> 	if (size == SZ_16K)
+> 		return __pte(pte_val(entry) | _PAGE_SPS);
+> 	else
+> 		return __pte(pte_val(entry) | _PAGE_SPS | _PAGE_HUGE);
+> 	
+> 
 
-	compat_mode_supported = (csr_read(CSR_STATUS) & SR_UXL) == SR_UXL_32;
+Sure, will change as stated above.
