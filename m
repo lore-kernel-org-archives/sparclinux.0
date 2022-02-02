@@ -2,160 +2,188 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44786C433F5
-	for <sparclinux@archiver.kernel.org>; Wed,  2 Feb 2022 13:45:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1264C433EF
+	for <sparclinux@archiver.kernel.org>; Wed,  2 Feb 2022 23:37:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344408AbiBBNp4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 2 Feb 2022 08:45:56 -0500
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.129.124]:48929 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S241660AbiBBNpz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 2 Feb 2022 08:45:55 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1643809555;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=YxruncnGKSYEtQADjLUNkNWhCcGBbzpK2sbDwkeQUpo=;
-        b=IvlHLOIoAfjxqUryG5VtmgReaCtzLoMtgEAAKndnl8Lqi914pDdVatgXRntOsQovBp53GE
-        EyeC3I9hFv8V8pRcIotB0VS/+D0GazCr7QtuFhOA16z9du7/fUdOXcleb1D3uDxp0yBjcv
-        uKzYQh460kzzs7wa0ybeaECp/Y3LALQ=
-Received: from mail-ed1-f71.google.com (mail-ed1-f71.google.com
- [209.85.208.71]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-575-QYMwD4hbOEaQnonFLbSBjw-1; Wed, 02 Feb 2022 08:45:54 -0500
-X-MC-Unique: QYMwD4hbOEaQnonFLbSBjw-1
-Received: by mail-ed1-f71.google.com with SMTP id w15-20020a056402268f00b00408234dc1dfso10424943edd.16
-        for <sparclinux@vger.kernel.org>; Wed, 02 Feb 2022 05:45:53 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:organization:in-reply-to
-         :content-transfer-encoding;
-        bh=YxruncnGKSYEtQADjLUNkNWhCcGBbzpK2sbDwkeQUpo=;
-        b=PvGDzh0/QyE5R6rt8jghjNKtAM5zWxfYy9JXPd1GEi5Sl7PkZcw4soK0J0dBK64+lK
-         0m2SwaaOkQuCzBLIXh6ldbpcKWflxAK/hNZKhXBUR1G/4Njvg+BYTWOc+qMtlPECpofZ
-         LwNYoDeJ4ZEQ7Tjak0e961tFybu7OmTkQUovy7XYO2VH6szzKqL7GjS/zzAQEqRwfLGT
-         LXawdi5ozkqokxXpx8vn2jPWMXnipb1Fcj5f7r/s3GdfPecz5aoGM1NLufKCrNY4oKhW
-         xzulAA/R6lhFGNl7yQPeiU8fQ/HThVsNha+1w7tueAR8kDMF0J5GCcYHCI1hLk329i2v
-         +eKA==
-X-Gm-Message-State: AOAM531mRVNCwGnXgYZPe+D6VNtF+X6diH976I9Q9J5HLbZs4bVhdD0X
-        o0XIai8wcEhIFNgNSKH41bL7PJx2IkBmIXsq8zfndgfkIWLFzJG9M2WFsTZBNF631NtK0JHU4Xy
-        51xeKlZb/D7PPTTHvq32a8A==
-X-Received: by 2002:a05:6402:5248:: with SMTP id t8mr30084283edd.14.1643809552851;
-        Wed, 02 Feb 2022 05:45:52 -0800 (PST)
-X-Google-Smtp-Source: ABdhPJxqE4L2UK0676VaeKIuCkwGMt3tw/zzsCSLR83dbtSZbWUp25WGEt3s5690JhdDTieh82ha0w==
-X-Received: by 2002:a05:6402:5248:: with SMTP id t8mr30084241edd.14.1643809552570;
-        Wed, 02 Feb 2022 05:45:52 -0800 (PST)
-Received: from ?IPV6:2003:cb:c709:f800:a55c:e484:3cd9:3632? (p200300cbc709f800a55ce4843cd93632.dip0.t-ipconnect.de. [2003:cb:c709:f800:a55c:e484:3cd9:3632])
-        by smtp.gmail.com with ESMTPSA id z8sm15746580ejc.151.2022.02.02.05.45.50
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 02 Feb 2022 05:45:52 -0800 (PST)
-Message-ID: <c25ad11e-6700-3a11-1a44-f69b4a7fc9e2@redhat.com>
-Date:   Wed, 2 Feb 2022 14:45:50 +0100
-MIME-Version: 1.0
+        id S243354AbiBBXh0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 2 Feb 2022 18:37:26 -0500
+Received: from mx0b-00069f02.pphosted.com ([205.220.177.32]:6146 "EHLO
+        mx0b-00069f02.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S243238AbiBBXhZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 2 Feb 2022 18:37:25 -0500
+Received: from pps.filterd (m0246630.ppops.net [127.0.0.1])
+        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 212KwbPW010115;
+        Wed, 2 Feb 2022 23:36:46 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=message-id : date :
+ subject : to : cc : references : from : in-reply-to : content-type :
+ content-transfer-encoding : mime-version; s=corp-2021-07-09;
+ bh=/cRydjx/qDvXcJHwjVTMF9NnwcYBRYuWbLwXc4HEdmQ=;
+ b=wxIzXWVljEQNOo0MLFiFiJRVrN08bC/9lQdHpcbvZgLuY6T1JNxkLx+WUsfN76OU/cZR
+ sCDQUsphybZMr2AnAJV8pzfz4O88vk2zvaMaAWgQUBKrayqElfDUTVRqZL5SLkl+bD4a
+ DiDLQrSA7Fy1aRFl70+pQFs4TnRXPW/oF6/aRVWwnNNtreiQz6ZtTL1olpaaDeRbK8yH
+ mBtJRDZLd/eGzsWNC6SbmybjZV9PMTEmaJKpOS62skU+SFsl7i8f+6wtVTrj2GinOoEM
+ n8+Ox4Zo5BHLPdDkBJbLhGSi4V0rcJ0wK025i0dIIsKI4Grjhafy5lsbG92mzuozNdcO 2Q== 
+Received: from userp3020.oracle.com (userp3020.oracle.com [156.151.31.79])
+        by mx0b-00069f02.pphosted.com with ESMTP id 3dxj9wfgw9-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 02 Feb 2022 23:36:46 +0000
+Received: from pps.filterd (userp3020.oracle.com [127.0.0.1])
+        by userp3020.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 212NaQ9p069918;
+        Wed, 2 Feb 2022 23:36:45 GMT
+Received: from nam11-bn8-obe.outbound.protection.outlook.com (mail-bn8nam11lp2177.outbound.protection.outlook.com [104.47.58.177])
+        by userp3020.oracle.com with ESMTP id 3dvy1thqyv-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Wed, 02 Feb 2022 23:36:45 +0000
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=UvfbS5Oq/1Cm8elxw5+yjOhY94B1JBYVBAd0qOa5kxO6vjuwVNn6nYfcWqynrYojR8hU8LIKCZwmynr/sKXeTRTOYF2w0Z9REtKdGWTdMEaXLldEHMZh36EEd0gdTjUxP5Qk0RPVybEOnEsGkiuvVfUOIrqpUfSeLv2cpT6+thVUloJF1sjlAPtR6yQQXT16zkGmg1xB10Ug3pImiuE7pnC7j59jPMUmwzqu49NYUvSKepeJBjLLLsG8xBxOQBUEPEnuEJYLAk0ClhpYzQGGL/YyMj/TB3HF2Lpc8HfttogGqfs5NDSn20ZG3l5KMP88zgHntLGrYYUd2DKjSClNDA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=/cRydjx/qDvXcJHwjVTMF9NnwcYBRYuWbLwXc4HEdmQ=;
+ b=JdEo+7LHbWgmwgBKi5+XGBEQE5+rbXNxPscwsBL7UcQkOLjrjjjfLnCGsdbKpdAqJh1LzZahblyPGYbwppffsZ/vBKvSoxCONCQmBaxkFzgHOxPaPtITurUd9vnv5pdwUfUnn8BP+aynGcoYw3xmVMPIOT83jSihaavylBMs+bo6GJvV8xbru6pYpg4frSwbTn/d8mOI+PuT4hsns6tSjZwL5pTrqsPdkOK0TSpQznwCR9q0CLKSH7erR6vffpSV4nx4L0ejxs+tOAHrZncsR+oaSjbqksq0xyCzkw8DCyPPCs+htQT0pD32JHEIW9wgPNDHRNDUOJ8aD06i+JDabw==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+ d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=/cRydjx/qDvXcJHwjVTMF9NnwcYBRYuWbLwXc4HEdmQ=;
+ b=rS4sWZZEjlvMuVVtaJj/kTcinjbOaqdd3+8CHjDJ8sYSC+CKIvClivk7Q6ffy7/eOmh30ln/5LTlwVwA41/r/a3ZYCFqC7f1aOuasGJ2JXEONpuZrgNA/Xaz2ez9fBRmYeFrt0ecTcXugeHv+3Nng2bE3g8btweZ7t1LEXTXqTU=
+Received: from BY5PR10MB4196.namprd10.prod.outlook.com (2603:10b6:a03:20d::23)
+ by MN2PR10MB3695.namprd10.prod.outlook.com (2603:10b6:208:10e::10) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.4930.20; Wed, 2 Feb
+ 2022 23:36:42 +0000
+Received: from BY5PR10MB4196.namprd10.prod.outlook.com
+ ([fe80::11f6:860e:575a:e6f1]) by BY5PR10MB4196.namprd10.prod.outlook.com
+ ([fe80::11f6:860e:575a:e6f1%5]) with mapi id 15.20.4951.012; Wed, 2 Feb 2022
+ 23:36:42 +0000
+Message-ID: <11d0036e-e6b6-2b8a-836d-bd75b8bcd64d@oracle.com>
+Date:   Wed, 2 Feb 2022 15:36:40 -0800
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.0
-Subject: Re: [PATCH RFC v1] drivers/base/node: consolidate node device
- subsystem initialization in node_dev_init()
+ Thunderbird/91.5.0
+Subject: Re: [PATCH] mm: Merge pte_mkhuge() call into arch_make_huge_pte()
 Content-Language: en-US
-To:     linux-kernel@vger.kernel.org
-Cc:     linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Oscar Salvador <osalvador@suse.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
+To:     Anshuman Khandual <anshuman.khandual@arm.com>, linux-mm@kvack.org
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
         Paul Mackerras <paulus@samba.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-References: <20220128151540.164759-1-david@redhat.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <20220128151540.164759-1-david@redhat.com>
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1643780286-18798-1-git-send-email-anshuman.khandual@arm.com>
+From:   Mike Kravetz <mike.kravetz@oracle.com>
+In-Reply-To: <1643780286-18798-1-git-send-email-anshuman.khandual@arm.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
+X-ClientProxiedBy: MW4P222CA0029.NAMP222.PROD.OUTLOOK.COM
+ (2603:10b6:303:114::34) To BY5PR10MB4196.namprd10.prod.outlook.com
+ (2603:10b6:a03:20d::23)
+MIME-Version: 1.0
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: d12b243f-999e-41f5-3bee-08d9e6a4de10
+X-MS-TrafficTypeDiagnostic: MN2PR10MB3695:EE_
+X-Microsoft-Antispam-PRVS: <MN2PR10MB369567CAD62005D9645EAA04E2279@MN2PR10MB3695.namprd10.prod.outlook.com>
+X-MS-Oob-TLC-OOBClassifiers: OLM:3513;
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: ddshtpmlw4HSsyxxxHBSBXIsDjgZSCfgYXBHbjrxVK3/kxBYIyG5VD7nXu/LRG36Fb9YHmly1lgOMKTDEvLvNHpJC8Xqe0kWaBjZgjHAi6e2OrugpYkKYmzyBMe/j+0LDLSKAywVHDvwdMPMd9OYWdoznmLK/oc+IYyLBWl0dI10B09s8Oe6EQKtVX/Lsp4kAex6qJd7VJ+wYS8n4MtJEifO4eUAZjRNm6VVt/VZnVQujZmgSKdq6fK4PvObDKj/0yuBNc+8h8yuU8rJwd1G7epp4pfbD1JG4WODJ/7IhtP6GfbAzpBIhOGzDS/e1wYiHd71kvucKH2zFMtaPIpYX937YfGR9NhDPmMnu7A4QXm2tVptVlGEkaDrRDvDV2usS8SGx5dRhjoJvI/1yNKbebVkPwREcwd3u37pGYobZOPRsd07Nxe9c6sbM2HmfVdAcaftjddQrRXf5CDllKt2xLf1g+nAewbQ+ejP14YKt6ta0y+RxkgdOUucPUJzterbYpn6QBDnG9Yi1dP71fzlyI8WPJZIXyZwOtkjYrH4PgtIbNY8IKdcvJw5hh3P8a7GI64IRPGuxR1TdiFrNch9TY4oSAB4lYclZpMMBA41vTjtDdMSDwOTHM1phWRSCI8t9KBUUR+3rd10cyYWVKoQ26/XlsFEoL3LVyGdnnDcryd3m/mUAd+6cFYw7C1t7/F5//CL6RyAYQ+xzv9tU2TFBK6+j7xuwI3dgr2uhtzsqUS4y/PBn13AUPi0cZP/sORvIPDxAOX5valALmLjQq3Fu6fLLzwWas9id3mPKHcBYXA=
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:BY5PR10MB4196.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(366004)(86362001)(2616005)(4326008)(6486002)(7416002)(508600001)(26005)(44832011)(8936002)(8676002)(5660300002)(186003)(53546011)(6506007)(52116002)(36756003)(6512007)(2906002)(31696002)(31686004)(66946007)(66476007)(38100700002)(38350700002)(54906003)(66556008)(83380400001)(316002)(14583001)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?utf-8?B?RGtZaFdCZFVlWDRldERFY05VdzlMOEhaYWN1SjNGbFhINmYxbm1RSDYwOWJ6?=
+ =?utf-8?B?djdmelhFblI5SjhIMktBMURialVTN1VhUkJ1QUtIbUtOamZMZkdvY3luMEJ4?=
+ =?utf-8?B?eTNzZGQ3QXVhd3o2MmZTWnFLZGNmNFpTTTlmazI5K0VPUm5LRmJuWUtIRUY5?=
+ =?utf-8?B?K0JIc3VlRnFlMng1VnlLU1MwaHo3WnhDdE9Vc3d1VlVLMnRIRGNIU1pCQmg1?=
+ =?utf-8?B?U2JxdXRlRDd1RUtHQ3AzVENEZTZzc3pVdnFKRW1WenZXWWQxam9oKzJNQXBT?=
+ =?utf-8?B?eGhaZjg4cDRiNk9Dc1VrMUFmbi96WHBUL1NoQ2ppamg1SHFhUWxTSEdIUFox?=
+ =?utf-8?B?aDBkWXErUWNJTHZXaXRMbWNhTGNwWWg4TGNxOGpxQlA5YitDMUtrSFFybThp?=
+ =?utf-8?B?L2ZIZytEUTYxSUtxd0VmOTVkVkF5ZWVuejJTZE12Um1mMjRaNEJzang4TU93?=
+ =?utf-8?B?SlA4NmQ4RGNxZTNtaVd6THp1U3RIWGE3VkM4bXMxVjdhWWh2U3ZBTnpOTGxa?=
+ =?utf-8?B?SCtxSVlqVzRNVTFyUWVTdWV2VUJDQVJCVlpuekFxTUtGYnAzWkVDOEFjTElH?=
+ =?utf-8?B?emowTy9YSVlHU0FjUmpqYzY1QXIxMjd5M1RUMWJzWEZMZEV2ZVpkMnk4Tml5?=
+ =?utf-8?B?MWtKWkpzelRzQkRxK29iUTg5aGpwK2ZTTUplWHlaYWRMZmM4VEFQQWlCbVVk?=
+ =?utf-8?B?MHNidk45bGJMNUtiUERGNDRhNFVvYStid1VDNWtRY3FnMDgxYTFZRUtzYVVE?=
+ =?utf-8?B?TTdiTFlQUTJTUmpNZmtFL1ZFRVNZMWdmNnUvZEd6dnlKQnNpeFNBTjBqOHdn?=
+ =?utf-8?B?VDJKRWNzclNyMUxiSXQwMXFpaG91dDhDSUNnYnByNE5YZnZxbld6czV0ODNx?=
+ =?utf-8?B?SHc2V2RHMUdadFFaZHUxRWFhWXNuQzcvazE4cjQ4QWRLcW8rYTNjdHFMdW5E?=
+ =?utf-8?B?RndablRyYjV4eDVUVm5xRUhwcU4rV29oQlRYVFMwMTM5RkNySXoreGRyR0VT?=
+ =?utf-8?B?eGd3cWFLNEJZbTkrNFlrWHBUaWlWMTh6SlArdTU5TmJleTA1VTRxbEdieVZL?=
+ =?utf-8?B?aUJGK2o0VTFkbjdvM0pJMVYycE82SkREWDJ6WTZYd0E3MWRVSUlmSUFjQ1g5?=
+ =?utf-8?B?ZmhGZldSVlBTWHBlQlpOUk5wM0pBODVZQlRzT0p0ZkxNZU9SVXQ5a3pkM2dm?=
+ =?utf-8?B?Y3lNMC9vN0xlbEgxTFF0UUpoWURNeVpYWGgzYVRLRTJmajFEUHR5T1ZrYTRj?=
+ =?utf-8?B?WDlqQ0tWbk5rdU5SbktpRE5sSGdKZmJsRFlEbWwwSzU4K0VwU0N1N0JySGVj?=
+ =?utf-8?B?TExoVzVVV2hOa25BOFhWMXE3WHB5cWZzNG1kblYwcHJGcG4rNFVjK3ZmWUNp?=
+ =?utf-8?B?TGFjaVcrTnFmNHJKcHp2cTMyRU55TXREWmhYWmtSS1B5ZXZCaTIxZHB6Y1Na?=
+ =?utf-8?B?RkxkNlRISFVBQ0hzcFI4T2VNR2hWcXBVR2NISlAwZ3hWZjJ1YjlBZzNRMnpS?=
+ =?utf-8?B?eEpXS0V0bkxwMEZreFZyNHFxV0FpQWVkTmJrUkNpMEdwc3EyczlJeTZ4SDdn?=
+ =?utf-8?B?YUNiNkk3SW44bEY3ekxrSWY5MklKV2NCb2xKRCtxbGNUdE80bm4rcDNjMjZC?=
+ =?utf-8?B?ZjBpZUl3MnNWNE03eEo5djRKRUxMS1FEVVBkUVVrWlc5NHkyWkV1QU5xNksv?=
+ =?utf-8?B?WG1pdXdQMGVZS3NzME9pd1JKdGhMRmVGUFhSK2swOFVLQTNCZmwzSktocWxL?=
+ =?utf-8?B?S0VGbCtHQ3pvWXpKYmN6akgrd1VUckhEejB1UlRSV0JGV25XRFFUd1FWVGNp?=
+ =?utf-8?B?YkxCQ1V1TmFWNnRCUXVkdU04RnNZVzJ2aXU3ZUJlY29BNWV0QnNNNzZiUW9z?=
+ =?utf-8?B?TkVuM2J1UkR2NjJpZlNRbDJWYTRuZ0xXN1VKNkl2dk14U2plbVdWeTI0Z0VC?=
+ =?utf-8?B?S1B5bVVDSXVuQVpRRytKWDVYYys5ZXRyeVl5ZXpmVVZ0dkcxNTNzRGlQUjFO?=
+ =?utf-8?B?YzJ0NkZUcVp5dnRjTlFHK0RFYmJ5OG82MzZPdzE1aTgvZlVrUkVoZ3VzZDFj?=
+ =?utf-8?B?K1YrN2V6Tm1ORWNabi9pMHNVeFpZcU9URW84YjM0UlBiUThhMHFpbWtUc1RY?=
+ =?utf-8?B?RzhxNTgxZ3F0djEyZUNWSFBDYlMvdDJoRTlXN2VlaU1ZV1RJL0JTaUhuOVhs?=
+ =?utf-8?Q?7Ed5g8+Dpwy271IpaDVoByw=3D?=
+X-OriginatorOrg: oracle.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: d12b243f-999e-41f5-3bee-08d9e6a4de10
+X-MS-Exchange-CrossTenant-AuthSource: BY5PR10MB4196.namprd10.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 02 Feb 2022 23:36:42.6288
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: ooy68oOVkZj+bidKa9mpAuKt0W2pc+dIb8tSsH+tDDYksCb4A57f4UgbtttuxGIlmxW7bbA5zEkvRP/1ikXP0g==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: MN2PR10MB3695
+X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10246 signatures=673430
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 suspectscore=0 mlxscore=0 spamscore=0
+ bulkscore=0 adultscore=0 mlxlogscore=999 phishscore=0 malwarescore=0
+ classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2201110000
+ definitions=main-2202020128
+X-Proofpoint-ORIG-GUID: 4BqPHVEGcRETf8BqRNLAmtOv-Dah6i03
+X-Proofpoint-GUID: 4BqPHVEGcRETf8BqRNLAmtOv-Dah6i03
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 28.01.22 16:15, David Hildenbrand wrote:
-> ... and call node_dev_init() after memory_dev_init() from driver_init(),
-> so before any of the existing arch/subsys calls. All online nodes should
-> be known at that point.
+On 2/1/22 21:38, Anshuman Khandual wrote:
+> Each call into pte_mkhuge() is invariably followed by arch_make_huge_pte().
+> Instead arch_make_huge_pte() can accommodate pte_mkhuge() at the beginning.
+> This updates generic fallback stub for arch_make_huge_pte() and available
+> platforms definitions. This makes huge pte creation much cleaner and easier
+> to follow.
 > 
-> This is in line with memory_dev_init(), which initializes the memory
-> device subsystem and creates all memory block devices.
-> 
-> Similar to memory_dev_init(), panic() if anything goes wrong, we don't
-> want to continue with such basic initialization errors.
-> 
-> The important part is that node_dev_init() gets called after
-> memory_dev_init() and after cpu_dev_init(), but before any of the
-> relevant archs call register_cpu() to register the new cpu device under
-> the node device. The latter should be the case for the current users
-> of topology_init().
-> 
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Oscar Salvador <osalvador@suse.de>
 > Cc: Catalin Marinas <catalin.marinas@arm.com>
 > Cc: Will Deacon <will@kernel.org>
-> Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
 > Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 > Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Paul Walmsley <paul.walmsley@sifive.com>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> Cc: Albert Ou <aou@eecs.berkeley.edu>
-> Cc: Heiko Carstens <hca@linux.ibm.com>
-> Cc: Vasily Gorbik <gor@linux.ibm.com>
-> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-> Cc: Rich Felker <dalias@libc.org>
 > Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: x86@kernel.org
+> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
 > Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: linux-ia64@vger.kernel.org
-> Cc: linux-mips@vger.kernel.org
 > Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: linux-riscv@lists.infradead.org
-> Cc: linux-s390@vger.kernel.org
-> Cc: linux-sh@vger.kernel.org
 > Cc: sparclinux@vger.kernel.org
 > Cc: linux-mm@kvack.org
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+> Cc: linux-kernel@vger.kernel.org
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+> ---
+>  arch/arm64/mm/hugetlbpage.c                      | 1 +
+>  arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h | 1 +
+>  arch/sparc/mm/hugetlbpage.c                      | 1 +
+>  include/linux/hugetlb.h                          | 2 +-
+>  mm/hugetlb.c                                     | 3 +--
+>  mm/vmalloc.c                                     | 1 -
+>  6 files changed, 5 insertions(+), 4 deletions(-)
 
-If there are no further comments, then I'll resend as !RFC with a
-slightly extended patch description, testing at least under arm64 and
-ppc64 as they are relatively easy to test for me.
+Seems like a reasonable cleanup/simplification to me.
+
+Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
 
 -- 
-Thanks,
-
-David / dhildenb
-
+Mike Kravetz
