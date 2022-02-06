@@ -2,69 +2,121 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A41BFC433EF
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Feb 2022 17:54:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E71C433EF
+	for <sparclinux@archiver.kernel.org>; Sun,  6 Feb 2022 15:59:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238053AbiBCRyh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Feb 2022 12:54:37 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34938 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235301AbiBCRyg (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Feb 2022 12:54:36 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7FB7B81C86;
-        Thu,  3 Feb 2022 17:54:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4B758C340E8;
-        Thu,  3 Feb 2022 17:54:31 +0000 (UTC)
-Date:   Thu, 3 Feb 2022 17:54:27 +0000
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Anshuman Khandual <anshuman.khandual@arm.com>
-Cc:     linux-mm@kvack.org, christophe.leroy@csgroup.eu,
-        Will Deacon <will@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Paul Mackerras <paulus@samba.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH V2] mm: Merge pte_mkhuge() call into arch_make_huge_pte()
-Message-ID: <YfwW07zuY6T+vjlK@arm.com>
-References: <1643860669-26307-1-git-send-email-anshuman.khandual@arm.com>
+        id S233564AbiBFP7r (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 6 Feb 2022 10:59:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33090 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233336AbiBFP7r (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 6 Feb 2022 10:59:47 -0500
+X-Greylist: delayed 507 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 06 Feb 2022 07:59:44 PST
+Received: from talisker.home.drummond.us (drummond.us [74.95.14.229])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E0E6C06173B
+        for <sparclinux@vger.kernel.org>; Sun,  6 Feb 2022 07:59:44 -0800 (PST)
+Received: from talisker.home.drummond.us (localhost [127.0.0.1])
+        by talisker.home.drummond.us (8.15.2/8.15.2/Debian-20) with ESMTP id 216Fn9HY2355931;
+        Sun, 6 Feb 2022 07:49:09 -0800
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=home.drummond.us;
+        s=default; t=1644162549;
+        bh=lh62Ew6xc+1J56dda/HpT63a00cvbUs7Fsz625WMbNo=;
+        h=From:To:Cc:Subject:Date:From;
+        b=IMvAAykX2zxhJdzSUi0tXykKGnnaIw9PnTefGLd/FLsa7mUt+ApvNnkAxjiOG8CF2
+         UlzPW6Xir5kCCxWqfEYN3bIysHzhkbkxqZusgCedJCPZpR4o4Wb9ogF4kWDlkyeDok
+         LYTlYz986m951X3ZrowlNl0r0VwywtHKololqrw2XNSuGipoLq/s7ikn04KsKL39ad
+         cghaP14NzAPk6+6NHZRQNYCkgXjNw40CyY51sGcQ4cQ0Jz7V27lPAVlzAd+Dvjlk4C
+         ETy1ibTEQwbii5XPOQWd239kGFK+1TUd3H++9y9iz3njdjgvynb9MImSqqhM8JhwF+
+         VSCoxgC9Bxkaw==
+Received: (from walt@localhost)
+        by talisker.home.drummond.us (8.15.2/8.15.2/Submit) id 216Fn0TW2355912;
+        Sun, 6 Feb 2022 07:49:00 -0800
+From:   Walt Drummond <walt@drummond.us>
+To:     agordeev@linux.ibm.com, arnd@arndb.de, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, chris@zankel.net, davem@davemloft.net,
+        gregkh@linuxfoundation.org, hca@linux.ibm.com, deller@gmx.de,
+        ink@jurassic.park.msu.ru, James.Bottomley@HansenPartnership.com,
+        jirislaby@kernel.org, mattst88@gmail.com, jcmvbkbc@gmail.com,
+        mpe@ellerman.id.au, paulus@samba.org, rth@twiddle.net,
+        dalias@libc.org, tsbogend@alpha.franken.de, gor@linux.ibm.com,
+        ysato@users.osdn.me
+Cc:     linux-kernel@vger.kernel.org, ar@cs.msu.ru, walt@drummond.us,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, sparclinux@vger.kernel.org
+Subject: [PATCH v2 0/3] vstatus: TTY status message request
+Date:   Sun,  6 Feb 2022 07:48:51 -0800
+Message-Id: <20220206154856.2355838-1-walt@drummond.us>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1643860669-26307-1-git-send-email-anshuman.khandual@arm.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Feb 03, 2022 at 09:27:49AM +0530, Anshuman Khandual wrote:
-> Each call into pte_mkhuge() is invariably followed by arch_make_huge_pte().
-> Instead arch_make_huge_pte() can accommodate pte_mkhuge() at the beginning.
-> This updates generic fallback stub for arch_make_huge_pte() and available
-> platforms definitions. This makes huge pte creation much cleaner and easier
-> to follow.
-> 
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will@kernel.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: Mike Kravetz <mike.kravetz@oracle.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linuxppc-dev@lists.ozlabs.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-mm@kvack.org
-> Cc: linux-kernel@vger.kernel.org
-> Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-> Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+This patchset adds TTY status message request feature to the n_tty
+line dicipline.  This feature prints a brief message containing basic
+system and process group information to a user's TTY in response to a
+new control character in the line dicipline (default Ctrl-T) or the
+TIOCSTAT ioctl.  The message contains the current system load, the
+name and PID of an interesting process in the forground process group,
+it's run time, percent CPU usage and RSS.  An example of this message
+is:
 
-Acking v2 as well:
+  load: 0.31  cmd: sleep 3616843 [sleeping] 0.36r 0.00u 0.00s 0% 696k
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+This feature is in many other Unix systems, both current and
+historical.  In other implementations, this feature would also send
+SIGINFO to the process group; this implementation does not.
+
+User API visible changes are limited to:
+ - The addition of VSTATUS in termios.c_cc[]
+ - The addition of NOKERNINFO bit in termios.l_cflags
+ - The addition of the TIOCSTAT ioctl number
+
+None of these changes break the existing kernel api as the termios
+structure on all architectures has enough space in the control
+character array (.c_cc) for the new character.
+
+Walt Drummond (3):
+  vstatus: Allow the n_tty line dicipline to write to a user tty
+  status: Add user space API definitions for VSTATUS, NOKERNINFO and
+    TIOCSTAT
+  vstatus: Display an informational message when the VSTATUS character
+    is pressed or TIOCSTAT ioctl is called.
+
+ arch/alpha/include/asm/termios.h         |   4 +-
+ arch/alpha/include/uapi/asm/ioctls.h     |   1 +
+ arch/alpha/include/uapi/asm/termbits.h   |   2 +
+ arch/ia64/include/asm/termios.h          |   4 +-
+ arch/ia64/include/uapi/asm/termbits.h    |   2 +
+ arch/mips/include/asm/termios.h          |   4 +-
+ arch/mips/include/uapi/asm/ioctls.h      |   1 +
+ arch/mips/include/uapi/asm/termbits.h    |   2 +
+ arch/parisc/include/asm/termios.h        |   4 +-
+ arch/parisc/include/uapi/asm/ioctls.h    |   1 +
+ arch/parisc/include/uapi/asm/termbits.h  |   2 +
+ arch/powerpc/include/asm/termios.h       |   4 +-
+ arch/powerpc/include/uapi/asm/ioctls.h   |   2 +
+ arch/powerpc/include/uapi/asm/termbits.h |   2 +
+ arch/s390/include/asm/termios.h          |   4 +-
+ arch/sh/include/uapi/asm/ioctls.h        |   1 +
+ arch/sparc/include/uapi/asm/ioctls.h     |   1 +
+ arch/sparc/include/uapi/asm/termbits.h   |   2 +
+ arch/xtensa/include/uapi/asm/ioctls.h    |   1 +
+ drivers/tty/Makefile                     |   2 +-
+ drivers/tty/n_tty.c                      | 103 +++++++++----
+ drivers/tty/n_tty_status.c               | 181 +++++++++++++++++++++++
+ drivers/tty/tty_io.c                     |   2 +-
+ include/asm-generic/termios.h            |   4 +-
+ include/linux/tty.h                      |   7 +-
+ include/uapi/asm-generic/ioctls.h        |   1 +
+ include/uapi/asm-generic/termbits.h      |   2 +
+ 27 files changed, 301 insertions(+), 45 deletions(-)
+ create mode 100644 drivers/tty/n_tty_status.c
+
+-- 
+2.30.2
+
