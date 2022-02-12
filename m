@@ -2,34 +2,31 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A944C433EF
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Feb 2022 10:44:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74349C4332F
+	for <sparclinux@archiver.kernel.org>; Sat, 12 Feb 2022 10:44:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233614AbiBLKoG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        id S233648AbiBLKoG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
         Sat, 12 Feb 2022 05:44:06 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43250 "EHLO
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233569AbiBLKoE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Feb 2022 05:44:04 -0500
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF2A52656E;
-        Sat, 12 Feb 2022 02:43:56 -0800 (PST)
-X-UUID: fb20e02e584d43b5b10b84467f310f71-20220212
-X-UUID: fb20e02e584d43b5b10b84467f310f71-20220212
-Received: from mtkmbs10n2.mediatek.inc [(172.21.101.183)] by mailgw01.mediatek.com
+        with ESMTP id S233630AbiBLKoG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Feb 2022 05:44:06 -0500
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B6242657E;
+        Sat, 12 Feb 2022 02:44:01 -0800 (PST)
+X-UUID: faeb3a4aad2b43dbb06de0b11b77cf61-20220212
+X-UUID: faeb3a4aad2b43dbb06de0b11b77cf61-20220212
+Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
         (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 690852364; Sat, 12 Feb 2022 18:43:52 +0800
-Received: from mtkexhb02.mediatek.inc (172.21.101.103) by
- mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.2.792.15; Sat, 12 Feb 2022 18:43:51 +0800
-Received: from mtkcas10.mediatek.inc (172.21.101.39) by mtkexhb02.mediatek.inc
- (172.21.101.103) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Sat, 12 Feb
- 2022 18:43:50 +0800
+        with ESMTP id 1654401457; Sat, 12 Feb 2022 18:43:54 +0800
+Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+ mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
+ Sat, 12 Feb 2022 18:43:53 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas10.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Sat, 12 Feb 2022 18:43:50 +0800
+ Transport; Sat, 12 Feb 2022 18:43:53 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <linux-kernel@vger.kernel.org>
 CC:     Catalin Marinas <catalin.marinas@arm.com>,
@@ -56,10 +53,12 @@ CC:     Catalin Marinas <catalin.marinas@arm.com>,
         <linux-mediatek@lists.infradead.org>, <sumit.garg@linaro.org>,
         <kernelfans@gmail.com>, <lecopzer.chen@mediatek.com>,
         <yj.chiang@mediatek.com>
-Subject: [PATCH 0/5] Support hld based on Pseudo-NMI for arm64
-Date:   Sat, 12 Feb 2022 18:43:44 +0800
-Message-ID: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
+Subject: [PATCH 3/5] kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup detector event
+Date:   Sat, 12 Feb 2022 18:43:47 +0800
+Message-ID: <20220212104349.14266-4-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
+In-Reply-To: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
+References: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MTK:  N
@@ -67,62 +66,48 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-As we already used hld internally for arm64 since 2020, there still
-doesn't have a proper commit on the upstream and we badly need it.
+From: Pingfan Liu <kernelfans@gmail.com>
 
-This serise rebase on 5.17-rc3 from [1] and the origin author is
-Pingfan Liu <kernelfans@gmail.com>
-Sumit Garg <sumit.garg@linaro.org>
+from: Pingfan Liu <kernelfans@gmail.com>
 
-[1] wasn't reviewed for its patch v3, I'll take over the further development
-for this.
+hardlockup_detector_event_create() should create perf_event on the
+current CPU. Preemption could not get disabled because
+perf_event_create_kernel_counter() allocates memory. Instead,
+the CPU locality is achieved by processing the code in a per-CPU
+bound kthread.
 
+Add a check to prevent mistakes when calling the code in another
+code path.
 
-Qoute from [1]:
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+---
+ kernel/watchdog_hld.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-Hard lockup detector is helpful to diagnose unpaired irq enable/disable.
-But the current watchdog framework can not cope with arm64 hw perf event
-easily.
-
-On arm64, when lockup_detector_init()->watchdog_nmi_probe(), PMU is not
-ready until device_initcall(armv8_pmu_driver_init).  And it is deeply
-integrated with the driver model and cpuhp. Hence it is hard to push the
-initialization of armv8_pmu_driver_init() before smp_init().
-
-But it is easy to take an opposite approach by enabling watchdog_hld to
-get the capability of PMU async. 
-The async model is achieved by expanding watchdog_nmi_probe() with
--EBUSY, and a re-initializing work_struct which waits on a
-wait_queue_head.
-
-[1] https://lore.kernel.org/lkml/20211014024155.15253-1-kernelfans@gmail.com/
-
-
-Lecopzer Chen (2):
-  kernel/watchdog: remove WATCHDOG_DEFAULT
-  kernel/watchdog: change watchdog_nmi_enable() to void
-
-Pingfan Liu (2):
-  kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup
-    detector event
-  kernel/watchdog: Adapt the watchdog_hld interface for async model
-
-Sumit Garg (1):
-  arm64: Enable perf events based hard lockup detector
-
- arch/arm64/Kconfig               |  2 ++
- arch/arm64/kernel/Makefile       |  1 +
- arch/arm64/kernel/perf_event.c   | 11 ++++--
- arch/arm64/kernel/watchdog_hld.c | 36 +++++++++++++++++++
- arch/sparc/kernel/nmi.c          |  8 ++---
- drivers/perf/arm_pmu.c           |  5 +++
- include/linux/nmi.h              | 11 +++++-
- include/linux/perf/arm_pmu.h     |  2 ++
- kernel/watchdog.c                | 61 ++++++++++++++++++++++++++++----
- kernel/watchdog_hld.c            |  8 ++++-
- 10 files changed, 131 insertions(+), 14 deletions(-)
- create mode 100644 arch/arm64/kernel/watchdog_hld.c
-
+diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_hld.c
+index 247bf0b1582c..96b717205952 100644
+--- a/kernel/watchdog_hld.c
++++ b/kernel/watchdog_hld.c
+@@ -165,10 +165,16 @@ static void watchdog_overflow_callback(struct perf_event *event,
+ 
+ static int hardlockup_detector_event_create(void)
+ {
+-	unsigned int cpu = smp_processor_id();
++	unsigned int cpu;
+ 	struct perf_event_attr *wd_attr;
+ 	struct perf_event *evt;
+ 
++	/*
++	 * Preemption is not disabled because memory will be allocated.
++	 * Ensure CPU-locality by calling this in per-CPU kthread.
++	 */
++	WARN_ON(!is_percpu_thread());
++	cpu = raw_smp_processor_id();
+ 	wd_attr = &wd_hw_attr;
+ 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ 
 -- 
 2.25.1
 
