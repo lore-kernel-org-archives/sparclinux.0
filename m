@@ -2,250 +2,302 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BAD93C433FE
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Feb 2022 10:44:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB216C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 14 Feb 2022 02:31:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233731AbiBLKoK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 12 Feb 2022 05:44:10 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43282 "EHLO
+        id S239526AbiBNCbp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 13 Feb 2022 21:31:45 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233644AbiBLKoG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Feb 2022 05:44:06 -0500
-Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65CB62655A;
-        Sat, 12 Feb 2022 02:44:01 -0800 (PST)
-X-UUID: fd11c4b7ae1743a8acdedb2145122f3e-20220212
-X-UUID: fd11c4b7ae1743a8acdedb2145122f3e-20220212
-Received: from mtkcas11.mediatek.inc [(172.21.101.40)] by mailgw02.mediatek.com
-        (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 492079112; Sat, 12 Feb 2022 18:43:56 +0800
-Received: from mtkcas10.mediatek.inc (172.21.101.39) by
- mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Sat, 12 Feb 2022 18:43:54 +0800
-Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas10.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Sat, 12 Feb 2022 18:43:54 +0800
-From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <linux-kernel@vger.kernel.org>
-CC:     Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>, <davem@davemloft.net>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Julien Thierry <jthierry@redhat.com>,
-        Kees Cook <keescook@chromium.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Petr Mladek <pmladek@suse.com>,
+        with ESMTP id S239431AbiBNCba (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 13 Feb 2022 21:31:30 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DB88A56758;
+        Sun, 13 Feb 2022 18:31:22 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 76BAD106F;
+        Sun, 13 Feb 2022 18:31:22 -0800 (PST)
+Received: from p8cg001049571a15.arm.com (unknown [10.163.47.15])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id ACA593F718;
+        Sun, 13 Feb 2022 18:31:19 -0800 (PST)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org
+Cc:     linux-kernel@vger.kernel.org,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Wang Qing <wangqing@vivo.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Xiaoming Ni <nixiaoming@huawei.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-perf-users@vger.kernel.org>, <sparclinux@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <sumit.garg@linaro.org>,
-        <kernelfans@gmail.com>, <lecopzer.chen@mediatek.com>,
-        <yj.chiang@mediatek.com>
-Subject: [PATCH 5/5] arm64: Enable perf events based hard lockup detector
-Date:   Sat, 12 Feb 2022 18:43:49 +0800
-Message-ID: <20220212104349.14266-6-lecopzer.chen@mediatek.com>
-X-Mailer: git-send-email 2.18.0
-In-Reply-To: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
-References: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-X-MTK:  N
+        linux-arch@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Khalid Aziz <khalid.aziz@oracle.com>,
+        sparclinux@vger.kernel.org
+Subject: [PATCH 06/30] sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Date:   Mon, 14 Feb 2022 08:00:29 +0530
+Message-Id: <1644805853-21338-7-git-send-email-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1644805853-21338-1-git-send-email-anshuman.khandual@arm.com>
+References: <1644805853-21338-1-git-send-email-anshuman.khandual@arm.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Sumit Garg <sumit.garg@linaro.org>
+This defines and exports a platform specific custom vm_get_page_prot() via
+subscribing ARCH_HAS_VM_GET_PAGE_PROT. Subsequently all __SXXX and __PXXX
+macros can be dropped which are no longer needed. This also localizes the
+helper arch_vm_get_page_prot() as sparc_vm_get_page_prot() and moves near
+vm_get_page_prot().
 
-from: Pingfan Liu <kernelfans@gmail.com>
-
-With the recent feature added to enable perf events to use pseudo NMIs
-as interrupts on platforms which support GICv3 or later, its now been
-possible to enable hard lockup detector (or NMI watchdog) on arm64
-platforms. So enable corresponding support.
-
-One thing to note here is that normally lockup detector is initialized
-just after the early initcalls but PMU on arm64 comes up much later as
-device_initcall(). To cope with that, overriding watchdog_nmi_probe() to
-let the watchdog framework know PMU not ready, and inform the framework
-to re-initialize lockup detection once PMU has been initialized.
-
-[1]: http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
-
-Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
-(Pingfan: adapt it to watchdog_hld async model based on [1])
-Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- arch/arm64/Kconfig               |  2 ++
- arch/arm64/kernel/Makefile       |  1 +
- arch/arm64/kernel/perf_event.c   | 11 ++++++++--
- arch/arm64/kernel/watchdog_hld.c | 36 ++++++++++++++++++++++++++++++++
- drivers/perf/arm_pmu.c           |  5 +++++
- include/linux/nmi.h              |  9 ++++++++
- include/linux/perf/arm_pmu.h     |  2 ++
- 7 files changed, 64 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm64/kernel/watchdog_hld.c
+ arch/sparc/Kconfig                  |  2 +
+ arch/sparc/include/asm/mman.h       |  6 ---
+ arch/sparc/include/asm/pgtable_32.h | 19 --------
+ arch/sparc/include/asm/pgtable_64.h | 19 --------
+ arch/sparc/mm/init_32.c             | 35 +++++++++++++++
+ arch/sparc/mm/init_64.c             | 70 +++++++++++++++++++++--------
+ 6 files changed, 88 insertions(+), 63 deletions(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 09b885cc4db5..df6fed8327ba 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -190,6 +190,8 @@ config ARM64
- 	select HAVE_NMI
- 	select HAVE_PATA_PLATFORM
- 	select HAVE_PERF_EVENTS
-+	select HAVE_PERF_EVENTS_NMI if ARM64_PSEUDO_NMI
-+	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
- 	select HAVE_REGS_AND_STACK_ACCESS_API
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index 88b3e2a21408..3e62a8877ed7 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_MODULES)			+= module.o
- obj-$(CONFIG_ARM64_MODULE_PLTS)		+= module-plts.o
- obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o perf_callchain.o
- obj-$(CONFIG_HW_PERF_EVENTS)		+= perf_event.o
-+obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF)	+= watchdog_hld.o
- obj-$(CONFIG_HAVE_HW_BREAKPOINT)	+= hw_breakpoint.o
- obj-$(CONFIG_CPU_PM)			+= sleep.o suspend.o
- obj-$(CONFIG_CPU_IDLE)			+= cpuidle.o
-diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-index cab678ed6618..73db9f2588d5 100644
---- a/arch/arm64/kernel/perf_event.c
-+++ b/arch/arm64/kernel/perf_event.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched_clock.h>
- #include <linux/smp.h>
-+#include <linux/nmi.h>
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 1cab1b284f1a..ff29156f2380 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -59,6 +59,7 @@ config SPARC32
+ 	select HAVE_UID16
+ 	select OLD_SIGACTION
+ 	select ZONE_DMA
++	select ARCH_HAS_VM_GET_PAGE_PROT
  
- /* ARMv8 Cortex-A53 specific event types. */
- #define ARMV8_A53_PERFCTR_PREF_LINEFILL				0xC2
-@@ -1380,10 +1381,16 @@ static struct platform_driver armv8_pmu_driver = {
+ config SPARC64
+ 	def_bool 64BIT
+@@ -84,6 +85,7 @@ config SPARC64
+ 	select PERF_USE_VMALLOC
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_C_RECORDMCOUNT
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
+index 274217e7ed70..af9c10c83dc5 100644
+--- a/arch/sparc/include/asm/mman.h
++++ b/arch/sparc/include/asm/mman.h
+@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_vm_prot_bits(unsigned long prot)
+ 	}
+ }
  
- static int __init armv8_pmu_driver_init(void)
+-#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
+-static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
+-{
+-	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
+-}
+-
+ #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
+ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
  {
-+	int ret;
-+
- 	if (acpi_disabled)
--		return platform_driver_register(&armv8_pmu_driver);
-+		ret = platform_driver_register(&armv8_pmu_driver);
- 	else
--		return arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-+		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-+
-+	detector_delay_init_state = DELAY_INIT_READY;
-+	wake_up(&hld_detector_wait);
-+	return ret;
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index ffccfe3b22ed..060a435f96d6 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -64,25 +64,6 @@ void paging_init(void);
+ 
+ extern unsigned long ptr_in_current_pgd;
+ 
+-/*         xwr */
+-#define __P000  PAGE_NONE
+-#define __P001  PAGE_READONLY
+-#define __P010  PAGE_COPY
+-#define __P011  PAGE_COPY
+-#define __P100  PAGE_READONLY
+-#define __P101  PAGE_READONLY
+-#define __P110  PAGE_COPY
+-#define __P111  PAGE_COPY
+-
+-#define __S000	PAGE_NONE
+-#define __S001	PAGE_READONLY
+-#define __S010	PAGE_SHARED
+-#define __S011	PAGE_SHARED
+-#define __S100	PAGE_READONLY
+-#define __S101	PAGE_READONLY
+-#define __S110	PAGE_SHARED
+-#define __S111	PAGE_SHARED
+-
+ /* First physical page can be anywhere, the following is needed so that
+  * va-->pa and vice versa conversions work properly without performance
+  * hit for all __pa()/__va() operations.
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 4679e45c8348..a779418ceba9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -187,25 +187,6 @@ bool kern_addr_valid(unsigned long addr);
+ #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
+ #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
+ 
+-/* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
+-#define __P000	__pgprot(0)
+-#define __P001	__pgprot(0)
+-#define __P010	__pgprot(0)
+-#define __P011	__pgprot(0)
+-#define __P100	__pgprot(0)
+-#define __P101	__pgprot(0)
+-#define __P110	__pgprot(0)
+-#define __P111	__pgprot(0)
+-
+-#define __S000	__pgprot(0)
+-#define __S001	__pgprot(0)
+-#define __S010	__pgprot(0)
+-#define __S011	__pgprot(0)
+-#define __S100	__pgprot(0)
+-#define __S101	__pgprot(0)
+-#define __S110	__pgprot(0)
+-#define __S111	__pgprot(0)
+-
+ #ifndef __ASSEMBLY__
+ 
+ pte_t mk_pte_io(unsigned long, pgprot_t, int, unsigned long);
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 1e9f577f084d..348cbfe08b60 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -302,3 +302,38 @@ void sparc_flush_page_to_ram(struct page *page)
+ 		__flush_page_to_ram(vaddr);
  }
- device_initcall(armv8_pmu_driver_init)
+ EXPORT_SYMBOL(sparc_flush_page_to_ram);
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
++	case VM_NONE:
++		return PAGE_NONE;
++	case VM_READ:
++		return PAGE_READONLY;
++	case VM_WRITE:
++	case VM_WRITE | VM_READ:
++		return PAGE_COPY;
++	case VM_EXEC:
++	case VM_EXEC | VM_READ:
++		return PAGE_READONLY;
++	case VM_EXEC | VM_WRITE:
++	case VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_COPY;
++	case VM_SHARED:
++		return PAGE_NONE;
++	case VM_SHARED | VM_READ:
++		return PAGE_READONLY;
++	case VM_SHARED | VM_WRITE:
++	case VM_SHARED | VM_WRITE | VM_READ:
++		return PAGE_SHARED;
++	case VM_SHARED | VM_EXEC:
++	case VM_SHARED | VM_EXEC | VM_READ:
++		return PAGE_READONLY;
++	case VM_SHARED | VM_EXEC | VM_WRITE:
++	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_SHARED;
++	default:
++		BUILD_BUG();
++	}
++}
++EXPORT_SYMBOL(vm_get_page_prot);
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1b23639e2fcd..a390116d371b 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -50,6 +50,7 @@
+ #include <asm/cpudata.h>
+ #include <asm/setup.h>
+ #include <asm/irq.h>
++#include <asm/mman.h>
  
-diff --git a/arch/arm64/kernel/watchdog_hld.c b/arch/arm64/kernel/watchdog_hld.c
-new file mode 100644
-index 000000000000..85536906a186
---- /dev/null
-+++ b/arch/arm64/kernel/watchdog_hld.c
-@@ -0,0 +1,36 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/nmi.h>
-+#include <linux/cpufreq.h>
-+#include <linux/perf/arm_pmu.h>
-+
-+/*
-+ * Safe maximum CPU frequency in case a particular platform doesn't implement
-+ * cpufreq driver. Although, architecture doesn't put any restrictions on
-+ * maximum frequency but 5 GHz seems to be safe maximum given the available
-+ * Arm CPUs in the market which are clocked much less than 5 GHz. On the other
-+ * hand, we can't make it much higher as it would lead to a large hard-lockup
-+ * detection timeout on parts which are running slower (eg. 1GHz on
-+ * Developerbox) and doesn't possess a cpufreq driver.
-+ */
-+#define SAFE_MAX_CPU_FREQ	5000000000UL // 5 GHz
-+u64 hw_nmi_get_sample_period(int watchdog_thresh)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	unsigned long max_cpu_freq;
-+
-+	max_cpu_freq = cpufreq_get_hw_max_freq(cpu) * 1000UL;
-+	if (!max_cpu_freq)
-+		max_cpu_freq = SAFE_MAX_CPU_FREQ;
-+
-+	return (u64)max_cpu_freq * watchdog_thresh;
-+}
-+
-+int __init watchdog_nmi_probe(void)
-+{
-+	if (detector_delay_init_state != DELAY_INIT_READY)
-+		return -EBUSY;
-+	else if (!arm_pmu_irq_is_nmi())
-+		return -ENODEV;
-+
-+	return hardlockup_detector_perf_init();
-+}
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 295cc7952d0e..e77f4897fca2 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -697,6 +697,11 @@ static int armpmu_get_cpu_irq(struct arm_pmu *pmu, int cpu)
- 	return per_cpu(hw_events->irq, cpu);
+ #include "init_64.h"
+ 
+@@ -2641,29 +2642,13 @@ static void prot_init_common(unsigned long page_none,
+ {
+ 	PAGE_COPY = __pgprot(page_copy);
+ 	PAGE_SHARED = __pgprot(page_shared);
+-
+-	protection_map[0x0] = __pgprot(page_none);
+-	protection_map[0x1] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0x2] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x3] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x4] = __pgprot(page_readonly);
+-	protection_map[0x5] = __pgprot(page_readonly);
+-	protection_map[0x6] = __pgprot(page_copy);
+-	protection_map[0x7] = __pgprot(page_copy);
+-	protection_map[0x8] = __pgprot(page_none);
+-	protection_map[0x9] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0xa] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xb] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xc] = __pgprot(page_readonly);
+-	protection_map[0xd] = __pgprot(page_readonly);
+-	protection_map[0xe] = __pgprot(page_shared);
+-	protection_map[0xf] = __pgprot(page_shared);
  }
  
-+bool arm_pmu_irq_is_nmi(void)
++static unsigned long page_none, page_shared, page_copy, page_readonly;
++static unsigned long page_exec_bit;
++
+ static void __init sun4u_pgprot_init(void)
+ {
+-	unsigned long page_none, page_shared, page_copy, page_readonly;
+-	unsigned long page_exec_bit;
+ 	int i;
+ 
+ 	PAGE_KERNEL = __pgprot (_PAGE_PRESENT_4U | _PAGE_VALID |
+@@ -3183,3 +3168,50 @@ void copy_highpage(struct page *to, struct page *from)
+ 	}
+ }
+ EXPORT_SYMBOL(copy_highpage);
++
++static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
 +{
-+	return has_nmi;
++	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
++	case VM_NONE:
++		return __pgprot(page_none);
++	case VM_READ:
++		return __pgprot(page_readonly & ~page_exec_bit);
++	case VM_WRITE:
++	case VM_WRITE | VM_READ:
++		return __pgprot(page_copy & ~page_exec_bit);
++	case VM_EXEC:
++	case VM_EXEC | VM_READ:
++		return __pgprot(page_readonly);
++	case VM_EXEC | VM_WRITE:
++	case VM_EXEC | VM_WRITE | VM_READ:
++		return __pgprot(page_copy);
++	case VM_SHARED:
++		return __pgprot(page_none);
++	case VM_SHARED | VM_READ:
++		return __pgprot(page_readonly & ~page_exec_bit);
++	case VM_SHARED | VM_WRITE:
++	case VM_SHARED | VM_WRITE | VM_READ:
++		return __pgprot(page_shared & ~page_exec_bit);
++	case VM_SHARED | VM_EXEC:
++	case VM_SHARED | VM_EXEC | VM_READ:
++		return __pgprot(page_readonly);
++	case VM_SHARED | VM_EXEC | VM_WRITE:
++	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
++		return __pgprot(page_shared);
++	default:
++		BUILD_BUG();
++	}
 +}
 +
- /*
-  * PMU hardware loses all context when a CPU goes offline.
-  * When a CPU is hotplugged back in, since some hardware registers are
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index b7bcd63c36b4..9def85c00bd8 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -118,6 +118,15 @@ static inline int hardlockup_detector_perf_init(void) { return 0; }
- 
- void watchdog_nmi_stop(void);
- void watchdog_nmi_start(void);
++static pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
++{
++	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
++}
 +
-+enum hld_detector_state {
-+	DELAY_INIT_NOP,
-+	DELAY_INIT_WAIT,
-+	DELAY_INIT_READY
-+};
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	return __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
++	       pgprot_val(sparc_vm_get_page_prot(vm_flags)));
 +
-+extern enum hld_detector_state detector_delay_init_state;
-+extern struct wait_queue_head hld_detector_wait;
- int watchdog_nmi_probe(void);
- void watchdog_nmi_enable(unsigned int cpu);
- void watchdog_nmi_disable(unsigned int cpu);
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index 2512e2f9cd4e..9325d01adc3e 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -169,6 +169,8 @@ void kvm_host_pmu_init(struct arm_pmu *pmu);
- #define kvm_host_pmu_init(x)	do { } while(0)
- #endif
- 
-+bool arm_pmu_irq_is_nmi(void);
-+
- /* Internal functions only for core arm_pmu code */
- struct arm_pmu *armpmu_alloc(void);
- struct arm_pmu *armpmu_alloc_atomic(void);
++}
++EXPORT_SYMBOL(vm_get_page_prot);
 -- 
 2.25.1
 
