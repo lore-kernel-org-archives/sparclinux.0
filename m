@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 895A9C433EF
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Feb 2022 13:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AE5FC433EF
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Feb 2022 13:17:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbiBPNRQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Feb 2022 08:17:16 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:34650 "EHLO
+        id S231341AbiBPNRc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Feb 2022 08:17:32 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:33394 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233877AbiBPNRF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Feb 2022 08:17:05 -0500
+        with ESMTP id S233895AbiBPNRJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Feb 2022 08:17:09 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AACC47669;
-        Wed, 16 Feb 2022 05:16:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E15F36350;
+        Wed, 16 Feb 2022 05:16:56 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 5FD56CE26F5;
-        Wed, 16 Feb 2022 13:16:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 214BAC36AE7;
-        Wed, 16 Feb 2022 13:16:23 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 51105CE26F3;
+        Wed, 16 Feb 2022 13:16:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 47582C340F1;
+        Wed, 16 Feb 2022 13:16:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645017393;
-        bh=lx487dro4zL/zPL193Oy6nweU7A4WVV+sN3sqinseG4=;
+        s=k20201202; t=1645017413;
+        bh=+iR2qnnFcrsCPQoMglxV/90U3LFjDlY0u/606L67UPs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=omMDrhEPLws0kx3FaJdMKyiFQbfwIcb5C7tofQAI2lXuZWrTiTUwDFHKrcpaJ13Ok
-         NsykM6tJoZvXy9HpScnzw03vekziZH4+cmNWuN8sFx6q+kht1g72i5yzFbnCgaADFX
-         3buM3JcSdiMZxvMTvsPMSDWKxY3LFEssTkxEvrPD9rYjO0WAcv/PY2WS7xtaDGc4wy
-         DxYAh6OJOKM+eKboklR6CEThuRYhYEyLLFqlkJ2zwQTnKoB+HomGSt++/CH7kJczaj
-         yZMo0S4/Pd73o6yZAoHMI5U6kMVwrUt/QgHtW6Ao2qPNSByCOZz+CMYBy1uC+ywZu0
-         EVn+6B86qN3Bg==
+        b=FvFA19KgOFHw//5AD53hF0IwW2eLEb8iC830WFN6MdVoW4fyh5i/2kJHpxFd7pdlD
+         7UX6fEewGCq+cZvaT2PObS6XOZnZypDPzvRcYa/W0nzWewDgb+0xXamh2omZfLYFmr
+         8N4H7mpvMOTDqe2QPH8s/NhnVxUv6/h988kxIKpvMvfqvjGNNvINW6t4henTJIKwJt
+         jzLnL5Fc+Su69zkh5g1Nf3EInYTi+sp1khBbBbK8Lt97/7IVApa2FzdwQAvU7AyEeL
+         nEYQi1fYgk8k2uZixKdw/j3+QwXzCx+3pjcEKGsjL9tNOzijYs/MTwOK3SPeQjakHj
+         3w2JGHUIm9rGg==
 From:   Arnd Bergmann <arnd@kernel.org>
 To:     Linus Torvalds <torvalds@linux-foundation.org>,
         Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org,
@@ -52,11 +52,10 @@ Cc:     linux@armlinux.org.uk, will@kernel.org, guoren@kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Christoph Hellwig <hch@infradead.org>
-Subject: [PATCH v2 05/18] x86: remove __range_not_ok()
-Date:   Wed, 16 Feb 2022 14:13:19 +0100
-Message-Id: <20220216131332.1489939-6-arnd@kernel.org>
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
+Subject: [PATCH v2 07/18] nios2: drop access_ok() check from __put_user()
+Date:   Wed, 16 Feb 2022 14:13:21 +0100
+Message-Id: <20220216131332.1489939-8-arnd@kernel.org>
 X-Mailer: git-send-email 2.29.2
 In-Reply-To: <20220216131332.1489939-1-arnd@kernel.org>
 References: <20220216131332.1489939-1-arnd@kernel.org>
@@ -68,122 +67,89 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
 
-The __range_not_ok() helper is an x86 (and sparc64) specific interface
-that does roughly the same thing as __access_ok(), but with different
-calling conventions.
+Unlike other architectures, the nios2 version of __put_user() has an
+extra check for access_ok(), preventing it from being used to implement
+__put_kernel_nofault().
 
-Change this to use the normal interface in order for consistency as we
-clean up all access_ok() implementations.
+Split up put_user() along the same lines as __get_user()/get_user()
 
-This changes the limit from TASK_SIZE to TASK_SIZE_MAX, which Al points
-out is the right thing do do here anyway.
-
-The callers have to use __access_ok() instead of the normal access_ok()
-though, because on x86 that contains a WARN_ON_IN_IRQ() check that cannot
-be used inside of NMI context while tracing.
-
-Suggested-by: Al Viro <viro@zeniv.linux.org.uk>
-Suggested-by: Christoph Hellwig <hch@infradead.org>
-Link: https://lore.kernel.org/lkml/YgsUKcXGR7r4nINj@zeniv-ca.linux.org.uk/
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/x86/events/core.c         |  2 +-
- arch/x86/include/asm/uaccess.h | 10 ++++++----
- arch/x86/kernel/dumpstack.c    |  2 +-
- arch/x86/kernel/stacktrace.c   |  2 +-
- arch/x86/lib/usercopy.c        |  2 +-
- 5 files changed, 10 insertions(+), 8 deletions(-)
+ arch/nios2/include/asm/uaccess.h | 56 +++++++++++++++++++-------------
+ 1 file changed, 33 insertions(+), 23 deletions(-)
 
-diff --git a/arch/x86/events/core.c b/arch/x86/events/core.c
-index e686c5e0537b..eef816fc216d 100644
---- a/arch/x86/events/core.c
-+++ b/arch/x86/events/core.c
-@@ -2794,7 +2794,7 @@ perf_callchain_kernel(struct perf_callchain_entry_ctx *entry, struct pt_regs *re
- static inline int
- valid_user_frame(const void __user *fp, unsigned long size)
- {
--	return (__range_not_ok(fp, size, TASK_SIZE) == 0);
-+	return __access_ok(fp, size);
+diff --git a/arch/nios2/include/asm/uaccess.h b/arch/nios2/include/asm/uaccess.h
+index ca9285a915ef..a5cbe07cf0da 100644
+--- a/arch/nios2/include/asm/uaccess.h
++++ b/arch/nios2/include/asm/uaccess.h
+@@ -167,34 +167,44 @@ do {									\
+ 	: "r" (val), "r" (ptr), "i" (-EFAULT));				\
  }
  
- static unsigned long get_segment_base(unsigned int segment)
-diff --git a/arch/x86/include/asm/uaccess.h b/arch/x86/include/asm/uaccess.h
-index ac96f9b2d64b..79c4869ccdd6 100644
---- a/arch/x86/include/asm/uaccess.h
-+++ b/arch/x86/include/asm/uaccess.h
-@@ -16,8 +16,10 @@
-  * Test whether a block of memory is a valid user space address.
-  * Returns 0 if the range is valid, nonzero otherwise.
-  */
--static inline bool __chk_range_not_ok(unsigned long addr, unsigned long size, unsigned long limit)
-+static inline bool __chk_range_not_ok(unsigned long addr, unsigned long size)
- {
-+	unsigned long limit = TASK_SIZE_MAX;
+-#define put_user(x, ptr)						\
++#define __put_user_common(__pu_val, __pu_ptr)				\
+ ({									\
+ 	long __pu_err = -EFAULT;					\
+-	__typeof__(*(ptr)) __user *__pu_ptr = (ptr);			\
+-	__typeof__(*(ptr)) __pu_val = (__typeof(*ptr))(x);		\
+-	if (access_ok(__pu_ptr, sizeof(*__pu_ptr))) {	\
+-		switch (sizeof(*__pu_ptr)) {				\
+-		case 1:							\
+-			__put_user_asm(__pu_val, "stb", __pu_ptr, __pu_err); \
+-			break;						\
+-		case 2:							\
+-			__put_user_asm(__pu_val, "sth", __pu_ptr, __pu_err); \
+-			break;						\
+-		case 4:							\
+-			__put_user_asm(__pu_val, "stw", __pu_ptr, __pu_err); \
+-			break;						\
+-		default:						\
+-			/* XXX: This looks wrong... */			\
+-			__pu_err = 0;					\
+-			if (copy_to_user(__pu_ptr, &(__pu_val),		\
+-				sizeof(*__pu_ptr)))			\
+-				__pu_err = -EFAULT;			\
+-			break;						\
+-		}							\
++	switch (sizeof(*__pu_ptr)) {					\
++	case 1:								\
++		__put_user_asm(__pu_val, "stb", __pu_ptr, __pu_err);	\
++		break;							\
++	case 2:								\
++		__put_user_asm(__pu_val, "sth", __pu_ptr, __pu_err);	\
++		break;							\
++	case 4:								\
++		__put_user_asm(__pu_val, "stw", __pu_ptr, __pu_err);	\
++		break;							\
++	default:							\
++		/* XXX: This looks wrong... */				\
++		__pu_err = 0;						\
++		if (__copy_to_user(__pu_ptr, &(__pu_val),		\
++			sizeof(*__pu_ptr)))				\
++			__pu_err = -EFAULT;				\
++		break;							\
+ 	}								\
+ 	__pu_err;							\
+ })
+ 
+-#define __put_user(x, ptr) put_user(x, ptr)
++#define __put_user(x, ptr)						\
++({									\
++	__auto_type __pu_ptr = (ptr);					\
++	typeof(*__pu_ptr) __pu_val = (typeof(*__pu_ptr))(x);		\
++	__put_user_common(__pu_val, __pu_ptr);				\
++})
 +
- 	/*
- 	 * If we have used "sizeof()" for the size,
- 	 * we know it won't overflow the limit (but
-@@ -35,10 +37,10 @@ static inline bool __chk_range_not_ok(unsigned long addr, unsigned long size, un
- 	return unlikely(addr > limit);
- }
++#define put_user(x, ptr)						\
++({									\
++	__auto_type __pu_ptr = (ptr);					\
++	typeof(*__pu_ptr) __pu_val = (typeof(*__pu_ptr))(x);		\
++	access_ok(__pu_ptr, sizeof(*__pu_ptr)) ?			\
++		__put_user_common(__pu_val, __pu_ptr) :			\
++		-EFAULT;						\
++})
  
--#define __range_not_ok(addr, size, limit)				\
-+#define __access_ok(addr, size)						\
- ({									\
- 	__chk_user_ptr(addr);						\
--	__chk_range_not_ok((unsigned long __force)(addr), size, limit); \
-+	!__chk_range_not_ok((unsigned long __force)(addr), size);	\
- })
- 
- #ifdef CONFIG_DEBUG_ATOMIC_SLEEP
-@@ -69,7 +71,7 @@ static inline bool pagefault_disabled(void);
- #define access_ok(addr, size)					\
- ({									\
- 	WARN_ON_IN_IRQ();						\
--	likely(!__range_not_ok(addr, size, TASK_SIZE_MAX));		\
-+	likely(__access_ok(addr, size));				\
- })
- 
- extern int __get_user_1(void);
-diff --git a/arch/x86/kernel/dumpstack.c b/arch/x86/kernel/dumpstack.c
-index 53de044e5654..da534fb7b5c6 100644
---- a/arch/x86/kernel/dumpstack.c
-+++ b/arch/x86/kernel/dumpstack.c
-@@ -85,7 +85,7 @@ static int copy_code(struct pt_regs *regs, u8 *buf, unsigned long src,
- 	 * Make sure userspace isn't trying to trick us into dumping kernel
- 	 * memory by pointing the userspace instruction pointer at it.
- 	 */
--	if (__chk_range_not_ok(src, nbytes, TASK_SIZE_MAX))
-+	if (!__access_ok((void __user *)src, nbytes))
- 		return -EINVAL;
- 
- 	/*
-diff --git a/arch/x86/kernel/stacktrace.c b/arch/x86/kernel/stacktrace.c
-index 15b058eefc4e..ee117fcf46ed 100644
---- a/arch/x86/kernel/stacktrace.c
-+++ b/arch/x86/kernel/stacktrace.c
-@@ -90,7 +90,7 @@ copy_stack_frame(const struct stack_frame_user __user *fp,
- {
- 	int ret;
- 
--	if (__range_not_ok(fp, sizeof(*frame), TASK_SIZE))
-+	if (!__access_ok(fp, sizeof(*frame)))
- 		return 0;
- 
- 	ret = 1;
-diff --git a/arch/x86/lib/usercopy.c b/arch/x86/lib/usercopy.c
-index c3e8a62ca561..ad0139d25401 100644
---- a/arch/x86/lib/usercopy.c
-+++ b/arch/x86/lib/usercopy.c
-@@ -32,7 +32,7 @@ copy_from_user_nmi(void *to, const void __user *from, unsigned long n)
- {
- 	unsigned long ret;
- 
--	if (__range_not_ok(from, n, TASK_SIZE))
-+	if (!__access_ok(from, n))
- 		return n;
- 
- 	if (!nmi_uaccess_okay())
+ #endif /* _ASM_NIOS2_UACCESS_H */
 -- 
 2.29.2
 
