@@ -2,153 +2,113 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 735DBC433FE
-	for <sparclinux@archiver.kernel.org>; Mon, 21 Feb 2022 09:48:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDFD0C4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 21 Feb 2022 13:47:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244814AbiBUJso (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 21 Feb 2022 04:48:44 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43532 "EHLO
+        id S1359614AbiBUNsT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Feb 2022 08:48:19 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352479AbiBUJra (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Feb 2022 04:47:30 -0500
-Received: from mail-ej1-x635.google.com (mail-ej1-x635.google.com [IPv6:2a00:1450:4864:20::635])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F74533E02;
-        Mon, 21 Feb 2022 01:20:01 -0800 (PST)
-Received: by mail-ej1-x635.google.com with SMTP id qx21so31442706ejb.13;
-        Mon, 21 Feb 2022 01:20:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=nladtAWSGfIEpu5O+FocZlQ5Lb3McwqCnviWTlH63PY=;
-        b=hCAvZq1q9rvDQIAinwZNWy1eHYJbbZcOw25JKBwH1DI9uYddGYjLg5d7Z7eMJggKk9
-         th7Dbr4lzakNCn6ejdn6ZWIK0PWx53MckJtBLuig92+GHsNcIuDpSYd/zAtL9eChTUml
-         i2D8B7RaiLzRbVM/rChjSfQXr4if3LSt55ej25LJOHf95eCeI5dExlG09N+e4Uli+ilN
-         DlCnC/JIi6fip97qb8JUsdPP8DGcWfGOXBx7WsoAwnJ4kptF1+EovIYMHcAz/jnh7Vi/
-         9386oqzv/7nGsEingoubgs6cF8FPMSbR0FGdLHhfxIA/eZXVI38W27dnRnpAUjy3fCzV
-         LlMQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nladtAWSGfIEpu5O+FocZlQ5Lb3McwqCnviWTlH63PY=;
-        b=Ety4B5So7co4Czfya3Ep+CfhuJejAOWNROjWYaSFtn0fFRx7Lr831zpfpP2W9NAXU4
-         rMrXSzqkRUr8jdH9wj9rXo3GeIE8/imtyzHCGb4SQLU6d45XJJ7DbAxSMkzDOMj9BhHo
-         ScgqxQc9Vjg2VeSWGxrMF4KE4/7ydUc7/uIQSDP2/a/bZ7r9WEHDDBlagU7ypRUW1XzO
-         Tl4MmGeS+8PmpAdm4IunzIgivRrfnO6oyzJgiyfsbNnBMaJdUbOzelROtXuCs7Sg+PP1
-         iS8Xhxppg+HzJk+WERoBHL4k0ywmj7cYKzbS2ycjxVemX4FcnMtbkWFABYwZdvlONaov
-         BcAQ==
-X-Gm-Message-State: AOAM532NA6KQ0NrAMBHVBX+XDNNlsp2irm2gq30oFUbbjQpkbFsbLQOI
-        5tLSAggTMym8tiB+bl1EcwmlnvBxTZrCUbFpT7hy+sJ3W9Q=
-X-Google-Smtp-Source: ABdhPJy+f16PQ6M285QqSUEom5ax4WTP2i+LhU9jtsxTlgt9hbTt/s8knrEPPHPkx3JwzyBrJocp9bRlflT/s0Z3TdQ=
-X-Received: by 2002:a17:906:aad7:b0:6cc:c9aa:d9ad with SMTP id
- kt23-20020a170906aad700b006ccc9aad9admr15408603ejb.726.1645435199386; Mon, 21
- Feb 2022 01:19:59 -0800 (PST)
+        with ESMTP id S230090AbiBUNsS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Feb 2022 08:48:18 -0500
+X-Greylist: delayed 1331 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 21 Feb 2022 05:47:55 PST
+Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5FAAE5FAA;
+        Mon, 21 Feb 2022 05:47:55 -0800 (PST)
+Received: from uucp (helo=alpha)
+        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
+        id 1nM8h9-0001Eo-00; Mon, 21 Feb 2022 14:25:39 +0100
+Received: by alpha.franken.de (Postfix, from userid 1000)
+        id E4525C25DD; Mon, 21 Feb 2022 14:24:56 +0100 (CET)
+Date:   Mon, 21 Feb 2022 14:24:56 +0100
+From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To:     Arnd Bergmann <arnd@kernel.org>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, linux-api@vger.kernel.org, arnd@arndb.de,
+        linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk,
+        linux@armlinux.org.uk, will@kernel.org, guoren@kernel.org,
+        bcain@codeaurora.org, geert@linux-m68k.org, monstr@monstr.eu,
+        nickhu@andestech.com, green.hu@gmail.com, dinguyen@kernel.org,
+        shorne@gmail.com, deller@gmx.de, mpe@ellerman.id.au,
+        peterz@infradead.org, mingo@redhat.com, mark.rutland@arm.com,
+        hca@linux.ibm.com, dalias@libc.org, davem@davemloft.net,
+        richard@nod.at, x86@kernel.org, jcmvbkbc@gmail.com,
+        ebiederm@xmission.com, akpm@linux-foundation.org, ardb@kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
+Subject: Re: [PATCH v2 09/18] mips: use simpler access_ok()
+Message-ID: <20220221132456.GA7139@alpha.franken.de>
+References: <20220216131332.1489939-1-arnd@kernel.org>
+ <20220216131332.1489939-10-arnd@kernel.org>
 MIME-Version: 1.0
-References: <20220220213131.GA3754799@rfd.leadboat.com>
-In-Reply-To: <20220220213131.GA3754799@rfd.leadboat.com>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Mon, 21 Feb 2022 12:19:48 +0300
-Message-ID: <CADxRZqzFip4C_nMN0rZ8bTj44pCyW0Q5nsiLTbQjRsZSOtJRpg@mail.gmail.com>
-Subject: Re: [ext4+sparc64] reads see zeros w/ simultaneous write
-To:     Sparc kernel list <sparclinux@vger.kernel.org>,
-        Noah Misch <noah@leadboat.com>
-Cc:     linux-ext4@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220216131332.1489939-10-arnd@kernel.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Feb 21, 2022 at 2:56 AM Noah Misch <noah@leadboat.com> wrote:
->
-> Hello,
->
-> I originally reported this to Debian
-> (https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1006157), which
-> advised me to re-report it upstream.  The context is an ext4
-> filesystem on a sparc64 host.  I've observed this with each of the
-> three sparc64 Debian kernels that I've tested.  Those kernels were
-> 5.16.0-1-sparc64-smp, 5.15.0-2-sparc64-smp, and 4.9.0-13-sparc64-smp.
+On Wed, Feb 16, 2022 at 02:13:23PM +0100, Arnd Bergmann wrote:
+> 
+> diff --git a/arch/mips/include/asm/uaccess.h b/arch/mips/include/asm/uaccess.h
+> index db9a8e002b62..d7c89dc3426c 100644
+> --- a/arch/mips/include/asm/uaccess.h
+> +++ b/arch/mips/include/asm/uaccess.h
+> @@ -19,6 +19,7 @@
+>  #ifdef CONFIG_32BIT
+>  
+>  #define __UA_LIMIT 0x80000000UL
+> +#define TASK_SIZE_MAX	__UA_LIMIT
+>  
+>  #define __UA_ADDR	".word"
+>  #define __UA_LA		"la"
+> @@ -33,6 +34,7 @@
+>  extern u64 __ua_limit;
+>  
+>  #define __UA_LIMIT	__ua_limit
+> +#define TASK_SIZE_MAX	XKSSEG
 
-Tested on sparc64 5.17.0-rc5 , still the same behaviour.
+this doesn't work. For every access above maximum implemented virtual address
+space of the CPU an address error will be issued, but not a TLB miss.
+And address error isn't able to handle this situation.
 
-PS: added linux-ext4@ as well , for the test program see the original
-email https://lore.kernel.org/sparclinux/20220220213131.GA3754799@rfd.leadboat.com/
+With this patch
 
+diff --git a/arch/mips/kernel/unaligned.c b/arch/mips/kernel/unaligned.c
+index df4b708c04a9..3911f1481f3d 100644
+--- a/arch/mips/kernel/unaligned.c
++++ b/arch/mips/kernel/unaligned.c
+@@ -1480,6 +1480,13 @@ asmlinkage void do_ade(struct pt_regs *regs)
+ 	prev_state = exception_enter();
+ 	perf_sw_event(PERF_COUNT_SW_ALIGNMENT_FAULTS,
+ 			1, regs, regs->cp0_badvaddr);
++
++	/* Are we prepared to handle this kernel fault?	 */
++	if (fixup_exception(regs)) {
++		current->thread.cp0_baduaddr = regs->cp0_badvaddr;
++		return;
++	}
++
+ 	/*
+ 	 * Did we catch a fault trying to load an instruction?
+ 	 */
 
+I at least get my simple test cases fixed, but I'm not sure this is
+correct.
 
->
->    * What exactly did you do (or not do) that was effective (or
->      ineffective)?
->
-> See the included file for a minimal test program.  It creates two
-> processes, each of which loops indefinitely.  One opens a file, writes
-> 0x1 to a 256-byte region, and closes the file.  The other process
-> opens the same file, reads the same region, and prints a message if
-> any byte is not 0x1.
->
-> This thread has more discussion and a more-configurable test program:
-> https://postgr.es/m/flat/20220116071210.GA735692@rfd.leadboat.com
->
->    * What was the outcome of this action?
->
-> The program prints messages, at least ten per second.  The mismatch
-> always appears at an offset divisible by eight.  Some offsets are more
-> common than others.  Here's output from 300s of runtime, filtered
-> through "sort -nk3 | uniq -c":
->
->    1729 mismatch at 8: got 0, want 1
->    1878 mismatch at 16: got 0, want 1
->    1030 mismatch at 24: got 0, want 1
->      41 mismatch at 40: got 0, want 1
->     373 mismatch at 48: got 0, want 1
->      24 mismatch at 56: got 0, want 1
->     349 mismatch at 64: got 0, want 1
->   13525 mismatch at 72: got 0, want 1
->     401 mismatch at 80: got 0, want 1
->     365 mismatch at 88: got 0, want 1
->       1 mismatch at 96: got 0, want 1
->      32 mismatch at 104: got 0, want 1
->      34 mismatch at 112: got 0, want 1
->      19 mismatch at 120: got 0, want 1
->      34 mismatch at 128: got 0, want 1
->     253 mismatch at 136: got 0, want 1
->     149 mismatch at 144: got 0, want 1
->     138 mismatch at 152: got 0, want 1
->       1 mismatch at 160: got 0, want 1
->       4 mismatch at 168: got 0, want 1
->       7 mismatch at 176: got 0, want 1
->       4 mismatch at 184: got 0, want 1
->       1 mismatch at 192: got 0, want 1
->      83 mismatch at 200: got 0, want 1
->      58 mismatch at 208: got 0, want 1
->    3301 mismatch at 216: got 0, want 1
->       2 mismatch at 232: got 0, want 1
->       1 mismatch at 248: got 0, want 1
->
-> If I run the program atop an xfs filesystem (still with sparc64), it
-> prints nothing.  If I run it with x86_64 or powerpc64 (atop ext4), it
-> prints nothing.
->
->    * What outcome did you expect instead?
->
-> I expected the program to print nothing, indicating that the reader
-> process observes only 0x1 bytes.  That is how x86_64+ext4 behaves.
->
-> POSIX is stricter, requiring read() and write() implementations such
-> that "each call shall either see all of the specified effects of the
-> other call, or none of them"
-> (https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_07).
-> ext4 does not conform, which may be pragmatic.  However, with x86_64
-> and powerpc64, readers see each byte as either its before-write value
-> or its after-write value.  They don't see a zero in an offset that
-> will have been nonzero both before and after the ongoing write().
->
->
-> === sparc64-ext4-zeros.c
-> /*
->  * Stress-test read(), and write() to detect a problem seen with sparc64+ext4.
->  * Readers see zeros when they read concurrently with a write, even if the
->  * file had no zero at that offset before or after the write.  This program
->  * runs indefinitely and will print "mismatch ..." each time that happens.
->  */
+Is there a reason to not also #define TASK_SIZE_MAX   __UA_LIMIT like
+for the 32bit case ?
+
+Thomas.
+
+-- 
+Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
+good idea.                                                [ RFC1925, 2.3 ]
