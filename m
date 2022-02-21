@@ -2,265 +2,301 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71961C433EF
-	for <sparclinux@archiver.kernel.org>; Sun, 20 Feb 2022 21:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FF69C433F5
+	for <sparclinux@archiver.kernel.org>; Mon, 21 Feb 2022 06:39:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236628AbiBTVcB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 20 Feb 2022 16:32:01 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54418 "EHLO
+        id S1345294AbiBUGjb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Feb 2022 01:39:31 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41192 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229960AbiBTVb7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 20 Feb 2022 16:31:59 -0500
-Received: from mail-qv1-xf35.google.com (mail-qv1-xf35.google.com [IPv6:2607:f8b0:4864:20::f35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B92071116
-        for <sparclinux@vger.kernel.org>; Sun, 20 Feb 2022 13:31:35 -0800 (PST)
-Received: by mail-qv1-xf35.google.com with SMTP id a19so27062267qvm.4
-        for <sparclinux@vger.kernel.org>; Sun, 20 Feb 2022 13:31:35 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=leadboat.com; s=google;
-        h=date:from:to:subject:message-id:mime-version:content-disposition
-         :user-agent;
-        bh=GfihU7K3PdOQV6zhEFFfK6u6utnPI+mCyo7NaP6rKDw=;
-        b=ge+AAK6HCIq1OO68URm1qhuzsPLNBKqzPo18c979QQzQ9cHhaEaUE/T+dr2WRUUlAp
-         uWQgE+u67hrZxmwgDN9Wtw6E5QjhUUz2ftOcbiyyOoLV7KPw+FxgJ4vnW96Vzm1eCvqS
-         4/QJ5ZjVigEKSedbErjmkP1B6pypjAQAjJTlQ=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:subject:message-id:mime-version
-         :content-disposition:user-agent;
-        bh=GfihU7K3PdOQV6zhEFFfK6u6utnPI+mCyo7NaP6rKDw=;
-        b=YuqgPfD2wGQfUVjMs6ElEU0h0uBXGQrdbnFqsTJqkxGyno6iABih4RlkaE8Tm1yDdR
-         uWSdYk2BG8Qt3gqeH4GCybLfMSXaFWq1vWAFXJznNfYRtnbTFZNPlEQANv0pEfn2BJve
-         b2cVySfkodCfupu0XV6XbjkG8iDgeoQ+WRTavyk+Z6qiqrrvFKrmajOQYfPciHZ0mCg2
-         nk2MBNSn6jUpZNX+nrcyezmoqrotZAVXXlfQ6EG076W7ebYa2fq5FSzyFZHenits0cwg
-         +bQF7ZWBglp6+Zo2feeFzSw1RcsmkGcPnhYmyFf6nRu/EA+N4+C2xzN7NLRJZkYGXZND
-         IN9g==
-X-Gm-Message-State: AOAM530QIXUnaVYzAsVSKiV/32u7eZx/hmHtPjrOkLzitIrGafDArTn2
-        AblLRx/1XeFiEbNsmUhxvYlr171CI25pcA==
-X-Google-Smtp-Source: ABdhPJwc9crR8Zf1mBQLw+SHRibo/ly5vdpGe3oDmPVIEaxOLREhrwfE3bxmUAFzUw5xcdZRHgvBLA==
-X-Received: by 2002:ac8:5b15:0:b0:2dd:d20a:3404 with SMTP id m21-20020ac85b15000000b002ddd20a3404mr9089259qtw.392.1645392694129;
-        Sun, 20 Feb 2022 13:31:34 -0800 (PST)
-Received: from rfd.leadboat.com ([2600:1702:a20:5750::2e])
-        by smtp.gmail.com with ESMTPSA id t18sm29264062qta.90.2022.02.20.13.31.32
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 20 Feb 2022 13:31:33 -0800 (PST)
-Date:   Sun, 20 Feb 2022 13:31:31 -0800
-From:   Noah Misch <noah@leadboat.com>
-To:     sparclinux@vger.kernel.org
-Subject: [ext4+sparc64] reads see zeros w/ simultaneous write
-Message-ID: <20220220213131.GA3754799@rfd.leadboat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-User-Agent: Mutt/1.5.24 (2015-08-30)
+        with ESMTP id S1345284AbiBUGja (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Feb 2022 01:39:30 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id CECD8654D;
+        Sun, 20 Feb 2022 22:39:06 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 68D0F1476;
+        Sun, 20 Feb 2022 22:39:06 -0800 (PST)
+Received: from p8cg001049571a15.arm.com (unknown [10.163.49.67])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 91F9F3F70D;
+        Sun, 20 Feb 2022 22:39:03 -0800 (PST)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org, akpm@linux-foundation.org
+Cc:     linux-kernel@vger.kernel.org,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linux-arch@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Khalid Aziz <khalid.aziz@oracle.com>,
+        sparclinux@vger.kernel.org
+Subject: [PATCH V2 06/30] sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Date:   Mon, 21 Feb 2022 12:08:15 +0530
+Message-Id: <1645425519-9034-7-git-send-email-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.7.4
+In-Reply-To: <1645425519-9034-1-git-send-email-anshuman.khandual@arm.com>
+References: <1645425519-9034-1-git-send-email-anshuman.khandual@arm.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hello,
+This defines and exports a platform specific custom vm_get_page_prot() via
+subscribing ARCH_HAS_VM_GET_PAGE_PROT. Subsequently all __SXXX and __PXXX
+macros can be dropped which are no longer needed. This also localizes the
+helper arch_vm_get_page_prot() as sparc_vm_get_page_prot() and moves near
+vm_get_page_prot().
 
-I originally reported this to Debian
-(https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1006157), which
-advised me to re-report it upstream.  The context is an ext4
-filesystem on a sparc64 host.  I've observed this with each of the
-three sparc64 Debian kernels that I've tested.  Those kernels were
-5.16.0-1-sparc64-smp, 5.15.0-2-sparc64-smp, and 4.9.0-13-sparc64-smp.
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Khalid Aziz <khalid.aziz@oracle.com>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+---
+ arch/sparc/Kconfig                  |  2 +
+ arch/sparc/include/asm/mman.h       |  6 ---
+ arch/sparc/include/asm/pgtable_32.h | 19 --------
+ arch/sparc/include/asm/pgtable_64.h | 19 --------
+ arch/sparc/mm/init_32.c             | 35 +++++++++++++++
+ arch/sparc/mm/init_64.c             | 70 +++++++++++++++++++++--------
+ 6 files changed, 88 insertions(+), 63 deletions(-)
 
-   * What exactly did you do (or not do) that was effective (or
-     ineffective)?
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 1cab1b284f1a..ff29156f2380 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -59,6 +59,7 @@ config SPARC32
+ 	select HAVE_UID16
+ 	select OLD_SIGACTION
+ 	select ZONE_DMA
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 
+ config SPARC64
+ 	def_bool 64BIT
+@@ -84,6 +85,7 @@ config SPARC64
+ 	select PERF_USE_VMALLOC
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select HAVE_C_RECORDMCOUNT
++	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select HAVE_ARCH_AUDITSYSCALL
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
+diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
+index 274217e7ed70..af9c10c83dc5 100644
+--- a/arch/sparc/include/asm/mman.h
++++ b/arch/sparc/include/asm/mman.h
+@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_vm_prot_bits(unsigned long prot)
+ 	}
+ }
+ 
+-#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
+-static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
+-{
+-	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
+-}
+-
+ #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
+ static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+ {
+diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
+index ffccfe3b22ed..060a435f96d6 100644
+--- a/arch/sparc/include/asm/pgtable_32.h
++++ b/arch/sparc/include/asm/pgtable_32.h
+@@ -64,25 +64,6 @@ void paging_init(void);
+ 
+ extern unsigned long ptr_in_current_pgd;
+ 
+-/*         xwr */
+-#define __P000  PAGE_NONE
+-#define __P001  PAGE_READONLY
+-#define __P010  PAGE_COPY
+-#define __P011  PAGE_COPY
+-#define __P100  PAGE_READONLY
+-#define __P101  PAGE_READONLY
+-#define __P110  PAGE_COPY
+-#define __P111  PAGE_COPY
+-
+-#define __S000	PAGE_NONE
+-#define __S001	PAGE_READONLY
+-#define __S010	PAGE_SHARED
+-#define __S011	PAGE_SHARED
+-#define __S100	PAGE_READONLY
+-#define __S101	PAGE_READONLY
+-#define __S110	PAGE_SHARED
+-#define __S111	PAGE_SHARED
+-
+ /* First physical page can be anywhere, the following is needed so that
+  * va-->pa and vice versa conversions work properly without performance
+  * hit for all __pa()/__va() operations.
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 4679e45c8348..a779418ceba9 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -187,25 +187,6 @@ bool kern_addr_valid(unsigned long addr);
+ #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
+ #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
+ 
+-/* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
+-#define __P000	__pgprot(0)
+-#define __P001	__pgprot(0)
+-#define __P010	__pgprot(0)
+-#define __P011	__pgprot(0)
+-#define __P100	__pgprot(0)
+-#define __P101	__pgprot(0)
+-#define __P110	__pgprot(0)
+-#define __P111	__pgprot(0)
+-
+-#define __S000	__pgprot(0)
+-#define __S001	__pgprot(0)
+-#define __S010	__pgprot(0)
+-#define __S011	__pgprot(0)
+-#define __S100	__pgprot(0)
+-#define __S101	__pgprot(0)
+-#define __S110	__pgprot(0)
+-#define __S111	__pgprot(0)
+-
+ #ifndef __ASSEMBLY__
+ 
+ pte_t mk_pte_io(unsigned long, pgprot_t, int, unsigned long);
+diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
+index 1e9f577f084d..348cbfe08b60 100644
+--- a/arch/sparc/mm/init_32.c
++++ b/arch/sparc/mm/init_32.c
+@@ -302,3 +302,38 @@ void sparc_flush_page_to_ram(struct page *page)
+ 		__flush_page_to_ram(vaddr);
+ }
+ EXPORT_SYMBOL(sparc_flush_page_to_ram);
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
++	case VM_NONE:
++		return PAGE_NONE;
++	case VM_READ:
++		return PAGE_READONLY;
++	case VM_WRITE:
++	case VM_WRITE | VM_READ:
++		return PAGE_COPY;
++	case VM_EXEC:
++	case VM_EXEC | VM_READ:
++		return PAGE_READONLY;
++	case VM_EXEC | VM_WRITE:
++	case VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_COPY;
++	case VM_SHARED:
++		return PAGE_NONE;
++	case VM_SHARED | VM_READ:
++		return PAGE_READONLY;
++	case VM_SHARED | VM_WRITE:
++	case VM_SHARED | VM_WRITE | VM_READ:
++		return PAGE_SHARED;
++	case VM_SHARED | VM_EXEC:
++	case VM_SHARED | VM_EXEC | VM_READ:
++		return PAGE_READONLY;
++	case VM_SHARED | VM_EXEC | VM_WRITE:
++	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
++		return PAGE_SHARED;
++	default:
++		BUILD_BUG();
++	}
++}
++EXPORT_SYMBOL(vm_get_page_prot);
+diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
+index 1b23639e2fcd..a390116d371b 100644
+--- a/arch/sparc/mm/init_64.c
++++ b/arch/sparc/mm/init_64.c
+@@ -50,6 +50,7 @@
+ #include <asm/cpudata.h>
+ #include <asm/setup.h>
+ #include <asm/irq.h>
++#include <asm/mman.h>
+ 
+ #include "init_64.h"
+ 
+@@ -2641,29 +2642,13 @@ static void prot_init_common(unsigned long page_none,
+ {
+ 	PAGE_COPY = __pgprot(page_copy);
+ 	PAGE_SHARED = __pgprot(page_shared);
+-
+-	protection_map[0x0] = __pgprot(page_none);
+-	protection_map[0x1] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0x2] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x3] = __pgprot(page_copy & ~page_exec_bit);
+-	protection_map[0x4] = __pgprot(page_readonly);
+-	protection_map[0x5] = __pgprot(page_readonly);
+-	protection_map[0x6] = __pgprot(page_copy);
+-	protection_map[0x7] = __pgprot(page_copy);
+-	protection_map[0x8] = __pgprot(page_none);
+-	protection_map[0x9] = __pgprot(page_readonly & ~page_exec_bit);
+-	protection_map[0xa] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xb] = __pgprot(page_shared & ~page_exec_bit);
+-	protection_map[0xc] = __pgprot(page_readonly);
+-	protection_map[0xd] = __pgprot(page_readonly);
+-	protection_map[0xe] = __pgprot(page_shared);
+-	protection_map[0xf] = __pgprot(page_shared);
+ }
+ 
++static unsigned long page_none, page_shared, page_copy, page_readonly;
++static unsigned long page_exec_bit;
++
+ static void __init sun4u_pgprot_init(void)
+ {
+-	unsigned long page_none, page_shared, page_copy, page_readonly;
+-	unsigned long page_exec_bit;
+ 	int i;
+ 
+ 	PAGE_KERNEL = __pgprot (_PAGE_PRESENT_4U | _PAGE_VALID |
+@@ -3183,3 +3168,50 @@ void copy_highpage(struct page *to, struct page *from)
+ 	}
+ }
+ EXPORT_SYMBOL(copy_highpage);
++
++static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
++{
++	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
++	case VM_NONE:
++		return __pgprot(page_none);
++	case VM_READ:
++		return __pgprot(page_readonly & ~page_exec_bit);
++	case VM_WRITE:
++	case VM_WRITE | VM_READ:
++		return __pgprot(page_copy & ~page_exec_bit);
++	case VM_EXEC:
++	case VM_EXEC | VM_READ:
++		return __pgprot(page_readonly);
++	case VM_EXEC | VM_WRITE:
++	case VM_EXEC | VM_WRITE | VM_READ:
++		return __pgprot(page_copy);
++	case VM_SHARED:
++		return __pgprot(page_none);
++	case VM_SHARED | VM_READ:
++		return __pgprot(page_readonly & ~page_exec_bit);
++	case VM_SHARED | VM_WRITE:
++	case VM_SHARED | VM_WRITE | VM_READ:
++		return __pgprot(page_shared & ~page_exec_bit);
++	case VM_SHARED | VM_EXEC:
++	case VM_SHARED | VM_EXEC | VM_READ:
++		return __pgprot(page_readonly);
++	case VM_SHARED | VM_EXEC | VM_WRITE:
++	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
++		return __pgprot(page_shared);
++	default:
++		BUILD_BUG();
++	}
++}
++
++static pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
++{
++	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
++}
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	return __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
++	       pgprot_val(sparc_vm_get_page_prot(vm_flags)));
++
++}
++EXPORT_SYMBOL(vm_get_page_prot);
+-- 
+2.25.1
 
-See the included file for a minimal test program.  It creates two
-processes, each of which loops indefinitely.  One opens a file, writes
-0x1 to a 256-byte region, and closes the file.  The other process
-opens the same file, reads the same region, and prints a message if
-any byte is not 0x1.
-
-This thread has more discussion and a more-configurable test program:
-https://postgr.es/m/flat/20220116071210.GA735692@rfd.leadboat.com
-
-   * What was the outcome of this action?
-
-The program prints messages, at least ten per second.  The mismatch
-always appears at an offset divisible by eight.  Some offsets are more
-common than others.  Here's output from 300s of runtime, filtered
-through "sort -nk3 | uniq -c":
-
-   1729 mismatch at 8: got 0, want 1
-   1878 mismatch at 16: got 0, want 1
-   1030 mismatch at 24: got 0, want 1
-     41 mismatch at 40: got 0, want 1
-    373 mismatch at 48: got 0, want 1
-     24 mismatch at 56: got 0, want 1
-    349 mismatch at 64: got 0, want 1
-  13525 mismatch at 72: got 0, want 1
-    401 mismatch at 80: got 0, want 1
-    365 mismatch at 88: got 0, want 1
-      1 mismatch at 96: got 0, want 1
-     32 mismatch at 104: got 0, want 1
-     34 mismatch at 112: got 0, want 1
-     19 mismatch at 120: got 0, want 1
-     34 mismatch at 128: got 0, want 1
-    253 mismatch at 136: got 0, want 1
-    149 mismatch at 144: got 0, want 1
-    138 mismatch at 152: got 0, want 1
-      1 mismatch at 160: got 0, want 1
-      4 mismatch at 168: got 0, want 1
-      7 mismatch at 176: got 0, want 1
-      4 mismatch at 184: got 0, want 1
-      1 mismatch at 192: got 0, want 1
-     83 mismatch at 200: got 0, want 1
-     58 mismatch at 208: got 0, want 1
-   3301 mismatch at 216: got 0, want 1
-      2 mismatch at 232: got 0, want 1
-      1 mismatch at 248: got 0, want 1
-
-If I run the program atop an xfs filesystem (still with sparc64), it
-prints nothing.  If I run it with x86_64 or powerpc64 (atop ext4), it
-prints nothing.
-
-   * What outcome did you expect instead?
-
-I expected the program to print nothing, indicating that the reader
-process observes only 0x1 bytes.  That is how x86_64+ext4 behaves.
-
-POSIX is stricter, requiring read() and write() implementations such
-that "each call shall either see all of the specified effects of the
-other call, or none of them"
-(https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html#tag_15_09_07).
-ext4 does not conform, which may be pragmatic.  However, with x86_64
-and powerpc64, readers see each byte as either its before-write value
-or its after-write value.  They don't see a zero in an offset that
-will have been nonzero both before and after the ongoing write().
-
-
-=== sparc64-ext4-zeros.c
-/*
- * Stress-test read(), and write() to detect a problem seen with sparc64+ext4.
- * Readers see zeros when they read concurrently with a write, even if the
- * file had no zero at that offset before or after the write.  This program
- * runs indefinitely and will print "mismatch ..." each time that happens.
- */
-
-#include <errno.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-/*
- * Size of block written in a loop and read in another process's loop.  Values
- * lower than about 128 don't reproduce the problem.
- */
-#define BLOCK_SIZE 256
-/* Offset of that block within file.  Probably any value works. */
-#define OFFSET 0
-/* Byte to write to every file offset.  Probably any nonzero value works. */
-#define FILL_VALUE 1
-
-static ssize_t
-my_pread(int fd, void *buf, size_t count, off_t offset)
-{
-	if (lseek(fd, offset, SEEK_SET) == (off_t) -1)
-		perror("lseek");
-	return read(fd, buf, count);
-}
-
-static ssize_t
-my_pwrite(int fd, const void *buf, size_t count, off_t offset)
-{
-	if (lseek(fd, offset, SEEK_SET) == (off_t) -1)
-		perror("lseek");
-	return write(fd, buf, count);
-}
-
-static int
-reopen(void)
-{
-	int			fd = open("io-rectitude.tmp", O_RDWR);
-
-	if (fd == -1)
-		perror("open");
-	return fd;
-}
-
-static void
-writer(int fd)
-{
-	char		buf[BLOCK_SIZE];
-
-	memset(buf, FILL_VALUE, sizeof(buf));
-	for (;;)
-	{
-		close(fd);
-		fd = reopen();
-		errno = 0;
-		if (my_pwrite(fd, buf, sizeof(buf), OFFSET) != sizeof(buf))
-			perror("pwrite");	/* not a defect */
-	}
-}
-
-static void
-reader(int fd)
-{
-	for (;;)
-	{
-		unsigned char buf[BLOCK_SIZE];
-		close(fd);
-		fd = reopen();
-		errno = 0;
-		if (my_pread(fd, buf, sizeof(buf), OFFSET) != sizeof(buf))
-			perror("pread");	/* not a defect */
-		else
-		{
-			int			i;
-			for (i = 0; i < sizeof(buf); ++i)
-			{
-				if (buf[i] != FILL_VALUE)
-				{
-					fprintf(stderr, "mismatch at %d: got %d, want %d\n",
-							i, buf[i], FILL_VALUE);
-					break;
-				}
-			}
-		}
-	}
-}
-
-int
-main(int argc, char **argv)
-{
-	int			fd;
-	unsigned char buf[OFFSET + BLOCK_SIZE];
-	pid_t		pid;
-
-	fd = open("io-rectitude.tmp", O_RDWR | O_CREAT | O_TRUNC, 0666);
-	if (fd == -1)
-	{
-		perror("open");
-		return 1;
-	}
-	/* initialize file contents */
-	memset(buf, FILL_VALUE, sizeof(buf));
-	if (write(fd, buf, sizeof(buf)) != sizeof(buf))
-	{
-		perror("write");
-		return 1;
-	}
-
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		return 1;
-	}
-	else if (pid == 0)
-		writer(fd);
-	else
-		reader(fd);
-
-	return 0;					/* unreachable */
-}
