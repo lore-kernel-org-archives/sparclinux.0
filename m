@@ -2,75 +2,64 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A97FC433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 07:41:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 540E4C43219
+	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 07:47:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238737AbiBWHmT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 23 Feb 2022 02:42:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38180 "EHLO
+        id S238777AbiBWHre (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 23 Feb 2022 02:47:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238714AbiBWHmP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 02:42:15 -0500
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2B10639156;
-        Tue, 22 Feb 2022 23:41:45 -0800 (PST)
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1nMmHJ-0002z4-00; Wed, 23 Feb 2022 08:41:37 +0100
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 9B37FC2742; Wed, 23 Feb 2022 08:41:27 +0100 (CET)
-Date:   Wed, 23 Feb 2022 08:41:27 +0100
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, linux-api@vger.kernel.org, arnd@arndb.de,
-        linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk,
-        linux@armlinux.org.uk, will@kernel.org, guoren@kernel.org,
-        bcain@codeaurora.org, geert@linux-m68k.org, monstr@monstr.eu,
-        nickhu@andestech.com, green.hu@gmail.com, dinguyen@kernel.org,
-        shorne@gmail.com, deller@gmx.de, mpe@ellerman.id.au,
-        peterz@infradead.org, mingo@redhat.com, mark.rutland@arm.com,
-        hca@linux.ibm.com, dalias@libc.org, davem@davemloft.net,
-        richard@nod.at, x86@kernel.org, jcmvbkbc@gmail.com,
-        ebiederm@xmission.com, akpm@linux-foundation.org, ardb@kernel.org,
-        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v2 09/18] mips: use simpler access_ok()
-Message-ID: <20220223074127.GA8287@alpha.franken.de>
-References: <20220216131332.1489939-1-arnd@kernel.org>
- <20220216131332.1489939-10-arnd@kernel.org>
+        with ESMTP id S238749AbiBWHrb (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 02:47:31 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABCFD65797;
+        Tue, 22 Feb 2022 23:47:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
+        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=iy5Ofm6AWn5S0+TPzZqllkgh84EUFfIT9WUD1UClXn4=; b=KuGl+SxVwgaXgh5hLAVT1UAi4x
+        Mdf6Uz6m2y23+0SrvtSnU9O8BhDGXxKAatQH1UV+1HLTZS6EKiTcNTlvQr6XJI6pv0KEXE3xvFiKZ
+        R/Jky7QdCF8UDa+v3Z/QM6f/ERD1b/x8syFTQf7TpLLbwqST8AacGpmpD66qiLMZMpUOKXyZjimX2
+        dqd43SyR3QIvd4Ydjgs3/d/7SKJAn7H0MEg/DJhCNfnBiuUH1CugGaRKAQv+oCwF98QBvMo4HOU/T
+        ucaRKTd4ozFy8kNCn3ThNjnNyyDuUTB+nnvKoGQIx86jvBLxFv0AD8qU8mHYnOj4lkd3DtKX03IFR
+        DEkug9Yw==;
+Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nMmLj-00DALX-99; Wed, 23 Feb 2022 07:46:11 +0000
+Date:   Tue, 22 Feb 2022 23:46:11 -0800
+From:   Christoph Hellwig <hch@infradead.org>
+To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc:     arnd@arndb.de, hch@infradead.org, akpm@linux-foundation.org,
+        rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
+        davem@davemloft.net, airlied@linux.ie, vkoul@kernel.org,
+        hao.wu@intel.com, trix@redhat.com, mdf@kernel.org,
+        yilun.xu@intel.com, awalls@md.metrocast.net, mchehab@kernel.org,
+        sathya.prakash@broadcom.com, sreekanth.reddy@broadcom.com,
+        suganath-prabu.subramani@broadcom.com, mporter@kernel.crashing.org,
+        alex.bou9@gmail.com, bhelgaas@google.com,
+        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, dmaengine@vger.kernel.org,
+        linux-fpga@vger.kernel.org, linux-media@vger.kernel.org,
+        MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 00/16] Remove usage of the deprecated "pci-dma-compat.h"
+ API
+Message-ID: <YhXmQwvjMFPQFPUr@infradead.org>
+References: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220216131332.1489939-10-arnd@kernel.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+In-Reply-To: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
+X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 16, 2022 at 02:13:23PM +0100, Arnd Bergmann wrote:
-> diff --git a/arch/mips/include/asm/uaccess.h b/arch/mips/include/asm/uaccess.h
-> index db9a8e002b62..d7c89dc3426c 100644
-> --- a/arch/mips/include/asm/uaccess.h
-> +++ b/arch/mips/include/asm/uaccess.h
-> @@ -19,6 +19,7 @@
->  #ifdef CONFIG_32BIT
->  
->  #define __UA_LIMIT 0x80000000UL
-> +#define TASK_SIZE_MAX	__UA_LIMIT
+Hi Christophe,
 
-using KSEG0 instead would IMHO be the better choice. This gives the
-chance to remove __UA_LIMIT completly after cleaning up ptrace.c
+do you know what the state is in current linux-next?
 
-Thomas.
-
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+I think we'll just want to queue up anything left at this point in the
+dma-mapping or PCI tree and get it done.
