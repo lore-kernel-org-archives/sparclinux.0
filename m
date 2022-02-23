@@ -2,120 +2,161 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19780C4332F
-	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 20:42:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 087ECC4321E
+	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 23:31:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241521AbiBWUnH convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 23 Feb 2022 15:43:07 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41198 "EHLO
+        id S244825AbiBWXbf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 23 Feb 2022 18:31:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234184AbiBWUnG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 15:43:06 -0500
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.134])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 264D24D9E1;
-        Wed, 23 Feb 2022 12:42:37 -0800 (PST)
-Received: from mail-wr1-f54.google.com ([209.85.221.54]) by
- mrelayeu.kundenserver.de (mreue010 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1N2Unv-1oNLsZ1g5P-013tgA; Wed, 23 Feb 2022 21:42:36 +0100
-Received: by mail-wr1-f54.google.com with SMTP id p9so41552050wra.12;
-        Wed, 23 Feb 2022 12:42:36 -0800 (PST)
-X-Gm-Message-State: AOAM532mTYFfWZt9TfUixYZ4bjOV6N86XMcqwYJ+8jYJNejvP5OSOxmv
-        UlSrxI4myGyGV/gTE+kYAwKJ/kOZwQVH/a3WCO4=
-X-Google-Smtp-Source: ABdhPJziqSCxjCS1x1u10tLrK12Y5BgM1gvdjleghmB0yDOaxeqY4rE/1foGEILFQdcVBbYw8yS43bNCsScP3V8TzG8=
-X-Received: by 2002:adf:cf0c:0:b0:1e6:22fe:4580 with SMTP id
- o12-20020adfcf0c000000b001e622fe4580mr1011010wrj.12.1645648955871; Wed, 23
- Feb 2022 12:42:35 -0800 (PST)
+        with ESMTP id S243948AbiBWXbc (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 18:31:32 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C8D58583B6;
+        Wed, 23 Feb 2022 15:31:03 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 71131B81878;
+        Wed, 23 Feb 2022 23:31:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62A8BC340E7;
+        Wed, 23 Feb 2022 23:30:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1645659061;
+        bh=lqCEQ++vi7cgL8SGDqvu6VRtg8aruPJlQBSjPBXBFVM=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=sbRe9FkUPCxCGG5QhSpQFHALisL4a0h67bCxhSLbAt1nLiwP1yIOk1Uj7FSa6KCb5
+         weBLktMX2iJ1azUVoI5qzyIPsB248hdzJqK4FY8iQs4ijX9ClxGFEG4dPQ2t94Tu+v
+         xnm83JKO7FsjVlGtupBZVZ1sGqkMArGtNnLjnEwqgMRRugYsRTn+yfOLhixpTMveFC
+         hFyJk7dTbBRw3IsZy86rcTOonVkHxoMQs0BGW96T4vsXyVidvkbPH0uwFh8RFITz5K
+         oD3k8dsNBCQPOLOspB8IOHbjF16KCCmPClOP9aOj20bxN2gTg9NdvWcdAxevymW0xQ
+         hD4A1zZdc89kw==
+Message-ID: <c6f461f1-1dd9-aec1-2c85-a3eda478a1be@kernel.org>
+Date:   Wed, 23 Feb 2022 17:30:53 -0600
 MIME-Version: 1.0
-References: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
- <YhXmQwvjMFPQFPUr@infradead.org> <ddf6010e-417d-8da7-8e11-1b4a55f92fff@wanadoo.fr>
-In-Reply-To: <ddf6010e-417d-8da7-8e11-1b4a55f92fff@wanadoo.fr>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Wed, 23 Feb 2022 21:42:19 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a0nshfiWnhZydoRkmNBMQnyPueE4pvV1LuWR4XLxBQjUg@mail.gmail.com>
-Message-ID: <CAK8P3a0nshfiWnhZydoRkmNBMQnyPueE4pvV1LuWR4XLxBQjUg@mail.gmail.com>
-Subject: Re: [PATCH 00/16] Remove usage of the deprecated "pci-dma-compat.h" API
-To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        David Miller <davem@davemloft.net>,
-        David Airlie <airlied@linux.ie>, Vinod Koul <vkoul@kernel.org>,
-        hao.wu@intel.com, Tom Rix <trix@redhat.com>,
-        Moritz Fischer <mdf@kernel.org>, Xu Yilun <yilun.xu@intel.com>,
-        awalls@md.metrocast.net,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sathya Prakash <sathya.prakash@broadcom.com>,
-        sreekanth.reddy@broadcom.com,
-        Suganath Prabu Subramani 
-        <suganath-prabu.subramani@broadcom.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Alex Bounine <alex.bou9@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        alpha <linux-alpha@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        dmaengine@vger.kernel.org, linux-fpga@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        linux-pci <linux-pci@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-X-Provags-ID: V03:K1:+EHDA8n19nCeF+vM2P8PLPYGb0TUOdwEGHkS6GeBNEVHX4jMluh
- 4zZVkIM4OTnw24x4ExwusPPRHPinutOocshs4HRvCffFKEiaheJeU+Nq600oylx4L0vNuhB
- XsenrL+MP+J7CKq0RD9h10OCqN2SKXzdGvqe2Cy5Y2gbRnG2J97LIgwqZ0D/nhZxJ/bNRpf
- hobvYupx0Urm+q/FHAHZg==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:IBTzsmJgBfY=:S7FSvTCSOCm/oHqdAggS5Y
- bB8TWTPSiuxBUHKaKkZx+mHdyyBSGegJr6XMmUWkL1iEWFq7cZ6+nJViT4FO+xJ8Cs9yAqPyj
- AuRhBGGnbejqMXkAEdPMJNr2DYZbBHylHmvjRl4ql3B6M40+dsKEep0H3TP9iQ38+Ju48tG+k
- frLX1E8YwskOJ1YlpX0p5jR0BOnp3SXs4QpnSIhrnJ1Rskf9E/attNHn0CtH0EplRaKSSII9c
- fnJkYBUxfSnZdSEkGXPQcBj4tVd8Y1CrPf68Tu8JFxU/NbYGMsjrZEkNtO+DcR8QdONeldMKc
- jRsDBn9WNLVtZzxm2ZbemkIKZUweJYVuqDYiAScCL7C5CxnBzi6ta3DckQBY9yNMTXMoqXtgP
- 2lLxWF0tql18b9jMDRbwSDLsZAchAwTbBoleQwTuh666QXns0eK55eMTrADXcE1Jtq68lj0o7
- tZQpeLPuJxf0CkxyZVHM3aJQS3PjTUivRK1U0kM6M6NVejJolVg3Vocjme8Yfy74KECVowJNb
- rQGB3THCUXOZtv8xM1+gRTHb8LcOVs/kISzkldj5wo93hqPOwzYjzQrdqOK755SMwei1KK5Ak
- SlTcE+/LaUYGsBaSvn0XOu/woz5JIXTUZZ/35l89tnlA8wKXFNxtp0s9qk0oh/FuHc4UY+6hV
- reXuv6YnNc6BnoduZPDGvnCglihJhCvm2V5Dxx8F/XJN+DG1tZHs6IR9KWwu6Pe15hiAnEm9f
- q3lKjAwktwqYLUtJuX5Ax/D+8OsnfhdlYYOX3q88j6Hvj1zFxIGcLcpi4wq8+neMdqGUz0YyQ
- sz0brsmpiFwKXxsKz4g49LhuSFB8c+J4uiz0M7FOftJWvcFZvA=
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [PATCH v2 07/18] nios2: drop access_ok() check from __put_user()
+Content-Language: en-US
+To:     Arnd Bergmann <arnd@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Christoph Hellwig <hch@lst.de>, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, linux-api@vger.kernel.org, arnd@arndb.de,
+        linux-kernel@vger.kernel.org, viro@zeniv.linux.org.uk
+Cc:     linux@armlinux.org.uk, will@kernel.org, guoren@kernel.org,
+        bcain@codeaurora.org, geert@linux-m68k.org, monstr@monstr.eu,
+        tsbogend@alpha.franken.de, nickhu@andestech.com,
+        green.hu@gmail.com, shorne@gmail.com, deller@gmx.de,
+        mpe@ellerman.id.au, peterz@infradead.org, mingo@redhat.com,
+        mark.rutland@arm.com, hca@linux.ibm.com, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at, x86@kernel.org,
+        jcmvbkbc@gmail.com, ebiederm@xmission.com,
+        akpm@linux-foundation.org, ardb@kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
+References: <20220216131332.1489939-1-arnd@kernel.org>
+ <20220216131332.1489939-8-arnd@kernel.org>
+From:   Dinh Nguyen <dinguyen@kernel.org>
+In-Reply-To: <20220216131332.1489939-8-arnd@kernel.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 23, 2022 at 9:26 PM Christophe JAILLET
-<christophe.jaillet@wanadoo.fr> wrote:
->
-> Le 23/02/2022 à 08:46, Christoph Hellwig a écrit :
-> > Hi Christophe,
-> >
-> > do you know what the state is in current linux-next?
-> >
-> > I think we'll just want to queue up anything left at this point in the
-> > dma-mapping or PCI tree and get it done.
-> >
->
-> Hi,
->
-> Patch 01, 04, 05, 06, 08, 09 have not reached -next yet.
-> They all still apply cleanly.
->
-> 04 has been picked it up for inclusion in the media subsystem for 5.18.
-> The other ones all have 1 or more Reviewed-by:/Acked-by: tags.
->
-> Patch 16 must be resubmitted to add "#include <linux/dma-mapping.h>" in
-> order not to break builds.
->
->
-> All the other patches have landed in -next.
 
-Ok, these all look trivial. I'd suggest you send the rebase version to
-Andrew Morton then, so he can pick them all up into linux-mm, on top
-of the linux-next contents.
 
-         Arnd
+On 2/16/22 07:13, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> Unlike other architectures, the nios2 version of __put_user() has an
+> extra check for access_ok(), preventing it from being used to implement
+> __put_kernel_nofault().
+> 
+> Split up put_user() along the same lines as __get_user()/get_user()
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>   arch/nios2/include/asm/uaccess.h | 56 +++++++++++++++++++-------------
+>   1 file changed, 33 insertions(+), 23 deletions(-)
+> 
+> diff --git a/arch/nios2/include/asm/uaccess.h b/arch/nios2/include/asm/uaccess.h
+> index ca9285a915ef..a5cbe07cf0da 100644
+> --- a/arch/nios2/include/asm/uaccess.h
+> +++ b/arch/nios2/include/asm/uaccess.h
+> @@ -167,34 +167,44 @@ do {									\
+>   	: "r" (val), "r" (ptr), "i" (-EFAULT));				\
+>   }
+>   
+> -#define put_user(x, ptr)						\
+> +#define __put_user_common(__pu_val, __pu_ptr)				\
+>   ({									\
+>   	long __pu_err = -EFAULT;					\
+> -	__typeof__(*(ptr)) __user *__pu_ptr = (ptr);			\
+> -	__typeof__(*(ptr)) __pu_val = (__typeof(*ptr))(x);		\
+> -	if (access_ok(__pu_ptr, sizeof(*__pu_ptr))) {	\
+> -		switch (sizeof(*__pu_ptr)) {				\
+> -		case 1:							\
+> -			__put_user_asm(__pu_val, "stb", __pu_ptr, __pu_err); \
+> -			break;						\
+> -		case 2:							\
+> -			__put_user_asm(__pu_val, "sth", __pu_ptr, __pu_err); \
+> -			break;						\
+> -		case 4:							\
+> -			__put_user_asm(__pu_val, "stw", __pu_ptr, __pu_err); \
+> -			break;						\
+> -		default:						\
+> -			/* XXX: This looks wrong... */			\
+> -			__pu_err = 0;					\
+> -			if (copy_to_user(__pu_ptr, &(__pu_val),		\
+> -				sizeof(*__pu_ptr)))			\
+> -				__pu_err = -EFAULT;			\
+> -			break;						\
+> -		}							\
+> +	switch (sizeof(*__pu_ptr)) {					\
+> +	case 1:								\
+> +		__put_user_asm(__pu_val, "stb", __pu_ptr, __pu_err);	\
+> +		break;							\
+> +	case 2:								\
+> +		__put_user_asm(__pu_val, "sth", __pu_ptr, __pu_err);	\
+> +		break;							\
+> +	case 4:								\
+> +		__put_user_asm(__pu_val, "stw", __pu_ptr, __pu_err);	\
+> +		break;							\
+> +	default:							\
+> +		/* XXX: This looks wrong... */				\
+> +		__pu_err = 0;						\
+> +		if (__copy_to_user(__pu_ptr, &(__pu_val),		\
+> +			sizeof(*__pu_ptr)))				\
+> +			__pu_err = -EFAULT;				\
+> +		break;							\
+>   	}								\
+>   	__pu_err;							\
+>   })
+>   
+> -#define __put_user(x, ptr) put_user(x, ptr)
+> +#define __put_user(x, ptr)						\
+> +({									\
+> +	__auto_type __pu_ptr = (ptr);					\
+> +	typeof(*__pu_ptr) __pu_val = (typeof(*__pu_ptr))(x);		\
+> +	__put_user_common(__pu_val, __pu_ptr);				\
+> +})
+> +
+> +#define put_user(x, ptr)						\
+> +({									\
+> +	__auto_type __pu_ptr = (ptr);					\
+> +	typeof(*__pu_ptr) __pu_val = (typeof(*__pu_ptr))(x);		\
+> +	access_ok(__pu_ptr, sizeof(*__pu_ptr)) ?			\
+> +		__put_user_common(__pu_val, __pu_ptr) :			\
+> +		-EFAULT;						\
+> +})
+>   
+>   #endif /* _ASM_NIOS2_UACCESS_H */
+
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
