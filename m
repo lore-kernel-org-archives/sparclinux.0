@@ -2,64 +2,60 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 540E4C43219
-	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 07:47:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4CACC433EF
+	for <sparclinux@archiver.kernel.org>; Wed, 23 Feb 2022 08:53:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238777AbiBWHre (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 23 Feb 2022 02:47:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
+        id S239073AbiBWIyI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 23 Feb 2022 03:54:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238749AbiBWHrb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 02:47:31 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABCFD65797;
-        Tue, 22 Feb 2022 23:47:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=iy5Ofm6AWn5S0+TPzZqllkgh84EUFfIT9WUD1UClXn4=; b=KuGl+SxVwgaXgh5hLAVT1UAi4x
-        Mdf6Uz6m2y23+0SrvtSnU9O8BhDGXxKAatQH1UV+1HLTZS6EKiTcNTlvQr6XJI6pv0KEXE3xvFiKZ
-        R/Jky7QdCF8UDa+v3Z/QM6f/ERD1b/x8syFTQf7TpLLbwqST8AacGpmpD66qiLMZMpUOKXyZjimX2
-        dqd43SyR3QIvd4Ydjgs3/d/7SKJAn7H0MEg/DJhCNfnBiuUH1CugGaRKAQv+oCwF98QBvMo4HOU/T
-        ucaRKTd4ozFy8kNCn3ThNjnNyyDuUTB+nnvKoGQIx86jvBLxFv0AD8qU8mHYnOj4lkd3DtKX03IFR
-        DEkug9Yw==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nMmLj-00DALX-99; Wed, 23 Feb 2022 07:46:11 +0000
-Date:   Tue, 22 Feb 2022 23:46:11 -0800
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Cc:     arnd@arndb.de, hch@infradead.org, akpm@linux-foundation.org,
-        rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
-        mpe@ellerman.id.au, benh@kernel.crashing.org, paulus@samba.org,
-        davem@davemloft.net, airlied@linux.ie, vkoul@kernel.org,
-        hao.wu@intel.com, trix@redhat.com, mdf@kernel.org,
-        yilun.xu@intel.com, awalls@md.metrocast.net, mchehab@kernel.org,
-        sathya.prakash@broadcom.com, sreekanth.reddy@broadcom.com,
-        suganath-prabu.subramani@broadcom.com, mporter@kernel.crashing.org,
-        alex.bou9@gmail.com, bhelgaas@google.com,
-        linux-alpha@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, dmaengine@vger.kernel.org,
-        linux-fpga@vger.kernel.org, linux-media@vger.kernel.org,
-        MPT-FusionLinux.pdl@broadcom.com, linux-scsi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 00/16] Remove usage of the deprecated "pci-dma-compat.h"
- API
-Message-ID: <YhXmQwvjMFPQFPUr@infradead.org>
-References: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
+        with ESMTP id S239097AbiBWIyH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 23 Feb 2022 03:54:07 -0500
+X-Greylist: delayed 476 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Wed, 23 Feb 2022 00:53:37 PST
+Received: from mail.westfry.pl (mail.westfry.pl [37.235.53.118])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20D7C7B572
+        for <sparclinux@vger.kernel.org>; Wed, 23 Feb 2022 00:53:37 -0800 (PST)
+Received: by mail.westfry.pl (Postfix, from userid 1001)
+        id 7E4E140E72; Wed, 23 Feb 2022 09:45:37 +0100 (CET)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=westfry.pl; s=mail;
+        t=1645605939; bh=LR+NVe8ereA5M/TBxYmbtwf3vktekJuIGl7bOrar+t4=;
+        h=Date:From:To:Subject:From;
+        b=SrZXc/WyZNjnOmAR6ItOMVkuwgqp4pIm/WSzt/eJd5Nuf+LY/pbJVbENvRmVHHHfT
+         58Zr5TXubwuNYpgao4bbYizHoiadEU/OFAO03I5CiUF7LYPCJGs5d6vLBNO58yqkzh
+         Z700rzIa4QyI1z9SlSi6DUmgNqhe4tPVLruRui29ubjksSFKIm6JobjxmeJLk3sX5U
+         O2NzU24jiMyD/3PphJyFJYM0jk61yQ8zU/8k99nOVljmxv5pilX2fl1XgQgS9pph+6
+         zeHW1oOsr/RW+4SKmYNgt9rvvWu0JTN6G7yauiPShOrDuAbxVM+RLzRXxHlfBCNzj6
+         0O57bY9O6SpUA==
+Received: by mail.westfry.pl for <sparclinux@vger.kernel.org>; Wed, 23 Feb 2022 08:45:36 GMT
+Message-ID: <20220223084500-0.1.13.33q8.0.dnq2aplw68@westfry.pl>
+Date:   Wed, 23 Feb 2022 08:45:36 GMT
+From:   =?UTF-8?Q? "Mariusz_B=C5=82ach" ?= <mariusz.blach@westfry.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Zu=C5=BCycie_auta?=
+X-Mailer: mail.westfry.pl
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1641500561.git.christophe.jaillet@wanadoo.fr>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Christophe,
+Dzie=C5=84 dobry,
 
-do you know what the state is in current linux-next?
+Czy s=C4=85 Pa=C5=84stwo zainteresowani rozwi=C4=85zaniem do monitorowani=
+a pojazd=C3=B3w?
 
-I think we'll just want to queue up anything left at this point in the
-dma-mapping or PCI tree and get it done.
+Optymalizacja zu=C5=BCycia paliwa, zarz=C4=85dzanie trasami oraz dziesi=C4=
+=85tki innych przydatnych funkcjonalno=C5=9Bci wspiera w osi=C4=85ganiu l=
+epszej wydajno=C5=9Bci w zakresie obs=C5=82ugi samochod=C3=B3w firmowych.=
+=20
+
+Natomiast bezp=C5=82atny 3-miesi=C4=99czny test rozwi=C4=85zania, pozwala=
+ dobrze pozna=C4=87 system przed decyzj=C4=85 dotycz=C4=85c=C4=85 nawi=C4=
+=85zania wsp=C3=B3=C5=82pracy.=20
+
+Czy przekaza=C4=87 wi=C4=99cej informacji ?
+
+
+Pozdrawiam,
+Mariusz B=C5=82ach
