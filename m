@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6FAFC43217
-	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 08:57:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6FBC41535
+	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 08:57:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231998AbiBXI5l (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 24 Feb 2022 03:57:41 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43864 "EHLO
+        id S232338AbiBXI6N (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 24 Feb 2022 03:58:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232434AbiBXI45 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 03:56:57 -0500
+        with ESMTP id S232478AbiBXI5a (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 03:57:30 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FD5726A3B9;
-        Thu, 24 Feb 2022 00:56:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DB3136328;
+        Thu, 24 Feb 2022 00:56:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2EBDB61ADD;
-        Thu, 24 Feb 2022 08:56:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC589C340F0;
-        Thu, 24 Feb 2022 08:56:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8690261B0F;
+        Thu, 24 Feb 2022 08:56:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0920C340E9;
+        Thu, 24 Feb 2022 08:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645692983;
-        bh=/ObW5rSeT34E/++iCg5HmXqlNd1ZKyvZrmWfUZvVcVY=;
+        s=k20201202; t=1645693007;
+        bh=YHBMf6oiN7AKyDQcRFQG6drB0b2sg1GEQLG12pVdvWw=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=t8FT9MZVp9YrfWa2ZH1G7QiElejAuWDOG7GCCTU0k/3nuk4btL3yPe380cT3SvNhM
-         IyqvNRd12m0qCOTp9E8/WtjueQM0d3tXnPfPtzREMNofJitB8bZWscPR5+sGEx7/Ee
-         jNf74Rd0B5F/+UXFT9diyd/soZxMDXPN3sboE1Nhioh4MEMu5MgwWlckgzeBE1qdFq
-         0OJASKXcaD41RSFIvbyKSeZ3qX6LgRiehjegzn3jLsOP9ULxxiQf1PA6yksmXQ6RW8
-         v5OKtBKdH3ED19mklgdRqu9y1xeqagKdVe4AlWzFZiPeWwoTJyAsXyrZomN6ZACn4O
-         ET3TqkaL71ePA==
+        b=Y3Y/NRqVQxVUTtAB3/fzxTf4Hl9aCJrxHdt0wXwEeIMlkVHaKweQZn8JFLnXvIqxa
+         SX6XbreT2NV6+b1WcqW4Zu5wIM0bBkRlIi10wOkKWjFsfdXOuh6za3cotaPYabiA/G
+         aG2gasqAZs8weiOTr7UF60qeqNe91bptGEzLhpzJZQldkwmD6/bzyGLJvF76WCPDBm
+         3mDt2h02smrKjcxOVntP+ejdWnThEu8gaNIB3mqkEZts8qizc91DHM1ZF5oGfizWs3
+         x+VkJzLazXZ869aixl7r/HQDAIDzqINeM2hNIMZMowYzrzsVIs3koMf1ksadaLD+DX
+         EmfJ/sg5kGW3w==
 From:   guoren@kernel.org
 To:     guoren@kernel.org, palmer@dabbelt.com, arnd@arndb.de,
         anup@brainfault.org, gregkh@linuxfoundation.org,
@@ -41,11 +41,10 @@ Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-parisc@vger.kernel.org,
         linux-mips@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        x86@kernel.org, Guo Ren <guoren@linux.alibaba.com>,
-        Palmer Dabbelt <palmer@rivosinc.com>
-Subject: [PATCH V6 12/20] riscv: compat: syscall: Add entry.S implementation
-Date:   Thu, 24 Feb 2022 16:54:02 +0800
-Message-Id: <20220224085410.399351-13-guoren@kernel.org>
+        x86@kernel.org, Guo Ren <guoren@linux.alibaba.com>
+Subject: [PATCH V6 15/20] riscv: compat: Add hw capability check for elf
+Date:   Thu, 24 Feb 2022 16:54:05 +0800
+Message-Id: <20220224085410.399351-16-guoren@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220224085410.399351-1-guoren@kernel.org>
 References: <20220224085410.399351-1-guoren@kernel.org>
@@ -57,75 +56,70 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Guo Ren <guoren@linux.alibaba.com>
 
-Implement the entry of compat_sys_call_table[] in asm. Ref to
-riscv-privileged spec 4.1.1 Supervisor Status Register (sstatus):
-
- BIT[32:33] = UXL[1:0]:
- - 1:32
- - 2:64
- - 3:128
+Detect hardware COMPAT (32bit U-mode) capability in rv64. If not
+support COMPAT mode in hw, compat_elf_check_arch would return
+false by compat_binfmt_elf.c
 
 Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 Signed-off-by: Guo Ren <guoren@kernel.org>
-Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Hellwig <hch@lst.de>
 ---
- arch/riscv/include/asm/csr.h |  7 +++++++
- arch/riscv/kernel/entry.S    | 18 ++++++++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ arch/riscv/include/asm/elf.h |  3 ++-
+ arch/riscv/kernel/process.c  | 26 ++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 1 deletion(-)
 
-diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
-index ae711692eec9..eed96fa62d66 100644
---- a/arch/riscv/include/asm/csr.h
-+++ b/arch/riscv/include/asm/csr.h
-@@ -36,6 +36,13 @@
- #define SR_SD		_AC(0x8000000000000000, UL) /* FS/XS dirty */
- #endif
+diff --git a/arch/riscv/include/asm/elf.h b/arch/riscv/include/asm/elf.h
+index aee40040917b..3a4293dc7229 100644
+--- a/arch/riscv/include/asm/elf.h
++++ b/arch/riscv/include/asm/elf.h
+@@ -40,7 +40,8 @@
+  * elf64_hdr e_machine's offset are different. The checker is
+  * a little bit simple compare to other architectures.
+  */
+-#define compat_elf_check_arch(x) ((x)->e_machine == EM_RISCV)
++extern bool compat_elf_check_arch(Elf32_Ehdr *hdr);
++#define compat_elf_check_arch	compat_elf_check_arch
+ 
+ #define CORE_DUMP_USE_REGSET
+ #define ELF_EXEC_PAGESIZE	(PAGE_SIZE)
+diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
+index 54787ca9806a..7bbe4dd95e85 100644
+--- a/arch/riscv/kernel/process.c
++++ b/arch/riscv/kernel/process.c
+@@ -83,6 +83,32 @@ void show_regs(struct pt_regs *regs)
+ 		dump_backtrace(regs, NULL, KERN_DEFAULT);
+ }
  
 +#ifdef CONFIG_COMPAT
-+#define SR_UXL		_AC(0x300000000, UL) /* XLEN mask for U-mode */
-+#define SR_UXL_32	_AC(0x100000000, UL) /* XLEN = 32 for U-mode */
-+#define SR_UXL_64	_AC(0x200000000, UL) /* XLEN = 64 for U-mode */
-+#define SR_UXL_SHIFT	32
++static bool compat_mode_supported __read_mostly;
++
++bool compat_elf_check_arch(Elf32_Ehdr *hdr)
++{
++	return compat_mode_supported && hdr->e_machine == EM_RISCV;
++}
++
++static int __init compat_mode_detect(void)
++{
++	unsigned long tmp = csr_read(CSR_STATUS);
++
++	csr_write(CSR_STATUS, (tmp & ~SR_UXL) | SR_UXL_32);
++	compat_mode_supported =
++			(csr_read(CSR_STATUS) & SR_UXL) == SR_UXL_32;
++
++	csr_write(CSR_STATUS, tmp);
++
++	pr_info("riscv: ELF compat mode %s",
++			compat_mode_supported ? "supported" : "failed");
++
++	return 0;
++}
++early_initcall(compat_mode_detect);
 +#endif
 +
- /* SATP flags */
- #ifndef CONFIG_64BIT
- #define SATP_PPN	_AC(0x003FFFFF, UL)
-diff --git a/arch/riscv/kernel/entry.S b/arch/riscv/kernel/entry.S
-index ed29e9c8f660..1951743f09b3 100644
---- a/arch/riscv/kernel/entry.S
-+++ b/arch/riscv/kernel/entry.S
-@@ -207,13 +207,27 @@ check_syscall_nr:
- 	 * Syscall number held in a7.
- 	 * If syscall number is above allowed value, redirect to ni_syscall.
- 	 */
--	bgeu a7, t0, 1f
-+	bgeu a7, t0, 3f
-+#ifdef CONFIG_COMPAT
-+	REG_L s0, PT_STATUS(sp)
-+	srli s0, s0, SR_UXL_SHIFT
-+	andi s0, s0, (SR_UXL >> SR_UXL_SHIFT)
-+	li t0, (SR_UXL_32 >> SR_UXL_SHIFT)
-+	sub t0, s0, t0
-+	bnez t0, 1f
-+
-+	/* Call compat_syscall */
-+	la s0, compat_sys_call_table
-+	j 2f
-+1:
-+#endif
- 	/* Call syscall */
- 	la s0, sys_call_table
-+2:
- 	slli t0, a7, RISCV_LGPTR
- 	add s0, s0, t0
- 	REG_L s0, 0(s0)
--1:
-+3:
- 	jalr s0
- 
- ret_from_syscall:
+ void start_thread(struct pt_regs *regs, unsigned long pc,
+ 	unsigned long sp)
+ {
 -- 
 2.25.1
 
