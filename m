@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D6FBC41535
-	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 08:57:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4521C35278
+	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 08:57:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232338AbiBXI6N (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 24 Feb 2022 03:58:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44368 "EHLO
+        id S232361AbiBXI6O (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 24 Feb 2022 03:58:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44520 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232478AbiBXI5a (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 03:57:30 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DB3136328;
-        Thu, 24 Feb 2022 00:56:47 -0800 (PST)
+        with ESMTP id S232367AbiBXI5z (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 03:57:55 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 030EC22B38;
+        Thu, 24 Feb 2022 00:57:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8690261B0F;
-        Thu, 24 Feb 2022 08:56:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0920C340E9;
-        Thu, 24 Feb 2022 08:56:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B027CB82497;
+        Thu, 24 Feb 2022 08:57:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 677BEC340F0;
+        Thu, 24 Feb 2022 08:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1645693007;
-        bh=YHBMf6oiN7AKyDQcRFQG6drB0b2sg1GEQLG12pVdvWw=;
+        s=k20201202; t=1645693043;
+        bh=IJ7jR8mTvejG9VzZtr4+z5Hdjv3FHdsfGnEFZTtHWjA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=Y3Y/NRqVQxVUTtAB3/fzxTf4Hl9aCJrxHdt0wXwEeIMlkVHaKweQZn8JFLnXvIqxa
-         SX6XbreT2NV6+b1WcqW4Zu5wIM0bBkRlIi10wOkKWjFsfdXOuh6za3cotaPYabiA/G
-         aG2gasqAZs8weiOTr7UF60qeqNe91bptGEzLhpzJZQldkwmD6/bzyGLJvF76WCPDBm
-         3mDt2h02smrKjcxOVntP+ejdWnThEu8gaNIB3mqkEZts8qizc91DHM1ZF5oGfizWs3
-         x+VkJzLazXZ869aixl7r/HQDAIDzqINeM2hNIMZMowYzrzsVIs3koMf1ksadaLD+DX
-         EmfJ/sg5kGW3w==
+        b=bRanqTr33zBAXAH2uXeTnUP+Is9PE4Ci3uq199mcf9qGI6qcQj7PndVNQu/ukxaiy
+         WG0meUuLYcBl3fBYYnWI5udGZsSUIRDmJocXIq5U9/r/s0bPdAel1HidOtsAgBXHM4
+         c2xRr8ReX7AcU3bZe7K9QzKx76D5WHF+k2OJldB2GBWDNDa/ngOJaE0gGZOp54otYU
+         38KaKoeqmfZqnweizNylPXa35e5kE6CQNOcCIz6EPHlriB/3Wnp9+6U6N15rDV94d4
+         PUAD1GUFF6tDGdKRHv5Pwcbd+l3ZcRV099vvMeMTXzjqg+LDDraT1Q3uxNi0aCMS9D
+         6+fmnLmPjTsIw==
 From:   guoren@kernel.org
 To:     guoren@kernel.org, palmer@dabbelt.com, arnd@arndb.de,
         anup@brainfault.org, gregkh@linuxfoundation.org,
@@ -42,9 +42,9 @@ Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-parisc@vger.kernel.org,
         linux-mips@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
         x86@kernel.org, Guo Ren <guoren@linux.alibaba.com>
-Subject: [PATCH V6 15/20] riscv: compat: Add hw capability check for elf
-Date:   Thu, 24 Feb 2022 16:54:05 +0800
-Message-Id: <20220224085410.399351-16-guoren@kernel.org>
+Subject: [PATCH V6 20/20] riscv: compat: Add COMPAT Kbuild skeletal support
+Date:   Thu, 24 Feb 2022 16:54:10 +0800
+Message-Id: <20220224085410.399351-21-guoren@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220224085410.399351-1-guoren@kernel.org>
 References: <20220224085410.399351-1-guoren@kernel.org>
@@ -56,70 +56,69 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Guo Ren <guoren@linux.alibaba.com>
 
-Detect hardware COMPAT (32bit U-mode) capability in rv64. If not
-support COMPAT mode in hw, compat_elf_check_arch would return
-false by compat_binfmt_elf.c
+Adds initial skeletal COMPAT Kbuild (Running 32bit U-mode on
+64bit S-mode) support.
+ - Setup kconfig & dummy functions for compiling.
+ - Implement compat_start_thread by the way.
 
 Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 Signed-off-by: Guo Ren <guoren@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
 ---
- arch/riscv/include/asm/elf.h |  3 ++-
- arch/riscv/kernel/process.c  | 26 ++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+), 1 deletion(-)
+ arch/riscv/Kconfig | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/arch/riscv/include/asm/elf.h b/arch/riscv/include/asm/elf.h
-index aee40040917b..3a4293dc7229 100644
---- a/arch/riscv/include/asm/elf.h
-+++ b/arch/riscv/include/asm/elf.h
-@@ -40,7 +40,8 @@
-  * elf64_hdr e_machine's offset are different. The checker is
-  * a little bit simple compare to other architectures.
-  */
--#define compat_elf_check_arch(x) ((x)->e_machine == EM_RISCV)
-+extern bool compat_elf_check_arch(Elf32_Ehdr *hdr);
-+#define compat_elf_check_arch	compat_elf_check_arch
+diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+index 5adcbd9b5e88..6f11df8c189f 100644
+--- a/arch/riscv/Kconfig
++++ b/arch/riscv/Kconfig
+@@ -73,6 +73,7 @@ config RISCV
+ 	select HAVE_ARCH_KGDB if !XIP_KERNEL
+ 	select HAVE_ARCH_KGDB_QXFER_PKT
+ 	select HAVE_ARCH_MMAP_RND_BITS if MMU
++	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if 64BIT && MMU
+@@ -123,12 +124,18 @@ config ARCH_MMAP_RND_BITS_MIN
+ 	default 18 if 64BIT
+ 	default 8
  
- #define CORE_DUMP_USE_REGSET
- #define ELF_EXEC_PAGESIZE	(PAGE_SIZE)
-diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
-index 54787ca9806a..7bbe4dd95e85 100644
---- a/arch/riscv/kernel/process.c
-+++ b/arch/riscv/kernel/process.c
-@@ -83,6 +83,32 @@ void show_regs(struct pt_regs *regs)
- 		dump_backtrace(regs, NULL, KERN_DEFAULT);
- }
++config ARCH_MMAP_RND_COMPAT_BITS_MIN
++	default 8
++
+ # max bits determined by the following formula:
+ #  VA_BITS - PAGE_SHIFT - 3
+ config ARCH_MMAP_RND_BITS_MAX
+ 	default 24 if 64BIT # SV39 based
+ 	default 17
  
-+#ifdef CONFIG_COMPAT
-+static bool compat_mode_supported __read_mostly;
++config ARCH_MMAP_RND_COMPAT_BITS_MAX
++	default 17
 +
-+bool compat_elf_check_arch(Elf32_Ehdr *hdr)
-+{
-+	return compat_mode_supported && hdr->e_machine == EM_RISCV;
-+}
+ # set if we run in machine mode, cleared if we run in supervisor mode
+ config RISCV_M_MODE
+ 	bool
+@@ -406,6 +413,18 @@ config CRASH_DUMP
+ 
+ 	  For more details see Documentation/admin-guide/kdump/kdump.rst
+ 
++config COMPAT
++	bool "Kernel support for 32-bit U-mode"
++	default 64BIT
++	depends on 64BIT && MMU
++	help
++	  This option enables support for a 32-bit U-mode running under a 64-bit
++	  kernel at S-mode. riscv32-specific components such as system calls,
++	  the user helper functions (vdso), signal rt_frame functions and the
++	  ptrace interface are handled appropriately by the kernel.
 +
-+static int __init compat_mode_detect(void)
-+{
-+	unsigned long tmp = csr_read(CSR_STATUS);
++	  If you want to execute 32-bit userspace applications, say Y.
 +
-+	csr_write(CSR_STATUS, (tmp & ~SR_UXL) | SR_UXL_32);
-+	compat_mode_supported =
-+			(csr_read(CSR_STATUS) & SR_UXL) == SR_UXL_32;
-+
-+	csr_write(CSR_STATUS, tmp);
-+
-+	pr_info("riscv: ELF compat mode %s",
-+			compat_mode_supported ? "supported" : "failed");
-+
-+	return 0;
-+}
-+early_initcall(compat_mode_detect);
-+#endif
-+
- void start_thread(struct pt_regs *regs, unsigned long pc,
- 	unsigned long sp)
- {
+ endmenu
+ 
+ menu "Boot options"
 -- 
 2.25.1
 
