@@ -2,39 +2,55 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD2A3C4321E
-	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 10:08:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48AC4C4321E
+	for <sparclinux@archiver.kernel.org>; Thu, 24 Feb 2022 10:30:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233207AbiBXKJL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 24 Feb 2022 05:09:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45608 "EHLO
+        id S233483AbiBXKbQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 24 Feb 2022 05:31:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231319AbiBXKJK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 05:09:10 -0500
-Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.187])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DAA028A109;
-        Thu, 24 Feb 2022 02:08:40 -0800 (PST)
-Received: from mail-lj1-f182.google.com ([209.85.208.182]) by
- mrelayeu.kundenserver.de (mreue009 [213.165.67.97]) with ESMTPSA (Nemesis) id
- 1Mo6zD-1o2IUW1RQB-00pbU6; Thu, 24 Feb 2022 11:08:39 +0100
-Received: by mail-lj1-f182.google.com with SMTP id bn33so2071645ljb.6;
-        Thu, 24 Feb 2022 02:08:39 -0800 (PST)
-X-Gm-Message-State: AOAM532G8Nc3Lr+kfTgtRAzsLg/iGKWg5v1Px0de78F49wEhGEADs0E2
-        94bcPp89euS1fmF54swAl9txrZlXM7kDSpE9kGY=
-X-Google-Smtp-Source: ABdhPJzPVQaW1f3Bbzw+kTDiMg4Tajz+c6SJ2JtQUsJaSw6D1lJ8eGh3OG9MaDTzij1odC2MMgMswcl0VWfIMCexGbY=
-X-Received: by 2002:a5d:59aa:0:b0:1ed:9f45:c2ff with SMTP id
- p10-20020a5d59aa000000b001ed9f45c2ffmr1412807wrr.192.1645694019453; Thu, 24
- Feb 2022 01:13:39 -0800 (PST)
+        with ESMTP id S233478AbiBXKbM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Feb 2022 05:31:12 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A553420A3B8;
+        Thu, 24 Feb 2022 02:30:42 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 438F76162C;
+        Thu, 24 Feb 2022 10:30:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CAB6C340F5;
+        Thu, 24 Feb 2022 10:30:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1645698641;
+        bh=UVBFu/2kd+72msKvbsEhY06n98IaQ0VgsAo0y3uTQ2c=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=uKMo67CXZRSwdhBzi8/EEN9oztBr9soHLP8RvL0hIDZzDAQWECQ7f8/Z8eugIY42z
+         hdfwcBluy+paiOgWEjWvgQKMnK4adKDRPYUcdzCO1eHFfPr8N0p6F+ynpzpVaLf9iv
+         CZRG6rIeJEwNiFrzJtmKDTMeHAoxInP0LBcoot5lwoVNesSWsfBfyAK/NsNtQnkts0
+         AMlDmrllC81ZcK3cvVTbMA9khRkXj8pu1dHnRsqHjwpW8ZIpgngP/5/BCpTl75RUUI
+         vy/3K30H2fYs4D+RRMADFd4EhSy9aqCosQIJHK8SpqR9iXdhesbYPT0MaBTAKEOI9x
+         ItmMoXkR49BCQ==
+Received: by mail-vk1-f176.google.com with SMTP id k9so922391vki.4;
+        Thu, 24 Feb 2022 02:30:41 -0800 (PST)
+X-Gm-Message-State: AOAM53356GDXiNzYC3BdaVZfnWdnLdzuU6RTWh+kwNDoTN7fiPNJdVzG
+        q40iGuFT0bflOc33OENuEZJUDBMJ9+7vj4FN45I=
+X-Google-Smtp-Source: ABdhPJzrvZFAbp4Whh2uDrOBDpqD226YSRYRm6BxUCxiOKTwC758aaNZI0rGrTfTm/5o1TQu5AW4BErik6sfPZlMfiQ=
+X-Received: by 2002:a1f:2355:0:b0:32a:e5bb:29a1 with SMTP id
+ j82-20020a1f2355000000b0032ae5bb29a1mr790584vkj.2.1645698640594; Thu, 24 Feb
+ 2022 02:30:40 -0800 (PST)
 MIME-Version: 1.0
-References: <20220224085410.399351-1-guoren@kernel.org> <20220224085410.399351-17-guoren@kernel.org>
-In-Reply-To: <20220224085410.399351-17-guoren@kernel.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Thu, 24 Feb 2022 10:13:23 +0100
-X-Gmail-Original-Message-ID: <CAK8P3a13_VBpTidoF_pUdV5g0MFqpSe17rgw=XUv69CCFCN0_g@mail.gmail.com>
-Message-ID: <CAK8P3a13_VBpTidoF_pUdV5g0MFqpSe17rgw=XUv69CCFCN0_g@mail.gmail.com>
-Subject: Re: [PATCH V6 16/20] riscv: compat: vdso: Add rv32 VDSO base code implementation
-To:     Guo Ren <guoren@kernel.org>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
+References: <20220224085410.399351-1-guoren@kernel.org> <20220224085410.399351-12-guoren@kernel.org>
+ <CAK8P3a3wg9S_zPad74FiJzYBn0M9bQyunuKzmH3z_QQrags5ng@mail.gmail.com>
+In-Reply-To: <CAK8P3a3wg9S_zPad74FiJzYBn0M9bQyunuKzmH3z_QQrags5ng@mail.gmail.com>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Thu, 24 Feb 2022 18:30:29 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTQratosmRtoiKx9xTm3-gBSrnEaWgVrYj1U2WZafR1RVg@mail.gmail.com>
+Message-ID: <CAJF2gTQratosmRtoiKx9xTm3-gBSrnEaWgVrYj1U2WZafR1RVg@mail.gmail.com>
+Subject: Re: [PATCH V6 11/20] riscv: compat: syscall: Add compat_sys_call_table
+ implementation
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Palmer Dabbelt <palmer@dabbelt.com>,
         Anup Patel <anup@brainfault.org>,
         gregkh <gregkh@linuxfoundation.org>,
         liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
@@ -54,45 +70,48 @@ Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
         "the arch/x86 maintainers" <x86@kernel.org>,
         Guo Ren <guoren@linux.alibaba.com>
 Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:s5S3jWFc5RkWSW1T8zhfkjyFM+NtY1UTK5PZjDzVdrUIGCAi+dI
- 1HMN5WMb+Hx0SFXx6NYytdF/RHKuQjmxKquYmQeOY4IIuD8EZh1pQGcStz2/KiODy/IXQw1
- rR3LEQ6hrUugBHhsHBUc7/pMDiVlDZDiZrQ24lKsFeLjTelCk2E0iok+2h5fPKfXbu12FL8
- 6xq9n2NG0QYZrlyCMg3TA==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:NiNxplWOlyE=:cKTvBCD+xcsnkPA7P47Qo3
- 7LIAQUjMulhaEHwuIGgZJV+qdzepuabf9FmzSgmBt2fSUfDtN+WdH68SdgbXreVkFdN/u8vsO
- /2IOcRklgJiT4/hHojoNvx3Nr0Nq+4QHrBqwmrHCd8YKftGez64ervPAg4gAHdqFvyqcgH6zJ
- WoJXjZLSyo614T5KXcvUMo6k0s89/QZxmYzPzyhT1d3GjW0oH9QWwNtOVBM50UKNUVofEtSNU
- YEeOGt/Lz6jRukL4DhrJIWdPxtatgbtiuqfl6nxhWbZkQqFBUk+zHMV+bkRiBJd616S0W01GJ
- QWToZ6TQhWK02oemfQZc1mGczFNWPW7Om0UlrrtrsuCQFXbu8TA8SEzY3qYY47AzbStQUHoij
- OwG0oMMRHSBo1hbiZF8JQ5uhnKl3H+xYezmaZxEQrmCDBaMQWhTXy91WK1VwfV4yw2wclXkWp
- 4+gnwqaz9En6vLo4ULS06NJGq4Qheonqp2SBEuAW9kyDR0AHau5dD8+lnwvw+/LplMFeyo6Hw
- NJ9xsHWvj83zU9P+ZcsmRIliMnSwTLqwQ80U1M2S3pty23lFkULF1PEy9kDb03K+DiNxS6L+t
- wKeMKma+atCJd3T2XORM6KaPj/RmAcf94t27JBU6mF4jJkPWFZAxNuLbM4IzWbzjJDmMcNc6k
- +sbw7p1zwytolKDdL+LlACrbRds1w/SNWdQ1ZP3h6H5ql1HTjp6/dXUCoA0rPOkeJ5OAfJw6r
- 4MRUG/jUm2JV5nqc4YJIaQ5RsYKMNMlDpcxBSslA8vfoeJomInoailMTI4EK95VCutL8BWUQW
- uAj7JlXByDwzU4cLV/bUpiWZ2jFHzWp5GarE5btpKFCczLJ0Pg=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Feb 24, 2022 at 9:54 AM <guoren@kernel.org> wrote:
+On Thu, Feb 24, 2022 at 5:38 PM Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> From: Guo Ren <guoren@linux.alibaba.com>
+> On Thu, Feb 24, 2022 at 9:54 AM <guoren@kernel.org> wrote:
+> >
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> >
+> > Implement compat sys_call_table and some system call functions:
+> > truncate64, ftruncate64, fallocate, pread64, pwrite64,
+> > sync_file_range, readahead, fadvise64_64 which need argument
+> > translation.
+> >
+> > Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+> > Signed-off-by: Guo Ren <guoren@kernel.org>
+> > Cc: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Palmer Dabbelt <palmer@dabbelt.com>
 >
-> There is no vgettimeofday supported in rv32 that makes simple to
-> generate rv32 vdso code which only needs riscv64 compiler. Other
-> architectures need change compiler or -m (machine parameter) to
-> support vdso32 compiling. If rv32 support vgettimeofday (which
-> cause C compile) in future, we would add CROSS_COMPILE to support
-> that makes more requirement on compiler enviornment.
+> Here, I was hoping you'd convert some of the other architectures to use
+> the same code, but the changes you did do look correct.
+>
+> Please at least add the missing bit for big-endian architectures here:
+>
+> +#if !defined(compat_arg_u64) && !defined(CONFIG_CPU_BIG_ENDIAN)
+> +#define compat_arg_u64(name)           u32  name##_lo, u32  name##_hi
+> +#define compat_arg_u64_dual(name)      u32, name##_lo, u32, name##_hi
+> +#define compat_arg_u64_glue(name)      (((u64)name##_hi << 32) | \
+> +                                        ((u64)name##_lo & 0xffffffffUL))
+> +#endif
+>
+> with the lo/hi words swapped. With that change:
+Got it, I would change it in next version of patch.
 
-I think it's just a bug that rv32 doesn't have the vdso version of the
-time syscalls. Fixing that is of course independent of the compat support,
-but I think you need that anyway, and it would be better to start
-out by building the compat vdso with the correct
-architecture level.
+>
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 
-At least this should be a lot easier than on arch/arm64 because you
-can assume that an rv64 compiler is able to also build rv32 output.
 
-        Arnd
+
+-- 
+Best Regards
+ Guo Ren
+
+ML: https://lore.kernel.org/linux-csky/
