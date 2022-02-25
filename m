@@ -2,179 +2,312 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26B4FC433FE
-	for <sparclinux@archiver.kernel.org>; Fri, 25 Feb 2022 15:20:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94699C4321E
+	for <sparclinux@archiver.kernel.org>; Fri, 25 Feb 2022 15:42:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235794AbiBYPUw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 25 Feb 2022 10:20:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60480 "EHLO
+        id S242300AbiBYPnL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 25 Feb 2022 10:43:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38456 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233524AbiBYPUv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 25 Feb 2022 10:20:51 -0500
-Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5EEC8C7DF;
-        Fri, 25 Feb 2022 07:20:17 -0800 (PST)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id 20E541F380;
-        Fri, 25 Feb 2022 15:20:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1645802416; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=76D+b8ZUFKHayJqezaXTrIOKH/+w6Mr9BDaG1qJPaqM=;
-        b=uiwU9753hHXtDfEByGOp/4k3/mpSpC2iPS5R74LN2olK1KIV4kIuD6y8ARyLKPI+57XebW
-        laXnAzMwXNXHJgSFsi5gA5ifwF1cCKT2ypgNk9DHv/UzKegXnyQUGwO9FQLe7NALffYOqs
-        LFAeojvzfBLhLsnUVHoCuDy01kc+AaU=
-Received: from suse.cz (unknown [10.100.216.66])
+        with ESMTP id S242275AbiBYPmz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 25 Feb 2022 10:42:55 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7C2021D081;
+        Fri, 25 Feb 2022 07:42:22 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 81174A3B83;
-        Fri, 25 Feb 2022 15:20:15 +0000 (UTC)
-Date:   Fri, 25 Feb 2022 16:20:15 +0100
-From:   Petr Mladek <pmladek@suse.com>
-To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc:     linux-kernel@vger.kernel.org,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>, davem@davemloft.net,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Julien Thierry <jthierry@redhat.com>,
-        Kees Cook <keescook@chromium.org>,
-        Masahiro Yamada <masahiroy@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Wang Qing <wangqing@vivo.com>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Xiaoming Ni <nixiaoming@huawei.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, sumit.garg@linaro.org,
-        kernelfans@gmail.com, yj.chiang@mediatek.com
-Subject: Re: [PATCH 4/5] kernel/watchdog: Adapt the watchdog_hld interface
- for async model
-Message-ID: <Yhjzr8geK7dTXXd2@alley>
-References: <20220212104349.14266-1-lecopzer.chen@mediatek.com>
- <20220212104349.14266-5-lecopzer.chen@mediatek.com>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 34DFC61967;
+        Fri, 25 Feb 2022 15:42:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E9C3C340F8;
+        Fri, 25 Feb 2022 15:42:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1645803741;
+        bh=LTpyZW67H6AqS8NEkTYiulq7m69rWSy25aC9ZjGcrfA=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=KugaL8/34dsoYm1tYvWbo/jnp2V/mihze12aGgHWldgnQcFk7VV5ERWqdLZURe40j
+         6RIpMyNWI68JZ/6NbQTjVrkTVgLkzbeO1f5k06U83kTYvDS4fjqNlHstgtjJnF2Jwc
+         9wLVZtMQwg/0V5AoxEvVGRrAole6BkzW087caapwAXdhEQ/E7MYSv6pBkfwvpLEQZe
+         tKj6lMuGEyxlOg9pwrFRfd7mgvQGb9v3DuOA2TDAwCB3pe34gjxn+XGEbAp8CZvLbE
+         Lfv6OMXNBXdaHYu8VaV5J+/JzmPEIdrEEcy/x8M+U5BszRjA9VvbpDWw9i5in0ZFrS
+         CdpnQ5GePyMbA==
+Received: by mail-vs1-f49.google.com with SMTP id y4so5878988vsd.11;
+        Fri, 25 Feb 2022 07:42:21 -0800 (PST)
+X-Gm-Message-State: AOAM530UPdWhUcBA/8mpZrhslaO3KXEcJc/EJjcKwi46rVuLkQ4xuZAs
+        xNF6gyO33MYGdkYFHqENKHVMfqHKv8AIfAtjpMk=
+X-Google-Smtp-Source: ABdhPJzkkZzRIcTVnaKqfYtdNhKQA/tUKntASaj7B1Yk2uWOXdsLiKYE8wFNLhZCqckzP5h22WOoM706CycXuYVo0dw=
+X-Received: by 2002:a05:6102:806:b0:31e:2206:f1c with SMTP id
+ g6-20020a056102080600b0031e22060f1cmr3498723vsb.59.1645803740502; Fri, 25 Feb
+ 2022 07:42:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220212104349.14266-5-lecopzer.chen@mediatek.com>
+References: <20220224085410.399351-1-guoren@kernel.org> <20220224085410.399351-17-guoren@kernel.org>
+ <CAK8P3a13_VBpTidoF_pUdV5g0MFqpSe17rgw=XUv69CCFCN0_g@mail.gmail.com>
+In-Reply-To: <CAK8P3a13_VBpTidoF_pUdV5g0MFqpSe17rgw=XUv69CCFCN0_g@mail.gmail.com>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Fri, 25 Feb 2022 23:42:09 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTTu5=XwDUwNq=PfnzVRj-jPHH+0cOGhhLr_dFED1H24_g@mail.gmail.com>
+Message-ID: <CAJF2gTTu5=XwDUwNq=PfnzVRj-jPHH+0cOGhhLr_dFED1H24_g@mail.gmail.com>
+Subject: Re: [PATCH V6 16/20] riscv: compat: vdso: Add rv32 VDSO base code implementation
+To:     Arnd Bergmann <arnd@arndb.de>
+Cc:     Palmer Dabbelt <palmer@dabbelt.com>,
+        Anup Patel <anup@brainfault.org>,
+        gregkh <gregkh@linuxfoundation.org>,
+        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
+        Drew Fustini <drew@beagleboard.org>,
+        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
+        Christoph Hellwig <hch@lst.de>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        linux-csky@vger.kernel.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Guo Ren <guoren@linux.alibaba.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat 2022-02-12 18:43:48, Lecopzer Chen wrote:
-> From: Pingfan Liu <kernelfans@gmail.com>
-> 
-> from: Pingfan Liu <kernelfans@gmail.com>
-> 
-> When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-> yet. E.g. on arm64, PMU is not ready until
-> device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-> with the driver model and cpuhp. Hence it is hard to push this
-> initialization before smp_init().
-> 
-> But it is easy to take an opposite approach by enabling watchdog_hld to
-> get the capability of PMU async.
-> 
-> The async model is achieved by expanding watchdog_nmi_probe() with
-> -EBUSY, and a re-initializing work_struct which waits on a wait_queue_head.
-> 
-> Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-> Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-> ---
->  kernel/watchdog.c | 56 +++++++++++++++++++++++++++++++++++++++++++++--
->  1 file changed, 54 insertions(+), 2 deletions(-)
-> 
-> diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> index b71d434cf648..fa8490cfeef8 100644
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -839,16 +843,64 @@ static void __init watchdog_sysctl_init(void)
->  #define watchdog_sysctl_init() do { } while (0)
->  #endif /* CONFIG_SYSCTL */
->  
-> +static void lockup_detector_delay_init(struct work_struct *work);
-> +enum hld_detector_state detector_delay_init_state __initdata;
+Hi Arnd & Palmer,
 
-I would call this "lockup_detector_init_state" to use the same
-naming scheme everywhere.
+Here is the new modified compat_vdso/Makefile, please have a look,
+first. Then I would update it to v7:
+===========================================
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Makefile for compat_vdso
+#
 
-> +
-> +struct wait_queue_head hld_detector_wait __initdata =
-> +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
-> +
-> +static struct work_struct detector_work __initdata =
+# Symbols present in the compat_vdso
+compat_vdso-syms  = rt_sigreturn
+compat_vdso-syms += getcpu
+compat_vdso-syms += flush_icache
 
-I would call this "lockup_detector_work" to use the same naming scheme
-everywhere.
+ifdef CROSS_COMPILE_COMPAT
+        COMPAT_CC := $(CROSS_COMPILE_COMPAT)gcc
+        COMPAT_LD := $(CROSS_COMPILE_COMPAT)ld
+else
+        COMPAT_CC := $(CC)
+        COMPAT_LD := $(LD)
+endif
 
-> +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
-> +
-> +static void __init lockup_detector_delay_init(struct work_struct *work)
-> +{
-> +	int ret;
-> +
-> +	wait_event(hld_detector_wait,
-> +			detector_delay_init_state == DELAY_INIT_READY);
+COMPAT_CC_FLAGS := -march=rv32g -mabi=ilp32
+COMPAT_LD_FLAGS := -melf32lriscv
 
-DELAY_INIT_READY is defined in the 5th patch.
+# Files to link into the compat_vdso
+obj-compat_vdso = $(patsubst %, %.o, $(compat_vdso-syms)) note.o
 
-There are many other build errors because this patch uses something
-that is defined in the 5th patch.
+# Build rules
+targets := $(obj-compat_vdso) compat_vdso.so compat_vdso.so.dbg compat_vdso.lds
+obj-compat_vdso := $(addprefix $(obj)/, $(obj-compat_vdso))
 
-> +	ret = watchdog_nmi_probe();
-> +	if (!ret) {
-> +		nmi_watchdog_available = true;
-> +		lockup_detector_setup();
-> +	} else {
-> +		WARN_ON(ret == -EBUSY);
+obj-y += compat_vdso.o
+CPPFLAGS_compat_vdso.lds += -P -C -U$(ARCH)
 
-Why WARN_ON(), please?
+# Disable profiling and instrumentation for VDSO code
+GCOV_PROFILE := n
+KCOV_INSTRUMENT := n
+KASAN_SANITIZE := n
+UBSAN_SANITIZE := n
 
-Note that it might cause panic() when "panic_on_warn" command line
-parameter is used.
+# Force dependency
+$(obj)/compat_vdso.o: $(obj)/compat_vdso.so
 
-Also the backtrace will not help much. The context is well known.
-This code is called from a workqueue worker.
+# link rule for the .so file, .lds has to be first
+$(obj)/compat_vdso.so.dbg: $(obj)/compat_vdso.lds $(obj-compat_vdso) FORCE
+        $(call if_changed,compat_vdsold)
+LDFLAGS_compat_vdso.so.dbg = -shared -S -soname=linux-compat_vdso.so.1 \
+        --build-id=sha1 --hash-style=both --eh-frame-hdr
+
+$(obj-compat_vdso): %.o: %.S FORCE
+        $(call if_changed_dep,compat_vdsoas)
+
+# strip rule for the .so file
+$(obj)/%.so: OBJCOPYFLAGS := -S
+$(obj)/%.so: $(obj)/%.so.dbg FORCE
+        $(call if_changed,objcopy)
+
+# Generate VDSO offsets using helper script
+gen-compat_vdsosym := $(srctree)/$(src)/gen_compat_vdso_offsets.sh
+quiet_cmd_compat_vdsosym = VDSOSYM $@
+        cmd_compat_vdsosym = $(NM) $< | $(gen-compat_vdsosym) |
+LC_ALL=C sort > $@
+
+include/generated/compat_vdso-offsets.h: $(obj)/compat_vdso.so.dbg FORCE
+        $(call if_changed,compat_vdsosym)
+
+# actual build commands
+# The DSO images are built using a special linker script
+# Make sure only to export the intended __compat_vdso_xxx symbol offsets.
+quiet_cmd_compat_vdsold = VDSOLD  $@
+      cmd_compat_vdsold = $(COMPAT_LD) $(ld_flags) $(COMPAT_LD_FLAGS)
+-T $(filter-out FORCE,$^) -o $@.tmp && \
+                   $(OBJCOPY) $(patsubst %, -G __compat_vdso_%,
+$(compat_vdso-syms)) $@.tmp $@ && \
+                   rm $@.tmp
+
+# actual build commands
+quiet_cmd_compat_vdsoas = VDSOAS $@
+      cmd_compat_vdsoas = $(COMPAT_CC) $(a_flags) $(COMPAT_CC_FLAGS) -c -o $@ $<
+
+# install commands for the unstripped file
+quiet_cmd_compat_vdso_install = INSTALL $@
+      cmd_compat_vdso_install = cp $(obj)/$@.dbg $(MODLIB)/compat_vdso/$@
+
+compat_vdso.so: $(obj)/compat_vdso.so.dbg
+        @mkdir -p $(MODLIB)/compat_vdso
+        $(call cmd,compat_vdso_install)
+
+compat_vdso_install: compat_vdso.so
+===========================================
+
+Here is the make V=1 output:
+
+make -f /home/guoren/source/kernel/riscv-linux/scripts/Makefile.build
+obj=arch/riscv/kernel/vdso include/generated/vdso-offsets.h
+make -f /home/guoren/source/kernel/riscv-linux/scripts/Makefile.build
+obj=arch/riscv/kernel/compat_vdso
+include/generated/compat_vdso-offsets.h
+  riscv64-unknown-linux-gnu-gcc -E
+-Wp,-MMD,arch/riscv/kernel/compat_vdso/.compat_vdso.lds.d  -nostdinc
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include
+-I./arch/riscv/include/generated
+-I/home/guoren/source/kernel/riscv-linux/include -I./include
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include/uapi
+-I./arch/riscv/include/generated/uapi
+-I/home/guoren/source/kernel/riscv-linux/include/uapi -I./includ
+e/generated/uapi -include
+/home/guoren/source/kernel/riscv-linux/include/linux/compiler-version.h
+-include /home/guoren/source/kernel/riscv-linux/include/linux/kconfig.h
+-D__KERNEL__ -fmacro-prefix-map=/home/guoren/source/kernel/riscv-linux/=
+   -P -C -Uriscv -I
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso
+-I ./arch/riscv/kernel/compat_vdso -P -Uriscv -D__ASSEMBLY__
+-DLINKER_SCRIPT -o arch/riscv/ke
+rnel/compat_vdso/compat_vdso.lds
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/compat_vdso.lds.S
+  riscv64-unknown-linux-gnu-gcc
+-Wp,-MMD,arch/riscv/kernel/compat_vdso/.rt_sigreturn.o.d  -nostdinc
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include
+-I./arch/riscv/include/generated
+-I/home/guoren/source/kernel/riscv-linux/include -I./include
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include/uapi
+-I./arch/riscv/include/generated/uapi
+-I/home/guoren/source/kernel/riscv-linux/include/uapi -I./include/ge
+nerated/uapi -include
+/home/guoren/source/kernel/riscv-linux/include/linux/compiler-version.h
+-include /home/guoren/source/kernel/riscv-linux/include/linux/kconfig.h
+-D__KERNEL__ -fmacro-prefix-map=/home/guoren/source/kernel/riscv-linux/=
+-D__ASSEMBLY__ -fno-PIE -mabi=lp64 -march=rv64imafdc -I
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso
+-I ./arch/riscv/kernel/compat_vdso    -march=rv32g -mabi=ilp3
+2 -c -o arch/riscv/kernel/compat_vdso/rt_sigreturn.o
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/rt_sigreturn.S
+  riscv64-unknown-linux-gnu-gcc
+-Wp,-MMD,arch/riscv/kernel/compat_vdso/.getcpu.o.d  -nostdinc
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include
+-I./arch/riscv/include/generated
+-I/home/guoren/source/kernel/riscv-linux/include -I./include
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include/uapi
+-I./arch/riscv/include/generated/uapi
+-I/home/guoren/source/kernel/riscv-linux/include/uapi
+-I./include/generate
+d/uapi -include
+/home/guoren/source/kernel/riscv-linux/include/linux/compiler-version.h
+-include /home/guoren/source/kernel/riscv-linux/include/linux/kconfig.h
+-D__KERNEL__ -fmacro-prefix-map=/home/guoren/source/kernel/riscv-linux/=
+-D__ASSEMBLY__ -fno-PIE -mabi=lp64 -march=rv64imafdc -I
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso
+-I ./arch/riscv/kernel/compat_vdso    -march=rv32g -mabi=ilp32 -c -
+o arch/riscv/kernel/compat_vdso/getcpu.o
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/getcpu.S
+  riscv64-unknown-linux-gnu-gcc
+-Wp,-MMD,arch/riscv/kernel/compat_vdso/.flush_icache.o.d  -nostdinc
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include
+-I./arch/riscv/include/generated
+-I/home/guoren/source/kernel/riscv-linux/include -I./include
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include/uapi
+-I./arch/riscv/include/generated/uapi
+-I/home/guoren/source/kernel/riscv-linux/include/uapi -I./include/ge
+nerated/uapi -include
+/home/guoren/source/kernel/riscv-linux/include/linux/compiler-version.h
+-include /home/guoren/source/kernel/riscv-linux/include/linux/kconfig.h
+-D__KERNEL__ -fmacro-prefix-map=/home/guoren/source/kernel/riscv-linux/=
+-D__ASSEMBLY__ -fno-PIE -mabi=lp64 -march=rv64imafdc -I
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso
+-I ./arch/riscv/kernel/compat_vdso    -march=rv32g -mabi=ilp3
+2 -c -o arch/riscv/kernel/compat_vdso/flush_icache.o
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/flush_icache.S
+  riscv64-unknown-linux-gnu-gcc
+-Wp,-MMD,arch/riscv/kernel/compat_vdso/.note.o.d  -nostdinc
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include
+-I./arch/riscv/include/generated
+-I/home/guoren/source/kernel/riscv-linux/include -I./include
+-I/home/guoren/source/kernel/riscv-linux/arch/riscv/include/uapi
+-I./arch/riscv/include/generated/uapi
+-I/home/guoren/source/kernel/riscv-linux/include/uapi
+-I./include/generated/
+uapi -include /home/guoren/source/kernel/riscv-linux/include/linux/compiler-version.h
+-include /home/guoren/source/kernel/riscv-linux/include/linux/kconfig.h
+-D__KERNEL__ -fmacro-prefix-map=/home/guoren/source/kernel/riscv-linux/=
+-D__ASSEMBLY__ -fno-PIE -mabi=lp64 -march=rv64imafdc -I
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso
+-I ./arch/riscv/kernel/compat_vdso    -march=rv32g -mabi=ilp32 -c -o
+arch/riscv/kernel/compat_vdso/note.o
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/note.S
+  riscv64-unknown-linux-gnu-ld  -melf64lriscv   -shared -S
+-soname=linux-compat_vdso.so.1 --build-id=sha1 --hash-style=both
+--eh-frame-hdr -melf32lriscv -T
+arch/riscv/kernel/compat_vdso/compat_vdso.lds
+arch/riscv/kernel/compat_vdso/rt_sigreturn.o
+arch/riscv/kernel/compat_vdso/getcpu.o
+arch/riscv/kernel/compat_vdso/flush_icache.o
+arch/riscv/kernel/compat_vdso/note.o -o
+arch/riscv/kernel/compat_vdso/compat_vdso.so.dbg.tmp &
+& riscv64-unknown-linux-gnu-objcopy  -G __compat_vdso_rt_sigreturn  -G
+__compat_vdso_getcpu  -G __compat_vdso_flush_icache
+arch/riscv/kernel/compat_vdso/compat_vdso.so.dbg.tmp
+arch/riscv/kernel/compat_vdso/compat_vdso.so.dbg && rm
+arch/riscv/kernel/compat_vdso/compat_vdso.so.dbg.tmp
+  riscv64-unknown-linux-gnu-nm
+arch/riscv/kernel/compat_vdso/compat_vdso.so.dbg |
+/home/guoren/source/kernel/riscv-linux/arch/riscv/kernel/compat_vdso/gen_compat_vdso_offsets.sh
+| LC_ALL=C sort > include/generated/compat_vdso-offsets.h
 
 
-> +		pr_info("Perf NMI watchdog permanently disabled\n");
-> +	}
-> +}
-> +
-> +/* Ensure the check is called after the initialization of PMU driver */
-> +static int __init lockup_detector_check(void)
-> +{
-> +	if (detector_delay_init_state < DELAY_INIT_WAIT)
-> +		return 0;
-> +
-> +	if (WARN_ON(detector_delay_init_state == DELAY_INIT_WAIT)) {
+On Thu, Feb 24, 2022 at 6:13 PM Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> On Thu, Feb 24, 2022 at 9:54 AM <guoren@kernel.org> wrote:
+> >
+> > From: Guo Ren <guoren@linux.alibaba.com>
+> >
+> > There is no vgettimeofday supported in rv32 that makes simple to
+> > generate rv32 vdso code which only needs riscv64 compiler. Other
+> > architectures need change compiler or -m (machine parameter) to
+> > support vdso32 compiling. If rv32 support vgettimeofday (which
+> > cause C compile) in future, we would add CROSS_COMPILE to support
+> > that makes more requirement on compiler enviornment.
+>
+> I think it's just a bug that rv32 doesn't have the vdso version of the
+> time syscalls. Fixing that is of course independent of the compat support,
+> but I think you need that anyway, and it would be better to start
+> out by building the compat vdso with the correct
+> architecture level.
+>
+> At least this should be a lot easier than on arch/arm64 because you
+> can assume that an rv64 compiler is able to also build rv32 output.
+>
+>         Arnd
 
-Again. Is WARN_ON() needed?
 
-Also the condition looks wrong. IMHO, this is the expected state.
 
-> +		detector_delay_init_state = DELAY_INIT_READY;
-> +		wake_up(&hld_detector_wait);
-> +	}
-> +	flush_work(&detector_work);
-> +	return 0;
-> +}
-> +late_initcall_sync(lockup_detector_check);
+-- 
+Best Regards
+ Guo Ren
 
-Otherwise, it make sense.
-
-Best Regards,
-Petr
-
-PS: I am not going to review the last patch because I am no familiar
-    with arm. I reviewed just the changes in the generic watchdog
-    code.
+ML: https://lore.kernel.org/linux-csky/
