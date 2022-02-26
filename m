@@ -2,34 +2,30 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4CAC1C433EF
-	for <sparclinux@archiver.kernel.org>; Sat, 26 Feb 2022 09:52:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 840EFC433FE
+	for <sparclinux@archiver.kernel.org>; Sat, 26 Feb 2022 09:55:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230443AbiBZJxS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 26 Feb 2022 04:53:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48666 "EHLO
+        id S230291AbiBZJzg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 26 Feb 2022 04:55:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229819AbiBZJxQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 26 Feb 2022 04:53:16 -0500
+        with ESMTP id S229819AbiBZJzf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 26 Feb 2022 04:55:35 -0500
 Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C546E1BE94;
-        Sat, 26 Feb 2022 01:52:34 -0800 (PST)
-X-UUID: f0eb3a26f43443c5a941dfb29e7f5b4f-20220226
-X-UUID: f0eb3a26f43443c5a941dfb29e7f5b4f-20220226
-Received: from mtkcas11.mediatek.inc [(172.21.101.40)] by mailgw02.mediatek.com
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B5EDF542B;
+        Sat, 26 Feb 2022 01:55:00 -0800 (PST)
+X-UUID: 12beb10077d04d32a5264b4067461e53-20220226
+X-UUID: 12beb10077d04d32a5264b4067461e53-20220226
+Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 300805053; Sat, 26 Feb 2022 17:52:25 +0800
-Received: from mtkexhb01.mediatek.inc (172.21.101.102) by
- mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
- Sat, 26 Feb 2022 17:52:23 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by mtkexhb01.mediatek.inc
- (172.21.101.102) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Sat, 26 Feb
- 2022 17:52:23 +0800
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
+        with ESMTP id 1253442640; Sat, 26 Feb 2022 17:54:53 +0800
+Received: from mtkcas11.mediatek.inc (172.21.101.40) by
+ mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Sat, 26 Feb 2022 17:54:52 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Sat, 26 Feb 2022 17:52:23 +0800
+ Transport; Sat, 26 Feb 2022 17:54:52 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <pmladek@suse.com>
 CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
@@ -46,12 +42,12 @@ CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
         <nixiaoming@huawei.com>, <peterz@infradead.org>,
         <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
         <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: Re: [PATCH 1/5] kernel/watchdog: remove WATCHDOG_DEFAULT
-Date:   Sat, 26 Feb 2022 17:52:23 +0800
-Message-ID: <20220226095223.15585-1-lecopzer.chen@mediatek.com>
+Subject: Re: [PATCH 2/5] kernel/watchdog: change watchdog_nmi_enable() to void
+Date:   Sat, 26 Feb 2022 17:54:52 +0800
+Message-ID: <20220226095452.16924-1-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
-In-Reply-To: <YhjPyCl7Rjh6acQN@alley>
-References: <YhjPyCl7Rjh6acQN@alley>
+In-Reply-To: <YhjQnMZahzu1w2lj@alley>
+References: <YhjQnMZahzu1w2lj@alley>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MTK:  N
@@ -59,23 +55,49 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-> On Sat 2022-02-12 18:43:45, Lecopzer Chen wrote:
-> > No reference to WATCHDOG_DEFAULT, remove it.
-> 
-> It would be enough to mention the link to the previous
-> version in the cover letter.
-
-Thanks, I'll tweak the commit message in next version patch.
-
-> 
-> > this commit reworks from [1].
+> On Sat 2022-02-12 18:43:46, Lecopzer Chen wrote:
 > > 
-> > [1] https://lore.kernel.org/lkml/20211014024155.15253-2-kernelfans@gmail.com/
-> > Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> > Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+> > Nobody cares about the return value of watchdog_nmi_enable(),
+> > changing its prototype to void.
+> > 
+> > --- a/arch/sparc/kernel/nmi.c
+> > +++ b/arch/sparc/kernel/nmi.c
+> > @@ -282,11 +282,11 @@ __setup("nmi_watchdog=", setup_nmi_watchdog);
+> >   * sparc specific NMI watchdog enable function.
+> >   * Enables watchdog if it is not enabled already.
+> >   */
+> > -int watchdog_nmi_enable(unsigned int cpu)
+> > +void watchdog_nmi_enable(unsigned int cpu)
+> >  {
+> >  	if (atomic_read(&nmi_active) == -1) {
+> >  		pr_warn("NMI watchdog cannot be enabled or disabled\n");
+> > -		return -1;
+> > +		return;
+> >  	}
+> >  
+> >  	/*
+> > @@ -295,11 +295,11 @@ int watchdog_nmi_enable(unsigned int cpu)
+> >  	 * process first.
+> >  	 */
+> >  	if (!nmi_init_done)
+> > -		return 0;
+> > +		return;
+> >  
+> >  	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
+> >  
+> > -	return 0;
+> > +	return;
+> 
+> Return at the end of the function is superfluous.
+
+Thanks, I'll fix in the next patch.
+
+> 
+> >  }
+> >  /*
+> >   * sparc specific NMI watchdog disable function.
+> 
+> Otherwise, it looks good.
 > 
 > Reviewed-by: Petr Mladek <pmladek@suse.com>
-
-
-BRs,
-Lecopzer
+> 
