@@ -2,300 +2,253 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC911C433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 10:14:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37100C4321E
+	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 10:48:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233775AbiB1KPW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Feb 2022 05:15:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35142 "EHLO
+        id S234903AbiB1KtY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 28 Feb 2022 05:49:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbiB1KPW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 05:15:22 -0500
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA2B40909;
-        Mon, 28 Feb 2022 02:14:43 -0800 (PST)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id 9B906210F4;
-        Mon, 28 Feb 2022 10:14:42 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1646043282; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=KukxMvO4tyrrizISG36Vcc7/8BtcgAz+EL/84ZHG//k=;
-        b=FizPj/xAl+yD5oE2xueO9kol54H8qOAHIZyzKlPhMrxZWfpRfioicmAAD/KVObvozj7ysM
-        mtcBbeDgTt+P5n+VPxeE3WgSUKfOTLsDlmvBH0Vv3cew6DU6ccY9cbQh2t++kK/eBiMs/d
-        pSwCFv6mFQt9CDZx4kK5SCVsIxzT55Y=
-Received: from suse.cz (unknown [10.100.216.66])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 3913EA3B84;
-        Mon, 28 Feb 2022 10:14:42 +0000 (UTC)
-Date:   Mon, 28 Feb 2022 11:14:41 +0100
-From:   Petr Mladek <pmladek@suse.com>
-To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc:     acme@kernel.org, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
-        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
-        keescook@chromium.org, kernelfans@gmail.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
-        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
-        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
-        nixiaoming@huawei.com, peterz@infradead.org,
-        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
-        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
-Subject: Re: [PATCH 4/5] kernel/watchdog: Adapt the watchdog_hld interface
- for async model
-Message-ID: <YhygkafOHc6eeP9f@alley>
-References: <Yhjzr8geK7dTXXd2@alley>
- <20220226105229.16378-1-lecopzer.chen@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220226105229.16378-1-lecopzer.chen@mediatek.com>
+        with ESMTP id S232469AbiB1KtX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 05:49:23 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 32CCE43486;
+        Mon, 28 Feb 2022 02:48:44 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EA0F81063;
+        Mon, 28 Feb 2022 02:48:43 -0800 (PST)
+Received: from p8cg001049571a15.arm.com (unknown [10.163.47.185])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 6F2553F73D;
+        Mon, 28 Feb 2022 02:48:36 -0800 (PST)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org, akpm@linux-foundation.org
+Cc:     linux-kernel@vger.kernel.org, geert@linux-m68k.org,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-s390@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-alpha@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linux-parisc@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-um@lists.infradead.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-arch@vger.kernel.org
+Subject: [PATCH V3 00/30] mm/mmap: Drop protection_map[] and platform's __SXXX/__PXXX requirements
+Date:   Mon, 28 Feb 2022 16:17:23 +0530
+Message-Id: <1646045273-9343-1-git-send-email-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.7.4
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat 2022-02-26 18:52:29, Lecopzer Chen wrote:
-> > On Sat 2022-02-12 18:43:48, Lecopzer Chen wrote:
-> > > From: Pingfan Liu <kernelfans@gmail.com>
-> > > 
-> > > from: Pingfan Liu <kernelfans@gmail.com>
-> > > 
-> > > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-> > > yet. E.g. on arm64, PMU is not ready until
-> > > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-> > > with the driver model and cpuhp. Hence it is hard to push this
-> > > initialization before smp_init().
-> > > 
-> > > But it is easy to take an opposite approach by enabling watchdog_hld to
-> > > get the capability of PMU async.
-> > > 
-> > > The async model is achieved by expanding watchdog_nmi_probe() with
-> > > -EBUSY, and a re-initializing work_struct which waits on a wait_queue_head.
-> > > 
-> > > diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-> > > index b71d434cf648..fa8490cfeef8 100644
-> > > --- a/kernel/watchdog.c
-> > > +++ b/kernel/watchdog.c
-> > > @@ -839,16 +843,64 @@ static void __init watchdog_sysctl_init(void)
-> > >  #define watchdog_sysctl_init() do { } while (0)
-> > >  #endif /* CONFIG_SYSCTL */
-> > >  
-> > > +static void lockup_detector_delay_init(struct work_struct *work);
-> > > +enum hld_detector_state detector_delay_init_state __initdata;
-> > 
-> > I would call this "lockup_detector_init_state" to use the same
-> > naming scheme everywhere.
-> > 
-> > > +
-> > > +struct wait_queue_head hld_detector_wait __initdata =
-> > > +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
-> > > +
-> > > +static struct work_struct detector_work __initdata =
-> > 
-> > I would call this "lockup_detector_work" to use the same naming scheme
-> > everywhere.
-> 
-> For the naming part, I'll revise both of them in next patch.
-> 
-> > 
-> > > +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
-> > > +
-> > > +static void __init lockup_detector_delay_init(struct work_struct *work)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	wait_event(hld_detector_wait,
-> > > +			detector_delay_init_state == DELAY_INIT_READY);
-> > 
-> > DELAY_INIT_READY is defined in the 5th patch.
-> > 
-> > There are many other build errors because this patch uses something
-> > that is defined in the 5th patch.
-> 
-> Thanks for pointing this out, the I'll fix 4th and 5th patches to correct the order.
-> 
-> > 
-> > > +	ret = watchdog_nmi_probe();
-> > > +	if (!ret) {
-> > > +		nmi_watchdog_available = true;
-> > > +		lockup_detector_setup();
-> > > +	} else {
-> > > +		WARN_ON(ret == -EBUSY);
-> > 
-> > Why WARN_ON(), please?
-> > 
-> > Note that it might cause panic() when "panic_on_warn" command line
-> > parameter is used.
-> > 
-> > Also the backtrace will not help much. The context is well known.
-> > This code is called from a workqueue worker.
->  
-> The motivation to WARN should be:
-> 
-> lockup_detector_init
-> -> watchdog_nmi_probe return -EBUSY
-> -> lockup_detector_delay_init checks (detector_delay_init_state == DELAY_INIT_READY)
-> -> watchdog_nmi_probe checks
-> +	if (detector_delay_init_state != DELAY_INIT_READY)
-> +		return -EBUSY;
-> 
-> Since we first check detector_delay_init_state equals to DELAY_INIT_READY
-> and goes into watchdog_nmi_probe() and checks detector_delay_init_state again
-> becasue now we move from common part to arch part code.
-> In this condition, there shouldn't have any racing to detector_delay_init_state.
-> If it does happend an unknown racing, then shows a warning to it.
+protection_map[] is an array based construct that translates given vm_flags
+combination. This array contains page protection map, which is populated by
+the platform via [__S000 .. __S111] and [__P000 .. __P111] exported macros.
+Primary usage for protection_map[] is for vm_get_page_prot(), which is used
+to determine page protection value for a given vm_flags. vm_get_page_prot()
+implementation, could again call platform overrides arch_vm_get_page_prot()
+and arch_filter_pgprot(). Some platforms override protection_map[] that was
+originally built with __SXXX/__PXXX with different runtime values.
 
-There should not be any race.
+Currently there are multiple layers of abstraction i.e __SXXX/__PXXX macros
+, protection_map[], arch_vm_get_page_prot() and arch_filter_pgprot() built
+between the platform and generic MM, finally defining vm_get_page_prot().
 
-     wait_event(hld_detector_wait,
-		detector_delay_init_state == DELAY_INIT_READY);
+Hence this series proposes to drop all these abstraction levels and instead
+just move the responsibility of defining vm_get_page_prot() to the platform
+itself making it clean and simple.
 
-waits until it is waken by lockup_detector_check(). Well, it could
-wait forewer when lockup_detector_check() is caller earlier, see below.
+This first introduces ARCH_HAS_VM_GET_PAGE_PROT which enables the platforms
+to define custom vm_get_page_prot(). This starts converting platforms that
+either change protection_map[] or define the overrides arch_filter_pgprot()
+or arch_vm_get_page_prot() which enables for those constructs to be dropped
+off completely. This series then converts remaining platforms which enables
+for __SXXX/__PXXX constructs to be dropped off completely. Finally it drops
+the generic vm_get_page_prot() and then ARCH_HAS_VM_GET_PAGE_PROT as every
+platform now defines their own vm_get_page_prot().
 
+The series has been inspired from an earlier discuss with Christoph Hellwig
 
-> I think it make sense to remove WARN now becasue it looks verbosely...
-> However, I would rather change the following printk to
-> "Delayed init for lockup detector failed."
+https://lore.kernel.org/all/1632712920-8171-1-git-send-email-anshuman.khandual@arm.com/
 
-I would print both messages. The above message says what failed.
+This series applies on 5.17-rc6 after the following patch.
 
+https://lore.kernel.org/all/1643004823-16441-1-git-send-email-anshuman.khandual@arm.com/
 
-> > > +		pr_info("Perf NMI watchdog permanently disabled\n");
+This series has been cross built for multiple platforms.
 
-And this message explains what is the result of the above failure.
-It is not obvious.
+- Anshuman
 
-> > > +	}
-> > > +}
-> > > +
-> > > +/* Ensure the check is called after the initialization of PMU driver */
-> > > +static int __init lockup_detector_check(void)
-> > > +{
-> > > +	if (detector_delay_init_state < DELAY_INIT_WAIT)
-> > > +		return 0;
-> > > +
-> > > +	if (WARN_ON(detector_delay_init_state == DELAY_INIT_WAIT)) {
-> > 
-> > Again. Is WARN_ON() needed?
-> > 
-> > Also the condition looks wrong. IMHO, this is the expected state.
-> > 
-> 
-> This does expected DELAY_INIT_READY here, which means,
-> every one who comes here to be checked should be READY and WARN if you're
-> still in WAIT state, and which means the previous lockup_detector_delay_init()
-> failed.
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-s390@vger.kernel.org
+Cc: linux-riscv@lists.infradead.org
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-sh@vger.kernel.org
+Cc: linux-snps-arc@lists.infradead.org
+Cc: linux-csky@vger.kernel.org
+Cc: linux-xtensa@linux-xtensa.org
+Cc: linux-parisc@vger.kernel.org
+Cc: openrisc@lists.librecores.org
+Cc: linux-um@lists.infradead.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-ia64@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-No, DELAY_INIT_READY is set below. DELAY_INIT_WAIT is valid value here.
-It means that lockup_detector_delay_init() work is queued.
+Changes in V3:
 
+- Dropped variable 'i' from sme_early_init() on x86 platform
+- Moved CONFIG_COLDFIRE vm_get_page_prot() inside arch/m68k/mm/mcfmmu.c
+- Moved CONFIG_SUN3 vm_get_page_prot() inside arch/m68k/mm/sun3mmu.c
+- Dropped cachebits for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped PAGE_XXX_C definitions from arch/m68k/include/asm/motorola_pgtable.h
+- Used PAGE_XXX instead for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped all references to protection_map[] in the tree
+- Replaced s/extensa/xtensa/ on the patch title
+- Moved left over comments from pgtable.h into init.c on nios2 platform
 
-> IMO, either keeping or removing WARN is fine with me.
-> 
-> I think I'll remove WARN and add
-> pr_info("Delayed init checking for lockup detector failed, retry for once.");
-> inside the `if (detector_delay_init_state == DELAY_INIT_WAIT)`
-> 
-> Or would you have any other suggestion? thanks.
-> 
-> > > +		detector_delay_init_state = DELAY_INIT_READY;
-> > > +		wake_up(&hld_detector_wait);
+Changes in V2:
 
-I see another problem now. We should always call the wake up here
-when the work was queued. Otherwise, the worker will stay blocked
-forewer.
+https://lore.kernel.org/all/1645425519-9034-1-git-send-email-anshuman.khandual@arm.com/
 
-The worker will also get blocked when the late_initcall is called
-before the work is proceed by a worker.
+- Dropped the entire comment block in [PATCH 30/30] per Geert
+- Replaced __P010 (although commented) with __PAGE_COPY on arm platform
+- Replaced __P101 with PAGE_READONLY on um platform
 
-> > > +	}
-> > > +	flush_work(&detector_work);
-> > > +	return 0;
-> > > +}
-> > > +late_initcall_sync(lockup_detector_check);
+Changes in V1:
 
+https://lore.kernel.org/all/1644805853-21338-1-git-send-email-anshuman.khandual@arm.com/
 
-OK, I think that the three states are too complicated. I suggest to
-use only a single bool. Something like:
+- Add white spaces around the | operators 
+- Moved powerpc_vm_get_page_prot() near vm_get_page_prot() on powerpc
+- Moved arm64_vm_get_page_prot() near vm_get_page_prot() on arm64
+- Moved sparc_vm_get_page_prot() near vm_get_page_prot() on sparc
+- Compacted vm_get_page_prot() switch cases on all platforms
+-  _PAGE_CACHE040 inclusion is dependent on CPU_IS_040_OR_060
+- VM_SHARED case should return PAGE_NONE (not PAGE_COPY) on SH platform
+- Reorganized VM_SHARED, VM_EXEC, VM_WRITE, VM_READ
+- Dropped the last patch [RFC V1 31/31] which added macros for vm_flags combinations
+  https://lore.kernel.org/all/1643029028-12710-32-git-send-email-anshuman.khandual@arm.com/
 
-static bool lockup_detector_pending_init __initdata;
+Changes in RFC:
 
-struct wait_queue_head lockup_detector_wait __initdata =
-		__WAIT_QUEUE_HEAD_INITIALIZER(lockup_detector_wait);
+https://lore.kernel.org/all/1643029028-12710-1-git-send-email-anshuman.khandual@arm.com/
 
-static struct work_struct detector_work __initdata =
-		__WORK_INITIALIZER(lockup_detector_work,
-				   lockup_detector_delay_init);
+Anshuman Khandual (29):
+  mm/debug_vm_pgtable: Drop protection_map[] usage
+  mm/mmap: Clarify protection_map[] indices
+  mm/mmap: Add new config ARCH_HAS_VM_GET_PAGE_PROT
+  powerpc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  mips/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  m68k/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  arm/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  mm/mmap: Drop protection_map[]
+  mm/mmap: Drop arch_filter_pgprot()
+  mm/mmap: Drop arch_vm_get_page_pgprot()
+  s390/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  riscv/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  alpha/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  sh/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  arc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  csky/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  xtensa/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  parisc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  openrisc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  um/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  microblaze/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  nios2/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  hexagon/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  nds32/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  ia64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  mm/mmap: Drop generic vm_get_page_prot()
+  mm/mmap: Drop ARCH_HAS_VM_GET_PAGE_PROT
 
-static void __init lockup_detector_delay_init(struct work_struct *work)
-{
-	int ret;
+Christoph Hellwig (1):
+  x86/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
 
-	wait_event(lockup_detector_wait, lockup_detector_pending_init == false);
+ arch/alpha/include/asm/pgtable.h          | 17 -----
+ arch/alpha/mm/init.c                      | 37 +++++++++++
+ arch/arc/include/asm/pgtable-bits-arcv2.h | 17 -----
+ arch/arc/mm/mmap.c                        | 41 ++++++++++++
+ arch/arm/include/asm/pgtable.h            | 20 +-----
+ arch/arm/lib/uaccess_with_memcpy.c        |  2 +-
+ arch/arm/mm/mmu.c                         | 44 +++++++++++--
+ arch/arm64/Kconfig                        |  1 -
+ arch/arm64/include/asm/memory.h           |  3 +-
+ arch/arm64/include/asm/mman.h             | 24 -------
+ arch/arm64/include/asm/pgtable-prot.h     | 18 ------
+ arch/arm64/include/asm/pgtable.h          | 11 ----
+ arch/arm64/mm/mmap.c                      | 78 +++++++++++++++++++++++
+ arch/csky/include/asm/pgtable.h           | 18 ------
+ arch/csky/mm/init.c                       | 32 ++++++++++
+ arch/hexagon/include/asm/pgtable.h        | 24 -------
+ arch/hexagon/mm/init.c                    | 67 +++++++++++++++++++
+ arch/ia64/include/asm/pgtable.h           | 17 -----
+ arch/ia64/mm/init.c                       | 41 +++++++++++-
+ arch/m68k/include/asm/mcf_pgtable.h       | 59 -----------------
+ arch/m68k/include/asm/motorola_pgtable.h  | 29 ---------
+ arch/m68k/include/asm/sun3_pgtable.h      | 22 -------
+ arch/m68k/mm/mcfmmu.c                     | 59 +++++++++++++++++
+ arch/m68k/mm/motorola.c                   | 43 ++++++++++++-
+ arch/m68k/mm/sun3mmu.c                    | 39 ++++++++++++
+ arch/microblaze/include/asm/pgtable.h     | 17 -----
+ arch/microblaze/mm/init.c                 | 41 ++++++++++++
+ arch/mips/include/asm/pgtable.h           | 22 -------
+ arch/mips/mm/cache.c                      | 60 +++++++++--------
+ arch/nds32/include/asm/pgtable.h          | 17 -----
+ arch/nds32/mm/mmap.c                      | 37 +++++++++++
+ arch/nios2/include/asm/pgtable.h          | 24 -------
+ arch/nios2/mm/init.c                      | 47 ++++++++++++++
+ arch/openrisc/include/asm/pgtable.h       | 18 ------
+ arch/openrisc/mm/init.c                   | 41 ++++++++++++
+ arch/parisc/include/asm/pgtable.h         | 20 ------
+ arch/parisc/mm/init.c                     | 40 ++++++++++++
+ arch/powerpc/include/asm/mman.h           | 12 ----
+ arch/powerpc/include/asm/pgtable.h        | 19 ------
+ arch/powerpc/mm/mmap.c                    | 59 +++++++++++++++++
+ arch/riscv/include/asm/pgtable.h          | 16 -----
+ arch/riscv/mm/init.c                      | 42 ++++++++++++
+ arch/s390/include/asm/pgtable.h           | 17 -----
+ arch/s390/mm/mmap.c                       | 33 ++++++++++
+ arch/sh/include/asm/pgtable.h             | 17 -----
+ arch/sh/mm/mmap.c                         | 38 +++++++++++
+ arch/sparc/include/asm/mman.h             |  6 --
+ arch/sparc/include/asm/pgtable_32.h       | 19 ------
+ arch/sparc/include/asm/pgtable_64.h       | 19 ------
+ arch/sparc/mm/init_32.c                   | 35 ++++++++++
+ arch/sparc/mm/init_64.c                   | 70 ++++++++++++++------
+ arch/um/include/asm/pgtable.h             | 17 -----
+ arch/um/kernel/mem.c                      | 35 ++++++++++
+ arch/x86/Kconfig                          |  1 -
+ arch/x86/include/asm/pgtable.h            |  5 --
+ arch/x86/include/asm/pgtable_types.h      | 19 ------
+ arch/x86/include/uapi/asm/mman.h          | 14 ----
+ arch/x86/mm/Makefile                      |  2 +-
+ arch/x86/mm/mem_encrypt_amd.c             |  6 --
+ arch/x86/mm/pgprot.c                      | 71 +++++++++++++++++++++
+ arch/x86/um/mem_32.c                      |  2 +-
+ arch/xtensa/include/asm/pgtable.h         | 19 ------
+ arch/xtensa/mm/init.c                     | 35 ++++++++++
+ drivers/gpu/drm/drm_vm.c                  |  4 +-
+ include/linux/mm.h                        |  6 --
+ include/linux/mman.h                      |  4 --
+ mm/Kconfig                                |  3 -
+ mm/debug_vm_pgtable.c                     | 31 +++++----
+ mm/mmap.c                                 | 44 +------------
+ 69 files changed, 1138 insertions(+), 729 deletions(-)
+ create mode 100644 arch/x86/mm/pgprot.c
 
-	ret = watchdog_nmi_probe();
-	if (ret) {
-		pr_info("Delayed init of the lockup detector failed: %\n);
-		pr_info("Perf NMI watchdog permanently disabled\n");
-		return;
-	}
+-- 
+2.25.1
 
-	nmi_watchdog_available = true;
-	lockup_detector_setup();
-}
-
-/* Trigger delayedEnsure the check is called after the initialization of PMU driver */
-static int __init lockup_detector_check(void)
-{
-	if (!lockup_detector_pending_init)
-		return;
-
-	lockup_detector_pending_init = false;
-	wake_up(&lockup_detector_wait);
-	return 0;
-}
-late_initcall_sync(lockup_detector_check);
-
-void __init lockup_detector_init(void)
-{
-	int ret;
-
-	if (tick_nohz_full_enabled())
-		pr_info("Disabling watchdog on nohz_full cores by default\n");
-
-	cpumask_copy(&watchdog_cpumask,
-		     housekeeping_cpumask(HK_FLAG_TIMER));
-
-	ret = watchdog_nmi_probe();
-	if (!ret)
-		nmi_watchdog_available = true;
-	else if (ret == -EBUSY) {
-		detector_delay_pending_init = true;
-		/* Init must be done in a process context on a bound CPU. */
-		queue_work_on(smp_processor_id(), system_wq, 
-				  &lockup_detector_work);
-	}
-
-	lockup_detector_setup();
-	watchdog_sysctl_init();
-}
-
-The result is that lockup_detector_work() will never stay blocked
-forever. There are two possibilities:
-
-1.  lockup_detector_work() called before lockup_detector_check().
-    In this case, wait_event() will wait until lockup_detector_check()
-    clears detector_delay_pending_init and calls wake_up().
-
-2. lockup_detector_check() called before lockup_detector_work().
-   In this case, wait_even() will immediately continue because
-   it will see cleared detector_delay_pending_init.
-
-
-Best Regards,
-Petr
