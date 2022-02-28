@@ -2,145 +2,300 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08031C43217
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 06:40:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC911C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 10:14:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233238AbiB1Gkx convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Feb 2022 01:40:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44182 "EHLO
+        id S233775AbiB1KPW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 28 Feb 2022 05:15:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233322AbiB1Gkt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 01:40:49 -0500
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 198863D1D3
-        for <sparclinux@vger.kernel.org>; Sun, 27 Feb 2022 22:40:09 -0800 (PST)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-127-ln2z8qc2NY6O0etIBpyffg-1; Mon, 28 Feb 2022 06:40:07 +0000
-X-MC-Unique: ln2z8qc2NY6O0etIBpyffg-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.28; Mon, 28 Feb 2022 06:40:04 +0000
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.028; Mon, 28 Feb 2022 06:40:04 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     "'guoren@kernel.org'" <guoren@kernel.org>,
-        "palmer@dabbelt.com" <palmer@dabbelt.com>,
-        "arnd@arndb.de" <arnd@arndb.de>,
-        "anup@brainfault.org" <anup@brainfault.org>,
-        "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "liush@allwinnertech.com" <liush@allwinnertech.com>,
-        "wefu@redhat.com" <wefu@redhat.com>,
-        "drew@beagleboard.org" <drew@beagleboard.org>,
-        "wangjunqiang@iscas.ac.cn" <wangjunqiang@iscas.ac.cn>,
-        "hch@lst.de" <hch@lst.de>
-CC:     "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "x86@kernel.org" <x86@kernel.org>
-Subject: RE: [PATCH V7 03/20] compat: consolidate the compat_flock{,64}
- definition
-Thread-Topic: [PATCH V7 03/20] compat: consolidate the compat_flock{,64}
- definition
-Thread-Index: AQHYK/ctkLOBFN5NzkqkonsQCyvC26yogbZg
-Date:   Mon, 28 Feb 2022 06:40:04 +0000
-Message-ID: <b8e765910e274c0fb574ff23f88b881c@AcuMS.aculab.com>
-References: <20220227162831.674483-1-guoren@kernel.org>
- <20220227162831.674483-4-guoren@kernel.org>
-In-Reply-To: <20220227162831.674483-4-guoren@kernel.org>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        with ESMTP id S229548AbiB1KPW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 05:15:22 -0500
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFA2B40909;
+        Mon, 28 Feb 2022 02:14:43 -0800 (PST)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id 9B906210F4;
+        Mon, 28 Feb 2022 10:14:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1646043282; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=KukxMvO4tyrrizISG36Vcc7/8BtcgAz+EL/84ZHG//k=;
+        b=FizPj/xAl+yD5oE2xueO9kol54H8qOAHIZyzKlPhMrxZWfpRfioicmAAD/KVObvozj7ysM
+        mtcBbeDgTt+P5n+VPxeE3WgSUKfOTLsDlmvBH0Vv3cew6DU6ccY9cbQh2t++kK/eBiMs/d
+        pSwCFv6mFQt9CDZx4kK5SCVsIxzT55Y=
+Received: from suse.cz (unknown [10.100.216.66])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 3913EA3B84;
+        Mon, 28 Feb 2022 10:14:42 +0000 (UTC)
+Date:   Mon, 28 Feb 2022 11:14:41 +0100
+From:   Petr Mladek <pmladek@suse.com>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc:     acme@kernel.org, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
+        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
+        keescook@chromium.org, kernelfans@gmail.com,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-mediatek@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
+        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
+        nixiaoming@huawei.com, peterz@infradead.org,
+        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
+        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
+Subject: Re: [PATCH 4/5] kernel/watchdog: Adapt the watchdog_hld interface
+ for async model
+Message-ID: <YhygkafOHc6eeP9f@alley>
+References: <Yhjzr8geK7dTXXd2@alley>
+ <20220226105229.16378-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220226105229.16378-1-lecopzer.chen@mediatek.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: guoren@kernel.org
-> Sent: 27 February 2022 16:28
+On Sat 2022-02-26 18:52:29, Lecopzer Chen wrote:
+> > On Sat 2022-02-12 18:43:48, Lecopzer Chen wrote:
+> > > From: Pingfan Liu <kernelfans@gmail.com>
+> > > 
+> > > from: Pingfan Liu <kernelfans@gmail.com>
+> > > 
+> > > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
+> > > yet. E.g. on arm64, PMU is not ready until
+> > > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
+> > > with the driver model and cpuhp. Hence it is hard to push this
+> > > initialization before smp_init().
+> > > 
+> > > But it is easy to take an opposite approach by enabling watchdog_hld to
+> > > get the capability of PMU async.
+> > > 
+> > > The async model is achieved by expanding watchdog_nmi_probe() with
+> > > -EBUSY, and a re-initializing work_struct which waits on a wait_queue_head.
+> > > 
+> > > diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+> > > index b71d434cf648..fa8490cfeef8 100644
+> > > --- a/kernel/watchdog.c
+> > > +++ b/kernel/watchdog.c
+> > > @@ -839,16 +843,64 @@ static void __init watchdog_sysctl_init(void)
+> > >  #define watchdog_sysctl_init() do { } while (0)
+> > >  #endif /* CONFIG_SYSCTL */
+> > >  
+> > > +static void lockup_detector_delay_init(struct work_struct *work);
+> > > +enum hld_detector_state detector_delay_init_state __initdata;
+> > 
+> > I would call this "lockup_detector_init_state" to use the same
+> > naming scheme everywhere.
+> > 
+> > > +
+> > > +struct wait_queue_head hld_detector_wait __initdata =
+> > > +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
+> > > +
+> > > +static struct work_struct detector_work __initdata =
+> > 
+> > I would call this "lockup_detector_work" to use the same naming scheme
+> > everywhere.
 > 
-> From: Christoph Hellwig <hch@lst.de>
+> For the naming part, I'll revise both of them in next patch.
 > 
-> Provide a single common definition for the compat_flock and
-> compat_flock64 structures using the same tricks as for the native
-> variants.  Another extra define is added for the packing required on
-> x86.
-...
-> diff --git a/arch/x86/include/asm/compat.h b/arch/x86/include/asm/compat.h
-...
->  /*
-> - * IA32 uses 4 byte alignment for 64 bit quantities,
-> - * so we need to pack this structure.
-> + * IA32 uses 4 byte alignment for 64 bit quantities, so we need to pack the
-> + * compat flock64 structure.
->   */
-...
-> +#define __ARCH_NEED_COMPAT_FLOCK64_PACKED
+> > 
+> > > +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
+> > > +
+> > > +static void __init lockup_detector_delay_init(struct work_struct *work)
+> > > +{
+> > > +	int ret;
+> > > +
+> > > +	wait_event(hld_detector_wait,
+> > > +			detector_delay_init_state == DELAY_INIT_READY);
+> > 
+> > DELAY_INIT_READY is defined in the 5th patch.
+> > 
+> > There are many other build errors because this patch uses something
+> > that is defined in the 5th patch.
 > 
->  struct compat_statfs {
->  	int		f_type;
-> diff --git a/include/linux/compat.h b/include/linux/compat.h
-> index 1c758b0e0359..a0481fe6c5d5 100644
-> --- a/include/linux/compat.h
-> +++ b/include/linux/compat.h
-> @@ -258,6 +258,37 @@ struct compat_rlimit {
->  	compat_ulong_t	rlim_max;
->  };
+> Thanks for pointing this out, the I'll fix 4th and 5th patches to correct the order.
 > 
-> +#ifdef __ARCH_NEED_COMPAT_FLOCK64_PACKED
-> +#define __ARCH_COMPAT_FLOCK64_PACK	__attribute__((packed))
-> +#else
-> +#define __ARCH_COMPAT_FLOCK64_PACK
-> +#endif
-...
-> +struct compat_flock64 {
-> +	short		l_type;
-> +	short		l_whence;
-> +	compat_loff_t	l_start;
-> +	compat_loff_t	l_len;
-> +	compat_pid_t	l_pid;
-> +#ifdef __ARCH_COMPAT_FLOCK64_PAD
-> +	__ARCH_COMPAT_FLOCK64_PAD
-> +#endif
-> +} __ARCH_COMPAT_FLOCK64_PACK;
-> +
+> > 
+> > > +	ret = watchdog_nmi_probe();
+> > > +	if (!ret) {
+> > > +		nmi_watchdog_available = true;
+> > > +		lockup_detector_setup();
+> > > +	} else {
+> > > +		WARN_ON(ret == -EBUSY);
+> > 
+> > Why WARN_ON(), please?
+> > 
+> > Note that it might cause panic() when "panic_on_warn" command line
+> > parameter is used.
+> > 
+> > Also the backtrace will not help much. The context is well known.
+> > This code is called from a workqueue worker.
+>  
+> The motivation to WARN should be:
+> 
+> lockup_detector_init
+> -> watchdog_nmi_probe return -EBUSY
+> -> lockup_detector_delay_init checks (detector_delay_init_state == DELAY_INIT_READY)
+> -> watchdog_nmi_probe checks
+> +	if (detector_delay_init_state != DELAY_INIT_READY)
+> +		return -EBUSY;
+> 
+> Since we first check detector_delay_init_state equals to DELAY_INIT_READY
+> and goes into watchdog_nmi_probe() and checks detector_delay_init_state again
+> becasue now we move from common part to arch part code.
+> In this condition, there shouldn't have any racing to detector_delay_init_state.
+> If it does happend an unknown racing, then shows a warning to it.
 
-Provided compat_loff_t are correctly defined with __aligned__(4)
-marking the structure packed isn't needed.
-I believe compat_u64 and compat_s64 both have aligned(4).
-It is also wrong, consider:
+There should not be any race.
 
-struct foo {
-	char x;
-	struct compat_flock64 fl64;
-};
+     wait_event(hld_detector_wait,
+		detector_delay_init_state == DELAY_INIT_READY);
 
-There should be 3 bytes of padding after 'x'.
-But you've removed it.
+waits until it is waken by lockup_detector_check(). Well, it could
+wait forewer when lockup_detector_check() is caller earlier, see below.
 
-	David
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+> I think it make sense to remove WARN now becasue it looks verbosely...
+> However, I would rather change the following printk to
+> "Delayed init for lockup detector failed."
 
+I would print both messages. The above message says what failed.
+
+
+> > > +		pr_info("Perf NMI watchdog permanently disabled\n");
+
+And this message explains what is the result of the above failure.
+It is not obvious.
+
+> > > +	}
+> > > +}
+> > > +
+> > > +/* Ensure the check is called after the initialization of PMU driver */
+> > > +static int __init lockup_detector_check(void)
+> > > +{
+> > > +	if (detector_delay_init_state < DELAY_INIT_WAIT)
+> > > +		return 0;
+> > > +
+> > > +	if (WARN_ON(detector_delay_init_state == DELAY_INIT_WAIT)) {
+> > 
+> > Again. Is WARN_ON() needed?
+> > 
+> > Also the condition looks wrong. IMHO, this is the expected state.
+> > 
+> 
+> This does expected DELAY_INIT_READY here, which means,
+> every one who comes here to be checked should be READY and WARN if you're
+> still in WAIT state, and which means the previous lockup_detector_delay_init()
+> failed.
+
+No, DELAY_INIT_READY is set below. DELAY_INIT_WAIT is valid value here.
+It means that lockup_detector_delay_init() work is queued.
+
+
+> IMO, either keeping or removing WARN is fine with me.
+> 
+> I think I'll remove WARN and add
+> pr_info("Delayed init checking for lockup detector failed, retry for once.");
+> inside the `if (detector_delay_init_state == DELAY_INIT_WAIT)`
+> 
+> Or would you have any other suggestion? thanks.
+> 
+> > > +		detector_delay_init_state = DELAY_INIT_READY;
+> > > +		wake_up(&hld_detector_wait);
+
+I see another problem now. We should always call the wake up here
+when the work was queued. Otherwise, the worker will stay blocked
+forewer.
+
+The worker will also get blocked when the late_initcall is called
+before the work is proceed by a worker.
+
+> > > +	}
+> > > +	flush_work(&detector_work);
+> > > +	return 0;
+> > > +}
+> > > +late_initcall_sync(lockup_detector_check);
+
+
+OK, I think that the three states are too complicated. I suggest to
+use only a single bool. Something like:
+
+static bool lockup_detector_pending_init __initdata;
+
+struct wait_queue_head lockup_detector_wait __initdata =
+		__WAIT_QUEUE_HEAD_INITIALIZER(lockup_detector_wait);
+
+static struct work_struct detector_work __initdata =
+		__WORK_INITIALIZER(lockup_detector_work,
+				   lockup_detector_delay_init);
+
+static void __init lockup_detector_delay_init(struct work_struct *work)
+{
+	int ret;
+
+	wait_event(lockup_detector_wait, lockup_detector_pending_init == false);
+
+	ret = watchdog_nmi_probe();
+	if (ret) {
+		pr_info("Delayed init of the lockup detector failed: %\n);
+		pr_info("Perf NMI watchdog permanently disabled\n");
+		return;
+	}
+
+	nmi_watchdog_available = true;
+	lockup_detector_setup();
+}
+
+/* Trigger delayedEnsure the check is called after the initialization of PMU driver */
+static int __init lockup_detector_check(void)
+{
+	if (!lockup_detector_pending_init)
+		return;
+
+	lockup_detector_pending_init = false;
+	wake_up(&lockup_detector_wait);
+	return 0;
+}
+late_initcall_sync(lockup_detector_check);
+
+void __init lockup_detector_init(void)
+{
+	int ret;
+
+	if (tick_nohz_full_enabled())
+		pr_info("Disabling watchdog on nohz_full cores by default\n");
+
+	cpumask_copy(&watchdog_cpumask,
+		     housekeeping_cpumask(HK_FLAG_TIMER));
+
+	ret = watchdog_nmi_probe();
+	if (!ret)
+		nmi_watchdog_available = true;
+	else if (ret == -EBUSY) {
+		detector_delay_pending_init = true;
+		/* Init must be done in a process context on a bound CPU. */
+		queue_work_on(smp_processor_id(), system_wq, 
+				  &lockup_detector_work);
+	}
+
+	lockup_detector_setup();
+	watchdog_sysctl_init();
+}
+
+The result is that lockup_detector_work() will never stay blocked
+forever. There are two possibilities:
+
+1.  lockup_detector_work() called before lockup_detector_check().
+    In this case, wait_event() will wait until lockup_detector_check()
+    clears detector_delay_pending_init and calls wake_up().
+
+2. lockup_detector_check() called before lockup_detector_work().
+   In this case, wait_even() will immediately continue because
+   it will see cleared detector_delay_pending_init.
+
+
+Best Regards,
+Petr
