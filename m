@@ -2,24 +2,24 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BB8BC4321E
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 10:50:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B727AC4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 28 Feb 2022 10:50:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231654AbiB1KvT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Feb 2022 05:51:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47012 "EHLO
+        id S231685AbiB1Kvb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 28 Feb 2022 05:51:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235007AbiB1Ku0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 05:50:26 -0500
+        with ESMTP id S233393AbiB1KvR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Feb 2022 05:51:17 -0500
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BE11F64BC1;
-        Mon, 28 Feb 2022 02:49:44 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F105163BCE;
+        Mon, 28 Feb 2022 02:50:10 -0800 (PST)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 77F3A1063;
-        Mon, 28 Feb 2022 02:49:44 -0800 (PST)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id C07F11063;
+        Mon, 28 Feb 2022 02:50:10 -0800 (PST)
 Received: from p8cg001049571a15.arm.com (unknown [10.163.47.185])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id BC64A3F73D;
-        Mon, 28 Feb 2022 02:49:36 -0800 (PST)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id BE70D3F73D;
+        Mon, 28 Feb 2022 02:50:02 -0800 (PST)
 From:   Anshuman Khandual <anshuman.khandual@arm.com>
 To:     linux-mm@kvack.org, akpm@linux-foundation.org
 Cc:     linux-kernel@vger.kernel.org, geert@linux-m68k.org,
@@ -34,11 +34,11 @@ Cc:     linux-kernel@vger.kernel.org, geert@linux-m68k.org,
         linux-xtensa@linux-xtensa.org, linux-parisc@vger.kernel.org,
         openrisc@lists.librecores.org, linux-um@lists.infradead.org,
         linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-arch@vger.kernel.org,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Subject: [PATCH V3 07/30] mips/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Date:   Mon, 28 Feb 2022 16:17:30 +0530
-Message-Id: <1646045273-9343-8-git-send-email-anshuman.khandual@arm.com>
+        linux-arch@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>
+Subject: [PATCH V3 10/30] x86/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Date:   Mon, 28 Feb 2022 16:17:33 +0530
+Message-Id: <1646045273-9343-11-git-send-email-anshuman.khandual@arm.com>
 X-Mailer: git-send-email 2.7.4
 In-Reply-To: <1646045273-9343-1-git-send-email-anshuman.khandual@arm.com>
 References: <1646045273-9343-1-git-send-email-anshuman.khandual@arm.com>
@@ -46,142 +46,234 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+From: Christoph Hellwig <hch@infradead.org>
+
 This defines and exports a platform specific custom vm_get_page_prot() via
 subscribing ARCH_HAS_VM_GET_PAGE_PROT. Subsequently all __SXXX and __PXXX
-macros can be dropped which are no longer needed.
+macros can be dropped which are no longer needed. This also unsubscribes
+from ARCH_HAS_FILTER_PGPROT, after dropping off arch_filter_pgprot() and
+arch_vm_get_page_prot().
 
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: linux-mips@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: linux-kernel@vger.kernel.org
-Acked-by: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- arch/mips/Kconfig               |  1 +
- arch/mips/include/asm/pgtable.h | 22 ------------
- arch/mips/mm/cache.c            | 60 +++++++++++++++++++--------------
- 3 files changed, 36 insertions(+), 47 deletions(-)
+ arch/x86/Kconfig                     |  2 +-
+ arch/x86/include/asm/pgtable.h       |  5 --
+ arch/x86/include/asm/pgtable_types.h | 19 --------
+ arch/x86/include/uapi/asm/mman.h     | 14 ------
+ arch/x86/mm/Makefile                 |  2 +-
+ arch/x86/mm/mem_encrypt_amd.c        |  6 ---
+ arch/x86/mm/pgprot.c                 | 71 ++++++++++++++++++++++++++++
+ 7 files changed, 73 insertions(+), 46 deletions(-)
+ create mode 100644 arch/x86/mm/pgprot.c
 
-diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
-index 058446f01487..fcbfc52a1567 100644
---- a/arch/mips/Kconfig
-+++ b/arch/mips/Kconfig
-@@ -13,6 +13,7 @@ config MIPS
- 	select ARCH_HAS_STRNLEN_USER
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b1ce75d0ab0c..b2ea06c87708 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -75,7 +75,6 @@ config X86
+ 	select ARCH_HAS_EARLY_DEBUG		if KGDB
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_FAST_MULTIPLIER
+-	select ARCH_HAS_FILTER_PGPROT
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_KCOV			if X86_64
+@@ -94,6 +93,7 @@ config X86
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
+ 	select ARCH_HAS_SYSCALL_WRAPPER
  	select ARCH_HAS_UBSAN_SANITIZE_ALL
 +	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_KEEP_MEMBLOCK
- 	select ARCH_SUPPORTS_UPROBES
-diff --git a/arch/mips/include/asm/pgtable.h b/arch/mips/include/asm/pgtable.h
-index 7b8037f25d9e..bf193ad4f195 100644
---- a/arch/mips/include/asm/pgtable.h
-+++ b/arch/mips/include/asm/pgtable.h
-@@ -41,28 +41,6 @@ struct vm_area_struct;
-  * by reasonable means..
-  */
+ 	select ARCH_HAS_DEBUG_WX
+ 	select ARCH_HAS_ZONE_DMA_SET if EXPERT
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 8a9432fb3802..985e1b823691 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -648,11 +648,6 @@ static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
  
--/*
-- * Dummy values to fill the table in mmap.c
-- * The real values will be generated at runtime
-- */
--#define __P000 __pgprot(0)
--#define __P001 __pgprot(0)
--#define __P010 __pgprot(0)
--#define __P011 __pgprot(0)
--#define __P100 __pgprot(0)
--#define __P101 __pgprot(0)
--#define __P110 __pgprot(0)
--#define __P111 __pgprot(0)
--
--#define __S000 __pgprot(0)
--#define __S001 __pgprot(0)
--#define __S010 __pgprot(0)
--#define __S011 __pgprot(0)
--#define __S100 __pgprot(0)
--#define __S101 __pgprot(0)
--#define __S110 __pgprot(0)
--#define __S111 __pgprot(0)
--
- extern unsigned long _page_cachable_default;
- extern void __update_cache(unsigned long address, pte_t pte);
+ #define canon_pgprot(p) __pgprot(massage_pgprot(p))
  
-diff --git a/arch/mips/mm/cache.c b/arch/mips/mm/cache.c
-index 830ab91e574f..9f33ce4fb105 100644
---- a/arch/mips/mm/cache.c
-+++ b/arch/mips/mm/cache.c
-@@ -159,30 +159,6 @@ EXPORT_SYMBOL(_page_cachable_default);
- 
- #define PM(p)	__pgprot(_page_cachable_default | (p))
- 
--static inline void setup_protection_map(void)
+-static inline pgprot_t arch_filter_pgprot(pgprot_t prot)
 -{
--	protection_map[0]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[1]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[2]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[3]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[4]  = PM(_PAGE_PRESENT);
--	protection_map[5]  = PM(_PAGE_PRESENT);
--	protection_map[6]  = PM(_PAGE_PRESENT);
--	protection_map[7]  = PM(_PAGE_PRESENT);
--
--	protection_map[8]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
--	protection_map[9]  = PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
--	protection_map[10] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE |
--				_PAGE_NO_READ);
--	protection_map[11] = PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
--	protection_map[12] = PM(_PAGE_PRESENT);
--	protection_map[13] = PM(_PAGE_PRESENT);
--	protection_map[14] = PM(_PAGE_PRESENT | _PAGE_WRITE);
--	protection_map[15] = PM(_PAGE_PRESENT | _PAGE_WRITE);
+-	return canon_pgprot(prot);
 -}
 -
--#undef PM
+ static inline int is_new_memtype_allowed(u64 paddr, unsigned long size,
+ 					 enum page_cache_mode pcm,
+ 					 enum page_cache_mode new_pcm)
+diff --git a/arch/x86/include/asm/pgtable_types.h b/arch/x86/include/asm/pgtable_types.h
+index 40497a9020c6..1a9dd933088e 100644
+--- a/arch/x86/include/asm/pgtable_types.h
++++ b/arch/x86/include/asm/pgtable_types.h
+@@ -228,25 +228,6 @@ enum page_cache_mode {
+ 
+ #endif	/* __ASSEMBLY__ */
+ 
+-/*         xwr */
+-#define __P000	PAGE_NONE
+-#define __P001	PAGE_READONLY
+-#define __P010	PAGE_COPY
+-#define __P011	PAGE_COPY
+-#define __P100	PAGE_READONLY_EXEC
+-#define __P101	PAGE_READONLY_EXEC
+-#define __P110	PAGE_COPY_EXEC
+-#define __P111	PAGE_COPY_EXEC
 -
- void cpu_cache_init(void)
+-#define __S000	PAGE_NONE
+-#define __S001	PAGE_READONLY
+-#define __S010	PAGE_SHARED
+-#define __S011	PAGE_SHARED
+-#define __S100	PAGE_READONLY_EXEC
+-#define __S101	PAGE_READONLY_EXEC
+-#define __S110	PAGE_SHARED_EXEC
+-#define __S111	PAGE_SHARED_EXEC
+-
+ /*
+  * early identity mapping  pte attrib macros.
+  */
+diff --git a/arch/x86/include/uapi/asm/mman.h b/arch/x86/include/uapi/asm/mman.h
+index d4a8d0424bfb..775dbd3aff73 100644
+--- a/arch/x86/include/uapi/asm/mman.h
++++ b/arch/x86/include/uapi/asm/mman.h
+@@ -5,20 +5,6 @@
+ #define MAP_32BIT	0x40		/* only give out 32bit addresses */
+ 
+ #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
+-/*
+- * Take the 4 protection key bits out of the vma->vm_flags
+- * value and turn them in to the bits that we can put in
+- * to a pte.
+- *
+- * Only override these if Protection Keys are available
+- * (which is only on 64-bit).
+- */
+-#define arch_vm_get_page_prot(vm_flags)	__pgprot(	\
+-		((vm_flags) & VM_PKEY_BIT0 ? _PAGE_PKEY_BIT0 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT1 ? _PAGE_PKEY_BIT1 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT2 ? _PAGE_PKEY_BIT2 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT3 ? _PAGE_PKEY_BIT3 : 0))
+-
+ #define arch_calc_vm_prot_bits(prot, key) (		\
+ 		((key) & 0x1 ? VM_PKEY_BIT0 : 0) |      \
+ 		((key) & 0x2 ? VM_PKEY_BIT1 : 0) |      \
+diff --git a/arch/x86/mm/Makefile b/arch/x86/mm/Makefile
+index fe3d3061fc11..fb6b41a48ae5 100644
+--- a/arch/x86/mm/Makefile
++++ b/arch/x86/mm/Makefile
+@@ -20,7 +20,7 @@ CFLAGS_REMOVE_mem_encrypt_identity.o	= -pg
+ endif
+ 
+ obj-y				:=  init.o init_$(BITS).o fault.o ioremap.o extable.o mmap.o \
+-				    pgtable.o physaddr.o setup_nx.o tlb.o cpu_entry_area.o maccess.o
++				    pgtable.o physaddr.o setup_nx.o tlb.o cpu_entry_area.o maccess.o pgprot.o
+ 
+ obj-y				+= pat/
+ 
+diff --git a/arch/x86/mm/mem_encrypt_amd.c b/arch/x86/mm/mem_encrypt_amd.c
+index 2b2d018ea345..95f94eaac9a0 100644
+--- a/arch/x86/mm/mem_encrypt_amd.c
++++ b/arch/x86/mm/mem_encrypt_amd.c
+@@ -179,8 +179,6 @@ void __init sme_map_bootdata(char *real_mode_data)
+ 
+ void __init sme_early_init(void)
  {
- 	if (cpu_has_3k_cache) {
-@@ -206,6 +182,40 @@ void cpu_cache_init(void)
+-	unsigned int i;
+-
+ 	if (!sme_me_mask)
+ 		return;
  
- 		octeon_cache_init();
- 	}
-+}
+@@ -188,10 +186,6 @@ void __init sme_early_init(void)
  
--	setup_protection_map();
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
+ 	__supported_pte_mask = __sme_set(__supported_pte_mask);
+ 
+-	/* Update the protection map with memory encryption mask */
+-	for (i = 0; i < ARRAY_SIZE(protection_map); i++)
+-		protection_map[i] = pgprot_encrypted(protection_map[i]);
+-
+ 	if (cc_platform_has(CC_ATTR_GUEST_MEM_ENCRYPT))
+ 		swiotlb_force = SWIOTLB_FORCE;
+ }
+diff --git a/arch/x86/mm/pgprot.c b/arch/x86/mm/pgprot.c
+new file mode 100644
+index 000000000000..5f2f029ce4fa
+--- /dev/null
++++ b/arch/x86/mm/pgprot.c
+@@ -0,0 +1,71 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/export.h>
++#include <linux/mm.h>
++#include <asm/pgtable.h>
++
++static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
 +{
 +	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
 +	case VM_NONE:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++		return PAGE_NONE;
 +	case VM_READ:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++		return PAGE_READONLY;
 +	case VM_WRITE:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++		return PAGE_COPY;
 +	case VM_WRITE | VM_READ:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++		return PAGE_COPY;
 +	case VM_EXEC:
 +	case VM_EXEC | VM_READ:
++		return PAGE_READONLY_EXEC;
 +	case VM_EXEC | VM_WRITE:
 +	case VM_EXEC | VM_WRITE | VM_READ:
-+		return PM(_PAGE_PRESENT);
++		return PAGE_COPY_EXEC;
 +	case VM_SHARED:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_NO_READ);
++		return PAGE_NONE;
 +	case VM_SHARED | VM_READ:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC);
++		return PAGE_READONLY;
 +	case VM_SHARED | VM_WRITE:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE | _PAGE_NO_READ);
 +	case VM_SHARED | VM_WRITE | VM_READ:
-+		return PM(_PAGE_PRESENT | _PAGE_NO_EXEC | _PAGE_WRITE);
++		return PAGE_SHARED;
 +	case VM_SHARED | VM_EXEC:
 +	case VM_SHARED | VM_EXEC | VM_READ:
-+		return PM(_PAGE_PRESENT);
++		return PAGE_READONLY_EXEC;
 +	case VM_SHARED | VM_EXEC | VM_WRITE:
 +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-+		return PM(_PAGE_PRESENT | _PAGE_WRITE);
++		return PAGE_SHARED_EXEC;
 +	default:
 +		BUILD_BUG();
++		return PAGE_NONE;
 +	}
- }
++}
++
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++	unsigned long val = pgprot_val(__vm_get_page_prot(vm_flags));
++
++#ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
++	/*
++	 * Take the 4 protection key bits out of the vma->vm_flags value and
++	 * turn them in to the bits that we can put in to a pte.
++	 *
++	 * Only override these if Protection Keys are available (which is only
++	 * on 64-bit).
++	 */
++	if (vm_flags & VM_PKEY_BIT0)
++		val |= _PAGE_PKEY_BIT0;
++	if (vm_flags & VM_PKEY_BIT1)
++		val |= _PAGE_PKEY_BIT1;
++	if (vm_flags & VM_PKEY_BIT2)
++		val |= _PAGE_PKEY_BIT2;
++	if (vm_flags & VM_PKEY_BIT3)
++		val |= _PAGE_PKEY_BIT3;
++#endif
++
++	val = __sme_set(val);
++	if (val & _PAGE_PRESENT)
++		val &= __supported_pte_mask;
++	return __pgprot(val);
++}
 +EXPORT_SYMBOL(vm_get_page_prot);
 -- 
 2.25.1
