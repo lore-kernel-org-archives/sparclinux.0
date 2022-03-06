@@ -2,191 +2,92 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1640FC4167E
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Mar 2022 15:29:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E286C4167D
+	for <sparclinux@archiver.kernel.org>; Sun,  6 Mar 2022 19:40:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234411AbiCCP3t (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Mar 2022 10:29:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46888 "EHLO
+        id S234149AbiCFTk7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 6 Mar 2022 14:40:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37846 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233331AbiCCP3r (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Mar 2022 10:29:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6C8D3FBC5;
-        Thu,  3 Mar 2022 07:29:01 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        with ESMTP id S229737AbiCFTk5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 6 Mar 2022 14:40:57 -0500
+Received: from bmailout3.hostsharing.net (bmailout3.hostsharing.net [IPv6:2a01:4f8:150:2161:1:b009:f23e:0])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0CB2921E38;
+        Sun,  6 Mar 2022 11:40:04 -0800 (PST)
+Received: from h08.hostsharing.net (h08.hostsharing.net [83.223.95.28])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 30F47B8260E;
-        Thu,  3 Mar 2022 15:29:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 335A5C340F0;
-        Thu,  3 Mar 2022 15:28:54 +0000 (UTC)
-Date:   Thu, 3 Mar 2022 15:28:50 +0000
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Anshuman Khandual <anshuman.khandual@arm.com>
-Cc:     linux-mm@kvack.org, akpm@linux-foundation.org,
-        linux-kernel@vger.kernel.org, geert@linux-m68k.org,
-        Christoph Hellwig <hch@infradead.org>,
+        (Client CN "*.hostsharing.net", Issuer "RapidSSL TLS DV RSA Mixed SHA256 2020 CA-1" (verified OK))
+        by bmailout3.hostsharing.net (Postfix) with ESMTPS id B3C27100D9417;
+        Sun,  6 Mar 2022 20:40:02 +0100 (CET)
+Received: by h08.hostsharing.net (Postfix, from userid 100393)
+        id F33A644C28B; Sun,  6 Mar 2022 20:40:01 +0100 (CET)
+Date:   Sun, 6 Mar 2022 20:40:01 +0100
+From:   Lukas Wunner <lukas@wunner.de>
+To:     Ilpo =?iso-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Cc:     linux-serial@vger.kernel.org, Jiri Slaby <jirislaby@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, Johan Hovold <johan@kernel.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
+        linux-api@vger.kernel.org, Richard Henderson <rth@twiddle.net>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>, linux-alpha@vger.kernel.org,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        linux-mips@vger.kernel.org,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
         linuxppc-dev@lists.ozlabs.org,
-        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-s390@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-alpha@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linux-parisc@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-um@lists.infradead.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-arch@vger.kernel.org, Will Deacon <will@kernel.org>
-Subject: Re: [PATCH V3 05/30] arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Message-ID: <YiDessYDSt060Euc@arm.com>
-References: <1646045273-9343-1-git-send-email-anshuman.khandual@arm.com>
- <1646045273-9343-6-git-send-email-anshuman.khandual@arm.com>
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>,
+        linux-arch@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [RFC PATCH 6/7] serial: General support for multipoint addresses
+Message-ID: <20220306194001.GD19394@wunner.de>
+References: <20220302095606.14818-1-ilpo.jarvinen@linux.intel.com>
+ <20220302095606.14818-7-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <1646045273-9343-6-git-send-email-anshuman.khandual@arm.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20220302095606.14818-7-ilpo.jarvinen@linux.intel.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Anshuman,
+On Wed, Mar 02, 2022 at 11:56:05AM +0200, Ilpo Järvinen wrote:
+> This patch adds generic support for serial multipoint
+> addressing. Two new ioctls are added. TIOCSADDR is used to
 
-On Mon, Feb 28, 2022 at 04:17:28PM +0530, Anshuman Khandual wrote:
-> +static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
-> +{
-> +	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
-> +	case VM_NONE:
-> +		return PAGE_NONE;
-> +	case VM_READ:
-> +	case VM_WRITE:
-> +	case VM_WRITE | VM_READ:
-> +		return PAGE_READONLY;
-> +	case VM_EXEC:
-> +		return PAGE_EXECONLY;
-> +	case VM_EXEC | VM_READ:
-> +	case VM_EXEC | VM_WRITE:
-> +	case VM_EXEC | VM_WRITE | VM_READ:
-> +		return PAGE_READONLY_EXEC;
-> +	case VM_SHARED:
-> +		return PAGE_NONE;
-> +	case VM_SHARED | VM_READ:
-> +		return PAGE_READONLY;
-> +	case VM_SHARED | VM_WRITE:
-> +	case VM_SHARED | VM_WRITE | VM_READ:
-> +		return PAGE_SHARED;
-> +	case VM_SHARED | VM_EXEC:
-> +		return PAGE_EXECONLY;
-> +	case VM_SHARED | VM_EXEC | VM_READ:
-> +		return PAGE_READONLY_EXEC;
-> +	case VM_SHARED | VM_EXEC | VM_WRITE:
-> +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
-> +		return PAGE_SHARED_EXEC;
-> +	default:
-> +		BUILD_BUG();
-> +	}
-> +}
+Nit:  "This patch adds..." is superfluous.  Just write "Add ..."
+in imperative mood.
 
-I'd say ack for trying to get of the extra arch_vm_get_page_prot() and
-arch_filter_pgprot() but, TBH, I'm not so keen on the outcome. I haven't
-built the code to see what's generated but I suspect it's no significant
-improvement. As for the code readability, the arm64 parts don't look
-much better either. The only advantage with this patch is that all
-functions have been moved under arch/arm64.
 
-I'd keep most architectures that don't have own arch_vm_get_page_prot()
-or arch_filter_pgprot() unchanged and with a generic protection_map[]
-array. For architectures that need fancier stuff, add a
-CONFIG_ARCH_HAS_VM_GET_PAGE_PROT (as you do) and allow them to define
-vm_get_page_prot() while getting rid of arch_vm_get_page_prot() and
-arch_filter_pgprot(). I think you could also duplicate protection_map[]
-for architectures with own vm_get_page_prot() (make it static) and
-#ifdef it out in mm/mmap.c.
+> This change is necessary for supporting devices with RS485
+> multipoint addressing [*].
 
-If later you have more complex needs or a switch statement generates
-better code, go for it, but for this series I'd keep things simple, only
-focus on getting rid of arch_vm_get_page_prot() and
-arch_filter_pgprot().
+If this is only used with RS485, why can't we just store the
+addresses in struct serial_rs485 and use the existing TIOCSRS485
+and TIOCGRS485 ioctls?  There's 20 bytes of padding left in
+struct serial_rs485 which you could use.  No need to add more
+user-space ABI.
 
-If I grep'ed correctly, there are only 4 architectures that have own
-arch_vm_get_page_prot() (arm64, powerpc, sparc, x86) and 2 that have own
-arch_filter_pgprot() (arm64, x86). Try to only change these for the time
-being, together with the other generic mm cleanups you have in this
-series. I think there are a couple more that touch protection_map[]
-(arm, m68k). You can leave the generic protection_map[] global if the
-arch does not select ARCH_HAS_VM_GET_PAGE_PROT.
 
-> +static pgprot_t arm64_arch_filter_pgprot(pgprot_t prot)
-> +{
-> +	if (cpus_have_const_cap(ARM64_HAS_EPAN))
-> +		return prot;
-> +
-> +	if (pgprot_val(prot) != pgprot_val(PAGE_EXECONLY))
-> +		return prot;
-> +
-> +	return PAGE_READONLY_EXEC;
-> +}
-> +
-> +static pgprot_t arm64_arch_vm_get_page_prot(unsigned long vm_flags)
-> +{
-> +	pteval_t prot = 0;
-> +
-> +	if (vm_flags & VM_ARM64_BTI)
-> +		prot |= PTE_GP;
-> +
-> +	/*
-> +	 * There are two conditions required for returning a Normal Tagged
-> +	 * memory type: (1) the user requested it via PROT_MTE passed to
-> +	 * mmap() or mprotect() and (2) the corresponding vma supports MTE. We
-> +	 * register (1) as VM_MTE in the vma->vm_flags and (2) as
-> +	 * VM_MTE_ALLOWED. Note that the latter can only be set during the
-> +	 * mmap() call since mprotect() does not accept MAP_* flags.
-> +	 * Checking for VM_MTE only is sufficient since arch_validate_flags()
-> +	 * does not permit (VM_MTE & !VM_MTE_ALLOWED).
-> +	 */
-> +	if (vm_flags & VM_MTE)
-> +		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
-> +
-> +	return __pgprot(prot);
-> +}
-> +
-> +pgprot_t vm_get_page_prot(unsigned long vm_flags)
-> +{
-> +	pgprot_t ret = __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
-> +			pgprot_val(arm64_arch_vm_get_page_prot(vm_flags)));
-> +
-> +	return arm64_arch_filter_pgprot(ret);
-> +}
+> [*] Technically, RS485 is just an electronic spec and does not
+> itself specify the 9th bit addressing mode but 9th bit seems
+> at least "semi-standard" way to do addressing with RS485.
 
-If we kept the array, we can have everything in a single function
-(untested and with my own comments for future changes):
+Is 9th bit addressing actually used by an Intel customer or was
+it implemented just for feature completeness?  I think this mode
+isn't used often (I've never seen a use case myself), primarily
+because it requires disabling parity.
 
-pgprot_t vm_get_page_prot(unsigned long vm_flags)
-{
-	pgprot_t prot = __pgprot(pgprot_val(protection_map[vm_flags &
-				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]));
+Thanks,
 
-	/*
-	 * We could get rid of this test if we updated protection_map[]
-	 * to turn exec-only into read-exec during boot.
-	 */
-	if (!cpus_have_const_cap(ARM64_HAS_EPAN) &&
-	    pgprot_val(prot) == pgprot_val(PAGE_EXECONLY))
-		prot = PAGE_READONLY_EXEC;
-
-	if (vm_flags & VM_ARM64_BTI)
-		prot != PTE_GP;
-
-	/*
-	 * We can get rid of the requirement for PROT_NORMAL to be 0
-	 * since here we can mask out PTE_ATTRINDX_MASK.
-	 */
-	if (vm_flags & VM_MTE) {
-		prot &= ~PTE_ATTRINDX_MASK;
-		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
-	}
-
-	return prot;
-}
-
--- 
-Catalin
+Lukas
