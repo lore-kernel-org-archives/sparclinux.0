@@ -2,31 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7C46C433EF
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Mar 2022 15:48:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BF94C433FE
+	for <sparclinux@archiver.kernel.org>; Mon,  7 Mar 2022 15:48:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243911AbiCGPtL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 7 Mar 2022 10:49:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56630 "EHLO
+        id S230270AbiCGPtN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 7 Mar 2022 10:49:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243915AbiCGPtK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Mar 2022 10:49:10 -0500
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B2663F305;
-        Mon,  7 Mar 2022 07:48:11 -0800 (PST)
-X-UUID: 58a39f357ea04343a2bfb26591b90552-20220307
-X-UUID: 58a39f357ea04343a2bfb26591b90552-20220307
-Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw01.mediatek.com
+        with ESMTP id S243909AbiCGPtG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Mar 2022 10:49:06 -0500
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FEA136B69;
+        Mon,  7 Mar 2022 07:48:09 -0800 (PST)
+X-UUID: a2e848ffdde94491bf82623e32b29307-20220307
+X-UUID: a2e848ffdde94491bf82623e32b29307-20220307
+Received: from mtkcas11.mediatek.inc [(172.21.101.40)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
         (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 576640934; Mon, 07 Mar 2022 23:48:04 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by
- mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
- Mon, 7 Mar 2022 23:48:03 +0800
+        with ESMTP id 748615338; Mon, 07 Mar 2022 23:48:02 +0800
+Received: from mtkexhb02.mediatek.inc (172.21.101.103) by
+ mtkmbs07n2.mediatek.inc (172.21.101.141) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Mon, 7 Mar 2022 23:48:01 +0800
+Received: from mtkcas11.mediatek.inc (172.21.101.40) by mtkexhb02.mediatek.inc
+ (172.21.101.103) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 7 Mar
+ 2022 23:48:01 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Mon, 7 Mar 2022 23:48:02 +0800
+ Transport; Mon, 7 Mar 2022 23:48:00 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <linux-kernel@vger.kernel.org>
 CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
@@ -42,9 +44,9 @@ CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
         <pmladek@suse.com>, <sparclinux@vger.kernel.org>,
         <sumit.garg@linaro.org>, <wangqing@vivo.com>, <will@kernel.org>,
         <yj.chiang@mediatek.com>
-Subject: [PATCH v2 3/5] kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup detector event
-Date:   Mon, 7 Mar 2022 23:47:27 +0800
-Message-ID: <20220307154729.13477-4-lecopzer.chen@mediatek.com>
+Subject: [PATCH v2 1/5] kernel/watchdog: remove WATCHDOG_DEFAULT
+Date:   Mon, 7 Mar 2022 23:47:25 +0800
+Message-ID: <20220307154729.13477-2-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
 In-Reply-To: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
 References: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
@@ -55,46 +57,29 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Pingfan Liu <kernelfans@gmail.com>
-
-hardlockup_detector_event_create() should create perf_event on the
-current CPU. Preemption could not get disabled because
-perf_event_create_kernel_counter() allocates memory. Instead,
-the CPU locality is achieved by processing the code in a per-CPU
-bound kthread.
-
-Add a check to prevent mistakes when calling the code in another
-code path.
+No reference to WATCHDOG_DEFAULT, remove it.
 
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
 ---
- kernel/watchdog_hld.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/watchdog.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_hld.c
-index 247bf0b1582c..96b717205952 100644
---- a/kernel/watchdog_hld.c
-+++ b/kernel/watchdog_hld.c
-@@ -165,10 +165,16 @@ static void watchdog_overflow_callback(struct perf_event *event,
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 99afb88d2e85..db451e943a04 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -30,10 +30,8 @@
+ static DEFINE_MUTEX(watchdog_mutex);
  
- static int hardlockup_detector_event_create(void)
- {
--	unsigned int cpu = smp_processor_id();
-+	unsigned int cpu;
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *evt;
- 
-+	/*
-+	 * Preemption is not disabled because memory will be allocated.
-+	 * Ensure CPU-locality by calling this in per-CPU kthread.
-+	 */
-+	WARN_ON(!is_percpu_thread());
-+	cpu = raw_smp_processor_id();
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
+-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED | NMI_WATCHDOG_ENABLED)
+ # define NMI_WATCHDOG_DEFAULT	1
+ #else
+-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED)
+ # define NMI_WATCHDOG_DEFAULT	0
+ #endif
  
 -- 
 2.25.1
