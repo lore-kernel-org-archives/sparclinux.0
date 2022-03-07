@@ -2,34 +2,33 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 66BECC433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Mar 2022 15:48:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9567DC433F5
+	for <sparclinux@archiver.kernel.org>; Mon,  7 Mar 2022 15:48:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240015AbiCGPtC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 7 Mar 2022 10:49:02 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56162 "EHLO
+        id S243903AbiCGPtL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 7 Mar 2022 10:49:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237452AbiCGPtB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Mar 2022 10:49:01 -0500
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFBED22BDE;
-        Mon,  7 Mar 2022 07:48:02 -0800 (PST)
-X-UUID: 1df623598edf482fa68ebc7fc5bdb3a3-20220307
-X-UUID: 1df623598edf482fa68ebc7fc5bdb3a3-20220307
-Received: from mtkmbs10n2.mediatek.inc [(172.21.101.183)] by mailgw01.mediatek.com
+        with ESMTP id S243908AbiCGPtG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Mar 2022 10:49:06 -0500
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 099463DA58;
+        Mon,  7 Mar 2022 07:48:09 -0800 (PST)
+X-UUID: 52f0d7a55a9844a0b4277a908456edf4-20220307
+X-UUID: 52f0d7a55a9844a0b4277a908456edf4-20220307
+Received: from mtkcas10.mediatek.inc [(172.21.101.39)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 180879607; Mon, 07 Mar 2022 23:47:56 +0800
-Received: from mtkexhb01.mediatek.inc (172.21.101.102) by
- mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.2.792.15; Mon, 7 Mar 2022 23:47:55 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by mtkexhb01.mediatek.inc
- (172.21.101.102) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 7 Mar
- 2022 23:47:55 +0800
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1241223397; Mon, 07 Mar 2022 23:48:03 +0800
+Received: from mtkexhb02.mediatek.inc (172.21.101.103) by
+ mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Mon, 7 Mar 2022 23:48:02 +0800
+Received: from mtkcas11.mediatek.inc (172.21.101.40) by mtkexhb02.mediatek.inc
+ (172.21.101.103) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Mon, 7 Mar
+ 2022 23:48:02 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Mon, 7 Mar 2022 23:47:54 +0800
+ Transport; Mon, 7 Mar 2022 23:48:01 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <linux-kernel@vger.kernel.org>
 CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
@@ -45,10 +44,12 @@ CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
         <pmladek@suse.com>, <sparclinux@vger.kernel.org>,
         <sumit.garg@linaro.org>, <wangqing@vivo.com>, <will@kernel.org>,
         <yj.chiang@mediatek.com>
-Subject: [PATCH v2 0/5] Suppot hld based on Pseudo-NMI for arm64
-Date:   Mon, 7 Mar 2022 23:47:24 +0800
-Message-ID: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
+Subject: [PATCH v2 2/5] kernel/watchdog: change watchdog_nmi_enable() to void
+Date:   Mon, 7 Mar 2022 23:47:26 +0800
+Message-ID: <20220307154729.13477-3-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
+In-Reply-To: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
+References: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MTK:  N
@@ -56,70 +57,78 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-As we already used hld internally for arm64 since 2020, there still
-doesn't have a proper commit on the upstream and we badly need it.
+Nobody cares about the return value of watchdog_nmi_enable(),
+changing its prototype to void.
 
-This serise rework on 5.17-rc7 from [1] and the origin author is
-Pingfan Liu <kernelfans@gmail.com>
-Sumit Garg <sumit.garg@linaro.org>
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+---
+ arch/sparc/kernel/nmi.c | 8 +++-----
+ include/linux/nmi.h     | 2 +-
+ kernel/watchdog.c       | 3 +--
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-Qoute from [1]:
-
-> Hard lockup detector is helpful to diagnose unpaired irq enable/disable.
-> But the current watchdog framework can not cope with arm64 hw perf event
-> easily.
-
-> On arm64, when lockup_detector_init()->watchdog_nmi_probe(), PMU is not
-> ready until device_initcall(armv8_pmu_driver_init).  And it is deeply
-> integrated with the driver model and cpuhp. Hence it is hard to push the
-> initialization of armv8_pmu_driver_init() before smp_init().
-
-> But it is easy to take an opposite approach by enabling watchdog_hld to
-> get the capability of PMU async. 
-> The async model is achieved by expanding watchdog_nmi_probe() with
-> -EBUSY, and a re-initializing work_struct which waits on a
-> wait_queue_head.
-
-[1] https://lore.kernel.org/lkml/20211014024155.15253-1-kernelfans@gmail.com/
-
-v2:
-  1. Tweak commit message in patch 01/02/04/05 
-  2. Remove vobose WARN in patch 04 within watchdog core.
-  3. Change from three states variable: detector_delay_init_state to
-     two states variable: lockup_detector_pending_init
-
-     Thanks Petr Mladek <pmladek@suse.com> for the idea.
-     > 1.  lockup_detector_work() called before lockup_detector_check().
-     >     In this case, wait_event() will wait until lockup_detector_check()
-     >     clears detector_delay_pending_init and calls wake_up().
-
-     > 2. lockup_detector_check() called before lockup_detector_work().
-     >    In this case, wait_even() will immediately continue because
-     >    it will see cleared detector_delay_pending_init.
-  4. Add comment in code in patch 04/05 for two states variable changing.
-
-
-Lecopzer Chen (4):
-  kernel/watchdog: remove WATCHDOG_DEFAULT
-  kernel/watchdog: change watchdog_nmi_enable() to void
-  kernel/watchdog: Adapt the watchdog_hld interface for async model
-  arm64: Enable perf events based hard lockup detector
-
-Pingfan Liu (1):
-  kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup
-    detector event
-
- arch/arm64/Kconfig             |  2 +
- arch/arm64/kernel/Makefile     |  1 +
- arch/arm64/kernel/perf_event.c | 12 +++++-
- arch/sparc/kernel/nmi.c        |  8 ++--
- drivers/perf/arm_pmu.c         |  5 +++
- include/linux/nmi.h            |  5 ++-
- include/linux/perf/arm_pmu.h   |  2 +
- kernel/watchdog.c              | 67 +++++++++++++++++++++++++++++++---
- kernel/watchdog_hld.c          |  8 +++-
- 9 files changed, 95 insertions(+), 15 deletions(-)
-
+diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
+index 060fff95a305..5dcf31f7e81f 100644
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -282,11 +282,11 @@ __setup("nmi_watchdog=", setup_nmi_watchdog);
+  * sparc specific NMI watchdog enable function.
+  * Enables watchdog if it is not enabled already.
+  */
+-int watchdog_nmi_enable(unsigned int cpu)
++void watchdog_nmi_enable(unsigned int cpu)
+ {
+ 	if (atomic_read(&nmi_active) == -1) {
+ 		pr_warn("NMI watchdog cannot be enabled or disabled\n");
+-		return -1;
++		return;
+ 	}
+ 
+ 	/*
+@@ -295,11 +295,9 @@ int watchdog_nmi_enable(unsigned int cpu)
+ 	 * process first.
+ 	 */
+ 	if (!nmi_init_done)
+-		return 0;
++		return;
+ 
+ 	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
+-
+-	return 0;
+ }
+ /*
+  * sparc specific NMI watchdog disable function.
+diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+index 750c7f395ca9..b7bcd63c36b4 100644
+--- a/include/linux/nmi.h
++++ b/include/linux/nmi.h
+@@ -119,7 +119,7 @@ static inline int hardlockup_detector_perf_init(void) { return 0; }
+ void watchdog_nmi_stop(void);
+ void watchdog_nmi_start(void);
+ int watchdog_nmi_probe(void);
+-int watchdog_nmi_enable(unsigned int cpu);
++void watchdog_nmi_enable(unsigned int cpu);
+ void watchdog_nmi_disable(unsigned int cpu);
+ 
+ /**
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index db451e943a04..b71d434cf648 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -93,10 +93,9 @@ __setup("nmi_watchdog=", hardlockup_panic_setup);
+  * softlockup watchdog start and stop. The arch must select the
+  * SOFTLOCKUP_DETECTOR Kconfig.
+  */
+-int __weak watchdog_nmi_enable(unsigned int cpu)
++void __weak watchdog_nmi_enable(unsigned int cpu)
+ {
+ 	hardlockup_detector_perf_enable();
+-	return 0;
+ }
+ 
+ void __weak watchdog_nmi_disable(unsigned int cpu)
 -- 
 2.25.1
 
