@@ -2,182 +2,220 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89B4AC43217
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Mar 2022 15:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 94D37C433EF
+	for <sparclinux@archiver.kernel.org>; Wed,  9 Mar 2022 11:31:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243918AbiCGPtY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 7 Mar 2022 10:49:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56682 "EHLO
+        id S232210AbiCILcQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 9 Mar 2022 06:32:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243927AbiCGPtL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Mar 2022 10:49:11 -0500
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D89634092F;
-        Mon,  7 Mar 2022 07:48:12 -0800 (PST)
-X-UUID: 7028be8201f6471ba8db510e77d34909-20220307
-X-UUID: 7028be8201f6471ba8db510e77d34909-20220307
-Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw01.mediatek.com
-        (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 1587698027; Mon, 07 Mar 2022 23:48:04 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by
- mtkmbs07n2.mediatek.inc (172.21.101.141) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Mon, 7 Mar 2022 23:48:03 +0800
-Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Mon, 7 Mar 2022 23:48:03 +0800
-From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <linux-kernel@vger.kernel.org>
-CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
-        <akpm@linux-foundation.org>, <alexander.shishkin@linux.intel.com>,
-        <catalin.marinas@arm.com>, <davem@davemloft.net>,
-        <jolsa@redhat.com>, <jthierry@redhat.com>, <keescook@chromium.org>,
-        <kernelfans@gmail.com>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
-        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
-        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
-        <nixiaoming@huawei.com>, <peterz@infradead.org>,
-        <pmladek@suse.com>, <sparclinux@vger.kernel.org>,
-        <sumit.garg@linaro.org>, <wangqing@vivo.com>, <will@kernel.org>,
-        <yj.chiang@mediatek.com>
-Subject: [PATCH v2 4/5] kernel/watchdog: Adapt the watchdog_hld interface for async model
-Date:   Mon, 7 Mar 2022 23:47:28 +0800
-Message-ID: <20220307154729.13477-5-lecopzer.chen@mediatek.com>
-X-Mailer: git-send-email 2.18.0
-In-Reply-To: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
-References: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
+        with ESMTP id S230468AbiCILcO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 9 Mar 2022 06:32:14 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 6A83F14FFD4;
+        Wed,  9 Mar 2022 03:31:15 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 233BF1655;
+        Wed,  9 Mar 2022 03:31:15 -0800 (PST)
+Received: from [10.163.33.203] (unknown [10.163.33.203])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id EFA443FA4D;
+        Wed,  9 Mar 2022 03:31:03 -0800 (PST)
+Message-ID: <f1b4dbb5-7cd4-7513-4b18-169b97745a0a@arm.com>
+Date:   Wed, 9 Mar 2022 17:01:02 +0530
 MIME-Version: 1.0
-Content-Type: text/plain
-X-MTK:  N
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [PATCH V3 05/30] arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Content-Language: en-US
+To:     Catalin Marinas <catalin.marinas@arm.com>
+Cc:     linux-mm@kvack.org, akpm@linux-foundation.org,
+        linux-kernel@vger.kernel.org, geert@linux-m68k.org,
+        Christoph Hellwig <hch@infradead.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-s390@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-alpha@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linux-parisc@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-um@lists.infradead.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-arch@vger.kernel.org, Will Deacon <will@kernel.org>
+References: <1646045273-9343-1-git-send-email-anshuman.khandual@arm.com>
+ <1646045273-9343-6-git-send-email-anshuman.khandual@arm.com>
+ <YiDessYDSt060Euc@arm.com>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+In-Reply-To: <YiDessYDSt060Euc@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-yet. E.g. on arm64, PMU is not ready until
-device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-with the driver model and cpuhp. Hence it is hard to push this
-initialization before smp_init().
 
-But it is easy to take an opposite approach by enabling watchdog_hld to
-get the capability of PMU async.
 
-The async model is achieved by expanding watchdog_nmi_probe() with
--EBUSY, and a re-initializing work_struct which waits on a wait_queue_head.
+On 3/3/22 20:58, Catalin Marinas wrote:
+> Hi Anshuman,
+> 
+> On Mon, Feb 28, 2022 at 04:17:28PM +0530, Anshuman Khandual wrote:
+>> +static inline pgprot_t __vm_get_page_prot(unsigned long vm_flags)
+>> +{
+>> +	switch (vm_flags & (VM_READ | VM_WRITE | VM_EXEC | VM_SHARED)) {
+>> +	case VM_NONE:
+>> +		return PAGE_NONE;
+>> +	case VM_READ:
+>> +	case VM_WRITE:
+>> +	case VM_WRITE | VM_READ:
+>> +		return PAGE_READONLY;
+>> +	case VM_EXEC:
+>> +		return PAGE_EXECONLY;
+>> +	case VM_EXEC | VM_READ:
+>> +	case VM_EXEC | VM_WRITE:
+>> +	case VM_EXEC | VM_WRITE | VM_READ:
+>> +		return PAGE_READONLY_EXEC;
+>> +	case VM_SHARED:
+>> +		return PAGE_NONE;
+>> +	case VM_SHARED | VM_READ:
+>> +		return PAGE_READONLY;
+>> +	case VM_SHARED | VM_WRITE:
+>> +	case VM_SHARED | VM_WRITE | VM_READ:
+>> +		return PAGE_SHARED;
+>> +	case VM_SHARED | VM_EXEC:
+>> +		return PAGE_EXECONLY;
+>> +	case VM_SHARED | VM_EXEC | VM_READ:
+>> +		return PAGE_READONLY_EXEC;
+>> +	case VM_SHARED | VM_EXEC | VM_WRITE:
+>> +	case VM_SHARED | VM_EXEC | VM_WRITE | VM_READ:
+>> +		return PAGE_SHARED_EXEC;
+>> +	default:
+>> +		BUILD_BUG();
+>> +	}
+>> +}
+> 
+> I'd say ack for trying to get of the extra arch_vm_get_page_prot() and
+> arch_filter_pgprot() but, TBH, I'm not so keen on the outcome. I haven't
+> built the code to see what's generated but I suspect it's no significant
+> improvement. As for the code readability, the arm64 parts don't look
+> much better either. The only advantage with this patch is that all
+> functions have been moved under arch/arm64.
 
-Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Suggested-by: Petr Mladek <pmladek@suse.com>
----
- include/linux/nmi.h |  3 +++
- kernel/watchdog.c   | 62 +++++++++++++++++++++++++++++++++++++++++++--
- 2 files changed, 63 insertions(+), 2 deletions(-)
+Got it.
 
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index b7bcd63c36b4..cc7df31be9db 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -118,6 +118,9 @@ static inline int hardlockup_detector_perf_init(void) { return 0; }
- 
- void watchdog_nmi_stop(void);
- void watchdog_nmi_start(void);
-+
-+extern bool lockup_detector_pending_init;
-+extern struct wait_queue_head hld_detector_wait;
- int watchdog_nmi_probe(void);
- void watchdog_nmi_enable(unsigned int cpu);
- void watchdog_nmi_disable(unsigned int cpu);
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index b71d434cf648..49bdcaf5bd8f 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -103,7 +103,11 @@ void __weak watchdog_nmi_disable(unsigned int cpu)
- 	hardlockup_detector_perf_disable();
- }
- 
--/* Return 0, if a NMI watchdog is available. Error code otherwise */
-+/*
-+ * Arch specific API. Return 0, if a NMI watchdog is available. -EBUSY if not
-+ * ready, and arch code should wake up hld_detector_wait when ready. Other
-+ * negative value if not support.
-+ */
- int __weak __init watchdog_nmi_probe(void)
- {
- 	return hardlockup_detector_perf_init();
-@@ -839,16 +843,70 @@ static void __init watchdog_sysctl_init(void)
- #define watchdog_sysctl_init() do { } while (0)
- #endif /* CONFIG_SYSCTL */
- 
-+static void lockup_detector_delay_init(struct work_struct *work);
-+bool lockup_detector_pending_init __initdata;
-+
-+struct wait_queue_head hld_detector_wait __initdata =
-+		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
-+
-+static struct work_struct detector_work __initdata =
-+		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
-+
-+static void __init lockup_detector_delay_init(struct work_struct *work)
-+{
-+	int ret;
-+
-+	wait_event(hld_detector_wait,
-+			lockup_detector_pending_init == false);
-+
-+	/*
-+	 * Here, we know the PMU should be ready, so set pending to true to
-+	 * inform watchdog_nmi_probe() that it shouldn't return -EBUSY again.
-+	 */
-+	lockup_detector_pending_init = true;
-+	ret = watchdog_nmi_probe();
-+	if (ret) {
-+		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
-+		pr_info("Perf NMI watchdog permanently disabled\n");
-+		return;
-+	}
-+
-+	nmi_watchdog_available = true;
-+	lockup_detector_setup();
-+	lockup_detector_pending_init = false;
-+}
-+
-+/* Ensure the check is called after the initialization of PMU driver */
-+static int __init lockup_detector_check(void)
-+{
-+	if (!lockup_detector_pending_init)
-+		return 0;
-+
-+	pr_info("Delayed init checking failed, retry for once.\n");
-+	lockup_detector_pending_init = false;
-+	wake_up(&hld_detector_wait);
-+	return 0;
-+}
-+late_initcall_sync(lockup_detector_check);
-+
- void __init lockup_detector_init(void)
- {
-+	int ret;
-+
- 	if (tick_nohz_full_enabled())
- 		pr_info("Disabling watchdog on nohz_full cores by default\n");
- 
- 	cpumask_copy(&watchdog_cpumask,
- 		     housekeeping_cpumask(HK_FLAG_TIMER));
- 
--	if (!watchdog_nmi_probe())
-+	ret = watchdog_nmi_probe();
-+	if (!ret)
- 		nmi_watchdog_available = true;
-+	else if (ret == -EBUSY) {
-+		lockup_detector_pending_init = true;
-+		queue_work_on(smp_processor_id(), system_wq, &detector_work);
-+	}
-+
- 	lockup_detector_setup();
- 	watchdog_sysctl_init();
- }
--- 
-2.25.1
+> 
+> I'd keep most architectures that don't have own arch_vm_get_page_prot()
+> or arch_filter_pgprot() unchanged and with a generic protection_map[]
+> array. For architectures that need fancier stuff, add a
+> CONFIG_ARCH_HAS_VM_GET_PAGE_PROT (as you do) and allow them to define
+> vm_get_page_prot() while getting rid of arch_vm_get_page_prot() and
+> arch_filter_pgprot(). I think you could also duplicate protection_map[]
+> for architectures with own vm_get_page_prot() (make it static) and
+> #ifdef it out in mm/mmap.c.
+> 
+> If later you have more complex needs or a switch statement generates
+> better code, go for it, but for this series I'd keep things simple, only
+> focus on getting rid of arch_vm_get_page_prot() and
+> arch_filter_pgprot().
 
+Got it.
+
+> 
+> If I grep'ed correctly, there are only 4 architectures that have own
+> arch_vm_get_page_prot() (arm64, powerpc, sparc, x86) and 2 that have own
+> arch_filter_pgprot() (arm64, x86). Try to only change these for the time
+> being, together with the other generic mm cleanups you have in this
+> series. I think there are a couple more that touch protection_map[]
+> (arm, m68k). You can leave the generic protection_map[] global if the
+> arch does not select ARCH_HAS_VM_GET_PAGE_PROT.
+
+Okay, I will probably split the series into two parts.
+
+-  Drop arch_vm_get_page_prot() and arch_filter_pgprot() on relevant
+   platforms i.e arm64, powerpc, sparc and x86 via this new config
+   ARCH_HAS_VM_GET_PAGE_PROT, keeping the generic protection_map[]
+   since platform __SXXX/__PXX macros would be still around.
+
+-  Drop __SXXX/__PXXX across all platforms via just initializing
+   protection_map[] early during boot in the platform OR moving
+   both vm_get_page_prot() via ARCH_HAS_VM_GET_PAGE_PROT and the
+   generic protection_map[] inside the platform.
+
+   There were some objections with respect to switch case code in
+   comparison to the array based table look up.
+
+> 
+>> +static pgprot_t arm64_arch_filter_pgprot(pgprot_t prot)
+>> +{
+>> +	if (cpus_have_const_cap(ARM64_HAS_EPAN))
+>> +		return prot;
+>> +
+>> +	if (pgprot_val(prot) != pgprot_val(PAGE_EXECONLY))
+>> +		return prot;
+>> +
+>> +	return PAGE_READONLY_EXEC;
+>> +}
+>> +
+>> +static pgprot_t arm64_arch_vm_get_page_prot(unsigned long vm_flags)
+>> +{
+>> +	pteval_t prot = 0;
+>> +
+>> +	if (vm_flags & VM_ARM64_BTI)
+>> +		prot |= PTE_GP;
+>> +
+>> +	/*
+>> +	 * There are two conditions required for returning a Normal Tagged
+>> +	 * memory type: (1) the user requested it via PROT_MTE passed to
+>> +	 * mmap() or mprotect() and (2) the corresponding vma supports MTE. We
+>> +	 * register (1) as VM_MTE in the vma->vm_flags and (2) as
+>> +	 * VM_MTE_ALLOWED. Note that the latter can only be set during the
+>> +	 * mmap() call since mprotect() does not accept MAP_* flags.
+>> +	 * Checking for VM_MTE only is sufficient since arch_validate_flags()
+>> +	 * does not permit (VM_MTE & !VM_MTE_ALLOWED).
+>> +	 */
+>> +	if (vm_flags & VM_MTE)
+>> +		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
+>> +
+>> +	return __pgprot(prot);
+>> +}
+>> +
+>> +pgprot_t vm_get_page_prot(unsigned long vm_flags)
+>> +{
+>> +	pgprot_t ret = __pgprot(pgprot_val(__vm_get_page_prot(vm_flags)) |
+>> +			pgprot_val(arm64_arch_vm_get_page_prot(vm_flags)));
+>> +
+>> +	return arm64_arch_filter_pgprot(ret);
+>> +}
+> 
+> If we kept the array, we can have everything in a single function
+> (untested and with my own comments for future changes):
+
+Got it.
+
+> 
+> pgprot_t vm_get_page_prot(unsigned long vm_flags)
+> {
+> 	pgprot_t prot = __pgprot(pgprot_val(protection_map[vm_flags &
+> 				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]));
+> 
+> 	/*
+> 	 * We could get rid of this test if we updated protection_map[]
+> 	 * to turn exec-only into read-exec during boot.
+> 	 */
+> 	if (!cpus_have_const_cap(ARM64_HAS_EPAN) &&
+> 	    pgprot_val(prot) == pgprot_val(PAGE_EXECONLY))
+> 		prot = PAGE_READONLY_EXEC;
+> 
+> 	if (vm_flags & VM_ARM64_BTI)
+> 		prot != PTE_GP;
+> 
+> 	/*
+> 	 * We can get rid of the requirement for PROT_NORMAL to be 0
+> 	 * since here we can mask out PTE_ATTRINDX_MASK.
+> 	 */
+> 	if (vm_flags & VM_MTE) {
+> 		prot &= ~PTE_ATTRINDX_MASK;
+> 		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
+> 	}
+> 
+> 	return prot;
+> }
+> 
