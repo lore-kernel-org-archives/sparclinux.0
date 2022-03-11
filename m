@@ -2,51 +2,30 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 814DBC43217
-	for <sparclinux@archiver.kernel.org>; Fri, 11 Mar 2022 02:38:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67B55C4321E
+	for <sparclinux@archiver.kernel.org>; Fri, 11 Mar 2022 14:01:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345669AbiCKCj0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 10 Mar 2022 21:39:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47340 "EHLO
+        id S1349025AbiCKOCM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 11 Mar 2022 09:02:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34536 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235051AbiCKCjY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 10 Mar 2022 21:39:24 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D24EA108763;
-        Thu, 10 Mar 2022 18:38:22 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D373600BE;
-        Fri, 11 Mar 2022 02:38:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAC43C340FC;
-        Fri, 11 Mar 2022 02:38:21 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1646966301;
-        bh=Jl8zmUlue4qqSpvupSe770nwEDFbxuYU+7Bv15ArLNk=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=lSDH6JbZLjCrBKwhP5l06T0OkCO9oN/A8aEEjauCFSKrSGqZSLjhPkfyba8lYXT8b
-         qYNbLTfBYoaFYS9/EdstBjbcmkW1UfcrGbXKAA3XzivX2N/X7M8/MG2dJGhgzUj1xe
-         JwIgADZuHHJQV+vkPugE9tLJ05ZgR4K+s7Tqg3OYy0S0d/gkDWxZGRTQdcVyEyVTta
-         XcdW+bJU/6F0zGvwFWhD4c7+eaOFthHqbXVWvY103F1BoVPLPmpdBFX9VrRB9dX0cQ
-         RFdNXU0aoXtMTFwXmsyOd8jEdA/NcC/+rOGDrpxxb7LrGBkBTS5gvraGhc0yhF8ir3
-         59IUblFQhb99Q==
-Received: by mail-vs1-f48.google.com with SMTP id u124so8098304vsb.10;
-        Thu, 10 Mar 2022 18:38:21 -0800 (PST)
-X-Gm-Message-State: AOAM531r+0RCSa1uP+4DxvpwfnmVIeolCIthRU6hs16y0vps/+RpTX7N
-        HjMThTmSp9v4Mq//k9W35qDGb7jrYRzugH1eYPA=
-X-Google-Smtp-Source: ABdhPJzYUvUjuAFq8XvtZ71Qsvionf8y5EprAZIyEokbvQbCG5RE3xULelpIsGE/d8q0ktAquLt4SKjjcxqaZOgU8Ls=
-X-Received: by 2002:a05:6102:806:b0:31e:2206:f1c with SMTP id
- g6-20020a056102080600b0031e22060f1cmr3912870vsb.59.1646966300562; Thu, 10 Mar
- 2022 18:38:20 -0800 (PST)
+        with ESMTP id S238102AbiCKOCL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 11 Mar 2022 09:02:11 -0500
+X-Greylist: delayed 1376 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 11 Mar 2022 06:01:08 PST
+Received: from imap2.colo.codethink.co.uk (imap2.colo.codethink.co.uk [78.40.148.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E12B1C57D0;
+        Fri, 11 Mar 2022 06:01:08 -0800 (PST)
+Received: from [167.98.27.226] (helo=[172.16.103.108])
+        by imap2.colo.codethink.co.uk with esmtpsa  (Exim 4.92 #3 (Debian))
+        id 1nSfSn-0000Di-Kl; Fri, 11 Mar 2022 13:37:49 +0000
+Message-ID: <509d2b62-7d52-bf5c-7a6c-213a740a5c00@codethink.co.uk>
+Date:   Fri, 11 Mar 2022 13:37:48 +0000
 MIME-Version: 1.0
-References: <20220227162831.674483-1-guoren@kernel.org> <20220227162831.674483-14-guoren@kernel.org>
-In-Reply-To: <20220227162831.674483-14-guoren@kernel.org>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Fri, 11 Mar 2022 10:38:09 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
-Message-ID: <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
-Subject: Re: [PATCH V7 13/20] riscv: compat: process: Add UXL_32 support in start_thread
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.6.1
+Subject: Re: [PATCH V7 13/20] riscv: compat: process: Add UXL_32 support in
+ start_thread
+Content-Language: en-GB
 To:     Guo Ren <guoren@kernel.org>, Palmer Dabbelt <palmer@dabbelt.com>,
         Arnd Bergmann <arnd@arndb.de>,
         Anup Patel <anup@brainfault.org>,
@@ -65,62 +44,75 @@ Cc:     linux-arch <linux-arch@vger.kernel.org>,
         Parisc List <linux-parisc@vger.kernel.org>,
         "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
+        the arch/x86 maintainers <x86@kernel.org>,
         Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+References: <20220227162831.674483-1-guoren@kernel.org>
+ <20220227162831.674483-14-guoren@kernel.org>
+ <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
+From:   Ben Dooks <ben.dooks@codethink.co.uk>
+Organization: Codethink Limited.
+In-Reply-To: <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Arnd,
+On 11/03/2022 02:38, Guo Ren wrote:
+> Hi Arnd,
+> 
+> On Mon, Feb 28, 2022 at 12:30 AM <guoren@kernel.org> wrote:
+>>
+>> From: Guo Ren <guoren@linux.alibaba.com>
+>>
+>> If the current task is in COMPAT mode, set SR_UXL_32 in status for
+>> returning userspace. We need CONFIG _COMPAT to prevent compiling
+>> errors with rv32 defconfig.
+>>
+>> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+>> Signed-off-by: Guo Ren <guoren@kernel.org>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Cc: Palmer Dabbelt <palmer@dabbelt.com>
+>> ---
+>>   arch/riscv/kernel/process.c | 5 +++++
+>>   1 file changed, 5 insertions(+)
+>>
+>> diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
+>> index 03ac3aa611f5..54787ca9806a 100644
+>> --- a/arch/riscv/kernel/process.c
+>> +++ b/arch/riscv/kernel/process.c
+>> @@ -97,6 +97,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
+>>          }
+>>          regs->epc = pc;
+>>          regs->sp = sp;
+>> +
+> FIxup:
+> 
+> + #ifdef CONFIG_COMPAT
+>> +       if (is_compat_task())
+>> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_32;
+>> +       else
+>> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_64;
+> + #endif
+> 
+> We still need "#ifdef CONFIG_COMPAT" here, because for rv32 we can't
+> set SR_UXL at all. SR_UXL is BIT[32, 33].
 
-On Mon, Feb 28, 2022 at 12:30 AM <guoren@kernel.org> wrote:
->
-> From: Guo Ren <guoren@linux.alibaba.com>
->
-> If the current task is in COMPAT mode, set SR_UXL_32 in status for
-> returning userspace. We need CONFIG _COMPAT to prevent compiling
-> errors with rv32 defconfig.
->
-> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> Signed-off-by: Guo Ren <guoren@kernel.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> ---
->  arch/riscv/kernel/process.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
-> index 03ac3aa611f5..54787ca9806a 100644
-> --- a/arch/riscv/kernel/process.c
-> +++ b/arch/riscv/kernel/process.c
-> @@ -97,6 +97,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
->         }
->         regs->epc = pc;
->         regs->sp = sp;
-> +
-FIxup:
+would an if (IS_ENABLED(CONFIG_COMPAT)) { } around the lot be better
+than an #ifdef here?
 
-+ #ifdef CONFIG_COMPAT
-> +       if (is_compat_task())
-> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_32;
-> +       else
-> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_64;
-+ #endif
-
-We still need "#ifdef CONFIG_COMPAT" here, because for rv32 we can't
-set SR_UXL at all. SR_UXL is BIT[32, 33].
-
->  }
->
->  void flush_thread(void)
-> --
-> 2.25.1
->
+>>   }
+>>
+>>   void flush_thread(void)
+>> --
+>> 2.25.1
+>>
+> 
+> 
 
 
 -- 
-Best Regards
- Guo Ren
+Ben Dooks				http://www.codethink.co.uk/
+Senior Engineer				Codethink - Providing Genius
 
-ML: https://lore.kernel.org/linux-csky/
+https://www.codethink.co.uk/privacy.html
