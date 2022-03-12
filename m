@@ -2,144 +2,84 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FA2FC43219
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 12:47:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90A1FC433F5
+	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 19:40:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231760AbiCLMsS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 12 Mar 2022 07:48:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44764 "EHLO
+        id S232198AbiCLTlj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 12 Mar 2022 14:41:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51852 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231718AbiCLMsR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Mar 2022 07:48:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3A2C01BE0C2;
-        Sat, 12 Mar 2022 04:47:12 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C835260F1F;
-        Sat, 12 Mar 2022 12:47:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 212B2C340EB;
-        Sat, 12 Mar 2022 12:47:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1647089231;
-        bh=H3gp8D41VexBopqf3rhNzKhC2EJfbt242g4EiN0GOBA=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=oIXPRgskEBIl/4YKNylq9hUIA5UdRaj2Cfsq1LhhJ8KvIzcDM6CBFNxlWDeaGuY35
-         bGW8CWqr9CFb1yrZmUW4WEheUVlQL1e0BM92OZJ0gkrWdpgFsq/ot356LWvUVK6SDh
-         rKAAp1jIbrYXQ34u+gMY5qiESiIyVuPlyhJ1i9G0ufaX5yT0igqjfMaQTha4GYteLQ
-         hNA+TnIGBwo01yfgVojpx+oXl5cVB9tOmREpLHFBuPtvTnLL4l/1KCbWDDVD8vx3u9
-         CSL7CCtt1MB5CJf2rjmWTENarFDZuTTkOwZI8X1Za3Rsgrumfw0ERINFfY+ZyUgwii
-         qtYfRHCpWmJFQ==
-Received: by mail-vs1-f54.google.com with SMTP id a186so12336736vsc.3;
-        Sat, 12 Mar 2022 04:47:11 -0800 (PST)
-X-Gm-Message-State: AOAM532x/51JkuCcGqkwLKgPfNbg0nJcAyL+Mq6VsioBy1QsntHPwjAY
-        fVlzeuLRMdA3nCYBNz3rkce5jtNApjXtgp/1GB0=
-X-Google-Smtp-Source: ABdhPJy5ZidR6+hU7oi1y4oFAyxIqylb9Be+genvWRhNZ7iOORRW8nJemtq9UEHA7jF2pE6KBHQPZVnae3YTrPKV5FM=
-X-Received: by 2002:a67:fc17:0:b0:320:b039:afc0 with SMTP id
- o23-20020a67fc17000000b00320b039afc0mr7728220vsq.2.1647089230100; Sat, 12 Mar
- 2022 04:47:10 -0800 (PST)
+        with ESMTP id S230463AbiCLTli (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Mar 2022 14:41:38 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63E9EB1ABF;
+        Sat, 12 Mar 2022 11:40:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=dlhSBVCGSjQxNPG2e1QpZKqKTKUh2j0G3vVAb98ECww=; b=MsPzrQAioAzVYMhbZMN2DtcItj
+        CAAkSklcsYj8kH3U8dBTYrJ4Wons6KiV003BTRCRrMR4Yaqa5vKKW8DRqlCYugUeIWaK48T37uKi6
+        uLv1bWRYqNwyKg0cadnj4WP/m12z3UkWUweep0UWIv//fAvTPlL1RMoMd/KlZAGyxDgREqFZmSLjP
+        fp43dfsZcuCYJItmbcPXezzd2Y09wbxztPfzzsaYcN7nyvwqQKJ5CMunKMmdDAbPQZSAQVyMB9hIT
+        PwJ/D7kJSjirKWwV/z/QkdRnUcFw5oa/6gtwNMWg6bgs+VjkEMkshffscvl6LEnuxAiUFVyHYt0rU
+        lZKQn8vA==;
+Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nT7bL-001mUg-CB; Sat, 12 Mar 2022 19:40:31 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>,
+        Nick Alcock <nick.alcock@oracle.com>
+Subject: [PATCH v2] sparc: vDSO: fix return value of __setup handler
+Date:   Sat, 12 Mar 2022 11:40:30 -0800
+Message-Id: <20220312194030.13733-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <20220227162831.674483-1-guoren@kernel.org> <20220227162831.674483-14-guoren@kernel.org>
- <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
- <509d2b62-7d52-bf5c-7a6c-213a740a5c00@codethink.co.uk> <CAJF2gTSkrm+Ek5i--TTikR2RDBUa6Eo72jwvszbj3uZg=Kxorg@mail.gmail.com>
- <CAK8P3a0LqTdEk53XpUV4xRKoiJ_AvLkJSbMabqBgk7KNxF_XxQ@mail.gmail.com>
-In-Reply-To: <CAK8P3a0LqTdEk53XpUV4xRKoiJ_AvLkJSbMabqBgk7KNxF_XxQ@mail.gmail.com>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Sat, 12 Mar 2022 20:46:59 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTT4qT5AXcmbg+twbJn4X6NvG0XLGVC6sZc8WasrwxA9FA@mail.gmail.com>
-Message-ID: <CAJF2gTT4qT5AXcmbg+twbJn4X6NvG0XLGVC6sZc8WasrwxA9FA@mail.gmail.com>
-Subject: Re: [PATCH V7 13/20] riscv: compat: process: Add UXL_32 support in start_thread
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Ben Dooks <ben.dooks@codethink.co.uk>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Anup Patel <anup@brainfault.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@lst.de>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Mar 12, 2022 at 4:36 PM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Sat, Mar 12, 2022 at 3:13 AM Guo Ren <guoren@kernel.org> wrote:
-> > On Fri, Mar 11, 2022 at 9:38 PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
-> > > On 11/03/2022 02:38, Guo Ren wrote:
-> > > >> --- a/arch/riscv/kernel/process.c
-> > > >> +++ b/arch/riscv/kernel/process.c
-> > > >> @@ -97,6 +97,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
-> > > >>          }
-> > > >>          regs->epc = pc;
-> > > >>          regs->sp = sp;
-> > > >> +
-> > > > FIxup:
-> > > >
-> > > > + #ifdef CONFIG_COMPAT
-> > > >> +       if (is_compat_task())
-> > > >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_32;
-> > > >> +       else
-> > > >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_64;
-> > > > + #endif
-> > > >
-> > > > We still need "#ifdef CONFIG_COMPAT" here, because for rv32 we can't
-> > > > set SR_UXL at all. SR_UXL is BIT[32, 33].
-> > >
-> > > would an if (IS_ENABLED(CONFIG_COMPAT)) { } around the lot be better
-> > > than an #ifdef here?
-> >
-> > I don't think, seems #ifdef CONFIG_COMPAT is more commonly used in arch/*
->
-> We used to require an #ifdef check around is_compat_task(), so there are
-> a lot of stale #ifdefs that could be removed. In general, 'if (IS_ENABLED())'
-> is considered more readable than #ifdef inside of a function. In this case
-> there are a number of better ways to write the function if you want to get
-> into the details:
->
->  - firstly, you should remove the #ifdef check around the definition of
->    SR_UXL, otherwise the IS_ENABLED() check does not work.
->
->  - you can use an 'if (!IS_ENABLED(CONFIG_COMPAT)) \\ return;' ahead of the
->    assignment since that is at the end of  the function.
->
->  - you can remove the bit masking since 'regs->status' is initialized above it,
->    adding in only the one bit, shortening it to
->
->     if (IS_ENABLED(CONFIG_COMPAT))
->                regs->status |= is_compat_task()) ? SR_UXL_32 : SR_UXL_64;
->
->  - to make this more logical, I would suggest always assigning the SR_UXL
->    bits regardless of CONFIG_COMPAT, and instead make it something like
->
->   if (IS_ENABLED(CONFIG_32BIT) || is_compat_task())
->             regs->status = | SR_UXL_32;
->   else
->             regs->status = | SR_UXL_64;
-When CONFIG_32BIT=y, regs->status is 32bit width but SR_UXL_32 is
-34bit width. That's wrong in type. (Only CONFIG_64BIT has SR_UXL).
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from vdso_setup().
 
->
->        Arnd
+Fixes: 9a08862a5d2e ("vDSO for sparc")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+From: Igor Zhbanov <i.zhbanov@omprussia.ru>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Nagarathnam Muthusamy <nagarathnam.muthusamy@oracle.com>
+Cc: Nick Alcock <nick.alcock@oracle.com>
+---
+v2: correct the Fixes: tag (Dan Carpenter)
 
+ arch/sparc/vdso/vma.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-
--- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+--- linux-next-20220310.orig/arch/sparc/vdso/vma.c
++++ linux-next-20220310/arch/sparc/vdso/vma.c
+@@ -449,9 +449,8 @@ static __init int vdso_setup(char *s)
+ 	unsigned long val;
+ 
+ 	err = kstrtoul(s, 10, &val);
+-	if (err)
+-		return err;
+-	vdso_enabled = val;
+-	return 0;
++	if (!err)
++		vdso_enabled = val;
++	return 1;
+ }
+ __setup("vdso=", vdso_setup);
