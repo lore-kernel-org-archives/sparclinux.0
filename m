@@ -2,144 +2,71 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBADAC433F5
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 02:13:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6719C433EF
+	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 04:21:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230015AbiCLCOg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 11 Mar 2022 21:14:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56148 "EHLO
+        id S230301AbiCLEWl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 11 Mar 2022 23:22:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46684 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229477AbiCLCOf (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 11 Mar 2022 21:14:35 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DD90CEA07;
-        Fri, 11 Mar 2022 18:13:30 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 32AE3616FF;
-        Sat, 12 Mar 2022 02:13:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 96180C340EE;
-        Sat, 12 Mar 2022 02:13:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1647051209;
-        bh=iRWRs787HfJQ4SmemjGupG5ATeZbj3chEC+s846rFUI=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=dzXW6D8a2fZcblys/QjCjL1M/69kjw27NQiwmxnI6v3Ty+JBSWuIwfIfHMmel2imr
-         vGu03UC1vkaZOz0pVbvbaJ9VjatjyUMXrOjzw24dIgQIhPT2twm3Y7jpIEc+Sz1sZv
-         xbefw+amYIJbHgLb9GrTrmKiMUF0Kh9g0oRa9QtveWDvFd6jsFRy9NIp4DXV0Ut1IQ
-         qOhqK6ZRwENFgrFfhjtXN1OmpfCbVK48hQDU1kPXHAQlBTM9+QsrxqThgGkRXzKr2N
-         vavIpsLAOCj0FM0mLCPoFRDvSj/f0Tjjlyok2eBV73W6cwj6H+ndb0VRdsWuF97g+/
-         fjPsQcegOyixw==
-Received: by mail-vs1-f47.google.com with SMTP id a186so11438325vsc.3;
-        Fri, 11 Mar 2022 18:13:29 -0800 (PST)
-X-Gm-Message-State: AOAM532FGz9ujwjqJuwNQBFVM5/3NTtFzxwhIVOqfjAMfz6+Xu2z4ClP
-        pFKOX+FYA0hrePt2W9/cSw1JS1yOTi9rzqar40I=
-X-Google-Smtp-Source: ABdhPJzCzz+Egly7/GI0fNYhw4sbiCEhUuQJ2YUO3cGoxYtVTwt+tqnmQKqPh36WSK6cQ0MJdLShbyuO/M99QnpoqW0=
-X-Received: by 2002:a67:fc17:0:b0:320:b039:afc0 with SMTP id
- o23-20020a67fc17000000b00320b039afc0mr7125264vsq.2.1647051208526; Fri, 11 Mar
- 2022 18:13:28 -0800 (PST)
+        with ESMTP id S229502AbiCLEWk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 11 Mar 2022 23:22:40 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A87E127F4C2;
+        Fri, 11 Mar 2022 20:21:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=9qw6NSJmY4N+TOcm/XFWYOffOfzyF+oqDEw5W0R7LO8=; b=Xd8j2VPlUTyVVi88SdBLvC8YRW
+        +H/amb7Uzk5GRPQVPMcuqBjI/cigXJ3hxbf0fN2Az9+834VxLmE6Pq5TOCtw6rMUrgGstBVPjTMpV
+        mKsahXBAZ3PgDTAU0bT3rA063cCxPCv0Bfy+3b7wbPlgChOG/xQwyVWLytP/9hab+8NziNKilzCz2
+        6kAWcUS9yVPtHZWAzsJ+Yb1TEgvig3UP6PIde3kehJe55H5RI/IBAX02hW724nD9C+HhnPIe75Cnd
+        1FbSFu61LkSKEnFZ7ubY+MRg6Bf9r7OhYCEfsNHmScQZCu6kvRb+6YtxvSB2fS3JmOkEJOHnshu03
+        POMG9iuQ==;
+Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nStG3-000kCi-7c; Sat, 12 Mar 2022 04:21:35 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Subject: [PATCH] sparc64: NMI watchdog: fix return value of __setup handler
+Date:   Fri, 11 Mar 2022 20:21:34 -0800
+Message-Id: <20220312042134.14686-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-References: <20220227162831.674483-1-guoren@kernel.org> <20220227162831.674483-14-guoren@kernel.org>
- <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com> <509d2b62-7d52-bf5c-7a6c-213a740a5c00@codethink.co.uk>
-In-Reply-To: <509d2b62-7d52-bf5c-7a6c-213a740a5c00@codethink.co.uk>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Sat, 12 Mar 2022 10:13:17 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTSkrm+Ek5i--TTikR2RDBUa6Eo72jwvszbj3uZg=Kxorg@mail.gmail.com>
-Message-ID: <CAJF2gTSkrm+Ek5i--TTikR2RDBUa6Eo72jwvszbj3uZg=Kxorg@mail.gmail.com>
-Subject: Re: [PATCH V7 13/20] riscv: compat: process: Add UXL_32 support in start_thread
-To:     Ben Dooks <ben.dooks@codethink.co.uk>
-Cc:     Palmer Dabbelt <palmer@dabbelt.com>, Arnd Bergmann <arnd@arndb.de>,
-        Anup Patel <anup@brainfault.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
-        Drew Fustini <drew@beagleboard.org>,
-        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
-        Christoph Hellwig <hch@lst.de>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Guo Ren <guoren@linux.alibaba.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Mar 11, 2022 at 9:38 PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
->
-> On 11/03/2022 02:38, Guo Ren wrote:
-> > Hi Arnd,
-> >
-> > On Mon, Feb 28, 2022 at 12:30 AM <guoren@kernel.org> wrote:
-> >>
-> >> From: Guo Ren <guoren@linux.alibaba.com>
-> >>
-> >> If the current task is in COMPAT mode, set SR_UXL_32 in status for
-> >> returning userspace. We need CONFIG _COMPAT to prevent compiling
-> >> errors with rv32 defconfig.
-> >>
-> >> Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-> >> Signed-off-by: Guo Ren <guoren@kernel.org>
-> >> Cc: Arnd Bergmann <arnd@arndb.de>
-> >> Cc: Palmer Dabbelt <palmer@dabbelt.com>
-> >> ---
-> >>   arch/riscv/kernel/process.c | 5 +++++
-> >>   1 file changed, 5 insertions(+)
-> >>
-> >> diff --git a/arch/riscv/kernel/process.c b/arch/riscv/kernel/process.c
-> >> index 03ac3aa611f5..54787ca9806a 100644
-> >> --- a/arch/riscv/kernel/process.c
-> >> +++ b/arch/riscv/kernel/process.c
-> >> @@ -97,6 +97,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
-> >>          }
-> >>          regs->epc = pc;
-> >>          regs->sp = sp;
-> >> +
-> > FIxup:
-> >
-> > + #ifdef CONFIG_COMPAT
-> >> +       if (is_compat_task())
-> >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_32;
-> >> +       else
-> >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_64;
-> > + #endif
-> >
-> > We still need "#ifdef CONFIG_COMPAT" here, because for rv32 we can't
-> > set SR_UXL at all. SR_UXL is BIT[32, 33].
->
-> would an if (IS_ENABLED(CONFIG_COMPAT)) { } around the lot be better
-> than an #ifdef here?
-I don't think, seems #ifdef CONFIG_COMPAT is more commonly used in arch/*
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
 
->
-> >>   }
-> >>
-> >>   void flush_thread(void)
-> >> --
-> >> 2.25.1
-> >>
-> >
-> >
->
->
-> --
-> Ben Dooks                               http://www.codethink.co.uk/
-> Senior Engineer                         Codethink - Providing Genius
->
-> https://www.codethink.co.uk/privacy.html
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+From: Igor Zhbanov <i.zhbanov@omprussia.ru>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/kernel/nmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-
--- 
-Best Regards
- Guo Ren
-
-ML: https://lore.kernel.org/linux-csky/
+--- linux-next-20220309.orig/arch/sparc/kernel/nmi.c
++++ linux-next-20220309/arch/sparc/kernel/nmi.c
+@@ -274,7 +274,7 @@ static int __init setup_nmi_watchdog(cha
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
+ 
+-	return 0;
++	return 1;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
