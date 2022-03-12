@@ -2,155 +2,134 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE769C433F5
-	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 07:07:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22215C43217
+	for <sparclinux@archiver.kernel.org>; Sat, 12 Mar 2022 08:36:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231154AbiCLHIy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 12 Mar 2022 02:08:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47544 "EHLO
+        id S231436AbiCLIhn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 12 Mar 2022 03:37:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54904 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229480AbiCLHIx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Mar 2022 02:08:53 -0500
-Received: from mx0a-00069f02.pphosted.com (mx0a-00069f02.pphosted.com [205.220.165.32])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E874340C6;
-        Fri, 11 Mar 2022 23:07:46 -0800 (PST)
-Received: from pps.filterd (m0246629.ppops.net [127.0.0.1])
-        by mx0b-00069f02.pphosted.com (8.16.1.2/8.16.1.2) with SMTP id 22C48vX8031067;
-        Sat, 12 Mar 2022 07:05:38 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=oracle.com; h=date : from : to : cc
- : subject : message-id : references : content-type : in-reply-to :
- mime-version; s=corp-2021-07-09;
- bh=268kICWJVG9psMO7YFeIghs3ogUISG5utdaE3/Hkmd0=;
- b=i2sEqraC4Oub0NftHYb+lkpNDbJ1GUW2UXIcDI59BsijSNiX4x6jBOXxrHd6SEOkeu9w
- WGJZpnEfkog1Mjr1OkTNGh1uUppPu4SvbeDgkJPOLtbhd7++GMvGU1nW7kqpMmGL0DBS
- iEOQQMTfcHsuegqMvqDJ75ApBjQrYkThvvjUt6v45rH6+5di1a0i1MtpsS4d89vlZY6R
- EB/8JtR6NxihBQnGilpK231gdLsO0/yoOgmM0KV1/PEiaWEvhoRnUT/et82K7/3HuDh9
- QiM/y+6iahh82S5vW2ud+gGMjKh61bSH75ftJiFdlvyYz4iQ3vUjfKgvHqyXjjn0tOjP 5w== 
-Received: from userp3030.oracle.com (userp3030.oracle.com [156.151.31.80])
-        by mx0b-00069f02.pphosted.com with ESMTP id 3erkd9r5f0-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 12 Mar 2022 07:05:38 +0000
-Received: from pps.filterd (userp3030.oracle.com [127.0.0.1])
-        by userp3030.oracle.com (8.16.1.2/8.16.1.2) with SMTP id 22C70Z0g195619;
-        Sat, 12 Mar 2022 07:05:37 GMT
-Received: from nam10-bn7-obe.outbound.protection.outlook.com (mail-bn7nam10lp2108.outbound.protection.outlook.com [104.47.70.108])
-        by userp3030.oracle.com with ESMTP id 3ergmqyc72-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Sat, 12 Mar 2022 07:05:36 +0000
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=OvdHQIMkcAHUGiM0cxbidhvHDPJTZ432+XYXe/1fYp4ZAK+bjeXkbsnhUtsoQiYh6Dz5VQmqHWJqegHLwajZkQLHcXGi/Po+w6XHzEYrrIPWjtI5bv/3SDPbldkZ79ih3It8h1M+q4w7ehIlm8f83101Lh57nXNfYB5o0/HarIKL1KZLPRIyuvh82OV9r8Hgkk5UGsCRkNxU3ec5dPZI5yvn7kMeMYDOJ9RRt46ZNcSJu+gtyd1vMYMMhz3LDfg+MEiXqFFmAcS7cPRu4tcKD7qM3jdKYtKpjCMY8CU2wEsc0EoWuag48DE+DIWdSRtwGanazUvN/+5f17H8/LAmuA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=268kICWJVG9psMO7YFeIghs3ogUISG5utdaE3/Hkmd0=;
- b=SiFf//Nxi034Mi5Zsb+kH1R8J6QXPIgaayl/4WsmNyJUCgo0+w5H4lMpXSnhcgxoStomxuvQkj/gnTyP0Q8jOWByL1LzvWoTgJQi+RgtEqdV7xZO3Gz8GjnOI+omSPD+jAjyALg2S/KT/vZijo4vliGWqYIyr51KbrslSiR5fA8s8SubmEeTckJhKe0NsVPcI6mCsGvWrd45aa40rA1claNKQuLFuEwVQEZYejhk4eGnheLpUMNgqhfRAWqFTEAzggd82a6OaU1XiDHp5AEawgc3gDz/LxTlRey1urwYqyFufSMTwr0bAoupaU0kT9P5iM55BXTgHmipWxs62Zlnpg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=oracle.com; dmarc=pass action=none header.from=oracle.com;
- dkim=pass header.d=oracle.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
- d=oracle.onmicrosoft.com; s=selector2-oracle-onmicrosoft-com;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=268kICWJVG9psMO7YFeIghs3ogUISG5utdaE3/Hkmd0=;
- b=cB6dbUC6XGE5+7yOEgVZy6Ty15PmU6f8JN4VM3P0XqIucFaDhl7I30GZu57w7T8vYjRKQ1GPlfdCDdUazianBkjLreuYGFOagcC0AuGK/qvH/4mvK/cfPklbztfmKZCF7NXb2vEZjBmpCpjIae8c7Yv+Q6nYm+JOvmdU28eXiHw=
-Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
- (2603:10b6:301:2d::28) by DM5PR1001MB2218.namprd10.prod.outlook.com
- (2603:10b6:4:35::32) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5038.26; Sat, 12 Mar
- 2022 07:05:35 +0000
-Received: from MWHPR1001MB2365.namprd10.prod.outlook.com
- ([fe80::2c3d:92b5:42b3:c1c5]) by MWHPR1001MB2365.namprd10.prod.outlook.com
- ([fe80::2c3d:92b5:42b3:c1c5%4]) with mapi id 15.20.5061.022; Sat, 12 Mar 2022
- 07:05:34 +0000
-Date:   Sat, 12 Mar 2022 10:05:16 +0300
-From:   Dan Carpenter <dan.carpenter@oracle.com>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: Re: [PATCH] sparc: vDSO: fix return value of __setup handler
-Message-ID: <20220312070515.GO3315@kadam>
-References: <20220312042144.15470-1-rdunlap@infradead.org>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220312042144.15470-1-rdunlap@infradead.org>
-User-Agent: Mutt/1.9.4 (2018-02-28)
-X-ClientProxiedBy: JNXP275CA0001.ZAFP275.PROD.OUTLOOK.COM (2603:1086:0:19::13)
- To MWHPR1001MB2365.namprd10.prod.outlook.com (2603:10b6:301:2d::28)
+        with ESMTP id S229925AbiCLIhm (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 12 Mar 2022 03:37:42 -0500
+Received: from mout.kundenserver.de (mout.kundenserver.de [217.72.192.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 334461081AE;
+        Sat, 12 Mar 2022 00:36:36 -0800 (PST)
+Received: from mail-wr1-f48.google.com ([209.85.221.48]) by
+ mrelayeu.kundenserver.de (mreue109 [213.165.67.113]) with ESMTPSA (Nemesis)
+ id 1MLz3X-1nkl6Z3az3-00HwKj; Sat, 12 Mar 2022 09:36:34 +0100
+Received: by mail-wr1-f48.google.com with SMTP id x15so16177660wru.13;
+        Sat, 12 Mar 2022 00:36:34 -0800 (PST)
+X-Gm-Message-State: AOAM530+dzW2/6sWsLn+tnWQF1trrz3LOSKQs1I4K4jswEo5ho/21oSd
+        8ZXQ7d3JMi11zTud1t270janiW2dktymq9hoSEE=
+X-Google-Smtp-Source: ABdhPJwrBgijWcFmabOKnFeCHeAhHQBR3PR+3P0h6p5JQhHZX/5odIXHkxJDpCBUEOwN9ui3K5nWlIusCnBN24XocoE=
+X-Received: by 2002:a5d:6d0f:0:b0:203:9157:1c48 with SMTP id
+ e15-20020a5d6d0f000000b0020391571c48mr7048966wrq.192.1647074194359; Sat, 12
+ Mar 2022 00:36:34 -0800 (PST)
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-Office365-Filtering-Correlation-Id: 8b484ef8-4dd5-4c5e-782b-08da03f6b41c
-X-MS-TrafficTypeDiagnostic: DM5PR1001MB2218:EE_
-X-Microsoft-Antispam-PRVS: <DM5PR1001MB2218EAF92780E3B1A9192CB18E0D9@DM5PR1001MB2218.namprd10.prod.outlook.com>
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: zwG2jQw40KbM16SMhHBWR6UDizX0nQuoLsjKxVbvm3Cl5yu0NIqOJbdWyKV83qElyL0yJlxkrfh/T2Cdq+FmW7UUynKbc56s7Rh9PqimRhXnUZK5fQwqjQ4L5v6GFs9hkYyWmoYkbFIvjixTr4Ob5LMzq/SVxsysBFQGlzX9DLktu/YZYgy4G8i0mGb5VSanQPT81kVNBvB4stcGHQUtV3z/BHxhb4h3U9/Qish8Fg8K+9i0kDvWvWnCiEWxhlkJ+Qa+c+cehWyFWCNBVWopGZMCJ7OxTnHF56CJI0xh/H3ZzUSx0xzCbYcqVjFa/wMTio17zpn/faupL50m8y9ffqNapqGEba2i1jYWda6Ftex8jE5UqOZmeZE9LOIOBx7URPEE1yNvfG28jas+1kac0BVnkJq+2Y46gAlSZY3hpJ1MD7xek6ECfh5MXrMhyHioz5Mb//qln5nu5K+ittlj41cT+17Bnic/nrAgjvVW4vCaGACsGskVwVMBVlAHQFXru8vKw1aYXDXB4ARmBMU9WrGxHP9XrQ3l13aUgxi7grThxfjdnsLAvkDraJKyVa5EvbGCPgbm0KwHo4eKAkNMFmXOSuGtNpni16te6UTokmlI+tU/hLVJT74mpZcXRKPR9nDUpPpb3cc78L60dHpcMGNKCfa9lApq9Js0GxkEWw2etqddsZBqBM/28z83CozkdiR71gRRjwUIHoHmQznwPw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MWHPR1001MB2365.namprd10.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(7916004)(366004)(8676002)(38100700002)(6916009)(38350700002)(86362001)(33716001)(316002)(5660300002)(44832011)(8936002)(4744005)(66556008)(66476007)(4326008)(66946007)(186003)(1076003)(26005)(6486002)(83380400001)(6666004)(52116002)(508600001)(33656002)(6512007)(9686003)(2906002)(6506007);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?XVc6G3rV4HY/09LuRW9dDnjPbWCZ57gimCNo4tpjuUAkZOE3ekol5ps88Ksr?=
- =?us-ascii?Q?7po1eN8lE2oUia7uNU+E1YoIuTwZRBMETOTbJYCY0/dNMe8YGl7zvHy9bX1+?=
- =?us-ascii?Q?mHzwiPua42TWdOmh6wmVQFarnWz2f478z3mrlgcQf0zpQFmbqpZRoHQ8WOwJ?=
- =?us-ascii?Q?vcLlU1pcFL5ozvgDNx2Fkz5zkOK8gGuhNANbD31zVSZ3OT0LQCZyTU+CRAD7?=
- =?us-ascii?Q?Jq7wH/NYs7lnKpU402Bq9QGbnnwe14Ig/MkzlQTDy4U93HQ+/L9EB47NoGJy?=
- =?us-ascii?Q?6WVI9gmEdAi8rQqn8c5w5KwuXBrxXRhrY2HRQSJ+kRQT9U1tYQL219LRI/0d?=
- =?us-ascii?Q?lvxRSEGlluwDGGn887FHtj/vV0PHMWokMiUSXxGXvLTdscJVj+OSaiNUtu6s?=
- =?us-ascii?Q?JAaljntXJIXzW7yKv4Dbvl8i7+0C/U+KfYUSonHP0Lp+uomUvimxW6BcMOOJ?=
- =?us-ascii?Q?trje+WuLHZjs+2POpi6KK2yNJvEwKW2R1iHonuuR2EbCsB9MEzToaAPoMAQl?=
- =?us-ascii?Q?f3ytQouAhd+jjNDyZynTlHWgWwMihlpEfMCDptU5wL5H/t9dM5SyfKbP4Nvb?=
- =?us-ascii?Q?27rExAWSuJV7oYZkIhfZSK48NaznNzczbUDOB14rYVIgnEc4ps0HG37tEKj7?=
- =?us-ascii?Q?4thuWxmLNMwfYb2hbkGvC5stE5EGDf+Y/R7JoP6zCNokEuRpd2NAeSy3Yqys?=
- =?us-ascii?Q?vgpOVf0q9TcWzcAvllVFXRDfHuuYlTIqoOGH7IJ5bpBd5cj5pexqAjw8wQuZ?=
- =?us-ascii?Q?mpN8MVUJqC436EbiD829nJsLj7PfHoYqJglmLZb0mNa4hvK2V58Z1yt8jbHE?=
- =?us-ascii?Q?AGLPY56W8uy/dnMBqSTAPWzXDT4zx3kQc7eXendN1xdgBRdwXIH7setudLyr?=
- =?us-ascii?Q?m3s7doSoZmHvEt6QnO7ONv9Q2LnbugSMsvSZQV2/JRfqVHOFpHueZiw7YLg4?=
- =?us-ascii?Q?C0s0lb91LRWzl0eciCzkdZb47YEXgxxVYJnB/16EJffbbrEnzS5xs37CX0sd?=
- =?us-ascii?Q?LtyR3TaQ7RXq6vAc5nqVS+ar5aFbNTHOfTSq4rHkW2TpMG2R3/4frAZOCzfh?=
- =?us-ascii?Q?OCW5NapBq5TOS+KnNHFbHF6xmjVcwgkVm2ZTgtqyD+lVTIkvNCnSwQBMgiI7?=
- =?us-ascii?Q?8ybjugvgq7OcKzdOMS3CuMQDVW/8ka9WDIww1emvjeQJc78y3amLyyu2qXd9?=
- =?us-ascii?Q?/IRgGzcFhiQ9ixd4dIzRHm969GNBiuFYVC738OneJVTXdWE4woaZFe3KEG9x?=
- =?us-ascii?Q?1qDVC5HAND04oFx34PJ7xCoAwx3IZDyoFpDEMMpJjfYmT90xN79cb+9F/cOI?=
- =?us-ascii?Q?4r+/gT820ON3bs4I1bK7E71Uy/Tip5HyGUkPylZ5cJOReFpoGPevnnUqVAgU?=
- =?us-ascii?Q?HNOc5bSiVnBBgJ2ELKBn/KvJWC+7r03tVrT/plPZk+F1Ggh7aIf3C5NL7Fvp?=
- =?us-ascii?Q?gquhhR7WpAhLkSWHe/ck0nP0ewZLXkbEEJfa8mHNpJMi11eLfQo7s5I+8AqC?=
- =?us-ascii?Q?P8qs92MXGiCet9LSl2fbFkajSE7osdSfSPdRMKRnafg8r3kLt2On39X8ILf1?=
- =?us-ascii?Q?whcMdCsT835vshXS/webteFIdQujrAfcxfvfAofn18tSWfngn/lQdgT3YNhB?=
- =?us-ascii?Q?t95GeEOl6uDLnv01GiGIpJIn/EdlWpDaFcDVB0pX1CTp5XFQQK9CD3dnFIzO?=
- =?us-ascii?Q?cCIq5Q=3D=3D?=
-X-OriginatorOrg: oracle.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: 8b484ef8-4dd5-4c5e-782b-08da03f6b41c
-X-MS-Exchange-CrossTenant-AuthSource: MWHPR1001MB2365.namprd10.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 12 Mar 2022 07:05:34.8386
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 4e2c6054-71cb-48f1-bd6c-3a9705aca71b
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: IS0ivV6/6ZVJVE+axV5dIIOJv/QwnV0LE2PgWlzvLn+bBdWd+UuS/8n99jci+HPwrP11PpNc17Zv/cdz7SgI8DBz/KWA5irGbSAwLqVnFxc=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: DM5PR1001MB2218
-X-Proofpoint-Virus-Version: vendor=nai engine=6300 definitions=10283 signatures=693140
-X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 bulkscore=0 mlxscore=0 phishscore=0
- adultscore=0 malwarescore=0 spamscore=0 suspectscore=0 mlxlogscore=999
- classifier=spam adjust=0 reason=mlx scancount=1 engine=8.12.0-2202240000
- definitions=main-2203120040
-X-Proofpoint-GUID: B55LDdnTSNM2ku9lgUHejNOCp8avztMa
-X-Proofpoint-ORIG-GUID: B55LDdnTSNM2ku9lgUHejNOCp8avztMa
+References: <20220227162831.674483-1-guoren@kernel.org> <20220227162831.674483-14-guoren@kernel.org>
+ <CAJF2gTSJFMg1YJ=dbaNyemNV4sc_3P=+_PrS=RD_Y2_xz3TzPA@mail.gmail.com>
+ <509d2b62-7d52-bf5c-7a6c-213a740a5c00@codethink.co.uk> <CAJF2gTSkrm+Ek5i--TTikR2RDBUa6Eo72jwvszbj3uZg=Kxorg@mail.gmail.com>
+In-Reply-To: <CAJF2gTSkrm+Ek5i--TTikR2RDBUa6Eo72jwvszbj3uZg=Kxorg@mail.gmail.com>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Sat, 12 Mar 2022 09:36:18 +0100
+X-Gmail-Original-Message-ID: <CAK8P3a0LqTdEk53XpUV4xRKoiJ_AvLkJSbMabqBgk7KNxF_XxQ@mail.gmail.com>
+Message-ID: <CAK8P3a0LqTdEk53XpUV4xRKoiJ_AvLkJSbMabqBgk7KNxF_XxQ@mail.gmail.com>
+Subject: Re: [PATCH V7 13/20] riscv: compat: process: Add UXL_32 support in start_thread
+To:     Guo Ren <guoren@kernel.org>
+Cc:     Ben Dooks <ben.dooks@codethink.co.uk>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Anup Patel <anup@brainfault.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        liush <liush@allwinnertech.com>, Wei Fu <wefu@redhat.com>,
+        Drew Fustini <drew@beagleboard.org>,
+        Wang Junqiang <wangjunqiang@iscas.ac.cn>,
+        Christoph Hellwig <hch@lst.de>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        linux-csky@vger.kernel.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Guo Ren <guoren@linux.alibaba.com>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:JoxTfVCDx79fTzCQvh7Xq1YJCdm6SCwktIxWlWwG8+VS9j7ECgR
+ hisYe2M+lp7cotgX4ZOr1/udkDnAl+SMAtnscPfPkB60bFL01UxsPNzr1d9fqJ66zp8K+IC
+ c1xfjwfasZ1PVhIGHp944L/lvwV1OFpcPoLYg0YiArtXbNKbywR/VdNjAT4zxn6/LC948R0
+ 4MdwsLevkhtUQokHlCtcw==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:YZy9s3VKLyM=:6W94UhPkUrs6eRrOTLOKUz
+ YwE7Ow7awnu9Eal9apRYnGmelK+LS+wwP4NXm0p9qgBfD3nTyvZQY7IlgPB9ea6EuvA0w8iRy
+ mC7QLEM7gW0I2sfHOg71mdxrpykeknCXLueKOyJM/geekQ08Sk72GSIacK3oMZYH0NBsly32J
+ Tr/oPffhmGzB05FXW8vtOf4gIVN0263o62Cn/wj5sIxk55a/R3VShvXCGN2Uq38C6vXFFh9xa
+ qEu2k5F79SEPayYbTQUOICgTaZOWr3wUOa4HE6qPpvUeEy/BvAf9GW7O6gxvc3KcXz7GkKiNn
+ 7rcYvIYH+tmQaOQoBYSVzruDi1UozUrvGZ8tvMyGt0m7Hi+Hr+krqeXDND0chtFmlmrt0ViIB
+ 55lB+fHTzuT9NMlCCPITsRxHLmEpVUzPy+oD0O/2+dbs07nzjRLAds1uhn9N9k6bqa/ejABtj
+ FqgNy0sZBUk1jXQj8HOOPTnhnexBKgKlpZQN6DpSWKba5x2JNztRMfjESA2d2ODK8/ZW7TNad
+ ThErjQT+log5l2svhx9BiWBeO7S3bRlQPzPrjBS8yz3+pj5vnJXvyWHwG1kzvapj/6xXl1NZ0
+ 97/rqFoDL5G5AUUGB9mmFpHoX8uZgTXyILJpQhUpI651kDEAdTAuwp9JGfiVGtD8t3g/nxxyb
+ iPhdRrnbd8R5Nnajf2Jffw7ylfaQdPUgDRebhxUjBUUQN93PWtd7ajVYMWKJazN0N4maaixer
+ QUQKQFEvNQmuiBepIj4MN2u0813744Whkmr3d8Xq92rZtr3mW5i055mu6i+WNFVEYyahONPsN
+ NeW2OrfS2AIT0fp4Te5a2oihZf6bWXFt2SECvIqWt1OyT5h2ok=
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Mar 11, 2022 at 08:21:44PM -0800, Randy Dunlap wrote:
-> __setup() handlers should return 1 to obsolete_checksetup() in
-> init/main.c to indicate that the boot option has been handled.
-> A return of 0 causes the boot option/value to be listed as an Unknown
-> kernel parameter and added to init's (limited) argument or environment
-> strings. Also, error return codes don't mean anything to
-> obsolete_checksetup() -- only non-zero (usually 1) or zero.
-> So return 1 from vdso_setup().
-> 
-> Fixes: 62d6f3b7b85e ("sparc: vDSO: Silence an uninitialized variable warning")
+On Sat, Mar 12, 2022 at 3:13 AM Guo Ren <guoren@kernel.org> wrote:
+> On Fri, Mar 11, 2022 at 9:38 PM Ben Dooks <ben.dooks@codethink.co.uk> wrote:
+> > On 11/03/2022 02:38, Guo Ren wrote:
+> > >> --- a/arch/riscv/kernel/process.c
+> > >> +++ b/arch/riscv/kernel/process.c
+> > >> @@ -97,6 +97,11 @@ void start_thread(struct pt_regs *regs, unsigned long pc,
+> > >>          }
+> > >>          regs->epc = pc;
+> > >>          regs->sp = sp;
+> > >> +
+> > > FIxup:
+> > >
+> > > + #ifdef CONFIG_COMPAT
+> > >> +       if (is_compat_task())
+> > >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_32;
+> > >> +       else
+> > >> +               regs->status = (regs->status & ~SR_UXL) | SR_UXL_64;
+> > > + #endif
+> > >
+> > > We still need "#ifdef CONFIG_COMPAT" here, because for rv32 we can't
+> > > set SR_UXL at all. SR_UXL is BIT[32, 33].
+> >
+> > would an if (IS_ENABLED(CONFIG_COMPAT)) { } around the lot be better
+> > than an #ifdef here?
+>
+> I don't think, seems #ifdef CONFIG_COMPAT is more commonly used in arch/*
 
-This fixes tag is wrong.  My patch did not change the return values at
-all.
+We used to require an #ifdef check around is_compat_task(), so there are
+a lot of stale #ifdefs that could be removed. In general, 'if (IS_ENABLED())'
+is considered more readable than #ifdef inside of a function. In this case
+there are a number of better ways to write the function if you want to get
+into the details:
 
-regards,
-dan carpenter
+ - firstly, you should remove the #ifdef check around the definition of
+   SR_UXL, otherwise the IS_ENABLED() check does not work.
 
+ - you can use an 'if (!IS_ENABLED(CONFIG_COMPAT)) \\ return;' ahead of the
+   assignment since that is at the end of  the function.
+
+ - you can remove the bit masking since 'regs->status' is initialized above it,
+   adding in only the one bit, shortening it to
+
+    if (IS_ENABLED(CONFIG_COMPAT))
+               regs->status |= is_compat_task()) ? SR_UXL_32 : SR_UXL_64;
+
+ - to make this more logical, I would suggest always assigning the SR_UXL
+   bits regardless of CONFIG_COMPAT, and instead make it something like
+
+  if (IS_ENABLED(CONFIG_32BIT) || is_compat_task())
+            regs->status = | SR_UXL_32;
+  else
+            regs->status = | SR_UXL_64;
+
+       Arnd
