@@ -2,67 +2,174 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5948CC433EF
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Mar 2022 08:51:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E43C433EF
+	for <sparclinux@archiver.kernel.org>; Fri, 18 Mar 2022 10:42:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231228AbiCQIwm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Mar 2022 04:52:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44380 "EHLO
+        id S233392AbiCRKns (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 18 Mar 2022 06:43:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39600 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231220AbiCQIwk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Mar 2022 04:52:40 -0400
-X-Greylist: delayed 579 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 17 Mar 2022 01:51:24 PDT
-Received: from mail.coredeal.pl (mail.coredeal.pl [51.75.73.133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 627C09F6E7
-        for <sparclinux@vger.kernel.org>; Thu, 17 Mar 2022 01:51:24 -0700 (PDT)
-Received: by mail.coredeal.pl (Postfix, from userid 1002)
-        id E19DBA5025; Thu, 17 Mar 2022 08:41:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=coredeal.pl; s=mail;
-        t=1647506481; bh=9KGuIG62LgzC9aYmjKxzocuYLRCVghXg6v9Q1q2LHec=;
-        h=Date:From:To:Subject:From;
-        b=TNHI1pU8oxX7/rC9TpoDYdMMOgmkuKmBWRfeE6MW9MWtnau4zO9TOQX0GKkz56kaZ
-         wV4n1EOxocJZ5kOetrjZWgXN1OVqZ+tcLo7BoW25m3AtD3yhYyBWk9ClA9/nbR9Qgl
-         8zKcijeAY1Pnv6TsS+b2isIhZ1c6wGQTV6sHvHNjFeRAL1wIJqYSWHYzMPLdEobuR/
-         ebCuzjObDltWolIxK+2tUpf/r9j629KubdlmooGBc2LmNvEuGFjmCY8J9Medc0pKJr
-         yCj2cBLb4lz4Z1kfiNoSc7wuHaZ5Vt2iBuygADQpjIMrKku9TVq8JdUijFZqHH0326
-         gcJFEz1h9OKBg==
-Received: by mail.coredeal.pl for <sparclinux@vger.kernel.org>; Thu, 17 Mar 2022 08:40:46 GMT
-Message-ID: <20220317074500-0.1.20.7xoh.0.focnn0l3ql@coredeal.pl>
-Date:   Thu, 17 Mar 2022 08:40:46 GMT
-From:   "Krzysztof Maj" <krzysztof.maj@coredeal.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Biznesowy angielski
-X-Mailer: mail.coredeal.pl
+        with ESMTP id S235609AbiCRKmt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 18 Mar 2022 06:42:49 -0400
+Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77D7E2E5189;
+        Fri, 18 Mar 2022 03:40:36 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id DE2A11F390;
+        Fri, 18 Mar 2022 10:40:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1647600034; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=eAuiFb+OsFON4yFjKLQAFK1dNFxRsTZb0OnrTTRn9u0=;
+        b=C32sGETYRNnx5Wr8LQxLIcbYrT0DnLCxlclsrJfisEggI2MYD0T8o8/CrHNpZcBjoK1VdT
+        IuD1+udT+EDwEVmHcfnZNIpGNuSCmV63GQW/SnEpa40zWyu7spaviICSz3zugBpPoOCc2r
+        PPqFl/cthhqlzZ1HPJOrpBbQGOKDa8k=
+Received: from suse.cz (unknown [10.100.224.162])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 46B10A3B8A;
+        Fri, 18 Mar 2022 10:40:34 +0000 (UTC)
+Date:   Fri, 18 Mar 2022 11:40:31 +0100
+From:   Petr Mladek <pmladek@suse.com>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc:     linux-kernel@vger.kernel.org, acme@kernel.org,
+        akpm@linux-foundation.org, alexander.shishkin@linux.intel.com,
+        catalin.marinas@arm.com, davem@davemloft.net, jolsa@redhat.com,
+        jthierry@redhat.com, keescook@chromium.org, kernelfans@gmail.com,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
+        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
+        nixiaoming@huawei.com, peterz@infradead.org,
+        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
+        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
+Subject: Re: [PATCH v2 4/5] kernel/watchdog: Adapt the watchdog_hld interface
+ for async model
+Message-ID: <YjRhnxg3L3cHUU/l@alley>
+References: <20220307154729.13477-1-lecopzer.chen@mediatek.com>
+ <20220307154729.13477-5-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220307154729.13477-5-lecopzer.chen@mediatek.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
+On Mon 2022-03-07 23:47:28, Lecopzer Chen wrote:
+> When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
+> yet. E.g. on arm64, PMU is not ready until
+> device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
+> with the driver model and cpuhp. Hence it is hard to push this
+> initialization before smp_init().
 
-czy rozwa=C5=BCali Pa=C5=84stwo rozw=C3=B3j kwalifikacji j=C4=99zykowych =
-swoich pracownik=C3=B3w?
+The above is clear.
 
-Opracowali=C5=9Bmy kursy j=C4=99zykowe dla r=C3=B3=C5=BCnych bran=C5=BC, =
-w kt=C3=B3rych koncentrujemy si=C4=99 na podniesieniu poziomu s=C5=82owni=
-ctwa i jako=C5=9Bci komunikacji wykorzystuj=C4=85c autorsk=C4=85 metod=C4=
-=99, stworzon=C4=85 specjalnie dla wymagaj=C4=85cego biznesu.=20
+> But it is easy to take an opposite approach by enabling watchdog_hld to
+> get the capability of PMU async.
+> 
+> The async model is achieved by expanding watchdog_nmi_probe() with
+> -EBUSY, and a re-initializing work_struct which waits on a wait_queue_head.
 
-Niestandardowy kurs on-line, dopasowany do profilu firmy i obszar=C3=B3w =
-=C5=9Bwiadczonych us=C5=82ug, w szybkim czasie przyniesie efekty, kt=C3=B3=
-re zwi=C4=99ksz=C4=85 komfort i jako=C5=9B=C4=87 pracy, rozwijaj=C4=85c m=
-o=C5=BCliwo=C5=9Bci biznesowe.=20
+These two paragraphs are a bit confusing to me. It might be just a
+problem with translation. I am not a native speaker. Anyway, I wonder
+if the following is more clear:
 
-Zdalne szkolenie j=C4=99zykowe to m.in. zaj=C4=99cia z native speakerami,=
- kt=C3=B3re w szybkim czasie naucz=C4=85 pracownik=C3=B3w rozmawia=C4=87 =
-za pomoc=C4=85 jasnego i zwi=C4=99z=C5=82ego j=C4=99zyka Business English=
-=2E
+<proposal>
+But it is easy to take an opposite approach and try to initialize
+the watchdog once again later.
 
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 wi=C4=99cej szczeg=C3=B3=C5=82=C3=B3=
-w i opowiedzie=C4=87 jak dzia=C5=82amy?=20
+The delayed probe is called using workqueues. It need to allocate
+memory and must be proceed in a normal context.
 
+The delayed probe is queued only when the early one returns -EBUSY.
+It is the return code returned when PMU is not ready yet.
+</proposal>
 
-Pozdrawiam
-Krzysztof Maj
+> --- a/kernel/watchdog.c
+> +++ b/kernel/watchdog.c
+> @@ -103,7 +103,11 @@ void __weak watchdog_nmi_disable(unsigned int cpu)
+>  	hardlockup_detector_perf_disable();
+>  }
+>  
+> -/* Return 0, if a NMI watchdog is available. Error code otherwise */
+> +/*
+> + * Arch specific API. Return 0, if a NMI watchdog is available. -EBUSY if not
+> + * ready, and arch code should wake up hld_detector_wait when ready. Other
+> + * negative value if not support.
+> + */
+
+I wonder if the following is slightly more clear:
+
+ /*
+ * Arch specific API.
+ *
+ * Return 0 when NMI watchdog is available, negative value otherwise.
+ * The error code -EBUSY is special. It means that a deferred probe
+ * might succeed later.
+ */
+
+>  int __weak __init watchdog_nmi_probe(void)
+>  {
+>  	return hardlockup_detector_perf_init();
+> @@ -839,16 +843,70 @@ static void __init watchdog_sysctl_init(void)
+>  #define watchdog_sysctl_init() do { } while (0)
+>  #endif /* CONFIG_SYSCTL */
+>  
+> +static void lockup_detector_delay_init(struct work_struct *work);
+> +bool lockup_detector_pending_init __initdata;
+> +
+> +struct wait_queue_head hld_detector_wait __initdata =
+> +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
+> +
+> +static struct work_struct detector_work __initdata =
+> +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
+> +
+> +static void __init lockup_detector_delay_init(struct work_struct *work)
+> +{
+> +	int ret;
+> +
+> +	wait_event(hld_detector_wait,
+> +			lockup_detector_pending_init == false);
+> +
+> +	/*
+> +	 * Here, we know the PMU should be ready, so set pending to true to
+> +	 * inform watchdog_nmi_probe() that it shouldn't return -EBUSY again.
+> +	 */
+> +	lockup_detector_pending_init = true;
+
+This does not make sense to me. We are here only when:
+
+   1. lockup_detector_init() queued this work.
+
+   2. Someone cleared @lockup_detector_pending_init and woke the
+      worker via wait_queue. IT might be either PMU init code
+      or the late lockup_detector_check().
+
+watchdog_nmi_probe() might still return -EBUSY when PMU init failed.
+
+If you wanted to try the delayed probe once again (3rd attempt) from
+lockup_detector_check(), you would need to queue the work once again.
+But you need to be sure that lockup_detector_check() was not called
+yet. Otherwise, the 2nd work might wait forewer.
+
+IMHO, it is not worth the complexity.
+
+> +	ret = watchdog_nmi_probe();
+> +	if (ret) {
+> +		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
+> +		pr_info("Perf NMI watchdog permanently disabled\n");
+> +		return;
+> +	}
+> +
+> +	nmi_watchdog_available = true;
+> +	lockup_detector_setup();
+> +	lockup_detector_pending_init = false;
+> +}
+
+Otherwise, it looks good to me.
+
+Best Regards,
+Petr
