@@ -2,237 +2,76 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55A10C433F5
-	for <sparclinux@archiver.kernel.org>; Mon, 21 Mar 2022 17:37:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 584CDC4332F
+	for <sparclinux@archiver.kernel.org>; Tue, 22 Mar 2022 00:45:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344188AbiCURix (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 21 Mar 2022 13:38:53 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52210 "EHLO
+        id S234384AbiCVArF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Mar 2022 20:47:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47602 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237838AbiCURiw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Mar 2022 13:38:52 -0400
-Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70DDCE9C9A;
-        Mon, 21 Mar 2022 10:37:26 -0700 (PDT)
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id E785E210E7;
-        Mon, 21 Mar 2022 17:37:24 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1647884244; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=5bsCI6QgpU1VEHlgKqhByuX519NRY+S3vfucuw6r5WI=;
-        b=rvoRfv0Dxeauz5xUbd+g1vOv5ElwpIjlBni3X7ekWLRANUxcVc800tvZUdOSRPv8nrkkfD
-        STArH1oh9ZzKhGd6New+zXvK7pMuLK00UZIIvVAwEwfjn236WTFDTtcUQPNAIMVoICl2Ew
-        /4i+2QYbxDB8140eOx3IZud0NCrevKk=
-Received: from suse.cz (unknown [10.100.224.162])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S234341AbiCVArE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Mar 2022 20:47:04 -0400
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D2121AD89;
+        Mon, 21 Mar 2022 17:45:36 -0700 (PDT)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 013F5A3B81;
-        Mon, 21 Mar 2022 17:37:23 +0000 (UTC)
-Date:   Mon, 21 Mar 2022 18:37:21 +0100
-From:   Petr Mladek <pmladek@suse.com>
-To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
-Cc:     acme@kernel.org, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
-        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
-        keescook@chromium.org, kernelfans@gmail.com,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-mediatek@lists.infradead.org,
-        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
-        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
-        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
-        nixiaoming@huawei.com, peterz@infradead.org,
-        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
-        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
-Subject: Re: [PATCH v2 4/5] kernel/watchdog: Adapt the watchdog_hld interface
- for async model
-Message-ID: <Yji30cmiPzoINrd6@alley>
-References: <YjRhnxg3L3cHUU/l@alley>
- <20220319081822.16537-1-lecopzer.chen@mediatek.com>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4KMt7c59Xkz4xNq;
+        Tue, 22 Mar 2022 11:45:31 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1647909935;
+        bh=Bz/qcPUjp+xnV7sXCh9T8SQ8nU42UdydAMwhj8Gidog=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=FjhBV/tZn1kcZ4dWO/m6PQ4NBY/1TmhFEco/B6C53AQXstdUeha5I3IejnddSEuPw
+         is6OQZ5OPzJD0frfPMkGWDb3eETKdrp4Phzu6WIMqCWxNtJuXm32JFDN9w7WHGaJPd
+         LOj8kLeRGOos/QGUfYETYnfKRTYxm7AriiEQT9ptxv9v7RXkmaWITrML+1IyUJllQQ
+         nJKHY9MKhuZZ6RfRVPyLlh7g5AEz/2Pbl+zIFYHd6tQhOU+CbtuaMCK6z2L7GFPr89
+         pRRWHI83Ck69gZWjOTV7MTCKu3wA/Fpet2YGTJREXUm2zWg0AAgxSAL3g2+ec3+Cnd
+         r2F6/D4d6PrYg==
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        linux-s390@vger.kernel.org, Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        linuxppc-dev@lists.ozlabs.org, linux-ia64@vger.kernel.org,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Pavel Machek <pavel@ucw.cz>, Len Brown <lenb@kernel.org>,
+        linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH] Docs: admin/kernel-parameters: edit a few boot options
+In-Reply-To: <20220321012216.23724-1-rdunlap@infradead.org>
+References: <20220321012216.23724-1-rdunlap@infradead.org>
+Date:   Tue, 22 Mar 2022 11:45:28 +1100
+Message-ID: <87ils6hl1z.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220319081822.16537-1-lecopzer.chen@mediatek.com>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat 2022-03-19 16:18:22, Lecopzer Chen wrote:
-> > On Mon 2022-03-07 23:47:28, Lecopzer Chen wrote:
-> > > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-> > > yet. E.g. on arm64, PMU is not ready until
-> > > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-> > > with the driver model and cpuhp. Hence it is hard to push this
-> > > initialization before smp_init().
-> > 
-> > > --- a/kernel/watchdog.c
-> > > +++ b/kernel/watchdog.c
-> > > @@ -839,16 +843,70 @@ static void __init watchdog_sysctl_init(void)
-> > >  #define watchdog_sysctl_init() do { } while (0)
-> > >  #endif /* CONFIG_SYSCTL */
-> > >  
-> > > +static void lockup_detector_delay_init(struct work_struct *work);
-> > > +bool lockup_detector_pending_init __initdata;
-> > > +
-> > > +struct wait_queue_head hld_detector_wait __initdata =
-> > > +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
-> > > +
-> > > +static struct work_struct detector_work __initdata =
-> > > +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
-> > > +
-> > > +static void __init lockup_detector_delay_init(struct work_struct *work)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	wait_event(hld_detector_wait,
-> > > +			lockup_detector_pending_init == false);
-> > > +
-> > > +	/*
-> > > +	 * Here, we know the PMU should be ready, so set pending to true to
-> > > +	 * inform watchdog_nmi_probe() that it shouldn't return -EBUSY again.
-> > > +	 */
-> > > +	lockup_detector_pending_init = true;
-> > 
-> > This does not make sense to me. We are here only when:
-> > 
-> >    1. lockup_detector_init() queued this work.
-> > 
-> >    2. Someone cleared @lockup_detector_pending_init and woke the
-> >       worker via wait_queue. IT might be either PMU init code
-> >       or the late lockup_detector_check().
-> > 
-> > watchdog_nmi_probe() might still return -EBUSY when PMU init failed.
-> > 
-> > If you wanted to try the delayed probe once again (3rd attempt) from
-> > lockup_detector_check(), you would need to queue the work once again.
-> > But you need to be sure that lockup_detector_check() was not called
-> > yet. Otherwise, the 2nd work might wait forewer.
-> > 
-> > IMHO, it is not worth the complexity.
-> 
-> The original assumption is: nobody should use delayed probe after
-> lockup_detector_check() (which has __init attribute).
-
-Good point. It makes perfect sense.
-
-But it was not mentioned anywhere. And the code did not work this way.
-
-> 
-> That is, everything including PMU and delayed probe of lock detector must
-> finsh before do_initcalls() which means delayed probe can't support with
-> external PMU module init.
-> 
-> Also,
->   1. lockup_detector_check is registered with late_initcall_sync(), so it'd
->      be called in the last order of do_initcalls()).
-> 
->   2. watchdog_nmi_probe() and all the delayed relative functions and variables
->      have __init attribute, no one should ever use it after __init section
->      is released.
-> 
-> The only case is PMU probe function is also late_initcall_sync().
-
-This is the case for PMU. The API for delayed init is generic a should
-be safe even for other users.
-
-
-> How about this one:
->   1. Wrap the wake_up code to reduce the complexity for user side.
-> 
->   2. Remove wait queue.
->      Instead queue work when lockup_detector_init(), queue the delayed
->      probe work when arch PMU code finish probe.
-> 
-> and the flow turns to
-> 
->   1. lockup_detector_init() get -EBUSY, set lockup_detector_pending_init=true
-> 
->   2. PMU arch code init done, call lockup_detector_queue_work().
-> 
->   3. lockup_detector_queue_work() queue the work only when
->      lockup_detector_pending_init=true which means nobody should call
->      this before lockup_detector_init().
-> 
->   4. the work lockup_detector_delay_init() is doing without wait event.
->      if probe success, set lockup_detector_pending_init=false.
-> 
->   5. at late_initcall_sync(), lockup_detector_check() call flush_work() first
->      to avoid previous lockup_detector_queue_work() is not scheduled.
->      And then test whether lockup_detector_pending_init is false, if it's
->      true, means we have pending init un-finished, than forcely queue work
->      again and flush_work to make sure the __init section won't be freed
->      before the work done.
-
-Nice, I like it.
-
-> This remove the complexity of wait event which we were disscussed.
-> The draft of the diff code(diff with this series) shows below.
-> 
-> 
-> diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-> index 77eaefee13ea..c776618fbfa8 100644
-> --- a/arch/arm64/kernel/perf_event.c
-> +++ b/arch/arm64/kernel/perf_event.c
-> @@ -1388,9 +1388,7 @@ static int __init armv8_pmu_driver_init(void)
->  	else
->  		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
->  
-> -	/* Inform watchdog core we are ready to probe hld by delayed init. */
-> -	lockup_detector_pending_init = false;
-> -	wake_up(&hld_detector_wait);
-> +	lockup_detector_queue_work();
-
-The name is strange. The fact that it uses workqueues is an
-implementation detail. I would call it
-retry_lockup_detector_init() so that it is more obvious what it does.
-
->  	return ret;
->  }
->  device_initcall(armv8_pmu_driver_init)
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> @@ -876,15 +865,27 @@ static void __init lockup_detector_delay_init(struct work_struct *work)
->  	lockup_detector_pending_init = false;
->  }
->  
-> +/* Must call after lockup_detector_init() that we do need delayed probe */
-> +void __init lockup_detector_queue_work(void)
-> +{
-> +	if (!lockup_detector_pending_init)
-> +		return;
-> +
-> +	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
-> +}
-> +
->  /* Ensure the check is called after the initialization of PMU driver */
->  static int __init lockup_detector_check(void)
->  {
-> +	/* Make sure no work is pending. */
-> +	flush_work(&detector_work);
-> +
->  	if (!lockup_detector_pending_init)
->  		return 0;
->  
->  	pr_info("Delayed init checking failed, retry for once.\n");
-> -	lockup_detector_pending_init = false;
-> -	wake_up(&hld_detector_wait);
-> +	lockup_detector_queue_work();
-
-I would do here
-
-	lockup_detector_pending_init = false;
-
-to make sure that lockup_detector_queue_work() will not longer
-queue the work after the final flush.
-
-Maybe, we could rename the variable to allow_lockup_detector_init_retry.
-
-> +	flush_work(&detector_work);
+Randy Dunlap <rdunlap@infradead.org> writes:
+> Clean up some of admin-guide/kernel-parameters.txt:
 >
->	return 0;
->  }
->  late_initcall_sync(lockup_detector_check);
+> a. "smt" should be "smt=" (S390)
+> b. add "smt-enabled" for POWERPC
 
-Best Regards,
-Petr
+I'd rather you didn't. It's not well tested and we ignore it entirely on
+some platforms because it causes bugs. Eventually I'd like to remove it.
+
+If we ever get time we'd want to support the generic `nosmt` argument
+instead.
+
+cheers
