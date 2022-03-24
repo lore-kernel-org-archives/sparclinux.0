@@ -2,52 +2,50 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B19AC433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 24 Mar 2022 12:56:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CF29C433F5
+	for <sparclinux@archiver.kernel.org>; Thu, 24 Mar 2022 14:14:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350306AbiCXM5b (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 24 Mar 2022 08:57:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45702 "EHLO
+        id S1350775AbiCXOPx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 24 Mar 2022 10:15:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1350295AbiCXM5a (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Mar 2022 08:57:30 -0400
+        with ESMTP id S1350758AbiCXOPw (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 24 Mar 2022 10:15:52 -0400
 Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E80A9694AF;
-        Thu, 24 Mar 2022 05:55:57 -0700 (PDT)
-X-UUID: e6262b6374fa496f96f18f61742c6541-20220324
-X-UUID: e6262b6374fa496f96f18f61742c6541-20220324
-Received: from mtkcas11.mediatek.inc [(172.21.101.40)] by mailgw01.mediatek.com
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CDDA21FCD0;
+        Thu, 24 Mar 2022 07:14:16 -0700 (PDT)
+X-UUID: 0aa1160529f245fdb62e2fb6ad6abbe5-20220324
+X-UUID: 0aa1160529f245fdb62e2fb6ad6abbe5-20220324
+Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw01.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 1204572558; Thu, 24 Mar 2022 20:55:53 +0800
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
+        with ESMTP id 1102049120; Thu, 24 Mar 2022 22:14:10 +0800
 Received: from mtkcas11.mediatek.inc (172.21.101.40) by
- mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
- 15.0.1497.2; Thu, 24 Mar 2022 20:55:51 +0800
+ mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.2.792.15; Thu, 24 Mar 2022 22:14:09 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 24 Mar 2022 20:55:51 +0800
+ Transport; Thu, 24 Mar 2022 22:14:08 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <pmladek@suse.com>
-CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
-        <alexander.shishkin@linux.intel.com>, <catalin.marinas@arm.com>,
-        <davem@davemloft.net>, <jolsa@redhat.com>, <jthierry@redhat.com>,
-        <keescook@chromium.org>, <kernelfans@gmail.com>,
-        <lecopzer.chen@mediatek.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
+To:     <linux-kernel@vger.kernel.org>
+CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
+        <akpm@linux-foundation.org>, <alexander.shishkin@linux.intel.com>,
+        <catalin.marinas@arm.com>, <davem@davemloft.net>,
+        <jolsa@redhat.com>, <jthierry@redhat.com>, <keescook@chromium.org>,
+        <kernelfans@gmail.com>, <linux-arm-kernel@lists.infradead.org>,
         <linux-mediatek@lists.infradead.org>,
         <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
         <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
         <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
         <nixiaoming@huawei.com>, <peterz@infradead.org>,
-        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
-        <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: Re: [PATCH v2 4/5] kernel/watchdog: Adapt the watchdog_hld interface for async model
-Date:   Thu, 24 Mar 2022 20:55:51 +0800
-Message-ID: <20220324125551.9044-1-lecopzer.chen@mediatek.com>
+        <pmladek@suse.com>, <sparclinux@vger.kernel.org>,
+        <sumit.garg@linaro.org>, <wangqing@vivo.com>, <will@kernel.org>,
+        <yj.chiang@mediatek.com>
+Subject: [PATCH v3 0/5] Support hld delayed init based on Pseudo-NMI for arm64
+Date:   Thu, 24 Mar 2022 22:14:00 +0800
+Message-ID: <20220324141405.10835-1-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
-In-Reply-To: <Yji30cmiPzoINrd6@alley>
-References: <Yji30cmiPzoINrd6@alley>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MTK:  N
@@ -55,190 +53,105 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-> On Sat 2022-03-19 16:18:22, Lecopzer Chen wrote:
-> > > On Mon 2022-03-07 23:47:28, Lecopzer Chen wrote:
-> > > > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-> > > > yet. E.g. on arm64, PMU is not ready until
-> > > > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-> > > > with the driver model and cpuhp. Hence it is hard to push this
-> > > > initialization before smp_init().
-> > > 
-> > > > --- a/kernel/watchdog.c
-> > > > +++ b/kernel/watchdog.c
-> > > > @@ -839,16 +843,70 @@ static void __init watchdog_sysctl_init(void)
-> > > >  #define watchdog_sysctl_init() do { } while (0)
-> > > >  #endif /* CONFIG_SYSCTL */
-> > > >  
-> > > > +static void lockup_detector_delay_init(struct work_struct *work);
-> > > > +bool lockup_detector_pending_init __initdata;
-> > > > +
-> > > > +struct wait_queue_head hld_detector_wait __initdata =
-> > > > +		__WAIT_QUEUE_HEAD_INITIALIZER(hld_detector_wait);
-> > > > +
-> > > > +static struct work_struct detector_work __initdata =
-> > > > +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
-> > > > +
-> > > > +static void __init lockup_detector_delay_init(struct work_struct *work)
-> > > > +{
-> > > > +	int ret;
-> > > > +
-> > > > +	wait_event(hld_detector_wait,
-> > > > +			lockup_detector_pending_init == false);
-> > > > +
-> > > > +	/*
-> > > > +	 * Here, we know the PMU should be ready, so set pending to true to
-> > > > +	 * inform watchdog_nmi_probe() that it shouldn't return -EBUSY again.
-> > > > +	 */
-> > > > +	lockup_detector_pending_init = true;
-> > > 
-> > > This does not make sense to me. We are here only when:
-> > > 
-> > >    1. lockup_detector_init() queued this work.
-> > > 
-> > >    2. Someone cleared @lockup_detector_pending_init and woke the
-> > >       worker via wait_queue. IT might be either PMU init code
-> > >       or the late lockup_detector_check().
-> > > 
-> > > watchdog_nmi_probe() might still return -EBUSY when PMU init failed.
-> > > 
-> > > If you wanted to try the delayed probe once again (3rd attempt) from
-> > > lockup_detector_check(), you would need to queue the work once again.
-> > > But you need to be sure that lockup_detector_check() was not called
-> > > yet. Otherwise, the 2nd work might wait forewer.
-> > > 
-> > > IMHO, it is not worth the complexity.
-> > 
-> > The original assumption is: nobody should use delayed probe after
-> > lockup_detector_check() (which has __init attribute).
-> 
-> Good point. It makes perfect sense.
-> 
-> But it was not mentioned anywhere. And the code did not work this way.
-> 
-> > 
-> > That is, everything including PMU and delayed probe of lock detector must
-> > finsh before do_initcalls() which means delayed probe can't support with
-> > external PMU module init.
-> > 
-> > Also,
-> >   1. lockup_detector_check is registered with late_initcall_sync(), so it'd
-> >      be called in the last order of do_initcalls()).
-> > 
-> >   2. watchdog_nmi_probe() and all the delayed relative functions and variables
-> >      have __init attribute, no one should ever use it after __init section
-> >      is released.
-> > 
-> > The only case is PMU probe function is also late_initcall_sync().
-> 
-> This is the case for PMU. The API for delayed init is generic a should
-> be safe even for other users.
-> 
+As we already used hld internally for arm64 since 2020, there still
+doesn't have a proper commit on the upstream and we badly need it.
 
-I think this can be fixed after the suggestion provied by you below.
-Set lockup_detector_pending_init=false at the end of lockup_detector_check().
-So nobody after lockup_detector_check() can ever queue another work.
+This serise rework on 5.17 from [1] and the origin author is
+Pingfan Liu <kernelfans@gmail.com>
+Sumit Garg <sumit.garg@linaro.org>
 
-> 
-> > How about this one:
-> >   1. Wrap the wake_up code to reduce the complexity for user side.
-> > 
-> >   2. Remove wait queue.
-> >      Instead queue work when lockup_detector_init(), queue the delayed
-> >      probe work when arch PMU code finish probe.
-> > 
-> > and the flow turns to
-> > 
-> >   1. lockup_detector_init() get -EBUSY, set lockup_detector_pending_init=true
-> > 
-> >   2. PMU arch code init done, call lockup_detector_queue_work().
-> > 
-> >   3. lockup_detector_queue_work() queue the work only when
-> >      lockup_detector_pending_init=true which means nobody should call
-> >      this before lockup_detector_init().
-> > 
-> >   4. the work lockup_detector_delay_init() is doing without wait event.
-> >      if probe success, set lockup_detector_pending_init=false.
-> > 
-> >   5. at late_initcall_sync(), lockup_detector_check() call flush_work() first
-> >      to avoid previous lockup_detector_queue_work() is not scheduled.
-> >      And then test whether lockup_detector_pending_init is false, if it's
-> >      true, means we have pending init un-finished, than forcely queue work
-> >      again and flush_work to make sure the __init section won't be freed
-> >      before the work done.
-> 
-> Nice, I like it.
-> 
-> > This remove the complexity of wait event which we were disscussed.
-> > The draft of the diff code(diff with this series) shows below.
-> > 
-> > 
-> > diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-> > index 77eaefee13ea..c776618fbfa8 100644
-> > --- a/arch/arm64/kernel/perf_event.c
-> > +++ b/arch/arm64/kernel/perf_event.c
-> > @@ -1388,9 +1388,7 @@ static int __init armv8_pmu_driver_init(void)
-> >  	else
-> >  		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-> >  
-> > -	/* Inform watchdog core we are ready to probe hld by delayed init. */
-> > -	lockup_detector_pending_init = false;
-> > -	wake_up(&hld_detector_wait);
-> > +	lockup_detector_queue_work();
-> 
-> The name is strange. The fact that it uses workqueues is an
-> implementation detail. I would call it
-> retry_lockup_detector_init() so that it is more obvious what it does.
+Qoute from [1]:
 
-Okay, I don't have a good taste in naming.
-I'll provide next version patches including this.
+> Hard lockup detector is helpful to diagnose unpaired irq enable/disable.
+> But the current watchdog framework can not cope with arm64 hw perf event
+> easily.
+
+> On arm64, when lockup_detector_init()->watchdog_nmi_probe(), PMU is not
+> ready until device_initcall(armv8_pmu_driver_init).  And it is deeply
+> integrated with the driver model and cpuhp. Hence it is hard to push the
+> initialization of armv8_pmu_driver_init() before smp_init().
+
+> But it is easy to take an opposite approach by enabling watchdog_hld to
+> get the capability of PMU async. 
+> The async model is achieved by expanding watchdog_nmi_probe() with
+> -EBUSY, and a re-initializing work_struct which waits on a
+> wait_queue_head.
+
+Provide an API - retry_lockup_detector_init() for anyone who needs
+to delayed init lockup detector.
+
+The original assumption is: nobody should use delayed probe after
+lockup_detector_check() (which has __init attribute).
+That is, anyone uses this API must call between lockup_detector_init()
+and lockup_detector_check(), and the caller must have __init attribute
+
+The delayed init flow is:
+1. lockup_detector_init() get -EBUSY from arch code, set
+   allow_lockup_detector_init_retry=true
+
+2. PMU arch code init done, call retry_lockup_detector_init().
+
+3. retry_lockup_detector_init() queue the work only when
+   allow_lockup_detector_init_retry=true which means nobody should call
+   this before lockup_detector_init().
+
+4. the work lockup_detector_delay_init() is doing without wait event.
+   if probe success, set allow_lockup_detector_init_retry=false.
+
+5. at late_initcall_sync(), lockup_detector_check() call flush_work() first
+   to avoid previous retry_lockup_detector_init() is not scheduled.
+   And then test whether allow_lockup_detector_init_retry is false, if it's
+   true, means we have pending init un-finished, than forcely queue work
+   again and flush_work to make sure the __init section won't be freed
+   before the work done.
+
+[1] https://lore.kernel.org/lkml/20211014024155.15253-1-kernelfans@gmail.com/
+
+v3:
+  1. Tweak commit message in patch 04 
+	2. Remove wait event
+  3. s/lockup_detector_pending_init/allow_lockup_detector_init_retry/
+  4. provide api retry_lockup_detector_init()
 
 
-> 
-> >  	return ret;
-> >  }
-> >  device_initcall(armv8_pmu_driver_init)
-> > --- a/kernel/watchdog.c
-> > +++ b/kernel/watchdog.c
-> > @@ -876,15 +865,27 @@ static void __init lockup_detector_delay_init(struct work_struct *work)
-> >  	lockup_detector_pending_init = false;
-> >  }
-> >  
-> > +/* Must call after lockup_detector_init() that we do need delayed probe */
-> > +void __init lockup_detector_queue_work(void)
-> > +{
-> > +	if (!lockup_detector_pending_init)
-> > +		return;
-> > +
-> > +	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
-> > +}
-> > +
-> >  /* Ensure the check is called after the initialization of PMU driver */
-> >  static int __init lockup_detector_check(void)
-> >  {
-> > +	/* Make sure no work is pending. */
-> > +	flush_work(&detector_work);
-> > +
-> >  	if (!lockup_detector_pending_init)
-> >  		return 0;
-> >  
-> >  	pr_info("Delayed init checking failed, retry for once.\n");
-> > -	lockup_detector_pending_init = false;
-> > -	wake_up(&hld_detector_wait);
-> > +	lockup_detector_queue_work();
-> 
-> I would do here
-> 
-> 	lockup_detector_pending_init = false;
-> 
-> to make sure that lockup_detector_queue_work() will not longer
-> queue the work after the final flush.
-> 
-> Maybe, we could rename the variable to allow_lockup_detector_init_retry.
+v2:
+  1. Tweak commit message in patch 01/02/04/05 
+  2. Remove vobose WARN in patch 04 within watchdog core.
+  3. Change from three states variable: detector_delay_init_state to
+     two states variable: allow_lockup_detector_init_retry
 
-Okay, I'm prepareing the next version patches, I'll include in it
+     Thanks Petr Mladek <pmladek@suse.com> for the idea.
+     > 1.  lockup_detector_work() called before lockup_detector_check().
+     >     In this case, wait_event() will wait until lockup_detector_check()
+     >     clears detector_delay_pending_init and calls wake_up().
 
-thanks a lot for all of the suggestion
+     > 2. lockup_detector_check() called before lockup_detector_work().
+     >    In this case, wait_even() will immediately continue because
+     >    it will see cleared detector_delay_pending_init.
+  4. Add comment in code in patch 04/05 for two states variable changing.
+https://lore.kernel.org/lkml/20220307154729.13477-1-lecopzer.chen@mediatek.com/
 
+Lecopzer Chen (4):
+  kernel/watchdog: remove WATCHDOG_DEFAULT
+  kernel/watchdog: change watchdog_nmi_enable() to void
+  kernel/watchdog: Adapt the watchdog_hld interface for async model
+  arm64: Enable perf events based hard lockup detector
 
-BRs,
-Lecopzer
+Pingfan Liu (1):
+  kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup
+    detector event
+
+ arch/arm64/Kconfig             |  2 +
+ arch/arm64/kernel/Makefile     |  1 +
+ arch/arm64/kernel/perf_event.c | 12 +++++-
+ arch/sparc/kernel/nmi.c        |  8 ++--
+ drivers/perf/arm_pmu.c         |  5 +++
+ include/linux/nmi.h            |  5 ++-
+ include/linux/perf/arm_pmu.h   |  2 +
+ kernel/watchdog.c              | 67 +++++++++++++++++++++++++++++++---
+ kernel/watchdog_hld.c          |  8 +++-
+ 9 files changed, 95 insertions(+), 15 deletions(-)
+
+-- 
+2.25.1
+
