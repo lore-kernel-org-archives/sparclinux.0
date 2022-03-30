@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38C23C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 590FFC43217
 	for <sparclinux@archiver.kernel.org>; Wed, 30 Mar 2022 11:55:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344227AbiC3L5P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 30 Mar 2022 07:57:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60878 "EHLO
+        id S236854AbiC3L5S (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 30 Mar 2022 07:57:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60574 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345893AbiC3LzI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Mar 2022 07:55:08 -0400
+        with ESMTP id S1345627AbiC3Lyv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Mar 2022 07:54:51 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C73425E313;
-        Wed, 30 Mar 2022 04:52:09 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1191726130F;
+        Wed, 30 Mar 2022 04:51:28 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BD1886137A;
-        Wed, 30 Mar 2022 11:52:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B7A1C340EE;
-        Wed, 30 Mar 2022 11:52:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 69D1261702;
+        Wed, 30 Mar 2022 11:51:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62622C340EE;
+        Wed, 30 Mar 2022 11:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648641128;
-        bh=VhHDD6RrdMjp5dMDXPfeMmXdEbQklV9mCIfGyFoUl+4=;
+        s=k20201202; t=1648641061;
+        bh=/Mw5Nb0AFbgvN5ev2n4WcdlIdVeKsTSC5UzZMPCI6ZA=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=ov1cINHsPi5Cu/628OLJdB9aQJ9TXrMNi0piwEiW4cSZNEQKXaYy/4j4FINVuKfuA
-         EP8nan4uY1PwUZPMfmm1A0AWtolS5rPGiQRxCCVjbonlVNX63FVEWCl0BFaxcczLLh
-         fpHiLguOFlyQTLx7s02KwGq6B+AJ71URtEvoxfMlAWQudMv0+pwwFQQxnSUGf2iTxG
-         ALd8TX6G1zfzyew+IPY2m0CAWCiGQdW9E+EHz0Fv4Zf3bOEi9SObZAP/xhM8QfkK/K
-         6+gFwqryCd0NA1+VEWzo+9ENhIH7cWZWt6vEcrmJUWDuTEFFaTS/Zws2g/iBnm3I+o
-         eUgdl/FXAO//A==
+        b=n2oXMX/zxNy2v0pSWQPMfZEOC9gA4y9GID81d+OIU+H9wST3pySLf5FAPEtXA7jhQ
+         6XYHvrnJ+d7HzMT585MkyDoX/q7T3nObsUs6T4Hn4IO33Am4UoXFmQknsthXQQLoFy
+         cyg+hNvujo2c5wXCECA15FfohaJnoAnFM3ICTd8quwre0NJCMoZxRuO8TuzEkyLUcm
+         Pui1cx3pK9RVihZFRimwSChwXbf86jaXftBCkh/EyWQVEyTDYFg5GRCPQUYnTtrIG9
+         m82yUYlJpImedg7g44q8fa75/4zOGSAeLigep2gNu4SzC/cLUnLFrE0O4jTcpd5QsX
+         E7eB/J1HLiXng==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
@@ -40,17 +40,17 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
         linux@armlinux.org.uk, peterz@infradead.org, mingo@redhat.com,
         acme@kernel.org, lftan@altera.com, benh@kernel.crashing.org,
         paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net,
-        gregkh@linuxfoundation.org, catalin.marinas@arm.com,
-        rmk+kernel@armlinux.org.uk, linux-snps-arc@lists.infradead.org,
+        gregkh@linuxfoundation.org, rmk+kernel@armlinux.org.uk,
+        catalin.marinas@arm.com, linux-snps-arc@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org,
         nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org,
         sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.10 26/37] uaccess: fix type mismatch warnings from access_ok()
-Date:   Wed, 30 Mar 2022 07:51:11 -0400
-Message-Id: <20220330115122.1671763-26-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.15 36/50] uaccess: fix type mismatch warnings from access_ok()
+Date:   Wed, 30 Mar 2022 07:49:50 -0400
+Message-Id: <20220330115005.1671090-36-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220330115122.1671763-1-sashal@kernel.org>
-References: <20220330115122.1671763-1-sashal@kernel.org>
+In-Reply-To: <20220330115005.1671090-1-sashal@kernel.org>
+References: <20220330115005.1671090-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -89,7 +89,7 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  10 files changed, 23 insertions(+), 21 deletions(-)
 
 diff --git a/arch/arc/kernel/process.c b/arch/arc/kernel/process.c
-index 37f724ad5e39..a85e9c625ab5 100644
+index 8e90052f6f05..5f7f5aab361f 100644
 --- a/arch/arc/kernel/process.c
 +++ b/arch/arc/kernel/process.c
 @@ -43,7 +43,7 @@ SYSCALL_DEFINE0(arc_gettls)
@@ -115,10 +115,10 @@ index 6166ba38bf99..b74bfcf94fb1 100644
  			 (void *)address);
  		res = -EFAULT;
 diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
-index 2d9e72ad1b0f..a531afad87fd 100644
+index 655c4fe0b4d0..54abd8720dde 100644
 --- a/arch/arm/kernel/traps.c
 +++ b/arch/arm/kernel/traps.c
-@@ -589,7 +589,7 @@ do_cache_op(unsigned long start, unsigned long end, int flags)
+@@ -575,7 +575,7 @@ do_cache_op(unsigned long start, unsigned long end, int flags)
  	if (end < start || flags)
  		return -EINVAL;
  
@@ -141,7 +141,7 @@ index 35318a635a5f..75e1f9df5f60 100644
  	/* Check accessibility of one struct frame_tail beyond */
  	if (!access_ok(user_frame_tail, sizeof(buftail)))
 diff --git a/arch/csky/kernel/signal.c b/arch/csky/kernel/signal.c
-index 0ca49b5e3dd3..243228b0aa07 100644
+index c7b763d2f526..8867ddf3e6c7 100644
 --- a/arch/csky/kernel/signal.c
 +++ b/arch/csky/kernel/signal.c
 @@ -136,7 +136,7 @@ static inline void __user *get_sigframe(struct ksignal *ksig,
@@ -151,10 +151,10 @@ index 0ca49b5e3dd3..243228b0aa07 100644
 -	struct rt_sigframe *frame;
 +	struct rt_sigframe __user *frame;
  	int err = 0;
- 	struct csky_vdso *vdso = current->mm->context.vdso;
  
+ 	frame = get_sigframe(ksig, regs, sizeof(*frame));
 diff --git a/arch/nios2/kernel/signal.c b/arch/nios2/kernel/signal.c
-index cf2dca2ac7c3..e45491d1d3e4 100644
+index 2009ae2d3c3b..386e46443b60 100644
 --- a/arch/nios2/kernel/signal.c
 +++ b/arch/nios2/kernel/signal.c
 @@ -36,10 +36,10 @@ struct rt_sigframe {
@@ -225,10 +225,10 @@ index cf2dca2ac7c3..e45491d1d3e4 100644
  
  	frame = get_sigframe(ksig, regs, sizeof(*frame));
 diff --git a/arch/powerpc/lib/sstep.c b/arch/powerpc/lib/sstep.c
-index 0edebbbffcdc..42701b2f2474 100644
+index d8cc49f39fe4..1a16ad18f9f2 100644
 --- a/arch/powerpc/lib/sstep.c
 +++ b/arch/powerpc/lib/sstep.c
-@@ -108,9 +108,9 @@ static nokprobe_inline long address_ok(struct pt_regs *regs,
+@@ -112,9 +112,9 @@ static nokprobe_inline long address_ok(struct pt_regs *regs,
  {
  	if (!user_mode(regs))
  		return 1;
@@ -241,10 +241,10 @@ index 0edebbbffcdc..42701b2f2474 100644
  		regs->dar = TASK_SIZE_MAX - 1;
  	else
 diff --git a/arch/riscv/kernel/perf_callchain.c b/arch/riscv/kernel/perf_callchain.c
-index ad3001cbdf61..1aa84b998a11 100644
+index 8ecfc4c128bc..7052a59c418f 100644
 --- a/arch/riscv/kernel/perf_callchain.c
 +++ b/arch/riscv/kernel/perf_callchain.c
-@@ -19,8 +19,8 @@ static unsigned long user_backtrace(struct perf_callchain_entry_ctx *entry,
+@@ -15,8 +15,8 @@ static unsigned long user_backtrace(struct perf_callchain_entry_ctx *entry,
  {
  	struct stackframe buftail;
  	unsigned long ra = 0;
@@ -256,7 +256,7 @@ index ad3001cbdf61..1aa84b998a11 100644
  	/* Check accessibility of one struct frame_tail beyond */
  	if (!access_ok(user_frame_tail, sizeof(buftail)))
 diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
-index 741d0701003a..1da36dd34990 100644
+index ffab16369bea..74f80443b195 100644
 --- a/arch/sparc/kernel/signal_32.c
 +++ b/arch/sparc/kernel/signal_32.c
 @@ -65,7 +65,7 @@ struct rt_signal_frame {
@@ -269,7 +269,7 @@ index 741d0701003a..1da36dd34990 100644
  
  	return false;
 diff --git a/lib/test_lockup.c b/lib/test_lockup.c
-index f1a020bcc763..07f476317187 100644
+index 906b598740a7..6a0f329a794a 100644
 --- a/lib/test_lockup.c
 +++ b/lib/test_lockup.c
 @@ -417,8 +417,8 @@ static bool test_kernel_ptr(unsigned long addr, int size)
