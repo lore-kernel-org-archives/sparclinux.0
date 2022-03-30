@@ -2,139 +2,287 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ACF0C433F5
-	for <sparclinux@archiver.kernel.org>; Mon, 28 Mar 2022 07:57:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A5F6C43217
+	for <sparclinux@archiver.kernel.org>; Wed, 30 Mar 2022 11:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239017AbiC1H7K (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 28 Mar 2022 03:59:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43462 "EHLO
+        id S1344110AbiC3Lvm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 30 Mar 2022 07:51:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59206 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239009AbiC1H7J (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 28 Mar 2022 03:59:09 -0400
-Received: from FRA01-MR2-obe.outbound.protection.outlook.com (mail-eopbgr90045.outbound.protection.outlook.com [40.107.9.45])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1E97FBC0C;
-        Mon, 28 Mar 2022 00:57:28 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=I5cvSnR1sCpNkkHDSrpZRPblxQ87FQphwvitNEEevEW45BwSvAV2y+dzCSqF9RD6F1h3EyPFXeGA4Kcx2PNWiw3SyK4p8PK+WF/utuZP4VcqG7wMLWHq0P0sJQHpTVFFk2yDbw5t2xxIJp5XIUt707M6UYlI3obI7D15sP5zWKS88eopWkUFD4avRe2BRFBr7oB7GQAMzYQeedCVlMIZ5rT365e+Xk02jXb+vlThaDnhWFiCrOOCP5Eh8OBAGyTxPYa0Qctt6N+8glWPpBn4JFpHUT3SIDM2Bu2vfytiUtMOK1N38uPEAADY1nJE5CslhTpWgy8UFSmk5vMfeL2Xdw==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=UK6JZrCMwAHJtnzST96jT+Yh67oyQW28cLDDwb9uGGg=;
- b=Poxbz6QvSX//iKuGdeRVI4ktkXZZ9OsMitQR+oW4uM9Qud8auSg+n4f7AX+RTyHRh3pdh1c/Moo6Wbq04W1ZD9CpvP2zS5zXawRvh8qzE03GoKaDVcm5u4xb0XDv6kymuSxJgjpef1ioDZvhQmXm1HY3fykySx+RS3G4OsNmQ6JIAV3ayVkO88LWtdWW8Koxb3cIO3k6569dP+cESkUNKmw62Ez6lUOu65ojQJMIBtY97hOGSp+6loUjgyMtzEmZDpIIMlDyWXdN16vvRRkazLS6MEXxYEwXWQFeEFWaq3f5Y9Rbv/P7aMQkGcryZcE3FA/bNTkS7lRK+eKvnREULg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
- dkim=pass header.d=csgroup.eu; arc=none
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
- by MR1P264MB1683.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:11::11) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5102.20; Mon, 28 Mar
- 2022 07:57:25 +0000
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::cd2f:d05d:9aa3:400d]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::cd2f:d05d:9aa3:400d%6]) with mapi id 15.20.5102.022; Mon, 28 Mar 2022
- 07:57:25 +0000
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-CC:     sparclinux <sparclinux@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>
-Subject: Re: Build regressions/improvements in v5.17-rc7
-Thread-Topic: Build regressions/improvements in v5.17-rc7
-Thread-Index: AQHYMgnDe6ciq0Rdq0eyDsdRIUSgk6zUjtiA
-Date:   Mon, 28 Mar 2022 07:57:25 +0000
-Message-ID: <a4c0f369-29b3-e1ee-37db-35098db3bc83@csgroup.eu>
-References: <CAHk-=wjkkYX8OvTv60+XvQkAK4Pg0QC0Hn-4+n7Q0t1+QWw7Sw@mail.gmail.com>
- <20220307081540.2716107-1-geert@linux-m68k.org>
- <CAMuHMdW=S=BJouptLGw12CbAqeYbBYwnsdrn90C_04n6s4H7bg@mail.gmail.com>
-In-Reply-To: <CAMuHMdW=S=BJouptLGw12CbAqeYbBYwnsdrn90C_04n6s4H7bg@mail.gmail.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=csgroup.eu;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 7e62087d-7a57-4b17-bbef-08da10909944
-x-ms-traffictypediagnostic: MR1P264MB1683:EE_
-x-microsoft-antispam-prvs: <MR1P264MB1683C243F50CA9C590BFFA15ED1D9@MR1P264MB1683.FRAP264.PROD.OUTLOOK.COM>
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: lZY1ElOHNEK8pWGvI3IHXjXUhno0iQNB81JrGWhlpUQlWFDqtcUkXE2si10vSPgx/G6M+okuxHTZuMJfJRgFCVLBXZSYuF00LWL5nI0YYuw2XIxSLoTZQUQBT8LAb3cj2pYQVrtFuXqptjmqXMjTJftubYOV4/cNE7Ikrp4Demg5zdVkjRJQFNeVs5wfTKbBxS2utTzv8n5bQyUERvC5fUbvXOXCySOMECohzsvvAnearYPLO7pAp8Kl9t4NVZXuBajhA4/jTuNznYoBRZUs2oUMIxLRX5ywZrhaOcLuGV/bRHturkqJtGjQC3nPGnD8F5xfRTw7lV7EUd55aJgW9J+LvGHvNEsggz35kO5uyAqo/qbVnlHc+BIBygf061mku6dp1WXNzsofT2FWRlOu/XXaQcd8ChcXiXd6I6ef4CpYKw1wVezlHzv0qFAU7/a/z6jZRAvoJGpr7sW6xlxt7aDsYl4BopXZLwy6yfeykzE0Me3boh6vXsRpyXJiMkufTdE/1Z9LDJOOmCbzMYfflpBY2JeC9AYrsGF1VdE9PmP6lspOjGDRXZ/w+IN4msRuiGVL9fXwpmWu6o+B49djyUDbgf2seMFI7DqAUhPPAtcS4MOwHNMsAcxeMGb9KUFGRvfZM3V7Y2w75Qx7rU+NfPJ4i9ibVZZRDqRRKO2RlpmMePMaBSr2N6Ipf8FIsTGgqPUL0I9yRbNxSX2qXjFzM2ZJWqFxQmT4lbgr+tk7SGwT/NF1iDKaqEZQRovRpMh3upkycBVgHwq7V0Ccqs33q9qbb4W5r2EueJoHmr1nWn1aWiu1HnEWX2ZHs2V2KQoHvmuAEP0ekmi4C2P+/d0XXDanw9AfIl+5e5iloX8M8kw=
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(31686004)(8936002)(6486002)(44832011)(76116006)(66556008)(66946007)(4744005)(5660300002)(66446008)(91956017)(64756008)(71200400001)(38100700002)(8676002)(4326008)(66476007)(122000001)(316002)(2906002)(31696002)(26005)(54906003)(110136005)(186003)(2616005)(508600001)(966005)(86362001)(6506007)(53546011)(36756003)(6512007)(38070700005)(43740500002)(45980500001);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?UDBtNXNKZ29ZMm5saloycGZFV0gvRVdOd1NGNnVtM0FTVllYeFJyM1lQSkZx?=
- =?utf-8?B?aklHbmVyb1F6cjlrV0Y0bHZ3S2UwTm9Ec0FBOVcvQWd1elpMaGpBWmx5MTVW?=
- =?utf-8?B?RG1udWR2VTJza1NVMktQOUFCelNIN1R2eU5FdFcrTkJrUHMzWENQSlhMdE1Q?=
- =?utf-8?B?bFovV0ZOTlNhdWVxQ3ZEbHBjWjlJY1o2QmFzSlFYUDhEWG1VRmkxNkR2WU5h?=
- =?utf-8?B?S3d4SElYTzg1UkxpT2V2YW1jdExTWjFwM0xSeWpWc0QyMit5RHVEM3h0OGpG?=
- =?utf-8?B?di9tNXpJeXpzcVo4ZWlOS0hha0xoSXpXbXAwOGdWYTdEc2xIdnF4QUVVbnN4?=
- =?utf-8?B?dVAyN2RZdldsR1VqTnVZVDRwRHBzRXI4NzRRN1RLL0FJMmUvYTI0dGI4ME9v?=
- =?utf-8?B?SkkyS0Q1cGtSTjZRdER3RElFSStrcDErVzFOclF4Zkc0OWxIMkpVeVdOd3BB?=
- =?utf-8?B?bC82K1oybTdwc1lLY016NTlVK2NoVDBzeXZPSjdhK3RUdTNCbUgybnI2VExL?=
- =?utf-8?B?N1Rqa01iMnZPSVc4RW9DUEdvTG5iTE8yVk1zaldzc09hUlhGZU5IZHViaVFs?=
- =?utf-8?B?MjI1S01Fa25iV3RsenBpdnhBZlJUb1E2RzZ5Yk1SUEl0M1NaREU5YjFBOUZk?=
- =?utf-8?B?WWpheTBTV1IrUTJaYTlIaUlkYUxoUDFWY3BLU3hEQ3NoYzFUOUlueVZuRUVL?=
- =?utf-8?B?S2J6RnV4bU9LSy93N2NOcEhvUmJMYnRpd3EyUWVLMUYxNjViWlFzSEU3US9V?=
- =?utf-8?B?UzZNOWxEMTRXWGMyelRXQTJLMVlrRzkxQ2xVMW9wNmNvTFRZZzJMalFSOXRQ?=
- =?utf-8?B?UDI2QUwraU1ZdEIwejd6SnBrUzVhbDJlQm1wM2ZTcll3TUpad3NHWGVRb0ZM?=
- =?utf-8?B?L1BOZ0ZaNklmYzZ0N2EwekNPaXlzVkMycGd3M1ZMRmxHSnBxZk5naEhmaHQy?=
- =?utf-8?B?WWRyMGpHOVZpQjF2S1h2VU9IRkdFVU0zT1hhaVVoUXVqYkFDRjl4K2dSQVhL?=
- =?utf-8?B?TXhLRTQ2RkdpOFUrWC8xa0tPdGFGY25XMlpUckxQcGFEeXNYSERZVm5aM1kx?=
- =?utf-8?B?YUd2aE5NTytnOUlBeTNNK1I3K004ZjczbUx4TE5TQnhpYXFBbUx5aEJBbFNm?=
- =?utf-8?B?WEdVNWsyQ3ZEK01CY1hiUzh4WU1nRlBaUWtJWU5ranFRSi8rZGFoZE5wL1N6?=
- =?utf-8?B?Q216YXFZN2p2aXI0MXJhcEcrMTdzbit1Y05aVERjemZYS1VTNHpEcm8wdUpD?=
- =?utf-8?B?cWN0Vm5pdURQWklkcW9EdFZ2d2o3TjN4MFJRUGk0cUVpcnlmVU43d1k5M3N4?=
- =?utf-8?B?ZUZDY05vTUxwZUUxSlk2V2dLYVJTZnI2T0ZsR1hJUHkwN1puVVU0bDhuWlgy?=
- =?utf-8?B?ZERsaElEOWlDZlh1cWdKR1o4cFB5eHZ5U0h3aVZqMWxNWnUvbnE1RVp5Rm5S?=
- =?utf-8?B?c1VwZHIrWG4rYlk2SUx4M3lyY1RFdDJhS25ucGl3aGlPS0cyRWt5TEZ6UXFp?=
- =?utf-8?B?LzdoalNmYUg3RkxodkE1eXQ4YlNnQ0VPQ2xxb1QzU0tqQ25jaEs0WW1sNzNw?=
- =?utf-8?B?aVJwblVYVno3cDkwZVZUUVpkY2YwRnFUV3RYYXB0VGFDRXZ0Z0pwdk44U01C?=
- =?utf-8?B?MVVRaXg5cGFSYUpjZjEyZE1wMTV6OTUyMFNQMzJ1M29ZQXY4elZHaGF0K3Uw?=
- =?utf-8?B?M0Z6QVE5M0hKQ1pDVzlHbzF2VGk4RVpXdkQwaWIvUFZDRWpQSFoxMWxDTG9H?=
- =?utf-8?B?QlVWNzlyWVI1a0k2a0RCb3ZXZHdCUGVxTDJ0ek5sRFFaRFNYT3pnak9PRkFk?=
- =?utf-8?B?N2dCSXRTOGpnSTNjUVV2a1ZCd0xUTnFEM0V1L2VJVy8rbnhZbkFlTEVlUnd0?=
- =?utf-8?B?NmF4MkE0RGVDQkZPeGNGVlZTTEMwclpnVllreU5mdnptQTEvWXg5bDYvcEJP?=
- =?utf-8?B?eUthbHFaOEZkektJZktmVHdUbkxlZjRaOWdvY3VvZnErRTdUWTdvOG9Wcy94?=
- =?utf-8?B?M2VQQW81TXF6amZEdzlaRWZkakFCUDZTY0I1Mlk3N1FKUjY1T1RHZlJuWGtz?=
- =?utf-8?B?c3hESEo4eWdNNUMxOXk4c20ydUJLVXlGa1lvYTR2c1h0ODFhdmNKUU83cWtS?=
- =?utf-8?B?d0EzQ29mQU5nSldmNFg2ZXJ6WDB2TkFGVEp5RXN4QUxBOTN6Q2gwcW42Yk1z?=
- =?utf-8?B?cklZb2pnU05WNXB4U25pRjlPQ09HckJTU255bXh5aE16YnRuOUpRc1lTcVkx?=
- =?utf-8?B?QjJ3bjBWeEF6UzBOYjZlMTRJdEVyT091YTJnUzFFbkNQdzB2eVBqTWpheWk1?=
- =?utf-8?B?dXB4TVh0OG9GL01oaEZFcXl0ZW0xN3hPTHNFSlpzaVhYYTNLK2crUXNLNDI3?=
- =?utf-8?Q?cPoYM4hPDKiJSDqSDRK0T1IQHGlDzEyVKSLr8?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <E24FEB42B1F02B418A5D839CDC0BF02E@FRAP264.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
+        with ESMTP id S1344044AbiC3Lu7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Mar 2022 07:50:59 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19A2C270847;
+        Wed, 30 Mar 2022 04:47:54 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 94197B81C23;
+        Wed, 30 Mar 2022 11:47:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0F71C36AE2;
+        Wed, 30 Mar 2022 11:47:48 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1648640871;
+        bh=A3c9/gM4bvRWPXkZJSlcmevkqT2fTCwhZzjB3bcywIE=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=oZlXeAKnat7h8iAIgI2l5ywRnZx9IkOEBsXJ+nDk4aESRrUOGhL9rw27GkIgI5Dvw
+         hv2eMrk3HGVyYxTe2Ll1c8l35qgphVeGIZvo0/K62GjJROC9WLxrPkPg944S6VFnbZ
+         ojS5d9SsqKlvef9Xg3UVb5UHC5zfWQs3+3d+sYBgstPCLxp4+HgDym9cF9uoGoAmUB
+         iS4YTcDV4T2l5PXSMdwGb7iz6d4dGidUC1RC0ddiLiljJMG3Y5E7SmJXJz8Dw2K36e
+         0y/9IulrZH+Ikl50OMFOx44TMJspvW1UT6pa8bjdvdR/yKZkqPYqIXgLqRhjCRVg1z
+         spMSJeOmrsOkg==
+From:   Sasha Levin <sashal@kernel.org>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Sasha Levin <sashal@kernel.org>, vgupta@synopsys.com,
+        linux@armlinux.org.uk, peterz@infradead.org, mingo@redhat.com,
+        acme@kernel.org, lftan@altera.com, benh@kernel.crashing.org,
+        paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net,
+        catalin.marinas@arm.com, rmk+kernel@armlinux.org.uk,
+        gregkh@linuxfoundation.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org
+Subject: [PATCH AUTOSEL 5.17 41/66] uaccess: fix type mismatch warnings from access_ok()
+Date:   Wed, 30 Mar 2022 07:46:20 -0400
+Message-Id: <20220330114646.1669334-41-sashal@kernel.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220330114646.1669334-1-sashal@kernel.org>
+References: <20220330114646.1669334-1-sashal@kernel.org>
 MIME-Version: 1.0
-X-OriginatorOrg: csgroup.eu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 7e62087d-7a57-4b17-bbef-08da10909944
-X-MS-Exchange-CrossTenant-originalarrivaltime: 28 Mar 2022 07:57:25.8162
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: B6ZlQ8oeWRRrmHscgp+mL/DGDslV312ibTLMu0ECH+40z4UHS5oCUZYJDYwKrLbDn0c005Tmjzm+WqojQHDRw3NZgwyXvccT24WfOJ0PLVI=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MR1P264MB1683
+X-stable: review
+X-Patchwork-Hint: Ignore
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-DQoNCkxlIDA3LzAzLzIwMjIgw6AgMTA6NTYsIEdlZXJ0IFV5dHRlcmhvZXZlbiBhIMOpY3JpdMKg
-Og0KPiBPbiBNb24sIE1hciA3LCAyMDIyIGF0IDEwOjIxIEFNIEdlZXJ0IFV5dHRlcmhvZXZlbiA8
-Z2VlcnRAbGludXgtbTY4ay5vcmc+IHdyb3RlOg0KPj4gSkZZSSwgd2hlbiBjb21wYXJpbmcgdjUu
-MTctcmM3WzFdIHRvIHY1LjE3LXJjNlszXSwgdGhlIHN1bW1hcmllcyBhcmU6DQo+PiAgICAtIGJ1
-aWxkIGVycm9yczogKzQvLTENCj4gDQo+IA0KPiAgICArIGVycm9yOiBhcmNoL3Bvd2VycGMva3Zt
-L2Jvb2szc182NF9lbnRyeS5vOiByZWxvY2F0aW9uIHRydW5jYXRlZCB0bw0KPiBmaXQ6IFJfUFBD
-NjRfUkVMMTQgKHN0dWIpIGFnYWluc3Qgc3ltYm9sIGBtYWNoaW5lX2NoZWNrX2NvbW1vbicNCj4g
-ZGVmaW5lZCBpbiAudGV4dCBzZWN0aW9uIGluIGFyY2gvcG93ZXJwYy9rZXJuZWwvaGVhZF82NC5v
-OiAgPT4NCj4gKC50ZXh0KzB4M2U0KQ0KPiANCj4gcG93ZXJwYy1nY2M1L3Bvd2VycGMtYWxseWVz
-Y29uZmlnDQo+IA0KDQpBIGZpeCBpcyBhdmFpbGFibGUgYXQgDQpodHRwczovL3BhdGNod29yay5v
-emxhYnMub3JnL3Byb2plY3QvbGludXhwcGMtZGV2L3BhdGNoLzg5Y2YyN2JmNDNlZTA3YTBiMjg3
-OWI5ZThlMmY1Y2Q2Mzg2YTM2NDUuMTY0ODM2NjMzOC5naXQuY2hyaXN0b3BoZS5sZXJveUBjc2dy
-b3VwLmV1Lw0KDQpDaHJpc3RvcGhl
+From: Arnd Bergmann <arnd@arndb.de>
+
+[ Upstream commit 23fc539e81295b14b50c6ccc5baeb4f3d59d822d ]
+
+On some architectures, access_ok() does not do any argument type
+checking, so replacing the definition with a generic one causes
+a few warnings for harmless issues that were never caught before.
+
+Fix the ones that I found either through my own test builds or
+that were reported by the 0-day bot.
+
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ arch/arc/kernel/process.c          |  2 +-
+ arch/arm/kernel/swp_emulate.c      |  2 +-
+ arch/arm/kernel/traps.c            |  2 +-
+ arch/csky/kernel/perf_callchain.c  |  2 +-
+ arch/csky/kernel/signal.c          |  2 +-
+ arch/nios2/kernel/signal.c         | 20 +++++++++++---------
+ arch/powerpc/lib/sstep.c           |  4 ++--
+ arch/riscv/kernel/perf_callchain.c |  4 ++--
+ arch/sparc/kernel/signal_32.c      |  2 +-
+ lib/test_lockup.c                  |  4 ++--
+ 10 files changed, 23 insertions(+), 21 deletions(-)
+
+diff --git a/arch/arc/kernel/process.c b/arch/arc/kernel/process.c
+index 8e90052f6f05..5f7f5aab361f 100644
+--- a/arch/arc/kernel/process.c
++++ b/arch/arc/kernel/process.c
+@@ -43,7 +43,7 @@ SYSCALL_DEFINE0(arc_gettls)
+ 	return task_thread_info(current)->thr_ptr;
+ }
+ 
+-SYSCALL_DEFINE3(arc_usr_cmpxchg, int *, uaddr, int, expected, int, new)
++SYSCALL_DEFINE3(arc_usr_cmpxchg, int __user *, uaddr, int, expected, int, new)
+ {
+ 	struct pt_regs *regs = current_pt_regs();
+ 	u32 uval;
+diff --git a/arch/arm/kernel/swp_emulate.c b/arch/arm/kernel/swp_emulate.c
+index 6166ba38bf99..b74bfcf94fb1 100644
+--- a/arch/arm/kernel/swp_emulate.c
++++ b/arch/arm/kernel/swp_emulate.c
+@@ -195,7 +195,7 @@ static int swp_handler(struct pt_regs *regs, unsigned int instr)
+ 		 destreg, EXTRACT_REG_NUM(instr, RT2_OFFSET), data);
+ 
+ 	/* Check access in reasonable access range for both SWP and SWPB */
+-	if (!access_ok((address & ~3), 4)) {
++	if (!access_ok((void __user *)(address & ~3), 4)) {
+ 		pr_debug("SWP{B} emulation: access to %p not allowed!\n",
+ 			 (void *)address);
+ 		res = -EFAULT;
+diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+index cae4a748811f..5d58aee24087 100644
+--- a/arch/arm/kernel/traps.c
++++ b/arch/arm/kernel/traps.c
+@@ -577,7 +577,7 @@ do_cache_op(unsigned long start, unsigned long end, int flags)
+ 	if (end < start || flags)
+ 		return -EINVAL;
+ 
+-	if (!access_ok(start, end - start))
++	if (!access_ok((void __user *)start, end - start))
+ 		return -EFAULT;
+ 
+ 	return __do_cache_op(start, end);
+diff --git a/arch/csky/kernel/perf_callchain.c b/arch/csky/kernel/perf_callchain.c
+index 92057de08f4f..1612f4354087 100644
+--- a/arch/csky/kernel/perf_callchain.c
++++ b/arch/csky/kernel/perf_callchain.c
+@@ -49,7 +49,7 @@ static unsigned long user_backtrace(struct perf_callchain_entry_ctx *entry,
+ {
+ 	struct stackframe buftail;
+ 	unsigned long lr = 0;
+-	unsigned long *user_frame_tail = (unsigned long *)fp;
++	unsigned long __user *user_frame_tail = (unsigned long __user *)fp;
+ 
+ 	/* Check accessibility of one struct frame_tail beyond */
+ 	if (!access_ok(user_frame_tail, sizeof(buftail)))
+diff --git a/arch/csky/kernel/signal.c b/arch/csky/kernel/signal.c
+index c7b763d2f526..8867ddf3e6c7 100644
+--- a/arch/csky/kernel/signal.c
++++ b/arch/csky/kernel/signal.c
+@@ -136,7 +136,7 @@ static inline void __user *get_sigframe(struct ksignal *ksig,
+ static int
+ setup_rt_frame(struct ksignal *ksig, sigset_t *set, struct pt_regs *regs)
+ {
+-	struct rt_sigframe *frame;
++	struct rt_sigframe __user *frame;
+ 	int err = 0;
+ 
+ 	frame = get_sigframe(ksig, regs, sizeof(*frame));
+diff --git a/arch/nios2/kernel/signal.c b/arch/nios2/kernel/signal.c
+index 2009ae2d3c3b..386e46443b60 100644
+--- a/arch/nios2/kernel/signal.c
++++ b/arch/nios2/kernel/signal.c
+@@ -36,10 +36,10 @@ struct rt_sigframe {
+ 
+ static inline int rt_restore_ucontext(struct pt_regs *regs,
+ 					struct switch_stack *sw,
+-					struct ucontext *uc, int *pr2)
++					struct ucontext __user *uc, int *pr2)
+ {
+ 	int temp;
+-	unsigned long *gregs = uc->uc_mcontext.gregs;
++	unsigned long __user *gregs = uc->uc_mcontext.gregs;
+ 	int err;
+ 
+ 	/* Always make any pending restarted system calls return -EINTR */
+@@ -102,10 +102,11 @@ asmlinkage int do_rt_sigreturn(struct switch_stack *sw)
+ {
+ 	struct pt_regs *regs = (struct pt_regs *)(sw + 1);
+ 	/* Verify, can we follow the stack back */
+-	struct rt_sigframe *frame = (struct rt_sigframe *) regs->sp;
++	struct rt_sigframe __user *frame;
+ 	sigset_t set;
+ 	int rval;
+ 
++	frame = (struct rt_sigframe __user *) regs->sp;
+ 	if (!access_ok(frame, sizeof(*frame)))
+ 		goto badframe;
+ 
+@@ -124,10 +125,10 @@ asmlinkage int do_rt_sigreturn(struct switch_stack *sw)
+ 	return 0;
+ }
+ 
+-static inline int rt_setup_ucontext(struct ucontext *uc, struct pt_regs *regs)
++static inline int rt_setup_ucontext(struct ucontext __user *uc, struct pt_regs *regs)
+ {
+ 	struct switch_stack *sw = (struct switch_stack *)regs - 1;
+-	unsigned long *gregs = uc->uc_mcontext.gregs;
++	unsigned long __user *gregs = uc->uc_mcontext.gregs;
+ 	int err = 0;
+ 
+ 	err |= __put_user(MCONTEXT_VERSION, &uc->uc_mcontext.version);
+@@ -162,8 +163,9 @@ static inline int rt_setup_ucontext(struct ucontext *uc, struct pt_regs *regs)
+ 	return err;
+ }
+ 
+-static inline void *get_sigframe(struct ksignal *ksig, struct pt_regs *regs,
+-				 size_t frame_size)
++static inline void __user *get_sigframe(struct ksignal *ksig,
++					struct pt_regs *regs,
++					size_t frame_size)
+ {
+ 	unsigned long usp;
+ 
+@@ -174,13 +176,13 @@ static inline void *get_sigframe(struct ksignal *ksig, struct pt_regs *regs,
+ 	usp = sigsp(usp, ksig);
+ 
+ 	/* Verify, is it 32 or 64 bit aligned */
+-	return (void *)((usp - frame_size) & -8UL);
++	return (void __user *)((usp - frame_size) & -8UL);
+ }
+ 
+ static int setup_rt_frame(struct ksignal *ksig, sigset_t *set,
+ 			  struct pt_regs *regs)
+ {
+-	struct rt_sigframe *frame;
++	struct rt_sigframe __user *frame;
+ 	int err = 0;
+ 
+ 	frame = get_sigframe(ksig, regs, sizeof(*frame));
+diff --git a/arch/powerpc/lib/sstep.c b/arch/powerpc/lib/sstep.c
+index bd3734d5be89..5ed88fbee0db 100644
+--- a/arch/powerpc/lib/sstep.c
++++ b/arch/powerpc/lib/sstep.c
+@@ -112,9 +112,9 @@ static nokprobe_inline long address_ok(struct pt_regs *regs,
+ {
+ 	if (!user_mode(regs))
+ 		return 1;
+-	if (__access_ok(ea, nb))
++	if (access_ok((void __user *)ea, nb))
+ 		return 1;
+-	if (__access_ok(ea, 1))
++	if (access_ok((void __user *)ea, 1))
+ 		/* Access overlaps the end of the user region */
+ 		regs->dar = TASK_SIZE_MAX - 1;
+ 	else
+diff --git a/arch/riscv/kernel/perf_callchain.c b/arch/riscv/kernel/perf_callchain.c
+index 1fc075b8f764..55faa4991b87 100644
+--- a/arch/riscv/kernel/perf_callchain.c
++++ b/arch/riscv/kernel/perf_callchain.c
+@@ -15,8 +15,8 @@ static unsigned long user_backtrace(struct perf_callchain_entry_ctx *entry,
+ {
+ 	struct stackframe buftail;
+ 	unsigned long ra = 0;
+-	unsigned long *user_frame_tail =
+-			(unsigned long *)(fp - sizeof(struct stackframe));
++	unsigned long __user *user_frame_tail =
++		(unsigned long __user *)(fp - sizeof(struct stackframe));
+ 
+ 	/* Check accessibility of one struct frame_tail beyond */
+ 	if (!access_ok(user_frame_tail, sizeof(buftail)))
+diff --git a/arch/sparc/kernel/signal_32.c b/arch/sparc/kernel/signal_32.c
+index ffab16369bea..74f80443b195 100644
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -65,7 +65,7 @@ struct rt_signal_frame {
+  */
+ static inline bool invalid_frame_pointer(void __user *fp, int fplen)
+ {
+-	if ((((unsigned long) fp) & 15) || !__access_ok((unsigned long)fp, fplen))
++	if ((((unsigned long) fp) & 15) || !access_ok(fp, fplen))
+ 		return true;
+ 
+ 	return false;
+diff --git a/lib/test_lockup.c b/lib/test_lockup.c
+index 906b598740a7..6a0f329a794a 100644
+--- a/lib/test_lockup.c
++++ b/lib/test_lockup.c
+@@ -417,8 +417,8 @@ static bool test_kernel_ptr(unsigned long addr, int size)
+ 		return false;
+ 
+ 	/* should be at least readable kernel address */
+-	if (access_ok(ptr, 1) ||
+-	    access_ok(ptr + size - 1, 1) ||
++	if (access_ok((void __user *)ptr, 1) ||
++	    access_ok((void __user *)ptr + size - 1, 1) ||
+ 	    get_kernel_nofault(buf, ptr) ||
+ 	    get_kernel_nofault(buf, ptr + size - 1)) {
+ 		pr_err("invalid kernel ptr: %#lx\n", addr);
+-- 
+2.34.1
+
