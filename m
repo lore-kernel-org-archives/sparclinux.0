@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 590FFC43217
-	for <sparclinux@archiver.kernel.org>; Wed, 30 Mar 2022 11:55:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C459C433F5
+	for <sparclinux@archiver.kernel.org>; Wed, 30 Mar 2022 11:55:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236854AbiC3L5S (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 30 Mar 2022 07:57:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60574 "EHLO
+        id S1345097AbiC3L5T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 30 Mar 2022 07:57:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35644 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345627AbiC3Lyv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Mar 2022 07:54:51 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1191726130F;
-        Wed, 30 Mar 2022 04:51:28 -0700 (PDT)
+        with ESMTP id S1344823AbiC3Lxk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 30 Mar 2022 07:53:40 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93C7627AD7A;
+        Wed, 30 Mar 2022 04:49:42 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 69D1261702;
-        Wed, 30 Mar 2022 11:51:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62622C340EE;
-        Wed, 30 Mar 2022 11:50:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CE413B81ACC;
+        Wed, 30 Mar 2022 11:49:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 229C3C340F2;
+        Wed, 30 Mar 2022 11:49:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648641061;
-        bh=/Mw5Nb0AFbgvN5ev2n4WcdlIdVeKsTSC5UzZMPCI6ZA=;
+        s=k20201202; t=1648640975;
+        bh=RjSZNy3L3dYQ/G9dL1KwuL4Jezy9ccoFqvzKxe/+VfY=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=n2oXMX/zxNy2v0pSWQPMfZEOC9gA4y9GID81d+OIU+H9wST3pySLf5FAPEtXA7jhQ
-         6XYHvrnJ+d7HzMT585MkyDoX/q7T3nObsUs6T4Hn4IO33Am4UoXFmQknsthXQQLoFy
-         cyg+hNvujo2c5wXCECA15FfohaJnoAnFM3ICTd8quwre0NJCMoZxRuO8TuzEkyLUcm
-         Pui1cx3pK9RVihZFRimwSChwXbf86jaXftBCkh/EyWQVEyTDYFg5GRCPQUYnTtrIG9
-         m82yUYlJpImedg7g44q8fa75/4zOGSAeLigep2gNu4SzC/cLUnLFrE0O4jTcpd5QsX
-         E7eB/J1HLiXng==
+        b=DOxj07y+dHMGmUCH59RlkUkRcxMYQHdWJg+4mT7ZFg1lu9af/aWMKqDxn7N05Gbz+
+         r0daUnwsMDa1xCF4qSkfHfucf1HlJK7ApFkSn0m1SmMkCqDuxqwNjhAl7+Xbd0INl2
+         ynuaNN9l0fDq7F4CXRONRj1Zq5ybKTVWjsMdtux0VaY5A4K9T+ibU5cAg5qlLK+SII
+         IZX7qBdnsw6QznUhqr7vGGOoINEBKz/LW9eiQb29nrd+O/52t1POUbhvrMalrqXNqt
+         u/DTFiNGmTLeDLfYDhmTXdeXs2Ns4Nf7o0JLwzV5+NIm+g2EWC80qVDozKUElQHF1y
+         Zkg81ttFVugeg==
 From:   Sasha Levin <sashal@kernel.org>
 To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
 Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
@@ -40,17 +40,17 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, kernel test robot <lkp@intel.com>,
         linux@armlinux.org.uk, peterz@infradead.org, mingo@redhat.com,
         acme@kernel.org, lftan@altera.com, benh@kernel.crashing.org,
         paulus@samba.org, mpe@ellerman.id.au, davem@davemloft.net,
-        gregkh@linuxfoundation.org, rmk+kernel@armlinux.org.uk,
-        catalin.marinas@arm.com, linux-snps-arc@lists.infradead.org,
+        catalin.marinas@arm.com, gregkh@linuxfoundation.org,
+        rmk+kernel@armlinux.org.uk, linux-snps-arc@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org,
         nios2-dev@lists.rocketboards.org, linuxppc-dev@lists.ozlabs.org,
         sparclinux@vger.kernel.org
-Subject: [PATCH AUTOSEL 5.15 36/50] uaccess: fix type mismatch warnings from access_ok()
-Date:   Wed, 30 Mar 2022 07:49:50 -0400
-Message-Id: <20220330115005.1671090-36-sashal@kernel.org>
+Subject: [PATCH AUTOSEL 5.16 40/59] uaccess: fix type mismatch warnings from access_ok()
+Date:   Wed, 30 Mar 2022 07:48:12 -0400
+Message-Id: <20220330114831.1670235-40-sashal@kernel.org>
 X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220330115005.1671090-1-sashal@kernel.org>
-References: <20220330115005.1671090-1-sashal@kernel.org>
+In-Reply-To: <20220330114831.1670235-1-sashal@kernel.org>
+References: <20220330114831.1670235-1-sashal@kernel.org>
 MIME-Version: 1.0
 X-stable: review
 X-Patchwork-Hint: Ignore
@@ -115,7 +115,7 @@ index 6166ba38bf99..b74bfcf94fb1 100644
  			 (void *)address);
  		res = -EFAULT;
 diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
-index 655c4fe0b4d0..54abd8720dde 100644
+index 90c887aa67a4..f74460d3bef5 100644
 --- a/arch/arm/kernel/traps.c
 +++ b/arch/arm/kernel/traps.c
 @@ -575,7 +575,7 @@ do_cache_op(unsigned long start, unsigned long end, int flags)
@@ -225,7 +225,7 @@ index 2009ae2d3c3b..386e46443b60 100644
  
  	frame = get_sigframe(ksig, regs, sizeof(*frame));
 diff --git a/arch/powerpc/lib/sstep.c b/arch/powerpc/lib/sstep.c
-index d8cc49f39fe4..1a16ad18f9f2 100644
+index b042fcae3913..66d6f7003b18 100644
 --- a/arch/powerpc/lib/sstep.c
 +++ b/arch/powerpc/lib/sstep.c
 @@ -112,9 +112,9 @@ static nokprobe_inline long address_ok(struct pt_regs *regs,
