@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74458C4167E
-	for <sparclinux@archiver.kernel.org>; Sat,  2 Apr 2022 13:55:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FA5EC4167E
+	for <sparclinux@archiver.kernel.org>; Sat,  2 Apr 2022 13:56:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356028AbiDBN5W (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 2 Apr 2022 09:57:22 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37812 "EHLO
+        id S238740AbiDBN57 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 2 Apr 2022 09:57:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37802 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355943AbiDBN4Q (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 2 Apr 2022 09:56:16 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C84841C12F;
-        Sat,  2 Apr 2022 06:54:16 -0700 (PDT)
+        with ESMTP id S1356176AbiDBN5F (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 2 Apr 2022 09:57:05 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35CB31EC67;
+        Sat,  2 Apr 2022 06:54:55 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 815EEB80885;
-        Sat,  2 Apr 2022 13:54:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9502FC36AE5;
-        Sat,  2 Apr 2022 13:54:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8BB87B808CD;
+        Sat,  2 Apr 2022 13:54:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34C61C340F3;
+        Sat,  2 Apr 2022 13:54:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648907654;
-        bh=kPBdsSZwAFo7vna7h4jVnZjxy4XlzYkfwZ49VTpvuBU=;
+        s=k20201202; t=1648907692;
+        bh=5ucjX4VG+LqJh2oWQ1pBBRlKhrNudWlPTr2cJhdCZBs=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=GjjXIQ4SZPksqZUberIl3l2bEnDD/L+MKfjyo66BL4yl4580WMCd9UHw2FQCXFMHZ
-         YwzDuMKWeHsWOsmB4suIO6KxK0C63csPUGzuJnVC7ljrKET8hyz3WzB+UZ2/u/tGXI
-         QiAje/bzwM2QslVpXWNdrHsx631xvK/IPNmYqw5gKpkE4vA6WCRr9h7g/J64ZDHx6o
-         eYsIhr8c56FJLsynyelcNS9uixhRvE5IVBbxeoZDe9WUJ79beVS/Fa0uawkb5jTB1p
-         V2b2P8cHmr5icIpmyThplg7IHuXyGxMOL5sTOJv0sigfgrWaybO7YQykLWhDTPMRKa
-         6SXnCBf2oldYQ==
+        b=AnTAcBowNA/yYNk8tC7CszK2kitX38egEfjF5k9hyP/cq2+aKvc6QLgcoVND0v0xu
+         cpg5KiZPBQ2p21A1AgEfSROFuDVhs5vwjrNLenjcFcVFZ1uvHClpOGTMN2S9HgrVSh
+         Bl2luOGlmAH9jRd1ooLbJGGWy3umjn3RdHvsClc2UJP4qNiRfsFCagxbKTMj0YBmtI
+         giAcOemI5b6KCAOFrkZ4b15zvhVCtpnc5fXZxWlnSAQQsJSeTf7BWfKVG91x1dFVHM
+         pd9DzmH5ATNXPXlft3Nro7MT9OJtdWXXwECfy29sYSO+wlJeert+iHD+FLpBVRWrmx
+         vaYiAs3hTB7FA==
 From:   guoren@kernel.org
 To:     guoren@kernel.org, palmer@dabbelt.com, arnd@arndb.de,
         gregkh@linuxfoundation.org, hch@lst.de
@@ -42,9 +42,9 @@ Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         x86@kernel.org, heiko@sntech.de,
         Guo Ren <guoren@linux.alibaba.com>,
         Palmer Dabbelt <palmer@rivosinc.com>
-Subject: [PATCH V11 12/20] riscv: compat: syscall: Add entry.S implementation
-Date:   Sat,  2 Apr 2022 21:52:48 +0800
-Message-Id: <20220402135256.2691868-13-guoren@kernel.org>
+Subject: [PATCH V11 19/20] riscv: compat: ptrace: Add compat_arch_ptrace implement
+Date:   Sat,  2 Apr 2022 21:52:55 +0800
+Message-Id: <20220402135256.2691868-20-guoren@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220402135256.2691868-1-guoren@kernel.org>
 References: <20220402135256.2691868-1-guoren@kernel.org>
@@ -56,76 +56,201 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Guo Ren <guoren@linux.alibaba.com>
 
-Implement the entry of compat_sys_call_table[] in asm. Ref to
-riscv-privileged spec 4.1.1 Supervisor Status Register (sstatus):
+Now, you can use native gdb on riscv64 for rv32 app debugging.
 
- BIT[32:33] = UXL[1:0]:
- - 1:32
- - 2:64
- - 3:128
+$ uname -a
+Linux buildroot 5.16.0-rc4-00036-gbef6b82fdf23-dirty #53 SMP Mon Dec 20 23:06:53 CST 2021 riscv64 GNU/Linux
+$ cat /proc/cpuinfo
+processor       : 0
+hart            : 0
+isa             : rv64imafdcsuh
+mmu             : sv48
+
+$ file /bin/busybox
+/bin/busybox: setuid ELF 32-bit LSB shared object, UCB RISC-V, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-riscv32-ilp32d.so.1, for GNU/Linux 5.15.0, stripped
+$ file /usr/bin/gdb
+/usr/bin/gdb: ELF 32-bit LSB shared object, UCB RISC-V, version 1 (GNU/Linux), dynamically linked, interpreter /lib/ld-linux-riscv32-ilp32d.so.1, for GNU/Linux 5.15.0, stripped
+$ /usr/bin/gdb /bin/busybox
+GNU gdb (GDB) 10.2
+Copyright (C) 2021 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+...
+Reading symbols from /bin/busybox...
+(No debugging symbols found in /bin/busybox)
+(gdb) b main
+Breakpoint 1 at 0x8ddc
+(gdb) r
+Starting program: /bin/busybox
+Failed to read a valid object file image from memory.
+
+Breakpoint 1, 0x555a8ddc in main ()
+(gdb) i r
+ra             0x77df0b74       0x77df0b74
+sp             0x7fdd3d10       0x7fdd3d10
+gp             0x5567e800       0x5567e800 <bb_common_bufsiz1+160>
+tp             0x77f64280       0x77f64280
+t0             0x0      0
+t1             0x555a6fac       1431990188
+t2             0x77dd8db4       2011008436
+fp             0x7fdd3e34       0x7fdd3e34
+s1             0x7fdd3e34       2145205812
+a0             0xffffffff       -1
+a1             0x2000   8192
+a2             0x7fdd3e3c       2145205820
+a3             0x0      0
+a4             0x7fdd3d30       2145205552
+a5             0x555a8dc0       1431997888
+a6             0x77f2c170       2012397936
+a7             0x6a7c7a2f       1786542639
+s2             0x0      0
+s3             0x0      0
+s4             0x555a8dc0       1431997888
+s5             0x77f8a3a8       2012783528
+s6             0x7fdd3e3c       2145205820
+s7             0x5567cecc       1432866508
+--Type <RET> for more, q to quit, c to continue without paging--
+s8             0x1      1
+s9             0x0      0
+s10            0x55634448       1432568904
+s11            0x0      0
+t3             0x77df0bb8       2011106232
+t4             0x42fc   17148
+t5             0x0      0
+t6             0x40     64
+pc             0x555a8ddc       0x555a8ddc <main+28>
+(gdb) si
+0x555a78f0 in mallopt@plt ()
+(gdb) c
+Continuing.
+BusyBox v1.34.1 (2021-12-19 22:39:48 CST) multi-call binary.
+BusyBox is copyrighted by many authors between 1998-2015.
+Licensed under GPLv2. See source distribution for detailed
+copyright notices.
+
+Usage: busybox [function [arguments]...]
+   or: busybox --list[-full]
+...
+[Inferior 1 (process 107) exited normally]
+(gdb) q
 
 Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 Signed-off-by: Guo Ren <guoren@kernel.org>
 Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Tested-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/riscv/include/asm/csr.h |  7 +++++++
- arch/riscv/kernel/entry.S    | 18 ++++++++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ arch/riscv/kernel/ptrace.c | 87 +++++++++++++++++++++++++++++++++++---
+ 1 file changed, 82 insertions(+), 5 deletions(-)
 
-diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
-index ae711692eec9..7f05c65654c8 100644
---- a/arch/riscv/include/asm/csr.h
-+++ b/arch/riscv/include/asm/csr.h
-@@ -36,6 +36,13 @@
- #define SR_SD		_AC(0x8000000000000000, UL) /* FS/XS dirty */
+diff --git a/arch/riscv/kernel/ptrace.c b/arch/riscv/kernel/ptrace.c
+index a89243730153..bb387593a121 100644
+--- a/arch/riscv/kernel/ptrace.c
++++ b/arch/riscv/kernel/ptrace.c
+@@ -12,6 +12,7 @@
+ #include <asm/thread_info.h>
+ #include <asm/switch_to.h>
+ #include <linux/audit.h>
++#include <linux/compat.h>
+ #include <linux/ptrace.h>
+ #include <linux/elf.h>
+ #include <linux/regset.h>
+@@ -111,11 +112,6 @@ static const struct user_regset_view riscv_user_native_view = {
+ 	.n = ARRAY_SIZE(riscv_user_regset),
+ };
+ 
+-const struct user_regset_view *task_user_regset_view(struct task_struct *task)
+-{
+-	return &riscv_user_native_view;
+-}
+-
+ struct pt_regs_offset {
+ 	const char *name;
+ 	int offset;
+@@ -273,3 +269,84 @@ __visible void do_syscall_trace_exit(struct pt_regs *regs)
+ 		trace_sys_exit(regs, regs_return_value(regs));
  #endif
- 
-+#ifdef CONFIG_64BIT
-+#define SR_UXL		_AC(0x300000000, UL) /* XLEN mask for U-mode */
-+#define SR_UXL_32	_AC(0x100000000, UL) /* XLEN = 32 for U-mode */
-+#define SR_UXL_64	_AC(0x200000000, UL) /* XLEN = 64 for U-mode */
-+#define SR_UXL_SHIFT	32
-+#endif
+ }
 +
- /* SATP flags */
- #ifndef CONFIG_64BIT
- #define SATP_PPN	_AC(0x003FFFFF, UL)
-diff --git a/arch/riscv/kernel/entry.S b/arch/riscv/kernel/entry.S
-index d6a46ed0bf05..d4a1ad4edbc6 100644
---- a/arch/riscv/kernel/entry.S
-+++ b/arch/riscv/kernel/entry.S
-@@ -207,13 +207,27 @@ check_syscall_nr:
- 	 * Syscall number held in a7.
- 	 * If syscall number is above allowed value, redirect to ni_syscall.
- 	 */
--	bgeu a7, t0, 1f
-+	bgeu a7, t0, 3f
 +#ifdef CONFIG_COMPAT
-+	REG_L s0, PT_STATUS(sp)
-+	srli s0, s0, SR_UXL_SHIFT
-+	andi s0, s0, (SR_UXL >> SR_UXL_SHIFT)
-+	li t0, (SR_UXL_32 >> SR_UXL_SHIFT)
-+	sub t0, s0, t0
-+	bnez t0, 1f
++static int compat_riscv_gpr_get(struct task_struct *target,
++				const struct user_regset *regset,
++				struct membuf to)
++{
++	struct compat_user_regs_struct cregs;
 +
-+	/* Call compat_syscall */
-+	la s0, compat_sys_call_table
-+	j 2f
-+1:
++	regs_to_cregs(&cregs, task_pt_regs(target));
++
++	return membuf_write(&to, &cregs,
++			    sizeof(struct compat_user_regs_struct));
++}
++
++static int compat_riscv_gpr_set(struct task_struct *target,
++				const struct user_regset *regset,
++				unsigned int pos, unsigned int count,
++				const void *kbuf, const void __user *ubuf)
++{
++	int ret;
++	struct compat_user_regs_struct cregs;
++
++	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf, &cregs, 0, -1);
++
++	cregs_to_regs(&cregs, task_pt_regs(target));
++
++	return ret;
++}
++
++static const struct user_regset compat_riscv_user_regset[] = {
++	[REGSET_X] = {
++		.core_note_type = NT_PRSTATUS,
++		.n = ELF_NGREG,
++		.size = sizeof(compat_elf_greg_t),
++		.align = sizeof(compat_elf_greg_t),
++		.regset_get = compat_riscv_gpr_get,
++		.set = compat_riscv_gpr_set,
++	},
++#ifdef CONFIG_FPU
++	[REGSET_F] = {
++		.core_note_type = NT_PRFPREG,
++		.n = ELF_NFPREG,
++		.size = sizeof(elf_fpreg_t),
++		.align = sizeof(elf_fpreg_t),
++		.regset_get = riscv_fpr_get,
++		.set = riscv_fpr_set,
++	},
 +#endif
- 	/* Call syscall */
- 	la s0, sys_call_table
-+2:
- 	slli t0, a7, RISCV_LGPTR
- 	add s0, s0, t0
- 	REG_L s0, 0(s0)
--1:
-+3:
- 	jalr s0
- 
- ret_from_syscall:
++};
++
++static const struct user_regset_view compat_riscv_user_native_view = {
++	.name = "riscv",
++	.e_machine = EM_RISCV,
++	.regsets = compat_riscv_user_regset,
++	.n = ARRAY_SIZE(compat_riscv_user_regset),
++};
++
++long compat_arch_ptrace(struct task_struct *child, compat_long_t request,
++			compat_ulong_t caddr, compat_ulong_t cdata)
++{
++	long ret = -EIO;
++
++	switch (request) {
++	default:
++		ret = compat_ptrace_request(child, request, caddr, cdata);
++		break;
++	}
++
++	return ret;
++}
++#endif /* CONFIG_COMPAT */
++
++const struct user_regset_view *task_user_regset_view(struct task_struct *task)
++{
++#ifdef CONFIG_COMPAT
++	if (test_tsk_thread_flag(task, TIF_32BIT))
++		return &compat_riscv_user_native_view;
++	else
++#endif
++		return &riscv_user_native_view;
++}
 -- 
 2.25.1
 
