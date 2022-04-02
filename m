@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51C37C4321E
-	for <sparclinux@archiver.kernel.org>; Sat,  2 Apr 2022 13:38:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 883D7C4332F
+	for <sparclinux@archiver.kernel.org>; Sat,  2 Apr 2022 13:38:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355767AbiDBNjt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 2 Apr 2022 09:39:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60024 "EHLO
+        id S1355804AbiDBNjz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 2 Apr 2022 09:39:55 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58614 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355771AbiDBNjh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 2 Apr 2022 09:39:37 -0400
+        with ESMTP id S1355697AbiDBNjO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 2 Apr 2022 09:39:14 -0400
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AA94214A6D0;
-        Sat,  2 Apr 2022 06:37:38 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2ABC64477F;
+        Sat,  2 Apr 2022 06:37:11 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 465B1614FD;
-        Sat,  2 Apr 2022 13:37:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E512DC340EC;
-        Sat,  2 Apr 2022 13:37:32 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BD701614D4;
+        Sat,  2 Apr 2022 13:37:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2DEC5C340EC;
+        Sat,  2 Apr 2022 13:37:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1648906657;
-        bh=eCC4+U4U/ci3tY5teY5dpBY9tw/1fY0xwkgGYQqbXuQ=;
+        s=k20201202; t=1648906630;
+        bh=kPBdsSZwAFo7vna7h4jVnZjxy4XlzYkfwZ49VTpvuBU=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=OfdE9d9il/hrQ5y4S3E7VhA3bEh6nhiW6Wgd8NQi7apDiA61pvjLvsbb6V0xZ5l6/
-         X+qhUAzorSjvdE6RAEcWKj/rqSDrv7atz/QYnHV5z8H4wd3R5PPx3qKuq42WE/HmgP
-         CK/78OPu6KeqG3RELX71VgYMd0fyAFEfwuBZgHQ4PjtU9otTylYpIVco75K0hkg9St
-         azxn44DRwCJmxw7rRauPHNAOynrszVX2+sPb+FviLPRe41UEEUbaHdfeB3VyXAa9KJ
-         f5c1NBhOOUOBd/xMwIF/3zJECWkYI9V/p65m6MAsM2VO0S9UwBMKjHKTt0T3Q7rixC
-         suRGG03Dc/qnw==
+        b=Ez9jgkiEAX8F8VX/Je3YKP1oXgz3877xwMQ14BVKWFzZLuwS/2V8o2OMk70EtvuZt
+         joRZdicOdSeBSIa4PB1CM7KREuqjTLcsgDKJXguho3vpzDx0i8hg53wySRLo60VqE9
+         GFHK8Urj6HDdwxtxK/P5gdGpZCB5foh0ZuIeTX5bN4RXppmpsUYOFMTVbacP4AV4Jq
+         gdnuY4lvlCnT9Z4YZ8a7aD6wxrkKBXFObuwdTwV7rae0HmPwZvdmJXtO7dDhmnxb7Q
+         2K+tr5UNKsnwNS0JgIiWr+FCazFPSnf29LJ4EvxGoDHhhyIlJ5btDFCxT6arqItIlZ
+         YxwJvby6mSK8A==
 From:   guoren@kernel.org
 To:     guoren@kernel.org, palmer@dabbelt.com, arnd@arndb.de,
         gregkh@linuxfoundation.org, hch@lst.de
@@ -42,9 +42,9 @@ Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         x86@kernel.org, heiko@sntech.de,
         Guo Ren <guoren@linux.alibaba.com>,
         Palmer Dabbelt <palmer@rivosinc.com>
-Subject: [PATCH V10 17/20] riscv: compat: vdso: Add setup additional pages implementation
-Date:   Sat,  2 Apr 2022 21:35:41 +0800
-Message-Id: <20220402133544.2690231-18-guoren@kernel.org>
+Subject: [PATCH V10 12/20] riscv: compat: syscall: Add entry.S implementation
+Date:   Sat,  2 Apr 2022 21:35:36 +0800
+Message-Id: <20220402133544.2690231-13-guoren@kernel.org>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220402133544.2690231-1-guoren@kernel.org>
 References: <20220402133544.2690231-1-guoren@kernel.org>
@@ -56,9 +56,13 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Guo Ren <guoren@linux.alibaba.com>
 
-Reconstruct __setup_additional_pages() by appending vdso info
-pointer argument to meet compat_vdso_info requirement. And change
-vm_special_mapping *dm, *cm initialization into static.
+Implement the entry of compat_sys_call_table[] in asm. Ref to
+riscv-privileged spec 4.1.1 Supervisor Status Register (sstatus):
+
+ BIT[32:33] = UXL[1:0]:
+ - 1:32
+ - 2:64
+ - 3:128
 
 Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
 Signed-off-by: Guo Ren <guoren@kernel.org>
@@ -66,261 +70,62 @@ Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
 Tested-by: Heiko Stuebner <heiko@sntech.de>
 Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/riscv/include/asm/elf.h |   5 ++
- arch/riscv/include/asm/mmu.h |   1 +
- arch/riscv/kernel/vdso.c     | 105 +++++++++++++++++++++++------------
- 3 files changed, 76 insertions(+), 35 deletions(-)
+ arch/riscv/include/asm/csr.h |  7 +++++++
+ arch/riscv/kernel/entry.S    | 18 ++++++++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff --git a/arch/riscv/include/asm/elf.h b/arch/riscv/include/asm/elf.h
-index 754fdb8cee96..14fc7342490b 100644
---- a/arch/riscv/include/asm/elf.h
-+++ b/arch/riscv/include/asm/elf.h
-@@ -130,5 +130,10 @@ do {    if ((ex).e_ident[EI_CLASS] == ELFCLASS32)		\
- typedef compat_ulong_t			compat_elf_greg_t;
- typedef compat_elf_greg_t		compat_elf_gregset_t[ELF_NGREG];
- 
-+extern int compat_arch_setup_additional_pages(struct linux_binprm *bprm,
-+					      int uses_interp);
-+#define compat_arch_setup_additional_pages \
-+				compat_arch_setup_additional_pages
-+
- #endif /* CONFIG_COMPAT */
- #endif /* _ASM_RISCV_ELF_H */
-diff --git a/arch/riscv/include/asm/mmu.h b/arch/riscv/include/asm/mmu.h
-index 0099dc116168..cedcf8ea3c76 100644
---- a/arch/riscv/include/asm/mmu.h
-+++ b/arch/riscv/include/asm/mmu.h
-@@ -16,6 +16,7 @@ typedef struct {
- 	atomic_long_t id;
- #endif
- 	void *vdso;
-+	void *vdso_info;
- #ifdef CONFIG_SMP
- 	/* A local icache flush is needed before user execution can resume. */
- 	cpumask_t icache_stale_mask;
-diff --git a/arch/riscv/kernel/vdso.c b/arch/riscv/kernel/vdso.c
-index a9436a65161a..50fe4c877603 100644
---- a/arch/riscv/kernel/vdso.c
-+++ b/arch/riscv/kernel/vdso.c
-@@ -23,6 +23,9 @@ struct vdso_data {
+diff --git a/arch/riscv/include/asm/csr.h b/arch/riscv/include/asm/csr.h
+index ae711692eec9..7f05c65654c8 100644
+--- a/arch/riscv/include/asm/csr.h
++++ b/arch/riscv/include/asm/csr.h
+@@ -36,6 +36,13 @@
+ #define SR_SD		_AC(0x8000000000000000, UL) /* FS/XS dirty */
  #endif
  
- extern char vdso_start[], vdso_end[];
-+#ifdef CONFIG_COMPAT
-+extern char compat_vdso_start[], compat_vdso_end[];
-+#endif
- 
- enum vvar_pages {
- 	VVAR_DATA_PAGE_OFFSET,
-@@ -30,6 +33,11 @@ enum vvar_pages {
- 	VVAR_NR_PAGES,
- };
- 
-+enum rv_vdso_map {
-+	RV_VDSO_MAP_VVAR,
-+	RV_VDSO_MAP_VDSO,
-+};
-+
- #define VVAR_SIZE  (VVAR_NR_PAGES << PAGE_SHIFT)
- 
- /*
-@@ -52,12 +60,6 @@ struct __vdso_info {
- 	struct vm_special_mapping *cm;
- };
- 
--static struct __vdso_info vdso_info __ro_after_init = {
--	.name = "vdso",
--	.vdso_code_start = vdso_start,
--	.vdso_code_end = vdso_end,
--};
--
- static int vdso_mremap(const struct vm_special_mapping *sm,
- 		       struct vm_area_struct *new_vma)
- {
-@@ -66,37 +68,33 @@ static int vdso_mremap(const struct vm_special_mapping *sm,
- 	return 0;
- }
- 
--static int __init __vdso_init(void)
-+static void __init __vdso_init(struct __vdso_info *vdso_info)
- {
- 	unsigned int i;
- 	struct page **vdso_pagelist;
- 	unsigned long pfn;
- 
--	if (memcmp(vdso_info.vdso_code_start, "\177ELF", 4)) {
--		pr_err("vDSO is not a valid ELF object!\n");
--		return -EINVAL;
--	}
-+	if (memcmp(vdso_info->vdso_code_start, "\177ELF", 4))
-+		panic("vDSO is not a valid ELF object!\n");
- 
--	vdso_info.vdso_pages = (
--		vdso_info.vdso_code_end -
--		vdso_info.vdso_code_start) >>
-+	vdso_info->vdso_pages = (
-+		vdso_info->vdso_code_end -
-+		vdso_info->vdso_code_start) >>
- 		PAGE_SHIFT;
- 
--	vdso_pagelist = kcalloc(vdso_info.vdso_pages,
-+	vdso_pagelist = kcalloc(vdso_info->vdso_pages,
- 				sizeof(struct page *),
- 				GFP_KERNEL);
- 	if (vdso_pagelist == NULL)
--		return -ENOMEM;
-+		panic("vDSO kcalloc failed!\n");
- 
- 	/* Grab the vDSO code pages. */
--	pfn = sym_to_pfn(vdso_info.vdso_code_start);
-+	pfn = sym_to_pfn(vdso_info->vdso_code_start);
- 
--	for (i = 0; i < vdso_info.vdso_pages; i++)
-+	for (i = 0; i < vdso_info->vdso_pages; i++)
- 		vdso_pagelist[i] = pfn_to_page(pfn + i);
- 
--	vdso_info.cm->pages = vdso_pagelist;
--
--	return 0;
-+	vdso_info->cm->pages = vdso_pagelist;
- }
- 
- #ifdef CONFIG_TIME_NS
-@@ -116,13 +114,14 @@ int vdso_join_timens(struct task_struct *task, struct time_namespace *ns)
- {
- 	struct mm_struct *mm = task->mm;
- 	struct vm_area_struct *vma;
-+	struct __vdso_info *vdso_info = mm->context.vdso_info;
- 
- 	mmap_read_lock(mm);
- 
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		unsigned long size = vma->vm_end - vma->vm_start;
- 
--		if (vma_is_special_mapping(vma, vdso_info.dm))
-+		if (vma_is_special_mapping(vma, vdso_info->dm))
- 			zap_page_range(vma, vma->vm_start, size);
- 	}
- 
-@@ -187,11 +186,6 @@ static vm_fault_t vvar_fault(const struct vm_special_mapping *sm,
- 	return vmf_insert_pfn(vma, vmf->address, pfn);
- }
- 
--enum rv_vdso_map {
--	RV_VDSO_MAP_VVAR,
--	RV_VDSO_MAP_VDSO,
--};
--
- static struct vm_special_mapping rv_vdso_maps[] __ro_after_init = {
- 	[RV_VDSO_MAP_VVAR] = {
- 		.name   = "[vvar]",
-@@ -203,25 +197,46 @@ static struct vm_special_mapping rv_vdso_maps[] __ro_after_init = {
- 	},
- };
- 
-+static struct __vdso_info vdso_info __ro_after_init = {
-+	.name = "vdso",
-+	.vdso_code_start = vdso_start,
-+	.vdso_code_end = vdso_end,
-+	.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR],
-+	.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO],
-+};
-+
-+#ifdef CONFIG_COMPAT
-+static struct __vdso_info compat_vdso_info __ro_after_init = {
-+	.name = "compat_vdso",
-+	.vdso_code_start = compat_vdso_start,
-+	.vdso_code_end = compat_vdso_end,
-+	.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR],
-+	.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO],
-+};
++#ifdef CONFIG_64BIT
++#define SR_UXL		_AC(0x300000000, UL) /* XLEN mask for U-mode */
++#define SR_UXL_32	_AC(0x100000000, UL) /* XLEN = 32 for U-mode */
++#define SR_UXL_64	_AC(0x200000000, UL) /* XLEN = 64 for U-mode */
++#define SR_UXL_SHIFT	32
 +#endif
 +
- static int __init vdso_init(void)
- {
--	vdso_info.dm = &rv_vdso_maps[RV_VDSO_MAP_VVAR];
--	vdso_info.cm = &rv_vdso_maps[RV_VDSO_MAP_VDSO];
-+	__vdso_init(&vdso_info);
+ /* SATP flags */
+ #ifndef CONFIG_64BIT
+ #define SATP_PPN	_AC(0x003FFFFF, UL)
+diff --git a/arch/riscv/kernel/entry.S b/arch/riscv/kernel/entry.S
+index d6a46ed0bf05..d4a1ad4edbc6 100644
+--- a/arch/riscv/kernel/entry.S
++++ b/arch/riscv/kernel/entry.S
+@@ -207,13 +207,27 @@ check_syscall_nr:
+ 	 * Syscall number held in a7.
+ 	 * If syscall number is above allowed value, redirect to ni_syscall.
+ 	 */
+-	bgeu a7, t0, 1f
++	bgeu a7, t0, 3f
 +#ifdef CONFIG_COMPAT
-+	__vdso_init(&compat_vdso_info);
++	REG_L s0, PT_STATUS(sp)
++	srli s0, s0, SR_UXL_SHIFT
++	andi s0, s0, (SR_UXL >> SR_UXL_SHIFT)
++	li t0, (SR_UXL_32 >> SR_UXL_SHIFT)
++	sub t0, s0, t0
++	bnez t0, 1f
++
++	/* Call compat_syscall */
++	la s0, compat_sys_call_table
++	j 2f
++1:
 +#endif
+ 	/* Call syscall */
+ 	la s0, sys_call_table
++2:
+ 	slli t0, a7, RISCV_LGPTR
+ 	add s0, s0, t0
+ 	REG_L s0, 0(s0)
+-1:
++3:
+ 	jalr s0
  
--	return __vdso_init();
-+	return 0;
- }
- arch_initcall(vdso_init);
- 
- static int __setup_additional_pages(struct mm_struct *mm,
- 				    struct linux_binprm *bprm,
--				    int uses_interp)
-+				    int uses_interp,
-+				    struct __vdso_info *vdso_info)
- {
- 	unsigned long vdso_base, vdso_text_len, vdso_mapping_len;
- 	void *ret;
- 
- 	BUILD_BUG_ON(VVAR_NR_PAGES != __VVAR_PAGES);
- 
--	vdso_text_len = vdso_info.vdso_pages << PAGE_SHIFT;
-+	vdso_text_len = vdso_info->vdso_pages << PAGE_SHIFT;
- 	/* Be sure to map the data page */
- 	vdso_mapping_len = vdso_text_len + VVAR_SIZE;
- 
-@@ -232,16 +247,18 @@ static int __setup_additional_pages(struct mm_struct *mm,
- 	}
- 
- 	ret = _install_special_mapping(mm, vdso_base, VVAR_SIZE,
--		(VM_READ | VM_MAYREAD | VM_PFNMAP), vdso_info.dm);
-+		(VM_READ | VM_MAYREAD | VM_PFNMAP), vdso_info->dm);
- 	if (IS_ERR(ret))
- 		goto up_fail;
- 
- 	vdso_base += VVAR_SIZE;
- 	mm->context.vdso = (void *)vdso_base;
-+	mm->context.vdso_info = (void *)vdso_info;
-+
- 	ret =
- 	   _install_special_mapping(mm, vdso_base, vdso_text_len,
- 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
--		vdso_info.cm);
-+		vdso_info->cm);
- 
- 	if (IS_ERR(ret))
- 		goto up_fail;
-@@ -253,6 +270,24 @@ static int __setup_additional_pages(struct mm_struct *mm,
- 	return PTR_ERR(ret);
- }
- 
-+#ifdef CONFIG_COMPAT
-+int compat_arch_setup_additional_pages(struct linux_binprm *bprm,
-+				       int uses_interp)
-+{
-+	struct mm_struct *mm = current->mm;
-+	int ret;
-+
-+	if (mmap_write_lock_killable(mm))
-+		return -EINTR;
-+
-+	ret = __setup_additional_pages(mm, bprm, uses_interp,
-+							&compat_vdso_info);
-+	mmap_write_unlock(mm);
-+
-+	return ret;
-+}
-+#endif
-+
- int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- {
- 	struct mm_struct *mm = current->mm;
-@@ -261,7 +296,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
- 	if (mmap_write_lock_killable(mm))
- 		return -EINTR;
- 
--	ret = __setup_additional_pages(mm, bprm, uses_interp);
-+	ret = __setup_additional_pages(mm, bprm, uses_interp, &vdso_info);
- 	mmap_write_unlock(mm);
- 
- 	return ret;
+ ret_from_syscall:
 -- 
 2.25.1
 
