@@ -2,132 +2,134 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7904C433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  4 Apr 2022 11:44:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0410BC433F5
+	for <sparclinux@archiver.kernel.org>; Mon,  4 Apr 2022 14:17:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349208AbiDDLqF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 4 Apr 2022 07:46:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39454 "EHLO
+        id S1377007AbiDDOTI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 4 Apr 2022 10:19:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348762AbiDDLqE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 4 Apr 2022 07:46:04 -0400
-Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B9CB1B7A7;
-        Mon,  4 Apr 2022 04:44:08 -0700 (PDT)
-Received: by mail-qv1-f49.google.com with SMTP id cs16so1456035qvb.8;
-        Mon, 04 Apr 2022 04:44:08 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=nYvQ/9sOxTrqd5FO05k5YTA5C/LjNCLjagWPfQG2994=;
-        b=TBjThrjyTVGV54MpL6ZIexcyW0rJu6yhTulv5b07N1fqiwyVK4VfBz8lIB1/nwLR+m
-         zvsbVMjV88OurfMyzYhQpmLw44taIJYnnZI9mAf7t4fno50TQAXD5grCHNSJE2eyZE2N
-         oAwOmgIGYwG1c1OZzWJ2d7BLjQoBhla4/XO8/0Y6FSfPhe2P7x0CTXxmYTv8xp8cKomQ
-         ePmQeKr37Ks5CZmW7nAustErX5QbB51D0nx7cbcBmN9SlqBdI9g+/G7KHEiNPJPQsvEn
-         /kZy46eQ9JMH5B5x1/zezm8lUCt8yvhol/ZxoQF7RJvNLGqmqwhD/AbDpKIvpoItuP7v
-         m4ww==
-X-Gm-Message-State: AOAM532HMyNGTYI+vJNPRtQdsUkbBwt8AzfqTydAMjhQvoYEMDS59aiM
-        7LOX1SShTI/v7GZAQrts/BTSdHCZuqoxfA==
-X-Google-Smtp-Source: ABdhPJwdMakYhtdX8SLs2XnS0r8JzMTRUuj7J4cA8fynCYCjUd89wsDtWFurjirFgAHi4fKX92+/EQ==
-X-Received: by 2002:a05:6214:c44:b0:443:c09c:b15c with SMTP id r4-20020a0562140c4400b00443c09cb15cmr7518017qvj.30.1649072646773;
-        Mon, 04 Apr 2022 04:44:06 -0700 (PDT)
-Received: from mail-yw1-f174.google.com (mail-yw1-f174.google.com. [209.85.128.174])
-        by smtp.gmail.com with ESMTPSA id e20-20020ac84e54000000b002e06753cf70sm9416199qtw.6.2022.04.04.04.44.05
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 04 Apr 2022 04:44:06 -0700 (PDT)
-Received: by mail-yw1-f174.google.com with SMTP id 00721157ae682-2e5e9025c20so95510687b3.7;
-        Mon, 04 Apr 2022 04:44:05 -0700 (PDT)
-X-Received: by 2002:a81:618b:0:b0:2db:d952:8a39 with SMTP id
- v133-20020a81618b000000b002dbd9528a39mr22035506ywb.132.1649072645615; Mon, 04
- Apr 2022 04:44:05 -0700 (PDT)
+        with ESMTP id S237149AbiDDOTI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 4 Apr 2022 10:19:08 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FC973B033;
+        Mon,  4 Apr 2022 07:17:12 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id CE90D210E5;
+        Mon,  4 Apr 2022 14:17:10 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1649081830; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Rze0Jhi/DK5kWoGoABbHFZ2g0bO59w1puNqIyew0fbQ=;
+        b=NuRhmVsuuISJsd8BJFS2w0AHxAChlUR+Zs2Tk2CD2BmcBSysouRnrwBdtqDhwT9tV/yFRj
+        20+uWtwlHvQG33Dsa4yw9cZL/CaMGO65jV2JdiPcjTxITG45cXnXxWZTOcbkamzJ/CR1L7
+        VutDnw+unMqssuQ2wjCE1x4SPcCENTo=
+Received: from suse.cz (pathway.suse.cz [10.100.12.24])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id 38BECA3B82;
+        Mon,  4 Apr 2022 14:17:09 +0000 (UTC)
+Date:   Mon, 4 Apr 2022 16:17:09 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc:     linux-kernel@vger.kernel.org, acme@kernel.org,
+        akpm@linux-foundation.org, alexander.shishkin@linux.intel.com,
+        catalin.marinas@arm.com, davem@davemloft.net, jolsa@redhat.com,
+        jthierry@redhat.com, keescook@chromium.org, kernelfans@gmail.com,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
+        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
+        nixiaoming@huawei.com, peterz@infradead.org,
+        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
+        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
+Subject: Re: [PATCH v3 5/5] arm64: Enable perf events based hard lockup
+ detector
+Message-ID: <20220404141709.GA26840@pathway.suse.cz>
+References: <20220324141405.10835-1-lecopzer.chen@mediatek.com>
+ <20220324141405.10835-6-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-References: <20220404111204.935357-1-elver@google.com>
-In-Reply-To: <20220404111204.935357-1-elver@google.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 4 Apr 2022 13:43:54 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdURqaCYDt5SJg0GLKqEs92JgUhHAhVa8B4RKextRH43aQ@mail.gmail.com>
-Message-ID: <CAMuHMdURqaCYDt5SJg0GLKqEs92JgUhHAhVa8B4RKextRH43aQ@mail.gmail.com>
-Subject: Re: [PATCH] signal: Deliver SIGTRAP on perf event asynchronously if blocked
-To:     Marco Elver <elver@google.com>
-Cc:     Peter Zijlstra <peterz@infradead.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        linux-perf-users@vger.kernel.org,
-        kasan-dev <kasan-dev@googlegroups.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Dmitry Vyukov <dvyukov@google.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220324141405.10835-6-lecopzer.chen@mediatek.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Apr 4, 2022 at 1:30 PM Marco Elver <elver@google.com> wrote:
-> With SIGTRAP on perf events, we have encountered termination of
-> processes due to user space attempting to block delivery of SIGTRAP.
-> Consider this case:
->
->     <set up SIGTRAP on a perf event>
->     ...
->     sigset_t s;
->     sigemptyset(&s);
->     sigaddset(&s, SIGTRAP | <and others>);
->     sigprocmask(SIG_BLOCK, &s, ...);
->     ...
->     <perf event triggers>
->
-> When the perf event triggers, while SIGTRAP is blocked, force_sig_perf()
-> will force the signal, but revert back to the default handler, thus
-> terminating the task.
->
-> This makes sense for error conditions, but not so much for explicitly
-> requested monitoring. However, the expectation is still that signals
-> generated by perf events are synchronous, which will no longer be the
-> case if the signal is blocked and delivered later.
->
-> To give user space the ability to clearly distinguish synchronous from
-> asynchronous signals, introduce siginfo_t::si_perf_flags and
-> TRAP_PERF_FLAG_ASYNC (opted for flags in case more binary information is
-> required in future).
->
-> The resolution to the problem is then to (a) no longer force the signal
-> (avoiding the terminations), but (b) tell user space via si_perf_flags
-> if the signal was synchronous or not, so that such signals can be
-> handled differently (e.g. let user space decide to ignore or consider
-> the data imprecise).
->
-> The alternative of making the kernel ignore SIGTRAP on perf events if
-> the signal is blocked may work for some usecases, but likely causes
-> issues in others that then have to revert back to interception of
-> sigprocmask() (which we want to avoid). [ A concrete example: when using
-> breakpoint perf events to track data-flow, in a region of code where
-> signals are blocked, data-flow can no longer be tracked accurately.
-> When a relevant asynchronous signal is received after unblocking the
-> signal, the data-flow tracking logic needs to know its state is
-> imprecise. ]
->
-> Link: https://lore.kernel.org/all/Yjmn%2FkVblV3TdoAq@elver.google.com/
-> Fixes: 97ba62b27867 ("perf: Add support for SIGTRAP on perf events")
-> Reported-by: Dmitry Vyukov <dvyukov@google.com>
-> Signed-off-by: Marco Elver <elver@google.com>
+On Thu 2022-03-24 22:14:05, Lecopzer Chen wrote:
+> With the recent feature added to enable perf events to use pseudo NMIs
+> as interrupts on platforms which support GICv3 or later, its now been
+> possible to enable hard lockup detector (or NMI watchdog) on arm64
+> platforms. So enable corresponding support.
+> 
+> One thing to note here is that normally lockup detector is initialized
+> just after the early initcalls but PMU on arm64 comes up much later as
+> device_initcall(). To cope with that, overriding watchdog_nmi_probe() to
+> let the watchdog framework know PMU not ready, and inform the framework
+> to re-initialize lockup detection once PMU has been initialized.
+> 
+> [1]: http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
+> 
+> --- /dev/null
+> +++ b/arch/arm64/kernel/watchdog_hld.c
+> @@ -0,0 +1,37 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +#include <linux/nmi.h>
+> +#include <linux/cpufreq.h>
+> +#include <linux/perf/arm_pmu.h>
+> +
+> +/*
+> + * Safe maximum CPU frequency in case a particular platform doesn't implement
+> + * cpufreq driver. Although, architecture doesn't put any restrictions on
+> + * maximum frequency but 5 GHz seems to be safe maximum given the available
+> + * Arm CPUs in the market which are clocked much less than 5 GHz. On the other
+> + * hand, we can't make it much higher as it would lead to a large hard-lockup
+> + * detection timeout on parts which are running slower (eg. 1GHz on
+> + * Developerbox) and doesn't possess a cpufreq driver.
+> + */
+> +#define SAFE_MAX_CPU_FREQ	5000000000UL // 5 GHz
+> +u64 hw_nmi_get_sample_period(int watchdog_thresh)
+> +{
+> +	unsigned int cpu = smp_processor_id();
+> +	unsigned long max_cpu_freq;
+> +
+> +	max_cpu_freq = cpufreq_get_hw_max_freq(cpu) * 1000UL;
+> +	if (!max_cpu_freq)
+> +		max_cpu_freq = SAFE_MAX_CPU_FREQ;
+> +
+> +	return (u64)max_cpu_freq * watchdog_thresh;
+> +}
 
->  arch/m68k/kernel/signal.c          |  1 +
+This change is not mentioned in the commit message.
+Please, put it into a separate patch.
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> +int __init watchdog_nmi_probe(void)
+> +{
+> +	if (!allow_lockup_detector_init_retry)
+> +		return -EBUSY;
 
-Gr{oetje,eeting}s,
+How do you know that you should return -EBUSY
+when retry in not enabled?
 
-                        Geert
+I guess that it is an optimization to make it fast
+during the first call. But the logic is far from
+obvious.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> +
+> +	if (!arm_pmu_irq_is_nmi())
+> +		return -ENODEV;
+> +
+> +	return hardlockup_detector_perf_init();
+> +}
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Is this just an optimization or is it really needed?
+Why this was not needed in v2 patchset?
+
+If it is just an optimization then I would remove it.
+IMHO, it just adds confusion and it is not worth it.
+
+Best Regards,
+Petr
