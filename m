@@ -2,359 +2,303 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F9F4C433F5
-	for <sparclinux@archiver.kernel.org>; Tue,  5 Apr 2022 21:32:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B49E2C433FE
+	for <sparclinux@archiver.kernel.org>; Tue,  5 Apr 2022 21:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232385AbiDEVd3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 5 Apr 2022 17:33:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48730 "EHLO
+        id S229509AbiDEVeX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 5 Apr 2022 17:34:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1384786AbiDEPPF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Apr 2022 11:15:05 -0400
-Received: from mail-oa1-x2b.google.com (mail-oa1-x2b.google.com [IPv6:2001:4860:4864:20::2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5FED4131B
-        for <sparclinux@vger.kernel.org>; Tue,  5 Apr 2022 06:30:38 -0700 (PDT)
-Received: by mail-oa1-x2b.google.com with SMTP id 586e51a60fabf-e1dcc0a327so9807167fac.1
-        for <sparclinux@vger.kernel.org>; Tue, 05 Apr 2022 06:30:38 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=9SUjbR6d0Hm/+GiUujjBnx6+L5jTOpdyMzjgCeWVv18=;
-        b=sY8UN9C1PHBoH0LvzHXIFdwX6MKoA35gbLCAShSgRkAbp8iWftwgDax7e93W769u1e
-         5X9YZGkOkmmAlD6LaJg70ZOrpL2jAQA473qlyP6Cgh+uH5VJpUMbGJtJ0FVxyDL7ARzV
-         lLD6TuoG/w//kxV2eLSYgVy56lG6gwfD696nmdNK0W/nDySoM8GedVz7GrRDUsDDnvoM
-         QeOB6se/YnanV8WDchwRKkwez2IjGwtnsaHcBG/AkXC+luyHDLzKPtuyHgybXQNk+7Ra
-         1tHz3b53Sn6tZlSfRcftDFTKqdhnbtWU9fwymXdFbZxLoXFdPVx25nY85Wwp9mfOLKq1
-         +v6Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=9SUjbR6d0Hm/+GiUujjBnx6+L5jTOpdyMzjgCeWVv18=;
-        b=BtCizVR2jt2oH2DQzfG/LUryVma7WjAdj9EWJQP6rRsjDP6uQUhhySoKUCBy+SJ8Rm
-         dgD6XXBaF70Wi9LAuI+CT2Kmpovh7xiaqbxwBYPnjlgZ2f7ifvaRyCdYGKT7QCDJt3mR
-         libKk45TuISE4qrAZJm9VLRr3Co/8O2nfIjML6aYJS376CL5Wnank/rlh6Aim2nqRybY
-         FMMoGO4pPRNJ45ws4n6onJQnLU+T8d+K0EkoQMlez4Fq7Wdr3pkahArJ6z4INjvs1CMk
-         aR/rbwDkjPcIjL4Qt8VwGVuWuRp6cKo+4e9bV+GHqbORgpYO/MPAci5tJg75b2txY3qS
-         HzqA==
-X-Gm-Message-State: AOAM533sW/I9htap5Dj+H+cVIjNtnrKqxEeROme3fQIK1vUyYg4UnwxF
-        BlsXDnF+hrgbqdhgIfdv/2J2HzPvV/OUJ60m0hbCVw==
-X-Google-Smtp-Source: ABdhPJwgxZbKTNmtpo4mT0qYfgd73+gzD+qfaMV68qcfH1OdXWhs2/TQa3kSn7Gi7xyKhVKfha3zBFRUnbqgNtZIEqg=
-X-Received: by 2002:a05:6870:e0d1:b0:e2:1c3b:cca2 with SMTP id
- a17-20020a056870e0d100b000e21c3bcca2mr1459916oab.163.1649165437660; Tue, 05
- Apr 2022 06:30:37 -0700 (PDT)
+        with ESMTP id S1388908AbiDEPUo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Apr 2022 11:20:44 -0400
+Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B1033C625B;
+        Tue,  5 Apr 2022 06:35:13 -0700 (PDT)
+X-UUID: cc3c544588a74722b01236958dfe2cf2-20220405
+X-UUID: cc3c544588a74722b01236958dfe2cf2-20220405
+Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw01.mediatek.com
+        (envelope-from <lecopzer.chen@mediatek.com>)
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1758654438; Tue, 05 Apr 2022 21:35:05 +0800
+Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+ mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
+ Tue, 5 Apr 2022 21:35:03 +0800
+Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas10.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Tue, 5 Apr 2022 21:35:03 +0800
+From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
+To:     <pmladek@suse.com>
+CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
+        <alexander.shishkin@linux.intel.com>, <catalin.marinas@arm.com>,
+        <davem@davemloft.net>, <jolsa@redhat.com>, <jthierry@redhat.com>,
+        <keescook@chromium.org>, <kernelfans@gmail.com>,
+        <lecopzer.chen@mediatek.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
+        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
+        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
+        <nixiaoming@huawei.com>, <peterz@infradead.org>,
+        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
+        <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
+Subject: Re: [PATCH v3 4/5] kernel/watchdog: Adapt the watchdog_hld interface for async model 
+Date:   Tue, 5 Apr 2022 21:35:03 +0800
+Message-ID: <20220405133503.4487-1-lecopzer.chen@mediatek.com>
+X-Mailer: git-send-email 2.18.0
+In-Reply-To: <20220404144113.GB26840@pathway.suse.cz>
+References: <20220404144113.GB26840@pathway.suse.cz>
 MIME-Version: 1.0
-References: <20220404111204.935357-1-elver@google.com>
-In-Reply-To: <20220404111204.935357-1-elver@google.com>
-From:   Dmitry Vyukov <dvyukov@google.com>
-Date:   Tue, 5 Apr 2022 15:30:26 +0200
-Message-ID: <CACT4Y+YiDhmKokuqD3dhtj67HxZpTumiQvvRp35X-sR735qjqQ@mail.gmail.com>
-Subject: Re: [PATCH] signal: Deliver SIGTRAP on perf event asynchronously if blocked
-To:     Marco Elver <elver@google.com>
-Cc:     Peter Zijlstra <peterz@infradead.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-perf-users@vger.kernel.org,
-        kasan-dev@googlegroups.com, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-MTK:  N
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 4 Apr 2022 at 13:12, Marco Elver <elver@google.com> wrote:
->
-> With SIGTRAP on perf events, we have encountered termination of
-> processes due to user space attempting to block delivery of SIGTRAP.
-> Consider this case:
->
->     <set up SIGTRAP on a perf event>
->     ...
->     sigset_t s;
->     sigemptyset(&s);
->     sigaddset(&s, SIGTRAP | <and others>);
->     sigprocmask(SIG_BLOCK, &s, ...);
->     ...
->     <perf event triggers>
->
-> When the perf event triggers, while SIGTRAP is blocked, force_sig_perf()
-> will force the signal, but revert back to the default handler, thus
-> terminating the task.
->
-> This makes sense for error conditions, but not so much for explicitly
-> requested monitoring. However, the expectation is still that signals
-> generated by perf events are synchronous, which will no longer be the
-> case if the signal is blocked and delivered later.
->
-> To give user space the ability to clearly distinguish synchronous from
-> asynchronous signals, introduce siginfo_t::si_perf_flags and
-> TRAP_PERF_FLAG_ASYNC (opted for flags in case more binary information is
-> required in future).
->
-> The resolution to the problem is then to (a) no longer force the signal
-> (avoiding the terminations), but (b) tell user space via si_perf_flags
-> if the signal was synchronous or not, so that such signals can be
-> handled differently (e.g. let user space decide to ignore or consider
-> the data imprecise).
->
-> The alternative of making the kernel ignore SIGTRAP on perf events if
-> the signal is blocked may work for some usecases, but likely causes
-> issues in others that then have to revert back to interception of
-> sigprocmask() (which we want to avoid). [ A concrete example: when using
-> breakpoint perf events to track data-flow, in a region of code where
-> signals are blocked, data-flow can no longer be tracked accurately.
-> When a relevant asynchronous signal is received after unblocking the
-> signal, the data-flow tracking logic needs to know its state is
-> imprecise. ]
->
-> Link: https://lore.kernel.org/all/Yjmn%2FkVblV3TdoAq@elver.google.com/
-> Fixes: 97ba62b27867 ("perf: Add support for SIGTRAP on perf events")
-> Reported-by: Dmitry Vyukov <dvyukov@google.com>
-> Signed-off-by: Marco Elver <elver@google.com>
+> On Thu 2022-03-24 22:14:04, Lecopzer Chen wrote:
+> > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
+> > yet. E.g. on arm64, PMU is not ready until
+> > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
+> > with the driver model and cpuhp. Hence it is hard to push this
+> > initialization before smp_init().
+> > 
+> > But it is easy to take an opposite approach and try to initialize
+> > the watchdog once again later.
+> > The delayed probe is called using workqueues. It need to allocate
+> > memory and must be proceed in a normal context.
+> > The delayed probe is queued only when the early one returns -EBUSY.
+> > It is the return code returned when PMU is not ready yet.
+> > 
+> > Provide an API - retry_lockup_detector_init() for anyone who needs
+> > to delayed init lockup detector.
+> > 
+> > The original assumption is: nobody should use delayed probe after
+> > lockup_detector_check() which has __init attribute.
+> > That is, anyone uses this API must call between lockup_detector_init()
+> > and lockup_detector_check(), and the caller must have __init attribute
+> > 
+> > Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
+> > Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+> > Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+> > Suggested-by: Petr Mladek <pmladek@suse.com>
+> > ---
+> >  include/linux/nmi.h |  3 ++
+> >  kernel/watchdog.c   | 69 +++++++++++++++++++++++++++++++++++++++++++--
+> >  2 files changed, 70 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/include/linux/nmi.h b/include/linux/nmi.h
+> > index b7bcd63c36b4..1d84c9a8b460 100644
+> > --- a/include/linux/nmi.h
+> > +++ b/include/linux/nmi.h
+> > @@ -118,6 +118,9 @@ static inline int hardlockup_detector_perf_init(void) { return 0; }
+> >  
+> >  void watchdog_nmi_stop(void);
+> >  void watchdog_nmi_start(void);
+> > +
+> > +extern bool allow_lockup_detector_init_retry;
+> > +void retry_lockup_detector_init(void);
+> >  int watchdog_nmi_probe(void);
+> >  void watchdog_nmi_enable(unsigned int cpu);
+> >  void watchdog_nmi_disable(unsigned int cpu);
+> > diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+> > index b71d434cf648..308ba29f8f0f 100644
+> > --- a/kernel/watchdog.c
+> > +++ b/kernel/watchdog.c
+> > @@ -103,7 +103,13 @@ void __weak watchdog_nmi_disable(unsigned int cpu)
+> >  	hardlockup_detector_perf_disable();
+> >  }
+> >  
+> > -/* Return 0, if a NMI watchdog is available. Error code otherwise */
+> > +/*
+> > + * Arch specific API.
+> > + *
+> > + * Return 0 when NMI watchdog is available, negative value otherwise.
+> > + * The error code -EBUSY is special. It means that a deferred probe
+> > + * might succeed later.
+> > + */
+> >  int __weak __init watchdog_nmi_probe(void)
+> >  {
+> >  	return hardlockup_detector_perf_init();
+> > @@ -839,16 +845,75 @@ static void __init watchdog_sysctl_init(void)
+> >  #define watchdog_sysctl_init() do { } while (0)
+> >  #endif /* CONFIG_SYSCTL */
+> >  
+> > +static void lockup_detector_delay_init(struct work_struct *work);
+> > +bool allow_lockup_detector_init_retry __initdata;
+> > +
+> > +static struct work_struct detector_work __initdata =
+> > +		__WORK_INITIALIZER(detector_work, lockup_detector_delay_init);
+> > +
+> > +static void __init lockup_detector_delay_init(struct work_struct *work)
+> > +{
+> > +	int ret;
+> > +
+> > +	ret = watchdog_nmi_probe();
+> > +	if (ret) {
+> > +		pr_info("Delayed init of the lockup detector failed: %d\n", ret);
+> > +		pr_info("Perf NMI watchdog permanently disabled\n");
+> > +		return;
+> > +	}
+> > +
+> > +	nmi_watchdog_available = true;
+> > +	lockup_detector_setup();
+> 
+> The name of the variable "allow_lockup_detector_init_retry" is
+> slightly confusing in this context. I suggest to add a comment:
+> 
+> 	/* Retry is not needed any longer. */
+> > +	allow_lockup_detector_init_retry = false;
+> 
 
-Tested-by: Dmitry Vyukov <dvyukov@google.com>
-
-I've tested delivery of SIGTRAPs when it's blocked with sigprocmask,
-it does not kill the process now.
-
-And tested the case where previously I was getting infinite recursion
-and stack overflow (SIGTRAP handler causes another SIGTRAP recursively
-before being able to detect recursion and return). With this patch it
-can be handled by blocking recursive SIGTRAPs (!SA_NODEFER).
+Got it, I'll add it, thanks.
 
 
-> ---
->  arch/arm/kernel/signal.c           |  1 +
->  arch/arm64/kernel/signal.c         |  1 +
->  arch/arm64/kernel/signal32.c       |  1 +
->  arch/m68k/kernel/signal.c          |  1 +
->  arch/sparc/kernel/signal32.c       |  1 +
->  arch/sparc/kernel/signal_64.c      |  1 +
->  arch/x86/kernel/signal_compat.c    |  2 ++
->  include/linux/compat.h             |  1 +
->  include/linux/sched/signal.h       |  2 +-
->  include/uapi/asm-generic/siginfo.h |  7 +++++++
->  kernel/events/core.c               |  4 ++--
->  kernel/signal.c                    | 18 ++++++++++++++++--
->  12 files changed, 35 insertions(+), 5 deletions(-)
->
-> diff --git a/arch/arm/kernel/signal.c b/arch/arm/kernel/signal.c
-> index 459abc5d1819..ea128e32e8ca 100644
-> --- a/arch/arm/kernel/signal.c
-> +++ b/arch/arm/kernel/signal.c
-> @@ -708,6 +708,7 @@ static_assert(offsetof(siginfo_t, si_upper) == 0x18);
->  static_assert(offsetof(siginfo_t, si_pkey)     == 0x14);
->  static_assert(offsetof(siginfo_t, si_perf_data)        == 0x10);
->  static_assert(offsetof(siginfo_t, si_perf_type)        == 0x14);
-> +static_assert(offsetof(siginfo_t, si_perf_flags) == 0x18);
->  static_assert(offsetof(siginfo_t, si_band)     == 0x0c);
->  static_assert(offsetof(siginfo_t, si_fd)       == 0x10);
->  static_assert(offsetof(siginfo_t, si_call_addr)        == 0x0c);
-> diff --git a/arch/arm64/kernel/signal.c b/arch/arm64/kernel/signal.c
-> index 4a4122ef6f39..41b5d9d3672a 100644
-> --- a/arch/arm64/kernel/signal.c
-> +++ b/arch/arm64/kernel/signal.c
-> @@ -1011,6 +1011,7 @@ static_assert(offsetof(siginfo_t, si_upper)       == 0x28);
->  static_assert(offsetof(siginfo_t, si_pkey)     == 0x20);
->  static_assert(offsetof(siginfo_t, si_perf_data)        == 0x18);
->  static_assert(offsetof(siginfo_t, si_perf_type)        == 0x20);
-> +static_assert(offsetof(siginfo_t, si_perf_flags) == 0x24);
->  static_assert(offsetof(siginfo_t, si_band)     == 0x10);
->  static_assert(offsetof(siginfo_t, si_fd)       == 0x18);
->  static_assert(offsetof(siginfo_t, si_call_addr)        == 0x10);
-> diff --git a/arch/arm64/kernel/signal32.c b/arch/arm64/kernel/signal32.c
-> index d984282b979f..4700f8522d27 100644
-> --- a/arch/arm64/kernel/signal32.c
-> +++ b/arch/arm64/kernel/signal32.c
-> @@ -487,6 +487,7 @@ static_assert(offsetof(compat_siginfo_t, si_upper)  == 0x18);
->  static_assert(offsetof(compat_siginfo_t, si_pkey)      == 0x14);
->  static_assert(offsetof(compat_siginfo_t, si_perf_data) == 0x10);
->  static_assert(offsetof(compat_siginfo_t, si_perf_type) == 0x14);
-> +static_assert(offsetof(compat_siginfo_t, si_perf_flags)        == 0x18);
->  static_assert(offsetof(compat_siginfo_t, si_band)      == 0x0c);
->  static_assert(offsetof(compat_siginfo_t, si_fd)                == 0x10);
->  static_assert(offsetof(compat_siginfo_t, si_call_addr) == 0x0c);
-> diff --git a/arch/m68k/kernel/signal.c b/arch/m68k/kernel/signal.c
-> index 49533f65958a..b9f6908a31bc 100644
-> --- a/arch/m68k/kernel/signal.c
-> +++ b/arch/m68k/kernel/signal.c
-> @@ -625,6 +625,7 @@ static inline void siginfo_build_tests(void)
->         /* _sigfault._perf */
->         BUILD_BUG_ON(offsetof(siginfo_t, si_perf_data) != 0x10);
->         BUILD_BUG_ON(offsetof(siginfo_t, si_perf_type) != 0x14);
-> +       BUILD_BUG_ON(offsetof(siginfo_t, si_perf_flags) != 0x18);
->
->         /* _sigpoll */
->         BUILD_BUG_ON(offsetof(siginfo_t, si_band)   != 0x0c);
-> diff --git a/arch/sparc/kernel/signal32.c b/arch/sparc/kernel/signal32.c
-> index f9fe502b81c6..dad38960d1a8 100644
-> --- a/arch/sparc/kernel/signal32.c
-> +++ b/arch/sparc/kernel/signal32.c
-> @@ -779,5 +779,6 @@ static_assert(offsetof(compat_siginfo_t, si_upper)  == 0x18);
->  static_assert(offsetof(compat_siginfo_t, si_pkey)      == 0x14);
->  static_assert(offsetof(compat_siginfo_t, si_perf_data) == 0x10);
->  static_assert(offsetof(compat_siginfo_t, si_perf_type) == 0x14);
-> +static_assert(offsetof(compat_siginfo_t, si_perf_flags)        == 0x18);
->  static_assert(offsetof(compat_siginfo_t, si_band)      == 0x0c);
->  static_assert(offsetof(compat_siginfo_t, si_fd)                == 0x10);
-> diff --git a/arch/sparc/kernel/signal_64.c b/arch/sparc/kernel/signal_64.c
-> index 8b9fc76cd3e0..570e43e6fda5 100644
-> --- a/arch/sparc/kernel/signal_64.c
-> +++ b/arch/sparc/kernel/signal_64.c
-> @@ -590,5 +590,6 @@ static_assert(offsetof(siginfo_t, si_upper) == 0x28);
->  static_assert(offsetof(siginfo_t, si_pkey)     == 0x20);
->  static_assert(offsetof(siginfo_t, si_perf_data)        == 0x18);
->  static_assert(offsetof(siginfo_t, si_perf_type)        == 0x20);
-> +static_assert(offsetof(siginfo_t, si_perf_flags) == 0x24);
->  static_assert(offsetof(siginfo_t, si_band)     == 0x10);
->  static_assert(offsetof(siginfo_t, si_fd)       == 0x14);
-> diff --git a/arch/x86/kernel/signal_compat.c b/arch/x86/kernel/signal_compat.c
-> index b52407c56000..879ef8c72f5c 100644
-> --- a/arch/x86/kernel/signal_compat.c
-> +++ b/arch/x86/kernel/signal_compat.c
-> @@ -149,8 +149,10 @@ static inline void signal_compat_build_tests(void)
->
->         BUILD_BUG_ON(offsetof(siginfo_t, si_perf_data) != 0x18);
->         BUILD_BUG_ON(offsetof(siginfo_t, si_perf_type) != 0x20);
-> +       BUILD_BUG_ON(offsetof(siginfo_t, si_perf_flags) != 0x24);
->         BUILD_BUG_ON(offsetof(compat_siginfo_t, si_perf_data) != 0x10);
->         BUILD_BUG_ON(offsetof(compat_siginfo_t, si_perf_type) != 0x14);
-> +       BUILD_BUG_ON(offsetof(compat_siginfo_t, si_perf_flags) != 0x18);
->
->         CHECK_CSI_OFFSET(_sigpoll);
->         CHECK_CSI_SIZE  (_sigpoll, 2*sizeof(int));
-> diff --git a/include/linux/compat.h b/include/linux/compat.h
-> index 1c758b0e0359..01fddf72a81f 100644
-> --- a/include/linux/compat.h
-> +++ b/include/linux/compat.h
-> @@ -235,6 +235,7 @@ typedef struct compat_siginfo {
->                                 struct {
->                                         compat_ulong_t _data;
->                                         u32 _type;
-> +                                       u32 _flags;
->                                 } _perf;
->                         };
->                 } _sigfault;
-> diff --git a/include/linux/sched/signal.h b/include/linux/sched/signal.h
-> index 3c8b34876744..bab7cc56b13a 100644
-> --- a/include/linux/sched/signal.h
-> +++ b/include/linux/sched/signal.h
-> @@ -320,7 +320,7 @@ int send_sig_mceerr(int code, void __user *, short, struct task_struct *);
->
->  int force_sig_bnderr(void __user *addr, void __user *lower, void __user *upper);
->  int force_sig_pkuerr(void __user *addr, u32 pkey);
-> -int force_sig_perf(void __user *addr, u32 type, u64 sig_data);
-> +int send_sig_perf(void __user *addr, u32 type, u64 sig_data);
->
->  int force_sig_ptrace_errno_trap(int errno, void __user *addr);
->  int force_sig_fault_trapno(int sig, int code, void __user *addr, int trapno);
-> diff --git a/include/uapi/asm-generic/siginfo.h b/include/uapi/asm-generic/siginfo.h
-> index 3ba180f550d7..ffbe4cec9f32 100644
-> --- a/include/uapi/asm-generic/siginfo.h
-> +++ b/include/uapi/asm-generic/siginfo.h
-> @@ -99,6 +99,7 @@ union __sifields {
->                         struct {
->                                 unsigned long _data;
->                                 __u32 _type;
-> +                               __u32 _flags;
->                         } _perf;
->                 };
->         } _sigfault;
-> @@ -164,6 +165,7 @@ typedef struct siginfo {
->  #define si_pkey                _sifields._sigfault._addr_pkey._pkey
->  #define si_perf_data   _sifields._sigfault._perf._data
->  #define si_perf_type   _sifields._sigfault._perf._type
-> +#define si_perf_flags  _sifields._sigfault._perf._flags
->  #define si_band                _sifields._sigpoll._band
->  #define si_fd          _sifields._sigpoll._fd
->  #define si_call_addr   _sifields._sigsys._call_addr
-> @@ -270,6 +272,11 @@ typedef struct siginfo {
->   * that are of the form: ((PTRACE_EVENT_XXX << 8) | SIGTRAP)
->   */
->
-> +/*
-> + * Flags for si_perf_flags if SIGTRAP si_code is TRAP_PERF.
-> + */
-> +#define TRAP_PERF_FLAG_ASYNC (1u << 0)
-> +
->  /*
->   * SIGCHLD si_codes
->   */
-> diff --git a/kernel/events/core.c b/kernel/events/core.c
-> index cfde994ce61c..6eafb1b0ad4a 100644
-> --- a/kernel/events/core.c
-> +++ b/kernel/events/core.c
-> @@ -6533,8 +6533,8 @@ static void perf_sigtrap(struct perf_event *event)
->         if (current->flags & PF_EXITING)
->                 return;
->
-> -       force_sig_perf((void __user *)event->pending_addr,
-> -                      event->attr.type, event->attr.sig_data);
-> +       send_sig_perf((void __user *)event->pending_addr,
-> +                     event->attr.type, event->attr.sig_data);
->  }
->
->  static void perf_pending_event_disable(struct perf_event *event)
-> diff --git a/kernel/signal.c b/kernel/signal.c
-> index 30cd1ca43bcd..e43bc2a692f5 100644
-> --- a/kernel/signal.c
-> +++ b/kernel/signal.c
-> @@ -1805,7 +1805,7 @@ int force_sig_pkuerr(void __user *addr, u32 pkey)
->  }
->  #endif
->
-> -int force_sig_perf(void __user *addr, u32 type, u64 sig_data)
-> +int send_sig_perf(void __user *addr, u32 type, u64 sig_data)
->  {
->         struct kernel_siginfo info;
->
-> @@ -1817,7 +1817,18 @@ int force_sig_perf(void __user *addr, u32 type, u64 sig_data)
->         info.si_perf_data = sig_data;
->         info.si_perf_type = type;
->
-> -       return force_sig_info(&info);
-> +       /*
-> +        * Signals generated by perf events should not terminate the whole
-> +        * process if SIGTRAP is blocked, however, delivering the signal
-> +        * asynchronously is better than not delivering at all. But tell user
-> +        * space if the signal was asynchronous, so it can clearly be
-> +        * distinguished from normal synchronous ones.
-> +        */
-> +       info.si_perf_flags = sigismember(&current->blocked, info.si_signo) ?
-> +                                    TRAP_PERF_FLAG_ASYNC :
-> +                                    0;
-> +
-> +       return send_sig_info(info.si_signo, &info, current);
->  }
->
->  /**
-> @@ -3432,6 +3443,7 @@ void copy_siginfo_to_external32(struct compat_siginfo *to,
->                 to->si_addr = ptr_to_compat(from->si_addr);
->                 to->si_perf_data = from->si_perf_data;
->                 to->si_perf_type = from->si_perf_type;
-> +               to->si_perf_flags = from->si_perf_flags;
->                 break;
->         case SIL_CHLD:
->                 to->si_pid = from->si_pid;
-> @@ -3509,6 +3521,7 @@ static int post_copy_siginfo_from_user32(kernel_siginfo_t *to,
->                 to->si_addr = compat_ptr(from->si_addr);
->                 to->si_perf_data = from->si_perf_data;
->                 to->si_perf_type = from->si_perf_type;
-> +               to->si_perf_flags = from->si_perf_flags;
->                 break;
->         case SIL_CHLD:
->                 to->si_pid    = from->si_pid;
-> @@ -4722,6 +4735,7 @@ static inline void siginfo_buildtime_checks(void)
->         CHECK_OFFSET(si_pkey);
->         CHECK_OFFSET(si_perf_data);
->         CHECK_OFFSET(si_perf_type);
-> +       CHECK_OFFSET(si_perf_flags);
->
->         /* sigpoll */
->         CHECK_OFFSET(si_band);
-> --
-> 2.35.1.1094.g7c7d902a7c-goog
->
+> 
+> > +}
+> > +
+> > +/*
+> > + * retry_lockup_detector_init - retry init lockup detector if possible.
+> > + *
+> > + * Only take effect when allow_lockup_detector_init_retry is true, which
+> > + * means it must call between lockup_detector_init() and lockup_detector_check().
+> > + * Be aware that caller must have __init attribute, relative functions
+> > + * will be freed after kernel initialization.
+> > + */
+> > +void __init retry_lockup_detector_init(void)
+> > +{
+> > +	if (!allow_lockup_detector_init_retry)
+> > +		return;
+> > +
+> > +	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
+> > +}
+> > +
+> > +/* Ensure the check is called after the initialization of driver */
+> > +static int __init lockup_detector_check(void)
+> > +{
+> > +	/* Make sure no work is pending. */
+> > +	flush_work(&detector_work);
+> 
+> This is racy. We should first disable
+> "allow_lockup_detector_init_retry" to make sure
+> that retry_lockup_detector_init() will not queue
+> the work any longer.
+
+But disable before flush_work will make the 
+    lockup_detector_delay_init() ->
+    watchdog_nmi_probe ->
+    +	if (!allow_lockup_detector_init_retry)
+    +		return -EBUSY;
+
+Plese check the code I provide below.
+
+
+> 
+> > +	if (!allow_lockup_detector_init_retry)
+> > +		return 0;
+> > +
+> > +	allow_lockup_detector_init_retry = false;
+> > +	pr_info("Delayed init checking failed, please check your driver.\n");
+> 
+> This prints that the init failed without checking the state
+> of the watchdog. I guess that it works but it is far from
+> obvious and any further change might break it.
+> 
+> Is the message really needed?
+> Does it help?
+> What exact driver needs checking?
+> 
+> IMHO, it just makes the code more complicated and
+> it is not worth it.
+> 
+
+I think you're right, the message was needed in the patch v2 because we
+did another retry in lockup_detector_check().
+But now we only do "checking" and the failed message in
+lockup_detector_delay_init should be enough.
+
+
+> I suggest to keep it simple:
+> 
+> /*
+>  * Ensure the check is called after the initialization of driver
+>  * and before removing init code.
+>  */
+> static int __init lockup_detector_check(void)
+> {
+> 	allow_lockup_detector_init_retry = false;
+> 	flush_work(&detector_work);
+> 
+> 	return 0;
+> }
+> 
+
+
+Combine with the first racy problem, let me limit retry_lockup_detector_init
+can be called only once.
+
+how about:
+...
+static bool __init delayed_init_allowed = true;
+...
+/*
+ * retry_lockup_detector_init - retry init lockup detector if possible.
+ *
+ * Only take effect when allow_lockup_detector_init_retry is true, which
+ * means it must call between lockup_detector_init() and lockup_detector_check().
+ * Be aware that caller must have __init attribute, relative functions
+ * will be freed after kernel initialization.
+ */
+void __init retry_lockup_detector_init(void)
+{
+	if (!allow_lockup_detector_init_retry || !delayed_init_allowed)
+		return;
+
+	/* 
+	 * we shouldn't queue any delayed init work twice to avoid
+	 * any unwanted racy.
+	 */
+	delayed_init_allowed = false;
+	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
+}
+
+
+/*
+ * Ensure the check is called after the initialization of driver
+ * and before removing init code.
+ */
+static int __init lockup_detector_check(void)
+{
+	delayed_init_allowed = false;
+	flush_work(&detector_work);
+	allow_lockup_detector_init_retry = false;
+
+	return 0;
+}
+
+
+
+> or if you really want that message then I would do:
+> 
+> /*
+>  * Ensure the check is called after the initialization of driver
+>  * and before removing init code.
+>  */
+> static int __init lockup_detector_check(void)
+> {
+> 	bool delayed_init_allowed = allow_lockup_detector_init_retry;
+> 
+> 	allow_lockup_detector_init_retry = false;
+> 	flush_work(&detector_work);
+> 
+> 	if (delayed_init_allowed && !nmi_watchdog_available)
+> 		pr_info("Delayed init failed. Please, check your driver.\n");
+> 
+> 	return 0;
+> }
+> 
+
+
+thanks
+BRs,
+Lecopzer
