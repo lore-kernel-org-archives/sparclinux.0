@@ -2,36 +2,34 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DBF9DC433F5
-	for <sparclinux@archiver.kernel.org>; Thu,  7 Apr 2022 10:34:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93957C433F5
+	for <sparclinux@archiver.kernel.org>; Thu,  7 Apr 2022 10:35:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244538AbiDGKgr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 7 Apr 2022 06:36:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56356 "EHLO
+        id S243138AbiDGKg6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 7 Apr 2022 06:36:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58284 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244501AbiDGKgN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 7 Apr 2022 06:36:13 -0400
+        with ESMTP id S244443AbiDGKgU (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 7 Apr 2022 06:36:20 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id DAEA11107CF;
-        Thu,  7 Apr 2022 03:33:00 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4AF5EF3A52;
+        Thu,  7 Apr 2022 03:33:15 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 405A8153B;
-        Thu,  7 Apr 2022 03:33:00 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 1A46312FC;
+        Thu,  7 Apr 2022 03:33:15 -0700 (PDT)
 Received: from a077893.arm.com (unknown [10.163.36.112])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 545433F5A1;
-        Thu,  7 Apr 2022 03:32:55 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 4DF943F5A1;
+        Thu,  7 Apr 2022 03:33:11 -0700 (PDT)
 From:   Anshuman Khandual <anshuman.khandual@arm.com>
 To:     linux-mm@kvack.org, akpm@linux-foundation.org
 Cc:     Anshuman Khandual <anshuman.khandual@arm.com>,
         Christoph Hellwig <hch@infradead.org>,
         linuxppc-dev@lists.ozlabs.org,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Khalid Aziz <khalid.aziz@oracle.com>
-Subject: [PATCH V4 4/7] sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Date:   Thu,  7 Apr 2022 16:02:48 +0530
-Message-Id: <20220407103251.1209606-5-anshuman.khandual@arm.com>
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH V4 7/7] mm/mmap: Drop arch_vm_get_page_pgprot()
+Date:   Thu,  7 Apr 2022 16:02:51 +0530
+Message-Id: <20220407103251.1209606-8-anshuman.khandual@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220407103251.1209606-1-anshuman.khandual@arm.com>
 References: <20220407103251.1209606-1-anshuman.khandual@arm.com>
@@ -41,71 +39,47 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This defines and exports a platform specific custom vm_get_page_prot() via
-subscribing ARCH_HAS_VM_GET_PAGE_PROT. It localizes arch_vm_get_page_prot()
-as sparc_vm_get_page_prot() and moves near vm_get_page_prot().
+There are no platforms left which use arch_vm_get_page_prot(). Just drop
+generic arch_vm_get_page_prot().
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: sparclinux@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org
 Cc: linux-kernel@vger.kernel.org
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- arch/sparc/Kconfig            |  1 +
- arch/sparc/include/asm/mman.h |  6 ------
- arch/sparc/mm/init_64.c       | 13 +++++++++++++
- 3 files changed, 14 insertions(+), 6 deletions(-)
+ include/linux/mman.h | 4 ----
+ mm/mmap.c            | 3 +--
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-index 9200bc04701c..85b573643af6 100644
---- a/arch/sparc/Kconfig
-+++ b/arch/sparc/Kconfig
-@@ -84,6 +84,7 @@ config SPARC64
- 	select PERF_USE_VMALLOC
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select HAVE_C_RECORDMCOUNT
-+	select ARCH_HAS_VM_GET_PAGE_PROT
- 	select HAVE_ARCH_AUDITSYSCALL
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-diff --git a/arch/sparc/include/asm/mman.h b/arch/sparc/include/asm/mman.h
-index 274217e7ed70..af9c10c83dc5 100644
---- a/arch/sparc/include/asm/mman.h
-+++ b/arch/sparc/include/asm/mman.h
-@@ -46,12 +46,6 @@ static inline unsigned long sparc_calc_vm_prot_bits(unsigned long prot)
- 	}
- }
+diff --git a/include/linux/mman.h b/include/linux/mman.h
+index b66e91b8176c..58b3abd457a3 100644
+--- a/include/linux/mman.h
++++ b/include/linux/mman.h
+@@ -93,10 +93,6 @@ static inline void vm_unacct_memory(long pages)
+ #define arch_calc_vm_flag_bits(flags) 0
+ #endif
  
--#define arch_vm_get_page_prot(vm_flags) sparc_vm_get_page_prot(vm_flags)
--static inline pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
--{
--	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
--}
+-#ifndef arch_vm_get_page_prot
+-#define arch_vm_get_page_prot(vm_flags) __pgprot(0)
+-#endif
 -
- #define arch_validate_prot(prot, addr) sparc_validate_prot(prot, addr)
- static inline int sparc_validate_prot(unsigned long prot, unsigned long addr)
+ #ifndef arch_validate_prot
+ /*
+  * This is called from mprotect().  PROT_GROWSDOWN and PROT_GROWSUP have
+diff --git a/mm/mmap.c b/mm/mmap.c
+index edf2a5e38f4d..db7f33154206 100644
+--- a/mm/mmap.c
++++ b/mm/mmap.c
+@@ -110,8 +110,7 @@ pgprot_t protection_map[16] __ro_after_init = {
+ pgprot_t vm_get_page_prot(unsigned long vm_flags)
  {
-diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-index 8b1911591581..dcb17763c1f2 100644
---- a/arch/sparc/mm/init_64.c
-+++ b/arch/sparc/mm/init_64.c
-@@ -3184,3 +3184,16 @@ void copy_highpage(struct page *to, struct page *from)
- 	}
+ 	pgprot_t ret = __pgprot(pgprot_val(protection_map[vm_flags &
+-				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]) |
+-			pgprot_val(arch_vm_get_page_prot(vm_flags)));
++				(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]));
+ 
+ 	return ret;
  }
- EXPORT_SYMBOL(copy_highpage);
-+
-+static pgprot_t sparc_vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return (vm_flags & VM_SPARC_ADI) ? __pgprot(_PAGE_MCD_4V) : __pgprot(0);
-+}
-+
-+pgprot_t vm_get_page_prot(unsigned long vm_flags)
-+{
-+	return __pgprot(pgprot_val(protection_map[vm_flags &
-+			(VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]) |
-+			pgprot_val(sparc_vm_get_page_prot(vm_flags)));
-+}
-+EXPORT_SYMBOL(vm_get_page_prot);
 -- 
 2.25.1
 
