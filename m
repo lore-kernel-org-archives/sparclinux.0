@@ -2,73 +2,81 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DF4DC433EF
-	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 15:11:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBECBC433EF
+	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 15:16:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232033AbiDIPN5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 9 Apr 2022 11:13:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52728 "EHLO
+        id S242428AbiDIPSU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 9 Apr 2022 11:18:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39432 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbiDIPN5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 11:13:57 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80C33329A7;
-        Sat,  9 Apr 2022 08:11:49 -0700 (PDT)
+        with ESMTP id S242429AbiDIPSU (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 11:18:20 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2499D2632;
+        Sat,  9 Apr 2022 08:16:13 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description;
-        bh=j64UWVGLACOcUBS02FLv/L/l+9fAVMmfjcXAezhW5FY=; b=HeY5lvhxJDGexvXt4qVZBrH08D
-        QS38P6lzFmxWtI4U8z2gh66SUFYV9rHnO5xp1tB4mCGnVUmRUmSt0kd/WvtW7NcdI0xF7n6Y9w28L
-        /XIEO9wYLALdWjOK7I3bLJx3TLbjQlT4fqDowLcbaLDqjkghmBCFAhDjISzvoCySU5juO3SdI3fu2
-        4uaGQU5H7u5TrONzn+I40JJJntQ4eJwoaOwej/w/30pMWFAKxVLz8ODD2hkrbopUDyDI2w4gZiVI4
-        dnbwUoGCwNFACRiTInYixCxydCjno6Qf5OvG/ytawFkhfNCKh9R7NjM/Ps5hwEIciflNl8FqGknV1
-        ts3PGGGA==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1ndCkY-00AmG0-Ms; Sat, 09 Apr 2022 15:11:43 +0000
-Message-ID: <ea594b7a-22d5-ba39-6e83-921f98fa76a5@infradead.org>
-Date:   Sat, 9 Apr 2022 08:11:37 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH] sparc: cacheflush_32.h needs <linux/mm.h>
-Content-Language: en-US
-To:     Sam Ravnborg <sam@ravnborg.org>
-Cc:     linux-kernel@vger.kernel.org, kernel test robot <lkp@intel.com>,
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=DWJgIpccgAwiD7TVhNFpkZOWqtVX9h8FRKAluJQvIhU=; b=2GCyGWBHoZwI1xTAyiCq4XPl0x
+        omnN5J0sdbTSBIVxm207lFJBJ7pWbWs3HAIG1e9jzvELgpJfFHRa39UASiRTRTyP7UAYxk1TUbjut
+        /mjz+U2qbbJlwv04Yvuob96ouAT1exFqTYhMZ7WjWVFYaW4Hu3GevtEmk2ClMuQBddXygY0fB23lU
+        gjq4gb7jpW0mjGQBFWKAKBh90EJV294iCLv7mHfNKmr7cxHTcvWCkLpLn/m3lsGZJtsQumGCR0uiK
+        yZSo4zJpM5wEoFNYuMsARpjsf24+HxNYXkCk5evL6wdvvPgvadyxaihVQW9wBv9asWfU50IFA6tPO
+        Bndolyiw==;
+Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1ndCos-003O0g-NJ; Sat, 09 Apr 2022 15:16:10 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        kernel test robot <lkp@intel.com>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org
-References: <20220409060215.19890-1-rdunlap@infradead.org>
- <YlE54Cs0mi0WDPo7@ravnborg.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <YlE54Cs0mi0WDPo7@ravnborg.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Sam Ravnborg <sam@ravnborg.org>, sparclinux@vger.kernel.org
+Subject: [PATCH v2] sparc: cacheflush_32.h needs struct page
+Date:   Sat,  9 Apr 2022 08:16:09 -0700
+Message-Id: <20220409151609.3715-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.34.1
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Add a struct page forward declaration to cacheflush_32.h.
+Fixes this build warning:
 
+  CC      drivers/crypto/xilinx/zynqmp-sha.o
+In file included from ../arch/sparc/include/asm/cacheflush.h:11,
+                 from ../include/linux/cacheflush.h:5,
+                 from ../drivers/crypto/xilinx/zynqmp-sha.c:6:
+../arch/sparc/include/asm/cacheflush_32.h:38:37: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
+   38 | void sparc_flush_page_to_ram(struct page *page);
 
-On 4/9/22 00:46, Sam Ravnborg wrote:
-> Hi Randy,
-> 
-> On Fri, Apr 08, 2022 at 11:02:15PM -0700, Randy Dunlap wrote:
->> Add <linux/mm.h> to cacheflush_32.h just as in cacheflush_64.h.
-> 
-> Just add a forward declaration like this to fix it:
-> 
-> struct page;
-> 
-> No need to pull in a header file when a forward is enough.
+Exposed by commit 0e03b8fd2936
+("crypto: xilinx - Turn SHA into a tristate and allow COMPILE_TEST")
+but not Fixes: that commit.
 
-Sure, will do.
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: sparclinux@vger.kernel.org
+---
+v2: use forward declaration instead of adding <linux/mm.h> (Sam)
 
-> Maybe we could simplify sparc64 in a similar way, but that is another
-> patch and it may require extra work in other files anyway.
-> 
-> 	Sam
+ arch/sparc/include/asm/cacheflush_32.h |    1 +
+ 1 file changed, 1 insertion(+)
 
--- 
-~Randy
+--- a/arch/sparc/include/asm/cacheflush_32.h
++++ b/arch/sparc/include/asm/cacheflush_32.h
+@@ -35,6 +35,7 @@
+ #define flush_page_for_dma(addr) \
+ 	sparc32_cachetlb_ops->page_for_dma(addr)
+ 
++struct page;
+ void sparc_flush_page_to_ram(struct page *page);
+ 
+ #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
