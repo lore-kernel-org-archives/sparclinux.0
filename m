@@ -2,104 +2,79 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 943B9C4332F
-	for <sparclinux@archiver.kernel.org>; Fri,  8 Apr 2022 18:41:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF3AC433F5
+	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 06:02:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239043AbiDHSnH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 8 Apr 2022 14:43:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50896 "EHLO
+        id S234480AbiDIGEY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 9 Apr 2022 02:04:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237887AbiDHSm2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 8 Apr 2022 14:42:28 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7690190B77;
-        Fri,  8 Apr 2022 11:40:23 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F15360B4D;
-        Fri,  8 Apr 2022 18:40:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37DAEC385A3;
-        Fri,  8 Apr 2022 18:40:19 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="hw7ZM3DK"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1649443217;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=5p8HbWxOv/2pCcrFRIk5uy5GvnZxVWWqGCXEJeAr/VI=;
-        b=hw7ZM3DKXNV/PCbZ27tOsMmXRTiv/fRiwXtCpNB0Y95WzzR8bK+prKfASznhrt+sI6VYcP
-        JgT9H5GtkoA+jROggAq+JYownqGfREZ8MSGOuZKcJzf+CHaADipObRJFEs60xwyHJ1+hny
-        xsJ6FQ5svtLEpIhYOh3ZMRBXxb2C+BU=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 6baee431 (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
-        Fri, 8 Apr 2022 18:40:17 +0000 (UTC)
-Date:   Fri, 8 Apr 2022 20:40:08 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Mark Rutland <mark.rutland@arm.com>
-Cc:     linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        arnd@arndb.de, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
+        with ESMTP id S230012AbiDIGEX (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 02:04:23 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E135E3221C4;
+        Fri,  8 Apr 2022 23:02:17 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=smiL1RX2f47B2GeBUAyx7keJXXFGrb7ob2LG+/xBNFI=; b=jvs8++TGGZAgsbxLcoHOLjO8oS
+        BfbWVPaqAKJj638koajoDkn/RxfZ8EUjWykn/TZjLmYcCoJ7o4718GwOgV8dm4vLUi7yzI5YfAxie
+        TAZ/rE04176vOVYRkGV9pMrYvK3Lm4191XNwZzB9ThvkU3IJOZ0tnwrUatsbh9rYtkXizNfeg5Jwg
+        MyFekmSIUBRtI86+Dz2WPi+leNR0LVLo7nNOOckzJNyRx4XveFbehxl+rmvNwdCRrPkjdKVLi1E5S
+        UKhM4IgviInPehp/yDHteB8lElPlilgr67HRzmJCdLAK9LG/rxIqzRXhKFBJBby2iAodQAbLs3Wcd
+        FeNMFBYQ==;
+Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nd4Aq-002OJk-Ng; Sat, 09 Apr 2022 06:02:16 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        kernel test robot <lkp@intel.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
         "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, x86@kernel.org,
-        linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH RFC v1 07/10] arm64: use sched_clock() for
- random_get_entropy() instead of zero
-Message-ID: <YlCBiLIh5ZFqMr6X@zx2c4.com>
-References: <20220408182145.142506-1-Jason@zx2c4.com>
- <20220408182145.142506-8-Jason@zx2c4.com>
- <YlCAEaG4i/OuMKet@lakrids>
+        sparclinux@vger.kernel.org
+Subject: [PATCH] sparc: cacheflush_32.h needs <linux/mm.h>
+Date:   Fri,  8 Apr 2022 23:02:15 -0700
+Message-Id: <20220409060215.19890-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.34.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <YlCAEaG4i/OuMKet@lakrids>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Mark,
+Add <linux/mm.h> to cacheflush_32.h just as in cacheflush_64.h.
+Fixes this build warning:
 
-On Fri, Apr 08, 2022 at 07:33:53PM +0100, Mark Rutland wrote:
-> On Fri, Apr 08, 2022 at 08:21:42PM +0200, Jason A. Donenfeld wrote:
-> > In the event that random_get_entropy() can't access a cycle counter or
-> > similar, falling back to returning 0 is really not the best we can do.
-> > Instead, at least calling sched_clock() would be preferable, because
-> > that always needs to return _something_, even falling back to jiffies
-> > eventually. It's not as though sched_clock() is super high precision or
-> > guaranteed to be entropic, but basically anything that's not zero all
-> > the time is better than returning zero all the time.
-> > 
-> > If CONFIG_ARM_ARCH_TIMER=n, then get_cycles() will return 0, so we only
-> > need the fallback code for that case.
-> 
-> In arch/arm64/Kconfig we unconditionally select CONFIG_ARM_ARCH_TIMER,
-> so that configuration shouldn't be possible, and I don't think this
-> patch is necessary.
-> 
-> On arm64 we depend on the architected timer in a bunch of places, so
-> anyone hacking that out has bigger problems.
+  CC      drivers/crypto/xilinx/zynqmp-sha.o
+In file included from ../arch/sparc/include/asm/cacheflush.h:11,
+                 from ../include/linux/cacheflush.h:5,
+                 from ../drivers/crypto/xilinx/zynqmp-sha.c:6:
+../arch/sparc/include/asm/cacheflush_32.h:38:37: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
+   38 | void sparc_flush_page_to_ram(struct page *page);
 
-Thanks for the tip. I'll drop this patch from the series.
+Exposed by commit 0e03b8fd2936
+("crypto: xilinx - Turn SHA into a tristate and allow COMPILE_TEST")
+but not Fixes: that commit.
 
-Jason
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+---
+ arch/sparc/include/asm/cacheflush_32.h |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- a/arch/sparc/include/asm/cacheflush_32.h
++++ b/arch/sparc/include/asm/cacheflush_32.h
+@@ -2,6 +2,8 @@
+ #ifndef _SPARC_CACHEFLUSH_H
+ #define _SPARC_CACHEFLUSH_H
+ 
++#include <linux/mm.h>
++
+ #include <asm/cachetlb_32.h>
+ 
+ #define flush_cache_all() \
