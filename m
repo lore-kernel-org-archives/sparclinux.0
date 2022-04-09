@@ -2,79 +2,60 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF3AC433F5
-	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 06:02:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED7FDC433F5
+	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 07:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234480AbiDIGEY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 9 Apr 2022 02:04:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53692 "EHLO
+        id S233132AbiDIHt7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 9 Apr 2022 03:49:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51302 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230012AbiDIGEX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 02:04:23 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E135E3221C4;
-        Fri,  8 Apr 2022 23:02:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=smiL1RX2f47B2GeBUAyx7keJXXFGrb7ob2LG+/xBNFI=; b=jvs8++TGGZAgsbxLcoHOLjO8oS
-        BfbWVPaqAKJj638koajoDkn/RxfZ8EUjWykn/TZjLmYcCoJ7o4718GwOgV8dm4vLUi7yzI5YfAxie
-        TAZ/rE04176vOVYRkGV9pMrYvK3Lm4191XNwZzB9ThvkU3IJOZ0tnwrUatsbh9rYtkXizNfeg5Jwg
-        MyFekmSIUBRtI86+Dz2WPi+leNR0LVLo7nNOOckzJNyRx4XveFbehxl+rmvNwdCRrPkjdKVLi1E5S
-        UKhM4IgviInPehp/yDHteB8lElPlilgr67HRzmJCdLAK9LG/rxIqzRXhKFBJBby2iAodQAbLs3Wcd
-        FeNMFBYQ==;
-Received: from [2601:1c0:6280:3f0::aa0b] (helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nd4Aq-002OJk-Ng; Sat, 09 Apr 2022 06:02:16 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        kernel test robot <lkp@intel.com>,
+        with ESMTP id S230171AbiDIHt7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 03:49:59 -0400
+X-Greylist: delayed 62 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 09 Apr 2022 00:47:51 PDT
+Received: from mx1.smtp.larsendata.com (mx1.smtp.larsendata.com [91.221.196.215])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D43F30462F
+        for <sparclinux@vger.kernel.org>; Sat,  9 Apr 2022 00:47:49 -0700 (PDT)
+Received: from mail01.mxhotel.dk (mail01.mxhotel.dk [91.221.196.236])
+        by mx1.smtp.larsendata.com (Halon) with ESMTPS
+        id 360b3d46-b7d9-11ec-8da1-0050568c148b;
+        Sat, 09 Apr 2022 07:46:48 +0000 (UTC)
+Received: from ravnborg.org (80-162-45-141-cable.dk.customer.tdc.net [80.162.45.141])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        (Authenticated sender: sam@ravnborg.org)
+        by mail01.mxhotel.dk (Postfix) with ESMTPSA id 0087E194B3E;
+        Sat,  9 Apr 2022 09:46:46 +0200 (CEST)
+Date:   Sat, 9 Apr 2022 09:46:40 +0200
+X-Report-Abuse-To: abuse@mxhotel.dk
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     linux-kernel@vger.kernel.org, kernel test robot <lkp@intel.com>,
         Herbert Xu <herbert@gondor.apana.org.au>,
         "David S . Miller" <davem@davemloft.net>,
         sparclinux@vger.kernel.org
-Subject: [PATCH] sparc: cacheflush_32.h needs <linux/mm.h>
-Date:   Fri,  8 Apr 2022 23:02:15 -0700
-Message-Id: <20220409060215.19890-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.34.1
+Subject: Re: [PATCH] sparc: cacheflush_32.h needs <linux/mm.h>
+Message-ID: <YlE54Cs0mi0WDPo7@ravnborg.org>
+References: <20220409060215.19890-1-rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220409060215.19890-1-rdunlap@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Add <linux/mm.h> to cacheflush_32.h just as in cacheflush_64.h.
-Fixes this build warning:
+Hi Randy,
 
-  CC      drivers/crypto/xilinx/zynqmp-sha.o
-In file included from ../arch/sparc/include/asm/cacheflush.h:11,
-                 from ../include/linux/cacheflush.h:5,
-                 from ../drivers/crypto/xilinx/zynqmp-sha.c:6:
-../arch/sparc/include/asm/cacheflush_32.h:38:37: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
-   38 | void sparc_flush_page_to_ram(struct page *page);
+On Fri, Apr 08, 2022 at 11:02:15PM -0700, Randy Dunlap wrote:
+> Add <linux/mm.h> to cacheflush_32.h just as in cacheflush_64.h.
 
-Exposed by commit 0e03b8fd2936
-("crypto: xilinx - Turn SHA into a tristate and allow COMPILE_TEST")
-but not Fixes: that commit.
+Just add a forward declaration like this to fix it:
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- arch/sparc/include/asm/cacheflush_32.h |    2 ++
- 1 file changed, 2 insertions(+)
+struct page;
 
---- a/arch/sparc/include/asm/cacheflush_32.h
-+++ b/arch/sparc/include/asm/cacheflush_32.h
-@@ -2,6 +2,8 @@
- #ifndef _SPARC_CACHEFLUSH_H
- #define _SPARC_CACHEFLUSH_H
- 
-+#include <linux/mm.h>
-+
- #include <asm/cachetlb_32.h>
- 
- #define flush_cache_all() \
+No need to pull in a header file when a forward is enough.
+
+Maybe we could simplify sparc64 in a similar way, but that is another
+patch and it may require extra work in other files anyway.
+
+	Sam
