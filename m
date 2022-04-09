@@ -2,83 +2,144 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAB91C433F5
-	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 18:05:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CABAC4332F
+	for <sparclinux@archiver.kernel.org>; Sat,  9 Apr 2022 23:29:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242962AbiDISHU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 9 Apr 2022 14:07:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34820 "EHLO
+        id S232995AbiDIXbp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 9 Apr 2022 19:31:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242953AbiDISHU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 14:07:20 -0400
-Received: from mx1.smtp.larsendata.com (mx1.smtp.larsendata.com [91.221.196.215])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EFFF192B3
-        for <sparclinux@vger.kernel.org>; Sat,  9 Apr 2022 11:05:11 -0700 (PDT)
-Received: from mail01.mxhotel.dk (mail01.mxhotel.dk [91.221.196.236])
-        by mx1.smtp.larsendata.com (Halon) with ESMTPS
-        id 9aa8bf1d-b82f-11ec-8da1-0050568c148b;
-        Sat, 09 Apr 2022 18:05:13 +0000 (UTC)
-Received: from ravnborg.org (80-162-45-141-cable.dk.customer.tdc.net [80.162.45.141])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        (Authenticated sender: sam@ravnborg.org)
-        by mail01.mxhotel.dk (Postfix) with ESMTPSA id 915E1194B94;
-        Sat,  9 Apr 2022 20:05:12 +0200 (CEST)
-Date:   Sat, 9 Apr 2022 20:05:06 +0200
-X-Report-Abuse-To: abuse@mxhotel.dk
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-kernel@vger.kernel.org, kernel test robot <lkp@intel.com>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
+        with ESMTP id S231228AbiDIXbo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 9 Apr 2022 19:31:44 -0400
+Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5FEDCDEE;
+        Sat,  9 Apr 2022 16:29:36 -0700 (PDT)
+From:   Thomas Gleixner <tglx@linutronix.de>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020; t=1649546972;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Ht/BjZKfEwbNRvmZyePyMT+aylBpF12k4dVD0rKNtw8=;
+        b=AuRq0wCtYXKcm0ryJ67Fp/GBt6cO3SpVd7CkUPfzGNUT87YnBYIl6wooRCxo0V2LKVufAe
+        WruAMWs3kz06ZmLlyY2BfPNF+Mn3kMGDmBnqUAIeDdyFzC3xXyK9l5c1+wSdGQ03tVQfPJ
+        RV4AhVLGmS0YZcCYNSYMlG1vu/XcNd7tscR4pyhRiCZYkA/IYnCAHheqwKo1LRtrkVRuS0
+        9WKJUAPO4GRrNkF5PYwAo6aRPKyz3ID7dl7/kd4fGzDwHM3O+aAEkPYVddEU86X1kEeGN7
+        ochLJcl/0cW+kNW7GARWG+dZDnaeEFAyMnCOj52aFtVrAyVaSbB6B5xsdlKXaQ==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
+        s=2020e; t=1649546972;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=Ht/BjZKfEwbNRvmZyePyMT+aylBpF12k4dVD0rKNtw8=;
+        b=vUyIxyQVS1fiHfbV4PIICFMXMOmWDlpsE1+vbv1Qj49gakWkhrvZAc3R+9XH7ZlvihGyvm
+        qbHedOcHogR2iNAA==
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        arnd@arndb.de
+Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        Theodore Ts'o <tytso@mit.edu>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
         "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v2] sparc: cacheflush_32.h needs struct page
-Message-ID: <YlHK0rHVcppQSG8L@ravnborg.org>
-References: <20220409151609.3715-1-rdunlap@infradead.org>
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, x86@kernel.org,
+        linux-xtensa@linux-xtensa.org
+Subject: Re: [PATCH RFC v1 00/10] archs/random: fallback to using
+ sched_clock() if no cycle counter
+In-Reply-To: <20220408182145.142506-1-Jason@zx2c4.com>
+References: <20220408182145.142506-1-Jason@zx2c4.com>
+Date:   Sun, 10 Apr 2022 01:29:32 +0200
+Message-ID: <87wnfxhm3n.ffs@tglx>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220409151609.3715-1-rdunlap@infradead.org>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Apr 09, 2022 at 08:16:09AM -0700, Randy Dunlap wrote:
-> Add a struct page forward declaration to cacheflush_32.h.
-> Fixes this build warning:
-> 
->   CC      drivers/crypto/xilinx/zynqmp-sha.o
-> In file included from ../arch/sparc/include/asm/cacheflush.h:11,
->                  from ../include/linux/cacheflush.h:5,
->                  from ../drivers/crypto/xilinx/zynqmp-sha.c:6:
-> ../arch/sparc/include/asm/cacheflush_32.h:38:37: warning: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration
->    38 | void sparc_flush_page_to_ram(struct page *page);
-> 
-> Exposed by commit 0e03b8fd2936
-> ("crypto: xilinx - Turn SHA into a tristate and allow COMPILE_TEST")
-> but not Fixes: that commit.
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Reported-by: kernel test robot <lkp@intel.com>
-> Cc: Herbert Xu <herbert@gondor.apana.org.au>
-> Cc: David S. Miller <davem@davemloft.net>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-> Cc: sparclinux@vger.kernel.org
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Jason,
 
-> ---
-> v2: use forward declaration instead of adding <linux/mm.h> (Sam)
-> 
->  arch/sparc/include/asm/cacheflush_32.h |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> --- a/arch/sparc/include/asm/cacheflush_32.h
-> +++ b/arch/sparc/include/asm/cacheflush_32.h
-> @@ -35,6 +35,7 @@
->  #define flush_page_for_dma(addr) \
->  	sparc32_cachetlb_ops->page_for_dma(addr)
->  
-> +struct page;
->  void sparc_flush_page_to_ram(struct page *page);
->  
->  #define ARCH_IMPLEMENTS_FLUSH_DCACHE_PAGE 1
+On Fri, Apr 08 2022 at 20:21, Jason A. Donenfeld wrote:
+> Sometimes the next best thing is architecture-defined. For example,
+> really old MIPS has the CP0 random register, which isn't a cycle
+> counter, but is at least something. However, some platforms don't even
+> have an architecture-defined fallback. In that case, what are we left
+> with?
+>
+> By my first guess, we have ktime_get_boottime_ns(), jiffies, and
+> sched_clock(). It seems like sched_clock() has already done a lot of
+> work in being always available with some incrementing value, falling
+> back to jiffies as necessary. So this series goes with that as a
+> fallback, for when the architecture doesn't define random_get_entropy in
+> its own way and when there's no working cycle counter.
+
+sched_clock() is a halfways sane option, but yes as Arnd pointed out:
+
+> Another option would be falling back to different things on different
+> platforms. For example, Arnd mentioned to me that on m68k,
+> ktime_get_ns() might be better than sched_clock(), because it doesn't
+> use CONFIG_GENERIC_SCHED_CLOCK and therefore is only as good as
+> jiffies.
+
+ktime_get_ns() or the slightly faster variant ktime_get_mono_fast_ns()
+are usable. In the worst case they are jiffies driven too, but systems
+with jiffies clocksource are pretty much museum pieces.
+
+It's slightly slower than get_cycles() and a get_cyles() based
+sched_clock(), but you get the most granular clock of the platform
+automatically, which has it's charm too :)
+
+The bad news is that depending on the clocksource frequency the lower
+bits might never change. Always true for clocksource jiffies.
+sched_clock() has the same issue.
+
+But the below uncompiled hack gives you access to the 'best' clocksource
+of a machine, i.e. the one which the platform decided to be the one
+which is giving the best resolution. The minimal bitwidth of that is
+AFAICT 20 bits. In the jiffies case this will at least advance every
+tick.
+
+The price, e.g. on x86 would be that RDTSC would be invoked via an
+indirect function call. Not the end of the world...
+
+Thanks,
+
+        tglx
+---
+--- a/kernel/time/timekeeping.c
++++ b/kernel/time/timekeeping.c
+@@ -646,6 +646,11 @@ static void halt_fast_timekeeper(const s
+ 	update_fast_timekeeper(&tkr_dummy, &tk_fast_raw);
+ }
+ 
++u32 ktime_read_raw_clock(void)
++{
++	return tk_clock_read(&tk_core.timekeeper.tkr_mono);
++}
++
+ static RAW_NOTIFIER_HEAD(pvclock_gtod_chain);
+ 
+ static void update_pvclock_gtod(struct timekeeper *tk, bool was_set)
+
+
+
+
+
