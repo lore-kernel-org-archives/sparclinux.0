@@ -2,82 +2,93 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD8C7C433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 10:42:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4889EC433F5
+	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 18:15:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241681AbiDKKoZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 11 Apr 2022 06:44:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58784 "EHLO
+        id S231782AbiDKSRk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 11 Apr 2022 14:17:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231744AbiDKKoY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 06:44:24 -0400
-Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B3D3F32B
-        for <sparclinux@vger.kernel.org>; Mon, 11 Apr 2022 03:42:10 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:b509:6862:2557:437a])
-        by laurent.telenet-ops.be with bizsmtp
-        id HNi82700A1G7NMJ01Ni8NX; Mon, 11 Apr 2022 12:42:08 +0200
-Received: from geert (helo=localhost)
-        by ramsan.of.borg with local-esmtp (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1ndrUl-000A17-WE; Mon, 11 Apr 2022 12:42:08 +0200
-Date:   Mon, 11 Apr 2022 12:42:07 +0200 (CEST)
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-X-X-Sender: geert@ramsan.of.borg
-To:     linux-kernel@vger.kernel.org
-cc:     Felix Fietkau <nbd@nbd.name>,
+        with ESMTP id S234426AbiDKSRj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 14:17:39 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3270317053;
+        Mon, 11 Apr 2022 11:15:25 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D3DCDB817F3;
+        Mon, 11 Apr 2022 18:15:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1223BC385A4;
+        Mon, 11 Apr 2022 18:15:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1649700922;
+        bh=HR43g8dQZ+Bf1PK6RXmGBq51cAbYP3qPfOsUCTcQM/s=;
+        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
+        b=b+6SlUL0MNqNciSMHvizcaqgsproBh8RhlWrywElPTDdbV1yOn8Zrs4jEcudwNKXI
+         wdMeh7ZImEiqzpvQ1H8RJF2+sik10SHDXdFdJIDem06V78JydjbMDlguteVmZrg8D6
+         Pv80MSf+tS+Yx5ackjJmg+UYHe8ZxASKeqzExZvDBD/uofO/lyNE7HpXqaKjKVvC6N
+         lfF5t1HkHQDh+aETqbWcSWVhe2D+83gopjZ2390ofgnXFzUnzUi6SCFDla3OXUNd3F
+         CCG04moCR8SQ7otnfw0kkZpFgspQAwC09VPPZeC/h1MHUNzVN0hipMxjQU2lmikb5e
+         7iOopVVL7QrNg==
+From:   Kalle Valo <kvalo@kernel.org>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     linux-kernel@vger.kernel.org, Felix Fietkau <nbd@nbd.name>,
         Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>,
         Ryder Lee <ryder.lee@mediatek.com>, sparclinux@vger.kernel.org,
         linux-wireless@vger.kernel.org
 Subject: Re: Build regressions/improvements in v5.18-rc2
-In-Reply-To: <20220411103528.2187797-1-geert@linux-m68k.org>
-Message-ID: <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
-References: <CAHk-=wh0+DYC2+Aeu2=vfUtGaDqVuKxKrxyhwQFoG89rcynzww@mail.gmail.com> <20220411103528.2187797-1-geert@linux-m68k.org>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+References: <CAHk-=wh0+DYC2+Aeu2=vfUtGaDqVuKxKrxyhwQFoG89rcynzww@mail.gmail.com>
+        <20220411103528.2187797-1-geert@linux-m68k.org>
+        <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
+Date:   Mon, 11 Apr 2022 21:15:16 +0300
+In-Reply-To: <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg> (Geert
+        Uytterhoeven's message of "Mon, 11 Apr 2022 12:42:07 +0200 (CEST)")
+Message-ID: <87zgkrqyff.fsf@tynnyri.adurom.net>
+User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 11 Apr 2022, Geert Uytterhoeven wrote:
-> JFYI, when comparing v5.18-rc2[1] to v5.18-rc1[3], the summaries are:
->  - build warnings: +23/-0
+Geert Uytterhoeven <geert@linux-m68k.org> writes:
 
-   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list [-Werror]:  => 38:37
-   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: its scope is only this definition or declaration, which is probably not what you want [-Werror]:  => 38:37
+> On Mon, 11 Apr 2022, Geert Uytterhoeven wrote:
+>> JFYI, when comparing v5.18-rc2[1] to v5.18-rc1[3], the summaries are:
+>>  - build warnings: +23/-0
+>
+>   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list [-Werror]:  => 38:37
+>   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: its scope is only this definition or declaration, which is probably not what you want [-Werror]:  => 38:37
+>
+> sparc64/sparc-allmodconfig
+>
+>   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1639:13, 1756:13
+>   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1662:29, 1674:29
+>   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1767:21
+>   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1741:29, 1726:29
+>   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int,  long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1711:29, 1694:29
+>
+> sparc64-gcc11/sparc-allmodconfig
+>
+>   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_491' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
+>   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
+>
+> mipsel/mips-allmodconfig
+> arm64-gcc5.4/arm64-allmodconfig
+>
+> Actual error is:
+>
+>     /kisskb/src/drivers/net/wireless/mediatek/mt76/mt76x2/pci.c: In function 'mt76x2e_probe':
+>     /kisskb/src/include/linux/compiler_types.h:352:38: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant
 
-sparc64/sparc-allmodconfig
+Does this commit fix it:
 
-   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1639:13, 1756:13
-   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1662:29, 1674:29
-   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1767:21
-   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1741:29, 1726:29
-   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int,  long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1711:29, 1694:29
+https://git.kernel.org/pub/scm/linux/kernel/git/wireless/wireless.git/commit/?id=dbc2b1764734857d68425468ffa8486e97ab89df
 
-sparc64-gcc11/sparc-allmodconfig
+Or is this another issue?
 
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_491' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
-   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
+-- 
+https://patchwork.kernel.org/project/linux-wireless/list/
 
-mipsel/mips-allmodconfig
-arm64-gcc5.4/arm64-allmodconfig
-
-Actual error is:
-
-     /kisskb/src/drivers/net/wireless/mediatek/mt76/mt76x2/pci.c: In function 'mt76x2e_probe':
-     /kisskb/src/include/linux/compiler_types.h:352:38: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant
-
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/ce522ba9ef7e2d9fb22a39eb3371c0c64e2a433e/ (all 96 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/3123109284176b1532874591f7c81f3837bbdc17/ (all 96 configs)
-
-Gr{oetje,eeting}s,
-
- 						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
+https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
