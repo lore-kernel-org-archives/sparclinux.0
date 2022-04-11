@@ -2,93 +2,117 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4889EC433F5
-	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 18:15:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DAA3C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 22:13:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231782AbiDKSRk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 11 Apr 2022 14:17:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54970 "EHLO
+        id S231709AbiDKWPb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 11 Apr 2022 18:15:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234426AbiDKSRj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 14:17:39 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3270317053;
-        Mon, 11 Apr 2022 11:15:25 -0700 (PDT)
+        with ESMTP id S229678AbiDKWPa (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 18:15:30 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0B49162E8;
+        Mon, 11 Apr 2022 15:13:15 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D3DCDB817F3;
-        Mon, 11 Apr 2022 18:15:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1223BC385A4;
-        Mon, 11 Apr 2022 18:15:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1649700922;
-        bh=HR43g8dQZ+Bf1PK6RXmGBq51cAbYP3qPfOsUCTcQM/s=;
-        h=From:To:Cc:Subject:References:Date:In-Reply-To:From;
-        b=b+6SlUL0MNqNciSMHvizcaqgsproBh8RhlWrywElPTDdbV1yOn8Zrs4jEcudwNKXI
-         wdMeh7ZImEiqzpvQ1H8RJF2+sik10SHDXdFdJIDem06V78JydjbMDlguteVmZrg8D6
-         Pv80MSf+tS+Yx5ackjJmg+UYHe8ZxASKeqzExZvDBD/uofO/lyNE7HpXqaKjKVvC6N
-         lfF5t1HkHQDh+aETqbWcSWVhe2D+83gopjZ2390ofgnXFzUnzUi6SCFDla3OXUNd3F
-         CCG04moCR8SQ7otnfw0kkZpFgspQAwC09VPPZeC/h1MHUNzVN0hipMxjQU2lmikb5e
-         7iOopVVL7QrNg==
-From:   Kalle Valo <kvalo@kernel.org>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     linux-kernel@vger.kernel.org, Felix Fietkau <nbd@nbd.name>,
-        Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>,
-        Ryder Lee <ryder.lee@mediatek.com>, sparclinux@vger.kernel.org,
-        linux-wireless@vger.kernel.org
-Subject: Re: Build regressions/improvements in v5.18-rc2
-References: <CAHk-=wh0+DYC2+Aeu2=vfUtGaDqVuKxKrxyhwQFoG89rcynzww@mail.gmail.com>
-        <20220411103528.2187797-1-geert@linux-m68k.org>
-        <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
-Date:   Mon, 11 Apr 2022 21:15:16 +0300
-In-Reply-To: <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg> (Geert
-        Uytterhoeven's message of "Mon, 11 Apr 2022 12:42:07 +0200 (CEST)")
-Message-ID: <87zgkrqyff.fsf@tynnyri.adurom.net>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/26.1 (gnu/linux)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 97EE76173E;
+        Mon, 11 Apr 2022 22:13:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6C231C385A3;
+        Mon, 11 Apr 2022 22:13:13 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="KybX01zY"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1649715191;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=gSudnh1FVwn/cRuaWERLZCgg6VCPqB/kIypq5KjigTQ=;
+        b=KybX01zYWKByBGHHcfMAmavnP7L0p3jg7aV2fmW50XiFpz7B1LAEyJXHq3V4iRh7NnrsVG
+        WlIHJ9f0wTZy8WOOgmyYrCIi8QNK9nY17FyQTt9LA8IcFXu4dkJkUI/J2c7LyuJha0Ot6K
+        tj5LHYp+jIpnZFZ/H9s4FciDdH7BJ7o=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 43c1faab (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
+        Mon, 11 Apr 2022 22:13:10 +0000 (UTC)
+Received: by mail-yb1-xb2a.google.com with SMTP id p65so11704866ybp.9;
+        Mon, 11 Apr 2022 15:13:10 -0700 (PDT)
+X-Gm-Message-State: AOAM531o3aMtHXCKOjNg5ZH62+QRpI2yDLO1zJgtX3N5nGdsMGVgt6jA
+        1CxTuqgqwJRJjIifKG5V2sqCHa2KYEntwdUMm64=
+X-Google-Smtp-Source: ABdhPJyrbHcZ7X1J23rQnANqA3RR06u0ZM3R7CT8etsKwGDR+r4LAk7JuXL3JmvpUSxPvBr0OEr8z3kykwSI+XeJazE=
+X-Received: by 2002:a5b:6cf:0:b0:61e:1371:3cda with SMTP id
+ r15-20020a5b06cf000000b0061e13713cdamr24066153ybq.235.1649714889427; Mon, 11
+ Apr 2022 15:08:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+References: <20220410214951.55294-1-Jason@zx2c4.com> <20220410214951.55294-4-Jason@zx2c4.com>
+ <87sfqkf2y1.ffs@tglx>
+In-Reply-To: <87sfqkf2y1.ffs@tglx>
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date:   Tue, 12 Apr 2022 00:07:58 +0200
+X-Gmail-Original-Message-ID: <CAHmME9qU7x3=KsjfH0qDW=isdcGxTweHbssvshYxkV5iHpamGw@mail.gmail.com>
+Message-ID: <CAHmME9qU7x3=KsjfH0qDW=isdcGxTweHbssvshYxkV5iHpamGw@mail.gmail.com>
+Subject: Re: [PATCH v2 03/11] m68k: use ktime_read_raw_clock() for
+ random_get_entropy() instead of zero
+To:     Thomas Gleixner <tglx@linutronix.de>
+Cc:     LKML <linux-kernel@vger.kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, "Theodore Ts'o" <tytso@mit.edu>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-m68k <linux-m68k@lists.linux-m68k.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Geert Uytterhoeven <geert@linux-m68k.org> writes:
+Hi Thomas,
 
-> On Mon, 11 Apr 2022, Geert Uytterhoeven wrote:
->> JFYI, when comparing v5.18-rc2[1] to v5.18-rc1[3], the summaries are:
->>  - build warnings: +23/-0
+On Mon, Apr 11, 2022 at 10:18 AM Thomas Gleixner <tglx@linutronix.de> wrote:
+> > diff --git a/arch/m68k/include/asm/timex.h b/arch/m68k/include/asm/timex.h
+> > index 6a21d9358280..5351b10e1b18 100644
+> > --- a/arch/m68k/include/asm/timex.h
+> > +++ b/arch/m68k/include/asm/timex.h
+> > @@ -35,7 +35,7 @@ static inline unsigned long random_get_entropy(void)
+> >  {
+> >       if (mach_random_get_entropy)
+> >               return mach_random_get_entropy();
+> > -     return 0;
+> > +     return ktime_read_raw_clock();
 >
->   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list [-Werror]:  => 38:37
->   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: its scope is only this definition or declaration, which is probably not what you want [-Werror]:  => 38:37
+> I'd rather do something like this in a common header:
 >
-> sparc64/sparc-allmodconfig
+> unsigned long random_get_entropy_fallback(void);
 >
->   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1639:13, 1756:13
->   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1662:29, 1674:29
->   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct mm_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1767:21
->   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1741:29, 1726:29
->   + /kisskb/src/arch/sparc/mm/srmmu.c: error: cast between incompatible function types from 'void (*)(struct vm_area_struct *, long unsigned int,  long unsigned int)' to 'void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)' [-Werror=cast-function-type]:  => 1711:29, 1694:29
+> and use random_get_entropy_fallback() in the architecture specific
+> files.
 >
-> sparc64-gcc11/sparc-allmodconfig
->
->   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_491' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
->   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
->
-> mipsel/mips-allmodconfig
-> arm64-gcc5.4/arm64-allmodconfig
->
-> Actual error is:
->
->     /kisskb/src/drivers/net/wireless/mediatek/mt76/mt76x2/pci.c: In function 'mt76x2e_probe':
->     /kisskb/src/include/linux/compiler_types.h:352:38: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant
+> That way you can encapsulate the fallback implementation in the random
+> code and if it turns out that ktime_read_raw_clock() is a stupid idea or
+> someone has a better idea then you have to change exactly one place and
+> not patch the whole tree again.
 
-Does this commit fix it:
+Absolutely. That's a good idea. I'll do that for v3.
 
-https://git.kernel.org/pub/scm/linux/kernel/git/wireless/wireless.git/commit/?id=dbc2b1764734857d68425468ffa8486e97ab89df
-
-Or is this another issue?
-
--- 
-https://patchwork.kernel.org/project/linux-wireless/list/
-
-https://wireless.wiki.kernel.org/en/developers/documentation/submittingpatches
+Jason
