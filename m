@@ -2,138 +2,196 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 734C0C433EF
-	for <sparclinux@archiver.kernel.org>; Sun, 10 Apr 2022 23:29:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 95A1DC433F5
+	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 05:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244117AbiDJXcC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 10 Apr 2022 19:32:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50622 "EHLO
+        id S244749AbiDKFcw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 11 Apr 2022 01:32:52 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45372 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244097AbiDJXb6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 10 Apr 2022 19:31:58 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C777388A;
-        Sun, 10 Apr 2022 16:29:46 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 24292B80ED0;
-        Sun, 10 Apr 2022 23:29:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33EE0C385AF;
-        Sun, 10 Apr 2022 23:29:43 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="T+/wTaHc"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1649633377;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=xT3So0usAoJxQ304XiPl75pb1sVc2oURXduYIBIz2jE=;
-        b=T+/wTaHckzJ1yi9n18/aTKAeLDhUWcDKUUUzZZOIGQxb4DDVniAS+idsrm7lbhQI/7eA6P
-        J5QGkKn2LtWrfmW3EoarbonYr3SYC8tOSo/9LeG3rCsjZKd8Bc6qUh6p3IRxIr2nvx6uAE
-        mgYvVTuC2Hwwa1x7HaPwVOOujBO2LwI=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 738dd6de (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
-        Sun, 10 Apr 2022 23:29:37 +0000 (UTC)
-Received: by mail-yw1-f180.google.com with SMTP id 00721157ae682-2ebf3746f87so53227687b3.6;
-        Sun, 10 Apr 2022 16:29:36 -0700 (PDT)
-X-Gm-Message-State: AOAM5325qp1FTjGUo9P2tsv3GDdWU9h5X1GXf2+l1QkWgIBAD4AZe84r
-        ghHXSrQG2U7VSQ9vWFFfH9QjBmFpLfZpS0yw9is=
-X-Google-Smtp-Source: ABdhPJyBO6AKhupquz7e2wxSHr1eLUo0K1GhDFMIDJNkDGyTIn23DuFzdaauI+vZ7nL7liNEn+igem8NUaNiYqzOtLk=
-X-Received: by 2002:a81:1e81:0:b0:2eb:cdd3:20ee with SMTP id
- e123-20020a811e81000000b002ebcdd320eemr14046908ywe.396.1649633374899; Sun, 10
- Apr 2022 16:29:34 -0700 (PDT)
+        with ESMTP id S230020AbiDKFcv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 01:32:51 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 5A6F22983C;
+        Sun, 10 Apr 2022 22:30:36 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id DFB65ED1;
+        Sun, 10 Apr 2022 22:30:35 -0700 (PDT)
+Received: from [10.163.38.140] (unknown [10.163.38.140])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 4C0853F5A1;
+        Sun, 10 Apr 2022 22:30:31 -0700 (PDT)
+Message-ID: <90cea600-74b8-6c05-b698-23dba01e4889@arm.com>
+Date:   Mon, 11 Apr 2022 11:01:06 +0530
 MIME-Version: 1.0
-Received: by 2002:a05:7110:a28:b0:173:f33c:dee9 with HTTP; Sun, 10 Apr 2022
- 16:29:34 -0700 (PDT)
-In-Reply-To: <YlNiOunUd5xfQiSL@sol.localdomain>
-References: <20220408182145.142506-1-Jason@zx2c4.com> <YlNiOunUd5xfQiSL@sol.localdomain>
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-Date:   Mon, 11 Apr 2022 01:29:34 +0200
-X-Gmail-Original-Message-ID: <CAHmME9quorveHN-z=n4r_gfj8ShEfprXcTvsc7bYj9_caxx7sg@mail.gmail.com>
-Message-ID: <CAHmME9quorveHN-z=n4r_gfj8ShEfprXcTvsc7bYj9_caxx7sg@mail.gmail.com>
-Subject: Re: [PATCH RFC v1 00/10] archs/random: fallback to using
- sched_clock() if no cycle counter
-To:     Eric Biggers <ebiggers@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        arnd@arndb.de, "Theodore Ts'o" <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, x86@kernel.org,
-        linux-xtensa@linux-xtensa.org
-Content-Type: text/plain; charset="UTF-8"
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: [PATCH V4 2/7] powerpc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Content-Language: en-US
+To:     Christophe Leroy <christophe.leroy@csgroup.eu>, linux-mm@kvack.org,
+        akpm@linux-foundation.org
+Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Christoph Hellwig <hch@infradead.org>,
+        Paul Mackerras <paulus@samba.org>, sparclinux@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-arm-kernel@lists.infradead.org
+References: <20220407103251.1209606-1-anshuman.khandual@arm.com>
+ <20220407103251.1209606-3-anshuman.khandual@arm.com>
+ <e860f404-af69-aebc-c5eb-8822a585e653@csgroup.eu>
+ <8f1d5ba5-c03e-d222-ffc0-d9a6baea1037@csgroup.eu>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+In-Reply-To: <8f1d5ba5-c03e-d222-ffc0-d9a6baea1037@csgroup.eu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Eric,
 
-On 4/11/22, Eric Biggers <ebiggers@kernel.org> wrote:
-> On Fri, Apr 08, 2022 at 08:21:35PM +0200, Jason A. Donenfeld wrote:
->> By my first guess, we have ktime_get_boottime_ns(), jiffies, and
->> sched_clock(). It seems like sched_clock() has already done a lot of
->> work in being always available with some incrementing value, falling
->> back to jiffies as necessary. So this series goes with that as a
->> fallback, for when the architecture doesn't define random_get_entropy in
->> its own way and when there's no working cycle counter.
->
-> Won't this interact badly with how try_to_generate_entropy() (a.k.a. the
-> "Linus
-> Jitter Dance") detects the presence of an appropriate timer currently?
->
->         stack.cycles = random_get_entropy();
->
->         /* Slow counter - or none. Don't even bother */
->         if (stack.cycles == random_get_entropy())
->                 return;
->
-> So if random_get_entropy() always returns 0, then try_to_generate_entropy()
-> won't run.  However, if random_get_entropy() is even just a low-precision
-> timer,
-> then try_to_generate_entropy() will have a chance of running, since the
-> timer
-> might change between the two calls to random_get_entropy().  And if
-> try_to_generate_entropy() does run, then it credits 1 bit of entropy for
-> every
-> iteration, regardless of the timer's precision.
->
-> This is an existing problem, but this patchset will make it worse, as it
-> changes
-> a lot of cases from "no timer" to "low precision timer".
->
-> Perhaps try_to_generate_entropy() should check the timer at least 3 times
-> and
-> verify that it changed each time?
 
-What you've identified is actually already the case for platforms
-where the cycle counter is already just slow (and there are a few such
-platforms; my odroid C2 even exhibits this). As you identified, the
-cycle counter might already be too slow, yet we get [un]lucky and
-reach this code right on the cusp or a change.
+On 4/9/22 17:06, Christophe Leroy wrote:
+> 
+> 
+> Le 08/04/2022 à 14:53, Christophe Leroy a écrit :
+>>
+>>
+>> Le 07/04/2022 à 12:32, Anshuman Khandual a écrit :
+>>> This defines and exports a platform specific custom vm_get_page_prot() via
+>>> subscribing ARCH_HAS_VM_GET_PAGE_PROT. While here, this also localizes
+>>> arch_vm_get_page_prot() as powerpc_vm_get_page_prot() and moves it near
+>>> vm_get_page_prot().
+>>>
+>>> Cc: Michael Ellerman <mpe@ellerman.id.au>
+>>> Cc: Paul Mackerras <paulus@samba.org>
+>>> Cc: linuxppc-dev@lists.ozlabs.org
+>>> Cc: linux-kernel@vger.kernel.org
+>>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+>>> ---
+>>>   arch/powerpc/Kconfig            |  1 +
+>>>   arch/powerpc/include/asm/mman.h | 12 ------------
+>>>   arch/powerpc/mm/mmap.c          | 26 ++++++++++++++++++++++++++
+>>>   3 files changed, 27 insertions(+), 12 deletions(-)
+>>>
+>>> diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+>>> index 174edabb74fa..eb9b6ddbf92f 100644
+>>> --- a/arch/powerpc/Kconfig
+>>> +++ b/arch/powerpc/Kconfig
+>>> @@ -140,6 +140,7 @@ config PPC
+>>>       select ARCH_HAS_TICK_BROADCAST        if GENERIC_CLOCKEVENTS_BROADCAST
+>>>       select ARCH_HAS_UACCESS_FLUSHCACHE
+>>>       select ARCH_HAS_UBSAN_SANITIZE_ALL
+>>> +    select ARCH_HAS_VM_GET_PAGE_PROT
+>>>       select ARCH_HAVE_NMI_SAFE_CMPXCHG
+>>>       select ARCH_KEEP_MEMBLOCK
+>>>       select ARCH_MIGHT_HAVE_PC_PARPORT
+>>> diff --git a/arch/powerpc/include/asm/mman.h b/arch/powerpc/include/asm/mman.h
+>>> index 7cb6d18f5cd6..1b024e64c8ec 100644
+>>> --- a/arch/powerpc/include/asm/mman.h
+>>> +++ b/arch/powerpc/include/asm/mman.h
+>>> @@ -24,18 +24,6 @@ static inline unsigned long arch_calc_vm_prot_bits(unsigned long prot,
+>>>   }
+>>>   #define arch_calc_vm_prot_bits(prot, pkey) arch_calc_vm_prot_bits(prot, pkey)
+>>> -static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
+>>> -{
+>>> -#ifdef CONFIG_PPC_MEM_KEYS
+>>> -    return (vm_flags & VM_SAO) ?
+>>> -        __pgprot(_PAGE_SAO | vmflag_to_pte_pkey_bits(vm_flags)) :
+>>> -        __pgprot(0 | vmflag_to_pte_pkey_bits(vm_flags));
+>>> -#else
+>>> -    return (vm_flags & VM_SAO) ? __pgprot(_PAGE_SAO) : __pgprot(0);
+>>> -#endif
+>>> -}
+>>> -#define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
+>>> -
+>>>   static inline bool arch_validate_prot(unsigned long prot, unsigned long addr)
+>>>   {
+>>>       if (prot & ~(PROT_READ | PROT_WRITE | PROT_EXEC | PROT_SEM | PROT_SAO))
+>>> diff --git a/arch/powerpc/mm/mmap.c b/arch/powerpc/mm/mmap.c
+>>> index c475cf810aa8..cd17bd6fa36b 100644
+>>> --- a/arch/powerpc/mm/mmap.c
+>>> +++ b/arch/powerpc/mm/mmap.c
+>>> @@ -254,3 +254,29 @@ void arch_pick_mmap_layout(struct mm_struct *mm, struct rlimit *rlim_stack)
+>>>           mm->get_unmapped_area = arch_get_unmapped_area_topdown;
+>>>       }
+>>>   }
+>>> +
+>>> +#ifdef CONFIG_PPC64
+>>> +static pgprot_t powerpc_vm_get_page_prot(unsigned long vm_flags)
+>>> +{
+>>> +#ifdef CONFIG_PPC_MEM_KEYS
+>>> +    return (vm_flags & VM_SAO) ?
+>>> +        __pgprot(_PAGE_SAO | vmflag_to_pte_pkey_bits(vm_flags)) :
+>>> +        __pgprot(0 | vmflag_to_pte_pkey_bits(vm_flags));
+>>> +#else
+>>> +    return (vm_flags & VM_SAO) ? __pgprot(_PAGE_SAO) : __pgprot(0);
+>>> +#endif
+>>> +}
+>>> +#else
+>>> +static pgprot_t powerpc_vm_get_page_prot(unsigned long vm_flags)
+>>> +{
+>>> +    return __pgprot(0);
+>>> +}
+>>> +#endif /* CONFIG_PPC64 */
+>>
+>> Can we reduce this forest of #ifdefs and make it more readable ?
+>>
+>> mm/mmap.c is going away with patch https://patchwork.ozlabs.org/project/linuxppc-dev/patch/d6d849621f821af253e777a24eda4c648814a76e.1646847562.git.christophe.leroy@csgroup.eu/
+>>
+>> So it would be better to add two versions of vm_get_page_prot(), for instance one in mm/pgtable_64.c and one in mm/pgtable_32.c
+> 
+> Indeed, you don't need anything at all for PPC32. All you need to do is
+> 
+>     select ARCH_HAS_VM_GET_PAGE_PROT if PPC64
+> 
+> And in fact it could even be PPC_BOOK3S_64 instead of PPC64 because CONFIG_PPC_MEM_KEYS depends on PPC_BOOK3S_64 and _PAGE_SAO is 0 on nohash/64.
+> 
+> So you can then put it into arch/powerpc/mm/book3s64/pgtable.c
 
-So the problem isn't new here, per say, for this patchset. But indeed
-perhaps we should consider adjusting the heuristics for that a bit in
-a separate patch. Your check three times idea seems like a good
-starting point, if you want to send a patch and we can poke at it.
+Would something like the following change work ?
 
-Jason
+diff --git a/arch/powerpc/Kconfig b/arch/powerpc/Kconfig
+index eb9b6ddbf92f..69e44358a235 100644
+--- a/arch/powerpc/Kconfig
++++ b/arch/powerpc/Kconfig
+@@ -140,7 +140,7 @@ config PPC
+        select ARCH_HAS_TICK_BROADCAST          if GENERIC_CLOCKEVENTS_BROADCAST
+        select ARCH_HAS_UACCESS_FLUSHCACHE
+        select ARCH_HAS_UBSAN_SANITIZE_ALL
+-       select ARCH_HAS_VM_GET_PAGE_PROT
++       select ARCH_HAS_VM_GET_PAGE_PROT        if PPC_BOOK3S_64
+        select ARCH_HAVE_NMI_SAFE_CMPXCHG
+        select ARCH_KEEP_MEMBLOCK
+        select ARCH_MIGHT_HAVE_PC_PARPORT
+diff --git a/arch/powerpc/mm/book3s64/pgtable.c b/arch/powerpc/mm/book3s64/pgtable.c
+index 052e6590f84f..59d235519b44 100644
+--- a/arch/powerpc/mm/book3s64/pgtable.c
++++ b/arch/powerpc/mm/book3s64/pgtable.c
+@@ -7,6 +7,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/memblock.h>
+ #include <linux/memremap.h>
++#include <linux/pkeys.h>
+ #include <linux/debugfs.h>
+ #include <misc/cxl-base.h>
+ 
+@@ -549,3 +550,22 @@ unsigned long memremap_compat_align(void)
+ }
+ EXPORT_SYMBOL_GPL(memremap_compat_align);
+ #endif
++
++static pgprot_t __vm_get_page_prot(unsigned long vm_flags)
++{
++#ifdef CONFIG_PPC_MEM_KEYS
++       return (vm_flags & VM_SAO) ?
++               __pgprot(_PAGE_SAO | vmflag_to_pte_pkey_bits(vm_flags)) :
++               __pgprot(0 | vmflag_to_pte_pkey_bits(vm_flags));
++#else
++       return (vm_flags & VM_SAO) ? __pgprot(_PAGE_SAO) : __pgprot(0);
++#endif
++}
++
++pgprot_t vm_get_page_prot(unsigned long vm_flags)
++{
++       return __pgprot(pgprot_val(protection_map[vm_flags &
++                       (VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]) |
++              pgprot_val(__vm_get_page_prot(vm_flags)));
++}
++EXPORT_SYMBOL(vm_get_page_prot);
