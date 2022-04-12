@@ -2,24 +2,24 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB2FC433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Apr 2022 04:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22DFFC433F5
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Apr 2022 04:39:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346744AbiDLElG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Apr 2022 00:41:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43332 "EHLO
+        id S1346761AbiDLElR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Apr 2022 00:41:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43624 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346524AbiDLEk5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Apr 2022 00:40:57 -0400
+        with ESMTP id S1346815AbiDLElH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Apr 2022 00:41:07 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 67BE52980D;
-        Mon, 11 Apr 2022 21:38:39 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 739B733E9F;
+        Mon, 11 Apr 2022 21:38:50 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 2A26316F2;
-        Mon, 11 Apr 2022 21:38:39 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 07CA916F3;
+        Mon, 11 Apr 2022 21:38:50 -0700 (PDT)
 Received: from a077893.arm.com (unknown [10.163.38.213])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 895473F70D;
-        Mon, 11 Apr 2022 21:38:34 -0700 (PDT)
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 6564C3F70D;
+        Mon, 11 Apr 2022 21:38:45 -0700 (PDT)
 From:   Anshuman Khandual <anshuman.khandual@arm.com>
 To:     linux-mm@kvack.org, akpm@linux-foundation.org
 Cc:     christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
@@ -28,10 +28,11 @@ Cc:     christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
         linuxppc-dev@lists.ozlabs.org,
         linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Will Deacon <will@kernel.org>
-Subject: [PATCH V5 3/7] arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Date:   Tue, 12 Apr 2022 10:08:44 +0530
-Message-Id: <20220412043848.80464-4-anshuman.khandual@arm.com>
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>
+Subject: [PATCH V5 5/7] x86/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Date:   Tue, 12 Apr 2022 10:08:46 +0530
+Message-Id: <20220412043848.80464-6-anshuman.khandual@arm.com>
 X-Mailer: git-send-email 2.25.1
 In-Reply-To: <20220412043848.80464-1-anshuman.khandual@arm.com>
 References: <20220412043848.80464-1-anshuman.khandual@arm.com>
@@ -41,100 +42,140 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This defines and exports a platform specific custom vm_get_page_prot() via
-subscribing ARCH_HAS_VM_GET_PAGE_PROT. It localizes arch_vm_get_page_prot()
-and moves it near vm_get_page_prot().
+From: Christoph Hellwig <hch@infradead.org>
 
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: linux-arm-kernel@lists.infradead.org
+This defines and exports a platform specific custom vm_get_page_prot() via
+subscribing ARCH_HAS_VM_GET_PAGE_PROT. This also unsubscribes from config
+ARCH_HAS_FILTER_PGPROT, after dropping off arch_filter_pgprot() and
+arch_vm_get_page_prot().
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Cc: linux-kernel@vger.kernel.org
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 ---
- arch/arm64/Kconfig            |  1 +
- arch/arm64/include/asm/mman.h | 24 ------------------------
- arch/arm64/mm/mmap.c          | 25 +++++++++++++++++++++++++
- 3 files changed, 26 insertions(+), 24 deletions(-)
+ arch/x86/Kconfig                 |  2 +-
+ arch/x86/include/asm/pgtable.h   |  5 -----
+ arch/x86/include/uapi/asm/mman.h | 14 -------------
+ arch/x86/mm/Makefile             |  2 +-
+ arch/x86/mm/pgprot.c             | 35 ++++++++++++++++++++++++++++++++
+ 5 files changed, 37 insertions(+), 21 deletions(-)
+ create mode 100644 arch/x86/mm/pgprot.c
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 57c4c995965f..dd0b15162bb3 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -45,6 +45,7 @@ config ARM64
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index b0142e01002e..c355c420150e 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -76,7 +76,6 @@ config X86
+ 	select ARCH_HAS_EARLY_DEBUG		if KGDB
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_FAST_MULTIPLIER
+-	select ARCH_HAS_FILTER_PGPROT
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_KCOV			if X86_64
+@@ -95,6 +94,7 @@ config X86
+ 	select ARCH_HAS_SYNC_CORE_BEFORE_USERMODE
  	select ARCH_HAS_SYSCALL_WRAPPER
- 	select ARCH_HAS_TEARDOWN_DMA_OPS if IOMMU_SUPPORT
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAS_UBSAN_SANITIZE_ALL
 +	select ARCH_HAS_VM_GET_PAGE_PROT
+ 	select ARCH_HAS_DEBUG_WX
  	select ARCH_HAS_ZONE_DMA_SET if EXPERT
- 	select ARCH_HAVE_ELF_PROT
  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-diff --git a/arch/arm64/include/asm/mman.h b/arch/arm64/include/asm/mman.h
-index e3e28f7daf62..5966ee4a6154 100644
---- a/arch/arm64/include/asm/mman.h
-+++ b/arch/arm64/include/asm/mman.h
-@@ -35,30 +35,6 @@ static inline unsigned long arch_calc_vm_flag_bits(unsigned long flags)
- }
- #define arch_calc_vm_flag_bits(flags) arch_calc_vm_flag_bits(flags)
+diff --git a/arch/x86/include/asm/pgtable.h b/arch/x86/include/asm/pgtable.h
+index 62ab07e24aef..3563f4645fa1 100644
+--- a/arch/x86/include/asm/pgtable.h
++++ b/arch/x86/include/asm/pgtable.h
+@@ -649,11 +649,6 @@ static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
  
--static inline pgprot_t arch_vm_get_page_prot(unsigned long vm_flags)
+ #define canon_pgprot(p) __pgprot(massage_pgprot(p))
+ 
+-static inline pgprot_t arch_filter_pgprot(pgprot_t prot)
 -{
--	pteval_t prot = 0;
--
--	if (vm_flags & VM_ARM64_BTI)
--		prot |= PTE_GP;
--
--	/*
--	 * There are two conditions required for returning a Normal Tagged
--	 * memory type: (1) the user requested it via PROT_MTE passed to
--	 * mmap() or mprotect() and (2) the corresponding vma supports MTE. We
--	 * register (1) as VM_MTE in the vma->vm_flags and (2) as
--	 * VM_MTE_ALLOWED. Note that the latter can only be set during the
--	 * mmap() call since mprotect() does not accept MAP_* flags.
--	 * Checking for VM_MTE only is sufficient since arch_validate_flags()
--	 * does not permit (VM_MTE & !VM_MTE_ALLOWED).
--	 */
--	if (vm_flags & VM_MTE)
--		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
--
--	return __pgprot(prot);
+-	return canon_pgprot(prot);
 -}
--#define arch_vm_get_page_prot(vm_flags) arch_vm_get_page_prot(vm_flags)
 -
- static inline bool arch_validate_prot(unsigned long prot,
- 	unsigned long addr __always_unused)
- {
-diff --git a/arch/arm64/mm/mmap.c b/arch/arm64/mm/mmap.c
-index 77ada00280d9..78e9490f748d 100644
---- a/arch/arm64/mm/mmap.c
-+++ b/arch/arm64/mm/mmap.c
-@@ -55,3 +55,28 @@ static int __init adjust_protection_map(void)
- 	return 0;
- }
- arch_initcall(adjust_protection_map);
+ static inline int is_new_memtype_allowed(u64 paddr, unsigned long size,
+ 					 enum page_cache_mode pcm,
+ 					 enum page_cache_mode new_pcm)
+diff --git a/arch/x86/include/uapi/asm/mman.h b/arch/x86/include/uapi/asm/mman.h
+index d4a8d0424bfb..775dbd3aff73 100644
+--- a/arch/x86/include/uapi/asm/mman.h
++++ b/arch/x86/include/uapi/asm/mman.h
+@@ -5,20 +5,6 @@
+ #define MAP_32BIT	0x40		/* only give out 32bit addresses */
+ 
+ #ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
+-/*
+- * Take the 4 protection key bits out of the vma->vm_flags
+- * value and turn them in to the bits that we can put in
+- * to a pte.
+- *
+- * Only override these if Protection Keys are available
+- * (which is only on 64-bit).
+- */
+-#define arch_vm_get_page_prot(vm_flags)	__pgprot(	\
+-		((vm_flags) & VM_PKEY_BIT0 ? _PAGE_PKEY_BIT0 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT1 ? _PAGE_PKEY_BIT1 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT2 ? _PAGE_PKEY_BIT2 : 0) |	\
+-		((vm_flags) & VM_PKEY_BIT3 ? _PAGE_PKEY_BIT3 : 0))
+-
+ #define arch_calc_vm_prot_bits(prot, key) (		\
+ 		((key) & 0x1 ? VM_PKEY_BIT0 : 0) |      \
+ 		((key) & 0x2 ? VM_PKEY_BIT1 : 0) |      \
+diff --git a/arch/x86/mm/Makefile b/arch/x86/mm/Makefile
+index fe3d3061fc11..fb6b41a48ae5 100644
+--- a/arch/x86/mm/Makefile
++++ b/arch/x86/mm/Makefile
+@@ -20,7 +20,7 @@ CFLAGS_REMOVE_mem_encrypt_identity.o	= -pg
+ endif
+ 
+ obj-y				:=  init.o init_$(BITS).o fault.o ioremap.o extable.o mmap.o \
+-				    pgtable.o physaddr.o setup_nx.o tlb.o cpu_entry_area.o maccess.o
++				    pgtable.o physaddr.o setup_nx.o tlb.o cpu_entry_area.o maccess.o pgprot.o
+ 
+ obj-y				+= pat/
+ 
+diff --git a/arch/x86/mm/pgprot.c b/arch/x86/mm/pgprot.c
+new file mode 100644
+index 000000000000..763742782286
+--- /dev/null
++++ b/arch/x86/mm/pgprot.c
+@@ -0,0 +1,35 @@
++// SPDX-License-Identifier: GPL-2.0
++
++#include <linux/export.h>
++#include <linux/mm.h>
++#include <asm/pgtable.h>
 +
 +pgprot_t vm_get_page_prot(unsigned long vm_flags)
 +{
-+	pteval_t prot = pgprot_val(protection_map[vm_flags &
-+				   (VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]);
++	unsigned long val = pgprot_val(protection_map[vm_flags &
++				      (VM_READ|VM_WRITE|VM_EXEC|VM_SHARED)]);
 +
-+	if (vm_flags & VM_ARM64_BTI)
-+		prot |= PTE_GP;
-+
++#ifdef CONFIG_X86_INTEL_MEMORY_PROTECTION_KEYS
 +	/*
-+	 * There are two conditions required for returning a Normal Tagged
-+	 * memory type: (1) the user requested it via PROT_MTE passed to
-+	 * mmap() or mprotect() and (2) the corresponding vma supports MTE. We
-+	 * register (1) as VM_MTE in the vma->vm_flags and (2) as
-+	 * VM_MTE_ALLOWED. Note that the latter can only be set during the
-+	 * mmap() call since mprotect() does not accept MAP_* flags.
-+	 * Checking for VM_MTE only is sufficient since arch_validate_flags()
-+	 * does not permit (VM_MTE & !VM_MTE_ALLOWED).
++	 * Take the 4 protection key bits out of the vma->vm_flags value and
++	 * turn them in to the bits that we can put in to a pte.
++	 *
++	 * Only override these if Protection Keys are available (which is only
++	 * on 64-bit).
 +	 */
-+	if (vm_flags & VM_MTE)
-+		prot |= PTE_ATTRINDX(MT_NORMAL_TAGGED);
++	if (vm_flags & VM_PKEY_BIT0)
++		val |= _PAGE_PKEY_BIT0;
++	if (vm_flags & VM_PKEY_BIT1)
++		val |= _PAGE_PKEY_BIT1;
++	if (vm_flags & VM_PKEY_BIT2)
++		val |= _PAGE_PKEY_BIT2;
++	if (vm_flags & VM_PKEY_BIT3)
++		val |= _PAGE_PKEY_BIT3;
++#endif
 +
-+	return __pgprot(prot);
++	val = __sme_set(val);
++	if (val & _PAGE_PRESENT)
++		val &= __supported_pte_mask;
++	return __pgprot(val);
 +}
 +EXPORT_SYMBOL(vm_get_page_prot);
 -- 
