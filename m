@@ -2,68 +2,172 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C56C9C433F5
-	for <sparclinux@archiver.kernel.org>; Mon, 11 Apr 2022 23:35:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC904C433F5
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Apr 2022 04:38:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233498AbiDKXho (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 11 Apr 2022 19:37:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47212 "EHLO
+        id S235608AbiDLEkl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Apr 2022 00:40:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43110 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229812AbiDKXhn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Apr 2022 19:37:43 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B0A8A1DA6D;
-        Mon, 11 Apr 2022 16:35:27 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
-        :Reply-To:Content-ID:Content-Description;
-        bh=sLkhFTcI2YBtwvymDDK5bdvpkZAX+JWfooBVe6r6vOg=; b=aJRkhFTIG1Cn1/NMU4icHNCgIs
-        8xvcWtWSzVYl2gS8PtHZxvI6KmLSoDbHlcRL5GRzxc5xl86MN/0Jv+jQV63mRhWe6fGA2ITbfDjIO
-        cGWlxtOWGTwFgeyj0X7vd75Hchfxc3j+mBdqG5G74Zcj0ZhZxbq/tbPpeQ/uZGvVNQXnLR/xA4Wa6
-        /n+emQiYiCmWmIouR12mWuIxkD8IKZHvkjDcnmg3Ita5V/t8yzZtaGnAe7p8ZEKjsNU8AIHySoRGu
-        KnD7wiz6dTwWLx4uCXWEHyUpUWFXwosL51cn8dthh8+yIee/NBZOpbJSRdYYMu+/iha+Vyuw+h6Zq
-        f5h2vPpQ==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1ne3Z3-00Ckot-Ts; Mon, 11 Apr 2022 23:35:22 +0000
-Message-ID: <0ee86fd8-5e07-3260-4600-48d7522eb00f@infradead.org>
-Date:   Mon, 11 Apr 2022 16:35:15 -0700
+        with ESMTP id S231811AbiDLEkk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Apr 2022 00:40:40 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 03BF02980C;
+        Mon, 11 Apr 2022 21:38:23 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 94FD71570;
+        Mon, 11 Apr 2022 21:38:23 -0700 (PDT)
+Received: from a077893.arm.com (unknown [10.163.38.213])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id 49E993F70D;
+        Mon, 11 Apr 2022 21:38:18 -0700 (PDT)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org, akpm@linux-foundation.org
+Cc:     christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH V5 0/7] mm/mmap: Drop arch_vm_get_page_prot() and arch_filter_pgprot()
+Date:   Tue, 12 Apr 2022 10:08:41 +0530
+Message-Id: <20220412043848.80464-1-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: Build regressions/improvements in v5.18-rc2
-Content-Language: en-US
-To:     Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-kernel@vger.kernel.org
-Cc:     Felix Fietkau <nbd@nbd.name>,
-        Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>,
-        Ryder Lee <ryder.lee@mediatek.com>, sparclinux@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>
-References: <CAHk-=wh0+DYC2+Aeu2=vfUtGaDqVuKxKrxyhwQFoG89rcynzww@mail.gmail.com>
- <20220411103528.2187797-1-geert@linux-m68k.org>
- <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+protection_map[] is an array based construct that translates given vm_flags
+combination. This array contains page protection map, which is populated by
+the platform via [__S000 .. __S111] and [__P000 .. __P111] exported macros.
+Primary usage for protection_map[] is for vm_get_page_prot(), which is used
+to determine page protection value for a given vm_flags. vm_get_page_prot()
+implementation, could again call platform overrides arch_vm_get_page_prot()
+and arch_filter_pgprot(). Some platforms override protection_map[] that was
+originally built with __SXXX/__PXXX with different runtime values.
+
+Currently there are multiple layers of abstraction i.e __SXXX/__PXXX macros
+, protection_map[], arch_vm_get_page_prot() and arch_filter_pgprot() built
+between the platform and generic MM, finally defining vm_get_page_prot().
+
+Hence this series proposes to drop later two abstraction levels and instead
+just move the responsibility of defining vm_get_page_prot() to the platform
+(still utilizing generic protection_map[] array) itself making it clean and
+simple.
+
+This first introduces ARCH_HAS_VM_GET_PAGE_PROT which enables the platforms
+to define custom vm_get_page_prot(). This starts converting platforms that
+define the overrides arch_filter_pgprot() or arch_vm_get_page_prot() which
+enables for those constructs to be dropped off completely.
+
+The series has been inspired from an earlier discuss with Christoph Hellwig
+
+https://lore.kernel.org/all/1632712920-8171-1-git-send-email-anshuman.khandual@arm.com/
+
+This series applies on 5.18-rc2.
+
+This series has been cross built for multiple platforms.
+
+- Anshuman
+
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+Changes in V5:
+
+- Collected new tags on various patches in the series
+- Coalesced arm64_arch_vm_get_page_prot() into vm_get_page_prot() per Catalin
+- Modified powerpc's vm_get_page_prot() implementation per Christophe
+
+Changes in V4:
+
+https://lore.kernel.org/all/20220407103251.1209606-1-anshuman.khandual@arm.com/
+
+- ARCH_HAS_VM_GET_PAGE_PROT now excludes generic protection_map[]
+- Changed platform's vm_get_page_prot() to use generic protection_map[]
+- Dropped all platform changes not enabling either arch_vm_get_page_prot() or arch_filter_pgprot() 
+- Dropped all previous tags as code base has changed
+
+Changes in V3:
+
+https://lore.kernel.org/all/1646045273-9343-1-git-send-email-anshuman.khandual@arm.com/
+
+- Dropped variable 'i' from sme_early_init() on x86 platform
+- Moved CONFIG_COLDFIRE vm_get_page_prot() inside arch/m68k/mm/mcfmmu.c
+- Moved CONFIG_SUN3 vm_get_page_prot() inside arch/m68k/mm/sun3mmu.c
+- Dropped cachebits for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped PAGE_XXX_C definitions from arch/m68k/include/asm/motorola_pgtable.h
+- Used PAGE_XXX instead for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped all references to protection_map[] in the tree
+- Replaced s/extensa/xtensa/ on the patch title
+- Moved left over comments from pgtable.h into init.c on nios2 platform
+
+Changes in V2:
+
+https://lore.kernel.org/all/1645425519-9034-1-git-send-email-anshuman.khandual@arm.com/
+
+- Dropped the entire comment block in [PATCH 30/30] per Geert
+- Replaced __P010 (although commented) with __PAGE_COPY on arm platform
+- Replaced __P101 with PAGE_READONLY on um platform
+
+Changes in V1:
+
+https://lore.kernel.org/all/1644805853-21338-1-git-send-email-anshuman.khandual@arm.com/
+
+- Add white spaces around the | operators 
+- Moved powerpc_vm_get_page_prot() near vm_get_page_prot() on powerpc
+- Moved arm64_vm_get_page_prot() near vm_get_page_prot() on arm64
+- Moved sparc_vm_get_page_prot() near vm_get_page_prot() on sparc
+- Compacted vm_get_page_prot() switch cases on all platforms
+-  _PAGE_CACHE040 inclusion is dependent on CPU_IS_040_OR_060
+- VM_SHARED case should return PAGE_NONE (not PAGE_COPY) on SH platform
+- Reorganized VM_SHARED, VM_EXEC, VM_WRITE, VM_READ
+- Dropped the last patch [RFC V1 31/31] which added macros for vm_flags combinations
+  https://lore.kernel.org/all/1643029028-12710-32-git-send-email-anshuman.khandual@arm.com/
+
+Changes in RFC:
+
+https://lore.kernel.org/all/1643029028-12710-1-git-send-email-anshuman.khandual@arm.com/
 
 
-On 4/11/22 03:42, Geert Uytterhoeven wrote:
-> On Mon, 11 Apr 2022, Geert Uytterhoeven wrote:
->> JFYI, when comparing v5.18-rc2[1] to v5.18-rc1[3], the summaries are:
->>  - build warnings: +23/-0
-> 
->   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list [-Werror]:  => 38:37
->   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: its scope is only this definition or declaration, which is probably not what you want [-Werror]:  => 38:37
+Anshuman Khandual (6):
+  mm/mmap: Add new config ARCH_HAS_VM_GET_PAGE_PROT
+  powerpc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  mm/mmap: Drop arch_filter_pgprot()
+  mm/mmap: Drop arch_vm_get_page_pgprot()
 
-Fix here:
-https://lore.kernel.org/lkml/20220409151609.3715-1-rdunlap@infradead.org/
+Christoph Hellwig (1):
+  x86/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+
+ arch/arm64/Kconfig                 |  1 +
+ arch/arm64/include/asm/mman.h      | 24 --------------------
+ arch/arm64/mm/mmap.c               | 25 +++++++++++++++++++++
+ arch/powerpc/Kconfig               |  1 +
+ arch/powerpc/include/asm/mman.h    | 12 ----------
+ arch/powerpc/mm/book3s64/pgtable.c | 20 +++++++++++++++++
+ arch/sparc/Kconfig                 |  1 +
+ arch/sparc/include/asm/mman.h      |  6 -----
+ arch/sparc/mm/init_64.c            | 13 +++++++++++
+ arch/x86/Kconfig                   |  2 +-
+ arch/x86/include/asm/pgtable.h     |  5 -----
+ arch/x86/include/uapi/asm/mman.h   | 14 ------------
+ arch/x86/mm/Makefile               |  2 +-
+ arch/x86/mm/pgprot.c               | 35 ++++++++++++++++++++++++++++++
+ include/linux/mman.h               |  4 ----
+ mm/Kconfig                         |  2 +-
+ mm/mmap.c                          | 14 ++++--------
+ 17 files changed, 103 insertions(+), 78 deletions(-)
+ create mode 100644 arch/x86/mm/pgprot.c
 
 -- 
-~Randy
+2.25.1
+
