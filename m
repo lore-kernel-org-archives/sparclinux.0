@@ -2,103 +2,133 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32AF1C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Apr 2022 09:54:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1720EC433FE
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Apr 2022 12:04:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236335AbiDLJ4f (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Apr 2022 05:56:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50190 "EHLO
+        id S1350215AbiDLMGf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Apr 2022 08:06:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1356777AbiDLHjU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Apr 2022 03:39:20 -0400
-Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A164D52B32;
-        Tue, 12 Apr 2022 00:10:13 -0700 (PDT)
-Received: by mail-qv1-f42.google.com with SMTP id e22so15455778qvf.9;
-        Tue, 12 Apr 2022 00:10:13 -0700 (PDT)
+        with ESMTP id S1352386AbiDLMC5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Apr 2022 08:02:57 -0400
+Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28EB18023D
+        for <sparclinux@vger.kernel.org>; Tue, 12 Apr 2022 04:00:09 -0700 (PDT)
+Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-2ec0bb4b715so68237987b3.5
+        for <sparclinux@vger.kernel.org>; Tue, 12 Apr 2022 04:00:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=v2zi2giavZdO2HMDfrc7yK4A4aR/ngLsqIJD3W77LNs=;
+        b=b4v6GqYxeJjlJ1RbEQauF9GEIWimtem9DfI/ea+58BboREvflEEq0M6jErAnAoE93B
+         tYuy5mJ/r4ba02CczLRQd8TmQ7CK9KY/1RfIbv6VC/vU5FzAIsre+zMd2kHi6JeMfPOF
+         4fBT0F6bq2XsYtIaWNClXMgBpjhBJ9AS7/1/3qS47r77iP3+bY4fHCX9/uoSi8DAvTqG
+         k/jDnzm69qk4dXs/N7H146ttsPkrszUV5cVSdNFLc0OGWTX1yWcUZvfGu8L3L3E878+9
+         LZbWbMEWL706ypWKJhQXFIcNT9lcoZhbr2KfSuGPorip9ZdCMOWb/sRTFpPLw/dEIfsz
+         NCSg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=un7uuVJLSD5oo1I82UIYzEg0eG1oNWsHj8ZvVK3CntI=;
-        b=L+hQHeYSmVigFt+b6xeULgFH4nuk9cg4I8asH7SB04/jw8SBFeK2zB6J0M6ov9Vcsd
-         RKOO4dyxqAQcO1+PuL1LZpYPwoGc8+eyl4eSpuNaIMcrRzpYacUPsxfigUs/KxoYtGol
-         Qsl6jXScFMlz3dIAd60qgGBIBOfEIkzsmgkEJHNp+sPRfA45XYfUfEYpSJr9wpOIvloH
-         fdVxHlavV+n6uDIoWeC/i53bky0CMr8AnT8rMpvqbXPv/n2W/3nILainmXdjF5nzBMDx
-         3SV+qg2KPx3kZ5VHB6LpnAZFYKOGgcnZ+NwJ5YM5DnpmGZ5GeT1VrDp2tBeAskvfGajo
-         Z3Jw==
-X-Gm-Message-State: AOAM5308p3o4/xg/krRis3Ems4A7m+3zIsg6M/2pOS6jHtEIB90V3nH5
-        TkwpAQB6i974Mo1PxrklDjVznfrn9Av5qW3h
-X-Google-Smtp-Source: ABdhPJxLBv5cJryliABFuSMeFqzI6FAkMvdmUBuPpxF87f7gHMxfjytV7n5g7KedxEeK3xmhc9gGlQ==
-X-Received: by 2002:ad4:5f0f:0:b0:441:1e3a:dbc with SMTP id fo15-20020ad45f0f000000b004411e3a0dbcmr29779951qvb.99.1649747411863;
-        Tue, 12 Apr 2022 00:10:11 -0700 (PDT)
-Received: from mail-yb1-f176.google.com (mail-yb1-f176.google.com. [209.85.219.176])
-        by smtp.gmail.com with ESMTPSA id y66-20020a37af45000000b0067dc0fc539fsm20767890qke.86.2022.04.12.00.10.10
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 12 Apr 2022 00:10:11 -0700 (PDT)
-Received: by mail-yb1-f176.google.com with SMTP id p65so13282791ybp.9;
-        Tue, 12 Apr 2022 00:10:10 -0700 (PDT)
-X-Received: by 2002:a25:29c2:0:b0:641:224f:17d6 with SMTP id
- p185-20020a2529c2000000b00641224f17d6mr10469449ybp.546.1649747410632; Tue, 12
- Apr 2022 00:10:10 -0700 (PDT)
+        bh=v2zi2giavZdO2HMDfrc7yK4A4aR/ngLsqIJD3W77LNs=;
+        b=jSbwDtp4hlXpj9a3Lru6+ebzqNQJgzF4KfXA5ERBnfmGN7nkxwQRALrhclrePg/CFI
+         HG3XEgYg1K+knMBSwNwlJ0cb8IyI8G8X2E3sS/B3HID+TfX/qrfnp+abaCg1paInnMs+
+         j8ftBVrcBGaDwUSh43UWUqM6Qoe7oKZnkkvX060vxHmhwq5MJSvStoSKgDMj+D8enkFD
+         zcNSFyX9LPO8DOcbvHD5IAqUqUMzVtbuiCDIwFzKt036UawyN85h6DLBE/iLdP+sGLYB
+         NhsWwgJWHhXCGxXDjUfeC9qppMvcnsayYZcRoBerVGeAR9zXEve8dMWos8TZzxnayHLX
+         72Fg==
+X-Gm-Message-State: AOAM532PS2CexvueYeLHzUNc1hHb7/sco78KMiuFk+VjTwamebLFdxwK
+        +5Mi9HF0PaukbACvffE6rvHUK/LdXWQqViUoVI52Ng==
+X-Google-Smtp-Source: ABdhPJwwqPNdGAbIJgV8Tw3Kjk4tMF7wq4HRILrI/52e/kefI6BLXOkH7KMdW6Q3t6UkDG+3QNDDwa3vKedsVrgXFAE=
+X-Received: by 2002:a0d:e743:0:b0:2eb:3106:9b32 with SMTP id
+ q64-20020a0de743000000b002eb31069b32mr30496791ywe.512.1649761208158; Tue, 12
+ Apr 2022 04:00:08 -0700 (PDT)
 MIME-Version: 1.0
-References: <CAHk-=wh0+DYC2+Aeu2=vfUtGaDqVuKxKrxyhwQFoG89rcynzww@mail.gmail.com>
- <20220411103528.2187797-1-geert@linux-m68k.org> <alpine.DEB.2.22.394.2204111240560.38484@ramsan.of.borg>
- <87zgkrqyff.fsf@tynnyri.adurom.net>
-In-Reply-To: <87zgkrqyff.fsf@tynnyri.adurom.net>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 12 Apr 2022 09:09:59 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdUgdPBTwg8LN8x_sZRWWzdE9ZKytZuAna+qdKL1Ced5Vw@mail.gmail.com>
-Message-ID: <CAMuHMdUgdPBTwg8LN8x_sZRWWzdE9ZKytZuAna+qdKL1Ced5Vw@mail.gmail.com>
-Subject: Re: Build regressions/improvements in v5.18-rc2
-To:     Kalle Valo <kvalo@kernel.org>
-Cc:     Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Felix Fietkau <nbd@nbd.name>,
-        Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>,
-        Ryder Lee <ryder.lee@mediatek.com>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-wireless <linux-wireless@vger.kernel.org>
+References: <20220404111204.935357-1-elver@google.com> <CACT4Y+YiDhmKokuqD3dhtj67HxZpTumiQvvRp35X-sR735qjqQ@mail.gmail.com>
+In-Reply-To: <CACT4Y+YiDhmKokuqD3dhtj67HxZpTumiQvvRp35X-sR735qjqQ@mail.gmail.com>
+From:   Marco Elver <elver@google.com>
+Date:   Tue, 12 Apr 2022 13:00:00 +0200
+Message-ID: <CANpmjNPQ9DWzPRx4QWDnZatKGU96xLhb2qN-wgbD84zyZ6_Mig@mail.gmail.com>
+Subject: Re: [PATCH] signal: Deliver SIGTRAP on perf event asynchronously if blocked
+To:     Dmitry Vyukov <dvyukov@google.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Peter Zijlstra <peterz@infradead.org>
+Cc:     Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-perf-users@vger.kernel.org,
+        kasan-dev@googlegroups.com, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Kalle,
-
-On Mon, Apr 11, 2022 at 8:15 PM Kalle Valo <kvalo@kernel.org> wrote:
-> Geert Uytterhoeven <geert@linux-m68k.org> writes:
-> > On Mon, 11 Apr 2022, Geert Uytterhoeven wrote:
-> >> JFYI, when comparing v5.18-rc2[1] to v5.18-rc1[3], the summaries are:
-
-> >   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_491' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
-> >   + /kisskb/src/include/linux/compiler_types.h: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant:  => 352:38
+On Tue, 5 Apr 2022 at 15:30, Dmitry Vyukov <dvyukov@google.com> wrote:
+> On Mon, 4 Apr 2022 at 13:12, Marco Elver <elver@google.com> wrote:
+> > With SIGTRAP on perf events, we have encountered termination of
+> > processes due to user space attempting to block delivery of SIGTRAP.
+> > Consider this case:
 > >
-> > mipsel/mips-allmodconfig
-> > arm64-gcc5.4/arm64-allmodconfig
+> >     <set up SIGTRAP on a perf event>
+> >     ...
+> >     sigset_t s;
+> >     sigemptyset(&s);
+> >     sigaddset(&s, SIGTRAP | <and others>);
+> >     sigprocmask(SIG_BLOCK, &s, ...);
+> >     ...
+> >     <perf event triggers>
 > >
-> > Actual error is:
+> > When the perf event triggers, while SIGTRAP is blocked, force_sig_perf()
+> > will force the signal, but revert back to the default handler, thus
+> > terminating the task.
 > >
-> >     /kisskb/src/drivers/net/wireless/mediatek/mt76/mt76x2/pci.c: In function 'mt76x2e_probe':
-> >     /kisskb/src/include/linux/compiler_types.h:352:38: error: call to '__compiletime_assert_520' declared with attribute error: FIELD_PREP: mask is not constant
+> > This makes sense for error conditions, but not so much for explicitly
+> > requested monitoring. However, the expectation is still that signals
+> > generated by perf events are synchronous, which will no longer be the
+> > case if the signal is blocked and delivered later.
+> >
+> > To give user space the ability to clearly distinguish synchronous from
+> > asynchronous signals, introduce siginfo_t::si_perf_flags and
+> > TRAP_PERF_FLAG_ASYNC (opted for flags in case more binary information is
+> > required in future).
+> >
+> > The resolution to the problem is then to (a) no longer force the signal
+> > (avoiding the terminations), but (b) tell user space via si_perf_flags
+> > if the signal was synchronous or not, so that such signals can be
+> > handled differently (e.g. let user space decide to ignore or consider
+> > the data imprecise).
+> >
+> > The alternative of making the kernel ignore SIGTRAP on perf events if
+> > the signal is blocked may work for some usecases, but likely causes
+> > issues in others that then have to revert back to interception of
+> > sigprocmask() (which we want to avoid). [ A concrete example: when using
+> > breakpoint perf events to track data-flow, in a region of code where
+> > signals are blocked, data-flow can no longer be tracked accurately.
+> > When a relevant asynchronous signal is received after unblocking the
+> > signal, the data-flow tracking logic needs to know its state is
+> > imprecise. ]
+> >
+> > Link: https://lore.kernel.org/all/Yjmn%2FkVblV3TdoAq@elver.google.com/
+> > Fixes: 97ba62b27867 ("perf: Add support for SIGTRAP on perf events")
+> > Reported-by: Dmitry Vyukov <dvyukov@google.com>
+> > Signed-off-by: Marco Elver <elver@google.com>
 >
-> Does this commit fix it:
+> Tested-by: Dmitry Vyukov <dvyukov@google.com>
 >
-> https://git.kernel.org/pub/scm/linux/kernel/git/wireless/wireless.git/commit/?id=dbc2b1764734857d68425468ffa8486e97ab89df
+> I've tested delivery of SIGTRAPs when it's blocked with sigprocmask,
+> it does not kill the process now.
 >
-> Or is this another issue?
-
-I'm not in a position to verify this, but given both configs used gcc-5,
-I assume this will fix the issue.
+> And tested the case where previously I was getting infinite recursion
+> and stack overflow (SIGTRAP handler causes another SIGTRAP recursively
+> before being able to detect recursion and return). With this patch it
+> can be handled by blocking recursive SIGTRAPs (!SA_NODEFER).
 
 Thanks!
 
-Gr{oetje,eeting}s,
 
-                        Geert
+Should there be any further comments, please shout.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks,
+-- Marco
