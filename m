@@ -2,106 +2,187 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0601C433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 14 Apr 2022 01:16:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B031CC433FE
+	for <sparclinux@archiver.kernel.org>; Thu, 14 Apr 2022 06:21:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238634AbiDNBSn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 13 Apr 2022 21:18:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52320 "EHLO
+        id S239994AbiDNGXW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 14 Apr 2022 02:23:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45816 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235222AbiDNBSn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 13 Apr 2022 21:18:43 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 48DF74E38E;
-        Wed, 13 Apr 2022 18:16:20 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id D411B92009C; Thu, 14 Apr 2022 03:16:18 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id C508F92009B;
-        Thu, 14 Apr 2022 02:16:18 +0100 (BST)
-Date:   Thu, 14 Apr 2022 02:16:18 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
- instead of zero
-In-Reply-To: <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
-Message-ID: <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
-References: <20220413115411.21489-1-Jason@zx2c4.com> <20220413115411.21489-5-Jason@zx2c4.com> <20220413122546.GA11860@alpha.franken.de> <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk>
- <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+        with ESMTP id S229990AbiDNGXW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Apr 2022 02:23:22 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B6EE31EECB;
+        Wed, 13 Apr 2022 23:20:57 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 461DC139F;
+        Wed, 13 Apr 2022 23:20:57 -0700 (PDT)
+Received: from a077893.arm.com (unknown [10.163.37.202])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPA id BEF883F70D;
+        Wed, 13 Apr 2022 23:20:50 -0700 (PDT)
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+To:     linux-mm@kvack.org, akpm@linux-foundation.org
+Cc:     christophe.leroy@csgroup.eu, catalin.marinas@arm.com,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Christoph Hellwig <hch@infradead.org>,
+        linuxppc-dev@lists.ozlabs.org,
+        linux-arm-kernel@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH V7 0/7] mm/mmap: Drop arch_vm_get_page_prot() and arch_filter_pgprot()
+Date:   Thu, 14 Apr 2022 11:51:18 +0530
+Message-Id: <20220414062125.609297-1-anshuman.khandual@arm.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Jason,
+protection_map[] is an array based construct that translates given vm_flags
+combination. This array contains page protection map, which is populated by
+the platform via [__S000 .. __S111] and [__P000 .. __P111] exported macros.
+Primary usage for protection_map[] is for vm_get_page_prot(), which is used
+to determine page protection value for a given vm_flags. vm_get_page_prot()
+implementation, could again call platform overrides arch_vm_get_page_prot()
+and arch_filter_pgprot(). Some platforms override protection_map[] that was
+originally built with __SXXX/__PXXX with different runtime values.
 
-> However, one thing that I've been thinking about is that the c0 random
-> register is actually kind of garbage. In my fuzzy decade-old memory of
-> MIPS, I believe the c0 random register starts at the maximum number of
-> TLB entries (16?), and then counts down cyclically, decrementing once
-> per CPU cycle. Is that right?
+Currently there are multiple layers of abstraction i.e __SXXX/__PXXX macros
+, protection_map[], arch_vm_get_page_prot() and arch_filter_pgprot() built
+between the platform and generic MM, finally defining vm_get_page_prot().
 
- Yes, for the relevant CPUs the range is 63-8 << 8 for R3k machines and 
-47-0 (the lower bound can be higher if wired entries are used, which I 
-think we occasionally do) for R4k machines with a buggy CP0 counter.  So 
-there are either 56 or up to 48 distinct CP0 Random register values.
+Hence this series proposes to drop later two abstraction levels and instead
+just move the responsibility of defining vm_get_page_prot() to the platform
+(still utilizing generic protection_map[] array) itself making it clean and
+simple.
 
-> If it is, there are some real pros and cons here to consider:
-> - Pro: decrementing each CPU cycle means pretty good granularity
-> - Con: wrapping at, like, 16 or something really is very limited, to
-> the point of being almost bad
-> 
-> Meanwhile, on systems without the c0 cycles counter, what is the
-> actual resolution of random_get_entropy_fallback()? Is this just
-> falling back to jiffies?
+This first introduces ARCH_HAS_VM_GET_PAGE_PROT which enables the platforms
+to define custom vm_get_page_prot(). This starts converting platforms that
+define the overrides arch_filter_pgprot() or arch_vm_get_page_prot() which
+enables for those constructs to be dropped off completely.
 
- It depends on the exact system.  Some have a 32-bit high-resolution 
-counter in the chipset (arch/mips/kernel/csrc-ioasic.c) giving like 25MHz 
-resolution, some have nothing but jiffies.
+The series has been inspired from an earlier discuss with Christoph Hellwig
 
-> IF (a) the fallback is jiffies AND (b) c0 wraps at 16, then actually,
-> what would be really nice would be something like:
-> 
->     return (jiffies << 4) | read_c0_random();
-> 
-> It seems like that would give us something somewhat more ideal than
-> the status quo. Still crap, of course, but undoubtedly better.
+https://lore.kernel.org/all/1632712920-8171-1-git-send-email-anshuman.khandual@arm.com/
 
- It seems like a reasonable idea to me, but the details would have to be 
-sorted out, because where a chipset high-resolution counter is available 
-we want to factor it in, and otherwise we need to extract the right bits 
-from the CP0 Random register, either 13:8 for the R3k or 5:0 for the R4k.
+This series applies on 5.18-rc2.
 
-  Maciej
+This series has been cross built for multiple platforms.
+
+- Anshuman
+
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-arch@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+
+Changes in V7:
+
+- Changed vm_get_page_prot() on sparc per Christophe
+- Collected additionals tags
+
+Changes in V6:
+
+https://lore.kernel.org/all/20220413055840.392628-1-anshuman.khandual@arm.com/
+
+- Created single merged vm_get_page_prot() function per Christophe
+- Dropped local variable 'ret' in generic vm_get_page_prot() per Christophe
+- Dropped __pgprot(pgprot_val(x)) in generic vm_get_page_prot() per Christophe
+
+Changes in V5:
+
+https://lore.kernel.org/all/20220412043848.80464-2-anshuman.khandual@arm.com/
+
+- Collected new tags on various patches in the series
+- Coalesced arm64_arch_vm_get_page_prot() into vm_get_page_prot() per Catalin
+- Modified powerpc's vm_get_page_prot() implementation per Christophe
+
+Changes in V4:
+
+https://lore.kernel.org/all/20220407103251.1209606-1-anshuman.khandual@arm.com/
+
+- ARCH_HAS_VM_GET_PAGE_PROT now excludes generic protection_map[]
+- Changed platform's vm_get_page_prot() to use generic protection_map[]
+- Dropped all platform changes not enabling either arch_vm_get_page_prot() or arch_filter_pgprot() 
+- Dropped all previous tags as code base has changed
+
+Changes in V3:
+
+https://lore.kernel.org/all/1646045273-9343-1-git-send-email-anshuman.khandual@arm.com/
+
+- Dropped variable 'i' from sme_early_init() on x86 platform
+- Moved CONFIG_COLDFIRE vm_get_page_prot() inside arch/m68k/mm/mcfmmu.c
+- Moved CONFIG_SUN3 vm_get_page_prot() inside arch/m68k/mm/sun3mmu.c
+- Dropped cachebits for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped PAGE_XXX_C definitions from arch/m68k/include/asm/motorola_pgtable.h
+- Used PAGE_XXX instead for vm_get_page_prot() inside arch/m68k/mm/motorola.c
+- Dropped all references to protection_map[] in the tree
+- Replaced s/extensa/xtensa/ on the patch title
+- Moved left over comments from pgtable.h into init.c on nios2 platform
+
+Changes in V2:
+
+https://lore.kernel.org/all/1645425519-9034-1-git-send-email-anshuman.khandual@arm.com/
+
+- Dropped the entire comment block in [PATCH 30/30] per Geert
+- Replaced __P010 (although commented) with __PAGE_COPY on arm platform
+- Replaced __P101 with PAGE_READONLY on um platform
+
+Changes in V1:
+
+https://lore.kernel.org/all/1644805853-21338-1-git-send-email-anshuman.khandual@arm.com/
+
+- Add white spaces around the | operators 
+- Moved powerpc_vm_get_page_prot() near vm_get_page_prot() on powerpc
+- Moved arm64_vm_get_page_prot() near vm_get_page_prot() on arm64
+- Moved sparc_vm_get_page_prot() near vm_get_page_prot() on sparc
+- Compacted vm_get_page_prot() switch cases on all platforms
+-  _PAGE_CACHE040 inclusion is dependent on CPU_IS_040_OR_060
+- VM_SHARED case should return PAGE_NONE (not PAGE_COPY) on SH platform
+- Reorganized VM_SHARED, VM_EXEC, VM_WRITE, VM_READ
+- Dropped the last patch [RFC V1 31/31] which added macros for vm_flags combinations
+  https://lore.kernel.org/all/1643029028-12710-32-git-send-email-anshuman.khandual@arm.com/
+
+Changes in RFC:
+
+https://lore.kernel.org/all/1643029028-12710-1-git-send-email-anshuman.khandual@arm.com/
+
+
+Anshuman Khandual (6):
+  mm/mmap: Add new config ARCH_HAS_VM_GET_PAGE_PROT
+  powerpc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  arm64/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+  mm/mmap: Drop arch_filter_pgprot()
+  mm/mmap: Drop arch_vm_get_page_pgprot()
+
+Christoph Hellwig (1):
+  x86/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+
+ arch/arm64/Kconfig                 |  1 +
+ arch/arm64/include/asm/mman.h      | 24 --------------------
+ arch/arm64/mm/mmap.c               | 25 +++++++++++++++++++++
+ arch/powerpc/Kconfig               |  1 +
+ arch/powerpc/include/asm/mman.h    | 12 ----------
+ arch/powerpc/mm/book3s64/pgtable.c | 17 +++++++++++++++
+ arch/sparc/Kconfig                 |  1 +
+ arch/sparc/include/asm/mman.h      |  6 -----
+ arch/sparc/mm/init_64.c            | 12 ++++++++++
+ arch/x86/Kconfig                   |  2 +-
+ arch/x86/include/asm/pgtable.h     |  5 -----
+ arch/x86/include/uapi/asm/mman.h   | 14 ------------
+ arch/x86/mm/Makefile               |  2 +-
+ arch/x86/mm/pgprot.c               | 35 ++++++++++++++++++++++++++++++
+ include/linux/mman.h               |  4 ----
+ mm/Kconfig                         |  2 +-
+ mm/mmap.c                          | 15 +++----------
+ 17 files changed, 98 insertions(+), 80 deletions(-)
+ create mode 100644 arch/x86/mm/pgprot.c
+
+-- 
+2.25.1
+
