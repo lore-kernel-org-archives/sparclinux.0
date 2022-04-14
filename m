@@ -2,181 +2,127 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 424C4C433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 14 Apr 2022 06:24:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28CEAC433F5
+	for <sparclinux@archiver.kernel.org>; Thu, 14 Apr 2022 09:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232078AbiDNG0a (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 14 Apr 2022 02:26:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49366 "EHLO
+        id S241730AbiDNJaB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 14 Apr 2022 05:30:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231788AbiDNG03 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Apr 2022 02:26:29 -0400
-Received: from FRA01-MR2-obe.outbound.protection.outlook.com (mail-eopbgr90083.outbound.protection.outlook.com [40.107.9.83])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 897D61EECB;
-        Wed, 13 Apr 2022 23:24:02 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=Nckg6XjeitXbFVjYjdhi80iot8cM8EbI0SE7xhF1sfLdVmjB9SuXfwW6vZs36HwNSa3s4QNTI024KZGlX3PY46Z/srdSVU1fbN9r+rK512TqcwSPDMHo2S0SruPMGFs6sddYDAEyiiHDMrjEi2OPrQv5bL+uKW5tQKlMlT0b5SQmL2IEO/6wAnOlzy5++yyF4jOgyxdvMydDUdRQe8KFywVCqqLXS5GoqUWUICWi1fL4A91mrmS+n9NKj6tT8L3VynlDoW2BlPUrwVjzy8FOtTCIscd4+Oqer2/34vAR8UMcRWczCQJkLR0ONon5pxDIeNlkXi4J4ljVW/2WbKKK+A==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=SMspl9goQOsd1Y1U8A8K0H5Uvjjije1QNg2suE/jlN4=;
- b=Lw/IWte6nfLXRq/n1O1lBXYazvzmSGUDvqp0WFJ7KKkhbGPIjFpxPDT+TowuqmKjEAnuKcdj0Fo/nQntk1gu4p1wIKDa14Nl1YbCUrwxBN5aJ34OKpiusoN/smIackknLdnU4BK5mWlWRyfar0bDZdc43EiC6KaDmLEXAJs9lpuBGYF4d70gGAxspgNUtfGPI4l+xWWhy1dlwXyROCM4jJfzMZm8snYUac/FA5i30c1M3dZYTEdEloAoNWchcSkVklB3Xo6OehbBy26uv3PHoWFP37rCd/P71PAGKTJPDnvugyF0sFy7Lx17TSEoNn4AUIHIE79xfrx37F9pJi8Hqw==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
- dkim=pass header.d=csgroup.eu; arc=none
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
- by PR0P264MB2454.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:1e1::21) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5144.29; Thu, 14 Apr
- 2022 06:24:00 +0000
-Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::59c:ae33:63c1:cb1c]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
- ([fe80::59c:ae33:63c1:cb1c%8]) with mapi id 15.20.5164.020; Thu, 14 Apr 2022
- 06:24:00 +0000
-From:   Christophe Leroy <christophe.leroy@csgroup.eu>
-To:     Anshuman Khandual <anshuman.khandual@arm.com>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>
-CC:     "catalin.marinas@arm.com" <catalin.marinas@arm.com>,
-        Christoph Hellwig <hch@infradead.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-arm-kernel@lists.infradead.org" 
-        <linux-arm-kernel@lists.infradead.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Khalid Aziz <khalid.aziz@oracle.com>
-Subject: Re: [PATCH V7 4/7] sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Thread-Topic: [PATCH V7 4/7] sparc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
-Thread-Index: AQHYT8fejEKbxTKHc0Sq1urAeYFQYKzu8OIA
-Date:   Thu, 14 Apr 2022 06:23:59 +0000
-Message-ID: <64e04efb-3689-5652-07f5-e04d2915294a@csgroup.eu>
-References: <20220414062125.609297-1-anshuman.khandual@arm.com>
- <20220414062125.609297-5-anshuman.khandual@arm.com>
-In-Reply-To: <20220414062125.609297-5-anshuman.khandual@arm.com>
-Accept-Language: fr-FR, en-US
-Content-Language: en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-authentication-results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=csgroup.eu;
-x-ms-publictraffictype: Email
-x-ms-office365-filtering-correlation-id: 54ca89d8-9d3a-46d2-9a00-08da1ddf5ce9
-x-ms-traffictypediagnostic: PR0P264MB2454:EE_
-x-microsoft-antispam-prvs: <PR0P264MB245422D80CC6B45D425D06C6EDEF9@PR0P264MB2454.FRAP264.PROD.OUTLOOK.COM>
-x-ms-exchange-senderadcheck: 1
-x-ms-exchange-antispam-relay: 0
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: GRb7p+p1X89EueYGiGLlmHTi+seUGngqjTKN3sQydmeNyV5pMM14SJehFPDCpHogGtLE1fmsSdqgzFcUWx6usjoBhGt66gq68v+K6SL82jCcDOZoSI/Y2i7/4+VQ67xaFgMv3Ks+M/4KFye60F4Pvi7XDMmL1AfMpRlIpeVLmLxHL+9k2jdSRvuK2sr29qd9wYxig0CCf/FJY4km917Ozj0k5P4sWlbCmMit5B6fouiGxzrltw8PUZ5uVULeRzJKjAiupB3PdqxMSmApS/oMrxR4+9eb2oRrxsDFh8fvjfFYHxlEZyQl/UrlgSM6EW3KruODEQhiVUSHHHI+XVXbGysFyTCpLDJVIabKX6Q3CjgF+18AjK5jYmyWf4hM1tp4fiu1znrEoyvQa/1Hfy4TSwnb2OdtvT+FyMn1TIUyWaPnqZTdPbAM2phNK+/czeQVfrvJj4BsW9RoaCuh/t4APWn4CrTIUZZnHNKzumCmQVVGqSXSHN1RxvJMtGweTkcAWCwC7KdCzweNDiT5WsLKz7xeIw+OdigWdUx/EkqnEMSdTRUtiCnhTqVoiIgR55YBG6Jxo/iClCqb1WiFA+I9EX84BQpy5JUfuuQ/A7wmdetyukAm3cG1rMVRw+fa4WeyA+T0ZNWHFoMSzdonUXW03sxALR5sK9adO94/pg10/izazSEMe6zEQy2tLkIK3KD5giUoxvmxVUqOlrPjQcGfyFRnXzaN6RwK/GXdYih6v4V7/ZV6oieb4ceG1GSH0N/GPDjGCWQn4c6MTSdf+ZOc8Q==
-x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(508600001)(66946007)(86362001)(64756008)(54906003)(66556008)(66476007)(91956017)(110136005)(66446008)(44832011)(76116006)(83380400001)(38100700002)(122000001)(316002)(6512007)(6506007)(71200400001)(4326008)(38070700005)(31696002)(8676002)(2616005)(8936002)(2906002)(36756003)(31686004)(66574015)(5660300002)(26005)(186003)(7416002)(6486002)(45980500001)(43740500002);DIR:OUT;SFP:1101;
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?utf-8?B?d213MVpFUnNTNExlc0lySXFpWkJqT3lmc25aOGN3Z0NFNXViZUs4M2VNbmJp?=
- =?utf-8?B?dndSM3o4bDRndFlxOTlFQ0lUN2NiNGpjVFR2NVo1bGMyZksyTGNDeDNIUzJT?=
- =?utf-8?B?azFnekFsNHNlbm1lQnN4L2J5Wlp1STFuRmloN3ZZRHQ2Y2V4UXZPaDArNy9t?=
- =?utf-8?B?QmU1dGlDdnlhWkhkVkFPSWVkcjFMWkd1MHNzbGUwT0Y3MFl5TEFpRFNZL0tm?=
- =?utf-8?B?Y2lvYk9EV3FyRzYvM3BrTTBwNlVLYVlTbER0dkduUSswcXJCMjlScjMvUVBU?=
- =?utf-8?B?c2RobHcyWFZxRnlHb2VoYlppTklaNXh5UEI0WVpoUnRITUV4WUJmcmRpQVRs?=
- =?utf-8?B?dFdBbjcwOGpKcDRmTXFrYk56SDhmMStvRFF5MUZMc0QxbStWUTVPM2I4cUR6?=
- =?utf-8?B?bG93NE1weTVTSEMxZ1Z3dXVURGdlZkpobmRTWnNoallJcXlZVloxZWcxd2kr?=
- =?utf-8?B?MjRGMkF4R0pxcS9LcjZCeWE1MDBJNENEaXFkVDNaMEpJaUVsalZpeFhWazRS?=
- =?utf-8?B?N1djdnVJSFJLRndTaXhCL0dZTnM4R1RGSHptSDBkeDNBOHFEZ1BZQkcycElN?=
- =?utf-8?B?MFdxN2FMQnNMYjc2UDJTV1RBZWdLRzNJQjNrUGxPVi83ZUgzWVBOemVLVjYz?=
- =?utf-8?B?U1NnWWNIY2k0b25sLzAzY05HT0NQSUVxMmw3dnhobWtMWVdodHZGT2w4cXg4?=
- =?utf-8?B?SGZMd09IMTZkclRKR3pEWmE4d21RSkZwbldtWW5SUnMyOFJFQzFUUm4zMFR6?=
- =?utf-8?B?aXZVamVNSUdSZHpMcjJpU2s1czQ1dDcyelVNZVFFN1VFNzBqaEJhd2hKSXBw?=
- =?utf-8?B?N2ZocmN0aHVnOTN6ZzJmYkxlei93L3lPdENiZVZuNjA5QmxnSU5JREhWaDRv?=
- =?utf-8?B?cGVyMFFjaTdWdnZWTXlWYlNqSmhGTERXcURrbnNtYmRObmxXcGhBYjh3Zzlv?=
- =?utf-8?B?WXBVSldNcGM0MlJ0cVJxTGF1WnpPd0daQjd4MmpmNXFFQ3h1S3h0bDJQcEVw?=
- =?utf-8?B?dzY5VGRvQWN2d2Y2d1BlMmtqNTlsVklCMDZIQzZYSmxBM1NNTHVDdmJQSnM4?=
- =?utf-8?B?RTZYZXhJOHMxS3ZVZkgydFplRy9hcHM0MktHckgvNzh1cWdRQWE0MlFrRDdT?=
- =?utf-8?B?Ly92K09DSWVjVllFZjlGaHJoTWo5V01NbTFyYXdoUTFjeEI0am9xTU1DQytl?=
- =?utf-8?B?L3luQVlQUGRZZzFsSUlVWERmb1FhRWpKanI2WmZxcnhpQ21SUGRsQmZEYUVP?=
- =?utf-8?B?dGVOaUpiTzV1YXd0UWJuL1Nkek5KYlpsZVlueWhrWmw5UkpWMndBUEdiMnJu?=
- =?utf-8?B?cUgvTUxCaDRGUnhhY24ralp5M1N1N01PdWlGMWZsRnhPcmVXb2hmNThsbm5k?=
- =?utf-8?B?Qkl6WGpjR0lMLzh5b2Y5ZVk0OGQ4OWZTTWxvaTR3U25uRWliaWdnWHJZNXlD?=
- =?utf-8?B?SzFDMWwxSXFiRno5SVg1dXZIZzlZckh6Vjg4K0dXaUNId24yTXQyVmtldFRr?=
- =?utf-8?B?NFVpMkErRUE0ZXFvQ2IyTkg2aThUaFE5TVdzRE1zbnZjVUNsaWJUbmlzYTFx?=
- =?utf-8?B?RkxLd0hUTEUyaFdvSEFUdDBLeDhpUXVTNmUxbXZ5Mi9YWk45Y3hPUDl1K1Rr?=
- =?utf-8?B?ZDhRdW1vN3AwVWJoQUo5WGYwM1RER0kzblRkMVNPb2JaSXQ0cTZzb3BXaGIv?=
- =?utf-8?B?ZEZ0WlA0MnppY0dhdjA5M0IyTmx5M0pkTDRnbzY4VXdHaGVhdlQrYytjZmhi?=
- =?utf-8?B?L05XTXdTZHp4bTIvWmlRSUk4azFzdWt0Qm1OazkvYUQ0R2RvOFZjWTJ0R2xE?=
- =?utf-8?B?ekh3NHZPZUU2STBGOFVUUTNSemZjMW9GQ1RtTmo1RGJjem95R2NmeUhaNFFh?=
- =?utf-8?B?NUZ3clR6REl3azdZRG9MMTJvRHRvbVNwRmFuMnJXM3pDNUQvVHQ2VDFWZ3NM?=
- =?utf-8?B?L3c5VnR3TmRjZW10U3A5aW1ySDUwZmlLSlYwQmFZL0NnMitiSzNWUXJEMW0y?=
- =?utf-8?B?c3hGdVhoVUZTb2NHVTBqbU1jMHJWaU9raXBFTCtTUmJCcGN3aUYzM1N1ZTY4?=
- =?utf-8?B?ZE93SGtGMU5Wb01nQ0ZuNmdiVkE1VEJxZHVVMFkzVWJuYXJkUUhuZFI4dGJQ?=
- =?utf-8?B?NVhaTjluRFpnejAxV0tYS2xZUHVCUFlLd29qelc5b3ZncGs5OFFTOU0xeGRP?=
- =?utf-8?B?WTBZcGgxVWJlR2R1TXQ2S0NmZTN0TkRTSHhyWW1CODd0MzNZTEFyOUd5dW00?=
- =?utf-8?B?YWp5bS9FR25yd3QyWnlxUlZVK0JrUzNFcklZNUtGcGRLUUEra0ZWbThZOFhZ?=
- =?utf-8?B?NXhGUWJuR2dqa2pmeGNwOFpZS013WXhtSjlFZ1lNRGJHbll6K2E3M0d1OW5J?=
- =?utf-8?Q?TEFRZVChWsOXuuYCpYaYBg48fgVM58BqUIABm?=
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <916013C7A6ABDD4F9F58F9CD1FC9F170@FRAP264.PROD.OUTLOOK.COM>
-Content-Transfer-Encoding: base64
+        with ESMTP id S229733AbiDNJ37 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 14 Apr 2022 05:29:59 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94EAD50E2A;
+        Thu, 14 Apr 2022 02:27:34 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F56861CB7;
+        Thu, 14 Apr 2022 09:27:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7F941C385A1;
+        Thu, 14 Apr 2022 09:27:29 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="iCKw8U+B"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1649928448;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=jitaCCQ2e/PpJGSBhLHWsevtZEgEekS1b3Wk73klyKA=;
+        b=iCKw8U+BX0unZDHdCqu1WEQPpDnLVael4IDVYgWvfW7w0XcoPFz96Q+X7Oh/HXcBDfoQgf
+        relkkKJiqLUs0hWWbJBeLDEdKmFO5iYlsrmp12SxDsveaByJUqA4gI9QfV6k/NrhryczGl
+        YX1t4UDjk8/egPtL7ZCNgWMOfE4aDFg=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id ff3c9dc5 (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
+        Thu, 14 Apr 2022 09:27:27 +0000 (UTC)
+Date:   Thu, 14 Apr 2022 11:27:22 +0200
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
+Cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>, Theodore Ts'o <tytso@mit.edu>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-m68k <linux-m68k@lists.linux-m68k.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
+Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
+ instead of zero
+Message-ID: <YlfoeGRM6w2O+eXA@zx2c4.com>
+References: <20220413115411.21489-1-Jason@zx2c4.com>
+ <20220413115411.21489-5-Jason@zx2c4.com>
+ <20220413122546.GA11860@alpha.franken.de>
+ <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk>
+ <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
+ <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
 MIME-Version: 1.0
-X-OriginatorOrg: csgroup.eu
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-Network-Message-Id: 54ca89d8-9d3a-46d2-9a00-08da1ddf5ce9
-X-MS-Exchange-CrossTenant-originalarrivaltime: 14 Apr 2022 06:23:59.9291
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
-X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
-X-MS-Exchange-CrossTenant-userprincipalname: YJjbaqwErMz5hDgKxD0iqoqY00Ugr29efnCaf7bLEq8O9xIRCr7C2VMJeru9g+JTevXTh/H1SjderkT0ZHXfgzTX1/VXAqadOaFeutkRn/0=
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR0P264MB2454
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-DQoNCkxlIDE0LzA0LzIwMjIgw6AgMDg6MjEsIEFuc2h1bWFuIEtoYW5kdWFsIGEgw6ljcml0wqA6
-DQo+IFRoaXMgZGVmaW5lcyBhbmQgZXhwb3J0cyBhIHBsYXRmb3JtIHNwZWNpZmljIGN1c3RvbSB2
-bV9nZXRfcGFnZV9wcm90KCkgdmlhDQo+IHN1YnNjcmliaW5nIEFSQ0hfSEFTX1ZNX0dFVF9QQUdF
-X1BST1QuIEl0IGxvY2FsaXplcyBhcmNoX3ZtX2dldF9wYWdlX3Byb3QoKQ0KPiBhcyBzcGFyY192
-bV9nZXRfcGFnZV9wcm90KCkgYW5kIG1vdmVzIG5lYXIgdm1fZ2V0X3BhZ2VfcHJvdCgpLg0KPiAN
-Cj4gQ2M6ICJEYXZpZCBTLiBNaWxsZXIiIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KPiBDYzogS2hh
-bGlkIEF6aXogPGtoYWxpZC5heml6QG9yYWNsZS5jb20+DQo+IENjOiBzcGFyY2xpbnV4QHZnZXIu
-a2VybmVsLm9yZw0KPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiBBY2tlZC1i
-eTogRGF2aWQgUy4gTWlsbGVyIDxkYXZlbUBkYXZlbWxvZnQubmV0Pg0KPiBSZXZpZXdlZC1ieTog
-S2hhbGlkIEF6aXogPGtoYWxpZC5heml6QG9yYWNsZS5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IEFu
-c2h1bWFuIEtoYW5kdWFsIDxhbnNodW1hbi5raGFuZHVhbEBhcm0uY29tPg0KDQpSZXZpZXdlZC1i
-eTogQ2hyaXN0b3BoZSBMZXJveSA8Y2hyaXN0b3BoZS5sZXJveUBjc2dyb3VwLmV1Pg0KDQo+IC0t
-LQ0KPiAgIGFyY2gvc3BhcmMvS2NvbmZpZyAgICAgICAgICAgIHwgIDEgKw0KPiAgIGFyY2gvc3Bh
-cmMvaW5jbHVkZS9hc20vbW1hbi5oIHwgIDYgLS0tLS0tDQo+ICAgYXJjaC9zcGFyYy9tbS9pbml0
-XzY0LmMgICAgICAgfCAxMiArKysrKysrKysrKysNCj4gICAzIGZpbGVzIGNoYW5nZWQsIDEzIGlu
-c2VydGlvbnMoKyksIDYgZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvYXJjaC9zcGFy
-Yy9LY29uZmlnIGIvYXJjaC9zcGFyYy9LY29uZmlnDQo+IGluZGV4IDkyMDBiYzA0NzAxYy4uODVi
-NTczNjQzYWY2IDEwMDY0NA0KPiAtLS0gYS9hcmNoL3NwYXJjL0tjb25maWcNCj4gKysrIGIvYXJj
-aC9zcGFyYy9LY29uZmlnDQo+IEBAIC04NCw2ICs4NCw3IEBAIGNvbmZpZyBTUEFSQzY0DQo+ICAg
-CXNlbGVjdCBQRVJGX1VTRV9WTUFMTE9DDQo+ICAgCXNlbGVjdCBBUkNIX0hBVkVfTk1JX1NBRkVf
-Q01QWENIRw0KPiAgIAlzZWxlY3QgSEFWRV9DX1JFQ09SRE1DT1VOVA0KPiArCXNlbGVjdCBBUkNI
-X0hBU19WTV9HRVRfUEFHRV9QUk9UDQo+ICAgCXNlbGVjdCBIQVZFX0FSQ0hfQVVESVRTWVNDQUxM
-DQo+ICAgCXNlbGVjdCBBUkNIX1NVUFBPUlRTX0FUT01JQ19STVcNCj4gICAJc2VsZWN0IEFSQ0hf
-U1VQUE9SVFNfREVCVUdfUEFHRUFMTE9DDQo+IGRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL2luY2x1
-ZGUvYXNtL21tYW4uaCBiL2FyY2gvc3BhcmMvaW5jbHVkZS9hc20vbW1hbi5oDQo+IGluZGV4IDI3
-NDIxN2U3ZWQ3MC4uYWY5YzEwYzgzZGM1IDEwMDY0NA0KPiAtLS0gYS9hcmNoL3NwYXJjL2luY2x1
-ZGUvYXNtL21tYW4uaA0KPiArKysgYi9hcmNoL3NwYXJjL2luY2x1ZGUvYXNtL21tYW4uaA0KPiBA
-QCAtNDYsMTIgKzQ2LDYgQEAgc3RhdGljIGlubGluZSB1bnNpZ25lZCBsb25nIHNwYXJjX2NhbGNf
-dm1fcHJvdF9iaXRzKHVuc2lnbmVkIGxvbmcgcHJvdCkNCj4gICAJfQ0KPiAgIH0NCj4gICANCj4g
-LSNkZWZpbmUgYXJjaF92bV9nZXRfcGFnZV9wcm90KHZtX2ZsYWdzKSBzcGFyY192bV9nZXRfcGFn
-ZV9wcm90KHZtX2ZsYWdzKQ0KPiAtc3RhdGljIGlubGluZSBwZ3Byb3RfdCBzcGFyY192bV9nZXRf
-cGFnZV9wcm90KHVuc2lnbmVkIGxvbmcgdm1fZmxhZ3MpDQo+IC17DQo+IC0JcmV0dXJuICh2bV9m
-bGFncyAmIFZNX1NQQVJDX0FESSkgPyBfX3BncHJvdChfUEFHRV9NQ0RfNFYpIDogX19wZ3Byb3Qo
-MCk7DQo+IC19DQo+IC0NCj4gICAjZGVmaW5lIGFyY2hfdmFsaWRhdGVfcHJvdChwcm90LCBhZGRy
-KSBzcGFyY192YWxpZGF0ZV9wcm90KHByb3QsIGFkZHIpDQo+ICAgc3RhdGljIGlubGluZSBpbnQg
-c3BhcmNfdmFsaWRhdGVfcHJvdCh1bnNpZ25lZCBsb25nIHByb3QsIHVuc2lnbmVkIGxvbmcgYWRk
-cikNCj4gICB7DQo+IGRpZmYgLS1naXQgYS9hcmNoL3NwYXJjL21tL2luaXRfNjQuYyBiL2FyY2gv
-c3BhcmMvbW0vaW5pdF82NC5jDQo+IGluZGV4IDhiMTkxMTU5MTU4MS4uZjYxNzRkZjJkNWFmIDEw
-MDY0NA0KPiAtLS0gYS9hcmNoL3NwYXJjL21tL2luaXRfNjQuYw0KPiArKysgYi9hcmNoL3NwYXJj
-L21tL2luaXRfNjQuYw0KPiBAQCAtMzE4NCwzICszMTg0LDE1IEBAIHZvaWQgY29weV9oaWdocGFn
-ZShzdHJ1Y3QgcGFnZSAqdG8sIHN0cnVjdCBwYWdlICpmcm9tKQ0KPiAgIAl9DQo+ICAgfQ0KPiAg
-IEVYUE9SVF9TWU1CT0woY29weV9oaWdocGFnZSk7DQo+ICsNCj4gK3BncHJvdF90IHZtX2dldF9w
-YWdlX3Byb3QodW5zaWduZWQgbG9uZyB2bV9mbGFncykNCj4gK3sNCj4gKwl1bnNpZ25lZCBsb25n
-IHByb3QgPSBwZ3Byb3RfdmFsKHByb3RlY3Rpb25fbWFwW3ZtX2ZsYWdzICYNCj4gKwkJCQkJKFZN
-X1JFQUR8Vk1fV1JJVEV8Vk1fRVhFQ3xWTV9TSEFSRUQpXSk7DQo+ICsNCj4gKwlpZiAodm1fZmxh
-Z3MgJiBWTV9TUEFSQ19BREkpDQo+ICsJCXByb3QgfD0gX1BBR0VfTUNEXzRWOw0KPiArDQo+ICsJ
-cmV0dXJuIF9fcGdwcm90KHByb3QpOw0KPiArfQ0KPiArRVhQT1JUX1NZTUJPTCh2bV9nZXRfcGFn
-ZV9wcm90KTs=
+Hi Maciej,
+
+On Thu, Apr 14, 2022 at 02:16:18AM +0100, Maciej W. Rozycki wrote:
+>  Yes, for the relevant CPUs the range is 63-8 << 8 for R3k machines and 
+> 47-0 (the lower bound can be higher if wired entries are used, which I 
+> think we occasionally do) for R4k machines with a buggy CP0 counter.  So 
+> there are either 56 or up to 48 distinct CP0 Random register values.
+
+Ahh interesting, so it varies a bit, but it remains rather small.
+
+>  It depends on the exact system.  Some have a 32-bit high-resolution 
+> counter in the chipset (arch/mips/kernel/csrc-ioasic.c) giving like 25MHz 
+> resolution, some have nothing but jiffies.
+
+Alright, so there _are_ machines with no c0 cycles but with a good
+clock. Yet, 25MHz is still less than the cpu cycle, so this c0 random
+ORing trick remains useful perhaps.
+
+>  It seems like a reasonable idea to me, but the details would have to be 
+> sorted out, because where a chipset high-resolution counter is available 
+> we want to factor it in, and otherwise we need to extract the right bits 
+> from the CP0 Random register, either 13:8 for the R3k or 5:0 for the R4k.
+
+One thing we could do here that would seemingly cover all the cases
+without losing _that_ much would be:
+
+    return (random_get_entropy_fallback() << 13) | ((1<<13) - read_c0_random());
+
+Or in case the 13 turns out to be wrong on some hardware, we could
+mitigate the effect with:
+
+    return (random_get_entropy_fallback() << 13) ^ ((1<<13) - read_c0_random());
+
+As mentioned in the 1/xx patch of this series,
+random_get_entropy_fallback() should call the highest resolution thing.
+We then shave off the least-changing bits and stuff in the
+faster-changing bits from read_c0_random(). Then, in order to keep it
+counting up instead of down, we do the subtraction there.
+
+What do you think of this plan?
+
+Jason
