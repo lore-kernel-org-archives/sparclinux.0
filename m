@@ -2,150 +2,152 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D557C433FE
-	for <sparclinux@archiver.kernel.org>; Fri, 15 Apr 2022 12:26:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F7B6C433F5
+	for <sparclinux@archiver.kernel.org>; Fri, 15 Apr 2022 13:56:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242706AbiDOM3T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 15 Apr 2022 08:29:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55016 "EHLO
+        id S245147AbiDON7R (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 15 Apr 2022 09:59:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35710 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230172AbiDOM3S (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 15 Apr 2022 08:29:18 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 35895C1C9D;
-        Fri, 15 Apr 2022 05:26:50 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id 4C8D392009C; Fri, 15 Apr 2022 14:26:48 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 4517592009B;
-        Fri, 15 Apr 2022 13:26:48 +0100 (BST)
-Date:   Fri, 15 Apr 2022 13:26:48 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
- instead of zero
-In-Reply-To: <YlfoeGRM6w2O+eXA@zx2c4.com>
-Message-ID: <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk>
-References: <20220413115411.21489-1-Jason@zx2c4.com> <20220413115411.21489-5-Jason@zx2c4.com> <20220413122546.GA11860@alpha.franken.de> <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk> <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
- <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk> <YlfoeGRM6w2O+eXA@zx2c4.com>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+        with ESMTP id S237509AbiDON7R (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 15 Apr 2022 09:59:17 -0400
+Received: from APC01-SG2-obe.outbound.protection.outlook.com (mail-sgaapc01on2107.outbound.protection.outlook.com [40.107.215.107])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A614B3B3CF;
+        Fri, 15 Apr 2022 06:56:47 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=X7T6f5alnfhZM8Cf3I81XC7xPIbfJI3jrox0XEvL8jc+Qn0/Iib1Okm/rnci0ObPtmuYgZdD1/+tv6pUO+4KF/+62PW6JQbbftTCrLTF5TtNr++EWtZkWNMuS5AxYBIesg0O3sLzN7Q8HqDPR4mk1y8JdmlHKyx6+9O4v1R2aeiDQ0EgJX2iJs9Teybl9MXMTw40I3tDi8V+KSIb8YVqT8biv0ocsynC3HGcGE7UJ5NkbeJjFqQhmYgiNkTNvJSaZzP0Hr+vZOpniKNod6JWy8AblBsuuWFYATO46JKuVS8Jrqorh5E8eqOfzLcr9TgLJIrMD5tptCLE4yMFH4iH/A==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=bDKAql1ylDNNspwqVW4QQRDxaEihZc22yK9P5S+mxI8=;
+ b=mJDLPbZpqP6J9B+vZFCQlmC5YCS7t53wKchm3YUrm40De3PnRXqz86/OIR6gtVEATXNuDeiXz8M3fwsAoCfde27awdLDx32gxB/Z+hjBbYZ23BJapGZty0N8jZaLcjYECIgyr9zRskEMdgVtNHurCcO26fOkB4Q2OjSZaiqn8Zatrur7OCjcWV3WuM6gtxquKmehIP3p38NuMhmN8+1OUCa160IURw2bvwLH1uDWzTyPRWKOtN+c/jSbjvSX9vnsMxgbznIbx9CcKj/ZFcazD62PwkPFug2WwzfT2mLDaW3OIJGXChmu9C1gDaifoJ6XQsEtY2isrzoigawhVk2WRg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=vivo.com; dmarc=pass action=none header.from=vivo.com;
+ dkim=pass header.d=vivo.com; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=vivo0.onmicrosoft.com;
+ s=selector2-vivo0-onmicrosoft-com;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=bDKAql1ylDNNspwqVW4QQRDxaEihZc22yK9P5S+mxI8=;
+ b=FuGY8kka6IXz02bTo/1MJVQSPjJFA6yrrqHDqcTBpcbKUO1ewOSALaiIDTsloTa6CglVv0Wo8QarK21WhC2/YXCTNRnWX19W/zt/DEQ02ostyAeABu7IOelPgexESNY+uxOP/onmmm/Wp57k5HmqVmarEQU02azFhQtXD5rQh9E=
+Authentication-Results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=vivo.com;
+Received: from TYZPR06MB4173.apcprd06.prod.outlook.com (2603:1096:400:26::14)
+ by SG2PR06MB3015.apcprd06.prod.outlook.com (2603:1096:4:75::9) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.5144.29; Fri, 15 Apr 2022 13:56:44 +0000
+Received: from TYZPR06MB4173.apcprd06.prod.outlook.com
+ ([fe80::d4bd:64f4:e1c0:25cb]) by TYZPR06MB4173.apcprd06.prod.outlook.com
+ ([fe80::d4bd:64f4:e1c0:25cb%4]) with mapi id 15.20.5164.020; Fri, 15 Apr 2022
+ 13:56:44 +0000
+From:   Yihao Han <hanyihao@vivo.com>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Yihao Han <hanyihao@vivo.com>, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc:     kernel@vivo.com
+Subject: [PATCH] sparc: kernel: Add missing put_device() calls
+Date:   Fri, 15 Apr 2022 06:55:43 -0700
+Message-Id: <20220415135609.87538-1-hanyihao@vivo.com>
+X-Mailer: git-send-email 2.17.1
+Content-Type: text/plain
+X-ClientProxiedBy: TYAPR01CA0063.jpnprd01.prod.outlook.com
+ (2603:1096:404:2b::27) To TYZPR06MB4173.apcprd06.prod.outlook.com
+ (2603:1096:400:26::14)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+X-MS-PublicTrafficType: Email
+X-MS-Office365-Filtering-Correlation-Id: 9550f7a1-d644-4e60-51c3-08da1ee7c660
+X-MS-TrafficTypeDiagnostic: SG2PR06MB3015:EE_
+X-Microsoft-Antispam-PRVS: <SG2PR06MB3015EB9950C889BF3C61FC19A2EE9@SG2PR06MB3015.apcprd06.prod.outlook.com>
+X-MS-Exchange-SenderADCheck: 1
+X-MS-Exchange-AntiSpam-Relay: 0
+X-Microsoft-Antispam: BCL:0;
+X-Microsoft-Antispam-Message-Info: yDm8mpFUUw/D6rWVp9DvX5R3mEOrbgjGfd5Pg/Pskoq7WoycJAKg8LnUeWAJQZw5yXO5kgCUfbyzYLtjIppc0Mk0hcN5dMI8v71njs/zkaSHpX7c5xu6VXqq1sGjXQfK7OqmRBglMpYJXlIM4StuePfhiKETewme2chrP7khC7Dchl0ZY1uwQ3TlImCkvLKGi4I10Jx9BnRdLZEWPVgO4bPe78TaND3Rc7utNeF0n4S8w0IDyw0QEZzvwAhDcJfzHQqTx32SpS776wBEOXmvrSjeLQrb7Op8v8MTWTCNL0dtd3Yp8VmddeD2JKfKnRSDMjAjPIDb+ZyWUG1TyEeEaApqhjMSlMp8papaDBivfrOtziRLkUg+lUugDDcJAXOom6+Ng3WNXy61fy7q4KMScW4ZOwhlqTscSvB2JDt2e8KkQO7cnl7i2y0LWI4UJ0qk2dKK55ZWdCspx2mLxVcW7fD8eh19795VDhyycqzh+xvJ5NdvkfTRQSVt9ApivR/RawEFkBWWx1CSRLxLwoHsRt13ApMLJharqz+NGnAQou8Rmp0CxqnwZeOsaxqB15fEIAM+4++65zS09xFXcGke7aR55MFBMzGWupFwFv7bUv67inDAfWbQ7yE1UaiCMc0EJ01ijRruh/ub4z6xvQ1SuES6LLil/vlsZK3XhplCCOQyQmqBqbVMOHn4NjbhPzvhrm0LovFuY9yotiho62gpgA==
+X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:TYZPR06MB4173.apcprd06.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230001)(4636009)(366004)(66476007)(2616005)(52116002)(107886003)(316002)(36756003)(6506007)(1076003)(8936002)(5660300002)(6512007)(38350700002)(38100700002)(508600001)(6486002)(110136005)(2906002)(26005)(86362001)(83380400001)(8676002)(66556008)(4326008)(186003)(66946007);DIR:OUT;SFP:1102;
+X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
+X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?7o1SzhWAtY3lPtjrwcn3PbQIYEMp0aKKMVL63ZYQqhns/x9EejzRAjwXzZ6J?=
+ =?us-ascii?Q?Lm9iJAj1xkCTJMmPQcQkXl8iLcScnVVv/E3lMApFr1KFR9aOT+0DxFVRdEJG?=
+ =?us-ascii?Q?oft4+A+gX9hMYkHBt0lV4Cy/b1Y1Cgv55S0UCBfZwTsXm/dKWijeoNhk0UL+?=
+ =?us-ascii?Q?ICMEZLBmGa0Ne7eaO9sSEdcSb/49BSZw6GgyxjeG/9cakBEHqCCSjmwpS/9D?=
+ =?us-ascii?Q?dP4gMlSEvADk07Mt4XfSgen9vOifstXv/OJRebVjo6c0y8oAPZvMxmKAamRw?=
+ =?us-ascii?Q?Nhdw8r3GVtuOnAArFBj3E3O9rpASFS7qchpaBFjfRJ+Z+xrMJ6MsHme9E+Ld?=
+ =?us-ascii?Q?mMGTRKrjk9CDoQ6qHp8uXbnkKuTka08ZJMph+sMLNg9CtPf8TOwXG4aCDjRy?=
+ =?us-ascii?Q?frTMVq7P0+eQUcfry852PjHM5mkFX1c9QMrFcpiJPQBMn5sIjh6yVeytG6xk?=
+ =?us-ascii?Q?5pWxg0FGP5UZmS4X/15DenENS6LRuWzNKHExF4vqQDRMLbNlH3+KAr09cspI?=
+ =?us-ascii?Q?4DA13kQpYYy5KRZcTdDGyrpYwfajgAAkLDc1Az66KVyW3EW0jvZhss6ICQL8?=
+ =?us-ascii?Q?EwRq4mlYMH1tMpVge+i+g+Sr5wlPILPcFn6Ylg77jCynQtrB2lIFqtEF7Q2q?=
+ =?us-ascii?Q?0RZQb8eN1Fjxu5TVckhQA0xrjnX+V+/yB7slm5E9rq1758Qivk+v7EOAR8OC?=
+ =?us-ascii?Q?c9T0F8uwhE+hr90936IeUrIxF8qqqI71kx6wKyapNJoNQG2+MLO4Hu9XJP29?=
+ =?us-ascii?Q?WndR5mt1VcSi1MguVkgFOpMDpeFigiX3HVLQNXo7TTuZ+nbUz7XQvej8HtJ4?=
+ =?us-ascii?Q?o3KsXrCxdywQTjbq0ehBbSNKHoL+RL0xkvt8UGZFSYcKrtZovUMMWMKQrKBP?=
+ =?us-ascii?Q?m3Etr+gFpKFgJybAjLsN8QUlPJxvepJ2Gjmv+RAWkUS6N+heGTzUpZ8zNelW?=
+ =?us-ascii?Q?yR3gOauIMQP3VaFYc6xfypY49RjcFmtjVcS2etknZYUJwTpf9GNPv/tPblZr?=
+ =?us-ascii?Q?Lr5LZo651rp76BZzQuWbiQczttxFPZRYq2sCJTRfOVHkW+hATrC27/2NpJy6?=
+ =?us-ascii?Q?nNqNvEGo0joxhKOyAxW629bXHyFGpYQHWzRBw3watMku0f4hmPgyYSHuELNP?=
+ =?us-ascii?Q?ZkUx91l78gThphEJkLOjujV4EvjEnGgQhf+QllDZnyIQ4PxSnBTeXfZSD+d8?=
+ =?us-ascii?Q?gu558fVLVyfgtwQgiEa0JaugEqWKBcJPRx6BLdxJzFPAzqwv1NF+DEQs0hdG?=
+ =?us-ascii?Q?etEtyeFfwFlx8Cmzft0ovdiypStvbFfXbC2wS5CXDK2ho/WPvaE+vb+MNghd?=
+ =?us-ascii?Q?4/UbEUpmyI2aM0OcmQBHHSsS9IuiJFHMnB44jmBVCGK6nWXufay28/KQRisv?=
+ =?us-ascii?Q?8c8O/lrrBl1HKgGF7dVaSwZwnKMexEps8rNCX3nfCwIeGUrFw1OuZWubuy4P?=
+ =?us-ascii?Q?bW48C57okBx3Va/BgxjNywNMfPj39oPP5W0iHy8WWCOF6bqkiPjiCr0iuvAt?=
+ =?us-ascii?Q?oyuKLQAa7o9iXwMAqljO+6SOkS2by2KQdCNKhLeKrHxd9TkRKqTP0vSzmxSO?=
+ =?us-ascii?Q?aBGLFoyF2lQRVFDey48RT6gXoEoMRkgaBVPY4B76s0guJ9hRdD4d5DWqF8q+?=
+ =?us-ascii?Q?4TT0BT2BZqHUsAILRb3oD8fzeaLdexMcMAyzPyPvu+ivvWDywmuj0Qkqp4OH?=
+ =?us-ascii?Q?85n0g4+6E8ei0HeFagXXeB4yHDXyV/g6To3ckoh5PN8XEIkKqijSYYQ0GiRt?=
+ =?us-ascii?Q?SIko21oP2auZIe9gi8JM2+qycElcx8Q=3D?=
+X-OriginatorOrg: vivo.com
+X-MS-Exchange-CrossTenant-Network-Message-Id: 9550f7a1-d644-4e60-51c3-08da1ee7c660
+X-MS-Exchange-CrossTenant-AuthSource: TYZPR06MB4173.apcprd06.prod.outlook.com
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-OriginalArrivalTime: 15 Apr 2022 13:56:44.2231
+ (UTC)
+X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
+X-MS-Exchange-CrossTenant-Id: 923e42dc-48d5-4cbe-b582-1a797a6412ed
+X-MS-Exchange-CrossTenant-MailboxType: HOSTED
+X-MS-Exchange-CrossTenant-UserPrincipalName: 9PEmdTWYaM2LwVDdmuJJ61Rj2y0hYG4UIfDhedFVjYHnFkmCp+eDn3wnoN18nQOl/pUVNP7vgsspB8mMSAgGHg==
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: SG2PR06MB3015
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Jason,
+A coccicheck run provided information like the following.
 
-> >  It depends on the exact system.  Some have a 32-bit high-resolution 
-> > counter in the chipset (arch/mips/kernel/csrc-ioasic.c) giving like 25MHz 
-> > resolution, some have nothing but jiffies.
-> 
-> Alright, so there _are_ machines with no c0 cycles but with a good
-> clock. Yet, 25MHz is still less than the cpu cycle, so this c0 random
-> ORing trick remains useful perhaps.
+arch/sparc/kernel/pci_sabre.c:335:2-8: ERROR: missing
+put_device; call of_find_device_by_node on line 324, but
+without a corresponding object release within this function.
+arch/sparc/kernel/pci_sabre.c:369:0-1: ERROR: missing
+put_device; call of_find_device_by_node on line 324, but
+without a corresponding object release within this function.
 
- It's not much less than the CPU cycle really, given that the R3k CPUs are 
-clocked at up to 40MHz in the systems concerned and likewise the buggy R4k 
-CPUs run at up to 60MHz (and mind that their CP0 Count register increments 
-at half the clock rate, so the rate is up to 30MHz anyway).  The overhead 
-of the calculation is more than that, let alone the latency and issue rate 
-of an uncached MMIO access to the chipset register.
+Generated by: scripts/coccinelle/free/put_device.cocci
 
- Also the systems I have in mind and that lack a counter in the chipset 
-actually can make use of the buggy CP0 timer, because it's only when CP0 
-timer interrupts are used that the erratum matters, but they use a DS1287 
-RTC interrupt instead unconditionally as the clock event (see the comment 
-at the bottom of arch/mips/dec/time.c).  But this has not been factored in 
-with `can_use_mips_counter' (should it just check for `mips_hpt_frequency' 
-being zero perhaps, meaning the timer interrupt not being used?).
+Signed-off-by: Yihao Han <hanyihao@vivo.com>
+---
+ arch/sparc/kernel/pci_sabre.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- Thomas, do you happen to know if any of the SGI systems that we support 
-had buggy early R4k chips?
+diff --git a/arch/sparc/kernel/pci_sabre.c b/arch/sparc/kernel/pci_sabre.c
+index 3c38ca40a22b..5d0d13840ac3 100644
+--- a/arch/sparc/kernel/pci_sabre.c
++++ b/arch/sparc/kernel/pci_sabre.c
+@@ -331,8 +331,10 @@ static void sabre_register_error_handlers(struct pci_pbm_info *pbm)
+ 	 * 2: CE ERR
+ 	 * 3: POWER FAIL
+ 	 */
+-	if (op->archdata.num_irqs < 4)
++	if (op->archdata.num_irqs < 4) {
++		put_device(op);
+ 		return;
++	}
+ 
+ 	/* We clear the error bits in the appropriate AFSR before
+ 	 * registering the handler so that we don't get spurious
+@@ -366,6 +368,7 @@ static void sabre_register_error_handlers(struct pci_pbm_info *pbm)
+ 	tmp = upa_readq(base + SABRE_PCICTRL);
+ 	tmp |= SABRE_PCICTRL_ERREN;
+ 	upa_writeq(tmp, base + SABRE_PCICTRL);
++	put_device(op);
+ }
+ 
+ static void apb_init(struct pci_bus *sabre_bus)
+-- 
+2.17.1
 
-> >  It seems like a reasonable idea to me, but the details would have to be 
-> > sorted out, because where a chipset high-resolution counter is available 
-> > we want to factor it in, and otherwise we need to extract the right bits 
-> > from the CP0 Random register, either 13:8 for the R3k or 5:0 for the R4k.
-> 
-> One thing we could do here that would seemingly cover all the cases
-> without losing _that_ much would be:
-> 
->     return (random_get_entropy_fallback() << 13) | ((1<<13) - read_c0_random());
-
- Except this would have to be:
-
-    return (random_get_entropy_fallback() << 14) | ((1<<14) - read_c0_random());
-
-of course, as bit 13 is still one of the active ones in the R3k CP0 Random 
-register.
-
-> Or in case the 13 turns out to be wrong on some hardware, we could
-> mitigate the effect with:
-> 
->     return (random_get_entropy_fallback() << 13) ^ ((1<<13) - read_c0_random());
-
- There are two variants only of the CP0 Random register that we can ever 
-encounter, as it's been de-facto standardised in early 1990s already and 
-then written down in the MIPSr1 architecture specification ~2000.  So I 
-think it may make sense to actually handle them both explictitly with 
-individual calculations, possibly conditionalised on a CONFIG setting or 
-`cpu_has_3kex', because kernels that support the two variants of the MMU 
-architecture are mutually incompatible.
-
- Ah, there's that buggy non-compliant JZ4740 chip too.  I guess we can 
-figure out how many CP0 Random bits it implements, though it may be worth 
-noting that architecturally the register is not required to decrement, so 
-again it may be good to double-check how the JZ4740 selects the values 
-there.
-
- I think the check for a buggy CP0 timer in `can_use_mips_counter' should 
-also be qualified with !(CONFIG_CPU_MIPS32 || CONFIG_CPU_MIPS64), which 
-will reduce the function to a constant 1 for the overwhelming majority of 
-systems out there, without a need to refer to CP0 PRId every time.
-
-> As mentioned in the 1/xx patch of this series,
-> random_get_entropy_fallback() should call the highest resolution thing.
-> We then shave off the least-changing bits and stuff in the
-> faster-changing bits from read_c0_random(). Then, in order to keep it
-> counting up instead of down, we do the subtraction there.
-
- Isn't it going to be an issue for an entropy source that the distribution 
-of values obtained from the CP0 Random bit-field is not even, that is some 
-values from the 6-bit range will never appear?
-
-> What do you think of this plan?
-
- Otherwise it makes absolute sense to me.
-
-  Maciej
