@@ -2,110 +2,73 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7427AC4332F
-	for <sparclinux@archiver.kernel.org>; Mon, 18 Apr 2022 07:10:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A901FC433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 19 Apr 2022 07:26:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232949AbiDRHNV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 18 Apr 2022 03:13:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49694 "EHLO
+        id S1349347AbiDSH2s (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 19 Apr 2022 03:28:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230360AbiDRHNU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 18 Apr 2022 03:13:20 -0400
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 098C6167E7;
-        Mon, 18 Apr 2022 00:10:41 -0700 (PDT)
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1ngLWo-0008Ga-00; Mon, 18 Apr 2022 09:10:30 +0200
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 7A686C0193; Mon, 18 Apr 2022 09:10:05 +0200 (CEST)
-Date:   Mon, 18 Apr 2022 09:10:05 +0200
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
- instead of zero
-Message-ID: <20220418071005.GA4075@alpha.franken.de>
-References: <20220413115411.21489-1-Jason@zx2c4.com>
- <20220413115411.21489-5-Jason@zx2c4.com>
- <20220413122546.GA11860@alpha.franken.de>
- <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk>
- <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
- <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
- <YlfoeGRM6w2O+eXA@zx2c4.com>
- <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk>
+        with ESMTP id S1349341AbiDSH2r (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 19 Apr 2022 03:28:47 -0400
+Received: from xavier.telenet-ops.be (xavier.telenet-ops.be [IPv6:2a02:1800:120:4::f00:14])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C49F7DEC3
+        for <sparclinux@vger.kernel.org>; Tue, 19 Apr 2022 00:26:05 -0700 (PDT)
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:4e4:402f:1025:9028])
+        by xavier.telenet-ops.be with bizsmtp
+        id LXS32700R14lGwr01XS3dH; Tue, 19 Apr 2022 09:26:03 +0200
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.93)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1ngiFP-001GdZ-5S; Tue, 19 Apr 2022 09:26:03 +0200
+Date:   Tue, 19 Apr 2022 09:26:03 +0200 (CEST)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+X-X-Sender: geert@ramsan.of.borg
+To:     linux-kernel@vger.kernel.org
+cc:     sparclinux@vger.kernel.org
+Subject: Re: Build regressions/improvements in v5.18-rc3
+In-Reply-To: <20220419072058.4015664-1-geert@linux-m68k.org>
+Message-ID: <alpine.DEB.2.22.394.2204190925230.302265@ramsan.of.borg>
+References: <CAHk-=wgBR6P8EseYMjfMjxQ_oTpoQmL0qvKpAw04kP-HBgSGFg@mail.gmail.com> <20220419072058.4015664-1-geert@linux-m68k.org>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Apr 15, 2022 at 01:26:48PM +0100, Maciej W. Rozycki wrote:
-> Hi Jason,
-> 
-> > >  It depends on the exact system.  Some have a 32-bit high-resolution 
-> > > counter in the chipset (arch/mips/kernel/csrc-ioasic.c) giving like 25MHz 
-> > > resolution, some have nothing but jiffies.
-> > 
-> > Alright, so there _are_ machines with no c0 cycles but with a good
-> > clock. Yet, 25MHz is still less than the cpu cycle, so this c0 random
-> > ORing trick remains useful perhaps.
-> 
->  It's not much less than the CPU cycle really, given that the R3k CPUs are 
-> clocked at up to 40MHz in the systems concerned and likewise the buggy R4k 
-> CPUs run at up to 60MHz (and mind that their CP0 Count register increments 
-> at half the clock rate, so the rate is up to 30MHz anyway).  The overhead 
-> of the calculation is more than that, let alone the latency and issue rate 
-> of an uncached MMIO access to the chipset register.
-> 
->  Also the systems I have in mind and that lack a counter in the chipset 
-> actually can make use of the buggy CP0 timer, because it's only when CP0 
-> timer interrupts are used that the erratum matters, but they use a DS1287 
-> RTC interrupt instead unconditionally as the clock event (see the comment 
-> at the bottom of arch/mips/dec/time.c).  But this has not been factored in 
-> with `can_use_mips_counter' (should it just check for `mips_hpt_frequency' 
-> being zero perhaps, meaning the timer interrupt not being used?).
-> 
->  Thomas, do you happen to know if any of the SGI systems that we support 
-> had buggy early R4k chips?
+On Tue, 19 Apr 2022, Geert Uytterhoeven wrote:
+> JFYI, when comparing v5.18-rc3[1] to v5.18-rc2[3], the summaries are:
+>  - build errors: +3/-6
 
-IP22 has probably seen all buggy MIPS chips produced, so yes I even own
-Indy/Indigo2 CPU boards with early R4k chips.
+   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration [-Werror]:  => 38:37
 
-Thomas.
+sparc64/sparc-allmodconfig
+sparc64-gcc11/sparc-allmodconfig
 
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+   + /kisskb/src/crypto/blake2b_generic.c: error: the frame size of 2288 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 109:1
+
+sparc64-gcc11/sparc-allmodconfig
+
+   + /kisskb/src/sound/oss/dmasound/dmasound_core.c: error: 'dmasound_setup' defined but not used [-Werror=unused-function]:  => 1431:12
+
+m68k-gcc8/m68k-defconfig
+m68k-gcc8/m68k-allmodconfig
+m68k-gcc11/m68k-defconfig
+m68k-gcc11/m68k-allmodconfig
+
+Fix available
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/b2d229d4ddb17db541098b83524d901257e93845/ (all 96 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/ce522ba9ef7e2d9fb22a39eb3371c0c64e2a433e/ (all 96 configs)
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
