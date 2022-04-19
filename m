@@ -2,106 +2,68 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A88D8C433F5
-	for <sparclinux@archiver.kernel.org>; Tue, 19 Apr 2022 11:39:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB556C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 19 Apr 2022 14:25:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351905AbiDSLmZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 19 Apr 2022 07:42:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43752 "EHLO
+        id S1353374AbiDSO14 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 19 Apr 2022 10:27:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41752 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351702AbiDSLmP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 19 Apr 2022 07:42:15 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1046C340E9;
-        Tue, 19 Apr 2022 04:37:28 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C292C6130F;
-        Tue, 19 Apr 2022 11:37:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0096CC385A5;
-        Tue, 19 Apr 2022 11:37:18 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="qHSdBNkz"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1650368237;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=ERMMrurTq4taC2ovJg+tOy4Fbtf3EbfcM62G0GQKnfo=;
-        b=qHSdBNkzuhjW9XbSKRmJMDQTyTvNjn6SuAHfO+ryi5v1ui/BdqZF8oxRiSm7KhJrlVElBt
-        NF9Mzm3Q3fp2gEoI4VoWkt4zduakEI2LdVRg0JsZXBGMdcVvpqAL3nwfDJh0OxpGvJIEGx
-        UICzcnIUVK5UqMSa3uhJ4gILC4Ke9fA=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 64e6d223 (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
-        Tue, 19 Apr 2022 11:37:17 +0000 (UTC)
-Date:   Tue, 19 Apr 2022 13:37:12 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Johannes Berg <johannes@sipsolutions.net>
-Cc:     linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        tglx@linutronix.de, arnd@arndb.de, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, x86@kernel.org,
-        linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v5 08/11] um: use fallback for random_get_entropy()
- instead of zero
-Message-ID: <Yl6e6CRezyGsQh26@zx2c4.com>
-References: <20220419111650.1582274-1-Jason@zx2c4.com>
- <20220419111650.1582274-9-Jason@zx2c4.com>
- <694c2318d98973ee8995e891f81216ad267341dc.camel@sipsolutions.net>
+        with ESMTP id S1344451AbiDSO1Y (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 19 Apr 2022 10:27:24 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 737DF35A86;
+        Tue, 19 Apr 2022 07:24:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
+        In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender
+        :Reply-To:Content-ID:Content-Description;
+        bh=QRN4/34OFqUjwLHam1sFiw9iJlUmkM8QPvj7xrCnYKs=; b=olpZeZuG5vSaCR29KjZHMIppT6
+        FeO8oEu8HcPLPnM2qKvmF8aQVzYcU+VFlUfyEHGZyllGDnfBqN1UtpiMNOqp68KpIqmaUmAe7Y0vd
+        wiYSW5g8uQfb8GyQxtQT9Mg8Q3XSi5gfDx7b3qEFPrLWkfmY9F68qIt28bA5/8f9E8IP2BLraSkng
+        djkAdiBj7/gNr7y5NHeJvNzx0eHAO8rEI0fvzU41LwqBFO99RTzCPyMLSpm7GHvx9o3OQLVwAsnbu
+        llDNy2hAkOJmqF9s5X8kQHX8VY+zpDQCX+mjVRrVv1pq05FDExXUjOnW8nxE7+uTckqMhCztzvlnr
+        P+LGj+kw==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1ngomU-003B5N-2j; Tue, 19 Apr 2022 14:24:38 +0000
+Message-ID: <f07a0403-0c8a-f099-cb6d-2c53294204ab@infradead.org>
+Date:   Tue, 19 Apr 2022 07:24:32 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <694c2318d98973ee8995e891f81216ad267341dc.camel@sipsolutions.net>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.0
+Subject: Re: Build regressions/improvements in v5.18-rc3
+Content-Language: en-US
+To:     Geert Uytterhoeven <geert@linux-m68k.org>,
+        linux-kernel@vger.kernel.org
+Cc:     sparclinux@vger.kernel.org
+References: <CAHk-=wgBR6P8EseYMjfMjxQ_oTpoQmL0qvKpAw04kP-HBgSGFg@mail.gmail.com>
+ <20220419072058.4015664-1-geert@linux-m68k.org>
+ <alpine.DEB.2.22.394.2204190925230.302265@ramsan.of.borg>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <alpine.DEB.2.22.394.2204190925230.302265@ramsan.of.borg>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Johannes,
 
-On Tue, Apr 19, 2022 at 01:33:21PM +0200, Johannes Berg wrote:
-> On Tue, 2022-04-19 at 13:16 +0200, Jason A. Donenfeld wrote:
-> > In the event that random_get_entropy() can't access a cycle counter or
-> > similar, falling back to returning 0 is really not the best we can do.
-> > Instead, at least calling random_get_entropy_fallback() would be
-> > preferable, because that always needs to return _something_, even
-> > falling back to jiffies eventually. It's not as though
-> > random_get_entropy_fallback() is super high precision or guaranteed to
-> > be entropic, but basically anything that's not zero all the time is
-> > better than returning zero all the time.
-> > 
-> > This is accomplished by just including the asm-generic code like on
-> > other architectures, which means we can get rid of the empty stub
-> > function here.
-> 
-> 
-> LGTM, actually better than before, though not even sure any drivers in
-> ARCH=um have interrupts that say they can be used for this.
-> 
-> Acked-by: Johannes Berg <johannes@sipsolutions.net>
-> 
-> I assume you're going to take this through the random tree?
 
-Right, that's the plan (as mentioned in the cover letter). Changes to
-random.c will depend on these patches being there.
+On 4/19/22 00:26, Geert Uytterhoeven wrote:
+> On Tue, 19 Apr 2022, Geert Uytterhoeven wrote:
+>> JFYI, when comparing v5.18-rc3[1] to v5.18-rc2[3], the summaries are:
+>>  - build errors: +3/-6
+> 
+>   + /kisskb/src/arch/sparc/include/asm/cacheflush_32.h: error: 'struct page' declared inside parameter list will not be visible outside of this definition or declaration [-Werror]:  => 38:37
+> 
+> sparc64/sparc-allmodconfig
+> sparc64-gcc11/sparc-allmodconfig
 
-Jason
+I have posted a patch for this one. Don't know when it will be merged.
+
+https://lore.kernel.org/sparclinux/YlIxJWek5a4wB8Jt@gondor.apana.org.au/T/#t
+
+
+-- 
+~Randy
