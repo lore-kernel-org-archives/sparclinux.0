@@ -2,61 +2,60 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62BDCC433EF
-	for <sparclinux@archiver.kernel.org>; Wed, 20 Apr 2022 11:50:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD24DC433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 21 Apr 2022 07:49:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378259AbiDTLxl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 20 Apr 2022 07:53:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58534 "EHLO
+        id S1385933AbiDUHwn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 21 Apr 2022 03:52:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47240 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1352702AbiDTLxk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 20 Apr 2022 07:53:40 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F9CE1208A;
-        Wed, 20 Apr 2022 04:50:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=e//dGrepWn7jS9BGgfc47xqnbF5iiCNsWca8XJ9Scbo=; b=p9kNFmSNauYxhJ9ue+3HRA2/Sp
-        XglgEYEv2K81hgCmNw9FzjRwLCmmriyByATQynMDLwxN+oHlUqiXOXMcgYRBCVLWJ+52fE76Tinhx
-        VnNeWeM5BWo8VVwgnqLuV/jHvvLrRr5ZW0/FUCPNO+HNQ8W0qwlHW6+4plkO8+kEDJXWitJTf21q9
-        7IyYANdI1o0TwCKpmOY1HKx6kMjnt+H46NWFfPoi0m5UhbgF+UJ9SgeBNw56vkSxMbkBahKnZevRC
-        Yt5sl7cnLOOOWpY7CrGjPyogibKPnS17AafKmelx0F6mMt+06bSNNSWhEfVZzEcNCXsZgO1p0bgBQ
-        DFSXN5JQ==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=worktop.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nh8r4-0076rr-JF; Wed, 20 Apr 2022 11:50:42 +0000
-Received: by worktop.programming.kicks-ass.net (Postfix, from userid 1000)
-        id AFF899861A4; Wed, 20 Apr 2022 13:50:40 +0200 (CEST)
-Date:   Wed, 20 Apr 2022 13:50:40 +0200
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Marco Elver <elver@google.com>
-Cc:     Dmitry Vyukov <dvyukov@google.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, x86@kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-perf-users@vger.kernel.org,
-        kasan-dev@googlegroups.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] signal: Deliver SIGTRAP on perf event asynchronously if
- blocked
-Message-ID: <20220420115040.GE2731@worktop.programming.kicks-ass.net>
-References: <20220404111204.935357-1-elver@google.com>
- <CACT4Y+YiDhmKokuqD3dhtj67HxZpTumiQvvRp35X-sR735qjqQ@mail.gmail.com>
- <CANpmjNPQ9DWzPRx4QWDnZatKGU96xLhb2qN-wgbD84zyZ6_Mig@mail.gmail.com>
+        with ESMTP id S1386265AbiDUHwf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Apr 2022 03:52:35 -0400
+Received: from mail.onlinesuccesses.pl (mail.onlinesuccesses.pl [198.244.150.235])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 882B11BE85
+        for <sparclinux@vger.kernel.org>; Thu, 21 Apr 2022 00:49:46 -0700 (PDT)
+Received: by mail.onlinesuccesses.pl (Postfix, from userid 1002)
+        id B5354A4C79; Thu, 21 Apr 2022 07:46:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=onlinesuccesses.pl;
+        s=mail; t=1650527270;
+        bh=nE8HqilgMh4dy7+Z8ksfg7Bc9rmPeQtYFq3/3YR2ODU=;
+        h=Date:From:To:Subject:From;
+        b=L1PiehJ2t0Y9kZZiPtSwPjGmRv+ubM19R25YEl7ArH8FDvhn+kgNQwEJ1aUUIgwai
+         5kVhFdNHuKNq0f/FnNOefhOggL8GoXC1qnx7NFlyJuvsmPVrcJHGW6JR6ZYWbIVDwY
+         h10dBfsRLENsenSvP7CixWY/pTLeF9ObNXpj966yerik/uhFnzUf+XLhmL4gmLtoHL
+         4vfVidbvxBzrUUk+fCkBpdPZn2kLWQ2/bA2Sz4yJm2Pv0vHxHj+WxI9rBucPofBnCv
+         8j6tYz+yMXqZVp2PVMAbLPLMZyUZcbAfEAMcXyGgnqxtq0ue0dD3ixW3rlYDZV2FEK
+         nTFFIqKZJUZeA==
+Received: by mail.onlinesuccesses.pl for <sparclinux@vger.kernel.org>; Thu, 21 Apr 2022 07:43:49 GMT
+Message-ID: <20220421063001-0.1.3u.yuml.0.glkeft7u2f@onlinesuccesses.pl>
+Date:   Thu, 21 Apr 2022 07:43:49 GMT
+From:   "Wiktor Zielonko" <wiktor.zielonko@onlinesuccesses.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Ruch z pierwszej pozycji w Google
+X-Mailer: mail.onlinesuccesses.pl
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CANpmjNPQ9DWzPRx4QWDnZatKGU96xLhb2qN-wgbD84zyZ6_Mig@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Apr 12, 2022 at 01:00:00PM +0200, Marco Elver wrote:
+Dzie=C5=84 dobry,=20
 
-> Should there be any further comments, please shout.
+jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
+j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
+e Google.=20
 
-Barring objections, I'm going to queue this for perf/core.
+Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
+=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
+w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
+owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
+dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
 
+Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
+edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
+edstawi=C4=87 ofert=C4=99?=20
+
+
+Pozdrawiam serdecznie,
+Wiktor Zielonko
