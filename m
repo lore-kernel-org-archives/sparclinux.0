@@ -2,27 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3B37C433EF
-	for <sparclinux@archiver.kernel.org>; Sat, 23 Apr 2022 23:33:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED219C433F5
+	for <sparclinux@archiver.kernel.org>; Sun, 24 Apr 2022 08:15:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234034AbiDWXgr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 23 Apr 2022 19:36:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34892 "EHLO
+        id S238651AbiDXISR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 24 Apr 2022 04:18:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231690AbiDWXgq (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 23 Apr 2022 19:36:46 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [78.133.224.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AF34A16FAFE;
-        Sat, 23 Apr 2022 16:33:46 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id AD45492009C; Sun, 24 Apr 2022 01:33:44 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id 9D31992009B;
-        Sun, 24 Apr 2022 00:33:44 +0100 (BST)
-Date:   Sun, 24 Apr 2022 00:33:44 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        with ESMTP id S236121AbiDXISP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 24 Apr 2022 04:18:15 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70B464731;
+        Sun, 24 Apr 2022 01:15:14 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5E028B80E00;
+        Sun, 24 Apr 2022 08:15:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B901C385A9;
+        Sun, 24 Apr 2022 08:15:08 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="QQ7PQLbi"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1650788106;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=zz5BWAECMqgYeyzIQatgn1YdaIX48xI6Btjx4R/QQM8=;
+        b=QQ7PQLbiv6h5RMKfyhPz+0uFS/QEk6cKxIFEdT/4w1vomvJYaek1ix2z1YnXUltNn4JNWs
+        ns72gMmUvnu2yAgEipWd73LYk7yThx0ACLC9UkoUd4mMs7onmV4qUH+mMgtRSeZCBhTJ5t
+        iZcOlpmCAAcVo/uGzHHPVJkmoTKoYzY=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id a4e3a24b (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
+        Sun, 24 Apr 2022 08:15:06 +0000 (UTC)
+Date:   Sun, 24 Apr 2022 10:15:00 +0200
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
+Cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         LKML <linux-kernel@vger.kernel.org>,
         Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -54,58 +69,31 @@ cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
         X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
 Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
  instead of zero
-In-Reply-To: <20220418071005.GA4075@alpha.franken.de>
-Message-ID: <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
-References: <20220413115411.21489-1-Jason@zx2c4.com> <20220413115411.21489-5-Jason@zx2c4.com> <20220413122546.GA11860@alpha.franken.de> <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk> <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
- <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk> <YlfoeGRM6w2O+eXA@zx2c4.com> <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk> <20220418071005.GA4075@alpha.franken.de>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+Message-ID: <YmUHBKPC0bAbs4Vj@zx2c4.com>
+References: <20220413115411.21489-1-Jason@zx2c4.com>
+ <20220413115411.21489-5-Jason@zx2c4.com>
+ <20220413122546.GA11860@alpha.franken.de>
+ <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk>
+ <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
+ <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
+ <YlfoeGRM6w2O+eXA@zx2c4.com>
+ <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk>
+ <20220418071005.GA4075@alpha.franken.de>
+ <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 18 Apr 2022, Thomas Bogendoerfer wrote:
+On Sun, Apr 24, 2022 at 12:33:44AM +0100, Maciej W. Rozycki wrote:
+> unconditionally.  I think this discovery asks for code optimisation, which 
+> I'll try to cook up sometime.
 
-> >  Also the systems I have in mind and that lack a counter in the chipset 
-> > actually can make use of the buggy CP0 timer, because it's only when CP0 
-> > timer interrupts are used that the erratum matters, but they use a DS1287 
-> > RTC interrupt instead unconditionally as the clock event (see the comment 
-> > at the bottom of arch/mips/dec/time.c).  But this has not been factored in 
-> > with `can_use_mips_counter' (should it just check for `mips_hpt_frequency' 
-> > being zero perhaps, meaning the timer interrupt not being used?).
-> > 
-> >  Thomas, do you happen to know if any of the SGI systems that we support 
-> > had buggy early R4k chips?
-> 
-> IP22 has probably seen all buggy MIPS chips produced, so yes I even own
-> Indy/Indigo2 CPU boards with early R4k chips.
+At some point too, by the way, we might also consider putting that into
+a .c file rather than a static inline in the .h, since that function is
+starting to get sort of big.
 
- Do they actually use the CP0 timer as a clock event device?  Do they have 
-an alternative high-precision timer available?
-
- In the course of verifying this change I have noticed my DECstation
-5000/260, which has a high-precision timer in the chipset available as a 
-clock source device, does register the CP0 timer as a clock source device 
-regardless.  Upon a closer inspection I have noticed that the CP0 timer 
-interrupt is non-functional in this machine, which I have then confirmed 
-as a valid CPU hardware configuration via the TimIntDis/TimerIntDis (the 
-R4k CPU manual is inconsistent in naming here) boot-mode bit.  It allows 
-IP7 to be used as an external interrupt source instead.  I used not to be 
-aware of the presence of this boot-mode bit.
-
- I find this arrangement odd, because IP7 used to be wired internally as 
-the FPU interrupt with the 5000/240's CPU module, so it's not usable as an 
-external interrupt anyway with this system's mainboard.
-
- That means however that this machine (and possibly the 5000/150 as well, 
-but I'll have to verify that once I get at the KN04 CPU module I have in a 
-drawer at my other place) can use the CP0 timer as a clock source device 
-unconditionally.  I think this discovery asks for code optimisation, which 
-I'll try to cook up sometime.
-
- I don't expect the IP22 to have a similar arrangement with the CP0 timer 
-interrupt given that the CPU was an in-house design at SGI, but who knows?  
-Do you?
-
-  Maciej
+Jason
