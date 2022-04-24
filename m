@@ -2,42 +2,27 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED219C433F5
-	for <sparclinux@archiver.kernel.org>; Sun, 24 Apr 2022 08:15:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E17BBC433EF
+	for <sparclinux@archiver.kernel.org>; Sun, 24 Apr 2022 10:51:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238651AbiDXISR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 24 Apr 2022 04:18:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58060 "EHLO
+        id S239147AbiDXKym (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 24 Apr 2022 06:54:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236121AbiDXISP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 24 Apr 2022 04:18:15 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A70B464731;
-        Sun, 24 Apr 2022 01:15:14 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5E028B80E00;
-        Sun, 24 Apr 2022 08:15:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B901C385A9;
-        Sun, 24 Apr 2022 08:15:08 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="QQ7PQLbi"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1650788106;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=zz5BWAECMqgYeyzIQatgn1YdaIX48xI6Btjx4R/QQM8=;
-        b=QQ7PQLbiv6h5RMKfyhPz+0uFS/QEk6cKxIFEdT/4w1vomvJYaek1ix2z1YnXUltNn4JNWs
-        ns72gMmUvnu2yAgEipWd73LYk7yThx0ACLC9UkoUd4mMs7onmV4qUH+mMgtRSeZCBhTJ5t
-        iZcOlpmCAAcVo/uGzHHPVJkmoTKoYzY=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id a4e3a24b (TLSv1.3:AEAD-AES256-GCM-SHA384:256:NO);
-        Sun, 24 Apr 2022 08:15:06 +0000 (UTC)
-Date:   Sun, 24 Apr 2022 10:15:00 +0200
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        with ESMTP id S236640AbiDXKyl (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 24 Apr 2022 06:54:41 -0400
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 578D22494F;
+        Sun, 24 Apr 2022 03:51:40 -0700 (PDT)
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+        id EFE3992009C; Sun, 24 Apr 2022 12:51:38 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by angie.orcam.me.uk (Postfix) with ESMTP id E14B792009B;
+        Sun, 24 Apr 2022 11:51:38 +0100 (BST)
+Date:   Sun, 24 Apr 2022 11:51:38 +0100 (BST)
+From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         LKML <linux-kernel@vger.kernel.org>,
         Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -69,31 +54,40 @@ Cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
 Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
  instead of zero
-Message-ID: <YmUHBKPC0bAbs4Vj@zx2c4.com>
-References: <20220413115411.21489-1-Jason@zx2c4.com>
- <20220413115411.21489-5-Jason@zx2c4.com>
- <20220413122546.GA11860@alpha.franken.de>
- <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk>
- <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
- <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk>
- <YlfoeGRM6w2O+eXA@zx2c4.com>
- <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk>
- <20220418071005.GA4075@alpha.franken.de>
- <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
+In-Reply-To: <YmUHBKPC0bAbs4Vj@zx2c4.com>
+Message-ID: <alpine.DEB.2.21.2204241140290.9383@angie.orcam.me.uk>
+References: <20220413115411.21489-1-Jason@zx2c4.com> <20220413115411.21489-5-Jason@zx2c4.com> <20220413122546.GA11860@alpha.franken.de> <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk> <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
+ <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk> <YlfoeGRM6w2O+eXA@zx2c4.com> <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk> <20220418071005.GA4075@alpha.franken.de> <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
+ <YmUHBKPC0bAbs4Vj@zx2c4.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Apr 24, 2022 at 12:33:44AM +0100, Maciej W. Rozycki wrote:
-> unconditionally.  I think this discovery asks for code optimisation, which 
-> I'll try to cook up sometime.
+On Sun, 24 Apr 2022, Jason A. Donenfeld wrote:
 
-At some point too, by the way, we might also consider putting that into
-a .c file rather than a static inline in the .h, since that function is
-starting to get sort of big.
+> > unconditionally.  I think this discovery asks for code optimisation, which 
+> > I'll try to cook up sometime.
+> 
+> At some point too, by the way, we might also consider putting that into
+> a .c file rather than a static inline in the .h, since that function is
+> starting to get sort of big.
 
-Jason
+ This code is supposed to produce one to a couple of machine instructions 
+for the majority of configurations.  This is because the conditionals used 
+are usually compile-time constants.  Therefore I think it will be good to 
+continue having it as `static inline' functions.  Cf. the analysis in 
+commit 06947aaaf9bf ("MIPS: Implement random_get_entropy with CP0 
+Random").
+
+ If this code does expand to a longer sequence for some platforms, then 
+either they need to be verified whether they can be optimised (just as I 
+note here for the DEC systems) or we can consider making these functions 
+`extern inline' instead, with out-of-line code available from a .a file in 
+case the compiler decides the code is too large for inlining to be worth 
+doing after all.  Though I don't expect the latter case to be required 
+really.
+
+  Maciej
