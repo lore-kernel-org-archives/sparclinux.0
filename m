@@ -2,92 +2,85 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E17BBC433EF
-	for <sparclinux@archiver.kernel.org>; Sun, 24 Apr 2022 10:51:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DB4C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 25 Apr 2022 07:43:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239147AbiDXKym (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 24 Apr 2022 06:54:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49922 "EHLO
+        id S238286AbiDYHqI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 25 Apr 2022 03:46:08 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57098 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236640AbiDXKyl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 24 Apr 2022 06:54:41 -0400
-Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 578D22494F;
-        Sun, 24 Apr 2022 03:51:40 -0700 (PDT)
-Received: by angie.orcam.me.uk (Postfix, from userid 500)
-        id EFE3992009C; Sun, 24 Apr 2022 12:51:38 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by angie.orcam.me.uk (Postfix) with ESMTP id E14B792009B;
-        Sun, 24 Apr 2022 11:51:38 +0100 (BST)
-Date:   Sun, 24 Apr 2022 11:51:38 +0100 (BST)
-From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-cc:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>, Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        X86 ML <x86@kernel.org>, linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH v4 04/11] mips: use fallback for random_get_entropy()
- instead of zero
-In-Reply-To: <YmUHBKPC0bAbs4Vj@zx2c4.com>
-Message-ID: <alpine.DEB.2.21.2204241140290.9383@angie.orcam.me.uk>
-References: <20220413115411.21489-1-Jason@zx2c4.com> <20220413115411.21489-5-Jason@zx2c4.com> <20220413122546.GA11860@alpha.franken.de> <alpine.DEB.2.21.2204131331450.9383@angie.orcam.me.uk> <CAHmME9pQ4xdeTUDxAdrOu=S9NRTonYzJVk50fa0Zfz4knZt5WA@mail.gmail.com>
- <alpine.DEB.2.21.2204140014580.9383@angie.orcam.me.uk> <YlfoeGRM6w2O+eXA@zx2c4.com> <alpine.DEB.2.21.2204142349180.9383@angie.orcam.me.uk> <20220418071005.GA4075@alpha.franken.de> <alpine.DEB.2.21.2204220029590.9383@angie.orcam.me.uk>
- <YmUHBKPC0bAbs4Vj@zx2c4.com>
-User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+        with ESMTP id S240246AbiDYHqG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 25 Apr 2022 03:46:06 -0400
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DDE243D4BC
+        for <sparclinux@vger.kernel.org>; Mon, 25 Apr 2022 00:43:00 -0700 (PDT)
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:c150:c4b6:d197:3811])
+        by baptiste.telenet-ops.be with bizsmtp
+        id Nviw2700S3M22MD01vix4W; Mon, 25 Apr 2022 09:42:59 +0200
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.93)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1nitN2-0025Up-FP; Mon, 25 Apr 2022 09:42:56 +0200
+Date:   Mon, 25 Apr 2022 09:42:56 +0200 (CEST)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+X-X-Sender: geert@ramsan.of.borg
+To:     linux-kernel@vger.kernel.org
+cc:     Song Liu <song@kernel.org>, Christoph Hellwig <hch@lst.de>,
+        Rik van Riel <riel@surriel.com>, sparclinux@vger.kernel.org,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        linux-media@vger.kernel.org
+Subject: Re: Build regressions/improvements in v5.18-rc4
+In-Reply-To: <20220425073220.3491038-1-geert@linux-m68k.org>
+Message-ID: <alpine.DEB.2.22.394.2204250939240.497673@ramsan.of.borg>
+References: <CAHk-=whmtHMzjaVUF9bS+7vE_rrRctcCTvsAeB8fuLYcyYLN-g@mail.gmail.com> <20220425073220.3491038-1-geert@linux-m68k.org>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, 24 Apr 2022, Jason A. Donenfeld wrote:
+On Mon, 25 Apr 2022, Geert Uytterhoeven wrote:
+> JFYI, when comparing v5.18-rc4[1] to v5.18-rc3[3], the summaries are:
+>  - build errors: +6/-7
 
-> > unconditionally.  I think this discovery asks for code optimisation, which 
-> > I'll try to cook up sometime.
-> 
-> At some point too, by the way, we might also consider putting that into
-> a .c file rather than a static inline in the .h, since that function is
-> starting to get sort of big.
+   + /kisskb/src/drivers/media/platform/nxp/imx-pxp.h: error: initializer element is not constant:  => 582:38
 
- This code is supposed to produce one to a couple of machine instructions 
-for the majority of configurations.  This is because the conditionals used 
-are usually compile-time constants.  Therefore I think it will be good to 
-continue having it as `static inline' functions.  Cf. the analysis in 
-commit 06947aaaf9bf ("MIPS: Implement random_get_entropy with CP0 
-Random").
+powerpc-gcc5/powerpc-allmodconfig
 
- If this code does expand to a longer sequence for some platforms, then 
-either they need to be verified whether they can be optimised (just as I 
-note here for the DEC systems) or we can consider making these functions 
-`extern inline' instead, with out-of-line code available from a .a file in 
-case the compiler decides the code is too large for inlining to be worth 
-doing after all.  Though I don't expect the latter case to be required 
-really.
+Seen before, looks like one more large 32-bit constant with bit 31 set
+lacking the "U" suffix.
 
-  Maciej
+   + error: arch/sparc/kernel/head_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5040), (.head.text+0x5100)
+   + error: arch/sparc/kernel/head_32.o: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+   + error: arch/sparc/kernel/process_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0xc), (.fixup+0x4)
+   + error: arch/sparc/kernel/signal_32.o: relocation truncated to fit: R_SPARC_WDISP22 against `.text':  => (.fixup+0x4), (.fixup+0x10), (.fixup+0x34), (.fixup+0x1c), (.fixup+0x28)
+
+sparc64/sparc-allmodconfig
+
+   + error: page_alloc.c: undefined reference to `vmalloc_huge':  => .init.text+0x1458), .init.text+0x13de), .init.text+0x1466)
+
+sh4-gcc10/se7619_defconfig
+m68k-gcc8/m5272c3_defconfig
+m68k-gcc11/m5272c3_defconfig
+
+Anything with CONFIG_MMU=n, I guess.
+vmalloc_huge() is provided by mm/vmalloc.c, which is not compiled if
+CONFIG_MMU=n.
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/af2d861d4cd2a4da5137f795ee3509e6f944a25b/ (all 96 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/b2d229d4ddb17db541098b83524d901257e93845/ (all 96 configs)
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
