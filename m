@@ -2,114 +2,190 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB544C43217
-	for <sparclinux@archiver.kernel.org>; Tue, 26 Apr 2022 16:37:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D65CAC433F5
+	for <sparclinux@archiver.kernel.org>; Tue, 26 Apr 2022 16:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240905AbiDZQkO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 26 Apr 2022 12:40:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38598 "EHLO
+        id S1353039AbiDZQmA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 26 Apr 2022 12:42:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45094 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353028AbiDZQkM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 26 Apr 2022 12:40:12 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0687DEA1;
-        Tue, 26 Apr 2022 09:37:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1650991024; x=1682527024;
-  h=date:from:to:cc:subject:in-reply-to:message-id:
-   references:mime-version;
-  bh=YkchwpoFBWYE6wjpBeZGz+2BPwCBUpcUNyTQQIFBqC8=;
-  b=fLbV+umM1okXVQ+opaeKUa4wNxnCdAzm4VnPEF/Hs9JbF7BotaUAB3lF
-   +8/U7u3Q0z9WIhRb4GSFMsLJ4/V1+i8kJ/QFzbju8etjyTdBQgzzCEg+M
-   7fWePO0cEhsoNrbvSI9kO9ya5OtaK5FqwGgSJfNizUGe9P02X6uPCDMUa
-   133RzbODLblYJbbu6rmBDBLeZc7moxEYOB6eaAoFFtFKnNyYUw5uQyWsM
-   6Gt7zJ5+Fmll5TXWf9FkU0QzYKrCfj9UxWoEpprDy6gIKahKLqoSTHBfu
-   KE7QWlVl8q1PdUqJXKm+WtUxY+nBv1lX9BsdJOHLBPRfY69g6ARz9eS2H
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10329"; a="290789633"
-X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
-   d="scan'208";a="290789633"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 09:29:19 -0700
-X-IronPort-AV: E=Sophos;i="5.90,291,1643702400"; 
-   d="scan'208";a="580016188"
-Received: from mmilkovx-mobl.amr.corp.intel.com ([10.249.47.245])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 26 Apr 2022 09:29:11 -0700
-Date:   Tue, 26 Apr 2022 19:29:08 +0300 (EEST)
-From:   =?ISO-8859-15?Q?Ilpo_J=E4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To:     Greg KH <gregkh@linuxfoundation.org>
-cc:     linux-serial <linux-serial@vger.kernel.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Lukas Wunner <lukas@wunner.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        =?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Vicente Bergas <vicencb@gmail.com>,
-        Johan Hovold <johan@kernel.org>, heiko@sntech.de,
-        giulio.benetti@micronovasrl.com,
-        Heikki Krogerus <heikki.krogerus@linux.intel.com>,
-        linux-api@vger.kernel.org,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>, linux-alpha@vger.kernel.org,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        linux-mips@vger.kernel.org,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>, linux-parisc@vger.kernel.org,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        linuxppc-dev@lists.ozlabs.org,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        linux-arch@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: [PATCH v5 05/10] serial: termbits: ADDRB to indicate 9th bit
- addressing mode
-In-Reply-To: <Ymf9UhyXj7o8cNhq@kroah.com>
-Message-ID: <9a9dda88-b239-9c63-82d-2f7678fdbf9@linux.intel.com>
-References: <20220426122448.38997-1-ilpo.jarvinen@linux.intel.com> <20220426122448.38997-6-ilpo.jarvinen@linux.intel.com> <Ymfq+jUXfZcNM/P/@kroah.com> <b667479-fb27-8712-cec8-938eed179240@linux.intel.com> <17547658-4737-7ec1-9ef9-c61c6287b8b@linux.intel.com>
- <Ymf9UhyXj7o8cNhq@kroah.com>
+        with ESMTP id S235466AbiDZQl7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 26 Apr 2022 12:41:59 -0400
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA831183B3;
+        Tue, 26 Apr 2022 09:38:46 -0700 (PDT)
+X-UUID: cea183affb84489b997e4120d009dd1d-20220427
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.4,REQID:c9cc3d3b-73c9-4588-84f3-2f2f0df50254,OB:0,LO
+        B:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,RULE:Release_Ham,ACTI
+        ON:release,TS:0
+X-CID-META: VersionHash:faefae9,CLOUDID:9cbe8ec6-85ee-4ac1-ac05-bd3f1e72e732,C
+        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:-5,EDM:-3,File:nil,QS:0,BEC:ni
+        l
+X-UUID: cea183affb84489b997e4120d009dd1d-20220427
+Received: from mtkexhb02.mediatek.inc [(172.21.101.103)] by mailgw02.mediatek.com
+        (envelope-from <lecopzer.chen@mediatek.com>)
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1666426999; Wed, 27 Apr 2022 00:38:42 +0800
+Received: from mtkcas11.mediatek.inc (172.21.101.40) by
+ mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
+ Wed, 27 Apr 2022 00:38:40 +0800
+Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Wed, 27 Apr 2022 00:38:40 +0800
+From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
+To:     <lecopzer.chen@mediatek.com>, <pmladek@suse.com>
+CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
+        <alexander.shishkin@linux.intel.com>, <catalin.marinas@arm.com>,
+        <davem@davemloft.net>, <jolsa@redhat.com>, <jthierry@redhat.com>,
+        <keescook@chromium.org>, <kernelfans@gmail.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
+        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
+        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
+        <nixiaoming@huawei.com>, <peterz@infradead.org>,
+        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
+        <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
+Subject: Re: [PATCH v3 5/5] arm64: Enable perf events based hard lockup detector
+Date:   Wed, 27 Apr 2022 00:38:40 +0800
+Message-ID: <20220426163840.18871-1-lecopzer.chen@mediatek.com>
+X-Mailer: git-send-email 2.18.0
+In-Reply-To: <20220421163035.26402-1-lecopzer.chen@mediatek.com>
+References: <20220421163035.26402-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323329-1964830911-1650990558=:1644"
+Content-Type: text/plain
+X-MTK:  N
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---8323329-1964830911-1650990558=:1644
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Tue, 26 Apr 2022, Greg KH wrote:
-
-> On Tue, Apr 26, 2022 at 05:01:31PM +0300, Ilpo Järvinen wrote:
+> > The call path for hardlockup_detector_perf_init() is really complicated,
 > > 
-> > ADDRB value is the same for all archs (it's just this octal vs hex 
-> > notation I've followed as per the nearby defines within the same file
-> > which makes them look different).
+> > I have some approach about this:
+> >   1. abstract second variable with Kconfig.
+> >     a. Add a ARCH_SUPPORTS_HARDLOCKUP_DETECTOR_DLAYED_INIT
+> >        (the naming is a little bit long, may have better naming)
+> >        in "lib/Kconfig.debug" if ARCH knew they do need delayed init for
+> >        lockup detector.
 > > 
-> > Should I perhaps add to my cleanup list conversion of all those octal ones 
-> > to hex?
+> >        + select ARCH_SUPPORTS_HARDLOCKUP_DETECTOR_DLAYED_INIT if HAVE_HARDLOCKUP_DETECTOR_PERF
+> > 
+> >     b. and the watchdog_nmi_probe would look like.
+> > 
+> >     +int __init watchdog_nmi_probe(void)
+> >     +{
+> >     +	int ret;
+> >     +
+> >     + /* comment here... */
+> >     +	if (!arm_pmu_irq_is_nmi())
+> >     +		return -ENODEV;
+> >     +
+> >     +	ret = hardlockup_detector_perf_init();
+> >     +	if (ret &&
+> >     +		  IS_ENABLED(ARCH_SUPPORTS_HARDLOCKUP_DETECTOR_DLAYED_INIT))
+> >     +		return -EBUSY;
+> >     +
+> >     + return ret;
+> >     +}
+> > 
+> >     and than we can have only one variable (allow_lockup_detector_init_retry)
+> >     in 4th patch.
+> > 
+> >  
+> >   2. base on ARCH_SUPPORTS_HARDLOCKUP_DETECTOR_DLAYED_INIT, change
+> >      inside hardlockup_detector_perf_init().
+> > 
+> > int __init hardlockup_detector_perf_init(void)
+> > {
+> > 	int ret = hardlockup_detector_event_create();
+> > 
+> > 	if (ret) {
+> > 		pr_info("Perf NMI watchdog permanently disabled\n");
+> > +
+> > +		/* comment here... */
+> > +		if (IS_ENABLED(ARCH_SUPPORTS_HARDLOCKUP_DETECTOR_DLAYED_INIT))
+> > +			ret = -EBUSY;
+> > 	} else {
+> > 		perf_event_release_kernel(this_cpu_read(watchdog_ev));
+> > 		this_cpu_write(watchdog_ev, NULL);
+> > 	}
+> > 	return ret;
+> > }
+> > 
+> >   3. Don't add any other config, try to find a proper location
+> >      to return -EBUSY in hardlockup_detector_event_create().
+> >      IMHO, this may involve the PMU subsys and should be
+> >      the hardest approach.
 > 
-> Argh, yes, please, let's do that now, I totally missed that.  Will let
-> us see how to unify them as well.
+> Honestly, everything looks a bit ugly and complicated to me.
+> 
+> OKAY, is the return value actually important?
+> 
+> What about just introducing the API that will allow to try to
+> initialize the hardlockup detector later:
+> 
+> /*
+>  * Retry hardlockup detector init. It is useful when it requires some
+>  * functionality that has to be initialized later on a particular
+>  * platform.
+>  */
+> void __init retry_lockup_detector_init(void)
+> {
+> 	/* Must be called before late init calls. */
+> 	if (!allow_lockup_detector_init_retry)
+> 		return 0;
+> 
+> 	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
+> }
+> 
+> /*
+>  * Ensure that optional delayed hardlockup init is proceed before
+>  * the init code and memory is freed.
+>  */
+> static int __init lockup_detector_check(void)
+> {
+> 	/* Prevent any later retry. */
+> 	allow_lockup_detector_init_retry = false;
+> 
+> 	/* Make sure no work is pending. */
+> 	flush_work(&detector_work);
+> }
+> late_initcall_sync(lockup_detector_check);
+> 
+> You could leave lockup_detector_init() as it is. It does not really
+> matter what was the exact error value returned by watchdog_nmi_probe().
+> 
+> Then you could call retry_lockup_detector_init() in
+> armv8_pmu_driver_init() and be done with it.
+> 
+> It will be universal API that might be used on any architecture
+> for any reason. If nobody calls retry_lockup_detector_init()
+> then nohing will happen and the code will work as before.
+> 
+> It might make sense to provide the API only on architectures that
+> really need it. We could hide it under
+> 
+>    ARCH_NEED_DELAYED_HARDLOCKUP_DETECTOR_INIT
+> 
+> , similar to ARCH_NEEDS_CPU_IDLE_COUPLE.
+> 
 
-Unifying them might turn out impractical, here's a rough idea now many
-copies ... | uniq -c finds for the defines (based on more aggressively 
-cleaned up lines than the patch will have):
-     89 1
-     74 2
-     14 3
-     58 4
-     11 5
-     54 6
-There just tends to be 1 or 2 archs which are different from the others.
+During implementation, if I add ARCH_NEED_DELAYED_..., there will contain
+many enclosed ifdef-endif and is a little bit ugly.
+Also, I didn't find a must-have reason to this Kconfig after I rebase from
+your suggestion.
 
-...I'll send the actual octal-to-hex patch once the arch builds complete.
+The one calls retry_lockup_detector_init() must fail at lockup_detector_init,
+so I think anyone who has aleady failed at lockup_detector_init() has right
+to retry no matter HW, SW or Arch reason.
+Thus I might not introduce a new Kconfig in v4, and I would be glad to see
+if any further commet on this.
 
--- 
- i.
 
---8323329-1964830911-1650990558=:1644--
+
+
+
+
