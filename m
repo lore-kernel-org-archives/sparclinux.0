@@ -2,34 +2,34 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1080C433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 27 Apr 2022 23:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B004C4332F
+	for <sparclinux@archiver.kernel.org>; Wed, 27 Apr 2022 23:02:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230371AbiD0XFM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 27 Apr 2022 19:05:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59048 "EHLO
+        id S231503AbiD0XFO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 27 Apr 2022 19:05:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42800 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240692AbiD0XES (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 27 Apr 2022 19:04:18 -0400
+        with ESMTP id S241328AbiD0XEo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 27 Apr 2022 19:04:44 -0400
 Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 923C6B3DDD;
-        Wed, 27 Apr 2022 15:57:48 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C099B53C2;
+        Wed, 27 Apr 2022 15:58:40 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
         s=20170329; h=Content-Transfer-Encoding:MIME-Version:References:In-Reply-To:
         Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
         Content-Description:Resent-Date:Resent-From:Resent-Sender:Resent-To:Resent-Cc
         :Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:List-Subscribe:
         List-Post:List-Owner:List-Archive;
-        bh=C9iT/xJ8gF8J/f7SmqQO2c8pu+KvBPlFfkqGdYboS2I=; b=PMFgjQG40D4y0EE10+nqxAPHVI
-        yNLZ1EZJdP0IH30iYafdBfM788VaINOAVfe8Gnevld0DclzQJRd8t+br/vJapdawGOEWHQTLdmHei
-        1IQvYGZ//MLpN+QQDVtOXWSfDQyyspNE1J3gOgOC4NUam3dGx8JeBgJ9jpYRHFoaP71Y3fG1ERN+7
-        JvwIb059Xf3lNBTrEP8JiyuPOh5ugwSvNao5NfaR+bMPV8BospKPkEU02jshVAtp1UBbOdjrRb2r2
-        ze90RIwfaZigyOQntmQCmXs163wt4gsMUWHmf1nSoidLeEjFKj9WA7H531Eyz4iqvzof4LvLiIP9u
-        dq8Lxg9g==;
+        bh=1b6nDa/yJFcG5pUH/mG+iUzFXWwemhBkCT22/YaOiO0=; b=IjS2asgso9SNyNWZZrj9YMv/6F
+        3eZOrVvzgLxKKIoWELAWIZ9Y/f7MmYlHtb0XsZyDOudfDUF9WfHu+qH6xY14Mwj7EyQY5AwmQNe6v
+        QY9uiwZxhZ2WIvN3bSO5hXV0+d77+K43N8ixpf942Orfv5mroywKkDY+GQFZJrgwqxcot4GD1q5St
+        xIFh8Z0iJkBMhioashEH7Fwugdlgq5hENhZTnH6U/1cjnuHRdJ6m3FerTWr+GWqdP086mvnqcs/YS
+        tVMBMJxDz0U3rAU8T7vP+Z25rbMa7jiyVQO7/s07AaONn+Kin25YyTFL/3tub+/wmWut7UZN8xzJW
+        BauGVfjA==;
 Received: from [179.113.53.197] (helo=localhost)
         by fanzine2.igalia.com with esmtpsa 
         (Cipher TLS1.3:ECDHE_SECP256R1__RSA_PSS_RSAE_SHA256__AES_256_GCM:256) (Exim)
-        id 1njqbL-0002UI-QD; Thu, 28 Apr 2022 00:57:40 +0200
+        id 1njqcA-0002Wy-Ov; Thu, 28 Apr 2022 00:58:31 +0200
 From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
 To:     akpm@linux-foundation.org, bhe@redhat.com, pmladek@suse.com,
         kexec@lists.infradead.org
@@ -62,9 +62,9 @@ Cc:     linux-kernel@vger.kernel.org,
         Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         Paul Mackerras <paulus@samba.org>
-Subject: [PATCH 27/30] powerpc: Do not force all panic notifiers to execute before kdump
-Date:   Wed, 27 Apr 2022 19:49:21 -0300
-Message-Id: <20220427224924.592546-28-gpiccoli@igalia.com>
+Subject: [PATCH 29/30] powerpc: ps3, pseries: Avoid duplicate call to kmsg_dump() on panic
+Date:   Wed, 27 Apr 2022 19:49:23 -0300
+Message-Id: <20220427224924.592546-30-gpiccoli@igalia.com>
 X-Mailer: git-send-email 2.36.0
 In-Reply-To: <20220427224924.592546-1-gpiccoli@igalia.com>
 References: <20220427224924.592546-1-gpiccoli@igalia.com>
@@ -74,25 +74,29 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Commit 06e629c25daa ("powerpc/fadump: Fix inaccurate CPU state info in
-vmcore generated with panic") introduced a hardcoded setting of kernel
-parameter "crash_kexec_post_notifiers", effectively forcing all the
-panic notifiers to execute earlier in the panic path, before kdump.
+Currently both pseries and ps3 are platforms that define special
+panic notifiers that run as callbacks inside powerpc generic panic
+notifier. In both cases kmsg_dump() is called, and the reason seems
+to be that both of these callbacks aims to effectively stop the
+machine, so nothing would execute after that - hence, both force
+a series of console flushing related operations, after calling
+the kmsg dumpers.
 
-The reason for that was a fadump issue on collecting data accurately,
-due to smp_send_stop() setting all CPUs offline, so the net effect
-desired with this change was to avoid calling the regular CPU
-shutdown function, and instead rely on crash_smp_send_stop(), which
-copes fine with fadump. The collateral effect was to increase the
-risk for kdump if fadump is not used, since it forces all panic
-notifiers to execute early, before kdump.
+Happens that recently the panic path was refactored, and now
+kmsg_dump() is *certainly* called before the pre_reboot panic
+notifiers, category in which both pseries/ps3 callbacks belong.
+In other words: kmsg_dump() will execute twice in both platforms,
+on panic path.
 
-Happens that, after a panic refactor, crash_smp_send_stop() is
-now used by default in the panic path, so there is no reason to
-mess with the notifiers ordering (which was also improved in the
-refactor) from within arch code.
+This patch prevents that by disabling the kmsg_dump() for both
+platform's notifiers. But worth to notice that PowerNV still
+has a legit use for executing kmsg_dump() in its unrecoverable
+error path, so we rely in parameter passing to differentiate
+both cases. Also, since the pre_reboot notifiers still run
+earlier than console flushing routines, we kept that for
+both pseries and ps3 platforms, only skipping kmsg_dump().
 
-Fixes: 06e629c25daa ("powerpc/fadump: Fix inaccurate CPU state info in vmcore generated with panic")
+Fixes: 35adacd6fc48 ("powerpc/pseries, ps3: panic flush kernel messages before halting system")
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Hari Bathini <hbathini@linux.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -107,28 +111,83 @@ environment.
 
 [0] https://openpower.ic.unicamp.br/minicloud
 
- arch/powerpc/kernel/fadump.c | 8 --------
- 1 file changed, 8 deletions(-)
+ arch/powerpc/include/asm/bug.h         | 2 +-
+ arch/powerpc/kernel/traps.c            | 6 ++++--
+ arch/powerpc/platforms/powernv/opal.c  | 2 +-
+ arch/powerpc/platforms/ps3/setup.c     | 2 +-
+ arch/powerpc/platforms/pseries/setup.c | 2 +-
+ 5 files changed, 8 insertions(+), 6 deletions(-)
 
-diff --git a/arch/powerpc/kernel/fadump.c b/arch/powerpc/kernel/fadump.c
-index 65562c4a0a69..35ae8c09af66 100644
---- a/arch/powerpc/kernel/fadump.c
-+++ b/arch/powerpc/kernel/fadump.c
-@@ -1649,14 +1649,6 @@ int __init setup_fadump(void)
- 		register_fadump();
- 	}
+diff --git a/arch/powerpc/include/asm/bug.h b/arch/powerpc/include/asm/bug.h
+index ecbae1832de3..49e5f6f86869 100644
+--- a/arch/powerpc/include/asm/bug.h
++++ b/arch/powerpc/include/asm/bug.h
+@@ -166,7 +166,7 @@ extern void die(const char *, struct pt_regs *, long);
+ void die_mce(const char *str, struct pt_regs *regs, long err);
+ extern bool die_will_crash(void);
+ extern void panic_flush_kmsg_start(void);
+-extern void panic_flush_kmsg_end(void);
++extern void panic_flush_kmsg_end(bool dump);
+ #endif /* !__ASSEMBLY__ */
  
--	/*
--	 * In case of panic, fadump is triggered via ppc_panic_event()
--	 * panic notifier. Setting crash_kexec_post_notifiers to 'true'
--	 * lets panic() function take crash friendly path before panic
--	 * notifiers are invoked.
--	 */
--	crash_kexec_post_notifiers = true;
--
- 	return 1;
+ #endif /* __KERNEL__ */
+diff --git a/arch/powerpc/kernel/traps.c b/arch/powerpc/kernel/traps.c
+index a08bb7cefdc5..837a5ed98d62 100644
+--- a/arch/powerpc/kernel/traps.c
++++ b/arch/powerpc/kernel/traps.c
+@@ -169,9 +169,11 @@ extern void panic_flush_kmsg_start(void)
+ 	bust_spinlocks(1);
  }
- /*
+ 
+-extern void panic_flush_kmsg_end(void)
++extern void panic_flush_kmsg_end(bool dump)
+ {
+-	kmsg_dump(KMSG_DUMP_PANIC);
++	if (dump)
++		kmsg_dump(KMSG_DUMP_PANIC);
++
+ 	bust_spinlocks(0);
+ 	debug_locks_off();
+ 	console_flush_on_panic(CONSOLE_FLUSH_PENDING);
+diff --git a/arch/powerpc/platforms/powernv/opal.c b/arch/powerpc/platforms/powernv/opal.c
+index 55a8fbfdb5b2..d172ceedece2 100644
+--- a/arch/powerpc/platforms/powernv/opal.c
++++ b/arch/powerpc/platforms/powernv/opal.c
+@@ -641,7 +641,7 @@ void __noreturn pnv_platform_error_reboot(struct pt_regs *regs, const char *msg)
+ 		show_regs(regs);
+ 	smp_send_stop();
+ 
+-	panic_flush_kmsg_end();
++	panic_flush_kmsg_end(true);
+ 
+ 	/*
+ 	 * Don't bother to shut things down because this will
+diff --git a/arch/powerpc/platforms/ps3/setup.c b/arch/powerpc/platforms/ps3/setup.c
+index 3de9145c20bc..7cb78e508fb3 100644
+--- a/arch/powerpc/platforms/ps3/setup.c
++++ b/arch/powerpc/platforms/ps3/setup.c
+@@ -102,7 +102,7 @@ static void ps3_panic(char *str)
+ 	printk("   System does not reboot automatically.\n");
+ 	printk("   Please press POWER button.\n");
+ 	printk("\n");
+-	panic_flush_kmsg_end();
++	panic_flush_kmsg_end(false);
+ 
+ 	while(1)
+ 		lv1_pause(1);
+diff --git a/arch/powerpc/platforms/pseries/setup.c b/arch/powerpc/platforms/pseries/setup.c
+index 955ff8aa1644..d6eea473eafd 100644
+--- a/arch/powerpc/platforms/pseries/setup.c
++++ b/arch/powerpc/platforms/pseries/setup.c
+@@ -856,7 +856,7 @@ static void __init pSeries_setup_arch(void)
+ 
+ static void pseries_panic(char *str)
+ {
+-	panic_flush_kmsg_end();
++	panic_flush_kmsg_end(false);
+ 	rtas_os_term(str);
+ }
+ 
 -- 
 2.36.0
 
