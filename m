@@ -2,203 +2,520 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B5D1C433F5
-	for <sparclinux@archiver.kernel.org>; Wed, 27 Apr 2022 16:17:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24569C4321E
+	for <sparclinux@archiver.kernel.org>; Wed, 27 Apr 2022 20:03:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242481AbiD0QUO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 27 Apr 2022 12:20:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50218 "EHLO
+        id S235227AbiD0UGp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 27 Apr 2022 16:06:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242624AbiD0QRd (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 27 Apr 2022 12:17:33 -0400
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30B8E52B06;
-        Wed, 27 Apr 2022 09:14:05 -0700 (PDT)
-X-UUID: 8fccec86e0454adf8d6c822e60356d8e-20220428
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.4,REQID:a96463e6-c69d-4af7-829a-2f479f0b958a,OB:10,L
-        OB:0,IP:0,URL:0,TC:0,Content:-20,EDM:0,RT:0,SF:95,FILE:0,RULE:Release_Ham,
-        ACTION:release,TS:75
-X-CID-INFO: VERSION:1.1.4,REQID:a96463e6-c69d-4af7-829a-2f479f0b958a,OB:10,LOB
-        :0,IP:0,URL:0,TC:0,Content:-20,EDM:0,RT:0,SF:95,FILE:0,RULE:Spam_GS981B3D,
-        ACTION:quarantine,TS:75
-X-CID-META: VersionHash:faefae9,CLOUDID:fa3db4c6-85ee-4ac1-ac05-bd3f1e72e732,C
-        OID:852f1ebc6b54,Recheck:0,SF:28|17|19|48,TC:nil,Content:0,EDM:-3,File:nil
-        ,QS:0,BEC:nil
-X-UUID: 8fccec86e0454adf8d6c822e60356d8e-20220428
-Received: from mtkmbs10n2.mediatek.inc [(172.21.101.183)] by mailgw01.mediatek.com
-        (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 1125770818; Thu, 28 Apr 2022 00:13:56 +0800
-Received: from mtkexhb02.mediatek.inc (172.21.101.103) by
- mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.2.792.15; Thu, 28 Apr 2022 00:13:55 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by mtkexhb02.mediatek.inc
- (172.21.101.103) with Microsoft SMTP Server (TLS) id 15.0.1497.2; Thu, 28 Apr
- 2022 00:13:54 +0800
-Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 28 Apr 2022 00:13:54 +0800
-From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <linux-kernel@vger.kernel.org>, <pmladek@suse.com>
-CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
-        <akpm@linux-foundation.org>, <alexander.shishkin@linux.intel.com>,
-        <catalin.marinas@arm.com>, <davem@davemloft.net>,
-        <jolsa@redhat.com>, <jthierry@redhat.com>, <keescook@chromium.org>,
-        <kernelfans@gmail.com>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
-        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
-        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
-        <nixiaoming@huawei.com>, <peterz@infradead.org>,
-        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
-        <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: [PATCH v4 6/6] arm64: Enable perf events based hard lockup detector
-Date:   Thu, 28 Apr 2022 00:13:40 +0800
-Message-ID: <20220427161340.8518-7-lecopzer.chen@mediatek.com>
-X-Mailer: git-send-email 2.18.0
-In-Reply-To: <20220427161340.8518-1-lecopzer.chen@mediatek.com>
-References: <20220427161340.8518-1-lecopzer.chen@mediatek.com>
+        with ESMTP id S230177AbiD0UGm (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 27 Apr 2022 16:06:42 -0400
+Received: from mail-qt1-x82e.google.com (mail-qt1-x82e.google.com [IPv6:2607:f8b0:4864:20::82e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BBC1C10;
+        Wed, 27 Apr 2022 13:03:28 -0700 (PDT)
+Received: by mail-qt1-x82e.google.com with SMTP id t11so1970116qto.11;
+        Wed, 27 Apr 2022 13:03:28 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=ahXl1YsEUSjHn7FELh1coWfAReaSSRgYPZG6O4GJXkk=;
+        b=U3seFTfKCofCy/F05zKSdO1SFjDRCEUHUCNNveCvftEq6iZZxgArhzQHknNpMe23pH
+         ovLQJ8deOpYzxtP19yH0kxO/fI8UsqBKc8WORLe/ifSF8HguUqoDF0TH5Kos8NZzJwvE
+         ZKyaFRW7ujvJiONfGYc8tAcVT/RxNusC6TKU68P4FzZe3qeWrpZiGMgUrEkFGe2HnzvC
+         0kbWO++LC2+2u3eDRS4sFOQ4BG4Ll00TmDn2XVmooF0sEhSaMwqVRLgf92fbuQTqFSKI
+         sxAup/u1xFFMKD474gl5jnmKeD+iitkOR6Bw2xgkSLU2Hyj+w6nunUlP11Zor0R/imfV
+         zl5A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=ahXl1YsEUSjHn7FELh1coWfAReaSSRgYPZG6O4GJXkk=;
+        b=oPsbRtGGBjCJFe8R+Bp2s8M+56tvOcyHf0UNfoUtmUSfZVQTVpln8t1wPk71bvfXJr
+         gINT8XlBHafLb8Wyzde5/r+4cOOtg4V+OJimom3ElJVP1n/nJ5MjJgn50TJVzIc+z6UT
+         eih0LNrjLcu+1W67erIzNmDFuuh6DgNYv6ccdQZj/dPqQc4dOXvUf9jro2f38o2zwkDS
+         WTxYJj8oQVy4EkwrRKjREu+2aPlv+mSTo/lUnORU9qOnxMjWHY4nUppoZPC8PqGBgLFN
+         seYi2+Ga9AddMfutjVTVqzk5IOIxsTP3wPwsY0CLdMIWaZwgxZgnsDt7nM/TWpy8vClh
+         dLgA==
+X-Gm-Message-State: AOAM5338KnVpNPlp9MIh3exrIZ3za56LpSfXvMB5n6aULm9tTPov1CXn
+        Q1Iv2PzAzqUSh6+95ejkv4gfmtFpCEAVxYekQK0=
+X-Google-Smtp-Source: ABdhPJwPXIakKFpXHjVDP8XKXEJ7uNIGdfqnvJw8docz5tYwj0uqHeurylYrJHcixDE6yCgd5Ad/qQ==
+X-Received: by 2002:a05:622a:58f:b0:2f2:58:578a with SMTP id c15-20020a05622a058f00b002f20058578amr20229135qtb.180.1651089807529;
+        Wed, 27 Apr 2022 13:03:27 -0700 (PDT)
+Received: from emn.localdomain. ([104.245.1.41])
+        by smtp.googlemail.com with ESMTPSA id w83-20020a376256000000b0069f8a7cf7ffsm1707820qkb.32.2022.04.27.13.03.23
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 27 Apr 2022 13:03:26 -0700 (PDT)
+From:   Erin MacNeil <lnx.erin@gmail.com>
+To:     lnx.erin@gmail.com
+Cc:     Richard Henderson <rth@twiddle.net>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, Arnd Bergmann <arnd@arndb.de>,
+        Marcel Holtmann <marcel@holtmann.org>,
+        Johan Hedberg <johan.hedberg@gmail.com>,
+        Luiz Augusto von Dentz <luiz.dentz@gmail.com>,
+        Oliver Hartkopp <socketcan@hartkopp.net>,
+        Marc Kleine-Budde <mkl@pengutronix.de>,
+        Robin van der Gracht <robin@protonic.nl>,
+        Oleksij Rempel <linux@rempel-privat.de>, kernel@pengutronix.de,
+        Alexander Aring <alex.aring@gmail.com>,
+        Stefan Schmidt <stefan@datenfreihafen.org>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        David Ahern <dsahern@kernel.org>,
+        Steffen Klassert <steffen.klassert@secunet.com>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Jeremy Kerr <jk@codeconstruct.com.au>,
+        Matt Johnston <matt@codeconstruct.com.au>,
+        Vlad Yasevich <vyasevich@gmail.com>,
+        Neil Horman <nhorman@tuxdriver.com>,
+        Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>,
+        Eric Dumazet <edumazet@google.com>,
+        Lorenz Bauer <lmb@cloudflare.com>,
+        Pavel Tikhomirov <ptikhomirov@virtuozzo.com>,
+        Martynas Pumputis <m@lambda.lt>,
+        Akhmat Karakotov <hmukos@yandex-team.ru>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Wei Wang <weiwan@google.com>, Yangbo Lu <yangbo.lu@nxp.com>,
+        Florian Westphal <fw@strlen.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Richard Palethorpe <rpalethorpe@suse.com>,
+        Willem de Bruijn <willemb@google.com>,
+        Hangbin Liu <liuhangbin@gmail.com>,
+        Pablo Neira Ayuso <pablo@netfilter.org>,
+        Richard Sanger <rsanger@wand.net.nz>,
+        Yajun Deng <yajun.deng@linux.dev>,
+        Jiapeng Chong <jiapeng.chong@linux.alibaba.com>,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        sparclinux@vger.kernel.org, netdev@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+        linux-can@vger.kernel.org, linux-wpan@vger.kernel.org,
+        linux-sctp@vger.kernel.org
+Subject: [PATCH net-next v3] net: SO_RCVMARK socket option for SO_MARK with recvmsg()
+Date:   Wed, 27 Apr 2022 16:02:37 -0400
+Message-Id: <20220427200259.2564-1-lnx.erin@gmail.com>
+X-Mailer: git-send-email 2.20.1
+In-Reply-To: <202204270907.nUUrw3dS-lkp@intel.com>
+References: <202204270907.nUUrw3dS-lkp@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-MTK:  N
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-With the recent feature added to enable perf events to use pseudo NMIs
-as interrupts on platforms which support GICv3 or later, its now been
-possible to enable hard lockup detector (or NMI watchdog) on arm64
-platforms. So enable corresponding support.
+Adding a new socket option, SO_RCVMARK, to indicate that SO_MARK
+should be included in the ancillary data returned by recvmsg().
 
-One thing to note here is that normally lockup detector is initialized
-just after the early initcalls but PMU on arm64 comes up much later as
-device_initcall(). To cope with that, overriding watchdog_nmi_probe() to
-let the watchdog framework know PMU not ready, and inform the framework
-to re-initialize lockup detection once PMU has been initialized.
+Renamed the sock_recv_ts_and_drops() function to sock_recv_cmsgs().
 
-[1]: http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
-
-Co-developed-by: Sumit Garg <sumit.garg@linaro.org>
-Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
-Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
+Signed-off-by: Erin MacNeil <lnx.erin@gmail.com>
 ---
- arch/arm64/Kconfig               |  2 ++
- arch/arm64/kernel/perf_event.c   | 10 ++++++++--
- arch/arm64/kernel/watchdog_hld.c | 14 ++++++++++++++
- drivers/perf/arm_pmu.c           |  5 +++++
- include/linux/perf/arm_pmu.h     |  2 ++
- 5 files changed, 31 insertions(+), 2 deletions(-)
+ arch/alpha/include/uapi/asm/socket.h    |  2 ++
+ arch/mips/include/uapi/asm/socket.h     |  2 ++
+ arch/parisc/include/uapi/asm/socket.h   |  2 ++
+ arch/sparc/include/uapi/asm/socket.h    |  1 +
+ include/net/sock.h                      | 18 ++++++++++--------
+ include/uapi/asm-generic/socket.h       |  2 ++
+ net/atm/common.c                        |  2 +-
+ net/bluetooth/af_bluetooth.c            |  4 ++--
+ net/can/bcm.c                           |  2 +-
+ net/can/j1939/socket.c                  |  2 +-
+ net/can/raw.c                           |  2 +-
+ net/core/sock.c                         |  7 +++++++
+ net/ieee802154/socket.c                 |  4 ++--
+ net/ipv4/raw.c                          |  2 +-
+ net/ipv4/udp.c                          |  2 +-
+ net/ipv6/raw.c                          |  2 +-
+ net/ipv6/udp.c                          |  2 +-
+ net/key/af_key.c                        |  2 +-
+ net/mctp/af_mctp.c                      |  2 +-
+ net/packet/af_packet.c                  |  2 +-
+ net/sctp/socket.c                       |  2 +-
+ net/socket.c                            | 15 ++++++++++++---
+ tools/include/uapi/asm-generic/socket.h |  2 ++
+ 23 files changed, 56 insertions(+), 27 deletions(-)
 
-diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-index 20ea89d9ac2f..9d48fe4ce041 100644
---- a/arch/arm64/Kconfig
-+++ b/arch/arm64/Kconfig
-@@ -184,12 +184,14 @@ config ARM64
- 	select HAVE_FUNCTION_ERROR_INJECTION
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_GCC_PLUGINS
-+	select HAVE_HARDLOCKUP_DETECTOR_PERF if PERF_EVENTS && HAVE_PERF_EVENTS_NMI
- 	select HAVE_HW_BREAKPOINT if PERF_EVENTS
- 	select HAVE_IRQ_TIME_ACCOUNTING
- 	select HAVE_KVM
- 	select HAVE_NMI
- 	select HAVE_PATA_PLATFORM
- 	select HAVE_PERF_EVENTS
-+	select HAVE_PERF_EVENTS_NMI if ARM64_PSEUDO_NMI
- 	select HAVE_PERF_REGS
- 	select HAVE_PERF_USER_STACK_DUMP
- 	select HAVE_PREEMPT_DYNAMIC_KEY
-diff --git a/arch/arm64/kernel/perf_event.c b/arch/arm64/kernel/perf_event.c
-index cb69ff1e6138..d51ee09592d7 100644
---- a/arch/arm64/kernel/perf_event.c
-+++ b/arch/arm64/kernel/perf_event.c
-@@ -23,6 +23,7 @@
- #include <linux/platform_device.h>
- #include <linux/sched_clock.h>
- #include <linux/smp.h>
-+#include <linux/nmi.h>
+diff --git a/arch/alpha/include/uapi/asm/socket.h b/arch/alpha/include/uapi/asm/socket.h
+index 7d81535893af..739891b94136 100644
+--- a/arch/alpha/include/uapi/asm/socket.h
++++ b/arch/alpha/include/uapi/asm/socket.h
+@@ -135,6 +135,8 @@
  
- /* ARMv8 Cortex-A53 specific event types. */
- #define ARMV8_A53_PERFCTR_PREF_LINEFILL				0xC2
-@@ -1390,10 +1391,15 @@ static struct platform_driver armv8_pmu_driver = {
+ #define SO_TXREHASH		74
  
- static int __init armv8_pmu_driver_init(void)
++#define SO_RCVMARK		75
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/mips/include/uapi/asm/socket.h b/arch/mips/include/uapi/asm/socket.h
+index 1d55e57b8466..18f3d95ecfec 100644
+--- a/arch/mips/include/uapi/asm/socket.h
++++ b/arch/mips/include/uapi/asm/socket.h
+@@ -146,6 +146,8 @@
+ 
+ #define SO_TXREHASH		74
+ 
++#define SO_RCVMARK		75
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/parisc/include/uapi/asm/socket.h b/arch/parisc/include/uapi/asm/socket.h
+index 654061e0964e..f486d3dfb6bb 100644
+--- a/arch/parisc/include/uapi/asm/socket.h
++++ b/arch/parisc/include/uapi/asm/socket.h
+@@ -127,6 +127,8 @@
+ 
+ #define SO_TXREHASH		0x4048
+ 
++#define SO_RCVMARK		0x4049
++
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64
+diff --git a/arch/sparc/include/uapi/asm/socket.h b/arch/sparc/include/uapi/asm/socket.h
+index 666f81e617ea..2fda57a3ea86 100644
+--- a/arch/sparc/include/uapi/asm/socket.h
++++ b/arch/sparc/include/uapi/asm/socket.h
+@@ -128,6 +128,7 @@
+ 
+ #define SO_TXREHASH              0x0053
+ 
++#define SO_RCVMARK               0x0054
+ 
+ #if !defined(__KERNEL__)
+ 
+diff --git a/include/net/sock.h b/include/net/sock.h
+index a01d6c421aa2..30e7cbad194c 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -895,6 +895,7 @@ enum sock_flags {
+ 	SOCK_TXTIME,
+ 	SOCK_XDP, /* XDP is attached */
+ 	SOCK_TSTAMP_NEW, /* Indicates 64 bit timestamps always */
++	SOCK_RCVMARK, /* Receive SO_MARK  ancillary data with packet */
+ };
+ 
+ #define SK_FLAGS_TIMESTAMP ((1UL << SOCK_TIMESTAMP) | (1UL << SOCK_TIMESTAMPING_RX_SOFTWARE))
+@@ -2649,20 +2650,21 @@ sock_recv_timestamp(struct msghdr *msg, struct sock *sk, struct sk_buff *skb)
+ 		__sock_recv_wifi_status(msg, sk, skb);
+ }
+ 
+-void __sock_recv_ts_and_drops(struct msghdr *msg, struct sock *sk,
+-			      struct sk_buff *skb);
++void __sock_recv_cmsgs(struct msghdr *msg, struct sock *sk,
++		       struct sk_buff *skb);
+ 
+ #define SK_DEFAULT_STAMP (-1L * NSEC_PER_SEC)
+-static inline void sock_recv_ts_and_drops(struct msghdr *msg, struct sock *sk,
+-					  struct sk_buff *skb)
++static inline void sock_recv_cmsgs(struct msghdr *msg, struct sock *sk,
++				   struct sk_buff *skb)
  {
-+	int ret;
+-#define FLAGS_TS_OR_DROPS ((1UL << SOCK_RXQ_OVFL)			| \
+-			   (1UL << SOCK_RCVTSTAMP))
++#define FLAGS_RECV_CMSGS ((1UL << SOCK_RXQ_OVFL)			| \
++			   (1UL << SOCK_RCVTSTAMP)			| \
++			   (1UL << SOCK_RCVMARK))
+ #define TSFLAGS_ANY	  (SOF_TIMESTAMPING_SOFTWARE			| \
+ 			   SOF_TIMESTAMPING_RAW_HARDWARE)
+ 
+-	if (sk->sk_flags & FLAGS_TS_OR_DROPS || sk->sk_tsflags & TSFLAGS_ANY)
+-		__sock_recv_ts_and_drops(msg, sk, skb);
++	if (sk->sk_flags & FLAGS_RECV_CMSGS || sk->sk_tsflags & TSFLAGS_ANY)
++		__sock_recv_cmsgs(msg, sk, skb);
+ 	else if (unlikely(sock_flag(sk, SOCK_TIMESTAMP)))
+ 		sock_write_timestamp(sk, skb->tstamp);
+ 	else if (unlikely(sk->sk_stamp == SK_DEFAULT_STAMP))
+diff --git a/include/uapi/asm-generic/socket.h b/include/uapi/asm-generic/socket.h
+index 467ca2f28760..638230899e98 100644
+--- a/include/uapi/asm-generic/socket.h
++++ b/include/uapi/asm-generic/socket.h
+@@ -130,6 +130,8 @@
+ 
+ #define SO_TXREHASH		74
+ 
++#define SO_RCVMARK		75
 +
- 	if (acpi_disabled)
--		return platform_driver_register(&armv8_pmu_driver);
-+		ret = platform_driver_register(&armv8_pmu_driver);
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
+diff --git a/net/atm/common.c b/net/atm/common.c
+index d0c8ab7ff8f6..f7019df41c3e 100644
+--- a/net/atm/common.c
++++ b/net/atm/common.c
+@@ -553,7 +553,7 @@ int vcc_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+ 	error = skb_copy_datagram_msg(skb, 0, msg, copied);
+ 	if (error)
+ 		return error;
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (!(flags & MSG_PEEK)) {
+ 		pr_debug("%d -= %d\n", atomic_read(&sk->sk_rmem_alloc),
+diff --git a/net/bluetooth/af_bluetooth.c b/net/bluetooth/af_bluetooth.c
+index 62705734343b..b506409bb498 100644
+--- a/net/bluetooth/af_bluetooth.c
++++ b/net/bluetooth/af_bluetooth.c
+@@ -280,7 +280,7 @@ int bt_sock_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+ 	skb_reset_transport_header(skb);
+ 	err = skb_copy_datagram_msg(skb, 0, msg, copied);
+ 	if (err == 0) {
+-		sock_recv_ts_and_drops(msg, sk, skb);
++		sock_recv_cmsgs(msg, sk, skb);
+ 
+ 		if (msg->msg_name && bt_sk(sk)->skb_msg_name)
+ 			bt_sk(sk)->skb_msg_name(skb, msg->msg_name,
+@@ -384,7 +384,7 @@ int bt_sock_stream_recvmsg(struct socket *sock, struct msghdr *msg,
+ 		copied += chunk;
+ 		size   -= chunk;
+ 
+-		sock_recv_ts_and_drops(msg, sk, skb);
++		sock_recv_cmsgs(msg, sk, skb);
+ 
+ 		if (!(flags & MSG_PEEK)) {
+ 			int skb_len = skb_headlen(skb);
+diff --git a/net/can/bcm.c b/net/can/bcm.c
+index 64c07e650bb4..65ee1b784a30 100644
+--- a/net/can/bcm.c
++++ b/net/can/bcm.c
+@@ -1647,7 +1647,7 @@ static int bcm_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+ 		return err;
+ 	}
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (msg->msg_name) {
+ 		__sockaddr_check_size(BCM_MIN_NAMELEN);
+diff --git a/net/can/j1939/socket.c b/net/can/j1939/socket.c
+index 0bb4fd3f6264..f5ecfdcf57b2 100644
+--- a/net/can/j1939/socket.c
++++ b/net/can/j1939/socket.c
+@@ -841,7 +841,7 @@ static int j1939_sk_recvmsg(struct socket *sock, struct msghdr *msg,
+ 		paddr->can_addr.j1939.pgn = skcb->addr.pgn;
+ 	}
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 	msg->msg_flags |= skcb->msg_flags;
+ 	skb_free_datagram(sk, skb);
+ 
+diff --git a/net/can/raw.c b/net/can/raw.c
+index 0cf728dcff36..b7dbb57557f3 100644
+--- a/net/can/raw.c
++++ b/net/can/raw.c
+@@ -866,7 +866,7 @@ static int raw_recvmsg(struct socket *sock, struct msghdr *msg, size_t size,
+ 		return err;
+ 	}
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (msg->msg_name) {
+ 		__sockaddr_check_size(RAW_MIN_NAMELEN);
+diff --git a/net/core/sock.c b/net/core/sock.c
+index 29abec3eabd8..673b6e49f109 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -1311,6 +1311,9 @@ int sock_setsockopt(struct socket *sock, int level, int optname,
+ 
+ 		__sock_set_mark(sk, val);
+ 		break;
++	case SO_RCVMARK:
++		sock_valbool_flag(sk, SOCK_RCVMARK, valbool);
++		break;
+ 
+ 	case SO_RXQ_OVFL:
+ 		sock_valbool_flag(sk, SOCK_RXQ_OVFL, valbool);
+@@ -1737,6 +1740,10 @@ int sock_getsockopt(struct socket *sock, int level, int optname,
+ 		v.val = sk->sk_mark;
+ 		break;
+ 
++	case SO_RCVMARK:
++		v.val = sock_flag(sk, SOCK_RCVMARK);
++		break;
++
+ 	case SO_RXQ_OVFL:
+ 		v.val = sock_flag(sk, SOCK_RXQ_OVFL);
+ 		break;
+diff --git a/net/ieee802154/socket.c b/net/ieee802154/socket.c
+index f24852814fa3..718fb77bb372 100644
+--- a/net/ieee802154/socket.c
++++ b/net/ieee802154/socket.c
+@@ -328,7 +328,7 @@ static int raw_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 	if (err)
+ 		goto done;
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (flags & MSG_TRUNC)
+ 		copied = skb->len;
+@@ -718,7 +718,7 @@ static int dgram_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 	if (err)
+ 		goto done;
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (saddr) {
+ 		/* Clear the implicit padding in struct sockaddr_ieee802154
+diff --git a/net/ipv4/raw.c b/net/ipv4/raw.c
+index 4056b0da85ea..bbd717805b10 100644
+--- a/net/ipv4/raw.c
++++ b/net/ipv4/raw.c
+@@ -783,7 +783,7 @@ static int raw_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 	if (err)
+ 		goto done;
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	/* Copy the address. */
+ 	if (sin) {
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index aa8545ca6964..9d5071c79c95 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -1909,7 +1909,7 @@ int udp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len, int flags,
+ 		UDP_INC_STATS(sock_net(sk),
+ 			      UDP_MIB_INDATAGRAMS, is_udplite);
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	/* Copy the address. */
+ 	if (sin) {
+diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+index 0d7c13d33d1a..3b7cbd522b54 100644
+--- a/net/ipv6/raw.c
++++ b/net/ipv6/raw.c
+@@ -512,7 +512,7 @@ static int rawv6_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 		*addr_len = sizeof(*sin6);
+ 	}
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (np->rxopt.all)
+ 		ip6_datagram_recv_ctl(sk, msg, skb);
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index 688af6f809fe..3fc97d4621ac 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -391,7 +391,7 @@ int udpv6_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 	if (!peeking)
+ 		SNMP_INC_STATS(mib, UDP_MIB_INDATAGRAMS);
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	/* Copy the address. */
+ 	if (msg->msg_name) {
+diff --git a/net/key/af_key.c b/net/key/af_key.c
+index d09ec26b1081..175a162eec58 100644
+--- a/net/key/af_key.c
++++ b/net/key/af_key.c
+@@ -3711,7 +3711,7 @@ static int pfkey_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+ 	if (err)
+ 		goto out_free;
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	err = (flags & MSG_TRUNC) ? skb->len : copied;
+ 
+diff --git a/net/mctp/af_mctp.c b/net/mctp/af_mctp.c
+index 221863afc4b1..c2fc2a7b2528 100644
+--- a/net/mctp/af_mctp.c
++++ b/net/mctp/af_mctp.c
+@@ -238,7 +238,7 @@ static int mctp_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+ 	if (rc < 0)
+ 		goto out_free;
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (addr) {
+ 		struct mctp_skb_cb *cb = mctp_cb(skb);
+diff --git a/net/packet/af_packet.c b/net/packet/af_packet.c
+index fd31334cf688..677f9cfa9660 100644
+--- a/net/packet/af_packet.c
++++ b/net/packet/af_packet.c
+@@ -3477,7 +3477,7 @@ static int packet_recvmsg(struct socket *sock, struct msghdr *msg, size_t len,
+ 		sll->sll_protocol = skb->protocol;
+ 	}
+ 
+-	sock_recv_ts_and_drops(msg, sk, skb);
++	sock_recv_cmsgs(msg, sk, skb);
+ 
+ 	if (msg->msg_name) {
+ 		const size_t max_len = min(sizeof(skb->cb),
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index 3e3fe923bed5..6d37d2dfb3da 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -2128,7 +2128,7 @@ static int sctp_recvmsg(struct sock *sk, struct msghdr *msg, size_t len,
+ 		head_skb = event->chunk->head_skb;
  	else
--		return arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-+		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-+
-+	retry_lockup_detector_init();
-+	return ret;
- }
- device_initcall(armv8_pmu_driver_init)
- 
-diff --git a/arch/arm64/kernel/watchdog_hld.c b/arch/arm64/kernel/watchdog_hld.c
-index de43318e4dd6..c9c6ec889c15 100644
---- a/arch/arm64/kernel/watchdog_hld.c
-+++ b/arch/arm64/kernel/watchdog_hld.c
-@@ -1,5 +1,7 @@
- // SPDX-License-Identifier: GPL-2.0
-+#include <linux/nmi.h>
- #include <linux/cpufreq.h>
-+#include <linux/perf/arm_pmu.h>
- 
- /*
-  * Safe maximum CPU frequency in case a particular platform doesn't implement
-@@ -23,3 +25,15 @@ u64 hw_nmi_get_sample_period(int watchdog_thresh)
- 	return (u64)max_cpu_freq * watchdog_thresh;
+ 		head_skb = skb;
+-	sock_recv_ts_and_drops(msg, sk, head_skb);
++	sock_recv_cmsgs(msg, sk, head_skb);
+ 	if (sctp_ulpevent_is_notification(event)) {
+ 		msg->msg_flags |= MSG_NOTIFICATION;
+ 		sp->pf->event_msgname(event, msg->msg_name, addr_len);
+diff --git a/net/socket.c b/net/socket.c
+index 6887840682bb..f0c39c874665 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -930,13 +930,22 @@ static inline void sock_recv_drops(struct msghdr *msg, struct sock *sk,
+ 			sizeof(__u32), &SOCK_SKB_CB(skb)->dropcount);
  }
  
-+int __init watchdog_nmi_probe(void)
+-void __sock_recv_ts_and_drops(struct msghdr *msg, struct sock *sk,
+-	struct sk_buff *skb)
++static void sock_recv_mark(struct msghdr *msg, struct sock *sk,
++			   struct sk_buff *skb)
 +{
-+	/*
-+	 * hardlockup_detector_perf_init() will success even if Pseudo-NMI turns off,
-+	 * however, the pmu interrupts will act like a normal interrupt instead of
-+	 * NMI and the hardlockup detector would be broken.
-+	 */
-+	if (!arm_pmu_irq_is_nmi())
-+		return -ENODEV;
-+
-+	return hardlockup_detector_perf_init();
-+}
-diff --git a/drivers/perf/arm_pmu.c b/drivers/perf/arm_pmu.c
-index 59d3980b8ca2..ceee2c55d436 100644
---- a/drivers/perf/arm_pmu.c
-+++ b/drivers/perf/arm_pmu.c
-@@ -697,6 +697,11 @@ static int armpmu_get_cpu_irq(struct arm_pmu *pmu, int cpu)
- 	return per_cpu(hw_events->irq, cpu);
- }
- 
-+bool arm_pmu_irq_is_nmi(void)
-+{
-+	return has_nmi;
++	if (sock_flag(sk, SOCK_RCVMARK) && skb)
++		put_cmsg(msg, SOL_SOCKET, SO_MARK, sizeof(__u32),
++			 &skb->mark);
 +}
 +
- /*
-  * PMU hardware loses all context when a CPU goes offline.
-  * When a CPU is hotplugged back in, since some hardware registers are
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index 0407a38b470a..29c56c92bab7 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -171,6 +171,8 @@ void kvm_host_pmu_init(struct arm_pmu *pmu);
- #define kvm_host_pmu_init(x)	do { } while(0)
- #endif
++void __sock_recv_cmsgs(struct msghdr *msg, struct sock *sk,
++		       struct sk_buff *skb)
+ {
+ 	sock_recv_timestamp(msg, sk, skb);
+ 	sock_recv_drops(msg, sk, skb);
++	sock_recv_mark(msg, sk, skb);
+ }
+-EXPORT_SYMBOL_GPL(__sock_recv_ts_and_drops);
++EXPORT_SYMBOL_GPL(__sock_recv_cmsgs);
  
-+bool arm_pmu_irq_is_nmi(void);
+ INDIRECT_CALLABLE_DECLARE(int inet_recvmsg(struct socket *, struct msghdr *,
+ 					   size_t, int));
+diff --git a/tools/include/uapi/asm-generic/socket.h b/tools/include/uapi/asm-generic/socket.h
+index 77f7c1638eb1..8756df13be50 100644
+--- a/tools/include/uapi/asm-generic/socket.h
++++ b/tools/include/uapi/asm-generic/socket.h
+@@ -119,6 +119,8 @@
+ 
+ #define SO_DETACH_REUSEPORT_BPF 68
+ 
++#define SO_RCVMARK		75
 +
- /* Internal functions only for core arm_pmu code */
- struct arm_pmu *armpmu_alloc(void);
- struct arm_pmu *armpmu_alloc_atomic(void);
+ #if !defined(__KERNEL__)
+ 
+ #if __BITS_PER_LONG == 64 || (defined(__x86_64__) && defined(__ILP32__))
 -- 
-2.25.1
+2.20.1
 
