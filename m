@@ -2,88 +2,110 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA530C4167D
-	for <sparclinux@archiver.kernel.org>; Mon,  2 May 2022 15:51:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD0FC433FE
+	for <sparclinux@archiver.kernel.org>; Mon,  2 May 2022 21:01:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386065AbiEBPym (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 May 2022 11:54:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34654 "EHLO
+        id S1387533AbiEBVEr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 May 2022 17:04:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47226 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240096AbiEBPyj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 May 2022 11:54:39 -0400
-Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DCE602AC2;
-        Mon,  2 May 2022 08:51:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=vs1TxitJVaqXfZt5+JAgzgpJc3Rl9y+sqSF7sQt0958=; b=CYM+I+cStAj6nsmkdvAL01St6e
-        IV8WQNLOxWhy3UHpXhc9ZYxNJzq7ZxpyOwHWort+30gmSz14Tjb7K8kvM2hGR2PPX3dc7GXMEaskm
-        g34Tjq/8qIJgML47/2DCuEUnFB03pqMfnk/uwmQB09CDWgBvh7TL/gFDoH0TI9HOJ3bezLUV1DrKv
-        MwXxD9LKMhdDIB0wdDr6Kr32RysL68LVvKOkDfa5SERbORMzBS0ZyutauBA2Ekqa3472ChMBhe54V
-        1FaXK1lleaqm8beFaaq7IO5wyd2Jb5T5RV+lvaTO/6luDzRXN43duubtlHaOQOQQCOGaRTF8O2nxl
-        BUemy2kw==;
-Received: from [179.113.53.197] (helo=[192.168.1.60])
-        by fanzine2.igalia.com with esmtpsa 
-        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-        id 1nlYKD-0006x9-MY; Mon, 02 May 2022 17:51:01 +0200
-Message-ID: <af03a6ef-6b92-31cd-72d4-47b82bc47f87@igalia.com>
-Date:   Mon, 2 May 2022 12:50:35 -0300
+        with ESMTP id S1387532AbiEBVEo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 May 2022 17:04:44 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F33726FD;
+        Mon,  2 May 2022 14:01:14 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D7864B819DE;
+        Mon,  2 May 2022 21:01:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 870B7C385AC;
+        Mon,  2 May 2022 21:01:06 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1651525271;
+        bh=Lyb/THiP6nQ3Mo8jxRN/sSN4cFqT+f2qfN1gi8EaInQ=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=UgDF9QfxgCwmucPUKdWp6T3JzrWJrh7DEK/6p23+8Lk9YKDw7W5gWJOHDCu/7PiJz
+         eMEchDEaqya/pd5f/LF2LhVxtyt5SClI551Z4z6Cw/O9ZdC6wNgqENCQkiZwJc7sB6
+         88vbNGfTEAeeQTlsJN5IjcdqwYjGdUobCRI/IZqLmVUPjH5JBHprkvVS/hDkXenk+K
+         U7KvfrL95cqTOsgCmSDYmW1LWzW+qqvUQm4gFRIPC3hKIycONxi9Jo2zI01FcGsGCH
+         dOJ8i6y8MNrsBSJjFbaPbVvwEljbBzysOCcF6QVWefh6kCQQOM2byLdZ0eEGA2xiYy
+         ag4YeJvL+W2gQ==
+Message-ID: <3dee9e8f-45c5-49a0-a19e-d67917fd6bb3@kernel.org>
+Date:   Mon, 2 May 2022 16:01:05 -0500
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.0
-Subject: Re: [PATCH 15/30] bus: brcmstb_gisb: Clean-up panic/die notifiers
+ Thunderbird/91.7.0
+Subject: Re: [PATCH v5 06/11] nios2: use fallback for random_get_entropy()
+ instead of zero
 Content-Language: en-US
-To:     Florian Fainelli <f.fainelli@gmail.com>, akpm@linux-foundation.org,
-        bhe@redhat.com, pmladek@suse.com, kexec@lists.infradead.org
-Cc:     linux-kernel@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com,
-        linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org,
-        linux-edac@vger.kernel.org, linux-hyperv@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-pm@vger.kernel.org,
-        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-tegra@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-xtensa@linux-xtensa.org, netdev@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net, rcu@vger.kernel.org,
-        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
-        x86@kernel.org, kernel-dev@igalia.com, kernel@gpiccoli.net,
-        halves@canonical.com, fabiomirmar@gmail.com,
-        alejandro.j.jimenez@oracle.com, andriy.shevchenko@linux.intel.com,
-        arnd@arndb.de, bp@alien8.de, corbet@lwn.net,
-        d.hatayama@jp.fujitsu.com, dave.hansen@linux.intel.com,
-        dyoung@redhat.com, feng.tang@intel.com, gregkh@linuxfoundation.org,
-        mikelley@microsoft.com, hidehiro.kawai.ez@hitachi.com,
-        jgross@suse.com, john.ogness@linutronix.de, keescook@chromium.org,
-        luto@kernel.org, mhiramat@kernel.org, mingo@redhat.com,
-        paulmck@kernel.org, peterz@infradead.org, rostedt@goodmis.org,
-        senozhatsky@chromium.org, stern@rowland.harvard.edu,
-        tglx@linutronix.de, vgoyal@redhat.com, vkuznets@redhat.com,
-        will@kernel.org, Brian Norris <computersforpeace@gmail.com>
-References: <20220427224924.592546-1-gpiccoli@igalia.com>
- <20220427224924.592546-16-gpiccoli@igalia.com>
- <eaf3a893-00dd-8717-202e-911b395670e1@gmail.com>
-From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-In-Reply-To: <eaf3a893-00dd-8717-202e-911b395670e1@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        tglx@linutronix.de, arnd@arndb.de
+Cc:     Theodore Ts'o <tytso@mit.edu>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Stephen Boyd <sboyd@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, x86@kernel.org,
+        linux-xtensa@linux-xtensa.org
+References: <20220419111650.1582274-1-Jason@zx2c4.com>
+ <20220419111650.1582274-7-Jason@zx2c4.com>
+From:   Dinh Nguyen <dinguyen@kernel.org>
+In-Reply-To: <20220419111650.1582274-7-Jason@zx2c4.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 02/05/2022 12:38, Florian Fainelli wrote:
-> [...] 
+
+
+On 4/19/22 06:16, Jason A. Donenfeld wrote:
+> In the event that random_get_entropy() can't access a cycle counter or
+> similar, falling back to returning 0 is really not the best we can do.
+> Instead, at least calling random_get_entropy_fallback() would be
+> preferable, because that always needs to return _something_, even
+> falling back to jiffies eventually. It's not as though
+> random_get_entropy_fallback() is super high precision or guaranteed to
+> be entropic, but basically anything that's not zero all the time is
+> better than returning zero all the time.
 > 
-> Acked-by: Florian Fainelli <f.fainelli@gmail.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Dinh Nguyen <dinguyen@kernel.org>
+> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+> ---
+>   arch/nios2/include/asm/timex.h | 2 ++
+>   1 file changed, 2 insertions(+)
 > 
-> Not sure if the Fixes tag is warranted however as this is a clean up, 
-> and not really fixing a bug.
+> diff --git a/arch/nios2/include/asm/timex.h b/arch/nios2/include/asm/timex.h
+> index a769f871b28d..d9a3f426cdda 100644
+> --- a/arch/nios2/include/asm/timex.h
+> +++ b/arch/nios2/include/asm/timex.h
+> @@ -9,4 +9,6 @@ typedef unsigned long cycles_t;
+>   
+>   extern cycles_t get_cycles(void);
+>   
+> +#define random_get_entropy() (((unsigned long)get_cycles()) ?: random_get_entropy_fallback())
+> +
+>   #endif
 
-Perfect, thanks Florian. I'll add your ACK and remove the fixes tag in V2.
-Cheers,
-
-
-Guilherme
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
