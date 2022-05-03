@@ -2,74 +2,51 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AD0FC433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  2 May 2022 21:01:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64C5EC43219
+	for <sparclinux@archiver.kernel.org>; Tue,  3 May 2022 02:19:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387533AbiEBVEr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 May 2022 17:04:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47226 "EHLO
+        id S230041AbiECCWm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 May 2022 22:22:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54676 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387532AbiEBVEo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 May 2022 17:04:44 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F33726FD;
-        Mon,  2 May 2022 14:01:14 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D7864B819DE;
-        Mon,  2 May 2022 21:01:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 870B7C385AC;
-        Mon,  2 May 2022 21:01:06 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651525271;
-        bh=Lyb/THiP6nQ3Mo8jxRN/sSN4cFqT+f2qfN1gi8EaInQ=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=UgDF9QfxgCwmucPUKdWp6T3JzrWJrh7DEK/6p23+8Lk9YKDw7W5gWJOHDCu/7PiJz
-         eMEchDEaqya/pd5f/LF2LhVxtyt5SClI551Z4z6Cw/O9ZdC6wNgqENCQkiZwJc7sB6
-         88vbNGfTEAeeQTlsJN5IjcdqwYjGdUobCRI/IZqLmVUPjH5JBHprkvVS/hDkXenk+K
-         U7KvfrL95cqTOsgCmSDYmW1LWzW+qqvUQm4gFRIPC3hKIycONxi9Jo2zI01FcGsGCH
-         dOJ8i6y8MNrsBSJjFbaPbVvwEljbBzysOCcF6QVWefh6kCQQOM2byLdZ0eEGA2xiYy
-         ag4YeJvL+W2gQ==
-Message-ID: <3dee9e8f-45c5-49a0-a19e-d67917fd6bb3@kernel.org>
-Date:   Mon, 2 May 2022 16:01:05 -0500
+        with ESMTP id S229882AbiECCWl (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 May 2022 22:22:41 -0400
+Received: from out30-43.freemail.mail.aliyun.com (out30-43.freemail.mail.aliyun.com [115.124.30.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EECEA23BF6;
+        Mon,  2 May 2022 19:19:08 -0700 (PDT)
+X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R181e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=31;SR=0;TI=SMTPD_---0VC4Od8S_1651544341;
+Received: from 30.39.210.51(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VC4Od8S_1651544341)
+          by smtp.aliyun-inc.com(127.0.0.1);
+          Tue, 03 May 2022 10:19:03 +0800
+Message-ID: <48a05075-a323-e7f1-9e99-6c0d106eb2cb@linux.alibaba.com>
+Date:   Tue, 3 May 2022 10:19:46 +0800
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.7.0
-Subject: Re: [PATCH v5 06/11] nios2: use fallback for random_get_entropy()
- instead of zero
-Content-Language: en-US
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
-        tglx@linutronix.de, arnd@arndb.de
-Cc:     Theodore Ts'o <tytso@mit.edu>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        "David S . Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, x86@kernel.org,
-        linux-xtensa@linux-xtensa.org
-References: <20220419111650.1582274-1-Jason@zx2c4.com>
- <20220419111650.1582274-7-Jason@zx2c4.com>
-From:   Dinh Nguyen <dinguyen@kernel.org>
-In-Reply-To: <20220419111650.1582274-7-Jason@zx2c4.com>
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+Subject: Re: [PATCH 3/3] mm: rmap: Fix CONT-PTE/PMD size hugetlb issue when
+ unmapping
+To:     Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc:     akpm@linux-foundation.org, mike.kravetz@oracle.com,
+        catalin.marinas@arm.com, will@kernel.org,
+        tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
+        deller@gmx.de, mpe@ellerman.id.au, benh@kernel.crashing.org,
+        paulus@samba.org, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, arnd@arndb.de,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org
+References: <cover.1651216964.git.baolin.wang@linux.alibaba.com>
+ <c91e04ebb792ef7b72966edea8bd6fa2dfa5bfa7.1651216964.git.baolin.wang@linux.alibaba.com>
+ <20220429220214.4cfc5539@thinkpad>
+ <bcb4a3b0-4fcd-af3a-2a2c-fd662d9eaba9@linux.alibaba.com>
+ <20220502160232.589a6111@thinkpad>
+From:   Baolin Wang <baolin.wang@linux.alibaba.com>
+In-Reply-To: <20220502160232.589a6111@thinkpad>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
@@ -78,34 +55,96 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 
 
-On 4/19/22 06:16, Jason A. Donenfeld wrote:
-> In the event that random_get_entropy() can't access a cycle counter or
-> similar, falling back to returning 0 is really not the best we can do.
-> Instead, at least calling random_get_entropy_fallback() would be
-> preferable, because that always needs to return _something_, even
-> falling back to jiffies eventually. It's not as though
-> random_get_entropy_fallback() is super high precision or guaranteed to
-> be entropic, but basically anything that's not zero all the time is
-> better than returning zero all the time.
+On 5/2/2022 10:02 PM, Gerald Schaefer wrote:
+> On Sat, 30 Apr 2022 11:22:33 +0800
+> Baolin Wang <baolin.wang@linux.alibaba.com> wrote:
 > 
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Dinh Nguyen <dinguyen@kernel.org>
-> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
-> ---
->   arch/nios2/include/asm/timex.h | 2 ++
->   1 file changed, 2 insertions(+)
+>>
+>>
+>> On 4/30/2022 4:02 AM, Gerald Schaefer wrote:
+>>> On Fri, 29 Apr 2022 16:14:43 +0800
+>>> Baolin Wang <baolin.wang@linux.alibaba.com> wrote:
+>>>
+>>>> On some architectures (like ARM64), it can support CONT-PTE/PMD size
+>>>> hugetlb, which means it can support not only PMD/PUD size hugetlb:
+>>>> 2M and 1G, but also CONT-PTE/PMD size: 64K and 32M if a 4K page
+>>>> size specified.
+>>>>
+>>>> When unmapping a hugetlb page, we will get the relevant page table
+>>>> entry by huge_pte_offset() only once to nuke it. This is correct
+>>>> for PMD or PUD size hugetlb, since they always contain only one
+>>>> pmd entry or pud entry in the page table.
+>>>>
+>>>> However this is incorrect for CONT-PTE and CONT-PMD size hugetlb,
+>>>> since they can contain several continuous pte or pmd entry with
+>>>> same page table attributes, so we will nuke only one pte or pmd
+>>>> entry for this CONT-PTE/PMD size hugetlb page.
+>>>>
+>>>> And now we only use try_to_unmap() to unmap a poisoned hugetlb page,
+>>>> which means now we will unmap only one pte entry for a CONT-PTE or
+>>>> CONT-PMD size poisoned hugetlb page, and we can still access other
+>>>> subpages of a CONT-PTE or CONT-PMD size poisoned hugetlb page,
+>>>> which will cause serious issues possibly.
+>>>>
+>>>> So we should change to use huge_ptep_clear_flush() to nuke the
+>>>> hugetlb page table to fix this issue, which already considered
+>>>> CONT-PTE and CONT-PMD size hugetlb.
+>>>>
+>>>> Note we've already used set_huge_swap_pte_at() to set a poisoned
+>>>> swap entry for a poisoned hugetlb page.
+>>>>
+>>>> Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+>>>> ---
+>>>>    mm/rmap.c | 34 +++++++++++++++++-----------------
+>>>>    1 file changed, 17 insertions(+), 17 deletions(-)
+>>>>
+>>>> diff --git a/mm/rmap.c b/mm/rmap.c
+>>>> index 7cf2408..1e168d7 100644
+>>>> --- a/mm/rmap.c
+>>>> +++ b/mm/rmap.c
+>>>> @@ -1564,28 +1564,28 @@ static bool try_to_unmap_one(struct folio *folio, struct vm_area_struct *vma,
+>>>>    					break;
+>>>>    				}
+>>>>    			}
+>>>> +			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
+>>>
+>>> Unlike in your patch 2/3, I do not see that this (huge) pteval would later
+>>> be used again with set_huge_pte_at() instead of set_pte_at(). Not sure if
+>>> this (huge) pteval could end up at a set_pte_at() later, but if yes, then
+>>> this would be broken on s390, and you'd need to use set_huge_pte_at()
+>>> instead of set_pte_at() like in your patch 2/3.
+>>
+>> IIUC, As I said in the commit message, we will only unmap a poisoned
+>> hugetlb page by try_to_unmap(), and the poisoned hugetlb page will be
+>> remapped with a poisoned entry by set_huge_swap_pte_at() in
+>> try_to_unmap_one(). So I think no need change to use set_huge_pte_at()
+>> instead of set_pte_at() for other cases, since the hugetlb page will not
+>> hit other cases.
+>>
+>> if (PageHWPoison(subpage) && !(flags & TTU_IGNORE_HWPOISON)) {
+>> 	pteval = swp_entry_to_pte(make_hwpoison_entry(subpage));
+>> 	if (folio_test_hugetlb(folio)) {
+>> 		hugetlb_count_sub(folio_nr_pages(folio), mm);
+>> 		set_huge_swap_pte_at(mm, address, pvmw.pte, pteval,
+>> 				     vma_mmu_pagesize(vma));
+>> 	} else {
+>> 		dec_mm_counter(mm, mm_counter(&folio->page));
+>> 		set_pte_at(mm, address, pvmw.pte, pteval);
+>> 	}
+>>
+>> }
 > 
-> diff --git a/arch/nios2/include/asm/timex.h b/arch/nios2/include/asm/timex.h
-> index a769f871b28d..d9a3f426cdda 100644
-> --- a/arch/nios2/include/asm/timex.h
-> +++ b/arch/nios2/include/asm/timex.h
-> @@ -9,4 +9,6 @@ typedef unsigned long cycles_t;
->   
->   extern cycles_t get_cycles(void);
->   
-> +#define random_get_entropy() (((unsigned long)get_cycles()) ?: random_get_entropy_fallback())
-> +
->   #endif
+> OK, but wouldn't the pteval be overwritten here with
+> pteval = swp_entry_to_pte(make_hwpoison_entry(subpage))?
+> IOW, what sense does it make to save the returned pteval from
+> huge_ptep_clear_flush(), when it is never being used anywhere?
 
-Acked-by: Dinh Nguyen <dinguyen@kernel.org>
+Please see previous code, we'll use the original pte value to check if 
+it is uffd-wp armed, and if need to mark it dirty though the hugetlbfs 
+is set noop_dirty_folio().
+
+pte_install_uffd_wp_if_needed(vma, address, pvmw.pte, pteval);
+
+/* Set the dirty flag on the folio now the pte is gone. */
+if (pte_dirty(pteval))
+	folio_mark_dirty(folio);
