@@ -2,136 +2,88 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D08C43219
-	for <sparclinux@archiver.kernel.org>; Wed,  4 May 2022 21:31:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37E1AC433EF
+	for <sparclinux@archiver.kernel.org>; Thu,  5 May 2022 05:45:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358276AbiEDVf2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 4 May 2022 17:35:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47256 "EHLO
+        id S237076AbiEEFt1 convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 5 May 2022 01:49:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1347126AbiEDVf0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 4 May 2022 17:35:26 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BFB84838E;
-        Wed,  4 May 2022 14:31:49 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CAD48B829E8;
-        Wed,  4 May 2022 21:31:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 80D62C385BF;
-        Wed,  4 May 2022 21:31:46 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1651699906;
-        bh=zFvzT8pCm+1ful8W/hZ4LOb35c/AZPHiTAR5f5uq/tc=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=psHr6IyS0tCkPqNjtn0h6gBlwY40lOhbh/uw16bstSHWVYnmtHqEoZ532Dc9rtOal
-         DUtXfgn3DdLZgWPENyY+MDgzz08W+auqjcYPklLCUJDhHdzEXeeuxWe7LpvbPQY9kJ
-         FOxNi34XKyPTNO9nguLWvf12if7tv0axSjj5zB31OByn/knBsjbgNK9SEZoOb9mk2H
-         8Mi5Plsbv3ClcTw6udErx8u6A9v1Ng1bHEjpGoMpucB2QcZFN6TMAvSYQ6IMdui25o
-         P6nUGl1dzSr93wmpQQ9rPDjMiV7wf6pGhiZS8ljqSo0VQ8Lm9E+/x0iZSoSI081EGu
-         qotf+DUD3i/vA==
-Received: by mail-wr1-f51.google.com with SMTP id k2so3657498wrd.5;
-        Wed, 04 May 2022 14:31:46 -0700 (PDT)
-X-Gm-Message-State: AOAM530m3z7+Lq1wthZl3Ou4DDusfe+YzKGwkK3E99iNDWFIQi4smzAh
-        db83aG6SCEY16rFZw+Bo71+iWvSUabbsMWpWX3Y=
-X-Google-Smtp-Source: ABdhPJxAVZcK+UbsrIHV3UqhufeJ7C2MWsg9y8caQR3XP4mze6wyb/qHpchpXkh4iCCt0pJlSodAlnXDA871Nj1pC0U=
-X-Received: by 2002:adf:e106:0:b0:20a:b31b:213d with SMTP id
- t6-20020adfe106000000b0020ab31b213dmr17558428wrz.219.1651699904306; Wed, 04
- May 2022 14:31:44 -0700 (PDT)
+        with ESMTP id S241949AbiEEFt0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 5 May 2022 01:49:26 -0400
+Received: from mail.megasoftsol.com (mail.megasoftsol.com [43.231.250.141])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0858B2E9E4
+        for <sparclinux@vger.kernel.org>; Wed,  4 May 2022 22:45:46 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.megasoftsol.com (Postfix) with ESMTP id CC3D1916D6D
+        for <sparclinux@vger.kernel.org>; Thu,  5 May 2022 10:42:43 +0530 (IST)
+Received: from mail.megasoftsol.com ([127.0.0.1])
+        by localhost (mail.megasoftsol.com [127.0.0.1]) (amavisd-new, port 10032)
+        with ESMTP id GZyQxsGqlOWJ for <sparclinux@vger.kernel.org>;
+        Thu,  5 May 2022 10:42:43 +0530 (IST)
+Received: from localhost (localhost [127.0.0.1])
+        by mail.megasoftsol.com (Postfix) with ESMTP id D03C2916D59
+        for <sparclinux@vger.kernel.org>; Thu,  5 May 2022 10:42:42 +0530 (IST)
+X-Virus-Scanned: amavisd-new at megasoftsol.com
+Received: from mail.megasoftsol.com ([127.0.0.1])
+        by localhost (mail.megasoftsol.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id DlTx-uzft7UB for <sparclinux@vger.kernel.org>;
+        Thu,  5 May 2022 10:42:42 +0530 (IST)
+Received: from johnlewis.com (unknown [20.97.211.134])
+        (Authenticated sender: admin)
+        by mail.megasoftsol.com (Postfix) with ESMTPSA id C1B4F90E30F
+        for <sparclinux@vger.kernel.org>; Thu,  5 May 2022 10:42:41 +0530 (IST)
+Reply-To: robert_turner@johnlewis-trades.com
+From:   John Lewis & Partnersip <robert.turner441@johnlewis.com>
+To:     sparclinux@vger.kernel.org
+Subject: Product Inquiry (JL)-5/05/2022
+Date:   05 May 2022 05:15:10 +0000
+Message-ID: <20220504193059.993D662B90898588@johnlewis.com>
 MIME-Version: 1.0
-References: <20220429135108.2781579-2-schnelle@linux.ibm.com> <20220504210840.GA469916@bhelgaas>
-In-Reply-To: <20220504210840.GA469916@bhelgaas>
-From:   Arnd Bergmann <arnd@kernel.org>
-Date:   Wed, 4 May 2022 23:31:28 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a0sJgMSpZB_Butx2gO0hapYZy-Dm_QH-hG5rOaq_ZgsXg@mail.gmail.com>
-Message-ID: <CAK8P3a0sJgMSpZB_Butx2gO0hapYZy-Dm_QH-hG5rOaq_ZgsXg@mail.gmail.com>
-Subject: Re: [RFC v2 01/39] Kconfig: introduce HAS_IOPORT option and select it
- as necessary
-To:     Bjorn Helgaas <helgaas@kernel.org>
-Cc:     Niklas Schnelle <schnelle@linux.ibm.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
-        "open list:ALPHA PORT" <linux-alpha@vger.kernel.org>,
-        "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>,
-        "open list:IA64 (Itanium) PLATFORM" <linux-ia64@vger.kernel.org>,
-        "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
-        "open list:MIPS" <linux-mips@vger.kernel.org>,
-        "open list:PARISC ARCHITECTURE" <linux-parisc@vger.kernel.org>,
-        "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
-        <linuxppc-dev@lists.ozlabs.org>,
-        "open list:RISC-V ARCHITECTURE" <linux-riscv@lists.infradead.org>,
-        "open list:SUPERH" <linux-sh@vger.kernel.org>,
-        "open list:SPARC + UltraSPARC (sparc/sparc64)" 
-        <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, May 4, 2022 at 11:08 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
->
-> On Fri, Apr 29, 2022 at 03:49:59PM +0200, Niklas Schnelle wrote:
-> > We introduce a new HAS_IOPORT Kconfig option to indicate support for
-> > I/O Port access. In a future patch HAS_IOPORT=n will disable compilation
-> > of the I/O accessor functions inb()/outb() and friends on architectures
-> > which can not meaningfully support legacy I/O spaces such as s390 or
-> > where such support is optional.
->
-> So you plan to drop inb()/outb() on architectures where I/O port space
-> is optional?  So even platforms that have I/O port space may not be
-> able to use it?
->
-> This feels like a lot of work where the main benefit is to keep
-> Kconfig from offering drivers that aren't of interest on s390.
->
-> Granted, there may be issues where inb()/outb() does the wrong thing
-> such as dereferencing null pointers when I/O port space isn't
-> implemented.  I think that's a defect in inb()/outb() and could be
-> fixed there.
-
-The current implementation in asm-generic/io.h implements inb()/outb()
-using readb()/writeb() with a fixed architecture specific offset.
-
-There are three possible things that can happen here:
-
-a) there is a host bridge driver that maps its I/O ports to this window,
-    and everything works
-b) the address range is reserved and accessible but no host bridge
-   driver has mapped its registers there, so an access causes a
-   page fault
-c) the architecture does not define an offset, and accessing low I/O
-    ports ends up as a NULL pointer dereference
-
-The main goal is to avoid c), which is what happens on s390, but
-can also happen elsewhere. Catching b) would be nice as well,
-but is much harder to do from generic code as you'd need an
-architecture specific inline asm statement to insert a ex_table
-fixup, or a runtime conditional on each access.
-
-         Arnd
+Dear sparclinux
+ 
+ 
+The famous brand John Lewis & Partners, is UK's largest multi-
+channel retailer with over 126 shops and multiple expansion in 
+Africa furnished by European/Asian/American products. We are 
+sourcing new products to attract new customers and also retain 
+our existing ones, create new partnerships with companies dealing 
+with different kinds of goods globally.
+ 
+Your company's products are of interest to our market as we have 
+an amazing market for your products.
+ 
+Provide us your current catalog through email to review more. We 
+hope to be able to order with you and start a long-term friendly, 
+respectable and solid business partnership. Please we would 
+appreciate it if you could send us your stock availability via 
+email if any.
+ 
+ 
+Our payment terms are 15 days net in Europe, 30 days Net in UK 
+and 30 days net in Asia/USA as we have operated with over 5297 
+suppliers around the globe for the past 50 years now. For 
+immediate response Send your reply to "robert_turner@johnlewis-
+trades.com" for us to be able to treat with care and urgency.
+ 
+ 
+ 
+Best Regards
+ 
+ 
+Rob Turner
+Head Of Procurement Operations
+John Lewis & Partners.
+robert_turner@johnlewis-trades.com
+Tel: +44-7451-274090
+WhatsApp: +447497483925
+www.johnlewis.com
+REGISTERED OFFICE: 171 VICTORIA STREET, LONDON SW1E 5NN
