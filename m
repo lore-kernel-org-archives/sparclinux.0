@@ -2,111 +2,60 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8335CC43217
-	for <sparclinux@archiver.kernel.org>; Fri,  6 May 2022 03:38:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 97473C433F5
+	for <sparclinux@archiver.kernel.org>; Fri,  6 May 2022 08:22:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1388748AbiEFDmT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 5 May 2022 23:42:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44278 "EHLO
+        id S243434AbiEFI0B (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 6 May 2022 04:26:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234539AbiEFDmS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 5 May 2022 23:42:18 -0400
-Received: from out30-130.freemail.mail.aliyun.com (out30-130.freemail.mail.aliyun.com [115.124.30.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D7CF3F7;
-        Thu,  5 May 2022 20:38:30 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R191e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04426;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=30;SR=0;TI=SMTPD_---0VCPvMM9_1651808302;
-Received: from 30.32.96.193(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VCPvMM9_1651808302)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Fri, 06 May 2022 11:38:24 +0800
-Message-ID: <21b11024-e893-8c11-9b98-ab1d13413b61@linux.alibaba.com>
-Date:   Fri, 6 May 2022 11:39:05 +0800
+        with ESMTP id S243734AbiEFIZ7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 6 May 2022 04:25:59 -0400
+Received: from mail.onlinesuccesses.pl (mail.onlinesuccesses.pl [198.244.150.235])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D6A5689A4
+        for <sparclinux@vger.kernel.org>; Fri,  6 May 2022 01:22:17 -0700 (PDT)
+Received: by mail.onlinesuccesses.pl (Postfix, from userid 1002)
+        id EB1C2AFC01; Fri,  6 May 2022 08:16:43 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=onlinesuccesses.pl;
+        s=mail; t=1651825036;
+        bh=nE8HqilgMh4dy7+Z8ksfg7Bc9rmPeQtYFq3/3YR2ODU=;
+        h=Date:From:To:Subject:From;
+        b=p4GpPoVjXSWOSjWmiDEGXn7JBji+R7rbS9yPropPMiyN3oUgBs/+9CbCmE/jDeCNc
+         kGsg6Wiks8MCZ+TkJdcVsFFqzHkIM3XQzvH+703Zb+d18qPBhkcbYFHHezlnWhaOCE
+         Ko8IF1j14GVlUTd2Kfb/JoU/tRFmeq7EiVxr2ftmMBnhzQRsr4YlcI2wYESKQY3vnX
+         I7sU2UqEuzOsVNxJzRKYtBzqbTWZz/7+OJo6pgZf/KaREETtdxh+iM60Zs0tzU8O78
+         7Pi/381/DiiRBA9My7jtlHB6Fq4UwPKISQCtq5Gh3QG41WBtBwc1X9P3EAsBLyoGZY
+         hkamaJdmFQLOw==
+Received: by mail.onlinesuccesses.pl for <sparclinux@vger.kernel.org>; Fri,  6 May 2022 08:15:55 GMT
+Message-ID: <20220506064501-0.1.44.156se.0.ngxzpqhriq@onlinesuccesses.pl>
+Date:   Fri,  6 May 2022 08:15:55 GMT
+From:   "Wiktor Zielonko" <wiktor.zielonko@onlinesuccesses.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Ruch z pierwszej pozycji w Google
+X-Mailer: mail.onlinesuccesses.pl
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [PATCH 2/3] mm: rmap: Fix CONT-PTE/PMD size hugetlb issue when
- migration
-To:     Mike Kravetz <mike.kravetz@oracle.com>, akpm@linux-foundation.org,
-        catalin.marinas@arm.com, will@kernel.org
-Cc:     tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, benh@kernel.crashing.org,
-        paulus@samba.org, hca@linux.ibm.com, gor@linux.ibm.com,
-        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
-        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
-        davem@davemloft.net, arnd@arndb.de,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org
-References: <cover.1651216964.git.baolin.wang@linux.alibaba.com>
- <11b92502b3df0e0bba6a1dc71476d79cab6c79ba.1651216964.git.baolin.wang@linux.alibaba.com>
- <5cab0eca-9630-a7c6-4f5d-5cb45ff82c83@oracle.com>
-From:   Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <5cab0eca-9630-a7c6-4f5d-5cb45ff82c83@oracle.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Dzie=C5=84 dobry,=20
+
+jaki=C5=9B czas temu zg=C5=82osi=C5=82a si=C4=99 do nas firma, kt=C3=B3re=
+j strona internetowa nie pozycjonowa=C5=82a si=C4=99 wysoko w wyszukiwarc=
+e Google.=20
+
+Na podstawie wykonanego przez nas audytu SEO zoptymalizowali=C5=9Bmy tre=C5=
+=9Bci na stronie pod k=C4=85tem wcze=C5=9Bniej opracowanych s=C5=82=C3=B3=
+w kluczowych. Nasz wewn=C4=99trzny system codziennie analizuje prawid=C5=82=
+owe dzia=C5=82anie witryny.  Dzi=C4=99ki indywidualnej strategii, firma z=
+dobywa coraz wi=C4=99cej Klient=C3=B3w. =20
+
+Czy chcieliby Pa=C5=84stwo zwi=C4=99kszy=C4=87 liczb=C4=99 os=C3=B3b odwi=
+edzaj=C4=85cych stron=C4=99 internetow=C4=85 firmy? M=C3=B3g=C5=82bym prz=
+edstawi=C4=87 ofert=C4=99?=20
 
 
-On 5/6/2022 7:53 AM, Mike Kravetz wrote:
-> On 4/29/22 01:14, Baolin Wang wrote:
->> On some architectures (like ARM64), it can support CONT-PTE/PMD size
->> hugetlb, which means it can support not only PMD/PUD size hugetlb:
->> 2M and 1G, but also CONT-PTE/PMD size: 64K and 32M if a 4K page
->> size specified.
-> <snip>
->> diff --git a/mm/rmap.c b/mm/rmap.c
->> index 6fdd198..7cf2408 100644
->> --- a/mm/rmap.c
->> +++ b/mm/rmap.c
->> @@ -1924,13 +1924,15 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
->>   					break;
->>   				}
->>   			}
->> +
->> +			/* Nuke the hugetlb page table entry */
->> +			pteval = huge_ptep_clear_flush(vma, address, pvmw.pte);
->>   		} else {
->>   			flush_cache_page(vma, address, pte_pfn(*pvmw.pte));
->> +			/* Nuke the page table entry. */
->> +			pteval = ptep_clear_flush(vma, address, pvmw.pte);
->>   		}
->>   
-> 
-> On arm64 with CONT-PTE/PMD the returned pteval will have dirty or young set
-> if ANY of the PTE/PMDs had dirty or young set.
-
-Right.
-
-> 
->> -		/* Nuke the page table entry. */
->> -		pteval = ptep_clear_flush(vma, address, pvmw.pte);
->> -
->>   		/* Set the dirty flag on the folio now the pte is gone. */
->>   		if (pte_dirty(pteval))
->>   			folio_mark_dirty(folio);
->> @@ -2015,7 +2017,10 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
->>   			pte_t swp_pte;
->>   
->>   			if (arch_unmap_one(mm, vma, address, pteval) < 0) {
->> -				set_pte_at(mm, address, pvmw.pte, pteval);
->> +				if (folio_test_hugetlb(folio))
->> +					set_huge_pte_at(mm, address, pvmw.pte, pteval);
-> 
-> And, we will use that pteval for ALL the PTE/PMDs here.  So, we would set
-> the dirty or young bit in ALL PTE/PMDs.
-> 
-> Could that cause any issues?  May be more of a question for the arm64 people.
-
-I don't think this will cause any issues. Since the hugetlb can not be 
-split, and we should not lose the the dirty or young state if any 
-subpages were set. Meanwhile we already did like this in hugetlb.c:
-
-pte = huge_ptep_get_and_clear(mm, address, ptep);
-tlb_remove_huge_tlb_entry(h, tlb, ptep, address);
-if (huge_pte_dirty(pte))
-	set_page_dirty(page);
+Pozdrawiam serdecznie,
+Wiktor Zielonko
