@@ -2,33 +2,27 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E021DC433FE
-	for <sparclinux@archiver.kernel.org>; Fri,  6 May 2022 14:03:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69326C4321E
+	for <sparclinux@archiver.kernel.org>; Fri,  6 May 2022 14:44:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1441967AbiEFOHK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 6 May 2022 10:07:10 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59116 "EHLO
+        id S235564AbiEFOsL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 6 May 2022 10:48:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43472 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1441970AbiEFOHI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 6 May 2022 10:07:08 -0400
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.86.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 05CC1580EF
-        for <sparclinux@vger.kernel.org>; Fri,  6 May 2022 07:03:19 -0700 (PDT)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-195-nik8eVn6MbSMYKVVi8RBBA-1; Fri, 06 May 2022 15:03:17 +0100
-X-MC-Unique: nik8eVn6MbSMYKVVi8RBBA-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.32; Fri, 6 May 2022 15:03:15 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.033; Fri, 6 May 2022 15:03:15 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Geert Uytterhoeven' <geert@linux-m68k.org>
-CC:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Arnd Bergmann <arnd@kernel.org>, Rich Felker <dalias@libc.org>,
+        with ESMTP id S1442401AbiEFOsF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 6 May 2022 10:48:05 -0400
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 30F626AA6D;
+        Fri,  6 May 2022 07:44:21 -0700 (PDT)
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+        id AEF9F9200BF; Fri,  6 May 2022 16:44:19 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by angie.orcam.me.uk (Postfix) with ESMTP id AAE6792009B;
+        Fri,  6 May 2022 15:44:19 +0100 (BST)
+Date:   Fri, 6 May 2022 15:44:19 +0100 (BST)
+From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
+To:     David Laight <David.Laight@ACULAB.COM>
+cc:     Arnd Bergmann <arnd@kernel.org>, Rich Felker <dalias@libc.org>,
         "open list:IA64 (Itanium) PLATFORM" <linux-ia64@vger.kernel.org>,
         "open list:SUPERH" <linux-sh@vger.kernel.org>,
         Catalin Marinas <catalin.marinas@arm.com>,
@@ -45,6 +39,7 @@ CC:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
         "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>,
         Russell King <linux@armlinux.org.uk>,
         Ingo Molnar <mingo@redhat.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
         linux-pci <linux-pci@vger.kernel.org>,
         Bjorn Helgaas <helgaas@kernel.org>,
         Matt Turner <mattst88@gmail.com>,
@@ -54,7 +49,7 @@ CC:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
         "open list:M68K ARCHITECTURE" <linux-m68k@lists.linux-m68k.org>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Paul Walmsley <paul.walmsley@sifive.com>,
-        "Thomas Gleixner" <tglx@linutronix.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
         "moderated list:ARM PORT" <linux-arm-kernel@lists.infradead.org>,
         Richard Henderson <rth@twiddle.net>,
         Michal Simek <monstr@monstr.eu>,
@@ -68,69 +63,53 @@ CC:     "Maciej W. Rozycki" <macro@orcam.me.uk>,
         "open list:LINUX FOR POWERPC (32-BIT AND 64-BIT)" 
         <linuxppc-dev@lists.ozlabs.org>,
         "David S. Miller" <davem@davemloft.net>
-Subject: RE: [RFC v2 01/39] Kconfig: introduce HAS_IOPORT option and select it
- as necessary
-Thread-Topic: [RFC v2 01/39] Kconfig: introduce HAS_IOPORT option and select
+Subject: RE: [RFC v2 01/39] Kconfig: introduce HAS_IOPORT option and select
  it as necessary
-Thread-Index: AQHYYUSwX3QwDKjE7kKG/gGNt1cnA60Rx6Pg///55gCAABIk4A==
-Date:   Fri, 6 May 2022 14:03:15 +0000
-Message-ID: <62c1bf6687ac4abc98d4015852930241@AcuMS.aculab.com>
-References: <CAK8P3a0sJgMSpZB_Butx2gO0hapYZy-Dm_QH-hG5rOaq_ZgsXg@mail.gmail.com>
- <20220505161028.GA492600@bhelgaas>
- <CAK8P3a3fmPExr70+fVb564hZdGAuPtYa-QxgMMe5KLpnY_sTrQ@mail.gmail.com>
- <alpine.DEB.2.21.2205061058540.52331@angie.orcam.me.uk>
- <CAK8P3a0NzG=3tDLCdPj2=A__2r_+xiiUTW=WJCBNp29x_A63Og@mail.gmail.com>
- <alpine.DEB.2.21.2205061314110.52331@angie.orcam.me.uk>
- <5239892986c94239a122ab2f7a18a7a5@AcuMS.aculab.com>
- <CAMuHMdWj5rmrP941DF7bsUXbiiemE-o2=8XqnAS-chgmpFFPQg@mail.gmail.com>
-In-Reply-To: <CAMuHMdWj5rmrP941DF7bsUXbiiemE-o2=8XqnAS-chgmpFFPQg@mail.gmail.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+In-Reply-To: <3669a28a055344a792b51439c953fd30@AcuMS.aculab.com>
+Message-ID: <alpine.DEB.2.21.2205061440260.52331@angie.orcam.me.uk>
+References: <CAK8P3a0sJgMSpZB_Butx2gO0hapYZy-Dm_QH-hG5rOaq_ZgsXg@mail.gmail.com> <20220505161028.GA492600@bhelgaas> <CAK8P3a3fmPExr70+fVb564hZdGAuPtYa-QxgMMe5KLpnY_sTrQ@mail.gmail.com> <alpine.DEB.2.21.2205061058540.52331@angie.orcam.me.uk>
+ <CAK8P3a0NzG=3tDLCdPj2=A__2r_+xiiUTW=WJCBNp29x_A63Og@mail.gmail.com> <alpine.DEB.2.21.2205061314110.52331@angie.orcam.me.uk> <5239892986c94239a122ab2f7a18a7a5@AcuMS.aculab.com> <alpine.DEB.2.21.2205061412080.52331@angie.orcam.me.uk>
+ <3669a28a055344a792b51439c953fd30@AcuMS.aculab.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-RnJvbTogR2VlcnQgVXl0dGVyaG9ldmVuDQo+IFNlbnQ6IDA2IE1heSAyMDIyIDE0OjA5DQouLi4N
-Cj4gPiBUaGUgc2FtZSBpcyByZWFsbHkgdHJ1ZSBmb3Igb3RoZXIgYnVzIHR5cGUgLSBpbmNsdWRp
-bmcgSVNBIGFuZCBFSVNBLg0KPiA+IChJZ25vcmluZyB0aGUgaG9ycmlkIG9mIHByb2JpbmcgSVNJ
-IGJ1cyBkZXZpY2VzIC0gaG9wZWZ1bGx5IHRoZXkNCj4gPiBhcmUgaW4gdGhlIEFDUEkgdGFibGVz
-Pz9fDQo+ID4gSWYgYSBkcml2ZXIgaXMgcHJvYmVkIG9uIGEgSVNBIGJ1cyB0aGVyZSBvdWdodCB0
-byBiZSBmdW5jdGlvbnMNCj4gPiBlcXVpdmFsZW50IHRvIHBjaV9pb3JlbWFwKCkgKGZvciBib3Ro
-IG1lbW9yeSBhbmQgSU8gYWRkcmVzc2VzKQ0KPiA+IHRoYXQgcmV0dXJuIHRva2VucyBhcHByb3By
-aWF0ZSBmb3IgdGhlIHNwZWNpZmljIGJ1cy4NCj4gPg0KPiA+IFRoYXQgaXMgYWxsIGEgZGlmZmVy
-ZW50IGxvYWQgb2YgY2h1cm4uDQo+IA0KPiBBIGxvb29vbmcgdGltZSBhZ28sICBpdCB3YXMgc3Vn
-Z2VzdGVkIHRvIGFkZCByZWdpc3RlciBhY2Nlc3Nvcg0KPiBmdW5jdGlvbnMgdG8gc3RydWN0IGRl
-dmljZSwgc28gZS5nLiByZWFkbChkZXYsIG9mZnNldCkgd291bGQgY2FsbA0KPiBpbnRvIHRoZXNl
-IGFjY2Vzc29ycywgd2hpY2ggd291bGQgaW1wbGVtZW50IHRoZSBidXMtc3BlY2lmaWMgYmVoYXZp
-b3IuDQo+IE5vIG1vcmUgd29ycmllcyBhYm91dCByZWFkbCgpLCBfX3Jhd19yZWFkbCgpLCBpb3Jl
-YWQzMmIoKSwgb3Igd2hhdGV2ZXINCj4gcXVpcmsgaXMgbmVlZGVkLCBhdCB0aGUgKHNtYWxsIG9u
-IG5vd2FkYXlzJyBtYWNoaW5lcykgZXhwZW5zZSBvZg0KPiBzb21lIGluZGlyZWN0aW9uLi4uDQoN
-Ckkgd2FzIGp1c3QgdGhpbmtpbmcgdGhhdCB0aGUgYWNjZXNzIGZ1bmN0aW9ucyBtaWdodCBuZWVk
-IGEgJ2RldmljZScuDQpBbHRob3VnaCB5b3UgYWxzbyBuZWVkIHRoZSBCQVIgKG9yIGVxdWl2YWxl
-bnQpLg0KU28gcmVhZGwoZGV2LCBiYXJfdG9rZW4sIG9mZnNldCkgb3IgcmVhZGwoZGV2LCBiYXJf
-dG9rZW4gKyBvZmZzZXQpLg0KQ2xlYXJseSB0aGUgJ2RldicgcGFyYW1ldGVyIGNvdWxkIGJlIGNv
-bXBpbGVkIG91dCBmb3Igbm9uLURFQlVHDQpidWlsZCBvbiB4ODYgLSBsZWF2aW5nIHRoZSBjdXJy
-ZW50KGlzaCkgb2JqZWN0IGNvZGUuDQoNCllvdSBkb24ndCB3YW50IGFuIGluZGlyZWN0IGNhbGwg
-KHRoaXMgeWVhciksIGJ1dCBtYXliZSByZWFsDQpmdW5jdGlvbiBjYWxsIGFuZCBhIGZldyB0ZXN0
-cyB3b24ndCBtYWtlIHRoYXQgbXVjaCBkaWZmZXJlbmNlLg0KVGhleSBtaWdodCBhZmZlY3QgUENJ
-ZSB3cml0ZXMsIGJ1dCBQQ0llIHJlYWRzIGFyZSBzbyBzbG93IHlvdQ0KbmVlZCB0byBhdm9pZCB0
-aGVtIHdoZW5ldmVyIHBvc3NpYmxlLg0KSSd2ZSBub3QgdGltZWQgcmVhZHMgaW50byBzb21ldGhp
-bmcgbGlrZSBhbiBldGhlcm5ldCBjaGlwLA0KYnV0IGludG8gb3VyIGZwZ2EgdGhleSBhcmUgcHJv
-YmFibHkgMTAwMCBjbG9ja3MrLg0KDQpPVE9IIEkgd291bGRuJ3Qgd2FudCBhbnkgb3ZlcmhlYWQg
-b24gdGhlIFBJTyBmaWZvIHJlYWRzDQpvbiBvbmUgb2Ygb3VyIHNtYWxsIHBwYyBkZXZpY2VzLg0K
-V2UgcHVzaCBhIGxvdCBvZiBkYXRhIHRob3VnaCB0aGF0IGZpZm8gYW5kIGFueXRoaW5nIGV4dHJh
-DQp3b3VsZCBraWxsIHBlcmZvcm1hbmNlLg0KDQoJRGF2aWQNCg0KLQ0KUmVnaXN0ZXJlZCBBZGRy
-ZXNzIExha2VzaWRlLCBCcmFtbGV5IFJvYWQsIE1vdW50IEZhcm0sIE1pbHRvbiBLZXluZXMsIE1L
-MSAxUFQsIFVLDQpSZWdpc3RyYXRpb24gTm86IDEzOTczODYgKFdhbGVzKQ0K
+On Fri, 6 May 2022, David Laight wrote:
 
+> >  It was retrofitted in that x86 systems already existed for ~15 years when
+> > PCI came into picture.  Therefore the makers of the CPU ISA couldn't have
+> > envisaged the need for config access instructions like they did for memory
+> > and port access.
+> 
+> Rev 2.0 of the PCI spec (1993) defines two mechanisms for config cycles.
+> #2 is probably the first one and maps all of PCI config space into
+> 4k of IO space (PCI bridges aren't supported).
+
+ This one is even more horrid than #1 in that it requires two separate 
+preparatory I/O writes rather than just one, one to the Forward Register 
+(at 0xcfa) to set the bus number, and another to the Configuration Space 
+Enable Register (at 0xcf8) to set the function number, before you can 
+issue a configuration read or write to a device.  So you need MP locking 
+too.
+
+ NB only peer bridges aren't supported with this mechanism, normal PCI-PCI 
+bridges are, via the Forward Register.
+
+> #1 requires a pair of accesses (and SMP locking).
+> 
+> Neither is really horrid.
+
+ Both are.  First neither is MP-safe and second both are indirect in that 
+you need to poke at some chipset registers before you can issue the actual 
+read or write.
+
+ Sane access would require a single CPU instruction to read or write from 
+the configuration space.  To access the conventional PCI configuration 
+space in a direct linear manner you need 256 * 21 * 8 * 256 = 10.5MiB of 
+address space.  Such amount of address space seems affordable even with 
+32-bit systems.
+
+  Maciej
