@@ -2,116 +2,63 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4751EC433F5
-	for <sparclinux@archiver.kernel.org>; Sun,  8 May 2022 02:51:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8F91C433EF
+	for <sparclinux@archiver.kernel.org>; Sun,  8 May 2022 06:08:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230161AbiEHCzS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 7 May 2022 22:55:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50936 "EHLO
+        id S229540AbiEHGMO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 8 May 2022 02:12:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54152 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230152AbiEHCzR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 7 May 2022 22:55:17 -0400
-Received: from smtpbg.qq.com (smtpbg136.qq.com [106.55.201.188])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 231686563;
-        Sat,  7 May 2022 19:51:24 -0700 (PDT)
-X-QQ-mid: bizesmtp78t1651978241tgond22p
-Received: from localhost.localdomain ( [125.69.42.80])
-        by bizesmtp.qq.com (ESMTP) with 
-        id ; Sun, 08 May 2022 10:50:40 +0800 (CST)
-X-QQ-SSF: 01000000002000E0S000C00A0000000
-X-QQ-FEAT: im3L/SzDuHYyWldDO1MD7H/CQLw8bZbCJrMxX07vIPI5P8XmxqG3GJl030K4l
-        kSOVkxQxmMNM4qsBGQoMGQCC4HSBcOZup/rMRGoSVlsbyIbVXpivouKya90YEuy8vUy/owa
-        zx79y8eeIxI/1VWoCIw0E81ISMEq1BUvWPUp9IDH/0rBxmDgjBt09suKVvFsYcHBCaW1h3o
-        c8yt8opibY770EVtxbMmedeFenEj0VWplptMwNrrn2YFNSco09BXW9XYqEIDs7y5Ndb0lru
-        tIIMVNTUYcUurJ+xIdJXJWQs9mr/FvcjpZh0vxmdFCo7wDZke8TCgHNkzQOFqC+L74tn+o/
-        67NTFpmz0YOnz4+ltk=
-X-QQ-GoodBg: 0
-From:   Jason Wang <wangborong@cdjrlc.com>
-To:     davem@davemloft.net
-Cc:     ebiederm@xmission.com, arnd@arndb.de, wangborong@cdjrlc.com,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc64: Fix typos in some commnets
-Date:   Sun,  8 May 2022 10:50:37 +0800
-Message-Id: <20220508025037.114952-1-wangborong@cdjrlc.com>
-X-Mailer: git-send-email 2.35.1
+        with ESMTP id S229501AbiEHGMK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 8 May 2022 02:12:10 -0400
+X-Greylist: delayed 1188 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 07 May 2022 23:08:20 PDT
+Received: from relay3.hostedemail.com (smtprelay0016.hostedemail.com [216.40.44.16])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92806DEB5
+        for <sparclinux@vger.kernel.org>; Sat,  7 May 2022 23:08:20 -0700 (PDT)
+Received: from omf10.hostedemail.com (a10.router.float.18 [10.200.18.1])
+        by unirelay02.hostedemail.com (Postfix) with ESMTP id 604F42D789;
+        Sun,  8 May 2022 05:48:31 +0000 (UTC)
+Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf10.hostedemail.com (Postfix) with ESMTPA id 786503E;
+        Sun,  8 May 2022 05:48:30 +0000 (UTC)
+Message-ID: <79155ff180bd6705a77e4e7df98fdb8afa0188a2.camel@perches.com>
+Subject: Re: [PATCH] sparc32: srmmu: Fix typo in a comment
+From:   Joe Perches <joe@perches.com>
+To:     Jason Wang <wangborong@cdjrlc.com>, davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Date:   Sat, 07 May 2022 22:48:28 -0700
+In-Reply-To: <20220508024351.110391-1-wangborong@cdjrlc.com>
+References: <20220508024351.110391-1-wangborong@cdjrlc.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+User-Agent: Evolution 3.40.4-1ubuntu2 
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-QQ-SENDSIZE: 520
-Feedback-ID: bizesmtp:cdjrlc.com:qybgspam:qybgspam7
+Content-Transfer-Encoding: 7bit
+X-Rspamd-Queue-Id: 786503E
+X-Stat-Signature: reg3mfucgcya6wgoz6h8rj81ershp4dh
+X-Rspamd-Server: rspamout05
+X-Session-Marker: 6A6F6540706572636865732E636F6D
+X-Session-ID: U2FsdGVkX1/JOh0NbiaImnNvpVEL+KUPmRo3J5LSwVQ=
+X-HE-Tag: 1651988910-7320
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The double `new' and `Trap' in the comments in line 914 and 2601 are
-repeated. Fix them in the comments.
+On Sun, 2022-05-08 at 10:43 +0800, Jason Wang wrote:
+> The double `hush' in the comment in line 1186 is repeated. Remove one
+> of them from the comment.
+[]
+> diff --git a/arch/sparc/mm/srmmu.c b/arch/sparc/mm/srmmu.c
+[]
+> @@ -1183,7 +1183,7 @@ static void __init init_swift(void)
+>  		srmmu_modtype = Swift_lots_o_bugs;
+>  		hwbug_bitmask |= (HWBUG_KERN_ACCBROKEN | HWBUG_KERN_CBITBROKEN);
+>  		/*
+> -		 * Gee george, I wonder why Sun is so hush hush about
+> +		 * Gee george, I wonder why Sun is so hush about
 
-Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
----
- arch/sparc/kernel/traps_64.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+This is not really a repeated word.
 
-diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
-index 5b4de4a89dec..8c641793b4ac 100644
---- a/arch/sparc/kernel/traps_64.c
-+++ b/arch/sparc/kernel/traps_64.c
-@@ -114,7 +114,7 @@ void bad_trap(struct pt_regs *regs, long lvl)
- void bad_trap_tl1(struct pt_regs *regs, long lvl)
- {
- 	char buffer[36];
--	
-+
- 	if (notify_die(DIE_TRAP_TL1, "bad trap tl1", regs,
- 		       0, lvl, SIGTRAP) == NOTIFY_STOP)
- 		return;
-@@ -911,7 +911,7 @@ void __init cheetah_ecache_flush_init(void)
- 	memset(cheetah_error_log, 0, PAGE_SIZE << order);
- 
- 	/* Mark all AFSRs as invalid so that the trap handler will
--	 * log new new information there.
-+	 * log new information there.
- 	 */
- 	for (i = 0; i < 2 * NR_CPUS; i++)
- 		cheetah_error_log[i].afsr = CHAFSR_INVALID;
-@@ -1762,7 +1762,7 @@ void cheetah_deferred_handler(struct pt_regs *regs, unsigned long afsr, unsigned
-  * Bit1:	0=recoverable,1=unrecoverable
-  *
-  * The hardware has disabled both the I-cache and D-cache in
-- * the %dcr register.  
-+ * the %dcr register.
-  */
- void cheetah_plus_parity_error(int type, struct pt_regs *regs)
- {
-@@ -2433,10 +2433,10 @@ static void user_instruction_dump(unsigned int __user *pc)
- {
- 	int i;
- 	unsigned int buf[9];
--	
-+
- 	if ((((unsigned long) pc) & 3))
- 		return;
--		
-+
- 	if (copy_from_user(buf, pc - 3, sizeof(buf)))
- 		return;
- 
-@@ -2520,7 +2520,7 @@ void __noreturn die_if_kernel(char *str, struct pt_regs *regs)
- {
- 	static int die_counter;
- 	int count = 0;
--	
-+
- 	/* Amuse the user. */
- 	printk(
- "              \\|/ ____ \\|/\n"
-@@ -2598,7 +2598,7 @@ void do_illegal_instruction(struct pt_regs *regs)
- 				/* On UltraSPARC T2 and later, FPU insns which
- 				 * are not implemented in HW signal an illegal
- 				 * instruction trap and do not set the FP Trap
--				 * Trap in the %fsr to unimplemented_FPop.
-+				 * in the %fsr to unimplemented_FPop.
- 				 */
- 				if (do_mathemu(regs, f, true))
- 					goto out;
--- 
-2.35.1
+do a google search on "hush hush"
+
+It _might_ sometimes use a dash, like 'hush-hush'
+
 
