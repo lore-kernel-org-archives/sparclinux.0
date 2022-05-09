@@ -2,59 +2,101 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3B0CC433EF
-	for <sparclinux@archiver.kernel.org>; Mon,  9 May 2022 09:22:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F860C4321E
+	for <sparclinux@archiver.kernel.org>; Mon,  9 May 2022 09:49:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232990AbiEIJ03 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 9 May 2022 05:26:29 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53004 "EHLO
+        id S234160AbiEIJxR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 9 May 2022 05:53:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34470 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237780AbiEIJR4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 May 2022 05:17:56 -0400
-Received: from laurent.telenet-ops.be (laurent.telenet-ops.be [IPv6:2a02:1800:110:4::f00:19])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3376720B57F
-        for <sparclinux@vger.kernel.org>; Mon,  9 May 2022 02:14:01 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed40:7048:8ec9:5f5b:8cb])
-        by laurent.telenet-ops.be with bizsmtp
-        id UZDc2700P1UlgJi01ZDc2B; Mon, 09 May 2022 11:13:37 +0200
-Received: from geert (helo=localhost)
-        by ramsan.of.borg with local-esmtp (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1nnzSS-003WbP-Ju; Mon, 09 May 2022 11:13:36 +0200
-Date:   Mon, 9 May 2022 11:13:36 +0200 (CEST)
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-X-X-Sender: geert@ramsan.of.borg
-To:     linux-kernel@vger.kernel.org
-cc:     linux-crypto@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v5.18-rc6B
-In-Reply-To: <20220509084005.4133902-1-geert@linux-m68k.org>
-Message-ID: <alpine.DEB.2.22.394.2205091113010.840289@ramsan.of.borg>
-References: <CAHk-=wi0vqZQUAS67tBsJQW+dtt89m+dqA-Z4bOs8CH-mm8u2w@mail.gmail.com> <20220509084005.4133902-1-geert@linux-m68k.org>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+        with ESMTP id S238828AbiEIJk1 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 May 2022 05:40:27 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 97905193217;
+        Mon,  9 May 2022 02:36:07 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1652088970; x=1683624970;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=D/x1ycw0QvCLLhMcVpaUSr9cP6MhaUOF3dS7CsbLTm8=;
+  b=OyKHWmdj/pFZhcct06STunaHCeRVGSb4/ct4OhGBMJPy4yjgGAPwTmI9
+   Yi5uS8B/6OVOmfuWrWjHpcdFHvZIiw6q2pn9TDsOjP2o4B8+yHDOJcUMw
+   F8wilyE3BgMMjqUbaTAxJsXXPF9P8IuEdihYy3LSWehX9x01/TgGl3liu
+   DJp3kT9HpIFb0RxhTRIYnstaaGVsJbqA0+ajzYxl3XDDG2WIrt7XhXTW1
+   73eGKVwY/dKUwTQF2EwPCYcUdsa8LO8oWZvX/YVpW6CS3od6IoP3VJ2zl
+   sT23FjMlme3kGmH1XnJgGP7OnDdEsD4GllAWglWTFpH3ZX3qOd294nCbk
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10341"; a="251040429"
+X-IronPort-AV: E=Sophos;i="5.91,211,1647327600"; 
+   d="scan'208";a="251040429"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2022 02:34:59 -0700
+X-IronPort-AV: E=Sophos;i="5.91,211,1647327600"; 
+   d="scan'208";a="564969527"
+Received: from mfuent2x-mobl1.amr.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.251.220.67])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 May 2022 02:34:53 -0700
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-serial@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Arnd Bergmann <arnd@arndb.de>, linux-alpha@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH 0/3] termbits.h: Further improvements
+Date:   Mon,  9 May 2022 12:34:43 +0300
+Message-Id: <20220509093446.6677-1-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 9 May 2022, Geert Uytterhoeven wrote:
-> JFYI, when comparing v5.18-rc6[1] to v5.18-rc5[3], the summaries are:
->  - build errors: +1/-0
+Again, I prefer Greg to take these through his tty tree.
 
-   + /kisskb/src/crypto/blake2b_generic.c: error: the frame size of 2288 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]:  => 109:1
+Changes done by this serie:
 
-sparc64-gcc11/sparc-allmodconfig
+1) Create termbits-common.h for the most obvious termbits.h intersection.
+2) Reformat some lines that remain in termbits.h files.
+3) Don't include posix_types.h unnecessarily.
 
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/c5eb0a61238dd6faf37f58c9ce61c9980aaffd7a/ (131 out of 138 configs)
-> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/672c0c5173427e6b3e2a9bbb7be51ceeec78093a/ (all 138 configs)
+Please do check I got the uapi include things done correctly! That is,
+that including using asm-generic/termbits-common.h path is the preferred
+approach for a header file that is not supposed to be overridden by the
+arch specific header files and that mandatory-y is not required for
+termbits-common.h.
 
-Gr{oetje,eeting}s,
+Unfortunately I couldn't move also tcflag_t into termbits-common.h due
+to the way it is being defined for sparc. However, by the looks of how
+the type for tcflag_t is being chosen there, having just unsigned int
+might work also for sparc?
 
- 						Geert
+Ilpo Järvinen (3):
+  termbits.h: create termbits-common.h for identical bits
+  termbits.h: Align lines & format
+  termbits.h: Remove posix_types.h include
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+ arch/alpha/include/uapi/asm/termbits.h     | 182 ++++++-----------
+ arch/mips/include/uapi/asm/termbits.h      | 209 ++++++++-----------
+ arch/parisc/include/uapi/asm/termbits.h    | 131 ++++--------
+ arch/powerpc/include/uapi/asm/termbits.h   | 152 +++++---------
+ arch/sparc/include/uapi/asm/termbits.h     | 223 ++++++++-------------
+ include/uapi/asm-generic/termbits-common.h |  65 ++++++
+ include/uapi/asm-generic/termbits.h        | 129 ++++--------
+ 7 files changed, 418 insertions(+), 673 deletions(-)
+ create mode 100644 include/uapi/asm-generic/termbits-common.h
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
+-- 
+2.30.2
+
