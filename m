@@ -2,122 +2,225 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AFC6C4321E
-	for <sparclinux@archiver.kernel.org>; Wed, 11 May 2022 03:59:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D17DCC433F5
+	for <sparclinux@archiver.kernel.org>; Wed, 11 May 2022 10:12:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232146AbiEKD7e (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 10 May 2022 23:59:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50152 "EHLO
+        id S240999AbiEKKMM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 11 May 2022 06:12:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58352 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229584AbiEKD7c (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 10 May 2022 23:59:32 -0400
-Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C7A10229FD5;
-        Tue, 10 May 2022 20:59:28 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R161e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=e01e04423;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=31;SR=0;TI=SMTPD_---0VCu38tE_1652241558;
-Received: from 30.30.99.144(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VCu38tE_1652241558)
-          by smtp.aliyun-inc.com(127.0.0.1);
-          Wed, 11 May 2022 11:59:22 +0800
-Message-ID: <84209c7b-ac3e-fa3b-75fc-d76ec7c99d68@linux.alibaba.com>
-Date:   Wed, 11 May 2022 11:59:57 +0800
+        with ESMTP id S241058AbiEKKL6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 11 May 2022 06:11:58 -0400
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36DD219351;
+        Wed, 11 May 2022 03:11:57 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1652263917; x=1683799917;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=qT65tmCMfEijFl2TpJ4TUU4guEKfSaXmRy66uEBzzr4=;
+  b=gNbXcXavBUiUaKwMxkj3cq9N0J2CTPbttXn9nM/Ing3Y3ujIVjRJ0zsU
+   HSX2tSJq/0eiT5XW/wUkUV0faQgP9c+oSsfhOWbYsI0NSn92h8VfUWG0s
+   3gNfv7Pjn11Ix5KAiK35gZ/KosDUf1MVTetxjCsGX3/ZqUtvOnuMbNbAD
+   zD7qdsuPS2+jyl4z8dNuPK6sbj93xhD4k8P4k8mwXoVu/tp2eA6AS1cTT
+   Cl/yWZmrY9gQ1CjIfbrhhouNOcDzlX3xSnTFM0XsRsKvzaOQmNotwxJpn
+   8Wf4V5WtQo8jSMlkow+IuA8KUUif/jp14pQl3ADcWp+oTpsIg4Wo6XI88
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10343"; a="269590606"
+X-IronPort-AV: E=Sophos;i="5.91,216,1647327600"; 
+   d="scan'208";a="269590606"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 03:11:56 -0700
+X-IronPort-AV: E=Sophos;i="5.91,216,1647327600"; 
+   d="scan'208";a="594049570"
+Received: from meliyahx-mobl2.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.252.32.210])
+  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 03:11:52 -0700
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-serial@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Oliver Neukum <oneukum@suse.com>,
+        Johan Hovold <johan@kernel.org>, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-usb@vger.kernel.org
+Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH 1/5] tty/termbits: remove #ifdef CMSPAR that is always defined
+Date:   Wed, 11 May 2022 13:11:35 +0300
+Message-Id: <20220511101139.5306-2-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220511101139.5306-1-ilpo.jarvinen@linux.intel.com>
+References: <20220511101139.5306-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.8.1
-Subject: Re: [PATCH v3 2/3] mm: rmap: Fix CONT-PTE/PMD size hugetlb issue when
- migration
-To:     Andrew Morton <akpm@linux-foundation.org>, mike.kravetz@oracle.com,
-        catalin.marinas@arm.com, will@kernel.org, songmuchun@bytedance.com,
-        tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, benh@kernel.crashing.org,
-        paulus@samba.org, hca@linux.ibm.com, gor@linux.ibm.com,
-        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
-        svens@linux.ibm.com, ysato@users.osdn.me, dalias@libc.org,
-        davem@davemloft.net, arnd@arndb.de,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org
-References: <cover.1652147571.git.baolin.wang@linux.alibaba.com>
- <ea5abf529f0997b5430961012bfda6166c1efc8c.1652147571.git.baolin.wang@linux.alibaba.com>
- <20220510161739.fdea4d78dde8471033aab22b@linux-foundation.org>
- <20220510162847.d9cf3c767e755a54699fb121@linux-foundation.org>
-From:   Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <20220510162847.d9cf3c767e755a54699fb121@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+CMSPAR is defined by all architectures.
 
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+---
+ drivers/char/pcmcia/synclink_cs.c   | 2 --
+ drivers/tty/amiserial.c             | 2 --
+ drivers/tty/serial/8250/8250_port.c | 2 --
+ drivers/tty/serial/jsm/jsm_cls.c    | 6 ------
+ drivers/tty/serial/jsm/jsm_neo.c    | 6 ------
+ drivers/tty/serial/sunsu.c          | 2 --
+ drivers/usb/class/cdc-acm.h         | 8 --------
+ drivers/usb/serial/ark3116.c        | 3 +--
+ drivers/usb/serial/whiteheat.c      | 4 ----
+ 9 files changed, 1 insertion(+), 34 deletions(-)
 
-On 5/11/2022 7:28 AM, Andrew Morton wrote:
-> On Tue, 10 May 2022 16:17:39 -0700 Andrew Morton <akpm@linux-foundation.org> wrote:
-> 
->>> +
->>> +static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
->>> +					  unsigned long addr, pte_t *ptep)
->>> +{
->>> +	return ptep_get(ptep);
->>> +}
->>> +
->>> +static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
->>> +				   pte_t *ptep, pte_t pte)
->>> +{
->>> +}
->>>   #endif	/* CONFIG_HUGETLB_PAGE */
->>>   
->>
->> This blows up nommu (arm allnoconfig):
->>
->> In file included from fs/io_uring.c:71:
->> ./include/linux/hugetlb.h: In function 'huge_ptep_clear_flush':
->> ./include/linux/hugetlb.h:1100:16: error: implicit declaration of function 'ptep_get' [-Werror=implicit-function-declaration]
->>   1100 |         return ptep_get(ptep);
->>        |                ^~~~~~~~
->>
->>
->> huge_ptep_clear_flush() is only used in CONFIG_NOMMU=n files, so I simply
->> zapped this change.
->>
-> 
-> Well that wasn't a great success.  Doing this instead.  It's pretty
-> nasty - something nicer would be nicer please.
+diff --git a/drivers/char/pcmcia/synclink_cs.c b/drivers/char/pcmcia/synclink_cs.c
+index 78baba55a8b5..c20f2cb784e8 100644
+--- a/drivers/char/pcmcia/synclink_cs.c
++++ b/drivers/char/pcmcia/synclink_cs.c
+@@ -1432,10 +1432,8 @@ static void mgslpc_change_params(MGSLPC_INFO *info, struct tty_struct *tty)
+ 			info->params.parity = ASYNC_PARITY_ODD;
+ 		else
+ 			info->params.parity = ASYNC_PARITY_EVEN;
+-#ifdef CMSPAR
+ 		if (cflag & CMSPAR)
+ 			info->params.parity = ASYNC_PARITY_SPACE;
+-#endif
+ 	}
+ 
+ 	/* calculate number of jiffies to transmit a full
+diff --git a/drivers/tty/amiserial.c b/drivers/tty/amiserial.c
+index 533d02b38e02..afb2d373dd47 100644
+--- a/drivers/tty/amiserial.c
++++ b/drivers/tty/amiserial.c
+@@ -588,10 +588,8 @@ static void change_speed(struct tty_struct *tty, struct serial_state *info,
+ 	}
+ 	if (!(cflag & PARODD))
+ 		cval |= UART_LCR_EPAR;
+-#ifdef CMSPAR
+ 	if (cflag & CMSPAR)
+ 		cval |= UART_LCR_SPAR;
+-#endif
+ 
+ 	/* Determine divisor based on baud rate */
+ 	baud = tty_get_baud_rate(tty);
+diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
+index 5591f18f2ea9..78b6dedc43e6 100644
+--- a/drivers/tty/serial/8250/8250_port.c
++++ b/drivers/tty/serial/8250/8250_port.c
+@@ -2620,10 +2620,8 @@ static unsigned char serial8250_compute_lcr(struct uart_8250_port *up,
+ 	}
+ 	if (!(c_cflag & PARODD))
+ 		cval |= UART_LCR_EPAR;
+-#ifdef CMSPAR
+ 	if (c_cflag & CMSPAR)
+ 		cval |= UART_LCR_SPAR;
+-#endif
+ 
+ 	return cval;
+ }
+diff --git a/drivers/tty/serial/jsm/jsm_cls.c b/drivers/tty/serial/jsm/jsm_cls.c
+index 444f233ebd1f..046b624e5f71 100644
+--- a/drivers/tty/serial/jsm/jsm_cls.c
++++ b/drivers/tty/serial/jsm/jsm_cls.c
+@@ -723,14 +723,8 @@ static void cls_param(struct jsm_channel *ch)
+ 	if (!(ch->ch_c_cflag & PARODD))
+ 		lcr |= UART_LCR_EPAR;
+ 
+-	/*
+-	 * Not all platforms support mark/space parity,
+-	 * so this will hide behind an ifdef.
+-	 */
+-#ifdef CMSPAR
+ 	if (ch->ch_c_cflag & CMSPAR)
+ 		lcr |= UART_LCR_SPAR;
+-#endif
+ 
+ 	if (ch->ch_c_cflag & CSTOPB)
+ 		lcr |= UART_LCR_STOP;
+diff --git a/drivers/tty/serial/jsm/jsm_neo.c b/drivers/tty/serial/jsm/jsm_neo.c
+index 110696cdaa1d..0cf586c10688 100644
+--- a/drivers/tty/serial/jsm/jsm_neo.c
++++ b/drivers/tty/serial/jsm/jsm_neo.c
+@@ -997,14 +997,8 @@ static void neo_param(struct jsm_channel *ch)
+ 	if (!(ch->ch_c_cflag & PARODD))
+ 		lcr |= UART_LCR_EPAR;
+ 
+-	/*
+-	 * Not all platforms support mark/space parity,
+-	 * so this will hide behind an ifdef.
+-	 */
+-#ifdef CMSPAR
+ 	if (ch->ch_c_cflag & CMSPAR)
+ 		lcr |= UART_LCR_SPAR;
+-#endif
+ 
+ 	if (ch->ch_c_cflag & CSTOPB)
+ 		lcr |= UART_LCR_STOP;
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index c31389114b86..fff50b5b82eb 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -798,10 +798,8 @@ sunsu_change_speed(struct uart_port *port, unsigned int cflag,
+ 		cval |= UART_LCR_PARITY;
+ 	if (!(cflag & PARODD))
+ 		cval |= UART_LCR_EPAR;
+-#ifdef CMSPAR
+ 	if (cflag & CMSPAR)
+ 		cval |= UART_LCR_SPAR;
+-#endif
+ 
+ 	/*
+ 	 * Work around a bug in the Oxford Semiconductor 952 rev B
+diff --git a/drivers/usb/class/cdc-acm.h b/drivers/usb/class/cdc-acm.h
+index 3aa7f0a3ad71..d26ecd15be60 100644
+--- a/drivers/usb/class/cdc-acm.h
++++ b/drivers/usb/class/cdc-acm.h
+@@ -7,14 +7,6 @@
+  *
+  */
+ 
+-/*
+- * CMSPAR, some architectures can't have space and mark parity.
+- */
+-
+-#ifndef CMSPAR
+-#define CMSPAR			0
+-#endif
+-
+ /*
+  * Major and minor numbers.
+  */
+diff --git a/drivers/usb/serial/ark3116.c b/drivers/usb/serial/ark3116.c
+index c0e4df87ff22..39eaa7b97c40 100644
+--- a/drivers/usb/serial/ark3116.c
++++ b/drivers/usb/serial/ark3116.c
+@@ -208,10 +208,9 @@ static void ark3116_set_termios(struct tty_struct *tty,
+ 		lcr |= UART_LCR_PARITY;
+ 	if (!(cflag & PARODD))
+ 		lcr |= UART_LCR_EPAR;
+-#ifdef CMSPAR
+ 	if (cflag & CMSPAR)
+ 		lcr |= UART_LCR_SPAR;
+-#endif
++
+ 	/* handshake control */
+ 	hcr = (cflag & CRTSCTS) ? 0x03 : 0x00;
+ 
+diff --git a/drivers/usb/serial/whiteheat.c b/drivers/usb/serial/whiteheat.c
+index 06aad0d727dd..332fb92ae575 100644
+--- a/drivers/usb/serial/whiteheat.c
++++ b/drivers/usb/serial/whiteheat.c
+@@ -30,10 +30,6 @@
+ #include <linux/usb/ezusb.h>
+ #include "whiteheat.h"			/* WhiteHEAT specific commands */
+ 
+-#ifndef CMSPAR
+-#define CMSPAR 0
+-#endif
+-
+ /*
+  * Version Information
+  */
+-- 
+2.30.2
 
-Thanks for fixing the building issue. I'll look at this to simplify the 
-dummy function. Myabe just remove the ptep_get().
-
-diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
---- a/include/linux/hugetlb.h
-+++ b/include/linux/hugetlb.h
-@@ -1097,7 +1097,7 @@ static inline void set_huge_swap_pte_at(struct 
-mm_struct *mm, unsigned long addr
-  static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
-                                           unsigned long addr, pte_t *ptep)
-  {
--       return ptep_get(ptep);
-+       return *ptep;
-  }
-
-> 
-> --- a/include/linux/hugetlb.h~mm-rmap-fix-cont-pte-pmd-size-hugetlb-issue-when-migration-fix
-> +++ a/include/linux/hugetlb.h
-> @@ -1094,6 +1094,7 @@ static inline void set_huge_swap_pte_at(
->   {
->   }
->   
-> +#ifdef CONFIG_MMU
->   static inline pte_t huge_ptep_clear_flush(struct vm_area_struct *vma,
->   					  unsigned long addr, pte_t *ptep)
->   {
-> @@ -1104,6 +1105,7 @@ static inline void set_huge_pte_at(struc
->   				   pte_t *ptep, pte_t pte)
->   {
->   }
-> +#endif
->   #endif	/* CONFIG_HUGETLB_PAGE */
->   
->   static inline spinlock_t *huge_pte_lock(struct hstate *h,
-> _
