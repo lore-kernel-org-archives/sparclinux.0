@@ -2,225 +2,126 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D17DCC433F5
-	for <sparclinux@archiver.kernel.org>; Wed, 11 May 2022 10:12:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB82FC41535
+	for <sparclinux@archiver.kernel.org>; Wed, 11 May 2022 11:13:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240999AbiEKKMM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 11 May 2022 06:12:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58352 "EHLO
+        id S231528AbiEKLNc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 11 May 2022 07:13:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241058AbiEKKL6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 11 May 2022 06:11:58 -0400
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A36DD219351;
-        Wed, 11 May 2022 03:11:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1652263917; x=1683799917;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=qT65tmCMfEijFl2TpJ4TUU4guEKfSaXmRy66uEBzzr4=;
-  b=gNbXcXavBUiUaKwMxkj3cq9N0J2CTPbttXn9nM/Ing3Y3ujIVjRJ0zsU
-   HSX2tSJq/0eiT5XW/wUkUV0faQgP9c+oSsfhOWbYsI0NSn92h8VfUWG0s
-   3gNfv7Pjn11Ix5KAiK35gZ/KosDUf1MVTetxjCsGX3/ZqUtvOnuMbNbAD
-   zD7qdsuPS2+jyl4z8dNuPK6sbj93xhD4k8P4k8mwXoVu/tp2eA6AS1cTT
-   Cl/yWZmrY9gQ1CjIfbrhhouNOcDzlX3xSnTFM0XsRsKvzaOQmNotwxJpn
-   8Wf4V5WtQo8jSMlkow+IuA8KUUif/jp14pQl3ADcWp+oTpsIg4Wo6XI88
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10343"; a="269590606"
-X-IronPort-AV: E=Sophos;i="5.91,216,1647327600"; 
-   d="scan'208";a="269590606"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 03:11:56 -0700
-X-IronPort-AV: E=Sophos;i="5.91,216,1647327600"; 
-   d="scan'208";a="594049570"
-Received: from meliyahx-mobl2.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.252.32.210])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 11 May 2022 03:11:52 -0700
-From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To:     linux-serial@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Oliver Neukum <oneukum@suse.com>,
-        Johan Hovold <johan@kernel.org>, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-usb@vger.kernel.org
-Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH 1/5] tty/termbits: remove #ifdef CMSPAR that is always defined
-Date:   Wed, 11 May 2022 13:11:35 +0300
-Message-Id: <20220511101139.5306-2-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220511101139.5306-1-ilpo.jarvinen@linux.intel.com>
-References: <20220511101139.5306-1-ilpo.jarvinen@linux.intel.com>
+        with ESMTP id S238907AbiEKLN3 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 11 May 2022 07:13:29 -0400
+Received: from smtp-out1.suse.de (smtp-out1.suse.de [195.135.220.28])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E031B1ED29C;
+        Wed, 11 May 2022 04:13:23 -0700 (PDT)
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out1.suse.de (Postfix) with ESMTP id 983B121B32;
+        Wed, 11 May 2022 11:13:22 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1652267602; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=FC1sflG6Id2SKeEdl4FJxU/B3titx078hgJ9iLge96M=;
+        b=PzdYpVjDm9GZjow/EUq37H7ookCOkOdew3j+O3sWtMh70hNVOnxtZzKqOPpZDQnacwtKh8
+        hTKee3j+Sl0MntfBuf4Onekv+PULsWjOAIitLyhS1jfqtNLxp3KL+emXCY3ZW29THEdaU3
+        +LT7bZxhID8yMwqQ2reWXTGMidRsh/s=
+Received: from suse.cz (pathway.suse.cz [10.100.12.24])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by relay2.suse.de (Postfix) with ESMTPS id BC7822C141;
+        Wed, 11 May 2022 11:13:20 +0000 (UTC)
+Date:   Wed, 11 May 2022 13:13:20 +0200
+From:   Petr Mladek <pmladek@suse.com>
+To:     John Ogness <john.ogness@linutronix.de>
+Cc:     Steven Rostedt <rostedt@goodmis.org>,
+        "Guilherme G. Piccoli" <gpiccoli@igalia.com>,
+        Evan Green <evgreen@chromium.org>,
+        Andrew Morton <akpm@linux-foundation.org>, bhe@redhat.com,
+        kexec@lists.infradead.org, LKML <linux-kernel@vger.kernel.org>,
+        bcm-kernel-feedback-list@broadcom.com,
+        linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org,
+        linux-edac@vger.kernel.org, linux-hyperv@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, Linux PM <linux-pm@vger.kernel.org>,
+        linux-remoteproc@vger.kernel.org, linux-s390@vger.kernel.org,
+        linux-tegra@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-xtensa@linux-xtensa.org, netdev@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net, rcu@vger.kernel.org,
+        sparclinux@vger.kernel.org, xen-devel@lists.xenproject.org,
+        x86@kernel.org, kernel-dev@igalia.com, kernel@gpiccoli.net,
+        halves@canonical.com, fabiomirmar@gmail.com,
+        alejandro.j.jimenez@oracle.com,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
+        Jonathan Corbet <corbet@lwn.net>, d.hatayama@jp.fujitsu.com,
+        dave.hansen@linux.intel.com, dyoung@redhat.com,
+        feng.tang@intel.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        mikelley@microsoft.com, hidehiro.kawai.ez@hitachi.com,
+        jgross@suse.com, Kees Cook <keescook@chromium.org>,
+        luto@kernel.org, mhiramat@kernel.org, mingo@redhat.com,
+        paulmck@kernel.org, peterz@infradead.org, senozhatsky@chromium.org,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Thomas Gleixner <tglx@linutronix.de>, vgoyal@redhat.com,
+        vkuznets@redhat.com, Will Deacon <will@kernel.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        David Gow <davidgow@google.com>,
+        Julius Werner <jwerner@chromium.org>
+Subject: Re: [PATCH 04/30] firmware: google: Convert regular spinlock into
+ trylock on panic path
+Message-ID: <20220511111320.GB26047@pathway.suse.cz>
+References: <20220427224924.592546-1-gpiccoli@igalia.com>
+ <20220427224924.592546-5-gpiccoli@igalia.com>
+ <CAE=gft5Pq25L4KFoPWbftkPF-JN1ex2yws77mMJ4GQnn9W0L2g@mail.gmail.com>
+ <adcf6d0e-c37c-6ede-479e-29959d03d8c0@igalia.com>
+ <YnpOv4hAPV4b+6v4@alley>
+ <20220510132015.38923cb2@gandalf.local.home>
+ <87h75xkwg9.fsf@jogness.linutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87h75xkwg9.fsf@jogness.linutronix.de>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-CMSPAR is defined by all architectures.
+On Tue 2022-05-10 21:46:38, John Ogness wrote:
+> On 2022-05-10, Steven Rostedt <rostedt@goodmis.org> wrote:
+> >> As already mentioned in the other reply, panic() sometimes stops the
+> >> other CPUs using NMI, for example, see kdump_nmi_shootdown_cpus().
+> >> 
+> >> Another situation is when the CPU using the lock ends in some
+> >> infinite loop because something went wrong. The system is in
+> >> an unpredictable state during panic().
+> >> 
+> >> I am not sure if this is possible with the code under gsmi_dev.lock
+> >> but such things really happen during panic() in other subsystems.
+> >> Using trylock in the panic() code path is a good practice.
+> >
+> > I believe that Peter Zijlstra had a special spin lock for NMIs or
+> > early printk, where it would not block if the lock was held on the
+> > same CPU. That is, if an NMI happened and paniced while this lock was
+> > held on the same CPU, it would not deadlock. But it would block if the
+> > lock was held on another CPU.
+> 
+> Yes. And starting with 5.19 it will be carrying the name that _you_ came
+> up with (cpu_sync):
+> 
+> printk_cpu_sync_get_irqsave()
+> printk_cpu_sync_put_irqrestore()
 
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
- drivers/char/pcmcia/synclink_cs.c   | 2 --
- drivers/tty/amiserial.c             | 2 --
- drivers/tty/serial/8250/8250_port.c | 2 --
- drivers/tty/serial/jsm/jsm_cls.c    | 6 ------
- drivers/tty/serial/jsm/jsm_neo.c    | 6 ------
- drivers/tty/serial/sunsu.c          | 2 --
- drivers/usb/class/cdc-acm.h         | 8 --------
- drivers/usb/serial/ark3116.c        | 3 +--
- drivers/usb/serial/whiteheat.c      | 4 ----
- 9 files changed, 1 insertion(+), 34 deletions(-)
+There is a risk that this lock might become a big kernel lock.
 
-diff --git a/drivers/char/pcmcia/synclink_cs.c b/drivers/char/pcmcia/synclink_cs.c
-index 78baba55a8b5..c20f2cb784e8 100644
---- a/drivers/char/pcmcia/synclink_cs.c
-+++ b/drivers/char/pcmcia/synclink_cs.c
-@@ -1432,10 +1432,8 @@ static void mgslpc_change_params(MGSLPC_INFO *info, struct tty_struct *tty)
- 			info->params.parity = ASYNC_PARITY_ODD;
- 		else
- 			info->params.parity = ASYNC_PARITY_EVEN;
--#ifdef CMSPAR
- 		if (cflag & CMSPAR)
- 			info->params.parity = ASYNC_PARITY_SPACE;
--#endif
- 	}
- 
- 	/* calculate number of jiffies to transmit a full
-diff --git a/drivers/tty/amiserial.c b/drivers/tty/amiserial.c
-index 533d02b38e02..afb2d373dd47 100644
---- a/drivers/tty/amiserial.c
-+++ b/drivers/tty/amiserial.c
-@@ -588,10 +588,8 @@ static void change_speed(struct tty_struct *tty, struct serial_state *info,
- 	}
- 	if (!(cflag & PARODD))
- 		cval |= UART_LCR_EPAR;
--#ifdef CMSPAR
- 	if (cflag & CMSPAR)
- 		cval |= UART_LCR_SPAR;
--#endif
- 
- 	/* Determine divisor based on baud rate */
- 	baud = tty_get_baud_rate(tty);
-diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
-index 5591f18f2ea9..78b6dedc43e6 100644
---- a/drivers/tty/serial/8250/8250_port.c
-+++ b/drivers/tty/serial/8250/8250_port.c
-@@ -2620,10 +2620,8 @@ static unsigned char serial8250_compute_lcr(struct uart_8250_port *up,
- 	}
- 	if (!(c_cflag & PARODD))
- 		cval |= UART_LCR_EPAR;
--#ifdef CMSPAR
- 	if (c_cflag & CMSPAR)
- 		cval |= UART_LCR_SPAR;
--#endif
- 
- 	return cval;
- }
-diff --git a/drivers/tty/serial/jsm/jsm_cls.c b/drivers/tty/serial/jsm/jsm_cls.c
-index 444f233ebd1f..046b624e5f71 100644
---- a/drivers/tty/serial/jsm/jsm_cls.c
-+++ b/drivers/tty/serial/jsm/jsm_cls.c
-@@ -723,14 +723,8 @@ static void cls_param(struct jsm_channel *ch)
- 	if (!(ch->ch_c_cflag & PARODD))
- 		lcr |= UART_LCR_EPAR;
- 
--	/*
--	 * Not all platforms support mark/space parity,
--	 * so this will hide behind an ifdef.
--	 */
--#ifdef CMSPAR
- 	if (ch->ch_c_cflag & CMSPAR)
- 		lcr |= UART_LCR_SPAR;
--#endif
- 
- 	if (ch->ch_c_cflag & CSTOPB)
- 		lcr |= UART_LCR_STOP;
-diff --git a/drivers/tty/serial/jsm/jsm_neo.c b/drivers/tty/serial/jsm/jsm_neo.c
-index 110696cdaa1d..0cf586c10688 100644
---- a/drivers/tty/serial/jsm/jsm_neo.c
-+++ b/drivers/tty/serial/jsm/jsm_neo.c
-@@ -997,14 +997,8 @@ static void neo_param(struct jsm_channel *ch)
- 	if (!(ch->ch_c_cflag & PARODD))
- 		lcr |= UART_LCR_EPAR;
- 
--	/*
--	 * Not all platforms support mark/space parity,
--	 * so this will hide behind an ifdef.
--	 */
--#ifdef CMSPAR
- 	if (ch->ch_c_cflag & CMSPAR)
- 		lcr |= UART_LCR_SPAR;
--#endif
- 
- 	if (ch->ch_c_cflag & CSTOPB)
- 		lcr |= UART_LCR_STOP;
-diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
-index c31389114b86..fff50b5b82eb 100644
---- a/drivers/tty/serial/sunsu.c
-+++ b/drivers/tty/serial/sunsu.c
-@@ -798,10 +798,8 @@ sunsu_change_speed(struct uart_port *port, unsigned int cflag,
- 		cval |= UART_LCR_PARITY;
- 	if (!(cflag & PARODD))
- 		cval |= UART_LCR_EPAR;
--#ifdef CMSPAR
- 	if (cflag & CMSPAR)
- 		cval |= UART_LCR_SPAR;
--#endif
- 
- 	/*
- 	 * Work around a bug in the Oxford Semiconductor 952 rev B
-diff --git a/drivers/usb/class/cdc-acm.h b/drivers/usb/class/cdc-acm.h
-index 3aa7f0a3ad71..d26ecd15be60 100644
---- a/drivers/usb/class/cdc-acm.h
-+++ b/drivers/usb/class/cdc-acm.h
-@@ -7,14 +7,6 @@
-  *
-  */
- 
--/*
-- * CMSPAR, some architectures can't have space and mark parity.
-- */
--
--#ifndef CMSPAR
--#define CMSPAR			0
--#endif
--
- /*
-  * Major and minor numbers.
-  */
-diff --git a/drivers/usb/serial/ark3116.c b/drivers/usb/serial/ark3116.c
-index c0e4df87ff22..39eaa7b97c40 100644
---- a/drivers/usb/serial/ark3116.c
-+++ b/drivers/usb/serial/ark3116.c
-@@ -208,10 +208,9 @@ static void ark3116_set_termios(struct tty_struct *tty,
- 		lcr |= UART_LCR_PARITY;
- 	if (!(cflag & PARODD))
- 		lcr |= UART_LCR_EPAR;
--#ifdef CMSPAR
- 	if (cflag & CMSPAR)
- 		lcr |= UART_LCR_SPAR;
--#endif
-+
- 	/* handshake control */
- 	hcr = (cflag & CRTSCTS) ? 0x03 : 0x00;
- 
-diff --git a/drivers/usb/serial/whiteheat.c b/drivers/usb/serial/whiteheat.c
-index 06aad0d727dd..332fb92ae575 100644
---- a/drivers/usb/serial/whiteheat.c
-+++ b/drivers/usb/serial/whiteheat.c
-@@ -30,10 +30,6 @@
- #include <linux/usb/ezusb.h>
- #include "whiteheat.h"			/* WhiteHEAT specific commands */
- 
--#ifndef CMSPAR
--#define CMSPAR 0
--#endif
--
- /*
-  * Version Information
-  */
--- 
-2.30.2
+This special lock would need to be used even during normal
+system operation. It does not make sense to suddenly start using
+another lock during panic.
 
+So I think that we should think twice before using it.
+I would prefer using trylock of the original lock when
+possible during panic.
+
+It is possible that I miss something.
+
+Best Regards,
+Petr
