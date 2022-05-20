@@ -2,125 +2,165 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D0C5C433F5
-	for <sparclinux@archiver.kernel.org>; Fri, 20 May 2022 11:24:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98BA1C433EF
+	for <sparclinux@archiver.kernel.org>; Fri, 20 May 2022 12:12:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348478AbiETLYj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 20 May 2022 07:24:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36688 "EHLO
+        id S235470AbiETMMF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 20 May 2022 08:12:05 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45300 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232303AbiETLYb (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 20 May 2022 07:24:31 -0400
-Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ECA58B36CE;
-        Fri, 20 May 2022 04:24:28 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=DGPrrkXTp6oI8cbbgByz5QLKv15GNHxUgmjuIwTAy/E=; b=eqnE/suLTpG3xbkMCBtDpxLY3n
-        NIRgLQiaBi0sCvdNCD4AFRLhJwRt1fDLW5HSSGFY7WXFEGFCYXn6Q0dC8gIFph3vTjXA6DvyBiQwz
-        I5PwxVn4HFAkq1g0udGCDh7f8awWYDjllyLtGAcRh6eSoRE6OIuNpAwHVy7SfEQenDYcne2doKiCl
-        jXXzZQlRm486qDYGQtQ0jW8Ms6RtpLdk65Qcz7YJ7/YEdFvKdb+dzF1Re9Q6nwXZnFrLVKgAD5Mwb
-        LfHsy0RngN1antwERG5D/EtoEWfAXqtoLg2k7TzZKasJtkGm7zpf+kH+Fd2GGS1HnQh8pXfJiIePS
-        VAbFF/9w==;
-Received: from 200-161-159-120.dsl.telesp.net.br ([200.161.159.120] helo=[192.168.1.60])
-        by fanzine2.igalia.com with esmtpsa 
-        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-        id 1ns0jj-00Cb4k-Od; Fri, 20 May 2022 13:24:04 +0200
-Message-ID: <ded31ec0-076b-2c5b-0fe6-0c274954821f@igalia.com>
-Date:   Fri, 20 May 2022 08:23:33 -0300
+        with ESMTP id S1346765AbiETMME (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 20 May 2022 08:12:04 -0400
+Received: from smtp-relay-internal-0.canonical.com (smtp-relay-internal-0.canonical.com [185.125.188.122])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A71A15EA6D
+        for <sparclinux@vger.kernel.org>; Fri, 20 May 2022 05:11:59 -0700 (PDT)
+Received: from mail-ej1-f72.google.com (mail-ej1-f72.google.com [209.85.218.72])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256)
+        (No client certificate requested)
+        by smtp-relay-internal-0.canonical.com (Postfix) with ESMTPS id 9351F3F1F7
+        for <sparclinux@vger.kernel.org>; Fri, 20 May 2022 12:11:57 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canonical.com;
+        s=20210705; t=1653048717;
+        bh=BbZQ2v7/O1XNxv2l6ZiEn/Rj5+K5y5FEa7M1oafefgw=;
+        h=From:To:Cc:Subject:Date:Message-Id:MIME-Version;
+        b=La3gNyCoGQlRcMD2Jl3/gCT9tGNrHI5p33DAXDh4JVw7sL0wL3dcb+CW/eC2weNur
+         5ZFDM0PuQkoUW4oflGEMVcRELyD41ODy16qiTOtMr/PCSctPPAllJbEtEGqlZzBiNX
+         xWvs2VvbiQQ2QBqFlbnqlj3PaZ3ko5BEBanFvuPBKzGU8XWxTob/REoSevG1krFLa2
+         rOZnhwYlEsVI4WbbtJbFI3wGYQ/3UTAZqY9BNoupiIfoGVtQxZJhb9BwaoDCJGGENb
+         yO3V2MeRabZLub+LCZ8d61YOto5OkK8uNeMUU/EVRarY6oMijUsQUs866rFeO9v06l
+         UuiUW0KCEUi/Q==
+Received: by mail-ej1-f72.google.com with SMTP id qw30-20020a1709066a1e00b006f45e7f44b0so3948852ejc.5
+        for <sparclinux@vger.kernel.org>; Fri, 20 May 2022 05:11:57 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=BbZQ2v7/O1XNxv2l6ZiEn/Rj5+K5y5FEa7M1oafefgw=;
+        b=j+5brOPd1U+LZ9bzJ/LuE3iVMx6NGJchkNHs6jxSQMc/D+kueB0SeyT6J2LxdYz9rt
+         03tVGFZI9I04JLxikAKTS5ODFxXMswpLVDKUAeE4NhCUKAoeHT1KRdVEeMOQhWtrUf1F
+         VXFnaT9FPdjpO0NPHq83eekBdqPRyjVPC4nMwfApXop6JIgR8mEeB+v5nNE6y3y0KaYo
+         Qz1h1IqZnjltAMLWk4N279HIsBTCEyN1Dq8hIun+p5z88pTEcD6llr8oRt83r0pyl0q/
+         50gf7I6gCnsZqfQKXzGKEnln8mz8T52VLdPvfREGcaY1EcHfbcTcuhUHkj5RUbvVsE4f
+         3jWw==
+X-Gm-Message-State: AOAM530KqgMwaXXZHSBppX2vCNKBptyHFqHrXANTNKjpxa3URxn2LcS8
+        tw/nuxzz0DKzpXP6gsQMB6I4KXSDskkTN+jve3kxxvYmV5sH8rxvlIfHZy66jj51P1M2+GiC6/n
+        bKz1KdryfzjFVTBMLdBgLudZ9ZuQ3mtae2DhQklw=
+X-Received: by 2002:a17:907:3e07:b0:6f0:270c:1121 with SMTP id hp7-20020a1709073e0700b006f0270c1121mr8481909ejc.137.1653048717232;
+        Fri, 20 May 2022 05:11:57 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJys+rXcRkBah3y4A8Ivr51zp1KXUkCKOzJC77NGpxzecgku3TDy2b6vWrZwTWYFUrWMpOX1dg==
+X-Received: by 2002:a17:907:3e07:b0:6f0:270c:1121 with SMTP id hp7-20020a1709073e0700b006f0270c1121mr8481891ejc.137.1653048717052;
+        Fri, 20 May 2022 05:11:57 -0700 (PDT)
+Received: from gollum.fritz.box ([194.191.244.86])
+        by smtp.gmail.com with ESMTPSA id ml13-20020a170906cc0d00b006fe90a8459dsm2432866ejb.166.2022.05.20.05.11.56
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 20 May 2022 05:11:56 -0700 (PDT)
+From:   Juerg Haefliger <juerg.haefliger@canonical.com>
+X-Google-Original-From: Juerg Haefliger <juergh@canonical.com>
+To:     davem@davemloft.net, sparclinux@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org,
+        Juerg Haefliger <juergh@canonical.com>
+Subject: [PATCH] sparc: Kconfig: Fix indentation and add comments
+Date:   Fri, 20 May 2022 14:11:53 +0200
+Message-Id: <20220520121153.148573-1-juergh@canonical.com>
+X-Mailer: git-send-email 2.32.0
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-Subject: Re: [PATCH 24/30] panic: Refactor the panic path
-Content-Language: en-US
-To:     Baoquan He <bhe@redhat.com>, Petr Mladek <pmladek@suse.com>
-Cc:     "michael Kelley (LINUX)" <mikelley@microsoft.com>,
-        Dave Young <dyoung@redhat.com>, d.hatayama@jp.fujitsu.com,
-        akpm@linux-foundation.org, kexec@lists.infradead.org,
-        linux-kernel@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com,
-        linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
-        linux-hyperv@vger.kernel.org, linux-leds@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        netdev@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
-        rcu@vger.kernel.org, sparclinux@vger.kernel.org,
-        xen-devel@lists.xenproject.org, x86@kernel.org,
-        kernel-dev@igalia.com, kernel@gpiccoli.net, halves@canonical.com,
-        fabiomirmar@gmail.com, alejandro.j.jimenez@oracle.com,
-        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bp@alien8.de,
-        corbet@lwn.net, dave.hansen@linux.intel.com, feng.tang@intel.com,
-        gregkh@linuxfoundation.org, hidehiro.kawai.ez@hitachi.com,
-        jgross@suse.com, john.ogness@linutronix.de, keescook@chromium.org,
-        luto@kernel.org, mhiramat@kernel.org, mingo@redhat.com,
-        paulmck@kernel.org, peterz@infradead.org, rostedt@goodmis.org,
-        senozhatsky@chromium.org, stern@rowland.harvard.edu,
-        tglx@linutronix.de, vgoyal@redhat.com, vkuznets@redhat.com,
-        will@kernel.org
-References: <20220427224924.592546-1-gpiccoli@igalia.com>
- <20220427224924.592546-25-gpiccoli@igalia.com> <Yn0TnsWVxCcdB2yO@alley>
- <d313eec2-96b6-04e3-35cd-981f103d010e@igalia.com>
- <20220519234502.GA194232@MiWiFi-R3L-srv>
-From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-In-Reply-To: <20220519234502.GA194232@MiWiFi-R3L-srv>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 19/05/2022 20:45, Baoquan He wrote:
-> [...]
->> I really appreciate the summary skill you have, to convert complex
->> problems in very clear and concise ideas. Thanks for that, very useful!
->> I agree with what was summarized above.
-> 
-> I want to say the similar words to Petr's reviewing comment when I went
-> through the patches and traced each reviewing sub-thread to try to
-> catch up. Petr has reivewed this series so carefully and given many
-> comments I want to ack immediately.
-> 
-> I agree with most of the suggestions from Petr to this patch, except of
-> one tiny concern, please see below inline comment.
+The convention for indentation seems to be a single tab. Help text is
+further indented by an additional two whitespaces. Fix the lines that
+violate these rules.
 
-Hi Baoquan, thanks! I'm glad you're also reviewing that =)
+While add it, add trailing comments to endif and endmenu statements for
+better readability.
 
+Signed-off-by: Juerg Haefliger <juergh@canonical.com>
+---
+ arch/sparc/Kconfig | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-> [...]
-> 
-> I like the proposed skeleton of panic() and code style suggested by
-> Petr very much. About panic_prefer_crash_dump which might need be added,
-> I hope it has a default value true. This makes crash_dump execute at
-> first by default just as before, unless people specify
-> panic_prefer_crash_dump=0|n|off to disable it. Otherwise we need add
-> panic_prefer_crash_dump=1 in kernel and in our distros to enable kdump,
-> this is inconsistent with the old behaviour.
+diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
+index 9200bc04701c..3c97725fe75c 100644
+--- a/arch/sparc/Kconfig
++++ b/arch/sparc/Kconfig
+@@ -227,7 +227,7 @@ config HOTPLUG_CPU
+ 
+ if SPARC64
+ source "drivers/cpufreq/Kconfig"
+-endif
++endif # SPARC64
+ 
+ config US3_MC
+ 	tristate "UltraSPARC-III Memory Controller driver"
+@@ -283,7 +283,7 @@ config FORCE_MAX_ZONEORDER
+ 
+ if SPARC64
+ source "kernel/power/Kconfig"
+-endif
++endif # SPARC64
+ 
+ config SCHED_SMT
+ 	bool "SMT (Hyperthreading) scheduler support"
+@@ -382,33 +382,33 @@ config UBOOT_LOAD_ADDR
+ 	hex "uImage Load Address"
+ 	default 0x40004000
+ 	help
+-	 U-Boot kernel load address, the address in physical address space
+-	 where u-boot will place the Linux kernel before booting it.
+-	 This address is normally the base address of main memory + 0x4000.
++	  U-Boot kernel load address, the address in physical address space
++	  where u-boot will place the Linux kernel before booting it.
++	  This address is normally the base address of main memory + 0x4000.
+ 
+ config UBOOT_FLASH_ADDR
+ 	hex "uImage.o Load Address"
+ 	default 0x00080000
+ 	help
+-	 Optional setting only affecting the uImage.o ELF-image used to
+-	 download the uImage file to the target using a ELF-loader other than
+-	 U-Boot. It may for example be used to download an uImage to FLASH with
+-	 the GRMON utility before even starting u-boot.
++	  Optional setting only affecting the uImage.o ELF-image used to
++	  download the uImage file to the target using a ELF-loader other than
++	  U-Boot. It may for example be used to download an uImage to FLASH with
++	  the GRMON utility before even starting u-boot.
+ 
+ config UBOOT_ENTRY_ADDR
+ 	hex "uImage Entry Address"
+ 	default 0xf0004000
+ 	help
+-	 Do not change this unless you know what you're doing. This is
+-	 hardcoded by the SPARC32 and LEON port.
++	  Do not change this unless you know what you're doing. This is
++	  hardcoded by the SPARC32 and LEON port.
+ 
+-	 This is the virtual address u-boot jumps to when booting the Linux
+-	 Kernel.
++	  This is the virtual address u-boot jumps to when booting the Linux
++	  Kernel.
+ 
+-endmenu
+-endif
++endmenu # "U-Boot options"
++endif # SPARC_LEON
+ 
+-endmenu
++endmenu # "Processor type and features"
+ 
+ menu "Bus options (PCI etc.)"
+ config SBUS
+@@ -478,7 +478,7 @@ config SPARC64_PCI_MSI
+ 	default y
+ 	depends on SPARC64_PCI && PCI_MSI
+ 
+-endmenu
++endmenu # "Bus options (PCI etc.)"
+ 
+ config COMPAT
+ 	bool
+-- 
+2.32.0
 
-I'd like to understand better why the crash_kexec() must always be the
-first thing in your use case. If we keep that behavior, we'll see all
-sorts of workarounds - see the last patches of this series, Hyper-V and
-PowerPC folks hardcoded "crash_kexec_post_notifiers" in order to force
-execution of their relevant notifiers (like the vmbus disconnect,
-specially in arm64 that has no custom machine_crash_shutdown, or the
-fadump case in ppc). This led to more risk in kdump.
-
-The thing is: with the notifiers' split, we tried to keep only the most
-relevant/necessary stuff in this first list, things that ultimately
-should improve kdump reliability or if not, at least not break it. My
-feeling is that, with this series, we should change the idea/concept
-that kdump must run first nevertheless, not matter what. We're here
-trying to accommodate the antagonistic goals of hypervisors that need
-some clean-up (even for kdump to work) VS. kdump users, that wish a
-"pristine" system reboot ASAP after the crash.
-
-Cheers,
-
-
-Guilherme
