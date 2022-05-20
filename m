@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97782C433F5
-	for <sparclinux@archiver.kernel.org>; Fri, 20 May 2022 09:38:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE852C433EF
+	for <sparclinux@archiver.kernel.org>; Fri, 20 May 2022 09:47:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344143AbiETJiu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 20 May 2022 05:38:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55756 "EHLO
+        id S244958AbiETJrl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 20 May 2022 05:47:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45630 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235632AbiETJir (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 20 May 2022 05:38:47 -0400
+        with ESMTP id S238325AbiETJrk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 20 May 2022 05:47:40 -0400
 Received: from smtp-out2.suse.de (smtp-out2.suse.de [195.135.220.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44B1E5D1B7;
-        Fri, 20 May 2022 02:38:46 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6A6BC201B7;
+        Fri, 20 May 2022 02:47:39 -0700 (PDT)
 Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id C26CB1F9EE;
-        Fri, 20 May 2022 09:38:44 +0000 (UTC)
+        by smtp-out2.suse.de (Postfix) with ESMTP id 02A571F99B;
+        Fri, 20 May 2022 09:47:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1653039524; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+        t=1653040058; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
          mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=Vwa8jgE6ubsEKfUz+gYRve0wuQBCRznCtklt59zTV6Q=;
-        b=n4FUsnYY/xBnyS3SXETnotHd5Ec72kh2zh+Dai5f7buZTjDHEcxmvFl76tcNcSiGnbmu5U
-        COCabwTrl3uU15SJXqrrKAF+acixaXA+4I53JuXXoiexiw5MqutnBzZx+zmDOKwi0qKMRt
-        enjPGTMixqFSFTH0zMOo/VadTvKZals=
+        bh=0EDYX6/jlsKjCqfkxKgPdol0lZ2Drp928yPwi4paSLQ=;
+        b=GsRkmokRG8jMr2vvJlveZSJsxyDD0gdysvsOlHzRO6nawaGMCacKesz3nKhzFGIrXCT7O4
+        QkJnIO5CeoLCZr01MrYO4ZxjGX/iAKWb9nnKmyZTxnA3DKcfPWofoLQAult89v3jpyKQSe
+        qP8vVQpSn5xrwiweHnkSnl9hnN8jHSE=
 Received: from suse.cz (unknown [10.100.201.202])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 27E2F2C142;
-        Fri, 20 May 2022 09:38:44 +0000 (UTC)
-Date:   Fri, 20 May 2022 11:38:43 +0200
+        by relay2.suse.de (Postfix) with ESMTPS id 746C02C141;
+        Fri, 20 May 2022 09:47:37 +0000 (UTC)
+Date:   Fri, 20 May 2022 11:47:37 +0200
 From:   Petr Mladek <pmladek@suse.com>
 To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
 Cc:     linux-kernel@vger.kernel.org, acme@kernel.org,
@@ -45,75 +45,63 @@ Cc:     linux-kernel@vger.kernel.org, acme@kernel.org,
         nixiaoming@huawei.com, peterz@infradead.org,
         sparclinux@vger.kernel.org, sumit.garg@linaro.org,
         wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
-Subject: Re: [PATCH v4 4/6] kernel/watchdog: Adapt the watchdog_hld interface
- for async model
-Message-ID: <YodhoxG0xmfrNYoN@alley>
+Subject: Re: [PATCH v4 6/6] arm64: Enable perf events based hard lockup
+ detector
+Message-ID: <YodjucHQ3Nab5J/f@alley>
 References: <20220427161340.8518-1-lecopzer.chen@mediatek.com>
- <20220427161340.8518-5-lecopzer.chen@mediatek.com>
+ <20220427161340.8518-7-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220427161340.8518-5-lecopzer.chen@mediatek.com>
+In-Reply-To: <20220427161340.8518-7-lecopzer.chen@mediatek.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu 2022-04-28 00:13:38, Lecopzer Chen wrote:
-> When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
-> yet. E.g. on arm64, PMU is not ready until
-> device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
-> with the driver model and cpuhp. Hence it is hard to push this
-> initialization before smp_init().
+On Thu 2022-04-28 00:13:40, Lecopzer Chen wrote:
+> With the recent feature added to enable perf events to use pseudo NMIs
+> as interrupts on platforms which support GICv3 or later, its now been
+> possible to enable hard lockup detector (or NMI watchdog) on arm64
+> platforms. So enable corresponding support.
 > 
-> But it is easy to take an opposite approach and try to initialize
-> the watchdog once again later.
-> The delayed probe is called using workqueues. It need to allocate
-> memory and must be proceed in a normal context.
-> The delayed probe is able to use if watchdog_nmi_probe() returns
-> non-zero which means the return code returned when PMU is not ready yet.
+> One thing to note here is that normally lockup detector is initialized
+> just after the early initcalls but PMU on arm64 comes up much later as
+> device_initcall(). To cope with that, overriding watchdog_nmi_probe() to
+> let the watchdog framework know PMU not ready, and inform the framework
+> to re-initialize lockup detection once PMU has been initialized.
 > 
-> Provide an API - retry_lockup_detector_init() for anyone who needs
-> to delayed init lockup detector if they had ever failed at
-> lockup_detector_init().
+> [1]: http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
 > 
-> The original assumption is: nobody should use delayed probe after
-> lockup_detector_check() which has __init attribute.
-> That is, anyone uses this API must call between lockup_detector_init()
-> and lockup_detector_check(), and the caller must have __init attribute
-> 
-> --- a/kernel/watchdog.c
-> +++ b/kernel/watchdog.c
-> +/*
-> + * retry_lockup_detector_init - retry init lockup detector if possible.
-> + *
-> + * Retry hardlockup detector init. It is useful when it requires some
-> + * functionality that has to be initialized later on a particular
-> + * platform.
-> + */
-> +void __init retry_lockup_detector_init(void)
-> +{
-> +	/* Must be called before late init calls */
-> +	if (!allow_lockup_detector_init_retry)
-> +		return;
+> --- a/arch/arm64/kernel/perf_event.c
+> +++ b/arch/arm64/kernel/perf_event.c
+> @@ -1390,10 +1391,15 @@ static struct platform_driver armv8_pmu_driver = {
+>  
+>  static int __init armv8_pmu_driver_init(void)
+>  {
+> +	int ret;
 > +
-> +	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
-
-Just a small nit. This can be simplified by calling:
-
-	schedule_work(&detector_work);
-
-It uses "system_wq" that uses CPU-bound workers. It prefers
-the current CPU. But the exact CPU is not important. Any CPU-bound
-worker is enough.
-
-> +}
+>  	if (acpi_disabled)
+> -		return platform_driver_register(&armv8_pmu_driver);
+> +		ret = platform_driver_register(&armv8_pmu_driver);
+>  	else
+> -		return arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
+> +		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
 > +
+> +	retry_lockup_detector_init();
 
-With the above change, feel free to use:
+Does it makes sense to call retry_lockup_detector_init() when
+the above returned an error? Should it be?
 
-Reviewed-by: Petr Mladek <pmladek@suse.com>
+	if (!ret)
+		retry_lockup_detector_init();
+
+> +	return ret;
+>  }
+>  device_initcall(armv8_pmu_driver_init)
+
+
+I am not qualified to ack the arm-specific code. But otherwise
+the change looks reasonable.
 
 Best Regards,
 Petr
-
-PS: I am sorry for the late review. I had busy weeks.
