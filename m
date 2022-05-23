@@ -2,66 +2,111 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3D2EC433FE
-	for <sparclinux@archiver.kernel.org>; Mon, 23 May 2022 07:41:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04AB9C4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 23 May 2022 13:58:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230419AbiEWHlp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 23 May 2022 03:41:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45036 "EHLO
+        id S236777AbiEWN60 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 23 May 2022 09:58:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56052 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231255AbiEWHlM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 23 May 2022 03:41:12 -0400
-Received: from mail.coredeal.pl (mail.coredeal.pl [51.75.73.133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3198F640C
-        for <sparclinux@vger.kernel.org>; Mon, 23 May 2022 00:41:09 -0700 (PDT)
-Received: by mail.coredeal.pl (Postfix, from userid 1002)
-        id E790CA25A1; Mon, 23 May 2022 07:40:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=coredeal.pl; s=mail;
-        t=1653291667; bh=9KGuIG62LgzC9aYmjKxzocuYLRCVghXg6v9Q1q2LHec=;
-        h=Date:From:To:Subject:From;
-        b=AAuCgfNRnTTFPfvjNqWVI8VbrFsiGpIsAjNdzqe8sfPFWk7jyDZN4YGf0t6g5hcXQ
-         PVGPJkLkUpjU+NXAcCHumsDaA5//r1MLVt9h1SvY7dD3b/189iCJ4sR75eyCuDZvbc
-         vSg3LzlnbN/3gS5GU/zM1R5Qo3Jzeg2jLLv4uvKQNXNR6mJPs092ColUNRze4Ef/YY
-         77RJT2HSvFyePEjOY6dl6MmQB8E9Z2KspFVFhZaeZwqMy6JD8HgyyQM4VaRrw5xZH6
-         aiZawF3e2O37QpsuOwrA/z3U0Q8ulk6RZcSEkwes0aVy/xeupCZp2lBRIqjyb6j1c0
-         Nlf2eLEOHLLEA==
-Received: by mail.coredeal.pl for <sparclinux@vger.kernel.org>; Mon, 23 May 2022 07:40:29 GMT
-Message-ID: <20220523064500-0.1.39.qb5f.0.s9a67wslee@coredeal.pl>
-Date:   Mon, 23 May 2022 07:40:29 GMT
-From:   "Krzysztof Maj" <krzysztof.maj@coredeal.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Biznesowy angielski
-X-Mailer: mail.coredeal.pl
+        with ESMTP id S236762AbiEWN6Z (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 23 May 2022 09:58:25 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1FACE56FBE;
+        Mon, 23 May 2022 06:58:23 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A4E76114D;
+        Mon, 23 May 2022 13:58:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54A97C385AA;
+        Mon, 23 May 2022 13:58:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1653314303;
+        bh=bMQ76dp2HmQ3uXRMykYlpLogfkiug4VqJggIc37zUrM=;
+        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
+        b=Rhu8OE2IygT78Kmgi0veHK3UCRU45Wa1lKf0qRn0eRRSfxWy/znDUceR1oMSY55by
+         b/Qjp4WqXMjPxggvmrJcC0RWd7ISbVc4buSL335hPdmnd2FbWEy07P0apQgYY7H11+
+         NFlr8OEtHhW7GJ19ciDaIYgTWsKV1vSBJJWX4qSZ5rMgEPypBdhRc5bD8iHWcFmgwf
+         if4LTn3sIyl73Q+1hgTvOuYTzaXOBuU1ZdpC5irzwKSc81r7BU7d44Qfg04P23t3Wj
+         xjPCV1EQ8qgX5fLkrsY98A1lDRWt1NrDy4qNgFPCtMrf6R9Y+4BKiSHtAS13/wW86d
+         X2gY2kmU5w6bQ==
+Message-ID: <8e440c28-d4b9-2fc6-0294-f77544264d5c@kernel.org>
+Date:   Mon, 23 May 2022 08:58:16 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.8.1
+Subject: Re: [PATCH v4 06/11] nios2: use fallback for random_get_entropy()
+ instead of zero
+Content-Language: en-US
+To:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
+        linux-kernel@vger.kernel.org, linux-crypto@vger.kernel.org,
+        tglx@linutronix.de, arnd@arndb.de
+Cc:     Theodore Ts'o <tytso@mit.edu>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Stephen Boyd <sboyd@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, x86@kernel.org,
+        linux-xtensa@linux-xtensa.org
+References: <20220413115411.21489-1-Jason@zx2c4.com>
+ <20220413115411.21489-7-Jason@zx2c4.com>
+From:   Dinh Nguyen <dinguyen@kernel.org>
+In-Reply-To: <20220413115411.21489-7-Jason@zx2c4.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,=20
-
-czy rozwa=C5=BCali Pa=C5=84stwo rozw=C3=B3j kwalifikacji j=C4=99zykowych =
-swoich pracownik=C3=B3w?
-
-Opracowali=C5=9Bmy kursy j=C4=99zykowe dla r=C3=B3=C5=BCnych bran=C5=BC, =
-w kt=C3=B3rych koncentrujemy si=C4=99 na podniesieniu poziomu s=C5=82owni=
-ctwa i jako=C5=9Bci komunikacji wykorzystuj=C4=85c autorsk=C4=85 metod=C4=
-=99, stworzon=C4=85 specjalnie dla wymagaj=C4=85cego biznesu.=20
-
-Niestandardowy kurs on-line, dopasowany do profilu firmy i obszar=C3=B3w =
-=C5=9Bwiadczonych us=C5=82ug, w szybkim czasie przyniesie efekty, kt=C3=B3=
-re zwi=C4=99ksz=C4=85 komfort i jako=C5=9B=C4=87 pracy, rozwijaj=C4=85c m=
-o=C5=BCliwo=C5=9Bci biznesowe.=20
-
-Zdalne szkolenie j=C4=99zykowe to m.in. zaj=C4=99cia z native speakerami,=
- kt=C3=B3re w szybkim czasie naucz=C4=85 pracownik=C3=B3w rozmawia=C4=87 =
-za pomoc=C4=85 jasnego i zwi=C4=99z=C5=82ego j=C4=99zyka Business English=
-=2E
-
-Czy m=C3=B3g=C5=82bym przedstawi=C4=87 wi=C4=99cej szczeg=C3=B3=C5=82=C3=B3=
-w i opowiedzie=C4=87 jak dzia=C5=82amy?=20
 
 
-Pozdrawiam
-Krzysztof Maj
+On 4/13/22 06:54, Jason A. Donenfeld wrote:
+> In the event that random_get_entropy() can't access a cycle counter or
+> similar, falling back to returning 0 is really not the best we can do.
+> Instead, at least calling random_get_entropy_fallback() would be
+> preferable, because that always needs to return _something_, even
+> falling back to jiffies eventually. It's not as though
+> random_get_entropy_fallback() is super high precision or guaranteed to
+> be entropic, but basically anything that's not zero all the time is
+> better than returning zero all the time.
+> 
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: Dinh Nguyen <dinguyen@kernel.org>
+> Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+> ---
+>   arch/nios2/include/asm/timex.h | 2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/nios2/include/asm/timex.h b/arch/nios2/include/asm/timex.h
+> index a769f871b28d..d9a3f426cdda 100644
+> --- a/arch/nios2/include/asm/timex.h
+> +++ b/arch/nios2/include/asm/timex.h
+> @@ -9,4 +9,6 @@ typedef unsigned long cycles_t;
+>   
+>   extern cycles_t get_cycles(void);
+>   
+> +#define random_get_entropy() (((unsigned long)get_cycles()) ?: random_get_entropy_fallback())
+> +
+>   #endif
+
+Acked-by: Dinh Nguyen <dinguyen@kernel.org>
