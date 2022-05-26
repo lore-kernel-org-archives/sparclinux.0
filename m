@@ -2,38 +2,44 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A1D8C433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 26 May 2022 09:35:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68508C433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 26 May 2022 09:40:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234394AbiEZJf5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 26 May 2022 05:35:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48772 "EHLO
+        id S1346884AbiEZJkC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 26 May 2022 05:40:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229758AbiEZJf4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 26 May 2022 05:35:56 -0400
+        with ESMTP id S1346877AbiEZJkB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 26 May 2022 05:40:01 -0400
 Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19DFCC8BDD;
-        Thu, 26 May 2022 02:35:46 -0700 (PDT)
-X-UUID: 52dcb9e514e54be9b18793882e44276f-20220526
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E82E4101C8;
+        Thu, 26 May 2022 02:39:59 -0700 (PDT)
+X-UUID: 725030e9a4f3465ba644ee7626842f8b-20220526
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.5,REQID:c146834a-73a7-48b6-8b25-739697e30be6,OB:0,LO
-        B:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,RULE:Release_Ham,ACTI
-        ON:release,TS:0
-X-CID-META: VersionHash:2a19b09,CLOUDID:17e356b8-3c45-407b-8f66-25095432a27a,C
-        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:-5,EDM:-3,IP:nil,URL:1,File:ni
-        l,QS:0,BEC:nil
-X-UUID: 52dcb9e514e54be9b18793882e44276f-20220526
-Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw02.mediatek.com
+X-CID-O-INFO: VERSION:1.1.5,REQID:ee36ea4f-556f-4edf-be46-bdf688264eb1,OB:0,LO
+        B:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:51,FILE:0,RULE:Release_Ham,ACT
+        ION:release,TS:51
+X-CID-INFO: VERSION:1.1.5,REQID:ee36ea4f-556f-4edf-be46-bdf688264eb1,OB:0,LOB:
+        0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:51,FILE:0,RULE:Release_Ham,ACTIO
+        N:release,TS:51
+X-CID-META: VersionHash:2a19b09,CLOUDID:3a0557b8-3c45-407b-8f66-25095432a27a,C
+        OID:16e5598ec9f1,Recheck:0,SF:28|17|19|48,TC:nil,Content:-5,EDM:-3,IP:nil,
+        URL:0,File:nil,QS:0,BEC:nil
+X-UUID: 725030e9a4f3465ba644ee7626842f8b-20220526
+Received: from mtkcas11.mediatek.inc [(172.21.101.40)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
         (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 1977801522; Thu, 26 May 2022 17:35:41 +0800
-Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+        with ESMTP id 312405798; Thu, 26 May 2022 17:39:56 +0800
+Received: from mtkmbs07n1.mediatek.inc (172.21.101.16) by
  mtkmbs11n1.mediatek.inc (172.21.101.185) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.792.3;
- Thu, 26 May 2022 17:35:40 +0800
+ Thu, 26 May 2022 17:39:55 +0800
+Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+ mtkmbs07n1.mediatek.inc (172.21.101.16) with Microsoft SMTP Server (TLS) id
+ 15.0.1497.2; Thu, 26 May 2022 17:39:54 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas10.mediatek.inc
  (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Thu, 26 May 2022 17:35:40 +0800
+ Transport; Thu, 26 May 2022 17:39:54 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <pmladek@suse.com>
 CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
@@ -50,12 +56,12 @@ CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
         <nixiaoming@huawei.com>, <peterz@infradead.org>,
         <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
         <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: Re: [PATCH v4 6/6] arm64: Enable perf events based hard lockup detector
-Date:   Thu, 26 May 2022 17:35:40 +0800
-Message-ID: <20220526093540.19223-1-lecopzer.chen@mediatek.com>
+Subject: Re: [PATCH v4 4/6] kernel/watchdog: Adapt the watchdog_hld interface for async model
+Date:   Thu, 26 May 2022 17:39:54 +0800
+Message-ID: <20220526093954.19319-1-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
-In-Reply-To: <YodjucHQ3Nab5J/f@alley>
-References: <YodjucHQ3Nab5J/f@alley>
+In-Reply-To: <YodhoxG0xmfrNYoN@alley>
+References: <YodhoxG0xmfrNYoN@alley>
 MIME-Version: 1.0
 Content-Type: text/plain
 X-MTK:  N
@@ -63,49 +69,68 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-> > to re-initialize lockup detection once PMU has been initialized.
+> On Thu 2022-04-28 00:13:38, Lecopzer Chen wrote:
+> > When lockup_detector_init()->watchdog_nmi_probe(), PMU may be not ready
+> > yet. E.g. on arm64, PMU is not ready until
+> > device_initcall(armv8_pmu_driver_init).  And it is deeply integrated
+> > with the driver model and cpuhp. Hence it is hard to push this
+> > initialization before smp_init().
 > > 
-> > [1]: http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
+> > But it is easy to take an opposite approach and try to initialize
+> > the watchdog once again later.
+> > The delayed probe is called using workqueues. It need to allocate
+> > memory and must be proceed in a normal context.
+> > The delayed probe is able to use if watchdog_nmi_probe() returns
+> > non-zero which means the return code returned when PMU is not ready yet.
 > > 
-> > --- a/arch/arm64/kernel/perf_event.c
-> > +++ b/arch/arm64/kernel/perf_event.c
-> > @@ -1390,10 +1391,15 @@ static struct platform_driver armv8_pmu_driver = {
-> >  
-> >  static int __init armv8_pmu_driver_init(void)
-> >  {
-> > +	int ret;
+> > Provide an API - retry_lockup_detector_init() for anyone who needs
+> > to delayed init lockup detector if they had ever failed at
+> > lockup_detector_init().
+> > 
+> > The original assumption is: nobody should use delayed probe after
+> > lockup_detector_check() which has __init attribute.
+> > That is, anyone uses this API must call between lockup_detector_init()
+> > and lockup_detector_check(), and the caller must have __init attribute
+> > 
+> > --- a/kernel/watchdog.c
+> > +++ b/kernel/watchdog.c
+> > +/*
+> > + * retry_lockup_detector_init - retry init lockup detector if possible.
+> > + *
+> > + * Retry hardlockup detector init. It is useful when it requires some
+> > + * functionality that has to be initialized later on a particular
+> > + * platform.
+> > + */
+> > +void __init retry_lockup_detector_init(void)
+> > +{
+> > +	/* Must be called before late init calls */
+> > +	if (!allow_lockup_detector_init_retry)
+> > +		return;
 > > +
-> >  	if (acpi_disabled)
-> > -		return platform_driver_register(&armv8_pmu_driver);
-> > +		ret = platform_driver_register(&armv8_pmu_driver);
-> >  	else
-> > -		return arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-> > +		ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
+> > +	queue_work_on(__smp_processor_id(), system_wq, &detector_work);
+> 
+> Just a small nit. This can be simplified by calling:
+> 
+> 	schedule_work(&detector_work);
+> 
+> It uses "system_wq" that uses CPU-bound workers. It prefers
+> the current CPU. But the exact CPU is not important. Any CPU-bound
+> worker is enough.
+
+Thanks!! I'll tweak this on -rc1
+> 
+> > +}
 > > +
-> > +	retry_lockup_detector_init();
 > 
-> Does it makes sense to call retry_lockup_detector_init() when
-> the above returned an error? Should it be?
+> With the above change, feel free to use:
 > 
-> 	if (!ret)
-> 		retry_lockup_detector_init();
+> Reviewed-by: Petr Mladek <pmladek@suse.com>
 
-Oh I think you're right, I'll add a checking here.
-> 
-> > +	return ret;
-> >  }
-> >  device_initcall(armv8_pmu_driver_init)
-> 
-> 
-> I am not qualified to ack the arm-specific code. But otherwise
-> the change looks reasonable.
-
-Thanks for your help, I'l rebase on 5.19 -rc1 and seek reviewing for
-ARM relative part.
+Really appreciate your review and idea, thank you ver much.
 
 
-thanks
 BRs,
 Lecopzer
+
 
 
