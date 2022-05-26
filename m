@@ -2,26 +2,53 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4525C43217
-	for <sparclinux@archiver.kernel.org>; Wed, 25 May 2022 19:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 960DCC433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 26 May 2022 00:41:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344382AbiEYTiD convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 25 May 2022 15:38:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59646 "EHLO
+        id S1344586AbiEZAl1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 25 May 2022 20:41:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59328 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344355AbiEYTiA (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 25 May 2022 15:38:00 -0400
-Received: from gloria.sntech.de (gloria.sntech.de [185.11.138.130])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A89A66C84;
-        Wed, 25 May 2022 12:37:47 -0700 (PDT)
-Received: from ip5b412258.dynamic.kabel-deutschland.de ([91.65.34.88] helo=diego.localnet)
-        by gloria.sntech.de with esmtpsa (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
-        (Exim 4.92)
-        (envelope-from <heiko@sntech.de>)
-        id 1ntwp4-0007pS-Ng; Wed, 25 May 2022 21:37:34 +0200
-From:   Heiko =?ISO-8859-1?Q?St=FCbner?= <heiko@sntech.de>
-To:     Guo Ren <guoren@kernel.org>
+        with ESMTP id S1344960AbiEZAkL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 25 May 2022 20:40:11 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 243A8B0D20;
+        Wed, 25 May 2022 17:40:10 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B9B1FB81ECB;
+        Thu, 26 May 2022 00:40:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6589DC34118;
+        Thu, 26 May 2022 00:40:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1653525607;
+        bh=XbYpsC9yEq2qbfVcCMnpASOsc0x6dM1zetw0N7lzPwE=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=OzeAYiRZdsB0yXNS0g4T0S862JWB2B/LUQvACOo5rMGE2n7o9TZvPB27hB71zz38y
+         vo9jrOt3g7Uz6Ayo1wV41mp4/BSeoUVtantEuSKD5nAs/iu8jdCOVoUa11gVT2bdrc
+         Te2G/7HFQTTP7+EIraOOvVasWY1jJOE6CNGvIfHnnTricGNK2En6oABwY37E52bEjy
+         OerKaDd5ZbVw2Fhm6RTHF/WOyuj0HDTUusgZKY1QYwx5AzZBjQ/IDqX+0Q3Igt0ccj
+         na8+zgUeTUqSTMCBGY8rJGZE3RXEGnIg6ufUHZKVlRoUxxV42EVxFThlBwDoaMNG68
+         /qk7UI4Wse96g==
+Received: by mail-vs1-f46.google.com with SMTP id m2so42228vsr.8;
+        Wed, 25 May 2022 17:40:07 -0700 (PDT)
+X-Gm-Message-State: AOAM532RKsjUwuddb79+sBVhEXiHohPcDMW74d3X2KG0MaN6lrjoT9g3
+        0Z/QDjIXEC5X8ZaRZoq75Sl9tCpVobhk8FopS84=
+X-Google-Smtp-Source: ABdhPJx0cJkHljwuAHpyaehwgqdzrKWDw6u17/hHUkJNA8qg9NggwxKoibBsRSciUSmCfyeKXeu5IRU/QTIMEigENhQ=
+X-Received: by 2002:a67:c117:0:b0:337:a2ea:98e3 with SMTP id
+ d23-20020a67c117000000b00337a2ea98e3mr8547786vsj.59.1653525606376; Wed, 25
+ May 2022 17:40:06 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220322144003.2357128-1-guoren@kernel.org> <3418219.V25eIC5XRa@diego>
+ <CAJF2gTTkpHLZf-+VXZE_gCn=5ZJ5FS3jOxKLVoMyL4i=baPd7Q@mail.gmail.com> <1766627.8hzESeGDPO@diego>
+In-Reply-To: <1766627.8hzESeGDPO@diego>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Thu, 26 May 2022 08:39:54 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTRrrwDUOTqLDTxZLNnWM1LXEq4VFVB8jZPdYvnS2i0ung@mail.gmail.com>
+Message-ID: <CAJF2gTRrrwDUOTqLDTxZLNnWM1LXEq4VFVB8jZPdYvnS2i0ung@mail.gmail.com>
+Subject: Re: [PATCH V9 20/20] riscv: compat: Add COMPAT Kbuild skeletal support
+To:     =?UTF-8?Q?Heiko_St=C3=BCbner?= <heiko@sntech.de>
 Cc:     Guenter Roeck <linux@roeck-us.net>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Arnd Bergmann <arnd@arndb.de>,
@@ -37,88 +64,108 @@ Cc:     Guenter Roeck <linux@roeck-us.net>,
         Parisc List <linux-parisc@vger.kernel.org>,
         "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
         Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        the arch/x86 maintainers <x86@kernel.org>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
         Guo Ren <guoren@linux.alibaba.com>
-Subject: Re: [PATCH V9 20/20] riscv: compat: Add COMPAT Kbuild skeletal support
-Date:   Wed, 25 May 2022 21:37:33 +0200
-Message-ID: <1766627.8hzESeGDPO@diego>
-In-Reply-To: <CAJF2gTTkpHLZf-+VXZE_gCn=5ZJ5FS3jOxKLVoMyL4i=baPd7Q@mail.gmail.com>
-References: <20220322144003.2357128-1-guoren@kernel.org> <3418219.V25eIC5XRa@diego> <CAJF2gTTkpHLZf-+VXZE_gCn=5ZJ5FS3jOxKLVoMyL4i=baPd7Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Am Mittwoch, 25. Mai 2022, 18:08:22 CEST schrieb Guo Ren:
-> Thx Heiko & Guenter,
-> 
-> On Wed, May 25, 2022 at 7:10 PM Heiko Stübner <heiko@sntech.de> wrote:
+On Thu, May 26, 2022 at 3:37 AM Heiko St=C3=BCbner <heiko@sntech.de> wrote:
+>
+> Am Mittwoch, 25. Mai 2022, 18:08:22 CEST schrieb Guo Ren:
+> > Thx Heiko & Guenter,
 > >
-> > Am Mittwoch, 25. Mai 2022, 12:57:30 CEST schrieb Heiko Stübner:
-> > > Am Mittwoch, 25. Mai 2022, 00:06:46 CEST schrieb Guenter Roeck:
-> > > > On Wed, May 25, 2022 at 01:46:38AM +0800, Guo Ren wrote:
-> > > > [ ... ]
-> > > >
-> > > > > > The problem is come from "__dls3's vdso decode part in musl's
-> > > > > > ldso/dynlink.c". The ehdr->e_phnum & ehdr->e_phentsize are wrong.
-> > > > > >
-> > > > > > I think the root cause is from musl's implementation with the wrong
-> > > > > > elf parser. I would fix that soon.
-> > > > > Not elf parser, it's "aux vector just past environ[]". I think I could
-> > > > > solve this, but anyone who could help dig in is welcome.
+> > On Wed, May 25, 2022 at 7:10 PM Heiko St=C3=BCbner <heiko@sntech.de> wr=
+ote:
+> > >
+> > > Am Mittwoch, 25. Mai 2022, 12:57:30 CEST schrieb Heiko St=C3=BCbner:
+> > > > Am Mittwoch, 25. Mai 2022, 00:06:46 CEST schrieb Guenter Roeck:
+> > > > > On Wed, May 25, 2022 at 01:46:38AM +0800, Guo Ren wrote:
+> > > > > [ ... ]
 > > > > >
+> > > > > > > The problem is come from "__dls3's vdso decode part in musl's
+> > > > > > > ldso/dynlink.c". The ehdr->e_phnum & ehdr->e_phentsize are wr=
+ong.
+> > > > > > >
+> > > > > > > I think the root cause is from musl's implementation with the=
+ wrong
+> > > > > > > elf parser. I would fix that soon.
+> > > > > > Not elf parser, it's "aux vector just past environ[]". I think =
+I could
+> > > > > > solve this, but anyone who could help dig in is welcome.
+> > > > > >
+> > > > >
+> > > > > I am not sure I understand what you are saying here. Point is tha=
+t my
+> > > > > root file system, generated with musl a year or so ago, crashes w=
+ith
+> > > > > your patch set applied. That is a regression, even if there is a =
+bug
+> > > > > in musl.
+> > Thx for the report, it's a valuable regression for riscv-compat.
+> >
 > > > >
-> > > > I am not sure I understand what you are saying here. Point is that my
-> > > > root file system, generated with musl a year or so ago, crashes with
-> > > > your patch set applied. That is a regression, even if there is a bug
-> > > > in musl.
-> Thx for the report, it's a valuable regression for riscv-compat.
-> 
+> > > > Also as I said in the other part of the thread, the rootfs seems in=
+nocent,
+> > > > as my completely-standard Debian riscv64 rootfs is also affected.
+> > > >
+> > > > The merged version seems to be v12 [0] - not sure how we this discu=
+ssion
+> > > > ended up in v9, but I just tested this revision in two variants:
+> > > >
+> > > > - v5.17 + this v9 -> works nicely
 > > >
-> > > Also as I said in the other part of the thread, the rootfs seems innocent,
-> > > as my completely-standard Debian riscv64 rootfs is also affected.
-> > >
-> > > The merged version seems to be v12 [0] - not sure how we this discussion
-> > > ended up in v9, but I just tested this revision in two variants:
-> > >
-> > > - v5.17 + this v9 -> works nicely
+> > > I take that back ... now going back to that build I somehow also run =
+into
+> > > that issue here ... will investigate more.
+> > Yeah, it's my fault. I've fixed up it, please have a try:
 > >
-> > I take that back ... now going back to that build I somehow also run into
-> > that issue here ... will investigate more.
-> Yeah, it's my fault. I've fixed up it, please have a try:
-> 
-> https://lore.kernel.org/linux-riscv/20220525160404.2930984-1-guoren@kernel.org/T/#u
+> > https://lore.kernel.org/linux-riscv/20220525160404.2930984-1-guoren@ker=
+nel.org/T/#u
+>
+> very cool that you found the issue.
+> I've tested your patch and it seems to fix the issue for me.
+>
+> Thanks for figuring out the cause
+I should thx Guenter Roeck, It just surprised me that compat_vdso
+could work with quite a lot of rv64 apps.
 
-very cool that you found the issue.
-I've tested your patch and it seems to fix the issue for me.
-
-Thanks for figuring out the cause
-Heiko
-
-
-> > > - v5.18-rc6 + this v9 (rebased onto it) -> breaks the boot
-> > >   The only rebase-conflict was with the introduction of restartable
-> > >   sequences and removal of the tracehook include, but turning CONFIG_RSEQ
-> > >   off doesn't seem to affect the breakage.
+> Heiko
+>
+>
+> > > > - v5.18-rc6 + this v9 (rebased onto it) -> breaks the boot
+> > > >   The only rebase-conflict was with the introduction of restartable
+> > > >   sequences and removal of the tracehook include, but turning CONFI=
+G_RSEQ
+> > > >   off doesn't seem to affect the breakage.
+> > > >
+> > > > So it looks like something changed between 5.17 and 5.18 that cause=
+s the issue.
+> > > >
+> > > >
+> > > > Heiko
+> > > >
+> > > >
+> > > > [0] https://lore.kernel.org/all/20220405071314.3225832-1-guoren@ker=
+nel.org/
+> > > >
 > > >
-> > > So it looks like something changed between 5.17 and 5.18 that causes the issue.
 > > >
 > > >
-> > > Heiko
-> > >
-> > >
-> > > [0] https://lore.kernel.org/all/20220405071314.3225832-1-guoren@kernel.org/
 > > >
 > >
 > >
 > >
-> >
-> 
-> 
-> 
+>
+>
+>
+>
 
 
+--=20
+Best Regards
+ Guo Ren
 
-
+ML: https://lore.kernel.org/linux-csky/
