@@ -2,30 +2,62 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2ADAC433FE
-	for <sparclinux@archiver.kernel.org>; Mon, 30 May 2022 13:47:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6A9BC433F5
+	for <sparclinux@archiver.kernel.org>; Mon, 30 May 2022 15:59:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231207AbiE3Nrj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 30 May 2022 09:47:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40278 "EHLO
+        id S242548AbiE3P7o (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 30 May 2022 11:59:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55030 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237557AbiE3Nn1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 May 2022 09:43:27 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 106C89AE40;
-        Mon, 30 May 2022 06:32:09 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C90260F5E;
-        Mon, 30 May 2022 13:32:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 83CBBC385B8;
-        Mon, 30 May 2022 13:31:55 +0000 (UTC)
-Date:   Mon, 30 May 2022 14:31:52 +0100
-From:   Catalin Marinas <catalin.marinas@arm.com>
-To:     Peter Xu <peterx@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Will Deacon <will@kernel.org>,
+        with ESMTP id S240821AbiE3P7g (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 May 2022 11:59:36 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2B6DAF59D
+        for <sparclinux@vger.kernel.org>; Mon, 30 May 2022 08:53:03 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1653925982;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=bDYue/Afd3VGZHzU7tYF7qy5xBeBUpqe85rLuoAiRcE=;
+        b=AkXHNJKvAQRHb5OqI+OhXnw4AlFTHU7SQ25I25r8DrkTB9nwXx2U3S7uy3yWEhfxPKMgZ0
+        MCHoCCU4ElbTk7DKNd2mXmRpWE6tOdwsDRWpn7scMraYzymGuve2EYFM1vMWpJYkKpJQS0
+        OjtcJUf23O2R/uhMV8v3cei4In0oe2Y=
+Received: from mail-il1-f199.google.com (mail-il1-f199.google.com
+ [209.85.166.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-26-jMVtxxoFO-WHaMHv4hObog-1; Mon, 30 May 2022 11:53:01 -0400
+X-MC-Unique: jMVtxxoFO-WHaMHv4hObog-1
+Received: by mail-il1-f199.google.com with SMTP id a2-20020a923302000000b002d1ad5053feso8572623ilf.17
+        for <sparclinux@vger.kernel.org>; Mon, 30 May 2022 08:53:01 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=bDYue/Afd3VGZHzU7tYF7qy5xBeBUpqe85rLuoAiRcE=;
+        b=nwzMz2tzjEm6lDp70qKO9MNH9xczegvouBGf2PGpoX9lc/XMETn6TJ3ueXq7y0E6kH
+         YMrQxJIHbRNrwinG08024gh4B1yEwYc4FS/vf38baixMmGf6OivRC0V30xSI/NBP1xZX
+         okPKefEU26biVndh+cvUm9ojj5BczRb/5HMN9jxyhgdNpcGJtNKVYat7lVfKXor8/Q8m
+         ufnn/+yj6ysrsnY+JAARWc6e6Zu6GgM3qQgt11GUazZdHojdhtotlAUKMgVGYbOC/nf8
+         TsdfFk5l+E9Co3+moDvFQ035em6BmmMxwtKP8HXeSi66zQBnd4tqVHx3+UytqxXBuWF4
+         PzWQ==
+X-Gm-Message-State: AOAM531osaLurdzKUhOmJuzy/IhEaBQVrZp73fj4jbzq7Im3gEqA/X3M
+        N0KFAdKUqEySHPCOXPnmGk9wYVBWRBwedNP5B7Dm8g3ngczfvVrPV/VWUclbxQpJ1XRsMDcWDcF
+        TMev0uGUDrTVJW6M3G7C1qw==
+X-Received: by 2002:a5d:9cc8:0:b0:663:2899:4b8 with SMTP id w8-20020a5d9cc8000000b00663289904b8mr16857348iow.192.1653925980590;
+        Mon, 30 May 2022 08:53:00 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJyKQIoyyqGc41UCjMUnObS0GZ5Lh8IPSVLY8KDGIOa5YRMfMwdzANPXLWIG/1E7oUnwvcvO1w==
+X-Received: by 2002:a5d:9cc8:0:b0:663:2899:4b8 with SMTP id w8-20020a5d9cc8000000b00663289904b8mr16857337iow.192.1653925980357;
+        Mon, 30 May 2022 08:53:00 -0700 (PDT)
+Received: from xz-m1.local (cpec09435e3e0ee-cmc09435e3e0ec.cpe.net.cable.rogers.com. [99.241.198.116])
+        by smtp.gmail.com with ESMTPSA id 66-20020a021d45000000b0032e75bfe344sm2781109jaj.171.2022.05.30.08.52.55
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 30 May 2022 08:52:59 -0700 (PDT)
+Date:   Mon, 30 May 2022 11:52:54 -0400
+From:   Peter Xu <peterx@redhat.com>
+To:     Christian Borntraeger <borntraeger@linux.ibm.com>
+Cc:     Heiko Carstens <hca@linux.ibm.com>, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, Will Deacon <will@kernel.org>,
         Matt Turner <mattst88@gmail.com>, linux-s390@vger.kernel.org,
         Andrew Morton <akpm@linux-foundation.org>,
         Brian Cain <bcain@quicinc.com>, Borislav Petkov <bp@alien8.de>,
@@ -62,7 +94,6 @@ Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         linux-hexagon@vger.kernel.org, Andy Lutomirski <luto@kernel.org>,
         Stafford Horne <shorne@gmail.com>, linux-csky@vger.kernel.org,
-        Heiko Carstens <hca@linux.ibm.com>,
         Thomas Gleixner <tglx@linutronix.de>,
         linux-mips@vger.kernel.org, Paul Mackerras <paulus@samba.org>,
         Alexander Gordeev <agordeev@linux.ibm.com>,
@@ -74,8 +105,8 @@ Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         Ingo Molnar <mingo@redhat.com>,
         Peter Zijlstra <peterz@infradead.org>,
         linux-riscv@lists.infradead.org, Max Filippov <jcmvbkbc@gmail.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
         Johannes Berg <johannes@sipsolutions.net>,
         Chris Zankel <chris@zankel.net>,
         Michal Simek <monstr@monstr.eu>, x86@kernel.org,
@@ -85,33 +116,53 @@ Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         Ingo Molnar <mingo@kernel.org>
 Subject: Re: [PATCH v4] mm: Avoid unnecessary page fault retires on shared
  memory types
-Message-ID: <YpTHSNQxzQxwJ4vQ@arm.com>
+Message-ID: <YpToVpjXmdFqGOpY@xz-m1.local>
 References: <20220527193936.30678-1-peterx@redhat.com>
+ <YpPYkzbrQmy4FjrI@osiris>
+ <33fd4731-9765-d78b-bdc3-f8243c98e81f@linux.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20220527193936.30678-1-peterx@redhat.com>
+In-Reply-To: <33fd4731-9765-d78b-bdc3-f8243c98e81f@linux.ibm.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, May 27, 2022 at 03:39:36PM -0400, Peter Xu wrote:
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index 77341b160aca..e401d416bbd6 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -607,6 +607,10 @@ static int __kprobes do_page_fault(unsigned long far, unsigned int esr,
->  		return 0;
->  	}
->  
-> +	/* The fault is fully completed (including releasing mmap lock) */
-> +	if (fault & VM_FAULT_COMPLETED)
-> +		return 0;
-> +
->  	if (fault & VM_FAULT_RETRY) {
->  		mm_flags |= FAULT_FLAG_TRIED;
->  		goto retry;
+On Mon, May 30, 2022 at 11:35:10AM +0200, Christian Borntraeger wrote:
+> 
+> 
+> Am 29.05.22 um 22:33 schrieb Heiko Carstens:
+> [...]
+> > 
+> > Guess the patch below on top of your patch is what we want.
+> > Just for clarification: if gmap is not NULL then the process is a kvm
+> > process. So, depending on the workload, this optimization makes sense.
+> > 
+> > diff --git a/arch/s390/mm/fault.c b/arch/s390/mm/fault.c
+> > index 4608cc962ecf..e1d40ca341b7 100644
+> > --- a/arch/s390/mm/fault.c
+> > +++ b/arch/s390/mm/fault.c
+> > @@ -436,12 +436,11 @@ static inline vm_fault_t do_exception(struct pt_regs *regs, int access)
+> >   	/* The fault is fully completed (including releasing mmap lock) */
+> >   	if (fault & VM_FAULT_COMPLETED) {
+> > -		/*
+> > -		 * Gmap will need the mmap lock again, so retake it.  TODO:
+> > -		 * only conditionally take the lock when CONFIG_PGSTE set.
+> > -		 */
+> > -		mmap_read_lock(mm);
+> > -		goto out_gmap;
+> > +		if (gmap) {
+> > +			mmap_read_lock(mm);
+> > +			goto out_gmap;
+> > +		}
+> > +		goto out;
+> 
+> Yes, that makes sense. With that
+> 
+> Acked-by: Christian Borntraeger <borntraeger@linux.ibm.com>
 
-For arm64:
+Looks sane, thanks Heiko, Christian.  I'll cook another one.
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+-- 
+Peter Xu
+
