@@ -2,88 +2,97 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09D87C43334
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Jun 2022 05:29:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAA9DC433EF
+	for <sparclinux@archiver.kernel.org>; Sun,  5 Jun 2022 06:07:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238253AbiFEF3z (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Jun 2022 01:29:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38482 "EHLO
+        id S244136AbiFEGHX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Jun 2022 02:07:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40314 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229987AbiFEF3y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Jun 2022 01:29:54 -0400
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73FAB29800;
-        Sat,  4 Jun 2022 22:29:52 -0700 (PDT)
-Received: by mail-pj1-x102e.google.com with SMTP id a10so10367020pju.3;
-        Sat, 04 Jun 2022 22:29:52 -0700 (PDT)
+        with ESMTP id S244060AbiFEGHS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Jun 2022 02:07:18 -0400
+Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 06173DFBA;
+        Sat,  4 Jun 2022 23:07:16 -0700 (PDT)
+Received: by mail-pf1-x431.google.com with SMTP id x4so1733256pfj.10;
+        Sat, 04 Jun 2022 23:07:16 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=deKD5cIzgMgXwTOxKyXzSLAtYTvZcYkskErHRMjrma8=;
-        b=Ryc8e11Wrd/p/oVJLbGDaBDyZ6iRSpYfKpbvBF6Tjf3Vyg7ewvMQmL7Kk6i5+4ifuW
-         hz9K205bbgJ0lReKqyaIpOBZa6MYsA7GkpA8lkGIOLCt/KxaDhurOmbxXRTLbbpZDw6r
-         YYCvjEY+nRz+hX+CAqeec9NyEfwlhbuy2C70NgSW4ZML25NoFZXWXbnTi2z7zibe/fQQ
-         35f13qHV+5zu+jgEO3EdDCCEDEzeTyZAAU82Kag9nfrLUaCzR1ftA3MGaVDmvwtPpG+Z
-         v323VRa8/RMS8SdqW5jsx5gDPvCBtdvkSQ7UAhO5zZY5kOExwYEIrgEw7lfDBDmQQl1J
-         UJyw==
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=ntiAGYWvOui4xB3cbO1kuW43WbW64QLsxlfvqLjsP00=;
+        b=UNdwgXBqNRzek8pEr5Qw32/XwVITDA54mg7Kzlts/3Dok86B2ZXU7Lqr1Wdv51FkOu
+         D+DjiX7VwRrTKbDe9kWrgm/TbkjVysKd4l5D7wVPorYtHyYfdyRppXHf4MZfzJ7QRI0G
+         EC3BWN8KlO2/z7rWQ5i+BIzMbh+leiVDSOc8qAYViWptCWWG4Owq+H4XBnLjjs1xCcOz
+         A8JCjb5m0d0MotydVY6eHW9GrrnezCP2hIrGtTB7iBJQaS8HSmbaubLLvbOEwEFd1AwU
+         Y4nKLkkmEYL9atMXbUbAZFFBIXckKQRQLkBUUHtnrU17dM/sv/B9E0r1k5EpKBBHQfIF
+         cZEA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=deKD5cIzgMgXwTOxKyXzSLAtYTvZcYkskErHRMjrma8=;
-        b=pg5suUmZ7GbDFG+KL/IU81vlevYXBRAFdMJK4lt6xyNotUao2EobBIP99z/kpIbFxC
-         y5WRdgc0cm28/eOJmxeZ/m+jVQNih7htbIu1WjIoxBKouBLVZh4J8r3rX+RQU7ixZAKB
-         ygONRqMemLGALLbracWEatedl5zsT19q6LbIC7yi8Mf8VAX/7S188zCgTO4FfrvVyH2J
-         MnuXstJQ2jmTJxIR0Bsg7TY5qwWA5JMbMfOwOSKaEoaYcM7ZJEmPNHdlYLsjaD9aQ69u
-         pOlY8QN65Uan6QbLamlRYaPX/nUhYxkxv1sYaEGxQ8lpDJSvhKPtR+h2aMSEFtHWu9s6
-         v5zg==
-X-Gm-Message-State: AOAM533knjJBvGL7X3PyTVngEfGasouu4tTggbUgsa9jDXXXGUGTldYj
-        jEWsC9Cd7ZjhlKBPVwFwy94=
-X-Google-Smtp-Source: ABdhPJwzNGg6hHL1PSAE9VxopSHwc3gRfl4jKAtdKxaZN7lj5p0penl/d6LsR3/tK5SasQaNih3eaA==
-X-Received: by 2002:a17:902:d643:b0:161:f4c2:fae with SMTP id y3-20020a170902d64300b00161f4c20faemr18302383plh.123.1654406991836;
-        Sat, 04 Jun 2022 22:29:51 -0700 (PDT)
-Received: from localhost.localdomain ([202.120.234.246])
-        by smtp.googlemail.com with ESMTPSA id 12-20020a170902c10c00b001621c48d6c2sm939792pli.221.2022.06.04.22.29.48
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=ntiAGYWvOui4xB3cbO1kuW43WbW64QLsxlfvqLjsP00=;
+        b=FPjopPBEwcNXp5tiVLVjPwNNf0ALmrHpzHfc5VoUya5EdFX8AqomJshz+m7f8fMlhC
+         eHb+C5iBTfvd2q1vvnfqsc14Us9lf/zKN5vy/aRgLHyLMkGgD5+2DYb9dOf6l6+jSFD1
+         RJoRwskJOkUOfXVysw+V16Pkqt2caV/a/RBmfRa6YUb36FAnvokDKvJVtoFLr7xp5NYn
+         oQ9OBg/JWx1rQcxc1XSfDY94bnZxjep2HmFsK30ZAD5F3nzfyPTldK5H/m5dRc4P+sx7
+         O9cpANjEHYV6pAymQ+0mmunDKH9JXVRDnyP5wHbAw35lFEWQWBKf64X8ozCZcFapL6jM
+         hGww==
+X-Gm-Message-State: AOAM530GA5DbATD8OuTM3mKdZTGx0cW+Phs0+rmWoLXAVRpSwKungFoj
+        B4dsUCBlJPgUvGbInuWKnhu37MJNI0pLFA==
+X-Google-Smtp-Source: ABdhPJyA1lhiKwlzudDECY/g6A/17Ban2AXmzmlCM0DNLWnaso1OtO7XN2+wdSLdJ6SJvCSQi3abLQ==
+X-Received: by 2002:a05:6a00:1594:b0:51b:f4ec:4c02 with SMTP id u20-20020a056a00159400b0051bf4ec4c02mr5896399pfk.27.1654409235449;
+        Sat, 04 Jun 2022 23:07:15 -0700 (PDT)
+Received: from localhost ([2409:10:24a0:4700:e8ad:216a:2a9d:6d0c])
+        by smtp.gmail.com with ESMTPSA id u1-20020a1709026e0100b0015e8d4eb231sm8153260plk.123.2022.06.04.23.07.14
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 04 Jun 2022 22:29:51 -0700 (PDT)
-From:   Miaoqian Lin <linmq006@gmail.com>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Miaoqian Lin <linmq006@gmail.com>,
-        Daniel Hellstrom <daniel@gaisler.com>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc32,leon: Fix reference leak in leon_ipi_init
-Date:   Sun,  5 Jun 2022 09:29:41 +0400
-Message-Id: <20220605052943.54265-1-linmq006@gmail.com>
-X-Mailer: git-send-email 2.25.1
+        Sat, 04 Jun 2022 23:07:14 -0700 (PDT)
+Date:   Sun, 5 Jun 2022 15:07:12 +0900
+From:   Stafford Horne <shorne@gmail.com>
+To:     Anshuman Khandual <anshuman.khandual@arm.com>
+Cc:     linux-mm@kvack.org, Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Paul Mackerras <paulus@samba.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Andrew Morton <akpm@linux-foundation.org>, x86@kernel.org,
+        openrisc@lists.librecores.org, linux-csky@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 6/6] openrisc/mm: Enable ARCH_HAS_VM_GET_PAGE_PROT
+Message-ID: <YpxIENWD3gOkFiG2@antec>
+References: <20220603101411.488970-1-anshuman.khandual@arm.com>
+ <20220603101411.488970-7-anshuman.khandual@arm.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220603101411.488970-7-anshuman.khandual@arm.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-of_find_node_by_path() returns a node pointer with
-refcount incremented, we should use of_node_put() on it when done.
-Add missing of_node_put() to avoid refcount leak.
+On Fri, Jun 03, 2022 at 03:44:11PM +0530, Anshuman Khandual wrote:
+> This defines and exports a platform specific custom vm_get_page_prot() via
+> subscribing ARCH_HAS_VM_GET_PAGE_PROT. Subsequently all __SXXX and __PXXX
+> macros can be dropped which are no longer needed.
+> 
+> Cc: Jonas Bonn <jonas@southpole.se>
+> Cc: openrisc@lists.librecores.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Stafford Horne <shorne@gmail.com>
+> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 
-Fixes: 1ca0c808c60f ("sparc32,leon: Implemented SMP IPIs for LEON CPU")
-Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
----
- arch/sparc/kernel/leon_smp.c | 1 +
- 1 file changed, 1 insertion(+)
+Is it possible to retract my Acked-by?  I was following the discussion of this
+new function actually being sub optimal.  So as far as I am concerned all these
+architecture patches should be nak'ed.
 
-diff --git a/arch/sparc/kernel/leon_smp.c b/arch/sparc/kernel/leon_smp.c
-index 1eed26d423fb..85b22669c002 100644
---- a/arch/sparc/kernel/leon_smp.c
-+++ b/arch/sparc/kernel/leon_smp.c
-@@ -284,6 +284,7 @@ static void __init leon_ipi_init(void)
- 		pp = of_find_property(rootnp, "ipi_num", &len);
- 		if (pp && (*(int *)pp->value))
- 			leon_ipi_irq = *(int *)pp->value;
-+		of_node_put(rootnp);
- 	}
- 	printk(KERN_INFO "leon: SMP IPIs at IRQ %d\n", leon_ipi_irq);
- 
--- 
-2.25.1
-
+-Stafford
