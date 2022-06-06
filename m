@@ -2,96 +2,103 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F2C2C433EF
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Jun 2022 01:45:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D2DCCA473
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Jun 2022 09:08:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349001AbiFFBpi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Jun 2022 21:45:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46544 "EHLO
+        id S232464AbiFFJIT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Jun 2022 05:08:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47096 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232327AbiFFBph (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Jun 2022 21:45:37 -0400
-Received: from mail-pj1-x102e.google.com (mail-pj1-x102e.google.com [IPv6:2607:f8b0:4864:20::102e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A9834EF77;
-        Sun,  5 Jun 2022 18:45:36 -0700 (PDT)
-Received: by mail-pj1-x102e.google.com with SMTP id 3-20020a17090a174300b001e426a02ac5so13457485pjm.2;
-        Sun, 05 Jun 2022 18:45:36 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=tmMJEfDrOjSFqugkaoY7mGyJmkmpzClAJ8D6S6ijc/E=;
-        b=Y5EBX/5PgQO4RhMgbvJNn1pNzjKL+Ws1rzXsTYjq7l0xh1Nae0JiiOW0TMSPp/8EaE
-         391M7kZAlPAhvHURJHO1jfKoUlaLuZVWITxte1u4oTDFtClQnaMZHjFPd18ry+LgRrMa
-         Olz+nQwLTK95qLqobmXmlW+94qk08/lHvVpqoJkRuYgwiCiX/3aPHBptq5X8Ww4qjgit
-         qluc/1vSfk1VXMq+QAG2oWrOECBI848LqRzU5zUG/5ZgZXqvqdC/zwTIYqGDOmmUgJdr
-         wF0uRlmyyQCMeeZBNgSEb/BLLNOV6vrlIDAcdamGO1Zh7P8XZktFlS+YvZ0sVpGZ1ujv
-         VZ2A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
-         :content-transfer-encoding;
-        bh=tmMJEfDrOjSFqugkaoY7mGyJmkmpzClAJ8D6S6ijc/E=;
-        b=uH/YcuZxBagqAALNmhBDyuzea56ok2t9CXiPCqZt7NP1tfndindb/ps0HB9724DmFq
-         9NTWnYmUu4V2V1t7hZwYnHEibhuMuiMwVCRAj/2pASFtY5ByA8NqH2nrgOGKWhDjHnJh
-         8x/euQ1buzGaABHsz7bDEs1FgktOAyyogM+Cm7HYdof3FpNIZb1B2de1riEOlUSjvW+S
-         3ehHYLknhSyi9IDDa68T7bFIJcE2fQt8v6I22NYKPU1BQiaJqhLnp5thihe+eEtpd6ig
-         2n+3qW1FIxxPYqEC4I04rVAXjInuUrzC7RnKrn3mHw5L994oI2kmEnHlDBhxHK24zNSc
-         n8Og==
-X-Gm-Message-State: AOAM531HhW9EKmhAp5ZxTcQOOIRf1bmHzafVCTgzFnFOEG9p9UZfOfSb
-        kXWF7liJVSIjLV/0dqm04lY=
-X-Google-Smtp-Source: ABdhPJwCzZw6U2Sr83zQQi4ysy2UfIpR0FU9Fx8Eu/42pFSLLS9sTGAgVAxMiO/lm/kwWBRRMMA86g==
-X-Received: by 2002:a17:90a:6941:b0:1e2:f37a:f889 with SMTP id j1-20020a17090a694100b001e2f37af889mr42633766pjm.160.1654479936154;
-        Sun, 05 Jun 2022 18:45:36 -0700 (PDT)
-Received: from localhost.localdomain ([193.203.214.57])
-        by smtp.gmail.com with ESMTPSA id f6-20020a170902684600b001675d843332sm3528800pln.63.2022.06.05.18.45.34
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 05 Jun 2022 18:45:35 -0700 (PDT)
-From:   cgel.zte@gmail.com
-X-Google-Original-From: chi.minghao@zte.com.cn
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Minghao Chi <chi.minghao@zte.com.cn>,
-        Zeal Robot <zealci@zte.com.cn>
-Subject: [PATCH] sparc64: Remove redundant NULL checks before kfree
-Date:   Mon,  6 Jun 2022 01:45:30 +0000
-Message-Id: <20220606014530.290732-1-chi.minghao@zte.com.cn>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S232475AbiFFJIR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 05:08:17 -0400
+Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF58C10FC1
+        for <sparclinux@vger.kernel.org>; Mon,  6 Jun 2022 02:08:15 -0700 (PDT)
+Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed30:4ddc:2f16:838f:9c0c])
+        by albert.telenet-ops.be with bizsmtp
+        id fl8C270034e6eDr06l8Cbl; Mon, 06 Jun 2022 11:08:14 +0200
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.93)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1ny8iZ-002urS-KO; Mon, 06 Jun 2022 11:08:11 +0200
+Date:   Mon, 6 Jun 2022 11:08:11 +0200 (CEST)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+X-X-Sender: geert@ramsan.of.borg
+To:     linux-kernel@vger.kernel.org
+cc:     Kees Cook <keescook@chromium.org>, nvdimm@lists.linux.dev,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: Build regressions/improvements in v5.19-rc1
+In-Reply-To: <20220606082201.2792145-1-geert@linux-m68k.org>
+Message-ID: <alpine.DEB.2.22.394.2206061104510.695137@ramsan.of.borg>
+References: <CAHk-=wgZt-YDSKfdyES2p6A_KJoG8DwQ0mb9CeS8jZYp+0Y2Rw@mail.gmail.com> <20220606082201.2792145-1-geert@linux-m68k.org>
+User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Minghao Chi <chi.minghao@zte.com.cn>
+On Mon, 6 Jun 2022, Geert Uytterhoeven wrote:
+> Below is the list of build error/warning regressions/improvements in
+> v5.19-rc1[1] compared to v5.18[2].
+>
+> Summarized:
+>  - build errors: +9/-10
 
-Checking a pointer for NULL before calling kfree() on it is redundant,
-kfree() deals with NULL pointers just fine.
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/f2906aa863381afb0015a9eb7fefad885d4e5a56/ (all 135 configs)
+> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/4b0986a3613c92f4ec1bdc7f60ec66fea135991f/ (131 out of 135 configs)
 
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
----
- arch/sparc/kernel/cpumap.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+> 9 error regressions:
+>  + /kisskb/src/arch/um/include/asm/page.h: error: too few arguments to function 'to_phys':  => 105:20
+>  + /kisskb/src/drivers/nvdimm/pmem.c: error: conflicting types for 'to_phys':  => 48:20
+>  + /kisskb/src/drivers/nvdimm/pmem.c: error: control reaches end of non-void function [-Werror=return-type]:  => 324:1
 
-diff --git a/arch/sparc/kernel/cpumap.c b/arch/sparc/kernel/cpumap.c
-index f07ea88a83af..1ae22b0d938c 100644
---- a/arch/sparc/kernel/cpumap.c
-+++ b/arch/sparc/kernel/cpumap.c
-@@ -352,10 +352,8 @@ static void _cpu_map_rebuild(void)
- {
- 	int i;
- 
--	if (cpuinfo_tree) {
--		kfree(cpuinfo_tree);
--		cpuinfo_tree = NULL;
--	}
-+	kfree(cpuinfo_tree);
-+	cpuinfo_tree = NULL;
- 
- 	cpuinfo_tree = build_cpuinfo_tree();
- 	if (!cpuinfo_tree)
--- 
-2.25.1
+um-x86_64/um-allyesconfig
 
+>  + /kisskb/src/arch/xtensa/kernel/entry.S: Error: unknown pseudo-op: `.bss':  => 2176
 
+xtensa-gcc11/xtensa-allmodconfig
+
+>  + /kisskb/src/drivers/tty/serial/sh-sci.c: error: unused variable 'sport' [-Werror=unused-variable]:  => 2655:26
+
+sh4-gcc11/se7619_defconfig
+sh4-gcc11/sh-allmodconfig
+
+Fix available
+https://lore.kernel.org/all/4ed0a7a0d3fa912a5b44c451884818f2c138ef42.1644914600.git.geert+renesas@glider.be
+
+>  + /kisskb/src/include/linux/fortify-string.h: error: call to '__write_overflow_field' declared with attribute warning: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Werror=attribute-warning]:  => 344:25
+
+powerpc-gcc11/ppc64_book3e_allmodconfig
+
+>  + /kisskb/src/include/ufs/ufshci.h: error: initializer element is not constant:  => 245:36
+
+mipsel-gcc5/mips-allmodconfig
+powerpc-gcc5/powerpc-allmodconfig
+
+FTR, include/ufs/ufshci.h lacks a MAINTAINERS entry.
+
+>  + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
+>  + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+
+sparc64-gcc5/sparc-allmodconfig
+
+> 3 warning regressions:
+
+>  + arch/m68k/configs/multi_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 61
+>  + arch/m68k/configs/sun3_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 37
+
+Will be fixed by the m68k defconfig update for v5.20.
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
