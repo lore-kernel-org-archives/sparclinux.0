@@ -2,103 +2,184 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40D2DCCA473
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Jun 2022 09:08:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 690D0CCA473
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Jun 2022 11:50:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232464AbiFFJIT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Jun 2022 05:08:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47096 "EHLO
+        id S235681AbiFFLuX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Jun 2022 07:50:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54148 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232475AbiFFJIR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 05:08:17 -0400
-Received: from albert.telenet-ops.be (albert.telenet-ops.be [IPv6:2a02:1800:110:4::f00:1a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF58C10FC1
-        for <sparclinux@vger.kernel.org>; Mon,  6 Jun 2022 02:08:15 -0700 (PDT)
-Received: from ramsan.of.borg ([IPv6:2a02:1810:ac12:ed30:4ddc:2f16:838f:9c0c])
-        by albert.telenet-ops.be with bizsmtp
-        id fl8C270034e6eDr06l8Cbl; Mon, 06 Jun 2022 11:08:14 +0200
-Received: from geert (helo=localhost)
-        by ramsan.of.borg with local-esmtp (Exim 4.93)
-        (envelope-from <geert@linux-m68k.org>)
-        id 1ny8iZ-002urS-KO; Mon, 06 Jun 2022 11:08:11 +0200
-Date:   Mon, 6 Jun 2022 11:08:11 +0200 (CEST)
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-X-X-Sender: geert@ramsan.of.borg
-To:     linux-kernel@vger.kernel.org
-cc:     Kees Cook <keescook@chromium.org>, nvdimm@lists.linux.dev,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: Build regressions/improvements in v5.19-rc1
-In-Reply-To: <20220606082201.2792145-1-geert@linux-m68k.org>
-Message-ID: <alpine.DEB.2.22.394.2206061104510.695137@ramsan.of.borg>
-References: <CAHk-=wgZt-YDSKfdyES2p6A_KJoG8DwQ0mb9CeS8jZYp+0Y2Rw@mail.gmail.com> <20220606082201.2792145-1-geert@linux-m68k.org>
-User-Agent: Alpine 2.22 (DEB 394 2020-01-19)
+        with ESMTP id S235604AbiFFLuV (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 07:50:21 -0400
+Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A9FF023B548;
+        Mon,  6 Jun 2022 04:50:20 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1654516220; x=1686052220;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=Tok61MYj1lPncNWg8YTmTokMBB2SXOwOPzh2SXZuY+c=;
+  b=XKoxWk72FsxbJ1jHDPwgCphlSNC7DZ8yZKOj+aZm3GrMNuWfrVRw+ZGK
+   6MsXi9Z5kNlRC1YfU5Bob140DdatfXw3pOVWkphUiNrsngtTFFBfnBQlD
+   lm30Ku/l9+K69HEQ7XKyqj3xMso5E9Gfr16SzIJIsj0fVU1ZRB3HnjN63
+   pgQyokJUCf6URizRg5eL8HXc2mPgds47/a4BoaMgIG7saogmWfo9fmRvq
+   WDkUqhTvO3eDCRMcVLFZtqlLmveErdTzuCUknxWdm/NklTsFiDmwOu5fk
+   mMS4VkLQTYVcJXqZZxbUfNvcCyfBlvw+T5bMWwsrPYhPxlZbyxDbgXNcC
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10369"; a="276623897"
+X-IronPort-AV: E=Sophos;i="5.91,280,1647327600"; 
+   d="scan'208";a="276623897"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Jun 2022 04:50:20 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,280,1647327600"; 
+   d="scan'208";a="669452616"
+Received: from irvmail001.ir.intel.com ([10.43.11.63])
+  by FMSMGA003.fm.intel.com with ESMTP; 06 Jun 2022 04:50:14 -0700
+Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 256BoDHf010626;
+        Mon, 6 Jun 2022 12:50:13 +0100
+From:   Alexander Lobakin <alexandr.lobakin@intel.com>
+To:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>
+Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Richard Henderson <rth@twiddle.net>,
+        Matt Turner <mattst88@gmail.com>,
+        Brian Cain <bcain@quicinc.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Kees Cook <keescook@chromium.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
+        Tony Luck <tony.luck@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 0/6] bitops: let optimize out non-atomic bitops on compile-time constants
+Date:   Mon,  6 Jun 2022 13:49:01 +0200
+Message-Id: <20220606114908.962562-1-alexandr.lobakin@intel.com>
+X-Mailer: git-send-email 2.36.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 6 Jun 2022, Geert Uytterhoeven wrote:
-> Below is the list of build error/warning regressions/improvements in
-> v5.19-rc1[1] compared to v5.18[2].
->
-> Summarized:
->  - build errors: +9/-10
+While I was working on converting some structure fields from a fixed
+type to a bitmap, I started observing code size increase not only in
+places where the code works with the converted structure fields, but
+also where the converted vars were on the stack. That said, the
+following code:
 
-> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/f2906aa863381afb0015a9eb7fefad885d4e5a56/ (all 135 configs)
-> [2] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/4b0986a3613c92f4ec1bdc7f60ec66fea135991f/ (131 out of 135 configs)
+	DECLARE_BITMAP(foo, BITS_PER_LONG) = { }; // -> unsigned long foo[1];
+	unsigned long bar = BIT(BAR_BIT);
+	unsigned long baz = 0;
 
-> 9 error regressions:
->  + /kisskb/src/arch/um/include/asm/page.h: error: too few arguments to function 'to_phys':  => 105:20
->  + /kisskb/src/drivers/nvdimm/pmem.c: error: conflicting types for 'to_phys':  => 48:20
->  + /kisskb/src/drivers/nvdimm/pmem.c: error: control reaches end of non-void function [-Werror=return-type]:  => 324:1
+	__set_bit(FOO_BIT, foo);
+	baz |= BIT(BAZ_BIT);
 
-um-x86_64/um-allyesconfig
+	BUILD_BUG_ON(!__builtin_constant_p(test_bit(FOO_BIT, foo));
+	BUILD_BUG_ON(!__builtin_constant_p(bar & BAR_BIT));
+	BUILD_BUG_ON(!__builtin_constant_p(baz & BAZ_BIT));
 
->  + /kisskb/src/arch/xtensa/kernel/entry.S: Error: unknown pseudo-op: `.bss':  => 2176
+triggers the first assertion on x86_64, which means that the
+compiler is unable to evaluate it to a compile-time initializer
+when the architecture-specific bitop is used even if it's obvious.
+I found that this is due to that many architecture-specific
+non-atomic bitop implementations use inline asm or other hacks which
+are faster or more robust when working with "real" variables (i.e.
+fields from the structures etc.), but the compilers have no clue how
+to optimize them out when called on compile-time constants.
 
-xtensa-gcc11/xtensa-allmodconfig
+So, in order to let the compiler optimize out such cases, expand the
+test_bit() and __*_bit() definitions with a compile-time condition
+check, so that they will pick the generic C non-atomic bitop
+implementations when all of the arguments passed are compile-time
+constants, which means that the result will be a compile-time
+constant as well and the compiler will produce more efficient and
+simple code in 100% cases (no changes when there's at least one
+non-compile-time-constant argument).
+The condition itself:
 
->  + /kisskb/src/drivers/tty/serial/sh-sci.c: error: unused variable 'sport' [-Werror=unused-variable]:  => 2655:26
+if (
+__builtin_constant_p(nr) &&	/* <- bit position is constant */
+__builtin_constant_p(!!addr) &&	/* <- compiler knows bitmap addr is
+				      always either NULL or not */
+addr &&				/* <- bitmap addr is not NULL */
+__builtin_constant_p(*addr)	/* <- compiler knows the value of
+				      the target bitmap */
+)
+	/* then pick the generic C variant
+else
+	/* old code path, arch-specific
 
-sh4-gcc11/se7619_defconfig
-sh4-gcc11/sh-allmodconfig
+I also tried __is_constexpr() as suggested by Andy, but it was
+always returning 0 ('not a constant') for the 2,3 and 4th
+conditions.
 
-Fix available
-https://lore.kernel.org/all/4ed0a7a0d3fa912a5b44c451884818f2c138ef42.1644914600.git.geert+renesas@glider.be
+The savings on x86_64 with LLVM are insane (.text):
 
->  + /kisskb/src/include/linux/fortify-string.h: error: call to '__write_overflow_field' declared with attribute warning: detected write beyond size of field (1st parameter); maybe use struct_group()? [-Werror=attribute-warning]:  => 344:25
+$ scripts/bloat-o-meter -c vmlinux.{base,test}
+add/remove: 72/75 grow/shrink: 182/518 up/down: 53925/-137810 (-83885)
 
-powerpc-gcc11/ppc64_book3e_allmodconfig
+$ scripts/bloat-o-meter -c vmlinux.{base,mod}
+add/remove: 7/1 grow/shrink: 1/19 up/down: 1135/-4082 (-2947)
 
->  + /kisskb/src/include/ufs/ufshci.h: error: initializer element is not constant:  => 245:36
+$ scripts/bloat-o-meter -c vmlinux.{base,all}
+add/remove: 79/76 grow/shrink: 184/537 up/down: 55076/-141892 (-86816)
 
-mipsel-gcc5/mips-allmodconfig
-powerpc-gcc5/powerpc-allmodconfig
+And the following:
 
-FTR, include/ufs/ufshci.h lacks a MAINTAINERS entry.
+	DECLARE_BITMAP(flags, __IP_TUNNEL_FLAG_NUM) = { };
+	__be16 flags;
 
->  + error: relocation truncated to fit: R_SPARC_WDISP22 against `.init.text':  => (.head.text+0x5100), (.head.text+0x5040)
->  + error: relocation truncated to fit: R_SPARC_WDISP22 against symbol `leon_smp_cpu_startup' defined in .text section in arch/sparc/kernel/trampoline_32.o:  => (.init.text+0xa4)
+	__set_bit(IP_TUNNEL_CSUM_BIT, flags);
 
-sparc64-gcc5/sparc-allmodconfig
+	tun_flags = cpu_to_be16(*flags & U16_MAX);
 
-> 3 warning regressions:
+	if (test_bit(IP_TUNNEL_VTI_BIT, flags))
+		tun_flags |= VTI_ISVTI;
 
->  + arch/m68k/configs/multi_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 61
->  + arch/m68k/configs/sun3_defconfig: warning: symbol value 'm' invalid for ZPOOL:  => 37
+	BUILD_BUG_ON(!__builtin_constant_p(tun_flags));
 
-Will be fixed by the m68k defconfig update for v5.20.
+doesn't blow up anymore.
 
-Gr{oetje,eeting}s,
+The series has been in intel-next for a while with no reported issues.
+Also available on my open GH[0].
 
- 						Geert
+[0] https://github.com/alobakin/linux/commits/bitops
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+Alexander Lobakin (6):
+  ia64, processor: fix -Wincompatible-pointer-types in ia64_get_irr()
+  bitops: always define asm-generic non-atomic bitops
+  bitops: define gen_test_bit() the same way as the rest of functions
+  bitops: unify non-atomic bitops prototypes across architectures
+  bitops: wrap non-atomic bitops with a transparent macro
+  bitops: let optimize out non-atomic bitops on compile-time constants
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
- 							    -- Linus Torvalds
+ arch/alpha/include/asm/bitops.h               |  28 ++--
+ arch/hexagon/include/asm/bitops.h             |  23 ++--
+ arch/ia64/include/asm/bitops.h                |  40 +++---
+ arch/ia64/include/asm/processor.h             |   2 +-
+ arch/m68k/include/asm/bitops.h                |  47 +++++--
+ arch/sh/include/asm/bitops-op32.h             |  32 +++--
+ arch/sparc/include/asm/bitops_32.h            |  18 +--
+ arch/sparc/lib/atomic32.c                     |  12 +-
+ .../asm-generic/bitops/generic-non-atomic.h   | 128 ++++++++++++++++++
+ .../bitops/instrumented-non-atomic.h          |  35 +++--
+ include/asm-generic/bitops/non-atomic.h       | 123 ++---------------
+ include/linux/bitops.h                        |  45 ++++++
+ tools/include/asm-generic/bitops/non-atomic.h |  34 +++--
+ tools/include/linux/bitops.h                  |  16 +++
+ 14 files changed, 363 insertions(+), 220 deletions(-)
+ create mode 100644 include/asm-generic/bitops/generic-non-atomic.h
+
+base-commit: f2906aa863381afb0015a9eb7fefad885d4e5a56
+-- 
+2.36.1
+
