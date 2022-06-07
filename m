@@ -2,89 +2,63 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 024BEC43334
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 03:34:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A22C433EF
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 08:15:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236354AbiFGDea (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Jun 2022 23:34:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57860 "EHLO
+        id S234715AbiFGIP6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Jun 2022 04:15:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236360AbiFGDe1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 23:34:27 -0400
-Received: from mail-pl1-x62f.google.com (mail-pl1-x62f.google.com [IPv6:2607:f8b0:4864:20::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4BD352B19;
-        Mon,  6 Jun 2022 20:34:26 -0700 (PDT)
-Received: by mail-pl1-x62f.google.com with SMTP id f9so3272372plg.0;
-        Mon, 06 Jun 2022 20:34:26 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=from:to:subject:date:message-id:in-reply-to:references:mime-version
-         :content-transfer-encoding;
-        bh=9ZV/P7UMxj9WhigT41C+LW4SlFc5LyNEmugmcXHXNuo=;
-        b=LGku3SHTemGyfP0jmSQvlGv2PAi9vLvFv3xxjvx1lE2eMYco6VuT8MUFBJkQfhH1SP
-         R4DwTJZR3OtcMiR8W4pKan0d55JJtuT1MTixI1bhUXSSIFNPNbd6gV7DmjazVakL5LHO
-         nXRts8UrmJ39I68uMWzDZCRemIiODcAkP2r7h5P11Vmf2mGMJq4zpUoGIT67K0ck7Xif
-         gQGevZiLL0neQZzQ+FQhNaY/hGdTsRPgzUmaNMiHyjc7O3Zc+CKe4/Zywroh0QZNrOWL
-         wBmvnXxo9ksd383O2nplndogeN/gf8hC3agwQsbI9Rk8Drktf90NVPK6BC+513osSILk
-         XHrA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:from:to:subject:date:message-id:in-reply-to
-         :references:mime-version:content-transfer-encoding;
-        bh=9ZV/P7UMxj9WhigT41C+LW4SlFc5LyNEmugmcXHXNuo=;
-        b=l8j082fsCZYK8cs9A8bSOmrX+stgcP/3m/0Sv5CVd1Mp+k5gBt2kY5EtHxPffTWpVK
-         pEh/NoAkZIOtb2kpiul4BW60h0w9gqqqknnDbxXHCilf/3pHvz+hahncXUhc4NkMyw2r
-         0BO9VUw8KAMIH+d6OT6ySmcgzaFd10Jfg6dKV78K02l5LEZ4GD7LlH+5ytMQNjCV0YPy
-         mFx9e/QRVj5UiVLtd4NUar944zI2wkrX6ikgL4X/AFfC+oX44WNid/WS0f6Uyw4Svlt0
-         wgkcdRS7NqwnvJXtWr4wpcv0ym8WIsRL4+JClf5s7aDG+p+APfyT+R9SE9MUK9XL3eCD
-         fEAQ==
-X-Gm-Message-State: AOAM531ZZv3ON5yjooLvuxQthR9acpyyJeR6OdJlkhuCr7j6pJCHSq+D
-        DpnFHN2mjzMGrwTvTP5hRv8=
-X-Google-Smtp-Source: ABdhPJyRN2q0c27lJyTiX4ocCPgVPJEE4nzungwfhbKzMlC+X75Li/iCaQWNZ0CmQJmqpoD6typSKA==
-X-Received: by 2002:a17:90b:1c8f:b0:1b8:c6dc:ca61 with SMTP id oo15-20020a17090b1c8f00b001b8c6dcca61mr29795986pjb.13.1654572865957;
-        Mon, 06 Jun 2022 20:34:25 -0700 (PDT)
-Received: from localhost.localdomain ([202.120.234.246])
-        by smtp.googlemail.com with ESMTPSA id l24-20020a17090ac59800b001e25e3ba05csm16700350pjt.2.2022.06.06.20.34.23
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jun 2022 20:34:25 -0700 (PDT)
-From:   Miaoqian Lin <linmq006@gmail.com>
-To:     "David S. Miller" <davem@davemloft.net>,
-        Miaoqian Lin <linmq006@gmail.com>, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] sparc: kernel: Fix reference leak in jbusmc_probe
-Date:   Tue,  7 Jun 2022 07:33:00 +0400
-Message-Id: <20220607033306.688-3-linmq006@gmail.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <20220607033306.688-1-linmq006@gmail.com>
-References: <20220607033306.688-1-linmq006@gmail.com>
+        with ESMTP id S232078AbiFGIP6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Jun 2022 04:15:58 -0400
+X-Greylist: delayed 557 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 01:15:56 PDT
+Received: from mail.westfry.pl (mail.westfry.pl [37.235.53.118])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE856CEB84
+        for <sparclinux@vger.kernel.org>; Tue,  7 Jun 2022 01:15:56 -0700 (PDT)
+Received: by mail.westfry.pl (Postfix, from userid 1001)
+        id AFBC24173E; Tue,  7 Jun 2022 10:06:09 +0200 (CEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=westfry.pl; s=mail;
+        t=1654589173; bh=EtF+nCh55wqMJxxxoUxVlnM4mMblZyUsAf5+QjAo6CE=;
+        h=Date:From:To:Subject:From;
+        b=WaPT5YcGXWSOBVzcvMjwH1O2YX1HmJgIXkJp1+cBeuN0lwKxAUOv+RvMZj5IJMqA0
+         lBXKlmGzChNgX+SSOxr3bfZa52CKS0i8RwwndeLasg7cW8DLJZ28DUX7GemhmgGSLi
+         LLTfCny0hUBEialgR8kEKPsBc3K0kTo/TGbrWbifiUS8Fu/9xYKGLMtFIBOd70L/EN
+         x6ll1aerFSfBUxi9Wcgv+VweFiFrWb7h2hcjkkuKkjBU8NV49qth6UtnxuvtLHGouX
+         CYEtzkoomxRjjCB1H15Lz/H9zKqhT3GIM7wx5838wJshNKXquKrsEiiWGAjMUfPXCY
+         G/c2cCNyAbHsQ==
+Received: by mail.westfry.pl for <sparclinux@vger.kernel.org>; Tue,  7 Jun 2022 08:06:08 GMT
+Message-ID: <20220607084500-0.1.2y.9n6l.0.9n687b9pgc@westfry.pl>
+Date:   Tue,  7 Jun 2022 08:06:08 GMT
+From:   "Kamil Torek" <kamil.torek@westfry.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Zabezpieczenie prawne
+X-Mailer: mail.westfry.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-of_find_node_by_path() returns a node pointer with refcount incremented,
-we should use of_node_put() on it when not need anymore.
-Add missing of_node_put() to avoid refcount leak.
+Dzie=C5=84 dobry,
 
-Fixes: 85269eb5542b ("sparc64: Add JBUS UltraSPARC-IIIi support to memory controller driver.")
-Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
----
- arch/sparc/kernel/chmc.c | 1 +
- 1 file changed, 1 insertion(+)
+jako Kancelaria specjalizuj=C4=85ca si=C4=99 w prawie budowlanym minimali=
+zujemy ryzyko wynikaj=C4=85ce z podejmowanych przez przedsi=C4=99biorc=C3=
+=B3w realizacji budowlanych.
 
-diff --git a/arch/sparc/kernel/chmc.c b/arch/sparc/kernel/chmc.c
-index 6ff43df740e0..9cc1b92ffff9 100644
---- a/arch/sparc/kernel/chmc.c
-+++ b/arch/sparc/kernel/chmc.c
-@@ -409,6 +409,7 @@ static int jbusmc_probe(struct platform_device *op)
- 		goto out;
- 	}
- 	mem_regs = of_get_property(mem_node, "reg", &len);
-+	of_node_put(mem_node);
- 	if (!mem_regs) {
- 		printk(KERN_ERR PFX "Cannot get reg property of /memory node.\n");
- 		goto out;
--- 
-2.25.1
+Zapewniamy rzetelne podej=C5=9Bcie do ka=C5=BCdej sprawy zwi=C4=85zanej z=
+ prawem budowlanym, jak procesy inwestycyjne, prawo pracy, ustawy dewelop=
+erskie, prawo zwi=C4=85zane z nieruchomo=C5=9Bciami czy tworzenie i anali=
+za prawomocnych um=C3=B3w (np. umowy o roboty budowlane).
 
+Doradzamy przy wyborze najkorzystniejszej formy realizacji inwestycji, ne=
+gocjujemy najkorzystniejsze warunki kontrakt=C3=B3w zapis=C3=B3w, nadzoru=
+jemy wykonanie i rozliczamy inwestycj=C4=99 pod k=C4=85tem ewentualnych r=
+oszcze=C5=84 (lub obrony przed nimi).
+
+Czy mog=C4=99 przedstawi=C4=87 zakres naszego wsparcia dla Pa=C5=84stwa f=
+irmy?
+
+
+Z powa=C5=BCaniem
+Kamil Torek
