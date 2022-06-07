@@ -2,143 +2,109 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7AEDCCA473
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Jun 2022 20:59:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B464C433EF
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 03:34:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234249AbiFFU74 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Jun 2022 16:59:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41672 "EHLO
+        id S234078AbiFGDeM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Jun 2022 23:34:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230140AbiFFU7t (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 16:59:49 -0400
-Received: from mail-qk1-x732.google.com (mail-qk1-x732.google.com [IPv6:2607:f8b0:4864:20::732])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8CF469419D;
-        Mon,  6 Jun 2022 13:48:58 -0700 (PDT)
-Received: by mail-qk1-x732.google.com with SMTP id 68so3359620qkk.9;
-        Mon, 06 Jun 2022 13:48:58 -0700 (PDT)
+        with ESMTP id S235335AbiFGDeL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Jun 2022 23:34:11 -0400
+Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5807748888;
+        Mon,  6 Jun 2022 20:34:09 -0700 (PDT)
+Received: by mail-pj1-x1029.google.com with SMTP id k5-20020a17090a404500b001e8875e6242so3518112pjg.5;
+        Mon, 06 Jun 2022 20:34:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=g2dcvEx5ujIfq/vGwsQoEKMbkEYSqcC+pGjcA0dBu1c=;
-        b=f7b0v5dv8hmLnBlzL8WyYq5cOW64Y5WX7Dmpl69JKaPauL++ld78WKF8ntff7E3FD9
-         /EFPnKoGaHbNkPIgpiRh5FlgefHuwLc1yxNkOW+bHut9SVnVZCbu/JkykiPElo5zPWjp
-         nCuHLbsnuv21eFXD2iNnywm2Hbn427FK25GFy6T1JFuumczjXmgtp3nChf3HO/XhNBhM
-         NXjSU4JD0/Av3t8AAMTU1yL794U7NXS8pa6qxIcfy7ouTJCp/SF65MboQcoKMXA5+/fk
-         R0q5tIVK+/ksEV405xlxflOCs1qdnp/FFVTP6I8k8VtwErnFZfCokgUB0civbDGx+Ib2
-         7GIg==
+        h=from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=rENSrCziR776p1G0mR4wiqTt+86dBSxlCmvPvnvJHXU=;
+        b=hKweBMiCX47zGDlA0CzRo5RSdmoU6rANmAa+R0a7itzvm8ZrhNPqV1T85WYdbd1QY9
+         2GebmTBO7nbBldNXJBYCravnsb3Sw3qOgs73nNQ8YQeGg/OoPYhcnjsu5fLu7UyZyYrp
+         xFk4ejGoXenYLUO6qnJEGczLFzkX+MPnEjTgaCEeG/Qf6WVDM263zEWpVxIboLlcP4+t
+         H/xffJKGGbeEw+B2qVYgS7bs4gsJhWzLozATgZBvdj26BspcfxvcB7txCvBKqWtM8gyL
+         Na3FqKr8X2VSm9JHwxHwrIFqoPCvdoPoLm8bP3MzavuX9wymPSsqXnv6lkodUnRZJ2I0
+         dC6A==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=g2dcvEx5ujIfq/vGwsQoEKMbkEYSqcC+pGjcA0dBu1c=;
-        b=IT4u7CmoWi6HX3yhfCZqnTHklKmxYH70Mp+prygtX+X6iGXyqlLSeFvgwYgtWeyCIe
-         zukDYBHOhQpWQ1q4hlEkCBpFtMsevyKSdhfgx7Z+rthrdfpneV1EgNvq6t8I6Rgldw0i
-         jcclSJPD3P8m6fnA8vXzh3wBBCb1TJ6obXLFPH0KtRlEjFuc6gEJo5qI4Q0H6hCxpGTL
-         msZiPybmC9OmoG/4Ze8naFtdxZLmus0O6Ss3HsawvXDIX9t9LOKyQPjgY0S4qtLOT//E
-         cTkdZR/ZoWNoUrPTtdl0YBCwQJcifH8LmS00KuogVNBk0PGGz4c4JRxPrN6uVO7WeJus
-         b3pA==
-X-Gm-Message-State: AOAM5324/lN02Hp6ppOB50edRazNGpcO8OmeBT+t9dHI8l47wpIwyJVC
-        aez+24OtinCucnef5Re+mzw=
-X-Google-Smtp-Source: ABdhPJy6iWrSjhT1+WPfkKbI1gHvATNgUCtpwq8y3JhsiD76yT4Gvelb8RZZw4VB5N3/itiqM6ja8g==
-X-Received: by 2002:a05:620a:14ad:b0:6a6:b8ab:9c3f with SMTP id x13-20020a05620a14ad00b006a6b8ab9c3fmr5227234qkj.410.1654548537353;
-        Mon, 06 Jun 2022 13:48:57 -0700 (PDT)
-Received: from localhost ([2601:4c1:c100:1230:be9c:b2d9:3353:7a73])
-        by smtp.gmail.com with ESMTPSA id bm32-20020a05620a19a000b006a6d20386f6sm900223qkb.42.2022.06.06.13.48.56
+        h=x-gm-message-state:from:to:subject:date:message-id:mime-version
+         :content-transfer-encoding;
+        bh=rENSrCziR776p1G0mR4wiqTt+86dBSxlCmvPvnvJHXU=;
+        b=fbV4CrIZz6T13fozsOhieQubDLAYZLxIgpvhbAIMvnRT+0TAmMhzhV3KwIx+dfHOjj
+         bEtTxZX4ZMZ5Nb0TSyk30ah7Rh7CuVNofDIekJWE1lFMu68UiuCftKiSyBeN75JYgp5+
+         C5AFn0F3JCYpeDlwXJDqT9g4REYJEjKuv5q2fTwnUucmiSeY8+NNEsJiKNycSOnLCXcK
+         sTDsDc+hxHp2/Z9HSGkp0R/mzuKLqkGLFdum2MxVCMqQuKUCV7jraFf2SvsqjTSwRkZL
+         WM6JnDXMEEV4JhXIPz2NVZw3J/We77WBtgQxREayUFN2k1YlQTRgXTMdncGGhhTB9uFD
+         5tRQ==
+X-Gm-Message-State: AOAM532eCaH064o3jzOfx86FhSArgSV0dHpegmw2JDOA20tw6+z9/iRI
+        rca2zRS4GVVIp2nag+uMkhw=
+X-Google-Smtp-Source: ABdhPJy8Zctyu0TzP8b6r7G2jJ5NGsZfHC0rsMLJyQf47TRZ4V8OqzmtwSWLvX5u+pOS03fIIwE+AA==
+X-Received: by 2002:a17:902:b949:b0:167:6548:2d93 with SMTP id h9-20020a170902b94900b0016765482d93mr14310735pls.131.1654572848822;
+        Mon, 06 Jun 2022 20:34:08 -0700 (PDT)
+Received: from localhost.localdomain ([202.120.234.246])
+        by smtp.googlemail.com with ESMTPSA id l24-20020a17090ac59800b001e25e3ba05csm16700350pjt.2.2022.06.06.20.34.05
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 06 Jun 2022 13:48:56 -0700 (PDT)
-Date:   Mon, 6 Jun 2022 13:48:50 -0700
-From:   Yury Norov <yury.norov@gmail.com>
-To:     Alexander Lobakin <alexandr.lobakin@intel.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 4/6] bitops: unify non-atomic bitops prototypes across
- architectures
-Message-ID: <Yp5oMmzNlq+Ut4So@yury-laptop>
-References: <20220606114908.962562-1-alexandr.lobakin@intel.com>
- <20220606114908.962562-5-alexandr.lobakin@intel.com>
+        Mon, 06 Jun 2022 20:34:08 -0700 (PDT)
+From:   Miaoqian Lin <linmq006@gmail.com>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Miaoqian Lin <linmq006@gmail.com>, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] sparc: Fix reference leak in scan_of_devices
+Date:   Tue,  7 Jun 2022 07:32:58 +0400
+Message-Id: <20220607033306.688-1-linmq006@gmail.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220606114908.962562-5-alexandr.lobakin@intel.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jun 06, 2022 at 01:49:05PM +0200, Alexander Lobakin wrote:
-> Currently, there is a mess with the prototypes of the non-atomic
-> bitops across the different architectures:
-> 
-> ret	bool, int, unsigned long
-> nr	int, long, unsigned int, unsigned long
-> addr	volatile unsigned long *, volatile void *
-> 
-> Thankfully, it doesn't provoke any bugs, but can sometimes make
-> the compiler angry when it's not handy at all.
-> Adjust all the prototypes to the following standard:
-> 
-> ret	bool				retval can be only 0 or 1
-> nr	unsigned long			native; signed makes no sense
-> addr	volatile unsigned long *	bitmaps are arrays of ulongs
-> 
-> Finally, add some static assertions in order to prevent people from
-> making a mess in this room again.
-> I also used the %__always_inline attribute consistently they always
-> get resolved to the actual operations.
-> 
-> Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-> ---
+of_find_node_by_path() returns a node pointer with
+refcount incremented, we should use of_node_put() on it when not need
+anymore.
+Add missing of_node_put() to avoid refcount leak.
 
-Reviewed-by: Yury Norov <yury.norov@gmail.com>
+Fixes: cf44bbc26cf1 ("[SPARC]: Beginnings of generic of_device framework.")
+Signed-off-by: Miaoqian Lin <linmq006@gmail.com>
+---
+ arch/sparc/kernel/of_device_32.c | 4 +++-
+ arch/sparc/kernel/of_device_64.c | 4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-[...]
+diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
+index 4ebf51e6e78e..020b1c023d75 100644
+--- a/arch/sparc/kernel/of_device_32.c
++++ b/arch/sparc/kernel/of_device_32.c
+@@ -412,8 +412,10 @@ static int __init scan_of_devices(void)
+ 	struct platform_device *parent;
+ 
+ 	parent = scan_one_device(root, NULL);
+-	if (!parent)
++	if (!parent) {
++		of_node_put(root);
+ 		return 0;
++	}
+ 
+ 	scan_tree(root->child, &parent->dev);
+ 	return 0;
+diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
+index 5a9f86b1d4e7..f044b4c1975b 100644
+--- a/arch/sparc/kernel/of_device_64.c
++++ b/arch/sparc/kernel/of_device_64.c
+@@ -705,8 +705,10 @@ static int __init scan_of_devices(void)
+ 	struct platform_device *parent;
+ 
+ 	parent = scan_one_device(root, NULL);
+-	if (!parent)
++	if (!parent) {
++		of_node_put(root);
+ 		return 0;
++	}
+ 
+ 	scan_tree(root->child, &parent->dev);
+ 	return 0;
+-- 
+2.25.1
 
-> diff --git a/include/linux/bitops.h b/include/linux/bitops.h
-> index 7aaed501f768..5520ac9b1c24 100644
-> --- a/include/linux/bitops.h
-> +++ b/include/linux/bitops.h
-> @@ -26,12 +26,25 @@ extern unsigned int __sw_hweight16(unsigned int w);
->  extern unsigned int __sw_hweight32(unsigned int w);
->  extern unsigned long __sw_hweight64(__u64 w);
->  
-> +#include <asm-generic/bitops/generic-non-atomic.h>
-> +
->  /*
->   * Include this here because some architectures need generic_ffs/fls in
->   * scope
->   */
->  #include <asm/bitops.h>
->  
-> +/* Check that the bitops prototypes are sane */
-> +#define __check_bitop_pr(name)	static_assert(__same_type(name, gen_##name))
-> +__check_bitop_pr(__set_bit);
-> +__check_bitop_pr(__clear_bit);
-> +__check_bitop_pr(__change_bit);
-> +__check_bitop_pr(__test_and_set_bit);
-> +__check_bitop_pr(__test_and_clear_bit);
-> +__check_bitop_pr(__test_and_change_bit);
-> +__check_bitop_pr(test_bit);
-> +#undef __check_bitop_pr
-
-This one is amazing trick! And the series is good overall. Do you want me to
-take it in bitmap tree, when it's ready, or you'll move it somehow else?
-
-Thanks,
-Yury
