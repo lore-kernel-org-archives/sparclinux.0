@@ -2,54 +2,60 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55183CCA484
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 11:11:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A777CCA47F
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 12:46:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242505AbiFGLLZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Jun 2022 07:11:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34172 "EHLO
+        id S244126AbiFGMp5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Jun 2022 08:45:57 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60242 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242887AbiFGLKS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Jun 2022 07:10:18 -0400
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD09B2D1E1;
-        Tue,  7 Jun 2022 04:08:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1654600093; x=1686136093;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=LehJpdli2K1kf6xsEwsX5oR/25DuYLSpUF31DPXQGNU=;
-  b=Hxe0iItbIGbxHeLqEenzuHtMgUYwsX+vSY59uBIU2y6sY/JpwJetD+rF
-   lnOXsnA99+RuqBeQLIao9cJXcDDKF4CyLphIbQl+Jej7/zLBlsB2j48Pm
-   lodzC+HOWaNSB4ZPb7ZWsRBUIe6hBndIq4CY+UFolzmyMWdSEZIWBMuwO
-   ZmVe0u1Ypueglv72qyh4a8FEI6O6fhFMuD35ZA1EnEPIPW7Vxrq7nmQ1W
-   FKLybDrCUmw3Od5F8WU+Z2FupIJEgMN7/yVfE6075VL6+u80rmvzVdGYj
-   p+CtZGTYWn5LZnix4t8iiXgEnbzgZiOQb0lhphZkR+zAdwI7G/RSyvXpn
-   w==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="276758945"
-X-IronPort-AV: E=Sophos;i="5.91,283,1647327600"; 
-   d="scan'208";a="276758945"
-Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2022 04:08:13 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,283,1647327600"; 
-   d="scan'208";a="584155731"
-Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by fmsmga007.fm.intel.com with ESMTP; 07 Jun 2022 04:08:08 -0700
-Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 257B86Ft021369;
-        Tue, 7 Jun 2022 12:08:06 +0100
-From:   Alexander Lobakin <alexandr.lobakin@intel.com>
-To:     Mark Rutland <mark.rutland@arm.com>
-Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
+        with ESMTP id S234029AbiFGMp4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Jun 2022 08:45:56 -0400
+Received: from mail-qt1-f172.google.com (mail-qt1-f172.google.com [209.85.160.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D0615BA57E;
+        Tue,  7 Jun 2022 05:45:55 -0700 (PDT)
+Received: by mail-qt1-f172.google.com with SMTP id x18so9622340qtj.3;
+        Tue, 07 Jun 2022 05:45:55 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=i2nmQNF/3gAoxeluRHoOdJNgK2z7f54HL004Ai8ZD6Y=;
+        b=nvlJP35dK6fzVenTGcn5fVTQPiAxqhAAmQjlM5E/aWtjtLDcdd32/CbcoXXGh2Svze
+         en3BlAJ68ijudKmGO9563/qfoJ3VgHpQPFr8KDh6jQQTnNDzoCnt1IRHVW5WCONOfGiF
+         36uA0AOE/ejN/5h3aTdq1HnFG0EaOq753a6FiiMbHduhNN78GJbP44zgdANCi/rnu3QW
+         6xNiL/uvcBuw+InFTRJsAJJdvfhraWfSOGx9hBIn0CgUwRuVx7ain0i0ro6M+0mQ+I6O
+         k55guthODwTO1s0c9WaWb9tRgK07gXqYsZ7fHQU+6ZsrIatM1KtsfPVzKGPD9BbqkKBE
+         goLQ==
+X-Gm-Message-State: AOAM53044sEYoZKmbZpplYoEh5ZD9tMP5CGy0gQht+HwmCwfdsYPKj8A
+        j6mbxrrfK42gy30nTo0jI9DPn7b1Af74CA==
+X-Google-Smtp-Source: ABdhPJwoUJONUmH15CvGDJ4nIRps/19uCnej5aHaxDnPaNbFotnN+olD5r1Cb/QjRlOcPV7PgQczXw==
+X-Received: by 2002:ac8:7d4b:0:b0:2f3:e185:efd4 with SMTP id h11-20020ac87d4b000000b002f3e185efd4mr22271585qtb.392.1654605954579;
+        Tue, 07 Jun 2022 05:45:54 -0700 (PDT)
+Received: from mail-yw1-f181.google.com (mail-yw1-f181.google.com. [209.85.128.181])
+        by smtp.gmail.com with ESMTPSA id i16-20020ac87650000000b00304e688189fsm5890153qtr.37.2022.06.07.05.45.53
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 07 Jun 2022 05:45:53 -0700 (PDT)
+Received: by mail-yw1-f181.google.com with SMTP id 00721157ae682-300628e76f3so173779607b3.12;
+        Tue, 07 Jun 2022 05:45:53 -0700 (PDT)
+X-Received: by 2002:a81:4811:0:b0:30c:8021:4690 with SMTP id
+ v17-20020a814811000000b0030c80214690mr31329554ywa.47.1654605952647; Tue, 07
+ Jun 2022 05:45:52 -0700 (PDT)
+MIME-Version: 1.0
+References: <20220606114908.962562-1-alexandr.lobakin@intel.com>
+In-Reply-To: <20220606114908.962562-1-alexandr.lobakin@intel.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Tue, 7 Jun 2022 14:45:41 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdXR0Nu+RENB8rFnJFiW=T0P7Kq_XAG7t1MF=fdyD6pUGw@mail.gmail.com>
+Message-ID: <CAMuHMdXR0Nu+RENB8rFnJFiW=T0P7Kq_XAG7t1MF=fdyD6pUGw@mail.gmail.com>
+Subject: Re: [PATCH 0/6] bitops: let optimize out non-atomic bitops on
+ compile-time constants
+To:     Alexander Lobakin <alexandr.lobakin@intel.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Richard Henderson <rth@twiddle.net>,
         Matt Turner <mattst88@gmail.com>,
         Brian Cain <bcain@quicinc.com>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -57,74 +63,105 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         "Peter Zijlstra (Intel)" <peterz@infradead.org>,
         Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
         Tony Luck <tony.luck@intel.com>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/6] bitops: wrap non-atomic bitops with a transparent macro
-Date:   Tue,  7 Jun 2022 13:07:05 +0200
-Message-Id: <20220607110705.72887-1-alexandr.lobakin@intel.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220607105718.72434-1-alexandr.lobakin@intel.com>
-References: <20220606114908.962562-1-alexandr.lobakin@intel.com> <20220606114908.962562-6-alexandr.lobakin@intel.com> <Yp4q5KlIxmlznvuh@FVFF77S0Q05N.cambridge.arm.com> <20220607105718.72434-1-alexandr.lobakin@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        alpha <linux-alpha@vger.kernel.org>,
+        "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>,
+        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
+        linux-m68k <linux-m68k@lists.linux-m68k.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Alexander Lobakin <alexandr.lobakin@intel.com>
-Date: Tue, 7 Jun 2022 12:57:18 +0200
+Hi Alexander,
 
-> From: Mark Rutland <mark.rutland@arm.com>
-> Date: Mon, 6 Jun 2022 17:27:16 +0100
-> 
-> > On Mon, Jun 06, 2022 at 01:49:06PM +0200, Alexander Lobakin wrote:
-> > > In preparation for altering the non-atomic bitops with a macro, wrap
-> > > them in a transparent definition. This requires prepending one more
-> > > '_' to their names in order to be able to do that seamlessly.
-> > > sparc32 already has the triple-underscored functions, so I had to
-> > > rename them ('___' -> 'sp32_').
-> > 
-> > Could we use an 'arch_' prefix here, like we do for the atomics, or is that
-> > already overloaded?
-> 
-> Yeah it is, for example, x86 has 'arch_' functions defined in its
-> architecture headers[0] and at the same time uses generic
-> instrumented '__' helpers[1], so on x86 both underscored and 'arch_'
-> are defined and they are not the same.
+On Mon, Jun 6, 2022 at 1:50 PM Alexander Lobakin
+<alexandr.lobakin@intel.com> wrote:
+> While I was working on converting some structure fields from a fixed
+> type to a bitmap, I started observing code size increase not only in
+> places where the code works with the converted structure fields, but
+> also where the converted vars were on the stack. That said, the
+> following code:
+>
+>         DECLARE_BITMAP(foo, BITS_PER_LONG) = { }; // -> unsigned long foo[1];
+>         unsigned long bar = BIT(BAR_BIT);
+>         unsigned long baz = 0;
+>
+>         __set_bit(FOO_BIT, foo);
+>         baz |= BIT(BAZ_BIT);
+>
+>         BUILD_BUG_ON(!__builtin_constant_p(test_bit(FOO_BIT, foo));
+>         BUILD_BUG_ON(!__builtin_constant_p(bar & BAR_BIT));
+>         BUILD_BUG_ON(!__builtin_constant_p(baz & BAZ_BIT));
+>
+> triggers the first assertion on x86_64, which means that the
+> compiler is unable to evaluate it to a compile-time initializer
+> when the architecture-specific bitop is used even if it's obvious.
+> I found that this is due to that many architecture-specific
+> non-atomic bitop implementations use inline asm or other hacks which
+> are faster or more robust when working with "real" variables (i.e.
+> fields from the structures etc.), but the compilers have no clue how
+> to optimize them out when called on compile-time constants.
+>
+> So, in order to let the compiler optimize out such cases, expand the
+> test_bit() and __*_bit() definitions with a compile-time condition
+> check, so that they will pick the generic C non-atomic bitop
+> implementations when all of the arguments passed are compile-time
+> constants, which means that the result will be a compile-time
+> constant as well and the compiler will produce more efficient and
+> simple code in 100% cases (no changes when there's at least one
+> non-compile-time-constant argument).
+> The condition itself:
+>
+> if (
+> __builtin_constant_p(nr) &&     /* <- bit position is constant */
+> __builtin_constant_p(!!addr) && /* <- compiler knows bitmap addr is
+>                                       always either NULL or not */
+> addr &&                         /* <- bitmap addr is not NULL */
+> __builtin_constant_p(*addr)     /* <- compiler knows the value of
+>                                       the target bitmap */
+> )
+>         /* then pick the generic C variant
+> else
+>         /* old code path, arch-specific
+>
+> I also tried __is_constexpr() as suggested by Andy, but it was
+> always returning 0 ('not a constant') for the 2,3 and 4th
+> conditions.
+>
+> The savings on x86_64 with LLVM are insane (.text):
+>
+> $ scripts/bloat-o-meter -c vmlinux.{base,test}
+> add/remove: 72/75 grow/shrink: 182/518 up/down: 53925/-137810 (-83885)
+>
+> $ scripts/bloat-o-meter -c vmlinux.{base,mod}
+> add/remove: 7/1 grow/shrink: 1/19 up/down: 1135/-4082 (-2947)
+>
+> $ scripts/bloat-o-meter -c vmlinux.{base,all}
+> add/remove: 79/76 grow/shrink: 184/537 up/down: 55076/-141892 (-86816)
 
-Oh well, forgot to attach the links. Can be found at the bottom of
-this mail.
+Thank you!
 
-> Same with those sparc32 triple-underscored, sparc32 at the same time
-> uses generic non-instrumented, so it has underscored, 'arch_' and
-> triple-underscored.
-> 
-> In general, bitops are overloaded with tons of prefixes already :)
-> I'm not really glad that I introduced one more level, but not that
-> we have many options here.
-> 
-> > 
-> > Thanks,
-> > Mark.
-> > 
-> > > 
-> > > Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-> > > ---
-> 
-> [...]
-> 
-> > > -- 
-> > > 2.36.1
-> 
-> Thanks,
-> Olek
+I gave it a try on m68k, and am a bit disappointed seeing an increase
+in code size:
 
-[0] https://elixir.bootlin.com/linux/v5.19-rc1/source/arch/x86/include/asm/bitops.h#L136
-[1] https://elixir.bootlin.com/linux/v5.19-rc1/source/include/asm-generic/bitops/instrumented-non-atomic.h#L93
+    add/remove: 49/13 grow/shrink: 279/138 up/down: 6434/-3342 (3092)
 
-Thanks,
-Olek
+This is atari_defconfig on a tree based on v5.19-rc1, with
+m68k-linux-gnu-gcc (Ubuntu 9.4.0-1ubuntu1~20.04) 9.4.0, GNU ld (GNU
+Binutils for Ubuntu) 2.34).
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
