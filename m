@@ -2,63 +2,116 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 48A22C433EF
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 08:15:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A815FCCA482
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Jun 2022 11:01:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234715AbiFGIP6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Jun 2022 04:15:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36700 "EHLO
+        id S242338AbiFGLBd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Jun 2022 07:01:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48254 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232078AbiFGIP6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Jun 2022 04:15:58 -0400
-X-Greylist: delayed 557 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 07 Jun 2022 01:15:56 PDT
-Received: from mail.westfry.pl (mail.westfry.pl [37.235.53.118])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE856CEB84
-        for <sparclinux@vger.kernel.org>; Tue,  7 Jun 2022 01:15:56 -0700 (PDT)
-Received: by mail.westfry.pl (Postfix, from userid 1001)
-        id AFBC24173E; Tue,  7 Jun 2022 10:06:09 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=westfry.pl; s=mail;
-        t=1654589173; bh=EtF+nCh55wqMJxxxoUxVlnM4mMblZyUsAf5+QjAo6CE=;
-        h=Date:From:To:Subject:From;
-        b=WaPT5YcGXWSOBVzcvMjwH1O2YX1HmJgIXkJp1+cBeuN0lwKxAUOv+RvMZj5IJMqA0
-         lBXKlmGzChNgX+SSOxr3bfZa52CKS0i8RwwndeLasg7cW8DLJZ28DUX7GemhmgGSLi
-         LLTfCny0hUBEialgR8kEKPsBc3K0kTo/TGbrWbifiUS8Fu/9xYKGLMtFIBOd70L/EN
-         x6ll1aerFSfBUxi9Wcgv+VweFiFrWb7h2hcjkkuKkjBU8NV49qth6UtnxuvtLHGouX
-         CYEtzkoomxRjjCB1H15Lz/H9zKqhT3GIM7wx5838wJshNKXquKrsEiiWGAjMUfPXCY
-         G/c2cCNyAbHsQ==
-Received: by mail.westfry.pl for <sparclinux@vger.kernel.org>; Tue,  7 Jun 2022 08:06:08 GMT
-Message-ID: <20220607084500-0.1.2y.9n6l.0.9n687b9pgc@westfry.pl>
-Date:   Tue,  7 Jun 2022 08:06:08 GMT
-From:   "Kamil Torek" <kamil.torek@westfry.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Zabezpieczenie prawne
-X-Mailer: mail.westfry.pl
+        with ESMTP id S242611AbiFGLAY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Jun 2022 07:00:24 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4519831224;
+        Tue,  7 Jun 2022 03:58:23 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1654599503; x=1686135503;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=xf+xgYb0NBQxQ+h8wlDbNS86vV9+HUcg11x5pXMRmAQ=;
+  b=R2doGKjQuidWS+kP8eBepGTA0o9o2t3YZ1d7pIhaFSvt+amH2modQtqO
+   8OXFpDR1Z0iyOCd16iZiqBN0B3rqGDTOVsbechc0N7hrbOxTNobw4TjlR
+   mZnUK96IULjtFZscvt4FX/X7NxFu+6UeSj9yRomviIhVU79qUDGgV3pzV
+   nM2ANswMciiasZldd+Q0ziDOPbh84MQx9RfZhl8JeFTZ0b0mgNRSS/zkq
+   IvlAXc4Bmpx7shijjRfhE/f94CLJ95gH7ghQNxVijNeDlD2LDB0N5SzXH
+   RlNIwSHZaIpfnei5qaSSy5sA3JElSl0AOm8f6cxPa6PxvWRnQ71S6xloD
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10370"; a="265083760"
+X-IronPort-AV: E=Sophos;i="5.91,283,1647327600"; 
+   d="scan'208";a="265083760"
+Received: from orsmga001.jf.intel.com ([10.7.209.18])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Jun 2022 03:58:22 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,283,1647327600"; 
+   d="scan'208";a="614868186"
+Received: from irvmail001.ir.intel.com ([10.43.11.63])
+  by orsmga001.jf.intel.com with ESMTP; 07 Jun 2022 03:58:16 -0700
+Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 257AwEl8019500;
+        Tue, 7 Jun 2022 11:58:14 +0100
+From:   Alexander Lobakin <alexandr.lobakin@intel.com>
+To:     Mark Rutland <mark.rutland@arm.com>
+Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Yury Norov <yury.norov@gmail.com>,
+        "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
+        Richard Henderson <rth@twiddle.net>,
+        Matt Turner <mattst88@gmail.com>,
+        Brian Cain <bcain@quicinc.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        "Yoshinori Sato" <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Kees Cook <keescook@chromium.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
+        Tony Luck <tony.luck@intel.com>,
+        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 5/6] bitops: wrap non-atomic bitops with a transparent macro
+Date:   Tue,  7 Jun 2022 12:57:18 +0200
+Message-Id: <20220607105718.72434-1-alexandr.lobakin@intel.com>
+X-Mailer: git-send-email 2.36.1
+In-Reply-To: <Yp4q5KlIxmlznvuh@FVFF77S0Q05N.cambridge.arm.com>
+References: <20220606114908.962562-1-alexandr.lobakin@intel.com> <20220606114908.962562-6-alexandr.lobakin@intel.com> <Yp4q5KlIxmlznvuh@FVFF77S0Q05N.cambridge.arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+From: Mark Rutland <mark.rutland@arm.com>
+Date: Mon, 6 Jun 2022 17:27:16 +0100
 
-jako Kancelaria specjalizuj=C4=85ca si=C4=99 w prawie budowlanym minimali=
-zujemy ryzyko wynikaj=C4=85ce z podejmowanych przez przedsi=C4=99biorc=C3=
-=B3w realizacji budowlanych.
+> On Mon, Jun 06, 2022 at 01:49:06PM +0200, Alexander Lobakin wrote:
+> > In preparation for altering the non-atomic bitops with a macro, wrap
+> > them in a transparent definition. This requires prepending one more
+> > '_' to their names in order to be able to do that seamlessly.
+> > sparc32 already has the triple-underscored functions, so I had to
+> > rename them ('___' -> 'sp32_').
+> 
+> Could we use an 'arch_' prefix here, like we do for the atomics, or is that
+> already overloaded?
 
-Zapewniamy rzetelne podej=C5=9Bcie do ka=C5=BCdej sprawy zwi=C4=85zanej z=
- prawem budowlanym, jak procesy inwestycyjne, prawo pracy, ustawy dewelop=
-erskie, prawo zwi=C4=85zane z nieruchomo=C5=9Bciami czy tworzenie i anali=
-za prawomocnych um=C3=B3w (np. umowy o roboty budowlane).
+Yeah it is, for example, x86 has 'arch_' functions defined in its
+architecture headers[0] and at the same time uses generic
+instrumented '__' helpers[1], so on x86 both underscored and 'arch_'
+are defined and they are not the same.
+Same with those sparc32 triple-underscored, sparc32 at the same time
+uses generic non-instrumented, so it has underscored, 'arch_' and
+triple-underscored.
 
-Doradzamy przy wyborze najkorzystniejszej formy realizacji inwestycji, ne=
-gocjujemy najkorzystniejsze warunki kontrakt=C3=B3w zapis=C3=B3w, nadzoru=
-jemy wykonanie i rozliczamy inwestycj=C4=99 pod k=C4=85tem ewentualnych r=
-oszcze=C5=84 (lub obrony przed nimi).
+In general, bitops are overloaded with tons of prefixes already :)
+I'm not really glad that I introduced one more level, but not that
+we have many options here.
 
-Czy mog=C4=99 przedstawi=C4=87 zakres naszego wsparcia dla Pa=C5=84stwa f=
-irmy?
+> 
+> Thanks,
+> Mark.
+> 
+> > 
+> > Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
+> > ---
 
+[...]
 
-Z powa=C5=BCaniem
-Kamil Torek
+> > -- 
+> > 2.36.1
+
+Thanks,
+Olek
