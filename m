@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 926DBCCA47E
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27F0ACCA485
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242708AbiFHOto (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:49:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56892 "EHLO
+        id S242782AbiFHOtq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:49:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57998 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242186AbiFHOq7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Jun 2022 10:46:59 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABAD9253307;
-        Wed,  8 Jun 2022 07:46:51 -0700 (PDT)
+        with ESMTP id S242391AbiFHOrJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Jun 2022 10:47:09 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D5AE1E7AF5;
+        Wed,  8 Jun 2022 07:46:56 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=fn1U7MEbZz2QK5hbMetRGs1LaJ4dLQ5TDl+y9fGIqjs=; b=AHoLDlFIJpM2yJSN34mWYuYDyZ
-        RrXBAbCHcbiLETtqHyostv6hzGyHst5r7VORCZGrERmGvvRqMr2NwXjLQsK1TYGzVvVJBLCgsCf3j
-        LieJtCZHAdjEyntbLFkbTU93xwC08IjFigevejKo+3rMPJ833Xxh7xrrmgzcKasuf6t3frm6PkmxU
-        vZovY0XqO2YqPGD7SFjfk9rslAidePmYi7ReTaMHUlcVRH/amspREeDyWUmyOeqnEP6bQYjeAjWHS
-        JBInW3LvF6tscP+ZjodqILQopYhhA13ptDRMV4kNqtb9FKzkYAPZG/ay8CNlYM5sVD+3xA6vTTC0E
-        vR1dCMqg==;
+        bh=OtI5HbrqLesCtm4u4WFjeviiqkcvkrIAtN470m5UDAY=; b=XbDSSCT7V6qaOXqltSIPK3imnd
+        T9/IFn1KLJ6JB3ImVabgJhwFvKrYTBhKuyguAQ6iGw1EeJTpwNd8N7rA4xWz/hUczSnc5EesNhOw2
+        wKenGxdjyHq0fAT6LH91zIlM1GdMqcjImkgIDaRRJrutIuK5hMomi1iGDTFrhOAm1vwRIEzZQO8EE
+        jwqwh1czYumTsOS41/0gqa/Jj9RlSk2bFJ2YA8sKULBoUftX/7ZAYTIeoLrmoAlNfBs8iXHE4Ej+E
+        ifixBb2EMP2XraY3Gi8r7ZH9u5Pju5/ytG4KNgqVDZLlED6J80hizKXGgJ4MpqMJwxA8aGEVN3stH
+        Plcp++VQ==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywwz-0066Bh-PG; Wed, 08 Jun 2022 14:46:26 +0000
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywx5-00ChZ6-58; Wed, 08 Jun 2022 14:46:31 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 03F4C302E49;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D5A2C302F42;
         Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 75C7720C10EAF; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144516.871305980@infradead.org>
+        id B77DB20C119AE; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144517.885263942@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:38 +0200
+Date:   Wed, 08 Jun 2022 16:27:54 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -98,7 +98,7 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: [PATCH 15/36] cpuidle,cpu_pm: Remove RCU fiddling from cpu_pm_{enter,exit}()
+Subject: [PATCH 31/36] cpuidle,acpi: Make noinstr clean
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -106,43 +106,59 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-All callers should still have RCU enabled.
+vmlinux.o: warning: objtool: io_idle+0xc: call to __inb.isra.0() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_idle_enter+0xfe: call to num_online_cpus() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_idle_enter+0x115: call to acpi_idle_fallback_to_c1.isra.0() leaves .noinstr.text section
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- kernel/cpu_pm.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ arch/x86/include/asm/shared/io.h |    4 ++--
+ drivers/acpi/processor_idle.c    |    2 +-
+ include/linux/cpumask.h          |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/kernel/cpu_pm.c
-+++ b/kernel/cpu_pm.c
-@@ -30,16 +30,9 @@ static int cpu_pm_notify(enum cpu_pm_eve
+--- a/arch/x86/include/asm/shared/io.h
++++ b/arch/x86/include/asm/shared/io.h
+@@ -5,13 +5,13 @@
+ #include <linux/types.h>
+ 
+ #define BUILDIO(bwl, bw, type)						\
+-static inline void __out##bwl(type value, u16 port)			\
++static __always_inline void __out##bwl(type value, u16 port)		\
+ {									\
+ 	asm volatile("out" #bwl " %" #bw "0, %w1"			\
+ 		     : : "a"(value), "Nd"(port));			\
+ }									\
+ 									\
+-static inline type __in##bwl(u16 port)					\
++static __always_inline type __in##bwl(u16 port)				\
+ {									\
+ 	type value;							\
+ 	asm volatile("in" #bwl " %w1, %" #bw "0"			\
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -593,7 +593,7 @@ static int acpi_idle_play_dead(struct cp
+ 	return 0;
+ }
+ 
+-static bool acpi_idle_fallback_to_c1(struct acpi_processor *pr)
++static __always_inline bool acpi_idle_fallback_to_c1(struct acpi_processor *pr)
  {
- 	int ret;
- 
--	/*
--	 * This introduces a RCU read critical section, which could be
--	 * disfunctional in cpu idle. Copy RCU_NONIDLE code to let RCU know
--	 * this.
--	 */
--	rcu_irq_enter_irqson();
- 	rcu_read_lock();
- 	ret = raw_notifier_call_chain(&cpu_pm_notifier.chain, event, NULL);
- 	rcu_read_unlock();
--	rcu_irq_exit_irqson();
- 
- 	return notifier_to_errno(ret);
+ 	return IS_ENABLED(CONFIG_HOTPLUG_CPU) && !pr->flags.has_cst &&
+ 		!(acpi_gbl_FADT.flags & ACPI_FADT_C2_MP_SUPPORTED);
+--- a/include/linux/cpumask.h
++++ b/include/linux/cpumask.h
+@@ -908,9 +908,9 @@ static inline const struct cpumask *get_
+  * concurrent CPU hotplug operations unless invoked from a cpuhp_lock held
+  * region.
+  */
+-static inline unsigned int num_online_cpus(void)
++static __always_inline unsigned int num_online_cpus(void)
+ {
+-	return atomic_read(&__num_online_cpus);
++	return arch_atomic_read(&__num_online_cpus);
  }
-@@ -49,11 +42,9 @@ static int cpu_pm_notify_robust(enum cpu
- 	unsigned long flags;
- 	int ret;
- 
--	rcu_irq_enter_irqson();
- 	raw_spin_lock_irqsave(&cpu_pm_notifier.lock, flags);
- 	ret = raw_notifier_call_chain_robust(&cpu_pm_notifier.chain, event_up, event_down, NULL);
- 	raw_spin_unlock_irqrestore(&cpu_pm_notifier.lock, flags);
--	rcu_irq_exit_irqson();
- 
- 	return notifier_to_errno(ret);
- }
+ #define num_possible_cpus()	cpumask_weight(cpu_possible_mask)
+ #define num_present_cpus()	cpumask_weight(cpu_present_mask)
 
 
