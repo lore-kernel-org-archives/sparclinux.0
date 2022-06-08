@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B62ACCA47E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55C5ECCA47B
 	for <sparclinux@archiver.kernel.org>; Wed,  8 Jun 2022 14:50:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243484AbiFHOuC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        id S243473AbiFHOuC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
         Wed, 8 Jun 2022 10:50:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57950 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242354AbiFHOrI (ORCPT
+        with ESMTP id S242373AbiFHOrI (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Jun 2022 10:47:08 -0400
 Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894BE254EE8;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E9F877355A;
         Wed,  8 Jun 2022 07:46:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=Ae56F2/vHSxAMY+0KpLDtlvNNteu31Pblave+ocppBw=; b=K8Ynm/svRXkkOXUoDfBvEs9ZFK
-        qWXYZy+/5CqUIjZ31FPJ7xPNOIntKDH8NSfrS8D9IkyLAoFrHvJMHJIL/IcnOIM7nqISgd0gcoDeE
-        M8QwoOkYRBsSJ6LT9EQT7VUIsk+Z6r7wIXAFTOjV+qSGSdym/gNXacQGPlu5y6oCjnxUFjzOxnG6i
-        Qnh3s+Cj3bWdVkKJ0fKWJQJeEH2PS1tbGo8HnFfis2/BavxNxwTBZTq7iTayiBsKwAc/kQ4fijj9Z
-        RSxzjU7orl0A9t/vtgrMCy+RX4IT1VlY5omzQIH8HgAO6TFwqNP7RiyW7pf7sKmhryRMbaaQJQ5W8
-        0pAFiEvA==;
+        bh=rYkYazBjkfDgerhAXoQmSQo0bqbhUZdR/pxZJBUI/ng=; b=nmXPoFzc2hoRH/aZzGZwxbL6ih
+        QOzp1wQ6KxMGVHXhGgS+Tu4tqyxzKTWno8sdLo0bpELK18rfH5Tvyno7jwEd6VNKUl7gc1nrOXUny
+        CzcFC+xxtM8v9Xg/uv2VMV+iYs4eZYCk07WwNzCF08dBz4xoqs4iZF7hBl03KcldtkkiyZz1D7T4e
+        SWf0JAjVwnboU8HLTrnxk1vFGM6U/05C8SoxMoha5mwluvlz9jO0/Ew558qETJrzwkxq4EeB8rpeL
+        C9j/TTZhYi2xqJaOQHwVo37pWYwrqziAotm34Y3PSXTKOkyX5w5/95TiNIGYWZ/2GzhpYqpO9mxGM
+        NOvX2Ccw==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
         by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywwz-0066Bj-P8; Wed, 08 Jun 2022 14:46:26 +0000
+        id 1nywx4-0066DA-OI; Wed, 08 Jun 2022 14:46:32 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 1B7B2302E50;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D589F302F41;
         Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 7A4C620C10EC5; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144516.935970247@infradead.org>
+        id B3C6F20C119AC; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144517.822208471@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:39 +0200
+Date:   Wed, 08 Jun 2022 16:27:53 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -98,7 +98,7 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org
-Subject: [PATCH 16/36] rcu: Fix rcu_idle_exit()
+Subject: [PATCH 30/36] cpuidle,nospec: Make noinstr clean
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -106,44 +106,27 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Current rcu_idle_exit() is terminally broken because it uses
-local_irq_{save,restore}(), which are traced which uses RCU.
-
-However, now that all the callers are sure to have IRQs disabled, we
-can remove these calls.
+vmlinux.o: warning: objtool: mwait_idle+0x47: call to mds_idle_clear_cpu_buffers() leaves .noinstr.text section
+vmlinux.o: warning: objtool: acpi_processor_ffh_cstate_enter+0xa2: call to mds_idle_clear_cpu_buffers() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle+0x91: call to mds_idle_clear_cpu_buffers() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_s2idle+0x8c: call to mds_idle_clear_cpu_buffers() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_irq+0xaa: call to mds_idle_clear_cpu_buffers() leaves .noinstr.text section
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
 ---
- kernel/rcu/tree.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/nospec-branch.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/rcu/tree.c
-+++ b/kernel/rcu/tree.c
-@@ -659,7 +659,7 @@ static noinstr void rcu_eqs_enter(bool u
-  * If you add or remove a call to rcu_idle_enter(), be sure to test with
-  * CONFIG_RCU_EQS_DEBUG=y.
+--- a/arch/x86/include/asm/nospec-branch.h
++++ b/arch/x86/include/asm/nospec-branch.h
+@@ -310,7 +310,7 @@ static __always_inline void mds_user_cle
+  *
+  * Clear CPU buffers if the corresponding static key is enabled
   */
--void rcu_idle_enter(void)
-+void noinstr rcu_idle_enter(void)
+-static inline void mds_idle_clear_cpu_buffers(void)
++static __always_inline void mds_idle_clear_cpu_buffers(void)
  {
- 	lockdep_assert_irqs_disabled();
- 	rcu_eqs_enter(false);
-@@ -896,13 +896,10 @@ static void noinstr rcu_eqs_exit(bool us
-  * If you add or remove a call to rcu_idle_exit(), be sure to test with
-  * CONFIG_RCU_EQS_DEBUG=y.
-  */
--void rcu_idle_exit(void)
-+void noinstr rcu_idle_exit(void)
- {
--	unsigned long flags;
--
--	local_irq_save(flags);
-+	lockdep_assert_irqs_disabled();
- 	rcu_eqs_exit(false);
--	local_irq_restore(flags);
- }
- EXPORT_SYMBOL_GPL(rcu_idle_exit);
- 
+ 	if (static_branch_likely(&mds_idle_clear))
+ 		mds_clear_cpu_buffers();
 
 
