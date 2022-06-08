@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE6C3C43334
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C90ACCA47B
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Jun 2022 14:49:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242374AbiFHOta (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Jun 2022 10:49:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58632 "EHLO
+        id S242410AbiFHOtb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Jun 2022 10:49:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242642AbiFHOrW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Jun 2022 10:47:22 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 239172533F0;
-        Wed,  8 Jun 2022 07:47:04 -0700 (PDT)
+        with ESMTP id S242154AbiFHOq5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Jun 2022 10:46:57 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B97C61F89AD;
+        Wed,  8 Jun 2022 07:46:48 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        d=infradead.org; s=desiato.20200630; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=n+8kbD5k3joQL4tu1DQuka314sY5HtbiPc/MGM3uXCw=; b=jw4TwDmyl0kTYSCugapOboyvFt
-        l7u+2MwOkIDDfwEYhz+kVcSLr6ed0DAexVxesoxoXeJI6zgAjlsnuseqRA8YMfKpXesu9nZKUGG5N
-        tZBB1Sy3MqpS0ZwBcfksrZWV8KweBxp5dfNuLJ+jL4j3yqlYbOsZ5V4mmrWi12VSljq6d05DZ0RjD
-        /WK3pfNZYHkBSY2MPV1AmqLsA2StIXk6qZywGWP1AP7x0tS+ScWqEwGEKHfmYPwNeKrZSXGOHsAFl
-        DyYw2fFlGVZdqgioksMVuJO2U+xVQpY0sU451X2b0zL/4kkUs6F0ccQsq14rEgbL4P4ji9lmbwQ+T
-        iT1gTN+g==;
+        bh=UoTZx1hq9H2CvH0rrTcV0HznPxDNWA5jpJDFLHo4BPo=; b=pWyQNOHjBAsuQpOso13wfLuQhy
+        thcRQJ5QKxIY2Kx66e1E+YWNvAX7hqXi16FG/Yvv/6jL9gxmDHqHQPKhI/0ggi7JOI+l8ZF0tpt+J
+        /gMx4WY4gISoTMfEmXYlgqylwRgmyofm3M3UVZmyco3ziu7Gt9h7q5c6wPiUbTexd+wgemxfyY0hu
+        i2lO18Et3kvZasrH8//VkE/uwwYBCUK8seXG2zWjgtEkf9QnvC7u4APyLvyuKQI1XGO+wwn5fXDdh
+        Vbf00ESlaotTdYhjQqpHmvpB4FpOELLEZl4FjWs1MRv1VKlYsOC56S74pB+SmAESsa1OcuRYoS/lu
+        XKg+WotA==;
 Received: from dhcp-077-249-017-003.chello.nl ([77.249.17.3] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nywx2-00ChXO-V1; Wed, 08 Jun 2022 14:46:29 +0000
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nywwx-0066BD-41; Wed, 08 Jun 2022 14:46:24 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id A06F1302E99;
-        Wed,  8 Jun 2022 16:46:23 +0200 (CEST)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 8F975302D5C;
+        Wed,  8 Jun 2022 16:46:22 +0200 (CEST)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 8D44D20C10ED6; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
-Message-ID: <20220608144517.251109029@infradead.org>
+        id 44C8420C0F9B2; Wed,  8 Jun 2022 16:46:18 +0200 (CEST)
+Message-ID: <20220608144516.172460444@infradead.org>
 User-Agent: quilt/0.66
-Date:   Wed, 08 Jun 2022 16:27:44 +0200
+Date:   Wed, 08 Jun 2022 16:27:27 +0200
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -97,9 +97,8 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
-        rcu@vger.kernel.org, Isaku Yamahata <isaku.yamahata@gmail.com>,
-        kirill.shutemov@linux.intel.com
-Subject: [PATCH 21/36] x86/tdx: Remove TDX_HCALL_ISSUE_STI
+        rcu@vger.kernel.org
+Subject: [PATCH 04/36] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IRQ_ENABLE
 References: <20220608142723.103523089@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -107,110 +106,74 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Now that arch_cpu_idle() is expected to return with IRQs disabled,
-avoid the useless STI/CLI dance.
+Commit c227233ad64c ("intel_idle: enable interrupts before C1 on
+Xeons") wrecked intel_idle in two ways:
 
-Per the specs this is supposed to work, but nobody has yet relied up
-this behaviour so broken implementations are possible.
+ - must not have tracing in idle functions
+ - must return with IRQs disabled
 
-Cc: Isaku Yamahata <isaku.yamahata@gmail.com>
-Cc: kirill.shutemov@linux.intel.com
+Additionally, it added a branch for no good reason.
+
+Fixes: c227233ad64c ("intel_idle: enable interrupts before C1 on Xeons")
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- arch/x86/coco/tdx/tdcall.S        |   13 -------------
- arch/x86/coco/tdx/tdx.c           |   23 ++++-------------------
- arch/x86/include/asm/shared/tdx.h |    1 -
- 3 files changed, 4 insertions(+), 33 deletions(-)
+ drivers/idle/intel_idle.c |   48 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 37 insertions(+), 11 deletions(-)
 
---- a/arch/x86/coco/tdx/tdcall.S
-+++ b/arch/x86/coco/tdx/tdcall.S
-@@ -139,19 +139,6 @@ SYM_FUNC_START(__tdx_hypercall)
- 
- 	movl $TDVMCALL_EXPOSE_REGS_MASK, %ecx
- 
--	/*
--	 * For the idle loop STI needs to be called directly before the TDCALL
--	 * that enters idle (EXIT_REASON_HLT case). STI instruction enables
--	 * interrupts only one instruction later. If there is a window between
--	 * STI and the instruction that emulates the HALT state, there is a
--	 * chance for interrupts to happen in this window, which can delay the
--	 * HLT operation indefinitely. Since this is the not the desired
--	 * result, conditionally call STI before TDCALL.
--	 */
--	testq $TDX_HCALL_ISSUE_STI, %rsi
--	jz .Lskip_sti
--	sti
--.Lskip_sti:
- 	tdcall
- 
- 	/*
---- a/arch/x86/coco/tdx/tdx.c
-+++ b/arch/x86/coco/tdx/tdx.c
-@@ -124,7 +124,7 @@ static u64 get_cc_mask(void)
- 	return BIT_ULL(gpa_width - 1);
- }
- 
--static u64 __cpuidle __halt(const bool irq_disabled, const bool do_sti)
-+static u64 __cpuidle __halt(const bool irq_disabled)
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -129,21 +137,37 @@ static unsigned int mwait_substates __in
+  *
+  * Must be called under local_irq_disable().
+  */
++
+-static __cpuidle int intel_idle(struct cpuidle_device *dev,
+-				struct cpuidle_driver *drv, int index)
++static __always_inline int __intel_idle(struct cpuidle_device *dev,
++					struct cpuidle_driver *drv, int index)
  {
- 	struct tdx_hypercall_args args = {
- 		.r10 = TDX_HYPERCALL_STANDARD,
-@@ -144,20 +144,14 @@ static u64 __cpuidle __halt(const bool i
- 	 * can keep the vCPU in virtual HLT, even if an IRQ is
- 	 * pending, without hanging/breaking the guest.
- 	 */
--	return __tdx_hypercall(&args, do_sti ? TDX_HCALL_ISSUE_STI : 0);
-+	return __tdx_hypercall(&args, 0);
- }
+ 	struct cpuidle_state *state = &drv->states[index];
+ 	unsigned long eax = flg2MWAIT(state->flags);
+ 	unsigned long ecx = 1; /* break on interrupt flag */
  
- static bool handle_halt(void)
- {
--	/*
--	 * Since non safe halt is mainly used in CPU offlining
--	 * and the guest will always stay in the halt state, don't
--	 * call the STI instruction (set do_sti as false).
--	 */
- 	const bool irq_disabled = irqs_disabled();
--	const bool do_sti = false;
- 
--	if (__halt(irq_disabled, do_sti))
-+	if (__halt(irq_disabled))
- 		return false;
- 
- 	return true;
-@@ -165,22 +159,13 @@ static bool handle_halt(void)
- 
- void __cpuidle tdx_safe_halt(void)
- {
--	 /*
--	  * For do_sti=true case, __tdx_hypercall() function enables
--	  * interrupts using the STI instruction before the TDCALL. So
--	  * set irq_disabled as false.
--	  */
- 	const bool irq_disabled = false;
--	const bool do_sti = true;
- 
- 	/*
- 	 * Use WARN_ONCE() to report the failure.
- 	 */
--	if (__halt(irq_disabled, do_sti))
-+	if (__halt(irq_disabled))
- 		WARN_ONCE(1, "HLT instruction emulation failed\n");
+-	if (state->flags & CPUIDLE_FLAG_IRQ_ENABLE)
+-		local_irq_enable();
 -
--	/* XXX I can't make sense of what @do_sti actually does */
--	raw_local_irq_disable();
+ 	mwait_idle_with_hints(eax, ecx);
+ 
+ 	return index;
  }
  
- static bool read_msr(struct pt_regs *regs)
---- a/arch/x86/include/asm/shared/tdx.h
-+++ b/arch/x86/include/asm/shared/tdx.h
-@@ -8,7 +8,6 @@
- #define TDX_HYPERCALL_STANDARD  0
++static __cpuidle int intel_idle(struct cpuidle_device *dev,
++				struct cpuidle_driver *drv, int index)
++{
++	return __intel_idle(dev, drv, index);
++}
++
++static __cpuidle int intel_idle_irq(struct cpuidle_device *dev,
++				    struct cpuidle_driver *drv, int index)
++{
++	int ret;
++
++	raw_local_irq_enable();
++	ret = __intel_idle(dev, drv, index);
++	raw_local_irq_disable();
++
++	return ret;
++}
++
+ /**
+  * intel_idle_s2idle - Ask the processor to enter the given idle state.
+  * @dev: cpuidle device of the target CPU.
+@@ -1801,6 +1824,9 @@ static void __init intel_idle_init_cstat
+ 		/* Structure copy. */
+ 		drv->states[drv->state_count] = cpuidle_state_table[cstate];
  
- #define TDX_HCALL_HAS_OUTPUT	BIT(0)
--#define TDX_HCALL_ISSUE_STI	BIT(1)
- 
- #define TDX_CPUID_LEAF_ID	0x21
- #define TDX_IDENT		"IntelTDX    "
++		if (cpuidle_state_table[cstate].flags & CPUIDLE_FLAG_IRQ_ENABLE)
++			drv->states[drv->state_count].enter = intel_idle_irq;
++
+ 		if ((disabled_states_mask & BIT(drv->state_count)) ||
+ 		    ((icpu->use_acpi || force_use_acpi) &&
+ 		     intel_idle_off_by_default(mwait_hint) &&
 
 
