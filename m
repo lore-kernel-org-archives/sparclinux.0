@@ -2,106 +2,120 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 207F9CCA481
-	for <sparclinux@archiver.kernel.org>; Mon, 13 Jun 2022 18:41:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E81C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 13 Jun 2022 19:01:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344486AbiFMSl5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 13 Jun 2022 14:41:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41222 "EHLO
+        id S1347074AbiFMTBn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 13 Jun 2022 15:01:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48448 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236744AbiFMSlg (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Jun 2022 14:41:36 -0400
-Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E802527FC1;
-        Mon, 13 Jun 2022 08:22:43 -0700 (PDT)
-Received: by mail-qv1-f42.google.com with SMTP id a9so4535941qvt.6;
-        Mon, 13 Jun 2022 08:22:43 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qcugiPICJLPzQVbJaMNvRLiNwKZci/LNeFue+3qV07c=;
-        b=QOxSPO2OkOZkyfuTU+urLlI0TBuGEyVYL31+208ARrWq7zyVEEqhz4L7oUEAITV2VP
-         QruLsgFZLjUYyQJeRz1MdYqqidC+VXO1hv+GNOan0PwdVJ7hl9El05BVtnI3St24FDMI
-         ceLQ/xmTxMDqay/tQf1dJ5u+1ZEuicjO/QJxySq/z8auIRvgZJHp/hCq9lpYlVaUXvnT
-         Ji4GzcM7EsVXDBVyoqGLUgDmhD3Y77bWhEnUmM5cDbKERo5TVbc5k3VgQOx2ZKcMI9kd
-         JtpJN5k/tPAqu6egujEWzM+0UyEn3vIUOmWqVFr6Kekg1C1aDgAA5QdGImwsrQvT83xG
-         C/oA==
-X-Gm-Message-State: AJIora9T9io/VxswjBbeeoUrR0OO7OFyTpN9GIIBx+khJ8bKCuLEaAwf
-        fp3IxZPw7RrZDxt3S9Q0/OYvytzLjBKY1Q==
-X-Google-Smtp-Source: AGRyM1tR23QUPLSYmCAd7BQK6XX/kwgM+nwgjzZ6OZZ6JQ76t/Z0rwIfTCBiFtqIB/RLnwSKOCTAgg==
-X-Received: by 2002:a05:6214:623:b0:46b:9512:b355 with SMTP id a3-20020a056214062300b0046b9512b355mr172620qvx.8.1655133762571;
-        Mon, 13 Jun 2022 08:22:42 -0700 (PDT)
-Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com. [209.85.219.169])
-        by smtp.gmail.com with ESMTPSA id w2-20020a05622a134200b003051ba1f8bcsm5095399qtk.15.2022.06.13.08.22.41
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 13 Jun 2022 08:22:42 -0700 (PDT)
-Received: by mail-yb1-f169.google.com with SMTP id k2so10427683ybj.3;
-        Mon, 13 Jun 2022 08:22:41 -0700 (PDT)
-X-Received: by 2002:a25:d748:0:b0:65c:6b00:55af with SMTP id
- o69-20020a25d748000000b0065c6b0055afmr55080ybg.365.1655133761358; Mon, 13 Jun
- 2022 08:22:41 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220610113427.908751-1-alexandr.lobakin@intel.com>
- <CAMuHMdUZCaPN2B6bvmja9rDm3qCc4mYYAOSEB2W0R0pws8peqw@mail.gmail.com> <20220613142645.1176423-1-alexandr.lobakin@intel.com>
-In-Reply-To: <20220613142645.1176423-1-alexandr.lobakin@intel.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 13 Jun 2022 17:22:30 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdVayS6hV3CWW6FS-1cQKoGTCDxgVhZVPSyBMvJHBxVwJA@mail.gmail.com>
-Message-ID: <CAMuHMdVayS6hV3CWW6FS-1cQKoGTCDxgVhZVPSyBMvJHBxVwJA@mail.gmail.com>
-Subject: Re: [PATCH v2 0/6] bitops: let optimize out non-atomic bitops on
- compile-time constants
-To:     Alexander Lobakin <alexandr.lobakin@intel.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        with ESMTP id S1346540AbiFMTAy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Jun 2022 15:00:54 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 588794D9C1;
+        Mon, 13 Jun 2022 09:26:51 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655137612; x=1686673612;
+  h=from:to:cc:subject:date:message-id:references:
+   in-reply-to:content-transfer-encoding:mime-version;
+  bh=XxsfHurYfgtl5B8eDXs3NdPaSjArXVczaB+F2Bn9Ek4=;
+  b=HkYwqi5rbxVLCa9DjzarYkrq7QLAZ9qJ+s2gNJJwnWp97qJXWFbwlbvj
+   IgCLX29aH7yIYuWMl01dpUNPIDxsoDHK4/eQASqiKWGDvI7LVFYFOfpoZ
+   g8qKp7GTjIwLLvVwojxp+7wVKL0jJf3q5LYQL07wmecV23KQqc7jHX9mj
+   FEcLj7QyRIoInFaPDChRUQRrILOt9Vq3z6+jiYvoFTjl2qp74Svl0d3kW
+   qsR2JrznwCwY6XBuyr1iQ89ASkG0udTU0SoUX6lbIM6ZwLEMi1NB0RSz8
+   uZYyXaT9sqqRa1ZQkBo7IDws7JCuI55fqO+uj+L+shaJqgZTeOOenbFo3
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10377"; a="303733996"
+X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
+   d="scan'208";a="303733996"
+Received: from orsmga008.jf.intel.com ([10.7.209.65])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 09:26:50 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,297,1647327600"; 
+   d="scan'208";a="611858233"
+Received: from fmsmsx601.amr.corp.intel.com ([10.18.126.81])
+  by orsmga008.jf.intel.com with ESMTP; 13 Jun 2022 09:26:50 -0700
+Received: from fmsmsx612.amr.corp.intel.com (10.18.126.92) by
+ fmsmsx601.amr.corp.intel.com (10.18.126.81) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 13 Jun 2022 09:26:49 -0700
+Received: from fmsmsx610.amr.corp.intel.com (10.18.126.90) by
+ fmsmsx612.amr.corp.intel.com (10.18.126.92) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2308.27; Mon, 13 Jun 2022 09:26:49 -0700
+Received: from fmsmsx610.amr.corp.intel.com ([10.18.126.90]) by
+ fmsmsx610.amr.corp.intel.com ([10.18.126.90]) with mapi id 15.01.2308.027;
+ Mon, 13 Jun 2022 09:26:49 -0700
+From:   "Luck, Tony" <tony.luck@intel.com>
+To:     "Lobakin, Alexandr" <alexandr.lobakin@intel.com>,
+        Marco Elver <elver@google.com>
+CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Yury Norov <yury.norov@gmail.com>,
         Mark Rutland <mark.rutland@arm.com>,
         Matt Turner <mattst88@gmail.com>,
         Brian Cain <bcain@quicinc.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        "Yoshinori Sato" <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         "David S. Miller" <davem@davemloft.net>,
         Kees Cook <keescook@chromium.org>,
         "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        alpha <linux-alpha@vger.kernel.org>,
-        "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>,
+        Borislav Petkov <bp@suse.de>,
+        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+        "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
+        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
         "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
+        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [PATCH v2 2/6] bitops: always define asm-generic non-atomic
+ bitops
+Thread-Topic: [PATCH v2 2/6] bitops: always define asm-generic non-atomic
+ bitops
+Thread-Index: AQHYfL4xWJEoq3eTcEeKREBjFjjrHK1JHg2A//+t5kCAAH9LAIAEkeOA//+tDzA=
+Date:   Mon, 13 Jun 2022 16:26:49 +0000
+Message-ID: <c82877aa7cc244f2bf0f65dfb2b617e7@intel.com>
+References: <20220610113427.908751-1-alexandr.lobakin@intel.com>
+ <20220610113427.908751-3-alexandr.lobakin@intel.com>
+ <YqNMO0ioGzJ1IkoA@smile.fi.intel.com>
+ <22042c14bc6a437d9c6b235fbfa32c8a@intel.com>
+ <CANpmjNNZAeMQjzNyXLeKY4cp_m-xJBU1vs7PgT+7_sJwxtEEAg@mail.gmail.com>
+ <20220613141947.1176100-1-alexandr.lobakin@intel.com>
+In-Reply-To: <20220613141947.1176100-1-alexandr.lobakin@intel.com>
+Accept-Language: en-US
+Content-Language: en-US
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+dlp-product: dlpe-windows
+dlp-reaction: no-action
+dlp-version: 11.6.500.17
+x-originating-ip: [10.1.200.100]
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Olek,
-
-On Mon, Jun 13, 2022 at 4:28 PM Alexander Lobakin
-<alexandr.lobakin@intel.com> wrote:
-> From: Geert Uytterhoeven <geert@linux-m68k.org>
-> > On Fri, Jun 10, 2022 at 1:35 PM Alexander Lobakin
-> > <alexandr.lobakin@intel.com> wrote:
-> > On m68k, using gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04), this
-> > blows up immediately with:
+>> It's listed in Documentation/atomic_bitops.txt.
 >
-> Yeah I saw the kernel bot report already, sorry for that >_< Fixed
-> in v3 already, will send in 1-2 days.
+> Oh, so my memory was actually correct that I saw it in the docs
+> somewhere.
+> WDYT, should I mention this here in the code (block comment) as well
+> that it's atomic and must not lose `volatile` as Andy suggested or
+> it's sufficient to have it in the docs (+ it's not underscored)?
 
-Is it simple to fix?
-I might be able to give the fixed v2 a try before that.
-Thanks!
+I think a comment that the "volatile" is required to prevent re-ordering
+is enough.
 
-Gr{oetje,eeting}s,
+But maybe others are sufficiently clear on the meaning? I once wasted
+time looking for the non-atomic __test_bit() version (to use in some code
+that was already protected by a spin lock, so didn't need the overhead
+of an "atomic" version) before realizing there wasn't a non-atomic one.
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-Tony
