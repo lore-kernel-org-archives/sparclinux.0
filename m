@@ -2,38 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C6ECCA47B
-	for <sparclinux@archiver.kernel.org>; Mon, 13 Jun 2022 18:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4DFFC43334
+	for <sparclinux@archiver.kernel.org>; Mon, 13 Jun 2022 18:07:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244442AbiFMSHz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 13 Jun 2022 14:07:55 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46588 "EHLO
+        id S240662AbiFMSH4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 13 Jun 2022 14:07:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244705AbiFMSHU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Jun 2022 14:07:20 -0400
+        with ESMTP id S244461AbiFMSHV (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Jun 2022 14:07:21 -0400
 Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB30C8B0A0;
-        Mon, 13 Jun 2022 07:00:13 -0700 (PDT)
-X-UUID: 2e5434e2c3d54c8f877dc4d570c512b8-20220613
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9AFC8B0AF;
+        Mon, 13 Jun 2022 07:00:14 -0700 (PDT)
+X-UUID: 29656358474b4af889de45a5fd8967fd-20220613
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.6,REQID:460d8003-d65b-4bba-99c8-bb34f6113d52,OB:0,LO
-        B:0,IP:0,URL:0,TC:0,Content:-5,EDM:0,RT:0,SF:0,FILE:0,RULE:Release_Ham,ACT
-        ION:release,TS:-5
-X-CID-META: VersionHash:b14ad71,CLOUDID:391069c6-12ba-4305-bfdf-9aefbdc32516,C
-        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:0,EDM:-3,IP:nil,URL:0,File:nil
-        ,QS:nil,BEC:nil,COL:0
-X-UUID: 2e5434e2c3d54c8f877dc4d570c512b8-20220613
-Received: from mtkmbs11n2.mediatek.inc [(172.21.101.187)] by mailgw01.mediatek.com
+X-CID-O-INFO: VERSION:1.1.6,REQID:576c7b65-f9ce-4c01-b821-e0a9b4a355b6,OB:40,L
+        OB:10,IP:0,URL:0,TC:0,Content:-5,EDM:0,RT:0,SF:100,FILE:0,RULE:Release_Ham
+        ,ACTION:release,TS:95
+X-CID-INFO: VERSION:1.1.6,REQID:576c7b65-f9ce-4c01-b821-e0a9b4a355b6,OB:40,LOB
+        :10,IP:0,URL:0,TC:0,Content:-5,EDM:0,RT:0,SF:100,FILE:0,RULE:Spam_GS981B3D
+        ,ACTION:quarantine,TS:95
+X-CID-META: VersionHash:b14ad71,CLOUDID:3a1069c6-12ba-4305-bfdf-9aefbdc32516,C
+        OID:c390d734f6ed,Recheck:0,SF:28|17|19|48,TC:nil,Content:0,EDM:-3,IP:nil,U
+        RL:1,File:nil,QS:nil,BEC:nil,COL:0
+X-UUID: 29656358474b4af889de45a5fd8967fd-20220613
+Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw01.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
         (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 2069568117; Mon, 13 Jun 2022 22:00:08 +0800
+        with ESMTP id 858038477; Mon, 13 Jun 2022 22:00:07 +0800
 Received: from mtkmbs11n2.mediatek.inc (172.21.101.187) by
- mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
+ mtkmbs11n2.mediatek.inc (172.21.101.187) with Microsoft SMTP Server
  (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.792.3;
- Mon, 13 Jun 2022 21:59:59 +0800
+ Mon, 13 Jun 2022 22:00:01 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by
  mtkmbs11n2.mediatek.inc (172.21.101.73) with Microsoft SMTP Server id
- 15.2.792.3 via Frontend Transport; Mon, 13 Jun 2022 21:59:59 +0800
+ 15.2.792.3 via Frontend Transport; Mon, 13 Jun 2022 22:00:01 +0800
 From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
 To:     <linux-arm-kernel@lists.infradead.org>,
         <linux-kernel@vger.kernel.org>
@@ -48,9 +51,9 @@ CC:     <pmladek@suse.com>, <acme@kernel.org>, <akpm@linux-foundation.org>,
         <nixiaoming@huawei.com>, <peterz@infradead.org>,
         <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
         <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: [PATCH v5 2/6] kernel/watchdog: change watchdog_nmi_enable() to void
-Date:   Mon, 13 Jun 2022 21:59:52 +0800
-Message-ID: <20220613135956.15711-3-lecopzer.chen@mediatek.com>
+Subject: [PATCH v5 5/6] arm64: add hw_nmi_get_sample_period for preparation of lockup detector
+Date:   Mon, 13 Jun 2022 21:59:55 +0800
+Message-ID: <20220613135956.15711-6-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
 In-Reply-To: <20220613135956.15711-1-lecopzer.chen@mediatek.com>
 References: <20220613135956.15711-1-lecopzer.chen@mediatek.com>
@@ -61,78 +64,72 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Nobody cares about the return value of watchdog_nmi_enable(),
-changing its prototype to void.
+Set safe maximum CPU frequency to 5 GHz in case a particular platform
+doesn't implement cpufreq driver.
+Although, architecture doesn't put any restrictions on
+maximum frequency but 5 GHz seems to be safe maximum given the available
+Arm CPUs in the market which are clocked much less than 5 GHz.
 
+On the other hand, we can't make it much higher as it would lead to
+a large hard-lockup detection timeout on parts which are running
+slower (eg. 1GHz on Developerbox) and doesn't possess a cpufreq driver.
+
+[1]:http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
+
+Co-developed-by: Sumit Garg <sumit.garg@linaro.org>
+Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
+Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
-Reviewed-by: Petr Mladek <pmladek@suse.com>
 ---
- arch/sparc/kernel/nmi.c | 8 +++-----
- include/linux/nmi.h     | 2 +-
- kernel/watchdog.c       | 3 +--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ arch/arm64/kernel/Makefile       |  1 +
+ arch/arm64/kernel/watchdog_hld.c | 25 +++++++++++++++++++++++++
+ 2 files changed, 26 insertions(+)
+ create mode 100644 arch/arm64/kernel/watchdog_hld.c
 
-diff --git a/arch/sparc/kernel/nmi.c b/arch/sparc/kernel/nmi.c
-index 060fff95a305..5dcf31f7e81f 100644
---- a/arch/sparc/kernel/nmi.c
-+++ b/arch/sparc/kernel/nmi.c
-@@ -282,11 +282,11 @@ __setup("nmi_watchdog=", setup_nmi_watchdog);
-  * sparc specific NMI watchdog enable function.
-  * Enables watchdog if it is not enabled already.
-  */
--int watchdog_nmi_enable(unsigned int cpu)
-+void watchdog_nmi_enable(unsigned int cpu)
- {
- 	if (atomic_read(&nmi_active) == -1) {
- 		pr_warn("NMI watchdog cannot be enabled or disabled\n");
--		return -1;
-+		return;
- 	}
- 
- 	/*
-@@ -295,11 +295,9 @@ int watchdog_nmi_enable(unsigned int cpu)
- 	 * process first.
- 	 */
- 	if (!nmi_init_done)
--		return 0;
-+		return;
- 
- 	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
--
--	return 0;
- }
- /*
-  * sparc specific NMI watchdog disable function.
-diff --git a/include/linux/nmi.h b/include/linux/nmi.h
-index 750c7f395ca9..b7bcd63c36b4 100644
---- a/include/linux/nmi.h
-+++ b/include/linux/nmi.h
-@@ -119,7 +119,7 @@ static inline int hardlockup_detector_perf_init(void) { return 0; }
- void watchdog_nmi_stop(void);
- void watchdog_nmi_start(void);
- int watchdog_nmi_probe(void);
--int watchdog_nmi_enable(unsigned int cpu);
-+void watchdog_nmi_enable(unsigned int cpu);
- void watchdog_nmi_disable(unsigned int cpu);
- 
- /**
-diff --git a/kernel/watchdog.c b/kernel/watchdog.c
-index 066ad3017767..458737bc4e35 100644
---- a/kernel/watchdog.c
-+++ b/kernel/watchdog.c
-@@ -93,10 +93,9 @@ __setup("nmi_watchdog=", hardlockup_panic_setup);
-  * softlockup watchdog start and stop. The arch must select the
-  * SOFTLOCKUP_DETECTOR Kconfig.
-  */
--int __weak watchdog_nmi_enable(unsigned int cpu)
-+void __weak watchdog_nmi_enable(unsigned int cpu)
- {
- 	hardlockup_detector_perf_enable();
--	return 0;
- }
- 
- void __weak watchdog_nmi_disable(unsigned int cpu)
+diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
+index fa7981d0d917..303b69ad5366 100644
+--- a/arch/arm64/kernel/Makefile
++++ b/arch/arm64/kernel/Makefile
+@@ -46,6 +46,7 @@ obj-$(CONFIG_MODULES)			+= module.o
+ obj-$(CONFIG_ARM64_MODULE_PLTS)		+= module-plts.o
+ obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o perf_callchain.o
+ obj-$(CONFIG_HW_PERF_EVENTS)		+= perf_event.o
++obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF)	+= watchdog_hld.o
+ obj-$(CONFIG_HAVE_HW_BREAKPOINT)	+= hw_breakpoint.o
+ obj-$(CONFIG_CPU_PM)			+= sleep.o suspend.o
+ obj-$(CONFIG_CPU_IDLE)			+= cpuidle.o
+diff --git a/arch/arm64/kernel/watchdog_hld.c b/arch/arm64/kernel/watchdog_hld.c
+new file mode 100644
+index 000000000000..de43318e4dd6
+--- /dev/null
++++ b/arch/arm64/kernel/watchdog_hld.c
+@@ -0,0 +1,25 @@
++// SPDX-License-Identifier: GPL-2.0
++#include <linux/cpufreq.h>
++
++/*
++ * Safe maximum CPU frequency in case a particular platform doesn't implement
++ * cpufreq driver. Although, architecture doesn't put any restrictions on
++ * maximum frequency but 5 GHz seems to be safe maximum given the available
++ * Arm CPUs in the market which are clocked much less than 5 GHz. On the other
++ * hand, we can't make it much higher as it would lead to a large hard-lockup
++ * detection timeout on parts which are running slower (eg. 1GHz on
++ * Developerbox) and doesn't possess a cpufreq driver.
++ */
++#define SAFE_MAX_CPU_FREQ	5000000000UL // 5 GHz
++u64 hw_nmi_get_sample_period(int watchdog_thresh)
++{
++	unsigned int cpu = smp_processor_id();
++	unsigned long max_cpu_freq;
++
++	max_cpu_freq = cpufreq_get_hw_max_freq(cpu) * 1000UL;
++	if (!max_cpu_freq)
++		max_cpu_freq = SAFE_MAX_CPU_FREQ;
++
++	return (u64)max_cpu_freq * watchdog_thresh;
++}
++
 -- 
 2.25.1
 
