@@ -2,25 +2,25 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B08BCCA47E
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Jun 2022 16:25:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD704CCA487
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Jun 2022 16:29:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243232AbiFNQZS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Jun 2022 12:25:18 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39412 "EHLO
+        id S244892AbiFNQ3T (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Jun 2022 12:29:19 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43042 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241888AbiFNQZN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Jun 2022 12:25:13 -0400
+        with ESMTP id S1343903AbiFNQ2Z (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Jun 2022 12:28:25 -0400
 Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 12A342716F;
-        Tue, 14 Jun 2022 09:25:11 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 46ABB193EB;
+        Tue, 14 Jun 2022 09:28:24 -0700 (PDT)
 Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 993C416F2;
-        Tue, 14 Jun 2022 09:25:10 -0700 (PDT)
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id D999D16F8;
+        Tue, 14 Jun 2022 09:28:23 -0700 (PDT)
 Received: from FVFF77S0Q05N (unknown [10.57.41.154])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id A00683F66F;
-        Tue, 14 Jun 2022 09:24:52 -0700 (PDT)
-Date:   Tue, 14 Jun 2022 17:24:48 +0100
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id EEF753F66F;
+        Tue, 14 Jun 2022 09:28:05 -0700 (PDT)
+Date:   Tue, 14 Jun 2022 17:28:02 +0100
 From:   Mark Rutland <mark.rutland@arm.com>
 To:     Peter Zijlstra <peterz@infradead.org>
 Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
@@ -80,56 +80,71 @@ Cc:     rth@twiddle.net, ink@jurassic.park.msu.ru, mattst88@gmail.com,
         linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org,
         linux-clk@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
-        rcu@vger.kernel.org, maz@kernel.org
-Subject: Re: [PATCH 23/36] arm64,smp: Remove trace_.*_rcuidle() usage
-Message-ID: <Yqi2UGb4alCAR5s4@FVFF77S0Q05N>
+        rcu@vger.kernel.org
+Subject: Re: [PATCH 25/36] time/tick-broadcast: Remove RCU_NONIDLE usage
+Message-ID: <Yqi3EmHbuvf3ItMI@FVFF77S0Q05N>
 References: <20220608142723.103523089@infradead.org>
- <20220608144517.380962958@infradead.org>
+ <20220608144517.507286638@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220608144517.380962958@infradead.org>
+In-Reply-To: <20220608144517.507286638@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Jun 08, 2022 at 04:27:46PM +0200, Peter Zijlstra wrote:
-> Ever since commit d3afc7f12987 ("arm64: Allow IPIs to be handled as
-> normal interrupts") this function is called in regular IRQ context.
+On Wed, Jun 08, 2022 at 04:27:48PM +0200, Peter Zijlstra wrote:
+> No callers left that have already disabled RCU.
 > 
 > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 
-[adding Marc since he authored that commit]
-
-Makes sense to me:
-
-  Acked-by: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Mark Rutland <mark.rutland@arm.com>
 
 Mark.
 
 > ---
->  arch/arm64/kernel/smp.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  kernel/time/tick-broadcast-hrtimer.c |   29 ++++++++++++-----------------
+>  1 file changed, 12 insertions(+), 17 deletions(-)
 > 
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -865,7 +865,7 @@ static void do_handle_IPI(int ipinr)
->  	unsigned int cpu = smp_processor_id();
->  
->  	if ((unsigned)ipinr < NR_IPI)
-> -		trace_ipi_entry_rcuidle(ipi_types[ipinr]);
-> +		trace_ipi_entry(ipi_types[ipinr]);
->  
->  	switch (ipinr) {
->  	case IPI_RESCHEDULE:
-> @@ -914,7 +914,7 @@ static void do_handle_IPI(int ipinr)
->  	}
->  
->  	if ((unsigned)ipinr < NR_IPI)
-> -		trace_ipi_exit_rcuidle(ipi_types[ipinr]);
-> +		trace_ipi_exit(ipi_types[ipinr]);
+> --- a/kernel/time/tick-broadcast-hrtimer.c
+> +++ b/kernel/time/tick-broadcast-hrtimer.c
+> @@ -56,25 +56,20 @@ static int bc_set_next(ktime_t expires,
+>  	 * hrtimer callback function is currently running, then
+>  	 * hrtimer_start() cannot move it and the timer stays on the CPU on
+>  	 * which it is assigned at the moment.
+> +	 */
+> +	hrtimer_start(&bctimer, expires, HRTIMER_MODE_ABS_PINNED_HARD);
+> +	/*
+> +	 * The core tick broadcast mode expects bc->bound_on to be set
+> +	 * correctly to prevent a CPU which has the broadcast hrtimer
+> +	 * armed from going deep idle.
+>  	 *
+> -	 * As this can be called from idle code, the hrtimer_start()
+> -	 * invocation has to be wrapped with RCU_NONIDLE() as
+> -	 * hrtimer_start() can call into tracing.
+> +	 * As tick_broadcast_lock is held, nothing can change the cpu
+> +	 * base which was just established in hrtimer_start() above. So
+> +	 * the below access is safe even without holding the hrtimer
+> +	 * base lock.
+>  	 */
+> -	RCU_NONIDLE( {
+> -		hrtimer_start(&bctimer, expires, HRTIMER_MODE_ABS_PINNED_HARD);
+> -		/*
+> -		 * The core tick broadcast mode expects bc->bound_on to be set
+> -		 * correctly to prevent a CPU which has the broadcast hrtimer
+> -		 * armed from going deep idle.
+> -		 *
+> -		 * As tick_broadcast_lock is held, nothing can change the cpu
+> -		 * base which was just established in hrtimer_start() above. So
+> -		 * the below access is safe even without holding the hrtimer
+> -		 * base lock.
+> -		 */
+> -		bc->bound_on = bctimer.base->cpu_base->cpu;
+> -	} );
+> +	bc->bound_on = bctimer.base->cpu_base->cpu;
+> +
+>  	return 0;
 >  }
 >  
->  static irqreturn_t ipi_handler(int irq, void *data)
 > 
 > 
