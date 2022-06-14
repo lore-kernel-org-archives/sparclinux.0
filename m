@@ -2,131 +2,211 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 572CBCCA47A
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Jun 2022 06:29:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E08E8CCA47A
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Jun 2022 10:57:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351699AbiFNG27 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Jun 2022 02:28:59 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60804 "EHLO
+        id S1356046AbiFNK4j (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Jun 2022 06:56:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351196AbiFNG2y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Jun 2022 02:28:54 -0400
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F24811A073;
-        Mon, 13 Jun 2022 23:28:47 -0700 (PDT)
-X-UUID: b64874d351e64615aff0bb3e74424b79-20220614
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.6,REQID:29d5a72b-f220-436f-8332-d2f917988904,OB:0,LO
-        B:0,IP:0,URL:0,TC:0,Content:-5,EDM:0,RT:0,SF:0,FILE:0,RULE:Release_Ham,ACT
-        ION:release,TS:-5
-X-CID-META: VersionHash:b14ad71,CLOUDID:0cb15cc5-c67b-4a73-9b18-726dd8f2eb58,C
-        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:0,EDM:-3,IP:nil,URL:1,File:nil
-        ,QS:nil,BEC:nil,COL:0
-X-UUID: b64874d351e64615aff0bb3e74424b79-20220614
-Received: from mtkmbs10n2.mediatek.inc [(172.21.101.183)] by mailgw01.mediatek.com
-        (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 291641240; Tue, 14 Jun 2022 14:28:41 +0800
-Received: from mtkcas11.mediatek.inc (172.21.101.40) by
- mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- 15.2.792.15; Tue, 14 Jun 2022 14:28:39 +0800
-Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas11.mediatek.inc
- (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
- Transport; Tue, 14 Jun 2022 14:28:38 +0800
-From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-CC:     <pmladek@suse.com>, <acme@kernel.org>, <akpm@linux-foundation.org>,
-        <alexander.shishkin@linux.intel.com>, <catalin.marinas@arm.com>,
-        <davem@davemloft.net>, <jolsa@redhat.com>, <jthierry@redhat.com>,
-        <keescook@chromium.org>, <kernelfans@gmail.com>,
-        <lecopzer.chen@mediatek.com>, <linux-mediatek@lists.infradead.org>,
-        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
-        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
-        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
-        <nixiaoming@huawei.com>, <peterz@infradead.org>,
-        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
-        <wangqing@vivo.com>, <will@kernel.org>, <yj.chiang@mediatek.com>
-Subject: [PATCH v6 5/6] arm64: add hw_nmi_get_sample_period for preparation of lockup detector
-Date:   Tue, 14 Jun 2022 14:28:34 +0800
-Message-ID: <20220614062835.7196-6-lecopzer.chen@mediatek.com>
-X-Mailer: git-send-email 2.18.0
-In-Reply-To: <20220614062835.7196-1-lecopzer.chen@mediatek.com>
-References: <20220614062835.7196-1-lecopzer.chen@mediatek.com>
+        with ESMTP id S1355992AbiFNK4X (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Jun 2022 06:56:23 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E81B13B3EC;
+        Tue, 14 Jun 2022 03:56:22 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 840C361243;
+        Tue, 14 Jun 2022 10:56:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 684A4C3411B;
+        Tue, 14 Jun 2022 10:56:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1655204181;
+        bh=00Prm+cUcZ84XpftD1dN/FsJdtVgLrlVbBRu1vY0N5M=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=GJ95osrVTc29XfAfsEoUU7WX2toadBvY3p7QFX5tpiu1BguwysX9r9TxGtw8aYY9n
+         7dlCDWef80SO6YKztD5/KX6n7Y63tLpHsHD4tZLe39NPNprDEuYJ4QV3OB37cZGvAj
+         IaIu2GguR8oHWbINnEHCM3cx9QcpbJSvuqjzsrMfDYUfocAyaRNr0Pt1A51rT53dh9
+         rDPotEBWirI+Y2P11VJvRfmmoENEdUlYds3MF8ovi7JJoImaYhf0YnPNPIDSD1X1Qu
+         u+E1S/fX8sdfiEnKYnQt3gWGX8HCuLdUK3Dn9KpHAkPUmWIlOW27FtAzM7KU1xfWdH
+         fGJYQOPmMLlqw==
+Date:   Tue, 14 Jun 2022 13:54:18 +0300
+From:   Jarkko Sakkinen <jarkko@kernel.org>
+To:     Ard Biesheuvel <ardb@kernel.org>
+Cc:     Song Liu <song@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>,
+        Guo Ren <guoren@kernel.org>,
+        Jarkko Sakkinen <jarkko@profian.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Nathaniel McCallum <nathaniel@profian.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>,
+        Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>,
+        Luis Chamberlain <mcgrof@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Kees Cook <keescook@chromium.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Nathan Chancellor <nathan@kernel.org>,
+        Josh Poimboeuf <jpoimboe@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Marco Elver <elver@google.com>,
+        Dan Li <ashimida@linux.alibaba.com>,
+        Sami Tolvanen <samitolvanen@google.com>,
+        "Russell King (Oracle)" <rmk+kernel@armlinux.org.uk>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Chen Zhongjin <chenzhongjin@huawei.com>,
+        Nicolas Pitre <nico@fluxnic.net>,
+        Mark Brown <broonie@kernel.org>,
+        Luis Machado <luis.machado@linaro.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Joey Gouly <joey.gouly@arm.com>,
+        Masahiro Yamada <masahiroy@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Konovalov <andreyknvl@gmail.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
+        Atsushi Nemoto <anemo@mba.ocn.ne.jp>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Dave Anglin <dave.anglin@bell.net>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Daniel Axtens <dja@axtens.net>,
+        "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Jordan Niethe <jniethe5@gmail.com>,
+        Anup Patel <anup@brainfault.org>,
+        Atish Patra <atishp@atishpatra.org>,
+        Changbin Du <changbin.du@intel.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Liao Chang <liaochang1@huawei.com>,
+        Philipp Tomsich <philipp.tomsich@vrull.eu>,
+        Wu Caize <zepan@sipeed.com>,
+        Emil Renner Berthing <kernel@esmil.dk>,
+        Alexander Egorenkov <egorenar@linux.ibm.com>,
+        Thomas Richter <tmricht@linux.ibm.com>,
+        Tobias Huschle <huschle@linux.ibm.com>,
+        Ilya Leoshkevich <iii@linux.ibm.com>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Michael Roth <michael.roth@amd.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Javier Martinez Canillas <javierm@redhat.com>,
+        Miroslav Benes <mbenes@suse.cz>,
+        =?iso-8859-1?Q?Andr=E9?= Almeida <andrealmeid@igalia.com>,
+        Tiezhu Yang <yangtiezhu@loongson.cn>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Aaron Tomlin <atomlin@redhat.com>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        linux-riscv <linux-riscv@lists.infradead.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        linux-modules@vger.kernel.org
+Subject: Re: [PATCH] kprobes: Enable tracing for mololithic kernel images
+Message-ID: <Yqho2hu5q/n10D7g@iki.fi>
+References: <20220608000014.3054333-1-jarkko@profian.com>
+ <CAJF2gTQgCn2CyZ4+VBqEEBT2b4+1KxoEXxrd+Ritk=58+U8EFA@mail.gmail.com>
+ <YqAy0qjI4Lktk/uJ@iki.fi>
+ <20220608232115.ccd4399f4a1d133e9b65c2a9@kernel.org>
+ <CAPhsuW6iUieQvA6KqzSLgtxmjkVSWCuVwNA338DATb_myHxo7w@mail.gmail.com>
+ <YqHx1d+MwRLLzGQe@iki.fi>
+ <CAMj1kXGGyO-DL9hjKYKR2sp87s4KExiQybES8pp4JgqJcHkfLA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-MTK:  N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAMj1kXGGyO-DL9hjKYKR2sp87s4KExiQybES8pp4JgqJcHkfLA@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Set safe maximum CPU frequency to 5 GHz in case a particular platform
-doesn't implement cpufreq driver.
-Although, architecture doesn't put any restrictions on
-maximum frequency but 5 GHz seems to be safe maximum given the available
-Arm CPUs in the market which are clocked much less than 5 GHz.
+On Thu, Jun 09, 2022 at 03:23:16PM +0200, Ard Biesheuvel wrote:
+> On Thu, 9 Jun 2022 at 15:14, Jarkko Sakkinen <jarkko@kernel.org> wrote:
+> >
+> > On Wed, Jun 08, 2022 at 09:12:34AM -0700, Song Liu wrote:
+> > > On Wed, Jun 8, 2022 at 7:21 AM Masami Hiramatsu <mhiramat@kernel.org> wrote:
+> > > >
+> > > > Hi Jarkko,
+> > > >
+> > > > On Wed, 8 Jun 2022 08:25:38 +0300
+> > > > Jarkko Sakkinen <jarkko@kernel.org> wrote:
+> > > >
+> > > > > On Wed, Jun 08, 2022 at 10:35:42AM +0800, Guo Ren wrote:
+> > > > > > .
+> > > > > >
+> > > > > > On Wed, Jun 8, 2022 at 8:02 AM Jarkko Sakkinen <jarkko@profian.com> wrote:
+> > > > > > >
+> > > > > > > Tracing with kprobes while running a monolithic kernel is currently
+> > > > > > > impossible because CONFIG_KPROBES is dependent of CONFIG_MODULES.  This
+> > > > > > > dependency is a result of kprobes code using the module allocator for the
+> > > > > > > trampoline code.
+> > > > > > >
+> > > > > > > Detaching kprobes from modules helps to squeeze down the user space,
+> > > > > > > e.g. when developing new core kernel features, while still having all
+> > > > > > > the nice tracing capabilities.
+> > > > > > >
+> > > > > > > For kernel/ and arch/*, move module_alloc() and module_memfree() to
+> > > > > > > module_alloc.c, and compile as part of vmlinux when either CONFIG_MODULES
+> > > > > > > or CONFIG_KPROBES is enabled.  In addition, flag kernel module specific
+> > > > > > > code with CONFIG_MODULES.
+> > > > > > >
+> > > > > > > As the result, kprobes can be used with a monolithic kernel.
+> > > > > > It's strange when MODULES is n, but vmlinux still obtains module_alloc.
+> > > > > >
+> > > > > > Maybe we need a kprobe_alloc, right?
+> > > > >
+> > > > > Perhaps not the best name but at least it documents the fact that
+> > > > > they use the same allocator.
+> > > > >
+> > > > > Few years ago I carved up something "half-way there" for kprobes,
+> > > > > and I used the name text_alloc() [*].
+> > > > >
+> > > > > [*] https://lore.kernel.org/all/20200724050553.1724168-1-jarkko.sakkinen@linux.intel.com/
+> > > >
+> > > > Yeah, I remember that. Thank you for updating your patch!
+> > > > I think the idea (split module_alloc() from CONFIG_MODULE) is good to me.
+> > > > If module support maintainers think this name is not good, you may be
+> > > > able to rename it as text_alloc() and make the module_alloc() as a
+> > > > wrapper of it.
+> > >
+> > > IIUC, most users of module_alloc() use it to allocate memory for text, except
+> > > that module code uses it for both text and data. Therefore, I guess calling it
+> > > text_alloc() is not 100% accurate until we change the module code (to use
+> > > a different API to allocate memory for data).
+> >
+> > After reading the feedback, I'd stay on using module_alloc() because
+> > it has arch-specific quirks baked in. Easier to deal with them in one
+> > place.
+> >
+> 
+> In that case, please ensure that you enable this only on architectures
+> where it is needed. arm64 implements alloc_insn_page() without relying
+> on module_alloc() so I would not expect to see any changes there.
 
-On the other hand, we can't make it much higher as it would lead to
-a large hard-lockup detection timeout on parts which are running
-slower (eg. 1GHz on Developerbox) and doesn't possess a cpufreq driver.
+Right, got it, thanks for remark.
 
-[1]:http://lore.kernel.org/linux-arm-kernel/1610712101-14929-1-git-send-email-sumit.garg@linaro.org
-
-Co-developed-by: Sumit Garg <sumit.garg@linaro.org>
-Signed-off-by: Sumit Garg <sumit.garg@linaro.org>
-Co-developed-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
----
- arch/arm64/kernel/Makefile       |  1 +
- arch/arm64/kernel/watchdog_hld.c | 25 +++++++++++++++++++++++++
- 2 files changed, 26 insertions(+)
- create mode 100644 arch/arm64/kernel/watchdog_hld.c
-
-diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-index fa7981d0d917..303b69ad5366 100644
---- a/arch/arm64/kernel/Makefile
-+++ b/arch/arm64/kernel/Makefile
-@@ -46,6 +46,7 @@ obj-$(CONFIG_MODULES)			+= module.o
- obj-$(CONFIG_ARM64_MODULE_PLTS)		+= module-plts.o
- obj-$(CONFIG_PERF_EVENTS)		+= perf_regs.o perf_callchain.o
- obj-$(CONFIG_HW_PERF_EVENTS)		+= perf_event.o
-+obj-$(CONFIG_HARDLOCKUP_DETECTOR_PERF)	+= watchdog_hld.o
- obj-$(CONFIG_HAVE_HW_BREAKPOINT)	+= hw_breakpoint.o
- obj-$(CONFIG_CPU_PM)			+= sleep.o suspend.o
- obj-$(CONFIG_CPU_IDLE)			+= cpuidle.o
-diff --git a/arch/arm64/kernel/watchdog_hld.c b/arch/arm64/kernel/watchdog_hld.c
-new file mode 100644
-index 000000000000..de43318e4dd6
---- /dev/null
-+++ b/arch/arm64/kernel/watchdog_hld.c
-@@ -0,0 +1,25 @@
-+// SPDX-License-Identifier: GPL-2.0
-+#include <linux/cpufreq.h>
-+
-+/*
-+ * Safe maximum CPU frequency in case a particular platform doesn't implement
-+ * cpufreq driver. Although, architecture doesn't put any restrictions on
-+ * maximum frequency but 5 GHz seems to be safe maximum given the available
-+ * Arm CPUs in the market which are clocked much less than 5 GHz. On the other
-+ * hand, we can't make it much higher as it would lead to a large hard-lockup
-+ * detection timeout on parts which are running slower (eg. 1GHz on
-+ * Developerbox) and doesn't possess a cpufreq driver.
-+ */
-+#define SAFE_MAX_CPU_FREQ	5000000000UL // 5 GHz
-+u64 hw_nmi_get_sample_period(int watchdog_thresh)
-+{
-+	unsigned int cpu = smp_processor_id();
-+	unsigned long max_cpu_freq;
-+
-+	max_cpu_freq = cpufreq_get_hw_max_freq(cpu) * 1000UL;
-+	if (!max_cpu_freq)
-+		max_cpu_freq = SAFE_MAX_CPU_FREQ;
-+
-+	return (u64)max_cpu_freq * watchdog_thresh;
-+}
-+
--- 
-2.25.1
-
+BR, Jarkko
