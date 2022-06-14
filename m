@@ -2,121 +2,127 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F87DCCA47B
-	for <sparclinux@archiver.kernel.org>; Mon, 13 Jun 2022 21:31:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 718B0CCA47A
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Jun 2022 05:58:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345942AbiFMVbZ convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 13 Jun 2022 17:31:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60364 "EHLO
+        id S236679AbiFNF6n (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Jun 2022 01:58:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351971AbiFMVaC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Jun 2022 17:30:02 -0400
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BF44A18A
-        for <sparclinux@vger.kernel.org>; Mon, 13 Jun 2022 14:29:50 -0700 (PDT)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-170-9N43S4nTPaqalKCbtLkcWA-1; Mon, 13 Jun 2022 22:29:47 +0100
-X-MC-Unique: 9N43S4nTPaqalKCbtLkcWA-1
-Received: from AcuMS.Aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) by
- AcuMS.aculab.com (fd9f:af1c:a25b:0:994c:f5c2:35d6:9b65) with Microsoft SMTP
- Server (TLS) id 15.0.1497.36; Mon, 13 Jun 2022 22:29:46 +0100
-Received: from AcuMS.Aculab.com ([fe80::994c:f5c2:35d6:9b65]) by
- AcuMS.aculab.com ([fe80::994c:f5c2:35d6:9b65%12]) with mapi id
- 15.00.1497.036; Mon, 13 Jun 2022 22:29:46 +0100
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     "'Luck, Tony'" <tony.luck@intel.com>,
-        "Lobakin, Alexandr" <alexandr.lobakin@intel.com>,
-        Marco Elver <elver@google.com>
-CC:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        "Yoshinori Sato" <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Borislav Petkov <bp@suse.de>,
-        "Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-        "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
-        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [PATCH v2 2/6] bitops: always define asm-generic non-atomic
- bitops
-Thread-Topic: [PATCH v2 2/6] bitops: always define asm-generic non-atomic
- bitops
-Thread-Index: AQHYfL4xWJEoq3eTcEeKREBjFjjrHK1JHg2A//+t5kCAAH9LAIAEkeOA//+tDzCAAFKXkA==
-Date:   Mon, 13 Jun 2022 21:29:46 +0000
-Message-ID: <5d65491caf6249c8b72c7a6ced95614c@AcuMS.aculab.com>
-References: <20220610113427.908751-1-alexandr.lobakin@intel.com>
- <20220610113427.908751-3-alexandr.lobakin@intel.com>
- <YqNMO0ioGzJ1IkoA@smile.fi.intel.com>
- <22042c14bc6a437d9c6b235fbfa32c8a@intel.com>
- <CANpmjNNZAeMQjzNyXLeKY4cp_m-xJBU1vs7PgT+7_sJwxtEEAg@mail.gmail.com>
- <20220613141947.1176100-1-alexandr.lobakin@intel.com>
- <c82877aa7cc244f2bf0f65dfb2b617e7@intel.com>
-In-Reply-To: <c82877aa7cc244f2bf0f65dfb2b617e7@intel.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+        with ESMTP id S238715AbiFNF6X (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Jun 2022 01:58:23 -0400
+Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BA17131220;
+        Mon, 13 Jun 2022 22:58:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655186302; x=1686722302;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=ywmOAFbDeYJlfmJGeX0tKQffJo9BReoENhKIXWT7mPc=;
+  b=LFp7uQMxwyipr/j5X73dOetV95zY5CkJlbpVhsByl46PVh6l5/sQyTU0
+   ALSB4D3qmqe1UDENn7STscG2rXKpOOFOkE6l0e+lJB7WbubkAFI3JrUpr
+   e0sIKyN8XVyQxCzjsNrAR5j9a7N0kh+DiU8s4V/pFub4lVJu0ZjSfUEYo
+   ofIOHhf+WV8CVxaLy6joHaAr+hlSxLCrGmWXV1jEauQq/dy0W9u5DcKzG
+   0ovMbQoRNDNDRSbQwDUci5+Y59x61ajS67H4a6Xyf31+Uq5wOgm/6DcQq
+   jJWVYM72YYt9wzwXXC/aZntSZpFvBf4hCOLTyqiNMyRIzX64HXYjssZ1L
+   w==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10377"; a="258347353"
+X-IronPort-AV: E=Sophos;i="5.91,299,1647327600"; 
+   d="scan'208";a="258347353"
+Received: from fmsmga006.fm.intel.com ([10.253.24.20])
+  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 13 Jun 2022 22:58:22 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,299,1647327600"; 
+   d="scan'208";a="830209036"
+Received: from lkp-server01.sh.intel.com (HELO 60dabacc1df6) ([10.239.97.150])
+  by fmsmga006.fm.intel.com with ESMTP; 13 Jun 2022 22:58:16 -0700
+Received: from kbuild by 60dabacc1df6 with local (Exim 4.95)
+        (envelope-from <lkp@intel.com>)
+        id 1o0zZ9-000LXv-Jb;
+        Tue, 14 Jun 2022 05:58:15 +0000
+Date:   Tue, 14 Jun 2022 13:57:53 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc:     kbuild-all@lists.01.org, pmladek@suse.com, acme@kernel.org,
+        akpm@linux-foundation.org, alexander.shishkin@linux.intel.com,
+        catalin.marinas@arm.com, davem@davemloft.net, jolsa@redhat.com,
+        jthierry@redhat.com, keescook@chromium.org, kernelfans@gmail.com,
+        lecopzer.chen@mediatek.com, linux-mediatek@lists.infradead.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        masahiroy@kernel.org, matthias.bgg@gmail.com, maz@kernel.org,
+        mcgrof@kernel.org, mingo@redhat.com, namhyung@kernel.org,
+        nixiaoming@huawei.com, peterz@infradead.org,
+        sparclinux@vger.kernel.org, sumit.garg@linaro.org,
+        wangqing@vivo.com, will@kernel.org, yj.chiang@mediatek.com
+Subject: Re: [PATCH v5 4/6] kernel/watchdog: Adapt the watchdog_hld interface
+ for async model
+Message-ID: <202206141348.e7aqnN0q-lkp@intel.com>
+References: <20220613135956.15711-5-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Authentication-Results: relay.mimecast.com;
-        auth=pass smtp.auth=C51A453 smtp.mailfrom=david.laight@aculab.com
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220613135956.15711-5-lecopzer.chen@mediatek.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Luck, Tony
-> Sent: 13 June 2022 17:27
-> 
-> >> It's listed in Documentation/atomic_bitops.txt.
-> >
-> > Oh, so my memory was actually correct that I saw it in the docs
-> > somewhere.
-> > WDYT, should I mention this here in the code (block comment) as well
-> > that it's atomic and must not lose `volatile` as Andy suggested or
-> > it's sufficient to have it in the docs (+ it's not underscored)?
-> 
-> I think a comment that the "volatile" is required to prevent re-ordering
-> is enough.
-> 
-> But maybe others are sufficiently clear on the meaning? I once wasted
-> time looking for the non-atomic __test_bit() version (to use in some code
-> that was already protected by a spin lock, so didn't need the overhead
-> of an "atomic" version) before realizing there wasn't a non-atomic one.
+Hi Lecopzer,
 
-Does it make any sense for 'test bit' to be atomic?
+Thank you for the patch! Yet something to improve:
 
-I'm not even sure is needs any ordering constraints either.
-The result is always stale - the value can be changed by
-another cpu at any time.
+[auto build test ERROR on arm64/for-next/core]
+[also build test ERROR on arm/for-next kvmarm/next soc/for-next linus/master v5.19-rc2 next-20220610]
+[cannot apply to xilinx-xlnx/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch]
 
-The set/clear atomic bit-ops require a RMW bus cycle - which has
-to be locked (or similar) to avoid corruption.
+url:    https://github.com/intel-lab-lkp/linux/commits/Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220614-021318
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/core
+config: sparc64-randconfig-r026-20220613 (https://download.01.org/0day-ci/archive/20220614/202206141348.e7aqnN0q-lkp@intel.com/config)
+compiler: sparc64-linux-gcc (GCC) 11.3.0
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/7df94eb967160312b005f9d8a29b558beec2d5a7
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220614-021318
+        git checkout 7df94eb967160312b005f9d8a29b558beec2d5a7
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-11.3.0 make.cross W=1 O=build_dir ARCH=sparc64 SHELL=/bin/bash
 
-The atomic 'test and set' (etc) are RMW and return a valid state.
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
 
-	David
+All errors (new ones prefixed by >>):
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+   kernel/watchdog.c: In function 'lockup_detector_init':
+>> kernel/watchdog.c:915:17: error: 'allow_lockup_detector_init_retry' undeclared (first use in this function); did you mean 'retry_lockup_detector_init'?
+     915 |                 allow_lockup_detector_init_retry = true;
+         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         |                 retry_lockup_detector_init
+   kernel/watchdog.c:915:17: note: each undeclared identifier is reported only once for each function it appears in
 
+
+vim +915 kernel/watchdog.c
+
+   903	
+   904	void __init lockup_detector_init(void)
+   905	{
+   906		if (tick_nohz_full_enabled())
+   907			pr_info("Disabling watchdog on nohz_full cores by default\n");
+   908	
+   909		cpumask_copy(&watchdog_cpumask,
+   910			     housekeeping_cpumask(HK_TYPE_TIMER));
+   911	
+   912		if (!watchdog_nmi_probe())
+   913			nmi_watchdog_available = true;
+   914		else
+ > 915			allow_lockup_detector_init_retry = true;
+
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
