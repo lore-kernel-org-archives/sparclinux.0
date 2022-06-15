@@ -2,128 +2,95 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D451CCA47E
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 14:19:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 503D9CCA480
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 14:38:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242340AbiFOOTk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Jun 2022 10:19:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34966 "EHLO
+        id S1345876AbiFOOh6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Jun 2022 10:37:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52594 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238011AbiFOOTf (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 10:19:35 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50DEC36B7E;
-        Wed, 15 Jun 2022 07:19:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655302774; x=1686838774;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Y34PZ1MCfO2hOMDdvHaZPFb/IY8bQc2YzesGXP5aW7I=;
-  b=A/oFOIEr34NCwX17DN63AvAkOvGSGISwyuYbqnrT4q5UJ8WiplXZN2yu
-   SbtgglgRKSu8OIldwMfB0oZmlbgBbHQ0ksK/nNA1oUq8sirIzOV8Dq8Ji
-   PtmhZZHzRJexQUgUUwkYu3QpKFcpRnO48SszAN1SJNJAhdNHMXQxH2czf
-   5AV7g52+ulqSJ94o58TiGx51TuYmqo1JjyijCasgQoB32gQ6fP+oKipy7
-   +9EN80FJQJRansLOVIR5HouAx7MoEJ6bRfty5MkoGyIPik95P0qHeskXf
-   v4ZVjkAB6WdmLfcLueKtKxnw7OhX7dNevRNYbnSz+Mdv2MobxhGUeoD6W
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10378"; a="304408545"
-X-IronPort-AV: E=Sophos;i="5.91,302,1647327600"; 
-   d="scan'208";a="304408545"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2022 07:19:33 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.91,302,1647327600"; 
-   d="scan'208";a="831065704"
-Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by fmsmga006.fm.intel.com with ESMTP; 15 Jun 2022 07:19:29 -0700
-Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25FEJRYo024307;
-        Wed, 15 Jun 2022 15:19:27 +0100
-From:   Alexander Lobakin <alexandr.lobakin@intel.com>
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
-        "Andy Shevchenko" <andriy.shevchenko@linux.intel.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        alpha <linux-alpha@vger.kernel.org>,
-        "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        "Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 0/6] bitops: let optimize out non-atomic bitops on compile-time constants
-Date:   Wed, 15 Jun 2022 16:17:32 +0200
-Message-Id: <20220615141732.1265627-1-alexandr.lobakin@intel.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <CAMuHMdVayS6hV3CWW6FS-1cQKoGTCDxgVhZVPSyBMvJHBxVwJA@mail.gmail.com>
-References: <20220610113427.908751-1-alexandr.lobakin@intel.com> <CAMuHMdUZCaPN2B6bvmja9rDm3qCc4mYYAOSEB2W0R0pws8peqw@mail.gmail.com> <20220613142645.1176423-1-alexandr.lobakin@intel.com> <CAMuHMdVayS6hV3CWW6FS-1cQKoGTCDxgVhZVPSyBMvJHBxVwJA@mail.gmail.com>
+        with ESMTP id S230160AbiFOOhz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 10:37:55 -0400
+Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4708D13CE1;
+        Wed, 15 Jun 2022 07:37:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
+        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
+        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
+        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
+        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
+        List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=75kgVCcqOPOLeu4JBiLLFab/dM4uNZ1dcLuvpDx9ZCg=; b=kAIWl67VuUe8cBDkmFOZTh4b+J
+        Uy6PgE2+CwIEzhFEfsXCTAadcMkk5TefuTIBHvgzxNrjmUz+/r/f3fMBR5i8mMC7UweLMh9MkeJoD
+        97gkOJRUGibA77qDy9s4vL7NkQkS1Sv+TX4WpruLFHmbGvImVgE9LeYadgdIraA8AGxMlB+PxaWy/
+        1adKvJuvvpCbTsZosCqi5SMDlMupfKEgEY7JpKMS8HhvbF7gyowCTheRqW0YX0S9D05qpW9G1fKLt
+        DJUWQ6k8Tz/HxaHb6kuJRSWnDBXrsJA/DQco3hh/lFSm8XLWvSeNFNfH2bKr+ugXM0hH/Gw2zl2s+
+        laFslj7w==;
+Received: from 179.red-81-39-194.dynamicip.rima-tde.net ([81.39.194.179] helo=[192.168.15.167])
+        by fanzine2.igalia.com with esmtpsa 
+        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
+        id 1o1U8m-002LYs-SW; Wed, 15 Jun 2022 16:37:04 +0200
+Message-ID: <362f6520-8209-1721-823c-11928338f57d@igalia.com>
+Date:   Wed, 15 Jun 2022 11:36:39 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.0
+Subject: Re: [PATCH 24/30] panic: Refactor the panic path
+Content-Language: en-US
+To:     Petr Mladek <pmladek@suse.com>
+Cc:     bhe@redhat.com, d.hatayama@jp.fujitsu.com,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Mark Rutland <mark.rutland@arm.com>, mikelley@microsoft.com,
+        vkuznets@redhat.com, akpm@linux-foundation.org,
+        kexec@lists.infradead.org, linux-kernel@vger.kernel.org,
+        bcm-kernel-feedback-list@broadcom.com,
+        linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
+        linux-hyperv@vger.kernel.org, linux-leds@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        netdev@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
+        rcu@vger.kernel.org, sparclinux@vger.kernel.org,
+        xen-devel@lists.xenproject.org, x86@kernel.org,
+        kernel-dev@igalia.com, kernel@gpiccoli.net, halves@canonical.com,
+        fabiomirmar@gmail.com, alejandro.j.jimenez@oracle.com,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bp@alien8.de,
+        corbet@lwn.net, dave.hansen@linux.intel.com, dyoung@redhat.com,
+        feng.tang@intel.com, gregkh@linuxfoundation.org,
+        hidehiro.kawai.ez@hitachi.com, jgross@suse.com,
+        john.ogness@linutronix.de, keescook@chromium.org, luto@kernel.org,
+        mhiramat@kernel.org, mingo@redhat.com, paulmck@kernel.org,
+        peterz@infradead.org, rostedt@goodmis.org,
+        senozhatsky@chromium.org, stern@rowland.harvard.edu,
+        tglx@linutronix.de, vgoyal@redhat.com, will@kernel.org
+References: <20220427224924.592546-1-gpiccoli@igalia.com>
+ <20220427224924.592546-25-gpiccoli@igalia.com>
+ <87fskzuh11.fsf@email.froward.int.ebiederm.org>
+ <0d084eed-4781-c815-29c7-ac62c498e216@igalia.com> <Yqic0R8/UFqTbbMD@alley>
+From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
+In-Reply-To: <Yqic0R8/UFqTbbMD@alley>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 13 Jun 2022 17:22:30 +0200
+Perfect Petr, thanks for your feedback!
 
-> Hi Olek,
+I'll be out for some weeks, but after that what I'm doing is to split
+the series in 2 parts:
 
-Hi!
+(a) The general fixes, which should be reviewed by subsystem maintainers
+and even merged individually by them.
 
-> 
-> On Mon, Jun 13, 2022 at 4:28 PM Alexander Lobakin
-> <alexandr.lobakin@intel.com> wrote:
-> > From: Geert Uytterhoeven <geert@linux-m68k.org>
-> > > On Fri, Jun 10, 2022 at 1:35 PM Alexander Lobakin
-> > > <alexandr.lobakin@intel.com> wrote:
-> > > On m68k, using gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04), this
-> > > blows up immediately with:
-> >
-> > Yeah I saw the kernel bot report already, sorry for that >_< Fixed
-> > in v3 already, will send in 1-2 days.
-> 
-> Is it simple to fix?
-> I might be able to give the fixed v2 a try before that.
-> Thanks!
+(b) The proper panic refactor, which includes the notifiers list split,
+etc. I'll think about what I consider the best solution for the
+crash_dump required ones, and will try to split in very simple patches
+to make it easier to review.
 
-Oh, sorry for the late reply, was busy with stuff.
-It's linear, there are (after applying the series) some static
-inlines in arch/m68k/include/asm/bitops.h (those which were
-converted from macros in patch 3/6), 7 ops in total, you just need
-to create definitions with 'arch_' prefix for each of them, e.g.
+Cheers,
 
-#define arch_test_bit	test_bit
-#define arch___set_bit	__set_bit // will be ___set_bit after 5/6
 
-etc.
-Hope I explained it clear-ish :)
-
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-
-Thanks,
-Olek
+Guilherme
