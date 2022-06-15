@@ -2,64 +2,49 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA9DEC43334
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 07:46:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2C0FCCA473
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 13:57:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241426AbiFOHq4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Jun 2022 03:46:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53208 "EHLO
+        id S237659AbiFON5D (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Jun 2022 09:57:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238448AbiFOHqz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 03:46:55 -0400
-Received: from mail-yw1-x112e.google.com (mail-yw1-x112e.google.com [IPv6:2607:f8b0:4864:20::112e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 64A6F4093F
-        for <sparclinux@vger.kernel.org>; Wed, 15 Jun 2022 00:46:53 -0700 (PDT)
-Received: by mail-yw1-x112e.google.com with SMTP id 00721157ae682-30ce6492a60so52629037b3.8
-        for <sparclinux@vger.kernel.org>; Wed, 15 Jun 2022 00:46:53 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=6TunYOqloBF4qLChlgaS7iv3LW3vD06QMv7vYl8gqBE=;
-        b=i2CcqUtrsIDkjaoSSAE5LJhiUeUlJuVADv1ngNNW36lXa09SoQcpveMkDEKuHpN1nK
-         OSTwc5GQA1cqqaDU8xoKdGf4VNibWkBZs9lkprQc81915FZ28b+H0OiKrwIrp8m9ecHh
-         OiQMFa6k9NgB2vpeqWO5iSFhzJOjrI3JaCBFzs55F40LdKMNz+QMAItb9zjeLNzsMn82
-         i9IFvhjQDrz11c26V+4BzMXa+YIGzcEq276G5oduvKPOYUdPT3NvAs3AAmiF2gLaCs6C
-         uNxnPmdvvksW8dsvscU7IRW0MAWz7UOtkH/7pQAMI8UW5cdoHzte4JFOFBr4G+NekyNW
-         bpDQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=6TunYOqloBF4qLChlgaS7iv3LW3vD06QMv7vYl8gqBE=;
-        b=Rhckryq6MC9UmMxUCMJPFiOJ2akzevKzYAirPMUb8e5rUp2Of7PmQHZJrljgPi6PXS
-         1Ucw9LZyKtyqT3QvfOzKDS9itCsUs4wn/RzVNS04NA2qFC6Vm0rtpv69waG6dqH2XG+C
-         Xnhf6dn29Xptfy9UCscFVEtvijd+5GB6PcDBff/dWeNbE6736dqya4q+estPJ0ktcogQ
-         NMD5WxDC7Cy721XFTzUvnkjnBYl6+UqzbDiLx+ooi/JzF4c5iMN/RR5EOaP3BuvE/igw
-         vSyuAMnTwlA+VtujhQl3rdiyCeATIR9orktj4KdoB4JlCmNptcUXsPLFKe++OslVBMfE
-         mvaQ==
-X-Gm-Message-State: AJIora95+YwnSX7ig0OP1NC1z6eg/Do41JjqSNoHXCTIUOu1xaJOp8TG
-        kDgoPs7izsavDen1lmqHeJRrB+R9Cqup/mTWGITQvA==
-X-Google-Smtp-Source: AGRyM1saOw0vSmHtMDdGxukVnu8JafJ/oalySrc+hOJX6qe5P1u/hURE3aR4FUFhUD6VGWIdDVu0+xbTE+as4/0CPac=
-X-Received: by 2002:a81:3a12:0:b0:314:6097:b801 with SMTP id
- h18-20020a813a12000000b003146097b801mr7498148ywa.512.1655279212429; Wed, 15
- Jun 2022 00:46:52 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220610113427.908751-1-alexandr.lobakin@intel.com>
- <20220610113427.908751-3-alexandr.lobakin@intel.com> <YqNMO0ioGzJ1IkoA@smile.fi.intel.com>
- <22042c14bc6a437d9c6b235fbfa32c8a@intel.com> <CANpmjNNZAeMQjzNyXLeKY4cp_m-xJBU1vs7PgT+7_sJwxtEEAg@mail.gmail.com>
- <20220613141947.1176100-1-alexandr.lobakin@intel.com> <CANpmjNM0noP8ieQztyEvijz+MG-cDxxmfwaX_QTpnyT5G33EGA@mail.gmail.com>
- <YqlITqttNYqT/xpN@yury-laptop>
-In-Reply-To: <YqlITqttNYqT/xpN@yury-laptop>
-From:   Marco Elver <elver@google.com>
-Date:   Wed, 15 Jun 2022 09:46:15 +0200
-Message-ID: <CANpmjNMd+r9Hq+vwWGoNhOg_W=x3Umo+i14TRvEMz6PhcHgXWQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/6] bitops: always define asm-generic non-atomic bitops
+        with ESMTP id S240208AbiFON5A (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 09:57:00 -0400
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BFE3827B12;
+        Wed, 15 Jun 2022 06:56:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655301419; x=1686837419;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=l3Dz9pCGYsKL9M71ANGJFS/yhgtgmIg63N13O2SpgOE=;
+  b=ZIWSrq97lWkxdwWPN3eRZs8ibstsomDnaF3tgvvIEHOvnq1xblOCBrCp
+   yk5n80X3PULcZ7WzqL9rQzrdP+t/gG5jhMkIXhb0DZYLlqw0KtqoHxg1g
+   M9+RGxjdrYrjV+cVsvtVrcEqv1QXat75qk2orzn/iCY3T1iEr0nunDk0P
+   a98fp6N4xWTpZGaqosb7MECLSJG/66B71mhSQ7frw9gvmpIZjyyEqYV72
+   YGNPTGgLlZXqAQvELv5WIGBhbPgh+WSERTM2vkRx/N/dFcQEtrsAdoubK
+   +NledGY7xj20xztT7FGKKbcsybIsXEL10tpCYoX681H2ZWtK8GB+Y4Tlu
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10378"; a="277760300"
+X-IronPort-AV: E=Sophos;i="5.91,302,1647327600"; 
+   d="scan'208";a="277760300"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jun 2022 06:56:59 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.91,302,1647327600"; 
+   d="scan'208";a="727403523"
+Received: from irvmail001.ir.intel.com ([10.43.11.63])
+  by fmsmga001.fm.intel.com with ESMTP; 15 Jun 2022 06:56:53 -0700
+Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25FDupkt019852;
+        Wed, 15 Jun 2022 14:56:51 +0100
+From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     Yury Norov <yury.norov@gmail.com>
 Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Tony Luck <tony.luck@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Arnd Bergmann <arnd@arndb.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Mark Rutland <mark.rutland@arm.com>,
         Matt Turner <mattst88@gmail.com>,
         Brian Cain <bcain@quicinc.com>,
@@ -69,71 +54,116 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         "David S. Miller" <davem@davemloft.net>,
         Kees Cook <keescook@chromium.org>,
         "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Borislav Petkov <bp@suse.de>,
+        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
+        Tony Luck <tony.luck@intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
-        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 4/6] bitops: define const_*() versions of the non-atomics
+Date:   Wed, 15 Jun 2022 15:55:06 +0200
+Message-Id: <20220615135506.1264880-1-alexandr.lobakin@intel.com>
+X-Mailer: git-send-email 2.36.1
+In-Reply-To: <YqlKpwjQ4Hu+Lr8u@yury-laptop>
+References: <20220610113427.908751-1-alexandr.lobakin@intel.com> <20220610113427.908751-5-alexandr.lobakin@intel.com> <YqlKpwjQ4Hu+Lr8u@yury-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, 15 Jun 2022 at 04:47, Yury Norov <yury.norov@gmail.com> wrote:
->
-> On Mon, Jun 13, 2022 at 04:33:17PM +0200, Marco Elver wrote:
-> > On Mon, 13 Jun 2022 at 16:21, Alexander Lobakin
-> > <alexandr.lobakin@intel.com> wrote:
-> > >
-> > > From: Marco Elver <elver@google.com>
-> > > Date: Fri, 10 Jun 2022 18:32:36 +0200
-> > >
-> > > > On Fri, 10 Jun 2022 at 18:02, Luck, Tony <tony.luck@intel.com> wrote:
-> > > > >
-> > > > > > > +/**
-> > > > > > > + * generic_test_bit - Determine whether a bit is set
-> > > > > > > + * @nr: bit number to test
-> > > > > > > + * @addr: Address to start counting from
-> > > > > > > + */
-> > > > > >
-> > > > > > Shouldn't we add in this or in separate patch a big NOTE to explain that this
-> > > > > > is actually atomic and must be kept as a such?
-> > > > >
-> > > > > "atomic" isn't really the right word. The volatile access makes sure that the
-> > > > > compiler does the test at the point that the source code asked, and doesn't
-> > > > > move it before/after other operations.
-> > > >
-> > > > It's listed in Documentation/atomic_bitops.txt.
-> > >
-> > > Oh, so my memory was actually correct that I saw it in the docs
-> > > somewhere.
-> > > WDYT, should I mention this here in the code (block comment) as well
-> > > that it's atomic and must not lose `volatile` as Andy suggested or
-> > > it's sufficient to have it in the docs (+ it's not underscored)?
-> >
-> > Perhaps a quick comment in the code (not kerneldoc above) will be
-> > sufficient, with reference to Documentation/atomic_bitops.txt.
->
-> If it may help, we can do:
->
-> /*
->  * Bit testing is a naturally atomic operation because bit is
->  * a minimal quantum of information.
->  */
-> #define __test_bit test_bit
+From: Yury Norov <yury.norov@gmail.com>
+Date: Tue, 14 Jun 2022 19:57:43 -0700
 
-That's redundant and we'll end up with a random mix of both.
+> On Fri, Jun 10, 2022 at 01:34:25PM +0200, Alexander Lobakin wrote:
+> > Define const_*() variants of the non-atomic bitops to be used when
+> > the input arguments are compile-time constants, so that the compiler
+> > will be always to resolve those to compile-time constants as well.
+> 
+> will be always able?
 
-What'd be more interesting is having a __test_bit without the volatile
-that allows compilers to optimize things more. But I think that also
-becomes mostly redundant with the optimizations that this series seeks
-out to do.
+Right, ooops.
 
-The distinction is ever so subtle, and clever compilers *will* break
-concurrent code in ways that are rather hard to imagine:
-https://lwn.net/Articles/793253/
+> 
+> > Those are mostly direct aliases for generic_*() with one exception
+> > for const_test_bit(): the original one is declared atomic-safe and
+> > thus doesn't discard the `volatile` qualifier, so in order to let
+> > optimize the code, define it separately disregarding the qualifier.
+> > Add them to the compile-time type checks as well just in case.
+> > 
+> > Suggested-by: Marco Elver <elver@google.com>
+> > Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
+> > ---
+> >  .../asm-generic/bitops/generic-non-atomic.h   | 31 +++++++++++++++++++
+> >  include/linux/bitops.h                        |  3 +-
+> >  2 files changed, 33 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/include/asm-generic/bitops/generic-non-atomic.h b/include/asm-generic/bitops/generic-non-atomic.h
+> > index 3ce0fa0ab35f..9a77babfff35 100644
+> > --- a/include/asm-generic/bitops/generic-non-atomic.h
+> > +++ b/include/asm-generic/bitops/generic-non-atomic.h
+> > @@ -121,4 +121,35 @@ generic_test_bit(unsigned long nr, const volatile unsigned long *addr)
+> >  	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+> >  }
+> >  
+> > +/*
+> > + * const_*() definitions provide good compile-time optimizations when
+> > + * the passed arguments can be resolved at compile time.
+> > + */
+> > +#define const___set_bit			generic___set_bit
+> > +#define const___clear_bit		generic___clear_bit
+> > +#define const___change_bit		generic___change_bit
+> > +#define const___test_and_set_bit	generic___test_and_set_bit
+> > +#define const___test_and_clear_bit	generic___test_and_clear_bit
+> > +#define const___test_and_change_bit	generic___test_and_change_bit
+> > +
+> > +/**
+> > + * const_test_bit - Determine whether a bit is set
+> > + * @nr: bit number to test
+> > + * @addr: Address to start counting from
+> > + *
+> > + * A version of generic_test_bit() which discards the `volatile` qualifier to
+> > + * allow the compiler to optimize code harder. Non-atomic and to be used only
+> > + * for testing compile-time constants, e.g. from the corresponding macro, or
+> > + * when you really know what you are doing.
+> 
+> Not sure I understand the last sentence... Can you please rephrase?
+
+I basically want to tell that there potentinally might be cases for
+using those outside of the actual macros from 6/6. But it might be
+redundant at all to mention this.
+
+> 
+> > + */
+> > +static __always_inline bool
+> > +const_test_bit(unsigned long nr, const volatile unsigned long *addr)
+> > +{
+> > +	const unsigned long *p = (const unsigned long *)addr + BIT_WORD(nr);
+> > +	unsigned long mask = BIT_MASK(nr);
+> > +	unsigned long val = *p;
+> > +
+> > +	return !!(val & mask);
+> > +}
+> > +
+> >  #endif /* __ASM_GENERIC_BITOPS_GENERIC_NON_ATOMIC_H */
+> > diff --git a/include/linux/bitops.h b/include/linux/bitops.h
+> > index 87087454a288..51c22b8667b4 100644
+> > --- a/include/linux/bitops.h
+> > +++ b/include/linux/bitops.h
+> > @@ -36,7 +36,8 @@ extern unsigned long __sw_hweight64(__u64 w);
+> >  
+> >  /* Check that the bitops prototypes are sane */
+> >  #define __check_bitop_pr(name)						\
+> > -	static_assert(__same_type(arch_##name, generic_##name) &&	\
+> > +	static_assert(__same_type(const_##name, generic_##name) &&	\
+> > +		      __same_type(arch_##name, generic_##name) &&	\
+> >  		      __same_type(name, generic_##name))
+> >  
+> >  __check_bitop_pr(__set_bit);
+> > -- 
+> > 2.36.1
+
+Thanks,
+Olek
