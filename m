@@ -2,95 +2,93 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 503D9CCA480
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 14:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D4A0C43334
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Jun 2022 15:42:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345876AbiFOOh6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Jun 2022 10:37:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52594 "EHLO
+        id S244809AbiFOPmL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Jun 2022 11:42:11 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230160AbiFOOhz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 10:37:55 -0400
-Received: from fanzine2.igalia.com (fanzine.igalia.com [178.60.130.6])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4708D13CE1;
-        Wed, 15 Jun 2022 07:37:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=igalia.com;
-        s=20170329; h=Content-Transfer-Encoding:Content-Type:In-Reply-To:From:
-        References:Cc:To:Subject:MIME-Version:Date:Message-ID:Sender:Reply-To:
-        Content-ID:Content-Description:Resent-Date:Resent-From:Resent-Sender:
-        Resent-To:Resent-Cc:Resent-Message-ID:List-Id:List-Help:List-Unsubscribe:
-        List-Subscribe:List-Post:List-Owner:List-Archive;
-        bh=75kgVCcqOPOLeu4JBiLLFab/dM4uNZ1dcLuvpDx9ZCg=; b=kAIWl67VuUe8cBDkmFOZTh4b+J
-        Uy6PgE2+CwIEzhFEfsXCTAadcMkk5TefuTIBHvgzxNrjmUz+/r/f3fMBR5i8mMC7UweLMh9MkeJoD
-        97gkOJRUGibA77qDy9s4vL7NkQkS1Sv+TX4WpruLFHmbGvImVgE9LeYadgdIraA8AGxMlB+PxaWy/
-        1adKvJuvvpCbTsZosCqi5SMDlMupfKEgEY7JpKMS8HhvbF7gyowCTheRqW0YX0S9D05qpW9G1fKLt
-        DJUWQ6k8Tz/HxaHb6kuJRSWnDBXrsJA/DQco3hh/lFSm8XLWvSeNFNfH2bKr+ugXM0hH/Gw2zl2s+
-        laFslj7w==;
-Received: from 179.red-81-39-194.dynamicip.rima-tde.net ([81.39.194.179] helo=[192.168.15.167])
-        by fanzine2.igalia.com with esmtpsa 
-        (Cipher TLS1.3:ECDHE_X25519__RSA_PSS_RSAE_SHA256__AES_128_GCM:128) (Exim)
-        id 1o1U8m-002LYs-SW; Wed, 15 Jun 2022 16:37:04 +0200
-Message-ID: <362f6520-8209-1721-823c-11928338f57d@igalia.com>
-Date:   Wed, 15 Jun 2022 11:36:39 +0200
+        with ESMTP id S1347569AbiFOPmG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Jun 2022 11:42:06 -0400
+Received: from mout.kundenserver.de (mout.kundenserver.de [212.227.126.131])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5F6E333EB3;
+        Wed, 15 Jun 2022 08:42:05 -0700 (PDT)
+Received: from mail-yw1-f170.google.com ([209.85.128.170]) by
+ mrelayeu.kundenserver.de (mreue011 [213.165.67.97]) with ESMTPSA (Nemesis) id
+ 1MpD39-1nMsUO29NP-00qmZw; Wed, 15 Jun 2022 17:42:03 +0200
+Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-31336535373so65529697b3.2;
+        Wed, 15 Jun 2022 08:42:02 -0700 (PDT)
+X-Gm-Message-State: AJIora++c+Wn/IOsx9pCgv7/Nzu9gHCVZW360JjfwTsj2olgqMQARQMb
+        3jcRfUUpFG/Larpdm4QhU//MFCefbtkSYPBh3QM=
+X-Google-Smtp-Source: AGRyM1tvSYqmEMcQOHNj9RHGvPD3N77JHNbv7mv6qEA4arhJQHb8/8PCIV9TGNOQcD+GB1sbS5DvpPMqr/97f5KSeYo=
+X-Received: by 2002:a81:2f84:0:b0:314:2bfd:bf1f with SMTP id
+ v126-20020a812f84000000b003142bfdbf1fmr292750ywv.320.1655307721907; Wed, 15
+ Jun 2022 08:42:01 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.0
-Subject: Re: [PATCH 24/30] panic: Refactor the panic path
-Content-Language: en-US
-To:     Petr Mladek <pmladek@suse.com>
-Cc:     bhe@redhat.com, d.hatayama@jp.fujitsu.com,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Mark Rutland <mark.rutland@arm.com>, mikelley@microsoft.com,
-        vkuznets@redhat.com, akpm@linux-foundation.org,
-        kexec@lists.infradead.org, linux-kernel@vger.kernel.org,
-        bcm-kernel-feedback-list@broadcom.com,
-        linuxppc-dev@lists.ozlabs.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org,
-        linux-hyperv@vger.kernel.org, linux-leds@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-remoteproc@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        netdev@vger.kernel.org, openipmi-developer@lists.sourceforge.net,
-        rcu@vger.kernel.org, sparclinux@vger.kernel.org,
-        xen-devel@lists.xenproject.org, x86@kernel.org,
-        kernel-dev@igalia.com, kernel@gpiccoli.net, halves@canonical.com,
-        fabiomirmar@gmail.com, alejandro.j.jimenez@oracle.com,
-        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bp@alien8.de,
-        corbet@lwn.net, dave.hansen@linux.intel.com, dyoung@redhat.com,
-        feng.tang@intel.com, gregkh@linuxfoundation.org,
-        hidehiro.kawai.ez@hitachi.com, jgross@suse.com,
-        john.ogness@linutronix.de, keescook@chromium.org, luto@kernel.org,
-        mhiramat@kernel.org, mingo@redhat.com, paulmck@kernel.org,
-        peterz@infradead.org, rostedt@goodmis.org,
-        senozhatsky@chromium.org, stern@rowland.harvard.edu,
-        tglx@linutronix.de, vgoyal@redhat.com, will@kernel.org
-References: <20220427224924.592546-1-gpiccoli@igalia.com>
- <20220427224924.592546-25-gpiccoli@igalia.com>
- <87fskzuh11.fsf@email.froward.int.ebiederm.org>
- <0d084eed-4781-c815-29c7-ac62c498e216@igalia.com> <Yqic0R8/UFqTbbMD@alley>
-From:   "Guilherme G. Piccoli" <gpiccoli@igalia.com>
-In-Reply-To: <Yqic0R8/UFqTbbMD@alley>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+References: <YqjQ5kso7czrmYPW@linutronix.de> <YqmC1aAm+O7RD2IH@infradead.org>
+In-Reply-To: <YqmC1aAm+O7RD2IH@infradead.org>
+From:   Arnd Bergmann <arnd@arndb.de>
+Date:   Wed, 15 Jun 2022 17:41:45 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a1QmeAscV-Ory-Dae4RoLvDSPEjEgFGQHR9U8jUervGuA@mail.gmail.com>
+Message-ID: <CAK8P3a1QmeAscV-Ory-Dae4RoLvDSPEjEgFGQHR9U8jUervGuA@mail.gmail.com>
+Subject: Re: [PATCH] arch/*: Disable softirq stacks on PREEMPT_RT.
+To:     Christoph Hellwig <hch@infradead.org>
+Cc:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        linux-arch <linux-arch@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Paul Mackerras <paulus@samba.org>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>
+Content-Type: text/plain; charset="UTF-8"
+X-Provags-ID: V03:K1:f9gWmAOWQ4mJqq9vnpq340BcszasWXWP8oa3AU2ZDOsKL9mj5K4
+ axGZkpi9mmoxgs0WXgG3u+bl9+r5z0klO1aPIC+E9liMAY1Z5keTOuuIvd9COoa1z3dHYCO
+ HUpNxWrMZHSJ1AVVZttzC3QOj5oTyk2Nk/JRicTpoS1XzgA9fafttu3wHtrnSqgX26plHb9
+ 6IrOqhsgAx7H5uDrUHIFA==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:wdbNn5/MWQQ=:eB+gLs0OdaEHc9PgXzSq80
+ otKA4DpR1wzlE+IVSQ4haIZTS8bLUm+Q29mzbBOW9FnhsLADvZNKABrYoVhSA9+Ke1n9/z5BI
+ jx8LBbyznrgV//3pkaIfWAAwbBrHEJ1hYvN0/D0aAPkHJebtkU8FrT3FtRMcEff0k0rbusvzA
+ qt46cbpUxXdvsPTu2caIgFV1xOoNwGx6IsUVz1daRLh7uhZCxRRJagl+FOEK4tVeKRU6jyaXH
+ C4I+D9DwXvTk3hWfyLzfm1dsmd4+puXl5qSLW6C1SYhvkOOl+U91UiL2/YWHwmzv/PnbephLa
+ M6qiTVygrH6NhJGSZm6r4WIo/TxmjBHuKxDHLmHcSJxnMP5Jz98ibEmdxdoqKfNoewSB+tSTU
+ IAVG7adFJh0H9M1Ul+yBKE06woGOS/pqFKviYMpDiFOufxxTYj2esD1pSaMkPUJ0phRvDcfJM
+ 1MIjXsp09s1HJ3n3TZ98+Az5TzAx5LH2hexdwvlKO87w5kL9ViRscUXEdXwtQ0Zcvmey+FVxW
+ RXK74aNyGCEbC3Y6T7r0oPl3jS9JQ+AlfZhZo2vHbVTG2xue80SGI+DFn1lLYCyUMjaVRcEPq
+ piTmF3/dcBfhc93w/yKrCq1scQHFm5mDG2iNEHNanPZcdDIW7K6M2J+PKmhMa4J1P+5BCwDQD
+ BeEWCQlG2vfhhIp3GkLkg/yrg4Rxlpt0MuFjReXfLoym6mwHX5cRsDoCCUvO1IrWSbgS225Zm
+ s/5qFdU+mlLZ6ckw6tPGB0jOHovQHJjZr7T3m+YUBysEop1+p8B3GhTY37qciq3NtcIr1eCU+
+ Aqccn4+JrnMgPPRPdLVN6TtmIOoh3l7bADPDv3TuncikH9FYdliaknx9U8c5iaWfsBRi6ybEZ
+ dnxfu08HVFEYW8C38xYw==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Perfect Petr, thanks for your feedback!
-
-I'll be out for some weeks, but after that what I'm doing is to split
-the series in 2 parts:
-
-(a) The general fixes, which should be reviewed by subsystem maintainers
-and even merged individually by them.
-
-(b) The proper panic refactor, which includes the notifiers list split,
-etc. I'll think about what I consider the best solution for the
-crash_dump required ones, and will try to split in very simple patches
-to make it easier to review.
-
-Cheers,
+On Wed, Jun 15, 2022 at 8:57 AM Christoph Hellwig <hch@infradead.org> wrote:
+>
+> On Tue, Jun 14, 2022 at 08:18:14PM +0200, Sebastian Andrzej Siewior wrote:
+> > Disable the unused softirqs stacks on PREEMPT_RT to safe some memory and
+>
+> s/safe/save/
 
 
-Guilherme
+Applied to the asm-generic tree with the above fixup, thanks!
+
+      Arnd
