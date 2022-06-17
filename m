@@ -2,138 +2,155 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B173DCCA47E
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 14:15:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 172BFCCA479
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 14:41:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382409AbiFQOPm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 10:15:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51954 "EHLO
+        id S1382440AbiFQOlD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Jun 2022 10:41:03 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44304 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381868AbiFQOPl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 10:15:41 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9F8594D63B
-        for <sparclinux@vger.kernel.org>; Fri, 17 Jun 2022 07:15:40 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1655475339;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=45WsYeBZBgVP+tO+Yp5wRnejBKTYaIp3okpekaDuC30=;
-        b=exSbu3g2/R4OGiKaC+iCLPWAArp3zQ1sb3m25obkVyrTKXoF/RCGdte30TOtE6K7xBcEOM
-        /1nC6q982RJ5wp2vrfKIVKiuvQutUJ7n57m85BWXJD0v8BZjzasVyb/YDmDIiqdCMdeHJr
-        QrxYOAlWvgVEB5AD0K22SHYk3lEyzkI=
-Received: from mail-il1-f200.google.com (mail-il1-f200.google.com
- [209.85.166.200]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-223-6kEhpSP1NvylVDuCxxr0_g-1; Fri, 17 Jun 2022 10:15:38 -0400
-X-MC-Unique: 6kEhpSP1NvylVDuCxxr0_g-1
-Received: by mail-il1-f200.google.com with SMTP id x5-20020a923005000000b002d1a91c4d13so2743064ile.4
-        for <sparclinux@vger.kernel.org>; Fri, 17 Jun 2022 07:15:38 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=45WsYeBZBgVP+tO+Yp5wRnejBKTYaIp3okpekaDuC30=;
-        b=ihBzwQF5/tzdzWgVPHB0BeNZ7WzJSuHXgsg8UQcx8eX1LDF5hpd2jCwEttGqOM05cd
-         li6+9jK1LJQaIz5B6UAG39Ov4sFJoua8+i8uzbqMuFx4DP/NaWk+Ns9ZPyXn+6dXDFO7
-         veG+2r5K02F0s0h2Ew4R2oEyycraGObISd0ImgPSmzLl4L9cGThxJO3JTNgOLW3lJZXC
-         X2CYdA1Z0PE4H1OycuyZGZNEL1wPoLHs0aJcZi7Tgpw3f6qcoBkixadrOIwpV1Q1Nxut
-         sVKAZPNg937nlSUUT+zJpRtWDGhXb0ZznVoBphMHVP1JKXoC4kzaL0AMZzFnyv9K8eSf
-         yJTA==
-X-Gm-Message-State: AJIora/wnXXrQLPXUUWOixldxy2sDQJUHKJxagIkXn7wEd/Ka1Jxal1S
-        XhQZ8779pHw2/8EYtuNTPWFvWlmJxdn/y5qNOAzDwNMkDEjYLEFIts2ivFLq0Zso3ERuhyyeAxL
-        JL/aCE98UFR68+YmLgNQxaw==
-X-Received: by 2002:a92:da4c:0:b0:2d5:4942:151c with SMTP id p12-20020a92da4c000000b002d54942151cmr5595283ilq.54.1655475337978;
-        Fri, 17 Jun 2022 07:15:37 -0700 (PDT)
-X-Google-Smtp-Source: AGRyM1t5+pBPw8qcp/W9vVk3R5y0UpR770R+5zi051+5lmo73AcdTcYx/JcpFCItROcYKy2t53b2mA==
-X-Received: by 2002:a92:da4c:0:b0:2d5:4942:151c with SMTP id p12-20020a92da4c000000b002d54942151cmr5595259ilq.54.1655475337682;
-        Fri, 17 Jun 2022 07:15:37 -0700 (PDT)
-Received: from xz-m1.local (cpec09435e3e0ee-cmc09435e3e0ec.cpe.net.cable.rogers.com. [99.241.198.116])
-        by smtp.gmail.com with ESMTPSA id h22-20020a02c736000000b0033792143bf5sm649986jao.67.2022.06.17.07.15.35
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 17 Jun 2022 07:15:36 -0700 (PDT)
-Date:   Fri, 17 Jun 2022 10:15:34 -0400
-From:   Peter Xu <peterx@redhat.com>
-To:     Mike Kravetz <mike.kravetz@oracle.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+        with ESMTP id S1382803AbiFQOk7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 10:40:59 -0400
+Received: from mga06.intel.com (mga06b.intel.com [134.134.136.31])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14E454F460;
+        Fri, 17 Jun 2022 07:40:54 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655476854; x=1687012854;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=cKDaIk+tyuEQhyGKnxAqlVtiqCqt8rLzZ/7eP9mJcAA=;
+  b=LBxnQ+AASnMGic5zS3LVDe5hl7z66d31vJTr6PQqVGN54XgfKGg68x9L
+   jJoBdLNIaTOHTtTEdQ7iLG5bH2GOXLA07CM8apQGw8yBvcvy7tonP10kB
+   66/FB/o5ducfK9zGQoR3nxczbkOBLDlRkOoHt46IFwjUNO2IDy8xFU6Hm
+   XwrUDTLB5kD4MxFjD00+qklK+l6FWPtrpqLCfDzopPIH6Ru3TD/AjrbUT
+   ii56pX3+0i8LmIBeD7NA9+Sy3Gq1Qun2EERwlYt6K5Zj0tZV5/MS6er/D
+   eMC0H45EVSQWVd9e7rdUGJEfLWweHZwpfxnRHVBqX4a7CCszJu2RBCE6H
+   Q==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="341193598"
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="341193598"
+Received: from fmsmga007.fm.intel.com ([10.253.24.52])
+  by orsmga104.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2022 07:40:53 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="590137376"
+Received: from irvmail001.ir.intel.com ([10.43.11.63])
+  by fmsmga007.fm.intel.com with ESMTP; 17 Jun 2022 07:40:47 -0700
+Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25HEeXl8024161;
+        Fri, 17 Jun 2022 15:40:45 +0100
+From:   Alexander Lobakin <alexandr.lobakin@intel.com>
+To:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>
+Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matt Turner <mattst88@gmail.com>,
+        Brian Cain <bcain@quicinc.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Kees Cook <keescook@chromium.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
+        Tony Luck <tony.luck@intel.com>,
+        Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        Muchun Song <songmuchun@bytedance.com>,
-        Baolin Wang <baolin.wang@linux.alibaba.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Naoya Horiguchi <naoya.horiguchi@linux.dev>,
-        James Houghton <jthoughton@google.com>,
-        Mina Almasry <almasrymina@google.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        catalin.marinas@arm.com, will@kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/4] hugetlb: skip to end of PT page mapping when pte not
- present
-Message-ID: <YqyMhmAjrQ4C+EyA@xz-m1.local>
-References: <20220616210518.125287-1-mike.kravetz@oracle.com>
- <20220616210518.125287-2-mike.kravetz@oracle.com>
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 6/7] bitops: let optimize out non-atomic bitops on compile-time constants
+Date:   Fri, 17 Jun 2022 16:40:30 +0200
+Message-Id: <20220617144031.2549432-7-alexandr.lobakin@intel.com>
+X-Mailer: git-send-email 2.36.1
+In-Reply-To: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
+References: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20220616210518.125287-2-mike.kravetz@oracle.com>
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi, Mike,
+Currently, many architecture-specific non-atomic bitop
+implementations use inline asm or other hacks which are faster or
+more robust when working with "real" variables (i.e. fields from
+the structures etc.), but the compilers have no clue how to optimize
+them out when called on compile-time constants. That said, the
+following code:
 
-On Thu, Jun 16, 2022 at 02:05:15PM -0700, Mike Kravetz wrote:
-> @@ -6877,6 +6896,39 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
->  	return (pte_t *)pmd;
->  }
->  
-> +/*
-> + * Return a mask that can be used to update an address to the last huge
-> + * page in a page table page mapping size.  Used to skip non-present
-> + * page table entries when linearly scanning address ranges.  Architectures
-> + * with unique huge page to page table relationships can define their own
-> + * version of this routine.
-> + */
-> +unsigned long hugetlb_mask_last_page(struct hstate *h)
-> +{
-> +	unsigned long hp_size = huge_page_size(h);
-> +
-> +	switch (hp_size) {
-> +	case P4D_SIZE:
-> +		return PGDIR_SIZE - P4D_SIZE;
-> +	case PUD_SIZE:
-> +		return P4D_SIZE - PUD_SIZE;
-> +	case PMD_SIZE:
-> +		return PUD_SIZE - PMD_SIZE;
-> +	default:
+	DECLARE_BITMAP(foo, BITS_PER_LONG) = { }; // -> unsigned long foo[1];
+	unsigned long bar = BIT(BAR_BIT);
+	unsigned long baz = 0;
 
-Should we add a WARN_ON_ONCE() if it should never trigger?
+	__set_bit(FOO_BIT, foo);
+	baz |= BIT(BAZ_BIT);
 
-> +		break; /* Should never happen */
-> +	}
-> +
-> +	return ~(0UL);
-> +}
-> +
-> +#else
-> +
-> +/* See description above.  Architectures can provide their own version. */
-> +__weak unsigned long hugetlb_mask_last_page(struct hstate *h)
-> +{
-> +	return ~(0UL);
+	BUILD_BUG_ON(!__builtin_constant_p(test_bit(FOO_BIT, foo));
+	BUILD_BUG_ON(!__builtin_constant_p(bar & BAR_BIT));
+	BUILD_BUG_ON(!__builtin_constant_p(baz & BAZ_BIT));
 
-I'm wondering whether it's better to return 0 rather than ~0 by default.
-Could an arch with !CONFIG_ARCH_WANT_GENERAL_HUGETLB wrongly skip some
-valid address ranges with ~0, or perhaps I misread?
+triggers the first assertion on x86_64, which means that the
+compiler is unable to evaluate it to a compile-time initializer
+when the architecture-specific bitop is used even if it's obvious.
+In order to let the compiler optimize out such cases, expand the
+bitop() macro to use the "constant" C non-atomic bitop
+implementations when all of the arguments passed are compile-time
+constants, which means that the result will be a compile-time
+constant as well, so that it produces more efficient and simple
+code in 100% cases, comparing to the architecture-specific
+counterparts.
 
-Thanks,
+The savings are architecture, compiler and compiler flags dependent,
+for example, on x86_64 -O2:
 
+GCC 12: add/remove: 78/29 grow/shrink: 332/525 up/down: 31325/-61560 (-30235)
+LLVM 13: add/remove: 79/76 grow/shrink: 184/537 up/down: 55076/-141892 (-86816)
+LLVM 14: add/remove: 10/3 grow/shrink: 93/138 up/down: 3705/-6992 (-3287)
+
+and ARM64 (courtesy of Mark):
+
+GCC 11: add/remove: 92/29 grow/shrink: 933/2766 up/down: 39340/-82580 (-43240)
+LLVM 14: add/remove: 21/11 grow/shrink: 620/651 up/down: 12060/-15824 (-3764)
+
+Cc: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
+---
+ include/linux/bitops.h | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/include/linux/bitops.h b/include/linux/bitops.h
+index 3c3afbae1533..26a43360c4ae 100644
+--- a/include/linux/bitops.h
++++ b/include/linux/bitops.h
+@@ -33,8 +33,24 @@ extern unsigned long __sw_hweight64(__u64 w);
+ 
+ #include <asm-generic/bitops/generic-non-atomic.h>
+ 
++/*
++ * Many architecture-specific non-atomic bitops contain inline asm code and due
++ * to that the compiler can't optimize them to compile-time expressions or
++ * constants. In contrary, gen_*() helpers are defined in pure C and compilers
++ * optimize them just well.
++ * Therefore, to make `unsigned long foo = 0; __set_bit(BAR, &foo)` effectively
++ * equal to `unsigned long foo = BIT(BAR)`, pick the generic C alternative when
++ * the arguments can be resolved at compile time. That expression itself is a
++ * constant and doesn't bring any functional changes to the rest of cases.
++ * The casts to `uintptr_t` are needed to mitigate `-Waddress` warnings when
++ * passing a bitmap from .bss or .data (-> `!!addr` is always true).
++ */
+ #define bitop(op, nr, addr)						\
+-	op(nr, addr)
++	((__builtin_constant_p(nr) &&					\
++	  __builtin_constant_p((uintptr_t)(addr) != (uintptr_t)NULL) &&	\
++	  (uintptr_t)(addr) != (uintptr_t)NULL &&			\
++	  __builtin_constant_p(*(const unsigned long *)(addr))) ?	\
++	 const##op(nr, addr) : op(nr, addr))
+ 
+ #define __set_bit(nr, addr)		bitop(___set_bit, nr, addr)
+ #define __clear_bit(nr, addr)		bitop(___clear_bit, nr, addr)
 -- 
-Peter Xu
+2.36.1
 
