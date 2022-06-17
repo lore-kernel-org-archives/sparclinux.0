@@ -2,81 +2,167 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BABC5CCA479
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 09:51:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE26BCCA47C
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 11:26:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1381406AbiFQJvp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 05:51:45 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38484 "EHLO
+        id S1381594AbiFQL0t (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Jun 2022 07:26:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1381174AbiFQJvn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 05:51:43 -0400
-Received: from galois.linutronix.de (Galois.linutronix.de [IPv6:2a0a:51c0:0:12e:550::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23AE4692A4;
-        Fri, 17 Jun 2022 02:51:43 -0700 (PDT)
-Date:   Fri, 17 Jun 2022 11:51:38 +0200
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020; t=1655459500;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Bibq7Q6QM7w+swDPtmlvZ3luRS+p/L2t/kOLJ5BkOk4=;
-        b=VsQuETL6Zs1I7YQO+CiAH4cbNMsgnzIQrW06+38+snWb8jfBz2YBeJtXUHT6AEGEhswftS
-        wPCXv4xNcLlzWgoGB0o5n3z9z72l0ez4ICsJwsWQunt7SDFsFEddJkcJfVLNv+qlcQY9BS
-        yLhmPyn0z/5Hev6M3UCnxv2Mvub/3U+wljyX41d8tACULcjyDp47osWVJhNm2nV57vgswx
-        xjf4FZ+0q4/kh991jULqc+UGbsJ5SHjX9Msk8lNZd4GhuSV/ZXjlAktU0ZxmiAA8VmTTZd
-        akAlE6539ghv041rCCcLFe7sRuK9aE7yiAfjCeo3+L7uIqbojUfjVz/7PLPAbA==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=linutronix.de;
-        s=2020e; t=1655459500;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=Bibq7Q6QM7w+swDPtmlvZ3luRS+p/L2t/kOLJ5BkOk4=;
-        b=wQtx51djjoHimkvi3J2kc2u/aAGBNRk/jz74DKLWGZni8doppvPCweO8zYHH/+0sc2vlY4
-        JbRtDWdHqqokFBCQ==
-From:   Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Christoph Hellwig <hch@infradead.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        with ESMTP id S235394AbiFQL0s (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 07:26:48 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F2AE6A06B;
+        Fri, 17 Jun 2022 04:26:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1655465207; x=1687001207;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=O0OzaZWt5JBpgO+HWeUig13mrHT0bkF4JZGnMqUmzAI=;
+  b=Rv1zjxjwhl0YSHCALlE56R8qHdmizvxY81phVDtkG+XB7o40XLsVEL//
+   c4sp74bDQszlHt5s/j1NsLg0oUq/esQzOTTlfl4gd/jmQi+53JcuDPhRu
+   6OR3XkcQr22FT2jx6GIFzyCvYFz1/U3UGG4/CrrN+Hts/Kn8825XGxAHM
+   WLB3Ru8iukqzhpnm7XFrRfz5YcvQEMt1Nxunsju5o7mM5soHRg5WOaHz/
+   qobCeXD0IK1DyqQIi/tJd2uF8dPLZjy3mSn79mS7+12Uu58hqs4PXkQ6z
+   yQog4DY3LQpQU6qzOCqxgHP++HyUnZOMVniOVTVxHeWrv0wzXS+J8GTBB
+   g==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="268178377"
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="268178377"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2022 04:26:46 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
+   d="scan'208";a="675457992"
+Received: from lkp-server01.sh.intel.com (HELO 60dabacc1df6) ([10.239.97.150])
+  by FMSMGA003.fm.intel.com with ESMTP; 17 Jun 2022 04:26:40 -0700
+Received: from kbuild by 60dabacc1df6 with local (Exim 4.95)
+        (envelope-from <lkp@intel.com>)
+        id 1o2A7b-000PP9-Vz;
+        Fri, 17 Jun 2022 11:26:39 +0000
+Date:   Fri, 17 Jun 2022 19:26:21 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Mike Kravetz <mike.kravetz@oracle.com>,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Cc:     llvm@lists.linux.dev, kbuild-all@lists.01.org,
+        Muchun Song <songmuchun@bytedance.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Michal Hocko <mhocko@suse.com>, Peter Xu <peterx@redhat.com>,
+        Naoya Horiguchi <naoya.horiguchi@linux.dev>,
+        James Houghton <jthoughton@google.com>,
+        Mina Almasry <almasrymina@google.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
         Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Paul Mackerras <paulus@samba.org>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>
-Subject: Re: [PATCH] arch/*: Disable softirq stacks on PREEMPT_RT.
-Message-ID: <YqxOqsgCFgGuzvnr@linutronix.de>
-References: <YqjQ5kso7czrmYPW@linutronix.de>
- <YqmC1aAm+O7RD2IH@infradead.org>
- <CAK8P3a1QmeAscV-Ory-Dae4RoLvDSPEjEgFGQHR9U8jUervGuA@mail.gmail.com>
+        catalin.marinas@arm.com, will@kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Re: [PATCH 1/4] hugetlb: skip to end of PT page mapping when pte not
+ present
+Message-ID: <202206171929.ZIUrNg6p-lkp@intel.com>
+References: <20220616210518.125287-2-mike.kravetz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a1QmeAscV-Ory-Dae4RoLvDSPEjEgFGQHR9U8jUervGuA@mail.gmail.com>
+In-Reply-To: <20220616210518.125287-2-mike.kravetz@oracle.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2022-06-15 17:41:45 [+0200], Arnd Bergmann wrote:
-> Applied to the asm-generic tree with the above fixup, thanks!
+Hi Mike,
 
-Thank you Arnd.
+I love your patch! Yet something to improve:
 
->       Arnd
+[auto build test ERROR on soc/for-next]
+[also build test ERROR on linus/master v5.19-rc2 next-20220617]
+[cannot apply to arm64/for-next/core arm/for-next kvmarm/next xilinx-xlnx/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch]
 
-Sebastian
+url:    https://github.com/intel-lab-lkp/linux/commits/Mike-Kravetz/hugetlb-speed-up-linear-address-scanning/20220617-050726
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/soc/soc.git for-next
+config: i386-randconfig-a002 (https://download.01.org/0day-ci/archive/20220617/202206171929.ZIUrNg6p-lkp@intel.com/config)
+compiler: clang version 15.0.0 (https://github.com/llvm/llvm-project f0e608de27b3d568000046eebf3712ab542979d6)
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/4c647687607f10fece04967b8180c0dadaf765e6
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Mike-Kravetz/hugetlb-speed-up-linear-address-scanning/20220617-050726
+        git checkout 4c647687607f10fece04967b8180c0dadaf765e6
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=i386 SHELL=/bin/bash
+
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
+
+All errors (new ones prefixed by >>):
+
+>> mm/hugetlb.c:6901:7: error: duplicate case value '4194304'
+           case PUD_SIZE:
+                ^
+   include/asm-generic/pgtable-nopud.h:20:20: note: expanded from macro 'PUD_SIZE'
+   #define PUD_SIZE        (1UL << PUD_SHIFT)
+                           ^
+   mm/hugetlb.c:6899:7: note: previous case defined here
+           case P4D_SIZE:
+                ^
+   include/asm-generic/pgtable-nop4d.h:13:19: note: expanded from macro 'P4D_SIZE'
+   #define P4D_SIZE                (1UL << P4D_SHIFT)
+                                   ^
+   mm/hugetlb.c:6903:7: error: duplicate case value '4194304'
+           case PMD_SIZE:
+                ^
+   include/asm-generic/pgtable-nopmd.h:22:20: note: expanded from macro 'PMD_SIZE'
+   #define PMD_SIZE        (1UL << PMD_SHIFT)
+                           ^
+   mm/hugetlb.c:6901:7: note: previous case defined here
+           case PUD_SIZE:
+                ^
+   include/asm-generic/pgtable-nopud.h:20:20: note: expanded from macro 'PUD_SIZE'
+   #define PUD_SIZE        (1UL << PUD_SHIFT)
+                           ^
+   2 errors generated.
+
+
+vim +/4194304 +6901 mm/hugetlb.c
+
+  6886	
+  6887	/*
+  6888	 * Return a mask that can be used to update an address to the last huge
+  6889	 * page in a page table page mapping size.  Used to skip non-present
+  6890	 * page table entries when linearly scanning address ranges.  Architectures
+  6891	 * with unique huge page to page table relationships can define their own
+  6892	 * version of this routine.
+  6893	 */
+  6894	unsigned long hugetlb_mask_last_page(struct hstate *h)
+  6895	{
+  6896		unsigned long hp_size = huge_page_size(h);
+  6897	
+  6898		switch (hp_size) {
+  6899		case P4D_SIZE:
+  6900			return PGDIR_SIZE - P4D_SIZE;
+> 6901		case PUD_SIZE:
+  6902			return P4D_SIZE - PUD_SIZE;
+  6903		case PMD_SIZE:
+  6904			return PUD_SIZE - PMD_SIZE;
+  6905		default:
+  6906			break; /* Should never happen */
+  6907		}
+  6908	
+  6909		return ~(0UL);
+  6910	}
+  6911	
+
+-- 
+0-DAY CI Kernel Test Service
+https://01.org/lkp
