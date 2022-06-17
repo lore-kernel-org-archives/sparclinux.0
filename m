@@ -2,156 +2,123 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C297CCA481
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 14:41:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE5CFCCA483
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 15:26:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1382817AbiFQOlE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 10:41:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44312 "EHLO
+        id S1382793AbiFQP0r (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Jun 2022 11:26:47 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382355AbiFQOk7 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 10:40:59 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36AEB52503;
-        Fri, 17 Jun 2022 07:40:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655476855; x=1687012855;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=THeq/t7OeFGS7kF1qxlxBPZVHuRcSkjtN1FGjFL0hbM=;
-  b=WiB2oJ65/7rC7dKmiifE/o5i4GQSJvwbBbKJWyw63DekzX0cSPtYA1um
-   BtS5NwkP0JEnPh+MqOH4qyq3/K6RPkWQYwodgPATdRdTl/0QrEeEMnDNv
-   6c0wKm8f1rixz6eqLujFLBoXEPmMyh/+gQqbP44aNbBgbT50nXVQzgAmT
-   P3gj514DMqVc6wDvQyTkkjiQfLpi8vLY+yvoRndyzxIthb3IphXlqeNqq
-   AbqlfsQdbspNcn41oPrV+AK8WlvlSxnC0ZwMmIo4guHXfxHEKh6qBwVtN
-   SzzqJWLx1Iile7Lttt85XIWlI+/ydRNBp0ATJ45Z26kB4F/fCQ/5BikUK
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="280246910"
-X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="280246910"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2022 07:40:54 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="763274890"
-Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by orsmga005.jf.intel.com with ESMTP; 17 Jun 2022 07:40:49 -0700
-Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25HEeXl9024161;
-        Fri, 17 Jun 2022 15:40:47 +0100
-From:   Alexander Lobakin <alexandr.lobakin@intel.com>
-To:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>
-Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v3 7/7] lib: test_bitmap: add compile-time optimization/evaluations assertions
-Date:   Fri, 17 Jun 2022 16:40:31 +0200
-Message-Id: <20220617144031.2549432-8-alexandr.lobakin@intel.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
-References: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
+        with ESMTP id S1382720AbiFQP0p (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 11:26:45 -0400
+Received: from mail-qv1-f49.google.com (mail-qv1-f49.google.com [209.85.219.49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED4E42CDFD;
+        Fri, 17 Jun 2022 08:26:44 -0700 (PDT)
+Received: by mail-qv1-f49.google.com with SMTP id cu16so6304141qvb.7;
+        Fri, 17 Jun 2022 08:26:44 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=nxeOkeINDpzy3OEEqm+X2I0MEyWZgikOx3MDeUuxZIA=;
+        b=x352egzjQ+bgWBPvIOmHwrWHqtJYzKs6aPO2F8bLrEH9JwpqkX/8NsU9XVQkI5fKwV
+         6ltnZCkL9bPTM/vaZYzpAuRgmNkrTuwem4mmLvu42R49EykYrgqHQDfD4WdKzop+Db51
+         xuYOVSO3jIMn16mYfmHh/GrkHReTvLUcD9zrC5hTqBVwG40E4ykj2L0gOQlsS7J+rzoj
+         1D/hAzkZ7UfSBzFb223OuZgruktaAftR32nSZwts7o4Wsccqp6B4ey5E5RbKdI/n/1rl
+         CTXDLH4J1RuCSY1/ysET+h5VPadAiCXvXei41bhvjpiumn4BmftMo0pVAQ6E8ajug0lt
+         Va4g==
+X-Gm-Message-State: AJIora/bHuAycwqoF7x7xcQ4vk/j3wsHR06DlCn9FXbTEyhjtOztZEsh
+        +s9zIUbqnxtCQbIoY2J9QJQiM/dZuJC8cQ==
+X-Google-Smtp-Source: AGRyM1sIcwLrFMLBTl9Zjr0d8MQNxHkWGqCz9qYTJ1djfdjakA8ISv2WHTFx3VpDrDScxXOd1IppdA==
+X-Received: by 2002:ac8:5d93:0:b0:305:2b38:af70 with SMTP id d19-20020ac85d93000000b003052b38af70mr8952987qtx.383.1655479604039;
+        Fri, 17 Jun 2022 08:26:44 -0700 (PDT)
+Received: from mail-yb1-f181.google.com (mail-yb1-f181.google.com. [209.85.219.181])
+        by smtp.gmail.com with ESMTPSA id v63-20020a372f42000000b006a6a5d1e240sm4298333qkh.34.2022.06.17.08.26.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 17 Jun 2022 08:26:43 -0700 (PDT)
+Received: by mail-yb1-f181.google.com with SMTP id k2so7838468ybj.3;
+        Fri, 17 Jun 2022 08:26:42 -0700 (PDT)
+X-Received: by 2002:a05:6902:905:b0:64a:2089:f487 with SMTP id
+ bu5-20020a056902090500b0064a2089f487mr11481017ybb.202.1655479602392; Fri, 17
+ Jun 2022 08:26:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220616210518.125287-1-mike.kravetz@oracle.com>
+ <20220616210518.125287-2-mike.kravetz@oracle.com> <YqyMhmAjrQ4C+EyA@xz-m1.local>
+In-Reply-To: <YqyMhmAjrQ4C+EyA@xz-m1.local>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Fri, 17 Jun 2022 17:26:31 +0200
+X-Gmail-Original-Message-ID: <CAMuHMdU-qdNMqwtpm+PMixKoicYHPokAQqWAh-Vw-sjZz_z7xA@mail.gmail.com>
+Message-ID: <CAMuHMdU-qdNMqwtpm+PMixKoicYHPokAQqWAh-Vw-sjZz_z7xA@mail.gmail.com>
+Subject: Re: [PATCH 1/4] hugetlb: skip to end of PT page mapping when pte not present
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Mike Kravetz <mike.kravetz@oracle.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux MM <linux-mm@kvack.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        sparclinux <sparclinux@vger.kernel.org>,
+        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
+        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
+        Parisc List <linux-parisc@vger.kernel.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Naoya Horiguchi <naoya.horiguchi@linux.dev>,
+        James Houghton <jthoughton@google.com>,
+        Mina Almasry <almasrymina@google.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Add a function to the bitmap test suite, which will ensure that
-compilers are able to evaluate operations performed by the
-bitops/bitmap helpers to compile-time constants when all of the
-arguments are compile-time constants as well, or trigger a build
-bug otherwise. This should work on all architectures and all the
-optimization levels supported by Kbuild.
-The function doesn't perform any runtime tests and gets optimized
-out to nothing after passing the build assertions.
+Hi Peter,
 
-Suggested-by: Yury Norov <yury.norov@gmail.com>
-Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
----
- lib/test_bitmap.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+On Fri, Jun 17, 2022 at 4:22 PM Peter Xu <peterx@redhat.com> wrote:
+> On Thu, Jun 16, 2022 at 02:05:15PM -0700, Mike Kravetz wrote:
+> > @@ -6877,6 +6896,39 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
+> >       return (pte_t *)pmd;
+> >  }
+> >
+> > +/*
+> > + * Return a mask that can be used to update an address to the last huge
+> > + * page in a page table page mapping size.  Used to skip non-present
+> > + * page table entries when linearly scanning address ranges.  Architectures
+> > + * with unique huge page to page table relationships can define their own
+> > + * version of this routine.
+> > + */
+> > +unsigned long hugetlb_mask_last_page(struct hstate *h)
+> > +{
+> > +     unsigned long hp_size = huge_page_size(h);
+> > +
+> > +     switch (hp_size) {
+> > +     case P4D_SIZE:
+> > +             return PGDIR_SIZE - P4D_SIZE;
+> > +     case PUD_SIZE:
+> > +             return P4D_SIZE - PUD_SIZE;
+> > +     case PMD_SIZE:
+> > +             return PUD_SIZE - PMD_SIZE;
+> > +     default:
+>
+> Should we add a WARN_ON_ONCE() if it should never trigger?
 
-diff --git a/lib/test_bitmap.c b/lib/test_bitmap.c
-index d5923a640457..3a7b09b82794 100644
---- a/lib/test_bitmap.c
-+++ b/lib/test_bitmap.c
-@@ -869,6 +869,50 @@ static void __init test_bitmap_print_buf(void)
- 	}
- }
- 
-+static void __init test_bitmap_const_eval(void)
-+{
-+	DECLARE_BITMAP(bitmap, BITS_PER_LONG);
-+	unsigned long initvar = BIT(2);
-+	unsigned long bitopvar = 0;
-+	unsigned long var = 0;
-+	int res;
-+
-+	/*
-+	 * Compilers must be able to optimize all of those to compile-time
-+	 * constants on any supported optimization level (-O2, -Os) and any
-+	 * architecture. Otherwise, trigger a build bug.
-+	 * The whole function gets optimized out then, there's nothing to do
-+	 * in runtime.
-+	 */
-+
-+	/* Equals to `unsigned long bitmap[1] = { BIT(5), }` */
-+	bitmap_clear(bitmap, 0, BITS_PER_LONG);
-+	if (!test_bit(7, bitmap))
-+		bitmap_set(bitmap, 5, 1);
-+
-+	/* Equals to `unsigned long bitopvar = BIT(20)` */
-+	__change_bit(31, &bitopvar);
-+	bitmap_shift_right(&bitopvar, &bitopvar, 11, BITS_PER_LONG);
-+
-+	/* Equals to `unsigned long var = BIT(25)` */
-+	var |= BIT(25);
-+	if (var & BIT(0))
-+		var ^= GENMASK(9, 6);
-+
-+	/* __const_hweight<32|64>(BIT(5)) == 1 */
-+	res = bitmap_weight(bitmap, 20);
-+	BUILD_BUG_ON(!__builtin_constant_p(res));
-+
-+	/* !(BIT(31) & BIT(18)) == 1 */
-+	res = !test_bit(18, &bitopvar);
-+	BUILD_BUG_ON(!__builtin_constant_p(res));
-+
-+	/* BIT(2) & GENMASK(14, 8) == 0 */
-+	BUILD_BUG_ON(!__builtin_constant_p(initvar & GENMASK(14, 8)));
-+	/* ~BIT(25) */
-+	BUILD_BUG_ON(!__builtin_constant_p(~var));
-+}
-+
- static void __init selftest(void)
- {
- 	test_zero_clear();
-@@ -884,6 +928,7 @@ static void __init selftest(void)
- 	test_for_each_set_clump8();
- 	test_bitmap_cut();
- 	test_bitmap_print_buf();
-+	test_bitmap_const_eval();
- }
- 
- KSTM_MODULE_LOADERS(test_bitmap);
--- 
-2.36.1
+And with panic_on_warn, it'll panic only once ;-)
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
