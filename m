@@ -2,44 +2,44 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F4DDC43334
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 16:52:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D35CCA47F
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 16:53:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383506AbiFQQwF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 12:52:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57386 "EHLO
+        id S1383548AbiFQQxj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Jun 2022 12:53:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1382895AbiFQQve (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 12:51:34 -0400
-Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CAABA52E60;
-        Fri, 17 Jun 2022 09:50:19 -0700 (PDT)
+        with ESMTP id S234889AbiFQQxO (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 12:53:14 -0400
+Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 483705D191;
+        Fri, 17 Jun 2022 09:52:02 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655484621; x=1687020621;
+  t=1655484722; x=1687020722;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=7oB2+/tAQ0YbLfBu8lpkzq06X+Z13qiz2lNUmx1L1VE=;
-  b=TSc2d8GQV5H5A3qjvuXlqso0m/bu/LaAu76xOdYLGOvEF86EFOGorLwg
-   E+aVC+t+YI3YGo5JOzfpKDkuIgVu7TT54eQR3DKikv47DnAPtMTCpiyxC
-   z1aFBeN7HZ3bwGdDmzTu+5HeTAX3/tSZMNLZdaGeDeUQ2oW5ASHcn+++b
-   9bl+4oie4/CADKBht9H7UUsqtdXN1dkodmzP2KkQ3UmSBaYsStyFiAQIc
-   a7gm82zkCg+CIMcWTrC5prBICeOT9eQwSMPwqrfkMOxa6Z3B3snEu2a97
-   biczHl0Gq78U9czr6SsrmplqlFiYttN+sJ+2IX5RhhgWUs8yD6ucJXIEC
-   Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="365834503"
+  bh=RrGMYQ9AwVKb0nm3YeK2st1qMloseK6LRdC/eA92LbY=;
+  b=WTjWhq1weTOUjK7ieqCpSvXuVZgWoStR/uL7Oatz2TZN5WEBuVX5Tpq/
+   ZIzOJHWiYy1v/n7vpglTffPNDIcbmIYO37hgEddKzslFtky4S3bxPY+Zx
+   ZVt2G7ajgKbHBbGl14z58waBPqY3Vzus/1T+VLPjD2twuEhZ88HUIRUnM
+   alkMYVUvo0/2OoZI0XKH1sfgudRh81nYkQdmFz0iCPiNu/ZUsxTrB7J6n
+   4rCt2wF/7MsOpGxGrgO5WfMBka+LDwcb/q9wT/S0rkCvSTfV2H3+WTGNa
+   FntjeR0LsoKGgnDSqVPhfEgQyqVVKWL4nLswMcVL7YQMIC4JGRNu0CyAe
+   A==;
+X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="279540803"
 X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="365834503"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2022 07:40:46 -0700
+   d="scan'208";a="279540803"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jun 2022 07:41:08 -0700
 X-ExtLoop1: 1
 X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="763274799"
+   d="scan'208";a="642050130"
 Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by orsmga005.jf.intel.com with ESMTP; 17 Jun 2022 07:40:40 -0700
+  by fmsmga008.fm.intel.com with ESMTP; 17 Jun 2022 07:40:48 -0700
 Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25HEeXl3024161;
-        Fri, 17 Jun 2022 15:40:38 +0100
+        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25HEeXl6024161;
+        Fri, 17 Jun 2022 15:40:42 +0100
 From:   Alexander Lobakin <alexandr.lobakin@intel.com>
 To:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>
 Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
@@ -61,11 +61,10 @@ Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
         linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
         linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        stable@vger.kernel.org, kernel test robot <lkp@intel.com>
-Subject: [PATCH v3 1/7] ia64, processor: fix -Wincompatible-pointer-types in ia64_get_irr()
-Date:   Fri, 17 Jun 2022 16:40:25 +0200
-Message-Id: <20220617144031.2549432-2-alexandr.lobakin@intel.com>
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v3 4/7] bitops: define const_*() versions of the non-atomics
+Date:   Fri, 17 Jun 2022 16:40:28 +0200
+Message-Id: <20220617144031.2549432-5-alexandr.lobakin@intel.com>
 X-Mailer: git-send-email 2.36.1
 In-Reply-To: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
 References: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
@@ -75,41 +74,75 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-test_bit(), as any other bitmap op, takes `unsigned long *` as a
-second argument (pointer to the actual bitmap), as any bitmap
-itself is an array of unsigned longs. However, the ia64_get_irr()
-code passes a ref to `u64` as a second argument.
-This works with the ia64 bitops implementation due to that they
-have `void *` as the second argument and then cast it later on.
-This works with the bitmap API itself due to that `unsigned long`
-has the same size on ia64 as `u64` (`unsigned long long`), but
-from the compiler PoV those two are different.
-Define @irr as `unsigned long` to fix that. That implies no
-functional changes. Has been hidden for 16 years!
+Define const_*() variants of the non-atomic bitops to be used when
+the input arguments are compile-time constants, so that the compiler
+will be always able to resolve those to compile-time constants as
+well. Those are mostly direct aliases for generic_*() with one
+exception for const_test_bit(): the original one is declared
+atomic-safe and thus doesn't discard the `volatile` qualifier, so
+in order to let optimize code, define it separately disregarding
+the qualifier.
+Add them to the compile-time type checks as well just in case.
 
-Fixes: a58786917ce2 ("[IA64] avoid broken SAL_CACHE_FLUSH implementations")
-Cc: stable@vger.kernel.org # 2.6.16+
-Reported-by: kernel test robot <lkp@intel.com>
+Suggested-by: Marco Elver <elver@google.com>
 Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Yury Norov <yury.norov@gmail.com>
 ---
- arch/ia64/include/asm/processor.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../asm-generic/bitops/generic-non-atomic.h   | 31 +++++++++++++++++++
+ include/linux/bitops.h                        |  1 +
+ 2 files changed, 32 insertions(+)
 
-diff --git a/arch/ia64/include/asm/processor.h b/arch/ia64/include/asm/processor.h
-index 7cbce290f4e5..757c2f6d8d4b 100644
---- a/arch/ia64/include/asm/processor.h
-+++ b/arch/ia64/include/asm/processor.h
-@@ -538,7 +538,7 @@ ia64_get_irr(unsigned int vector)
- {
- 	unsigned int reg = vector / 64;
- 	unsigned int bit = vector % 64;
--	u64 irr;
-+	unsigned long irr;
+diff --git a/include/asm-generic/bitops/generic-non-atomic.h b/include/asm-generic/bitops/generic-non-atomic.h
+index b85b8a2ac239..3d5ebd24652b 100644
+--- a/include/asm-generic/bitops/generic-non-atomic.h
++++ b/include/asm-generic/bitops/generic-non-atomic.h
+@@ -127,4 +127,35 @@ generic_test_bit(unsigned long nr, const volatile unsigned long *addr)
+ 	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+ }
  
- 	switch (reg) {
- 	case 0: irr = ia64_getreg(_IA64_REG_CR_IRR0); break;
++/*
++ * const_*() definitions provide good compile-time optimizations when
++ * the passed arguments can be resolved at compile time.
++ */
++#define const___set_bit			generic___set_bit
++#define const___clear_bit		generic___clear_bit
++#define const___change_bit		generic___change_bit
++#define const___test_and_set_bit	generic___test_and_set_bit
++#define const___test_and_clear_bit	generic___test_and_clear_bit
++#define const___test_and_change_bit	generic___test_and_change_bit
++
++/**
++ * const_test_bit - Determine whether a bit is set
++ * @nr: bit number to test
++ * @addr: Address to start counting from
++ *
++ * A version of generic_test_bit() which discards the `volatile` qualifier to
++ * allow a compiler to optimize code harder. Non-atomic and to be called only
++ * for testing compile-time constants, e.g. by the corresponding macros, not
++ * directly from "regular" code.
++ */
++static __always_inline bool
++const_test_bit(unsigned long nr, const volatile unsigned long *addr)
++{
++	const unsigned long *p = (const unsigned long *)addr + BIT_WORD(nr);
++	unsigned long mask = BIT_MASK(nr);
++	unsigned long val = *p;
++
++	return !!(val & mask);
++}
++
+ #endif /* __ASM_GENERIC_BITOPS_GENERIC_NON_ATOMIC_H */
+diff --git a/include/linux/bitops.h b/include/linux/bitops.h
+index 87087454a288..d393297287d5 100644
+--- a/include/linux/bitops.h
++++ b/include/linux/bitops.h
+@@ -37,6 +37,7 @@ extern unsigned long __sw_hweight64(__u64 w);
+ /* Check that the bitops prototypes are sane */
+ #define __check_bitop_pr(name)						\
+ 	static_assert(__same_type(arch_##name, generic_##name) &&	\
++		      __same_type(const_##name, generic_##name) &&	\
+ 		      __same_type(name, generic_##name))
+ 
+ __check_bitop_pr(__set_bit);
 -- 
 2.36.1
 
