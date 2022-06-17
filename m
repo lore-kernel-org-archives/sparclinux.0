@@ -2,110 +2,111 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6646DC433EF
-	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 04:07:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3428AC433EF
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Jun 2022 08:13:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231650AbiFQEHw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 00:07:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59650 "EHLO
+        id S234833AbiFQINh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Jun 2022 04:13:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231776AbiFQEHw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 00:07:52 -0400
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5AD96256;
-        Thu, 16 Jun 2022 21:07:50 -0700 (PDT)
-X-UUID: d95047c5bcf54f3b8ce8b90d8d68c77f-20220617
-X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.6,REQID:fd2ecd7c-a0a6-46a2-b04c-2d9ccea8ab66,OB:0,LO
-        B:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,RULE:Release_Ham,ACTI
-        ON:release,TS:0
-X-CID-META: VersionHash:b14ad71,CLOUDID:201095f6-e099-41ba-a32c-13b8bfe63214,C
-        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:0,EDM:-3,IP:nil,URL:1,File:nil
-        ,QS:nil,BEC:nil,COL:0
-X-UUID: d95047c5bcf54f3b8ce8b90d8d68c77f-20220617
-Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw01.mediatek.com
-        (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
-        with ESMTP id 2062144128; Fri, 17 Jun 2022 12:07:44 +0800
-Received: from mtkmbs11n1.mediatek.inc (172.21.101.185) by
- mtkmbs11n1.mediatek.inc (172.21.101.185) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.792.3;
- Fri, 17 Jun 2022 12:07:40 +0800
-Received: from mtksdccf07.mediatek.inc (172.21.84.99) by
- mtkmbs11n1.mediatek.inc (172.21.101.73) with Microsoft SMTP Server id
- 15.2.792.3 via Frontend Transport; Fri, 17 Jun 2022 12:07:40 +0800
-From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
-To:     <mark.rutland@arm.com>, <will@kernel.org>
-CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
-        <akpm@linux-foundation.org>, <alexander.shishkin@linux.intel.com>,
-        <catalin.marinas@arm.com>, <davem@davemloft.net>,
-        <jolsa@redhat.com>, <jthierry@redhat.com>, <keescook@chromium.org>,
-        <kernelfans@gmail.com>, <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-perf-users@vger.kernel.org>, <masahiroy@kernel.org>,
-        <matthias.bgg@gmail.com>, <maz@kernel.org>, <mcgrof@kernel.org>,
-        <mingo@redhat.com>, <namhyung@kernel.org>, <nixiaoming@huawei.com>,
-        <peterz@infradead.org>, <pmladek@suse.com>,
-        <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
-        <wangqing@vivo.com>, <yj.chiang@mediatek.com>
-Subject: RE: [PATCH v6 0/6] Support hld delayed init based on Pseudo-NMI for arm64
-Date:   Fri, 17 Jun 2022 12:07:40 +0800
-Message-ID: <20220617040740.25631-1-lecopzer.chen@mediatek.com>
-X-Mailer: git-send-email 2.18.0
-In-Reply-To: <20220614062835.7196-1-lecopzer.chen@mediatek.com>
-References: <20220614062835.7196-1-lecopzer.chen@mediatek.com>
+        with ESMTP id S1380688AbiFQINf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 04:13:35 -0400
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2419060A83
+        for <sparclinux@vger.kernel.org>; Fri, 17 Jun 2022 01:13:33 -0700 (PDT)
+Received: by mail-pj1-x102b.google.com with SMTP id d14so286161pjs.3
+        for <sparclinux@vger.kernel.org>; Fri, 17 Jun 2022 01:13:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=bytedance-com.20210112.gappssmtp.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=7ajw5ZlW7BO6xh4idYg9ZGUxMVX3OZuSbGQMRvZITss=;
+        b=BjmCyWwguCYTpglhYm7P+9sfT2Sf6eI4hqC5TCzRNcj8GpT7Cc5jJvVeFu+/QvdoQO
+         RGPpgCZxneDK+JRvBbAA3vU8YL0MLBkdIjsUazKCO2zJ5IT6caqZ177xBPaHYaNtSFhL
+         wsOPZyAq8zDsC4+RXY1GMKrYj3Yyu9EDxibHdpAAagnIOLEJ3bJD7JOCrpBNaHhaJdjq
+         /4qXmmNFH+/zsDvQ2LPSFYj7Byd34mjZXsxzy6la7Th49HWzuITGgf435hSeF0LnrHen
+         fHCXck9cWmkJX/PFv6Ee2nUXQikqy1BawnEmGitan/14y2a4JTmEO8TSXRXXDJrqoj/v
+         LdRQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=7ajw5ZlW7BO6xh4idYg9ZGUxMVX3OZuSbGQMRvZITss=;
+        b=iQrzvlubIzurorXoY3QCaT6/qbRZpQDVu72woztC5PE1NwKqGV6EEMviS7Cu6kqfrW
+         2Jnh/QJloBYP097tr3Qc/6vAMq5yR+3cSWbzdshZm+THqoFdj4OQB8axZrUiAH9T8qDm
+         IeCdy2+FaoGtyzdNm2HNrGOxe7Z3m10NIXWXXTGIpgU5VysXnIF2OKI5londrlYx2y3u
+         R4uHcR9l50bypGjWf4kt1NvRfwuc101gj7CwrV4rnToE6fy1acuiV9VpxDniIPdAnh/i
+         89Re3EriEqcf6bXnwY1Tcv3+4DhqY0YsRIby12nMW/msVIbDU0UZWVcOt+4Jv6zO/CG7
+         PmeQ==
+X-Gm-Message-State: AJIora9ha9/DHWLSx09dvYOFNvMB8WqJvajxmSo/27jU2htwdtHfydNK
+        HEmka3Ntu2SqM3Ts7wh4IDJPKg==
+X-Google-Smtp-Source: AGRyM1uaJ6D+98lyL0Nb8O2bTi6YMfyv3saLk9hySILdD8r9XB2OdIlAqHZgNeMyStjI4ZdfZ29vcg==
+X-Received: by 2002:a17:90b:4a4c:b0:1e4:da3a:9b07 with SMTP id lb12-20020a17090b4a4c00b001e4da3a9b07mr9398372pjb.242.1655453612597;
+        Fri, 17 Jun 2022 01:13:32 -0700 (PDT)
+Received: from localhost ([139.177.225.255])
+        by smtp.gmail.com with ESMTPSA id w22-20020a1709026f1600b0015e8d4eb219sm2932151plk.99.2022.06.17.01.13.31
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 17 Jun 2022 01:13:31 -0700 (PDT)
+Date:   Fri, 17 Jun 2022 16:13:28 +0800
+From:   Muchun Song <songmuchun@bytedance.com>
+To:     Mike Kravetz <mike.kravetz@oracle.com>
+Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        Baolin Wang <baolin.wang@linux.alibaba.com>,
+        Michal Hocko <mhocko@suse.com>, Peter Xu <peterx@redhat.com>,
+        Naoya Horiguchi <naoya.horiguchi@linux.dev>,
+        James Houghton <jthoughton@google.com>,
+        Mina Almasry <almasrymina@google.com>,
+        "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        catalin.marinas@arm.com, will@kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 1/4] hugetlb: skip to end of PT page mapping when pte not
+ present
+Message-ID: <Yqw3qHZIwM35rcLh@FVFYT0MHHV2J.usts.net>
+References: <20220616210518.125287-1-mike.kravetz@oracle.com>
+ <20220616210518.125287-2-mike.kravetz@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-X-MTK:  N
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220616210518.125287-2-mike.kravetz@oracle.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Will, Mark
+On Thu, Jun 16, 2022 at 02:05:15PM -0700, Mike Kravetz wrote:
+> HugeTLB address ranges are linearly scanned during fork, unmap and
+> remap operations.  If a non-present entry is encountered, the code
+> currently continues to the next huge page aligned address.  However,
+> a non-present entry implies that the page table page for that entry
+> is not present.  Therefore, the linear scan can skip to the end of
+> range mapped by the page table page.  This can speed operations on
+> large sparsely populated hugetlb mappings.
+> 
+> Create a new routine hugetlb_mask_last_page() that will return an
+> address mask.  When the mask is ORed with an address, the result
+> will be the address of the last huge page mapped by the associated
+> page table page.  Use this mask to update addresses in routines which
+> linearly scan hugetlb address ranges when a non-present pte is
+> encountered.
+> 
+> hugetlb_mask_last_page is related to the implementation of
+> huge_pte_offset as hugetlb_mask_last_page is called when huge_pte_offset
+> returns NULL.  This patch only provides a complete hugetlb_mask_last_page
+> implementation when CONFIG_ARCH_WANT_GENERAL_HUGETLB is defined.
+> Architectures which provide their own versions of huge_pte_offset can also
+> provide their own version of hugetlb_mask_last_page.
+> 
+> Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+> Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+> Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
 
+It'll be more efficient, Thanks.
 
-Could you help review arm parts of this patchset, please?
+Acked-by: Muchun Song <songmuchun@bytedance.com>
 
-For the question mention in both [1] and [2],
-
-> I'd still like Mark's Ack on this, as the approach you have taken doesn't
-> really sit with what he was suggesting.
->
-> I also don't understand how all the CPUs get initialised with your patch,
-> since the PMU driver will be initialised after SMP is up and running.
-
-The hardlock detector utilizes the softlockup_start_all() to start all
-the cpu on watchdog_allowed_mask, which will do watchdog_nmi_enable()
-that registers perf event on each CPUs.
-Thus we simply need to retry lockup_detector_init() in a single cpu which
-will reconfig and call to softlockup_start_all().
-
-Also, the CONFIG_HARDLOCKUP_DETECTOR_PERF selects SOFTLOCKUP_DETECTOR,
-IMO, this shows that hardlockup detector supports from softlockup.
-
-
-> We should know whether pNMIs are possible once we've completed
-> setup_arch() (and possibly init_IRQ()), long before SMP, so so I reckon
-> we should have all the information available once we get to
-> lockup_detector_init(), even if that requires some preparatory rework.
-
-Hardlockup depends on PMU driver , I think the only way is moving
-pmu driver at setup_arch() or any point which is earlier than
-lockup_detector_init(), and I guess we have to reorganize the architecture
-of arm PMU.
-
-The retry function should benifit all the arch/ not only for arm64.
-Any arch who needs to probe its pmu as module can use this without providing
-a chance to mess up the setup order. 
-
-
-Please let me know if you have any concern about this, thank you
-
-
-[1] https://lore.kernel.org/all/CAFA6WYPPgUvHCpN5=EpJ2Us5h5uVWCbBA59C-YwYQX2ovyVeEw@mail.gmail.com/
-[2] https://lore.kernel.org/linux-arm-kernel/20210419170331.GB31045@willie-the-truck/
-
-
-BRs,
-Lecopzer
