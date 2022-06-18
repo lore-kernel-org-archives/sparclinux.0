@@ -2,118 +2,70 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BE4C43334
-	for <sparclinux@archiver.kernel.org>; Sat, 18 Jun 2022 03:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33DE9C433EF
+	for <sparclinux@archiver.kernel.org>; Sat, 18 Jun 2022 08:09:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383953AbiFRD2F (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 17 Jun 2022 23:28:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55966 "EHLO
+        id S230109AbiFRIJ0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 18 Jun 2022 04:09:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44168 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383842AbiFRD2D (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Jun 2022 23:28:03 -0400
-Received: from out30-54.freemail.mail.aliyun.com (out30-54.freemail.mail.aliyun.com [115.124.30.54])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 948B011827;
-        Fri, 17 Jun 2022 20:27:57 -0700 (PDT)
-X-Alimail-AntiSpam: AC=PASS;BC=-1|-1;BR=01201311R131e4;CH=green;DM=||false|;DS=||;FP=0|-1|-1|-1|0|-1|-1|-1;HT=ay29a033018046049;MF=baolin.wang@linux.alibaba.com;NM=1;PH=DS;RN=24;SR=0;TI=SMTPD_---0VGi1ydh_1655522870;
-Received: from 30.13.184.185(mailfrom:baolin.wang@linux.alibaba.com fp:SMTPD_---0VGi1ydh_1655522870)
-          by smtp.aliyun-inc.com;
-          Sat, 18 Jun 2022 11:27:51 +0800
-Message-ID: <e8cb00ab-f617-de14-9e5c-883f56da0b5f@linux.alibaba.com>
-Date:   Sat, 18 Jun 2022 11:27:59 +0800
+        with ESMTP id S229523AbiFRIJZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 18 Jun 2022 04:09:25 -0400
+X-Greylist: delayed 1887 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 18 Jun 2022 01:09:23 PDT
+Received: from mail-m965.mail.126.com (mail-m965.mail.126.com [123.126.96.5])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3F9AB2AE0E
+        for <sparclinux@vger.kernel.org>; Sat, 18 Jun 2022 01:09:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=cwvrM
+        twwaf2eGhHlVdwPwEDf4EW4aPt9uaNxslFq5Iw=; b=AtTFpsS6NRsz6EmMRKouh
+        FFIeJbtaM85094GmIAs4K4+wMLl4w44kaU7Uf1oIeRPQUp8y1WCNVfoof1C9fTRm
+        RPquwtVvXxqDsL/qdXzjgjUV59S9ByVBUZ7/ARs05oUhRJZYVHSLcTgsAqG3LkM/
+        qwgqBoVnEBk2aMJ8W3FqiI=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp10 (Coremail) with SMTP id NuRpCgCH51vLgK1iiG+cEw--.30712S2;
+        Sat, 18 Jun 2022 15:37:47 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     davem@davemloft.net
+Cc:     windhl@126.com, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] sbus: char: Fix refcount leak bug in openrom.c
+Date:   Sat, 18 Jun 2022 15:37:46 +0800
+Message-Id: <20220618073746.4059541-1-windhl@126.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
-Subject: Re: [PATCH 1/4] hugetlb: skip to end of PT page mapping when pte not
- present
-To:     Mike Kravetz <mike.kravetz@oracle.com>,
-        Peter Xu <peterx@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-arm-kernel@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        Muchun Song <songmuchun@bytedance.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Naoya Horiguchi <naoya.horiguchi@linux.dev>,
-        James Houghton <jthoughton@google.com>,
-        Mina Almasry <almasrymina@google.com>,
-        "Aneesh Kumar K . V" <aneesh.kumar@linux.vnet.ibm.com>,
-        Anshuman Khandual <anshuman.khandual@arm.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        catalin.marinas@arm.com, will@kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-References: <20220616210518.125287-1-mike.kravetz@oracle.com>
- <20220616210518.125287-2-mike.kravetz@oracle.com>
- <YqyMhmAjrQ4C+EyA@xz-m1.local> <Yqy3LZUOdH5GsZ9j@monkey>
-From:   Baolin Wang <baolin.wang@linux.alibaba.com>
-In-Reply-To: <Yqy3LZUOdH5GsZ9j@monkey>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: NuRpCgCH51vLgK1iiG+cEw--.30712S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZrW8Jr1fCF45WF1fCrW5trb_yoWxtrb_CF
+        1xXryxtr1ktFsxC3sFvws3uryFyF1FgrZYvFnIqa45t3WYqrWfWryjvr95WryUAFW8Jry7
+        A39rZFyrArnrtjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7IUU3fH5UUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi2gskF1uwMOngXAAAss
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+In opiocgetnext(), we need a of_node_put() to keep refcount balance
+for device_node pointer returned by of_find_node_by_phandle() or
+of_find_node_by_path().
 
+Signed-off-by: Liang He <windhl@126.com>
+---
+ drivers/sbus/char/openprom.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On 6/18/2022 1:17 AM, Mike Kravetz wrote:
-> On 06/17/22 10:15, Peter Xu wrote:
->> Hi, Mike,
->>
->> On Thu, Jun 16, 2022 at 02:05:15PM -0700, Mike Kravetz wrote:
->>> @@ -6877,6 +6896,39 @@ pte_t *huge_pte_offset(struct mm_struct *mm,
->>>   	return (pte_t *)pmd;
->>>   }
->>>   
->>> +/*
->>> + * Return a mask that can be used to update an address to the last huge
->>> + * page in a page table page mapping size.  Used to skip non-present
->>> + * page table entries when linearly scanning address ranges.  Architectures
->>> + * with unique huge page to page table relationships can define their own
->>> + * version of this routine.
->>> + */
->>> +unsigned long hugetlb_mask_last_page(struct hstate *h)
->>> +{
->>> +	unsigned long hp_size = huge_page_size(h);
->>> +
->>> +	switch (hp_size) {
->>> +	case P4D_SIZE:
->>> +		return PGDIR_SIZE - P4D_SIZE;
->>> +	case PUD_SIZE:
->>> +		return P4D_SIZE - PUD_SIZE;
->>> +	case PMD_SIZE:
->>> +		return PUD_SIZE - PMD_SIZE;
->>> +	default:
->>
->> Should we add a WARN_ON_ONCE() if it should never trigger?
->>
-> 
-> Sure.  I will add this.
-> 
->>> +		break; /* Should never happen */
->>> +	}
->>> +
->>> +	return ~(0UL);
->>> +}
->>> +
->>> +#else
->>> +
->>> +/* See description above.  Architectures can provide their own version. */
->>> +__weak unsigned long hugetlb_mask_last_page(struct hstate *h)
->>> +{
->>> +	return ~(0UL);
->>
->> I'm wondering whether it's better to return 0 rather than ~0 by default.
->> Could an arch with !CONFIG_ARCH_WANT_GENERAL_HUGETLB wrongly skip some
->> valid address ranges with ~0, or perhaps I misread?
-> 
-> Thank you, thank you, thank you Peter!
-> 
-> Yes, the 'default' return for hugetlb_mask_last_page() should be 0.  If
-> there is no 'optimization', we do not want to modify the address so we
-> want to OR with 0 not ~0.  My bad, I must have been thinking AND instead
-> of OR.
-> 
-> I will change here as well as in Baolin's patch.
+diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
+index 30b9751aad30..701978db0f0f 100644
+--- a/drivers/sbus/char/openprom.c
++++ b/drivers/sbus/char/openprom.c
+@@ -518,6 +518,7 @@ static int opiocgetnext(unsigned int cmd, void __user *argp)
+ 	}
+ 	if (dp)
+ 		nd = dp->phandle;
++	of_node_put(dp);
+ 	if (copy_to_user(argp, &nd, sizeof(phandle)))
+ 		return -EFAULT;
+ 
+-- 
+2.25.1
 
-Ah, I also overlooked this. Thanks Peter, and thanks Mike for updating.
