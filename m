@@ -2,85 +2,77 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9030ACCA480
-	for <sparclinux@archiver.kernel.org>; Sat, 18 Jun 2022 19:41:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5FECCCA47F
+	for <sparclinux@archiver.kernel.org>; Sun, 19 Jun 2022 06:18:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233381AbiFRTlO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 18 Jun 2022 15:41:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50660 "EHLO
+        id S234150AbiFSGSe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 19 Jun 2022 02:18:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45882 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229680AbiFRTlM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 18 Jun 2022 15:41:12 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBCBC13D1C;
-        Sat, 18 Jun 2022 12:41:10 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Transfer-Encoding:
-        Content-Type:MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:
-        Sender:Reply-To:Content-ID:Content-Description;
-        bh=a0bL49uOiCfKwT3pkrVPnT1ka4/B28/6uyQ2X04Z2uE=; b=v7sWJzFOGdSYdZIqrUgltulDvB
-        4OYLCiBKpTU/gxVWoe7+5BZDCThsZIpeVflFB2hKb9xef5S9oR1IzVv/TIPNZ8352DZ7L4y2H9bjc
-        Jmm3lucQ5r46W+jh0YPPdpufOhL0oc+6u/z1/HnxocLAcrLExQk/tV+r89h7h2rJBW7HkWMzNVF0q
-        +WIbMin/lIE9rFhhyDjKdL9OzkPDDLx9So6dRWroeqd+o2BLMeRQMd+jBz8OKtZA/L9fXvpViA0ij
-        3FOXifV7VGCmCrmPC9jPkGMAJgjGydG1JnS8N8FfoYeqV3urXj5BnPigDS9O7tvXEKOSK4e67Qkxt
-        5/OlBqAw==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1o2eIt-003s30-RQ; Sat, 18 Jun 2022 19:40:19 +0000
-Date:   Sat, 18 Jun 2022 20:40:19 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Ralph Corderoy <ralph@inputplus.co.uk>
-Cc:     Nate Karstens <nate.karstens@garmin.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Jeff Layton <jlayton@kernel.org>,
-        "J. Bruce Fields" <bfields@fieldses.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        David Laight <David.Laight@aculab.com>,
-        linux-fsdevel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-parisc@vger.kernel.org,
-        sparclinux@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v2] Implement close-on-fork
-Message-ID: <Yq4qIxh5QnhQZ0SJ@casper.infradead.org>
-References: <20200515152321.9280-1-nate.karstens@garmin.com>
- <20220618114111.61EC71F981@orac.inputplus.co.uk>
+        with ESMTP id S234131AbiFSGSc (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 19 Jun 2022 02:18:32 -0400
+Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id F134B65E5;
+        Sat, 18 Jun 2022 23:18:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=xsRsM
+        A2hyPmpGI1vPcsRVjN5gYfeUJLQC69BnESVN58=; b=LL8f2cnDGNEq4St8cNOjZ
+        RKz/CBE0BPUj9QwHSAMWHO7a3DIYxNqX+6lq7vTVXiSnUJlJcUkxQnDAkkCnh47w
+        4rMfb/oy3kpehKKqkL77dY81l+zYW+9q7GW7fiqBrqK1biFK3PTddini1U954mb5
+        o5D/gEPoqK+o5UJ55q5ygk=
+Received: from localhost.localdomain (unknown [124.16.139.61])
+        by smtp8 (Coremail) with SMTP id NORpCgBnb3Owv65i9CbYFw--.65288S2;
+        Sun, 19 Jun 2022 14:18:25 +0800 (CST)
+From:   Liang He <windhl@126.com>
+To:     davem@davemloft.net, windhl@126.com, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc: kernel: Fix refcount bug in irq_64.c
+Date:   Sun, 19 Jun 2022 14:18:23 +0800
+Message-Id: <20220619061823.4066040-1-windhl@126.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220618114111.61EC71F981@orac.inputplus.co.uk>
+X-CM-TRANSID: NORpCgBnb3Owv65i9CbYFw--.65288S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrKFy8Wr4kJw4kWF4DGr4Uurg_yoWfKrX_Ww
+        1SqFyDGry09wnaqw4DWw4fXry7Aw1IgFWrKw10ya95J3W8Jr45urZxJF1kZayDZ395AFs3
+        Cas0vFWjkr1I9jkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRKrWF7UUUUU==
+X-Originating-IP: [124.16.139.61]
+X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi7RElF1pEAOuKUwAAsi
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Jun 18, 2022 at 12:41:11PM +0100, Ralph Corderoy wrote:
-> Hi Nate,
-> 
-> > One manifestation of this is a race conditions in system(), which
-> > (depending on the implementation) is non-atomic in that it first calls
-> > a fork() and then an exec().
-> 
-> The need for O_CLOFORK might be made more clear by looking at a
-> long-standing Go issue, i.e. unrelated to system(3), which was started
-> in 2017 by Russ Cox when he summed up the current race-condition
-> behaviour of trying to execve(2) a newly created file:
-> https://github.com/golang/go/issues/22315.  I raised it on linux-kernel
-> in 2017, https://marc.info/?l=linux-kernel&m=150834137201488, and linked
-> to a proposed patch from 2011, ‘[PATCH] fs: add FD_CLOFORK and
-> O_CLOFORK’ by Changli Gao.  As I said, long-standing.
+In map_prom_timers(), of_find_node_by_path() will return
+a node pointer with refcount incremented. We should use of_node_put()
+when it is not used anymore.
 
-The problem is that people advocating for O_CLOFORK understand its
-value, but not its cost.  Other google employees have a system which has
-literally millions of file descriptors in a single process.  Having to
-maintain this extra state per-fd is a cost they don't want to pay
-(and have been quite vocal about earlier in this thread).
+Signed-off-by: Liang He <windhl@126.com>
+---
+ arch/sparc/kernel/irq_64.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Fundamentally, fork()+exec() is a terrible model.  Mind you, so is
-spawn().  I haven't seen a good model yet.
+diff --git a/arch/sparc/kernel/irq_64.c b/arch/sparc/kernel/irq_64.c
+index c8848bb681a1..84abfe584a08 100644
+--- a/arch/sparc/kernel/irq_64.c
++++ b/arch/sparc/kernel/irq_64.c
+@@ -909,12 +909,13 @@ static u64 prom_limit0, prom_limit1;
+ 
+ static void map_prom_timers(void)
+ {
+-	struct device_node *dp;
++	struct device_node *dp, *tp;
+ 	const unsigned int *addr;
+ 
+ 	/* PROM timer node hangs out in the top level of device siblings... */
+-	dp = of_find_node_by_path("/");
+-	dp = dp->child;
++	tp = of_find_node_by_path("/");
++	dp = tp->child;
++	of_node_put(tp);
+ 	while (dp) {
+ 		if (of_node_name_eq(dp, "counter-timer"))
+ 			break;
+-- 
+2.25.1
+
