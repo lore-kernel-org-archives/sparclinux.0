@@ -2,547 +2,386 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 658BBC433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Jun 2022 10:08:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2356ACCA479
+	for <sparclinux@archiver.kernel.org>; Mon, 20 Jun 2022 10:35:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240982AbiFTKIw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 20 Jun 2022 06:08:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40568 "EHLO
+        id S240262AbiFTKfZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 20 Jun 2022 06:35:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60104 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240946AbiFTKIs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Jun 2022 06:08:48 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80E45643B;
-        Mon, 20 Jun 2022 03:08:45 -0700 (PDT)
+        with ESMTP id S240739AbiFTKfJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Jun 2022 06:35:09 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87F2C14D2C;
+        Mon, 20 Jun 2022 03:34:55 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655719725; x=1687255725;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=ZpvXnDItVpG0O2iBLb47mQrYk74IUXKoGEXFHlvbvdM=;
-  b=ZRLqHiYnp4NhiulhCJb49JPzjcI+SDiile91z6M9KionvyHVxhWF0Y/x
-   VOoqyQy9jNoKUnvLsY2P3bAPbLNrtty7/fHSkFsjvsMc4HUDjckS8j3na
-   QZ193g2qSY04G3Xz2iOU5Ob5lVBMqPU6GvZXfHPL07IdidYf7i7zCtMp7
-   V2TbOESg7QGaxuSYpGvPqcmIBLgrqL3WyZ67ubfOyMxq+WwGCiF61oOPr
-   S+QCzFj6ONlwuDHvbJvr7ZlWU1LlvIDBawmNd/eA7odQck0f4LOLqVFoB
-   dbLpXKHRClEkW8aHfdc3XsOst2uYv8m1SHP5El49xb2eqcFZu00OXy9AQ
+  t=1655721295; x=1687257295;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=jphQvuNWUDLk1nLZ5YpCob7RfIIJgmVazyGz6XAGpTk=;
+  b=mhgiuMZcofhIYG76O3XJCkBrzNZEPUuRHUbC3iHpFi1o4IGokMf/hchU
+   ZBq5MCu9FJNcnsFnbPst6Ip4Ygycu7DEKIvQvmXPyKnT95XGW4qcHbyql
+   Xv/x59tUxKPcvvJvYfY6juwHogF0DgLRmqWG4dEq8Tok+k01b/OJRH9kc
+   EZH6BXhZQyMoLvwMAMbs0eZ8X7q47BUgTeqYdrztrHu9gWUdluZsLtrmD
+   j3tSd1iltuFN9OubSbDs79Q9h7MJqeTNfPZxdYd6TRor2BdDH706nQapX
+   qCFF9wEC6AiRG+SU79DobT4yRgeqWOrURU057zfY6zRE8IB2ftUSwU9qN
    Q==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="262891948"
+X-IronPort-AV: E=McAfee;i="6400,9594,10380"; a="305297335"
 X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="262891948"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2022 03:08:45 -0700
+   d="scan'208";a="305297335"
+Received: from fmsmga008.fm.intel.com ([10.253.24.58])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2022 03:34:54 -0700
 X-IronPort-AV: E=Sophos;i="5.92,306,1650956400"; 
-   d="scan'208";a="561888366"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2022 03:08:38 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.95)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1o3EKg-000h5Q-Ob;
-        Mon, 20 Jun 2022 13:08:34 +0300
-Date:   Mon, 20 Jun 2022 13:08:34 +0300
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Alexander Lobakin <alexandr.lobakin@intel.com>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
+   d="scan'208";a="643055543"
+Received: from lspinell-mobl1.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.251.215.169])
+  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 20 Jun 2022 03:34:43 -0700
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-serial@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        William Hubbs <w.d.hubbs@gmail.com>,
+        Chris Brannon <chris@the-brannons.com>,
+        Kirk Reiser <kirk@reisers.ca>,
+        Samuel Thibault <samuel.thibault@ens-lyon.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 5/7] bitops: wrap non-atomic bitops with a transparent
- macro
-Message-ID: <YrBHIt7jUOHQQXX2@smile.fi.intel.com>
-References: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
- <20220617144031.2549432-6-alexandr.lobakin@intel.com>
+        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
+        speakup@linux-speakup.org, sparclinux@vger.kernel.org
+Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH 6/6] serial: Consolidate BOTH_EMPTY use
+Date:   Mon, 20 Jun 2022 13:34:08 +0300
+Message-Id: <20220620103408.37454-7-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20220620103408.37454-1-ilpo.jarvinen@linux.intel.com>
+References: <20220620103408.37454-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220617144031.2549432-6-alexandr.lobakin@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jun 17, 2022 at 04:40:29PM +0200, Alexander Lobakin wrote:
-> In preparation for altering the non-atomic bitops with a macro, wrap
-> them in a transparent definition. This requires prepending one more
-> '_' to their names in order to be able to do that seamlessly. It is
-> a simple change, given that all the non-prefixed definitions are now
-> in asm-generic.
-> sparc32 already has several triple-underscored functions, so I had
-> to rename them ('___' -> 'sp32_').
+Per file BOTH_EMPTY defines are littering our source code here and
+there. Define once in serial.h and create helper for the check
+too.
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+---
+ arch/mips/ath79/early_printk.c           |  9 +++++----
+ drivers/accessibility/speakup/serialio.h |  3 +--
+ drivers/tty/serial/8250/8250_early.c     |  4 +---
+ drivers/tty/serial/8250/8250_port.c      | 12 +++++-------
+ drivers/tty/serial/omap-serial.c         |  7 +++----
+ drivers/tty/serial/pch_uart.c            |  7 +++----
+ drivers/tty/serial/pxa.c                 |  5 ++---
+ drivers/tty/serial/sunsu.c               |  4 +---
+ drivers/tty/serial/vr41xx_siu.c          |  4 +---
+ include/linux/serial.h                   |  9 +++++++++
+ 10 files changed, 31 insertions(+), 33 deletions(-)
 
-> Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-> ---
->  arch/sparc/include/asm/bitops_32.h            | 18 ++++++------
->  arch/sparc/lib/atomic32.c                     | 12 ++++----
->  .../bitops/instrumented-non-atomic.h          | 28 +++++++++----------
->  .../bitops/non-instrumented-non-atomic.h      | 14 +++++-----
->  include/linux/bitops.h                        | 18 +++++++++++-
->  tools/include/asm-generic/bitops/non-atomic.h | 24 ++++++++--------
->  tools/include/linux/bitops.h                  | 16 +++++++++++
->  7 files changed, 81 insertions(+), 49 deletions(-)
-> 
-> diff --git a/arch/sparc/include/asm/bitops_32.h b/arch/sparc/include/asm/bitops_32.h
-> index 889afa9f990f..3448c191b484 100644
-> --- a/arch/sparc/include/asm/bitops_32.h
-> +++ b/arch/sparc/include/asm/bitops_32.h
-> @@ -19,9 +19,9 @@
->  #error only <linux/bitops.h> can be included directly
->  #endif
->  
-> -unsigned long ___set_bit(unsigned long *addr, unsigned long mask);
-> -unsigned long ___clear_bit(unsigned long *addr, unsigned long mask);
-> -unsigned long ___change_bit(unsigned long *addr, unsigned long mask);
-> +unsigned long sp32___set_bit(unsigned long *addr, unsigned long mask);
-> +unsigned long sp32___clear_bit(unsigned long *addr, unsigned long mask);
-> +unsigned long sp32___change_bit(unsigned long *addr, unsigned long mask);
->  
->  /*
->   * Set bit 'nr' in 32-bit quantity at address 'addr' where bit '0'
-> @@ -36,7 +36,7 @@ static inline int test_and_set_bit(unsigned long nr, volatile unsigned long *add
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	return ___set_bit(ADDR, mask) != 0;
-> +	return sp32___set_bit(ADDR, mask) != 0;
->  }
->  
->  static inline void set_bit(unsigned long nr, volatile unsigned long *addr)
-> @@ -46,7 +46,7 @@ static inline void set_bit(unsigned long nr, volatile unsigned long *addr)
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	(void) ___set_bit(ADDR, mask);
-> +	(void) sp32___set_bit(ADDR, mask);
->  }
->  
->  static inline int test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
-> @@ -56,7 +56,7 @@ static inline int test_and_clear_bit(unsigned long nr, volatile unsigned long *a
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	return ___clear_bit(ADDR, mask) != 0;
-> +	return sp32___clear_bit(ADDR, mask) != 0;
->  }
->  
->  static inline void clear_bit(unsigned long nr, volatile unsigned long *addr)
-> @@ -66,7 +66,7 @@ static inline void clear_bit(unsigned long nr, volatile unsigned long *addr)
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	(void) ___clear_bit(ADDR, mask);
-> +	(void) sp32___clear_bit(ADDR, mask);
->  }
->  
->  static inline int test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
-> @@ -76,7 +76,7 @@ static inline int test_and_change_bit(unsigned long nr, volatile unsigned long *
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	return ___change_bit(ADDR, mask) != 0;
-> +	return sp32___change_bit(ADDR, mask) != 0;
->  }
->  
->  static inline void change_bit(unsigned long nr, volatile unsigned long *addr)
-> @@ -86,7 +86,7 @@ static inline void change_bit(unsigned long nr, volatile unsigned long *addr)
->  	ADDR = ((unsigned long *) addr) + (nr >> 5);
->  	mask = 1 << (nr & 31);
->  
-> -	(void) ___change_bit(ADDR, mask);
-> +	(void) sp32___change_bit(ADDR, mask);
->  }
->  
->  #include <asm-generic/bitops/non-atomic.h>
-> diff --git a/arch/sparc/lib/atomic32.c b/arch/sparc/lib/atomic32.c
-> index 8b81d0f00c97..cf80d1ae352b 100644
-> --- a/arch/sparc/lib/atomic32.c
-> +++ b/arch/sparc/lib/atomic32.c
-> @@ -120,7 +120,7 @@ void arch_atomic_set(atomic_t *v, int i)
->  }
->  EXPORT_SYMBOL(arch_atomic_set);
->  
-> -unsigned long ___set_bit(unsigned long *addr, unsigned long mask)
-> +unsigned long sp32___set_bit(unsigned long *addr, unsigned long mask)
->  {
->  	unsigned long old, flags;
->  
-> @@ -131,9 +131,9 @@ unsigned long ___set_bit(unsigned long *addr, unsigned long mask)
->  
->  	return old & mask;
->  }
-> -EXPORT_SYMBOL(___set_bit);
-> +EXPORT_SYMBOL(sp32___set_bit);
->  
-> -unsigned long ___clear_bit(unsigned long *addr, unsigned long mask)
-> +unsigned long sp32___clear_bit(unsigned long *addr, unsigned long mask)
->  {
->  	unsigned long old, flags;
->  
-> @@ -144,9 +144,9 @@ unsigned long ___clear_bit(unsigned long *addr, unsigned long mask)
->  
->  	return old & mask;
->  }
-> -EXPORT_SYMBOL(___clear_bit);
-> +EXPORT_SYMBOL(sp32___clear_bit);
->  
-> -unsigned long ___change_bit(unsigned long *addr, unsigned long mask)
-> +unsigned long sp32___change_bit(unsigned long *addr, unsigned long mask)
->  {
->  	unsigned long old, flags;
->  
-> @@ -157,7 +157,7 @@ unsigned long ___change_bit(unsigned long *addr, unsigned long mask)
->  
->  	return old & mask;
->  }
-> -EXPORT_SYMBOL(___change_bit);
-> +EXPORT_SYMBOL(sp32___change_bit);
->  
->  unsigned long __cmpxchg_u32(volatile u32 *ptr, u32 old, u32 new)
->  {
-> diff --git a/include/asm-generic/bitops/instrumented-non-atomic.h b/include/asm-generic/bitops/instrumented-non-atomic.h
-> index b019f77ef21c..988a3bbfba34 100644
-> --- a/include/asm-generic/bitops/instrumented-non-atomic.h
-> +++ b/include/asm-generic/bitops/instrumented-non-atomic.h
-> @@ -14,7 +14,7 @@
->  #include <linux/instrumented.h>
->  
->  /**
-> - * __set_bit - Set a bit in memory
-> + * ___set_bit - Set a bit in memory
->   * @nr: the bit to set
->   * @addr: the address to start counting from
->   *
-> @@ -23,14 +23,14 @@
->   * succeeds.
->   */
->  static __always_inline void
-> -__set_bit(unsigned long nr, volatile unsigned long *addr)
-> +___set_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	instrument_write(addr + BIT_WORD(nr), sizeof(long));
->  	arch___set_bit(nr, addr);
->  }
->  
->  /**
-> - * __clear_bit - Clears a bit in memory
-> + * ___clear_bit - Clears a bit in memory
->   * @nr: the bit to clear
->   * @addr: the address to start counting from
->   *
-> @@ -39,14 +39,14 @@ __set_bit(unsigned long nr, volatile unsigned long *addr)
->   * succeeds.
->   */
->  static __always_inline void
-> -__clear_bit(unsigned long nr, volatile unsigned long *addr)
-> +___clear_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	instrument_write(addr + BIT_WORD(nr), sizeof(long));
->  	arch___clear_bit(nr, addr);
->  }
->  
->  /**
-> - * __change_bit - Toggle a bit in memory
-> + * ___change_bit - Toggle a bit in memory
->   * @nr: the bit to change
->   * @addr: the address to start counting from
->   *
-> @@ -55,7 +55,7 @@ __clear_bit(unsigned long nr, volatile unsigned long *addr)
->   * succeeds.
->   */
->  static __always_inline void
-> -__change_bit(unsigned long nr, volatile unsigned long *addr)
-> +___change_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	instrument_write(addr + BIT_WORD(nr), sizeof(long));
->  	arch___change_bit(nr, addr);
-> @@ -86,7 +86,7 @@ static __always_inline void __instrument_read_write_bitop(long nr, volatile unsi
->  }
->  
->  /**
-> - * __test_and_set_bit - Set a bit and return its old value
-> + * ___test_and_set_bit - Set a bit and return its old value
->   * @nr: Bit to set
->   * @addr: Address to count from
->   *
-> @@ -94,14 +94,14 @@ static __always_inline void __instrument_read_write_bitop(long nr, volatile unsi
->   * can appear to succeed but actually fail.
->   */
->  static __always_inline bool
-> -__test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	__instrument_read_write_bitop(nr, addr);
->  	return arch___test_and_set_bit(nr, addr);
->  }
->  
->  /**
-> - * __test_and_clear_bit - Clear a bit and return its old value
-> + * ___test_and_clear_bit - Clear a bit and return its old value
->   * @nr: Bit to clear
->   * @addr: Address to count from
->   *
-> @@ -109,14 +109,14 @@ __test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
->   * can appear to succeed but actually fail.
->   */
->  static __always_inline bool
-> -__test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	__instrument_read_write_bitop(nr, addr);
->  	return arch___test_and_clear_bit(nr, addr);
->  }
->  
->  /**
-> - * __test_and_change_bit - Change a bit and return its old value
-> + * ___test_and_change_bit - Change a bit and return its old value
->   * @nr: Bit to change
->   * @addr: Address to count from
->   *
-> @@ -124,19 +124,19 @@ __test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
->   * can appear to succeed but actually fail.
->   */
->  static __always_inline bool
-> -__test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	__instrument_read_write_bitop(nr, addr);
->  	return arch___test_and_change_bit(nr, addr);
->  }
->  
->  /**
-> - * test_bit - Determine whether a bit is set
-> + * _test_bit - Determine whether a bit is set
->   * @nr: bit number to test
->   * @addr: Address to start counting from
->   */
->  static __always_inline bool
-> -test_bit(unsigned long nr, const volatile unsigned long *addr)
-> +_test_bit(unsigned long nr, const volatile unsigned long *addr)
->  {
->  	instrument_atomic_read(addr + BIT_WORD(nr), sizeof(long));
->  	return arch_test_bit(nr, addr);
-> diff --git a/include/asm-generic/bitops/non-instrumented-non-atomic.h b/include/asm-generic/bitops/non-instrumented-non-atomic.h
-> index e0fd7bf72a56..bdb9b1ffaee9 100644
-> --- a/include/asm-generic/bitops/non-instrumented-non-atomic.h
-> +++ b/include/asm-generic/bitops/non-instrumented-non-atomic.h
-> @@ -3,14 +3,14 @@
->  #ifndef __ASM_GENERIC_BITOPS_NON_INSTRUMENTED_NON_ATOMIC_H
->  #define __ASM_GENERIC_BITOPS_NON_INSTRUMENTED_NON_ATOMIC_H
->  
-> -#define __set_bit		arch___set_bit
-> -#define __clear_bit		arch___clear_bit
-> -#define __change_bit		arch___change_bit
-> +#define ___set_bit		arch___set_bit
-> +#define ___clear_bit		arch___clear_bit
-> +#define ___change_bit		arch___change_bit
->  
-> -#define __test_and_set_bit	arch___test_and_set_bit
-> -#define __test_and_clear_bit	arch___test_and_clear_bit
-> -#define __test_and_change_bit	arch___test_and_change_bit
-> +#define ___test_and_set_bit	arch___test_and_set_bit
-> +#define ___test_and_clear_bit	arch___test_and_clear_bit
-> +#define ___test_and_change_bit	arch___test_and_change_bit
->  
-> -#define test_bit		arch_test_bit
-> +#define _test_bit		arch_test_bit
->  
->  #endif /* __ASM_GENERIC_BITOPS_NON_INSTRUMENTED_NON_ATOMIC_H */
-> diff --git a/include/linux/bitops.h b/include/linux/bitops.h
-> index d393297287d5..3c3afbae1533 100644
-> --- a/include/linux/bitops.h
-> +++ b/include/linux/bitops.h
-> @@ -26,8 +26,24 @@ extern unsigned int __sw_hweight16(unsigned int w);
->  extern unsigned int __sw_hweight32(unsigned int w);
->  extern unsigned long __sw_hweight64(__u64 w);
->  
-> +/*
-> + * Defined here because those may be needed by architecture-specific static
-> + * inlines.
-> + */
-> +
->  #include <asm-generic/bitops/generic-non-atomic.h>
->  
-> +#define bitop(op, nr, addr)						\
-> +	op(nr, addr)
-> +
-> +#define __set_bit(nr, addr)		bitop(___set_bit, nr, addr)
-> +#define __clear_bit(nr, addr)		bitop(___clear_bit, nr, addr)
-> +#define __change_bit(nr, addr)		bitop(___change_bit, nr, addr)
-> +#define __test_and_set_bit(nr, addr)	bitop(___test_and_set_bit, nr, addr)
-> +#define __test_and_clear_bit(nr, addr)	bitop(___test_and_clear_bit, nr, addr)
-> +#define __test_and_change_bit(nr, addr)	bitop(___test_and_change_bit, nr, addr)
-> +#define test_bit(nr, addr)		bitop(_test_bit, nr, addr)
-> +
->  /*
->   * Include this here because some architectures need generic_ffs/fls in
->   * scope
-> @@ -38,7 +54,7 @@ extern unsigned long __sw_hweight64(__u64 w);
->  #define __check_bitop_pr(name)						\
->  	static_assert(__same_type(arch_##name, generic_##name) &&	\
->  		      __same_type(const_##name, generic_##name) &&	\
-> -		      __same_type(name, generic_##name))
-> +		      __same_type(_##name, generic_##name))
->  
->  __check_bitop_pr(__set_bit);
->  __check_bitop_pr(__clear_bit);
-> diff --git a/tools/include/asm-generic/bitops/non-atomic.h b/tools/include/asm-generic/bitops/non-atomic.h
-> index e5e78e42e57b..0c472a833408 100644
-> --- a/tools/include/asm-generic/bitops/non-atomic.h
-> +++ b/tools/include/asm-generic/bitops/non-atomic.h
-> @@ -5,7 +5,7 @@
->  #include <linux/bits.h>
->  
->  /**
-> - * __set_bit - Set a bit in memory
-> + * ___set_bit - Set a bit in memory
->   * @nr: the bit to set
->   * @addr: the address to start counting from
->   *
-> @@ -14,7 +14,7 @@
->   * may be that only one operation succeeds.
->   */
->  static __always_inline void
-> -__set_bit(unsigned long nr, volatile unsigned long *addr)
-> +___set_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -23,7 +23,7 @@ __set_bit(unsigned long nr, volatile unsigned long *addr)
->  }
->  
->  static __always_inline void
-> -__clear_bit(unsigned long nr, volatile unsigned long *addr)
-> +___clear_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -32,7 +32,7 @@ __clear_bit(unsigned long nr, volatile unsigned long *addr)
->  }
->  
->  /**
-> - * __change_bit - Toggle a bit in memory
-> + * ___change_bit - Toggle a bit in memory
->   * @nr: the bit to change
->   * @addr: the address to start counting from
->   *
-> @@ -41,7 +41,7 @@ __clear_bit(unsigned long nr, volatile unsigned long *addr)
->   * may be that only one operation succeeds.
->   */
->  static __always_inline void
-> -__change_bit(unsigned long nr, volatile unsigned long *addr)
-> +___change_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -50,7 +50,7 @@ __change_bit(unsigned long nr, volatile unsigned long *addr)
->  }
->  
->  /**
-> - * __test_and_set_bit - Set a bit and return its old value
-> + * ___test_and_set_bit - Set a bit and return its old value
->   * @nr: Bit to set
->   * @addr: Address to count from
->   *
-> @@ -59,7 +59,7 @@ __change_bit(unsigned long nr, volatile unsigned long *addr)
->   * but actually fail.  You must protect multiple accesses with a lock.
->   */
->  static __always_inline bool
-> -__test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -70,7 +70,7 @@ __test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
->  }
->  
->  /**
-> - * __test_and_clear_bit - Clear a bit and return its old value
-> + * ___test_and_clear_bit - Clear a bit and return its old value
->   * @nr: Bit to clear
->   * @addr: Address to count from
->   *
-> @@ -79,7 +79,7 @@ __test_and_set_bit(unsigned long nr, volatile unsigned long *addr)
->   * but actually fail.  You must protect multiple accesses with a lock.
->   */
->  static __always_inline bool
-> -__test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -91,7 +91,7 @@ __test_and_clear_bit(unsigned long nr, volatile unsigned long *addr)
->  
->  /* WARNING: non atomic and it can be reordered! */
->  static __always_inline bool
-> -__test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
-> +___test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
->  {
->  	unsigned long mask = BIT_MASK(nr);
->  	unsigned long *p = ((unsigned long *)addr) + BIT_WORD(nr);
-> @@ -102,12 +102,12 @@ __test_and_change_bit(unsigned long nr, volatile unsigned long *addr)
->  }
->  
->  /**
-> - * test_bit - Determine whether a bit is set
-> + * _test_bit - Determine whether a bit is set
->   * @nr: bit number to test
->   * @addr: Address to start counting from
->   */
->  static __always_inline bool
-> -test_bit(unsigned long nr, const volatile unsigned long *addr)
-> +_test_bit(unsigned long nr, const volatile unsigned long *addr)
->  {
->  	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
->  }
-> diff --git a/tools/include/linux/bitops.h b/tools/include/linux/bitops.h
-> index 5fca38fe1ba8..f18683b95ea6 100644
-> --- a/tools/include/linux/bitops.h
-> +++ b/tools/include/linux/bitops.h
-> @@ -25,6 +25,22 @@ extern unsigned int __sw_hweight16(unsigned int w);
->  extern unsigned int __sw_hweight32(unsigned int w);
->  extern unsigned long __sw_hweight64(__u64 w);
->  
-> +/*
-> + * Defined here because those may be needed by architecture-specific static
-> + * inlines.
-> + */
-> +
-> +#define bitop(op, nr, addr)						\
-> +	op(nr, addr)
-> +
-> +#define __set_bit(nr, addr)		bitop(___set_bit, nr, addr)
-> +#define __clear_bit(nr, addr)		bitop(___clear_bit, nr, addr)
-> +#define __change_bit(nr, addr)		bitop(___change_bit, nr, addr)
-> +#define __test_and_set_bit(nr, addr)	bitop(___test_and_set_bit, nr, addr)
-> +#define __test_and_clear_bit(nr, addr)	bitop(___test_and_clear_bit, nr, addr)
-> +#define __test_and_change_bit(nr, addr)	bitop(___test_and_change_bit, nr, addr)
-> +#define test_bit(nr, addr)		bitop(_test_bit, nr, addr)
-> +
->  /*
->   * Include this here because some architectures need generic_ffs/fls in
->   * scope
-> -- 
-> 2.36.1
-> 
-
+diff --git a/arch/mips/ath79/early_printk.c b/arch/mips/ath79/early_printk.c
+index 8751d067f98f..f6d02b425a10 100644
+--- a/arch/mips/ath79/early_printk.c
++++ b/arch/mips/ath79/early_printk.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/io.h>
+ #include <linux/errno.h>
++#include <linux/serial.h>
+ #include <linux/serial_reg.h>
+ #include <asm/addrspace.h>
+ #include <asm/setup.h>
+@@ -29,15 +30,15 @@ static inline void prom_putchar_wait(void __iomem *reg, u32 mask, u32 val)
+ 	} while (1);
+ }
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ static void prom_putchar_ar71xx(char ch)
+ {
+ 	void __iomem *base = (void __iomem *)(KSEG1ADDR(AR71XX_UART_BASE));
+ 
+-	prom_putchar_wait(base + UART_LSR * 4, BOTH_EMPTY, BOTH_EMPTY);
++	prom_putchar_wait(base + UART_LSR * 4, UART_LSR_BOTH_EMPTY,
++			  UART_LSR_BOTH_EMPTY);
+ 	__raw_writel((unsigned char)ch, base + UART_TX * 4);
+-	prom_putchar_wait(base + UART_LSR * 4, BOTH_EMPTY, BOTH_EMPTY);
++	prom_putchar_wait(base + UART_LSR * 4, UART_LSR_BOTH_EMPTY,
++			  UART_LSR_BOTH_EMPTY);
+ }
+ 
+ static void prom_putchar_ar933x(char ch)
+diff --git a/drivers/accessibility/speakup/serialio.h b/drivers/accessibility/speakup/serialio.h
+index 6f8f86f161bb..b4f9a1925b81 100644
+--- a/drivers/accessibility/speakup/serialio.h
++++ b/drivers/accessibility/speakup/serialio.h
+@@ -33,9 +33,8 @@ struct old_serial_port {
+ #define NUM_DISABLE_TIMEOUTS 3
+ /* buffer timeout in ms */
+ #define SPK_TIMEOUT 100
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+ 
+ #define spk_serial_tx_busy() \
+-	((inb(speakup_info.port_tts + UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
++	(!uart_lsr_tx_empty(inb(speakup_info.port_tts + UART_LSR)))
+ 
+ #endif
+diff --git a/drivers/tty/serial/8250/8250_early.c b/drivers/tty/serial/8250/8250_early.c
+index e52585064565..f271becfc46c 100644
+--- a/drivers/tty/serial/8250/8250_early.c
++++ b/drivers/tty/serial/8250/8250_early.c
+@@ -84,8 +84,6 @@ static void serial8250_early_out(struct uart_port *port, int offset, int value)
+ 	}
+ }
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ static void serial_putc(struct uart_port *port, unsigned char c)
+ {
+ 	unsigned int status;
+@@ -94,7 +92,7 @@ static void serial_putc(struct uart_port *port, unsigned char c)
+ 
+ 	for (;;) {
+ 		status = serial8250_early_in(port, UART_LSR);
+-		if ((status & BOTH_EMPTY) == BOTH_EMPTY)
++		if (uart_lsr_tx_empty(status))
+ 			break;
+ 		cpu_relax();
+ 	}
+diff --git a/drivers/tty/serial/8250/8250_port.c b/drivers/tty/serial/8250/8250_port.c
+index 432742a567b6..647bd351e611 100644
+--- a/drivers/tty/serial/8250/8250_port.c
++++ b/drivers/tty/serial/8250/8250_port.c
+@@ -50,8 +50,6 @@
+ #define DEBUG_AUTOCONF(fmt...)	do { } while (0)
+ #endif
+ 
+-#define BOTH_EMPTY	(UART_LSR_TEMT | UART_LSR_THRE)
+-
+ /*
+  * Here we define the default xmit fifo size used for each type of UART.
+  */
+@@ -1841,7 +1839,7 @@ void serial8250_tx_chars(struct uart_8250_port *up)
+ 		if (uart_circ_empty(xmit))
+ 			break;
+ 		if ((up->capabilities & UART_CAP_HFIFO) &&
+-		    (serial_in(up, UART_LSR) & BOTH_EMPTY) != BOTH_EMPTY)
++		    !uart_lsr_tx_empty(serial_in(up, UART_LSR)))
+ 			break;
+ 		/* The BCM2835 MINI UART THRE bit is really a not-full bit. */
+ 		if ((up->capabilities & UART_CAP_MINI) &&
+@@ -2001,7 +1999,7 @@ static unsigned int serial8250_tx_empty(struct uart_port *port)
+ 
+ 	serial8250_rpm_put(up);
+ 
+-	return (lsr & BOTH_EMPTY) == BOTH_EMPTY ? TIOCSER_TEMT : 0;
++	return uart_lsr_tx_empty(lsr) ? TIOCSER_TEMT : 0;
+ }
+ 
+ unsigned int serial8250_do_get_mctrl(struct uart_port *port)
+@@ -2149,7 +2147,7 @@ static void serial8250_put_poll_char(struct uart_port *port,
+ 	else
+ 		serial_port_out(port, UART_IER, 0);
+ 
+-	wait_for_xmitr(up, BOTH_EMPTY);
++	wait_for_xmitr(up, UART_LSR_BOTH_EMPTY);
+ 	/*
+ 	 *	Send the character out.
+ 	 */
+@@ -2159,7 +2157,7 @@ static void serial8250_put_poll_char(struct uart_port *port,
+ 	 *	Finally, wait for transmitter to become empty
+ 	 *	and restore the IER
+ 	 */
+-	wait_for_xmitr(up, BOTH_EMPTY);
++	wait_for_xmitr(up, UART_LSR_BOTH_EMPTY);
+ 	serial_port_out(port, UART_IER, ier);
+ 	serial8250_rpm_put(up);
+ }
+@@ -3429,7 +3427,7 @@ void serial8250_console_write(struct uart_8250_port *up, const char *s,
+ 	 *	Finally, wait for transmitter to become empty
+ 	 *	and restore the IER
+ 	 */
+-	wait_for_xmitr(up, BOTH_EMPTY);
++	wait_for_xmitr(up, UART_LSR_BOTH_EMPTY);
+ 
+ 	if (em485) {
+ 		mdelay(port->rs485.delay_rts_after_send);
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index 98622c35d896..52cb1a68b053 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -19,6 +19,7 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/console.h>
++#include <linux/serial.h>
+ #include <linux/serial_reg.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+@@ -1102,8 +1103,6 @@ serial_omap_type(struct uart_port *port)
+ 	return up->name;
+ }
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ static void __maybe_unused wait_for_xmitr(struct uart_omap_port *up)
+ {
+ 	unsigned int status, tmout = 10000;
+@@ -1118,7 +1117,7 @@ static void __maybe_unused wait_for_xmitr(struct uart_omap_port *up)
+ 		if (--tmout == 0)
+ 			break;
+ 		udelay(1);
+-	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
++	} while (!uart_lsr_tx_empty(status));
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+ 	if (up->port.flags & UPF_CONS_FLOW) {
+@@ -1186,7 +1185,7 @@ static void omap_serial_early_putc(struct uart_port *port, unsigned char c)
+ 
+ 	for (;;) {
+ 		status = omap_serial_early_in(port, UART_LSR);
+-		if ((status & BOTH_EMPTY) == BOTH_EMPTY)
++		if (uart_lsr_tx_empty(status))
+ 			break;
+ 		cpu_relax();
+ 	}
+diff --git a/drivers/tty/serial/pch_uart.c b/drivers/tty/serial/pch_uart.c
+index 3b26524d48e3..8a9065e4a903 100644
+--- a/drivers/tty/serial/pch_uart.c
++++ b/drivers/tty/serial/pch_uart.c
+@@ -3,6 +3,7 @@
+  *Copyright (C) 2011 LAPIS Semiconductor Co., Ltd.
+  */
+ #include <linux/kernel.h>
++#include <linux/serial.h>
+ #include <linux/serial_reg.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+@@ -189,8 +190,6 @@ enum {
+ #define PCH_UART_HAL_LOOP		(PCH_UART_MCR_LOOP)
+ #define PCH_UART_HAL_AFE		(PCH_UART_MCR_AFE)
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ #define DEFAULT_UARTCLK   1843200 /*   1.8432 MHz */
+ #define CMITC_UARTCLK   192000000 /* 192.0000 MHz */
+ #define FRI2_64_UARTCLK  64000000 /*  64.0000 MHz */
+@@ -1516,7 +1515,7 @@ static void pch_uart_put_poll_char(struct uart_port *port,
+ 	 * Finally, wait for transmitter to become empty
+ 	 * and restore the IER
+ 	 */
+-	wait_for_xmitr(priv, BOTH_EMPTY);
++	wait_for_xmitr(priv, UART_LSR_BOTH_EMPTY);
+ 	iowrite8(ier, priv->membase + UART_IER);
+ }
+ #endif /* CONFIG_CONSOLE_POLL */
+@@ -1602,7 +1601,7 @@ pch_console_write(struct console *co, const char *s, unsigned int count)
+ 	 *	Finally, wait for transmitter to become empty
+ 	 *	and restore the IER
+ 	 */
+-	wait_for_xmitr(priv, BOTH_EMPTY);
++	wait_for_xmitr(priv, UART_LSR_BOTH_EMPTY);
+ 	iowrite8(ier, priv->membase + UART_IER);
+ 
+ 	if (port_locked)
+diff --git a/drivers/tty/serial/pxa.c b/drivers/tty/serial/pxa.c
+index e80ba8e10407..9309ffd87c8e 100644
+--- a/drivers/tty/serial/pxa.c
++++ b/drivers/tty/serial/pxa.c
+@@ -23,6 +23,7 @@
+ #include <linux/init.h>
+ #include <linux/console.h>
+ #include <linux/sysrq.h>
++#include <linux/serial.h>
+ #include <linux/serial_reg.h>
+ #include <linux/circ_buf.h>
+ #include <linux/delay.h>
+@@ -575,8 +576,6 @@ static struct uart_driver serial_pxa_reg;
+ 
+ #ifdef CONFIG_SERIAL_PXA_CONSOLE
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ /*
+  *	Wait for transmitter & holding register to empty
+  */
+@@ -594,7 +593,7 @@ static void wait_for_xmitr(struct uart_pxa_port *up)
+ 		if (--tmout == 0)
+ 			break;
+ 		udelay(1);
+-	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
++	} while (!uart_lsr_tx_empty(status));
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+ 	if (up->port.flags & UPF_CONS_FLOW) {
+diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+index fff50b5b82eb..84d545e5a8c7 100644
+--- a/drivers/tty/serial/sunsu.c
++++ b/drivers/tty/serial/sunsu.c
+@@ -1249,8 +1249,6 @@ static int sunsu_kbd_ms_init(struct uart_sunsu_port *up)
+ 
+ #ifdef CONFIG_SERIAL_SUNSU_CONSOLE
+ 
+-#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+-
+ /*
+  *	Wait for transmitter & holding register to empty
+  */
+@@ -1268,7 +1266,7 @@ static void wait_for_xmitr(struct uart_sunsu_port *up)
+ 		if (--tmout == 0)
+ 			break;
+ 		udelay(1);
+-	} while ((status & BOTH_EMPTY) != BOTH_EMPTY);
++	} while (!uart_lsr_tx_empty(status));
+ 
+ 	/* Wait up to 1s for flow control if necessary */
+ 	if (up->port.flags & UPF_CONS_FLOW) {
+diff --git a/drivers/tty/serial/vr41xx_siu.c b/drivers/tty/serial/vr41xx_siu.c
+index e0bf003ca3a1..1ba689a81abd 100644
+--- a/drivers/tty/serial/vr41xx_siu.c
++++ b/drivers/tty/serial/vr41xx_siu.c
+@@ -703,8 +703,6 @@ static int siu_init_ports(struct platform_device *pdev)
+ 
+ #ifdef CONFIG_SERIAL_VR41XX_CONSOLE
+ 
+-#define BOTH_EMPTY	(UART_LSR_TEMT | UART_LSR_THRE)
+-
+ static void wait_for_xmitr(struct uart_port *port)
+ {
+ 	int timeout = 10000;
+@@ -715,7 +713,7 @@ static void wait_for_xmitr(struct uart_port *port)
+ 		if (lsr & UART_LSR_BI)
+ 			lsr_break_flag[port->line] = UART_LSR_BI;
+ 
+-		if ((lsr & BOTH_EMPTY) == BOTH_EMPTY)
++		if (uart_lsr_tx_empty(lsr))
+ 			break;
+ 	} while (timeout-- > 0);
+ 
+diff --git a/include/linux/serial.h b/include/linux/serial.h
+index 70a9866e4abb..3d6fe3ef92cf 100644
+--- a/include/linux/serial.h
++++ b/include/linux/serial.h
+@@ -10,10 +10,19 @@
+ #define _LINUX_SERIAL_H
+ 
+ #include <uapi/linux/serial.h>
++#include <uapi/linux/serial_reg.h>
+ 
+ /* Helper for dealing with UART_LCR_WLEN* defines */
+ #define UART_LCR_WLEN(x)	((x) - 5)
+ 
++/* FIFO and shifting register empty */
++#define UART_LSR_BOTH_EMPTY	(UART_LSR_TEMT | UART_LSR_THRE)
++
++static inline bool uart_lsr_tx_empty(u16 lsr)
++{
++	return (lsr & UART_LSR_BOTH_EMPTY) == UART_LSR_BOTH_EMPTY;
++}
++
+ /*
+  * Counters of the input lines (CTS, DSR, RI, CD) interrupts
+  */
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
