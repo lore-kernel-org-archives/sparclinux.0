@@ -2,107 +2,101 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A96B9C433EF
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Jun 2022 15:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABEEBCCA47F
+	for <sparclinux@archiver.kernel.org>; Mon, 20 Jun 2022 19:21:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241833AbiFTPcZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 20 Jun 2022 11:32:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35172 "EHLO
+        id S1343659AbiFTTVU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 20 Jun 2022 15:21:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239153AbiFTPcY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Jun 2022 11:32:24 -0400
-Received: from m15111.mail.126.com (m15111.mail.126.com [220.181.15.111])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id BC1B2C42;
-        Mon, 20 Jun 2022 08:32:22 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=orVf9
-        QAUEK/mAacbw3F+OkprSRQY40n/7fcqDeWpMuU=; b=j6x3zR0luu1u2Q2641mXf
-        Uol0ORJYn1vGR3JbCRhn9jiVskm9U0pCrMZmrj/Q2/pqR6niHQn8RiH5K3VSR1Sa
-        NV5KjpVC9G6IXUPRImp/1jHq+eiRg6MWrErf9Vaj1M93smW18qtPbsi7o4qz9mHb
-        ojoL3V+OtZzsHGSs8nfMHE=
-Received: from localhost.localdomain (unknown [124.16.139.61])
-        by smtp1 (Coremail) with SMTP id C8mowADnxd74krBiuLARFA--.39297S2;
-        Mon, 20 Jun 2022 23:32:09 +0800 (CST)
-From:   Liang He <windhl@126.com>
-To:     davem@davemloft.net
-Cc:     windhl@126.com, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] sbus/char: Fix refcount leak bugs in openprom.c
-Date:   Mon, 20 Jun 2022 23:32:08 +0800
-Message-Id: <20220620153208.4075636-1-windhl@126.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S1343617AbiFTTVR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Jun 2022 15:21:17 -0400
+Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DC8E1C109;
+        Mon, 20 Jun 2022 12:21:16 -0700 (PDT)
+Received: by mail-ed1-x52d.google.com with SMTP id eo8so16512211edb.0;
+        Mon, 20 Jun 2022 12:21:16 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=/0jxbATVEDKJnIt6ABi4UcKvefavHfALqV2faNdj1xk=;
+        b=E2w9SsK622uI3mRxf9d1ClkzeccxGN5eH53Unw5M4E4b0/ciI8EdJTKHuIfMDb3oYJ
+         YTDXeesnCEDlZdX1+VVgBVcyrcc1kjQhXUl7QhujJt1ZGMR2a7e0T1PcupO4HUGZdiFD
+         39IpbFP7Xi0rCmSlptLDWbdMNNlf9hIPR48cNLSNpAavFS7XyQE1FOIVXFDngH7HEOLz
+         EtQ6srucKJaxyDr+flGCni5+E4AlE5K+pYwH7NKtnjDBeQN4QNkmdg+EOpiVfF9aJDQD
+         P0cQv8kp38qvfnww9Mbzg40KkFzsj1eem1AjDaHXAaN8ujWQnF1PUAt6Vyo1EdmDOpUI
+         J49A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=/0jxbATVEDKJnIt6ABi4UcKvefavHfALqV2faNdj1xk=;
+        b=KS1ZbQe1BDe0RhVhVm2Ez74LCKPlGvUARPcMA5AHV6pUM1V70Y20T2EDL81ea3fvD4
+         dN6Or7bYI+c/0Z0hgNobwhjzk4JH/flGXUA5b6UZJv9YosbgJPZxFszVmNEgSqDTvZGg
+         PKfi29lCbSZJ/10voH5dh43hf6fJPO2GtdP06IDR20BSwDF5GkOKFQ7A/U/UXcm0gymL
+         cJ4w1+7ObeFt4o5DTA3TuFKyQA6jDN3B9w8MR5mJqKjPfb7i40YeVf1F4/bpjGNJsIxN
+         fCFaX6HCQss8f7gJJ6kayUCzvosSEqw/pysU3oGM6AGkHoDPlELPauUnSOZ9jkCWbP59
+         UOww==
+X-Gm-Message-State: AJIora+hRb69bcBVdThzUWyuddXTz7thEbwScGLQtubWuq8/p7ug9vZG
+        QW0gdKy5HgPyFHDtxL6kgYg=
+X-Google-Smtp-Source: AGRyM1s7UDK4xMx70oMoQG8mkudNnGwBUAoUHsgJQ7yqWiUaYK2qbi0m7Q+0UFQ5sVxeWk33gHpWbA==
+X-Received: by 2002:a05:6402:5418:b0:435:5a48:daa9 with SMTP id ev24-20020a056402541800b004355a48daa9mr25144978edb.304.1655752874902;
+        Mon, 20 Jun 2022 12:21:14 -0700 (PDT)
+Received: from mail (239.125-180-91.adsl-dyn.isp.belgacom.be. [91.180.125.239])
+        by smtp.gmail.com with ESMTPSA id f23-20020a170906825700b0070ad296e4b0sm6388168ejx.186.2022.06.20.12.21.13
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 20 Jun 2022 12:21:14 -0700 (PDT)
+Date:   Mon, 20 Jun 2022 21:21:12 +0200
+From:   Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+To:     Alexander Lobakin <alexandr.lobakin@intel.com>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Matt Turner <mattst88@gmail.com>,
+        Brian Cain <bcain@quicinc.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Kees Cook <keescook@chromium.org>,
+        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
+        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
+        Tony Luck <tony.luck@intel.com>,
+        Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
+        Jesse Brandeburg <jesse.brandeburg@intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+        kbuild-all@lists.01.org, kernel test robot <lkp@intel.com>
+Subject: Re: [alobakin:bitops 3/7] block/elevator.c:222:9: sparse: sparse:
+ cast from restricted req_flags_t
+Message-ID: <20220620192112.ghyegqvtj3ud7zla@mail>
+References: <202206191726.wq70mbMK-lkp@intel.com>
+ <20220617144031.2549432-1-alexandr.lobakin@intel.com>
+ <20220620135146.2628908-1-alexandr.lobakin@intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: C8mowADnxd74krBiuLARFA--.39297S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7uw43uFyrCF43AF43Ar45GFg_yoW8Gw4rpF
-        W7GFWYyw47Kws2qFnYya4kuFW3G3W8W3yrKay2y3s5X3sxX34rZrWrt34YgrW5JFyfCF10
-        ywnava47WF1jk37anT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zi5l1PUUUUU=
-X-Originating-IP: [124.16.139.61]
-X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbizgMmF18RPVdM4wABs2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220620135146.2628908-1-alexandr.lobakin@intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In opiocgetnext(), we need a of_node_put() to keep refcount balance.
+On Mon, Jun 20, 2022 at 03:51:46PM +0200, Alexander Lobakin wrote:
+> From: kernel test robot <lkp@intel.com>
+> Date: Sun, 19 Jun 2022 17:20:05 +0800
+> 
+> Also, could someone please help me with this? I don't get what went
+> wrong with sparse, it's not even some new code, just moving old
+> stuff.
 
-NOTE: we should not change 'dp' as it will used as the arg of
-of_node_put().
+Hi,
 
-Signed-off-by: Liang He <windhl@126.com>
----
- changelog:
+The first sparse's warnings (sparse: preprocessor token __ATOMIC_*) are already
+fixed (and most probably, the bots have already taken the fix).
+I'm working on the second ones (sparse: unreplaced symbol).
 
- v2: (1) consider of_find_node_by_path() and of_find_node_by_phandle()
- v1: this is a wrong patch as dp has been updated by its sibling or
-child.
-
-
- drivers/sbus/char/openprom.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/sbus/char/openprom.c b/drivers/sbus/char/openprom.c
-index 30b9751aad30..b5907e0c24e5 100644
---- a/drivers/sbus/char/openprom.c
-+++ b/drivers/sbus/char/openprom.c
-@@ -494,7 +494,7 @@ static int opiocset(void __user *argp, DATA *data)
- 
- static int opiocgetnext(unsigned int cmd, void __user *argp)
- {
--	struct device_node *dp;
-+	struct device_node *dp, *tp;
- 	phandle nd;
- 
- 	BUILD_BUG_ON(sizeof(phandle) != sizeof(int));
-@@ -506,18 +506,24 @@ static int opiocgetnext(unsigned int cmd, void __user *argp)
- 		if (cmd != OPIOCGETNEXT)
- 			return -EINVAL;
- 		dp = of_find_node_by_path("/");
-+		if (dp)
-+			nd = dp->phandle;
- 	} else {
- 		dp = of_find_node_by_phandle(nd);
- 		nd = 0;
- 		if (dp) {
- 			if (cmd == OPIOCGETNEXT)
--				dp = dp->sibling;
-+				tp = dp->sibling;
- 			else
--				dp = dp->child;
-+				tp = dp->child;
- 		}
-+
-+		if (tp)
-+			nd = tp->phandle;
- 	}
--	if (dp)
--		nd = dp->phandle;
-+
-+	of_node_put(dp);
-+
- 	if (copy_to_user(argp, &nd, sizeof(phandle)))
- 		return -EFAULT;
- 
--- 
-2.25.1
-
+-- Luc (Sparse's maintainer)
