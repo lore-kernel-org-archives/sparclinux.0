@@ -2,57 +2,29 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABEEBCCA47F
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Jun 2022 19:21:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27854C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 21 Jun 2022 06:04:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343659AbiFTTVU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 20 Jun 2022 15:21:20 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42250 "EHLO
+        id S1345410AbiFUGD7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 21 Jun 2022 02:03:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35818 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1343617AbiFTTVR (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Jun 2022 15:21:17 -0400
-Received: from mail-ed1-x52d.google.com (mail-ed1-x52d.google.com [IPv6:2a00:1450:4864:20::52d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DC8E1C109;
-        Mon, 20 Jun 2022 12:21:16 -0700 (PDT)
-Received: by mail-ed1-x52d.google.com with SMTP id eo8so16512211edb.0;
-        Mon, 20 Jun 2022 12:21:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=/0jxbATVEDKJnIt6ABi4UcKvefavHfALqV2faNdj1xk=;
-        b=E2w9SsK622uI3mRxf9d1ClkzeccxGN5eH53Unw5M4E4b0/ciI8EdJTKHuIfMDb3oYJ
-         YTDXeesnCEDlZdX1+VVgBVcyrcc1kjQhXUl7QhujJt1ZGMR2a7e0T1PcupO4HUGZdiFD
-         39IpbFP7Xi0rCmSlptLDWbdMNNlf9hIPR48cNLSNpAavFS7XyQE1FOIVXFDngH7HEOLz
-         EtQ6srucKJaxyDr+flGCni5+E4AlE5K+pYwH7NKtnjDBeQN4QNkmdg+EOpiVfF9aJDQD
-         P0cQv8kp38qvfnww9Mbzg40KkFzsj1eem1AjDaHXAaN8ujWQnF1PUAt6Vyo1EdmDOpUI
-         J49A==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=/0jxbATVEDKJnIt6ABi4UcKvefavHfALqV2faNdj1xk=;
-        b=KS1ZbQe1BDe0RhVhVm2Ez74LCKPlGvUARPcMA5AHV6pUM1V70Y20T2EDL81ea3fvD4
-         dN6Or7bYI+c/0Z0hgNobwhjzk4JH/flGXUA5b6UZJv9YosbgJPZxFszVmNEgSqDTvZGg
-         PKfi29lCbSZJ/10voH5dh43hf6fJPO2GtdP06IDR20BSwDF5GkOKFQ7A/U/UXcm0gymL
-         cJ4w1+7ObeFt4o5DTA3TuFKyQA6jDN3B9w8MR5mJqKjPfb7i40YeVf1F4/bpjGNJsIxN
-         fCFaX6HCQss8f7gJJ6kayUCzvosSEqw/pysU3oGM6AGkHoDPlELPauUnSOZ9jkCWbP59
-         UOww==
-X-Gm-Message-State: AJIora+hRb69bcBVdThzUWyuddXTz7thEbwScGLQtubWuq8/p7ug9vZG
-        QW0gdKy5HgPyFHDtxL6kgYg=
-X-Google-Smtp-Source: AGRyM1s7UDK4xMx70oMoQG8mkudNnGwBUAoUHsgJQ7yqWiUaYK2qbi0m7Q+0UFQ5sVxeWk33gHpWbA==
-X-Received: by 2002:a05:6402:5418:b0:435:5a48:daa9 with SMTP id ev24-20020a056402541800b004355a48daa9mr25144978edb.304.1655752874902;
-        Mon, 20 Jun 2022 12:21:14 -0700 (PDT)
-Received: from mail (239.125-180-91.adsl-dyn.isp.belgacom.be. [91.180.125.239])
-        by smtp.gmail.com with ESMTPSA id f23-20020a170906825700b0070ad296e4b0sm6388168ejx.186.2022.06.20.12.21.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 20 Jun 2022 12:21:14 -0700 (PDT)
-Date:   Mon, 20 Jun 2022 21:21:12 +0200
-From:   Luc Van Oostenryck <luc.vanoostenryck@gmail.com>
+        with ESMTP id S233729AbiFUGD6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Jun 2022 02:03:58 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 718501CB39;
+        Mon, 20 Jun 2022 23:03:56 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 17CAF139F;
+        Mon, 20 Jun 2022 23:03:56 -0700 (PDT)
+Received: from FVFF77S0Q05N (unknown [10.57.69.153])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 399B33F5A1;
+        Mon, 20 Jun 2022 23:03:52 -0700 (PDT)
+Date:   Tue, 21 Jun 2022 07:03:44 +0100
+From:   Mark Rutland <mark.rutland@arm.com>
 To:     Alexander Lobakin <alexandr.lobakin@intel.com>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mark Rutland <mark.rutland@arm.com>,
         Matt Turner <mattst88@gmail.com>,
         Brian Cain <bcain@quicinc.com>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
@@ -69,34 +41,85 @@ Cc:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>,
         linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
         linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        kbuild-all@lists.01.org, kernel test robot <lkp@intel.com>
-Subject: Re: [alobakin:bitops 3/7] block/elevator.c:222:9: sparse: sparse:
- cast from restricted req_flags_t
-Message-ID: <20220620192112.ghyegqvtj3ud7zla@mail>
-References: <202206191726.wq70mbMK-lkp@intel.com>
- <20220617144031.2549432-1-alexandr.lobakin@intel.com>
- <20220620135146.2628908-1-alexandr.lobakin@intel.com>
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 0/7] bitops: let optimize out non-atomic bitops on
+ compile-time constants
+Message-ID: <YrFfQOSrqpX/qjhd@FVFF77S0Q05N>
+References: <20220617144031.2549432-1-alexandr.lobakin@intel.com>
+ <YrCB/rz3RM6TCjij@FVFF77S0Q05N>
+ <20220620150855.2630784-1-alexandr.lobakin@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220620135146.2628908-1-alexandr.lobakin@intel.com>
+In-Reply-To: <20220620150855.2630784-1-alexandr.lobakin@intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jun 20, 2022 at 03:51:46PM +0200, Alexander Lobakin wrote:
-> From: kernel test robot <lkp@intel.com>
-> Date: Sun, 19 Jun 2022 17:20:05 +0800
+On Mon, Jun 20, 2022 at 05:08:55PM +0200, Alexander Lobakin wrote:
+> From: Mark Rutland <mark.rutland@arm.com>
+> Date: Mon, 20 Jun 2022 15:19:42 +0100
 > 
-> Also, could someone please help me with this? I don't get what went
-> wrong with sparse, it's not even some new code, just moving old
-> stuff.
+> > On Fri, Jun 17, 2022 at 04:40:24PM +0200, Alexander Lobakin wrote:
+> > 
+> > > The savings are architecture, compiler and compiler flags dependent,
+> > > for example, on x86_64 -O2:
+> > > 
+> > > GCC 12: add/remove: 78/29 grow/shrink: 332/525 up/down: 31325/-61560 (-30235)
+> > > LLVM 13: add/remove: 79/76 grow/shrink: 184/537 up/down: 55076/-141892 (-86816)
+> > > LLVM 14: add/remove: 10/3 grow/shrink: 93/138 up/down: 3705/-6992 (-3287)
+> > > 
+> > > and ARM64 (courtesy of Mark[0]):
+> > > 
+> > > GCC 11: add/remove: 92/29 grow/shrink: 933/2766 up/down: 39340/-82580 (-43240)
+> > > LLVM 14: add/remove: 21/11 grow/shrink: 620/651 up/down: 12060/-15824 (-3764)
+> > 
+> > Hmm... with *this version* of the series, I'm not getting results nearly as
+> > good as that when building defconfig atop v5.19-rc3:
+> > 
+> >   GCC 8.5.0:   add/remove: 83/49 grow/shrink: 973/1147 up/down: 32020/-47824 (-15804)
+> >   GCC 9.3.0:   add/remove: 68/51 grow/shrink: 1167/592 up/down: 30720/-31352 (-632)
+> >   GCC 10.3.0:  add/remove: 84/37 grow/shrink: 1711/1003 up/down: 45392/-41844 (3548)
+> >   GCC 11.1.0:  add/remove: 88/31 grow/shrink: 1635/963 up/down: 51540/-46096 (5444)
+> >   GCC 11.3.0:  add/remove: 89/32 grow/shrink: 1629/966 up/down: 51456/-46056 (5400)
+> >   GCC 12.1.0:  add/remove: 84/31 grow/shrink: 1540/829 up/down: 48772/-43164 (5608)
+> > 
+> >   LLVM 12.0.1: add/remove: 118/58 grow/shrink: 437/381 up/down: 45312/-65668 (-20356)
+> >   LLVM 13.0.1: add/remove: 35/19 grow/shrink: 416/243 up/down: 14408/-22200 (-7792)
+> >   LLVM 14.0.0: add/remove: 42/16 grow/shrink: 415/234 up/down: 15296/-21008 (-5712)
+> > 
+> > ... and that now seems to be regressing codegen with recent versions of GCC as
+> > much as it improves it LLVM.
+> > 
+> > I'm not sure if we've improved some other code and removed the benefit between
+> > v5.19-rc1 and v5.19-rc3, or whether something else it at play, but this doesn't
+> > look as compelling as it did.
+> 
+> Mostly likely it's due to that in v1 I mistakingly removed
+> `volatile` from gen[eric]_test_bit(), so there was an impact for
+> non-constant cases as well.
+> +5 Kb sounds bad tho. Do you have CONFIG_TEST_BITMAP enabled, does
+> it work? 
 
-Hi,
+I didn't have it enabled, but I tried that just nw with GCC 12.1.0 and it
+builds cleanly, and test_bitmap_const_eval() gets optimized away entirely. If i
+remove the `static` from that, GCC generates:
 
-The first sparse's warnings (sparse: preprocessor token __ATOMIC_*) are already
-fixed (and most probably, the bots have already taken the fix).
-I'm working on the second ones (sparse: unreplaced symbol).
+| <test_bitmap_const_eval>:
+|     paciasp
+|     autiasp
+|     ret
 
--- Luc (Sparse's maintainer)
+... which is a trivial stub.
+
+> Probably the same reason as for m68k, more constant
+> optimization -> more aggressive inlining or inlining rebalance ->
+> larger code. OTOH I've no idea why sometimes compiler decides to
+> uninline really tiny functions where due to this patch series some
+> bitops have been converted to constants, like it goes on m68k.
+
+Hmm.... it'd be interesting to take a look at a few architectures and see what
+the common case is.
+
+Thanks,
+Mark.
