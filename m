@@ -2,197 +2,112 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B95B5CCA47D
-	for <sparclinux@archiver.kernel.org>; Wed, 22 Jun 2022 16:05:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFE36CCA47C
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Jun 2022 07:41:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1376447AbiFVQFT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 22 Jun 2022 12:05:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39286 "EHLO
+        id S230377AbiFWHld (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Jun 2022 03:41:33 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1376435AbiFVQEz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 22 Jun 2022 12:04:55 -0400
-Received: from mga09.intel.com (mga09.intel.com [134.134.136.24])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0696134BA1;
-        Wed, 22 Jun 2022 09:04:32 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1655913873; x=1687449873;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=eG4q6c4UvYGtzxug36fSTUwHXCGqtjeRSHre942YGGg=;
-  b=llCY6TcTc2B4dCCWVQhv81yKwEdAtn5yadjhiwtGPA2l/qyoghHhxrd1
-   58Z4Na2DLG2+ZhTMrx76BJo0TP7j0a3agC8bITw6touar09aTBRlbgNfQ
-   ZqQsT96X7p/X4CTRPUj3B/yjdCm89Kik0CtOIJdghFGVmbhl5jLPNKFwM
-   NJ4tuZJN9CafMU2Bb/w4e/3MGkZj6YVUmNTXWL7rfnkyqzpyKV+ZqcUSK
-   3PpfnYj2mdU2IEd8nxFggTf+BCCmgscpB80AhNrSu6U/KuqigKxY/6vv3
-   hbw+poKqsbtk6Y+gjsoW9KL2XpyeZiPFIWDSpyvqVf+3nMn12NPH+fy+i
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10386"; a="281191468"
-X-IronPort-AV: E=Sophos;i="5.92,212,1650956400"; 
-   d="scan'208";a="281191468"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by orsmga102.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Jun 2022 09:04:27 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,212,1650956400"; 
-   d="scan'208";a="764940851"
-Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by orsmga005.jf.intel.com with ESMTP; 22 Jun 2022 09:04:20 -0700
-Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 25MG4Ip9006187;
-        Wed, 22 Jun 2022 17:04:18 +0100
-From:   Alexander Lobakin <alexandr.lobakin@intel.com>
-To:     Arnd Bergmann <arnd@arndb.de>, Yury Norov <yury.norov@gmail.com>
-Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        "Maciej Fijalkowski" <maciej.fijalkowski@intel.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>, linux-alpha@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-kernel@vger.kernel.org, llvm@lists.linux.dev
-Subject: Re: [PATCH v4 8/8] lib: test_bitmap: add compile-time optimization/evaluations assertions
-Date:   Wed, 22 Jun 2022 18:04:15 +0200
-Message-Id: <20220622160415.589430-1-alexandr.lobakin@intel.com>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220621191553.69455-9-alexandr.lobakin@intel.com>
-References: <20220621191553.69455-1-alexandr.lobakin@intel.com> <20220621191553.69455-9-alexandr.lobakin@intel.com>
+        with ESMTP id S230168AbiFWHla (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Jun 2022 03:41:30 -0400
+Received: from mail-ej1-f43.google.com (mail-ej1-f43.google.com [209.85.218.43])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 894B94667F;
+        Thu, 23 Jun 2022 00:41:27 -0700 (PDT)
+Received: by mail-ej1-f43.google.com with SMTP id mf9so18885457ejb.0;
+        Thu, 23 Jun 2022 00:41:27 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=ZVb61+LDQ60uMHssCxzA52VpodCYtCxPvKQczsoS/1g=;
+        b=HVWh8WCV4xy7bwrZ3xEvdRWTNk5kEm3FXnxFq4ihWOrrn9kk3KuCoV/ksv8uKbudbl
+         iNbcC2GktafzMDmPsuAyb2Xi2M++IFJIt99XQTjtK/QTRnkqZq1uu0N13yqf+gYLal/y
+         b9EpkZB/keHs07v4PobB2pSDCJTZ4bUODzYatpy6LvCEN+coSAeqK5URr9Hu5C69gzXm
+         FZtPtzlt+Gry6wEZe9hXzFS6Tw7kkfjiqPX05zfsAfErIiGnQu783ab/tqCDbxLi3tKP
+         Pxm5HXyQ8dadPzH/cKh74rmx5XuPqLvt/W2vVWLDKk+UxtYZtMS7E/wG9km1eBiAjwyy
+         UiKA==
+X-Gm-Message-State: AJIora/RWe5uxmqLhB9S4upxtihkhNB57foyrPlfeBrfn8YpwRhh6bPw
+        uwryPUXtnMzEFllUSpmxkd0=
+X-Google-Smtp-Source: AGRyM1s2wuY4k6dNlSI0R4cdqh9+8L6y5hbgB1bq0e+g38e35h84OG+g2Wa3dMgBb5qJWTGviQlp0A==
+X-Received: by 2002:a17:906:6a1c:b0:70a:fd95:ee6a with SMTP id qw28-20020a1709066a1c00b0070afd95ee6amr6940892ejc.36.1655970086067;
+        Thu, 23 Jun 2022 00:41:26 -0700 (PDT)
+Received: from ?IPV6:2a0b:e7c0:0:107::70f? ([2a0b:e7c0:0:107::70f])
+        by smtp.gmail.com with ESMTPSA id la5-20020a170907780500b006f3ef214de7sm10485403ejc.77.2022.06.23.00.41.24
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 23 Jun 2022 00:41:25 -0700 (PDT)
+Message-ID: <03467516-3962-4ff2-23d2-2b3a1d647c5a@kernel.org>
+Date:   Thu, 23 Jun 2022 09:41:24 +0200
 MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.10.0
+Subject: Re: [PATCH v2 6/6] serial: Consolidate BOTH_EMPTY use
+Content-Language: en-US
+To:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+        linux-serial@vger.kernel.org, Greg KH <gregkh@linuxfoundation.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        William Hubbs <w.d.hubbs@gmail.com>,
+        Chris Brannon <chris@the-brannons.com>,
+        Kirk Reiser <kirk@reisers.ca>,
+        Samuel Thibault <samuel.thibault@ens-lyon.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-mips@vger.kernel.org, linux-kernel@vger.kernel.org,
+        speakup@linux-speakup.org, sparclinux@vger.kernel.org
+References: <20220621124958.3342-1-ilpo.jarvinen@linux.intel.com>
+ <20220621124958.3342-7-ilpo.jarvinen@linux.intel.com>
+From:   Jiri Slaby <jirislaby@kernel.org>
+In-Reply-To: <20220621124958.3342-7-ilpo.jarvinen@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Alexander Lobakin <alexandr.lobakin@intel.com>
-Date: Tue, 21 Jun 2022 21:15:53 +0200
-
-> Add a function to the bitmap test suite, which will ensure that
-> compilers are able to evaluate operations performed by the
-> bitops/bitmap helpers to compile-time constants when all of the
-> arguments are compile-time constants as well, or trigger a build
-> bug otherwise. This should work on all architectures and all the
-> optimization levels supported by Kbuild.
-> The function doesn't perform any runtime tests and gets optimized
-> out to nothing after passing the build assertions.
+On 21. 06. 22, 14:49, Ilpo Järvinen wrote:
+> Per file BOTH_EMPTY defines are littering our source code here and
+> there. Define once in serial.h and create helper for the check
+> too.
 > 
-> Suggested-by: Yury Norov <yury.norov@gmail.com>
-> Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  lib/test_bitmap.c | 45 +++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 45 insertions(+)
-> 
-> diff --git a/lib/test_bitmap.c b/lib/test_bitmap.c
-> index d5923a640457..3a7b09b82794 100644
-> --- a/lib/test_bitmap.c
-> +++ b/lib/test_bitmap.c
-> @@ -869,6 +869,50 @@ static void __init test_bitmap_print_buf(void)
->  	}
->  }
->  
-> +static void __init test_bitmap_const_eval(void)
-> +{
-> +	DECLARE_BITMAP(bitmap, BITS_PER_LONG);
-> +	unsigned long initvar = BIT(2);
-> +	unsigned long bitopvar = 0;
-> +	unsigned long var = 0;
-> +	int res;
-> +
-> +	/*
-> +	 * Compilers must be able to optimize all of those to compile-time
-> +	 * constants on any supported optimization level (-O2, -Os) and any
-> +	 * architecture. Otherwise, trigger a build bug.
-> +	 * The whole function gets optimized out then, there's nothing to do
-> +	 * in runtime.
-> +	 */
-> +
-> +	/* Equals to `unsigned long bitmap[1] = { BIT(5), }` */
-> +	bitmap_clear(bitmap, 0, BITS_PER_LONG);
-> +	if (!test_bit(7, bitmap))
-> +		bitmap_set(bitmap, 5, 1);
+> Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
 
-So for now, when building for s390, Clang (up to the latest Git
-snapshot) generates some incorrect code here.
-It does expand both test_bit() and bitmap_set() to const_test_bit()
-and const___set_bit(), but at the same time thinks that starting
-from this point, @bitmap and @bitopvar (???) are *not* constants
-and fails the assertions below, which is not true and weird.
-Any other architecture + compiler couples work fine, including
-s390 on GCC.
-So would it be acceptable for now to do:
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
 
-	/* Equals to `unsigned long bitmap[1] = { BIT(5), }` */
-	bitmap_clear(bitmap, 0, BITS_PER_LONG);
-	/*
-	 * Some comment saying that this is currently broken
-	 * on s390 + Clang
-	 */
-#if !(defined(__s390__) && defined(__clang__))
-	if (!test_bit(7, bitmap))
-		bitmap_set(bitmap, 5, 1);
-#endif
+> --- a/arch/mips/ath79/early_printk.c
+> +++ b/arch/mips/ath79/early_printk.c
+> @@ -8,6 +8,7 @@
+>   
+>   #include <linux/io.h>
+>   #include <linux/errno.h>
+> +#include <linux/serial.h>
+>   #include <linux/serial_reg.h>
+>   #include <asm/addrspace.h>
+>   #include <asm/setup.h>
+> @@ -29,15 +30,15 @@ static inline void prom_putchar_wait(void __iomem *reg, u32 mask, u32 val)
+>   	} while (1);
+>   }
+>   
+> -#define BOTH_EMPTY (UART_LSR_TEMT | UART_LSR_THRE)
+> -
+>   static void prom_putchar_ar71xx(char ch)
+>   {
+>   	void __iomem *base = (void __iomem *)(KSEG1ADDR(AR71XX_UART_BASE));
+>   
+> -	prom_putchar_wait(base + UART_LSR * 4, BOTH_EMPTY, BOTH_EMPTY);
+> +	prom_putchar_wait(base + UART_LSR * 4, UART_LSR_BOTH_EMPTY,
+> +			  UART_LSR_BOTH_EMPTY);
+>   	__raw_writel((unsigned char)ch, base + UART_TX * 4);
+> -	prom_putchar_wait(base + UART_LSR * 4, BOTH_EMPTY, BOTH_EMPTY);
+> +	prom_putchar_wait(base + UART_LSR * 4, UART_LSR_BOTH_EMPTY,
+> +			  UART_LSR_BOTH_EMPTY);
 
-	/* Equals to `unsigned long bitopvar = BIT(20)` */
-	__change_bit(31, &bitopvar);
-	bitmap_shift_right(&bitopvar, &bitopvar, 11, BITS_PER_LONG);
+Two observations apart from this patch:
+* prom_putchar_wait()'s last two parameters are always the same.
+   One should be removed, i.e. all this simplified.
+* prom_putchar_wait() should be implemented using
+   read_poll_timeout_atomic(), incl. failure/timeout handling.
 
-[...]
-
-or there could be any better solutions?
-
-(+Cc LLVM folks)
-
-> +
-> +	/* Equals to `unsigned long bitopvar = BIT(20)` */
-> +	__change_bit(31, &bitopvar);
-> +	bitmap_shift_right(&bitopvar, &bitopvar, 11, BITS_PER_LONG);
-> +
-> +	/* Equals to `unsigned long var = BIT(25)` */
-> +	var |= BIT(25);
-> +	if (var & BIT(0))
-> +		var ^= GENMASK(9, 6);
-> +
-> +	/* __const_hweight<32|64>(BIT(5)) == 1 */
-> +	res = bitmap_weight(bitmap, 20);
-> +	BUILD_BUG_ON(!__builtin_constant_p(res));
-> +
-> +	/* !(BIT(31) & BIT(18)) == 1 */
-> +	res = !test_bit(18, &bitopvar);
-> +	BUILD_BUG_ON(!__builtin_constant_p(res));
-> +
-> +	/* BIT(2) & GENMASK(14, 8) == 0 */
-> +	BUILD_BUG_ON(!__builtin_constant_p(initvar & GENMASK(14, 8)));
-> +	/* ~BIT(25) */
-> +	BUILD_BUG_ON(!__builtin_constant_p(~var));
-> +}
-> +
->  static void __init selftest(void)
->  {
->  	test_zero_clear();
-> @@ -884,6 +928,7 @@ static void __init selftest(void)
->  	test_for_each_set_clump8();
->  	test_bitmap_cut();
->  	test_bitmap_print_buf();
-> +	test_bitmap_const_eval();
->  }
->  
->  KSTM_MODULE_LOADERS(test_bitmap);
-> -- 
-> 2.36.1
-
-Thanks,
-Olek
+thanks,
+-- 
+js
+suse labs
