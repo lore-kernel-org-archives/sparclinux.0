@@ -2,50 +2,59 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32338CCA480
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Jun 2022 08:24:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A44DC433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Jun 2022 10:16:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229997AbiFWIYO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 23 Jun 2022 04:24:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38340 "EHLO
+        id S230492AbiFWKQ1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Jun 2022 06:16:27 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47086 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230006AbiFWIYN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Jun 2022 04:24:13 -0400
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com [209.85.218.50])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8797848892;
-        Thu, 23 Jun 2022 01:24:09 -0700 (PDT)
-Received: by mail-ej1-f50.google.com with SMTP id mf9so19097553ejb.0;
-        Thu, 23 Jun 2022 01:24:09 -0700 (PDT)
+        with ESMTP id S230159AbiFWKQ0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Jun 2022 06:16:26 -0400
+Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3090849FA4;
+        Thu, 23 Jun 2022 03:16:26 -0700 (PDT)
+Received: by mail-ed1-x532.google.com with SMTP id c65so4781615edf.4;
+        Thu, 23 Jun 2022 03:16:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=WAgGmVWVOWwerEi+BAH4Lljnu8y7SnGhYb00GohsXcI=;
+        b=UZAbgb+QBE+NUiOZbaeaQbs37/VcrS4+/t7K3VQuriZ1KcWZX1mfDUcCOiel0wOKlD
+         nlc5OYyFb5l4wWVJCOWB/W8j6VYRg82xPXPLpLSY9k1tcgEVXfe+ezFEzFUjPJuFtlf8
+         CmuG4ESOEfKhkYcGdxOe8YtTLCutLkkMOXeIqnQv+IS/LChOqkl3P0axOrmtW+MRiVa+
+         XpafKMx9HsIBDsQD+x/S3+dKVJdM/ihTpsw+JAKLErvxw+x1OPwA86UeQCxvmCiwiF4S
+         QuE6dd/UrPX0yqHgQ3s9JK2Tgs44DamSMFp3YvUSIftAHVS/a8e6s4c8FmciVcZLDSQ4
+         +cwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
-         :content-language:to:cc:references:from:in-reply-to
-         :content-transfer-encoding;
-        bh=je97Zmu9ZIV2AyqWdPVDsLNA9EKzzISpQbnMs7O+hLA=;
-        b=KYVmQwnrxiCoug29I0G4VehxA1+Kbu6oavqgW1HojBzwn89MJs4Z92X98QLd2T8g81
-         DBFFCdxEtN3nwF2P3al2pY+9ArspK4fU8R49zmv6mL1xIeewLa3sEnP3nkkcP21cqof8
-         3Iv9aT8G7dvMA6md9eK9WWhuzOKpiTb/xm01LbYsDgN+xqnsfU2vaXWheco6xPAKuKT5
-         oR931R2L4uwYHhIgupCI9BCIHs4/Dmnd2IvYPq3kirtJWESdr8U1NuQwNHLTyS7sHy70
-         FeSred4+Jbq6jCAEXoC2P3FUI4Uz+TDXWkdZ2Z3opjgmMTG5qkSNpCvSOmjW9GHk/Rxn
-         wP9A==
-X-Gm-Message-State: AJIora9AEGXy3aKi6VmhPIY74N8S9qhZmozsNt1hsPdKFDcLNJ0Optj8
-        08vh9WHib2S6bbt9Pwpg4nCrRyTLQ64OF+wW
-X-Google-Smtp-Source: AGRyM1tQkctV7PGvSEx3E4tG2gVc0zSZvBOMmNeC/R1LG1xUn4SfCS59LrKaZal29UVgYo74xLGspA==
-X-Received: by 2002:a17:907:9689:b0:71e:56c1:838b with SMTP id hd9-20020a170907968900b0071e56c1838bmr7081732ejc.304.1655972648153;
-        Thu, 23 Jun 2022 01:24:08 -0700 (PDT)
-Received: from ?IPV6:2a0b:e7c0:0:107::70f? ([2a0b:e7c0:0:107::70f])
-        by smtp.gmail.com with ESMTPSA id e15-20020a056402190f00b0043580ac5888sm9205712edz.82.2022.06.23.01.24.06
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 23 Jun 2022 01:24:07 -0700 (PDT)
-Message-ID: <c7115ff1-2a97-f5a0-a0c2-c7c1064af291@kernel.org>
-Date:   Thu, 23 Jun 2022 10:24:06 +0200
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=WAgGmVWVOWwerEi+BAH4Lljnu8y7SnGhYb00GohsXcI=;
+        b=KoMTe3OWZ29m6pq3zn+m3Xz47xKKr+6shkGaPXssDXWQYQhGd387mY9tt4LKp0acJK
+         z2Hh923QVmxDWdFQylj+Fx+M/FMYsLmoNS/vWOjlKJO1AeQYNJc9GTl+Wf71Ge2dq/W/
+         SVSGnyFf1YbbzzfafwB/SKxSAZBR+isCnXfg8VlqiM/ET3IKuyTHW2bV9n89vIduUeWS
+         6S3VrTmVLUheJUUAsgJvfkiApH2wIMBO6oEOE2nrImPd0CjnKCNnhZSpit4/pGObPiyR
+         o3ELRR2XD7FHUO8XFPqFhjmEkbSa5H7TYQ+HAzBcSwRKWQGzpyqPgd8sAW8DS9VRVcv3
+         ZgZA==
+X-Gm-Message-State: AJIora/CgQeMBtpgrGiFDHUHEBewNonZknc9wbinaQPIhPsOU6SyTnga
+        FH83GQba+Ll5BvpvfOfk5KUxp+1OEQY560VBJvU=
+X-Google-Smtp-Source: AGRyM1sSuZjSq7A6HWGZLYY3BlpzlEJnoj0eAD636Y9Xon5vjxM4t5uMTgVMQ7BDVd8jO2E0fYc4iSv4eaJ59vgiG2M=
+X-Received: by 2002:a50:9f6a:0:b0:435:5804:e07 with SMTP id
+ b97-20020a509f6a000000b0043558040e07mr9791666edf.178.1655979384373; Thu, 23
+ Jun 2022 03:16:24 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.10.0
+References: <20220621124958.3342-1-ilpo.jarvinen@linux.intel.com>
+ <20220621124958.3342-7-ilpo.jarvinen@linux.intel.com> <03467516-3962-4ff2-23d2-2b3a1d647c5a@kernel.org>
+ <CAHp75VeKhY6dN7j_yXQXUMhOqRwqQ2yN_qF95U9wU6K4uKPdaQ@mail.gmail.com> <c7115ff1-2a97-f5a0-a0c2-c7c1064af291@kernel.org>
+In-Reply-To: <c7115ff1-2a97-f5a0-a0c2-c7c1064af291@kernel.org>
+From:   Andy Shevchenko <andy.shevchenko@gmail.com>
+Date:   Thu, 23 Jun 2022 12:15:42 +0200
+Message-ID: <CAHp75Vfsy5yY3saSCvCu87E-arifwEZXUNtFMrMn38gJY2LU0g@mail.gmail.com>
 Subject: Re: [PATCH v2 6/6] serial: Consolidate BOTH_EMPTY use
-Content-Language: en-US
-To:     Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
+To:     Jiri Slaby <jirislaby@kernel.org>
+Cc:     =?UTF-8?Q?Ilpo_J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>,
         Greg KH <gregkh@linuxfoundation.org>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
@@ -58,29 +67,30 @@ Cc:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         "speakup@linux-speakup.org" <speakup@linux-speakup.org>,
         "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
-References: <20220621124958.3342-1-ilpo.jarvinen@linux.intel.com>
- <20220621124958.3342-7-ilpo.jarvinen@linux.intel.com>
- <03467516-3962-4ff2-23d2-2b3a1d647c5a@kernel.org>
- <CAHp75VeKhY6dN7j_yXQXUMhOqRwqQ2yN_qF95U9wU6K4uKPdaQ@mail.gmail.com>
-From:   Jiri Slaby <jirislaby@kernel.org>
-In-Reply-To: <CAHp75VeKhY6dN7j_yXQXUMhOqRwqQ2yN_qF95U9wU6K4uKPdaQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 23. 06. 22, 10:11, Andy Shevchenko wrote:
->     * prom_putchar_wait() should be implemented using
->        read_poll_timeout_atomic(), incl. failure/timeout handling.
-> 
-> 
-> Not sure since it is an early stage and scheduler might not work as 
-> expected. Conversions to iopoll.h macros bitten us a few times already.
+On Thu, Jun 23, 2022 at 10:24 AM Jiri Slaby <jirislaby@kernel.org> wrote:
+> On 23. 06. 22, 10:11, Andy Shevchenko wrote:
+> >     * prom_putchar_wait() should be implemented using
+> >        read_poll_timeout_atomic(), incl. failure/timeout handling.
+> >
+> > Not sure since it is an early stage and scheduler might not work as
+> > expected. Conversions to iopoll.h macros bitten us a few times already.
+>
+> Except _atomic does not use scheduler :).
 
-Except _atomic does not use scheduler :).
+Sorry for a bit misleading comment, but I chased it down, so this what
+I had in mind when commenting:
+be24c6a71ecf ("soc: qcom: rpmh-rsc: Don't use ktime for timeout in
+write_tcs_reg_sync()")
+
+(Yes, it's about _atomic variant)
+
+Means we need to use those macros with care.
 
 -- 
--- 
-js
-suse labs
+With Best Regards,
+Andy Shevchenko
