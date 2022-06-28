@@ -2,216 +2,279 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7257CCCA47E
-	for <sparclinux@archiver.kernel.org>; Mon, 27 Jun 2022 17:15:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDEC3CCA47B
+	for <sparclinux@archiver.kernel.org>; Tue, 28 Jun 2022 02:03:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239807AbiF0RPE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 27 Jun 2022 13:15:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36224 "EHLO
+        id S242822AbiF1CDK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 27 Jun 2022 22:03:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46062 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239789AbiF0RPD (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Jun 2022 13:15:03 -0400
-Received: from mailrelay4-1.pub.mailoutpod1-cph3.one.com (mailrelay4-1.pub.mailoutpod1-cph3.one.com [46.30.210.185])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 771E4271B
-        for <sparclinux@vger.kernel.org>; Mon, 27 Jun 2022 10:15:01 -0700 (PDT)
+        with ESMTP id S237975AbiF1CDI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Jun 2022 22:03:08 -0400
+Received: from mail-yb1-xb49.google.com (mail-yb1-xb49.google.com [IPv6:2607:f8b0:4864:20::b49])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 608206253
+        for <sparclinux@vger.kernel.org>; Mon, 27 Jun 2022 19:03:05 -0700 (PDT)
+Received: by mail-yb1-xb49.google.com with SMTP id c10-20020a251c0a000000b00669b463d2e1so9705092ybc.11
+        for <sparclinux@vger.kernel.org>; Mon, 27 Jun 2022 19:03:05 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=7lcoTIguoCU25UtATqw0zpenNexDp4klBKBcas47lUI=;
-        b=DnMKzuyWChdqVj0eyu9qk+S12hDc5E1lpoUVu+RwnrA66JDBO9VVaJjjgy7iZh0CwjBX0Tb2UW9eA
-         IDL3blt0HWe+7nCJ6LBbtgtWCdYTIJf7JxMi5tEKyk04dMJhxQKgJhN19n7gZmip7ExOCH60av6Zc+
-         fpOnPKVrkcE6dB7IpmBBA5V/48B5nOCXs0dWxrIHUJoi6B5gDTxnps7C32yW7RQiRmwMZofOskZtJ1
-         g5yggk+VyjJho8A1QsSz/r/K9taqv0SWrqNZr//W7DugrtnSjHFKtDOi/ahsacud1GZwml0SRslSij
-         +WBGlPijIt3aAxUmrpMXX3P747L7FOQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed1;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=7lcoTIguoCU25UtATqw0zpenNexDp4klBKBcas47lUI=;
-        b=0c4FfNqt1mwTyFHOd20j3eJXx+yZAcz5xOVj+2VVBhkRNfl+lcYaMnmV/txPP7q97nUwiERp2Rz/D
-         LTtF3EvDA==
-X-HalOne-Cookie: be347a0a6f76c63821867329f3b288b192d004df
-X-HalOne-ID: ab689703-f63c-11ec-8236-d0431ea8bb10
-Received: from mailproxy2.cst.dirpod3-cph3.one.com (80-162-45-141-cable.dk.customer.tdc.net [80.162.45.141])
-        by mailrelay4.pub.mailoutpod1-cph3.one.com (Halon) with ESMTPSA
-        id ab689703-f63c-11ec-8236-d0431ea8bb10;
-        Mon, 27 Jun 2022 17:14:58 +0000 (UTC)
-Date:   Mon, 27 Jun 2022 19:14:56 +0200
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Anshuman Khandual <anshuman.khandual@arm.com>
-Cc:     linux-mm@kvack.org, hch@infradead.org, christophe.leroy@csgroup.eu,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        x86@kernel.org, openrisc@lists.librecores.org,
-        linux-xtensa@linux-xtensa.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        d=google.com; s=20210112;
+        h=date:message-id:mime-version:subject:from:to:cc;
+        bh=/OuahP8oPHDxIXADrtMOHzHvbE6HS+PoE4WDHegn+rY=;
+        b=XSa6BG9j+Us6qSO6vPHqc2TVfQxumnU0pAOfjBJHFlWcIck0At2n2mfq5tAA7z3Bx5
+         PD0vlBv1k9Q/E/30MAFFG1P5OxPr5/WK6+axB0HoavtP7KnHzjHkg1qUFmVSky1XYmCE
+         keKg7zc6YYKZDYEnwk3qbSxvFO3Xk4Y8/tdDX97msFctgpLZBdPkJDnH5LbWzXx7pTZH
+         CgzyIamG5okMqCh9aY8wAvuFixrOfwL/UhwfbnX/7paM2krnQNZDjv67WdvSzvvMWo7D
+         m5fFpT4ZoMrA6AasD66OkuDUwH3oHEeuCSo5kX9VLcSW8/gQ+X2898P5YGyQhyrYIK8G
+         Aulw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:message-id:mime-version:subject:from:to:cc;
+        bh=/OuahP8oPHDxIXADrtMOHzHvbE6HS+PoE4WDHegn+rY=;
+        b=jyXIhngkoFke1TrcavIRh3RkWbCqjsTWn12ffvVEmB/94t+kpd/Hroc5A7Cq4MeW6E
+         P5CWXZhQC87G8HxPV4tPMe49iMx907VWpBIJSc7AMbaZQ47TfAfZpackWA2I1VliJwBe
+         hJ175nKwBmDIhHufwdHjm51jUpiHh31/Mk6/Wi3Z6GADQHyfwI/ZCOJTZB4YbdGt1xdH
+         csBCsPdiE0KvBmM/m/mnbqJ1bgyg6QSIaL2i2qJHoX1SIo1sl3dMbZxOi+F+ivxEFJ1R
+         aCvgbWKfhaH8dsN2O5KHeIiH0nkiPfeYwWwT/i4ln3LjqYOBrW2oP+gotJHcDYVnaeUc
+         BjdA==
+X-Gm-Message-State: AJIora+UNDvUbDLlA8wWDKdQNay7X47TMRlQUtF20seL6xqYoBpb0KN4
+        NdTBwUNgPQxic09wvdLqqp4rsTQ6GtMkqX0=
+X-Google-Smtp-Source: AGRyM1s6TFssoICBD8dW4KaHJ9QFnbGLouWSVAgJ1icUDVgZq5pRLN92A6h2ACkaFVoX2i0qb9ktR7y39ECy36c=
+X-Received: from saravanak.san.corp.google.com ([2620:15c:2d:3:1f27:a302:2101:1c82])
+ (user=saravanak job=sendgmr) by 2002:a81:9292:0:b0:317:dd64:5adc with SMTP id
+ j140-20020a819292000000b00317dd645adcmr19123629ywg.145.1656381784427; Mon, 27
+ Jun 2022 19:03:04 -0700 (PDT)
+Date:   Mon, 27 Jun 2022 19:01:01 -0700
+Message-Id: <20220628020110.1601693-1-saravanak@google.com>
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.37.0.rc0.161.g10f37bed90-goog
+Subject: [PATCH v1 0/2] Fix console probe delay when stdout-path isn't set
+From:   Saravana Kannan <saravanak@google.com>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Nicolas Saenz Julienne <nsaenz@kernel.org>,
+        Al Cooper <alcooperx@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
+        Russell King <linux@armlinux.org.uk>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Richard Genoud <richard.genoud@gmail.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Alexander Shiyan <shc_work@mail.ru>,
+        Baruch Siach <baruch@tkos.co.il>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Karol Gugala <kgugala@antmicro.com>,
+        Mateusz Holenko <mholenko@antmicro.com>,
+        Gabriel Somlo <gsomlo@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Taichi Sugaya <sugaya.taichi@socionext.com>,
+        Takao Orito <orito.takao@socionext.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Pali Rohar <pali@kernel.org>,
+        Andreas Farber <afaerber@suse.de>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Patrice Chotard <patrice.chotard@foss.st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hammer Hsieh <hammerh0314@gmail.com>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Timur Tabi <timur@kernel.org>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Saravana Kannan <saravanak@google.com>
+Cc:     Rob Herring <robh@kernel.org>, sascha hauer <sha@pengutronix.de>,
+        peng fan <peng.fan@nxp.com>, kevin hilman <khilman@kernel.org>,
+        ulf hansson <ulf.hansson@linaro.org>,
+        len brown <len.brown@intel.com>, pavel machek <pavel@ucw.cz>,
+        joerg roedel <joro@8bytes.org>, will deacon <will@kernel.org>,
+        andrew lunn <andrew@lunn.ch>,
+        heiner kallweit <hkallweit1@gmail.com>,
+        eric dumazet <edumazet@google.com>,
+        jakub kicinski <kuba@kernel.org>,
+        paolo abeni <pabeni@redhat.com>,
+        linus walleij <linus.walleij@linaro.org>,
+        hideaki yoshifuji <yoshfuji@linux-ipv6.org>,
+        david ahern <dsahern@kernel.org>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        iommu@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-um@lists.infradead.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH V5 04/26] sparc/mm: Move protection_map[] inside the
- platform
-Message-ID: <YrnlkLbyYSbI0EQw@ravnborg.org>
-References: <20220627045833.1590055-1-anshuman.khandual@arm.com>
- <20220627045833.1590055-5-anshuman.khandual@arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220627045833.1590055-5-anshuman.khandual@arm.com>
+        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-actions@lists.infradead.org,
+        linux-unisoc@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Anshuman,
+Since the series that fixes console probe delay based on stdout-path[1] got
+pulled into driver-core-next, I made these patches on top of them.
 
-On Mon, Jun 27, 2022 at 10:28:11AM +0530, Anshuman Khandual wrote:
-> This moves protection_map[] inside the platform and while here, also enable
-> ARCH_HAS_VM_GET_PAGE_PROT on 32 bit platforms via DECLARE_VM_GET_PAGE_PROT.
-> 
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-> ---
->  arch/sparc/Kconfig                  |  2 +-
->  arch/sparc/include/asm/pgtable_32.h | 19 -------------------
->  arch/sparc/include/asm/pgtable_64.h | 19 -------------------
->  arch/sparc/mm/init_32.c             | 20 ++++++++++++++++++++
->  arch/sparc/mm/init_64.c             |  3 +++
->  5 files changed, 24 insertions(+), 39 deletions(-)
-> 
-> diff --git a/arch/sparc/Kconfig b/arch/sparc/Kconfig
-> index ba449c47effd..09f868613a4d 100644
-> --- a/arch/sparc/Kconfig
-> +++ b/arch/sparc/Kconfig
-> @@ -13,6 +13,7 @@ config 64BIT
->  config SPARC
->  	bool
->  	default y
-> +	select ARCH_HAS_VM_GET_PAGE_PROT
->  	select ARCH_MIGHT_HAVE_PC_PARPORT if SPARC64 && PCI
->  	select ARCH_MIGHT_HAVE_PC_SERIO
->  	select DMA_OPS
-> @@ -84,7 +85,6 @@ config SPARC64
->  	select PERF_USE_VMALLOC
->  	select ARCH_HAVE_NMI_SAFE_CMPXCHG
->  	select HAVE_C_RECORDMCOUNT
-> -	select ARCH_HAS_VM_GET_PAGE_PROT
->  	select HAVE_ARCH_AUDITSYSCALL
->  	select ARCH_SUPPORTS_ATOMIC_RMW
->  	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-> diff --git a/arch/sparc/include/asm/pgtable_32.h b/arch/sparc/include/asm/pgtable_32.h
-> index 4866625da314..8ff549004fac 100644
-> --- a/arch/sparc/include/asm/pgtable_32.h
-> +++ b/arch/sparc/include/asm/pgtable_32.h
-> @@ -64,25 +64,6 @@ void paging_init(void);
->  
->  extern unsigned long ptr_in_current_pgd;
->  
-> -/*         xwr */
-> -#define __P000  PAGE_NONE
-> -#define __P001  PAGE_READONLY
-> -#define __P010  PAGE_COPY
-> -#define __P011  PAGE_COPY
-> -#define __P100  PAGE_READONLY
-> -#define __P101  PAGE_READONLY
-> -#define __P110  PAGE_COPY
-> -#define __P111  PAGE_COPY
-> -
-> -#define __S000	PAGE_NONE
-> -#define __S001	PAGE_READONLY
-> -#define __S010	PAGE_SHARED
-> -#define __S011	PAGE_SHARED
-> -#define __S100	PAGE_READONLY
-> -#define __S101	PAGE_READONLY
-> -#define __S110	PAGE_SHARED
-> -#define __S111	PAGE_SHARED
-> -
->  /* First physical page can be anywhere, the following is needed so that
->   * va-->pa and vice versa conversions work properly without performance
->   * hit for all __pa()/__va() operations.
-> diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
-> index 4679e45c8348..a779418ceba9 100644
-> --- a/arch/sparc/include/asm/pgtable_64.h
-> +++ b/arch/sparc/include/asm/pgtable_64.h
-> @@ -187,25 +187,6 @@ bool kern_addr_valid(unsigned long addr);
->  #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
->  #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
->  
-> -/* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
-> -#define __P000	__pgprot(0)
-> -#define __P001	__pgprot(0)
-> -#define __P010	__pgprot(0)
-> -#define __P011	__pgprot(0)
-> -#define __P100	__pgprot(0)
-> -#define __P101	__pgprot(0)
-> -#define __P110	__pgprot(0)
-> -#define __P111	__pgprot(0)
-> -
-> -#define __S000	__pgprot(0)
-> -#define __S001	__pgprot(0)
-> -#define __S010	__pgprot(0)
-> -#define __S011	__pgprot(0)
-> -#define __S100	__pgprot(0)
-> -#define __S101	__pgprot(0)
-> -#define __S110	__pgprot(0)
-> -#define __S111	__pgprot(0)
-> -
->  #ifndef __ASSEMBLY__
->  
->  pte_t mk_pte_io(unsigned long, pgprot_t, int, unsigned long);
-> diff --git a/arch/sparc/mm/init_32.c b/arch/sparc/mm/init_32.c
-> index 1e9f577f084d..8693e4e28b86 100644
-> --- a/arch/sparc/mm/init_32.c
-> +++ b/arch/sparc/mm/init_32.c
-> @@ -302,3 +302,23 @@ void sparc_flush_page_to_ram(struct page *page)
->  		__flush_page_to_ram(vaddr);
->  }
->  EXPORT_SYMBOL(sparc_flush_page_to_ram);
-> +
-> +static pgprot_t protection_map[16] __ro_after_init = {
-This can be const - like done for powerpc and others.
-sparc32 and sparc64 uses each their own - and I do not see sparc32 do
-any modifications to protection_map.
+Even if stdout-path isn't set in DT, this patch should take console
+probe times back to how they were before the deferred_probe_timeout
+clean up series[2].
 
-With this change:
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Fabio/Ahmad/Sascha,
 
-> +	[VM_NONE]					= PAGE_NONE,
-> +	[VM_READ]					= PAGE_READONLY,
-> +	[VM_WRITE]					= PAGE_COPY,
-> +	[VM_WRITE | VM_READ]				= PAGE_COPY,
-> +	[VM_EXEC]					= PAGE_READONLY,
-> +	[VM_EXEC | VM_READ]				= PAGE_READONLY,
-> +	[VM_EXEC | VM_WRITE]				= PAGE_COPY,
-> +	[VM_EXEC | VM_WRITE | VM_READ]			= PAGE_COPY,
-> +	[VM_SHARED]					= PAGE_NONE,
-> +	[VM_SHARED | VM_READ]				= PAGE_READONLY,
-> +	[VM_SHARED | VM_WRITE]				= PAGE_SHARED,
-> +	[VM_SHARED | VM_WRITE | VM_READ]		= PAGE_SHARED,
-> +	[VM_SHARED | VM_EXEC]				= PAGE_READONLY,
-> +	[VM_SHARED | VM_EXEC | VM_READ]			= PAGE_READONLY,
-> +	[VM_SHARED | VM_EXEC | VM_WRITE]		= PAGE_SHARED,
-> +	[VM_SHARED | VM_EXEC | VM_WRITE | VM_READ]	= PAGE_SHARED
-> +};
-> +DECLARE_VM_GET_PAGE_PROT
-> diff --git a/arch/sparc/mm/init_64.c b/arch/sparc/mm/init_64.c
-> index f6174df2d5af..d6faee23c77d 100644
-> --- a/arch/sparc/mm/init_64.c
-> +++ b/arch/sparc/mm/init_64.c
-> @@ -2634,6 +2634,9 @@ void vmemmap_free(unsigned long start, unsigned long end,
->  }
->  #endif /* CONFIG_SPARSEMEM_VMEMMAP */
->  
-> +/* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
-> +static pgprot_t protection_map[16] __ro_after_init;
-> +
->  static void prot_init_common(unsigned long page_none,
->  			     unsigned long page_shared,
->  			     unsigned long page_copy,
-> -- 
-> 2.25.1
+Can you give this a shot please?
+
+[1] - https://lore.kernel.org/lkml/20220623080344.783549-1-saravanak@google.com/
+[2] - https://lore.kernel.org/lkml/20220601070707.3946847-1-saravanak@google.com/
+
+Thanks,
+Saravana
+
+cc: Rob Herring <robh@kernel.org>
+cc: sascha hauer <sha@pengutronix.de>
+cc: peng fan <peng.fan@nxp.com>
+cc: kevin hilman <khilman@kernel.org>
+cc: ulf hansson <ulf.hansson@linaro.org>
+cc: len brown <len.brown@intel.com>
+cc: pavel machek <pavel@ucw.cz>
+cc: joerg roedel <joro@8bytes.org>
+cc: will deacon <will@kernel.org>
+cc: andrew lunn <andrew@lunn.ch>
+cc: heiner kallweit <hkallweit1@gmail.com>
+cc: russell king <linux@armlinux.org.uk>
+cc: "david s. miller" <davem@davemloft.net>
+cc: eric dumazet <edumazet@google.com>
+cc: jakub kicinski <kuba@kernel.org>
+cc: paolo abeni <pabeni@redhat.com>
+cc: linus walleij <linus.walleij@linaro.org>
+cc: hideaki yoshifuji <yoshfuji@linux-ipv6.org>
+cc: david ahern <dsahern@kernel.org>
+cc: kernel-team@android.com
+cc: linux-kernel@vger.kernel.org
+cc: linux-pm@vger.kernel.org
+cc: iommu@lists.linux-foundation.org
+cc: netdev@vger.kernel.org
+cc: linux-gpio@vger.kernel.org
+Cc: kernel@pengutronix.de
+
+Saravana Kannan (2):
+  driver core: Add probe_no_timeout flag for drivers
+  serial: Set probe_no_timeout for all DT based drivers
+
+ drivers/base/base.h                         |  1 +
+ drivers/base/core.c                         |  7 +++++++
+ drivers/base/dd.c                           |  3 +++
+ drivers/tty/ehv_bytechan.c                  |  1 +
+ drivers/tty/goldfish.c                      |  1 +
+ drivers/tty/hvc/hvc_opal.c                  |  1 +
+ drivers/tty/serial/8250/8250_acorn.c        |  1 -
+ drivers/tty/serial/8250/8250_aspeed_vuart.c |  1 +
+ drivers/tty/serial/8250/8250_bcm2835aux.c   |  1 +
+ drivers/tty/serial/8250/8250_bcm7271.c      |  1 +
+ drivers/tty/serial/8250/8250_dw.c           |  1 +
+ drivers/tty/serial/8250/8250_em.c           |  1 +
+ drivers/tty/serial/8250/8250_ingenic.c      |  1 +
+ drivers/tty/serial/8250/8250_lpc18xx.c      |  1 +
+ drivers/tty/serial/8250/8250_mtk.c          |  1 +
+ drivers/tty/serial/8250/8250_of.c           |  1 +
+ drivers/tty/serial/8250/8250_omap.c         |  1 +
+ drivers/tty/serial/8250/8250_pxa.c          |  1 +
+ drivers/tty/serial/8250/8250_tegra.c        |  1 +
+ drivers/tty/serial/8250/8250_uniphier.c     |  1 +
+ drivers/tty/serial/altera_jtaguart.c        |  1 +
+ drivers/tty/serial/altera_uart.c            |  1 +
+ drivers/tty/serial/amba-pl011.c             |  1 +
+ drivers/tty/serial/apbuart.c                |  1 +
+ drivers/tty/serial/ar933x_uart.c            |  1 +
+ drivers/tty/serial/arc_uart.c               |  1 +
+ drivers/tty/serial/atmel_serial.c           |  1 +
+ drivers/tty/serial/bcm63xx_uart.c           |  1 +
+ drivers/tty/serial/clps711x.c               |  1 +
+ drivers/tty/serial/cpm_uart/cpm_uart_core.c |  1 +
+ drivers/tty/serial/digicolor-usart.c        |  1 +
+ drivers/tty/serial/fsl_linflexuart.c        |  1 +
+ drivers/tty/serial/fsl_lpuart.c             |  1 +
+ drivers/tty/serial/imx.c                    |  1 +
+ drivers/tty/serial/lantiq.c                 |  1 +
+ drivers/tty/serial/liteuart.c               |  1 +
+ drivers/tty/serial/lpc32xx_hs.c             |  1 +
+ drivers/tty/serial/max310x.c                |  1 +
+ drivers/tty/serial/meson_uart.c             |  1 +
+ drivers/tty/serial/milbeaut_usio.c          |  1 +
+ drivers/tty/serial/mpc52xx_uart.c           |  1 +
+ drivers/tty/serial/mps2-uart.c              |  1 +
+ drivers/tty/serial/msm_serial.c             |  1 +
+ drivers/tty/serial/mvebu-uart.c             |  1 +
+ drivers/tty/serial/mxs-auart.c              |  1 +
+ drivers/tty/serial/omap-serial.c            |  1 +
+ drivers/tty/serial/owl-uart.c               |  1 +
+ drivers/tty/serial/pic32_uart.c             |  1 +
+ drivers/tty/serial/pmac_zilog.c             |  1 +
+ drivers/tty/serial/pxa.c                    |  1 +
+ drivers/tty/serial/qcom_geni_serial.c       |  1 +
+ drivers/tty/serial/rda-uart.c               |  1 +
+ drivers/tty/serial/samsung_tty.c            |  1 +
+ drivers/tty/serial/sc16is7xx.c              |  1 +
+ drivers/tty/serial/serial-tegra.c           |  1 +
+ drivers/tty/serial/sh-sci.c                 |  1 +
+ drivers/tty/serial/sifive.c                 |  1 +
+ drivers/tty/serial/sprd_serial.c            |  1 +
+ drivers/tty/serial/st-asc.c                 |  1 +
+ drivers/tty/serial/stm32-usart.c            |  1 +
+ drivers/tty/serial/sunhv.c                  |  1 +
+ drivers/tty/serial/sunplus-uart.c           |  1 +
+ drivers/tty/serial/sunsab.c                 |  1 +
+ drivers/tty/serial/sunsu.c                  |  1 +
+ drivers/tty/serial/sunzilog.c               |  1 +
+ drivers/tty/serial/tegra-tcu.c              |  1 +
+ drivers/tty/serial/uartlite.c               |  1 +
+ drivers/tty/serial/ucc_uart.c               |  1 +
+ drivers/tty/serial/vt8500_serial.c          |  1 +
+ drivers/tty/serial/xilinx_uartps.c          |  1 +
+ include/linux/device.h                      |  7 +++++++
+ include/linux/device/driver.h               | 11 +++++++++++
+ 72 files changed, 95 insertions(+), 1 deletion(-)
+
+-- 
+2.37.0.rc0.161.g10f37bed90-goog
+
