@@ -2,101 +2,99 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42340C43334
-	for <sparclinux@archiver.kernel.org>; Tue,  5 Jul 2022 13:49:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A7A1CCA483
+	for <sparclinux@archiver.kernel.org>; Wed,  6 Jul 2022 05:58:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230391AbiGENtG (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 5 Jul 2022 09:49:06 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35524 "EHLO
+        id S230427AbiGFF6N (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 6 Jul 2022 01:58:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231372AbiGENsp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 5 Jul 2022 09:48:45 -0400
-Received: from mail-m963.mail.126.com (mail-m963.mail.126.com [123.126.96.3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 7B9D412D1F
-        for <sparclinux@vger.kernel.org>; Tue,  5 Jul 2022 06:19:00 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=126.com;
-        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=NmKwH
-        V1L2jQvLWOXtBPIUiUaGLMX0dKxbY5xqonZg18=; b=DOxjPq9pdM7TqEyU5CQbS
-        nHYivkB/FLDlPF9VkHJ2EY/ODfGvX73XwofqHtQgexN72OJ3vRdFAdbEfGvTe4iS
-        9SFhZOyJRCUoMhRzxXGxqBlvdhMO64D6z8tp3iu4imLDSpV90lcImdBerROczLP9
-        Lm3jYidQOrawkVmzio2t5o=
-Received: from localhost.localdomain (unknown [124.16.139.61])
-        by smtp8 (Coremail) with SMTP id NORpCgDndYI8OsRijukcHQ--.45984S2;
-        Tue, 05 Jul 2022 21:18:54 +0800 (CST)
-From:   Liang He <windhl@126.com>
-To:     davem@davemloft.net, sparclinux@vger.kernel.org, windhl@126.com
-Subject: [PATCH] sparc: vio: Add refcount when a new reference is created
-Date:   Tue,  5 Jul 2022 21:18:52 +0800
-Message-Id: <20220705131852.296710-1-windhl@126.com>
-X-Mailer: git-send-email 2.25.1
+        with ESMTP id S229617AbiGFF6L (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 6 Jul 2022 01:58:11 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 0AE201C927;
+        Tue,  5 Jul 2022 22:58:10 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id EBF5A1570;
+        Tue,  5 Jul 2022 22:58:09 -0700 (PDT)
+Received: from [10.163.43.16] (unknown [10.163.43.16])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 3C01D3F70D;
+        Tue,  5 Jul 2022 22:58:01 -0700 (PDT)
+Message-ID: <8a6ccbae-7d7c-6e08-cc28-eeb649f86112@arm.com>
+Date:   Wed, 6 Jul 2022 11:27:59 +0530
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-CM-TRANSID: NORpCgDndYI8OsRijukcHQ--.45984S2
-X-Coremail-Antispam: 1Uf129KBjvJXoW7Zr4ktF1xKFy7Jw4xCr4rZrb_yoW8Aw1Dp3
-        92kF9IvFyxGr1SkrZ0vF48ua4F9F1xtw48JrWYgFyrKrn8XFy0yw1jgryFqrn5ZFWrCw4Y
-        qw4qqF4fX3WUW3DanT9S1TB71UUUUUUqnTZGkaVYY2UrUUUUjbIjqfuFe4nvWSU5nxnvy2
-        9KBjDUYxBIdaVFxhVjvjDU0xZFpf9x0zRt3kNUUUUU=
-X-Originating-IP: [124.16.139.61]
-X-CM-SenderInfo: hzlqvxbo6rjloofrz/1tbi3Bw1F1pED3VkCwABso
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.9.1
+Subject: Re: [PATCH V6 00/26] mm/mmap: Drop __SXXX/__PXXX macros from across
+ platforms
+Content-Language: en-US
+To:     linux-mm@kvack.org, akpm@linux-foundation.org
+Cc:     hch@infradead.org, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
+        x86@kernel.org, openrisc@lists.librecores.org,
+        linux-xtensa@linux-xtensa.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-um@lists.infradead.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20220630051630.1718927-1-anshuman.khandual@arm.com>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+In-Reply-To: <20220630051630.1718927-1-anshuman.khandual@arm.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-In vio_create_one(), when a new reference of 'device_node' is created
-into 'vdev->dp', we should call of_node_get(). Besides, we should also
-call of_node_put() before the 'vdev' is freed in fail path.
 
-NOTE: As the for_each_child_of_node() will automatically increase and
-decrease the refcount, it needs no more refcounting for the new
-reference.
 
-Signed-off-by: Liang He <windhl@126.com>
----
- arch/sparc/kernel/vio.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+On 6/30/22 10:46, Anshuman Khandual wrote:
+> __SXXX/__PXXX macros is an unnecessary abstraction layer in creating the
+> generic protection_map[] array which is used for vm_get_page_prot(). This
+> abstraction layer can be avoided, if the platforms just define the array
+> protection_map[] for all possible vm_flags access permission combinations
+> and also export vm_get_page_prot() implementation.
+> 
+> This series drops __SXXX/__PXXX macros from across platforms in the tree.
+> First it build protects generic protection_map[] array with '#ifdef __P000'
+> and moves it inside platforms which enable ARCH_HAS_VM_GET_PAGE_PROT. Later
+> this build protects same array with '#ifdef ARCH_HAS_VM_GET_PAGE_PROT' and
+> moves inside remaining platforms while enabling ARCH_HAS_VM_GET_PAGE_PROT.
+> This adds a new macro DECLARE_VM_GET_PAGE_PROT defining the current generic
+> vm_get_page_prot(), in order for it to be reused on platforms that do not
+> require custom implementation. Finally, ARCH_HAS_VM_GET_PAGE_PROT can just
+> be dropped, as all platforms now define and export vm_get_page_prot(), via
+> looking up a private and static protection_map[] array. protection_map[]
+> data type has been changed as 'static const' on all platforms that do not
+> change it during boot.
+> 
+> This series applies on v5.19-rc4 and has been build tested for multiple
+> platforms. While here it has dropped off all previous tags from folks after
+> the current restructuring. Series common CC list has been expanded to cover
+> all impacted platforms for wider reach.
+> 
+> - Anshuman
+> 
+> Changes in V6:
+> 
+> - Converted protection_map[] array as 'static const' on sparc32 platform
+> - Rebased on v5.19-rc4
+> - Collected tags
 
-diff --git a/arch/sparc/kernel/vio.c b/arch/sparc/kernel/vio.c
-index 01122a208f94..10441a7ef976 100644
---- a/arch/sparc/kernel/vio.c
-+++ b/arch/sparc/kernel/vio.c
-@@ -362,16 +362,17 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 	vdev->dev.release = vio_dev_release;
- 
- 	if (parent == NULL) {
--		dp = cdev_node;
-+		vdev->dp = of_node_get(cdev_node);
- 	} else if (to_vio_dev(parent) == root_vdev) {
- 		for_each_child_of_node(cdev_node, dp) {
--			if (of_node_is_type(dp, type))
-+			if (of_node_is_type(dp, type)) {
-+				vdev->dp = dp;
- 				break;
-+			}
- 		}
- 	} else {
--		dp = to_vio_dev(parent)->dp;
-+		vdev->dp = of_node_get(to_vio_dev(parent)->dp);
- 	}
--	vdev->dp = dp;
- 
- 	/*
- 	 * node_name is NULL for the parent/channel-devices node and
-@@ -386,6 +387,7 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 		if (err) {
- 			pr_err("VIO: Could not get MD node info %s, err=%d\n",
- 			       dev_name(&vdev->dev), err);
-+			of_node_put(vdev->dp);
- 			kfree(vdev);
- 			return NULL;
- 		}
-@@ -398,6 +400,7 @@ static struct vio_dev *vio_create_one(struct mdesc_handle *hp, u64 mp,
- 	if (err) {
- 		printk(KERN_ERR "VIO: Could not register device %s, err=%d\n",
- 		       dev_name(&vdev->dev), err);
-+		of_node_put(vdev->dp);
- 		put_device(&vdev->dev);
- 		return NULL;
- 	}
--- 
-2.25.1
+There are two linux-next based build fixes for this series (listed below), when
+vm_get_page_prot() gets redefined with !CONFIG_MMU. Platform vm_get_page_prot()
+is required only with CONFIG_MMU enabled, otherwise there is a generic fallback
+stub in include/linux/mm.h
 
+https://lore.kernel.org/all/20220705221411.3381797-1-jcmvbkbc@gmail.com/	[xtensa]
+https://lore.kernel.org/all/20220706054002.1936820-1-anshuman.khandual@arm.com/ [sh]
+
+It does not seem CONFIG_MMU can be disabled on other platforms thus exposing a build
+failure. But just to be on the safer side, should all vm_get_page_prot() be wrapped
+around with #ifdef CONFIG_MMU ? In that case will resend the series with above build
+fixes folded back in as well. Please do suggest. Thank you.
+
+- Anshuman
