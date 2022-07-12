@@ -2,66 +2,123 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13726CCA482
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Jul 2022 02:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45008C433EF
+	for <sparclinux@archiver.kernel.org>; Tue, 12 Jul 2022 05:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231503AbiGLCkJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 11 Jul 2022 22:40:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43736 "EHLO
+        id S229451AbiGLFiv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 12 Jul 2022 01:38:51 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52132 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230260AbiGLCkF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 11 Jul 2022 22:40:05 -0400
-Received: from foss.arm.com (foss.arm.com [217.140.110.172])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 608458CCA2;
-        Mon, 11 Jul 2022 19:40:04 -0700 (PDT)
-Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
-        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 5600415DB;
-        Mon, 11 Jul 2022 19:40:04 -0700 (PDT)
-Received: from [10.162.42.8] (unknown [10.162.42.8])
-        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 840C13F792;
-        Mon, 11 Jul 2022 19:39:56 -0700 (PDT)
-Message-ID: <48ab9e36-48be-916e-2ce7-03ef59d67dae@arm.com>
-Date:   Tue, 12 Jul 2022 08:09:53 +0530
+        with ESMTP id S229657AbiGLFiv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Jul 2022 01:38:51 -0400
+Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F264012632
+        for <sparclinux@vger.kernel.org>; Mon, 11 Jul 2022 22:38:47 -0700 (PDT)
+Received: by mail-pj1-x1033.google.com with SMTP id s21so6668155pjq.4
+        for <sparclinux@vger.kernel.org>; Mon, 11 Jul 2022 22:38:47 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=draconx-ca.20210112.gappssmtp.com; s=20210112;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=TDJSnzLSwL5TnhRSGkOInxm4fzXjDw8jSQVtBMTFQyU=;
+        b=jwFqK0zIpWgNrgKWjoBsoEdpLMneegAR9ZBBZXQYWHEVBaaNLw83JXzTrN/6L9AGGD
+         K+6ai9qRF5sSz+GJqil9ATpBGwy0OSkqR+zd5dPNGP4Xer+LtOAg+nljyaI3M1siWv13
+         vktaCvo1Y4PpFA3u5xB1AwUPPN8ZhnUM+DqNttLqGdd0KlT46fTQBAAwW4vpH8LtV7Mm
+         +BzGB1rFuYwgtr8R876s+6njfF3PwuZFes9tcuUCnhg2QipJ5zSOmM2Kp4S/HE3avhmN
+         nbrF217++dDPYzPu2BEH4G1tjP8zmjllyyoEufZ8kngR5+T0wCpZetArVIFwyfPR2Kst
+         PoiA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=TDJSnzLSwL5TnhRSGkOInxm4fzXjDw8jSQVtBMTFQyU=;
+        b=QiUhdiDL61r+nOWjC01o4oRONIq0VGrKt6Q5Wur4VLpTLnLmgpCRglTedFnFz1XEqC
+         PbD4DjIPcUMtdX5+32jLZnmOQamJ32RQwM9OPfmPuugiimURF3kNqxbCyI673dV0/J6g
+         ibWYdriJIVdxLJRql5/wWcUszQWOseJ5yyOBk01r7uzHfQS51ZmZ2eYvj1QEhWm6/A7V
+         XfrUrXurDcxhTOWGFT02XZmS+nTCZProafrl50L2nToN9pG+k8tpsLau91BFtUkZebO/
+         +9JRkTyrbFeggn11BmHE6bixWT7Am9eWlWD7F8BMiaggrqlVA8i1DrAb0y+pTmuMH2H5
+         9v2A==
+X-Gm-Message-State: AJIora/Vr7wccGGp/1N7Ikv9D+eq1KlL1tYPvWdTQgKpouCEveUaMZbW
+        I0lQpRK9zDIJUa0J9pTgijNm/gnWzOfwTiv/e8jJHSm+eZC5BQ==
+X-Google-Smtp-Source: AGRyM1uNYfSIGOSUtf43R1BmFTT9uyrpKXfW96orooz2l8jf2CaiLaUsOrAoQKrtu7AQj3Z3rTXVAP/dvjBMeAXCYvY=
+X-Received: by 2002:a17:902:db02:b0:16c:5568:d740 with SMTP id
+ m2-20020a170902db0200b0016c5568d740mr4514023plx.100.1657604327061; Mon, 11
+ Jul 2022 22:38:47 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.9.1
-Subject: Re: [PATCH V7 00/26] mm/mmap: Drop __SXXX/__PXXX macros from across
- platforms
-Content-Language: en-US
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     linux-mm@kvack.org, hch@infradead.org, christophe.leroy@csgroup.eu,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        x86@kernel.org, openrisc@lists.librecores.org,
-        linux-xtensa@linux-xtensa.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-m68k@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-um@lists.infradead.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20220711070600.2378316-1-anshuman.khandual@arm.com>
- <20220711131417.9cac57d9b88eea8bbd7d8616@linux-foundation.org>
-From:   Anshuman Khandual <anshuman.khandual@arm.com>
-In-Reply-To: <20220711131417.9cac57d9b88eea8bbd7d8616@linux-foundation.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: by 2002:ac4:d06f:0:b0:535:c52f:e1cf with HTTP; Mon, 11 Jul 2022
+ 22:38:46 -0700 (PDT)
+X-Originating-IP: [24.53.241.20]
+From:   Nick Bowler <nbowler@draconx.ca>
+Date:   Tue, 12 Jul 2022 01:38:46 -0400
+Message-ID: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
+Subject: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
+To:     sparclinux@vger.kernel.org
+Cc:     Atish Patra <atish.patra@oracle.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Hi,
 
+When using newer kernels on my Ultra 60 with dual 450MHz UltraSPARC-II
+CPUs, I noticed that only CPU 0 comes up, while older kernels (including
+4.7) are working fine with both CPUs.
 
-On 7/12/22 01:44, Andrew Morton wrote:
-> On Mon, 11 Jul 2022 12:35:34 +0530 Anshuman Khandual <anshuman.khandual@arm.com> wrote:
-> 
->> This series drops __SXXX/__PXXX macros from across platforms in the tree.
-> 
-> I've updated mm-unstable to this version, thanks.  I skipped the added-to-mm
-> emails to avoid wearing out people's inboxes.
-> 
-> Reissuing a 26-patch series N times is rather noisy.  Please prefer to send incremental
-> fixes when changes are minor.  It makes it so much easier for reviewers to see what
-> happened.
+I bisected the failure to this commit:
 
-Sure, got it, will follow next time.
+  9b2f753ec23710aa32c0d837d2499db92fe9115b is the first bad commit
+  commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
+  Author: Atish Patra <atish.patra@oracle.com>
+  Date:   Thu Sep 15 14:54:40 2016 -0600
+
+      sparc64: Fix cpu_possible_mask if nr_cpus is set
+
+This is a small change that reverts very easily on top of 5.18: there is
+just one trivial conflict.  Once reverted, both CPUs work again.
+
+Maybe this is related to the fact that the CPUs on this system are
+numbered CPU0 and CPU2 (there is no CPU1)?
+
+Here is /proc/cpuinfo on a working kernel:
+
+    % cat /proc/cpuinfo
+    cpu             : TI UltraSparc II  (BlackBird)
+    fpu             : UltraSparc II integrated FPU
+    pmu             : ultra12
+    prom            : OBP 3.23.1 1999/07/16 12:08
+    type            : sun4u
+    ncpus probed    : 2
+    ncpus active    : 2
+    D$ parity tl1   : 0
+    I$ parity tl1   : 0
+    cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
+    Cpu0ClkTck      : 000000001ad31b4f
+    Cpu2ClkTck      : 000000001ad31b4f
+    MMU Type        : Spitfire
+    MMU PGSZs       : 8K,64K,512K,4MB
+    State:
+    CPU0:           online
+    CPU2:           online
+
+And on a broken kernel:
+
+    % cat /proc/cpuinfo
+    cpu             : TI UltraSparc II  (BlackBird)
+    fpu             : UltraSparc II integrated FPU
+    pmu             : ultra12
+    prom            : OBP 3.23.1 1999/07/16 12:08
+    type            : sun4u
+    ncpus probed    : 2
+    ncpus active    : 1
+    D$ parity tl1   : 0
+    I$ parity tl1   : 0
+    cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
+    Cpu0ClkTck      : 000000001ad31861
+    MMU Type        : Spitfire
+    MMU PGSZs       : 8K,64K,512K,4MB
+    State:
+    CPU0:           online
+
+Let me know if you need any more info.
+
+Thanks,
+  Nick
