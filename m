@@ -2,123 +2,121 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45008C433EF
-	for <sparclinux@archiver.kernel.org>; Tue, 12 Jul 2022 05:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 389CFCCA479
+	for <sparclinux@archiver.kernel.org>; Wed, 13 Jul 2022 10:38:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229451AbiGLFiv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 12 Jul 2022 01:38:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52132 "EHLO
+        id S229627AbiGMKib (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 13 Jul 2022 06:38:31 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbiGLFiv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 12 Jul 2022 01:38:51 -0400
-Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F264012632
-        for <sparclinux@vger.kernel.org>; Mon, 11 Jul 2022 22:38:47 -0700 (PDT)
-Received: by mail-pj1-x1033.google.com with SMTP id s21so6668155pjq.4
-        for <sparclinux@vger.kernel.org>; Mon, 11 Jul 2022 22:38:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=draconx-ca.20210112.gappssmtp.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to:cc;
-        bh=TDJSnzLSwL5TnhRSGkOInxm4fzXjDw8jSQVtBMTFQyU=;
-        b=jwFqK0zIpWgNrgKWjoBsoEdpLMneegAR9ZBBZXQYWHEVBaaNLw83JXzTrN/6L9AGGD
-         K+6ai9qRF5sSz+GJqil9ATpBGwy0OSkqR+zd5dPNGP4Xer+LtOAg+nljyaI3M1siWv13
-         vktaCvo1Y4PpFA3u5xB1AwUPPN8ZhnUM+DqNttLqGdd0KlT46fTQBAAwW4vpH8LtV7Mm
-         +BzGB1rFuYwgtr8R876s+6njfF3PwuZFes9tcuUCnhg2QipJ5zSOmM2Kp4S/HE3avhmN
-         nbrF217++dDPYzPu2BEH4G1tjP8zmjllyyoEufZ8kngR5+T0wCpZetArVIFwyfPR2Kst
-         PoiA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
-        bh=TDJSnzLSwL5TnhRSGkOInxm4fzXjDw8jSQVtBMTFQyU=;
-        b=QiUhdiDL61r+nOWjC01o4oRONIq0VGrKt6Q5Wur4VLpTLnLmgpCRglTedFnFz1XEqC
-         PbD4DjIPcUMtdX5+32jLZnmOQamJ32RQwM9OPfmPuugiimURF3kNqxbCyI673dV0/J6g
-         ibWYdriJIVdxLJRql5/wWcUszQWOseJ5yyOBk01r7uzHfQS51ZmZ2eYvj1QEhWm6/A7V
-         XfrUrXurDcxhTOWGFT02XZmS+nTCZProafrl50L2nToN9pG+k8tpsLau91BFtUkZebO/
-         +9JRkTyrbFeggn11BmHE6bixWT7Am9eWlWD7F8BMiaggrqlVA8i1DrAb0y+pTmuMH2H5
-         9v2A==
-X-Gm-Message-State: AJIora/Vr7wccGGp/1N7Ikv9D+eq1KlL1tYPvWdTQgKpouCEveUaMZbW
-        I0lQpRK9zDIJUa0J9pTgijNm/gnWzOfwTiv/e8jJHSm+eZC5BQ==
-X-Google-Smtp-Source: AGRyM1uNYfSIGOSUtf43R1BmFTT9uyrpKXfW96orooz2l8jf2CaiLaUsOrAoQKrtu7AQj3Z3rTXVAP/dvjBMeAXCYvY=
-X-Received: by 2002:a17:902:db02:b0:16c:5568:d740 with SMTP id
- m2-20020a170902db0200b0016c5568d740mr4514023plx.100.1657604327061; Mon, 11
- Jul 2022 22:38:47 -0700 (PDT)
+        with ESMTP id S229613AbiGMKia (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 13 Jul 2022 06:38:30 -0400
+Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8FA40FD51C;
+        Wed, 13 Jul 2022 03:38:22 -0700 (PDT)
+X-UUID: 8e25dad35ffc4f0592d46075c10dd7cb-20220713
+X-CID-UNFAMILIAR: 1
+X-CID-P-RULE: Release_Ham
+X-CID-O-INFO: VERSION:1.1.8,REQID:ace90e29-5bbf-4620-98e5-2e6e35d8a559,OB:0,LO
+        B:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:54,FILE:0,RULE:Release_Ham,ACT
+        ION:release,TS:54
+X-CID-INFO: VERSION:1.1.8,REQID:ace90e29-5bbf-4620-98e5-2e6e35d8a559,OB:0,LOB:
+        0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:54,FILE:0,RULE:Release_HamU,ACTI
+        ON:release,TS:54
+X-CID-META: VersionHash:0f94e32,CLOUDID:a60d61d7-5d6d-4eaf-a635-828a3ee48b7c,C
+        OID:0e45bc946b18,Recheck:0,SF:28|16|19|48,TC:nil,Content:0,EDM:-3,IP:nil,U
+        RL:1,File:nil,QS:nil,BEC:nil,COL:0
+X-UUID: 8e25dad35ffc4f0592d46075c10dd7cb-20220713
+Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw01.mediatek.com
+        (envelope-from <lecopzer.chen@mediatek.com>)
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
+        with ESMTP id 761655014; Wed, 13 Jul 2022 18:38:16 +0800
+Received: from mtkcas10.mediatek.inc (172.21.101.39) by
+ mtkmbs10n1.mediatek.inc (172.21.101.34) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
+ 15.2.792.15; Wed, 13 Jul 2022 18:38:14 +0800
+Received: from mtksdccf07.mediatek.inc (172.21.84.99) by mtkcas10.mediatek.inc
+ (172.21.101.73) with Microsoft SMTP Server id 15.0.1497.2 via Frontend
+ Transport; Wed, 13 Jul 2022 18:38:14 +0800
+From:   Lecopzer Chen <lecopzer.chen@mediatek.com>
+To:     <lecopzer.chen@mediatek.com>
+CC:     <acme@kernel.org>, <akpm@linux-foundation.org>,
+        <alexander.shishkin@linux.intel.com>, <catalin.marinas@arm.com>,
+        <davem@davemloft.net>, <jolsa@redhat.com>, <jthierry@redhat.com>,
+        <keescook@chromium.org>, <kernelfans@gmail.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-perf-users@vger.kernel.org>, <mark.rutland@arm.com>,
+        <masahiroy@kernel.org>, <matthias.bgg@gmail.com>, <maz@kernel.org>,
+        <mcgrof@kernel.org>, <mingo@redhat.com>, <namhyung@kernel.org>,
+        <nixiaoming@huawei.com>, <peterz@infradead.org>,
+        <pmladek@suse.com>, <sparclinux@vger.kernel.org>,
+        <sumit.garg@linaro.org>, <wangqing@vivo.com>, <will@kernel.org>,
+        <yj.chiang@mediatek.com>
+Subject: RE: [PATCH v6 0/6] Support hld delayed init based on Pseudo-NMI for arm64
+Date:   Wed, 13 Jul 2022 18:38:14 +0800
+Message-ID: <20220713103814.16826-1-lecopzer.chen@mediatek.com>
+X-Mailer: git-send-email 2.18.0
+In-Reply-To: <20220617040740.25631-1-lecopzer.chen@mediatek.com>
+References: <20220617040740.25631-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Received: by 2002:ac4:d06f:0:b0:535:c52f:e1cf with HTTP; Mon, 11 Jul 2022
- 22:38:46 -0700 (PDT)
-X-Originating-IP: [24.53.241.20]
-From:   Nick Bowler <nbowler@draconx.ca>
-Date:   Tue, 12 Jul 2022 01:38:46 -0400
-Message-ID: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
-Subject: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
-To:     sparclinux@vger.kernel.org
-Cc:     Atish Patra <atish.patra@oracle.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
+X-MTK:  N
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
+Hi Will, Mark
+ 
+Sorry for another ping,
+but would you please help review this or comment about it?
 
-When using newer kernels on my Ultra 60 with dual 450MHz UltraSPARC-II
-CPUs, I noticed that only CPU 0 comes up, while older kernels (including
-4.7) are working fine with both CPUs.
 
-I bisected the failure to this commit:
+Thanks a lot.
 
-  9b2f753ec23710aa32c0d837d2499db92fe9115b is the first bad commit
-  commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
-  Author: Atish Patra <atish.patra@oracle.com>
-  Date:   Thu Sep 15 14:54:40 2016 -0600
-
-      sparc64: Fix cpu_possible_mask if nr_cpus is set
-
-This is a small change that reverts very easily on top of 5.18: there is
-just one trivial conflict.  Once reverted, both CPUs work again.
-
-Maybe this is related to the fact that the CPUs on this system are
-numbered CPU0 and CPU2 (there is no CPU1)?
-
-Here is /proc/cpuinfo on a working kernel:
-
-    % cat /proc/cpuinfo
-    cpu             : TI UltraSparc II  (BlackBird)
-    fpu             : UltraSparc II integrated FPU
-    pmu             : ultra12
-    prom            : OBP 3.23.1 1999/07/16 12:08
-    type            : sun4u
-    ncpus probed    : 2
-    ncpus active    : 2
-    D$ parity tl1   : 0
-    I$ parity tl1   : 0
-    cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
-    Cpu0ClkTck      : 000000001ad31b4f
-    Cpu2ClkTck      : 000000001ad31b4f
-    MMU Type        : Spitfire
-    MMU PGSZs       : 8K,64K,512K,4MB
-    State:
-    CPU0:           online
-    CPU2:           online
-
-And on a broken kernel:
-
-    % cat /proc/cpuinfo
-    cpu             : TI UltraSparc II  (BlackBird)
-    fpu             : UltraSparc II integrated FPU
-    pmu             : ultra12
-    prom            : OBP 3.23.1 1999/07/16 12:08
-    type            : sun4u
-    ncpus probed    : 2
-    ncpus active    : 1
-    D$ parity tl1   : 0
-    I$ parity tl1   : 0
-    cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
-    Cpu0ClkTck      : 000000001ad31861
-    MMU Type        : Spitfire
-    MMU PGSZs       : 8K,64K,512K,4MB
-    State:
-    CPU0:           online
-
-Let me know if you need any more info.
-
-Thanks,
-  Nick
+ 
+> Hi Will, Mark
+>
+> Could you help review arm parts of this patchset, please?
+> 
+> For the question mention in both [1] and [2],
+> 
+> > I'd still like Mark's Ack on this, as the approach you have taken doesn't
+> > really sit with what he was suggesting.
+> >
+> > I also don't understand how all the CPUs get initialised with your patch,
+> > since the PMU driver will be initialised after SMP is up and running.
+> 
+> The hardlock detector utilizes the softlockup_start_all() to start all
+> the cpu on watchdog_allowed_mask, which will do watchdog_nmi_enable()
+> that registers perf event on each CPUs.
+> Thus we simply need to retry lockup_detector_init() in a single cpu which
+> will reconfig and call to softlockup_start_all().
+> 
+> Also, the CONFIG_HARDLOCKUP_DETECTOR_PERF selects SOFTLOCKUP_DETECTOR,
+> IMO, this shows that hardlockup detector supports from softlockup.
+> 
+> 
+> > We should know whether pNMIs are possible once we've completed
+> > setup_arch() (and possibly init_IRQ()), long before SMP, so so I reckon
+> > we should have all the information available once we get to
+> > lockup_detector_init(), even if that requires some preparatory rework.
+> 
+> Hardlockup depends on PMU driver , I think the only way is moving
+> pmu driver at setup_arch() or any point which is earlier than
+> lockup_detector_init(), and I guess we have to reorganize the architecture
+> of arm PMU.
+> 
+> The retry function should benifit all the arch/ not only for arm64.
+> Any arch who needs to probe its pmu as module can use this without providing
+> a chance to mess up the setup order. 
+> 
+> 
+> Please let me know if you have any concern about this, thank you
+> 
+> 
+> [1] https://lore.kernel.org/all/CAFA6WYPPgUvHCpN5=EpJ2Us5h5uVWCbBA59C-YwYQX2ovyVeEw@mail.gmail.com/
+> [2] https://lore.kernel.org/linux-arm-kernel/20210419170331.GB31045@willie-the-truck/
+> 
+> 
