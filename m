@@ -2,153 +2,67 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C6AFCCA479
-	for <sparclinux@archiver.kernel.org>; Mon, 18 Jul 2022 08:40:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71114C433EF
+	for <sparclinux@archiver.kernel.org>; Mon, 18 Jul 2022 12:22:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233983AbiGRIk6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 18 Jul 2022 04:40:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46598 "EHLO
+        id S233175AbiGRMWq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 18 Jul 2022 08:22:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44048 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233896AbiGRIk4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 18 Jul 2022 04:40:56 -0400
-Received: from mout.kundenserver.de (mout.kundenserver.de [217.72.192.74])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 38605643D;
-        Mon, 18 Jul 2022 01:40:55 -0700 (PDT)
-Received: from mail-yb1-f175.google.com ([209.85.219.175]) by
- mrelayeu.kundenserver.de (mreue107 [213.165.67.113]) with ESMTPSA (Nemesis)
- id 1MzyAy-1nHnbX127a-00wzfO; Mon, 18 Jul 2022 10:40:53 +0200
-Received: by mail-yb1-f175.google.com with SMTP id 7so2009864ybw.0;
-        Mon, 18 Jul 2022 01:40:52 -0700 (PDT)
-X-Gm-Message-State: AJIora8X1Aam3ySj99TD9MY7dEOrlzAcfoHZSziEomsOrAjSbgLG0eR3
-        v3RZQoiFJulLqzogfBppia/njAD+HIPZjpj74D0=
-X-Google-Smtp-Source: AGRyM1v6P9bRfP0SGacMoyNgstO+0kAXXfpT0DxcKtXM2lnDi5JkTyHnmtvpqCyUYAbfe++I5HITDjFfLLAjFIN9yoU=
-X-Received: by 2002:a25:9f87:0:b0:669:4345:a8c0 with SMTP id
- u7-20020a259f87000000b006694345a8c0mr25927260ybq.472.1658133650969; Mon, 18
- Jul 2022 01:40:50 -0700 (PDT)
+        with ESMTP id S232986AbiGRMWp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 18 Jul 2022 08:22:45 -0400
+Received: from smtpbg.qq.com (unknown [43.155.67.158])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29085252B5;
+        Mon, 18 Jul 2022 05:22:37 -0700 (PDT)
+X-QQ-mid: bizesmtp76t1658146914t4wjcjlp
+Received: from localhost.localdomain ( [171.223.96.21])
+        by bizesmtp.qq.com (ESMTP) with 
+        id ; Mon, 18 Jul 2022 20:21:52 +0800 (CST)
+X-QQ-SSF: 01000000002000E0U000C00A0000020
+X-QQ-FEAT: Chk1D9siCl8X3rljEWiyDyOssf3yyAflpwUlZXf7I0WQJTLZEAQ0hH4vVQU6f
+        f4MOrpbtLy7YeBjwqrhE8g8Drn4iDbF3pWXS0c6V3HBNMX4RrOi4l3xLHVWMKCsgurcsa5p
+        4Vfs48M39itNmyN8Mca1L3Dx2UIvpy9v1CiVom+xf8X9nlmP23pVxxPNbPo20x8MD0EnPha
+        FxmUsKOFg81iOCguyIW8lXynFV9NOWhKKvmZ3qb10cEfCxPsuJoFkiH807TTZHT5s/3oGRB
+        J+4TMW/Y1mFH5gvwyap9k8is27YYYFmy3PxA+KvKo6AVqk4AIfZa8/HUB/tKlY/DYnGXY4h
+        ArTF5A3h2fKJpFXbblLpcJfs2kF985gWBWQZK1v6bAYCH0xoA/sZUdEfq1AzIIDWJ7+LRhH
+        zLtq1uLYvqY=
+X-QQ-GoodBg: 0
+From:   Jason Wang <wangborong@cdjrlc.com>
+To:     davem@davemloft.net
+Cc:     ebiederm@xmission.com, arnd@arndb.de, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Jason Wang <wangborong@cdjrlc.com>
+Subject: [PATCH] sparc64: Fix comment typo
+Date:   Fri, 15 Jul 2022 12:19:56 +0800
+Message-Id: <20220715041956.13973-1-wangborong@cdjrlc.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-References: <20220717033453.2896843-1-shorne@gmail.com> <20220717033453.2896843-2-shorne@gmail.com>
- <YtTif+vNq+gkfqsc@infradead.org>
-In-Reply-To: <YtTif+vNq+gkfqsc@infradead.org>
-From:   Arnd Bergmann <arnd@arndb.de>
-Date:   Mon, 18 Jul 2022 10:40:34 +0200
-X-Gmail-Original-Message-ID: <CAK8P3a02R651U9Md8DHT33FgSp56Baiw4sNCWCFBPcMi0bB1-g@mail.gmail.com>
-Message-ID: <CAK8P3a02R651U9Md8DHT33FgSp56Baiw4sNCWCFBPcMi0bB1-g@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] asm-generic: Remove pci.h copying remaining code
- to x86
-To:     Christoph Hellwig <hch@infradead.org>
-Cc:     Stafford Horne <shorne@gmail.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Nick Child <nick.child@ibm.com>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Matthew Rosato <mjrosato@linux.ibm.com>,
-        Pierre Morel <pmorel@linux.ibm.com>,
-        Kees Cook <keescook@chromium.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        alpha <linux-alpha@vger.kernel.org>,
-        "open list:IA64 (Itanium) PLATFORM" <linux-ia64@vger.kernel.org>,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>,
-        linux-pci <linux-pci@vger.kernel.org>,
-        linux-arch <linux-arch@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-X-Provags-ID: V03:K1:VA+ADZ1wlySE9Ouh2tYgU0A8V4oQDK6lPEeoN9EGdoubUZTOHeD
- mP3qZxOOrOyzBXf7VEeKAez7oCwQjAB7mSIfnIdxmzayc77FlghLUKmImGs2Qi7jkpQ46Sx
- mlXcKYCf770vn2MC/YUeoNNcpJouPP015V2R2VQElZ6j9Mh5zlTdp7VdWlCdhtq5X1IxSN4
- Vo23t32Imfrki/PvPbzsQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:4b3jq7bjLLE=:a6qWrjWnERxR/3JaIClND/
- DeiDquV6H8SJWHIaREUVCNILb2747FAmBq4hAwESAA8dFrq8z+X3wOvj9jvRGJIZPAFoFQqa+
- 1CGLsM/kx1ZAe97kLjHsfnabr0C3IGizgzLpu8HtdbJGSmKxN+km8B1G0d/NdxP0xrjwDdyB0
- LbEZ/8NkMTReY0kzowLf1LutJ+ECbNyuUsQRC04RJchI9Ezxp3oPUs5AltUscC6wjNg+n4zDc
- lE4tZ3kwy+WVvQjqfV/ScuT277jRzNyjU26FycqDC6jGCq/yp0Sxk7wFwhHYoSz1J4YBP37OA
- H3TVEaSFYEp0BGS8F6wnkG2Xb+qrPxdBJvr7Y4J8XLEiISkKR/lrWtdDyG/HIksfIscUG/zKj
- jS7Q2ChLj2XGo2Pbmk2DHR87gfoysZgStaEjymog1xDKEfpgVL1ft71+i+G8pQvHDzC2c4UwY
- UUOC3FkL7RxJBsxEQ+SoirTqVXh8CA7RTmxZUIQrk2hc8xL9b67lMJ8N78U9Ogk8DzrAzaLk0
- 5OR7JIeoGBsFy2YOiJ321GR04ymgZ846JuKqac+ha58viPaHnohhZhGlGV/D205LOJurQo6g6
- 6wxILAg/bldYxAI3UeRoKKemhZ221RQ8J7fDPCIUH/orpvq3O4Halu/OAiHsnMOC8kmF3fJ9R
- JcZqLRpkowdRcOw7voZhpFbAoSxdwWFKovPN1BZmFXaoi4wB+PGe6W66tFttvCeNXsNDZJ0SR
- cZzf7hR0bkQfwBo6G//PlVEy0sp+ltYv1eVHE36fxEm6tZjW2RpxzIvfyIo6Xh0rKcaelbg+N
- skhOpesKt88SkWklSTgAXKVpaOdJ0/zs3bBkbHWvVJARJweqXTY4hsrAlGgwdBGP9PVPTyWlL
- h2q7+CBWav3EOUiTQMlYzaeCWF4I4m4y7AmXMuE3Q=
+Content-Transfer-Encoding: 8bit
+X-QQ-SENDSIZE: 520
+Feedback-ID: bizesmtp:cdjrlc.com:qybglogicsvr:qybglogicsvr6
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jul 18, 2022 at 6:33 AM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Sun, Jul 17, 2022 at 12:34:52PM +0900, Stafford Horne wrote:
-> > The generic pci.h header now only provides a definition of
-> > pci_get_legacy_ide_irq which is used by architectures that support PNP.
-> > Of the architectures that use asm-generic/pci.h this is only x86.
->
-> Please move this into a separate header, ike legacy-ide.h.  It doens't
-> have anyting to do with actual PCI support.
+The double `new' is duplicated in line 914, remove one.
 
-It looks like asm/libata-portmap.h is meant to have this information already,
-and this is what libata uses, while drivers/ide used the
-pci_get_legacy_ide_irq()
-function for the same purpose.
+Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+---
+ arch/sparc/kernel/traps_64.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Only ia64 and powerpc have interesting definitions of both, and they
-return the same thing, so I think this is sufficient to remove the last caller:
+diff --git a/arch/sparc/kernel/traps_64.c b/arch/sparc/kernel/traps_64.c
+index 5b4de4a89dec..511756cc7aaa 100644
+--- a/arch/sparc/kernel/traps_64.c
++++ b/arch/sparc/kernel/traps_64.c
+@@ -911,7 +911,7 @@ void __init cheetah_ecache_flush_init(void)
+ 	memset(cheetah_error_log, 0, PAGE_SIZE << order);
+ 
+ 	/* Mark all AFSRs as invalid so that the trap handler will
+-	 * log new new information there.
++	 * log new information there.
+ 	 */
+ 	for (i = 0; i < 2 * NR_CPUS; i++)
+ 		cheetah_error_log[i].afsr = CHAFSR_INVALID;
+-- 
+2.35.1
 
-diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
-index 2fa0f7d55259..d7a6250589d6 100644
---- a/drivers/pnp/resource.c
-+++ b/drivers/pnp/resource.c
-@@ -16,7 +16,7 @@
- #include <asm/io.h>
- #include <asm/dma.h>
- #include <asm/irq.h>
--#include <linux/pci.h>
-+#include <linux/libata.h>
- #include <linux/ioport.h>
- #include <linux/init.h>
-
-@@ -322,8 +322,8 @@ static int pci_dev_uses_irq(struct pnp_dev *pnp,
-struct pci_dev *pci,
-                 * treat the compatibility IRQs as busy.
-                 */
-                if ((progif & 0x5) != 0x5)
--                       if (pci_get_legacy_ide_irq(pci, 0) == irq ||
--                           pci_get_legacy_ide_irq(pci, 1) == irq) {
-+                       if (ATA_PRIMARY_IRQ(pci) == irq ||
-+                           ATA_SECONDARY_IRQ(pci) == irq) {
-                                pnp_dbg(&pnp->dev, "  legacy IDE device %s "
-                                        "using irq %d\n", pci_name(pci), irq);
-                                return 1;
-
-This is fine on the architectures that currently return an error from
-pci_get_legacy_ide_irq() but will change to returning 15/14 instead,
-because they do not support ISA devices, so pci_dev_uses_irq()
-will never be called either.
-
-        Arnd
