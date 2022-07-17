@@ -2,158 +2,264 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 321C9CCA47C
-	for <sparclinux@archiver.kernel.org>; Fri, 15 Jul 2022 14:52:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A75BCCA47B
+	for <sparclinux@archiver.kernel.org>; Sun, 17 Jul 2022 03:35:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230300AbiGOOwF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 15 Jul 2022 10:52:05 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38252 "EHLO
+        id S232489AbiGQDfS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 16 Jul 2022 23:35:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52598 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229725AbiGOOwC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 15 Jul 2022 10:52:02 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BCA2785A9;
-        Fri, 15 Jul 2022 07:51:58 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1657896718; x=1689432718;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=ZzyuoiCwqpLweGYOkG0+rKJpPglqwnxzM5a+WQyzOag=;
-  b=ZrSgvAFG8gkVc/meiW3eflT0A5FGXO0eK3uBAZmg8TH076LXjl2TQNiS
-   lllq6urSMj0UZ0OJMlEJMPMlb2gMktPYm1j4BC5DFr08ixZm0AtZB6QX0
-   Bpa0SoXsvHZniez3JpR+zTgC1UAvWOR8jKnpuRw2U/mSoTmi9NigfGbtO
-   NPrjU2VMqOLN9U8rxnoEYA0ldxQj9rXXGgPVJ15UIgaj2mo/ElvtyXrhG
-   NUp518FinAFbrB+hVQiXlxrRwoXY4yr4CcSuoYg4zfqh6giiySv79dUTm
-   6hb4DJj+eyVpaZQ6je7SVTghzSnJQgk358+Qyz8fduGMTwquYc4Ds+De+
-   g==;
-X-IronPort-AV: E=McAfee;i="6400,9594,10408"; a="265600278"
-X-IronPort-AV: E=Sophos;i="5.92,274,1650956400"; 
-   d="scan'208";a="265600278"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 15 Jul 2022 07:51:57 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.92,274,1650956400"; 
-   d="scan'208";a="654357301"
-Received: from irvmail001.ir.intel.com ([10.43.11.63])
-  by fmsmga008.fm.intel.com with ESMTP; 15 Jul 2022 07:51:52 -0700
-Received: from newjersey.igk.intel.com (newjersey.igk.intel.com [10.102.20.203])
-        by irvmail001.ir.intel.com (8.14.3/8.13.6/MailSET/Hub) with ESMTP id 26FEpnoA007626;
-        Fri, 15 Jul 2022 15:51:49 +0100
-From:   Alexander Lobakin <alexandr.lobakin@intel.com>
-To:     Yury Norov <yury.norov@gmail.com>
-Cc:     Alexander Lobakin <alexandr.lobakin@intel.com>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Mark Rutland <mark.rutland@arm.com>,
+        with ESMTP id S232578AbiGQDfP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 16 Jul 2022 23:35:15 -0400
+Received: from mail-pl1-x62d.google.com (mail-pl1-x62d.google.com [IPv6:2607:f8b0:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8A73167CF;
+        Sat, 16 Jul 2022 20:35:12 -0700 (PDT)
+Received: by mail-pl1-x62d.google.com with SMTP id q5so6329935plr.11;
+        Sat, 16 Jul 2022 20:35:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=Tw+gjDmJoLsBiB8jh8ZvyDH4UCds4aoAQf/c7lWyids=;
+        b=dKXkki4tGc1P2bEiBhktSDo+KHMgr9zKMGo+FvdNVmesp4zAz94R95IqCYAUo0n0SL
+         b2lMFcvr2MY7IVgohWeQFHXBt8A4cbsY/OZIallU12nEeihqo1sVlHyGa0XfgcpV2kbf
+         5BDSP4BJpNhF+kLFnzOnk+PWODeegzuKnkqzjUJ9W+u0098L0PcJzO4mYbmdojWrPDOf
+         gcIB74D/eTx/yb2Ad8o3J9clOTzLbMKGPGZQ8puM5JEoc5cV5JOu2Pa9qA4AEDjVhkCU
+         /NXWhqDRhgQwUPfZ2BdZ+dGCTWzxWTEEFGWW5klCC4DQ3RqfLFabEt+1YqMOaglGI1/6
+         kzgQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=Tw+gjDmJoLsBiB8jh8ZvyDH4UCds4aoAQf/c7lWyids=;
+        b=xIf0152rCENhIlGoGtNWgtcggoiYF8U6GVkSJPX+dQj+s9dDF0W6AjXjzQxmSn22r7
+         3Knfgkzb/ZrJ1WEt5S+izi/hWCpcseVsOpUeeDMoTaDCKUKW57gIfuT2Ff2glD41TTm5
+         UHsgkhZiZYSPxdN0HUCv83D7lkwaYj94RhQMEUyBSC16JEVtoxQRV0PuJbkgdpdiqlWq
+         HWP5WyfR+XAegjykfUFCdepdahiSghwd3dVBAv7/NEhJd624pt6LgnCCpJz7+y1G4y3C
+         Xawmq2KZpNlirYhEvBSMaNtMb47d4mlkOZ6xGNn30Zh+AWXS5owWk34LB3BnA6tlxyLT
+         uAKg==
+X-Gm-Message-State: AJIora8GL4YjKERX0bR70opkMiKPcdcP3ZAhm0Zif5oC8e2BsbxotXfn
+        Eby1Nnope87Hie8jtB7SPsfDwof+CvO8mg==
+X-Google-Smtp-Source: AGRyM1tQ+Ab9ul66FqPFcU7j7eu9CzvXK97tnV4LJmmhXVTTWOyjXUoDLAhXp/IreTKcDzgYh630Dw==
+X-Received: by 2002:a17:90b:3b51:b0:1f0:5ebc:ac9 with SMTP id ot17-20020a17090b3b5100b001f05ebc0ac9mr24747678pjb.229.1658028911948;
+        Sat, 16 Jul 2022 20:35:11 -0700 (PDT)
+Received: from localhost ([2409:10:24a0:4700:e8ad:216a:2a9d:6d0c])
+        by smtp.gmail.com with ESMTPSA id o11-20020a170903210b00b001638a171558sm6243036ple.202.2022.07.16.20.35.11
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sat, 16 Jul 2022 20:35:11 -0700 (PDT)
+From:   Stafford Horne <shorne@gmail.com>
+To:     LKML <linux-kernel@vger.kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Stafford Horne <shorne@gmail.com>,
+        Richard Henderson <rth@twiddle.net>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
         Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
         "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Nick Child <nick.child@ibm.com>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Matthew Rosato <mjrosato@linux.ibm.com>,
+        Pierre Morel <pmorel@linux.ibm.com>,
         Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>, kernel test robot <lkp@intel.com>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, llvm@lists.linux.dev,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 6/9] bitops: let optimize out non-atomic bitops on compile-time constants
-Date:   Fri, 15 Jul 2022 16:50:53 +0200
-Message-Id: <20220715145053.64569-1-alexandr.lobakin@intel.com>
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linuxppc-dev@lists.ozlabs.org,
+        linux-s390@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linux-pci@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-riscv@lists.infradead.org
+Subject: [PATCH v2 1/2] asm-generic: Remove pci.h copying remaining code to x86
+Date:   Sun, 17 Jul 2022 12:34:52 +0900
+Message-Id: <20220717033453.2896843-2-shorne@gmail.com>
 X-Mailer: git-send-email 2.36.1
-In-Reply-To: <YtF3YIBA0Dd4KXZ+@yury-laptop>
-References: <20220624121313.2382500-1-alexandr.lobakin@intel.com> <20220624121313.2382500-7-alexandr.lobakin@intel.com> <20220715000402.GA512558@roeck-us.net> <20220715132633.61480-1-alexandr.lobakin@intel.com> <8c949bd4-d25a-d5f5-49be-59d52e4b6c9d@roeck-us.net> <YtF3YIBA0Dd4KXZ+@yury-laptop>
+In-Reply-To: <20220717033453.2896843-1-shorne@gmail.com>
+References: <20220717033453.2896843-1-shorne@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Yury Norov <yury.norov@gmail.com>
-Date: Fri, 15 Jul 2022 07:19:12 -0700
+The generic pci.h header now only provides a definition of
+pci_get_legacy_ide_irq which is used by architectures that support PNP.
+Of the architectures that use asm-generic/pci.h this is only x86.
 
-> On Fri, Jul 15, 2022 at 06:49:46AM -0700, Guenter Roeck wrote:
-> > On 7/15/22 06:26, Alexander Lobakin wrote:
-> > > From: Guenter Roeck <linux@roeck-us.net>
-> > > Date: Thu, 14 Jul 2022 17:04:02 -0700
-> > > 
-> > > > On Fri, Jun 24, 2022 at 02:13:10PM +0200, Alexander Lobakin wrote:
-> > > > > Currently, many architecture-specific non-atomic bitop
-> > > > > implementations use inline asm or other hacks which are faster or
-> > > 
-> > > [...]
-> > > 
-> > > > > Cc: Mark Rutland <mark.rutland@arm.com>
-> > > > > Signed-off-by: Alexander Lobakin <alexandr.lobakin@intel.com>
-> > > > > Reviewed-by: Marco Elver <elver@google.com>
-> > > > 
-> > > > Building i386:allyesconfig ... failed
-> > > > --------------
-> > > > Error log:
-> > > > arch/x86/platform/olpc/olpc-xo1-sci.c: In function 'send_ebook_state':
-> > > > arch/x86/platform/olpc/olpc-xo1-sci.c:83:63: error: logical not is only applied to the left hand side of comparison
-> > > 
-> > > Looks like a trigger, not a cause... Anyway, this construct:
-> > > 
-> > > 	unsigned char state;
-> > > 
-> > > 	[...]
-> > > 
-> > > 	if (!!test_bit(SW_TABLET_MODE, ebook_switch_idev->sw) == state)
-> > > 
-> > > doesn't look legit enough.
-> > > That redundant double-negation [of boolean value], together with
-> > > comparing boolean to char, provokes compilers to think the author
-> > > made logical mistakes here, although it works as expected.
-> > > Could you please try (if it's not automated build which you can't
-> > > modify) the following:
-> > > 
-> > 
-> > Agreed, the existing code seems wrong. The change below looks correct
-> > and fixes the problem. Feel free to add
-> > 
-> > Reviewed-and-tested-by: Guenter Roeck <linux@roeck-us.net>
-> > 
-> > to the real patch.
-> > 
-> > Thanks,
-> > Guenter
-> > 
-> > > --- a/arch/x86/platform/olpc/olpc-xo1-sci.c
-> > > +++ b/arch/x86/platform/olpc/olpc-xo1-sci.c
-> > > @@ -80,7 +80,7 @@ static void send_ebook_state(void)
-> > >   		return;
-> > >   	}
-> > > -	if (!!test_bit(SW_TABLET_MODE, ebook_switch_idev->sw) == state)
-> > > +	if (test_bit(SW_TABLET_MODE, ebook_switch_idev->sw) == !!state)
-> > >   		return; /* Nothing new to report. */
-> > >   	input_report_switch(ebook_switch_idev, SW_TABLET_MODE, state);
-> > > ---
-> > > 
-> > > We'd take it into the bitmap tree then. The series revealed
-> > > a fistful of existing code issues already :)
-> 
-> Would you like me to add your signed-off-by and apply, or you prefer
-> to send it out as a patch?
+This patch removes the old pci.h in order to make room for a new
+pci.h to be used by arm64, riscv, openrisc, etc.
 
-I'm sending it in a couple minutes :)
+The existing code in pci.h is moved out to x86.  On other architectures
+we clean up any outstanding references.
 
-> 
-> Thanks,
-> Yury
+Suggested-by: Arnd Bergmann <arnd@arndb.de>
+Link: https://lore.kernel.org/lkml/CAK8P3a0JmPeczfmMBE__vn=Jbvf=nkbpVaZCycyv40pZNCJJXQ@mail.gmail.com/
+Signed-off-by: Stafford Horne <shorne@gmail.com>
+---
+ arch/alpha/include/asm/pci.h   |  1 -
+ arch/ia64/include/asm/pci.h    |  1 -
+ arch/m68k/include/asm/pci.h    |  7 +++++--
+ arch/powerpc/include/asm/pci.h |  1 -
+ arch/s390/include/asm/pci.h    |  1 -
+ arch/sparc/include/asm/pci.h   |  9 ---------
+ arch/x86/include/asm/pci.h     |  6 ++++--
+ arch/xtensa/include/asm/pci.h  |  3 ---
+ include/asm-generic/pci.h      | 17 -----------------
+ 9 files changed, 9 insertions(+), 37 deletions(-)
+ delete mode 100644 include/asm-generic/pci.h
 
-Thanks,
-Olek
+diff --git a/arch/alpha/include/asm/pci.h b/arch/alpha/include/asm/pci.h
+index cf6bc1e64d66..8ac5af0fc4da 100644
+--- a/arch/alpha/include/asm/pci.h
++++ b/arch/alpha/include/asm/pci.h
+@@ -56,7 +56,6 @@ struct pci_controller {
+ 
+ /* IOMMU controls.  */
+ 
+-/* TODO: integrate with include/asm-generic/pci.h ? */
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+ 	return channel ? 15 : 14;
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 8c163d1d0189..218412d963c2 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -63,7 +63,6 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ 	return (pci_domain_nr(bus) != 0);
+ }
+ 
+-#define HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+ 	return channel ? isa_irq_to_vector(15) : isa_irq_to_vector(14);
+diff --git a/arch/m68k/include/asm/pci.h b/arch/m68k/include/asm/pci.h
+index 5a4bc223743b..0c272ff515cc 100644
+--- a/arch/m68k/include/asm/pci.h
++++ b/arch/m68k/include/asm/pci.h
+@@ -2,11 +2,14 @@
+ #ifndef _ASM_M68K_PCI_H
+ #define _ASM_M68K_PCI_H
+ 
+-#include <asm-generic/pci.h>
+-
+ #define	pcibios_assign_all_busses()	1
+ 
+ #define	PCIBIOS_MIN_IO		0x00000100
+ #define	PCIBIOS_MIN_MEM		0x02000000
+ 
++static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
++{
++	return channel ? 15 : 14;
++}
++
+ #endif /* _ASM_M68K_PCI_H */
+diff --git a/arch/powerpc/include/asm/pci.h b/arch/powerpc/include/asm/pci.h
+index 915d6ee4b40a..f9da506751bb 100644
+--- a/arch/powerpc/include/asm/pci.h
++++ b/arch/powerpc/include/asm/pci.h
+@@ -39,7 +39,6 @@
+ #define pcibios_assign_all_busses() \
+ 	(pci_has_flag(PCI_REASSIGN_ALL_BUS))
+ 
+-#define HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+ {
+ 	if (ppc_md.pci_get_legacy_ide_irq)
+diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
+index fdb9745ee998..5889ddcbc374 100644
+--- a/arch/s390/include/asm/pci.h
++++ b/arch/s390/include/asm/pci.h
+@@ -6,7 +6,6 @@
+ #include <linux/mutex.h>
+ #include <linux/iommu.h>
+ #include <linux/pci_hotplug.h>
+-#include <asm-generic/pci.h>
+ #include <asm/pci_clp.h>
+ #include <asm/pci_debug.h>
+ #include <asm/sclp.h>
+diff --git a/arch/sparc/include/asm/pci.h b/arch/sparc/include/asm/pci.h
+index 4deddf430e5d..0c58f65bd172 100644
+--- a/arch/sparc/include/asm/pci.h
++++ b/arch/sparc/include/asm/pci.h
+@@ -40,13 +40,4 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ #define get_pci_unmapped_area get_fb_unmapped_area
+ #endif /* CONFIG_SPARC64 */
+ 
+-#if defined(CONFIG_SPARC64) || defined(CONFIG_LEON_PCI)
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return PCI_IRQ_NONE;
+-}
+-#else
+-#include <asm-generic/pci.h>
+-#endif
+-
+ #endif /* ___ASM_SPARC_PCI_H */
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index f3fd5928bcbb..7da27f665cfe 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -105,8 +105,10 @@ static inline void early_quirks(void) { }
+ 
+ extern void pci_iommu_alloc(void);
+ 
+-/* generic pci stuff */
+-#include <asm-generic/pci.h>
++static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
++{
++	return channel ? 15 : 14;
++}
+ 
+ #ifdef CONFIG_NUMA
+ /* Returns the node based on pci bus */
+diff --git a/arch/xtensa/include/asm/pci.h b/arch/xtensa/include/asm/pci.h
+index 8e2b48a268db..b56de9635b6c 100644
+--- a/arch/xtensa/include/asm/pci.h
++++ b/arch/xtensa/include/asm/pci.h
+@@ -43,7 +43,4 @@
+ #define ARCH_GENERIC_PCI_MMAP_RESOURCE	1
+ #define arch_can_pci_mmap_io()		1
+ 
+-/* Generic PCI */
+-#include <asm-generic/pci.h>
+-
+ #endif	/* _XTENSA_PCI_H */
+diff --git a/include/asm-generic/pci.h b/include/asm-generic/pci.h
+deleted file mode 100644
+index 6bb3cd3d695a..000000000000
+--- a/include/asm-generic/pci.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * linux/include/asm-generic/pci.h
+- *
+- *  Copyright (C) 2003 Russell King
+- */
+-#ifndef _ASM_GENERIC_PCI_H
+-#define _ASM_GENERIC_PCI_H
+-
+-#ifndef HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return channel ? 15 : 14;
+-}
+-#endif /* HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ */
+-
+-#endif /* _ASM_GENERIC_PCI_H */
+-- 
+2.36.1
+
