@@ -2,92 +2,68 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17A70C433EF
-	for <sparclinux@archiver.kernel.org>; Wed, 20 Jul 2022 17:43:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 699FCC433EF
+	for <sparclinux@archiver.kernel.org>; Thu, 21 Jul 2022 03:29:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230280AbiGTRno (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 20 Jul 2022 13:43:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40444 "EHLO
+        id S230135AbiGUD3B (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 20 Jul 2022 23:29:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49618 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbiGTRnk (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 20 Jul 2022 13:43:40 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E69B848E88;
-        Wed, 20 Jul 2022 10:43:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=In-Reply-To:Content-Type:MIME-Version
-        :References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=M7NmYC/Iylm9myghHwqILim55SAUt9QrM+UZYk0eJlw=; b=ud/J0sBp4WvQan86X0B396DoWt
-        XvbxlyIGi6vo1wobokFAbidmtnnQXU3j4yAeDtrOCqpZDngaD3xxJne84/OLuZMOtBI0r005mQgBF
-        DdDoVC5HgChuuAAO3sHGynh14NoOKiIXm5t4DibPm3oayQgekE25NDF4xtLigZVAQ2Njmwu6gkyaD
-        ssVbjhn4nAlypq0C8lkV1MklYFoQpTLbUOn+KYhwQIXcY5hTwGw5P1T2C4zFcwIb0qYTG1Z/huXhI
-        /1f+UUyIDqcHLc6IqDrlkwhdcR12z7SKJVqNISeIURQkOu0X4aX5a2XpiIid7z7MciA801M2r2MIv
-        83a/10RA==;
-Received: from hch by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1oEDjJ-008nHG-0T; Wed, 20 Jul 2022 17:43:25 +0000
-Date:   Wed, 20 Jul 2022 10:43:24 -0700
-From:   Christoph Hellwig <hch@infradead.org>
-To:     Stafford Horne <shorne@gmail.com>
-Cc:     LKML <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Pierre Morel <pmorel@linux.ibm.com>,
-        Richard Henderson <rth@twiddle.net>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Sergio Paracuellos <sergio.paracuellos@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Tiezhu Yang <yangtiezhu@loongson.cn>,
-        Nick Child <nick.child@ibm.com>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Matthew Rosato <mjrosato@linux.ibm.com>,
-        Kees Cook <keescook@chromium.org>,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-arch@vger.kernel.org
-Subject: Re: [PATCH v4 1/3] PCI: Remove pci_get_legacy_ide_irq and
- asm-generic/pci.h
-Message-ID: <Ytg+vPSl+oBGtSRZ@infradead.org>
-References: <20220720131934.373932-1-shorne@gmail.com>
- <20220720131934.373932-2-shorne@gmail.com>
+        with ESMTP id S229461AbiGUD3A (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 20 Jul 2022 23:29:00 -0400
+Received: from mail-m974.mail.163.com (mail-m974.mail.163.com [123.126.97.4])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 4252A61D97;
+        Wed, 20 Jul 2022 20:28:58 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=163.com;
+        s=s110527; h=From:Subject:Date:Message-Id:MIME-Version; bh=I9ruW
+        bG/FbX8yk7Dg6VnLinxVLXAGRUiRYMlTX8v/sE=; b=R1x7M1jfLDt3Fq3+SkBsX
+        l9+BI8RpjT5AThutPYuFHWux/Kl4xv4dEafjLX0YZGaf1tXJh86NtwiMTsUjtrgp
+        14vjSiekNM7z05mZwG0G39Ggw8sXkz1l2NQSHx1mXEJyAi18EqK+BNBKa+aRJjDm
+        DBoxdaL/0MmaTBO02hESk4=
+Received: from localhost.localdomain (unknown [112.97.57.47])
+        by smtp4 (Coremail) with SMTP id HNxpCgDHEYLzx9hiMZp_Pw--.2623S2;
+        Thu, 21 Jul 2022 11:28:53 +0800 (CST)
+From:   Slark Xiao <slark_xiao@163.com>
+To:     davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Slark Xiao <slark_xiao@163.com>
+Subject: [PATCH] sparc/PCI: Fix typo 'the the' in comment
+Date:   Thu, 21 Jul 2022 11:28:49 +0800
+Message-Id: <20220721032849.44495-1-slark_xiao@163.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220720131934.373932-2-shorne@gmail.com>
-X-SRS-Rewrite: SMTP reverse-path rewritten from <hch@infradead.org> by bombadil.infradead.org. See http://www.infradead.org/rpr.html
+Content-Transfer-Encoding: 8bit
+X-CM-TRANSID: HNxpCgDHEYLzx9hiMZp_Pw--.2623S2
+X-Coremail-Antispam: 1Uf129KBjvdXoWrZFykKrWUGFWDtr47GF43trb_yoW3trb_W3
+        47Za18G3yFvrs7Xw17Cw43ZrWay3WF9a1fAryS934DJF13WrZxWryrJw4UJFn8W3yDGFWk
+        t398Jwn09r1jgjkaLaAFLSUrUUUUUb8apTn2vfkv8UJUUUU8Yxn0WfASr-VFAUDa7-sFnT
+        9fnUUvcSsGvfC2KfnxnUUI43ZEXa7xRBHqKtUUUUU==
+X-Originating-IP: [112.97.57.47]
+X-CM-SenderInfo: xvod2y5b0lt0i6rwjhhfrp/1tbiJRZFZGAJpJau6gAAsN
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Looks good:
+Replace 'the the' with 'the' in the comment.
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Slark Xiao <slark_xiao@163.com>
+---
+ arch/sparc/kernel/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index 31b0c1983286..385c61d199cd 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -310,7 +310,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
+ 	/* We can't actually use the firmware value, we have
+ 	 * to read what is in the register right now.  One
+ 	 * reason is that in the case of IDE interfaces the
+-	 * firmware can sample the value before the the IDE
++	 * firmware can sample the value before the IDE
+ 	 * interface is programmed into native mode.
+ 	 */
+ 	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class);
+-- 
+2.25.1
+
