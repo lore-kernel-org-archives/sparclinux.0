@@ -2,351 +2,449 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A4D5C43334
-	for <sparclinux@archiver.kernel.org>; Thu, 21 Jul 2022 20:45:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87618CCA48F
+	for <sparclinux@archiver.kernel.org>; Fri, 22 Jul 2022 21:50:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232579AbiGUUpw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 21 Jul 2022 16:45:52 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39376 "EHLO
+        id S236554AbiGVVuS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 22 Jul 2022 17:50:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229498AbiGUUpv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 21 Jul 2022 16:45:51 -0400
-X-Greylist: delayed 1800 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 21 Jul 2022 13:45:49 PDT
-Received: from luna (cpc152649-stkp13-2-0-cust121.10-2.cable.virginm.net [86.15.83.122])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04E318EEF3;
-        Thu, 21 Jul 2022 13:45:48 -0700 (PDT)
-Received: from ben by luna with local (Exim 4.96)
-        (envelope-from <ben@luna.fluff.org>)
-        id 1oEcGM-001knS-0y;
-        Thu, 21 Jul 2022 20:55:10 +0100
-From:   Ben Dooks <ben-linux@fluff.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     sparclinux@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-parisc@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-ia64@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-csky@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-snps-arc@lists.infradead.org, linux-alpha@vger.kernel.org,
-        akpm@linux-foundation.org, Ben Dooks <ben-linux@fluff.org>
-Subject: [PATCH] profile: setup_profiling_timer() is moslty not implemented
-Date:   Thu, 21 Jul 2022 20:55:09 +0100
-Message-Id: <20220721195509.418205-1-ben-linux@fluff.org>
-X-Mailer: git-send-email 2.35.1
+        with ESMTP id S236335AbiGVVuN (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 22 Jul 2022 17:50:13 -0400
+Received: from mail-pl1-x62a.google.com (mail-pl1-x62a.google.com [IPv6:2607:f8b0:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 092A365D6;
+        Fri, 22 Jul 2022 14:50:11 -0700 (PDT)
+Received: by mail-pl1-x62a.google.com with SMTP id d7so5594299plr.9;
+        Fri, 22 Jul 2022 14:50:11 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=from:to:cc:subject:date:message-id:in-reply-to:references
+         :mime-version:content-transfer-encoding;
+        bh=wjHJyqlB7xvMYJ4P8z0LNKc4m/G2i+CAuvB1fgzg9tQ=;
+        b=I3uQFM068MN8Yv6J4Bcyd/2CmkFpWR63aDyt6rjDyZTPxYWrrqT9MUFh5Sqf5qCpRY
+         V4XKdYZTOFZYUfgwJqlE8qoxXz7kv+J0UeD2+F+YHKZLB0HtSGRNb696b1UZh0uZEhLa
+         ZXKJ0AlOFfepAMLr63jG9CLwB89RMTPV+gsoL5VHorQaJbr2w9mDWLJQMAMyh+tCQh8G
+         NrXhQc2lM5D4U0Y0msXE4maaU0ZkEU4R7x6YBuFW81HrwXMk+RVNv8C4+Y0IlzpEDSoZ
+         4Kfl2QvdHNrK2gIPvWpwFjQLrILFrCxuqLVxuTu1idp/Cz+mY9RBy2YccSZRzKa7/M4I
+         unJg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
+         :references:mime-version:content-transfer-encoding;
+        bh=wjHJyqlB7xvMYJ4P8z0LNKc4m/G2i+CAuvB1fgzg9tQ=;
+        b=Bz+FtE9hoX3llNhrdbvAxcOnd2ieYD6+DorKNJXn+4E3wCgMEo2UVspVUG8RU6kYZT
+         FawGjWkf+4r25V5wT+5oFcxbp6G/PMBKfbxk0GLE3G8wWqaM0Ul7JmrM3l/njF4D2r9g
+         oMcqnUVnbHAhW0s0cYywIcuHE+Xf+gjWYpd1KjaNNJ5XamSvOyKavtIDBKh75ZoWdXPy
+         3SQX3tCB/6BEUgdfmwJ104QzChGhfl63Vmyn8dLUJ4L91xEq0XRoinLoJfFOuKs6pQ2w
+         Mq2QnVRl1veoidlMnM2UfSu5lQP6rOj4kgF6+mkzh9MkVPpj2GyZhngXR5xE5PFa9ept
+         EI5w==
+X-Gm-Message-State: AJIora8VIeJ9SHrReDbzAuNj1uY6UrOCcKaOhxi6hH5o+bIB7c4XRcGI
+        MTJlGIxFZzQX8n52TsNSlCRkFef7oY2pPA==
+X-Google-Smtp-Source: AGRyM1t3W0xzljZhFoMx3+yN0InCr+fwdGqjbYXmwzT6n4jdJnrAce5ugPln6547Wbe92G3kdEqYbQ==
+X-Received: by 2002:a17:90a:cb07:b0:1f2:2020:3bf3 with SMTP id z7-20020a17090acb0700b001f220203bf3mr1714757pjt.81.1658526610106;
+        Fri, 22 Jul 2022 14:50:10 -0700 (PDT)
+Received: from localhost ([2409:10:24a0:4700:e8ad:216a:2a9d:6d0c])
+        by smtp.gmail.com with ESMTPSA id c8-20020aa79528000000b0050dc762816asm4386387pfp.68.2022.07.22.14.50.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 22 Jul 2022 14:50:09 -0700 (PDT)
+From:   Stafford Horne <shorne@gmail.com>
+To:     LKML <linux-kernel@vger.kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>, Stafford Horne <shorne@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Pierre Morel <pmorel@linux.ibm.com>,
+        "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Sergio Paracuellos <sergio.paracuellos@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Tiezhu Yang <yangtiezhu@loongson.cn>,
+        Nick Child <nick.child@ibm.com>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Matthew Rosato <mjrosato@linux.ibm.com>,
+        Kees Cook <keescook@chromium.org>,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-arch@vger.kernel.org
+Subject: [PATCH v6 1/4] PCI: Remove pci_get_legacy_ide_irq and asm-generic/pci.h
+Date:   Sat, 23 Jul 2022 06:49:41 +0900
+Message-Id: <20220722214944.831438-2-shorne@gmail.com>
+X-Mailer: git-send-email 2.36.1
+In-Reply-To: <20220722214944.831438-1-shorne@gmail.com>
+References: <20220722214944.831438-1-shorne@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The setup_profiling_timer() is mostly un-implemented by many
-architectures. In many places it isn't guarded by CONFIG_PROFILE
-which is needed for it to be used. Make it a weak symbol in
-kernel/profile.c and remove the 'return -EINVAL' implementations
-from the kenrel.
+The definition of the pci header function pci_get_legacy_ide_irq is only
+used in platforms that support PNP.  So many of the architecutres where
+it is defined do not use it.  This also means we can remove
+asm-generic/pci.h as all it provides is a definition of
+pci_get_legacy_ide_irq.
 
-There are a couple of architectures which do return 0 from
-the setup_profiling_timer() function but they don't seem to
-do anything else with it. To keep the /proc compatibility for
-now, leave these for a future update or removal.
+Where referenced, replace the usage of pci_get_legacy_ide_irq with the
+libata.h macros ATA_PRIMARY_IRQ and ATA_SECONDARY_IRQ which provide the
+same functionality.  This allows removing pci_get_legacy_ide_irq from
+headers where it is no longer used.
 
-On ARM, this fixes the following sparse warning:
-arch/arm/kernel/smp.c:793:5: warning: symbol 'setup_profiling_timer' was not declared. Should it be static?
-
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Pierre Morel <pmorel@linux.ibm.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Co-developed-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Stafford Horne <shorne@gmail.com>
 ---
- arch/alpha/kernel/smp.c     | 6 ------
- arch/arc/kernel/smp.c       | 8 --------
- arch/arm/kernel/smp.c       | 8 --------
- arch/arm64/kernel/smp.c     | 8 --------
- arch/csky/kernel/smp.c      | 5 -----
- arch/hexagon/kernel/smp.c   | 5 -----
- arch/ia64/kernel/smp.c      | 6 ------
- arch/openrisc/kernel/smp.c  | 6 ------
- arch/parisc/kernel/smp.c    | 7 -------
- arch/powerpc/kernel/smp.c   | 7 -------
- arch/riscv/kernel/smp.c     | 6 ------
- arch/sparc/kernel/smp_32.c  | 5 -----
- arch/sparc/kernel/smp_64.c  | 6 ------
- arch/x86/include/asm/apic.h | 2 --
- arch/x86/kernel/apic/apic.c | 5 -----
- kernel/profile.c            | 8 ++++++--
- 16 files changed, 6 insertions(+), 92 deletions(-)
+ arch/alpha/include/asm/pci.h   |  6 ------
+ arch/arm/include/asm/pci.h     |  5 -----
+ arch/arm64/include/asm/pci.h   |  6 ------
+ arch/csky/include/asm/pci.h    |  6 ------
+ arch/ia64/include/asm/pci.h    |  6 ------
+ arch/m68k/include/asm/pci.h    |  2 --
+ arch/mips/include/asm/pci.h    |  6 ------
+ arch/parisc/include/asm/pci.h  |  5 -----
+ arch/powerpc/include/asm/pci.h |  1 -
+ arch/riscv/include/asm/pci.h   |  6 ------
+ arch/s390/include/asm/pci.h    |  1 -
+ arch/sh/include/asm/pci.h      |  6 ------
+ arch/sparc/include/asm/pci.h   |  9 ---------
+ arch/um/include/asm/pci.h      |  8 --------
+ arch/x86/include/asm/pci.h     |  3 ---
+ arch/xtensa/include/asm/pci.h  |  3 ---
+ drivers/pnp/resource.c         |  5 +++--
+ include/asm-generic/pci.h      | 17 -----------------
+ 18 files changed, 3 insertions(+), 98 deletions(-)
+ delete mode 100644 include/asm-generic/pci.h
 
-diff --git a/arch/alpha/kernel/smp.c b/arch/alpha/kernel/smp.c
-index cb64e4797d2a..f4e20f75438f 100644
---- a/arch/alpha/kernel/smp.c
-+++ b/arch/alpha/kernel/smp.c
-@@ -497,12 +497,6 @@ smp_cpus_done(unsigned int max_cpus)
- 	       ((bogosum + 2500) / (5000/HZ)) % 100);
- }
+diff --git a/arch/alpha/include/asm/pci.h b/arch/alpha/include/asm/pci.h
+index cf6bc1e64d66..6312656279d7 100644
+--- a/arch/alpha/include/asm/pci.h
++++ b/arch/alpha/include/asm/pci.h
+@@ -56,12 +56,6 @@ struct pci_controller {
  
--int
--setup_profiling_timer(unsigned int multiplier)
+ /* IOMMU controls.  */
+ 
+-/* TODO: integrate with include/asm-generic/pci.h ? */
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	return channel ? 15 : 14;
 -}
 -
- static void
- send_ipi_message(const struct cpumask *to_whom, enum ipi_message_type operation)
+ #define pci_domain_nr(bus) ((struct pci_controller *)(bus)->sysdata)->index
+ 
+ static inline int pci_proc_domain(struct pci_bus *bus)
+diff --git a/arch/arm/include/asm/pci.h b/arch/arm/include/asm/pci.h
+index 68e6f25784a4..5916b88d4c94 100644
+--- a/arch/arm/include/asm/pci.h
++++ b/arch/arm/include/asm/pci.h
+@@ -22,11 +22,6 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ #define HAVE_PCI_MMAP
+ #define ARCH_GENERIC_PCI_MMAP_RESOURCE
+ 
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return channel ? 15 : 14;
+-}
+-
+ extern void pcibios_report_status(unsigned int status_mask, int warn);
+ 
+ #endif /* __KERNEL__ */
+diff --git a/arch/arm64/include/asm/pci.h b/arch/arm64/include/asm/pci.h
+index b33ca260e3c9..0aebc3488c32 100644
+--- a/arch/arm64/include/asm/pci.h
++++ b/arch/arm64/include/asm/pci.h
+@@ -23,12 +23,6 @@
+ extern int isa_dma_bridge_buggy;
+ 
+ #ifdef CONFIG_PCI
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	/* no legacy IRQ on arm64 */
+-	return -ENODEV;
+-}
+-
+ static inline int pci_proc_domain(struct pci_bus *bus)
  {
-diff --git a/arch/arc/kernel/smp.c b/arch/arc/kernel/smp.c
-index d947473f1e6d..ab9e75e90f72 100644
---- a/arch/arc/kernel/smp.c
-+++ b/arch/arc/kernel/smp.c
-@@ -232,14 +232,6 @@ int __cpu_up(unsigned int cpu, struct task_struct *idle)
- 	return 0;
- }
+ 	return 1;
+diff --git a/arch/csky/include/asm/pci.h b/arch/csky/include/asm/pci.h
+index ebc765b1f78b..0535f1aaae38 100644
+--- a/arch/csky/include/asm/pci.h
++++ b/arch/csky/include/asm/pci.h
+@@ -18,12 +18,6 @@
+ extern int isa_dma_bridge_buggy;
  
--/*
-- * not supported here
-- */
--int setup_profiling_timer(unsigned int multiplier)
+ #ifdef CONFIG_PCI
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	/* no legacy IRQ on csky */
+-	return -ENODEV;
 -}
 -
- /*****************************************************************************/
- /*              Inter Processor Interrupt Handling                           */
- /*****************************************************************************/
-diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-index 73fc645fc4c7..978db2d96b44 100644
---- a/arch/arm/kernel/smp.c
-+++ b/arch/arm/kernel/smp.c
-@@ -787,14 +787,6 @@ void panic_smp_self_stop(void)
- 		cpu_relax();
- }
- 
--/*
-- * not supported here
-- */
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- #ifdef CONFIG_CPU_FREQ
- 
- static DEFINE_PER_CPU(unsigned long, l_p_j_ref);
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index 62ed361a4376..ffc5d76cf695 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -1078,14 +1078,6 @@ bool smp_crash_stop_failed(void)
- }
- #endif
- 
--/*
-- * not supported here
-- */
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- static bool have_cpu_die(void)
+ static inline int pci_proc_domain(struct pci_bus *bus)
  {
- #ifdef CONFIG_HOTPLUG_CPU
-diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
-index 6bb38bc2f39b..4b605aa2e1d6 100644
---- a/arch/csky/kernel/smp.c
-+++ b/arch/csky/kernel/smp.c
-@@ -243,11 +243,6 @@ void __init smp_cpus_done(unsigned int max_cpus)
- {
+ 	/* always show the domain in /proc */
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 8c163d1d0189..fa8f545c24c9 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -63,10 +63,4 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ 	return (pci_domain_nr(bus) != 0);
  }
  
--int setup_profiling_timer(unsigned int multiplier)
+-#define HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	return channel ? isa_irq_to_vector(15) : isa_irq_to_vector(14);
 -}
 -
- void csky_start_secondary(void)
+ #endif /* _ASM_IA64_PCI_H */
+diff --git a/arch/m68k/include/asm/pci.h b/arch/m68k/include/asm/pci.h
+index 5a4bc223743b..ccdfa0dc8413 100644
+--- a/arch/m68k/include/asm/pci.h
++++ b/arch/m68k/include/asm/pci.h
+@@ -2,8 +2,6 @@
+ #ifndef _ASM_M68K_PCI_H
+ #define _ASM_M68K_PCI_H
+ 
+-#include <asm-generic/pci.h>
+-
+ #define	pcibios_assign_all_busses()	1
+ 
+ #define	PCIBIOS_MIN_IO		0x00000100
+diff --git a/arch/mips/include/asm/pci.h b/arch/mips/include/asm/pci.h
+index 9ffc8192adae..3fd6e22c108b 100644
+--- a/arch/mips/include/asm/pci.h
++++ b/arch/mips/include/asm/pci.h
+@@ -139,10 +139,4 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ /* Do platform specific device initialization at pci_enable_device() time */
+ extern int pcibios_plat_dev_init(struct pci_dev *dev);
+ 
+-/* Chances are this interrupt is wired PC-style ...  */
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return channel ? 15 : 14;
+-}
+-
+ #endif /* _ASM_PCI_H */
+diff --git a/arch/parisc/include/asm/pci.h b/arch/parisc/include/asm/pci.h
+index f14465b84de4..127ed5021ae3 100644
+--- a/arch/parisc/include/asm/pci.h
++++ b/arch/parisc/include/asm/pci.h
+@@ -162,11 +162,6 @@ extern void pcibios_init_bridge(struct pci_dev *);
+ #define PCIBIOS_MIN_IO          0x10
+ #define PCIBIOS_MIN_MEM         0x1000 /* NBPG - but pci/setup-res.c dies */
+ 
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	return channel ? 15 : 14;
+-}
+-
+ #define HAVE_PCI_MMAP
+ #define ARCH_GENERIC_PCI_MMAP_RESOURCE
+ 
+diff --git a/arch/powerpc/include/asm/pci.h b/arch/powerpc/include/asm/pci.h
+index 915d6ee4b40a..f9da506751bb 100644
+--- a/arch/powerpc/include/asm/pci.h
++++ b/arch/powerpc/include/asm/pci.h
+@@ -39,7 +39,6 @@
+ #define pcibios_assign_all_busses() \
+ 	(pci_has_flag(PCI_REASSIGN_ALL_BUS))
+ 
+-#define HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+ static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
  {
- 	struct mm_struct *mm = &init_mm;
-diff --git a/arch/hexagon/kernel/smp.c b/arch/hexagon/kernel/smp.c
-index 619c56420aa0..4ba93e59370c 100644
---- a/arch/hexagon/kernel/smp.c
-+++ b/arch/hexagon/kernel/smp.c
-@@ -240,11 +240,6 @@ void arch_send_call_function_ipi_mask(const struct cpumask *mask)
- 	send_ipi(mask, IPI_CALL_FUNC);
+ 	if (ppc_md.pci_get_legacy_ide_irq)
+diff --git a/arch/riscv/include/asm/pci.h b/arch/riscv/include/asm/pci.h
+index 7fd52a30e605..a7b8f0d0df7f 100644
+--- a/arch/riscv/include/asm/pci.h
++++ b/arch/riscv/include/asm/pci.h
+@@ -23,12 +23,6 @@
+ extern int isa_dma_bridge_buggy;
+ 
+ #ifdef CONFIG_PCI
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
+-{
+-	/* no legacy IRQ on risc-v */
+-	return -ENODEV;
+-}
+-
+ static inline int pci_proc_domain(struct pci_bus *bus)
+ {
+ 	/* always show the domain in /proc */
+diff --git a/arch/s390/include/asm/pci.h b/arch/s390/include/asm/pci.h
+index fdb9745ee998..5889ddcbc374 100644
+--- a/arch/s390/include/asm/pci.h
++++ b/arch/s390/include/asm/pci.h
+@@ -6,7 +6,6 @@
+ #include <linux/mutex.h>
+ #include <linux/iommu.h>
+ #include <linux/pci_hotplug.h>
+-#include <asm-generic/pci.h>
+ #include <asm/pci_clp.h>
+ #include <asm/pci_debug.h>
+ #include <asm/sclp.h>
+diff --git a/arch/sh/include/asm/pci.h b/arch/sh/include/asm/pci.h
+index ad22e88c6657..54c30126ea17 100644
+--- a/arch/sh/include/asm/pci.h
++++ b/arch/sh/include/asm/pci.h
+@@ -88,10 +88,4 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ 	return hose->need_domain_info;
  }
  
--int setup_profiling_timer(unsigned int multiplier)
+-/* Chances are this interrupt is wired PC-style ...  */
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	return channel ? 15 : 14;
 -}
 -
- void smp_start_cpus(void)
- {
- 	int i;
-diff --git a/arch/ia64/kernel/smp.c b/arch/ia64/kernel/smp.c
-index 7b7b64eb3129..e2cc59db86bc 100644
---- a/arch/ia64/kernel/smp.c
-+++ b/arch/ia64/kernel/smp.c
-@@ -333,9 +333,3 @@ smp_send_stop (void)
- {
- 	send_IPI_allbutself(IPI_CPU_STOP);
- }
--
--int
--setup_profiling_timer (unsigned int multiplier)
--{
--	return -EINVAL;
--}
-diff --git a/arch/openrisc/kernel/smp.c b/arch/openrisc/kernel/smp.c
-index 27041db2c8b0..e1419095a6f0 100644
---- a/arch/openrisc/kernel/smp.c
-+++ b/arch/openrisc/kernel/smp.c
-@@ -197,12 +197,6 @@ void smp_send_stop(void)
- 	smp_call_function(stop_this_cpu, NULL, 0);
- }
+ #endif /* __ASM_SH_PCI_H */
+diff --git a/arch/sparc/include/asm/pci.h b/arch/sparc/include/asm/pci.h
+index 4deddf430e5d..0c58f65bd172 100644
+--- a/arch/sparc/include/asm/pci.h
++++ b/arch/sparc/include/asm/pci.h
+@@ -40,13 +40,4 @@ static inline int pci_proc_domain(struct pci_bus *bus)
+ #define get_pci_unmapped_area get_fb_unmapped_area
+ #endif /* CONFIG_SPARC64 */
  
--/* not supported, yet */
--int setup_profiling_timer(unsigned int multiplier)
+-#if defined(CONFIG_SPARC64) || defined(CONFIG_LEON_PCI)
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	return PCI_IRQ_NONE;
 -}
+-#else
+-#include <asm-generic/pci.h>
+-#endif
 -
- void __init set_smp_cross_call(void (*fn)(const struct cpumask *, unsigned int))
- {
- 	smp_cross_call = fn;
-diff --git a/arch/parisc/kernel/smp.c b/arch/parisc/kernel/smp.c
-index 24d0744c3b3a..7dbd92cafae3 100644
---- a/arch/parisc/kernel/smp.c
-+++ b/arch/parisc/kernel/smp.c
-@@ -513,10 +513,3 @@ void __cpu_die(unsigned int cpu)
+ #endif /* ___ASM_SPARC_PCI_H */
+diff --git a/arch/um/include/asm/pci.h b/arch/um/include/asm/pci.h
+index da13fd5519ef..26b96c02ef61 100644
+--- a/arch/um/include/asm/pci.h
++++ b/arch/um/include/asm/pci.h
+@@ -11,14 +11,6 @@
  
- 	pdc_cpu_rendezvous_unlock();
- }
--
--#ifdef CONFIG_PROC_FS
--int setup_profiling_timer(unsigned int multiplier)
+ extern int isa_dma_bridge_buggy;
+ 
+-#ifdef CONFIG_PCI
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return -EINVAL;
+-	/* no legacy IRQs */
+-	return -ENODEV;
 -}
 -#endif
-diff --git a/arch/powerpc/kernel/smp.c b/arch/powerpc/kernel/smp.c
-index bcefab484ea6..c037c26540dd 100644
---- a/arch/powerpc/kernel/smp.c
-+++ b/arch/powerpc/kernel/smp.c
-@@ -1674,13 +1674,6 @@ void start_secondary(void *unused)
- 	BUG();
- }
+-
+ #ifdef CONFIG_PCI_DOMAINS
+ static inline int pci_proc_domain(struct pci_bus *bus)
+ {
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index f3fd5928bcbb..736793d65bcb 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -105,9 +105,6 @@ static inline void early_quirks(void) { }
  
--#ifdef CONFIG_PROFILING
--int setup_profiling_timer(unsigned int multiplier)
+ extern void pci_iommu_alloc(void);
+ 
+-/* generic pci stuff */
+-#include <asm-generic/pci.h>
+-
+ #ifdef CONFIG_NUMA
+ /* Returns the node based on pci bus */
+ static inline int __pcibus_to_node(const struct pci_bus *bus)
+diff --git a/arch/xtensa/include/asm/pci.h b/arch/xtensa/include/asm/pci.h
+index 8e2b48a268db..b56de9635b6c 100644
+--- a/arch/xtensa/include/asm/pci.h
++++ b/arch/xtensa/include/asm/pci.h
+@@ -43,7 +43,4 @@
+ #define ARCH_GENERIC_PCI_MMAP_RESOURCE	1
+ #define arch_can_pci_mmap_io()		1
+ 
+-/* Generic PCI */
+-#include <asm-generic/pci.h>
+-
+ #endif	/* _XTENSA_PCI_H */
+diff --git a/drivers/pnp/resource.c b/drivers/pnp/resource.c
+index 2fa0f7d55259..8f7695624c8c 100644
+--- a/drivers/pnp/resource.c
++++ b/drivers/pnp/resource.c
+@@ -17,6 +17,7 @@
+ #include <asm/dma.h>
+ #include <asm/irq.h>
+ #include <linux/pci.h>
++#include <linux/libata.h>
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ 
+@@ -322,8 +323,8 @@ static int pci_dev_uses_irq(struct pnp_dev *pnp, struct pci_dev *pci,
+ 		 * treat the compatibility IRQs as busy.
+ 		 */
+ 		if ((progif & 0x5) != 0x5)
+-			if (pci_get_legacy_ide_irq(pci, 0) == irq ||
+-			    pci_get_legacy_ide_irq(pci, 1) == irq) {
++			if (ATA_PRIMARY_IRQ(pci) == irq ||
++			    ATA_SECONDARY_IRQ(pci) == irq) {
+ 				pnp_dbg(&pnp->dev, "  legacy IDE device %s "
+ 					"using irq %d\n", pci_name(pci), irq);
+ 				return 1;
+diff --git a/include/asm-generic/pci.h b/include/asm-generic/pci.h
+deleted file mode 100644
+index 6bb3cd3d695a..000000000000
+--- a/include/asm-generic/pci.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-/*
+- * linux/include/asm-generic/pci.h
+- *
+- *  Copyright (C) 2003 Russell King
+- */
+-#ifndef _ASM_GENERIC_PCI_H
+-#define _ASM_GENERIC_PCI_H
+-
+-#ifndef HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ
+-static inline int pci_get_legacy_ide_irq(struct pci_dev *dev, int channel)
 -{
--	return 0;
+-	return channel ? 15 : 14;
 -}
--#endif
+-#endif /* HAVE_ARCH_PCI_GET_LEGACY_IDE_IRQ */
 -
- static void __init fixup_topology(void)
- {
- 	int i;
-diff --git a/arch/riscv/kernel/smp.c b/arch/riscv/kernel/smp.c
-index b5d30ea92292..441d0ceb80ad 100644
---- a/arch/riscv/kernel/smp.c
-+++ b/arch/riscv/kernel/smp.c
-@@ -64,12 +64,6 @@ bool arch_match_cpu_phys_id(int cpu, u64 phys_id)
- 	return phys_id == cpuid_to_hartid_map(cpu);
- }
- 
--/* Unsupported */
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- static void ipi_stop(void)
- {
- 	set_cpu_online(smp_processor_id(), false);
-diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-index 22b148e5a5f8..ad8094d955eb 100644
---- a/arch/sparc/kernel/smp_32.c
-+++ b/arch/sparc/kernel/smp_32.c
-@@ -174,11 +174,6 @@ void smp_call_function_interrupt(void)
- 	irq_exit();
- }
- 
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- void __init smp_prepare_cpus(unsigned int max_cpus)
- {
- 	int i, cpuid, extra;
-diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-index a1f78e9ddaf3..a55295d1b924 100644
---- a/arch/sparc/kernel/smp_64.c
-+++ b/arch/sparc/kernel/smp_64.c
-@@ -1186,12 +1186,6 @@ void __irq_entry smp_penguin_jailcell(int irq, struct pt_regs *regs)
- 	preempt_enable();
- }
- 
--/* /proc/profile writes can call this, don't __init it please. */
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- void __init smp_prepare_cpus(unsigned int max_cpus)
- {
- }
-diff --git a/arch/x86/include/asm/apic.h b/arch/x86/include/asm/apic.h
-index bd8ae0a7010a..3415321c8240 100644
---- a/arch/x86/include/asm/apic.h
-+++ b/arch/x86/include/asm/apic.h
-@@ -98,8 +98,6 @@ static inline bool apic_from_smp_config(void)
- #include <asm/paravirt.h>
- #endif
- 
--extern int setup_profiling_timer(unsigned int);
--
- static inline void native_apic_mem_write(u32 reg, u32 v)
- {
- 	volatile u32 *addr = (volatile u32 *)(APIC_BASE + reg);
-diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-index 189d3a5e471a..df764ceac2c8 100644
---- a/arch/x86/kernel/apic/apic.c
-+++ b/arch/x86/kernel/apic/apic.c
-@@ -1115,11 +1115,6 @@ DEFINE_IDTENTRY_SYSVEC(sysvec_apic_timer_interrupt)
- 	set_irq_regs(old_regs);
- }
- 
--int setup_profiling_timer(unsigned int multiplier)
--{
--	return -EINVAL;
--}
--
- /*
-  * Local APIC start and shutdown
-  */
-diff --git a/kernel/profile.c b/kernel/profile.c
-index 37640a0bd8a3..244aa255c488 100644
---- a/kernel/profile.c
-+++ b/kernel/profile.c
-@@ -418,6 +418,12 @@ read_profile(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- 	return read;
- }
- 
-+/* default is to not implement this call */
-+int __weak setup_profiling_timer(unsigned mult)
-+{
-+	return -EINVAL;
-+}
-+
- /*
-  * Writing to /proc/profile resets the counters
-  *
-@@ -428,8 +434,6 @@ static ssize_t write_profile(struct file *file, const char __user *buf,
- 			     size_t count, loff_t *ppos)
- {
- #ifdef CONFIG_SMP
--	extern int setup_profiling_timer(unsigned int multiplier);
--
- 	if (count == sizeof(int)) {
- 		unsigned int multiplier;
- 
+-#endif /* _ASM_GENERIC_PCI_H */
 -- 
-2.35.1
+2.36.1
 
