@@ -2,41 +2,42 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A3964C19F2B
-	for <sparclinux@archiver.kernel.org>; Thu, 28 Jul 2022 17:21:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33EB0C19F2C
+	for <sparclinux@archiver.kernel.org>; Fri, 29 Jul 2022 10:25:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232223AbiG1RVC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 28 Jul 2022 13:21:02 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60408 "EHLO
+        id S236010AbiG2KZ6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 29 Jul 2022 06:25:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51622 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbiG1RU5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 28 Jul 2022 13:20:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 086A55B79D;
-        Thu, 28 Jul 2022 10:20:55 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9229461D0F;
-        Thu, 28 Jul 2022 17:20:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E75B3C433D7;
-        Thu, 28 Jul 2022 17:20:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1659028854;
-        bh=3juGR+P+/PoNu1lEhZFgztJ6A9LmEO7Lb+rh9Y4NDdw=;
-        h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
-        b=Ajcg/8L4izAZKa2mPe4A6mwD2xhNPSF6zD8jqYYYRNqfhpnanJCwPLkeDTtzMAAXY
-         M7oUXZ6CZuH31IjVxAqM2gRnsWZITNKb55wlZ5JnD/DUCRDg3UdeAIrzeX0lNHjHAR
-         wzgi3C8wJdIpBMqt7sc3STjd7C0uykM6U86/xrKMdBkv3A6gpbtO4hXjJ5l+TjHaLy
-         e4DKSoCgdb1tzebEFm0O9AJWb9AqCOKWaWW3sVozalRIPGLkf5E1tw9aRE4zu/+akq
-         X3FcajNE+AfhyfG4rrsgNdfZt/xVPEzBnwFe9tFjDbwwql6CH8YXjM30w46DcxQYCb
-         8dZ4kaIUmww0Q==
-Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
-        id 9739D5C0B3E; Thu, 28 Jul 2022 10:20:53 -0700 (PDT)
-Date:   Thu, 28 Jul 2022 10:20:53 -0700
-From:   "Paul E. McKenney" <paulmck@kernel.org>
-To:     Michel Lespinasse <michel@lespinasse.org>
-Cc:     Peter Zijlstra <peterz@infradead.org>, rth@twiddle.net,
+        with ESMTP id S235867AbiG2KZh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 29 Jul 2022 06:25:37 -0400
+Received: from server.lespinasse.org (server.lespinasse.org [63.205.204.226])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7A9645592;
+        Fri, 29 Jul 2022 03:25:14 -0700 (PDT)
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+ d=lespinasse.org; i=@lespinasse.org; q=dns/txt; s=srv-79-ed;
+ t=1659090298; h=date : from : to : cc : subject : message-id :
+ references : mime-version : content-type : in-reply-to : from;
+ bh=a/XS8F6DJ0UncG2aNUIYHtQzj6v+HgUrBJ1uNti4iPo=;
+ b=z07fAc3s82E8eDjOmWqCiQ8bXbav83TEx3/Re97NlSxxiCQo28PSqhP5HNIn+14JJNint
+ RyzSM6g4CHMlWDtCg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lespinasse.org;
+ i=@lespinasse.org; q=dns/txt; s=srv-79-rsa; t=1659090298; h=date :
+ from : to : cc : subject : message-id : references : mime-version :
+ content-type : in-reply-to : from;
+ bh=a/XS8F6DJ0UncG2aNUIYHtQzj6v+HgUrBJ1uNti4iPo=;
+ b=I1XE4PG3J6WdBxHBHPO8gz729jU9NwxFGePQBg2SGh03K5MaVR21Or0F1Ed2fJkedXwqn
+ 73ZEg9HBg/VtqO2lKkpr4whjhup8i+ouV+MRlyl12YqkOIbBlxYxGShIJKbmEieaOBGjn22
+ ZXDWImDNaRHLW7cNGx8eSPR5smKlm5X/Vadfwpk61igIRp4T13wJ8QuAfpZsGCdgjSHCAt3
+ xICHC0gdRmgeZ4VsHAxcqkS8UkYtj/62Fy/MANXsihH037ZiFlqRtJ1IH4+gKYbMZ+SX1Jj
+ 7eSPi+obGVy9GT10OfxqZ1++H06soXF8UFwZNT5FhqZM4eGuNqJqYx1H9gbg==
+Received: by server.lespinasse.org (Postfix, from userid 1000)
+        id 43C591608FB; Fri, 29 Jul 2022 03:24:58 -0700 (PDT)
+Date:   Fri, 29 Jul 2022 03:24:58 -0700
+From:   Michel Lespinasse <michel@lespinasse.org>
+To:     "Paul E. McKenney" <paulmck@kernel.org>
+Cc:     Michel Lespinasse <michel@lespinasse.org>,
+        Peter Zijlstra <peterz@infradead.org>, rth@twiddle.net,
         ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@kernel.org,
         linux@armlinux.org.uk, ulli.kroll@googlemail.com,
         linus.walleij@linaro.org, shawnguo@kernel.org,
@@ -95,139 +96,102 @@ Cc:     Peter Zijlstra <peterz@infradead.org>, rth@twiddle.net,
         linux-tegra@vger.kernel.org, linux-arch@vger.kernel.org,
         rcu@vger.kernel.org, rh0@fb.com
 Subject: Re: [PATCH 04/36] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IRQ_ENABLE
-Message-ID: <20220728172053.GA3607379@paulmck-ThinkPad-P17-Gen-1>
-Reply-To: paulmck@kernel.org
+Message-ID: <20220729102458.GA1695@lespinasse.org>
 References: <20220608142723.103523089@infradead.org>
  <20220608144516.172460444@infradead.org>
  <20220725194306.GA14746@lespinasse.org>
+ <20220728172053.GA3607379@paulmck-ThinkPad-P17-Gen-1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20220725194306.GA14746@lespinasse.org>
+In-Reply-To: <20220728172053.GA3607379@paulmck-ThinkPad-P17-Gen-1>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jul 25, 2022 at 12:43:06PM -0700, Michel Lespinasse wrote:
-> On Wed, Jun 08, 2022 at 04:27:27PM +0200, Peter Zijlstra wrote:
-> > Commit c227233ad64c ("intel_idle: enable interrupts before C1 on
-> > Xeons") wrecked intel_idle in two ways:
+On Thu, Jul 28, 2022 at 10:20:53AM -0700, Paul E. McKenney wrote:
+> On Mon, Jul 25, 2022 at 12:43:06PM -0700, Michel Lespinasse wrote:
+> > On Wed, Jun 08, 2022 at 04:27:27PM +0200, Peter Zijlstra wrote:
+> > > Commit c227233ad64c ("intel_idle: enable interrupts before C1 on
+> > > Xeons") wrecked intel_idle in two ways:
+> > > 
+> > >  - must not have tracing in idle functions
+> > >  - must return with IRQs disabled
+> > > 
+> > > Additionally, it added a branch for no good reason.
+> > > 
+> > > Fixes: c227233ad64c ("intel_idle: enable interrupts before C1 on Xeons")
+> > > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 > > 
-> >  - must not have tracing in idle functions
-> >  - must return with IRQs disabled
+> > After this change was introduced, I am seeing "WARNING: suspicious RCU
+> > usage" when booting a kernel with debug options compiled in. Please
+> > see the attached dmesg output. The issue starts with commit 32d4fd5751ea
+> > and is still present in v5.19-rc8.
 > > 
-> > Additionally, it added a branch for no good reason.
-> > 
-> > Fixes: c227233ad64c ("intel_idle: enable interrupts before C1 on Xeons")
-> > Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+> > I'm not sure, is this too late to fix or revert in v5.19 final ?
 > 
-> After this change was introduced, I am seeing "WARNING: suspicious RCU
-> usage" when booting a kernel with debug options compiled in. Please
-> see the attached dmesg output. The issue starts with commit 32d4fd5751ea
-> and is still present in v5.19-rc8.
+> I finally got a chance to take a quick look at this.
 > 
-> I'm not sure, is this too late to fix or revert in v5.19 final ?
+> The rcu_eqs_exit() function is making a lockdep complaint about
+> being invoked with interrupts enabled.  This function is called from
+> rcu_idle_exit(), which is an expected code path from cpuidle_enter_state()
+> via its call to rcu_idle_exit().  Except that rcu_idle_exit() disables
+> interrupts before invoking rcu_eqs_exit().
+> 
+> The only other call to rcu_idle_exit() does not disable interrupts,
+> but it is via rcu_user_exit(), which would be a very odd choice for
+> cpuidle_enter_state().
+> 
+> It seems unlikely, but it might be that it is the use of local_irq_save()
+> instead of raw_local_irq_save() within rcu_idle_exit() that is causing
+> the trouble.  If this is the case, then the commit shown below would
+> help.  Note that this commit removes the warning from lockdep, so it
+> is necessary to build the kernel with CONFIG_RCU_EQS_DEBUG=y to enable
+> equivalent debugging.
+> 
+> Could you please try your test with the -rce commit shown below applied?
 
-I finally got a chance to take a quick look at this.
+Thanks for looking into it.
 
-The rcu_eqs_exit() function is making a lockdep complaint about
-being invoked with interrupts enabled.  This function is called from
-rcu_idle_exit(), which is an expected code path from cpuidle_enter_state()
-via its call to rcu_idle_exit().  Except that rcu_idle_exit() disables
-interrupts before invoking rcu_eqs_exit().
+After checking out Peter's commit 32d4fd5751ea,
+cherry picking your commit ed4ae5eff4b3,
+and setting CONFIG_RCU_EQS_DEBUG=y in addition of my usual debug config,
+I am now seeing this a few seconds into the boot:
 
-The only other call to rcu_idle_exit() does not disable interrupts,
-but it is via rcu_user_exit(), which would be a very odd choice for
-cpuidle_enter_state().
-
-It seems unlikely, but it might be that it is the use of local_irq_save()
-instead of raw_local_irq_save() within rcu_idle_exit() that is causing
-the trouble.  If this is the case, then the commit shown below would
-help.  Note that this commit removes the warning from lockdep, so it
-is necessary to build the kernel with CONFIG_RCU_EQS_DEBUG=y to enable
-equivalent debugging.
-
-Could you please try your test with the -rce commit shown below applied?
-
-							Thanx, Paul
-
-------------------------------------------------------------------------
-
-commit ed4ae5eff4b38797607cbdd80da394149110fb37
-Author: Paul E. McKenney <paulmck@kernel.org>
-Date:   Tue May 17 21:00:04 2022 -0700
-
-    rcu: Apply noinstr to rcu_idle_enter() and rcu_idle_exit()
-    
-    This commit applies the "noinstr" tag to the rcu_idle_enter() and
-    rcu_idle_exit() functions, which are invoked from portions of the idle
-    loop that cannot be instrumented.  These tags require reworking the
-    rcu_eqs_enter() and rcu_eqs_exit() functions that these two functions
-    invoke in order to cause them to use normal assertions rather than
-    lockdep.  In addition, within rcu_idle_exit(), the raw versions of
-    local_irq_save() and local_irq_restore() are used, again to avoid issues
-    with lockdep in uninstrumented code.
-    
-    This patch is based in part on an earlier patch by Jiri Olsa, discussions
-    with Peter Zijlstra and Frederic Weisbecker, earlier changes by Thomas
-    Gleixner, and off-list discussions with Yonghong Song.
-    
-    Link: https://lore.kernel.org/lkml/20220515203653.4039075-1-jolsa@kernel.org/
-    Reported-by: Jiri Olsa <jolsa@kernel.org>
-    Reported-by: Alexei Starovoitov <ast@kernel.org>
-    Reported-by: Andrii Nakryiko <andrii@kernel.org>
-    Signed-off-by: Paul E. McKenney <paulmck@kernel.org>
-    Reviewed-by: Yonghong Song <yhs@fb.com>
-
-diff --git a/kernel/rcu/tree.c b/kernel/rcu/tree.c
-index c25ba442044a6..9a5edab5558c9 100644
---- a/kernel/rcu/tree.c
-+++ b/kernel/rcu/tree.c
-@@ -631,8 +631,8 @@ static noinstr void rcu_eqs_enter(bool user)
- 		return;
- 	}
- 
--	lockdep_assert_irqs_disabled();
- 	instrumentation_begin();
-+	lockdep_assert_irqs_disabled();
- 	trace_rcu_dyntick(TPS("Start"), rdp->dynticks_nesting, 0, atomic_read(&rdp->dynticks));
- 	WARN_ON_ONCE(IS_ENABLED(CONFIG_RCU_EQS_DEBUG) && !user && !is_idle_task(current));
- 	rcu_preempt_deferred_qs(current);
-@@ -659,9 +659,9 @@ static noinstr void rcu_eqs_enter(bool user)
-  * If you add or remove a call to rcu_idle_enter(), be sure to test with
-  * CONFIG_RCU_EQS_DEBUG=y.
-  */
--void rcu_idle_enter(void)
-+void noinstr rcu_idle_enter(void)
- {
--	lockdep_assert_irqs_disabled();
-+	WARN_ON_ONCE(IS_ENABLED(CONFIG_RCU_EQS_DEBUG) && !raw_irqs_disabled());
- 	rcu_eqs_enter(false);
- }
- EXPORT_SYMBOL_GPL(rcu_idle_enter);
-@@ -861,7 +861,7 @@ static void noinstr rcu_eqs_exit(bool user)
- 	struct rcu_data *rdp;
- 	long oldval;
- 
--	lockdep_assert_irqs_disabled();
-+	WARN_ON_ONCE(IS_ENABLED(CONFIG_RCU_EQS_DEBUG) && !raw_irqs_disabled());
- 	rdp = this_cpu_ptr(&rcu_data);
- 	oldval = rdp->dynticks_nesting;
- 	WARN_ON_ONCE(IS_ENABLED(CONFIG_RCU_EQS_DEBUG) && oldval < 0);
-@@ -896,13 +896,13 @@ static void noinstr rcu_eqs_exit(bool user)
-  * If you add or remove a call to rcu_idle_exit(), be sure to test with
-  * CONFIG_RCU_EQS_DEBUG=y.
-  */
--void rcu_idle_exit(void)
-+void noinstr rcu_idle_exit(void)
- {
- 	unsigned long flags;
- 
--	local_irq_save(flags);
-+	raw_local_irq_save(flags);
- 	rcu_eqs_exit(false);
--	local_irq_restore(flags);
-+	raw_local_irq_restore(flags);
- }
- EXPORT_SYMBOL_GPL(rcu_idle_exit);
- 
+[    3.010650] ------------[ cut here ]------------
+[    3.010651] WARNING: CPU: 0 PID: 0 at kernel/sched/clock.c:397 sched_clock_tick+0x27/0x60
+[    3.010657] Modules linked in:
+[    3.010660] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.19.0-rc1-test-00005-g1be22fea0611 #1
+[    3.010662] Hardware name: LENOVO 30BFS44D00/1036, BIOS S03KT51A 01/17/2022
+[    3.010663] RIP: 0010:sched_clock_tick+0x27/0x60
+[    3.010665] Code: 1f 40 00 53 eb 02 5b c3 66 90 8b 05 2f c3 40 01 85 c0 74 18 65 8b 05 60 88 8f 4e 85 c0 75 0d 65 8b 05 a9 85 8f 4e 85 c0 74 02 <0f> 0b e8 e2 6c 89 00 48 c7 c3 40 d5 02 00
+ 89 c0 48 03 1c c5 c0 98
+[    3.010667] RSP: 0000:ffffffffb2803e28 EFLAGS: 00010002
+[    3.010670] RAX: 0000000000000001 RBX: ffffc8ce7fa07060 RCX: 0000000000000001
+[    3.010671] RDX: 0000000000000000 RSI: ffffffffb268dd21 RDI: ffffffffb269ab13
+[    3.010673] RBP: 0000000000000001 R08: ffffffffffc300d5 R09: 000000000002be80
+[    3.010674] R10: 000003625b53183a R11: ffffa012b802b7a4 R12: ffffffffb2aa9e80
+[    3.010675] R13: ffffffffb2aa9e00 R14: 0000000000000001 R15: 0000000000000000
+[    3.010677] FS:  0000000000000000(0000) GS:ffffa012b8000000(0000) knlGS:0000000000000000
+[    3.010678] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[    3.010680] CR2: ffffa012f81ff000 CR3: 0000000c99612001 CR4: 00000000003706f0
+[    3.010681] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[    3.010682] DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+[    3.010683] Call Trace:
+[    3.010685]  <TASK>
+[    3.010688]  cpuidle_enter_state+0xb7/0x4b0
+[    3.010694]  cpuidle_enter+0x29/0x40
+[    3.010697]  do_idle+0x1d4/0x210
+[    3.010702]  cpu_startup_entry+0x19/0x20
+[    3.010704]  rest_init+0x117/0x1a0
+[    3.010708]  arch_call_rest_init+0xa/0x10
+[    3.010711]  start_kernel+0x6d8/0x6ff
+[    3.010716]  secondary_startup_64_no_verify+0xce/0xdb
+[    3.010728]  </TASK>
+[    3.010729] irq event stamp: 44179
+[    3.010730] hardirqs last  enabled at (44179): [<ffffffffb2000ccb>] asm_sysvec_apic_timer_interrupt+0x1b/0x20
+[    3.010734] hardirqs last disabled at (44177): [<ffffffffb22003f0>] __do_softirq+0x3f0/0x498
+[    3.010736] softirqs last  enabled at (44178): [<ffffffffb2200332>] __do_softirq+0x332/0x498
+[    3.010738] softirqs last disabled at (44171): [<ffffffffb16c760b>] irq_exit_rcu+0xab/0xf0
+[    3.010741] ---[ end trace 0000000000000000 ]---
