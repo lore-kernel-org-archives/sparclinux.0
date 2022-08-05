@@ -2,37 +2,32 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF328C19F2A
-	for <sparclinux@archiver.kernel.org>; Thu,  4 Aug 2022 17:37:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BECEC3F6B0
+	for <sparclinux@archiver.kernel.org>; Fri,  5 Aug 2022 19:49:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233463AbiHDRh2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 4 Aug 2022 13:37:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54378 "EHLO
+        id S230437AbiHETtk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 5 Aug 2022 15:49:40 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239019AbiHDRh2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 4 Aug 2022 13:37:28 -0400
-X-Greylist: delayed 457 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 04 Aug 2022 10:37:26 PDT
-Received: from fervent-hopper.141-95-103-121.plesk.page (ns3156755.ip-51-91-62.eu [51.91.62.166])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 61CAFBF56
-        for <sparclinux@vger.kernel.org>; Thu,  4 Aug 2022 10:37:26 -0700 (PDT)
-Received: by fervent-hopper.141-95-103-121.plesk.page (Postfix, from userid 10001)
-        id 98A322145C9E3; Thu,  4 Aug 2022 17:29:47 +0000 (UTC)
+        with ESMTP id S229697AbiHETtk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 5 Aug 2022 15:49:40 -0400
+X-Greylist: delayed 528 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 05 Aug 2022 12:49:39 PDT
+Received: from kevin.daysix.co (unknown [46.101.18.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 9ECF0167E4
+        for <sparclinux@vger.kernel.org>; Fri,  5 Aug 2022 12:49:39 -0700 (PDT)
+Received: by kevin.daysix.co (Postfix, from userid 1015)
+        id 90B88148FCD; Fri,  5 Aug 2022 15:40:20 -0400 (EDT)
 To:     sparclinux@vger.kernel.org
-Subject: "A FINANCIAL CRISIS CAN MAKE YOU VERY RICH!"
-Date:   Thu, 4 Aug 2022 17:29:47 +0000
-From:   WordPress <wordpress@froozzoo.nl>
-Reply-To: info@froozzoo.nl
-Message-ID: <Kjw6Gy717Njy017UPEtKsW5UmLaMv3GIaNaJFQyihvY@froozzoo.nl>
-X-Mailer: PHPMailer 6.5.3 (https://github.com/PHPMailer/PHPMailer)
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: 24-7 Scotland Contact Form: FINANCIAL CRISIS CAN MAKE YOU RICH!
+Reply-To: sparclinux@vger.kernel.org
+x-mailgun-native-send: true
+From:   sparclinux@vger.kernel.org
+Message-Id: <20220805194020.90B88148FCD@kevin.daysix.co>
+Date:   Fri,  5 Aug 2022 15:40:20 -0400 (EDT)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Berichtinhoud:
-THE WORLD FINANCIAL CRISIS CAN MAKE YOU RICH! https://telegra.ph/Cryptocurrency-makes-people-millionaires-at-15-people-per-hour---Page-516234-08-02
-
--- 
-Deze e-mail is verzonden vanuit het contactformulier op  https://froozzoo.nl
-
+From: Charlesshamb
+Reply-To: sparclinux@vger.kernel.org
+Message: CRYPTOCURRENCY WILL MAKE YOU A BILLIONAIRE https://telegra.ph/Cryptocurrency-makes-people-millionaires-at-15-people-per-hour---Page-776275-08-02
