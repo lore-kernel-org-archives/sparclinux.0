@@ -2,97 +2,107 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01170C32774
-	for <sparclinux@archiver.kernel.org>; Wed, 17 Aug 2022 06:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59B4EC25B0E
+	for <sparclinux@archiver.kernel.org>; Thu, 18 Aug 2022 21:00:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229687AbiHQGhQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 17 Aug 2022 02:37:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48010 "EHLO
+        id S1346164AbiHRU77 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 18 Aug 2022 16:59:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35228 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229689AbiHQGhO (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 17 Aug 2022 02:37:14 -0400
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA46E792F2;
-        Tue, 16 Aug 2022 23:37:13 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4M6ywr2Fflz4x3w;
-        Wed, 17 Aug 2022 16:36:59 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-        s=201909; t=1660718232;
-        bh=5lvMCowArwqyA9jSE0Pt5Ze40kYbuyRJPhxadHGIwKI=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=V5KRJdowJmJQRJnS7vKpdn3ZRXD54gk+olJ2P9NPfjmi7kMUASVQ2UXCdDQyrJ2l4
-         iCeFUua0EzB2yY0V/Z2I6yNQvrzfQPnJW1W5hxs27Vmfkv+k2UjzPlcs8lpiwhfw0s
-         rXEgyRzix9FElmstXFR+laxsxOuSRDwwsndo9tYxJEmh/ZBPqWv8VEb8et3MiTTUHN
-         x10j5udzl/wNVZu2HvSBSJ+AMCucLU+aGNDpNcmlYlO+lqwPbmi66mdTVNq3+seiCv
-         ALvJpMs3moLPQf8qL2I07gi/1+uKcpDS0UK8SnIKfeX71p9KEinWWl/Ojv6Y5XtZQh
-         hNA8dcj2NpgRA==
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     Zi Yan <zi.yan@sent.com>, linux-mm@kvack.org
-Cc:     Zi Yan <ziy@nvidia.com>, David Hildenbrand <david@redhat.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Yang Shi <shy828301@gmail.com>,
-        David Rientjes <rientjes@google.com>,
-        James Houghton <jthoughton@google.com>,
-        Mike Rapoport <rppt@kernel.org>, linux-kernel@vger.kernel.org,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Vineet Gupta <vgupta@synopsys.com>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Taichi Sugaya <sugaya.taichi@socionext.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Qin Jian <qinjian@cqplus1.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Guo Ren <guoren@kernel.org>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        "David S. Miller" <davem@davemloft.net>,
-        Chris Zankel <chris@zankel.net>, Arnd Bergmann <arnd@arndb.de>,
-        Ley Foon Tan <ley.foon.tan@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-oxnas@groups.io,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH] arch: mm: rename FORCE_MAX_ZONEORDER to
- ARCH_FORCE_MAX_ORDER
-In-Reply-To: <20220815143959.1511278-1-zi.yan@sent.com>
-References: <20220815143959.1511278-1-zi.yan@sent.com>
-Date:   Wed, 17 Aug 2022 16:36:57 +1000
-Message-ID: <87tu6bv0ja.fsf@mpe.ellerman.id.au>
+        with ESMTP id S1345790AbiHRU7y (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 18 Aug 2022 16:59:54 -0400
+Received: from mail.zeus03.de (www.zeus03.de [194.117.254.33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13D40D31CD
+        for <sparclinux@vger.kernel.org>; Thu, 18 Aug 2022 13:59:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=simple; d=sang-engineering.com; h=
+        from:to:cc:subject:date:message-id:mime-version
+        :content-transfer-encoding; s=k1; bh=mpSoCuPz2ZtnisZ/YJXMUy60MhA
+        yO9zqq9P2RSGFMKE=; b=u8Ci07lsJ9LAfS+sVAywa+YDdjdLQVXYq1uOroL32+W
+        4OzOKSrQm0XrksjXtibZaVIpS/MvoxyisyV4gCJVAVF5ujUW7o01cZUzSG4LaWMV
+        5uaRY+3SgupxONYWPHFr8M3xXpk0vwbSw8SHzVzn4VSSIeeGlfTod55xNG2k9cU8
+        =
+Received: (qmail 3959252 invoked from network); 18 Aug 2022 22:59:51 +0200
+Received: by mail.zeus03.de with ESMTPSA (TLS_AES_256_GCM_SHA384 encrypted, authenticated); 18 Aug 2022 22:59:51 +0200
+X-UD-Smtp-Session: l3s3148p1@hs8wQ4rmddYucref
+From:   Wolfram Sang <wsa+renesas@sang-engineering.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Subject: [PATCH] sparc: move from strlcpy with unused retval to strscpy
+Date:   Thu, 18 Aug 2022 22:59:50 +0200
+Message-Id: <20220818205950.6408-1-wsa+renesas@sang-engineering.com>
+X-Mailer: git-send-email 2.35.1
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Zi Yan <zi.yan@sent.com> writes:
-> From: Zi Yan <ziy@nvidia.com>
->
-> This Kconfig option is used by individual arch to set its desired
-> MAX_ORDER. Rename it to reflect its actual use.
->
-> Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-> Signed-off-by: Zi Yan <ziy@nvidia.com>
-...
->  arch/powerpc/Kconfig                         | 2 +-
->  arch/powerpc/configs/85xx/ge_imp3a_defconfig | 2 +-
->  arch/powerpc/configs/fsl-emb-nonhw.config    | 2 +-
+Follow the advice of the below link and prefer 'strscpy' in this
+subsystem. Conversion is 1:1 because the return value is not used.
+Generated by a coccinelle script.
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+---
+ arch/sparc/kernel/ioport.c   | 2 +-
+ arch/sparc/kernel/setup_32.c | 2 +-
+ arch/sparc/kernel/setup_64.c | 2 +-
+ arch/sparc/prom/bootstr_32.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-cheers
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 4e4f3d3263e4..3ed0f741719c 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -191,7 +191,7 @@ static void __iomem *_sparc_alloc_io(unsigned int busno, unsigned long phys,
+ 		tack += sizeof (struct resource);
+ 	}
+ 
+-	strlcpy(tack, name, XNMLN+1);
++	strscpy(tack, name, XNMLN + 1);
+ 	res->name = tack;
+ 
+ 	va = _sparc_ioremap(res, busno, phys, size);
+diff --git a/arch/sparc/kernel/setup_32.c b/arch/sparc/kernel/setup_32.c
+index c8e0dd99f370..ace0e9adfd77 100644
+--- a/arch/sparc/kernel/setup_32.c
++++ b/arch/sparc/kernel/setup_32.c
+@@ -302,7 +302,7 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	/* Initialize PROM console and command line. */
+ 	*cmdline_p = prom_getbootargs();
+-	strlcpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
++	strscpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
+ 	parse_early_param();
+ 
+ 	boot_flags_init(*cmdline_p);
+diff --git a/arch/sparc/kernel/setup_64.c b/arch/sparc/kernel/setup_64.c
+index 48abee4eee29..6546ca9d4d3f 100644
+--- a/arch/sparc/kernel/setup_64.c
++++ b/arch/sparc/kernel/setup_64.c
+@@ -636,7 +636,7 @@ void __init setup_arch(char **cmdline_p)
+ {
+ 	/* Initialize PROM console and command line. */
+ 	*cmdline_p = prom_getbootargs();
+-	strlcpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
++	strscpy(boot_command_line, *cmdline_p, COMMAND_LINE_SIZE);
+ 	parse_early_param();
+ 
+ 	boot_flags_init(*cmdline_p);
+diff --git a/arch/sparc/prom/bootstr_32.c b/arch/sparc/prom/bootstr_32.c
+index e3b731ff00f0..1c7cd258b0dc 100644
+--- a/arch/sparc/prom/bootstr_32.c
++++ b/arch/sparc/prom/bootstr_32.c
+@@ -52,7 +52,7 @@ prom_getbootargs(void)
+ 		 * V3 PROM cannot supply as with more than 128 bytes
+ 		 * of an argument. But a smart bootstrap loader can.
+ 		 */
+-		strlcpy(barg_buf, *romvec->pv_v2bootargs.bootargs, sizeof(barg_buf));
++		strscpy(barg_buf, *romvec->pv_v2bootargs.bootargs, sizeof(barg_buf));
+ 		break;
+ 	default:
+ 		break;
+-- 
+2.35.1
+
