@@ -2,64 +2,51 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08179C32774
-	for <sparclinux@archiver.kernel.org>; Fri, 19 Aug 2022 09:40:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2740C32792
+	for <sparclinux@archiver.kernel.org>; Fri, 19 Aug 2022 14:57:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348194AbiHSJkq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 19 Aug 2022 05:40:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60688 "EHLO
+        id S1349618AbiHSO5R (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 19 Aug 2022 10:57:17 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39458 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348182AbiHSJkj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 Aug 2022 05:40:39 -0400
-Received: from mail-qt1-f182.google.com (mail-qt1-f182.google.com [209.85.160.182])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4626DE3437;
-        Fri, 19 Aug 2022 02:40:38 -0700 (PDT)
-Received: by mail-qt1-f182.google.com with SMTP id c20so2922846qtw.8;
-        Fri, 19 Aug 2022 02:40:38 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=bRymBzdXlfqAZ/An0FhEAiaTJ5r51uvoXyU3bQ2b9Zs=;
-        b=ySmYlGfelih9ma1VmAxcSdV2j3otz/FeGG5EeWXdVElvpGUr9Hr42NdeIGCM5Tcd7L
-         Nsnxq8GX+VFhHvDcTeHdJIsOVBnt2SR1MrllbK8wk/qnYx+jAbIl/QnnzwjTaTnfbLVO
-         ZRCPnQm9QBXWNUruQZJS+Nh5LBzxJAhmYnpV9bFbMcKUfVgQNKWKuwyeSPfzlaxIDdtC
-         hQ0XQej6BoMUbWBJI03EciGnYb5Wp7+ewnTFbvh1lG1QJAUor7CKlSgkHP0MujDGryO1
-         +YnnIwzBq9TLR2OUXBIKQghV7sNoluUZxJyAyGnD0IQ5HqW8FnIMh7L+o0jSCyUq4+JP
-         LX+A==
-X-Gm-Message-State: ACgBeo1zpDHwPqi9BX+g5xSFYB0FGFC9QKzQVQ231LnVqforRD0RJB3k
-        c/qTv1P2kUgyN48XeJqeu1kRtX7EsbKpJDYA
-X-Google-Smtp-Source: AA6agR44Yq7CZ3A8CnKudOZR8WT3gwoEj9NlldcSXCTtHZrfcBV5KAE6N5v6b4h6GzecCIApIf8eFQ==
-X-Received: by 2002:a05:622a:1343:b0:343:5b7:ffb with SMTP id w3-20020a05622a134300b0034305b70ffbmr5857432qtk.91.1660902037252;
-        Fri, 19 Aug 2022 02:40:37 -0700 (PDT)
-Received: from mail-yw1-f169.google.com (mail-yw1-f169.google.com. [209.85.128.169])
-        by smtp.gmail.com with ESMTPSA id x26-20020a05620a0b5a00b006b5e1aeb777sm3284531qkg.43.2022.08.19.02.40.36
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 19 Aug 2022 02:40:36 -0700 (PDT)
-Received: by mail-yw1-f169.google.com with SMTP id 00721157ae682-32a09b909f6so108103527b3.0;
-        Fri, 19 Aug 2022 02:40:36 -0700 (PDT)
-X-Received: by 2002:a25:250b:0:b0:68f:425b:3ee0 with SMTP id
- l11-20020a25250b000000b0068f425b3ee0mr6898469ybl.89.1660902025045; Fri, 19
- Aug 2022 02:40:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220819014406.32266-1-wangkefeng.wang@huawei.com>
-In-Reply-To: <20220819014406.32266-1-wangkefeng.wang@huawei.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Fri, 19 Aug 2022 11:40:14 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdUd5Ww-mtpymykuahHWD+S62Z8qiBMVx8y4okouuzTCAg@mail.gmail.com>
-Message-ID: <CAMuHMdUd5Ww-mtpymykuahHWD+S62Z8qiBMVx8y4okouuzTCAg@mail.gmail.com>
-Subject: Re: [PATCH] kernel: exit: cleanup release_thread()
+        with ESMTP id S1349172AbiHSO5O (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 19 Aug 2022 10:57:14 -0400
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F342C64C4;
+        Fri, 19 Aug 2022 07:57:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=SYqd0jVvSqn0LYdbb0mNobM+NLD0i8990uNItjrpJW0=; b=p8X1gMssAFqz7Cj5E1IU3EN3xz
+        t/snbLEyJv1XAdu4J+MpAgDpW86NPkUeqqsmS64YxuYIDoz1/0nSwGnJ4A7MRHs6v4/DfY13yylRH
+        yTpJ3gDO1i4G6ew5SrDgljBdNE61ShqeAK0joibG/N9CQrD4C5DO+D+oHobsM0kWRo/T88yRl68DM
+        ivZpQK7KoicNncKbbL3cMwzclIbdo4NBfFt8WVkYbV7Yt9Ti+iBnKi0iAa3qakANtULKlnjVs0VPW
+        qMm4R7XYp2iFBesGctz7KWjgzPu53WYvs3CSQtaYwSCE20OErGTcffzJDbyUtNOmEl2QCsbCVzRVd
+        fg0lrl+g==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:33852)
+        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1oP3PW-0007vG-Sl; Fri, 19 Aug 2022 15:55:47 +0100
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1oP3PE-0007s8-Jr; Fri, 19 Aug 2022 15:55:28 +0100
+Date:   Fri, 19 Aug 2022 15:55:28 +0100
+From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
 To:     Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc:     Richard Henderson <richard.henderson@linaro.org>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Matt Turner <mattst88@gmail.com>,
         Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
         Brian Cain <bcain@quicinc.com>,
         Huacai Chen <chenhuacai@kernel.org>,
         WANG Xuerui <kernel@xen0n.name>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
         Michal Simek <monstr@monstr.eu>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Dinh Nguyen <dinguyen@kernel.org>,
@@ -86,75 +73,45 @@ Cc:     Richard Henderson <richard.henderson@linaro.org>,
         Johannes Berg <johannes@sipsolutions.net>,
         Thomas Gleixner <tglx@linutronix.de>,
         Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
         Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        alpha <linux-alpha@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        arcml <linux-snps-arc@lists.infradead.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        linux-csky@vger.kernel.org,
-        "open list:QUALCOMM HEXAGON..." <linux-hexagon@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        loongarch@lists.linux.dev,
-        linux-m68k <linux-m68k@lists.linux-m68k.org>,
-        "open list:BROADCOM NVRAM DRIVER" <linux-mips@vger.kernel.org>,
-        Openrisc <openrisc@lists.librecores.org>,
-        Parisc List <linux-parisc@vger.kernel.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        linux-um <linux-um@lists.infradead.org>,
-        "open list:TENSILICA XTENSA PORT (xtensa)" 
-        <linux-xtensa@linux-xtensa.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+        Max Filippov <jcmvbkbc@gmail.com>, linux-alpha@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        akpm@linux-foundation.org
+Subject: Re: [PATCH] kernel: exit: cleanup release_thread()
+Message-ID: <Yv+kYPnf8c6rLXgN@shell.armlinux.org.uk>
+References: <20220819014406.32266-1-wangkefeng.wang@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220819014406.32266-1-wangkefeng.wang@huawei.com>
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Kefeng,
-
-On Fri, Aug 19, 2022 at 3:39 AM Kefeng Wang <wangkefeng.wang@huawei.com> wrote:
+On Fri, Aug 19, 2022 at 09:44:06AM +0800, Kefeng Wang wrote:
 > Only x86 has own release_thread(), introduce a new weak
 > release_thread() function to clean empty definitions in
 > other ARCHs.
->
+> 
 > Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+...
+>  arch/arm/include/asm/processor.h        | 3 ---
+>  arch/arm/kernel/process.c               | 4 ----
 
->  arch/m68k/include/asm/processor.h       | 5 -----
+Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Thanks!
 
-> --- a/kernel/exit.c
-> +++ b/kernel/exit.c
-> @@ -183,6 +183,10 @@ void put_task_struct_rcu_user(struct task_struct *task)
->                 call_rcu(&task->rcu, delayed_put_task_struct);
->  }
->
-> +void __weak release_thread(struct task_struct *dead_task)
-> +{
-> +}
-
-As the default implementation is empty, it might be better to keep
-this as a static inline function, protected by #ifndef release_thread,
-and let x86 #define release_thread.
-
-> +
->  void release_task(struct task_struct *p)
->  {
->         struct task_struct *leader;
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+-- 
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
