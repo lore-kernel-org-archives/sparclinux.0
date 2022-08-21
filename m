@@ -2,51 +2,51 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C285C00140
-	for <sparclinux@archiver.kernel.org>; Sun, 21 Aug 2022 11:36:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD448C32789
+	for <sparclinux@archiver.kernel.org>; Sun, 21 Aug 2022 11:36:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230290AbiHULgc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 21 Aug 2022 07:36:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57664 "EHLO
+        id S230345AbiHULgt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 21 Aug 2022 07:36:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57662 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230070AbiHULgX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 21 Aug 2022 07:36:23 -0400
-Received: from mail-wr1-x436.google.com (mail-wr1-x436.google.com [IPv6:2a00:1450:4864:20::436])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4916926561
-        for <sparclinux@vger.kernel.org>; Sun, 21 Aug 2022 04:36:22 -0700 (PDT)
-Received: by mail-wr1-x436.google.com with SMTP id r16so10060228wrm.6
-        for <sparclinux@vger.kernel.org>; Sun, 21 Aug 2022 04:36:22 -0700 (PDT)
+        with ESMTP id S230262AbiHULgb (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 21 Aug 2022 07:36:31 -0400
+Received: from mail-wr1-x42e.google.com (mail-wr1-x42e.google.com [IPv6:2a00:1450:4864:20::42e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50E8426AC7
+        for <sparclinux@vger.kernel.org>; Sun, 21 Aug 2022 04:36:24 -0700 (PDT)
+Received: by mail-wr1-x42e.google.com with SMTP id e20so9568449wri.13
+        for <sparclinux@vger.kernel.org>; Sun, 21 Aug 2022 04:36:24 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=conchuod.ie; s=google;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:from:to:cc;
-        bh=XFcC8WCeCDvxB/v+0OTyUBSnoJfVKZTiHSkk+ggPSsY=;
-        b=I9p8YQn3K62FrSJWSUFKpOt0UsIp+9bsVsD+oJfNVAcT5h+CZYJtepbN0KIrbvEqWC
-         CfN+volyR9bkDOtWlZbTynhimAFp9312moQA2S0Vze0jmih9oIcwdFW38pAOKUPJseBw
-         vMXObcP9ocBcIkaAz6g2imqEU6D0lOnKb5CehLfpmxYG+VEplogLacfxwfy+ksZUG/ba
-         fWhm3yt3q55nHleahnjNEgTQWqs0O1LDRCrwF1Bfp0r4mcW8zfpLSVE+W3F607TvX0XO
-         myClgiQ90dkmpbgSGL1SbcfaCzOiSRAATApsyLCyMyd3sSauWoR6ic4v0/7cwRhrog46
-         TWxA==
+        bh=iRydGNWOVxx1HqAigFxDEMCuXoX5Io4IU5ztqyzaPAs=;
+        b=Y1WaN5EAlXdoOlvAydRCG82PKL3F1frMO2Gueklv8Hl+oRlW3+ER52FQNA65qlT4ar
+         Z7WCuQ1OFzwV34ttvUMnnPCxnyOST7zPOvFzJnEfB+4j9LdkZRYIp6/YyrcDINihXi58
+         Mi56g3YyTvh3AlocFbuYHF9KLeRtMj+gJZRl7xjIB1eNlD6/JSYjnAvfIJHSWd6ub0ac
+         OCinSVK1v+4gLgh4cdvz9HZxI3kVUH04Zi9qadv4lPjNlRfWpHjmC5O0WECWQc0OFyyR
+         pCJxCnow4Yga7OV0QJIHOuik6NTHAoDHxEufFMcUkn3qy31H1Se8nChjkuwao431/pXh
+         hafQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=content-transfer-encoding:mime-version:references:in-reply-to
          :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc;
-        bh=XFcC8WCeCDvxB/v+0OTyUBSnoJfVKZTiHSkk+ggPSsY=;
-        b=vqAxDnEF6sAyn+j6YIL9pTQrr7sAwweueiqxTgwxDQXAf/0VyNOWBm0fGf3pZOEeiY
-         3/dobij4DgbMySvxkBMnObOxktXAUftnjQLrjv/hEliofjFY+En0E8yRO6nEoCaGCEY8
-         c7xud6/V1lfCkSyag5GolCFfOW3MmmEWRZ/l3P14alQcQ8m0m3q6WbK8wQTpT1bCOjPt
-         QLd6uFPdzQbAXFu6kd9KQuLGU1c0vbm0MisutD6PXtBtHJGXUDO0SFrML3eVA8mWCBSS
-         OScN1VyOeNrmgyh+Bge1pT9ZrzASsxOcXwOr5gFW+cnwRlgTFZ/WJ3JH3A+Yerl8gEiC
-         OXWA==
-X-Gm-Message-State: ACgBeo1Kb6VRGvkGns+1KHQs6nO2BclKmLPSgVYIyenYMcHisMTff9Sc
-        kEA8aH+mlCPI+1h5HlUuxdA2yQ==
-X-Google-Smtp-Source: AA6agR7yQJr2EFqeBiX7zFLHOZnS6xuQZ2CSX2d2szPgHhQ8PkJnM5BxqWwAIlAcnq3r7wGuyd1j6Q==
-X-Received: by 2002:a05:6000:381:b0:221:7540:b1ee with SMTP id u1-20020a056000038100b002217540b1eemr8123300wrf.307.1661081780659;
-        Sun, 21 Aug 2022 04:36:20 -0700 (PDT)
+        bh=iRydGNWOVxx1HqAigFxDEMCuXoX5Io4IU5ztqyzaPAs=;
+        b=RkUvH0PTDeiCZhpAYBOQXjYibwfs9zkcO8NruVWQ7mdYeMA+w+0tC8tHmd38A2R5Up
+         Ww1kq/2goV6T6x5o8/csgQPU5aMvcPyoZzEt54RMu2lKdNvqJ54+uRYp751SaLh7m+nN
+         of04Susoom95af9+rooCdqimQh+kkfWHjcp7XBOgQGWRRngPEpNU+sVLWbomEcH8y3YJ
+         BUd4whYJwN4f7J2Y0P4O0o3+kpNyzEv6Y0nfV8gNiL4sfrhTBjp0IZMr4SL9Et2tSnXT
+         Zb+/b6DM4UZWPxciYXJReFcFcAuADkV+YjxTm9j8GjgwgQqDE1x2rTZjmhU3zm7b6CCW
+         d82A==
+X-Gm-Message-State: ACgBeo1fbFog+OrCkPE+KtHKn9GtMpVR/KClCmHVll7KahEyTFKZUYRB
+        HfuBRvCb+Zucjt6xEDAPyzAyTg==
+X-Google-Smtp-Source: AA6agR5T0RaXBxKPuBVBjPGUHGtJfc4tSWj3x0g4PlWZixJIT3RipsnS2LEVMZyj6NI4Nvr7MxTB/A==
+X-Received: by 2002:a05:6000:1545:b0:220:61fa:64a with SMTP id 5-20020a056000154500b0022061fa064amr8748201wry.174.1661081783798;
+        Sun, 21 Aug 2022 04:36:23 -0700 (PDT)
 Received: from henark71.. ([51.37.149.245])
-        by smtp.gmail.com with ESMTPSA id m9-20020a7bce09000000b003a3442f1229sm14071361wmc.29.2022.08.21.04.36.18
+        by smtp.gmail.com with ESMTPSA id m9-20020a7bce09000000b003a3442f1229sm14071361wmc.29.2022.08.21.04.36.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 21 Aug 2022 04:36:19 -0700 (PDT)
+        Sun, 21 Aug 2022 04:36:23 -0700 (PDT)
 From:   Conor Dooley <mail@conchuod.ie>
 To:     Michal Simek <monstr@monstr.eu>,
         Paul Walmsley <paul.walmsley@sifive.com>,
@@ -71,9 +71,9 @@ Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
         linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
         linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
-Subject: [PATCH 2/6] microblaze: use the asm-generic version of cpuinfo_op
-Date:   Sun, 21 Aug 2022 12:35:09 +0100
-Message-Id: <20220821113512.2056409-3-mail@conchuod.ie>
+Subject: [PATCH 4/6] sh: use the asm-generic version of cpuinfo_op
+Date:   Sun, 21 Aug 2022 12:35:11 +0100
+Message-Id: <20220821113512.2056409-5-mail@conchuod.ie>
 X-Mailer: git-send-email 2.37.1
 In-Reply-To: <20220821113512.2056409-1-mail@conchuod.ie>
 References: <20220821113512.2056409-1-mail@conchuod.ie>
@@ -91,25 +91,29 @@ header.
 
 Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
 ---
- arch/microblaze/include/asm/processor.h | 2 +-
+ arch/sh/include/asm/processor.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/microblaze/include/asm/processor.h b/arch/microblaze/include/asm/processor.h
-index 7e9e92670df3..45a86692e90f 100644
---- a/arch/microblaze/include/asm/processor.h
-+++ b/arch/microblaze/include/asm/processor.h
-@@ -13,10 +13,10 @@
- #include <asm/registers.h>
- #include <asm/entry.h>
- #include <asm/current.h>
+diff --git a/arch/sh/include/asm/processor.h b/arch/sh/include/asm/processor.h
+index 85a6c1c3c16e..4125494515c9 100644
+--- a/arch/sh/include/asm/processor.h
++++ b/arch/sh/include/asm/processor.h
+@@ -4,6 +4,7 @@
+ 
+ #include <asm/cpu-features.h>
+ #include <asm/cache.h>
 +#include <asm-generic/processor.h>
  
- # ifndef __ASSEMBLY__
- /* from kernel/cpu/mb.c */
+ #ifndef __ASSEMBLY__
+ /*
+@@ -123,7 +124,6 @@ extern unsigned int mem_init_done;
+ 
+ /* arch/sh/kernel/setup.c */
+ const char *get_cpu_subtype(struct sh_cpuinfo *c);
 -extern const struct seq_operations cpuinfo_op;
  
- # define cpu_relax()		barrier()
- 
+ /* thread_struct flags */
+ #define SH_THREAD_UAC_NOPRINT	(1 << 0)
 -- 
 2.37.1
 
