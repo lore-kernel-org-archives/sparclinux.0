@@ -2,125 +2,135 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B16DC32793
-	for <sparclinux@archiver.kernel.org>; Mon, 22 Aug 2022 10:46:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86A1BC32796
+	for <sparclinux@archiver.kernel.org>; Tue, 23 Aug 2022 10:06:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233406AbiHVKqZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 22 Aug 2022 06:46:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38134 "EHLO
+        id S1347591AbiHWKGh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 23 Aug 2022 06:06:37 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233411AbiHVKqH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 22 Aug 2022 06:46:07 -0400
-Received: from mail-qk1-f176.google.com (mail-qk1-f176.google.com [209.85.222.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14B933121A;
-        Mon, 22 Aug 2022 03:46:06 -0700 (PDT)
-Received: by mail-qk1-f176.google.com with SMTP id j6so7488738qkl.10;
-        Mon, 22 Aug 2022 03:46:06 -0700 (PDT)
+        with ESMTP id S1352657AbiHWKGE (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 23 Aug 2022 06:06:04 -0400
+Received: from mail-lj1-x22a.google.com (mail-lj1-x22a.google.com [IPv6:2a00:1450:4864:20::22a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F11157CB50
+        for <sparclinux@vger.kernel.org>; Tue, 23 Aug 2022 01:52:18 -0700 (PDT)
+Received: by mail-lj1-x22a.google.com with SMTP id z20so12882031ljq.3
+        for <sparclinux@vger.kernel.org>; Tue, 23 Aug 2022 01:52:18 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc;
+        bh=BrSRYpaIPrj7QXIedFdUE7igCjiXfv4ewWPbR3LgBJw=;
+        b=dbPtpC7Rc0ZKREyNr2W5lwqSxMvDUa+itVWsY8G79AtA/EowpL7NIG7YsD+bNONSz/
+         bssuDhG3UYO1G7BoNJzRyk6A7TbTTdtzpDd63I2pqKLjr4MOfZDzgZ+mKWWYFHRP8bK7
+         fJBJRLz4OA7fDmhaMxj6yobSNmH2k4j5g6vwhhHoBJ0w0s/zxknx8kZbvlbVDK8JBx1m
+         R+6M4FAk+60k61Q4UQ1uiY49HNiy5A2hO8OU57KqSPQlKFiJRCY4Y668XGZgSS03GWCt
+         Qom0NknHBk6aG8kRxOPDhZiSJkUhrc3ppKZ2yCcFlDgntU06/XWCP5fGu50cKIGCgeMZ
+         4lCg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc;
-        bh=1JBBO1Gon6h+53jLetxo2erRdLEP73QBoztcgKCnoH0=;
-        b=SHNNDQgGLFHMoprNZ8RBRgbrsVmPUDYGa/CquB35xtF/i+lxhssclR7cjFrzNWs7gq
-         1xxO4uG9f+wwwT65w92ktVAi4DOxSbUmAfpofkt+oGZC8NNRTE32XuOQaApLMI7EivGp
-         ZELhtfEaasmSD1PLhjzc2HCz+SvJpEyAJ+YkwtQk2+IOqWYOa2vF0hm8izhBmd4hit+6
-         eYFOGUHAAk3eU2z29NBjjd81Bmje4f1HVhFN5fZg/xcUnz9D/ABANREEXp2boRyAeCMv
-         lnypZ2cHjTlmURHkddCriTZhPye5qLyj0TWZF60vGNfGv5Gl7/NOqVyLLem2dpgfm7db
-         oe3g==
-X-Gm-Message-State: ACgBeo219vGkbx+BZkBIl7uvPbsxz8sCpb1ZlwvZ0ezBCHoO7B5ePG1j
-        i2XzR2wJDLn9w0hYDfb9Mqy4tkBbxOYaPg==
-X-Google-Smtp-Source: AA6agR43/DF+QHVs/gjcNYpfs/qTULGMZ5RqXQ2tScC2xOSyT21xHyNMUPcvIviqn31tharS1g/VWw==
-X-Received: by 2002:a05:620a:408a:b0:6bb:58dc:1e66 with SMTP id f10-20020a05620a408a00b006bb58dc1e66mr12493251qko.707.1661165164918;
-        Mon, 22 Aug 2022 03:46:04 -0700 (PDT)
-Received: from mail-yw1-f181.google.com (mail-yw1-f181.google.com. [209.85.128.181])
-        by smtp.gmail.com with ESMTPSA id v16-20020a05620a0f1000b006b97151d2b3sm10725387qkl.67.2022.08.22.03.46.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 22 Aug 2022 03:46:04 -0700 (PDT)
-Received: by mail-yw1-f181.google.com with SMTP id 00721157ae682-33387bf0c4aso280418437b3.11;
-        Mon, 22 Aug 2022 03:46:04 -0700 (PDT)
-X-Received: by 2002:a25:e004:0:b0:695:d8b6:57e7 with SMTP id
- x4-20020a25e004000000b00695d8b657e7mr510074ybg.380.1661165164007; Mon, 22 Aug
- 2022 03:46:04 -0700 (PDT)
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc;
+        bh=BrSRYpaIPrj7QXIedFdUE7igCjiXfv4ewWPbR3LgBJw=;
+        b=5MzJheTvMtNZIitLCXfa149tJ4fGpQPSuieTDb24Y/5BP5NTtEpb7JcTY1YzfPPLcy
+         jJVOxWRx3LoZFQj9a23zK63PTMCeHSWTNkw6daLuX6zppdSeaTvQ/2OfW2ZOz/VTKO2h
+         VAFSHySuks+Fz29iQhC8xQu1Vpzy8rSThXla4uRk3xc9wzylt4vpJXnrC16+TqY/5ZUC
+         AvhXMMATZJuZmqVHxdgTwCToS6j5GKlPthlBw6dNN/L49GqR9o7Vl70wOxVTBogjr8oE
+         G+v55dYOP3hwokpx7jClfH6eMgLtnZkSytm/biq9HJcwgS1DR9VyXVpK4wa6Lm4LXtrG
+         eF2A==
+X-Gm-Message-State: ACgBeo0wb3d70fGay1a15Sg7WftE4tlo8bW8oM4X7OEl95zHTPODUfMw
+        50OWdhqK5tyALHH9Fl6SybG0KBGvbVQSKg==
+X-Google-Smtp-Source: AA6agR7UZrjRNW4pnsz3uQOlskORf8OUaZPdGEZs8IfOIlOvNIjmmfR7ORqdiy+CeNf6DlkeeuzhJQ==
+X-Received: by 2002:a2e:3515:0:b0:25e:7139:345f with SMTP id z21-20020a2e3515000000b0025e7139345fmr6502936ljz.129.1661244737040;
+        Tue, 23 Aug 2022 01:52:17 -0700 (PDT)
+Received: from localhost.localdomain (c-fdcc225c.014-348-6c756e10.bbcust.telenor.se. [92.34.204.253])
+        by smtp.gmail.com with ESMTPSA id h34-20020a0565123ca200b0048b37d29256sm726247lfv.63.2022.08.23.01.52.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 23 Aug 2022 01:52:16 -0700 (PDT)
+From:   Linus Walleij <linus.walleij@linaro.org>
+To:     "David S . Miller" <davem@davemloft.net>
+Cc:     sparclinux@vger.kernel.org,
+        Linus Walleij <linus.walleij@linaro.org>,
+        kernel test robot <lkp@intel.com>,
+        linux-arch@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] sparc64: Fix the generic IO helpers
+Date:   Tue, 23 Aug 2022 10:50:14 +0200
+Message-Id: <20220823085014.208791-1-linus.walleij@linaro.org>
+X-Mailer: git-send-email 2.37.2
 MIME-Version: 1.0
-References: <20220821113512.2056409-1-mail@conchuod.ie> <CAMuHMdV_dpijX7YqSR+24wWDQr4roi7EBm1nbhJuWkoidAcCng@mail.gmail.com>
- <ac6eacdf-81ad-42ec-3f3e-2db4c5ef76cf@microchip.com>
-In-Reply-To: <ac6eacdf-81ad-42ec-3f3e-2db4c5ef76cf@microchip.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 22 Aug 2022 12:45:52 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdWCXOqNjcK1ZrFA3jUtzv+PUqfEr-7PyZNg38-X+SG5Qw@mail.gmail.com>
-Message-ID: <CAMuHMdWCXOqNjcK1ZrFA3jUtzv+PUqfEr-7PyZNg38-X+SG5Qw@mail.gmail.com>
-Subject: Re: [PATCH 0/6] Add an asm-generic cpuinfo_op declaration
-To:     Conor Dooley <Conor.Dooley@microchip.com>
-Cc:     Conor Dooley <mail@conchuod.ie>, Michal Simek <monstr@monstr.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
-        Kees Cook <keescook@chromium.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-riscv <linux-riscv@lists.infradead.org>,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        sparclinux <sparclinux@vger.kernel.org>,
-        Linux-Arch <linux-arch@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Conor,
+This enables the Sparc to use <asm-generic/io.h> to fill in the
+missing (undefined) [read|write]sq I/O accessor functions.
 
-On Mon, Aug 22, 2022 at 12:05 PM <Conor.Dooley@microchip.com> wrote:
-> On 22/08/2022 10:36, Geert Uytterhoeven wrote:
-> > On Sun, Aug 21, 2022 at 1:36 PM Conor Dooley <mail@conchuod.ie> wrote:
-> >>   arch/microblaze/include/asm/processor.h | 2 +-
-> >>   arch/riscv/include/asm/processor.h      | 1 +
-> >>   arch/s390/include/asm/processor.h       | 2 +-
-> >>   arch/sh/include/asm/processor.h         | 2 +-
-> >>   arch/sparc/include/asm/cpudata.h        | 3 +--
-> >>   arch/x86/include/asm/processor.h        | 2 +-
-> >>   include/asm-generic/processor.h         | 7 +++++++
-> >>   7 files changed, 13 insertions(+), 6 deletions(-)
-> >>   create mode 100644 include/asm-generic/processor.h
-> >
-> > I was a bit surprised not to find fs/proc/cpuinfo.c in the diffstat
-> > above. That file already has an external declaration for cpuinfo_op,
-> > and uses it rather unconditionally (that is, if CONFIG_PROC_FS=y)
-> > on all architectures.
-> >
-> > So I think you can just move that to include/linux/processor.h, include
-> > the latter everywhere, and drop all architecture-specific copies.
->
-> This is the sort of thing I was really hoping to hear, so fine by
-> me.. When you say "everywhere", I assume you mean in every arch
-> and not just the ones listed here that already have it in an arch
-> specific header?
+This is needed if Sparc[64] ever wants to uses CONFIG_REGMAP_MMIO
+which has been patches to use accelerated _noinc accessors
+such as readsq/writesq that Sparc64, while being a 64bit platform,
+as of now not yet provide.
 
-Yes, above every user, to silence the sparse "foo was not
-declared. Should it be static?" warnings.
+This comes with the requirement that everything the architecture
+already provides needs to be defined, rather than just being,
+say, static inline functions.
 
-Thanks!
+Bite the bullet and just provide the definitions and make it work.
+Compile-tested on sparc64.
 
-Gr{oetje,eeting}s,
+Reported-by: kernel test robot <lkp@intel.com>
+Link: https://lore.kernel.org/linux-arm-kernel/202208201639.HXye3ke4-lkp@intel.com/
+Cc: David S. Miller <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: linux-arch@vger.kernel.org
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+---
+ arch/sparc/include/asm/io.h | 31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-                        Geert
+diff --git a/arch/sparc/include/asm/io.h b/arch/sparc/include/asm/io.h
+index 2eefa526b38f..88da27165c01 100644
+--- a/arch/sparc/include/asm/io.h
++++ b/arch/sparc/include/asm/io.h
+@@ -19,4 +19,35 @@
+ #define writel_be(__w, __addr)	__raw_writel(__w, __addr)
+ #define writew_be(__l, __addr)	__raw_writew(__l, __addr)
+ 
++/*
++ * These defines are necessary to use the generic io.h for filling in
++ * the missing parts of the API contract. This is because the platform
++ * uses (inline) functions rather than defines and the generic helper
++ * fills in the undefined.
++ */
++/* These are static inlines on 64BIT only */
++#if defined(__sparc__) && defined(__arch64__)
++#define memset_io memset_io
++#define memcpy_fromio memcpy_fromio
++#define memcpy_toio memcpy_toio
++#endif
++#define pci_iomap pci_iomap
++#define pci_iounmap pci_iounmap
++#define ioremap_np ioremap_np
++#define ioport_map ioport_map
++#define ioport_unmap ioport_unmap
++#define readsb readsb
++#define readsw readsw
++#define readsl readsl
++#define writesb writesb
++#define writesw writesw
++#define writesl writesl
++#define insb insb
++#define insw insw
++#define insl insl
++#define outsb outsb
++#define outsw outsw
++#define outsl outsl
++#include <asm-generic/io.h>
++
+ #endif
+-- 
+2.37.2
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
