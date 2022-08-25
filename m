@@ -2,108 +2,97 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CD08C04AA5
-	for <sparclinux@archiver.kernel.org>; Thu, 25 Aug 2022 08:58:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24EDAECAA27
+	for <sparclinux@archiver.kernel.org>; Thu, 25 Aug 2022 19:37:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237652AbiHYI6r (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 25 Aug 2022 04:58:47 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43744 "EHLO
+        id S243162AbiHYThf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 25 Aug 2022 15:37:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237255AbiHYI6h (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 25 Aug 2022 04:58:37 -0400
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8B2DEA8CD2;
-        Thu, 25 Aug 2022 01:58:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661417913; x=1692953913;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=YcSvNB23AhSi5EswqOVHYUWtaN9VoCvzviSsnzaVGZo=;
-  b=Vz3tdMAVMZJYa4sCxqp/mHg1yX+4SBT1g5I52dNaEtHuwa4K4p2/00sz
-   CqLjnPHQfjhJmmvQ0/HN2DXBLu3432y+wlHv1ZvasrcJR6ED8V8Q7oiYF
-   FZczXvN5Zz1s3LM98+VtcOJWezoEVJ6QUEQH5eTkxtv2SiIhUHce2Ccyz
-   9ehUqtTjSuTBTOuoB3AG78xVfHyXOESSLnViv0XKJsFIcwyHWsBweEdDk
-   0lTio3BoJ3fPiBnNKuIP+4TpQnkXLik9qZUPZ3/IpL2YitITQSM9rfjuy
-   msj2v98/qeC1jTVH4QCPo1p6WHMbgZ8fX72QQbxspzpIt2rNxyAkrMBNL
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10449"; a="273941431"
-X-IronPort-AV: E=Sophos;i="5.93,262,1654585200"; 
-   d="scan'208";a="273941431"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2022 01:58:33 -0700
-X-IronPort-AV: E=Sophos;i="5.93,262,1654585200"; 
-   d="scan'208";a="670893942"
-Received: from mblazque-mobl1.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.249.44.101])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 25 Aug 2022 01:58:31 -0700
-From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        linux-serial@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH 4/5] serial: sunsab: Remove frame size calculation dead-code
-Date:   Thu, 25 Aug 2022 11:58:09 +0300
-Message-Id: <20220825085810.7290-5-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220825085810.7290-1-ilpo.jarvinen@linux.intel.com>
-References: <20220825085810.7290-1-ilpo.jarvinen@linux.intel.com>
+        with ESMTP id S243068AbiHYThe (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 25 Aug 2022 15:37:34 -0400
+Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E0C7BC824
+        for <sparclinux@vger.kernel.org>; Thu, 25 Aug 2022 12:37:33 -0700 (PDT)
+Received: by mail-ej1-x633.google.com with SMTP id lx1so5074734ejb.12
+        for <sparclinux@vger.kernel.org>; Thu, 25 Aug 2022 12:37:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc;
+        bh=ug3fzDG0QYxiY3xSd7c4nZwCEdS86ZeW5WM3LA5MHSM=;
+        b=g0uJOozT5lU6a75DvEj4h4KqrNPs35pLZkIU4MKoz44BuRVm2ldEff9+o9XfvwCUfA
+         6CB6GJ168eYVhTnYKDQ92K/VsTEwnZ3TZqKhODN5kABVXGlU1ASH7oyqrll6gyjBmG3c
+         VDI1lNLSTqiDONp8h/eQmERKYaafeOs8Kr8dT9KSTqUeoZvupkP/MnwvMm6rLdSaBj/s
+         X0Q0gTjN6ccSlAv795W096/9/y+aZ94j8sXhxc3bSZZaKM6vE/PZnh0U9O4pmR+PI6vD
+         fVcqNtGjcEWDRgm27Gyt6RqKsdYSJobymxtbwGVMmXIV+krZT2bCZhQnr6PDHP6IWbUU
+         Pc7g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc;
+        bh=ug3fzDG0QYxiY3xSd7c4nZwCEdS86ZeW5WM3LA5MHSM=;
+        b=dWXi2SLCGU17R35VaW03APzpP613AAcrdhe+/xOlW8HT1ebpiOs0WaNdNB5xb32nFc
+         cp7SMndlByaD8DbDNHDucj9oz2bKXp+sLAzPOG+UvnWOuEJEqsoVIoWGhLiRy0TxVuka
+         HSeOMekQgEl2lQoLDUWadI6c5rYYvqXxNgkcJHkhMmAJvZ08dgrp6JTB0NgM6vlNd0SQ
+         sDuXRPH56ljACRhG6uMYUVR0tcMhizXjbt2D+m10yuy7fv2ATsHdCxp0MLT9k0fYDJ5j
+         mWY54HFmVg8A7SqcKX7EzqLvbcxkA5YuG1teadFSE0E27p9ViOKA/4TDkrVphVksenFs
+         n5Ww==
+X-Gm-Message-State: ACgBeo0Yev6S6ZpoB2KejQAoKi5SCLPvbPYiGqrqJnTD+WPTI9fWiTkg
+        ZqatLRFaf+87S+z/nO160VE5CdWfoxlPpwmXIXigwQ==
+X-Google-Smtp-Source: AA6agR7Vmn67v3s4dfV6Z2gSOqTOSHLYzwBGRCw6TengerfmZk7/zFC9K75wXTb1hZHhmc7K57ZZODg47J8yw06KyJM=
+X-Received: by 2002:a17:906:58c8:b0:6fe:91d5:18d2 with SMTP id
+ e8-20020a17090658c800b006fe91d518d2mr3538212ejs.190.1661456251980; Thu, 25
+ Aug 2022 12:37:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20220823085014.208791-1-linus.walleij@linaro.org> <48f9ddc8-02e2-2f2a-8bde-2d7346998096@infradead.org>
+In-Reply-To: <48f9ddc8-02e2-2f2a-8bde-2d7346998096@infradead.org>
+From:   Linus Walleij <linus.walleij@linaro.org>
+Date:   Thu, 25 Aug 2022 21:37:20 +0200
+Message-ID: <CACRpkdbG1_eH9kGnGosODfOJto-DZ6C5etnGORjQfesB8ipUsg@mail.gmail.com>
+Subject: Re: [PATCH] sparc64: Fix the generic IO helpers
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     "David S . Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, kernel test robot <lkp@intel.com>,
+        linux-arch@vger.kernel.org, Mark Brown <broonie@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The driver features a custom frame length calculation but the result is
-never used. Remove it.
+On Thu, Aug 25, 2022 at 12:15 AM Randy Dunlap <rdunlap@infradead.org> wrote:
 
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
- drivers/tty/serial/sunsab.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+> Both alpha
 
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index 6ea52293d9f3..f7968f73753d 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -681,27 +681,23 @@ static void sunsab_convert_to_sab(struct uart_sunsab_port *up, unsigned int cfla
- 				  unsigned int quot)
- {
- 	unsigned char dafo;
--	int bits, n, m;
-+	int n, m;
- 
- 	/* Byte size and parity */
- 	switch (cflag & CSIZE) {
--	      case CS5: dafo = SAB82532_DAFO_CHL5; bits = 7; break;
--	      case CS6: dafo = SAB82532_DAFO_CHL6; bits = 8; break;
--	      case CS7: dafo = SAB82532_DAFO_CHL7; bits = 9; break;
--	      case CS8: dafo = SAB82532_DAFO_CHL8; bits = 10; break;
-+	      case CS5: dafo = SAB82532_DAFO_CHL5; break;
-+	      case CS6: dafo = SAB82532_DAFO_CHL6; break;
-+	      case CS7: dafo = SAB82532_DAFO_CHL7; break;
-+	      case CS8: dafo = SAB82532_DAFO_CHL8; break;
- 	      /* Never happens, but GCC is too dumb to figure it out */
--	      default:  dafo = SAB82532_DAFO_CHL5; bits = 7; break;
-+	      default:  dafo = SAB82532_DAFO_CHL5; break;
- 	}
- 
--	if (cflag & CSTOPB) {
-+	if (cflag & CSTOPB)
- 		dafo |= SAB82532_DAFO_STOP;
--		bits++;
--	}
- 
--	if (cflag & PARENB) {
-+	if (cflag & PARENB)
- 		dafo |= SAB82532_DAFO_PARE;
--		bits++;
--	}
- 
- 	if (cflag & PARODD) {
- 		dafo |= SAB82532_DAFO_PAR_ODD;
--- 
-2.30.2
+https://lore.kernel.org/linux-arch/20220818092059.103884-1-linus.walleij@linaro.org/
 
+>  & parisc (32 and 64 bits) need this fix also.
+
+Yeah I'll try to send something for them too. Also fixed Hexagon.
+The problem is installing all the cross compilers just to test this
+stuff.... It's a lot of work.
+
+> Is it always safe to do this?
+
+I think the arch part is fine, i.e. I don't think it will fix something
+broken.
+
+Then it is the matter of testing the new accessors.
+
+That is done by a usecase, in this case, a usecase using
+a fixed address in 64bit registers write under regmap MMIO.
+
+Not sure someone will ever have a usecase for that to test
+with. The people making use of it need to test it when they
+use it.
+
+As mentioned in the alpha patch, the alternative is to leave
+regmap-mmio broken for the arch, until someone uses is.
+It feels wrong to develop generic code for all archs that cannot
+even compile on all of them, so I prefer to fix it to the point
+of compiling at least. The generic helpers try their best to
+be, well generic helpers.
+
+Yours,
+Linus Walleij
