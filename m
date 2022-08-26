@@ -2,92 +2,117 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B11E2ECAAA3
-	for <sparclinux@archiver.kernel.org>; Fri, 26 Aug 2022 10:07:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC2C9ECAAA3
+	for <sparclinux@archiver.kernel.org>; Fri, 26 Aug 2022 14:48:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1343808AbiHZKHZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 26 Aug 2022 06:07:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52176 "EHLO
+        id S240426AbiHZOs2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 26 Aug 2022 10:48:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245484AbiHZKGu (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Aug 2022 06:06:50 -0400
-X-Greylist: delayed 248 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 26 Aug 2022 03:05:32 PDT
-Received: from smtpout30.security-mail.net (smtpout30.security-mail.net [85.31.212.34])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C68ED59B7
-        for <sparclinux@vger.kernel.org>; Fri, 26 Aug 2022 03:05:31 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by fx305.security-mail.net (Postfix) with ESMTP id 09B0C310047
-        for <sparclinux@vger.kernel.org>; Fri, 26 Aug 2022 12:01:22 +0200 (CEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kalray.eu;
-        s=sec-sig-email; t=1661508082;
-        bh=uuLq46R+6k0TRm61YpWMjIX77MiXMaRGoSxbdhaEMLs=;
-        h=From:To:Cc:Subject:Date;
-        b=D66WPYiEpfQJDQShzi4IwNb7fIYo3AsgvXBRPqii+Ea/nXjlQbHxgqytcZ+LYoI8H
-         gBTxFqPSuMCFndWgic1q2eNrWGV2aKzqYAwCK/NmYjwsrO6JAfxA5XZnYR2fLrmi9h
-         OD8X6LRe4K08iBNjvkVR82ekAhjYSZwq8zWn9LXk=
-Received: from fx305 (localhost [127.0.0.1])
-        by fx305.security-mail.net (Postfix) with ESMTP id 2A708310036;
-        Fri, 26 Aug 2022 12:01:21 +0200 (CEST)
-X-Virus-Scanned: E-securemail
-Secumail-id: <356e.630899ef.5923e.0>
-Received: from zimbra2.kalray.eu (unknown [217.181.231.53])
-        by fx305.security-mail.net (Postfix) with ESMTPS id D001F30FECB;
-        Fri, 26 Aug 2022 12:01:19 +0200 (CEST)
-Received: from zimbra2.kalray.eu (localhost [127.0.0.1])
-        by zimbra2.kalray.eu (Postfix) with ESMTPS id D1C5A27E02FA;
-        Fri, 26 Aug 2022 12:01:18 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-        by zimbra2.kalray.eu (Postfix) with ESMTP id BB28227E0392;
-        Fri, 26 Aug 2022 12:01:18 +0200 (CEST)
-DKIM-Filter: OpenDKIM Filter v2.10.3 zimbra2.kalray.eu BB28227E0392
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=kalray.eu;
-        s=32AE1B44-9502-11E5-BA35-3734643DEF29; t=1661508078;
-        bh=6GbwSXyiNfD5wRZyPJr5zes9W2hMouyvXD4buMCrhyk=;
-        h=From:To:Date:Message-Id;
-        b=gxb2BpGJYhAxoikaF13S8kzxP3lAa+YMSvdLbnsnLOiZH2BCwcTw26Yyvy2vgiWFW
-         jzNRTNQxo0n5E3Zr+0z8HVspCki2jmHe2hVIz1Obnsg9/lcUYWM+dqxG4QHlsf83wr
-         Ffjzs/2kPGf13TkY4SjUPzvtHjQD3oAotBr797xQ=
-Received: from zimbra2.kalray.eu ([127.0.0.1])
-        by localhost (zimbra2.kalray.eu [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id XhIo-A3vK7fY; Fri, 26 Aug 2022 12:01:18 +0200 (CEST)
-Received: from tellis.lin.mbt.kalray.eu (unknown [192.168.36.206])
-        by zimbra2.kalray.eu (Postfix) with ESMTPSA id AA58427E02FA;
-        Fri, 26 Aug 2022 12:01:18 +0200 (CEST)
-From:   Jules Maselbas <jmaselbas@kalray.eu>
-To:     linux-kernel@vger.kernel.org
-Cc:     Jules Maselbas <jmaselbas@kalray.eu>,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: [PATCH] sparc: Fix repeated word in comments
-Date:   Fri, 26 Aug 2022 12:00:42 +0200
-Message-Id: <20220826100052.22945-14-jmaselbas@kalray.eu>
-X-Mailer: git-send-email 2.17.1
-X-Virus-Scanned: by Secumail
+        with ESMTP id S1343699AbiHZOsR (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 26 Aug 2022 10:48:17 -0400
+X-Greylist: delayed 62 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 26 Aug 2022 07:48:14 PDT
+Received: from mailrelay2-1.pub.mailoutpod1-cph3.one.com (mailrelay2-1.pub.mailoutpod1-cph3.one.com [46.30.210.183])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80A78D86FF
+        for <sparclinux@vger.kernel.org>; Fri, 26 Aug 2022 07:48:14 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=pzSEnzVb4PRuwPohD2SDHsa5KY0tRkBlHuhkY0oHs0w=;
+        b=NCRe3O/xZCHJ8hDEpD57d6zrmZ/D/l0pxGva3S+GafoGTaEBI8V+8dRJcau2lXRHDYLk3R1tpxP1j
+         3KhToFhOZVyitlnJ0xRfBBHfLRdUC92ngLyYi8++VZngl+6FIPMMSswvmOKlwmrA48SEArDfjlrrZp
+         aLUYNtoPbfHie2QZuWN/5gmc96n89BeYnrY4HhmXJ0VYbMK/Nwimvglfg4ZslyKY8HJv9B0kGS+jUd
+         iAj6qBZTfiE8K/3fT3d5xnIszRsKWAcgiOTrubWRizGAPwPa3VkkroaVH+3Yp57Mf7SsdGZtyGg98g
+         yEaoCAI90mioch8sotzXt8Sz2DOGFiA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed1;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=pzSEnzVb4PRuwPohD2SDHsa5KY0tRkBlHuhkY0oHs0w=;
+        b=czLkABglyklPhRImctvsIg7tPPnc0HaIPVvkP1cQzOjoIxLxHBn86D/l7MTIWNazZ6K+XJ8mOPOkH
+         5qB81ZOBw==
+X-HalOne-Cookie: f226e6ab43f82fd861952f49718ba8a608aa1fbd
+X-HalOne-ID: f6029a30-254d-11ed-a920-d0431ea8a290
+Received: from mailproxy3.cst.dirpod4-cph3.one.com (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay2.pub.mailoutpod1-cph3.one.com (Halon) with ESMTPSA
+        id f6029a30-254d-11ed-a920-d0431ea8a290;
+        Fri, 26 Aug 2022 14:47:09 +0000 (UTC)
+Date:   Fri, 26 Aug 2022 16:47:07 +0200
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Conor Dooley <mail@conchuod.ie>
+Cc:     Michal Simek <monstr@monstr.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>, Arnd Bergmann <arnd@arndb.de>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Conor Dooley <conor.dooley@microchip.com>,
+        Kees Cook <keescook@chromium.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org
+Subject: Re: [PATCH 5/6] sparc: use the asm-generic version of cpuinfo_op
+Message-ID: <Ywjc67hcBwOkMtI/@ravnborg.org>
+References: <20220821113512.2056409-1-mail@conchuod.ie>
+ <20220821113512.2056409-6-mail@conchuod.ie>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220821113512.2056409-6-mail@conchuod.ie>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Remove redundant word `the`.
+Hi Conor.
 
-CC: "David S. Miller" <davem@davemloft.net>
-CC: sparclinux@vger.kernel.org
-Signed-off-by: Jules Maselbas <jmaselbas@kalray.eu>
----
- arch/sparc/kernel/pci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for this nice simplification, but I think you can make it even
+better.
 
-diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
-index cb1ef25116e9..07897cb09bbd 100644
---- a/arch/sparc/kernel/pci.c
-+++ b/arch/sparc/kernel/pci.c
-@@ -310,7 +310,7 @@ static struct pci_dev *of_create_pci_dev(struct pci_pbm_info *pbm,
- 	/* We can't actually use the firmware value, we have
- 	 * to read what is in the register right now.  One
- 	 * reason is that in the case of IDE interfaces the
--	 * firmware can sample the value before the the IDE
-+	 * firmware can sample the value before the IDE
- 	 * interface is programmed into native mode.
- 	 */
- 	pci_read_config_dword(dev, PCI_CLASS_REVISION, &class);
--- 
-2.17.1
+On Sun, Aug 21, 2022 at 12:35:12PM +0100, Conor Dooley wrote:
+> From: Conor Dooley <conor.dooley@microchip.com>
+> 
+> There's little point in duplicating the declaration of cpuinfo_op now
+> that there's a shared version of it, so drop it & include the generic
+> header.
+> 
+> Signed-off-by: Conor Dooley <conor.dooley@microchip.com>
+> ---
+>  arch/sparc/include/asm/cpudata.h | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/arch/sparc/include/asm/cpudata.h b/arch/sparc/include/asm/cpudata.h
+> index d213165ee713..af6ef3c028a9 100644
+> --- a/arch/sparc/include/asm/cpudata.h
+> +++ b/arch/sparc/include/asm/cpudata.h
+> @@ -6,8 +6,7 @@
+>  
+>  #include <linux/threads.h>
+>  #include <linux/percpu.h>
+> -
+> -extern const struct seq_operations cpuinfo_op;
+> +#include <asm-generic/processor.h>
 
+Since the header file did not need <asm-generic/processor.h> then it
+should not need it now after deleting stuff.
+The better fix is to add the missing include to arch/sparc/kernel/cpu.c,
+where we have the user of it.
+
+A header file should include what it needs, and no more.
+
+I looked only at this patch, this comment may also be relevant for the
+other patches.
+
+	Sam
