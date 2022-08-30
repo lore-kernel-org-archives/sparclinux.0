@@ -2,111 +2,87 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A75FFECAAD4
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 08:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D61ECAAD4
+	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 14:20:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231781AbiH3Iuk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Aug 2022 04:50:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34226 "EHLO
+        id S229744AbiH3OUe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 Aug 2022 10:20:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230212AbiH3IuP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 04:50:15 -0400
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5656713DE7;
-        Tue, 30 Aug 2022 01:49:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1661849403; x=1693385403;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=Za5+X7kMFfgQipPzg09qI4UY1X9yueHmr3J4bzHEXuw=;
-  b=kPGKT8YlbsxgYDFJSxMj8DKYLbfOYb1WNzr2vOuxa9rE2tXeCLaxfeMT
-   lN2N4AXQjVhdWqPJ6QwvMdvatj04sv9Jx5pKN4Inpfh6MfHsKlIuMbe27
-   HyVr0DFpzKovanLdKZnz0IuEgW3+fZQQYaUqWZ5QpyOMX7z51JgYjakDS
-   w2gPmAymjLhNtRVBMERX8QDXeBObkrEfhPFlMPxdLexj1w8etJ2KlQ5Il
-   3Z9lZ2GwjMq67f1BxBXenpwaz72KjYGXcnXXWr80ayJGbesTq8vlXNE6D
-   EZ5ccUNKRnQiEF5F7JJWHPZj2NqIszS1r6UowtjvNdtRENTmsGUWpiex2
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10454"; a="293866338"
-X-IronPort-AV: E=Sophos;i="5.93,274,1654585200"; 
-   d="scan'208";a="293866338"
-Received: from fmsmga008.fm.intel.com ([10.253.24.58])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 01:49:59 -0700
-X-IronPort-AV: E=Sophos;i="5.93,274,1654585200"; 
-   d="scan'208";a="672761892"
-Received: from arnesgom-mobl.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.252.54.235])
-  by fmsmga008-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Aug 2022 01:49:56 -0700
-From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        linux-serial@vger.kernel.org,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>,
-        Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH v2 4/5] serial: sunsab: Remove frame size calculation dead-code
-Date:   Tue, 30 Aug 2022 11:49:24 +0300
-Message-Id: <20220830084925.5608-5-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20220830084925.5608-1-ilpo.jarvinen@linux.intel.com>
-References: <20220830084925.5608-1-ilpo.jarvinen@linux.intel.com>
+        with ESMTP id S230133AbiH3OUc (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 10:20:32 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A89103057A
+        for <sparclinux@vger.kernel.org>; Tue, 30 Aug 2022 07:20:24 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1661869223;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=tORAGdOuIEyxqy7Xiz8FX0cV5xzTMMZWt6i8kmL4jMo=;
+        b=BX/mMX2cQxwDZ+IpZi5A9q5sIH3BMRRPkOrfdHIy1deOXXF0MeEOruvsfpsroXZeCTRtcj
+        bQtRNbMPcg+nLvkiZ1cfGCurNV4oGM6OlqMahWs5tFGVIFw8HuRToCq7vy+AJJvpBxXvEZ
+        JGEPyl5oWmxwcaqTeqeV8/pEvCdLMJ8=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-516-l7kwZy8tMv2HEIQ0v8HnPw-1; Tue, 30 Aug 2022 10:20:17 -0400
+X-MC-Unique: l7kwZy8tMv2HEIQ0v8HnPw-1
+Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 897F1101A54E;
+        Tue, 30 Aug 2022 14:20:12 +0000 (UTC)
+Received: from dhcp-27-174.brq.redhat.com (unknown [10.40.192.123])
+        by smtp.corp.redhat.com (Postfix) with SMTP id 8D16B492C3B;
+        Tue, 30 Aug 2022 14:20:08 +0000 (UTC)
+Received: by dhcp-27-174.brq.redhat.com (nbSMTP-1.00) for uid 1000
+        oleg@redhat.com; Tue, 30 Aug 2022 16:20:12 +0200 (CEST)
+Date:   Tue, 30 Aug 2022 16:20:07 +0200
+From:   Oleg Nesterov <oleg@redhat.com>
+To:     guoren@kernel.org, Andrew Morton <akpm@linux-foundation.org>
+Cc:     vgupta@kernel.org, linux@armlinux.org.uk, monstr@monstr.eu,
+        dinguyen@kernel.org, palmer@dabbelt.com, davem@davemloft.net,
+        arnd@arndb.de, shorne@gmail.com, linux-arch@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
+        openrisc@lists.librecores.org, Guo Ren <guoren@linux.alibaba.com>
+Subject: Re: [PATCH 0/3] arch: ptrace: Cleanup ptrace_disable
+Message-ID: <20220830142006.GA20935@redhat.com>
+References: <20220830065316.3924938-1-guoren@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220830065316.3924938-1-guoren@kernel.org>
+User-Agent: Mutt/1.5.24 (2015-08-30)
+X-Scanned-By: MIMEDefang 2.85 on 10.11.54.10
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The driver features a custom frame length calculation but the result is
-never used. Remove it.
+On 08/30, guoren@kernel.org wrote:
+>
+> From: Guo Ren <guoren@linux.alibaba.com>
+>
+> This series cleanup ptrace_disable() in arch/*. Some architectures
+> are duplicate clearing SYSCALL TRACE.
+>
+> Guo Ren (3):
+>   riscv: ptrace: Remove duplicate operation
+>   openrisc: ptrace: Remove duplicate operation
+>   arch: ptrace: Cleanup ptrace_disable
+>
+>  arch/arc/kernel/ptrace.c        |  4 ----
+>  arch/arm/kernel/ptrace.c        |  8 --------
+>  arch/microblaze/kernel/ptrace.c |  5 -----
+>  arch/nios2/kernel/ptrace.c      |  5 -----
+>  arch/openrisc/kernel/ptrace.c   |  1 -
+>  arch/riscv/kernel/ptrace.c      |  5 -----
+>  arch/sparc/kernel/ptrace_32.c   | 10 ----------
+>  arch/sparc/kernel/ptrace_64.c   | 10 ----------
+>  kernel/ptrace.c                 |  8 ++++++++
+>  9 files changed, 8 insertions(+), 48 deletions(-)
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
----
- drivers/tty/serial/sunsab.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/tty/serial/sunsab.c b/drivers/tty/serial/sunsab.c
-index 6ea52293d9f3..f7968f73753d 100644
---- a/drivers/tty/serial/sunsab.c
-+++ b/drivers/tty/serial/sunsab.c
-@@ -681,27 +681,23 @@ static void sunsab_convert_to_sab(struct uart_sunsab_port *up, unsigned int cfla
- 				  unsigned int quot)
- {
- 	unsigned char dafo;
--	int bits, n, m;
-+	int n, m;
- 
- 	/* Byte size and parity */
- 	switch (cflag & CSIZE) {
--	      case CS5: dafo = SAB82532_DAFO_CHL5; bits = 7; break;
--	      case CS6: dafo = SAB82532_DAFO_CHL6; bits = 8; break;
--	      case CS7: dafo = SAB82532_DAFO_CHL7; bits = 9; break;
--	      case CS8: dafo = SAB82532_DAFO_CHL8; bits = 10; break;
-+	      case CS5: dafo = SAB82532_DAFO_CHL5; break;
-+	      case CS6: dafo = SAB82532_DAFO_CHL6; break;
-+	      case CS7: dafo = SAB82532_DAFO_CHL7; break;
-+	      case CS8: dafo = SAB82532_DAFO_CHL8; break;
- 	      /* Never happens, but GCC is too dumb to figure it out */
--	      default:  dafo = SAB82532_DAFO_CHL5; bits = 7; break;
-+	      default:  dafo = SAB82532_DAFO_CHL5; break;
- 	}
- 
--	if (cflag & CSTOPB) {
-+	if (cflag & CSTOPB)
- 		dafo |= SAB82532_DAFO_STOP;
--		bits++;
--	}
- 
--	if (cflag & PARENB) {
-+	if (cflag & PARENB)
- 		dafo |= SAB82532_DAFO_PARE;
--		bits++;
--	}
- 
- 	if (cflag & PARODD) {
- 		dafo |= SAB82532_DAFO_PAR_ODD;
--- 
-2.30.2
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 
