@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFC8ECAAA1
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 06:53:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44AE8ECAAA1
+	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 06:53:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230255AbiH3Gxd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Aug 2022 02:53:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40274 "EHLO
+        id S230282AbiH3Gxx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 Aug 2022 02:53:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229507AbiH3Gxc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 02:53:32 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9DC2EBD2A0;
-        Mon, 29 Aug 2022 23:53:31 -0700 (PDT)
+        with ESMTP id S230312AbiH3Gxq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 02:53:46 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2796BD116;
+        Mon, 29 Aug 2022 23:53:45 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4728D6146B;
-        Tue, 30 Aug 2022 06:53:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14459C433D7;
-        Tue, 30 Aug 2022 06:53:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 72E1FB816A6;
+        Tue, 30 Aug 2022 06:53:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 95177C43141;
+        Tue, 30 Aug 2022 06:53:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661842410;
-        bh=WZxYgPjZxU7c0eL5H4bK4Uo9kDBByWGt0wFQ+gNBmEk=;
-        h=From:To:Cc:Subject:Date:From;
-        b=nufhHi0HplC5xFdh2kg+QheRPNhIBp5dtQjaCmd+6ZPvzj08VHR5xtZboL753P4ny
-         ai0R0O+TF4TCzz2Br11U8QeePHhqlTcZ3h920Rhfjbwtzc38HBKb0TqxiLzkSZf/4G
-         b2jyRtmeyHeBjipaSz1J1M0jHE91/z1Ha6ALWyZA+o9OMd9mgpcsYTf1RN5ZCWTAk1
-         XSzBPuOt0iojskPui2Stdz8tczdibVXbu5wVzb6EvkAbSJcv4vrQvW0t1wrlJVe7yp
-         vImRZAIdL+vVqVqltFgWZrIPu3Vacn4cXi5FmD2j75nFwkYEivtVEZX7JOZ0Fsg9w3
-         /AQ8KMH3fteqA==
+        s=k20201202; t=1661842423;
+        bh=6jVazXBqfWdKpxDWhL1vnDZxpkMfN57CDtGrBVFvRs4=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=F5PrLREEw9ieJXHk2T6r8fNSMm4hqpEggsRJrXPWuFPl7+oJKfH/xBCo0A6FJO0y2
+         t9K5uxEE398h542YOD7o2yTfT4WHu83D6O1abG132Tc4bQAupCKANNBSa193HMsikz
+         4M3nENDu9L/3n8h3C0uJfXqbSAkKm+orfEcMHOgDUj056bJn4i+7AKEbgu317hT+U3
+         3aqhj2tDhdw86//1qF+BA6svknF5okzAHkY4nNxbm4KxsHyWfDR9AJ+3fwLF8hBKQj
+         DIDDu38CXvQN9Ac3hF/lVAAzTDYfnjIUHHuFPh1gUncCU4gVLx3CzOPt9r0MIDKxVd
+         ZacRoVho/xM/A==
 From:   guoren@kernel.org
 To:     oleg@redhat.com, vgupta@kernel.org, linux@armlinux.org.uk,
         monstr@monstr.eu, dinguyen@kernel.org, palmer@dabbelt.com,
@@ -41,10 +41,12 @@ Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
         linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
         openrisc@lists.librecores.org, Guo Ren <guoren@linux.alibaba.com>
-Subject: [PATCH 0/3] arch: ptrace: Cleanup ptrace_disable
-Date:   Tue, 30 Aug 2022 02:53:13 -0400
-Message-Id: <20220830065316.3924938-1-guoren@kernel.org>
+Subject: [PATCH 2/3] openrisc: ptrace: Remove duplicate operation
+Date:   Tue, 30 Aug 2022 02:53:15 -0400
+Message-Id: <20220830065316.3924938-3-guoren@kernel.org>
 X-Mailer: git-send-email 2.36.1
+In-Reply-To: <20220830065316.3924938-1-guoren@kernel.org>
+References: <20220830065316.3924938-1-guoren@kernel.org>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -53,25 +55,29 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 From: Guo Ren <guoren@linux.alibaba.com>
 
-This series cleanup ptrace_disable() in arch/*. Some architectures
-are duplicate clearing SYSCALL TRACE.
+The TIF_SYSCALL_TRACE is controlled by a common code, see
+kernel/ptrace.c and include/linux/thread.h.
 
-Guo Ren (3):
-  riscv: ptrace: Remove duplicate operation
-  openrisc: ptrace: Remove duplicate operation
-  arch: ptrace: Cleanup ptrace_disable
+clear_task_syscall_work(child, SYSCALL_TRACE);
 
- arch/arc/kernel/ptrace.c        |  4 ----
- arch/arm/kernel/ptrace.c        |  8 --------
- arch/microblaze/kernel/ptrace.c |  5 -----
- arch/nios2/kernel/ptrace.c      |  5 -----
- arch/openrisc/kernel/ptrace.c   |  1 -
- arch/riscv/kernel/ptrace.c      |  5 -----
- arch/sparc/kernel/ptrace_32.c   | 10 ----------
- arch/sparc/kernel/ptrace_64.c   | 10 ----------
- kernel/ptrace.c                 |  8 ++++++++
- 9 files changed, 8 insertions(+), 48 deletions(-)
+Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
+Signed-off-by: Guo Ren <guoren@kernel.org>
+---
+ arch/openrisc/kernel/ptrace.c | 1 -
+ 1 file changed, 1 deletion(-)
 
+diff --git a/arch/openrisc/kernel/ptrace.c b/arch/openrisc/kernel/ptrace.c
+index b971740fc2aa..cc53fa676706 100644
+--- a/arch/openrisc/kernel/ptrace.c
++++ b/arch/openrisc/kernel/ptrace.c
+@@ -132,7 +132,6 @@ void ptrace_disable(struct task_struct *child)
+ 	pr_debug("ptrace_disable(): TODO\n");
+ 
+ 	user_disable_single_step(child);
+-	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
+ }
+ 
+ long arch_ptrace(struct task_struct *child, long request, unsigned long addr,
 -- 
 2.36.1
 
