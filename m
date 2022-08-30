@@ -2,82 +2,181 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D4B3C0502A
-	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 06:53:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A3FC0502A
+	for <sparclinux@archiver.kernel.org>; Tue, 30 Aug 2022 07:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230298AbiH3Gxy (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 30 Aug 2022 02:53:54 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40340 "EHLO
+        id S229814AbiH3HXV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 30 Aug 2022 03:23:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230301AbiH3Gxl (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 02:53:41 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A331CBD116;
-        Mon, 29 Aug 2022 23:53:40 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E2878CE1792;
-        Tue, 30 Aug 2022 06:53:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5C028C433B5;
-        Tue, 30 Aug 2022 06:53:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1661842416;
-        bh=ezCJz3zzII/UaKvcXNSbmcajv11zXu7NIaCF1ULUtp0=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=r3amRcUQDjcf2J5Fgpm3U2izv3yA9NBy7nxMxatvsZT6tZWH3Rv9dQGtrjH3iNkPE
-         g6KyXSsfC/QLHSFUlf3IUv5+Vfh0AVJGPh5B8XP/13LvC1JxSH2AEqY4TAjFgDMhOt
-         AS0BwAQwYQJwQ8z8KNiqh3xod+STWMH9o+hwivFoZq7RQCb10x+P565pwYgOgJl59G
-         gjJI+WEJLyooY/K9536qNkXfUBIbivFBJ+BTi3q5eadkie5Q/E0dtzMU5gpdgyy2Z/
-         CftmJ3I3bk4yFCtql/IygZNvGqnuuCDfY9wzgM1PhTXU0Cx8xMIXsaEyLjA9FHpb8w
-         WEGB8pxdmmp3Q==
-From:   guoren@kernel.org
-To:     oleg@redhat.com, vgupta@kernel.org, linux@armlinux.org.uk,
-        monstr@monstr.eu, dinguyen@kernel.org, palmer@dabbelt.com,
-        davem@davemloft.net, arnd@arndb.de, shorne@gmail.com,
-        guoren@kernel.org
-Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
-        openrisc@lists.librecores.org, Guo Ren <guoren@linux.alibaba.com>
-Subject: [PATCH 1/3] riscv: ptrace: Remove duplicate operation
-Date:   Tue, 30 Aug 2022 02:53:14 -0400
-Message-Id: <20220830065316.3924938-2-guoren@kernel.org>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220830065316.3924938-1-guoren@kernel.org>
-References: <20220830065316.3924938-1-guoren@kernel.org>
+        with ESMTP id S229531AbiH3HXU (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 30 Aug 2022 03:23:20 -0400
+Received: from mail-ed1-f52.google.com (mail-ed1-f52.google.com [209.85.208.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA34FB7749;
+        Tue, 30 Aug 2022 00:23:18 -0700 (PDT)
+Received: by mail-ed1-f52.google.com with SMTP id b16so12996787edd.4;
+        Tue, 30 Aug 2022 00:23:18 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc;
+        bh=h92OFoHcscLoVZdNmDKj0YVmJDx8MKtyLOQI76zzz+M=;
+        b=k83E8nDFuipqYTB2qH9B9sRtQVhhuUg9TuQ+Ev4C+1hvosxHN2A/fC2d0PonvV4K0Q
+         YHaISBekDs08UhSoQOAuycA7VJngVGim4YwfRXW6Jowo/XFqNphbM97GZkcwpV2rpC5Q
+         hSfrDjz+aZ7NQqqqmRBNNHx13bCHAXtfBWFwHvx4e+qXLG3ckVtmopL3HE/mImVKkj1B
+         4jHZO2btLjDph1VTPtoH49QSTVBDS2pJN+XuBCbOKxlMsPK8S0uojnILA5wWUF+um+GW
+         CdgiUwTQNTHfjnftfCOFPtOzMptpKGEXbPax1QH4suQ5lRHUWoCq9NQReA7J53CZVuqi
+         fWJA==
+X-Gm-Message-State: ACgBeo1SMgp2in87fufqchIBa0i8xVn7eaV51zB0doc8np+6O6kW2mPm
+        UA8YTZvJsnS70BANhhzd5pI=
+X-Google-Smtp-Source: AA6agR6GdO78X7ShA7eIwVF55Gd83NZLVU+aV19Oza8mJ9lSkrZ242TTINijF+n3YBED4WKcswXFwA==
+X-Received: by 2002:a05:6402:451:b0:446:7349:f9e8 with SMTP id p17-20020a056402045100b004467349f9e8mr19853745edw.180.1661844197211;
+        Tue, 30 Aug 2022 00:23:17 -0700 (PDT)
+Received: from ?IPV6:2a0b:e7c0:0:107::70f? ([2a0b:e7c0:0:107::70f])
+        by smtp.gmail.com with ESMTPSA id p23-20020a056402045700b00447c646ad1asm6907975edw.57.2022.08.30.00.23.16
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Tue, 30 Aug 2022 00:23:16 -0700 (PDT)
+Message-ID: <5df0c2fb-0eb4-e0fd-a517-b7ea1d4a8f4e@kernel.org>
+Date:   Tue, 30 Aug 2022 09:23:15 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.2.0
+Subject: Re: [PATCH] tty: move from strlcpy with unused retval to strscpy
+Content-Language: en-US
+To:     Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-kernel@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        linuxppc-dev@lists.ozlabs.org, linux-serial@vger.kernel.org,
+        sparclinux@vger.kernel.org
+References: <20220818210113.7469-1-wsa+renesas@sang-engineering.com>
+From:   Jiri Slaby <jirislaby@kernel.org>
+In-Reply-To: <20220818210113.7469-1-wsa+renesas@sang-engineering.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Guo Ren <guoren@linux.alibaba.com>
+On 18. 08. 22, 23:01, Wolfram Sang wrote:
+> Follow the advice of the below link and prefer 'strscpy' in this
+> subsystem. Conversion is 1:1 because the return value is not used.
+> Generated by a coccinelle script.
 
-The TIF_SYSCALL_TRACE is controlled by a common code, see
-kernel/ptrace.c and include/linux/thread.h.
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
 
-clear_task_syscall_work(child, SYSCALL_TRACE);
+> Link: https://lore.kernel.org/r/CAHk-=wgfRnXz0W3D37d01q3JFkr_i_uTL=V6A6G1oUZcprmknw@mail.gmail.com/
+> Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+> ---
+>   drivers/tty/hvc/hvcs.c           | 2 +-
+>   drivers/tty/serial/earlycon.c    | 6 +++---
+>   drivers/tty/serial/serial_core.c | 2 +-
+>   drivers/tty/serial/sunsu.c       | 6 +++---
+>   drivers/tty/serial/sunzilog.c    | 6 +++---
+>   5 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/tty/hvc/hvcs.c b/drivers/tty/hvc/hvcs.c
+> index 9b7e8246a464..b79ce8d34f11 100644
+> --- a/drivers/tty/hvc/hvcs.c
+> +++ b/drivers/tty/hvc/hvcs.c
+> @@ -839,7 +839,7 @@ static void hvcs_set_pi(struct hvcs_partner_info *pi, struct hvcs_struct *hvcsd)
+>   	hvcsd->p_partition_ID  = pi->partition_ID;
+>   
+>   	/* copy the null-term char too */
+> -	strlcpy(hvcsd->p_location_code, pi->location_code,
+> +	strscpy(hvcsd->p_location_code, pi->location_code,
+>   		sizeof(hvcsd->p_location_code));
+>   }
+>   
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index 88d08ba1ca83..a5f380584cda 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -67,7 +67,7 @@ static void __init earlycon_init(struct earlycon_device *device,
+>   	if (*s)
+>   		earlycon->index = simple_strtoul(s, NULL, 10);
+>   	len = s - name;
+> -	strlcpy(earlycon->name, name, min(len + 1, sizeof(earlycon->name)));
+> +	strscpy(earlycon->name, name, min(len + 1, sizeof(earlycon->name)));
+>   	earlycon->data = &early_console_dev;
+>   }
+>   
+> @@ -123,7 +123,7 @@ static int __init parse_options(struct earlycon_device *device, char *options)
+>   		device->baud = simple_strtoul(options, NULL, 0);
+>   		length = min(strcspn(options, " ") + 1,
+>   			     (size_t)(sizeof(device->options)));
+> -		strlcpy(device->options, options, length);
+> +		strscpy(device->options, options, length);
+>   	}
+>   
+>   	return 0;
+> @@ -304,7 +304,7 @@ int __init of_setup_earlycon(const struct earlycon_id *match,
+>   
+>   	if (options) {
+>   		early_console_dev.baud = simple_strtoul(options, NULL, 0);
+> -		strlcpy(early_console_dev.options, options,
+> +		strscpy(early_console_dev.options, options,
+>   			sizeof(early_console_dev.options));
+>   	}
+>   	earlycon_init(&early_console_dev, match->name);
+> diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+> index 12c87cd201a7..3561a160cbd5 100644
+> --- a/drivers/tty/serial/serial_core.c
+> +++ b/drivers/tty/serial/serial_core.c
+> @@ -2497,7 +2497,7 @@ uart_report_port(struct uart_driver *drv, struct uart_port *port)
+>   			 "MMIO 0x%llx", (unsigned long long)port->mapbase);
+>   		break;
+>   	default:
+> -		strlcpy(address, "*unknown*", sizeof(address));
+> +		strscpy(address, "*unknown*", sizeof(address));
+>   		break;
+>   	}
+>   
+> diff --git a/drivers/tty/serial/sunsu.c b/drivers/tty/serial/sunsu.c
+> index 84d545e5a8c7..d5dcb612804e 100644
+> --- a/drivers/tty/serial/sunsu.c
+> +++ b/drivers/tty/serial/sunsu.c
+> @@ -1217,13 +1217,13 @@ static int sunsu_kbd_ms_init(struct uart_sunsu_port *up)
+>   	serio->id.type = SERIO_RS232;
+>   	if (up->su_type == SU_PORT_KBD) {
+>   		serio->id.proto = SERIO_SUNKBD;
+> -		strlcpy(serio->name, "sukbd", sizeof(serio->name));
+> +		strscpy(serio->name, "sukbd", sizeof(serio->name));
+>   	} else {
+>   		serio->id.proto = SERIO_SUN;
+>   		serio->id.extra = 1;
+> -		strlcpy(serio->name, "sums", sizeof(serio->name));
+> +		strscpy(serio->name, "sums", sizeof(serio->name));
+>   	}
+> -	strlcpy(serio->phys,
+> +	strscpy(serio->phys,
+>   		(!(up->port.line & 1) ? "su/serio0" : "su/serio1"),
+>   		sizeof(serio->phys));
+>   
+> diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
+> index c14275d83b0b..c44cf613ff1a 100644
+> --- a/drivers/tty/serial/sunzilog.c
+> +++ b/drivers/tty/serial/sunzilog.c
+> @@ -1307,13 +1307,13 @@ static void sunzilog_register_serio(struct uart_sunzilog_port *up)
+>   	serio->id.type = SERIO_RS232;
+>   	if (up->flags & SUNZILOG_FLAG_CONS_KEYB) {
+>   		serio->id.proto = SERIO_SUNKBD;
+> -		strlcpy(serio->name, "zskbd", sizeof(serio->name));
+> +		strscpy(serio->name, "zskbd", sizeof(serio->name));
+>   	} else {
+>   		serio->id.proto = SERIO_SUN;
+>   		serio->id.extra = 1;
+> -		strlcpy(serio->name, "zsms", sizeof(serio->name));
+> +		strscpy(serio->name, "zsms", sizeof(serio->name));
+>   	}
+> -	strlcpy(serio->phys,
+> +	strscpy(serio->phys,
+>   		((up->flags & SUNZILOG_FLAG_CONS_KEYB) ?
+>   		 "zs/serio0" : "zs/serio1"),
+>   		sizeof(serio->phys));
 
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Signed-off-by: Guo Ren <guoren@kernel.org>
----
- arch/riscv/kernel/ptrace.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/arch/riscv/kernel/ptrace.c b/arch/riscv/kernel/ptrace.c
-index 2ae8280ae475..44f4b1ca315d 100644
---- a/arch/riscv/kernel/ptrace.c
-+++ b/arch/riscv/kernel/ptrace.c
-@@ -212,7 +212,6 @@ unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs, unsigned int n)
- 
- void ptrace_disable(struct task_struct *child)
- {
--	clear_tsk_thread_flag(child, TIF_SYSCALL_TRACE);
- }
- 
- long arch_ptrace(struct task_struct *child, long request,
 -- 
-2.36.1
+js
+suse labs
 
