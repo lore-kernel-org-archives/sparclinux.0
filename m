@@ -2,41 +2,38 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21C88ECAAD5
-	for <sparclinux@archiver.kernel.org>; Sat,  3 Sep 2022 09:34:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BE0C6FA82
+	for <sparclinux@archiver.kernel.org>; Sat,  3 Sep 2022 09:34:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232734AbiICJec (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 3 Sep 2022 05:34:32 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58666 "EHLO
+        id S231535AbiICJej (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 3 Sep 2022 05:34:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59200 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231535AbiICJea (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 3 Sep 2022 05:34:30 -0400
-Received: from mailgw01.mediatek.com (unknown [60.244.123.138])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CEDC8DF9;
-        Sat,  3 Sep 2022 02:34:24 -0700 (PDT)
-X-UUID: b80dc9603d70496ca9d518010329f5df-20220903
+        with ESMTP id S232816AbiICJei (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 3 Sep 2022 05:34:38 -0400
+Received: from mailgw02.mediatek.com (unknown [210.61.82.184])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BB305205D9;
+        Sat,  3 Sep 2022 02:34:35 -0700 (PDT)
+X-UUID: 051434d8480e4aaeabacde571b5bdad5-20220903
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed; d=mediatek.com; s=dk;
-        h=Content-Type:MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:CC:To:From; bh=dccgenCLdaldLGNe2nW0rKf95nJyRR69M0nwfddNDug=;
-        b=HJ9It8VPnfLqwxBnGc71fIZTmyT0Nd3VRv3JmVYC6B5+20MBYv9bKdvEJj64EsOF9VlA/qrKRlQe3Kr849no+MCr0mJM0sQjVE5Puoc5ITTQVQwBGFLCh2vPsHNac6BgBDoaPV/uS0xep/4ji5rl4Nx+++BAO8ImRnNj9tkXh0s=;
+        h=Content-Type:MIME-Version:References:In-Reply-To:Message-ID:Date:Subject:CC:To:From; bh=R0yWopENN2DUpjXIzG6EDQabPLHkMoYr8rLHotCp2qM=;
+        b=siJYmYgXXKjX/cuo11eNI1wsUz9+8vxFwe8rgxiFPQX241QEo9/Bv2C0KdyROHzxuqwGtWGwZmTt/Om9aWN3ZLarT/r6A0fvia7dlSLOt61B842yt5Bc/GXQQII15/KSQSVbI3EsapUi9tzf6DZAUwe1UtgkB8v0fOicAF04mcM=;
 X-CID-P-RULE: Release_Ham
-X-CID-O-INFO: VERSION:1.1.10,REQID:6d4da491-4928-46a9-b5c4-67201287da1c,OB:0,L
-        OB:0,IP:0,URL:0,TC:0,Content:-25,EDM:0,RT:0,SF:95,FILE:0,BULK:0,RULE:Relea
-        se_Ham,ACTION:release,TS:70
-X-CID-INFO: VERSION:1.1.10,REQID:6d4da491-4928-46a9-b5c4-67201287da1c,OB:0,LOB
-        :0,IP:0,URL:0,TC:0,Content:-25,EDM:0,RT:0,SF:95,FILE:0,BULK:0,RULE:Spam_GS
-        981B3D,ACTION:quarantine,TS:70
-X-CID-META: VersionHash:84eae18,CLOUDID:714b86d0-20bd-4e5e-ace8-00692b7ab380,C
-        OID:171e9c4a6f6e,Recheck:0,SF:28|17|19|48,TC:nil,Content:0,EDM:-3,IP:nil,U
-        RL:0,File:nil,Bulk:nil,QS:nil,BEC:nil,COL:0
-X-UUID: b80dc9603d70496ca9d518010329f5df-20220903
-Received: from mtkmbs10n1.mediatek.inc [(172.21.101.34)] by mailgw01.mediatek.com
+X-CID-O-INFO: VERSION:1.1.10,REQID:a23515e7-2859-4cee-a194-4df719e60e5d,OB:0,L
+        OB:0,IP:0,URL:0,TC:0,Content:0,EDM:0,RT:0,SF:0,FILE:0,BULK:0,RULE:Release_
+        Ham,ACTION:release,TS:0
+X-CID-META: VersionHash:84eae18,CLOUDID:af677c56-e800-47dc-8adf-0c936acf4f1b,C
+        OID:IGNORED,Recheck:0,SF:nil,TC:nil,Content:0,EDM:-3,IP:nil,URL:0,File:nil
+        ,Bulk:nil,QS:nil,BEC:nil,COL:0
+X-UUID: 051434d8480e4aaeabacde571b5bdad5-20220903
+Received: from mtkexhb01.mediatek.inc [(172.21.101.102)] by mailgw02.mediatek.com
         (envelope-from <lecopzer.chen@mediatek.com>)
-        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-GCM-SHA384 256/256)
-        with ESMTP id 1384698886; Sat, 03 Sep 2022 17:34:19 +0800
+        (Generic MTA with TLSv1.2 ECDHE-RSA-AES256-SHA384 256/256)
+        with ESMTP id 1828987830; Sat, 03 Sep 2022 17:34:18 +0800
 Received: from mtkmbs11n2.mediatek.inc (172.21.101.187) by
- mtkmbs11n2.mediatek.inc (172.21.101.187) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.2.792.15; Sat, 3 Sep 2022 17:34:17 +0800
+ mtkmbs10n2.mediatek.inc (172.21.101.183) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.2.792.3;
+ Sat, 3 Sep 2022 17:34:17 +0800
 Received: from mtksdccf07.mediatek.inc (172.21.84.99) by
  mtkmbs11n2.mediatek.inc (172.21.101.73) with Microsoft SMTP Server id
  15.2.792.15 via Frontend Transport; Sat, 3 Sep 2022 17:34:17 +0800
@@ -54,9 +51,9 @@ CC:     <lecopzer.chen@mediatek.com>, <acme@kernel.org>,
         <peterz@infradead.org>, <pmladek@suse.com>,
         <sparclinux@vger.kernel.org>, <sumit.garg@linaro.org>,
         <wangqing@vivo.com>, <yj.chiang@mediatek.com>
-Subject: [PATCH v7 3/6] kernel/watchdog_hld: Ensure CPU-bound context when creating hardlockup detector event
-Date:   Sat, 3 Sep 2022 17:34:12 +0800
-Message-ID: <20220903093415.15850-4-lecopzer.chen@mediatek.com>
+Subject: [PATCH v7 1/6] kernel/watchdog: remove WATCHDOG_DEFAULT
+Date:   Sat, 3 Sep 2022 17:34:10 +0800
+Message-ID: <20220903093415.15850-2-lecopzer.chen@mediatek.com>
 X-Mailer: git-send-email 2.18.0
 In-Reply-To: <20220903093415.15850-1-lecopzer.chen@mediatek.com>
 References: <20220903093415.15850-1-lecopzer.chen@mediatek.com>
@@ -67,46 +64,29 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Pingfan Liu <kernelfans@gmail.com>
-
-hardlockup_detector_event_create() should create perf_event on the
-current CPU. Preemption could not get disabled because
-perf_event_create_kernel_counter() allocates memory. Instead,
-the CPU locality is achieved by processing the code in a per-CPU
-bound kthread.
-
-Add a check to prevent mistakes when calling the code in another
-code path.
+No reference to WATCHDOG_DEFAULT, remove it.
 
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Co-developed-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Signed-off-by: Lecopzer Chen <lecopzer.chen@mediatek.com>
 Reviewed-by: Petr Mladek <pmladek@suse.com>
 ---
- kernel/watchdog_hld.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/watchdog.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/kernel/watchdog_hld.c b/kernel/watchdog_hld.c
-index 247bf0b1582c..96b717205952 100644
---- a/kernel/watchdog_hld.c
-+++ b/kernel/watchdog_hld.c
-@@ -165,10 +165,16 @@ static void watchdog_overflow_callback(struct perf_event *event,
+diff --git a/kernel/watchdog.c b/kernel/watchdog.c
+index 8e61f21e7e33..582d572e1379 100644
+--- a/kernel/watchdog.c
++++ b/kernel/watchdog.c
+@@ -30,10 +30,8 @@
+ static DEFINE_MUTEX(watchdog_mutex);
  
- static int hardlockup_detector_event_create(void)
- {
--	unsigned int cpu = smp_processor_id();
-+	unsigned int cpu;
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *evt;
- 
-+	/*
-+	 * Preemption is not disabled because memory will be allocated.
-+	 * Ensure CPU-locality by calling this in per-CPU kthread.
-+	 */
-+	WARN_ON(!is_percpu_thread());
-+	cpu = raw_smp_processor_id();
- 	wd_attr = &wd_hw_attr;
- 	wd_attr->sample_period = hw_nmi_get_sample_period(watchdog_thresh);
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR) || defined(CONFIG_HAVE_NMI_WATCHDOG)
+-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED | NMI_WATCHDOG_ENABLED)
+ # define NMI_WATCHDOG_DEFAULT	1
+ #else
+-# define WATCHDOG_DEFAULT	(SOFT_WATCHDOG_ENABLED)
+ # define NMI_WATCHDOG_DEFAULT	0
+ #endif
  
 -- 
 2.34.1
