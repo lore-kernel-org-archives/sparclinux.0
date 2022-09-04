@@ -2,215 +2,129 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AAC6C38145
-	for <sparclinux@archiver.kernel.org>; Sat,  3 Sep 2022 16:24:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85074C6FA82
+	for <sparclinux@archiver.kernel.org>; Sun,  4 Sep 2022 22:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231621AbiICQYO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 3 Sep 2022 12:24:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37830 "EHLO
+        id S231856AbiIDW66 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 4 Sep 2022 18:58:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230247AbiICQYF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 3 Sep 2022 12:24:05 -0400
-Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881D33DBE8;
-        Sat,  3 Sep 2022 09:24:03 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id A5B39CE0494;
-        Sat,  3 Sep 2022 16:24:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4F72C433B5;
-        Sat,  3 Sep 2022 16:23:53 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1662222240;
-        bh=cGpgA7bsAcBu9cM5k7EvryK/rECLcgu+ArqhQVWAdzg=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WNT4uPAZzNgEikgI4Tv1F4v0oQtzH4tIjUhl/cJA/YVa6QRSRGDxTafbzszqINzUO
-         tqsJihurGXByqEToL7OKYmvozHPC85pvH3OQ1ING+FLiyj8b29mWczHjOq3aok7IkK
-         DnRiBGkzL1WjZ89jCx75dHqWGZatw84FR+Lh/kUIHPU58dRmpHYk0TJz5CIC3Mk5sD
-         WY2rx5GYBukKbAeCm3PA2k+xx+p2jUXmRBBV/ilo2d0myUtNurY7VwSvd8kYBq1QVD
-         bx9p/H6H1CFsRm+JgTcXArsNNteVqQKa5G28zWPlO5IMZLUskgFw+9hPGGv3Ar+mnv
-         Jfp80Mx78OLKw==
-From:   guoren@kernel.org
-To:     oleg@redhat.com, vgupta@kernel.org, linux@armlinux.org.uk,
-        monstr@monstr.eu, dinguyen@kernel.org, palmer@dabbelt.com,
-        davem@davemloft.net, arnd@arndb.de, shorne@gmail.com,
-        guoren@kernel.org
-Cc:     linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-riscv@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
-        openrisc@lists.librecores.org, Guo Ren <guoren@linux.alibaba.com>
-Subject: [PATCH V2 3/3] arch: ptrace: Cleanup ptrace_disable
-Date:   Sat,  3 Sep 2022 12:23:27 -0400
-Message-Id: <20220903162328.1952477-4-guoren@kernel.org>
-X-Mailer: git-send-email 2.36.1
-In-Reply-To: <20220903162328.1952477-1-guoren@kernel.org>
-References: <20220903162328.1952477-1-guoren@kernel.org>
+        with ESMTP id S229627AbiIDW64 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 4 Sep 2022 18:58:56 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFEAE2A72E;
+        Sun,  4 Sep 2022 15:58:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1662332335; x=1693868335;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=6lRrC028A9Us0DoTusO+pndhBJWhk8nDRSwaWIEpGho=;
+  b=So6hOxruTsqFaVcXFP1UNOOApEDIig/gzZhEWUVkcTZeoGwm7EmY9mHs
+   emrOWn+6VRkr+MzUULkdbNHh0aQll3bgeIWtiqmrYp69CfFvmMDoRc+wJ
+   kXIusyWlOqk7p9zxLSoQFmj6O4MHdqgV5YtQfxeWDA4fL2vFIe78QAUW0
+   U04M9z6Eko3tZ8gcpK69PZ0+1/ooKxSAzAyOgIdKMPo7s3OnvkPcK3b0d
+   wZ1sZNxpqLUXleMMVHncs9f6vBGIQd7SCW2cHB9jYJUossUmAH20xwlB1
+   CnVgNWfs2u2ux+afrHaQEZZRXGBHV8DnlJl//OmGulBGvoOCRPuzKIib0
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10460"; a="279289639"
+X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
+   d="scan'208";a="279289639"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2022 15:58:55 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
+   d="scan'208";a="702697580"
+Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
+  by FMSMGA003.fm.intel.com with ESMTP; 04 Sep 2022 15:58:49 -0700
+Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
+        (envelope-from <lkp@intel.com>)
+        id 1oUyZk-0003TJ-2O;
+        Sun, 04 Sep 2022 22:58:48 +0000
+Date:   Mon, 5 Sep 2022 06:57:55 +0800
+From:   kernel test robot <lkp@intel.com>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        will@kernel.org
+Cc:     kbuild-all@lists.01.org, lecopzer.chen@mediatek.com,
+        acme@kernel.org, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
+        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
+        keescook@chromium.org, kernelfans@gmail.com, masahiroy@kernel.org,
+        matthias.bgg@gmail.com, maz@kernel.org, mcgrof@kernel.org,
+        mingo@redhat.com, namhyung@kernel.org, nixiaoming@huawei.com,
+        peterz@infradead.org, pmladek@suse.com, sparclinux@vger.kernel.org,
+        sumit.garg@linaro.org, wangqing@vivo.com, yj.chiang@mediatek.com
+Subject: Re: [PATCH v7 6/6] arm64: Enable perf events based hard lockup
+ detector
+Message-ID: <202209050639.jDaWd49E-lkp@intel.com>
+References: <20220903093415.15850-7-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220903093415.15850-7-lecopzer.chen@mediatek.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Guo Ren <guoren@linux.alibaba.com>
+Hi Lecopzer,
 
-Add a weak empty function in common and remove architectures' duplicated
-ones.
+Thank you for the patch! Yet something to improve:
 
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Signed-off-by: Guo Ren <guoren@kernel.org>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
----
- arch/arc/kernel/ptrace.c        |  4 ----
- arch/arm/kernel/ptrace.c        |  8 --------
- arch/microblaze/kernel/ptrace.c |  5 -----
- arch/nios2/kernel/ptrace.c      |  5 -----
- arch/riscv/kernel/ptrace.c      |  4 ----
- arch/sparc/kernel/ptrace_32.c   | 10 ----------
- arch/sparc/kernel/ptrace_64.c   | 10 ----------
- kernel/ptrace.c                 |  8 ++++++++
- 8 files changed, 8 insertions(+), 46 deletions(-)
+[auto build test ERROR on arm64/for-next/core]
+[also build test ERROR on arm/for-next soc/for-next linus/master v6.0-rc4 next-20220901]
+[cannot apply to xilinx-xlnx/master]
+[If your patch is applied to the wrong git tree, kindly drop us a note.
+And when submitting patch, we suggest to use '--base' as documented in
+https://git-scm.com/docs/git-format-patch#_base_tree_information]
 
-diff --git a/arch/arc/kernel/ptrace.c b/arch/arc/kernel/ptrace.c
-index da7542cea0d8..c227e145fede 100644
---- a/arch/arc/kernel/ptrace.c
-+++ b/arch/arc/kernel/ptrace.c
-@@ -317,10 +317,6 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
- 	return &user_arc_view;
- }
- 
--void ptrace_disable(struct task_struct *child)
--{
--}
--
- long arch_ptrace(struct task_struct *child, long request,
- 		 unsigned long addr, unsigned long data)
- {
-diff --git a/arch/arm/kernel/ptrace.c b/arch/arm/kernel/ptrace.c
-index bfe88c6e60d5..b85f5bdc56ef 100644
---- a/arch/arm/kernel/ptrace.c
-+++ b/arch/arm/kernel/ptrace.c
-@@ -186,14 +186,6 @@ put_user_reg(struct task_struct *task, int offset, long data)
- 	return ret;
- }
- 
--/*
-- * Called by kernel/ptrace.c when detaching..
-- */
--void ptrace_disable(struct task_struct *child)
--{
--	/* Nothing to do. */
--}
--
- /*
-  * Handle hitting a breakpoint.
-  */
-diff --git a/arch/microblaze/kernel/ptrace.c b/arch/microblaze/kernel/ptrace.c
-index 5234d0c1dcaa..72e3eece72aa 100644
---- a/arch/microblaze/kernel/ptrace.c
-+++ b/arch/microblaze/kernel/ptrace.c
-@@ -162,8 +162,3 @@ asmlinkage void do_syscall_trace_leave(struct pt_regs *regs)
- 	if (step || test_thread_flag(TIF_SYSCALL_TRACE))
- 		ptrace_report_syscall_exit(regs, step);
- }
--
--void ptrace_disable(struct task_struct *child)
--{
--	/* nothing to do */
--}
-diff --git a/arch/nios2/kernel/ptrace.c b/arch/nios2/kernel/ptrace.c
-index cd62f310778b..de5f4199c45f 100644
---- a/arch/nios2/kernel/ptrace.c
-+++ b/arch/nios2/kernel/ptrace.c
-@@ -117,11 +117,6 @@ const struct user_regset_view *task_user_regset_view(struct task_struct *task)
- 	return &nios2_user_view;
- }
- 
--void ptrace_disable(struct task_struct *child)
--{
--
--}
--
- long arch_ptrace(struct task_struct *child, long request, unsigned long addr,
- 		 unsigned long data)
- {
-diff --git a/arch/riscv/kernel/ptrace.c b/arch/riscv/kernel/ptrace.c
-index 44f4b1ca315d..19e4d8057e24 100644
---- a/arch/riscv/kernel/ptrace.c
-+++ b/arch/riscv/kernel/ptrace.c
-@@ -210,10 +210,6 @@ unsigned long regs_get_kernel_stack_nth(struct pt_regs *regs, unsigned int n)
- 		return 0;
- }
- 
--void ptrace_disable(struct task_struct *child)
--{
--}
--
- long arch_ptrace(struct task_struct *child, long request,
- 		 unsigned long addr, unsigned long data)
- {
-diff --git a/arch/sparc/kernel/ptrace_32.c b/arch/sparc/kernel/ptrace_32.c
-index e7db48acb838..f6df84e12739 100644
---- a/arch/sparc/kernel/ptrace_32.c
-+++ b/arch/sparc/kernel/ptrace_32.c
-@@ -29,16 +29,6 @@
- 
- /* #define ALLOW_INIT_TRACING */
- 
--/*
-- * Called by kernel/ptrace.c when detaching..
-- *
-- * Make sure single step bits etc are not set.
-- */
--void ptrace_disable(struct task_struct *child)
--{
--	/* nothing to do */
--}
--
- enum sparc_regset {
- 	REGSET_GENERAL,
- 	REGSET_FP,
-diff --git a/arch/sparc/kernel/ptrace_64.c b/arch/sparc/kernel/ptrace_64.c
-index 86a7eb5c27ba..b20a16ebe533 100644
---- a/arch/sparc/kernel/ptrace_64.c
-+++ b/arch/sparc/kernel/ptrace_64.c
-@@ -83,16 +83,6 @@ static const struct pt_regs_offset regoffset_table[] = {
- 	REG_OFFSET_END,
- };
- 
--/*
-- * Called by kernel/ptrace.c when detaching..
-- *
-- * Make sure single step bits etc are not set.
-- */
--void ptrace_disable(struct task_struct *child)
--{
--	/* nothing to do */
--}
--
- /* To get the necessary page struct, access_process_vm() first calls
-  * get_user_pages().  This has done a flush_dcache_page() on the
-  * accessed page.  Then our caller (copy_{to,from}_user_page()) did
-diff --git a/kernel/ptrace.c b/kernel/ptrace.c
-index 1893d909e45c..77299bb65d97 100644
---- a/kernel/ptrace.c
-+++ b/kernel/ptrace.c
-@@ -579,6 +579,14 @@ static bool __ptrace_detach(struct task_struct *tracer, struct task_struct *p)
- 	return dead;
- }
- 
-+__weak void ptrace_disable(struct task_struct *child)
-+{
-+	/*
-+	 * Nothing to do.., some architectures would replace it with
-+	 * their own function.
-+	 */
-+}
-+
- static int ptrace_detach(struct task_struct *child, unsigned int data)
- {
- 	if (!valid_signal(data))
+url:    https://github.com/intel-lab-lkp/linux/commits/Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220903-173641
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/core
+config: arm64-randconfig-c033-20220904 (https://download.01.org/0day-ci/archive/20220905/202209050639.jDaWd49E-lkp@intel.com/config)
+compiler: aarch64-linux-gcc (GCC) 12.1.0
+reproduce (this is a W=1 build):
+        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+        chmod +x ~/bin/make.cross
+        # https://github.com/intel-lab-lkp/linux/commit/de75eba8785b631eb168737fbff6dc31418cb852
+        git remote add linux-review https://github.com/intel-lab-lkp/linux
+        git fetch --no-tags linux-review Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220903-173641
+        git checkout de75eba8785b631eb168737fbff6dc31418cb852
+        # save the config file
+        mkdir build_dir && cp config build_dir/.config
+        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm64 SHELL=/bin/bash
+
+If you fix the issue, kindly add following tag where applicable
+Reported-by: kernel test robot <lkp@intel.com>
+
+All errors (new ones prefixed by >>):
+
+   aarch64-linux-ld: Unexpected GOT/PLT entries detected!
+   aarch64-linux-ld: Unexpected run-time procedure linkages detected!
+   aarch64-linux-ld: arch/arm64/kernel/perf_event.o: in function `armv8_pmu_driver_init':
+>> arch/arm64/kernel/perf_event.c:1402: undefined reference to `retry_lockup_detector_init'
+
+
+vim +1402 arch/arm64/kernel/perf_event.c
+
+  1391	
+  1392	static int __init armv8_pmu_driver_init(void)
+  1393	{
+  1394		int ret;
+  1395	
+  1396		if (acpi_disabled)
+  1397			ret = platform_driver_register(&armv8_pmu_driver);
+  1398		else
+  1399			ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
+  1400	
+  1401		if (!ret)
+> 1402			retry_lockup_detector_init();
+  1403	
+  1404		return ret;
+  1405	}
+  1406	device_initcall(armv8_pmu_driver_init)
+  1407	
+
 -- 
-2.36.1
-
+0-DAY CI Kernel Test Service
+https://01.org/lkp
