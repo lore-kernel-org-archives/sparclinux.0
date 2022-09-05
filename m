@@ -2,129 +2,76 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85074C6FA82
-	for <sparclinux@archiver.kernel.org>; Sun,  4 Sep 2022 22:58:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03AD6ECAAD5
+	for <sparclinux@archiver.kernel.org>; Mon,  5 Sep 2022 14:29:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231856AbiIDW66 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 4 Sep 2022 18:58:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51142 "EHLO
+        id S238069AbiIEO3C (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 5 Sep 2022 10:29:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50868 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229627AbiIDW64 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 4 Sep 2022 18:58:56 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFEAE2A72E;
-        Sun,  4 Sep 2022 15:58:55 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1662332335; x=1693868335;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6lRrC028A9Us0DoTusO+pndhBJWhk8nDRSwaWIEpGho=;
-  b=So6hOxruTsqFaVcXFP1UNOOApEDIig/gzZhEWUVkcTZeoGwm7EmY9mHs
-   emrOWn+6VRkr+MzUULkdbNHh0aQll3bgeIWtiqmrYp69CfFvmMDoRc+wJ
-   kXIusyWlOqk7p9zxLSoQFmj6O4MHdqgV5YtQfxeWDA4fL2vFIe78QAUW0
-   U04M9z6Eko3tZ8gcpK69PZ0+1/ooKxSAzAyOgIdKMPo7s3OnvkPcK3b0d
-   wZ1sZNxpqLUXleMMVHncs9f6vBGIQd7SCW2cHB9jYJUossUmAH20xwlB1
-   CnVgNWfs2u2ux+afrHaQEZZRXGBHV8DnlJl//OmGulBGvoOCRPuzKIib0
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10460"; a="279289639"
-X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
-   d="scan'208";a="279289639"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 04 Sep 2022 15:58:55 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,290,1654585200"; 
-   d="scan'208";a="702697580"
-Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
-  by FMSMGA003.fm.intel.com with ESMTP; 04 Sep 2022 15:58:49 -0700
-Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1oUyZk-0003TJ-2O;
-        Sun, 04 Sep 2022 22:58:48 +0000
-Date:   Mon, 5 Sep 2022 06:57:55 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Lecopzer Chen <lecopzer.chen@mediatek.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
-        will@kernel.org
-Cc:     kbuild-all@lists.01.org, lecopzer.chen@mediatek.com,
-        acme@kernel.org, akpm@linux-foundation.org,
-        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
-        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
-        keescook@chromium.org, kernelfans@gmail.com, masahiroy@kernel.org,
-        matthias.bgg@gmail.com, maz@kernel.org, mcgrof@kernel.org,
-        mingo@redhat.com, namhyung@kernel.org, nixiaoming@huawei.com,
-        peterz@infradead.org, pmladek@suse.com, sparclinux@vger.kernel.org,
-        sumit.garg@linaro.org, wangqing@vivo.com, yj.chiang@mediatek.com
-Subject: Re: [PATCH v7 6/6] arm64: Enable perf events based hard lockup
- detector
-Message-ID: <202209050639.jDaWd49E-lkp@intel.com>
-References: <20220903093415.15850-7-lecopzer.chen@mediatek.com>
+        with ESMTP id S237704AbiIEO26 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 5 Sep 2022 10:28:58 -0400
+X-Greylist: delayed 400 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 05 Sep 2022 07:28:54 PDT
+Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E0685A88C
+        for <sparclinux@vger.kernel.org>; Mon,  5 Sep 2022 07:28:54 -0700 (PDT)
+Received: (qmail 31722 invoked from network); 5 Sep 2022 14:22:24 -0000
+Received: from p200300cf0709290076d435fffeb7be92.dip0.t-ipconnect.de ([2003:cf:709:2900:76d4:35ff:feb7:be92]:51814 HELO eto.sf-tec.de) (auth=eike@sf-mail.de)
+        by mail.sf-mail.de (Qsmtpd 0.38dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
+        for <sparclinux@vger.kernel.org>; Mon, 05 Sep 2022 16:22:24 +0200
+From:   Rolf Eike Beer <eike@sf-mail.de>
+To:     sparclinux@vger.kernel.org
+Subject: 4.14.291 hangs in futex()
+Date:   Mon, 05 Sep 2022 16:22:11 +0200
+Message-ID: <1904651.PYKUYFuaPT@eto.sf-tec.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220903093415.15850-7-lecopzer.chen@mediatek.com>
+Content-Type: multipart/signed; boundary="nextPart21592057.EfDdHjke4D"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Lecopzer,
+--nextPart21592057.EfDdHjke4D
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"; protected-headers="v1"
+From: Rolf Eike Beer <eike@sf-mail.de>
+To: sparclinux@vger.kernel.org
+Subject: 4.14.291 hangs in futex()
+Date: Mon, 05 Sep 2022 16:22:11 +0200
+Message-ID: <1904651.PYKUYFuaPT@eto.sf-tec.de>
+MIME-Version: 1.0
 
-Thank you for the patch! Yet something to improve:
+While my other problems with the T5120 locking up are still there I noticed 
+another error symptom when using 4.14.280 and 4.14.291: sometimes one of my 
+nightly build CMake processes hands like this:
 
-[auto build test ERROR on arm64/for-next/core]
-[also build test ERROR on arm/for-next soc/for-next linus/master v6.0-rc4 next-20220901]
-[cannot apply to xilinx-xlnx/master]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
+strace: Process 53402 attached with 2 threads
+[pid 53402] restart_syscall(<... resuming interrupted futex ...>) = -1 EINTR 
+(Interrupted system call)
+[pid 53402] futex(0xf50fdb28, FUTEX_WAIT_BITSET|FUTEX_CLOCK_REALTIME, 53451, 
+NULL, FUTEX_BITSET_MATCH_ANY
 
-url:    https://github.com/intel-lab-lkp/linux/commits/Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220903-173641
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git for-next/core
-config: arm64-randconfig-c033-20220904 (https://download.01.org/0day-ci/archive/20220905/202209050639.jDaWd49E-lkp@intel.com/config)
-compiler: aarch64-linux-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/de75eba8785b631eb168737fbff6dc31418cb852
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Lecopzer-Chen/Support-hld-delayed-init-based-on-Pseudo-NMI-for/20220903-173641
-        git checkout de75eba8785b631eb168737fbff6dc31418cb852
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=arm64 SHELL=/bin/bash
+The process uses 100% of one CPU at this point, but can normally be killed. If 
+I don't detect this in time, i.e. for a few hours, then the next build will 
+start and the system will lock up as usual. I have not seen this with other 
+kernel branches yet.
 
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
+Any ideas?
 
-All errors (new ones prefixed by >>):
+Eike
 
-   aarch64-linux-ld: Unexpected GOT/PLT entries detected!
-   aarch64-linux-ld: Unexpected run-time procedure linkages detected!
-   aarch64-linux-ld: arch/arm64/kernel/perf_event.o: in function `armv8_pmu_driver_init':
->> arch/arm64/kernel/perf_event.c:1402: undefined reference to `retry_lockup_detector_init'
+--nextPart21592057.EfDdHjke4D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCYxYGEwAKCRBcpIk+abn8
+Ts8gAKCYFiL4PcNTm7fJDv7eI7PBBEWE8wCgiBD7rIqYY8e8b5WG372m4M5xWZY=
+=OjRW
+-----END PGP SIGNATURE-----
+
+--nextPart21592057.EfDdHjke4D--
 
 
-vim +1402 arch/arm64/kernel/perf_event.c
 
-  1391	
-  1392	static int __init armv8_pmu_driver_init(void)
-  1393	{
-  1394		int ret;
-  1395	
-  1396		if (acpi_disabled)
-  1397			ret = platform_driver_register(&armv8_pmu_driver);
-  1398		else
-  1399			ret = arm_pmu_acpi_probe(armv8_pmuv3_pmu_init);
-  1400	
-  1401		if (!ret)
-> 1402			retry_lockup_detector_init();
-  1403	
-  1404		return ret;
-  1405	}
-  1406	device_initcall(armv8_pmu_driver_init)
-  1407	
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
