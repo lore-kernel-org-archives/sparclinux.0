@@ -2,409 +2,112 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D224ECAAD5
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Sep 2022 04:33:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E30F3C38145
+	for <sparclinux@archiver.kernel.org>; Thu,  8 Sep 2022 14:51:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229611AbiIHEd5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 8 Sep 2022 00:33:57 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53532 "EHLO
+        id S232688AbiIHOvJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 8 Sep 2022 10:51:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229476AbiIHEd4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Sep 2022 00:33:56 -0400
-Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91EF87F24E;
-        Wed,  7 Sep 2022 21:33:54 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1662611634; x=1694147634;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=tVmuOHmwKB+Z7hUiALcHgJEc00AqO5+3NsAVP48bca8=;
-  b=DeLAyw4IZGkJJwrs6929DxDLynirRIVle3sYMd0ZbPZGANChWEh8Jgcf
-   ZLdN7cgYpcO8bnslbWgRoGPxM8dPnprx0PXJk116cqe8ztpmWqnQSbmo3
-   E2tWMkFSMxVZtbAPdWCW4cSMt3OKiyChhtB2dD1BgbM026rUqg4qORAOG
-   B9qZcjWy5h5gByTPbbNfTxSGtCoQmwW6HqjPpUM59dPnhQbqZyWlpBTiq
-   fOi3uuNZbk2tQ1BReaG+ZqhNRucd6pR+zICRqZkp5ZkUrALT7MYzao3hk
-   FY7m88KYIBgsjao20HFnO+tnizft/i7CgYQmti9VLzPHPKGF+NT/G2wGH
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10463"; a="284083429"
-X-IronPort-AV: E=Sophos;i="5.93,299,1654585200"; 
-   d="scan'208";a="284083429"
-Received: from fmsmga001.fm.intel.com ([10.253.24.23])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Sep 2022 21:33:53 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.93,299,1654585200"; 
-   d="scan'208";a="757044311"
-Received: from lkp-server02.sh.intel.com (HELO 95dfd251caa2) ([10.239.97.151])
-  by fmsmga001.fm.intel.com with ESMTP; 07 Sep 2022 21:33:51 -0700
-Received: from kbuild by 95dfd251caa2 with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1oW9Ec-0007MZ-2G;
-        Thu, 08 Sep 2022 04:33:50 +0000
-Date:   Thu, 8 Sep 2022 12:33:47 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Tiezhu Yang <yangtiezhu@loongson.cn>, davem@davemloft.net,
-        Masami Hiramatsu <mhiramat@kernel.org>
-Cc:     kbuild-all@lists.01.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] sparc: kprobes: Free instructions in arch_remove_kprobe()
-Message-ID: <202209081219.MDryXDEc-lkp@intel.com>
-References: <1662604440-30524-1-git-send-email-yangtiezhu@loongson.cn>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1662604440-30524-1-git-send-email-yangtiezhu@loongson.cn>
+        with ESMTP id S232310AbiIHOvI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Sep 2022 10:51:08 -0400
+Received: from new4-smtp.messagingengine.com (new4-smtp.messagingengine.com [66.111.4.230])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43A74D4BFC;
+        Thu,  8 Sep 2022 07:51:07 -0700 (PDT)
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 060105803A9;
+        Thu,  8 Sep 2022 10:51:06 -0400 (EDT)
+Received: from imap51 ([10.202.2.101])
+  by compute3.internal (MEProxy); Thu, 08 Sep 2022 10:51:06 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm1; t=1662648666; x=1662652266; bh=xPUksezrfQ
+        ftp7BCJi4jfaFRFsim1oC+Nm5z/XTwFx4=; b=W8zvVkqSTriTWscLmmhEe374hI
+        2yj96Yj14bqtsqKK6plP08lFbZKZRcCFFwZjicui36Fw8gcrWD2avibs7+yRrecF
+        BBK5/mA5W8T0v1bTHaCSlRFc1cgZguWoDqOitgFsUmwoNUEm3WdaelV9iBxWBObm
+        po7KIaQ8bFhlY5zE2gG/zwTxrLjollxaQKpJUC/PI/Tj8NA0q7QsILUb8Jbmm0M7
+        BkHetpt/svfhPFfnHk2xKm53zXxcxPeUzn9Xvhxeja2bxqVSgNufAVfcfyN6SNB5
+        x+I7ZcL6/4+dSqZh8uVwRaVD5DBwClw1zvbvDu3SbxRbqUKqIHTsJa8J+imA==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm2; t=1662648666; x=1662652266; bh=xPUksezrfQftp7BCJi4jfaFRFsim
+        1oC+Nm5z/XTwFx4=; b=0prD3bLmKHrguGQi6sTrt2uU1+uXXdI0p+kAHgFwoPRN
+        wQHkJiPGI9sVG5w6uoE4SJbHZGhC5uXJnU1KFmcbyTdT4c+MXd60QAB05qaG0oRT
+        ZSHt/5thODtYW1+dQcDdVcWatkNXWlg8h6g/puLo4ErKWBR7R4oI/5AMFfYTFIS+
+        VCkKIttBUIb/MFTu7MsChLRiOzUcHlqM4Ver3QaSnl7SYJMxyvpqvAlwR9pc7wnb
+        nnsBWpICCgNdugIlYgEX4y21Ejj54SeOhNejKf1sSjwbLLOccXK3/WwfXBnXxRpx
+        Bpcpe9I0RFQhxY9Epm5tegbc683Vg1hi8B9isyg60w==
+X-ME-Sender: <xms:WQEaYy7FT3dJucbMZMU-ZvPyPj6t3JSi-eS0JOqfd1MZ9JpZGGwP-w>
+    <xme:WQEaY75kfGpA9CU4g2BeTBvV1Y9HOOS8AAPNS2vXCT40BBMCuh5T8J6yXNsWYawX5
+    tl8YJ2ggEc9KjDInnE>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfedtfedgvddvucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
+    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
+    htvghrnhepvefhffeltdegheeffffhtdegvdehjedtgfekueevgfduffettedtkeekueef
+    hedunecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpe
+    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:WQEaYxfxAbS_WPhEG_s6s7FT6dlCXv9h8VC0irCctQ1RWx8NAFmgaA>
+    <xmx:WQEaY_K8hdvV5Su9Hy8S9Xec3HGxfcjT7oX8e4kj8j7bs1lQ-MvV_A>
+    <xmx:WQEaY2KjDufffN1YBIo8R1ZC9ZgHjwSJEM_QqMI5-nr2NbB86xLXBA>
+    <xmx:WQEaYy00ngNiWX7i_jPCnOBfSqE5pNuzWwdR1eNUByGi2drNzU60PQ>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 8426AB60083; Thu,  8 Sep 2022 10:51:05 -0400 (EDT)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.7.0-alpha0-927-gf4c98c8499-fm-20220826.002-gf4c98c84
+Mime-Version: 1.0
+Message-Id: <7c639355-206f-4682-b12c-9c8258d53537@www.fastmail.com>
+In-Reply-To: <20220831195553.129866-1-linus.walleij@linaro.org>
+References: <20220831195553.129866-1-linus.walleij@linaro.org>
+Date:   Thu, 08 Sep 2022 16:50:45 +0200
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Linus Walleij" <linus.walleij@linaro.org>,
+        "David S . Miller" <davem@davemloft.net>
+Cc:     sparclinux@vger.kernel.org, "kernel test robot" <lkp@intel.com>,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        "Mark Brown" <broonie@kernel.org>
+Subject: Re: [PATCH v2] sparc: Fix the generic IO helpers
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Tiezhu,
+On Wed, Aug 31, 2022, at 9:55 PM, Linus Walleij wrote:
+> This enables the Sparc to use <asm-generic/io.h> to fill in the
+> missing (undefined) [read|write]sq I/O accessor functions.
+>
+> This is needed if Sparc[64] ever wants to uses CONFIG_REGMAP_MMIO
+> which has been patches to use accelerated _noinc accessors
+> such as readsq/writesq that Sparc64, while being a 64bit platform,
+> as of now not yet provide.
+>
+> This comes with the requirement that everything the architecture
+> already provides needs to be defined, rather than just being,
+> say, static inline functions.
+>
+> Bite the bullet and just provide the definitions and make it work.
+> Compile-tested on sparc32 and sparc64.
+>
+> Reported-by: kernel test robot <lkp@intel.com>
+> Link: 
+> https://lore.kernel.org/linux-arm-kernel/202208201639.HXye3ke4-lkp@intel.com/
+> Cc: David S. Miller <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+> Cc: linux-arch@vger.kernel.org
+> Cc: Mark Brown <broonie@kernel.org>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+> ---
+> ChangeLog v1->v2:
+> - Move defines in proximity of defined functions
+> - Test compile also on sparc32
 
-Thank you for the patch! Perhaps something to improve:
+Applied to the asm-generic tree along with the alpha patch now.
 
-[auto build test WARNING on v6.0-rc4]
-[also build test WARNING on linus/master next-20220907]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Tiezhu-Yang/sparc-kprobes-Free-instructions-in-arch_remove_kprobe/20220908-103454
-base:    7e18e42e4b280c85b76967a9106a13ca61c16179
-config: sparc-allyesconfig (https://download.01.org/0day-ci/archive/20220908/202209081219.MDryXDEc-lkp@intel.com/config)
-compiler: sparc64-linux-gcc (GCC) 12.1.0
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # https://github.com/intel-lab-lkp/linux/commit/13d8569b8b252a60b519215d42f438582f00a37f
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Tiezhu-Yang/sparc-kprobes-Free-instructions-in-arch_remove_kprobe/20220908-103454
-        git checkout 13d8569b8b252a60b519215d42f438582f00a37f
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=gcc-12.1.0 make.cross W=1 O=build_dir ARCH=sparc SHELL=/bin/bash arch/sparc/ drivers/gpu/ kernel//
-
-If you fix the issue, kindly add following tag where applicable
-Reported-by: kernel test robot <lkp@intel.com>
-
-All warnings (new ones prefixed by >>):
-
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from include/drm/drm_util.h:36,
-                    from include/drm/drm_connector.h:32,
-                    from include/drm/drm_modes.h:33,
-                    from include/drm/drm_crtc.h:32,
-                    from include/drm/drm_atomic.h:31,
-                    from drivers/gpu/drm/drm_self_refresh_helper.c:13:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/amdgpu_dm/amdgpu_dm.c:29:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/core_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/link_enc_cfg.h:33,
-                    from drivers/gpu/drm/amd/amdgpu/../display/amdgpu_dm/amdgpu_dm.c:32:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:134:17: warning: 'DP_SINK_BRANCH_DEV_NAME_7580' defined but not used [-Wunused-const-variable=]
-     134 | static const u8 DP_SINK_BRANCH_DEV_NAME_7580[] = "7580\x80u";
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:132:22: warning: 'DP_SINK_DEVICE_STR_ID_2' defined but not used [-Wunused-const-variable=]
-     132 | static const uint8_t DP_SINK_DEVICE_STR_ID_2[] = {7, 1, 8, 7, 5, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:131:22: warning: 'DP_SINK_DEVICE_STR_ID_1' defined but not used [-Wunused-const-variable=]
-     131 | static const uint8_t DP_SINK_DEVICE_STR_ID_1[] = {7, 1, 8, 7, 3, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/bios/bios_parser2.c:26:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/bios/bios_parser2.c: In function 'bios_get_board_layout_info':
-   drivers/gpu/drm/amd/amdgpu/../display/dc/bios/bios_parser2.c:3319:29: warning: variable 'bp' set but not used [-Wunused-but-set-variable]
-    3319 |         struct bios_parser *bp;
-         |                             ^~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dmub_psr.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dmub_psr.c:26:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/core_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dmub_psr.c:30:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:134:17: warning: 'DP_SINK_BRANCH_DEV_NAME_7580' defined but not used [-Wunused-const-variable=]
-     134 | static const u8 DP_SINK_BRANCH_DEV_NAME_7580[] = "7580\x80u";
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:31:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:28:
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:568:43: warning: initialized field overwritten [-Woverride-init]
-     568 | #define mmCRTC0_DCFE_MEM_LIGHT_SLEEP_CNTL 0x1B7F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC0_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:187:17: note: in expansion of macro 'transform_regs'
-     187 |                 transform_regs(0),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:568:43: note: (near initialization for 'xfm_regs[0].DCFE_MEM_LIGHT_SLEEP_CNTL')
-     568 | #define mmCRTC0_DCFE_MEM_LIGHT_SLEEP_CNTL 0x1B7F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC0_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:187:17: note: in expansion of macro 'transform_regs'
-     187 |                 transform_regs(0),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:645:43: warning: initialized field overwritten [-Woverride-init]
-     645 | #define mmCRTC1_DCFE_MEM_LIGHT_SLEEP_CNTL 0x1E7F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC1_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:188:17: note: in expansion of macro 'transform_regs'
-     188 |                 transform_regs(1),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:645:43: note: (near initialization for 'xfm_regs[1].DCFE_MEM_LIGHT_SLEEP_CNTL')
-     645 | #define mmCRTC1_DCFE_MEM_LIGHT_SLEEP_CNTL 0x1E7F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC1_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:188:17: note: in expansion of macro 'transform_regs'
-     188 |                 transform_regs(1),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:722:43: warning: initialized field overwritten [-Woverride-init]
-     722 | #define mmCRTC2_DCFE_MEM_LIGHT_SLEEP_CNTL 0x417F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC2_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:189:17: note: in expansion of macro 'transform_regs'
-     189 |                 transform_regs(2),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:722:43: note: (near initialization for 'xfm_regs[2].DCFE_MEM_LIGHT_SLEEP_CNTL')
-     722 | #define mmCRTC2_DCFE_MEM_LIGHT_SLEEP_CNTL 0x417F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC2_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
-     170 |         SRI(DCFE_MEM_LIGHT_SLEEP_CNTL, CRTC, id)
-         |         ^~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:183:17: note: in expansion of macro 'XFM_COMMON_REG_LIST_DCE60'
-     183 |                 XFM_COMMON_REG_LIST_DCE60(id)\
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:189:17: note: in expansion of macro 'transform_regs'
-     189 |                 transform_regs(2),
-         |                 ^~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../include/asic_reg/dce/dce_6_0_d.h:799:43: warning: initialized field overwritten [-Woverride-init]
-     799 | #define mmCRTC3_DCFE_MEM_LIGHT_SLEEP_CNTL 0x447F
-         |                                           ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce60/dce60_resource.c:157:21: note: in expansion of macro 'mmCRTC3_DCFE_MEM_LIGHT_SLEEP_CNTL'
-     157 |         .reg_name = mm ## block ## id ## _ ## reg_name
-         |                     ^~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/dce/dce_transform.h:170:9: note: in expansion of macro 'SRI'
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc.c:25:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc.c:2845:6: warning: no previous prototype for 'dc_reset_state' [-Wmissing-prototypes]
-    2845 | void dc_reset_state(struct dc *dc, struct dc_state *context)
-         |      ^~~~~~~~~~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/core_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc.c:30:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:134:17: warning: 'DP_SINK_BRANCH_DEV_NAME_7580' defined but not used [-Wunused-const-variable=]
-     134 | static const u8 DP_SINK_BRANCH_DEV_NAME_7580[] = "7580\x80u";
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:132:22: warning: 'DP_SINK_DEVICE_STR_ID_2' defined but not used [-Wunused-const-variable=]
-     132 | static const uint8_t DP_SINK_DEVICE_STR_ID_2[] = {7, 1, 8, 7, 5, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:131:22: warning: 'DP_SINK_DEVICE_STR_ID_1' defined but not used [-Wunused-const-variable=]
-     131 | static const uint8_t DP_SINK_DEVICE_STR_ID_1[] = {7, 1, 8, 7, 3, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link.c:28:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/dc_link_ddc.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link.c:37:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:132:22: warning: 'DP_SINK_DEVICE_STR_ID_2' defined but not used [-Wunused-const-variable=]
-     132 | static const uint8_t DP_SINK_DEVICE_STR_ID_2[] = {7, 1, 8, 7, 5, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:131:22: warning: 'DP_SINK_DEVICE_STR_ID_1' defined but not used [-Wunused-const-variable=]
-     131 | static const uint8_t DP_SINK_DEVICE_STR_ID_1[] = {7, 1, 8, 7, 3, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_resource.c:26:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_resource.c:1848:6: warning: no previous prototype for 'is_timing_changed' [-Wmissing-prototypes]
-    1848 | bool is_timing_changed(struct dc_stream_state *cur_stream,
-         |      ^~~~~~~~~~~~~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/core_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/resource.h:28,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_resource.c:28:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:134:17: warning: 'DP_SINK_BRANCH_DEV_NAME_7580' defined but not used [-Wunused-const-variable=]
-     134 | static const u8 DP_SINK_BRANCH_DEV_NAME_7580[] = "7580\x80u";
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:132:22: warning: 'DP_SINK_DEVICE_STR_ID_2' defined but not used [-Wunused-const-variable=]
-     132 | static const uint8_t DP_SINK_DEVICE_STR_ID_2[] = {7, 1, 8, 7, 5, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:131:22: warning: 'DP_SINK_DEVICE_STR_ID_1' defined but not used [-Wunused-const-variable=]
-     131 | static const uint8_t DP_SINK_DEVICE_STR_ID_1[] = {7, 1, 8, 7, 3, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services.h:35,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link_dp.c:24:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link_dp.c: In function 'dp_retrieve_lttpr_cap':
-   drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link_dp.c:5062:24: warning: variable 'status' set but not used [-Wunused-but-set-variable]
-    5062 |         enum dc_status status = DC_ERROR_UNEXPECTED;
-         |                        ^~~~~~
-   In file included from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/core_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/inc/resource.h:28,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/core/dc_link_dp.c:31:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h: At top level:
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:137:22: warning: 'SYNAPTICS_DEVICE_ID' defined but not used [-Wunused-const-variable=]
-     137 | static const uint8_t SYNAPTICS_DEVICE_ID[] = "SYNA";
-         |                      ^~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:134:17: warning: 'DP_SINK_BRANCH_DEV_NAME_7580' defined but not used [-Wunused-const-variable=]
-     134 | static const u8 DP_SINK_BRANCH_DEV_NAME_7580[] = "7580\x80u";
-         |                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:132:22: warning: 'DP_SINK_DEVICE_STR_ID_2' defined but not used [-Wunused-const-variable=]
-     132 | static const uint8_t DP_SINK_DEVICE_STR_ID_2[] = {7, 1, 8, 7, 5, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/include/ddc_service_types.h:131:22: warning: 'DP_SINK_DEVICE_STR_ID_1' defined but not used [-Wunused-const-variable=]
-     131 | static const uint8_t DP_SINK_DEVICE_STR_ID_1[] = {7, 1, 8, 7, 3, 0};
-         |                      ^~~~~~~~~~~~~~~~~~~~~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dc_types.h:32,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dc.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../display/modules/color/color_gamma.c:26:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/../display/modules/color/color_gamma.c: In function 'apply_degamma_for_user_regamma':
-   drivers/gpu/drm/amd/amdgpu/../display/modules/color/color_gamma.c:1691:36: warning: implicit conversion from 'enum <anonymous>' to 'enum dc_transfer_func_predefined' [-Wenum-conversion]
-    1691 |         build_coefficients(&coeff, true);
-         |                                    ^~~~
---
-   In file included from include/linux/kprobes.h:32,
-                    from include/linux/kgdb.h:19,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/os_types.h:31,
-                    from drivers/gpu/drm/amd/amdgpu/../display/dc/dm_services_types.h:29,
-                    from drivers/gpu/drm/amd/amdgpu/../include/dm_pp_interface.h:26,
-                    from drivers/gpu/drm/amd/amdgpu/amdgpu.h:65,
-                    from drivers/gpu/drm/amd/amdgpu/amdgpu_ucode.c:28:
->> arch/sparc/include/asm/kprobes.h:20:32: warning: 'struct kprobe' declared inside parameter list will not be visible outside of this definition or declaration
-      20 | void arch_remove_kprobe(struct kprobe *p);
-         |                                ^~~~~~
-   drivers/gpu/drm/amd/amdgpu/amdgpu_ucode.c:129:6: warning: no previous prototype for 'amdgpu_ucode_print_imu_hdr' [-Wmissing-prototypes]
-     129 | void amdgpu_ucode_print_imu_hdr(const struct common_firmware_header *hdr)
-         |      ^~~~~~~~~~~~~~~~~~~~~~~~~~
-..
-
-
-vim +20 arch/sparc/include/asm/kprobes.h
-
-    19	
-  > 20	void arch_remove_kprobe(struct kprobe *p);
-    21	
-
--- 
-0-DAY CI Kernel Test Service
-https://01.org/lkp
+    Arnd
