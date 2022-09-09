@@ -2,112 +2,66 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E30F3C38145
-	for <sparclinux@archiver.kernel.org>; Thu,  8 Sep 2022 14:51:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18FD6ECAAA1
+	for <sparclinux@archiver.kernel.org>; Fri,  9 Sep 2022 15:33:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232688AbiIHOvJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 8 Sep 2022 10:51:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60830 "EHLO
+        id S231956AbiIIPdN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 9 Sep 2022 11:33:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232310AbiIHOvI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 8 Sep 2022 10:51:08 -0400
-Received: from new4-smtp.messagingengine.com (new4-smtp.messagingengine.com [66.111.4.230])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 43A74D4BFC;
-        Thu,  8 Sep 2022 07:51:07 -0700 (PDT)
-Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
-        by mailnew.nyi.internal (Postfix) with ESMTP id 060105803A9;
-        Thu,  8 Sep 2022 10:51:06 -0400 (EDT)
-Received: from imap51 ([10.202.2.101])
-  by compute3.internal (MEProxy); Thu, 08 Sep 2022 10:51:06 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
-        :message-id:mime-version:references:reply-to:sender:subject
-        :subject:to:to; s=fm1; t=1662648666; x=1662652266; bh=xPUksezrfQ
-        ftp7BCJi4jfaFRFsim1oC+Nm5z/XTwFx4=; b=W8zvVkqSTriTWscLmmhEe374hI
-        2yj96Yj14bqtsqKK6plP08lFbZKZRcCFFwZjicui36Fw8gcrWD2avibs7+yRrecF
-        BBK5/mA5W8T0v1bTHaCSlRFc1cgZguWoDqOitgFsUmwoNUEm3WdaelV9iBxWBObm
-        po7KIaQ8bFhlY5zE2gG/zwTxrLjollxaQKpJUC/PI/Tj8NA0q7QsILUb8Jbmm0M7
-        BkHetpt/svfhPFfnHk2xKm53zXxcxPeUzn9Xvhxeja2bxqVSgNufAVfcfyN6SNB5
-        x+I7ZcL6/4+dSqZh8uVwRaVD5DBwClw1zvbvDu3SbxRbqUKqIHTsJa8J+imA==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm2; t=1662648666; x=1662652266; bh=xPUksezrfQftp7BCJi4jfaFRFsim
-        1oC+Nm5z/XTwFx4=; b=0prD3bLmKHrguGQi6sTrt2uU1+uXXdI0p+kAHgFwoPRN
-        wQHkJiPGI9sVG5w6uoE4SJbHZGhC5uXJnU1KFmcbyTdT4c+MXd60QAB05qaG0oRT
-        ZSHt/5thODtYW1+dQcDdVcWatkNXWlg8h6g/puLo4ErKWBR7R4oI/5AMFfYTFIS+
-        VCkKIttBUIb/MFTu7MsChLRiOzUcHlqM4Ver3QaSnl7SYJMxyvpqvAlwR9pc7wnb
-        nnsBWpICCgNdugIlYgEX4y21Ejj54SeOhNejKf1sSjwbLLOccXK3/WwfXBnXxRpx
-        Bpcpe9I0RFQhxY9Epm5tegbc683Vg1hi8B9isyg60w==
-X-ME-Sender: <xms:WQEaYy7FT3dJucbMZMU-ZvPyPj6t3JSi-eS0JOqfd1MZ9JpZGGwP-w>
-    <xme:WQEaY75kfGpA9CU4g2BeTBvV1Y9HOOS8AAPNS2vXCT40BBMCuh5T8J6yXNsWYawX5
-    tl8YJ2ggEc9KjDInnE>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvfedrfedtfedgvddvucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepofgfggfkjghffffhvfevufgtsehttdertderredtnecuhfhrohhmpedftehr
-    nhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrfgrth
-    htvghrnhepvefhffeltdegheeffffhtdegvdehjedtgfekueevgfduffettedtkeekueef
-    hedunecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiiigvpe
-    dtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:WQEaYxfxAbS_WPhEG_s6s7FT6dlCXv9h8VC0irCctQ1RWx8NAFmgaA>
-    <xmx:WQEaY_K8hdvV5Su9Hy8S9Xec3HGxfcjT7oX8e4kj8j7bs1lQ-MvV_A>
-    <xmx:WQEaY2KjDufffN1YBIo8R1ZC9ZgHjwSJEM_QqMI5-nr2NbB86xLXBA>
-    <xmx:WQEaYy00ngNiWX7i_jPCnOBfSqE5pNuzWwdR1eNUByGi2drNzU60PQ>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 8426AB60083; Thu,  8 Sep 2022 10:51:05 -0400 (EDT)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.7.0-alpha0-927-gf4c98c8499-fm-20220826.002-gf4c98c84
-Mime-Version: 1.0
-Message-Id: <7c639355-206f-4682-b12c-9c8258d53537@www.fastmail.com>
-In-Reply-To: <20220831195553.129866-1-linus.walleij@linaro.org>
-References: <20220831195553.129866-1-linus.walleij@linaro.org>
-Date:   Thu, 08 Sep 2022 16:50:45 +0200
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Linus Walleij" <linus.walleij@linaro.org>,
+        with ESMTP id S231954AbiIIPcs (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Sep 2022 11:32:48 -0400
+X-Greylist: delayed 152 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 09 Sep 2022 08:32:33 PDT
+Received: from bin-mail-out-05.binero.net (bin-mail-out-05.binero.net [195.74.38.228])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E7E8146D20
+        for <sparclinux@vger.kernel.org>; Fri,  9 Sep 2022 08:32:33 -0700 (PDT)
+X-Halon-ID: 0345523b-3054-11ed-a6f7-fd6d048ed7e0
+Authorized-sender: andreas@gaisler.com
+Received: from [192.168.10.6] (h-98-128-223-123.na.cust.bahnhof.se [98.128.223.123])
+        by bin-vsp-out-03.atm.binero.net (Halon) with ESMTPA
+        id 0345523b-3054-11ed-a6f7-fd6d048ed7e0;
+        Fri, 09 Sep 2022 17:28:11 +0200 (CEST)
+Message-ID: <22d99fab-bfa2-5001-8ef1-a4900056f0c4@gaisler.com>
+Date:   Fri, 9 Sep 2022 17:28:06 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.11.0
+Subject: Re: [PATCH] sparc: Unbreak the build
+Content-Language: en-US
+To:     Bart Van Assche <bvanassche@acm.org>,
         "David S . Miller" <davem@davemloft.net>
-Cc:     sparclinux@vger.kernel.org, "kernel test robot" <lkp@intel.com>,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        "Mark Brown" <broonie@kernel.org>
-Subject: Re: [PATCH v2] sparc: Fix the generic IO helpers
-Content-Type: text/plain
+Cc:     sparclinux@vger.kernel.org,
+        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
+        Kees Cook <keescook@chromium.org>
+References: <20220830205854.1918026-1-bvanassche@acm.org>
+From:   Andreas Larsson <andreas@gaisler.com>
+In-Reply-To: <20220830205854.1918026-1-bvanassche@acm.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Aug 31, 2022, at 9:55 PM, Linus Walleij wrote:
-> This enables the Sparc to use <asm-generic/io.h> to fill in the
-> missing (undefined) [read|write]sq I/O accessor functions.
->
-> This is needed if Sparc[64] ever wants to uses CONFIG_REGMAP_MMIO
-> which has been patches to use accelerated _noinc accessors
-> such as readsq/writesq that Sparc64, while being a 64bit platform,
-> as of now not yet provide.
->
-> This comes with the requirement that everything the architecture
-> already provides needs to be defined, rather than just being,
-> say, static inline functions.
->
-> Bite the bullet and just provide the definitions and make it work.
-> Compile-tested on sparc32 and sparc64.
->
-> Reported-by: kernel test robot <lkp@intel.com>
-> Link: 
-> https://lore.kernel.org/linux-arm-kernel/202208201639.HXye3ke4-lkp@intel.com/
-> Cc: David S. Miller <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-arch@vger.kernel.org
-> Cc: Mark Brown <broonie@kernel.org>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
-> ChangeLog v1->v2:
-> - Move defines in proximity of defined functions
-> - Test compile also on sparc32
+On 2022-08-30 22:58, Bart Van Assche wrote:
+> Fix the following build errors:
+> 
+> arch/sparc/mm/srmmu.c: In function ‘smp_flush_page_for_dma’:
+> arch/sparc/mm/srmmu.c:1639:13: error: cast between incompatible function types from ‘void (*)(long unsigned int)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
+>   1639 |         xc1((smpfunc_t) local_ops->page_for_dma, page);
+>        |             ^
+> arch/sparc/mm/srmmu.c: In function ‘smp_flush_cache_mm’:
+> arch/sparc/mm/srmmu.c:1662:29: error: cast between incompatible function types from ‘void (*)(struct mm_struct *)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
+>   1662 |                         xc1((smpfunc_t) local_ops->cache_mm, (unsigned long) mm);
+>        |
+> [ ... ]
+> 
+> Compile-tested only.
+> 
+> Fixes: 552a23a0e5d0 ("Makefile: Enable -Wcast-function-type")
+> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
 
-Applied to the asm-generic tree along with the alpha patch now.
+Tested-by: Andreas Larsson <andreas@gaisler.com>
 
-    Arnd
+-- 
+Andreas Larsson
+
