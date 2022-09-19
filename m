@@ -2,339 +2,189 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C0CBC32771
-	for <sparclinux@archiver.kernel.org>; Sun, 18 Sep 2022 09:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83125C6FA92
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Sep 2022 03:44:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229462AbiIRJbX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 18 Sep 2022 05:31:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59144 "EHLO
+        id S229573AbiISDop (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 18 Sep 2022 23:44:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229579AbiIRJbW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Sep 2022 05:31:22 -0400
-X-Greylist: delayed 145 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 18 Sep 2022 02:31:19 PDT
-Received: from u164.east.ru (u164.east.ru [195.170.63.164])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1EEBE205D4;
-        Sun, 18 Sep 2022 02:31:18 -0700 (PDT)
-Received: by u164.east.ru (Postfix, from userid 1000)
-        id E91CACF7E2; Sun, 18 Sep 2022 12:28:49 +0300 (MSK)
-Date:   Sun, 18 Sep 2022 12:28:49 +0300
-From:   Anatoly Pugachev <matorola@gmail.com>
-To:     Vasily Averin <vvs@openvz.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, kernel@openvz.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Shakeel Butt <shakeelb@google.com>,
-        Roman Gushchin <roman.gushchin@linux.dev>,
-        Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Michal Hocko <mhocko@suse.com>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>, cgroups@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Subject: [sparc64] fails to boot, (was: Re: [PATCH memcg v6] net: set proper
- memcg for net_init hooks allocations)
-Message-ID: <20220918092849.GA10314@u164.east.ru>
-References: <6b362c6e-9c80-4344-9430-b831f9871a3c@openvz.org>
- <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org>
+        with ESMTP id S229632AbiISDon (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 18 Sep 2022 23:44:43 -0400
+Received: from mail-ed1-x535.google.com (mail-ed1-x535.google.com [IPv6:2a00:1450:4864:20::535])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C177C95B2
+        for <sparclinux@vger.kernel.org>; Sun, 18 Sep 2022 20:44:40 -0700 (PDT)
+Received: by mail-ed1-x535.google.com with SMTP id e17so39461432edc.5
+        for <sparclinux@vger.kernel.org>; Sun, 18 Sep 2022 20:44:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=lixom-net.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=8wzd/IsQMAz4yliZb1FsJ3OfMRVNZc5tTLnz3lR7QHQ=;
+        b=EuFCJAkszMPKPtxQSyMQ0NoboaeVB7t96eFw9rPXwH9oSHUro5o77bxEeYAtANDzyR
+         I9BMOm4HMiosCb0pcsiSHEAZo2qSCtvZawUq0/zPNIdwAvDvQAPS+8+0uFrWbUJgoTtd
+         ExLo8MeQP7GyQ+rW2rlFvIPPT75kqxCAKPhOGjeDjYZZFhuAOfywggSn5a+jZu6mJGBr
+         cWVHHoToy9UWA6nPxBqZcAZLzmJoxjkbRc1yLhwZYNZgNQEBRnr86m6GI/e/+J8MoRAT
+         suDLw8ILYZpcoPAOh+pvz4Lu/zfiYh6RXQKy+jZAxuRvjXsVxLmt63JqorCueNp9TEEJ
+         9kQg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=8wzd/IsQMAz4yliZb1FsJ3OfMRVNZc5tTLnz3lR7QHQ=;
+        b=x2YU7UUDPgaACrhcnyKp7glb6/FpXjwdME+IlAcNfE0+GmooxQmRDuV/SrIg5p+3fn
+         DLC9ieYRuuTMF+3aY9KGLaGUcYLrU8SumP7Zy0P8TiKUMTfAO83WCnnV6n4omBV1hmBo
+         oIgtkbKHFRA+/QPYI1xxJJFs9dOcQVv9bq7xXsjg4RMlA7pytsptuUxOv8QtJFZOyTrP
+         tR1/iVEJsmhy+oIXu/C83QRGKfLVT7JYPDoqx7giDMlWFYzIAhoqz8f41ZgQgHT69mew
+         1eGpimR5ZDxL5BhhEPvEvG6tRzaS9vwYzMhaxLMXue51NTzDHDtUv6hPGOv95rmki5Wt
+         tCqg==
+X-Gm-Message-State: ACrzQf3yxn3lLUSyEQMnihRmAF14ogABOW6dAxu02xwf95aowblRG8Du
+        OPjl2kpEENIbc2NOI053K9MOFWdZPQCgKNqRlN21FA==
+X-Google-Smtp-Source: AMsMyM67X4fHgNHGRzRNZ0AalOVh8oZlYNRkDoycvf7zBAcHx4qOwSpxEraLAwYUCmYCoDnGs0xLR1B5pb/N312tK3I=
+X-Received: by 2002:aa7:cc8a:0:b0:446:7668:2969 with SMTP id
+ p10-20020aa7cc8a000000b0044676682969mr13821510edt.206.1663559079248; Sun, 18
+ Sep 2022 20:44:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+References: <20220701012647.2007122-1-saravanak@google.com> <YwS5J3effuHQJRZ5@kroah.com>
+In-Reply-To: <YwS5J3effuHQJRZ5@kroah.com>
+From:   Olof Johansson <olof@lixom.net>
+Date:   Sun, 18 Sep 2022 20:44:27 -0700
+Message-ID: <CAOesGMivJ5Q-jdeGKw32yhjmNiYctHjpEAnoMMRghYqWD2m2tw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/2] Fix console probe delay when stdout-path isn't set
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc:     Saravana Kannan <saravanak@google.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Nicolas Saenz Julienne <nsaenz@kernel.org>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Al Cooper <alcooperx@gmail.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
+        Russell King <linux@armlinux.org.uk>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Richard Genoud <richard.genoud@gmail.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Alexander Shiyan <shc_work@mail.ru>,
+        Baruch Siach <baruch@tkos.co.il>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Karol Gugala <kgugala@antmicro.com>,
+        Mateusz Holenko <mholenko@antmicro.com>,
+        Gabriel Somlo <gsomlo@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Taichi Sugaya <sugaya.taichi@socionext.com>,
+        Takao Orito <orito.takao@socionext.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Pali Rohar <pali@kernel.org>,
+        Andreas Farber <afaerber@suse.de>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Patrice Chotard <patrice.chotard@foss.st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hammer Hsieh <hammerh0314@gmail.com>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Timur Tabi <timur@kernel.org>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Rob Herring <robh@kernel.org>,
+        sascha hauer <sha@pengutronix.de>, peng fan <peng.fan@nxp.com>,
+        kevin hilman <khilman@kernel.org>,
+        ulf hansson <ulf.hansson@linaro.org>,
+        len brown <len.brown@intel.com>, pavel machek <pavel@ucw.cz>,
+        joerg roedel <joro@8bytes.org>, will deacon <will@kernel.org>,
+        andrew lunn <andrew@lunn.ch>,
+        heiner kallweit <hkallweit1@gmail.com>,
+        eric dumazet <edumazet@google.com>,
+        jakub kicinski <kuba@kernel.org>,
+        paolo abeni <pabeni@redhat.com>,
+        linus walleij <linus.walleij@linaro.org>,
+        hideaki yoshifuji <yoshfuji@linux-ipv6.org>,
+        david ahern <dsahern@kernel.org>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        iommu@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-actions@lists.infradead.org,
+        linux-unisoc@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Jun 03, 2022 at 07:19:43AM +0300, Vasily Averin wrote:
-> __register_pernet_operations() executes init hook of registered
-> pernet_operation structure in all existing net namespaces.
-> 
-> Typically, these hooks are called by a process associated with
-> the specified net namespace, and all __GFP_ACCOUNT marked
-> allocation are accounted for corresponding container/memcg.
-> 
-> However __register_pernet_operations() calls the hooks in the same
-> context, and as a result all marked allocations are accounted
-> to one memcg for all processed net namespaces.
-> 
-> This patch adjusts active memcg for each net namespace and helps
-> to account memory allocated inside ops_init() into the proper memcg.
-> 
-> Signed-off-by: Vasily Averin <vvs@openvz.org>
-> Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-> Acked-by: Shakeel Butt <shakeelb@google.com>
-> ---
-> v6: re-based to current upstream (v5.18-11267-gb00ed48bb0a7)
+On Tue, Aug 23, 2022 at 8:37 AM Greg Kroah-Hartman
+<gregkh@linuxfoundation.org> wrote:
+>
+> On Thu, Jun 30, 2022 at 06:26:38PM -0700, Saravana Kannan wrote:
+> > These patches are on top of driver-core-next.
+> >
+> > Even if stdout-path isn't set in DT, this patch should take console
+> > probe times back to how they were before the deferred_probe_timeout
+> > clean up series[1].
+>
+> Now dropped from my queue due to lack of a response to other reviewer's
+> questions.
+
+What happened to this patch? I have a 10 second timeout on console
+probe on my SiFive Unmatched, and I don't see this flag being set for
+the serial driver. In fact, I don't see it anywhere in-tree. I can't
+seem to locate another patchset from Saravana around this though, so
+I'm not sure where to look for a missing piece for the sifive serial
+driver.
+
+This is the second boot time regression (this one not fatal, unlike
+the Layerscape PCIe one) from the fw_devlink patchset.
+
+Greg, can you revert the whole set for 6.0, please? It's obviously
+nowhere near tested enough to go in and I expect we'll see a bunch of
+-stable fixups due to this if we let it remain in.
+
+This seems to be one of the worst releases I've encountered in recent
+years on my hardware here due to this patchset. :-(
 
 
-Hello!
-
-I'm unable to boot my sparc64 VM anymore (5.19 still boots, 6.0-rc1 does not),
-bisected up to this patch,
-
-mator@ttip:~/linux-2.6$ git bisect bad
-1d0403d20f6c281cb3d14c5f1db5317caeec48e9 is the first bad commit
-commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9
-Author: Vasily Averin <vvs@openvz.org>
-Date:   Fri Jun 3 07:19:43 2022 +0300
-
-    net: set proper memcg for net_init hooks allocations
-
-    __register_pernet_operations() executes init hook of registered
-    pernet_operation structure in all existing net namespaces.
-
-    Typically, these hooks are called by a process associated with the
-    specified net namespace, and all __GFP_ACCOUNT marked allocation are
-    accounted for corresponding container/memcg.
-
-    However __register_pernet_operations() calls the hooks in the same
-    context, and as a result all marked allocations are accounted to one memcg
-    for all processed net namespaces.
-
-    This patch adjusts active memcg for each net namespace and helps to
-    account memory allocated inside ops_init() into the proper memcg.
-
-    Link: https://lkml.kernel.org/r/f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org
-    Signed-off-by: Vasily Averin <vvs@openvz.org>
-    Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
-    Acked-by: Shakeel Butt <shakeelb@google.com>
-    Cc: Michal Koutný <mkoutny@suse.com>
-    Cc: Vlastimil Babka <vbabka@suse.cz>
-    Cc: Michal Hocko <mhocko@suse.com>
-    Cc: Florian Westphal <fw@strlen.de>
-    Cc: David S. Miller <davem@davemloft.net>
-    Cc: Jakub Kicinski <kuba@kernel.org>
-    Cc: Paolo Abeni <pabeni@redhat.com>
-    Cc: Eric Dumazet <edumazet@google.com>
-    Cc: Johannes Weiner <hannes@cmpxchg.org>
-    Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-    Cc: Linux Kernel Functional Testing <lkft@linaro.org>
-    Cc: Muchun Song <songmuchun@bytedance.com>
-    Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-    Cc: Qian Cai <quic_qiancai@quicinc.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
- include/linux/memcontrol.h | 47 +++++++++++++++++++++++++++++++++++++++++++++-
- net/core/net_namespace.c   |  7 +++++++
- 2 files changed, 53 insertions(+), 1 deletion(-)
-
-getting the following kernel OOPS:
-
-
-[    0.000010] PROMLIB: Sun IEEE Boot Prom 'OBP 4.38.17 2019/01/25 08:22'
-[    0.000028] PROMLIB: Root node compatible: sun4v
-[    0.000070] Linux version 5.19.0-rc2-00025-g1d0403d20f6c (mator@ttip) (gcc (Debian 12.2.0-2) 12.2.0, GNU ld (GNU Binutils for Debian) 2.38.90.20220713) #376 SMP Sun Sep 18 02:22:43 MSK 2022
-[    0.000098] printk: debug: skip boot console de-registration.
-[    0.000438] printk: bootconsole [earlyprom0] enabled
-[    0.000491] ARCH: SUN4V
-[    0.000534] Ethernet address: 00:14:4f:fa:06:f2
-[    0.000583] MM: PAGE_OFFSET is 0xfff8000000000000 (max_phys_bits == 47)
-[    0.000644] MM: VMALLOC [0x0000000100000000 --> 0x0006000000000000]
-[    0.000704] MM: VMEMMAP [0x0006000000000000 --> 0x000c000000000000]
-[    0.014651] Kernel: Using 5 locked TLB entries for main kernel image.
-[    0.014719] Remapping the kernel...
-[    0.014750] done.
-[    0.033774] OF stdout device is: /virtual-devices@100/console@1
-[    0.033838] PROM: Built device tree with 67601 bytes of memory.
-[    0.033896] MDESC: Size is 24208 bytes.
-[    0.033989] PLATFORM: banner-name [SPARC T5-2]
-[    0.034034] PLATFORM: name [ORCL,SPARC-T5-2]
-[    0.034076] PLATFORM: hostid [84fa06f2]
-[    0.034113] PLATFORM: serial# [0035260e]
-[    0.034154] PLATFORM: stick-frequency [3b9aca00]
-[    0.034196] PLATFORM: mac-address [144ffa06f2]
-[    0.034238] PLATFORM: watchdog-resolution [1000 ms]
-[    0.034284] PLATFORM: watchdog-max-timeout [31536000000 ms]
-[    0.034335] PLATFORM: max-cpus [1024]
-[    0.034419] Top of RAM: 0x42f948000, Total RAM: 0x3ff3a0000
-[    0.034474] Memory hole size: 773MB
-[    0.036430] Allocated 24576 bytes for kernel page tables.
-[    0.036506] Zone ranges:
-[    0.036541]   Normal   [mem 0x0000000030400000-0x000000042f947fff]
-[    0.036602] Movable zone start for each node
-[    0.036645] Early memory node ranges
-[    0.036679]   node   0: [mem 0x0000000030400000-0x000000006febffff]
-[    0.036738]   node   0: [mem 0x000000006ff40000-0x000000006ff65fff]
-[    0.036796]   node   0: [mem 0x0000000070000000-0x000000042f8b1fff]
-[    0.036854]   node   0: [mem 0x000000042f940000-0x000000042f947fff]
-[    0.036912] Initmem setup node 0 [mem 0x0000000030400000-0x000000042f947fff]
-[    0.046980] On node 0, zone Normal: 98816 pages in unavailable ranges
-[    0.047007] On node 0, zone Normal: 64 pages in unavailable ranges
-[    0.048447] On node 0, zone Normal: 77 pages in unavailable ranges
-[    0.048516] On node 0, zone Normal: 71 pages in unavailable ranges
-[    0.050336] On node 0, zone Normal: 33628 pages in unavailable ranges
-[    0.050400] Booting Linux...
-[    0.050500] CPU CAPS: [flush,stbar,swap,muldiv,v9,blkinit,n2,mul32]
-[    0.050581] CPU CAPS: [div32,v8plus,popc,vis,vis2,ASIBlkInit,fmaf,vis3]
-[    0.050663] CPU CAPS: [hpc,ima,pause,cbcond,aes,des,kasumi,camellia]
-[    0.050744] CPU CAPS: [md5,sha1,sha256,sha512,mpmul,montmul,montsqr,crc32c]
-[    0.093786] percpu: Embedded 18 pages/cpu s105824 r8192 d33440 u262144
-[    0.095225] SUN4V: Mondo queue sizes [cpu(131072) dev(16384) r(8192) nr(256)]
-[    0.095510] Built 1 zonelists, mobility grouping on.  Total pages: 2077148
-[    0.095587] Kernel command line: BOOT_IMAGE=/vmlinux-5.19.0-rc2-00025-g1d0403d20f6c root=/dev/vdiska2 ro keep_bootcon
-[    0.095745] Unknown kernel command line parameters "BOOT_IMAGE=/vmlinux-5.19.0-rc2-00025-g1d0403d20f6c", will be passed to user space.
-[    0.095851] printk: log_buf_len individual max cpu contribution: 4096 bytes
-[    0.095914] printk: log_buf_len total cpu_extra contributions: 1044480 bytes
-[    0.095973] printk: log_buf_len min size: 131072 bytes
-[    0.097772] printk: log_buf_len: 2097152 bytes
-[    0.097818] printk: early log buf free: 126264(96%)
-[    0.099466] Dentry cache hash table entries: 2097152 (order: 11, 16777216 bytes, linear)
-[    0.100365] Inode-cache hash table entries: 1048576 (order: 10, 8388608 bytes, linear)
-[    0.100439] Sorting __ex_table...
-[    0.100692] mem auto-init: stack:off, heap alloc:off, heap free:off
-[    0.105101] Memory: 1259512K/16764544K available (8962K kernel code, 1702K rwdata, 3048K rodata, 632K init, 3160K bss, 289008K reserved, 0K cma-reserved)
-[    0.108565] SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=256, Nodes=1
-[    0.109364] ftrace: allocating 27588 entries in 54 pages
-[    0.120238] ftrace: allocated 54 pages with 4 groups
-[    0.120513] trace event string verifier disabled
-[    0.124589] rcu: Hierarchical RCU implementation.
-[    0.124642] rcu:     RCU debug extended QS entry/exit.
-[    0.124689]  Rude variant of Tasks RCU enabled.
-[    0.124733]  Tracing variant of Tasks RCU enabled.
-[    0.124778] rcu: RCU calculated value of scheduler-enlistment delay is 26 jiffies.
-[    0.131351] NR_IRQS: 2048, nr_irqs: 2048, preallocated irqs: 1
-[    0.131438] SUN4V: Using IRQ API major 3, cookie only virqs enabled
-[    0.135353] rcu: srcu_init: Setting srcu_struct sizes to big.
-[    0.135477] clocksource: stick: mask: 0xffffffffffffffff max_cycles: 0x1cd42e4dffb, max_idle_ns: 881590591483 ns
-[    0.135579] clocksource: mult[800000] shift[23]
-[    0.135626] clockevent: mult[80000000] shift[31]
-[    0.136279] Console: colour dummy device 80x25
-[    0.136333] printk: console [tty0] enabled
-[    0.136393] Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar
-[    0.136482] ... MAX_LOCKDEP_SUBCLASSES:  8
-[    0.136536] ... MAX_LOCK_DEPTH:          48
-[    0.136589] ... MAX_LOCKDEP_KEYS:        8192
-[    0.136645] ... CLASSHASH_SIZE:          4096
-[    0.136699] ... MAX_LOCKDEP_ENTRIES:     16384
-[    0.136756] ... MAX_LOCKDEP_CHAINS:      32768
-[    0.136811] ... CHAINHASH_SIZE:          16384
-[    0.136868]  memory used by lock dependency info: 2603 kB
-[    0.136933]  per task-struct memory footprint: 1920 bytes
-[    0.215908] Calibrating delay using timer specific routine.. 2007.88 BogoMIPS (lpj=4015778)
-[    0.216049] pid_max: default: 262144 minimum: 2048
-[    0.216772] LSM: Security Framework initializing
-[    0.217017] Unable to handle kernel paging request at virtual address 000612000002e000
-[    0.217116] tsk->{mm,active_mm}->context = 0000000000000000
-[    0.217184] tsk->{mm,active_mm}->pgd = fff8000070002000
-[    0.217247]               \|/ ____ \|/
-[    0.217247]               "@'/ .. \`@"
-[    0.217247]               /_| \__/ |_\
-[    0.217247]                  \__U_/
-[    0.217406] swapper/0(0): Oops [#1]
-[    0.217458] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 5.19.0-rc2-00025-g1d0403d20f6c #376
-[    0.217559] TSTATE: 0000009180001607 TPC: 00000000006c9118 TNPC: 00000000006c911c Y: df1f6831    Not tainted
-[    0.217673] TPC: <mem_cgroup_from_obj+0x78/0x120>
-[    0.217742] g0: 0000000000000000 g1: 0000004000000a89 g2: 0006000000000000 g3: 54256f3ea00db3c0
-[    0.217843] g4: 0000000000fdf680 g5: fff800042960e000 g6: 0000000000fc0000 g7: 0000000000000002
-[    0.217943] o0: 000612000002f688 o1: 0000000000fdffa0 o2: 22645555e843a019 o3: 24f02a9c57a00000
-[    0.218043] o4: 000000000000000d o5: 9b8bf183d547acad sp: 0000000000fc3191 ret_pc: 00000000006c90c8
-[    0.218145] RPC: <mem_cgroup_from_obj+0x28/0x120>
-[    0.218207] l0: 00000000011f31c0 l1: 0000000000000000 l2: 0000000000000000 l3: ffffffffffffffff
-[    0.218309] l4: ffffffff0000003c l5: 00000000014e3800 l6: 0000000000000000 l7: 0000000000fdac00
-[    0.218409] i0: 0000000001512d80 i1: 0000000000000000 i2: 0000000000000000 i3: 0000000000000002
-[    0.218509] i4: 00000000011f31c0 i5: 0000000000000000 i6: 0000000000fc3241 i7: 0000000000ae012c
-[    0.218609] I7: <__register_pernet_operations+0xcc/0x420>
-[    0.218681] Call Trace:
-[    0.218718] [<0000000000ae012c>] __register_pernet_operations+0xcc/0x420
-[    0.218800] [<0000000000ae04e4>] register_pernet_operations+0x64/0xa0
-[    0.218878] [<0000000000ae053c>] register_pernet_subsys+0x1c/0x40
-[    0.218955] [<0000000001199010>] net_ns_init+0xe8/0x148
-[    0.219028] [<0000000001170ed4>] start_kernel+0x5e0/0x660
-[    0.219096] [<0000000001173e28>] start_early_boot+0x2a0/0x2b0
-[    0.219169] [<0000000000cb6fe0>] tlb_fixup_done+0x4c/0x6c
-[    0.219240] [<0000000000027414>] 0x27414
-[    0.219293] Disabling lock debugging due to kernel taint
-[    0.219345] Caller[0000000000ae012c]: __register_pernet_operations+0xcc/0x420
-[    0.220423] Caller[0000000000ae04e4]: register_pernet_operations+0x64/0xa0
-[    0.220490] Caller[0000000000ae053c]: register_pernet_subsys+0x1c/0x40
-[    0.220551] Caller[0000000001199010]: net_ns_init+0xe8/0x148
-[    0.220608] Caller[0000000001170ed4]: start_kernel+0x5e0/0x660
-[    0.220664] Caller[0000000001173e28]: start_early_boot+0x2a0/0x2b0
-[    0.220723] Caller[0000000000cb6fe0]: tlb_fixup_done+0x4c/0x6c
-[    0.220780] Caller[0000000000027414]: 0x27414
-[    0.220823] Instruction DUMP:
-[    0.220825]  90020001
-[    0.220858]  912a3003
-[    0.220886]  90020002
-[    0.220912] <c25a2008>
-[    0.220939]  84086001
-[    0.220967]  82007fff
-[    0.220993]  83788408
-[    0.221020]  90100001
-[    0.221047]  c25a0000
-[    0.221074]
-[    0.221120] Kernel panic - not syncing: Attempted to kill the idle task!
-[    0.221183] Unable to handle kernel NULL pointer dereference
-[    0.221237] tsk->{mm,active_mm}->context = 0000000000000000
-[    0.221287] tsk->{mm,active_mm}->pgd = fff8000070002000
-[    0.221335]               \|/ ____ \|/
-[    0.221335]               "@'/ .. \`@"
-[    0.221335]               /_| \__/ |_\
-[    0.221335]                  \__U_/
-[    0.221457] swapper/0(0): Oops [#2]
-[    0.221494] CPU: 0 PID: 0 Comm: swapper/0 Tainted: G      D           5.19.0-rc2-00025-g1d0403d20f6c #376
-[    0.221580] TSTATE: 0000004480e01607 TPC: 0000000000a64030 TNPC: 0000000000a64034 Y: 000008a3    Tainted: G      D
-[    0.221678] TPC: <sunhv_migrate_hvcons_irq+0x30/0x60>
-[    0.221731] g0: 00000000014e3800 g1: 0000000000000020 g2: 0000000000000000 g3: 000000000000009d
-[    0.221808] g4: 0000000000fdf680 g5: fff800042960e000 g6: 0000000000fc0000 g7: 0000000000000001
-[    0.222888] o0: 000000000000003c o1: 0000000000cc9400 o2: 0000000000000000 o3: 0000000000ece2a0
-[    0.222966] o4: 6c65207461736b21 o5: 0000000000000000 sp: 0000000000fc2b21 ret_pc: 00000000004dbfdc
-[    0.223046] RPC: <vprintk+0x5c/0x80>
-[    0.223087] l0: 0000000001228e40 l1: 0000000000000020 l2: 0000000000eceb78 l3: 0000000f477791df
-[    0.223167] l4: f477792d02f140eb l5: 00000000014e3800 l6: 0000000000000000 l7: 0000000000000001
-[    0.223243] i0: 0000000000000000 i1: 0000000000fc3508 i2: 0000000000eceb78 i3: 0000000000fc35c8
-[    0.223320] i4: 0000000000a1c888 i5: 0000000001229220 i6: 0000000000fc2bd1 i7: 0000000000440a1c
-[    0.223397] I7: <smp_send_stop+0x3c/0x100>
-[    0.223443] Call Trace:
-[    0.223470] [<0000000000440a1c>] smp_send_stop+0x3c/0x100
-[    0.223522] [<0000000000cac4a0>] panic+0x104/0x374
-[    0.223572] [<000000000046a4fc>] make_task_dead+0x5c/0xe0
-[    0.223629] [<0000000000cab660>] die_if_kernel+0x258/0x264
-[    0.223681] [<0000000000cc3624>] unhandled_fault+0x98/0xb4
-[    0.223737] [<0000000000cc3e54>] do_sparc64_fault+0x814/0xa00
-[    0.223792] [<0000000000407714>] sparc64_realfault_common+0x10/0x20
-[    0.223858] [<00000000006c9118>] mem_cgroup_from_obj+0x78/0x120
-[    0.223914] [<0000000000ae012c>] __register_pernet_operations+0xcc/0x420
-[    0.223976] [<0000000000ae04e4>] register_pernet_operations+0x64/0xa0
-[    0.224038] [<0000000000ae053c>] register_pernet_subsys+0x1c/0x40
-[    0.224094] [<0000000001199010>] net_ns_init+0xe8/0x148
-[    0.224147] [<0000000001170ed4>] start_kernel+0x5e0/0x660
-[    0.224198] [<0000000001173e28>] start_early_boot+0x2a0/0x2b0
-[    0.224254] [<0000000000cb6fe0>] tlb_fixup_done+0x4c/0x6c
-[    0.225308] [<0000000000027414>] 0x27414
-[    0.225349] Caller[0000000000440a1c]: smp_send_stop+0x3c/0x100
-[    0.225406] Caller[0000000000cac4a0]: panic+0x104/0x374
-[    0.225456] Caller[000000000046a4fc]: make_task_dead+0x5c/0xe0
-[    0.225512] Caller[0000000000cab660]: die_if_kernel+0x258/0x264
-[    0.225567] Caller[0000000000cc3624]: unhandled_fault+0x98/0xb4
-[    0.225624] Caller[0000000000cc3e54]: do_sparc64_fault+0x814/0xa00
-[    0.225685] Caller[0000000000407714]: sparc64_realfault_common+0x10/0x20
-[    0.225747] Caller[00000000006c90c8]: mem_cgroup_from_obj+0x28/0x120
-[    0.225806] Caller[0000000000ae012c]: __register_pernet_operations+0xcc/0x420
-[    0.225875] Caller[0000000000ae04e4]: register_pernet_operations+0x64/0xa0
-[    0.225940] Caller[0000000000ae053c]: register_pernet_subsys+0x1c/0x40
-[    0.226001] Caller[0000000001199010]: net_ns_init+0xe8/0x148
-[    0.226058] Caller[0000000001170ed4]: start_kernel+0x5e0/0x660
-[    0.226113] Caller[0000000001173e28]: start_early_boot+0x2a0/0x2b0
-[    0.226172] Caller[0000000000cb6fe0]: tlb_fixup_done+0x4c/0x6c
-[    0.226228] Caller[0000000000027414]: 0x27414
-[    0.226271] Instruction DUMP:
-[    0.226273]  83287005
-[    0.226305]  13003325
-[    0.226333]  82204018
-[    0.226359] <d000a0d8>
-[    0.226385]  92126358
-[    0.226412]  7fe9f0e2
-[    0.226439]  92024001
-[    0.226465]  81cfe008
-[    0.226492]  01000000
-[    0.226519]
-[    0.226562] Kernel panic - not syncing: Attempted to kill the idle task!
-[    0.226626] Unable to handle kernel NULL pointer dereference
-[    0.226678] tsk->{mm,active_mm}->context = 0000000000000000
-[    0.226729] tsk->{mm,active_mm}->pgd = fff8000070002000
-
-
+-Olof
