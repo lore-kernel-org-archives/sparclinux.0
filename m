@@ -2,180 +2,139 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAA51ECAAD3
-	for <sparclinux@archiver.kernel.org>; Mon, 19 Sep 2022 08:44:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E920C6FA95
+	for <sparclinux@archiver.kernel.org>; Mon, 19 Sep 2022 10:17:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230032AbiISIos (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 19 Sep 2022 04:44:48 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39010 "EHLO
+        id S230401AbiISKRl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 19 Sep 2022 06:17:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49330 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229695AbiISIop (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Sep 2022 04:44:45 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D9D1E5F5F;
-        Mon, 19 Sep 2022 01:44:42 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 80A31B816B8;
-        Mon, 19 Sep 2022 08:44:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4DE61C433C1;
-        Mon, 19 Sep 2022 08:44:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1663577080;
-        bh=Vd83dSwOxxVSmijrL/0T0PlkhSMj1d5PUkUDnXOIUyE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=dlSngLTIaXTUHmuHDJgtMdbNwSHKqUJq9SLyDbvIvDthukzpSXHybBsTRhVVyFNJ2
-         1qqCtuHfpcMr/GliCB6rzwJjMLC2MHRH03VKiFCffo41yXNOwwmKRS/fEC1f2Cxj7R
-         DLEvYnlAXyJ2KzF8cFOljKYCXKTJeMmqp7ByoylE=
-Date:   Mon, 19 Sep 2022 10:45:06 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To:     Olof Johansson <olof@lixom.net>
-Cc:     Saravana Kannan <saravanak@google.com>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Paul Mackerras <paulus@samba.org>,
-        Joel Stanley <joel@jms.id.au>,
-        Andrew Jeffery <andrew@aj.id.au>,
-        Nicolas Saenz Julienne <nsaenz@kernel.org>,
-        Broadcom internal kernel review list 
-        <bcm-kernel-feedback-list@broadcom.com>,
-        Florian Fainelli <f.fainelli@gmail.com>,
-        Ray Jui <rjui@broadcom.com>,
-        Scott Branden <sbranden@broadcom.com>,
-        Al Cooper <alcooperx@gmail.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Paul Cercueil <paul@crapouillou.net>,
-        Vladimir Zapolskiy <vz@mleia.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
-        Masami Hiramatsu <mhiramat@kernel.org>,
-        Tobias Klauser <tklauser@distanz.ch>,
-        Russell King <linux@armlinux.org.uk>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Richard Genoud <richard.genoud@gmail.com>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@bootlin.com>,
-        Claudiu Beznea <claudiu.beznea@microchip.com>,
-        Alexander Shiyan <shc_work@mail.ru>,
-        Baruch Siach <baruch@tkos.co.il>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        Karol Gugala <kgugala@antmicro.com>,
-        Mateusz Holenko <mholenko@antmicro.com>,
-        Gabriel Somlo <gsomlo@gmail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Jerome Brunet <jbrunet@baylibre.com>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Taichi Sugaya <sugaya.taichi@socionext.com>,
-        Takao Orito <orito.takao@socionext.com>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Pali Rohar <pali@kernel.org>,
-        Andreas Farber <afaerber@suse.de>,
-        Manivannan Sadhasivam <mani@kernel.org>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
-        Alim Akhtar <alim.akhtar@samsung.com>,
-        Laxman Dewangan <ldewangan@nvidia.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Orson Zhai <orsonzhai@gmail.com>,
-        Baolin Wang <baolin.wang7@gmail.com>,
-        Chunyan Zhang <zhang.lyra@gmail.com>,
-        Patrice Chotard <patrice.chotard@foss.st.com>,
-        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
-        Alexandre Torgue <alexandre.torgue@foss.st.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hammer Hsieh <hammerh0314@gmail.com>,
-        Peter Korsgaard <jacmet@sunsite.dk>,
-        Timur Tabi <timur@kernel.org>,
-        Michal Simek <michal.simek@xilinx.com>,
-        Rob Herring <robh@kernel.org>,
-        sascha hauer <sha@pengutronix.de>, peng fan <peng.fan@nxp.com>,
-        kevin hilman <khilman@kernel.org>,
-        ulf hansson <ulf.hansson@linaro.org>,
-        len brown <len.brown@intel.com>, pavel machek <pavel@ucw.cz>,
-        joerg roedel <joro@8bytes.org>, will deacon <will@kernel.org>,
-        andrew lunn <andrew@lunn.ch>,
-        heiner kallweit <hkallweit1@gmail.com>,
-        eric dumazet <edumazet@google.com>,
-        jakub kicinski <kuba@kernel.org>,
-        paolo abeni <pabeni@redhat.com>,
-        linus walleij <linus.walleij@linaro.org>,
-        hideaki yoshifuji <yoshfuji@linux-ipv6.org>,
-        david ahern <dsahern@kernel.org>, kernel-team@android.com,
-        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
-        iommu@lists.linux-foundation.org, netdev@vger.kernel.org,
-        linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-aspeed@lists.ozlabs.org,
-        linux-rpi-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-actions@lists.infradead.org,
-        linux-unisoc@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH v2 0/2] Fix console probe delay when stdout-path isn't set
-Message-ID: <YygsEtxKz8dsEstc@kroah.com>
-References: <20220701012647.2007122-1-saravanak@google.com>
- <YwS5J3effuHQJRZ5@kroah.com>
- <CAOesGMivJ5Q-jdeGKw32yhjmNiYctHjpEAnoMMRghYqWD2m2tw@mail.gmail.com>
+        with ESMTP id S229946AbiISKRG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 19 Sep 2022 06:17:06 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55A6E1EC5D;
+        Mon, 19 Sep 2022 03:17:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
+        Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To;
+        bh=74awPgmRWnz6TtiKDYLgK7Deo1BdG7DroGRjfVtm8U0=; b=SFQYA3jAmhFq40VYZM68Tl2w5i
+        ZXRBNgbLC3acA/1Dm/ZTH0pKngpyZarrHO2urIBRGd1SFXtlBVsxBG5w3GvcNlPbnMiIzGgnA+Y8t
+        dXazbL2lngg+xVaLeVvXkenThdUDjpquoAohkyV4ZdsIELsDdK/l8RS1n5Tz50U++NJCb4r09fRIs
+        kieZ0CsOt3gPv2NZizNIQhY8xJqq2RCg52cWnS+fYBZiVJ6uU3u4gx57qQdc9RSVuVE+VOTiNE5qY
+        bUCPNJ6Ogw6hQFEH7tWJhnIsvwMUvNInJslCtzYuuDdwYWXhLCJ6oMb7pHkM31N8il9TbGM5YnHUV
+        95FWEVpQ==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1oaDpE-004ahe-SE; Mon, 19 Sep 2022 10:16:28 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits))
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 92476301CEB;
+        Mon, 19 Sep 2022 12:16:24 +0200 (CEST)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
+        id CE9192BA49038; Mon, 19 Sep 2022 12:16:21 +0200 (CEST)
+Message-ID: <20220919101520.534233547@infradead.org>
+User-Agent: quilt/0.66
+Date:   Mon, 19 Sep 2022 11:59:42 +0200
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     peterz@infradead.org
+Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, bcain@quicinc.com,
+        chenhuacai@kernel.org, kernel@xen0n.name, geert@linux-m68k.org,
+        sammy@sammy.net, monstr@monstr.eu, tsbogend@alpha.franken.de,
+        dinguyen@kernel.org, jonas@southpole.se,
+        stefan.kristiansson@saunalahti.fi, shorne@gmail.com,
+        James.Bottomley@HansenPartnership.com, deller@gmx.de,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        paul.walmsley@sifive.com, palmer@dabbelt.com,
+        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
+        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
+        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
+        davem@davemloft.net, richard@nod.at,
+        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
+        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
+        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
+        acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
+        amakhalov@vmware.com, pv-drivers@vmware.com,
+        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
+        gregkh@linuxfoundation.org, mturquette@baylibre.com,
+        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, konrad.dybcio@somainline.org,
+        anup@brainfault.org, thierry.reding@gmail.com,
+        jonathanh@nvidia.com, jacob.jun.pan@linux.intel.com,
+        atishp@atishpatra.org, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, dennis@kernel.org, tj@kernel.org,
+        cl@linux.com, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, fweisbec@gmail.com,
+        ryabinin.a.a@gmail.com, glider@google.com, andreyknvl@gmail.com,
+        dvyukov@google.com, vincenzo.frascino@arm.com,
+        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: [PATCH v2 03/44] cpuidle/poll: Ensure IRQ state is invariant
+References: <20220919095939.761690562@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOesGMivJ5Q-jdeGKw32yhjmNiYctHjpEAnoMMRghYqWD2m2tw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Sep 18, 2022 at 08:44:27PM -0700, Olof Johansson wrote:
-> On Tue, Aug 23, 2022 at 8:37 AM Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org> wrote:
-> >
-> > On Thu, Jun 30, 2022 at 06:26:38PM -0700, Saravana Kannan wrote:
-> > > These patches are on top of driver-core-next.
-> > >
-> > > Even if stdout-path isn't set in DT, this patch should take console
-> > > probe times back to how they were before the deferred_probe_timeout
-> > > clean up series[1].
-> >
-> > Now dropped from my queue due to lack of a response to other reviewer's
-> > questions.
-> 
-> What happened to this patch? I have a 10 second timeout on console
-> probe on my SiFive Unmatched, and I don't see this flag being set for
-> the serial driver. In fact, I don't see it anywhere in-tree. I can't
-> seem to locate another patchset from Saravana around this though, so
-> I'm not sure where to look for a missing piece for the sifive serial
-> driver.
-> 
-> This is the second boot time regression (this one not fatal, unlike
-> the Layerscape PCIe one) from the fw_devlink patchset.
-> 
-> Greg, can you revert the whole set for 6.0, please? It's obviously
-> nowhere near tested enough to go in and I expect we'll see a bunch of
-> -stable fixups due to this if we let it remain in.
+cpuidle_state::enter() methods should be IRQ invariant
 
-What exactly is "the whole set"?  I have the default option fix queued
-up and will send that to Linus later this week (am traveling back from
-Plumbers still), but have not heard any problems about any other issues
-at all other than your report.
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpuidle/poll_state.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-thnaks,
+--- a/drivers/cpuidle/poll_state.c
++++ b/drivers/cpuidle/poll_state.c
+@@ -17,7 +17,7 @@ static int __cpuidle poll_idle(struct cp
+ 
+ 	dev->poll_time_limit = false;
+ 
+-	local_irq_enable();
++	raw_local_irq_enable();
+ 	if (!current_set_polling_and_test()) {
+ 		unsigned int loop_count = 0;
+ 		u64 limit;
+@@ -36,6 +36,8 @@ static int __cpuidle poll_idle(struct cp
+ 			}
+ 		}
+ 	}
++	raw_local_irq_disable();
++
+ 	current_clr_polling();
+ 
+ 	return index;
 
-greg k-h
+
