@@ -2,101 +2,195 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E831C07E9D
-	for <sparclinux@archiver.kernel.org>; Mon, 26 Sep 2022 19:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 515FCC6FA8E
+	for <sparclinux@archiver.kernel.org>; Mon, 26 Sep 2022 20:00:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229900AbiIZTAX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 26 Sep 2022 15:00:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46856 "EHLO
+        id S229816AbiIZUAJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 26 Sep 2022 16:00:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229730AbiIZTAV (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 15:00:21 -0400
-Received: from mail-yb1-xb2c.google.com (mail-yb1-xb2c.google.com [IPv6:2607:f8b0:4864:20::b2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1BAEC1168
-        for <sparclinux@vger.kernel.org>; Mon, 26 Sep 2022 12:00:20 -0700 (PDT)
-Received: by mail-yb1-xb2c.google.com with SMTP id e81so9540391ybb.13
-        for <sparclinux@vger.kernel.org>; Mon, 26 Sep 2022 12:00:20 -0700 (PDT)
+        with ESMTP id S229971AbiIZUAI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 16:00:08 -0400
+Received: from mail-pj1-x104a.google.com (mail-pj1-x104a.google.com [IPv6:2607:f8b0:4864:20::104a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 558BD1AD80
+        for <sparclinux@vger.kernel.org>; Mon, 26 Sep 2022 13:00:06 -0700 (PDT)
+Received: by mail-pj1-x104a.google.com with SMTP id g15-20020a17090a708f00b00203a68c9acaso3464936pjk.8
+        for <sparclinux@vger.kernel.org>; Mon, 26 Sep 2022 13:00:06 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=google.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=qXIxC7hvTXMP9MB1PSPsSRSKcgWgbfgrr/VeVt3XfAQ=;
-        b=kY6xlSFSYIIHIvjaNJS23jWOFKwiW1EPiXbC8vrod+Q+q2Cc3PWw1S+nstgMveEKWl
-         4G7V17L68GtrHi9sRrCNGa9SF3c35JwHDIFg32Mj1bSaBN9UdBmdjabUl7sVpb5qO2mH
-         j0b/IhQl0aBvlv1Xndc3R5LkAJapRUSXW8/MKoEDAMYg7lk98Ri89xbAioeZ8vkTC4fZ
-         xLcQl62yvW0eOPdk0vIbeYnrHszlSKHn/yXnK7OUkPA363it4nEYe5f3ue6BIpH0bPYZ
-         Gdqe8GN6sGWeHnmy3JqmQZbgSMDgZSrgHueSkL7kKxqpkin8c5Ba+uywFJMii7Gk2GQQ
-         HuDQ==
+        h=content-transfer-encoding:cc:to:from:subject:message-id
+         :mime-version:date:from:to:cc:subject:date;
+        bh=u8rmArpPmicN7r7IqqfOH58XS1KpMBR85FAb+1BiVJU=;
+        b=C6QG8W0A2jE6D9CQn2zjFYStoqzefhTb8kQ0+ijebpJ1iSqL6VRR47hdRXsQpQZRVi
+         ZOj5ZWqu7FVHPGLKRJAWVuGzZn23oT10mF9H0WOIU0KpWTD8WN80nUS552n8T4H/yEBZ
+         rMhciPLFY9Je4vstINLc/UQ/85IuMlR7kYYAymiC0v4Hao/DMK81RACr0ZE4nAzyFP9V
+         aD++IHQNCyi0epayDNuUvnT/hxLpafzq+rCUieYLFH+PgLPrllui+HqgROCEF4rQJUne
+         rtqFcIJMzjUQ9VpxXKNRzWBxH1E1W/migdx00pRZO5ak5EfRPMTN54xKK0uC98ljG4IJ
+         g71g==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=qXIxC7hvTXMP9MB1PSPsSRSKcgWgbfgrr/VeVt3XfAQ=;
-        b=MMwTISV3BIbzN/+ssOpXwTmq6gHejs6zTsNrqja9ug/KBerXsKVZFMXCESq3NQrDZR
-         aVGmEwWwTLbz9BbGiYBavWna5vttuN1oQ5Z9+564WDt/7E7wP/+mCOHEDDbKogMylvxe
-         HmOc0dxbGu85eCTuKUjhUmwiw40oXL4yrQDGCssxNTgkg49TXOHD5If8cTEHc0JGgGaD
-         KSzE0Y4QyyH4aMboaLjPipUFEwH4kA61ba7sFci+YJZchFgtrPqryePwZncKuFwPrCWw
-         9rgVyRWUXswLf8ghF/DSN+X6XLI1Hx1m10Uf8mwWeSf+SC1US5aCeJ4Bte2anb/lN8BP
-         PWeQ==
-X-Gm-Message-State: ACrzQf3dPUfnOZLPEwyMYsuzM8T0RAw3WXITZuKxVGTra94v1vjKHuqI
-        zlwYnj+fwSrRk2pVzhdF0GBfSDwiVTKdRQsrKjerVg==
-X-Google-Smtp-Source: AMsMyM7SxCJVEVFMYzin9Elcyunq4Xv10GhdLdcX8nEOYWO+X6ltxZk1x1jbEGy4aD/N8X0U5vDplgCamqX9JZm6D1s=
-X-Received: by 2002:a25:84cf:0:b0:6b3:c0c3:19d8 with SMTP id
- x15-20020a2584cf000000b006b3c0c319d8mr20802543ybm.349.1664218819202; Mon, 26
- Sep 2022 12:00:19 -0700 (PDT)
-MIME-Version: 1.0
-References: <6b362c6e-9c80-4344-9430-b831f9871a3c@openvz.org>
- <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org> <20220918092849.GA10314@u164.east.ru>
- <CADxRZqyyHAtzaaPjcKi8AichGew2yi-_vQcKoLoxPanLvXZL0g@mail.gmail.com>
- <20220921170259.GI8331@blackbody.suse.cz> <CADxRZqyAG5Co9hLEp6p8vPC9WyGERR6un-3Rqapyv14G4vPXJw@mail.gmail.com>
- <20220926102812.2b0696a7@kernel.org> <CALvZod5QProaWZgT9ykb-vrrRHBpLfqVGgW2jd-Td8aX5MBZFw@mail.gmail.com>
- <20220926103631.8cb144a6d0b683915b0ecb10@linux-foundation.org>
-In-Reply-To: <20220926103631.8cb144a6d0b683915b0ecb10@linux-foundation.org>
+        h=content-transfer-encoding:cc:to:from:subject:message-id
+         :mime-version:date:x-gm-message-state:from:to:cc:subject:date;
+        bh=u8rmArpPmicN7r7IqqfOH58XS1KpMBR85FAb+1BiVJU=;
+        b=JxH+mrDloa8+tC6qI4jCqbqSPOS9RaWmRnNs7xa82k15ogiaIH5RwSkwklilq4FNGr
+         sduK1mcf2x06kH0vW/oinfDsZk/JRD6Yrpoo9T+1gHgSAliDzEEabcks8V699BSYM3s1
+         oTfpaFnPv9ocIF8Ct+7+6VYnv1uYsSgBxyFOulTL+HpgMTIaebpKsM6dzttBt10Csh8x
+         pL0jfSC0eL/CGPvw9Ml0D5kgeTPLeedwbC6MMUVcBc5aL48S+hOXjgtpk06a80B+ksGD
+         /SMf5/qU5YbzWjyZCPbOS3CgD016PVHgYuYgdhRo3b9pbKnIEzna4fvKN0CNQPVTx+/8
+         9/XA==
+X-Gm-Message-State: ACrzQf37lymGjTSdFY6kcEDm+CRnk2uLmRRTZ40DopdpNQoZkRTiaT8L
+        WxdVtH7riorxTLccYwTFgE8OcddEyvplDQ==
+X-Google-Smtp-Source: AMsMyM72e61Isv3ASb63QLAzd7GvOLG+tEJK6e7CFKXgBs5ZWj9r2NR1UKykIJb3sCI21UgLY3T5MyF00bC9xw==
+X-Received: from shakeelb.c.googlers.com ([fda3:e722:ac3:cc00:7f:e700:c0a8:262e])
+ (user=shakeelb job=sendgmr) by 2002:a05:6a00:9a9:b0:541:787f:f2c with SMTP id
+ u41-20020a056a0009a900b00541787f0f2cmr25633816pfg.12.1664222405512; Mon, 26
+ Sep 2022 13:00:05 -0700 (PDT)
+Date:   Mon, 26 Sep 2022 19:59:31 +0000
+Mime-Version: 1.0
+X-Mailer: git-send-email 2.37.3.998.g577e59143f-goog
+Message-ID: <20220926195931.2497968-1-shakeelb@google.com>
+Subject: [PATCH] Revert "net: set proper memcg for net_init hooks allocations"
 From:   Shakeel Butt <shakeelb@google.com>
-Date:   Mon, 26 Sep 2022 12:00:07 -0700
-Message-ID: <CALvZod62wAYAM5QLpjShdw5_0e391VqyfR-3jmyH_X3Sqt=DEg@mail.gmail.com>
-Subject: Re: [sparc64] fails to boot, (was: Re: [PATCH memcg v6] net: set
- proper memcg for net_init hooks allocations)
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Jakub Kicinski <kuba@kernel.org>, Vasily Averin <vvs@openvz.org>,
-        Anatoly Pugachev <matorola@gmail.com>,
-        =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>,
-        kernel@openvz.org,
-        Linux Kernel list <linux-kernel@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>,
+To:     Johannes Weiner <hannes@cmpxchg.org>,
+        Michal Hocko <mhocko@kernel.org>,
         Roman Gushchin <roman.gushchin@linux.dev>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Michal Hocko <mhocko@suse.com>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>,
-        Cgroups <cgroups@vger.kernel.org>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        Thorsten Leemhuis <linux@leemhuis.info>,
-        Linus Torvalds <torvalds@linux-foundation.org>
+        Muchun Song <songmuchun@bytedance.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     "=?UTF-8?q?Michal=20Koutn=C3=BD?=" <mkoutny@suse.com>,
+        cgroups@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, Shakeel Butt <shakeelb@google.com>,
+        Anatoly Pugachev <matorola@gmail.com>,
+        Vasily Averin <vvs@openvz.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        sparclinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Sep 26, 2022 at 10:36 AM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> On Mon, 26 Sep 2022 10:32:49 -0700 Shakeel Butt <shakeelb@google.com> wrote:
->
-> > > Forgive my uniformed chime-in but Linus seemed happy with the size of
-> > > -rc7 and now I'm worried there won't be an -rc8. AFAICT this is a 6.0
-> > > regression. Vasily, Shakeel, do we have a plan to fix this?
-> >
-> > I was actually waiting for Vasily to respond. Anyways, I think the
-> > easiest way to proceed is to revert the commit 1d0403d20f6c ("net: set
-> > proper memcg for net_init hooks allocations"). We can debug the issue
-> > in the next cycle.
->
-> If agreeable, could someone please send along a tested and changelogged
-> patch to do this?
->
+This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
 
-I will send this revert soon and I think Anatoly has already tested
-the revert but I will let him add his tested-by tag.
+Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set proper
+memcg for net_init hooks allocations") is somehow causing the sparc64
+VMs failed to boot and the VMs boot fine with that patch reverted. So,
+revert the patch for now and later we can debug the issue.
+
+Reported-by: Anatoly Pugachev <matorola@gmail.com>
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Vasily Averin <vvs@openvz.org>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: cgroups@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+Cc: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org
+---
+ include/linux/memcontrol.h | 45 --------------------------------------
+ net/core/net_namespace.c   |  7 ------
+ 2 files changed, 52 deletions(-)
+
+diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
+index ef479e554253..e1644a24009c 100644
+--- a/include/linux/memcontrol.h
++++ b/include/linux/memcontrol.h
+@@ -1787,42 +1787,6 @@ static inline void count_objcg_event(struct obj_cgro=
+up *objcg,
+ 	rcu_read_unlock();
+ }
+=20
+-/**
+- * get_mem_cgroup_from_obj - get a memcg associated with passed kernel obj=
+ect.
+- * @p: pointer to object from which memcg should be extracted. It can be N=
+ULL.
+- *
+- * Retrieves the memory group into which the memory of the pointed kernel
+- * object is accounted. If memcg is found, its reference is taken.
+- * If a passed kernel object is uncharged, or if proper memcg cannot be fo=
+und,
+- * as well as if mem_cgroup is disabled, NULL is returned.
+- *
+- * Return: valid memcg pointer with taken reference or NULL.
+- */
+-static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
+-{
+-	struct mem_cgroup *memcg;
+-
+-	rcu_read_lock();
+-	do {
+-		memcg =3D mem_cgroup_from_obj(p);
+-	} while (memcg && !css_tryget(&memcg->css));
+-	rcu_read_unlock();
+-	return memcg;
+-}
+-
+-/**
+- * mem_cgroup_or_root - always returns a pointer to a valid memory cgroup.
+- * @memcg: pointer to a valid memory cgroup or NULL.
+- *
+- * If passed argument is not NULL, returns it without any additional check=
+s
+- * and changes. Otherwise, root_mem_cgroup is returned.
+- *
+- * NOTE: root_mem_cgroup can be NULL during early boot.
+- */
+-static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *mem=
+cg)
+-{
+-	return memcg ? memcg : root_mem_cgroup;
+-}
+ #else
+ static inline bool mem_cgroup_kmem_disabled(void)
+ {
+@@ -1879,15 +1843,6 @@ static inline void count_objcg_event(struct obj_cgro=
+up *objcg,
+ {
+ }
+=20
+-static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
+-{
+-	return NULL;
+-}
+-
+-static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *mem=
+cg)
+-{
+-	return NULL;
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
+=20
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
+diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
+index 6b9f19122ec1..0ec2f5906a27 100644
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -18,7 +18,6 @@
+ #include <linux/user_namespace.h>
+ #include <linux/net_namespace.h>
+ #include <linux/sched/task.h>
+-#include <linux/sched/mm.h>
+ #include <linux/uidgid.h>
+ #include <linux/cookie.h>
+=20
+@@ -1144,13 +1143,7 @@ static int __register_pernet_operations(struct list_=
+head *list,
+ 		 * setup_net() and cleanup_net() are not possible.
+ 		 */
+ 		for_each_net(net) {
+-			struct mem_cgroup *old, *memcg;
+-
+-			memcg =3D mem_cgroup_or_root(get_mem_cgroup_from_obj(net));
+-			old =3D set_active_memcg(memcg);
+ 			error =3D ops_init(ops, net);
+-			set_active_memcg(old);
+-			mem_cgroup_put(memcg);
+ 			if (error)
+ 				goto out_undo;
+ 			list_add_tail(&net->exit_list, &net_exit_list);
+--=20
+2.37.3.998.g577e59143f-goog
+
