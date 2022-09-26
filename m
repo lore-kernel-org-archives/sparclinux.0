@@ -2,115 +2,108 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A0CFC07E9D
-	for <sparclinux@archiver.kernel.org>; Mon, 26 Sep 2022 14:44:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABE7EC07E9D
+	for <sparclinux@archiver.kernel.org>; Mon, 26 Sep 2022 17:43:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235110AbiIZOoN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 26 Sep 2022 10:44:13 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45420 "EHLO
+        id S230501AbiIZRnU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 26 Sep 2022 13:43:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59068 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235383AbiIZOnp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 10:43:45 -0400
-Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE6184E72;
-        Mon, 26 Sep 2022 06:06:21 -0700 (PDT)
-Received: by mail-wm1-x32e.google.com with SMTP id ay7-20020a05600c1e0700b003b49861bf48so8176262wmb.0;
-        Mon, 26 Sep 2022 06:06:21 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date;
-        bh=lHYmumLvyE4V6WpEgRdvIHKDaBX6pkuSXgTnGyOxhOQ=;
-        b=IbCR66K42xKS/M7CztGQ/LQwHaP2woOeBjaIbh+fDq1UpLATW4PO90HWgwWtBykUjM
-         0HFnd3Fvcq4RrR+0gAVoejrdv99y5kHVbenxc5NAbMGkf3N4Q6uM9TRajq85B4J8ZjSV
-         V9XJrozFgaVtJ66AgOm/XY3g53aH44A0ATIQsMFfMwFsaPIFTE6EeXYZrIlDC2l48fAE
-         KZHd8afOJREzG4jpDC7lYSeU43uR6LjGw2LPG7z95O1bkwfXoBdZ3PiLVcxGwPbEtwIn
-         33/32wZQKrjC+cbzxJ37ne+EwCc+Kc0RpNFBDDOyHXuTSz5aY6q2E8thqzuOeyX4aNQ+
-         aSrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=lHYmumLvyE4V6WpEgRdvIHKDaBX6pkuSXgTnGyOxhOQ=;
-        b=q8qItM1rlQBqvC+6sHvu12x8LsDjPSHug+PhVGvV4EtFN/sCzIapGYZhqe4sjAteps
-         8PpE1bftc/KWXJQs3GzmWvnDydbEMAcqnInupljlCEAxt+XhRtnPnGG0vyv8AFIzRSPQ
-         fSB+Mo+iPuBKeXx+v7m4/7EhQprWCTeoPP1kR7Qy3wfg9Y4UsUkm89oy3TG4Y2k7To9W
-         8fszdH2wopQxCLd+dgKTg4JJ2zHjtTNCmn05b/2CVD1bFj4Bo50l7QDqSYW2wS9rA9uV
-         wPTrKKaDBpTIuQMVHn+my9YZL9FUr5zcG/Wbthr/53UI5WVqDK21PppzgkSEGwFUgkA/
-         xa6Q==
-X-Gm-Message-State: ACrzQf3FnU/Q2tMkFiOzKp00/FlhXPiSTH4i157yk/w07yR457gyWrik
-        kXSPEfyIx/ZkxZxejcHz9at9gWjal3Th1VxiCuc=
-X-Google-Smtp-Source: AMsMyM4b0qgmhm6PiBNfWnLD3vMEtUlll0xIKZtIF9qUWcglWtI/yMWUUVWoPKE4QceNSNvUf+y3+KI8RAgNAvb9sR8=
-X-Received: by 2002:a7b:c389:0:b0:3b4:a67a:2ef7 with SMTP id
- s9-20020a7bc389000000b003b4a67a2ef7mr21793251wmj.180.1664197580076; Mon, 26
- Sep 2022 06:06:20 -0700 (PDT)
-MIME-Version: 1.0
-References: <6b362c6e-9c80-4344-9430-b831f9871a3c@openvz.org>
- <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org> <20220918092849.GA10314@u164.east.ru>
- <CADxRZqyyHAtzaaPjcKi8AichGew2yi-_vQcKoLoxPanLvXZL0g@mail.gmail.com> <20220921170259.GI8331@blackbody.suse.cz>
-In-Reply-To: <20220921170259.GI8331@blackbody.suse.cz>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Mon, 26 Sep 2022 16:06:08 +0300
-Message-ID: <CADxRZqyAG5Co9hLEp6p8vPC9WyGERR6un-3Rqapyv14G4vPXJw@mail.gmail.com>
-Subject: Re: [sparc64] fails to boot, (was: Re: [PATCH memcg v6] net: set
- proper memcg for net_init hooks allocations)
-To:     =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>
-Cc:     Vasily Averin <vvs@openvz.org>,
-        Andrew Morton <akpm@linux-foundation.org>, kernel@openvz.org,
-        Linux Kernel list <linux-kernel@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>,
-        Shakeel Butt <shakeelb@google.com>,
-        Roman Gushchin <roman.gushchin@linux.dev>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Michal Hocko <mhocko@suse.com>,
-        Florian Westphal <fw@strlen.de>,
+        with ESMTP id S230503AbiIZRm4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 13:42:56 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5317D20348;
+        Mon, 26 Sep 2022 10:11:07 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D5F3361053;
+        Mon, 26 Sep 2022 17:11:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11C84C433D6;
+        Mon, 26 Sep 2022 17:11:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1664212266;
+        bh=ciwd8dFrpPmD6qUMx+CV8r30wFdgfrze3F87Azbcrnw=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=pc4QfuUmYeW97UGWxcJpLG8z7S0CHvP01tpkkXE3ZNPT96L4y8H+Iix2E7LUhpKSG
+         4Sqg1CoaRZB2+s024/CyT2Q2ajdcQiw+6l7FgbXDdJx9UxCOKv7fBMmGcr5+2tgwX8
+         /Ilhw8TRJ/dL/vOQrMxgPQKs/rwEZtjjVeGq3QHlewGw/wuYjjnzZaNOgt2QECsytn
+         9gzWwUnKUo+3roQTWtYun8C9iY/bXzKpLnKlbNQb55BJYRRKqXp9u1pMwUHfcMjQ/t
+         wIfZausc0eELLMHDWZ1Y9nZ1/d5uy5Eg0UgPLS6rJf5yssbXiEMFWvjU+xIap163F7
+         ziihy3gc1i/4g==
+Date:   Mon, 26 Sep 2022 12:11:04 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Richard Rogalski <rrogalski@tutanota.com>
+Cc:     Linux Pci <linux-pci@vger.kernel.org>,
+        Alex Deucher <alexander.deucher@amd.com>,
         "David S. Miller" <davem@davemloft.net>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>, cgroups@vger.kernel.org,
-        Sparc kernel list <sparclinux@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: SPARC64: getting "no compatible bridge window" errors :/
+Message-ID: <20220926171104.GA1605932@bhelgaas>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <NCp_h9j--3-2@tutanota.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Sep 21, 2022 at 8:03 PM Michal Koutn=C3=BD <mkoutny@suse.com> wrote=
-:
-> On Wed, Sep 21, 2022 at 05:44:56PM +0300, Anatoly Pugachev <matorola@gmai=
-l.com> wrote:
-> > On Sun, Sep 18, 2022 at 12:39 PM Anatoly Pugachev <matorola@gmail.com> =
-wrote:
-> > >
-> > >
-> > > I'm unable to boot my sparc64 VM anymore (5.19 still boots, 6.0-rc1 d=
-oes not),
-> > > bisected up to this patch,
-> > >
-> > > mator@ttip:~/linux-2.6$ git bisect bad
-> > > 1d0403d20f6c281cb3d14c5f1db5317caeec48e9 is the first bad commit
-> > > commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9
-> >
-> > reverting this patch makes my sparc64 box boot successfully.
->
-> The failed address falls into vmmemmap region (per your boot log
-> output). It looks like the respective page/folio (of init_net struct) is
-> unbacked there (and likely folio_test_slab fails dereferencing ->flags).
->
-> Would you mind sharing your kernel's config?
-> (I'm most curious about CONFIG_SPARSMEM_VMEMMAP, I'm not familiar with
-> your arch at all though.)
+[+cc Alex, David, sparclinux, LKML]
 
-mator@ttip:~/dmesg$ zcat config-6.0.0-rc6-00010-gb7f0f527dc3c.gz | grep VME=
-MMAP
-CONFIG_SPARSEMEM_VMEMMAP_ENABLE=3Dy
-CONFIG_SPARSEMEM_VMEMMAP=3Dy
+On Sun, Sep 25, 2022 at 06:59:23PM +0200, Richard Rogalski wrote:
+> I hope this is the right place for this.
 
-I do upload config and boot logs to
-https://github.com/mator/sparc64-dmesg
+This is great, thanks a lot for your report!  Is this a regression?
+If so, what's the most recent kernel that worked?  
 
-building a new kernel version/releases as 'make olddefconfig && make -j'
-current version of booted 6.0.0-rc6 is available as
-https://github.com/mator/sparc64-dmesg/blob/master/config-6.0.0-rc6-00010-g=
-b7f0f527dc3c.gz
+> In my dmesg output, I get things like:
+> 
+> pci 0000:04:00.0: can't claim VGA legacy [mem 0x000a0000-0x000bffff]: no compatible bridge window
+> pci 0000:06:00.0: can't claim VGA legacy [mem 0x000a0000-0x000bffff]: no compatible bridge window
+> pci 0000:06:00.1: can't claim BAR 0 [mem 0x84110200000-0x84110203fff 64bit]: no compatible bridge window
+> 
+> I opened a bug for amdgpu [here](https://gitlab.freedesktop.org/drm/amd/-/issues/2169) but looking further into it I think it is caused by deeper PCIe problems :\
+> 
+> https://gitlab.freedesktop.org/drm/amd/uploads/cbf47807972c8a990bb2a8cdbb39ad9e/8C7CA9QNG dmesg log
+> https://gitlab.freedesktop.org/drm/amd/uploads/6a799425dea50febd82f8bc11e54433a/ll.txt lspci -vv
+> https://gitlab.freedesktop.org/drm/amd/uploads/7d4a794b1f7d67a1ffcdee5dfdec3ad6/config.txt kernel .config
+
+Your error output attachment [1] contains an address that looks like
+it's in 06:00.0 BAR 5:
+
+  pci 0000:06:00.0: reg 0x24: [mem 0x84001200000-0x8400123ffff]
+  NON-RESUMABLE ERROR: insn effective address [0x0000084001201410]
+
+This looks like an amdgpu issue.  There have been recent changes like
+c1c39032a074 ("drm/amdgpu: make sure to init common IP before gmc")
+and dd6aeb4e5f59 ("drm/amdgpu: Don't enable LTR if not supported")
+that could be related.
+
+The PCI "no compatible bridge window" warnings are definitely an
+issue, but I don't think they're related to the amdgpu crash:
+
+  pci@400: PCI MEM64 [mem 0x84100000000-0x84dffffffff] offset 80000000000
+  pci_bus 0000:00: root bus resource [mem 0x84100000000-0x84dffffffff] (bus address [0x4100000000-0x4dffffffff])
+  pci 0000:09:00.0: can't claim BAR 0 [mem 0x84120000000-0x8412007ffff 64bit]: no compatible bridge window
+
+Those and this from lspci:
+
+  0000:01:00.0 bridge to [bus 02-09] window [mem 0x4100000000-0x412fffffff pref]
+  0000:02:0c.0 bridge to [bus 09]    window [mem 0x4120000000-0x412fffffff pref]
+  0000:09:00.0 Intel 82599ES NIC Region 0: Memory at 0x84120000000
+
+are telling us there's something wrong with how the resource-to-bus
+offset is being applied.  It looks like the offset was applied to the
+NIC BAR, but didn't get applied to the bridge windows.
+
+Could you start a new thread here (linux-kernel@vger.kernel.org,
+linux-pci@vger.kernel.org, and sparclinux@vger.kernel.org) for this
+issue and attach the dmesg log when booting with "ofpci_debug=1"?
+
+Do the devices we complain about (NICs and storage HBAs 09:00.0,
+09:00.1, 0d:00.0, 0d:00.1, 0e:00.0, 0f:00.0, 0001:03:00.0,
+0001:03:00.1, 0001:0:00.0, 0001:0a:00.1) work?
+
+Bjorn
+
+[1] https://gitlab.freedesktop.org/drm/amd/uploads/b51f4d6783eeebf90de9a400525d07d6/qq
