@@ -2,171 +2,115 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B089C6FA97
-	for <sparclinux@archiver.kernel.org>; Thu, 22 Sep 2022 00:46:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A0CFC07E9D
+	for <sparclinux@archiver.kernel.org>; Mon, 26 Sep 2022 14:44:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230151AbiIVAqJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 21 Sep 2022 20:46:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59474 "EHLO
+        id S235110AbiIZOoN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 26 Sep 2022 10:44:13 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45420 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229506AbiIVAqG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 21 Sep 2022 20:46:06 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DAB40A3D64;
-        Wed, 21 Sep 2022 17:46:04 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9A72CB83387;
-        Thu, 22 Sep 2022 00:46:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 44543C4314E;
-        Thu, 22 Sep 2022 00:46:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1663807562;
-        bh=2bH5aOcexI7rmLPjoykcAnkew/OWwytHkYzPwWB/jQU=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=qaUYBCa8ZYQI7GFr3vNdl7b4/PNzeOP9Pl2wTB/4OC6mUC/FIDhddHDVnhJyCLZDw
-         YQge6B5Td0P7VO9PjXCnxo31fcUlfOUeOzuNgueaOnxtVyoeE+Kw885ZbDXxjh+Kxz
-         nG8xhYs4MfH8znO0LxccUTvFyIcklL8qxJgHgHzEwD28BpML95SM926I5BVMpBRfGy
-         EClfn8JhrAFiO2xWjdeYnkuQSHDKC+N7GbQ87Gnwaucrl4yjzE6eDQWXlwcBRoA5Iv
-         jLegSRu7TSsZLQytF1F6DuVm9kAdHW2MlxTQNgWpbKQ1zMRvmGVdyaWmNwNcIB2j62
-         KBXRDapx3EsAg==
-Received: by mail-oa1-f41.google.com with SMTP id 586e51a60fabf-1278a61bd57so11661840fac.7;
-        Wed, 21 Sep 2022 17:46:02 -0700 (PDT)
-X-Gm-Message-State: ACrzQf1UJiws7PhkiYjC/IUaDx+Cv8B/XVbSiw4Qtp50GHetCSONzk3X
-        83FmzvUK+Xue/GrY/vIwrpbnVn1QQWMMVLUdD8s=
-X-Google-Smtp-Source: AMsMyM5wVf/J3OOqRLb4f8q+r+SKS9nQRSK3lKOefa1IGuaM19Jt2C1f8Xzw1tF39UCQAq/htt5QaEfcl4EevNt8Lqo=
-X-Received: by 2002:a05:6870:a78e:b0:12b:542b:e5b2 with SMTP id
- x14-20020a056870a78e00b0012b542be5b2mr6779719oao.112.1663807550798; Wed, 21
- Sep 2022 17:45:50 -0700 (PDT)
+        with ESMTP id S235383AbiIZOnp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 10:43:45 -0400
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDE6184E72;
+        Mon, 26 Sep 2022 06:06:21 -0700 (PDT)
+Received: by mail-wm1-x32e.google.com with SMTP id ay7-20020a05600c1e0700b003b49861bf48so8176262wmb.0;
+        Mon, 26 Sep 2022 06:06:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date;
+        bh=lHYmumLvyE4V6WpEgRdvIHKDaBX6pkuSXgTnGyOxhOQ=;
+        b=IbCR66K42xKS/M7CztGQ/LQwHaP2woOeBjaIbh+fDq1UpLATW4PO90HWgwWtBykUjM
+         0HFnd3Fvcq4RrR+0gAVoejrdv99y5kHVbenxc5NAbMGkf3N4Q6uM9TRajq85B4J8ZjSV
+         V9XJrozFgaVtJ66AgOm/XY3g53aH44A0ATIQsMFfMwFsaPIFTE6EeXYZrIlDC2l48fAE
+         KZHd8afOJREzG4jpDC7lYSeU43uR6LjGw2LPG7z95O1bkwfXoBdZ3PiLVcxGwPbEtwIn
+         33/32wZQKrjC+cbzxJ37ne+EwCc+Kc0RpNFBDDOyHXuTSz5aY6q2E8thqzuOeyX4aNQ+
+         aSrQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=lHYmumLvyE4V6WpEgRdvIHKDaBX6pkuSXgTnGyOxhOQ=;
+        b=q8qItM1rlQBqvC+6sHvu12x8LsDjPSHug+PhVGvV4EtFN/sCzIapGYZhqe4sjAteps
+         8PpE1bftc/KWXJQs3GzmWvnDydbEMAcqnInupljlCEAxt+XhRtnPnGG0vyv8AFIzRSPQ
+         fSB+Mo+iPuBKeXx+v7m4/7EhQprWCTeoPP1kR7Qy3wfg9Y4UsUkm89oy3TG4Y2k7To9W
+         8fszdH2wopQxCLd+dgKTg4JJ2zHjtTNCmn05b/2CVD1bFj4Bo50l7QDqSYW2wS9rA9uV
+         wPTrKKaDBpTIuQMVHn+my9YZL9FUr5zcG/Wbthr/53UI5WVqDK21PppzgkSEGwFUgkA/
+         xa6Q==
+X-Gm-Message-State: ACrzQf3FnU/Q2tMkFiOzKp00/FlhXPiSTH4i157yk/w07yR457gyWrik
+        kXSPEfyIx/ZkxZxejcHz9at9gWjal3Th1VxiCuc=
+X-Google-Smtp-Source: AMsMyM4b0qgmhm6PiBNfWnLD3vMEtUlll0xIKZtIF9qUWcglWtI/yMWUUVWoPKE4QceNSNvUf+y3+KI8RAgNAvb9sR8=
+X-Received: by 2002:a7b:c389:0:b0:3b4:a67a:2ef7 with SMTP id
+ s9-20020a7bc389000000b003b4a67a2ef7mr21793251wmj.180.1664197580076; Mon, 26
+ Sep 2022 06:06:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <20220919095939.761690562@infradead.org> <20220919101520.802976773@infradead.org>
-In-Reply-To: <20220919101520.802976773@infradead.org>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Thu, 22 Sep 2022 08:45:37 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTQxxRQZLV+uJThCZSByUQ0oSoASgwsUggbsR3wHTqrqzg@mail.gmail.com>
-Message-ID: <CAJF2gTQxxRQZLV+uJThCZSByUQ0oSoASgwsUggbsR3wHTqrqzg@mail.gmail.com>
-Subject: Re: [PATCH v2 07/44] cpuidle,psci: Push RCU-idle into driver
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
-        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
-        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
-        tony@atomide.com, khilman@kernel.org, catalin.marinas@arm.com,
-        will@kernel.org, bcain@quicinc.com, chenhuacai@kernel.org,
-        kernel@xen0n.name, geert@linux-m68k.org, sammy@sammy.net,
-        monstr@monstr.eu, tsbogend@alpha.franken.de, dinguyen@kernel.org,
-        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
-        shorne@gmail.com, James.Bottomley@hansenpartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, aou@eecs.berkeley.edu, hca@linux.ibm.com,
-        gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        richard@nod.at, anton.ivanov@cambridgegreys.com,
-        johannes@sipsolutions.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, acme@kernel.org, mark.rutland@arm.com,
-        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
-        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
-        amakhalov@vmware.com, pv-drivers@vmware.com,
-        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
-        gregkh@linuxfoundation.org, mturquette@baylibre.com,
-        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
-        sudeep.holla@arm.com, agross@kernel.org,
-        bjorn.andersson@linaro.org, konrad.dybcio@somainline.org,
-        anup@brainfault.org, thierry.reding@gmail.com,
-        jonathanh@nvidia.com, jacob.jun.pan@linux.intel.com,
-        atishp@atishpatra.org, Arnd Bergmann <arnd@arndb.de>,
-        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
-        linux@rasmusvillemoes.dk, dennis@kernel.org, tj@kernel.org,
-        cl@linux.com, rostedt@goodmis.org, pmladek@suse.com,
-        senozhatsky@chromium.org, john.ogness@linutronix.de,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
-        bristot@redhat.com, vschneid@redhat.com, fweisbec@gmail.com,
-        ryabinin.a.a@gmail.com, glider@google.com, andreyknvl@gmail.com,
-        dvyukov@google.com, vincenzo.frascino@arm.com,
-        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-perf-users@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
+References: <6b362c6e-9c80-4344-9430-b831f9871a3c@openvz.org>
+ <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org> <20220918092849.GA10314@u164.east.ru>
+ <CADxRZqyyHAtzaaPjcKi8AichGew2yi-_vQcKoLoxPanLvXZL0g@mail.gmail.com> <20220921170259.GI8331@blackbody.suse.cz>
+In-Reply-To: <20220921170259.GI8331@blackbody.suse.cz>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Mon, 26 Sep 2022 16:06:08 +0300
+Message-ID: <CADxRZqyAG5Co9hLEp6p8vPC9WyGERR6un-3Rqapyv14G4vPXJw@mail.gmail.com>
+Subject: Re: [sparc64] fails to boot, (was: Re: [PATCH memcg v6] net: set
+ proper memcg for net_init hooks allocations)
+To:     =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>
+Cc:     Vasily Averin <vvs@openvz.org>,
+        Andrew Morton <akpm@linux-foundation.org>, kernel@openvz.org,
+        Linux Kernel list <linux-kernel@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>,
+        Shakeel Butt <shakeelb@google.com>,
+        Roman Gushchin <roman.gushchin@linux.dev>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Michal Hocko <mhocko@suse.com>,
+        Florian Westphal <fw@strlen.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Eric Dumazet <edumazet@google.com>, cgroups@vger.kernel.org,
+        Sparc kernel list <sparclinux@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Reviewed-by: Guo Ren <guoren@kernel.org>
+On Wed, Sep 21, 2022 at 8:03 PM Michal Koutn=C3=BD <mkoutny@suse.com> wrote=
+:
+> On Wed, Sep 21, 2022 at 05:44:56PM +0300, Anatoly Pugachev <matorola@gmai=
+l.com> wrote:
+> > On Sun, Sep 18, 2022 at 12:39 PM Anatoly Pugachev <matorola@gmail.com> =
+wrote:
+> > >
+> > >
+> > > I'm unable to boot my sparc64 VM anymore (5.19 still boots, 6.0-rc1 d=
+oes not),
+> > > bisected up to this patch,
+> > >
+> > > mator@ttip:~/linux-2.6$ git bisect bad
+> > > 1d0403d20f6c281cb3d14c5f1db5317caeec48e9 is the first bad commit
+> > > commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9
+> >
+> > reverting this patch makes my sparc64 box boot successfully.
+>
+> The failed address falls into vmmemmap region (per your boot log
+> output). It looks like the respective page/folio (of init_net struct) is
+> unbacked there (and likely folio_test_slab fails dereferencing ->flags).
+>
+> Would you mind sharing your kernel's config?
+> (I'm most curious about CONFIG_SPARSMEM_VMEMMAP, I'm not familiar with
+> your arch at all though.)
 
-On Mon, Sep 19, 2022 at 6:17 PM Peter Zijlstra <peterz@infradead.org> wrote:
->
-> Doing RCU-idle outside the driver, only to then temporarily enable it
-> again, at least twice, before going idle is daft.
->
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> ---
->  drivers/cpuidle/cpuidle-psci.c |    9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
->
-> --- a/drivers/cpuidle/cpuidle-psci.c
-> +++ b/drivers/cpuidle/cpuidle-psci.c
-> @@ -69,12 +69,12 @@ static int __psci_enter_domain_idle_stat
->                 return -1;
->
->         /* Do runtime PM to manage a hierarchical CPU toplogy. */
-> -       ct_irq_enter_irqson();
->         if (s2idle)
->                 dev_pm_genpd_suspend(pd_dev);
->         else
->                 pm_runtime_put_sync_suspend(pd_dev);
-> -       ct_irq_exit_irqson();
-> +
-> +       ct_idle_enter();
->
->         state = psci_get_domain_state();
->         if (!state)
-> @@ -82,12 +82,12 @@ static int __psci_enter_domain_idle_stat
->
->         ret = psci_cpu_suspend_enter(state) ? -1 : idx;
->
-> -       ct_irq_enter_irqson();
-> +       ct_idle_exit();
-> +
->         if (s2idle)
->                 dev_pm_genpd_resume(pd_dev);
->         else
->                 pm_runtime_get_sync(pd_dev);
-> -       ct_irq_exit_irqson();
->
->         cpu_pm_exit();
->
-> @@ -240,6 +240,7 @@ static int psci_dt_cpu_init_topology(str
->          * of a shared state for the domain, assumes the domain states are all
->          * deeper states.
->          */
-> +       drv->states[state_count - 1].flags |= CPUIDLE_FLAG_RCU_IDLE;
->         drv->states[state_count - 1].enter = psci_enter_domain_idle_state;
->         drv->states[state_count - 1].enter_s2idle = psci_enter_s2idle_domain_idle_state;
->         psci_cpuidle_use_cpuhp = true;
->
->
+mator@ttip:~/dmesg$ zcat config-6.0.0-rc6-00010-gb7f0f527dc3c.gz | grep VME=
+MMAP
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=3Dy
+CONFIG_SPARSEMEM_VMEMMAP=3Dy
 
+I do upload config and boot logs to
+https://github.com/mator/sparc64-dmesg
 
--- 
-Best Regards
- Guo Ren
+building a new kernel version/releases as 'make olddefconfig && make -j'
+current version of booted 6.0.0-rc6 is available as
+https://github.com/mator/sparc64-dmesg/blob/master/config-6.0.0-rc6-00010-g=
+b7f0f527dc3c.gz
