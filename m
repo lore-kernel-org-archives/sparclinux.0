@@ -2,185 +2,239 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE258C07E9D
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 10:02:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A682CC07E9D
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 12:20:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231618AbiI0KCf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Sep 2022 06:02:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51434 "EHLO
+        id S230096AbiI0MUU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Sep 2022 08:20:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37408 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231604AbiI0KCa (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Sep 2022 06:02:30 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55076956AF;
-        Tue, 27 Sep 2022 03:02:29 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E5C1861793;
-        Tue, 27 Sep 2022 10:02:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 407F0C433D6;
-        Tue, 27 Sep 2022 10:02:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1664272948;
-        bh=dlgt8sTUOCFvaKMGVG7jt6xOPr5SYmh1UhVPSKkYzV8=;
-        h=Date:Subject:To:Cc:References:From:In-Reply-To:From;
-        b=SzSGGrMbrYCeDjltNrgrL3VG2omylsDXXWGmFRuKYPFnG2Xtt63azHAsuGowYidFD
-         vuXsb1OH/s/KwBRrtO4U7PShzKeRUQ6r0e13xxx6bq+NTHfByi71P4P6tQvc7Z8p1W
-         QQu/R2CHgWE0QRLqrRl6ANwMMZJClkApkeRIMNC7efj90M4T9lKE5uoFewIOEQmM/3
-         Y6fCSR/7GnG+tEUZB8N1wSz/PUN49XvesX2YiFyZr2dYXU2ZRmA2geaiWFJLkpAPQk
-         H1I6zN0LGrV0YwBi4275HtG2my1Kuu0KK1SzWnQ3lUfAapmKTlFxrXh+RWDZrb4ars
-         KrO+qSy8Z1aVA==
-Message-ID: <54078150-3c22-3563-7731-5c7fda85987d@kernel.org>
-Date:   Tue, 27 Sep 2022 12:02:23 +0200
+        with ESMTP id S232310AbiI0MTv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Sep 2022 08:19:51 -0400
+Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FB0812FF07;
+        Tue, 27 Sep 2022 05:18:45 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1664281126; x=1695817126;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=OFIxxBkiaCDaU7hdmWCgva7sjv3x1WGTNlqGM1oQtNQ=;
+  b=QjkNRJ9JABpK5KuGM6vW13ifDgF1zvv2NkXQaswwpopi4XOrqXvNEW0a
+   zpn3E9p4vm/ehX8quUW0x0BcZv29fvHaAW/CgJ7m0T7qXQe0amKRrEDAS
+   EzB9PNHcvJpz0v5O31ewC6zMNtvXzKqa8GeDCBYoV0lCNy6b/2IZB1DBT
+   Id0ypUSxa2I1GHDoKY+PdTwG9seHh2aJKRcz1VEVKBPDv0rkhfFI2ij6M
+   HzvJcvXyiqAF0KmEO1wuXT7fF/4llRwNNO0kHo3UcyfJOgYiuwzhcscEj
+   KvJSp43ftV8CWZlWWf9OWIxVC5CY0jzHRUjgnkJrYa+TZkir+NeUE9ezV
+   A==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10482"; a="302782109"
+X-IronPort-AV: E=Sophos;i="5.93,349,1654585200"; 
+   d="scan'208";a="302782109"
+Received: from orsmga006.jf.intel.com ([10.7.209.51])
+  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Sep 2022 05:18:11 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10482"; a="599160114"
+X-IronPort-AV: E=Sophos;i="5.93,349,1654585200"; 
+   d="scan'208";a="599160114"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga006.jf.intel.com with ESMTP; 27 Sep 2022 05:18:06 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1od9XD-008RHv-1p;
+        Tue, 27 Sep 2022 15:17:59 +0300
+Date:   Tue, 27 Sep 2022 15:17:59 +0300
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Rob Herring <robh@kernel.org>,
+        Andrzej Hajda <andrzej.hajda@intel.com>
+Cc:     Olof Johansson <olof@lixom.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Saravana Kannan <saravanak@google.com>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Laurentiu Tudor <laurentiu.tudor@nxp.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Paul Mackerras <paulus@samba.org>,
+        Joel Stanley <joel@jms.id.au>,
+        Andrew Jeffery <andrew@aj.id.au>,
+        Nicolas Saenz Julienne <nsaenz@kernel.org>,
+        Broadcom internal kernel review list 
+        <bcm-kernel-feedback-list@broadcom.com>,
+        Florian Fainelli <f.fainelli@gmail.com>,
+        Ray Jui <rjui@broadcom.com>,
+        Scott Branden <sbranden@broadcom.com>,
+        Al Cooper <alcooperx@gmail.com>,
+        Paul Cercueil <paul@crapouillou.net>,
+        Vladimir Zapolskiy <vz@mleia.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Kunihiko Hayashi <hayashi.kunihiko@socionext.com>,
+        Masami Hiramatsu <mhiramat@kernel.org>,
+        Tobias Klauser <tklauser@distanz.ch>,
+        Russell King <linux@armlinux.org.uk>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Richard Genoud <richard.genoud@gmail.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@bootlin.com>,
+        Claudiu Beznea <claudiu.beznea@microchip.com>,
+        Alexander Shiyan <shc_work@mail.ru>,
+        Baruch Siach <baruch@tkos.co.il>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        Karol Gugala <kgugala@antmicro.com>,
+        Mateusz Holenko <mholenko@antmicro.com>,
+        Gabriel Somlo <gsomlo@gmail.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Jerome Brunet <jbrunet@baylibre.com>,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Taichi Sugaya <sugaya.taichi@socionext.com>,
+        Takao Orito <orito.takao@socionext.com>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Pali Rohar <pali@kernel.org>,
+        Andreas Farber <afaerber@suse.de>,
+        Manivannan Sadhasivam <mani@kernel.org>,
+        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>,
+        Alim Akhtar <alim.akhtar@samsung.com>,
+        Laxman Dewangan <ldewangan@nvidia.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Orson Zhai <orsonzhai@gmail.com>,
+        Baolin Wang <baolin.wang7@gmail.com>,
+        Chunyan Zhang <zhang.lyra@gmail.com>,
+        Patrice Chotard <patrice.chotard@foss.st.com>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@foss.st.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hammer Hsieh <hammerh0314@gmail.com>,
+        Peter Korsgaard <jacmet@sunsite.dk>,
+        Timur Tabi <timur@kernel.org>,
+        Michal Simek <michal.simek@xilinx.com>,
+        sascha hauer <sha@pengutronix.de>, peng fan <peng.fan@nxp.com>,
+        kevin hilman <khilman@kernel.org>,
+        ulf hansson <ulf.hansson@linaro.org>,
+        len brown <len.brown@intel.com>, pavel machek <pavel@ucw.cz>,
+        joerg roedel <joro@8bytes.org>, will deacon <will@kernel.org>,
+        andrew lunn <andrew@lunn.ch>,
+        heiner kallweit <hkallweit1@gmail.com>,
+        eric dumazet <edumazet@google.com>,
+        jakub kicinski <kuba@kernel.org>,
+        paolo abeni <pabeni@redhat.com>,
+        linus walleij <linus.walleij@linaro.org>,
+        hideaki yoshifuji <yoshfuji@linux-ipv6.org>,
+        david ahern <dsahern@kernel.org>, kernel-team@android.com,
+        linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org,
+        iommu@lists.linux-foundation.org, netdev@vger.kernel.org,
+        linux-gpio@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-aspeed@lists.ozlabs.org,
+        linux-rpi-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linux-tegra@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-actions@lists.infradead.org,
+        linux-unisoc@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-stm32@st-md-mailman.stormreply.com,
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH v2 0/2] Fix console probe delay when stdout-path isn't set
+Message-ID: <YzLp9yXgoJmy5YU8@smile.fi.intel.com>
+References: <20220701012647.2007122-1-saravanak@google.com>
+ <YwS5J3effuHQJRZ5@kroah.com>
+ <CAOesGMivJ5Q-jdeGKw32yhjmNiYctHjpEAnoMMRghYqWD2m2tw@mail.gmail.com>
+ <YygsEtxKz8dsEstc@kroah.com>
+ <CAOesGMh5GHCONTQ9M1Ro7zW-hkL_1F7Xt=xRV0vYSfPY=7LYkQ@mail.gmail.com>
+ <CAL_JsqK7auA8coB3DCqSDKw1ept_yQihVs-Me3bvU923os23xg@mail.gmail.com>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.2.2
-Subject: Re: [PATCH] Revert "net: set proper memcg for net_init hooks
- allocations"
-Content-Language: en-US
-To:     Shakeel Butt <shakeelb@google.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Roman Gushchin <roman.gushchin@linux.dev>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     =?UTF-8?Q?Michal_Koutn=c3=bd?= <mkoutny@suse.com>,
-        cgroups@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org,
-        Anatoly Pugachev <matorola@gmail.com>,
-        Vasily Averin <vvs@openvz.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        sparclinux@vger.kernel.org, regressions@lists.linux.dev
-References: <20220926195931.2497968-1-shakeelb@google.com>
-From:   "Vlastimil Babka (SUSE)" <vbabka@kernel.org>
-In-Reply-To: <20220926195931.2497968-1-shakeelb@google.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqK7auA8coB3DCqSDKw1ept_yQihVs-Me3bvU923os23xg@mail.gmail.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 9/26/22 21:59, Shakeel Butt wrote:
-> This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
+On Mon, Sep 26, 2022 at 01:25:05PM -0500, Rob Herring wrote:
+> On Mon, Sep 19, 2022 at 5:56 PM Olof Johansson <olof@lixom.net> wrote:
+> >
+> > On Mon, Sep 19, 2022 at 1:44 AM Greg Kroah-Hartman
+> > <gregkh@linuxfoundation.org> wrote:
+> > >
+> > > On Sun, Sep 18, 2022 at 08:44:27PM -0700, Olof Johansson wrote:
+> > > > On Tue, Aug 23, 2022 at 8:37 AM Greg Kroah-Hartman
+> > > > <gregkh@linuxfoundation.org> wrote:
+> > > > >
+> > > > > On Thu, Jun 30, 2022 at 06:26:38PM -0700, Saravana Kannan wrote:
+> > > > > > These patches are on top of driver-core-next.
+> > > > > >
+> > > > > > Even if stdout-path isn't set in DT, this patch should take console
+> > > > > > probe times back to how they were before the deferred_probe_timeout
+> > > > > > clean up series[1].
+> > > > >
+> > > > > Now dropped from my queue due to lack of a response to other reviewer's
+> > > > > questions.
+> > > >
+> > > > What happened to this patch? I have a 10 second timeout on console
+> > > > probe on my SiFive Unmatched, and I don't see this flag being set for
+> > > > the serial driver. In fact, I don't see it anywhere in-tree. I can't
+> > > > seem to locate another patchset from Saravana around this though, so
+> > > > I'm not sure where to look for a missing piece for the sifive serial
+> > > > driver.
+> > > >
+> > > > This is the second boot time regression (this one not fatal, unlike
+> > > > the Layerscape PCIe one) from the fw_devlink patchset.
+> > > >
+> > > > Greg, can you revert the whole set for 6.0, please? It's obviously
+> > > > nowhere near tested enough to go in and I expect we'll see a bunch of
+> > > > -stable fixups due to this if we let it remain in.
+> > >
+> > > What exactly is "the whole set"?  I have the default option fix queued
+> > > up and will send that to Linus later this week (am traveling back from
+> > > Plumbers still), but have not heard any problems about any other issues
+> > > at all other than your report.
+> >
+> > I stand corrected in this case, the issue on the Hifive Unmatched was
+> > a regression due to a PWM clock change -- I just sent a patch for that
+> > (serial driver fix).
+> >
+> > So it seems like as long as the fw_devlink.strict=1 patch is reverted,
+> > things are back to a working state here.
+> >
+> > I still struggle with how the fw_devlink patchset is expected to work
+> > though, since DT is expected to describe the hardware configuration,
+> > and it has no knowledge of whether there are drivers that will be
+> > bound to any referenced supplier devnodes. It's not going to work well
+> > to assume that they will always be bound, and to add 10 second
+> > timeouts for those cases isn't a good solution. Seems like the number
+> > of special cases will keep adding up.
 > 
-> Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set proper
-> memcg for net_init hooks allocations") is somehow causing the sparc64
-> VMs failed to boot and the VMs boot fine with that patch reverted. So,
-> revert the patch for now and later we can debug the issue.
+> Since the introduction of deferred probe, the kernel has always
+> assumed if there is a device described, then there is or will be a
+> driver for it. The result is you can't use new DTs (if they add
+> providers) with older kernels.
 > 
+> We've ended up with a timeout because no one has come up with a better
+> way to handle it. What the kernel needs is userspace saying "I'm done
+> loading modules", but it's debatable whether that's a good solution
+> too.
 
-Link: https://lore.kernel.org/all/20220918092849.GA10314@u164.east.ru/
+In my opinion the deferred probe is a big hack and that is the root
+cause of the issues we have here and there. It has to be redesigned
+to be mathematically robust. It was an attempt by Andrzej Hajda to
+solve this [1].
 
-(mainly for regzbot reading this thread but should be valid usage for
-the report anyway)
+[1]: https://events19.linuxfoundation.org/wp-content/uploads/2017/12/Deferred-Problem-Issues-With-Complex-Dependencies-Between-Devices-in-Linux-Kernel-Andrzej-Hajda-Samsung.pdf
 
-Fixes: 1d0403d20f6c ("net: set proper memcg for net_init hooks allocations")
+-- 
+With Best Regards,
+Andy Shevchenko
 
-> Reported-by: Anatoly Pugachev <matorola@gmail.com>
-> Signed-off-by: Shakeel Butt <shakeelb@google.com>
-> Cc: Vasily Averin <vvs@openvz.org>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Michal Koutný <mkoutny@suse.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: cgroups@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-mm@kvack.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  include/linux/memcontrol.h | 45 --------------------------------------
->  net/core/net_namespace.c   |  7 ------
->  2 files changed, 52 deletions(-)
-> 
-> diff --git a/include/linux/memcontrol.h b/include/linux/memcontrol.h
-> index ef479e554253..e1644a24009c 100644
-> --- a/include/linux/memcontrol.h
-> +++ b/include/linux/memcontrol.h
-> @@ -1787,42 +1787,6 @@ static inline void count_objcg_event(struct obj_cgroup *objcg,
->  	rcu_read_unlock();
->  }
->  
-> -/**
-> - * get_mem_cgroup_from_obj - get a memcg associated with passed kernel object.
-> - * @p: pointer to object from which memcg should be extracted. It can be NULL.
-> - *
-> - * Retrieves the memory group into which the memory of the pointed kernel
-> - * object is accounted. If memcg is found, its reference is taken.
-> - * If a passed kernel object is uncharged, or if proper memcg cannot be found,
-> - * as well as if mem_cgroup is disabled, NULL is returned.
-> - *
-> - * Return: valid memcg pointer with taken reference or NULL.
-> - */
-> -static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
-> -{
-> -	struct mem_cgroup *memcg;
-> -
-> -	rcu_read_lock();
-> -	do {
-> -		memcg = mem_cgroup_from_obj(p);
-> -	} while (memcg && !css_tryget(&memcg->css));
-> -	rcu_read_unlock();
-> -	return memcg;
-> -}
-> -
-> -/**
-> - * mem_cgroup_or_root - always returns a pointer to a valid memory cgroup.
-> - * @memcg: pointer to a valid memory cgroup or NULL.
-> - *
-> - * If passed argument is not NULL, returns it without any additional checks
-> - * and changes. Otherwise, root_mem_cgroup is returned.
-> - *
-> - * NOTE: root_mem_cgroup can be NULL during early boot.
-> - */
-> -static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *memcg)
-> -{
-> -	return memcg ? memcg : root_mem_cgroup;
-> -}
->  #else
->  static inline bool mem_cgroup_kmem_disabled(void)
->  {
-> @@ -1879,15 +1843,6 @@ static inline void count_objcg_event(struct obj_cgroup *objcg,
->  {
->  }
->  
-> -static inline struct mem_cgroup *get_mem_cgroup_from_obj(void *p)
-> -{
-> -	return NULL;
-> -}
-> -
-> -static inline struct mem_cgroup *mem_cgroup_or_root(struct mem_cgroup *memcg)
-> -{
-> -	return NULL;
-> -}
->  #endif /* CONFIG_MEMCG_KMEM */
->  
->  #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_ZSWAP)
-> diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
-> index 6b9f19122ec1..0ec2f5906a27 100644
-> --- a/net/core/net_namespace.c
-> +++ b/net/core/net_namespace.c
-> @@ -18,7 +18,6 @@
->  #include <linux/user_namespace.h>
->  #include <linux/net_namespace.h>
->  #include <linux/sched/task.h>
-> -#include <linux/sched/mm.h>
->  #include <linux/uidgid.h>
->  #include <linux/cookie.h>
->  
-> @@ -1144,13 +1143,7 @@ static int __register_pernet_operations(struct list_head *list,
->  		 * setup_net() and cleanup_net() are not possible.
->  		 */
->  		for_each_net(net) {
-> -			struct mem_cgroup *old, *memcg;
-> -
-> -			memcg = mem_cgroup_or_root(get_mem_cgroup_from_obj(net));
-> -			old = set_active_memcg(memcg);
->  			error = ops_init(ops, net);
-> -			set_active_memcg(old);
-> -			mem_cgroup_put(memcg);
->  			if (error)
->  				goto out_undo;
->  			list_add_tail(&net->exit_list, &net_exit_list);
 
