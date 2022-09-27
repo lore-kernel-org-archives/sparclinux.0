@@ -2,79 +2,105 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0069CC6FA82
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 02:00:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D73B9C6FA92
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 06:22:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229978AbiI0CAL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 26 Sep 2022 22:00:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60274 "EHLO
+        id S229872AbiI0GWC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Sep 2022 02:22:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41788 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229479AbiI0CAK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 26 Sep 2022 22:00:10 -0400
-Received: from out1.migadu.com (out1.migadu.com [IPv6:2001:41d0:2:863f::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5EB32326D2;
-        Mon, 26 Sep 2022 19:00:09 -0700 (PDT)
-Date:   Mon, 26 Sep 2022 19:00:01 -0700
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
-        t=1664244007;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=QAUHGYCO/qQ2SwttBy7KnlWgbLVqmhgcIz7g3trZDTk=;
-        b=olgkAn++swZM7w/xk8nii6twtgKZ5RPxlL+GEuWv+NNepi4z6oJsHjDrEzDGEZjvSBaIAz
-        39Vj7Iw5tRsZLbE1qm+r2kt9UyeLxm71DUvj8c1RKQ8z/RaGpfb1v4jqzkvNVxu9VBtJgd
-        8pZ7/DO788og4cRAdQn8VSjdRc9GkUA=
-X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
-From:   Roman Gushchin <roman.gushchin@linux.dev>
-To:     Shakeel Butt <shakeelb@google.com>
-Cc:     Johannes Weiner <hannes@cmpxchg.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Michal =?iso-8859-1?Q?Koutn=FD?= <mkoutny@suse.com>,
-        cgroups@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org,
-        Anatoly Pugachev <matorola@gmail.com>,
-        Vasily Averin <vvs@openvz.org>,
-        Jakub Kicinski <kuba@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        sparclinux@vger.kernel.org
-Subject: Re: [PATCH] Revert "net: set proper memcg for net_init hooks
- allocations"
-Message-ID: <YzJZIa8xXYZozvov@P9FQF9L96D>
-References: <20220926195931.2497968-1-shakeelb@google.com>
+        with ESMTP id S229735AbiI0GV7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Sep 2022 02:21:59 -0400
+Received: from muru.com (muru.com [72.249.23.125])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 2791C81B07;
+        Mon, 26 Sep 2022 23:21:57 -0700 (PDT)
+Received: from localhost (localhost [127.0.0.1])
+        by muru.com (Postfix) with ESMTPS id E879B80E0;
+        Tue, 27 Sep 2022 06:13:36 +0000 (UTC)
+Date:   Tue, 27 Sep 2022 09:21:54 +0300
+From:   Tony Lindgren <tony@atomide.com>
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
+        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
+        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
+        khilman@kernel.org, catalin.marinas@arm.com, will@kernel.org,
+        guoren@kernel.org, bcain@quicinc.com, chenhuacai@kernel.org,
+        kernel@xen0n.name, geert@linux-m68k.org, sammy@sammy.net,
+        monstr@monstr.eu, tsbogend@alpha.franken.de, dinguyen@kernel.org,
+        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
+        shorne@gmail.com, James.Bottomley@hansenpartnership.com,
+        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, paul.walmsley@sifive.com,
+        palmer@dabbelt.com, aou@eecs.berkeley.edu, hca@linux.ibm.com,
+        gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
+        richard@nod.at, anton.ivanov@cambridgegreys.com,
+        johannes@sipsolutions.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, acme@kernel.org, mark.rutland@arm.com,
+        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
+        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
+        amakhalov@vmware.com, pv-drivers@vmware.com,
+        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
+        gregkh@linuxfoundation.org, mturquette@baylibre.com,
+        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org,
+        bjorn.andersson@linaro.org, konrad.dybcio@somainline.org,
+        anup@brainfault.org, thierry.reding@gmail.com,
+        jonathanh@nvidia.com, jacob.jun.pan@linux.intel.com,
+        atishp@atishpatra.org, Arnd Bergmann <arnd@arndb.de>,
+        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
+        linux@rasmusvillemoes.dk, dennis@kernel.org, tj@kernel.org,
+        cl@linux.com, rostedt@goodmis.org, pmladek@suse.com,
+        senozhatsky@chromium.org, john.ogness@linutronix.de,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
+        bristot@redhat.com, vschneid@redhat.com, fweisbec@gmail.com,
+        ryabinin.a.a@gmail.com, glider@google.com, andreyknvl@gmail.com,
+        dvyukov@google.com, vincenzo.frascino@arm.com,
+        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
+        linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: Re: [PATCH v2 37/44] arm,omap2: Use WFI for omap2_pm_idle()
+Message-ID: <YzKWgjNLWSmDss/h@atomide.com>
+References: <20220919095939.761690562@infradead.org>
+ <20220919101522.842219871@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20220926195931.2497968-1-shakeelb@google.com>
-X-Migadu-Flow: FLOW_OUT
-X-Migadu-Auth-User: linux.dev
+In-Reply-To: <20220919101522.842219871@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Sep 26, 2022 at 07:59:31PM +0000, Shakeel Butt wrote:
-> This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
+* Peter Zijlstra <peterz@infradead.org> [220919 10:09]:
+> arch_cpu_idle() is a very simple idle interface and exposes only a
+> single idle state and is expected to not require RCU and not do any
+> tracing/instrumentation.
 > 
-> Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set proper
-> memcg for net_init hooks allocations") is somehow causing the sparc64
-> VMs failed to boot and the VMs boot fine with that patch reverted. So,
-> revert the patch for now and later we can debug the issue.
+> As such, omap2_pm_idle() is not a valid implementation. Replace it
+> with a simple (shallow) omap2_do_wfi() call.
 > 
-> Reported-by: Anatoly Pugachev <matorola@gmail.com>
-> Signed-off-by: Shakeel Butt <shakeelb@google.com>
-> Cc: Vasily Averin <vvs@openvz.org>
-> Cc: Jakub Kicinski <kuba@kernel.org>
-> Cc: Michal Koutný <mkoutny@suse.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Linus Torvalds <torvalds@linux-foundation.org>
-> Cc: cgroups@vger.kernel.org
-> Cc: sparclinux@vger.kernel.org
-> Cc: linux-mm@kvack.org
-> Cc: linux-kernel@vger.kernel.org
+> Omap2 doesn't have a cpuidle driver; but adding one would be the
+> recourse to (re)gain the other idle states.
 
-Acked-by: Roman Gushchin <roman.gushchin@linux.dev>
+Looks good to me thanks:
 
-Thanks, Shakeel!
+Acked-by: Tony Lindgren <tony@atomide.com>
