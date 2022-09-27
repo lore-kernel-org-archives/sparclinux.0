@@ -2,108 +2,85 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 321B0C54EE9
-	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 06:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70A90C6FA93
+	for <sparclinux@archiver.kernel.org>; Tue, 27 Sep 2022 08:14:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230273AbiI0Gbb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 27 Sep 2022 02:31:31 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56016 "EHLO
+        id S231238AbiI0IOV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 27 Sep 2022 04:14:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229834AbiI0GbS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Sep 2022 02:31:18 -0400
-Received: from muru.com (muru.com [72.249.23.125])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 3B430979F9;
-        Mon, 26 Sep 2022 23:31:14 -0700 (PDT)
-Received: from localhost (localhost [127.0.0.1])
-        by muru.com (Postfix) with ESMTPS id 5E7B081BD;
-        Tue, 27 Sep 2022 06:22:54 +0000 (UTC)
-Date:   Tue, 27 Sep 2022 09:31:11 +0300
-From:   Tony Lindgren <tony@atomide.com>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
-        ulli.kroll@googlemail.com, linus.walleij@linaro.org,
-        shawnguo@kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-        kernel@pengutronix.de, festevam@gmail.com, linux-imx@nxp.com,
-        khilman@kernel.org, catalin.marinas@arm.com, will@kernel.org,
-        guoren@kernel.org, bcain@quicinc.com, chenhuacai@kernel.org,
-        kernel@xen0n.name, geert@linux-m68k.org, sammy@sammy.net,
-        monstr@monstr.eu, tsbogend@alpha.franken.de, dinguyen@kernel.org,
-        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
-        shorne@gmail.com, James.Bottomley@hansenpartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu, paul.walmsley@sifive.com,
-        palmer@dabbelt.com, aou@eecs.berkeley.edu, hca@linux.ibm.com,
-        gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        richard@nod.at, anton.ivanov@cambridgegreys.com,
-        johannes@sipsolutions.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, acme@kernel.org, mark.rutland@arm.com,
-        alexander.shishkin@linux.intel.com, jolsa@kernel.org,
-        namhyung@kernel.org, jgross@suse.com, srivatsa@csail.mit.edu,
-        amakhalov@vmware.com, pv-drivers@vmware.com,
-        boris.ostrovsky@oracle.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        rafael@kernel.org, lenb@kernel.org, pavel@ucw.cz,
-        gregkh@linuxfoundation.org, mturquette@baylibre.com,
-        sboyd@kernel.org, daniel.lezcano@linaro.org, lpieralisi@kernel.org,
-        sudeep.holla@arm.com, agross@kernel.org,
-        bjorn.andersson@linaro.org, konrad.dybcio@somainline.org,
-        anup@brainfault.org, thierry.reding@gmail.com,
-        jonathanh@nvidia.com, jacob.jun.pan@linux.intel.com,
-        atishp@atishpatra.org, Arnd Bergmann <arnd@arndb.de>,
-        yury.norov@gmail.com, andriy.shevchenko@linux.intel.com,
-        linux@rasmusvillemoes.dk, dennis@kernel.org, tj@kernel.org,
-        cl@linux.com, rostedt@goodmis.org, pmladek@suse.com,
-        senozhatsky@chromium.org, john.ogness@linutronix.de,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        dietmar.eggemann@arm.com, bsegall@google.com, mgorman@suse.de,
-        bristot@redhat.com, vschneid@redhat.com, fweisbec@gmail.com,
-        ryabinin.a.a@gmail.com, glider@google.com, andreyknvl@gmail.com,
-        dvyukov@google.com, vincenzo.frascino@arm.com,
-        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
-        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, loongarch@lists.linux.dev,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        linux-perf-users@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-arch@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: Re: [PATCH v2 00/44] cpuidle,rcu: Clean up the mess
-Message-ID: <YzKYrx8Kd9SBYcUg@atomide.com>
-References: <20220919095939.761690562@infradead.org>
+        with ESMTP id S231748AbiI0INv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 27 Sep 2022 04:13:51 -0400
+Received: from out0.migadu.com (out0.migadu.com [94.23.1.103])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58B77140A1;
+        Tue, 27 Sep 2022 01:09:38 -0700 (PDT)
+Content-Type: text/plain;
+        charset=utf-8
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=linux.dev; s=key1;
+        t=1664266176;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=YEDpjPu4yNvQDli6jyEAiLWXdmhiP5ZxnG9EUS2lS0s=;
+        b=ZxC38sHMffmDzj9Q93uw6vbI2H5cF8jwndq/t9yynR1mgD41NnyBORczwFXjOa5d2iDkdI
+        j/Lp3OLJblpfCI+pZRPbrGL61A2frbeqa7t7XSxAJ6zzvYWyRC5C8Mqe14qU5GIKYfiWwq
+        Sg/ws9WJgnG0bog7Hf1xniXzTcYbpgk=
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20220919095939.761690562@infradead.org>
+Subject: Re: [PATCH] Revert "net: set proper memcg for net_init hooks
+ allocations"
+X-Report-Abuse: Please report any abuse attempt to abuse@migadu.com and include these headers.
+From:   Muchun Song <muchun.song@linux.dev>
+In-Reply-To: <20220926195931.2497968-1-shakeelb@google.com>
+Date:   Tue, 27 Sep 2022 16:09:29 +0800
+Cc:     Johannes Weiner <hannes@cmpxchg.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Roman Gushchin <roman.gushchin@linux.dev>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        =?utf-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>,
+        cgroups@vger.kernel.org, Linux MM <linux-mm@kvack.org>,
+        linux-kernel@vger.kernel.org,
+        Anatoly Pugachev <matorola@gmail.com>,
+        Vasily Averin <vvs@openvz.org>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        sparclinux@vger.kernel.org
+Content-Transfer-Encoding: quoted-printable
+Message-Id: <2BE849F7-5F5A-4CCB-B386-DC9A64EAC8A9@linux.dev>
+References: <20220926195931.2497968-1-shakeelb@google.com>
+To:     Shakeel Butt <shakeelb@google.com>
+X-Migadu-Flow: FLOW_OUT
+X-Migadu-Auth-User: linux.dev
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi,
 
-* Peter Zijlstra <peterz@infradead.org> [220919 10:08]:
-> Hi All!
-> 
-> At long last, a respin of the cpuidle vs rcu cleanup patches.
-> 
-> v1: https://lkml.kernel.org/r/20220608142723.103523089@infradead.org
-> 
-> These here patches clean up the mess that is cpuidle vs rcuidle.
 
-I just gave these a quick test and things still work for me. The old
-omap3 off mode during idle still works. No more need to play the
-whack the mole game with RCU-idle :) I did not test on x86, or on other
-ARMs, but considering the test pretty much covered the all the
-affected RCU-idle related paths, where suitable, feel free to add:
+> On Sep 27, 2022, at 03:59, Shakeel Butt <shakeelb@google.com> wrote:
+>=20
+> This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
+>=20
+> Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set =
+proper
+> memcg for net_init hooks allocations") is somehow causing the sparc64
+> VMs failed to boot and the VMs boot fine with that patch reverted. So,
+> revert the patch for now and later we can debug the issue.
+>=20
+> Reported-by: Anatoly Pugachev <matorola@gmail.com>
+> Signed-off-by: Shakeel Butt <shakeelb@google.com>
+> Cc: Vasily Averin <vvs@openvz.org>
+> Cc: Jakub Kicinski <kuba@kernel.org>
+> Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Linus Torvalds <torvalds@linux-foundation.org>
+> Cc: cgroups@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
+> Cc: linux-mm@kvack.org
+> Cc: linux-kernel@vger.kernel.org
 
-Tested-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+
+Thanks.
+
