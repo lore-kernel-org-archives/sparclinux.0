@@ -2,91 +2,80 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91A93C04A95
-	for <sparclinux@archiver.kernel.org>; Wed, 28 Sep 2022 07:55:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D404FC54EE9
+	for <sparclinux@archiver.kernel.org>; Wed, 28 Sep 2022 12:36:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233228AbiI1HzQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 28 Sep 2022 03:55:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52710 "EHLO
+        id S233518AbiI1Mg2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 28 Sep 2022 08:36:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51492 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233752AbiI1Hy4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Sep 2022 03:54:56 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A6E2D7D;
-        Wed, 28 Sep 2022 00:54:39 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1odRts-0007n0-5Z; Wed, 28 Sep 2022 09:54:36 +0200
-Message-ID: <a66880d7-fc2e-4fa7-0711-5d93b4304607@leemhuis.info>
-Date:   Wed, 28 Sep 2022 09:54:35 +0200
+        with ESMTP id S234106AbiI1MgJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Sep 2022 08:36:09 -0400
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 850AA356CD;
+        Wed, 28 Sep 2022 05:35:43 -0700 (PDT)
+Received: by mail-wm1-x330.google.com with SMTP id e10-20020a05600c4e4a00b003b4eff4ab2cso1129415wmq.4;
+        Wed, 28 Sep 2022 05:35:43 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date;
+        bh=hDGLmeg/3H5e1OtBsmLFUKZd98FFvCcHEVJ0xsvxMhM=;
+        b=RVu0ef59fpgN3POkCew4+CPhjI2r/eU7f55jOv7S0H68+VbgnWPqOfbGELhS6Vlx8d
+         8ARCwXOOHGaGAG7AeavP0QVbHzCavzTtptch7u7fI/G331yBAk80JqSPt2EWIpBh7YuU
+         PMwjaklaBHAsype1SI4Kt3pl4lt1nZfgpJankk11I8aeCgdkX39StChW3jwSg2MUE0JP
+         fEQl5/6stF4PYpgt1Jfvcmz9+k20Bp92L8NehZN99/GK/eMy70O3UAOoQl9jcpEsQmq2
+         rw991OcohUDoGG2fHdyhHjb51NUMUQoZwLE0Sc4kKOSG8Z2OIH3lycZjHnJXkoEvxWsT
+         E1qw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date;
+        bh=hDGLmeg/3H5e1OtBsmLFUKZd98FFvCcHEVJ0xsvxMhM=;
+        b=KuK6eWHbX1YwQvDST7EkzGun/wqCa/sBWNk2o7SfBxPTaiwofIL/3HRhIWieRhPNcz
+         fGXskpbqbWxd1xuHVkgtUBy/fp2Ytm8AVCaDqa/Qo2aSKo1Cplo40svj+N33Dfq+k8+Y
+         kp0njgyBPFTDiGOL1KQ6WCVl7DbhLqIsetFpNN01Sao4Kt7cHYQWvKy+N4J1jwTn7ykF
+         OvxZ3U556cMBfYWvGJQewnrZ9AmlsAH1viRru94stIXM9lPcxN80FGwyhCPO6dKTSlId
+         m2G74sw0XFL0v266MoeMi0PB+yD5/QhCL3E9e0WtOPVMvOAYs5WlMuxSPCzPZdVmK8Mx
+         xujg==
+X-Gm-Message-State: ACrzQf3c66e1Iv+3+Cry118CpxTDhxmSoN2zVGrGgsKYRNYsPrA5H39G
+        0HZKjgGvTiiu1Dji4eqKWff69GJgIg0DOOd1pYk=
+X-Google-Smtp-Source: AMsMyM4CJY3K9qndmYOtCN/qBSz/mzPUwHP0eq64RNnQhsHSii+iU5TB0IqzJw8H6hh526xY9VRzo5a+lXECJ1UdOck=
+X-Received: by 2002:a7b:c389:0:b0:3b4:a67a:2ef7 with SMTP id
+ s9-20020a7bc389000000b003b4a67a2ef7mr6602270wmj.180.1664368541230; Wed, 28
+ Sep 2022 05:35:41 -0700 (PDT)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.3.0
-Content-Language: en-US, de-DE
-To:     Vlastimil Babka <vbabka@suse.cz>,
-        Anatoly Pugachev <matorola@gmail.com>,
-        Vasily Averin <vvs@openvz.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, kernel@openvz.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        Shakeel Butt <shakeelb@google.com>,
+References: <20220926195931.2497968-1-shakeelb@google.com>
+In-Reply-To: <20220926195931.2497968-1-shakeelb@google.com>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Wed, 28 Sep 2022 15:35:29 +0300
+Message-ID: <CADxRZqys7222fYUj-0--RsR+L4s0TyJr6Wa6EeoaXMBZcNkLeQ@mail.gmail.com>
+Subject: Re: [PATCH] Revert "net: set proper memcg for net_init hooks allocations"
+To:     Shakeel Butt <shakeelb@google.com>
+Cc:     Johannes Weiner <hannes@cmpxchg.org>,
+        Michal Hocko <mhocko@kernel.org>,
         Roman Gushchin <roman.gushchin@linux.dev>,
-        =?UTF-8?Q?Michal_Koutn=c3=bd?= <mkoutny@suse.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Florian Westphal <fw@strlen.de>,
-        "David S. Miller" <davem@davemloft.net>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>,
+        cgroups@vger.kernel.org, linux-mm <linux-mm@kvack.org>,
+        Linux Kernel list <linux-kernel@vger.kernel.org>,
+        Vasily Averin <vvs@openvz.org>,
         Jakub Kicinski <kuba@kernel.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Eric Dumazet <edumazet@google.com>, cgroups@vger.kernel.org,
-        sparclinux@vger.kernel.org, regressions@lists.linux.dev
-References: <6b362c6e-9c80-4344-9430-b831f9871a3c@openvz.org>
- <f9394752-e272-9bf9-645f-a18c56d1c4ec@openvz.org>
- <20220918092849.GA10314@u164.east.ru>
- <eca7d9b3-9831-5d04-1f39-8976765df87a@suse.cz>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-Subject: Re: [sparc64] fails to boot, (was: Re: [PATCH memcg v6] net: set
- proper memcg for net_init hooks allocations)
-In-Reply-To: <eca7d9b3-9831-5d04-1f39-8976765df87a@suse.cz>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1664351679;1649a21f;
-X-HE-SMSGID: 1odRts-0007n0-5Z
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Sparc kernel list <sparclinux@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 27.09.22 11:54, Vlastimil Babka wrote:
-> On 9/18/22 11:28, Anatoly Pugachev wrote:
->> On Fri, Jun 03, 2022 at 07:19:43AM +0300, Vasily Averin wrote:
->>> __register_pernet_operations() executes init hook of registered
->>> pernet_operation structure in all existing net namespaces.
->> [...]
->> I'm unable to boot my sparc64 VM anymore (5.19 still boots, 6.0-rc1 does not),
->> bisected up to this patch,
->>
->> mator@ttip:~/linux-2.6$ git bisect bad
->> 1d0403d20f6c281cb3d14c5f1db5317caeec48e9 is the first bad commit
->> commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9
->> [...]
-> 
-> #regzbot introduced: 1d0403d20f6c
+On Mon, Sep 26, 2022 at 11:00 PM Shakeel Butt <shakeelb@google.com> wrote:
+>
+> This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
+>
+> Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set proper
+> memcg for net_init hooks allocations") is somehow causing the sparc64
+> VMs failed to boot and the VMs boot fine with that patch reverted. So,
+> revert the patch for now and later we can debug the issue.
 
-Thx for getting this regression tracked using regzbot. FWIW, that went
-sideways (as your already noticed and mentioned on IRC), as that made
-regzbot treat *your* mail as the report of the regressions. In cases
-like this you need "#regzbot ^introduced 1d0403d20f6c" (since recently
-"#regzbot introduced 1d0403d20f6c ^" works, too), as then regzbot will
-consider the *parent* mail the report (and then regzbot will look out
-for patches that link to them using a Link: tag).
-
-No worries, I did the same mistake a few time already :-D I send a mail
-with that command now, so let's resolve this subthread by marking it invalid
-
-#regzbot invalid: mis-used regzbot command, now properly tracked
-
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
-
-P.S.: As the Linux kernel's regression tracker I deal with a lot of
-reports and sometimes miss something important when writing mails like
-this. If that's the case here, don't hesitate to tell me in a public
-reply, it's in everyone's interest to set the public record straight.
-
+Tested-by: Anatoly Pugachev <matorola@gmail.com>
