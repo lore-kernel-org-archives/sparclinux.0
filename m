@@ -2,88 +2,168 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77447C04A95
-	for <sparclinux@archiver.kernel.org>; Wed, 28 Sep 2022 16:23:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9591C4332F
+	for <sparclinux@archiver.kernel.org>; Thu, 29 Sep 2022 10:16:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234385AbiI1QXQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 28 Sep 2022 12:23:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52476 "EHLO
+        id S235567AbiI2KQo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Sep 2022 06:16:44 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234612AbiI1QWs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 28 Sep 2022 12:22:48 -0400
-Received: from mail-ot1-x32f.google.com (mail-ot1-x32f.google.com [IPv6:2607:f8b0:4864:20::32f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6C4E8E1700
-        for <sparclinux@vger.kernel.org>; Wed, 28 Sep 2022 09:22:46 -0700 (PDT)
-Received: by mail-ot1-x32f.google.com with SMTP id w22-20020a056830061600b006546deda3f9so8508432oti.4
-        for <sparclinux@vger.kernel.org>; Wed, 28 Sep 2022 09:22:45 -0700 (PDT)
+        with ESMTP id S235422AbiI2KQL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Sep 2022 06:16:11 -0400
+Received: from mail-wr1-x435.google.com (mail-wr1-x435.google.com [IPv6:2a00:1450:4864:20::435])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8861214C05D;
+        Thu, 29 Sep 2022 03:15:35 -0700 (PDT)
+Received: by mail-wr1-x435.google.com with SMTP id n10so1382324wrw.12;
+        Thu, 29 Sep 2022 03:15:35 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date;
-        bh=RNYkwlzjSBs38E+/5XUZn4xEpIcCbwJSOmIImzP0KC4=;
-        b=dog9Z6dDOTNjNFT3nVOx9AVPuy15Elp3ZH1zdCjCde6M2ULSae/opQ9DTfOXDMmbAa
-         P+6LBTDdLGVRv5jOg/iz4bxV7IlENeLPwn7ylPWsm51mAwmjnoIsREm8CaqozryOClR0
-         KNJ4Xcyi+JNTc4nXU8Coc6tODlMLmMSrhyKFU=
+        d=gmail.com; s=20210112;
+        h=message-id:date:subject:cc:to:from:from:to:cc:subject:date;
+        bh=hiTLUzBH9NabdIdrMblSr5toDJeyRZBWqlANn91ZmPc=;
+        b=SnrozexK3kkeucQ5JB/KUpuMl6PzSie6B7cANwbz9RiYm1YAISMghljDoah6VMZv6S
+         eYtxCG/1GTSGdttZkyQu4CEZJVqOMLjE8jt+AxudSdmSUl+FNI5wfI3C4PUVTvGTK7hq
+         4Vpgza3Beauw9yc5F73gkxQT73Y8yjVDW5RzVmXuKehCJqqiB3ltBGHzw+KEyX7QzSzD
+         WTgUk9moQt0G/SEPeSi0eqF3Rs9nzw6FRmqXiuy604FCAe2lMIfvsuEF7HEpIG9x7L30
+         mcsucjr0VMnE+OMyDIJl+p7H60yaJ3Ne8HSLCxbAMucAHc9D9p+YP28p4KFGrOqz0YE6
+         Zcew==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date;
-        bh=RNYkwlzjSBs38E+/5XUZn4xEpIcCbwJSOmIImzP0KC4=;
-        b=jpi8n8p0OqATApU2TvBqC1OxR2Ep0Da2SrtyWgLvtq8WJPOikPXqKJgX4/4uS9WrVM
-         TV9xz3m9FrJc0vfOPzC8OmDW8KPyx9uhKam0a52Jz5kQvXVrXdqcnqtOZa6+YcoSOGKi
-         inRZCGMLlNDVi2vDBBBBy0el4Zt3HtDaXgkJv3L0qPuVbJXokuZcRVH3A+bWiwx5ZWUy
-         GElWXefCzLhtJvXRULqC6NgwWLfVJwjqZuhv+P82X57cOLR8X6Ei1mmnxnxweANwoloJ
-         4oDtNtq5WNe2aP1HgXADvvBcges7gF/HdarrTnEjvpZr1YP0GTpgH1gJ4b5euMygM2KA
-         ymCA==
-X-Gm-Message-State: ACrzQf2B+eMomBSowNMIxei3/sOuaxzlzGJ7jK8lhMg+MBn5MNTf8dJr
-        Xt4vz3dvPyyQJ8Zh9FQS8u/NRkiwa+qHtA==
-X-Google-Smtp-Source: AMsMyM4SXqGlsyIw/bJzMc5/1v9CmPLa228lmCtxBslB61dZIpZwrtRa0+0uSvw+jX1cJTZjuYfLxA==
-X-Received: by 2002:a9d:5f9b:0:b0:654:e87a:2aec with SMTP id g27-20020a9d5f9b000000b00654e87a2aecmr14460884oti.354.1664382164172;
-        Wed, 28 Sep 2022 09:22:44 -0700 (PDT)
-Received: from mail-oa1-f45.google.com (mail-oa1-f45.google.com. [209.85.160.45])
-        by smtp.gmail.com with ESMTPSA id z25-20020a9d7a59000000b0065af1b094dasm2348453otm.28.2022.09.28.09.22.42
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 28 Sep 2022 09:22:43 -0700 (PDT)
-Received: by mail-oa1-f45.google.com with SMTP id 586e51a60fabf-131a7bce1acso2510161fac.7
-        for <sparclinux@vger.kernel.org>; Wed, 28 Sep 2022 09:22:42 -0700 (PDT)
-X-Received: by 2002:a05:6870:c0c9:b0:127:c4df:5b50 with SMTP id
- e9-20020a056870c0c900b00127c4df5b50mr5762894oad.126.1664382162560; Wed, 28
- Sep 2022 09:22:42 -0700 (PDT)
-MIME-Version: 1.0
-References: <20220926195931.2497968-1-shakeelb@google.com>
-In-Reply-To: <20220926195931.2497968-1-shakeelb@google.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 28 Sep 2022 09:22:26 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wj2DnK9RAJXJnrSa7WQdKhTXiHNoawCUcxGjk8TdCtJcw@mail.gmail.com>
-Message-ID: <CAHk-=wj2DnK9RAJXJnrSa7WQdKhTXiHNoawCUcxGjk8TdCtJcw@mail.gmail.com>
-Subject: Re: [PATCH] Revert "net: set proper memcg for net_init hooks allocations"
-To:     Shakeel Butt <shakeelb@google.com>
-Cc:     Johannes Weiner <hannes@cmpxchg.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Roman Gushchin <roman.gushchin@linux.dev>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        =?UTF-8?Q?Michal_Koutn=C3=BD?= <mkoutny@suse.com>,
-        cgroups@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org,
-        Anatoly Pugachev <matorola@gmail.com>,
-        Vasily Averin <vvs@openvz.org>,
-        Jakub Kicinski <kuba@kernel.org>, sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        h=message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=hiTLUzBH9NabdIdrMblSr5toDJeyRZBWqlANn91ZmPc=;
+        b=6Vkp8OGXdNrbF2NgJ5ONvrwgL3jwUIKZnMVS29dEb6dhSjR7GEMu6hLrj/CkZdSd+C
+         FUpH/kyPnpDWLxarNsb0KiWH2w6eCSvMcokD4K2ZlmK9BkmVv0U0broZyNmkUs0Ds0d9
+         e/sZw31hvuqod5NIB/MbJ9EE8YMlnYoUXaTUZQJtkFwMIA6ltr1Uh+X3AlZC5GIYJhYm
+         4O9+lDSyOfg2coOt5xJIUlw60hecEEbOysgurz4wT0f3a7F2Uf3wXpuLVWJxQpjo5fGg
+         5rozJwFfjl4kgdksoRQVwyWlXJbwKsSxhmGTXd1qGgMW51eESLzxuTgDK/xa0PJyC8Tj
+         kbOw==
+X-Gm-Message-State: ACrzQf3pXuxXk3z2OoUojE8/ysGCFakiqmvKd4zH+rmx3tG0NqVY7Izu
+        rNDw+NmLXDvsaj7TsxhPV2kE8U6Ue9S0wg==
+X-Google-Smtp-Source: AMsMyM49u8aANveee+wEbCasP72TSl0qluzgM/54D0Q5GBM7dM6EnH+mysJdsWHkK95FNhSF65/Gkw==
+X-Received: by 2002:a5d:6982:0:b0:22c:bde2:d6f2 with SMTP id g2-20020a5d6982000000b0022cbde2d6f2mr1638647wru.714.1664446514850;
+        Thu, 29 Sep 2022 03:15:14 -0700 (PDT)
+Received: from felia.fritz.box (200116b826e11200b190ebfd45660ea6.dip.versatel-1u1.de. [2001:16b8:26e1:1200:b190:ebfd:4566:ea6])
+        by smtp.gmail.com with ESMTPSA id g2-20020adff402000000b0022860e8ae7csm6425224wro.77.2022.09.29.03.15.14
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Sep 2022 03:15:14 -0700 (PDT)
+From:   Lukas Bulwahn <lukas.bulwahn@gmail.com>
+To:     kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
+Cc:     Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: [PATCH] sparc: update config files
+Date:   Thu, 29 Sep 2022 12:15:11 +0200
+Message-Id: <20220929101511.32749-1-lukas.bulwahn@gmail.com>
+X-Mailer: git-send-email 2.17.1
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Sep 26, 2022 at 1:00 PM Shakeel Butt <shakeelb@google.com> wrote:
->
-> This reverts commit 1d0403d20f6c281cb3d14c5f1db5317caeec48e9.
->
-> Anatoly Pugachev reported that the commit 1d0403d20f6c ("net: set proper
-> memcg for net_init hooks allocations") is somehow causing the sparc64
-> VMs failed to boot and the VMs boot fine with that patch reverted. So,
-> revert the patch for now and later we can debug the issue.
+Clean up config files by:
+  - removing configs that were deleted in the past
+  - removing configs not in tree and without recently pending patches
+  - adding new configs that are replacements for old configs in the file
 
-Just FYI for the involved people - I've noq applied this directly to my tree.
+For some detailed information, see Link.
 
-                 Linus
+Link: https://lore.kernel.org/kernel-janitors/20220929090645.1389-1-lukas.bulwahn@gmail.com/
+
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+---
+ arch/sparc/configs/sparc32_defconfig | 3 ---
+ arch/sparc/configs/sparc64_defconfig | 8 --------
+ 2 files changed, 11 deletions(-)
+
+diff --git a/arch/sparc/configs/sparc32_defconfig b/arch/sparc/configs/sparc32_defconfig
+index 7b3efe5edc1a..b283f4c51a21 100644
+--- a/arch/sparc/configs/sparc32_defconfig
++++ b/arch/sparc/configs/sparc32_defconfig
+@@ -28,7 +28,6 @@ CONFIG_INET6_IPCOMP=m
+ CONFIG_IPV6_TUNNEL=m
+ CONFIG_NET_PKTGEN=m
+ CONFIG_BLK_DEV_LOOP=m
+-CONFIG_BLK_DEV_CRYPTOLOOP=m
+ CONFIG_BLK_DEV_RAM=y
+ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+@@ -38,7 +37,6 @@ CONFIG_SCSI_QLOGICPTI=m
+ CONFIG_SCSI_SUNESP=y
+ CONFIG_NETDEVICES=y
+ CONFIG_DUMMY=m
+-CONFIG_NET_ETHERNET=y
+ CONFIG_MII=m
+ CONFIG_SUNLANCE=y
+ CONFIG_HAPPYMEAL=m
+@@ -60,7 +58,6 @@ CONFIG_SERIAL_SUNSU=y
+ CONFIG_SERIAL_SUNSU_CONSOLE=y
+ CONFIG_SPI=y
+ CONFIG_SPI_XILINX=m
+-CONFIG_SPI_XILINX_PLTFM=m
+ CONFIG_SUN_OPENPROMIO=m
+ CONFIG_EXT2_FS=y
+ CONFIG_EXT2_FS_XATTR=y
+diff --git a/arch/sparc/configs/sparc64_defconfig b/arch/sparc/configs/sparc64_defconfig
+index 18099099583e..64f983569a43 100644
+--- a/arch/sparc/configs/sparc64_defconfig
++++ b/arch/sparc/configs/sparc64_defconfig
+@@ -41,7 +41,6 @@ CONFIG_NET_IPGRE_BROADCAST=y
+ CONFIG_IP_MROUTE=y
+ CONFIG_IP_PIMSM_V1=y
+ CONFIG_IP_PIMSM_V2=y
+-CONFIG_ARPD=y
+ CONFIG_SYN_COOKIES=y
+ CONFIG_INET_AH=y
+ CONFIG_INET_ESP=y
+@@ -55,11 +54,9 @@ CONFIG_INET6_IPCOMP=m
+ CONFIG_IPV6_TUNNEL=m
+ CONFIG_VLAN_8021Q=m
+ CONFIG_NET_PKTGEN=m
+-CONFIG_NET_TCPPROBE=m
+ # CONFIG_PREVENT_FIRMWARE_BUILD is not set
+ CONFIG_CONNECTOR=m
+ CONFIG_BLK_DEV_LOOP=m
+-CONFIG_BLK_DEV_CRYPTOLOOP=m
+ CONFIG_BLK_DEV_NBD=m
+ CONFIG_CDROM_PKTCDVD=m
+ CONFIG_CDROM_PKTCDVD_WCACHE=y
+@@ -72,7 +69,6 @@ CONFIG_SCSI=y
+ CONFIG_BLK_DEV_SD=y
+ CONFIG_BLK_DEV_SR=m
+ CONFIG_CHR_DEV_SG=m
+-CONFIG_SCSI_MULTI_LUN=y
+ CONFIG_SCSI_CONSTANTS=y
+ CONFIG_SCSI_SPI_ATTRS=y
+ CONFIG_SCSI_FC_ATTRS=y
+@@ -90,14 +86,12 @@ CONFIG_DM_SNAPSHOT=m
+ CONFIG_DM_MIRROR=m
+ CONFIG_DM_ZERO=m
+ CONFIG_NETDEVICES=y
+-CONFIG_NET_ETHERNET=y
+ CONFIG_MII=m
+ CONFIG_SUNLANCE=m
+ CONFIG_HAPPYMEAL=y
+ CONFIG_SUNGEM=m
+ CONFIG_SUNVNET=m
+ CONFIG_LDMVSW=m
+-CONFIG_NET_PCI=y
+ CONFIG_E1000=m
+ CONFIG_E1000E=m
+ CONFIG_TIGON3=m
+@@ -189,7 +183,6 @@ CONFIG_EXT2_FS_XATTR=y
+ CONFIG_EXT2_FS_POSIX_ACL=y
+ CONFIG_EXT2_FS_SECURITY=y
+ CONFIG_EXT3_FS=y
+-# CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+ CONFIG_EXT3_FS_POSIX_ACL=y
+ CONFIG_EXT3_FS_SECURITY=y
+ CONFIG_PROC_KCORE=y
+@@ -215,7 +208,6 @@ CONFIG_CRYPTO_MD4=y
+ CONFIG_CRYPTO_MICHAEL_MIC=m
+ CONFIG_CRYPTO_SHA256=m
+ CONFIG_CRYPTO_SHA512=m
+-CONFIG_CRYPTO_TGR192=m
+ CONFIG_CRYPTO_WP512=m
+ CONFIG_CRYPTO_AES=m
+ CONFIG_CRYPTO_ANUBIS=m
+-- 
+2.17.1
+
