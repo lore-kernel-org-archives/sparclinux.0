@@ -2,104 +2,89 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D54AC433F5
-	for <sparclinux@archiver.kernel.org>; Thu, 29 Sep 2022 17:32:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C33C433FE
+	for <sparclinux@archiver.kernel.org>; Fri, 30 Sep 2022 02:21:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235916AbiI2Rcq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Sep 2022 13:32:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33226 "EHLO
+        id S229902AbiI3CVY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 29 Sep 2022 22:21:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49442 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235817AbiI2Rcp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Sep 2022 13:32:45 -0400
-Received: from mail-pj1-f51.google.com (mail-pj1-f51.google.com [209.85.216.51])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29F2B1F1E8D
-        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 10:32:45 -0700 (PDT)
-Received: by mail-pj1-f51.google.com with SMTP id 8-20020a17090a0b8800b00205d8564b11so1980263pjr.5
-        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 10:32:45 -0700 (PDT)
+        with ESMTP id S229735AbiI3CVN (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Sep 2022 22:21:13 -0400
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07E33EBD7F
+        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
+Received: by mail-pl1-x636.google.com with SMTP id w10so2765487pll.11
+        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
+        bh=FXFqlQxnzn1RAyuY90QGDEaTvBKFU5j4Xh7//yYY9xU=;
+        b=I69w6qHuv2FrBDUxW3wRGIzd1evwxaO5pfHf+ya81O6Ht13tLf0MWMAhfhrqNnz/9l
+         PQS96gXei6wrpSys8pYz5zQFLPTvYhzmUV1PCuTk7iTN0/TB5k/j9ZthTYwo71LPBGpM
+         EhJBe5r3IfE2B8+xIrnROCwkE1tTu5nzoS5Eg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:cc:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date;
-        bh=WsPD8OiBsvjkVKcAs/WPDOcqgeN0W8DkJr3UcGrsUFA=;
-        b=RV+HocxLFsLRry1I+aRLdKeC7EldCrfp2VQCMLg1VWjH9U97azRhEDVoxxf2UEWEFF
-         OXyrMp/C5QPIzMJCf0eft4urK5HS9QJuYcjFeTAl+wnETsNAMHN6bE5BfcJ4zFe7Sihc
-         XL+zdeBN9Bglgl6WJ2bWhBqufLqg880HFPoaOOMigjBgrAmaySyGNS9Cr+ooAU3S/de+
-         SXCp3HPWyBy05Vde5tTf9emCFfN2fPC9pYXCbUuG2hI1VXDF/xR39dLlv+5pZwvK3aHi
-         68zTNXCGzZ6FYhTxijAOfuPUMHCIkHZ9b4F7x110XQKq3gpdh44p+cLq0ZPVZ6tF1Adf
-         Irdg==
-X-Gm-Message-State: ACrzQf0HfsvCsc6td8Z5f278O4Y9jL7ExB6rZOSwyrJ8MzqrF+/qazII
-        KGnooGRjup/zGyRYSmn71dw=
-X-Google-Smtp-Source: AMsMyM4Ac/nZJNFUyCcw9/xd0GtCiPpSKp0b3QTq7vi0QJMYCjKX21QHqw3J/xzOMTH21QXkv5ts7w==
-X-Received: by 2002:a17:90b:3e8c:b0:202:c7b1:b20b with SMTP id rj12-20020a17090b3e8c00b00202c7b1b20bmr4784725pjb.54.1664472764516;
-        Thu, 29 Sep 2022 10:32:44 -0700 (PDT)
-Received: from ?IPV6:2620:15c:211:201:2e63:ed10:2841:950e? ([2620:15c:211:201:2e63:ed10:2841:950e])
-        by smtp.gmail.com with ESMTPSA id m10-20020a17090a668a00b00203ab277966sm3790630pjj.7.2022.09.29.10.32.43
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Thu, 29 Sep 2022 10:32:43 -0700 (PDT)
-Message-ID: <1e7f849c-a951-d1bf-7ee8-b4c9088b5141@acm.org>
-Date:   Thu, 29 Sep 2022 10:32:41 -0700
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.13.0
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date;
+        bh=FXFqlQxnzn1RAyuY90QGDEaTvBKFU5j4Xh7//yYY9xU=;
+        b=5CPfxjfqJoCXOtE+aBcNdwhEv5R9Yf6EtCN6Yi8Uee2R+0ZDNMKqiy+rzxkismBEfR
+         qKqy0baDyDVfuOJRYiiS41VZ+ia7/IC4l5j1LUJm2iotLl4iCZtgz6hzRICA68pGrpD/
+         KgjMyMSCHz6E5uFPWVxSPM32KnWofyHgLqAqIyW63vpeMAvOMMMroor8lU+kCuJru8iq
+         R6KI1q4mHJVJ+kv3Z5vb9Yv6N8gJHTUjVsEgkSr0hL99CQ+99aV7YHlJ+TEtGBN4+psB
+         hTtrsZ1E6oRRmXvl+LZhTcnINjJEaXP1QZhlqe9grrh0pBzj4ONy1iLpEceKL238Ctpv
+         hVVw==
+X-Gm-Message-State: ACrzQf28PM7zhMQ+52neKE3TIawazPL+hvURuanHJL8r011Bvg3MvSrH
+        gJKu/dGn3OniifXRiEPyq9/Hmg==
+X-Google-Smtp-Source: AMsMyM4gpmuyrSC++Qd5ou8hrSjlKA6Kn0/7pH58+uU5n3ZfXLqUfb5qB3f17ZCIPasUNavUqToZuQ==
+X-Received: by 2002:a17:90b:19ce:b0:203:182d:2c77 with SMTP id nm14-20020a17090b19ce00b00203182d2c77mr19789003pjb.45.1664504469294;
+        Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
+Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
+        by smtp.gmail.com with ESMTPSA id m5-20020a62a205000000b0054087e1aea4sm424396pff.15.2022.09.29.19.21.07
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 29 Sep 2022 19:21:08 -0700 (PDT)
+From:   Kees Cook <keescook@chromium.org>
+To:     davem@davemloft.net, bvanassche@acm.org
+Cc:     Kees Cook <keescook@chromium.org>, sparclinux@vger.kernel.org,
+        gustavoars@kernel.org
 Subject: Re: [PATCH] sparc: Unbreak the build
-Content-Language: en-US
-To:     "David S . Miller" <davem@davemloft.net>
-Cc:     Andreas Larsson <andreas@gaisler.com>, sparclinux@vger.kernel.org,
-        "Gustavo A. R. Silva" <gustavoars@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Thu, 29 Sep 2022 19:20:21 -0700
+Message-Id: <166450440458.2153982.8042224641635890359.b4-ty@chromium.org>
+X-Mailer: git-send-email 2.34.1
+In-Reply-To: <20220830205854.1918026-1-bvanassche@acm.org>
 References: <20220830205854.1918026-1-bvanassche@acm.org>
- <22d99fab-bfa2-5001-8ef1-a4900056f0c4@gaisler.com>
-From:   Bart Van Assche <bvanassche@acm.org>
-In-Reply-To: <22d99fab-bfa2-5001-8ef1-a4900056f0c4@gaisler.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 9/9/22 08:28, Andreas Larsson wrote:
-> On 2022-08-30 22:58, Bart Van Assche wrote:
->> Fix the following build errors:
->>
->> arch/sparc/mm/srmmu.c: In function ‘smp_flush_page_for_dma’:
->> arch/sparc/mm/srmmu.c:1639:13: error: cast between incompatible function types from ‘void (*)(long unsigned int)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
->>   1639 |         xc1((smpfunc_t) local_ops->page_for_dma, page);
->>        |             ^
->> arch/sparc/mm/srmmu.c: In function ‘smp_flush_cache_mm’:
->> arch/sparc/mm/srmmu.c:1662:29: error: cast between incompatible function types from ‘void (*)(struct mm_struct *)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
->>   1662 |                         xc1((smpfunc_t) local_ops->cache_mm, (unsigned long) mm);
->>        |
->> [ ... ]
->>
->> Compile-tested only.
->>
->> Fixes: 552a23a0e5d0 ("Makefile: Enable -Wcast-function-type")
->> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+On Tue, 30 Aug 2022 13:58:42 -0700, Bart Van Assche wrote:
+> Fix the following build errors:
 > 
-> Tested-by: Andreas Larsson <andreas@gaisler.com>
+> arch/sparc/mm/srmmu.c: In function ‘smp_flush_page_for_dma’:
+> arch/sparc/mm/srmmu.c:1639:13: error: cast between incompatible function types from ‘void (*)(long unsigned int)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
+>  1639 |         xc1((smpfunc_t) local_ops->page_for_dma, page);
+>       |             ^
+> arch/sparc/mm/srmmu.c: In function ‘smp_flush_cache_mm’:
+> arch/sparc/mm/srmmu.c:1662:29: error: cast between incompatible function types from ‘void (*)(struct mm_struct *)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
+>  1662 |                         xc1((smpfunc_t) local_ops->cache_mm, (unsigned long) mm);
+>       |
+> [ ... ]
+> 
+> [...]
 
-Hi Dave,
+I can take this, since it's related to the the hardening work. Dave,
+let me know if you'd rather I drop it.
 
-Did I send this patch to the right maintainer? I sent this patch to you
-because I found the following in the MAINTAINERS file:
+Applied to for-next/hardening, thanks!
 
-SPARC + UltraSPARC (sparc/sparc64)
-M:      "David S. Miller" <davem@davemloft.net>
-L:      sparclinux@vger.kernel.org
-S:      Maintained
-Q:      http://patchwork.ozlabs.org/project/sparclinux/list/
-T:      git git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc.git
-T:      git git://git.kernel.org/pub/scm/linux/kernel/git/davem/sparc-next.git
-F:      arch/sparc/
-F:      drivers/sbus/
+[1/1] sparc: Unbreak the build
+      https://git.kernel.org/kees/c/3052b17c604c
 
-In case this patch wouldn't be in your inbox anymore, it is available here:
-https://lore.kernel.org/all/20220830205854.1918026-1-bvanassche@acm.org/
-
-Thanks,
-
-Bart.
-
+-- 
+Kees Cook
 
