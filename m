@@ -2,89 +2,84 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C33C433FE
-	for <sparclinux@archiver.kernel.org>; Fri, 30 Sep 2022 02:21:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 033DDC4332F
+	for <sparclinux@archiver.kernel.org>; Mon,  3 Oct 2022 20:25:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229902AbiI3CVY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 29 Sep 2022 22:21:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49442 "EHLO
+        id S229932AbiJCUZA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 3 Oct 2022 16:25:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229735AbiI3CVN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 29 Sep 2022 22:21:13 -0400
-Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07E33EBD7F
-        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
-Received: by mail-pl1-x636.google.com with SMTP id w10so2765487pll.11
-        for <sparclinux@vger.kernel.org>; Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date;
-        bh=FXFqlQxnzn1RAyuY90QGDEaTvBKFU5j4Xh7//yYY9xU=;
-        b=I69w6qHuv2FrBDUxW3wRGIzd1evwxaO5pfHf+ya81O6Ht13tLf0MWMAhfhrqNnz/9l
-         PQS96gXei6wrpSys8pYz5zQFLPTvYhzmUV1PCuTk7iTN0/TB5k/j9ZthTYwo71LPBGpM
-         EhJBe5r3IfE2B8+xIrnROCwkE1tTu5nzoS5Eg=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date;
-        bh=FXFqlQxnzn1RAyuY90QGDEaTvBKFU5j4Xh7//yYY9xU=;
-        b=5CPfxjfqJoCXOtE+aBcNdwhEv5R9Yf6EtCN6Yi8Uee2R+0ZDNMKqiy+rzxkismBEfR
-         qKqy0baDyDVfuOJRYiiS41VZ+ia7/IC4l5j1LUJm2iotLl4iCZtgz6hzRICA68pGrpD/
-         KgjMyMSCHz6E5uFPWVxSPM32KnWofyHgLqAqIyW63vpeMAvOMMMroor8lU+kCuJru8iq
-         R6KI1q4mHJVJ+kv3Z5vb9Yv6N8gJHTUjVsEgkSr0hL99CQ+99aV7YHlJ+TEtGBN4+psB
-         hTtrsZ1E6oRRmXvl+LZhTcnINjJEaXP1QZhlqe9grrh0pBzj4ONy1iLpEceKL238Ctpv
-         hVVw==
-X-Gm-Message-State: ACrzQf28PM7zhMQ+52neKE3TIawazPL+hvURuanHJL8r011Bvg3MvSrH
-        gJKu/dGn3OniifXRiEPyq9/Hmg==
-X-Google-Smtp-Source: AMsMyM4gpmuyrSC++Qd5ou8hrSjlKA6Kn0/7pH58+uU5n3ZfXLqUfb5qB3f17ZCIPasUNavUqToZuQ==
-X-Received: by 2002:a17:90b:19ce:b0:203:182d:2c77 with SMTP id nm14-20020a17090b19ce00b00203182d2c77mr19789003pjb.45.1664504469294;
-        Thu, 29 Sep 2022 19:21:09 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id m5-20020a62a205000000b0054087e1aea4sm424396pff.15.2022.09.29.19.21.07
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 29 Sep 2022 19:21:08 -0700 (PDT)
-From:   Kees Cook <keescook@chromium.org>
-To:     davem@davemloft.net, bvanassche@acm.org
-Cc:     Kees Cook <keescook@chromium.org>, sparclinux@vger.kernel.org,
-        gustavoars@kernel.org
-Subject: Re: [PATCH] sparc: Unbreak the build
-Date:   Thu, 29 Sep 2022 19:20:21 -0700
-Message-Id: <166450440458.2153982.8042224641635890359.b4-ty@chromium.org>
-X-Mailer: git-send-email 2.34.1
-In-Reply-To: <20220830205854.1918026-1-bvanassche@acm.org>
-References: <20220830205854.1918026-1-bvanassche@acm.org>
+        with ESMTP id S229797AbiJCUYv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Oct 2022 16:24:51 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D61013E83;
+        Mon,  3 Oct 2022 13:24:48 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:MIME-Version:
+        Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:Content-ID:
+        Content-Description:In-Reply-To:References;
+        bh=bDSynPiFi5yIXtWzlGRNU3puEPnwibr1DugVH+Eq8aw=; b=sYlPOgMRndk9V8H7vLA7iMoCGF
+        UbxScZ0BqCdJS0wnQ+HEDHcyelJRDy32Em+P5F+3wXgdzzNBijpXrAdzNjir8E1rHGeK+R5TAcGgv
+        Nhn2hvimQhWFaRbeWDsINteOHFlwLgvILAbR6+sZ5A174tRpFK7J4loAElUa8+uZC+Z4KOqaNIUFC
+        YupM+jNtsEdzGAEDWKr60jVtWu/PljVHjPMtmIapHXv/MzZWbYz9ge7cUOpTqsQX7h0yD1ZcLg2mT
+        SNEA3kc3EUVK6Wtxgwt4pDTSZTu/I9xRdjebuobJPFqLFlyW8gcdDRrb5O+h9Gs5hWnhRc3xXlSVA
+        9o6pUO4A==;
+Received: from [2601:1c2:d80:3110::a2e7] (helo=casper.infradead.org)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1ofRzd-00GdW9-4i; Mon, 03 Oct 2022 20:24:49 +0000
+From:   Randy Dunlap <rdunlap@infradead.org>
+To:     linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>,
+        Igor Zhbanov <izh1979@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        stable@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v4] sparc64: NMI watchdog: fix return value of __setup handler
+Date:   Mon,  3 Oct 2022 13:24:41 -0700
+Message-Id: <20221003202441.11773-1-rdunlap@infradead.org>
+X-Mailer: git-send-email 2.37.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 30 Aug 2022 13:58:42 -0700, Bart Van Assche wrote:
-> Fix the following build errors:
-> 
-> arch/sparc/mm/srmmu.c: In function ‘smp_flush_page_for_dma’:
-> arch/sparc/mm/srmmu.c:1639:13: error: cast between incompatible function types from ‘void (*)(long unsigned int)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
->  1639 |         xc1((smpfunc_t) local_ops->page_for_dma, page);
->       |             ^
-> arch/sparc/mm/srmmu.c: In function ‘smp_flush_cache_mm’:
-> arch/sparc/mm/srmmu.c:1662:29: error: cast between incompatible function types from ‘void (*)(struct mm_struct *)’ to ‘void (*)(long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int,  long unsigned int)’ [-Werror=cast-function-type]
->  1662 |                         xc1((smpfunc_t) local_ops->cache_mm, (unsigned long) mm);
->       |
-> [ ... ]
-> 
-> [...]
+__setup() handlers should return 1 to obsolete_checksetup() in
+init/main.c to indicate that the boot option has been handled.
+A return of 0 causes the boot option/value to be listed as an Unknown
+kernel parameter and added to init's (limited) argument or environment
+strings. Also, error return codes don't mean anything to
+obsolete_checksetup() -- only non-zero (usually 1) or zero.
+So return 1 from setup_nmi_watchdog().
 
-I can take this, since it's related to the the hardening work. Dave,
-let me know if you'd rather I drop it.
+Fixes: e5553a6d0442 ("sparc64: Implement NMI watchdog on capable cpus.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Reported-by: Igor Zhbanov <izh1979@gmail.com>
+Link: lore.kernel.org/r/64644a2f-4a20-bab3-1e15-3b2cdd0defe3@omprussia.ru
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: sparclinux@vger.kernel.org
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: stable@vger.kernel.org
+Cc: Arnd Bergmann <arnd@arndb.de>
+---
+v2: change From" Igor to Reported-by:
+    add more Cc's
+v3: use Igor's current email address
+v4: add Arnd to Cc: list
 
-Applied to for-next/hardening, thanks!
+ arch/sparc/kernel/nmi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-[1/1] sparc: Unbreak the build
-      https://git.kernel.org/kees/c/3052b17c604c
-
--- 
-Kees Cook
-
+--- a/arch/sparc/kernel/nmi.c
++++ b/arch/sparc/kernel/nmi.c
+@@ -274,7 +274,7 @@ static int __init setup_nmi_watchdog(cha
+ 	if (!strncmp(str, "panic", 5))
+ 		panic_on_timeout = 1;
+ 
+-	return 0;
++	return 1;
+ }
+ __setup("nmi_watchdog=", setup_nmi_watchdog);
+ 
