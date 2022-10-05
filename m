@@ -2,46 +2,50 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A3E7C433FE
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Oct 2022 20:38:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FD09C433FE
+	for <sparclinux@archiver.kernel.org>; Wed,  5 Oct 2022 14:18:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229436AbiJDUia (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Oct 2022 16:38:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54286 "EHLO
+        id S229631AbiJEOSC (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 5 Oct 2022 10:18:02 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229482AbiJDUi3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Oct 2022 16:38:29 -0400
-X-Greylist: delayed 401 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Tue, 04 Oct 2022 13:38:25 PDT
+        with ESMTP id S229484AbiJEOSB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 5 Oct 2022 10:18:01 -0400
 Received: from mail.sf-mail.de (mail.sf-mail.de [IPv6:2a01:4f8:1c17:6fae:616d:6c69:616d:6c69])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5CD2225C73
-        for <sparclinux@vger.kernel.org>; Tue,  4 Oct 2022 13:38:25 -0700 (PDT)
-Received: (qmail 12975 invoked from network); 4 Oct 2022 20:31:44 -0000
-Received: from p200300cf0734f300d8b1e5991a827345.dip0.t-ipconnect.de ([2003:cf:734:f300:d8b1:e599:1a82:7345]:35454 HELO daneel.sf-tec.de) (auth=eike@sf-mail.de)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF7D91AD9E
+        for <sparclinux@vger.kernel.org>; Wed,  5 Oct 2022 07:17:59 -0700 (PDT)
+Received: (qmail 17739 invoked from network); 5 Oct 2022 14:17:57 -0000
+Received: from p200300cf070f090076d435fffeb7be92.dip0.t-ipconnect.de ([2003:cf:70f:900:76d4:35ff:feb7:be92]:41786 HELO eto.sf-tec.de) (auth=eike@sf-mail.de)
         by mail.sf-mail.de (Qsmtpd 0.38dev) with (TLS_AES_256_GCM_SHA384 encrypted) ESMTPSA
-        for <sparclinux@vger.kernel.org>; Tue, 04 Oct 2022 22:31:44 +0200
+        for <sparclinux@vger.kernel.org>; Wed, 05 Oct 2022 16:17:57 +0200
 From:   Rolf Eike Beer <eike-kernel@sf-tec.de>
 To:     sparclinux@vger.kernel.org
+Cc:     linux-crypto@vger.kernel.org
 Subject: Issues with hw crypto and random support on Niagara2
-Date:   Tue, 04 Oct 2022 22:31:41 +0200
-Message-ID: <8766364.HtAsB3eGq2@daneel.sf-tec.de>
+Date:   Wed, 05 Oct 2022 16:17:45 +0200
+Message-ID: <3804667.3oa1dkRz9v@eto.sf-tec.de>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart7305911.2g4n36Rzat"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Type: multipart/signed; boundary="nextPart2108249.AKfn3jg4vr"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
---nextPart7305911.2g4n36Rzat
+--nextPart2108249.AKfn3jg4vr
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"; protected-headers="v1"
 From: Rolf Eike Beer <eike-kernel@sf-tec.de>
 To: sparclinux@vger.kernel.org
+Cc: linux-crypto@vger.kernel.org
 Subject: Issues with hw crypto and random support on Niagara2
-Date: Tue, 04 Oct 2022 22:31:41 +0200
-Message-ID: <8766364.HtAsB3eGq2@daneel.sf-tec.de>
+Date: Wed, 05 Oct 2022 16:17:45 +0200
+Message-ID: <3804667.3oa1dkRz9v@eto.sf-tec.de>
+MIME-Version: 1.0
 
-I recently upgraded the kernel to 5.19.12. The first thing I noticed 
-afterwards was that the boot took nearly one hour and spewed lots of warnings 
-about crng_init=0. As a workaround I did that:
+[Resend with CC linux-crypto]
+
+I recently upgraded my Sun T5120 the kernel to 5.19.12. The first thing I 
+noticed afterwards was that the boot took nearly one hour and spewed lots of 
+warnings about crng_init=0. As a workaround I did that:
 
 # grep -n quality /usr/src/linux/drivers/char/hw_random/n2-drv.c 
 770:    np->hwrng.quality = 5;
@@ -76,19 +80,19 @@ I'm open for testing. This is probably broken for a very long time, i.e.
 Greetings,
 
 Eike
---nextPart7305911.2g4n36Rzat
+--nextPart2108249.AKfn3jg4vr
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: This is a digitally signed message part.
 Content-Transfer-Encoding: 7Bit
 
 -----BEGIN PGP SIGNATURE-----
 
-iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCYzyYLQAKCRBcpIk+abn8
-Tm25AJ0dOwyEcvPUIzF/5eX7f/yurpI46wCfVhHwl/5TswD7Ek3diTJcXZo1UGc=
-=FyJQ
+iF0EABECAB0WIQSaYVDeqwKa3fTXNeNcpIk+abn8TgUCYz2SCQAKCRBcpIk+abn8
+Tp2JAKCTzkjE32Q8dazATdi5F3jNsWHYbwCfb1jw+YM6yaua+Gc+KkeOZbFxgtA=
+=MGIp
 -----END PGP SIGNATURE-----
 
---nextPart7305911.2g4n36Rzat--
+--nextPart2108249.AKfn3jg4vr--
 
 
 
