@@ -2,432 +2,240 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C732C4167E
-	for <sparclinux@archiver.kernel.org>; Fri,  7 Oct 2022 18:04:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5703C43217
+	for <sparclinux@archiver.kernel.org>; Fri,  7 Oct 2022 20:03:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230119AbiJGSEO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 Oct 2022 14:04:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33106 "EHLO
+        id S230070AbiJGUDp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Oct 2022 16:03:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230115AbiJGSDJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 14:03:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 184BD108DEE;
-        Fri,  7 Oct 2022 11:02:13 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6E103B821F5;
-        Fri,  7 Oct 2022 18:02:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27EFDC433D6;
-        Fri,  7 Oct 2022 18:02:04 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="PmMb1PAn"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1665165723;
+        with ESMTP id S230043AbiJGUDn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 16:03:43 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AA4A12C8B1
+        for <sparclinux@vger.kernel.org>; Fri,  7 Oct 2022 13:03:40 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1665173019;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=yjWHeA/Gl9LnO2t3qTWiPef5h/0YtShOrNIMnseFojM=;
-        b=PmMb1PAntQObNQ/lzC9xGXWAWq9X4asK7PZDX/1unNuSXRvp4iFFHq850rto8PDLMgZcxh
-        dTMhNHN2Ot7VyvX7xk17++/TQ7qCKaWwxQyszpMgcXMy5XCb5m1MumWAe9XZRIHkp0H/rX
-        z09MvGonBdBWvRgC/IAmtje2gJ3lPmQ=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id e9827c9f (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Fri, 7 Oct 2022 18:02:03 +0000 (UTC)
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     linux-kernel@vger.kernel.org, patches@lists.linux.dev
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        =?UTF-8?q?Christoph=20B=C3=B6hmwalder?= 
-        <christoph.boehmwalder@linbit.com>, Christoph Hellwig <hch@lst.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Dave Airlie <airlied@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "James E . J . Bottomley" <jejb@linux.ibm.com>,
-        Jan Kara <jack@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Jens Axboe <axboe@kernel.dk>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        KP Singh <kpsingh@kernel.org>,
-        Kees Cook <keescook@chromium.org>,
-        Marco Elver <elver@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>,
+        bh=jaDcObpjcx0whPL96jk38beBrOuRKo+eqX0wqNpM3Cc=;
+        b=P+lIyk+e0CPKAEcXbbQsDGytM3pSE2HiXWeW7NP38w5yUSHLYGCuSuucP33CsCkagHA0Xl
+        151o2pP9yjDQ1PeDz0xhPVbLkmo8lCO3ZH7OMrITtTWxWfWY5mkXbEVSe9xPFuqCCFlhIl
+        3Pk9fHEL2zLDpOzOjIrrd39Z4gNTtAk=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-264-kStNREYhN0OL2iSIbHz80Q-1; Fri, 07 Oct 2022 16:03:36 -0400
+X-MC-Unique: kStNREYhN0OL2iSIbHz80Q-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 67B08882826;
+        Fri,  7 Oct 2022 20:03:34 +0000 (UTC)
+Received: from fuller.cnet (ovpn-112-2.gru2.redhat.com [10.97.112.2])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 29A1A2166B4D;
+        Fri,  7 Oct 2022 20:03:32 +0000 (UTC)
+Received: by fuller.cnet (Postfix, from userid 1000)
+        id 258DA416CE48; Fri,  7 Oct 2022 17:01:33 -0300 (-03)
+Date:   Fri, 7 Oct 2022 17:01:33 -0300
+From:   Marcelo Tosatti <mtosatti@redhat.com>
+To:     Valentin Schneider <vschneid@redhat.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
         Peter Zijlstra <peterz@infradead.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
         Thomas Gleixner <tglx@linutronix.de>,
-        Thomas Graf <tgraf@suug.ch>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>,
-        Yury Norov <yury.norov@gmail.com>,
-        dri-devel@lists.freedesktop.org, kasan-dev@googlegroups.com,
-        kernel-janitors@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-nvme@lists.infradead.org, linux-parisc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org
-Subject: [PATCH v4 5/6] treewide: use get_random_bytes when possible
-Date:   Fri,  7 Oct 2022 12:01:06 -0600
-Message-Id: <20221007180107.216067-6-Jason@zx2c4.com>
-In-Reply-To: <20221007180107.216067-1-Jason@zx2c4.com>
-References: <20221007180107.216067-1-Jason@zx2c4.com>
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Guo Ren <guoren@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC PATCH 0/5] Generic IPI sending tracepoint
+Message-ID: <Y0CFnWDpMNGajIRD@fuller.cnet>
+References: <20221007154145.1877054-1-vschneid@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221007154145.1877054-1-vschneid@redhat.com>
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The prandom_bytes() function has been a deprecated inline wrapper around
-get_random_bytes() for several releases now, and compiles down to the
-exact same code. Replace the deprecated wrapper with a direct call to
-the real function.
+Hi Valentin,
 
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu> # powerpc
-Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
----
- arch/powerpc/crypto/crc-vpmsum_test.c       |  2 +-
- block/blk-crypto-fallback.c                 |  2 +-
- crypto/async_tx/raid6test.c                 |  2 +-
- drivers/dma/dmatest.c                       |  2 +-
- drivers/mtd/nand/raw/nandsim.c              |  2 +-
- drivers/mtd/tests/mtd_nandecctest.c         |  2 +-
- drivers/mtd/tests/speedtest.c               |  2 +-
- drivers/mtd/tests/stresstest.c              |  2 +-
- drivers/net/ethernet/broadcom/bnxt/bnxt.c   |  2 +-
- drivers/net/ethernet/rocker/rocker_main.c   |  2 +-
- drivers/net/wireguard/selftest/allowedips.c | 12 ++++++------
- fs/ubifs/debug.c                            |  2 +-
- kernel/kcsan/selftest.c                     |  2 +-
- lib/random32.c                              |  2 +-
- lib/test_objagg.c                           |  2 +-
- lib/uuid.c                                  |  2 +-
- net/ipv4/route.c                            |  2 +-
- net/mac80211/rc80211_minstrel_ht.c          |  2 +-
- net/sched/sch_pie.c                         |  2 +-
- 19 files changed, 24 insertions(+), 24 deletions(-)
+On Fri, Oct 07, 2022 at 04:41:40PM +0100, Valentin Schneider wrote:
+> Background
+> ==========
+> 
+> Detecting IPI *reception* is relatively easy, e.g. using
+> trace_irq_handler_{entry,exit} or even just function-trace
+> flush_smp_call_function_queue() for SMP calls.  
+> 
+> Figuring out their *origin*, is trickier as there is no generic tracepoint tied
+> to e.g. smp_call_function():
+> 
+> o AFAIA x86 has no tracepoint tied to sending IPIs, only receiving them
+>   (cf. trace_call_function{_single}_entry()).
+> o arm/arm64 do have trace_ipi_raise(), which gives us the target cpus but also a
+>   mostly useless string (smp_calls will all be "Function call interrupts").
+> o Other architectures don't seem to have any IPI-sending related tracepoint.  
+> 
+> I believe one reason those tracepoints used by arm/arm64 ended up as they were
+> is because these archs used to handle IPIs differently from regular interrupts
+> (the IRQ driver would directly invoke an IPI-handling routine), which meant they 
+> never showed up in trace_irq_handler_{entry, exit}. The trace_ipi_{entry,exit}
+> tracepoints gave a way to trace IPI reception but those have become redundant as
+> of: 
+> 
+>       56afcd3dbd19 ("ARM: Allow IPIs to be handled as normal interrupts")
+>       d3afc7f12987 ("arm64: Allow IPIs to be handled as normal interrupts")
+> 
+> which gave IPIs a "proper" handler function used through
+> generic_handle_domain_irq(), which makes them show up via
+> trace_irq_handler_{entry, exit}.
+> 
+> Changing stuff up
+> =================
+> 
+> Per the above, it would make sense to reshuffle trace_ipi_raise() and move it
+> into generic code. This also came up during Daniel's talk on Osnoise at the CPU
+> isolation MC of LPC 2022 [1]. 
+> 
+> Now, to be useful, such a tracepoint needs to export:
+> o targeted CPU(s)
+> o calling context
+> 
+> The only way to get the calling context with trace_ipi_raise() is to trigger a
+> stack dump, e.g. $(trace-cmd -e ipi* -T echo 42).
+> 
+> As for the targeted CPUs, the existing tracepoint does export them, albeit in
+> cpumask form, which is quite inconvenient from a tooling perspective. For
+> instance, as far as I'm aware, it's not possible to do event filtering on a
+> cpumask via trace-cmd.
 
-diff --git a/arch/powerpc/crypto/crc-vpmsum_test.c b/arch/powerpc/crypto/crc-vpmsum_test.c
-index c1c1ef9457fb..273c527868db 100644
---- a/arch/powerpc/crypto/crc-vpmsum_test.c
-+++ b/arch/powerpc/crypto/crc-vpmsum_test.c
-@@ -82,7 +82,7 @@ static int __init crc_test_init(void)
- 
- 			if (len <= offset)
- 				continue;
--			prandom_bytes(data, len);
-+			get_random_bytes(data, len);
- 			len -= offset;
- 
- 			crypto_shash_update(crct10dif_shash, data+offset, len);
-diff --git a/block/blk-crypto-fallback.c b/block/blk-crypto-fallback.c
-index 621abd1b0e4d..ad9844c5b40c 100644
---- a/block/blk-crypto-fallback.c
-+++ b/block/blk-crypto-fallback.c
-@@ -539,7 +539,7 @@ static int blk_crypto_fallback_init(void)
- 	if (blk_crypto_fallback_inited)
- 		return 0;
- 
--	prandom_bytes(blank_key, BLK_CRYPTO_MAX_KEY_SIZE);
-+	get_random_bytes(blank_key, BLK_CRYPTO_MAX_KEY_SIZE);
- 
- 	err = bioset_init(&crypto_bio_split, 64, 0, 0);
- 	if (err)
-diff --git a/crypto/async_tx/raid6test.c b/crypto/async_tx/raid6test.c
-index c9d218e53bcb..f74505f2baf0 100644
---- a/crypto/async_tx/raid6test.c
-+++ b/crypto/async_tx/raid6test.c
-@@ -37,7 +37,7 @@ static void makedata(int disks)
- 	int i;
- 
- 	for (i = 0; i < disks; i++) {
--		prandom_bytes(page_address(data[i]), PAGE_SIZE);
-+		get_random_bytes(page_address(data[i]), PAGE_SIZE);
- 		dataptrs[i] = data[i];
- 		dataoffs[i] = 0;
- 	}
-diff --git a/drivers/dma/dmatest.c b/drivers/dma/dmatest.c
-index 9fe2ae794316..ffe621695e47 100644
---- a/drivers/dma/dmatest.c
-+++ b/drivers/dma/dmatest.c
-@@ -312,7 +312,7 @@ static unsigned long dmatest_random(void)
- {
- 	unsigned long buf;
- 
--	prandom_bytes(&buf, sizeof(buf));
-+	get_random_bytes(&buf, sizeof(buf));
- 	return buf;
- }
- 
-diff --git a/drivers/mtd/nand/raw/nandsim.c b/drivers/mtd/nand/raw/nandsim.c
-index 4bdaf4aa7007..c941a5a41ea6 100644
---- a/drivers/mtd/nand/raw/nandsim.c
-+++ b/drivers/mtd/nand/raw/nandsim.c
-@@ -1393,7 +1393,7 @@ static int ns_do_read_error(struct nandsim *ns, int num)
- 	unsigned int page_no = ns->regs.row;
- 
- 	if (ns_read_error(page_no)) {
--		prandom_bytes(ns->buf.byte, num);
-+		get_random_bytes(ns->buf.byte, num);
- 		NS_WARN("simulating read error in page %u\n", page_no);
- 		return 1;
- 	}
-diff --git a/drivers/mtd/tests/mtd_nandecctest.c b/drivers/mtd/tests/mtd_nandecctest.c
-index 1c7201b0f372..440988562cfd 100644
---- a/drivers/mtd/tests/mtd_nandecctest.c
-+++ b/drivers/mtd/tests/mtd_nandecctest.c
-@@ -266,7 +266,7 @@ static int nand_ecc_test_run(const size_t size)
- 		goto error;
- 	}
- 
--	prandom_bytes(correct_data, size);
-+	get_random_bytes(correct_data, size);
- 	ecc_sw_hamming_calculate(correct_data, size, correct_ecc, sm_order);
- 	for (i = 0; i < ARRAY_SIZE(nand_ecc_test); i++) {
- 		nand_ecc_test[i].prepare(error_data, error_ecc,
-diff --git a/drivers/mtd/tests/speedtest.c b/drivers/mtd/tests/speedtest.c
-index c9ec7086bfa1..075bce32caa5 100644
---- a/drivers/mtd/tests/speedtest.c
-+++ b/drivers/mtd/tests/speedtest.c
-@@ -223,7 +223,7 @@ static int __init mtd_speedtest_init(void)
- 	if (!iobuf)
- 		goto out;
- 
--	prandom_bytes(iobuf, mtd->erasesize);
-+	get_random_bytes(iobuf, mtd->erasesize);
- 
- 	bbt = kzalloc(ebcnt, GFP_KERNEL);
- 	if (!bbt)
-diff --git a/drivers/mtd/tests/stresstest.c b/drivers/mtd/tests/stresstest.c
-index d2faaca7f19d..75b6ddc5dc4d 100644
---- a/drivers/mtd/tests/stresstest.c
-+++ b/drivers/mtd/tests/stresstest.c
-@@ -183,7 +183,7 @@ static int __init mtd_stresstest_init(void)
- 		goto out;
- 	for (i = 0; i < ebcnt; i++)
- 		offsets[i] = mtd->erasesize;
--	prandom_bytes(writebuf, bufsize);
-+	get_random_bytes(writebuf, bufsize);
- 
- 	bbt = kzalloc(ebcnt, GFP_KERNEL);
- 	if (!bbt)
-diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-index 96da0ba3d507..354953df46a1 100644
---- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-+++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
-@@ -3874,7 +3874,7 @@ static void bnxt_init_vnics(struct bnxt *bp)
- 
- 		if (bp->vnic_info[i].rss_hash_key) {
- 			if (i == 0)
--				prandom_bytes(vnic->rss_hash_key,
-+				get_random_bytes(vnic->rss_hash_key,
- 					      HW_HASH_KEY_SIZE);
- 			else
- 				memcpy(vnic->rss_hash_key,
-diff --git a/drivers/net/ethernet/rocker/rocker_main.c b/drivers/net/ethernet/rocker/rocker_main.c
-index 8c3bbafabb07..cd4488efe0a4 100644
---- a/drivers/net/ethernet/rocker/rocker_main.c
-+++ b/drivers/net/ethernet/rocker/rocker_main.c
-@@ -224,7 +224,7 @@ static int rocker_dma_test_offset(const struct rocker *rocker,
- 	if (err)
- 		goto unmap;
- 
--	prandom_bytes(buf, ROCKER_TEST_DMA_BUF_SIZE);
-+	get_random_bytes(buf, ROCKER_TEST_DMA_BUF_SIZE);
- 	for (i = 0; i < ROCKER_TEST_DMA_BUF_SIZE; i++)
- 		expect[i] = ~buf[i];
- 	err = rocker_dma_test_one(rocker, wait, ROCKER_TEST_DMA_CTRL_INVERT,
-diff --git a/drivers/net/wireguard/selftest/allowedips.c b/drivers/net/wireguard/selftest/allowedips.c
-index dd897c0740a2..19eac00b2381 100644
---- a/drivers/net/wireguard/selftest/allowedips.c
-+++ b/drivers/net/wireguard/selftest/allowedips.c
-@@ -284,7 +284,7 @@ static __init bool randomized_test(void)
- 	mutex_lock(&mutex);
- 
- 	for (i = 0; i < NUM_RAND_ROUTES; ++i) {
--		prandom_bytes(ip, 4);
-+		get_random_bytes(ip, 4);
- 		cidr = prandom_u32_max(32) + 1;
- 		peer = peers[prandom_u32_max(NUM_PEERS)];
- 		if (wg_allowedips_insert_v4(&t, (struct in_addr *)ip, cidr,
-@@ -299,7 +299,7 @@ static __init bool randomized_test(void)
- 		}
- 		for (j = 0; j < NUM_MUTATED_ROUTES; ++j) {
- 			memcpy(mutated, ip, 4);
--			prandom_bytes(mutate_mask, 4);
-+			get_random_bytes(mutate_mask, 4);
- 			mutate_amount = prandom_u32_max(32);
- 			for (k = 0; k < mutate_amount / 8; ++k)
- 				mutate_mask[k] = 0xff;
-@@ -328,7 +328,7 @@ static __init bool randomized_test(void)
- 	}
- 
- 	for (i = 0; i < NUM_RAND_ROUTES; ++i) {
--		prandom_bytes(ip, 16);
-+		get_random_bytes(ip, 16);
- 		cidr = prandom_u32_max(128) + 1;
- 		peer = peers[prandom_u32_max(NUM_PEERS)];
- 		if (wg_allowedips_insert_v6(&t, (struct in6_addr *)ip, cidr,
-@@ -343,7 +343,7 @@ static __init bool randomized_test(void)
- 		}
- 		for (j = 0; j < NUM_MUTATED_ROUTES; ++j) {
- 			memcpy(mutated, ip, 16);
--			prandom_bytes(mutate_mask, 16);
-+			get_random_bytes(mutate_mask, 16);
- 			mutate_amount = prandom_u32_max(128);
- 			for (k = 0; k < mutate_amount / 8; ++k)
- 				mutate_mask[k] = 0xff;
-@@ -381,13 +381,13 @@ static __init bool randomized_test(void)
- 
- 	for (j = 0;; ++j) {
- 		for (i = 0; i < NUM_QUERIES; ++i) {
--			prandom_bytes(ip, 4);
-+			get_random_bytes(ip, 4);
- 			if (lookup(t.root4, 32, ip) != horrible_allowedips_lookup_v4(&h, (struct in_addr *)ip)) {
- 				horrible_allowedips_lookup_v4(&h, (struct in_addr *)ip);
- 				pr_err("allowedips random v4 self-test: FAIL\n");
- 				goto free;
- 			}
--			prandom_bytes(ip, 16);
-+			get_random_bytes(ip, 16);
- 			if (lookup(t.root6, 128, ip) != horrible_allowedips_lookup_v6(&h, (struct in6_addr *)ip)) {
- 				pr_err("allowedips random v6 self-test: FAIL\n");
- 				goto free;
-diff --git a/fs/ubifs/debug.c b/fs/ubifs/debug.c
-index f4d3b568aa64..3f128b9fdfbb 100644
---- a/fs/ubifs/debug.c
-+++ b/fs/ubifs/debug.c
-@@ -2581,7 +2581,7 @@ static int corrupt_data(const struct ubifs_info *c, const void *buf,
- 	if (ffs)
- 		memset(p + from, 0xFF, to - from);
- 	else
--		prandom_bytes(p + from, to - from);
-+		get_random_bytes(p + from, to - from);
- 
- 	return to;
- }
-diff --git a/kernel/kcsan/selftest.c b/kernel/kcsan/selftest.c
-index 58b94deae5c0..00cdf8fa5693 100644
---- a/kernel/kcsan/selftest.c
-+++ b/kernel/kcsan/selftest.c
-@@ -46,7 +46,7 @@ static bool __init test_encode_decode(void)
- 		unsigned long addr;
- 		size_t verif_size;
- 
--		prandom_bytes(&addr, sizeof(addr));
-+		get_random_bytes(&addr, sizeof(addr));
- 		if (addr < PAGE_SIZE)
- 			addr = PAGE_SIZE;
- 
-diff --git a/lib/random32.c b/lib/random32.c
-index d4f19e1a69d4..32060b852668 100644
---- a/lib/random32.c
-+++ b/lib/random32.c
-@@ -69,7 +69,7 @@ EXPORT_SYMBOL(prandom_u32_state);
-  *	@bytes: the requested number of bytes
-  *
-  *	This is used for pseudo-randomness with no outside seeding.
-- *	For more random results, use prandom_bytes().
-+ *	For more random results, use get_random_bytes().
-  */
- void prandom_bytes_state(struct rnd_state *state, void *buf, size_t bytes)
- {
-diff --git a/lib/test_objagg.c b/lib/test_objagg.c
-index da137939a410..c0c957c50635 100644
---- a/lib/test_objagg.c
-+++ b/lib/test_objagg.c
-@@ -157,7 +157,7 @@ static int test_nodelta_obj_get(struct world *world, struct objagg *objagg,
- 	int err;
- 
- 	if (should_create_root)
--		prandom_bytes(world->next_root_buf,
-+		get_random_bytes(world->next_root_buf,
- 			      sizeof(world->next_root_buf));
- 
- 	objagg_obj = world_obj_get(world, objagg, key_id);
-diff --git a/lib/uuid.c b/lib/uuid.c
-index 562d53977cab..e309b4c5be3d 100644
---- a/lib/uuid.c
-+++ b/lib/uuid.c
-@@ -52,7 +52,7 @@ EXPORT_SYMBOL(generate_random_guid);
- 
- static void __uuid_gen_common(__u8 b[16])
- {
--	prandom_bytes(b, 16);
-+	get_random_bytes(b, 16);
- 	/* reversion 0b10 */
- 	b[8] = (b[8] & 0x3F) | 0x80;
- }
-diff --git a/net/ipv4/route.c b/net/ipv4/route.c
-index 1a37a07c7163..cd1fa9f70f1a 100644
---- a/net/ipv4/route.c
-+++ b/net/ipv4/route.c
-@@ -3719,7 +3719,7 @@ int __init ip_rt_init(void)
- 
- 	ip_idents = idents_hash;
- 
--	prandom_bytes(ip_idents, (ip_idents_mask + 1) * sizeof(*ip_idents));
-+	get_random_bytes(ip_idents, (ip_idents_mask + 1) * sizeof(*ip_idents));
- 
- 	ip_tstamps = idents_hash + (ip_idents_mask + 1) * sizeof(*ip_idents);
- 
-diff --git a/net/mac80211/rc80211_minstrel_ht.c b/net/mac80211/rc80211_minstrel_ht.c
-index 5f27e6746762..39fb4e2d141a 100644
---- a/net/mac80211/rc80211_minstrel_ht.c
-+++ b/net/mac80211/rc80211_minstrel_ht.c
-@@ -2033,7 +2033,7 @@ static void __init init_sample_table(void)
- 
- 	memset(sample_table, 0xff, sizeof(sample_table));
- 	for (col = 0; col < SAMPLE_COLUMNS; col++) {
--		prandom_bytes(rnd, sizeof(rnd));
-+		get_random_bytes(rnd, sizeof(rnd));
- 		for (i = 0; i < MCS_GROUP_RATES; i++) {
- 			new_idx = (i + rnd[i]) % MCS_GROUP_RATES;
- 			while (sample_table[col][new_idx] != 0xff)
-diff --git a/net/sched/sch_pie.c b/net/sched/sch_pie.c
-index 5a457ff61acd..66b2b23e8cd1 100644
---- a/net/sched/sch_pie.c
-+++ b/net/sched/sch_pie.c
-@@ -72,7 +72,7 @@ bool pie_drop_early(struct Qdisc *sch, struct pie_params *params,
- 	if (vars->accu_prob >= (MAX_PROB / 2) * 17)
- 		return true;
- 
--	prandom_bytes(&rnd, 8);
-+	get_random_bytes(&rnd, 8);
- 	if ((rnd >> BITS_PER_BYTE) < local_prob) {
- 		vars->accu_prob = 0;
- 		return true;
--- 
-2.37.3
+https://man7.org/linux/man-pages/man1/trace-cmd-set.1.html
+
+       -f filter
+           Specify a filter for the previous event. This must come after
+           a -e. This will filter what events get recorded based on the
+           content of the event. Filtering is passed to the kernel
+           directly so what filtering is allowed may depend on what
+           version of the kernel you have. Basically, it will let you
+           use C notation to check if an event should be processed or
+           not.
+
+               ==, >=, <=, >, <, &, |, && and ||
+
+           The above are usually safe to use to compare fields.
+
+This looks overkill to me (consider large number of bits set in mask).
+
++#define trace_ipi_send_cpumask(callsite, mask) do {            \
++	if (static_key_false(&__tracepoint_ipi_send_cpu.key)) { \
++               int cpu;                                        \
++               for_each_cpu(cpu, mask)                         \
++                       trace_ipi_send_cpu(callsite, cpu);	\
++	}                                                       \
++} while (0)
+
+
+> 
+> Because of the above points, this is introducing a new tracepoint.
+> 
+> Patches
+> =======
+> 
+> This results in having trace events for:
+> 
+> o smp_call_function*()
+> o smp_send_reschedule()
+> o irq_work_queue*()
+> 
+> This is incomplete, just looking at arm64 there's more IPI types that aren't covered:
+> 
+>   IPI_CPU_STOP,
+>   IPI_CPU_CRASH_STOP,
+>   IPI_TIMER,
+>   IPI_WAKEUP,
+> 
+> ... But it feels like a good starting point.
+
+Can't you have a single tracepoint (or variant with cpumask) that would
+cover such cases as well?
+
+Maybe (as parameters for tracepoint):
+
+	* type (reschedule, smp_call_function, timer, wakeup, ...).
+
+	* function address: valid for smp_call_function, irq_work_queue
+	  types.
+
+> Another thing worth mentioning is that depending on the callsite, the _RET_IP_
+> fed to the tracepoint is not always useful - generic_exec_single() doesn't tell
+> you much about the actual callback being sent via IPI, so there might be value
+> in exploding the single tracepoint into at least one variant for smp_calls.
+
+Not sure i grasp what you mean by "exploding the single tracepoint...",
+but yes knowing the function or irq work function is very useful.
+
+> 
+> Links
+> =====
+> 
+> [1]: https://youtu.be/5gT57y4OzBM?t=14234
+> 
+> Valentin Schneider (5):
+>   trace: Add trace_ipi_send_{cpu, cpumask}
+>   sched, smp: Trace send_call_function_single_ipi()
+>   smp: Add a multi-CPU variant to send_call_function_single_ipi()
+>   irq_work: Trace calls to arch_irq_work_raise()
+>   treewide: Rename and trace arch-definitions of smp_send_reschedule()
+> 
+>  arch/alpha/kernel/smp.c          |  2 +-
+>  arch/arc/kernel/smp.c            |  2 +-
+>  arch/arm/kernel/smp.c            |  5 +----
+>  arch/arm64/kernel/smp.c          |  3 +--
+>  arch/csky/kernel/smp.c           |  2 +-
+>  arch/hexagon/kernel/smp.c        |  2 +-
+>  arch/ia64/kernel/smp.c           |  4 ++--
+>  arch/loongarch/include/asm/smp.h |  2 +-
+>  arch/mips/include/asm/smp.h      |  2 +-
+>  arch/openrisc/kernel/smp.c       |  2 +-
+>  arch/parisc/kernel/smp.c         |  4 ++--
+>  arch/powerpc/kernel/smp.c        |  4 ++--
+>  arch/riscv/kernel/smp.c          |  4 ++--
+>  arch/s390/kernel/smp.c           |  2 +-
+>  arch/sh/kernel/smp.c             |  2 +-
+>  arch/sparc/kernel/smp_32.c       |  2 +-
+>  arch/sparc/kernel/smp_64.c       |  2 +-
+>  arch/x86/include/asm/smp.h       |  2 +-
+>  arch/xtensa/kernel/smp.c         |  2 +-
+>  include/linux/smp.h              |  1 +
+>  include/trace/events/ipi.h       | 27 +++++++++++++++++++++++++++
+>  kernel/irq_work.c                | 12 +++++++++++-
+>  kernel/sched/core.c              |  7 +++++--
+>  kernel/smp.c                     | 18 +++++++++++++++++-
+>  24 files changed, 84 insertions(+), 31 deletions(-)
+> 
+> --
+> 2.31.1
+> 
+> 
 
