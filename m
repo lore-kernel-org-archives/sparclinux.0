@@ -2,152 +2,409 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DF0C4332F
-	for <sparclinux@archiver.kernel.org>; Sat,  8 Oct 2022 00:01:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C9B3C433F5
+	for <sparclinux@archiver.kernel.org>; Sat,  8 Oct 2022 00:23:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229491AbiJHAA6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 Oct 2022 20:00:58 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34078 "EHLO
+        id S229666AbiJHAX3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Oct 2022 20:23:29 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229469AbiJHAA5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 20:00:57 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95F37C0A;
-        Fri,  7 Oct 2022 17:00:56 -0700 (PDT)
+        with ESMTP id S229538AbiJHAXZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 20:23:25 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 339C5BC610;
+        Fri,  7 Oct 2022 17:23:24 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3304261DF6;
-        Sat,  8 Oct 2022 00:00:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 946FBC433D6;
-        Sat,  8 Oct 2022 00:00:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C04B8B8248E;
+        Sat,  8 Oct 2022 00:23:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E95AC43146;
+        Sat,  8 Oct 2022 00:23:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665187255;
-        bh=1QNTKASnThQzK9t9YJPKB3S5uW+rMCtzlHpZ4T+ejK4=;
+        s=k20201202; t=1665188601;
+        bh=sgFxqSsEF0+bcN38uHnAUtCzYqPWkGv+/tZCP/6JQvw=;
         h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=nbaf5kXNGDwWzlsoB1UwvScZICJk41H+byHZ/oFGC1HHj6G6NNdgI/bP/IrRKpO6m
-         94rwv4rTVMhQbV96xn0vJCT7fMbX7mt3hQFDHQJ6ftHeEGWMgFakkmSVai9FPVvD6M
-         WiD3Hpl3Limwpe7zf5w8xMdKL7Ga+2GnaSLAUSMoSLPyFJGSmV8rrC/fEk1YX8oHkA
-         Gdrs5F9PQiOa3vFSPO3gCYuHspD58Jh6CFy5OkpsvZEI8cIwKKxK2BF/Tt1i4oanwS
-         PvI1HRni+yI/MxkLpx4IdX6IdMaZ0/PTOYJaBbUXT4DpXMXPzcwwsZnKBXgncd1f1B
-         KRwVsi4nDwydA==
-Received: by mail-oi1-f172.google.com with SMTP id t79so7299472oie.0;
-        Fri, 07 Oct 2022 17:00:55 -0700 (PDT)
-X-Gm-Message-State: ACrzQf3cdtCGhycme1G00YDkjTdAFx0opOHVX9M9wMPH8R8sbAxAgK93
-        fIKEd5d8dnAqLb/gA3HAUh6UhMb/HmnnpZeUFHI=
-X-Google-Smtp-Source: AMsMyM43x1xUF8/u4qEx0O4CLZy7PM9HGCWHCoBGuVZwK3v1D/JkfKAVQrBSId34wQKf2vHacT5ZjsmS+8zaB+iFHDo=
+        b=dLa9rcrowpgVtq+iFYBKyTsJRXjwt2l1ZoU9dK0QG9IYeZ2a62zgJvBsG6oDXjiRU
+         g8IoKrAwYQj7iljuM7UWlAR6Dt/2U7zsJfp2vplIpTVOwfHqsWzcac8KjUdZ0Dc2yA
+         RCczFaeQ5B8FiF0ufVKuJ7JdzaK+mtRyW2F+KPQWg/+aUW90XGHd6DH5O5vfBk1pI0
+         5tBoKEeNTFgtz/mLCbyE4fMKLadfq7AQG2zG37YF0cD05zufKdpxw6lgYxQKwr4/wi
+         LrejuG/TFjbqp+GYbPrEG+2DskVrU3NKjmdfN2fZ2S+EirBDox7F3IDgaSR54AyyZg
+         9SPR0ZPOxd4OA==
+Received: by mail-oi1-f175.google.com with SMTP id q10so7289066oib.5;
+        Fri, 07 Oct 2022 17:23:21 -0700 (PDT)
+X-Gm-Message-State: ACrzQf1ys3R4uC66prv2z1fZIZOx+NiL9eWSKiElcPZQV4sjxPEVRFr3
+        c52VprJPZcm03WbB54Dfov4t+cb3nV/NQ/MhYPo=
+X-Google-Smtp-Source: AMsMyM6d1vEFgVz7vAhL63BB/M/+P/PP5ZhiAkdB3z/coca0NEdVvl3lU8eJKhAXTwQbJjldnSeasVabLKztwU34kGU=
 X-Received: by 2002:aca:6155:0:b0:353:e740:ce01 with SMTP id
- v82-20020aca6155000000b00353e740ce01mr8672777oib.19.1665187254786; Fri, 07
- Oct 2022 17:00:54 -0700 (PDT)
+ v82-20020aca6155000000b00353e740ce01mr8708756oib.19.1665188600393; Fri, 07
+ Oct 2022 17:23:20 -0700 (PDT)
 MIME-Version: 1.0
-References: <6c48657c-04df-132d-6167-49ed293dea44@microchip.com> <mhng-8c3bb2e7-e84e-4aaa-bce8-3e8054255a2c@palmer-ri-x1c9>
-In-Reply-To: <mhng-8c3bb2e7-e84e-4aaa-bce8-3e8054255a2c@palmer-ri-x1c9>
+References: <20221007154145.1877054-1-vschneid@redhat.com> <20221007154533.1878285-5-vschneid@redhat.com>
+In-Reply-To: <20221007154533.1878285-5-vschneid@redhat.com>
 From:   Guo Ren <guoren@kernel.org>
-Date:   Sat, 8 Oct 2022 08:00:42 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTRER75PyqniiTZgeeHjiy5UKVtrr89iPrdx_EzYPUC9Lg@mail.gmail.com>
-Message-ID: <CAJF2gTRER75PyqniiTZgeeHjiy5UKVtrr89iPrdx_EzYPUC9Lg@mail.gmail.com>
-Subject: Re: [PATCH] RISC-V: Add STACKLEAK erasing the kernel stack at the end
- of syscalls
-To:     Palmer Dabbelt <palmer@dabbelt.com>
-Cc:     Conor.Dooley@microchip.com, oleg@redhat.com, vgupta@kernel.org,
-        linux@armlinux.org.uk, monstr@monstr.eu, dinguyen@kernel.org,
-        davem@davemloft.net, Arnd Bergmann <arnd@arndb.de>,
-        shorne@gmail.com, Paul Walmsley <paul.walmsley@sifive.com>,
-        aou@eecs.berkeley.edu, ardb@kernel.org, heiko@sntech.de,
-        daolu@rivosinc.com, linux-arch@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
-        openrisc@lists.librecores.org, xianting.tian@linux.alibaba.com,
-        linux-efi@vger.kernel.org
+Date:   Sat, 8 Oct 2022 08:23:08 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTQs62gJ7hTrqKNX=og7NuR=ou5S8WZp9Mf9JXxs0-duwA@mail.gmail.com>
+Message-ID: <CAJF2gTQs62gJ7hTrqKNX=og7NuR=ou5S8WZp9Mf9JXxs0-duwA@mail.gmail.com>
+Subject: Re: [RFC PATCH 5/5] treewide: Rename and trace arch-definitions of smp_send_reschedule()
+To:     Valentin Schneider <vschneid@redhat.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Marcelo Tosatti <mtosatti@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        "David S. Miller" <davem@davemloft.net>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Oct 7, 2022 at 10:31 AM Palmer Dabbelt <palmer@dabbelt.com> wrote:
+On Fri, Oct 7, 2022 at 11:46 PM Valentin Schneider <vschneid@redhat.com> wrote:
 >
-> On Tue, 06 Sep 2022 10:35:10 PDT (-0700), Conor.Dooley@microchip.com wrote:
-> > On 03/09/2022 17:23, guoren@kernel.org wrote:
-> >> EXTERNAL EMAIL: Do not click links or open attachments unless you know the content is safe
-> >>
-> >> From: Xianting Tian <xianting.tian@linux.alibaba.com>
-> >>
-> >> This adds support for the STACKLEAK gcc plugin to RISC-V and disables
-> >> the plugin in EFI stub code, which is out of scope for the protection.
-> >>
-> >> For the benefits of STACKLEAK feature, please check the commit
-> >> afaef01c0015 ("x86/entry: Add STACKLEAK erasing the kernel stack at the end of syscalls")
-> >>
-> >> Performance impact (tested on qemu env with 1 riscv64 hart, 1GB mem)
-> >>     hackbench -s 512 -l 200 -g 15 -f 25 -P
-> >>     2.0% slowdown
-> >>
-> >> Signed-off-by: Xianting Tian <xianting.tian@linux.alibaba.com>
-> >
-> > What changed since Xianting posted it himself a week ago:
-> > https://lore.kernel.org/linux-riscv/20220828135407.3897717-1-xianting.tian@linux.alibaba.com/
-> >
-> > There's an older patch from Du Lao adding STACKLEAK too:
-> > https://lore.kernel.org/linux-riscv/20220615213834.3116135-1-daolu@rivosinc.com/
-> >
-> > But since there's been no activity there since June...
+> To be able to trace invocations of smp_send_reschedule(), rename the
+> arch-specific definitions of it to arch_smp_send_reschedule() and wrap it
+> into an smp_send_reschedule() that contains a tracepoint.
 >
-> Looks like the only issues were some commit log wording stuff, and that
-> there's a test suite that should be run.  It's not clear from the
-> commits that anyone has done that, I'm fine with the patch if it passes
-> the tests but don't really know how to run them.
+> Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+> ---
+>  arch/alpha/kernel/smp.c          | 2 +-
+>  arch/arc/kernel/smp.c            | 2 +-
+>  arch/arm/kernel/smp.c            | 2 +-
+>  arch/arm64/kernel/smp.c          | 2 +-
+>  arch/csky/kernel/smp.c           | 2 +-
+>  arch/hexagon/kernel/smp.c        | 2 +-
+>  arch/ia64/kernel/smp.c           | 4 ++--
+>  arch/loongarch/include/asm/smp.h | 2 +-
+>  arch/mips/include/asm/smp.h      | 2 +-
+>  arch/openrisc/kernel/smp.c       | 2 +-
+>  arch/parisc/kernel/smp.c         | 4 ++--
+>  arch/powerpc/kernel/smp.c        | 4 ++--
+>  arch/riscv/kernel/smp.c          | 4 ++--
+>  arch/s390/kernel/smp.c           | 2 +-
+>  arch/sh/kernel/smp.c             | 2 +-
+>  arch/sparc/kernel/smp_32.c       | 2 +-
+>  arch/sparc/kernel/smp_64.c       | 2 +-
+>  arch/x86/include/asm/smp.h       | 2 +-
+>  arch/xtensa/kernel/smp.c         | 2 +-
+>  include/linux/smp.h              | 1 +
+>  kernel/smp.c                     | 6 ++++++
+>  21 files changed, 30 insertions(+), 23 deletions(-)
 >
-> Has anyone run the tests?
-I'm trying to do that with genric_entry.
-https://lore.kernel.org/linux-riscv/20220615213834.3116135-1-daolu@rivosinc.com/
+> diff --git a/arch/alpha/kernel/smp.c b/arch/alpha/kernel/smp.c
+> index f4e20f75438f..38637eb9eebd 100644
+> --- a/arch/alpha/kernel/smp.c
+> +++ b/arch/alpha/kernel/smp.c
+> @@ -562,7 +562,7 @@ handle_ipi(struct pt_regs *regs)
+>  }
+>
+>  void
+> -smp_send_reschedule(int cpu)
+> +arch_smp_send_reschedule(int cpu)
+>  {
+>  #ifdef DEBUG_IPI_MSG
+>         if (cpu == hard_smp_processor_id())
+> diff --git a/arch/arc/kernel/smp.c b/arch/arc/kernel/smp.c
+> index ab9e75e90f72..ae2e6a312361 100644
+> --- a/arch/arc/kernel/smp.c
+> +++ b/arch/arc/kernel/smp.c
+> @@ -292,7 +292,7 @@ static void ipi_send_msg(const struct cpumask *callmap, enum ipi_msg_type msg)
+>                 ipi_send_msg_one(cpu, msg);
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         ipi_send_msg_one(cpu, IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+> index 3b280d55c1c4..f216ac890b6f 100644
+> --- a/arch/arm/kernel/smp.c
+> +++ b/arch/arm/kernel/smp.c
+> @@ -745,7 +745,7 @@ void __init set_smp_ipi_range(int ipi_base, int n)
+>         ipi_setup(smp_processor_id());
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 937d2623e06b..8d108edc4a89 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -976,7 +976,7 @@ void __init set_smp_ipi_range(int ipi_base, int n)
+>         ipi_setup(smp_processor_id());
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
+> index 4b605aa2e1d6..fd7f81be16dd 100644
+> --- a/arch/csky/kernel/smp.c
+> +++ b/arch/csky/kernel/smp.c
+> @@ -140,7 +140,7 @@ void smp_send_stop(void)
+>         on_each_cpu(ipi_stop, NULL, 1);
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+For csky part, Acked-by: Guo Ren <guoren@kernel.org>
 
-Mark Rutland has found an issue, and I'm solving it.
-
+>  {
+>         send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/hexagon/kernel/smp.c b/arch/hexagon/kernel/smp.c
+> index 4ba93e59370c..4e8bee25b8c6 100644
+> --- a/arch/hexagon/kernel/smp.c
+> +++ b/arch/hexagon/kernel/smp.c
+> @@ -217,7 +217,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+>         }
+>  }
 >
-> >
-> >> ---
-> >>  arch/riscv/Kconfig                    | 1 +
-> >>  arch/riscv/include/asm/processor.h    | 4 ++++
-> >>  arch/riscv/kernel/entry.S             | 3 +++
-> >>  drivers/firmware/efi/libstub/Makefile | 2 +-
-> >>  4 files changed, 9 insertions(+), 1 deletion(-)
-> >>
-> >> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
-> >> index ed66c31e4655..61fd0dad4463 100644
-> >> --- a/arch/riscv/Kconfig
-> >> +++ b/arch/riscv/Kconfig
-> >> @@ -85,6 +85,7 @@ config RISCV
-> >>         select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
-> >>         select HAVE_ARCH_THREAD_STRUCT_WHITELIST
-> >>         select HAVE_ARCH_VMAP_STACK if MMU && 64BIT
-> >> +       select HAVE_ARCH_STACKLEAK
-> >>         select HAVE_ASM_MODVERSIONS
-> >>         select HAVE_CONTEXT_TRACKING_USER
-> >>         select HAVE_DEBUG_KMEMLEAK
-> >> diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
-> >> index d0537573501e..5e1fc4f82883 100644
-> >> --- a/drivers/firmware/efi/libstub/Makefile
-> >> +++ b/drivers/firmware/efi/libstub/Makefile
-> >> @@ -25,7 +25,7 @@ cflags-$(CONFIG_ARM)          := $(subst $(CC_FLAGS_FTRACE),,$(KBUILD_CFLAGS)) \
-> >>                                    -fno-builtin -fpic \
-> >>                                    $(call cc-option,-mno-single-pic-base)
-> >>  cflags-$(CONFIG_RISCV)         := $(subst $(CC_FLAGS_FTRACE),,$(KBUILD_CFLAGS)) \
-> >> -                                  -fpic
-> >> +                                  -fpic $(DISABLE_STACKLEAK_PLUGIN)
-> >>
-> >>  cflags-$(CONFIG_EFI_GENERIC_STUB) += -I$(srctree)/scripts/dtc/libfdt
-> >>
-> >> --
-> >> 2.17.1
-> >>
-> >>
-> >> _______________________________________________
-> >> linux-riscv mailing list
-> >> linux-riscv@lists.infradead.org
-> >> http://lists.infradead.org/mailman/listinfo/linux-riscv
-> >
-
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         send_ipi(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/ia64/kernel/smp.c b/arch/ia64/kernel/smp.c
+> index e2cc59db86bc..ea4f009a232b 100644
+> --- a/arch/ia64/kernel/smp.c
+> +++ b/arch/ia64/kernel/smp.c
+> @@ -220,11 +220,11 @@ kdump_smp_send_init(void)
+>   * Called with preemption disabled.
+>   */
+>  void
+> -smp_send_reschedule (int cpu)
+> +arch_smp_send_reschedule (int cpu)
+>  {
+>         ia64_send_ipi(cpu, IA64_IPI_RESCHEDULE, IA64_IPI_DM_INT, 0);
+>  }
+> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
+> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
+>
+>  /*
+>   * Called with preemption disabled.
+> diff --git a/arch/loongarch/include/asm/smp.h b/arch/loongarch/include/asm/smp.h
+> index 71189b28bfb2..3fcca134dfb1 100644
+> --- a/arch/loongarch/include/asm/smp.h
+> +++ b/arch/loongarch/include/asm/smp.h
+> @@ -83,7 +83,7 @@ extern void show_ipi_list(struct seq_file *p, int prec);
+>   * it goes straight through and wastes no time serializing
+>   * anything. Worst case is that we lose a reschedule ...
+>   */
+> -static inline void smp_send_reschedule(int cpu)
+> +static inline void arch_smp_send_reschedule(int cpu)
+>  {
+>         loongson3_send_ipi_single(cpu, SMP_RESCHEDULE);
+>  }
+> diff --git a/arch/mips/include/asm/smp.h b/arch/mips/include/asm/smp.h
+> index 5d9ff61004ca..9806e79895d9 100644
+> --- a/arch/mips/include/asm/smp.h
+> +++ b/arch/mips/include/asm/smp.h
+> @@ -66,7 +66,7 @@ extern void calculate_cpu_foreign_map(void);
+>   * it goes straight through and wastes no time serializing
+>   * anything. Worst case is that we lose a reschedule ...
+>   */
+> -static inline void smp_send_reschedule(int cpu)
+> +static inline void arch_smp_send_reschedule(int cpu)
+>  {
+>         extern const struct plat_smp_ops *mp_ops;       /* private */
+>
+> diff --git a/arch/openrisc/kernel/smp.c b/arch/openrisc/kernel/smp.c
+> index e1419095a6f0..0a7a059e2dff 100644
+> --- a/arch/openrisc/kernel/smp.c
+> +++ b/arch/openrisc/kernel/smp.c
+> @@ -173,7 +173,7 @@ void handle_IPI(unsigned int ipi_msg)
+>         }
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/arch/parisc/kernel/smp.c b/arch/parisc/kernel/smp.c
+> index 7dbd92cafae3..b7fc859fa87d 100644
+> --- a/arch/parisc/kernel/smp.c
+> +++ b/arch/parisc/kernel/smp.c
+> @@ -246,8 +246,8 @@ void kgdb_roundup_cpus(void)
+>  inline void
+>  smp_send_stop(void)    { send_IPI_allbutself(IPI_CPU_STOP); }
+>
+> -void
+> -smp_send_reschedule(int cpu) { send_IPI_single(cpu, IPI_RESCHEDULE); }
+> +void
+> +arch_smp_send_reschedule(int cpu) { send_IPI_single(cpu, IPI_RESCHEDULE); }
+>
+>  void
+>  smp_send_all_nop(void)
+> diff --git a/arch/powerpc/kernel/smp.c b/arch/powerpc/kernel/smp.c
+> index 169703fead57..2d7b217392f2 100644
+> --- a/arch/powerpc/kernel/smp.c
+> +++ b/arch/powerpc/kernel/smp.c
+> @@ -364,12 +364,12 @@ static inline void do_message_pass(int cpu, int msg)
+>  #endif
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         if (likely(smp_ops))
+>                 do_message_pass(cpu, PPC_MSG_RESCHEDULE);
+>  }
+> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
+> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
+>
+>  void arch_send_call_function_single_ipi(int cpu)
+>  {
+> diff --git a/arch/riscv/kernel/smp.c b/arch/riscv/kernel/smp.c
+> index 760a64518c58..213602e89a8b 100644
+> --- a/arch/riscv/kernel/smp.c
+> +++ b/arch/riscv/kernel/smp.c
+> @@ -235,8 +235,8 @@ void smp_send_stop(void)
+>                            cpumask_pr_args(cpu_online_mask));
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         send_ipi_single(cpu, IPI_RESCHEDULE);
+>  }
+> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
+> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
+> diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
+> index 30c91d565933..9d1c36571106 100644
+> --- a/arch/s390/kernel/smp.c
+> +++ b/arch/s390/kernel/smp.c
+> @@ -542,7 +542,7 @@ void arch_send_call_function_single_ipi(int cpu)
+>   * it goes straight through and wastes no time serializing
+>   * anything. Worst case is that we lose a reschedule ...
+>   */
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         pcpu_ec_call(pcpu_devices + cpu, ec_schedule);
+>  }
+> diff --git a/arch/sh/kernel/smp.c b/arch/sh/kernel/smp.c
+> index 65924d9ec245..5cf35a774dc7 100644
+> --- a/arch/sh/kernel/smp.c
+> +++ b/arch/sh/kernel/smp.c
+> @@ -256,7 +256,7 @@ void __init smp_cpus_done(unsigned int max_cpus)
+>                (bogosum / (5000/HZ)) % 100);
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         mp_ops->send_ipi(cpu, SMP_MSG_RESCHEDULE);
+>  }
+> diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
+> index ad8094d955eb..87eaa7719fa2 100644
+> --- a/arch/sparc/kernel/smp_32.c
+> +++ b/arch/sparc/kernel/smp_32.c
+> @@ -120,7 +120,7 @@ void cpu_panic(void)
+>
+>  struct linux_prom_registers smp_penguin_ctable = { 0 };
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         /*
+>          * CPU model dependent way of implementing IPI generation targeting
+> diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
+> index a55295d1b924..e5964d1d8b37 100644
+> --- a/arch/sparc/kernel/smp_64.c
+> +++ b/arch/sparc/kernel/smp_64.c
+> @@ -1430,7 +1430,7 @@ static unsigned long send_cpu_poke(int cpu)
+>         return hv_err;
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         if (cpu == smp_processor_id()) {
+>                 WARN_ON_ONCE(preemptible());
+> diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
+> index a73bced40e24..5ff5815149bd 100644
+> --- a/arch/x86/include/asm/smp.h
+> +++ b/arch/x86/include/asm/smp.h
+> @@ -99,7 +99,7 @@ static inline void play_dead(void)
+>         smp_ops.play_dead();
+>  }
+>
+> -static inline void smp_send_reschedule(int cpu)
+> +static inline void arch_smp_send_reschedule(int cpu)
+>  {
+>         smp_ops.smp_send_reschedule(cpu);
+>  }
+> diff --git a/arch/xtensa/kernel/smp.c b/arch/xtensa/kernel/smp.c
+> index 4dc109dd6214..d95907b8e4d3 100644
+> --- a/arch/xtensa/kernel/smp.c
+> +++ b/arch/xtensa/kernel/smp.c
+> @@ -389,7 +389,7 @@ void arch_send_call_function_single_ipi(int cpu)
+>         send_ipi_message(cpumask_of(cpu), IPI_CALL_FUNC);
+>  }
+>
+> -void smp_send_reschedule(int cpu)
+> +void arch_smp_send_reschedule(int cpu)
+>  {
+>         send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
+>  }
+> diff --git a/include/linux/smp.h b/include/linux/smp.h
+> index a80ab58ae3f1..a67e7aad17b9 100644
+> --- a/include/linux/smp.h
+> +++ b/include/linux/smp.h
+> @@ -125,6 +125,7 @@ extern void smp_send_stop(void);
+>  /*
+>   * sends a 'reschedule' event to another CPU:
+>   */
+> +extern void arch_smp_send_reschedule(int cpu);
+>  extern void smp_send_reschedule(int cpu);
+>
+>
+> diff --git a/kernel/smp.c b/kernel/smp.c
+> index 387735180aed..9dfe057424f8 100644
+> --- a/kernel/smp.c
+> +++ b/kernel/smp.c
+> @@ -166,6 +166,12 @@ static inline void send_call_function_ipi_mask(const struct cpumask *mask)
+>         arch_send_call_function_ipi_mask(mask);
+>  }
+>
+> +void smp_send_reschedule(int cpu)
+> +{
+> +       trace_ipi_send_cpu(_RET_IP_, cpu);
+> +       arch_smp_send_reschedule(cpu);
+> +}
+> +
+>  #ifdef CONFIG_CSD_LOCK_WAIT_DEBUG
+>
+>  static DEFINE_STATIC_KEY_FALSE(csdlock_debug_enabled);
+> --
+> 2.31.1
+>
 
 
 -- 
