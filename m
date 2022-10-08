@@ -2,396 +2,154 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05635C43217
-	for <sparclinux@archiver.kernel.org>; Fri,  7 Oct 2022 22:48:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DF0C4332F
+	for <sparclinux@archiver.kernel.org>; Sat,  8 Oct 2022 00:01:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbiJGWr4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 7 Oct 2022 18:47:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33128 "EHLO
+        id S229491AbiJHAA6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 7 Oct 2022 20:00:58 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229699AbiJGWrw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 18:47:52 -0400
-Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 957B111C24F
-        for <sparclinux@vger.kernel.org>; Fri,  7 Oct 2022 15:47:46 -0700 (PDT)
-Received: by mail-pj1-x102b.google.com with SMTP id q10-20020a17090a304a00b0020b1d5f6975so4815953pjl.0
-        for <sparclinux@vger.kernel.org>; Fri, 07 Oct 2022 15:47:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=yZqaicka3IU4vV1MYdOWb5w3mOcfwDVNwAUulPcr27Y=;
-        b=iXQ9UvdzaG3zByw2GBNLz3/YVU1qnMbHWTkFhauTR657sXRQGAG+NlE+Q9rJd5luVx
-         INuHridXF4858oAPsKtGfjtbkx2VdjBSQCDETBbwUrSMqp7tkUzuQxOHz4Iev7dLesfK
-         vpnuiiKohn9Hx+Mnal9EiATSUtY0yZ8+mCOj4=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=yZqaicka3IU4vV1MYdOWb5w3mOcfwDVNwAUulPcr27Y=;
-        b=KUf69GldUTmp1r9PoGX2MBpMRMe4F3VtekeTp6ff5lB/IdGB6G4tkaZpogkF2Aggpy
-         oeHM90zO03G1agXoqn5Nq7QliKP0a+cL7JVRDrbYNL9Jv4bG7xeINDW0l0WQXSW7H4wC
-         Md4y3Q8SUuVOo0CkTB1n1kfiJWjrT3PqW69pmh0erDCDQiMMFr7QTYZZl0sGWk2rJobv
-         B9L3ArJZP75vfKxba5OtLn7l/wLLR7qlxoRd6uXcPYIxP6bfobVKeiO68H7ncMukbOLJ
-         YHTHxA5Djl8lm28Txnj8t9CnUefvIlMDhA+K7HWgxKcRp5YTQNHFubDAmmFmdnm7Ko0R
-         P+hg==
-X-Gm-Message-State: ACrzQf022LTs3D4mmVKPz1M+NxGbnQIrwTjBB012N8yzpbnbbP4ZWcdn
-        j2wqpv+Dwv7GS/Rmd2HxVYd11A==
-X-Google-Smtp-Source: AMsMyM69gQJ00Sz5u9R9f9VP3RUWXmTzR4M6xX7XuJJaYjHWOM1kbOa6WmdFAYvizvrv4fE33FE/eQ==
-X-Received: by 2002:a17:902:6945:b0:17b:f38b:900f with SMTP id k5-20020a170902694500b0017bf38b900fmr6900771plt.85.1665182865829;
-        Fri, 07 Oct 2022 15:47:45 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id q27-20020aa7983b000000b005625d5ae760sm2210282pfl.11.2022.10.07.15.47.44
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 07 Oct 2022 15:47:45 -0700 (PDT)
-Date:   Fri, 7 Oct 2022 15:47:44 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
-Cc:     linux-kernel@vger.kernel.org, patches@lists.linux.dev,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christoph =?iso-8859-1?Q?B=F6hmwalder?= 
-        <christoph.boehmwalder@linbit.com>, Christoph Hellwig <hch@lst.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Dave Airlie <airlied@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "James E . J . Bottomley" <jejb@linux.ibm.com>,
-        Jan Kara <jack@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Jens Axboe <axboe@kernel.dk>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        KP Singh <kpsingh@kernel.org>, Marco Elver <elver@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Thomas Graf <tgraf@suug.ch>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>,
-        Yury Norov <yury.norov@gmail.com>,
-        dri-devel@lists.freedesktop.org, kasan-dev@googlegroups.com,
-        kernel-janitors@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-nvme@lists.infradead.org, linux-parisc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org, Jan Kara <jack@suse.cz>
-Subject: Re: [PATCH v4 2/6] treewide: use prandom_u32_max() when possible
-Message-ID: <202210071241.445289C5@keescook>
-References: <20221007180107.216067-1-Jason@zx2c4.com>
- <20221007180107.216067-3-Jason@zx2c4.com>
+        with ESMTP id S229469AbiJHAA5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 7 Oct 2022 20:00:57 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 95F37C0A;
+        Fri,  7 Oct 2022 17:00:56 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3304261DF6;
+        Sat,  8 Oct 2022 00:00:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 946FBC433D6;
+        Sat,  8 Oct 2022 00:00:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1665187255;
+        bh=1QNTKASnThQzK9t9YJPKB3S5uW+rMCtzlHpZ4T+ejK4=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=nbaf5kXNGDwWzlsoB1UwvScZICJk41H+byHZ/oFGC1HHj6G6NNdgI/bP/IrRKpO6m
+         94rwv4rTVMhQbV96xn0vJCT7fMbX7mt3hQFDHQJ6ftHeEGWMgFakkmSVai9FPVvD6M
+         WiD3Hpl3Limwpe7zf5w8xMdKL7Ga+2GnaSLAUSMoSLPyFJGSmV8rrC/fEk1YX8oHkA
+         Gdrs5F9PQiOa3vFSPO3gCYuHspD58Jh6CFy5OkpsvZEI8cIwKKxK2BF/Tt1i4oanwS
+         PvI1HRni+yI/MxkLpx4IdX6IdMaZ0/PTOYJaBbUXT4DpXMXPzcwwsZnKBXgncd1f1B
+         KRwVsi4nDwydA==
+Received: by mail-oi1-f172.google.com with SMTP id t79so7299472oie.0;
+        Fri, 07 Oct 2022 17:00:55 -0700 (PDT)
+X-Gm-Message-State: ACrzQf3cdtCGhycme1G00YDkjTdAFx0opOHVX9M9wMPH8R8sbAxAgK93
+        fIKEd5d8dnAqLb/gA3HAUh6UhMb/HmnnpZeUFHI=
+X-Google-Smtp-Source: AMsMyM43x1xUF8/u4qEx0O4CLZy7PM9HGCWHCoBGuVZwK3v1D/JkfKAVQrBSId34wQKf2vHacT5ZjsmS+8zaB+iFHDo=
+X-Received: by 2002:aca:6155:0:b0:353:e740:ce01 with SMTP id
+ v82-20020aca6155000000b00353e740ce01mr8672777oib.19.1665187254786; Fri, 07
+ Oct 2022 17:00:54 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221007180107.216067-3-Jason@zx2c4.com>
+References: <6c48657c-04df-132d-6167-49ed293dea44@microchip.com> <mhng-8c3bb2e7-e84e-4aaa-bce8-3e8054255a2c@palmer-ri-x1c9>
+In-Reply-To: <mhng-8c3bb2e7-e84e-4aaa-bce8-3e8054255a2c@palmer-ri-x1c9>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Sat, 8 Oct 2022 08:00:42 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTRER75PyqniiTZgeeHjiy5UKVtrr89iPrdx_EzYPUC9Lg@mail.gmail.com>
+Message-ID: <CAJF2gTRER75PyqniiTZgeeHjiy5UKVtrr89iPrdx_EzYPUC9Lg@mail.gmail.com>
+Subject: Re: [PATCH] RISC-V: Add STACKLEAK erasing the kernel stack at the end
+ of syscalls
+To:     Palmer Dabbelt <palmer@dabbelt.com>
+Cc:     Conor.Dooley@microchip.com, oleg@redhat.com, vgupta@kernel.org,
+        linux@armlinux.org.uk, monstr@monstr.eu, dinguyen@kernel.org,
+        davem@davemloft.net, Arnd Bergmann <arnd@arndb.de>,
+        shorne@gmail.com, Paul Walmsley <paul.walmsley@sifive.com>,
+        aou@eecs.berkeley.edu, ardb@kernel.org, heiko@sntech.de,
+        daolu@rivosinc.com, linux-arch@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-snps-arc@lists.infradead.org, sparclinux@vger.kernel.org,
+        openrisc@lists.librecores.org, xianting.tian@linux.alibaba.com,
+        linux-efi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Oct 07, 2022 at 12:01:03PM -0600, Jason A. Donenfeld wrote:
-> Rather than incurring a division or requesting too many random bytes for
-> the given range, use the prandom_u32_max() function, which only takes
-> the minimum required bytes from the RNG and avoids divisions.
+On Fri, Oct 7, 2022 at 10:31 AM Palmer Dabbelt <palmer@dabbelt.com> wrote:
+>
+> On Tue, 06 Sep 2022 10:35:10 PDT (-0700), Conor.Dooley@microchip.com wrote:
+> > On 03/09/2022 17:23, guoren@kernel.org wrote:
+> >> EXTERNAL EMAIL: Do not click links or open attachments unless you know the content is safe
+> >>
+> >> From: Xianting Tian <xianting.tian@linux.alibaba.com>
+> >>
+> >> This adds support for the STACKLEAK gcc plugin to RISC-V and disables
+> >> the plugin in EFI stub code, which is out of scope for the protection.
+> >>
+> >> For the benefits of STACKLEAK feature, please check the commit
+> >> afaef01c0015 ("x86/entry: Add STACKLEAK erasing the kernel stack at the end of syscalls")
+> >>
+> >> Performance impact (tested on qemu env with 1 riscv64 hart, 1GB mem)
+> >>     hackbench -s 512 -l 200 -g 15 -f 25 -P
+> >>     2.0% slowdown
+> >>
+> >> Signed-off-by: Xianting Tian <xianting.tian@linux.alibaba.com>
+> >
+> > What changed since Xianting posted it himself a week ago:
+> > https://lore.kernel.org/linux-riscv/20220828135407.3897717-1-xianting.tian@linux.alibaba.com/
+> >
+> > There's an older patch from Du Lao adding STACKLEAK too:
+> > https://lore.kernel.org/linux-riscv/20220615213834.3116135-1-daolu@rivosinc.com/
+> >
+> > But since there's been no activity there since June...
+>
+> Looks like the only issues were some commit log wording stuff, and that
+> there's a test suite that should be run.  It's not clear from the
+> commits that anyone has done that, I'm fine with the patch if it passes
+> the tests but don't really know how to run them.
+>
+> Has anyone run the tests?
+I'm trying to do that with genric_entry.
+https://lore.kernel.org/linux-riscv/20220615213834.3116135-1-daolu@rivosinc.com/
 
-I actually meant splitting the by-hand stuff by subsystem, but nearly
-all of these can be done mechanically too, so it shouldn't be bad. Notes
-below...
+Mark Rutland has found an issue, and I'm solving it.
 
-> 
-> [...]
-> diff --git a/arch/arm64/kernel/process.c b/arch/arm64/kernel/process.c
-> index 92bcc1768f0b..87203429f802 100644
-> --- a/arch/arm64/kernel/process.c
-> +++ b/arch/arm64/kernel/process.c
-> @@ -595,7 +595,7 @@ unsigned long __get_wchan(struct task_struct *p)
->  unsigned long arch_align_stack(unsigned long sp)
->  {
->  	if (!(current->personality & ADDR_NO_RANDOMIZE) && randomize_va_space)
-> -		sp -= get_random_int() & ~PAGE_MASK;
-> +		sp -= prandom_u32_max(PAGE_SIZE);
->  	return sp & ~0xf;
->  }
->  
+>
+> >
+> >> ---
+> >>  arch/riscv/Kconfig                    | 1 +
+> >>  arch/riscv/include/asm/processor.h    | 4 ++++
+> >>  arch/riscv/kernel/entry.S             | 3 +++
+> >>  drivers/firmware/efi/libstub/Makefile | 2 +-
+> >>  4 files changed, 9 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/arch/riscv/Kconfig b/arch/riscv/Kconfig
+> >> index ed66c31e4655..61fd0dad4463 100644
+> >> --- a/arch/riscv/Kconfig
+> >> +++ b/arch/riscv/Kconfig
+> >> @@ -85,6 +85,7 @@ config RISCV
+> >>         select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
+> >>         select HAVE_ARCH_THREAD_STRUCT_WHITELIST
+> >>         select HAVE_ARCH_VMAP_STACK if MMU && 64BIT
+> >> +       select HAVE_ARCH_STACKLEAK
+> >>         select HAVE_ASM_MODVERSIONS
+> >>         select HAVE_CONTEXT_TRACKING_USER
+> >>         select HAVE_DEBUG_KMEMLEAK
+> >> diff --git a/drivers/firmware/efi/libstub/Makefile b/drivers/firmware/efi/libstub/Makefile
+> >> index d0537573501e..5e1fc4f82883 100644
+> >> --- a/drivers/firmware/efi/libstub/Makefile
+> >> +++ b/drivers/firmware/efi/libstub/Makefile
+> >> @@ -25,7 +25,7 @@ cflags-$(CONFIG_ARM)          := $(subst $(CC_FLAGS_FTRACE),,$(KBUILD_CFLAGS)) \
+> >>                                    -fno-builtin -fpic \
+> >>                                    $(call cc-option,-mno-single-pic-base)
+> >>  cflags-$(CONFIG_RISCV)         := $(subst $(CC_FLAGS_FTRACE),,$(KBUILD_CFLAGS)) \
+> >> -                                  -fpic
+> >> +                                  -fpic $(DISABLE_STACKLEAK_PLUGIN)
+> >>
+> >>  cflags-$(CONFIG_EFI_GENERIC_STUB) += -I$(srctree)/scripts/dtc/libfdt
+> >>
+> >> --
+> >> 2.17.1
+> >>
+> >>
+> >> _______________________________________________
+> >> linux-riscv mailing list
+> >> linux-riscv@lists.infradead.org
+> >> http://lists.infradead.org/mailman/listinfo/linux-riscv
+> >
 
-@mask@
-expression MASK;
-@@
 
-- (get_random_int() & ~(MASK))
-+ prandom_u32_max(MASK)
-
-> diff --git a/arch/loongarch/kernel/vdso.c b/arch/loongarch/kernel/vdso.c
-> index f32c38abd791..8c9826062652 100644
-> --- a/arch/loongarch/kernel/vdso.c
-> +++ b/arch/loongarch/kernel/vdso.c
-> @@ -78,7 +78,7 @@ static unsigned long vdso_base(void)
->  	unsigned long base = STACK_TOP;
->  
->  	if (current->flags & PF_RANDOMIZE) {
-> -		base += get_random_int() & (VDSO_RANDOMIZE_SIZE - 1);
-> +		base += prandom_u32_max(VDSO_RANDOMIZE_SIZE);
->  		base = PAGE_ALIGN(base);
->  	}
->  
-
-@minus_one@
-expression FULL;
-@@
-
-- (get_random_int() & ((FULL) - 1)
-+ prandom_u32_max(FULL)
-
-> diff --git a/arch/parisc/kernel/vdso.c b/arch/parisc/kernel/vdso.c
-> index 63dc44c4c246..47e5960a2f96 100644
-> --- a/arch/parisc/kernel/vdso.c
-> +++ b/arch/parisc/kernel/vdso.c
-> @@ -75,7 +75,7 @@ int arch_setup_additional_pages(struct linux_binprm *bprm,
->  
->  	map_base = mm->mmap_base;
->  	if (current->flags & PF_RANDOMIZE)
-> -		map_base -= (get_random_int() & 0x1f) * PAGE_SIZE;
-> +		map_base -= prandom_u32_max(0x20) * PAGE_SIZE;
->  
->  	vdso_text_start = get_unmapped_area(NULL, map_base, vdso_text_len, 0, 0);
->  
-
-These are more fun, but Coccinelle can still do them with a little
-Pythonic help:
-
-// Find a potential literal
-@literal_mask@
-expression LITERAL;
-identifier randfunc =~ "get_random_int|prandom_u32|get_random_u32";
-position p;
-@@
-
-        (randfunc()@p & (LITERAL))
-
-// Add one to the literal.
-@script:python add_one@
-literal << literal_mask.LITERAL;
-RESULT;
-@@
-
-if literal.startswith('0x'):
-        value = int(literal, 16) + 1
-        coccinelle.RESULT = cocci.make_expr("0x%x" % (value))
-elif literal[0] in '123456789':
-        value = int(literal, 10) + 1
-        coccinelle.RESULT = cocci.make_expr("%d" % (value))
-else:
-        print("I don't know how to handle: %s" % (literal))
-
-// Replace the literal mask with the calculated result.
-@plus_one@
-expression literal_mask.LITERAL;
-position literal_mask.p;
-expression add_one.RESULT;
-identifier FUNC;
-@@
-
--       (FUNC()@p & (LITERAL))
-+       prandom_u32_max(RESULT)
-
-> diff --git a/drivers/mtd/tests/stresstest.c b/drivers/mtd/tests/stresstest.c
-> index cb29c8c1b370..d2faaca7f19d 100644
-> --- a/drivers/mtd/tests/stresstest.c
-> +++ b/drivers/mtd/tests/stresstest.c
-> @@ -45,9 +45,8 @@ static int rand_eb(void)
->  	unsigned int eb;
->  
->  again:
-> -	eb = prandom_u32();
->  	/* Read or write up 2 eraseblocks at a time - hence 'ebcnt - 1' */
-> -	eb %= (ebcnt - 1);
-> +	eb = prandom_u32_max(ebcnt - 1);
->  	if (bbt[eb])
->  		goto again;
->  	return eb;
-
-This can also be done mechanically:
-
-@multi_line@
-identifier randfunc =~ "get_random_int|prandom_u32|get_random_u32";
-identifier RAND;
-expression E;
-@@
-
--       RAND = randfunc();
-        ... when != RAND
--       RAND %= (E);
-+       RAND = prandom_u32_max(E);
-
-@collapse_ret@
-type TYPE;
-identifier VAR;
-expression E;
-@@
-
- {
--       TYPE VAR;
--       VAR = (E);
--       return VAR;
-+       return E;
- }
-
-@drop_var@
-type TYPE;
-identifier VAR;
-@@
-
- {
--       TYPE VAR;
-        ... when != VAR
- }
-
-> diff --git a/fs/ext2/ialloc.c b/fs/ext2/ialloc.c
-> index 998dd2ac8008..f4944c4dee60 100644
-> --- a/fs/ext2/ialloc.c
-> +++ b/fs/ext2/ialloc.c
-> @@ -277,8 +277,7 @@ static int find_group_orlov(struct super_block *sb, struct inode *parent)
->  		int best_ndir = inodes_per_group;
->  		int best_group = -1;
->  
-> -		group = prandom_u32();
-> -		parent_group = (unsigned)group % ngroups;
-> +		parent_group = prandom_u32_max(ngroups);
->  		for (i = 0; i < ngroups; i++) {
->  			group = (parent_group + i) % ngroups;
->  			desc = ext2_get_group_desc (sb, group, NULL);
-
-Okay, that one is too much for me -- checking that group is never used
-after the assignment removal is likely possible, but beyond my cocci
-know-how. :)
-
-> diff --git a/fs/ext4/ialloc.c b/fs/ext4/ialloc.c
-> index f73e5eb43eae..36d5bc595cc2 100644
-> --- a/fs/ext4/ialloc.c
-> +++ b/fs/ext4/ialloc.c
-> @@ -463,10 +463,9 @@ static int find_group_orlov(struct super_block *sb, struct inode *parent,
->  			hinfo.hash_version = DX_HASH_HALF_MD4;
->  			hinfo.seed = sbi->s_hash_seed;
->  			ext4fs_dirhash(parent, qstr->name, qstr->len, &hinfo);
-> -			grp = hinfo.hash;
-> +			parent_group = hinfo.hash % ngroups;
->  		} else
-> -			grp = prandom_u32();
-> -		parent_group = (unsigned)grp % ngroups;
-> +			parent_group = prandom_u32_max(ngroups);
->  		for (i = 0; i < ngroups; i++) {
->  			g = (parent_group + i) % ngroups;
->  			get_orlov_stats(sb, g, flex_size, &stats);
-
-Much less easy mechanically. :)
-
-> diff --git a/lib/test_hexdump.c b/lib/test_hexdump.c
-> index 0927f44cd478..41a0321f641a 100644
-> --- a/lib/test_hexdump.c
-> +++ b/lib/test_hexdump.c
-> @@ -208,7 +208,7 @@ static void __init test_hexdump_overflow(size_t buflen, size_t len,
->  static void __init test_hexdump_overflow_set(size_t buflen, bool ascii)
->  {
->  	unsigned int i = 0;
-> -	int rs = (prandom_u32_max(2) + 1) * 16;
-> +	int rs = prandom_u32_max(2) + 1 * 16;
->  
->  	do {
->  		int gs = 1 << i;
-
-This looks wrong. Cocci says:
-
--       int rs = (get_random_int() % 2 + 1) * 16;
-+       int rs = (prandom_u32_max(2) + 1) * 16;
-
-> diff --git a/lib/test_vmalloc.c b/lib/test_vmalloc.c
-> index 4f2f2d1bac56..56ffaa8dd3f6 100644
-> --- a/lib/test_vmalloc.c
-> +++ b/lib/test_vmalloc.c
-> @@ -151,9 +151,7 @@ static int random_size_alloc_test(void)
->  	int i;
->  
->  	for (i = 0; i < test_loop_count; i++) {
-> -		n = prandom_u32();
-> -		n = (n % 100) + 1;
-> -
-> +		n = prandom_u32_max(n % 100) + 1;
->  		p = vmalloc(n * PAGE_SIZE);
->  
->  		if (!p)
-
-This looks wrong. Cocci says:
-
--               n = prandom_u32();
--               n = (n % 100) + 1;
-+               n = prandom_u32_max(100) + 1;
-
-> @@ -293,16 +291,12 @@ pcpu_alloc_test(void)
->  		return -1;
->  
->  	for (i = 0; i < 35000; i++) {
-> -		unsigned int r;
-> -
-> -		r = prandom_u32();
-> -		size = (r % (PAGE_SIZE / 4)) + 1;
-> +		size = prandom_u32_max(PAGE_SIZE / 4) + 1;
->  
->  		/*
->  		 * Maximum PAGE_SIZE
->  		 */
-> -		r = prandom_u32();
-> -		align = 1 << ((r % 11) + 1);
-> +		align = 1 << (prandom_u32_max(11) + 1);
->  
->  		pcpu[i] = __alloc_percpu(size, align);
->  		if (!pcpu[i])
-> @@ -393,14 +387,11 @@ static struct test_driver {
->  
->  static void shuffle_array(int *arr, int n)
->  {
-> -	unsigned int rnd;
->  	int i, j;
->  
->  	for (i = n - 1; i > 0; i--)  {
-> -		rnd = prandom_u32();
-> -
->  		/* Cut the range. */
-> -		j = rnd % i;
-> +		j = prandom_u32_max(i);
->  
->  		/* Swap indexes. */
->  		swap(arr[i], arr[j]);
-
-Yup, agrees with Cocci on these.
 
 -- 
-Kees Cook
+Best Regards
+ Guo Ren
