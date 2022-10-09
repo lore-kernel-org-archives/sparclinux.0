@@ -2,59 +2,48 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03F73C433FE
-	for <sparclinux@archiver.kernel.org>; Sun,  9 Oct 2022 03:41:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE43C43219
+	for <sparclinux@archiver.kernel.org>; Sun,  9 Oct 2022 14:18:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229801AbiJIDlq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 8 Oct 2022 23:41:46 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42944 "EHLO
+        id S229561AbiJIOSO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 9 Oct 2022 10:18:14 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229884AbiJIDlU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 8 Oct 2022 23:41:20 -0400
-Received: from mail-pg1-x534.google.com (mail-pg1-x534.google.com [IPv6:2607:f8b0:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7914356CF
-        for <sparclinux@vger.kernel.org>; Sat,  8 Oct 2022 20:41:16 -0700 (PDT)
-Received: by mail-pg1-x534.google.com with SMTP id h185so744667pgc.10
-        for <sparclinux@vger.kernel.org>; Sat, 08 Oct 2022 20:41:16 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=Jc9wqi9hH7sDAuXmZMPHByefEvgO0MbR3+ZEqDB7Wuk=;
-        b=ZhbF7aukJSn3TNMRwCJkZSqm1r+X38mJ2RxvPJW6Z+9mn1TOlxypOyituNx8mz1HVC
-         FGqxSiHSDomVzpOPFi9kka3+6Rdn9v0XaNwqyXLdtOhmQI0POv0z39c8Rsj4C7/d+KIP
-         fJKzHg6Na0ETg2nVHR+d6vQT/rsL3lGZwlInw=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=Jc9wqi9hH7sDAuXmZMPHByefEvgO0MbR3+ZEqDB7Wuk=;
-        b=IXZ8D25AFkZeEMCndP2ZdA+3fSgj++hfuuyzPNe4QZHA2hcAVP1ghKgao0dOEDwhOg
-         IFhzs2pe022d+OPJGA0LRYsrV3QDz376AykQq9/ata7Btoc025SxCrutPjnsljYhMGij
-         kI8WKFM+WypuVgcnhwhobqDcw0xpvMazvrNfpLW2oLNfCsBJX4neSglcQNH5e7KoXIjQ
-         PunJDQuOrbNwUktEBRAaXRSIEVZ1Y0uyy7mrBX8vndb16eOTNKRqp9MdNeT5uJdqpoUh
-         TYVLRu7JhdW1XFhyII2r1cwxr8dO3DFZYiDVQHOTAbGi5MOIERy3QH5TflQ01aGW15at
-         AArA==
-X-Gm-Message-State: ACrzQf0TAuJG7W2JrOocvDw78EtFKYUoPkCteJUACe1sp86xM/yEYU33
-        l5n+fDDqt6/iOgZZz6nqC0X3Yw==
-X-Google-Smtp-Source: AMsMyM7YoBLGpPreiN9760Jo2f1/EfVU3YsZS0ZZ4a+XLEChtkH8ZIzixkyyCKOXZUBZ1uN6dxOluQ==
-X-Received: by 2002:a63:5a44:0:b0:431:fa3a:f92c with SMTP id k4-20020a635a44000000b00431fa3af92cmr11522888pgm.471.1665286876368;
-        Sat, 08 Oct 2022 20:41:16 -0700 (PDT)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id w2-20020a626202000000b0053e8f4a10c1sm4198763pfb.217.2022.10.08.20.41.15
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sat, 08 Oct 2022 20:41:15 -0700 (PDT)
-Date:   Sat, 8 Oct 2022 20:41:14 -0700
-From:   Kees Cook <keescook@chromium.org>
-To:     "Jason A. Donenfeld" <Jason@zx2c4.com>
+        with ESMTP id S229854AbiJIOSJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 9 Oct 2022 10:18:09 -0400
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09CF626ADE;
+        Sun,  9 Oct 2022 07:18:08 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A6EE7B80D2B;
+        Sun,  9 Oct 2022 14:18:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 659D2C433D6;
+        Sun,  9 Oct 2022 14:17:59 +0000 (UTC)
+Authentication-Results: smtp.kernel.org;
+        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="YgHbN0I0"
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
+        t=1665325077;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=oirLAgHKzqbm2tDuRRRruxvBPFu6OuA1m1Bdo0JewVo=;
+        b=YgHbN0I0lUsk61F/tkacjTtELz9m0jTOee92icnhvNyHJrs9iBf1nxk5rIk4LCzkioh8sG
+        190YFxxX+8obr4IDytSpJV/y+LGJPtZT2kSp6+N5MRfHp0a/WJLUeHRU53NaAsEmu2d/gM
+        WcwjBCYWAwT/EnbHfbZZP/9zFIVJmUM=
+Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 76b4077f (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
+        Sun, 9 Oct 2022 14:17:57 +0000 (UTC)
+Date:   Sun, 9 Oct 2022 08:17:41 -0600
+From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
+To:     Kees Cook <keescook@chromium.org>
 Cc:     linux-kernel@vger.kernel.org, patches@lists.linux.dev,
         Andreas Noever <andreas.noever@gmail.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
         Borislav Petkov <bp@alien8.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
-        Christoph =?iso-8859-1?Q?B=F6hmwalder?= 
+        Christoph =?utf-8?Q?B=C3=B6hmwalder?= 
         <christoph.boehmwalder@linbit.com>, Christoph Hellwig <hch@lst.de>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
         Daniel Borkmann <daniel@iogearbox.net>,
@@ -107,55 +96,32 @@ Cc:     linux-kernel@vger.kernel.org, patches@lists.linux.dev,
         loongarch@lists.linux.dev, netdev@vger.kernel.org,
         sparclinux@vger.kernel.org, x86@kernel.org
 Subject: Re: [PATCH v5 0/7] treewide cleanup of random integer usage
-Message-ID: <202210082028.692DFA21@keescook>
+Message-ID: <Y0LYBaooZKDbL93G@zx2c4.com>
 References: <20221008055359.286426-1-Jason@zx2c4.com>
+ <202210082028.692DFA21@keescook>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20221008055359.286426-1-Jason@zx2c4.com>
+In-Reply-To: <202210082028.692DFA21@keescook>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Oct 07, 2022 at 11:53:52PM -0600, Jason A. Donenfeld wrote:
-> This is a five part treewide cleanup of random integer handling. The
-> rules for random integers are:
+On Sat, Oct 08, 2022 at 08:41:14PM -0700, Kees Cook wrote:
+> On Fri, Oct 07, 2022 at 11:53:52PM -0600, Jason A. Donenfeld wrote:
+> > This is a five part treewide cleanup of random integer handling. The
+> > rules for random integers are:
+> 
+> Reviewing the delta between of my .cocci rules and your v5, everything
+> matches, except for get_random_int() conversions for files not in
+> your tree:
+> [...]
+> So, I guess I mean to say that "prandom: remove unused functions" is
+> going to cause some pain. :) Perhaps don't push that to -next, and do a
+> final pass next merge window to catch any new stuff, and then send those
+> updates and the removal before -rc1 closes?
 
-Reviewing the delta between of my .cocci rules and your v5, everything
-matches, except for get_random_int() conversions for files not in
-your tree:
+Ooof. Actually I think what I'll do is include a suggested diff for the
+merge commit that fixes up the remaining two thankfully trivial cases.
 
-diff --git a/drivers/gpu/drm/tests/drm_buddy_test.c b/drivers/gpu/drm/tests/drm_buddy_test.c
-index 7a2b2d6bc3fe..62f69589a72d 100644
---- a/drivers/gpu/drm/tests/drm_buddy_test.c
-+++ b/drivers/gpu/drm/tests/drm_buddy_test.c
-@@ -729,7 +729,7 @@ static void drm_test_buddy_alloc_limit(struct kunit *test)
- static int drm_buddy_init_test(struct kunit *test)
- {
- 	while (!random_seed)
--		random_seed = get_random_int();
-+		random_seed = get_random_u32();
- 
- 	return 0;
- }
-diff --git a/drivers/gpu/drm/tests/drm_mm_test.c b/drivers/gpu/drm/tests/drm_mm_test.c
-index 659d1af4dca7..c4b66eeae203 100644
---- a/drivers/gpu/drm/tests/drm_mm_test.c
-+++ b/drivers/gpu/drm/tests/drm_mm_test.c
-@@ -2212,7 +2212,7 @@ static void drm_test_mm_color_evict_range(struct kunit *test)
- static int drm_mm_init_test(struct kunit *test)
- {
- 	while (!random_seed)
--		random_seed = get_random_int();
-+		random_seed = get_random_u32();
- 
- 	return 0;
- }
-
-So, I guess I mean to say that "prandom: remove unused functions" is
-going to cause some pain. :) Perhaps don't push that to -next, and do a
-final pass next merge window to catch any new stuff, and then send those
-updates and the removal before -rc1 closes?
-
--- 
-Kees Cook
+Jason
