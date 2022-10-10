@@ -2,126 +2,121 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE43C43219
-	for <sparclinux@archiver.kernel.org>; Sun,  9 Oct 2022 14:18:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74653C433FE
+	for <sparclinux@archiver.kernel.org>; Mon, 10 Oct 2022 21:36:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229561AbiJIOSO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 9 Oct 2022 10:18:14 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51776 "EHLO
+        id S229702AbiJJVga (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 10 Oct 2022 17:36:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229854AbiJIOSJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 9 Oct 2022 10:18:09 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 09CF626ADE;
-        Sun,  9 Oct 2022 07:18:08 -0700 (PDT)
+        with ESMTP id S229590AbiJJVgW (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 10 Oct 2022 17:36:22 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DF147D781;
+        Mon, 10 Oct 2022 14:36:20 -0700 (PDT)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A6EE7B80D2B;
-        Sun,  9 Oct 2022 14:18:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 659D2C433D6;
-        Sun,  9 Oct 2022 14:17:59 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="YgHbN0I0"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1665325077;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=oirLAgHKzqbm2tDuRRRruxvBPFu6OuA1m1Bdo0JewVo=;
-        b=YgHbN0I0lUsk61F/tkacjTtELz9m0jTOee92icnhvNyHJrs9iBf1nxk5rIk4LCzkioh8sG
-        190YFxxX+8obr4IDytSpJV/y+LGJPtZT2kSp6+N5MRfHp0a/WJLUeHRU53NaAsEmu2d/gM
-        WcwjBCYWAwT/EnbHfbZZP/9zFIVJmUM=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 76b4077f (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Sun, 9 Oct 2022 14:17:57 +0000 (UTC)
-Date:   Sun, 9 Oct 2022 08:17:41 -0600
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Kees Cook <keescook@chromium.org>
-Cc:     linux-kernel@vger.kernel.org, patches@lists.linux.dev,
-        Andreas Noever <andreas.noever@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Christoph =?utf-8?Q?B=C3=B6hmwalder?= 
-        <christoph.boehmwalder@linbit.com>, Christoph Hellwig <hch@lst.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        Dave Airlie <airlied@redhat.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        Eric Dumazet <edumazet@google.com>,
-        Florian Westphal <fw@strlen.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Helge Deller <deller@gmx.de>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Hugh Dickins <hughd@google.com>,
-        Jakub Kicinski <kuba@kernel.org>,
-        "James E . J . Bottomley" <jejb@linux.ibm.com>,
-        Jan Kara <jack@suse.com>, Jason Gunthorpe <jgg@ziepe.ca>,
-        Jens Axboe <axboe@kernel.dk>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Jozsef Kadlecsik <kadlec@netfilter.org>,
-        KP Singh <kpsingh@kernel.org>, Marco Elver <elver@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Pablo Neira Ayuso <pablo@netfilter.org>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Theodore Ts'o <tytso@mit.edu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Thomas Graf <tgraf@suug.ch>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Vignesh Raghavendra <vigneshr@ti.com>,
-        WANG Xuerui <kernel@xen0n.name>, Will Deacon <will@kernel.org>,
-        Yury Norov <yury.norov@gmail.com>,
-        dri-devel@lists.freedesktop.org, kasan-dev@googlegroups.com,
-        kernel-janitors@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-nvme@lists.infradead.org, linux-parisc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v5 0/7] treewide cleanup of random integer usage
-Message-ID: <Y0LYBaooZKDbL93G@zx2c4.com>
-References: <20221008055359.286426-1-Jason@zx2c4.com>
- <202210082028.692DFA21@keescook>
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3E9FD60F66;
+        Mon, 10 Oct 2022 21:36:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6B78BC43470;
+        Mon, 10 Oct 2022 21:36:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1665437778;
+        bh=cKD9beUox1BasmA2rdg6BBwLnZXOcROsJgR89GU+KyI=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:From;
+        b=Nt9b4AziSTJzIuVOCG7x+qhZ9AgmlgLrLgQ1tpqC2L3BTWpm4rWDYxkc9jZgZeWB7
+         099I6vjM0d6YQYMjm8HSIUjX5UiwqNLB9UWsYByWaLf4pGwmdZGOF3sbRluP4SdT0P
+         1+g30KY6DTWyCWhq4Csv/fz/nl8E7gPC+3VmfLl8nh4MnphpyB5fBsYOyr0/hYt92t
+         I5xaesWgzug0PAKetDhIqa6mKBZN72HKjdvFp2V5T2MeeuXl2E5/9E2Nh8qk+81Aow
+         O5xqU39/djgaRK/wFbyf4U3fvNTraqjVeDQxxjgG63+QMxBnvV09Vj5m2iW5Irxvi/
+         BprVcGFDT7IDQ==
+Date:   Mon, 10 Oct 2022 16:36:16 -0500
+From:   Bjorn Helgaas <helgaas@kernel.org>
+To:     Richard Rogalski <rrogalski@tutanota.com>
+Cc:     Linux Pci <linux-pci@vger.kernel.org>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Lijo Lazar <lijo.lazar@amd.com>
+Subject: Re: SPARC64: getting "no compatible bridge window" errors :/
+Message-ID: <20221010213616.GA2937885@bhelgaas>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <202210082028.692DFA21@keescook>
+In-Reply-To: <20221003223500.GA2124698@bhelgaas>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Oct 08, 2022 at 08:41:14PM -0700, Kees Cook wrote:
-> On Fri, Oct 07, 2022 at 11:53:52PM -0600, Jason A. Donenfeld wrote:
-> > This is a five part treewide cleanup of random integer handling. The
-> > rules for random integers are:
+[+cc Lijo]
+
+On Mon, Oct 03, 2022 at 05:35:02PM -0500, Bjorn Helgaas wrote:
+> On Mon, Sep 26, 2022 at 12:11:06PM -0500, Bjorn Helgaas wrote:
+> > [+cc Alex, David, sparclinux, LKML]
+> > 
+> > On Sun, Sep 25, 2022 at 06:59:23PM +0200, Richard Rogalski wrote:
+> > > I hope this is the right place for this.
+> > 
+> > This is great, thanks a lot for your report!  Is this a regression?
+> > If so, what's the most recent kernel that worked?  
+> > 
+> > > In my dmesg output, I get things like:
+> > > 
+> > > pci 0000:04:00.0: can't claim VGA legacy [mem 0x000a0000-0x000bffff]: no compatible bridge window
+> > > pci 0000:06:00.0: can't claim VGA legacy [mem 0x000a0000-0x000bffff]: no compatible bridge window
+> > > pci 0000:06:00.1: can't claim BAR 0 [mem 0x84110200000-0x84110203fff 64bit]: no compatible bridge window
+> > > 
+> > > I opened a bug for amdgpu [here](https://gitlab.freedesktop.org/drm/amd/-/issues/2169) but looking further into it I think it is caused by deeper PCIe problems :\
+> > > 
+> > > https://gitlab.freedesktop.org/drm/amd/uploads/cbf47807972c8a990bb2a8cdbb39ad9e/8C7CA9QNG dmesg log
+> > > https://gitlab.freedesktop.org/drm/amd/uploads/6a799425dea50febd82f8bc11e54433a/ll.txt lspci -vv
+> > > https://gitlab.freedesktop.org/drm/amd/uploads/7d4a794b1f7d67a1ffcdee5dfdec3ad6/config.txt kernel .config
+> > 
+> > Your error output attachment [1] contains an address that looks like
+> > it's in 06:00.0 BAR 5:
+> > 
+> >   pci 0000:06:00.0: reg 0x24: [mem 0x84001200000-0x8400123ffff]
+> >   NON-RESUMABLE ERROR: insn effective address [0x0000084001201410]
+> > 
+> > This looks like an amdgpu issue.  There have been recent changes like
+> > c1c39032a074 ("drm/amdgpu: make sure to init common IP before gmc")
+> > and dd6aeb4e5f59 ("drm/amdgpu: Don't enable LTR if not supported")
+> > that could be related.
+
+Ping for any updates?  Added Lijo, who fixed the LTR issue.
+
+> > The PCI "no compatible bridge window" warnings are definitely an
+> > issue, but I don't think they're related to the amdgpu crash:
+> > 
+> >   pci@400: PCI MEM64 [mem 0x84100000000-0x84dffffffff] offset 80000000000
+> >   pci_bus 0000:00: root bus resource [mem 0x84100000000-0x84dffffffff] (bus address [0x4100000000-0x4dffffffff])
+> >   pci 0000:09:00.0: can't claim BAR 0 [mem 0x84120000000-0x8412007ffff 64bit]: no compatible bridge window
+> > 
+> > Those and this from lspci:
+> > 
+> >   0000:01:00.0 bridge to [bus 02-09] window [mem 0x4100000000-0x412fffffff pref]
+> >   0000:02:0c.0 bridge to [bus 09]    window [mem 0x4120000000-0x412fffffff pref]
+> >   0000:09:00.0 Intel 82599ES NIC Region 0: Memory at 0x84120000000
+> > 
+> > are telling us there's something wrong with how the resource-to-bus
+> > offset is being applied.  It looks like the offset was applied to the
+> > NIC BAR, but didn't get applied to the bridge windows.
+> > 
+> > Could you start a new thread here (linux-kernel@vger.kernel.org,
+> > linux-pci@vger.kernel.org, and sparclinux@vger.kernel.org) for this
+> > issue and attach the dmesg log when booting with "ofpci_debug=1"?
 > 
-> Reviewing the delta between of my .cocci rules and your v5, everything
-> matches, except for get_random_int() conversions for files not in
-> your tree:
-> [...]
-> So, I guess I mean to say that "prandom: remove unused functions" is
-> going to cause some pain. :) Perhaps don't push that to -next, and do a
-> final pass next merge window to catch any new stuff, and then send those
-> updates and the removal before -rc1 closes?
+> Any chance you could collect a dmesg log with "ofpci_debug=1"?
+> 
+> I'd like to look at the resource-to-bus offset issue.
 
-Ooof. Actually I think what I'll do is include a suggested diff for the
-merge commit that fixes up the remaining two thankfully trivial cases.
+I would still like to see this dmesg log if possible.
 
-Jason
+> > Do the devices we complain about (NICs and storage HBAs 09:00.0,
+> > 09:00.1, 0d:00.0, 0d:00.1, 0e:00.0, 0f:00.0, 0001:03:00.0,
+> > 0001:03:00.1, 0001:0:00.0, 0001:0a:00.1) work?
+> > 
+> > Bjorn
+> > 
+> > [1] https://gitlab.freedesktop.org/drm/amd/uploads/b51f4d6783eeebf90de9a400525d07d6/qq
