@@ -2,214 +2,123 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27118C433FE
-	for <sparclinux@archiver.kernel.org>; Tue, 11 Oct 2022 15:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D65EC433FE
+	for <sparclinux@archiver.kernel.org>; Tue, 11 Oct 2022 15:30:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231490AbiJKPCn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 11 Oct 2022 11:02:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56098 "EHLO
+        id S230140AbiJKPaS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 11 Oct 2022 11:30:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49122 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231342AbiJKPBS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Oct 2022 11:01:18 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7AA7F9C21D;
-        Tue, 11 Oct 2022 07:56:56 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 53A85B81630;
-        Tue, 11 Oct 2022 14:52:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0AB24C433D6;
-        Tue, 11 Oct 2022 14:52:50 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1665499972;
-        bh=8MLmv8j3T46AmOBVlkUxEoYYnaocUtHwPDy2md3Eo98=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=HBa2dbhM7qn7rVyFd8ROlAOe/VIF9PpbKoURddD0DQYmfrj2ruv4+Mj3Cj807rqQ+
-         RtPlpn350j2HVI8GTNitXX9gWcQf3dky0zexZPGciFTDEAtFcaL28N65N25Dzgr/vN
-         Objd8jK/7/vLPHrVDZjAbI/rBxny2TNfDUsjjaAW0F9RRtNTwVo21CerDNIu5ffUwh
-         H/NHKYRXveOEswUFLTR9u8BLOKMubKIvxx+t0qdN+9AfOWNIhK/30ZDN0A5EVotepA
-         dz7GhHfYhy1kGwwqL4aYAo+G2bhCQVrZqoLENm+0SlmBIGwVMysYGJDp7lcmGUTSKM
-         dZ1KuZDYqX2HQ==
-From:   Sasha Levin <sashal@kernel.org>
-To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Cc:     Linus Walleij <linus.walleij@linaro.org>,
-        kernel test robot <lkp@intel.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-arch@vger.kernel.org,
-        Mark Brown <broonie@kernel.org>, Arnd Bergmann <arnd@arndb.de>,
-        Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 5.15 12/26] sparc: Fix the generic IO helpers
-Date:   Tue, 11 Oct 2022 10:52:19 -0400
-Message-Id: <20221011145233.1624013-12-sashal@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221011145233.1624013-1-sashal@kernel.org>
-References: <20221011145233.1624013-1-sashal@kernel.org>
+        with ESMTP id S229824AbiJKP3o (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 11 Oct 2022 11:29:44 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1A74286E7
+        for <sparclinux@vger.kernel.org>; Tue, 11 Oct 2022 08:19:59 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1665501540;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=ti1NCFCTzr5YPwBHvg45c+mfaiUwrR60uA7ep6lLZuA=;
+        b=f5z07qvFz4XZSdcbVrEjY0ex3egptZCaUvfFgLgZMtmhxqKt4SYV7CUcknaT8z7exlnJZq
+        S/8yX/ISXCdbNBWes+bxPs7+PN9x2rBA6VoLKRA+UGksGFfJxJMSD/f1ei9MgothH8LLbO
+        /oSnM/9Hf75MSPASgulEE35/ob8pp0Y=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-616-NmlLQj2yNMOvgv7-fHJnQA-1; Tue, 11 Oct 2022 11:02:20 -0400
+X-MC-Unique: NmlLQj2yNMOvgv7-fHJnQA-1
+Received: by mail-wm1-f72.google.com with SMTP id bg21-20020a05600c3c9500b003c2acbff422so912374wmb.0
+        for <sparclinux@vger.kernel.org>; Tue, 11 Oct 2022 08:02:13 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
+         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=ti1NCFCTzr5YPwBHvg45c+mfaiUwrR60uA7ep6lLZuA=;
+        b=M7C/l5fPmOxJyAyRAG7ToI3Qkqfc+jEDzHVgDUz1egffFv+UaJET5BnWWqQbr17oeI
+         kvZQtQ2P2v3+HknHMhK0V67gfaIehgME1iA3AIkJFVFeHgNOMOfgmtOOF5UP/pN0CVtp
+         RTqMVJKC3wkH+VzeiITRugu6KqPbRbAGJ/NNzV/rtx8JatA0COftMC99D3kzJl6TzOGR
+         dGPdxqsg4pLukkm27e1/gOsM8cRS8lq+9ydn1s3l3e1uY+0yF1WYnHBq+Vlm47YfHlx0
+         QgPFqapAS9eCV83cJSn6Zzhvdu0WOBawYbEflvwG5P073tKbH8QMmHAomnNvcs6Nu81s
+         zf0g==
+X-Gm-Message-State: ACrzQf0wFkpP7GGaeG7O7pyxgVUPSCwQmuiRhAuXh071zxzI3o7kFKK/
+        O8Go9FIlPm7FXNXqW3N+9QhVZpQBLjKIwj5OGq+FdtCyLn0cKpDFOXCRuRUhgucd/FRAnLsHbUW
+        +CKX+KQN3qcJl2lCzd882Xg==
+X-Received: by 2002:a5d:59a3:0:b0:22e:4b62:7ceb with SMTP id p3-20020a5d59a3000000b0022e4b627cebmr15699177wrr.90.1665500528705;
+        Tue, 11 Oct 2022 08:02:08 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM7srUgXRaEVg4Pb59BUs0ShAt8e40s56KQw2lU0G4VdN3sOMR/0VHio2//G+OqnLs1Wx3l7Vw==
+X-Received: by 2002:a5d:59a3:0:b0:22e:4b62:7ceb with SMTP id p3-20020a5d59a3000000b0022e4b627cebmr15699160wrr.90.1665500528495;
+        Tue, 11 Oct 2022 08:02:08 -0700 (PDT)
+Received: from vschneid.remote.csb ([104.132.153.106])
+        by smtp.gmail.com with ESMTPSA id bh11-20020a05600c3d0b00b003b49ab8ff53sm13552403wmb.8.2022.10.11.08.02.06
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Tue, 11 Oct 2022 08:02:07 -0700 (PDT)
+From:   Valentin Schneider <vschneid@redhat.com>
+To:     Steven Rostedt <rostedt@goodmis.org>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Marcelo Tosatti <mtosatti@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Guo Ren <guoren@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC PATCH 4/5] irq_work: Trace calls to arch_irq_work_raise()
+In-Reply-To: <20221008153442.159b2f2d@rorschach.local.home>
+References: <20221007154145.1877054-1-vschneid@redhat.com>
+ <20221007154533.1878285-4-vschneid@redhat.com>
+ <20221008153442.159b2f2d@rorschach.local.home>
+Date:   Tue, 11 Oct 2022 16:02:06 +0100
+Message-ID: <xhsmhlepmflox.mognet@vschneid.remote.csb>
 MIME-Version: 1.0
-X-stable: review
-X-Patchwork-Hint: Ignore
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Linus Walleij <linus.walleij@linaro.org>
+On 08/10/22 15:34, Steven Rostedt wrote:
+> On Fri,  7 Oct 2022 16:45:32 +0100
+> Valentin Schneider <vschneid@redhat.com> wrote:
+>>  }
+>>  
+>> +static inline void irq_work_raise(void)
+>> +{
+>> +	if (arch_irq_work_has_interrupt())
+>> +		trace_ipi_send_cpu(_RET_IP_, smp_processor_id());
+>
+> To save on the branch, let's make the above:
+>
+> 	if (trace_ipi_send_cpu_enabled() && arch_irq_work_has_interrupt())
+>
+> As the "trace_*_enabled()" is a static branch that will make it a nop
+> when the tracepoint is not enabled.
+>
 
-[ Upstream commit 2c230431e1e809270178905974f57cf3878939f5 ]
+Makes sense, thanks for the suggestion.
 
-This enables the Sparc to use <asm-generic/io.h> to fill in the
-missing (undefined) [read|write]sq I/O accessor functions.
-
-This is needed if Sparc[64] ever wants to uses CONFIG_REGMAP_MMIO
-which has been patches to use accelerated _noinc accessors
-such as readsq/writesq that Sparc64, while being a 64bit platform,
-as of now not yet provide.
-
-This comes with the requirement that everything the architecture
-already provides needs to be defined, rather than just being,
-say, static inline functions.
-
-Bite the bullet and just provide the definitions and make it work.
-Compile-tested on sparc32 and sparc64.
-
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Link: https://lore.kernel.org/linux-arm-kernel/202208201639.HXye3ke4-lkp@intel.com/
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- arch/sparc/include/asm/io.h    |  2 ++
- arch/sparc/include/asm/io_64.h | 22 ++++++++++++++++++++++
- 2 files changed, 24 insertions(+)
-
-diff --git a/arch/sparc/include/asm/io.h b/arch/sparc/include/asm/io.h
-index 2eefa526b38f..2dad9be9ec75 100644
---- a/arch/sparc/include/asm/io.h
-+++ b/arch/sparc/include/asm/io.h
-@@ -19,4 +19,6 @@
- #define writel_be(__w, __addr)	__raw_writel(__w, __addr)
- #define writew_be(__l, __addr)	__raw_writew(__l, __addr)
- 
-+#include <asm-generic/io.h>
-+
- #endif
-diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
-index 5ffa820dcd4d..9303270b22f3 100644
---- a/arch/sparc/include/asm/io_64.h
-+++ b/arch/sparc/include/asm/io_64.h
-@@ -9,6 +9,7 @@
- #include <asm/page.h>      /* IO address mapping routines need this */
- #include <asm/asi.h>
- #include <asm-generic/pci_iomap.h>
-+#define pci_iomap pci_iomap
- 
- /* BIO layer definitions. */
- extern unsigned long kern_base, kern_size;
-@@ -239,38 +240,51 @@ static inline void outl(u32 l, unsigned long addr)
- void outsb(unsigned long, const void *, unsigned long);
- void outsw(unsigned long, const void *, unsigned long);
- void outsl(unsigned long, const void *, unsigned long);
-+#define outsb outsb
-+#define outsw outsw
-+#define outsl outsl
- void insb(unsigned long, void *, unsigned long);
- void insw(unsigned long, void *, unsigned long);
- void insl(unsigned long, void *, unsigned long);
-+#define insb insb
-+#define insw insw
-+#define insl insl
- 
- static inline void readsb(void __iomem *port, void *buf, unsigned long count)
- {
- 	insb((unsigned long __force)port, buf, count);
- }
-+#define readsb readsb
-+
- static inline void readsw(void __iomem *port, void *buf, unsigned long count)
- {
- 	insw((unsigned long __force)port, buf, count);
- }
-+#define readsw readsw
- 
- static inline void readsl(void __iomem *port, void *buf, unsigned long count)
- {
- 	insl((unsigned long __force)port, buf, count);
- }
-+#define readsl readsl
- 
- static inline void writesb(void __iomem *port, const void *buf, unsigned long count)
- {
- 	outsb((unsigned long __force)port, buf, count);
- }
-+#define writesb writesb
- 
- static inline void writesw(void __iomem *port, const void *buf, unsigned long count)
- {
- 	outsw((unsigned long __force)port, buf, count);
- }
-+#define writesw writesw
- 
- static inline void writesl(void __iomem *port, const void *buf, unsigned long count)
- {
- 	outsl((unsigned long __force)port, buf, count);
- }
-+#define writesl writesl
- 
- #define ioread8_rep(p,d,l)	readsb(p,d,l)
- #define ioread16_rep(p,d,l)	readsw(p,d,l)
-@@ -344,6 +358,7 @@ static inline void memset_io(volatile void __iomem *dst, int c, __kernel_size_t
- 		d++;
- 	}
- }
-+#define memset_io memset_io
- 
- static inline void sbus_memcpy_fromio(void *dst, const volatile void __iomem *src,
- 				      __kernel_size_t n)
-@@ -369,6 +384,7 @@ static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
- 		src++;
- 	}
- }
-+#define memcpy_fromio memcpy_fromio
- 
- static inline void sbus_memcpy_toio(volatile void __iomem *dst, const void *src,
- 				    __kernel_size_t n)
-@@ -395,6 +411,7 @@ static inline void memcpy_toio(volatile void __iomem *dst, const void *src,
- 		d++;
- 	}
- }
-+#define memcpy_toio memcpy_toio
- 
- #ifdef __KERNEL__
- 
-@@ -412,7 +429,9 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
- static inline void __iomem *ioremap_np(unsigned long offset, unsigned long size)
- {
- 	return NULL;
-+
- }
-+#define ioremap_np ioremap_np
- 
- static inline void iounmap(volatile void __iomem *addr)
- {
-@@ -432,10 +451,13 @@ static inline void iounmap(volatile void __iomem *addr)
- /* Create a virtual mapping cookie for an IO port range */
- void __iomem *ioport_map(unsigned long port, unsigned int nr);
- void ioport_unmap(void __iomem *);
-+#define ioport_map ioport_map
-+#define ioport_unmap ioport_unmap
- 
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- struct pci_dev;
- void pci_iounmap(struct pci_dev *dev, void __iomem *);
-+#define pci_iounmap pci_iounmap
- 
- static inline int sbus_can_dma_64bit(void)
- {
--- 
-2.35.1
+> -- Steve
+>
+>
+>> +
+>> +	arch_irq_work_raise();
+>> +}
+>> +
+>>  /* Enqueue on current CPU, work must already be claimed and preempt disabled */
 
