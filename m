@@ -2,88 +2,133 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54F00C43217
-	for <sparclinux@archiver.kernel.org>; Thu, 13 Oct 2022 16:21:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22A21C43217
+	for <sparclinux@archiver.kernel.org>; Fri, 14 Oct 2022 21:23:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229717AbiJMQVh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 13 Oct 2022 12:21:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59438 "EHLO
+        id S229873AbiJNVW7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 14 Oct 2022 17:22:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229534AbiJMQVd (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 13 Oct 2022 12:21:33 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CBCBA3F69;
-        Thu, 13 Oct 2022 09:21:32 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 182AB6173A;
-        Thu, 13 Oct 2022 16:21:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5671C433D6;
-        Thu, 13 Oct 2022 16:21:28 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="GP4P33Go"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1665678086;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=kPntWr7A6bA616PExnbnx5reDbccdV4V+F7u1oTVbdw=;
-        b=GP4P33GoTZTXwgHWO1z/FqyjryY8qsqfXNBCumID69G06rmzAbuflrmGXm0knLxOwy6AOV
-        r5Se8is8rcJ8teWZq2zoRDvfJGTZawQk7FulxMoGHupIBrT9us1rnRt6jRmg3GIbXoJ/w6
-        20UjSRmQn/6S5nyrDvb7rvSacSvCVHE=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 5f752f1b (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Thu, 13 Oct 2022 16:21:25 +0000 (UTC)
-Date:   Thu, 13 Oct 2022 10:21:18 -0600
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     Rolf Eike Beer <eike-kernel@sf-tec.de>
-Cc:     Florian Westphal <fw@strlen.de>, linux-kernel@vger.kernel.org,
-        patches@lists.linux.dev, Andrew Morton <akpm@linux-foundation.org>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Thomas Graf <tgraf@suug.ch>, kasan-dev@googlegroups.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        kernel-janitors@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-block@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-doc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-mmc@vger.kernel.org, linux-mtd@lists.infradead.org,
-        linux-nvme@lists.infradead.org, linux-parisc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-s390@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-usb@vger.kernel.org,
-        linux-wireless@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        loongarch@lists.linux.dev, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH v6 5/7] treewide: use get_random_u32() when possible
-Message-ID: <Y0g6/sIJMq/JRe6y@zx2c4.com>
-References: <20221010230613.1076905-1-Jason@zx2c4.com>
- <3026360.ZldQQBzMgz@eto.sf-tec.de>
- <20221013101635.GB11818@breakpoint.cc>
- <11986571.xaOnivgMc4@eto.sf-tec.de>
+        with ESMTP id S229436AbiJNVW6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 14 Oct 2022 17:22:58 -0400
+Received: from mx01.omp.ru (mx01.omp.ru [90.154.21.10])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 265AE1D375E;
+        Fri, 14 Oct 2022 14:22:50 -0700 (PDT)
+Received: from localhost.localdomain (178.176.75.138) by msexch01.omp.ru
+ (10.188.4.12) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id 15.2.986.14; Sat, 15 Oct
+ 2022 00:22:41 +0300
+From:   Sergey Shtylyov <s.shtylyov@omp.ru>
+To:     Oleg Nesterov <oleg@redhat.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>, Brian Cain <bcain@quicinc.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Stafford Horne <shorne@gmail.com>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-hexagon@vger.kernel.org>, <linux-ia64@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-mips@vger.kernel.org>,
+        <linux-parisc@vger.kernel.org>, <linux-sh@vger.kernel.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <openrisc@lists.librecores.org>,
+        <sparclinux@vger.kernel.org>
+CC:     Andrew Morton <akpm@linux-foundation.org>,
+        <lvc-patches@linuxtesting.org>, <lvc-project@linuxtesting.org>
+Subject: [PATCH 00/13] Make user_regset_copyin_ignore() *void*
+Date:   Sat, 15 Oct 2022 00:22:22 +0300
+Message-ID: <20221014212235.10770-1-s.shtylyov@omp.ru>
+X-Mailer: git-send-email 2.26.3
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <11986571.xaOnivgMc4@eto.sf-tec.de>
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [178.176.75.138]
+X-ClientProxiedBy: msexch01.omp.ru (10.188.4.12) To msexch01.omp.ru
+ (10.188.4.12)
+X-KSE-ServerInfo: msexch01.omp.ru, 9
+X-KSE-AntiSpam-Interceptor-Info: scan successful
+X-KSE-AntiSpam-Version: 5.9.20, Database issued on: 10/14/2022 21:00:39
+X-KSE-AntiSpam-Status: KAS_STATUS_NOT_DETECTED
+X-KSE-AntiSpam-Method: none
+X-KSE-AntiSpam-Rate: 59
+X-KSE-AntiSpam-Info: Lua profiles 173137 [Oct 14 2022]
+X-KSE-AntiSpam-Info: Version: 5.9.20.0
+X-KSE-AntiSpam-Info: Envelope from: s.shtylyov@omp.ru
+X-KSE-AntiSpam-Info: LuaCore: 500 500 6cc86d8f5638d79810308830d98d6b6279998c49
+X-KSE-AntiSpam-Info: {rep_avail}
+X-KSE-AntiSpam-Info: {Tracking_from_domain_doesnt_match_to}
+X-KSE-AntiSpam-Info: {relay has no DNS name}
+X-KSE-AntiSpam-Info: {SMTP from is not routable}
+X-KSE-AntiSpam-Info: omp.ru:7.1.1;127.0.0.199:7.1.2;d41d8cd98f00b204e9800998ecf8427e.com:7.1.1
+X-KSE-AntiSpam-Info: ApMailHostAddress: 178.176.75.138
+X-KSE-AntiSpam-Info: {DNS response errors}
+X-KSE-AntiSpam-Info: Rate: 59
+X-KSE-AntiSpam-Info: Status: not_detected
+X-KSE-AntiSpam-Info: Method: none
+X-KSE-AntiSpam-Info: Auth:dmarc=temperror header.from=omp.ru;spf=temperror
+ smtp.mailfrom=omp.ru;dkim=none
+X-KSE-Antiphishing-Info: Clean
+X-KSE-Antiphishing-ScanningType: Heuristic
+X-KSE-Antiphishing-Method: None
+X-KSE-Antiphishing-Bases: 10/14/2022 21:03:00
+X-KSE-AttachmentFiltering-Interceptor-Info: protection disabled
+X-KSE-Antivirus-Interceptor-Info: scan successful
+X-KSE-Antivirus-Info: Clean, bases: 10/14/2022 3:23:00 PM
+X-KSE-BulkMessagesFiltering-Scan-Result: InTheLimit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Oct 13, 2022 at 01:40:40PM +0200, Rolf Eike Beer wrote:
-> Am Donnerstag, 13. Oktober 2022, 12:16:35 CEST schrieb Florian Westphal:
-> > Rolf Eike Beer <eike-kernel@sf-tec.de> wrote:
-> > > Florian, can you comment and maybe fix it?
-> > 
-> > Can't comment, do not remember -- this was 5 years ago.
-> > 
-> > > Or you wanted to move the variable before the loop and keep the random
-> > > state between the loops and only reseed when all '1' bits have been
-> > > consumed.
-> > Probably.  No clue, best to NOT change it to not block Jasons series and
-> > then just simplify this and remove all the useless shifts.
-> 
-> Sure. Jason, just in case you are going to do a v7 this could move to u8 then.
+Here are 13 patches against the 'next-20221014' tag of the 'linux-next.git'
+repo.  I'm not sure how this cross-arch series should be merged -- perhaps
+thru Andrew Morton's tree?
 
-Indeed I think this is one to send individually to netdev@ once the tree
-opens there for 6.2.
+user_regset_copyin_ignore() apparently cannot fail and so always returns 0.
+Let's first remove the result checks in several architectures that call this
+function and then make user_regset_copyin_ignore() return *void* instead of
+*int*...
 
-Jason
+Sergey Shtylyov (13):
+  arc: ptrace: user_regset_copyin_ignore() always returns 0
+  arm: ptrace: user_regset_copyin_ignore() always returns 0
+  arm64: ptrace: user_regset_copyin_ignore() always returns 0
+  hexagon: ptrace: user_regset_copyin_ignore() always returns 0
+  ia64: ptrace: user_regset_copyin_ignore() always returns 0
+  mips: ptrace: user_regset_copyin_ignore() always returns 0
+  nios2: ptrace: user_regset_copyin_ignore() always returns 0
+  openrisc: ptrace: user_regset_copyin_ignore() always returns 0
+  parisc: ptrace: user_regset_copyin_ignore() always returns 0
+  powerpc: ptrace: user_regset_copyin_ignore() always returns 0
+  sh: ptrace: user_regset_copyin_ignore() always returns 0
+  sparc: ptrace: user_regset_copyin_ignore() always returns 0
+  regset: make user_regset_copyin_ignore() *void*
+
+ arch/arc/kernel/ptrace.c                 |  2 +-
+ arch/arm/kernel/ptrace.c                 |  8 +++-----
+ arch/arm64/kernel/ptrace.c               | 16 ++++------------
+ arch/hexagon/kernel/ptrace.c             |  7 +++----
+ arch/ia64/kernel/ptrace.c                | 20 +++++++++-----------
+ arch/mips/kernel/ptrace.c                |  9 +++++----
+ arch/nios2/kernel/ptrace.c               |  6 +++---
+ arch/openrisc/kernel/ptrace.c            |  8 +++-----
+ arch/parisc/kernel/ptrace.c              | 15 +++++++++------
+ arch/powerpc/kernel/ptrace/ptrace-tm.c   | 10 +++++-----
+ arch/powerpc/kernel/ptrace/ptrace-view.c | 10 +++++-----
+ arch/sh/kernel/ptrace_32.c               |  8 ++++----
+ arch/sparc/kernel/ptrace_32.c            |  9 +++++----
+ arch/sparc/kernel/ptrace_64.c            | 23 +++++++++++------------
+ include/linux/regset.h                   | 15 +++++++--------
+ 15 files changed, 77 insertions(+), 89 deletions(-)
+
+-- 
+2.26.3
+
