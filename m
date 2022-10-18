@@ -2,57 +2,27 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F137C433FE
-	for <sparclinux@archiver.kernel.org>; Tue, 18 Oct 2022 12:30:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20A90C43217
+	for <sparclinux@archiver.kernel.org>; Tue, 18 Oct 2022 13:28:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230125AbiJRMa1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 18 Oct 2022 08:30:27 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58586 "EHLO
+        id S230046AbiJRN2f (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 18 Oct 2022 09:28:35 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54268 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230094AbiJRMa0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Oct 2022 08:30:26 -0400
-Received: from mail-qt1-f176.google.com (mail-qt1-f176.google.com [209.85.160.176])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8214FA02FF;
-        Tue, 18 Oct 2022 05:30:24 -0700 (PDT)
-Received: by mail-qt1-f176.google.com with SMTP id a24so9469408qto.10;
-        Tue, 18 Oct 2022 05:30:24 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=LA5Rw3StwiOqL+QwzJgo3njgEZhTbHuX12wcOa2B5Os=;
-        b=Ii73Xm4qYOpwdKdTImAOfK4v5TThDEEOii1c40foC6cBmIQSl/oJ4CNt/qBjkwV+Rf
-         IsCodeAX1yd+Aahx1Ab5Akm93REV+z6kv36LLvLPjTw1Gh09VmCkGj+iMAEQ1/DZz3eW
-         KZKJMHRIs30cTpTdfKRWfGS7R97bi7ipz9d52ZVWdDBQq4YUM37WOcsHa2fHSMSHgAYy
-         HPo4VY3NXUsWm+TUyON6gV3TDy4wAw31/HG1zFhUuopJVw4gGFJlPmOUxH92WvSUJc/p
-         zThQaaInMOrC+k0As2qDfLoHyzcMlAtj+2LdBbVjF7JVYY1B3i5fZzksVQ+y6uuAL6AH
-         84YA==
-X-Gm-Message-State: ACrzQf1uXHGsROcsNficI288QEVWleJx/Bae8A3dLvURj5I1PA7LyHJ+
-        8Ar9Sh4d1YpumoTDTAqvaFN4UwiQcqFjaQ==
-X-Google-Smtp-Source: AMsMyM787KZDxWm9qtGFBmjdpQkf8XwXaiFsOUrkiHjboDALwsYvDEqYVzAiEuaUvcSfOPX2zumXkQ==
-X-Received: by 2002:ac8:5848:0:b0:39c:e974:1c2c with SMTP id h8-20020ac85848000000b0039ce9741c2cmr1833279qth.674.1666096223404;
-        Tue, 18 Oct 2022 05:30:23 -0700 (PDT)
-Received: from mail-yw1-f170.google.com (mail-yw1-f170.google.com. [209.85.128.170])
-        by smtp.gmail.com with ESMTPSA id bq36-20020a05620a46a400b006ee77f1ecc3sm2249510qkb.31.2022.10.18.05.30.22
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Tue, 18 Oct 2022 05:30:23 -0700 (PDT)
-Received: by mail-yw1-f170.google.com with SMTP id 00721157ae682-3573ed7cc15so135568527b3.1;
-        Tue, 18 Oct 2022 05:30:22 -0700 (PDT)
-X-Received: by 2002:a81:98d:0:b0:357:2422:13b4 with SMTP id
- 135-20020a81098d000000b00357242213b4mr2107285ywj.316.1666096222450; Tue, 18
- Oct 2022 05:30:22 -0700 (PDT)
-MIME-Version: 1.0
-References: <20221017145157.1866351-1-geert@linux-m68k.org>
- <alpine.DEB.2.22.394.2210171653540.9136@ramsan.of.borg> <alpine.DEB.2.21.2210181126040.50489@angie.orcam.me.uk>
-In-Reply-To: <alpine.DEB.2.21.2210181126040.50489@angie.orcam.me.uk>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Tue, 18 Oct 2022 14:30:10 +0200
-X-Gmail-Original-Message-ID: <CAMuHMdVbo0wMaVVhe4f4tC9-TW2+DsOVAB77TtLdnsG=us8Q2A@mail.gmail.com>
-Message-ID: <CAMuHMdVbo0wMaVVhe4f4tC9-TW2+DsOVAB77TtLdnsG=us8Q2A@mail.gmail.com>
-Subject: Re: Build regressions/improvements in v6.1-rc1
-To:     "Maciej W. Rozycki" <macro@orcam.me.uk>
-Cc:     linux-kernel@vger.kernel.org,
+        with ESMTP id S229463AbiJRN2a (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 18 Oct 2022 09:28:30 -0400
+Received: from angie.orcam.me.uk (angie.orcam.me.uk [IPv6:2001:4190:8020::34])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 38668CA8A1;
+        Tue, 18 Oct 2022 06:28:21 -0700 (PDT)
+Received: by angie.orcam.me.uk (Postfix, from userid 500)
+        id DACAD92009D; Tue, 18 Oct 2022 15:28:17 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+        by angie.orcam.me.uk (Postfix) with ESMTP id D66BA92009C;
+        Tue, 18 Oct 2022 14:28:17 +0100 (BST)
+Date:   Tue, 18 Oct 2022 14:28:17 +0100 (BST)
+From:   "Maciej W. Rozycki" <macro@orcam.me.uk>
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+cc:     linux-kernel@vger.kernel.org,
         D Scott Phillips <scott@os.amperecomputing.com>,
         Andrew Jones <ajones@ventanamicro.com>,
         linux-arm-kernel@lists.infradead.org,
@@ -60,39 +30,66 @@ Cc:     linux-kernel@vger.kernel.org,
         linux-um@lists.infradead.org, linux-rdma@vger.kernel.org,
         linux-riscv@lists.infradead.org, kvm-riscv@lists.infradead.org,
         sparclinux@vger.kernel.org, linux-mips@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: Build regressions/improvements in v6.1-rc1
+In-Reply-To: <CAMuHMdVbo0wMaVVhe4f4tC9-TW2+DsOVAB77TtLdnsG=us8Q2A@mail.gmail.com>
+Message-ID: <alpine.DEB.2.21.2210181349060.50489@angie.orcam.me.uk>
+References: <20221017145157.1866351-1-geert@linux-m68k.org> <alpine.DEB.2.22.394.2210171653540.9136@ramsan.of.borg> <alpine.DEB.2.21.2210181126040.50489@angie.orcam.me.uk> <CAMuHMdVbo0wMaVVhe4f4tC9-TW2+DsOVAB77TtLdnsG=us8Q2A@mail.gmail.com>
+User-Agent: Alpine 2.21 (DEB 202 2017-01-01)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Maciej,
+Hi Geert,
 
-On Tue, Oct 18, 2022 at 12:39 PM Maciej W. Rozycki <macro@orcam.me.uk> wrote:
-> On Mon, 17 Oct 2022, Geert Uytterhoeven wrote:
-> > .> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/9abf2313adc1ca1b6180c508c25f22f9395cc780/ (all 149 configs)
-
-> > >  + {standard input}: Error: branch to a symbol in another ISA mode: 1339 =>
-> > > 2616, 2621
+> > > .> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/9abf2313adc1ca1b6180c508c25f22f9395cc780/ (all 149 configs)
+> 
+> > > >  + {standard input}: Error: branch to a symbol in another ISA mode: 1339 =>
+> > > > 2616, 2621
+> > >
+> > > mips-gcc11/micro32r2_defconfig
+> > > mips-gcc11/micro32r2el_defconfig
 > >
-> > mips-gcc11/micro32r2_defconfig
-> > mips-gcc11/micro32r2el_defconfig
->
->  Where can these configs be obtained from?
+> >  Where can these configs be obtained from?
+> 
+> By following the links in the URL above you removed while replying? ;-)
+> 
+> http://kisskb.ellerman.id.au/kisskb/buildresult/14818296/
+> http://kisskb.ellerman.id.au/kisskb/buildresult/14818298/
 
-By following the links in the URL above you removed while replying? ;-)
+ Thank you.
 
-http://kisskb.ellerman.id.au/kisskb/buildresult/14818296/
-http://kisskb.ellerman.id.au/kisskb/buildresult/14818298/
+ The error message is due to the use of MT ASE code in a microMIPS 
+compilation, specifically a handwritten machine instruction encoding via 
+`.word' in `dmt' from <asm/mipsmtregs.h>.  A similar construct is made 
+from `mftc0', but it isn't at a branch target, so no error is triggered.
 
-Thanks!
+ A `.insn' pseudo-op ought to precede such handwritten constructs to tell 
+the assembler that what follows is really an instruction rather than data, 
+which would then cause any preceding label to be correctly annotated.
 
-Gr{oetje,eeting}s,
+ Now the MT ASE has been specified for the microMIPS ISA, but the machine 
+instruction encodings are different, so merely adding `.insn' won't do any 
+good.  Also we've never added support for the microMIPS MT ASE, and it's 
+not clear to me if it's ever been used with real silicon.  Perhaps QEMU 
+has it, but I suspect not.  Also no support has ever been added to 
+binutils.
 
-                        Geert
+ So I think we want to just exclude the offending code from microMIPS 
+configurations, perhaps by hardcoding `cpu_has_mipsmt' to 0 if 
+CPU_MICROMIPS.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+ On the other hand support for the MT ASE with the regular MIPS ISA has 
+been added with binutils 2.17:
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+commit 61cc02671150a81ea68f25b8409b8ace18bda9ae
+Author: Chao-ying Fu <fu@mips.com>
+Date:   Tue Sep 6 18:46:57 2005 +0000
+
+and according to Documentation/process/changes.rst we require version 2.23 
+now.  So it looks to me like we want to discard the handwritten hacks and 
+use proper assembly instruction mnemonics.  I do believe we did this for 
+the DSP ASE already.
+
+  Maciej
