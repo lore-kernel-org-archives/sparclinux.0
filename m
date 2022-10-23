@@ -2,107 +2,118 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E4A5ECAAA1
-	for <sparclinux@archiver.kernel.org>; Sun, 23 Oct 2022 13:33:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A0B8C3A59D
+	for <sparclinux@archiver.kernel.org>; Sun, 23 Oct 2022 19:53:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230242AbiJWNdi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 23 Oct 2022 09:33:38 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47964 "EHLO
+        id S229956AbiJWTxE (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 23 Oct 2022 15:53:04 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229618AbiJWNdh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 23 Oct 2022 09:33:37 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 67507167C3;
-        Sun, 23 Oct 2022 06:33:35 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1omb6Z-0007RC-6G; Sun, 23 Oct 2022 15:33:31 +0200
-Message-ID: <6a02e9d4-690e-1f71-066a-c2d8bd811a0c@leemhuis.info>
-Date:   Sun, 23 Oct 2022 15:33:30 +0200
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.0
-Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
- dirty bit when thp splits on pmd) #forregzbot
-Content-Language: en-US, de-DE
-To:     "regressions@lists.linux.dev" <regressions@lists.linux.dev>
+        with ESMTP id S230401AbiJWTxD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 23 Oct 2022 15:53:03 -0400
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 485506B65B
+        for <sparclinux@vger.kernel.org>; Sun, 23 Oct 2022 12:53:02 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1666554781;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=/E6NQBXNgV7SeHVt+P22OpRoKrABMUeHqy8wFj/J03Y=;
+        b=i6AMROEQw1lCMe/JAF/kE2nJKH+WevHSBgQfkC+DQcQBAhwjh8Yc/iUaDca7lmtj2Vigsa
+        KJV4ooy1gkzDNq/aCDpyRyWBWVnKs5bR4YTHPohEjxVCF9Pn6upOnSmzQ72D2KEbEXVluf
+        jKD16aHvvkVbzqDlLKiMKNIpDGGHqk4=
+Received: from mail-qt1-f199.google.com (mail-qt1-f199.google.com
+ [209.85.160.199]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-438-b01msKipMO29i6aZ_jBk0g-1; Sun, 23 Oct 2022 15:52:59 -0400
+X-MC-Unique: b01msKipMO29i6aZ_jBk0g-1
+Received: by mail-qt1-f199.google.com with SMTP id u11-20020a05622a198b00b0039cca1826c8so5935990qtc.11
+        for <sparclinux@vger.kernel.org>; Sun, 23 Oct 2022 12:52:59 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-transfer-encoding:content-disposition
+         :mime-version:references:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=/E6NQBXNgV7SeHVt+P22OpRoKrABMUeHqy8wFj/J03Y=;
+        b=mBT+mCPcTgLBgHzsgYPONv+18xXYLOv5VLPcXLOPPXTcRuUhI4vCM3h2kerlfwHfE1
+         A33HcLpevWnLFJiENyYEvLCg4J8wthlH5wAs1537aUjFRx+l2Ov8ttaL7wXEy+f51JRB
+         rcQtlHXICE37vmVflaXrn8gR71fA9dKMlsKt/hTCMJnqgH/qXdNF8fdwDCGNT36ajup3
+         VeSpMXzz3kWhdSt7gy6AtCjiAunW84b6snxlbLSYlSGt7Gj47bxTXhtUr3TAYPWLPcwA
+         TZw9O7m9iIJCs88XFx5pxHpTt4dNDw+rutK/4j3lPQKGORVnwtsXCskrR9Bqo66/oygr
+         YWtA==
+X-Gm-Message-State: ACrzQf3tmsLnqcS2bN4ZHNwDrVdJIqlvPbuzgu1W+qM2+GURJPP43l/2
+        XesHMFGZW40mLRBIhtMZWRh3YBm9vIyHA48zkOevDpNg6GRq4cptYRCfyKexwhqU5dwFeGVbYd5
+        c7viK4ME1LnLHNPPhKOx8ng==
+X-Received: by 2002:a05:620a:40a:b0:6ed:2700:e080 with SMTP id 10-20020a05620a040a00b006ed2700e080mr20380006qkp.649.1666554777538;
+        Sun, 23 Oct 2022 12:52:57 -0700 (PDT)
+X-Google-Smtp-Source: AMsMyM5SB72Pga2YSfKYGYuPDdKBTAnU2a6NXCFYvz7XQhuWOfP/Bjxrx967t3ZTFWiBA49hJ7xTEA==
+X-Received: by 2002:a05:622a:11cf:b0:39c:d63a:d79 with SMTP id n15-20020a05622a11cf00b0039cd63a0d79mr24832566qtk.260.1666554766594;
+        Sun, 23 Oct 2022 12:52:46 -0700 (PDT)
+Received: from x1n (bras-base-aurron9127w-grc-46-70-31-27-79.dsl.bell.ca. [70.31.27.79])
+        by smtp.gmail.com with ESMTPSA id u21-20020a05620a0c5500b006b5bf5d45casm13910308qki.27.2022.10.23.12.52.44
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 23 Oct 2022 12:52:45 -0700 (PDT)
+Date:   Sun, 23 Oct 2022 15:52:43 -0400
+From:   Peter Xu <peterx@redhat.com>
+To:     Anatoly Pugachev <matorola@gmail.com>,
+        David Miller <davem@davemloft.net>
 Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org
+        Hugh Dickins <hughd@google.com>,
+        "Kirill A . Shutemov" <kirill@shutemov.name>,
+        Alistair Popple <apopple@nvidia.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Andi Kleen <andi.kleen@intel.com>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org
+Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
+ dirty bit when thp splits on pmd)
+Message-ID: <Y1Wbi4yyVvDtg4zN@x1n>
 References: <20220811161331.37055-1-peterx@redhat.com>
  <20220811161331.37055-5-peterx@redhat.com>
  <20221021160603.GA23307@u164.east.ru>
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-In-Reply-To: <20221021160603.GA23307@u164.east.ru>
-Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="V+D6jZxSD7O649r4"
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1666532015;8cd60279;
-X-HE-SMSGID: 1omb6Z-0007RC-6G
+In-Reply-To: <20221021160603.GA23307@u164.east.ru>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-[Note: this mail is primarily send for documentation purposes and/or for
-regzbot, my Linux kernel regression tracking bot. That's why I removed
-most or all folks from the list of recipients, but left any that looked
-like a mailing lists. These mails usually contain '#forregzbot' in the
-subject, to make them easy to spot and filter out.]
 
-[TLDR: I'm adding this regression report to the list of tracked
-regressions; all text from me you find below is based on a few templates
-paragraphs you might have encountered already already in similar form.]
+--V+D6jZxSD7O649r4
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-Hi, this is your Linux kernel regression tracker.CCing the regression
-mailing list, as it should be in the loop for all regressions, as
-explained here:
-https://www.kernel.org/doc/html/latest/admin-guide/reporting-issues.html
-
-On 21.10.22 18:06, Anatoly Pugachev wrote:
+On Fri, Oct 21, 2022 at 07:06:03PM +0300, Anatoly Pugachev wrote:
 > On Thu, Aug 11, 2022 at 12:13:28PM -0400, Peter Xu wrote:
->> Carry over the dirty bit from pmd to pte when a huge pmd splits.  It
->> shouldn't be a correctness issue since when pmd_dirty() we'll have the page
->> marked dirty anyway, however having dirty bit carried over helps the next
->> initial writes of split ptes on some archs like x86.
->>
->> Reviewed-by: Huang Ying <ying.huang@intel.com>
->> Signed-off-by: Peter Xu <peterx@redhat.com>
->> ---
->>  mm/huge_memory.c | 9 +++++++--
->>  1 file changed, 7 insertions(+), 2 deletions(-)
+> > Carry over the dirty bit from pmd to pte when a huge pmd splits.  It
+> > shouldn't be a correctness issue since when pmd_dirty() we'll have the page
+> > marked dirty anyway, however having dirty bit carried over helps the next
+> > initial writes of split ptes on some archs like x86.
+> > 
+> > Reviewed-by: Huang Ying <ying.huang@intel.com>
+> > Signed-off-by: Peter Xu <peterx@redhat.com>
+> > ---
+> >  mm/huge_memory.c | 9 +++++++--
+> >  1 file changed, 7 insertions(+), 2 deletions(-)
 > 
 > 
 > Hello!
+
+Hi, Anatoly,
+
 > 
 > Tried to update my debian sparc64 sid (unstable) linux distro to latest
 > version of available packages, got dpkg segfault... 
-
-Thanks for the report. To be sure below issue doesn't fall through the
-cracks unnoticed, I'm adding it to regzbot, my Linux kernel regression
-tracking bot:
-
-#regzbot ^introduced 0ccf7f168e17bb7
-#regzbot title mm: sparc64: dpkg fails on sparc64 since "mm/thp: Carry
-over dirty bit when thp splits on pmd)"
-#regzbot ignore-activity
-
-This isn't a regression? This issue or a fix for it are already
-discussed somewhere else? It was fixed already? You want to clarify when
-the regression started to happen? Or point out I got the title or
-something else totally wrong? Then just reply -- ideally with also
-telling regzbot about it, as explained here:
-https://linux-regtracking.leemhuis.info/tracked-regression/
-
-Reminder for developers: When fixing the issue, add 'Link:' tags
-pointing to the report (the mail this one replies to), as explained for
-in the Linux kernel's documentation; above webpage explains why this is
-important for tracked regressions.
-
-Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
-
-P.S.: As the Linux kernel's regression tracker I deal with a lot of
-reports and sometimes miss something important when writing mails like
-this. If that's the case here, don't hesitate to tell me in a public
-reply, it's in everyone's interest to set the public record straight.
-
+> 
 > $ apt update -y
 > ...
 > Unpacking linux-image-sparc64-smp (6.0.2-1) ...
@@ -218,3 +229,94 @@ reply, it's in everyone's interest to set the public record straight.
 > make[2]: *** [scripts/Makefile.build:250: mm/huge_memory.o] Error 1
 > 
 > So can't test v6.1-rc1 with patch reverted...
+
+Sorry to know this, and thanks for the report and debugging.  The revert
+won't work because dirty variable is used in later patch for the swap path
+too.  I've attached a partial (and minimum) revert, feel free to try.
+
+I had a feeling that it's somehow related to the special impl of sparc64
+pte_mkdirty() where a kernel patching mechanism is used to share code
+between sun4[uv].  I'd assume your machine is sun4v?  As that's the one
+that needs the patching, iiuc.
+
+The sparc64 impl goes back to commit cf627156c450 ("[SPARC64]: Use inline
+patching for critical PTE operations.", 2006-03-20).  I believe it works
+solidly for all these years, so I really have no quick clue on why that can
+fail with the new code added.
+
+I think the magic is done with sun4v_patch_2insn_range().  What I can think
+of is this thp patch can definitely add much more places of the kernel that
+will need patching, because both __split_huge_pmd() and split_huge_pmd()
+are defined as macros not functions.  However I don't see a problem for it
+so far, e.g., I don't see a limitation of __sun4v_2insn_patch_end growing
+to satisfy all those new spots.
+
+I'm copying David Miller who implemented the sparc64 pte operations.  I
+know he's probably always very busy, but just in case there'll be quick
+answers so we don't need the revert patch but just make it work for sparc64
+too.  Currently with the revert patch we'll start to loose dirty bit again
+like before on many archs when thp split, but I assume that's so far better
+than breaking any arch or making an arch specific ifdef so we can revisit.
+
+Thanks,
+
+-- 
+Peter Xu
+
+--V+D6jZxSD7O649r4
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: attachment;
+	filename="0001-Partly-revert-mm-thp-carry-over-dirty-bit-when-thp-s.patch"
+
+From 1ea9c520b3d0bb10cc4195893dd4326f451c3dad Mon Sep 17 00:00:00 2001
+From: Peter Xu <peterx@redhat.com>
+Date: Sun, 23 Oct 2022 15:29:29 -0400
+Subject: [PATCH] Partly revert "mm/thp: carry over dirty bit when thp splits
+ on pmd"
+Content-type: text/plain
+
+Anatoly Pugachev <matorola@gmail.com> reported sparc64 breakage on the
+patch:
+
+https://lore.kernel.org/r/20221021160603.GA23307@u164.east.ru
+
+The sparc64 impl of pte_mkdirty() is definitely slightly special in that it
+leverages a code patching mechanism for sun4u/sun4v on relevant pgtable
+entry operations.
+
+Before having a clue of why the sparc64 is special and caused the patch to
+SIGSEGV the processes, revert the patch for now.  The swap path of dirty
+bit inheritage is kept because that's using the swap shared code so we
+assume it'll not be affected.
+
+Signed-off-by: Peter Xu <peterx@redhat.com>
+---
+ mm/huge_memory.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/mm/huge_memory.c b/mm/huge_memory.c
+index ad17c8d3c0fe..72b9b4622a38 100644
+--- a/mm/huge_memory.c
++++ b/mm/huge_memory.c
+@@ -2160,9 +2160,12 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+ 				entry = pte_wrprotect(entry);
+ 			if (!young)
+ 				entry = pte_mkold(entry);
+-			/* NOTE: this may set soft-dirty too on some archs */
+-			if (dirty)
+-				entry = pte_mkdirty(entry);
++			/*
++			 * NOTE: we don't do pte_mkdirty when dirty==true
++			 * because it breaks sparc64 which can sigsegv
++			 * random process.  Need to revisit when we figure
++			 * out what is special with sparc64.
++			 */
+ 			if (soft_dirty)
+ 				entry = pte_mksoft_dirty(entry);
+ 			if (uffd_wp)
+-- 
+2.37.3
+
+
+--V+D6jZxSD7O649r4--
+
