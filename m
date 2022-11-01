@@ -2,89 +2,103 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37ADDECAAA1
-	for <sparclinux@archiver.kernel.org>; Tue,  1 Nov 2022 13:13:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 63BBBC4332F
+	for <sparclinux@archiver.kernel.org>; Tue,  1 Nov 2022 17:47:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbiKANNj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 1 Nov 2022 09:13:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47374 "EHLO
+        id S230395AbiKARrU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 1 Nov 2022 13:47:20 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44274 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229841AbiKANNj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 1 Nov 2022 09:13:39 -0400
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B09E635A;
-        Tue,  1 Nov 2022 06:13:34 -0700 (PDT)
-Received: by mail-wr1-x42f.google.com with SMTP id h9so20106782wrt.0;
-        Tue, 01 Nov 2022 06:13:34 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=QwhanQKRbqrvvgXUmj5gq6ZtQDr1OrntJTB30vFuuTY=;
-        b=e0kRdjU5SzSF2BOua3Yow1NZ+w0vOGAZlt+p/2ZhBUXewN7KZEr2dyZkYJtXiZQsyx
-         FWpQBlWjpc/zZlLTHY9rvvzVJk+/ecYZUqwW7wrBBi8HnsCZ55DMQd+jvby3snvRfdiA
-         SpOapgjH02XgFcJ2pGRLolxiAD13mkkxmy8cS2V/PkkYmOSxcUlpp8conIALYFbNN3Hb
-         8ekg98g8AlPsdxPyFfeGQHsotzfUPVkb9EAC1RjwTHzaZDJxv3E4f4jqOekJNJvvzFNd
-         7rMpffBtf+VAFzYXdDwjfSusW2RWe+PQafx9KRiAJcGlYcB1biPH+VwJindyjoCRhvYn
-         nKww==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=QwhanQKRbqrvvgXUmj5gq6ZtQDr1OrntJTB30vFuuTY=;
-        b=wG24oZFo5kuZHebk1/X9YkdJYi4a+AuU1uobgiI6HQNuKUZrMHRXUIdYnBloBAxkOi
-         V9Q0gLBWaVhGaVUasbZ5FsqY9pbR9bPrRTiwwlGhTCryM48OC7H2Vbp3z3qLQla1DW55
-         mkXWGNRsZ4JXUOgNhlDkcR6AZsPs2RUHip967jPuBcggKpgC8Rac/SnQQ7G7CgzlPcbl
-         l9GJu/xVdg9QIzO9QhC0bpJVpVA5p0n8xaIqBIOW+uJLgeDQkFhEF5LiZLkvNCR5OkZQ
-         SH8WUMTV1y+AofDtUC3hk6nyjxoCmAKVO//mAt8/lgDJTLXdXCk5BkRcdjCl8Q6I4j0B
-         UbTA==
-X-Gm-Message-State: ACrzQf1bPul2vdR4hSxBqisyJ/kE3HEvJOOLBlyVmdj3rQmI5U1enD1x
-        zoUAhK5OH9lDx3khqUCfjhGGsNMjU0f3qACYg1s=
-X-Google-Smtp-Source: AMsMyM5DlQ7Km2bCUVKYm8RKj16TKBqKXaqi9AjkrKlt0+HhahmyUiEE6I44GCC/vgYreiDs7lxMcPQrvm+BZr/JQAQ=
-X-Received: by 2002:a5d:4648:0:b0:236:c0da:a4f6 with SMTP id
- j8-20020a5d4648000000b00236c0daa4f6mr8515976wrs.134.1667308412714; Tue, 01
- Nov 2022 06:13:32 -0700 (PDT)
+        with ESMTP id S229562AbiKARrS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 1 Nov 2022 13:47:18 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 514231D0D3;
+        Tue,  1 Nov 2022 10:47:17 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E0AF6616D8;
+        Tue,  1 Nov 2022 17:47:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2CD53C433D6;
+        Tue,  1 Nov 2022 17:47:05 +0000 (UTC)
+Date:   Tue, 1 Nov 2022 17:47:01 +0000
+From:   Catalin Marinas <catalin.marinas@arm.com>
+To:     Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linux-fsdevel@vger.kernel.org,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Jonas Bonn <jonas@southpole.se>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Stafford Horne <shorne@gmail.com>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H . Peter Anvin" <hpa@zytor.com>,
+        Andy Lutomirski <luto@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Chris Zankel <chris@zankel.net>,
+        Max Filippov <jcmvbkbc@gmail.com>
+Subject: Re: [PATCH] mm: remove kern_addr_valid() completely
+Message-ID: <Y2FblZlz2LIGh5qH@arm.com>
+References: <20221018074014.185687-1-wangkefeng.wang@huawei.com>
 MIME-Version: 1.0
-References: <20220811161331.37055-1-peterx@redhat.com> <20220811161331.37055-5-peterx@redhat.com>
- <20221021160603.GA23307@u164.east.ru> <Y1Wbi4yyVvDtg4zN@x1n>
- <CADxRZqy+cMHN4FjtDr7-LOyVf0y+G8MPiBoGiTEsSj48jBfVnw@mail.gmail.com> <Y1f2IR+h4i2+/swj@x1n>
-In-Reply-To: <Y1f2IR+h4i2+/swj@x1n>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Tue, 1 Nov 2022 16:13:20 +0300
-Message-ID: <CADxRZqz+Sk=yxrJQ8B7UVkrcct9w6nUeiaaVn7QTFL59isFLDA@mail.gmail.com>
-Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
- dirty bit when thp splits on pmd)
-To:     Peter Xu <peterx@redhat.com>
-Cc:     David Miller <davem@davemloft.net>, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, Hugh Dickins <hughd@google.com>,
-        "Kirill A . Shutemov" <kirill@shutemov.name>,
-        Alistair Popple <apopple@nvidia.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Minchan Kim <minchan@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        David Hildenbrand <david@redhat.com>,
-        Andi Kleen <andi.kleen@intel.com>,
-        Nadav Amit <nadav.amit@gmail.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221018074014.185687-1-wangkefeng.wang@huawei.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Oct 25, 2022 at 5:43 PM Peter Xu <peterx@redhat.com> wrote:
->
-> On Tue, Oct 25, 2022 at 01:22:45PM +0300, Anatoly Pugachev wrote:
-> > On Sun, Oct 23, 2022 at 10:53 PM Peter Xu <peterx@redhat.com> wrote:
-> > > On Fri, Oct 21, 2022 at 07:06:03PM +0300, Anatoly Pugachev wrote:
-> > > >
-> > > >     Link: https://lkml.kernel.org/r/20220811161331.37055-5-peterx@redhat.com
->
-> Maybe we need to have the minimum revert for v6.1 before we have more
-> clues.
+On Tue, Oct 18, 2022 at 03:40:14PM +0800, Kefeng Wang wrote:
+> Most architectures(except arm64/x86/sparc) simply return 1 for
+> kern_addr_valid(), which is only used in read_kcore(), and it
+> calls copy_from_kernel_nofault() which could check whether the
+> address is a valid kernel address, so no need kern_addr_valid(),
+> let's remove unneeded kern_addr_valid() completely.
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 
-Just a quick update on 6.1.0-rc3
+For arm64:
 
-Tested again with 6.1.0-rc3, segfaults dpkg... applied patch - no dpkg
-segfaults.
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
