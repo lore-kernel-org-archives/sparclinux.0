@@ -2,85 +2,89 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 53D3CFA3742
-	for <sparclinux@archiver.kernel.org>; Fri, 28 Oct 2022 14:27:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37ADDECAAA1
+	for <sparclinux@archiver.kernel.org>; Tue,  1 Nov 2022 13:13:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230374AbiJ1O1t (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 28 Oct 2022 10:27:49 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35214 "EHLO
+        id S229946AbiKANNj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 1 Nov 2022 09:13:39 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47374 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229455AbiJ1O1d (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 28 Oct 2022 10:27:33 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1225132D95;
-        Fri, 28 Oct 2022 07:27:31 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C0FD2B82971;
-        Fri, 28 Oct 2022 14:27:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B904BC433D6;
-        Fri, 28 Oct 2022 14:27:27 +0000 (UTC)
-Authentication-Results: smtp.kernel.org;
-        dkim=pass (1024-bit key) header.d=zx2c4.com header.i=@zx2c4.com header.b="PFepB4YP"
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zx2c4.com; s=20210105;
-        t=1666967245;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding;
-        bh=gD+ZFnxbIhSu4CHS6E4Tlv4ldzK84O8SYLBYJTRnbkA=;
-        b=PFepB4YPb+usJ8MA6K3aAyzI+Hyn824xAIQIehgc8or1tF8P4KqYQKHWiUzzdW4CXE0wFV
-        rLaYP2XnSuEx7En0n5Ii0TFjHRMhRGcoUji8nXMF1/qOS/U1mt+1QUVI0qrwYXk1A1LJh3
-        dhvskCyJRA5TOArw3j1fkgSH6tVxxmM=
-Received: by mail.zx2c4.com (ZX2C4 Mail Server) with ESMTPSA id 62688d8d (TLSv1.3:TLS_AES_256_GCM_SHA384:256:NO);
-        Fri, 28 Oct 2022 14:27:24 +0000 (UTC)
-From:   "Jason A. Donenfeld" <Jason@zx2c4.com>
-To:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc:     "Jason A. Donenfeld" <Jason@zx2c4.com>,
-        "David S . Miller" <davem@davemloft.net>
-Subject: [PATCH] sparc: sbus: treat CPU index as integer
-Date:   Fri, 28 Oct 2022 16:27:15 +0200
-Message-Id: <20221028142715.2021166-1-Jason@zx2c4.com>
+        with ESMTP id S229841AbiKANNj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 1 Nov 2022 09:13:39 -0400
+Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4B09E635A;
+        Tue,  1 Nov 2022 06:13:34 -0700 (PDT)
+Received: by mail-wr1-x42f.google.com with SMTP id h9so20106782wrt.0;
+        Tue, 01 Nov 2022 06:13:34 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=QwhanQKRbqrvvgXUmj5gq6ZtQDr1OrntJTB30vFuuTY=;
+        b=e0kRdjU5SzSF2BOua3Yow1NZ+w0vOGAZlt+p/2ZhBUXewN7KZEr2dyZkYJtXiZQsyx
+         FWpQBlWjpc/zZlLTHY9rvvzVJk+/ecYZUqwW7wrBBi8HnsCZ55DMQd+jvby3snvRfdiA
+         SpOapgjH02XgFcJ2pGRLolxiAD13mkkxmy8cS2V/PkkYmOSxcUlpp8conIALYFbNN3Hb
+         8ekg98g8AlPsdxPyFfeGQHsotzfUPVkb9EAC1RjwTHzaZDJxv3E4f4jqOekJNJvvzFNd
+         7rMpffBtf+VAFzYXdDwjfSusW2RWe+PQafx9KRiAJcGlYcB1biPH+VwJindyjoCRhvYn
+         nKww==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=QwhanQKRbqrvvgXUmj5gq6ZtQDr1OrntJTB30vFuuTY=;
+        b=wG24oZFo5kuZHebk1/X9YkdJYi4a+AuU1uobgiI6HQNuKUZrMHRXUIdYnBloBAxkOi
+         V9Q0gLBWaVhGaVUasbZ5FsqY9pbR9bPrRTiwwlGhTCryM48OC7H2Vbp3z3qLQla1DW55
+         mkXWGNRsZ4JXUOgNhlDkcR6AZsPs2RUHip967jPuBcggKpgC8Rac/SnQQ7G7CgzlPcbl
+         l9GJu/xVdg9QIzO9QhC0bpJVpVA5p0n8xaIqBIOW+uJLgeDQkFhEF5LiZLkvNCR5OkZQ
+         SH8WUMTV1y+AofDtUC3hk6nyjxoCmAKVO//mAt8/lgDJTLXdXCk5BkRcdjCl8Q6I4j0B
+         UbTA==
+X-Gm-Message-State: ACrzQf1bPul2vdR4hSxBqisyJ/kE3HEvJOOLBlyVmdj3rQmI5U1enD1x
+        zoUAhK5OH9lDx3khqUCfjhGGsNMjU0f3qACYg1s=
+X-Google-Smtp-Source: AMsMyM5DlQ7Km2bCUVKYm8RKj16TKBqKXaqi9AjkrKlt0+HhahmyUiEE6I44GCC/vgYreiDs7lxMcPQrvm+BZr/JQAQ=
+X-Received: by 2002:a5d:4648:0:b0:236:c0da:a4f6 with SMTP id
+ j8-20020a5d4648000000b00236c0daa4f6mr8515976wrs.134.1667308412714; Tue, 01
+ Nov 2022 06:13:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+References: <20220811161331.37055-1-peterx@redhat.com> <20220811161331.37055-5-peterx@redhat.com>
+ <20221021160603.GA23307@u164.east.ru> <Y1Wbi4yyVvDtg4zN@x1n>
+ <CADxRZqy+cMHN4FjtDr7-LOyVf0y+G8MPiBoGiTEsSj48jBfVnw@mail.gmail.com> <Y1f2IR+h4i2+/swj@x1n>
+In-Reply-To: <Y1f2IR+h4i2+/swj@x1n>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Tue, 1 Nov 2022 16:13:20 +0300
+Message-ID: <CADxRZqz+Sk=yxrJQ8B7UVkrcct9w6nUeiaaVn7QTFL59isFLDA@mail.gmail.com>
+Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
+ dirty bit when thp splits on pmd)
+To:     Peter Xu <peterx@redhat.com>
+Cc:     David Miller <davem@davemloft.net>, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, Hugh Dickins <hughd@google.com>,
+        "Kirill A . Shutemov" <kirill@shutemov.name>,
+        Alistair Popple <apopple@nvidia.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Minchan Kim <minchan@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        David Hildenbrand <david@redhat.com>,
+        Andi Kleen <andi.kleen@intel.com>,
+        Nadav Amit <nadav.amit@gmail.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Vlastimil Babka <vbabka@suse.cz>, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Using a `char` to fit a CPU index is too small, and assigning -1 to it
-isn't correct either, since `char` is sometimes signed and sometimes
-not. In this case, it's been fine since this driver only works on sparc,
-but that will soon be changing when chars become unsigned everywhere. So
-instead, use a normal `int` type, which matches the `int cpu` function
-argument that this is being compared against.
+On Tue, Oct 25, 2022 at 5:43 PM Peter Xu <peterx@redhat.com> wrote:
+>
+> On Tue, Oct 25, 2022 at 01:22:45PM +0300, Anatoly Pugachev wrote:
+> > On Sun, Oct 23, 2022 at 10:53 PM Peter Xu <peterx@redhat.com> wrote:
+> > > On Fri, Oct 21, 2022 at 07:06:03PM +0300, Anatoly Pugachev wrote:
+> > > >
+> > > >     Link: https://lkml.kernel.org/r/20220811161331.37055-5-peterx@redhat.com
+>
+> Maybe we need to have the minimum revert for v6.1 before we have more
+> clues.
 
-Cc: David S. Miller <davem@davemloft.net>
-Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
----
-DaveM - this is part of the -funsigned-char work I've been accumulating
-in my unsigned-char branch. If you want to take this as a fix for 6.1,
-go ahead. Otherwise, Linus asked me to keep the 6.2 unsigned-char
-patches together in my branch, so I'll take this, pending your Ack.
--Jason
+Just a quick update on 6.1.0-rc3
 
- drivers/sbus/char/envctrl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/sbus/char/envctrl.c b/drivers/sbus/char/envctrl.c
-index 843e830b5f87..ea914a7eaa7f 100644
---- a/drivers/sbus/char/envctrl.c
-+++ b/drivers/sbus/char/envctrl.c
-@@ -363,8 +363,8 @@ static int envctrl_read_cpu_info(int cpu, struct i2c_child_t *pchild,
- 				 char mon_type, unsigned char *bufdata)
- {
- 	unsigned char data;
--	int i;
--	char *tbl, j = -1;
-+	int i, j = -1;
-+	char *tbl;
- 
- 	/* Find the right monitor type and channel. */
- 	for (i = 0; i < PCF8584_MAX_CHANNELS; i++) {
--- 
-2.38.1
-
+Tested again with 6.1.0-rc3, segfaults dpkg... applied patch - no dpkg
+segfaults.
