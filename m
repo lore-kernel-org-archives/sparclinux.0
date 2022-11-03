@@ -2,44 +2,44 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B01C3A5A1
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Nov 2022 16:47:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16AA5C4332F
+	for <sparclinux@archiver.kernel.org>; Thu,  3 Nov 2022 16:47:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232147AbiKCQro (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Nov 2022 12:47:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45634 "EHLO
+        id S230099AbiKCQrp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 3 Nov 2022 12:47:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44154 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232529AbiKCQrK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 12:47:10 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BB0819C2C;
+        with ESMTP id S232536AbiKCQrL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 12:47:11 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE08119C3D;
         Thu,  3 Nov 2022 09:46:37 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667493997; x=1699029997;
-  h=from:to:cc:subject:date:message-id:mime-version:
-   content-transfer-encoding;
-  bh=6sEwb2LvPX9v9prH3mu2nEGi0LVqQc1+Me9tIfh9Gsk=;
-  b=FSAajs9mYEpAxwK1E+Kao7vQC/qmjWPLx+u/6kzAraWx6TeMe8tnDsLB
-   g9o+1xrusrovOrcx7ToF5XANKPmAHc/1ZQ+Ms9pYKXlY+/x8i1zyEmYaw
-   G6WRv0n8FJ8b/fnKRrCandQ+ULlB/HwEaHm2mUmnrpPE/TC6oj35Fgf/v
-   YqCcJc/1s2ZszfDUGLDVGl4ufvcn06A7YJlj7sljN5Bv9w5nDhTXE1XCv
-   JG13K+P6z4q27Bci4Ks+ohpmCH2umHYgK1Jsgf0E2lATSPvhpxc3l+EX/
-   43+4a2eyGaxbbNxnksIZ8k/cbnCJJAXSoAKXimAsXFLNOov1GqpkbJHHk
+  t=1667493998; x=1699029998;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=NhBC+PjScBp2IdaVXcj0juh1+PhjepKM9lxMzcbPhAU=;
+  b=ZdyafDzSEAMw86F6xtdYHYzjq9E3bq9SA2H3+U5Irs+qM9GQNr9YpElX
+   vB2O/9rXJfGoz3UrOINQQ++uimoaPOPj9oxwb2n5A8eE1ekcIwr0p7q/j
+   sxdU4cpBjFZ7e77Tx/HWV0i33aJcIq1Kb1RSXhuvG+YDmsY8vAELGDWJz
+   CSRenxb5bfgWRtm/+7kIrE0IBQJmIFCTRd+DjlY+QDgARwXb1iqAD30/U
+   3Hxq9QvBp7CJWoSROx+LAmmK61qYl9l80uMgoBFdCg4Z+HEIc3R7dx1LJ
+   /V22rH/t/Xfpk9UMmGn3lIBj/SoPJq2y2LRYD8f1M9saKwzlG6o6x/pBd
    Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="373970810"
+X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="297198943"
 X-IronPort-AV: E=Sophos;i="5.96,134,1665471600"; 
-   d="scan'208";a="373970810"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 09:46:36 -0700
+   d="scan'208";a="297198943"
+Received: from orsmga005.jf.intel.com ([10.7.209.41])
+  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 09:46:36 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="629408020"
+X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="809735385"
 X-IronPort-AV: E=Sophos;i="5.96,134,1665471600"; 
-   d="scan'208";a="629408020"
+   d="scan'208";a="809735385"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga007.jf.intel.com with ESMTP; 03 Nov 2022 09:46:29 -0700
+  by orsmga005.jf.intel.com with ESMTP; 03 Nov 2022 09:46:29 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id 858A5F7; Thu,  3 Nov 2022 18:46:52 +0200 (EET)
+        id C452A2B7; Thu,  3 Nov 2022 18:46:52 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -66,61 +66,71 @@ Cc:     Miguel Ojeda <ojeda@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: [PATCH v2 0/4] PCI: Add pci_dev_for_each_resource() helper and refactor bus one
-Date:   Thu,  3 Nov 2022 18:46:40 +0200
-Message-Id: <20221103164644.70554-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 4/4] pcmcia: Convert to use pci_bus_for_each_resource_p()
+Date:   Thu,  3 Nov 2022 18:46:44 +0200
+Message-Id: <20221103164644.70554-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
+In-Reply-To: <20221103164644.70554-1-andriy.shevchenko@linux.intel.com>
+References: <20221103164644.70554-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Provide two new helper macros to iterate over PCI device resources and
-convert users.
+The pci_bus_for_each_resource_p() hides the iterator loop since
+it may be not used otherwise. With this, we may drop that iterator
+variable definition.
 
-Looking at it, refactor existing pci_bus_for_each_resource() and convert
-users accordingly.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/pcmcia/rsrc_nonstatic.c | 9 +++------
+ drivers/pcmcia/yenta_socket.c   | 3 +--
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-This applies on top of this patch Mika sent out earlier:
-https://lore.kernel.org/linux-pci/20221103103254.30497-1-mika.westerberg@linux.intel.com/
-
-Changelog v2:
-- refactor to have two macros
-- refactor existing pci_bus_for_each_resource() in the same way and
-  convert users
-
-Andy Shevchenko (3):
-  PCI: Split pci_bus_for_each_resource_p() out of
-    pci_bus_for_each_resource()
-  EISA: Convert to use pci_bus_for_each_resource_p()
-  pcmcia: Convert to use pci_bus_for_each_resource_p()
-
-Mika Westerberg (1):
-  PCI: Introduce pci_dev_for_each_resource()
-
- .clang-format                      |  3 +++
- arch/alpha/kernel/pci.c            |  5 ++---
- arch/arm/kernel/bios32.c           | 16 ++++++-------
- arch/mips/pci/pci-legacy.c         |  3 +--
- arch/powerpc/kernel/pci-common.c   |  5 ++---
- arch/sparc/kernel/leon_pci.c       |  5 ++---
- arch/sparc/kernel/pci.c            | 10 ++++-----
- arch/sparc/kernel/pcic.c           |  5 ++---
- drivers/eisa/pci_eisa.c            |  4 ++--
- drivers/pci/bus.c                  |  7 +++---
- drivers/pci/hotplug/shpchp_sysfs.c |  8 +++----
- drivers/pci/pci.c                  |  5 ++---
- drivers/pci/probe.c                |  2 +-
- drivers/pci/remove.c               |  5 ++---
- drivers/pci/setup-bus.c            | 36 ++++++++++++------------------
- drivers/pci/setup-res.c            |  4 +---
- drivers/pci/xen-pcifront.c         |  4 +---
- drivers/pcmcia/rsrc_nonstatic.c    |  9 +++-----
- drivers/pcmcia/yenta_socket.c      |  3 +--
- include/linux/pci.h                | 25 +++++++++++++++++----
- 20 files changed, 78 insertions(+), 86 deletions(-)
-
+diff --git a/drivers/pcmcia/rsrc_nonstatic.c b/drivers/pcmcia/rsrc_nonstatic.c
+index ad1141fddb4c..9d92d4bb6239 100644
+--- a/drivers/pcmcia/rsrc_nonstatic.c
++++ b/drivers/pcmcia/rsrc_nonstatic.c
+@@ -934,7 +934,7 @@ static int adjust_io(struct pcmcia_socket *s, unsigned int action, unsigned long
+ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
+ {
+ 	struct resource *res;
+-	int i, done = 0;
++	int done = 0;
+ 
+ 	if (!s->cb_dev || !s->cb_dev->bus)
+ 		return -ENODEV;
+@@ -960,12 +960,9 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
+ 	 */
+ 	if (s->cb_dev->bus->number == 0)
+ 		return -EINVAL;
+-
+-	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++) {
+-		res = s->cb_dev->bus->resource[i];
+-#else
+-	pci_bus_for_each_resource(s->cb_dev->bus, res, i) {
+ #endif
++
++	pci_bus_for_each_resource_p(s->cb_dev->bus, res) {
+ 		if (!res)
+ 			continue;
+ 
+diff --git a/drivers/pcmcia/yenta_socket.c b/drivers/pcmcia/yenta_socket.c
+index 3966a6ceb1ac..b200f2b99a7a 100644
+--- a/drivers/pcmcia/yenta_socket.c
++++ b/drivers/pcmcia/yenta_socket.c
+@@ -673,9 +673,8 @@ static int yenta_search_res(struct yenta_socket *socket, struct resource *res,
+ 			    u32 min)
+ {
+ 	struct resource *root;
+-	int i;
+ 
+-	pci_bus_for_each_resource(socket->dev->bus, root, i) {
++	pci_bus_for_each_resource_p(socket->dev->bus, root) {
+ 		if (!root)
+ 			continue;
+ 
 -- 
 2.35.1
 
