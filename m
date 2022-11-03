@@ -2,50 +2,46 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B903C43219
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Nov 2022 18:05:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A194CC433FE
+	for <sparclinux@archiver.kernel.org>; Thu,  3 Nov 2022 18:30:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231356AbiKCSFj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Nov 2022 14:05:39 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43406 "EHLO
+        id S231643AbiKCSas (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 3 Nov 2022 14:30:48 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231359AbiKCSEo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 14:04:44 -0400
-Received: from mga17.intel.com (mga17.intel.com [192.55.52.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3A026375;
-        Thu,  3 Nov 2022 11:02:01 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667498521; x=1699034521;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=yb2Mq3fbpPtLAnjCVdV2BEIMFU/XQ1cYRIu5k0HafqM=;
-  b=l5Hr56ToEJs+/CdNN7Zywr/zrd1fxLDUPoQCFG/B9iGuOzEjjvmRuRqJ
-   4YBKXfi//cNu1ha6Gpn7s7C9Gk/ytC+jm6tEctcha4YEs4w/ui6Q5pM+6
-   WsqkD7TWduTuJJ7n6zsDKQqh0RuMYT2TbwVNDLLkZaldHd0nFlgYyNRBj
-   THatTJGf5qwAUJ2i7M/uJe3kDI5Ar8VZO3HGKPI/eXSLCZ/LDWI9cH3Su
-   D659FUND4L7Ha7sJsCkNS1pjrmpgIPN3nGk4UooVymOPidGWXStBzo6md
-   O7Shjcgyz4pMQj/L7o8g5AOaHkLbaiH+P3mImGVPaK3VcPcZY/UvsUNjQ
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="290150790"
-X-IronPort-AV: E=Sophos;i="5.96,134,1665471600"; 
-   d="scan'208";a="290150790"
-Received: from fmsmga002.fm.intel.com ([10.253.24.26])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 11:01:43 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="740290898"
-X-IronPort-AV: E=Sophos;i="5.96,134,1665471600"; 
-   d="scan'208";a="740290898"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by fmsmga002.fm.intel.com with ESMTP; 03 Nov 2022 11:01:36 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1oqeWy-006xtO-3D;
-        Thu, 03 Nov 2022 20:01:33 +0200
-Date:   Thu, 3 Nov 2022 20:01:32 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Dominik Brodowski <linux@dominikbrodowski.net>
-Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        with ESMTP id S231395AbiKCSaq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 14:30:46 -0400
+Received: from mail-pf1-f171.google.com (mail-pf1-f171.google.com [209.85.210.171])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A492AE42;
+        Thu,  3 Nov 2022 11:29:53 -0700 (PDT)
+Received: by mail-pf1-f171.google.com with SMTP id b185so2400986pfb.9;
+        Thu, 03 Nov 2022 11:29:53 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=pZjEyPGh7N/ck24vh/VKMs5s50UIlOa2pgI4ml3dqpA=;
+        b=wBIG6peM6DO5VkovFmK5TgeyvBa7jO8i95AVxC7AtHb7w6gbuyIVitJya39P0iaTJu
+         0sT6wJ6o5hrKmNgXieS+gzsrfy5btgpKT6RZ2nSrQgaYhFueAGWUyUmm4pYpUFvbsiPn
+         7oY6sqqszRlqiSokONWdNzFxaCSIc2FNrRUGQ7cCDsbMzfsGB791jzVb+LyoHWF36yoK
+         2TrOYBVCI2uJxj7oZe3gEUTXw/Rl59c8yO59nawy3Xsh/YPXHqATxcpUZtOmF5C2qQIm
+         d3+Ra3gi/m/RggvdOLbYJ/bpD4AHpoa2ao5th4mbUqIqD3J+HACVkCz5DRhVVTeNcERI
+         z7qQ==
+X-Gm-Message-State: ACrzQf3EhY2IWYhRFKNYyvinf1CSPHo9OLMWzdjT9rya749d8zsmYHdq
+        YaY05A38KU+b5JFp2N8rNLs=
+X-Google-Smtp-Source: AMsMyM4MMb94EAGz1kO2Q0DRDyjidkdmznJiyzQZ8JfQK1Y1FbZfy+aOFpE2yYDeDmYpBxRHuxCHKQ==
+X-Received: by 2002:aa7:8c15:0:b0:56b:ead2:3950 with SMTP id c21-20020aa78c15000000b0056bead23950mr32086578pfd.77.1667500192405;
+        Thu, 03 Nov 2022 11:29:52 -0700 (PDT)
+Received: from rocinante (fpd11144dd.ap.nuro.jp. [209.17.68.221])
+        by smtp.gmail.com with ESMTPSA id o14-20020a170902d4ce00b0018157b415dbsm1034089plg.63.2022.11.03.11.29.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 03 Nov 2022 11:29:51 -0700 (PDT)
+Date:   Fri, 4 Nov 2022 03:29:44 +0900
+From:   Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>
+To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc:     Dominik Brodowski <linux@dominikbrodowski.net>,
+        =?utf-8?Q?Micka=C3=ABl_Sala=C3=BCn?= <mic@digikod.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
         Arnd Bergmann <arnd@arndb.de>,
@@ -69,38 +65,57 @@ Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
         Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
 Subject: Re: [PATCH v2 4/4] pcmcia: Convert to use
  pci_bus_for_each_resource_p()
-Message-ID: <Y2QB/BxfKCjckaaU@smile.fi.intel.com>
+Message-ID: <Y2QImB0OLakzz1+F@rocinante>
 References: <20221103164644.70554-1-andriy.shevchenko@linux.intel.com>
  <20221103164644.70554-5-andriy.shevchenko@linux.intel.com>
  <Y2P0XCNJvTVuziO7@owl.dominikbrodowski.net>
  <Y2P2ja26ikNecTsv@smile.fi.intel.com>
- <Y2P5mRt//Pp6XTLT@owl.dominikbrodowski.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <Y2P5mRt//Pp6XTLT@owl.dominikbrodowski.net>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+In-Reply-To: <Y2P2ja26ikNecTsv@smile.fi.intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Nov 03, 2022 at 06:25:45PM +0100, Dominik Brodowski wrote:
-> Am Thu, Nov 03, 2022 at 07:12:45PM +0200 schrieb Andy Shevchenko:
-> > On Thu, Nov 03, 2022 at 06:03:24PM +0100, Dominik Brodowski wrote:
+Hello,
 
-...
-
-> > Considering this is done, can you issue your conditional tag so I will
-> > incorporate it in v3?
+[...]
+> > > -
+> > > -	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++) {
+> > > -		res = s->cb_dev->bus->resource[i];
+> > > -#else
+> > > -	pci_bus_for_each_resource(s->cb_dev->bus, res, i) {
+> > >  #endif
+> > > +
+> > > +	pci_bus_for_each_resource_p(s->cb_dev->bus, res) {
+> > >  		if (!res)
+> > >  			continue;
+> > 
+> > Doesn't this remove the proper iterator for X86? Even if that is the right
+> > thing to do, it needs an explict explanation.
 > 
-> Certainly, feel free to add
-> 
-> 	Acked-by: Dominik Brodowski <linux@dominikbrodowski.net>
+> I dunno what was in 2010, but reading code now I have found no differences in
+> the logic on how resources are being iterated in these two pieces of code.
 
-Thank you for the review!
+This code is over a decade old (13 years old to be precise) and there was
+something odd between Bjorn's and Jesse's patches, as per:
 
--- 
-With Best Regards,
-Andy Shevchenko
+  89a74ecccd1f ("PCI: add pci_bus_for_each_resource(), remove direct bus->resource[] refs")
+  cf26e8dc4194 ("pcmcia: do not autoadd root PCI bus resources")
 
+> But fine, I will add a line to a commit message about this change.
 
+I wouldn't, personally.  The change you are proposing is self-explanatory
+and somewhat in-line with what is there already - unless I am also reading
+the current implementation wrong.
+
+That said, Dominik is the maintainer of PCMCIA driver, so his is the last
+word, so to speak. :)
+
+> Considering this is done, can you issue your conditional tag so I will
+> incorporate it in v3?
+
+No need, really.  Again, unless Dominik thinks otherwise.
+
+	Krzysztof
