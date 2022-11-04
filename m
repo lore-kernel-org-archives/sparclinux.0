@@ -2,110 +2,61 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DEAAEC433FE
-	for <sparclinux@archiver.kernel.org>; Thu,  3 Nov 2022 19:01:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 447CBC4332F
+	for <sparclinux@archiver.kernel.org>; Fri,  4 Nov 2022 03:53:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbiKCTBa (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 3 Nov 2022 15:01:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46686 "EHLO
+        id S229523AbiKDDxA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 3 Nov 2022 23:53:00 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231316AbiKCTBU (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 15:01:20 -0400
-Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1D30C18349;
-        Thu,  3 Nov 2022 12:01:19 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1667502079; x=1699038079;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:content-transfer-encoding:in-reply-to;
-  bh=sNkpjDaE4wFtOA2SWrBA99Yi2yLtSUQQFYkHqzgZpY0=;
-  b=ZXt1L7pOhqi5WlmhDXsXmtPvPzFNWctwy1R7Q4Nq9odpGkclZS16RZoK
-   yr0pKTMTKNTuyGMD6FHVYJOdygkVad7sglNjs8Cr+jWptpVC3Xwwtk4+F
-   wO3FLNwQ/TLABvyu1b0tslvcUXYyVUlQkCnKntZMzTDTMWwE2/SceXpTY
-   7wCgLODK9awyPzQKPB8raMf32pF09qwtXXyOTcdW1z/qPCLfmMwO9lIoT
-   T2ELTsBsjnab3bY7pmSLFcT1xOCGowIq+91pOv0FIQn4SQz6OYOwB1JqE
-   +PiauyijoaYM/9M+J4/4FGsVZqfBSZXyX18MCHUPeBquk8DHiDMz6Kf9p
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="336475095"
-X-IronPort-AV: E=Sophos;i="5.96,135,1665471600"; 
-   d="scan'208";a="336475095"
-Received: from orsmga007.jf.intel.com ([10.7.209.58])
-  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 03 Nov 2022 12:01:18 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10520"; a="629452994"
-X-IronPort-AV: E=Sophos;i="5.96,135,1665471600"; 
-   d="scan'208";a="629452994"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga007.jf.intel.com with ESMTP; 03 Nov 2022 12:01:11 -0700
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1oqfSd-006zXu-1O;
-        Thu, 03 Nov 2022 21:01:07 +0200
-Date:   Thu, 3 Nov 2022 21:01:07 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Dominik Brodowski <linux@dominikbrodowski.net>
-Cc:     Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mips@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-        xen-devel@lists.xenproject.org, Miguel Ojeda <ojeda@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Stefano Stabellini <sstabellini@kernel.org>,
-        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: Re: [PATCH v2 4/4] pcmcia: Convert to use
- pci_bus_for_each_resource_p()
-Message-ID: <Y2QP8yrZ7/9fpUQQ@smile.fi.intel.com>
-References: <20221103164644.70554-1-andriy.shevchenko@linux.intel.com>
- <20221103164644.70554-5-andriy.shevchenko@linux.intel.com>
- <Y2P0XCNJvTVuziO7@owl.dominikbrodowski.net>
- <Y2P2ja26ikNecTsv@smile.fi.intel.com>
- <Y2QImB0OLakzz1+F@rocinante>
- <Y2QKjzL+nH6Zabg7@owl.dominikbrodowski.net>
+        with ESMTP id S229485AbiKDDw7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 3 Nov 2022 23:52:59 -0400
+Received: from szxga01-in.huawei.com (szxga01-in.huawei.com [45.249.212.187])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5C10013D7E
+        for <sparclinux@vger.kernel.org>; Thu,  3 Nov 2022 20:52:58 -0700 (PDT)
+Received: from dggpemm500022.china.huawei.com (unknown [172.30.72.53])
+        by szxga01-in.huawei.com (SkyGuard) with ESMTP id 4N3RSx4qbMzpSsn;
+        Fri,  4 Nov 2022 11:49:21 +0800 (CST)
+Received: from dggpemm500007.china.huawei.com (7.185.36.183) by
+ dggpemm500022.china.huawei.com (7.185.36.162) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 4 Nov 2022 11:52:56 +0800
+Received: from huawei.com (10.175.103.91) by dggpemm500007.china.huawei.com
+ (7.185.36.183) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 4 Nov
+ 2022 11:52:56 +0800
+From:   Yang Yingliang <yangyingliang@huawei.com>
+To:     <sparclinux@vger.kernel.org>
+CC:     <davem@davemloft.net>, <yangyingliang@huawei.com>
+Subject: [PATCH v2 0/2] sparc: fix possible memory leak in scan_one_device()
+Date:   Fri, 4 Nov 2022 11:51:43 +0800
+Message-ID: <20221104035145.1147754-1-yangyingliang@huawei.com>
+X-Mailer: git-send-email 2.25.1
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Y2QKjzL+nH6Zabg7@owl.dominikbrodowski.net>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.175.103.91]
+X-ClientProxiedBy: dggems701-chm.china.huawei.com (10.3.19.178) To
+ dggpemm500007.china.huawei.com (7.185.36.183)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Nov 03, 2022 at 07:38:07PM +0100, Dominik Brodowski wrote:
-> Am Fri, Nov 04, 2022 at 03:29:44AM +0900 schrieb Krzysztof Wilczyński:
+This patchset fixes two possible memory leaks if of_device_register()
+returns error.
 
-...
+v1 -> v2:
+  add fix tag.
 
-> > That said, Dominik is the maintainer of PCMCIA driver, so his is the last
-> > word, so to speak. :)
-> > 
-> > > Considering this is done, can you issue your conditional tag so I will
-> > > incorporate it in v3?
-> > 
-> > No need, really.  Again, unless Dominik thinks otherwise.
-> 
-> Ah, thanks for the correction. Then v2 is perfectly fine.
+Yang Yingliang (2):
+  sparc/of: fix possible memory leak in scan_one_device()
+  sparc64/of: fix possible memory leak in scan_one_device()
 
-I'm fine with either, thanks!
+ arch/sparc/kernel/of_device_32.c | 8 +++++++-
+ arch/sparc/kernel/of_device_64.c | 8 +++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.25.1
 
