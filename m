@@ -2,53 +2,73 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB5EAC4332F
-	for <sparclinux@archiver.kernel.org>; Fri,  4 Nov 2022 10:39:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8075C433FE
+	for <sparclinux@archiver.kernel.org>; Fri,  4 Nov 2022 12:22:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231470AbiKDKj2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 4 Nov 2022 06:39:28 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55454 "EHLO
+        id S231834AbiKDMWJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 4 Nov 2022 08:22:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48204 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231390AbiKDKj1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 4 Nov 2022 06:39:27 -0400
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E435C1;
-        Fri,  4 Nov 2022 03:39:26 -0700 (PDT)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1oqu6e-0003T0-JJ; Fri, 04 Nov 2022 11:39:24 +0100
-Message-ID: <7cf21691-b01b-4316-63a5-7625753f2ac3@leemhuis.info>
-Date:   Fri, 4 Nov 2022 11:39:23 +0100
+        with ESMTP id S231833AbiKDMWI (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 4 Nov 2022 08:22:08 -0400
+Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE4762D1DD
+        for <sparclinux@vger.kernel.org>; Fri,  4 Nov 2022 05:22:06 -0700 (PDT)
+Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
+        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4N3fn75pD5zJnTy;
+        Fri,  4 Nov 2022 20:19:07 +0800 (CST)
+Received: from kwepemm600014.china.huawei.com (7.193.23.54) by
+ dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
+ (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
+ 15.1.2375.31; Fri, 4 Nov 2022 20:22:03 +0800
+Received: from huawei.com (10.90.53.225) by kwepemm600014.china.huawei.com
+ (7.193.23.54) with Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 4 Nov
+ 2022 20:22:03 +0800
+From:   Zhang Qilong <zhangqilong3@huawei.com>
+To:     <davem@davemloft.net>, <tglx@linutronix.de>
+CC:     <sparclinux@vger.kernel.org>
+Subject: [PATCH] sparc: Fix possible memleak in of_set_property
+Date:   Fri, 4 Nov 2022 20:27:08 +0800
+Message-ID: <20221104122708.15488-1-zhangqilong3@huawei.com>
+X-Mailer: git-send-email 2.26.0.106.g9fadedd
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.0
-Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
- dirty bit when thp splits on pmd) #forregzbot
-Content-Language: en-US, de-DE
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-To:     "regressions@lists.linux.dev" <regressions@lists.linux.dev>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org
-References: <20220811161331.37055-1-peterx@redhat.com>
- <20220811161331.37055-5-peterx@redhat.com>
- <20221021160603.GA23307@u164.east.ru>
- <6a02e9d4-690e-1f71-066a-c2d8bd811a0c@leemhuis.info>
-In-Reply-To: <6a02e9d4-690e-1f71-066a-c2d8bd811a0c@leemhuis.info>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1667558366;9dd22274;
-X-HE-SMSGID: 1oqu6e-0003T0-JJ
+Content-Transfer-Encoding: 7BIT
+Content-Type:   text/plain; charset=US-ASCII
+X-Originating-IP: [10.90.53.225]
+X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
+ kwepemm600014.china.huawei.com (7.193.23.54)
+X-CFilter-Loop: Reflected
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 23.10.22 15:33, Thorsten Leemhuis wrote:
-> On 21.10.22 18:06, Anatoly Pugachev wrote:
->> Tried to update my debian sparc64 sid (unstable) linux distro to latest
->> version of available packages, got dpkg segfault... 
-> #regzbot ^introduced 0ccf7f168e17bb7
-> #regzbot title mm: sparc64: dpkg fails on sparc64 since "mm/thp: Carry
-> over dirty bit when thp splits on pmd)"
-> #regzbot ignore-activity
+If we do not find the target property, this part of memory
+that allocated to new_val is not referenced by anyone. It
+can not be freed after of_set_property() returns, then it
+will be leaked. We fix the problem by freeing it when not
+found the target name of the property.
 
-#regzbot fixed-by: 434e3d15d92b
+Fixes: dfa76060be85 ("sparc: Create common area for OF device layer code.")
+Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
+---
+ arch/sparc/kernel/prom_common.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
+index c9ec70888a39..c127a815db5e 100644
+--- a/arch/sparc/kernel/prom_common.c
++++ b/arch/sparc/kernel/prom_common.c
+@@ -91,6 +91,9 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
+ 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
+ 	mutex_unlock(&of_set_property_mutex);
+ 
++	if (err)
++		kfree(new_val);
++
+ 	/* XXX Upate procfs if necessary... */
+ 
+ 	return err;
+-- 
+2.25.1
+
