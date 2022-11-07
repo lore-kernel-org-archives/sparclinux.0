@@ -2,73 +2,66 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8075C433FE
-	for <sparclinux@archiver.kernel.org>; Fri,  4 Nov 2022 12:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A414C433FE
+	for <sparclinux@archiver.kernel.org>; Mon,  7 Nov 2022 08:43:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231834AbiKDMWJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 4 Nov 2022 08:22:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48204 "EHLO
+        id S230470AbiKGInD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 7 Nov 2022 03:43:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46244 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231833AbiKDMWI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 4 Nov 2022 08:22:08 -0400
-Received: from szxga03-in.huawei.com (szxga03-in.huawei.com [45.249.212.189])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE4762D1DD
-        for <sparclinux@vger.kernel.org>; Fri,  4 Nov 2022 05:22:06 -0700 (PDT)
-Received: from dggemv704-chm.china.huawei.com (unknown [172.30.72.57])
-        by szxga03-in.huawei.com (SkyGuard) with ESMTP id 4N3fn75pD5zJnTy;
-        Fri,  4 Nov 2022 20:19:07 +0800 (CST)
-Received: from kwepemm600014.china.huawei.com (7.193.23.54) by
- dggemv704-chm.china.huawei.com (10.3.19.47) with Microsoft SMTP Server
- (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id
- 15.1.2375.31; Fri, 4 Nov 2022 20:22:03 +0800
-Received: from huawei.com (10.90.53.225) by kwepemm600014.china.huawei.com
- (7.193.23.54) with Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256) id 15.1.2375.31; Fri, 4 Nov
- 2022 20:22:03 +0800
-From:   Zhang Qilong <zhangqilong3@huawei.com>
-To:     <davem@davemloft.net>, <tglx@linutronix.de>
-CC:     <sparclinux@vger.kernel.org>
-Subject: [PATCH] sparc: Fix possible memleak in of_set_property
-Date:   Fri, 4 Nov 2022 20:27:08 +0800
-Message-ID: <20221104122708.15488-1-zhangqilong3@huawei.com>
-X-Mailer: git-send-email 2.26.0.106.g9fadedd
+        with ESMTP id S231243AbiKGInC (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Nov 2022 03:43:02 -0500
+X-Greylist: delayed 416 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 07 Nov 2022 00:43:01 PST
+Received: from mail.serakhis.pl (mail.serakhis.pl [51.75.66.155])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD0F15738
+        for <sparclinux@vger.kernel.org>; Mon,  7 Nov 2022 00:43:01 -0800 (PST)
+Received: by mail.serakhis.pl (Postfix, from userid 1002)
+        id 14022A2385; Mon,  7 Nov 2022 08:35:54 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=serakhis.pl; s=mail;
+        t=1667810163; bh=qPXa+3AN/7//2XMoc/U9VpAAp7uyRjtux92T8toI2wk=;
+        h=Date:From:To:Subject:From;
+        b=ayCYRAxf1/0gAQsme81LXoamENCIA+hludOJ1AMcRbbwVqZ9pG+u8KD5ngLzfd9o9
+         MI41pLQ1FMU1Yb3+8KndjdKIEcAFJ6abrS6Umvi/mfrHQm5WcCeVGwxIjsyqJNor8k
+         PmgiIfrP2E6oqGJwgv48FIIvfSmIPBACd4ACER7Q7FDjykR4y1W7hTHTUtu9L7i7e0
+         p+kWgQe7z44iRpzgRAMdrgb+lPKbFtGD0LlxTVhxSKghChDfh7QHHsV7AM8SBSDwSz
+         el7wEiuxXOhi91l2s1dXl0hHduXGMoDhV4FaL5cmbOPN/HaelrnmVc9r5JKM8rJJBO
+         hj69OEypM/yOQ==
+Received: by mail.serakhis.pl for <sparclinux@vger.kernel.org>; Mon,  7 Nov 2022 08:35:53 GMT
+Message-ID: <20221107074500-0.1.62.jjek.0.o3tewr8i59@serakhis.pl>
+Date:   Mon,  7 Nov 2022 08:35:53 GMT
+From:   "Marek Laskowski" <marek.laskowski@serakhis.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Nowy_sprz=C4=99t_dla_firmy?=
+X-Mailer: mail.serakhis.pl
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type:   text/plain; charset=US-ASCII
-X-Originating-IP: [10.90.53.225]
-X-ClientProxiedBy: dggems703-chm.china.huawei.com (10.3.19.180) To
- kwepemm600014.china.huawei.com (7.193.23.54)
-X-CFilter-Loop: Reflected
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-If we do not find the target property, this part of memory
-that allocated to new_val is not referenced by anyone. It
-can not be freed after of_set_property() returns, then it
-will be leaked. We fix the problem by freeing it when not
-found the target name of the property.
+Dzie=C5=84 dobry,
 
-Fixes: dfa76060be85 ("sparc: Create common area for OF device layer code.")
-Signed-off-by: Zhang Qilong <zhangqilong3@huawei.com>
----
- arch/sparc/kernel/prom_common.c | 3 +++
- 1 file changed, 3 insertions(+)
+dostarczamy kompletne, nowoczesne laptopy wraz z oprogramowaniem, gotowe =
+do pracy.
 
-diff --git a/arch/sparc/kernel/prom_common.c b/arch/sparc/kernel/prom_common.c
-index c9ec70888a39..c127a815db5e 100644
---- a/arch/sparc/kernel/prom_common.c
-+++ b/arch/sparc/kernel/prom_common.c
-@@ -91,6 +91,9 @@ int of_set_property(struct device_node *dp, const char *name, void *val, int len
- 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
- 	mutex_unlock(&of_set_property_mutex);
- 
-+	if (err)
-+		kfree(new_val);
-+
- 	/* XXX Upate procfs if necessary... */
- 
- 	return err;
--- 
-2.25.1
+Jako autoryzowany partner Dell oraz Lenovo z platynowym statusem zapewnia=
+my nowy sprz=C4=99t z mo=C5=BCliwo=C5=9Bci=C4=85 konfiguracji wed=C5=82ug=
+ potrzeb u=C5=BCytkownik=C3=B3w.=20
 
+Stale wyposa=C5=BCamy wiele du=C5=BCych organizacji, m.in, Polkomtel, Net=
+ia, Beko, Canal+, BO=C5=9A Bank w nowoczesnych sprz=C4=99t, kt=C3=B3ry za=
+pewnia bezpiecze=C5=84stwo i ci=C4=85g=C5=82o=C5=9B=C4=87 dzia=C5=82ania =
+biznesu.=20
+
+Wysoka dost=C4=99pno=C5=9B=C4=87 sprz=C4=99tu, do=C5=9Bwiadczenie we wsp=C3=
+=B3=C5=82pracy z wieloma Partnerami Pa=C5=84stwa formatu pozwala nam zape=
+wni=C4=87 Pa=C5=84stwu wydajno=C5=9B=C4=87 i ergonomi=C4=99 laptop=C3=B3w=
+, a tak=C5=BCe inne, najlepsze parametry.
+
+M=C3=B3g=C5=82bym zaprezentowa=C4=87 odpowiadaj=C4=85ce Pa=C5=84stwu rozw=
+i=C4=85zania?
+
+
+Pozdrawiam
+Marek Laskowski
