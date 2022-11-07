@@ -2,66 +2,71 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A414C433FE
-	for <sparclinux@archiver.kernel.org>; Mon,  7 Nov 2022 08:43:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B099C4332F
+	for <sparclinux@archiver.kernel.org>; Mon,  7 Nov 2022 15:18:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230470AbiKGInD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 7 Nov 2022 03:43:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46244 "EHLO
+        id S231481AbiKGPSf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 7 Nov 2022 10:18:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57756 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231243AbiKGInC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Nov 2022 03:43:02 -0500
-X-Greylist: delayed 416 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 07 Nov 2022 00:43:01 PST
-Received: from mail.serakhis.pl (mail.serakhis.pl [51.75.66.155])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD0F15738
-        for <sparclinux@vger.kernel.org>; Mon,  7 Nov 2022 00:43:01 -0800 (PST)
-Received: by mail.serakhis.pl (Postfix, from userid 1002)
-        id 14022A2385; Mon,  7 Nov 2022 08:35:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=serakhis.pl; s=mail;
-        t=1667810163; bh=qPXa+3AN/7//2XMoc/U9VpAAp7uyRjtux92T8toI2wk=;
-        h=Date:From:To:Subject:From;
-        b=ayCYRAxf1/0gAQsme81LXoamENCIA+hludOJ1AMcRbbwVqZ9pG+u8KD5ngLzfd9o9
-         MI41pLQ1FMU1Yb3+8KndjdKIEcAFJ6abrS6Umvi/mfrHQm5WcCeVGwxIjsyqJNor8k
-         PmgiIfrP2E6oqGJwgv48FIIvfSmIPBACd4ACER7Q7FDjykR4y1W7hTHTUtu9L7i7e0
-         p+kWgQe7z44iRpzgRAMdrgb+lPKbFtGD0LlxTVhxSKghChDfh7QHHsV7AM8SBSDwSz
-         el7wEiuxXOhi91l2s1dXl0hHduXGMoDhV4FaL5cmbOPN/HaelrnmVc9r5JKM8rJJBO
-         hj69OEypM/yOQ==
-Received: by mail.serakhis.pl for <sparclinux@vger.kernel.org>; Mon,  7 Nov 2022 08:35:53 GMT
-Message-ID: <20221107074500-0.1.62.jjek.0.o3tewr8i59@serakhis.pl>
-Date:   Mon,  7 Nov 2022 08:35:53 GMT
-From:   "Marek Laskowski" <marek.laskowski@serakhis.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Nowy_sprz=C4=99t_dla_firmy?=
-X-Mailer: mail.serakhis.pl
+        with ESMTP id S232833AbiKGPSd (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 7 Nov 2022 10:18:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E7423101A;
+        Mon,  7 Nov 2022 07:18:29 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6527161175;
+        Mon,  7 Nov 2022 15:18:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2F181C433D7;
+        Mon,  7 Nov 2022 15:18:24 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1667834308;
+        bh=AnnreFD0cOvjlr58KEWYY82PgAKKww7aoT8x4brf1EU=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=jLd5uAPiCOvWXKrYzcJptWZaW9+0RZr1WUOv3ulrwfs+pbPvIsGXSPtdcsA2qtpX5
+         o5CGyWn9hDSKaoLYgwpiQacUbP/n6+7wPFVJnGf78t15bMUjw/HUofrV70iQkR3V5I
+         0CXcpRD4zP1pVVrdorilN6IGopRyt8ZyENGWuTXB9ctCGI8GvYogoDbKGB0q5NaGpX
+         0kjGx3pb4oP78kWstUJr5gpD6PuYDy2kNKEfi2P48MDFVJfpV/0jq7jzUx10vuGKQZ
+         wuqNKWPcGu5s5HSrogsvgRSaApuQyqEUhhqchC6XaJnSHp4pte+GAWxJw2OVVTtx1K
+         E2JEFMH/d5z1Q==
+Date:   Mon, 7 Nov 2022 15:18:20 +0000
+From:   Will Deacon <will@kernel.org>
+To:     Lecopzer Chen <lecopzer.chen@mediatek.com>
+Cc:     linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-perf-users@vger.kernel.org, mark.rutland@arm.com,
+        acme@kernel.org, akpm@linux-foundation.org,
+        alexander.shishkin@linux.intel.com, catalin.marinas@arm.com,
+        davem@davemloft.net, jolsa@redhat.com, jthierry@redhat.com,
+        keescook@chromium.org, kernelfans@gmail.com, masahiroy@kernel.org,
+        matthias.bgg@gmail.com, maz@kernel.org, mcgrof@kernel.org,
+        mingo@redhat.com, namhyung@kernel.org, nixiaoming@huawei.com,
+        peterz@infradead.org, pmladek@suse.com, sparclinux@vger.kernel.org,
+        sumit.garg@linaro.org, wangqing@vivo.com, yj.chiang@mediatek.com
+Subject: Re: [PATCH v7 0/6] Support hld delayed init based on Pseudo-NMI for
+Message-ID: <20221107151819.GA21002@willie-the-truck>
+References: <20220903093415.15850-1-lecopzer.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220903093415.15850-1-lecopzer.chen@mediatek.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Sat, Sep 03, 2022 at 05:34:09PM +0800, Lecopzer Chen wrote:
+> As we already used hld internally for arm64 since 2020, there still
+> doesn't have a proper commit on the upstream and we badly need it.
+> 
+> This serise rework on 5.17 from [1] and the origin author is
+> Pingfan Liu <kernelfans@gmail.com>
+> Sumit Garg <sumit.garg@linaro.org>
 
-dostarczamy kompletne, nowoczesne laptopy wraz z oprogramowaniem, gotowe =
-do pracy.
+I'd definitely want Mark's ack on this, as he previously had suggestions
+when we reverted the old broken code back in:
 
-Jako autoryzowany partner Dell oraz Lenovo z platynowym statusem zapewnia=
-my nowy sprz=C4=99t z mo=C5=BCliwo=C5=9Bci=C4=85 konfiguracji wed=C5=82ug=
- potrzeb u=C5=BCytkownik=C3=B3w.=20
+https://lore.kernel.org/r/20210113130235.GB19011@C02TD0UTHF1T.local
 
-Stale wyposa=C5=BCamy wiele du=C5=BCych organizacji, m.in, Polkomtel, Net=
-ia, Beko, Canal+, BO=C5=9A Bank w nowoczesnych sprz=C4=99t, kt=C3=B3ry za=
-pewnia bezpiecze=C5=84stwo i ci=C4=85g=C5=82o=C5=9B=C4=87 dzia=C5=82ania =
-biznesu.=20
-
-Wysoka dost=C4=99pno=C5=9B=C4=87 sprz=C4=99tu, do=C5=9Bwiadczenie we wsp=C3=
-=B3=C5=82pracy z wieloma Partnerami Pa=C5=84stwa formatu pozwala nam zape=
-wni=C4=87 Pa=C5=84stwu wydajno=C5=9B=C4=87 i ergonomi=C4=99 laptop=C3=B3w=
-, a tak=C5=BCe inne, najlepsze parametry.
-
-M=C3=B3g=C5=82bym zaprezentowa=C4=87 odpowiadaj=C4=85ce Pa=C5=84stwu rozw=
-i=C4=85zania?
-
-
-Pozdrawiam
-Marek Laskowski
+Will
