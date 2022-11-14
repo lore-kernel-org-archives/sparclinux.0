@@ -2,44 +2,44 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75DADC4167E
-	for <sparclinux@archiver.kernel.org>; Mon, 14 Nov 2022 18:58:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68721C4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 14 Nov 2022 18:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236546AbiKNS6R (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        id S236612AbiKNS6R (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
         Mon, 14 Nov 2022 13:58:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44024 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44026 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236318AbiKNS6L (ORCPT
+        with ESMTP id S235836AbiKNS6L (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Mon, 14 Nov 2022 13:58:11 -0500
 Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 025F11D33C;
-        Mon, 14 Nov 2022 10:58:09 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3816F1D33D;
+        Mon, 14 Nov 2022 10:58:10 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1668452289; x=1699988289;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=BZMLhTwKqFLidxOVtwWq081cCaNo7ow4HF5ovB57GGE=;
-  b=GppoaM+AeBp3THbC30cQaYtJRZEhR9Bow3agyfVCEymlXZT04nkSUfCD
-   mw4b2xegRjaRphDpIwI1QrwTgYEjHrL0FLVujEYahf/V1BiQxDIZjb/I8
-   wm5QIx3yBjhv83yx38PoslQ2/yvHxKPfQPD2PSDPhuNfpRQSboPBvWB6u
-   PzX2E0QEq0NP4PpejxFDllRUt1OuQFHPn7+3DN1SWFIGVBbXlg91YU8NI
-   JsgdAjcvLjnEPttsOSwiq63F/2B1jgN8LV0+Zhc+9E8YxekRC1b3+P70I
-   PoIhQxiyLsEoZwhaMVbHz6yF0R9s9U31s/4fFYkDQ2RGQdlrBYOjuIVvK
+  t=1668452290; x=1699988290;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=x6ggnXnghcO12tbT4wtQfhiqCsVpusNaj/2IGyQVVxI=;
+  b=i3uF8urp3pCu/Df8JGxRDJ/iY/G6MQwQDC0b2ezYdPXiSn/faE7m3dE/
+   7UlImdTQyyY9dtNs1UxJ+0iGkc3ntR2KDgJvWZvpF1Y0YsVnUzyLsWy3H
+   RMrGMyiYAoJMG6H1eXy2jLO+49h3I5aw9bRAd5xINCcQ6c/j7bPZEH1mh
+   RRXhXAIzA2PnMXDPAjieUhgzyrpbAGwrPDVQ+sghzgMYOGOv8MqJVu4Ym
+   mgDvhoIttGDlYwvUVaR9hYRNYS8gzh7PYMPXn6XtszEKQT+jz+k4gisSd
+   el7iJT2+jocapLWGSWzQwx4GHfTB8xxUTfZZkUvsS+Y+r7oq/ww3V4Hxe
    A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="338843407"
+X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="338843412"
 X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="338843407"
+   d="scan'208";a="338843412"
 Received: from orsmga002.jf.intel.com ([10.7.209.21])
   by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Nov 2022 10:58:09 -0800
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="638607286"
+X-IronPort-AV: E=McAfee;i="6500,9779,10531"; a="638607285"
 X-IronPort-AV: E=Sophos;i="5.96,164,1665471600"; 
-   d="scan'208";a="638607286"
+   d="scan'208";a="638607285"
 Received: from black.fi.intel.com ([10.237.72.28])
   by orsmga002.jf.intel.com with ESMTP; 14 Nov 2022 10:58:00 -0800
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id EECC2348; Mon, 14 Nov 2022 20:58:24 +0200 (EET)
+        id BAA212F3; Mon, 14 Nov 2022 20:58:24 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -67,72 +67,65 @@ Cc:     Miguel Ojeda <ojeda@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: [PATCH v3 4/4] pcmcia: Convert to use pci_bus_for_each_resource_p()
-Date:   Mon, 14 Nov 2022 20:58:22 +0200
-Message-Id: <20221114185822.65038-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 0/4] PCI: Add pci_dev_for_each_resource() helper and
+Date:   Mon, 14 Nov 2022 20:58:18 +0200
+Message-Id: <20221114185822.65038-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20221114185822.65038-1-andriy.shevchenko@linux.intel.com>
-References: <20221114185822.65038-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The pci_bus_for_each_resource_p() hides the iterator loop since
-it may be not used otherwise. With this, we may drop that iterator
-variable definition.
+Provide two new helper macros to iterate over PCI device resources and
+convert users.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Dominik Brodowski <linux@dominikbrodowski.net>
----
- drivers/pcmcia/rsrc_nonstatic.c | 9 +++------
- drivers/pcmcia/yenta_socket.c   | 3 +--
- 2 files changed, 4 insertions(+), 8 deletions(-)
+Looking at it, refactor existing pci_bus_for_each_resource() and convert
+users accordingly.
 
-diff --git a/drivers/pcmcia/rsrc_nonstatic.c b/drivers/pcmcia/rsrc_nonstatic.c
-index ad1141fddb4c..9d92d4bb6239 100644
---- a/drivers/pcmcia/rsrc_nonstatic.c
-+++ b/drivers/pcmcia/rsrc_nonstatic.c
-@@ -934,7 +934,7 @@ static int adjust_io(struct pcmcia_socket *s, unsigned int action, unsigned long
- static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
- {
- 	struct resource *res;
--	int i, done = 0;
-+	int done = 0;
- 
- 	if (!s->cb_dev || !s->cb_dev->bus)
- 		return -ENODEV;
-@@ -960,12 +960,9 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
- 	 */
- 	if (s->cb_dev->bus->number == 0)
- 		return -EINVAL;
--
--	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++) {
--		res = s->cb_dev->bus->resource[i];
--#else
--	pci_bus_for_each_resource(s->cb_dev->bus, res, i) {
- #endif
-+
-+	pci_bus_for_each_resource_p(s->cb_dev->bus, res) {
- 		if (!res)
- 			continue;
- 
-diff --git a/drivers/pcmcia/yenta_socket.c b/drivers/pcmcia/yenta_socket.c
-index 3966a6ceb1ac..b200f2b99a7a 100644
---- a/drivers/pcmcia/yenta_socket.c
-+++ b/drivers/pcmcia/yenta_socket.c
-@@ -673,9 +673,8 @@ static int yenta_search_res(struct yenta_socket *socket, struct resource *res,
- 			    u32 min)
- {
- 	struct resource *root;
--	int i;
- 
--	pci_bus_for_each_resource(socket->dev->bus, root, i) {
-+	pci_bus_for_each_resource_p(socket->dev->bus, root) {
- 		if (!root)
- 			continue;
- 
+This applies on top of this patch Mika sent out earlier:
+https://lore.kernel.org/r/20221114115953.40236-1-mika.westerberg@linux.intel.com
+
+Changelog v3:
+- rebased on top of v2 by Mika, see above
+- added tag to pcmcia patch (Dominik)
+
+Changelog v2:
+- refactor to have two macros
+- refactor existing pci_bus_for_each_resource() in the same way and
+  convert users
+
+Andy Shevchenko (3):
+  PCI: Split pci_bus_for_each_resource_p() out of
+    pci_bus_for_each_resource()
+  EISA: Convert to use pci_bus_for_each_resource_p()
+  pcmcia: Convert to use pci_bus_for_each_resource_p()
+
+Mika Westerberg (1):
+  PCI: Introduce pci_dev_for_each_resource()
+
+ .clang-format                      |  3 +++
+ arch/alpha/kernel/pci.c            |  5 ++---
+ arch/arm/kernel/bios32.c           | 16 ++++++-------
+ arch/mips/pci/pci-legacy.c         |  3 +--
+ arch/powerpc/kernel/pci-common.c   |  5 ++---
+ arch/sparc/kernel/leon_pci.c       |  5 ++---
+ arch/sparc/kernel/pci.c            | 10 ++++-----
+ arch/sparc/kernel/pcic.c           |  5 ++---
+ drivers/eisa/pci_eisa.c            |  4 ++--
+ drivers/pci/bus.c                  |  7 +++---
+ drivers/pci/hotplug/shpchp_sysfs.c |  8 +++----
+ drivers/pci/pci.c                  |  5 ++---
+ drivers/pci/probe.c                |  2 +-
+ drivers/pci/remove.c               |  5 ++---
+ drivers/pci/setup-bus.c            | 36 ++++++++++++------------------
+ drivers/pci/setup-res.c            |  4 +---
+ drivers/pci/xen-pcifront.c         |  4 +---
+ drivers/pcmcia/rsrc_nonstatic.c    |  9 +++-----
+ drivers/pcmcia/yenta_socket.c      |  3 +--
+ include/linux/pci.h                | 25 +++++++++++++++++----
+ 20 files changed, 78 insertions(+), 86 deletions(-)
+
 -- 
 2.35.1
 
