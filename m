@@ -2,59 +2,80 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD1CDC4332F
-	for <sparclinux@archiver.kernel.org>; Sun, 13 Nov 2022 17:56:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31793C4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 14 Nov 2022 17:27:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233954AbiKMR4W (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 13 Nov 2022 12:56:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51430 "EHLO
+        id S237700AbiKNR1P (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 14 Nov 2022 12:27:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233792AbiKMR4V (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 13 Nov 2022 12:56:21 -0500
-Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [80.237.130.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ABB80DEC5;
-        Sun, 13 Nov 2022 09:56:20 -0800 (PST)
-Received: from [2a02:8108:963f:de38:eca4:7d19:f9a2:22c5]; authenticated
-        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        id 1ouHDO-0004wj-TZ; Sun, 13 Nov 2022 18:56:18 +0100
-Message-ID: <c16e9614-70b5-3242-2977-8f3426960aa9@leemhuis.info>
-Date:   Sun, 13 Nov 2022 18:56:18 +0100
+        with ESMTP id S237736AbiKNR1L (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 14 Nov 2022 12:27:11 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9725923391;
+        Mon, 14 Nov 2022 09:27:10 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4A246B810A3;
+        Mon, 14 Nov 2022 17:27:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33120C433D6;
+        Mon, 14 Nov 2022 17:27:04 +0000 (UTC)
+Date:   Mon, 14 Nov 2022 12:27:45 -0500
+From:   Steven Rostedt <rostedt@goodmis.org>
+To:     Valentin Schneider <vschneid@redhat.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Marcelo Tosatti <mtosatti@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Guo Ren <guoren@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC PATCH v2 0/8] Generic IPI sending tracepoint
+Message-ID: <20221114122745.189af864@gandalf.local.home>
+In-Reply-To: <20221102182949.3119584-1-vschneid@redhat.com>
+References: <20221102182949.3119584-1-vschneid@redhat.com>
+X-Mailer: Claws Mail 3.17.8 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.4.1
-Subject: Re: dpkg fails on sparc64 (was: [PATCH v4 4/7] mm/thp: Carry over
- dirty bit when thp splits on pmd) #forregzbot
-Content-Language: en-US, de-DE
-From:   Thorsten Leemhuis <regressions@leemhuis.info>
-To:     "regressions@lists.linux.dev" <regressions@lists.linux.dev>
-Cc:     linux-mm@kvack.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org
-References: <20220811161331.37055-1-peterx@redhat.com>
- <20220811161331.37055-5-peterx@redhat.com>
- <20221021160603.GA23307@u164.east.ru>
- <6a02e9d4-690e-1f71-066a-c2d8bd811a0c@leemhuis.info>
- <7cf21691-b01b-4316-63a5-7625753f2ac3@leemhuis.info>
-In-Reply-To: <7cf21691-b01b-4316-63a5-7625753f2ac3@leemhuis.info>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1668362180;f26f07cb;
-X-HE-SMSGID: 1ouHDO-0004wj-TZ
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On Wed,  2 Nov 2022 18:29:41 +0000
+Valentin Schneider <vschneid@redhat.com> wrote:
 
-
-On 04.11.22 11:39, Thorsten Leemhuis wrote:
-> On 23.10.22 15:33, Thorsten Leemhuis wrote:
->> On 21.10.22 18:06, Anatoly Pugachev wrote:
->>> Tried to update my debian sparc64 sid (unstable) linux distro to latest
->>> version of available packages, got dpkg segfault... 
->> #regzbot ^introduced 0ccf7f168e17bb7
->> #regzbot title mm: sparc64: dpkg fails on sparc64 since "mm/thp: Carry
->> over dirty bit when thp splits on pmd)"
->> #regzbot ignore-activity
+> This is incomplete, just looking at arm64 there's more IPI types that aren't
+> covered: 
 > 
-> #regzbot fixed-by: 434e3d15d92b
+>   IPI_CPU_STOP,
+>   IPI_CPU_CRASH_STOP,
+>   IPI_TIMER,
+>   IPI_WAKEUP,
+> 
+> ... But it feels like a good starting point.
 
-#regzbot fixed-by: 624a2c94f5b7
+For the tracing portions:
+
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+
+-- Steve
