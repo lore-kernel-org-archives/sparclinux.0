@@ -2,102 +2,191 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11129C433FE
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:57:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4517C4332F
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 11:01:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233976AbiKPK52 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:57:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36172 "EHLO
+        id S236861AbiKPLBn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 06:01:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42454 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239119AbiKPK5C (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:57:02 -0500
-Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 217DD5B587
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:45:28 -0800 (PST)
-Received: by mail-wr1-x42c.google.com with SMTP id o4so29091814wrq.6
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:45:28 -0800 (PST)
+        with ESMTP id S232714AbiKPLBD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 06:01:03 -0500
+Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BDDE245EE1
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:49:00 -0800 (PST)
+Received: by mail-ej1-x62a.google.com with SMTP id gv23so10355053ejb.3
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:49:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=9ZBAjbkLkpV5anbsbNDWejUnJR2b62hZHcD7RsLbbis=;
-        b=hL4zzWhEnjPY50YGCD8ud9r0OmHyJZfvrX3qAIPsnxNHLvJaFEbQ1Kjv2ZZIydIzYe
-         FrutDF/Wdd3WHpGyYGf8s7GNLsZ9SNbMMkeyZh4IIffWQ10Ebm4xNhDGHXIUEqiQz1wX
-         Gabz7F7kpZGOmJn4Rsif9X8dR2cu/JkHkwHosTa6ZYdeoxjlc+4idPkmtgsmt1aQK5en
-         rnRwV9VRXdxOFqwFWs1A2UNgjxajOpiKw2uIHdhpXv1NZevyrk/320lGjbah3S1PxgMO
-         oW6aa8J8OuYcCWRCkqaX0lvzkiWEaMBx2bb/99lnkQAXh+BlQGKXIiaqDgVsCpC6djaT
-         4fCQ==
+        d=ffwll.ch; s=google;
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=OSCwvxDUrivspPm0mWYSEKkrMB19obOv39RUwyA0PH0=;
+        b=VJ17UkTNHUXDMc38lOye7y2paGd4FOYHBRYpe2vgelPuC55Z4g5rnX+xNi0NFRGTrN
+         mdMUVKijrbkJJfn3y8Tm8vf3pLdF4omxIOM6UM8S6CVz2p3NrVUPvz4FNRN3RF3rQ/lN
+         9z9ibLXy5LDPJfO5cF7QIpPDKsW5E+659K7gg=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=9ZBAjbkLkpV5anbsbNDWejUnJR2b62hZHcD7RsLbbis=;
-        b=0ifM1YS1T4Ol0nsYLDP5klkhkmblkT9HZsGm+RqdIBIprFM1XLzMo48GuSrmNSpQ4C
-         XU0xd1YHoUSI5HvUQTfQvbjHOCAWCSDrCCwrAdV26xQcs7ezEzGaNftv02Yn7X54OH4q
-         lXqwat1JNVGGcAlmobYeLE9lpBp1Mcx4zSASHuhoGrrHGsz2igqj3PDExhLbfhgBfbis
-         T5mNPYdvkPxJyo0zT/8fOO5KacSvzSeZuwCRbZJW7t2GdZLCiVjntNPtbfD424IHxcXS
-         Kg+1zsB7Nli+Zqb31pWiJwGDViWP9cKAgsb8CZejp5rfDfBJ79+vb5CHCbTEQ21SrhuG
-         XsgA==
-X-Gm-Message-State: ANoB5pk488eAsyRNlijrslJ6fT8ewSsEG0e0xwCMbb3bs+TPNB49Ig4g
-        MqgKQ0tH25FSkv/VKzWdT/UX+e0RmEZk8LAOb7Yz62Ts
-X-Google-Smtp-Source: AA0mqf7+DmFT97kRBREIFkUGHWrpaxmeKUlNSC4d9moCHH1H1BwVRUdG2A1B2cP4A844AAfd34C9gP6acoASGPF1TiA=
-X-Received: by 2002:adf:bb43:0:b0:22e:6f0d:d69 with SMTP id
- x3-20020adfbb43000000b0022e6f0d0d69mr13757227wrg.134.1668595526582; Wed, 16
- Nov 2022 02:45:26 -0800 (PST)
+        h=in-reply-to:content-disposition:mime-version:references
+         :mail-followup-to:message-id:subject:cc:to:from:date
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=OSCwvxDUrivspPm0mWYSEKkrMB19obOv39RUwyA0PH0=;
+        b=Y6VKnEY+9plQewGTcAKU8Hw8GFUOh84VWrdAn+2OjfkPvlwyF3qdBiouUBc9pSgr8Y
+         HC/f7EZTsfVzGHQ1V5UcoZ3MD/PGqG7vrgwDVP6WyYbBQOdUyoW6O6LLcU8Cp8crpmlV
+         fgJ5mhCVvklH0CJNbdGHd5vb92JO3IriYPYLqfHpkGx5oCK0RNcG9gAB+QKBQ7AmuQjA
+         D6dIS9qLVutpXdmfkWcDbgP5FKpm+Ivtn3US+n1jYxi1ca4xXWcuNZYWMZYBaKb+hE6B
+         YlIQgp1KXiW3Vno5vS2a8QQUZWWJaoPg9eJntYZAeGG4SJbKkNX2duEVgNmtY/ggXMDd
+         5o7g==
+X-Gm-Message-State: ANoB5pmVPMmxnVocsS6ClLG5Vj5DnIJSS5nR6wNgQnQ9a/w9ta72R5/N
+        p41QwVc4KF6sqkgANZD38u1JhrXawPhiaQ==
+X-Google-Smtp-Source: AA0mqf6lc5lrEzUlEqYgu67h96R4r19JtBnDlqqKBl9ey0VuIf1EYIOTKVPSxvCTipQmxuaB88n35Q==
+X-Received: by 2002:a17:906:970e:b0:7ad:ccae:a30d with SMTP id k14-20020a170906970e00b007adccaea30dmr18079730ejx.704.1668595739329;
+        Wed, 16 Nov 2022 02:48:59 -0800 (PST)
+Received: from phenom.ffwll.local (212-51-149-33.fiber7.init7.net. [212.51.149.33])
+        by smtp.gmail.com with ESMTPSA id g13-20020a50ec0d000000b0045b3853c4b7sm7352935edr.51.2022.11.16.02.48.57
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 16 Nov 2022 02:48:58 -0800 (PST)
+Date:   Wed, 16 Nov 2022 11:48:56 +0100
+From:   Daniel Vetter <daniel@ffwll.ch>
+To:     David Hildenbrand <david@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
+        Nadav Amit <namit@vmware.com>, linux-kselftest@vger.kernel.org,
+        sparclinux@vger.kernel.org, Shuah Khan <shuah@kernel.org>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        linux-samsung-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
+        x86@kernel.org, Hugh Dickins <hughd@google.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>,
+        Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>,
+        John Hubbard <jhubbard@nvidia.com>,
+        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Peter Xu <peterx@redhat.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, Oded Gabbay <ogabbay@kernel.org>,
+        linux-mips@vger.kernel.org, linux-perf-users@vger.kernel.org,
+        linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Re: [PATCH mm-unstable v1 13/20] media: videobuf-dma-sg: remove
+ FOLL_FORCE usage
+Message-ID: <Y3TAGAUIo/IR+tAa@phenom.ffwll.local>
+Mail-Followup-To: David Hildenbrand <david@redhat.com>,
+        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
+        Nadav Amit <namit@vmware.com>, linux-kselftest@vger.kernel.org,
+        sparclinux@vger.kernel.org, Shuah Khan <shuah@kernel.org>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        linux-samsung-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
+        x86@kernel.org, Hugh Dickins <hughd@google.com>,
+        Matthew Wilcox <willy@infradead.org>,
+        Christoph Hellwig <hch@infradead.org>,
+        Jason Gunthorpe <jgg@ziepe.ca>, Vlastimil Babka <vbabka@suse.cz>,
+        linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        John Hubbard <jhubbard@nvidia.com>, linux-um@lists.infradead.org,
+        etnaviv@lists.freedesktop.org,
+        Alex Williamson <alex.williamson@redhat.com>,
+        Peter Xu <peterx@redhat.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        Oded Gabbay <ogabbay@kernel.org>, linux-mips@vger.kernel.org,
+        linux-perf-users@vger.kernel.org,
+        linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Mike Kravetz <mike.kravetz@oracle.com>
+References: <20221116102659.70287-1-david@redhat.com>
+ <20221116102659.70287-14-david@redhat.com>
 MIME-Version: 1.0
-References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
-In-Reply-To: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
-From:   Anatoly Pugachev <matorola@gmail.com>
-Date:   Wed, 16 Nov 2022 13:45:15 +0300
-Message-ID: <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
-Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on pmd"
-To:     hev <r@hev.cc>
-Cc:     Peter Xu <peterx@redhat.com>,
-        Thorsten Leemhuis <regressions@leemhuis.info>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221116102659.70287-14-david@redhat.com>
+X-Operating-System: Linux phenom 5.19.0-2-amd64 
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
->
-> Hello Peter,
->
-> I see a random crash issue  on the LoongArch system, that is caused by
-> commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
-> pmd").
->
-> Now, the thing is already resolved. The root cause is arch's mkdirty
-> is set hardware writable bit in unconditional. That breaks
-> write-protect and then breaks COW.
->
-> Here is a simple and fast testcase (It may be helpful for sparc64):
-> https://gist.github.com/heiher/72919fae6b53f04cac606a9631100506
-> (assertion: c sum == 0)
+On Wed, Nov 16, 2022 at 11:26:52AM +0100, David Hildenbrand wrote:
+> GUP now supports reliable R/O long-term pinning in COW mappings, such
+> that we break COW early. MAP_SHARED VMAs only use the shared zeropage so
+> far in one corner case (DAXFS file with holes), which can be ignored
+> because GUP does not support long-term pinning in fsdax (see
+> check_vma_flags()).
+> 
+> Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
+> for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
+> using FOLL_FORCE, which is really only for ptrace access.
+> 
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-Just tried on my sparc64 VM -  fixed vs old (non-patched) kernels...
+I looked at this a while ago when going through some of the follow_pfn
+stuff, so
 
-fixed kernel (6.1.0-rc5) running ./a.out:
-mator@ttip:~$ ./a.out
-c sum: 0
-p sum: 35184372088832
-c sum: 0
-p sum: 35184372088832
-c sum: 0
-p sum: 35184372088832
-c sum: 0
-p sum: 35184372088832
-c sum: 0
-p sum: 35184372088832
-...
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 
-old (non-patched) kernel (6.1.0-rc4) :
-mator@ttip:~$ ./a.out
-c sum: 35150012350464
-p sum: 35184372088832
-c sum: 35150012350464
-p sum: 35184372088832
-...
+> ---
+>  drivers/media/v4l2-core/videobuf-dma-sg.c | 14 +++++---------
+>  1 file changed, 5 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+> index f75e5eedeee0..234e9f647c96 100644
+> --- a/drivers/media/v4l2-core/videobuf-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+> @@ -151,17 +151,16 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
+>  static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+>  			int direction, unsigned long data, unsigned long size)
+>  {
+> +	unsigned int gup_flags = FOLL_LONGTERM;
+>  	unsigned long first, last;
+> -	int err, rw = 0;
+> -	unsigned int flags = FOLL_FORCE;
+> +	int err;
+>  
+>  	dma->direction = direction;
+>  	switch (dma->direction) {
+>  	case DMA_FROM_DEVICE:
+> -		rw = READ;
+> +		gup_flags |= FOLL_WRITE;
+>  		break;
+>  	case DMA_TO_DEVICE:
+> -		rw = WRITE;
+>  		break;
+>  	default:
+>  		BUG();
+> @@ -177,14 +176,11 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+>  	if (NULL == dma->pages)
+>  		return -ENOMEM;
+>  
+> -	if (rw == READ)
+> -		flags |= FOLL_WRITE;
+> -
+>  	dprintk(1, "init user [0x%lx+0x%lx => %lu pages]\n",
+>  		data, size, dma->nr_pages);
+>  
+> -	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages,
+> -			     flags | FOLL_LONGTERM, dma->pages, NULL);
+> +	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages, gup_flags,
+> +			     dma->pages, NULL);
+>  
+>  	if (err != dma->nr_pages) {
+>  		dma->nr_pages = (err >= 0) ? err : 0;
+> -- 
+> 2.38.1
+> 
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
