@@ -2,349 +2,102 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7361EC43217
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:53:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11129C433FE
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238966AbiKPKxm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:53:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36090 "EHLO
+        id S233976AbiKPK52 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 05:57:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36172 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238791AbiKPKxJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:53:09 -0500
-Received: from mail-ej1-x629.google.com (mail-ej1-x629.google.com [IPv6:2a00:1450:4864:20::629])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B77414046A
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:42:31 -0800 (PST)
-Received: by mail-ej1-x629.google.com with SMTP id n21so2299181ejb.9
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:42:31 -0800 (PST)
+        with ESMTP id S239119AbiKPK5C (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:57:02 -0500
+Received: from mail-wr1-x42c.google.com (mail-wr1-x42c.google.com [IPv6:2a00:1450:4864:20::42c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 217DD5B587
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:45:28 -0800 (PST)
+Received: by mail-wr1-x42c.google.com with SMTP id o4so29091814wrq.6
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:45:28 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=ZAxgUbyddhVo3IpeBqw30ZEwW76ZkPJXdLUvQUYid84=;
-        b=d6cfkbaiUCF3jcE7ciXC2aRYYXmw+87IqcIKVhOtpEFdRJZ4KQxm3iVcblx23BHUgr
-         HHoa/sDW2T40HWjeQ0kliGvDSS72XP4aauOCABGXC6QG9VIpsAyR1xUR1pt8BJH+DYar
-         pkm7PpJ+NTGeeFwTqcLoSZt1WQaVqx7ds2jig=
+        d=gmail.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=9ZBAjbkLkpV5anbsbNDWejUnJR2b62hZHcD7RsLbbis=;
+        b=hL4zzWhEnjPY50YGCD8ud9r0OmHyJZfvrX3qAIPsnxNHLvJaFEbQ1Kjv2ZZIydIzYe
+         FrutDF/Wdd3WHpGyYGf8s7GNLsZ9SNbMMkeyZh4IIffWQ10Ebm4xNhDGHXIUEqiQz1wX
+         Gabz7F7kpZGOmJn4Rsif9X8dR2cu/JkHkwHosTa6ZYdeoxjlc+4idPkmtgsmt1aQK5en
+         rnRwV9VRXdxOFqwFWs1A2UNgjxajOpiKw2uIHdhpXv1NZevyrk/320lGjbah3S1PxgMO
+         oW6aa8J8OuYcCWRCkqaX0lvzkiWEaMBx2bb/99lnkQAXh+BlQGKXIiaqDgVsCpC6djaT
+         4fCQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZAxgUbyddhVo3IpeBqw30ZEwW76ZkPJXdLUvQUYid84=;
-        b=RUIhVIrOndusrZgpa7nOwGct/AJBIrmCabQXr1q5RDgtDYqKqGFM9K8cf4q6s4tWIe
-         3HMwu+XtwibChUxgJsbvaL3nitqDKkGJNXN30EoeUrGtpexgVI07TE0TZtvUTN31D8xa
-         Ptjb82KlFawvfEOoegL9eAV60d3M7V5mS9fiuhsZg4FY2pGRHw5oa6zjAQzeW2TLcwQF
-         EfiMVdlhhSEtFU3uhgzqiPZkU77zKfnX+wVxjwh3YHtMnxqsXjg5c0E5P52bu/yGbl3A
-         KC5PwtybBk9dBrXFSVZPInKQkIZDm05qWpAgoROpjeYzbAx7QmQe3Mic37n0inmrdJS3
-         kibA==
-X-Gm-Message-State: ANoB5pkbw5cv1qAxLWScr+RdjrpfCaklWlOsms7pOGcUEJWSe5dvnlFY
-        1mIZz6Pom6m58f3+v2D33R5Qsw==
-X-Google-Smtp-Source: AA0mqf5vNSHCm0QqWZxKVpOqG6Th29+InWEHYWlpCOTfASasX9eEkW1nFZpzghpLRsB5JUmRrJDGJA==
-X-Received: by 2002:a17:906:33da:b0:78d:b046:aaae with SMTP id w26-20020a17090633da00b0078db046aaaemr16631929eja.218.1668595350196;
-        Wed, 16 Nov 2022 02:42:30 -0800 (PST)
-Received: from phenom.ffwll.local (212-51-149-33.fiber7.init7.net. [212.51.149.33])
-        by smtp.gmail.com with ESMTPSA id k26-20020aa7d2da000000b00467c3cbab6fsm4606455edr.77.2022.11.16.02.42.28
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Nov 2022 02:42:29 -0800 (PST)
-Date:   Wed, 16 Nov 2022 11:42:27 +0100
-From:   Daniel Vetter <daniel@ffwll.ch>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
-        Nadav Amit <namit@vmware.com>, linux-kselftest@vger.kernel.org,
-        sparclinux@vger.kernel.org, Shuah Khan <shuah@kernel.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        linux-samsung-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
-        x86@kernel.org, Hugh Dickins <hughd@google.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        Vlastimil Babka <vbabka@suse.cz>, linux-media@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        John Hubbard <jhubbard@nvidia.com>,
-        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Peter Xu <peterx@redhat.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, Oded Gabbay <ogabbay@kernel.org>,
-        linux-mips@vger.kernel.org, linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>
-Subject: Re: [PATCH mm-unstable v1 09/20] mm/gup: reliable R/O long-term
- pinning in COW mappings
-Message-ID: <Y3S+kwuxaJKR1A5I@phenom.ffwll.local>
-Mail-Followup-To: David Hildenbrand <david@redhat.com>,
-        linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        dri-devel@lists.freedesktop.org, linux-mm@kvack.org,
-        Nadav Amit <namit@vmware.com>, linux-kselftest@vger.kernel.org,
-        sparclinux@vger.kernel.org, Shuah Khan <shuah@kernel.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        linux-samsung-soc@vger.kernel.org, linux-rdma@vger.kernel.org,
-        x86@kernel.org, Hugh Dickins <hughd@google.com>,
-        Matthew Wilcox <willy@infradead.org>,
-        Christoph Hellwig <hch@infradead.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>, Vlastimil Babka <vbabka@suse.cz>,
-        linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        John Hubbard <jhubbard@nvidia.com>, linux-um@lists.infradead.org,
-        etnaviv@lists.freedesktop.org,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Peter Xu <peterx@redhat.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        linux-arm-kernel@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        Oded Gabbay <ogabbay@kernel.org>, linux-mips@vger.kernel.org,
-        linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>
-References: <20221116102659.70287-1-david@redhat.com>
- <20221116102659.70287-10-david@redhat.com>
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=9ZBAjbkLkpV5anbsbNDWejUnJR2b62hZHcD7RsLbbis=;
+        b=0ifM1YS1T4Ol0nsYLDP5klkhkmblkT9HZsGm+RqdIBIprFM1XLzMo48GuSrmNSpQ4C
+         XU0xd1YHoUSI5HvUQTfQvbjHOCAWCSDrCCwrAdV26xQcs7ezEzGaNftv02Yn7X54OH4q
+         lXqwat1JNVGGcAlmobYeLE9lpBp1Mcx4zSASHuhoGrrHGsz2igqj3PDExhLbfhgBfbis
+         T5mNPYdvkPxJyo0zT/8fOO5KacSvzSeZuwCRbZJW7t2GdZLCiVjntNPtbfD424IHxcXS
+         Kg+1zsB7Nli+Zqb31pWiJwGDViWP9cKAgsb8CZejp5rfDfBJ79+vb5CHCbTEQ21SrhuG
+         XsgA==
+X-Gm-Message-State: ANoB5pk488eAsyRNlijrslJ6fT8ewSsEG0e0xwCMbb3bs+TPNB49Ig4g
+        MqgKQ0tH25FSkv/VKzWdT/UX+e0RmEZk8LAOb7Yz62Ts
+X-Google-Smtp-Source: AA0mqf7+DmFT97kRBREIFkUGHWrpaxmeKUlNSC4d9moCHH1H1BwVRUdG2A1B2cP4A844AAfd34C9gP6acoASGPF1TiA=
+X-Received: by 2002:adf:bb43:0:b0:22e:6f0d:d69 with SMTP id
+ x3-20020adfbb43000000b0022e6f0d0d69mr13757227wrg.134.1668595526582; Wed, 16
+ Nov 2022 02:45:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221116102659.70287-10-david@redhat.com>
-X-Operating-System: Linux phenom 5.19.0-2-amd64 
+References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
+In-Reply-To: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
+From:   Anatoly Pugachev <matorola@gmail.com>
+Date:   Wed, 16 Nov 2022 13:45:15 +0300
+Message-ID: <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
+Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on pmd"
+To:     hev <r@hev.cc>
+Cc:     Peter Xu <peterx@redhat.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Nov 16, 2022 at 11:26:48AM +0100, David Hildenbrand wrote:
-> We already support reliable R/O pinning of anonymous memory. However,
-> assume we end up pinning (R/O long-term) a pagecache page or the shared
-> zeropage inside a writable private ("COW") mapping. The next write access
-> will trigger a write-fault and replace the pinned page by an exclusive
-> anonymous page in the process page tables to break COW: the pinned page no
-> longer corresponds to the page mapped into the process' page table.
-> 
-> Now that FAULT_FLAG_UNSHARE can break COW on anything mapped into a
-> COW mapping, let's properly break COW first before R/O long-term
-> pinning something that's not an exclusive anon page inside a COW
-> mapping. FAULT_FLAG_UNSHARE will break COW and map an exclusive anon page
-> instead that can get pinned safely.
-> 
-> With this change, we can stop using FOLL_FORCE|FOLL_WRITE for reliable
-> R/O long-term pinning in COW mappings.
-> 
-> With this change, the new R/O long-term pinning tests for non-anonymous
-> memory succeed:
->   # [RUN] R/O longterm GUP pin ... with shared zeropage
->   ok 151 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP pin ... with memfd
->   ok 152 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP pin ... with tmpfile
->   ok 153 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP pin ... with huge zeropage
->   ok 154 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP pin ... with memfd hugetlb (2048 kB)
->   ok 155 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP pin ... with memfd hugetlb (1048576 kB)
->   ok 156 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with shared zeropage
->   ok 157 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with memfd
->   ok 158 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with tmpfile
->   ok 159 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with huge zeropage
->   ok 160 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (2048 kB)
->   ok 161 Longterm R/O pin is reliable
->   # [RUN] R/O longterm GUP-fast pin ... with memfd hugetlb (1048576 kB)
->   ok 162 Longterm R/O pin is reliable
-> 
-> Note 1: We don't care about short-term R/O-pinning, because they have
-> snapshot semantics: they are not supposed to observe modifications that
-> happen after pinning.
-> 
-> As one example, assume we start direct I/O to read from a page and store
-> page content into a file: modifications to page content after starting
-> direct I/O are not guaranteed to end up in the file. So even if we'd pin
-> the shared zeropage, the end result would be as expected -- getting zeroes
-> stored to the file.
-> 
-> Note 2: For shared mappings we'll now always fallback to the slow path to
-> lookup the VMA when R/O long-term pining. While that's the necessary price
-> we have to pay right now, it's actually not that bad in practice: most
-> FOLL_LONGTERM users already specify FOLL_WRITE, for example, along with
-> FOLL_FORCE because they tried dealing with COW mappings correctly ...
-> 
-> Note 3: For users that use FOLL_LONGTERM right now without FOLL_WRITE,
-> such as VFIO, we'd now no longer pin the shared zeropage. Instead, we'd
-> populate exclusive anon pages that we can pin. There was a concern that
-> this could affect the memlock limit of existing setups.
-> 
-> For example, a VM running with VFIO could run into the memlock limit and
-> fail to run. However, we essentially had the same behavior already in
-> commit 17839856fd58 ("gup: document and work around "COW can break either
-> way" issue") which got merged into some enterprise distros, and there were
-> not any such complaints. So most probably, we're fine.
-> 
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
+>
+> Hello Peter,
+>
+> I see a random crash issue  on the LoongArch system, that is caused by
+> commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
+> pmd").
+>
+> Now, the thing is already resolved. The root cause is arch's mkdirty
+> is set hardware writable bit in unconditional. That breaks
+> write-protect and then breaks COW.
+>
+> Here is a simple and fast testcase (It may be helpful for sparc64):
+> https://gist.github.com/heiher/72919fae6b53f04cac606a9631100506
+> (assertion: c sum == 0)
 
-I don't think my ack is any good for the implementation, but for the
-driver side semantics this sounds like what we want :-)
+Just tried on my sparc64 VM -  fixed vs old (non-patched) kernels...
 
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+fixed kernel (6.1.0-rc5) running ./a.out:
+mator@ttip:~$ ./a.out
+c sum: 0
+p sum: 35184372088832
+c sum: 0
+p sum: 35184372088832
+c sum: 0
+p sum: 35184372088832
+c sum: 0
+p sum: 35184372088832
+c sum: 0
+p sum: 35184372088832
+...
 
-> ---
->  include/linux/mm.h | 27 ++++++++++++++++++++++++---
->  mm/gup.c           | 10 +++++-----
->  mm/huge_memory.c   |  2 +-
->  mm/hugetlb.c       |  7 ++++---
->  4 files changed, 34 insertions(+), 12 deletions(-)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 6bd2ee5872dd..e8cc838f42f9 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -3095,8 +3095,12 @@ static inline int vm_fault_to_errno(vm_fault_t vm_fault, int foll_flags)
->   * Must be called with the (sub)page that's actually referenced via the
->   * page table entry, which might not necessarily be the head page for a
->   * PTE-mapped THP.
-> + *
-> + * If the vma is NULL, we're coming from the GUP-fast path and might have
-> + * to fallback to the slow path just to lookup the vma.
->   */
-> -static inline bool gup_must_unshare(unsigned int flags, struct page *page)
-> +static inline bool gup_must_unshare(struct vm_area_struct *vma,
-> +				    unsigned int flags, struct page *page)
->  {
->  	/*
->  	 * FOLL_WRITE is implicitly handled correctly as the page table entry
-> @@ -3109,8 +3113,25 @@ static inline bool gup_must_unshare(unsigned int flags, struct page *page)
->  	 * Note: PageAnon(page) is stable until the page is actually getting
->  	 * freed.
->  	 */
-> -	if (!PageAnon(page))
-> -		return false;
-> +	if (!PageAnon(page)) {
-> +		/*
-> +		 * We only care about R/O long-term pining: R/O short-term
-> +		 * pinning does not have the semantics to observe successive
-> +		 * changes through the process page tables.
-> +		 */
-> +		if (!(flags & FOLL_LONGTERM))
-> +			return false;
-> +
-> +		/* We really need the vma ... */
-> +		if (!vma)
-> +			return true;
-> +
-> +		/*
-> +		 * ... because we only care about writable private ("COW")
-> +		 * mappings where we have to break COW early.
-> +		 */
-> +		return is_cow_mapping(vma->vm_flags);
-> +	}
->  
->  	/* Paired with a memory barrier in page_try_share_anon_rmap(). */
->  	if (IS_ENABLED(CONFIG_HAVE_FAST_GUP))
-> diff --git a/mm/gup.c b/mm/gup.c
-> index 5182abaaecde..01116699c863 100644
-> --- a/mm/gup.c
-> +++ b/mm/gup.c
-> @@ -578,7 +578,7 @@ static struct page *follow_page_pte(struct vm_area_struct *vma,
->  		}
->  	}
->  
-> -	if (!pte_write(pte) && gup_must_unshare(flags, page)) {
-> +	if (!pte_write(pte) && gup_must_unshare(vma, flags, page)) {
->  		page = ERR_PTR(-EMLINK);
->  		goto out;
->  	}
-> @@ -2338,7 +2338,7 @@ static int gup_pte_range(pmd_t pmd, pmd_t *pmdp, unsigned long addr,
->  			goto pte_unmap;
->  		}
->  
-> -		if (!pte_write(pte) && gup_must_unshare(flags, page)) {
-> +		if (!pte_write(pte) && gup_must_unshare(NULL, flags, page)) {
->  			gup_put_folio(folio, 1, flags);
->  			goto pte_unmap;
->  		}
-> @@ -2506,7 +2506,7 @@ static int gup_hugepte(pte_t *ptep, unsigned long sz, unsigned long addr,
->  		return 0;
->  	}
->  
-> -	if (!pte_write(pte) && gup_must_unshare(flags, &folio->page)) {
-> +	if (!pte_write(pte) && gup_must_unshare(NULL, flags, &folio->page)) {
->  		gup_put_folio(folio, refs, flags);
->  		return 0;
->  	}
-> @@ -2572,7 +2572,7 @@ static int gup_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
->  		return 0;
->  	}
->  
-> -	if (!pmd_write(orig) && gup_must_unshare(flags, &folio->page)) {
-> +	if (!pmd_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
->  		gup_put_folio(folio, refs, flags);
->  		return 0;
->  	}
-> @@ -2612,7 +2612,7 @@ static int gup_huge_pud(pud_t orig, pud_t *pudp, unsigned long addr,
->  		return 0;
->  	}
->  
-> -	if (!pud_write(orig) && gup_must_unshare(flags, &folio->page)) {
-> +	if (!pud_write(orig) && gup_must_unshare(NULL, flags, &folio->page)) {
->  		gup_put_folio(folio, refs, flags);
->  		return 0;
->  	}
-> diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-> index 68d00196b519..dec7a7c0eca8 100644
-> --- a/mm/huge_memory.c
-> +++ b/mm/huge_memory.c
-> @@ -1434,7 +1434,7 @@ struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
->  	if (pmd_protnone(*pmd) && !gup_can_follow_protnone(flags))
->  		return NULL;
->  
-> -	if (!pmd_write(*pmd) && gup_must_unshare(flags, page))
-> +	if (!pmd_write(*pmd) && gup_must_unshare(vma, flags, page))
->  		return ERR_PTR(-EMLINK);
->  
->  	VM_BUG_ON_PAGE((flags & FOLL_PIN) && PageAnon(page) &&
-> diff --git a/mm/hugetlb.c b/mm/hugetlb.c
-> index 383b26069b33..c3aab6d5b7aa 100644
-> --- a/mm/hugetlb.c
-> +++ b/mm/hugetlb.c
-> @@ -6195,7 +6195,8 @@ static void record_subpages_vmas(struct page *page, struct vm_area_struct *vma,
->  	}
->  }
->  
-> -static inline bool __follow_hugetlb_must_fault(unsigned int flags, pte_t *pte,
-> +static inline bool __follow_hugetlb_must_fault(struct vm_area_struct *vma,
-> +					       unsigned int flags, pte_t *pte,
->  					       bool *unshare)
->  {
->  	pte_t pteval = huge_ptep_get(pte);
-> @@ -6207,7 +6208,7 @@ static inline bool __follow_hugetlb_must_fault(unsigned int flags, pte_t *pte,
->  		return false;
->  	if (flags & FOLL_WRITE)
->  		return true;
-> -	if (gup_must_unshare(flags, pte_page(pteval))) {
-> +	if (gup_must_unshare(vma, flags, pte_page(pteval))) {
->  		*unshare = true;
->  		return true;
->  	}
-> @@ -6336,7 +6337,7 @@ long follow_hugetlb_page(struct mm_struct *mm, struct vm_area_struct *vma,
->  		 * directly from any kind of swap entries.
->  		 */
->  		if (absent ||
-> -		    __follow_hugetlb_must_fault(flags, pte, &unshare)) {
-> +		    __follow_hugetlb_must_fault(vma, flags, pte, &unshare)) {
->  			vm_fault_t ret;
->  			unsigned int fault_flags = 0;
->  
-> -- 
-> 2.38.1
-> 
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+old (non-patched) kernel (6.1.0-rc4) :
+mator@ttip:~$ ./a.out
+c sum: 35150012350464
+p sum: 35184372088832
+c sum: 35150012350464
+p sum: 35184372088832
+...
