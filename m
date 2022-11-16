@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6EF5EC43217
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:39:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58908C43219
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:39:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233683AbiKPKji (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:39:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45640 "EHLO
+        id S233948AbiKPKjq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 05:39:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229582AbiKPKiN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:38:13 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0D78625C6B
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:29:06 -0800 (PST)
+        with ESMTP id S233578AbiKPKiT (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:38:19 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A6872C67B
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:29:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668594546;
+        s=mimecast20190719; t=1668594564;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=Os9mhvYmMDrU7oRu07Gt40tRhtITIyLN3UTJWIxCBGQ=;
-        b=Np5mjxEQ6nkEvC55WFc+8lnTQduUxuP+2dfPKZNeS2rk/mVM8fhjpQwnWucL2zS360O6zL
-        RbnP6kXzyBTFlhakIQvJ8B2E+axaTZrD34u0z2BLjSCx9ZqeftT79MQqpx70HDKLanLY2+
-        qjkb3nFkqOTWvmQeLXWZKPOlbxCxVc8=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=1lgRYK0+yPuNJDFPZ9ndbDbQCvjtc3Xp7NDAue46xBY=;
+        b=eaqcntVaFHDBOWLuG2u3kyaIjdzWompy1glzx8s1KTwQruc45+R0oPLk2q6gD6SF9Y1upw
+        xqqDOO4hiAR3jtiCkEBH4VpOTo5vQ6EIZT36H02lM26ZkMgoX4O7XF6olQSS4hfiWeeF2L
+        Q+5aXjrWC3xHRPz6yxUG7fljU+I9PBM=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-169-8bSBee3zN2WWjnQux77ZrA-1; Wed, 16 Nov 2022 05:28:54 -0500
-X-MC-Unique: 8bSBee3zN2WWjnQux77ZrA-1
+ us-mta-14-svSpfQNhOguMSNDl-MdQSA-1; Wed, 16 Nov 2022 05:29:18 -0500
+X-MC-Unique: svSpfQNhOguMSNDl-MdQSA-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id E444E29ABA07;
-        Wed, 16 Nov 2022 10:28:52 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 724BE86F147;
+        Wed, 16 Nov 2022 10:29:15 +0000 (UTC)
 Received: from t480s.fritz.box (unknown [10.39.193.216])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 8254B20290A5;
-        Wed, 16 Nov 2022 10:28:45 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3626A2028E8F;
+        Wed, 16 Nov 2022 10:29:08 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
@@ -69,11 +69,11 @@ Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
         Christoph Hellwig <hch@infradead.org>,
         Alex Williamson <alex.williamson@redhat.com>,
         David Hildenbrand <david@redhat.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Leon Romanovsky <leon@kernel.org>
-Subject: [PATCH mm-unstable v1 12/20] RDMA/siw: remove FOLL_FORCE usage
-Date:   Wed, 16 Nov 2022 11:26:51 +0100
-Message-Id: <20221116102659.70287-13-david@redhat.com>
+        Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH mm-unstable v1 15/20] media: pci/ivtv: remove FOLL_FORCE usage
+Date:   Wed, 16 Nov 2022 11:26:54 +0100
+Message-Id: <20221116102659.70287-16-david@redhat.com>
 In-Reply-To: <20221116102659.70287-1-david@redhat.com>
 References: <20221116102659.70287-1-david@redhat.com>
 MIME-Version: 1.0
@@ -83,58 +83,53 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-GUP now supports reliable R/O long-term pinning in COW mappings, such
-that we break COW early. MAP_SHARED VMAs only use the shared zeropage so
-far in one corner case (DAXFS file with holes), which can be ignored
-because GUP does not support long-term pinning in fsdax (see
-check_vma_flags()).
+FOLL_FORCE is really only for ptrace access. R/O pinning a page is
+supposed to fail if the VMA misses proper access permissions (no VM_READ).
 
-Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
-for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
-using FOLL_FORCE, which is really only for ptrace access.
+Let's just remove FOLL_FORCE usage here; there would have to be a pretty
+good reason to allow arbitrary drivers to R/O pin pages in a PROT_NONE
+VMA. Most probably, FOLL_FORCE usage is just some legacy leftover.
 
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Leon Romanovsky <leon@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/infiniband/sw/siw/siw_mem.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/pci/ivtv/ivtv-udma.c | 2 +-
+ drivers/media/pci/ivtv/ivtv-yuv.c  | 5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/sw/siw/siw_mem.c b/drivers/infiniband/sw/siw/siw_mem.c
-index 61c17db70d65..b2b33dd3b4fa 100644
---- a/drivers/infiniband/sw/siw/siw_mem.c
-+++ b/drivers/infiniband/sw/siw/siw_mem.c
-@@ -368,7 +368,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
- 	struct mm_struct *mm_s;
- 	u64 first_page_va;
- 	unsigned long mlock_limit;
--	unsigned int foll_flags = FOLL_WRITE;
-+	unsigned int foll_flags = FOLL_LONGTERM;
- 	int num_pages, num_chunks, i, rv = 0;
+diff --git a/drivers/media/pci/ivtv/ivtv-udma.c b/drivers/media/pci/ivtv/ivtv-udma.c
+index 210be8290f24..99b9f55ca829 100644
+--- a/drivers/media/pci/ivtv/ivtv-udma.c
++++ b/drivers/media/pci/ivtv/ivtv-udma.c
+@@ -115,7 +115,7 @@ int ivtv_udma_setup(struct ivtv *itv, unsigned long ivtv_dest_addr,
  
- 	if (!can_do_mlock())
-@@ -391,8 +391,8 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
+ 	/* Pin user pages for DMA Xfer */
+ 	err = pin_user_pages_unlocked(user_dma.uaddr, user_dma.page_count,
+-			dma->map, FOLL_FORCE);
++			dma->map, 0);
  
- 	mmgrab(mm_s);
+ 	if (user_dma.page_count != err) {
+ 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
+diff --git a/drivers/media/pci/ivtv/ivtv-yuv.c b/drivers/media/pci/ivtv/ivtv-yuv.c
+index 4ba10c34a16a..582146f8d70d 100644
+--- a/drivers/media/pci/ivtv/ivtv-yuv.c
++++ b/drivers/media/pci/ivtv/ivtv-yuv.c
+@@ -63,12 +63,11 @@ static int ivtv_yuv_prep_user_dma(struct ivtv *itv, struct ivtv_user_dma *dma,
  
--	if (!writable)
--		foll_flags |= FOLL_FORCE;
-+	if (writable)
-+		foll_flags |= FOLL_WRITE;
+ 	/* Pin user pages for DMA Xfer */
+ 	y_pages = pin_user_pages_unlocked(y_dma.uaddr,
+-			y_dma.page_count, &dma->map[0], FOLL_FORCE);
++			y_dma.page_count, &dma->map[0], 0);
+ 	uv_pages = 0; /* silence gcc. value is set and consumed only if: */
+ 	if (y_pages == y_dma.page_count) {
+ 		uv_pages = pin_user_pages_unlocked(uv_dma.uaddr,
+-				uv_dma.page_count, &dma->map[y_pages],
+-				FOLL_FORCE);
++				uv_dma.page_count, &dma->map[y_pages], 0);
+ 	}
  
- 	mmap_read_lock(mm_s);
- 
-@@ -423,8 +423,7 @@ struct siw_umem *siw_umem_get(u64 start, u64 len, bool writable)
- 		while (nents) {
- 			struct page **plist = &umem->page_chunk[i].plist[got];
- 
--			rv = pin_user_pages(first_page_va, nents,
--					    foll_flags | FOLL_LONGTERM,
-+			rv = pin_user_pages(first_page_va, nents, foll_flags,
- 					    plist, NULL);
- 			if (rv < 0)
- 				goto out_sem_up;
+ 	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
 -- 
 2.38.1
 
