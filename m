@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F1FBC43217
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:39:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81017C4332F
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 10:40:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233719AbiKPKjz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 05:39:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43884 "EHLO
+        id S238608AbiKPKkj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 05:40:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44604 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233540AbiKPKiQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:38:16 -0500
+        with ESMTP id S232409AbiKPKiq (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 05:38:46 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 59AAC26104
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:29:07 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BF212F00F
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:29:32 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668594546;
+        s=mimecast20190719; t=1668594571;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=PtZFIm00BoukAq0r3vxYea1/oUxWby/yeQnBgXcmZG8=;
-        b=fpgd5yfAFLw5B5H1bYjHQFwb5vK6mIddEA3uHb1rlcM5VhbLTWVUEDXm9r9ze/J/1X3qvv
-        bGAuzLb/PhmGuaFzCSPPg/udGltArV/SNhXouh/dChvQV2VS9fx9eDGcgm/UaAKvYBnGVG
-        r5neEYm9p2LL25I3UTNy5NHApSZWol4=
+        bh=G0FpSSTO1Nfi3hHjZY1vs8kl28xrhbJvR/VmU2bZlrg=;
+        b=QBzDddfY7V11x7Hf2GLg6C9hU2X9wWzeSIv9jWmXhTrk3Npp+wfCGvyF3JNBhdUnoX0aal
+        8iY4vG/2Ym+nF4oWvBR6tEY6OFCT2zacWrb0Ju8Ild05xJePJiVVv+ZJ7IB5ZQG6jj9P6O
+        aoTME2nThx0sHU5BautNfK3YY5kC94Q=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-618-uLqpp3ByOjmb0y4uEYa0gA-1; Wed, 16 Nov 2022 05:29:02 -0500
-X-MC-Unique: uLqpp3ByOjmb0y4uEYa0gA-1
+ us-mta-652-smSH3VzZPoqE7rq7qnypxQ-1; Wed, 16 Nov 2022 05:29:26 -0500
+X-MC-Unique: smSH3VzZPoqE7rq7qnypxQ-1
 Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 95160811E7A;
-        Wed, 16 Nov 2022 10:29:00 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2D136101A528;
+        Wed, 16 Nov 2022 10:29:25 +0000 (UTC)
 Received: from t480s.fritz.box (unknown [10.39.193.216])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 4EDB82028E8F;
-        Wed, 16 Nov 2022 10:28:53 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id AF3102024CC8;
+        Wed, 16 Nov 2022 10:29:15 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
@@ -69,10 +69,13 @@ Cc:     x86@kernel.org, linux-alpha@vger.kernel.org,
         Christoph Hellwig <hch@infradead.org>,
         Alex Williamson <alex.williamson@redhat.com>,
         David Hildenbrand <david@redhat.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH mm-unstable v1 13/20] media: videobuf-dma-sg: remove FOLL_FORCE usage
-Date:   Wed, 16 Nov 2022 11:26:52 +0100
-Message-Id: <20221116102659.70287-14-david@redhat.com>
+Subject: [PATCH mm-unstable v1 16/20] mm/frame-vector: remove FOLL_FORCE usage
+Date:   Wed, 16 Nov 2022 11:26:55 +0100
+Message-Id: <20221116102659.70287-17-david@redhat.com>
 In-Reply-To: <20221116102659.70287-1-david@redhat.com>
 References: <20221116102659.70287-1-david@redhat.com>
 MIME-Version: 1.0
@@ -82,64 +85,41 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-GUP now supports reliable R/O long-term pinning in COW mappings, such
-that we break COW early. MAP_SHARED VMAs only use the shared zeropage so
-far in one corner case (DAXFS file with holes), which can be ignored
-because GUP does not support long-term pinning in fsdax (see
-check_vma_flags()).
+FOLL_FORCE is really only for ptrace access. According to commit
+707947247e95 ("media: videobuf2-vmalloc: get_userptr: buffers are always
+writable"), get_vaddr_frames() currently pins all pages writable as a
+workaround for issues with read-only buffers.
 
-Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
-for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
-using FOLL_FORCE, which is really only for ptrace access.
+FOLL_FORCE, however, seems to be a legacy leftover as it predates
+commit 707947247e95 ("media: videobuf2-vmalloc: get_userptr: buffers are
+always writable"). Let's just remove it.
 
+Once the read-only buffer issue has been resolved, FOLL_WRITE could
+again be set depending on the DMA direction.
+
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Tomasz Figa <tfiga@chromium.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/media/common/videobuf2/frame_vector.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index f75e5eedeee0..234e9f647c96 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -151,17 +151,16 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
- static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 			int direction, unsigned long data, unsigned long size)
- {
-+	unsigned int gup_flags = FOLL_LONGTERM;
- 	unsigned long first, last;
--	int err, rw = 0;
--	unsigned int flags = FOLL_FORCE;
-+	int err;
+diff --git a/drivers/media/common/videobuf2/frame_vector.c b/drivers/media/common/videobuf2/frame_vector.c
+index 542dde9d2609..062e98148c53 100644
+--- a/drivers/media/common/videobuf2/frame_vector.c
++++ b/drivers/media/common/videobuf2/frame_vector.c
+@@ -50,7 +50,7 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+ 	start = untagged_addr(start);
  
- 	dma->direction = direction;
- 	switch (dma->direction) {
- 	case DMA_FROM_DEVICE:
--		rw = READ;
-+		gup_flags |= FOLL_WRITE;
- 		break;
- 	case DMA_TO_DEVICE:
--		rw = WRITE;
- 		break;
- 	default:
- 		BUG();
-@@ -177,14 +176,11 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	if (NULL == dma->pages)
- 		return -ENOMEM;
- 
--	if (rw == READ)
--		flags |= FOLL_WRITE;
--
- 	dprintk(1, "init user [0x%lx+0x%lx => %lu pages]\n",
- 		data, size, dma->nr_pages);
- 
--	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages,
--			     flags | FOLL_LONGTERM, dma->pages, NULL);
-+	err = pin_user_pages(data & PAGE_MASK, dma->nr_pages, gup_flags,
-+			     dma->pages, NULL);
- 
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
+ 	ret = pin_user_pages_fast(start, nr_frames,
+-				  FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
++				  FOLL_WRITE | FOLL_LONGTERM,
+ 				  (struct page **)(vec->ptrs));
+ 	if (ret > 0) {
+ 		vec->got_ref = true;
 -- 
 2.38.1
 
