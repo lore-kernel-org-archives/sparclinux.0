@@ -2,176 +2,108 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40E74C43219
-	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 11:05:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85DF4C4167D
+	for <sparclinux@archiver.kernel.org>; Wed, 16 Nov 2022 11:46:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238735AbiKPLFI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 06:05:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49444 "EHLO
+        id S232924AbiKPLp5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 06:45:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233525AbiKPLE0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 06:04:26 -0500
-Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1A3F4AF0B
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:51:01 -0800 (PST)
-Received: by mail-ed1-x536.google.com with SMTP id a5so25914576edb.11
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 02:51:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ffwll.ch; s=google;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=NMt8HjKxItO2J6bIbRsCvEdSlAZpP8uC48lcisou+nI=;
-        b=eLnGvKK+w1XqLxzowLTo19VxBdUCyRC3jZCwBMpKaUWXXlLi4fs0Axmuul/wRN/I3k
-         Ls2daX/AS8NBqlkGiJqqxb0gEFzgn6n0a6+XnpTDtipAc3J5NayuL7HDBO33beS0D75x
-         K2gRZhVXeM0+lA+7zcbmJS/RVo1YdOeZ/sxms=
+        with ESMTP id S232991AbiKPLp2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 06:45:28 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77ADA63AA
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 03:28:46 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1668598126;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=1VQojSTl69umpLmMH43+9BkpSdHFQwxnTFgYvpcg2e8=;
+        b=XjaTTjKp5I/WmkMYUyxbT4MS+5VZW9XlYYMwgeeRxeDbCIf0geD9EBbdCodZ60JJfmRL9i
+        8AxQ9NH0UNOFjxh/R8RwwtYvLgSA06qgQ8P4lN8XoO0+rnlwZxT1h18eARAusGTQqkVmxf
+        U/y6xlC9HzRxIkIxKKqWnqtmxSPfwCg=
+Received: from mail-wm1-f71.google.com (mail-wm1-f71.google.com
+ [209.85.128.71]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-516-lK_XbBcfObOVh_G-x9K2MQ-1; Wed, 16 Nov 2022 06:28:44 -0500
+X-MC-Unique: lK_XbBcfObOVh_G-x9K2MQ-1
+Received: by mail-wm1-f71.google.com with SMTP id x10-20020a05600c420a00b003cfa33f2e7cso9862196wmh.2
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 03:28:44 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references
-         :mail-followup-to:message-id:subject:cc:to:from:date
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=NMt8HjKxItO2J6bIbRsCvEdSlAZpP8uC48lcisou+nI=;
-        b=BwUIddqmCvrBTKYB3zqJKsngK9vPzXlpddzl9kxgVEE2AujIeAsxg5mzSe+TmfByRI
-         /gGpJ92w8FTf2Qt4cV7wIKOGjpH4UY701l6b/l74gXVsvj7U9ORGC7nOQg38V7YPaqaE
-         6dFWaHBjdGVIaSYbln1MMOey/TJENvZdewYorh5JcZnfwHXIMbhK9yEXa73K4fth0PwS
-         oxuepvj93Y1Z9ow//C8RaKk5pH8yHqeONWv0w/GvZIINJdMrZYtR/iEPqjSqnngs9dhj
-         ptT84t7OFiAjU8EFhP3MESfJpFdUnGdZ7Wrv9/fueaKqHDmT1oEZ6tlwhdHqW9Q8Bn0c
-         16mg==
-X-Gm-Message-State: ANoB5plm0olwGtdLqLi6mAQ6FHpJPCazhH8lZElhpg1b1q/joVvnC2ge
-        fJG1OFSUHogIkl4PuiiNp3diUQ==
-X-Google-Smtp-Source: AA0mqf4Z9KF9DYfdJQdqGvbtRloYOPQXnN3MkKcJxdOs80iDic7Ysg9e6qfGKtqJuC+1emfUPfQ+gw==
-X-Received: by 2002:a50:ff04:0:b0:462:709:9f7b with SMTP id a4-20020a50ff04000000b0046207099f7bmr19331341edu.263.1668595860175;
-        Wed, 16 Nov 2022 02:51:00 -0800 (PST)
-Received: from phenom.ffwll.local (212-51-149-33.fiber7.init7.net. [212.51.149.33])
-        by smtp.gmail.com with ESMTPSA id s6-20020a170906bc4600b007aed2057eaesm6056420ejv.161.2022.11.16.02.50.58
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Nov 2022 02:50:59 -0800 (PST)
-Date:   Wed, 16 Nov 2022 11:50:57 +0100
-From:   Daniel Vetter <daniel@ffwll.ch>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Peter Xu <peterx@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Hugh Dickins <hughd@google.com>, Nadav Amit <namit@vmware.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        David Airlie <airlied@gmail.com>,
-        Oded Gabbay <ogabbay@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-Subject: Re: [PATCH mm-unstable v1 17/20] drm/exynos: remove FOLL_FORCE usage
-Message-ID: <Y3TAkWy/xXfX1cIv@phenom.ffwll.local>
-Mail-Followup-To: David Hildenbrand <david@redhat.com>,
-        linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>, John Hubbard <jhubbard@nvidia.com>,
-        Peter Xu <peterx@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Hugh Dickins <hughd@google.com>, Nadav Amit <namit@vmware.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Shuah Khan <shuah@kernel.org>, Lucas Stach <l.stach@pengutronix.de>,
-        David Airlie <airlied@gmail.com>, Oded Gabbay <ogabbay@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-References: <20221116102659.70287-1-david@redhat.com>
- <20221116102659.70287-18-david@redhat.com>
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=1VQojSTl69umpLmMH43+9BkpSdHFQwxnTFgYvpcg2e8=;
+        b=GdS/VZJyDq12CFHUKlnGO3g7Lw+ZqkL+ladiwr8YHs1vhKgP/+N4SPULtE42iqGKUs
+         MFX9nwebrJZchlK3SSh2CItQTymboc7qaJVxgDBVIECcp8XuxptSlePrLF8cJOJO2LsP
+         0WAJ8sgIjs4jcGGXbYI5KRye/0Pzw/HIQ4WkrzO7FE5ayvRHRpwfgR/rReFQ4FU7Uun/
+         mJ/aujoxvPy+zlbwpjlFboasP54PtAAGqPDjJBH6+yNvr/x0rkc8PL8lBd2BWpNKax6L
+         sobEDItq4mES9G9zD/XDUjvjMKt7DL+h13L7XMnTlNS0izfQ/abqyC+TUOhia+HZyfyn
+         yB5w==
+X-Gm-Message-State: ANoB5pkuUZaPgGMc7UcFf3FTxGSCu8QMpxiNC7TLbMGPz3KyIjOavKtO
+        tk/jn6yBKQtjDEy6VckDkOMWNSPwMrA9ePGPSuVnfS2TFTWnEV77+Rd+u1eSKN9SW8sT+S2ZgV+
+        EG1kApc6F5o0c+w09ArWsvA==
+X-Received: by 2002:adf:e0ce:0:b0:236:4c14:4e4c with SMTP id m14-20020adfe0ce000000b002364c144e4cmr13631423wri.634.1668598123339;
+        Wed, 16 Nov 2022 03:28:43 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf6e1elsSkTG3wibaAG5hhsqopWoPQ9BVnWOuhu0PibIHa2gEBmHuSu+l8O0CstgpsJn73mbQw==
+X-Received: by 2002:adf:e0ce:0:b0:236:4c14:4e4c with SMTP id m14-20020adfe0ce000000b002364c144e4cmr13631403wri.634.1668598123006;
+        Wed, 16 Nov 2022 03:28:43 -0800 (PST)
+Received: from ?IPV6:2003:cb:c704:9f00:a98d:4026:7c44:40fd? (p200300cbc7049f00a98d40267c4440fd.dip0.t-ipconnect.de. [2003:cb:c704:9f00:a98d:4026:7c44:40fd])
+        by smtp.gmail.com with ESMTPSA id r11-20020a5d694b000000b0023691d62cffsm14554511wrw.70.2022.11.16.03.28.42
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 16 Nov 2022 03:28:42 -0800 (PST)
+Message-ID: <d814343b-2fc9-bb03-8378-b7ce6bc7373e@redhat.com>
+Date:   Wed, 16 Nov 2022 12:28:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221116102659.70287-18-david@redhat.com>
-X-Operating-System: Linux phenom 5.19.0-2-amd64 
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
+Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on
+ pmd"
+Content-Language: en-US
+To:     Anatoly Pugachev <matorola@gmail.com>, hev <r@hev.cc>
+Cc:     Peter Xu <peterx@redhat.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>
+References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
+ <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Nov 16, 2022 at 11:26:56AM +0100, David Hildenbrand wrote:
-> FOLL_FORCE is really only for ptrace access. As we unpin the pinned pages
-> using unpin_user_pages_dirty_lock(true), the assumption is that all these
-> pages are writable.
-> 
-> FOLL_FORCE in this case seems to be a legacy leftover. Let's just remove
-> it.
-> 
-> Cc: Inki Dae <inki.dae@samsung.com>
-> Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: David Airlie <airlied@gmail.com>
-> Cc: Daniel Vetter <daniel@ffwll.ch>
-> Cc: Krzysztof Kozlowski <krzysztof.kozlowski@linaro.org>
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+On 16.11.22 11:45, Anatoly Pugachev wrote:
+> On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
+>>
+>> Hello Peter,
+>>
+>> I see a random crash issue  on the LoongArch system, that is caused by
+>> commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
+>> pmd").
+>>
+>> Now, the thing is already resolved. The root cause is arch's mkdirty
+>> is set hardware writable bit in unconditional. That breaks
+>> write-protect and then breaks COW.
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Ehm, does this imply that
 
-Plus ack for merging through the appropriate non-drm tree.
--Daniel
+pte = maybe_mkwrite(pte_mkdirty(pte), vma);
 
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_g2d.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> index 471fd6c8135f..e19c2ceb3759 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-> @@ -477,7 +477,7 @@ static dma_addr_t *g2d_userptr_get_dma_addr(struct g2d_data *g2d,
->  	}
->  
->  	ret = pin_user_pages_fast(start, npages,
-> -				  FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM,
-> +				  FOLL_WRITE | FOLL_LONGTERM,
->  				  g2d_userptr->pages);
->  	if (ret != npages) {
->  		DRM_DEV_ERROR(g2d->dev,
-> -- 
-> 2.38.1
-> 
+will result in a writable PTE, even though the VMA does not include 
+VM_WRITE?
+
+That would be really broken.
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Thanks,
+
+David / dhildenb
+
