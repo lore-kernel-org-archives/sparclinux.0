@@ -2,180 +2,220 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1060C43219
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 18:30:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A468C433FE
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 18:55:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240657AbiKQSaJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Nov 2022 13:30:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34466 "EHLO
+        id S239416AbiKQSzD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Nov 2022 13:55:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50758 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240558AbiKQS34 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Nov 2022 13:29:56 -0500
+        with ESMTP id S240249AbiKQSy7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Nov 2022 13:54:59 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA24F79908
-        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 10:28:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6EFA082226
+        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 10:54:00 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668709737;
+        s=mimecast20190719; t=1668711239;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=SCwrHAH8w/75e7RIvwniXR2/IhWfvKJ1bBk1DvOk8y4=;
-        b=Ke3aS4W5dWK7uLdAILX2L+GjvkE+vDfH1tg1ux1IYYr9U/HyAK2qiVhRoJRig7pt4vgVga
-        oagwNfpWYhGqBxI3wN4FUcnekvKaXri8L00NZIaRUoMRPl9LNPx7tcwZj0l0eC/9QnBLTb
-        HnvmCJOKcmrCY7vaxWnlf0rXJYD8uyY=
-Received: from mail-qt1-f200.google.com (mail-qt1-f200.google.com
- [209.85.160.200]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=pqDtOtNSwX0ZV2YnFqWo79lClAu9bDuVWAJZIEodJ7s=;
+        b=HpsUOQEU44K0KINKcRGDgLeIzb4eCZQZGeFoHnZfIVw1nFfRduZb9f07JM+ke4lNXIlZIg
+        Ukgs+ETqiO5xSd+czSX1rZFwrPoAJpCrRQU0NlZnZXR6f+CHlfHeHzwWSBm4Ydm/KRqd5x
+        kHL+mRUIjF//wsE76j429+QwU70YEfA=
+Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
+ [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-570-1M5eF9AJPjSHXxaoImLOSw-1; Thu, 17 Nov 2022 13:28:55 -0500
-X-MC-Unique: 1M5eF9AJPjSHXxaoImLOSw-1
-Received: by mail-qt1-f200.google.com with SMTP id gc12-20020a05622a59cc00b003a5444280e1so2455322qtb.13
-        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 10:28:55 -0800 (PST)
+ us-mta-106-79eLkGFKMs6Y6c8iGSR-jg-1; Thu, 17 Nov 2022 13:53:54 -0500
+X-MC-Unique: 79eLkGFKMs6Y6c8iGSR-jg-1
+Received: by mail-qk1-f200.google.com with SMTP id h13-20020a05620a244d00b006fb713618b8so3289883qkn.0
+        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 10:53:54 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=in-reply-to:content-disposition:mime-version:references:message-id
          :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=SCwrHAH8w/75e7RIvwniXR2/IhWfvKJ1bBk1DvOk8y4=;
-        b=zQsj4THf3C3T/74ix45eaE/SKEru5JW17WJd/wgKWFLv0R6Usm8Rpw3WaMTH8T20p/
-         I+VAzgNCOG5wXB3hdFB0CDfDIrVeHEkdfuZHxoCBrCumgYk3Ym8I1jzTqzkJ8DgFBerU
-         t9Ka6Os/egLYfNQwr64dK9EjwfNr79iZ1Dj2lFv3aIXcMNTEmN9OD7feCbpz+aOWR+p/
-         XZAkyezxORPS9QFoabxOLcbyJQk7XxX8cVKmElzc8kZ1DEwT5KO81DdOG/YagYdBypgL
-         8pelc9EY0vGyPEDbKZo+bepqfhB3XB/KQjJH5acPI7UeMP185lmw28MwKfj6zrMgfbuO
-         6JGg==
-X-Gm-Message-State: ANoB5pkzSdomq+iyJ+ciIoYhveHuoYUogUwSBXIlcK3ua9W6SST1FF8z
-        pnxQW7n2S1VAkBHRjo4T26HWhb13E5GdpQT1NFAJsE/Ym8wgWtYdw/Zjux1ZJDvgaI85yVMUDuC
-        64e4MYXr5/gZuZOm7ol1mnQ==
-X-Received: by 2002:a37:aad6:0:b0:6fa:e0bb:cb6d with SMTP id t205-20020a37aad6000000b006fae0bbcb6dmr2861718qke.707.1668709735336;
-        Thu, 17 Nov 2022 10:28:55 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf6x5K8X5t9p31ZONbie6/kQJJQKF067lEy8gKV5E7CZydHtJU7W40Elm22ZNmEjr6VTLNzuwA==
-X-Received: by 2002:a37:aad6:0:b0:6fa:e0bb:cb6d with SMTP id t205-20020a37aad6000000b006fae0bbcb6dmr2861702qke.707.1668709735067;
-        Thu, 17 Nov 2022 10:28:55 -0800 (PST)
+        bh=pqDtOtNSwX0ZV2YnFqWo79lClAu9bDuVWAJZIEodJ7s=;
+        b=IrePg9RCql4F/SypSq6sSuUJPMcZdSGoKVZ8+3Plt72o2EVT/Z6H2R3pQjBbvCqyS+
+         jwvEWFDm0zIvi+yplQZVEaHUcAZpdLW9OZvBFx9tFEqj6In6gLP1yIPVqf5mkLyrmkGl
+         PI45CO2yZTsdE4hnISvMzmcJhyejhzG+VC/ASKu4slKRRJ3+fodVFXAuhnUQqyccZyGI
+         lKHFw3BuelK8NqGd+gwAa9OS0BMolTcmNIFCmzM62SNiFwjICUYBjTfe7wVc70QyvVUD
+         qBxjV0zOdu/UAiKLxnmPXZdxZSmesEmv1ImLKlUxGCgaAixbMQi16CPfY7/VYaybifgd
+         dk0A==
+X-Gm-Message-State: ANoB5pnWOKhQ2YhAu/ijkBK/u05FY/VQDXLzspbfZNNMGyFTLQ2uYlIb
+        UtOjWj+0BaNulKCaY5ruydp1Mez3SkJowFS42kS6T/SJUWCzF+7ize1YlC8QWFR7pM7XIxpIWxI
+        IBxeIR6CP8mhO6+cwyp/Y5A==
+X-Received: by 2002:a05:622a:289:b0:343:6909:9204 with SMTP id z9-20020a05622a028900b0034369099204mr3581887qtw.347.1668711234086;
+        Thu, 17 Nov 2022 10:53:54 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf4pjBfmBUmb8xyyeg1C+sqT3nsADmA8FXGzdanQiaRc4baapIqKmPjicoswCyXlkvWC03dPvQ==
+X-Received: by 2002:a05:622a:289:b0:343:6909:9204 with SMTP id z9-20020a05622a028900b0034369099204mr3581867qtw.347.1668711233802;
+        Thu, 17 Nov 2022 10:53:53 -0800 (PST)
 Received: from x1n (bras-base-aurron9127w-grc-46-70-31-27-79.dsl.bell.ca. [70.31.27.79])
-        by smtp.gmail.com with ESMTPSA id o10-20020ac841ca000000b00399fe4aac3esm733817qtm.50.2022.11.17.10.28.54
+        by smtp.gmail.com with ESMTPSA id d17-20020a05620a241100b006f87d28ea3asm974024qkn.54.2022.11.17.10.53.52
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Nov 2022 10:28:54 -0800 (PST)
-Date:   Thu, 17 Nov 2022 13:28:53 -0500
+        Thu, 17 Nov 2022 10:53:53 -0800 (PST)
+Date:   Thu, 17 Nov 2022 13:53:52 -0500
 From:   Peter Xu <peterx@redhat.com>
-To:     hev <r@hev.cc>
-Cc:     Anatoly Pugachev <matorola@gmail.com>,
-        Thorsten Leemhuis <regressions@leemhuis.info>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>
-Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on
- pmd"
-Message-ID: <Y3Z9Zf0jARMOkFBq@x1n>
-References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
- <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
- <Y3UPAKqVp6WAmRHV@x1n>
- <CAHirt9i03CFCK-4XNZb8dUxHrQqKx8c0_3=S2Y3oNvUex3xCBw@mail.gmail.com>
+To:     Huacai Chen <chenhuacai@loongson.cn>
+Cc:     Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev,
+        Xuefeng Li <lixuefeng@loongson.cn>,
+        Guo Ren <guoren@kernel.org>, Xuerui Wang <kernel@xen0n.name>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org, r@hev.cc
+Subject: Re: [PATCH 04/47] LoongArch: Set _PAGE_DIRTY only if _PAGE_WRITE is
+ set in {pmd,pte}_mkdirty()
+Message-ID: <Y3aDQKwGDLXtWRJu@x1n>
+References: <20221117042532.4064448-1-chenhuacai@loongson.cn>
+ <Y3ZPRx/VUoVvujNa@x1n>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <CAHirt9i03CFCK-4XNZb8dUxHrQqKx8c0_3=S2Y3oNvUex3xCBw@mail.gmail.com>
+In-Reply-To: <Y3ZPRx/VUoVvujNa@x1n>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Nov 17, 2022 at 10:29:57AM +0800, hev wrote:
-> Hi Peter,
+On Thu, Nov 17, 2022 at 10:12:07AM -0500, Peter Xu wrote:
+> Hi, Huacai,
+> 
+> On Thu, Nov 17, 2022 at 12:25:32PM +0800, Huacai Chen wrote:
+> > Now {pmd,pte}_mkdirty() set _PAGE_DIRTY bit unconditionally, this causes
+> > random segmentation fault after commit 0ccf7f168e17bb7e ("mm/thp: carry
+> > over dirty bit when thp splits on pmd").
+> > 
+> > The reason is: when fork(), parent process use pmd_wrprotect() to clear
+> > huge page's _PAGE_WRITE and _PAGE_DIRTY (for COW);
+> 
+> Is it safe to drop dirty bit when wr-protect?  It means the mm can reclaim
+> the page directly assuming the page contains rubbish.
+> 
+> Consider after fork() and memory pressure kicks the kswapd, I don't see
+> anything stops the kswapd from recycling the pages and lose the data in
+> both processes.
 
-Hi, Hev,
+Feel free to ignore this question..  I think I got an answer from Hev (and
+I then got a follow up question):
+
+https://lore.kernel.org/all/Y3Z9Zf0jARMOkFBq@x1n/
 
 > 
-> On Thu, Nov 17, 2022 at 12:25 AM Peter Xu <peterx@redhat.com> wrote:
-> >
-> > On Wed, Nov 16, 2022 at 01:45:15PM +0300, Anatoly Pugachev wrote:
-> > > On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
-> > > >
-> > > > Hello Peter,
-> >
-> > Hi, Hev,
-> >
-> > Thanks for letting me know.
-> >
-> > > >
-> > > > I see a random crash issue  on the LoongArch system, that is caused by
-> > > > commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
-> > > > pmd").
-> > > >
-> > > > Now, the thing is already resolved. The root cause is arch's mkdirty
-> > > > is set hardware writable bit in unconditional. That breaks
-> > > > write-protect and then breaks COW.
-> >
-> > Could you help explain how that happened?
-> >
-> > I'm taking example of loongarch here:
-> >
-> > static inline pte_t pte_mkdirty(pte_t pte)
-> > {
-> >         pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
-> >         return pte;
-> > }
-> >
-> > #define _PAGE_MODIFIED          (_ULCAST_(1) << _PAGE_MODIFIED_SHIFT)
-> > #define _PAGE_MODIFIED_SHIFT    9
+> > then pte_mkdirty() set
+> > _PAGE_DIRTY as well as _PAGE_MODIFIED while splitting dirty huge pages;
+> > once _PAGE_DIRTY is set, there will be no tlb modify exception so the COW
+> > machanism fails; and at last memory corruption occurred between parent
+> > and child processes.
+> > 
+> > So, we should set _PAGE_DIRTY only when _PAGE_WRITE is set in {pmd,pte}_
+> > mkdirty().
+> > 
+> > Cc: stable@vger.kernel.org
+> > Cc: Peter Xu <peterx@redhat.com>
+> > Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
+> > ---
+> > Note: CC sparc maillist because they have similar issues.
 > 
-> _PAGE_MODIFIED is a software dirty bit
+> I also had a look on sparc64, it seems to not do the same as loongarch
+> here (not removing dirty in wr-protect):
 > 
-> > #define _PAGE_DIRTY             (_ULCAST_(1) << _PAGE_DIRTY_SHIFT)
-> > #define _PAGE_DIRTY_SHIFT       1
+> static inline pmd_t pmd_wrprotect(pmd_t pmd)
+> {
+> 	pte_t pte = __pte(pmd_val(pmd));
 > 
-> _PAGE_DIRTY is a hardware writable bit (bad naming), meaning that mmu
-> allows write memory without any exception raised.
-
-(I just missed this email before I reply to the other one, I should have
- read this one first..)
-
-I see. This surprises me a bit, as I can't quickly tell how it'll always
-work with the generic mm code.
-
-Say, is there a quick answer on why _PAGE_DIRTY is set here rather than
-pte_mkwrite()?  Because AFAIU that's where the mm wants to grant write
-permission to a page table entry as the API, no?
-
+> 	pte = pte_wrprotect(pte);
 > 
-> >
-> > I don't see when write bit is set, which is bit 8 instead:
-> >
-> > #define _PAGE_WRITE             (_ULCAST_(1) << _PAGE_WRITE_SHIFT)
-> > #define _PAGE_WRITE_SHIFT       8
+> 	return __pmd(pte_val(pte));
+> }
 > 
-> _PAGE_WRITE is a software writable bit (not hardware).
+> static inline pte_t pte_wrprotect(pte_t pte)
+> {
+> 	unsigned long val = pte_val(pte), tmp;
 > 
-> As David said, In __split_huge_pmd_locked, the VMA does not include VM_WRITE,
+> 	__asm__ __volatile__(
+> 	"\n661:	andn		%0, %3, %0\n"
+> 	"	nop\n"
+> 	"\n662:	nop\n"
+> 	"	nop\n"
+> 	"	.section	.sun4v_2insn_patch, \"ax\"\n"
+> 	"	.word		661b\n"
+> 	"	sethi		%%uhi(%4), %1\n"
+> 	"	sllx		%1, 32, %1\n"
+> 	"	.word		662b\n"
+> 	"	or		%1, %%lo(%4), %1\n"
+> 	"	andn		%0, %1, %0\n"
+> 	"	.previous\n"
+> 	: "=r" (val), "=r" (tmp)
+> 	: "0" (val), "i" (_PAGE_WRITE_4U | _PAGE_W_4U),
+> 	  "i" (_PAGE_WRITE_4V | _PAGE_W_4V));
 > 
-> entry = maybe_mkwrite(entry, vma);
-> 
-> so the pte does not include software writable bit (_PAGE_WRITE).
+> 	return __pte(val);
+> }
 
-Are you sure?  In your test case you mapped with RW, IIUC it means even
-after the fork() VM_WRITE is set on both sides?
-
-But I agree the write bit is not set, not because !VM_WRITE, but because we
-take care of that explicitly to make sure pte has the same write bit as pmd:
-
-                (pmd used to be wr-protected due to fork())
-		write = pmd_write(old_pmd);
-                ...
-
-                (then when split pte shouldn't have write bit too)
-                if (!write)
-                        entry = pte_wrprotect(entry);
+(Same here; I just overlooked what does _PAGE_W_4U meant..)
 
 > 
-> and the dirty is true,
+> >  
+> >  arch/loongarch/include/asm/pgtable.h | 8 ++++++--
+> >  1 file changed, 6 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/loongarch/include/asm/pgtable.h b/arch/loongarch/include/asm/pgtable.h
+> > index 946704bee599..debbe116f105 100644
+> > --- a/arch/loongarch/include/asm/pgtable.h
+> > +++ b/arch/loongarch/include/asm/pgtable.h
+> > @@ -349,7 +349,9 @@ static inline pte_t pte_mkclean(pte_t pte)
+> >  
+> >  static inline pte_t pte_mkdirty(pte_t pte)
+> >  {
+> > -	pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+> > +	pte_val(pte) |= _PAGE_MODIFIED;
+> > +	if (pte_val(pte) & _PAGE_WRITE)
+> > +		pte_val(pte) |= _PAGE_DIRTY;
 > 
-> if (dirty)
->     entry = pte_mkdirty(entry);
+> I'm not sure whether mm has rule to always set write bit then set dirty
+> bit, need to be careful here because the outcome may differ when use:
 > 
-> so the incorrect arch's pte_mkdirty set hardware writable
-> bit(_PAGE_DIRTY) in unconditional for read-only pages.
+>   pte_mkdirty(pte_mkwrite(pte))
+>   (expected)
+> 
+> VS:
+> 
+>   pte_mkwrite(pte_mkdirty(pte))
+>   (dirty not set)
+> 
+> I had a feeling I miss some arch-specific details here on why loongarch
+> needs such implementation, but I can't quickly tell.
 
-True, that does also apply to sparc64 pte_mkdirty() with _PAGE_W_4[UV].  I
-should have noticed earlier that its comment told me that's a write bit
-already..
+After a closer look I think it's fine for loongarch as pte_mkwrite will
+also set the dirty bit unconditionally, so at least the two ways will still
+generate the same pte (DIRTY+MODIFIED+WRITE).
 
-#define _PAGE_W_4U	  _AC(0x0000000000000002,UL) /* Writable             */
+But this whole thing is still confusing to me.  It'll still be great if
+anyone can help explain why the _DIRTY cannot be set only in pte_mkwrite()
+if that's the solo place in charge of "whether the pte is writable".
+
+The other follow up question is: how do we mark "this pte contains valid
+data" (the common definition of "dirty bit"), while "this pte is not
+writable" on loongarch?
+
+It can happen when we're installing a page with non-zero data meanwhile
+wr-protected.  That's actually a valid case for userfaultfd wr-protect mode
+where user specified UFFDIO_COPY ioctl with flag UFFDIO_COPY_MODE_WP, where
+we'll install a non-zero page from user buffer but don't grant write bit.
+
+From code-wise, I think it can be done currently with this on loongarch:
+
+  pte_wrprotect(pte_mkwrite(pte_mkdirty(pte)))
+
+Where pte_wrprotect(pte_mkwrite(pte)) is not a no-op but applying MODIFIED.
+
+While on many other archs it'll be as simple as:
+
+  pte_mkdirty(pte)
+
+But that's really error-prone and not obvious.
+
+Copying Hev too.
 
 Thanks,
 
