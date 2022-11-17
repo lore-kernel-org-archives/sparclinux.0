@@ -2,278 +2,199 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73B46C43219
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 14:46:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 087F7C4332F
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 15:19:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240121AbiKQOqm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 17 Nov 2022 09:46:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41026 "EHLO
+        id S240552AbiKQPTc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Nov 2022 10:19:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37568 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239823AbiKQOqj (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Nov 2022 09:46:39 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1DDB73BA0
-        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 06:45:38 -0800 (PST)
+        with ESMTP id S240584AbiKQPTD (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Nov 2022 10:19:03 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AB45C91C31
+        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 07:12:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1668696338;
+        s=mimecast20190719; t=1668697934;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
          in-reply-to:in-reply-to:references:references;
-        bh=8gmgQPGvV0Pdco46Use918rHcFMun1FBq8lcqpGuipk=;
-        b=WHLp+j2JwA+WtR97vTkPT0o4n4Tn8Z+CdeXCE+SjRo090Dnff4bI5Zw0Wgmn2367z/o2A/
-        T34RXjDWMNql3epTmt/hPbAJtxWid97jiX7oFRf1NnIylNSN4bSxhprZiLhAM0wUOy8upu
-        vP4iCUt8Y6LZ+v5NwmINmfujQRfd8Ac=
-Received: from mail-wr1-f71.google.com (mail-wr1-f71.google.com
- [209.85.221.71]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=8ILTkK5az/hBLXZXqjYOlgnbsmdjpOMEywp6Rj1fgC0=;
+        b=DQWzklwO6EM00mhxK1H7gtxnb+WFNEYMQhwfQFL9CIGW9pJifIXjJduzAwyKYGjZN++Yki
+        GyeBzigUPGsIN+LzbuTByJzXuvp36L28k/LkXMoPmRqlWQLgqaGJOQavDA6lRmuMx1Y900
+        cgi5lAJg305VMFbBH4onReUvdmxudIo=
+Received: from mail-qt1-f198.google.com (mail-qt1-f198.google.com
+ [209.85.160.198]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-629-GSfdlrGQO1emIPo3ifEyOg-1; Thu, 17 Nov 2022 09:45:36 -0500
-X-MC-Unique: GSfdlrGQO1emIPo3ifEyOg-1
-Received: by mail-wr1-f71.google.com with SMTP id s11-20020adfbc0b000000b0023659af24a8so797731wrg.14
-        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 06:45:36 -0800 (PST)
+ us-mta-62-6SrNmOSpO3iVrDQYQqK6kg-1; Thu, 17 Nov 2022 10:12:11 -0500
+X-MC-Unique: 6SrNmOSpO3iVrDQYQqK6kg-1
+Received: by mail-qt1-f198.google.com with SMTP id s14-20020a05622a1a8e00b00397eacd9c1aso1877724qtc.21
+        for <sparclinux@vger.kernel.org>; Thu, 17 Nov 2022 07:12:10 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=8gmgQPGvV0Pdco46Use918rHcFMun1FBq8lcqpGuipk=;
-        b=ue9f4/JE44HK5FL/4Vg0Bj+SiatF3ragzBV8zJnk6UXLMoEaPgN4St3cyBOteoSuTX
-         A9Qpnia4SJt9OhnL94666mEJNqtvqNws4MzQ9kUFnjb/dteyoUiUG9nlgaLo1oTPYM2W
-         KHFkx9dd6i3+mF+CqPkuDey9LVDf937+rLnjpdC/ZpWgam/zLvrd29LY11mZAjvuNdYO
-         017bpaagdNV/sTJqGUOHwNm3pPxBKcu5ibSqAPxwuHCAq2y3lg8xsVZMliI2PdAoOU4v
-         HJxQ6unj2UD8qopd/X0bUuXpO6kVYQQQ8JRcDL3pWu0Yts1aSGeo5nmR+3phzn09h3hp
-         aMRQ==
-X-Gm-Message-State: ANoB5plX+hEPS4rsEjHKUY0jsrrbQej3KcHcw9VQ5/jKMrJ4SJUXp5D2
-        QMht4g7Bg6Cu5QycCQVPUAvSLzTE2CVgY8HYfHpLjY2QJRYzVV/KUVgVbrK2Yam+oLcCdoatclO
-        Q6DN0Hzq8egTv3bBPvPNIGg==
-X-Received: by 2002:a5d:4683:0:b0:23a:43b7:cdd5 with SMTP id u3-20020a5d4683000000b0023a43b7cdd5mr1645366wrq.387.1668696335542;
-        Thu, 17 Nov 2022 06:45:35 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf64NPDvBapwgGSgB2P5pH25AfOA35vY/3ogR7keZELycX3grFeKUdCp0vRGXy3K3A08o5vlDw==
-X-Received: by 2002:a5d:4683:0:b0:23a:43b7:cdd5 with SMTP id u3-20020a5d4683000000b0023a43b7cdd5mr1645351wrq.387.1668696335309;
-        Thu, 17 Nov 2022 06:45:35 -0800 (PST)
-Received: from vschneid.remote.csb ([154.57.232.159])
-        by smtp.gmail.com with ESMTPSA id t18-20020a5d6a52000000b00236740c6e6fsm1069950wrw.100.2022.11.17.06.45.30
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=8ILTkK5az/hBLXZXqjYOlgnbsmdjpOMEywp6Rj1fgC0=;
+        b=Rqu6DSvzzN6W3JCNTIkhoTv6cLvMlu6Ui2+RzI4geyQFxZaJBruMU2/lM4xIo9N4Z6
+         BN+k0VulgN6cmrqNmOQjO4+sSCJ6Ktj/uBZqsswMASVVsuzq21L9n6xEiO93TPO7Okwx
+         FjVoFZKYYimu7NkRHTDb21RJ5xVuQAPnfZgO0UQFV9c+5VxFjJ5IG4OaBPzhNHVwTbf2
+         F0vAlhZKTcaH0rhmBFL/uLaveta92rLtDpHRPHtDNxNeHwAtCTRpLQYo6Ljpkc1smIKE
+         AikaQJ/ay4OfLXG0VhHvHIWBoH8yKbBDrAGJuaOi3u8X4K71nxXVBk9ni9ATN2mzu5Sb
+         UjZg==
+X-Gm-Message-State: ANoB5pmNfg6Q0k4ZSJUf2C3Xh8r8V4OHSOv2d5uwnO4mRfRl3+gWvyea
+        Pkt28kODNKOS3EkzrJoEoXh8W2YIPWU19MJ3JwdVm32rSjZPdXvoepbaL7szdgqp8nlAYyIaN+X
+        Ub+cA7nz6gOdx9OJ1TG1elg==
+X-Received: by 2002:ac8:66c5:0:b0:3a5:4666:a952 with SMTP id m5-20020ac866c5000000b003a54666a952mr2537552qtp.128.1668697929703;
+        Thu, 17 Nov 2022 07:12:09 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf5iJfLkKyyXtJLO2+rlIy0weO21fWEw8oKXTKubnbM3hXNxgl+B2lA45G59l29t4z2myNygLg==
+X-Received: by 2002:ac8:66c5:0:b0:3a5:4666:a952 with SMTP id m5-20020ac866c5000000b003a54666a952mr2537516qtp.128.1668697929400;
+        Thu, 17 Nov 2022 07:12:09 -0800 (PST)
+Received: from x1n (bras-base-aurron9127w-grc-46-70-31-27-79.dsl.bell.ca. [70.31.27.79])
+        by smtp.gmail.com with ESMTPSA id c8-20020ac853c8000000b003972790deb9sm471564qtq.84.2022.11.17.07.12.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 17 Nov 2022 06:45:34 -0800 (PST)
-From:   Valentin Schneider <vschneid@redhat.com>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Marcelo Tosatti <mtosatti@redhat.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Guo Ren <guoren@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [RFC PATCH v2 8/8] sched, smp: Trace smp callback causing an IPI
-In-Reply-To: <Y3ZBUMteJysc1/lA@hirez.programming.kicks-ass.net>
-References: <20221102182949.3119584-1-vschneid@redhat.com>
- <20221102183336.3120536-7-vschneid@redhat.com>
- <Y3ZBUMteJysc1/lA@hirez.programming.kicks-ass.net>
-Date:   Thu, 17 Nov 2022 14:45:29 +0000
-Message-ID: <xhsmhfsehy706.mognet@vschneid.remote.csb>
+        Thu, 17 Nov 2022 07:12:08 -0800 (PST)
+Date:   Thu, 17 Nov 2022 10:12:07 -0500
+From:   Peter Xu <peterx@redhat.com>
+To:     Huacai Chen <chenhuacai@loongson.cn>
+Cc:     Huacai Chen <chenhuacai@kernel.org>, loongarch@lists.linux.dev,
+        Xuefeng Li <lixuefeng@loongson.cn>,
+        Guo Ren <guoren@kernel.org>, Xuerui Wang <kernel@xen0n.name>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        stable@vger.kernel.org
+Subject: Re: [PATCH 04/47] LoongArch: Set _PAGE_DIRTY only if _PAGE_WRITE is
+ set in {pmd,pte}_mkdirty()
+Message-ID: <Y3ZPRx/VUoVvujNa@x1n>
+References: <20221117042532.4064448-1-chenhuacai@loongson.cn>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20221117042532.4064448-1-chenhuacai@loongson.cn>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 17/11/22 15:12, Peter Zijlstra wrote:
-> On Wed, Nov 02, 2022 at 06:33:36PM +0000, Valentin Schneider wrote:
-> *yuck*
+Hi, Huacai,
 
-:-)
+On Thu, Nov 17, 2022 at 12:25:32PM +0800, Huacai Chen wrote:
+> Now {pmd,pte}_mkdirty() set _PAGE_DIRTY bit unconditionally, this causes
+> random segmentation fault after commit 0ccf7f168e17bb7e ("mm/thp: carry
+> over dirty bit when thp splits on pmd").
+> 
+> The reason is: when fork(), parent process use pmd_wrprotect() to clear
+> huge page's _PAGE_WRITE and _PAGE_DIRTY (for COW);
 
->
-> How about something like so?
->
+Is it safe to drop dirty bit when wr-protect?  It means the mm can reclaim
+the page directly assuming the page contains rubbish.
+
+Consider after fork() and memory pressure kicks the kswapd, I don't see
+anything stops the kswapd from recycling the pages and lose the data in
+both processes.
+
+> then pte_mkdirty() set
+> _PAGE_DIRTY as well as _PAGE_MODIFIED while splitting dirty huge pages;
+> once _PAGE_DIRTY is set, there will be no tlb modify exception so the COW
+> machanism fails; and at last memory corruption occurred between parent
+> and child processes.
+> 
+> So, we should set _PAGE_DIRTY only when _PAGE_WRITE is set in {pmd,pte}_
+> mkdirty().
+> 
+> Cc: stable@vger.kernel.org
+> Cc: Peter Xu <peterx@redhat.com>
+> Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
 > ---
-> --- a/kernel/irq_work.c
-> +++ b/kernel/irq_work.c
-> @@ -24,6 +24,8 @@
->
->  #include <trace/events/ipi.h>
->
-> +#include "sched/smp.h"
-> +
->  static DEFINE_PER_CPU(struct llist_head, raised_list);
->  static DEFINE_PER_CPU(struct llist_head, lazy_list);
->  static DEFINE_PER_CPU(struct task_struct *, irq_workd);
-> --- a/kernel/sched/core.c
-> +++ b/kernel/sched/core.c
-> @@ -3763,16 +3763,17 @@ void sched_ttwu_pending(void *arg)
->       rq_unlock_irqrestore(rq, &rf);
->  }
->
-> -void send_call_function_single_ipi(int cpu)
-> +bool send_call_function_single_ipi(int cpu)
+> Note: CC sparc maillist because they have similar issues.
+
+I also had a look on sparc64, it seems to not do the same as loongarch
+here (not removing dirty in wr-protect):
+
+static inline pmd_t pmd_wrprotect(pmd_t pmd)
+{
+	pte_t pte = __pte(pmd_val(pmd));
+
+	pte = pte_wrprotect(pte);
+
+	return __pmd(pte_val(pte));
+}
+
+static inline pte_t pte_wrprotect(pte_t pte)
+{
+	unsigned long val = pte_val(pte), tmp;
+
+	__asm__ __volatile__(
+	"\n661:	andn		%0, %3, %0\n"
+	"	nop\n"
+	"\n662:	nop\n"
+	"	nop\n"
+	"	.section	.sun4v_2insn_patch, \"ax\"\n"
+	"	.word		661b\n"
+	"	sethi		%%uhi(%4), %1\n"
+	"	sllx		%1, 32, %1\n"
+	"	.word		662b\n"
+	"	or		%1, %%lo(%4), %1\n"
+	"	andn		%0, %1, %0\n"
+	"	.previous\n"
+	: "=r" (val), "=r" (tmp)
+	: "0" (val), "i" (_PAGE_WRITE_4U | _PAGE_W_4U),
+	  "i" (_PAGE_WRITE_4V | _PAGE_W_4V));
+
+	return __pte(val);
+}
+
+>  
+>  arch/loongarch/include/asm/pgtable.h | 8 ++++++--
+>  1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/loongarch/include/asm/pgtable.h b/arch/loongarch/include/asm/pgtable.h
+> index 946704bee599..debbe116f105 100644
+> --- a/arch/loongarch/include/asm/pgtable.h
+> +++ b/arch/loongarch/include/asm/pgtable.h
+> @@ -349,7 +349,9 @@ static inline pte_t pte_mkclean(pte_t pte)
+>  
+>  static inline pte_t pte_mkdirty(pte_t pte)
 >  {
->       struct rq *rq = cpu_rq(cpu);
->
->       if (!set_nr_if_polling(rq->idle)) {
-> -		trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, NULL);
->               arch_send_call_function_single_ipi(cpu);
-> -	} else {
-> -		trace_sched_wake_idle_without_ipi(cpu);
-> +		return true;
->       }
-> +
-> +	trace_sched_wake_idle_without_ipi(cpu);
-> +	return false;
+> -	pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+> +	pte_val(pte) |= _PAGE_MODIFIED;
+> +	if (pte_val(pte) & _PAGE_WRITE)
+> +		pte_val(pte) |= _PAGE_DIRTY;
+
+I'm not sure whether mm has rule to always set write bit then set dirty
+bit, need to be careful here because the outcome may differ when use:
+
+  pte_mkdirty(pte_mkwrite(pte))
+  (expected)
+
+VS:
+
+  pte_mkwrite(pte_mkdirty(pte))
+  (dirty not set)
+
+I had a feeling I miss some arch-specific details here on why loongarch
+needs such implementation, but I can't quickly tell.
+
+Thanks,
+
+>  	return pte;
 >  }
->
->  /*
-> --- a/kernel/sched/smp.h
-> +++ b/kernel/sched/smp.h
-> @@ -6,7 +6,7 @@
->
->  extern void sched_ttwu_pending(void *arg);
->
-> -extern void send_call_function_single_ipi(int cpu);
-> +extern bool send_call_function_single_ipi(int cpu);
->
->  #ifdef CONFIG_SMP
->  extern void flush_smp_call_function_queue(void);
-> --- a/kernel/smp.c
-> +++ b/kernel/smp.c
-> @@ -163,7 +163,6 @@ void __init call_function_init(void)
->  static inline void
->  send_call_function_ipi_mask(const struct cpumask *mask)
+>  
+> @@ -478,7 +480,9 @@ static inline pmd_t pmd_mkclean(pmd_t pmd)
+>  
+>  static inline pmd_t pmd_mkdirty(pmd_t pmd)
 >  {
-> -	trace_ipi_send_cpumask(mask, _RET_IP_, func);
->       arch_send_call_function_ipi_mask(mask);
+> -	pmd_val(pmd) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+> +	pmd_val(pmd) |= _PAGE_MODIFIED;
+> +	if (pmd_val(pmd) & _PAGE_WRITE)
+> +		pmd_val(pmd) |= _PAGE_DIRTY;
+>  	return pmd;
 >  }
->
-> @@ -438,11 +437,16 @@ static void __smp_call_single_queue_debu
->       struct cfd_seq_local *seq = this_cpu_ptr(&cfd_seq_local);
->       struct call_function_data *cfd = this_cpu_ptr(&cfd_data);
->       struct cfd_percpu *pcpu = per_cpu_ptr(cfd->pcpu, cpu);
-> +	struct __call_single_data *csd;
-> +
-> +	csd = container_of(node, call_single_data_t, node.llist);
-> +	WARN_ON_ONCE(!(CSD_TYPE(csd) & (CSD_TYPE_SYNC | CSD_TYPE_ASYNC)));
->
->       cfd_seq_store(pcpu->seq_queue, this_cpu, cpu, CFD_SEQ_QUEUE);
->       if (llist_add(node, &per_cpu(call_single_queue, cpu))) {
->               cfd_seq_store(pcpu->seq_ipi, this_cpu, cpu, CFD_SEQ_IPI);
->               cfd_seq_store(seq->ping, this_cpu, cpu, CFD_SEQ_PING);
-> +		trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, csd->func);
->               send_call_function_single_ipi(cpu);
->               cfd_seq_store(seq->pinged, this_cpu, cpu, CFD_SEQ_PINGED);
->       } else {
-> @@ -487,6 +491,27 @@ static __always_inline void csd_unlock(s
->
->  static DEFINE_PER_CPU_SHARED_ALIGNED(call_single_data_t, csd_data);
->
-> +static __always_inline
-> +bool raw_smp_call_single_queue(int cpu, struct llist_node *node)
-> +{
-> +	/*
-> +	 * The list addition should be visible to the target CPU when it pops
-> +	 * the head of the list to pull the entry off it in the IPI handler
-> +	 * because of normal cache coherency rules implied by the underlying
-> +	 * llist ops.
-> +	 *
-> +	 * If IPIs can go out of order to the cache coherency protocol
-> +	 * in an architecture, sufficient synchronisation should be added
-> +	 * to arch code to make it appear to obey cache coherency WRT
-> +	 * locking and barrier primitives. Generic code isn't really
-> +	 * equipped to do the right thing...
-> +	 */
-> +	if (llist_add(node, &per_cpu(call_single_queue, cpu)))
-> +		return send_call_function_single_ipi(cpu);
-> +
-> +	return false;
-> +}
-> +
->  void __smp_call_single_queue(int cpu, struct llist_node *node)
->  {
->  #ifdef CONFIG_CSD_LOCK_WAIT_DEBUG
-> @@ -503,19 +528,28 @@ void __smp_call_single_queue(int cpu, st
->  #endif
->
->       /*
-> -	 * The list addition should be visible to the target CPU when it pops
-> -	 * the head of the list to pull the entry off it in the IPI handler
-> -	 * because of normal cache coherency rules implied by the underlying
-> -	 * llist ops.
-> -	 *
-> -	 * If IPIs can go out of order to the cache coherency protocol
-> -	 * in an architecture, sufficient synchronisation should be added
-> -	 * to arch code to make it appear to obey cache coherency WRT
-> -	 * locking and barrier primitives. Generic code isn't really
-> -	 * equipped to do the right thing...
-> -	 */
-> -	if (llist_add(node, &per_cpu(call_single_queue, cpu)))
-> -		send_call_function_single_ipi(cpu);
-> +	 * We have to check the type of the CSD before queueing it, because
-> +	 * once queued it can have its flags cleared by
-> +	 *   flush_smp_call_function_queue()
-> +	 * even if we haven't sent the smp_call IPI yet (e.g. the stopper
-> +	 * executes migration_cpu_stop() on the remote CPU).
-> +	 */
-> +	if (trace_ipi_send_cpumask_enabled()) {
-> +		call_single_data_t *csd;
-> +		smp_call_func_t func;
-> +
-> +		csd = container_of(node, call_single_data_t, node.llist);
-> +
-> +		func = sched_ttwu_pending;
-> +		if (CSD_TYPE(csd) != CSD_TYPE_TTWU)
-> +			func = csd->func;
-> +
-> +		if (raw_smp_call_single_queue(cpu, node))
-> +			trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, func);
+>  
+> -- 
+> 2.31.1
+> 
 
-So I went with the tracepoint being placed *before* the actual IPI gets
-sent to have a somewhat sane ordering between trace_ipi_send_cpumask() and
-e.g. trace_call_function_single_entry().
-
-Packaging the call_single_queue logic makes the code less horrible, but it
-does mix up the event ordering...
-
-
-> +		return;
-> +	}
-> +
-> +	raw_smp_call_single_queue(cpu, node);
->  }
->
->  /*
-> @@ -983,10 +1017,13 @@ static void smp_call_function_many_cond(
->                * number of CPUs might be zero due to concurrent changes to the
->                * provided mask.
->                */
-> -		if (nr_cpus == 1)
-> +		if (nr_cpus == 1) {
-> +			trace_ipi_send_cpumask(cpumask_of(last_cpu), _RET_IP_, func);
->                       send_call_function_single_ipi(last_cpu);
-
-This'll yield an IPI event even if no IPI is sent due to the idle task
-polling, no?
-
-> -		else if (likely(nr_cpus > 1))
-> -			send_call_function_ipi_mask(cfd->cpumask_ipi);
-> +		} else if (likely(nr_cpus > 1)) {
-> +			trace_ipi_send_cpumask(mask, _RET_IP_, func);
-> +			send_call_function_ipi_mask(mask);
-> +		}
->
->               cfd_seq_store(this_cpu_ptr(&cfd_seq_local)->pinged, this_cpu, CFD_SEQ_NOCPU, CFD_SEQ_PINGED);
->       }
+-- 
+Peter Xu
 
