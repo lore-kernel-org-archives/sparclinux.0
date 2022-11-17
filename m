@@ -2,93 +2,107 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED5B6C4332F
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 04:28:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83D31C4167D
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 09:08:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233486AbiKQE2c (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 23:28:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49250 "EHLO
+        id S239731AbiKQJI6 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 17 Nov 2022 04:08:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233477AbiKQE2b (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 23:28:31 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4041D6464;
-        Wed, 16 Nov 2022 20:28:28 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D46D61FF8;
-        Thu, 17 Nov 2022 04:28:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 369D6C433D6;
-        Thu, 17 Nov 2022 04:28:23 +0000 (UTC)
-From:   Huacai Chen <chenhuacai@loongson.cn>
-To:     Huacai Chen <chenhuacai@kernel.org>
-Cc:     loongarch@lists.linux.dev, Xuefeng Li <lixuefeng@loongson.cn>,
-        Guo Ren <guoren@kernel.org>, Xuerui Wang <kernel@xen0n.name>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Huacai Chen <chenhuacai@loongson.cn>, stable@vger.kernel.org,
-        Peter Xu <peterx@redhat.com>
-Subject: [PATCH 04/47] LoongArch: Set _PAGE_DIRTY only if _PAGE_WRITE is set in {pmd,pte}_mkdirty()
-Date:   Thu, 17 Nov 2022 12:25:32 +0800
-Message-Id: <20221117042532.4064448-1-chenhuacai@loongson.cn>
-X-Mailer: git-send-email 2.31.1
+        with ESMTP id S239719AbiKQJIy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 17 Nov 2022 04:08:54 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 377142126A;
+        Thu, 17 Nov 2022 01:08:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=aQk2rEVdOyLC8MBnXpxdsdOtZKvioHnImfV1oOS2Xtg=; b=I3xClU65IacOMLf2bWeSauP7FF
+        FV50Hi48EBk2WK6Yehcm6XtdcO6hf4dsN2DMpSf1Q8J+ZcUcJOT8oIO1945EQRsvfdc4JvICopd0l
+        Ui4r6qLsEQxO7P9sxXUeh9gS9sZqkCJSKZK2ctS17TuNst0NjO4G5IjBK7pt6TA2UoyWMLe7JrlZ4
+        3rVanZNI9MF1KBvk8SzTNZKx8hjhh1qDV56hj7OC6Wv8JNJ6ypUqg8KZLLfwkKn7jGczcYvLbevRx
+        fdi5hL+kowpdqhlUAfa1HbfNoACRcwrRe8SG0NXXobWd3RkjDM5DSjIiSED2Yxip/fi/HuoFKOMRj
+        0mZtwn6g==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1ovasi-000qMs-De; Thu, 17 Nov 2022 09:08:24 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D7E6F30002E;
+        Thu, 17 Nov 2022 10:08:15 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id C282320B670CB; Thu, 17 Nov 2022 10:08:15 +0100 (CET)
+Date:   Thu, 17 Nov 2022 10:08:15 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Valentin Schneider <vschneid@redhat.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org, "Paul E. McKenney" <paulmck@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Marcelo Tosatti <mtosatti@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Guo Ren <guoren@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [RFC PATCH v2 4/8] smp: Trace IPIs sent via
+ arch_send_call_function_ipi_mask()
+Message-ID: <Y3X5/65o8127DgZl@hirez.programming.kicks-ass.net>
+References: <20221102182949.3119584-1-vschneid@redhat.com>
+ <20221102183336.3120536-3-vschneid@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20221102183336.3120536-3-vschneid@redhat.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Now {pmd,pte}_mkdirty() set _PAGE_DIRTY bit unconditionally, this causes
-random segmentation fault after commit 0ccf7f168e17bb7e ("mm/thp: carry
-over dirty bit when thp splits on pmd").
+On Wed, Nov 02, 2022 at 06:33:32PM +0000, Valentin Schneider wrote:
+> This simply wraps around the arch function and prepends it with a
+> tracepoint, similar to send_call_function_single_ipi().
+> 
+> Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+> ---
+>  kernel/smp.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/kernel/smp.c b/kernel/smp.c
+> index e2ca1e2f31274..c4d561cf50d45 100644
+> --- a/kernel/smp.c
+> +++ b/kernel/smp.c
+> @@ -160,6 +160,13 @@ void __init call_function_init(void)
+>  	smpcfd_prepare_cpu(smp_processor_id());
+>  }
+>  
+> +static inline void
 
-The reason is: when fork(), parent process use pmd_wrprotect() to clear
-huge page's _PAGE_WRITE and _PAGE_DIRTY (for COW); then pte_mkdirty() set
-_PAGE_DIRTY as well as _PAGE_MODIFIED while splitting dirty huge pages;
-once _PAGE_DIRTY is set, there will be no tlb modify exception so the COW
-machanism fails; and at last memory corruption occurred between parent
-and child processes.
+Given the use of _RET_IP_, I would strongly recommend you use
+__always_inline.
 
-So, we should set _PAGE_DIRTY only when _PAGE_WRITE is set in {pmd,pte}_
-mkdirty().
+> +send_call_function_ipi_mask(const struct cpumask *mask)
+> +{
+> +	trace_ipi_send_cpumask(mask, _RET_IP_, func);
 
-Cc: stable@vger.kernel.org
-Cc: Peter Xu <peterx@redhat.com>
-Signed-off-by: Huacai Chen <chenhuacai@loongson.cn>
----
-Note: CC sparc maillist because they have similar issues.
- 
- arch/loongarch/include/asm/pgtable.h | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+What's func?
 
-diff --git a/arch/loongarch/include/asm/pgtable.h b/arch/loongarch/include/asm/pgtable.h
-index 946704bee599..debbe116f105 100644
---- a/arch/loongarch/include/asm/pgtable.h
-+++ b/arch/loongarch/include/asm/pgtable.h
-@@ -349,7 +349,9 @@ static inline pte_t pte_mkclean(pte_t pte)
- 
- static inline pte_t pte_mkdirty(pte_t pte)
- {
--	pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
-+	pte_val(pte) |= _PAGE_MODIFIED;
-+	if (pte_val(pte) & _PAGE_WRITE)
-+		pte_val(pte) |= _PAGE_DIRTY;
- 	return pte;
- }
- 
-@@ -478,7 +480,9 @@ static inline pmd_t pmd_mkclean(pmd_t pmd)
- 
- static inline pmd_t pmd_mkdirty(pmd_t pmd)
- {
--	pmd_val(pmd) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
-+	pmd_val(pmd) |= _PAGE_MODIFIED;
-+	if (pmd_val(pmd) & _PAGE_WRITE)
-+		pmd_val(pmd) |= _PAGE_DIRTY;
- 	return pmd;
- }
- 
--- 
-2.31.1
-
+> +	arch_send_call_function_ipi_mask(mask);
+> +}
