@@ -2,121 +2,175 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC788C4332F
-	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 00:48:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5C87C433FE
+	for <sparclinux@archiver.kernel.org>; Thu, 17 Nov 2022 02:30:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234476AbiKQAsV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 16 Nov 2022 19:48:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39444 "EHLO
+        id S234393AbiKQCaK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 16 Nov 2022 21:30:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58500 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234361AbiKQArg (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 19:47:36 -0500
-Received: from mail-qk1-x72b.google.com (mail-qk1-x72b.google.com [IPv6:2607:f8b0:4864:20::72b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD376701A9
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 16:46:05 -0800 (PST)
-Received: by mail-qk1-x72b.google.com with SMTP id k2so228463qkk.7
-        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 16:46:05 -0800 (PST)
+        with ESMTP id S234184AbiKQCaJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 16 Nov 2022 21:30:09 -0500
+Received: from mail-io1-xd32.google.com (mail-io1-xd32.google.com [IPv6:2607:f8b0:4864:20::d32])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B82692AC6B
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 18:30:08 -0800 (PST)
+Received: by mail-io1-xd32.google.com with SMTP id p141so408953iod.6
+        for <sparclinux@vger.kernel.org>; Wed, 16 Nov 2022 18:30:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ziepe.ca; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=rT9xjSJmKp4cCvf16bTKl9Dc4YEY7MjOtsK/w44qv+E=;
-        b=VV2cb+pd6jfcSL2tauZE67KBioAHcybPQR+VfU40dKebsvpG7CB3+xd0Uv8h8MKz8R
-         sbSQ7TqeMCU61fYQIjRwQoQBWrCcg8ekkdEQ8V7xYjRGPq0DN+C0Atnpvt0eAux7Zvaz
-         PXr7WI31PYcmErRNWRYdBKljCyptLiKShcOF4gqH5bxcH7c9a48sUWSu+SLW+D60rEcT
-         94q2cJm8yEvdEzbYpl0Vwvwu6uXwvrse0KXhbaR5xd9/LECZYdD6vR+hmUeAJTlxbvcq
-         ueSGRE+vNlUSsDE90kXWUWeAcS6lHSqHDXkbeBbAuFPPnKLrO2HgUtltNTPZxflFTx6j
-         B+8A==
+        d=hev-cc.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=MKjMIVgBYuixUb7aB0jNqDpf5b0ztY7pCeOHcrf1GyA=;
+        b=yOElW9RE8d35nyhq6uqy5BLT0fmiRJym4fWK8qJLQCPSvlthD/DRbfHH3Jr/LcHE4o
+         WokFjUnyrOfFdgoFlY+kQnFRtHkCktBCtYHSnaM+V577CDv0/MtM509lzD4OfA7Qj/mh
+         61hDpOWrmqepRBbby+Ce3bzwViBxKq80uEb3BOmLjtOUtiPaNhB0S2IcoAE+cPHdCDBK
+         +z5MfsO0a2O85qNVmk5VEVWbdx5Tss8gqlvHt6IaRQUYx91q2ijnJ6BfaPwBSWTaGIBV
+         L2IW7QbHvcx6sh7TxIceZZVqQKECuy1DYw6wHvZeFkqBAGKkFAt+tJdGiEVQhMhNV8H1
+         a1Aw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rT9xjSJmKp4cCvf16bTKl9Dc4YEY7MjOtsK/w44qv+E=;
-        b=7wE728tOFlplQRAQ0vz9GPQ+3Le0i9wz99uDIwAs6GF/ERCiHQY2PvlkroO3AkiWSP
-         btmHqe3UG/dnDMknnE7sNP08uPdW5VOp/FfrxMEhICtL+pZw+QhaAfsLqilVaMMr5QtP
-         w5PW6bDDImeWuFCyyXzV1LA6hCEA43/fMlNY7IM9niV189Bc3YHoyi0OndaK5rotP176
-         2HmwYUSzx2ivtiJcpEc30iOzsoensSL127wZRF4puIgJvzVGwkYpGA5Zk6tm/nCkoRzG
-         SJsgLYpN54dLqYEaqeNZY4UJr3hU9i0vprpNUuvPbrmb+GmGHNano9kA2LJJVf8alzzB
-         vj1Q==
-X-Gm-Message-State: ANoB5plffliISNPq3Yt4bqhlbCQb0PUiWnn4LVytrHhYNyR+aer1vAZa
-        qPYE0NpQa/pSPKNU2xbCzklPuA==
-X-Google-Smtp-Source: AA0mqf607w9C7cuVA1Gk/5OO594s7B3KGBk4c2yq8D1+/1YgY/KvFwESfDj3NEnwxZjz0MAqyk7Deg==
-X-Received: by 2002:a37:424c:0:b0:6fb:a0ec:c5ba with SMTP id p73-20020a37424c000000b006fba0ecc5bamr8177915qka.493.1668645964499;
-        Wed, 16 Nov 2022 16:46:04 -0800 (PST)
-Received: from ziepe.ca (hlfxns017vw-47-55-122-23.dhcp-dynamic.fibreop.ns.bellaliant.net. [47.55.122.23])
-        by smtp.gmail.com with ESMTPSA id i18-20020a05620a405200b006fa84082b6dsm11394495qko.128.2022.11.16.16.46.03
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 16 Nov 2022 16:46:03 -0800 (PST)
-Received: from jgg by wakko with local (Exim 4.95)
-        (envelope-from <jgg@ziepe.ca>)
-        id 1ovT2Z-0066UZ-3n;
-        Wed, 16 Nov 2022 20:46:03 -0400
-Date:   Wed, 16 Nov 2022 20:46:03 -0400
-From:   Jason Gunthorpe <jgg@ziepe.ca>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Peter Xu <peterx@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Hugh Dickins <hughd@google.com>, Nadav Amit <namit@vmware.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        David Airlie <airlied@gmail.com>,
-        Oded Gabbay <ogabbay@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Bernard Metzler <bmt@zurich.ibm.com>,
-        Leon Romanovsky <leon@kernel.org>
-Subject: Re: [PATCH mm-unstable v1 12/20] RDMA/siw: remove FOLL_FORCE usage
-Message-ID: <Y3WES5adl6yyS4ZB@ziepe.ca>
-References: <20221116102659.70287-1-david@redhat.com>
- <20221116102659.70287-13-david@redhat.com>
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=MKjMIVgBYuixUb7aB0jNqDpf5b0ztY7pCeOHcrf1GyA=;
+        b=nTIbPYxEaoZABd8cTzKuKcg8etAAm7h7Ph3GvY9PLYBsNpMQzsVFVTdDnlLPVJ3XBA
+         TcH7LSAGhXbZN/7XTlaDDzaZb2mfUy/csQqhH+/7Tzo66EczS+uRLjNmFuYHiRAy8FTp
+         JSEHrBbrAESjlI5eDVrX3u8Z0d5rat3+JINlOPsveYU96CYl6BAOuPMrMJo7OPqFeFQS
+         hFmn8lEMbNfdvb+ZqK66rc1Li17EIuVyaZNAABNf1qYWjxQbGP/YG0FdnsnlZrUCPe1a
+         ByHkba8alZQqx6+/k0cwoT5/jI+s0JbDVOaicOKI0b6R4PPiBTZZxhuxbdwXwwGCX8qg
+         XwSQ==
+X-Gm-Message-State: ANoB5pmdXLdaBgBYHPKTQjVE5TcptyRYONPBQhsei5EfpjwWtcL38QBW
+        DZcpsxjQflaXjGvvTz+/FKssLl5qT8/VIOb/zHdY94f4ki6CFNevh5A=
+X-Google-Smtp-Source: AA0mqf73fC8beOPRO7rLuNjcmjOH2r4YzNahzPf8xG2BXK+wHE+OQz6MN7Inu7jfaRE6jhn7IP/pmAyvkIJ9bAP/8D4=
+X-Received: by 2002:a5d:9283:0:b0:6ba:13c6:b74 with SMTP id
+ s3-20020a5d9283000000b006ba13c60b74mr465930iom.86.1668652208124; Wed, 16 Nov
+ 2022 18:30:08 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20221116102659.70287-13-david@redhat.com>
+References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
+ <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com> <Y3UPAKqVp6WAmRHV@x1n>
+In-Reply-To: <Y3UPAKqVp6WAmRHV@x1n>
+From:   hev <r@hev.cc>
+Date:   Thu, 17 Nov 2022 10:29:57 +0800
+Message-ID: <CAHirt9i03CFCK-4XNZb8dUxHrQqKx8c0_3=S2Y3oNvUex3xCBw@mail.gmail.com>
+Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on pmd"
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Anatoly Pugachev <matorola@gmail.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Nov 16, 2022 at 11:26:51AM +0100, David Hildenbrand wrote:
-> GUP now supports reliable R/O long-term pinning in COW mappings, such
-> that we break COW early. MAP_SHARED VMAs only use the shared zeropage so
-> far in one corner case (DAXFS file with holes), which can be ignored
-> because GUP does not support long-term pinning in fsdax (see
-> check_vma_flags()).
-> 
-> Consequently, FOLL_FORCE | FOLL_WRITE | FOLL_LONGTERM is no longer required
-> for reliable R/O long-term pinning: FOLL_LONGTERM is sufficient. So stop
-> using FOLL_FORCE, which is really only for ptrace access.
-> 
-> Cc: Bernard Metzler <bmt@zurich.ibm.com>
-> Cc: Jason Gunthorpe <jgg@ziepe.ca>
-> Cc: Leon Romanovsky <leon@kernel.org>
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  drivers/infiniband/sw/siw/siw_mem.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
+Hi Peter,
 
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+On Thu, Nov 17, 2022 at 12:25 AM Peter Xu <peterx@redhat.com> wrote:
+>
+> On Wed, Nov 16, 2022 at 01:45:15PM +0300, Anatoly Pugachev wrote:
+> > On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
+> > >
+> > > Hello Peter,
+>
+> Hi, Hev,
+>
+> Thanks for letting me know.
+>
+> > >
+> > > I see a random crash issue  on the LoongArch system, that is caused by
+> > > commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
+> > > pmd").
+> > >
+> > > Now, the thing is already resolved. The root cause is arch's mkdirty
+> > > is set hardware writable bit in unconditional. That breaks
+> > > write-protect and then breaks COW.
+>
+> Could you help explain how that happened?
+>
+> I'm taking example of loongarch here:
+>
+> static inline pte_t pte_mkdirty(pte_t pte)
+> {
+>         pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+>         return pte;
+> }
+>
+> #define _PAGE_MODIFIED          (_ULCAST_(1) << _PAGE_MODIFIED_SHIFT)
+> #define _PAGE_MODIFIED_SHIFT    9
 
-Jason
+_PAGE_MODIFIED is a software dirty bit
+
+> #define _PAGE_DIRTY             (_ULCAST_(1) << _PAGE_DIRTY_SHIFT)
+> #define _PAGE_DIRTY_SHIFT       1
+
+_PAGE_DIRTY is a hardware writable bit (bad naming), meaning that mmu
+allows write memory without any exception raised.
+
+>
+> I don't see when write bit is set, which is bit 8 instead:
+>
+> #define _PAGE_WRITE             (_ULCAST_(1) << _PAGE_WRITE_SHIFT)
+> #define _PAGE_WRITE_SHIFT       8
+
+_PAGE_WRITE is a software writable bit (not hardware).
+
+As David said, In __split_huge_pmd_locked, the VMA does not include VM_WRITE,
+
+entry = maybe_mkwrite(entry, vma);
+
+so the pte does not include software writable bit (_PAGE_WRITE).
+
+and the dirty is true,
+
+if (dirty)
+    entry = pte_mkdirty(entry);
+
+so the incorrect arch's pte_mkdirty set hardware writable
+bit(_PAGE_DIRTY) in unconditional for read-only pages.
+
+Regards,
+Ray
+
+>
+> According to loongarch spec:
+>
+> https://loongson.github.io/LoongArch-Documentation/LoongArch-Vol1-EN.html#section-multi-level-page-table-structure-supported-by-page-walking
+>
+> Bits 1 & 8 match the spec D & W definitions.  Bit 9 seems not defined but I
+> didn't quickly spot how that's related to the write bit.
+>
+> > >
+> > > Here is a simple and fast testcase (It may be helpful for sparc64):
+> > > https://gist.github.com/heiher/72919fae6b53f04cac606a9631100506
+> > > (assertion: c sum == 0)
+> >
+> > Just tried on my sparc64 VM -  fixed vs old (non-patched) kernels...
+> >
+> > fixed kernel (6.1.0-rc5) running ./a.out:
+> > mator@ttip:~$ ./a.out
+> > c sum: 0
+> > p sum: 35184372088832
+> > c sum: 0
+> > p sum: 35184372088832
+> > c sum: 0
+> > p sum: 35184372088832
+> > c sum: 0
+> > p sum: 35184372088832
+> > c sum: 0
+> > p sum: 35184372088832
+> > ...
+> >
+> > old (non-patched) kernel (6.1.0-rc4) :
+> > mator@ttip:~$ ./a.out
+> > c sum: 35150012350464
+> > p sum: 35184372088832
+> > c sum: 35150012350464
+> > p sum: 35184372088832
+> > ...
+>
+> Thanks for the quick run, Anatoly.  Obviously I went the wrong way before
+> on the code patching.  It seems we have more chance fixing this.
+>
+> --
+> Peter Xu
+>
