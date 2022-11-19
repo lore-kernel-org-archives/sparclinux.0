@@ -2,145 +2,190 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AA47C43219
-	for <sparclinux@archiver.kernel.org>; Fri, 18 Nov 2022 22:29:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7881CC4332F
+	for <sparclinux@archiver.kernel.org>; Sat, 19 Nov 2022 14:06:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231748AbiKRW3G (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 18 Nov 2022 17:29:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53732 "EHLO
+        id S232799AbiKSOGh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 19 Nov 2022 09:06:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57356 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230448AbiKRW3F (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 18 Nov 2022 17:29:05 -0500
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D976772088
-        for <sparclinux@vger.kernel.org>; Fri, 18 Nov 2022 14:29:03 -0800 (PST)
-Received: by mail-pj1-x1029.google.com with SMTP id d13-20020a17090a3b0d00b00213519dfe4aso6341053pjc.2
-        for <sparclinux@vger.kernel.org>; Fri, 18 Nov 2022 14:29:03 -0800 (PST)
+        with ESMTP id S232528AbiKSOGh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 19 Nov 2022 09:06:37 -0500
+Received: from mail-il1-x12d.google.com (mail-il1-x12d.google.com [IPv6:2607:f8b0:4864:20::12d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F34596B9F3
+        for <sparclinux@vger.kernel.org>; Sat, 19 Nov 2022 06:06:35 -0800 (PST)
+Received: by mail-il1-x12d.google.com with SMTP id o13so3804972ilq.6
+        for <sparclinux@vger.kernel.org>; Sat, 19 Nov 2022 06:06:35 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=chromium.org; s=google;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=UbBsvDU//DL6nEBTfVogOGw4gtrIt5cEgoWU7wg0yqE=;
-        b=An8R27hBelrmHfCbOWIi0CQbpB+FbdUKZd/K74OWA+t1inv8v4494buerQXpAbVoQ/
-         hawXo5IWqwOaOJXIlgQJ62nY4aZ8mzIQL8T0sN5QawgAa8EGZw3klOrzN/KXycM8ohn1
-         PnwiDQNXHvwQENzmlhMaoO6BFIxzwB92hREPE=
+        d=hev-cc.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=HySLA6s6PCTDYfxJoms8KAj8+52rJt19Ujaob1kBIRs=;
+        b=f3XhTlyJ4Lqf8RKe7v195+NYw5qxAHZXQX70hGAEglD0G4ibAPgUpVQ1t2MWLc3ONa
+         i1RoAYVJRaIF352vk/1j/W3UbY1o38ALaPuVy1HTaLJ1X2yVSWOmDy+4GvrnMHXPCdp/
+         mpDO9qkNxE7XGvKSo0ilz1XFkQLdAgWjd1TAUG2xZ7oip1J087nBU5pqVEZG8MDzHBF0
+         QgJDWWCY0smj4xqk9VPA2UQ8njnuJRt4EewZ1Q/O6jA2gYt6cjH3/yXbMlBsqWRy31yR
+         XQQf7cbaNUn13gCjovSNJvLaUKHLk/C0y45Mq8I3vjo2Tc2CQy0DOJBjSLg/tXIWyBO5
+         rvBw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=UbBsvDU//DL6nEBTfVogOGw4gtrIt5cEgoWU7wg0yqE=;
-        b=q6bRSey5MaW9TKXFiHIjF/QWq4VFVGpc1NR8271ItCExbqr6rafsrkrnm/F89mIsXk
-         BfSD/UqS1O/GxvOEX3vEMUoB3//GsMlu1ZHNJpBBctHfnIFObXoFu2C5itoj0ARsgcy+
-         o2oA9HorADZ/ZwZGWQ4CgCw432ryH9Aov6PKt3xvtydoPY+0vuKfkdpr1U3bcnAaLRhy
-         l0bmkbJP6fhPyrYy22jdNe6gQpjnWEbtrFLtxXHoW6kiDhu8049M21SObv3WzzQD9xxL
-         FYE1GoyIimh7eb+NJVmfQV0J7ifcwOyNcpm86qKchsoZAbkj9FgsmSj5yJLe2uG2ogTj
-         Pj9w==
-X-Gm-Message-State: ANoB5pnprc/n85TZDggyXOuZAmuk5M5BlnnAKibfo0WUBaJbP34pyyqn
-        jsdNQh0FhT/1FLV1Mdouv/Gaxg==
-X-Google-Smtp-Source: AA0mqf6x3WR1+0wUVWwli47/xk6od69+oUWF0cQjmoupKb1o7R1u9AWIvzDIrLxmCvQfjLJnyEjRtg==
-X-Received: by 2002:a17:902:e009:b0:188:649b:9dbe with SMTP id o9-20020a170902e00900b00188649b9dbemr1414800plo.107.1668810543395;
-        Fri, 18 Nov 2022 14:29:03 -0800 (PST)
-Received: from www.outflux.net (smtp.outflux.net. [198.145.64.163])
-        by smtp.gmail.com with ESMTPSA id b29-20020aa7951d000000b00561382a5a25sm3714931pfp.26.2022.11.18.14.29.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 18 Nov 2022 14:29:02 -0800 (PST)
-Date:   Fri, 18 Nov 2022 14:29:02 -0800
-From:   Kees Cook <keescook@chromium.org>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        David Hildenbrand <david@redhat.com>,
-        linux-kernel@vger.kernel.org, x86@kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, etnaviv@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-perf-users@vger.kernel.org,
-        linux-security-module@vger.kernel.org,
-        linux-kselftest@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jason Gunthorpe <jgg@ziepe.ca>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Peter Xu <peterx@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Hugh Dickins <hughd@google.com>, Nadav Amit <namit@vmware.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Matthew Wilcox <willy@infradead.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Shuah Khan <shuah@kernel.org>,
-        Lucas Stach <l.stach@pengutronix.de>,
-        David Airlie <airlied@gmail.com>,
-        Oded Gabbay <ogabbay@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Christoph Hellwig <hch@infradead.org>,
-        Alex Williamson <alex.williamson@redhat.com>,
-        Oleg Nesterov <oleg@redhat.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Eric Biederman <ebiederm@xmission.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@kernel.org>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Kentaro Takeda <takedakn@nttdata.co.jp>,
-        Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>,
-        Paul Moore <paul@paul-moore.com>,
-        James Morris <jmorris@namei.org>,
-        "Serge E. Hallyn" <serge@hallyn.com>
-Subject: Re: [PATCH mm-unstable v1 20/20] mm: rename FOLL_FORCE to FOLL_PTRACE
-Message-ID: <202211181427.4D1C3132FE@keescook>
-References: <20221116102659.70287-1-david@redhat.com>
- <20221116102659.70287-21-david@redhat.com>
- <CAHk-=wgtEwpR-rE_=cXzecHMZ+zgrx5zf9UfvH0w-mKgckn4=Q@mail.gmail.com>
- <Y3dnzgwJpjTQXI9y@hirez.programming.kicks-ass.net>
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=HySLA6s6PCTDYfxJoms8KAj8+52rJt19Ujaob1kBIRs=;
+        b=oUlwD6iJjbzJ2Ei835JN+7D8GK3uW6596JW4x7/XoMaiH1NBjXf2dxEyAkHDesFTBG
+         zT+qLnOU/IV1CuEWjBy0tHajZvnj8Qvr60aenEVZPwTjy3KT8A00s6+dH1daLpbcyJR2
+         Z12aLV38xBQMnanjGPhlS5vS+QF6MOFwX/3683GE0Kv54RskbiwHUC/v1ZVwiv7uNN3K
+         2I5A/CE7/Ppim74T67T4tnfNTdwHa96QS9yBULh7+NBovf7BVTkSVOwrSfn8m8rUINiC
+         Fn7abIMfJOVVtec+WFxfvVoqC1a+vS5YWxmxRLNl0u90GMXlweJG2UCw0J+cfuEevndo
+         DJwg==
+X-Gm-Message-State: ANoB5plmu+c6w+2fu5jzbB0WtNFZKsHnzShjjG6l5dzWJAwgcLCy25Go
+        LUOtN3paDEKXDRMX5Wwp5LjpGQaaFjOy2QsitlSAxQ==
+X-Google-Smtp-Source: AA0mqf6Q47ASy2lOn7xhwiwVK+Kr1p4PdbXvwnDQKTXaAndihBA03dFdxprODH/qtdjgY8Nw7TTfE++Z5E3w7PNwWgQ=
+X-Received: by 2002:a92:d1d2:0:b0:302:535a:6eca with SMTP id
+ u18-20020a92d1d2000000b00302535a6ecamr4974303ilg.256.1668866795323; Sat, 19
+ Nov 2022 06:06:35 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y3dnzgwJpjTQXI9y@hirez.programming.kicks-ass.net>
+References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
+ <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
+ <Y3UPAKqVp6WAmRHV@x1n> <CAHirt9i03CFCK-4XNZb8dUxHrQqKx8c0_3=S2Y3oNvUex3xCBw@mail.gmail.com>
+ <Y3Z9Zf0jARMOkFBq@x1n>
+In-Reply-To: <Y3Z9Zf0jARMOkFBq@x1n>
+From:   hev <r@hev.cc>
+Date:   Sat, 19 Nov 2022 22:06:23 +0800
+Message-ID: <CAHirt9i8iLCP3_ppEL5kO2XLVAg0sno0GdzdKyzk7DSMTJF0tA@mail.gmail.com>
+Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on pmd"
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Anatoly Pugachev <matorola@gmail.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, Nov 18, 2022 at 12:09:02PM +0100, Peter Zijlstra wrote:
-> On Wed, Nov 16, 2022 at 10:16:34AM -0800, Linus Torvalds wrote:
-> > Following the history of it is a big of a mess, because there's a
-> > number of renamings and re-organizations, but it seems to go back to
-> > 2007 and commit b6a2fea39318 ("mm: variable length argument support").
-> 
-> I went back and read parts of the discussions with Ollie, and the
-> .force=1 thing just magically appeared one day when we were sending
-> work-in-progress patches back and forth without mention of where it came
-> from :-/
-> 
-> And I certainly can't remember now..
-> 
-> Looking at it now, I have the same reaction as both you and Kees had, it
-> seems entirely superflous. So I'm all for trying to remove it.
+Hi, Peter,
 
-Thanks for digging through the history! I've pushed the change to -next:
-https://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git/commit/?h=for-next/execve&id=cd57e443831d8eeb083c7165bce195d886e216d4
+On Fri, Nov 18, 2022 at 2:29 AM Peter Xu <peterx@redhat.com> wrote:
+>
+> On Thu, Nov 17, 2022 at 10:29:57AM +0800, hev wrote:
+> > Hi Peter,
+>
+> Hi, Hev,
+>
+> >
+> > On Thu, Nov 17, 2022 at 12:25 AM Peter Xu <peterx@redhat.com> wrote:
+> > >
+> > > On Wed, Nov 16, 2022 at 01:45:15PM +0300, Anatoly Pugachev wrote:
+> > > > On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
+> > > > >
+> > > > > Hello Peter,
+> > >
+> > > Hi, Hev,
+> > >
+> > > Thanks for letting me know.
+> > >
+> > > > >
+> > > > > I see a random crash issue  on the LoongArch system, that is caused by
+> > > > > commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
+> > > > > pmd").
+> > > > >
+> > > > > Now, the thing is already resolved. The root cause is arch's mkdirty
+> > > > > is set hardware writable bit in unconditional. That breaks
+> > > > > write-protect and then breaks COW.
+> > >
+> > > Could you help explain how that happened?
+> > >
+> > > I'm taking example of loongarch here:
+> > >
+> > > static inline pte_t pte_mkdirty(pte_t pte)
+> > > {
+> > >         pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+> > >         return pte;
+> > > }
+> > >
+> > > #define _PAGE_MODIFIED          (_ULCAST_(1) << _PAGE_MODIFIED_SHIFT)
+> > > #define _PAGE_MODIFIED_SHIFT    9
+> >
+> > _PAGE_MODIFIED is a software dirty bit
+> >
+> > > #define _PAGE_DIRTY             (_ULCAST_(1) << _PAGE_DIRTY_SHIFT)
+> > > #define _PAGE_DIRTY_SHIFT       1
+> >
+> > _PAGE_DIRTY is a hardware writable bit (bad naming), meaning that mmu
+> > allows write memory without any exception raised.
+>
+> (I just missed this email before I reply to the other one, I should have
+>  read this one first..)
+>
+> I see. This surprises me a bit, as I can't quickly tell how it'll always
+> work with the generic mm code.
+>
+> Say, is there a quick answer on why _PAGE_DIRTY is set here rather than
+> pte_mkwrite()?  Because AFAIU that's where the mm wants to grant write
+> permission to a page table entry as the API, no?
+>
+> >
+> > >
+> > > I don't see when write bit is set, which is bit 8 instead:
+> > >
+> > > #define _PAGE_WRITE             (_ULCAST_(1) << _PAGE_WRITE_SHIFT)
+> > > #define _PAGE_WRITE_SHIFT       8
+> >
+> > _PAGE_WRITE is a software writable bit (not hardware).
+> >
+> > As David said, In __split_huge_pmd_locked, the VMA does not include VM_WRITE,
+> >
+> > entry = maybe_mkwrite(entry, vma);
+> >
+> > so the pte does not include software writable bit (_PAGE_WRITE).
+>
+> Are you sure?  In your test case you mapped with RW, IIUC it means even
+> after the fork() VM_WRITE is set on both sides?
 
--- 
-Kees Cook
+Sorry, I was wrong.
+
+In this case, both VMAs are writable, the pte's writable bit is
+cleared by pte_wrprotect. So if pte_mkdirty sets hardware writable bit
+unconditionally, then there will be no way to catch writes to
+implement COW.
+
+I will try to explain how it works about pte write, dirty and
+write-protect on LoongArch in the LoongArch mailing-list.
+
+Regards,
+Ray
+
+>
+> But I agree the write bit is not set, not because !VM_WRITE, but because we
+> take care of that explicitly to make sure pte has the same write bit as pmd:
+>
+>                 (pmd used to be wr-protected due to fork())
+>                 write = pmd_write(old_pmd);
+>                 ...
+>
+>                 (then when split pte shouldn't have write bit too)
+>                 if (!write)
+>                         entry = pte_wrprotect(entry);
+>
+> >
+> > and the dirty is true,
+> >
+> > if (dirty)
+> >     entry = pte_mkdirty(entry);
+> >
+> > so the incorrect arch's pte_mkdirty set hardware writable
+> > bit(_PAGE_DIRTY) in unconditional for read-only pages.
+>
+> True, that does also apply to sparc64 pte_mkdirty() with _PAGE_W_4[UV].  I
+> should have noticed earlier that its comment told me that's a write bit
+> already..
+>
+> #define _PAGE_W_4U        _AC(0x0000000000000002,UL) /* Writable             */
+>
+> Thanks,
+>
+> --
+> Peter Xu
+>
