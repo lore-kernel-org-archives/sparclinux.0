@@ -2,213 +2,190 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A222AC4332F
-	for <sparclinux@archiver.kernel.org>; Mon, 21 Nov 2022 18:56:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C60A6C433FE
+	for <sparclinux@archiver.kernel.org>; Mon, 21 Nov 2022 19:59:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230220AbiKUS47 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 21 Nov 2022 13:56:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58336 "EHLO
+        id S231360AbiKUT7Q (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 21 Nov 2022 14:59:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49658 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230364AbiKUS4x (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Nov 2022 13:56:53 -0500
+        with ESMTP id S230141AbiKUT7P (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 21 Nov 2022 14:59:15 -0500
 Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E2FA59FD5
-        for <sparclinux@vger.kernel.org>; Mon, 21 Nov 2022 10:55:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1D66165BE
+        for <sparclinux@vger.kernel.org>; Mon, 21 Nov 2022 11:57:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1669056956;
+        s=mimecast20190719; t=1669060668;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=vNb5TWM1Ex5oTrwhjEXEfbipjw7z3HX9TgJtMa+3kWw=;
-        b=cycuQ2rUu64sU+y5Kvf5gO90/9IlefdiYm4UvnAP5AtCbbRGL9rTWQFTuUStDb0ohvaSPm
-        jBX//mFbllWaEXFAF06bnI//OBjmBsAyOTSg0+ak4GVxb0hpwtMnbZeTr5BqV9uhBqxoW3
-        S6e1l4ZtvQbmNHLigSDhaw01nqtfV4o=
-Received: from mail-qk1-f200.google.com (mail-qk1-f200.google.com
- [209.85.222.200]) by relay.mimecast.com with ESMTP with STARTTLS
+        bh=XPlBQXmJ5evKwNgTVcA7C80tIxQSellMXEsHFcRanUk=;
+        b=NyA2IqNPssv1TqBnW5jl4a1c3YqS0HNwwZkHNqK9uI9uQuY7ay3D5tK9nPaul/GWwlWyib
+        6pA0ph7sDRzuNvmtL5ISUOWh2eZ0SyoiYCDDyxbz8c+zTDUhbGOaTbKEKH6DJNyqFaTn6q
+        lI0M9sIn3W8NMbZUd94DMaoHwvKE254=
+Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
+ [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-493-wqsDUtH7OomBD5NoK8HtLg-1; Mon, 21 Nov 2022 13:55:55 -0500
-X-MC-Unique: wqsDUtH7OomBD5NoK8HtLg-1
-Received: by mail-qk1-f200.google.com with SMTP id i17-20020a05620a249100b006fa2e10a2ecso16592009qkn.16
-        for <sparclinux@vger.kernel.org>; Mon, 21 Nov 2022 10:55:54 -0800 (PST)
+ us-mta-47-JLbQ62O4N3KAWcNcILGTww-1; Mon, 21 Nov 2022 14:57:46 -0500
+X-MC-Unique: JLbQ62O4N3KAWcNcILGTww-1
+Received: by mail-wm1-f70.google.com with SMTP id h4-20020a1c2104000000b003d01b66fe65so2763434wmh.2
+        for <sparclinux@vger.kernel.org>; Mon, 21 Nov 2022 11:57:46 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=vNb5TWM1Ex5oTrwhjEXEfbipjw7z3HX9TgJtMa+3kWw=;
-        b=F45bekgEN1wnC6yfSai1ASj3ANsxlEUbg8YZkjCblcC9z1pi0A2flVSqyWSxRnKWvd
-         vIfWWTAIAEr7egkHrV0DdBvKhcQCXr95ytuer2KfgFY3b8zDCJhhK7AL5uoeoV4VHZKk
-         5ZrqMrfEcY1IMGzDdbvLYd9oZ8xkCG2/hcHbZQEtjcvRFBJp0jwX8wvTfM/HRQtIvOvd
-         K6FG2oVfBRosSg6B3msxuAdtKm8084REwq+b9/AbnXplSBZTQDnXE7Wxng00JsOIorcL
-         MKrQpGv4tgoVAqplUVmyOWCYGjYpKEVYdJOM2KXj8yMzeIVnGwQAyZWBKBtBR55TW8xv
-         qQAg==
-X-Gm-Message-State: ANoB5pneuk6/OqG5d/XLPp0XIAqPmzKou8p/GpE1OzzNp/3KrERlalzU
-        izH69oW0nkRwxruz9epXHK6z7ZAuRJnaE+P+1jLaQcgVVqYX+Wl5D/StqS9/ufyQhsbMaWJHLgM
-        J9SP4dsmr6B7wnJ0WRJlCQA==
-X-Received: by 2002:ac8:41d0:0:b0:39c:b702:8ec with SMTP id o16-20020ac841d0000000b0039cb70208ecmr18280495qtm.253.1669056953754;
-        Mon, 21 Nov 2022 10:55:53 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf671XvtqVEYSSt0VvwoYRnvBNU5DmAwJSm3eexlvvQqhsxWuf1JDsdhesL0eeu6wzPGE1oNuw==
-X-Received: by 2002:ac8:41d0:0:b0:39c:b702:8ec with SMTP id o16-20020ac841d0000000b0039cb70208ecmr18280478qtm.253.1669056953454;
-        Mon, 21 Nov 2022 10:55:53 -0800 (PST)
-Received: from x1n (bras-base-aurron9127w-grc-46-70-31-27-79.dsl.bell.ca. [70.31.27.79])
-        by smtp.gmail.com with ESMTPSA id t18-20020a05620a451200b006fafc111b12sm8931024qkp.83.2022.11.21.10.55.52
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Nov 2022 10:55:52 -0800 (PST)
-Date:   Mon, 21 Nov 2022 13:55:51 -0500
-From:   Peter Xu <peterx@redhat.com>
-To:     Anatoly Pugachev <matorola@gmail.com>, hev <r@hev.cc>
-Cc:     hev <r@hev.cc>, Thorsten Leemhuis <regressions@leemhuis.info>,
-        Sparc kernel list <sparclinux@vger.kernel.org>,
-        linux-mm <linux-mm@kvack.org>
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=XPlBQXmJ5evKwNgTVcA7C80tIxQSellMXEsHFcRanUk=;
+        b=pKHVkjYXANpmID/NI/cJeZ10kz4jg9SRFB5o0wr77BdRwOjfm8XXjngY+6t+rKCOMW
+         g8lr9igif2J4cmPy8vBgdUyyGdo7eMFLn4S0v9L6bV9PRhBhkWm2WDpgmQ6FgXghO5lV
+         34XkXoRmPW7htztPaVWzS3Y9cUxWe315GuP+y/q3H/E+OvYmif373TZ2XhXiu8BXz1y1
+         1gglkp3DRYSl2b3TC9mcxRNWrl9mziRhEx5lmZcrtKuV3XlPUi1VUXAIGnNHQndfkPuB
+         LlPkQy69v0FGhwYe99iIIYUlRPHZiFWg2/zLe3mvcTtVB+Y7Py//j8Ssq67PfeAfWktf
+         +SWw==
+X-Gm-Message-State: ANoB5pkfu9JqmV8dYuRnnLxEu/kjEKaDOvyQgwhgkM0XtjbHT3KOJlrv
+        bQ40hpP3lr9Y5fvwrG0kcV0dotC1p95j4aXem28pTKBX0uneGFV//OKNBhsQSfQwcQg/4vYOmXW
+        XysUTzQj0g7PmztQ2eDf/YA==
+X-Received: by 2002:a05:600c:4e13:b0:3cf:86b8:71f7 with SMTP id b19-20020a05600c4e1300b003cf86b871f7mr18147998wmq.76.1669060665332;
+        Mon, 21 Nov 2022 11:57:45 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf65NRVPabgH8LNOkymNHBwNkhBJEr9UcjvaSftZKvy8dJsW7/2IKe/d/GMGIfuMBDFu66FvcQ==
+X-Received: by 2002:a05:600c:4e13:b0:3cf:86b8:71f7 with SMTP id b19-20020a05600c4e1300b003cf86b871f7mr18147982wmq.76.1669060664987;
+        Mon, 21 Nov 2022 11:57:44 -0800 (PST)
+Received: from [192.168.3.108] (p5b0c67dc.dip0.t-ipconnect.de. [91.12.103.220])
+        by smtp.gmail.com with ESMTPSA id g18-20020a5d5412000000b00241bd7a7165sm10998413wrv.82.2022.11.21.11.57.44
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 21 Nov 2022 11:57:44 -0800 (PST)
+Message-ID: <79cf9e73-440c-5ff0-856f-3df6c13061ef@redhat.com>
+Date:   Mon, 21 Nov 2022 20:57:43 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.4.1
 Subject: Re: Test case for "mm/thp: carry over dirty bit when thp splits on
  pmd"
-Message-ID: <Y3vJt+im60gTCNJi@x1n>
+Content-Language: en-US
+To:     hev <r@hev.cc>, Peter Xu <peterx@redhat.com>
+Cc:     Anatoly Pugachev <matorola@gmail.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Sparc kernel list <sparclinux@vger.kernel.org>,
+        linux-mm <linux-mm@kvack.org>
 References: <CAHirt9gr7oL87co3y1hCs3Ux4utzFP5oj6GFOFMZuJR2Vv8+rA@mail.gmail.com>
  <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="e9TD/csLxyFJ3Twt"
-Content-Disposition: inline
-In-Reply-To: <CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com>
+ <Y3UPAKqVp6WAmRHV@x1n>
+ <CAHirt9i03CFCK-4XNZb8dUxHrQqKx8c0_3=S2Y3oNvUex3xCBw@mail.gmail.com>
+ <Y3Z9Zf0jARMOkFBq@x1n>
+ <CAHirt9i8iLCP3_ppEL5kO2XLVAg0sno0GdzdKyzk7DSMTJF0tA@mail.gmail.com>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <CAHirt9i8iLCP3_ppEL5kO2XLVAg0sno0GdzdKyzk7DSMTJF0tA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
---e9TD/csLxyFJ3Twt
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-
-Hi, Anatoly (or/and Hev),
-
-On Wed, Nov 16, 2022 at 01:45:15PM +0300, Anatoly Pugachev wrote:
-> On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
-> >
-> > Hello Peter,
-> >
-> > I see a random crash issue  on the LoongArch system, that is caused by
-> > commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
-> > pmd").
-> >
-> > Now, the thing is already resolved. The root cause is arch's mkdirty
-> > is set hardware writable bit in unconditional. That breaks
-> > write-protect and then breaks COW.
-> >
-> > Here is a simple and fast testcase (It may be helpful for sparc64):
-> > https://gist.github.com/heiher/72919fae6b53f04cac606a9631100506
-> > (assertion: c sum == 0)
+On 19.11.22 15:06, hev wrote:
+> Hi, Peter,
 > 
-> Just tried on my sparc64 VM -  fixed vs old (non-patched) kernels...
+> On Fri, Nov 18, 2022 at 2:29 AM Peter Xu <peterx@redhat.com> wrote:
+>>
+>> On Thu, Nov 17, 2022 at 10:29:57AM +0800, hev wrote:
+>>> Hi Peter,
+>>
+>> Hi, Hev,
+>>
+>>>
+>>> On Thu, Nov 17, 2022 at 12:25 AM Peter Xu <peterx@redhat.com> wrote:
+>>>>
+>>>> On Wed, Nov 16, 2022 at 01:45:15PM +0300, Anatoly Pugachev wrote:
+>>>>> On Wed, Nov 16, 2022 at 11:49 AM hev <r@hev.cc> wrote:
+>>>>>>
+>>>>>> Hello Peter,
+>>>>
+>>>> Hi, Hev,
+>>>>
+>>>> Thanks for letting me know.
+>>>>
+>>>>>>
+>>>>>> I see a random crash issue  on the LoongArch system, that is caused by
+>>>>>> commit 0ccf7f1 ("mm/thp: carry over dirty bit when thp splits on
+>>>>>> pmd").
+>>>>>>
+>>>>>> Now, the thing is already resolved. The root cause is arch's mkdirty
+>>>>>> is set hardware writable bit in unconditional. That breaks
+>>>>>> write-protect and then breaks COW.
+>>>>
+>>>> Could you help explain how that happened?
+>>>>
+>>>> I'm taking example of loongarch here:
+>>>>
+>>>> static inline pte_t pte_mkdirty(pte_t pte)
+>>>> {
+>>>>          pte_val(pte) |= (_PAGE_DIRTY | _PAGE_MODIFIED);
+>>>>          return pte;
+>>>> }
+>>>>
+>>>> #define _PAGE_MODIFIED          (_ULCAST_(1) << _PAGE_MODIFIED_SHIFT)
+>>>> #define _PAGE_MODIFIED_SHIFT    9
+>>>
+>>> _PAGE_MODIFIED is a software dirty bit
+>>>
+>>>> #define _PAGE_DIRTY             (_ULCAST_(1) << _PAGE_DIRTY_SHIFT)
+>>>> #define _PAGE_DIRTY_SHIFT       1
+>>>
+>>> _PAGE_DIRTY is a hardware writable bit (bad naming), meaning that mmu
+>>> allows write memory without any exception raised.
+>>
+>> (I just missed this email before I reply to the other one, I should have
+>>   read this one first..)
+>>
+>> I see. This surprises me a bit, as I can't quickly tell how it'll always
+>> work with the generic mm code.
+>>
+>> Say, is there a quick answer on why _PAGE_DIRTY is set here rather than
+>> pte_mkwrite()?  Because AFAIU that's where the mm wants to grant write
+>> permission to a page table entry as the API, no?
+>>
+>>>
+>>>>
+>>>> I don't see when write bit is set, which is bit 8 instead:
+>>>>
+>>>> #define _PAGE_WRITE             (_ULCAST_(1) << _PAGE_WRITE_SHIFT)
+>>>> #define _PAGE_WRITE_SHIFT       8
+>>>
+>>> _PAGE_WRITE is a software writable bit (not hardware).
+>>>
+>>> As David said, In __split_huge_pmd_locked, the VMA does not include VM_WRITE,
+>>>
+>>> entry = maybe_mkwrite(entry, vma);
+>>>
+>>> so the pte does not include software writable bit (_PAGE_WRITE).
+>>
+>> Are you sure?  In your test case you mapped with RW, IIUC it means even
+>> after the fork() VM_WRITE is set on both sides?
 > 
-> fixed kernel (6.1.0-rc5) running ./a.out:
-> mator@ttip:~$ ./a.out
-> c sum: 0
-> p sum: 35184372088832
-> c sum: 0
-> p sum: 35184372088832
-> c sum: 0
-> p sum: 35184372088832
-> c sum: 0
-> p sum: 35184372088832
-> c sum: 0
-> p sum: 35184372088832
-> ...
+> Sorry, I was wrong.
 > 
-> old (non-patched) kernel (6.1.0-rc4) :
-> mator@ttip:~$ ./a.out
-> c sum: 35150012350464
-> p sum: 35184372088832
-> c sum: 35150012350464
-> p sum: 35184372088832
-> ...
+> In this case, both VMAs are writable, the pte's writable bit is
+> cleared by pte_wrprotect. So if pte_mkdirty sets hardware writable bit
+> unconditionally, then there will be no way to catch writes to
+> implement COW.
+> 
+> I will try to explain how it works about pte write, dirty and
+> write-protect on LoongArch in the LoongArch mailing-list.
 
-I've got another patch attached that might be nicer to fix this same
-problem for both archs but without dropping the dirty bit, could you help
-check whether it works?
+Just to ask again,
 
-Hopefully the new patch could replace the other one (624a2c94f5b7 Partly
-revert "mm/thp: carry over dirty bit when thp splits on pmd") in Andrew's
-tree before it lands next rc1, and this new one should be applicable
-directly to e.g. v6.0 tag (or need to have 624a2c94f5b7 reverted if on any
-of Andrew's trees).
+is code like
+	maybe_mkwrite(pte_mkdirty(entry), vma);
+
+Like we have in copy_present_page(), wp_page_reuse(), wp_page_copy() ... 
+broken on LoongArch of the VMA lacks VM_WRITE?
+
+That would need *real* fixing, no hacks around that in other code areas.
 
 -- 
-Peter Xu
+Thanks,
 
---e9TD/csLxyFJ3Twt
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: attachment;
-	filename="0001-mm-thp-Wr-protect-pte-after-mkdirty.patch"
-
-From e349b24573870ef50d0c1b3bf124e14f5dfe1fa5 Mon Sep 17 00:00:00 2001
-From: Peter Xu <peterx@redhat.com>
-Date: Mon, 21 Nov 2022 13:36:59 -0500
-Subject: [PATCH] mm/thp: Wr-protect pte after mkdirty
-Content-type: text/plain
-
-Anatoly Pugachev reported sparc64 breakage on the patch:
-
-https://lore.kernel.org/r/20221021160603.GA23307@u164.east.ru
-
-Hev <r@hev.cc> also reported similar issue on loongarch:
-
-(the original mail was private, but Anatoly copied the list here)
-https://lore.kernel.org/r/CADxRZqxqb7f_WhMh=jweZP+ynf_JwGd-0VwbYgp4P+T0-AXosw@mail.gmail.com
-
-Also Hev pointed out that the issue is having HW write bit set within the
-pte_mkdirty() so the split pte can be written after split even if e.g. they
-were shared by more than one processes, causing data corrupt.
-
-Hev also tried to explain why loongarch set HW write bit in mkdirty:
-
-https://lore.kernel.org/r/CAHirt9itKO_K_HPboXh5AyJtt16Zf0cD73PtHvM=na39u_ztxA@mail.gmail.com
-
-One way to fix it is as what Huacai proposed here for loongarch:
-
-https://lore.kernel.org/r/20221117042532.4064448-1-chenhuacai@loongson.cnn
-
-Or more agressively, not sure whether (IMHO) we can remove the
-"optimization" to grant HW write bit in pte_mkdirty() in both archs,
-leaving set the write bit only in pte_mkwrite().
-
-For now the simpler solution that'll work for all is we wr-protect after
-pte_mkdirty(), so the HW write bit can be persistent after thp split.
-
-Cc: Hev <r@hev.cc>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reported-by: Anatoly Pugachev <matorola@gmail.com>
-Signed-off-by: Peter Xu <peterx@redhat.com>
----
- mm/huge_memory.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/mm/huge_memory.c b/mm/huge_memory.c
-index e5f5a1a00596..ae90b65f6121 100644
---- a/mm/huge_memory.c
-+++ b/mm/huge_memory.c
-@@ -2191,13 +2191,18 @@ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
- 			entry = maybe_mkwrite(entry, vma);
- 			if (anon_exclusive)
- 				SetPageAnonExclusive(page + i);
--			if (!write)
--				entry = pte_wrprotect(entry);
- 			if (!young)
- 				entry = pte_mkold(entry);
- 			/* NOTE: this may set soft-dirty too on some archs */
- 			if (dirty)
- 				entry = pte_mkdirty(entry);
-+			/*
-+			 * NOTE: this needs to happen after pte_mkdirty,
-+			 * because some archs (sparc64, loongarch) could
-+			 * set hw write bit when mkdirty.
-+			 */
-+			if (!write)
-+				entry = pte_wrprotect(entry);
- 			if (soft_dirty)
- 				entry = pte_mksoft_dirty(entry);
- 			if (uffd_wp)
--- 
-2.37.3
-
-
---e9TD/csLxyFJ3Twt--
+David / dhildenb
 
