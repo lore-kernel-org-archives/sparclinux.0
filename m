@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11EF9C63707
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Dec 2022 14:53:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8069FC47090
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Dec 2022 14:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235334AbiLFOx2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Dec 2022 09:53:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47198 "EHLO
+        id S234530AbiLFOxs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Dec 2022 09:53:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235245AbiLFOw1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Dec 2022 09:52:27 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DDC32EF67
-        for <sparclinux@vger.kernel.org>; Tue,  6 Dec 2022 06:49:21 -0800 (PST)
+        with ESMTP id S235312AbiLFOxG (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Dec 2022 09:53:06 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C2CFF2F011
+        for <sparclinux@vger.kernel.org>; Tue,  6 Dec 2022 06:49:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1670338160;
+        s=mimecast20190719; t=1670338174;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=n2jZN/xJpz6RKVgFkhrUzW1Vn67arYwcc9p436cZp8A=;
-        b=O6c0n0ZULNP02l87REw3bwpYXClV4eRoSKHu9d5q4vRxUem5dDd2elzcAHx9wme2XRdW8c
-        Zxrx9e+RnKbjbReuW167RlH66hfJwGg5G+CwJo3w595Pd8FEom0SwbWhIe5qBqpoWPxJlf
-        Mb6viPp7tphs+1FVgskNegu7YYmrJ0A=
+        bh=QzoAWpC2EjFS5Q9/UsGf5fjpvpXCCgDj04Gl2nHLJVM=;
+        b=UcyGubH+X6I+9OPXLRPQeeHWK6MdgS2BcrI/MGuYdbIw5rEsZjfAzq0MAPAS5f2iJmc29s
+        n9YO1C1e4nfLo6sXqoBJG6WgCbgavgo/Nc2a03PEM2M5NcgjmB01paJEWb5En4sc38xycu
+        pCcDBPZSLMfy5JM/nG14iqCwzFGAoW8=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-657-QRZQ13KsOnC84HyEtphmXg-1; Tue, 06 Dec 2022 09:49:17 -0500
-X-MC-Unique: QRZQ13KsOnC84HyEtphmXg-1
+ us-mta-176-a9U1CV1xO9Gr8wthe35pjg-1; Tue, 06 Dec 2022 09:49:30 -0500
+X-MC-Unique: a9U1CV1xO9Gr8wthe35pjg-1
 Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id BC1E1833A09;
-        Tue,  6 Dec 2022 14:49:15 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B36AA101A58E;
+        Tue,  6 Dec 2022 14:49:28 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.193.173])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id EC7F4492B07;
-        Tue,  6 Dec 2022 14:49:08 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3F723492B07;
+        Tue,  6 Dec 2022 14:49:22 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -60,10 +60,10 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
         David Hildenbrand <david@redhat.com>,
-        Michal Simek <monstr@monstr.eu>
-Subject: [PATCH mm-unstable RFC 11/26] microblaze/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date:   Tue,  6 Dec 2022 15:47:15 +0100
-Message-Id: <20221206144730.163732-12-david@redhat.com>
+        Dinh Nguyen <dinguyen@kernel.org>
+Subject: [PATCH mm-unstable RFC 13/26] nios2/mm: refactor swap PTE layout
+Date:   Tue,  6 Dec 2022 15:47:17 +0100
+Message-Id: <20221206144730.163732-14-david@redhat.com>
 In-Reply-To: <20221206144730.163732-1-david@redhat.com>
 References: <20221206144730.163732-1-david@redhat.com>
 MIME-Version: 1.0
@@ -73,115 +73,55 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by stealing one bit
-from the type. Generic MM currently only uses 5 bits for the type
-(MAX_SWAPFILES_SHIFT), so the stolen bit is effectively unused.
+nios2 disables swap for a good reason: it doesn't even provide
+sufficient type bits as required by core MM. However, swap entries are
+nowadays also used for other purposes (migration entries,
+PTE markers, HWPoison, ...), and accidential use could be problematic.
 
-The shift by 2 when converting between PTE and arch-specific swap entry
-makes the swap PTE layout a little bit harder to decipher.
+Let's properly use 5 bits for the swap type and document the layout.
+Bits 26--31 should get ignored by hardware completely, so they can be
+used.
 
-While at it, drop the comment from paulus---copy-and-paste leftover
-from powerpc where we actually have _PAGE_HASHPTE---and mask the type in
-__swp_entry_to_pte() as well.
-
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: Dinh Nguyen <dinguyen@kernel.org>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- arch/m68k/include/asm/mcf_pgtable.h   |  4 +--
- arch/microblaze/include/asm/pgtable.h | 45 +++++++++++++++++++++------
- 2 files changed, 37 insertions(+), 12 deletions(-)
+ arch/nios2/include/asm/pgtable.h | 18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
-diff --git a/arch/m68k/include/asm/mcf_pgtable.h b/arch/m68k/include/asm/mcf_pgtable.h
-index 3f8f4d0e66dd..e573d7b649f7 100644
---- a/arch/m68k/include/asm/mcf_pgtable.h
-+++ b/arch/m68k/include/asm/mcf_pgtable.h
-@@ -46,8 +46,8 @@
- #define _CACHEMASK040		(~0x060)
- #define _PAGE_GLOBAL040		0x400   /* 68040 global bit, used for kva descs */
- 
--/* We borrow bit 7 to store the exclusive marker in swap PTEs. */
--#define _PAGE_SWP_EXCLUSIVE	0x080
-+/* We borrow bit 24 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	CF_PAGE_NOCACHE
+diff --git a/arch/nios2/include/asm/pgtable.h b/arch/nios2/include/asm/pgtable.h
+index ab793bc517f5..d1e5c9eb4643 100644
+--- a/arch/nios2/include/asm/pgtable.h
++++ b/arch/nios2/include/asm/pgtable.h
+@@ -232,19 +232,21 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ 		__FILE__, __LINE__, pgd_val(e))
  
  /*
-  * Externally used page protection values.
-diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
-index 42f5988e998b..7e3de54bf426 100644
---- a/arch/microblaze/include/asm/pgtable.h
-+++ b/arch/microblaze/include/asm/pgtable.h
-@@ -131,10 +131,10 @@ extern pte_t *va_to_pte(unsigned long address);
-  * of the 16 available.  Bit 24-26 of the TLB are cleared in the TLB
-  * miss handler.  Bit 27 is PAGE_USER, thus selecting the correct
-  * zone.
-- * - PRESENT *must* be in the bottom two bits because swap cache
-- * entries use the top 30 bits.  Because 4xx doesn't support SMP
-- * anyway, M is irrelevant so we borrow it for PAGE_PRESENT.  Bit 30
-- * is cleared in the TLB miss handler before the TLB entry is loaded.
-+ * - PRESENT *must* be in the bottom two bits because swap PTEs use the top
-+ * 30 bits.  Because 4xx doesn't support SMP anyway, M is irrelevant so we
-+ * borrow it for PAGE_PRESENT.  Bit 30 is cleared in the TLB miss handler
-+ * before the TLB entry is loaded.
-  * - All other bits of the PTE are loaded into TLBLO without
-  *  * modification, leaving us only the bits 20, 21, 24, 25, 26, 30 for
-  * software PTE bits.  We actually use bits 21, 24, 25, and
-@@ -155,6 +155,9 @@ extern pte_t *va_to_pte(unsigned long address);
- #define _PAGE_ACCESSED	0x400	/* software: R: page referenced */
- #define _PMD_PRESENT	PAGE_MASK
- 
-+/* We borrow bit 24 to store the exclusive marker in swap PTEs. */
-+#define _PAGE_SWP_EXCLUSIVE	_PAGE_DIRTY
-+
- /*
-  * Some bits are unused...
-  */
-@@ -393,18 +396,40 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
- 
- /*
-- * Encode and decode a swap entry.
-- * Note that the bits we use in a PTE for representing a swap entry
-- * must not include the _PAGE_PRESENT bit, or the _PAGE_HASHPTE bit
-- * (if used).  -- paulus
+- * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte):
 + * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 + * are !pte_none() && !pte_present().
-+ *
-+ *                         1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
-+ *   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+ *   <------------------ offset -------------------> E < type -> 0 0
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
+  *
+- * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 ...  1  0
+- *  0  0  0  0 type.  0  0  0  0  0  0 offset.........
++ * Format of swap PTEs:
+  *
+- * This gives us up to 2**2 = 4 swap files and 2**20 * 4K = 4G per swap file.
++ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
++ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
++ *   0 < type -> 0 0 0 0 0 0 <-------------- offset --------------->
+  *
+- * Note that the offset field is always non-zero, thus !pte_none(pte) is always
+- * true.
++ * Note that the offset field is always non-zero if the swap type is 0, thus
++ * !pte_none() is always true.
   */
--#define __swp_type(entry)		((entry).val & 0x3f)
-+#define __swp_type(entry)	((entry).val & 0x1f)
- #define __swp_offset(entry)	((entry).val >> 6)
- #define __swp_entry(type, offset) \
--		((swp_entry_t) { (type) | ((offset) << 6) })
-+		((swp_entry_t) { ((type) & 0x1f) | ((offset) << 6) })
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) >> 2 })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val << 2 })
- 
-+#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-+static inline int pte_swp_exclusive(pte_t pte)
-+{
-+	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
-+}
-+
-+static inline pte_t pte_swp_mkexclusive(pte_t pte)
-+{
-+	pte_val(pte) |= _PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
-+static inline pte_t pte_swp_clear_exclusive(pte_t pte)
-+{
-+	pte_val(pte) &= ~_PAGE_SWP_EXCLUSIVE;
-+	return pte;
-+}
-+
- extern unsigned long iopa(unsigned long addr);
- 
- /* Values for nocacheflag and cmode */
+-#define __swp_type(swp)		(((swp).val >> 26) & 0x3)
++#define __swp_type(swp)		(((swp).val >> 26) & 0x1f)
+ #define __swp_offset(swp)	((swp).val & 0xfffff)
+-#define __swp_entry(type, off)	((swp_entry_t) { (((type) & 0x3) << 26) \
++#define __swp_entry(type, off)	((swp_entry_t) { (((type) & 0x1f) << 26) \
+ 						 | ((off) & 0xfffff) })
+ #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
 -- 
 2.38.1
 
