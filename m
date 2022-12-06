@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3F89BC63704
-	for <sparclinux@archiver.kernel.org>; Tue,  6 Dec 2022 14:51:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F50C63703
+	for <sparclinux@archiver.kernel.org>; Tue,  6 Dec 2022 14:52:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235252AbiLFOvR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 6 Dec 2022 09:51:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47198 "EHLO
+        id S235268AbiLFOwI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 6 Dec 2022 09:52:08 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45856 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235194AbiLFOvG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Dec 2022 09:51:06 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A42A92DAAB
-        for <sparclinux@vger.kernel.org>; Tue,  6 Dec 2022 06:48:38 -0800 (PST)
+        with ESMTP id S235015AbiLFOv2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 6 Dec 2022 09:51:28 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 311982E9CA
+        for <sparclinux@vger.kernel.org>; Tue,  6 Dec 2022 06:48:50 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1670338118;
+        s=mimecast20190719; t=1670338130;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=9x4aBtPIfkHf52VlSKEEJKfkOCdXsL5eD/veqXMcHbM=;
-        b=Xw3BN2dLSHC3DdSER/yfS80gdVRB6lv7kKm0FNG63jbya1aPX+QghUzbosUtFmtDm3WKcB
-        FTWpKwTERRHccBZNEE/3dA4Ib7CZmb0ynLFtdOT4qWODhmqGoCWKRRjP7VxtzwyAj5BHRT
-        Kf/GyZYYYaYB+2NIKQxJw8c3xDTxR60=
+        bh=xnIUuYlJfmQGfvnVf88NtIdpwTWNZSx4XqVJGuJ/Bn4=;
+        b=LppcS975D6Agxvwj+hT8ai4+N5TDWacRkGYfqdggCarEOjIj6GZ+7X2UCx5Z5fac1GjJDM
+        w2YG7sbmBP1wqoCysTqG+9vEGZ+gv9oYZBA/qCXjHj1ehlWXvjem7iHvQ+YmoJ7qp/0eLc
+        EYVLhzmnZUYPVhFtIbic7GqrdodUlB4=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-296-ewncontgNS2aEzlDZOh0HQ-1; Tue, 06 Dec 2022 09:48:32 -0500
-X-MC-Unique: ewncontgNS2aEzlDZOh0HQ-1
+ us-mta-381-D8ymNhOSP32dlbMNd3stBw-1; Tue, 06 Dec 2022 09:48:45 -0500
+X-MC-Unique: D8ymNhOSP32dlbMNd3stBw-1
 Received: from smtp.corp.redhat.com (int-mx10.intmail.prod.int.rdu2.redhat.com [10.11.54.10])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id ADB83101A528;
-        Tue,  6 Dec 2022 14:48:30 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 95A03101A54E;
+        Tue,  6 Dec 2022 14:48:43 +0000 (UTC)
 Received: from t480s.redhat.com (unknown [10.39.193.173])
-        by smtp.corp.redhat.com (Postfix) with ESMTP id 3B421492B07;
-        Tue,  6 Dec 2022 14:48:24 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 87CC2492B04;
+        Tue,  6 Dec 2022 14:48:37 +0000 (UTC)
 From:   David Hildenbrand <david@redhat.com>
 To:     linux-kernel@vger.kernel.org
 Cc:     Andrew Morton <akpm@linux-foundation.org>,
@@ -60,10 +60,10 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
         linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
         David Hildenbrand <david@redhat.com>,
-        Russell King <linux@armlinux.org.uk>
-Subject: [PATCH mm-unstable RFC 04/26] arm/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Date:   Tue,  6 Dec 2022 15:47:08 +0100
-Message-Id: <20221206144730.163732-5-david@redhat.com>
+        Brian Cain <bcain@quicinc.com>
+Subject: [PATCH mm-unstable RFC 06/26] hexagon/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+Date:   Tue,  6 Dec 2022 15:47:10 +0100
+Message-Id: <20221206144730.163732-7-david@redhat.com>
 In-Reply-To: <20221206144730.163732-1-david@redhat.com>
 References: <20221206144730.163732-1-david@redhat.com>
 MIME-Version: 1.0
@@ -74,110 +74,91 @@ List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 Let's support __HAVE_ARCH_PTE_SWP_EXCLUSIVE by stealing one bit from the
-offset. This reduces the maximum swap space per file to 64 GiB (was 128
+offset. This reduces the maximum swap space per file to 16 GiB (was 32
 GiB).
 
-While at it drop the PTE_TYPE_FAULT from __swp_entry_to_pte() which is
-defined to be 0 and is rather confusing because we should be dealing
-with "Linux PTEs" not "hardware PTEs". Also, properly mask the type in
-__swp_entry().
+While at it, mask the type in __swp_entry().
 
-Cc: Russell King <linux@armlinux.org.uk>
+Cc: Brian Cain <bcain@quicinc.com>
 Signed-off-by: David Hildenbrand <david@redhat.com>
 ---
- arch/arm/include/asm/pgtable-2level.h |  3 +++
- arch/arm/include/asm/pgtable-3level.h |  3 +++
- arch/arm/include/asm/pgtable.h        | 35 +++++++++++++++++++++------
- 3 files changed, 34 insertions(+), 7 deletions(-)
+ arch/hexagon/include/asm/pgtable.h | 37 +++++++++++++++++++++++++-----
+ 1 file changed, 31 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/include/asm/pgtable-2level.h b/arch/arm/include/asm/pgtable-2level.h
-index 92abd4cd8ca2..ce543cd9380c 100644
---- a/arch/arm/include/asm/pgtable-2level.h
-+++ b/arch/arm/include/asm/pgtable-2level.h
-@@ -126,6 +126,9 @@
- #define L_PTE_SHARED		(_AT(pteval_t, 1) << 10)	/* shared(v6), coherent(xsc3) */
- #define L_PTE_NONE		(_AT(pteval_t, 1) << 11)
+diff --git a/arch/hexagon/include/asm/pgtable.h b/arch/hexagon/include/asm/pgtable.h
+index f7048c18b6f9..7eb008e477c8 100644
+--- a/arch/hexagon/include/asm/pgtable.h
++++ b/arch/hexagon/include/asm/pgtable.h
+@@ -61,6 +61,9 @@ extern unsigned long empty_zero_page;
+  * So we'll put up with a bit of inefficiency for now...
+  */
  
-+/* We borrow bit 7 to store the exclusive marker in swap PTEs. */
-+#define L_PTE_SWP_EXCLUSIVE	L_PTE_RDONLY
++/* We borrow bit 6 to store the exclusive marker in swap PTEs. */
++#define _PAGE_SWP_EXCLUSIVE	(1<<6)
 +
  /*
-  * These are the memory types, defined to be compatible with
-  * pre-ARMv6 CPUs cacheable and bufferable bits: n/a,n/a,C,B
-diff --git a/arch/arm/include/asm/pgtable-3level.h b/arch/arm/include/asm/pgtable-3level.h
-index eabe72ff7381..106049791500 100644
---- a/arch/arm/include/asm/pgtable-3level.h
-+++ b/arch/arm/include/asm/pgtable-3level.h
-@@ -76,6 +76,9 @@
- #define L_PTE_NONE		(_AT(pteval_t, 1) << 57)	/* PROT_NONE */
- #define L_PTE_RDONLY		(_AT(pteval_t, 1) << 58)	/* READ ONLY */
- 
-+/* We borrow bit 7 to store the exclusive marker in swap PTEs. */
-+#define L_PTE_SWP_EXCLUSIVE	(_AT(pteval_t, 1) << 7)
-+
- #define L_PMD_SECT_VALID	(_AT(pmdval_t, 1) << 0)
- #define L_PMD_SECT_DIRTY	(_AT(pmdval_t, 1) << 55)
- #define L_PMD_SECT_NONE		(_AT(pmdval_t, 1) << 57)
-diff --git a/arch/arm/include/asm/pgtable.h b/arch/arm/include/asm/pgtable.h
-index 00954ab1a039..5e0446a9c667 100644
---- a/arch/arm/include/asm/pgtable.h
-+++ b/arch/arm/include/asm/pgtable.h
-@@ -269,27 +269,48 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
- }
+  * Top "FOURTH" level (pgd), which for the Hexagon VM is really
+  * only the second from the bottom, pgd and pud both being collapsed.
+@@ -359,9 +362,12 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ #define ZERO_PAGE(vaddr) (virt_to_page(&empty_zero_page))
  
  /*
-- * Encode and decode a swap entry.  Swap entries are stored in the Linux
-- * page tables as follows:
 + * Encode/decode swap entries and swap PTEs. Swap PTEs are all PTEs that
 + * are !pte_none() && !pte_present().
 + *
-+ * Format of swap PTEs:
+  * Swap/file PTE definitions.  If _PAGE_PRESENT is zero, the rest of the PTE is
+  * interpreted as swap information.  The remaining free bits are interpreted as
+- * swap type/offset tuple.  Rather than have the TLB fill handler test
++ * listed below.  Rather than have the TLB fill handler test
+  * _PAGE_PRESENT, we're going to reserve the permissions bits and set them to
+  * all zeros for swap entries, which speeds up the miss handler at the cost of
+  * 3 bits of offset.  That trade-off can be revisited if necessary, but Hexagon
+@@ -371,9 +377,10 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+  * Format of swap PTE:
+  *	bit	0:	Present (zero)
+  *	bits	1-5:	swap type (arch independent layer uses 5 bits max)
+- *	bits	6-9:	bits 3:0 of offset
++ *	bit	6:	exclusive marker
++ *	bits	7-9:	bits 2:0 of offset
+  *	bits	10-12:	effectively _PAGE_PROTNONE (all zero)
+- *	bits	13-31:  bits 22:4 of swap offset
++ *	bits	13-31:  bits 21:3 of swap offset
   *
-  *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-  *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-- *   <--------------- offset ------------------------> < type -> 0 0
-+ *   <------------------- offset ------------------> E < type -> 0 0
-+ *
-+ *   E is the exclusive marker that is not stored in swap entries.
-  *
-- * This gives us up to 31 swap files and 128GB per swap file.  Note that
-+ * This gives us up to 31 swap files and 64GB per swap file.  Note that
-  * the offset field is always non-zero.
-  */
- #define __SWP_TYPE_SHIFT	2
- #define __SWP_TYPE_BITS		5
- #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
--#define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
-+#define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT + 1)
+  * The split offset makes some of the following macros a little gnarly,
+  * but there's plenty of precedent for this sort of thing.
+@@ -383,11 +390,29 @@ static inline unsigned long pmd_page_vaddr(pmd_t pmd)
+ #define __swp_type(swp_pte)		(((swp_pte).val >> 1) & 0x1f)
  
- #define __swp_type(x)		(((x).val >> __SWP_TYPE_SHIFT) & __SWP_TYPE_MASK)
- #define __swp_offset(x)		((x).val >> __SWP_OFFSET_SHIFT)
--#define __swp_entry(type,offset) ((swp_entry_t) { ((type) << __SWP_TYPE_SHIFT) | ((offset) << __SWP_OFFSET_SHIFT) })
-+#define __swp_entry(type,offset) ((swp_entry_t) { (((type) & __SWP_TYPE_BITS) << __SWP_TYPE_SHIFT) | \
-+						 ((offset) << __SWP_OFFSET_SHIFT) })
+ #define __swp_offset(swp_pte) \
+-	((((swp_pte).val >> 6) & 0xf) | (((swp_pte).val >> 9) & 0x7ffff0))
++	((((swp_pte).val >> 7) & 0x7) | (((swp_pte).val >> 10) & 0x3ffff8))
  
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
--#define __swp_entry_to_pte(swp)	__pte((swp).val | PTE_TYPE_FAULT)
-+#define __swp_entry_to_pte(swp)	__pte((swp).val)
+ #define __swp_entry(type, offset) \
+ 	((swp_entry_t)	{ \
+-		((type << 1) | \
+-		 ((offset & 0x7ffff0) << 9) | ((offset & 0xf) << 6)) })
++		(((type & 0x1f) << 1) | \
++		 ((offset & 0x3ffff8) << 10) | ((offset & 0x7) << 7)) })
 +
 +#define __HAVE_ARCH_PTE_SWP_EXCLUSIVE
 +static inline int pte_swp_exclusive(pte_t pte)
 +{
-+	return pte_isset(pte, L_PTE_SWP_EXCLUSIVE);
++	return pte_val(pte) & _PAGE_SWP_EXCLUSIVE;
 +}
 +
 +static inline pte_t pte_swp_mkexclusive(pte_t pte)
 +{
-+	return set_pte_bit(pte, __pgprot(L_PTE_SWP_EXCLUSIVE));
++	pte_val(pte) |= _PAGE_SWP_EXCLUSIVE;
++	return pte;
 +}
 +
 +static inline pte_t pte_swp_clear_exclusive(pte_t pte)
 +{
-+	return clear_pte_bit(pte, __pgprot(L_PTE_SWP_EXCLUSIVE));
++	pte_val(pte) &= ~_PAGE_SWP_EXCLUSIVE;
++	return pte;
 +}
  
- /*
-  * It is an error for the kernel to have more swap files than we can
+ #endif
 -- 
 2.38.1
 
