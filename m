@@ -2,72 +2,368 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFBD4C4332F
-	for <sparclinux@archiver.kernel.org>; Fri,  9 Dec 2022 08:38:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9037DC4332F
+	for <sparclinux@archiver.kernel.org>; Mon, 12 Dec 2022 13:05:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229691AbiLIIi1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 9 Dec 2022 03:38:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46550 "EHLO
+        id S231370AbiLLNFn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 12 Dec 2022 08:05:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229542AbiLIIi0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 9 Dec 2022 03:38:26 -0500
-X-Greylist: delayed 435 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Fri, 09 Dec 2022 00:38:23 PST
-Received: from mail.alsdel.com (mail.alsdel.com [192.121.17.36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 096684C26F
-        for <sparclinux@vger.kernel.org>; Fri,  9 Dec 2022 00:38:22 -0800 (PST)
-Received: by mail.alsdel.com (Postfix, from userid 1001)
-        id A910922E58; Fri,  9 Dec 2022 08:31:01 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=alsdel.com; s=mail;
-        t=1670574664; bh=EaccI34atZDi3zI4z+dro7EdezTMN10KG2X0nSBpSo8=;
-        h=Date:From:To:Subject:From;
-        b=TygSLA8hkEUZ/DYqY7DzSxOJZwCM8k3EahvU8+JipeaV7wmMWOre/WAW6Ap7tyA1C
-         ufSUgJLipgbSGHHde9Gbzw/pdCHCRxmEHqtALGqXZQZTcuFs/c6iTY7+j35U+q2dDq
-         yC62Psz4gXYhwn6XhxP4v9Z3MZzuEkmX0u94oH3z0a2ENcDs87HqQl/QDefvFm72mf
-         he2/2fZs9zCFlRl5ut3ph/TKMcHuKCqlzomj7DU8/drRpX9GPG94E04U8Jo7wQFdaU
-         vNdMNwcvUqfTL74ggzjCHCpNUln9+akMNIz4qvW03VqmKU9L0l9WODfw3GL1FDmur2
-         QPoOWVSF/cvsQ==
-Received: by mail.alsdel.com for <sparclinux@vger.kernel.org>; Fri,  9 Dec 2022 08:30:57 GMT
-Message-ID: <20221209074500-0.1.s.1w2y.0.cc8lo5b2rt@alsdel.com>
-Date:   Fri,  9 Dec 2022 08:30:57 GMT
-From:   =?UTF-8?Q? "Vil=C3=A9m_Du=C5=A1ek" ?= <vilem.dusek@alsdel.com>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Tepeln=C3=A9_obr=C3=A1b=C4=9Bn=C3=AD_=E2=80=93_objedn=C3=A1vka?=
-X-Mailer: mail.alsdel.com
+        with ESMTP id S229958AbiLLNFn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 12 Dec 2022 08:05:43 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D7DC13D45
+        for <sparclinux@vger.kernel.org>; Mon, 12 Dec 2022 05:02:25 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1670850144;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=dnOWOUcC/yhSsD6LXwOHnegXH6YrG1Sx79O9enROpBk=;
+        b=gs9bWw77ktyRCOd73G1Ahywzh6f2MW4+j95CDevw8XVjsRvUkDL1woUMOlj2Xr+60j239r
+        49Xfx0CxLt3vLUNKRnvwgMIXAutmcFLQVmfu85qoBtrRFcOrxaX8HAoFtcz3wLd0G6WYT9
+        HSMsySMeiJHlJWoQZnkSrSOMTTMHjb4=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-19-ViqUhs0GP_C8R75eOVdxQQ-1; Mon, 12 Dec 2022 08:02:21 -0500
+X-MC-Unique: ViqUhs0GP_C8R75eOVdxQQ-1
+Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 7564B806004;
+        Mon, 12 Dec 2022 13:02:20 +0000 (UTC)
+Received: from t480s.redhat.com (unknown [10.39.193.144])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id A3BB340ED76C;
+        Mon, 12 Dec 2022 13:02:16 +0000 (UTC)
+From:   David Hildenbrand <david@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     linux-mm@kvack.org, sparclinux@vger.kernel.org,
+        David Hildenbrand <david@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Peter Xu <peterx@redhat.com>, Hev <r@hev.cc>,
+        Anatoly Pugachev <matorola@gmail.com>,
+        Raghavendra K T <raghavendra.kt@amd.com>,
+        Thorsten Leemhuis <regressions@leemhuis.info>,
+        Mike Kravetz <mike.kravetz@oracle.com>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Juergen Gross <jgross@suse.com>
+Subject: [PATCH v1] sparc/mm: don't unconditionally set HW writable bit when setting PTE dirty on 64bit
+Date:   Mon, 12 Dec 2022 14:02:13 +0100
+Message-Id: <20221212130213.136267-1-david@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dobr=C3=BD den,
+On sparc64, there is no HW modified bit, therefore, SW tracks via a SW
+bit if the PTE is dirty via pte_mkdirty(). However, pte_mkdirty()
+currently also unconditionally sets the HW writable bit, which is wrong.
 
-m=C3=A1te z=C3=A1jem o vyu=C5=BEit=C3=AD velmi kvalitn=C3=AD slu=C5=BEby =
-tepeln=C3=A9ho obr=C3=A1b=C4=9Bn=C3=AD kov=C5=AF?
+pte_mkdirty() is not supposed to make a PTE actually writable, unless the
+SW writable bit (pte_write()) indicates that the PTE is not
+write-protected. Fortunately, sparc64 also defines a SW writable bit.
 
-M=C5=AF=C5=BEeme v=C3=A1m nab=C3=ADdnout velmi v=C3=BDhodn=C3=A9 podm=C3=AD=
-nky spolupr=C3=A1ce, technick=C3=A9 poradenstv=C3=AD,
-s=C3=A9riovou v=C3=BDrobu a testov=C3=A1n=C3=AD prototyp=C5=AF.
+For example, this already turned into a problem in the context of
+THP splitting as documented in commit 624a2c94f5b7 ("Partly revert "mm/thp:
+carry over dirty bit when thp splits on pmd") and might be an issue during
+page migration in mm/migrate.c:remove_migration_pte() as well where we:
+	if (folio_test_dirty(folio) && is_migration_entry_dirty(entry))
+		pte = pte_mkdirty(pte);
 
-Specializujeme se na tradi=C4=8Dn=C3=AD a vakuov=C3=A9 technologie: cemen=
-tov=C3=A1n=C3=AD,
-nitrocementov=C3=A1n=C3=AD, kalen=C3=AD v plynu, zu=C5=A1lecht=C4=9Bn=C3=AD=
-, =C5=BE=C3=ADh=C3=A1n=C3=AD, p=C3=A1jen=C3=AD, normaliza=C4=8Dn=C3=AD =C5=
-=BE=C3=ADh=C3=A1n=C3=AD (s p=C5=99ekrystalizac=C3=AD).
+But more general, anything like:
+	maybe_mkwrite(pte_mkdirty(pte), vma)
+code is broken on sparc64, because it will unconditionally set the HW
+writable bit even if the SW writable bit is not set.
 
-M=C3=A1me k dispozici rozs=C3=A1hl=C3=A9 strojn=C3=AD vybaven=C3=AD, velk=
-=C3=BD t=C3=BDm odborn=C3=ADk=C5=AF, a proto jsme schopni se p=C5=99izp=C5=
-=AFsobit va=C5=A1im po=C5=BEadavk=C5=AFm.
+Simple reproducer that will result in a writable PTE after ptrace
+access, to highlight the problem and as an easy way to verify if it has
+been fixed:
 
-Pracujeme v souladu s na=C5=A1imi certifik=C3=A1ty v rozsahu norem platn=C3=
-=BDch v oblasti automobilov=C3=A9ho pr=C5=AFmyslu (IATF 16949; CQI 9) a t=
-ak=C3=A9 letectv=C3=AD (akreditace NADCAP).
+--------------------------------------------------------------------------
+ #include <fcntl.h>
+ #include <signal.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <errno.h>
+ #include <stdlib.h>
+ #include <sys/mman.h>
 
-Pokud m=C3=A1te po=C5=BEadavky v t=C3=A9to oblasti, r=C3=A1d v=C3=A1m p=C5=
-=99edstav=C3=ADm na=C5=A1e mo=C5=BEnosti.
+ static void signal_handler(int sig)
+ {
+         if (sig == SIGSEGV)
+                 printf("[PASS] SIGSEGV generated\n");
+         else
+                 printf("[FAIL] wrong signal generated\n");
+         exit(0);
+ }
 
-Mohl bych v=C3=A1m zatelefonovat?
+ int main(void)
+ {
+         size_t pagesize = getpagesize();
+         char data = 1;
+         off_t offs;
+         int mem_fd;
+         char *map;
+         int ret;
 
+         mem_fd = open("/proc/self/mem", O_RDWR);
+         if (mem_fd < 0) {
+                 fprintf(stderr, "open(/proc/self/mem) failed: %d\n", errno);
+                 return 1;
+         }
 
-S pozdravem,
-Vil=C3=A9m Du=C5=A1ek
+         map = mmap(NULL, pagesize, PROT_READ, MAP_PRIVATE|MAP_ANON, -1 ,0);
+         if (map == MAP_FAILED) {
+                 fprintf(stderr, "mmap() failed: %d\n", errno);
+                 return 1;
+         }
+
+         printf("original: %x\n", *map);
+
+         /* debug access */
+         offs = lseek(mem_fd, (uintptr_t) map, SEEK_SET);
+         ret = write(mem_fd, &data, 1);
+         if (ret != 1) {
+                 fprintf(stderr, "pwrite(/proc/self/mem) failed with %d: %d\n", ret, errno);
+                 return 1;
+         }
+         if (*map != data) {
+                 fprintf(stderr, "pwrite(/proc/self/mem) not visible\n");
+                 return 1;
+         }
+
+         printf("ptrace: %x\n", *map);
+
+         /* Install signal handler. */
+         if (signal(SIGSEGV, signal_handler) == SIG_ERR) {
+                 fprintf(stderr, "signal() failed\n");
+                 return 1;
+         }
+
+         /* Ordinary access. */
+         *map = 2;
+
+         printf("access: %x\n", *map);
+
+         printf("[FAIL] SIGSEGV not generated\n");
+
+         return 0;
+ }
+--------------------------------------------------------------------------
+
+Without this commit (sun4u in QEMU):
+	# ./reproducer
+	original: 0
+	ptrace: 1
+	access: 2
+	[FAIL] SIGSEGV not generated
+
+Let's fix this by setting the HW writable bit only if both, the SW dirty
+bit and the SW writable bit are set. This matches, for example, how
+s390x handles pte_mkwrite() and pte_mkdirty() -- except, that they have
+to clear the _PAGE_PROTECT bit.
+
+We have to move pte_dirty() and pte_dirty() up. The code patching
+mechanism and handling constants > 22bit is a bit special on sparc64.
+
+With this commit (sun4u in QEMU):
+	# ./reproducer
+	original: 0
+	ptrace: 1
+	[PASS] SIGSEGV generated
+
+This handling seems to have been in place forever.
+
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Hev <r@hev.cc>
+Cc: Anatoly Pugachev <matorola@gmail.com>
+Cc: Raghavendra K T <raghavendra.kt@amd.com>
+Cc: Thorsten Leemhuis <regressions@leemhuis.info>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Juergen Gross <jgross@suse.com>
+Signed-off-by: David Hildenbrand <david@redhat.com>
+---
+
+Only tested under QEMU with sun4u, as I cannot seem to get sun4v running
+in QEMU. Survives a simple debian 10 boot.
+
+This also tackles what's documented in:
+	https://lkml.kernel.org/r/20221125185857.3110155-1-peterx@redhat.com
+and once loongarch also has been fixed, we might be able to remove all
+that special-casing.
+
+---
+ arch/sparc/include/asm/pgtable_64.h | 117 ++++++++++++++++------------
+ 1 file changed, 67 insertions(+), 50 deletions(-)
+
+diff --git a/arch/sparc/include/asm/pgtable_64.h b/arch/sparc/include/asm/pgtable_64.h
+index 3bc9736bddb1..7f2e57747563 100644
+--- a/arch/sparc/include/asm/pgtable_64.h
++++ b/arch/sparc/include/asm/pgtable_64.h
+@@ -354,6 +354,42 @@ static inline pgprot_t pgprot_noncached(pgprot_t prot)
+  */
+ #define pgprot_noncached pgprot_noncached
+ 
++static inline unsigned long pte_dirty(pte_t pte)
++{
++	unsigned long mask;
++
++	__asm__ __volatile__(
++	"\n661:	mov		%1, %0\n"
++	"	nop\n"
++	"	.section	.sun4v_2insn_patch, \"ax\"\n"
++	"	.word		661b\n"
++	"	sethi		%%uhi(%2), %0\n"
++	"	sllx		%0, 32, %0\n"
++	"	.previous\n"
++	: "=r" (mask)
++	: "i" (_PAGE_MODIFIED_4U), "i" (_PAGE_MODIFIED_4V));
++
++	return (pte_val(pte) & mask);
++}
++
++static inline unsigned long pte_write(pte_t pte)
++{
++	unsigned long mask;
++
++	__asm__ __volatile__(
++	"\n661:	mov		%1, %0\n"
++	"	nop\n"
++	"	.section	.sun4v_2insn_patch, \"ax\"\n"
++	"	.word		661b\n"
++	"	sethi		%%uhi(%2), %0\n"
++	"	sllx		%0, 32, %0\n"
++	"	.previous\n"
++	: "=r" (mask)
++	: "i" (_PAGE_WRITE_4U), "i" (_PAGE_WRITE_4V));
++
++	return (pte_val(pte) & mask);
++}
++
+ #if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags);
+ #define arch_make_huge_pte arch_make_huge_pte
+@@ -415,28 +451,44 @@ static inline bool is_hugetlb_pte(pte_t pte)
+ }
+ #endif
+ 
+-static inline pte_t pte_mkdirty(pte_t pte)
++static inline pte_t __pte_mkhwwrite(pte_t pte)
+ {
+-	unsigned long val = pte_val(pte), tmp;
++	unsigned long val = pte_val(pte);
+ 
++	/*
++	 * Note: we only want to set the HW writable bit if the SW writable bit
++	 * and the SW dirty bit are set.
++	 */
+ 	__asm__ __volatile__(
+-	"\n661:	or		%0, %3, %0\n"
++	"\n661:	or		%0, %2, %0\n"
+ 	"	nop\n"
+-	"\n662:	nop\n"
++	"	.section	.sun4v_1insn_patch, \"ax\"\n"
++	"	.word		661b\n"
++	"	or		%0, %3, %0\n"
++	"	.previous\n"
++	: "=r" (val)
++	: "0" (val), "i" (_PAGE_W_4U), "i" (_PAGE_W_4V));
++
++	return __pte(val);
++}
++
++static inline pte_t pte_mkdirty(pte_t pte)
++{
++	unsigned long val = pte_val(pte), mask;
++
++	__asm__ __volatile__(
++	"\n661:	mov		%1, %0\n"
+ 	"	nop\n"
+ 	"	.section	.sun4v_2insn_patch, \"ax\"\n"
+ 	"	.word		661b\n"
+-	"	sethi		%%uhi(%4), %1\n"
+-	"	sllx		%1, 32, %1\n"
+-	"	.word		662b\n"
+-	"	or		%1, %%lo(%4), %1\n"
+-	"	or		%0, %1, %0\n"
++	"	sethi		%%uhi(%2), %0\n"
++	"	sllx		%0, 32, %0\n"
+ 	"	.previous\n"
+-	: "=r" (val), "=r" (tmp)
+-	: "0" (val), "i" (_PAGE_MODIFIED_4U | _PAGE_W_4U),
+-	  "i" (_PAGE_MODIFIED_4V | _PAGE_W_4V));
++	: "=r" (mask)
++	: "i" (_PAGE_MODIFIED_4U), "i" (_PAGE_MODIFIED_4V));
+ 
+-	return __pte(val);
++	pte = __pte(val | mask);
++	return pte_write(pte) ? __pte_mkhwwrite(pte) : pte;
+ }
+ 
+ static inline pte_t pte_mkclean(pte_t pte)
+@@ -478,7 +530,8 @@ static inline pte_t pte_mkwrite(pte_t pte)
+ 	: "=r" (mask)
+ 	: "i" (_PAGE_WRITE_4U), "i" (_PAGE_WRITE_4V));
+ 
+-	return __pte(val | mask);
++	pte = __pte(val | mask);
++	return pte_dirty(pte) ? __pte_mkhwwrite(pte) : pte;
+ }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+@@ -581,42 +634,6 @@ static inline unsigned long pte_young(pte_t pte)
+ 	return (pte_val(pte) & mask);
+ }
+ 
+-static inline unsigned long pte_dirty(pte_t pte)
+-{
+-	unsigned long mask;
+-
+-	__asm__ __volatile__(
+-	"\n661:	mov		%1, %0\n"
+-	"	nop\n"
+-	"	.section	.sun4v_2insn_patch, \"ax\"\n"
+-	"	.word		661b\n"
+-	"	sethi		%%uhi(%2), %0\n"
+-	"	sllx		%0, 32, %0\n"
+-	"	.previous\n"
+-	: "=r" (mask)
+-	: "i" (_PAGE_MODIFIED_4U), "i" (_PAGE_MODIFIED_4V));
+-
+-	return (pte_val(pte) & mask);
+-}
+-
+-static inline unsigned long pte_write(pte_t pte)
+-{
+-	unsigned long mask;
+-
+-	__asm__ __volatile__(
+-	"\n661:	mov		%1, %0\n"
+-	"	nop\n"
+-	"	.section	.sun4v_2insn_patch, \"ax\"\n"
+-	"	.word		661b\n"
+-	"	sethi		%%uhi(%2), %0\n"
+-	"	sllx		%0, 32, %0\n"
+-	"	.previous\n"
+-	: "=r" (mask)
+-	: "i" (_PAGE_WRITE_4U), "i" (_PAGE_WRITE_4V));
+-
+-	return (pte_val(pte) & mask);
+-}
+-
+ static inline unsigned long pte_exec(pte_t pte)
+ {
+ 	unsigned long mask;
+
+base-commit: 830b3c68c1fb1e9176028d02ef86f3cf76aa2476
+-- 
+2.38.1
+
