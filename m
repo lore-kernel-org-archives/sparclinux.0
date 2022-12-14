@@ -2,254 +2,191 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E78ECC2D0CC
-	for <sparclinux@archiver.kernel.org>; Tue, 13 Dec 2022 16:18:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B82C4332F
+	for <sparclinux@archiver.kernel.org>; Wed, 14 Dec 2022 11:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235645AbiLMQSU (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 13 Dec 2022 11:18:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33458 "EHLO
+        id S238232AbiLNLXx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 14 Dec 2022 06:23:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41988 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235604AbiLMQST (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 13 Dec 2022 11:18:19 -0500
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 506A920BDB
-        for <sparclinux@vger.kernel.org>; Tue, 13 Dec 2022 08:18:15 -0800 (PST)
-Received: by mail-pj1-x102a.google.com with SMTP id fy4so3964083pjb.0
-        for <sparclinux@vger.kernel.org>; Tue, 13 Dec 2022 08:18:15 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20210112.gappssmtp.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=wj/NGKhLAYwhK6Lvw/Db918GBFSie4zjOTu3uFrT1gA=;
-        b=NkSnMp/V8AsX4vC30wzvTBDvSWE+M7qqraskr+aX6eDcBuYgYQHiZpd5PHFEtwmlex
-         b9sLXADwP2UKefS8URj7BbPzAGmqFf6Sql8Lry6ArNmBxIQqSRNMuMWf8z5+Hg1gJY0V
-         G/j7FdqVWjtps7jKHZujuEhFxXfcZ0TNsoRlDztocQW2ESX1R86PBEikNrfuO5gPc7mJ
-         6/Qoufhc+OUK8D5gU0LfvQQ/f14L5j2fbz4FLayl4GcS/rdSdchyCT6nat7Pvthexifo
-         5a34Jkw09BPh2fSzhpIrcgjFsOBxfZOpzDvRra+RnQyxHfSXNAOYkh3mU13qpd7fHBn3
-         z4dA==
+        with ESMTP id S238043AbiLNLXn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Dec 2022 06:23:43 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDE582DFA
+        for <sparclinux@vger.kernel.org>; Wed, 14 Dec 2022 03:22:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1671016975;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=yxc01zNwMiugjthmgVOlTrtXQnLfLvXjRGMFtbZZLpc=;
+        b=TRsRFy5HWKRJqqxwbSC38MkkVL+pzQVaN48RIhRUvbQBZyedt24vDxP9faiB3QhLUvtPSW
+        jUDazLShTTjthZ9qY/reRE4y5Cap5trYiKq0KlvknrQ+4PgoYPXpD9HQWOo6Qg6rAtYfiW
+        /1ZfU7LhfXDdM3IHhUpPVAiJXEkDOlY=
+Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
+ [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
+ us-mta-186-CnWOtodfOVuw7i28U33V5w-1; Wed, 14 Dec 2022 06:22:54 -0500
+X-MC-Unique: CnWOtodfOVuw7i28U33V5w-1
+Received: by mail-wm1-f72.google.com with SMTP id r67-20020a1c4446000000b003d09b0fbf54so7094366wma.3
+        for <sparclinux@vger.kernel.org>; Wed, 14 Dec 2022 03:22:54 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=wj/NGKhLAYwhK6Lvw/Db918GBFSie4zjOTu3uFrT1gA=;
-        b=JFogaZGp4+g4iKu0a+jFPTxp8pcpuR+/8yowr713qLO2QMTp+6zSnG3Pqb1nONfNye
-         A3B+bKBjwx2984k/qRfLZSGJrmczehbJWHCWIWs6ykorZvCKtuYnoDITVhO0A0svbRWh
-         tjWeT4xjck1KROmC598j8ltfVhD1t3mzFUkcgNESpxVQY+2rJjf0WhT6HUthrq0/u1TX
-         DEgxhn/Qvs3vhl5UTD5rAMHzbPsoCuD0N80OJf3Qdq602kD4FVl9p5pgAwoUNqQ43r3L
-         0bS9JOIte2De4+ElOjZCq1ipAMN3rIRznuN4ZZQk9D0n5lw/aIx8XD1fa1q6vgR+i+33
-         L+tw==
-X-Gm-Message-State: ANoB5plQhNpmjmNeWirkXv46UZeNCWC7Roe8kmL1RfEOsGqbA39u7VqB
-        Moxa+LX+pbJl8m5pogGyUyPctw==
-X-Google-Smtp-Source: AA0mqf6JTPFlbgzI8iGusijASEg0Bt+tpHInO5Z4ANoXa2VKfVyLMA6BDQNt3aTd/y7ttlWwr47bgg==
-X-Received: by 2002:a17:902:ccc8:b0:188:640f:f41e with SMTP id z8-20020a170902ccc800b00188640ff41emr24115756ple.4.1670948294373;
-        Tue, 13 Dec 2022 08:18:14 -0800 (PST)
-Received: from localhost ([135.180.226.51])
-        by smtp.gmail.com with ESMTPSA id 13-20020a170902c24d00b001898ca438fcsm39047plg.282.2022.12.13.08.18.13
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 13 Dec 2022 08:18:13 -0800 (PST)
-Date:   Tue, 13 Dec 2022 08:18:13 -0800 (PST)
-X-Google-Original-Date: Tue, 13 Dec 2022 08:18:09 PST (-0800)
-Subject:     Re: [PATCH v3 0/8] Generic IPI sending tracepoint
-In-Reply-To: <20221202155817.2102944-1-vschneid@redhat.com>
-CC:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        h=content-transfer-encoding:in-reply-to:organization:from:references
+         :cc:to:content-language:subject:user-agent:mime-version:date
+         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yxc01zNwMiugjthmgVOlTrtXQnLfLvXjRGMFtbZZLpc=;
+        b=C4mOmWWBBvricML3yw3RmtiVW0L2zFuF4GzXP9hm1F2xiWT8sqU4UIAbC6TpcDPReJ
+         FgWj0q5mKsxiXpouWTLbnUt9QAN4lWerQFmktgMsAeJqRDtsB0PfiOFAvOuL6GFBBMnG
+         N2iKePJDCvoJBfSXrWb3R/xvEBYWeP5+NYMGEgQjqRYwR45JjQTFvabScf/mQcb39jYY
+         R6cCZACeDrr3WC65zLgH6sdUXhE2w3sXO8DYtJFrU4aylJMjkpYc1w+u7XI5/9rDXCrY
+         noF3NJRlBl26gAkd9K/fQIjq0P0VqNIhbYoFqz7m9TA8qscM08GTbRsWFlGBcozftVBJ
+         ulzw==
+X-Gm-Message-State: ANoB5pn8blCqYbLkIvLB9Jyq6nIbhCsjgk9WAjBqv6Z1CCY6yC/xbCyC
+        aS8O0/lHAtEG0R8Qa2gz7BWwfa4r+I+dMNdTvU1v7MQ3JZnbWZxVU3Oxdr4r+IYmb+hi5+ititD
+        p5AVioqo8yVtV4mHMADUBHw==
+X-Received: by 2002:a05:600c:1da2:b0:3cf:5fd2:87a0 with SMTP id p34-20020a05600c1da200b003cf5fd287a0mr17488535wms.40.1671016973466;
+        Wed, 14 Dec 2022 03:22:53 -0800 (PST)
+X-Google-Smtp-Source: AA0mqf4UNUk6/OXN07sN3FMRll3MrS2ehO8GnTfEO+JQv3BigUvXvNgLJLKqkas5vWijxjr/1KiucA==
+X-Received: by 2002:a05:600c:1da2:b0:3cf:5fd2:87a0 with SMTP id p34-20020a05600c1da200b003cf5fd287a0mr17488468wms.40.1671016973157;
+        Wed, 14 Dec 2022 03:22:53 -0800 (PST)
+Received: from ?IPV6:2003:cb:c703:7700:dd7c:92f8:481f:b96b? (p200300cbc7037700dd7c92f8481fb96b.dip0.t-ipconnect.de. [2003:cb:c703:7700:dd7c:92f8:481f:b96b])
+        by smtp.gmail.com with ESMTPSA id o3-20020a05600c510300b003cfa3a12660sm8504320wms.1.2022.12.14.03.22.49
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 14 Dec 2022 03:22:52 -0800 (PST)
+Message-ID: <10bd4fc0-4fc0-bd98-6926-7d721a3bb12e@redhat.com>
+Date:   Wed, 14 Dec 2022 12:22:49 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.1
+Subject: Re: [PATCH mm-unstable RFC 00/26] mm: support
+ __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all architectures with swap PTEs
+Content-Language: en-US
+To:     linux-kernel@vger.kernel.org
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Hugh Dickins <hughd@google.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Mike Rapoport <rppt@linux.ibm.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Nadav Amit <namit@vmware.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
+        x86@kernel.org, linux-alpha@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
         linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        x86@kernel.org, paulmck@kernel.org, rostedt@goodmis.org,
-        peterz@infradead.org, tglx@linutronix.de, bigeasy@linutronix.de,
-        juri.lelli@redhat.com, bristot@redhat.com, mtosatti@redhat.com,
-        frederic@kernel.org, mingo@redhat.com, bp@alien8.de,
-        dave.hansen@linux.intel.com, hpa@zytor.com,
-        Marc Zyngier <maz@kernel.org>, mark.rutland@arm.com,
-        linux@armlinux.org.uk, npiggin@gmail.com, guoren@kernel.org,
-        davem@davemloft.net
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     vschneid@redhat.com
-Message-ID: <mhng-ed30efdc-5b5b-40fa-8661-f99d4e2991ed@palmer-ri-x1c9>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Chris Zankel <chris@zankel.net>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Simek <monstr@monstr.eu>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Richard Weinberger <richard@nod.at>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Stafford Horne <shorne@gmail.com>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vineet Gupta <vgupta@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>
+References: <20221206144730.163732-1-david@redhat.com>
+From:   David Hildenbrand <david@redhat.com>
+Organization: Red Hat
+In-Reply-To: <20221206144730.163732-1-david@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Fri, 02 Dec 2022 07:58:09 PST (-0800), vschneid@redhat.com wrote:
-> Background
-> ==========
->
-> Detecting IPI *reception* is relatively easy, e.g. using
-> trace_irq_handler_{entry,exit} or even just function-trace
-> flush_smp_call_function_queue() for SMP calls.
->
-> Figuring out their *origin*, is trickier as there is no generic tracepoint tied
-> to e.g. smp_call_function():
->
-> o AFAIA x86 has no tracepoint tied to sending IPIs, only receiving them
->   (cf. trace_call_function{_single}_entry()).
-> o arm/arm64 do have trace_ipi_raise(), which gives us the target cpus but also a
->   mostly useless string (smp_calls will all be "Function call interrupts").
-> o Other architectures don't seem to have any IPI-sending related tracepoint.
->
-> I believe one reason those tracepoints used by arm/arm64 ended up as they were
-> is because these archs used to handle IPIs differently from regular interrupts
-> (the IRQ driver would directly invoke an IPI-handling routine), which meant they
-> never showed up in trace_irq_handler_{entry, exit}. The trace_ipi_{entry,exit}
-> tracepoints gave a way to trace IPI reception but those have become redundant as
-> of:
->
->       56afcd3dbd19 ("ARM: Allow IPIs to be handled as normal interrupts")
->       d3afc7f12987 ("arm64: Allow IPIs to be handled as normal interrupts")
->
-> which gave IPIs a "proper" handler function used through
-> generic_handle_domain_irq(), which makes them show up via
-> trace_irq_handler_{entry, exit}.
->
-> Changing stuff up
-> =================
->
-> Per the above, it would make sense to reshuffle trace_ipi_raise() and move it
-> into generic code. This also came up during Daniel's talk on Osnoise at the CPU
-> isolation MC of LPC 2022 [1].
->
-> Now, to be useful, such a tracepoint needs to export:
-> o targeted CPU(s)
-> o calling context
->
-> The only way to get the calling context with trace_ipi_raise() is to trigger a
-> stack dump, e.g. $(trace-cmd -e ipi* -T echo 42).
->
-> This is instead introducing a new tracepoint which exports the relevant context
-> (callsite, and requested callback for when the callsite isn't helpful), and is
-> usable by all architectures as it sits in generic code.
->
-> Another thing worth mentioning is that depending on the callsite, the _RET_IP_
-> fed to the tracepoint is not always useful - generic_exec_single() doesn't tell
-> you much about the actual callback being sent via IPI, which is why the new
-> tracepoint also has a @callback argument.
->
-> Patches
-> =======
->
-> o Patch 1 is included for convenience and will be merged independently. FYI I
->   have libtraceevent patches [2] to improve the
->   pretty-printing of cpumasks using the new type, which look like:
->   <...>-3322  [021]   560.402583: ipi_send_cpumask:     cpumask=14,17,21 callsite=on_each_cpu_cond_mask+0x40 callback=flush_tlb_func+0x0
->   <...>-187   [010]   562.590584: ipi_send_cpumask:     cpumask=0-23 callsite=on_each_cpu_cond_mask+0x40 callback=do_sync_core+0x0
->
-> o Patches 2-6 spread out the tracepoint across relevant sites.
->   Patch 6 ends up sprinkling lots of #include <trace/events/ipi.h> which I'm not
->   the biggest fan of, but is the least horrible solution I've been able to come
->   up with so far.
->
-> o Patch 8 is trying to be smart about tracing the callback associated with the
->   IPI.
->
-> This results in having IPI trace events for:
->
-> o smp_call_function*()
-> o smp_send_reschedule()
-> o irq_work_queue*()
-> o standalone uses of __smp_call_single_queue()
->
-> This is incomplete, just looking at arm64 there's more IPI types that aren't
-> covered:
->
->   IPI_CPU_STOP,
->   IPI_CPU_CRASH_STOP,
->   IPI_TIMER,
->   IPI_WAKEUP,
->
-> ... But it feels like a good starting point.
->
-> Links
-> =====
->
-> [1]: https://youtu.be/5gT57y4OzBM?t=14234
-> [2]: https://lore.kernel.org/all/20221116144154.3662923-1-vschneid@redhat.com/
->
-> Revisions
-> =========
->
-> v2 -> v3
-> ++++++++
->
-> o Dropped the generic export of smp_send_reschedule(), turned it into a macro
->   and a bunch of imports
-> o Dropped the send_call_function_single_ipi() macro madness, split it into sched
->   and smp bits using some of Peter's suggestions
->
-> v1 -> v2
-> ++++++++
->
-> o Ditched single-CPU tracepoint
-> o Changed tracepoint signature to include callback
-> o Changed tracepoint callsite field to void *; the parameter is still UL to save
->   up on casts due to using _RET_IP_.
-> o Fixed linking failures due to not exporting smp_send_reschedule()
->
-> Steven Rostedt (Google) (1):
->   tracing: Add __cpumask to denote a trace event field that is a
->     cpumask_t
->
-> Valentin Schneider (7):
->   trace: Add trace_ipi_send_cpumask()
->   sched, smp: Trace IPIs sent via send_call_function_single_ipi()
->   smp: Trace IPIs sent via arch_send_call_function_ipi_mask()
->   irq_work: Trace self-IPIs sent via arch_irq_work_raise()
->   treewide: Trace IPIs sent via smp_send_reschedule()
->   smp: reword smp call IPI comment
->   sched, smp: Trace smp callback causing an IPI
->
->  arch/alpha/kernel/smp.c                      |  2 +-
->  arch/arc/kernel/smp.c                        |  2 +-
->  arch/arm/kernel/smp.c                        |  5 +-
->  arch/arm/mach-actions/platsmp.c              |  2 +
->  arch/arm64/kernel/smp.c                      |  3 +-
->  arch/csky/kernel/smp.c                       |  2 +-
->  arch/hexagon/kernel/smp.c                    |  2 +-
->  arch/ia64/kernel/smp.c                       |  4 +-
->  arch/loongarch/include/asm/smp.h             |  2 +-
->  arch/mips/include/asm/smp.h                  |  2 +-
->  arch/mips/kernel/rtlx-cmp.c                  |  2 +
->  arch/openrisc/kernel/smp.c                   |  2 +-
->  arch/parisc/kernel/smp.c                     |  4 +-
->  arch/powerpc/kernel/smp.c                    |  6 +-
->  arch/powerpc/kvm/book3s_hv.c                 |  3 +
->  arch/powerpc/platforms/powernv/subcore.c     |  2 +
->  arch/riscv/kernel/smp.c                      |  4 +-
->  arch/s390/kernel/smp.c                       |  2 +-
->  arch/sh/kernel/smp.c                         |  2 +-
->  arch/sparc/kernel/smp_32.c                   |  2 +-
->  arch/sparc/kernel/smp_64.c                   |  2 +-
->  arch/x86/include/asm/smp.h                   |  2 +-
->  arch/x86/kvm/svm/svm.c                       |  4 +
->  arch/x86/kvm/x86.c                           |  2 +
->  arch/xtensa/kernel/smp.c                     |  2 +-
->  include/linux/smp.h                          |  8 +-
->  include/trace/bpf_probe.h                    |  6 ++
->  include/trace/events/ipi.h                   | 22 ++++++
->  include/trace/perf.h                         |  6 ++
->  include/trace/stages/stage1_struct_define.h  |  6 ++
->  include/trace/stages/stage2_data_offsets.h   |  6 ++
->  include/trace/stages/stage3_trace_output.h   |  6 ++
->  include/trace/stages/stage4_event_fields.h   |  6 ++
->  include/trace/stages/stage5_get_offsets.h    |  6 ++
->  include/trace/stages/stage6_event_callback.h | 20 +++++
->  include/trace/stages/stage7_class_define.h   |  2 +
->  kernel/irq_work.c                            | 14 +++-
->  kernel/sched/core.c                          | 19 +++--
->  kernel/sched/smp.h                           |  2 +-
->  kernel/smp.c                                 | 78 ++++++++++++++++----
->  samples/trace_events/trace-events-sample.c   |  2 +-
->  samples/trace_events/trace-events-sample.h   | 34 +++++++--
->  virt/kvm/kvm_main.c                          |  1 +
->  43 files changed, 250 insertions(+), 61 deletions(-)
+On 06.12.22 15:47, David Hildenbrand wrote:
+> This is the follow-up on [1]:
+> 	[PATCH v2 0/8] mm: COW fixes part 3: reliable GUP R/W FOLL_GET of
+> 	anonymous pages
+> 
+> After we implemented __HAVE_ARCH_PTE_SWP_EXCLUSIVE on most prominent
+> enterprise architectures, implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all
+> remaining architectures that support swap PTEs.
+> 
+> This makes sure that exclusive anonymous pages will stay exclusive, even
+> after they were swapped out -- for example, making GUP R/W FOLL_GET of
+> anonymous pages reliable. Details can be found in [1].
+> 
+> This primarily fixes remaining known O_DIRECT memory corruptions that can
+> happen on concurrent swapout, whereby we can lose DMA reads to a page
+> (modifying the user page by writing to it).
+> 
+> To verify, there are two test cases (requiring swap space, obviously):
+> (1) The O_DIRECT+swapout test case [2] from Andrea. This test case tries
+>      triggering a race condition.
+> (2) My vmsplice() test case [3] that tries to detect if the exclusive
+>      marker was lost during swapout, not relying on a race condition.
+> 
+> 
+> For example, on 32bit x86 (with and without PAE), my test case fails
+> without these patches:
+> 	$ ./test_swp_exclusive
+> 	FAIL: page was replaced during COW
+> But succeeds with these patches:
+> 	$ ./test_swp_exclusive
+> 	PASS: page was not replaced during COW
+> 
+> 
+> Why implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE for all architectures, even
+> the ones where swap support might be in a questionable state? This is the
+> first step towards removing "readable_exclusive" migration entries, and
+> instead using pte_swp_exclusive() also with (readable) migration entries
+> instead (as suggested by Peter). The only missing piece for that is
+> supporting pmd_swp_exclusive() on relevant architectures with THP
+> migration support.
+> 
+> As all relevant architectures now implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE,,
+> we can drop __HAVE_ARCH_PTE_SWP_EXCLUSIVE in the last patch.
+> 
+> 
+> RFC because some of the swap PTE layouts are really tricky and I really
+> need some feedback related to deciphering these layouts and "using yet
+> unused PTE bits in swap PTEs". I tried cross-compiling all relevant setups
+> (phew, I might only miss some power/nohash variants), but only tested on
+> x86 so far.
 
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com> # riscv
+As I was messing with sparc64 either way and got debian to boot under 
+QEMU, I verified that the sparc64 change also seems to work as expected 
+(under sun4u).
+
+-- 
+Thanks,
+
+David / dhildenb
+
