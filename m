@@ -2,191 +2,98 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25B82C4332F
-	for <sparclinux@archiver.kernel.org>; Wed, 14 Dec 2022 11:23:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E723BC4332F
+	for <sparclinux@archiver.kernel.org>; Sun, 18 Dec 2022 02:38:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238232AbiLNLXx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 14 Dec 2022 06:23:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41988 "EHLO
+        id S229549AbiLRCiw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 17 Dec 2022 21:38:52 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33898 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238043AbiLNLXn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 14 Dec 2022 06:23:43 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDE582DFA
-        for <sparclinux@vger.kernel.org>; Wed, 14 Dec 2022 03:22:56 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1671016975;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=yxc01zNwMiugjthmgVOlTrtXQnLfLvXjRGMFtbZZLpc=;
-        b=TRsRFy5HWKRJqqxwbSC38MkkVL+pzQVaN48RIhRUvbQBZyedt24vDxP9faiB3QhLUvtPSW
-        jUDazLShTTjthZ9qY/reRE4y5Cap5trYiKq0KlvknrQ+4PgoYPXpD9HQWOo6Qg6rAtYfiW
-        /1ZfU7LhfXDdM3IHhUpPVAiJXEkDOlY=
-Received: from mail-wm1-f72.google.com (mail-wm1-f72.google.com
- [209.85.128.72]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-186-CnWOtodfOVuw7i28U33V5w-1; Wed, 14 Dec 2022 06:22:54 -0500
-X-MC-Unique: CnWOtodfOVuw7i28U33V5w-1
-Received: by mail-wm1-f72.google.com with SMTP id r67-20020a1c4446000000b003d09b0fbf54so7094366wma.3
-        for <sparclinux@vger.kernel.org>; Wed, 14 Dec 2022 03:22:54 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:organization:from:references
-         :cc:to:content-language:subject:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=yxc01zNwMiugjthmgVOlTrtXQnLfLvXjRGMFtbZZLpc=;
-        b=C4mOmWWBBvricML3yw3RmtiVW0L2zFuF4GzXP9hm1F2xiWT8sqU4UIAbC6TpcDPReJ
-         FgWj0q5mKsxiXpouWTLbnUt9QAN4lWerQFmktgMsAeJqRDtsB0PfiOFAvOuL6GFBBMnG
-         N2iKePJDCvoJBfSXrWb3R/xvEBYWeP5+NYMGEgQjqRYwR45JjQTFvabScf/mQcb39jYY
-         R6cCZACeDrr3WC65zLgH6sdUXhE2w3sXO8DYtJFrU4aylJMjkpYc1w+u7XI5/9rDXCrY
-         noF3NJRlBl26gAkd9K/fQIjq0P0VqNIhbYoFqz7m9TA8qscM08GTbRsWFlGBcozftVBJ
-         ulzw==
-X-Gm-Message-State: ANoB5pn8blCqYbLkIvLB9Jyq6nIbhCsjgk9WAjBqv6Z1CCY6yC/xbCyC
-        aS8O0/lHAtEG0R8Qa2gz7BWwfa4r+I+dMNdTvU1v7MQ3JZnbWZxVU3Oxdr4r+IYmb+hi5+ititD
-        p5AVioqo8yVtV4mHMADUBHw==
-X-Received: by 2002:a05:600c:1da2:b0:3cf:5fd2:87a0 with SMTP id p34-20020a05600c1da200b003cf5fd287a0mr17488535wms.40.1671016973466;
-        Wed, 14 Dec 2022 03:22:53 -0800 (PST)
-X-Google-Smtp-Source: AA0mqf4UNUk6/OXN07sN3FMRll3MrS2ehO8GnTfEO+JQv3BigUvXvNgLJLKqkas5vWijxjr/1KiucA==
-X-Received: by 2002:a05:600c:1da2:b0:3cf:5fd2:87a0 with SMTP id p34-20020a05600c1da200b003cf5fd287a0mr17488468wms.40.1671016973157;
-        Wed, 14 Dec 2022 03:22:53 -0800 (PST)
-Received: from ?IPV6:2003:cb:c703:7700:dd7c:92f8:481f:b96b? (p200300cbc7037700dd7c92f8481fb96b.dip0.t-ipconnect.de. [2003:cb:c703:7700:dd7c:92f8:481f:b96b])
-        by smtp.gmail.com with ESMTPSA id o3-20020a05600c510300b003cfa3a12660sm8504320wms.1.2022.12.14.03.22.49
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 14 Dec 2022 03:22:52 -0800 (PST)
-Message-ID: <10bd4fc0-4fc0-bd98-6926-7d721a3bb12e@redhat.com>
-Date:   Wed, 14 Dec 2022 12:22:49 +0100
+        with ESMTP id S229537AbiLRCiv (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 17 Dec 2022 21:38:51 -0500
+X-Greylist: delayed 449 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 17 Dec 2022 18:38:49 PST
+Received: from shared5.iquer.net (shared5.iquer.net [185.57.242.33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F2965FE3
+        for <sparclinux@vger.kernel.org>; Sat, 17 Dec 2022 18:38:49 -0800 (PST)
+Received: by shared5.iquer.net (Postfix, from userid 1039)
+        id 8A026195D81; Sun, 18 Dec 2022 03:31:19 +0100 (CET)
+To:     sparclinux@vger.kernel.org
+Subject: Hallo und Guten Morgen,
+X-PHP-Originating-Script: 1039:fy2rmkw6BqH.php
+Date:   Sun, 18 Dec 2022 03:31:19 +0100
+From:   DOKTOR BRENDA BRUCE ASSOZIIERT UND CO 
+        <support@portal.bundesinitiative-impact-investing.de>
+Reply-To: infopreis86148@europe.com
+Message-ID: <71744f3bca080d0471068f4deb48da19@portal.bundesinitiative-impact-investing.de>
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.5.1
-Subject: Re: [PATCH mm-unstable RFC 00/26] mm: support
- __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all architectures with swap PTEs
-Content-Language: en-US
-To:     linux-kernel@vger.kernel.org
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Nadav Amit <namit@vmware.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
-        x86@kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Chris Zankel <chris@zankel.net>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Matt Turner <mattst88@gmail.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michal Simek <monstr@monstr.eu>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Richard Weinberger <richard@nod.at>,
-        Rich Felker <dalias@libc.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Stafford Horne <shorne@gmail.com>,
-        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vineet Gupta <vgupta@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>
-References: <20221206144730.163732-1-david@redhat.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-In-Reply-To: <20221206144730.163732-1-david@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 06.12.22 15:47, David Hildenbrand wrote:
-> This is the follow-up on [1]:
-> 	[PATCH v2 0/8] mm: COW fixes part 3: reliable GUP R/W FOLL_GET of
-> 	anonymous pages
-> 
-> After we implemented __HAVE_ARCH_PTE_SWP_EXCLUSIVE on most prominent
-> enterprise architectures, implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all
-> remaining architectures that support swap PTEs.
-> 
-> This makes sure that exclusive anonymous pages will stay exclusive, even
-> after they were swapped out -- for example, making GUP R/W FOLL_GET of
-> anonymous pages reliable. Details can be found in [1].
-> 
-> This primarily fixes remaining known O_DIRECT memory corruptions that can
-> happen on concurrent swapout, whereby we can lose DMA reads to a page
-> (modifying the user page by writing to it).
-> 
-> To verify, there are two test cases (requiring swap space, obviously):
-> (1) The O_DIRECT+swapout test case [2] from Andrea. This test case tries
->      triggering a race condition.
-> (2) My vmsplice() test case [3] that tries to detect if the exclusive
->      marker was lost during swapout, not relying on a race condition.
-> 
-> 
-> For example, on 32bit x86 (with and without PAE), my test case fails
-> without these patches:
-> 	$ ./test_swp_exclusive
-> 	FAIL: page was replaced during COW
-> But succeeds with these patches:
-> 	$ ./test_swp_exclusive
-> 	PASS: page was not replaced during COW
-> 
-> 
-> Why implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE for all architectures, even
-> the ones where swap support might be in a questionable state? This is the
-> first step towards removing "readable_exclusive" migration entries, and
-> instead using pte_swp_exclusive() also with (readable) migration entries
-> instead (as suggested by Peter). The only missing piece for that is
-> supporting pmd_swp_exclusive() on relevant architectures with THP
-> migration support.
-> 
-> As all relevant architectures now implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE,,
-> we can drop __HAVE_ARCH_PTE_SWP_EXCLUSIVE in the last patch.
-> 
-> 
-> RFC because some of the swap PTE layouts are really tricky and I really
-> need some feedback related to deciphering these layouts and "using yet
-> unused PTE bits in swap PTEs". I tried cross-compiling all relevant setups
-> (phew, I might only miss some power/nohash variants), but only tested on
-> x86 so far.
+DOKTOR BRENDA BRUCE ASSOZIIERT UND CO 
+#########################################
+LOTERIA DE NAVIDAD 2022 INTERNATIONAL YEARLY SWEEP STAKE 
+ABC Lotería de Navidad 2022 
+ HAUPT BÜRO: Avenida de Victoria 10 28045 Madrid, Spanien
+TEL/FAX: 34 602810185. 
+E-MAIL: spainlottoes@socialworker.net
 
-As I was messing with sparc64 either way and got debian to boot under 
-QEMU, I verified that the sparc64 change also seems to work as expected 
-(under sun4u).
+REFERENZNUMMER: UNHCR:86148/ESP
+LOTTO:CHARGENNUMMER: ACNUR/13437-EMS
+LOTTO:SERIENNUMMER: UNICO/19517/2022
 
--- 
-Thanks,
+ Wir gratulieren und informieren Sie über die Auswahl des Goldpreises €1.225.000, 15 CENT, EL GORDO DE LA PRIMITIVA LOTTERIE IN VERBINDUNG MIT EUROMILLIONS ESPAÑA INTERNATIONAL LOTTERY PROMOTION PROGRAM SOMMER-BONANZA MADRID SPANIEN,Um Ihren Gewinnerfonds zu erhalten, bitten wir Sie, die folgenden Informationen an Ihren autorisierten Vertreter zu senden. DOKTOR BRENDA BRUCE ASSOCIATES AND CO, FÜR DIE BEARBEITUNG UND FREIGABE IHRES GELDES: PER DIREKTWERBUNG infopreis86148@europe.com
+ 
+ Z. HD,Sehr geehrte / r Fondsempfänger / E-Mail-Adresse Eigentum
+########################################################################
+  Die endgültige Entscheidung über die Zahlung von nicht beanspruchtem Preisgeld
 
-David / dhildenb
+Wir möchten Sie darüber informieren, dass das Büro für nicht beanspruchte Preisgelder im spanischen Finanzministerium unsere Anwaltskanzlei als Rechtsberater mit der Bearbeitung und Auszahlung Ihres verwirkten Preisgeldes beauftragt hat, das seit fast zwei Jahren nicht beansprucht wurde. Derzeit beträgt der fällige Gesamtbetrag EUR.1.250.225,15. während das ursprüngliche Preisgeld 935.470,15 Euro betrug.
+
+Diese Summe wurde gewinnbringend investiert, daher die Erhöhung auf die obige Summe. Dementsprechend wurde Ihr Geld von der Lotteriegesellschaft mit einer auf Ihren Namen lautenden Versicherungspolice bei der La Caixa Bank eingezahlt.
+ 
+Das Preisgeld wurde nach der jährlichen Weihnachtslotterie in Spanien vergeben, einige Gutscheine wurden über eine Investmentgesellschaft gekauft. Die Lotteriegesellschaft hat seitdem viele Male Informationen über Ihr nicht beanspruchtes Geld gesendet, ohne dass Sie darauf geantwortet haben, Leider hat sich niemand an unser Büro gewandt, um den Gewinnanspruch in Ihrem Namen einzuleiten, während die Zeit verstrichen ist. Ihre Gutschein Nummer lautet 06095.
+ 
+ Alle Teilnehmer wurden anhand ihres Namens und ihrer E-Mail-Adresse mithilfe eines zufälligen Computersystems von den weltweiten Standorten identifiziert und ausgewählt. Namen und E-Mails stammen von Philanthropen, Unternehmen, Fluggesellschaften, Versicherungsunternehmen, Aktionären, Krankenhäusern und humanitären Organisationen auf der ganzen Welt.Nach spanischem Recht können nicht beanspruchte Preisgelder jedes Jahr überprüft werden, insbesondere wenn der Begünstigte Europäer ist, wird der Gewinn reinvestiert . Aus diesem Grund wurden wir vom Büro für nicht beanspruchte Preise angewiesen, Ihnen diese E-Mail zu senden, um Sie erneut über die Aktualisierung des nicht beanspruchten Preisgelds zu informieren.
+  
+ Bitte beachten Sie, dass die Lotteriegesellschaft die Übereinstimmung Ihrer Identität überprüft und bestätigt, bevor Sie den Fonds zur Verfügung stellen. Um Ihre Ansprüche zu starten. Bitte kontaktieren Sie unseren deutsch- und englischsprachigen Rechtsanwalt DOKTOR BRENDA BRUCE ASSOZIIERT UND CO TEL: 0034 602810185. FAXNUMMER:   34 602810185 , E-Mail-Adresse infopreis@consultant.com ,  Er ist für Auslandszahlungen zuständig. Ihre Bewerbung sollte vor dem 31. Januar   eingereicht werden.2022, / andernfalls könnte das Geld als verfallen umgewandelt werden. Wir freuen uns darauf, von Ihnen zu hören, da wir Sie rechtlich unterstützen warden
+ 
+Bitte füllen Sie das Formular aus und senden Sie es an unser Büro zurück, damit wir mit dem Bewerbungsprozess beginnen können. Das Geld wird Ihnen von der International Lotto Investment Bank ausgezahlt.
+ 
+Die Anwaltskanzlei  DOKTOR BRENDA BRUCE ASSOZIIERT UND CO und Partner kann nach Ablauf dieser Frist nicht mehr haftbar gemacht werden. Sie erhalten unser Bestätigungsschreiben per Fax, sobald das Ausfüllformular eingegangen ist. Bitte beachten Sie, dass aus Sicherheitsgründen alle Ihre Daten gemäß dem Datenschutzgesetz der Europäischen Union streng vertraulich behandelt werden. FÜLLEN SIE DAS ANMELDEFORMULAR KORREKT aus.
+
+
+Mitfreundlichen Grüßen
+DOKTOR BRENDA BRUCE ASSOZIIERT UND CO
+
+ 
+ ANMELDEFORMULAR FÜR GEWINNANspruch vom 29 Oktober.  bis 31. Januar 2022  
+Hinweis bitte geben Sie die folgenden Informationen, wie unten gefordert,e mail: infopreis86148@europe.com ,es zurück in mein Büro sofort für uns in der Lage zu sein die Legalisierung Prozess Ihrer  Personliche investiertes Preisgeld zu vervollständigen, und das Geld wird Ihnen von Zentralbank spain Int  ausgezahlt.  Alle Prozess Überprüfung durch unsere Kanzlei ist für Sie kostenlos, weil unsere Kosten werden von der internationalen  Lotto Kommission am Ende des Prozesses zu zahlen, wenn Sie Ihr Geld erhalten.Wenn Sie nicht die erforderlichen  Informationen vor der Zeit gegeben hat, können ist Anwaltskanzlei nicht haftbar gemacht werden, wenn Ihr Geld reinvestiert  wurde.
+ 
+ Ein Bestätigungsschreiben wird Ihnen Email werden sofort wenn wir komplette Überprüfung der Informationen die Sie uns zur  Verfügung stellen habe, Ich werde die Investment Security-Unternehmen unverzüglich über die von Ihnen angegebene Informationen zu kommen,  bevor sie werden mit Ihnen Kontakt aufnehmen für die ausZahlung von Ihrem Geld . Ihre Daten werden vertraulich gehalten  nach der Europäischen Union Datenschutzrecht
+ 
+"Antworten Sie nicht auf die Absenderadresse oder die Quell-E-Mail-Adresse, es wird über den Computer gesendet virtuelle  Hilfe für die Antwort wird  nicht meine menschliche sondern Computer" Daher müssen Sie die Treuhänder über Telefon und E- Mail-Adresse oben" (ACHTUNG Wir (bitten Sie, auf diese E-Mail-Adresse zu antworten, infopreis@consultant.com)
+ 
+Name:*__________________
+Vorname*______________Vorname Partner*____________
+Referenz:UNHCR:86148/ESP)Gewinn-summe:€________
+Strasse/Nr*__________________________Plz/Ort*________
+Nationalität* __________________*Geburtsdatum*_______
+Telefon Privat*__________*Telefon Geschäft*____________
+E-Email:*_______________________________*Beruf*_______
+ 
+
+Nachdem Sie die von Ihnen geforderten Daten bereitgestellt haben, können Sie davon ausgehen, dass Sie innerhalb weniger  Stunden direkt von diesem Büro erfahren werden. Bis dahin müssen wir Ihre Informationen verarbeitet und Ihre Fondsakte für  die Zustellung vorbereitet haben, um Verzögerungen zu vermeiden. Wir gehen davon aus, dass Sie die erklärenden Anweisungen  und Anweisungen zum Einholen und Einholen Ihrer Auszeichnungen (1.250.225.15 EUROS) verstehen, die Ihnen vom spanischen El  Gordo de La Primitiva International Lotterie Madrid legal zugesprochen wurden
+ 
+ BANK ZAHLUNGSOPTIONEN: A / BANKÜBERWEISUNG Oder BANK CERTIFIED CHECK (BANKDATEN SIND NUR NOTWENDIG, WENN SIE SICH FÜR EINE  BANKÜBERWEISUNG ENTSCHIEDEN HABEN)
+ 
+12.Barscheck*_______________________________ 
+13.Bankkonto*_________________________________ 
+ 14.Swift-Code*_________________________________
+15.BANKAdress*_________________________________
+16.Datum*______________*Unterschrift*___________
+ 
+ Rechtsanwältin DOKTOR BRENDA BRUCE ASSOZIIERT UND CO, Abogados, Fiscal Y Accesorios horario de consultas Lunes.bis Samstag De. 09 - 16.30 Uhr  654280 / MLA & (Seien Sie informiert, dass Ihr Vertreter 10% des Preises als Provision erhält, wenn Sie Ihr Geld auf Ihrem  angegebenen Konto erhalten haben) Mitglied des Consejo de Constitucional de España, (ACHTUNG Wir bitten Sie, auf diese E-Mail-Adresse zu antworten esp042@spainmail.com) BÜRO-KONTOINFORMATIONEN-IBAN ES17 2100 5624 1102 0011 7719 SWIFT CODE: CAIXESBBXXX.  KONTONAME,LA PLACITA DEL MIRADOR S.L SPAIN,
 
