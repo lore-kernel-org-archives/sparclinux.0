@@ -2,98 +2,262 @@ Return-Path: <sparclinux-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E723BC4332F
-	for <sparclinux@archiver.kernel.org>; Sun, 18 Dec 2022 02:38:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3658CC3DA7D
+	for <sparclinux@archiver.kernel.org>; Sun, 18 Dec 2022 03:33:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229549AbiLRCiw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 17 Dec 2022 21:38:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33898 "EHLO
+        id S230131AbiLRDdW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 17 Dec 2022 22:33:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39894 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiLRCiv (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 17 Dec 2022 21:38:51 -0500
-X-Greylist: delayed 449 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sat, 17 Dec 2022 18:38:49 PST
-Received: from shared5.iquer.net (shared5.iquer.net [185.57.242.33])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F2965FE3
-        for <sparclinux@vger.kernel.org>; Sat, 17 Dec 2022 18:38:49 -0800 (PST)
-Received: by shared5.iquer.net (Postfix, from userid 1039)
-        id 8A026195D81; Sun, 18 Dec 2022 03:31:19 +0100 (CET)
-To:     sparclinux@vger.kernel.org
-Subject: Hallo und Guten Morgen,
-X-PHP-Originating-Script: 1039:fy2rmkw6BqH.php
-Date:   Sun, 18 Dec 2022 03:31:19 +0100
-From:   DOKTOR BRENDA BRUCE ASSOZIIERT UND CO 
-        <support@portal.bundesinitiative-impact-investing.de>
-Reply-To: infopreis86148@europe.com
-Message-ID: <71744f3bca080d0471068f4deb48da19@portal.bundesinitiative-impact-investing.de>
+        with ESMTP id S230083AbiLRDdS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 17 Dec 2022 22:33:18 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BDF2DFC5;
+        Sat, 17 Dec 2022 19:33:16 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 77499B801B8;
+        Sun, 18 Dec 2022 03:33:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16076C433A1;
+        Sun, 18 Dec 2022 03:33:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1671334394;
+        bh=tIkYFzXEO2chGeVvpnhnUSRiaYqUOvaPo7G7agH5seU=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=NZznuv2H9MQueEsr6jgEx1junfwjYsvNcOR43Yi/brcuSQR9UH+m6CrgXjrTxCtE7
+         e6bwe9cJqXk1WuwXoKDMvpo9TzcCqL2J7/rfInWmXCzjpBl8AaPX8/ZDKlqMvr8Jnb
+         yPLDT135jBzOiGZQnkegHTEPk2QAKPw71lNMeRicomC31rduSeqQEgDS6bhnzMGqcq
+         lEoicK81SZ/d6NH3t3vJk88ScyMf0ePdwVfZuCHv/jvCCwGUN6mZAZhI4t+dG610gH
+         fki7MqLM2MPF400PykUCrGAk2XSSyU7i3CvLgBvt+bZ5XueXYRrGIX178MJ5NirAWw
+         7omV8lnwwK5iA==
+Received: by mail-ed1-f41.google.com with SMTP id c66so8663216edf.5;
+        Sat, 17 Dec 2022 19:33:13 -0800 (PST)
+X-Gm-Message-State: ANoB5plJ8pjO5BU+5v5yl3nOKX1Q0HJhAly0WbfPacy7qvj3vmXNuHS2
+        Y8i85IyPHUomi832jhxjl4eA6N+uASbxGv+Y4LQ=
+X-Google-Smtp-Source: AA0mqf6HJrjOIUv4bzcPb2/bKtCuYat7PlsqCSDeflk0KMk+BHjoAVHTjhW6I8Yv82IxystWMfrMsjTObq3olIShGs4=
+X-Received: by 2002:a05:6402:5003:b0:462:a25f:f0f2 with SMTP id
+ p3-20020a056402500300b00462a25ff0f2mr35194911eda.156.1671334392205; Sat, 17
+ Dec 2022 19:33:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <20221206144730.163732-1-david@redhat.com>
+In-Reply-To: <20221206144730.163732-1-david@redhat.com>
+From:   Huacai Chen <chenhuacai@kernel.org>
+Date:   Sun, 18 Dec 2022 11:32:59 +0800
+X-Gmail-Original-Message-ID: <CAAhV-H4bU7JnAPyf9Mv1m+WGR5NWmHJLva3d9_CsRd4Q_OHVpg@mail.gmail.com>
+Message-ID: <CAAhV-H4bU7JnAPyf9Mv1m+WGR5NWmHJLva3d9_CsRd4Q_OHVpg@mail.gmail.com>
+Subject: Re: [PATCH mm-unstable RFC 00/26] mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+ on all architectures with swap PTEs
+To:     David Hildenbrand <david@redhat.com>
+Cc:     linux-kernel@vger.kernel.org,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hugh Dickins <hughd@google.com>,
+        John Hubbard <jhubbard@nvidia.com>,
+        Jason Gunthorpe <jgg@nvidia.com>,
+        Mike Rapoport <rppt@linux.ibm.com>,
+        Yang Shi <shy828301@gmail.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Nadav Amit <namit@vmware.com>,
+        Andrea Arcangeli <aarcange@redhat.com>,
+        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
+        x86@kernel.org, linux-alpha@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Borislav Petkov <bp@alien8.de>, Brian Cain <bcain@quicinc.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Chris Zankel <chris@zankel.net>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
+        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        "James E.J. Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Johannes Berg <johannes@sipsolutions.net>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Simek <monstr@monstr.eu>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Richard Weinberger <richard@nod.at>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Stafford Horne <shorne@gmail.com>,
+        Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vineet Gupta <vgupta@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-DOKTOR BRENDA BRUCE ASSOZIIERT UND CO 
-#########################################
-LOTERIA DE NAVIDAD 2022 INTERNATIONAL YEARLY SWEEP STAKE 
-ABC Lotería de Navidad 2022 
- HAUPT BÜRO: Avenida de Victoria 10 28045 Madrid, Spanien
-TEL/FAX: 34 602810185. 
-E-MAIL: spainlottoes@socialworker.net
+Hi, David,
 
-REFERENZNUMMER: UNHCR:86148/ESP
-LOTTO:CHARGENNUMMER: ACNUR/13437-EMS
-LOTTO:SERIENNUMMER: UNICO/19517/2022
+What is the opposite of exclusive here? Shared or inclusive? I prefer
+pte_swp_mkshared() or pte_swp_mkinclusive() rather than
+pte_swp_clear_exclusive(). Existing examples: dirty/clean, young/old
+...
 
- Wir gratulieren und informieren Sie über die Auswahl des Goldpreises €1.225.000, 15 CENT, EL GORDO DE LA PRIMITIVA LOTTERIE IN VERBINDUNG MIT EUROMILLIONS ESPAÑA INTERNATIONAL LOTTERY PROMOTION PROGRAM SOMMER-BONANZA MADRID SPANIEN,Um Ihren Gewinnerfonds zu erhalten, bitten wir Sie, die folgenden Informationen an Ihren autorisierten Vertreter zu senden. DOKTOR BRENDA BRUCE ASSOCIATES AND CO, FÜR DIE BEARBEITUNG UND FREIGABE IHRES GELDES: PER DIREKTWERBUNG infopreis86148@europe.com
- 
- Z. HD,Sehr geehrte / r Fondsempfänger / E-Mail-Adresse Eigentum
-########################################################################
-  Die endgültige Entscheidung über die Zahlung von nicht beanspruchtem Preisgeld
+Huacai
 
-Wir möchten Sie darüber informieren, dass das Büro für nicht beanspruchte Preisgelder im spanischen Finanzministerium unsere Anwaltskanzlei als Rechtsberater mit der Bearbeitung und Auszahlung Ihres verwirkten Preisgeldes beauftragt hat, das seit fast zwei Jahren nicht beansprucht wurde. Derzeit beträgt der fällige Gesamtbetrag EUR.1.250.225,15. während das ursprüngliche Preisgeld 935.470,15 Euro betrug.
-
-Diese Summe wurde gewinnbringend investiert, daher die Erhöhung auf die obige Summe. Dementsprechend wurde Ihr Geld von der Lotteriegesellschaft mit einer auf Ihren Namen lautenden Versicherungspolice bei der La Caixa Bank eingezahlt.
- 
-Das Preisgeld wurde nach der jährlichen Weihnachtslotterie in Spanien vergeben, einige Gutscheine wurden über eine Investmentgesellschaft gekauft. Die Lotteriegesellschaft hat seitdem viele Male Informationen über Ihr nicht beanspruchtes Geld gesendet, ohne dass Sie darauf geantwortet haben, Leider hat sich niemand an unser Büro gewandt, um den Gewinnanspruch in Ihrem Namen einzuleiten, während die Zeit verstrichen ist. Ihre Gutschein Nummer lautet 06095.
- 
- Alle Teilnehmer wurden anhand ihres Namens und ihrer E-Mail-Adresse mithilfe eines zufälligen Computersystems von den weltweiten Standorten identifiziert und ausgewählt. Namen und E-Mails stammen von Philanthropen, Unternehmen, Fluggesellschaften, Versicherungsunternehmen, Aktionären, Krankenhäusern und humanitären Organisationen auf der ganzen Welt.Nach spanischem Recht können nicht beanspruchte Preisgelder jedes Jahr überprüft werden, insbesondere wenn der Begünstigte Europäer ist, wird der Gewinn reinvestiert . Aus diesem Grund wurden wir vom Büro für nicht beanspruchte Preise angewiesen, Ihnen diese E-Mail zu senden, um Sie erneut über die Aktualisierung des nicht beanspruchten Preisgelds zu informieren.
-  
- Bitte beachten Sie, dass die Lotteriegesellschaft die Übereinstimmung Ihrer Identität überprüft und bestätigt, bevor Sie den Fonds zur Verfügung stellen. Um Ihre Ansprüche zu starten. Bitte kontaktieren Sie unseren deutsch- und englischsprachigen Rechtsanwalt DOKTOR BRENDA BRUCE ASSOZIIERT UND CO TEL: 0034 602810185. FAXNUMMER:   34 602810185 , E-Mail-Adresse infopreis@consultant.com ,  Er ist für Auslandszahlungen zuständig. Ihre Bewerbung sollte vor dem 31. Januar   eingereicht werden.2022, / andernfalls könnte das Geld als verfallen umgewandelt werden. Wir freuen uns darauf, von Ihnen zu hören, da wir Sie rechtlich unterstützen warden
- 
-Bitte füllen Sie das Formular aus und senden Sie es an unser Büro zurück, damit wir mit dem Bewerbungsprozess beginnen können. Das Geld wird Ihnen von der International Lotto Investment Bank ausgezahlt.
- 
-Die Anwaltskanzlei  DOKTOR BRENDA BRUCE ASSOZIIERT UND CO und Partner kann nach Ablauf dieser Frist nicht mehr haftbar gemacht werden. Sie erhalten unser Bestätigungsschreiben per Fax, sobald das Ausfüllformular eingegangen ist. Bitte beachten Sie, dass aus Sicherheitsgründen alle Ihre Daten gemäß dem Datenschutzgesetz der Europäischen Union streng vertraulich behandelt werden. FÜLLEN SIE DAS ANMELDEFORMULAR KORREKT aus.
-
-
-Mitfreundlichen Grüßen
-DOKTOR BRENDA BRUCE ASSOZIIERT UND CO
-
- 
- ANMELDEFORMULAR FÜR GEWINNANspruch vom 29 Oktober.  bis 31. Januar 2022  
-Hinweis bitte geben Sie die folgenden Informationen, wie unten gefordert,e mail: infopreis86148@europe.com ,es zurück in mein Büro sofort für uns in der Lage zu sein die Legalisierung Prozess Ihrer  Personliche investiertes Preisgeld zu vervollständigen, und das Geld wird Ihnen von Zentralbank spain Int  ausgezahlt.  Alle Prozess Überprüfung durch unsere Kanzlei ist für Sie kostenlos, weil unsere Kosten werden von der internationalen  Lotto Kommission am Ende des Prozesses zu zahlen, wenn Sie Ihr Geld erhalten.Wenn Sie nicht die erforderlichen  Informationen vor der Zeit gegeben hat, können ist Anwaltskanzlei nicht haftbar gemacht werden, wenn Ihr Geld reinvestiert  wurde.
- 
- Ein Bestätigungsschreiben wird Ihnen Email werden sofort wenn wir komplette Überprüfung der Informationen die Sie uns zur  Verfügung stellen habe, Ich werde die Investment Security-Unternehmen unverzüglich über die von Ihnen angegebene Informationen zu kommen,  bevor sie werden mit Ihnen Kontakt aufnehmen für die ausZahlung von Ihrem Geld . Ihre Daten werden vertraulich gehalten  nach der Europäischen Union Datenschutzrecht
- 
-"Antworten Sie nicht auf die Absenderadresse oder die Quell-E-Mail-Adresse, es wird über den Computer gesendet virtuelle  Hilfe für die Antwort wird  nicht meine menschliche sondern Computer" Daher müssen Sie die Treuhänder über Telefon und E- Mail-Adresse oben" (ACHTUNG Wir (bitten Sie, auf diese E-Mail-Adresse zu antworten, infopreis@consultant.com)
- 
-Name:*__________________
-Vorname*______________Vorname Partner*____________
-Referenz:UNHCR:86148/ESP)Gewinn-summe:€________
-Strasse/Nr*__________________________Plz/Ort*________
-Nationalität* __________________*Geburtsdatum*_______
-Telefon Privat*__________*Telefon Geschäft*____________
-E-Email:*_______________________________*Beruf*_______
- 
-
-Nachdem Sie die von Ihnen geforderten Daten bereitgestellt haben, können Sie davon ausgehen, dass Sie innerhalb weniger  Stunden direkt von diesem Büro erfahren werden. Bis dahin müssen wir Ihre Informationen verarbeitet und Ihre Fondsakte für  die Zustellung vorbereitet haben, um Verzögerungen zu vermeiden. Wir gehen davon aus, dass Sie die erklärenden Anweisungen  und Anweisungen zum Einholen und Einholen Ihrer Auszeichnungen (1.250.225.15 EUROS) verstehen, die Ihnen vom spanischen El  Gordo de La Primitiva International Lotterie Madrid legal zugesprochen wurden
- 
- BANK ZAHLUNGSOPTIONEN: A / BANKÜBERWEISUNG Oder BANK CERTIFIED CHECK (BANKDATEN SIND NUR NOTWENDIG, WENN SIE SICH FÜR EINE  BANKÜBERWEISUNG ENTSCHIEDEN HABEN)
- 
-12.Barscheck*_______________________________ 
-13.Bankkonto*_________________________________ 
- 14.Swift-Code*_________________________________
-15.BANKAdress*_________________________________
-16.Datum*______________*Unterschrift*___________
- 
- Rechtsanwältin DOKTOR BRENDA BRUCE ASSOZIIERT UND CO, Abogados, Fiscal Y Accesorios horario de consultas Lunes.bis Samstag De. 09 - 16.30 Uhr  654280 / MLA & (Seien Sie informiert, dass Ihr Vertreter 10% des Preises als Provision erhält, wenn Sie Ihr Geld auf Ihrem  angegebenen Konto erhalten haben) Mitglied des Consejo de Constitucional de España, (ACHTUNG Wir bitten Sie, auf diese E-Mail-Adresse zu antworten esp042@spainmail.com) BÜRO-KONTOINFORMATIONEN-IBAN ES17 2100 5624 1102 0011 7719 SWIFT CODE: CAIXESBBXXX.  KONTONAME,LA PLACITA DEL MIRADOR S.L SPAIN,
-
+On Tue, Dec 6, 2022 at 10:48 PM David Hildenbrand <david@redhat.com> wrote:
+>
+> This is the follow-up on [1]:
+>         [PATCH v2 0/8] mm: COW fixes part 3: reliable GUP R/W FOLL_GET of
+>         anonymous pages
+>
+> After we implemented __HAVE_ARCH_PTE_SWP_EXCLUSIVE on most prominent
+> enterprise architectures, implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all
+> remaining architectures that support swap PTEs.
+>
+> This makes sure that exclusive anonymous pages will stay exclusive, even
+> after they were swapped out -- for example, making GUP R/W FOLL_GET of
+> anonymous pages reliable. Details can be found in [1].
+>
+> This primarily fixes remaining known O_DIRECT memory corruptions that can
+> happen on concurrent swapout, whereby we can lose DMA reads to a page
+> (modifying the user page by writing to it).
+>
+> To verify, there are two test cases (requiring swap space, obviously):
+> (1) The O_DIRECT+swapout test case [2] from Andrea. This test case tries
+>     triggering a race condition.
+> (2) My vmsplice() test case [3] that tries to detect if the exclusive
+>     marker was lost during swapout, not relying on a race condition.
+>
+>
+> For example, on 32bit x86 (with and without PAE), my test case fails
+> without these patches:
+>         $ ./test_swp_exclusive
+>         FAIL: page was replaced during COW
+> But succeeds with these patches:
+>         $ ./test_swp_exclusive
+>         PASS: page was not replaced during COW
+>
+>
+> Why implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE for all architectures, even
+> the ones where swap support might be in a questionable state? This is the
+> first step towards removing "readable_exclusive" migration entries, and
+> instead using pte_swp_exclusive() also with (readable) migration entries
+> instead (as suggested by Peter). The only missing piece for that is
+> supporting pmd_swp_exclusive() on relevant architectures with THP
+> migration support.
+>
+> As all relevant architectures now implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE,,
+> we can drop __HAVE_ARCH_PTE_SWP_EXCLUSIVE in the last patch.
+>
+>
+> RFC because some of the swap PTE layouts are really tricky and I really
+> need some feedback related to deciphering these layouts and "using yet
+> unused PTE bits in swap PTEs". I tried cross-compiling all relevant setups
+> (phew, I might only miss some power/nohash variants), but only tested on
+> x86 so far.
+>
+> CCing arch maintainers only on this cover letter and on the respective
+> patch(es).
+>
+>
+> [1] https://lkml.kernel.org/r/20220329164329.208407-1-david@redhat.com
+> [2] https://gitlab.com/aarcange/kernel-testcases-for-v5.11/-/blob/main/page_count_do_wp_page-swap.c
+> [3] https://gitlab.com/davidhildenbrand/scratchspace/-/blob/main/test_swp_exclusive.c
+>
+> David Hildenbrand (26):
+>   mm/debug_vm_pgtable: more pte_swp_exclusive() sanity checks
+>   alpha/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   arc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   arm/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   csky/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   hexagon/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   ia64/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   loongarch/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   m68k/mm: remove dummy __swp definitions for nommu
+>   m68k/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   microblaze/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   mips/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   nios2/mm: refactor swap PTE layout
+>   nios2/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   openrisc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   parisc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   powerpc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 32bit book3s
+>   powerpc/nohash/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   riscv/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   sh/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   sparc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 32bit
+>   sparc/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE on 64bit
+>   um/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   x86/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE also on 32bit
+>   xtensa/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>   mm: remove __HAVE_ARCH_PTE_SWP_EXCLUSIVE
+>
+>  arch/alpha/include/asm/pgtable.h              | 40 ++++++++-
+>  arch/arc/include/asm/pgtable-bits-arcv2.h     | 26 +++++-
+>  arch/arm/include/asm/pgtable-2level.h         |  3 +
+>  arch/arm/include/asm/pgtable-3level.h         |  3 +
+>  arch/arm/include/asm/pgtable.h                | 34 ++++++--
+>  arch/arm64/include/asm/pgtable.h              |  1 -
+>  arch/csky/abiv1/inc/abi/pgtable-bits.h        | 13 ++-
+>  arch/csky/abiv2/inc/abi/pgtable-bits.h        | 19 ++--
+>  arch/csky/include/asm/pgtable.h               | 17 ++++
+>  arch/hexagon/include/asm/pgtable.h            | 36 ++++++--
+>  arch/ia64/include/asm/pgtable.h               | 31 ++++++-
+>  arch/loongarch/include/asm/pgtable-bits.h     |  4 +
+>  arch/loongarch/include/asm/pgtable.h          | 38 +++++++-
+>  arch/m68k/include/asm/mcf_pgtable.h           | 35 +++++++-
+>  arch/m68k/include/asm/motorola_pgtable.h      | 37 +++++++-
+>  arch/m68k/include/asm/pgtable_no.h            |  6 --
+>  arch/m68k/include/asm/sun3_pgtable.h          | 38 +++++++-
+>  arch/microblaze/include/asm/pgtable.h         | 44 +++++++---
+>  arch/mips/include/asm/pgtable-32.h            | 86 ++++++++++++++++---
+>  arch/mips/include/asm/pgtable-64.h            | 23 ++++-
+>  arch/mips/include/asm/pgtable.h               | 35 ++++++++
+>  arch/nios2/include/asm/pgtable-bits.h         |  3 +
+>  arch/nios2/include/asm/pgtable.h              | 37 ++++++--
+>  arch/openrisc/include/asm/pgtable.h           | 40 +++++++--
+>  arch/parisc/include/asm/pgtable.h             | 40 ++++++++-
+>  arch/powerpc/include/asm/book3s/32/pgtable.h  | 37 ++++++--
+>  arch/powerpc/include/asm/book3s/64/pgtable.h  |  1 -
+>  arch/powerpc/include/asm/nohash/32/pgtable.h  | 22 +++--
+>  arch/powerpc/include/asm/nohash/32/pte-40x.h  |  6 +-
+>  arch/powerpc/include/asm/nohash/32/pte-44x.h  | 18 +---
+>  arch/powerpc/include/asm/nohash/32/pte-85xx.h |  4 +-
+>  arch/powerpc/include/asm/nohash/64/pgtable.h  | 24 +++++-
+>  arch/powerpc/include/asm/nohash/pgtable.h     | 15 ++++
+>  arch/powerpc/include/asm/nohash/pte-e500.h    |  1 -
+>  arch/riscv/include/asm/pgtable-bits.h         |  3 +
+>  arch/riscv/include/asm/pgtable.h              | 28 ++++--
+>  arch/s390/include/asm/pgtable.h               |  1 -
+>  arch/sh/include/asm/pgtable_32.h              | 53 +++++++++---
+>  arch/sparc/include/asm/pgtable_32.h           | 26 +++++-
+>  arch/sparc/include/asm/pgtable_64.h           | 37 +++++++-
+>  arch/sparc/include/asm/pgtsrmmu.h             | 14 +--
+>  arch/um/include/asm/pgtable.h                 | 36 +++++++-
+>  arch/x86/include/asm/pgtable-2level.h         | 26 ++++--
+>  arch/x86/include/asm/pgtable-3level.h         | 26 +++++-
+>  arch/x86/include/asm/pgtable.h                |  3 -
+>  arch/xtensa/include/asm/pgtable.h             | 31 +++++--
+>  include/linux/pgtable.h                       | 29 -------
+>  mm/debug_vm_pgtable.c                         | 25 +++++-
+>  mm/memory.c                                   |  4 -
+>  mm/rmap.c                                     | 11 ---
+>  50 files changed, 943 insertions(+), 227 deletions(-)
+>
+> --
+> 2.38.1
+>
+>
