@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54B8BC4332F
-	for <sparclinux@archiver.kernel.org>; Thu, 22 Dec 2022 11:51:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A3C1C3DA7C
+	for <sparclinux@archiver.kernel.org>; Thu, 22 Dec 2022 11:51:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235667AbiLVLvP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 22 Dec 2022 06:51:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48042 "EHLO
+        id S235173AbiLVLvQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 22 Dec 2022 06:51:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47892 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235564AbiLVLtA (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Dec 2022 06:49:00 -0500
+        with ESMTP id S235197AbiLVLtt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 22 Dec 2022 06:49:49 -0500
 Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33A3A2937C;
-        Thu, 22 Dec 2022 03:48:25 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E95D29369;
+        Thu, 22 Dec 2022 03:48:37 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1671709705; x=1703245705;
+  t=1671709717; x=1703245717;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=TghWz/7dE4JZXKAzYoxxWMMVMnrM6ngZWB0OqEIPnYA=;
-  b=DuS2QF5sxVpKkjNlWCyR7OIq0b8qko3KfIbfPwiuuIQ1cv0fViHHa19K
-   UeZzEUtmgo7VRpZwdLwQUqmc73s8N8tmPvQbEooY6rXfZsx0n9rovmXL2
-   nW3PiygcASjytf4LBEeVngKmb/I2c5cRAxrpzVDdcmgiEsfsVWUzEGQyS
-   GcqhW8cq+5rfaaxV0DVCgXiS41E4y8nW/1sep2KPhQSMESioFxjWeq6nd
-   B6bt4IxLNp7yxswBJ0zMt0PjI0wRFWuEzbBHPBM5Nnuqn20tHr5SevsmK
-   xYfSQ53PXnaUouhFmEvaqt/kib9i2UB6E2mZLOge3kDpz2kic2Y7TueV1
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10568"; a="318804727"
+  bh=XiqeX8OeZdoKUwrXM421vQgERq+9V4kGiGuMnC/Jf7o=;
+  b=nqWG5QnFL5OQGFYBvWW0sTdS2KeWDm9be9l3a9unZXEVrGGSM7TV5vLA
+   bRhKqXUWaib63O2/ly8KB+rQy608WYLfA8y4JOSlXuVUyWJ+BNt2CoBOB
+   k9WJGhto4OVbBLIqS4Vm8OGW1kXbSN9xTQVZszuvdNww5wNJBbhCrnEeM
+   WHGs2SuZ0obRcoPuhB/sxCbtYhH3i5qVeWC2cugdG+b7tD8q8rNxf29Qa
+   ZVBw48F+NyZISNeaEOm3v/Cv+k32akMxSwihEjMmmGaLNWIUfGSY/8KGR
+   lzJ06GmM9iXdo9J5VD/EdRF8cSSdf957ID60ghlgF8ZdS/+hnNS5Jk8nd
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10568"; a="318804788"
 X-IronPort-AV: E=Sophos;i="5.96,265,1665471600"; 
-   d="scan'208";a="318804727"
+   d="scan'208";a="318804788"
 Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2022 03:48:24 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10568"; a="629504752"
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2022 03:48:36 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10568"; a="629504799"
 X-IronPort-AV: E=Sophos;i="5.96,265,1665471600"; 
-   d="scan'208";a="629504752"
+   d="scan'208";a="629504799"
 Received: from lab-ah.igk.intel.com ([10.91.215.196])
-  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2022 03:48:18 -0800
+  by orsmga006-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 22 Dec 2022 03:48:30 -0800
 From:   Andrzej Hajda <andrzej.hajda@intel.com>
 To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
@@ -57,9 +57,9 @@ Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Boqun Feng <boqun.feng@gmail.com>,
         Mark Rutland <mark.rutland@arm.com>
-Subject: [PATCH 10/19] arch/openrisc: rename internal name __xchg to __arch_xchg
-Date:   Thu, 22 Dec 2022 12:46:26 +0100
-Message-Id: <20221222114635.1251934-11-andrzej.hajda@intel.com>
+Subject: [PATCH 12/19] arch/powerpc: correct logged function names in xchg helpers
+Date:   Thu, 22 Dec 2022 12:46:28 +0100
+Message-Id: <20221222114635.1251934-13-andrzej.hajda@intel.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20221222114635.1251934-1-andrzej.hajda@intel.com>
 References: <20221222114635.1251934-1-andrzej.hajda@intel.com>
@@ -74,31 +74,31 @@ __xchg will be used for non-atomic xchg macro.
 
 Signed-off-by: Andrzej Hajda <andrzej.hajda@intel.com>
 ---
- arch/openrisc/include/asm/cmpxchg.h | 4 ++--
+ arch/powerpc/include/asm/cmpxchg.h | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/openrisc/include/asm/cmpxchg.h b/arch/openrisc/include/asm/cmpxchg.h
-index 79fd16162ccb6d..5725e22e10683b 100644
---- a/arch/openrisc/include/asm/cmpxchg.h
-+++ b/arch/openrisc/include/asm/cmpxchg.h
-@@ -147,7 +147,7 @@ static inline unsigned long __cmpxchg(volatile void *ptr, unsigned long old,
- extern unsigned long __xchg_called_with_bad_pointer(void)
- 	__compiletime_error("Bad argument size for xchg");
+diff --git a/arch/powerpc/include/asm/cmpxchg.h b/arch/powerpc/include/asm/cmpxchg.h
+index 05f246c0e36eb3..b5624c9fe09bf7 100644
+--- a/arch/powerpc/include/asm/cmpxchg.h
++++ b/arch/powerpc/include/asm/cmpxchg.h
+@@ -163,7 +163,7 @@ __xchg_local(void *ptr, unsigned long x, unsigned int size)
+ 		return __xchg_u64_local(ptr, x);
+ #endif
+ 	}
+-	BUILD_BUG_ON_MSG(1, "Unsupported size for __xchg");
++	BUILD_BUG_ON_MSG(1, "Unsupported size for __xchg_local");
+ 	return x;
+ }
  
--static inline unsigned long __xchg(volatile void *ptr, unsigned long with,
-+static inline unsigned long __arch_xchg(volatile void *ptr, unsigned long with,
- 		int size)
- {
- 	switch (size) {
-@@ -163,7 +163,7 @@ static inline unsigned long __xchg(volatile void *ptr, unsigned long with,
- 
- #define arch_xchg(ptr, with) 						\
- 	({								\
--		(__typeof__(*(ptr))) __xchg((ptr),			\
-+		(__typeof__(*(ptr))) __arch_xchg((ptr),			\
- 					    (unsigned long)(with),	\
- 					    sizeof(*(ptr)));		\
- 	})
+@@ -182,7 +182,7 @@ __xchg_relaxed(void *ptr, unsigned long x, unsigned int size)
+ 		return __xchg_u64_relaxed(ptr, x);
+ #endif
+ 	}
+-	BUILD_BUG_ON_MSG(1, "Unsupported size for __xchg_local");
++	BUILD_BUG_ON_MSG(1, "Unsupported size for __xchg_relaxed");
+ 	return x;
+ }
+ #define arch_xchg_local(ptr,x)						     \
 -- 
 2.34.1
 
