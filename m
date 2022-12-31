@@ -2,150 +2,229 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 206EEC4332F
-	for <sparclinux@archiver.kernel.org>; Sat, 31 Dec 2022 04:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67089C3DA7A
+	for <sparclinux@archiver.kernel.org>; Sat, 31 Dec 2022 23:58:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229681AbiLaE67 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 30 Dec 2022 23:58:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49060 "EHLO
+        id S235872AbiLaX6C (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 31 Dec 2022 18:58:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49886 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229519AbiLaE66 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 30 Dec 2022 23:58:58 -0500
-Received: from mail-pj1-x102a.google.com (mail-pj1-x102a.google.com [IPv6:2607:f8b0:4864:20::102a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9A94D1758A;
-        Fri, 30 Dec 2022 20:58:57 -0800 (PST)
-Received: by mail-pj1-x102a.google.com with SMTP id u4-20020a17090a518400b00223f7eba2c4so23251421pjh.5;
-        Fri, 30 Dec 2022 20:58:57 -0800 (PST)
+        with ESMTP id S232445AbiLaX6B (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 31 Dec 2022 18:58:01 -0500
+Received: from mail-wm1-x32f.google.com (mail-wm1-x32f.google.com [IPv6:2a00:1450:4864:20::32f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6D4810D1
+        for <sparclinux@vger.kernel.org>; Sat, 31 Dec 2022 15:57:59 -0800 (PST)
+Received: by mail-wm1-x32f.google.com with SMTP id l26so16318642wme.5
+        for <sparclinux@vger.kernel.org>; Sat, 31 Dec 2022 15:57:59 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=EufWqX9dCf4XvIcCUQnzSLEMVyrkjkBbjT33Bi0xc4k=;
-        b=XTAYg1K7y9zz+zvCq04/V+eRrhtZBomSsUX1Nm5yKxVlRM8dnJDRGcG8W4MnDyiUcN
-         yx3CqRn+AHyy/ldze3hahHmxcr9deIy1CTFnucHQYBfKToTtzNTvXJE3Ql5pSx0CBoGy
-         35nuEM4qMb8lR+wwH7VSYbxZu25sa8EJvqZvi6QbnfHmlDfA057L5kgmXmIqsOkCD727
-         dt5HhmFCHvn35m6JzK0ovS4ReLMS6NSIIQ8/0p22BuyiKifhltM7tQZICK7DNBn0mNCh
-         ZadSXaop5ZPC+Ve9AI8z3mqT1jPZ29uE/aN7tF4YwHEJgdK2jHL7pPuw6ddYikjGRZfz
-         VaMA==
+        d=ixsystems.com; s=google;
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=WccIxo2DJfoEJ5YBwAHVUk30lKwL/NF6q/shqTsMJ/g=;
+        b=PYD6Et/bUEgVTRKONHNLIX7Br1SoQK0HjrzczFsh/b64dhdRb+RXa2lfP3U09MVjh+
+         8QvH+g41Y2eOOAKAHLMfJ+0olZNzOtxWFnihyy1LZLSoYKVhClQRxA52aiPbQ27h192s
+         QBfqv4MetVxeBXsMm8vag5d/5f/MJqZP7H5aDFsTYgX5YJ/wQLScyVt2wkejd1j8LntM
+         RZFxnBqLX9DNcuZv3h+buaEphFbigGVSzE3/CMre5MTrICibRgCwDYsXcuINNxPWnZ83
+         Fvh3siYDtPPUe9Uh8YVHebdfiqSQruf8lAjV5jEU4PTxkGytB4uw5H/eO+ns1vWfe9Sb
+         xhDQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=EufWqX9dCf4XvIcCUQnzSLEMVyrkjkBbjT33Bi0xc4k=;
-        b=3N7dbLR6lQAL7AgvNmn4S2cxFsZADreahDrj0yE6eboOqCFz1PDdyjJDGu5rxpGCzp
-         8hyZtYkMgrQIIrnaBoFEWIo6jnbvQTBLo8fVFmAjNho1cteirWl1TjhOV0i//jy/Njua
-         /tjBayk7mXKbt2+0nGWEvjp5BmZFxZbe3VyIX6ZAjL0+cbJgIGrntbtwvflqAqXpf/wS
-         s0gnjrxaqm9vqORy5kWhFdMASodKBuP7q81HQirfywt5olpQyv/yYkBybos+3/a6IsaU
-         cJpbGuN7dzYfmscoR7AciL+b9YfyRbfpYDKugfyKGVVcuVIVZ+UJR0OFdYoTcWM8vtu6
-         +lAg==
-X-Gm-Message-State: AFqh2kp6ZrBVjlvIIZYXlLRdDSACQVhyb6xpQ/nA44/h1ZlNdhtr/INa
-        AJREMhzXv2fulRpX80Eh6h+2fOrv+7PCRA==
-X-Google-Smtp-Source: AMrXdXs/vhTNrZ2Ilqc5t+CAO4dzCU+sKSGLufrR6xnnVh/kfGbMn7U08f1CSndDocrR6Mn92ZNawg==
-X-Received: by 2002:a17:902:8f87:b0:189:2688:c97f with SMTP id z7-20020a1709028f8700b001892688c97fmr38074576plo.50.1672462736876;
-        Fri, 30 Dec 2022 20:58:56 -0800 (PST)
-Received: from localhost.localdomain (kayle.snu.ac.kr. [147.46.126.79])
-        by smtp.gmail.com with ESMTPSA id 2-20020a170902c20200b00190f5e3bcd9sm15861251pll.23.2022.12.30.20.58.55
+        h=content-transfer-encoding:mime-version:references:in-reply-to
+         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=WccIxo2DJfoEJ5YBwAHVUk30lKwL/NF6q/shqTsMJ/g=;
+        b=vss1ySLK6GhvLDXKKZ2rJGn2uWhKzoBscz6WWkE3Ol3H9OesoGbykgx8BQ+CObz49J
+         iDzRpyUxCJKINWnFRUQbL/lyQorhIX083pjymYbcjYX0PzhiyhhUfmgijJtSzUdcSu6q
+         K7f0xWc087DOqAG+jqrkztkuSHzn5x0YpdXPcdHI3xvxTD07vEwscz2bnH57gE4WMQjH
+         TQ4gsgxH2ysFZCZ0QaLKiywWade4BRA3LuQVLnjyj5lMutL2gfTp6O84qBx2wSCpw3Pm
+         tudvdDm7tLD47B1G0oEhycoJbIOLmz05E0dFA5KgXKkLhSURVymhet7rVYRm2CIRzc0O
+         EPwg==
+X-Gm-Message-State: AFqh2koXfW4sx3yOddfdvN13lwusdIfKIEoK/CxRwvlDn0NDFhwCAnEv
+        5aL5tXBkVPBakG0OotPx/dn99g==
+X-Google-Smtp-Source: AMrXdXtRNBDndHkFdZDBELgeq2/SNgFiLZ/gcwKGh8wlH1+fUQyak3Pd1DeT6ZQr37/CBJzorwy7xA==
+X-Received: by 2002:a05:600c:3509:b0:3cf:ae53:9193 with SMTP id h9-20020a05600c350900b003cfae539193mr25892482wmq.39.1672531078140;
+        Sat, 31 Dec 2022 15:57:58 -0800 (PST)
+Received: from localhost.localdomain ([2400:adc1:158:c700:fcdc:d674:179b:c287])
+        by smtp.googlemail.com with ESMTPSA id l42-20020a05600c1d2a00b003cfbbd54178sm56066592wms.2.2022.12.31.15.57.53
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 30 Dec 2022 20:58:56 -0800 (PST)
-From:   Yoochan Lee <yoochan1026@gmail.com>
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Yoochan Lee <yoochan1026@gmail.com>
-Subject: [PATCH] \sbus: char: uctrl: Fix use-after-free in uctrl_open
-Date:   Sat, 31 Dec 2022 13:58:44 +0900
-Message-Id: <20221231045844.2038042-1-yoochan1026@gmail.com>
-X-Mailer: git-send-email 2.39.0
+        Sat, 31 Dec 2022 15:57:57 -0800 (PST)
+From:   Ameer Hamza <ahamza@ixsystems.com>
+To:     viro@zeniv.linux.org.uk, jlayton@kernel.org,
+        chuck.lever@oracle.com, arnd@arndb.de, guoren@kernel.org,
+        palmer@rivosinc.com, f.fainelli@gmail.com, slark_xiao@163.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, James.Bottomley@HansenPartnership.com,
+        deller@gmx.de, davem@davemloft.net
+Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arch@vger.kernel.org, ahamza@ixsystems.com,
+        awalker@ixsystems.com, sparclinux@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-alpha@vger.kernel.org
+Subject: [PATCH v2] Add new open(2) flag - O_EMPTY_PATH
+Date:   Sun,  1 Jan 2023 04:56:18 +0500
+Message-Id: <20221231235618.117201-1-ahamza@ixsystems.com>
+X-Mailer: git-send-email 2.25.1
+In-Reply-To: <202212310842.ysbymPHY-lkp@intel.com>
+References: <202212310842.ysbymPHY-lkp@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-A race condition may occur if the user physically removes the
-uctrl device while calling open().
+This patch adds a new flag O_EMPTY_PATH that allows openat and open
+system calls to open a file referenced by fd if the path is empty,
+and it is very similar to the FreeBSD O_EMPTY_PATH flag. This can be
+beneficial in some cases since it would avoid having to grant /proc
+access to things like samba containers for reopening files to change
+flags in a race-free way.
 
-This is a race condition between uctrl_open() function and
-the uctrl_remove() function, which may lead to Use-After-Free.
+Signed-off-by: Ameer Hamza <ahamza@ixsystems.com>
 
-Therefore, add a kref when open() uctrl driver and decrement
-the kref when close() and uctrl_remove() so that the race
-condition is not occured.
-
----------------CPU 0--------------------CPU 1-----------------
-                              | p = dev_get_drvdata(&op->dev);
-                              | ...
-                              | kfree(p); -- (1)
-uctrl_get_event_status(global
-_driver); — (2)
-
-Signed-off-by: Yoochan Lee <yoochan1026@gmail.com>
 ---
- drivers/sbus/char/uctrl.c | 23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+Change in v2:
+add nonconflicting values for O_EMPTY_PATH on architectures
+where default conflicts with existing flags.
+---
+---
+ arch/alpha/include/uapi/asm/fcntl.h    | 1 +
+ arch/parisc/include/uapi/asm/fcntl.h   | 1 +
+ arch/sparc/include/uapi/asm/fcntl.h    | 1 +
+ fs/fcntl.c                             | 2 +-
+ fs/namei.c                             | 4 ++--
+ fs/open.c                              | 2 +-
+ include/linux/fcntl.h                  | 2 +-
+ include/uapi/asm-generic/fcntl.h       | 4 ++++
+ tools/include/uapi/asm-generic/fcntl.h | 4 ++++
+ 9 files changed, 16 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/sbus/char/uctrl.c b/drivers/sbus/char/uctrl.c
-index 05de0ce79cb9..17a8acdfc03a 100644
---- a/drivers/sbus/char/uctrl.c
-+++ b/drivers/sbus/char/uctrl.c
-@@ -189,6 +189,7 @@ static struct uctrl_driver {
- 	int irq;
- 	int pending;
- 	struct uctrl_status status;
-+	struct kref *refcnt;
- } *global_driver;
+diff --git a/arch/alpha/include/uapi/asm/fcntl.h b/arch/alpha/include/uapi/asm/fcntl.h
+index 50bdc8e8a271..ea08341bb9fe 100644
+--- a/arch/alpha/include/uapi/asm/fcntl.h
++++ b/arch/alpha/include/uapi/asm/fcntl.h
+@@ -34,6 +34,7 @@
  
- static void uctrl_get_event_status(struct uctrl_driver *);
-@@ -204,12 +205,28 @@ uctrl_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 	return 0;
- }
+ #define O_PATH		040000000
+ #define __O_TMPFILE	0100000000
++#define O_EMPTY_PATH	0200000000
  
-+static void uctrl_delete(struct kref *kref)
-+{
-+	struct uctrl_driver *p = container_of(kref, struct uctrl_driver, refcnt);
+ #define F_GETLK		7
+ #define F_SETLK		8
+diff --git a/arch/parisc/include/uapi/asm/fcntl.h b/arch/parisc/include/uapi/asm/fcntl.h
+index 03dee816cb13..e6144823ee5b 100644
+--- a/arch/parisc/include/uapi/asm/fcntl.h
++++ b/arch/parisc/include/uapi/asm/fcntl.h
+@@ -19,6 +19,7 @@
+ 
+ #define O_PATH		020000000
+ #define __O_TMPFILE	040000000
++#define O_EMPTY_PATH	0100000000
+ 
+ #define F_GETLK64	8
+ #define F_SETLK64	9
+diff --git a/arch/sparc/include/uapi/asm/fcntl.h b/arch/sparc/include/uapi/asm/fcntl.h
+index 67dae75e5274..08aed1e2b32d 100644
+--- a/arch/sparc/include/uapi/asm/fcntl.h
++++ b/arch/sparc/include/uapi/asm/fcntl.h
+@@ -37,6 +37,7 @@
+ 
+ #define O_PATH		0x1000000
+ #define __O_TMPFILE	0x2000000
++#define O_EMPTY_PATH	0x4000000
+ 
+ #define F_GETOWN	5	/*  for sockets. */
+ #define F_SETOWN	6	/*  for sockets. */
+diff --git a/fs/fcntl.c b/fs/fcntl.c
+index 146c9ab0cd4b..7aac650e16e2 100644
+--- a/fs/fcntl.c
++++ b/fs/fcntl.c
+@@ -1027,7 +1027,7 @@ static int __init fcntl_init(void)
+ 	 * Exceptions: O_NONBLOCK is a two bit define on parisc; O_NDELAY
+ 	 * is defined as O_NONBLOCK on some platforms and not on others.
+ 	 */
+-	BUILD_BUG_ON(21 - 1 /* for O_RDONLY being 0 */ !=
++	BUILD_BUG_ON(22 - 1 /* for O_RDONLY being 0 */ !=
+ 		HWEIGHT32(
+ 			(VALID_OPEN_FLAGS & ~(O_NONBLOCK | O_NDELAY)) |
+ 			__FMODE_EXEC | __FMODE_NONOTIFY));
+diff --git a/fs/namei.c b/fs/namei.c
+index 309ae6fc8c99..2b2735af6d03 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -192,7 +192,7 @@ getname_flags(const char __user *filename, int flags, int *empty)
+ 	if (unlikely(!len)) {
+ 		if (empty)
+ 			*empty = 1;
+-		if (!(flags & LOOKUP_EMPTY)) {
++		if (!(flags & (LOOKUP_EMPTY | O_EMPTY_PATH))) {
+ 			putname(result);
+ 			return ERR_PTR(-ENOENT);
+ 		}
+@@ -2347,7 +2347,7 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
+ 	if ((flags & (LOOKUP_RCU | LOOKUP_CACHED)) == LOOKUP_CACHED)
+ 		return ERR_PTR(-EAGAIN);
+ 
+-	if (!*s)
++	if (!*s && unlikely(!(flags & O_EMPTY_PATH)))
+ 		flags &= ~LOOKUP_RCU;
+ 	if (flags & LOOKUP_RCU)
+ 		rcu_read_lock();
+diff --git a/fs/open.c b/fs/open.c
+index 82c1a28b3308..b4ec054a418f 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -1301,7 +1301,7 @@ static long do_sys_openat2(int dfd, const char __user *filename,
+ 	if (fd)
+ 		return fd;
+ 
+-	tmp = getname(filename);
++	tmp = getname_flags(filename, how->flags & O_EMPTY_PATH, NULL);
+ 	if (IS_ERR(tmp))
+ 		return PTR_ERR(tmp);
+ 
+diff --git a/include/linux/fcntl.h b/include/linux/fcntl.h
+index a332e79b3207..bf8467bb0bd2 100644
+--- a/include/linux/fcntl.h
++++ b/include/linux/fcntl.h
+@@ -10,7 +10,7 @@
+ 	(O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | \
+ 	 O_APPEND | O_NDELAY | O_NONBLOCK | __O_SYNC | O_DSYNC | \
+ 	 FASYNC	| O_DIRECT | O_LARGEFILE | O_DIRECTORY | O_NOFOLLOW | \
+-	 O_NOATIME | O_CLOEXEC | O_PATH | __O_TMPFILE)
++	 O_NOATIME | O_CLOEXEC | O_PATH | __O_TMPFILE | O_EMPTY_PATH)
+ 
+ /* List of all valid flags for the how->resolve argument: */
+ #define VALID_RESOLVE_FLAGS \
+diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
+index 1ecdb911add8..a03f4275517b 100644
+--- a/include/uapi/asm-generic/fcntl.h
++++ b/include/uapi/asm-generic/fcntl.h
+@@ -89,6 +89,10 @@
+ #define __O_TMPFILE	020000000
+ #endif
+ 
++#ifndef O_EMPTY_PATH
++#define O_EMPTY_PATH	040000000
++#endif
 +
-+	misc_deregister(&uctrl_dev);
-+	free_irq(p->irq, p);
-+	of_iounmap(&op->resource[0], p->regs, resource_size(&op->resource[0]));
-+	kfree(p);
-+}
-+
-+static int uctrl_close(struct inode *inode, struct file *file)
-+{
-+	kref_put(&global_driver->refcnt, uctrl_delete);
-+}
-+
- static int
- uctrl_open(struct inode *inode, struct file *file)
- {
- 	mutex_lock(&uctrl_mutex);
- 	uctrl_get_event_status(global_driver);
- 	uctrl_get_external_status(global_driver);
-+	kref_get(&global_driver->refcnt);
- 	mutex_unlock(&uctrl_mutex);
- 	return 0;
- }
-@@ -224,6 +241,7 @@ static const struct file_operations uctrl_fops = {
- 	.llseek =	no_llseek,
- 	.unlocked_ioctl =	uctrl_ioctl,
- 	.open =		uctrl_open,
-+	.release =	uctrl_close,
- };
+ /* a horrid kludge trying to make sure that this will fail on old kernels */
+ #define O_TMPFILE (__O_TMPFILE | O_DIRECTORY)
+ #define O_TMPFILE_MASK (__O_TMPFILE | O_DIRECTORY | O_CREAT)      
+diff --git a/tools/include/uapi/asm-generic/fcntl.h b/tools/include/uapi/asm-generic/fcntl.h
+index b02c8e0f4057..f32a81604296 100644
+--- a/tools/include/uapi/asm-generic/fcntl.h
++++ b/tools/include/uapi/asm-generic/fcntl.h
+@@ -89,6 +89,10 @@
+ #define __O_TMPFILE	020000000
+ #endif
  
- static struct miscdevice uctrl_dev = {
-@@ -404,10 +422,7 @@ static int uctrl_remove(struct platform_device *op)
- 	struct uctrl_driver *p = dev_get_drvdata(&op->dev);
- 
- 	if (p) {
--		misc_deregister(&uctrl_dev);
--		free_irq(p->irq, p);
--		of_iounmap(&op->resource[0], p->regs, resource_size(&op->resource[0]));
--		kfree(p);
-+		kref_put(&p->refcnt, uctrl_delete);
- 	}
- 	return 0;
- }
++#ifndef O_EMPTY_PATH
++#define O_EMPTY_PATH	040000000
++#endif
++
+ /* a horrid kludge trying to make sure that this will fail on old kernels */
+ #define O_TMPFILE (__O_TMPFILE | O_DIRECTORY)
+ #define O_TMPFILE_MASK (__O_TMPFILE | O_DIRECTORY | O_CREAT)      
 -- 
-2.39.0
+2.25.1
 
