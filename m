@@ -2,232 +2,166 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B7E4C4332F
-	for <sparclinux@archiver.kernel.org>; Sun,  1 Jan 2023 15:38:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C747DC4332F
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 01:05:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231461AbjAAPia (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 1 Jan 2023 10:38:30 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34600 "EHLO
+        id S229973AbjABBFg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 1 Jan 2023 20:05:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49272 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229682AbjAAPi1 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 1 Jan 2023 10:38:27 -0500
-Received: from mail-wm1-x329.google.com (mail-wm1-x329.google.com [IPv6:2a00:1450:4864:20::329])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75B9D5588
-        for <sparclinux@vger.kernel.org>; Sun,  1 Jan 2023 07:38:25 -0800 (PST)
-Received: by mail-wm1-x329.google.com with SMTP id bg13-20020a05600c3c8d00b003d9712b29d2so16351911wmb.2
-        for <sparclinux@vger.kernel.org>; Sun, 01 Jan 2023 07:38:25 -0800 (PST)
+        with ESMTP id S229548AbjABBFf (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 1 Jan 2023 20:05:35 -0500
+Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E49181130;
+        Sun,  1 Jan 2023 17:05:34 -0800 (PST)
+Received: by mail-pf1-x42b.google.com with SMTP id c9so12933777pfj.5;
+        Sun, 01 Jan 2023 17:05:34 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ixsystems.com; s=google;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=4e5rsOVvoPsB8/0IGCnvHUCFwzCz86SgBX4arQD6Bsk=;
-        b=iIz+0dD+Xqd9D7Aclt4WbtMz7FB/uNMAN19vTh+6DwoOScIf+jA5tIb6pl1sZbrOaW
-         XlLYQHnQ/0PyPvz0qvTAbzXKi09qSjTBYmGSnxvzBbdFRVbIvsgwji7HfzL/dg1Gk0Y+
-         V3CYrx7vxebfUhVMmDvLcttZh71xYJ2bXwn2IQvA2brc4xEH/FpvfiNOKwmIE+3+/3a3
-         aGxfOrAg6fPjQzN7n5StTR3W7Zq9HRIvBP9hKK/qbFPVmelZ5Bqrz5fO21NfQtRIVsHM
-         2C27VpRX929Xk3Bf3fEht9dzD2A4sp2tATdthjFDTt8SQ6Z6iV058eZOPa8Nj3UL5qEA
-         EvOg==
+        d=gmail.com; s=20210112;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:from:to:cc:subject:date:message-id:reply-to;
+        bh=iYBKKC/jPoqul56NsIbpe8i4DLoSimJ5/S9jG+9Ahpc=;
+        b=AUorMnWK23C8aMm/iw65ya4Uuj47/wFDYMOSZ9TnCrAm4EvbNmeMiuiEGXA4hfUNTh
+         iuzgGcZqODJm6icBEICPrcPsQzUCUjaSWSTpRxpW9U0el/at1f/Zf7c/edT8WoAraJ67
+         90K6xTsYHS0JPHBIN82imR/5mCsoPoUwYxbMf2JL71IpG0wZegg+cBjCHURKbbkM6VVD
+         /tayZaOSXN6Mjy3JWBKttf9hS8nGiSLvGRIKV+3G2M9mW+t7mUvrf3RY6mQJDlIMDc9d
+         ZFD71mKMQREJcWWROwBcEgCuAMW9OhUhnKVUpTm3L0t/g38JTACHHifq9YaPYD3sVUWg
+         bipg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:references:in-reply-to
-         :message-id:date:subject:cc:to:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=4e5rsOVvoPsB8/0IGCnvHUCFwzCz86SgBX4arQD6Bsk=;
-        b=mFfYkQwTrFoWMrjggR8vMEsufg9dIOW4pqqoABfsFkYM3yNuVSqrkKoxMXttG2XSiX
-         As3S/2+OoPsEV498R7m1Qy8OH15BNg+L18f5XKz9MHOvzuQ5/ng1xtM56Z4SJhOmH9fi
-         nzG8gAsDvg80FBwR0o4UB+YnRoN5QaGS6AQLDSMiSJkwtAVYYDYCp6IHoc10thH3kPb/
-         BJukk2RRh8yJFga8EBXYKeFOsS0e/0Hit8Szd1CLSjxm8D7iQJOa+3MOZ+UGtJv8GKOw
-         6eAf8si8p8QcfoZc7bFQLB1JMWW0lUwpn3O3eKlJyfGCmI1WXyZmEoPBB+ZjAO3MfsyS
-         hsQw==
-X-Gm-Message-State: AFqh2kqai9rksNhEotqTqoPJtj99gjqejXLAF3hs1m8GiAbrM2gMUoH2
-        1UtvpSAwmWRUmZ4Q6S3Tt2HdPA==
-X-Google-Smtp-Source: AMrXdXvmgsB9mkhQhPLutjUrJsEcNZBj3ZzRuTx0yHaXlM7F4s4uXk1dMC6Vuz5WxgOhV0eMYtO5Qw==
-X-Received: by 2002:a05:600c:4998:b0:3cf:68d3:3047 with SMTP id h24-20020a05600c499800b003cf68d33047mr26779179wmp.41.1672587503834;
-        Sun, 01 Jan 2023 07:38:23 -0800 (PST)
-Received: from localhost.localdomain ([2400:adc1:158:c700:ab52:9bd1:ee17:5669])
-        by smtp.googlemail.com with ESMTPSA id c4-20020a05600c0a4400b003cf75213bb9sm46153975wmq.8.2023.01.01.07.38.19
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=iYBKKC/jPoqul56NsIbpe8i4DLoSimJ5/S9jG+9Ahpc=;
+        b=lDesD1+ckus9lNeUcP0d6WTMut6VFtav1YcKJ3RUz1V54MknvYKMKIdegrn1HXF0an
+         iWHTmI+wyi6suwONNwa8bprTnWtHTNZHayu+8JW2eGolUlSk9xhkVjNFcYWDjyujeImz
+         i+omxi9nJw+eGz+TEewGxhOPgZPxpTsYESOLyOCdPxvcIPx11eTWIBYIw2RUcqiutsPq
+         qvz2i194qwLupPAT2kF2GXSCviLuQ8blwFtZeZhRxnNfaCxy2gUx+GDbDw83gMfEOWld
+         Dxa6fMvEMzKfpEUIUnNQNX8IDQ9pxanoQlf+N37fReBETo6CYjTxd2xcE7qv8LcZKFew
+         fHCg==
+X-Gm-Message-State: AFqh2kovIafHqtySd8qOln+QRhV3v6wITucbA9ES4kVX1/Y2cMYGk0iK
+        Bj6u1PYUhR3lIro0eyjVecCWRLzw+0HevQ==
+X-Google-Smtp-Source: AMrXdXu2gXkwcqq6IDK0l9bkYLffunlQ9x+AKoW1upzpobTcnMbeUV+5/52lzNDPyi5AtpA4sVBeBw==
+X-Received: by 2002:a05:6a00:21c6:b0:576:a74a:13c3 with SMTP id t6-20020a056a0021c600b00576a74a13c3mr51258932pfj.1.1672621534250;
+        Sun, 01 Jan 2023 17:05:34 -0800 (PST)
+Received: from localhost.localdomain (kayle.snu.ac.kr. [147.46.126.79])
+        by smtp.gmail.com with ESMTPSA id 12-20020a62170c000000b005769436a23dsm17229409pfx.218.2023.01.01.17.05.32
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Jan 2023 07:38:23 -0800 (PST)
-From:   Ameer Hamza <ahamza@ixsystems.com>
-To:     viro@zeniv.linux.org.uk, jlayton@kernel.org,
-        chuck.lever@oracle.com, arnd@arndb.de, guoren@kernel.org,
-        palmer@rivosinc.com, f.fainelli@gmail.com, slark_xiao@163.com,
-        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, davem@davemloft.net
-Cc:     linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arch@vger.kernel.org, ahamza@ixsystems.com,
-        awalker@ixsystems.com, sparclinux@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linux-alpha@vger.kernel.org
-Subject: [PATCH v3] Add new open(2) flag - O_EMPTY_PATH
-Date:   Sun,  1 Jan 2023 20:37:52 +0500
-Message-Id: <20230101153752.20165-1-ahamza@ixsystems.com>
-X-Mailer: git-send-email 2.25.1
-In-Reply-To: <202301011901.GyiYVRyd-lkp@intel.com>
-References: <202301011901.GyiYVRyd-lkp@intel.com>
+        Sun, 01 Jan 2023 17:05:33 -0800 (PST)
+From:   Yoochan Lee <yoochan1026@gmail.com>
+To:     davem@davemloft.net
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Yoochan Lee <yoochan1026@gmail.com>
+Subject: [PATCH] drivers: tty: vcc: Fix use-after-free in vcc_open()
+Date:   Mon,  2 Jan 2023 10:05:28 +0900
+Message-Id: <20230102010528.2868403-1-yoochan1026@gmail.com>
+X-Mailer: git-send-email 2.39.0
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This patch adds a new flag O_EMPTY_PATH that allows openat and open
-system calls to open a file referenced by fd if the path is empty,
-and it is very similar to the FreeBSD O_EMPTY_PATH flag. This can be
-beneficial in some cases since it would avoid having to grant /proc
-access to things like samba containers for reopening files to change
-flags in a race-free way.
+This bug assumes that the hacker can physically access the
+target computer.
 
-Signed-off-by: Ameer Hamza <ahamza@ixsystems.com>
+A race condition may occur if the user physically removes the
+vcc device while calling open().
 
+This is a race condition between vcc_open() function and
+the vcc_remove() function, which may lead to Use-After-Free.
+
+Therefore, add a refcount check to vcc_remove() function
+to free the "vcc_port" structure after the device is close()d.
+
+---------------CPU 0--------------------CPU 1-----------------
+            vcc_open()        |        vcc_remove()
+--------------------------------------------------------------
+    port = vcc_get_ne(tty->   |
+      index); — (1)           |
+                              |   struct vcc_port *port =
+                              |    dev_get_drvdata(&vdev->dev);
+                              |   ...
+                              |   kfree(port); — (2)
+ vccdbgl(port->vio.lp); — (3) |
+
+This type of race condition is similar with CVE-2022-44032,
+CVE-2022-44033, and CVE-2022-44034.
 ---
-Change in v3:
-resolve O_EMPTY_PATH conflict with __FMODE_NONOTIFY for sparc.
+ drivers/tty/vcc.c | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-Change in v2:
-add nonconflicting values for O_EMPTY_PATH on architectures
-where default conflicts with existing flags.
----
----
- arch/alpha/include/uapi/asm/fcntl.h    | 1 +
- arch/parisc/include/uapi/asm/fcntl.h   | 1 +
- arch/sparc/include/uapi/asm/fcntl.h    | 1 +
- fs/fcntl.c                             | 2 +-
- fs/namei.c                             | 4 ++--
- fs/open.c                              | 2 +-
- include/linux/fcntl.h                  | 2 +-
- include/uapi/asm-generic/fcntl.h       | 4 ++++
- tools/include/uapi/asm-generic/fcntl.h | 4 ++++
- 9 files changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/arch/alpha/include/uapi/asm/fcntl.h b/arch/alpha/include/uapi/asm/fcntl.h
-index 50bdc8e8a271..ea08341bb9fe 100644
---- a/arch/alpha/include/uapi/asm/fcntl.h
-+++ b/arch/alpha/include/uapi/asm/fcntl.h
-@@ -34,6 +34,7 @@
+diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
+index 34ba6e54789a..31f274c4aa25 100644
+--- a/drivers/tty/vcc.c
++++ b/drivers/tty/vcc.c
+@@ -41,6 +41,8 @@ struct vcc_port {
  
- #define O_PATH		040000000
- #define __O_TMPFILE	0100000000
-+#define O_EMPTY_PATH	0200000000
+ 	struct timer_list rx_timer;
+ 	struct timer_list tx_timer;
++	struct vio_dev *vdev;
++	struct kref refcnt;
+ };
  
- #define F_GETLK		7
- #define F_SETLK		8
-diff --git a/arch/parisc/include/uapi/asm/fcntl.h b/arch/parisc/include/uapi/asm/fcntl.h
-index 03dee816cb13..e6144823ee5b 100644
---- a/arch/parisc/include/uapi/asm/fcntl.h
-+++ b/arch/parisc/include/uapi/asm/fcntl.h
-@@ -19,6 +19,7 @@
+ /* Microseconds that thread will delay waiting for a vcc port ref */
+@@ -104,6 +106,7 @@ static const struct ktermios vcc_tty_termios = {
+ 	.c_ospeed = 38400
+ };
  
- #define O_PATH		020000000
- #define __O_TMPFILE	040000000
-+#define O_EMPTY_PATH	0100000000
++static void vcc_delete(struct kref *kref);
+ /**
+  * vcc_table_add() - Add VCC port to the VCC table
+  * @port: pointer to the VCC port
+@@ -586,6 +589,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
+ 		goto free_port;
  
- #define F_GETLK64	8
- #define F_SETLK64	9
-diff --git a/arch/sparc/include/uapi/asm/fcntl.h b/arch/sparc/include/uapi/asm/fcntl.h
-index 67dae75e5274..ed99e4e4a717 100644
---- a/arch/sparc/include/uapi/asm/fcntl.h
-+++ b/arch/sparc/include/uapi/asm/fcntl.h
-@@ -37,6 +37,7 @@
+ 	port->vio.debug = vcc_dbg_vio;
++	port->vdev = vdev;
++	kref_init(&port->refcnt);
+ 	vcc_ldc_cfg.debug = vcc_dbg_ldc;
  
- #define O_PATH		0x1000000
- #define __O_TMPFILE	0x2000000
-+#define O_EMPTY_PATH	0x8000000
+ 	rv = vio_ldc_alloc(&port->vio, &vcc_ldc_cfg, port);
+@@ -673,6 +678,14 @@ static void vcc_remove(struct vio_dev *vdev)
+ {
+ 	struct vcc_port *port = dev_get_drvdata(&vdev->dev);
  
- #define F_GETOWN	5	/*  for sockets. */
- #define F_SETOWN	6	/*  for sockets. */
-diff --git a/fs/fcntl.c b/fs/fcntl.c
-index 146c9ab0cd4b..7aac650e16e2 100644
---- a/fs/fcntl.c
-+++ b/fs/fcntl.c
-@@ -1027,7 +1027,7 @@ static int __init fcntl_init(void)
- 	 * Exceptions: O_NONBLOCK is a two bit define on parisc; O_NDELAY
- 	 * is defined as O_NONBLOCK on some platforms and not on others.
- 	 */
--	BUILD_BUG_ON(21 - 1 /* for O_RDONLY being 0 */ !=
-+	BUILD_BUG_ON(22 - 1 /* for O_RDONLY being 0 */ !=
- 		HWEIGHT32(
- 			(VALID_OPEN_FLAGS & ~(O_NONBLOCK | O_NDELAY)) |
- 			__FMODE_EXEC | __FMODE_NONOTIFY));
-diff --git a/fs/namei.c b/fs/namei.c
-index 309ae6fc8c99..2b2735af6d03 100644
---- a/fs/namei.c
-+++ b/fs/namei.c
-@@ -192,7 +192,7 @@ getname_flags(const char __user *filename, int flags, int *empty)
- 	if (unlikely(!len)) {
- 		if (empty)
- 			*empty = 1;
--		if (!(flags & LOOKUP_EMPTY)) {
-+		if (!(flags & (LOOKUP_EMPTY | O_EMPTY_PATH))) {
- 			putname(result);
- 			return ERR_PTR(-ENOENT);
- 		}
-@@ -2347,7 +2347,7 @@ static const char *path_init(struct nameidata *nd, unsigned flags)
- 	if ((flags & (LOOKUP_RCU | LOOKUP_CACHED)) == LOOKUP_CACHED)
- 		return ERR_PTR(-EAGAIN);
- 
--	if (!*s)
-+	if (!*s && unlikely(!(flags & O_EMPTY_PATH)))
- 		flags &= ~LOOKUP_RCU;
- 	if (flags & LOOKUP_RCU)
- 		rcu_read_lock();
-diff --git a/fs/open.c b/fs/open.c
-index 82c1a28b3308..b4ec054a418f 100644
---- a/fs/open.c
-+++ b/fs/open.c
-@@ -1301,7 +1301,7 @@ static long do_sys_openat2(int dfd, const char __user *filename,
- 	if (fd)
- 		return fd;
- 
--	tmp = getname(filename);
-+	tmp = getname_flags(filename, how->flags & O_EMPTY_PATH, NULL);
- 	if (IS_ERR(tmp))
- 		return PTR_ERR(tmp);
- 
-diff --git a/include/linux/fcntl.h b/include/linux/fcntl.h
-index a332e79b3207..bf8467bb0bd2 100644
---- a/include/linux/fcntl.h
-+++ b/include/linux/fcntl.h
-@@ -10,7 +10,7 @@
- 	(O_RDONLY | O_WRONLY | O_RDWR | O_CREAT | O_EXCL | O_NOCTTY | O_TRUNC | \
- 	 O_APPEND | O_NDELAY | O_NONBLOCK | __O_SYNC | O_DSYNC | \
- 	 FASYNC	| O_DIRECT | O_LARGEFILE | O_DIRECTORY | O_NOFOLLOW | \
--	 O_NOATIME | O_CLOEXEC | O_PATH | __O_TMPFILE)
-+	 O_NOATIME | O_CLOEXEC | O_PATH | __O_TMPFILE | O_EMPTY_PATH)
- 
- /* List of all valid flags for the how->resolve argument: */
- #define VALID_RESOLVE_FLAGS \
-diff --git a/include/uapi/asm-generic/fcntl.h b/include/uapi/asm-generic/fcntl.h
-index 1ecdb911add8..a03f4275517b 100644
---- a/include/uapi/asm-generic/fcntl.h
-+++ b/include/uapi/asm-generic/fcntl.h
-@@ -89,6 +89,10 @@
- #define __O_TMPFILE	020000000
- #endif
- 
-+#ifndef O_EMPTY_PATH
-+#define O_EMPTY_PATH	040000000
-+#endif
++	kref_put(&port->refcnt, vcc_delete);
++}
 +
- /* a horrid kludge trying to make sure that this will fail on old kernels */
- #define O_TMPFILE (__O_TMPFILE | O_DIRECTORY)
- #define O_TMPFILE_MASK (__O_TMPFILE | O_DIRECTORY | O_CREAT)      
-diff --git a/tools/include/uapi/asm-generic/fcntl.h b/tools/include/uapi/asm-generic/fcntl.h
-index b02c8e0f4057..f32a81604296 100644
---- a/tools/include/uapi/asm-generic/fcntl.h
-+++ b/tools/include/uapi/asm-generic/fcntl.h
-@@ -89,6 +89,10 @@
- #define __O_TMPFILE	020000000
- #endif
- 
-+#ifndef O_EMPTY_PATH
-+#define O_EMPTY_PATH	040000000
-+#endif
++static void vcc_delete(struct kref *kref)
++{
++	struct vcc_port *port = container_of(kref, struct vcc_port, refcnt);
++	struct viod_dev *vdev = port->vdev;
 +
- /* a horrid kludge trying to make sure that this will fail on old kernels */
- #define O_TMPFILE (__O_TMPFILE | O_DIRECTORY)
- #define O_TMPFILE_MASK (__O_TMPFILE | O_DIRECTORY | O_CREAT)      
+ 	del_timer_sync(&port->rx_timer);
+ 	del_timer_sync(&port->tx_timer);
+ 
+@@ -752,12 +765,15 @@ static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
+ 		pr_err("VCC: open: TTY ops not defined\n");
+ 		return -ENXIO;
+ 	}
++	kref_get(&port->refcnt);
+ 
+ 	return tty_port_open(tty->port, tty, vcc_file);
+ }
+ 
+ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
+ {
++	struct vcc_port *port = vcc_get_ne(tty->index);
++
+ 	if (unlikely(tty->count > 1))
+ 		return;
+ 
+@@ -767,6 +783,8 @@ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
+ 	}
+ 
+ 	tty_port_close(tty->port, tty, vcc_file);
++
++	kref_put(&port->refcnt, vcc_delete);
+ }
+ 
+ static void vcc_ldc_hup(struct vcc_port *port)
 -- 
-2.25.1
+2.39.0
 
