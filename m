@@ -2,32 +2,56 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BE0FC4708E
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 14:01:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD7E7C3DA7A
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 14:35:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235971AbjABOBr convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 Jan 2023 09:01:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50270 "EHLO
+        id S229785AbjABOfs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 Jan 2023 09:35:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33144 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232905AbjABOBq (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Jan 2023 09:01:46 -0500
-Received: from eu-smtp-delivery-151.mimecast.com (eu-smtp-delivery-151.mimecast.com [185.58.85.151])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 30B766552
-        for <sparclinux@vger.kernel.org>; Mon,  2 Jan 2023 06:01:44 -0800 (PST)
-Received: from AcuMS.aculab.com (156.67.243.121 [156.67.243.121]) by
- relay.mimecast.com with ESMTP with STARTTLS (version=TLSv1.2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384) id
- uk-mta-312-47WmmqTFMC28WcHHaiOhtA-1; Mon, 02 Jan 2023 14:01:41 +0000
-X-MC-Unique: 47WmmqTFMC28WcHHaiOhtA-1
-Received: from AcuMS.Aculab.com (10.202.163.6) by AcuMS.aculab.com
- (10.202.163.6) with Microsoft SMTP Server (TLS) id 15.0.1497.42; Mon, 2 Jan
- 2023 14:01:38 +0000
-Received: from AcuMS.Aculab.com ([::1]) by AcuMS.aculab.com ([::1]) with mapi
- id 15.00.1497.044; Mon, 2 Jan 2023 14:01:38 +0000
-From:   David Laight <David.Laight@ACULAB.COM>
-To:     'Ameer Hamza' <ahamza@ixsystems.com>,
-        "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>,
+        with ESMTP id S236216AbjABOfs (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Jan 2023 09:35:48 -0500
+Received: from mail-wm1-x330.google.com (mail-wm1-x330.google.com [IPv6:2a00:1450:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CC34658A
+        for <sparclinux@vger.kernel.org>; Mon,  2 Jan 2023 06:35:45 -0800 (PST)
+Received: by mail-wm1-x330.google.com with SMTP id ay40so20478276wmb.2
+        for <sparclinux@vger.kernel.org>; Mon, 02 Jan 2023 06:35:45 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ixsystems.com; s=google;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
+        bh=TJq3TeEMVEa4cxKJPhRTEvU3LME7/v1uYktVvktqpGE=;
+        b=giKYD8zRfEz+aTz2PgAOBuReNmF+3ipE0aYhpWrnbzcVWA26vzIqDcD5FLnSINxL+M
+         LFgGo5qElo0bKpiGfxDHPVQWCGxhFZKx+3Y/aZn1AWx0/kyJ9opa93mRMDHf0nnNlhvl
+         PA3JyflJbfKHZwlrMzULsTWiA8AahjGq9TK5CQj+MwD0qIDt/S2DYL0NF/9yBKPJR6Hd
+         LUZq3p6uP6VrHbVutXsxh5dGaQFGXmtNXvhh4pvj+FWdD3tpqULpz+WOHzCQbXHsJhUk
+         FzhGm4wbNSJ9Yc+0fC/CyXB2H4rYo1IVLlPto8ymlfhlFf4cIa9LN/tUuQBlArcXvoLX
+         RLdA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=in-reply-to:content-disposition:mime-version:references:message-id
+         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=TJq3TeEMVEa4cxKJPhRTEvU3LME7/v1uYktVvktqpGE=;
+        b=FkmHT0xTTIbCVJQobhmQzSlg0sIqSCfIYze7zwZMPDrR70Qwp7yd/iebjOu5HQ3dN8
+         oeOBIgmJnE1+THPasMT44Wmitng0aVsF1a8+nfBcYfuTtk+PXZs+Y0D1Fs/DN3YVEQ7E
+         yFoXhOYW5LfFQC9xAzZ2Lk8FCN908LX2zT+rJtzPlDetDHdXEOUuEW3BNLzGM8lH6+YM
+         ZfpgqJAOctxwXWiZA88dxjLySV8gQB1RSzh5ZHuGc8FEgeYCOf64y9kesBfvTYp4DPwR
+         sv8ilHANph7+bJcjO+sJeaPUpbc0h3lG1MC0uE6OcpQEwUNY7y7KZu3EPwTYJwc4UrEI
+         ekoQ==
+X-Gm-Message-State: AFqh2kqgdDM/mv1tpDbYcAP5Ou3WEb2BYWL2AEJUSxXu3N1oEVj6A607
+        WDNruK1iaOgnkaAHWiVXY5st4A==
+X-Google-Smtp-Source: AMrXdXtn/wbjdX4CuagPWVi+PJUie6Oio+Ubkoxzq0YYqAsyUDeIQFycUSYBPWddMHy9yd8ByXRO6Q==
+X-Received: by 2002:a05:600c:22d9:b0:3d3:56e6:4f0d with SMTP id 25-20020a05600c22d900b003d356e64f0dmr29637713wmg.7.1672670144202;
+        Mon, 02 Jan 2023 06:35:44 -0800 (PST)
+Received: from hamza-HP-ZBook-15-G3 ([2400:adc1:158:c700:a835:5821:1f98:828f])
+        by smtp.gmail.com with ESMTPSA id e16-20020adfdbd0000000b002362f6fcaf5sm28662666wrj.48.2023.01.02.06.35.40
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Jan 2023 06:35:43 -0800 (PST)
+Date:   Mon, 2 Jan 2023 19:35:38 +0500
+From:   Ameer Hamza <ahamza@ixsystems.com>
+To:     David Laight <David.Laight@ACULAB.COM>
+Cc:     "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>,
         "jlayton@kernel.org" <jlayton@kernel.org>,
         "chuck.lever@oracle.com" <chuck.lever@oracle.com>,
         "arnd@arndb.de" <arnd@arndb.de>,
@@ -41,54 +65,47 @@ To:     'Ameer Hamza' <ahamza@ixsystems.com>,
         "James.Bottomley@HansenPartnership.com" 
         <James.Bottomley@HansenPartnership.com>,
         "deller@gmx.de" <deller@gmx.de>,
-        "davem@davemloft.net" <davem@davemloft.net>
-CC:     "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+        "davem@davemloft.net" <davem@davemloft.net>,
+        "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
         "awalker@ixsystems.com" <awalker@ixsystems.com>,
         "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
         "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
         "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>
-Subject: RE: [PATCH v2] Add new open(2) flag - O_EMPTY_PATH
-Thread-Topic: [PATCH v2] Add new open(2) flag - O_EMPTY_PATH
-Thread-Index: AQHZHXO7YJxmMel9jU25EiVio9tPeK6LKkFQ
-Date:   Mon, 2 Jan 2023 14:01:38 +0000
-Message-ID: <4b39cf528148470c934fb5823b35e9d5@AcuMS.aculab.com>
+Subject: Re: [PATCH v2] Add new open(2) flag - O_EMPTY_PATH
+Message-ID: <20230102143538.GA8886@hamza-HP-ZBook-15-G3>
 References: <202212310842.ysbymPHY-lkp@intel.com>
  <20221231235618.117201-1-ahamza@ixsystems.com>
-In-Reply-To: <20221231235618.117201-1-ahamza@ixsystems.com>
-Accept-Language: en-GB, en-US
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-x-ms-exchange-transport-fromentityheader: Hosted
-x-originating-ip: [10.202.205.107]
+ <4b39cf528148470c934fb5823b35e9d5@AcuMS.aculab.com>
 MIME-Version: 1.0
-X-Mimecast-Spam-Score: 0
-X-Mimecast-Originator: aculab.com
-Content-Language: en-US
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4b39cf528148470c934fb5823b35e9d5@AcuMS.aculab.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: Ameer Hamza
-> Sent: 31 December 2022 23:56
+On Mon, Jan 02, 2023 at 02:01:38PM +0000, David Laight wrote:
+> From: Ameer Hamza
+> > Sent: 31 December 2022 23:56
+> > 
+> > This patch adds a new flag O_EMPTY_PATH that allows openat and open
+> > system calls to open a file referenced by fd if the path is empty,
+> > and it is very similar to the FreeBSD O_EMPTY_PATH flag. This can be
+> > beneficial in some cases since it would avoid having to grant /proc
+> > access to things like samba containers for reopening files to change
+> > flags in a race-free way.
+> > 
 > 
-> This patch adds a new flag O_EMPTY_PATH that allows openat and open
-> system calls to open a file referenced by fd if the path is empty,
-> and it is very similar to the FreeBSD O_EMPTY_PATH flag. This can be
-> beneficial in some cases since it would avoid having to grant /proc
-> access to things like samba containers for reopening files to change
-> flags in a race-free way.
+> But what does it do?
+> (Apart from add code to a common kernel code path.)
 > 
-
-But what does it do?
-(Apart from add code to a common kernel code path.)
-
-	David
-
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
-
+> 	David
+It can convert an O_PATH descriptor to one suitable for r/w work.
+If we already have a file descriptor: {opath_fd = open(&lt;path&gt;, O_PATH);}, we can call {openat(opath_fd, "", O_EMPTY_PATH | O_RDWR)} instead of going through procfs {open(/proc/self/fd/&lt;opath_fd&gt;, O_RDWR)}.
+> 
+> -
+> Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
+> Registration No: 1397386 (Wales)
+> 
