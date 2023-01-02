@@ -2,166 +2,93 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C747DC4332F
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 01:05:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A94F1C3DA7C
+	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 08:38:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229973AbjABBFg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 1 Jan 2023 20:05:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49272 "EHLO
+        id S231651AbjABIiH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 2 Jan 2023 03:38:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51900 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229548AbjABBFf (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 1 Jan 2023 20:05:35 -0500
-Received: from mail-pf1-x42b.google.com (mail-pf1-x42b.google.com [IPv6:2607:f8b0:4864:20::42b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E49181130;
-        Sun,  1 Jan 2023 17:05:34 -0800 (PST)
-Received: by mail-pf1-x42b.google.com with SMTP id c9so12933777pfj.5;
-        Sun, 01 Jan 2023 17:05:34 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:from:to:cc:subject:date:message-id:reply-to;
-        bh=iYBKKC/jPoqul56NsIbpe8i4DLoSimJ5/S9jG+9Ahpc=;
-        b=AUorMnWK23C8aMm/iw65ya4Uuj47/wFDYMOSZ9TnCrAm4EvbNmeMiuiEGXA4hfUNTh
-         iuzgGcZqODJm6icBEICPrcPsQzUCUjaSWSTpRxpW9U0el/at1f/Zf7c/edT8WoAraJ67
-         90K6xTsYHS0JPHBIN82imR/5mCsoPoUwYxbMf2JL71IpG0wZegg+cBjCHURKbbkM6VVD
-         /tayZaOSXN6Mjy3JWBKttf9hS8nGiSLvGRIKV+3G2M9mW+t7mUvrf3RY6mQJDlIMDc9d
-         ZFD71mKMQREJcWWROwBcEgCuAMW9OhUhnKVUpTm3L0t/g38JTACHHifq9YaPYD3sVUWg
-         bipg==
+        with ESMTP id S231636AbjABIiB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Jan 2023 03:38:01 -0500
+Received: from mail-qt1-f170.google.com (mail-qt1-f170.google.com [209.85.160.170])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FD5FDB3;
+        Mon,  2 Jan 2023 00:38:01 -0800 (PST)
+Received: by mail-qt1-f170.google.com with SMTP id bp44so19416724qtb.0;
+        Mon, 02 Jan 2023 00:38:01 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=iYBKKC/jPoqul56NsIbpe8i4DLoSimJ5/S9jG+9Ahpc=;
-        b=lDesD1+ckus9lNeUcP0d6WTMut6VFtav1YcKJ3RUz1V54MknvYKMKIdegrn1HXF0an
-         iWHTmI+wyi6suwONNwa8bprTnWtHTNZHayu+8JW2eGolUlSk9xhkVjNFcYWDjyujeImz
-         i+omxi9nJw+eGz+TEewGxhOPgZPxpTsYESOLyOCdPxvcIPx11eTWIBYIw2RUcqiutsPq
-         qvz2i194qwLupPAT2kF2GXSCviLuQ8blwFtZeZhRxnNfaCxy2gUx+GDbDw83gMfEOWld
-         Dxa6fMvEMzKfpEUIUnNQNX8IDQ9pxanoQlf+N37fReBETo6CYjTxd2xcE7qv8LcZKFew
-         fHCg==
-X-Gm-Message-State: AFqh2kovIafHqtySd8qOln+QRhV3v6wITucbA9ES4kVX1/Y2cMYGk0iK
-        Bj6u1PYUhR3lIro0eyjVecCWRLzw+0HevQ==
-X-Google-Smtp-Source: AMrXdXu2gXkwcqq6IDK0l9bkYLffunlQ9x+AKoW1upzpobTcnMbeUV+5/52lzNDPyi5AtpA4sVBeBw==
-X-Received: by 2002:a05:6a00:21c6:b0:576:a74a:13c3 with SMTP id t6-20020a056a0021c600b00576a74a13c3mr51258932pfj.1.1672621534250;
-        Sun, 01 Jan 2023 17:05:34 -0800 (PST)
-Received: from localhost.localdomain (kayle.snu.ac.kr. [147.46.126.79])
-        by smtp.gmail.com with ESMTPSA id 12-20020a62170c000000b005769436a23dsm17229409pfx.218.2023.01.01.17.05.32
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Sun, 01 Jan 2023 17:05:33 -0800 (PST)
-From:   Yoochan Lee <yoochan1026@gmail.com>
-To:     davem@davemloft.net
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Yoochan Lee <yoochan1026@gmail.com>
-Subject: [PATCH] drivers: tty: vcc: Fix use-after-free in vcc_open()
-Date:   Mon,  2 Jan 2023 10:05:28 +0900
-Message-Id: <20230102010528.2868403-1-yoochan1026@gmail.com>
-X-Mailer: git-send-email 2.39.0
+        bh=jo2CI5pKv7C2jtNLeQsFhlozXL/lFYNzin08UvE0x2c=;
+        b=xbgtQV+wPHPwDIM93AuAvm6WX6cGoQ1F4KIkbImS7rbjacPg0vKFBq4dxC58yjG8Mx
+         nIUSNFYwJbl7uPNcHqSDllfZYyOy06mtvncHJc0UuhGQNBQ5JczHS9Df6w48u8eZUzSp
+         TniX6oFCsLk7mSKnIPEkCvDufW/Kl2ChooylfZBACcQhF3dfzfmp7XFudVJ0fgT1AW+w
+         olBLlM2oz9KUSJNOvkpVgkYNYhsRNWl0SRBaEvbOMlm3vNZ6L/+v1VkCVj4yBUy2T8Fm
+         06GLJ8CX/bmFj94jcWysm+KJ7cj4j1WgF9OwIub3Rqxa5Z4WDtNbYXZ7VInQqEDv3x9x
+         AJgA==
+X-Gm-Message-State: AFqh2kq6SDiiBGvB2sRSZkgkOpV7zzeXBk8WjBOEGdI/e7rV1FXYUmKh
+        02pkriV6eTwkcy3mdezcl0xJM5Cqp8oEUA==
+X-Google-Smtp-Source: AMrXdXvvdSLfHxpqthAsfcybCi8mKs5HRIENs/LRGUqFwoQGphvc9t711phFovUpA1CbhJ28EYPN5g==
+X-Received: by 2002:ac8:785:0:b0:3a7:eab2:e461 with SMTP id l5-20020ac80785000000b003a7eab2e461mr42688176qth.25.1672648680473;
+        Mon, 02 Jan 2023 00:38:00 -0800 (PST)
+Received: from mail-yb1-f169.google.com (mail-yb1-f169.google.com. [209.85.219.169])
+        by smtp.gmail.com with ESMTPSA id fb25-20020a05622a481900b003a5430ee366sm15917725qtb.60.2023.01.02.00.38.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Mon, 02 Jan 2023 00:38:00 -0800 (PST)
+Received: by mail-yb1-f169.google.com with SMTP id e141so29641506ybh.3;
+        Mon, 02 Jan 2023 00:38:00 -0800 (PST)
+X-Received: by 2002:a25:d243:0:b0:702:90b4:2e24 with SMTP id
+ j64-20020a25d243000000b0070290b42e24mr2730771ybg.365.1672648260480; Mon, 02
+ Jan 2023 00:31:00 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+References: <78b23407-bdd0-4b1b-bf6e-ecd4c00294ab@app.fastmail.com> <20221229113338.2436892-1-andrzej.hajda@intel.com>
+In-Reply-To: <20221229113338.2436892-1-andrzej.hajda@intel.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 2 Jan 2023 09:30:48 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdVaq9Xg3HrqLo1x5SCuwtJBsczLjWAWmH=23ZtNf_e9hQ@mail.gmail.com>
+Message-ID: <CAMuHMdVaq9Xg3HrqLo1x5SCuwtJBsczLjWAWmH=23ZtNf_e9hQ@mail.gmail.com>
+Subject: Re: [PATCH v2] arch: rename all internal names __xchg to __arch_xchg
+To:     Andrzej Hajda <andrzej.hajda@intel.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, intel-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-This bug assumes that the hacker can physically access the
-target computer.
+On Thu, Dec 29, 2022 at 12:34 PM Andrzej Hajda <andrzej.hajda@intel.com> wrote:
+> __xchg will be used for non-atomic xchg macro.
+>
+> Signed-off-by: Andrzej Hajda <andrzej.hajda@intel.com>
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 
-A race condition may occur if the user physically removes the
-vcc device while calling open().
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> [m68k]
 
-This is a race condition between vcc_open() function and
-the vcc_remove() function, which may lead to Use-After-Free.
+Gr{oetje,eeting}s,
 
-Therefore, add a refcount check to vcc_remove() function
-to free the "vcc_port" structure after the device is close()d.
+                        Geert
 
----------------CPU 0--------------------CPU 1-----------------
-            vcc_open()        |        vcc_remove()
---------------------------------------------------------------
-    port = vcc_get_ne(tty->   |
-      index); — (1)           |
-                              |   struct vcc_port *port =
-                              |    dev_get_drvdata(&vdev->dev);
-                              |   ...
-                              |   kfree(port); — (2)
- vccdbgl(port->vio.lp); — (3) |
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-This type of race condition is similar with CVE-2022-44032,
-CVE-2022-44033, and CVE-2022-44034.
----
- drivers/tty/vcc.c | 18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
-
-diff --git a/drivers/tty/vcc.c b/drivers/tty/vcc.c
-index 34ba6e54789a..31f274c4aa25 100644
---- a/drivers/tty/vcc.c
-+++ b/drivers/tty/vcc.c
-@@ -41,6 +41,8 @@ struct vcc_port {
- 
- 	struct timer_list rx_timer;
- 	struct timer_list tx_timer;
-+	struct vio_dev *vdev;
-+	struct kref refcnt;
- };
- 
- /* Microseconds that thread will delay waiting for a vcc port ref */
-@@ -104,6 +106,7 @@ static const struct ktermios vcc_tty_termios = {
- 	.c_ospeed = 38400
- };
- 
-+static void vcc_delete(struct kref *kref);
- /**
-  * vcc_table_add() - Add VCC port to the VCC table
-  * @port: pointer to the VCC port
-@@ -586,6 +589,8 @@ static int vcc_probe(struct vio_dev *vdev, const struct vio_device_id *id)
- 		goto free_port;
- 
- 	port->vio.debug = vcc_dbg_vio;
-+	port->vdev = vdev;
-+	kref_init(&port->refcnt);
- 	vcc_ldc_cfg.debug = vcc_dbg_ldc;
- 
- 	rv = vio_ldc_alloc(&port->vio, &vcc_ldc_cfg, port);
-@@ -673,6 +678,14 @@ static void vcc_remove(struct vio_dev *vdev)
- {
- 	struct vcc_port *port = dev_get_drvdata(&vdev->dev);
- 
-+	kref_put(&port->refcnt, vcc_delete);
-+}
-+
-+static void vcc_delete(struct kref *kref)
-+{
-+	struct vcc_port *port = container_of(kref, struct vcc_port, refcnt);
-+	struct viod_dev *vdev = port->vdev;
-+
- 	del_timer_sync(&port->rx_timer);
- 	del_timer_sync(&port->tx_timer);
- 
-@@ -752,12 +765,15 @@ static int vcc_open(struct tty_struct *tty, struct file *vcc_file)
- 		pr_err("VCC: open: TTY ops not defined\n");
- 		return -ENXIO;
- 	}
-+	kref_get(&port->refcnt);
- 
- 	return tty_port_open(tty->port, tty, vcc_file);
- }
- 
- static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
- {
-+	struct vcc_port *port = vcc_get_ne(tty->index);
-+
- 	if (unlikely(tty->count > 1))
- 		return;
- 
-@@ -767,6 +783,8 @@ static void vcc_close(struct tty_struct *tty, struct file *vcc_file)
- 	}
- 
- 	tty_port_close(tty->port, tty, vcc_file);
-+
-+	kref_put(&port->refcnt, vcc_delete);
- }
- 
- static void vcc_ldc_hup(struct vcc_port *port)
--- 
-2.39.0
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
