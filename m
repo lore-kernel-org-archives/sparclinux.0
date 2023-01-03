@@ -2,109 +2,141 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67011C4708E
-	for <sparclinux@archiver.kernel.org>; Mon,  2 Jan 2023 17:24:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E33E3C3DA7D
+	for <sparclinux@archiver.kernel.org>; Tue,  3 Jan 2023 08:18:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230311AbjABRYq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 2 Jan 2023 12:24:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34192 "EHLO
+        id S237142AbjACISM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 3 Jan 2023 03:18:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232535AbjABRYo (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 2 Jan 2023 12:24:44 -0500
-Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 191B0B84E;
-        Mon,  2 Jan 2023 09:24:44 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1672680284; x=1704216284;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=6MsclmYEbFQLTFumk27drrI0fnEhnwF05BH3vrcK1XM=;
-  b=Zuu0P2qceyuck5L3YA/oO/w+5y5QRYkCcYNfbk5pwlE0gZtMBOg5xHrt
-   QpH6M8QfT8h7GK7VhQuJU/5iL46+7D559BMoCuC3QPZFigBHJthVOBTE9
-   Z3MHa3i1VWacAEcl4GSibn5uH4PfDBDtVdYHqtuQ2o1dnu4BYRQtj5cOe
-   yGVlbf9rC60Tup8plc0P5VSLrR4ge9fo/yEPozIXsYJdDFCXnjSHYcsI1
-   QQjN8WqJkAkDBvzV4KxqUSh/cLwdtoIGUYfU3Aenw47d5VIijriMzy/8s
-   g+UyORqtyvyX2bLY6PtKYhp8+XvDM45ZwD83yN1QvWFlRwTjNLWo1Jm33
-   A==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10578"; a="320231190"
-X-IronPort-AV: E=Sophos;i="5.96,294,1665471600"; 
-   d="scan'208";a="320231190"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 02 Jan 2023 09:24:43 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10578"; a="632193640"
-X-IronPort-AV: E=Sophos;i="5.96,294,1665471600"; 
-   d="scan'208";a="632193640"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by orsmga006.jf.intel.com with ESMTP; 02 Jan 2023 09:24:34 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pCOY3-003WV9-0D;
-        Mon, 02 Jan 2023 19:24:31 +0200
-Date:   Mon, 2 Jan 2023 19:24:30 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Alexander Lobakin <alexandr.lobakin@intel.com>
-Cc:     Maciej Fijalkowski <maciej.fijalkowski@intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Yury Norov <yury.norov@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Matt Turner <mattst88@gmail.com>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Kees Cook <keescook@chromium.org>,
-        "Peter Zijlstra (Intel)" <peterz@infradead.org>,
-        Marco Elver <elver@google.com>, Borislav Petkov <bp@suse.de>,
-        Tony Luck <tony.luck@intel.com>,
-        Jesse Brandeburg <jesse.brandeburg@intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Tom Rix <trix@redhat.com>, kernel test robot <lkp@intel.com>,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-arch@vger.kernel.org, llvm@lists.linux.dev,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 2/9] bitops: always define asm-generic non-atomic
- bitops
-Message-ID: <Y7MTTtlDCottjQi1@smile.fi.intel.com>
-References: <20220624121313.2382500-1-alexandr.lobakin@intel.com>
- <20220624121313.2382500-3-alexandr.lobakin@intel.com>
- <Y7MC5/wxgGZz/met@boxer>
- <20230102163059.3556962-1-alexandr.lobakin@intel.com>
+        with ESMTP id S237150AbjACIRt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 3 Jan 2023 03:17:49 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 223A7E019;
+        Tue,  3 Jan 2023 00:17:23 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B7015611FB;
+        Tue,  3 Jan 2023 08:17:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD8DDC433F0;
+        Tue,  3 Jan 2023 08:17:21 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1672733842;
+        bh=NSeTGuu9jxbF8jrNYEFoO8mXqWTUINIqDZm/DcWDZh0=;
+        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
+        b=2c0I3ASKGQrdJxl5qkRmFEkHAjkSpQcUD35TXr5NShzcqc7Q6QS0dr9WZJhWtsD2S
+         ak1ao9t8+0nSPORBNrbmh0AoyknkVTP7rnsoTJkShOkK68diqU3bS53nhB+AQ3P7ho
+         HFUWZ2o630kGZRHa4q3xB6AEJL7KFfQXdVP5ks/U=
+From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To:     stable@vger.kernel.org
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        patches@lists.linux.dev, sparclinux@vger.kernel.org,
+        Jens Axboe <axboe@kernel.dk>
+Subject: [PATCH 5.10 40/63] sparc: add support for TIF_NOTIFY_SIGNAL
+Date:   Tue,  3 Jan 2023 09:14:10 +0100
+Message-Id: <20230103081310.985156291@linuxfoundation.org>
+X-Mailer: git-send-email 2.39.0
+In-Reply-To: <20230103081308.548338576@linuxfoundation.org>
+References: <20230103081308.548338576@linuxfoundation.org>
+User-Agent: quilt/0.67
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230102163059.3556962-1-alexandr.lobakin@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, Jan 02, 2023 at 05:30:59PM +0100, Alexander Lobakin wrote:
-> From: Maciej Fijalkowski <maciej.fijalkowski@intel.com>
-> Date: Mon, 2 Jan 2023 17:14:31 +0100
-> > On Fri, Jun 24, 2022 at 02:13:06PM +0200, Alexander Lobakin wrote:
+From: Jens Axboe <axboe@kernel.dk>
 
-> > this patch gives me a headache when trying to run sparse against a module.
+[ Upstream commit f50a7052f5e70ee7a6a5e2ed08660994dc3df2a5 ]
 
-No, it's not related to this patch.
+Wire up TIF_NOTIFY_SIGNAL handling for sparc.
 
-> > Olek please help :D
-> 
-> It was fixed shortly after the build bots turned on on the original
-> series with [0]. Hovewer, no release tag's been made after the fix.
-> There's also a short discussion regarding packaging Sparse 0.6.4 for
-> Debian with that fix cherry-picked[1], not sure if it led anywhere.
+Cc: sparclinux@vger.kernel.org
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/sparc/include/asm/thread_info_32.h |    4 +++-
+ arch/sparc/include/asm/thread_info_64.h |    6 ++++--
+ arch/sparc/kernel/signal_32.c           |    2 +-
+ arch/sparc/kernel/signal_64.c           |    2 +-
+ 4 files changed, 9 insertions(+), 5 deletions(-)
 
-Debian already fixed that for a few weeks at least.
-
--- 
-With Best Regards,
-Andy Shevchenko
+--- a/arch/sparc/include/asm/thread_info_32.h
++++ b/arch/sparc/include/asm/thread_info_32.h
+@@ -104,6 +104,7 @@ register struct thread_info *current_thr
+ #define TIF_SIGPENDING		2	/* signal pending */
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+ #define TIF_RESTORE_SIGMASK	4	/* restore signal mask in do_signal() */
++#define TIF_NOTIFY_SIGNAL	5	/* signal notifications exist */
+ #define TIF_USEDFPU		8	/* FPU was used by this task
+ 					 * this quantum (SMP) */
+ #define TIF_POLLING_NRFLAG	9	/* true if poll_idle() is polling
+@@ -115,11 +116,12 @@ register struct thread_info *current_thr
+ #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
++#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
+ #define _TIF_USEDFPU		(1<<TIF_USEDFPU)
+ #define _TIF_POLLING_NRFLAG	(1<<TIF_POLLING_NRFLAG)
+ 
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+-					 _TIF_SIGPENDING)
++					 _TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL)
+ 
+ #define is_32bit_task()	(1)
+ 
+--- a/arch/sparc/include/asm/thread_info_64.h
++++ b/arch/sparc/include/asm/thread_info_64.h
+@@ -180,7 +180,7 @@ extern struct thread_info *current_threa
+ #define TIF_NOTIFY_RESUME	1	/* callback before returning to user */
+ #define TIF_SIGPENDING		2	/* signal pending */
+ #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
+-/* flag bit 4 is available */
++#define TIF_NOTIFY_SIGNAL	4	/* signal notifications exist */
+ #define TIF_UNALIGNED		5	/* allowed to do unaligned accesses */
+ #define TIF_UPROBE		6	/* breakpointed or singlestepped */
+ #define TIF_32BIT		7	/* 32-bit binary */
+@@ -200,6 +200,7 @@ extern struct thread_info *current_threa
+ #define _TIF_NOTIFY_RESUME	(1<<TIF_NOTIFY_RESUME)
+ #define _TIF_SIGPENDING		(1<<TIF_SIGPENDING)
+ #define _TIF_NEED_RESCHED	(1<<TIF_NEED_RESCHED)
++#define _TIF_NOTIFY_SIGNAL	(1<<TIF_NOTIFY_SIGNAL)
+ #define _TIF_UNALIGNED		(1<<TIF_UNALIGNED)
+ #define _TIF_UPROBE		(1<<TIF_UPROBE)
+ #define _TIF_32BIT		(1<<TIF_32BIT)
+@@ -213,7 +214,8 @@ extern struct thread_info *current_threa
+ 				 _TIF_DO_NOTIFY_RESUME_MASK | \
+ 				 _TIF_NEED_RESCHED)
+ #define _TIF_DO_NOTIFY_RESUME_MASK	(_TIF_NOTIFY_RESUME | \
+-					 _TIF_SIGPENDING | _TIF_UPROBE)
++					 _TIF_SIGPENDING | _TIF_UPROBE | \
++					 _TIF_NOTIFY_SIGNAL)
+ 
+ #define is_32bit_task()	(test_thread_flag(TIF_32BIT))
+ 
+--- a/arch/sparc/kernel/signal_32.c
++++ b/arch/sparc/kernel/signal_32.c
+@@ -521,7 +521,7 @@ static void do_signal(struct pt_regs *re
+ void do_notify_resume(struct pt_regs *regs, unsigned long orig_i0,
+ 		      unsigned long thread_info_flags)
+ {
+-	if (thread_info_flags & _TIF_SIGPENDING)
++	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
+ 		do_signal(regs, orig_i0);
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+ 		tracehook_notify_resume(regs);
+--- a/arch/sparc/kernel/signal_64.c
++++ b/arch/sparc/kernel/signal_64.c
+@@ -549,7 +549,7 @@ void do_notify_resume(struct pt_regs *re
+ 	user_exit();
+ 	if (thread_info_flags & _TIF_UPROBE)
+ 		uprobe_notify_resume(regs);
+-	if (thread_info_flags & _TIF_SIGPENDING)
++	if (thread_info_flags & (_TIF_SIGPENDING | _TIF_NOTIFY_SIGNAL))
+ 		do_signal(regs, orig_i0);
+ 	if (thread_info_flags & _TIF_NOTIFY_RESUME)
+ 		tracehook_notify_resume(regs);
 
 
