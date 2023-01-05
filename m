@@ -2,75 +2,161 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85D67C3DA7D
-	for <sparclinux@archiver.kernel.org>; Thu,  5 Jan 2023 06:22:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7479C5479D
+	for <sparclinux@archiver.kernel.org>; Thu,  5 Jan 2023 09:13:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230444AbjAEGVu (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 5 Jan 2023 01:21:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47636 "EHLO
+        id S231649AbjAEJND (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 5 Jan 2023 04:13:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33140 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230527AbjAEGV3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 5 Jan 2023 01:21:29 -0500
-Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com [209.85.128.47])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE0EA51334;
-        Wed,  4 Jan 2023 22:21:28 -0800 (PST)
-Received: by mail-wm1-f47.google.com with SMTP id b24-20020a05600c4a9800b003d21efdd61dso562533wmp.3;
-        Wed, 04 Jan 2023 22:21:28 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:from:references:to
-         :content-language:subject:user-agent:mime-version:date:message-id
-         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=ZAEMQFdfgVBcmOVq2pNOL15xuSdJkLLmqjgylxoc+Sk=;
-        b=PLEr4PHUbbArUyMcSpFnEXGftMwdxViKNYWQ4snnieH9SKsdQwYrqCjP1ItfPJRCEQ
-         IaxkOOR9Ndzlh803Ip9N+3/e1mKby6xUEREoK/eqMXCycuKeA5PBXi8OmaAEC63MQdU3
-         MH0XVjr9VBOA1PSJEgkmX3mNvx7yXFVgfGbmcv4ukzzpWzvSwgr67X105c+ClRG/353P
-         E2+qQlffgoNvC/F4gQ8ezyaIsJdh7uYBufghtti3RzjsfMEiuqltY+SzlbixpQMTyBJY
-         YBmFD6Yi31ifAkYTaTOnkgPGkFIn4dnrkmXVIHgtW2O+vsdSiSWngqGjP3RQekmiRN90
-         qvGw==
-X-Gm-Message-State: AFqh2kqWueU9t4w+Ssfd5vs5D8cnfl4XyYdIj4wV/5TqoEntHyIRBk2R
-        AH1zD2J0EczD+wPxYHqsNzc=
-X-Google-Smtp-Source: AMrXdXtjXHqhoeoZ1KizKFs5ywBzvrDm8GK2iCayrbwAQ5Jm2g2BgyV1ip7zp2zWX3Yh9NlupvFNbg==
-X-Received: by 2002:a05:600c:1e24:b0:3d3:5075:7526 with SMTP id ay36-20020a05600c1e2400b003d350757526mr36594024wmb.31.1672899687507;
-        Wed, 04 Jan 2023 22:21:27 -0800 (PST)
-Received: from ?IPV6:2a0b:e7c0:0:107::aaaa:49? ([2a0b:e7c0:0:107::aaaa:49])
-        by smtp.gmail.com with ESMTPSA id i3-20020a1c5403000000b003cf5ec79bf9sm1177448wmb.40.2023.01.04.22.21.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 04 Jan 2023 22:21:27 -0800 (PST)
-Message-ID: <de514a2c-1649-9035-db6b-9461f3c069d7@kernel.org>
-Date:   Thu, 5 Jan 2023 07:21:25 +0100
+        with ESMTP id S231735AbjAEJNB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 5 Jan 2023 04:13:01 -0500
+X-Greylist: delayed 61 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Thu, 05 Jan 2023 01:12:58 PST
+Received: from smtpcmd01-g.aruba.it (smtpcmd01-g.aruba.it [62.149.158.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0141B5017A
+        for <sparclinux@vger.kernel.org>; Thu,  5 Jan 2023 01:12:56 -0800 (PST)
+Received: from [192.168.1.56] ([79.0.204.227])
+        by Aruba Outgoing Smtp  with ESMTPSA
+        id DMHvpvDoUfraoDMHvpSmyW; Thu, 05 Jan 2023 10:11:52 +0100
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=aruba.it; s=a1;
+        t=1672909912; bh=+XW3CL00tj+fe55KGNLVJ9XLABIjy2ulWPGGl8Tamdg=;
+        h=Date:MIME-Version:Subject:To:From:Content-Type;
+        b=LWPhJJbuy+S43nfxcJ/MMN4+SNI/f/lN3yLbTqBl5WYZQycdBkI+myI9YMIrpofPA
+         zOZx6qYsgXGyjnznreYTg5pVNgbFtKr2DkTSqiPKMdgzsErHuJZ3IO7r49ruiIHW/M
+         aBrq/i6IrpKKk2DrTlHFmnP/c10Z3ihe6lb9DlpRsGr+p31n0XbyvUob+SG2T5cVEK
+         KhxCuSTtzJKoxn5RjPVqaKM4ptp+Yq4R4Nz99avKW7d78oPW+Q+hkuFmA3UcaIbeRu
+         NxgX/ErMjP6kQXte/BMYbB9SY8E8jmRzXf3OStSh+cwarfLponiS7cmradCPtmT2pL
+         h0WWuVWZu0oGQ==
+Message-ID: <a0bf4ed2-bf68-ff9c-41d1-6fa4634b6911@enneenne.com>
+Date:   Thu, 5 Jan 2023 10:11:51 +0100
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.1
+ Thunderbird/102.4.2
 Subject: Re: [PATCH 08/10] tty/serial: Make
  ->dcd_change()+uart_handle_dcd_change() status bool
 Content-Language: en-US
 To:     =?UTF-8?Q?Ilpo_J=c3=a4rvinen?= <ilpo.jarvinen@linux.intel.com>,
         linux-serial@vger.kernel.org,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rodolfo Giometti <giometti@enneenne.com>,
+        Jiri Slaby <jirislaby@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
         Johan Hovold <johan@kernel.org>, linux-kernel@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-usb@vger.kernel.org
 References: <20230104151531.73994-1-ilpo.jarvinen@linux.intel.com>
  <20230104151531.73994-9-ilpo.jarvinen@linux.intel.com>
-From:   Jiri Slaby <jirislaby@kernel.org>
+From:   Rodolfo Giometti <giometti@enneenne.com>
 In-Reply-To: <20230104151531.73994-9-ilpo.jarvinen@linux.intel.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
+X-CMAE-Envelope: MS4xfGsllanyz1tqYaA47eoQvw8rULIQX0Nnk8AVK9S3VkkeK8U9G/b4+EdHcRA10Jfj8HervvBJ3coUI6AeSJvoiOs129wXh4LAbWCRARepGQYA78X97/Cv
+ CkI2kaUH3IMSQizdJfNc4t+DDNlYt7p7n+Jgp2ZyZzI1OMPvsh+BcVK34q6QyOhWYToklEJa9eGL83GDoN5IDeD0Pg/d6cqrW70dIGjCb7MWEKtiXWNc1hz5
+ 7oxsPH/9k0uoOUv0XexaTq9TlCWI1E4q+JZa3cQwiJF2ENp5J5t5bBkapi/tNRkzjCQrnp8HelpPpKVrzYB7ymQaf3jeGrOom9zmNQPG5MzARa8j3KrMCQ7C
+ yNFkG4zuUYv0+yrZsCApSQohDHqR8qMEoeTLVDBj9bhhCIue1d5QXmgosUzxrTwgVj5rluMKh78v/OaFyPN7xG/QnhwuAuBpsDEOb9vyvKAya6IHSJ5nV+zn
+ Gzr3JAe60TiFtMuh0UoOZNu9TZz3kfknUfPGDg==
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 04. 01. 23, 16:15, Ilpo Järvinen wrote:
+On 04/01/23 16:15, Ilpo Järvinen wrote:
 > Convert status parameter for ->dcd_change() and
 > uart_handle_dcd_change() to bool which matches to how the parameter is
 > used.
 > 
 > Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+> ---
+>   drivers/pps/clients/pps-ldisc.c  | 2 +-
 
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
 
+>   drivers/tty/serial/serial_core.c | 4 ++--
+>   drivers/tty/serial/sunhv.c       | 8 ++++----
+>   drivers/usb/serial/generic.c     | 2 +-
+>   include/linux/serial_core.h      | 3 +--
+>   include/linux/tty_ldisc.h        | 4 ++--
+>   include/linux/usb/serial.h       | 2 +-
+>   7 files changed, 12 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/pps/clients/pps-ldisc.c b/drivers/pps/clients/pps-ldisc.c
+> index d73c4c2ed4e1..67aee758ac1d 100644
+> --- a/drivers/pps/clients/pps-ldisc.c
+> +++ b/drivers/pps/clients/pps-ldisc.c
+> @@ -13,7 +13,7 @@
+>   #include <linux/pps_kernel.h>
+>   #include <linux/bug.h>
+>   
+> -static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
+> +static void pps_tty_dcd_change(struct tty_struct *tty, bool status)
+>   {
+>   	struct pps_device *pps;
+>   	struct pps_event_time ts;
+> diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+> index 07b4af10a7e9..76536c74e907 100644
+> --- a/drivers/tty/serial/serial_core.c
+> +++ b/drivers/tty/serial/serial_core.c
+> @@ -3250,11 +3250,11 @@ EXPORT_SYMBOL(uart_match_port);
+>   /**
+>    * uart_handle_dcd_change - handle a change of carrier detect state
+>    * @uport: uart_port structure for the open port
+> - * @status: new carrier detect status, nonzero if active
+> + * @status: new carrier detect status, true if active
+>    *
+>    * Caller must hold uport->lock.
+>    */
+> -void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
+> +void uart_handle_dcd_change(struct uart_port *uport, bool status)
+>   {
+>   	struct tty_port *port = &uport->state->port;
+>   	struct tty_struct *tty = port->tty;
+> diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+> index 16c746a63258..7d38c33ef506 100644
+> --- a/drivers/tty/serial/sunhv.c
+> +++ b/drivers/tty/serial/sunhv.c
+> @@ -87,10 +87,10 @@ static int receive_chars_getchar(struct uart_port *port)
+>   
+>   		if (c == CON_HUP) {
+>   			hung_up = 1;
+> -			uart_handle_dcd_change(port, 0);
+> +			uart_handle_dcd_change(port, false);
+>   		} else if (hung_up) {
+>   			hung_up = 0;
+> -			uart_handle_dcd_change(port, 1);
+> +			uart_handle_dcd_change(port, true);
+>   		}
+>   
+>   		if (port->state == NULL) {
+> @@ -133,7 +133,7 @@ static int receive_chars_read(struct uart_port *port)
+>   				bytes_read = 1;
+>   			} else if (stat == CON_HUP) {
+>   				hung_up = 1;
+> -				uart_handle_dcd_change(port, 0);
+> +				uart_handle_dcd_change(port, false);
+>   				continue;
+>   			} else {
+>   				/* HV_EWOULDBLOCK, etc.  */
+> @@ -143,7 +143,7 @@ static int receive_chars_read(struct uart_port *port)
+>   
+>   		if (hung_up) {
+>   			hung_up = 0;
+> -			uart_handle_dcd_change(port, 1);
+> +			uart_handle_dcd_change(port, true);
+>   		}
+>   
+>   		if (port->sysrq != 0 &&  *con_read_page) {
+> diff --git a/drivers/usb/serial/generic.c b/drivers/usb/serial/generic.c
+> index 15b6dee3a8e5..50016ee1026a 100644
+> --- a/drivers/usb/serial/generic.c
+> +++ b/drivers/usb/serial/generic.c
+> @@ -608,7 +608,7 @@ EXPORT_SYMBOL_GPL(usb_serial_handle_break);
+>    * @status: new carrier detect status, nonzero if active
+>    */
+>   void usb_serial_handle_dcd_change(struct usb_serial_port *port,
+> -				struct tty_struct *tty, unsigned int status)
+> +				struct tty_struct *tty, bool status)
+>   {
+>   	dev_dbg(&port->dev, "%s - status %d\n", __func__, status);
+>   
+> diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+> index fd59f600094a..f1b69a36bb2b 100644
 > --- a/include/linux/serial_core.h
 > +++ b/include/linux/serial_core.h
 > @@ -896,8 +896,7 @@ static inline bool uart_softcts_mode(struct uart_port *uport)
@@ -82,11 +168,46 @@ Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
 > +extern void uart_handle_dcd_change(struct uart_port *uport, bool status);
 >   extern void uart_handle_cts_change(struct uart_port *uport,
 >   		unsigned int status);
-Note to myself: huh, we still have some superfluous "extern"s in headers.
+>   
+> diff --git a/include/linux/tty_ldisc.h b/include/linux/tty_ldisc.h
+> index dcb61ec11424..8f4a684973c9 100644
+> --- a/include/linux/tty_ldisc.h
+> +++ b/include/linux/tty_ldisc.h
+> @@ -170,7 +170,7 @@ int ldsem_down_write_nested(struct ld_semaphore *sem, int subclass,
+>    *	send, please arise a tasklet or workqueue to do the real data transfer.
+>    *	Do not send data in this hook, it may lead to a deadlock.
+>    *
+> - * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, unsigned int status)``
+> + * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, bool status)``
+>    *
+>    *	Tells the discipline that the DCD pin has changed its status. Used
+>    *	exclusively by the %N_PPS (Pulse-Per-Second) line discipline.
+> @@ -238,7 +238,7 @@ struct tty_ldisc_ops {
+>   	void	(*receive_buf)(struct tty_struct *tty, const unsigned char *cp,
+>   			       const char *fp, int count);
+>   	void	(*write_wakeup)(struct tty_struct *tty);
+> -	void	(*dcd_change)(struct tty_struct *tty, unsigned int status);
+> +	void	(*dcd_change)(struct tty_struct *tty, bool status);
+>   	int	(*receive_buf2)(struct tty_struct *tty, const unsigned char *cp,
+>   				const char *fp, int count);
+>   	void	(*lookahead_buf)(struct tty_struct *tty, const unsigned char *cp,
+> diff --git a/include/linux/usb/serial.h b/include/linux/usb/serial.h
+> index c597357853d9..6fa608cb4d98 100644
+> --- a/include/linux/usb/serial.h
+> +++ b/include/linux/usb/serial.h
+> @@ -372,7 +372,7 @@ static inline int usb_serial_handle_break(struct usb_serial_port *port)
+>   #endif
+>   
+>   void usb_serial_handle_dcd_change(struct usb_serial_port *usb_port,
+> -		struct tty_struct *tty, unsigned int status);
+> +				  struct tty_struct *tty, bool status);
+>   
+>   
+>   int usb_serial_bus_register(struct usb_serial_driver *device);
 
-thanks,
 -- 
--- 
-js
-suse labs
+GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+Linux Device Driver                          giometti@linux.it
+Embedded Systems                     phone:  +39 349 2432127
+UNIX programming                     skype:  rodolfo.giometti
 
