@@ -2,544 +2,221 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9ACC67871
-	for <sparclinux@archiver.kernel.org>; Sun,  8 Jan 2023 12:17:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9209C5479D
+	for <sparclinux@archiver.kernel.org>; Mon,  9 Jan 2023 08:15:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233157AbjAHMRo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 8 Jan 2023 07:17:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54528 "EHLO
+        id S234023AbjAIIPt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 9 Jan 2023 03:15:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36910 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229822AbjAHMRm (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 8 Jan 2023 07:17:42 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EAD1E9FF7;
-        Sun,  8 Jan 2023 04:17:40 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 72B4D60C35;
-        Sun,  8 Jan 2023 12:17:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9DAFC433A4;
-        Sun,  8 Jan 2023 12:17:39 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1673180259;
-        bh=TX0V/4+wQb1RatdnbMVa3+jmI36XK1OczApxsb9iWiY=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=A+UfzhzWMRlPOr/SmWahllI+xqc7XrlG2GXybvEMBiNT5hOQx4HOsCaZHZhxHP8Bm
-         un179j4QRchCNFpeXYs060LNEt5DmJ0L0TTaouA9nS6h6Bt23IFwYkLacFGo5WWdI5
-         dL5S1Bl9oJ9yd5VlzPGB/Srifp65PDUTi0qd5xZ+IVRf050pCXMZRjyXBz/wlJKiz2
-         zOqp0bB5VbQM1UbP6k5odznI15PCLTRfbOli/OPc2UuNGXXiyLR8gKhmICD6gfUoSj
-         c0FZpvbHQjbKOfQfXsiWa8+zRe7MIOkFaEt8+Tv2jT15kdJ1kVFZnYwcXrVRX3y3Gl
-         tri/5IAhAcGTA==
-Received: by mail-ed1-f42.google.com with SMTP id 18so8623158edw.7;
-        Sun, 08 Jan 2023 04:17:39 -0800 (PST)
-X-Gm-Message-State: AFqh2kqXh9cJV6mt9zToxLVYaSlYDbR5+z85SIUK2ofFg8jZgY5c+r0X
-        MFbQT3rB1vDubgvav2Gpvm4tlgGD9CwrYGXjRY4=
-X-Google-Smtp-Source: AMrXdXvHyyVhTuAPRD0KaN239ywUfFKZzKMRLNQnpAJXEir6NaXX9n/7TSYK/IxJmHDMFALaU/hoZBJ5MIneF9siZf8=
-X-Received: by 2002:a05:6402:1751:b0:488:51bf:f809 with SMTP id
- v17-20020a056402175100b0048851bff809mr3435800edx.156.1673180257565; Sun, 08
- Jan 2023 04:17:37 -0800 (PST)
+        with ESMTP id S236479AbjAIIPQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 9 Jan 2023 03:15:16 -0500
+Received: from FRA01-PR2-obe.outbound.protection.outlook.com (mail-pr2fra01on2041.outbound.protection.outlook.com [40.107.12.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F18AF21B1;
+        Mon,  9 Jan 2023 00:15:14 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=nlXglv71n04BE38et6C+RBXnG5ddCd8J558FvBkK2zgjbCnlPtoiKFZ57ECAjx6WwOdo6YCn6IQ5I7l6pEV2lEnahWx64wKD7xcG4qy1717vf+RRdnVEg4p25FrzWCpJSipaFhiO1Pjfuplny8tq/TikCJi4sOkM3oV8kNjWTqpVsTLZ0WKOsDjdsmlZyDkORd/rDO5FEHLLTnYyaLHm9jeppuF7o+1wDpB8Qx3VJ95Ti/yjCP0oGD0K8QbxWCtIpQ2pqt4LSWfIXoYtVbJK8DyLgvvskMQ3jSidgR2S5mCfYAUpRx2y7JMgCAWdkhyibB3dsdJa4WwRewdFTIGAFw==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=hx0FHV3k/7NL+AZRamp5FxA9YTcTDbwPT4gTSHJWP3M=;
+ b=mVxa14WBEIKVP2rI5SavFS5sH82h7MkkxDyMIdTS2s5LKf3eO4+GZzRQuuBqz+eEoD3R3B1CR88RRLKNf6Ess8GV+kGauUMRZmUr4x6aTQVYdaRs7jYC60VzxGCBETW8r2axBe0xk4Gi6ptiAhzyrtUcixwM+rNATvzI9Bv9Au5pQIHmWwh0XnCTIrDaRHDhv1utZgTCOHrmqzrmqqbpMrOIlHB0an559Dje2OXTnc2cKif09giEk4ogJz5HigO5SKWorG/LsTrE1/kRmVOFB2AGlA16lq3B3vwnJ82jJR9310PZ1uz4P9WFUdLxvfXx0gF/5XHcTUA5UU6PRq2ztQ==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
+ smtp.mailfrom=csgroup.eu; dmarc=pass action=none header.from=csgroup.eu;
+ dkim=pass header.d=csgroup.eu; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=csgroup.eu;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=hx0FHV3k/7NL+AZRamp5FxA9YTcTDbwPT4gTSHJWP3M=;
+ b=LTHFGhQ2QZFrkRm03gr1OF3kTUQ/HPb6vESV3JsuqZkZkMb64a4VhAOEESfJA7+v76AerH13J3ySgMLvS+acIqiLICJnNuioCclj+YwcQoRs/AwmY0AUs0t173GvdW6R2a3+l7VtQctZCFsJwpttDGX3Bt7QksU9JYqBPbDxmsOtoswGIhUOOWZNbtk7XxSiJP7K/syv+lweMN73s89IFM4+lyZ2MzQ7+e5AlSPmsitKn1DYF7SjOGfMzLenyUlnablYYddtPQ2Xniq1A91ugXFiC4QVWVztU2HK7+uiF5ZVl0y9aSJi0xVdJHhy4pQ8nCN6UNMwe8X8xnUqhuZBvw==
+Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM (2603:10a6:501:31::15)
+ by PR0P264MB2011.FRAP264.PROD.OUTLOOK.COM (2603:10a6:102:168::9) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.5986.18; Mon, 9 Jan
+ 2023 08:15:12 +0000
+Received: from MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+ ([fe80::2cfb:d4c:1932:b097]) by MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+ ([fe80::2cfb:d4c:1932:b097%7]) with mapi id 15.20.5986.018; Mon, 9 Jan 2023
+ 08:15:12 +0000
+From:   Christophe Leroy <christophe.leroy@csgroup.eu>
+To:     Daniel Borkmann <daniel@iogearbox.net>,
+        "tong@infragraf.org" <tong@infragraf.org>,
+        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
+        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+        "linux-arm-kernel@lists.infradead.or" 
+        <linux-arm-kernel@lists.infradead.or>,
+        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
+        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
+        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
+        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
+        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>
+CC:     Hao Luo <haoluo@google.com>,
+        John Fastabend <john.fastabend@gmail.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Andrii Nakryiko <andrii@kernel.org>,
+        Song Liu <song@kernel.org>,
+        Stanislav Fomichev <sdf@google.com>,
+        Jiri Olsa <jolsa@kernel.org>, Hou Tao <houtao1@huawei.com>,
+        KP Singh <kpsingh@kernel.org>, Yonghong Song <yhs@fb.com>,
+        Martin KaFai Lau <martin.lau@linux.dev>,
+        "naveen.n.rao@linux.ibm.com" <naveen.n.rao@linux.ibm.com>,
+        "mpe@ellerman.id.au" <mpe@ellerman.id.au>
+Subject: Re: [bpf-next v2] bpf: drop deprecated bpf_jit_enable == 2
+Thread-Topic: [bpf-next v2] bpf: drop deprecated bpf_jit_enable == 2
+Thread-Index: AQHZILjtdiBl24vDM0uhRRtlAlrCCa6QG7gAgAFsaoCABDtogA==
+Date:   Mon, 9 Jan 2023 08:15:12 +0000
+Message-ID: <5836b464-290e-203f-00f2-fc6632c9f570@csgroup.eu>
+References: <20230105030614.26842-1-tong@infragraf.org>
+ <ea7673e1-40ec-18be-af89-5f4fd0f71742@csgroup.eu>
+ <71c83f39-f85f-d990-95b7-ab6068839e6c@iogearbox.net>
+In-Reply-To: <71c83f39-f85f-d990-95b7-ab6068839e6c@iogearbox.net>
+Accept-Language: fr-FR, en-US
+Content-Language: fr-FR
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+user-agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.5.0
+authentication-results: dkim=none (message not signed)
+ header.d=none;dmarc=none action=none header.from=csgroup.eu;
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: MRZP264MB2988:EE_|PR0P264MB2011:EE_
+x-ms-office365-filtering-correlation-id: 165fcc8c-4bc6-4951-f904-08daf219a14c
+x-ms-exchange-senderadcheck: 1
+x-ms-exchange-antispam-relay: 0
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: oBu1gBw/sTnmVI8W846EXzPrCilfmXE4aZ94DtN4KBS4BkzgFGtvM52bpdIXVwM7JO9uvwKVdf2mNO4Y0ryRtaJ69L1aibQ/2vMwsjRPaV7PoUzKwGbeMvjh7dw0MzMixFFgY+3RiQWE3BCPn8+dcwvi5Ai1oIqupvsebfMW+YH9WoWAUXd3WZmkQ4NxY8zyo1zqMj5JYHisV6UOKu7UbRQ9l1NOjdTH1g/Ha+1PapB3XE3ZGYEBqGpPaul+P5vQhqC0U04qrESKLqiOvsHDtqg0aiAkcnxfyJdxck16J70WMwHtgLZVcdgat9u54mLeAA0PnqIWcu+sX7KodlnZCM2jcDGemcTcL83UvjiezF1rgkwwdA2Xog9gFRYuIi0FE+OtlBGCCzVy4Xoz8Dfv/QEeMbba6+1EUANsKFb+cAkeDMBsQZP0nImqe4rZ3DkBEhL+QQxvFc1zf+V0uWmdgixZ2LyjPjLU0biW3ElnL/jdjk+QCoPVSLAY7XvJBmDqzKKNx7vmiLhMrq7P5WQXgiGmR4b0dz7IwLAKrrafR/Dzs16dN9w/r+r58AZsINIRzBjucSdLygj7H18GHMHIKLJ35TYws15r+CXwpUa8pQSc69Aj2fps/STK7iW1SutRkwEbAA+h1WLJZrJFY5hE9qcPXvGHSG55+Ol5K6jvnOPrrFV8Xox6kBGpyIjNwPzj+3RuzroUV91hsMm5qrokVtCwqR+7v0bFRn9BA1cHJqL0N4qKVb8eyH39RNPpboMgRCJ38MjcrymEZQAmdTTefRC371Q5hYTR3TryYgx+D9pjuDUMhiAJpqLc17zYTlia
+x-forefront-antispam-report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM;PTR:;CAT:NONE;SFS:(13230022)(4636009)(366004)(136003)(396003)(376002)(346002)(39850400004)(451199015)(8676002)(316002)(5660300002)(7416002)(71200400001)(26005)(44832011)(6512007)(966005)(6486002)(478600001)(186003)(2616005)(66574015)(41300700001)(31696002)(66446008)(110136005)(91956017)(54906003)(4326008)(66946007)(64756008)(66476007)(76116006)(66556008)(8936002)(83380400001)(38070700005)(86362001)(36756003)(53546011)(31686004)(6506007)(122000001)(38100700002)(921005)(2906002)(43740500002)(45980500001);DIR:OUT;SFP:1101;
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?utf-8?B?bk1NNitkcjIzQU9FWG12ZldOR2lOckhnREsrWkl0elp4QlczQ1hVNjNCdXQ0?=
+ =?utf-8?B?b1l1dzR4UkJhNHRhWk0xQ2RqNXpvdExleVRMa2RpWXZTcWN4MnRVbE9nQ3hM?=
+ =?utf-8?B?eXpRTEhTRm45WlBRZUY3dHpFZW4yUEo1cXhWTVE2andJQlhqL0JwN2lYNXV4?=
+ =?utf-8?B?Uk12Mk1Fa2NGUm1YcXh5VU9CblN0VUVlQmRlT3ZTMEhmL0NIT0NBWmdjTFFo?=
+ =?utf-8?B?c01nYVVubVk4YlVzWFZuVXE5emlzeGRKbTNVWGVKa054QzhEekY3SU1YcTA2?=
+ =?utf-8?B?T28wNnVkVFEwYjhHZU9GdjkxYWVPMzBhb21TOEtEREtCdmlsWVlldlFUS1Za?=
+ =?utf-8?B?VnFYRExQZEJMNmlKZE9BN2thSXd1UnN5cGZFTHhDNTNxd3l2dDN5TlhYb0do?=
+ =?utf-8?B?dHR4aGZBY1hMU3BFRXI5VHFRMVhCTkcrUzVRaXR5dWtxMy9HRUNGMTd3ZFZi?=
+ =?utf-8?B?VHVhY09WTWU1SGFBNDVNZk5CZVg2em1IekV1Vk5CTlVLUWVqN3drcVB6N0N3?=
+ =?utf-8?B?cTZEWG02dU56L2dGZXRLMjV6M2ZTWFBHdXlFTGZVUjJsNHRqa0tZck9lc3JC?=
+ =?utf-8?B?YUlvUDhBd2JqQ0hKTThDRVBYb0MwU2c5a1FJTXpYUSttbXMvd2dBd0xuZTgr?=
+ =?utf-8?B?UEhNOXFKRkFvZzRiM1AxVTZzTVJkVkVIK2d3blJ5N0RySWlWR3lJRUxEL3BS?=
+ =?utf-8?B?bkVLZ3NMNDNEeHROVzNaRnd0cjhYTVNOaWd0OC9YdFZsNE9OOG5rQytXWitk?=
+ =?utf-8?B?UUFWK2lDZHAxMnJFb3h3cWxWL2sxak82UjVMbmhLWHVCNzFhR1VsZTJPR2d1?=
+ =?utf-8?B?c3RxMEZrY2dVdENMRnp1QzN6bFJFY21NUkdyV1Z3M04xTEF5WHRnSUJ1c25k?=
+ =?utf-8?B?Z2ZVOENNSlBvTDJLSUVnM2Z6ZkFESzdJTUcxNmdEa0RPYUcreEw4L2lYSFdF?=
+ =?utf-8?B?M29QM1RBcjJRZ2s1RXdIcXFyQkh4cXJGVEhrd1NaZDhxNlRoc2FEMzc3T2lI?=
+ =?utf-8?B?NzBWb01hM1RXN2dZM0RwNVdRWFBydmpibVFzRU9IOUdSL0ZucUVGMTM4blZX?=
+ =?utf-8?B?ZG1lbUxnM1o2QnJzNzVnZmNkQmlHZ1dnbm1PeVlFbTFQWXRuWkVGdGwxZ1RJ?=
+ =?utf-8?B?ZjZBUEhqbk80b2VMREsxTTVqN2hibzVCcU9tWERuMHdMeG9vLzdobnZPS0Ju?=
+ =?utf-8?B?c0lLS1g3Nm1YeEROWFRyQnUvV1hxY3RNSGswZThHMlF6WURkR2JicUJwbldK?=
+ =?utf-8?B?UWJiMVV6MUMwWCtXeDZWd1VXd1pYcWZQRENtRFhYbGo1SmN1ZFMvd0Q5Qita?=
+ =?utf-8?B?MGtMd0NJMDh0a09PdTZlbDliSkdoVjJxdURrOFh0aDdsSVF1dks1QVozdUFK?=
+ =?utf-8?B?NnQrS21SZnBHck1SWmtiYmdJc1VSYWFzTlNVM2NMVTgvanV2dFkzbnJ3Sk1q?=
+ =?utf-8?B?ejJFczVJUWg2UTlXMkFqUzI5Ym82cjFFc1FCS1BFVkl5eEltWDVrK0JFNWhY?=
+ =?utf-8?B?T3QrbGdnbWlYek1yREhOTTd6VjBQcmF6UjJsbFBiandHTVNaTmtDQ2VTNXVr?=
+ =?utf-8?B?NVBWUVk3ejdCa1B6emRVTmRIbytjdnNrODRpZW1JZ2dOMHI5aXpyNjc5REZi?=
+ =?utf-8?B?ci9oeGlSUW9sNHBDK1JmNDJsUlFQMTZlM09BUkdhQXVtakxnOXJ5eVFmcmFN?=
+ =?utf-8?B?WXd5ejl2ZUoyWVd6WnpxVm1sK2JjMXI3bkpoejJGd2F1aWRsdXBJZ1F2R2tE?=
+ =?utf-8?B?ZFhQL1lkbWVJWDR0cmxrSmtNT1htWHdpdjh4d2F0SjNlWTk0QXZjQzh0VjMy?=
+ =?utf-8?B?OWk0ZTBZRTBJc05RRnlhMlZ3Q1MzNWZNSUZXZnFXVkltWlpXdWk3eEhWTHBm?=
+ =?utf-8?B?VllHQkdJZm1ZejIvOHFCYk9pRkhDVHJMVmxHL0wxcFVXc0FhMm9kcEVRSktJ?=
+ =?utf-8?B?enR1ZlJjZUcvSWx0bU9kMDEvYytOdDBLaDI3Z2lNZFZVNWVMUzB1OGRqZTNU?=
+ =?utf-8?B?WGpmc1hkQ0wvNVkrME9xTHU4Q0Q2ZWlJOW9wVFRvT0doTmRuVzVUWHNDRXVT?=
+ =?utf-8?B?bDAwM2pkMWpsYlBQN21CdFlvcEhYdFZ4YkZYVHo1R3VTN2NuTkErWldMTXBo?=
+ =?utf-8?B?UC9pYnVabFYyVmJHcjFvZEgxTlVnMlZTZUxwMzdZZ2s5TjZ1OTNBRE1YSzlC?=
+ =?utf-8?B?cVE9PQ==?=
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <35373EDDA1640D4DAC2A155620971E1A@FRAP264.PROD.OUTLOOK.COM>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-References: <20221202155817.2102944-1-vschneid@redhat.com> <20221202155817.2102944-7-vschneid@redhat.com>
-In-Reply-To: <20221202155817.2102944-7-vschneid@redhat.com>
-From:   Huacai Chen <chenhuacai@kernel.org>
-Date:   Sun, 8 Jan 2023 20:17:10 +0800
-X-Gmail-Original-Message-ID: <CAAhV-H6Oii6t-4aHFjgPkCgFAd+LcVVg+7jMu_w4mEa0Ecuwaw@mail.gmail.com>
-Message-ID: <CAAhV-H6Oii6t-4aHFjgPkCgFAd+LcVVg+7jMu_w4mEa0Ecuwaw@mail.gmail.com>
-Subject: Re: [PATCH v3 6/8] treewide: Trace IPIs sent via smp_send_reschedule()
-To:     Valentin Schneider <vschneid@redhat.com>
-Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        x86@kernel.org, Guo Ren <guoren@kernel.org>,
-        "Paul E. McKenney" <paulmck@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Marcelo Tosatti <mtosatti@redhat.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        "David S. Miller" <davem@davemloft.net>
-Content-Type: text/plain; charset="UTF-8"
+X-OriginatorOrg: csgroup.eu
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: MRZP264MB2988.FRAP264.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-Network-Message-Id: 165fcc8c-4bc6-4951-f904-08daf219a14c
+X-MS-Exchange-CrossTenant-originalarrivaltime: 09 Jan 2023 08:15:12.0314
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 9914def7-b676-4fda-8815-5d49fb3b45c8
+X-MS-Exchange-CrossTenant-mailboxtype: HOSTED
+X-MS-Exchange-CrossTenant-userprincipalname: eunRnCU5XUpcBmvefzYzji2drRRc8lZg0aap0h9/SKF1cNORvWnYRUOFXGFf4tw2nKKzsv2r50daj6Nu8yHS66UDCm5M6GixgXYuvuK7wCo=
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: PR0P264MB2011
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi, Valentin,
-
-On Fri, Dec 2, 2022 at 11:59 PM Valentin Schneider <vschneid@redhat.com> wrote:
->
-> To be able to trace invocations of smp_send_reschedule(), rename the
-> arch-specific definitions of it to arch_smp_send_reschedule() and wrap it
-> into an smp_send_reschedule() that contains a tracepoint.
->
-> Changes to include the declaration of the tracepoint were driven by the
-> following coccinelle script:
->
->   @func_use@
->   @@
->   smp_send_reschedule(...);
->
->   @include@
->   @@
->   #include <trace/events/ipi.h>
->
->   @no_include depends on func_use && !include@
->   @@
->     #include <...>
->   +
->   + #include <trace/events/ipi.h>
->
-> Signed-off-by: Valentin Schneider <vschneid@redhat.com>
-> [csky bits]
-> Acked-by: Guo Ren <guoren@kernel.org>
-> ---
->  arch/alpha/kernel/smp.c                  | 2 +-
->  arch/arc/kernel/smp.c                    | 2 +-
->  arch/arm/kernel/smp.c                    | 2 +-
->  arch/arm/mach-actions/platsmp.c          | 2 ++
->  arch/arm64/kernel/smp.c                  | 2 +-
->  arch/csky/kernel/smp.c                   | 2 +-
->  arch/hexagon/kernel/smp.c                | 2 +-
->  arch/ia64/kernel/smp.c                   | 4 ++--
->  arch/loongarch/include/asm/smp.h         | 2 +-
->  arch/mips/include/asm/smp.h              | 2 +-
->  arch/mips/kernel/rtlx-cmp.c              | 2 ++
->  arch/openrisc/kernel/smp.c               | 2 +-
->  arch/parisc/kernel/smp.c                 | 4 ++--
->  arch/powerpc/kernel/smp.c                | 6 ++++--
->  arch/powerpc/kvm/book3s_hv.c             | 3 +++
->  arch/powerpc/platforms/powernv/subcore.c | 2 ++
->  arch/riscv/kernel/smp.c                  | 4 ++--
->  arch/s390/kernel/smp.c                   | 2 +-
->  arch/sh/kernel/smp.c                     | 2 +-
->  arch/sparc/kernel/smp_32.c               | 2 +-
->  arch/sparc/kernel/smp_64.c               | 2 +-
->  arch/x86/include/asm/smp.h               | 2 +-
->  arch/x86/kvm/svm/svm.c                   | 4 ++++
->  arch/x86/kvm/x86.c                       | 2 ++
->  arch/xtensa/kernel/smp.c                 | 2 +-
->  include/linux/smp.h                      | 8 ++++++--
->  virt/kvm/kvm_main.c                      | 1 +
->  27 files changed, 47 insertions(+), 25 deletions(-)
->
-> diff --git a/arch/alpha/kernel/smp.c b/arch/alpha/kernel/smp.c
-> index f4e20f75438f8..38637eb9eebd5 100644
-> --- a/arch/alpha/kernel/smp.c
-> +++ b/arch/alpha/kernel/smp.c
-> @@ -562,7 +562,7 @@ handle_ipi(struct pt_regs *regs)
->  }
->
->  void
-> -smp_send_reschedule(int cpu)
-> +arch_smp_send_reschedule(int cpu)
->  {
->  #ifdef DEBUG_IPI_MSG
->         if (cpu == hard_smp_processor_id())
-> diff --git a/arch/arc/kernel/smp.c b/arch/arc/kernel/smp.c
-> index ad93fe6e4b77d..409cfa4675b40 100644
-> --- a/arch/arc/kernel/smp.c
-> +++ b/arch/arc/kernel/smp.c
-> @@ -292,7 +292,7 @@ static void ipi_send_msg(const struct cpumask *callmap, enum ipi_msg_type msg)
->                 ipi_send_msg_one(cpu, msg);
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         ipi_send_msg_one(cpu, IPI_RESCHEDULE);
->  }
-> diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
-> index 3b280d55c1c40..f216ac890b6f9 100644
-> --- a/arch/arm/kernel/smp.c
-> +++ b/arch/arm/kernel/smp.c
-> @@ -745,7 +745,7 @@ void __init set_smp_ipi_range(int ipi_base, int n)
->         ipi_setup(smp_processor_id());
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/arch/arm/mach-actions/platsmp.c b/arch/arm/mach-actions/platsmp.c
-> index f26618b435145..7b208e96fbb67 100644
-> --- a/arch/arm/mach-actions/platsmp.c
-> +++ b/arch/arm/mach-actions/platsmp.c
-> @@ -20,6 +20,8 @@
->  #include <asm/smp_plat.h>
->  #include <asm/smp_scu.h>
->
-> +#include <trace/events/ipi.h>
-> +
->  #define OWL_CPU1_ADDR  0x50
->  #define OWL_CPU1_FLAG  0x5c
->
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 937d2623e06ba..8d108edc4a89f 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -976,7 +976,7 @@ void __init set_smp_ipi_range(int ipi_base, int n)
->         ipi_setup(smp_processor_id());
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
-> index 4b605aa2e1d65..fd7f81be16dd6 100644
-> --- a/arch/csky/kernel/smp.c
-> +++ b/arch/csky/kernel/smp.c
-> @@ -140,7 +140,7 @@ void smp_send_stop(void)
->         on_each_cpu(ipi_stop, NULL, 1);
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/arch/hexagon/kernel/smp.c b/arch/hexagon/kernel/smp.c
-> index 4ba93e59370c4..4e8bee25b8c68 100644
-> --- a/arch/hexagon/kernel/smp.c
-> +++ b/arch/hexagon/kernel/smp.c
-> @@ -217,7 +217,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
->         }
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         send_ipi(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/arch/ia64/kernel/smp.c b/arch/ia64/kernel/smp.c
-> index e2cc59db86bc2..ea4f009a232b4 100644
-> --- a/arch/ia64/kernel/smp.c
-> +++ b/arch/ia64/kernel/smp.c
-> @@ -220,11 +220,11 @@ kdump_smp_send_init(void)
->   * Called with preemption disabled.
->   */
->  void
-> -smp_send_reschedule (int cpu)
-> +arch_smp_send_reschedule (int cpu)
->  {
->         ia64_send_ipi(cpu, IA64_IPI_RESCHEDULE, IA64_IPI_DM_INT, 0);
->  }
-> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
-> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
->
->  /*
->   * Called with preemption disabled.
-> diff --git a/arch/loongarch/include/asm/smp.h b/arch/loongarch/include/asm/smp.h
-> index 3dd172d9ffea0..99f6f6d51d33a 100644
-> --- a/arch/loongarch/include/asm/smp.h
-> +++ b/arch/loongarch/include/asm/smp.h
-> @@ -83,7 +83,7 @@ extern void show_ipi_list(struct seq_file *p, int prec);
->   * it goes straight through and wastes no time serializing
->   * anything. Worst case is that we lose a reschedule ...
->   */
-> -static inline void smp_send_reschedule(int cpu)
-> +static inline void arch_smp_send_reschedule(int cpu)
->  {
->         loongson_send_ipi_single(cpu, SMP_RESCHEDULE);
->  }
-This function has been moved to arch/loongarch/kernel/smp.c since 6.2.
-
-Huacai
-
-> diff --git a/arch/mips/include/asm/smp.h b/arch/mips/include/asm/smp.h
-> index 5d9ff61004ca7..9806e79895d99 100644
-> --- a/arch/mips/include/asm/smp.h
-> +++ b/arch/mips/include/asm/smp.h
-> @@ -66,7 +66,7 @@ extern void calculate_cpu_foreign_map(void);
->   * it goes straight through and wastes no time serializing
->   * anything. Worst case is that we lose a reschedule ...
->   */
-> -static inline void smp_send_reschedule(int cpu)
-> +static inline void arch_smp_send_reschedule(int cpu)
->  {
->         extern const struct plat_smp_ops *mp_ops;       /* private */
->
-> diff --git a/arch/mips/kernel/rtlx-cmp.c b/arch/mips/kernel/rtlx-cmp.c
-> index d26dcc4b46e74..e991cc936c1cd 100644
-> --- a/arch/mips/kernel/rtlx-cmp.c
-> +++ b/arch/mips/kernel/rtlx-cmp.c
-> @@ -17,6 +17,8 @@
->  #include <asm/vpe.h>
->  #include <asm/rtlx.h>
->
-> +#include <trace/events/ipi.h>
-> +
->  static int major;
->
->  static void rtlx_interrupt(void)
-> diff --git a/arch/openrisc/kernel/smp.c b/arch/openrisc/kernel/smp.c
-> index e1419095a6f0a..0a7a059e2dff4 100644
-> --- a/arch/openrisc/kernel/smp.c
-> +++ b/arch/openrisc/kernel/smp.c
-> @@ -173,7 +173,7 @@ void handle_IPI(unsigned int ipi_msg)
->         }
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         smp_cross_call(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/arch/parisc/kernel/smp.c b/arch/parisc/kernel/smp.c
-> index 7dbd92cafae38..b7fc859fa87db 100644
-> --- a/arch/parisc/kernel/smp.c
-> +++ b/arch/parisc/kernel/smp.c
-> @@ -246,8 +246,8 @@ void kgdb_roundup_cpus(void)
->  inline void
->  smp_send_stop(void)    { send_IPI_allbutself(IPI_CPU_STOP); }
->
-> -void
-> -smp_send_reschedule(int cpu) { send_IPI_single(cpu, IPI_RESCHEDULE); }
-> +void
-> +arch_smp_send_reschedule(int cpu) { send_IPI_single(cpu, IPI_RESCHEDULE); }
->
->  void
->  smp_send_all_nop(void)
-> diff --git a/arch/powerpc/kernel/smp.c b/arch/powerpc/kernel/smp.c
-> index 0da6e59161cd4..11cfa76fd3699 100644
-> --- a/arch/powerpc/kernel/smp.c
-> +++ b/arch/powerpc/kernel/smp.c
-> @@ -61,6 +61,8 @@
->  #include <asm/kup.h>
->  #include <asm/fadump.h>
->
-> +#include <trace/events/ipi.h>
-> +
->  #ifdef DEBUG
->  #include <asm/udbg.h>
->  #define DBG(fmt...) udbg_printf(fmt)
-> @@ -364,12 +366,12 @@ static inline void do_message_pass(int cpu, int msg)
->  #endif
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         if (likely(smp_ops))
->                 do_message_pass(cpu, PPC_MSG_RESCHEDULE);
->  }
-> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
-> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
->
->  void arch_send_call_function_single_ipi(int cpu)
->  {
-> diff --git a/arch/powerpc/kvm/book3s_hv.c b/arch/powerpc/kvm/book3s_hv.c
-> index 6ba68dd6190bd..3b70b5f80bd56 100644
-> --- a/arch/powerpc/kvm/book3s_hv.c
-> +++ b/arch/powerpc/kvm/book3s_hv.c
-> @@ -43,6 +43,7 @@
->  #include <linux/compiler.h>
->  #include <linux/of.h>
->  #include <linux/irqdomain.h>
-> +#include <linux/smp.h>
->
->  #include <asm/ftrace.h>
->  #include <asm/reg.h>
-> @@ -80,6 +81,8 @@
->  #include <asm/dtl.h>
->  #include <asm/plpar_wrappers.h>
->
-> +#include <trace/events/ipi.h>
-> +
->  #include "book3s.h"
->  #include "book3s_hv.h"
->
-> diff --git a/arch/powerpc/platforms/powernv/subcore.c b/arch/powerpc/platforms/powernv/subcore.c
-> index 7e98b00ea2e84..c53c4c7977680 100644
-> --- a/arch/powerpc/platforms/powernv/subcore.c
-> +++ b/arch/powerpc/platforms/powernv/subcore.c
-> @@ -20,6 +20,8 @@
->  #include <asm/opal.h>
->  #include <asm/smp.h>
->
-> +#include <trace/events/ipi.h>
-> +
->  #include "subcore.h"
->  #include "powernv.h"
->
-> diff --git a/arch/riscv/kernel/smp.c b/arch/riscv/kernel/smp.c
-> index 760a64518c585..213602e89a8b2 100644
-> --- a/arch/riscv/kernel/smp.c
-> +++ b/arch/riscv/kernel/smp.c
-> @@ -235,8 +235,8 @@ void smp_send_stop(void)
->                            cpumask_pr_args(cpu_online_mask));
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         send_ipi_single(cpu, IPI_RESCHEDULE);
->  }
-> -EXPORT_SYMBOL_GPL(smp_send_reschedule);
-> +EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
-> diff --git a/arch/s390/kernel/smp.c b/arch/s390/kernel/smp.c
-> index 0031325ce4bc9..6c4da1e26e568 100644
-> --- a/arch/s390/kernel/smp.c
-> +++ b/arch/s390/kernel/smp.c
-> @@ -553,7 +553,7 @@ void arch_send_call_function_single_ipi(int cpu)
->   * it goes straight through and wastes no time serializing
->   * anything. Worst case is that we lose a reschedule ...
->   */
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         pcpu_ec_call(pcpu_devices + cpu, ec_schedule);
->  }
-> diff --git a/arch/sh/kernel/smp.c b/arch/sh/kernel/smp.c
-> index 65924d9ec2459..5cf35a774dc70 100644
-> --- a/arch/sh/kernel/smp.c
-> +++ b/arch/sh/kernel/smp.c
-> @@ -256,7 +256,7 @@ void __init smp_cpus_done(unsigned int max_cpus)
->                (bogosum / (5000/HZ)) % 100);
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         mp_ops->send_ipi(cpu, SMP_MSG_RESCHEDULE);
->  }
-> diff --git a/arch/sparc/kernel/smp_32.c b/arch/sparc/kernel/smp_32.c
-> index ad8094d955eba..87eaa7719fa27 100644
-> --- a/arch/sparc/kernel/smp_32.c
-> +++ b/arch/sparc/kernel/smp_32.c
-> @@ -120,7 +120,7 @@ void cpu_panic(void)
->
->  struct linux_prom_registers smp_penguin_ctable = { 0 };
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         /*
->          * CPU model dependent way of implementing IPI generation targeting
-> diff --git a/arch/sparc/kernel/smp_64.c b/arch/sparc/kernel/smp_64.c
-> index a55295d1b9244..e5964d1d8b37d 100644
-> --- a/arch/sparc/kernel/smp_64.c
-> +++ b/arch/sparc/kernel/smp_64.c
-> @@ -1430,7 +1430,7 @@ static unsigned long send_cpu_poke(int cpu)
->         return hv_err;
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         if (cpu == smp_processor_id()) {
->                 WARN_ON_ONCE(preemptible());
-> diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-> index a73bced40e241..5ff5815149bd3 100644
-> --- a/arch/x86/include/asm/smp.h
-> +++ b/arch/x86/include/asm/smp.h
-> @@ -99,7 +99,7 @@ static inline void play_dead(void)
->         smp_ops.play_dead();
->  }
->
-> -static inline void smp_send_reschedule(int cpu)
-> +static inline void arch_smp_send_reschedule(int cpu)
->  {
->         smp_ops.smp_send_reschedule(cpu);
->  }
-> diff --git a/arch/x86/kvm/svm/svm.c b/arch/x86/kvm/svm/svm.c
-> index ce362e88a5676..cfc622d8fc2d8 100644
-> --- a/arch/x86/kvm/svm/svm.c
-> +++ b/arch/x86/kvm/svm/svm.c
-> @@ -26,6 +26,7 @@
->  #include <linux/swap.h>
->  #include <linux/rwsem.h>
->  #include <linux/cc_platform.h>
-> +#include <linux/smp.h>
->
->  #include <asm/apic.h>
->  #include <asm/perf_event.h>
-> @@ -40,6 +41,9 @@
->  #include <asm/fpu/api.h>
->
->  #include <asm/virtext.h>
-> +
-> +#include <trace/events/ipi.h>
-> +
->  #include "trace.h"
->
->  #include "svm.h"
-> diff --git a/arch/x86/kvm/x86.c b/arch/x86/kvm/x86.c
-> index 2835bd7966391..4c2baf8090bdc 100644
-> --- a/arch/x86/kvm/x86.c
-> +++ b/arch/x86/kvm/x86.c
-> @@ -58,7 +58,9 @@
->  #include <linux/mem_encrypt.h>
->  #include <linux/entry-kvm.h>
->  #include <linux/suspend.h>
-> +#include <linux/smp.h>
->
-> +#include <trace/events/ipi.h>
->  #include <trace/events/kvm.h>
->
->  #include <asm/debugreg.h>
-> diff --git a/arch/xtensa/kernel/smp.c b/arch/xtensa/kernel/smp.c
-> index 4dc109dd6214e..d95907b8e4d38 100644
-> --- a/arch/xtensa/kernel/smp.c
-> +++ b/arch/xtensa/kernel/smp.c
-> @@ -389,7 +389,7 @@ void arch_send_call_function_single_ipi(int cpu)
->         send_ipi_message(cpumask_of(cpu), IPI_CALL_FUNC);
->  }
->
-> -void smp_send_reschedule(int cpu)
-> +void arch_smp_send_reschedule(int cpu)
->  {
->         send_ipi_message(cpumask_of(cpu), IPI_RESCHEDULE);
->  }
-> diff --git a/include/linux/smp.h b/include/linux/smp.h
-> index a80ab58ae3f1d..96836af927893 100644
-> --- a/include/linux/smp.h
-> +++ b/include/linux/smp.h
-> @@ -125,8 +125,12 @@ extern void smp_send_stop(void);
->  /*
->   * sends a 'reschedule' event to another CPU:
->   */
-> -extern void smp_send_reschedule(int cpu);
-> -
-> +extern void arch_smp_send_reschedule(int cpu);
-> +#define smp_send_reschedule(cpu) ({                              \
-> +       /* XXX scheduler_ipi is inline :/ */                      \
-> +       trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, NULL);  \
-> +       arch_smp_send_reschedule(cpu);                            \
-> +})
->
->  /*
->   * Prepare machine for booting other CPUs.
-> diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-> index fab4d37905785..a1fc2c947edfe 100644
-> --- a/virt/kvm/kvm_main.c
-> +++ b/virt/kvm/kvm_main.c
-> @@ -62,6 +62,7 @@
->  #include "kvm_mm.h"
->  #include "vfio.h"
->
-> +#include <trace/events/ipi.h>
->  #define CREATE_TRACE_POINTS
->  #include <trace/events/kvm.h>
->
-> --
-> 2.31.1
->
->
+DQoNCkxlIDA2LzAxLzIwMjMgw6AgMTY6MzcsIERhbmllbCBCb3JrbWFubiBhIMOpY3JpdMKgOg0K
+PiBPbiAxLzUvMjMgNjo1MyBQTSwgQ2hyaXN0b3BoZSBMZXJveSB3cm90ZToNCj4+IExlIDA1LzAx
+LzIwMjMgw6AgMDQ6MDYsIHRvbmdAaW5mcmFncmFmLm9yZyBhIMOpY3JpdMKgOg0KPj4+IEZyb206
+IFRvbmdoYW8gWmhhbmcgPHRvbmdAaW5mcmFncmFmLm9yZz4NCj4+Pg0KPj4+IFRoZSB4ODZfNjQg
+Y2FuJ3QgZHVtcCB0aGUgdmFsaWQgaW5zbiBpbiB0aGlzIHdheS4gQSB0ZXN0IEJQRiBwcm9nDQo+
+Pj4gd2hpY2ggaW5jbHVkZSBzdWJwcm9nOg0KPj4+DQo+Pj4gJCBsbHZtLW9iamR1bXAgLWQgc3Vi
+cHJvZy5vDQo+Pj4gRGlzYXNzZW1ibHkgb2Ygc2VjdGlvbiAudGV4dDoNCj4+PiAwMDAwMDAwMDAw
+MDAwMDAwIDxzdWJwcm9nPjoNCj4+PiDCoMKgwqDCoMKgwqDCoMKgIDA6wqDCoMKgwqDCoMKgIDE4
+IDAxIDAwIDAwIDczIDc1IDYyIDcwIDAwIDAwIDAwIDAwIDcyIDZmIDY3IDAwIHIxIA0KPj4+ID0g
+MjkxMTQ0NTk5MDM2NTMyMzUgbGwNCj4+PiDCoMKgwqDCoMKgwqDCoMKgIDI6wqDCoMKgwqDCoMKg
+IDdiIDFhIGY4IGZmIDAwIDAwIDAwIDAwICoodTY0ICopKHIxMCAtIDgpID0gcjENCj4+PiDCoMKg
+wqDCoMKgwqDCoMKgIDM6wqDCoMKgwqDCoMKgIGJmIGExIDAwIDAwIDAwIDAwIDAwIDAwIHIxID0g
+cjEwDQo+Pj4gwqDCoMKgwqDCoMKgwqDCoCA0OsKgwqDCoMKgwqDCoCAwNyAwMSAwMCAwMCBmOCBm
+ZiBmZiBmZiByMSArPSAtOA0KPj4+IMKgwqDCoMKgwqDCoMKgwqAgNTrCoMKgwqDCoMKgwqAgYjcg
+MDIgMDAgMDAgMDggMDAgMDAgMDAgcjIgPSA4DQo+Pj4gwqDCoMKgwqDCoMKgwqDCoCA2OsKgwqDC
+oMKgwqDCoCA4NSAwMCAwMCAwMCAwNiAwMCAwMCAwMCBjYWxsIDYNCj4+PiDCoMKgwqDCoMKgwqDC
+oMKgIDc6wqDCoMKgwqDCoMKgIDk1IDAwIDAwIDAwIDAwIDAwIDAwIDAwIGV4aXQNCj4+PiBEaXNh
+c3NlbWJseSBvZiBzZWN0aW9uIHJhd190cC9zeXNfZW50ZXI6DQo+Pj4gMDAwMDAwMDAwMDAwMDAw
+MCA8ZW50cnk+Og0KPj4+IMKgwqDCoMKgwqDCoMKgwqAgMDrCoMKgwqDCoMKgwqAgODUgMTAgMDAg
+MDAgZmYgZmYgZmYgZmYgY2FsbCAtMQ0KPj4+IMKgwqDCoMKgwqDCoMKgwqAgMTrCoMKgwqDCoMKg
+wqAgYjcgMDAgMDAgMDAgMDAgMDAgMDAgMDAgcjAgPSAwDQo+Pj4gwqDCoMKgwqDCoMKgwqDCoCAy
+OsKgwqDCoMKgwqDCoCA5NSAwMCAwMCAwMCAwMCAwMCAwMCAwMCBleGl0DQo+Pj4NCj4+PiBrZXJu
+ZWwgcHJpbnQgbWVzc2FnZToNCj4+PiBbwqAgNTgwLjc3NTM4N10gZmxlbj04IHByb2dsZW49NTEg
+cGFzcz0zIGltYWdlPWZmZmZmZmZmYTAwMGMyMGMgDQo+Pj4gZnJvbT1rcHJvYmUtbG9hZCBwaWQ9
+MTY0Mw0KPj4+IFvCoCA1ODAuNzc3MjM2XSBKSVQgY29kZTogMDAwMDAwMDA6IGNjIGNjIGNjIGNj
+IGNjIGNjIGNjIGNjIGNjIGNjIGNjIA0KPj4+IGNjIGNjIGNjIGNjIGNjDQo+Pj4gW8KgIDU4MC43
+NzkwMzddIEpJVCBjb2RlOiAwMDAwMDAxMDogY2MgY2MgY2MgY2MgY2MgY2MgY2MgY2MgY2MgY2Mg
+Y2MgDQo+Pj4gY2MgY2MgY2MgY2MgY2MNCj4+PiBbwqAgNTgwLjc4MDc2N10gSklUIGNvZGU6IDAw
+MDAwMDIwOiBjYyBjYyBjYyBjYyBjYyBjYyBjYyBjYyBjYyBjYyBjYyANCj4+PiBjYyBjYyBjYyBj
+YyBjYw0KPj4+IFvCoCA1ODAuNzgyNTY4XSBKSVQgY29kZTogMDAwMDAwMzA6IGNjIGNjIGNjDQo+
+Pj4NCj4+PiAkIGJwZl9qaXRfZGlzYXNtDQo+Pj4gNTEgYnl0ZXMgZW1pdHRlZCBmcm9tIEpJVCBj
+b21waWxlciAocGFzczozLCBmbGVuOjgpDQo+Pj4gZmZmZmZmZmZhMDAwYzIwYyArIDx4PjoNCj4+
+PiDCoMKgwqDCoCAwOsKgwqAgaW50Mw0KPj4+IMKgwqDCoMKgIDE6wqDCoCBpbnQzDQo+Pj4gwqDC
+oMKgwqAgMjrCoMKgIGludDMNCj4+PiDCoMKgwqDCoCAzOsKgwqAgaW50Mw0KPj4+IMKgwqDCoMKg
+IDQ6wqDCoCBpbnQzDQo+Pj4gwqDCoMKgwqAgNTrCoMKgIGludDMNCj4+PiDCoMKgwqDCoCAuLi4N
+Cj4+Pg0KPj4+IFVudGlsIGJwZl9qaXRfYmluYXJ5X3BhY2tfZmluYWxpemUgaXMgaW52b2tlZCwg
+d2UgY29weSByd19oZWFkZXIgdG8gDQo+Pj4gaGVhZGVyDQo+Pj4gYW5kIHRoZW4gaW1hZ2UvaW5z
+biBpcyB2YWxpZC4gQlRXLCB3ZSBjYW4gdXNlIHRoZSAiYnBmdG9vbCBwcm9nIGR1bXAiIA0KPj4+
+IEpJVGVkIGluc3RydWN0aW9ucy4NCj4+DQo+PiBOQUNLLg0KPj4NCj4+IEJlY2F1c2UgdGhlIGZl
+YXR1cmUgaXMgYnVnZ3kgb24geDg2XzY0LCB5b3UgcmVtb3ZlIGl0IGZvciBhbGwNCj4+IGFyY2hp
+dGVjdHVyZXMgPw0KPj4NCj4+IE9uIHBvd2VycGMgYnBmX2ppdF9lbmFibGUgPT0gMiB3b3JrcyBh
+bmQgaXMgdmVyeSB1c2VmdWxsLg0KPj4NCj4+IExhc3QgdGltZSBJIHRyaWVkIHRvIHVzZSBicGZ0
+b29sIG9uIHBvd2VycGMvMzIgaXQgZGlkbid0IHdvcmsuIEkgZG9uJ3QNCj4+IHJlbWVtYmVyIHRo
+ZSBkZXRhaWxzLCBJIHRoaW5rIGl0IHdhcyBhbiBpc3N1ZSB3aXRoIGVuZGlhbmVzcy4gTWF5YmUg
+aXQNCj4+IGlzIGZpeGVkIG5vdywgYnV0IGl0IG5lZWRzIHRvIGJlIHZlcmlmaWVkLg0KPj4NCj4+
+IFNvIHBsZWFzZSwgYmVmb3JlIHJlbW92aW5nIGEgd29ya2luZyBhbmQgdXNlZnVsbCBmZWF0dXJl
+LCBtYWtlIHN1cmUNCj4+IHRoZXJlIGlzIGFuIGFsdGVybmF0aXZlIGF2YWlsYWJsZSB0byBpdCBm
+b3IgYWxsIGFyY2hpdGVjdHVyZXMgaW4gYWxsDQo+PiBjb25maWd1cmF0aW9ucy4NCj4+DQo+PiBB
+bHNvLCBJIGRvbid0IHRoaW5rIGJwZnRvb2wgaXMgdXNhYmxlIHRvIGR1bXAga2VybmVsIEJQRiBz
+ZWxmdGVzdHMuDQo+PiBUaGF0J3Mgdml0YWwgd2hlbiBhIHNlbGZ0ZXN0IGZhaWxzIGlmIHlvdSB3
+YW50IHRvIGhhdmUgYSBjaGFuY2UgdG8NCj4+IHVuZGVyc3RhbmQgd2h5IGl0IGZhaWxzLg0KPiAN
+Cj4gSWYgdGhpcyBpcyBhY3RpdmVseSB1c2VkIGJ5IEpJVCBkZXZlbG9wZXJzIGFuZCBjb25zaWRl
+cmVkIHVzZWZ1bCwgSSdkIGJlDQo+IG9rIHRvIGxlYXZlIGl0IGZvciB0aGUgdGltZSBiZWluZy4g
+T3ZlcmFsbCBnb2FsIGlzIHRvIHJlYWNoIGZlYXR1cmUgcGFyaXR5DQo+IGFtb25nIChhdCBsZWFz
+dCBtYWpvciBhcmNoKSBKSVRzIGFuZCBub3QganVzdCBoYXZlIG1vc3QgZnVuY3Rpb25hbGl0eSBv
+bmx5DQo+IGF2YWlsYWJsZSBvbiB4ODYtNjQgSklULiBDb3VsZCB5b3UgaG93ZXZlciBjaGVjayB3
+aGF0IGlzIG5vdCB3b3JraW5nIHdpdGgNCj4gYnBmdG9vbCBvbiBwb3dlcnBjLzMyPyBQZXJoYXBz
+IGl0J3Mgbm90IHRvbyBtdWNoIGVmZm9ydCB0byBqdXN0IGZpeCBpdCwNCj4gYnV0IGRldGFpbHMg
+d291bGQgYmUgdXNlZnVsIG90aGVyd2lzZSAnaXQgZGlkbid0IHdvcmsnIGlzIHRvbyBmdXp6eS4N
+Cg0KU3VyZSBJIHdpbGwgdHJ5IHRvIHRlc3QgYnBmdG9vbCBhZ2FpbiBpbiB0aGUgY29taW5nIGRh
+eXMuDQoNClByZXZpb3VzIGRpc2N1c3Npb24gYWJvdXQgdGhhdCBzdWJqZWN0IGlzIGhlcmU6IA0K
+aHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wcm9qZWN0L2xpbnV4LXJpc2N2L3BhdGNoLzIw
+MjEwNDE1MDkzMjUwLjMzOTEyNTctMS1KaWFubGluLkx2QGFybS5jb20vIzI0MTc2ODQ3DQoNCg0K
+PiANCj4gQWxzbywgd2l0aCByZWdhcmRzIHRvIHRoZSBsYXN0IHN0YXRlbWVudCB0aGF0IGJwZnRv
+b2wgaXMgbm90IHVzYWJsZSB0bw0KPiBkdW1wIGtlcm5lbCBCUEYgc2VsZnRlc3RzLiBDb3VsZCB5
+b3UgZWxhYm9yYXRlIHNvbWUgbW9yZT8gSSBoYXZlbid0IHVzZWQNCj4gYnBmX2ppdF9lbmFibGUg
+PT0gMiBpbiBhIGxvbmcgdGltZSBhbmQgZm9yIGRlYnVnZ2luZyBhbHdheXMgcmVsaWVkIG9uDQo+
+IGJwZnRvb2wgdG8gZHVtcCB4bGF0ZWQgaW5zbnMgb3IgSklULiBPciBkbyB5b3UgbWVhbiBieSBC
+UEYgc2VsZnRlc3RzDQo+IHRoZSB0ZXN0X2JwZi5rbyBtb2R1bGU/IEdpdmVuIGl0IGhhcyBhIGJp
+ZyBiYXRjaCB3aXRoIGtlcm5lbC1vbmx5IHRlc3RzLA0KPiB0aGVyZSBJIGNhbiBzZWUgaXQncyBw
+cm9iYWJseSBzdGlsbCB1c2VmdWwuDQoNClllcyBJIG1lYW4gdGVzdF9icGYua28NCg0KSSB1c2Vk
+IGl0IGFzIHRoZSB0ZXN0IGJhc2lzIHdoZW4gSSBpbXBsZW1lbnRlZCBlQlBGIGZvciBwb3dlcnBj
+LzMyLiBBbmQgDQpub3Qgc28gbG9uZyBhZ28gaXQgaGVscGVkIGRlY292ZXIgYW5kIGZpeCBhIGJ1
+Zywgc2VlIA0KaHR0cHM6Ly9naXRodWIuY29tL3RvcnZhbGRzL2xpbnV4L2NvbW1pdC84OWQyMWUy
+NTlhOTRmN2Q1NTgyZWM2NzVhYTQ0NWY1YTc5ZjM0N2U0DQoNCj4gDQo+IENoZWVycywNCj4gRGFu
+aWVsDQo=
