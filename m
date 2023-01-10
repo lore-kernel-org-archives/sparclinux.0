@@ -2,145 +2,265 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0D1FC54EBC
-	for <sparclinux@archiver.kernel.org>; Tue, 10 Jan 2023 11:09:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6BCCC54EBC
+	for <sparclinux@archiver.kernel.org>; Tue, 10 Jan 2023 12:04:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231329AbjAJLI5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 10 Jan 2023 06:08:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50952 "EHLO
+        id S231366AbjAJMEr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 10 Jan 2023 07:04:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238064AbjAJLHx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 10 Jan 2023 06:07:53 -0500
-Received: from mga03.intel.com (mga03.intel.com [134.134.136.65])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CBA601EEFB;
-        Tue, 10 Jan 2023 03:07:15 -0800 (PST)
+        with ESMTP id S238369AbjAJMDu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 10 Jan 2023 07:03:50 -0500
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC1AD59323;
+        Tue, 10 Jan 2023 04:03:44 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1673348836; x=1704884836;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=rVhJmEIPGip77/doSmIyFH6N4wuSe2EOVqkHy4zJTJM=;
-  b=MIKStdG8ONY+3CPdc0beg1TZuGsXBoparQGrNjpOC/DIEvZ2wbfj/m3T
-   NrxQmt3ovC6Liifr9aYKzx9xYUDHagztjo+dR6j+fHjkdr5bH0bncoi47
-   1Uwdw8U2YbewknyAjW6ZkVNKaN6gWshLneuLVdIb1KlsZ2lkAfKEG2Ur3
-   hPlaiBHKz0C31tA3R/Z0XnmZ9kmOuyi8BD2xdZxXJG1Kn0MqoZ3bV+IdV
-   Y65lzN3mS1Ov/60lE+0H03e+Y67E2zmFG1Wmjl7IOiSOvU8rat7T4Rj/P
-   p5Wxo7oYECXP1TBc0vucjhadvlKHJTEZ1KRCgezXj3lDTc85mM8++iVpi
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10585"; a="325123958"
+  t=1673352228; x=1704888228;
+  h=from:to:cc:subject:date:message-id:in-reply-to:
+   references:mime-version:content-transfer-encoding;
+  bh=AWWr/BlbU8yzxpuWX74jI3h7EABvwrmH5cTRTGGc+aE=;
+  b=nuMTL+cHJB7aeW8wf02L+gISsn6jtyRBRVkHJ1XUiVyh1UPnWcY2T3I/
+   Foch20Rs4odkkHVYp3XSFYe1R/GQrvO9Rt3TjMYWfQ4iecisjrYCGHioj
+   JE21MKMD8bo+cIqisV1gm5RNr6U5U8vX/gRShT1A8Rr/guxhaKCd54hi6
+   QcYMtYwQhc5bloCs7PpJeRkgXKX9GPAV/iP4JNDKHAKuMmX0sNmyphrDR
+   0rRtEwiZP8ZmHpsCt/BbhvAQL/miT//N2LydVINCzhKiJDz65hw3zc092
+   sI7T9zzhXlWH8dCbf/qwHBIuZrmeLJZb4hkDGcQ0WLfQIbG3qsBN56cGr
+   Q==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10585"; a="350350165"
 X-IronPort-AV: E=Sophos;i="5.96,315,1665471600"; 
-   d="scan'208";a="325123958"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga103.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2023 03:07:13 -0800
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10585"; a="745739146"
+   d="scan'208";a="350350165"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2023 04:03:43 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10585"; a="799406968"
 X-IronPort-AV: E=Sophos;i="5.96,315,1665471600"; 
-   d="scan'208";a="745739146"
-Received: from smile.fi.intel.com ([10.237.72.54])
-  by FMSMGA003.fm.intel.com with ESMTP; 10 Jan 2023 03:07:05 -0800
-Received: from andy by smile.fi.intel.com with local (Exim 4.96)
-        (envelope-from <andriy.shevchenko@linux.intel.com>)
-        id 1pFCT8-006ztV-3A;
-        Tue, 10 Jan 2023 13:07:02 +0200
-Date:   Tue, 10 Jan 2023 13:07:02 +0200
-From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To:     Andrzej Hajda <andrzej.hajda@intel.com>
-Cc:     Daniel Vetter <daniel@ffwll.ch>, linux-alpha@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, intel-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, Arnd Bergmann <arnd@arndb.de>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Boqun Feng <boqun.feng@gmail.com>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC DO NOT MERGE] treewide: use __xchg in most obvious places
-Message-ID: <Y71G1tkmUzM4BLxn@smile.fi.intel.com>
-References: <Y7b6/7coJEVlTVxK@phenom.ffwll.local>
- <20230110105306.3973122-1-andrzej.hajda@intel.com>
+   d="scan'208";a="799406968"
+Received: from gbocanex-mobl.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.249.44.115])
+  by fmsmga001-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 10 Jan 2023 04:03:39 -0800
+From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+To:     linux-serial@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Johan Hovold <johan@kernel.org>,
+        =?UTF-8?q?Samuel=20Iglesias=20Gons=C3=A1lvez?= 
+        <siglesias@igalia.com>, Rodolfo Giometti <giometti@enneenne.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-usb@vger.kernel.org
+Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
+Subject: [PATCH v2 08/13] tty/serial: Make ->dcd_change()+uart_handle_dcd_change() status bool active
+Date:   Tue, 10 Jan 2023 14:02:21 +0200
+Message-Id: <20230110120226.14972-9-ilpo.jarvinen@linux.intel.com>
+X-Mailer: git-send-email 2.30.2
+In-Reply-To: <20230110120226.14972-1-ilpo.jarvinen@linux.intel.com>
+References: <20230110120226.14972-1-ilpo.jarvinen@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230110105306.3973122-1-andrzej.hajda@intel.com>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jan 10, 2023 at 11:53:06AM +0100, Andrzej Hajda wrote:
-> This patch tries to show usability of __xchg helper.
-> It is not intended to be merged, but I can convert
-> it to proper patchset if necessary.
-> 
-> There are many more places where __xchg can be used.
-> This demo shows the most spectacular cases IMHO:
-> - previous value is returned from function,
-> - temporary variables are in use.
-> 
-> As a result readability is much better and diffstat is quite
-> nice, less local vars to look at.
-> In many cases whole body of functions is replaced
-> with __xchg(ptr, val), so as further refactoring the whole
-> function can be removed and __xchg can be called directly.
+Convert status parameter for ->dcd_change() and
+uart_handle_dcd_change() to bool which matches to how the parameter is
+used.
 
-...
+Rename status to active to better describe what the parameter means.
 
->  arch_uretprobe_hijack_return_addr(unsigned long trampoline_vaddr,
->  				  struct pt_regs *regs)
->  {
-> -	unsigned long orig_ret_vaddr;
-> -
-> -	orig_ret_vaddr = regs->ARM_lr;
-> -	/* Replace the return addr with trampoline addr */
-> -	regs->ARM_lr = trampoline_vaddr;
-> -	return orig_ret_vaddr;
-> +	return __xchg(&regs->ARM_lr, trampoline_vaddr);
->  }
+Acked-by: Rodolfo Giometti <giometti@enneenne.com>
+Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+---
+ drivers/pps/clients/pps-ldisc.c  |  6 +++---
+ drivers/tty/serial/serial_core.c |  8 ++++----
+ drivers/tty/serial/sunhv.c       |  8 ++++----
+ drivers/usb/serial/generic.c     | 10 +++++-----
+ include/linux/serial_core.h      |  3 +--
+ include/linux/tty_ldisc.h        |  4 ++--
+ include/linux/usb/serial.h       |  2 +-
+ 7 files changed, 20 insertions(+), 21 deletions(-)
 
-If it's not a callback, the entire function can be killed.
-And this is a good example of the function usage.
-OTOH, these places might have a side effect (if it's in deep CPU
-handlers), means we need to do this carefully.
-
-...
-
->  static inline void *qed_chain_produce(struct qed_chain *p_chain)
->  {
-> -	void *p_ret = NULL, *p_prod_idx, *p_prod_page_idx;
-> +	void *p_prod_idx, *p_prod_page_idx;
->  
->  	if (is_chain_u16(p_chain)) {
->  		if ((p_chain->u.chain16.prod_idx &
-> @@ -390,11 +391,8 @@ static inline void *qed_chain_produce(struct qed_chain *p_chain)
->  		p_chain->u.chain32.prod_idx++;
->  	}
->  
-> -	p_ret = p_chain->p_prod_elem;
-> -	p_chain->p_prod_elem = (void *)(((u8 *)p_chain->p_prod_elem) +
-> -					p_chain->elem_size);
-> -
-> -	return p_ret;
-> +	return __xchg(&p_chain->p_prod_elem,
-> +		      (void *)(((u8 *)p_chain->p_prod_elem) + p_chain->elem_size));
-
-Wondering if you still need a (void *) casting after the change. Ditto for the
-rest of similar cases.
-
->  }
-
-...
-
-Btw, is it done by coccinelle? If no, why not providing the script?
-
+diff --git a/drivers/pps/clients/pps-ldisc.c b/drivers/pps/clients/pps-ldisc.c
+index d73c4c2ed4e1..443d6bae19d1 100644
+--- a/drivers/pps/clients/pps-ldisc.c
++++ b/drivers/pps/clients/pps-ldisc.c
+@@ -13,7 +13,7 @@
+ #include <linux/pps_kernel.h>
+ #include <linux/bug.h>
+ 
+-static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
++static void pps_tty_dcd_change(struct tty_struct *tty, bool active)
+ {
+ 	struct pps_device *pps;
+ 	struct pps_event_time ts;
+@@ -29,11 +29,11 @@ static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
+ 		return;
+ 
+ 	/* Now do the PPS event report */
+-	pps_event(pps, &ts, status ? PPS_CAPTUREASSERT :
++	pps_event(pps, &ts, active ? PPS_CAPTUREASSERT :
+ 			PPS_CAPTURECLEAR, NULL);
+ 
+ 	dev_dbg(pps->dev, "PPS %s at %lu\n",
+-			status ? "assert" : "clear", jiffies);
++			active ? "assert" : "clear", jiffies);
+ }
+ 
+ static int (*alias_n_tty_open)(struct tty_struct *tty);
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index 053535846ba2..f8a9386db482 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -3252,11 +3252,11 @@ EXPORT_SYMBOL(uart_match_port);
+ /**
+  * uart_handle_dcd_change - handle a change of carrier detect state
+  * @uport: uart_port structure for the open port
+- * @status: new carrier detect status, nonzero if active
++ * @active: new carrier detect status
+  *
+  * Caller must hold uport->lock.
+  */
+-void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
++void uart_handle_dcd_change(struct uart_port *uport, bool active)
+ {
+ 	struct tty_port *port = &uport->state->port;
+ 	struct tty_struct *tty = port->tty;
+@@ -3268,7 +3268,7 @@ void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
+ 		ld = tty_ldisc_ref(tty);
+ 		if (ld) {
+ 			if (ld->ops->dcd_change)
+-				ld->ops->dcd_change(tty, status);
++				ld->ops->dcd_change(tty, active);
+ 			tty_ldisc_deref(ld);
+ 		}
+ 	}
+@@ -3276,7 +3276,7 @@ void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
+ 	uport->icount.dcd++;
+ 
+ 	if (uart_dcd_enabled(uport)) {
+-		if (status)
++		if (active)
+ 			wake_up_interruptible(&port->open_wait);
+ 		else if (tty)
+ 			tty_hangup(tty);
+diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
+index 16c746a63258..7d38c33ef506 100644
+--- a/drivers/tty/serial/sunhv.c
++++ b/drivers/tty/serial/sunhv.c
+@@ -87,10 +87,10 @@ static int receive_chars_getchar(struct uart_port *port)
+ 
+ 		if (c == CON_HUP) {
+ 			hung_up = 1;
+-			uart_handle_dcd_change(port, 0);
++			uart_handle_dcd_change(port, false);
+ 		} else if (hung_up) {
+ 			hung_up = 0;
+-			uart_handle_dcd_change(port, 1);
++			uart_handle_dcd_change(port, true);
+ 		}
+ 
+ 		if (port->state == NULL) {
+@@ -133,7 +133,7 @@ static int receive_chars_read(struct uart_port *port)
+ 				bytes_read = 1;
+ 			} else if (stat == CON_HUP) {
+ 				hung_up = 1;
+-				uart_handle_dcd_change(port, 0);
++				uart_handle_dcd_change(port, false);
+ 				continue;
+ 			} else {
+ 				/* HV_EWOULDBLOCK, etc.  */
+@@ -143,7 +143,7 @@ static int receive_chars_read(struct uart_port *port)
+ 
+ 		if (hung_up) {
+ 			hung_up = 0;
+-			uart_handle_dcd_change(port, 1);
++			uart_handle_dcd_change(port, true);
+ 		}
+ 
+ 		if (port->sysrq != 0 &&  *con_read_page) {
+diff --git a/drivers/usb/serial/generic.c b/drivers/usb/serial/generic.c
+index 15b6dee3a8e5..f2d31e56eafc 100644
+--- a/drivers/usb/serial/generic.c
++++ b/drivers/usb/serial/generic.c
+@@ -605,24 +605,24 @@ EXPORT_SYMBOL_GPL(usb_serial_handle_break);
+  * usb_serial_handle_dcd_change - handle a change of carrier detect state
+  * @port: usb-serial port
+  * @tty: tty for the port
+- * @status: new carrier detect status, nonzero if active
++ * @active: new carrier-detect status
+  */
+ void usb_serial_handle_dcd_change(struct usb_serial_port *port,
+-				struct tty_struct *tty, unsigned int status)
++				struct tty_struct *tty, bool active)
+ {
+-	dev_dbg(&port->dev, "%s - status %d\n", __func__, status);
++	dev_dbg(&port->dev, "%s - active %d\n", __func__, active);
+ 
+ 	if (tty) {
+ 		struct tty_ldisc *ld = tty_ldisc_ref(tty);
+ 
+ 		if (ld) {
+ 			if (ld->ops->dcd_change)
+-				ld->ops->dcd_change(tty, status);
++				ld->ops->dcd_change(tty, active);
+ 			tty_ldisc_deref(ld);
+ 		}
+ 	}
+ 
+-	if (status)
++	if (active)
+ 		wake_up_interruptible(&port->port.open_wait);
+ 	else if (tty && !C_CLOCAL(tty))
+ 		tty_hangup(tty);
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index fd59f600094a..760c96ffb5bd 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -896,8 +896,7 @@ static inline bool uart_softcts_mode(struct uart_port *uport)
+  * The following are helper functions for the low level drivers.
+  */
+ 
+-extern void uart_handle_dcd_change(struct uart_port *uport,
+-		unsigned int status);
++extern void uart_handle_dcd_change(struct uart_port *uport, bool active);
+ extern void uart_handle_cts_change(struct uart_port *uport,
+ 		unsigned int status);
+ 
+diff --git a/include/linux/tty_ldisc.h b/include/linux/tty_ldisc.h
+index dcb61ec11424..49dc172dedc7 100644
+--- a/include/linux/tty_ldisc.h
++++ b/include/linux/tty_ldisc.h
+@@ -170,7 +170,7 @@ int ldsem_down_write_nested(struct ld_semaphore *sem, int subclass,
+  *	send, please arise a tasklet or workqueue to do the real data transfer.
+  *	Do not send data in this hook, it may lead to a deadlock.
+  *
+- * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, unsigned int status)``
++ * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, bool active)``
+  *
+  *	Tells the discipline that the DCD pin has changed its status. Used
+  *	exclusively by the %N_PPS (Pulse-Per-Second) line discipline.
+@@ -238,7 +238,7 @@ struct tty_ldisc_ops {
+ 	void	(*receive_buf)(struct tty_struct *tty, const unsigned char *cp,
+ 			       const char *fp, int count);
+ 	void	(*write_wakeup)(struct tty_struct *tty);
+-	void	(*dcd_change)(struct tty_struct *tty, unsigned int status);
++	void	(*dcd_change)(struct tty_struct *tty, bool active);
+ 	int	(*receive_buf2)(struct tty_struct *tty, const unsigned char *cp,
+ 				const char *fp, int count);
+ 	void	(*lookahead_buf)(struct tty_struct *tty, const unsigned char *cp,
+diff --git a/include/linux/usb/serial.h b/include/linux/usb/serial.h
+index c597357853d9..bad343c5e8a7 100644
+--- a/include/linux/usb/serial.h
++++ b/include/linux/usb/serial.h
+@@ -372,7 +372,7 @@ static inline int usb_serial_handle_break(struct usb_serial_port *port)
+ #endif
+ 
+ void usb_serial_handle_dcd_change(struct usb_serial_port *usb_port,
+-		struct tty_struct *tty, unsigned int status);
++				  struct tty_struct *tty, bool active);
+ 
+ 
+ int usb_serial_bus_register(struct usb_serial_driver *device);
 -- 
-With Best Regards,
-Andy Shevchenko
-
+2.30.2
 
