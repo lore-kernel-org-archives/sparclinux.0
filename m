@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3A94C71149
-	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:06:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0205C71153
+	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:06:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242090AbjALUGM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:06:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44164 "EHLO
+        id S242091AbjALUGN (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:06:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44160 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235011AbjALT7T (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:59:19 -0500
+        with ESMTP id S232103AbjALT6b (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:58:31 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9D8932628;
-        Thu, 12 Jan 2023 11:58:08 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E0F3D24E;
+        Thu, 12 Jan 2023 11:58:02 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=uRuk42rt5J1sC1gDxlIXH9yiXjv0To5K12rtksbRl/w=; b=t/UiPYxuyWmQWx8O0dR9C23N3m
-        Mql6RINO7N/qRFk28GXmIaup0931S2z3tF2gEI6MdQoOij/5MpyDJ93PUuH63HNR9QrPHDhJ1A8Oe
-        r91ZkV6InpQFSdpdFg3os7aK02j12nsV24WSxmRJS0kKIVWjbMkU1+JaWypkF/gcgNI0Sb9wRM3lG
-        Y69ujB959knJ2g9LZcv0UARehKAkTXfDsgP2i97QLaacDdXSmeuMauSIsBiYlC/jtcpwExNGPGi8i
-        BrnpvX+u+TK0Yw2Bq1R5xaqa8UPNBlfJNWX8kZy4zpct/I/IMQgjZfiEDib73CDf0Fj9tlY/FPeci
-        GndVoLoA==;
+        bh=dY+sZF8zXVTImEusizdFam+mvD2uBaZ1sCttd0zpvx8=; b=j8TQ8t09IgELQKWksGBtI2ytKh
+        pl1eHvaCJsnvxEv3UZnAHZzXY8/DatsPW/DvWOzGfrp159hq9PkH1R2mk80AkUwNnV23MbM3VXk9S
+        aHTCDYPoAWwhIXCDoOhwZadFG8TpQgXTBYmBr06QAE/dQt/rsGspfhVNq70IDTtZ4SyL9C86jhQ8O
+        iPmiqmKtWMiye8NF1XSccdlAXxBY2ADAcQ88Cq6GtXfD8ft+VpJQpX97vOLZQ2G+cqUvN1wEE5T0R
+        eGidhLHEBJsPp8wG+NJ5bnTlafvqHcjiTkEwNapZjYTA4Pu5AO87/liDLgzA9SW6Le+OtcYoOojwJ
+        RdV1d5uw==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pG3hh-005Ok6-0o; Thu, 12 Jan 2023 19:57:37 +0000
+        id 1pG3he-005OgC-FK; Thu, 12 Jan 2023 19:57:34 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 0662A303469;
-        Thu, 12 Jan 2023 20:57:14 +0100 (CET)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id D0FBA303457;
+        Thu, 12 Jan 2023 20:57:13 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 520F42CD066C8; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195541.844982902@infradead.org>
+        id 3A2002CCF62BF; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
+Message-ID: <20230112195541.477416709@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:55 +0100
+Date:   Thu, 12 Jan 2023 20:43:49 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -101,10 +101,8 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-mm@kvack.org,
-        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: [PATCH v3 41/51] cpuidle,clk: Remove trace_.*_rcuidle()
+        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: [PATCH v3 35/51] trace,hardirq: No moar _rcuidle() tracing
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -112,49 +110,75 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-OMAP was the one and only user.
+Robot reported that trace_hardirqs_{on,off}() tickle the forbidden
+_rcuidle() tracepoint through local_irq_{en,dis}able().
+
+For 'sane' configs, these calls will only happen with RCU enabled and
+as such can use the regular tracepoint. This also means it's possible
+to trace them from NMI context again.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Frederic Weisbecker <frederic@kernel.org>
-Tested-by: Tony Lindgren <tony@atomide.com>
-Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/clk/clk.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/trace/trace_preemptirq.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
---- a/drivers/clk/clk.c
-+++ b/drivers/clk/clk.c
-@@ -978,12 +978,12 @@ static void clk_core_disable(struct clk_
- 	if (--core->enable_count > 0)
- 		return;
+--- a/kernel/trace/trace_preemptirq.c
++++ b/kernel/trace/trace_preemptirq.c
+@@ -20,6 +20,15 @@
+ static DEFINE_PER_CPU(int, tracing_irq_cpu);
  
--	trace_clk_disable_rcuidle(core);
-+	trace_clk_disable(core);
+ /*
++ * ...
++ */
++#ifdef CONFIG_ARCH_WANTS_NO_INSTR
++#define trace(point)	trace_##point
++#else
++#define trace(point)	if (!in_nmi()) trace_##point##_rcuidle
++#endif
++
++/*
+  * Like trace_hardirqs_on() but without the lockdep invocation. This is
+  * used in the low level entry code where the ordering vs. RCU is important
+  * and lockdep uses a staged approach which splits the lockdep hardirq
+@@ -28,8 +37,7 @@ static DEFINE_PER_CPU(int, tracing_irq_c
+ void trace_hardirqs_on_prepare(void)
+ {
+ 	if (this_cpu_read(tracing_irq_cpu)) {
+-		if (!in_nmi())
+-			trace_irq_enable(CALLER_ADDR0, CALLER_ADDR1);
++		trace(irq_enable)(CALLER_ADDR0, CALLER_ADDR1);
+ 		tracer_hardirqs_on(CALLER_ADDR0, CALLER_ADDR1);
+ 		this_cpu_write(tracing_irq_cpu, 0);
+ 	}
+@@ -40,8 +48,7 @@ NOKPROBE_SYMBOL(trace_hardirqs_on_prepar
+ void trace_hardirqs_on(void)
+ {
+ 	if (this_cpu_read(tracing_irq_cpu)) {
+-		if (!in_nmi())
+-			trace_irq_enable_rcuidle(CALLER_ADDR0, CALLER_ADDR1);
++		trace(irq_enable)(CALLER_ADDR0, CALLER_ADDR1);
+ 		tracer_hardirqs_on(CALLER_ADDR0, CALLER_ADDR1);
+ 		this_cpu_write(tracing_irq_cpu, 0);
+ 	}
+@@ -63,8 +70,7 @@ void trace_hardirqs_off_finish(void)
+ 	if (!this_cpu_read(tracing_irq_cpu)) {
+ 		this_cpu_write(tracing_irq_cpu, 1);
+ 		tracer_hardirqs_off(CALLER_ADDR0, CALLER_ADDR1);
+-		if (!in_nmi())
+-			trace_irq_disable(CALLER_ADDR0, CALLER_ADDR1);
++		trace(irq_disable)(CALLER_ADDR0, CALLER_ADDR1);
+ 	}
  
- 	if (core->ops->disable)
- 		core->ops->disable(core->hw);
- 
--	trace_clk_disable_complete_rcuidle(core);
-+	trace_clk_disable_complete(core);
- 
- 	clk_core_disable(core->parent);
  }
-@@ -1037,12 +1037,12 @@ static int clk_core_enable(struct clk_co
- 		if (ret)
- 			return ret;
- 
--		trace_clk_enable_rcuidle(core);
-+		trace_clk_enable(core);
- 
- 		if (core->ops->enable)
- 			ret = core->ops->enable(core->hw);
- 
--		trace_clk_enable_complete_rcuidle(core);
-+		trace_clk_enable_complete(core);
- 
- 		if (ret) {
- 			clk_core_disable(core->parent);
+@@ -78,8 +84,7 @@ void trace_hardirqs_off(void)
+ 	if (!this_cpu_read(tracing_irq_cpu)) {
+ 		this_cpu_write(tracing_irq_cpu, 1);
+ 		tracer_hardirqs_off(CALLER_ADDR0, CALLER_ADDR1);
+-		if (!in_nmi())
+-			trace_irq_disable_rcuidle(CALLER_ADDR0, CALLER_ADDR1);
++		trace(irq_disable)(CALLER_ADDR0, CALLER_ADDR1);
+ 	}
+ }
+ EXPORT_SYMBOL(trace_hardirqs_off);
 
 
