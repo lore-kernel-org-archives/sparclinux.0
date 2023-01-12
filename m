@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E4FC61DB3
-	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:12:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D39C678D8
+	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:12:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240699AbjALUMj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:12:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44240 "EHLO
+        id S242001AbjALUMl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:12:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232685AbjALT7O (ORCPT
+        with ESMTP id S232870AbjALT7O (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:59:14 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A72CEB0;
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D14201096;
         Thu, 12 Jan 2023 11:58:06 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=cMg3ptdf90ideilc5ESAExVXsDzvqUAUHPnoGLTznE4=; b=AQVbLNGLAYLI5glCIBdfN2BTr/
-        Gz/Reu1wlylo5D1rPRX3tYfuclMb30JqVrgGLY+i8h5Xf4OY4kfQXs65r/W3Q+cYwmERZwJKdYyGu
-        dOIJbUu55LP0s2WpAnsehl0pUa57AJ3Lq0DpQp5D7jIwVSFDXKmJmnOiTcPJuwyIZF8b0FkqntpIC
-        b8LadvLyxjnkWpOvABXtsz53rhvZOuGgIQLV6FRFQ1goVxCxypfG444hWrorgBNhddOaBK6ge/aAD
-        GocMGlGGl5ycw4gr25/L6Jb+p3aQyhRh2wg9Sdn3uYmPp24GCT0nLRuVL3vNNcZ0HKYejgio/4ncJ
-        cUAaLzFw==;
+        bh=g+drg6uUsP6YHX5z1pA/AishyJbSIL0Ic60jCQj0FKI=; b=XXUxTtqveFREVYw6+8AB4LdIHp
+        9tBm0Q52XhYpYgwoQcxYxigKngYLFaZ8/xRzmgS4y7qry48gTKg92kcIokiFxq+nXoKsi5V3iEcmw
+        NeSgEYUEAODvsFoe2txTC5A5gjX0FAnKp0Q7yNwBfU6uT1Hqnm5jLS+saV0kDtwrCF///MGUsgvx3
+        1g//CQX4WQUM0ZQk+SvRZnfyPsXRlrLLGN0jK1Pr/WSOQeRzqpxuvUJOC9vpE8dJ7PLwl8i1xnS/H
+        mXWibGn68OUz5LWtcUOt2vHPDy+rJq08dxPxP49gKc05n2AW5cl/Kj6GS1nr66GMTGwMFZlC6eScr
+        aO0GBkaA==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pG3hd-005Ofs-RT; Thu, 12 Jan 2023 19:57:33 +0000
+        id 1pG3hv-005P8h-Bo; Thu, 12 Jan 2023 19:57:51 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id C0E86303451;
-        Thu, 12 Jan 2023 20:57:13 +0100 (CET)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 5842F300C22;
+        Thu, 12 Jan 2023 20:57:14 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 31AC02CCF62BB; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195541.355283994@infradead.org>
+        id 810012CD066F0; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
+Message-ID: <20230112195542.458034262@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:47 +0100
+Date:   Thu, 12 Jan 2023 20:44:05 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -102,7 +102,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
         linux-arch@vger.kernel.org, linux-mm@kvack.org,
         linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
-Subject: [PATCH v3 33/51] trace: Remove trace_hardirqs_{on,off}_caller()
+Subject: [PATCH v3 51/51] context_tracking: Fix noinstr vs KASAN
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -110,53 +110,66 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Per commit 56e62a737028 ("s390: convert to generic entry") the last
-and only callers of trace_hardirqs_{on,off}_caller() went away, clean
-up.
+vmlinux.o: warning: objtool: __ct_user_enter+0x72: call to __kasan_check_write() leaves .noinstr.text section
+vmlinux.o: warning: objtool: __ct_user_exit+0x47: call to __kasan_check_write() leaves .noinstr.text section
 
-Cc: Sven Schnelle <svens@linux.ibm.com>
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 ---
- kernel/trace/trace_preemptirq.c |   29 -----------------------------
- 1 file changed, 29 deletions(-)
+ kernel/context_tracking.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/kernel/trace/trace_preemptirq.c
-+++ b/kernel/trace/trace_preemptirq.c
-@@ -84,35 +84,6 @@ void trace_hardirqs_off(void)
- }
- EXPORT_SYMBOL(trace_hardirqs_off);
- NOKPROBE_SYMBOL(trace_hardirqs_off);
--
--__visible void trace_hardirqs_on_caller(unsigned long caller_addr)
--{
--	if (this_cpu_read(tracing_irq_cpu)) {
--		if (!in_nmi())
--			trace_irq_enable_rcuidle(CALLER_ADDR0, caller_addr);
--		tracer_hardirqs_on(CALLER_ADDR0, caller_addr);
--		this_cpu_write(tracing_irq_cpu, 0);
--	}
--
--	lockdep_hardirqs_on_prepare();
--	lockdep_hardirqs_on(caller_addr);
--}
--EXPORT_SYMBOL(trace_hardirqs_on_caller);
--NOKPROBE_SYMBOL(trace_hardirqs_on_caller);
--
--__visible void trace_hardirqs_off_caller(unsigned long caller_addr)
--{
--	lockdep_hardirqs_off(caller_addr);
--
--	if (!this_cpu_read(tracing_irq_cpu)) {
--		this_cpu_write(tracing_irq_cpu, 1);
--		tracer_hardirqs_off(CALLER_ADDR0, caller_addr);
--		if (!in_nmi())
--			trace_irq_disable_rcuidle(CALLER_ADDR0, caller_addr);
--	}
--}
--EXPORT_SYMBOL(trace_hardirqs_off_caller);
--NOKPROBE_SYMBOL(trace_hardirqs_off_caller);
- #endif /* CONFIG_TRACE_IRQFLAGS */
+--- a/kernel/context_tracking.c
++++ b/kernel/context_tracking.c
+@@ -510,7 +510,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 			 * In this we case we don't care about any concurrency/ordering.
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE))
+-				atomic_set(&ct->state, state);
++				arch_atomic_set(&ct->state, state);
+ 		} else {
+ 			/*
+ 			 * Even if context tracking is disabled on this CPU, because it's outside
+@@ -527,7 +527,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE)) {
+ 				/* Tracking for vtime only, no concurrent RCU EQS accounting */
+-				atomic_set(&ct->state, state);
++				arch_atomic_set(&ct->state, state);
+ 			} else {
+ 				/*
+ 				 * Tracking for vtime and RCU EQS. Make sure we don't race
+@@ -535,7 +535,7 @@ void noinstr __ct_user_enter(enum ctx_st
+ 				 * RCU only requires RCU_DYNTICKS_IDX increments to be fully
+ 				 * ordered.
+ 				 */
+-				atomic_add(state, &ct->state);
++				arch_atomic_add(state, &ct->state);
+ 			}
+ 		}
+ 	}
+@@ -630,12 +630,12 @@ void noinstr __ct_user_exit(enum ctx_sta
+ 			 * In this we case we don't care about any concurrency/ordering.
+ 			 */
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE))
+-				atomic_set(&ct->state, CONTEXT_KERNEL);
++				arch_atomic_set(&ct->state, CONTEXT_KERNEL);
  
- #ifdef CONFIG_TRACE_PREEMPT_TOGGLE
+ 		} else {
+ 			if (!IS_ENABLED(CONFIG_CONTEXT_TRACKING_IDLE)) {
+ 				/* Tracking for vtime only, no concurrent RCU EQS accounting */
+-				atomic_set(&ct->state, CONTEXT_KERNEL);
++				arch_atomic_set(&ct->state, CONTEXT_KERNEL);
+ 			} else {
+ 				/*
+ 				 * Tracking for vtime and RCU EQS. Make sure we don't race
+@@ -643,7 +643,7 @@ void noinstr __ct_user_exit(enum ctx_sta
+ 				 * RCU only requires RCU_DYNTICKS_IDX increments to be fully
+ 				 * ordered.
+ 				 */
+-				atomic_sub(state, &ct->state);
++				arch_atomic_sub(state, &ct->state);
+ 			}
+ 		}
+ 	}
 
 
