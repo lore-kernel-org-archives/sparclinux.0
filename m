@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B659C7113C
-	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:06:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33438C71147
+	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:06:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235441AbjALUGi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:06:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44146 "EHLO
+        id S242134AbjALUGm (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:06:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44296 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbjALT6Z (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:58:25 -0500
+        with ESMTP id S234248AbjALT7S (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:59:18 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7C9613A;
-        Thu, 12 Jan 2023 11:57:59 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 40CF725F8;
+        Thu, 12 Jan 2023 11:58:08 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=FFPKfQhi1RR6oz0II4O36iNGEMWuMWROzeT05TgEQqM=; b=JZ+QI/RgQjUauwaL2ksV7XDvtk
-        yXgw34Pwm4B9g69COt8t52jvPLD8U5NyLWiRRdKM0FY0qJYUt8ZjMjtE7aR8HRf0YmvAk8o6Nry9C
-        ktxg9uWrn+qRmjWZEq849FVFIY0Wppotwo5JZHAauhqHswoXTB3xuJSkiBBLU92D8FnAUssXxaenr
-        NBjl4elGJPpmwVTGhA5jOAu3Ry5fSaixgKNobBdT2B9UdsxlA6/SoWVOQuJ48xLL5ml3/BmLOy54p
-        ZFeD5cdqc/fGsKQMi3CEpVYrZI3Z4TMs2mv6iHxGU7lNHeP+l+bf+faqkQrIWcrPhX0xx++NJZ3vY
-        xGHbDDvQ==;
+        bh=uinp+F1SpsUbDqJ/LD9jugydtpLudfVqOBpAkBm/Kuw=; b=YR175EZY4r1kZkSNwONKk5sRjm
+        0Jh9q1s+0AnbJ3XR1s+uETOHy6/KMPWcZ2A/3pPA2YRmIe4FLXT5YQWBLkP162ZQZQxcLo5zKmBR8
+        yPxuLFclFoYWLWUAfQaCyKbJfRfGBsr2SyTtFnOANeO7FTb/SglFZ6SweZE90daB8dw1ASmM8UjQM
+        M4ZnMo5a3b3a00pQSh2naJ9Y8eCc6pRMpPzYKWwgFkcsiZ93mCPMmAdByjjnxT7hStav5sFWJ+w/a
+        kpBCoIODr/szF4CoOZ9aEs2Ye7nsYGTHHRFperi/Zde5nuQcuGmRSiIIIE6VXydfVcevstKfVVHvk
+        kpjr9KYQ==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pG3hf-005OhY-8x; Thu, 12 Jan 2023 19:57:35 +0000
+        id 1pG3hY-005OcU-0E; Thu, 12 Jan 2023 19:57:28 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id E6CB6301D8A;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 0E3943033F9;
         Thu, 12 Jan 2023 20:57:13 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id 41DA72CD01200; Thu, 12 Jan 2023 20:57:08 +0100 (CET)
-Message-ID: <20230112195541.599561742@infradead.org>
+        id ADA0F2CCF1F54; Thu, 12 Jan 2023 20:57:07 +0100 (CET)
+Message-ID: <20230112195539.821714572@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:51 +0100
+Date:   Thu, 12 Jan 2023 20:43:22 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -104,7 +104,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 37/51] cpuidle,omap3: Push RCU-idle into omap_sram_idle()
+Subject: [PATCH v3 08/51] cpuidle,imx6: Push RCU-idle into driver
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -112,94 +112,42 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-OMAP3 uses full SoC suspend modes as idle states, as such it needs the
-whole power-domain and clock-domain code from the idle path.
+Doing RCU-idle outside the driver, only to then temporarily enable it
+again, at least twice, before going idle is daft.
 
-All that code is not suitable to run with RCU disabled, as such push
-RCU-idle deeper still.
+Notably both cpu_pm_enter() and cpu_cluster_pm_enter() implicity
+re-enable RCU.
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
+Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Frederic Weisbecker <frederic@kernel.org>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    4 +---
- arch/arm/mach-omap2/pm.h          |    2 +-
- arch/arm/mach-omap2/pm34xx.c      |   12 ++++++++++--
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ arch/arm/mach-imx/cpuidle-imx6sx.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -133,9 +133,7 @@ static int omap3_enter_idle(struct cpuid
- 	}
+--- a/arch/arm/mach-imx/cpuidle-imx6sx.c
++++ b/arch/arm/mach-imx/cpuidle-imx6sx.c
+@@ -47,7 +47,9 @@ static int imx6sx_enter_wait(struct cpui
+ 		cpu_pm_enter();
+ 		cpu_cluster_pm_enter();
  
- 	/* Execute ARM wfi */
--	ct_cpuidle_enter();
--	omap_sram_idle();
--	ct_cpuidle_exit();
-+	omap_sram_idle(true);
++		ct_idle_enter();
+ 		cpu_suspend(0, imx6sx_idle_finish);
++		ct_idle_exit();
  
- 	/*
- 	 * Call idle CPU PM enter notifier chain to restore
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -29,7 +29,7 @@ static inline int omap4_idle_init(void)
- 
- extern void *omap3_secure_ram_storage;
- extern void omap3_pm_off_mode_enable(int);
--extern void omap_sram_idle(void);
-+extern void omap_sram_idle(bool rcuidle);
- extern int omap_pm_clkdms_setup(struct clockdomain *clkdm, void *unused);
- 
- #if defined(CONFIG_PM_OPP)
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/cpuidle.h>
- 
- #include <trace/events/power.h>
- 
-@@ -174,7 +175,7 @@ static int omap34xx_do_sram_idle(unsigne
- 	return 0;
- }
- 
--void omap_sram_idle(void)
-+void omap_sram_idle(bool rcuidle)
- {
- 	/* Variable to tell what needs to be saved and restored
- 	 * in omap_sram_idle*/
-@@ -254,11 +255,18 @@ void omap_sram_idle(void)
- 	 */
- 	if (save_state)
- 		omap34xx_save_context(omap3_arm_context);
-+
-+	if (rcuidle)
-+		ct_cpuidle_enter();
-+
- 	if (save_state == 1 || save_state == 3)
- 		cpu_suspend(save_state, omap34xx_do_sram_idle);
- 	else
- 		omap34xx_do_sram_idle(save_state);
- 
-+	if (rcuidle)
-+		ct_cpuidle_exit();
-+
- 	/* Restore normal SDRC POWER settings */
- 	if (cpu_is_omap3430() && omap_rev() >= OMAP3430_REV_ES3_0 &&
- 	    (omap_type() == OMAP2_DEVICE_TYPE_EMU ||
-@@ -316,7 +324,7 @@ static int omap3_pm_suspend(void)
- 
- 	omap3_intc_suspend();
- 
--	omap_sram_idle();
-+	omap_sram_idle(false);
- 
- restore:
- 	/* Restore next_pwrsts */
+ 		cpu_cluster_pm_exit();
+ 		cpu_pm_exit();
+@@ -87,7 +89,8 @@ static struct cpuidle_driver imx6sx_cpui
+ 			 */
+ 			.exit_latency = 300,
+ 			.target_residency = 500,
+-			.flags = CPUIDLE_FLAG_TIMER_STOP,
++			.flags = CPUIDLE_FLAG_TIMER_STOP |
++				 CPUIDLE_FLAG_RCU_IDLE,
+ 			.enter = imx6sx_enter_wait,
+ 			.name = "LOW-POWER-IDLE",
+ 			.desc = "ARM power off",
 
 
