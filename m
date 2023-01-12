@@ -2,42 +2,42 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B20D1C678D6
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C774C61DB3
 	for <sparclinux@archiver.kernel.org>; Thu, 12 Jan 2023 20:06:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237748AbjALUGZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 12 Jan 2023 15:06:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44292 "EHLO
+        id S232200AbjALUG0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 12 Jan 2023 15:06:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44164 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233742AbjALT7S (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:59:18 -0500
+        with ESMTP id S232192AbjALT6b (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 12 Jan 2023 14:58:31 -0500
 Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BF01E21AB;
-        Thu, 12 Jan 2023 11:58:07 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4A7F2E4;
+        Thu, 12 Jan 2023 11:58:03 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
         d=infradead.org; s=casper.20170209; h=Content-Type:MIME-Version:References:
         Subject:Cc:To:From:Date:Message-ID:Sender:Reply-To:Content-Transfer-Encoding:
         Content-ID:Content-Description:In-Reply-To;
-        bh=OSWUMoytbsEQ8xUnxginHGtpoSP0fDdQQe/5yHesCdA=; b=oGTZFFogzTEIjb+QsTQkPVVvJ0
-        b7GMNlCztEuGtbxgFu+bAIaY8KyBinlaBTr45dKYTjFZ+qut+I64utBZgCErUSrDgHGazj0OLseHc
-        LQY9tSMEF3WGmhbXemZLCLeqiQrFAPvVBy0+ZhAaCsiwkdfuUlDRQEErM4sweL3hHHTn744gXiuYU
-        aRWLpMObRnFaccGIZfUWua4xa+Z/9GLJcl3acuzeRk1b04opm0hyjvLL4ERHCIYb0iCSdivXk+IHq
-        pNw4HJPq+cg0MqSICIYKedF1IGlmuso9NREduYaTtT0pYa8fKPTzwh+BGjDGUMte1TCv0y/yiksmU
-        V+bKLBzQ==;
+        bh=57ZArFmnIQzaVihzbRCoRwr2LaVbKaf8OfuJB2z1dTg=; b=MtUDAduugAyCbC0x+GybWDrpg6
+        nvFGvIRZYvWlQOex2R/1t/2v/rActZJrR7vwvuJlXKveemU/iz4++d4GotlAkvaPASxt/V69sv0IW
+        ri/Ll4jnWKlySnMYN9/0CSP41DFCufPsa7lcX0Y1q6jOn11nHz/zwBf2W3f6x84qUVyueoCSvSKRR
+        DDk6HyQ9GyyQiRgH8jh5MXflBjo3tYUtlSuDlBNuXxdzteU1sUfcP1XhD97BszaVYQzTxHQKcA/vV
+        NNxIPT51Nkp1qj3KnJg7Rf8w5flxOjT2ZXNdvpP1EgMJE26QJPdlDIpe57D//TgbDdRbWno0lBcoI
+        JmIhzKag==;
 Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
         by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pG3hY-005Ocb-88; Thu, 12 Jan 2023 19:57:28 +0000
+        id 1pG3ha-005Odr-Km; Thu, 12 Jan 2023 19:57:30 +0000
 Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
         (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
          key-exchange X25519 server-signature RSA-PSS (4096 bits))
         (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 18A663033FF;
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 6226E303427;
         Thu, 12 Jan 2023 20:57:13 +0100 (CET)
 Received: by hirez.programming.kicks-ass.net (Postfix, from userid 0)
-        id B69572CCF1F52; Thu, 12 Jan 2023 20:57:07 +0100 (CET)
-Message-ID: <20230112195539.946630819@infradead.org>
+        id F0FCD2CCF1F7D; Thu, 12 Jan 2023 20:57:07 +0100 (CET)
+Message-ID: <20230112195540.556912863@infradead.org>
 User-Agent: quilt/0.66
-Date:   Thu, 12 Jan 2023 20:43:24 +0100
+Date:   Thu, 12 Jan 2023 20:43:34 +0100
 From:   Peter Zijlstra <peterz@infradead.org>
 To:     peterz@infradead.org
 Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
@@ -104,7 +104,7 @@ Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com,
         "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
         Ulf Hansson <ulf.hansson@linaro.org>
-Subject: [PATCH v3 10/51] cpuidle,armada: Push RCU-idle into driver
+Subject: [PATCH v3 20/51] cpuidle,intel_idle: Fix CPUIDLE_FLAG_IBRS
 References: <20230112194314.845371875@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -112,64 +112,46 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Doing RCU-idle outside the driver, only to then temporarily enable it
-again before going idle is daft.
-
-Notably the cpu_pm_*() calls implicitly re-enable RCU for a bit.
+vmlinux.o: warning: objtool: intel_idle_ibrs+0x17: call to spec_ctrl_current() leaves .noinstr.text section
+vmlinux.o: warning: objtool: intel_idle_ibrs+0x27: call to wrmsrl.constprop.0() leaves .noinstr.text section
 
 Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Reviewed-by: Frederic Weisbecker <frederic@kernel.org>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Frederic Weisbecker <frederic@kernel.org>
 Tested-by: Tony Lindgren <tony@atomide.com>
 Tested-by: Ulf Hansson <ulf.hansson@linaro.org>
 ---
- drivers/cpuidle/cpuidle-mvebu-v7.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ arch/x86/kernel/cpu/bugs.c |    2 +-
+ drivers/idle/intel_idle.c  |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/drivers/cpuidle/cpuidle-mvebu-v7.c
-+++ b/drivers/cpuidle/cpuidle-mvebu-v7.c
-@@ -36,7 +36,10 @@ static int mvebu_v7_enter_idle(struct cp
- 	if (drv->states[index].flags & MVEBU_V7_FLAG_DEEP_IDLE)
- 		deepidle = true;
+--- a/arch/x86/kernel/cpu/bugs.c
++++ b/arch/x86/kernel/cpu/bugs.c
+@@ -79,7 +79,7 @@ void write_spec_ctrl_current(u64 val, bo
+ 		wrmsrl(MSR_IA32_SPEC_CTRL, val);
+ }
  
-+	ct_idle_enter();
- 	ret = mvebu_v7_cpu_suspend(deepidle);
-+	ct_idle_exit();
-+
- 	cpu_pm_exit();
+-u64 spec_ctrl_current(void)
++noinstr u64 spec_ctrl_current(void)
+ {
+ 	return this_cpu_read(x86_spec_ctrl_current);
+ }
+--- a/drivers/idle/intel_idle.c
++++ b/drivers/idle/intel_idle.c
+@@ -181,12 +181,12 @@ static __cpuidle int intel_idle_ibrs(str
+ 	int ret;
  
- 	if (ret)
-@@ -49,6 +52,7 @@ static struct cpuidle_driver armadaxp_id
- 	.name			= "armada_xp_idle",
- 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
- 	.states[1]		= {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter			= mvebu_v7_enter_idle,
- 		.exit_latency		= 100,
- 		.power_usage		= 50,
-@@ -57,6 +61,7 @@ static struct cpuidle_driver armadaxp_id
- 		.desc			= "CPU power down",
- 	},
- 	.states[2]		= {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter			= mvebu_v7_enter_idle,
- 		.exit_latency		= 1000,
- 		.power_usage		= 5,
-@@ -72,6 +77,7 @@ static struct cpuidle_driver armada370_i
- 	.name			= "armada_370_idle",
- 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
- 	.states[1]		= {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter			= mvebu_v7_enter_idle,
- 		.exit_latency		= 100,
- 		.power_usage		= 5,
-@@ -87,6 +93,7 @@ static struct cpuidle_driver armada38x_i
- 	.name			= "armada_38x_idle",
- 	.states[0]		= ARM_CPUIDLE_WFI_STATE,
- 	.states[1]		= {
-+		.flags			= CPUIDLE_FLAG_RCU_IDLE,
- 		.enter			= mvebu_v7_enter_idle,
- 		.exit_latency		= 10,
- 		.power_usage		= 5,
+ 	if (smt_active)
+-		wrmsrl(MSR_IA32_SPEC_CTRL, 0);
++		native_wrmsrl(MSR_IA32_SPEC_CTRL, 0);
+ 
+ 	ret = __intel_idle(dev, drv, index);
+ 
+ 	if (smt_active)
+-		wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
++		native_wrmsrl(MSR_IA32_SPEC_CTRL, spec_ctrl);
+ 
+ 	return ret;
+ }
 
 
