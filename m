@@ -2,175 +2,100 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ABBEC67871
-	for <sparclinux@archiver.kernel.org>; Sat, 14 Jan 2023 16:10:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36524C677F1
+	for <sparclinux@archiver.kernel.org>; Mon, 16 Jan 2023 10:01:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230257AbjANQKI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 14 Jan 2023 11:10:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51978 "EHLO
+        id S229691AbjAPKBL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 16 Jan 2023 05:01:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49558 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230235AbjANQKC (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 14 Jan 2023 11:10:02 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B82A393DF
-        for <sparclinux@vger.kernel.org>; Sat, 14 Jan 2023 08:10:01 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1673712601;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=Q3R4pvBr6dG+A0u3o+nBNguX6qX9S+oXSEacD+sP77s=;
-        b=Wkj7TNTzDBlCarT6okCYy9jLm21JgluMUqF96PNMcD/XCA4gZK6P8I/LVqPV3xpbcT+p7L
-        Oct5s03PAAGg/GDNNs/qnrQlangSQQmy3wUB1tWFP9KKy3DrEv/tgHql9zAXzRvH9UXqMz
-        RFeiV1vO2KLhWhoWAQpUCG2TH5SKOYc=
-Received: from mail-wm1-f70.google.com (mail-wm1-f70.google.com
- [209.85.128.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-642-GAgabTRNPAy3nVl4rODHOw-1; Sat, 14 Jan 2023 11:09:39 -0500
-X-MC-Unique: GAgabTRNPAy3nVl4rODHOw-1
-Received: by mail-wm1-f70.google.com with SMTP id c66-20020a1c3545000000b003d355c13229so16011168wma.0
-        for <sparclinux@vger.kernel.org>; Sat, 14 Jan 2023 08:09:39 -0800 (PST)
+        with ESMTP id S229744AbjAPKAt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 16 Jan 2023 05:00:49 -0500
+Received: from mail-qv1-f42.google.com (mail-qv1-f42.google.com [209.85.219.42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 17537A5D4;
+        Mon, 16 Jan 2023 02:00:48 -0800 (PST)
+Received: by mail-qv1-f42.google.com with SMTP id qb7so19259374qvb.5;
+        Mon, 16 Jan 2023 02:00:48 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:subject:organization:from
-         :references:cc:to:content-language:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=Q3R4pvBr6dG+A0u3o+nBNguX6qX9S+oXSEacD+sP77s=;
-        b=NT5Zk0QY+Ozuk+mZNTDTMMeuitmoYBIaEwr1tglN/6EHWpsy9kBt/qdj/vdD0e/mji
-         0WJla+kRd0sPGm8I0ZB/guvYft2gC+sZBYa9V+5PldSg++v9Swj/Uc7yZozQ0IajumVG
-         ypfsniS4p7Nvhizx2Qblsgci7wPVchbilV1+G1tt+E6Nj0OJKcm/Lmhbs81CooFxMoNV
-         Vjp97JQUVaZKhdvuVgQadw6j1R3C/IBhUUKpovVo1WMNxDAHOkzhFgKlnoyJTpm11ZyR
-         YydDpw8oAOwQVp1QpIiRAxfsXcRmPoTNvrWp3DuZe8CPCKTwYsbadG+otQT7eBkJDJ4d
-         Dq3A==
-X-Gm-Message-State: AFqh2kpgh3Ww7QVuWMhB+oHLIo7Q9CjDUGarnuqgmOb/AJamguJGtv1x
-        8jZ9yTEFuWYxrbaQdtK0GfWk2I+XmpS+r7lZprF2RhzPhCmIJ/nVC1vsIMZxNhbVhh7234p26kz
-        Zj/K9dIXgweLXqdeikjzEIQ==
-X-Received: by 2002:a05:600c:348b:b0:3d1:f16b:30e6 with SMTP id a11-20020a05600c348b00b003d1f16b30e6mr62422468wmq.28.1673712578326;
-        Sat, 14 Jan 2023 08:09:38 -0800 (PST)
-X-Google-Smtp-Source: AMrXdXtvXECQ77f+OwG9Mdcw6TdAWlLhcG76s2TeMh5Hr9A1VofwYXs3lPZWG9daADyc7xNo4jh7zQ==
-X-Received: by 2002:a05:600c:348b:b0:3d1:f16b:30e6 with SMTP id a11-20020a05600c348b00b003d1f16b30e6mr62422426wmq.28.1673712578037;
-        Sat, 14 Jan 2023 08:09:38 -0800 (PST)
-Received: from ?IPV6:2003:cb:c71c:9800:fa4a:c1fc:a860:85af? (p200300cbc71c9800fa4ac1fca86085af.dip0.t-ipconnect.de. [2003:cb:c71c:9800:fa4a:c1fc:a860:85af])
-        by smtp.gmail.com with ESMTPSA id q18-20020adfdfd2000000b002bdc129c8f6sm10260315wrn.43.2023.01.14.08.09.36
+        bh=ZcfbiaOtd0rIUu3J0LzMQ7r+7EcuQP5IsDRStK58JTY=;
+        b=Iw+E2l7iP+BBT8wRY6KgUlaJY+XOp81ebji0YGTQl0mfalLqk8KwdJH/d4pLncKqtJ
+         y7I1g+kIcwfV5SRNRr99uL6HX4rfWdDoHawXeeUShcqBPugheTY+yc+BpLVKvszGo3j7
+         FBaecPSOf17aKObAFZ8+trpHDKjtMBWIGSQYFeAm0J7aFndDMbsTPd20s1EsKvs52dLQ
+         FZuMmDD/eWn9xeXJeKO6l97CWw5XGO6MN8JAENZZb39tEsWKkIMAIhFmkTVd/UP+3C+v
+         LU1gHqwWZmZyTVa9ajp81qJFoYuKkURzSnoXXGP6mKuJzlYde1wRQQZZwsbnALZP6TVE
+         gZwQ==
+X-Gm-Message-State: AFqh2kqbRoHXRslXHqm+0ZvAGJVODn7P3DztMINdEfkYbY5h0sFOYr5X
+        vLxwZY9qiX70ef99uheXcIMU7QiqujjkYA==
+X-Google-Smtp-Source: AMrXdXuiuftiU4iE277WG3SmWjPXImBlsWEUzPQF8WNXLe8Y4WX4/6CWP8AJZgR2D+F1RJx2UMKg6A==
+X-Received: by 2002:a0c:fb44:0:b0:532:21bf:bb41 with SMTP id b4-20020a0cfb44000000b0053221bfbb41mr46054145qvq.18.1673863246977;
+        Mon, 16 Jan 2023 02:00:46 -0800 (PST)
+Received: from mail-yb1-f171.google.com (mail-yb1-f171.google.com. [209.85.219.171])
+        by smtp.gmail.com with ESMTPSA id k19-20020a05620a415300b006fbaf9c1b70sm2819430qko.133.2023.01.16.02.00.46
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 14 Jan 2023 08:09:37 -0800 (PST)
-Message-ID: <6aaad548-cf48-77fa-9d6c-db83d724b2eb@redhat.com>
-Date:   Sat, 14 Jan 2023 17:09:35 +0100
+        Mon, 16 Jan 2023 02:00:46 -0800 (PST)
+Received: by mail-yb1-f171.google.com with SMTP id d62so13502101ybh.8;
+        Mon, 16 Jan 2023 02:00:45 -0800 (PST)
+X-Received: by 2002:a25:46c6:0:b0:7b8:a0b8:f7ec with SMTP id
+ t189-20020a2546c6000000b007b8a0b8f7ecmr4703291yba.36.1673863245804; Mon, 16
+ Jan 2023 02:00:45 -0800 (PST)
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.6.0
-Content-Language: en-US
-To:     linux-kernel@vger.kernel.org
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Nadav Amit <namit@vmware.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
-        x86@kernel.org, linux-alpha@vger.kernel.org,
+References: <Y7P9IcR7/jgYWMcq@osiris> <20230105095426.2163354-1-andrzej.hajda@intel.com>
+In-Reply-To: <20230105095426.2163354-1-andrzej.hajda@intel.com>
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+Date:   Mon, 16 Jan 2023 11:00:33 +0100
+X-Gmail-Original-Message-ID: <CAMuHMdUhPjya8zWMxEN8U8pjf4M2u_+HOfxQ2NP1XOcX9EpAKg@mail.gmail.com>
+Message-ID: <CAMuHMdUhPjya8zWMxEN8U8pjf4M2u_+HOfxQ2NP1XOcX9EpAKg@mail.gmail.com>
+Subject: Re: [PATCH v4] arch: rename all internal names __xchg to __arch_xchg
+To:     Andrzej Hajda <andrzej.hajda@intel.com>
+Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
         linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
         loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
         linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
         linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org
-References: <20230113171026.582290-1-david@redhat.com>
- <20230113171026.582290-2-david@redhat.com>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Subject: Re: [PATCH mm-unstable v1 01/26] mm/debug_vm_pgtable: more
- pte_swp_exclusive() sanity checks
-In-Reply-To: <20230113171026.582290-2-david@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+        linux-xtensa@linux-xtensa.org, intel-gfx@lists.freedesktop.org,
+        dri-devel@lists.freedesktop.org,
+        Mark Rutland <mark.rutland@arm.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Boqun Feng <boqun.feng@gmail.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Heiko Carstens <hca@linux.ibm.com>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 13.01.23 18:10, David Hildenbrand wrote:
-> We want to implement __HAVE_ARCH_PTE_SWP_EXCLUSIVE on all architectures.
-> Let's extend our sanity checks, especially testing that our PTE bit
-> does not affect:
-> * is_swap_pte() -> pte_present() and pte_none()
-> * the swap entry + type
-> * pte_swp_soft_dirty()
-> 
-> Especially, the pfn_pte() is dodgy when the swap PTE layout differs
-> heavily from ordinary PTEs. Let's properly construct a swap PTE from
-> swap type+offset.
-> 
-> Signed-off-by: David Hildenbrand <david@redhat.com>
+On Thu, Jan 5, 2023 at 10:54 AM Andrzej Hajda <andrzej.hajda@intel.com> wrote:
+> __xchg will be used for non-atomic xchg macro.
+>
+> Signed-off-by: Andrzej Hajda <andrzej.hajda@intel.com>
+> Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 > ---
+> v2: squashed all arch patches into one
+> v3: fixed alpha/xchg_local, thx to lkp@intel.com
+> v4: adjusted indentation (Heiko)
 
-The following fixup for !CONFIG_SWAP on top, which makes it compile for me and
-passes when booting on x86_64 with CONFIG_DEBUG_VM_PGTABLE:
+>  arch/m68k/include/asm/cmpxchg.h      |  6 +++---
 
-...
-[    0.347112] Loaded X.509 cert 'Build time autogenerated kernel key: ee6afc0578f6475656fec8a4f9d02832'
-[    0.350112] debug_vm_pgtable: [debug_vm_pgtable         ]: Validating architecture page table helpers
-[    0.351217] page_owner is disabled
-...
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org> [m68k]
 
+Gr{oetje,eeting}s,
 
- From 6a6162e8af62a4b3f7b9d823fdfae86de3f34a9d Mon Sep 17 00:00:00 2001
-From: David Hildenbrand <david@redhat.com>
-Date: Sat, 14 Jan 2023 16:47:12 +0100
-Subject: [PATCH] fixup: mm/debug_vm_pgtable: more pte_swp_exclusive() sanity
-  checks
+                        Geert
 
-generic_max_swapfile_size() is only available with CONFIG_SWAP -- which
-makes sense, because without SWAP there are no swap files. Let's
-simply probe manually which bits we can obtain after storing them in a
-PTE, and properly call it "max swap offset", which is more generic for
-a swap entry.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-Reported-by: kernel test robot <lkp@intel.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
-  mm/debug_vm_pgtable.c | 8 +++++---
-  1 file changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/mm/debug_vm_pgtable.c b/mm/debug_vm_pgtable.c
-index 3da0cc380c35..af59cc7bd307 100644
---- a/mm/debug_vm_pgtable.c
-+++ b/mm/debug_vm_pgtable.c
-@@ -810,15 +810,17 @@ static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args) {
-  
-  static void __init pte_swap_exclusive_tests(struct pgtable_debug_args *args)
-  {
--	unsigned long max_swapfile_size = generic_max_swapfile_size();
-+	unsigned long max_swap_offset;
-  	swp_entry_t entry, entry2;
-  	pte_t pte;
-  
-  	pr_debug("Validating PTE swap exclusive\n");
-  
-+	/* See generic_max_swapfile_size(): probe the maximum offset */
-+	max_swap_offset = swp_offset(pte_to_swp_entry(swp_entry_to_pte(swp_entry(0, ~0UL))));
-+
-  	/* Create a swp entry with all possible bits set */
--	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1,
--			  max_swapfile_size - 1);
-+	entry = swp_entry((1 << MAX_SWAPFILES_SHIFT) - 1, max_swap_offset);
-  
-  	pte = swp_entry_to_pte(entry);
-  	WARN_ON(pte_swp_exclusive(pte));
--- 
-2.39.0
-
-
-
--- 
-Thanks,
-
-David / dhildenb
-
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
