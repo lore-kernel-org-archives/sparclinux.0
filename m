@@ -2,216 +2,313 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92E6DC63797
-	for <sparclinux@archiver.kernel.org>; Tue, 17 Jan 2023 09:14:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AED0EC678DD
+	for <sparclinux@archiver.kernel.org>; Tue, 17 Jan 2023 10:27:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236205AbjAQJOT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 17 Jan 2023 04:14:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47114 "EHLO
+        id S236366AbjAQK1k (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 17 Jan 2023 05:27:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36032 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236492AbjAQJNN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 17 Jan 2023 04:13:13 -0500
-Received: from mga14.intel.com (mga14.intel.com [192.55.52.115])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B7295305CB;
-        Tue, 17 Jan 2023 01:06:23 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1673946383; x=1705482383;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=c7jjkXg2zevtUfDVCklxzCATy4MDGgUxteLanbQzGXo=;
-  b=HTwBSnj4sN8XgZ2kN8kcPJ8PNuJi4DAkgmXdntZqWwf10Pj8CzGX1xrB
-   zla7MQZCZh+WqFyxTC0URDp0+dEQaF5SHMwCOWDwDabv+MJIfEouKZzeo
-   7lXWDE0BsNTtS6BqPJ8Dssyv00DsqxX7EKPvT+RhwNGnXsxoLaEB3EHsi
-   Dapl6lZ/Nf6TTcKGbR9COmqcsrxPajG8qsp2A9RhnE0k7FpVQ9r4YYMpK
-   ALi2/7zePAuKZAbc3cGWvMAUUEmbXIdamG0cV4YN61fGTiFCTg1s6XAJ+
-   +T9+c2FSjAhtsHZDytydJ7MFATp6iakvnEFDes+MN/5/ZInE9VPM3wX7b
-   w==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10592"; a="324701099"
-X-IronPort-AV: E=Sophos;i="5.97,222,1669104000"; 
-   d="scan'208";a="324701099"
-Received: from orsmga004.jf.intel.com ([10.7.209.38])
-  by fmsmga103.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2023 01:05:18 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10592"; a="783174235"
-X-IronPort-AV: E=Sophos;i="5.97,222,1669104000"; 
-   d="scan'208";a="783174235"
-Received: from tronach-mobl1.ger.corp.intel.com (HELO ijarvine-MOBL2.ger.corp.intel.com) ([10.252.40.3])
-  by orsmga004-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 17 Jan 2023 01:05:14 -0800
-From:   =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-To:     linux-serial@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Rodolfo Giometti <giometti@enneenne.com>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Johan Hovold <johan@kernel.org>,
-        Samuel Iglesias Gonsalvez <siglesias@igalia.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org
-Cc:     =?UTF-8?q?Ilpo=20J=C3=A4rvinen?= <ilpo.jarvinen@linux.intel.com>
-Subject: [PATCH v4 08/12] tty/serial: Make ->dcd_change()+uart_handle_dcd_change() status bool active
-Date:   Tue, 17 Jan 2023 11:03:54 +0200
-Message-Id: <20230117090358.4796-9-ilpo.jarvinen@linux.intel.com>
-X-Mailer: git-send-email 2.30.2
-In-Reply-To: <20230117090358.4796-1-ilpo.jarvinen@linux.intel.com>
-References: <20230117090358.4796-1-ilpo.jarvinen@linux.intel.com>
+        with ESMTP id S236712AbjAQK1Q (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 17 Jan 2023 05:27:16 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9C7C9303CD;
+        Tue, 17 Jan 2023 02:27:13 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=oxrJBZkAaCeFAHBiyHLFWLeqn2s4gXmFVHT68O/MsFk=; b=GQsHqdtN/iREDQ8vi1O4Be1MrZ
+        rseA9/3ogzxQ6xZE4SqLUZG4sV/QDZjvMovg65N0xIIgCnRPbkND1+nwy51nHnBc5DWNJS4XUBAN9
+        DGhO4XvtgUfXh3DGTlKQTq1yWaZoEocA9mKp7m7181bsUQeP0yUWn9Ocr+1xM7l1a0UxxyRm82Zw+
+        z3mRAtrbo2NEuxCbyqDel031QfZM7HOcrBLOGqBY1RekqMov5sENJSTJquxMwFQpH1Z5aFuaq2SxP
+        yues13giahhBFOzG58JwmbeFuKGXFy4M+qN2H/Xcy0ClAmlPum6BOEWDZwYNw11AStmRYs4JMNKUo
+        mE/sBfbw==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pHjAz-009alg-LZ; Tue, 17 Jan 2023 10:26:45 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id EC3A53005C9;
+        Tue, 17 Jan 2023 11:26:29 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id C3475201C94B3; Tue, 17 Jan 2023 11:26:29 +0100 (CET)
+Date:   Tue, 17 Jan 2023 11:26:29 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Mark Rutland <mark.rutland@arm.com>
+Cc:     richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, vgupta@kernel.org, linux@armlinux.org.uk,
+        nsekhar@ti.com, brgl@bgdev.pl, ulli.kroll@googlemail.com,
+        linus.walleij@linaro.org, shawnguo@kernel.org,
+        Sascha Hauer <s.hauer@pengutronix.de>, kernel@pengutronix.de,
+        festevam@gmail.com, linux-imx@nxp.com, tony@atomide.com,
+        khilman@kernel.org, krzysztof.kozlowski@linaro.org,
+        alim.akhtar@samsung.com, catalin.marinas@arm.com, will@kernel.org,
+        guoren@kernel.org, bcain@quicinc.com, chenhuacai@kernel.org,
+        kernel@xen0n.name, geert@linux-m68k.org, sammy@sammy.net,
+        monstr@monstr.eu, tsbogend@alpha.franken.de, dinguyen@kernel.org,
+        jonas@southpole.se, stefan.kristiansson@saunalahti.fi,
+        shorne@gmail.com, James.Bottomley@hansenpartnership.com,
+        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
+        christophe.leroy@csgroup.eu, paul.walmsley@sifive.com,
+        palmer@dabbelt.com, aou@eecs.berkeley.edu, hca@linux.ibm.com,
+        gor@linux.ibm.com, agordeev@linux.ibm.com,
+        borntraeger@linux.ibm.com, svens@linux.ibm.com,
+        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
+        richard@nod.at, anton.ivanov@cambridgegreys.com,
+        johannes@sipsolutions.net, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, acme@kernel.org, alexander.shishkin@linux.intel.com,
+        jolsa@kernel.org, namhyung@kernel.org, jgross@suse.com,
+        srivatsa@csail.mit.edu, amakhalov@vmware.com,
+        pv-drivers@vmware.com, boris.ostrovsky@oracle.com,
+        chris@zankel.net, jcmvbkbc@gmail.com, rafael@kernel.org,
+        lenb@kernel.org, pavel@ucw.cz, gregkh@linuxfoundation.org,
+        mturquette@baylibre.com, sboyd@kernel.org,
+        daniel.lezcano@linaro.org, lpieralisi@kernel.org,
+        sudeep.holla@arm.com, agross@kernel.org, andersson@kernel.org,
+        konrad.dybcio@linaro.org, anup@brainfault.org,
+        thierry.reding@gmail.com, jonathanh@nvidia.com,
+        jacob.jun.pan@linux.intel.com, atishp@atishpatra.org,
+        Arnd Bergmann <arnd@arndb.de>, yury.norov@gmail.com,
+        andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
+        dennis@kernel.org, tj@kernel.org, cl@linux.com,
+        rostedt@goodmis.org, mhiramat@kernel.org, frederic@kernel.org,
+        paulmck@kernel.org, pmladek@suse.com, senozhatsky@chromium.org,
+        john.ogness@linutronix.de, juri.lelli@redhat.com,
+        vincent.guittot@linaro.org, dietmar.eggemann@arm.com,
+        bsegall@google.com, mgorman@suse.de, bristot@redhat.com,
+        vschneid@redhat.com, ryabinin.a.a@gmail.com, glider@google.com,
+        andreyknvl@gmail.com, dvyukov@google.com,
+        vincenzo.frascino@arm.com,
+        Andrew Morton <akpm@linux-foundation.org>, jpoimboe@kernel.org,
+        linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org, linux-omap@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org, linux-perf-users@vger.kernel.org,
+        virtualization@lists.linux-foundation.org,
+        linux-xtensa@linux-xtensa.org, linux-acpi@vger.kernel.org,
+        linux-pm@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-arch@vger.kernel.org, linux-mm@kvack.org,
+        linux-trace-kernel@vger.kernel.org, kasan-dev@googlegroups.com
+Subject: Re: [PATCH v3 00/51] cpuidle,rcu: Clean up the mess
+Message-ID: <Y8Z31UbzG3LJgAXE@hirez.programming.kicks-ass.net>
+References: <20230112194314.845371875@infradead.org>
+ <Y8WCWAuQSHN651dA@FVFF77S0Q05N.cambridge.arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y8WCWAuQSHN651dA@FVFF77S0Q05N.cambridge.arm.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Convert status parameter for ->dcd_change() and
-uart_handle_dcd_change() to bool which matches to how the parameter is
-used.
+On Mon, Jan 16, 2023 at 04:59:04PM +0000, Mark Rutland wrote:
 
-Rename status to active to better describe what the parameter means.
+> I'm sorry to have to bear some bad news on that front. :(
 
-Acked-by: Rodolfo Giometti <giometti@enneenne.com>
-Reviewed-by: Jiri Slaby <jirislaby@kernel.org>
-Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@linux.intel.com>
+Moo, something had to give..
+
+
+> IIUC what's happenign here is the PSCI cpuidle driver has entered idle and RCU
+> is no longer watching when arm64's cpu_suspend() manipulates DAIF. Our
+> local_daif_*() helpers poke lockdep and tracing, hence the call to
+> trace_hardirqs_off() and the RCU usage.
+
+Right, strictly speaking not needed at this point, IRQs should have been
+traced off a long time ago.
+
+> I think we need RCU to be watching all the way down to cpu_suspend(), and it's
+> cpu_suspend() that should actually enter/exit idle context. That and we need to
+> make cpu_suspend() and the low-level PSCI invocation noinstr.
+> 
+> I'm not sure whether 32-bit will have a similar issue or not.
+
+I'm not seeing 32bit or Risc-V have similar issues here, but who knows,
+maybe I missed somsething.
+
+In any case, the below ought to cure the ARM64 case and remove that last
+known RCU_NONIDLE() user as a bonus.
+
 ---
- drivers/pps/clients/pps-ldisc.c  | 6 +++---
- drivers/tty/serial/serial_core.c | 8 ++++----
- drivers/tty/serial/sunhv.c       | 8 ++++----
- include/linux/serial_core.h      | 3 +--
- include/linux/tty_ldisc.h        | 4 ++--
- 5 files changed, 14 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/pps/clients/pps-ldisc.c b/drivers/pps/clients/pps-ldisc.c
-index d73c4c2ed4e1..443d6bae19d1 100644
---- a/drivers/pps/clients/pps-ldisc.c
-+++ b/drivers/pps/clients/pps-ldisc.c
-@@ -13,7 +13,7 @@
- #include <linux/pps_kernel.h>
- #include <linux/bug.h>
+diff --git a/arch/arm64/kernel/cpuidle.c b/arch/arm64/kernel/cpuidle.c
+index 41974a1a229a..42e19fff40ee 100644
+--- a/arch/arm64/kernel/cpuidle.c
++++ b/arch/arm64/kernel/cpuidle.c
+@@ -67,10 +67,10 @@ __cpuidle int acpi_processor_ffh_lpi_enter(struct acpi_lpi_state *lpi)
+ 	u32 state = lpi->address;
  
--static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
-+static void pps_tty_dcd_change(struct tty_struct *tty, bool active)
+ 	if (ARM64_LPI_IS_RETENTION_STATE(lpi->arch_flags))
+-		return CPU_PM_CPU_IDLE_ENTER_RETENTION_PARAM(psci_cpu_suspend_enter,
++		return CPU_PM_CPU_IDLE_ENTER_RETENTION_PARAM_RCU(psci_cpu_suspend_enter,
+ 						lpi->index, state);
+ 	else
+-		return CPU_PM_CPU_IDLE_ENTER_PARAM(psci_cpu_suspend_enter,
++		return CPU_PM_CPU_IDLE_ENTER_PARAM_RCU(psci_cpu_suspend_enter,
+ 					     lpi->index, state);
+ }
+ #endif
+diff --git a/arch/arm64/kernel/suspend.c b/arch/arm64/kernel/suspend.c
+index e7163f31f716..0fbdf5fe64d8 100644
+--- a/arch/arm64/kernel/suspend.c
++++ b/arch/arm64/kernel/suspend.c
+@@ -4,6 +4,7 @@
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ #include <linux/pgtable.h>
++#include <linux/cpuidle.h>
+ #include <asm/alternative.h>
+ #include <asm/cacheflush.h>
+ #include <asm/cpufeature.h>
+@@ -104,6 +105,10 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
+ 	 * From this point debug exceptions are disabled to prevent
+ 	 * updates to mdscr register (saved and restored along with
+ 	 * general purpose registers) from kernel debuggers.
++	 *
++	 * Strictly speaking the trace_hardirqs_off() here is superfluous,
++	 * hardirqs should be firmly off by now. This really ought to use
++	 * something like raw_local_daif_save().
+ 	 */
+ 	flags = local_daif_save();
+ 
+@@ -120,6 +125,8 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
+ 	 */
+ 	arm_cpuidle_save_irq_context(&context);
+ 
++	ct_cpuidle_enter();
++
+ 	if (__cpu_suspend_enter(&state)) {
+ 		/* Call the suspend finisher */
+ 		ret = fn(arg);
+@@ -133,8 +140,11 @@ int cpu_suspend(unsigned long arg, int (*fn)(unsigned long))
+ 		 */
+ 		if (!ret)
+ 			ret = -EOPNOTSUPP;
++
++		ct_cpuidle_exit();
+ 	} else {
+-		RCU_NONIDLE(__cpu_suspend_exit());
++		ct_cpuidle_exit();
++		__cpu_suspend_exit();
+ 	}
+ 
+ 	arm_cpuidle_restore_irq_context(&context);
+diff --git a/drivers/cpuidle/cpuidle-psci.c b/drivers/cpuidle/cpuidle-psci.c
+index 4fc4e0381944..312a34ef28dc 100644
+--- a/drivers/cpuidle/cpuidle-psci.c
++++ b/drivers/cpuidle/cpuidle-psci.c
+@@ -69,16 +69,12 @@ static __cpuidle int __psci_enter_domain_idle_state(struct cpuidle_device *dev,
+ 	else
+ 		pm_runtime_put_sync_suspend(pd_dev);
+ 
+-	ct_cpuidle_enter();
+-
+ 	state = psci_get_domain_state();
+ 	if (!state)
+ 		state = states[idx];
+ 
+ 	ret = psci_cpu_suspend_enter(state) ? -1 : idx;
+ 
+-	ct_cpuidle_exit();
+-
+ 	if (s2idle)
+ 		dev_pm_genpd_resume(pd_dev);
+ 	else
+@@ -192,7 +188,7 @@ static __cpuidle int psci_enter_idle_state(struct cpuidle_device *dev,
  {
- 	struct pps_device *pps;
- 	struct pps_event_time ts;
-@@ -29,11 +29,11 @@ static void pps_tty_dcd_change(struct tty_struct *tty, unsigned int status)
- 		return;
+ 	u32 *state = __this_cpu_read(psci_cpuidle_data.psci_states);
  
- 	/* Now do the PPS event report */
--	pps_event(pps, &ts, status ? PPS_CAPTUREASSERT :
-+	pps_event(pps, &ts, active ? PPS_CAPTUREASSERT :
- 			PPS_CAPTURECLEAR, NULL);
- 
- 	dev_dbg(pps->dev, "PPS %s at %lu\n",
--			status ? "assert" : "clear", jiffies);
-+			active ? "assert" : "clear", jiffies);
+-	return CPU_PM_CPU_IDLE_ENTER_PARAM(psci_cpu_suspend_enter, idx, state[idx]);
++	return CPU_PM_CPU_IDLE_ENTER_PARAM_RCU(psci_cpu_suspend_enter, idx, state[idx]);
  }
  
- static int (*alias_n_tty_open)(struct tty_struct *tty);
-diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
-index 053535846ba2..f8a9386db482 100644
---- a/drivers/tty/serial/serial_core.c
-+++ b/drivers/tty/serial/serial_core.c
-@@ -3252,11 +3252,11 @@ EXPORT_SYMBOL(uart_match_port);
- /**
-  * uart_handle_dcd_change - handle a change of carrier detect state
-  * @uport: uart_port structure for the open port
-- * @status: new carrier detect status, nonzero if active
-+ * @active: new carrier detect status
-  *
-  * Caller must hold uport->lock.
-  */
--void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
-+void uart_handle_dcd_change(struct uart_port *uport, bool active)
- {
- 	struct tty_port *port = &uport->state->port;
- 	struct tty_struct *tty = port->tty;
-@@ -3268,7 +3268,7 @@ void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
- 		ld = tty_ldisc_ref(tty);
- 		if (ld) {
- 			if (ld->ops->dcd_change)
--				ld->ops->dcd_change(tty, status);
-+				ld->ops->dcd_change(tty, active);
- 			tty_ldisc_deref(ld);
- 		}
+ static const struct of_device_id psci_idle_state_match[] = {
+diff --git a/drivers/firmware/psci/psci.c b/drivers/firmware/psci/psci.c
+index e7bcfca4159f..f3a044fa4652 100644
+--- a/drivers/firmware/psci/psci.c
++++ b/drivers/firmware/psci/psci.c
+@@ -462,11 +462,22 @@ int psci_cpu_suspend_enter(u32 state)
+ 	if (!psci_power_state_loses_context(state)) {
+ 		struct arm_cpuidle_irq_context context;
+ 
++		ct_cpuidle_enter();
+ 		arm_cpuidle_save_irq_context(&context);
+ 		ret = psci_ops.cpu_suspend(state, 0);
+ 		arm_cpuidle_restore_irq_context(&context);
++		ct_cpuidle_exit();
+ 	} else {
++		/*
++		 * ARM64 cpu_suspend() wants to do ct_cpuidle_*() itself.
++		 */
++		if (!IS_ENABLED(CONFIG_ARM64))
++			ct_cpuidle_enter();
++
+ 		ret = cpu_suspend(state, psci_suspend_finisher);
++
++		if (!IS_ENABLED(CONFIG_ARM64))
++			ct_cpuidle_exit();
  	}
-@@ -3276,7 +3276,7 @@ void uart_handle_dcd_change(struct uart_port *uport, unsigned int status)
- 	uport->icount.dcd++;
  
- 	if (uart_dcd_enabled(uport)) {
--		if (status)
-+		if (active)
- 			wake_up_interruptible(&port->open_wait);
- 		else if (tty)
- 			tty_hangup(tty);
-diff --git a/drivers/tty/serial/sunhv.c b/drivers/tty/serial/sunhv.c
-index 16c746a63258..7d38c33ef506 100644
---- a/drivers/tty/serial/sunhv.c
-+++ b/drivers/tty/serial/sunhv.c
-@@ -87,10 +87,10 @@ static int receive_chars_getchar(struct uart_port *port)
+ 	return ret;
+diff --git a/include/linux/cpuidle.h b/include/linux/cpuidle.h
+index 630c879143c7..3183aeb7f5b4 100644
+--- a/include/linux/cpuidle.h
++++ b/include/linux/cpuidle.h
+@@ -307,7 +307,7 @@ extern s64 cpuidle_governor_latency_req(unsigned int cpu);
+ #define __CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter,			\
+ 				idx,					\
+ 				state,					\
+-				is_retention)				\
++				is_retention, is_rcu)			\
+ ({									\
+ 	int __ret = 0;							\
+ 									\
+@@ -319,9 +319,11 @@ extern s64 cpuidle_governor_latency_req(unsigned int cpu);
+ 	if (!is_retention)						\
+ 		__ret =  cpu_pm_enter();				\
+ 	if (!__ret) {							\
+-		ct_cpuidle_enter();					\
++		if (!is_rcu)						\
++			ct_cpuidle_enter();				\
+ 		__ret = low_level_idle_enter(state);			\
+-		ct_cpuidle_exit();					\
++		if (!is_rcu)						\
++			ct_cpuidle_exit();				\
+ 		if (!is_retention)					\
+ 			cpu_pm_exit();					\
+ 	}								\
+@@ -330,15 +332,21 @@ extern s64 cpuidle_governor_latency_req(unsigned int cpu);
+ })
  
- 		if (c == CON_HUP) {
- 			hung_up = 1;
--			uart_handle_dcd_change(port, 0);
-+			uart_handle_dcd_change(port, false);
- 		} else if (hung_up) {
- 			hung_up = 0;
--			uart_handle_dcd_change(port, 1);
-+			uart_handle_dcd_change(port, true);
- 		}
+ #define CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx)	\
+-	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, idx, 0)
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, idx, 0, 0)
  
- 		if (port->state == NULL) {
-@@ -133,7 +133,7 @@ static int receive_chars_read(struct uart_port *port)
- 				bytes_read = 1;
- 			} else if (stat == CON_HUP) {
- 				hung_up = 1;
--				uart_handle_dcd_change(port, 0);
-+				uart_handle_dcd_change(port, false);
- 				continue;
- 			} else {
- 				/* HV_EWOULDBLOCK, etc.  */
-@@ -143,7 +143,7 @@ static int receive_chars_read(struct uart_port *port)
+ #define CPU_PM_CPU_IDLE_ENTER_RETENTION(low_level_idle_enter, idx)	\
+-	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, idx, 1)
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, idx, 1, 0)
  
- 		if (hung_up) {
- 			hung_up = 0;
--			uart_handle_dcd_change(port, 1);
-+			uart_handle_dcd_change(port, true);
- 		}
+ #define CPU_PM_CPU_IDLE_ENTER_PARAM(low_level_idle_enter, idx, state)	\
+-	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 0)
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 0, 0)
++
++#define CPU_PM_CPU_IDLE_ENTER_PARAM_RCU(low_level_idle_enter, idx, state)	\
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 0, 1)
  
- 		if (port->sysrq != 0 &&  *con_read_page) {
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index fd59f600094a..760c96ffb5bd 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -896,8 +896,7 @@ static inline bool uart_softcts_mode(struct uart_port *uport)
-  * The following are helper functions for the low level drivers.
-  */
+ #define CPU_PM_CPU_IDLE_ENTER_RETENTION_PARAM(low_level_idle_enter, idx, state)	\
+-	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 1)
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 1, 0)
++
++#define CPU_PM_CPU_IDLE_ENTER_RETENTION_PARAM_RCU(low_level_idle_enter, idx, state)	\
++	__CPU_PM_CPU_IDLE_ENTER(low_level_idle_enter, idx, state, 1, 1)
  
--extern void uart_handle_dcd_change(struct uart_port *uport,
--		unsigned int status);
-+extern void uart_handle_dcd_change(struct uart_port *uport, bool active);
- extern void uart_handle_cts_change(struct uart_port *uport,
- 		unsigned int status);
- 
-diff --git a/include/linux/tty_ldisc.h b/include/linux/tty_ldisc.h
-index dcb61ec11424..49dc172dedc7 100644
---- a/include/linux/tty_ldisc.h
-+++ b/include/linux/tty_ldisc.h
-@@ -170,7 +170,7 @@ int ldsem_down_write_nested(struct ld_semaphore *sem, int subclass,
-  *	send, please arise a tasklet or workqueue to do the real data transfer.
-  *	Do not send data in this hook, it may lead to a deadlock.
-  *
-- * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, unsigned int status)``
-+ * @dcd_change: [DRV] ``void ()(struct tty_struct *tty, bool active)``
-  *
-  *	Tells the discipline that the DCD pin has changed its status. Used
-  *	exclusively by the %N_PPS (Pulse-Per-Second) line discipline.
-@@ -238,7 +238,7 @@ struct tty_ldisc_ops {
- 	void	(*receive_buf)(struct tty_struct *tty, const unsigned char *cp,
- 			       const char *fp, int count);
- 	void	(*write_wakeup)(struct tty_struct *tty);
--	void	(*dcd_change)(struct tty_struct *tty, unsigned int status);
-+	void	(*dcd_change)(struct tty_struct *tty, bool active);
- 	int	(*receive_buf2)(struct tty_struct *tty, const unsigned char *cp,
- 				const char *fp, int count);
- 	void	(*lookahead_buf)(struct tty_struct *tty, const unsigned char *cp,
--- 
-2.30.2
-
+ #endif /* _LINUX_CPUIDLE_H */
