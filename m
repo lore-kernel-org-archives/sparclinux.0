@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 92815C678D6
-	for <sparclinux@archiver.kernel.org>; Wed, 18 Jan 2023 15:46:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96E1EC678DD
+	for <sparclinux@archiver.kernel.org>; Wed, 18 Jan 2023 15:46:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231435AbjARPqc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 18 Jan 2023 10:46:32 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51022 "EHLO
+        id S231478AbjARPqe (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 18 Jan 2023 10:46:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50552 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230454AbjARPqE (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 18 Jan 2023 10:46:04 -0500
+        with ESMTP id S230457AbjARPps (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 18 Jan 2023 10:45:48 -0500
 Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 910033757D;
-        Wed, 18 Jan 2023 07:45:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DB0230B30;
+        Wed, 18 Jan 2023 07:45:31 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1674056736; x=1705592736;
+  t=1674056731; x=1705592731;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=r4W7l/3g2FF9m+Bbn+8NEkNQ+AUW9MsI1xwl1GBeVcA=;
-  b=kUt88PFkfsOJ3giMyl1qJ69QOXxX8r8xqbhHBG5+LCcHDLHdA1Az/UOB
-   OvGB8c9tJVQzXLI7norMldebbnRo5829I91RzWm300IXr84AtYmTc/xO1
-   pSLfeZlYoWnxeep//m3gNvJoZs5IYdC0jbCVX8o/SVFlWvaDCJJzSidk8
-   GhYQ6QUGV462c3a6pB1c/UUGAA+KxURlkN4cjm5yEyrSWRiM88mZ4Mt5w
-   xUu4skEXgxpVlD+QQPaegoo/0C3TyRkS4Ob164OvzgbA4tTm1u+LI1J69
-   +ScGwodxNqwOoamfhhoD+KlrCT9cEoeJHbQfvXngPNDSfalV8zekXpPYB
-   Q==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="322701355"
+  bh=5UIRHWiv1nZeLK1bOeYIY8HLBo0tEoLtywnXrKNCGWQ=;
+  b=C3Rpi2TjCKzsSBJYxOLBwXrOybnXCWjfGq8L5dvQq8XBAUx2ptKyko7B
+   8ehOYrLniJSZjRqRfvkvx6A15RdHmx8f0yItH0Y0mHDwmH+DX5x5EdyLd
+   5c6PeY/Zgb5ZNzvZBt7+Grxe96t2/qhTFXn/gme1Rd/1/D8jKrOATF5hs
+   4Nqsscek2yCncrR4Y2uVkMcJiDIxGZ/bRs+7RnEXlxRIyhd9pNcfjTC34
+   8YALgXwokbyaUUDIfGv3M6PQZdnY/wzLaEKTBvdb6XxgUVWuxR/YSlVZk
+   0S3TS7o7L5kxrbeG0jJl/bSWk+oS6qk+Nxdw0uCXsxNAz2SWxPRK+VHS3
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="322701316"
 X-IronPort-AV: E=Sophos;i="5.97,226,1669104000"; 
-   d="scan'208";a="322701355"
+   d="scan'208";a="322701316"
 Received: from fmsmga007.fm.intel.com ([10.253.24.52])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2023 07:45:35 -0800
-X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="661759365"
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2023 07:45:30 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10594"; a="661759330"
 X-IronPort-AV: E=Sophos;i="5.97,226,1669104000"; 
-   d="scan'208";a="661759365"
+   d="scan'208";a="661759330"
 Received: from lab-ah.igk.intel.com ([10.102.42.211])
-  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2023 07:45:30 -0800
+  by fmsmga007-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 18 Jan 2023 07:45:25 -0800
 From:   Andrzej Hajda <andrzej.hajda@intel.com>
 To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
@@ -57,9 +57,9 @@ Cc:     Andrzej Hajda <andrzej.hajda@intel.com>,
         Peter Zijlstra <peterz@infradead.org>,
         Boqun Feng <boqun.feng@gmail.com>,
         Mark Rutland <mark.rutland@arm.com>
-Subject: [PATCH v5 5/7] io_uring: use __xchg if possible
-Date:   Wed, 18 Jan 2023 16:44:48 +0100
-Message-Id: <20230118154450.73842-5-andrzej.hajda@intel.com>
+Subject: [PATCH v5 4/7] llist: simplify __llist_del_all
+Date:   Wed, 18 Jan 2023 16:44:47 +0100
+Message-Id: <20230118154450.73842-4-andrzej.hajda@intel.com>
 X-Mailer: git-send-email 2.34.1
 In-Reply-To: <20230118154450.73842-1-andrzej.hajda@intel.com>
 References: <20230118153529.57695-1-andrzej.hajda@intel.com>
@@ -71,70 +71,37 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Recently introduced helper simplifies the code.
+llist_del_all uses xchg, let's use __xchg here.
 
 Signed-off-by: Andrzej Hajda <andrzej.hajda@intel.com>
 ---
- io_uring/io_uring.c | 7 ++-----
- io_uring/slist.h    | 6 ++----
- 2 files changed, 4 insertions(+), 9 deletions(-)
+ include/linux/llist.h | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/io_uring/io_uring.c b/io_uring/io_uring.c
-index 2ac1cd8d23ea62..2b46a692d69022 100644
---- a/io_uring/io_uring.c
-+++ b/io_uring/io_uring.c
-@@ -54,6 +54,7 @@
- #include <linux/fdtable.h>
- #include <linux/mm.h>
- #include <linux/mman.h>
-+#include <linux/non-atomic/xchg.h>
- #include <linux/percpu.h>
- #include <linux/slab.h>
- #include <linux/bvec.h>
-@@ -1095,8 +1096,6 @@ static void __io_req_find_next_prep(struct io_kiocb *req)
+diff --git a/include/linux/llist.h b/include/linux/llist.h
+index 85bda2d02d65be..4dc1d185ea98ab 100644
+--- a/include/linux/llist.h
++++ b/include/linux/llist.h
+@@ -50,6 +50,7 @@
  
- static inline struct io_kiocb *io_req_find_next(struct io_kiocb *req)
+ #include <linux/atomic.h>
+ #include <linux/container_of.h>
++#include <linux/non-atomic/xchg.h>
+ #include <linux/stddef.h>
+ #include <linux/types.h>
+ 
+@@ -241,10 +242,7 @@ static inline struct llist_node *llist_del_all(struct llist_head *head)
+ 
+ static inline struct llist_node *__llist_del_all(struct llist_head *head)
  {
--	struct io_kiocb *nxt;
+-	struct llist_node *first = head->first;
 -
- 	/*
- 	 * If LINK is set, we have dependent requests in this chain. If we
- 	 * didn't fail this request, queue the first one up, moving any other
-@@ -1105,9 +1104,7 @@ static inline struct io_kiocb *io_req_find_next(struct io_kiocb *req)
- 	 */
- 	if (unlikely(req->flags & IO_DISARM_MASK))
- 		__io_req_find_next_prep(req);
--	nxt = req->link;
--	req->link = NULL;
--	return nxt;
-+	return __xchg(&req->link, NULL);
+-	head->first = NULL;
+-	return first;
++	return __xchg(&head->first, NULL);
  }
  
- static void ctx_flush_and_put(struct io_ring_ctx *ctx, bool *locked)
-diff --git a/io_uring/slist.h b/io_uring/slist.h
-index f27601fa46607b..d3a743a1adc626 100644
---- a/io_uring/slist.h
-+++ b/io_uring/slist.h
-@@ -2,6 +2,7 @@
- #define INTERNAL_IO_SLIST_H
- 
- #include <linux/io_uring_types.h>
-+#include <linux/non-atomic/xchg.h>
- 
- #define wq_list_for_each(pos, prv, head)			\
- 	for (pos = (head)->first, prv = NULL; pos; prv = pos, pos = (pos)->next)
-@@ -121,10 +122,7 @@ static inline void wq_list_del(struct io_wq_work_list *list,
- static inline
- struct io_wq_work_node *wq_stack_extract(struct io_wq_work_node *stack)
- {
--	struct io_wq_work_node *node = stack->next;
--
--	stack->next = node->next;
--	return node;
-+	return __xchg(&stack->next, stack->next->next);
- }
- 
- static inline struct io_wq_work *wq_next_work(struct io_wq_work *work)
+ extern struct llist_node *llist_del_first(struct llist_head *head);
 -- 
 2.34.1
 
