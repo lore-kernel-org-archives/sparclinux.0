@@ -2,322 +2,348 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A50DC46467
-	for <sparclinux@archiver.kernel.org>; Wed, 18 Jan 2023 17:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F3285C6379F
+	for <sparclinux@archiver.kernel.org>; Thu, 19 Jan 2023 14:38:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231297AbjARRnT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 18 Jan 2023 12:43:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39584 "EHLO
+        id S231241AbjASOi3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 19 Jan 2023 09:38:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58078 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230144AbjARRmx (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 18 Jan 2023 12:42:53 -0500
-Received: from mail-ej1-x62e.google.com (mail-ej1-x62e.google.com [IPv6:2a00:1450:4864:20::62e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75CCA3CE01;
-        Wed, 18 Jan 2023 09:42:20 -0800 (PST)
-Received: by mail-ej1-x62e.google.com with SMTP id mp20so38478289ejc.7;
-        Wed, 18 Jan 2023 09:42:20 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=GpEuzue5d7ygPxB29FruCUnMnsWzWZ3lXy2MX+rDytc=;
-        b=W4GyWlsm8ALFRSIsMwvrTySOOS9hTBdV1OpvndBADGEMCQmWskkBoGTZ10dO14lWCf
-         9s1n4M/XC9OkFc3nvfoiyyKAMYrMlPJ0ppYyY+z8s2eN1loLgOBwv4z6v+2FLlrF90bv
-         6ZQb0cEa3IV6p0ZdEwQIujwy2ozbVyqJAY7e6Yk5uyW9Llgr7+WvB5XW3wcqIg/dx2yT
-         17z5d97RmSdOjf5TThzOxk0Us4hQ4yEz6sdImR7U3ItWvIdR8t6+FSY2EQHJLxcM+eqW
-         5J2agrByKnKRNQN3SrcInPeeW4duGeXWPdMGDvkLB3GJ62GM7FerjTYlFLjh3dYLIy/B
-         FVcw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=GpEuzue5d7ygPxB29FruCUnMnsWzWZ3lXy2MX+rDytc=;
-        b=MrOAbseckeuIlF+d93yPtIBIh5bzjSZjr2kkeaOnVsaPcqc1biF7QA70AzxMvPY5M9
-         +pUylyC8pHHp22cXB9BfYaEaOxVXXL5PBGfEIFAhub3hBVJC4mxcxLpYFDlnlNRFKVuA
-         dEnnWkNW4xeuiHEoII5Mo6jSwjZloXqd7J+uJ4LdWX3KEX04DEhXMMFOCVKZQG+sHaoq
-         csvfweF9KH7U186ywbMBzkQKK/Elp5GFQRe6ke/l55vSkOT2yVj0olC/CsDWJGGQ86yZ
-         Fj/T++Hnb+lxoKgF86Yrec8ioIqk78fJn6A0pM5NC5mWwfZ+ZgCFHNtG84NYSDvVnen5
-         x9Fg==
-X-Gm-Message-State: AFqh2kpIWQHShFBBgEqcIIUARtPIbcNyUlPBRBF4DO/0EzdweJXM62zQ
-        8ols6+2fVvC+jGYzjsgQ7SCXsx9O+I+H2GWmjb8=
-X-Google-Smtp-Source: AMrXdXuMaX0n1Hxu6XGSukmrVfG28F8T8Ib+RkX+SQ8+JvzXGjjDRpkDNnyAZVdVPrYouEW9ECCsgOvI5WFVc49eZlI=
-X-Received: by 2002:a17:906:40d7:b0:836:e897:648a with SMTP id
- a23-20020a17090640d700b00836e897648amr470430ejk.94.1674063739084; Wed, 18 Jan
- 2023 09:42:19 -0800 (PST)
+        with ESMTP id S230418AbjASOi2 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 19 Jan 2023 09:38:28 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C193BB754
+        for <sparclinux@vger.kernel.org>; Thu, 19 Jan 2023 06:37:00 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1674139020;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:
+         content-transfer-encoding:content-transfer-encoding;
+        bh=AsdIZuRX1FqbcXdVoz7Gc+TzREcs0q3+gEK6IezEmZw=;
+        b=bRStxDi68sw1ScQmJQ7QlI+3Le7RE13wARU6VnIYR0Dj65o/VRjqGDXElJyiUPzr1xKuO4
+        p8xeng3IFTWPE07F2V3c0jVZWEg5wd5CiJ3Rwr5Co1JIf+7qnnWRv7YK68P2TlPYBv6f9B
+        CdkzZs84FpjC3KF8rAfIweFrVjagf4c=
+Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
+ [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-148-b28KbUDEM-eWLe2FBNQyOw-1; Thu, 19 Jan 2023 09:36:56 -0500
+X-MC-Unique: b28KbUDEM-eWLe2FBNQyOw-1
+Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id C36981C0A586;
+        Thu, 19 Jan 2023 14:36:54 +0000 (UTC)
+Received: from vschneid.remote.csb (unknown [10.33.36.13])
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id CD6222026D68;
+        Thu, 19 Jan 2023 14:36:48 +0000 (UTC)
+From:   Valentin Schneider <vschneid@redhat.com>
+To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        x86@kernel.org
+Cc:     "Paul E. McKenney" <paulmck@kernel.org>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Juri Lelli <juri.lelli@redhat.com>,
+        Daniel Bristot de Oliveira <bristot@redhat.com>,
+        Marcelo Tosatti <mtosatti@redhat.com>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Guo Ren <guoren@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: [PATCH v4 0/7] Generic IPI sending tracepoint
+Date:   Thu, 19 Jan 2023 14:36:12 +0000
+Message-Id: <20230119143619.2733236-1-vschneid@redhat.com>
 MIME-Version: 1.0
-References: <20230105030614.26842-1-tong@infragraf.org> <ea7673e1-40ec-18be-af89-5f4fd0f71742@csgroup.eu>
- <71c83f39-f85f-d990-95b7-ab6068839e6c@iogearbox.net> <5836b464-290e-203f-00f2-fc6632c9f570@csgroup.eu>
- <147A796D-12C0-482F-B48A-16E67120622B@infragraf.org> <0b46b813-05f2-5083-9f2e-82d72970dae2@csgroup.eu>
- <4380D454-3ED0-43F4-9A79-102BB0E3577A@infragraf.org> <d91bbb9e-484b-d43d-e62d-0474ff21cf91@iogearbox.net>
- <7159E8F8-AE66-4563-8A29-D10D66EFAF3D@infragraf.org> <CAADnVQLf_UhRP76i9+OaLGrmuoM942QebMXT3OA3mgrP_UV0KA@mail.gmail.com>
- <d807b7fb-dbd2-8e4c-812c-48a1a01c190e@csgroup.eu>
-In-Reply-To: <d807b7fb-dbd2-8e4c-812c-48a1a01c190e@csgroup.eu>
-From:   Alexei Starovoitov <alexei.starovoitov@gmail.com>
-Date:   Wed, 18 Jan 2023 09:42:07 -0800
-Message-ID: <CAADnVQKAAhbL-9qGPfRFsfw3oh6KnrEpeYLnfhrKUSzX8VmFuQ@mail.gmail.com>
-Subject: Re: [bpf-next v2] bpf: drop deprecated bpf_jit_enable == 2
-To:     Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc:     Tonghao Zhang <tong@infragraf.org>,
-        Daniel Borkmann <daniel@iogearbox.net>,
-        "bpf@vger.kernel.org" <bpf@vger.kernel.org>,
-        "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-        "linux-arm-kernel@lists.infradead.or" 
-        <linux-arm-kernel@lists.infradead.or>,
-        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        Hao Luo <haoluo@google.com>,
-        John Fastabend <john.fastabend@gmail.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Andrii Nakryiko <andrii@kernel.org>,
-        Song Liu <song@kernel.org>,
-        Stanislav Fomichev <sdf@google.com>,
-        Jiri Olsa <jolsa@kernel.org>, Hou Tao <houtao1@huawei.com>,
-        KP Singh <kpsingh@kernel.org>, Yonghong Song <yhs@fb.com>,
-        Martin KaFai Lau <martin.lau@linux.dev>,
-        "naveen.n.rao@linux.ibm.com" <naveen.n.rao@linux.ibm.com>,
-        "mpe@ellerman.id.au" <mpe@ellerman.id.au>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Jan 17, 2023 at 11:36 PM Christophe Leroy
-<christophe.leroy@csgroup.eu> wrote:
->
->
->
-> Le 18/01/2023 =C3=A0 03:21, Alexei Starovoitov a =C3=A9crit :
-> > On Tue, Jan 17, 2023 at 6:13 PM Tonghao Zhang <tong@infragraf.org> wrot=
-e:
-> >>
-> >>
-> >>
-> >>> On Jan 17, 2023, at 11:59 PM, Daniel Borkmann <daniel@iogearbox.net> =
-wrote:
-> >>>
-> >>> On 1/17/23 3:22 PM, Tonghao Zhang wrote:
-> >>>>> On Jan 17, 2023, at 3:30 PM, Christophe Leroy <christophe.leroy@csg=
-roup.eu> wrote:
-> >>>>>
-> >>>>>
-> >>>>>
-> >>>>> Le 17/01/2023 =C3=A0 06:30, Tonghao Zhang a =C3=A9crit :
-> >>>>>>
-> >>>>>>
-> >>>>>>> On Jan 9, 2023, at 4:15 PM, Christophe Leroy <christophe.leroy@cs=
-group.eu> wrote:
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>
-> >>>>>>> Le 06/01/2023 =C3=A0 16:37, Daniel Borkmann a =C3=A9crit :
-> >>>>>>>> On 1/5/23 6:53 PM, Christophe Leroy wrote:
-> >>>>>>>>> Le 05/01/2023 =C3=A0 04:06, tong@infragraf.org a =C3=A9crit :
-> >>>>>>>>>> From: Tonghao Zhang <tong@infragraf.org>
-> >>>>>>>>>>
-> >>>>>>>>>> The x86_64 can't dump the valid insn in this way. A test BPF p=
-rog
-> >>>>>>>>>> which include subprog:
-> >>>>>>>>>>
-> >>>>>>>>>> $ llvm-objdump -d subprog.o
-> >>>>>>>>>> Disassembly of section .text:
-> >>>>>>>>>> 0000000000000000 <subprog>:
-> >>>>>>>>>>           0:       18 01 00 00 73 75 62 70 00 00 00 00 72 6f 6=
-7 00 r1
-> >>>>>>>>>> =3D 29114459903653235 ll
-> >>>>>>>>>>           2:       7b 1a f8 ff 00 00 00 00 *(u64 *)(r10 - 8) =
-=3D r1
-> >>>>>>>>>>           3:       bf a1 00 00 00 00 00 00 r1 =3D r10
-> >>>>>>>>>>           4:       07 01 00 00 f8 ff ff ff r1 +=3D -8
-> >>>>>>>>>>           5:       b7 02 00 00 08 00 00 00 r2 =3D 8
-> >>>>>>>>>>           6:       85 00 00 00 06 00 00 00 call 6
-> >>>>>>>>>>           7:       95 00 00 00 00 00 00 00 exit
-> >>>>>>>>>> Disassembly of section raw_tp/sys_enter:
-> >>>>>>>>>> 0000000000000000 <entry>:
-> >>>>>>>>>>           0:       85 10 00 00 ff ff ff ff call -1
-> >>>>>>>>>>           1:       b7 00 00 00 00 00 00 00 r0 =3D 0
-> >>>>>>>>>>           2:       95 00 00 00 00 00 00 00 exit
-> >>>>>>>>>>
-> >>>>>>>>>> kernel print message:
-> >>>>>>>>>> [  580.775387] flen=3D8 proglen=3D51 pass=3D3 image=3Dffffffff=
-a000c20c
-> >>>>>>>>>> from=3Dkprobe-load pid=3D1643
-> >>>>>>>>>> [  580.777236] JIT code: 00000000: cc cc cc cc cc cc cc cc cc =
-cc cc
-> >>>>>>>>>> cc cc cc cc cc
-> >>>>>>>>>> [  580.779037] JIT code: 00000010: cc cc cc cc cc cc cc cc cc =
-cc cc
-> >>>>>>>>>> cc cc cc cc cc
-> >>>>>>>>>> [  580.780767] JIT code: 00000020: cc cc cc cc cc cc cc cc cc =
-cc cc
-> >>>>>>>>>> cc cc cc cc cc
-> >>>>>>>>>> [  580.782568] JIT code: 00000030: cc cc cc
-> >>>>>>>>>>
-> >>>>>>>>>> $ bpf_jit_disasm
-> >>>>>>>>>> 51 bytes emitted from JIT compiler (pass:3, flen:8)
-> >>>>>>>>>> ffffffffa000c20c + <x>:
-> >>>>>>>>>>       0:   int3
-> >>>>>>>>>>       1:   int3
-> >>>>>>>>>>       2:   int3
-> >>>>>>>>>>       3:   int3
-> >>>>>>>>>>       4:   int3
-> >>>>>>>>>>       5:   int3
-> >>>>>>>>>>       ...
-> >>>>>>>>>>
-> >>>>>>>>>> Until bpf_jit_binary_pack_finalize is invoked, we copy rw_head=
-er to
-> >>>>>>>>>> header
-> >>>>>>>>>> and then image/insn is valid. BTW, we can use the "bpftool pro=
-g dump"
-> >>>>>>>>>> JITed instructions.
-> >>>>>>>>>
-> >>>>>>>>> NACK.
-> >>>>>>>>>
-> >>>>>>>>> Because the feature is buggy on x86_64, you remove it for all
-> >>>>>>>>> architectures ?
-> >>>>>>>>>
-> >>>>>>>>> On powerpc bpf_jit_enable =3D=3D 2 works and is very usefull.
-> >>>>>>>>>
-> >>>>>>>>> Last time I tried to use bpftool on powerpc/32 it didn't work. =
-I don't
-> >>>>>>>>> remember the details, I think it was an issue with endianess. M=
-aybe it
-> >>>>>>>>> is fixed now, but it needs to be verified.
-> >>>>>>>>>
-> >>>>>>>>> So please, before removing a working and usefull feature, make =
-sure
-> >>>>>>>>> there is an alternative available to it for all architectures i=
-n all
-> >>>>>>>>> configurations.
-> >>>>>>>>>
-> >>>>>>>>> Also, I don't think bpftool is usable to dump kernel BPF selfte=
-sts.
-> >>>>>>>>> That's vital when a selftest fails if you want to have a chance=
- to
-> >>>>>>>>> understand why it fails.
-> >>>>>>>>
-> >>>>>>>> If this is actively used by JIT developers and considered useful=
-, I'd be
-> >>>>>>>> ok to leave it for the time being. Overall goal is to reach feat=
-ure parity
-> >>>>>>>> among (at least major arch) JITs and not just have most function=
-ality only
-> >>>>>>>> available on x86-64 JIT. Could you however check what is not wor=
-king with
-> >>>>>>>> bpftool on powerpc/32? Perhaps it's not too much effort to just =
-fix it,
-> >>>>>>>> but details would be useful otherwise 'it didn't work' is too fu=
-zzy.
-> >>>>>>>
-> >>>>>>> Sure I will try to test bpftool again in the coming days.
-> >>>>>>>
-> >>>>>>> Previous discussion about that subject is here:
-> >>>>>>> https://patchwork.kernel.org/project/linux-riscv/patch/2021041509=
-3250.3391257-1-Jianlin.Lv@arm.com/#24176847=3D
-> >>>>>> Hi Christophe
-> >>>>>> Any progress? We discuss to deprecate the bpf_jit_enable =3D=3D 2 =
-in 2021, but bpftool can not run on powerpc.
-> >>>>>> Now can we fix this issue?
-> >>>>>
-> >>>>> Hi Tong,
-> >>>>>
-> >>>>> I have started to look at it but I don't have any fruitfull feedbac=
-k yet.
-> >>>>>
-> >>>>> In the meantime, were you able to confirm that bpftool can also be =
-used
-> >>>>> to dump jitted tests from test_bpf.ko module on x86_64 ? In that ca=
-n you
-> >>>>> tell me how to proceed ?
-> >>>> Now I do not test, but we can dump the insn after bpf_prog_select_ru=
-ntime in test_bpf.ko. bpf_map_get_info_by_fd can copy the insn to userspace=
-, but we can
-> >>>> dump them in test_bpf.ko in the same way.
-> >>>
-> >>> Issue is that these progs are not consumable from userspace (and ther=
-efore not bpftool).
-> >>> it's just simple bpf_prog_alloc + copy of test insns + bpf_prog_selec=
-t_runtime() to test
-> >>> JITs (see generate_filter()). Some of them could be converted over to=
- test_verifier, but
-> >>> not all might actually pass verifier, iirc. Don't think it's a good i=
-dea to allow exposing
-> >>> them via fd tbh.
-> >> Hi
-> >> I mean that, can we invoke the bpf_jit_dump in test_bpf.ko directly ?.=
- bpf_prog_get_info_by_fd copy the insn to userspace, but we only dump insn =
-in test_bpf.ko
-> >>
-> >>                  if (bpf_dump_raw_ok(file->f_cred)) {// code copied fr=
-om bpf_prog_get_info_by_fd, not tested
-> >>
-> >>                          /* for multi-function programs, copy the JITe=
-d
-> >>                           * instructions for all the functions
-> >>                           */
-> >>                          if (prog->aux->func_cnt) {
-> >>                                  for (i =3D 0; i < prog->aux->func_cnt=
-; i++) {
-> >>                                          len =3D prog->aux->func[i]->j=
-ited_len;
-> >>                                          img =3D (u8 *) prog->aux->fun=
-c[i]->bpf_func;
-> >>                                          bpf_jit_dump(1, len, 1, img);
-> >>                                  }
-> >>                          } else {
-> >>                                  bpf_jit_dump(1, ulen, 1, prog->bpf_fu=
-nc);
-> >>                          }
-> >>                  }
-> >
-> > Let's not reinvent the wheel.
-> > bpftool prog dump jited
-> > is our supported command.
-> > ppc issue with bpftool is related to endianness of embedded skeleton.
-> > which means that none of the bpftool prog commands work on ppc.
-> > It's a bigger issue to address with cross compilation of bpftool.
-> >
-> > bpftool supports gnu and llvm disassembler. It retrieves and
-> > prints BTF, line info and source code along with asm.
-> > The user experience is at different level comparing to bpf_jit_dump.
->
-> Hi Alexei,
->
-> Fair enough, we are going to try and fix bpftool.
->
-> But for test_bpf.ko module, how do you use bpftool to dump the BPF tests
-> ? Even on x86 I have not been able to use bpftool for that until now.
-> Can you tell me how you do ?
+Background
+==========
 
-test_bpf.ko is useful to JIT developers when they're starting
-to work on it, but its test coverage is inadequate for real
-world bpf usage comparing to selftests/bpf.
-Johan Almbladh did some great additions to test_bpf.ko back in 2021.
-Since then there wasn't much.
+Detecting IPI *reception* is relatively easy, e.g. using
+trace_irq_handler_{entry,exit} or even just function-trace
+flush_smp_call_function_queue() for SMP calls.  
 
-Here it's important to distinguish the target user.
-Is it a kernel JIT developer or user space bpf prog developer?
-When it's a kernel developer they can easily
-add print_hex_dump() in the right places.
-That's what I did when I was developing bpf trampoline.
-bpf is more than just JIT. There are trampoline, kfuncs, dispatch.
-The kernel devs should not add a debug code.
-Long ago bpf_jit_enable=3D2 was useful to user space bpf developers.
-They wanted to see how JITed code look like to optimize it and what not.
-Now 'perf record' captures bpf asm and annotates it in 'perf report',
-so performance analysis problem is solved that way.
-bpftool prog dump jit addressed the needs of users and admins who
-want to understand what bpf progs are loaded and what are they doing.
-Both 'dump jited' and 'dump xlated' are useful for this case.
-So bpf_jit_enable=3D2 remained useful to kernel developers only and
-in that sense it become a kernel debug feature for a narrow set of
-JIT developers. On x86 bpf_jit_dump() was neglected and broken.
-I suspect the other archs will follow the same fate. If not already.
-Having a sysctl for kernel developers is not something the kernel
-developers should have around. Hence the cleanup of this patch.
+Figuring out their *origin*, is trickier as there is no generic tracepoint tied
+to e.g. smp_call_function():
+
+o AFAIA x86 has no tracepoint tied to sending IPIs, only receiving them
+  (cf. trace_call_function{_single}_entry()).
+o arm/arm64 do have trace_ipi_raise(), which gives us the target cpus but also a
+  mostly useless string (smp_calls will all be "Function call interrupts").
+o Other architectures don't seem to have any IPI-sending related tracepoint.  
+
+I believe one reason those tracepoints used by arm/arm64 ended up as they were
+is because these archs used to handle IPIs differently from regular interrupts
+(the IRQ driver would directly invoke an IPI-handling routine), which meant they 
+never showed up in trace_irq_handler_{entry, exit}. The trace_ipi_{entry,exit}
+tracepoints gave a way to trace IPI reception but those have become redundant as
+of: 
+
+      56afcd3dbd19 ("ARM: Allow IPIs to be handled as normal interrupts")
+      d3afc7f12987 ("arm64: Allow IPIs to be handled as normal interrupts")
+
+which gave IPIs a "proper" handler function used through
+generic_handle_domain_irq(), which makes them show up via
+trace_irq_handler_{entry, exit}.
+
+Changing stuff up
+=================
+
+Per the above, it would make sense to reshuffle trace_ipi_raise() and move it
+into generic code. This also came up during Daniel's talk on Osnoise at the CPU
+isolation MC of LPC 2022 [1]. 
+
+Now, to be useful, such a tracepoint needs to export:
+o targeted CPU(s)
+o calling context
+
+The only way to get the calling context with trace_ipi_raise() is to trigger a
+stack dump, e.g. $(trace-cmd -e ipi* -T echo 42).
+
+This is instead introducing a new tracepoint which exports the relevant context
+(callsite, and requested callback for when the callsite isn't helpful), and is
+usable by all architectures as it sits in generic code. 
+
+Another thing worth mentioning is that depending on the callsite, the _RET_IP_
+fed to the tracepoint is not always useful - generic_exec_single() doesn't tell
+you much about the actual callback being sent via IPI, which is why the new
+tracepoint also has a @callback argument.
+
+Patches
+=======
+
+o Patches 1-5 spread out the tracepoint across relevant sites.
+  Patch 5 ends up sprinkling lots of #include <trace/events/ipi.h> which I'm not
+  the biggest fan of, but is the least horrible solution I've been able to come
+  up with so far.
+  
+o Patch 7 is trying to be smart about tracing the callback associated with the
+  IPI.
+
+This results in having IPI trace events for:
+
+o smp_call_function*()
+o smp_send_reschedule()
+o irq_work_queue*()
+o standalone uses of __smp_call_single_queue()
+
+This is incomplete, just looking at arm64 there's more IPI types that aren't
+covered: 
+
+  IPI_CPU_STOP,
+  IPI_CPU_CRASH_STOP,
+  IPI_TIMER,
+  IPI_WAKEUP,
+
+but apart from IPI_TIMER (cf. tick_broadcast()), those IPIs are both unfrequent
+and accompanied with identifiable interference (stopper or cpuhp threads being
+scheduled). I've added a point in my todolist to handle those in a later series
+for the sake of completeness.
+
+Links
+=====
+
+[1]: https://youtu.be/5gT57y4OzBM?t=14234
+
+Revisions
+=========
+
+v3 -> v4
+++++++++
+
+o Rebased against 6.2-rc4
+  Re-ran my coccinelle scripts for the treewide change; only loongarch needed
+  changes
+o Dropped cpumask trace event field patch (now in 6.2-rc1)
+o Applied RB and Ack tags
+  Ingo, I wasn't sure if you meant to Ack the whole series or just the patch you
+  replied to, so since I didn't want to unlawfully forge any tag I only added
+  the one.
+o Did a small pass on comments and changelogs
+
+v2 -> v3
+++++++++
+
+o Dropped the generic export of smp_send_reschedule(), turned it into a macro
+  and a bunch of imports
+o Dropped the send_call_function_single_ipi() macro madness, split it into sched
+  and smp bits using some of Peter's suggestions
+
+v1 -> v2
+++++++++
+
+o Ditched single-CPU tracepoint
+o Changed tracepoint signature to include callback
+o Changed tracepoint callsite field to void *; the parameter is still UL to save
+  up on casts due to using _RET_IP_.
+o Fixed linking failures due to not exporting smp_send_reschedule()
+
+git range-diff v3 vs v4
+=========================
+
+1:  6820c1880d97d < -:  ------------- tracing: Add __cpumask to denote a trace event field that is a cpumask_t
+2:  ef594e168af0d ! 1:  8f1309849c859 trace: Add trace_ipi_send_cpumask()
+    @@ Commit message
+         its "reason" argument being an uninformative string (on arm64 all you get
+         is "Function call interrupts" for SMP calls).
+     
+    -    Add a variant of it that exports a target CPU, a callsite and a callback.
+    +    Add a variant of it that exports a target cpumask, a callsite and a callback.
+     
+         Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+         Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+3:  17ccdc591aec9 ! 2:  3e0f952a905ce sched, smp: Trace IPIs sent via send_call_function_single_ipi()
+    @@ Commit message
+     
+         Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+         Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+    +    Acked-by: Ingo Molnar <mingo@kernel.org>
+     
+      ## arch/arm/kernel/smp.c ##
+     @@
+4:  9253a0b5abf59 = 3:  6345aa71c64be smp: Trace IPIs sent via arch_send_call_function_ipi_mask()
+5:  a5d13519caa7e = 4:  d2ebdfedcb5f1 irq_work: Trace self-IPIs sent via arch_irq_work_raise()
+6:  d3e59fe921eae ! 5:  0167b33c7be0c treewide: Trace IPIs sent via smp_send_reschedule()
+    @@ Commit message
+         Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+         [csky bits]
+         Acked-by: Guo Ren <guoren@kernel.org>
+    +    [riscv bits]
+    +    Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
+     
+      ## arch/alpha/kernel/smp.c ##
+     @@ arch/alpha/kernel/smp.c: handle_ipi(struct pt_regs *regs)
+    @@ arch/ia64/kernel/smp.c: kdump_smp_send_init(void)
+      /*
+       * Called with preemption disabled.
+     
+    - ## arch/loongarch/include/asm/smp.h ##
+    -@@ arch/loongarch/include/asm/smp.h: extern void show_ipi_list(struct seq_file *p, int prec);
+    + ## arch/loongarch/kernel/smp.c ##
+    +@@ arch/loongarch/kernel/smp.c: void loongson_send_ipi_mask(const struct cpumask *mask, unsigned int action)
+       * it goes straight through and wastes no time serializing
+       * anything. Worst case is that we lose a reschedule ...
+       */
+    --static inline void smp_send_reschedule(int cpu)
+    -+static inline void arch_smp_send_reschedule(int cpu)
+    +-void smp_send_reschedule(int cpu)
+    ++void arch_smp_send_reschedule(int cpu)
+      {
+      	loongson_send_ipi_single(cpu, SMP_RESCHEDULE);
+      }
+    +-EXPORT_SYMBOL_GPL(smp_send_reschedule);
+    ++EXPORT_SYMBOL_GPL(arch_smp_send_reschedule);
+    + 
+    + irqreturn_t loongson_ipi_interrupt(int irq, void *dev)
+    + {
+     
+      ## arch/mips/include/asm/smp.h ##
+     @@ arch/mips/include/asm/smp.h: extern void calculate_cpu_foreign_map(void);
+    @@ arch/powerpc/platforms/powernv/subcore.c
+      
+     
+      ## arch/riscv/kernel/smp.c ##
+    -@@ arch/riscv/kernel/smp.c: void smp_send_stop(void)
+    - 			   cpumask_pr_args(cpu_online_mask));
+    +@@ arch/riscv/kernel/smp.c: bool smp_crash_stop_failed(void)
+      }
+    + #endif
+      
+     -void smp_send_reschedule(int cpu)
+     +void arch_smp_send_reschedule(int cpu)
+    @@ include/linux/smp.h: extern void smp_send_stop(void);
+     -extern void smp_send_reschedule(int cpu);
+     -
+     +extern void arch_smp_send_reschedule(int cpu);
+    ++/*
+    ++ * scheduler_ipi() is inline so can't be passed as callback reason, but the
+    ++ * callsite IP should be sufficient for root-causing IPIs sent from here.
+    ++ */
+     +#define smp_send_reschedule(cpu) ({				  \
+    -+	/* XXX scheduler_ipi is inline :/ */                      \
+     +	trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, NULL);  \
+     +	arch_smp_send_reschedule(cpu);				  \
+     +})
+    @@ include/linux/smp.h: extern void smp_send_stop(void);
+     
+      ## virt/kvm/kvm_main.c ##
+     @@
+    - #include "kvm_mm.h"
+    - #include "vfio.h"
+    + 
+    + #include <linux/kvm_dirty_ring.h>
+      
+     +#include <trace/events/ipi.h>
+    - #define CREATE_TRACE_POINTS
+    - #include <trace/events/kvm.h>
+    ++
+    + /* Worst case buffer size needed for holding an integer. */
+    + #define ITOA_MAX_LEN 12
+      
+7:  a4027c288ce0c = 6:  fa0de903cf99a smp: reword smp call IPI comment
+8:  124946403688e = 7:  7ecb1c29c7f1f sched, smp: Trace smp callback causing an IPI
+
+Valentin Schneider (7):
+  trace: Add trace_ipi_send_cpumask()
+  sched, smp: Trace IPIs sent via send_call_function_single_ipi()
+  smp: Trace IPIs sent via arch_send_call_function_ipi_mask()
+  irq_work: Trace self-IPIs sent via arch_irq_work_raise()
+  treewide: Trace IPIs sent via smp_send_reschedule()
+  smp: reword smp call IPI comment
+  sched, smp: Trace smp callback causing an IPI
+
+ arch/alpha/kernel/smp.c                  |  2 +-
+ arch/arc/kernel/smp.c                    |  2 +-
+ arch/arm/kernel/smp.c                    |  5 +-
+ arch/arm/mach-actions/platsmp.c          |  2 +
+ arch/arm64/kernel/smp.c                  |  3 +-
+ arch/csky/kernel/smp.c                   |  2 +-
+ arch/hexagon/kernel/smp.c                |  2 +-
+ arch/ia64/kernel/smp.c                   |  4 +-
+ arch/loongarch/kernel/smp.c              |  4 +-
+ arch/mips/include/asm/smp.h              |  2 +-
+ arch/mips/kernel/rtlx-cmp.c              |  2 +
+ arch/openrisc/kernel/smp.c               |  2 +-
+ arch/parisc/kernel/smp.c                 |  4 +-
+ arch/powerpc/kernel/smp.c                |  6 +-
+ arch/powerpc/kvm/book3s_hv.c             |  3 +
+ arch/powerpc/platforms/powernv/subcore.c |  2 +
+ arch/riscv/kernel/smp.c                  |  4 +-
+ arch/s390/kernel/smp.c                   |  2 +-
+ arch/sh/kernel/smp.c                     |  2 +-
+ arch/sparc/kernel/smp_32.c               |  2 +-
+ arch/sparc/kernel/smp_64.c               |  2 +-
+ arch/x86/include/asm/smp.h               |  2 +-
+ arch/x86/kvm/svm/svm.c                   |  4 ++
+ arch/x86/kvm/x86.c                       |  2 +
+ arch/xtensa/kernel/smp.c                 |  2 +-
+ include/linux/smp.h                      | 11 +++-
+ include/trace/events/ipi.h               | 22 +++++++
+ kernel/irq_work.c                        | 14 ++++-
+ kernel/sched/core.c                      | 19 ++++--
+ kernel/sched/smp.h                       |  2 +-
+ kernel/smp.c                             | 78 +++++++++++++++++++-----
+ virt/kvm/kvm_main.c                      |  2 +
+ 32 files changed, 164 insertions(+), 53 deletions(-)
+
+--
+2.31.1
+
