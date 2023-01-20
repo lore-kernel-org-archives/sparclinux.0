@@ -2,292 +2,135 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84028C004D4
-	for <sparclinux@archiver.kernel.org>; Thu, 19 Jan 2023 14:41:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2D8DC004D4
+	for <sparclinux@archiver.kernel.org>; Fri, 20 Jan 2023 03:16:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231447AbjASOlW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 19 Jan 2023 09:41:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59262 "EHLO
+        id S230002AbjATDQH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 19 Jan 2023 22:16:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34176 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231345AbjASOk2 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 19 Jan 2023 09:40:28 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C0FB975A25
-        for <sparclinux@vger.kernel.org>; Thu, 19 Jan 2023 06:37:39 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1674139058;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=KQsQYSoiV7axOHu2SHPkYXMBMlM95JI1QYM4ca5S0lU=;
-        b=T9GeddsDgtaFWV38M+cW2fN9dV9tL5y/Y7PYo41pvwLNBppO6lhVgA5hk9e2MhyuXGL9OC
-        mUtzGda2HjXRQ48bMfiSo0wrvETX8zLSdfaaDELOdCYLGVIgQlGajCa3ZO2luUqZ7AF9Xh
-        IC4dmPJIcN+1m0iqNKf0899zJMO5M3M=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-339-SfVp0ibUOxOmeBYwt3eAmQ-1; Thu, 19 Jan 2023 09:37:34 -0500
-X-MC-Unique: SfVp0ibUOxOmeBYwt3eAmQ-1
-Received: from smtp.corp.redhat.com (int-mx04.intmail.prod.int.rdu2.redhat.com [10.11.54.4])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 8CC143815F70;
-        Thu, 19 Jan 2023 14:37:32 +0000 (UTC)
-Received: from vschneid.remote.csb (unknown [10.33.36.13])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 544032026D68;
-        Thu, 19 Jan 2023 14:37:27 +0000 (UTC)
-From:   Valentin Schneider <vschneid@redhat.com>
-To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        x86@kernel.org
-Cc:     "Paul E. McKenney" <paulmck@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Juri Lelli <juri.lelli@redhat.com>,
-        Daniel Bristot de Oliveira <bristot@redhat.com>,
-        Marcelo Tosatti <mtosatti@redhat.com>,
-        Frederic Weisbecker <frederic@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "H. Peter Anvin" <hpa@zytor.com>, Marc Zyngier <maz@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Guo Ren <guoren@kernel.org>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: [PATCH v4 7/7] sched, smp: Trace smp callback causing an IPI
-Date:   Thu, 19 Jan 2023 14:36:19 +0000
-Message-Id: <20230119143619.2733236-8-vschneid@redhat.com>
-In-Reply-To: <20230119143619.2733236-1-vschneid@redhat.com>
-References: <20230119143619.2733236-1-vschneid@redhat.com>
+        with ESMTP id S229921AbjATDQB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 19 Jan 2023 22:16:01 -0500
+Received: from mail-vs1-xe2f.google.com (mail-vs1-xe2f.google.com [IPv6:2607:f8b0:4864:20::e2f])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4D396B27BE
+        for <sparclinux@vger.kernel.org>; Thu, 19 Jan 2023 19:15:39 -0800 (PST)
+Received: by mail-vs1-xe2f.google.com with SMTP id 3so4343426vsq.7
+        for <sparclinux@vger.kernel.org>; Thu, 19 Jan 2023 19:15:39 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=draconx-ca.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:references:in-reply-to
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=3Hpc5Ciyxu29gomOTvRt7HRyn5ui+yh0jFZKfccP/3A=;
+        b=6ipErWbF5wYAMGrwowJPn2VP4KJ9ijlP4WCHTjoDjDh9WU2oC66c2szaAh27ljPc/2
+         /qcJlPmhvqZmNOYwkIXjFzWXXYg3MM+iGn+Mv3KFuOdX692Pmq0PW5Z7IcBwlMFLjDpT
+         r2tUwTkUAm9b0oCWn3acyclThA0FWFRKYmWlrcjw+AYHlcXhWfSIgH0tkXNqrWEjeTrQ
+         L6NMCRU0hmCZUWhwYST4V6b6L4P6XUhlyvTw8zLAZZd5CMnYiYGIusHPB8xwEdTVSQGu
+         /Wis04U9Zb5RvqO9FjEV3MuaPyXKgigSsleVPI8wC0SMbslSqQP6AsNmsXpW1ZQaZIha
+         0zuA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:references:in-reply-to
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=3Hpc5Ciyxu29gomOTvRt7HRyn5ui+yh0jFZKfccP/3A=;
+        b=XR8OSf5Pk2681XL8UkzwFOwKiICAqxCQp4Ggbm4hDeaVqPuQtzsEhl9TGwC+xV8cPO
+         gJtPj/LcrfdaZLkyBv+vkKUv/IQqFO5xQQbtwzAZ+j7TSorYJxaDBdLBKxegk2OXKoeK
+         OBAys1R0zcbCN7ertGACT6Pt582Rpl67s4Gx/JLLsdi+XJ6bT8g0vxcBVefKWSG3+WFd
+         fCMsJahcavCGYoiuqDHARIubK1McSBMvKkR9zY22Lvk2rwquMm3s/TpITQr9ohCyP/2/
+         /nqfRFHqXNRLhBIJCQkaQa+xOaZH3IuK6kKmadH+X5i0EzgJOVDpn1G9JAn5bPeMCtmm
+         sz6A==
+X-Gm-Message-State: AFqh2kpxL9IMRltf1vVoly4kqFIJ5OtBHUIm0SCS3rLwzl5vQ5BRQy8w
+        HAwWblsTk4AsJyOSn0/Fw13cAdln7p9nnuMAuqkdw6PP0XEIJIXw9Fc=
+X-Google-Smtp-Source: AMrXdXtjyf+fQ9q4OP75X7YsCp1FrKqaqir0r4nm353FcrUzBifgDBMUDDotUCcoXFmJIxCcDXn5Q2jRa2S9UonXbu0=
+X-Received: by 2002:a05:6102:1510:b0:3d3:e5dc:e359 with SMTP id
+ f16-20020a056102151000b003d3e5dce359mr1785070vsv.61.1674184538020; Thu, 19
+ Jan 2023 19:15:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.4
+Received: by 2002:a05:6130:1015:b0:559:9619:d862 with HTTP; Thu, 19 Jan 2023
+ 19:15:37 -0800 (PST)
+X-Originating-IP: [24.53.241.20]
+In-Reply-To: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
+References: <CADyTPEwt=ZNams+1bpMB1F9w_vUdPsGCt92DBQxxq_VtaLoTdw@mail.gmail.com>
+From:   Nick Bowler <nbowler@draconx.ca>
+Date:   Thu, 19 Jan 2023 22:15:37 -0500
+Message-ID: <CADyTPEyAidGgBT3f1VJLHb3ouO-r1UyvFp1PcwXxy0NRG94sbw@mail.gmail.com>
+Subject: Re: PROBLEM: Only one CPU active on Ultra 60 since ~4.8 (regression)
+To:     sparclinux@vger.kernel.org
+Cc:     linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Context
-=======
+Hi,
 
-The newly-introduced ipi_send_cpumask tracepoint has a "callback" parameter
-which so far has only been fed with NULL.
+I'm resending this report CC'd to linux-kernel as there was no response
+on the sparclinux list.
 
-While CSD_TYPE_SYNC/ASYNC and CSD_TYPE_IRQ_WORK share a similar backing
-struct layout (meaning their callback func can be accessed without caring
-about the actual CSD type), CSD_TYPE_TTWU doesn't even have a function
-attached to its struct. This means we need to check the type of a CSD
-before eventually dereferencing its associated callback.
+I tried 6.2-rc4 and there is no change in behaviour.  Reverting the
+indicated commit still works to fix the problem.
 
-This isn't as trivial as it sounds: the CSD type is stored in
-__call_single_node.u_flags, which get cleared right before the callback is
-executed via csd_unlock(). This implies checking the CSD type before it is
-enqueued on the call_single_queue, as the target CPU's queue can be flushed
-before we get to sending an IPI.
-
-Furthermore, send_call_function_single_ipi() only has a CPU parameter, and
-would need to have an additional argument to trickle down the invoked
-function. This is somewhat silly, as the extra argument will always be
-pushed down to the function even when nothing is being traced, which is
-unnecessary overhead.
-
-Changes
-=======
-
-send_call_function_single_ipi() is only used by smp.c, and is defined in
-sched/core.c as it contains scheduler-specific ops (set_nr_if_polling() of
-a CPU's idle task).
-
-Split it into two parts: the scheduler bits remain in sched/core.c, and the
-actual IPI emission is moved into smp.c. This lets us define an
-__always_inline helper function that can take the related callback as
-parameter without creating useless register pressure in the non-traced path
-which only gains a (disabled) static branch.
-
-Do the same thing for the multi IPI case.
-
-Signed-off-by: Valentin Schneider <vschneid@redhat.com>
----
- kernel/sched/core.c | 18 +++++++-----
- kernel/sched/smp.h  |  2 +-
- kernel/smp.c        | 72 +++++++++++++++++++++++++++++++++------------
- 3 files changed, 66 insertions(+), 26 deletions(-)
-
-diff --git a/kernel/sched/core.c b/kernel/sched/core.c
-index c0d09eb249603..9733c3ecdbf16 100644
---- a/kernel/sched/core.c
-+++ b/kernel/sched/core.c
-@@ -3816,16 +3816,20 @@ void sched_ttwu_pending(void *arg)
- 	rq_unlock_irqrestore(rq, &rf);
- }
- 
--void send_call_function_single_ipi(int cpu)
-+/*
-+ * Prepare the scene for sending an IPI for a remote smp_call
-+ *
-+ * Returns true if the caller can proceed with sending the IPI.
-+ * Returns false otherwise.
-+ */
-+bool call_function_single_prep_ipi(int cpu)
- {
--	struct rq *rq = cpu_rq(cpu);
--
--	if (!set_nr_if_polling(rq->idle)) {
--		trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, NULL);
--		arch_send_call_function_single_ipi(cpu);
--	} else {
-+	if (set_nr_if_polling(cpu_rq(cpu)->idle)) {
- 		trace_sched_wake_idle_without_ipi(cpu);
-+		return false;
- 	}
-+
-+	return true;
- }
- 
- /*
-diff --git a/kernel/sched/smp.h b/kernel/sched/smp.h
-index 2eb23dd0f2856..21ac44428bb02 100644
---- a/kernel/sched/smp.h
-+++ b/kernel/sched/smp.h
-@@ -6,7 +6,7 @@
- 
- extern void sched_ttwu_pending(void *arg);
- 
--extern void send_call_function_single_ipi(int cpu);
-+extern bool call_function_single_prep_ipi(int cpu);
- 
- #ifdef CONFIG_SMP
- extern void flush_smp_call_function_queue(void);
-diff --git a/kernel/smp.c b/kernel/smp.c
-index 821b5986721ac..5cd680a7e78ef 100644
---- a/kernel/smp.c
-+++ b/kernel/smp.c
-@@ -161,9 +161,18 @@ void __init call_function_init(void)
- }
- 
- static __always_inline void
--send_call_function_ipi_mask(const struct cpumask *mask)
-+send_call_function_single_ipi(int cpu, smp_call_func_t func)
- {
--	trace_ipi_send_cpumask(mask, _RET_IP_, NULL);
-+	if (call_function_single_prep_ipi(cpu)) {
-+		trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, func);
-+		arch_send_call_function_single_ipi(cpu);
-+	}
-+}
-+
-+static __always_inline void
-+send_call_function_ipi_mask(const struct cpumask *mask, smp_call_func_t func)
-+{
-+	trace_ipi_send_cpumask(mask, _RET_IP_, func);
- 	arch_send_call_function_ipi_mask(mask);
- }
- 
-@@ -430,12 +439,16 @@ static void __smp_call_single_queue_debug(int cpu, struct llist_node *node)
- 	struct cfd_seq_local *seq = this_cpu_ptr(&cfd_seq_local);
- 	struct call_function_data *cfd = this_cpu_ptr(&cfd_data);
- 	struct cfd_percpu *pcpu = per_cpu_ptr(cfd->pcpu, cpu);
-+	struct __call_single_data *csd;
-+
-+	csd = container_of(node, call_single_data_t, node.llist);
-+	WARN_ON_ONCE(!(CSD_TYPE(csd) & (CSD_TYPE_SYNC | CSD_TYPE_ASYNC)));
- 
- 	cfd_seq_store(pcpu->seq_queue, this_cpu, cpu, CFD_SEQ_QUEUE);
- 	if (llist_add(node, &per_cpu(call_single_queue, cpu))) {
- 		cfd_seq_store(pcpu->seq_ipi, this_cpu, cpu, CFD_SEQ_IPI);
- 		cfd_seq_store(seq->ping, this_cpu, cpu, CFD_SEQ_PING);
--		send_call_function_single_ipi(cpu);
-+		send_call_function_single_ipi(cpu, csd->func);
- 		cfd_seq_store(seq->pinged, this_cpu, cpu, CFD_SEQ_PINGED);
- 	} else {
- 		cfd_seq_store(pcpu->seq_noipi, this_cpu, cpu, CFD_SEQ_NOIPI);
-@@ -477,6 +490,25 @@ static __always_inline void csd_unlock(struct __call_single_data *csd)
- 	smp_store_release(&csd->node.u_flags, 0);
- }
- 
-+static __always_inline void
-+raw_smp_call_single_queue(int cpu, struct llist_node *node, smp_call_func_t func)
-+{
-+	/*
-+	 * The list addition should be visible to the target CPU when it pops
-+	 * the head of the list to pull the entry off it in the IPI handler
-+	 * because of normal cache coherency rules implied by the underlying
-+	 * llist ops.
-+	 *
-+	 * If IPIs can go out of order to the cache coherency protocol
-+	 * in an architecture, sufficient synchronisation should be added
-+	 * to arch code to make it appear to obey cache coherency WRT
-+	 * locking and barrier primitives. Generic code isn't really
-+	 * equipped to do the right thing...
-+	 */
-+	if (llist_add(node, &per_cpu(call_single_queue, cpu)))
-+		send_call_function_single_ipi(cpu, func);
-+}
-+
- static DEFINE_PER_CPU_SHARED_ALIGNED(call_single_data_t, csd_data);
- 
- void __smp_call_single_queue(int cpu, struct llist_node *node)
-@@ -493,21 +525,25 @@ void __smp_call_single_queue(int cpu, struct llist_node *node)
- 		}
- 	}
- #endif
--
- 	/*
--	 * The list addition should be visible to the target CPU when it pops
--	 * the head of the list to pull the entry off it in the IPI handler
--	 * because of normal cache coherency rules implied by the underlying
--	 * llist ops.
--	 *
--	 * If IPIs can go out of order to the cache coherency protocol
--	 * in an architecture, sufficient synchronisation should be added
--	 * to arch code to make it appear to obey cache coherency WRT
--	 * locking and barrier primitives. Generic code isn't really
--	 * equipped to do the right thing...
-+	 * We have to check the type of the CSD before queueing it, because
-+	 * once queued it can have its flags cleared by
-+	 *   flush_smp_call_function_queue()
-+	 * even if we haven't sent the smp_call IPI yet (e.g. the stopper
-+	 * executes migration_cpu_stop() on the remote CPU).
- 	 */
--	if (llist_add(node, &per_cpu(call_single_queue, cpu)))
--		send_call_function_single_ipi(cpu);
-+	if (trace_ipi_send_cpumask_enabled()) {
-+		call_single_data_t *csd;
-+		smp_call_func_t func;
-+
-+		csd = container_of(node, call_single_data_t, node.llist);
-+		func = CSD_TYPE(csd) == CSD_TYPE_TTWU ?
-+			sched_ttwu_pending : csd->func;
-+
-+		raw_smp_call_single_queue(cpu, node, func);
-+	} else {
-+		raw_smp_call_single_queue(cpu, node, NULL);
-+	}
- }
- 
- /*
-@@ -976,9 +1012,9 @@ static void smp_call_function_many_cond(const struct cpumask *mask,
- 		 * provided mask.
- 		 */
- 		if (nr_cpus == 1)
--			send_call_function_single_ipi(last_cpu);
-+			send_call_function_single_ipi(last_cpu, func);
- 		else if (likely(nr_cpus > 1))
--			send_call_function_ipi_mask(cfd->cpumask_ipi);
-+			send_call_function_ipi_mask(cfd->cpumask_ipi, func);
- 
- 		cfd_seq_store(this_cpu_ptr(&cfd_seq_local)->pinged, this_cpu, CFD_SEQ_NOCPU, CFD_SEQ_PINGED);
- 	}
--- 
-2.31.1
-
+On 2022-07-12, Nick Bowler <nbowler@draconx.ca> wrote:
+> When using newer kernels on my Ultra 60 with dual 450MHz UltraSPARC-II
+> CPUs, I noticed that only CPU 0 comes up, while older kernels (including
+> 4.7) are working fine with both CPUs.
+>
+> I bisected the failure to this commit:
+>
+>   9b2f753ec23710aa32c0d837d2499db92fe9115b is the first bad commit
+>   commit 9b2f753ec23710aa32c0d837d2499db92fe9115b
+>   Author: Atish Patra <atish.patra@oracle.com>
+>   Date:   Thu Sep 15 14:54:40 2016 -0600
+>
+>       sparc64: Fix cpu_possible_mask if nr_cpus is set
+>
+> This is a small change that reverts very easily on top of 5.18: there is
+> just one trivial conflict.  Once reverted, both CPUs work again.
+>
+> Maybe this is related to the fact that the CPUs on this system are
+> numbered CPU0 and CPU2 (there is no CPU1)?
+>
+> Here is /proc/cpuinfo on a working kernel:
+>
+>     % cat /proc/cpuinfo
+>     cpu             : TI UltraSparc II  (BlackBird)
+>     fpu             : UltraSparc II integrated FPU
+>     pmu             : ultra12
+>     prom            : OBP 3.23.1 1999/07/16 12:08
+>     type            : sun4u
+>     ncpus probed    : 2
+>     ncpus active    : 2
+>     D$ parity tl1   : 0
+>     I$ parity tl1   : 0
+>     cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
+>     Cpu0ClkTck      : 000000001ad31b4f
+>     Cpu2ClkTck      : 000000001ad31b4f
+>     MMU Type        : Spitfire
+>     MMU PGSZs       : 8K,64K,512K,4MB
+>     State:
+>     CPU0:           online
+>     CPU2:           online
+>
+> And on a broken kernel:
+>
+>     % cat /proc/cpuinfo
+>     cpu             : TI UltraSparc II  (BlackBird)
+>     fpu             : UltraSparc II integrated FPU
+>     pmu             : ultra12
+>     prom            : OBP 3.23.1 1999/07/16 12:08
+>     type            : sun4u
+>     ncpus probed    : 2
+>     ncpus active    : 1
+>     D$ parity tl1   : 0
+>     I$ parity tl1   : 0
+>     cpucaps         : flush,stbar,swap,muldiv,v9,mul32,div32,v8plus,vis
+>     Cpu0ClkTck      : 000000001ad31861
+>     MMU Type        : Spitfire
+>     MMU PGSZs       : 8K,64K,512K,4MB
+>     State:
+>     CPU0:           online
+>
+> Let me know if you need any more info.
+>
+> Thanks,
+>   Nick
