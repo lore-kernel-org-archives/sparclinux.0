@@ -2,181 +2,472 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4BD2C61DA3
-	for <sparclinux@archiver.kernel.org>; Thu, 26 Jan 2023 17:07:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7041C61DB3
+	for <sparclinux@archiver.kernel.org>; Fri, 27 Jan 2023 02:03:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231997AbjAZRHr (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 26 Jan 2023 12:07:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45278 "EHLO
+        id S233758AbjA0CD0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 26 Jan 2023 21:03:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43872 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbjAZRHp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 26 Jan 2023 12:07:45 -0500
-Received: from madras.collabora.co.uk (madras.collabora.co.uk [IPv6:2a00:1098:0:82:1000:25:2eeb:e5ab])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A60F10E0;
-        Thu, 26 Jan 2023 09:07:43 -0800 (PST)
-Received: from mercury (dyndsl-037-138-191-219.ewe-ip-backbone.de [37.138.191.219])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        with ESMTP id S233454AbjA0CC7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 26 Jan 2023 21:02:59 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D4FF87A490;
+        Thu, 26 Jan 2023 17:58:36 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        (Authenticated sender: sre)
-        by madras.collabora.co.uk (Postfix) with ESMTPSA id 7EF3D6602E7C;
-        Thu, 26 Jan 2023 17:07:41 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=collabora.com;
-        s=mail; t=1674752861;
-        bh=TJwB9xWefUtenAJhobcnuA3/dr44yh/1qZH05naV3dA=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=HIAeawkSMl4wLK9atphFO2PYIuQtn0mXWrQTGJkp27Vvwen4RmNJXIKy0KOcMN2qu
-         MGji/BoqRh//5quIKkg+7Jg9a4rlT6zYnOxKnHRve8IRt32uZ0O2J9C6ByA7KSG9ni
-         ooI+f+xDzdj/4Xv/XqAW1ZMOqMbxlnaE69Ns4AaVsCb09DHvVD+xjXrJ7HkcJ65ZDs
-         0FKkR9qOOchTbFQKw+Lbe8GJsd/K96q/WWSPWtyPUY4G0yRJ/G34tsJUBI/vL5q95x
-         a6dIJ/I/0Glk/75yhzfiBv6PLPN/HUTuWOcS4vpdAGRdicde5HTb77Vj3shLRE2rZN
-         snAuQFm3yL5CQ==
-Received: by mercury (Postfix, from userid 1000)
-        id 8DAD710609C7; Thu, 26 Jan 2023 18:07:39 +0100 (CET)
-Date:   Thu, 26 Jan 2023 18:07:39 +0100
-From:   Sebastian Reichel <sebastian.reichel@collabora.com>
-To:     Suren Baghdasaryan <surenb@google.com>
-Cc:     akpm@linux-foundation.org, michel@lespinasse.org,
-        jglisse@google.com, mhocko@suse.com, vbabka@suse.cz,
-        hannes@cmpxchg.org, mgorman@techsingularity.net, dave@stgolabs.net,
-        willy@infradead.org, liam.howlett@oracle.com, peterz@infradead.org,
-        ldufour@linux.ibm.com, paulmck@kernel.org, luto@kernel.org,
-        songliubraving@fb.com, peterx@redhat.com, david@redhat.com,
-        dhowells@redhat.com, hughd@google.com, bigeasy@linutronix.de,
-        kent.overstreet@linux.dev, punit.agrawal@bytedance.com,
-        lstoakes@gmail.com, peterjung1337@gmail.com, rientjes@google.com,
-        axelrasmussen@google.com, joelaf@google.com, minchan@google.com,
-        jannh@google.com, shakeelb@google.com, tatashin@google.com,
-        edumazet@google.com, gthelen@google.com, gurua@google.com,
-        arjunroy@google.com, soheil@google.com, hughlynch@google.com,
-        leewalsh@google.com, posk@google.com, will@kernel.org,
-        aneesh.kumar@linux.ibm.com, npiggin@gmail.com,
-        chenhuacai@kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, richard@nod.at,
-        anton.ivanov@cambridgegreys.com, johannes@sipsolutions.net,
-        qianweili@huawei.com, wangzhou1@hisilicon.com,
-        herbert@gondor.apana.org.au, davem@davemloft.net, vkoul@kernel.org,
-        airlied@gmail.com, daniel@ffwll.ch,
-        maarten.lankhorst@linux.intel.com, mripard@kernel.org,
-        tzimmermann@suse.de, l.stach@pengutronix.de,
-        krzysztof.kozlowski@linaro.org, patrik.r.jakobsson@gmail.com,
-        matthias.bgg@gmail.com, robdclark@gmail.com,
-        quic_abhinavk@quicinc.com, dmitry.baryshkov@linaro.org,
-        tomba@kernel.org, hjc@rock-chips.com, heiko@sntech.de,
-        ray.huang@amd.com, kraxel@redhat.com, mcoquelin.stm32@gmail.com,
-        alexandre.torgue@foss.st.com, tfiga@chromium.org,
-        m.szyprowski@samsung.com, mchehab@kernel.org,
-        dimitri.sivanich@hpe.com, zhangfei.gao@linaro.org,
-        jejb@linux.ibm.com, martin.petersen@oracle.com,
-        dgilbert@interlog.com, hdegoede@redhat.com, mst@redhat.com,
-        jasowang@redhat.com, alex.williamson@redhat.com, deller@gmx.de,
-        jayalk@intworks.biz, viro@zeniv.linux.org.uk, nico@fluxnic.net,
-        xiang@kernel.org, chao@kernel.org, tytso@mit.edu,
-        adilger.kernel@dilger.ca, miklos@szeredi.hu,
-        mike.kravetz@oracle.com, muchun.song@linux.dev, bhe@redhat.com,
-        andrii@kernel.org, yoshfuji@linux-ipv6.org, dsahern@kernel.org,
-        kuba@kernel.org, pabeni@redhat.com, perex@perex.cz, tiwai@suse.com,
-        haojian.zhuang@gmail.com, robert.jarzmik@free.fr,
-        linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, x86@kernel.org,
-        linux-kernel@vger.kernel.org, linux-graphics-maintainer@vmware.com,
-        linux-ia64@vger.kernel.org, linux-arch@vger.kernel.org,
-        loongarch@lists.linux.dev, kvm@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-sgx@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-acpi@vger.kernel.org,
-        linux-crypto@vger.kernel.org, nvdimm@lists.linux.dev,
-        dmaengine@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        dri-devel@lists.freedesktop.org, etnaviv@lists.freedesktop.org,
-        linux-samsung-soc@vger.kernel.org, intel-gfx@lists.freedesktop.org,
-        linux-mediatek@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        freedreno@lists.freedesktop.org,
-        linux-rockchip@lists.infradead.org, linux-tegra@vger.kernel.org,
-        virtualization@lists.linux-foundation.org,
-        xen-devel@lists.xenproject.org,
-        linux-stm32@st-md-mailman.stormreply.com,
-        linux-rdma@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-accelerators@lists.ozlabs.org, sparclinux@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-staging@lists.linux.dev,
-        target-devel@vger.kernel.org, linux-usb@vger.kernel.org,
-        netdev@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-aio@kvack.org, linux-fsdevel@vger.kernel.org,
-        linux-erofs@lists.ozlabs.org, linux-ext4@vger.kernel.org,
-        devel@lists.orangefs.org, kexec@lists.infradead.org,
-        linux-xfs@vger.kernel.org, bpf@vger.kernel.org,
-        linux-perf-users@vger.kernel.org, kasan-dev@googlegroups.com,
-        selinux@vger.kernel.org, alsa-devel@alsa-project.org,
-        kernel-team@android.com
-Subject: Re: [PATCH v2 3/6] mm: replace vma->vm_flags direct modifications
- with modifier calls
-Message-ID: <20230126170739.mlka2jivn3mfstyf@mercury.elektranox.org>
-References: <20230125083851.27759-1-surenb@google.com>
- <20230125083851.27759-4-surenb@google.com>
+        by ams.source.kernel.org (Postfix) with ESMTPS id 90B4EB81F86;
+        Fri, 27 Jan 2023 01:58:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E1FFC433A8;
+        Fri, 27 Jan 2023 01:58:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1674784709;
+        bh=pzNOG0Djf7V1R33wl68ow+px2X7SH6XndlxEJRqf8KA=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=DLTnS85jmYw3B9GcEjVOD6YJTNMQz8vVDc0NzVyrsHkgBmzqzXyTwHe5HyqYwHTue
+         6DEkRNTwrg6oH+QSwHhbE7T2JQZKioBkNeLiqCnSoH8Y3m6J/ZWVlaC5iyuLeDFJpW
+         jWwwVpUNLPGcBEWIyyAlHEb/CyRZXr9G/zGeGRFtWGi2OXzMZe190yNvw7YZj5OTwL
+         z3bNr0cmkz3rKMERSPdiz5rKRagX4ehp4qPhNPMz2tPNcZ9OD8LOk3mo+RNfACr5oh
+         17xX6Z8jrfFMHqsAOJUSzV6bpKYzQ7MidcOqAKhRjyKHSIpHEH2g32jJiTf0ntZlC9
+         R2dyvHPwGx9tA==
+Received: by mail-ej1-f52.google.com with SMTP id v6so10001934ejg.6;
+        Thu, 26 Jan 2023 17:58:29 -0800 (PST)
+X-Gm-Message-State: AFqh2krDt7xzCs2N5XtwNH0d+xuuN+vMcD+DrFbM0HmyDIBjEE8D/TgM
+        b9UJoRBLjqo9xL7HgAv0u1rHKoPT/YzQAPrrXKg=
+X-Google-Smtp-Source: AMrXdXt008fMl0aqmAEgNQX/zkl+hROHQsMbEajSnj9VGCgxHd9lGbxsSIeB2dhxneD5xCgD0lX2gGyuG+mIBYuC/Ak=
+X-Received: by 2002:a17:906:d7a8:b0:84d:3b9a:2e4a with SMTP id
+ pk8-20020a170906d7a800b0084d3b9a2e4amr4004490ejb.235.1674784707205; Thu, 26
+ Jan 2023 17:58:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qcyccrleajamxo75"
-Content-Disposition: inline
-In-Reply-To: <20230125083851.27759-4-surenb@google.com>
+References: <20230125190757.22555-1-rppt@kernel.org> <20230125190757.22555-4-rppt@kernel.org>
+In-Reply-To: <20230125190757.22555-4-rppt@kernel.org>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Fri, 27 Jan 2023 09:58:15 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTQw7vaj8uu2CYuKHwKQM4=v7dxmtNaMMoFXjwhtvog7nw@mail.gmail.com>
+Message-ID: <CAJF2gTQw7vaj8uu2CYuKHwKQM4=v7dxmtNaMMoFXjwhtvog7nw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] mm, arch: add generic implementation of pfn_valid()
+ for FLATMEM
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Michal Simek <monstr@monstr.eu>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Rich Felker <dalias@libc.org>,
+        Richard Weinberger <richard@nod.at>,
+        Stafford Horne <shorne@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Vineet Gupta <vgupta@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux--csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
+        x86@kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-
---qcyccrleajamxo75
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-On Wed, Jan 25, 2023 at 12:38:48AM -0800, Suren Baghdasaryan wrote:
-> Replace direct modifications to vma->vm_flags with calls to modifier
-> functions to be able to track flag changes and to keep vma locking
-> correctness.
->=20
-> Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+On Thu, Jan 26, 2023 at 3:08 AM Mike Rapoport <rppt@kernel.org> wrote:
+>
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+>
+> Every architecture that supports FLATMEM memory model defines its own
+> version of pfn_valid() that essentially compares a pfn to max_mapnr.
+>
+> Use mips/powerpc version implemented as static inline as a generic
+> implementation of pfn_valid() and drop its per-architecture definitions
+>
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 > ---
-> [...]
->  drivers/hsi/clients/cmt_speech.c                   |  2 +-
->  120 files changed, 188 insertions(+), 199 deletions(-)
-> [...]
-> diff --git a/drivers/hsi/clients/cmt_speech.c b/drivers/hsi/clients/cmt_s=
-peech.c
-> index 8069f795c864..952a31e742a1 100644
-> --- a/drivers/hsi/clients/cmt_speech.c
-> +++ b/drivers/hsi/clients/cmt_speech.c
-> @@ -1264,7 +1264,7 @@ static int cs_char_mmap(struct file *file, struct v=
-m_area_struct *vma)
->  	if (vma_pages(vma) !=3D 1)
->  		return -EINVAL;
-> =20
-> -	vma->vm_flags |=3D VM_IO | VM_DONTDUMP | VM_DONTEXPAND;
-> +	set_vm_flags(vma, VM_IO | VM_DONTDUMP | VM_DONTEXPAND);
->  	vma->vm_ops =3D &cs_char_vm_ops;
->  	vma->vm_private_data =3D file->private_data;
-> =20
+>  arch/alpha/include/asm/page.h      |  4 ----
+>  arch/arc/include/asm/page.h        |  1 -
+>  arch/csky/include/asm/page.h       |  1 -
+>  arch/hexagon/include/asm/page.h    |  1 -
+>  arch/ia64/include/asm/page.h       |  4 ----
+>  arch/loongarch/include/asm/page.h  | 13 -------------
+>  arch/m68k/include/asm/page_no.h    |  2 --
+>  arch/microblaze/include/asm/page.h |  1 -
+>  arch/mips/include/asm/page.h       | 13 -------------
+>  arch/nios2/include/asm/page.h      |  9 ---------
+>  arch/openrisc/include/asm/page.h   |  2 --
+>  arch/parisc/include/asm/page.h     |  4 ----
+>  arch/powerpc/include/asm/page.h    |  9 ---------
+>  arch/riscv/include/asm/page.h      |  5 -----
+>  arch/sh/include/asm/page.h         |  3 ---
+>  arch/sparc/include/asm/page_32.h   |  1 -
+>  arch/um/include/asm/page.h         |  1 -
+>  arch/x86/include/asm/page_32.h     |  4 ----
+>  arch/x86/include/asm/page_64.h     |  4 ----
+>  arch/xtensa/include/asm/page.h     |  2 --
+>  include/asm-generic/memory_model.h | 12 ++++++++++++
+>  include/asm-generic/page.h         |  2 --
+>  22 files changed, 12 insertions(+), 86 deletions(-)
+>
+> diff --git a/arch/alpha/include/asm/page.h b/arch/alpha/include/asm/page.h
+> index 8f3f5eecba28..227d32b6b75f 100644
+> --- a/arch/alpha/include/asm/page.h
+> +++ b/arch/alpha/include/asm/page.h
+> @@ -87,10 +87,6 @@ typedef struct page *pgtable_t;
+>  #define virt_to_page(kaddr)    pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+>  #define virt_addr_valid(kaddr) pfn_valid((__pa(kaddr) >> PAGE_SHIFT))
+>
+> -#ifdef CONFIG_FLATMEM
+> -#define pfn_valid(pfn)         ((pfn) < max_mapnr)
+> -#endif /* CONFIG_FLATMEM */
+> -
+>  #include <asm-generic/memory_model.h>
+>  #include <asm-generic/getorder.h>
+>
+> diff --git a/arch/arc/include/asm/page.h b/arch/arc/include/asm/page.h
+> index 9a62e1d87967..e43fe27ec54d 100644
+> --- a/arch/arc/include/asm/page.h
+> +++ b/arch/arc/include/asm/page.h
+> @@ -109,7 +109,6 @@ extern int pfn_valid(unsigned long pfn);
+>  #else /* CONFIG_HIGHMEM */
+>
+>  #define ARCH_PFN_OFFSET                virt_to_pfn(CONFIG_LINUX_RAM_BASE)
+> -#define pfn_valid(pfn)         (((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
+>
+>  #endif /* CONFIG_HIGHMEM */
+>
+> diff --git a/arch/csky/include/asm/page.h b/arch/csky/include/asm/page.h
+> index ed7451478b1b..b23e3006a9e0 100644
+> --- a/arch/csky/include/asm/page.h
+> +++ b/arch/csky/include/asm/page.h
+> @@ -39,7 +39,6 @@
+>
+>  #define virt_addr_valid(kaddr)  ((void *)(kaddr) >= (void *)PAGE_OFFSET && \
+>                         (void *)(kaddr) < high_memory)
+> -#define pfn_valid(pfn)         ((pfn) >= ARCH_PFN_OFFSET && ((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
+For csky part:
+Acked-by: Guo Ren <guoren@kernel.org>
 
-Acked-by: Sebastian Reichel <sebastian.reichel@collabora.com>
+>
+>  extern void *memset(void *dest, int c, size_t l);
+>  extern void *memcpy(void *to, const void *from, size_t l);
+> diff --git a/arch/hexagon/include/asm/page.h b/arch/hexagon/include/asm/page.h
+> index d7d4f9fca327..9c03b9965f07 100644
+> --- a/arch/hexagon/include/asm/page.h
+> +++ b/arch/hexagon/include/asm/page.h
+> @@ -95,7 +95,6 @@ struct page;
+>  /* Default vm area behavior is non-executable.  */
+>  #define VM_DATA_DEFAULT_FLAGS  VM_DATA_FLAGS_NON_EXEC
+>
+> -#define pfn_valid(pfn) ((pfn) < max_mapnr)
+>  #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+>
+>  /*  Need to not use a define for linesize; may move this to another file.  */
+> diff --git a/arch/ia64/include/asm/page.h b/arch/ia64/include/asm/page.h
+> index 1b990466d540..783eceab5df3 100644
+> --- a/arch/ia64/include/asm/page.h
+> +++ b/arch/ia64/include/asm/page.h
+> @@ -97,10 +97,6 @@ do {                                         \
+>
+>  #include <asm-generic/memory_model.h>
+>
+> -#ifdef CONFIG_FLATMEM
+> -# define pfn_valid(pfn)                ((pfn) < max_mapnr)
+> -#endif
+> -
+>  #define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
+>  #define virt_to_page(kaddr)    pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+>  #define pfn_to_kaddr(pfn)      __va((pfn) << PAGE_SHIFT)
+> diff --git a/arch/loongarch/include/asm/page.h b/arch/loongarch/include/asm/page.h
+> index 53f284a96182..fb5338b352e6 100644
+> --- a/arch/loongarch/include/asm/page.h
+> +++ b/arch/loongarch/include/asm/page.h
+> @@ -82,19 +82,6 @@ typedef struct { unsigned long pgprot; } pgprot_t;
+>
+>  #define pfn_to_kaddr(pfn)      __va((pfn) << PAGE_SHIFT)
+>
+> -#ifdef CONFIG_FLATMEM
+> -
+> -static inline int pfn_valid(unsigned long pfn)
+> -{
+> -       /* avoid <linux/mm.h> include hell */
+> -       extern unsigned long max_mapnr;
+> -       unsigned long pfn_offset = ARCH_PFN_OFFSET;
+> -
+> -       return pfn >= pfn_offset && pfn < max_mapnr;
+> -}
+> -
+> -#endif
+> -
+>  #define virt_to_pfn(kaddr)     PFN_DOWN(PHYSADDR(kaddr))
+>  #define virt_to_page(kaddr)    pfn_to_page(virt_to_pfn(kaddr))
+>
+> diff --git a/arch/m68k/include/asm/page_no.h b/arch/m68k/include/asm/page_no.h
+> index 0a8ccef777fd..2555ec57149d 100644
+> --- a/arch/m68k/include/asm/page_no.h
+> +++ b/arch/m68k/include/asm/page_no.h
+> @@ -26,8 +26,6 @@ extern unsigned long memory_end;
+>  #define virt_to_page(addr)     (mem_map + (((unsigned long)(addr)-PAGE_OFFSET) >> PAGE_SHIFT))
+>  #define page_to_virt(page)     __va(((((page) - mem_map) << PAGE_SHIFT) + PAGE_OFFSET))
+>
+> -#define pfn_valid(pfn)         ((pfn) < max_mapnr)
+> -
+>  #define        virt_addr_valid(kaddr)  (((unsigned long)(kaddr) >= PAGE_OFFSET) && \
+>                                 ((unsigned long)(kaddr) < memory_end))
+>
+> diff --git a/arch/microblaze/include/asm/page.h b/arch/microblaze/include/asm/page.h
+> index 4b8b2fa78fc5..7b9861bcd458 100644
+> --- a/arch/microblaze/include/asm/page.h
+> +++ b/arch/microblaze/include/asm/page.h
+> @@ -112,7 +112,6 @@ extern int page_is_ram(unsigned long pfn);
+>  #  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
+>
+>  #  define ARCH_PFN_OFFSET      (memory_start >> PAGE_SHIFT)
+> -#  define pfn_valid(pfn)       ((pfn) >= ARCH_PFN_OFFSET && (pfn) < (max_mapnr + ARCH_PFN_OFFSET))
+>  # endif /* __ASSEMBLY__ */
+>
+>  #define        virt_addr_valid(vaddr)  (pfn_valid(virt_to_pfn(vaddr)))
+> diff --git a/arch/mips/include/asm/page.h b/arch/mips/include/asm/page.h
+> index 9286f11ff6ad..5978a8dfb917 100644
+> --- a/arch/mips/include/asm/page.h
+> +++ b/arch/mips/include/asm/page.h
+> @@ -224,19 +224,6 @@ extern phys_addr_t __phys_addr_symbol(unsigned long x);
+>
+>  #define pfn_to_kaddr(pfn)      __va((pfn) << PAGE_SHIFT)
+>
+> -#ifdef CONFIG_FLATMEM
+> -
+> -static inline int pfn_valid(unsigned long pfn)
+> -{
+> -       /* avoid <linux/mm.h> include hell */
+> -       extern unsigned long max_mapnr;
+> -       unsigned long pfn_offset = ARCH_PFN_OFFSET;
+> -
+> -       return pfn >= pfn_offset && pfn < max_mapnr;
+> -}
+> -
+> -#endif
+> -
+>  #define virt_to_pfn(kaddr)     PFN_DOWN(virt_to_phys((void *)(kaddr)))
+>  #define virt_to_page(kaddr)    pfn_to_page(virt_to_pfn(kaddr))
+>
+> diff --git a/arch/nios2/include/asm/page.h b/arch/nios2/include/asm/page.h
+> index 6a989819a7c1..0ae7d9ce369b 100644
+> --- a/arch/nios2/include/asm/page.h
+> +++ b/arch/nios2/include/asm/page.h
+> @@ -86,15 +86,6 @@ extern struct page *mem_map;
+>
+>  # define pfn_to_kaddr(pfn)     __va((pfn) << PAGE_SHIFT)
+>
+> -static inline bool pfn_valid(unsigned long pfn)
+> -{
+> -       /* avoid <linux/mm.h> include hell */
+> -       extern unsigned long max_mapnr;
+> -       unsigned long pfn_offset = ARCH_PFN_OFFSET;
+> -
+> -       return pfn >= pfn_offset && pfn < max_mapnr;
+> -}
+> -
+>  # define virt_to_page(vaddr)   pfn_to_page(PFN_DOWN(virt_to_phys(vaddr)))
+>  # define virt_addr_valid(vaddr)        pfn_valid(PFN_DOWN(virt_to_phys(vaddr)))
+>
+> diff --git a/arch/openrisc/include/asm/page.h b/arch/openrisc/include/asm/page.h
+> index aab6e64d6db4..52b0d7e76446 100644
+> --- a/arch/openrisc/include/asm/page.h
+> +++ b/arch/openrisc/include/asm/page.h
+> @@ -80,8 +80,6 @@ typedef struct page *pgtable_t;
+>
+>  #define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
+>
+> -#define pfn_valid(pfn)          ((pfn) < max_mapnr)
+> -
+>  #define virt_addr_valid(kaddr) (pfn_valid(virt_to_pfn(kaddr)))
+>
+>  #endif /* __ASSEMBLY__ */
+> diff --git a/arch/parisc/include/asm/page.h b/arch/parisc/include/asm/page.h
+> index 6faaaa3ebe9b..667e703c0e8f 100644
+> --- a/arch/parisc/include/asm/page.h
+> +++ b/arch/parisc/include/asm/page.h
+> @@ -155,10 +155,6 @@ extern int npmem_ranges;
+>  #define __pa(x)                        ((unsigned long)(x)-PAGE_OFFSET)
+>  #define __va(x)                        ((void *)((unsigned long)(x)+PAGE_OFFSET))
+>
+> -#ifndef CONFIG_SPARSEMEM
+> -#define pfn_valid(pfn)         ((pfn) < max_mapnr)
+> -#endif
+> -
+>  #ifdef CONFIG_HUGETLB_PAGE
+>  #define HPAGE_SHIFT            PMD_SHIFT /* fixed for transparent huge pages */
+>  #define HPAGE_SIZE             ((1UL) << HPAGE_SHIFT)
+> diff --git a/arch/powerpc/include/asm/page.h b/arch/powerpc/include/asm/page.h
+> index edf1dd1b0ca9..f2b6bf5687d0 100644
+> --- a/arch/powerpc/include/asm/page.h
+> +++ b/arch/powerpc/include/asm/page.h
+> @@ -117,15 +117,6 @@ extern long long virt_phys_offset;
+>
+>  #ifdef CONFIG_FLATMEM
+>  #define ARCH_PFN_OFFSET                ((unsigned long)(MEMORY_START >> PAGE_SHIFT))
+> -#ifndef __ASSEMBLY__
+> -extern unsigned long max_mapnr;
+> -static inline bool pfn_valid(unsigned long pfn)
+> -{
+> -       unsigned long min_pfn = ARCH_PFN_OFFSET;
+> -
+> -       return pfn >= min_pfn && pfn < max_mapnr;
+> -}
+> -#endif
+>  #endif
+>
+>  #define virt_to_pfn(kaddr)     (__pa(kaddr) >> PAGE_SHIFT)
+> diff --git a/arch/riscv/include/asm/page.h b/arch/riscv/include/asm/page.h
+> index 9f432c1b5289..7fed7c431928 100644
+> --- a/arch/riscv/include/asm/page.h
+> +++ b/arch/riscv/include/asm/page.h
+> @@ -171,11 +171,6 @@ extern phys_addr_t __phys_addr_symbol(unsigned long x);
+>
+>  #define sym_to_pfn(x)           __phys_to_pfn(__pa_symbol(x))
+>
+> -#ifdef CONFIG_FLATMEM
+> -#define pfn_valid(pfn) \
+> -       (((pfn) >= ARCH_PFN_OFFSET) && (((pfn) - ARCH_PFN_OFFSET) < max_mapnr))
+> -#endif
+> -
+>  #endif /* __ASSEMBLY__ */
+>
+>  #define virt_addr_valid(vaddr) ({                                              \
+> diff --git a/arch/sh/include/asm/page.h b/arch/sh/include/asm/page.h
+> index eca5daa43b93..09ac6c7faee0 100644
+> --- a/arch/sh/include/asm/page.h
+> +++ b/arch/sh/include/asm/page.h
+> @@ -169,9 +169,6 @@ typedef struct page *pgtable_t;
+>  #define PFN_START              (__MEMORY_START >> PAGE_SHIFT)
+>  #define ARCH_PFN_OFFSET                (PFN_START)
+>  #define virt_to_page(kaddr)    pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+> -#ifdef CONFIG_FLATMEM
+> -#define pfn_valid(pfn)         ((pfn) >= min_low_pfn && (pfn) < max_low_pfn)
+> -#endif
+>  #define virt_addr_valid(kaddr) pfn_valid(__pa(kaddr) >> PAGE_SHIFT)
+>
+>  #include <asm-generic/memory_model.h>
+> diff --git a/arch/sparc/include/asm/page_32.h b/arch/sparc/include/asm/page_32.h
+> index fff8861df107..6be6f683f98f 100644
+> --- a/arch/sparc/include/asm/page_32.h
+> +++ b/arch/sparc/include/asm/page_32.h
+> @@ -130,7 +130,6 @@ extern unsigned long pfn_base;
+>  #define ARCH_PFN_OFFSET                (pfn_base)
+>  #define virt_to_page(kaddr)    pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+>
+> -#define pfn_valid(pfn)         (((pfn) >= (pfn_base)) && (((pfn)-(pfn_base)) < max_mapnr))
+>  #define virt_addr_valid(kaddr) ((((unsigned long)(kaddr)-PAGE_OFFSET)>>PAGE_SHIFT) < max_mapnr)
+>
+>  #include <asm-generic/memory_model.h>
+> diff --git a/arch/um/include/asm/page.h b/arch/um/include/asm/page.h
+> index cdbd9653aa14..84866127d074 100644
+> --- a/arch/um/include/asm/page.h
+> +++ b/arch/um/include/asm/page.h
+> @@ -108,7 +108,6 @@ extern unsigned long uml_physmem;
+>  #define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
+>  #define pfn_to_phys(pfn) PFN_PHYS(pfn)
+>
+> -#define pfn_valid(pfn) ((pfn) < max_mapnr)
+>  #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
+>
+>  #include <asm-generic/memory_model.h>
+> diff --git a/arch/x86/include/asm/page_32.h b/arch/x86/include/asm/page_32.h
+> index df42f8aa99e4..580d71aca65a 100644
+> --- a/arch/x86/include/asm/page_32.h
+> +++ b/arch/x86/include/asm/page_32.h
+> @@ -15,10 +15,6 @@ extern unsigned long __phys_addr(unsigned long);
+>  #define __phys_addr_symbol(x)  __phys_addr(x)
+>  #define __phys_reloc_hide(x)   RELOC_HIDE((x), 0)
+>
+> -#ifdef CONFIG_FLATMEM
+> -#define pfn_valid(pfn)         ((pfn) < max_mapnr)
+> -#endif /* CONFIG_FLATMEM */
+> -
+>  #include <linux/string.h>
+>
+>  static inline void clear_page(void *page)
+> diff --git a/arch/x86/include/asm/page_64.h b/arch/x86/include/asm/page_64.h
+> index 198e03e59ca1..cc6b8e087192 100644
+> --- a/arch/x86/include/asm/page_64.h
+> +++ b/arch/x86/include/asm/page_64.h
+> @@ -39,10 +39,6 @@ extern unsigned long __phys_addr_symbol(unsigned long);
+>
+>  #define __phys_reloc_hide(x)   (x)
+>
+> -#ifdef CONFIG_FLATMEM
+> -#define pfn_valid(pfn)          ((pfn) < max_pfn)
+> -#endif
+> -
+>  void clear_page_orig(void *page);
+>  void clear_page_rep(void *page);
+>  void clear_page_erms(void *page);
+> diff --git a/arch/xtensa/include/asm/page.h b/arch/xtensa/include/asm/page.h
+> index 493eb7083b1a..3267c672cd11 100644
+> --- a/arch/xtensa/include/asm/page.h
+> +++ b/arch/xtensa/include/asm/page.h
+> @@ -189,8 +189,6 @@ static inline unsigned long ___pa(unsigned long va)
+>  #endif
+>  #define __va(x)        \
+>         ((void *)((unsigned long) (x) - PHYS_OFFSET + PAGE_OFFSET))
+> -#define pfn_valid(pfn) \
+> -       ((pfn) >= ARCH_PFN_OFFSET && ((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
+>
+>  #define virt_to_page(kaddr)    pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
+>  #define page_to_virt(page)     __va(page_to_pfn(page) << PAGE_SHIFT)
+> diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/memory_model.h
+> index a2c8ed60233a..13d2a844d928 100644
+> --- a/include/asm-generic/memory_model.h
+> +++ b/include/asm-generic/memory_model.h
+> @@ -19,6 +19,18 @@
+>  #define __page_to_pfn(page)    ((unsigned long)((page) - mem_map) + \
+>                                  ARCH_PFN_OFFSET)
+>
+> +#ifndef pfn_valid
+> +static inline int pfn_valid(unsigned long pfn)
+> +{
+> +       /* avoid <linux/mm.h> include hell */
+> +       extern unsigned long max_mapnr;
+> +       unsigned long pfn_offset = ARCH_PFN_OFFSET;
+> +
+> +       return pfn >= pfn_offset && pfn < max_mapnr;
+> +}
+> +#define pfn_valid pfn_valid
+> +#endif
+> +
+>  #elif defined(CONFIG_SPARSEMEM_VMEMMAP)
+>
+>  /* memmap is virtually contiguous.  */
+> diff --git a/include/asm-generic/page.h b/include/asm-generic/page.h
+> index 6fc47561814c..c0be2edeb484 100644
+> --- a/include/asm-generic/page.h
+> +++ b/include/asm-generic/page.h
+> @@ -84,8 +84,6 @@ extern unsigned long memory_end;
+>  #define page_to_phys(page)      ((dma_addr_t)page_to_pfn(page) << PAGE_SHIFT)
+>  #endif
+>
+> -#define pfn_valid(pfn)         ((pfn) >= ARCH_PFN_OFFSET && ((pfn) - ARCH_PFN_OFFSET) < max_mapnr)
+> -
+>  #define        virt_addr_valid(kaddr)  (((void *)(kaddr) >= (void *)PAGE_OFFSET) && \
+>                                 ((void *)(kaddr) < (void *)memory_end))
+>
+> --
+> 2.35.1
+>
 
--- Sebastian
 
---qcyccrleajamxo75
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAmPSs1EACgkQ2O7X88g7
-+pquLBAAkw9lw9lxNRCI6jvqLy98JsUBgSQigNB6Eh8JVWsySHMm1OszFCcvTpoc
-vinC/VPMOa6JwEw5e9naXRF2UJahO+Cx+e5MYIKos3QyIUPfi0YM7Cv96h6+c4l/
-NdcxLS8+9ElitTuA47UVgPSeZwzdZ1kU5VUV1X2fx+6aGA+dBfWVBgWDqU6AB0Sa
-ehU4betso5Ypl26YEmLPHmY+8Xx2jXNwwBEgsHgO2/YjRn9YPDeMAqb4lWs99h0d
-nUV1VqwTClRrExtNDvidHryknmyCIBpYt38gn0i9+uIf9mFoBmUDN+/zAdRguGBT
-r1CQAwvRvHmEyGJ4dp1nijyt/PWxDBlCWytlmzXrK/rkeH8sQCRdCr9L83/d5DM0
-iU98ehmbH9kx8rD4y0L91xmsnegNYNKSfAvz3EP4KYFOHjTw2SOCYoazPu3z62bN
-d3HL+08LeZpm1XwVPydZqBd5UpBK8NaQYCJ3BjsLUefsSJE+SWzsnoYFnbUrL1X9
-1XfU6LGtVvjCPUsjk7oqh5PjtRGQsdtUhSZJLwNzTeh4I0nSzL1pj8vRFZ7UTcV4
-RmFYsjBbKhja2fC13eM4tKzfx53harnHVNuUPw2aoLKshpkQaOTUqWBnRXtbJZkb
-dSRKObxfPlHVI+awnfN6owpXF86Owew2+XJcXILOPxaBk8PI/Ns=
-=/0TB
------END PGP SIGNATURE-----
-
---qcyccrleajamxo75--
+-- 
+Best Regards
+ Guo Ren
