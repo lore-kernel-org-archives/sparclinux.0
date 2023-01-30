@@ -2,230 +2,99 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6619C61D97
-	for <sparclinux@archiver.kernel.org>; Sun, 29 Jan 2023 23:12:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FFA3C05027
+	for <sparclinux@archiver.kernel.org>; Mon, 30 Jan 2023 01:36:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235534AbjA2XMi (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 29 Jan 2023 18:12:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52290 "EHLO
+        id S234004AbjA3BgR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 29 Jan 2023 20:36:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55480 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235535AbjA2XM3 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 29 Jan 2023 18:12:29 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 964151E9EC;
-        Sun, 29 Jan 2023 15:11:17 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:MIME-Version:References:In-Reply-To:Message-Id:Date:Subject:Cc:
-        To:From:Sender:Reply-To:Content-ID:Content-Description;
-        bh=+c5n36on1Jyue8jVj9riWe+bIRkB8cW88wYvTPi78Yc=; b=CfsWOQ+/AwuszLtNraNnswQGg+
-        UNdEsNYPOvEVHUOzT8qQE5WVOY/FV6lke3WxNK7WZwuG1AiJ2Pb3dG46AmUK7oVv8lO8urg4vZrhX
-        YuWvyP8XDyoz4Flhrx5I1ZZjOAWPVrXi5t+smsHP1qiajpZufGwI/5tYF77la5PA1iVEg2yjvl8qO
-        MXZEF43RavvJpw2+TgBNUbiIBbfF40F0kxechh70bRQrJDdFSJDR8es3Jsr5pjoVKjnXR0aMflrVe
-        SoAzeCxXMm5yj0sX7d1xTyVPsMfgwZju0crsRpf4tYy0wNuNT/v2lMngZFv5el56K3wNCFhfzdMoH
-        NCQ83vVg==;
-Received: from [2601:1c2:d00:6a60::9526] (helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pMGpQ-0020M2-Rz; Sun, 29 Jan 2023 23:11:16 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, sparclinux@vger.kernel.org
-Subject: [PATCH 8/9] Documentation: sparc: correct spelling
-Date:   Sun, 29 Jan 2023 15:10:52 -0800
-Message-Id: <20230129231053.20863-9-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.39.1
-In-Reply-To: <20230129231053.20863-1-rdunlap@infradead.org>
-References: <20230129231053.20863-1-rdunlap@infradead.org>
+        with ESMTP id S229769AbjA3BgQ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 29 Jan 2023 20:36:16 -0500
+Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02E9B19F1B
+        for <sparclinux@vger.kernel.org>; Sun, 29 Jan 2023 17:36:15 -0800 (PST)
+Received: by mail-vk1-xa2b.google.com with SMTP id l129so5059928vkh.6
+        for <sparclinux@vger.kernel.org>; Sun, 29 Jan 2023 17:36:14 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=draconx-ca.20210112.gappssmtp.com; s=20210112;
+        h=cc:to:subject:message-id:date:from:references:in-reply-to
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=b0Mic7GKL4N/y1hjzEZDBJNa8o16mwGG4oqZUjeMQmI=;
+        b=wuVVSA88CSh8e96SliMukxAUr6oxB+MqD2LlifFN1inXZs1DEfoZXi395gt9ilcC7g
+         jBu8o0EJWRHeOk/08pEwogP/4drNsDFveEmunoeT92pO/DzYNGrZUXGBgSB5IMHjHoOE
+         h0G55/xmMAxDph7Z3zAJ1yGvG6DS0n/6YLplShyaOVEV9mgn9EQhQ+CnwPXKnVtWdHF3
+         7BcjIDbg8JXeYik/NpcU19Us02aLdqyoZ+PZSHcf69stOqlHB5EL/A1QlEATCCl4GpwY
+         UT0SDkL1iG9Z/uM3gSI4Z6s5qcn879Z+wyyerYcNdpEV4EEPEnCk/rC7NakZhO06eQPB
+         ya3g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:references:in-reply-to
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=b0Mic7GKL4N/y1hjzEZDBJNa8o16mwGG4oqZUjeMQmI=;
+        b=pXmjghTZzXw35KyPVWwXe+ho4RALRE1568VqatRDgQn9c/pXINwW54f55NwnLzNBfR
+         t2jMyLnvFQJriRZ3OPEwa94UwKDtbXXOSmNRS3cE/SIjk0QM7PcR2Wxiu7cI8BwPEOjx
+         W7hj7elfvmOFmLsCtj5Xk9C2pZiW1mJX6u6eOroblnHrkXQowv9FSB9ThzOMuypvxPWT
+         fgNLH6KGalydThsWJlCRCqcuJt+eCQoGefRI6XDjBFuajZjwaZUp7D/1zQLjLyMyZGgy
+         gtB5RPHgAY8KgqYWJ4CNV1aDePmtU+gUpCpz2J3nx/vfyulpuocJCkK4ovfKqSvpjanH
+         xuuQ==
+X-Gm-Message-State: AFqh2krEVpyNDsPZjuaa3VLh00EghU/yuLoL36LMmDpAYus0E4PY5FtW
+        601cYYF84caUtuj0YDdEEGQm4sQrKi6d2GD+/h2UQA==
+X-Google-Smtp-Source: AMrXdXs8NqbH4wKmN5lqGURkFNYAQ0NbT8FgOm3q4ilQ60x0Cd/mmexe1pWPP28IFEW+oKNIlHu1328DzLkC+F2LvvI=
+X-Received: by 2002:a1f:9d58:0:b0:3e1:9f39:5c46 with SMTP id
+ g85-20020a1f9d58000000b003e19f395c46mr6037580vke.20.1675042572859; Sun, 29
+ Jan 2023 17:36:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: by 2002:a05:6130:1015:b0:559:9619:d862 with HTTP; Sun, 29 Jan 2023
+ 17:36:12 -0800 (PST)
+X-Originating-IP: [24.53.241.20]
+In-Reply-To: <Y9bvwz4FIOQ+D8c4@x1n>
+References: <CADyTPExpEqaJiMGoV+Z6xVgL50ZoMJg49B10LcZ=8eg19u34BA@mail.gmail.com>
+ <Y9bvwz4FIOQ+D8c4@x1n>
+From:   Nick Bowler <nbowler@draconx.ca>
+Date:   Sun, 29 Jan 2023 20:36:12 -0500
+Message-ID: <CADyTPEzvCLoMWJwfTMQZOkNXUgao5ZydUkD_bLewi9K5fCf2vg@mail.gmail.com>
+Subject: Re: PROBLEM: sparc64 random crashes starting w/ Linux 6.1 (regression)
+To:     Peter Xu <peterx@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        regressions@lists.linux.dev,
+        Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Correct spelling problems for Documentation/sparc/ as reported
-by codespell.
+On 2023-01-29, Peter Xu <peterx@redhat.com> wrote:
+> There's a similar report previously but interestingly it was exactly
+> reported against commit 0ccf7f168e17, which was the one you reported all
+> good:
+>
+> https://lore.kernel.org/all/20221021160603.GA23307@u164.east.ru/
+>
+> It's probably because for some reason the thp split didn't really happen in
+> your system (maybe thp disabled?) or it should break too.
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-doc@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
----
- Documentation/sparc/adi.rst               |    4 -
- Documentation/sparc/oradax/dax-hv-api.txt |   44 ++++++++++----------
- 2 files changed, 24 insertions(+), 24 deletions(-)
+This seems an accurate assessment: CONFIG_TRANSPARENT_HUGEPAGE is not set
 
-diff -- a/Documentation/sparc/adi.rst b/Documentation/sparc/adi.rst
---- a/Documentation/sparc/adi.rst
-+++ b/Documentation/sparc/adi.rst
-@@ -38,7 +38,7 @@ virtual addresses that contain 0xa in bi
- 
- ADI is enabled on a set of pages using mprotect() with PROT_ADI flag.
- When ADI is enabled on a set of pages by a task for the first time,
--kernel sets the PSTATE.mcde bit fot the task. Version tags for memory
-+kernel sets the PSTATE.mcde bit for the task. Version tags for memory
- addresses are set with an stxa instruction on the addresses using
- ASI_MCD_PRIMARY or ASI_MCD_ST_BLKINIT_PRIMARY. ADI block size is
- provided by the hypervisor to the kernel.  Kernel returns the value of
-@@ -97,7 +97,7 @@ With ADI enabled, following new traps ma
- Disrupting memory corruption
- ----------------------------
- 
--	When a store accesses a memory localtion that has TTE.mcd=1,
-+	When a store accesses a memory location that has TTE.mcd=1,
- 	the task is running with ADI enabled (PSTATE.mcde=1), and the ADI
- 	tag in the address used (bits 63:60) does not match the tag set on
- 	the corresponding cacheline, a memory corruption trap occurs. By
-diff -- a/Documentation/sparc/oradax/dax-hv-api.txt b/Documentation/sparc/oradax/dax-hv-api.txt
---- a/Documentation/sparc/oradax/dax-hv-api.txt
-+++ b/Documentation/sparc/oradax/dax-hv-api.txt
-@@ -22,7 +22,7 @@ Chapter 36. Coprocessor services
-         functionality offered may vary by virtual machine implementation.
- 
-         The DAX is a virtual device to sun4v guests, with supported data operations indicated by the virtual device
--        compatibilty property. Functionality is accessed through the submission of Command Control Blocks
-+        compatibility property. Functionality is accessed through the submission of Command Control Blocks
-         (CCBs) via the ccb_submit API function. The operations are processed asynchronously, with the status
-         of the submitted operations reported through a Completion Area linked to each CCB. Each CCB has a
-         separate Completion Area and, unless execution order is specifically restricted through the use of serial-
-@@ -313,7 +313,7 @@ bits set, and terminate at a CCB that ha
- 
-           Secondary           Input Description
-           Format Code
--          0                          Element is stored as value minus 1 (0 evalutes to 1, 1 evalutes
-+          0                          Element is stored as value minus 1 (0 evaluates to 1, 1 evaluates
-                                      to 2, etc)
-           1                          Element is stored as value
- 
-@@ -659,7 +659,7 @@ Offset         Size            Field Des
-                                             “Secondary Input Element Size”
-                                [13:10]      Output Format (see Section 36.2.1.1.6, “Output Format”)
-                                [9:5]        Operand size for first scan criteria value. In a scan value
--                                            operation, this is one of two potential extact match values.
-+                                            operation, this is one of two potential exact match values.
-                                             In a scan range operation, this is the size of the upper range
- 
- 
-@@ -673,7 +673,7 @@ Offset   Size   Field Description
-                              operand, minus 1. Values 0xF-0x1E are reserved. A value of
-                              0x1F indicates this operand is not in use for this scan operation.
-                 [4:0]        Operand size for second scan criteria value. In a scan value
--                             operation, this is one of two potential extact match values.
-+                             operation, this is one of two potential exact match values.
-                              In a scan range operation, this is the size of the lower range
-                              boundary. The value of this field is the number of bytes in the
-                              operand, minus 1. Values 0xF-0x1E are reserved. A value of
-@@ -690,24 +690,24 @@ Offset   Size   Field Description
- 48       8      Output (same fields as Primary Input)
- 56       8      Symbol Table (if used by Primary Input). Same fields as Section 36.2.1.2,
-                 “Extract command”
--64       4      Next 4 most significant bytes of first scan criteria operand occuring after the
-+64       4      Next 4 most significant bytes of first scan criteria operand occurring after the
-                 bytes specified at offset 40, if needed by the operand size. If first operand
-                 is less than 8 bytes, the valid bytes are left-aligned to the lowest address.
--68       4      Next 4 most significant bytes of second scan criteria operand occuring after
-+68       4      Next 4 most significant bytes of second scan criteria operand occurring after
-                 the bytes specified at offset 44, if needed by the operand size. If second
-                 operand is less than 8 bytes, the valid bytes are left-aligned to the lowest
-                 address.
--72       4      Next 4 most significant bytes of first scan criteria operand occuring after the
-+72       4      Next 4 most significant bytes of first scan criteria operand occurring after the
-                 bytes specified at offset 64, if needed by the operand size. If first operand
-                 is less than 12 bytes, the valid bytes are left-aligned to the lowest address.
--76       4      Next 4 most significant bytes of second scan criteria operand occuring after
-+76       4      Next 4 most significant bytes of second scan criteria operand occurring after
-                 the bytes specified at offset 68, if needed by the operand size. If second
-                 operand is less than 12 bytes, the valid bytes are left-aligned to the lowest
-                 address.
--80       4      Next 4 most significant bytes of first scan criteria operand occuring after the
-+80       4      Next 4 most significant bytes of first scan criteria operand occurring after the
-                 bytes specified at offset 72, if needed by the operand size. If first operand
-                 is less than 16 bytes, the valid bytes are left-aligned to the lowest address.
--84       4      Next 4 most significant bytes of second scan criteria operand occuring after
-+84       4      Next 4 most significant bytes of second scan criteria operand occurring after
-                 the bytes specified at offset 76, if needed by the operand size. If second
-                 operand is less than 16 bytes, the valid bytes are left-aligned to the lowest
-                 address.
-@@ -721,10 +721,10 @@ Offset   Size   Field Description
- 
- 36.2.1.4. Translate commands
- 
--        The translate commands takes an input array of indicies, and a table of single bit values indexed by those
--        indicies, and outputs a bit vector or index array created by reading the tables bit value at each index in
-+        The translate commands takes an input array of indices, and a table of single bit values indexed by those
-+        indices, and outputs a bit vector or index array created by reading the tables bit value at each index in
-         the input array. The output should therefore contain exactly one bit per index in the input data stream,
--        when outputing as a bit vector. When outputing as an index array, the number of elements depends on the
-+        when outputting as a bit vector. When outputting as an index array, the number of elements depends on the
-         values read in the bit table, but will always be less than, or equal to, the number of input elements. Only
-         a restricted subset of the possible input format types are supported. No variable width or Huffman/OZIP
-         encoded input streams are allowed. The primary input data element size must be 3 bytes or less.
-@@ -742,7 +742,7 @@ Offset   Size   Field Description
-         code in the CCB header.
- 
-         There are two supported formats for the output stream: the bit vector and index array formats (codes 0x8,
--        0xD, and 0xE). The index array format is an array of indicies of bits which would have been set if the
-+        0xD, and 0xE). The index array format is an array of indices of bits which would have been set if the
-         output format was a bit array.
- 
-         The return value of the CCB completion area contains the number of bits set in the output bit vector,
-@@ -1254,7 +1254,7 @@ EUNAVAILABLE   The requested CCB operati
-                submitted CCB, or may apply to a larger scope. The status should not be
-                interpreted as permanent, and the guest should attempt to submit CCBs in
-                the future which had previously been unable to be performed. The status
--               data provides additional information about scope of the retricted availability
-+               data provides additional information about scope of the restricted availability
-                as follows:
-                Value       Description
-                0           Processing for the exact CCB instance submitted was unavailable,
-@@ -1330,20 +1330,20 @@ EUNAVAILABLE   The requested CCB operati
-          of other CCBs ahead of the requested CCB, to provide a relative estimate of when the CCB may execute.
- 
-          The dax return value is only valid when the state is ENQUEUED. The value returned is the DAX unit
--         instance indentifier for the DAX unit processing the queue where the requested CCB is located. The value
-+         instance identifier for the DAX unit processing the queue where the requested CCB is located. The value
-          matches the value that would have been, or was, returned by ccb_submit using the queue info flag.
- 
-          The queue return value is only valid when the state is ENQUEUED. The value returned is the DAX
--         queue instance indentifier for the DAX unit processing the queue where the requested CCB is located. The
-+         queue instance identifier for the DAX unit processing the queue where the requested CCB is located. The
-          value matches the value that would have been, or was, returned by ccb_submit using the queue info flag.
- 
- 36.3.2.1. Errors
- 
--          EOK                       The request was proccessed and the CCB state is valid.
-+          EOK                       The request was processed and the CCB state is valid.
-           EBADALIGN                 address is not on a 64-byte aligned.
-           ENORADDR                  The real address provided for address is not valid.
-           EINVAL                    The CCB completion area contents are not valid.
--          EWOULDBLOCK               Internal resource contraints prevented the CCB state from being queried at this
-+          EWOULDBLOCK               Internal resource constraints prevented the CCB state from being queried at this
-                                     time. The guest should retry the request.
-           ENOACCESS                 The guest does not have permission to access the coprocessor virtual device
-                                     functionality.
-@@ -1401,11 +1401,11 @@ EUNAVAILABLE   The requested CCB operati
- 
- 36.3.3.2. Errors
- 
--          EOK                        The request was proccessed and the result is valid.
-+          EOK                        The request was processed and the result is valid.
-           EBADALIGN                  address is not on a 64-byte aligned.
-           ENORADDR                   The real address provided for address is not valid.
-           EINVAL                     The CCB completion area contents are not valid.
--          EWOULDBLOCK                Internal resource contraints prevented the CCB from being killed at this time.
-+          EWOULDBLOCK                Internal resource constraints prevented the CCB from being killed at this time.
-                                      The guest should retry the request.
-           ENOACCESS                  The guest does not have permission to access the coprocessor virtual device
-                                      functionality.
-@@ -1423,7 +1423,7 @@ EUNAVAILABLE   The requested CCB operati
- 
- 36.3.4.1. Errors
- 
--          EOK                        The request was proccessed and the number of enabled/disabled DAX units
-+          EOK                        The request was processed and the number of enabled/disabled DAX units
-                                      are valid.
- 
- 
+> It also means 624a2c94f5b7a didn't really fix all the issues.  So I assumed
+> that's the only issue we had after verified with 624a2c94f5b7a on two
+> existing reproducers and we assumed all issues fixed.
+>
+> However then with this report I looked into the whole set and I did notice
+> the page migration code actually has similar problem.  Sorry I should have
+> noticed this even earlier.  So very likely the previous two reports came
+> from environment where page migration is either rare or not enabled.  And
+> now I suspect your system has page migration enabled.
+
+I'd say that sounds correct too: I have CONFIG_COMPACTION=y which sets
+CONFIG_MIGRATION=y
+
+> Could you try below patch to see whether it fixes your problem?  It should
+> cover the last piece of possible issue with dirty bit on sparc after that
+> patchset.  It's based on latest master branch (commit ab072681eabe1ce0).
+
+I applied this on top of 6.2-rc6 and will give this a spin now.
+
+Thanks,
+  Nick
