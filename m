@@ -2,110 +2,72 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D9EC636D3
-	for <sparclinux@archiver.kernel.org>; Mon, 30 Jan 2023 05:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E8D9C54EAA
+	for <sparclinux@archiver.kernel.org>; Mon, 30 Jan 2023 09:49:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235573AbjA3FGk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 30 Jan 2023 00:06:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50878 "EHLO
+        id S235507AbjA3JtM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 30 Jan 2023 04:49:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52834 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234955AbjA3FGi (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 Jan 2023 00:06:38 -0500
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 200651700;
-        Sun, 29 Jan 2023 21:06:36 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4P4x3f2mrfz4x1T;
-        Mon, 30 Jan 2023 16:06:22 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-        s=201909; t=1675055194;
-        bh=POOClJ+owuBj9sqRPRjffc3znhNYliSlDQdzT8YO/i8=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=L+Neft2adsFGU4wPfkdQqIkCCGEbr0KQklfStEOOSubA4D5/b8QWn1Ym/KJAv6xRm
-         TUPYPpT88DNlhDmu8F6Zq0+Eg9/CqOQ7vjZ2tzDW9COm2h6kbQ9aR9CgKDe6jB7oUN
-         qbkny9xOnw6qtVzbwY2BQEDmrhadqj+bjJEBVbHomTuJEKrCDFpofvG56kNiVlQ2h/
-         4kZhpVx3EpSRTAM6jXtFLXQAZAY3/mQ2GHog2lMch2wJzrLcG7TkdRQuYdqLp8OdqG
-         ahVRL+XE6UXObccshlEZ6yQOBI9fBlohqkPxNq06FIH8Kl9t0Zt68ScSYNpNUYJhy7
-         uUVQKm0hFQMqg==
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     Mike Rapoport <rppt@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Matt Turner <mattst88@gmail.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michal Simek <monstr@monstr.eu>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Stafford Horne <shorne@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Vineet Gupta <vgupta@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
-        x86@kernel.org, "Mike Rapoport (IBM)" <rppt@kernel.org>,
-        Huacai Chen <chenhuacai@loongson.cn>
-Subject: Re: [PATCH v2 4/4] mm, arch: add generic implementation of
- pfn_valid() for FLATMEM
-In-Reply-To: <20230129124235.209895-5-rppt@kernel.org>
-References: <20230129124235.209895-1-rppt@kernel.org>
- <20230129124235.209895-5-rppt@kernel.org>
-Date:   Mon, 30 Jan 2023 16:06:21 +1100
-Message-ID: <87o7qgsjaq.fsf@mpe.ellerman.id.au>
+        with ESMTP id S235453AbjA3JtL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 Jan 2023 04:49:11 -0500
+X-Greylist: delayed 583 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 30 Jan 2023 01:49:07 PST
+Received: from mail.gluegivebiz.com (mail.gluegivebiz.com [94.177.230.132])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35CEA1A487
+        for <sparclinux@vger.kernel.org>; Mon, 30 Jan 2023 01:49:07 -0800 (PST)
+Received: by mail.gluegivebiz.com (Postfix, from userid 1001)
+        id 539758276D; Mon, 30 Jan 2023 09:30:51 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gluegivebiz.com;
+        s=mail; t=1675071077;
+        bh=5n0LayKpRHsZMclE7BidCW6LDGRdzRVHcrHQCq8kNN4=;
+        h=Date:From:To:Subject:From;
+        b=oqHiwlfgeBroSLZgsxiTvjiEvFnfjxG0Dz8LtYlYF2DCqJbHi9Bi0at7+222wcJU4
+         /2LjqGzvkApd87DjZs0hQGX3zKTDn7IT4HWiDe8agRKF9CrkyASgg/7kGPrJ40/MOD
+         Pdfv3JzpQ2psweqqIMAr1O64yknuk1XKMu+P8q8Z0y6vSPsIa7vSWOmlHBfW5p5dK5
+         l4lHTqAhiM4CIor+fJSWaM1w4zzfOgCDdd/1EqGf5MCdg9mHGlAcEZ23lZ+2kLmOmy
+         k1DZdxtuuUJaCt+swKndZbgfkfFDFWImv0Tk9N6zv65hSofNUKCziLkHBqq67m5pzG
+         eTVTH925tWtHA==
+Received: by mail.gluegivebiz.com for <sparclinux@vger.kernel.org>; Mon, 30 Jan 2023 09:30:36 GMT
+Message-ID: <20230130084706-0.1.11.2p8y.0.sc6phliadn@gluegivebiz.com>
+Date:   Mon, 30 Jan 2023 09:30:36 GMT
+From:   =?UTF-8?Q? "Vil=C3=A9m_Du=C5=A1ek" ?= 
+        <vilem.dusek@gluegivebiz.com>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Tepeln=C3=A9_obr=C3=A1b=C4=9Bn=C3=AD_=E2=80=93_objedn=C3=A1vka?=
+X-Mailer: mail.gluegivebiz.com
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Mike Rapoport <rppt@kernel.org> writes:
-> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
->
-> Every architecture that supports FLATMEM memory model defines its own
-> version of pfn_valid() that essentially compares a pfn to max_mapnr.
->
-> Use mips/powerpc version implemented as static inline as a generic
-> implementation of pfn_valid() and drop its per-architecture definitions.
->
-> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> Acked-by: Arnd Bergmann <arnd@arndb.de>
-> Acked-by: Guo Ren <guoren@kernel.org>		# csky
-> Acked-by: Huacai Chen <chenhuacai@loongson.cn>	# LoongArch
-> Acked-by: Stafford Horne <shorne@gmail.com>	# OpenRISC
-> ---
->  arch/alpha/include/asm/page.h      |  4 ----
->  arch/arc/include/asm/page.h        |  1 -
->  arch/csky/include/asm/page.h       |  1 -
->  arch/hexagon/include/asm/page.h    |  1 -
->  arch/ia64/include/asm/page.h       |  4 ----
->  arch/loongarch/include/asm/page.h  | 13 -------------
->  arch/m68k/include/asm/page_no.h    |  2 --
->  arch/microblaze/include/asm/page.h |  1 -
->  arch/mips/include/asm/page.h       | 13 -------------
->  arch/nios2/include/asm/page.h      |  9 ---------
->  arch/openrisc/include/asm/page.h   |  2 --
->  arch/parisc/include/asm/page.h     |  4 ----
->  arch/powerpc/include/asm/page.h    |  9 ---------
+Dobr=C3=BD den,
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+m=C3=A1te z=C3=A1jem o vyu=C5=BEit=C3=AD velmi kvalitn=C3=AD slu=C5=BEby =
+tepeln=C3=A9ho obr=C3=A1b=C4=9Bn=C3=AD kov=C5=AF?
 
-cheers
+M=C5=AF=C5=BEeme v=C3=A1m nab=C3=ADdnout velmi v=C3=BDhodn=C3=A9 podm=C3=AD=
+nky spolupr=C3=A1ce, technick=C3=A9 poradenstv=C3=AD, s=C3=A9riovou v=C3=BD=
+robu a testov=C3=A1n=C3=AD prototyp=C5=AF.
+
+Specializujeme se na tradi=C4=8Dn=C3=AD a vakuov=C3=A9 technologie: cemen=
+tov=C3=A1n=C3=AD, nitrocementov=C3=A1n=C3=AD, kalen=C3=AD v plynu, zu=C5=A1=
+lecht=C4=9Bn=C3=AD, =C5=BE=C3=ADh=C3=A1n=C3=AD, p=C3=A1jen=C3=AD, normali=
+za=C4=8Dn=C3=AD =C5=BE=C3=ADh=C3=A1n=C3=AD (s p=C5=99ekrystalizac=C3=AD).
+
+M=C3=A1me k dispozici rozs=C3=A1hl=C3=A9 strojn=C3=AD vybaven=C3=AD, velk=
+=C3=BD t=C3=BDm odborn=C3=ADk=C5=AF, a proto jsme schopni se p=C5=99izp=C5=
+=AFsobit va=C5=A1im po=C5=BEadavk=C5=AFm.
+
+Pracujeme v souladu s na=C5=A1imi certifik=C3=A1ty v rozsahu norem platn=C3=
+=BDch v oblasti automobilov=C3=A9ho pr=C5=AFmyslu (IATF 16949; CQI 9) a t=
+ak=C3=A9 letectv=C3=AD (akreditace NADCAP).
+
+Pokud m=C3=A1te po=C5=BEadavky v t=C3=A9to oblasti, r=C3=A1d v=C3=A1m p=C5=
+=99edstav=C3=ADm na=C5=A1e mo=C5=BEnosti.
+
+Mohl bych v=C3=A1m zatelefonovat?
+
+
+Vil=C3=A9m Du=C5=A1ek
