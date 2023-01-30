@@ -2,99 +2,110 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FFA3C05027
-	for <sparclinux@archiver.kernel.org>; Mon, 30 Jan 2023 01:36:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80D9EC636D3
+	for <sparclinux@archiver.kernel.org>; Mon, 30 Jan 2023 05:06:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234004AbjA3BgR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 29 Jan 2023 20:36:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55480 "EHLO
+        id S235573AbjA3FGk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 30 Jan 2023 00:06:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50878 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229769AbjA3BgQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 29 Jan 2023 20:36:16 -0500
-Received: from mail-vk1-xa2b.google.com (mail-vk1-xa2b.google.com [IPv6:2607:f8b0:4864:20::a2b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02E9B19F1B
-        for <sparclinux@vger.kernel.org>; Sun, 29 Jan 2023 17:36:15 -0800 (PST)
-Received: by mail-vk1-xa2b.google.com with SMTP id l129so5059928vkh.6
-        for <sparclinux@vger.kernel.org>; Sun, 29 Jan 2023 17:36:14 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=draconx-ca.20210112.gappssmtp.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:references:in-reply-to
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=b0Mic7GKL4N/y1hjzEZDBJNa8o16mwGG4oqZUjeMQmI=;
-        b=wuVVSA88CSh8e96SliMukxAUr6oxB+MqD2LlifFN1inXZs1DEfoZXi395gt9ilcC7g
-         jBu8o0EJWRHeOk/08pEwogP/4drNsDFveEmunoeT92pO/DzYNGrZUXGBgSB5IMHjHoOE
-         h0G55/xmMAxDph7Z3zAJ1yGvG6DS0n/6YLplShyaOVEV9mgn9EQhQ+CnwPXKnVtWdHF3
-         7BcjIDbg8JXeYik/NpcU19Us02aLdqyoZ+PZSHcf69stOqlHB5EL/A1QlEATCCl4GpwY
-         UT0SDkL1iG9Z/uM3gSI4Z6s5qcn879Z+wyyerYcNdpEV4EEPEnCk/rC7NakZhO06eQPB
-         ya3g==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:references:in-reply-to
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=b0Mic7GKL4N/y1hjzEZDBJNa8o16mwGG4oqZUjeMQmI=;
-        b=pXmjghTZzXw35KyPVWwXe+ho4RALRE1568VqatRDgQn9c/pXINwW54f55NwnLzNBfR
-         t2jMyLnvFQJriRZ3OPEwa94UwKDtbXXOSmNRS3cE/SIjk0QM7PcR2Wxiu7cI8BwPEOjx
-         W7hj7elfvmOFmLsCtj5Xk9C2pZiW1mJX6u6eOroblnHrkXQowv9FSB9ThzOMuypvxPWT
-         fgNLH6KGalydThsWJlCRCqcuJt+eCQoGefRI6XDjBFuajZjwaZUp7D/1zQLjLyMyZGgy
-         gtB5RPHgAY8KgqYWJ4CNV1aDePmtU+gUpCpz2J3nx/vfyulpuocJCkK4ovfKqSvpjanH
-         xuuQ==
-X-Gm-Message-State: AFqh2krEVpyNDsPZjuaa3VLh00EghU/yuLoL36LMmDpAYus0E4PY5FtW
-        601cYYF84caUtuj0YDdEEGQm4sQrKi6d2GD+/h2UQA==
-X-Google-Smtp-Source: AMrXdXs8NqbH4wKmN5lqGURkFNYAQ0NbT8FgOm3q4ilQ60x0Cd/mmexe1pWPP28IFEW+oKNIlHu1328DzLkC+F2LvvI=
-X-Received: by 2002:a1f:9d58:0:b0:3e1:9f39:5c46 with SMTP id
- g85-20020a1f9d58000000b003e19f395c46mr6037580vke.20.1675042572859; Sun, 29
- Jan 2023 17:36:12 -0800 (PST)
-MIME-Version: 1.0
-Received: by 2002:a05:6130:1015:b0:559:9619:d862 with HTTP; Sun, 29 Jan 2023
- 17:36:12 -0800 (PST)
-X-Originating-IP: [24.53.241.20]
-In-Reply-To: <Y9bvwz4FIOQ+D8c4@x1n>
-References: <CADyTPExpEqaJiMGoV+Z6xVgL50ZoMJg49B10LcZ=8eg19u34BA@mail.gmail.com>
- <Y9bvwz4FIOQ+D8c4@x1n>
-From:   Nick Bowler <nbowler@draconx.ca>
-Date:   Sun, 29 Jan 2023 20:36:12 -0500
-Message-ID: <CADyTPEzvCLoMWJwfTMQZOkNXUgao5ZydUkD_bLewi9K5fCf2vg@mail.gmail.com>
-Subject: Re: PROBLEM: sparc64 random crashes starting w/ Linux 6.1 (regression)
-To:     Peter Xu <peterx@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
-        regressions@lists.linux.dev,
+        with ESMTP id S234955AbjA3FGi (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 30 Jan 2023 00:06:38 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 200651700;
+        Sun, 29 Jan 2023 21:06:36 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4P4x3f2mrfz4x1T;
+        Mon, 30 Jan 2023 16:06:22 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1675055194;
+        bh=POOClJ+owuBj9sqRPRjffc3znhNYliSlDQdzT8YO/i8=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=L+Neft2adsFGU4wPfkdQqIkCCGEbr0KQklfStEOOSubA4D5/b8QWn1Ym/KJAv6xRm
+         TUPYPpT88DNlhDmu8F6Zq0+Eg9/CqOQ7vjZ2tzDW9COm2h6kbQ9aR9CgKDe6jB7oUN
+         qbkny9xOnw6qtVzbwY2BQEDmrhadqj+bjJEBVbHomTuJEKrCDFpofvG56kNiVlQ2h/
+         4kZhpVx3EpSRTAM6jXtFLXQAZAY3/mQ2GHog2lMch2wJzrLcG7TkdRQuYdqLp8OdqG
+         ahVRL+XE6UXObccshlEZ6yQOBI9fBlohqkPxNq06FIH8Kl9t0Zt68ScSYNpNUYJhy7
+         uUVQKm0hFQMqg==
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Mike Rapoport <rppt@kernel.org>,
         Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+Cc:     Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Greg Ungerer <gerg@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Matt Turner <mattst88@gmail.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michal Simek <monstr@monstr.eu>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Rich Felker <dalias@libc.org>,
+        Richard Weinberger <richard@nod.at>,
+        Russell King <linux@armlinux.org.uk>,
+        Stafford Horne <shorne@gmail.com>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        Vineet Gupta <vgupta@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-mm@kvack.org,
+        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
+        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
+        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
+        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
+        x86@kernel.org, "Mike Rapoport (IBM)" <rppt@kernel.org>,
+        Huacai Chen <chenhuacai@loongson.cn>
+Subject: Re: [PATCH v2 4/4] mm, arch: add generic implementation of
+ pfn_valid() for FLATMEM
+In-Reply-To: <20230129124235.209895-5-rppt@kernel.org>
+References: <20230129124235.209895-1-rppt@kernel.org>
+ <20230129124235.209895-5-rppt@kernel.org>
+Date:   Mon, 30 Jan 2023 16:06:21 +1100
+Message-ID: <87o7qgsjaq.fsf@mpe.ellerman.id.au>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 2023-01-29, Peter Xu <peterx@redhat.com> wrote:
-> There's a similar report previously but interestingly it was exactly
-> reported against commit 0ccf7f168e17, which was the one you reported all
-> good:
+Mike Rapoport <rppt@kernel.org> writes:
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 >
-> https://lore.kernel.org/all/20221021160603.GA23307@u164.east.ru/
+> Every architecture that supports FLATMEM memory model defines its own
+> version of pfn_valid() that essentially compares a pfn to max_mapnr.
 >
-> It's probably because for some reason the thp split didn't really happen in
-> your system (maybe thp disabled?) or it should break too.
-
-This seems an accurate assessment: CONFIG_TRANSPARENT_HUGEPAGE is not set
-
-> It also means 624a2c94f5b7a didn't really fix all the issues.  So I assumed
-> that's the only issue we had after verified with 624a2c94f5b7a on two
-> existing reproducers and we assumed all issues fixed.
+> Use mips/powerpc version implemented as static inline as a generic
+> implementation of pfn_valid() and drop its per-architecture definitions.
 >
-> However then with this report I looked into the whole set and I did notice
-> the page migration code actually has similar problem.  Sorry I should have
-> noticed this even earlier.  So very likely the previous two reports came
-> from environment where page migration is either rare or not enabled.  And
-> now I suspect your system has page migration enabled.
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> Acked-by: Guo Ren <guoren@kernel.org>		# csky
+> Acked-by: Huacai Chen <chenhuacai@loongson.cn>	# LoongArch
+> Acked-by: Stafford Horne <shorne@gmail.com>	# OpenRISC
+> ---
+>  arch/alpha/include/asm/page.h      |  4 ----
+>  arch/arc/include/asm/page.h        |  1 -
+>  arch/csky/include/asm/page.h       |  1 -
+>  arch/hexagon/include/asm/page.h    |  1 -
+>  arch/ia64/include/asm/page.h       |  4 ----
+>  arch/loongarch/include/asm/page.h  | 13 -------------
+>  arch/m68k/include/asm/page_no.h    |  2 --
+>  arch/microblaze/include/asm/page.h |  1 -
+>  arch/mips/include/asm/page.h       | 13 -------------
+>  arch/nios2/include/asm/page.h      |  9 ---------
+>  arch/openrisc/include/asm/page.h   |  2 --
+>  arch/parisc/include/asm/page.h     |  4 ----
+>  arch/powerpc/include/asm/page.h    |  9 ---------
 
-I'd say that sounds correct too: I have CONFIG_COMPACTION=y which sets
-CONFIG_MIGRATION=y
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
-> Could you try below patch to see whether it fixes your problem?  It should
-> cover the last piece of possible issue with dirty bit on sparc after that
-> patchset.  It's based on latest master branch (commit ab072681eabe1ce0).
-
-I applied this on top of 6.2-rc6 and will give this a spin now.
-
-Thanks,
-  Nick
+cheers
