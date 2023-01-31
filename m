@@ -2,156 +2,88 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26BB3C636CD
-	for <sparclinux@archiver.kernel.org>; Tue, 31 Jan 2023 18:55:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D70FBC636D4
+	for <sparclinux@archiver.kernel.org>; Tue, 31 Jan 2023 20:03:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231891AbjAaSzk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 31 Jan 2023 13:55:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45138 "EHLO
+        id S231679AbjAaUDA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 31 Jan 2023 15:03:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59826 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231776AbjAaSzf (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 31 Jan 2023 13:55:35 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 610A35649C;
-        Tue, 31 Jan 2023 10:55:19 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F2F6861646;
-        Tue, 31 Jan 2023 18:55:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 249B8C433EF;
-        Tue, 31 Jan 2023 18:55:09 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675191318;
-        bh=bIDjyyvdysd52cz3wo+R2FqIpQuhXwaSP+2JinM77Zs=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=p4r9YCVihzZrIRlizFq96lF4LsuRcYuXyit+cVXFPxJSxGfL99cms2/SSKpvkF2Pp
-         NgIawOhOvw555KfS+LAiMfG5/YT2a/THCQd4ucSFldwug8pgOxrs80vH+lCVDLHIZh
-         fh6CSOEpoCrswZLqAXRWz9pZ9CFIa58ZjTeMXFlgy8V6KmgUqFk322AZ/O2du+jfxI
-         cQP8VEptS2HT9jSp8zZqLDDlrzS+XSn+HUeeyHjnm0LO863o/QOiqT647VANwYetka
-         9TpahVOYB0s8YL82xibnQ7Ggye7lO/va5K0QbIxfYIjwKYESn8Y2//JUV74+mpgZ7e
-         krHdpZB95Rbtg==
-Date:   Tue, 31 Jan 2023 18:55:07 +0000
-From:   Conor Dooley <conor@kernel.org>
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Matt Turner <mattst88@gmail.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
+        with ESMTP id S229946AbjAaUC6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 31 Jan 2023 15:02:58 -0500
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EE3035587;
+        Tue, 31 Jan 2023 12:02:54 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:Content-Type:MIME-Version:
+        Message-ID:Subject:Cc:To:From:Date:Reply-To:Content-Transfer-Encoding:
+        Content-ID:Content-Description:In-Reply-To:References;
+        bh=wcBJkRF793IhrFvqwpLU4zntoDbJkzMhR1UFYyzCsfo=; b=BFTP6VpnlE8pQa3pDsKLm3Q10X
+        Q9Gcdp7Xqeex1PKhqtcPoNe9nPTNJTF0ILbjS7R3tAUBiQe3I8I6NveA94gSYpNFCTShE7F9Mw32X
+        sMkSPoX4uQPAO127UmaQN8vg8AelHaryoauasOWusihSupTGmNrqDUfP8WshD8Nu0JamWbe6yjYbE
+        +a+/Pupnf8T8mInAf+wq1pKyMzaHiIb837m8C/KGKn5O0TNPKh9nWjv4opaH4Rc6k015fbTgdzd1E
+        daMXAIGzgablb7n/2W6yDtHHgnj6NKhMzKfaP8ZV5EJgJf7xa2vYL3l0Z8UsaJzcyzgtcFZwutRlq
+        a35LbcuQ==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1pMwqB-005Il7-1l;
+        Tue, 31 Jan 2023 20:02:51 +0000
+Date:   Tue, 31 Jan 2023 20:02:51 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     linux-arch@vger.kernel.org
+Cc:     linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
         Michal Simek <monstr@monstr.eu>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Stafford Horne <shorne@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Vineet Gupta <vgupta@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
-        x86@kernel.org, Huacai Chen <chenhuacai@loongson.cn>
-Subject: Re: [PATCH v2 4/4] mm, arch: add generic implementation of
- pfn_valid() for FLATMEM
-Message-ID: <Y9lkCz73v7/iyyLj@spud>
-References: <20230129124235.209895-1-rppt@kernel.org>
- <20230129124235.209895-5-rppt@kernel.org>
- <Y9lULIIOneBUFE/E@spud>
- <Y9lg7R1Yd931C+y5@kernel.org>
+        Dinh Nguyen <dinguyen@kernel.org>,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Subject: [RFC][PATCHSET] VM_FAULT_RETRY fixes
+Message-ID: <Y9lz6yk113LmC9SI@ZenIV>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hiaCFsst32mLBZni"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Y9lg7R1Yd931C+y5@kernel.org>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+	Page fault handlers generally react to VM_FAULT_RETRY from
+handle_mm_fault() by repeating the whole thing (starting with locking
+mmap) with FAULT_FLAG_TRIED added to flags.
 
---hiaCFsst32mLBZni
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+	However, there are two cases when that's not the right thing
+to do:
 
-Hi Mike,
+1) fault has happened in userland and we have a pending signal.  In that
+case we'd better return from fault handler immediately.
 
-On Tue, Jan 31, 2023 at 08:41:49PM +0200, Mike Rapoport wrote:
-> On Tue, Jan 31, 2023 at 05:47:24PM +0000, Conor Dooley wrote:
-> > On Sun, Jan 29, 2023 at 02:42:35PM +0200, Mike Rapoport wrote:
-> > > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> > >=20
-> > > Every architecture that supports FLATMEM memory model defines its own
-> > > version of pfn_valid() that essentially compares a pfn to max_mapnr.
-> > >=20
-> > > Use mips/powerpc version implemented as static inline as a generic
-> > > implementation of pfn_valid() and drop its per-architecture definitio=
-ns.
-> > >=20
-> > > Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
-> > > Acked-by: Arnd Bergmann <arnd@arndb.de>
-> > > Acked-by: Guo Ren <guoren@kernel.org>		# csky
-> > > Acked-by: Huacai Chen <chenhuacai@loongson.cn>	# LoongArch
-> > > Acked-by: Stafford Horne <shorne@gmail.com>	# OpenRISC
-> >=20
-> > Hmm, so this landed in linux-next today and I bisected a boot failure in
-> > my CI to it. However, I am not really sure if it is a real issue worth
-> > worrying about as the platform it triggered on is supposed to be using
-> > SPARSEMEM, but isn't.
-> > I had thought that my CI was using a config with SPARSEMEM since that
-> > became required for riscv defconfig builds to boot in v6.1-rc1, but I
-> > must have just forgotten to add it to my $platform_defconfig builds too.
-> > However, those $platform_defconfig builds continued booting without
-> > SPARSEMEM enabled until today.
->=20
-> The issue seems to be that the generic pfn_valid() does not take into
-> account pfn_offset when it compares it with max_mapnr.
-> Can you please test with the patch below?
->=20
-> diff --git a/include/asm-generic/memory_model.h b/include/asm-generic/mem=
-ory_model.h
-> index 13d2a844d928..6796abe1900e 100644
-> --- a/include/asm-generic/memory_model.h
-> +++ b/include/asm-generic/memory_model.h
-> @@ -26,7 +26,7 @@ static inline int pfn_valid(unsigned long pfn)
->  	extern unsigned long max_mapnr;
->  	unsigned long pfn_offset =3D ARCH_PFN_OFFSET;
-> =20
-> -	return pfn >=3D pfn_offset && pfn < max_mapnr;
-> +	return pfn >=3D pfn_offset && (pfn - pfn_offset) < max_mapnr;
->  }
->  #define pfn_valid pfn_valid
->  #endif
+2) fault has happened in kernel (e.g. in something like copy_from_user())
+and we have a pending *fatal* signal.  Solution is to handle that as if
+handle_mm_fault() had failed; we have come from kernel mode, so we'd
+better have an exception table entry for the fauling insn.  Find it
+and deal with it; from the copy_from_user() (or whatever it was that
+triggered our fault) caller's POV it's indistinguishable from running
+into an unmapped area, so it will fail.  The process is not going to
+survive anyway.
 
-Gave that a go, board is booting properly again! Feel free to add a:
-Tested-by: Conor Dooley <conor.dooley@microchip.com>
+Quietly returning from #PF handler in the second case is asking for
+livelock - one common case when handle_mm_fault() returns VM_FAULT_RETRY
+is when it needs to wait for page lock and gets hit by a fatal signal.
+Running into that in any uaccess primitive will end up repeating the
+faulting insn again and again, as long as we hit that case in
+handle_mm_fault().  Eventually it might get out (e.g. trylock
+manages to get page lock without hitting the "wait for it" codepath),
+but it's obviously not a good situation.
 
-Thanks for the prompt fix!
+On x86 it had been noticed and fixed back in 2014, in 26178ec11ef3 "x86:
+mm: consolidate VM_FAULT_RETRY handling".  Some of the other architectures
+had it dealt with later - e.g. arm in 2017, the fix is 746a272e44141
+"ARM: 8692/1: mm: abort uaccess retries upon fatal signal"; xtensa -
+in 2021, the fix is 7b9acbb6aad4f "xtensa: fix uaccess-related livelock
+in do_page_fault", etc.
 
-
---hiaCFsst32mLBZni
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iHUEABYIAB0WIQRh246EGq/8RLhDjO14tDGHoIJi0gUCY9lkCwAKCRB4tDGHoIJi
-0pIDAP9nc8RsXGyfp84b29PfLE6bd1djEIZ71+YYWPrhRbOT0QEAs5hvd2Aq0mES
-TzWIEs2xL7+wjwVIWLwPjr1kP0shHA0=
-=AQg2
------END PGP SIGNATURE-----
-
---hiaCFsst32mLBZni--
+However, it never had been done on a bunch of architectures - the
+current mainline still has that bug on alpha, hexagon, itanic, m68k,
+microblaze, nios2, openrisc, parisc, riscv and sparc (both sparc32 and
+sparc64).  Fixes are trivial, but I've no way to test them for most
+of those architectures.
