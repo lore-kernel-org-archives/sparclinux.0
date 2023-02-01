@@ -2,109 +2,183 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E8FAC05027
-	for <sparclinux@archiver.kernel.org>; Wed,  1 Feb 2023 19:51:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A491CC6379F
+	for <sparclinux@archiver.kernel.org>; Wed,  1 Feb 2023 22:18:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231302AbjBATv4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 1 Feb 2023 14:51:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34418 "EHLO
+        id S231714AbjBAWST (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 1 Feb 2023 17:18:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231359AbjBATvz (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 1 Feb 2023 14:51:55 -0500
-Received: from mail-ej1-x636.google.com (mail-ej1-x636.google.com [IPv6:2a00:1450:4864:20::636])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15B9D3C04
-        for <sparclinux@vger.kernel.org>; Wed,  1 Feb 2023 11:51:54 -0800 (PST)
-Received: by mail-ej1-x636.google.com with SMTP id m2so54233229ejb.8
-        for <sparclinux@vger.kernel.org>; Wed, 01 Feb 2023 11:51:54 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vLOt8Htpi1Up/DCPSKgd2HVLgjbb3KJvZ9wNHdxeIi0=;
-        b=F70AJ99pkUxssTeL0XhQsULJ+i1q3hIfT9mQJxKYXMRcGN/4hPjNKQXfjgd8TBqpBG
-         BetUorZ/VTlYCLAfd+XP2RRKW0JVrfaxYcX4T9dpsWXY9GYLSKeTv64OlMI8Kd6WjuJ/
-         BWyXoO4myVBwLlBRPvXQouhFGSPXaEWcUSKkI=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vLOt8Htpi1Up/DCPSKgd2HVLgjbb3KJvZ9wNHdxeIi0=;
-        b=lTMfsuTizJ66bYwDo1wDsnNbaAo5cZg7nWhrD1XrEymFYe0wYkKYG2GcPYqUuBf1zS
-         j/aGezQX9efGZPeKIufInMiYZJlJlo2cXjrSB93nNBU/5YPhc3uY1fFNg0FukEgg66tO
-         IKfIdFMlMyhD+1VPlAlYJociOJaSffKlnFwGtWE+b+wlL0E2eI9tdn+26Y8RsfdiNqvG
-         LMXTdBP7a9nIutj/VckLpwJgMCZ5yYKvwPqFD9U6M2g4ydbh+SLBZiixg22An27QWq3W
-         vosZIDKI5MMaZLuwenSa8VOBNrchfQ050rHqZlU5OlDsfLwnfzTzIUCCS5ZukOrNJqqS
-         gxNw==
-X-Gm-Message-State: AO0yUKVhh3WMoodWrQJiugzjgIdmHMkoQfNhlbsDEMiek0qlDUcKSCPL
-        gvjMVBnKnVoNtVdxil8vwR/lJ1ju8OYuFLIE9+o=
-X-Google-Smtp-Source: AK7set+Ocupp6AIxh8u8M9je2Mb/TIBjp0oM0vH2TIzeAyPyaDq+bVDXRLVf5zr0Nt9ccJZxqWkITw==
-X-Received: by 2002:a17:907:8745:b0:882:82b3:58bc with SMTP id qo5-20020a170907874500b0088282b358bcmr4193018ejc.65.1675281112341;
-        Wed, 01 Feb 2023 11:51:52 -0800 (PST)
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com. [209.85.218.50])
-        by smtp.gmail.com with ESMTPSA id m21-20020a1709062b9500b0086621d9d9b0sm10398446ejg.81.2023.02.01.11.51.51
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 01 Feb 2023 11:51:51 -0800 (PST)
-Received: by mail-ej1-f50.google.com with SMTP id mf7so35972422ejc.6
-        for <sparclinux@vger.kernel.org>; Wed, 01 Feb 2023 11:51:51 -0800 (PST)
-X-Received: by 2002:a17:906:f8d4:b0:878:51a6:ff35 with SMTP id
- lh20-20020a170906f8d400b0087851a6ff35mr995069ejb.43.1675281111261; Wed, 01
- Feb 2023 11:51:51 -0800 (PST)
-MIME-Version: 1.0
-References: <Y9lz6yk113LmC9SI@ZenIV> <CAHk-=whf73Vm2U3jyTva95ihZzefQbThZZxqZuKAF-Xjwq=G4Q@mail.gmail.com>
- <Y9mD1qp/6zm+jOME@ZenIV> <CAHk-=wjiwFzEGd_60H3nbgVB=R_8KTcfUJmXy=hSXCvLrXQRFA@mail.gmail.com>
- <8f60f7d8-3e2f-2a91-c7a3-6a005d36d7d3@gmx.de>
-In-Reply-To: <8f60f7d8-3e2f-2a91-c7a3-6a005d36d7d3@gmx.de>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 1 Feb 2023 11:51:34 -0800
-X-Gmail-Original-Message-ID: <CAHk-=whYidrLJSq80s8C0LSui_h9164cxG6WNV1M77Tk_2QFug@mail.gmail.com>
-Message-ID: <CAHk-=whYidrLJSq80s8C0LSui_h9164cxG6WNV1M77Tk_2QFug@mail.gmail.com>
-Subject: Re: [RFC][PATCHSET] VM_FAULT_RETRY fixes
-To:     Helge Deller <deller@gmx.de>
-Cc:     Al Viro <viro@zeniv.linux.org.uk>, Peter Xu <peterx@redhat.com>,
+        with ESMTP id S230373AbjBAWSS (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 1 Feb 2023 17:18:18 -0500
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3E746B46E;
+        Wed,  1 Feb 2023 14:18:16 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=HeRJm8KctCrX0oOm/Y7Yhl6b2oWkUrXelanwq9cuW04=; b=s3yDBojwIW+WM0sj9TfKGsKeVt
+        1zdWY36xsTGCDIJSSRer+NXnDlrlVZbUebN/+LRLQk0M3+EJVyJsoALTrbiZEImwAHs0f45oS9z8g
+        /PWZ7U63m3EKmuohEA5H9VFevg7AkoNZrIpQxD/4CjdnbvXiVL5HxesWGUsCEKCOfg1d+HfE4U1fp
+        pfI2jNiCFcdefEoV5mv1vReIcXZMrCnLgX7EJycvGntMjZEpBHZxtfL74GlqXuIjVmiZNck9lLThr
+        blwe/5yHxKuLVnP3D+qY95y5ndViv4oUnFbMBYnPQyeOFAIAKAt4HzRtn3naJhxRZZDhKMo5yMEsr
+        3beybxdg==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1pNLQh-005XXV-0t;
+        Wed, 01 Feb 2023 22:18:11 +0000
+Date:   Wed, 1 Feb 2023 22:18:11 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
         linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
         linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
         linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
         Dinh Nguyen <dinguyen@kernel.org>,
         openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
         linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [RFC][PATCHSET] VM_FAULT_RETRY fixes
+Message-ID: <Y9rlI6d5J2Y/YNQ+@ZenIV>
+References: <Y9lz6yk113LmC9SI@ZenIV>
+ <CAHk-=whf73Vm2U3jyTva95ihZzefQbThZZxqZuKAF-Xjwq=G4Q@mail.gmail.com>
+ <Y9mD1qp/6zm+jOME@ZenIV>
+ <CAHk-=wjiwFzEGd_60H3nbgVB=R_8KTcfUJmXy=hSXCvLrXQRFA@mail.gmail.com>
+ <Y9mM5wiEhepjJcN0@ZenIV>
+ <CAHk-=wjNwwnBckTo8HLSdsd1ndoAR=5RBoZhdOyzhsnDAYWL9g@mail.gmail.com>
+ <Y9rCBqwbLlLf1fHe@x1n>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y9rCBqwbLlLf1fHe@x1n>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 1, 2023 at 12:21 AM Helge Deller <deller@gmx.de> wrote:
->
-> AFAICS, the only applications which really care about the return
-> code are
-> - testsuites like LTP (i.e. the fstat05 testcase)
+On Wed, Feb 01, 2023 at 02:48:22PM -0500, Peter Xu wrote:
 
-Those have actually shown issues with various library implementations,
-exactly because real system calls act very differently in this area
-from library wrappers.
+> I do also see a common pattern of the possibility to have a generic fault
+> handler like generic_page_fault().
+> 
+> It probably should start with taking the mmap_sem until providing some
+> retval that is much easier to digest further by the arch-dependent code, so
+> it can directly do something rather than parsing the bitmask in a
+> duplicated way (hence the new retval should hopefully not a bitmask anymore
+> but a "what to do").
+> 
+> Maybe it can be something like:
+> 
+> /**
+>  * enum page_fault_retval - Higher level fault retval, generalized from
+>  * vm_fault_reason above that is only used by hardware page fault handlers.
+>  * It generalizes the bitmask-versioned retval into something that the arch
+>  * dependent code should react upon.
+>  *
+>  * @PF_RET_COMPLETED:		The page fault is completed successfully
+>  * @PF_RET_BAD_AREA:		The page fault address falls in a bad area
+>  *				(e.g., vma not found, expand_stack() fails..)
 
-Things like the vdso implementation of gettimeofday() get a SIGSEGV if
-the timeval or timezone pointer is invalid, while the "real system
-call" version returns -1/EFAULT instead.
+FWIW, there's a fun discrepancy - VM_FAULT_SIGSEGV may yield SEGV_MAPERR
+or SEGV_ACCERR; depends upon the architecture.  Not that there'd been
+many places that return VM_FAULT_SIGSEGV these days...  Good thing, too,
+since otherwise e.g. csky would oops...
 
-And very similar things happen when glibc ends up wrapping system
-calls and converting buffers manually. At some point, glibc had a
-special 'struct stat' and basically converted the native system call
-to it, so you did 'stat()' on something, and it ended up actually
-using a private on-stack buffer for the system call, followed by a
-"convert that kernel 'struct stat' to the glibc 'struct stat'" phase.
-So once again, instead of -1/EFAULT, you'd first have a successful
-system call, and then get a SIGSEGV  in glibc.
+>  * @PF_RET_ACCESS_ERR:		The page fault has access errors
+>  *				(e.g., write fault on !VM_WRITE vmas)
+>  * @PF_RET_KERN_FIXUP:		The page fault requires kernel fixups
+>  *				(e.g., during copy_to_user() but fault failed?)
+>  * @PF_RET_HWPOISON:		The page fault encountered poisoned pages
+>  * @PF_RET_SIGNAL:		The page fault encountered poisoned pages
 
-And as you say, test suites would notice. But no actual normal app
-would ever care.
+??
 
-Of course, there's always the abnormal apps. There _are_ the odd cases
-that actually catch faults and fix them up, and can then be confused
-by changes like that.
+>  * ...
+>  */
+> enum page_fault_retval {
+> 	PF_RET_DONE = 0,
+> 	PF_RET_BAD_AREA,
+> 	PF_RET_ACCESS_ERR,
+> 	PF_RET_KERN_FIXUP,
+>         PF_RET_HWPOISON,
+>         PF_RET_SIGNAL,
+> 	...
+> };
+> 
+> As a start we may still want to return some more information (perhaps still
+> the vm_fault_t alongside?  Or another union that will provide different
+> information based on different PF_RET_*).  One major thing is I see how we
+> handle VM_FAULT_HWPOISON and also the fact that we encode something more
+> into the bitmask on page sizes (VM_FAULT_HINDEX_MASK).
+> 
+> So the generic helper could, hopefully, hide the complexity of:
+> 
+>   - Taking and releasing of mmap lock
+>   - find_vma(), and also relevant checks on access or stack handling
 
-It's very very rare, but it happens - things like emulators do tend to
-do some really strange things.
+Umm...  arm is a bit special here:
+                if (addr < FIRST_USER_ADDRESS)
+			return VM_FAULT_BADMAP;
+with no counterparts elsewhere.
 
-         Linus
+>   - handle_mm_fault() itself (of course...)
+>   - detect signals
+>   - handle page fault retries (so, in the new layer of retval there should
+>     have nothing telling it to retry; it should always be the ultimate result)
+
+agreed.
+
+    - unlock mmap; don't leave that to caller.
+
+>   - parse different errors into "what the arch code should do", and
+>     generalize the common ones, e.g.
+>     - OOM, do pagefault_out_of_memory() for user-mode
+>     - VM_FAULT_SIGSEGV, which should be able to merge into PF_RET_BAD_AREA?
+>     - ...
+
+AFAICS, all errors in kernel mode => no_context.
+
+> It'll simplify things if we can unify some small details like whether the
+> -EFAULT above should contain a sigbus.
+> 
+> A trivial detail I found when I was looking at this is, x86_64 passes in
+> different signals to kernelmode_fixup_or_oops() - in do_user_addr_fault()
+> there're three call sites and each of them pass over a differerent signal.
+> IIUC that will only make a difference if there's a nested page fault during
+> the vsyscall emulation (but I may be wrong too because I'm new to this
+> code), and I have no idea when it'll happen and whether that needs to be
+> strictly followed.
+
+From my (very incomplete so far) dig through that pile:
+	Q: do we still have the cases when handle_mm_fault() does
+not return any of VM_FAULT_COMPLETED | VM_FAULT_RETRY | VM_FAULT_ERROR?
+That gets treated as unlock + VM_FAULT_COMPLETED, but do we still need
+that?
+	Q: can VM_FAULT_RETRY be mixed with anything in VM_FAULT_ERROR?
+What locking, if that happens?
+	* details of storing the fault details (for ptrace, mostly)
+vary a lot; no chance to unify, AFAICS.
+	* requirements for vma flags also differ; e.g. read fault on
+alpha is explicitly OK with absence of VM_READ if VM_WRITE is there.
+Probably should go by way of arm and pass the mask that must
+have non-empty intersection with vma->vm_flags?  Because *that*
+is very likely to be a part of ABI - mmap(2) callers that rely
+upon the flags being OK for given architecture are quite possible.
+	* mmap lock is also quite variable in how it's taken;
+x86 and arm have fun dance with trylock/search for exception handler/etc.
+Other architectures do not; OTOH, there's a prefetch stuck in itanic
+variant, with comment about mmap_sem being performance-critical...
+	* logics for stack expansion includes this twist:
+        if (!(vma->vm_flags & VM_GROWSDOWN))
+                goto map_err;
+        if (user_mode(regs)) {
+                /* Accessing the stack below usp is always a bug.  The
+                   "+ 256" is there due to some instructions doing
+                   pre-decrement on the stack and that doesn't show up
+                   until later.  */
+                if (address + 256 < rdusp())
+                        goto map_err;
+        }
+        if (expand_stack(vma, address))
+                goto map_err;
+That's m68k; ISTR similar considerations elsewhere, but I could be
+wrong.
