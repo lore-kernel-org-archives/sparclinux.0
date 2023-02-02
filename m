@@ -2,117 +2,105 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 83B1DC636CD
-	for <sparclinux@archiver.kernel.org>; Thu,  2 Feb 2023 00:57:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C262C64EC7
+	for <sparclinux@archiver.kernel.org>; Thu,  2 Feb 2023 18:09:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229612AbjBBA5Q (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 1 Feb 2023 19:57:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50262 "EHLO
+        id S232375AbjBBSJM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 2 Feb 2023 13:09:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50636 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229916AbjBBA5P (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 1 Feb 2023 19:57:15 -0500
-Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D8DE95CD02;
-        Wed,  1 Feb 2023 16:57:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=JxMhQfqfZFKjqgX5e6WFjusNEH9w7UJyidC9GBl0BFE=; b=j7zrUF5m9QNeSdthOmzY2TpKll
-        qPTRkZ/xmNsbI8HChk9xVt34XGsY89y73qsr5zxE8DZeUfti8whyBfVk+Ab+kjUnuReBRNDafmDAX
-        /H78PrFrIrMaoRB9EbZbRJ4Zs7Jenz2oKhC7KateHZc+FvE4EURfaz4BFJx0r55ZQo1Vi5FrSgDFI
-        yYZWY8336bh2CFJag9KhZHfpHAP/3O0kEIxOVWGnOYTJtYRxmwGwCH3+tArIpGL0USY+brYn81wps
-        j1g4I7ez2NpxUerl3TovY+NE3eudMkGv9kBRvPwB8LQ6bXEAiIhDkDZeu/6wMFaHrstuWijmeUQlM
-        aZbRGRgw==;
-Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
-        id 1pNNuX-005ZAk-1z;
-        Thu, 02 Feb 2023 00:57:09 +0000
-Date:   Thu, 2 Feb 2023 00:57:09 +0000
-From:   Al Viro <viro@zeniv.linux.org.uk>
-To:     Peter Xu <peterx@redhat.com>
-Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
-Subject: Re: [RFC][PATCHSET] VM_FAULT_RETRY fixes
-Message-ID: <Y9sKZTJI7V6qCNRJ@ZenIV>
-References: <Y9lz6yk113LmC9SI@ZenIV>
- <CAHk-=whf73Vm2U3jyTva95ihZzefQbThZZxqZuKAF-Xjwq=G4Q@mail.gmail.com>
- <Y9mD1qp/6zm+jOME@ZenIV>
- <CAHk-=wjiwFzEGd_60H3nbgVB=R_8KTcfUJmXy=hSXCvLrXQRFA@mail.gmail.com>
- <Y9mM5wiEhepjJcN0@ZenIV>
- <CAHk-=wjNwwnBckTo8HLSdsd1ndoAR=5RBoZhdOyzhsnDAYWL9g@mail.gmail.com>
- <Y9rCBqwbLlLf1fHe@x1n>
- <Y9rlI6d5J2Y/YNQ+@ZenIV>
+        with ESMTP id S232116AbjBBSJJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 2 Feb 2023 13:09:09 -0500
+Received: from ms.lwn.net (ms.lwn.net [IPv6:2600:3c01:e000:3a1::42])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7D9EA6DFD7;
+        Thu,  2 Feb 2023 10:09:08 -0800 (PST)
+Received: from localhost (unknown [IPv6:2601:281:8300:73::5f6])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ms.lwn.net (Postfix) with ESMTPSA id 48D347DE;
+        Thu,  2 Feb 2023 18:09:05 +0000 (UTC)
+DKIM-Filter: OpenDKIM Filter v2.11.0 ms.lwn.net 48D347DE
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=lwn.net; s=20201203;
+        t=1675361345; bh=2+a4mZYwqT3vzf0UQzfkcA5CdDxOuo7YvzN9jr8nkig=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=gY7ULbf3et5D4Qc/CNx/w7sCxqXxX6fR0sNacSV7nefpdle702hp6si3iizN6qwiE
+         uEIY7Q78a9h2RN4xfonCmMXE/H1WHGv23zZbRY3a8TD9z3xCs5/ly7iH92i4XVhMfk
+         m1+3SrM+pmOm5qUcXvYL8szbXDpSICOPir4Ff+tNZ80bHoZS0uhfOu3aabBosNVFfP
+         7pgupe9C5u4Sz6v8uZtM64S9OiXXXwx07OTa5szwYHdV6XxaRnf+mq/MpKQwaSbzh0
+         jfCb5rfx6sWATpmne99lGmlwL/b8o+ggGmLTspO1j2VtBWLoL4M3uxU9erIgFeIYC3
+         b3TsgnsFP3UgQ==
+From:   Jonathan Corbet <corbet@lwn.net>
+To:     Randy Dunlap <rdunlap@infradead.org>, linux-kernel@vger.kernel.org
+Cc:     Randy Dunlap <rdunlap@infradead.org>, linux-doc@vger.kernel.org,
+        Tejun Heo <tj@kernel.org>, Zefan Li <lizefan.x@bytedance.com>,
+        Johannes Weiner <hannes@cmpxchg.org>, cgroups@vger.kernel.org,
+        Alasdair Kergon <agk@redhat.com>,
+        Mike Snitzer <snitzer@kernel.org>, dm-devel@redhat.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-mm@kvack.org,
+        Dan Williams <dan.j.williams@intel.com>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Dave Jiang <dave.jiang@intel.com>, nvdimm@lists.linux.dev,
+        Vinod Koul <vkoul@kernel.org>, dmaengine@vger.kernel.org,
+        Song Liu <song@kernel.org>, linux-raid@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org, Jean Delvare <jdelvare@suse.com>,
+        Guenter Roeck <linux@roeck-us.net>,
+        linux-hwmon@vger.kernel.org, Jiri Pirko <jiri@nvidia.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>, netdev@vger.kernel.org,
+        "Paul E. McKenney" <paulmck@kernel.org>,
+        Frederic Weisbecker <frederic@kernel.org>,
+        Neeraj Upadhyay <quic_neeraju@quicinc.com>,
+        Josh Triplett <josh@joshtriplett.org>, rcu@vger.kernel.org,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        linux-scsi@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH 0/9] Documentation: correct lots of spelling errors
+ (series 2)
+In-Reply-To: <20230129231053.20863-1-rdunlap@infradead.org>
+References: <20230129231053.20863-1-rdunlap@infradead.org>
+Date:   Thu, 02 Feb 2023 11:09:04 -0700
+Message-ID: <875yckvt1b.fsf@meer.lwn.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Y9rlI6d5J2Y/YNQ+@ZenIV>
-Sender: Al Viro <viro@ftp.linux.org.uk>
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 01, 2023 at 10:18:11PM +0000, Al Viro wrote:
-> 	* logics for stack expansion includes this twist:
->         if (!(vma->vm_flags & VM_GROWSDOWN))
->                 goto map_err;
->         if (user_mode(regs)) {
->                 /* Accessing the stack below usp is always a bug.  The
->                    "+ 256" is there due to some instructions doing
->                    pre-decrement on the stack and that doesn't show up
->                    until later.  */
->                 if (address + 256 < rdusp())
->                         goto map_err;
->         }
->         if (expand_stack(vma, address))
->                 goto map_err;
-> That's m68k; ISTR similar considerations elsewhere, but I could be
-> wrong.
+Randy Dunlap <rdunlap@infradead.org> writes:
 
-Hell, yes - 
-        if (!(vma->vm_flags & VM_GROWSDOWN))
-                goto bad_area;
-        if (!(fault_code & FAULT_CODE_WRITE)) {
-                /* Non-faulting loads shouldn't expand stack. */
-                insn = get_fault_insn(regs, insn);
-                if ((insn & 0xc0800000) == 0xc0800000) {
-                        unsigned char asi;
+> Maintainers of specific kernel subsystems are only Cc-ed on their
+> respective patches, not the entire series. [if all goes well]
+>
+> These patches are based on linux-next-20230127.
 
-                        if (insn & 0x2000)
-                                asi = (regs->tstate >> 24);
-                        else
-                                asi = (insn >> 5);
-                        if ((asi & 0xf2) == 0x82)
-                                goto bad_area;
-                }
-        }
-        if (expand_stack(vma, address))
-                goto bad_area;
+So I've applied a bunch of these
 
-Note that it's very much not a bug - it's a nonfaulting (== speculative)
-load, and the place where we are heading from bad_area in this case is
-this in do_kernel_fault():
-        if (!(fault_code & (FAULT_CODE_WRITE|FAULT_CODE_ITLB)) &&
-            (insn & 0xc0800000) == 0xc0800000) {
-                if (insn & 0x2000)
-                        asi = (regs->tstate >> 24);
-                else  
-                        asi = (insn >> 5);
-                if ((asi & 0xf2) == 0x82) {
-                        if (insn & 0x1000000) {
-                                handle_ldf_stq(insn, regs);
-                        } else {
-                                /* This was a non-faulting load. Just clear the
-                                 * destination register(s) and continue with the next
-                                 * instruction. -jj
-                                 */
-                                handle_ld_nf(insn, regs);
-                        }
-                        return;
+>  [PATCH 1/9] Documentation: admin-guide: correct spelling
+>  [PATCH 2/9] Documentation: driver-api: correct spelling
 
-(the name is misguiding - it covers userland stuff as well; in this
-particular case the triggering instruction is non-priveleged)
+applied
+
+>  [PATCH 3/9] Documentation: hwmon: correct spelling
+>  [PATCH 4/9] Documentation: networking: correct spelling
+>  [PATCH 5/9] Documentation: RCU: correct spelling
+
+These have been taken up elsewhere
+
+>  [PATCH 6/9] Documentation: scsi/ChangeLog*: correct spelling
+>  [PATCH 7/9] Documentation: scsi: correct spelling
+
+I've left these for the SCSI folks for now.  Do we *really* want to be
+fixing spelling in ChangeLog files from almost 20 years ago?
+
+>  [PATCH 8/9] Documentation: sparc: correct spelling
+>  [PATCH 9/9] Documentation: userspace-api: correct spelling
+
+Applied.
+
+Thanks,
+
+jon
