@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D088C6379F
-	for <sparclinux@archiver.kernel.org>; Fri,  3 Feb 2023 22:06:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 465B8C636CC
+	for <sparclinux@archiver.kernel.org>; Fri,  3 Feb 2023 22:06:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233935AbjBCWGb (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 3 Feb 2023 17:06:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56446 "EHLO
+        id S230042AbjBCWGd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 3 Feb 2023 17:06:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56654 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233944AbjBCWF4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 17:05:56 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2BC74AE863;
-        Fri,  3 Feb 2023 14:05:55 -0800 (PST)
+        with ESMTP id S233960AbjBCWF6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 17:05:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C3A6AF0F4;
+        Fri,  3 Feb 2023 14:05:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D7CDFB82C2C;
-        Fri,  3 Feb 2023 22:05:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C77A1C433AC;
-        Fri,  3 Feb 2023 22:05:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D802562029;
+        Fri,  3 Feb 2023 22:05:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8EA0FC4339C;
+        Fri,  3 Feb 2023 22:05:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675461952;
-        bh=RidcRJTauwsqeDLmerjxLqYVUI6XglY5CdcD8pSGztk=;
+        s=k20201202; t=1675461956;
+        bh=c/F3dYyrvAqz6wprj56ksl9t+Sypivhl5og5kpg5L6s=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=KXcNjXr1EZwGdeCXF6ct6qrEpj3XinY2X/TflAyD28fSnn1mIajf3vnubeZTGtUQl
-         l0yW410nwCLxoQgmdOi/cbdDfcTaTxEU5p3jduOutHsGegq8ZkNTFQpISTnoZsLy+P
-         QJnNOP7BHtikfMhdewJX2qeGyqyndO4WiZFm7Hw5CT9gPoXGP1c8PNd9LJWkPnyEf5
-         hkukFHzBIj0I5cMXibGKpPgHvkLlY++ZIYHcgNg8m5O45ONtbFtyexgjlNUBk3ArXY
-         2hvh9/Uq9Yk9bB50FB/IDGjk6U8WNpCVvt4vC6pZpbS7VMSsHlXGeiL3pK6jZtLrun
-         QX2FcRMDD2dFQ==
+        b=tptDeVHqMjvz4+S0iYtQ6xPGjXx4/3Ccw0/deBnVQWH7nF/I1PUzMSxGVylz0Dgty
+         AzsbQwHn8cZPxBUugokyhG+G0x2v6NoabtKRTQA82/NRgKmcfhf6btWGLkhuu4gvDr
+         iPy6MN24l25pW+tYGwzziJgtrgbb/FUXeFjmOjDxILCnJVSlMUDQj2lEcR3JRnIesk
+         Dw5PWj95Y97QxX9ZAyCSFBPbOnnhyZPRJSQlNLCo9O1M5lihchoQsVEP5LMfayPIdB
+         kkNaXSVZQ/FMqtdgmpcj9piJkDTn0P0bTWRd5a6/2HOK7g3HyTWXT6NY4jitXMiTqa
+         uDGktzLGFC0eg==
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     jgross@suse.com, richard.henderson@linaro.org,
@@ -53,9 +53,9 @@ Cc:     jgross@suse.com, richard.henderson@linaro.org,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: [PATCH 06/22] ia64/cpu: Mark play_dead() __noreturn
-Date:   Fri,  3 Feb 2023 14:05:15 -0800
-Message-Id: <23142556bf02b84f108e17cda731d48449ce1532.1675461757.git.jpoimboe@kernel.org>
+Subject: [PATCH 08/22] loongarch/cpu: Mark play_dead() __noreturn
+Date:   Fri,  3 Feb 2023 14:05:17 -0800
+Message-Id: <7b6c893031048242da4a7256cd5da876292b8abb.1675461757.git.jpoimboe@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <cover.1675461757.git.jpoimboe@kernel.org>
 References: <cover.1675461757.git.jpoimboe@kernel.org>
@@ -71,31 +71,22 @@ also makes arch_cpu_idle_dead() noreturn.
 
 Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
 ---
- arch/ia64/kernel/process.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/loongarch/include/asm/smp.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/ia64/kernel/process.c b/arch/ia64/kernel/process.c
-index f6195a0a00ae..78f5794b2dde 100644
---- a/arch/ia64/kernel/process.c
-+++ b/arch/ia64/kernel/process.c
-@@ -201,7 +201,7 @@ __setup("nohalt", nohalt_setup);
- 
- #ifdef CONFIG_HOTPLUG_CPU
- /* We don't actually take CPU down, just spin without interrupts. */
--static inline void play_dead(void)
-+static inline void __noreturn play_dead(void)
- {
- 	unsigned int this_cpu = smp_processor_id();
- 
-@@ -219,7 +219,7 @@ static inline void play_dead(void)
- 	BUG();
+diff --git a/arch/loongarch/include/asm/smp.h b/arch/loongarch/include/asm/smp.h
+index d82687390b4a..416b653bccb4 100644
+--- a/arch/loongarch/include/asm/smp.h
++++ b/arch/loongarch/include/asm/smp.h
+@@ -99,7 +99,7 @@ static inline void __cpu_die(unsigned int cpu)
+ 	loongson_cpu_die(cpu);
  }
- #else
--static inline void play_dead(void)
-+static inline void __noreturn play_dead(void)
- {
- 	BUG();
- }
+ 
+-extern void play_dead(void);
++extern void __noreturn play_dead(void);
+ #endif
+ 
+ #endif /* __ASM_SMP_H */
 -- 
 2.39.0
 
