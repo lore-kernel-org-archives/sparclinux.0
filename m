@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC2FAC61DA4
-	for <sparclinux@archiver.kernel.org>; Fri,  3 Feb 2023 22:08:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1CB1AC6379F
+	for <sparclinux@archiver.kernel.org>; Fri,  3 Feb 2023 22:08:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234138AbjBCWIx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 3 Feb 2023 17:08:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58186 "EHLO
+        id S234141AbjBCWIz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 3 Feb 2023 17:08:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57714 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232978AbjBCWIJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 17:08:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53F96A77BC;
-        Fri,  3 Feb 2023 14:06:32 -0800 (PST)
+        with ESMTP id S233533AbjBCWIF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 17:08:05 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [145.40.73.55])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D939AF0DE;
+        Fri,  3 Feb 2023 14:06:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 33CE562033;
-        Fri,  3 Feb 2023 22:06:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBA2EC433D2;
-        Fri,  3 Feb 2023 22:06:18 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id F4222CE31C3;
+        Fri,  3 Feb 2023 22:06:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3DF46C4339C;
+        Fri,  3 Feb 2023 22:06:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675461980;
-        bh=cvjRNwH2kRiWR8c5UNqBmClynEmYqcho7035VrMra1c=;
+        s=k20201202; t=1675461975;
+        bh=bXJvKHvsodpO0BPlco2s0aMLVPJi3gp9AhXx9K2v2Lo=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=mzBDKmAx5z+R9uqapSiL6Cn1VpVHH7drD5XxGu9fuiYmqLWPLl1KOVTTd69GQOZd5
-         ARPsyjFCWJ2cab/VUgVf5aLu2kjehWHFLflwHnpV4ETtShxVzGqPJj3jYZnAXjZ6vZ
-         ILdvD+LHRKRK52SNwHW1v5UeCOq0Mb/aTdvnASi6K9qK4VC6gz7+t8xuKUqURMG9ry
-         A57A0tZJ6+ElGZjnAGmS3t0NQQ386BYUrN/eXS2nP/L90dcie8kCbHpV4WPfJtZW6M
-         Rqh4LPiEGX0Wb2TD086V1ccTZQJggpkhl/Zc5pAPnq0twHUFHirhVfRcjsHHRHfB30
-         nNVhfg+wbZp4A==
+        b=k2rixxjxWrJRRyUMI/UIOonFKDfpZNhS5xd+/8CuXK0prPGkQnnv9Kfg10DIKZOUJ
+         TnQ9bBPlqmYQDrXpQSFxMhJGIKsE/V+npKts3TEZNdT8iuM0s9Iq/8P0rYPzPyZwJ4
+         Jh6lhsIXNcEbx1B5mweJ3CQge57WG2SQxBM/6jESjWiE44sc6FKSEPhym1/PqmwKMO
+         nhRytRWxyWzWSDDhS1ZWNY+LxbnIUqHAkuGjhF7/fQVzkTW/gQPTqo4uppxXJbVsVu
+         u2gxECq3yVWPrt2pTsvgswuFgQhH6K6nVThvA924uuSIhWhkbCYXj3lDMkpQXXw5sZ
+         tcWARjjzt2M+A==
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     jgross@suse.com, richard.henderson@linaro.org,
@@ -53,9 +53,9 @@ Cc:     jgross@suse.com, richard.henderson@linaro.org,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: [PATCH 21/22] sched/idle: Make sure weak version of arch_cpu_idle_dead() doesn't return
-Date:   Fri,  3 Feb 2023 14:05:30 -0800
-Message-Id: <52f887a01f8ee38fb710c915c1a3205983563736.1675461757.git.jpoimboe@kernel.org>
+Subject: [PATCH 18/22] x86/cpu: Mark play_dead() __noreturn
+Date:   Fri,  3 Feb 2023 14:05:27 -0800
+Message-Id: <6e322880a30ed582847702f400fa99f55be821d3.1675461757.git.jpoimboe@kernel.org>
 X-Mailer: git-send-email 2.39.0
 In-Reply-To: <cover.1675461757.git.jpoimboe@kernel.org>
 References: <cover.1675461757.git.jpoimboe@kernel.org>
@@ -66,26 +66,41 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-arch_cpu_idle_dead() should never return.  Make it so.
+play_dead() doesn't return.  Annotate it as such.  By extension this
+also makes arch_cpu_idle_dead() noreturn.
 
 Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
 ---
- kernel/sched/idle.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/smp.h | 2 +-
+ arch/x86/kernel/process.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
-index e9ef66be2870..56e152f06d0f 100644
---- a/kernel/sched/idle.c
-+++ b/kernel/sched/idle.c
-@@ -75,7 +75,7 @@ static noinline int __cpuidle cpu_idle_poll(void)
- void __weak arch_cpu_idle_prepare(void) { }
- void __weak arch_cpu_idle_enter(void) { }
- void __weak arch_cpu_idle_exit(void) { }
--void __weak arch_cpu_idle_dead(void) { }
-+void __weak arch_cpu_idle_dead(void) { while (1); }
- void __weak arch_cpu_idle(void)
+diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
+index 8f628e08b25a..e6d1d2810e38 100644
+--- a/arch/x86/include/asm/smp.h
++++ b/arch/x86/include/asm/smp.h
+@@ -93,7 +93,7 @@ static inline void __cpu_die(unsigned int cpu)
+ 	smp_ops.cpu_die(cpu);
+ }
+ 
+-static inline void play_dead(void)
++static inline void __noreturn play_dead(void)
  {
- 	cpu_idle_force_poll = 1;
+ 	smp_ops.play_dead();
+ 	BUG();
+diff --git a/arch/x86/kernel/process.c b/arch/x86/kernel/process.c
+index b650cde3f64d..f1ec36caf1d8 100644
+--- a/arch/x86/kernel/process.c
++++ b/arch/x86/kernel/process.c
+@@ -715,7 +715,7 @@ static bool x86_idle_set(void)
+ }
+ 
+ #ifndef CONFIG_SMP
+-static inline void play_dead(void)
++static inline void __noreturn play_dead(void)
+ {
+ 	BUG();
+ }
 -- 
 2.39.0
 
