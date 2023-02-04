@@ -2,123 +2,348 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17D90C05027
-	for <sparclinux@archiver.kernel.org>; Fri,  3 Feb 2023 22:09:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D435C61DA4
+	for <sparclinux@archiver.kernel.org>; Sat,  4 Feb 2023 00:26:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234168AbjBCWJI (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 3 Feb 2023 17:09:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56654 "EHLO
+        id S231240AbjBDA0x (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 3 Feb 2023 19:26:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33234 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233871AbjBCWIQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 17:08:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1AA32AF0FA;
-        Fri,  3 Feb 2023 14:06:34 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1361062038;
-        Fri,  3 Feb 2023 22:06:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C566CC433EF;
-        Fri,  3 Feb 2023 22:06:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675461982;
-        bh=nXrabXpKFkbXCMFjc3rmCrrnT82/WMJleHEGw691mcc=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=o8eHohITAVmxjRXNbpfeL/cd8yNdoWWWFTWag8bI9FPvrbMJMbn7FDeWO6jeb5YOD
-         09wPFTEb38+tMtIgPe9CHEcvDL5qejhmyy++aNANFxprUQblrITcsG2eqHUbL8gmjP
-         4gSQVCoZOcsy77T+LMkCLBQL3ugwMFw9fYlynnFYPAuVOyx0fjaF1UNV9fyR8q62PB
-         h633UkAqPNNQmIqlOFdeaLl3kp8E9fQrbTqg4QDEu+JRFrn1I6ApIrNEekrHOTvbXp
-         jHiZ0SPsYXyBzSGzOGZrRgHnyMS++i5x/iAEJAM5eK7R7f/TB4A4nPAJaqn+bn24YL
-         BOf5EfzEJfk4Q==
-From:   Josh Poimboeuf <jpoimboe@kernel.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     jgross@suse.com, richard.henderson@linaro.org,
-        ink@jurassic.park.msu.ru, mattst88@gmail.com,
-        linux-alpha@vger.kernel.org, linux@armlinux.org.uk,
-        linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com,
-        will@kernel.org, guoren@kernel.org, linux-csky@vger.kernel.org,
-        linux-ia64@vger.kernel.org, chenhuacai@kernel.org,
-        kernel@xen0n.name, loongarch@lists.linux.dev, f.fainelli@gmail.com,
-        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
-        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
-        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
-        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
-        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
-        paulmck@kernel.org
-Subject: [PATCH 22/22] sched/idle: Mark arch_cpu_idle_dead() __noreturn
-Date:   Fri,  3 Feb 2023 14:05:31 -0800
-Message-Id: <2eeb4425572785d1f05d8761dba1cf88c2105304.1675461757.git.jpoimboe@kernel.org>
-X-Mailer: git-send-email 2.39.0
-In-Reply-To: <cover.1675461757.git.jpoimboe@kernel.org>
-References: <cover.1675461757.git.jpoimboe@kernel.org>
+        with ESMTP id S231593AbjBDA0u (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 19:26:50 -0500
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26A5B8E6A5;
+        Fri,  3 Feb 2023 16:26:44 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=X1SywhkHbG+zrm/9j112oMCqd94g661HYfNMjX5RclA=; b=l22rn3Nv6NXWTGOgkjEtnA2GLe
+        gE6yjykTrey8R5abzO4M+LY1/1bP94RD/4pRww8GIABSPDrmpY/QNLF6mhIU0YTLPwvuTA9mYQ5DL
+        Z0V+zPIrOBzTzBaaBmzopE0gOhN0hl4voghRUCwzhOR8eB8juSVP6sLogXt97BOp8bqkUBF6uNESd
+        5OwrUzL1nXumwVYN5P62it0hP/GEVLEbSk4gLKR5NwzpyssdlKx4824Kt4N8R7LhTKKVHTuly09mW
+        kYKHF8mB2qbWNOpmHBTVhgnJBGzhR6g66/+qHmyoq2gHxoV+N82EC9zgsyLrSUOVGtLj5O9zsjJH8
+        4WRuP7wA==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1pO6O7-0064I1-1l;
+        Sat, 04 Feb 2023 00:26:39 +0000
+Date:   Sat, 4 Feb 2023 00:26:39 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
+Subject: Re: [RFC][PATCHSET] VM_FAULT_RETRY fixes
+Message-ID: <Y92mP1GT28KfnPEQ@ZenIV>
+References: <Y9lz6yk113LmC9SI@ZenIV>
+ <CAHk-=whf73Vm2U3jyTva95ihZzefQbThZZxqZuKAF-Xjwq=G4Q@mail.gmail.com>
+ <Y9mD1qp/6zm+jOME@ZenIV>
+ <CAHk-=wjiwFzEGd_60H3nbgVB=R_8KTcfUJmXy=hSXCvLrXQRFA@mail.gmail.com>
+ <Y9mM5wiEhepjJcN0@ZenIV>
+ <CAHk-=wjNwwnBckTo8HLSdsd1ndoAR=5RBoZhdOyzhsnDAYWL9g@mail.gmail.com>
+ <Y9rCBqwbLlLf1fHe@x1n>
+ <Y9rlI6d5J2Y/YNQ+@ZenIV>
+ <Y9w/lrL6g4yauXz4@x1n>
 MIME-Version: 1.0
-Content-type: text/plain
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y9w/lrL6g4yauXz4@x1n>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Before commit 076cbf5d2163 ("x86/xen: don't let xen_pv_play_dead()
-return"), in Xen, when a previously offlined CPU was brought back
-online, it unexpectedly resumed execution where it left off in the
-middle of the idle loop.
+On Thu, Feb 02, 2023 at 05:56:22PM -0500, Peter Xu wrote:
 
-There were some hacks to make that work, but the behavior was surprising
-as do_idle() doesn't expect an offlined CPU to return from the dead (in
-arch_cpu_idle_dead()).
+> IMHO it'll be merely impossible to merge things across most (if not to say,
+> all) archs.  It will need to be start from one or at least a few that still
+> shares a major common base - I would still rely on x86 as a start - then we
+> try to use the helper in as much archs as possible.
+> 
+> Even on x86, I do also see challenges so I'm not sure whether a common
+> enough routine can be abstracted indeed.  But I believe there's a way to do
+> this because obviously we still see tons of duplicated logics falling
+> around.  It may definitely need time to think out where's the best spot to
+> start, and how to gradually move towards covering more archs starting from
+> one.
 
-Now that Xen has been fixed, and the arch-specific implementations of
-arch_cpu_idle_dead() also don't return, give it a __noreturn attribute.
+FWIW, after going through everything from alpha to loongarch (in alphabetic
+order, skipping the itanic) the following seems to be suitable for all of
+them:
 
-This will cause the compiler to complain if an arch-specific
-implementation might return.  It also improves code generation for both
-caller and callee.
+generic_fault(address, flags, vm_flags, regs)
+{
+	struct mm_struct *mm = current->mm;
+	struct vm_area_struct *vma;
+	vm_fault_t fault;
 
-Also fixes the following warning:
+	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
 
-  vmlinux.o: warning: objtool: do_idle+0x25f: unreachable instruction
+	if (unlikely(!mmap_read_trylock(mm))) {
+		if (!(flags & FAULT_FLAG_USER) &&
+		    !search_exception_tables(instruction_pointer(regs))) {
+			/*
+			 * Fault from code in kernel from
+			 * which we do not expect faults.
+			 */
+			return KERN;
+		}
+retry:
+		mmap_read_lock(mm);
+	} else {
+		might_sleep();
+#ifdef CONFIG_DEBUG_VM
+		if (!(flags & FAULT_FLAG_USER) &&
+		    !search_exception_tables(instruction_pointer(regs)))
+			return KERN;
+#endif
+	}
+	vma = find_vma(mm, address);
+	if (!vma)
+		goto Eunmapped;
+	if (unlikely(vma->vm_start > address)) {
+		if (!(vma->vm_flags & VM_GROWSDOWN))
+			goto Eunmapped;
+		if (addr < FIRST_USER_ADDRESS)
+			goto Eunmapped;
+		if (expand_stack(vma, address))
+			goto Eunmapped;
+	}
 
-Reported-by: Paul E. McKenney <paulmck@kernel.org>
-Tested-by: Paul E. McKenney <paulmck@kernel.org>
-Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
----
- include/linux/cpu.h   | 2 +-
- tools/objtool/check.c | 1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+	/* Ok, we have a good vm_area for this memory access, so
+	   we can handle it.  */
+	if (!(vma->vm_flags & vm_flags))
+		goto Eaccess;
 
-diff --git a/include/linux/cpu.h b/include/linux/cpu.h
-index f83e4519c5f0..8582a7142623 100644
---- a/include/linux/cpu.h
-+++ b/include/linux/cpu.h
-@@ -182,7 +182,7 @@ void arch_cpu_idle(void);
- void arch_cpu_idle_prepare(void);
- void arch_cpu_idle_enter(void);
- void arch_cpu_idle_exit(void);
--void arch_cpu_idle_dead(void);
-+void __noreturn arch_cpu_idle_dead(void);
- 
- int cpu_report_state(int cpu);
- int cpu_check_up_prepare(int cpu);
-diff --git a/tools/objtool/check.c b/tools/objtool/check.c
-index 0f67c6a8bc98..e3fa2279d612 100644
---- a/tools/objtool/check.c
-+++ b/tools/objtool/check.c
-@@ -167,6 +167,7 @@ static bool __dead_end_function(struct objtool_file *file, struct symbol *func,
- 		"__reiserfs_panic",
- 		"__stack_chk_fail",
- 		"__ubsan_handle_builtin_unreachable",
-+		"arch_cpu_idle_dead",
- 		"cpu_bringup_and_idle",
- 		"cpu_startup_entry",
- 		"do_exit",
--- 
-2.39.0
+	/* If for any reason at all we couldn't handle the fault,
+	   make sure we exit gracefully rather than endlessly redo
+	   the fault.  */
+	fault = handle_mm_fault(vma, address, flags, regs);
 
+	if (unlikely(fault & VM_FAULT_RETRY)) {
+		if (!(flags & FAULT_FLAG_USER)) {
+			if (fatal_signal_pending(current))
+				return KERN;
+		} else {
+			if (signal_pending(current))
+				return FOAD;
+		}
+		flags |= FAULT_FLAG_TRIED;
+		goto retry;
+	}
+
+	if (fault & VM_FAULT_COMPLETED)
+		return DONE;
+
+	mmap_read_unlock(mm);
+
+	if (likely(!(fault & VM_FAULT_ERROR)))
+		return DONE;
+
+	if (!(flags & FAULT_FLAG_USER))
+		return KERN;
+
+	if (fault & VM_FAULT_OOM) {
+		pagefault_out_of_memory();
+		return FOAD;
+	}
+
+	if (fault & VM_FAULT_SIGSEGV)
+		return SIGSEGV;
+
+	if (fault & VM_FAULT_SIGBUS)
+		return SIGBUS;
+
+	if (fault & VM_FAULT_HWPOISON)
+		return POISON + PAGE_SHIFT;	// POISON == 256
+
+	if (fault & VM_FAULT_HWPOISON_LARGE)
+		return POISON + hstate_index_to_shift(VM_FAULT_GET_HINDEX(fault));
+
+	BUG();
+
+Eunmapped:
+	mmap_read_unlock(mm);
+	return flags & FAULT_FLAG_USER ? MAPERR : KERN;
+Eaccess:
+	mmap_read_unlock(mm);
+	return flags & FAULT_FLAG_USER ? ACCERR : KERN;
+}
+
+possible return values (and that's obviously not the identifiers to be
+used for real; for now I'm just looking for feasibility of it all):
+	DONE		success, nothing else to be done
+	FOAD		OOM/fatal signal with VM_FAULT_RETRY/
+			signal with VM_FAULT_RETRY from userland - nothing
+			to be done here.
+	KERN		kernel mode failed fault, fixup or oops
+	MAPERR		unmapped address, SIGSEGV/SEGV_MAPERR for you
+	ACCERR		nothing in vm_flags present in ->vm_flags of vma;
+			SIGSEGV/SEGV_ACCERR
+	SIGSEGV		VM_FAULT_SIGSEGV; some architectures treat that
+			as SEGV_MAPERR, some as SEGV_ACCERR.
+	SIGBUS		VM_FAULT_SIGBUS; SIGBUS/BUS_ADRERR
+	POISON + shift	VM_FAULT_HWPOISON and VM_FAULT_HWPOISON_LARGE, with
+			log2(affected page size) encoded into return value.
+
+This is obviously not even close to final helper, but... alpha, arc, arm, arm64,
+csky, hexagon, loongarch convert to that cleanly.
+
+Itanic very much does not (due to weird dual stacks, awful address space layout,
+etc.), but then git rm arch/ia64 is long overdue.
+
+Fairly typical look after conversion:
+
+arc: 
+{
+	struct task_struct *tsk = current;
+	struct mm_struct *mm = tsk->mm;
+	unsigned int mask;
+	unsigned int flags;
+	unsigned int res;
+
+	/*
+	 * NOTE! We MUST NOT take any locks for this case. We may
+	 * be in an interrupt or a critical region, and should
+	 * only copy the information from the master page table,
+	 * nothing more.
+	 */
+	if (address >= VMALLOC_START && !user_mode(regs)) {
+		if (unlikely(handle_kernel_vaddr_fault(address)))
+			goto no_context;
+		else
+			return;
+	}
+
+	/*
+	 * If we're in an interrupt or have no user
+	 * context, we must not take the fault..
+	 */
+	if (faulthandler_disabled() || !mm)
+		goto no_context;
+
+	flags = FAULT_FLAG_DEFAULT;
+	if (user_mode(regs))
+		flags |= FAULT_FLAG_USER;
+	mask = VM_READ;
+	if (regs->ecr_cause & ECR_C_PROTV_STORE) {	/* ST/EX */
+		flags |= FAULT_FLAG_WRITE;
+		mask = VM_WRITE;
+	} else if ((regs->ecr_vec == ECR_V_PROTV) &&
+	         (regs->ecr_cause == ECR_C_PROTV_INST_FETCH)) {
+		mask = VM_EXEC;
+	}
+
+	res = generic_fault(address, flags, mask, regs);
+	if (likely(res == DONE))
+		return;
+	if (res == FOAD)
+		return;
+	if (res == KERN) {
+no_context:
+		if (fixup_exception(regs))
+			return;
+		die("Oops", regs, address);
+	}
+
+	tsk->thread.fault_address = address;
+	if (res == SIGBUS)
+		force_sig_fault(SIGBUS, BUS_ADRERR, (void __user *) address);
+	else
+		force_sig_fault(SIGSEGV, res == ACCERR ? SEGV_ACCERR : SEGV_MAPERR,
+				(void __user *) address);
+}
+
+Or this arm64:
+
+{
+	const struct fault_info *inf;
+	struct mm_struct *mm = current->mm;
+	unsigned long vm_flags;
+	unsigned int mm_flags = FAULT_FLAG_DEFAULT;
+	unsigned long addr = untagged_addr(far);
+	unsigned int res;
+
+	if (kprobe_page_fault(regs, esr))
+		return 0;
+
+	/*
+	 * If we're in an interrupt or have no user context, we must not take
+	 * the fault.
+	 */
+	if (faulthandler_disabled() || !mm)
+		goto no_context;
+
+	if (user_mode(regs))
+		mm_flags |= FAULT_FLAG_USER;
+
+	/*
+	 * vm_flags tells us what bits we must have in vma->vm_flags
+	 * for the fault to be benign, __do_page_fault() would check
+	 * vma->vm_flags & vm_flags and returns an error if the
+	 * intersection is empty
+	 */
+	if (is_el0_instruction_abort(esr)) {
+		/* It was exec fault */
+		vm_flags = VM_EXEC;
+		mm_flags |= FAULT_FLAG_INSTRUCTION;
+	} else if (is_write_abort(esr)) {
+		/* It was write fault */
+		vm_flags = VM_WRITE;
+		mm_flags |= FAULT_FLAG_WRITE;
+	} else {
+		/* It was read fault */
+		vm_flags = VM_READ;
+		/* Write implies read */
+		vm_flags |= VM_WRITE;
+		/* If EPAN is absent then exec implies read */
+		if (!cpus_have_const_cap(ARM64_HAS_EPAN))
+			vm_flags |= VM_EXEC;
+	}
+
+	if (is_ttbr0_addr(addr) && is_el1_permission_fault(addr, esr, regs)) {
+		if (is_el1_instruction_abort(esr))
+			die_kernel_fault("execution of user memory",
+					 addr, esr, regs);
+
+		if (!search_exception_tables(regs->pc))
+			die_kernel_fault("access to user memory outside uaccess routines",
+					 addr, esr, regs);
+	}
+
+	res = generic_fault(addr, mm_flags, vm_flags, regs);
+	if (likely(res == DONE))
+		return 0;
+	if (res == FOAD)
+		return 0;
+	if (res == KERN) {
+no_context:
+		__do_kernel_fault(addr, esr, regs);
+		return 0;
+	}
+	inf = esr_to_fault_info(esr);
+	set_thread_esr(addr, esr);
+	if (res == SIGBUS) {
+		/*
+		 * We had some memory, but were unable to successfully fix up
+		 * this page fault.
+		 */
+		arm64_force_sig_fault(SIGBUS, BUS_ADRERR, far, inf->name);
+	} else if (res > POISON) {
+		arm64_force_sig_mceerr(BUS_MCEERR_AR, far, res - POISON, inf->name);
+	} else {
+		/*
+		 * Something tried to access memory that isn't in our memory
+		 * map.
+		 */
+		arm64_force_sig_fault(SIGSEGV,
+				      res == ACCERR ? SEGV_ACCERR : SEGV_MAPERR,
+				      far, inf->name);
+	}
+
+	return 0;
+}
