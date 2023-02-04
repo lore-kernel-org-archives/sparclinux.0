@@ -2,118 +2,147 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59F7FC05027
-	for <sparclinux@archiver.kernel.org>; Sat,  4 Feb 2023 02:29:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 317E7C636CD
+	for <sparclinux@archiver.kernel.org>; Sat,  4 Feb 2023 07:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232679AbjBDC3j (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 3 Feb 2023 21:29:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37526 "EHLO
+        id S229877AbjBDHrx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 4 Feb 2023 02:47:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43018 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229782AbjBDC3h (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 3 Feb 2023 21:29:37 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4C4A74C15;
-        Fri,  3 Feb 2023 18:29:36 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 819AA6204D;
-        Sat,  4 Feb 2023 02:29:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4882FC433D2;
-        Sat,  4 Feb 2023 02:29:34 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675477775;
-        bh=A31zSwlgRwgvDbdSE2DEbrUbqrKSeAqq7FjkMqnStZw=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=sys04XZk8jqh8pRKO4mghhMIaZOJaNysJlIGALRMdUzBCxAI7G298EYXo2zlMRvSr
-         v1L58VM1ZHs7x81UItVoBpt9wcZHmGDg5tNF+6JViYATk8zllrsyuNPci/+h9ThQNC
-         KW//e75t+wHxZCqRUkgsCKq4iGfhZGkJ2TH63kQJ9oR+CjCAQa7/KkH2zX9Gq7ZUzT
-         JuXMK4xLEjNS6GRz1ijKyXH/9LrhEwsou1WQe6fwvelXFDxVFZwSA9iJKcPffsY87l
-         1jDSihH/HYx9/w9lxJwcSwTV40QPZPI04Z41AbBuYIqH66hVf0PVr4wNkI33bF0LF/
-         Ts2VwRwiP4moA==
-Date:   Fri, 3 Feb 2023 18:29:32 -0800
-From:   Josh Poimboeuf <jpoimboe@kernel.org>
-To:     Guo Ren <guoren@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
-        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, linux-alpha@vger.kernel.org,
-        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
-        catalin.marinas@arm.com, will@kernel.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        chenhuacai@kernel.org, kernel@xen0n.name,
-        loongarch@lists.linux.dev, f.fainelli@gmail.com,
-        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
-        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
-        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
-        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
-        juri.lelli@redhat.com, vincent.guittot@linaro.org,
-        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
-        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
-        paulmck@kernel.org
-Subject: Re: [PATCH 05/22] csky/cpu: Make sure arch_cpu_idle_dead() doesn't
- return
-Message-ID: <20230204022932.k24laszjs3v4bc3v@treble>
-References: <cover.1675461757.git.jpoimboe@kernel.org>
- <f860f3a1c1a53c437a99abc53e8f1a798aef6881.1675461757.git.jpoimboe@kernel.org>
- <CAJF2gTSKe3ve4_rsOYpmSBOyUSU5rpLHyijn9i2-i+WfLqxzYw@mail.gmail.com>
+        with ESMTP id S231160AbjBDHrx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 4 Feb 2023 02:47:53 -0500
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F1D838020;
+        Fri,  3 Feb 2023 23:47:52 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+        bh=Cbez7xsfY4MkNROF6v40RsR64/eF53uzf9QET049CiU=; b=h2yKIPZKALZ/Fa5lajMCu+tN32
+        yrIEABdRQ+BpLahqh1URk5TrSGccOqf/LC+aiKFFUYrPUkth4lNha0V/UrZSYn8Snl/q5m1Og2BPb
+        cPEfgryi3ILOTADo7de6ZFMv1wetvEJ2mpzca2URZlt/eYcXZY3xlYbGDqpwNiZDIaShWoMA7XrbA
+        M0z2c7qANyyyY93e2XUuFxItlwwsmp9c0A8sv5+R7mFXTkizr91GKFilIUPzImy8pi4zChh1q6QQZ
+        2OPyzkbzrBYLOLaSdWRVvZYcjFWWm0JK5NcdEKrOcqFuNWoGC3jG/NMm3M/3iyD2RUbGhEuIMBAHp
+        dXbUbMGQ==;
+Received: from [2601:1c2:d00:6a60::9526]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pODH1-004fK3-SZ; Sat, 04 Feb 2023 07:47:47 +0000
+Message-ID: <46dafb64-81d2-c084-97c5-8d01e8b9785b@infradead.org>
+Date:   Fri, 3 Feb 2023 23:47:45 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAJF2gTSKe3ve4_rsOYpmSBOyUSU5rpLHyijn9i2-i+WfLqxzYw@mail.gmail.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.6.1
+Subject: Re: [PATCH] soc: sunxi: select CONFIG_PM
+Content-Language: en-US
+To:     Arnd Bergmann <arnd@kernel.org>, Chen-Yu Tsai <wens@csie.org>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Samuel Holland <samuel@sholland.org>,
+        sparclinux <sparclinux@vger.kernel.org>
+Cc:     Arnd Bergmann <arnd@arndb.de>,
+        linux-arm-kernel@lists.infradead.org, linux-sunxi@lists.linux.dev,
+        linux-kernel@vger.kernel.org
+References: <20230130130453.379749-1-arnd@kernel.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <20230130130453.379749-1-arnd@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Feb 04, 2023 at 09:12:31AM +0800, Guo Ren wrote:
-> On Sat, Feb 4, 2023 at 6:05 AM Josh Poimboeuf <jpoimboe@kernel.org> wrote:
-> >
-> > arch_cpu_idle_dead() doesn't return.  Make that more explicit with a
-> > BUG().
-> >
-> > BUG() is preferable to unreachable() because BUG() is a more explicit
-> > failure mode and avoids undefined behavior like falling off the edge of
-> > the function into whatever code happens to be next.
-> >
-> > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-> > ---
-> >  arch/csky/kernel/smp.c | 2 ++
-> >  1 file changed, 2 insertions(+)
-> >
-> > diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
-> > index b45d1073307f..0ec20efaf5fd 100644
-> > --- a/arch/csky/kernel/smp.c
-> > +++ b/arch/csky/kernel/smp.c
-> > @@ -317,5 +317,7 @@ void arch_cpu_idle_dead(void)
-> >                 "jmpi   csky_start_secondary"
-> >                 :
-> >                 : "r" (secondary_stack));
-> > +
-> > +       BUG();
-> Why not:
-> diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
-> index f26ab2675f7d..1d3bf903add2 100644
-> --- a/kernel/sched/idle.c
-> +++ b/kernel/sched/idle.c
-> @@ -285,6 +285,7 @@ static void do_idle(void)
->                         tick_nohz_idle_stop_tick();
->                         cpuhp_report_idle_dead();
->                         arch_cpu_idle_dead();
-> +                       BUG();
+Hi--
 
-Without the BUG() in csky arch_cpu_idle_dead(), the compiler will warn
-about arch_cpu_idle_dead() returning, because it's marked __noreturn but
-doesn't clearly return (as far as the compiler knows).
+On 1/30/23 05:04, Arnd Bergmann wrote:
+> From: Arnd Bergmann <arnd@arndb.de>
+> 
+> Selecting CONFIG_PM_GENERIC_DOMAINS without CONFIG_PM leads to a
+> build failure:
+> 
+> WARNING: unmet direct dependencies detected for PM_GENERIC_DOMAINS
+>   Depends on [n]: PM [=n]
+>   Selected by [y]:
+>   - SUN20I_PPU [=y] && (ARCH_SUNXI [=n] || COMPILE_TEST [=y])
+> 
+> drivers/base/power/domain_governor.c: In function 'default_suspend_ok':
+> drivers/base/power/domain_governor.c:85:24: error: 'struct dev_pm_info' has no member named 'ignore_children'
+>    85 |         if (!dev->power.ignore_children)
+>       |                        ^
+> drivers/base/power/domain.c: In function 'genpd_queue_power_off_work':
+> drivers/base/power/domain.c:657:20: error: 'pm_wq' undeclared (first use in this function)
+>   657 |         queue_work(pm_wq, &genpd->power_off_work);
+>       |                    ^~~~~
+> 
+> Unfortunately platforms are inconsistent between using 'select PM'
+> and 'depends on PM' here. CONFIG_PM is a user-visible symbol, so
+> in principle we should be using 'depends on', but on the other hand
+> using 'select' here is more common among drivers/soc. Go with the
+> majority for now, as this has a smaller risk of introducing circular
+> dependencies. We may need to clean this up for consistency later.
+> 
+> Fixes: 0e30ca5ab0a8 ("soc: sunxi: Add Allwinner D1 PPU driver")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-And we want it marked __noreturn so we'll be more likely to catch such
-bugs at build time.
+With this patch (in linux-next-20230203), building on sparc32 with
+COMPILE_TEST=y and ARCH_SUNXI not set:
 
-And as a bonus we get better code generation and clearer code semantics
-which helps both humans and tooling understand the intent of the code.
+WARNING: unmet direct dependencies detected for PM
+  Depends on [n]: SPARC64 [=n]
+  Selected by [y]:
+  - SUN20I_PPU [=y] && (ARCH_SUNXI || COMPILE_TEST [=y])
+
+WARNING: unmet direct dependencies detected for PM
+  Depends on [n]: SPARC64 [=n]
+  Selected by [y]:
+  - SUN20I_PPU [=y] && (ARCH_SUNXI || COMPILE_TEST [=y])
+
+WARNING: unmet direct dependencies detected for PM_GENERIC_DOMAINS
+  Depends on [n]: SPARC64 [=n] && PM [=y]
+  Selected by [y]:
+  - QCOM_GDSC [=y] && COMMON_CLK [=y] && PM [=y]
+  - SUN20I_PPU [=y] && (ARCH_SUNXI || COMPILE_TEST [=y])
+  - MESON_GX_PM_DOMAINS [=y] && (ARCH_MESON || COMPILE_TEST [=y]) && PM [=y] && OF [=y]
+  - BCM2835_POWER [=y] && (ARCH_BCM2835 || COMPILE_TEST [=y] && OF [=y]) && PM [=y]
+  - BCM_PMB [=y] && (ARCH_BCMBCA || COMPILE_TEST [=y] && OF [=y]) && PM [=y]
+  - ROCKCHIP_PM_DOMAINS [=y] && (ARCH_ROCKCHIP || COMPILE_TEST [=y]) && PM [=y]
+  Selected by [m]:
+  - ARM_SCPI_POWER_DOMAIN [=m] && (ARM_SCPI_PROTOCOL [=m] || COMPILE_TEST [=y] && OF [=y]) && PM [=y]
+  - MESON_EE_PM_DOMAINS [=m] && (ARCH_MESON || COMPILE_TEST [=y]) && PM [=y] && OF [=y]
+  - QCOM_AOSS_QMP [=m] && (ARCH_QCOM || COMPILE_TEST [=y]) && MAILBOX [=y] && COMMON_CLK [=y] && PM [=y]
+
+WARNING: unmet direct dependencies detected for PM_GENERIC_DOMAINS_OF
+  Depends on [n]: SPARC64 [=n] && PM_GENERIC_DOMAINS [=y] && OF [=y]
+  Selected by [y]:
+  - MESON_GX_PM_DOMAINS [=y] && (ARCH_MESON || COMPILE_TEST [=y]) && PM [=y] && OF [=y]
+  Selected by [m]:
+  - MESON_EE_PM_DOMAINS [=m] && (ARCH_MESON || COMPILE_TEST [=y]) && PM [=y] && OF [=y]
+
+Apparently sparc32 does not support PM (arch/sparc/Kconfig):
+
+if SPARC64
+source "kernel/power/Kconfig"
+endif
+
+so I think that SUN20I_PPU should also depend on !SPARC32.
+Does that make sense?
+
+Thanks.
+
+> ---
+>  drivers/soc/sunxi/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/soc/sunxi/Kconfig b/drivers/soc/sunxi/Kconfig
+> index 29e9ba2d520d..02d0b338feb3 100644
+> --- a/drivers/soc/sunxi/Kconfig
+> +++ b/drivers/soc/sunxi/Kconfig
+> @@ -23,6 +23,7 @@ config SUNXI_SRAM
+>  config SUN20I_PPU
+>  	bool "Allwinner D1 PPU power domain driver"
+>  	depends on ARCH_SUNXI || COMPILE_TEST
+> +	select PM
+>  	select PM_GENERIC_DOMAINS
+>  	help
+>  	  Say y to enable the PPU power domain driver. This saves power
 
 -- 
-Josh
+~Randy
