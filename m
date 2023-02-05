@@ -2,76 +2,120 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73BFCC636CC
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 01:29:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4883DC636CC
+	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 05:10:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231230AbjBEB3V (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 4 Feb 2023 20:29:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37434 "EHLO
+        id S229583AbjBEFKd (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Feb 2023 00:10:33 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39506 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230175AbjBEB3U (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 4 Feb 2023 20:29:20 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C6961F5FB;
-        Sat,  4 Feb 2023 17:29:20 -0800 (PST)
+        with ESMTP id S229447AbjBEFKb (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 00:10:31 -0500
+Received: from zeniv.linux.org.uk (zeniv.linux.org.uk [IPv6:2a03:a000:7:0:5054:ff:fe1c:15ff])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E548111153;
+        Sat,  4 Feb 2023 21:10:26 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        MIME-Version:Message-Id:Date:Subject:Cc:To:From:Sender:Reply-To:Content-Type:
-        Content-ID:Content-Description:In-Reply-To:References;
-        bh=vflI9QwxBWvZUVUitWFOOTwfrc8FmqkBpNvFhbTy3aU=; b=FcNFdk3ZJH/W6wi1X0ZNt1obkg
-        Jmf3BmHQf2x1AoE+y6D2XZZ8ivKUPSOA5X1yiUfTKNoRsd3Jiw3Pu4zrbpHHXBHg50rR7m3tvv1Y8
-        mfI0uHFVKrfaZB1sec/E2/EMXJjfXzxjz2xkIAADlB9xTeYuG6aIXRdaxgDsC1NDlIPqd/g+qD+xH
-        6X9HgXK1lS48TLc6CjqyLczh8RfNB+3cTtivBbFsSi59BLFwxLZifW/vprUWZ9eCSP2cPDppuAHz6
-        pgsxfZpe46c2vZ9/tXGcjXRtkFIr1ciU3VPJC9EFNB41b0/aXjYSJ09PU7X5QEDsxL6KrQXEEYW0b
-        GZqJ2qGA==;
-Received: from [2601:1c2:d00:6a60::9526] (helo=bombadil.infradead.org)
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1pOTqH-005orr-0P; Sun, 05 Feb 2023 01:29:17 +0000
-From:   Randy Dunlap <rdunlap@infradead.org>
-To:     linux-kernel@vger.kernel.org
-Cc:     Randy Dunlap <rdunlap@infradead.org>,
-        Sam Ravnborg <sam@ravnborg.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH] sparc: allow sparc32 alias for archhelp
-Date:   Sat,  4 Feb 2023 17:29:15 -0800
-Message-Id: <20230205012915.11330-1-rdunlap@infradead.org>
-X-Mailer: git-send-email 2.39.1
+        d=linux.org.uk; s=zeniv-20220401; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=Tr6hHp8aMuyix7W8MPsJcy4qd0T+bfV4ku4SlFkeikM=; b=IPFSEa3/kiVAIcszhJNII+WRya
+        neT68DS6Txm3V+3RoFqVcUT8ACqt2krppBrR0nE0MhgP5v5mx5J+FkCtxLK4NuL44MCdybBXJ3tiE
+        BCK8F3NrQgjudmCQN5DOg8ilOhP8rpQA4KGJCr/zYnDwePVNc7hXeYxhSu01Hl/Whg14RPN+t+Qjn
+        FFeEglPsiR3VQu2OUXAVKINJi5E1JXxnZ627BUZs2iReC5LcTJ5xUmA3LYosBCGyMtMSiIolQQlFF
+        qmHMDBAt2OmyN2m/y5BLyEfjGG8PEi8Syc5yKEtFHYC8gaQDfjK0zoT96DVm80gtbJv84vXLTwm54
+        +Fpb4OAg==;
+Received: from viro by zeniv.linux.org.uk with local (Exim 4.96 #2 (Red Hat Linux))
+        id 1pOXID-006IcI-2c;
+        Sun, 05 Feb 2023 05:10:21 +0000
+Date:   Sun, 5 Feb 2023 05:10:21 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Peter Xu <peterx@redhat.com>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
+Subject: Re: [RFC][PATCHSET] VM_FAULT_RETRY fixes
+Message-ID: <Y986PWjDy9YbHBEw@ZenIV>
+References: <Y9lz6yk113LmC9SI@ZenIV>
+ <CAHk-=whf73Vm2U3jyTva95ihZzefQbThZZxqZuKAF-Xjwq=G4Q@mail.gmail.com>
+ <Y9mD1qp/6zm+jOME@ZenIV>
+ <CAHk-=wjiwFzEGd_60H3nbgVB=R_8KTcfUJmXy=hSXCvLrXQRFA@mail.gmail.com>
+ <Y9mM5wiEhepjJcN0@ZenIV>
+ <CAHk-=wjNwwnBckTo8HLSdsd1ndoAR=5RBoZhdOyzhsnDAYWL9g@mail.gmail.com>
+ <Y9rCBqwbLlLf1fHe@x1n>
+ <Y9rlI6d5J2Y/YNQ+@ZenIV>
+ <Y9w/lrL6g4yauXz4@x1n>
+ <Y92mP1GT28KfnPEQ@ZenIV>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Y92mP1GT28KfnPEQ@ZenIV>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Currently, entering
-$ make ARCH=sparc32 help
-prints the archhelp text for sparc64.
+On Sat, Feb 04, 2023 at 12:26:39AM +0000, Al Viro wrote:
+> On Thu, Feb 02, 2023 at 05:56:22PM -0500, Peter Xu wrote:
+> 
+> > IMHO it'll be merely impossible to merge things across most (if not to say,
+> > all) archs.  It will need to be start from one or at least a few that still
+> > shares a major common base - I would still rely on x86 as a start - then we
+> > try to use the helper in as much archs as possible.
+> > 
+> > Even on x86, I do also see challenges so I'm not sure whether a common
+> > enough routine can be abstracted indeed.  But I believe there's a way to do
+> > this because obviously we still see tons of duplicated logics falling
+> > around.  It may definitely need time to think out where's the best spot to
+> > start, and how to gradually move towards covering more archs starting from
+> > one.
+> 
+> FWIW, after going through everything from alpha to loongarch (in alphabetic
+> order, skipping the itanic) the following seems to be suitable for all of
+> them:
+> 
+> generic_fault(address, flags, vm_flags, regs)
+[snip]
 
-Since "sparc32" is documented (Documentation/kbuild/kbuild.rst)
-to be a recognized alias for 32-bit sparc, also support that
-string in sparc's archhelp by allowing either ARCH=sparc or
-ARCH=sparc32 for sparc32 archhelp.
+After looking through other architectures: that needs changes.
 
-Fixes: 5e53879008b9 ("sparc,sparc64: unify Makefile")
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: sparclinux@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
----
- arch/sparc/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+AFAICS, the right approach would be to add a pointer to (uninitialized)
+kernel_siginfo.  And let it pass the signal number, etc. through that.
+That way all "we want to raise a signal" return values fold together.
+*IF* the page fault wants to do something extra on SIGSEGV, but not on
+SIGBUS (we have several such), it can key that upon info.si_signo.
 
-diff -- a/arch/sparc/Makefile b/arch/sparc/Makefile
---- a/arch/sparc/Makefile
-+++ b/arch/sparc/Makefile
-@@ -83,7 +83,7 @@ vdso_install:
- KBUILD_IMAGE := $(boot)/zImage
- 
- # Don't use tabs in echo arguments.
--ifeq ($(ARCH),sparc)
-+ifeq ($(ARCH),$(filter $(ARCH),sparc sparc32))
- define archhelp
-   echo  '* image        - kernel image ($(boot)/image)'
-   echo  '* zImage       - stripped kernel image ($(boot)/zImage)'
+Speaking of SIGSEGV, there's a fun situation with VM_FAULT_SIGSEGV:
+
+1) Only x86 and ppc generate VM_FAULT_SIGSEGV in handle_mm_fault()
+without hitting WARN_ON_ONCE().  And neither actually returns it
+to page fault handler - the conditions that would've led to that
+return value (pkey stuff) are checked in the page fault handler
+and handle_mm_fault() is not called in such cases.
+
+2) on alpha, hexagon, itanic, loongarch, microblaze, mips, nios2,
+openrisc, sparc, um and xtensa #PF handler would end up with SEGV_ACCERR
+if it saw VM_FAULT_SIGNAL.
+
+3) on arm, arm64, arc, m68k, powerpc, s390, sh and x86 - SEGV_MAPERR
+(except that neither x86 nor powerpc #PF ever see it)
+
+4) on csky and riscv it would end up with BUG()
+
+5) on parisc it's complicated^Wbroken - it tries to decide which
+one to use after having unlocked mmap and looking at vma in process.
+
+As it is, VM_FAULT_SIGSEGV had ended up as "we need to report some
+error to get_user_pages() and similar callers in cases when
+page fault handler would've detected pkey problem and refused
+to call handle_mm_fault()", with several places where it's
+"we had been called with bogus arguments; printk and return
+something to indicate the things had gone wrong".  It used to
+have other uses, but this is what it had become now - grep and
+you'll see.
+
+AFAICS, all checks for it in page fault handlers are pretty much
+dead code...
