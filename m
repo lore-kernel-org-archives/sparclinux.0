@@ -2,93 +2,101 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C636DC636CD
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 09:11:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61B27C636CD
+	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 18:52:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229477AbjBEJLO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Feb 2023 04:11:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45196 "EHLO
+        id S229460AbjBESwW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Feb 2023 13:52:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54410 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229437AbjBEJLN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 04:11:13 -0500
-X-Greylist: delayed 964 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 05 Feb 2023 01:11:12 PST
-Received: from mailrelay6-1.pub.mailoutpod2-cph3.one.com (mailrelay6-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:405::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49C6A1F5C5
-        for <sparclinux@vger.kernel.org>; Sun,  5 Feb 2023 01:11:12 -0800 (PST)
+        with ESMTP id S229503AbjBESwT (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 13:52:19 -0500
+Received: from mail-ed1-x533.google.com (mail-ed1-x533.google.com [IPv6:2a00:1450:4864:20::533])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC0771CACE
+        for <sparclinux@vger.kernel.org>; Sun,  5 Feb 2023 10:52:17 -0800 (PST)
+Received: by mail-ed1-x533.google.com with SMTP id m8so9682698edd.10
+        for <sparclinux@vger.kernel.org>; Sun, 05 Feb 2023 10:52:17 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=rsa2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=048w4mMGx18wsnXMKlj9cLwJ8F73CyxBdkjcWuROSEo=;
-        b=0+ratF2/X1QIflCTtfzRzlNip+Pv4C5PFD7RpCc64W8o2cGJLLktwWRJQpVjcpXCGkSIyAUEQd2qC
-         A4JByyMsZkARH44l0QvnYrSoUgY8pKOq3B9ksAGD4Pka7KSg19G9lFL9euVXiyJvCvjuU6sMK5HLzw
-         Lk0l62cUXtkKCNV7DJSk2Sa5xe1wk2z4Z9tRWMcV9tmfjAyTAfdg+RaksVosiYQz6hjchf7bJSD/EE
-         sAnlQzB4PwsLP2JspC5t+ex8aQ2uqvND2PT3I0I6xK6QqeBxhpPr0UIMXwWRiP85oBTy11wvFeOUpT
-         v9jxDbVDuOWduqccsUl0CwXJBJP9HCQ==
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
-        d=ravnborg.org; s=ed2;
-        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
-         from:date:from;
-        bh=048w4mMGx18wsnXMKlj9cLwJ8F73CyxBdkjcWuROSEo=;
-        b=wL3tIP90z6C+hrkREz1fP5ZAXPEoL6H/y421bkUE3yXdtUlSk6epSrLZNQ/WEDZaUeh9KrPHSclv5
-         yMUfrOJDg==
-X-HalOne-ID: c7fbbd74-a532-11ed-a1af-cde5ad41a1dd
-Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
-        by mailrelay6 (Halon) with ESMTPSA
-        id c7fbbd74-a532-11ed-a1af-cde5ad41a1dd;
-        Sun, 05 Feb 2023 08:55:06 +0000 (UTC)
-Date:   Sun, 5 Feb 2023 09:55:05 +0100
-From:   Sam Ravnborg <sam@ravnborg.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH] sparc: allow sparc32 alias for archhelp
-Message-ID: <Y99u6Z6InryAkRCn@ravnborg.org>
-References: <20230205012915.11330-1-rdunlap@infradead.org>
+        d=linux-foundation.org; s=google;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:from:to:cc:subject:date:message-id:reply-to;
+        bh=FHO7GI+A1DWHNoRePsnR8I5+C4R4p3/7zIJvX3p+LUg=;
+        b=HW9XJWDNzeOCSuB6xjuHzGjlFrFpNWXt04d038AYbQHAwGjnEJnVJFaDX127TnFYpL
+         ydEGn0SwgrZ26RVkS0s0lgFAxMQXSWztEh7hBcLvV0G2Q3rBSAhctrbX0nTU4l9fQ760
+         cFueFrfradqcL9O/I0nJrdeB83AKu6+dYCVG8=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=cc:to:subject:message-id:date:from:in-reply-to:references
+         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=FHO7GI+A1DWHNoRePsnR8I5+C4R4p3/7zIJvX3p+LUg=;
+        b=NB5msWBzp5oqxXLRDl3i0yfgOrwwUg19r9fXHl0F2hOgtL7ubeFD8dtbCokAStAkMc
+         Dy0hoTB+7fhMsLrwYhYkZBbzxMDNALBwWim28rDcGvm3PeLG9BiS2RZG4Cvik8meSLRG
+         zvZATjebpa/N6MkSlkV3scv5ggbHMs4z89YDWGIltWgJes6UXdBNXdrT0/8y/3Rju8My
+         9nYnN2g2CCFsSTiO4rxRpib5pZydYdnyqJnLS5u5RvEcnavzTr2QiKKcpFppFvjneeAX
+         dCuIbvIWsnyQ+lBJ4YeBgKm/2DBLUTjOnOvelrxOf7rO5jk6jXojETKnldjdtapgEET+
+         Zl8g==
+X-Gm-Message-State: AO0yUKVDdTFp0D3LefjkhmBkPqQimaXyJRqmfYi8K1y7GvgyxfE3JUSu
+        r6IITAo8NU4fXNZ8eimMoKUROU4YeZwB3GWzxxY=
+X-Google-Smtp-Source: AK7set/orjljcp5rlR6FxAwrZ0IVAAXAqjqnFUsufKofvO+BdDe2TOcvF3zYfBPAwTTrd8bcY99rRw==
+X-Received: by 2002:a05:6402:1643:b0:492:8c77:7dad with SMTP id s3-20020a056402164300b004928c777dadmr16831088edx.8.1675623135807;
+        Sun, 05 Feb 2023 10:52:15 -0800 (PST)
+Received: from mail-ej1-f48.google.com (mail-ej1-f48.google.com. [209.85.218.48])
+        by smtp.gmail.com with ESMTPSA id w12-20020a056402268c00b0049e65e4ff20sm4098697edd.14.2023.02.05.10.52.14
+        for <sparclinux@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Sun, 05 Feb 2023 10:52:15 -0800 (PST)
+Received: by mail-ej1-f48.google.com with SMTP id ml19so28704482ejb.0
+        for <sparclinux@vger.kernel.org>; Sun, 05 Feb 2023 10:52:14 -0800 (PST)
+X-Received: by 2002:a17:906:892:b0:87a:7098:ca09 with SMTP id
+ n18-20020a170906089200b0087a7098ca09mr4354270eje.78.1675623134603; Sun, 05
+ Feb 2023 10:52:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230205012915.11330-1-rdunlap@infradead.org>
+References: <Y9lz6yk113LmC9SI@ZenIV> <Y9l0aBPUEpf1bci9@ZenIV> <92a4aa45-0a7c-a389-798a-2f3e3cfa516f@linux-m68k.org>
+In-Reply-To: <92a4aa45-0a7c-a389-798a-2f3e3cfa516f@linux-m68k.org>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Sun, 5 Feb 2023 10:51:57 -0800
+X-Gmail-Original-Message-ID: <CAHk-=wirpn8qX5hCyeS0a4GCQH5p-2ACXgzJTj7zjZ5rGux_Bw@mail.gmail.com>
+Message-ID: <CAHk-=wirpn8qX5hCyeS0a4GCQH5p-2ACXgzJTj7zjZ5rGux_Bw@mail.gmail.com>
+Subject: Re: [PATCH 04/10] m68k: fix livelock in uaccess
+To:     Finn Thain <fthain@linux-m68k.org>
+Cc:     Al Viro <viro@zeniv.linux.org.uk>, linux-arch@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        Michal Simek <monstr@monstr.eu>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Feb 04, 2023 at 05:29:15PM -0800, Randy Dunlap wrote:
-> Currently, entering
-> $ make ARCH=sparc32 help
-> prints the archhelp text for sparc64.
-> 
-> Since "sparc32" is documented (Documentation/kbuild/kbuild.rst)
-> to be a recognized alias for 32-bit sparc, also support that
-> string in sparc's archhelp by allowing either ARCH=sparc or
-> ARCH=sparc32 for sparc32 archhelp.
-> 
-> Fixes: 5e53879008b9 ("sparc,sparc64: unify Makefile")
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Sam Ravnborg <sam@ravnborg.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
-> Cc: "David S. Miller" <davem@davemloft.net>
-> Cc: sparclinux@vger.kernel.org
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-I hope Andrew picks this up.
+On Sat, Feb 4, 2023 at 10:16 PM Finn Thain <fthain@linux-m68k.org> wrote:
+>
+> That could be a bug I was chasing back in 2021 but never found. The mmap
+> stressors in stress-ng were triggering a crash on a Mac Quadras, though
+> only rarely. Sometimes it would run all day without a failure.
+>
+> Last year when I started using GCC 12 to build the kernel, I saw the same
+> workload fail again but the failure mode had become a silent hang/livelock
+> instead of the oopses I got with GCC 6.
+>
+> When I press the NMI button after the livelock I always see
+> do_page_fault() in the backtrace. So I've been testing your patch. I've
+> been running the same stress-ng reproducer for about 12 hours now with no
+> failures which looks promising.
+>
+> In case that stress-ng testing is of use:
+> Tested-by: Finn Thain <fthain@linux-m68k.org>
 
-	Sam
+Could you test the thing that Mark Rutland pointed to? He had an
+actual test-case for this for the arm64 fixes some years ago.
 
-> ---
->  arch/sparc/Makefile |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff -- a/arch/sparc/Makefile b/arch/sparc/Makefile
-> --- a/arch/sparc/Makefile
-> +++ b/arch/sparc/Makefile
-> @@ -83,7 +83,7 @@ vdso_install:
->  KBUILD_IMAGE := $(boot)/zImage
->  
->  # Don't use tabs in echo arguments.
-> -ifeq ($(ARCH),sparc)
-> +ifeq ($(ARCH),$(filter $(ARCH),sparc sparc32))
->  define archhelp
->    echo  '* image        - kernel image ($(boot)/image)'
->    echo  '* zImage       - stripped kernel image ($(boot)/zImage)'
+See
+
+   https://lore.kernel.org/all/Y9pD+TMP+%2FSyfeJm@FVFF77S0Q05N/
+
+for his email with links to his old test-case?
+
+                Linus
