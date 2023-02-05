@@ -2,127 +2,88 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB9AC6379F
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 06:16:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F34EDC636CD
+	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 09:10:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229476AbjBEGQP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Feb 2023 01:16:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45934 "EHLO
+        id S229498AbjBEJKp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Feb 2023 04:10:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44854 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229447AbjBEGQN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 01:16:13 -0500
-Received: from wout5-smtp.messagingengine.com (wout5-smtp.messagingengine.com [64.147.123.21])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4EA2510A9E;
-        Sat,  4 Feb 2023 22:16:12 -0800 (PST)
-Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
-        by mailout.west.internal (Postfix) with ESMTP id 5EAC63200124;
-        Sun,  5 Feb 2023 01:16:08 -0500 (EST)
-Received: from mailfrontend1 ([10.202.2.162])
-  by compute1.internal (MEProxy); Sun, 05 Feb 2023 01:16:09 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
-        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
-        :mime-version:references:reply-to:sender:subject:subject:to:to
-        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
-        fm3; t=1675577767; x=1675664167; bh=hmB8NiHkQ5VrUabRisnaTxPVwBHX
-        9Yof16xrIa+uZ4w=; b=rOKaPu3DT9duQjRq4Ez/XhnitooRKGpbYAkW6xLm07uG
-        q6L+bduvNmIsjwE7ALTsMZ5ZiBWlGFBIQysy2Nk/NEvRwrBLkXyJ6T4H5yp6m87L
-        s239am+pbhVeS1ZpHH1D/LGbgTt0lSEHFnKu2fXMXRruU/I9Llc4s4f+OFHx04Sf
-        vySX7XVyRDi2fgL3Ob510kKuRamgZT5Zd0RHzJEgJnIFeaf4482JsvweS/vTan9f
-        xFUmO9AdW46nrF3fVkI/Trv7cS8AtWuOGqsP6XRAnOyWa040ZjJUqKm6LNHKUgM/
-        Het/i4M7TEEiA6UJ5qp1k+4daE7mjBNKnQZRSlUtaQ==
-X-ME-Sender: <xms:pknfYwQvusITua-krH511nFhlq8I9nK0Z2hXrrb5vZpxABj9bD40bw>
-    <xme:pknfY9y4KUc5_YYtpPI-brkZNW3In78m5Ln0JdRuQcM6ylPhr7TL7EJyjpj3HQ1tP
-    80nnpEGdOrPH1Tc_t0>
-X-ME-Received: <xmr:pknfY921CfOtiMeF-C2SMvup-HaDZw67SQ5SEFbS0ydsodHOIHSVX481biNTIyo-lCrhVgTwlewe1yWgtNBGWLM30PhZPq5sYwI>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrudegfedgledvucetufdoteggodetrfdotf
-    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
-    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
-    cujfgurhepfffhvfevufgjkfhfgggtsehttdertddttddvnecuhfhrohhmpefhihhnnhcu
-    vfhhrghinhcuoehfthhhrghinheslhhinhhugidqmheikehkrdhorhhgqeenucggtffrrg
-    htthgvrhhnpeelueehleehkefgueevtdevteejkefhffekfeffffdtgfejveekgeefvdeu
-    heeuleenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
-    hfthhhrghinheslhhinhhugidqmheikehkrdhorhhg
-X-ME-Proxy: <xmx:pknfY0BpJsflhm7oFWuLVeWkEqN8Av1gwLtiZFgRraAI3VUqcjhYoQ>
-    <xmx:pknfY5gULhG3Xc0qYFL37F23Ltobm2bMlo3P3tUDk47mvlZYB-jj_w>
-    <xmx:pknfYwrxJQS45d_SUQdlNTYqR3GknDe9sYItRSJFhG-UQZRkzoSDbA>
-    <xmx:p0nfY-b8Ip6T5nVeCVaMrQ4uXeXmSgsfT7ZZ8lg0ADpvWnMBT7I7tw>
-Feedback-ID: i58a146ae:Fastmail
-Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
- 5 Feb 2023 01:16:03 -0500 (EST)
-Date:   Sun, 5 Feb 2023 17:18:08 +1100 (AEDT)
-From:   Finn Thain <fthain@linux-m68k.org>
-To:     Al Viro <viro@zeniv.linux.org.uk>
-cc:     linux-arch@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH 04/10] m68k: fix livelock in uaccess
-In-Reply-To: <Y9l0aBPUEpf1bci9@ZenIV>
-Message-ID: <92a4aa45-0a7c-a389-798a-2f3e3cfa516f@linux-m68k.org>
-References: <Y9lz6yk113LmC9SI@ZenIV> <Y9l0aBPUEpf1bci9@ZenIV>
+        with ESMTP id S229437AbjBEJKp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 04:10:45 -0500
+X-Greylist: delayed 963 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 05 Feb 2023 01:10:44 PST
+Received: from mailrelay1-1.pub.mailoutpod2-cph3.one.com (mailrelay1-1.pub.mailoutpod2-cph3.one.com [IPv6:2a02:2350:5:400::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1321B20042
+        for <sparclinux@vger.kernel.org>; Sun,  5 Feb 2023 01:10:43 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=rsa2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=eiTAJ6Fb1BEUZsI/zThiZGrV6qs6o1U3O5z3WSMn4qA=;
+        b=wppCrFKPnUt7gtXA8wVIfnSw7NL1scztg1euQLfHMJMcmfPOmk3AUQxOJV0dPDiaYkAUyoktahwb+
+         CiY+N3q5roMDa7vB2w2uwnnHF060rLXu/DVswPXisri/y6wbcy1uEwG4gyqdD08OOQOtlWUK0YfcCf
+         ZD62usawAyEfwa9HqFXmlJx1HAXO+DIIuyHPnqnDdJmq/S9RAtP+s8ER4hzNT6EFnc0i3h0/D12fjv
+         lvSUDzKFSbOVzripUlnn8gxljea5lS1iX3/bwQFtgk6KokGkZjVvqnTht1vKGC8teo9BjfjN0VMkfc
+         4MM/Xc4l1FRafJ5WlPvjVJMghOG7kFA==
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed;
+        d=ravnborg.org; s=ed2;
+        h=in-reply-to:content-type:mime-version:references:message-id:subject:cc:to:
+         from:date:from;
+        bh=eiTAJ6Fb1BEUZsI/zThiZGrV6qs6o1U3O5z3WSMn4qA=;
+        b=rhAKE5L1LTr703ddXrg25V3mR6n5YpEgIJFnHySXoegHC4TVT07v1oLgUPMYFnPHNAMiu7rEGL3mX
+         NbNsvg5Ag==
+X-HalOne-ID: b6b67382-a532-11ed-bc20-11abd97b9443
+Received: from ravnborg.org (2-105-2-98-cable.dk.customer.tdc.net [2.105.2.98])
+        by mailrelay1 (Halon) with ESMTPSA
+        id b6b67382-a532-11ed-bc20-11abd97b9443;
+        Sun, 05 Feb 2023 08:54:37 +0000 (UTC)
+Date:   Sun, 5 Feb 2023 09:54:36 +0100
+From:   Sam Ravnborg <sam@ravnborg.org>
+To:     Randy Dunlap <rdunlap@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, Kirill Tkhai <tkhai@yandex.ru>,
+        Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] sparc: allow PM configs for sparc32 COMPILE_TEST
+Message-ID: <Y99uzN8lI/U3Jkxb@ravnborg.org>
+References: <20230205004357.29459-1-rdunlap@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230205004357.29459-1-rdunlap@infradead.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hello Al,
-
-On Tue, 31 Jan 2023, Al Viro wrote:
-
-> m68k equivalent of 26178ec11ef3 "x86: mm: consolidate VM_FAULT_RETRY 
-> handling" If e.g. get_user() triggers a page fault and a fatal signal is 
-> caught, we might end up with handle_mm_fault() returning VM_FAULT_RETRY 
-> and not doing anything to page tables.  In such case we must *not* 
-> return to the faulting insn - that would repeat the entire thing without 
-> making any progress; what we need instead is to treat that as failed 
-> (user) memory access.
+On Sat, Feb 04, 2023 at 04:43:57PM -0800, Randy Dunlap wrote:
+> When doing randconfig builds for sparc32 with COMPILE_TEST,
+> some (non-Sparc) drivers cause kconfig warnings with the
+> Kconfig symbols PM, PM_GENERIC_DOMAINS, or PM_GENERIC_DOMAINS_OF.
 > 
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-
-That could be a bug I was chasing back in 2021 but never found. The mmap 
-stressors in stress-ng were triggering a crash on a Mac Quadras, though 
-only rarely. Sometimes it would run all day without a failure.
-
-Last year when I started using GCC 12 to build the kernel, I saw the same 
-workload fail again but the failure mode had become a silent hang/livelock 
-instead of the oopses I got with GCC 6.
-
-When I press the NMI button after the livelock I always see 
-do_page_fault() in the backtrace. So I've been testing your patch. I've 
-been running the same stress-ng reproducer for about 12 hours now with no 
-failures which looks promising.
-
-In case that stress-ng testing is of use:
-Tested-by: Finn Thain <fthain@linux-m68k.org>
-
-BTW, how did you identify that bug in do_page_fault()? If its the same bug 
-I was chasing, it could be an old one. The stress-ng logs I collected last 
-year include a crash from a v4.14 build.
-
-> ---
->  arch/m68k/mm/fault.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+> This is due to arch/sparc/Kconfig not using the PM Kconfig for
+> Sparc32:
 > 
-> diff --git a/arch/m68k/mm/fault.c b/arch/m68k/mm/fault.c
-> index 4d2837eb3e2a..228128e45c67 100644
-> --- a/arch/m68k/mm/fault.c
-> +++ b/arch/m68k/mm/fault.c
-> @@ -138,8 +138,11 @@ int do_page_fault(struct pt_regs *regs, unsigned long address,
->  	fault = handle_mm_fault(vma, address, flags, regs);
->  	pr_debug("handle_mm_fault returns %x\n", fault);
->  
-> -	if (fault_signal_pending(fault, regs))
-> +	if (fault_signal_pending(fault, regs)) {
-> +		if (!user_mode(regs))
-> +			goto no_context;
->  		return 0;
-> +	}
->  
->  	/* The fault is fully completed (including releasing mmap lock) */
->  	if (fault & VM_FAULT_COMPLETED)
+>   if SPARC64
+>   source "kernel/power/Kconfig"
+>   endif
 > 
+> Arnd suggested adding "|| COMPILE_TEST" to the conditional,
+> instead of trying to track down every driver that selects
+> any of these PM symbols.
+> 
+> Fixes the following kconfig warnings:
+...
+> 
+> Fixes: bdde6b3c8ba4 ("sparc64: Hibernation support")
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> Suggested-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: "David S. Miller" <davem@davemloft.net>
+> Cc: sparclinux@vger.kernel.org
+> Cc: Kirill Tkhai <tkhai@yandex.ru>
+> Cc: Sam Ravnborg <sam@ravnborg.org>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+I hope Andrew picks this up.
+
+	Sam
