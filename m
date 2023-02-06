@@ -2,72 +2,91 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE1CCC6379F
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Feb 2023 20:06:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C213C636D6
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Feb 2023 22:22:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229792AbjBFUGj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 6 Feb 2023 15:06:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46366 "EHLO
+        id S229930AbjBFWWM (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Feb 2023 17:22:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40608 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229486AbjBFUGh (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Feb 2023 15:06:37 -0500
+        with ESMTP id S229718AbjBFWWL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Feb 2023 17:22:11 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DE6B71EFED;
-        Mon,  6 Feb 2023 12:06:36 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D935BA7;
+        Mon,  6 Feb 2023 14:22:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 9DE4CB810E5;
-        Mon,  6 Feb 2023 20:06:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0507AC433EF;
-        Mon,  6 Feb 2023 20:06:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CECFCB81636;
+        Mon,  6 Feb 2023 22:22:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 62D76C433D2;
+        Mon,  6 Feb 2023 22:22:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675713994;
-        bh=3Yg7D05MkzSc67p0IllIeOFYuHpgtoWHEDyGg89cEn4=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=TrFanAIL/NQxsb91JvfkKgGGInV2GbJv83xXwVospLmonVoYF0qugCWhOe08RPwaX
-         KSz2R1yQLjbocys0qpEKTIJcvGgasxF/iufKfZWM+KLnESrINJ3xvu3fY01VN9IBBd
-         A14tJwz1NoSgpuJDM1gKfn9n4bZjtVGyWg1FSCcjcagioOTF4tpLoxfVEQ3ZgZwQ/X
-         1DTz425W+yIiGefj9MW9+XxaZDTOhpCSDxfOWIbHdEj1cNpx4bg45I7e94f2NXzAcH
-         p/5XOjHti0H5HYdlYMgGbFgyQK/fMQnqBl9p3+VIiziorpSavNm5enxgwyrcpj7Rpb
-         iz3O+/RqhOzlA==
-From:   =?utf-8?B?QmrDtnJuIFTDtnBlbA==?= <bjorn@kernel.org>
-To:     Al Viro <viro@zeniv.linux.org.uk>, linux-arch@vger.kernel.org
-Cc:     linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH 09/10] riscv: fix livelock in uaccess
-In-Reply-To: <Y9l02DvS6CYThTEG@ZenIV>
-References: <Y9lz6yk113LmC9SI@ZenIV> <Y9l02DvS6CYThTEG@ZenIV>
-Date:   Mon, 06 Feb 2023 21:06:31 +0100
-Message-ID: <87h6vyimns.fsf@all.your.base.are.belong.to.us>
+        s=k20201202; t=1675722127;
+        bh=g8nY4KWQRGHZ+UEBU3IfsGHHp9POeugLWf+ks7MhlYI=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=Ku27bb49TXnifj4vDKUwLt//IhS+AuKgNZHjSBzmgIygXsWngoTvqzjsyI4aaPcuH
+         Ne/GMb6QblTp2Jv681blYtCgjkXaPsQUgkrsec8L+xRVWuKD28hd8t9BRChWBzJwZK
+         gFEWXSU7jaZZgPnPMEvOqqaXTfNHVDYUbsIUYWKlmuEb7nAEqsRD53T6hGhLZYqx/u
+         DQUcYnhTaFCk/Smt9vORx+U2SLIPq7vHqyxTh+SxZ9//C/gkazIzBXyvCtcwtDa+nk
+         Ec2/QPURQbIa9r42wgKqNXQHC6PZxrciIKrlgpzWDw6z2c/ntsIbU896+w3wVQ78cR
+         a9GpVI+CKZooA==
+Date:   Mon, 6 Feb 2023 14:22:02 -0800
+From:   Josh Poimboeuf <jpoimboe@kernel.org>
+To:     Michael Ellerman <mpe@ellerman.id.au>
+Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux-alpha@vger.kernel.org,
+        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
+        catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        chenhuacai@kernel.org, kernel@xen0n.name,
+        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
+        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
+        npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
+        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
+        paulmck@kernel.org
+Subject: Re: [PATCH 12/22] powerpc/cpu: Mark start_secondary_resume()
+ __noreturn
+Message-ID: <20230206222202.zreg3pyhynhvyggy@treble>
+References: <cover.1675461757.git.jpoimboe@kernel.org>
+ <b5d065218265e79daa23f82bb84efc6a7ea120fc.1675461757.git.jpoimboe@kernel.org>
+ <87v8kfdp7l.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+In-Reply-To: <87v8kfdp7l.fsf@mpe.ellerman.id.au>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Al Viro <viro@zeniv.linux.org.uk> writes:
+On Mon, Feb 06, 2023 at 10:10:22PM +1100, Michael Ellerman wrote:
+> Josh Poimboeuf <jpoimboe@kernel.org> writes:
+> > start_secondary_resume() doesn't return.  Annotate it as such.  By
+> > extension this also makes arch_cpu_idle_dead() noreturn.
+> 
+> Can we also mark arch_cpu_idle_dead() (the C function) __noreturn ?
+> 
+> Seems like it would be good documentation, even if it's not required
+> once the generic prototype is __noreturn.
 
-> riscv equivalent of 26178ec11ef3 "x86: mm: consolidate VM_FAULT_RETRY han=
-dling"
-> If e.g. get_user() triggers a page fault and a fatal signal is caught, we=
- might
-> end up with handle_mm_fault() returning VM_FAULT_RETRY and not doing anyt=
-hing
-> to page tables.  In such case we must *not* return to the faulting insn -
-> that would repeat the entire thing without making any progress; what we n=
-eed
-> instead is to treat that as failed (user) memory access.
->
-> Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Yeah, agreed.  Maybe I'll do that (for all the implementations) with
+patch 22.
 
-Reproduced with Mark's userland program -- thanks!
+> But not a show-stopper.
+> 
+> Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
-Tested-by: Bj=C3=B6rn T=C3=B6pel <bjorn@kernel.org>
+Thanks!
+
+-- 
+Josh
