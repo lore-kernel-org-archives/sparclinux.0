@@ -2,86 +2,136 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 864B3C636D3
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Feb 2023 20:41:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B460C636CD
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Feb 2023 03:12:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229589AbjBEUlw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Feb 2023 15:41:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53022 "EHLO
+        id S229635AbjBFDMK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Feb 2023 22:12:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34358 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229568AbjBEUlp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 15:41:45 -0500
-Received: from mail-ej1-x62a.google.com (mail-ej1-x62a.google.com [IPv6:2a00:1450:4864:20::62a])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F20321C5B3
-        for <sparclinux@vger.kernel.org>; Sun,  5 Feb 2023 12:41:38 -0800 (PST)
-Received: by mail-ej1-x62a.google.com with SMTP id ud5so29003775ejc.4
-        for <sparclinux@vger.kernel.org>; Sun, 05 Feb 2023 12:41:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=nA/a76A+HUu/p3q1j/ksBjPXLniSmCFkRwLsRUtoauc=;
-        b=RAXg4fKD/6SPLwBhZz74xHccwCI6WZIYpGpGHWQ9ObJeCvGoohTSAtwCqfiD+ZaDQ1
-         aIRLI8OL+avYEEBlM4uINCdq7A3GKoZhraxTCpB9pYCimwQ4kIElEWhkml7G/7PEKTT6
-         Vy21ly1st4HkkM+1bI4kXV+bK57J6A6HvWAas=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=nA/a76A+HUu/p3q1j/ksBjPXLniSmCFkRwLsRUtoauc=;
-        b=K/CSDqv1dCuzbyMqAK1pGI6puUGpvag8/JYp0Im3i/LegcMJeB74qh2Wh5rKYpYRCg
-         Btrswj9YVvZCpcOi1Afe7+A3oBc3dlwbA6WwNVUTwvNKpiiJPoNNhHAiTggzqFSVvwDj
-         y2Sxb4tvDIJM8rnDuGsnpbtmv9d0/fZO4JjqJeO/ARey9XNpcM9f/kjVbJFwZRRTTlRW
-         cNnMUjOnLw9oKK7kYtJ3XzrkoWrNCYKgFOqzKg67bnk0NYNJTmmA28h6pcrKJ2Vmc0/F
-         te3EXs3ii20S7V1XWnyJgHp11LX4UymUYwSYt6HxQ6E0+8+klm01mWg1o+kGz9ETVORb
-         +NCg==
-X-Gm-Message-State: AO0yUKVt53acAnghz87ca5qMy67HL+r5yM/ENOGOsqTr0ERIO1XztXEF
-        kCfWsMmn2lKDn5SuN1hO8hwzD23gvLtTD2lCtGU=
-X-Google-Smtp-Source: AK7set9fdQHAwln2EmWLPrtA9FrOL0iSfPu8ajHj7eEBlCO6KO3HWiha9Oyo0RyhCK+2w6s0dguJ7Q==
-X-Received: by 2002:a17:906:8a70:b0:84c:a863:ebe6 with SMTP id hy16-20020a1709068a7000b0084ca863ebe6mr15914992ejc.43.1675629697232;
-        Sun, 05 Feb 2023 12:41:37 -0800 (PST)
-Received: from mail-ej1-f50.google.com (mail-ej1-f50.google.com. [209.85.218.50])
-        by smtp.gmail.com with ESMTPSA id me17-20020a170906aed100b0083f91a32131sm4525487ejb.0.2023.02.05.12.41.35
-        for <sparclinux@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 05 Feb 2023 12:41:36 -0800 (PST)
-Received: by mail-ej1-f50.google.com with SMTP id m2so28944131ejb.8
-        for <sparclinux@vger.kernel.org>; Sun, 05 Feb 2023 12:41:35 -0800 (PST)
-X-Received: by 2002:a17:906:892:b0:87a:7098:ca09 with SMTP id
- n18-20020a170906089200b0087a7098ca09mr4402604eje.78.1675629695651; Sun, 05
- Feb 2023 12:41:35 -0800 (PST)
+        with ESMTP id S229522AbjBFDMJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 22:12:09 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BDCD1A4B7;
+        Sun,  5 Feb 2023 19:12:08 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E972E60C67;
+        Mon,  6 Feb 2023 03:12:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5721CC433AC;
+        Mon,  6 Feb 2023 03:12:07 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1675653127;
+        bh=SEHqDj0pecZaoDvI2TxfvISMCoNXpVJslROmtkQHTl0=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=aBHWxbUE1qscXgToVSLDbDbOTBJx5ol3QAloFKF6quHuxSLDc6bLN0hEb6oLgxGmy
+         MnLxdeRrgyeBdJ9pGDDQDN8qL5E9eF3ZREg1BlrIswbxzqSGfwNgKGkpU7eR7l/H+i
+         Vbq9BwU/inl0wIHB7aGtD4Z3NEhanBgFaoByYV66gksXGt6rGyMFlx2u7/LVAOMEK5
+         3UQMP1Lhs7EYtOpLuMlrIWY7J57uJMJDeSdRPH5Gq31PiUX/XFKpgBmcKERl5TtGxs
+         zZmDid7aciqyecTQEc01AFRGPklMTl/8Ni72awcEbNNyPoB7lSyFUULT/gnF3yjq+a
+         QYealvajIFRZg==
+Received: by mail-ej1-f42.google.com with SMTP id mf7so30465661ejc.6;
+        Sun, 05 Feb 2023 19:12:07 -0800 (PST)
+X-Gm-Message-State: AO0yUKXQj1OYwkzCxr8lt87Nj1nU8qdd5VU2CQpXDhxca9gqVyHqszgK
+        HDc/+CsIh6KCcN2YsgRztMH+HIG+lrAREpPbv6k=
+X-Google-Smtp-Source: AK7set+C2OPIEjxuD4imJwgo/SdFRSDGqxy+aWdQoxwR9LsZ/L0xaRFmrPMBBJUVbKfwf6WwaCs9pUvWr8CjvlkkXS4=
+X-Received: by 2002:a17:906:8419:b0:884:c19c:7c6 with SMTP id
+ n25-20020a170906841900b00884c19c07c6mr4724728ejx.120.1675653125517; Sun, 05
+ Feb 2023 19:12:05 -0800 (PST)
 MIME-Version: 1.0
-References: <Y9lz6yk113LmC9SI@ZenIV> <Y9l0aBPUEpf1bci9@ZenIV>
- <92a4aa45-0a7c-a389-798a-2f3e3cfa516f@linux-m68k.org> <Y+AUEJpWYdUzW0OD@ZenIV>
-In-Reply-To: <Y+AUEJpWYdUzW0OD@ZenIV>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Sun, 5 Feb 2023 12:41:18 -0800
-X-Gmail-Original-Message-ID: <CAHk-=wh8+LsDDd8AFMwaYHAA+eLT8O2ziEJfpoeo_H6MCg2NKg@mail.gmail.com>
-Message-ID: <CAHk-=wh8+LsDDd8AFMwaYHAA+eLT8O2ziEJfpoeo_H6MCg2NKg@mail.gmail.com>
-Subject: Re: [PATCH 04/10] m68k: fix livelock in uaccess
-To:     Al Viro <viro@zeniv.linux.org.uk>
-Cc:     Finn Thain <fthain@linux-m68k.org>, linux-arch@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        sparclinux@vger.kernel.org
+References: <cover.1675461757.git.jpoimboe@kernel.org> <f860f3a1c1a53c437a99abc53e8f1a798aef6881.1675461757.git.jpoimboe@kernel.org>
+ <CAJF2gTSKe3ve4_rsOYpmSBOyUSU5rpLHyijn9i2-i+WfLqxzYw@mail.gmail.com> <20230204022932.k24laszjs3v4bc3v@treble>
+In-Reply-To: <20230204022932.k24laszjs3v4bc3v@treble>
+From:   Guo Ren <guoren@kernel.org>
+Date:   Mon, 6 Feb 2023 11:11:53 +0800
+X-Gmail-Original-Message-ID: <CAJF2gTSrGNm3xkwzws4uh1bv__1XYFCh322MJtk2ObQmv1_nEA@mail.gmail.com>
+Message-ID: <CAJF2gTSrGNm3xkwzws4uh1bv__1XYFCh322MJtk2ObQmv1_nEA@mail.gmail.com>
+Subject: Re: [PATCH 05/22] csky/cpu: Make sure arch_cpu_idle_dead() doesn't return
+To:     Josh Poimboeuf <jpoimboe@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux-alpha@vger.kernel.org,
+        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
+        catalin.marinas@arm.com, will@kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        chenhuacai@kernel.org, kernel@xen0n.name,
+        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
+        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
+        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
+        paulmck@kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Feb 5, 2023 at 12:39 PM Al Viro <viro@zeniv.linux.org.uk> wrote:
+On Sat, Feb 4, 2023 at 10:29 AM Josh Poimboeuf <jpoimboe@kernel.org> wrote:
 >
-> BTW, since these patches would be much easier to backport than any unification
-> work, I think the right thing to do would be to have further unification done on
-> top of them.
+> On Sat, Feb 04, 2023 at 09:12:31AM +0800, Guo Ren wrote:
+> > On Sat, Feb 4, 2023 at 6:05 AM Josh Poimboeuf <jpoimboe@kernel.org> wrote:
+> > >
+> > > arch_cpu_idle_dead() doesn't return.  Make that more explicit with a
+> > > BUG().
+> > >
+> > > BUG() is preferable to unreachable() because BUG() is a more explicit
+> > > failure mode and avoids undefined behavior like falling off the edge of
+> > > the function into whatever code happens to be next.
+> > >
+> > > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
+> > > ---
+> > >  arch/csky/kernel/smp.c | 2 ++
+> > >  1 file changed, 2 insertions(+)
+> > >
+> > > diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
+> > > index b45d1073307f..0ec20efaf5fd 100644
+> > > --- a/arch/csky/kernel/smp.c
+> > > +++ b/arch/csky/kernel/smp.c
+> > > @@ -317,5 +317,7 @@ void arch_cpu_idle_dead(void)
+> > >                 "jmpi   csky_start_secondary"
+> > >                 :
+> > >                 : "r" (secondary_stack));
+> > > +
+> > > +       BUG();
+> > Why not:
+> > diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
+> > index f26ab2675f7d..1d3bf903add2 100644
+> > --- a/kernel/sched/idle.c
+> > +++ b/kernel/sched/idle.c
+> > @@ -285,6 +285,7 @@ static void do_idle(void)
+> >                         tick_nohz_idle_stop_tick();
+> >                         cpuhp_report_idle_dead();
+> >                         arch_cpu_idle_dead();
+> > +                       BUG();
+>
+> Without the BUG() in csky arch_cpu_idle_dead(), the compiler will warn
+> about arch_cpu_idle_dead() returning, because it's marked __noreturn but
+> doesn't clearly return (as far as the compiler knows).
+>
+> And we want it marked __noreturn so we'll be more likely to catch such
+> bugs at build time.
+>
+> And as a bonus we get better code generation and clearer code semantics
+> which helps both humans and tooling understand the intent of the code.
+Thx for the clarification.
 
-Ack. I'm not NAKing the patches, I was just hoping that we also have
-some way forward.
+Acked-by: Guo Ren <guoren@kernel.org>
 
-So "fix the issues, then unify" sounds like the right thing to do to me.
+>
+> --
+> Josh
 
-               Linus
+
+
+-- 
+Best Regards
+ Guo Ren
