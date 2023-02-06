@@ -2,64 +2,46 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B460C636CD
-	for <sparclinux@archiver.kernel.org>; Mon,  6 Feb 2023 03:12:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF1D7C6379F
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Feb 2023 11:10:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229635AbjBFDMK (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Feb 2023 22:12:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34358 "EHLO
+        id S229868AbjBFLKq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Feb 2023 06:10:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59840 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbjBFDMJ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Feb 2023 22:12:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BDCD1A4B7;
-        Sun,  5 Feb 2023 19:12:08 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S229526AbjBFLKp (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Feb 2023 06:10:45 -0500
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5D31213D71;
+        Mon,  6 Feb 2023 03:10:44 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E972E60C67;
-        Mon,  6 Feb 2023 03:12:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5721CC433AC;
-        Mon,  6 Feb 2023 03:12:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675653127;
-        bh=SEHqDj0pecZaoDvI2TxfvISMCoNXpVJslROmtkQHTl0=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=aBHWxbUE1qscXgToVSLDbDbOTBJx5ol3QAloFKF6quHuxSLDc6bLN0hEb6oLgxGmy
-         MnLxdeRrgyeBdJ9pGDDQDN8qL5E9eF3ZREg1BlrIswbxzqSGfwNgKGkpU7eR7l/H+i
-         Vbq9BwU/inl0wIHB7aGtD4Z3NEhanBgFaoByYV66gksXGt6rGyMFlx2u7/LVAOMEK5
-         3UQMP1Lhs7EYtOpLuMlrIWY7J57uJMJDeSdRPH5Gq31PiUX/XFKpgBmcKERl5TtGxs
-         zZmDid7aciqyecTQEc01AFRGPklMTl/8Ni72awcEbNNyPoB7lSyFUULT/gnF3yjq+a
-         QYealvajIFRZg==
-Received: by mail-ej1-f42.google.com with SMTP id mf7so30465661ejc.6;
-        Sun, 05 Feb 2023 19:12:07 -0800 (PST)
-X-Gm-Message-State: AO0yUKXQj1OYwkzCxr8lt87Nj1nU8qdd5VU2CQpXDhxca9gqVyHqszgK
-        HDc/+CsIh6KCcN2YsgRztMH+HIG+lrAREpPbv6k=
-X-Google-Smtp-Source: AK7set+C2OPIEjxuD4imJwgo/SdFRSDGqxy+aWdQoxwR9LsZ/L0xaRFmrPMBBJUVbKfwf6WwaCs9pUvWr8CjvlkkXS4=
-X-Received: by 2002:a17:906:8419:b0:884:c19c:7c6 with SMTP id
- n25-20020a170906841900b00884c19c07c6mr4724728ejx.120.1675653125517; Sun, 05
- Feb 2023 19:12:05 -0800 (PST)
-MIME-Version: 1.0
-References: <cover.1675461757.git.jpoimboe@kernel.org> <f860f3a1c1a53c437a99abc53e8f1a798aef6881.1675461757.git.jpoimboe@kernel.org>
- <CAJF2gTSKe3ve4_rsOYpmSBOyUSU5rpLHyijn9i2-i+WfLqxzYw@mail.gmail.com> <20230204022932.k24laszjs3v4bc3v@treble>
-In-Reply-To: <20230204022932.k24laszjs3v4bc3v@treble>
-From:   Guo Ren <guoren@kernel.org>
-Date:   Mon, 6 Feb 2023 11:11:53 +0800
-X-Gmail-Original-Message-ID: <CAJF2gTSrGNm3xkwzws4uh1bv__1XYFCh322MJtk2ObQmv1_nEA@mail.gmail.com>
-Message-ID: <CAJF2gTSrGNm3xkwzws4uh1bv__1XYFCh322MJtk2ObQmv1_nEA@mail.gmail.com>
-Subject: Re: [PATCH 05/22] csky/cpu: Make sure arch_cpu_idle_dead() doesn't return
-To:     Josh Poimboeuf <jpoimboe@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
-        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, linux-alpha@vger.kernel.org,
-        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
-        catalin.marinas@arm.com, will@kernel.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        chenhuacai@kernel.org, kernel@xen0n.name,
-        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4P9NpV6n6sz4x1f;
+        Mon,  6 Feb 2023 22:10:26 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1675681839;
+        bh=kUcid2K08WtpFrwk3dq6n2jc2ZZxMaSNsif8b2qLpcI=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=JSr9bUqckLWxlQvgXrqHdLKjhZNKCyo4/W+R7iqEdoTwQny8JL4fA9p8KLiKopoBY
+         5u53AQEtGGXSUIVhYTsKoGTQqHAWk/L2OGiEhn+0/8fSth4VXKAS3aT226D33i5p+m
+         FdbPDX2xoyL2dmmxuKSPL38q4OEI/nwe/wpGmzrwBTQTovoqi6LZ4omZBFLcu1QcvH
+         OCmTE96dRBgZqYLhxf1uVZpSZUhhjl9pivy58AnZ8D9ntUKLxW5BuUV2Rkfq3DMiAR
+         1E1dDbWxoKsiTVWbw5buAHInDRJ1Jkci48lbw53vA/21E8Kh226KSjdHUbEkKMeduf
+         u7otQ9CqmaTuA==
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Josh Poimboeuf <jpoimboe@kernel.org>, linux-kernel@vger.kernel.org
+Cc:     jgross@suse.com, richard.henderson@linaro.org,
+        ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        linux-alpha@vger.kernel.org, linux@armlinux.org.uk,
+        linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, linux-csky@vger.kernel.org,
+        linux-ia64@vger.kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, loongarch@lists.linux.dev, f.fainelli@gmail.com,
         bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
         linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        npiggin@gmail.com, christophe.leroy@csgroup.eu,
         linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
         dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
         sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
@@ -70,68 +52,46 @@ Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 12/22] powerpc/cpu: Mark start_secondary_resume()
+ __noreturn
+In-Reply-To: <b5d065218265e79daa23f82bb84efc6a7ea120fc.1675461757.git.jpoimboe@kernel.org>
+References: <cover.1675461757.git.jpoimboe@kernel.org>
+ <b5d065218265e79daa23f82bb84efc6a7ea120fc.1675461757.git.jpoimboe@kernel.org>
+Date:   Mon, 06 Feb 2023 22:10:22 +1100
+Message-ID: <87v8kfdp7l.fsf@mpe.ellerman.id.au>
+MIME-Version: 1.0
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sat, Feb 4, 2023 at 10:29 AM Josh Poimboeuf <jpoimboe@kernel.org> wrote:
->
-> On Sat, Feb 04, 2023 at 09:12:31AM +0800, Guo Ren wrote:
-> > On Sat, Feb 4, 2023 at 6:05 AM Josh Poimboeuf <jpoimboe@kernel.org> wrote:
-> > >
-> > > arch_cpu_idle_dead() doesn't return.  Make that more explicit with a
-> > > BUG().
-> > >
-> > > BUG() is preferable to unreachable() because BUG() is a more explicit
-> > > failure mode and avoids undefined behavior like falling off the edge of
-> > > the function into whatever code happens to be next.
-> > >
-> > > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-> > > ---
-> > >  arch/csky/kernel/smp.c | 2 ++
-> > >  1 file changed, 2 insertions(+)
-> > >
-> > > diff --git a/arch/csky/kernel/smp.c b/arch/csky/kernel/smp.c
-> > > index b45d1073307f..0ec20efaf5fd 100644
-> > > --- a/arch/csky/kernel/smp.c
-> > > +++ b/arch/csky/kernel/smp.c
-> > > @@ -317,5 +317,7 @@ void arch_cpu_idle_dead(void)
-> > >                 "jmpi   csky_start_secondary"
-> > >                 :
-> > >                 : "r" (secondary_stack));
-> > > +
-> > > +       BUG();
-> > Why not:
-> > diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
-> > index f26ab2675f7d..1d3bf903add2 100644
-> > --- a/kernel/sched/idle.c
-> > +++ b/kernel/sched/idle.c
-> > @@ -285,6 +285,7 @@ static void do_idle(void)
-> >                         tick_nohz_idle_stop_tick();
-> >                         cpuhp_report_idle_dead();
-> >                         arch_cpu_idle_dead();
-> > +                       BUG();
->
-> Without the BUG() in csky arch_cpu_idle_dead(), the compiler will warn
-> about arch_cpu_idle_dead() returning, because it's marked __noreturn but
-> doesn't clearly return (as far as the compiler knows).
->
-> And we want it marked __noreturn so we'll be more likely to catch such
-> bugs at build time.
->
-> And as a bonus we get better code generation and clearer code semantics
-> which helps both humans and tooling understand the intent of the code.
-Thx for the clarification.
+Josh Poimboeuf <jpoimboe@kernel.org> writes:
+> start_secondary_resume() doesn't return.  Annotate it as such.  By
+> extension this also makes arch_cpu_idle_dead() noreturn.
 
-Acked-by: Guo Ren <guoren@kernel.org>
+Can we also mark arch_cpu_idle_dead() (the C function) __noreturn ?
 
->
-> --
-> Josh
+Seems like it would be good documentation, even if it's not required
+once the generic prototype is __noreturn.
 
+But not a show-stopper.
 
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
--- 
-Best Regards
- Guo Ren
+cheers
+
+> diff --git a/arch/powerpc/include/asm/smp.h b/arch/powerpc/include/asm/smp.h
+> index f63505d74932..cfd42ca8765c 100644
+> --- a/arch/powerpc/include/asm/smp.h
+> +++ b/arch/powerpc/include/asm/smp.h
+> @@ -66,7 +66,7 @@ void start_secondary(void *unused);
+>  extern int smp_send_nmi_ipi(int cpu, void (*fn)(struct pt_regs *), u64 delay_us);
+>  extern int smp_send_safe_nmi_ipi(int cpu, void (*fn)(struct pt_regs *), u64 delay_us);
+>  extern void smp_send_debugger_break(void);
+> -extern void start_secondary_resume(void);
+> +extern void __noreturn start_secondary_resume(void);
+>  extern void smp_generic_give_timebase(void);
+>  extern void smp_generic_take_timebase(void);
+>  
+> -- 
+> 2.39.0
