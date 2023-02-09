@@ -2,124 +2,55 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16DBCC64EC6
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Feb 2023 16:40:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A29FC05027
+	for <sparclinux@archiver.kernel.org>; Thu,  9 Feb 2023 08:40:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231623AbjBHQkJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Feb 2023 11:40:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47770 "EHLO
+        id S229476AbjBIIk5 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 9 Feb 2023 03:40:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53528 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231519AbjBHQkG (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Feb 2023 11:40:06 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 563514DE2C;
-        Wed,  8 Feb 2023 08:39:55 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D682261718;
-        Wed,  8 Feb 2023 16:39:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C217C433EF;
-        Wed,  8 Feb 2023 16:39:47 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1675874394;
-        bh=k2WDmJefTVbmF4UtYjVTRVt38vEfq5VHOD9s78R7eyg=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=Rm1BIDwVjM+vtyitHjo1e7C/8O3osDSw3ddUWkl4Wx2bC5t9PAYPPNOMyPOnhDGBE
-         x0/ntl8Z+mYIwUFJ4SJYgRaphWg6Yt4w739Gu/lXfntdZ6JeZX0Y+rfAbGvNs2ZHt8
-         st0eJcGbt8o4IXvW5Pd80HgnuHqj+dz7ZtRrgPBzs0UpJBQvPfkACmHMCJmVksp2u1
-         7j+OBIBzFLzMDdGcGKQCjlEbr0xBVw1CpjWop+Te/iJBfsS4i7ncKglT5iTBbI8VBo
-         HOM9qBR39AlYqQf2ZmUflFWYvSQAKch5roLODmzzrvB8D8QMKelVKI/xJc21XFfhdD
-         dus+tchf6H0SA==
-Date:   Wed, 8 Feb 2023 16:39:44 +0000
-From:   Mark Brown <broonie@kernel.org>
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Nadav Amit <namit@vmware.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
-        x86@kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Russell King <linux@armlinux.org.uk>
-Subject: Re: [PATCH mm-unstable v1 04/26] arm/mm: support
- __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-Message-ID: <Y+PQUMwH4AZSVpjb@sirena.org.uk>
-References: <20230113171026.582290-1-david@redhat.com>
- <20230113171026.582290-5-david@redhat.com>
- <Y+GcDFMNHw2cdDN1@sirena.org.uk>
- <39fd91e3-c93b-23c6-afc6-cbe473bb0ca9@redhat.com>
+        with ESMTP id S229473AbjBIIkz (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Feb 2023 03:40:55 -0500
+Received: from mail.penmade.pl (mail.penmade.pl [94.177.230.163])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D786A37F18
+        for <sparclinux@vger.kernel.org>; Thu,  9 Feb 2023 00:40:51 -0800 (PST)
+Received: by mail.penmade.pl (Postfix, from userid 1001)
+        id 6B27782C13; Thu,  9 Feb 2023 08:40:28 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=penmade.pl; s=mail;
+        t=1675932048; bh=CSKXLMgcdpWkXuTgJn5+jsCVobtU9JEF4vCnS5z6McM=;
+        h=Date:From:To:Subject:From;
+        b=u10ULftPO7/L7nUT/W23vDEIwBUFQy80qDYUjJS+6lXjq7Jxfn99pp207CErqEQ9P
+         /tmT7ttF9Awf4g2h8LHg/zM7YGLFZDO6i6FcHqGSec8V97H6U7frzwO9eeySHDKDLX
+         3BUDt8fafMDiHMJRXiyRIC9JzPnOVVVEC0gqzBiWLJu3/OD3bhbx/KbAqhda+yLuzm
+         Ig3+cfZPsgd9Jvu0kvU2oI0TI74LZf4wLodV2X0PQ/9U3BSRAS/s/KGK3O8w4fn3W2
+         ewDehaBLhtbzKGUkRgRLcSqm4n6NDhFsJwDy1n58vOmKa7YXR447MAfrgzroE17oHm
+         KLi+kUZeRri6A==
+Received: by mail.penmade.pl for <sparclinux@vger.kernel.org>; Thu,  9 Feb 2023 08:40:11 GMT
+Message-ID: <20230209074500-0.1.2b.52zn.0.u80whodewc@penmade.pl>
+Date:   Thu,  9 Feb 2023 08:40:11 GMT
+From:   "Wiktor Nurek" <wiktor.nurek@penmade.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
+X-Mailer: mail.penmade.pl
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="W0tQR/5xWRekS1hu"
-Content-Disposition: inline
-In-Reply-To: <39fd91e3-c93b-23c6-afc6-cbe473bb0ca9@redhat.com>
-X-Cookie: Walk softly and carry a megawatt laser.
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+Dzie=C5=84 dobry,
 
---W0tQR/5xWRekS1hu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
+skania nowych zlece=C5=84 ze strony www.
 
-On Wed, Feb 08, 2023 at 03:12:06PM +0100, David Hildenbrand wrote:
-> On 07.02.23 01:32, Mark Brown wrote:
+Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
+, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
+=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
+jonowania strony w Google.
 
-> > Today's -next (and at least back to Friday, older logs are unclear - I
-> > only noticed -next issues today) fails to NFS boot on an AT91SAM9G20-EK
-> > (an old ARMv5 platform) with multi_v5_defconfig, a bisect appears to
-> > point to this patch (20aae9eff5acd8f5 in today's -next) as the culprit.
+Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
 
-> It's been in -next for quite a while, thanks for the report!
 
-Yeah, there's been some other things obscuring the issue.
-
-> Could you give the following a test?
->=20
->=20
-> From 8c4bdbd9862f85782d5919d044c172b584063e83 Mon Sep 17 00:00:00 2001
-> From: David Hildenbrand <david@redhat.com>
-> Date: Wed, 8 Feb 2023 15:08:01 +0100
-> Subject: [PATCH] arm/mm: Fix swp type masking in __swp_entry()
->=20
-> We're masking with the number of type bits instead of the type mask, which
-> is obviously wrong.
-
-Tested-by: Mark Brown <broonie@kernel.org>
-
-but note that I had to manually apply it, though it's pretty trivial so
-I probably applied the right thing.
-
---W0tQR/5xWRekS1hu
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAmPj0FAACgkQJNaLcl1U
-h9C7hQf/VKRwP16M1jInUqUdUtyzPdvalnHTpasxKVZ8Sy0U3jwXMqNUqmnpEOSO
-UB3Q8audVEzRc8pj92dk3jilZBDPHyP58UUKRsjkrZVz22Q2/R16FcjaLrdlwNlj
-GWMfEWv5OKYPHaxP4W/VX0sXzS0XMTuulvAF1BOQRlOAS3L3jYsYUtzI2pkzJm1G
-64ICND0ZQRerzQmdQd6oO2tVhymhv8Y1LPY4TT0HikINGVpwwCJoOiocmstgqqGW
-uE+M+XJ9Lp/p78SIjfccjF1rdCWlc5MJJLS/qZzYnm6OnkKMOlBAUX9bwqvyrvE9
-quDK6fshhrFo/uJ5YVAQnAEuDKLv9g==
-=rC9E
------END PGP SIGNATURE-----
-
---W0tQR/5xWRekS1hu--
+Pozdrawiam serdecznie,
+Wiktor Nurek
