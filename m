@@ -2,125 +2,62 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B39A2C636D7
-	for <sparclinux@archiver.kernel.org>; Mon, 13 Feb 2023 07:54:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E396C636CC
+	for <sparclinux@archiver.kernel.org>; Mon, 13 Feb 2023 09:17:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229889AbjBMHyo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 13 Feb 2023 02:54:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43960 "EHLO
+        id S229784AbjBMJR3 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 13 Feb 2023 04:17:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44194 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229436AbjBMHyn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Feb 2023 02:54:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AD259422A;
-        Sun, 12 Feb 2023 23:54:42 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4871F60EC3;
-        Mon, 13 Feb 2023 07:54:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3884FC433EF;
-        Mon, 13 Feb 2023 07:54:27 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676274881;
-        bh=6metnuiv9QkmKFu+JTHLVBvZLre3nFtuNi3AR7PlA78=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=P/NLBLn1QBccO0iLmwEVdjTRTOu/1JTVdr0CvbgYz4ThLcAoENpkQwi1mRk7/P19V
-         Brn+rbVYSD8LBBQWtetps+o6x9tV427CYirqerxd+gmGggehAz5OXTZeiD3MkT7U29
-         s/as2HenQlPGtPPTTf3fp/G4jLA+MmtrrPcey6hAK36CzGgOAg/0LtwnODYIfT0DI9
-         MUeph4dw/P2V8jMyhN9SftHlhcEV/JNhGKIKb6cMv7netYSdbt356AlVVkhPoiPUvd
-         r4aExWVaj3CL3McIngU/VdH3ENcuJwfiC6rBQVcgRCzZo3MtbE8U1j5N/4s5pn2pxp
-         sfCWQJUUPJk8Q==
-Date:   Mon, 13 Feb 2023 09:54:17 +0200
-From:   Mike Rapoport <rppt@kernel.org>
-To:     Guenter Roeck <linux@roeck-us.net>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>, Brian Cain <bcain@quicinc.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Greg Ungerer <gerg@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>, Helge Deller <deller@gmx.de>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Matt Turner <mattst88@gmail.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Michal Simek <monstr@monstr.eu>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        Richard Weinberger <richard@nod.at>,
-        Russell King <linux@armlinux.org.uk>,
-        Stafford Horne <shorne@gmail.com>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Vineet Gupta <vgupta@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-alpha@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-mm@kvack.org,
-        linux-parisc@vger.kernel.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        linuxppc-dev@lists.ozlabs.org, loongarch@lists.linux.dev,
-        openrisc@lists.librecores.org, sparclinux@vger.kernel.org,
-        x86@kernel.org, Huacai Chen <chenhuacai@loongson.cn>
-Subject: Re: [PATCH v2 4/4] mm, arch: add generic implementation of
- pfn_valid() for FLATMEM
-Message-ID: <Y+nsqV6u/PqNlwDS@kernel.org>
-References: <20230129124235.209895-1-rppt@kernel.org>
- <20230129124235.209895-5-rppt@kernel.org>
- <20230212161320.GA3784076@roeck-us.net>
- <Y+mRz6Wfocopv9jw@kernel.org>
- <15a2c023-fdfa-9543-ac36-a846e5f8a000@roeck-us.net>
+        with ESMTP id S229604AbjBMJRY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 13 Feb 2023 04:17:24 -0500
+X-Greylist: delayed 418 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 13 Feb 2023 01:17:17 PST
+Received: from mail.stagenetbiz.pl (mail.stagenetbiz.pl [217.61.97.35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9ED3113DF5
+        for <sparclinux@vger.kernel.org>; Mon, 13 Feb 2023 01:17:17 -0800 (PST)
+Received: by mail.stagenetbiz.pl (Postfix, from userid 1001)
+        id E7E347EEF9; Mon, 13 Feb 2023 09:10:48 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stagenetbiz.pl;
+        s=mail; t=1676279448;
+        bh=LTrFku/ToeGnnqiqyaN86kCQQkxkwCY5tVpcGX1QBNI=;
+        h=Date:From:To:Subject:From;
+        b=eWQg8uhRQK0ZRRYSWyUdzCLO5CUIJuBQCTH4Y/7OqS9u7ts1tl0sdabgv+WyjAbwe
+         CpCbguWKtQbJ0A0aiSs2ecH4WJMVALkIXNYZ1jGy7iQS32AmJEc0B46NWxn3lWjbMo
+         0jFZxDAhFh82M5toL9H1yzXrduE2dzr0y4xCGKRIyVGOdPMogu48NlF9T/6p5DHXCC
+         xiIZ1JjXtr6g63ibVyWxaEXylrVFUH+Q/36+Z7IGXFtaC/cb0UGJiBPQWJir8F53gy
+         VBQ1IrE2rARt0vCHUhMtejuf/KZkLZ+8yljiZxN9xiiSWUXtluXVhQ6Mq34fmz+6tC
+         5964yBTpOgG3g==
+Received: by mail.stagenetbiz.pl for <sparclinux@vger.kernel.org>; Mon, 13 Feb 2023 09:10:44 GMT
+Message-ID: <20230213074500-0.1.3o.dps2.0.6libq0dqh1@stagenetbiz.pl>
+Date:   Mon, 13 Feb 2023 09:10:44 GMT
+From:   =?UTF-8?Q? "Aleksandra_Kami=C5=84ska" ?= 
+        <aleksandra.kaminska@stagenetbiz.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Nowe lakiery hybrydowe do oferty
+X-Mailer: mail.stagenetbiz.pl
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <15a2c023-fdfa-9543-ac36-a846e5f8a000@roeck-us.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Andrew, 
+Dzie=C5=84 dobry,
 
-On Sun, Feb 12, 2023 at 10:37:15PM -0800, Guenter Roeck wrote:
-> On 2/12/23 17:26, Mike Rapoport wrote:
-> > On Sun, Feb 12, 2023 at 08:13:20AM -0800, Guenter Roeck wrote:
-> > > On Sun, Jan 29, 2023 at 02:42:35PM +0200, Mike Rapoport wrote:
-> > > > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
-> > > > 
-> > > > Every architecture that supports FLATMEM memory model defines its own
-> > > > version of pfn_valid() that essentially compares a pfn to max_mapnr.
-> > > > 
-> > > > Use mips/powerpc version implemented as static inline as a generic
-> > > > implementation of pfn_valid() and drop its per-architecture definitions.
-> > > > 
-> > > 
-> > > With this patch in the tree, sh4 and sh4eb qemu emulations no longer boot.
-> > > Reverting this patch fixes the problem.
-> > 
-> > This should be a better fix than a revert:
-> > 
-> > diff --git a/arch/sh/mm/init.c b/arch/sh/mm/init.c
-> > index 506784702430..bf1b54055316 100644
-> > --- a/arch/sh/mm/init.c
-> > +++ b/arch/sh/mm/init.c
-> > @@ -301,6 +301,7 @@ void __init paging_init(void)
-> >   	 */
-> >   	max_low_pfn = max_pfn = memblock_end_of_DRAM() >> PAGE_SHIFT;
-> >   	min_low_pfn = __MEMORY_START >> PAGE_SHIFT;
-> > +	set_max_mapnr(max_low_pfn - min_low_pfn);
-> >   	nodes_clear(node_online_map);
-> 
-> Confirmed, this fixes the problem for me.
- 
-What is your preference for this and m68k fix? Fixups on top of mm-stable
-or v3 of the entire series? 
+w bran=C5=BCy lakier=C3=B3w hybrydowych ro=C5=9Bnie popularno=C5=9B=C4=87=
+ produkt=C3=B3w wielozadaniowych, kt=C3=B3re skracaj=C4=85 czas wykonania=
+ manicure.
 
-> Thanks,
-> Guenter
+Opracowali=C5=9Bmy now=C4=85 linie lakier=C3=B3w, kt=C3=B3re spe=C5=82nia=
+j=C4=85 wsp=C3=B3=C5=82czesne wymagania w tym zakresie, dlatego ciesz=C4=85=
+ si=C4=99 rosn=C4=85cym zainteresowaniem na rynku.
 
--- 
-Sincerely yours,
-Mike.
+Produkty dostarczamy do drogerii, sieci zakupowych, handlowych, hurtowni =
+i dystrybutor=C3=B3w, kt=C3=B3rzy osi=C4=85gaj=C4=85 wy=C5=BCsze ni=C5=BC=
+ dotychczas zyski ze sprzeda=C5=BCy tego typu rozwi=C4=85za=C5=84.
+
+Chc=C4=85 Pa=C5=84stwo pozna=C4=87 propozycj=C4=99 wsp=C3=B3=C5=82pracy?
+
+
+Z pozdrowieniami
+Aleksandra Kami=C5=84ska
