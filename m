@@ -2,46 +2,45 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4018C64ED8
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 18:30:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DDB3C64EC7
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 18:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232564AbjBNSaD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Feb 2023 13:30:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58660 "EHLO
+        id S231236AbjBNSjf (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Feb 2023 13:39:35 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36368 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232996AbjBNS3x (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 13:29:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E1552E829;
-        Tue, 14 Feb 2023 10:29:52 -0800 (PST)
+        with ESMTP id S229686AbjBNSje (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 13:39:34 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E6632914B;
+        Tue, 14 Feb 2023 10:39:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D370EB81EC2;
-        Tue, 14 Feb 2023 18:29:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8614C433EF;
-        Tue, 14 Feb 2023 18:29:47 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 9724ACE20CA;
+        Tue, 14 Feb 2023 18:39:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09A56C433EF;
+        Tue, 14 Feb 2023 18:39:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676399389;
-        bh=oQROITW1uKecfEo2cGdUy6SKWCigHCuMd3wvoPcK/Ko=;
+        s=k20201202; t=1676399969;
+        bh=VUyVoBOPBRmm9kWmhRlnQ1dgekqLXP/lAdmRs2vUMTw=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=hpBfb/N7GqHlXo7xtxu5LoZyyUht86rqLf73Z3PeLujJU6jGBfG4Crx1t8FD0bkFr
-         cpbiPz0/QDlZfYRI4h2P3lLrmD5Z/xbGq7cs4Ut0xjuJi4YzSzkvOMMKpBtebTlCtL
-         l4e1AgnghjvPjyVVks0KpZOXqFcPu3BTc7mr5i2f6zK8LRTHRiYvESRTTFIvkhp+LF
-         VuUuwaRBMKyTuPkTeqMUDJ4+UTzBxdWeQgQAGNmVm18KuHS/90CWYpvajdj9AOJsed
-         2UAZeIOgM0zNiULRxmya9V9eCoG8CCRRUJHb21auhUA9pbURPxp8PbGI4vjFY9YHnJ
-         dx0ZQ0blYHc8A==
-Date:   Tue, 14 Feb 2023 10:29:46 -0800
+        b=lpZhSArqYygzNfbZKNGcjvcTwNhca/C7bB1TE9FeTvJzAGZ57uFNUzzPGzNzsq1aM
+         4IwTbCrGHlO+gqUw6Cp2q/T2qzl7oKte7MwDQz3JJi48nhvnLQCL1v829eNQdq9Aor
+         LJVTO1gCw8Wqh+EF1lyZn0MKGT3Ec/hk02S8MnRgX0DmrxuAmOlKntBx/Pr6tIPS3P
+         UaoMve8gjEVjIQnN7Xv3/b6rQXg6ophd0y2EU0ZaIVvjRNs9aPXNsY3eMvCBJTI6nZ
+         dK8MWYE95qwTxoUjEPw8XF0TFH3j6Cs9OS5l4B44f43ifxIJVskUOqIj8+/+LqMtdo
+         WhjmwIG948hmQ==
+Date:   Tue, 14 Feb 2023 10:39:26 -0800
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
-To:     Philippe =?utf-8?Q?Mathieu-Daud=C3=A9?= <philmd@linaro.org>
+To:     "Russell King (Oracle)" <linux@armlinux.org.uk>
 Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
         richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
         mattst88@gmail.com, linux-alpha@vger.kernel.org,
-        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
-        catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org,
-        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
-        chenhuacai@kernel.org, kernel@xen0n.name,
-        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, linux-csky@vger.kernel.org,
+        linux-ia64@vger.kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, loongarch@lists.linux.dev, f.fainelli@gmail.com,
         bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
         linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
         mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
@@ -55,34 +54,43 @@ Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: Re: [PATCH v2 00/24] cpu,sched: Mark arch_cpu_idle_dead() __noreturn
-Message-ID: <20230214182946.x64fakiyfrjumuy2@treble>
+Subject: Re: [PATCH v2 03/24] arm/cpu: Make sure arch_cpu_idle_dead() doesn't
+ return
+Message-ID: <20230214183926.46trlpdror3v5sk5@treble>
 References: <cover.1676358308.git.jpoimboe@kernel.org>
- <a48ebe98-82b5-8f7b-8327-4e60bdb231c8@linaro.org>
+ <ed361403b8ee965f758fe491c47336dddcfb8fd5.1676358308.git.jpoimboe@kernel.org>
+ <Y+ttS0japRCzHoFM@shell.armlinux.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <a48ebe98-82b5-8f7b-8327-4e60bdb231c8@linaro.org>
+In-Reply-To: <Y+ttS0japRCzHoFM@shell.armlinux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Feb 14, 2023 at 10:25:50AM +0100, Philippe Mathieu-Daudé wrote:
-> On 14/2/23 08:05, Josh Poimboeuf wrote:
-> > v2:
-> > - make arch_call_rest_init() and rest_init() __noreturn
-> > - make objtool 'global_returns' work for weak functions
-> > - rebase on tip/objtool/core with dependencies merged in (mingo)
-> > - add acks
+On Tue, Feb 14, 2023 at 11:15:23AM +0000, Russell King (Oracle) wrote:
+> On Mon, Feb 13, 2023 at 11:05:37PM -0800, Josh Poimboeuf wrote:
+> > arch_cpu_idle_dead() doesn't return.  Make that more explicit with a
+> > BUG().
 > > 
-> > v1.1:
-> > - add __noreturn to all arch_cpu_idle_dead() implementations (mpe)
+> > BUG() is preferable to unreachable() because BUG() is a more explicit
+> > failure mode and avoids undefined behavior like falling off the edge of
+> > the function into whatever code happens to be next.
 > 
-> Possible similar candidates: panic_smp_self_stop, nmi_panic_self_stop
-> and kexec.
+> This is silly. Just mark the function __noreturn and be done with it.
+> If the CPU ever executes code past the "b" instruction, it's already
+> really broken that the extra instructions that BUG() gives will be
+> meaningless.
+> 
+> This patch does nothing except add yet more bloat the kernel.
+> 
+> Sorry, but NAK.
 
-Agreed.  Any volunteers?
+Problem is, the compiler can't read inline asm.  So you'd get a 
+"'noreturn' function does return" warning.
+
+We can do an unreachable() instead of a BUG() here if you prefer
+undefined behavior.
 
 -- 
 Josh
