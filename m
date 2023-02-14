@@ -2,134 +2,92 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2EE51C05027
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 10:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 252B8C61DA4
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 11:16:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232675AbjBNKkM convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Feb 2023 05:40:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44072 "EHLO
+        id S231579AbjBNLP7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Feb 2023 06:15:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59968 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232672AbjBNKj4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 05:39:56 -0500
-Received: from outpost1.zedat.fu-berlin.de (outpost1.zedat.fu-berlin.de [130.133.4.66])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39CB825E2D;
-        Tue, 14 Feb 2023 02:39:53 -0800 (PST)
-Received: from inpost2.zedat.fu-berlin.de ([130.133.4.69])
-          by outpost.zedat.fu-berlin.de (Exim 4.95)
-          with esmtps (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@zedat.fu-berlin.de>)
-          id 1pRshz-000K86-Qj; Tue, 14 Feb 2023 11:38:47 +0100
-Received: from p5b13aa49.dip0.t-ipconnect.de ([91.19.170.73] helo=[192.168.178.81])
-          by inpost2.zedat.fu-berlin.de (Exim 4.95)
-          with esmtpsa (TLS1.3)
-          tls TLS_AES_256_GCM_SHA384
-          (envelope-from <glaubitz@physik.fu-berlin.de>)
-          id 1pRshz-003Z8i-EF; Tue, 14 Feb 2023 11:38:47 +0100
-Message-ID: <6a420bb0e033562bc7f67cc8f218f994e0892d3b.camel@physik.fu-berlin.de>
-Subject: Re: [PATCH v3 10/24] sparc: Remove COMMAND_LINE_SIZE from uapi
-From:   John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>
-To:     WANG Xuerui <kernel@xen0n.name>,
-        Sergey Shtylyov <s.shtylyov@omp.ru>,
-        Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E . J . Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org
-Cc:     Palmer Dabbelt <palmer@rivosinc.com>
-Date:   Tue, 14 Feb 2023 11:38:45 +0100
-In-Reply-To: <f3db61bb-5c89-2724-769f-9d606f587f92@xen0n.name>
-References: <20230214074925.228106-1-alexghiti@rivosinc.com>
-         <20230214074925.228106-11-alexghiti@rivosinc.com>
-         <017f0b40-8021-8b3b-24d2-c70661b6b292@omp.ru>
-         <f3db61bb-5c89-2724-769f-9d606f587f92@xen0n.name>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-User-Agent: Evolution 3.46.4 
+        with ESMTP id S231442AbjBNLP5 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 06:15:57 -0500
+Received: from pandora.armlinux.org.uk (pandora.armlinux.org.uk [IPv6:2001:4d48:ad52:32c8:5054:ff:fe00:142])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BCB7F778;
+        Tue, 14 Feb 2023 03:15:53 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=armlinux.org.uk; s=pandora-2019; h=Sender:In-Reply-To:Content-Type:
+        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description:Resent-Date:
+        Resent-From:Resent-Sender:Resent-To:Resent-Cc:Resent-Message-ID:List-Id:
+        List-Help:List-Unsubscribe:List-Subscribe:List-Post:List-Owner:List-Archive;
+        bh=feq3IC/5/KiRJvfHlVv2CcC6RUdK5q3PrTHL48yu34g=; b=IY8/3BJNJqlfYIiiRrZQQvZRUI
+        zXN8H4czV7EjZe5bPaMktsEvmq8U8pjvTYyya4cup7cL54SMKx0ge7QbY/CCsvf5wXCv2iPz0GOx4
+        E5tXkN8wXUf2WObc0lbe9bNZO8+jSngczSvjZgzbXVzX/MMqHq4sFtiuakUAYJPlM1M9zqdQJlIfr
+        V07xAJElzJ+Whli8AotdwvSsa63tFe/X5tzZIWB6YKO486nz1mePmMAAZDniIvhIYll/bwnB7VTq7
+        8wf/BdqedSuWIZnXNdaxjhsP+/0iN78krPZrjnhtZAPNPNRdu+yIjI4AmWeyCmWxNir6FF+aWsTDw
+        k/OkNWFg==;
+Received: from shell.armlinux.org.uk ([fd8f:7570:feb6:1:5054:ff:fe00:4ec]:41016)
+        by pandora.armlinux.org.uk with esmtpsa  (TLS1.3) tls TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        (Exim 4.94.2)
+        (envelope-from <linux@armlinux.org.uk>)
+        id 1pRtHe-0005Jd-PH; Tue, 14 Feb 2023 11:15:38 +0000
+Received: from linux by shell.armlinux.org.uk with local (Exim 4.94.2)
+        (envelope-from <linux@shell.armlinux.org.uk>)
+        id 1pRtHP-0003rk-Gx; Tue, 14 Feb 2023 11:15:23 +0000
+Date:   Tue, 14 Feb 2023 11:15:23 +0000
+From:   "Russell King (Oracle)" <linux@armlinux.org.uk>
+To:     Josh Poimboeuf <jpoimboe@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com,
+        will@kernel.org, guoren@kernel.org, linux-csky@vger.kernel.org,
+        linux-ia64@vger.kernel.org, chenhuacai@kernel.org,
+        kernel@xen0n.name, loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
+        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
+        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
+        paulmck@kernel.org
+Subject: Re: [PATCH v2 03/24] arm/cpu: Make sure arch_cpu_idle_dead() doesn't
+ return
+Message-ID: <Y+ttS0japRCzHoFM@shell.armlinux.org.uk>
+References: <cover.1676358308.git.jpoimboe@kernel.org>
+ <ed361403b8ee965f758fe491c47336dddcfb8fd5.1676358308.git.jpoimboe@kernel.org>
 MIME-Version: 1.0
-X-Original-Sender: glaubitz@physik.fu-berlin.de
-X-Originating-IP: 91.19.170.73
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ed361403b8ee965f758fe491c47336dddcfb8fd5.1676358308.git.jpoimboe@kernel.org>
+Sender: Russell King (Oracle) <linux@armlinux.org.uk>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 2023-02-14 at 16:59 +0800, WANG Xuerui wrote:
-> On 2023/2/14 16:50, Sergey Shtylyov wrote:
-> > On 2/14/23 10:49 AM, Alexandre Ghiti wrote:
-> > 
-> > > From: Palmer Dabbelt <palmer@rivosinc.com>
-> > > 
-> > > As far as I can tell this is not used by userspace and thus should not
-> > > be part of the user-visible API.
-> > > 
-> > > Signed-off-by: Palmer Dabbelt <palmer@rivosinc.com>
-> > > ---
-> > >   arch/sparc/include/asm/setup.h      | 6 +++++-
-> > >   arch/sparc/include/uapi/asm/setup.h | 7 -------
-> > >   2 files changed, 5 insertions(+), 8 deletions(-)
-> > > 
-> > > diff --git a/arch/sparc/include/asm/setup.h b/arch/sparc/include/asm/setup.h
-> > > index 72205684e51e..d1384ed92547 100644
-> > > --- a/arch/sparc/include/asm/setup.h
-> > > +++ b/arch/sparc/include/asm/setup.h
-> > > @@ -7,7 +7,11 @@
-> > >   
-> > >   #include <linux/interrupt.h>
-> > >   
-> > > -#include <uapi/asm/setup.h>
-> > > +#if defined(__sparc__) && defined(__arch64__)
-> > 
-> >     Mhm, I don't think these two can be #define'd simulaneously...
+On Mon, Feb 13, 2023 at 11:05:37PM -0800, Josh Poimboeuf wrote:
+> arch_cpu_idle_dead() doesn't return.  Make that more explicit with a
+> BUG().
 > 
-> I believe it's just a SPARC-ism [1] [2] that may look strange and be 
-> easily confused for __aarch64__ (notice the extra 'a')...
+> BUG() is preferable to unreachable() because BUG() is a more explicit
+> failure mode and avoids undefined behavior like falling off the edge of
+> the function into whatever code happens to be next.
 
-Yep, that's correct. On 64-bit Linux/SPARC, gcc/clang define __sparc__ AND __arch64__.
+This is silly. Just mark the function __noreturn and be done with it.
+If the CPU ever executes code past the "b" instruction, it's already
+really broken that the extra instructions that BUG() gives will be
+meaningless.
 
-Adrian
+This patch does nothing except add yet more bloat the kernel.
+
+Sorry, but NAK.
 
 -- 
- .''`.  John Paul Adrian Glaubitz
-: :' :  Debian Developer
-`. `'   Physicist
-  `-    GPG: 62FF 8A75 84E0 2956 9546  0006 7426 3B37 F5B5 F913
+RMK's Patch system: https://www.armlinux.org.uk/developer/patches/
+FTTP is here! 40Mbps down 10Mbps up. Decent connectivity at last!
