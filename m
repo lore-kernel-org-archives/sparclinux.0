@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B28DC6379F
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 07:09:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57E47C61DA4
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 07:09:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231873AbjBNHJT (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Feb 2023 02:09:19 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51750 "EHLO
+        id S232031AbjBNHJV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Feb 2023 02:09:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50166 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231937AbjBNHHp (ORCPT
+        with ESMTP id S231939AbjBNHHp (ORCPT
         <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 02:07:45 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 80FEC18A82;
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D62D1DBBB;
         Mon, 13 Feb 2023 23:07:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AC6136147B;
-        Tue, 14 Feb 2023 07:07:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 68B3EC433AA;
-        Tue, 14 Feb 2023 07:07:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6EA1561483;
+        Tue, 14 Feb 2023 07:07:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BC09C4339C;
+        Tue, 14 Feb 2023 07:07:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676358440;
-        bh=lVxYhY4OwwDPhm8BTwwcRy+JxjuJw8OgWEbHa0amaW4=;
+        s=k20201202; t=1676358443;
+        bh=Vz9pacmD2uWnKtGE9AgzwIGUED4qhPPVsYwwh31r10c=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=fcUSoKqULJqLPku9lRFSHdbPaNeODYe/R1sZzjrR3VRHqcq59Tm9wERqJ6PlHQrjn
-         5GeWqya8mNwLITuoLWSAvRpjgR3SdVziUkPO9YsYEIi1QSukk7EUS9aKdkfWfOxlAO
-         wYjLK997WLSPPi0UzLKNSA6lD26mGt+cEcDEsvqdQMTTD3geXcDD/U9CExxmKiegju
-         C8HPMNKcuZCM+retZCnUY1hx60pKE2mQSPyq6ne+xt6jgv18ltv46AT4IlPKwLgjF+
-         KccGkJXMroepuqfZj6Fbx4rYWNFKt9XuiLi9CgivFSVeZiuhzrxK+XEv+28NZ52XHL
-         ujubifvv+6/4A==
+        b=ihibyp4ipYh7lQbANFcsUTiHup0xNx5JMQ/c4E3q5yGId+1gTQii/DTVSUWTsOltw
+         IqvTEQrOFzi2eFo294/k7bZhA6LANgcvqyIA6iJgUKc3l8XDMyd8GBQE+AIh601ofR
+         Qc3xpRS1OEc1oUgLhUfbdhFWnImGAZlRDONcTJ/AUMAJRMW7eT2YlrHDa/yyWvyexc
+         X6uQrIyw5EWPq7+6xku9zrDlYBy8ZUaQ+gxoKXgdd3pvsLjc6WJXXE5XCSZlHYHxoY
+         0KvkA5welRNTeqfi984yl9rKlVPjqPnNJdmII0J45bsDxbkD1Y+8mlhaPORYaSNPw7
+         yJswjRO+Y9qRw==
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     jgross@suse.com, richard.henderson@linaro.org,
@@ -53,9 +53,9 @@ Cc:     jgross@suse.com, richard.henderson@linaro.org,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: [PATCH v2 17/24] x86/cpu: Make sure play_dead() doesn't return
-Date:   Mon, 13 Feb 2023 23:05:51 -0800
-Message-Id: <11e6ac1cf10f92967882926e3ac16287b50642f2.1676358308.git.jpoimboe@kernel.org>
+Subject: [PATCH v2 19/24] xtensa/cpu: Make sure cpu_die() doesn't return
+Date:   Mon, 13 Feb 2023 23:05:53 -0800
+Message-Id: <cca346b5c87693499e630291d78fb0bf12c24290.1676358308.git.jpoimboe@kernel.org>
 X-Mailer: git-send-email 2.39.1
 In-Reply-To: <cover.1676358308.git.jpoimboe@kernel.org>
 References: <cover.1676358308.git.jpoimboe@kernel.org>
@@ -66,9 +66,7 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-After commit 076cbf5d2163 ("x86/xen: don't let xen_pv_play_dead()
-return"), play_dead() never returns.  Make that more explicit with a
-BUG().
+cpu_die() doesn't return.  Make that more explicit with a BUG().
 
 BUG() is preferable to unreachable() because BUG() is a more explicit
 failure mode and avoids undefined behavior like falling off the edge of
@@ -76,21 +74,22 @@ the function into whatever code happens to be next.
 
 Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
 ---
- arch/x86/include/asm/smp.h | 1 +
- 1 file changed, 1 insertion(+)
+ arch/xtensa/kernel/smp.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/arch/x86/include/asm/smp.h b/arch/x86/include/asm/smp.h
-index b4dbb20dab1a..8f628e08b25a 100644
---- a/arch/x86/include/asm/smp.h
-+++ b/arch/x86/include/asm/smp.h
-@@ -96,6 +96,7 @@ static inline void __cpu_die(unsigned int cpu)
- static inline void play_dead(void)
- {
- 	smp_ops.play_dead();
+diff --git a/arch/xtensa/kernel/smp.c b/arch/xtensa/kernel/smp.c
+index 4dc109dd6214..7bad78495536 100644
+--- a/arch/xtensa/kernel/smp.c
++++ b/arch/xtensa/kernel/smp.c
+@@ -341,6 +341,8 @@ void __ref cpu_die(void)
+ 	__asm__ __volatile__(
+ 			"	movi	a2, cpu_restart\n"
+ 			"	jx	a2\n");
++
 +	BUG();
  }
  
- static inline void smp_send_reschedule(int cpu)
+ #endif /* CONFIG_HOTPLUG_CPU */
 -- 
 2.39.1
 
