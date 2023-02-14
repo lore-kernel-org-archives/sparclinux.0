@@ -2,35 +2,35 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1BE0C678DB
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7042C6FA9D
 	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 07:10:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231770AbjBNHKF (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Feb 2023 02:10:05 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52876 "EHLO
+        id S231843AbjBNHKH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Feb 2023 02:10:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53082 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231840AbjBNHIF (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 02:08:05 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 121EB1E2A3;
-        Mon, 13 Feb 2023 23:07:30 -0800 (PST)
+        with ESMTP id S231851AbjBNHIL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 02:08:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 647621F919;
+        Mon, 13 Feb 2023 23:07:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C54F2B81C09;
-        Tue, 14 Feb 2023 07:07:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E12EEC433AF;
-        Tue, 14 Feb 2023 07:07:25 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id DCED561486;
+        Tue, 14 Feb 2023 07:07:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99164C433EF;
+        Tue, 14 Feb 2023 07:07:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676358447;
-        bh=QgOyKDCiySM7B7nEI/CeCUdB9V4cgp0r+x00hCG0bAs=;
+        s=k20201202; t=1676358451;
+        bh=/E6ppJbV5z5ApVdewyuTHf7CvoK0nTKINkqTWba4hWQ=;
         h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=UTx7NvZZYy13iCrSLJI4/e/stpitBs/+hLagiJy96BUaFJ5MujJ4J6mQCivTly9aU
-         XuFeDhwKqeLcYDae4jWwak72Pf2i7BG8JbrSVF8YoiubDwMTmJDUGjeFBflHfWBgnO
-         6L32o4C5b8JR78z11RsYWTZBwUIC5CFlMvD5lE2d/1HUy8GsTmXNJ/g9JeZ6adGDGu
-         SpBAhjB5JhWlZVQ+YSlBEcxV3F7h5KixnUuQi9X4K6aJAaVEr7xJRMQnGQfMIMUBD9
-         C+jRTbtnaIlGZMy31m/B6Ep+S7vN+3+3dGihQRhahxNc49RXvYQGaQk8wYeSksBU4B
-         Yd1Op3p5cd5dg==
+        b=eAVhDP/nnUmK2Tbt0WlSlbeLwZc48daDDUfA+WcRQcgABUpHOLC4W6mRlYkn3B0wb
+         pyPJkCGDfhtKyYAAyB7i0WULfwtLfuoylAXfq26jq+r6cd9pmJTf8Y7Sdz9uNbPFGD
+         K42IQuFDnlwzEU/X635kfqpIVB/BjhOS6kor7Lo+J8wO3PWI6MUZksGoZIin9FsGib
+         dDZLKpP0ITxkWimDoJJt9mabyqo+rPT12nL/g6KtsdX0FQq3IFPm3DMc246TJwAe8b
+         RoULbiJpr7jsVWWMB2lWHrmGsaLZlzYGOxbtkqHjzyKdQQj7sniVYEyt3W2dldlRvs
+         MuPWVOv6ThwRg==
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     linux-kernel@vger.kernel.org
 Cc:     jgross@suse.com, richard.henderson@linaro.org,
@@ -53,9 +53,9 @@ Cc:     jgross@suse.com, richard.henderson@linaro.org,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: [PATCH v2 21/24] sched/idle: Make sure weak version of arch_cpu_idle_dead() doesn't return
-Date:   Mon, 13 Feb 2023 23:05:55 -0800
-Message-Id: <cf5ad95eef50f7704bb30e7770c59bfe23372af7.1676358308.git.jpoimboe@kernel.org>
+Subject: [PATCH v2 23/24] init: Make arch_call_rest_init() and rest_init() __noreturn
+Date:   Mon, 13 Feb 2023 23:05:57 -0800
+Message-Id: <8e901950d98b940972920578654ce186b714e74b.1676358308.git.jpoimboe@kernel.org>
 X-Mailer: git-send-email 2.39.1
 In-Reply-To: <cover.1676358308.git.jpoimboe@kernel.org>
 References: <cover.1676358308.git.jpoimboe@kernel.org>
@@ -66,26 +66,90 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-arch_cpu_idle_dead() should never return.  Make it so.
+arch_call_rest_init() and rest_init() don't return.  Annotate them as
+such.
+
+Fixes the following warning:
+
+  init/main.o: warning: objtool: start_kernel+0x4ad: unreachable instruction
 
 Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
 ---
- kernel/sched/idle.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/kernel/setup.c     | 2 +-
+ include/linux/start_kernel.h | 4 ++--
+ init/main.c                  | 4 ++--
+ tools/objtool/check.c        | 2 ++
+ 4 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/kernel/sched/idle.c b/kernel/sched/idle.c
-index e9ef66be2870..56e152f06d0f 100644
---- a/kernel/sched/idle.c
-+++ b/kernel/sched/idle.c
-@@ -75,7 +75,7 @@ static noinline int __cpuidle cpu_idle_poll(void)
- void __weak arch_cpu_idle_prepare(void) { }
- void __weak arch_cpu_idle_enter(void) { }
- void __weak arch_cpu_idle_exit(void) { }
--void __weak arch_cpu_idle_dead(void) { }
-+void __weak arch_cpu_idle_dead(void) { while (1); }
- void __weak arch_cpu_idle(void)
+diff --git a/arch/s390/kernel/setup.c b/arch/s390/kernel/setup.c
+index 696c9e007a36..85abff362f29 100644
+--- a/arch/s390/kernel/setup.c
++++ b/arch/s390/kernel/setup.c
+@@ -393,7 +393,7 @@ int __init arch_early_irq_init(void)
+ 	return 0;
+ }
+ 
+-void __init arch_call_rest_init(void)
++void __init __noreturn arch_call_rest_init(void)
  {
- 	cpu_idle_force_poll = 1;
+ 	unsigned long stack;
+ 
+diff --git a/include/linux/start_kernel.h b/include/linux/start_kernel.h
+index 8b369a41c03c..864921e54c92 100644
+--- a/include/linux/start_kernel.h
++++ b/include/linux/start_kernel.h
+@@ -9,7 +9,7 @@
+    up something else. */
+ 
+ extern asmlinkage void __init start_kernel(void);
+-extern void __init arch_call_rest_init(void);
+-extern void __ref rest_init(void);
++extern void __init __noreturn arch_call_rest_init(void);
++extern void __ref __noreturn rest_init(void);
+ 
+ #endif /* _LINUX_START_KERNEL_H */
+diff --git a/init/main.c b/init/main.c
+index e1c3911d7c70..ef71a9902e47 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -683,7 +683,7 @@ static void __init setup_command_line(char *command_line)
+ 
+ static __initdata DECLARE_COMPLETION(kthreadd_done);
+ 
+-noinline void __ref rest_init(void)
++noinline void __ref __noreturn rest_init(void)
+ {
+ 	struct task_struct *tsk;
+ 	int pid;
+@@ -889,7 +889,7 @@ static int __init early_randomize_kstack_offset(char *buf)
+ early_param("randomize_kstack_offset", early_randomize_kstack_offset);
+ #endif
+ 
+-void __init __weak arch_call_rest_init(void)
++void __init __weak __noreturn arch_call_rest_init(void)
+ {
+ 	rest_init();
+ }
+diff --git a/tools/objtool/check.c b/tools/objtool/check.c
+index 0a1cf867d9b2..f79baae3e338 100644
+--- a/tools/objtool/check.c
++++ b/tools/objtool/check.c
+@@ -167,6 +167,7 @@ static bool __dead_end_function(struct objtool_file *file, struct symbol *func,
+ 		"__reiserfs_panic",
+ 		"__stack_chk_fail",
+ 		"__ubsan_handle_builtin_unreachable",
++		"arch_call_rest_init",
+ 		"cpu_bringup_and_idle",
+ 		"cpu_startup_entry",
+ 		"do_exit",
+@@ -181,6 +182,7 @@ static bool __dead_end_function(struct objtool_file *file, struct symbol *func,
+ 		"machine_real_restart",
+ 		"make_task_dead",
+ 		"panic",
++		"rest_init",
+ 		"rewind_stack_and_make_dead",
+ 		"sev_es_terminate",
+ 		"snp_abort",
 -- 
 2.39.1
 
