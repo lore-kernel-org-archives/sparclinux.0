@@ -2,36 +2,36 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50EDAC64EC7
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 18:28:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4018C64ED8
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Feb 2023 18:30:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230171AbjBNS2n (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Feb 2023 13:28:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57344 "EHLO
+        id S232564AbjBNSaD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Feb 2023 13:30:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbjBNS2h (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 13:28:37 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F28282E0DF;
-        Tue, 14 Feb 2023 10:28:35 -0800 (PST)
+        with ESMTP id S232996AbjBNS3x (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Feb 2023 13:29:53 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E1552E829;
+        Tue, 14 Feb 2023 10:29:52 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 95ABC617B3;
-        Tue, 14 Feb 2023 18:28:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5279BC433D2;
-        Tue, 14 Feb 2023 18:28:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D370EB81EC2;
+        Tue, 14 Feb 2023 18:29:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8614C433EF;
+        Tue, 14 Feb 2023 18:29:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676399315;
-        bh=FbF6sDzVu8IYeXRzBwpTRcd2V9cyuwcFeFjq0Ymm7Do=;
+        s=k20201202; t=1676399389;
+        bh=oQROITW1uKecfEo2cGdUy6SKWCigHCuMd3wvoPcK/Ko=;
         h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=bHhn4MxW4jaWFJ2rWLLTx3PrN1UgQYhr8rIIi09a5nKp9q1ESDXYN6B61WfPK+RCk
-         kGOo0Ttnppg2I0ImN2NZWVnYn5Hj3XaN0LDcyDf/bwqXXcmVPP3k8vhBjHFmJR2Bwl
-         59QsKYYCyuVJKOZH8QhykBvzswD6lxU5Dm7UQEUn/f61z0n0wk0iCLguGpDT9BQtko
-         BMamtHKjb0Kw6J2wXAyHy1UIJAIQSjMfecn63l73DrJUySuInHCUTNK20Fu4b0MRwy
-         oFsYNMAp0xS4VwbLeGrloRppo8ZqhdA7joLLtCUVdDhIWqqYlEK1n6Wnc+Yaj98vfY
-         KvhcfOKc0ivxg==
-Date:   Tue, 14 Feb 2023 10:28:31 -0800
+        b=hpBfb/N7GqHlXo7xtxu5LoZyyUht86rqLf73Z3PeLujJU6jGBfG4Crx1t8FD0bkFr
+         cpbiPz0/QDlZfYRI4h2P3lLrmD5Z/xbGq7cs4Ut0xjuJi4YzSzkvOMMKpBtebTlCtL
+         l4e1AgnghjvPjyVVks0KpZOXqFcPu3BTc7mr5i2f6zK8LRTHRiYvESRTTFIvkhp+LF
+         VuUuwaRBMKyTuPkTeqMUDJ4+UTzBxdWeQgQAGNmVm18KuHS/90CWYpvajdj9AOJsed
+         2UAZeIOgM0zNiULRxmya9V9eCoG8CCRRUJHb21auhUA9pbURPxp8PbGI4vjFY9YHnJ
+         dx0ZQ0blYHc8A==
+Date:   Tue, 14 Feb 2023 10:29:46 -0800
 From:   Josh Poimboeuf <jpoimboe@kernel.org>
 To:     Philippe =?utf-8?Q?Mathieu-Daud=C3=A9?= <philmd@linaro.org>
 Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
@@ -55,54 +55,34 @@ Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
         dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
         mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
         paulmck@kernel.org
-Subject: Re: [PATCH v2 13/24] sh/cpu: Make sure play_dead() doesn't return
-Message-ID: <20230214182831.7l73rzoeqjowbyly@treble>
+Subject: Re: [PATCH v2 00/24] cpu,sched: Mark arch_cpu_idle_dead() __noreturn
+Message-ID: <20230214182946.x64fakiyfrjumuy2@treble>
 References: <cover.1676358308.git.jpoimboe@kernel.org>
- <d0c3ff5349adfe8fd227acc236ae2c278a05eb4c.1676358308.git.jpoimboe@kernel.org>
- <2575e5f7-b11a-020f-06ef-ba42301d7415@linaro.org>
+ <a48ebe98-82b5-8f7b-8327-4e60bdb231c8@linaro.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <2575e5f7-b11a-020f-06ef-ba42301d7415@linaro.org>
+In-Reply-To: <a48ebe98-82b5-8f7b-8327-4e60bdb231c8@linaro.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, Feb 14, 2023 at 08:57:39AM +0100, Philippe Mathieu-Daudé wrote:
+On Tue, Feb 14, 2023 at 10:25:50AM +0100, Philippe Mathieu-Daudé wrote:
 > On 14/2/23 08:05, Josh Poimboeuf wrote:
-> > play_dead() doesn't return.  Make that more explicit with a BUG().
+> > v2:
+> > - make arch_call_rest_init() and rest_init() __noreturn
+> > - make objtool 'global_returns' work for weak functions
+> > - rebase on tip/objtool/core with dependencies merged in (mingo)
+> > - add acks
 > > 
-> > BUG() is preferable to unreachable() because BUG() is a more explicit
-> > failure mode and avoids undefined behavior like falling off the edge of
-> > the function into whatever code happens to be next.
-> > 
-> > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-> > ---
-> >   arch/sh/include/asm/smp-ops.h | 1 +
-> >   1 file changed, 1 insertion(+)
-> > 
-> > diff --git a/arch/sh/include/asm/smp-ops.h b/arch/sh/include/asm/smp-ops.h
-> > index e27702130eb6..63866b1595a0 100644
-> > --- a/arch/sh/include/asm/smp-ops.h
-> > +++ b/arch/sh/include/asm/smp-ops.h
-> > @@ -27,6 +27,7 @@ static inline void plat_smp_setup(void)
-> >   static inline void play_dead(void)
-> >   {
-> >   	mp_ops->play_dead();
-> > +	BUG();
-> >   }
+> > v1.1:
+> > - add __noreturn to all arch_cpu_idle_dead() implementations (mpe)
 > 
-> Shouldn't we decorate plat_smp_ops::play_dead() as noreturn first?
+> Possible similar candidates: panic_smp_self_stop, nmi_panic_self_stop
+> and kexec.
 
-I guess it really depends on how far we want to go down the __noreturn
-rabbit hole.  To keep the patch set constrained yet still useful I
-stopped when I got to a function pointer, as I think it still needs a
-BUG() afterwards either way.
-
-That said, there would still be benefits of adding __noreturn to
-function pointers, I just wanted to keep the patch set down to a
-manageable size ;-)
+Agreed.  Any volunteers?
 
 -- 
 Josh
