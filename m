@@ -2,115 +2,147 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C525C636CC
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Feb 2023 19:45:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9DFFC636D6
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Feb 2023 22:23:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229679AbjBOTpp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Feb 2023 14:45:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40700 "EHLO
+        id S229635AbjBOWXB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Feb 2023 17:23:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57462 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229651AbjBOTpn (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Feb 2023 14:45:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04233BD8F;
-        Wed, 15 Feb 2023 11:45:42 -0800 (PST)
+        with ESMTP id S229493AbjBOWXA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Feb 2023 17:23:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 73ACC28D00;
+        Wed, 15 Feb 2023 14:22:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E36461D23;
-        Wed, 15 Feb 2023 19:45:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43254C433EF;
-        Wed, 15 Feb 2023 19:45:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E5470B82425;
+        Wed, 15 Feb 2023 22:22:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4FAD0C433D2;
+        Wed, 15 Feb 2023 22:22:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1676490341;
-        bh=jEHEKJREN3+faSwa9KQfDCZrIk1boGFeW1CEIEtwaE8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=nR0NlH9Idu9r6K5BB6SiskW/nN4Duv8oUu4t8oAsMW/BA2jHnn50sUmTtFA09snEM
-         MM4Q1KeVxIEK0CQ3heZ6KGEcJDJrmingPvv4ff3yLJnpeg2zJ4He1vCJjQd4s9mOGJ
-         HhE0qrDT5xUO3xGvs5zweCTvugYIA2adLOusrfvLPAxv6b4Cny+j0eHRlRanyAeAV0
-         ysxu48fte0a0SA7XcnPw1U31MXQzSfjcPpTrp4Qgi04O07kA/LeXjWVthIX5CMIF30
-         JAfOEJGYLSGZoEytWeIGwTCLRlwIMdQ5V+BaoKw5Pr+bw7iEZ2yNGIfGT3LJDZnQTo
-         qDwCO7AGpVLow==
-Date:   Wed, 15 Feb 2023 11:45:38 -0800
-From:   Josh Poimboeuf <jpoimboe@kernel.org>
-To:     Mark Rutland <mark.rutland@arm.com>
-Cc:     Philippe =?utf-8?Q?Mathieu-Daud=C3=A9?= <philmd@linaro.org>,
-        juri.lelli@redhat.com, dalias@libc.org, linux-ia64@vger.kernel.org,
-        linux-sh@vger.kernel.org, peterz@infradead.org,
-        catalin.marinas@arm.com, dave.hansen@linux.intel.com,
-        x86@kernel.org, jiaxun.yang@flygoat.com,
-        linux-mips@vger.kernel.org, bsegall@google.com, jcmvbkbc@gmail.com,
-        guoren@kernel.org, hpa@zytor.com, sparclinux@vger.kernel.org,
-        kernel@xen0n.name, will@kernel.org, vschneid@redhat.com,
-        f.fainelli@gmail.com, vincent.guittot@linaro.org,
-        ysato@users.sourceforge.jp, chenhuacai@kernel.org,
-        linux@armlinux.org.uk, linux-csky@vger.kernel.org,
-        dietmar.eggemann@arm.com, mingo@redhat.com,
-        bcm-kernel-feedback-list@broadcom.com, mgorman@suse.de,
-        mattst88@gmail.com, linux-xtensa@linux-xtensa.org,
-        paulmck@kernel.org, richard.henderson@linaro.org,
-        npiggin@gmail.com, ink@jurassic.park.msu.ru, rostedt@goodmis.org,
-        loongarch@lists.linux.dev, tglx@linutronix.de,
-        linux-arm-kernel@lists.infradead.org, jgross@suse.com,
-        chris@zankel.net, tsbogend@alpha.franken.de, bristot@redhat.com,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        bp@alien8.de, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
-Subject: Re: [PATCH v2 04/24] arm64/cpu: Mark cpu_die() __noreturn
-Message-ID: <20230215194538.aiiris3uabnuvkkg@treble>
+        s=k20201202; t=1676499772;
+        bh=3/B+NZRwzEkNo04hOsRXt8MwWSjpYxIfsEH4O0Y0Iy0=;
+        h=Date:From:To:Cc:Subject:Reply-To:References:In-Reply-To:From;
+        b=lgMebc9/PyCNI2WQWQFGhJ6pEjvuGS4FIDV8Hndf+NKrHLS1WG/DGBpNgqf8fOyYC
+         y8+V3Q2tj+S2zmKUBdMwoObfAcO+heEDDn/va0AU2ijfCtQ4tDaxjdOoA+qCu96qJu
+         tkWdqqKZlqO1cHNQGCQ3kzUKY7M1SSh9fmDTqH1qGb+lN/kKUpvSTLbTM6FeL2JzDg
+         3qeqvtZTigjAwCmsYZOm8DYFJHs+rNCQMwz1iolZjE/BUncjAH+Fit4Bh2Gox6pFxx
+         1CSx3J/q9TyNq1z7sg7E7kSGGeSWuf8YWJVgL80Qlbz1kmmdtCqghuKDCBxMa4nZ97
+         KwdXvAMHmGl/A==
+Received: by paulmck-ThinkPad-P17-Gen-1.home (Postfix, from userid 1000)
+        id D10DF5C0F9D; Wed, 15 Feb 2023 14:22:49 -0800 (PST)
+Date:   Wed, 15 Feb 2023 14:22:49 -0800
+From:   "Paul E. McKenney" <paulmck@kernel.org>
+To:     Josh Poimboeuf <jpoimboe@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux-alpha@vger.kernel.org,
+        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
+        catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        chenhuacai@kernel.org, kernel@xen0n.name,
+        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
+        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
+        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com
+Subject: Re: [PATCH v2 00/24] cpu,sched: Mark arch_cpu_idle_dead() __noreturn
+Message-ID: <20230215222249.GM2948950@paulmck-ThinkPad-P17-Gen-1>
+Reply-To: paulmck@kernel.org
 References: <cover.1676358308.git.jpoimboe@kernel.org>
- <e47fc487980d5330e6059ac6e16416bec88cda0e.1676358308.git.jpoimboe@kernel.org>
- <14274f04-2991-95bd-c29b-07e86e8755c1@linaro.org>
- <Y+zZgZIP7RPIgyQf@FVFF77S0Q05N>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Y+zZgZIP7RPIgyQf@FVFF77S0Q05N>
+In-Reply-To: <cover.1676358308.git.jpoimboe@kernel.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 15, 2023 at 01:09:21PM +0000, Mark Rutland wrote:
-> On Tue, Feb 14, 2023 at 09:13:08AM +0100, Philippe Mathieu-Daudé wrote:
-> > On 14/2/23 08:05, Josh Poimboeuf wrote:
-> > > cpu_die() doesn't return.  Annotate it as such.  By extension this also
-> > > makes arch_cpu_idle_dead() noreturn.
-> > > 
-> > > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
-> > > ---
-> > >   arch/arm64/include/asm/smp.h | 2 +-
-> > >   1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
-> > > index fc55f5a57a06..5733a31bab08 100644
-> > > --- a/arch/arm64/include/asm/smp.h
-> > > +++ b/arch/arm64/include/asm/smp.h
-> > > @@ -100,7 +100,7 @@ static inline void arch_send_wakeup_ipi_mask(const struct cpumask *mask)
-> > >   extern int __cpu_disable(void);
-> > >   extern void __cpu_die(unsigned int cpu);
-> > > -extern void cpu_die(void);
-> > > +extern void __noreturn cpu_die(void);
-> > >   extern void cpu_die_early(void);
-> > 
-> > Shouldn't cpu_operations::cpu_die() be declared noreturn first?
+On Mon, Feb 13, 2023 at 11:05:34PM -0800, Josh Poimboeuf wrote:
+> v2:
+> - make arch_call_rest_init() and rest_init() __noreturn
+> - make objtool 'global_returns' work for weak functions
+> - rebase on tip/objtool/core with dependencies merged in (mingo)
+> - add acks
 > 
-> The cpu_die() function ends with a BUG(), and so does not return, even if a
-> cpu_operations::cpu_die() function that it calls erroneously returned.
+> v1.1:
+> - add __noreturn to all arch_cpu_idle_dead() implementations (mpe)
+
+With this, rcutorture no longer gets objtool complaints on x86, thank you!
+
+Tested-by: Paul E. McKenney <paulmck@kernel.org>
+
+> Josh Poimboeuf (24):
+>   alpha/cpu: Expose arch_cpu_idle_dead()'s prototype declaration
+>   alpha/cpu: Make sure arch_cpu_idle_dead() doesn't return
+>   arm/cpu: Make sure arch_cpu_idle_dead() doesn't return
+>   arm64/cpu: Mark cpu_die() __noreturn
+>   csky/cpu: Make sure arch_cpu_idle_dead() doesn't return
+>   ia64/cpu: Mark play_dead() __noreturn
+>   loongarch/cpu: Make sure play_dead() doesn't return
+>   loongarch/cpu: Mark play_dead() __noreturn
+>   mips/cpu: Expose play_dead()'s prototype definition
+>   mips/cpu: Make sure play_dead() doesn't return
+>   mips/cpu: Mark play_dead() __noreturn
+>   powerpc/cpu: Mark start_secondary_resume() __noreturn
+>   sh/cpu: Make sure play_dead() doesn't return
+>   sh/cpu: Mark play_dead() __noreturn
+>   sh/cpu: Expose arch_cpu_idle_dead()'s prototype definition
+>   sparc/cpu: Mark cpu_play_dead() __noreturn
+>   x86/cpu: Make sure play_dead() doesn't return
+>   x86/cpu: Mark play_dead() __noreturn
+>   xtensa/cpu: Make sure cpu_die() doesn't return
+>   xtensa/cpu: Mark cpu_die() __noreturn
+>   sched/idle: Make sure weak version of arch_cpu_idle_dead() doesn't
+>     return
+>   objtool: Include weak functions in 'global_noreturns' check
+>   init: Make arch_call_rest_init() and rest_init() __noreturn
+>   sched/idle: Mark arch_cpu_idle_dead() __noreturn
 > 
-> We *could* mark cpu_operations::cpu_die() as noreturn, but I'd prefer that we
-> did not so that the compiler doesn't optimize away the BUG() which is there to
-> catch such erroneous returns.
+>  arch/alpha/kernel/process.c      |  4 +++-
+>  arch/arm/kernel/smp.c            |  4 +++-
+>  arch/arm64/include/asm/smp.h     |  2 +-
+>  arch/arm64/kernel/process.c      |  2 +-
+>  arch/csky/kernel/smp.c           |  4 +++-
+>  arch/ia64/kernel/process.c       |  6 +++---
+>  arch/loongarch/include/asm/smp.h |  2 +-
+>  arch/loongarch/kernel/process.c  |  2 +-
+>  arch/loongarch/kernel/smp.c      |  2 +-
+>  arch/mips/include/asm/smp.h      |  2 +-
+>  arch/mips/kernel/process.c       |  2 +-
+>  arch/mips/kernel/smp-bmips.c     |  3 +++
+>  arch/mips/loongson64/smp.c       |  1 +
+>  arch/parisc/kernel/process.c     |  2 +-
+>  arch/powerpc/include/asm/smp.h   |  2 +-
+>  arch/powerpc/kernel/smp.c        |  2 +-
+>  arch/riscv/kernel/cpu-hotplug.c  |  2 +-
+>  arch/s390/kernel/idle.c          |  2 +-
+>  arch/s390/kernel/setup.c         |  2 +-
+>  arch/sh/include/asm/smp-ops.h    |  5 +++--
+>  arch/sh/kernel/idle.c            |  3 ++-
+>  arch/sparc/include/asm/smp_64.h  |  2 +-
+>  arch/sparc/kernel/process_64.c   |  2 +-
+>  arch/x86/include/asm/smp.h       |  3 ++-
+>  arch/x86/kernel/process.c        |  4 ++--
+>  arch/xtensa/include/asm/smp.h    |  2 +-
+>  arch/xtensa/kernel/smp.c         |  4 +++-
+>  include/linux/cpu.h              |  2 +-
+>  include/linux/start_kernel.h     |  4 ++--
+>  init/main.c                      |  4 ++--
+>  kernel/sched/idle.c              |  2 +-
+>  tools/objtool/check.c            | 11 +++++++----
+>  32 files changed, 57 insertions(+), 39 deletions(-)
 > 
-> That said, could we please add __noreturn to the implementation of cpu_die() in
-> arch/arm64/kernel/smp.c? i.e. the fixup below.
-
-Done.
-
-> With that fixup:
+> -- 
+> 2.39.1
 > 
-> Acked-by: Mark Rutland <mark.rutland@arm.com>
-
-Thanks!
-
--- 
-Josh
