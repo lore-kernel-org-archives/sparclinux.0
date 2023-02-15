@@ -2,105 +2,115 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02082C636D4
-	for <sparclinux@archiver.kernel.org>; Wed, 15 Feb 2023 15:21:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C525C636CC
+	for <sparclinux@archiver.kernel.org>; Wed, 15 Feb 2023 19:45:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230020AbjBOPVz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 15 Feb 2023 10:21:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48080 "EHLO
+        id S229679AbjBOTpp (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 15 Feb 2023 14:45:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40700 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229992AbjBOPVy (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Feb 2023 10:21:54 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93860E06A
-        for <sparclinux@vger.kernel.org>; Wed, 15 Feb 2023 07:21:07 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1676474466;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=rfv7Rycn+rNU8ZwT5IAQ8tPoQPJy80nVLPsdVlq6m/k=;
-        b=DyVh59UELM43/PHiETsDzP99SIVS3Y8cZ6L5YP1VtkKQW6JBI/jGvoCUIeQuShwCc6Jd3s
-        l/kTg7I17Yn6RtbOoiVTDE9VLFZcEih1wmIQdB9TiwnoqHF+m0oUM/mLcvYFHUDHbdRdy8
-        F1A7yeeZyl4mym+7++yvXbgVaNhOtKc=
-Received: from mail-qv1-f70.google.com (mail-qv1-f70.google.com
- [209.85.219.70]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_128_GCM_SHA256) id
- us-mta-347-1JD-OC8IP5ab5xTujp1U8A-1; Wed, 15 Feb 2023 10:21:05 -0500
-X-MC-Unique: 1JD-OC8IP5ab5xTujp1U8A-1
-Received: by mail-qv1-f70.google.com with SMTP id ob12-20020a0562142f8c00b004c6c72bf1d0so10644515qvb.9
-        for <sparclinux@vger.kernel.org>; Wed, 15 Feb 2023 07:21:05 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=rfv7Rycn+rNU8ZwT5IAQ8tPoQPJy80nVLPsdVlq6m/k=;
-        b=UQL6Bm4K1cj/5Z77gdiL/54cTIqdWwqIZrCH8FDQaQsWPnyRbXvL5/aG3+1mkHNGvr
-         kHS+EoKRbNRrxk1YkYHPvXO0Gojgxp4t5OqN7uNbNDJkaHNK9yi76SP/HkgvpEROHL7q
-         uLmK4w0OlsvNt6VnI/KtYKhcxFV7XxfHdZzqpMKa53zFj2lbGUZOnPyOHsTjeT9PuUEY
-         bw1kxl15IdOcWiPNWcOgkKiRWF1gqz+PPo6UeOn2NL3jB2/x4KSAfsg+q7acZgGVgRau
-         eNIpNavrE61yZsZiDRzhoeoFBHb8vckbuLvxykib7e9kuwETuhm+cIUAy/8AP3N9V2RS
-         XsEg==
-X-Gm-Message-State: AO0yUKWJDFyJX8PTqxu1cKPXfbkMhrLDinBqlbKkdHX+yDcbXGtGEOAi
-        lhnGbGxyQZhi3vZuC33j0pO4pSDXzdziRgGyAxRL5wmyjoKKvRt9IQq9rbyavQGbWX8oquVQuLo
-        kso3H/j0dBvrfgZdTJLpzVNUHhic=
-X-Received: by 2002:ac8:5f4e:0:b0:3b8:695b:aad1 with SMTP id y14-20020ac85f4e000000b003b8695baad1mr4805419qta.1.1676474464234;
-        Wed, 15 Feb 2023 07:21:04 -0800 (PST)
-X-Google-Smtp-Source: AK7set/bUBwJRT9nplisX7cCmXea98zUuaNhVa0ZTJCA74agqwEPC+rEotKS3qcPHLZRGk14AYlnHQ==
-X-Received: by 2002:ac8:5f4e:0:b0:3b8:695b:aad1 with SMTP id y14-20020ac85f4e000000b003b8695baad1mr4805379qta.1.1676474463947;
-        Wed, 15 Feb 2023 07:21:03 -0800 (PST)
-Received: from x1n (bras-base-aurron9127w-grc-56-70-30-145-63.dsl.bell.ca. [70.30.145.63])
-        by smtp.gmail.com with ESMTPSA id d22-20020ac86696000000b003b9a4a497a1sm13111453qtp.86.2023.02.15.07.21.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 15 Feb 2023 07:21:03 -0800 (PST)
-Date:   Wed, 15 Feb 2023 10:21:02 -0500
-From:   Peter Xu <peterx@redhat.com>
-To:     Linux regressions mailing list <regressions@lists.linux.dev>
-Cc:     Nick Bowler <nbowler@draconx.ca>, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: PROBLEM: sparc64 random crashes starting w/ Linux 6.1
- (regression)
-Message-ID: <Y+z4XlhDzokAMTI1@x1n>
-References: <CADyTPExpEqaJiMGoV+Z6xVgL50ZoMJg49B10LcZ=8eg19u34BA@mail.gmail.com>
- <Y9bvwz4FIOQ+D8c4@x1n>
- <CADyTPEzsvdRC15+Z5T3oryofwRYqHmHzwqRmJKJoHB3d7Tdayw@mail.gmail.com>
- <91b38494-f296-d01d-3b98-6bc51406cad0@leemhuis.info>
+        with ESMTP id S229651AbjBOTpn (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 15 Feb 2023 14:45:43 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E04233BD8F;
+        Wed, 15 Feb 2023 11:45:42 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E36461D23;
+        Wed, 15 Feb 2023 19:45:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43254C433EF;
+        Wed, 15 Feb 2023 19:45:40 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1676490341;
+        bh=jEHEKJREN3+faSwa9KQfDCZrIk1boGFeW1CEIEtwaE8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=nR0NlH9Idu9r6K5BB6SiskW/nN4Duv8oUu4t8oAsMW/BA2jHnn50sUmTtFA09snEM
+         MM4Q1KeVxIEK0CQ3heZ6KGEcJDJrmingPvv4ff3yLJnpeg2zJ4He1vCJjQd4s9mOGJ
+         HhE0qrDT5xUO3xGvs5zweCTvugYIA2adLOusrfvLPAxv6b4Cny+j0eHRlRanyAeAV0
+         ysxu48fte0a0SA7XcnPw1U31MXQzSfjcPpTrp4Qgi04O07kA/LeXjWVthIX5CMIF30
+         JAfOEJGYLSGZoEytWeIGwTCLRlwIMdQ5V+BaoKw5Pr+bw7iEZ2yNGIfGT3LJDZnQTo
+         qDwCO7AGpVLow==
+Date:   Wed, 15 Feb 2023 11:45:38 -0800
+From:   Josh Poimboeuf <jpoimboe@kernel.org>
+To:     Mark Rutland <mark.rutland@arm.com>
+Cc:     Philippe =?utf-8?Q?Mathieu-Daud=C3=A9?= <philmd@linaro.org>,
+        juri.lelli@redhat.com, dalias@libc.org, linux-ia64@vger.kernel.org,
+        linux-sh@vger.kernel.org, peterz@infradead.org,
+        catalin.marinas@arm.com, dave.hansen@linux.intel.com,
+        x86@kernel.org, jiaxun.yang@flygoat.com,
+        linux-mips@vger.kernel.org, bsegall@google.com, jcmvbkbc@gmail.com,
+        guoren@kernel.org, hpa@zytor.com, sparclinux@vger.kernel.org,
+        kernel@xen0n.name, will@kernel.org, vschneid@redhat.com,
+        f.fainelli@gmail.com, vincent.guittot@linaro.org,
+        ysato@users.sourceforge.jp, chenhuacai@kernel.org,
+        linux@armlinux.org.uk, linux-csky@vger.kernel.org,
+        dietmar.eggemann@arm.com, mingo@redhat.com,
+        bcm-kernel-feedback-list@broadcom.com, mgorman@suse.de,
+        mattst88@gmail.com, linux-xtensa@linux-xtensa.org,
+        paulmck@kernel.org, richard.henderson@linaro.org,
+        npiggin@gmail.com, ink@jurassic.park.msu.ru, rostedt@goodmis.org,
+        loongarch@lists.linux.dev, tglx@linutronix.de,
+        linux-arm-kernel@lists.infradead.org, jgross@suse.com,
+        chris@zankel.net, tsbogend@alpha.franken.de, bristot@redhat.com,
+        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        bp@alien8.de, linuxppc-dev@lists.ozlabs.org, davem@davemloft.net
+Subject: Re: [PATCH v2 04/24] arm64/cpu: Mark cpu_die() __noreturn
+Message-ID: <20230215194538.aiiris3uabnuvkkg@treble>
+References: <cover.1676358308.git.jpoimboe@kernel.org>
+ <e47fc487980d5330e6059ac6e16416bec88cda0e.1676358308.git.jpoimboe@kernel.org>
+ <14274f04-2991-95bd-c29b-07e86e8755c1@linaro.org>
+ <Y+zZgZIP7RPIgyQf@FVFF77S0Q05N>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <91b38494-f296-d01d-3b98-6bc51406cad0@leemhuis.info>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Y+zZgZIP7RPIgyQf@FVFF77S0Q05N>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Feb 15, 2023 at 03:49:56PM +0100, Linux regression tracking (Thorsten Leemhuis) wrote:
-> On 31.01.23 02:46, Nick Bowler wrote:
-> > On 2023-01-29, Peter Xu <peterx@redhat.com> wrote:
-> >> On Sat, Jan 28, 2023 at 09:17:31PM -0500, Nick Bowler wrote:
-> >>> Starting with Linux 6.1.y, my sparc64 (Sun Ultra 60) system is very
-> >>> unstable, with userspace processes randomly crashing with all kinds of
-> >>> different weird errors.  The same problem occurs on 6.2-rc5.  Linux
-> >>> 6.0.y is OK.
-> > [...]
-> >> Could you try below patch to see whether it fixes your problem?  It should
-> >> cover the last piece of possible issue with dirty bit on sparc after that
-> >> patchset.  It's based on latest master branch (commit ab072681eabe1ce0).
+On Wed, Feb 15, 2023 at 01:09:21PM +0000, Mark Rutland wrote:
+> On Tue, Feb 14, 2023 at 09:13:08AM +0100, Philippe Mathieu-Daudé wrote:
+> > On 14/2/23 08:05, Josh Poimboeuf wrote:
+> > > cpu_die() doesn't return.  Annotate it as such.  By extension this also
+> > > makes arch_cpu_idle_dead() noreturn.
+> > > 
+> > > Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
+> > > ---
+> > >   arch/arm64/include/asm/smp.h | 2 +-
+> > >   1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/arch/arm64/include/asm/smp.h b/arch/arm64/include/asm/smp.h
+> > > index fc55f5a57a06..5733a31bab08 100644
+> > > --- a/arch/arm64/include/asm/smp.h
+> > > +++ b/arch/arm64/include/asm/smp.h
+> > > @@ -100,7 +100,7 @@ static inline void arch_send_wakeup_ipi_mask(const struct cpumask *mask)
+> > >   extern int __cpu_disable(void);
+> > >   extern void __cpu_die(unsigned int cpu);
+> > > -extern void cpu_die(void);
+> > > +extern void __noreturn cpu_die(void);
+> > >   extern void cpu_die_early(void);
 > > 
-> > Haven't seen any failures yet, so it seems this patch on top of 6.2-rc6
-> > makes things much better.
-> > 
-> > I'll keep running this for a while to see if any other problems come up.
+> > Shouldn't cpu_operations::cpu_die() be declared noreturn first?
 > 
-> Nick, I assume no other problems showed up?
+> The cpu_die() function ends with a BUG(), and so does not return, even if a
+> cpu_operations::cpu_die() function that it calls erroneously returned.
 > 
-> In that case Peter could send the patch in for merging. Or did you do
-> that already?
+> We *could* mark cpu_operations::cpu_die() as noreturn, but I'd prefer that we
+> did not so that the compiler doesn't optimize away the BUG() which is there to
+> catch such erroneous returns.
+> 
+> That said, could we please add __noreturn to the implementation of cpu_die() in
+> arch/arm64/kernel/smp.c? i.e. the fixup below.
 
-Thanks for raising this again.  Nop, I'm just waiting for a final ack from
-Nick to make sure that nothing went wrong after the longer run.
+Done.
+
+> With that fixup:
+> 
+> Acked-by: Mark Rutland <mark.rutland@arm.com>
+
+Thanks!
 
 -- 
-Peter Xu
-
+Josh
