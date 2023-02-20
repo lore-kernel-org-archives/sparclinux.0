@@ -2,141 +2,169 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2CCACC6FA99
-	for <sparclinux@archiver.kernel.org>; Mon, 20 Feb 2023 01:01:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 746B0C05027
+	for <sparclinux@archiver.kernel.org>; Mon, 20 Feb 2023 08:29:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229736AbjBTBBA (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 19 Feb 2023 20:01:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36692 "EHLO
+        id S231148AbjBTI3U (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 20 Feb 2023 03:29:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42566 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229567AbjBTBA5 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 19 Feb 2023 20:00:57 -0500
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B6B5C177;
-        Sun, 19 Feb 2023 17:00:55 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        with ESMTP id S231129AbjBTI3Q (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 20 Feb 2023 03:29:16 -0500
+Received: from mx1.emlix.com (mx1.emlix.com [136.243.223.33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7DAEC12F1E;
+        Mon, 20 Feb 2023 00:29:11 -0800 (PST)
+Received: from mailer.emlix.com (unknown [81.20.119.6])
+        (using TLSv1.2 with cipher ADH-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4PKkcZ5RDfz4x81;
-        Mon, 20 Feb 2023 12:00:46 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
-        s=201909; t=1676854853;
-        bh=F/BA55hncJJcUXKiAlKImZaWKF9J7v8lLnKr9dq21p4=;
-        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
-        b=XslnKyUEjBPQ1U1pxlZfaOackH5Uc53v2LGKi4H/fZCzwS12mRxSKUo5Y0d1NKeZn
-         awyroz/jmv/ppUpYp1TDhtbm3Xr2UbxbQ7SLm7HpIZR367un5O+1m6RO8MFNGLc4tN
-         bOsgsJ/QSRuN9qLOaQNEAnGHLCgJYRh2AmA+hh1/q0GxiYmMbgWuXckkgvhyXESi3z
-         pkyDk+R2FxF/Bbq8WxwITYwB8LWISeRkdVED0wYKG14B7OppQx/VBH6ejWIfX4nrhf
-         +DPFJJxnIwj6xY4eD5/CyK6ZQt6qJeWIa8XOq0dKk/I3y+LAhnFdM5gYPtu4P26I4l
-         sm8Hu7By7kuYg==
-From:   Michael Ellerman <mpe@ellerman.id.au>
-To:     Rick Edgecombe <rick.p.edgecombe@intel.com>, x86@kernel.org,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, linux-kernel@vger.kernel.org,
-        linux-doc@vger.kernel.org, linux-mm@kvack.org,
-        linux-arch@vger.kernel.org, linux-api@vger.kernel.org,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andy Lutomirski <luto@kernel.org>,
-        Balbir Singh <bsingharora@gmail.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Cyrill Gorcunov <gorcunov@gmail.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Eugene Syromiatnikov <esyr@redhat.com>,
-        Florian Weimer <fweimer@redhat.com>,
-        "H . J . Lu" <hjl.tools@gmail.com>, Jann Horn <jannh@google.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Kees Cook <keescook@chromium.org>,
-        Mike Kravetz <mike.kravetz@oracle.com>,
-        Nadav Amit <nadav.amit@gmail.com>,
-        Oleg Nesterov <oleg@redhat.com>, Pavel Machek <pavel@ucw.cz>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Weijiang Yang <weijiang.yang@intel.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        John Allen <john.allen@amd.com>, kcc@google.com,
-        eranian@google.com, rppt@kernel.org, jamorris@linux.microsoft.com,
-        dethoma@microsoft.com, akpm@linux-foundation.org,
-        Andrew.Cooper3@citrix.com, christina.schimpe@intel.com,
-        david@redhat.com, debug@rivosinc.com
-Cc:     rick.p.edgecombe@intel.com, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>, linux-mips@vger.kernel.org,
-        openrisc@lists.librecores.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-um@lists.infradead.org,
-        xen-devel@lists.xenproject.org
-Subject: Re: [PATCH v6 13/41] mm: Make pte_mkwrite() take a VMA
-In-Reply-To: <20230218211433.26859-14-rick.p.edgecombe@intel.com>
-References: <20230218211433.26859-1-rick.p.edgecombe@intel.com>
- <20230218211433.26859-14-rick.p.edgecombe@intel.com>
-Date:   Mon, 20 Feb 2023 12:00:46 +1100
-Message-ID: <875ybxywu9.fsf@mpe.ellerman.id.au>
+        by mx1.emlix.com (Postfix) with ESMTPS id 167505F997;
+        Mon, 20 Feb 2023 09:29:09 +0100 (CET)
+From:   Rolf Eike Beer <eb@emlix.com>
+To:     Matthew Wilcox <willy@infradead.org>, linux-arch@vger.kernel.org,
+        Alexandre Ghiti <alex@ghiti.fr>
+Cc:     Yin Fengwei <fengwei.yin@intel.com>, linux-mm@kvack.org,
+        linux-alpha@vger.kernel.org, linux-csky@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, loongarch@lists.linux.dev,
+        openrisc@lists.librecores.org, linuxppc-dev@lists.ozlabs.org,
+        linux-riscv@lists.infradead.org, sparclinux@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org
+Subject: Re: API for setting multiple PTEs at once
+Date:   Mon, 20 Feb 2023 09:29:58 +0100
+Message-ID: <5649318.DvuYhMxLoT@devpool47>
+Organization: emlix GmbH
+In-Reply-To: <0bf59207-838b-2a0b-a95e-925a6bbf1913@ghiti.fr>
+References: <Y9wnr8SGfGGbi/bk@casper.infradead.org>
+ <Y+K0O35jNNzxiXE6@casper.infradead.org>
+ <0bf59207-838b-2a0b-a95e-925a6bbf1913@ghiti.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: multipart/signed; boundary="nextPart5907765.lOV4Wx5bFT";
+ micalg="pgp-sha256"; protocol="application/pgp-signature"
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Rick Edgecombe <rick.p.edgecombe@intel.com> writes:
-> The x86 Control-flow Enforcement Technology (CET) feature includes a new
-> type of memory called shadow stack. This shadow stack memory has some
-> unusual properties, which requires some core mm changes to function
-> properly.
-...
-> ---
-> Hi Non-x86 Arch=E2=80=99s,
->
-> x86 has a feature that allows for the creation of a special type of
-> writable memory (shadow stack) that is only writable in limited specific
-> ways. Previously, changes were proposed to core MM code to teach it to
-> decide when to create normally writable memory or the special shadow stack
-> writable memory, but David Hildenbrand suggested[0] to change
-> pXX_mkwrite() to take a VMA, so awareness of shadow stack memory can be
-> moved into x86 code.
->
-> Since pXX_mkwrite() is defined in every arch, it requires some tree-wide
-> changes. So that is why you are seeing some patches out of a big x86
-> series pop up in your arch mailing list. There is no functional change.
-> After this refactor, the shadow stack series goes on to use the arch
-> helpers to push shadow stack memory details inside arch/x86.
-...
-> ---
->  Documentation/mm/arch_pgtable_helpers.rst    |  9 ++++++---
->  arch/alpha/include/asm/pgtable.h             |  6 +++++-
->  arch/arc/include/asm/hugepage.h              |  2 +-
->  arch/arc/include/asm/pgtable-bits-arcv2.h    |  7 ++++++-
->  arch/arm/include/asm/pgtable-3level.h        |  7 ++++++-
->  arch/arm/include/asm/pgtable.h               |  2 +-
->  arch/arm64/include/asm/pgtable.h             |  4 ++--
->  arch/csky/include/asm/pgtable.h              |  2 +-
->  arch/hexagon/include/asm/pgtable.h           |  2 +-
->  arch/ia64/include/asm/pgtable.h              |  2 +-
->  arch/loongarch/include/asm/pgtable.h         |  4 ++--
->  arch/m68k/include/asm/mcf_pgtable.h          |  2 +-
->  arch/m68k/include/asm/motorola_pgtable.h     |  6 +++++-
->  arch/m68k/include/asm/sun3_pgtable.h         |  6 +++++-
->  arch/microblaze/include/asm/pgtable.h        |  2 +-
->  arch/mips/include/asm/pgtable.h              |  6 +++---
->  arch/nios2/include/asm/pgtable.h             |  2 +-
->  arch/openrisc/include/asm/pgtable.h          |  2 +-
->  arch/parisc/include/asm/pgtable.h            |  6 +++++-
->  arch/powerpc/include/asm/book3s/32/pgtable.h |  2 +-
->  arch/powerpc/include/asm/book3s/64/pgtable.h |  4 ++--
->  arch/powerpc/include/asm/nohash/32/pgtable.h |  2 +-
->  arch/powerpc/include/asm/nohash/32/pte-8xx.h |  2 +-
->  arch/powerpc/include/asm/nohash/64/pgtable.h |  2 +-
+--nextPart5907765.lOV4Wx5bFT
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"; protected-headers="v1"
+From: Rolf Eike Beer <eb@emlix.com>
+Subject: Re: API for setting multiple PTEs at once
+Date: Mon, 20 Feb 2023 09:29:58 +0100
+Message-ID: <5649318.DvuYhMxLoT@devpool47>
+Organization: emlix GmbH
+In-Reply-To: <0bf59207-838b-2a0b-a95e-925a6bbf1913@ghiti.fr>
+MIME-Version: 1.0
 
-Looks like you discovered the joys of ppc's at-least 5 different MMU
-implementations, sorry :)
+On Dienstag, 14. Februar 2023 10:55:43 CET Alexandre Ghiti wrote:
+> Hi Matthew,
+>=20
+> On 2/7/23 21:27, Matthew Wilcox wrote:
+> > On Thu, Feb 02, 2023 at 09:14:23PM +0000, Matthew Wilcox wrote:
+> >> For those of you not subscribed, linux-mm is currently discussing
+> >> how best to handle page faults on large folios.  I simply made it work
+> >> when adding large folio support.  Now Yin Fengwei is working on
+> >> making it fast.
+> >=20
+> > OK, here's an actual implementation:
+> >=20
+> > https://lore.kernel.org/linux-mm/20230207194937.122543-3-willy@infradea=
+d.o
+> > rg/
+> >=20
+> > It survives a run of xfstests.  If your architecture doesn't store its
+> > PFNs at PAGE_SHIFT, you're going to want to implement your own set_ptes=
+(),
+> > or you'll see entirely the wrong pages mapped into userspace.  You may
+> > also wish to implement set_ptes() if it can be done more efficiently
+> > than __pte(pteval(pte) + PAGE_SIZE).
+> >=20
+> > Architectures that implement things like flush_icache_page() and
+> > update_mmu_cache() may want to propose batched versions of those.
+> > That's alpha, csky, m68k, mips, nios2, parisc, sh,
+> > arm, loongarch, openrisc, powerpc, riscv, sparc and xtensa.
+> > Maintainers BCC'd, mailing lists CC'd.
+> >=20
+> > I'm happy to collect implementations and submit them as part of a v6.
+>=20
+> Please find below the riscv implementation for set_ptes:
+>=20
+> diff --git a/arch/riscv/include/asm/pgtable.h
+> b/arch/riscv/include/asm/pgtable.h
+> index ebee56d47003..10bf812776a4 100644
+> --- a/arch/riscv/include/asm/pgtable.h
+> +++ b/arch/riscv/include/asm/pgtable.h
+> @@ -463,6 +463,20 @@ static inline void set_pte_at(struct mm_struct *mm,
+>          __set_pte_at(mm, addr, ptep, pteval);
+>   }
+>=20
+> +#define set_ptes set_ptes
+> +static inline void set_ptes(struct mm_struct *mm, unsigned long addr,
+> +                           pte_t *ptep, pte_t pte, unsigned int nr)
+> +{
+> +       for (;;) {
+> +               set_pte_at(mm, addr, ptep, pte);
+> +               if (--nr =3D=3D 0)
+> +                       break;
+> +               ptep++;
+> +               addr +=3D PAGE_SIZE;
+> +               pte =3D __pte(pte_val(pte) + (1 << _PAGE_PFN_SHIFT));
+> +       }
+> +}
 
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+Given that this is the same code as the original version (surprise!), what=
+=20
+about doing something like this in the generic code instead:
 
-cheers
+#ifndef PTE_PAGE_STEP
+#define PTE_PAGE_STEP PAGE_SIZE
+#endif
+
+[=E2=80=A6]
+
+> +               pte =3D __pte(pte_val(pte) + PTE_PAGE_STEP);
+
+The name of the define is an obvious candidate for bike-shedding, feel free=
+ to=20
+name it as you want.
+
+Or if that isn't sound enough maybe introduce something like:
+
+static inline pte_t
+set_ptes_next_pte(pte_t pte)
+{
+	return __pte(pte_val(pte) + (1 << _PAGE_PFN_SHIFT));
+}
+
+Greetings,
+
+Eike
+=2D-=20
+Rolf Eike Beer, emlix GmbH, http://www.emlix.com
+=46on +49 551 30664-0, Fax +49 551 30664-11
+Gothaer Platz 3, 37083 G=C3=B6ttingen, Germany
+Sitz der Gesellschaft: G=C3=B6ttingen, Amtsgericht G=C3=B6ttingen HR B 3160
+Gesch=C3=A4ftsf=C3=BChrung: Heike Jordan, Dr. Uwe Kracke =E2=80=93 Ust-IdNr=
+=2E: DE 205 198 055
+
+emlix - smart embedded open source
+
+--nextPart5907765.lOV4Wx5bFT
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iLMEAAEIAB0WIQQ/Uctzh31xzAxFCLur5FH7Xu2t/AUCY/MvhgAKCRCr5FH7Xu2t
+/E96A/9/8q/Nw4RXmkex96nOqUtHteq72XctyEiwy7GrvS5dHVEeF79ebvwfpWIc
+Q6IMXFvld2oH9gZNXFrKV13KlDICP8qZscK88++MqxHdNVgMw/o6sU5yAdaiaKEh
+/bf9Rzx9VJTkDekQ7nP4YDLaAybLYSJ3fXX9PXr+j3HfhBsJxg==
+=hoWZ
+-----END PGP SIGNATURE-----
+
+--nextPart5907765.lOV4Wx5bFT--
+
+
+
