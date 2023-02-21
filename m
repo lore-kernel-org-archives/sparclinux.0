@@ -2,55 +2,88 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC22AC61DA3
-	for <sparclinux@archiver.kernel.org>; Tue, 21 Feb 2023 08:55:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DBC74C61DA3
+	for <sparclinux@archiver.kernel.org>; Tue, 21 Feb 2023 09:37:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232790AbjBUIzt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 21 Feb 2023 03:55:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43440 "EHLO
+        id S233582AbjBUJh0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 21 Feb 2023 04:37:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231546AbjBUIzs (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Feb 2023 03:55:48 -0500
-Received: from mail.penmade.pl (mail.penmade.pl [94.177.230.163])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94B181A97B
-        for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 00:55:46 -0800 (PST)
-Received: by mail.penmade.pl (Postfix, from userid 1001)
-        id DDCED83338; Tue, 21 Feb 2023 08:55:36 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=penmade.pl; s=mail;
-        t=1676969743; bh=CSKXLMgcdpWkXuTgJn5+jsCVobtU9JEF4vCnS5z6McM=;
-        h=Date:From:To:Subject:From;
-        b=xAkw3su9q2F7CFH+7VrEMyt0LsxYgwgrMeb9ZSjBBsTs+UjTe0Wv/RAgUj759coju
-         W0WDYwsnJ/hL0rYVk/tNUvYbmnDAUjAxg8zgl2KPEM4FwIJzn9Ut2Vp79itmP/q0hi
-         U9DRVgmEk9+BqhXDXhc8ghypXLZHpngelOG/6NX8sFNOcjn7UmBgR/0hpjFOu/N/Pe
-         dqpRsXmjmVhRCa78Fxy13AAUpgVe/Ozpat5u91XSYxpdFk3bWy4LFJPHqIH+rBQM5n
-         rqjWOHWYxDKrVFl08tzBXdSgP/jdYmW3aeE85oGVrlek+46ExdJ3/addsBNPpd1YRz
-         iWwI9nUWqt8QA==
-Received: by mail.penmade.pl for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 08:55:30 GMT
-Message-ID: <20230221074500-0.1.2j.aj1b.0.7aamlqd1eo@penmade.pl>
-Date:   Tue, 21 Feb 2023 08:55:30 GMT
-From:   "Wiktor Nurek" <wiktor.nurek@penmade.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
-X-Mailer: mail.penmade.pl
+        with ESMTP id S232790AbjBUJhZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Feb 2023 04:37:25 -0500
+Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01ED624130;
+        Tue, 21 Feb 2023 01:37:24 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1676972245; x=1708508245;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=0XV6h1ZraJRrPNJnz0Nn+lGjt/UMC9hNp09/LCtIWzM=;
+  b=d1lrLmc75chJBLUJMRM7IfUwLDLG4u/HARyD8a2dzcFISQOafZTWTYkD
+   P3TWPVchMi6BT/po0LAluLJsxecqwNr2eL+dxLmu3tsIzmgb1Ua4nPTFf
+   9pPQU0DG9bljqw7e8jAuQuh3rU+BoBm/dFaI5YN6S39CgO41lz7vE+5l+
+   5RxujOxKRENOFjBbHq2SfkG9EOkoRQQv7GSCwQQFVBMao/u+EV8Y/+iuP
+   URSi7HLVpUzULXAun1O4lZlNokWVVpTuv1XkqKIi+v3Wi9StvvcGyVLxb
+   h0I+K90XP8S290EPP/pjjqjwVwQnYKr7Zn7lWAnXklqnoxr/Tf4vkOFQG
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10627"; a="397275070"
+X-IronPort-AV: E=Sophos;i="5.97,315,1669104000"; 
+   d="scan'208";a="397275070"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 21 Feb 2023 01:37:24 -0800
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10627"; a="671584774"
+X-IronPort-AV: E=Sophos;i="5.97,315,1669104000"; 
+   d="scan'208";a="671584774"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by orsmga002.jf.intel.com with ESMTP; 21 Feb 2023 01:37:19 -0800
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pUP5J-009u7E-0E;
+        Tue, 21 Feb 2023 11:37:17 +0200
+Date:   Tue, 21 Feb 2023 11:37:16 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Jakub Kicinski <kuba@kernel.org>
+Cc:     Kees Cook <keescook@chromium.org>, linux-s390@vger.kernel.org,
+        linux-kernel@vger.kernel.org, sparclinux@vger.kernel.org,
+        netdev@vger.kernel.org, Heiko Carstens <hca@linux.ibm.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        Christian Borntraeger <borntraeger@linux.ibm.com>,
+        Sven Schnelle <svens@linux.ibm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Eric Dumazet <edumazet@google.com>,
+        Paolo Abeni <pabeni@redhat.com>
+Subject: Re: [PATCH net-next v1 1/2] string: Make memscan() to take const
+Message-ID: <Y/SQzLV5pwonA6Wc@smile.fi.intel.com>
+References: <20230216114234.36343-1-andriy.shevchenko@linux.intel.com>
+ <20230220162653.0836ebfc@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230220162653.0836ebfc@kernel.org>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Mon, Feb 20, 2023 at 04:26:53PM -0800, Jakub Kicinski wrote:
+> On Thu, 16 Feb 2023 13:42:33 +0200 Andy Shevchenko wrote:
+> > Make memscan() to take const so it will be easier replace
+> > some memchr() cases with it.
+> 
+> Let's do this after the merge window.
 
-chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
-skania nowych zlece=C5=84 ze strony www.
+Sure, it needs to be revised anyway. I just noticed that one corner case might
+not work properly.
 
-Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
-, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
-=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
-jonowania strony w Google.
-
-Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
+-- 
+With Best Regards,
+Andy Shevchenko
 
 
-Pozdrawiam serdecznie,
-Wiktor Nurek
