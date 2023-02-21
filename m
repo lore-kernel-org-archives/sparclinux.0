@@ -2,38 +2,36 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26521C6379F
-	for <sparclinux@archiver.kernel.org>; Tue, 21 Feb 2023 08:30:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC22AC61DA3
+	for <sparclinux@archiver.kernel.org>; Tue, 21 Feb 2023 08:55:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232990AbjBUIav (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 21 Feb 2023 03:30:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46814 "EHLO
+        id S232790AbjBUIzt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 21 Feb 2023 03:55:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43440 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233484AbjBUIau (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Feb 2023 03:30:50 -0500
-Received: from mail.stagenetbiz.pl (mail.stagenetbiz.pl [217.61.97.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CA987233EA
-        for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 00:30:48 -0800 (PST)
-Received: by mail.stagenetbiz.pl (Postfix, from userid 1001)
-        id E38D07FC9A; Tue, 21 Feb 2023 08:31:16 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stagenetbiz.pl;
-        s=mail; t=1676968279;
-        bh=LTrFku/ToeGnnqiqyaN86kCQQkxkwCY5tVpcGX1QBNI=;
+        with ESMTP id S231546AbjBUIzs (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 21 Feb 2023 03:55:48 -0500
+Received: from mail.penmade.pl (mail.penmade.pl [94.177.230.163])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94B181A97B
+        for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 00:55:46 -0800 (PST)
+Received: by mail.penmade.pl (Postfix, from userid 1001)
+        id DDCED83338; Tue, 21 Feb 2023 08:55:36 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=penmade.pl; s=mail;
+        t=1676969743; bh=CSKXLMgcdpWkXuTgJn5+jsCVobtU9JEF4vCnS5z6McM=;
         h=Date:From:To:Subject:From;
-        b=EANVdXrn23fGXJeszGY/Y6tkRFlH6fUkxGvPKDHj36GM6HjSIX528wsKR+iHkFqLQ
-         k1yM8gtxqdJm+d3paNYnXyTn0jitscIxLUb3eX8Oe3mp1M7WWWRDVCKId6/0QsEjmK
-         sZrmRaKdCxjzgE/NahTXg4bWNqwjsjoICGTvTg7pX7vjQiSLFInrnrvSMOUheeGSk+
-         bG7d7vwPttvah3ct9lbEIPAl7VgDC6s/Fbj8bfz9dlsAINQkmGkL15PrcXraEF8bdb
-         KYFwLCYluq5T2NqtneCql+FJ7UtKDdwX3vzqxsHFq70ywWqB7pN5yfF8DTUQBX8X3L
-         eZ2p7wzhuqihg==
-Received: by mail.stagenetbiz.pl for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 08:31:00 GMT
-Message-ID: <20230221074500-0.1.3u.dps2.0.t8qqeqh8jp@stagenetbiz.pl>
-Date:   Tue, 21 Feb 2023 08:31:00 GMT
-From:   =?UTF-8?Q? "Aleksandra_Kami=C5=84ska" ?= 
-        <aleksandra.kaminska@stagenetbiz.pl>
+        b=xAkw3su9q2F7CFH+7VrEMyt0LsxYgwgrMeb9ZSjBBsTs+UjTe0Wv/RAgUj759coju
+         W0WDYwsnJ/hL0rYVk/tNUvYbmnDAUjAxg8zgl2KPEM4FwIJzn9Ut2Vp79itmP/q0hi
+         U9DRVgmEk9+BqhXDXhc8ghypXLZHpngelOG/6NX8sFNOcjn7UmBgR/0hpjFOu/N/Pe
+         dqpRsXmjmVhRCa78Fxy13AAUpgVe/Ozpat5u91XSYxpdFk3bWy4LFJPHqIH+rBQM5n
+         rqjWOHWYxDKrVFl08tzBXdSgP/jdYmW3aeE85oGVrlek+46ExdJ3/addsBNPpd1YRz
+         iWwI9nUWqt8QA==
+Received: by mail.penmade.pl for <sparclinux@vger.kernel.org>; Tue, 21 Feb 2023 08:55:30 GMT
+Message-ID: <20230221074500-0.1.2j.aj1b.0.7aamlqd1eo@penmade.pl>
+Date:   Tue, 21 Feb 2023 08:55:30 GMT
+From:   "Wiktor Nurek" <wiktor.nurek@penmade.pl>
 To:     <sparclinux@vger.kernel.org>
-Subject: Nowe lakiery hybrydowe do oferty
-X-Mailer: mail.stagenetbiz.pl
+Subject: =?UTF-8?Q?Nap=C5=82yw_Klient=C3=B3w_ze_strony?=
+X-Mailer: mail.penmade.pl
 MIME-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
@@ -43,20 +41,16 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 Dzie=C5=84 dobry,
 
-w bran=C5=BCy lakier=C3=B3w hybrydowych ro=C5=9Bnie popularno=C5=9B=C4=87=
- produkt=C3=B3w wielozadaniowych, kt=C3=B3re skracaj=C4=85 czas wykonania=
- manicure.
+chcia=C5=82bym poinformowa=C4=87 Pa=C5=84stwa o mo=C5=BCliwo=C5=9Bci pozy=
+skania nowych zlece=C5=84 ze strony www.
 
-Opracowali=C5=9Bmy now=C4=85 linie lakier=C3=B3w, kt=C3=B3re spe=C5=82nia=
-j=C4=85 wsp=C3=B3=C5=82czesne wymagania w tym zakresie, dlatego ciesz=C4=85=
- si=C4=99 rosn=C4=85cym zainteresowaniem na rynku.
+Widzimy zainteresowanie potencjalnych Klient=C3=B3w Pa=C5=84stwa firm=C4=85=
+, dlatego ch=C4=99tnie pomo=C5=BCemy Pa=C5=84stwu dotrze=C4=87 z ofert=C4=
+=85 do wi=C4=99kszego grona odbiorc=C3=B3w poprzez efektywne metody pozyc=
+jonowania strony w Google.
 
-Produkty dostarczamy do drogerii, sieci zakupowych, handlowych, hurtowni =
-i dystrybutor=C3=B3w, kt=C3=B3rzy osi=C4=85gaj=C4=85 wy=C5=BCsze ni=C5=BC=
- dotychczas zyski ze sprzeda=C5=BCy tego typu rozwi=C4=85za=C5=84.
-
-Chc=C4=85 Pa=C5=84stwo pozna=C4=87 propozycj=C4=99 wsp=C3=B3=C5=82pracy?
+Czy m=C3=B3g=C5=82bym liczy=C4=87 na kontakt zwrotny?
 
 
-Z pozdrowieniami
-Aleksandra Kami=C5=84ska
+Pozdrawiam serdecznie,
+Wiktor Nurek
