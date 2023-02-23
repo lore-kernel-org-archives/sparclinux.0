@@ -2,154 +2,105 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7327C64ED8
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Feb 2023 13:12:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6376C61DA4
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Feb 2023 21:24:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234488AbjBWNMx (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 23 Feb 2023 08:12:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43334 "EHLO
+        id S229615AbjBWVYk (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Feb 2023 16:24:40 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38092 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234477AbjBWNMw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Feb 2023 08:12:52 -0500
-Received: from mail-wr1-x42f.google.com (mail-wr1-x42f.google.com [IPv6:2a00:1450:4864:20::42f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9026456790
-        for <sparclinux@vger.kernel.org>; Thu, 23 Feb 2023 05:12:09 -0800 (PST)
-Received: by mail-wr1-x42f.google.com with SMTP id 6so10239887wrb.11
-        for <sparclinux@vger.kernel.org>; Thu, 23 Feb 2023 05:12:09 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20210112.gappssmtp.com; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=Tb59OZw0P/9NeiLo7j0/pIIcP5QkKD4A9oJDDcL4MAg=;
-        b=hrlRDOKwOAsNkn63EV7n3EEAQ4B9IaQtA8AIfHsOiB4TORHkWY2kK38L935i7RoAkO
-         olQa3vClBYmwI8KwEFJB6OPacgNRv5x0BN4vdHf3XCEpriaGT+omA4tS0gMZiZxKcc3F
-         KYWPSwsUHx/frhqkq7A+J1wZizAG8ePYV7KvjhBPsnTPCUograCrVBFqcg6srDhRwA+g
-         U3yCkqCB9uB9VtPc5hwrVaCL1hVrTXMesQpZ4o6rR2fhIdFruEUpbstEzITPCLTBBZC5
-         KBWMT1Y873RFeL8aM322RZ3QoSZitsWNIn2ZjY4a1FDfQORGN+A8UZHYx1nVnn/nmc6t
-         CSGg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=Tb59OZw0P/9NeiLo7j0/pIIcP5QkKD4A9oJDDcL4MAg=;
-        b=aQEXV0KflyYvwUy3Hok3ZoGCbt/yaN+l8EGTXOfJmF/HxeLYQjK7uAbRWndaxcDaT9
-         /H+in/T+WxKIuHjqShEz6t75bnbTmk+f2AwKECsOntWBCtQc62+B7/7pUz+bmoHt7hr7
-         Xt3UkAdpyIkatk8IF+lkx8Z2AAOxKf/Nayr4aiTFaKgBzfx69SZKUBYsyD6hoRQqc03c
-         1Xb4AtYHfUj2+szp4E4Q66y+Xe2MU3oSQUrdm7iayOk5Ap/xi3AToo3s2D5rS60Obhlg
-         cNEH0r/I+nj2hHvOnQ5ZUlXwj4Vrtb4zPIvCFiWrWqRblGDFlEAyRi813uM/gOgpXVbG
-         TdNg==
-X-Gm-Message-State: AO0yUKXEW4ZRUE/x18kj3MCePSA/eqsXXnVVBSUKUanGhXfwmuzl+mrE
-        9dKphJ4VR8hF83SJL1GVnsWTrMzHQow3DjU5TjKBUA==
-X-Google-Smtp-Source: AK7set94r7NGT29eIpH72O39BJhvhcK+eRKfihpjHL0Bl53RKHrn48B3FXlJGKNmfO3t+QnjF/nB7RwGXZWsm1mLo5s=
-X-Received: by 2002:a5d:4d0b:0:b0:2c5:532b:cd20 with SMTP id
- z11-20020a5d4d0b000000b002c5532bcd20mr663712wrt.11.1677157925879; Thu, 23 Feb
- 2023 05:12:05 -0800 (PST)
+        with ESMTP id S229555AbjBWVYj (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Feb 2023 16:24:39 -0500
+Received: from mga04.intel.com (mga04.intel.com [192.55.52.120])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0A9EA2FCC7;
+        Thu, 23 Feb 2023 13:24:35 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1677187476; x=1708723476;
+  h=message-id:date:mime-version:subject:to:cc:references:
+   from:in-reply-to:content-transfer-encoding;
+  bh=mVoVfL5vlPHnSouV6VBABWbzjtaVYznfmLZ6wrrIyJs=;
+  b=ARbNOFfth9NJH01seMIkjhbcjWnHhhY5DHZa5R6gB+zUuSyqHvHf0f9K
+   9FN32kBf31zMFgZvv78ArwWLBqomgSZcpYFC9FK29I4oZgV55YSiiYvi/
+   RgOI+PgUXwTctAou/cm3qlh8uhT3JnYuhQTiR8Nh3UvCfxSxdk2AwY65M
+   7ny86cwBPlk+pin+xJxLWfA8p8jA2BcePsdHPn4G9yLid2jNH3hiDrZ7u
+   yootBKvyEu2BaqYrSy+gt0XP9NT2pkwwPC0fPJwCsjOCUHGeuiD4jWhFh
+   oz5MBXY7A9sB8pF5632czPC94rZ8NltmnrbRkXzFXuql7e937+D9aAf8g
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="332006822"
+X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
+   d="scan'208";a="332006822"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 13:24:28 -0800
+X-IronPort-AV: E=McAfee;i="6500,9779,10630"; a="665941632"
+X-IronPort-AV: E=Sophos;i="5.97,322,1669104000"; 
+   d="scan'208";a="665941632"
+Received: from ahajda-mobl.ger.corp.intel.com (HELO [10.213.25.22]) ([10.213.25.22])
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 23 Feb 2023 13:24:21 -0800
+Message-ID: <17f40b7c-f98d-789d-fa19-12ec077b756a@intel.com>
+Date:   Thu, 23 Feb 2023 22:24:19 +0100
 MIME-Version: 1.0
-References: <20230214074925.228106-1-alexghiti@rivosinc.com>
- <20230214074925.228106-4-alexghiti@rivosinc.com> <Y+zXIgwO5wteLQZ5@shell.armlinux.org.uk>
- <f3e1585c-0d9d-4709-9b21-74a63d8cc9ac@app.fastmail.com> <CAHVXubgsvjxGbgM6AcxfsHDsHT0iL2pAemGMr5t8KVLKiqC3RA@mail.gmail.com>
- <874b8076-b0d1-4aaa-bcd8-05d523060152@app.fastmail.com>
-In-Reply-To: <874b8076-b0d1-4aaa-bcd8-05d523060152@app.fastmail.com>
-From:   Alexandre Ghiti <alexghiti@rivosinc.com>
-Date:   Thu, 23 Feb 2023 14:11:55 +0100
-Message-ID: <CAHVXubidtBHNi8iFrFAWqRtkxiUBbmzzXFn+=R1DjEd5X0SpQw@mail.gmail.com>
-Subject: Re: [PATCH v3 03/24] arm: Remove COMMAND_LINE_SIZE from uapi
-To:     Arnd Bergmann <arnd@arndb.de>
-Cc:     Russell King <linux@armlinux.org.uk>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>, linux-doc@vger.kernel.org,
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101
+ Firefox/102.0 Thunderbird/102.8.0
+Subject: Re: [Intel-gfx] [PATCH v5 0/7] Introduce __xchg, non-atomic xchg
+To:     Peter Zijlstra <peterz@infradead.org>
+Cc:     Mark Rutland <mark.rutland@arm.com>, linux-ia64@vger.kernel.org,
+        linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-mips@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        Boqun Feng <boqun.feng@gmail.com>,
+        linux-xtensa@linux-xtensa.org, Arnd Bergmann <arnd@arndb.de>,
+        intel-gfx@lists.freedesktop.org, linux-m68k@lists.linux-m68k.org,
+        openrisc@lists.librecores.org, loongarch@lists.linux.dev,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-arm-kernel@lists.infradead.org, linux-parisc@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org,
-        Linux-Arch <linux-arch@vger.kernel.org>,
-        Palmer Dabbelt <palmer@rivosinc.com>
-Content-Type: text/plain; charset="UTF-8"
+        Andrew Morton <akpm@linux-foundation.org>,
+        linuxppc-dev@lists.ozlabs.org
+References: <20230118153529.57695-1-andrzej.hajda@intel.com>
+ <Y/ZLH5F8LA3H10aL@hirez.programming.kicks-ass.net>
+Content-Language: en-US
+From:   Andrzej Hajda <andrzej.hajda@intel.com>
+Organization: Intel Technology Poland sp. z o.o. - ul. Slowackiego 173, 80-298
+ Gdansk - KRS 101882 - NIP 957-07-52-316
+In-Reply-To: <Y/ZLH5F8LA3H10aL@hirez.programming.kicks-ass.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Feb 23, 2023 at 2:09 PM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> On Thu, Feb 23, 2023, at 10:54, Alexandre Ghiti wrote:
-> > On Wed, Feb 15, 2023 at 2:05 PM Arnd Bergmann <arnd@arndb.de> wrote:
-> >>
-> >> On Wed, Feb 15, 2023, at 13:59, Russell King (Oracle) wrote:
-> >> > On Tue, Feb 14, 2023 at 08:49:04AM +0100, Alexandre Ghiti wrote:
-> >> >> From: Palmer Dabbelt <palmer@rivosinc.com>
-> >> >>
-> >> >> As far as I can tell this is not used by userspace and thus should not
-> >> >> be part of the user-visible API.
-> >> >>
-> >> >> Signed-off-by: Palmer Dabbelt <palmer@rivosinc.com>
-> >> >
-> >> > Looks good to me. What's the merge plan for this?
-> >>
-> >> The easiest way is probably if I merge it through the whole
-> >> series through the asm-generic tree. The timing is a bit
-> >> unfortunate as we're just ahead of the merge window, so unless
-> >> we really need this in 6.3, I'd suggest that Alexandre resend
-> >> the series to me in two weeks with the Acks added in and I'll
-> >> pick it up for 6.4.
-> >
-> > Sorry for the response delay, I was waiting to see if Palmer would
-> > merge my KASAN patchset in 6.3 (which he does): I have to admit that
-> > fixing the command line size + the KASAN patchset would allow 6.3 to
-> > run on syzkaller, which would be nice.
-> >
-> > If I don't see this merged in 6.3, I'll send another round as you
-> > suggested in 1 week now :)
->
-> Hi Alexandre,
->
-> I have no plans to still pick up the series for 6.3. The patches
-> all look fine to me, but it's clearly too late now. What is the
-> actual dependency for KASAN, do you just need a longer command
-> line or something else? If it's just the command line size,
-> I would suggest that Palmer can still pick up a oneline change
-> to increase it and refer to this thread in the changelog as a
-> reference for why it is not an actual UAPI break.
+On 22.02.2023 18:04, Peter Zijlstra wrote:
+> On Wed, Jan 18, 2023 at 04:35:22PM +0100, Andrzej Hajda wrote:
+> 
+>> Andrzej Hajda (7):
+>>    arch: rename all internal names __xchg to __arch_xchg
+>>    linux/include: add non-atomic version of xchg
+>>    arch/*/uprobes: simplify arch_uretprobe_hijack_return_addr
+>>    llist: simplify __llist_del_all
+>>    io_uring: use __xchg if possible
+>>    qed: use __xchg if possible
+>>    drm/i915/gt: use __xchg instead of internal helper
+> 
+> Nothing crazy in here I suppose, I somewhat wonder why you went through
+> the trouble, but meh.
 
-Indeed, we only need a longer command line size. I'll ask Palmer to do
-that then, thanks!
+If you are asking why I have proposed this patchset, then the answer is 
+simple, 1st I've tried to find a way to move internal i915 helper to 
+core (see patch 7).
+Then I was looking for possible other users of this helper. And 
+apparently there are many of them, patches 3-7 shows some.
 
-Alex
 
->
->      Arnd
+> 
+> You want me to take this through te locking tree (for the next cycle,
+> not this one) where I normally take atomic things or does someone else
+> want this?
+
+If you could take it I will be happy.
+
+Regards
+Andrzej
+
