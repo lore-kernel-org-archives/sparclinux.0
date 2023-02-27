@@ -2,139 +2,108 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51254C7EE30
-	for <sparclinux@archiver.kernel.org>; Mon, 27 Feb 2023 19:47:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BC04C7EE2D
+	for <sparclinux@archiver.kernel.org>; Mon, 27 Feb 2023 20:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230201AbjB0TrS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 27 Feb 2023 14:47:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59108 "EHLO
+        id S230352AbjB0UE2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 27 Feb 2023 15:04:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53022 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230268AbjB0TrQ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Feb 2023 14:47:16 -0500
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 27EA028202;
-        Mon, 27 Feb 2023 11:46:48 -0800 (PST)
-Received: by mail-qt1-f181.google.com with SMTP id w23so8016473qtn.6;
-        Mon, 27 Feb 2023 11:46:48 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=zgbfP6t1iEXlYeQDHgpgkGKrmlu/wPbkfmiZJDZsq5c=;
-        b=PeklCc/BUNFCM4ElJPmsx7n8MV2Iwl7q5/6ZPW3lCqlV0dMVC71bUn6ySKhihacRzX
-         IhLjkT0taaowmeHkjhqcFjY42CZF3KDVUY920L/intcsjFkVCc92QmU6ESE91dLH9qqs
-         V3sLiIIK128WszIJ9B7tbufuqevD12qezThCbonkuk3CPRtE9KNzSf+rSsBX0KMmXCT3
-         +Yjkpx/NDjxKtTNEsS7Lw4xz/pqZVVRInUsB7OPGfgDt+AWZsfiYWcwVyZRQoHcUkzDM
-         zBLMNGBSVhgNGmNAK4cWhJW8rVsEcT3kNheHkBquP/cEltZS6iHTNcLNoBthBFvRZfmE
-         406w==
-X-Gm-Message-State: AO0yUKU2kiVR8Z6e10D3Yg2rJy4ajsfSR3Icpd5EZkzuMmyjFb/fVh/f
-        9rbA4MyhoEEmv4O+n6cUCizaH3lW93uHzw==
-X-Google-Smtp-Source: AK7set/pQ6JDnl+0gvg72l8iO9kyYF90JvlZkNPQjMM+HJ4miR7SQEsMKDfQzYgWmCLw7AgxTXFqhg==
-X-Received: by 2002:a05:622a:50:b0:3bf:ce27:e1fc with SMTP id y16-20020a05622a005000b003bfce27e1fcmr1053059qtw.7.1677527206826;
-        Mon, 27 Feb 2023 11:46:46 -0800 (PST)
-Received: from mail-yw1-f171.google.com (mail-yw1-f171.google.com. [209.85.128.171])
-        by smtp.gmail.com with ESMTPSA id s184-20020a372cc1000000b0073bb00eb0besm5463580qkh.22.2023.02.27.11.46.45
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 27 Feb 2023 11:46:45 -0800 (PST)
-Received: by mail-yw1-f171.google.com with SMTP id 00721157ae682-536cb25982eso206302047b3.13;
-        Mon, 27 Feb 2023 11:46:45 -0800 (PST)
-X-Received: by 2002:a5b:d4e:0:b0:967:f8b2:7a42 with SMTP id
- f14-20020a5b0d4e000000b00967f8b27a42mr7816406ybr.7.1677527205039; Mon, 27 Feb
- 2023 11:46:45 -0800 (PST)
-MIME-Version: 1.0
-References: <20230113171026.582290-1-david@redhat.com> <20230113171026.582290-12-david@redhat.com>
- <CAMuHMdX-FDga8w=pgg1myskEx6wp+oyZifhPPPFnWrc1zW7ZpQ@mail.gmail.com>
- <9ed766a6-cf06-535d-3337-ea6ff25c2362@redhat.com> <CAMuHMdWSaoKqO1Nx7QMDCcXrRmFbqqX8uwDRezXs8g+HdEFjKA@mail.gmail.com>
- <c145a2db-f92c-65aa-3e68-07dbb2e097a6@redhat.com>
-In-Reply-To: <c145a2db-f92c-65aa-3e68-07dbb2e097a6@redhat.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Mon, 27 Feb 2023 20:46:31 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdX7MND++KXgTpx4jscfctQA_-zPt3EN9-+79EWE7e+OjA@mail.gmail.com>
-Message-ID: <CAMuHMdX7MND++KXgTpx4jscfctQA_-zPt3EN9-+79EWE7e+OjA@mail.gmail.com>
-Subject: Re: [PATCH mm-unstable v1 11/26] microblaze/mm: support __HAVE_ARCH_PTE_SWP_EXCLUSIVE
-To:     David Hildenbrand <david@redhat.com>
-Cc:     linux-kernel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        John Hubbard <jhubbard@nvidia.com>,
-        Jason Gunthorpe <jgg@nvidia.com>,
-        Mike Rapoport <rppt@linux.ibm.com>,
-        Yang Shi <shy828301@gmail.com>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        Nadav Amit <namit@vmware.com>,
-        Andrea Arcangeli <aarcange@redhat.com>,
-        Peter Xu <peterx@redhat.com>, linux-mm@kvack.org,
-        x86@kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, openrisc@lists.librecores.org,
+        with ESMTP id S230114AbjB0UE0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Feb 2023 15:04:26 -0500
+Received: from out2-smtp.messagingengine.com (out2-smtp.messagingengine.com [66.111.4.26])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EDCA1227BD;
+        Mon, 27 Feb 2023 12:04:25 -0800 (PST)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailout.nyi.internal (Postfix) with ESMTP id 633825C0113;
+        Mon, 27 Feb 2023 15:04:25 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Mon, 27 Feb 2023 15:04:25 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-type:date:date:from:from:in-reply-to:in-reply-to
+        :message-id:mime-version:references:reply-to:sender:subject
+        :subject:to:to; s=fm3; t=1677528265; x=1677614665; bh=zexpZQ5bJ9
+        hbIaBDiHdAg4Kdi9EcW4M9yOSGV4fDHqI=; b=UmD1++vWuDhma9hYn/5OBgkV9W
+        SmKh3J+jW/DRQw9ZayTbfH4doyDnfMKGcrUjRg+MHXB7+skv9MR2Wn6feDUwa/pc
+        PGT3Jx1cKFRVV3yUC+Xbv73xv4yG9hlMD+x2L5XYUsFkhcKBk+bS73Zg84OwAvEZ
+        RNZMUvBcMXHf7fLXwSvthCoH+1LmkzeFxFlxrddpojiVz793BS8I93v3s80ny4oe
+        1FufDxHhi6hoVKIkPvvLYmJ+SFsDbckDivUEjltSlVQ3ucoef5IiqpK+X/HiLHU1
+        GwGjKaqWwuFOXkvK+hEEYfudtjKdyB2/Ux5tmyNKJb3vsbFLjm9k6AAh9Bvg==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:feedback-id
+        :feedback-id:from:from:in-reply-to:in-reply-to:message-id
+        :mime-version:references:reply-to:sender:subject:subject:to:to
+        :x-me-proxy:x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=
+        fm1; t=1677528265; x=1677614665; bh=zexpZQ5bJ9hbIaBDiHdAg4Kdi9Ec
+        W4M9yOSGV4fDHqI=; b=j7dASZo3V9dUBM6DtvQO9/dlt76IBaikXPpslXjq6pST
+        jFfZh2uRAMePwDHhoQQLNQzkC12wPkXcZPLXx2ADjJtqEKy7bW2+gxDbbcJDDOVQ
+        VuvwS4PM8MQcf2Rr7qyfXLPe5Lc46+01w63aLtcMijCn/ZKTsn+l9IY4axqQB3ol
+        2+Oudolo5/Ha3o/ZLMIKLoOyX7RvZncBzpV5PZV5kFhzlW2izGNS0rTWVEdEpYEc
+        Al+q0KEZn6nANGo4y6fiDSB7LzYpD7c9+b8aYZTgtvzwWVL+zjKnTCaX+ZymZxf+
+        98xn4wFADSco0SR13mRCBDtf/UGEqWcwjxcgYDRQuQ==
+X-ME-Sender: <xms:yAz9Y4QZ0bFqOsCcmYvhDiiHwpxCKqqbcoDxkoq0bcMaF6zxsmIhLA>
+    <xme:yAz9Y1yRmthicotCWDvnALQCFqZxBnSU3xJUZLCygQBrua0hWqRWUqUEq7uINKysC
+    ybAQeT6N9FlN87aCss>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrudeltddguddvkecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefofgggkfgjfhffhffvvefutgesthdtredtreertdenucfhrhhomhepfdet
+    rhhnugcuuegvrhhgmhgrnhhnfdcuoegrrhhnugesrghrnhgusgdruggvqeenucggtffrrg
+    htthgvrhhnpeffheeugeetiefhgeethfejgfdtuefggeejleehjeeutefhfeeggefhkedt
+    keetffenucevlhhushhtvghrufhiiigvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpe
+    grrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:yAz9Y13kmNhmOhtb3wu_v8-vYIJiuGXAPPQgztyZ7fxY0YH2388u_Q>
+    <xmx:yAz9Y8A15AZvjUD-laD2dBaFISanpvfqgH7VrgM-JuuNfwTcJV-QsQ>
+    <xmx:yAz9YxgnuUCrgQLpa3tOZBdHss6HmqK7a0b2jqyXZwHv4uftJYQElA>
+    <xmx:yQz9Y6anFwyHybOEKazqP3sfgZcO0TLbxR_X_5vMC9wUpJAVx2fVxA>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id B48BBB60086; Mon, 27 Feb 2023 15:04:24 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-183-gbf7d00f500-fm-20230220.001-gbf7d00f5
+Mime-Version: 1.0
+Message-Id: <5de30963-9be9-4e87-a696-7a642d92630f@app.fastmail.com>
+In-Reply-To: <20230212084611.1311177-1-rppt@kernel.org>
+References: <20230212084611.1311177-1-rppt@kernel.org>
+Date:   Mon, 27 Feb 2023 21:04:04 +0100
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Mike Rapoport" <rppt@kernel.org>
+Cc:     "Dave Airlie" <airlied@redhat.com>,
+        "David S . Miller" <davem@davemloft.net>,
+        "Helge Deller" <deller@gmx.de>, "Matt Turner" <mattst88@gmail.com>,
+        "Michael Ellerman" <mpe@ellerman.id.au>, x86@kernel.org,
+        dri-devel@lists.freedesktop.org, linux-alpha@vger.kernel.org,
+        Linux-Arch <linux-arch@vger.kernel.org>,
+        linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-riscv@lists.infradead.org, linux-s390@vger.kernel.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org, linux-xtensa@linux-xtensa.org,
-        Michal Simek <monstr@monstr.eu>
-Content-Type: text/plain; charset="UTF-8"
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH 0/2] char/agp: consolidate asm/agp.h
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi David,
-
-On Mon, Feb 27, 2023 at 6:01 PM David Hildenbrand <david@redhat.com> wrote:
-> >>>>    /*
-> >>>>     * Externally used page protection values.
-> >>>> diff --git a/arch/microblaze/include/asm/pgtable.h b/arch/microblaze/include/asm/pgtable.h
-> >>>> index 42f5988e998b..7e3de54bf426 100644
-> >>>> --- a/arch/microblaze/include/asm/pgtable.h
-> >>>> +++ b/arch/microblaze/include/asm/pgtable.h
-
-> >>>>     * - All other bits of the PTE are loaded into TLBLO without
-> >>>>     *  * modification, leaving us only the bits 20, 21, 24, 25, 26, 30 for
-> >>>>     * software PTE bits.  We actually use bits 21, 24, 25, and
-> >>>> @@ -155,6 +155,9 @@ extern pte_t *va_to_pte(unsigned long address);
-> >>>>    #define _PAGE_ACCESSED 0x400   /* software: R: page referenced */
-> >>>>    #define _PMD_PRESENT   PAGE_MASK
-> >>>>
-> >>>> +/* We borrow bit 24 to store the exclusive marker in swap PTEs. */
-> >>>> +#define _PAGE_SWP_EXCLUSIVE    _PAGE_DIRTY
-> >>>
-> >>> _PAGE_DIRTY is 0x80, so this is also bit 7, thus the new comment is
-> >>> wrong?
-> >>
-> >> In the example, I use MSB-0 bit numbering (which I determined to be
-> >> correct in microblaze context eventually, but I got confused a couple a
-> >> times because it's very inconsistent). That should be MSB-0 bit 24.
-> >
-> > Thanks, TIL microblaze uses IBM bit numbering...
+On Sun, Feb 12, 2023, at 09:46, Mike Rapoport wrote:
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 >
-> I assume IBM bit numbering corresponds to MSB-0 bit numbering, correct?
-
-Correct, as seen in s370 and PowerPC manuals...
-
-> I recall that I used the comment above "/* Definitions for MicroBlaze.
-> */" as an orientation.
+> asm/agp.h is duplicated in several architectures, with x86 being the
+> only instance that differs from the rest.
 >
-> 0  1  2  3  4  ... 18 19 20 21 22 23 24 25 26 27 28 29 30 31
-> RPN.....................  0  0 EX WR ZSEL.......  W  I  M  G
+> Introduce asm-generic/agp.h and use it instead of per-architecture
+> headers for the most cases.
+>
+> I believe that asm-generic is the best tree to pick up this patches.
+>
+> Mike Rapoport (IBM) (2):  char/agp: consolidate
+> {alloc,free}_gatt_pages()  char/agp: introduce asm-generic/agp.h
 
-Indeed, that's where I noticed the "unconventional" numbering...
+Hi Mike,
 
-> So ... either we adjust both or we leave it as is. (again, depends on
-> what the right thing to to is -- which I don't know :) )
+It looks like I wrote an email saying I merged these two patches,
+but never actually sent it out. Not sure if you found out another
+way, but this was part of the asm-generic tree for 6.3 and is now
+merged upstream.
 
-It depends whether you want to match the hardware documentation,
-or the Linux BIT() macro and friends...
+Thanks for the cleanup,
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+     Arnd
