@@ -2,185 +2,240 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A55A0C7EE33
-	for <sparclinux@archiver.kernel.org>; Wed,  1 Mar 2023 08:17:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A9D0C64EC7
+	for <sparclinux@archiver.kernel.org>; Wed,  1 Mar 2023 08:32:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229873AbjCAIRv (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 1 Mar 2023 03:17:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47212 "EHLO
+        id S229722AbjCAIcz (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 1 Mar 2023 03:32:55 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60792 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229876AbjCAIRp (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 1 Mar 2023 03:17:45 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8ABC938B7F
-        for <sparclinux@vger.kernel.org>; Wed,  1 Mar 2023 00:16:12 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1677658571;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=qQIo0hNE1IdmdTJeAfVSWSJHdp/A2L81MbqwgQGi7/s=;
-        b=Lgx4494Ki92A8P7KBec9GZ+oniD/so9S6s376pXCBfwIZbpFryYzm7VuUbDCudOmPpuazJ
-        BZlYjiR+awKb7+/obJJdaVaNJPlnbEr8EXFHhRoDxhAjgvdnre76/wb2aZFcUicW5ld7qE
-        AjRVQKfqtaApCJ9VvbYhapBkNy2Iiis=
-Received: from mail-wm1-f69.google.com (mail-wm1-f69.google.com
- [209.85.128.69]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-42-6ueoCUzhNO2htfPlvKxTTQ-1; Wed, 01 Mar 2023 03:16:10 -0500
-X-MC-Unique: 6ueoCUzhNO2htfPlvKxTTQ-1
-Received: by mail-wm1-f69.google.com with SMTP id j32-20020a05600c1c2000b003e9bdf02c9fso7997029wms.6
-        for <sparclinux@vger.kernel.org>; Wed, 01 Mar 2023 00:16:10 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=content-transfer-encoding:in-reply-to:subject:organization:from
-         :content-language:references:cc:to:user-agent:mime-version:date
-         :message-id:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=qQIo0hNE1IdmdTJeAfVSWSJHdp/A2L81MbqwgQGi7/s=;
-        b=TOYsUkEmCyI9ahkJBs7A+vVo9v3gSrRedfISQ8JlRkg+IxhAJtnij3o7d/fXyjONgM
-         B4Kj+9BHPVT4wGYwcqm7+6WICJfdlH/aVWC6FgIjBJUePFyuuAOq29RUoW+AqIoZZ0zp
-         feGx7pMTAcaB5AdB8DNMqu9fvy0fNiXgdJTzDpu57tojk1r5mWimnAu7HT3xsBYP3iCe
-         I0lEw8jpzksAXexS6uj2TV5MOBYMSYtwTPkqr/DnYzO6+lmqU/t6uUIH9aWC2sf6p5ta
-         AWgtoYc4/qu1J2gRIiApdQKcDHr7dYNTjXCMPz+AzqWiGvG59lxhCGITnNi6ItzDxf3U
-         EaeA==
-X-Gm-Message-State: AO0yUKUpk4JoVC7hskAaSWr0gIhrwKdR/ZwpGkOgbIakhgQLsS6lmW9e
-        VardhPRFBnejDulmrszWfpI5rt7KfbdtQmcAxvg/dniSoNijjG7WNfXQqmvgdxQffS2wyLoPWWk
-        HnayDrXkADgsPg5vcRz1ddw==
-X-Received: by 2002:adf:fa42:0:b0:2c8:9cfe:9e29 with SMTP id y2-20020adffa42000000b002c89cfe9e29mr3673939wrr.38.1677658569271;
-        Wed, 01 Mar 2023 00:16:09 -0800 (PST)
-X-Google-Smtp-Source: AK7set/Zcp0KDYd3P+ttMa1nxfZFskB2aS7FMY5A6AFDn91vWMJGTRwO0n5U4FI/yi5+QKrlOm4zVQ==
-X-Received: by 2002:adf:fa42:0:b0:2c8:9cfe:9e29 with SMTP id y2-20020adffa42000000b002c89cfe9e29mr3673883wrr.38.1677658568881;
-        Wed, 01 Mar 2023 00:16:08 -0800 (PST)
-Received: from ?IPV6:2a09:80c0:192:0:5dac:bf3d:c41:c3e7? ([2a09:80c0:192:0:5dac:bf3d:c41:c3e7])
-        by smtp.gmail.com with ESMTPSA id m15-20020a5d6a0f000000b002c707785da4sm11739026wru.107.2023.03.01.00.16.06
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 01 Mar 2023 00:16:08 -0800 (PST)
-Message-ID: <550c6035-6dd0-d215-226b-1a82dafa05d6@redhat.com>
-Date:   Wed, 1 Mar 2023 09:16:06 +0100
+        with ESMTP id S229667AbjCAIcy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 1 Mar 2023 03:32:54 -0500
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id 065F21FE2;
+        Wed,  1 Mar 2023 00:32:52 -0800 (PST)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id 7A9F72F4;
+        Wed,  1 Mar 2023 00:33:35 -0800 (PST)
+Received: from [10.162.41.9] (unknown [10.162.41.9])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 71C0F3F99C;
+        Wed,  1 Mar 2023 00:32:48 -0800 (PST)
+Message-ID: <10b92874-222a-6f4d-2542-092c5a5e72db@arm.com>
+Date:   Wed, 1 Mar 2023 14:02:45 +0530
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.8.0
+ Thunderbird/102.7.1
+Subject: Re: [PATCH V2] mm: Merge pte_mkhuge() call into arch_make_huge_pte()
+Content-Language: en-US
 To:     Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Rick Edgecombe <rick.p.edgecombe@intel.com>,
-        "x86@kernel.org" <x86@kernel.org>,
-        "H . Peter Anvin" <hpa@zytor.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>,
-        "linux-mm@kvack.org" <linux-mm@kvack.org>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andy Lutomirski <luto@kernel.org>,
-        Balbir Singh <bsingharora@gmail.com>,
-        Borislav Petkov <bp@alien8.de>,
-        Cyrill Gorcunov <gorcunov@gmail.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Eugene Syromiatnikov <esyr@redhat.com>,
-        Florian Weimer <fweimer@redhat.com>,
-        "H . J . Lu" <hjl.tools@gmail.com>, Jann Horn <jannh@google.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Kees Cook <keescook@chromium.org>,
+        "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc:     Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Paul Mackerras <paulus@samba.org>,
+        "David S. Miller" <davem@davemloft.net>,
         Mike Kravetz <mike.kravetz@oracle.com>,
-        Nadav Amit <nadav.amit@gmail.com>,
-        Oleg Nesterov <oleg@redhat.com>, Pavel Machek <pavel@ucw.cz>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Weijiang Yang <weijiang.yang@intel.com>,
-        "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>,
-        John Allen <john.allen@amd.com>,
-        "kcc@google.com" <kcc@google.com>,
-        "eranian@google.com" <eranian@google.com>,
-        "rppt@kernel.org" <rppt@kernel.org>,
-        "jamorris@linux.microsoft.com" <jamorris@linux.microsoft.com>,
-        "dethoma@microsoft.com" <dethoma@microsoft.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "Andrew.Cooper3@citrix.com" <Andrew.Cooper3@citrix.com>,
-        "christina.schimpe@intel.com" <christina.schimpe@intel.com>,
-        "debug@rivosinc.com" <debug@rivosinc.com>
-Cc:     "linux-alpha@vger.kernel.org" <linux-alpha@vger.kernel.org>,
-        "linux-snps-arc@lists.infradead.org" 
-        <linux-snps-arc@lists.infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
         "linux-arm-kernel@lists.infradead.org" 
         <linux-arm-kernel@lists.infradead.org>,
-        "linux-csky@vger.kernel.org" <linux-csky@vger.kernel.org>,
-        "linux-hexagon@vger.kernel.org" <linux-hexagon@vger.kernel.org>,
-        "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>,
-        "loongarch@lists.linux.dev" <loongarch@lists.linux.dev>,
-        "linux-m68k@lists.linux-m68k.org" <linux-m68k@lists.linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        "linux-mips@vger.kernel.org" <linux-mips@vger.kernel.org>,
-        "linux-openrisc@vger.kernel.org" <linux-openrisc@vger.kernel.org>,
-        "linux-parisc@vger.kernel.org" <linux-parisc@vger.kernel.org>,
         "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>,
-        "linux-riscv@lists.infradead.org" <linux-riscv@lists.infradead.org>,
-        "linux-s390@vger.kernel.org" <linux-s390@vger.kernel.org>,
-        "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
         "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        "linux-um@lists.infradead.org" <linux-um@lists.infradead.org>,
-        "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>
-References: <20230227222957.24501-1-rick.p.edgecombe@intel.com>
- <20230227222957.24501-14-rick.p.edgecombe@intel.com>
- <1f8b78b6-9f34-b646-68f2-eac62136b9f4@csgroup.eu>
-Content-Language: en-US
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Subject: Re: [PATCH v7 13/41] mm: Make pte_mkwrite() take a VMA
-In-Reply-To: <1f8b78b6-9f34-b646-68f2-eac62136b9f4@csgroup.eu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+References: <1643860669-26307-1-git-send-email-anshuman.khandual@arm.com>
+ <1ea45095-0926-a56a-a273-816709e9075e@csgroup.eu>
+From:   Anshuman Khandual <anshuman.khandual@arm.com>
+In-Reply-To: <1ea45095-0926-a56a-a273-816709e9075e@csgroup.eu>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 01.03.23 08:03, Christophe Leroy wrote:
+
+
+On 3/1/23 12:26, Christophe Leroy wrote:
+> Hi,
 > 
+> Le 03/02/2022 à 04:57, Anshuman Khandual a écrit :
+>> Each call into pte_mkhuge() is invariably followed by arch_make_huge_pte().
+>> Instead arch_make_huge_pte() can accommodate pte_mkhuge() at the beginning.
+>> This updates generic fallback stub for arch_make_huge_pte() and available
+>> platforms definitions. This makes huge pte creation much cleaner and easier
+>> to follow.
 > 
-> Le 27/02/2023 à 23:29, Rick Edgecombe a écrit :
->> The x86 Control-flow Enforcement Technology (CET) feature includes a new
->> type of memory called shadow stack. This shadow stack memory has some
->> unusual properties, which requires some core mm changes to function
->> properly.
+> I can't remember, what was the reason for not doing it in 
+> remove_migration_pte() as well ?
+> Looking at it, I have the feeling that we now have a redundant 
+> pte_mkhuge() there.
+
+I guess it just got missed out, but you are right, there seems to be a redundant
+pte_mkhuge() in remove_migration_pte(), I will send out a patch dropping it off.
+
+> 
+> Also, could we get rid of the one in mm/debug_vm_pgtable.c ?
+
+After this patch, arch_make_huge_pte() should be used instead in generic MM for
+all cases. So you are suggesting arch_make_huge_pte() should be tested instead ?
+
+diff --git a/mm/debug_vm_pgtable.c b/mm/debug_vm_pgtable.c
+index c631ade3f1d2..15ee86034ddc 100644
+--- a/mm/debug_vm_pgtable.c
++++ b/mm/debug_vm_pgtable.c
+@@ -909,7 +909,7 @@ static void __init hugetlb_basic_tests(struct pgtable_debug_args *args)
+ #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
+        pte = pfn_pte(args->fixed_pmd_pfn, args->page_prot);
+ 
+-       WARN_ON(!pte_huge(pte_mkhuge(pte)));
++       WARN_ON(!pte_huge(arch_make_huge_pte(pte)));
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
+ }
+ #else  /* !CONFIG_HUGETLB_PAGE */
+
+> 
+> Also, shouldn't arch_make_huge_pte() be documented in 
+> Documentation/vm/arch_pgtable_helpers.rst instead of pte_mkhuge() ?
+
+diff --git a/Documentation/mm/arch_pgtable_helpers.rst b/Documentation/mm/arch_pgtable_helpers.rst
+index fd2a19df884e..07a0618f84de 100644
+--- a/Documentation/mm/arch_pgtable_helpers.rst
++++ b/Documentation/mm/arch_pgtable_helpers.rst
+@@ -216,7 +216,7 @@ HugeTLB Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_huge                  | Tests a HugeTLB                                  |
+ +---------------------------+--------------------------------------------------+
+-| pte_mkhuge                | Creates a HugeTLB                                |
++| arch_make_huge_pte        | Creates a HugeTLB                                |
+ +---------------------------+--------------------------------------------------+
+ | huge_pte_dirty            | Tests a dirty HugeTLB                            |
+ +---------------------------+--------------------------------------------------+
+
+I will send out a patch implementing the above changes. I guess pte_mkhuge() now
+will just be a platform helper, which can be folded into arch_make_huge_pte() if
+and when required.
+
+- Anshuman
+
+> 
+> Christophe
+> 
 >>
->> One of these unusual properties is that shadow stack memory is writable,
->> but only in limited ways. These limits are applied via a specific PTE
->> bit combination. Nevertheless, the memory is writable, and core mm code
->> will need to apply the writable permissions in the typical paths that
->> call pte_mkwrite().
+>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>> Cc: Will Deacon <will@kernel.org>
+>> Cc: Michael Ellerman <mpe@ellerman.id.au>
+>> Cc: Paul Mackerras <paulus@samba.org>
+>> Cc: "David S. Miller" <davem@davemloft.net>
+>> Cc: Mike Kravetz <mike.kravetz@oracle.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> Cc: linuxppc-dev@lists.ozlabs.org
+>> Cc: sparclinux@vger.kernel.org
+>> Cc: linux-mm@kvack.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Reviewed-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+>> Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
+>> Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+>> ---
+>> This applies on v5.17-rc2
 >>
->> In addition to VM_WRITE, the shadow stack VMA's will have a flag denoting
->> that they are special shadow stack flavor of writable memory. So make
->> pte_mkwrite() take a VMA, so that the x86 implementation of it can know to
->> create regular writable memory or shadow stack memory.
+>> Changes in V2:
 >>
->> Apply the same changes for pmd_mkwrite() and huge_pte_mkwrite().
-> 
-> I'm not sure it is a good idea to add a second argument to
-> pte_mkwrite(). All pte_mkxxxx() only take a pte and nothing else.
-
-We touched on this in previous revisions and so far there was no strong 
-push back. This turned out to be cleaner and easier than the 
-alternatives we evaluated.
-
-pte_modify(), for example, takes another argument. Sure, we could try 
-thinking about passing something else than a VMA to identify the 
-writability type, but I am not convinced that will look particularly better.
-
-> 
-> I think you should do the same as commit d9ed9faac283 ("mm: add new
-> arch_make_huge_pte() method for tile support")
-> 
-
-We already have 3 architectures intending to support shadow stacks in 
-one way or the other. Replacing all pte_mkwrite() with 
-arch_pte_mkwrite() doesn't sound particularly appealing to me.
-
-
--- 
-Thanks,
-
-David / dhildenb
-
+>> - Direct PTE encode in arch_make_huge_pte() on powerpc platform per Christophe
+>>
+>> Changes in V1:
+>>
+>> https://lore.kernel.org/all/1643780286-18798-1-git-send-email-anshuman.khandual@arm.com/
+>>
+>>   arch/arm64/mm/hugetlbpage.c                      | 1 +
+>>   arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h | 4 ++--
+>>   arch/sparc/mm/hugetlbpage.c                      | 1 +
+>>   include/linux/hugetlb.h                          | 2 +-
+>>   mm/hugetlb.c                                     | 3 +--
+>>   mm/vmalloc.c                                     | 1 -
+>>   6 files changed, 6 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/arch/arm64/mm/hugetlbpage.c b/arch/arm64/mm/hugetlbpage.c
+>> index ffb9c229610a..228226c5fa80 100644
+>> --- a/arch/arm64/mm/hugetlbpage.c
+>> +++ b/arch/arm64/mm/hugetlbpage.c
+>> @@ -347,6 +347,7 @@ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags)
+>>   {
+>>   	size_t pagesize = 1UL << shift;
+>>   
+>> +	entry = pte_mkhuge(entry);
+>>   	if (pagesize == CONT_PTE_SIZE) {
+>>   		entry = pte_mkcont(entry);
+>>   	} else if (pagesize == CONT_PMD_SIZE) {
+>> diff --git a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h b/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> index 64b6c608eca4..de092b04ee1a 100644
+>> --- a/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> +++ b/arch/powerpc/include/asm/nohash/32/hugetlb-8xx.h
+>> @@ -71,9 +71,9 @@ static inline pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags
+>>   	size_t size = 1UL << shift;
+>>   
+>>   	if (size == SZ_16K)
+>> -		return __pte(pte_val(entry) & ~_PAGE_HUGE);
+>> +		return __pte(pte_val(entry) | _PAGE_SPS);
+>>   	else
+>> -		return entry;
+>> +		return __pte(pte_val(entry) | _PAGE_SPS | _PAGE_HUGE);
+>>   }
+>>   #define arch_make_huge_pte arch_make_huge_pte
+>>   #endif
+>> diff --git a/arch/sparc/mm/hugetlbpage.c b/arch/sparc/mm/hugetlbpage.c
+>> index 0f49fada2093..d8e0e3c7038d 100644
+>> --- a/arch/sparc/mm/hugetlbpage.c
+>> +++ b/arch/sparc/mm/hugetlbpage.c
+>> @@ -181,6 +181,7 @@ pte_t arch_make_huge_pte(pte_t entry, unsigned int shift, vm_flags_t flags)
+>>   {
+>>   	pte_t pte;
+>>   
+>> +	entry = pte_mkhuge(entry);
+>>   	pte = hugepage_shift_to_tte(entry, shift);
+>>   
+>>   #ifdef CONFIG_SPARC64
+>> diff --git a/include/linux/hugetlb.h b/include/linux/hugetlb.h
+>> index d1897a69c540..52c462390aee 100644
+>> --- a/include/linux/hugetlb.h
+>> +++ b/include/linux/hugetlb.h
+>> @@ -754,7 +754,7 @@ static inline void arch_clear_hugepage_flags(struct page *page) { }
+>>   static inline pte_t arch_make_huge_pte(pte_t entry, unsigned int shift,
+>>   				       vm_flags_t flags)
+>>   {
+>> -	return entry;
+>> +	return pte_mkhuge(entry);
+>>   }
+>>   #endif
+>>   
+>> diff --git a/mm/hugetlb.c b/mm/hugetlb.c
+>> index 61895cc01d09..5ca253c1b4e4 100644
+>> --- a/mm/hugetlb.c
+>> +++ b/mm/hugetlb.c
+>> @@ -4637,7 +4637,6 @@ static pte_t make_huge_pte(struct vm_area_struct *vma, struct page *page,
+>>   					   vma->vm_page_prot));
+>>   	}
+>>   	entry = pte_mkyoung(entry);
+>> -	entry = pte_mkhuge(entry);
+>>   	entry = arch_make_huge_pte(entry, shift, vma->vm_flags);
+>>   
+>>   	return entry;
+>> @@ -6172,7 +6171,7 @@ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+>>   			unsigned int shift = huge_page_shift(hstate_vma(vma));
+>>   
+>>   			old_pte = huge_ptep_modify_prot_start(vma, address, ptep);
+>> -			pte = pte_mkhuge(huge_pte_modify(old_pte, newprot));
+>> +			pte = huge_pte_modify(old_pte, newprot);
+>>   			pte = arch_make_huge_pte(pte, shift, vma->vm_flags);
+>>   			huge_ptep_modify_prot_commit(vma, address, ptep, old_pte, pte);
+>>   			pages++;
+>> diff --git a/mm/vmalloc.c b/mm/vmalloc.c
+>> index 4165304d3547..d0b14dd73adc 100644
+>> --- a/mm/vmalloc.c
+>> +++ b/mm/vmalloc.c
+>> @@ -118,7 +118,6 @@ static int vmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+>>   		if (size != PAGE_SIZE) {
+>>   			pte_t entry = pfn_pte(pfn, prot);
+>>   
+>> -			entry = pte_mkhuge(entry);
+>>   			entry = arch_make_huge_pte(entry, ilog2(size), 0);
+>>   			set_huge_pte_at(&init_mm, addr, pte, entry);
+>>   			pfn += PFN_DOWN(size);
