@@ -2,146 +2,139 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A39CC7EE39
-	for <sparclinux@archiver.kernel.org>; Thu,  2 Mar 2023 10:46:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E92C7EE30
+	for <sparclinux@archiver.kernel.org>; Thu,  2 Mar 2023 10:55:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229913AbjCBKqO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 2 Mar 2023 05:46:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60620 "EHLO
+        id S229775AbjCBKzO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 2 Mar 2023 05:55:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42326 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229703AbjCBKqL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 2 Mar 2023 05:46:11 -0500
-Received: from relay3-d.mail.gandi.net (relay3-d.mail.gandi.net [217.70.183.195])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B266236FD9;
-        Thu,  2 Mar 2023 02:46:08 -0800 (PST)
-Received: (Authenticated sender: alex@ghiti.fr)
-        by mail.gandi.net (Postfix) with ESMTPSA id 75C8960014;
-        Thu,  2 Mar 2023 10:45:54 +0000 (UTC)
-Message-ID: <5712b56e-e2a7-c1d2-081c-bcbecdbeffb5@ghiti.fr>
-Date:   Thu, 2 Mar 2023 11:45:54 +0100
+        with ESMTP id S229815AbjCBKzL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 2 Mar 2023 05:55:11 -0500
+Received: from mail-wr1-x42b.google.com (mail-wr1-x42b.google.com [IPv6:2a00:1450:4864:20::42b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68E243C7BA
+        for <sparclinux@vger.kernel.org>; Thu,  2 Mar 2023 02:55:08 -0800 (PST)
+Received: by mail-wr1-x42b.google.com with SMTP id r18so16102397wrx.1
+        for <sparclinux@vger.kernel.org>; Thu, 02 Mar 2023 02:55:08 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linaro.org; s=google; t=1677754506;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=0kjxBm4+DoG4C2wkKxFrUZYN+G/AbIQR/qTtaSDrIN0=;
+        b=OltRJZx0wGBWq11qdaiOynKDK4Zovlj1Cqp67B71vJ4hfuI2sFXjgoUuVEU2kyKkgm
+         D1O70YbsKsxsUeP4307Q9vwwD+JkLHels1coONwCgRjrOWy0WyMnwJdQelpTzsY6Y9bC
+         coAn2teeexMAaYv/5ih5qMtH+mbgaYpgEQMR/zTnYTbe3Ol/8EwpGdq9+F5V7QjRCXg0
+         qufSooKI4b9bM118gEgXEklxl6NfI/fpE30hSjmZYQkuu+WVYKy/dTVk25R3Gi2RS7yX
+         dbH8hvvumvlM+GzPFdNOQIYGdoNKHPSgIVUL4cWn5ml2/2Oa3rz+bNrJXmAv31lgBQIV
+         gepA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1677754506;
+        h=content-transfer-encoding:in-reply-to:from:references:cc:to
+         :content-language:subject:user-agent:mime-version:date:message-id
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=0kjxBm4+DoG4C2wkKxFrUZYN+G/AbIQR/qTtaSDrIN0=;
+        b=kE2x/1UaCHTN4hZI2iQ/wRAPfoJ6c/WLxVJYROMFecaLiJyTGGlrLeoCD14Cb8QE5I
+         WO4PPQNFnJvXEbn9A/Jgavcw/qyZ8YM72Ctl0Q88tQ0sfBIbnTy6+o32pavUz6INliVk
+         e7+FgSvt3ERgCr/YN5dLFJKVyhePYg/Lwbax5WpTf95yLjH97jA3TG6AbDGXfh5d6A48
+         2EPovpTnn+NoOLX3hboOx8zOchg1d1Qr3qOXB2i4u6Nra+qTNcmHN/4uEbQsO3qXAj20
+         TSNJMfghHzlI/vXnBi/IksVCXAiG8xWfOisNIrsuCpy42v1wlyZRCXSCn/UIyilZYgHT
+         Wd6g==
+X-Gm-Message-State: AO0yUKUbCM/xZoQFIysfgSpqa3igwUvAEMcuGsL15JMTuYPYOoQN1wdJ
+        eY14sFbAffCFyjxM+rfHyBMpkQ==
+X-Google-Smtp-Source: AK7set9yfancJC9F/8+0XfOWQfqS1+KlikHyR2NYbUWgAu3Rsx3a/IRK/+MfzAe0tCHzWfXDpMcIqA==
+X-Received: by 2002:a5d:6b10:0:b0:2c5:55cf:b1ab with SMTP id v16-20020a5d6b10000000b002c555cfb1abmr7109270wrw.48.1677754506664;
+        Thu, 02 Mar 2023 02:55:06 -0800 (PST)
+Received: from [192.168.74.175] (89.red-88-28-21.dynamicip.rima-tde.net. [88.28.21.89])
+        by smtp.gmail.com with ESMTPSA id k28-20020a5d525c000000b002c556a4f1casm14839206wrc.42.2023.03.02.02.55.00
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 02 Mar 2023 02:55:06 -0800 (PST)
+Message-ID: <ecb9af84-a2a5-1414-13ea-be00e9203da3@linaro.org>
+Date:   Thu, 2 Mar 2023 11:54:58 +0100
 MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
- Thunderbird/102.7.1
-Subject: Re: [PATCH v4 00/24] Remove COMMAND_LINE_SIZE from uapi
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0)
+ Gecko/20100101 Thunderbird/102.8.0
+Subject: Re: [PATCH v2.1 09/24] mips/cpu: Expose play_dead()'s prototype
+ definition
 Content-Language: en-US
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
-Cc:     Alexandre Ghiti <alexghiti@rivosinc.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Vineet Gupta <vgupta@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        WANG Xuerui <kernel@xen0n.name>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Heiko Carstens <hca@linux.ibm.com>,
-        Vasily Gorbik <gor@linux.ibm.com>,
-        Alexander Gordeev <agordeev@linux.ibm.com>,
-        Christian Borntraeger <borntraeger@linux.ibm.com>,
-        Sven Schnelle <svens@linux.ibm.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        "David S . Miller" <davem@davemloft.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H . Peter Anvin" <hpa@zytor.com>, Chris Zankel <chris@zankel.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org
-References: <20230302093539.372962-1-alexghiti@rivosinc.com>
- <CAMuHMdVC99kFpS9vL+HEqbXdDRMKVSW_t21X1p37d0oQufxKLw@mail.gmail.com>
- <c0dd1a6e-8e8e-5cdb-bc92-755462704edf@ghiti.fr>
- <CAMuHMdVSJADwTSkOD2mG2yU0XeFd0QAUjojQDz5phWhkRcLGOg@mail.gmail.com>
-From:   Alexandre Ghiti <alex@ghiti.fr>
-In-Reply-To: <CAMuHMdVSJADwTSkOD2mG2yU0XeFd0QAUjojQDz5phWhkRcLGOg@mail.gmail.com>
+To:     Josh Poimboeuf <jpoimboe@kernel.org>
+Cc:     linux-kernel@vger.kernel.org, jgross@suse.com,
+        richard.henderson@linaro.org, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, linux-alpha@vger.kernel.org,
+        linux@armlinux.org.uk, linux-arm-kernel@lists.infradead.org,
+        catalin.marinas@arm.com, will@kernel.org, guoren@kernel.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        chenhuacai@kernel.org, kernel@xen0n.name,
+        loongarch@lists.linux.dev, f.fainelli@gmail.com,
+        bcm-kernel-feedback-list@broadcom.com, tsbogend@alpha.franken.de,
+        linux-mips@vger.kernel.org, jiaxun.yang@flygoat.com,
+        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
+        linuxppc-dev@lists.ozlabs.org, ysato@users.sourceforge.jp,
+        dalias@libc.org, linux-sh@vger.kernel.org, davem@davemloft.net,
+        sparclinux@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com,
+        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
+        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
+        linux-xtensa@linux-xtensa.org, peterz@infradead.org,
+        juri.lelli@redhat.com, vincent.guittot@linaro.org,
+        dietmar.eggemann@arm.com, rostedt@goodmis.org, bsegall@google.com,
+        mgorman@suse.de, bristot@redhat.com, vschneid@redhat.com,
+        paulmck@kernel.org
+References: <cover.1676358308.git.jpoimboe@kernel.org>
+ <39835bc75af2e812fce56400533cb2ab41bcf0e2.1676358308.git.jpoimboe@kernel.org>
+ <080a5ccb-7fa0-1a75-538f-a09dc146fc4e@linaro.org>
+ <20230214181101.3a2tscbmwdnwbqpu@treble>
+ <c56dc4b9-035d-7773-ecb2-0e1ac6af7abc@linaro.org>
+ <20230216184249.ogaqsaykottpxtcb@treble>
+ <20230301181639.ajqdeh7g3m3fpqhk@treble>
+From:   =?UTF-8?Q?Philippe_Mathieu-Daud=c3=a9?= <philmd@linaro.org>
+In-Reply-To: <20230301181639.ajqdeh7g3m3fpqhk@treble>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
+On 1/3/23 19:16, Josh Poimboeuf wrote:
 
-On 3/2/23 11:44, Geert Uytterhoeven wrote:
-> Hi Alex,
->
-> On Thu, Mar 2, 2023 at 11:09 AM Alexandre Ghiti <alex@ghiti.fr> wrote:
->> On 3/2/23 10:47, Geert Uytterhoeven wrote:
->>> On Thu, Mar 2, 2023 at 10:35 AM Alexandre Ghiti <alexghiti@rivosinc.com> wrote:
->>>> This all came up in the context of increasing COMMAND_LINE_SIZE in the
->>>> RISC-V port.  In theory that's a UABI break, as COMMAND_LINE_SIZE is the
->>>> maximum length of /proc/cmdline and userspace could staticly rely on
->>>> that to be correct.
->>>>
->>>> Usually I wouldn't mess around with changing this sort of thing, but
->>>> PowerPC increased it with a5980d064fe2 ("powerpc: Bump COMMAND_LINE_SIZE
->>>> to 2048").  There are also a handful of examples of COMMAND_LINE_SIZE
->>>> increasing, but they're from before the UAPI split so I'm not quite sure
->>>> what that means: e5a6a1c90948 ("powerpc: derive COMMAND_LINE_SIZE from
->>>> asm-generic"), 684d2fd48e71 ("[S390] kernel: Append scpdata to kernel
->>>> boot command line"), 22242681cff5 ("MIPS: Extend COMMAND_LINE_SIZE"),
->>>> and 2b74b85693c7 ("sh: Derive COMMAND_LINE_SIZE from
->>>> asm-generic/setup.h.").
->>>>
->>>> It seems to me like COMMAND_LINE_SIZE really just shouldn't have been
->>>> part of the uapi to begin with, and userspace should be able to handle
->>>> /proc/cmdline of whatever length it turns out to be.  I don't see any
->>>> references to COMMAND_LINE_SIZE anywhere but Linux via a quick Google
->>>> search, but that's not really enough to consider it unused on my end.
->>>>
->>>> This issue was already considered in s390 and they reached the same
->>>> conclusion in commit 622021cd6c56 ("s390: make command line
->>>> configurable").
->>>>
->>>> The feedback on the v1 seemed to indicate that COMMAND_LINE_SIZE really
->>>> shouldn't be part of uapi, so this now touches all the ports.  I've
->>>> tried to split this all out and leave it bisectable, but I haven't
->>>> tested it all that aggressively.
->>>>
->>>> Changes since v3 <https://lore.kernel.org/all/20230214074925.228106-1-alexghiti@rivosinc.com/>:
->>>> * Added RB/AB
->>>> * Added a mention to commit 622021cd6c56 ("s390: make command line
->>>>     configurable") in the cover letter
->>> Thanks for the update!
->>>
->>>    Apparently you forgot to add your own SoB?
->> I do not know, should I? Palmer did all the work, I only fixed 3 minor
->> things
-> If you are picking up patches, and submitting them to someone else
-> for upstream inclusion, you should add your own SoB.
-> https://elixir.bootlin.com/linux/latest/source/Documentation/process/submitting-patches.rst#L419
+> The latest version of this patch triggered a new kbuild warning which is
+> fixed by the below patch.  If there are no objections I'll bundle it in
+> with the rest of the set for merging.
+> 
+> ---8<---
+> 
+> Subject: [PATCH] mips/smp: Add CONFIG_SMP guard for raw_smp_processor_id()
+> Content-type: text/plain
+> 
+> Without CONFIG_SMP, raw_smp_processor_id() is not expected to be defined
+> by the arch.
+> 
+> Reported-by: kernel test robot <lkp@intel.com>
+> Link: https://lore.kernel.org/oe-kbuild-all/202302220755.HM8J8GOR-lkp@intel.com/
+> Signed-off-by: Josh Poimboeuf <jpoimboe@kernel.org>
+> ---
+>   arch/mips/include/asm/smp.h | 2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> diff --git a/arch/mips/include/asm/smp.h b/arch/mips/include/asm/smp.h
+> index 4eee29b7845c..cf992b8b1e46 100644
+> --- a/arch/mips/include/asm/smp.h
+> +++ b/arch/mips/include/asm/smp.h
+> @@ -25,6 +25,7 @@ extern cpumask_t cpu_sibling_map[];
+>   extern cpumask_t cpu_core_map[];
+>   extern cpumask_t cpu_foreign_map[];
+>   
+> +#ifdef CONFIG_SMP
+>   static inline int raw_smp_processor_id(void)
+>   {
+>   #if defined(__VDSO__)
+> @@ -36,6 +37,7 @@ static inline int raw_smp_processor_id(void)
+>   #endif
+>   }
+>   #define raw_smp_processor_id raw_smp_processor_id
+> +#endif
+>   
+>   /* Map from cpu id to sequential logical cpu number.  This will only
+>      not be idempotent when cpus failed to come on-line.	*/
 
+Reviewed-by: Philippe Mathieu-Daudé <philmd@linaro.org>
 
-Great, thanks for the pointer, I'll do that then!
-
-
-Thanks again,
-
-
-Alex
-
-
-> Gr{oetje,eeting}s,
->
->                          Geert
->
