@@ -2,168 +2,61 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A65FC6FA8E
-	for <sparclinux@archiver.kernel.org>; Thu,  2 Mar 2023 07:57:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBDDDC6FA8E
+	for <sparclinux@archiver.kernel.org>; Thu,  2 Mar 2023 08:50:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229699AbjCBH5f (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 2 Mar 2023 02:57:35 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38974 "EHLO
+        id S229535AbjCBIu1 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 2 Mar 2023 03:50:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57142 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbjCBH5Y (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 2 Mar 2023 02:57:24 -0500
-Received: from mail-wm1-x32b.google.com (mail-wm1-x32b.google.com [IPv6:2a00:1450:4864:20::32b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F9B138B7B
-        for <sparclinux@vger.kernel.org>; Wed,  1 Mar 2023 23:57:21 -0800 (PST)
-Received: by mail-wm1-x32b.google.com with SMTP id t25-20020a1c7719000000b003eb052cc5ccso1049897wmi.4
-        for <sparclinux@vger.kernel.org>; Wed, 01 Mar 2023 23:57:21 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=rivosinc-com.20210112.gappssmtp.com; s=20210112; t=1677743839;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=3gGlmdrxpk12L0HtiU5R9bJeUayhxQ74GXgfAq6meuw=;
-        b=pn+DJn+k9uImMGeBMXuwnMQE1biMNzy71Plo8H7DOI3fKK/ceps9rgGUxc/bmw8s6L
-         4TQMSud9TXFc8/r2OEOEiAKv5SApxcJ1Yd/LQHA0imhiw3qi8hrsJYLIdS7LaNAmBH1O
-         AbgLlGVWFn2hf8BkmR90At5+g3zqQ61Ankq9cGuBB9WgQfAsyn4JZulcRbW71gf7ZeYz
-         oRP4F6/LxUTL9nxCbjnWUdwQSV0fTcnbx/sIcDMk8fB8xQ9dJ6UAQMnDD3HBbCn+Qr4a
-         fIykdIwuX5WmEnYpwkBvfu6oXc7MDCcdwlfNYOa5JGNIdVdo8Hubuxh+Kfco99U7Z89i
-         QfaQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1677743839;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=3gGlmdrxpk12L0HtiU5R9bJeUayhxQ74GXgfAq6meuw=;
-        b=K3o8ihPQhvqxekCFR97Nst0yXBh9j97m9a9yX751o/oBQBJtRr5m/CAU0cKphYhpd3
-         qvJeRkgdqKAKxIcLDFsKSNFcyEc43r5hNqpyHsBUloi1aPA0W9FM5kVxDtVNkxfPguD7
-         onfsZ6cXGynED4vnl+M47ATNfOgRS9tn4d0cwlnXneWfI5m6uYTIDbX1UH4mIsPuANZB
-         K2tzYN//FMv9nlX/Lpo4+oaRFynLsbrleUDXil81UCnNPXxGSz4jk0mtiBzFsU9jkwl8
-         xxfWExBFbSAHC6iZDF1t6g53YPY1CHNQIrnwbTWQqDA8derG7yLPjCxe9KO0Bd1qMLMB
-         rdyA==
-X-Gm-Message-State: AO0yUKXk6kKemoTJsVbyIObyva5G/H11apyDWwwyU2RgxBGYR82ij76L
-        vi3mUkRGVyZaOvUf9Xy+7wfg9idQWB/f/ehGmMLFXQ==
-X-Google-Smtp-Source: AK7set8WtHYe+gEo1Fgs1pSlJqsnM2tCvgsXzdB6/J3n+P8FnRw3jetc5Yrjj9TAlqQSjPmyeFZCYlu44lotg0az/Sk=
-X-Received: by 2002:a05:600c:4591:b0:3ea:8ed9:8e4b with SMTP id
- r17-20020a05600c459100b003ea8ed98e4bmr2655128wmo.6.1677743839531; Wed, 01 Mar
- 2023 23:57:19 -0800 (PST)
+        with ESMTP id S229496AbjCBIu0 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 2 Mar 2023 03:50:26 -0500
+Received: from mail.stagenetbiz.pl (mail.stagenetbiz.pl [217.61.97.35])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9CD6B1ABE3
+        for <sparclinux@vger.kernel.org>; Thu,  2 Mar 2023 00:50:24 -0800 (PST)
+Received: by mail.stagenetbiz.pl (Postfix, from userid 1001)
+        id A7E14828A7; Thu,  2 Mar 2023 08:50:56 +0000 (GMT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stagenetbiz.pl;
+        s=mail; t=1677747058;
+        bh=LTrFku/ToeGnnqiqyaN86kCQQkxkwCY5tVpcGX1QBNI=;
+        h=Date:From:To:Subject:From;
+        b=HaYOlw++vqgIfS+wEpKCTxVZgKa97GNIzZn3D8YdAlId8jlXtjNDI6ldkFAEHnKox
+         EQRBeGiJRzKuCDPj7V8BragnWt+uuSPk6Xns4rJE8Q/FkOqRdT5cieZiRiTmNyRV8R
+         BdB5xqQw3L8KuygwF32mUJ84pJg22Q695NhwwlFPYshTUC/lOLWtWoNTkDOU/6xStH
+         tZ2xCIpnKTeVbWtt4f3h0mLuuIXtAmsJfPYBbvkslT3Ni4jmGEBKTBzIgnBh2+yYj4
+         Mc2cGqtsv7vUsP4nJHQwM7XBfyX6HqNl1sL/io2Wq4JiqFFdBuSqdC9vN7yUunFPHE
+         Q2SuYmv/AjDyA==
+Received: by mail.stagenetbiz.pl for <sparclinux@vger.kernel.org>; Thu,  2 Mar 2023 08:50:36 GMT
+Message-ID: <20230302074500-0.1.41.dps2.0.35ztlwp79x@stagenetbiz.pl>
+Date:   Thu,  2 Mar 2023 08:50:36 GMT
+From:   =?UTF-8?Q? "Aleksandra_Kami=C5=84ska" ?= 
+        <aleksandra.kaminska@stagenetbiz.pl>
+To:     <sparclinux@vger.kernel.org>
+Subject: Nowe lakiery hybrydowe do oferty
+X-Mailer: mail.stagenetbiz.pl
 MIME-Version: 1.0
-References: <Y+tSBlSsQBQF/Ro2@osiris> <mhng-e8b09772-24e5-4729-a0bf-01a9e4c76636@palmer-ri-x1c9a>
-In-Reply-To: <mhng-e8b09772-24e5-4729-a0bf-01a9e4c76636@palmer-ri-x1c9a>
-From:   Alexandre Ghiti <alexghiti@rivosinc.com>
-Date:   Thu, 2 Mar 2023 08:57:08 +0100
-Message-ID: <CAHVXubgdr_NrLPnZ6NhuDt8uZYZD+R_swpCVGoLDxnD+eOJcuA@mail.gmail.com>
-Subject: Re: [PATCH v3 00/24] Remove COMMAND_LINE_SIZE from uapi
-To:     Palmer Dabbelt <palmer@dabbelt.com>
-Cc:     hca@linux.ibm.com, geert@linux-m68k.org, corbet@lwn.net,
-        Richard Henderson <richard.henderson@linaro.org>,
-        ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@kernel.org,
-        linux@armlinux.org.uk, Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, chenhuacai@kernel.org,
-        kernel@xen0n.name, monstr@monstr.eu, tsbogend@alpha.franken.de,
-        James.Bottomley@hansenpartnership.com, deller@gmx.de,
-        mpe@ellerman.id.au, npiggin@gmail.com, christophe.leroy@csgroup.eu,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        aou@eecs.berkeley.edu, gor@linux.ibm.com, agordeev@linux.ibm.com,
-        borntraeger@linux.ibm.com, svens@linux.ibm.com,
-        ysato@users.sourceforge.jp, dalias@libc.org, davem@davemloft.net,
-        tglx@linutronix.de, mingo@redhat.com, bp@alien8.de,
-        dave.hansen@linux.intel.com, x86@kernel.org, hpa@zytor.com,
-        chris@zankel.net, jcmvbkbc@gmail.com,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Thu, Mar 2, 2023 at 4:17=E2=80=AFAM Palmer Dabbelt <palmer@dabbelt.com> =
-wrote:
->
-> On Tue, 14 Feb 2023 01:19:02 PST (-0800), hca@linux.ibm.com wrote:
-> > On Tue, Feb 14, 2023 at 09:58:17AM +0100, Geert Uytterhoeven wrote:
-> >> Hi Heiko,
-> >>
-> >> On Tue, Feb 14, 2023 at 9:39 AM Heiko Carstens <hca@linux.ibm.com> wro=
-te:
-> >> > On Tue, Feb 14, 2023 at 08:49:01AM +0100, Alexandre Ghiti wrote:
-> >> > > This all came up in the context of increasing COMMAND_LINE_SIZE in=
- the
-> >> > > RISC-V port.  In theory that's a UABI break, as COMMAND_LINE_SIZE =
-is the
-> >> > > maximum length of /proc/cmdline and userspace could staticly rely =
-on
-> >> > > that to be correct.
-> >> > >
-> >> > > Usually I wouldn't mess around with changing this sort of thing, b=
-ut
-> >> > > PowerPC increased it with a5980d064fe2 ("powerpc: Bump COMMAND_LIN=
-E_SIZE
-> >> > > to 2048").  There are also a handful of examples of COMMAND_LINE_S=
-IZE
-> >> > > increasing, but they're from before the UAPI split so I'm not quit=
-e sure
-> >> > > what that means: e5a6a1c90948 ("powerpc: derive COMMAND_LINE_SIZE =
-from
-> >> > > asm-generic"), 684d2fd48e71 ("[S390] kernel: Append scpdata to ker=
-nel
-> >> > > boot command line"), 22242681cff5 ("MIPS: Extend COMMAND_LINE_SIZE=
-"),
-> >> > > and 2b74b85693c7 ("sh: Derive COMMAND_LINE_SIZE from
-> >> > > asm-generic/setup.h.").
-> >> > >
-> >> > > It seems to me like COMMAND_LINE_SIZE really just shouldn't have b=
-een
-> >> > > part of the uapi to begin with, and userspace should be able to ha=
-ndle
-> >> > > /proc/cmdline of whatever length it turns out to be.  I don't see =
-any
-> >> > > references to COMMAND_LINE_SIZE anywhere but Linux via a quick Goo=
-gle
-> >> > > search, but that's not really enough to consider it unused on my e=
-nd.
-> >> > >
-> >> > > The feedback on the v1 seemed to indicate that COMMAND_LINE_SIZE r=
-eally
-> >> > > shouldn't be part of uapi, so this now touches all the ports.  I'v=
-e
-> >> > > tried to split this all out and leave it bisectable, but I haven't
-> >> > > tested it all that aggressively.
-> >> >
-> >> > Just to confirm this assumption a bit more: that's actually the same
-> >> > conclusion that we ended up with when commit 3da0243f906a ("s390: ma=
-ke
-> >> > command line configurable") went upstream.
->
-> Thanks, I guess I'd missed that one.  At some point I think there was
-> some discussion of making this a Kconfig for everyone, which seems
-> reasonable to me -- our use case for this being extended is syzkaller,
-> but we're sort of just picking a value that's big enough for now and
-> running with it.
->
-> Probably best to get it out of uapi first, though, as that way at least
-> it's clear that it's not uABI.
->
-> >> Commit 622021cd6c560ce7 ("s390: make command line configurable"),
-> >> I assume?
-> >
-> > Yes, sorry for that. I got distracted while writing and used the wrong
-> > branch to look this up.
->
-> Alex: Probably worth adding that to the list in the cover letter as it
-> looks like you were planning on a v4 anyway (which I guess you now have
-> to do, given that I just added the issue to RISC-V).
+Dzie=C5=84 dobry,
 
-Yep, I will :)
+w bran=C5=BCy lakier=C3=B3w hybrydowych ro=C5=9Bnie popularno=C5=9B=C4=87=
+ produkt=C3=B3w wielozadaniowych, kt=C3=B3re skracaj=C4=85 czas wykonania=
+ manicure.
 
-Thanks,
+Opracowali=C5=9Bmy now=C4=85 linie lakier=C3=B3w, kt=C3=B3re spe=C5=82nia=
+j=C4=85 wsp=C3=B3=C5=82czesne wymagania w tym zakresie, dlatego ciesz=C4=85=
+ si=C4=99 rosn=C4=85cym zainteresowaniem na rynku.
 
-Alex
+Produkty dostarczamy do drogerii, sieci zakupowych, handlowych, hurtowni =
+i dystrybutor=C3=B3w, kt=C3=B3rzy osi=C4=85gaj=C4=85 wy=C5=BCsze ni=C5=BC=
+ dotychczas zyski ze sprzeda=C5=BCy tego typu rozwi=C4=85za=C5=84.
+
+Chc=C4=85 Pa=C5=84stwo pozna=C4=87 propozycj=C4=99 wsp=C3=B3=C5=82pracy?
+
+
+Z pozdrowieniami
+Aleksandra Kami=C5=84ska
