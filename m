@@ -2,114 +2,107 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FB24C6FD1B
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Mar 2023 09:30:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F0F6C6FD19
+	for <sparclinux@archiver.kernel.org>; Sun,  5 Mar 2023 20:11:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229709AbjCEJaI convert rfc822-to-8bit (ORCPT
-        <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Mar 2023 04:30:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36144 "EHLO
+        id S229699AbjCEULR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sun, 5 Mar 2023 15:11:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229545AbjCEJaH (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Mar 2023 04:30:07 -0500
-Received: from mail-qt1-f181.google.com (mail-qt1-f181.google.com [209.85.160.181])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55D897AB7;
-        Sun,  5 Mar 2023 01:30:06 -0800 (PST)
-Received: by mail-qt1-f181.google.com with SMTP id z6so7651640qtv.0;
-        Sun, 05 Mar 2023 01:30:06 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678008605;
-        h=content-transfer-encoding:cc:to:subject:message-id:date:from
-         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=vgd0m+/MCaDvNZBjSvDtubD53Qmudtg807BEeMSQ1f0=;
-        b=TgJfpiw6bQwfYRwu06aJLoVRQ9AE57Buw1rCCjqjSdej4lOQnY/ypZTNIoWmAIBmcL
-         Em++mWom34GrU4QJQSgXF15ULPCUPb/4v1xcaXvnK9adWv2o5WO+jsV3qcZoB8fq8cfP
-         C16Vo+nmsMlH81ypwR1gf6WQQy9AkmOpWRKfzAlTSoIbNgpsw/iN/XJstKm/VTV/m6b5
-         C+HM8MgMUDoy1HBaNpfW5TVDjg9M8IVRtorxSvyjfJmcknHNOnqDYSicmwfJKT7Dqr7R
-         3437uLqqzIs8lQEydVsYcHvZjyo0Tl6HMuhYm+VtBJ3heeCQzANIYFy08q5c7pVDG8bT
-         6Dmw==
-X-Gm-Message-State: AO0yUKWT0vT+HQ+ETIXCy0EYolndTCyiDe3PUOsB2M6jqQWUa9Y1hNma
-        CRGZCzcwa0nO3eBfdnE778jrRQ07yhEs+Q==
-X-Google-Smtp-Source: AK7set/Qet7Y2xObux9A9+h42PzkaHtV04/tBNVDpaZLXtJ4Bp9Tna6wIAKORhr1xA+Wc7IjPVmuMw==
-X-Received: by 2002:a05:622a:19a7:b0:3b8:2e92:94e7 with SMTP id u39-20020a05622a19a700b003b82e9294e7mr13025765qtc.44.1678008605119;
-        Sun, 05 Mar 2023 01:30:05 -0800 (PST)
-Received: from mail-yw1-f182.google.com (mail-yw1-f182.google.com. [209.85.128.182])
-        by smtp.gmail.com with ESMTPSA id l11-20020a37f90b000000b0071ddbe8fe23sm5221567qkj.24.2023.03.05.01.30.04
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sun, 05 Mar 2023 01:30:04 -0800 (PST)
-Received: by mail-yw1-f182.google.com with SMTP id 00721157ae682-536be69eadfso128890197b3.1;
-        Sun, 05 Mar 2023 01:30:04 -0800 (PST)
-X-Received: by 2002:a81:af0c:0:b0:52f:1c23:ef1 with SMTP id
- n12-20020a81af0c000000b0052f1c230ef1mr4669025ywh.5.1678008604127; Sun, 05 Mar
- 2023 01:30:04 -0800 (PST)
-MIME-Version: 1.0
-References: <20230303102817.212148-1-bhe@redhat.com> <20230303102817.212148-3-bhe@redhat.com>
- <87sfej1rie.fsf@mpe.ellerman.id.au>
-In-Reply-To: <87sfej1rie.fsf@mpe.ellerman.id.au>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Sun, 5 Mar 2023 10:29:52 +0100
-X-Gmail-Original-Message-ID: <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
-Message-ID: <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
+        with ESMTP id S229688AbjCEULP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Mar 2023 15:11:15 -0500
+Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77ECC16891;
+        Sun,  5 Mar 2023 12:10:56 -0800 (PST)
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
+        by mailout.nyi.internal (Postfix) with ESMTP id 456115C00E6;
+        Sun,  5 Mar 2023 15:10:53 -0500 (EST)
+Received: from imap51 ([10.202.2.101])
+  by compute6.internal (MEProxy); Sun, 05 Mar 2023 15:10:53 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
+        :cc:content-transfer-encoding:content-type:content-type:date
+        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
+        1678047053; x=1678133453; bh=cjW13UmZQsjwyJDeHx5kIcthGLujwjX/c4O
+        TYrUnVEo=; b=M+iX57D3tki6mdnYuiW2+/TVDcTnCB2Ga/GIjvvg25JyIDtZhzU
+        mLkYC+yAY4SFZTnNttwjLlO8DD8yCYVw2kqWR6oHe88HECHGwU2I7Axt7fx139oN
+        etVdN33n4Awn9hGCJAMtMjqHAQtx2VRikVcaIkNPJ7OSOLVm6//NltGUsHzgIj37
+        6Q3ejPZj5Yi2cHI9b414CB+2Y/WNWnifgSj0Gzxyz7KQ4KCQRarWS5CulHYbi5eC
+        ag9J4dSS2qmKbTaLa9/5xYv+fAFL3Yxj7jbc/4GSpKvlOtsPrPUdGxBgQX6SJ5Z/
+        5TNCZ2yUU9mfrFdl1+bt1hfGmpR+ALzk/+w==
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-transfer-encoding
+        :content-type:content-type:date:date:feedback-id:feedback-id
+        :from:from:in-reply-to:in-reply-to:message-id:mime-version
+        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
+        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
+        1678047053; x=1678133453; bh=cjW13UmZQsjwyJDeHx5kIcthGLujwjX/c4O
+        TYrUnVEo=; b=CYjynxi2XdbvcwdySeuJXuc1PmUeES5qN5N0+ACWBaHPfzz2mdY
+        KOtHjXR5RghXHpnlzSUA3NKQ8HzaPRpU50fjVFpJJj2Vy6sGAfy9/jRTA0VzqhBk
+        8GsAumW0PCYRukJgw9SVPtwhkxwpu7ePss7hnK46F7qIf9wvuoF9/IIYqYHLSQ6S
+        WYeQ8pkNDtW0oDCAUXUKxKH9ooj8BOTq4NG7N1mHccROcNqGiApuSD4gGmN67hlg
+        /JkwqqShEOb8mieY78lGMfW+Gz28CVp4X2Co4shGbu4N41Qb30SR08YRmY/mYRXg
+        wfIYMYkcUjgcGZeIAy669di3WjfqzK4B1xQ==
+X-ME-Sender: <xms:TPcEZBo-q52j-jqchY2XGMpcTPYR06yXpKAxCmCfSK69n_WJZvxBew>
+    <xme:TPcEZDrpog9WoSHrCoXbSnoa2mLg-BTyPhTgGzmB-0qEgXBt4T7_tYyFgcQXJBgjV
+    lAj5AsSTwmqOpGlKmY>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvddtgedgudefgecutefuodetggdotefrod
+    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
+    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
+    enucfjughrpefofgggkfgjfhffhffvvefutgfgsehtqhertderreejnecuhfhrohhmpedf
+    tehrnhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrf
+    grthhtvghrnhepgfekueelgeeigefhudduledtkeefffejueelheelfedutedttdfgveeu
+    feefieegnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiii
+    gvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
+X-ME-Proxy: <xmx:TPcEZOPBv0ou0224OqiUylR9QEbHsuuPAEnRPF5o8Yfvrtw8YAv_tg>
+    <xmx:TPcEZM7r_vfyT0vMjnpfebYe8dIUVygFUa3KtMBPW88bfxP-LizgeA>
+    <xmx:TPcEZA4_keGj9AgoFlOut-Hu30B0X1Jw1pHtsEd1RMfb_pDQw2T6KA>
+    <xmx:TfcEZLJhlAB4TepxklBPOSFU5nuw9mrTxiy269e0J3uc6tV0KxUo8A>
+Feedback-ID: i56a14606:Fastmail
+Received: by mailuser.nyi.internal (Postfix, from userid 501)
+        id 15985B60086; Sun,  5 Mar 2023 15:10:51 -0500 (EST)
+X-Mailer: MessagingEngine.com Webmail Interface
+User-Agent: Cyrus-JMAP/3.9.0-alpha0-183-gbf7d00f500-fm-20230220.001-gbf7d00f5
+Mime-Version: 1.0
+Message-Id: <5dec69d0-0bc9-4f6c-8d0d-ee5422783100@app.fastmail.com>
+In-Reply-To: <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
+References: <20230303102817.212148-1-bhe@redhat.com>
+ <20230303102817.212148-3-bhe@redhat.com> <87sfej1rie.fsf@mpe.ellerman.id.au>
+ <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
+Date:   Sun, 05 Mar 2023 21:10:31 +0100
+From:   "Arnd Bergmann" <arnd@arndb.de>
+To:     "Geert Uytterhoeven" <geert@linux-m68k.org>,
+        "Michael Ellerman" <mpe@ellerman.id.au>
+Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
+        "Baoquan He" <bhe@redhat.com>, linux-sh@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-hexagon@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
+        "Christoph Hellwig" <hch@infradead.org>, linux-mm@kvack.org,
+        "Luis Chamberlain" <mcgrof@kernel.org>,
+        linux-parisc@vger.kernel.org, linux-alpha@vger.kernel.org,
+        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 Subject: Re: [PATCH v3 2/2] arch/*/io.h: remove ioremap_uc in some architectures
-To:     Michael Ellerman <mpe@ellerman.id.au>
-Cc:     Baoquan He <bhe@redhat.com>, linux-kernel@vger.kernel.org,
-        linux-arch@vger.kernel.org, linux-mm@kvack.org, arnd@arndb.de,
-        mcgrof@kernel.org, hch@infradead.org, linux-alpha@vger.kernel.org,
-        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Michael,
-
-On Sun, Mar 5, 2023 at 10:23 AM Michael Ellerman <mpe@ellerman.id.au> wrote:
-> Baoquan He <bhe@redhat.com> writes:
-> > ioremap_uc() is only meaningful on old x86-32 systems with the PAT
-> > extension, and on ia64 with its slightly unconventional ioremap()
-> > behavior, everywhere else this is the same as ioremap() anyway.
-> >
-> > Here, remove the ioremap_uc() definition in architecutures other
-> > than x86 and ia64. These architectures all have asm-generic/io.h
-> > included and will have the default ioremap_uc() definition which
-> > returns NULL.
-> >
-> > Note: This changes the existing behaviour and could break code
-> > calling ioremap_uc(). If any ARCH meets this breakage and really
-> > needs a specific ioremap_uc() for its own usage, one ioremap_uc()
-> > can be added in the ARCH.
+On Sun, Mar 5, 2023, at 10:29, Geert Uytterhoeven wrote:
 >
-> I see one use in:
+> On Sun, Mar 5, 2023 at 10:23=E2=80=AFAM Michael Ellerman <mpe@ellerman=
+.id.au> wrote:
+>> Maybe that exact code path is only reachable on x86/ia64? But if so
+>> please explain why.
+>>
+>> Otherwise it looks like this series could break that driver on powerpc
+>> at least.
 >
-> drivers/video/fbdev/aty/atyfb_base.c:        par->ati_regbase = ioremap_uc(info->fix.mmio_start, 0x1000);
->
->
-> Which isn't obviously x86/ia64 specific.
->
-> I'm pretty sure some powermacs (powerpc) use that driver.
+> Indeed.
 
-I originally wrote that driver for CHRP, so yes.
+When I last looked into this, I sent a patch to use ioremap()
+on non-x86:
 
-> Maybe that exact code path is only reachable on x86/ia64? But if so
-> please explain why.
->
-> Otherwise it looks like this series could break that driver on powerpc
-> at least.
+https://lore.kernel.org/all/20191111192258.2234502-1-arnd@arndb.de/
 
-Indeed.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+    Arnd
