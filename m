@@ -2,107 +2,140 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F0F6C6FD19
-	for <sparclinux@archiver.kernel.org>; Sun,  5 Mar 2023 20:11:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9795C742A7
+	for <sparclinux@archiver.kernel.org>; Mon,  6 Mar 2023 09:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229699AbjCEULR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 5 Mar 2023 15:11:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53860 "EHLO
+        id S230055AbjCFJfj (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 6 Mar 2023 04:35:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45870 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229688AbjCEULP (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 5 Mar 2023 15:11:15 -0500
-Received: from out5-smtp.messagingengine.com (out5-smtp.messagingengine.com [66.111.4.29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 77ECC16891;
-        Sun,  5 Mar 2023 12:10:56 -0800 (PST)
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.47])
-        by mailout.nyi.internal (Postfix) with ESMTP id 456115C00E6;
-        Sun,  5 Mar 2023 15:10:53 -0500 (EST)
-Received: from imap51 ([10.202.2.101])
-  by compute6.internal (MEProxy); Sun, 05 Mar 2023 15:10:53 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=arndb.de; h=cc
-        :cc:content-transfer-encoding:content-type:content-type:date
-        :date:from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to; s=fm1; t=
-        1678047053; x=1678133453; bh=cjW13UmZQsjwyJDeHx5kIcthGLujwjX/c4O
-        TYrUnVEo=; b=M+iX57D3tki6mdnYuiW2+/TVDcTnCB2Ga/GIjvvg25JyIDtZhzU
-        mLkYC+yAY4SFZTnNttwjLlO8DD8yCYVw2kqWR6oHe88HECHGwU2I7Axt7fx139oN
-        etVdN33n4Awn9hGCJAMtMjqHAQtx2VRikVcaIkNPJ7OSOLVm6//NltGUsHzgIj37
-        6Q3ejPZj5Yi2cHI9b414CB+2Y/WNWnifgSj0Gzxyz7KQ4KCQRarWS5CulHYbi5eC
-        ag9J4dSS2qmKbTaLa9/5xYv+fAFL3Yxj7jbc/4GSpKvlOtsPrPUdGxBgQX6SJ5Z/
-        5TNCZ2yUU9mfrFdl1+bt1hfGmpR+ALzk/+w==
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
-        messagingengine.com; h=cc:cc:content-transfer-encoding
-        :content-type:content-type:date:date:feedback-id:feedback-id
-        :from:from:in-reply-to:in-reply-to:message-id:mime-version
-        :references:reply-to:sender:subject:subject:to:to:x-me-proxy
-        :x-me-proxy:x-me-sender:x-me-sender:x-sasl-enc; s=fm1; t=
-        1678047053; x=1678133453; bh=cjW13UmZQsjwyJDeHx5kIcthGLujwjX/c4O
-        TYrUnVEo=; b=CYjynxi2XdbvcwdySeuJXuc1PmUeES5qN5N0+ACWBaHPfzz2mdY
-        KOtHjXR5RghXHpnlzSUA3NKQ8HzaPRpU50fjVFpJJj2Vy6sGAfy9/jRTA0VzqhBk
-        8GsAumW0PCYRukJgw9SVPtwhkxwpu7ePss7hnK46F7qIf9wvuoF9/IIYqYHLSQ6S
-        WYeQ8pkNDtW0oDCAUXUKxKH9ooj8BOTq4NG7N1mHccROcNqGiApuSD4gGmN67hlg
-        /JkwqqShEOb8mieY78lGMfW+Gz28CVp4X2Co4shGbu4N41Qb30SR08YRmY/mYRXg
-        wfIYMYkcUjgcGZeIAy669di3WjfqzK4B1xQ==
-X-ME-Sender: <xms:TPcEZBo-q52j-jqchY2XGMpcTPYR06yXpKAxCmCfSK69n_WJZvxBew>
-    <xme:TPcEZDrpog9WoSHrCoXbSnoa2mLg-BTyPhTgGzmB-0qEgXBt4T7_tYyFgcQXJBgjV
-    lAj5AsSTwmqOpGlKmY>
-X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvhedrvddtgedgudefgecutefuodetggdotefrod
-    ftvfcurfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfgh
-    necuuegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmd
-    enucfjughrpefofgggkfgjfhffhffvvefutgfgsehtqhertderreejnecuhfhrohhmpedf
-    tehrnhguuceuvghrghhmrghnnhdfuceorghrnhgusegrrhhnuggsrdguvgeqnecuggftrf
-    grthhtvghrnhepgfekueelgeeigefhudduledtkeefffejueelheelfedutedttdfgveeu
-    feefieegnecuffhomhgrihhnpehkvghrnhgvlhdrohhrghenucevlhhushhtvghrufhiii
-    gvpedtnecurfgrrhgrmhepmhgrihhlfhhrohhmpegrrhhnugesrghrnhgusgdruggv
-X-ME-Proxy: <xmx:TPcEZOPBv0ou0224OqiUylR9QEbHsuuPAEnRPF5o8Yfvrtw8YAv_tg>
-    <xmx:TPcEZM7r_vfyT0vMjnpfebYe8dIUVygFUa3KtMBPW88bfxP-LizgeA>
-    <xmx:TPcEZA4_keGj9AgoFlOut-Hu30B0X1Jw1pHtsEd1RMfb_pDQw2T6KA>
-    <xmx:TfcEZLJhlAB4TepxklBPOSFU5nuw9mrTxiy269e0J3uc6tV0KxUo8A>
-Feedback-ID: i56a14606:Fastmail
-Received: by mailuser.nyi.internal (Postfix, from userid 501)
-        id 15985B60086; Sun,  5 Mar 2023 15:10:51 -0500 (EST)
-X-Mailer: MessagingEngine.com Webmail Interface
-User-Agent: Cyrus-JMAP/3.9.0-alpha0-183-gbf7d00f500-fm-20230220.001-gbf7d00f5
-Mime-Version: 1.0
-Message-Id: <5dec69d0-0bc9-4f6c-8d0d-ee5422783100@app.fastmail.com>
-In-Reply-To: <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
-References: <20230303102817.212148-1-bhe@redhat.com>
- <20230303102817.212148-3-bhe@redhat.com> <87sfej1rie.fsf@mpe.ellerman.id.au>
- <CAMuHMdXoM24uAZGcjBtscNMOSY_+4u08PEOR7gOfCH7jvCceDg@mail.gmail.com>
-Date:   Sun, 05 Mar 2023 21:10:31 +0100
-From:   "Arnd Bergmann" <arnd@arndb.de>
-To:     "Geert Uytterhoeven" <geert@linux-m68k.org>,
-        "Michael Ellerman" <mpe@ellerman.id.au>
-Cc:     Linux-Arch <linux-arch@vger.kernel.org>,
-        "Baoquan He" <bhe@redhat.com>, linux-sh@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-hexagon@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mips@vger.kernel.org,
-        "Christoph Hellwig" <hch@infradead.org>, linux-mm@kvack.org,
-        "Luis Chamberlain" <mcgrof@kernel.org>,
-        linux-parisc@vger.kernel.org, linux-alpha@vger.kernel.org,
-        sparclinux@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
-Subject: Re: [PATCH v3 2/2] arch/*/io.h: remove ioremap_uc in some architectures
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S229807AbjCFJfh (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 6 Mar 2023 04:35:37 -0500
+Received: from relay3-d.mail.gandi.net (relay3-d.mail.gandi.net [IPv6:2001:4b98:dc4:8::223])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D56CA275;
+        Mon,  6 Mar 2023 01:35:33 -0800 (PST)
+Received: (Authenticated sender: alex@ghiti.fr)
+        by mail.gandi.net (Postfix) with ESMTPSA id D7AAE60017;
+        Mon,  6 Mar 2023 09:35:17 +0000 (UTC)
+Message-ID: <caaed678-4a5a-70e5-2ee7-cb2c8042afc0@ghiti.fr>
+Date:   Mon, 6 Mar 2023 10:35:17 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.7.1
+Subject: Re: [PATCH v3 00/24] Remove COMMAND_LINE_SIZE from uapi
+Content-Language: en-US
+To:     Arnd Bergmann <arnd@arndb.de>, "H. Peter Anvin" <hpa@zytor.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Heiko Carstens <hca@linux.ibm.com>
+Cc:     Geert Uytterhoeven <geert@linux-m68k.org>,
+        Alexandre Ghiti <alexghiti@rivosinc.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
+        Vineet Gupta <vgupta@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Will Deacon <will@kernel.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        WANG Xuerui <kernel@xen0n.name>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E . J . Bottomley" <James.Bottomley@hansenpartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Albert Ou <aou@eecs.berkeley.edu>, gor@linux.ibm.com,
+        Alexander Gordeev <agordeev@linux.ibm.com>,
+        borntraeger@linux.ibm.com, Sven Schnelle <svens@linux.ibm.com>,
+        ysato@users.osdn.me, Rich Felker <dalias@libc.org>,
+        "David S . Miller" <davem@davemloft.net>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        chris@zankel.net, Max Filippov <jcmvbkbc@gmail.com>,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
+        loongarch@lists.linux.dev, linux-m68k@vger.kernel.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
+        Linux-Arch <linux-arch@vger.kernel.org>
+References: <mhng-e8b09772-24e5-4729-a0bf-01a9e4c76636@palmer-ri-x1c9a>
+ <21F95EC4-71EA-4154-A7DC-8A5BA54F174B@zytor.com>
+ <674bc31e-e4ed-988f-820d-54213d83f9c7@ghiti.fr>
+ <c500840b-b57d-47f2-a3d9-41465b10ffae@app.fastmail.com>
+From:   Alexandre Ghiti <alex@ghiti.fr>
+In-Reply-To: <c500840b-b57d-47f2-a3d9-41465b10ffae@app.fastmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Sun, Mar 5, 2023, at 10:29, Geert Uytterhoeven wrote:
+
+On 3/3/23 17:40, Arnd Bergmann wrote:
+> On Fri, Mar 3, 2023, at 12:59, Alexandre Ghiti wrote:
+>> On 3/2/23 20:50, H. Peter Anvin wrote:
+>>> On March 1, 2023 7:17:18 PM PST, Palmer Dabbelt <palmer@dabbelt.com> wrote:
+>>>>>> Commit 622021cd6c560ce7 ("s390: make command line configurable"),
+>>>>>> I assume?
+>>>>> Yes, sorry for that. I got distracted while writing and used the wrong
+>>>>> branch to look this up.
+>>>> Alex: Probably worth adding that to the list in the cover letter as it looks like you were planning on a v4 anyway (which I guess you now have to do, given that I just added the issue to RISC-V).
+>>> The only use that is uapi is the *default* length of the command line if the kernel header doesn't include it (in the case of x86, it is in the bzImage header, but that is atchitecture- or even boot format-specific.)
+>> Is COMMAND_LINE_SIZE what you call the default length? Does that mean
+>> that to you the patchset is wrong?
+> On x86, the COMMAND_LINE_SIZE value is already not part of a uapi header,
+> but instead (since bzImage format version 2.06) is communicated from
+> the kernel to the boot loader, which then knows how much data the
+> kernel will read (at most) from the command line.
 >
-> On Sun, Mar 5, 2023 at 10:23=E2=80=AFAM Michael Ellerman <mpe@ellerman=
-.id.au> wrote:
->> Maybe that exact code path is only reachable on x86/ia64? But if so
->> please explain why.
->>
->> Otherwise it looks like this series could break that driver on powerpc
->> at least.
+> Most x86 kernels these days are booted using UEFI, which I think has
+> no such interface, the firmware just passes the command line and a
+> length, but has no way of knowing if the kernel will truncate this.
+> I think that is the same as with any other architecture that passes
+> the command line through UEFI, DT or ATAGS, all of which use
+> length/value pairs.
 >
-> Indeed.
+> Russell argued on IRC that this can be considered an ABI since a
+> boot loader may use its knowledge of the kernel's command line size
+> limit to reject long command lines. On the other hand, I don't
+> think that any boot loader actually does, they just trust that it
+> fits and don't have a good way of rejecting invalid configuration
+> other than truncating and/or warning.
+>
+> One notable exception I found while looking through is the old
+> (pre-ATAGS) parameter structure on Arm, which uses COMMAND_LINE_SIZE
+> as part of the structure definition. Apparently this was deprecated
+> 22 years ago, so hopefully the remaining riscpc and footbridge
+> users have all upgraded their bootloaders.
+>
+> The only other case I could find that might go wrong is
+> m68knommu with a few files copying a COMMAND_LINE_SIZE sized
+> buffer from flash into a kernel buffer:
+>
+> arch/m68k/coldfire/m5206.c:void __init config_BSP(char *commandp, int size)
+> arch/m68k/coldfire/m5206.c-{
+> arch/m68k/coldfire/m5206.c-#if defined(CONFIG_NETtel)
+> arch/m68k/coldfire/m5206.c-     /* Copy command line from FLASH to local buffer... */
+> arch/m68k/coldfire/m5206.c-     memcpy(commandp, (char *) 0xf0004000, size);
+> arch/m68k/coldfire/m5206.c-     commandp[size-1] = 0;
+> arch/m68k/coldfire/m5206.c-#endif /* CONFIG_NETtel */
 
-When I last looked into this, I sent a patch to use ioremap()
-on non-x86:
 
-https://lore.kernel.org/all/20191111192258.2234502-1-arnd@arndb.de/
+I see, thanks your thorough explanation: I don't see this m64k issue as 
+a blocker (unless Geert disagrees but he already reviewed the m64k 
+patches),  so I'll send the v5 now.
 
-    Arnd
+Thanks again,
+
+Alex
+
+
+>
+>       Arnd
