@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DB31C6FD1E
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Mar 2023 14:50:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A329C6FD1A
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Mar 2023 15:00:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230044AbjCGOuB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Mar 2023 09:50:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54414 "EHLO
+        id S230092AbjCGPAg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Mar 2023 10:00:36 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231345AbjCGOsw (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Mar 2023 09:48:52 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5875498A2
-        for <sparclinux@vger.kernel.org>; Tue,  7 Mar 2023 06:38:13 -0800 (PST)
+        with ESMTP id S229941AbjCGPAJ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Mar 2023 10:00:09 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5B41192242
+        for <sparclinux@vger.kernel.org>; Tue,  7 Mar 2023 06:42:46 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678199819;
+        s=mimecast20190719; t=1678200165;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=6o4aDoMnOyw6oIKqxXD/63VXzreRgu7lohjEhFx0NNg=;
-        b=PBNVbJxS4mG9cYrneIEBcWDjbjM+4nbJDwu0LhW1A4YE9RgK6VuBnCKEJus30XVKOdkaH+
-        qIZhF7005Y6hWsiHjcIAbO9p/6rSczlIVD8w+116kI3YW2FA+JQ2pc/n3fO/8AKJ8Nu7qk
-        Nx9v9VGdFSJ1lyPZJQyt2tvtFllyf4g=
+        bh=R/JDRBOJ0RahTCrjIdMCtZjfHIx1klFK6Q58AJO1eeI=;
+        b=Yyp24+CxFtZHnffgy6XQKS7a1bup4Xv1fBMexITfHR1eIK9agbkeCZZwgW3OMkx0NZTWbN
+        az6Y7z1t9vd8aOG/7Gilp6/N0XU/ee5lbkzHaozpUJBmLHx2jxL5mem1+1mc3ihFmDnFB6
+        cP7Np+vRLdFzCRLxK8b4Z2CXNhx291k=
 Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
  [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-649-XW0v8MhWNSK-ZY1Om8P6aA-1; Tue, 07 Mar 2023 09:36:54 -0500
-X-MC-Unique: XW0v8MhWNSK-ZY1Om8P6aA-1
+ us-mta-647-cKdzLVebMX-g-x2dQoaFHQ-1; Tue, 07 Mar 2023 09:36:38 -0500
+X-MC-Unique: cKdzLVebMX-g-x2dQoaFHQ-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2F8D0183B3C1;
-        Tue,  7 Mar 2023 14:36:52 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 362CE185A794;
+        Tue,  7 Mar 2023 14:36:36 +0000 (UTC)
 Received: from vschneid.remote.csb (unknown [10.33.37.13])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id A2870400DFA1;
-        Tue,  7 Mar 2023 14:36:40 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id CCE18400DFA1;
+        Tue,  7 Mar 2023 14:36:30 +0000 (UTC)
 From:   Valentin Schneider <vschneid@redhat.com>
 To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
@@ -49,6 +49,7 @@ To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
         x86@kernel.org
 Cc:     Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@kernel.org>,
         "Paul E. McKenney" <paulmck@kernel.org>,
         Peter Zijlstra <peterz@infradead.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -65,9 +66,9 @@ Cc:     Steven Rostedt <rostedt@goodmis.org>,
         Nicholas Piggin <npiggin@gmail.com>,
         Guo Ren <guoren@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
-Subject: [PATCH v5 4/7] irq_work: Trace self-IPIs sent via arch_irq_work_raise()
-Date:   Tue,  7 Mar 2023 14:35:55 +0000
-Message-Id: <20230307143558.294354-5-vschneid@redhat.com>
+Subject: [PATCH v5 2/7] sched, smp: Trace IPIs sent via send_call_function_single_ipi()
+Date:   Tue,  7 Mar 2023 14:35:53 +0000
+Message-Id: <20230307143558.294354-3-vschneid@redhat.com>
 In-Reply-To: <20230307143558.294354-1-vschneid@redhat.com>
 References: <20230307143558.294354-1-vschneid@redhat.com>
 MIME-Version: 1.0
@@ -77,55 +78,91 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-IPIs sent to remote CPUs via irq_work_queue_on() are now covered by
-trace_ipi_send_cpumask(), add another instance of the tracepoint to cover
-self-IPIs.
+send_call_function_single_ipi() is the thing that sends IPIs at the bottom
+of smp_call_function*() via either generic_exec_single() or
+smp_call_function_many_cond(). Give it an IPI-related tracepoint.
+
+Note that this ends up tracing any IPI sent via __smp_call_single_queue(),
+which covers __ttwu_queue_wakelist() and irq_work_queue_on() "for free".
 
 Signed-off-by: Valentin Schneider <vschneid@redhat.com>
 Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 ---
- kernel/irq_work.c | 14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/arm/kernel/smp.c   | 3 ---
+ arch/arm64/kernel/smp.c | 1 -
+ kernel/sched/core.c     | 7 +++++--
+ kernel/smp.c            | 4 ++++
+ 4 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/kernel/irq_work.c b/kernel/irq_work.c
-index 7afa40fe5cc43..c33e88e32a67a 100644
---- a/kernel/irq_work.c
-+++ b/kernel/irq_work.c
-@@ -22,6 +22,8 @@
- #include <asm/processor.h>
- #include <linux/kasan.h>
+diff --git a/arch/arm/kernel/smp.c b/arch/arm/kernel/smp.c
+index 0b8c25763adc3..b6c832e195427 100644
+--- a/arch/arm/kernel/smp.c
++++ b/arch/arm/kernel/smp.c
+@@ -48,9 +48,6 @@
+ #include <asm/mach/arch.h>
+ #include <asm/mpu.h>
  
+-#define CREATE_TRACE_POINTS
+-#include <trace/events/ipi.h>
+-
+ /*
+  * as from 2.5, kernels no longer have an init_tasks structure
+  * so we need some other way of telling a new secondary core
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 4e83272642552..438c16fc44633 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -51,7 +51,6 @@
+ #include <asm/ptrace.h>
+ #include <asm/virt.h>
+ 
+-#define CREATE_TRACE_POINTS
+ #include <trace/events/ipi.h>
+ 
+ DEFINE_PER_CPU_READ_MOSTLY(int, cpu_number);
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index af017e038b482..85114f75f1c9c 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -81,6 +81,7 @@
+ #include <linux/sched/rseq_api.h>
+ #include <trace/events/sched.h>
+ #undef CREATE_TRACE_POINTS
 +#include <trace/events/ipi.h>
-+
- static DEFINE_PER_CPU(struct llist_head, raised_list);
- static DEFINE_PER_CPU(struct llist_head, lazy_list);
- static DEFINE_PER_CPU(struct task_struct *, irq_workd);
-@@ -74,6 +76,16 @@ void __weak arch_irq_work_raise(void)
- 	 */
- }
  
-+static __always_inline void irq_work_raise(struct irq_work *work)
-+{
-+	if (trace_ipi_send_cpumask_enabled() && arch_irq_work_has_interrupt())
-+		trace_ipi_send_cpumask(cpumask_of(smp_processor_id()),
-+				       _RET_IP_,
-+				       work->func);
-+
-+	arch_irq_work_raise();
-+}
-+
- /* Enqueue on current CPU, work must already be claimed and preempt disabled */
- static void __irq_work_queue_local(struct irq_work *work)
+ #include "sched.h"
+ #include "stats.h"
+@@ -3830,10 +3831,12 @@ void send_call_function_single_ipi(int cpu)
  {
-@@ -99,7 +111,7 @@ static void __irq_work_queue_local(struct irq_work *work)
+ 	struct rq *rq = cpu_rq(cpu);
  
- 	/* If the work is "lazy", handle it from next tick if any */
- 	if (!lazy_work || tick_nohz_tick_stopped())
--		arch_irq_work_raise();
-+		irq_work_raise(work);
+-	if (!set_nr_if_polling(rq->idle))
++	if (!set_nr_if_polling(rq->idle)) {
++		trace_ipi_send_cpumask(cpumask_of(cpu), _RET_IP_, NULL);
+ 		arch_send_call_function_single_ipi(cpu);
+-	else
++	} else {
+ 		trace_sched_wake_idle_without_ipi(cpu);
++	}
  }
  
- /* Enqueue the irq work @work on the current CPU */
+ /*
+diff --git a/kernel/smp.c b/kernel/smp.c
+index 06a413987a14a..e2ca1e2f31274 100644
+--- a/kernel/smp.c
++++ b/kernel/smp.c
+@@ -26,6 +26,10 @@
+ #include <linux/sched/debug.h>
+ #include <linux/jump_label.h>
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/ipi.h>
++#undef CREATE_TRACE_POINTS
++
+ #include "smpboot.h"
+ #include "sched/smp.h"
+ 
 -- 
 2.31.1
 
