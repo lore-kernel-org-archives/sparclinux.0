@@ -2,41 +2,41 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D28E0C6FD1B
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Mar 2023 14:46:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 425F9C6FD1B
+	for <sparclinux@archiver.kernel.org>; Tue,  7 Mar 2023 14:48:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230413AbjCGOqZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Mar 2023 09:46:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53546 "EHLO
+        id S230206AbjCGOsH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 7 Mar 2023 09:48:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54404 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231135AbjCGOoW (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Mar 2023 09:44:22 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 14D58867C7
-        for <sparclinux@vger.kernel.org>; Tue,  7 Mar 2023 06:37:40 -0800 (PST)
+        with ESMTP id S231264AbjCGOqF (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Mar 2023 09:46:05 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 042FB22032
+        for <sparclinux@vger.kernel.org>; Tue,  7 Mar 2023 06:37:47 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678199829;
+        s=mimecast20190719; t=1678199797;
         h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
          to:to:cc:cc:mime-version:mime-version:
          content-transfer-encoding:content-transfer-encoding:
          in-reply-to:in-reply-to:references:references;
-        bh=QbSxuBYwyBhZhp7hgOeOy88U7e5YyI7vjVO9jj/5+zE=;
-        b=YVQ5sIbU3PSHh9H92BNl/iDHZynMEgwfsBCy9pzUdt58quSiy+3guy5TBwn7tGJjJopAKJ
-        4quKa1pl5GUPU7PZKhWUwUpWrB+GQL/qglVLIC9S4mEZWl7rTNjWq9Se/F3CmADt82AMVv
-        b8mNQUy92ztcNDKrhqLeFJujWqi7Q/M=
+        bh=sqdAC23AFCpafEftyGbYSrYoVeo5kk0ftc/PmTPLnCU=;
+        b=KnOTP6axO5kZfJPjpqg9B4dET96fECvbqfdeAp4YzradG7u1cSzEkIWSobhyBWVII4ujqZ
+        cBdMD9l8K+nRywK20zMRp0Tc0ogNvVOaEgfxBJhJnmKnV1VOoq3qU6OClYCneTb8pxE77d
+        TK9/YCO8EOxqKN/ef/Hl3kwqT1X/FaA=
 Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
  [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
  (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-435-w0wR9ByeM4e_eV67Jzxu2w-1; Tue, 07 Mar 2023 09:37:04 -0500
-X-MC-Unique: w0wR9ByeM4e_eV67Jzxu2w-1
+ us-mta-316--Mbwj-W3NLC_0yM8Mt1Txw-1; Tue, 07 Mar 2023 09:36:31 -0500
+X-MC-Unique: -Mbwj-W3NLC_0yM8Mt1Txw-1
 Received: from smtp.corp.redhat.com (int-mx01.intmail.prod.int.rdu2.redhat.com [10.11.54.1])
         (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
         (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 9B173280AA28;
-        Tue,  7 Mar 2023 14:37:02 +0000 (UTC)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 8FCA33C6986A;
+        Tue,  7 Mar 2023 14:36:30 +0000 (UTC)
 Received: from vschneid.remote.csb (unknown [10.33.37.13])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id 8475A40AE20A;
-        Tue,  7 Mar 2023 14:36:58 +0000 (UTC)
+        by smtp.corp.redhat.com (Postfix) with ESMTPS id 79249401B290;
+        Tue,  7 Mar 2023 14:36:26 +0000 (UTC)
 From:   Valentin Schneider <vschneid@redhat.com>
 To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
@@ -48,8 +48,8 @@ To:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
         sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
         x86@kernel.org
-Cc:     "Paul E. McKenney" <paulmck@kernel.org>,
-        Steven Rostedt <rostedt@goodmis.org>,
+Cc:     Steven Rostedt <rostedt@goodmis.org>,
+        "Paul E. McKenney" <paulmck@kernel.org>,
         Peter Zijlstra <peterz@infradead.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
@@ -65,9 +65,9 @@ Cc:     "Paul E. McKenney" <paulmck@kernel.org>,
         Nicholas Piggin <npiggin@gmail.com>,
         Guo Ren <guoren@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
-Subject: [PATCH v5 6/7] smp: reword smp call IPI comment
-Date:   Tue,  7 Mar 2023 14:35:57 +0000
-Message-Id: <20230307143558.294354-7-vschneid@redhat.com>
+Subject: [PATCH v5 1/7] trace: Add trace_ipi_send_cpumask()
+Date:   Tue,  7 Mar 2023 14:35:52 +0000
+Message-Id: <20230307143558.294354-2-vschneid@redhat.com>
 In-Reply-To: <20230307143558.294354-1-vschneid@redhat.com>
 References: <20230307143558.294354-1-vschneid@redhat.com>
 MIME-Version: 1.0
@@ -77,36 +77,51 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Accessing the call_single_queue hasn't involved a spinlock since 2014:
+trace_ipi_raise() is unsuitable for generically tracing IPI sources due to
+its "reason" argument being an uninformative string (on arm64 all you get
+is "Function call interrupts" for SMP calls).
 
-  6897fc22ea01 ("kernel: use lockless list for smp_call_function_single")
-
-The llist operations (namely cmpxchg() and xchg()) provide similar ordering
-guarantees, update the comment to lessen confusion.
+Add a variant of it that exports a target cpumask, a callsite and a callback.
 
 Signed-off-by: Valentin Schneider <vschneid@redhat.com>
+Reviewed-by: Steven Rostedt (Google) <rostedt@goodmis.org>
 ---
- kernel/smp.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/trace/events/ipi.h | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/kernel/smp.c b/kernel/smp.c
-index 93b4386cd3096..821b5986721ac 100644
---- a/kernel/smp.c
-+++ b/kernel/smp.c
-@@ -495,9 +495,10 @@ void __smp_call_single_queue(int cpu, struct llist_node *node)
- #endif
+diff --git a/include/trace/events/ipi.h b/include/trace/events/ipi.h
+index 0be71dad6ec03..b1125dc27682c 100644
+--- a/include/trace/events/ipi.h
++++ b/include/trace/events/ipi.h
+@@ -35,6 +35,28 @@ TRACE_EVENT(ipi_raise,
+ 	TP_printk("target_mask=%s (%s)", __get_bitmask(target_cpus), __entry->reason)
+ );
  
- 	/*
--	 * The list addition should be visible before sending the IPI
--	 * handler locks the list to pull the entry off it because of
--	 * normal cache coherency rules implied by spinlocks.
-+	 * The list addition should be visible to the target CPU when it pops
-+	 * the head of the list to pull the entry off it in the IPI handler
-+	 * because of normal cache coherency rules implied by the underlying
-+	 * llist ops.
- 	 *
- 	 * If IPIs can go out of order to the cache coherency protocol
- 	 * in an architecture, sufficient synchronisation should be added
++TRACE_EVENT(ipi_send_cpumask,
++
++	TP_PROTO(const struct cpumask *cpumask, unsigned long callsite, void *callback),
++
++	TP_ARGS(cpumask, callsite, callback),
++
++	TP_STRUCT__entry(
++		__cpumask(cpumask)
++		__field(void *, callsite)
++		__field(void *, callback)
++	),
++
++	TP_fast_assign(
++		__assign_cpumask(cpumask, cpumask_bits(cpumask));
++		__entry->callsite = (void *)callsite;
++		__entry->callback = callback;
++	),
++
++	TP_printk("cpumask=%s callsite=%pS callback=%pS",
++		  __get_cpumask(cpumask), __entry->callsite, __entry->callback)
++);
++
+ DECLARE_EVENT_CLASS(ipi_handler,
+ 
+ 	TP_PROTO(const char *reason),
 -- 
 2.31.1
 
