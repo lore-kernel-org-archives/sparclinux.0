@@ -2,130 +2,124 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D12FCC6FD1E
-	for <sparclinux@archiver.kernel.org>; Tue,  7 Mar 2023 21:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FA6C64EC4
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Mar 2023 09:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230372AbjCGVmB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 7 Mar 2023 16:42:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49974 "EHLO
+        id S230337AbjCHJNn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Mar 2023 04:13:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38718 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230044AbjCGVmB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 7 Mar 2023 16:42:01 -0500
-Received: from mail-pl1-x62c.google.com (mail-pl1-x62c.google.com [IPv6:2607:f8b0:4864:20::62c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2407BA616E
-        for <sparclinux@vger.kernel.org>; Tue,  7 Mar 2023 13:41:59 -0800 (PST)
-Received: by mail-pl1-x62c.google.com with SMTP id i10so15608544plr.9
-        for <sparclinux@vger.kernel.org>; Tue, 07 Mar 2023 13:41:59 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=dabbelt-com.20210112.gappssmtp.com; s=20210112; t=1678225318;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=h0UBWEzua7mI1E3a/+R1pzklpJ+RGJpYFy9mijom/UM=;
-        b=3d0i9L9fgsM6wfDV6SgEVPe2doCmA84h8dgaHpMbejZeZuQRklJuURRf6PhkCN7ukc
-         w/n+8nbuC+OW0mQWtjtERbzb9wBvkWnsuB3UcR0sH2Ba3g7FDMT+jDol43sV0ZSapUuU
-         afFVzDtGs7qaCnWpNgGUvXPCI9VeRCtjLQt1T3AcBXMLT19wGawFny88dkq7b+SM519J
-         izcWM0iUW0/Sac/AVhLneLvdpP7x0olNKc4YqRIWvevDICe0+qs1ypmIQEYjXt6H2n6Q
-         PGyqmNUpfeGmcTALJ+qCkHjqjpTn7tbuCsOrFtOo3YqXRw3n/PRxx6fcIN5oBf8fOwBc
-         hPrQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678225318;
-        h=content-transfer-encoding:mime-version:message-id:to:from:cc
-         :in-reply-to:subject:date:x-gm-message-state:from:to:cc:subject:date
-         :message-id:reply-to;
-        bh=h0UBWEzua7mI1E3a/+R1pzklpJ+RGJpYFy9mijom/UM=;
-        b=GASYMxKu+JErTofBrEgvNKF/iueZixo/PVo1F33pyrpnJ9MT3ORRcX/pxrnKjItDaz
-         CnC9FiMTDPjKUcbF7lEblmfv7whHIDzt8krQAYM9aSMhXLa81EUQnLHuA4Y60nj+hCKT
-         Ly+bi5KFAP9yO6P7e22zDw6Fwta3tAo+auQOAdLTgbWzEugTbjC7Aqb0Z5dLzwPJn4c1
-         G4Nvs9Xez4+PnoRDqfzQ/+ixC1zLQvPFCH+l4nbr2mX/HUKUi50Oio3y5HxasSyiGg4w
-         hNdS7+8LWawtppoMmxBTfS1ntpCgOkz1GPTPKzpK71ozyGFSKQ7SdkO4f4VFq4z37SgC
-         ygmg==
-X-Gm-Message-State: AO0yUKVvfTLbcXDLTTC1XQaFeVf2chJPFjP92eBDKYZH3wTltfNJSkpQ
-        oQj59uRdrc7DjomhQPKcAPKMiQ==
-X-Google-Smtp-Source: AK7set/K6eJAQf/eSbaq269PoSBswE0gsDc5h7lzSW9lr2zauw1plinMmCGHpVyR/4qKnDR1/eXDIg==
-X-Received: by 2002:a17:902:ce90:b0:19a:9434:af30 with SMTP id f16-20020a170902ce9000b0019a9434af30mr18505363plg.18.1678225318377;
-        Tue, 07 Mar 2023 13:41:58 -0800 (PST)
-Received: from localhost ([50.221.140.188])
-        by smtp.gmail.com with ESMTPSA id km12-20020a17090327cc00b0019e30e3068bsm8866509plb.168.2023.03.07.13.41.57
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 07 Mar 2023 13:41:57 -0800 (PST)
-Date:   Tue, 07 Mar 2023 13:41:57 -0800 (PST)
-X-Google-Original-Date: Tue, 07 Mar 2023 13:40:59 PST (-0800)
-Subject:     Re: [PATCH v5 12/26] riscv: Remove COMMAND_LINE_SIZE from uapi
-In-Reply-To: <20230306100508.1171812-13-alexghiti@rivosinc.com>
-CC:     Greg KH <gregkh@linuxfoundation.org>, corbet@lwn.net,
-        Richard Henderson <richard.henderson@linaro.org>,
-        ink@jurassic.park.msu.ru, mattst88@gmail.com, vgupta@kernel.org,
-        linux@armlinux.org.uk, Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, chenhuacai@kernel.org,
-        kernel@xen0n.name, geert@linux-m68k.org, monstr@monstr.eu,
-        tsbogend@alpha.franken.de, James.Bottomley@HansenPartnership.com,
-        deller@gmx.de, mpe@ellerman.id.au, npiggin@gmail.com,
-        christophe.leroy@csgroup.eu,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        aou@eecs.berkeley.edu, hca@linux.ibm.com, gor@linux.ibm.com,
-        agordeev@linux.ibm.com, borntraeger@linux.ibm.com,
-        svens@linux.ibm.com, ysato@users.sourceforge.jp, dalias@libc.org,
-        davem@davemloft.net, tglx@linutronix.de, mingo@redhat.com,
-        bp@alien8.de, dave.hansen@linux.intel.com, x86@kernel.org,
-        hpa@zytor.com, chris@zankel.net, jcmvbkbc@gmail.com,
-        Arnd Bergmann <arnd@arndb.de>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-ia64@vger.kernel.org,
-        loongarch@lists.linux.dev, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-s390@vger.kernel.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linux-arch@vger.kernel.org, alexghiti@rivosinc.com
-From:   Palmer Dabbelt <palmer@dabbelt.com>
-To:     alexghiti@rivosinc.com
-Message-ID: <mhng-d4be5bb5-f0ad-4e76-9b11-83732d233a45@palmer-ri-x1c9a>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        with ESMTP id S230363AbjCHJNY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Mar 2023 04:13:24 -0500
+Received: from EUR02-DB5-obe.outbound.protection.outlook.com (mail-db5eur02olkn2097.outbound.protection.outlook.com [40.92.50.97])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60140193E2;
+        Wed,  8 Mar 2023 01:13:06 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
+ b=FCfwdrM5afUmE94po9kPWGuD2nrfSkBtLHcci2kDt8bOflL/gK2UFAlzHid7ZW9vk0AeXr1IZwBbPivKOs/2JS6LcPCEzPYyuszmTiW9lhLcbxfVcEuw5+7exuwGoggw+9YXcT86y0FcAQnYrgfyW/TclNuOvzwnq+Jnor3XX0WCYKtKqZO/A0OCHtk0LHnaTmEDeDVc9Ugin1tD9TkKatWsROjw2poSRjs1amV/CUyS89MiUp/4mCcWn9/tFFcu0N2//fkT1Xb45ZyT+w274Vc/sQS1W0izhZGPrgnXkSC3JUUlFoms30A4pKDA7ImWN9i/zhbF0w1FW+4TqZ6WwA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
+ s=arcselector9901;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
+ bh=xUDNfyF1o86eYSutECT0RPhKPqklipd94C8puUfMBKQ=;
+ b=KuxFgXLQMLcqp1grP6PPmbB5UXHaaNDNNTuYSHKQ62EvH0RoB9yggMsPE8RNKvrGQt16KtvHobznVsXEqkk5FCTf1/sCM9beiDVAfLaNqs5tAzBfrmkGB5aerqWWZ8QmDcleDKlg53ng+hv42/U4wo21bSGCbXKxjDkhZlfYcOKTKMxatlBJ3UF7//Uf0kE/NFy2GVKgDVKsg05ATf9pSR84/hShvJxp5TuKQhbREuRIvWEa8lCf++tkTm6f23BkiGxvb5Rx0vRFMDPwVy9C+L3SJvQtpRUYNOcDzY/9fmHUanNxj7Ix0Dm3D5caINjoDBIiYt/rgyk3vGKEt3Iadg==
+ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
+ dkim=none; arc=none
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hotmail.com;
+ s=selector1;
+ h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
+ bh=xUDNfyF1o86eYSutECT0RPhKPqklipd94C8puUfMBKQ=;
+ b=fwN48dLeS3Lb9MeVc+NRVm+5fD4n/Muhz7XOwZq3g8wi9pQ+zh1bA3BFqPX6jaiFw8EHBSiTlynoiwCs+7CdtX74A5cB43OytJC+2YLkveaaZ6Anx+9Le+jYcakPwwOWDB5pIrFAz/oTpOCWx+xMQdmxkMrLmNpBHkrS1KkAOn+fqVI3Ts78thuEtkvSb2SMyS5H4z/weUo1nX/ffz4r5D95VszGt33Aod06dyGJQW3Pz7X1d843AN3k/vo4u1nDLwWenJE/rX6BrRrIdTUyl1qOCfg59SsCLclAU8zat3GWijc0Icybd0qPq8dfc4eX6cFQNIv4Qss3KhCHhg3Zhg==
+Received: from DB6P189MB0568.EURP189.PROD.OUTLOOK.COM (2603:10a6:6:31::16) by
+ VI1P189MB2516.EURP189.PROD.OUTLOOK.COM (2603:10a6:800:1c1::14) with Microsoft
+ SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ 15.20.6178.17; Wed, 8 Mar 2023 09:13:04 +0000
+Received: from DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
+ ([fe80::325a:fba5:af4e:4484]) by DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
+ ([fe80::325a:fba5:af4e:4484%7]) with mapi id 15.20.6178.017; Wed, 8 Mar 2023
+ 09:13:04 +0000
+From:   David Binderman <dcb314@hotmail.com>
+To:     David Miller <davem@davemloft.net>,
+        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: linux-6.3-rc1/arch/sparc/kernel/pcic.c:768: possible problem with
+ shift values ?
+Thread-Topic: linux-6.3-rc1/arch/sparc/kernel/pcic.c:768: possible problem
+ with shift values ?
+Thread-Index: AQHZUZ2fEKKqwQdnhE+2ySMxKKC5fA==
+Date:   Wed, 8 Mar 2023 09:13:04 +0000
+Message-ID: <DB6P189MB0568F1B76BF4A4683DF2B3229CB49@DB6P189MB0568.EURP189.PROD.OUTLOOK.COM>
+Accept-Language: en-GB, en-US
+Content-Language: en-GB
+X-MS-Has-Attach: 
+X-MS-TNEF-Correlator: 
+msip_labels: 
+x-ms-exchange-messagesentrepresentingtype: 1
+x-tmn:  [CgrB1Tb/LZy7ZjpnrvTv11ksC2/lDzzF]
+x-ms-publictraffictype: Email
+x-ms-traffictypediagnostic: DB6P189MB0568:EE_|VI1P189MB2516:EE_
+x-ms-office365-filtering-correlation-id: 3db3e82f-0e99-47b9-7359-08db1fb55326
+x-microsoft-antispam: BCL:0;
+x-microsoft-antispam-message-info: mffMyjVBc3XgQygYUCaZ7+HM9bj7L+LKnvplkvUhvlks+gYl5EeRJLgM3mbFo1mn+qyPNbWpb7pcgCfyyMKhr5Gbx4Ih5TwqMLPD/QNprh6LVtBU0ku6v83iwbhyRWyqtplEBMjnt5tKkKYKbv9mBUWbz6kTP+gMAHxeM7WTi9X7qQmEEa0OlWY01QI7mxySFrGkunf4kWTre3X8PcxCUxpkd2qwdDsyZM7oK/mhHaqV5f67vDs4K+ZefRBTzLqSO+YGcOV49/Lc6zlHOjdb6ldfzVYRF+nKk+YTSgwvlhcOr3YiiP31li2H+ACPV1xy9Tav7ibbDRvFHWuFxsQfEU2dkzdgkwQqLQ35QVhxYxdR3x0Yc9Y20LSYWwy11qLmVLNPmKhFjk5oEU7T1k+9xCWeEWwZLr+PY7AlxF7ubunduyTdZq53ShVHFrna5lEmPJkEKuKhpUyfyRzE3WcG166oyf/vngCxBeDP8aCyyFyTMB9ceJ1RdUkYI47fpk0admZyYHB+rnhw5F/anB+qHItBhBbeO3ib7onEmxVGgWrLzh+jRztUsOe6//BEwnPb3UPtgHdfcKwBlLXCa2ww9g4+ouJabBRtnnSl3GDWAyg=
+x-ms-exchange-antispam-messagedata-chunkcount: 1
+x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?ggUko2psRmn9GJHCN9O3vvuer9WIYQpUvN/QaN6fiHs5P63qyp8aSwtA06?=
+ =?iso-8859-1?Q?E6IaV5CncfFWMN6D+0cKAsmAcu5wGO/Ia6hbG4egFNWGL1A5/AyCrU6PmF?=
+ =?iso-8859-1?Q?RnQObcr3APkgt919Mt97Z+jlGOFZETbUtnbpX7a0Dyers1DzfqIgX03+ZP?=
+ =?iso-8859-1?Q?O6b5ydxpYcHD4ol6qpgS9Bbt5T8sT0yZ7QtuMSInMwO1SLiNHjnxUsyW/c?=
+ =?iso-8859-1?Q?vaLdbtTNPzFcyKu4WngIq9jlgGVz6nicCqsu5Dp/MW0PEqRBsctzZ4Bcma?=
+ =?iso-8859-1?Q?IMal1Pzz5etSCUVq4cKwooQdPpv1Q6YPhuZpYkMeEZv5E7NV/RiaM0tkkv?=
+ =?iso-8859-1?Q?Xy6tNL7QoS7100XH305Pg42Gv+xTfMC9vKTc5MX53dVLY/TqZVUZDI5WME?=
+ =?iso-8859-1?Q?EjKw2SSaSZQZnJLMlv34IKMgPjRAPIxUIhdvfrqXeeTCKXKyyz1QwXok+2?=
+ =?iso-8859-1?Q?wOkFvitybYdC9JqYBkgLZrAQser1gQHdsi/ao4vNDdZDt2c2e7/YEr9wJv?=
+ =?iso-8859-1?Q?JKnPJMfWaxH/RPkGPF9wnoDXocURWBYauXulV9l56KZoEt9b8/G2LdNll9?=
+ =?iso-8859-1?Q?lStbItiIMHKZR/fc4sCEg/Pj39/ddGwD3VBu/AbzlpJKymuUvavj70+YtV?=
+ =?iso-8859-1?Q?9ftNs8rRGRTMU8CcMyH8AHf2NPbvpcHDlrv4nODz9fLuWmheFN+ZoQoWKh?=
+ =?iso-8859-1?Q?92GGQpZ7dz5QR9PjmADBP55cYrHlUYjgTYMQ/WgrHKSjCaXJ1xIS+ar1zb?=
+ =?iso-8859-1?Q?ZgyZFqZ82ZhhqjJFBmcvddwwSlru2RBkifYuQJB5peUByEmZw9pn+kA2st?=
+ =?iso-8859-1?Q?VavqMaNN1Tp2X2F935ijMA9d14fOHXpXWbqjSVHz+JBNn0wpQCtNya2z+8?=
+ =?iso-8859-1?Q?OKos550/HNQ7OXBUnTytwP6ltMFJCZcw9tCBzuK+8WKna2cAtZazlvukw9?=
+ =?iso-8859-1?Q?BgyX1yoNqvo/AKMV5Yz7RLq8Z3f/AEK+sWozhL33XMlEWL1Munh5nZm80c?=
+ =?iso-8859-1?Q?EBV4eycX8/a9qQYKurA3VJChYwUK4tZe/zo9IU017F2Ewv5HbnGf2SeS84?=
+ =?iso-8859-1?Q?ZX7t/hjh+pNzNsUaOWQkyH1bWJGJ2GeIW/zwpx/BjIviFY+umfgL9a2rWc?=
+ =?iso-8859-1?Q?vRkcyT+SFTjJ80y6ynVutDy+zuIwrTD07zLsjueq5892BljxKYJe2ZLyiL?=
+ =?iso-8859-1?Q?hcmueANo2dQYypDbdNf6AlL3cLQ8c49msuB2uDuNGDn69qDdcvSh5FVuUL?=
+ =?iso-8859-1?Q?U+E8dYx7jcQaJiUIPF5TWoOW1c0ds3PLFsGXyBsmYTl+0RZtGmJA4fdFl1?=
+ =?iso-8859-1?Q?D+Wi?=
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+X-OriginatorOrg: sct-15-20-4734-24-msonline-outlook-c54b5.templateTenant
+X-MS-Exchange-CrossTenant-AuthAs: Internal
+X-MS-Exchange-CrossTenant-AuthSource: DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
+X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-CrossTenant-Network-Message-Id: 3db3e82f-0e99-47b9-7359-08db1fb55326
+X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Mar 2023 09:13:04.7471
+ (UTC)
+X-MS-Exchange-CrossTenant-fromentityheader: Hosted
+X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
+X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
+X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1P189MB2516
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 06 Mar 2023 02:04:54 PST (-0800), alexghiti@rivosinc.com wrote:
-> As far as I can tell this is not used by userspace and thus should not
-> be part of the user-visible API.
->
-> Signed-off-by: Alexandre Ghiti <alexghiti@rivosinc.com>
-> ---
->  arch/riscv/include/asm/setup.h      | 7 +++++++
->  arch/riscv/include/uapi/asm/setup.h | 2 --
->  2 files changed, 7 insertions(+), 2 deletions(-)
->  create mode 100644 arch/riscv/include/asm/setup.h
->
-> diff --git a/arch/riscv/include/asm/setup.h b/arch/riscv/include/asm/setup.h
-> new file mode 100644
-> index 000000000000..f165a14344e2
-> --- /dev/null
-> +++ b/arch/riscv/include/asm/setup.h
-> @@ -0,0 +1,7 @@
-> +/* SPDX-License-Identifier: GPL-2.0-only */
-> +#ifndef _ASM_RISCV_SETUP_H
-> +#define _ASM_RISCV_SETUP_H
-> +
-> +#define COMMAND_LINE_SIZE       1024
-> +
-> +#endif /* _ASM_RISCV_SETUP_H */
-> diff --git a/arch/riscv/include/uapi/asm/setup.h b/arch/riscv/include/uapi/asm/setup.h
-> index 66b13a522880..17fcecd4a2f8 100644
-> --- a/arch/riscv/include/uapi/asm/setup.h
-> +++ b/arch/riscv/include/uapi/asm/setup.h
-> @@ -3,6 +3,4 @@
->  #ifndef _UAPI_ASM_RISCV_SETUP_H
->  #define _UAPI_ASM_RISCV_SETUP_H
->
-> -#define COMMAND_LINE_SIZE	1024
-> -
->  #endif /* _UAPI_ASM_RISCV_SETUP_H */
-
-Reviewed-by: Palmer Dabbelt <palmer@rivosinc.com>
-Acked-by: Palmer Dabbelt <palmer@rivosinc.com>
-
-Thanks!
+Hello there,=0A=
+=0A=
+The source code is=0A=
+=0A=
+static inline unsigned long get_irqmask(int irq_nr) =0A=
+{=0A=
+=A0 =A0 return 1 << irq_nr;=0A=
+}=0A=
+=0A=
+That's only going to work correctly for irq_nr < 32. =0A=
+If irq_nr gets >=3D 32, that will wrap around. =0A=
+Perhaps the programmer intended=0A=
+=0A=
+static inline unsigned long get_irqmask(int irq_nr) =0A=
+{=0A=
+=A0 =A0 return 1UL << irq_nr;=0A=
+}=0A=
+=0A=
+Regards=0A=
+=0A=
+David Binderman=0A=
+=0A=
