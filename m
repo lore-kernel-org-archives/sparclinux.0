@@ -2,124 +2,221 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9FA6C64EC4
-	for <sparclinux@archiver.kernel.org>; Wed,  8 Mar 2023 09:13:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 676C7C678D5
+	for <sparclinux@archiver.kernel.org>; Wed,  8 Mar 2023 13:12:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230337AbjCHJNn (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 8 Mar 2023 04:13:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38718 "EHLO
+        id S231318AbjCHNMZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 8 Mar 2023 08:12:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59922 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230363AbjCHJNY (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Mar 2023 04:13:24 -0500
-Received: from EUR02-DB5-obe.outbound.protection.outlook.com (mail-db5eur02olkn2097.outbound.protection.outlook.com [40.92.50.97])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60140193E2;
-        Wed,  8 Mar 2023 01:13:06 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=FCfwdrM5afUmE94po9kPWGuD2nrfSkBtLHcci2kDt8bOflL/gK2UFAlzHid7ZW9vk0AeXr1IZwBbPivKOs/2JS6LcPCEzPYyuszmTiW9lhLcbxfVcEuw5+7exuwGoggw+9YXcT86y0FcAQnYrgfyW/TclNuOvzwnq+Jnor3XX0WCYKtKqZO/A0OCHtk0LHnaTmEDeDVc9Ugin1tD9TkKatWsROjw2poSRjs1amV/CUyS89MiUp/4mCcWn9/tFFcu0N2//fkT1Xb45ZyT+w274Vc/sQS1W0izhZGPrgnXkSC3JUUlFoms30A4pKDA7ImWN9i/zhbF0w1FW+4TqZ6WwA==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=xUDNfyF1o86eYSutECT0RPhKPqklipd94C8puUfMBKQ=;
- b=KuxFgXLQMLcqp1grP6PPmbB5UXHaaNDNNTuYSHKQ62EvH0RoB9yggMsPE8RNKvrGQt16KtvHobznVsXEqkk5FCTf1/sCM9beiDVAfLaNqs5tAzBfrmkGB5aerqWWZ8QmDcleDKlg53ng+hv42/U4wo21bSGCbXKxjDkhZlfYcOKTKMxatlBJ3UF7//Uf0kE/NFy2GVKgDVKsg05ATf9pSR84/hShvJxp5TuKQhbREuRIvWEa8lCf++tkTm6f23BkiGxvb5Rx0vRFMDPwVy9C+L3SJvQtpRUYNOcDzY/9fmHUanNxj7Ix0Dm3D5caINjoDBIiYt/rgyk3vGKEt3Iadg==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=none; dmarc=none;
- dkim=none; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=hotmail.com;
- s=selector1;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=xUDNfyF1o86eYSutECT0RPhKPqklipd94C8puUfMBKQ=;
- b=fwN48dLeS3Lb9MeVc+NRVm+5fD4n/Muhz7XOwZq3g8wi9pQ+zh1bA3BFqPX6jaiFw8EHBSiTlynoiwCs+7CdtX74A5cB43OytJC+2YLkveaaZ6Anx+9Le+jYcakPwwOWDB5pIrFAz/oTpOCWx+xMQdmxkMrLmNpBHkrS1KkAOn+fqVI3Ts78thuEtkvSb2SMyS5H4z/weUo1nX/ffz4r5D95VszGt33Aod06dyGJQW3Pz7X1d843AN3k/vo4u1nDLwWenJE/rX6BrRrIdTUyl1qOCfg59SsCLclAU8zat3GWijc0Icybd0qPq8dfc4eX6cFQNIv4Qss3KhCHhg3Zhg==
-Received: from DB6P189MB0568.EURP189.PROD.OUTLOOK.COM (2603:10a6:6:31::16) by
- VI1P189MB2516.EURP189.PROD.OUTLOOK.COM (2603:10a6:800:1c1::14) with Microsoft
- SMTP Server (version=TLS1_2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- 15.20.6178.17; Wed, 8 Mar 2023 09:13:04 +0000
-Received: from DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
- ([fe80::325a:fba5:af4e:4484]) by DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
- ([fe80::325a:fba5:af4e:4484%7]) with mapi id 15.20.6178.017; Wed, 8 Mar 2023
- 09:13:04 +0000
-From:   David Binderman <dcb314@hotmail.com>
-To:     David Miller <davem@davemloft.net>,
-        "sparclinux@vger.kernel.org" <sparclinux@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: linux-6.3-rc1/arch/sparc/kernel/pcic.c:768: possible problem with
- shift values ?
-Thread-Topic: linux-6.3-rc1/arch/sparc/kernel/pcic.c:768: possible problem
- with shift values ?
-Thread-Index: AQHZUZ2fEKKqwQdnhE+2ySMxKKC5fA==
-Date:   Wed, 8 Mar 2023 09:13:04 +0000
-Message-ID: <DB6P189MB0568F1B76BF4A4683DF2B3229CB49@DB6P189MB0568.EURP189.PROD.OUTLOOK.COM>
-Accept-Language: en-GB, en-US
-Content-Language: en-GB
-X-MS-Has-Attach: 
-X-MS-TNEF-Correlator: 
-msip_labels: 
-x-ms-exchange-messagesentrepresentingtype: 1
-x-tmn:  [CgrB1Tb/LZy7ZjpnrvTv11ksC2/lDzzF]
-x-ms-publictraffictype: Email
-x-ms-traffictypediagnostic: DB6P189MB0568:EE_|VI1P189MB2516:EE_
-x-ms-office365-filtering-correlation-id: 3db3e82f-0e99-47b9-7359-08db1fb55326
-x-microsoft-antispam: BCL:0;
-x-microsoft-antispam-message-info: mffMyjVBc3XgQygYUCaZ7+HM9bj7L+LKnvplkvUhvlks+gYl5EeRJLgM3mbFo1mn+qyPNbWpb7pcgCfyyMKhr5Gbx4Ih5TwqMLPD/QNprh6LVtBU0ku6v83iwbhyRWyqtplEBMjnt5tKkKYKbv9mBUWbz6kTP+gMAHxeM7WTi9X7qQmEEa0OlWY01QI7mxySFrGkunf4kWTre3X8PcxCUxpkd2qwdDsyZM7oK/mhHaqV5f67vDs4K+ZefRBTzLqSO+YGcOV49/Lc6zlHOjdb6ldfzVYRF+nKk+YTSgwvlhcOr3YiiP31li2H+ACPV1xy9Tav7ibbDRvFHWuFxsQfEU2dkzdgkwQqLQ35QVhxYxdR3x0Yc9Y20LSYWwy11qLmVLNPmKhFjk5oEU7T1k+9xCWeEWwZLr+PY7AlxF7ubunduyTdZq53ShVHFrna5lEmPJkEKuKhpUyfyRzE3WcG166oyf/vngCxBeDP8aCyyFyTMB9ceJ1RdUkYI47fpk0admZyYHB+rnhw5F/anB+qHItBhBbeO3ib7onEmxVGgWrLzh+jRztUsOe6//BEwnPb3UPtgHdfcKwBlLXCa2ww9g4+ouJabBRtnnSl3GDWAyg=
-x-ms-exchange-antispam-messagedata-chunkcount: 1
-x-ms-exchange-antispam-messagedata-0: =?iso-8859-1?Q?ggUko2psRmn9GJHCN9O3vvuer9WIYQpUvN/QaN6fiHs5P63qyp8aSwtA06?=
- =?iso-8859-1?Q?E6IaV5CncfFWMN6D+0cKAsmAcu5wGO/Ia6hbG4egFNWGL1A5/AyCrU6PmF?=
- =?iso-8859-1?Q?RnQObcr3APkgt919Mt97Z+jlGOFZETbUtnbpX7a0Dyers1DzfqIgX03+ZP?=
- =?iso-8859-1?Q?O6b5ydxpYcHD4ol6qpgS9Bbt5T8sT0yZ7QtuMSInMwO1SLiNHjnxUsyW/c?=
- =?iso-8859-1?Q?vaLdbtTNPzFcyKu4WngIq9jlgGVz6nicCqsu5Dp/MW0PEqRBsctzZ4Bcma?=
- =?iso-8859-1?Q?IMal1Pzz5etSCUVq4cKwooQdPpv1Q6YPhuZpYkMeEZv5E7NV/RiaM0tkkv?=
- =?iso-8859-1?Q?Xy6tNL7QoS7100XH305Pg42Gv+xTfMC9vKTc5MX53dVLY/TqZVUZDI5WME?=
- =?iso-8859-1?Q?EjKw2SSaSZQZnJLMlv34IKMgPjRAPIxUIhdvfrqXeeTCKXKyyz1QwXok+2?=
- =?iso-8859-1?Q?wOkFvitybYdC9JqYBkgLZrAQser1gQHdsi/ao4vNDdZDt2c2e7/YEr9wJv?=
- =?iso-8859-1?Q?JKnPJMfWaxH/RPkGPF9wnoDXocURWBYauXulV9l56KZoEt9b8/G2LdNll9?=
- =?iso-8859-1?Q?lStbItiIMHKZR/fc4sCEg/Pj39/ddGwD3VBu/AbzlpJKymuUvavj70+YtV?=
- =?iso-8859-1?Q?9ftNs8rRGRTMU8CcMyH8AHf2NPbvpcHDlrv4nODz9fLuWmheFN+ZoQoWKh?=
- =?iso-8859-1?Q?92GGQpZ7dz5QR9PjmADBP55cYrHlUYjgTYMQ/WgrHKSjCaXJ1xIS+ar1zb?=
- =?iso-8859-1?Q?ZgyZFqZ82ZhhqjJFBmcvddwwSlru2RBkifYuQJB5peUByEmZw9pn+kA2st?=
- =?iso-8859-1?Q?VavqMaNN1Tp2X2F935ijMA9d14fOHXpXWbqjSVHz+JBNn0wpQCtNya2z+8?=
- =?iso-8859-1?Q?OKos550/HNQ7OXBUnTytwP6ltMFJCZcw9tCBzuK+8WKna2cAtZazlvukw9?=
- =?iso-8859-1?Q?BgyX1yoNqvo/AKMV5Yz7RLq8Z3f/AEK+sWozhL33XMlEWL1Munh5nZm80c?=
- =?iso-8859-1?Q?EBV4eycX8/a9qQYKurA3VJChYwUK4tZe/zo9IU017F2Ewv5HbnGf2SeS84?=
- =?iso-8859-1?Q?ZX7t/hjh+pNzNsUaOWQkyH1bWJGJ2GeIW/zwpx/BjIviFY+umfgL9a2rWc?=
- =?iso-8859-1?Q?vRkcyT+SFTjJ80y6ynVutDy+zuIwrTD07zLsjueq5892BljxKYJe2ZLyiL?=
- =?iso-8859-1?Q?hcmueANo2dQYypDbdNf6AlL3cLQ8c49msuB2uDuNGDn69qDdcvSh5FVuUL?=
- =?iso-8859-1?Q?U+E8dYx7jcQaJiUIPF5TWoOW1c0ds3PLFsGXyBsmYTl+0RZtGmJA4fdFl1?=
- =?iso-8859-1?Q?D+Wi?=
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+        with ESMTP id S230526AbjCHNLg (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 8 Mar 2023 08:11:36 -0500
+Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12AE495E13
+        for <sparclinux@vger.kernel.org>; Wed,  8 Mar 2023 05:08:56 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1678280868;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=YuzOmgr2u1PyDfkmKFazdLyWcjTDX0CNS9csyPmB6+k=;
+        b=CsjAm2gzaTD9ZktVrcqwhWPOZDQXokm7MJHsL5rwefGCFokASl6A8astgCDlJxND2PF+ka
+        cl/23/Xhow3hFMeo4nwi5OqAJt9/ZyzX1vcYJc1EmjxeBROEs1b/cRnrZfJ8d/h1GVuPNv
+        +d6/JiXCTAMIjbGZpj0RohoPDTYyYRg=
+Received: from mimecast-mx02.redhat.com (mimecast-mx02.redhat.com
+ [66.187.233.88]) by relay.mimecast.com with ESMTP with STARTTLS
+ (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
+ us-mta-209-h5-YcZh5Ok2x1n76ZKCkaw-1; Wed, 08 Mar 2023 08:07:43 -0500
+X-MC-Unique: h5-YcZh5Ok2x1n76ZKCkaw-1
+Received: from smtp.corp.redhat.com (int-mx06.intmail.prod.int.rdu2.redhat.com [10.11.54.6])
+        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
+        (No client certificate requested)
+        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id 2F67B185A794;
+        Wed,  8 Mar 2023 13:07:42 +0000 (UTC)
+Received: from MiWiFi-R3L-srv.redhat.com (ovpn-12-137.pek2.redhat.com [10.72.12.137])
+        by smtp.corp.redhat.com (Postfix) with ESMTP id 3B58D2166B2A;
+        Wed,  8 Mar 2023 13:07:33 +0000 (UTC)
+From:   Baoquan He <bhe@redhat.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     linux-arch@vger.kernel.org, linux-mm@kvack.org, arnd@arndb.de,
+        mpe@ellerman.id.au, geert@linux-m68k.org, mcgrof@kernel.org,
+        hch@infradead.org, Baoquan He <bhe@redhat.com>,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: [PATCH v4 3/4] arch/*/io.h: remove ioremap_uc in some architectures
+Date:   Wed,  8 Mar 2023 21:07:09 +0800
+Message-Id: <20230308130710.368085-4-bhe@redhat.com>
+In-Reply-To: <20230308130710.368085-1-bhe@redhat.com>
+References: <20230308130710.368085-1-bhe@redhat.com>
 MIME-Version: 1.0
-X-OriginatorOrg: sct-15-20-4734-24-msonline-outlook-c54b5.templateTenant
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-AuthSource: DB6P189MB0568.EURP189.PROD.OUTLOOK.COM
-X-MS-Exchange-CrossTenant-RMS-PersistedConsumerOrg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-CrossTenant-Network-Message-Id: 3db3e82f-0e99-47b9-7359-08db1fb55326
-X-MS-Exchange-CrossTenant-originalarrivaltime: 08 Mar 2023 09:13:04.7471
- (UTC)
-X-MS-Exchange-CrossTenant-fromentityheader: Hosted
-X-MS-Exchange-CrossTenant-id: 84df9e7f-e9f6-40af-b435-aaaaaaaaaaaa
-X-MS-Exchange-CrossTenant-rms-persistedconsumerorg: 00000000-0000-0000-0000-000000000000
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: VI1P189MB2516
+Content-type: text/plain
+Content-Transfer-Encoding: 8bit
+X-Scanned-By: MIMEDefang 3.1 on 10.11.54.6
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hello there,=0A=
-=0A=
-The source code is=0A=
-=0A=
-static inline unsigned long get_irqmask(int irq_nr) =0A=
-{=0A=
-=A0 =A0 return 1 << irq_nr;=0A=
-}=0A=
-=0A=
-That's only going to work correctly for irq_nr < 32. =0A=
-If irq_nr gets >=3D 32, that will wrap around. =0A=
-Perhaps the programmer intended=0A=
-=0A=
-static inline unsigned long get_irqmask(int irq_nr) =0A=
-{=0A=
-=A0 =A0 return 1UL << irq_nr;=0A=
-}=0A=
-=0A=
-Regards=0A=
-=0A=
-David Binderman=0A=
-=0A=
+ioremap_uc() is only meaningful on old x86-32 systems with the PAT
+extension, and on ia64 with its slightly unconventional ioremap()
+behavior. So remove the ioremap_uc() definition in architecutures
+other than x86 and ia64. These architectures all have asm-generic/io.h
+included and will have the default ioremap_uc() definition which
+returns NULL.
+
+This changes the existing behaviour, while no need to worry about
+any breakage because in the only callsite of ioremap_uc(), code
+has been adjusted to eliminate the impact. Please see
+atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
+
+If any new invocation of ioremap_uc() need be added, please consider
+using ioremap() intead or adding a ARCH specific version if necessary.
+
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Cc: linux-alpha@vger.kernel.org
+Cc: linux-hexagon@vger.kernel.org
+Cc: linux-m68k@lists.linux-m68k.org
+Cc: linux-mips@vger.kernel.org
+Cc: linux-parisc@vger.kernel.org
+Cc: linuxppc-dev@lists.ozlabs.org
+Cc: linux-sh@vger.kernel.org
+Cc: sparclinux@vger.kernel.org
+---
+ Documentation/driver-api/device-io.rst | 9 +++++----
+ arch/alpha/include/asm/io.h            | 1 -
+ arch/hexagon/include/asm/io.h          | 3 ---
+ arch/m68k/include/asm/kmap.h           | 1 -
+ arch/mips/include/asm/io.h             | 1 -
+ arch/parisc/include/asm/io.h           | 2 --
+ arch/powerpc/include/asm/io.h          | 1 -
+ arch/sh/include/asm/io.h               | 2 --
+ arch/sparc/include/asm/io_64.h         | 1 -
+ 9 files changed, 5 insertions(+), 16 deletions(-)
+
+diff --git a/Documentation/driver-api/device-io.rst b/Documentation/driver-api/device-io.rst
+index 4d2baac0311c..d55384b106bd 100644
+--- a/Documentation/driver-api/device-io.rst
++++ b/Documentation/driver-api/device-io.rst
+@@ -408,11 +408,12 @@ functions for details on the CPU side of things.
+ ioremap_uc()
+ ------------
+ 
+-ioremap_uc() behaves like ioremap() except that on the x86 architecture without
+-'PAT' mode, it marks memory as uncached even when the MTRR has designated
+-it as cacheable, see Documentation/x86/pat.rst.
++ioremap_uc() is only meaningful on old x86-32 systems with the PAT extension,
++and on ia64 with its slightly unconventional ioremap() behavior, everywhere
++elss ioremap_uc() defaults to return NULL.
+ 
+-Portable drivers should avoid the use of ioremap_uc().
++
++Portable drivers should avoid the use of ioremap_uc(), use ioremap() instead.
+ 
+ ioremap_cache()
+ ---------------
+diff --git a/arch/alpha/include/asm/io.h b/arch/alpha/include/asm/io.h
+index 7aeaf7c30a6f..076f0e4e7f1e 100644
+--- a/arch/alpha/include/asm/io.h
++++ b/arch/alpha/include/asm/io.h
+@@ -308,7 +308,6 @@ static inline void __iomem *ioremap(unsigned long port, unsigned long size)
+ }
+ 
+ #define ioremap_wc ioremap
+-#define ioremap_uc ioremap
+ 
+ static inline void iounmap(volatile void __iomem *addr)
+ {
+diff --git a/arch/hexagon/include/asm/io.h b/arch/hexagon/include/asm/io.h
+index dcd9cbbf5934..b9847472f25c 100644
+--- a/arch/hexagon/include/asm/io.h
++++ b/arch/hexagon/include/asm/io.h
+@@ -176,9 +176,6 @@ static inline void writel(u32 data, volatile void __iomem *addr)
+ #define _PAGE_IOREMAP (_PAGE_PRESENT | _PAGE_READ | _PAGE_WRITE | \
+ 		       (__HEXAGON_C_DEV << 6))
+ 
+-#define ioremap_uc(addr, size) ioremap((addr), (size))
+-
+-
+ #define __raw_writel writel
+ 
+ static inline void memcpy_fromio(void *dst, const volatile void __iomem *src,
+diff --git a/arch/m68k/include/asm/kmap.h b/arch/m68k/include/asm/kmap.h
+index 4efb3efa593a..b778f015c917 100644
+--- a/arch/m68k/include/asm/kmap.h
++++ b/arch/m68k/include/asm/kmap.h
+@@ -25,7 +25,6 @@ static inline void __iomem *ioremap(unsigned long physaddr, unsigned long size)
+ 	return __ioremap(physaddr, size, IOMAP_NOCACHE_SER);
+ }
+ 
+-#define ioremap_uc ioremap
+ #define ioremap_wt ioremap_wt
+ static inline void __iomem *ioremap_wt(unsigned long physaddr,
+ 				       unsigned long size)
+diff --git a/arch/mips/include/asm/io.h b/arch/mips/include/asm/io.h
+index 6756baadba6c..da0a625c3c6d 100644
+--- a/arch/mips/include/asm/io.h
++++ b/arch/mips/include/asm/io.h
+@@ -167,7 +167,6 @@ void iounmap(const volatile void __iomem *addr);
+  */
+ #define ioremap(offset, size)						\
+ 	ioremap_prot((offset), (size), _CACHE_UNCACHED)
+-#define ioremap_uc		ioremap
+ 
+ /*
+  * ioremap_cache -	map bus memory into CPU space
+diff --git a/arch/parisc/include/asm/io.h b/arch/parisc/include/asm/io.h
+index 366537042465..48630c78714a 100644
+--- a/arch/parisc/include/asm/io.h
++++ b/arch/parisc/include/asm/io.h
+@@ -132,8 +132,6 @@ static inline void gsc_writeq(unsigned long long val, unsigned long addr)
+ 
+ #define ioremap_wc(addr, size)  \
+ 	ioremap_prot((addr), (size), _PAGE_IOREMAP)
+-#define ioremap_uc(addr, size)  \
+-	ioremap_prot((addr), (size), _PAGE_IOREMAP)
+ 
+ #define pci_iounmap			pci_iounmap
+ 
+diff --git a/arch/powerpc/include/asm/io.h b/arch/powerpc/include/asm/io.h
+index 978d687edf32..7873fc83c82c 100644
+--- a/arch/powerpc/include/asm/io.h
++++ b/arch/powerpc/include/asm/io.h
+@@ -863,7 +863,6 @@ void __iomem *ioremap_wt(phys_addr_t address, unsigned long size);
+ #endif
+ 
+ void __iomem *ioremap_coherent(phys_addr_t address, unsigned long size);
+-#define ioremap_uc(addr, size)		ioremap((addr), (size))
+ #define ioremap_cache(addr, size) \
+ 	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
+ 
+diff --git a/arch/sh/include/asm/io.h b/arch/sh/include/asm/io.h
+index b3a26b405c8d..12a892804082 100644
+--- a/arch/sh/include/asm/io.h
++++ b/arch/sh/include/asm/io.h
+@@ -278,8 +278,6 @@ unsigned long long poke_real_address_q(unsigned long long addr,
+ 	ioremap_prot((addr), (size), pgprot_val(PAGE_KERNEL))
+ #endif /* CONFIG_MMU */
+ 
+-#define ioremap_uc	ioremap
+-
+ /*
+  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
+  * access
+diff --git a/arch/sparc/include/asm/io_64.h b/arch/sparc/include/asm/io_64.h
+index 9303270b22f3..d8ee1442f303 100644
+--- a/arch/sparc/include/asm/io_64.h
++++ b/arch/sparc/include/asm/io_64.h
+@@ -423,7 +423,6 @@ static inline void __iomem *ioremap(unsigned long offset, unsigned long size)
+ 	return (void __iomem *)offset;
+ }
+ 
+-#define ioremap_uc(X,Y)			ioremap((X),(Y))
+ #define ioremap_wc(X,Y)			ioremap((X),(Y))
+ #define ioremap_wt(X,Y)			ioremap((X),(Y))
+ static inline void __iomem *ioremap_np(unsigned long offset, unsigned long size)
+-- 
+2.34.1
+
