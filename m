@@ -2,63 +2,72 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E60FFC74A4B
-	for <sparclinux@archiver.kernel.org>; Thu,  9 Mar 2023 14:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BAD8C74A5B
+	for <sparclinux@archiver.kernel.org>; Thu,  9 Mar 2023 22:55:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231891AbjCIOhO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 9 Mar 2023 09:37:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37100 "EHLO
+        id S231432AbjCIWzR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 9 Mar 2023 17:55:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38020 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231897AbjCIOgt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Mar 2023 09:36:49 -0500
-Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AB4FAF4D9E;
-        Thu,  9 Mar 2023 06:36:43 -0800 (PST)
-Received: from uucp (helo=alpha)
-        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
-        id 1paHNg-000885-00; Thu, 09 Mar 2023 15:36:32 +0100
-Received: by alpha.franken.de (Postfix, from userid 1000)
-        id 6CA12C123A; Thu,  9 Mar 2023 15:36:21 +0100 (CET)
-Date:   Thu, 9 Mar 2023 15:36:21 +0100
-From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-To:     Baoquan He <bhe@redhat.com>
-Cc:     linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, arnd@arndb.de, mpe@ellerman.id.au,
+        with ESMTP id S230494AbjCIWzK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Mar 2023 17:55:10 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [150.107.74.76])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 520653CE03;
+        Thu,  9 Mar 2023 14:54:40 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4PXkyW6RNvz4x7s;
+        Fri, 10 Mar 2023 09:54:27 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ellerman.id.au;
+        s=201909; t=1678402469;
+        bh=HnGqhsJTeGjqlPVUTmz3g9ouF0ULtGaBV4DNsEeVxsY=;
+        h=From:To:Cc:Subject:In-Reply-To:References:Date:From;
+        b=qtChMEayOa7BG3gV8biPN1UquvZjKKHH1PLnOktZLFk+z7+30lmoHFQWG/ybTGOfV
+         Msn+vq0214G/5bCC5sK8YEWC4SONYn3IjVV2gLKa55Cy0vLJqZpwyIgKHr5xpyRlRO
+         2B59x+JG32iD6Ll1IeACkY+jSFZ42uC6mHr940GQ8rZCqsWJ73oUfODgJNTU1QA4cH
+         /Zt2BN0brA6nfVHnuvaamrjV+75syVJwmQZUAWs6jzdNGb6ONfyH1iskU2QALlqqJR
+         fcr5fnsHZCG3RA30SBInWnaih8rWQ8VzjneqbRw1yHLKc3Q/ihjyNUCZJzzzjHFnUd
+         puglrrgtkl1qg==
+From:   Michael Ellerman <mpe@ellerman.id.au>
+To:     Baoquan He <bhe@redhat.com>, linux-kernel@vger.kernel.org
+Cc:     linux-arch@vger.kernel.org, linux-mm@kvack.org, arnd@arndb.de,
         geert@linux-m68k.org, mcgrof@kernel.org, hch@infradead.org,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+        Baoquan He <bhe@redhat.com>, linux-alpha@vger.kernel.org,
+        linux-hexagon@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org
 Subject: Re: [PATCH v4 3/4] arch/*/io.h: remove ioremap_uc in some
  architectures
-Message-ID: <20230309143621.GA12350@alpha.franken.de>
+In-Reply-To: <20230308130710.368085-4-bhe@redhat.com>
 References: <20230308130710.368085-1-bhe@redhat.com>
  <20230308130710.368085-4-bhe@redhat.com>
+Date:   Fri, 10 Mar 2023 09:54:27 +1100
+Message-ID: <874jqtpmcc.fsf@mpe.ellerman.id.au>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230308130710.368085-4-bhe@redhat.com>
-User-Agent: Mutt/1.10.1 (2018-07-13)
+Content-Type: text/plain
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Mar 08, 2023 at 09:07:09PM +0800, Baoquan He wrote:
+Baoquan He <bhe@redhat.com> writes:
 > ioremap_uc() is only meaningful on old x86-32 systems with the PAT
 > extension, and on ia64 with its slightly unconventional ioremap()
 > behavior. So remove the ioremap_uc() definition in architecutures
 > other than x86 and ia64. These architectures all have asm-generic/io.h
 > included and will have the default ioremap_uc() definition which
 > returns NULL.
-> 
+>
 > This changes the existing behaviour, while no need to worry about
 > any breakage because in the only callsite of ioremap_uc(), code
 > has been adjusted to eliminate the impact. Please see
 > atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
-> 
+>
 > If any new invocation of ioremap_uc() need be added, please consider
 > using ioremap() intead or adding a ARCH specific version if necessary.
-> 
+>
 > Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 > Signed-off-by: Baoquan He <bhe@redhat.com>
 > Cc: linux-alpha@vger.kernel.org
@@ -77,14 +86,7 @@ On Wed, Mar 08, 2023 at 09:07:09PM +0800, Baoquan He wrote:
 >  arch/mips/include/asm/io.h             | 1 -
 >  arch/parisc/include/asm/io.h           | 2 --
 >  arch/powerpc/include/asm/io.h          | 1 -
->  arch/sh/include/asm/io.h               | 2 --
->  arch/sparc/include/asm/io_64.h         | 1 -
->  9 files changed, 5 insertions(+), 16 deletions(-)
 
-this doesn't apply to v6.3-rc1... what tree is this based on ?
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
 
-Thomas.
-
--- 
-Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
-good idea.                                                [ RFC1925, 2.3 ]
+cheers
