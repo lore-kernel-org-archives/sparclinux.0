@@ -2,61 +2,89 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64E33C61DA4
-	for <sparclinux@archiver.kernel.org>; Thu,  9 Mar 2023 09:15:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E60FFC74A4B
+	for <sparclinux@archiver.kernel.org>; Thu,  9 Mar 2023 14:37:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230498AbjCIJPZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 9 Mar 2023 04:15:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41488 "EHLO
+        id S231891AbjCIOhO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 9 Mar 2023 09:37:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37100 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231256AbjCIJPN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Mar 2023 04:15:13 -0500
-Received: from mail.stagenetbiz.pl (mail.stagenetbiz.pl [217.61.97.35])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F34686B950
-        for <sparclinux@vger.kernel.org>; Thu,  9 Mar 2023 01:15:11 -0800 (PST)
-Received: by mail.stagenetbiz.pl (Postfix, from userid 1001)
-        id 7F3E282795; Thu,  9 Mar 2023 09:15:47 +0000 (GMT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=stagenetbiz.pl;
-        s=mail; t=1678353347;
-        bh=LTrFku/ToeGnnqiqyaN86kCQQkxkwCY5tVpcGX1QBNI=;
-        h=Date:From:To:Subject:From;
-        b=LeJ7yCXW7+EEoDYzNqQ2BbOs5tUZozMu6vWTHPWAV7eZjfWycEnTPACQoRqqGaLEa
-         sy2+BnSPntUpTGIMSnG94RpFpuwwlrV/DsKo/HPYSUwL2j8YIQVD6n25t6OMxueMMj
-         5r2f/g7lmdf6Y8wVAF6rsRM6JFFRgto3/g1giFYtudc0LA6szKrR/acWg6g0Aj9UHm
-         wGawyc/Dw3+blFXtUDDinQt3RG4CeOZBnj1GbN2/rXLObX2he3DP5SZlQlqzjNZWmH
-         2dmYf7s/yoUuQqjm8fU7nZ1AlPh1mNBZlnIXdFDhHUzAZxHEd8g9RqYQAHoekQXoxQ
-         LXU9plEFGtq3Q==
-Received: by mail.stagenetbiz.pl for <sparclinux@vger.kernel.org>; Thu,  9 Mar 2023 09:15:47 GMT
-Message-ID: <20230309074501-0.1.46.dps2.0.h86g5cee0k@stagenetbiz.pl>
-Date:   Thu,  9 Mar 2023 09:15:47 GMT
-From:   =?UTF-8?Q? "Aleksandra_Kami=C5=84ska" ?= 
-        <aleksandra.kaminska@stagenetbiz.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Nowe lakiery hybrydowe do oferty
-X-Mailer: mail.stagenetbiz.pl
+        with ESMTP id S231897AbjCIOgt (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Mar 2023 09:36:49 -0500
+Received: from elvis.franken.de (elvis.franken.de [193.175.24.41])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id AB4FAF4D9E;
+        Thu,  9 Mar 2023 06:36:43 -0800 (PST)
+Received: from uucp (helo=alpha)
+        by elvis.franken.de with local-bsmtp (Exim 3.36 #1)
+        id 1paHNg-000885-00; Thu, 09 Mar 2023 15:36:32 +0100
+Received: by alpha.franken.de (Postfix, from userid 1000)
+        id 6CA12C123A; Thu,  9 Mar 2023 15:36:21 +0100 (CET)
+Date:   Thu, 9 Mar 2023 15:36:21 +0100
+From:   Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+To:     Baoquan He <bhe@redhat.com>
+Cc:     linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-mm@kvack.org, arnd@arndb.de, mpe@ellerman.id.au,
+        geert@linux-m68k.org, mcgrof@kernel.org, hch@infradead.org,
+        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
+        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
+        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
+Subject: Re: [PATCH v4 3/4] arch/*/io.h: remove ioremap_uc in some
+ architectures
+Message-ID: <20230309143621.GA12350@alpha.franken.de>
+References: <20230308130710.368085-1-bhe@redhat.com>
+ <20230308130710.368085-4-bhe@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20230308130710.368085-4-bhe@redhat.com>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Wed, Mar 08, 2023 at 09:07:09PM +0800, Baoquan He wrote:
+> ioremap_uc() is only meaningful on old x86-32 systems with the PAT
+> extension, and on ia64 with its slightly unconventional ioremap()
+> behavior. So remove the ioremap_uc() definition in architecutures
+> other than x86 and ia64. These architectures all have asm-generic/io.h
+> included and will have the default ioremap_uc() definition which
+> returns NULL.
+> 
+> This changes the existing behaviour, while no need to worry about
+> any breakage because in the only callsite of ioremap_uc(), code
+> has been adjusted to eliminate the impact. Please see
+> atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
+> 
+> If any new invocation of ioremap_uc() need be added, please consider
+> using ioremap() intead or adding a ARCH specific version if necessary.
+> 
+> Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Signed-off-by: Baoquan He <bhe@redhat.com>
+> Cc: linux-alpha@vger.kernel.org
+> Cc: linux-hexagon@vger.kernel.org
+> Cc: linux-m68k@lists.linux-m68k.org
+> Cc: linux-mips@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linuxppc-dev@lists.ozlabs.org
+> Cc: linux-sh@vger.kernel.org
+> Cc: sparclinux@vger.kernel.org
+> ---
+>  Documentation/driver-api/device-io.rst | 9 +++++----
+>  arch/alpha/include/asm/io.h            | 1 -
+>  arch/hexagon/include/asm/io.h          | 3 ---
+>  arch/m68k/include/asm/kmap.h           | 1 -
+>  arch/mips/include/asm/io.h             | 1 -
+>  arch/parisc/include/asm/io.h           | 2 --
+>  arch/powerpc/include/asm/io.h          | 1 -
+>  arch/sh/include/asm/io.h               | 2 --
+>  arch/sparc/include/asm/io_64.h         | 1 -
+>  9 files changed, 5 insertions(+), 16 deletions(-)
 
-w bran=C5=BCy lakier=C3=B3w hybrydowych ro=C5=9Bnie popularno=C5=9B=C4=87=
- produkt=C3=B3w wielozadaniowych, kt=C3=B3re skracaj=C4=85 czas wykonania=
- manicure.
+this doesn't apply to v6.3-rc1... what tree is this based on ?
 
-Opracowali=C5=9Bmy now=C4=85 linie lakier=C3=B3w, kt=C3=B3re spe=C5=82nia=
-j=C4=85 wsp=C3=B3=C5=82czesne wymagania w tym zakresie, dlatego ciesz=C4=85=
- si=C4=99 rosn=C4=85cym zainteresowaniem na rynku.
+Thomas.
 
-Produkty dostarczamy do drogerii, sieci zakupowych, handlowych, hurtowni =
-i dystrybutor=C3=B3w, kt=C3=B3rzy osi=C4=85gaj=C4=85 wy=C5=BCsze ni=C5=BC=
- dotychczas zyski ze sprzeda=C5=BCy tego typu rozwi=C4=85za=C5=84.
-
-Chc=C4=85 Pa=C5=84stwo pozna=C4=87 propozycj=C4=99 wsp=C3=B3=C5=82pracy?
-
-
-Z pozdrowieniami
-Aleksandra Kami=C5=84ska
+-- 
+Crap can work. Given enough thrust pigs will fly, but it's not necessarily a
+good idea.                                                [ RFC1925, 2.3 ]
