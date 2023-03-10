@@ -2,50 +2,58 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1893C742A7
-	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 14:47:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5283C74A4B
+	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 14:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233109AbjCJOrw (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 10 Mar 2023 09:47:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41784 "EHLO
+        id S233189AbjCJOuL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 10 Mar 2023 09:50:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40950 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233039AbjCJOr0 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 09:47:26 -0500
-Received: from mail-oa1-f49.google.com (mail-oa1-f49.google.com [209.85.160.49])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DB9BA402D;
-        Fri, 10 Mar 2023 06:47:08 -0800 (PST)
-Received: by mail-oa1-f49.google.com with SMTP id 586e51a60fabf-17671fb717cso6048527fac.8;
-        Fri, 10 Mar 2023 06:47:08 -0800 (PST)
+        with ESMTP id S233266AbjCJOta (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 09:49:30 -0500
+Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 984BF1220B3;
+        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
+Received: by mail-ot1-f52.google.com with SMTP id o4-20020a9d6d04000000b00694127788f4so3036933otp.6;
+        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678459626;
+        d=1e100.net; s=20210112; t=1678459668;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=3Mxp++3M/xdGxspwUzy62aP4jiUX2gCDYtnUV4UMARw=;
-        b=iJK/N6/O8xD7aaHFusbGb5htfxET0MkMS1lnWZegz9LbMrG2Tzs2yYdHGSSQp7TYH/
-         z6rlW4jR4vaF1AGUQJh5Ci3wcs519t1oqhCQd2TCMEbnChJ+7IHpPhRvysWSndf7IjPJ
-         n8a6NbxfTBzk/TDDRrmwDAq6kx8iz+ulEGFyVAGEP9CZv6N5MP16BpAJMjHHFDoA6muf
-         yGhB4WvKVfWxfi2nNlcj3s7Znm+XJ7PmmAZaqvUB2vUfSj3oOFv8a2w3Xts13I0SO7Ah
-         BN+eZDY7SPcqV8YS8A4ZUNdRngrB0QfGdT2mO6W92+fDirni00u+1szR4Av3lP0+FYxv
-         zZXg==
-X-Gm-Message-State: AO0yUKWu1Dl7AJ/vr6bbQeh7M4Fb16mwQsOjz9Bw5Js/QiXPQVNrvApH
-        w5lhJ8JPKLz8Nqnkq2TL4TNKizGFJQ==
-X-Google-Smtp-Source: AK7set9VvIYu2/mX/Ddsr37S3WO3p4+3gpV8Esm/Df+5J5CGsGTCA212TN+8lbj1lvu+O700qeh1ew==
-X-Received: by 2002:a05:6870:560a:b0:176:448f:4ccd with SMTP id m10-20020a056870560a00b00176448f4ccdmr17022548oao.51.1678459625853;
-        Fri, 10 Mar 2023 06:47:05 -0800 (PST)
+        bh=BnkBIbnz4vOeZORUW8cnuffMpZ7B9RlqYee18NB6XoY=;
+        b=kSegSH2ge9meEexopNwscw/mDo77fJCwsRmMJScGL1VeeDdaHcWV5eYwZepHe6smNv
+         bkCR8kKrCbJraxKBt0ZtXv8s0FEKXyYFoay/i0n1H1Ayhld0vj1gr8WLFtPKb7xzc590
+         Z8G1oJ0xx3o446DGEooOeon8cxnmnE+HHkr7K4nZ9J2gBFoHT1Kx7CXlv3rBwpH3klSa
+         eyyvCRora78tts8LJbdOH+Fxb1tSiN/gy62v4m2RyujmFrJ9o0+sa4eViIL8bHS7eGxH
+         GxJRse477MkTPQXBsXaEHG3N2VCUGxPToXrNRZoI/UNEj59cTpHRNLn0Bh+NOActnd0a
+         ZDHQ==
+X-Gm-Message-State: AO0yUKWkKPxfaxm62rfYJwqbTLZ1cJw8dMM2unOu9psWtkp1W6eCSRO2
+        uYeoYHmoBsndfGR6CJ6beA==
+X-Google-Smtp-Source: AK7set/5K9xkOxRXHTghD5+c/dagxGmwvMLb3ksbgoSl8gw3zLJtj8L8jtL7TmDHtKFFm8q9QTWPPg==
+X-Received: by 2002:a05:6830:1f42:b0:68d:41b2:5b75 with SMTP id u2-20020a0568301f4200b0068d41b25b75mr11972670oth.11.1678459668155;
+        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id d44-20020a056870d2ac00b001727d62899bsm95690oae.26.2023.03.10.06.47.05
+        by smtp.gmail.com with ESMTPSA id q19-20020a05683022d300b0068bd20cf07dsm115038otc.48.2023.03.10.06.47.47
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Mar 2023 06:47:05 -0800 (PST)
-Received: (nullmailer pid 1541302 invoked by uid 1000);
-        Fri, 10 Mar 2023 14:46:59 -0000
+        Fri, 10 Mar 2023 06:47:47 -0800 (PST)
+Received: (nullmailer pid 1545656 invoked by uid 1000);
+        Fri, 10 Mar 2023 14:47:27 -0000
 From:   Rob Herring <robh@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>
-Cc:     devicetree@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] sparc: Use of_property_present() for testing DT property presence
-Date:   Fri, 10 Mar 2023 08:46:59 -0600
-Message-Id: <20230310144659.1541247-1-robh@kernel.org>
+To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        "David S. Miller" <davem@davemloft.net>
+Cc:     devicetree@vger.kernel.org, linux-serial@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org
+Subject: [PATCH] serial: Use of_property_present() for testing DT property presence
+Date:   Fri, 10 Mar 2023 08:47:26 -0600
+Message-Id: <20230310144727.1545630-1-robh@kernel.org>
 X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -62,105 +70,60 @@ for presence of a property and nothing more.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- arch/sparc/kernel/of_device_32.c     | 4 ++--
- arch/sparc/kernel/of_device_64.c     | 6 +++---
- arch/sparc/kernel/of_device_common.c | 2 +-
- arch/sparc/kernel/prom_64.c          | 2 +-
- arch/sparc/kernel/time_32.c          | 2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/tty/serial/imx.c      | 3 +--
+ drivers/tty/serial/sh-sci.c   | 2 +-
+ drivers/tty/serial/sunzilog.c | 4 ++--
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
-diff --git a/arch/sparc/kernel/of_device_32.c b/arch/sparc/kernel/of_device_32.c
-index 4ebf51e6e78e..b60f58e04164 100644
---- a/arch/sparc/kernel/of_device_32.c
-+++ b/arch/sparc/kernel/of_device_32.c
-@@ -29,7 +29,7 @@ static int of_bus_pci_match(struct device_node *np)
- 		 * parent as-is, not with the PCI translate
- 		 * method which chops off the top address cell.
- 		 */
--		if (!of_find_property(np, "ranges", NULL))
-+		if (!of_property_present(np, "ranges"))
- 			return 0;
+diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
+index 523f296d5747..5712a4f29607 100644
+--- a/drivers/tty/serial/imx.c
++++ b/drivers/tty/serial/imx.c
+@@ -2269,8 +2269,7 @@ static int imx_uart_probe(struct platform_device *pdev)
+ 	if (of_get_property(np, "fsl,dte-mode", NULL))
+ 		sport->dte_mode = 1;
  
- 		return 1;
-@@ -223,7 +223,7 @@ static int __init build_one_resource(struct device_node *parent,
- static int __init use_1to1_mapping(struct device_node *pp)
- {
- 	/* If we have a ranges property in the parent, use it.  */
--	if (of_find_property(pp, "ranges", NULL) != NULL)
-+	if (of_property_present(pp, "ranges"))
- 		return 0;
+-	if (of_get_property(np, "rts-gpios", NULL))
+-		sport->have_rtsgpio = 1;
++	sport->have_rtsgpio = of_property_present(np, "rts-gpios");
  
- 	/* Some SBUS devices use intermediate nodes to express
-diff --git a/arch/sparc/kernel/of_device_64.c b/arch/sparc/kernel/of_device_64.c
-index 5a9f86b1d4e7..5b5143e17ba3 100644
---- a/arch/sparc/kernel/of_device_64.c
-+++ b/arch/sparc/kernel/of_device_64.c
-@@ -58,7 +58,7 @@ static int of_bus_pci_match(struct device_node *np)
- 		 * parent as-is, not with the PCI translate
- 		 * method which chops off the top address cell.
- 		 */
--		if (!of_find_property(np, "ranges", NULL))
-+		if (!of_property_present(np, "ranges"))
- 			return 0;
- 
- 		return 1;
-@@ -78,7 +78,7 @@ static int of_bus_simba_match(struct device_node *np)
- 	 * simba.
+ 	if (of_get_property(np, "fsl,inverted-tx", NULL))
+ 		sport->inverted_tx = 1;
+diff --git a/drivers/tty/serial/sh-sci.c b/drivers/tty/serial/sh-sci.c
+index 7bd080720929..a3e12e985e0d 100644
+--- a/drivers/tty/serial/sh-sci.c
++++ b/drivers/tty/serial/sh-sci.c
+@@ -1573,7 +1573,7 @@ static void sci_request_dma(struct uart_port *port)
+ 	 * Don't request a dma channel if no channel was specified
+ 	 * in the device tree.
  	 */
- 	if (of_node_name_eq(np, "pci")) {
--		if (!of_find_property(np, "ranges", NULL))
-+		if (!of_property_present(np, "ranges"))
- 			return 1;
+-	if (!of_find_property(port->dev->of_node, "dmas", NULL))
++	if (!of_property_present(port->dev->of_node, "dmas"))
+ 		return;
+ 
+ 	chan = sci_request_dma_chan(port, DMA_MEM_TO_DEV);
+diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
+index ccb809216e94..0fbeb3dbd843 100644
+--- a/drivers/tty/serial/sunzilog.c
++++ b/drivers/tty/serial/sunzilog.c
+@@ -1403,7 +1403,7 @@ static int zs_probe(struct platform_device *op)
+ 	int keyboard_mouse = 0;
+ 	int err;
+ 
+-	if (of_find_property(op->dev.of_node, "keyboard", NULL))
++	if (of_property_present(op->dev.of_node, "keyboard"))
+ 		keyboard_mouse = 1;
+ 
+ 	/* uarts must come before keyboards/mice */
+@@ -1553,7 +1553,7 @@ static int __init sunzilog_init(void)
+ 
+ 	for_each_node_by_name(dp, "zs") {
+ 		num_sunzilog++;
+-		if (of_find_property(dp, "keyboard", NULL))
++		if (of_property_present(dp, "keyboard"))
+ 			num_keybms++;
  	}
  
-@@ -283,7 +283,7 @@ static int __init build_one_resource(struct device_node *parent,
- static int __init use_1to1_mapping(struct device_node *pp)
- {
- 	/* If we have a ranges property in the parent, use it.  */
--	if (of_find_property(pp, "ranges", NULL) != NULL)
-+	if (of_property_present(pp, "ranges"))
- 		return 0;
- 
- 	/* If the parent is the dma node of an ISA bus, pass
-diff --git a/arch/sparc/kernel/of_device_common.c b/arch/sparc/kernel/of_device_common.c
-index e717a56efc5d..60f86b837658 100644
---- a/arch/sparc/kernel/of_device_common.c
-+++ b/arch/sparc/kernel/of_device_common.c
-@@ -162,7 +162,7 @@ int of_bus_sbus_match(struct device_node *np)
- 		 * don't have some intervening real bus that provides
- 		 * ranges based translations.
- 		 */
--		if (of_find_property(dp, "ranges", NULL) != NULL)
-+		if (of_property_present(dp, "ranges"))
- 			break;
- 
- 		dp = dp->parent;
-diff --git a/arch/sparc/kernel/prom_64.c b/arch/sparc/kernel/prom_64.c
-index f883a50fa333..998aa693d491 100644
---- a/arch/sparc/kernel/prom_64.c
-+++ b/arch/sparc/kernel/prom_64.c
-@@ -502,7 +502,7 @@ static void *fill_in_one_cpu(struct device_node *dp, int cpuid, int arg)
- 	struct device_node *portid_parent = NULL;
- 	int portid = -1;
- 
--	if (of_find_property(dp, "cpuid", NULL)) {
-+	if (of_property_present(dp, "cpuid")) {
- 		int limit = 2;
- 
- 		portid_parent = dp;
-diff --git a/arch/sparc/kernel/time_32.c b/arch/sparc/kernel/time_32.c
-index 8a08830e4a65..958c2cf4479b 100644
---- a/arch/sparc/kernel/time_32.c
-+++ b/arch/sparc/kernel/time_32.c
-@@ -277,7 +277,7 @@ static int clock_probe(struct platform_device *op)
- 		return -ENODEV;
- 
- 	/* Only the primary RTC has an address property */
--	if (!of_find_property(dp, "address", NULL))
-+	if (!of_property_present(dp, "address"))
- 		return -ENODEV;
- 
- 	m48t59_rtc.resource = &op->resource[0];
 -- 
 2.39.2
 
