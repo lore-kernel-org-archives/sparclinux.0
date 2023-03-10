@@ -2,58 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5283C74A4B
-	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 14:50:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D25C6FA99
+	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 15:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233189AbjCJOuL (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 10 Mar 2023 09:50:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40950 "EHLO
+        id S233728AbjCJPBO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 10 Mar 2023 10:01:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233266AbjCJOta (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 09:49:30 -0500
-Received: from mail-ot1-f52.google.com (mail-ot1-f52.google.com [209.85.210.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 984BF1220B3;
-        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
-Received: by mail-ot1-f52.google.com with SMTP id o4-20020a9d6d04000000b00694127788f4so3036933otp.6;
-        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
+        with ESMTP id S233626AbjCJPAu (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 10:00:50 -0500
+Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C44613595D;
+        Fri, 10 Mar 2023 06:54:37 -0800 (PST)
+Received: by mail-ot1-x330.google.com with SMTP id e9-20020a056830200900b00694651d19f6so3019519otp.12;
+        Fri, 10 Mar 2023 06:54:37 -0800 (PST)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678459668;
+        d=1e100.net; s=20210112; t=1678459703;
         h=content-transfer-encoding:mime-version:message-id:date:subject:cc
          :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
          :reply-to;
-        bh=BnkBIbnz4vOeZORUW8cnuffMpZ7B9RlqYee18NB6XoY=;
-        b=kSegSH2ge9meEexopNwscw/mDo77fJCwsRmMJScGL1VeeDdaHcWV5eYwZepHe6smNv
-         bkCR8kKrCbJraxKBt0ZtXv8s0FEKXyYFoay/i0n1H1Ayhld0vj1gr8WLFtPKb7xzc590
-         Z8G1oJ0xx3o446DGEooOeon8cxnmnE+HHkr7K4nZ9J2gBFoHT1Kx7CXlv3rBwpH3klSa
-         eyyvCRora78tts8LJbdOH+Fxb1tSiN/gy62v4m2RyujmFrJ9o0+sa4eViIL8bHS7eGxH
-         GxJRse477MkTPQXBsXaEHG3N2VCUGxPToXrNRZoI/UNEj59cTpHRNLn0Bh+NOActnd0a
-         ZDHQ==
-X-Gm-Message-State: AO0yUKWkKPxfaxm62rfYJwqbTLZ1cJw8dMM2unOu9psWtkp1W6eCSRO2
-        uYeoYHmoBsndfGR6CJ6beA==
-X-Google-Smtp-Source: AK7set/5K9xkOxRXHTghD5+c/dagxGmwvMLb3ksbgoSl8gw3zLJtj8L8jtL7TmDHtKFFm8q9QTWPPg==
-X-Received: by 2002:a05:6830:1f42:b0:68d:41b2:5b75 with SMTP id u2-20020a0568301f4200b0068d41b25b75mr11972670oth.11.1678459668155;
-        Fri, 10 Mar 2023 06:47:48 -0800 (PST)
+        bh=2hDeOhL3khuyGbkCHxGQebu7qrt5FEKqtJ9+s/BvlnU=;
+        b=qDwi97pYbhCD1YPf3kNBg8tt77Uec/aP99EaGlQ3Rh5S31gM/31lOiyC8jKRo6E5Bi
+         Yqzbppm8uyV0CAOXisfOjj4b4Gnv2pOG79XUZsCUPPxSlupMG1Vl2LdPasRXANiyZBTw
+         F4NHxV0Yle/aCWI/+vOgUB264XTT2OdD7+D9CFrlrmr+UG3WTRmbf5Vx1ILvcDa3LK3m
+         2uKdo92JN2XwQMuUzsI0KMwE716GcmJm/zGWMvQXu9T+RSoiiBkh0f3aBIVfYyryH77D
+         yUukTtH5JpZx9xiiYd5/enN0erYHd1P3r5VUV+yTWH6D2PwO05JxnIn3TOtCCcJML5Bz
+         xtDA==
+X-Gm-Message-State: AO0yUKUlZk7aeGTp4Me7ebegfZ7ugbrgnq3VFctONyvDADKId8+IEU4a
+        YHWJjc7qAg+N+nb4Mxlwft6Vh0YRaQ==
+X-Google-Smtp-Source: AK7set9Kc8dfWCFSC8jOGyrkoR70quNRTNX3KTXU7X+DOxxLF7LR7Co3suYswTozmSpcg2dggln9yg==
+X-Received: by 2002:a9d:6118:0:b0:694:3972:dba8 with SMTP id i24-20020a9d6118000000b006943972dba8mr10239231otj.6.1678459702760;
+        Fri, 10 Mar 2023 06:48:22 -0800 (PST)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id q19-20020a05683022d300b0068bd20cf07dsm115038otc.48.2023.03.10.06.47.47
+        by smtp.gmail.com with ESMTPSA id m30-20020a05683026de00b00690eeb8b436sm101859otu.65.2023.03.10.06.48.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Mar 2023 06:47:47 -0800 (PST)
-Received: (nullmailer pid 1545656 invoked by uid 1000);
-        Fri, 10 Mar 2023 14:47:27 -0000
+        Fri, 10 Mar 2023 06:48:22 -0800 (PST)
+Received: (nullmailer pid 1544956 invoked by uid 1000);
+        Fri, 10 Mar 2023 14:47:23 -0000
 From:   Rob Herring <robh@kernel.org>
-To:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Sascha Hauer <s.hauer@pengutronix.de>,
-        Pengutronix Kernel Team <kernel@pengutronix.de>,
-        Fabio Estevam <festevam@gmail.com>,
-        NXP Linux Team <linux-imx@nxp.com>,
-        "David S. Miller" <davem@davemloft.net>
-Cc:     devicetree@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        sparclinux@vger.kernel.org
-Subject: [PATCH] serial: Use of_property_present() for testing DT property presence
-Date:   Fri, 10 Mar 2023 08:47:26 -0600
-Message-Id: <20230310144727.1545630-1-robh@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>
+Cc:     devicetree@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] sbus: display7seg: Use of_property_read_bool() for boolean properties
+Date:   Fri, 10 Mar 2023 08:47:22 -0600
+Message-Id: <20230310144723.1544930-1-robh@kernel.org>
 X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -63,67 +55,59 @@ X-Mailing-List: sparclinux@vger.kernel.org
 
 It is preferred to use typed property access functions (i.e.
 of_property_read_<type> functions) rather than low-level
-of_get_property/of_find_property functions for reading properties. As
-part of this, convert of_get_property/of_find_property calls to the
-recently added of_property_present() helper when we just want to test
-for presence of a property and nothing more.
+of_get_property/of_find_property functions for reading properties.
+Convert reading boolean properties to to of_property_read_bool().
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- drivers/tty/serial/imx.c      | 3 +--
- drivers/tty/serial/sh-sci.c   | 2 +-
- drivers/tty/serial/sunzilog.c | 4 ++--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/sbus/char/display7seg.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/tty/serial/imx.c b/drivers/tty/serial/imx.c
-index 523f296d5747..5712a4f29607 100644
---- a/drivers/tty/serial/imx.c
-+++ b/drivers/tty/serial/imx.c
-@@ -2269,8 +2269,7 @@ static int imx_uart_probe(struct platform_device *pdev)
- 	if (of_get_property(np, "fsl,dte-mode", NULL))
- 		sport->dte_mode = 1;
+diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
+index d93595b39afa..8bee31f03126 100644
+--- a/drivers/sbus/char/display7seg.c
++++ b/drivers/sbus/char/display7seg.c
+@@ -31,8 +31,8 @@ static int sol_compat = 0;		/* Solaris compatibility mode	*/
  
--	if (of_get_property(np, "rts-gpios", NULL))
--		sport->have_rtsgpio = 1;
-+	sport->have_rtsgpio = of_property_present(np, "rts-gpios");
+ /* Solaris compatibility flag -
+  * The Solaris implementation omits support for several
+- * documented driver features (ref Sun doc 806-0180-03).  
+- * By default, this module supports the documented driver 
++ * documented driver features (ref Sun doc 806-0180-03).
++ * By default, this module supports the documented driver
+  * abilities, rather than the Solaris implementation:
+  *
+  * 	1) Device ALWAYS reverts to OBP-specified FLIPPED mode
+@@ -44,7 +44,7 @@ static int sol_compat = 0;		/* Solaris compatibility mode	*/
+  * omitting above features, set this parameter to non-zero.
+  */
+ module_param(sol_compat, int, 0);
+-MODULE_PARM_DESC(sol_compat, 
++MODULE_PARM_DESC(sol_compat,
+ 		 "Disables documented functionality omitted from Solaris driver");
  
- 	if (of_get_property(np, "fsl,inverted-tx", NULL))
- 		sport->inverted_tx = 1;
-diff --git a/drivers/tty/serial/sh-sci.c b/drivers/tty/serial/sh-sci.c
-index 7bd080720929..a3e12e985e0d 100644
---- a/drivers/tty/serial/sh-sci.c
-+++ b/drivers/tty/serial/sh-sci.c
-@@ -1573,7 +1573,7 @@ static void sci_request_dma(struct uart_port *port)
- 	 * Don't request a dma channel if no channel was specified
- 	 * in the device tree.
+ MODULE_AUTHOR("Eric Brower <ebrower@usa.net>");
+@@ -63,7 +63,7 @@ struct d7s *d7s_device;
+  * | DP | ALARM | FLIP | 4 | 3 | 2 | 1 | 0 |
+  * -----------------------------------------
+  *
+- * DP 		- Toggles decimal point on/off 
++ * DP 		- Toggles decimal point on/off
+  * ALARM	- Toggles "Alarm" LED green/red
+  * FLIP		- Inverts display for upside-down mounted board
+  * bits 0-4	- 7-segment display contents
+@@ -200,9 +200,8 @@ static int d7s_probe(struct platform_device *op)
  	 */
--	if (!of_find_property(port->dev->of_node, "dmas", NULL))
-+	if (!of_property_present(port->dev->of_node, "dmas"))
- 		return;
+ 	regs = readb(p->regs);
+ 	opts = of_find_node_by_path("/options");
+-	if (opts &&
+-	    of_get_property(opts, "d7s-flipped?", NULL))
+-		p->flipped = true;
++	if (opts)
++	    p->flipped = of_property_read_bool(opts, "d7s-flipped?");
  
- 	chan = sci_request_dma_chan(port, DMA_MEM_TO_DEV);
-diff --git a/drivers/tty/serial/sunzilog.c b/drivers/tty/serial/sunzilog.c
-index ccb809216e94..0fbeb3dbd843 100644
---- a/drivers/tty/serial/sunzilog.c
-+++ b/drivers/tty/serial/sunzilog.c
-@@ -1403,7 +1403,7 @@ static int zs_probe(struct platform_device *op)
- 	int keyboard_mouse = 0;
- 	int err;
- 
--	if (of_find_property(op->dev.of_node, "keyboard", NULL))
-+	if (of_property_present(op->dev.of_node, "keyboard"))
- 		keyboard_mouse = 1;
- 
- 	/* uarts must come before keyboards/mice */
-@@ -1553,7 +1553,7 @@ static int __init sunzilog_init(void)
- 
- 	for_each_node_by_name(dp, "zs") {
- 		num_sunzilog++;
--		if (of_find_property(dp, "keyboard", NULL))
-+		if (of_property_present(dp, "keyboard"))
- 			num_keybms++;
- 	}
- 
+ 	if (p->flipped)
+ 		regs |= D7S_FLIP;
 -- 
 2.39.2
 
