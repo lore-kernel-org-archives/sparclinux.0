@@ -2,112 +2,101 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93D25C6FA99
-	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 15:01:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0C53C64EC4
+	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 15:42:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233728AbjCJPBO (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Fri, 10 Mar 2023 10:01:14 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43990 "EHLO
+        id S230410AbjCJPmS (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 10 Mar 2023 10:42:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60656 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233626AbjCJPAu (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 10:00:50 -0500
-Received: from mail-ot1-x330.google.com (mail-ot1-x330.google.com [IPv6:2607:f8b0:4864:20::330])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1C44613595D;
-        Fri, 10 Mar 2023 06:54:37 -0800 (PST)
-Received: by mail-ot1-x330.google.com with SMTP id e9-20020a056830200900b00694651d19f6so3019519otp.12;
-        Fri, 10 Mar 2023 06:54:37 -0800 (PST)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1678459703;
-        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
-         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=2hDeOhL3khuyGbkCHxGQebu7qrt5FEKqtJ9+s/BvlnU=;
-        b=qDwi97pYbhCD1YPf3kNBg8tt77Uec/aP99EaGlQ3Rh5S31gM/31lOiyC8jKRo6E5Bi
-         Yqzbppm8uyV0CAOXisfOjj4b4Gnv2pOG79XUZsCUPPxSlupMG1Vl2LdPasRXANiyZBTw
-         F4NHxV0Yle/aCWI/+vOgUB264XTT2OdD7+D9CFrlrmr+UG3WTRmbf5Vx1ILvcDa3LK3m
-         2uKdo92JN2XwQMuUzsI0KMwE716GcmJm/zGWMvQXu9T+RSoiiBkh0f3aBIVfYyryH77D
-         yUukTtH5JpZx9xiiYd5/enN0erYHd1P3r5VUV+yTWH6D2PwO05JxnIn3TOtCCcJML5Bz
-         xtDA==
-X-Gm-Message-State: AO0yUKUlZk7aeGTp4Me7ebegfZ7ugbrgnq3VFctONyvDADKId8+IEU4a
-        YHWJjc7qAg+N+nb4Mxlwft6Vh0YRaQ==
-X-Google-Smtp-Source: AK7set9Kc8dfWCFSC8jOGyrkoR70quNRTNX3KTXU7X+DOxxLF7LR7Co3suYswTozmSpcg2dggln9yg==
-X-Received: by 2002:a9d:6118:0:b0:694:3972:dba8 with SMTP id i24-20020a9d6118000000b006943972dba8mr10239231otj.6.1678459702760;
-        Fri, 10 Mar 2023 06:48:22 -0800 (PST)
-Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id m30-20020a05683026de00b00690eeb8b436sm101859otu.65.2023.03.10.06.48.22
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 10 Mar 2023 06:48:22 -0800 (PST)
-Received: (nullmailer pid 1544956 invoked by uid 1000);
-        Fri, 10 Mar 2023 14:47:23 -0000
-From:   Rob Herring <robh@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>
-Cc:     devicetree@vger.kernel.org, sparclinux@vger.kernel.org,
+        with ESMTP id S231408AbjCJPmB (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 10:42:01 -0500
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de [IPv6:2001:67c:670:201:290:27ff:fe1d:cc33])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 25F6011F696
+        for <sparclinux@vger.kernel.org>; Fri, 10 Mar 2023 07:28:53 -0800 (PST)
+Received: from drehscheibe.grey.stw.pengutronix.de ([2a0a:edc0:0:c01:1d::a2])
+        by metis.ext.pengutronix.de with esmtps (TLS1.3:ECDHE_RSA_AES_256_GCM_SHA384:256)
+        (Exim 4.92)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1paefg-0005bY-F9; Fri, 10 Mar 2023 16:28:40 +0100
+Received: from [2a0a:edc0:0:900:1d::77] (helo=ptz.office.stw.pengutronix.de)
+        by drehscheibe.grey.stw.pengutronix.de with esmtp (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1paefe-003CqW-NB; Fri, 10 Mar 2023 16:28:38 +0100
+Received: from ukl by ptz.office.stw.pengutronix.de with local (Exim 4.94.2)
+        (envelope-from <ukl@pengutronix.de>)
+        id 1paefd-003pLw-JQ; Fri, 10 Mar 2023 16:28:37 +0100
+Date:   Fri, 10 Mar 2023 16:28:36 +0100
+From:   Uwe =?utf-8?Q?Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+To:     Rob Herring <robh@kernel.org>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jiri Slaby <jirislaby@kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Pengutronix Kernel Team <kernel@pengutronix.de>,
+        Fabio Estevam <festevam@gmail.com>,
+        NXP Linux Team <linux-imx@nxp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        sparclinux@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH] sbus: display7seg: Use of_property_read_bool() for boolean properties
-Date:   Fri, 10 Mar 2023 08:47:22 -0600
-Message-Id: <20230310144723.1544930-1-robh@kernel.org>
-X-Mailer: git-send-email 2.39.2
+Subject: Re: [PATCH] serial: Use of_property_present() for testing DT
+ property presence
+Message-ID: <20230310152836.f4n5cu6kexa3gl7z@pengutronix.de>
+References: <20230310144727.1545630-1-robh@kernel.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="ati6fbauj5jqixyf"
+Content-Disposition: inline
+In-Reply-To: <20230310144727.1545630-1-robh@kernel.org>
+X-SA-Exim-Connect-IP: 2a0a:edc0:0:c01:1d::a2
+X-SA-Exim-Mail-From: ukl@pengutronix.de
+X-SA-Exim-Scanned: No (on metis.ext.pengutronix.de); SAEximRunCond expanded to false
+X-PTX-Original-Recipient: sparclinux@vger.kernel.org
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-It is preferred to use typed property access functions (i.e.
-of_property_read_<type> functions) rather than low-level
-of_get_property/of_find_property functions for reading properties.
-Convert reading boolean properties to to of_property_read_bool().
 
-Signed-off-by: Rob Herring <robh@kernel.org>
----
- drivers/sbus/char/display7seg.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+--ati6fbauj5jqixyf
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/sbus/char/display7seg.c b/drivers/sbus/char/display7seg.c
-index d93595b39afa..8bee31f03126 100644
---- a/drivers/sbus/char/display7seg.c
-+++ b/drivers/sbus/char/display7seg.c
-@@ -31,8 +31,8 @@ static int sol_compat = 0;		/* Solaris compatibility mode	*/
- 
- /* Solaris compatibility flag -
-  * The Solaris implementation omits support for several
-- * documented driver features (ref Sun doc 806-0180-03).  
-- * By default, this module supports the documented driver 
-+ * documented driver features (ref Sun doc 806-0180-03).
-+ * By default, this module supports the documented driver
-  * abilities, rather than the Solaris implementation:
-  *
-  * 	1) Device ALWAYS reverts to OBP-specified FLIPPED mode
-@@ -44,7 +44,7 @@ static int sol_compat = 0;		/* Solaris compatibility mode	*/
-  * omitting above features, set this parameter to non-zero.
-  */
- module_param(sol_compat, int, 0);
--MODULE_PARM_DESC(sol_compat, 
-+MODULE_PARM_DESC(sol_compat,
- 		 "Disables documented functionality omitted from Solaris driver");
- 
- MODULE_AUTHOR("Eric Brower <ebrower@usa.net>");
-@@ -63,7 +63,7 @@ struct d7s *d7s_device;
-  * | DP | ALARM | FLIP | 4 | 3 | 2 | 1 | 0 |
-  * -----------------------------------------
-  *
-- * DP 		- Toggles decimal point on/off 
-+ * DP 		- Toggles decimal point on/off
-  * ALARM	- Toggles "Alarm" LED green/red
-  * FLIP		- Inverts display for upside-down mounted board
-  * bits 0-4	- 7-segment display contents
-@@ -200,9 +200,8 @@ static int d7s_probe(struct platform_device *op)
- 	 */
- 	regs = readb(p->regs);
- 	opts = of_find_node_by_path("/options");
--	if (opts &&
--	    of_get_property(opts, "d7s-flipped?", NULL))
--		p->flipped = true;
-+	if (opts)
-+	    p->flipped = of_property_read_bool(opts, "d7s-flipped?");
- 
- 	if (p->flipped)
- 		regs |= D7S_FLIP;
--- 
-2.39.2
+On Fri, Mar 10, 2023 at 08:47:26AM -0600, Rob Herring wrote:
+> It is preferred to use typed property access functions (i.e.
+> of_property_read_<type> functions) rather than low-level
+> of_get_property/of_find_property functions for reading properties. As
+> part of this, convert of_get_property/of_find_property calls to the
+> recently added of_property_present() helper when we just want to test
+> for presence of a property and nothing more.
+>=20
+> Signed-off-by: Rob Herring <robh@kernel.org>
 
+Looks reasonable,
+
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+
+Thanks
+Uwe
+
+--=20
+Pengutronix e.K.                           | Uwe Kleine-K=F6nig            |
+Industrial Linux Solutions                 | https://www.pengutronix.de/ |
+
+--ati6fbauj5jqixyf
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEfnIqFpAYrP8+dKQLwfwUeK3K7AkFAmQLTKEACgkQwfwUeK3K
+7Al9PAf/Rh6USL2v/0+eSNRzqW+0QUGeBmGE62ZU3YAxtKlM3Rr3Na7iJ4qbmefa
+OUsmybvFtpi5m6ht0GWOx3GQ9FSEa24Q2BEslg6l7EmCf0kw94UlQMMp8xE3UAZN
+T+OUMyFs6ZIPd+VtGQ+KaMHeuJe9AejLDtWmtv6VX2r9ywmHKY6mYNxDl+shVaJP
+741gIg4CDAtSyR3hjkwh4WbL7Q8wdJlvxEmppeNByPf7gHXymWYcc5i5GqcqnNxh
+Vtvc/Ni9LJDtXRRhvO0iP8b5Z43mhgNuyEuk3P4IdoR3nOCEf90Bj3eAgdiDvKhg
+HxA6yUvDO7Obl/X5Hm3mtZdmoF9h9Q==
+=xrfu
+-----END PGP SIGNATURE-----
+
+--ati6fbauj5jqixyf--
