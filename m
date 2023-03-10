@@ -2,113 +2,94 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4456C61DA4
-	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 01:46:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FF06C64EC4
+	for <sparclinux@archiver.kernel.org>; Fri, 10 Mar 2023 14:47:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229956AbjCJBq0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 9 Mar 2023 20:46:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36020 "EHLO
+        id S233099AbjCJOrs (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 10 Mar 2023 09:47:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43810 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229597AbjCJBqZ (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 9 Mar 2023 20:46:25 -0500
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.133.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7186F4D8C
-        for <sparclinux@vger.kernel.org>; Thu,  9 Mar 2023 17:45:38 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1678412737;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=RtJkfRI7AXY3SogCgOFRi4FhIfSeTbcT8pIq6VJrULQ=;
-        b=XQs0wVhezjUDRgOwE5RpHxXoRUL8CT5G6JzAQXzngU16YVsWkMF9xc8sLFkYDyqNAzWrd0
-        I4hUqrFLKaJS8naIzK3HP7WlwrCCBg8o9Thka/EK+wz5yGb9ZNmim0uTqZZySq9jpnxXyo
-        ZtkqJHwEUuc+BujuPpYbbPInHeokYDE=
-Received: from mimecast-mx02.redhat.com (mx3-rdu2.redhat.com
- [66.187.233.73]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.2, cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id
- us-mta-86-woUwnrrKNFetIWSKVrCPTA-1; Thu, 09 Mar 2023 20:45:34 -0500
-X-MC-Unique: woUwnrrKNFetIWSKVrCPTA-1
-Received: from smtp.corp.redhat.com (int-mx02.intmail.prod.int.rdu2.redhat.com [10.11.54.2])
-        (using TLSv1.2 with cipher AECDH-AES256-SHA (256/256 bits))
-        (No client certificate requested)
-        by mimecast-mx02.redhat.com (Postfix) with ESMTPS id B7D531C0518D;
-        Fri, 10 Mar 2023 01:45:33 +0000 (UTC)
-Received: from localhost (ovpn-12-184.pek2.redhat.com [10.72.12.184])
-        by smtp.corp.redhat.com (Postfix) with ESMTPS id BDB654010E36;
-        Fri, 10 Mar 2023 01:45:32 +0000 (UTC)
-Date:   Fri, 10 Mar 2023 09:45:28 +0800
-From:   Baoquan He <bhe@redhat.com>
-To:     Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc:     linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-mm@kvack.org, arnd@arndb.de, mpe@ellerman.id.au,
-        geert@linux-m68k.org, mcgrof@kernel.org, hch@infradead.org,
-        linux-alpha@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-parisc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH v4 3/4] arch/*/io.h: remove ioremap_uc in some
- architectures
-Message-ID: <ZAqLuNrPng9i0rZV@MiWiFi-R3L-srv>
-References: <20230308130710.368085-1-bhe@redhat.com>
- <20230308130710.368085-4-bhe@redhat.com>
- <20230309143621.GA12350@alpha.franken.de>
+        with ESMTP id S233037AbjCJOrZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 10 Mar 2023 09:47:25 -0500
+Received: from mail-oa1-f50.google.com (mail-oa1-f50.google.com [209.85.160.50])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36BCE1220BB;
+        Fri, 10 Mar 2023 06:47:07 -0800 (PST)
+Received: by mail-oa1-f50.google.com with SMTP id 586e51a60fabf-176eae36feaso6060434fac.6;
+        Fri, 10 Mar 2023 06:47:07 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1678459625;
+        h=content-transfer-encoding:mime-version:message-id:date:subject:cc
+         :to:from:x-gm-message-state:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=yLGw8/N7wbk7qqj38LlwiCbM3yJg3WQAA0qdjYBUqJg=;
+        b=N6ZNflhSTg+OqIMFmSpYhlaCmO0BzpK/hvxauoBbskX97ayR7fjetgZ5cCdEJe7aVO
+         0SsPb93bYVDtU0SjT7UduzLJHcv+960WzMCGRtGTEAWaqjkSOTSXGH7hY7ZRTlp345zU
+         x6b/2yJoggLKPv/Rx72F9DMozML1ioJ+l8r8N5vr8EY6MitIcYG16Ww+uyMvsJlD0KQ9
+         f//jcCd1+lrxuxRN2qVWTPzk6lgqH1jabi4fil7/QpdoU24hdV4ACMdqUm7K1XCotkWL
+         WsIJebl+3FGEUj4a47ZFAgxC4Yo16ergyjsWpWabtrQdwX+GpyZSEyKl1Ge6EhpLHegu
+         +jjA==
+X-Gm-Message-State: AO0yUKVFPgz8ElzSld6JYqGLSDKfJSvbDLU/mfwmKSZPTqABtw6XM/e5
+        xQIhoXU8xSYG3WX0MpOPhDCcC4t3Yw==
+X-Google-Smtp-Source: AK7set+JLaSzGTT9vEtfOqLUFsJK54NUYOi4JW5jGxK9Bs91BwCafDq8lihl1GWavwrijGpdB8JYQg==
+X-Received: by 2002:a05:6870:d78d:b0:16e:1984:706f with SMTP id bd13-20020a056870d78d00b0016e1984706fmr15340990oab.8.1678459624682;
+        Fri, 10 Mar 2023 06:47:04 -0800 (PST)
+Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
+        by smtp.gmail.com with ESMTPSA id p10-20020a4ae14a000000b00500c1100651sm822519oot.45.2023.03.10.06.47.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 10 Mar 2023 06:47:04 -0800 (PST)
+Received: (nullmailer pid 1541371 invoked by uid 1000);
+        Fri, 10 Mar 2023 14:47:00 -0000
+From:   Rob Herring <robh@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>
+Cc:     devicetree@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] sparc: Use of_property_read_bool() for boolean properties
+Date:   Fri, 10 Mar 2023 08:47:00 -0600
+Message-Id: <20230310144700.1541345-1-robh@kernel.org>
+X-Mailer: git-send-email 2.39.2
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230309143621.GA12350@alpha.franken.de>
-X-Scanned-By: MIMEDefang 3.1 on 10.11.54.2
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 03/09/23 at 03:36pm, Thomas Bogendoerfer wrote:
-> On Wed, Mar 08, 2023 at 09:07:09PM +0800, Baoquan He wrote:
-> > ioremap_uc() is only meaningful on old x86-32 systems with the PAT
-> > extension, and on ia64 with its slightly unconventional ioremap()
-> > behavior. So remove the ioremap_uc() definition in architecutures
-> > other than x86 and ia64. These architectures all have asm-generic/io.h
-> > included and will have the default ioremap_uc() definition which
-> > returns NULL.
-> > 
-> > This changes the existing behaviour, while no need to worry about
-> > any breakage because in the only callsite of ioremap_uc(), code
-> > has been adjusted to eliminate the impact. Please see
-> > atyfb_setup_generic() of drivers/video/fbdev/aty/atyfb_base.c.
-> > 
-> > If any new invocation of ioremap_uc() need be added, please consider
-> > using ioremap() intead or adding a ARCH specific version if necessary.
-> > 
-> > Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> > Signed-off-by: Baoquan He <bhe@redhat.com>
-> > Cc: linux-alpha@vger.kernel.org
-> > Cc: linux-hexagon@vger.kernel.org
-> > Cc: linux-m68k@lists.linux-m68k.org
-> > Cc: linux-mips@vger.kernel.org
-> > Cc: linux-parisc@vger.kernel.org
-> > Cc: linuxppc-dev@lists.ozlabs.org
-> > Cc: linux-sh@vger.kernel.org
-> > Cc: sparclinux@vger.kernel.org
-> > ---
-> >  Documentation/driver-api/device-io.rst | 9 +++++----
-> >  arch/alpha/include/asm/io.h            | 1 -
-> >  arch/hexagon/include/asm/io.h          | 3 ---
-> >  arch/m68k/include/asm/kmap.h           | 1 -
-> >  arch/mips/include/asm/io.h             | 1 -
-> >  arch/parisc/include/asm/io.h           | 2 --
-> >  arch/powerpc/include/asm/io.h          | 1 -
-> >  arch/sh/include/asm/io.h               | 2 --
-> >  arch/sparc/include/asm/io_64.h         | 1 -
-> >  9 files changed, 5 insertions(+), 16 deletions(-)
-> 
-> this doesn't apply to v6.3-rc1... what tree is this based on ?
+It is preferred to use typed property access functions (i.e.
+of_property_read_<type> functions) rather than low-level
+of_get_property/of_find_property functions for reading properties.
+Convert reading boolean properties to to of_property_read_bool().
 
-Sorry, I forgot mentioning this in cover letter. This series is
-followup of below patchset, so it's on top of below patchset and based
-on v6.3-rc1.
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ arch/sparc/kernel/pci_schizo.c | 2 +-
+ arch/sparc/kernel/power.c      | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-https://lore.kernel.org/all/20230301034247.136007-1-bhe@redhat.com/T/#u
-[PATCH v5 00/17] mm: ioremap:  Convert architectures to take GENERIC_IOREMAP way
-
-Thanks
-Baoquan
+diff --git a/arch/sparc/kernel/pci_schizo.c b/arch/sparc/kernel/pci_schizo.c
+index 421aba00e6b0..23b47f7fdb1d 100644
+--- a/arch/sparc/kernel/pci_schizo.c
++++ b/arch/sparc/kernel/pci_schizo.c
+@@ -1270,7 +1270,7 @@ static void schizo_pbm_hw_init(struct pci_pbm_info *pbm)
+ 	    pbm->chip_version >= 0x2)
+ 		tmp |= 0x3UL << SCHIZO_PCICTRL_PTO_SHIFT;
+ 
+-	if (!of_find_property(pbm->op->dev.of_node, "no-bus-parking", NULL))
++	if (!of_property_read_bool(pbm->op->dev.of_node, "no-bus-parking"))
+ 		tmp |= SCHIZO_PCICTRL_PARK;
+ 	else
+ 		tmp &= ~SCHIZO_PCICTRL_PARK;
+diff --git a/arch/sparc/kernel/power.c b/arch/sparc/kernel/power.c
+index d941875dd718..8147985a1dc4 100644
+--- a/arch/sparc/kernel/power.c
++++ b/arch/sparc/kernel/power.c
+@@ -28,7 +28,7 @@ static int has_button_interrupt(unsigned int irq, struct device_node *dp)
+ {
+ 	if (irq == 0xffffffff)
+ 		return 0;
+-	if (!of_find_property(dp, "button", NULL))
++	if (!of_property_read_bool(dp, "button"))
+ 		return 0;
+ 
+ 	return 1;
+-- 
+2.39.2
 
