@@ -2,157 +2,115 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BC27C76195
-	for <sparclinux@archiver.kernel.org>; Tue, 14 Mar 2023 16:39:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CFC4C74A44
+	for <sparclinux@archiver.kernel.org>; Tue, 14 Mar 2023 18:41:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230286AbjCNQjg (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Mar 2023 12:39:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38868 "EHLO
+        id S229720AbjCNSl4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Mar 2023 14:41:56 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229743AbjCNQjd (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Mar 2023 12:39:33 -0400
-Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2BB312CE7;
-        Tue, 14 Mar 2023 09:39:31 -0700 (PDT)
-Received: from pps.filterd (m0187473.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32EGRZv7022013;
-        Tue, 14 Mar 2023 16:37:45 GMT
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
- from : to : cc : date : in-reply-to : references : content-type :
- content-transfer-encoding : mime-version; s=pp1;
- bh=kD2FKGQJY5Kf8K0VUyX35AX5LQg3aJuJoe2kwtuWMw0=;
- b=iX+D+PfLCDYte+nyP0JUfTanv1++cGMzXrkEu0Li7gI+yPLgvxEuvkpjg4AncLeq64G9
- 2J9fKM7/vPtmoBOzbMKmeCDtmQG0XDWf54DltcsKhWYAuKplKoOIpPTtp95LGHgrmgiV
- Rq3jKvzt+N1JnIEz6jZRQsFU2f723zceIWqx9FuNuJRK75jzM/k+WABeQua+XcnSbykr
- bdRxuuZaXxG3TSQoNNiFZgrb+KDS3pIxhdEgt8PRwyQlXBieEpqK8ka56UgVrIypPnNx
- tnn7NWo4kn7j5vMmGl15UmWAXzMuzcf0dXBg5vuYXQnfj5PClVT6OaWcgCyyxtydI2AT YQ== 
-Received: from pps.reinject (localhost [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pavf5r7qa-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 14 Mar 2023 16:37:45 +0000
-Received: from m0187473.ppops.net (m0187473.ppops.net [127.0.0.1])
-        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 32EGRYU7021991;
-        Tue, 14 Mar 2023 16:37:44 GMT
-Received: from ppma03ams.nl.ibm.com (62.31.33a9.ip4.static.sl-reverse.com [169.51.49.98])
-        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pavf5r7nw-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 14 Mar 2023 16:37:43 +0000
-Received: from pps.filterd (ppma03ams.nl.ibm.com [127.0.0.1])
-        by ppma03ams.nl.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 32E8ZueW001600;
-        Tue, 14 Mar 2023 16:37:40 GMT
-Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
-        by ppma03ams.nl.ibm.com (PPS) with ESMTPS id 3p8h96n2sy-1
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
-        Tue, 14 Mar 2023 16:37:40 +0000
-Received: from smtpav02.fra02v.mail.ibm.com (smtpav02.fra02v.mail.ibm.com [10.20.54.101])
-        by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 32EGbc0p46662236
-        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
-        Tue, 14 Mar 2023 16:37:38 GMT
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id 59AC220040;
-        Tue, 14 Mar 2023 16:37:38 +0000 (GMT)
-Received: from smtpav02.fra02v.mail.ibm.com (unknown [127.0.0.1])
-        by IMSVA (Postfix) with ESMTP id A522C20043;
-        Tue, 14 Mar 2023 16:37:34 +0000 (GMT)
-Received: from [9.171.50.237] (unknown [9.171.50.237])
-        by smtpav02.fra02v.mail.ibm.com (Postfix) with ESMTP;
-        Tue, 14 Mar 2023 16:37:34 +0000 (GMT)
-Message-ID: <62b254d84463338f0210b52e37628d05416787d1.camel@linux.ibm.com>
-Subject: Re: [PATCH v3 01/38] Kconfig: introduce HAS_IOPORT option and
- select it as necessary
-From:   Niklas Schnelle <schnelle@linux.ibm.com>
-To:     Arnd Bergmann <arnd@arndb.de>,
+        with ESMTP id S229464AbjCNSlx (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Mar 2023 14:41:53 -0400
+Received: from mga01.intel.com (mga01.intel.com [192.55.52.88])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2463E1166D;
+        Tue, 14 Mar 2023 11:41:52 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
+  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
+  t=1678819312; x=1710355312;
+  h=date:from:to:cc:subject:message-id:references:
+   mime-version:in-reply-to;
+  bh=cCLbIes7UXT3DAC9eDK/G+6dQMpfpn9vtj5PUMV+0Io=;
+  b=Af2FD7pGJgxJcLSxK8hjVc+o6A7GaUbywJetD8mVZokYCesM4St4G2+P
+   O+V1+0aKwa0Yzi+Sbtc6pB2xmemvXRipZl1A81YOqPufcp67dXsDyRoyJ
+   C8OOIVmDCmut9u1ReD7/cnejnOE9KkjR+3V0pngqPKIHkNn3TaSxUhx6T
+   NORONl6r5VpSkiC/4jLLRcE0sqdvmvbNpd8VUV/hHiO6UCaWBXjUNP6vE
+   ld6x2i4XU2yE594c3uS9XV1NEXXPju8e7nB+1MQhrnbjjwF8x1zEpXceL
+   GJrGNeuHRjquhV7Mujh52muOyXZde6YLQfvoxxW3ZMpOIgtWFBXkSb79C
+   g==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="365184272"
+X-IronPort-AV: E=Sophos;i="5.98,260,1673942400"; 
+   d="scan'208";a="365184272"
+Received: from fmsmga003.fm.intel.com ([10.253.24.29])
+  by fmsmga101.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Mar 2023 11:40:13 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="768214212"
+X-IronPort-AV: E=Sophos;i="5.98,260,1673942400"; 
+   d="scan'208";a="768214212"
+Received: from smile.fi.intel.com ([10.237.72.54])
+  by FMSMGA003.fm.intel.com with ESMTP; 14 Mar 2023 11:40:01 -0700
+Received: from andy by smile.fi.intel.com with local (Exim 4.96)
+        (envelope-from <andriy.shevchenko@linux.intel.com>)
+        id 1pc9Yy-003NFt-2t;
+        Tue, 14 Mar 2023 20:39:56 +0200
+Date:   Tue, 14 Mar 2023 20:39:56 +0200
+From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To:     Keith Busch <kbusch@kernel.org>
+Cc:     =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
+        Mika Westerberg <mika.westerberg@linux.intel.com>,
+        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Bjorn Helgaas <helgaas@kernel.org>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Niklas Schnelle <schnelle@linux.ibm.com>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
+        "Maciej W. Rozycki" <macro@orcam.me.uk>,
+        Juergen Gross <jgross@suse.com>,
+        Dominik Brodowski <linux@dominikbrodowski.net>,
+        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
+        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
+        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org,
+        Miguel Ojeda <ojeda@kernel.org>,
         Richard Henderson <richard.henderson@linaro.org>,
         Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
         Matt Turner <mattst88@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
+        Andrew Lunn <andrew@lunn.ch>,
+        Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>,
+        Gregory Clement <gregory.clement@bootlin.com>,
         Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
         Nicholas Piggin <npiggin@gmail.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
+        Anatolij Gustschin <agust@denx.de>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
         Rich Felker <dalias@libc.org>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
         "David S. Miller" <davem@davemloft.net>,
-        Richard Weinberger <richard@nod.at>,
-        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
-        Johannes Berg <johannes@sipsolutions.net>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
-        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
-        "H. Peter Anvin" <hpa@zytor.com>
-Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
-        Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= 
-        <u.kleine-koenig@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        linux-pci@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
-        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-um@lists.infradead.org
-Date:   Tue, 14 Mar 2023 17:37:34 +0100
-In-Reply-To: <20230314121216.413434-2-schnelle@linux.ibm.com>
-References: <20230314121216.413434-1-schnelle@linux.ibm.com>
-         <20230314121216.413434-2-schnelle@linux.ibm.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
+        Stefano Stabellini <sstabellini@kernel.org>,
+        Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
+Subject: Re: [PATCH v4 1/4] PCI: Introduce pci_dev_for_each_resource()
+Message-ID: <ZBC/fL+KS7RiZClB@smile.fi.intel.com>
+References: <20230310171416.23356-1-andriy.shevchenko@linux.intel.com>
+ <20230310171416.23356-2-andriy.shevchenko@linux.intel.com>
+ <ZAusCnLSXeEcpQs+@kbusch-mbp.dhcp.thefacebook.com>
 MIME-Version: 1.0
-X-TM-AS-GCONF: 00
-X-Proofpoint-ORIG-GUID: GueKt5igeUn3bYmxiu67S5oTPZyYNUi9
-X-Proofpoint-GUID: 5FevvOZ3EWLw6_zZHyJRkdUMIbd32WjR
-X-Proofpoint-Virus-Version: vendor=baseguard
- engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
- definitions=2023-03-14_10,2023-03-14_02,2023-02-09_01
-X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 suspectscore=0 phishscore=0
- mlxlogscore=675 mlxscore=0 priorityscore=1501 impostorscore=0
- clxscore=1015 malwarescore=0 spamscore=0 bulkscore=0 adultscore=0
- lowpriorityscore=0 classifier=spam adjust=0 reason=mlx scancount=1
- engine=8.12.0-2212070000 definitions=main-2303140137
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ZAusCnLSXeEcpQs+@kbusch-mbp.dhcp.thefacebook.com>
+Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Tue, 2023-03-14 at 13:11 +0100, Niklas Schnelle wrote:
-> We introduce a new HAS_IOPORT Kconfig option to indicate support for I/O
-> Port access. In a future patch HAS_IOPORT=3Dn will disable compilation of
-> the I/O accessor functions inb()/outb() and friends on architectures
-> which can not meaningfully support legacy I/O spaces such as s390. Also
-> add dependencies on HAS_IOPORT for the ISA and HAVE_EISA config options
-> as these busses always go along with HAS_IOPORT.
->=20
-> The "depends on" relations on HAS_IOPORT in drivers as well as ifdefs
-> for HAS_IOPORT specific sections will be added in subsequent patches on
-> a per subsystem basis.
->=20
-> Co-developed-by: Arnd Bergmann <arnd@kernel.org>
-> Signed-off-by: Niklas Schnelle <schnelle@linux.ibm.com>
-> ---
->=20
+On Fri, Mar 10, 2023 at 03:15:38PM -0700, Keith Busch wrote:
+> On Fri, Mar 10, 2023 at 07:14:13PM +0200, Andy Shevchenko wrote:
 
-@Arnd, I swear I asked you and then added Signed-off-bys for all these
-Co-developed-bys as suggested by checkpatch. Sadly that must have been
-during my failed attempt of converting to b4 prep / b4 send before
-sending this last Friday and then it got lost. It almost worked and is
-a very nice work flow except that b4 currently can only use a single
-list of To/Cc fields and for this treewide series that would probably
-hit mail server limits. Added it now.
+...
 
-Thanks,
-Niklas
+> > +#define pci_dev_for_each_resource_p(dev, res)				\
+> > +	__pci_dev_for_each_resource(dev, res, i, unsigned int)
+> 
+> It looks dangerous to have a macro declare a variable when starting a new
+> scope. How do you know the name 'i' won't clash with something defined above?
+
+I'll rename. Thank you.
+
+-- 
+With Best Regards,
+Andy Shevchenko
+
 
