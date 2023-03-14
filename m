@@ -2,44 +2,44 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B74E0C7618E
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7206AC7618D
 	for <sparclinux@archiver.kernel.org>; Tue, 14 Mar 2023 19:26:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230234AbjCNT0M (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 14 Mar 2023 15:26:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35580 "EHLO
+        id S230023AbjCNT0K (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 14 Mar 2023 15:26:10 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35550 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229475AbjCNT0J (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Mar 2023 15:26:09 -0400
-Received: from mga07.intel.com (mga07.intel.com [134.134.136.100])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D27AF979;
-        Tue, 14 Mar 2023 12:26:04 -0700 (PDT)
+        with ESMTP id S229690AbjCNT0H (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 14 Mar 2023 15:26:07 -0400
+Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 573047680;
+        Tue, 14 Mar 2023 12:26:03 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1678821964; x=1710357964;
-  h=from:to:cc:subject:date:message-id:in-reply-to:
-   references:mime-version:content-transfer-encoding;
-  bh=3Bu5KEQ7VbEZVFxJWJ3dCxTl63qFR3TMO6ewhBoLJ+8=;
-  b=m7I5cnQz5VqgaSgmnP+VYIVf1FMaqPRo8a6woO+CmvxnxqSmYyBusbWM
-   r5cufTyZ39Z/H4U4fIzzKYZCnBBBtlfwUo5sP1YG1qSlNY6HYAoORTLRY
-   nKYcygVLwVVpTUhyFCu73z33iRFI2st1WCxcI2UA716YtjJbK6dglMKZU
-   VQiFfBZHQ53KMtygpqWfYcOYF60nK69OcjKknJVJ0ZdjzAutS0WmFNLM0
-   zRMyyAg6m/yObM3L3hmcA8o+xhHIbkVDhahZ9ik9o9NiztHv6eQ+/IIPl
-   KpUdrkB8/lioQDa4K2D37MqALzsNrD9bNuNMVhJfleiJZU6mb3wf35FQk
-   g==;
-X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="402389722"
+  t=1678821963; x=1710357963;
+  h=from:to:cc:subject:date:message-id:mime-version:
+   content-transfer-encoding;
+  bh=o5wvjgss3WToenPFVgKISR2zGwGV5RepaqjvWSlSslQ=;
+  b=KNrV18sw6210DnZK1eieibt424sRaN+UjSdho91UXgFOgW/lEG8JWKz5
+   dhfMivped0VLpl0ybj6BNJzl7yzEhQI0fGzFVDb9vEBEckYbo8LvOXEgm
+   Mw1qT5qFhwAHk/1JDAs7Z7s7shsyEBN1uQXEMKEAJALn1mfyZm7UcMiT8
+   RNMhkkNzgDdwaVxUslhQO72V36/Ov44/5qdbWqLMlVOivs4sHCtUDIjXk
+   PoH0fk20HUsiCrn1luqIfo27Fyl4mD8SEiR3CmYgm+RwJemFxCk5wraEQ
+   PaVKEpYPezzHzTd7b/c7xp+7Onkq+/k9dP6mnOBpl/PEvLV9LdCmFdSiB
+   w==;
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="321368987"
 X-IronPort-AV: E=Sophos;i="5.98,260,1673942400"; 
-   d="scan'208";a="402389722"
-Received: from orsmga006.jf.intel.com ([10.7.209.51])
-  by orsmga105.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Mar 2023 12:26:02 -0700
+   d="scan'208";a="321368987"
+Received: from fmsmga001.fm.intel.com ([10.253.24.23])
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 14 Mar 2023 12:26:02 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="656474978"
+X-IronPort-AV: E=McAfee;i="6500,9779,10649"; a="822495607"
 X-IronPort-AV: E=Sophos;i="5.98,260,1673942400"; 
-   d="scan'208";a="656474978"
+   d="scan'208";a="822495607"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga006.jf.intel.com with ESMTP; 14 Mar 2023 12:25:52 -0700
+  by fmsmga001.fm.intel.com with ESMTP; 14 Mar 2023 12:25:52 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id BC9AF3B8; Tue, 14 Mar 2023 21:26:37 +0200 (EET)
+        id 77DF1163; Tue, 14 Mar 2023 21:26:37 +0200 (EET)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
         Mika Westerberg <mika.westerberg@linux.intel.com>,
@@ -79,12 +79,10 @@ Cc:     Miguel Ojeda <ojeda@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: [PATCH v5 4/4] pcmcia: Convert to use pci_bus_for_each_resource_p()
-Date:   Tue, 14 Mar 2023 21:26:34 +0200
-Message-Id: <20230314192634.63531-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v5 0/4] PCI: Add pci_dev_for_each_resource() helper and update users
+Date:   Tue, 14 Mar 2023 21:26:30 +0200
+Message-Id: <20230314192634.63531-1-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.39.2
-In-Reply-To: <20230314192634.63531-1-andriy.shevchenko@linux.intel.com>
-References: <20230314192634.63531-1-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
@@ -92,61 +90,71 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-The pci_bus_for_each_resource_p() hides the iterator loop since
-it may be not used otherwise. With this, we may drop that iterator
-variable definition.
+Provide two new helper macros to iterate over PCI device resources and
+convert users.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Krzysztof Wilczyński <kw@linux.com>
-Acked-by: Dominik Brodowski <linux@dominikbrodowski.net>
----
- drivers/pcmcia/rsrc_nonstatic.c | 9 +++------
- drivers/pcmcia/yenta_socket.c   | 3 +--
- 2 files changed, 4 insertions(+), 8 deletions(-)
+Looking at it, refactor existing pci_bus_for_each_resource() and convert
+users accordingly.
 
-diff --git a/drivers/pcmcia/rsrc_nonstatic.c b/drivers/pcmcia/rsrc_nonstatic.c
-index ad1141fddb4c..9d92d4bb6239 100644
---- a/drivers/pcmcia/rsrc_nonstatic.c
-+++ b/drivers/pcmcia/rsrc_nonstatic.c
-@@ -934,7 +934,7 @@ static int adjust_io(struct pcmcia_socket *s, unsigned int action, unsigned long
- static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
- {
- 	struct resource *res;
--	int i, done = 0;
-+	int done = 0;
- 
- 	if (!s->cb_dev || !s->cb_dev->bus)
- 		return -ENODEV;
-@@ -960,12 +960,9 @@ static int nonstatic_autoadd_resources(struct pcmcia_socket *s)
- 	 */
- 	if (s->cb_dev->bus->number == 0)
- 		return -EINVAL;
--
--	for (i = 0; i < PCI_BRIDGE_RESOURCE_NUM; i++) {
--		res = s->cb_dev->bus->resource[i];
--#else
--	pci_bus_for_each_resource(s->cb_dev->bus, res, i) {
- #endif
-+
-+	pci_bus_for_each_resource_p(s->cb_dev->bus, res) {
- 		if (!res)
- 			continue;
- 
-diff --git a/drivers/pcmcia/yenta_socket.c b/drivers/pcmcia/yenta_socket.c
-index 1365eaa20ff4..2e5bdf3db0ba 100644
---- a/drivers/pcmcia/yenta_socket.c
-+++ b/drivers/pcmcia/yenta_socket.c
-@@ -673,9 +673,8 @@ static int yenta_search_res(struct yenta_socket *socket, struct resource *res,
- 			    u32 min)
- {
- 	struct resource *root;
--	int i;
- 
--	pci_bus_for_each_resource(socket->dev->bus, root, i) {
-+	pci_bus_for_each_resource_p(socket->dev->bus, root) {
- 		if (!root)
- 			continue;
- 
+Changelog v5:
+- renamed loop variable to minimize the clash (Keith)
+- addressed smatch warning (Dan)
+- addressed 0-day bot findings (LKP)
+
+Changelog v4:
+- rebased on top of v6.3-rc1
+- added tag (Krzysztof)
+
+Changelog v3:
+- rebased on top of v2 by Mika, see above
+- added tag to pcmcia patch (Dominik)
+
+Changelog v2:
+- refactor to have two macros
+- refactor existing pci_bus_for_each_resource() in the same way and
+  convert users
+
+Andy Shevchenko (3):
+  PCI: Split pci_bus_for_each_resource_p() out of
+    pci_bus_for_each_resource()
+  EISA: Convert to use pci_bus_for_each_resource_p()
+  pcmcia: Convert to use pci_bus_for_each_resource_p()
+
+Mika Westerberg (1):
+  PCI: Introduce pci_dev_for_each_resource()
+
+ .clang-format                             |  3 ++
+ arch/alpha/kernel/pci.c                   |  5 ++-
+ arch/arm/kernel/bios32.c                  | 16 +++++-----
+ arch/arm/mach-dove/pcie.c                 | 10 +++---
+ arch/arm/mach-mv78xx0/pcie.c              | 10 +++---
+ arch/arm/mach-orion5x/pci.c               | 10 +++---
+ arch/mips/pci/ops-bcm63xx.c               |  8 ++---
+ arch/mips/pci/pci-legacy.c                |  3 +-
+ arch/powerpc/kernel/pci-common.c          | 21 +++++++------
+ arch/powerpc/platforms/4xx/pci.c          |  8 ++---
+ arch/powerpc/platforms/52xx/mpc52xx_pci.c |  4 +--
+ arch/powerpc/platforms/pseries/pci.c      | 16 +++++-----
+ arch/sh/drivers/pci/pcie-sh7786.c         | 10 +++---
+ arch/sparc/kernel/leon_pci.c              |  5 ++-
+ arch/sparc/kernel/pci.c                   | 10 +++---
+ arch/sparc/kernel/pcic.c                  |  5 ++-
+ drivers/eisa/pci_eisa.c                   |  4 +--
+ drivers/pci/bus.c                         |  7 ++---
+ drivers/pci/hotplug/shpchp_sysfs.c        |  8 ++---
+ drivers/pci/pci.c                         |  5 ++-
+ drivers/pci/probe.c                       |  2 +-
+ drivers/pci/remove.c                      |  5 ++-
+ drivers/pci/setup-bus.c                   | 37 +++++++++--------------
+ drivers/pci/setup-res.c                   |  4 +--
+ drivers/pci/vgaarb.c                      | 17 +++--------
+ drivers/pci/xen-pcifront.c                |  4 +--
+ drivers/pcmcia/rsrc_nonstatic.c           |  9 ++----
+ drivers/pcmcia/yenta_socket.c             |  3 +-
+ drivers/pnp/quirks.c                      | 29 ++++++------------
+ include/linux/pci.h                       | 29 ++++++++++++++----
+ 30 files changed, 142 insertions(+), 165 deletions(-)
+
 -- 
 2.39.2
 
