@@ -2,160 +2,90 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C55CC6FD19
-	for <sparclinux@archiver.kernel.org>; Thu, 16 Mar 2023 19:04:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0853AC7618A
+	for <sparclinux@archiver.kernel.org>; Fri, 17 Mar 2023 08:37:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229977AbjCPTEB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 16 Mar 2023 15:04:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45962 "EHLO
+        id S230435AbjCQIhV (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Fri, 17 Mar 2023 04:37:21 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbjCPTD6 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 16 Mar 2023 15:03:58 -0400
-Received: from mga18.intel.com (mga18.intel.com [134.134.136.126])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E882E2517;
-        Thu, 16 Mar 2023 12:03:48 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1678993428; x=1710529428;
-  h=date:from:to:cc:subject:message-id:references:
-   mime-version:in-reply-to;
-  bh=zUzkGxrqKDPR6SroJseKwSx7MVAGnpL/Grdhlw6b7UE=;
-  b=GGGcwcWFhVNUPqlV5cS7jhSo++oAJJeSo+qf8YGM9dLprFCOO90c7NMm
-   e8AhBjSiTxfCcsA0O81ZpHm5F4j+gpsUAI9H1C81Sv7zAKj5/fHr1lai4
-   hEbgqNKOh6T2ENt2DM/sliOpWhZNXF1cX+UNrAZYnmO59Wa+ehb4oCZJd
-   bQ6irRFzgXO/MfQ1FFy326yiwnl/C2t1daZQ4tx/KhKcHBV7DzcLjin0g
-   3ddESbDNI/pjbsLY+8U2qN/0vrXedmDzmX7lS/nykk7GfmB6WVFfSiZmh
-   zoOpHKx6VD5zBdoQp5tLxiS4ZMFiN3xNtXzlWPkv8RD4F3aXnH27TcJ5N
-   g==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10651"; a="321944554"
-X-IronPort-AV: E=Sophos;i="5.98,265,1673942400"; 
-   d="scan'208";a="321944554"
-Received: from fmsmga006.fm.intel.com ([10.253.24.20])
-  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 16 Mar 2023 12:03:47 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10651"; a="925864625"
-X-IronPort-AV: E=Sophos;i="5.98,265,1673942400"; 
-   d="scan'208";a="925864625"
-Received: from lkp-server01.sh.intel.com (HELO b613635ddfff) ([10.239.97.150])
-  by fmsmga006.fm.intel.com with ESMTP; 16 Mar 2023 12:03:40 -0700
-Received: from kbuild by b613635ddfff with local (Exim 4.96)
-        (envelope-from <lkp@intel.com>)
-        id 1pcst1-0008hW-1B;
-        Thu, 16 Mar 2023 19:03:39 +0000
-Date:   Fri, 17 Mar 2023 03:03:04 +0800
-From:   kernel test robot <lkp@intel.com>
-To:     Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        =?iso-8859-1?Q?Micka=EBl_Sala=FCn?= <mic@digikod.net>,
-        Mika Westerberg <mika.westerberg@linux.intel.com>,
-        Krzysztof =?utf-8?Q?Wilczy=C5=84ski?= <kw@linux.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Niklas Schnelle <schnelle@linux.ibm.com>,
-        Bjorn Helgaas <helgaas@kernel.org>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali@kernel.org>,
-        "Maciej W. Rozycki" <macro@orcam.me.uk>,
-        Juergen Gross <jgross@suse.com>,
-        Dominik Brodowski <linux@dominikbrodowski.net>,
-        linux-kernel@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-mips@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-sh@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-pci@vger.kernel.org,
-        xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org
-Cc:     llvm@lists.linux.dev, oe-kbuild-all@lists.linux.dev,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Richard Henderson <richard.henderson@linaro.org>,
-        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
-        Matt Turner <mattst88@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v5 1/4] PCI: Introduce pci_dev_for_each_resource()
-Message-ID: <202303170223.V0xQhs1V-lkp@intel.com>
-References: <20230314192634.63531-2-andriy.shevchenko@linux.intel.com>
+        with ESMTP id S230421AbjCQIg6 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Fri, 17 Mar 2023 04:36:58 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42FD265C7D;
+        Fri, 17 Mar 2023 01:36:31 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C6BF462226;
+        Fri, 17 Mar 2023 08:35:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 765A3C433EF;
+        Fri, 17 Mar 2023 08:35:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1679042159;
+        bh=0U8d1LMWaEZQgafPkPZom810OpVwizNioSkYu9Ua+ns=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=K+Oan4h2AJGsMePeKGlfKytnhkDM1qtdUfuMAeZSwnfAVazgO72kZeLCVwsg4vkH4
+         NQjtcIYPbxm09chvEPyyjV8agLCk1qrZtLaBGjEF2ZnStax/I91MJ80mGg9ijXI3m9
+         +bKY320hHoUFifi3bJRO0JVWMN0M2uTQVSZSe6DdHZSQ2lg1SmWRVi2YGXEm2lOYbo
+         RcC5XWa2trUVyNudNZzXWg7mIPfrGFeBHkwUtwPwvpUMZRz+ND1MEZ+ruqTW9BO5KL
+         pOBP3AvRts4ikjdVX5kIcsacITLSX5l27sDwuCAPXixR0Hbl7Ud4huCS5Cxi9xvrpd
+         HOdKFnktWuJVw==
+Date:   Fri, 17 Mar 2023 10:35:46 +0200
+From:   Mike Rapoport <rppt@kernel.org>
+To:     "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Mel Gorman <mgorman@suse.de>, Vlastimil Babka <vbabka@suse.cz>,
+        David Hildenbrand <david@redhat.com>, linux-mm@kvack.org,
+        linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sparclinux@vger.kernel.org, David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 01/10] sparc/mm: Fix MAX_ORDER usage in tsb_grow()
+Message-ID: <ZBQmYhCpSTLMP28Z@kernel.org>
+References: <20230315113133.11326-1-kirill.shutemov@linux.intel.com>
+ <20230315113133.11326-2-kirill.shutemov@linux.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20230314192634.63531-2-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20230315113133.11326-2-kirill.shutemov@linux.intel.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Hi Andy,
+On Wed, Mar 15, 2023 at 02:31:24PM +0300, Kirill A. Shutemov wrote:
+> MAX_ORDER is not inclusive: the maximum allocation order buddy allocator
+> can deliver is MAX_ORDER-1.
+> 
+> Fix MAX_ORDER usage in tsb_grow().
+> 
+> Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Cc: sparclinux@vger.kernel.org
+> Cc: David Miller <davem@davemloft.net>
 
-I love your patch! Yet something to improve:
+Acked-by: Mike Rapoport (IBM) <rppt@kernel.org>
 
-[auto build test ERROR on pci/next]
-[also build test ERROR on pci/for-linus powerpc/next powerpc/fixes linus/master v6.3-rc2 next-20230316]
-[cannot apply to soc/for-next]
-[If your patch is applied to the wrong git tree, kindly drop us a note.
-And when submitting patch, we suggest to use '--base' as documented in
-https://git-scm.com/docs/git-format-patch#_base_tree_information]
-
-url:    https://github.com/intel-lab-lkp/linux/commits/Andy-Shevchenko/PCI-Introduce-pci_dev_for_each_resource/20230315-032821
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/pci/pci.git next
-patch link:    https://lore.kernel.org/r/20230314192634.63531-2-andriy.shevchenko%40linux.intel.com
-patch subject: [PATCH v5 1/4] PCI: Introduce pci_dev_for_each_resource()
-config: powerpc-randconfig-r032-20230312 (https://download.01.org/0day-ci/archive/20230317/202303170223.V0xQhs1V-lkp@intel.com/config)
-compiler: clang version 17.0.0 (https://github.com/llvm/llvm-project 67409911353323ca5edf2049ef0df54132fa1ca7)
-reproduce (this is a W=1 build):
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # install powerpc cross compiling tool for clang build
-        # apt-get install binutils-powerpc-linux-gnu
-        # https://github.com/intel-lab-lkp/linux/commit/85cdf4746b716f7b6c14d7dc5cd907c3c2a1fb0c
-        git remote add linux-review https://github.com/intel-lab-lkp/linux
-        git fetch --no-tags linux-review Andy-Shevchenko/PCI-Introduce-pci_dev_for_each_resource/20230315-032821
-        git checkout 85cdf4746b716f7b6c14d7dc5cd907c3c2a1fb0c
-        # save the config file
-        mkdir build_dir && cp config build_dir/.config
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=powerpc olddefconfig
-        COMPILER_INSTALL_PATH=$HOME/0day COMPILER=clang make.cross W=1 O=build_dir ARCH=powerpc SHELL=/bin/bash
-
-If you fix the issue, kindly add following tag where applicable
-| Reported-by: kernel test robot <lkp@intel.com>
-| Link: https://lore.kernel.org/oe-kbuild-all/202303170223.V0xQhs1V-lkp@intel.com/
-
-All errors (new ones prefixed by >>):
-
->> arch/powerpc/platforms/52xx/mpc52xx_pci.c:331:6: error: unused variable 'i' [-Werror,-Wunused-variable]
-           int i;
-               ^
-   1 error generated.
-
-
-vim +/i +331 arch/powerpc/platforms/52xx/mpc52xx_pci.c
-
-f42963f8646540 Grant Likely    2006-12-12  326  
-f42963f8646540 Grant Likely    2006-12-12  327  static void
-f42963f8646540 Grant Likely    2006-12-12  328  mpc52xx_pci_fixup_resources(struct pci_dev *dev)
-f42963f8646540 Grant Likely    2006-12-12  329  {
-85cdf4746b716f Mika Westerberg 2023-03-14  330  	struct resource *res;
-f42963f8646540 Grant Likely    2006-12-12 @331  	int i;
-f42963f8646540 Grant Likely    2006-12-12  332  
-59510820fff76f Randy Dunlap    2021-04-28  333  	pr_debug("%s() %.4x:%.4x\n", __func__, dev->vendor, dev->device);
-f42963f8646540 Grant Likely    2006-12-12  334  
-f42963f8646540 Grant Likely    2006-12-12  335  	/* We don't rely on boot loader for PCI and resets all
-f42963f8646540 Grant Likely    2006-12-12  336  	   devices */
-85cdf4746b716f Mika Westerberg 2023-03-14  337  	pci_dev_for_each_resource_p(dev, res) {
-f42963f8646540 Grant Likely    2006-12-12  338  		if (res->end > res->start) {	/* Only valid resources */
-f42963f8646540 Grant Likely    2006-12-12  339  			res->end -= res->start;
-f42963f8646540 Grant Likely    2006-12-12  340  			res->start = 0;
-f42963f8646540 Grant Likely    2006-12-12  341  			res->flags |= IORESOURCE_UNSET;
-f42963f8646540 Grant Likely    2006-12-12  342  		}
-f42963f8646540 Grant Likely    2006-12-12  343  	}
-f42963f8646540 Grant Likely    2006-12-12  344  
-f42963f8646540 Grant Likely    2006-12-12  345  	/* The PCI Host bridge of MPC52xx has a prefetch memory resource
-f42963f8646540 Grant Likely    2006-12-12  346  	   fixed to 1Gb. Doesn't fit in the resource system so we remove it */
-f42963f8646540 Grant Likely    2006-12-12  347  	if ( (dev->vendor == PCI_VENDOR_ID_MOTOROLA) &&
-f42963f8646540 Grant Likely    2006-12-12  348  	     (   dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200
-f42963f8646540 Grant Likely    2006-12-12  349  	      || dev->device == PCI_DEVICE_ID_MOTOROLA_MPC5200B) ) {
-f42963f8646540 Grant Likely    2006-12-12  350  		struct resource *res = &dev->resource[1];
-f42963f8646540 Grant Likely    2006-12-12  351  		res->start = res->end = res->flags = 0;
-f42963f8646540 Grant Likely    2006-12-12  352  	}
-f42963f8646540 Grant Likely    2006-12-12  353  }
-f42963f8646540 Grant Likely    2006-12-12  354  
+> ---
+>  arch/sparc/mm/tsb.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/sparc/mm/tsb.c b/arch/sparc/mm/tsb.c
+> index 912205787161..dba8dffe2113 100644
+> --- a/arch/sparc/mm/tsb.c
+> +++ b/arch/sparc/mm/tsb.c
+> @@ -402,8 +402,8 @@ void tsb_grow(struct mm_struct *mm, unsigned long tsb_index, unsigned long rss)
+>  	unsigned long new_rss_limit;
+>  	gfp_t gfp_flags;
+>  
+> -	if (max_tsb_size > (PAGE_SIZE << MAX_ORDER))
+> -		max_tsb_size = (PAGE_SIZE << MAX_ORDER);
+> +	if (max_tsb_size > (PAGE_SIZE << (MAX_ORDER - 1)))
+> +		max_tsb_size = (PAGE_SIZE << (MAX_ORDER - 1));
+>  
+>  	new_cache_index = 0;
+>  	for (new_size = 8192; new_size < max_tsb_size; new_size <<= 1UL) {
+> -- 
+> 2.39.2
+> 
 
 -- 
-0-DAY CI Kernel Test Service
-https://github.com/intel/lkp-tests
+Sincerely yours,
+Mike.
