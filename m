@@ -2,59 +2,42 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E40FC77B71
-	for <sparclinux@archiver.kernel.org>; Wed, 22 Mar 2023 17:03:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77AEEC761AF
+	for <sparclinux@archiver.kernel.org>; Wed, 22 Mar 2023 17:24:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230230AbjCVRDQ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 22 Mar 2023 13:03:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54732 "EHLO
+        id S230090AbjCVRYJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 22 Mar 2023 13:24:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52832 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230130AbjCVRDN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 22 Mar 2023 13:03:13 -0400
-Received: from us-smtp-delivery-124.mimecast.com (us-smtp-delivery-124.mimecast.com [170.10.129.124])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E465F6131E
-        for <sparclinux@vger.kernel.org>; Wed, 22 Mar 2023 10:01:59 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1679504484;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=2ZS63eR35hQQpuztlWGnGcv/jaBVlYMjTvbdWWfPWAY=;
-        b=R3wXvEy72H8DcVvRWZo9a//6v+b5En0EzBxfc4xHkMLClw1tc78evZr3GgYrWXhBrKPOXg
-        PEwV9S3IIQ+BoQp1ZiT51WCfYq0YSGMMCv6TBC3xop+CgRumdNECwRpYwXSVkF+1+n4K0G
-        +R5bCoOdVHpe8s7wie3+uVSMT3ivBYQ=
-Received: from mail-oi1-f197.google.com (mail-oi1-f197.google.com
- [209.85.167.197]) by relay.mimecast.com with ESMTP with STARTTLS
- (version=TLSv1.3, cipher=TLS_AES_256_GCM_SHA384) id
- us-mta-437-TeKIwUNpM52K01778VBmXA-1; Wed, 22 Mar 2023 13:01:23 -0400
-X-MC-Unique: TeKIwUNpM52K01778VBmXA-1
-Received: by mail-oi1-f197.google.com with SMTP id bi38-20020a05680818a600b0037b36626937so7863871oib.13
-        for <sparclinux@vger.kernel.org>; Wed, 22 Mar 2023 10:01:22 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1679504482;
-        h=mime-version:message-id:date:references:in-reply-to:subject:cc:to
-         :from:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=2ZS63eR35hQQpuztlWGnGcv/jaBVlYMjTvbdWWfPWAY=;
-        b=J59dupSQ2R4szPNAPERumgv9tSt8bu6s1J+BduwXlxFuaQD5IPD40D8HZxdvn6/zyO
-         dokKtkDoQIVu6URsGywZzb504oMlX4bH0ZMzNhtJHbareDT8GLk8f4aC5tODpBhEBjjC
-         n9FKIEzTLz+/o4iABNQTRqbFa/Gt9/hqE9SCh2h7A8LbP6GLAVwErJYWYsKsY3YG5GPr
-         mX2Xc3A3utyTLp6ayKgNvoqTN4OHga7abCQJifP/7mgZYzvnhZdSgb+DonNUv14wuqMQ
-         6SDoWzx5e+EeoEyirtLEj5sEMF5H23oQP9C6FbbDSI4togaz61DaXtkuHzsDT+GQSYzc
-         h6qg==
-X-Gm-Message-State: AO0yUKWPv677o6lyg/37HbjCzsQ4nLqWwC02EKC+bcpLZfHcp3VDORT5
-        StZUp1DodueeTVK2MBSnu7f3j+gxVC9wT2INDm2/D6YlCmMh6NnRuuFFwH/xOuM078i/P0DbTvN
-        dR/KYa6niHx1EN2K9VI8JqA==
-X-Received: by 2002:a05:6830:1397:b0:69b:c665:95ef with SMTP id d23-20020a056830139700b0069bc66595efmr1849097otq.32.1679504481965;
-        Wed, 22 Mar 2023 10:01:21 -0700 (PDT)
-X-Google-Smtp-Source: AK7set9OhxWG20qH1i/Yp6i2el5aA4zIJA9CTIhUo/MbvkBAyasdde0EdhDBEsgwB6QV+kPj7JTH5w==
-X-Received: by 2002:a05:6830:1397:b0:69b:c665:95ef with SMTP id d23-20020a056830139700b0069bc66595efmr1849034otq.32.1679504481408;
-        Wed, 22 Mar 2023 10:01:21 -0700 (PDT)
-Received: from vschneid.remote.csb ([154.57.232.159])
-        by smtp.gmail.com with ESMTPSA id g19-20020a05620a40d300b007290be5557bsm11733172qko.38.2023.03.22.10.01.14
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 22 Mar 2023 10:01:20 -0700 (PDT)
-From:   Valentin Schneider <vschneid@redhat.com>
-To:     Peter Zijlstra <peterz@infradead.org>
+        with ESMTP id S230419AbjCVRXy (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 22 Mar 2023 13:23:54 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F9CF1E9F1;
+        Wed, 22 Mar 2023 10:23:19 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=HnYLxxQqsoSk7nx4q+NwD1PkqBw2pnBv/8dY5LfvgsA=; b=vKlpYO9J+SAy1WEvcIK14Yjf/L
+        ynXvDY79SlwKJanrwgzYEOXnnioQBgLUy3CrFk50zk6gexGOR1WBu1U+8z0ez8ooEunmN+/ckV8u/
+        fy6I/cTWTP+4yMLeJuJFSHIWQ42bpQDS+bJQxNOOStKEvKo3a2qnMtBXerFw3bacxs/V9jZatrsWt
+        uJV0KmhWKaEXSUc4+JDi8NPaOVbgXp0+gUnCEyoIpshljJbDcPWNCZ4z8pkm1g7PNfXMezXN9THbL
+        CZ6PxxMDhbKXM9wqJQTkrqybw+bklZDk0F+1b+Uh49FUnabKcm7orMqSW89DJ5taY4bb5wRmuPYfj
+        wjzBDEmQ==;
+Received: from j130084.upc-j.chello.nl ([24.132.130.84] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1pf2Ag-003CAY-SR; Wed, 22 Mar 2023 17:22:47 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 333E830030F;
+        Wed, 22 Mar 2023 18:22:42 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 1C3D4205D08C3; Wed, 22 Mar 2023 18:22:42 +0100 (CET)
+Date:   Wed, 22 Mar 2023 18:22:42 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Valentin Schneider <vschneid@redhat.com>
 Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-snps-arc@lists.infradead.org,
         linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
@@ -81,156 +64,76 @@ Cc:     linux-alpha@vger.kernel.org, linux-kernel@vger.kernel.org,
         Guo Ren <guoren@kernel.org>,
         "David S. Miller" <davem@davemloft.net>
 Subject: Re: [PATCH v5 7/7] sched, smp: Trace smp callback causing an IPI
-In-Reply-To: <20230322140434.GC2357380@hirez.programming.kicks-ass.net>
+Message-ID: <20230322172242.GH2357380@hirez.programming.kicks-ass.net>
 References: <20230307143558.294354-1-vschneid@redhat.com>
  <20230307143558.294354-8-vschneid@redhat.com>
  <20230322095329.GS2017917@hirez.programming.kicks-ass.net>
  <xhsmhmt45c703.mognet@vschneid.remote.csb>
  <20230322140434.GC2357380@hirez.programming.kicks-ass.net>
-Date:   Wed, 22 Mar 2023 17:01:13 +0000
-Message-ID: <xhsmhjzz8d8km.mognet@vschneid.remote.csb>
+ <xhsmhjzz8d8km.mognet@vschneid.remote.csb>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <xhsmhjzz8d8km.mognet@vschneid.remote.csb>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 22/03/23 15:04, Peter Zijlstra wrote:
-> On Wed, Mar 22, 2023 at 12:20:28PM +0000, Valentin Schneider wrote:
->> On 22/03/23 10:53, Peter Zijlstra wrote:
->
->> > Hurmph... so we only really consume @func when we IPI. Would it not be
->> > more useful to trace this thing for *every* csd enqeued?
->>
->> It's true that any CSD enqueued on that CPU's call_single_queue in the
->> [first CSD llist_add()'ed, IPI IRQ hits] timeframe is a potential source of
->> interference.
->>
->> However, can we be sure that first CSD isn't an indirect cause for the
->> following ones? say the target CPU exits RCU EQS due to the IPI, there's a
->> bit of time before it gets to flush_smp_call_function_queue() where some other CSD
->> could be enqueued *because* of that change in state.
->>
->> I couldn't find a easy example of that, I might be biased as this is where
->> I'd like to go wrt IPI'ing isolated CPUs in usermode. But regardless, when
->> correlating an IPI IRQ with its source, we'd always have to look at the
->> first CSD in that CSD stack.
->
-> So I was thinking something like this:
->
-> ---
-> Subject: trace,smp: Trace all smp_function_call*() invocations
-> From: Peter Zijlstra <peterz@infradead.org>
-> Date: Wed Mar 22 14:58:36 CET 2023
->
-> (Ab)use the trace_ipi_send_cpu*() family to trace all
-> smp_function_call*() invocations, not only those that result in an
-> actual IPI.
->
-> The queued entries log their callback function while the actual IPIs
-> are traced on generic_smp_call_function_single_interrupt().
->
-> Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-> ---
->  kernel/smp.c |   58 ++++++++++++++++++++++++++++++----------------------------
->  1 file changed, 30 insertions(+), 28 deletions(-)
->
-> --- a/kernel/smp.c
-> +++ b/kernel/smp.c
-> @@ -106,18 +106,20 @@ void __init call_function_init(void)
->  }
->
->  static __always_inline void
-> -send_call_function_single_ipi(int cpu, smp_call_func_t func)
-> +send_call_function_single_ipi(int cpu)
->  {
->       if (call_function_single_prep_ipi(cpu)) {
-> -		trace_ipi_send_cpu(cpu, _RET_IP_, func);
-> +		trace_ipi_send_cpu(cpu, _RET_IP_,
-> +				   generic_smp_call_function_single_interrupt);
+On Wed, Mar 22, 2023 at 05:01:13PM +0000, Valentin Schneider wrote:
 
-Hm, this does get rid of the func being passed down the helpers, but this
-means the trace events are now stateful, i.e. I need the first and last
-events in a CSD stack to figure out which one actually caused the IPI.
+> > So I was thinking something like this:
 
-It also requires whoever is looking at the trace to be aware of which IPIs
-are attached to a CSD, and which ones aren't. ATM that's only the resched
-IPI, but per the cover letter there's more to come (e.g. tick_broadcast()
-for arm64/riscv and a few others). For instance:
+> Hm, this does get rid of the func being passed down the helpers, but this
+> means the trace events are now stateful, i.e. I need the first and last
+> events in a CSD stack to figure out which one actually caused the IPI.
 
-       hackbench-157   [001]    10.894320: ipi_send_cpu:         cpu=3 callsite=check_preempt_curr+0x37 callback=0x0
-       hackbench-157   [001]    10.895068: ipi_send_cpu:         cpu=3 callsite=try_to_wake_up+0x29e callback=sched_ttwu_pending+0x0
-       hackbench-157   [001]    10.895068: ipi_send_cpu:         cpu=3 callsite=try_to_wake_up+0x29e callback=generic_smp_call_function_single_interrupt+0x0
+Isn't much of tracing stateful? I mean, why am I always writing awk
+programs to parse trace output?
 
-That first one sent a RESCHEDULE IPI, the second one a CALL_FUNCTION one,
-but you really have to know what you're looking at...
+The one that is directly followed by
+generic_smp_call_function_single_interrupt() (horrible name that), is
+the one that tripped the IPI.
 
-Are you worried about the @func being pushed down? Staring at x86 asm is
-not good for the soul, but AFAICT this does cause an extra register to be
-popped in the prologue because all of the helpers are __always_inline, so
-both paths of the static key(s) are in the same stackframe.
+> It also requires whoever is looking at the trace to be aware of which IPIs
+> are attached to a CSD, and which ones aren't. ATM that's only the resched
+> IPI, but per the cover letter there's more to come (e.g. tick_broadcast()
+> for arm64/riscv and a few others). For instance:
+> 
+>        hackbench-157   [001]    10.894320: ipi_send_cpu:         cpu=3 callsite=check_preempt_curr+0x37 callback=0x0
 
-I can "improve" this with:
+Arguably we should be setting callback to scheduler_ipi(), except
+ofcourse, that's not an actual function...
 
----
-diff --git a/kernel/smp.c b/kernel/smp.c
-index 5cd680a7e78ef..55f120dae1713 100644
---- a/kernel/smp.c
-+++ b/kernel/smp.c
-@@ -511,6 +511,26 @@ raw_smp_call_single_queue(int cpu, struct llist_node *node, smp_call_func_t func
- 
- static DEFINE_PER_CPU_SHARED_ALIGNED(call_single_data_t, csd_data);
- 
-+static noinline void __smp_call_single_queue_trace(int cpu, struct llist_node *node)
-+{
-+	call_single_data_t *csd;
-+	smp_call_func_t func;
-+
-+
-+	/*
-+	 * We have to check the type of the CSD before queueing it, because
-+	 * once queued it can have its flags cleared by
-+	 *   flush_smp_call_function_queue()
-+	 * even if we haven't sent the smp_call IPI yet (e.g. the stopper
-+	 * executes migration_cpu_stop() on the remote CPU).
-+	 */
-+	csd = container_of(node, call_single_data_t, node.llist);
-+	func = CSD_TYPE(csd) == CSD_TYPE_TTWU ?
-+		sched_ttwu_pending : csd->func;
-+
-+	raw_smp_call_single_queue(cpu, node, func);
-+}
-+
- void __smp_call_single_queue(int cpu, struct llist_node *node)
- {
- #ifdef CONFIG_CSD_LOCK_WAIT_DEBUG
-@@ -525,25 +545,10 @@ void __smp_call_single_queue(int cpu, struct llist_node *node)
- 		}
- 	}
- #endif
--	/*
--	 * We have to check the type of the CSD before queueing it, because
--	 * once queued it can have its flags cleared by
--	 *   flush_smp_call_function_queue()
--	 * even if we haven't sent the smp_call IPI yet (e.g. the stopper
--	 * executes migration_cpu_stop() on the remote CPU).
--	 */
--	if (trace_ipi_send_cpumask_enabled()) {
--		call_single_data_t *csd;
--		smp_call_func_t func;
--
--		csd = container_of(node, call_single_data_t, node.llist);
--		func = CSD_TYPE(csd) == CSD_TYPE_TTWU ?
--			sched_ttwu_pending : csd->func;
--
--		raw_smp_call_single_queue(cpu, node, func);
--	} else {
-+	if (trace_ipi_send_cpumask_enabled())
-+		__smp_call_single_queue_trace(cpu, node);
-+	else
- 		raw_smp_call_single_queue(cpu, node, NULL);
--	}
- }
- 
- /*
+Maybe we can do "extern inline" for the actual users and provide a dummy
+function for the symbol when tracing.
+
+>        hackbench-157   [001]    10.895068: ipi_send_cpu:         cpu=3 callsite=try_to_wake_up+0x29e callback=sched_ttwu_pending+0x0
+>        hackbench-157   [001]    10.895068: ipi_send_cpu:         cpu=3 callsite=try_to_wake_up+0x29e callback=generic_smp_call_function_single_interrupt+0x0
+> 
+> That first one sent a RESCHEDULE IPI, the second one a CALL_FUNCTION one,
+> but you really have to know what you're looking at...
+
+But you have to know that anyway, you can't do tracing and not know wtf
+you're doing. Or rather, if you do, I don't give a crap and you can keep
+the pieces :-)
+
+Grepping the callback should be pretty quick resolution at to what trips
+it, no?
+
+(also, if you *realllllly* can't manage, we can always add yet another
+argument that gives a type thingy)
+
+> Are you worried about the @func being pushed down?
+
+Not really, I was finding it odd that only the first csd was being
+logged. Either you should log them all (after all, the target CPU will
+run them all and you might still wonder where the heck they came from)
+or it should log none and always report that hideous long function name
+I can't be arsed to type again :-)
+
+> Staring at x86 asm is not good for the soul,
+
+Scarred for life :-) What's worse, due to being exposed to Intel syntax
+at a young age, I'm now permantently confused as to the argument order
+of x86 asm.
 
