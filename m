@@ -2,217 +2,168 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1040FC6FD1C
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Mar 2023 11:58:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12D42C7619A
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Mar 2023 13:25:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231488AbjCWL6u (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 23 Mar 2023 07:58:50 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53942 "EHLO
+        id S231604AbjCWNZq (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Mar 2023 09:25:46 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35974 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231220AbjCWL63 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Mar 2023 07:58:29 -0400
-Received: from NAM10-BN7-obe.outbound.protection.outlook.com (mail-bn7nam10on2062f.outbound.protection.outlook.com [IPv6:2a01:111:f400:7e8a::62f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0C9B237B79;
-        Thu, 23 Mar 2023 04:57:29 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; s=arcselector9901; d=microsoft.com; cv=none;
- b=MKEXOuve3wrQZxek8Ll9ZT/rzcuoaLSWT5DYNWW8DgXK1UXK0+B8JiR4YHHglXKkcPFLB/4/8w1NjzQSkx6wFqgXW07HyavJWzLhlY8NlnIl5jsU5kbzn9ZgyuTRVuHdcAu7Z7AEH9E/aoplsA11Z66om8afGXg+JeLPM9icjK+8g8Dk7fGYuXtr19tKeFUSJ6NyUoACTJxpa/WFqEKX7IcfKHMSMDBJ/hyxIf6wFhGpbeiRh8ZHdcPXC5nsl20aGv4qAOu3xU6opmXuFGUuZy+80suQbfhA89u4jm/FAasYfQsiUz+YhrSlymisX3zVls5zOO4Me0HbcrbgsBgw+w==
-ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=microsoft.com;
- s=arcselector9901;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-AntiSpam-MessageData-ChunkCount:X-MS-Exchange-AntiSpam-MessageData-0:X-MS-Exchange-AntiSpam-MessageData-1;
- bh=IhezvfbvljyqjR/WIEkceKdPBbqTdjVj9sWf3/vb8N0=;
- b=IXkwwH9gbfDl1YDgpmxHXFymsvrQcBXJSSWcPRtohYdXF0n7NBwC1UnlmFUYFCiva4aSU7BWLkLFzy5nG8VO9fIFR6yGU3gGI9O9lRij5nZ/X3z5hfcE1zLLJtmSEI4pMfeEyS/EENVzCY2iiDDoGzAs7dNxjwl9zbelUasa5jzslbxvpeZH2WzIqsvpRyWTDiGY/kqkZqXlIU0ZPc8fMkwxCnjp8EeLjGiivLxyptZjhpg+WuAq+rhmlsjKrxN0+OgIPg6TBi0UplvAjmjOj7KOO9wxCrWvyT1olQVnvG67RK3gzVOUd3tQoRypsFT5CAFBwfC2LgsW9VzVy3ZcqA==
-ARC-Authentication-Results: i=1; mx.microsoft.com 1; spf=pass
- smtp.mailfrom=nvidia.com; dmarc=pass action=none header.from=nvidia.com;
- dkim=pass header.d=nvidia.com; arc=none
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=Nvidia.com;
- s=selector2;
- h=From:Date:Subject:Message-ID:Content-Type:MIME-Version:X-MS-Exchange-SenderADCheck;
- bh=IhezvfbvljyqjR/WIEkceKdPBbqTdjVj9sWf3/vb8N0=;
- b=di1GojWFBOXUeZKYoWUgZzQVaG0dvQ1ErgK2sK8V+Ym9sp85xm6GKXiZ4oQ9hZY7EDFEroe5bpqVxQugapjiz6EhaC7O0tr7pZeVRzpUHs4BBqjMpwtlWzxPFdLzv1m7QmgJhT2uWyPmlQtcM9jKpl82rkpSIkMfsKqOSx96y9McYlO2vqg9g+nEPd7ANd0LwtYNpv3ufDloiNBaGzRxMqtA6ody7OLE23PLbwcBydVb/57h3teQQMqLzMlWyz30snwPEUIhQMOHXBlmFUcyjr7lsyr4hB65vK5N76wZAaHLsxvSzPhTIxmUJqSAaJhfL9FvCAFNgDnVHxm/BdAXFw==
-Authentication-Results: dkim=none (message not signed)
- header.d=none;dmarc=none action=none header.from=nvidia.com;
-Received: from DS7PR12MB5744.namprd12.prod.outlook.com (2603:10b6:8:73::18) by
- MW4PR12MB6684.namprd12.prod.outlook.com (2603:10b6:303:1ee::22) with
- Microsoft SMTP Server (version=TLS1_2,
- cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.6178.38; Thu, 23 Mar
- 2023 11:57:18 +0000
-Received: from DS7PR12MB5744.namprd12.prod.outlook.com
- ([fe80::bb0b:f14a:c49a:9cd7]) by DS7PR12MB5744.namprd12.prod.outlook.com
- ([fe80::bb0b:f14a:c49a:9cd7%4]) with mapi id 15.20.6178.037; Thu, 23 Mar 2023
- 11:57:18 +0000
-From:   Zi Yan <ziy@nvidia.com>
-To:     Mike Rapoport <rppt@kernel.org>
-Cc:     Catalin Marinas <catalin.marinas@arm.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
+        with ESMTP id S229600AbjCWNZo (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Mar 2023 09:25:44 -0400
+Received: from mx0a-001b2d01.pphosted.com (mx0a-001b2d01.pphosted.com [148.163.156.1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9049A421B;
+        Thu, 23 Mar 2023 06:25:43 -0700 (PDT)
+Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.17.1.19/8.17.1.19) with ESMTP id 32NBwu6E027980;
+        Thu, 23 Mar 2023 13:24:08 GMT
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=ibm.com; h=message-id : subject :
+ from : to : cc : date : in-reply-to : references : content-type :
+ content-transfer-encoding : mime-version; s=pp1;
+ bh=VwL2eHgiXbSpbcyOMi1Fm6CGpKEbs60ss+WPZnJK5Ik=;
+ b=XUOZb+O02s7yDbfd9owIe2KU+IxtepAYblP5hOfMaou9r1s62w4XYcd21Ay890Ch0UtZ
+ b3P6V74UYISN/vgI9gfJX4goA81aaSJ6+BrnqTltbxt9dViPahHFqwYh2ph/oHgOCuUs
+ cBuk/dBdRXe6yir7UjhPfJohLY53yu99IuZ0u/VvorW219jlSZERTnQz24NuopyuaJRv
+ f/R4+LqrQSLYvZjgJitqK439IVBWg+2l8kKrls150yN5+2GDZLbAW/9AVV53S7LOSmnA
+ XiauVMwmdc0qgxFAu2fBNR8kde+goodonXLhqI7dsBaHwnZoURHUBVQ40SKG6ndeV6av Ww== 
+Received: from pps.reinject (localhost [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pghqssfc6-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 23 Mar 2023 13:24:08 +0000
+Received: from m0098399.ppops.net (m0098399.ppops.net [127.0.0.1])
+        by pps.reinject (8.17.1.5/8.17.1.5) with ESMTP id 32NBrkW0000445;
+        Thu, 23 Mar 2023 13:24:07 GMT
+Received: from ppma03fra.de.ibm.com (6b.4a.5195.ip4.static.sl-reverse.com [149.81.74.107])
+        by mx0a-001b2d01.pphosted.com (PPS) with ESMTPS id 3pghqssfab-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 23 Mar 2023 13:24:07 +0000
+Received: from pps.filterd (ppma03fra.de.ibm.com [127.0.0.1])
+        by ppma03fra.de.ibm.com (8.17.1.19/8.17.1.19) with ESMTP id 32NCFRdl006837;
+        Thu, 23 Mar 2023 13:24:03 GMT
+Received: from smtprelay04.fra02v.mail.ibm.com ([9.218.2.228])
+        by ppma03fra.de.ibm.com (PPS) with ESMTPS id 3pd4x667jt-1
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES256-GCM-SHA384 bits=256 verify=NOT);
+        Thu, 23 Mar 2023 13:24:03 +0000
+Received: from smtpav03.fra02v.mail.ibm.com (smtpav03.fra02v.mail.ibm.com [10.20.54.102])
+        by smtprelay04.fra02v.mail.ibm.com (8.14.9/8.14.9/NCO v10.0) with ESMTP id 32NDO0Y524772868
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-GCM-SHA384 bits=256 verify=OK);
+        Thu, 23 Mar 2023 13:24:00 GMT
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id CBC2C20040;
+        Thu, 23 Mar 2023 13:24:00 +0000 (GMT)
+Received: from smtpav03.fra02v.mail.ibm.com (unknown [127.0.0.1])
+        by IMSVA (Postfix) with ESMTP id AD7DC2004D;
+        Thu, 23 Mar 2023 13:23:57 +0000 (GMT)
+Received: from [9.171.87.16] (unknown [9.171.87.16])
+        by smtpav03.fra02v.mail.ibm.com (Postfix) with ESMTP;
+        Thu, 23 Mar 2023 13:23:57 +0000 (GMT)
+Message-ID: <95d5d0c434ef6c4cadc3fca34c4c0d3104becea8.camel@linux.ibm.com>
+Subject: Re: [PATCH v3 01/38] Kconfig: introduce HAS_IOPORT option and
+ select it as necessary
+From:   Niklas Schnelle <schnelle@linux.ibm.com>
+To:     Johannes Berg <johannes@sipsolutions.net>,
         Arnd Bergmann <arnd@arndb.de>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
-        "David S. Miller" <davem@davemloft.net>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Guo Ren <guoren@kernel.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Rich Felker <dalias@libc.org>,
+        Richard Henderson <richard.henderson@linaro.org>,
+        Ivan Kokshaysky <ink@jurassic.park.msu.ru>,
+        Matt Turner <mattst88@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Will Deacon <will@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Michal Simek <monstr@monstr.eu>,
+        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+        "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>,
+        Helge Deller <deller@gmx.de>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Paul Walmsley <paul.walmsley@sifive.com>,
+        Palmer Dabbelt <palmer@dabbelt.com>,
+        Albert Ou <aou@eecs.berkeley.edu>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
-        linux-arm-kernel@lists.infradead.org, linux-csky@vger.kernel.org,
-        linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mm@kvack.org,
-        linux-sh@vger.kernel.org, linux-xtensa@linux-xtensa.org,
-        linuxppc-dev@lists.ozlabs.org, sparclinux@vger.kernel.org
-Subject: Re: [PATCH 02/14] arm64: drop ranges in definition of
- ARCH_FORCE_MAX_ORDER
-Date:   Thu, 23 Mar 2023 07:57:13 -0400
-X-Mailer: MailMate (1.14r5937)
-Message-ID: <0A14E221-C078-4EFF-84FA-8E326685D8D5@nvidia.com>
-In-Reply-To: <ZBwr0bXdtOtKKila@kernel.org>
-References: <20230323092156.2545741-1-rppt@kernel.org>
- <20230323092156.2545741-3-rppt@kernel.org> <ZBwmxbRJrF8RxZEp@arm.com>
- <ZBwr0bXdtOtKKila@kernel.org>
-Content-Type: multipart/signed;
- boundary="=_MailMate_C0B9CB2B-1F3E-4990-8124-8C2C5E7E129D_=";
- micalg=pgp-sha512; protocol="application/pgp-signature"
-X-ClientProxiedBy: MN2PR19CA0063.namprd19.prod.outlook.com
- (2603:10b6:208:19b::40) To DS7PR12MB5744.namprd12.prod.outlook.com
- (2603:10b6:8:73::18)
+        Rich Felker <dalias@libc.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "David S. Miller" <davem@davemloft.net>,
+        Richard Weinberger <richard@nod.at>,
+        Anton Ivanov <anton.ivanov@cambridgegreys.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>,
+        Dave Hansen <dave.hansen@linux.intel.com>, x86@kernel.org,
+        "H. Peter Anvin" <hpa@zytor.com>
+Cc:     Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Bjorn Helgaas <bhelgaas@google.com>,
+        Uwe =?ISO-8859-1?Q?Kleine-K=F6nig?= 
+        <u.kleine-koenig@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        linux-pci@vger.kernel.org, Arnd Bergmann <arnd@kernel.org>,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-ia64@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mips@vger.kernel.org, linux-parisc@vger.kernel.org,
+        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
+        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
+        linux-um@lists.infradead.org
+Date:   Thu, 23 Mar 2023 14:23:57 +0100
+In-Reply-To: <21a828bae06b97b8ca806a6b76d867902b1e0e1f.camel@sipsolutions.net>
+References: <20230314121216.413434-1-schnelle@linux.ibm.com>
+         <20230314121216.413434-2-schnelle@linux.ibm.com>
+         <21a828bae06b97b8ca806a6b76d867902b1e0e1f.camel@sipsolutions.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+User-Agent: Evolution 3.46.4 (3.46.4-1.fc37) 
 MIME-Version: 1.0
-X-MS-PublicTrafficType: Email
-X-MS-TrafficTypeDiagnostic: DS7PR12MB5744:EE_|MW4PR12MB6684:EE_
-X-MS-Office365-Filtering-Correlation-Id: a72a7b43-bedc-43b6-5156-08db2b95c06e
-X-MS-Exchange-SenderADCheck: 1
-X-MS-Exchange-AntiSpam-Relay: 0
-X-Microsoft-Antispam: BCL:0;
-X-Microsoft-Antispam-Message-Info: 6daAaho0uxEjGqSjlOgqngxZXD/eu8S4YbWLOLpqSVMM2TBm5pb9ivLuuJael4nHpzYWDT9qvWx8dyLCAwxmbdPdZ3AqN1eXfJZ5fSlFx8PsPcdDhGjZ4ErgUPIXYV9Gjp1WMtEwcQHtTECwM4aNNOMdgOPb03gYQmh8FwhbN+WBb6uMESZZ+Sq2NO3smshbPuVn1aeEdon2R0uVBSFc3nCW9oJxe807xuVTR0dLY7pg9PcT57oaKcCSlPnyqo3sYef50KH9SPGdBo5wMei0RoN1cN2tmnLUV7xCetEtuTsK9mWOfQrrYP4U5M25oem/r+egafYsY4RY97lgvBz3NXIXOM+x6cmE1Q4Yj4RJSRfL+pfMUADSIvyBYz25LroGXFpoGa6JoWdM0mWib6XnLmh4pAepFHbOMZmEaeWkHKrpy8F8cDMsGDnoFe+LdKfaHPLgpkTKVAh5I+7TL20IB74Jd5gbV6fDTvPOQQ21l4NGREpd9vTvtnbLuppfqRM/epV5rBjIdxffbDgGGpORBoTJTepXZK/HJt8JBPuLcXYx/VyMVd6iw0ewAE/jGtiJnETMUa6NOU6nlsFSwZe/JcZS0u+m2rRthfWF3XBFRpywpNuBJA7O767KVZtr3VIkQujaXKnskaGh6FHe8VpKhd6Iu6bDaouaglGxtiEPXK1TIiFZ6wm9+CR/dhhYKAHWNWfCmcWetQFEayoaIPPuFD2DTAsHPumf53SVCiEDKW1BCoa/DbCyBd2OsyvhDb73XnC5/Q6mAyrsxTkicrp9Xw==
-X-Forefront-Antispam-Report: CIP:255.255.255.255;CTRY:;LANG:en;SCL:1;SRV:;IPV:NLI;SFV:NSPM;H:DS7PR12MB5744.namprd12.prod.outlook.com;PTR:;CAT:NONE;SFS:(13230025)(4636009)(366004)(376002)(39860400002)(396003)(136003)(346002)(451199018)(53546011)(6506007)(6512007)(26005)(5660300002)(7416002)(6666004)(235185007)(83380400001)(41300700001)(2906002)(316002)(2616005)(33656002)(54906003)(38100700002)(66946007)(66476007)(66556008)(36756003)(8936002)(186003)(4326008)(6916009)(478600001)(6486002)(966005)(86362001)(8676002)(45980500001)(72826004);DIR:OUT;SFP:1101;
-X-MS-Exchange-AntiSpam-MessageData-ChunkCount: 1
-X-MS-Exchange-AntiSpam-MessageData-0: =?us-ascii?Q?BHfFNfRO9aaz3Cn0SehS2uK6mxbPsqicJlsxZ4EEdYHqG44tm99d+Z9UdorR?=
- =?us-ascii?Q?NZV7f6ZT1gbjwMZVH2DKeMLR3XqN1bokZnPCvpZkOOSLLvn67HPZ4XBVWHiD?=
- =?us-ascii?Q?J2hrKilMAAA7fIiVU+LIQlaJb+uTPm2/pTLIBoxYBicG0VfOtBND10ERGW1e?=
- =?us-ascii?Q?PeG9S/lTD+hH3GKnYWY226WFgM+H4RMTWUFMwAd+5QA67XodLqRCtSK2x2Up?=
- =?us-ascii?Q?SGzEG0FjxBLaK5bGhIZ/HVtu7XrOCbpSDJKW7orAU/OqjUlJHBlsxrs7V87d?=
- =?us-ascii?Q?3Y+hpIGml8fUpSQskHaYCnAnzWVFLr8FpFLV+2ZhszHRFmpNbs1n63NHCfju?=
- =?us-ascii?Q?bTWBTnPKDWxbdCcYd1umzWH3N5xPeRBftLzy9uwjjDbM9rn+wtg3PfcKnPJj?=
- =?us-ascii?Q?tbai1wAiPhaCiavcesODeR6B4O6NJ47yfK/aBZDzcdGui4VN7NE17sMwnaGT?=
- =?us-ascii?Q?dZtQWjlspiGLc1A5KwvNo55+a3SmTgkMfFb3EJOR/rZBQSE4z/PlpaEJAlzE?=
- =?us-ascii?Q?XGKmEBLkef7YoTlTWhLjY1foDCGnxBdPIAiIO3RzPgRhRRqJgZagPeJokyVe?=
- =?us-ascii?Q?Cqle4zaS1dso5UN8NgWy7LqxbpoZeUp2ZEN7mCQ7exbCevA5sbZkDV2y2zwX?=
- =?us-ascii?Q?jpxq3lHdBLxfR253rpiuJy90wjiGke8x1bs3y8Tav20SvY+mntlP92P3sKiB?=
- =?us-ascii?Q?wUbofiHdq/RBTsubYE0v83eM+pnfmK8hzvV5TDegKgzoMEyRDGM97UVkwjnd?=
- =?us-ascii?Q?HmbYp2BXPiqVO4HnST64bt+5nOkNi8WvRpeWWO5FaM1WIAkZEv1QKes47RjF?=
- =?us-ascii?Q?d41nFeevIS8nxfr3WQ7ge4n9hPSIRzYOlvrcyYAI2hOrR/ivYTru0Ct97Kio?=
- =?us-ascii?Q?pPWdbe4Ed8DoNcYiRktv1k16dGZU602AaBRXP/7Et89fy0pEslCgZbLTyioE?=
- =?us-ascii?Q?c0Ft935qJ6z9FHuRLQjWokBRwMXqMCqfuQRwz63YfB1RKJR4Ao3NXAgikZDh?=
- =?us-ascii?Q?skSm345LMplgpHvY5yB5wHJVZmO+xXa7kCU36NguPvIJ2+RwkacsAtt34dgZ?=
- =?us-ascii?Q?8mtzloQ17AgJQ/lIme7dNKTgIrEZq3ygp/ogThoqxjVuhFkytW2o8YJLdFDK?=
- =?us-ascii?Q?ItMILmTISHCPGKk+H5ZZebd1mZmoWJbht4lU6xCvskegNpu9yYq0bYo7oPrh?=
- =?us-ascii?Q?N+3IJuPztNV7f+4aI+mhA6awcseu0ABeLFfZBIQdgUiV5c9+A7q7S7ovkHFI?=
- =?us-ascii?Q?R2DhdcZUbO4R8948ggH39EMLkSJ2huvsZRa4PaLbcC5OO7E3J+WkQg5BHmY8?=
- =?us-ascii?Q?92zlgULsmGQP+XaxTCgd9o8gY+0rxpaHG6OwlhTJxIan0ELbg9FWxVjCn6Xg?=
- =?us-ascii?Q?r4KltsrHdOsa7WCLjEHuvl+wc9Pit+tLFhq3eRL/7ftQqFFaUKg2ktF+oI1G?=
- =?us-ascii?Q?fOf7oOWX3RzPNN96Kna2zK7bYkAuqx6GyQTlLPlxIsZcI5gOdkd3Nvvx4lfb?=
- =?us-ascii?Q?oo9hLSmV9BPIgmuN+ekwV5AeAFBCSKTbb6MBniHN1Mo4U27txDDm3KNnvlZp?=
- =?us-ascii?Q?dR0jE10uqzaq16NT/7UQs/q1NnMvfiCREa/bM7em?=
-X-OriginatorOrg: Nvidia.com
-X-MS-Exchange-CrossTenant-Network-Message-Id: a72a7b43-bedc-43b6-5156-08db2b95c06e
-X-MS-Exchange-CrossTenant-AuthSource: DS7PR12MB5744.namprd12.prod.outlook.com
-X-MS-Exchange-CrossTenant-AuthAs: Internal
-X-MS-Exchange-CrossTenant-OriginalArrivalTime: 23 Mar 2023 11:57:18.2883
- (UTC)
-X-MS-Exchange-CrossTenant-FromEntityHeader: Hosted
-X-MS-Exchange-CrossTenant-Id: 43083d15-7273-40c1-b7db-39efd9ccc17a
-X-MS-Exchange-CrossTenant-MailboxType: HOSTED
-X-MS-Exchange-CrossTenant-UserPrincipalName: 87bgU0V8bYcFk/2/HtSZuiZjO/r4PHTMp98USqB1FFkti+RM0889AFUG70/XSfo1
-X-MS-Exchange-Transport-CrossTenantHeadersStamped: MW4PR12MB6684
+X-TM-AS-GCONF: 00
+X-Proofpoint-GUID: ILhJ9KxUcdZTNzZ4sWuhaur67a0wm06C
+X-Proofpoint-ORIG-GUID: mOBSc53Xq2jpq67qceMo9W2p8ZoZQ_8a
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.254,Aquarius:18.0.942,Hydra:6.0.573,FMLib:17.11.170.22
+ definitions=2023-03-22_21,2023-03-22_01,2023-02-09_01
+X-Proofpoint-Spam-Details: rule=outbound_notspam policy=outbound score=0 priorityscore=1501
+ phishscore=0 lowpriorityscore=0 adultscore=0 suspectscore=0 clxscore=1015
+ mlxscore=0 impostorscore=0 spamscore=0 bulkscore=0 mlxlogscore=449
+ malwarescore=0 classifier=spam adjust=0 reason=mlx scancount=1
+ engine=8.12.0-2303150002 definitions=main-2303230098
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
---=_MailMate_C0B9CB2B-1F3E-4990-8124-8C2C5E7E129D_=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2023-03-14 at 13:37 +0100, Johannes Berg wrote:
+> On Tue, 2023-03-14 at 13:11 +0100, Niklas Schnelle wrote:
+> > --- a/arch/um/Kconfig
+> > +++ b/arch/um/Kconfig
+> > @@ -56,6 +56,7 @@ config NO_IOPORT_MAP
+> > =20
+> >  config ISA
+> >  	bool
+> > +	depends on HAS_IOPORT
+> >=20
+>=20
+> config ISA here is already unselectable, and nothing ever does "select
+> ISA" (only in some other architectures), so is there much point in this?
+>=20
+> I'm not even sure why this exists at all.
 
-On 23 Mar 2023, at 6:37, Mike Rapoport wrote:
+You're right there's not much point and I dropped this for v4. I agree
+that probably the whole "config ISA" could be removed if it's always
+false anyway but that seems out of scope for this patch.
 
-> On Thu, Mar 23, 2023 at 10:15:33AM +0000, Catalin Marinas wrote:
->> On Thu, Mar 23, 2023 at 11:21:44AM +0200, Mike Rapoport wrote:
->>> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
->>>
->>> It is not a good idea to change fundamental parameters of core memory=
+>=20
+> But anyway, adding a dependency to a always-false symbol doesn't make it
+> less always-false :-)
+>=20
+> Acked-by: Johannes Berg <johannes@sipsolutions.net> # for ARCH=3Dum
 
->>> management. Having predefined ranges suggests that the values within
->>> those ranges are sensible, but one has to *really* understand
->>> implications of changing MAX_ORDER before actually amending it and
->>> ranges don't help here.
->>>
->>> Drop ranges in definition of ARCH_FORCE_MAX_ORDER
->>>
->>> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
->>> ---
->>>  arch/arm64/Kconfig | 2 --
->>>  1 file changed, 2 deletions(-)
->>>
->>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->>> index e60baf7859d1..bab6483e4317 100644
->>> --- a/arch/arm64/Kconfig
->>> +++ b/arch/arm64/Kconfig
->>> @@ -1489,9 +1489,7 @@ config XEN
->>>  config ARCH_FORCE_MAX_ORDER
->>>  	int "Maximum zone order" if ARM64_4K_PAGES || ARM64_16K_PAGES
->>>  	default "13" if ARM64_64K_PAGES
->>> -	range 11 13 if ARM64_16K_PAGES
->>>  	default "11" if ARM64_16K_PAGES
->>> -	range 10 15 if ARM64_4K_PAGES
->>>  	default "10"
->>
->> I don't mind rewriting the help text as in the subsequent patch but I'=
-d
->> keep the ranges as a safety measure. It's less wasted time explaining =
-to
->> people why some random max order doesn't work. Alternatively, we can
->> drop the ranges but make this option configurable only if EXPERT.
->
-> I like the EXPERT alternative more. I'll add it in v2.
+Thanks
 
-I got an error report from kernel test robot, which set -1 to ARCH_FORCE_=
-MAX_ORDER
-via random config generator[1].
+>=20
+>=20
+> Certainly will be nice to get rid of this cruft for architectures that
+> don't have it.
+>=20
+> johannes
 
-Does the EXPERT option prevent kernel test robot from generating such con=
-fig?
-Or we should fix random config generator?
-
-[1] https://lore.kernel.org/linux-mm/91E887E4-0867-421F-9C75-FB9CFF15C33A=
-@nvidia.com/
-
-
---
-Best Regards,
-Yan, Zi
-
---=_MailMate_C0B9CB2B-1F3E-4990-8124-8C2C5E7E129D_=
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename=signature.asc
-Content-Type: application/pgp-signature; name=signature.asc
-
------BEGIN PGP SIGNATURE-----
-
-iQJDBAEBCgAtFiEE6rR4j8RuQ2XmaZol4n+egRQHKFQFAmQcPpkPHHppeUBudmlk
-aWEuY29tAAoJEOJ/noEUByhU9EYP/R6RuN1pPr5jRFyo4D+2nLzmk6uOP2JexQ6T
-6fnLGGr4kraIULDhfR1OqB9bJl25FyMrS6GpsJckpg7FQkXxffvVmdAFFv8MHhyF
-/Yag0WuKNuozliOMeL2WW4qLrlk+wS41ipvi5s1vqJQKjfvjB4bNrL4ELh+wAso3
-6mVTpnad6XsJJxZ70i2QMD0hOOA/GnSTyFw7/h4Wm0BS+sTV3amC7DvIE3Tx1XVG
-uFxBHjOsSe0UXUuo+Z5ZQZSqdkmfvzzY35/NzOBYx1v0aVWUueXsdTLFrukWEPJu
-AQA1NIqcxz+p7+OxgNrNiyGQIr9aroJb5jgfjenXjcat8lsiTFqW6lZmKviaQ+w+
-Bpur3EgYyQOiZFf6ox99WXbJONqPhSwVG36+Vsu9ACj/oCzmBNwlUtOuQn62Q50M
-Ct2k4j/UmhDPBCXZpHWLwqGTwhvqs3uSIOMPqZe0qaXAd6MJw1sPqa8h6MV5+Vf9
-mWBApZod3ekSrRR8GKuKortn8Wm0Lh/KtdxAn5vWRV6UKq3wgSJTHwPwJjKVsa/Q
-q02bSlYj3SgmnbkFbHK4S0x6Bf8p1R6XreCW5nLnv5NuPiKeG9yLkqOJk5d7uqmY
-Z8gVdSyn1DAQ98Qs+VXDP6uYrt0Sq3/uqEdHgwWSYaCA0vmzzlQoRcheTh+n9Cq2
-F6T7/BJg
-=WfgP
------END PGP SIGNATURE-----
-
---=_MailMate_C0B9CB2B-1F3E-4990-8124-8C2C5E7E129D_=--
+Yes, also, for s390 the broken NULL + port number access in the generic
+inb()/outb() currently causes the only remaining clang warning on
+defconfig builds.
