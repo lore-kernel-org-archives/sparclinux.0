@@ -2,38 +2,60 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 64144C76195
-	for <sparclinux@archiver.kernel.org>; Thu, 23 Mar 2023 09:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F3AC77B60
+	for <sparclinux@archiver.kernel.org>; Thu, 23 Mar 2023 09:40:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231387AbjCWJ1R (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 23 Mar 2023 05:27:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46300 "EHLO
+        id S230064AbjCWJkW (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 23 Mar 2023 05:40:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47012 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231292AbjCWJ0e (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Mar 2023 05:26:34 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 46A8B23329;
-        Thu, 23 Mar 2023 02:24:05 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47B10B82035;
-        Thu, 23 Mar 2023 09:24:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4E88C433A8;
-        Thu, 23 Mar 2023 09:23:52 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1679563440;
-        bh=cLED8RkguNRC7M0dLtOL32lQLdxQxLek8h+Azi/Gy6Q=;
-        h=From:To:Cc:Subject:Date:In-Reply-To:References:From;
-        b=WIWeaGhkdAVAFsei9Bza8wkj6njjW2uuNU19Ix52dZIy4kTovKxu2Yzdc1Dz5INgk
-         6Pg8B0dxqUnQqAGPRddvXBDr04oxwsZgfgMfgJcU2jrpRxwEnlQEkRrI1EaXpZ/Sd3
-         J1R1AHdgpJEjig/ZCiDv6lRb6moY7coIH3tSLS9pooMmPjppzT+nQQhT/DWOAlRgqO
-         qm0cc8RB1yphHkpFQoCij3s1dldJDU1nXnNLUsJgMOQ4HfK7QoHZuhf2AiVIoE2wS5
-         yFRQUoFek2mX0QhpEnHG0I8VwxyFZGYOyQDQfZMNp/sVEaoPdJET5/f6iAfGlVUfv5
-         tjTM9P6gnulFg==
-From:   Mike Rapoport <rppt@kernel.org>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     Arnd Bergmann <arnd@arndb.de>,
+        with ESMTP id S231375AbjCWJjr (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 23 Mar 2023 05:39:47 -0400
+Received: from mail-pl1-x636.google.com (mail-pl1-x636.google.com [IPv6:2607:f8b0:4864:20::636])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D1B336E9E;
+        Thu, 23 Mar 2023 02:39:46 -0700 (PDT)
+Received: by mail-pl1-x636.google.com with SMTP id ja10so21763075plb.5;
+        Thu, 23 Mar 2023 02:39:46 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1679564386;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=zx1cWbW8skW+J91S4nIUH2+PrWy6/cJUo3hRxlmG+G4=;
+        b=pCQdPrCYjY2EZyqDFB6ur/y+zD7pfxrqPKXJ6qROgn8YzstnagOQ80gua0e1yJf5be
+         Iio59oXde7Wup+LLoxrsV6D9TeOXDdjIwSR0uzeN8xXXiJrpqDFsl3PPA9Bn/1zF3BIo
+         YLwOlu/RQCnP/HzzbsPc80+gLMzoDTJiFBHeGDoqzkTbPeTcgvhX6vrX/IYCDMIOQ+lF
+         oU3W9kqDe16PxbF7PpEZ1wobldylApgBPHSg1aCrJv/TSvboroNCYTId4WKXpZR8qvGg
+         BPHyb212ZPe8k9S2ggTMwGgiVnV72nO1xLe9xzULnDLsdD1LalTMpJY686VYZd+oZ85l
+         A86A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1679564386;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=zx1cWbW8skW+J91S4nIUH2+PrWy6/cJUo3hRxlmG+G4=;
+        b=01Z6A2u3tRgTUhDxrhIZy6Fk3M24es8sOC/vb2QlpUU3YYd6nZJv/o3pl3bH+cyBmS
+         E3Lx8Eqx6P/HsAraN65FAgI0WfbXbXh3ItQbtpp97GYqGO4dsBqKUmyVOpUKOx7dqnes
+         w/zV8J3B0XuFzAg3kZh8zf+55tRRH2Vt0f4wiXPKP/Ug1lnq93saYaa4/xvYLKgZbz8q
+         SeCIovxWhMYQNWIxn8Fh2YRgKFU14tElIR92QjXWlhSCJme3eoJqei+bQEcaUYNO21ad
+         By67qTAqmecGM8sm++CVGStGXiElQwyQ8jFyCFRAj695qWXg/H9jJNvsAXttZ8mRayzl
+         VVMw==
+X-Gm-Message-State: AAQBX9dpK3GyeHvYnf6UsqhbyknCosthKN6Zly1f3FzqPQ9Z9K5mvSq7
+        09rblEsHTU66A02exX84XCfCS7/yAPTGqf6dv5M=
+X-Google-Smtp-Source: AKy350bCAexRMlOcrYwrCk12cMPtsoPYJWZ/XiHrtIhAZ4B6tk5Hhx8gC4VdgE3XYHEjClHtI+16JTGrwgF9+BfNLfM=
+X-Received: by 2002:a17:902:b687:b0:1a1:ffc5:1e8d with SMTP id
+ c7-20020a170902b68700b001a1ffc51e8dmr942230pls.3.1679564386271; Thu, 23 Mar
+ 2023 02:39:46 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230323092156.2545741-1-rppt@kernel.org> <20230323092156.2545741-15-rppt@kernel.org>
+In-Reply-To: <20230323092156.2545741-15-rppt@kernel.org>
+From:   Max Filippov <jcmvbkbc@gmail.com>
+Date:   Thu, 23 Mar 2023 02:39:34 -0700
+Message-ID: <CAMo8BfJtCgak4mbeZ2R61EEWz+HYYhK-KOz+XJ+fhLY+zFgajA@mail.gmail.com>
+Subject: Re: [PATCH 14/14] xtensa: reword ARCH_FORCE_MAX_ORDER prompt and help text
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
         "David S. Miller" <davem@davemloft.net>,
@@ -42,9 +64,8 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         Guo Ren <guoren@kernel.org>,
         John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
         "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Max Filippov <jcmvbkbc@gmail.com>,
         Michael Ellerman <mpe@ellerman.id.au>,
-        Mike Rapoport <rppt@kernel.org>, Rich Felker <dalias@libc.org>,
+        Rich Felker <dalias@libc.org>,
         Russell King <linux@armlinux.org.uk>,
         Will Deacon <will@kernel.org>,
         Yoshinori Sato <ysato@users.sourceforge.jp>,
@@ -54,59 +75,29 @@ Cc:     Arnd Bergmann <arnd@arndb.de>,
         linux-mm@kvack.org, linux-sh@vger.kernel.org,
         linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
         sparclinux@vger.kernel.org
-Subject: [PATCH 14/14] xtensa: reword ARCH_FORCE_MAX_ORDER prompt and help text
-Date:   Thu, 23 Mar 2023 11:21:56 +0200
-Message-Id: <20230323092156.2545741-15-rppt@kernel.org>
-X-Mailer: git-send-email 2.35.1
-In-Reply-To: <20230323092156.2545741-1-rppt@kernel.org>
-References: <20230323092156.2545741-1-rppt@kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+On Thu, Mar 23, 2023 at 2:24=E2=80=AFAM Mike Rapoport <rppt@kernel.org> wro=
+te:
+>
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+>
+> The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
+> describe this configuration option.
+>
+> Update both to actually describe what this option does.
+>
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> ---
+>  arch/xtensa/Kconfig | 16 +++++++++-------
+>  1 file changed, 9 insertions(+), 7 deletions(-)
 
-The prompt and help text of ARCH_FORCE_MAX_ORDER are not even close to
-describe this configuration option.
+Reviewed-by: Max Filippov <jcmvbkbc@gmail.com>
 
-Update both to actually describe what this option does.
-
-Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
----
- arch/xtensa/Kconfig | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
-
-diff --git a/arch/xtensa/Kconfig b/arch/xtensa/Kconfig
-index 3eee334ba873..3c6e5471f025 100644
---- a/arch/xtensa/Kconfig
-+++ b/arch/xtensa/Kconfig
-@@ -772,15 +772,17 @@ config HIGHMEM
- 	  If unsure, say Y.
- 
- config ARCH_FORCE_MAX_ORDER
--	int "Maximum zone order"
-+	int "Order of maximal physically contiguous allocations"
- 	default "10"
- 	help
--	  The kernel memory allocator divides physically contiguous memory
--	  blocks into "zones", where each zone is a power of two number of
--	  pages.  This option selects the largest power of two that the kernel
--	  keeps in the memory allocator.  If you need to allocate very large
--	  blocks of physically contiguous memory, then you may need to
--	  increase this value.
-+	  The kernel page allocator limits the size of maximal physically
-+	  contiguous allocations. The limit is called MAX_ORDER and it
-+	  defines the maximal power of two of number of pages that can be
-+	  allocated as a single contiguous block. This option allows
-+	  overriding the default setting when ability to allocate very
-+	  large blocks of physically contiguous memory is required.
-+
-+	  Don't change if unsure.
- 
- endmenu
- 
--- 
-2.35.1
-
+--=20
+Thanks.
+-- Max
