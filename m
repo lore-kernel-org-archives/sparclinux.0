@@ -2,39 +2,73 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E88C7619A
-	for <sparclinux@archiver.kernel.org>; Sun, 26 Mar 2023 23:08:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8440BC76195
+	for <sparclinux@archiver.kernel.org>; Mon, 27 Mar 2023 07:30:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229765AbjCZXId (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sun, 26 Mar 2023 19:08:33 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38708 "EHLO
+        id S232525AbjC0HaB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Mon, 27 Mar 2023 03:30:01 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58972 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229471AbjCZXIc (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sun, 26 Mar 2023 19:08:32 -0400
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E050F4231;
-        Sun, 26 Mar 2023 16:08:31 -0700 (PDT)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id A34EF68B05; Mon, 27 Mar 2023 01:08:28 +0200 (CEST)
-Date:   Mon, 27 Mar 2023 01:08:28 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc:     Christoph Hellwig <hch@lst.de>,
-        "David S . Miller" <davem@davemloft.net>,
-        sparclinux@vger.kernel.org, kernel-janitors@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] sparc: remove obsolete config ARCH_ATU
-Message-ID: <20230326230828.GA19291@lst.de>
-References: <20230324103438.28563-1-lukas.bulwahn@gmail.com>
+        with ESMTP id S230135AbjC0HaA (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Mar 2023 03:30:00 -0400
+Received: from baptiste.telenet-ops.be (baptiste.telenet-ops.be [IPv6:2a02:1800:120:4::f00:13])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC65F18E
+        for <sparclinux@vger.kernel.org>; Mon, 27 Mar 2023 00:29:59 -0700 (PDT)
+Received: from ramsan.of.borg ([84.195.187.55])
+        by baptiste.telenet-ops.be with bizsmtp
+        id dKVx2900j1C8whw01KVxHD; Mon, 27 Mar 2023 09:29:58 +0200
+Received: from geert (helo=localhost)
+        by ramsan.of.borg with local-esmtp (Exim 4.95)
+        (envelope-from <geert@linux-m68k.org>)
+        id 1pghIj-00ExIC-Qs;
+        Mon, 27 Mar 2023 09:29:57 +0200
+Date:   Mon, 27 Mar 2023 09:29:57 +0200 (CEST)
+From:   Geert Uytterhoeven <geert@linux-m68k.org>
+To:     linux-kernel@vger.kernel.org
+cc:     linux-wireless@vger.kernel.org,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        sparclinux@vger.kernel.org
+Subject: Re: Build regressions/improvements in v6.3-rc4
+In-Reply-To: <20230327072641.3591802-1-geert@linux-m68k.org>
+Message-ID: <eb55ca34-ca71-ed19-dae2-6e5e87c170@linux-m68k.org>
+References: <CAHk-=whcaHLNpb7Mu_QX7ABwPgyRyfW-V8=v4Mv0S22fpjY4JQ@mail.gmail.com> <20230327072641.3591802-1-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230324103438.28563-1-lukas.bulwahn@gmail.com>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Looks good:
+On Mon, 27 Mar 2023, Geert Uytterhoeven wrote:
+> JFYI, when comparing v6.3-rc4[1] to v6.3-rc3[3], the summaries are:
+>  - build errors: +9/-1
 
-Reviewed-by: Christoph Hellwig <hch@lst.de>
+   + /kisskb/src/drivers/net/wireless/cisco/airo.c: error: 'status_rid.currentXmitRate' is used uninitialized [-Werror=uninitialized]:  => 6163:45
+
+sh4-gcc11/sh-allmodconfig
+seen before
+
+   + error: modpost: "ebus_dma_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_irq_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_prepare" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_register" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_request" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_residue" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ebus_dma_unregister" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+   + error: modpost: "ns87303_lock" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+
+sparc64-gcc11/sparc-allmodconfig
+seen before
+
+> [1] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/197b6b60ae7bc51dd0814953c562833143b292aa/ (all 152 configs)
+> [3] http://kisskb.ellerman.id.au/kisskb/branch/linus/head/e8d018dd0257f744ca50a729e3d042cf2ec9da65/ (all 152 configs)
+
+Gr{oetje,eeting}s,
+
+ 						Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+ 							    -- Linus Torvalds
