@@ -2,50 +2,51 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B21AC83003
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CF48C83005
 	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:54:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231411AbjC2PyB (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:54:01 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42926 "EHLO
+        id S231407AbjC2Px7 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:59 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43248 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230484AbjC2PxS (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:18 -0400
-Received: from mail-ot1-f50.google.com (mail-ot1-f50.google.com [209.85.210.50])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 325791FD3;
-        Wed, 29 Mar 2023 08:53:17 -0700 (PDT)
-Received: by mail-ot1-f50.google.com with SMTP id cm7-20020a056830650700b006a11f365d13so7134427otb.0;
-        Wed, 29 Mar 2023 08:53:17 -0700 (PDT)
+        with ESMTP id S231229AbjC2PxY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:24 -0400
+Received: from mail-ot1-f47.google.com (mail-ot1-f47.google.com [209.85.210.47])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B8A7894;
+        Wed, 29 Mar 2023 08:53:23 -0700 (PDT)
+Received: by mail-ot1-f47.google.com with SMTP id 61-20020a9d02c3000000b0069fe8de3139so8451454otl.1;
+        Wed, 29 Mar 2023 08:53:23 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105196;
+        d=1e100.net; s=20210112; t=1680105203;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tWmtLeCB2PTcAHpGNr0ZZYDBf99xMHUdOSjMIZXheFk=;
-        b=gT+gIRABipFTEumNuWr5OL4/LCOnJwyueWpyK6R4odBzFtJLcFWfuB3HLqw4JPYcfb
-         Ehucm1O/0IUGKFHv8c0l8s3s9eU2ee2s4igCVbjadowvVW6nbl6NJcCHJkg8MplO8Eh3
-         anfkbGqG5CXPo3dv3cV5wT9e99eelVaodzOOU3dsHjvbjYMGGsdVK5mW8SPjbU03wDfU
-         y8XGfyUu1FF+ChZEXzBo0TOUqahIcplqC5srwW8PSNdRnmOYOW25UT1zDh/7MCVzISVq
-         s8BDVXAbCaaK7cEmWV7D3q4msqEWxoRaSGjf/vsRUElHzm+1pBML8c0shEI19K6yMYnl
-         6Eiw==
-X-Gm-Message-State: AO0yUKV2NI1lPw0Wrsju9M7Zvo/8ZtfH98jRbPf93rmLFEdoTNxcwron
-        BMn2QThOjvoYArCE4zKMuQ==
-X-Google-Smtp-Source: AKy350by63hvThVx+G6CTPOFFLOe4lmhMruBxp6akfw7h8ZCmJHsyJFTMVn+Dn/8by4Bc4xtRU8hFQ==
-X-Received: by 2002:a05:6830:1695:b0:694:3972:dbae with SMTP id k21-20020a056830169500b006943972dbaemr9305044otr.2.1680105196435;
-        Wed, 29 Mar 2023 08:53:16 -0700 (PDT)
+        bh=GcRNyMomlVIyDJBO4v13lmumWoZCHsVn17zoo+wPdkk=;
+        b=JcuCBpIzgihULYhOc1Ur+hGhyYGwvtuCpYrTecfzIkA3LXkM57CD2d3Ay9oCjyabSF
+         Ea0nY+fBWM2la6FW0CRXvEw7lCbLF1l1VTK24MouFE/Bf58EjfGF1OF66neagMS6HBVZ
+         qZfnaJnrHwJHhXgdPGXX+cW+lyEjAHKrcu58eS5ka2jSZgv8qEEGsTecV1CqkidcVPXh
+         IwAhH01NazwjsSwbMiBf1zx8E2lLU1ANDdYW+FzAB/U9DIWeXThMROUF16KDdcXnF38J
+         FmAw255IXi0iLkdg0vnYsN7uuCgmXCFAaV8eHdDZNZZN7HwCtPXiXKvmNqS3KNLVEQeP
+         qmCA==
+X-Gm-Message-State: AO0yUKV/1jDjD2fVHRPN5N8SfPPuSbGddbxG9Dko0OYg54YWSqNkQu4t
+        0tvocvEAk5Bl0jWYU8gd4Q==
+X-Google-Smtp-Source: AK7set+G4RUI7e7LVlBDXGQ8p8x17CahM2R0t8c+RybdcRc83FcjeXtVKZHsxX3oO+Yqeus+IJNu+w==
+X-Received: by 2002:a05:6830:124e:b0:68e:da51:2cb2 with SMTP id s14-20020a056830124e00b0068eda512cb2mr10233310otp.37.1680105202916;
+        Wed, 29 Mar 2023 08:53:22 -0700 (PDT)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id q4-20020a9d4b04000000b0069f509ad088sm5047619otf.65.2023.03.29.08.53.14
+        by smtp.gmail.com with ESMTPSA id y26-20020a056830209a00b006a06e7972ebsm6242943otq.38.2023.03.29.08.53.21
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:53:16 -0700 (PDT)
-Received: (nullmailer pid 3198067 invoked by uid 1000);
+        Wed, 29 Mar 2023 08:53:22 -0700 (PDT)
+Received: (nullmailer pid 3198087 invoked by uid 1000);
         Wed, 29 Mar 2023 15:52:45 -0000
 From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:00 -0500
-Subject: [PATCH 03/19] of: Move of_device_get_match_data() declaration
+Date:   Wed, 29 Mar 2023 10:52:10 -0500
+Subject: [PATCH 13/19] soc: mediatek: mtk-svs: Add explicit include for
+ cpu.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-3-581e2605fe47@kernel.org>
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-13-581e2605fe47@kernel.org>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -98,41 +99,32 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-of_device.h mostly defines functions for bus drivers whereas
-of_device_get_match_data() is used by drivers. Let's move it to of.h.
+Removing the include of cpu.h from of_device.h (included by
+of_platform.h) causes an error:
+
+drivers/soc/mediatek/mtk-svs.c:2134:41: error: implicit declaration of function 'get_cpu_device'; did you mean 'get_swap_device'? [-Werror=implicit-function-declaration]
+
+of_platform.h is still needed for of_find_device_by_node().
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- include/linux/of.h        | 2 ++
- include/linux/of_device.h | 2 --
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Please ack and I will take the series via the DT tree.
+---
+ drivers/soc/mediatek/mtk-svs.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 36cf94596eba..b7118d68c73a 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -416,6 +416,8 @@ extern int of_detach_node(struct device_node *);
- 
- #define of_match_ptr(_ptr)	(_ptr)
- 
-+extern const void *of_device_get_match_data(const struct device *dev);
-+
- /*
-  * struct property *prop;
-  * const __be32 *p;
-diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-index e4aa61cb2bd0..6af4c3acd502 100644
---- a/include/linux/of_device.h
-+++ b/include/linux/of_device.h
-@@ -26,8 +26,6 @@ static inline int of_driver_match_device(struct device *dev,
- 	return of_match_device(drv->of_match_table, dev) != NULL;
- }
- 
--extern const void *of_device_get_match_data(const struct device *dev);
--
- extern ssize_t of_device_modalias(struct device *dev, char *str, ssize_t len);
- extern int of_device_request_module(struct device *dev);
- 
+diff --git a/drivers/soc/mediatek/mtk-svs.c b/drivers/soc/mediatek/mtk-svs.c
+index f26eb2f637d5..1b7579a5bec6 100644
+--- a/drivers/soc/mediatek/mtk-svs.c
++++ b/drivers/soc/mediatek/mtk-svs.c
+@@ -7,6 +7,7 @@
+ #include <linux/bits.h>
+ #include <linux/clk.h>
+ #include <linux/completion.h>
++#include <linux/cpu.h>
+ #include <linux/cpuidle.h>
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
 
 -- 
 2.39.2
