@@ -2,50 +2,51 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 979CFC83003
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55868C7EE43
 	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231255AbjC2Pxa (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:53:30 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42928 "EHLO
+        id S231235AbjC2Px0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42596 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230113AbjC2PxO (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:14 -0400
-Received: from mail-oa1-f41.google.com (mail-oa1-f41.google.com [209.85.160.41])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B5771FD8;
-        Wed, 29 Mar 2023 08:53:10 -0700 (PDT)
-Received: by mail-oa1-f41.google.com with SMTP id 586e51a60fabf-17997ccf711so16697497fac.0;
-        Wed, 29 Mar 2023 08:53:10 -0700 (PDT)
+        with ESMTP id S230511AbjC2Pw7 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:52:59 -0400
+Received: from mail-oo1-f51.google.com (mail-oo1-f51.google.com [209.85.161.51])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC7885258;
+        Wed, 29 Mar 2023 08:52:52 -0700 (PDT)
+Received: by mail-oo1-f51.google.com with SMTP id l7-20020a4abe07000000b0053e1205c84bso2136682oop.9;
+        Wed, 29 Mar 2023 08:52:52 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105190;
+        d=1e100.net; s=20210112; t=1680105172;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=o+n6GH4Nk3FkonjtkMjc2Nc5AHFrGJ7ZcCh9y20RfPM=;
-        b=t16RGkAGgM9KhBHOlaER2V+7DfsbXQipFXyB1gauZKY6Cwndf4VNz4qV75x3vnhXGH
-         4XtnhmSDGQBj6AGwoPAWN+UoDiSj0b71dJ0lRt4PB8Ri4hwa+g3R8iw+C2BMZKOhHBtT
-         xFobQe+npj/NrXtPl2R+PKJ239ZAOjW2rZvKriB0vUJ/yTXpi6YAxYb3G1t5wyyb1wSf
-         zwYUkGXklGpJDqmiYIJDADHEXldWskcmnnmGPb94NIGUMCqs3yHSRqhoyIpTwYkBwrqO
-         FcUokPjo5jsuKxuPXxNTHtaY2Ad2Wndgi4wsiGADdAZbEqyXRTMqvH6ii+DawVq+nX2U
-         8VpQ==
-X-Gm-Message-State: AAQBX9fV6KjCDp6IC4I+CrDdx4KbKiSeeeSnn/YYLdaQrg6jlnyTQn48
-        8INlOsQAEq9tJUmmZwqlEg==
-X-Google-Smtp-Source: AK7set9TWw7WlWpaVRoaXna+i6jfLH3b5BBVKHUpgOSqr1CxQaOSf7zeRp9d9vawXGilKhjHZUk1VQ==
-X-Received: by 2002:a05:6870:a2d4:b0:17a:a959:ea2c with SMTP id w20-20020a056870a2d400b0017aa959ea2cmr12910266oak.34.1680105189867;
-        Wed, 29 Mar 2023 08:53:09 -0700 (PDT)
+        bh=hUvdSWvlelGy1WbXkwFcUNCtjmz5cL2Z3yoJim8fyN4=;
+        b=aODX/6ADRviQrEpvD9jvFMaqnQIU0s6qdxBGaa+80aOFrEi2GGSBI3hn8jldFN5/Fe
+         aQH8vhvbeRlSsLHGsZWQmtkppZuI3yletOQPg3utpNptIZR0++A8ZSQMm9ucWJrxyE7g
+         z1v/bazbW4FW7ea5DAHNfxqnESnBXKJF36TRk0mvrqkl77IhEnnjx8DgbR/u61kWoCuu
+         sRURc8o2nP9+WWLmx4C1uE6i942K94R1XVILAGBz0vImq4+SaSgsoRhCQX9SvGzxKLC6
+         G/XUdGloaGJjsFjF14HPc+p5oTVejWAKfKlcBMVwqKXRmIWHfrD6UpWiIpYAhkfRPcLB
+         2xCg==
+X-Gm-Message-State: AO0yUKW6H+7kkywF6lx3NheJqIKiSUgKPi9QaQkse32gaRNbj1y/4jiX
+        dgRisqBYYKsbLzrh4DcKbrxw3fvkpQ==
+X-Google-Smtp-Source: AK7set8fZmNpueyLlqRjeVxsIcrGmIm7sG0omBAJB7zOEj3TTntZfmKbMnjZiGlZRcAnzZ6+ha8iMg==
+X-Received: by 2002:a4a:4191:0:b0:538:4d29:30cb with SMTP id x139-20020a4a4191000000b005384d2930cbmr9034039ooa.8.1680105171818;
+        Wed, 29 Mar 2023 08:52:51 -0700 (PDT)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id y18-20020a056830109200b0069fb033f577sm7210819oto.51.2023.03.29.08.53.08
+        by smtp.gmail.com with ESMTPSA id 129-20020a4a1887000000b005252d376caesm13850273ooo.22.2023.03.29.08.52.49
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:53:09 -0700 (PDT)
-Received: (nullmailer pid 3198081 invoked by uid 1000);
+        Wed, 29 Mar 2023 08:52:51 -0700 (PDT)
+Received: (nullmailer pid 3198095 invoked by uid 1000);
         Wed, 29 Mar 2023 15:52:45 -0000
 From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:07 -0500
-Subject: [PATCH 10/19] cacheinfo: Adjust includes to remove of_device.h
+Date:   Wed, 29 Mar 2023 10:52:14 -0500
+Subject: [PATCH 17/19] irqchip: loongson-eiointc: Add explicit include for
+ cpuhotplug.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-10-581e2605fe47@kernel.org>
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-17-581e2605fe47@kernel.org>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -98,30 +99,41 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
-implicitly including other includes, and is no longer needed. Update the
-includes to use of.h instead of of_device.h.
+Removing the include of cpu.h from of_device.h causes an error:
+
+drivers/irqchip/irq-loongson-eiointc.c:420:9: error: implicit declaration of function 'cpuhp_setup_state_nocalls' [-Werror=implicit-function-declaration]
+
+This driver doesn't even use DT, so all the DT includes can be dropped.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
 Please ack and I will take the series via the DT tree.
 ---
- drivers/base/cacheinfo.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/irqchip/irq-loongson-eiointc.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index f6573c335f4c..a5f7a1063411 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -14,7 +14,7 @@
- #include <linux/cpu.h>
- #include <linux/device.h>
- #include <linux/init.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/smp.h>
+diff --git a/drivers/irqchip/irq-loongson-eiointc.c b/drivers/irqchip/irq-loongson-eiointc.c
+index d15fd38c1756..fd9d87f1470e 100644
+--- a/drivers/irqchip/irq-loongson-eiointc.c
++++ b/drivers/irqchip/irq-loongson-eiointc.c
+@@ -7,16 +7,13 @@
+ 
+ #define pr_fmt(fmt) "eiointc: " fmt
+ 
++#include <linux/cpuhotplug.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/irqchip.h>
+ #include <linux/irqdomain.h>
+ #include <linux/irqchip/chained_irq.h>
+ #include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/of_address.h>
+-#include <linux/of_irq.h>
+-#include <linux/of_platform.h>
+ #include <linux/syscore_ops.h>
+ 
+ #define EIOINTC_REG_NODEMAP	0x14a0
 
 -- 
 2.39.2
