@@ -2,50 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C154C77B6F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EEC1C7EE2F
 	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231224AbjC2PxY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:53:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42798 "EHLO
+        id S229960AbjC2PxZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:25 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42830 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231159AbjC2PxK (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:10 -0400
-Received: from mail-oo1-f46.google.com (mail-oo1-f46.google.com [209.85.161.46])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2DF774C13;
-        Wed, 29 Mar 2023 08:52:59 -0700 (PDT)
-Received: by mail-oo1-f46.google.com with SMTP id o26-20020a4ad49a000000b0053964a84b0fso2496041oos.7;
-        Wed, 29 Mar 2023 08:52:59 -0700 (PDT)
+        with ESMTP id S231165AbjC2PxL (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:11 -0400
+Received: from mail-oa1-f52.google.com (mail-oa1-f52.google.com [209.85.160.52])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7048059C3;
+        Wed, 29 Mar 2023 08:53:01 -0700 (PDT)
+Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-17aeb49429eso16663520fac.6;
+        Wed, 29 Mar 2023 08:53:01 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105178;
+        d=1e100.net; s=20210112; t=1680105180;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=xaKQY99G3HY+F9cltbrOFgoelmJMxNBfQJcO0sLBgas=;
-        b=PKDFlgAjacJH7C1CRe1m0Q/BWtr57PTdq7iEGG8xwqMX68KjF8kKS/WJo4ITAT0hOU
-         aGwliu2FVDDg+3QXHcI8zsZEt2GfM9lB1/QfOa0avByoJ3rv0CEDJqBMHfFfjBQQ2/Sh
-         hBFtQjjAvbdmAfr3EULWxF910GnmrDUC8yZhBAonDGKKZRKxV5ypSfpG33RehXWDYgu4
-         VXGQttPWOAMFNIWxNfUqQnjPGF+axRf51orBaCy1BJV2UuoITU0e+Ul6/hLRrUw8ty0Z
-         Q7y9uisGKVN+n/tzhhNEQ/hQ+sB1TAja2NEpU+FhhEDBKZ2/kTkSdSPWJXBKNzbkWFTW
-         QMDQ==
-X-Gm-Message-State: AO0yUKWOBvSw1LJ23fQo/U8R814Yem1pVgc1zy/bri661zHx+46plfXX
-        ti50etPI3Y+YteUOsnQipQ==
-X-Google-Smtp-Source: AK7set/NHlve/5dROzrE0RjwFIfWzeZwZim5jtRZxJnjvVhB2968rp1PLl6KK6w8FucuWDAPMr2x9Q==
-X-Received: by 2002:a4a:890d:0:b0:51a:6ea9:5053 with SMTP id f13-20020a4a890d000000b0051a6ea95053mr8240938ooi.9.1680105178376;
-        Wed, 29 Mar 2023 08:52:58 -0700 (PDT)
+        bh=tGkcT5R0a8JeH9pr+tvR6Dp+SnQFVzxwMvRKP+oraeM=;
+        b=EORiKky2kD8bzQ9Zct1R+M+iXdqGVkMXmNFaEHHAekbprofIuLr1Oj+Xul/H98XlmG
+         5YEyPPIDLbJgAOlhdgkC32U/m4SXzV0SKXiDaBXvzl7aqmtGAECoif9nTlb6cmWwLaQ3
+         wwFXchs7MWlKxkddrz4Y0UUA0N5kSkypp2kfpaP2uwyCDH8sfZPy5k2KAfcSxp1MefBr
+         sOutmoCd/uoDi8LjADVZ6WG7K9WZzJLOGW++m2Hcck3gMa4X5MbdioLs4ZslPT45n1gj
+         hTNf7SKHCKmOulNVrqZMSZU+tzlZglFMkmukBuCRRt4wmAkFYEM2JHSEvps7JGmGhL2n
+         9hhw==
+X-Gm-Message-State: AAQBX9fuTyqAuL+RWwp5YcOyX2EJPnrhHc8dL23cdNBGryI+fnkxktip
+        RuVEfhBuAnIDzS8uxhrzCQ==
+X-Google-Smtp-Source: AKy350Zzh18IDSS9PRm/nm4uzfWROBk4i8K8e/GnmjZJixonIc4wyA8Ejs1S5hYlKdIJ6vpTCTaGZw==
+X-Received: by 2002:a05:6870:1fcd:b0:172:5de5:785 with SMTP id gp13-20020a0568701fcd00b001725de50785mr13981327oac.6.1680105180656;
+        Wed, 29 Mar 2023 08:53:00 -0700 (PDT)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id c192-20020a4a4fc9000000b0053b88b03e24sm8091146oob.18.2023.03.29.08.52.56
+        by smtp.gmail.com with ESMTPSA id b4-20020a056871030400b001762ce27f9asm11853490oag.23.2023.03.29.08.52.58
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:52:58 -0700 (PDT)
-Received: (nullmailer pid 3198071 invoked by uid 1000);
+        Wed, 29 Mar 2023 08:53:00 -0700 (PDT)
+Received: (nullmailer pid 3198091 invoked by uid 1000);
         Wed, 29 Mar 2023 15:52:45 -0000
 From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:02 -0500
-Subject: [PATCH 05/19] of: Drop unnecessary includes in headers
+Date:   Wed, 29 Mar 2023 10:52:12 -0500
+Subject: [PATCH 15/19] cpufreq: sun50i: Add explicit include for cpu.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-5-581e2605fe47@kernel.org>
+Content-Transfer-Encoding: 8bit
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-15-581e2605fe47@kernel.org>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -98,79 +98,36 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Drop unnecessary includes in DT headers. Some simply aren't needed and
-some can be replaced with forward declarations.
+Removing the include of cpu.h from of_device.h causes an error:
+
+drivers/cpufreq/sun50i-cpufreq-nvmem.c:42:19: error: implicit declaration of function ‘get_cpu_device’; did you mean ‘get_device’? [-Werror=implicit-function-declaration]
+
+As of_device.h is not otherwise needed, it can be replaced with of.h
+(also implicitly included).
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
- include/linux/of.h          | 5 ++---
- include/linux/of_device.h   | 3 ++-
- include/linux/of_platform.h | 5 +++--
- 3 files changed, 7 insertions(+), 6 deletions(-)
+Please ack and I will take the series via the DT tree.
+---
+ drivers/cpufreq/sun50i-cpufreq-nvmem.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 1f1e847a1c13..96979c67c5fa 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -16,13 +16,10 @@
- #include <linux/errno.h>
- #include <linux/kobject.h>
- #include <linux/mod_devicetable.h>
--#include <linux/topology.h>
--#include <linux/notifier.h>
- #include <linux/property.h>
- #include <linux/list.h>
+diff --git a/drivers/cpufreq/sun50i-cpufreq-nvmem.c b/drivers/cpufreq/sun50i-cpufreq-nvmem.c
+index 1583a370da39..4321d7bbe769 100644
+--- a/drivers/cpufreq/sun50i-cpufreq-nvmem.c
++++ b/drivers/cpufreq/sun50i-cpufreq-nvmem.c
+@@ -10,9 +10,10 @@
  
- #include <asm/byteorder.h>
--#include <asm/errno.h>
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
- typedef u32 phandle;
- typedef u32 ihandle;
-@@ -1517,6 +1514,8 @@ enum of_reconfig_change {
- 	OF_RECONFIG_CHANGE_REMOVE,
- };
- 
-+struct notifier_block;
-+
- #ifdef CONFIG_OF_DYNAMIC
- extern int of_reconfig_notifier_register(struct notifier_block *);
- extern int of_reconfig_notifier_unregister(struct notifier_block *);
-diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-index 910951a22eb4..5cdafe19dc80 100644
---- a/include/linux/of_device.h
-+++ b/include/linux/of_device.h
-@@ -7,9 +7,10 @@
- #include <linux/of_platform.h> /* temporary until merge */
- 
- #include <linux/of.h>
--#include <linux/mod_devicetable.h>
- 
- struct device;
-+struct of_device_id;
-+struct kobj_uevent_env;
- 
- #ifdef CONFIG_OF
- extern const struct of_device_id *of_match_device(
-diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
-index 8ac5cb933dc3..d8045bcfc35e 100644
---- a/include/linux/of_platform.h
-+++ b/include/linux/of_platform.h
-@@ -6,12 +6,13 @@
-  *			 <benh@kernel.crashing.org>
-  */
- 
--#include <linux/device.h>
- #include <linux/mod_devicetable.h>
--#include <linux/pm.h>
- #include <linux/of_device.h>
++#include <linux/cpu.h>
+ #include <linux/module.h>
+ #include <linux/nvmem-consumer.h>
+-#include <linux/of_device.h>
++#include <linux/of.h>
  #include <linux/platform_device.h>
- 
-+struct device;
-+struct of_device_id;
-+
- /**
-  * struct of_dev_auxdata - lookup table entry for device names & platform_data
-  * @compatible: compatible value of node to match against node
+ #include <linux/pm_opp.h>
+ #include <linux/slab.h>
 
 -- 
 2.39.2
