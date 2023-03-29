@@ -2,51 +2,50 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98916C7EE2E
-	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EE1C7EE39
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229847AbjC2PxY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:53:24 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42822 "EHLO
+        id S230451AbjC2Px2 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:28 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42760 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231178AbjC2PxM (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:12 -0400
-Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DD7D527A;
-        Wed, 29 Mar 2023 08:53:03 -0700 (PDT)
-Received: by mail-oi1-f174.google.com with SMTP id r84so10635542oih.11;
-        Wed, 29 Mar 2023 08:53:03 -0700 (PDT)
+        with ESMTP id S231156AbjC2PxH (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:07 -0400
+Received: from mail-oi1-f181.google.com (mail-oi1-f181.google.com [209.85.167.181])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 074DE4C2C;
+        Wed, 29 Mar 2023 08:52:57 -0700 (PDT)
+Received: by mail-oi1-f181.google.com with SMTP id bj20so11922317oib.3;
+        Wed, 29 Mar 2023 08:52:56 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105183;
+        d=1e100.net; s=20210112; t=1680105176;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=ZxkTC00mmtvkJ/ocm+Trr4LHDuiGbRgef51Eh65eFno=;
-        b=ahqrh2TYKjNRTn+xd7MWLJP51kEZoBooFhGkmVgV0BxLhCvCVwWhZ1vMJSekF3vtZ6
-         BM+u3HIUwWbNXr6fknZ/wkcSqrqKAWr4FrDnVKbLOrObO3aZ1urxLQXLRLH5r2lAeBSB
-         0s/pCTzOrbiJWpjyfnQFLvryqMu+VDHFhZVZpp6Ql+IOh7saNiv74KX/0eOC5PNjS9vT
-         F0cwDF3sbIcwS5A4r1W8gIeeHvS1ns4Vl8z4P4R6/0z3IbRMq3tjAP2DdQQTlY6bNvmn
-         2vxR3cEZJ3TOwVGatJHl1WAMlgax2gtwHhti+e5d8wsDQuR3n4duPmSoJ77I1GGeaXGx
-         Vobg==
-X-Gm-Message-State: AO0yUKVZsihCz2zQxOL0URFGmNxWDP6wJAXjztU990cpYcjfZlGBcnyn
-        kcZP41f52FKO0zwhGl9y6Q==
-X-Google-Smtp-Source: AK7set/XHs0DeHUv3FR5klH7bLctWLDiPHbV4Bgynq9MiBxHYJ127vn5iRHwUkAWb6rjGdajk82w8Q==
-X-Received: by 2002:a05:6808:1445:b0:387:715e:56b8 with SMTP id x5-20020a056808144500b00387715e56b8mr10764982oiv.56.1680105182676;
-        Wed, 29 Mar 2023 08:53:02 -0700 (PDT)
+        bh=gXYasbFGyOzjbVgkFYQhHdq2LiUoVceQJn8x4Q7U0Lg=;
+        b=tOfFn1w7ThzOQxUnieExQknA1lBrLVzi91QhtMo0YvKpN/7nYfqKi4ZnVXXQPzM0b+
+         BnIL64cH5VhOL+TfuQ4E6EmsR1N8eKxoDE+ghOqDhM8KXrCmfdJYyCT/sjoET4IdwoRx
+         8g5vfNqiyZLy58P1iLHbDwa8op1RgXDhtpmN53berC9CyyX0RBfYhlH5kCJF47jXTQGK
+         Bc+B9xYjPNT39n28wmY6LW75onKU5/HI6tZGNxkqGS/Gl/TiFoyTk7DsYcTwXLjK9aYI
+         KBMTagKMkJkACMgSsfeLEKxRqvnCgdgQvMQY4LgYazkWgDdIpO9OBPPp8EfrGxzqX3FH
+         zE1w==
+X-Gm-Message-State: AO0yUKXwsjxFv+mqXCxhjsNE8LpftueRDwjwPJRTqmRnVk2xIaSIZhvc
+        njJzoQZasC/IhS5QcXy93Q==
+X-Google-Smtp-Source: AK7set9WFLmG+nDxrfFiYKr/Y1X4gukEgmYRhjOb4gvixi7TQjjzvpWDqSzTEx2qAniqrP2lpYSRIg==
+X-Received: by 2002:aca:1316:0:b0:364:ebf2:735f with SMTP id e22-20020aca1316000000b00364ebf2735fmr8517999oii.24.1680105176210;
+        Wed, 29 Mar 2023 08:52:56 -0700 (PDT)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id p184-20020acad8c1000000b003896e31867esm228723oig.49.2023.03.29.08.53.01
+        by smtp.gmail.com with ESMTPSA id bx32-20020a0568081b2000b0038733b00a5fsm8526890oib.10.2023.03.29.08.52.54
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:53:02 -0700 (PDT)
-Received: (nullmailer pid 3198083 invoked by uid 1000);
+        Wed, 29 Mar 2023 08:52:55 -0700 (PDT)
+Received: (nullmailer pid 3198093 invoked by uid 1000);
         Wed, 29 Mar 2023 15:52:45 -0000
 From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:08 -0500
-Subject: [PATCH 11/19] clocksource: ingenic: Add explicit include for
- cpuhotplug.h
+Date:   Wed, 29 Mar 2023 10:52:13 -0500
+Subject: [PATCH 16/19] cpuidle: Adjust includes to remove of_device.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-11-581e2605fe47@kernel.org>
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-16-581e2605fe47@kernel.org>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -99,41 +98,79 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Removing include of cpu.h from of_device.h (included by of_platform.h)
-causes an error in ingenic-timer:
-
-drivers/clocksource/ingenic-timer.c: In function ‘ingenic_tcu_init’:
-drivers/clocksource/ingenic-timer.c:338:15: error: implicit declaration of function ‘cpuhp_setup_state’
-
-The of_platform.h header is not necessary either, so it and of_address.h
-can be dropped.
+Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
+implicitly including other includes, and is no longer needed. Adjust the
+include files with what was implicitly included by of_device.h (cpu.h,
+cpuhotplug.h, of.h, and of_platform.h) and drop including of_device.h.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
 Please ack and I will take the series via the DT tree.
 ---
- drivers/clocksource/ingenic-timer.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/cpuidle/cpuidle-psci.c      | 1 -
+ drivers/cpuidle/cpuidle-qcom-spm.c  | 3 +--
+ drivers/cpuidle/cpuidle-riscv-sbi.c | 2 +-
+ drivers/cpuidle/dt_idle_states.c    | 1 -
+ 4 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/clocksource/ingenic-timer.c b/drivers/clocksource/ingenic-timer.c
-index 24ed0f1f089b..089ce64b1c3f 100644
---- a/drivers/clocksource/ingenic-timer.c
-+++ b/drivers/clocksource/ingenic-timer.c
-@@ -9,13 +9,12 @@
- #include <linux/clk.h>
- #include <linux/clockchips.h>
- #include <linux/clocksource.h>
-+#include <linux/cpuhotplug.h>
- #include <linux/interrupt.h>
- #include <linux/mfd/ingenic-tcu.h>
- #include <linux/mfd/syscon.h>
+diff --git a/drivers/cpuidle/cpuidle-psci.c b/drivers/cpuidle/cpuidle-psci.c
+index 6de027f9f6f5..bf68920d038a 100644
+--- a/drivers/cpuidle/cpuidle-psci.c
++++ b/drivers/cpuidle/cpuidle-psci.c
+@@ -16,7 +16,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/psci.h>
+ #include <linux/pm_domain.h>
+diff --git a/drivers/cpuidle/cpuidle-qcom-spm.c b/drivers/cpuidle/cpuidle-qcom-spm.c
+index c6e2e91bb4c3..1fc9968eae19 100644
+--- a/drivers/cpuidle/cpuidle-qcom-spm.c
++++ b/drivers/cpuidle/cpuidle-qcom-spm.c
+@@ -11,8 +11,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
  #include <linux/of.h>
 -#include <linux/of_address.h>
- #include <linux/of_irq.h>
--#include <linux/of_platform.h>
- #include <linux/overflow.h>
+-#include <linux/of_device.h>
++#include <linux/of_platform.h>
+ #include <linux/err.h>
  #include <linux/platform_device.h>
- #include <linux/regmap.h>
+ #include <linux/cpuidle.h>
+diff --git a/drivers/cpuidle/cpuidle-riscv-sbi.c b/drivers/cpuidle/cpuidle-riscv-sbi.c
+index be383f4b6855..ae0b838a0634 100644
+--- a/drivers/cpuidle/cpuidle-riscv-sbi.c
++++ b/drivers/cpuidle/cpuidle-riscv-sbi.c
+@@ -8,6 +8,7 @@
+ 
+ #define pr_fmt(fmt) "cpuidle-riscv-sbi: " fmt
+ 
++#include <linux/cpuhotplug.h>
+ #include <linux/cpuidle.h>
+ #include <linux/cpumask.h>
+ #include <linux/cpu_pm.h>
+@@ -15,7 +16,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_domain.h>
+diff --git a/drivers/cpuidle/dt_idle_states.c b/drivers/cpuidle/dt_idle_states.c
+index 02aa0b39af9d..12fec92a85fd 100644
+--- a/drivers/cpuidle/dt_idle_states.c
++++ b/drivers/cpuidle/dt_idle_states.c
+@@ -14,7 +14,6 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ 
+ #include "dt_idle_states.h"
+ 
 
 -- 
 2.39.2
