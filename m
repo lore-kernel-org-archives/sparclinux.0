@@ -2,37 +2,30 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D9DBBC77B6D
-	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 16:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FABEC74A5B
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 18:15:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229436AbjC2QWZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 12:22:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44574 "EHLO
+        id S229825AbjC2SPP (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 14:15:15 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47772 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229800AbjC2QWX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 12:22:23 -0400
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F39CD1AC;
-        Wed, 29 Mar 2023 09:22:19 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AE06BB8238F;
-        Wed, 29 Mar 2023 16:22:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59034C4339B;
-        Wed, 29 Mar 2023 16:22:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
-        s=korg; t=1680106937;
-        bh=BeBWudnFSsiVzY/XlA8t6ty5AObYn0Ada11HTQX3T+8=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=u77tBwSS5bosw8PvckswT9NhtXRstnMxAy7Krq+Abf7i3tkpUwr6drporyQLSvXtT
-         BCvaZ5mRgUkrF8Y8zhtgEhfhsvlF2lzrP+gYl5jlH4LfSa3L8n2CSNIB+unlcfrkqG
-         7NTDsu7EcBbp717SiI4mSEHcjZWUE8a9cr7163R4=
-Date:   Wed, 29 Mar 2023 18:22:13 +0200
-From:   Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+        with ESMTP id S229643AbjC2SPP (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 14:15:15 -0400
+Received: from foss.arm.com (foss.arm.com [217.140.110.172])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTP id B16EC59E5;
+        Wed, 29 Mar 2023 11:15:06 -0700 (PDT)
+Received: from usa-sjc-imap-foss1.foss.arm.com (unknown [10.121.207.14])
+        by usa-sjc-mx-foss1.foss.arm.com (Postfix) with ESMTP id BCE6312FC;
+        Wed, 29 Mar 2023 11:15:50 -0700 (PDT)
+Received: from bogus (unknown [10.57.52.160])
+        by usa-sjc-imap-foss1.foss.arm.com (Postfix) with ESMTPSA id 5F9453F6C4;
+        Wed, 29 Mar 2023 11:14:57 -0700 (PDT)
+Date:   Wed, 29 Mar 2023 19:14:23 +0100
+From:   Sudeep Holla <sudeep.holla@arm.com>
 To:     Rob Herring <robh@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
         Rob Herring <robh+dt@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
         Frank Rowand <frowand.list@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
         Chen-Yu Tsai <wens@csie.org>,
@@ -41,6 +34,7 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Paul Walmsley <paul.walmsley@sifive.com>,
         Palmer Dabbelt <palmer@dabbelt.com>,
         Albert Ou <aou@eecs.berkeley.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         "Rafael J. Wysocki" <rafael@kernel.org>,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
         Thomas Gleixner <tglx@linutronix.de>,
@@ -59,7 +53,6 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Jonathan Hunter <jonathanh@nvidia.com>,
         Yangtao Li <tiny.windzz@gmail.com>,
         Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
         Andy Gross <agross@kernel.org>,
         Bjorn Andersson <andersson@kernel.org>,
         Konrad Dybcio <konrad.dybcio@linaro.org>,
@@ -75,26 +68,36 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         linux-mediatek@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: Re: [PATCH 10/19] cacheinfo: Adjust includes to remove of_device.h
-Message-ID: <ZCRltUZOTDsmLJsE@kroah.com>
+Subject: Re: [PATCH 04/19] of: Move CPU node related functions to their own
+ file
+Message-ID: <20230329181423.6e2z2giwkgdvhshn@bogus>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
- <20230329-dt-cpu-header-cleanups-v1-10-581e2605fe47@kernel.org>
+ <20230329-dt-cpu-header-cleanups-v1-4-581e2605fe47@kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-10-581e2605fe47@kernel.org>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-4-581e2605fe47@kernel.org>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Mar 29, 2023 at 10:52:07AM -0500, Rob Herring wrote:
-> Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
-> implicitly including other includes, and is no longer needed. Update the
-> includes to use of.h instead of of_device.h.
-> 
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
-> Please ack and I will take the series via the DT tree.
-> ---
+On Wed, Mar 29, 2023 at 10:52:01AM -0500, Rob Herring wrote:
+> drivers/of/base.c is quite long and we've accumulated a number of CPU
+> node functions. Let's move them to a new file, cpu.c, along with the
+> lone of_cpu_device_node_get() in of_device.h. Moving the declaration has
+> no effect yet as of.h is included by of_device.h. This serves as
+> preparation to disentangle the includes in of_device.h and
+> of_platform.h.
+>
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Makes sense to have its own file for CPUs, I am sure there will be more
+additions 😉.
+
+FWIW,
+
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+
+-- 
+Regards,
+Sudeep
