@@ -2,135 +2,125 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1987EC74A5B
-	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 16:02:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D755C74A5B
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 16:03:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbjC2QBn convert rfc822-to-8bit (ORCPT
+        id S230052AbjC2QDS convert rfc822-to-8bit (ORCPT
         <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 12:01:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47302 "EHLO
+        Wed, 29 Mar 2023 12:03:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58766 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231680AbjC2QAB (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 12:00:01 -0400
-Received: from mail-ed1-f44.google.com (mail-ed1-f44.google.com [209.85.208.44])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E8406E96;
-        Wed, 29 Mar 2023 08:59:33 -0700 (PDT)
-Received: by mail-ed1-f44.google.com with SMTP id ew6so65252131edb.7;
-        Wed, 29 Mar 2023 08:59:33 -0700 (PDT)
+        with ESMTP id S229918AbjC2QCK (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 12:02:10 -0400
+Received: from mail-pj1-x102d.google.com (mail-pj1-x102d.google.com [IPv6:2607:f8b0:4864:20::102d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 86A7E7D8C
+        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 09:01:01 -0700 (PDT)
+Received: by mail-pj1-x102d.google.com with SMTP id d13so14487534pjh.0
+        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 09:01:01 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105561;
+        d=1e100.net; s=20210112; t=1680105349;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=J5wozgmwB4K3uhtLQG0ELPhsGFHRdp3FOmHAQorjhl0=;
-        b=RB6/hL0xZ1UVrvpwhMNyu6KFniRp6vPhsOVfkm4GbwXRtfdZE7lGDJo6kpaD6oBx6s
-         hPfdaa0noxc0zNjP4rVTqS0DPs9ODnDpKXMOtgmANQRc8ZgGMBk/rcQ7U6TKPPVgcT02
-         j1ANnfA9SWYcEa6Ln41Y4tBCtJT8Ki3Vc+RkjfRLQfgIHG685HivjRt+ESG/5l5oT8K3
-         jgZACbd5pSlsigPBhCXqi9R8QpkfnFQTNI1SKv4uA7KdoxFU7LZmOTeqHplpB5rMLwmr
-         ZPq02PZHrwd+B9qkxp4F+ymSlXLylst446vjUz7aD2rS8qWZhholqx5AYNYlMT3BjdY3
-         kxVQ==
-X-Gm-Message-State: AAQBX9fYxWotQnl5wTjlPPB8jh2cxoVYCiEyqQ1PIm4B6wo78JgForDg
-        8duPJdXPFc6MKx6aWL4Nt3bf0gW03djP5o4XpsU=
-X-Google-Smtp-Source: AKy350aoH0YzB4EGxwWgRtfVzYdwc/jxafoqtAza3yowu+hrkNWR6MYo9KvzVJ1ZAz0kSvIrND9NAtkY2JWrK3waVKA=
-X-Received: by 2002:a50:c34f:0:b0:4fa:71a2:982b with SMTP id
- q15-20020a50c34f000000b004fa71a2982bmr1623255edb.0.1680105560897; Wed, 29 Mar
- 2023 08:59:20 -0700 (PDT)
+        bh=62ZIWkSy5tZoUHv/2BRxXjvjKExsY1hv+Zfd9ZYJQ4E=;
+        b=qlxh+86RXbCopQuOGzMLW7Fyfrbpsk21kKjou7QaYqaceP9aCH3dtbghF3O0zN1uo6
+         4C/IPd9PFzfPz0245JmXvXlujy1fbbHAs16fMHBIQ52mZUE1AO2rkm6eyqP3oe8+tWJI
+         TzErVGEzn3DEWlhivKyb7RMKHeCynbeste+uKvq8qQ+BUDd7fky7Z+1/8YIjw/BqmV80
+         d9OwqWtqaUJeNvLNtAIw/DyyyqGuo1vCD3lwXs4QxG40DlsTsj8Mg8vS+TKxoCEGPJ+d
+         keyTxao1cFayKnrlZFWZHNEeaDXkPGNa9BUyBjA7IRZk+2638qePHv8LiCAUHCaMhIK5
+         WKTw==
+X-Gm-Message-State: AAQBX9c24VczX88OpdEbDOT1nvRF6RM4HGE2CyOts4QLcfHDqSapuRag
+        VE3g81Mv4Pq4PN/4ZVuR9uJ5t8cC54JGrwiX3SbEs+dI74TnqzihKDmdRA==
+X-Google-Smtp-Source: AKy350aLDH5YR9t419L5OiinTR+6vLBCDmWiJH85fFWabTVqFHlXOqvkdPLNLHEa0183i9K3F9W0CuWctZ/RgFAniww=
+X-Received: by 2002:a17:902:c3c6:b0:1a1:b318:2776 with SMTP id
+ j6-20020a170902c3c600b001a1b3182776mr7729184plj.0.1680105349103; Wed, 29 Mar
+ 2023 08:55:49 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org> <20230329-dt-cpu-header-cleanups-v1-12-581e2605fe47@kernel.org>
-In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-12-581e2605fe47@kernel.org>
-From:   "Rafael J. Wysocki" <rafael@kernel.org>
-Date:   Wed, 29 Mar 2023 17:59:09 +0200
-Message-ID: <CAJZ5v0g2g7-M1cuvXNs=t-n6rZD7v=uS_rEPBQtyBBAq1yWJ7w@mail.gmail.com>
-Subject: Re: [PATCH 12/19] thermal: cpuidle_cooling: Adjust includes to remove of_device.h
-To:     Rob Herring <robh@kernel.org>
-Cc:     "David S. Miller" <davem@davemloft.net>,
-        Rob Herring <robh+dt@kernel.org>,
-        Frank Rowand <frowand.list@gmail.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Jernej Skrabec <jernej.skrabec@gmail.com>,
-        Samuel Holland <samuel@sholland.org>,
-        Paul Walmsley <paul.walmsley@sifive.com>,
-        Palmer Dabbelt <palmer@dabbelt.com>,
-        Albert Ou <aou@eecs.berkeley.edu>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "Rafael J. Wysocki" <rafael@kernel.org>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Amit Daniel Kachhap <amit.kachhap@gmail.com>,
-        Viresh Kumar <viresh.kumar@linaro.org>,
-        Lukasz Luba <lukasz.luba@arm.com>,
-        Amit Kucheria <amitk@kernel.org>,
-        Zhang Rui <rui.zhang@intel.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        AngeloGioacchino Del Regno 
-        <angelogioacchino.delregno@collabora.com>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Nicholas Piggin <npiggin@gmail.com>,
+References: <20230325060828.2662773-1-rppt@kernel.org> <20230325060828.2662773-3-rppt@kernel.org>
+In-Reply-To: <20230325060828.2662773-3-rppt@kernel.org>
+From:   Justin Forbes <jforbes@fedoraproject.org>
+Date:   Wed, 29 Mar 2023 10:55:37 -0500
+Message-ID: <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
+Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of ARCH_FORCE_MAX_ORDER
+To:     Mike Rapoport <rppt@kernel.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
         Christophe Leroy <christophe.leroy@csgroup.eu>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Yangtao Li <tiny.windzz@gmail.com>,
-        Lorenzo Pieralisi <lpieralisi@kernel.org>,
-        Sudeep Holla <sudeep.holla@arm.com>,
-        Andy Gross <agross@kernel.org>,
-        Bjorn Andersson <andersson@kernel.org>,
-        Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Anup Patel <anup@brainfault.org>,
-        Huacai Chen <chenhuacai@kernel.org>,
-        Jiaxun Yang <jiaxun.yang@flygoat.com>,
-        Marc Zyngier <maz@kernel.org>,
-        Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>,
-        Stephen Boyd <sboyd@kernel.org>, sparclinux@vger.kernel.org,
-        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-sunxi@lists.linux.dev,
-        linux-riscv@lists.infradead.org, linux-pm@vger.kernel.org,
-        linux-mediatek@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
-        linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org,
-        linux-mips@vger.kernel.org
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mm@kvack.org, linux-sh@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Wed, Mar 29, 2023 at 5:53 PM Rob Herring <robh@kernel.org> wrote:
+On Sat, Mar 25, 2023 at 1:09 AM Mike Rapoport <rppt@kernel.org> wrote:
 >
-> Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
-> implicitly including other includes, and is no longer needed. Adjust the
-> include files with what was implicitly included by of_device.h (cpu.h and
-> of.h) and drop including of_device.h.
+> From: "Mike Rapoport (IBM)" <rppt@kernel.org>
 >
-> Signed-off-by: Rob Herring <robh@kernel.org>
-> ---
-> Please ack and I will take the series via the DT tree.
+> It is not a good idea to change fundamental parameters of core memory
+> management. Having predefined ranges suggests that the values within
+> those ranges are sensible, but one has to *really* understand
+> implications of changing MAX_ORDER before actually amending it and
+> ranges don't help here.
+>
+> Drop ranges in definition of ARCH_FORCE_MAX_ORDER and make its prompt
+> visible only if EXPERT=y
 
-Acked-by: Rafael J. Wysocki <rafael@kernel.org>
+I do not like suddenly hiding this behind EXPERT for a couple of
+reasons.  Most importantly, it will silently change the config for
+users building with an old kernel config.  If a user has for instance
+"13" set and building with 4K pages, as is the current configuration
+for Fedora and RHEL aarch64 builds, an oldconfig build will now set it
+to 10 with no indication that it is doing so.  And while I think that
+10 is a fine default for many aarch64 users, there are valid reasons
+for choosing other values. Putting this behind expert makes it much
+less obvious that this is an option.
 
+Justin
+
+> Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> Reviewed-by: Zi Yan <ziy@nvidia.com>
+> Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
 > ---
->  drivers/thermal/cpuidle_cooling.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+>  arch/arm64/Kconfig | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
 >
-> diff --git a/drivers/thermal/cpuidle_cooling.c b/drivers/thermal/cpuidle_cooling.c
-> index 4f41102e8b16..6f6daead485e 100644
-> --- a/drivers/thermal/cpuidle_cooling.c
-> +++ b/drivers/thermal/cpuidle_cooling.c
-> @@ -7,12 +7,13 @@
->   */
->  #define pr_fmt(fmt) "cpuidle cooling: " fmt
->
-> +#include <linux/cpu.h>
->  #include <linux/cpu_cooling.h>
->  #include <linux/cpuidle.h>
->  #include <linux/device.h>
->  #include <linux/err.h>
->  #include <linux/idle_inject.h>
-> -#include <linux/of_device.h>
-> +#include <linux/of.h>
->  #include <linux/slab.h>
->  #include <linux/thermal.h>
->
->
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index e60baf7859d1..7324032af859 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -1487,11 +1487,9 @@ config XEN
+>  # 16K |       27          |      14      |       13        |         11         |
+>  # 64K |       29          |      16      |       13        |         13         |
+>  config ARCH_FORCE_MAX_ORDER
+> -       int "Maximum zone order" if ARM64_4K_PAGES || ARM64_16K_PAGES
+> +       int "Maximum zone order" if EXPERT && (ARM64_4K_PAGES || ARM64_16K_PAGES)
+>         default "13" if ARM64_64K_PAGES
+> -       range 11 13 if ARM64_16K_PAGES
+>         default "11" if ARM64_16K_PAGES
+> -       range 10 15 if ARM64_4K_PAGES
+>         default "10"
+>         help
+>           The kernel memory allocator divides physically contiguous memory
 > --
-> 2.39.2
+> 2.35.1
+>
 >
