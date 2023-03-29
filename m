@@ -2,114 +2,146 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDDA5C77B6D
-	for <sparclinux@archiver.kernel.org>; Mon, 27 Mar 2023 22:25:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE965C7EE29
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231979AbjC0WZh (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 27 Mar 2023 18:25:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60684 "EHLO
+        id S231217AbjC2PxX (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:23 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42384 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231977AbjC0WZe (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 27 Mar 2023 18:25:34 -0400
-Received: from verein.lst.de (verein.lst.de [213.95.11.211])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8912C40CF;
-        Mon, 27 Mar 2023 15:25:21 -0700 (PDT)
-Received: by verein.lst.de (Postfix, from userid 2407)
-        id 31BF267373; Tue, 28 Mar 2023 00:25:15 +0200 (CEST)
-Date:   Tue, 28 Mar 2023 00:25:15 +0200
-From:   Christoph Hellwig <hch@lst.de>
-To:     Arnd Bergmann <arnd@kernel.org>
-Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        Vineet Gupta <vgupta@kernel.org>,
+        with ESMTP id S230498AbjC2Pw4 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:52:56 -0400
+Received: from mail-oi1-f175.google.com (mail-oi1-f175.google.com [209.85.167.175])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5DB00526F;
+        Wed, 29 Mar 2023 08:52:50 -0700 (PDT)
+Received: by mail-oi1-f175.google.com with SMTP id bm2so11933321oib.4;
+        Wed, 29 Mar 2023 08:52:50 -0700 (PDT)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680105169;
+        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
+         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=UL9zh/S00J+cmPfrAtv4vflOTxQVISfijtGfdl2R3L0=;
+        b=2GqYyDasVdp/d4qbKmAOFqsFPZSzX5fckvQYEsoNS98Mgb3oc8V2Z0uwhphSSzdisi
+         CG7L20Wh2/vqvvRSk6KqHfh6cMXBr+CKhQvW1NEEFtuadvCdtGTWF3wBoFADNzdnw4fV
+         5sjZDwAmrJOwj3MjGIJ5WH1ACBZ0HP7XisLzfh+aHyjee1j01PWn/+CbU1ezatMt9qZM
+         NLZtDhbiXoix9K5VTMiIkuCw8HX9V42RQ6Jos1D5MCDYoNOyS2fNk0WMgfoTucaFgYK5
+         1q+1q7r71yJmu2k6CTKRDCESzsERW/NboaSjuoInZtF5+ftUTKyLRjc3OLqiJAXUQOkx
+         sUEQ==
+X-Gm-Message-State: AAQBX9espMAlD35h2SCtd8sHALKdMISL4xOmKdCDX4Ig+9BSogrzZV0P
+        arZ0IAK+Yvvf7olqNRx/Gw==
+X-Google-Smtp-Source: AKy350YWPg6naXojJ+dh5QDGD5h6eaepx41Bc/m1xdmR3LQVsEP9dglulW7uPvOZ4q19z4rMeJNnvA==
+X-Received: by 2002:a05:6808:4da:b0:386:9883:ca9d with SMTP id a26-20020a05680804da00b003869883ca9dmr1291968oie.2.1680105169571;
+        Wed, 29 Mar 2023 08:52:49 -0700 (PDT)
+Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
+        by smtp.gmail.com with ESMTPSA id v184-20020acadec1000000b003871471f894sm10161090oig.27.2023.03.29.08.52.47
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Mar 2023 08:52:49 -0700 (PDT)
+Received: (nullmailer pid 3198065 invoked by uid 1000);
+        Wed, 29 Mar 2023 15:52:45 -0000
+From:   Rob Herring <robh@kernel.org>
+Date:   Wed, 29 Mar 2023 10:51:59 -0500
+Subject: [PATCH 02/19] of: Move of_device_(add|register|unregister) to
+ of_platform.h
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-2-581e2605fe47@kernel.org>
+References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
+To:     "David S. Miller" <davem@davemloft.net>,
+        Rob Herring <robh+dt@kernel.org>,
+        Frank Rowand <frowand.list@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
-        Neil Armstrong <neil.armstrong@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Will Deacon <will@kernel.org>, Guo Ren <guoren@kernel.org>,
-        Brian Cain <bcain@quicinc.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Michal Simek <monstr@monstr.eu>,
-        Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-        Dinh Nguyen <dinguyen@kernel.org>,
-        Stafford Horne <shorne@gmail.com>,
-        Helge Deller <deller@gmx.de>,
-        Michael Ellerman <mpe@ellerman.id.au>,
-        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Jernej Skrabec <jernej.skrabec@gmail.com>,
+        Samuel Holland <samuel@sholland.org>,
         Paul Walmsley <paul.walmsley@sifive.com>,
         Palmer Dabbelt <palmer@dabbelt.com>,
-        Rich Felker <dalias@libc.org>,
-        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
-        "David S. Miller" <davem@davemloft.net>,
-        Max Filippov <jcmvbkbc@gmail.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Robin Murphy <robin.murphy@arm.com>,
-        Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>,
-        Conor Dooley <conor.dooley@microchip.com>,
-        linux-snps-arc@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-oxnas@groups.io,
-        linux-csky@vger.kernel.org, linux-hexagon@vger.kernel.org,
-        linux-m68k@lists.linux-m68k.org, linux-mips@vger.kernel.org,
-        linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
-        linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
-        linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org
-Subject: Re: [PATCH 21/21] dma-mapping: replace custom code with generic
- implementation
-Message-ID: <20230327222514.GA17904@lst.de>
-References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-22-arnd@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230327121317.4081816-22-arnd@kernel.org>
-User-Agent: Mutt/1.5.17 (2007-11-01)
+        Albert Ou <aou@eecs.berkeley.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "Rafael J. Wysocki" <rafael@kernel.org>,
+        Daniel Lezcano <daniel.lezcano@linaro.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Amit Daniel Kachhap <amit.kachhap@gmail.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
+        Lukasz Luba <lukasz.luba@arm.com>,
+        Amit Kucheria <amitk@kernel.org>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        AngeloGioacchino Del Regno 
+        <angelogioacchino.delregno@collabora.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Yangtao Li <tiny.windzz@gmail.com>,
+        Lorenzo Pieralisi <lpieralisi@kernel.org>,
+        Sudeep Holla <sudeep.holla@arm.com>,
+        Andy Gross <agross@kernel.org>,
+        Bjorn Andersson <andersson@kernel.org>,
+        Konrad Dybcio <konrad.dybcio@linaro.org>,
+        Anup Patel <anup@brainfault.org>,
+        Huacai Chen <chenhuacai@kernel.org>,
+        Jiaxun Yang <jiaxun.yang@flygoat.com>,
+        Marc Zyngier <maz@kernel.org>,
+        Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>,
+        Stephen Boyd <sboyd@kernel.org>
+Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-sunxi@lists.linux.dev, linux-riscv@lists.infradead.org,
+        linux-pm@vger.kernel.org, linux-mediatek@lists.infradead.org,
+        linuxppc-dev@lists.ozlabs.org, linux-tegra@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, linux-mips@vger.kernel.org
+X-Mailer: b4 0.13-dev
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-> +static inline void arch_dma_cache_wback(phys_addr_t paddr, size_t size)
->  {
-> +	dma_cache_wback(paddr, size);
-> +}
->  
-> +static inline void arch_dma_cache_inv(phys_addr_t paddr, size_t size)
-> +{
-> +	dma_cache_inv(paddr, size);
->  }
+As of_device_(add|register|unregister) functions work on struct
+platform_device, they should be declared in of_platform.h instead.
 
-> +static inline void arch_dma_cache_wback_inv(phys_addr_t paddr, size_t size)
->  {
-> +	dma_cache_wback_inv(paddr, size);
-> +}
+This move is transparent for now as both headers include each other.
 
-There are the only calls for the three functions for each of the
-involved functions.  So I'd rather rename the low-level symbols
-(and drop the pointless exports for two of them) rather than adding
-these wrapppers.
+Signed-off-by: Rob Herring <robh@kernel.org>
+---
+ include/linux/of_device.h   | 4 ----
+ include/linux/of_platform.h | 5 +++++
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-The same is probably true for many other architectures.
+diff --git a/include/linux/of_device.h b/include/linux/of_device.h
+index f4b57614979d..e4aa61cb2bd0 100644
+--- a/include/linux/of_device.h
++++ b/include/linux/of_device.h
+@@ -26,10 +26,6 @@ static inline int of_driver_match_device(struct device *dev,
+ 	return of_match_device(drv->of_match_table, dev) != NULL;
+ }
+ 
+-extern int of_device_add(struct platform_device *pdev);
+-extern int of_device_register(struct platform_device *ofdev);
+-extern void of_device_unregister(struct platform_device *ofdev);
+-
+ extern const void *of_device_get_match_data(const struct device *dev);
+ 
+ extern ssize_t of_device_modalias(struct device *dev, char *str, ssize_t len);
+diff --git a/include/linux/of_platform.h b/include/linux/of_platform.h
+index d15b6cd5e1c3..8ac5cb933dc3 100644
+--- a/include/linux/of_platform.h
++++ b/include/linux/of_platform.h
+@@ -52,6 +52,11 @@ extern const struct of_device_id of_default_bus_match_table[];
+ extern struct platform_device *of_device_alloc(struct device_node *np,
+ 					 const char *bus_id,
+ 					 struct device *parent);
++
++extern int of_device_add(struct platform_device *pdev);
++extern int of_device_register(struct platform_device *ofdev);
++extern void of_device_unregister(struct platform_device *ofdev);
++
+ #ifdef CONFIG_OF
+ extern struct platform_device *of_find_device_by_node(struct device_node *np);
+ #else
 
-> +static inline bool arch_sync_dma_clean_before_fromdevice(void)
-> +{
-> +	return false;
-> +}
->  
-> +static inline bool arch_sync_dma_cpu_needs_post_dma_flush(void)
-> +{
-> +	return true;
->  }
+-- 
+2.39.2
 
-Is there a way to cut down on this boilerplate code by just having
-sane default, and Kconfig options to override them if they are not
-runtime decisions?
-
-> +#include <linux/dma-sync.h>
-
-I can't really say I like the #include version here despite your
-rationale in the commit log.  I can probably live with it if you
-think it is absolutely worth it, but I'm really not in favor of it.
-
-> +config ARCH_DMA_MARK_DCACHE_CLEAN
-> +	def_bool y
-
-What do we need this symbol for?  Unless I'm missing something it is
-always enable for arm32, and only used in arm32 code.
