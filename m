@@ -2,57 +2,61 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DF3DC87FF2
-	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:54:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E6DAC77B61
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230350AbjC2PyH (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:54:07 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43230 "EHLO
+        id S231283AbjC2P6p convert rfc822-to-8bit (ORCPT
+        <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:58:45 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47428 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231214AbjC2PxX (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:23 -0400
-Received: from mail-oa1-f53.google.com (mail-oa1-f53.google.com [209.85.160.53])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93FDD10F0;
-        Wed, 29 Mar 2023 08:53:21 -0700 (PDT)
-Received: by mail-oa1-f53.google.com with SMTP id 586e51a60fabf-17aaa51a911so16662936fac.5;
-        Wed, 29 Mar 2023 08:53:21 -0700 (PDT)
+        with ESMTP id S230494AbjC2P62 (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:58:28 -0400
+Received: from mail-ed1-f46.google.com (mail-ed1-f46.google.com [209.85.208.46])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D99D15BBE;
+        Wed, 29 Mar 2023 08:57:50 -0700 (PDT)
+Received: by mail-ed1-f46.google.com with SMTP id er13so24283845edb.9;
+        Wed, 29 Mar 2023 08:57:50 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105201;
-        h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
-         :mime-version:subject:date:from:x-gm-message-state:from:to:cc
-         :subject:date:message-id:reply-to;
-        bh=bEYSgBedvEchN2q/UoiMsAU3PddmSYQdLMNjoc9MCt4=;
-        b=VWPSei2rENON4pFSOvPgmkS/YQyW8JTWXkRYlwGSpG/PdO0ri28xmcgs1Shg80t/LU
-         kJ75krazxHANgeekLoDc3JajPyyuURPEWmF23rnWoClcApmZRQoPdGxV9gtEOVT1pZwm
-         7lvRj63UlZnr/GO/pWs9pYhxuKteAq0TQH7OczlUItPNu0QXcX+HAVFRXhU2GOEz++Vv
-         Rx7Dexe1XKsm1OO5cvBan/PAbzjtcQbeMhr5SI4FNLLEfj3XbQRBBjGknSMpkYmHmIqI
-         ETsvvt7DpQHQ7iUmV9t8gE6MGFnbbuRm8FCnqn5M1vShshOK3HlW1JIqyawBk9TSzYeY
-         Q2cA==
-X-Gm-Message-State: AAQBX9eKZaPQf+wxaJ/5vOLiwtdHs0C+7aZYD3jJuyiZlM51QJ5zX/x0
-        7MjtJIZWy8TKYg+EhwqF1g==
-X-Google-Smtp-Source: AKy350ZHXeEonGuoS+n1vAF/JTVb3n1039viPI4HO0R7pB9GB4WjtZ+1Lq53IBiwmzOIfDambYJBVQ==
-X-Received: by 2002:a05:6870:972a:b0:17a:e448:3dcd with SMTP id n42-20020a056870972a00b0017ae4483dcdmr13459005oaq.59.1680105200708;
-        Wed, 29 Mar 2023 08:53:20 -0700 (PDT)
-Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id k10-20020a056830168a00b0069dd3d98ec6sm5193290otr.44.2023.03.29.08.53.18
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:53:20 -0700 (PDT)
-Received: (nullmailer pid 3198089 invoked by uid 1000);
-        Wed, 29 Mar 2023 15:52:45 -0000
-From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:11 -0500
-Subject: [PATCH 14/19] cpufreq: Adjust includes to remove of_device.h
+        d=1e100.net; s=20210112; t=1680105431;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :reply-to:in-reply-to:references:mime-version:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=Mv45vqNNvk7gfjj9ywv5t87xL9EGo+L1vyvtzDS68LU=;
+        b=zneWHeMjHgnz/FlxY9gOdWel+Biu6vY1wIVNBypUud5cFuWy94VgNkIcDMlQshlMC1
+         kSohzem/DqzemmVfmIGPJZcGllbtu79NUk1TL57qBwIkdrYYywC0n5aj0toQG3B2XDWb
+         HDULPB40D7bHs9ihfkasaCJa2joUY7YG4NTeMOGVaPlrVEdzpfro6wBPwDjX15ErEA6k
+         epf4TKCjT2oe/LbqftMpyKMBBf0Ws07rCnQ5POrJZfQKR02lB00N2Vx5UbJPXl6aynjq
+         Y6HfckyT1N2r+FRHYus8JcOxbaXxGVnZRyhI3XYMKTNOodty+Em/LLhTUI4KiGxrWj80
+         laSA==
+X-Gm-Message-State: AAQBX9c1NNl26lM1cCqY0dkxXjKpPvohyKm3pYfdIHThNisOc8vYyZRo
+        p7MuNNMcfbhSaQfrXyqIGIf/QB7ATNIq6/1b
+X-Google-Smtp-Source: AKy350bDNHP9CTNtTgHuTD8bHAM78SJBcIfhWL/xWstN3I5lT2k2VUVe+z1yT6ySAusC85ZuE0Q6RQ==
+X-Received: by 2002:a17:906:3288:b0:8b1:fc58:a4ad with SMTP id 8-20020a170906328800b008b1fc58a4admr21801432ejw.11.1680105431102;
+        Wed, 29 Mar 2023 08:57:11 -0700 (PDT)
+Received: from mail-wm1-f47.google.com (mail-wm1-f47.google.com. [209.85.128.47])
+        by smtp.gmail.com with ESMTPSA id wf4-20020a170907d68400b0093f3d12d64bsm5930422ejc.179.2023.03.29.08.57.10
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Wed, 29 Mar 2023 08:57:11 -0700 (PDT)
+Received: by mail-wm1-f47.google.com with SMTP id q7-20020a05600c46c700b003ef6e809574so6728778wmo.4;
+        Wed, 29 Mar 2023 08:57:10 -0700 (PDT)
+X-Received: by 2002:a5d:591c:0:b0:2ca:4533:5d6a with SMTP id
+ v28-20020a5d591c000000b002ca45335d6amr4154237wrd.7.1680105410028; Wed, 29 Mar
+ 2023 08:56:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-14-581e2605fe47@kernel.org>
-References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
-In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
-To:     "David S. Miller" <davem@davemloft.net>,
+References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org> <20230329-dt-cpu-header-cleanups-v1-6-581e2605fe47@kernel.org>
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-6-581e2605fe47@kernel.org>
+Reply-To: wens@csie.org
+From:   Chen-Yu Tsai <wens@csie.org>
+Date:   Wed, 29 Mar 2023 23:56:38 +0800
+X-Gmail-Original-Message-ID: <CAGb2v64tNZa_LCUpHBbBUdpftB_Dms=oHcb7ZAD42qL-ov73hw@mail.gmail.com>
+Message-ID: <CAGb2v64tNZa_LCUpHBbBUdpftB_Dms=oHcb7ZAD42qL-ov73hw@mail.gmail.com>
+Subject: Re: [PATCH 06/19] ARM: sunxi: Drop of_device.h include
+To:     Rob Herring <robh@kernel.org>
+Cc:     "David S. Miller" <davem@davemloft.net>,
         Rob Herring <robh+dt@kernel.org>,
         Frank Rowand <frowand.list@gmail.com>,
         Russell King <linux@armlinux.org.uk>,
-        Chen-Yu Tsai <wens@csie.org>,
         Jernej Skrabec <jernej.skrabec@gmail.com>,
         Samuel Holland <samuel@sholland.org>,
         Paul Walmsley <paul.walmsley@sifive.com>,
@@ -86,169 +90,50 @@ To:     "David S. Miller" <davem@davemloft.net>,
         Jiaxun Yang <jiaxun.yang@flygoat.com>,
         Marc Zyngier <maz@kernel.org>,
         Viresh Kumar <vireshk@kernel.org>, Nishanth Menon <nm@ti.com>,
-        Stephen Boyd <sboyd@kernel.org>
-Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-sunxi@lists.linux.dev, linux-riscv@lists.infradead.org,
-        linux-pm@vger.kernel.org, linux-mediatek@lists.infradead.org,
-        linuxppc-dev@lists.ozlabs.org, linux-tegra@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, linux-mips@vger.kernel.org
-X-Mailer: b4 0.13-dev
+        Stephen Boyd <sboyd@kernel.org>, sparclinux@vger.kernel.org,
+        linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-sunxi@lists.linux.dev,
+        linux-riscv@lists.infradead.org, linux-pm@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
+        linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        linux-mips@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
-implicitly including other includes, and is no longer needed. Adjust the
-include files with what was implicitly included by of_device.h (cpu.h and
-of.h) and drop including of_device.h.
+On Wed, Mar 29, 2023 at 11:53 PM Rob Herring <robh@kernel.org> wrote:
+>
+> Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
+> implicitly including other includes, and is no longer needed. Just drop
+> including of_device.h as of.h is already included.
+>
+> Signed-off-by: Rob Herring <robh@kernel.org>
+> ---
+> Please ack and I will take the series via the DT tree.
 
-Signed-off-by: Rob Herring <robh@kernel.org>
----
-Please ack and I will take the series via the DT tree.
----
- drivers/cpufreq/cpufreq-dt-platdev.c | 1 -
- drivers/cpufreq/kirkwood-cpufreq.c   | 2 +-
- drivers/cpufreq/maple-cpufreq.c      | 2 +-
- drivers/cpufreq/pmac32-cpufreq.c     | 2 +-
- drivers/cpufreq/pmac64-cpufreq.c     | 2 +-
- drivers/cpufreq/qcom-cpufreq-hw.c    | 4 ++--
- drivers/cpufreq/spear-cpufreq.c      | 2 +-
- drivers/cpufreq/tegra124-cpufreq.c   | 1 -
- drivers/cpufreq/tegra20-cpufreq.c    | 2 +-
- include/linux/cpufreq.h              | 1 -
- 10 files changed, 8 insertions(+), 11 deletions(-)
+Acked-by: Chen-Yu Tsai <wens@csie.org>
 
-diff --git a/drivers/cpufreq/cpufreq-dt-platdev.c b/drivers/cpufreq/cpufreq-dt-platdev.c
-index e85703651098..f9675e1a8529 100644
---- a/drivers/cpufreq/cpufreq-dt-platdev.c
-+++ b/drivers/cpufreq/cpufreq-dt-platdev.c
-@@ -6,7 +6,6 @@
- 
- #include <linux/err.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
- #include <linux/platform_device.h>
- 
- #include "cpufreq-dt.h"
-diff --git a/drivers/cpufreq/kirkwood-cpufreq.c b/drivers/cpufreq/kirkwood-cpufreq.c
-index 70ad8fe1d78b..95588101efbd 100644
---- a/drivers/cpufreq/kirkwood-cpufreq.c
-+++ b/drivers/cpufreq/kirkwood-cpufreq.c
-@@ -9,7 +9,7 @@
- #include <linux/module.h>
- #include <linux/clk.h>
- #include <linux/cpufreq.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <asm/proc-fns.h>
-diff --git a/drivers/cpufreq/maple-cpufreq.c b/drivers/cpufreq/maple-cpufreq.c
-index 28d346062166..f9306410a07f 100644
---- a/drivers/cpufreq/maple-cpufreq.c
-+++ b/drivers/cpufreq/maple-cpufreq.c
-@@ -23,7 +23,7 @@
- #include <linux/completion.h>
- #include <linux/mutex.h>
- #include <linux/time.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- 
- #define DBG(fmt...) pr_debug(fmt)
- 
-diff --git a/drivers/cpufreq/pmac32-cpufreq.c b/drivers/cpufreq/pmac32-cpufreq.c
-index 4b8ee2014da6..a28716d8fc54 100644
---- a/drivers/cpufreq/pmac32-cpufreq.c
-+++ b/drivers/cpufreq/pmac32-cpufreq.c
-@@ -23,7 +23,7 @@
- #include <linux/init.h>
- #include <linux/device.h>
- #include <linux/hardirq.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- 
- #include <asm/machdep.h>
- #include <asm/irq.h>
-diff --git a/drivers/cpufreq/pmac64-cpufreq.c b/drivers/cpufreq/pmac64-cpufreq.c
-index ba9c31d98bd6..2cd2b06849a2 100644
---- a/drivers/cpufreq/pmac64-cpufreq.c
-+++ b/drivers/cpufreq/pmac64-cpufreq.c
-@@ -21,7 +21,7 @@
- #include <linux/init.h>
- #include <linux/completion.h>
- #include <linux/mutex.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- 
- #include <asm/machdep.h>
- #include <asm/irq.h>
-diff --git a/drivers/cpufreq/qcom-cpufreq-hw.c b/drivers/cpufreq/qcom-cpufreq-hw.c
-index 2f581d2d617d..df165a078d14 100644
---- a/drivers/cpufreq/qcom-cpufreq-hw.c
-+++ b/drivers/cpufreq/qcom-cpufreq-hw.c
-@@ -11,8 +11,8 @@
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/of_address.h>
--#include <linux/of_platform.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
- #include <linux/pm_opp.h>
- #include <linux/pm_qos.h>
- #include <linux/slab.h>
-diff --git a/drivers/cpufreq/spear-cpufreq.c b/drivers/cpufreq/spear-cpufreq.c
-index c6fdf019dbde..78b875db6b66 100644
---- a/drivers/cpufreq/spear-cpufreq.c
-+++ b/drivers/cpufreq/spear-cpufreq.c
-@@ -18,7 +18,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-diff --git a/drivers/cpufreq/tegra124-cpufreq.c b/drivers/cpufreq/tegra124-cpufreq.c
-index 7a1ea6fdcab6..312ca5ddc6c4 100644
---- a/drivers/cpufreq/tegra124-cpufreq.c
-+++ b/drivers/cpufreq/tegra124-cpufreq.c
-@@ -11,7 +11,6 @@
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
--#include <linux/of_device.h>
- #include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/pm_opp.h>
-diff --git a/drivers/cpufreq/tegra20-cpufreq.c b/drivers/cpufreq/tegra20-cpufreq.c
-index ab7ac7df9e62..5d1f5f87e46d 100644
---- a/drivers/cpufreq/tegra20-cpufreq.c
-+++ b/drivers/cpufreq/tegra20-cpufreq.c
-@@ -12,7 +12,7 @@
- #include <linux/err.h>
- #include <linux/init.h>
- #include <linux/module.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/pm_opp.h>
- #include <linux/types.h>
-diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
-index 65623233ab2f..3ac4a10d4651 100644
---- a/include/linux/cpufreq.h
-+++ b/include/linux/cpufreq.h
-@@ -15,7 +15,6 @@
- #include <linux/kobject.h>
- #include <linux/notifier.h>
- #include <linux/of.h>
--#include <linux/of_device.h>
- #include <linux/pm_opp.h>
- #include <linux/pm_qos.h>
- #include <linux/spinlock.h>
+I doubt this file would ever see any more changes.
 
--- 
-2.39.2
-
+> ---
+>  arch/arm/mach-sunxi/mc_smp.c | 1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-sunxi/mc_smp.c b/arch/arm/mach-sunxi/mc_smp.c
+> index 26cbce135338..cb63921232a6 100644
+> --- a/arch/arm/mach-sunxi/mc_smp.c
+> +++ b/arch/arm/mach-sunxi/mc_smp.c
+> @@ -19,7 +19,6 @@
+>  #include <linux/irqchip/arm-gic.h>
+>  #include <linux/of.h>
+>  #include <linux/of_address.h>
+> -#include <linux/of_device.h>
+>  #include <linux/smp.h>
+>
+>  #include <asm/cacheflush.h>
+>
+> --
+> 2.39.2
+>
