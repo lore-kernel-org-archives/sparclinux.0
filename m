@@ -2,50 +2,51 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EEC1C7EE2F
-	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98916C7EE2E
+	for <sparclinux@archiver.kernel.org>; Wed, 29 Mar 2023 15:53:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229960AbjC2PxZ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 11:53:25 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42830 "EHLO
+        id S229847AbjC2PxY (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Wed, 29 Mar 2023 11:53:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42822 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231165AbjC2PxL (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:11 -0400
-Received: from mail-oa1-f52.google.com (mail-oa1-f52.google.com [209.85.160.52])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7048059C3;
-        Wed, 29 Mar 2023 08:53:01 -0700 (PDT)
-Received: by mail-oa1-f52.google.com with SMTP id 586e51a60fabf-17aeb49429eso16663520fac.6;
-        Wed, 29 Mar 2023 08:53:01 -0700 (PDT)
+        with ESMTP id S231178AbjC2PxM (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 11:53:12 -0400
+Received: from mail-oi1-f174.google.com (mail-oi1-f174.google.com [209.85.167.174])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DD7D527A;
+        Wed, 29 Mar 2023 08:53:03 -0700 (PDT)
+Received: by mail-oi1-f174.google.com with SMTP id r84so10635542oih.11;
+        Wed, 29 Mar 2023 08:53:03 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680105180;
+        d=1e100.net; s=20210112; t=1680105183;
         h=cc:to:in-reply-to:references:message-id:content-transfer-encoding
          :mime-version:subject:date:from:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=tGkcT5R0a8JeH9pr+tvR6Dp+SnQFVzxwMvRKP+oraeM=;
-        b=EORiKky2kD8bzQ9Zct1R+M+iXdqGVkMXmNFaEHHAekbprofIuLr1Oj+Xul/H98XlmG
-         5YEyPPIDLbJgAOlhdgkC32U/m4SXzV0SKXiDaBXvzl7aqmtGAECoif9nTlb6cmWwLaQ3
-         wwFXchs7MWlKxkddrz4Y0UUA0N5kSkypp2kfpaP2uwyCDH8sfZPy5k2KAfcSxp1MefBr
-         sOutmoCd/uoDi8LjADVZ6WG7K9WZzJLOGW++m2Hcck3gMa4X5MbdioLs4ZslPT45n1gj
-         hTNf7SKHCKmOulNVrqZMSZU+tzlZglFMkmukBuCRRt4wmAkFYEM2JHSEvps7JGmGhL2n
-         9hhw==
-X-Gm-Message-State: AAQBX9fuTyqAuL+RWwp5YcOyX2EJPnrhHc8dL23cdNBGryI+fnkxktip
-        RuVEfhBuAnIDzS8uxhrzCQ==
-X-Google-Smtp-Source: AKy350Zzh18IDSS9PRm/nm4uzfWROBk4i8K8e/GnmjZJixonIc4wyA8Ejs1S5hYlKdIJ6vpTCTaGZw==
-X-Received: by 2002:a05:6870:1fcd:b0:172:5de5:785 with SMTP id gp13-20020a0568701fcd00b001725de50785mr13981327oac.6.1680105180656;
-        Wed, 29 Mar 2023 08:53:00 -0700 (PDT)
+        bh=ZxkTC00mmtvkJ/ocm+Trr4LHDuiGbRgef51Eh65eFno=;
+        b=ahqrh2TYKjNRTn+xd7MWLJP51kEZoBooFhGkmVgV0BxLhCvCVwWhZ1vMJSekF3vtZ6
+         BM+u3HIUwWbNXr6fknZ/wkcSqrqKAWr4FrDnVKbLOrObO3aZ1urxLQXLRLH5r2lAeBSB
+         0s/pCTzOrbiJWpjyfnQFLvryqMu+VDHFhZVZpp6Ql+IOh7saNiv74KX/0eOC5PNjS9vT
+         F0cwDF3sbIcwS5A4r1W8gIeeHvS1ns4Vl8z4P4R6/0z3IbRMq3tjAP2DdQQTlY6bNvmn
+         2vxR3cEZJ3TOwVGatJHl1WAMlgax2gtwHhti+e5d8wsDQuR3n4duPmSoJ77I1GGeaXGx
+         Vobg==
+X-Gm-Message-State: AO0yUKVZsihCz2zQxOL0URFGmNxWDP6wJAXjztU990cpYcjfZlGBcnyn
+        kcZP41f52FKO0zwhGl9y6Q==
+X-Google-Smtp-Source: AK7set/XHs0DeHUv3FR5klH7bLctWLDiPHbV4Bgynq9MiBxHYJ127vn5iRHwUkAWb6rjGdajk82w8Q==
+X-Received: by 2002:a05:6808:1445:b0:387:715e:56b8 with SMTP id x5-20020a056808144500b00387715e56b8mr10764982oiv.56.1680105182676;
+        Wed, 29 Mar 2023 08:53:02 -0700 (PDT)
 Received: from robh_at_kernel.org (66-90-144-107.dyn.grandenetworks.net. [66.90.144.107])
-        by smtp.gmail.com with ESMTPSA id b4-20020a056871030400b001762ce27f9asm11853490oag.23.2023.03.29.08.52.58
+        by smtp.gmail.com with ESMTPSA id p184-20020acad8c1000000b003896e31867esm228723oig.49.2023.03.29.08.53.01
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 08:53:00 -0700 (PDT)
-Received: (nullmailer pid 3198091 invoked by uid 1000);
+        Wed, 29 Mar 2023 08:53:02 -0700 (PDT)
+Received: (nullmailer pid 3198083 invoked by uid 1000);
         Wed, 29 Mar 2023 15:52:45 -0000
 From:   Rob Herring <robh@kernel.org>
-Date:   Wed, 29 Mar 2023 10:52:12 -0500
-Subject: [PATCH 15/19] cpufreq: sun50i: Add explicit include for cpu.h
+Date:   Wed, 29 Mar 2023 10:52:08 -0500
+Subject: [PATCH 11/19] clocksource: ingenic: Add explicit include for
+ cpuhotplug.h
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-Message-Id: <20230329-dt-cpu-header-cleanups-v1-15-581e2605fe47@kernel.org>
+Message-Id: <20230329-dt-cpu-header-cleanups-v1-11-581e2605fe47@kernel.org>
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
 To:     "David S. Miller" <davem@davemloft.net>,
@@ -98,36 +99,41 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Removing the include of cpu.h from of_device.h causes an error:
+Removing include of cpu.h from of_device.h (included by of_platform.h)
+causes an error in ingenic-timer:
 
-drivers/cpufreq/sun50i-cpufreq-nvmem.c:42:19: error: implicit declaration of function ‘get_cpu_device’; did you mean ‘get_device’? [-Werror=implicit-function-declaration]
+drivers/clocksource/ingenic-timer.c: In function ‘ingenic_tcu_init’:
+drivers/clocksource/ingenic-timer.c:338:15: error: implicit declaration of function ‘cpuhp_setup_state’
 
-As of_device.h is not otherwise needed, it can be replaced with of.h
-(also implicitly included).
+The of_platform.h header is not necessary either, so it and of_address.h
+can be dropped.
 
 Signed-off-by: Rob Herring <robh@kernel.org>
 ---
 Please ack and I will take the series via the DT tree.
 ---
- drivers/cpufreq/sun50i-cpufreq-nvmem.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/clocksource/ingenic-timer.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/cpufreq/sun50i-cpufreq-nvmem.c b/drivers/cpufreq/sun50i-cpufreq-nvmem.c
-index 1583a370da39..4321d7bbe769 100644
---- a/drivers/cpufreq/sun50i-cpufreq-nvmem.c
-+++ b/drivers/cpufreq/sun50i-cpufreq-nvmem.c
-@@ -10,9 +10,10 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/cpu.h>
- #include <linux/module.h>
- #include <linux/nvmem-consumer.h>
--#include <linux/of_device.h>
-+#include <linux/of.h>
+diff --git a/drivers/clocksource/ingenic-timer.c b/drivers/clocksource/ingenic-timer.c
+index 24ed0f1f089b..089ce64b1c3f 100644
+--- a/drivers/clocksource/ingenic-timer.c
++++ b/drivers/clocksource/ingenic-timer.c
+@@ -9,13 +9,12 @@
+ #include <linux/clk.h>
+ #include <linux/clockchips.h>
+ #include <linux/clocksource.h>
++#include <linux/cpuhotplug.h>
+ #include <linux/interrupt.h>
+ #include <linux/mfd/ingenic-tcu.h>
+ #include <linux/mfd/syscon.h>
+ #include <linux/of.h>
+-#include <linux/of_address.h>
+ #include <linux/of_irq.h>
+-#include <linux/of_platform.h>
+ #include <linux/overflow.h>
  #include <linux/platform_device.h>
- #include <linux/pm_opp.h>
- #include <linux/slab.h>
+ #include <linux/regmap.h>
 
 -- 
 2.39.2
