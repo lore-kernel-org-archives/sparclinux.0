@@ -2,54 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D59C8C6FD1D
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 03:55:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C87E9C77B6E
+	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 04:02:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229649AbjC3DzD (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Wed, 29 Mar 2023 23:55:03 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35926 "EHLO
+        id S229819AbjC3ECc (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 30 Mar 2023 00:02:32 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42966 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229730AbjC3Dy4 (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Wed, 29 Mar 2023 23:54:56 -0400
-Received: from mail-pj1-x1029.google.com (mail-pj1-x1029.google.com [IPv6:2607:f8b0:4864:20::1029])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B49AE59FC
-        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 20:54:54 -0700 (PDT)
-Received: by mail-pj1-x1029.google.com with SMTP id x15so16078478pjk.2
-        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 20:54:54 -0700 (PDT)
+        with ESMTP id S229781AbjC3ECZ (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 00:02:25 -0400
+Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D60295B86
+        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 21:02:19 -0700 (PDT)
+Received: by mail-ed1-x534.google.com with SMTP id w9so71460346edc.3
+        for <sparclinux@vger.kernel.org>; Wed, 29 Mar 2023 21:02:19 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1680148494;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:from:to:cc:subject:date:message-id:reply-to;
-        bh=ORTcc1S4DbhSj9bYXgbzlVEJUmJSEuJEOt6fEFrhs3I=;
-        b=KDkr9GukbLDb5E0cjryjb5Wh0SCZaycf/IUr90YlJNe0yf+CJFbuqVLgseHvC1XTAs
-         Mj696hVP3J+/JyxeccnDx4sbyBLoQR8t6nLYlyTiLLcc21ZTbl5DObP3Sn5N4aoPtg5K
-         vT05+Dy7pELaLbJ3Jtjg4yd67A4IfUXlaie5LW1NfYlipHOIwyXNtqF0se+FNlmkrAW9
-         0bSdtfv+XKaMh8hj340BwSg3B4py1O/ULmxkhI+S+4sADQi7xMUd3Eyip4T50rRfAII+
-         GbYAWTbGyTjtff51zxbKYOhiJVlu3d4/NXIx3s+ZSTQbkwQZhq1bYkwIvzgmP/zufxWD
-         V87Q==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680148494;
-        h=in-reply-to:content-disposition:mime-version:references:message-id
-         :subject:cc:to:from:date:x-gm-message-state:from:to:cc:subject:date
+        d=brainfault-org.20210112.gappssmtp.com; s=20210112; t=1680148938;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=ORTcc1S4DbhSj9bYXgbzlVEJUmJSEuJEOt6fEFrhs3I=;
-        b=AuZKIeD+NN34Czbl42Ui6u9061vKiVxD0vei0Vcj5EMRO33EnjRo5tTkv++u+OjHmT
-         o6X01yMlsOdKQhXjOyZaCVpUvJxtfk4QOWxS5dq1mjbLVGUpbpMvvWjo19snZGBqFf3n
-         Cxh44ezW8ITHz2gERyo4nK1CySBF4PXFurn4CaQqKpReKq+83Knx9//YnJwJCARp9tMR
-         zxuKcNawoLThPp1cyYNg3oMfyBGBIxbRVAcDQ6g/HyB/qr12SkEuxJfn+xmYqlylB5yo
-         de0dnFyFTDe8fo/4ddETpdQyyhghVjIKNBtbOWG8h5F+HyTYYbbsZexu9fjuyZ1ssCzE
-         WMPA==
-X-Gm-Message-State: AAQBX9dSWaz1q2fR2MYKXJ1BJPrt2RVMT4sDUpD6WTgifb7cWigdaF2G
-        LBScQh7+31pDUtp/tI/5piIjUQ==
-X-Google-Smtp-Source: AKy350Z3+wrY9ZgUHedACp4BaESa2FvIEkabhjg74d5bnPV2JCYBYbJoHjnYpjGWoPDBynyeKDWcRw==
-X-Received: by 2002:a17:902:d503:b0:19d:1720:3873 with SMTP id b3-20020a170902d50300b0019d17203873mr24981326plg.57.1680148494287;
-        Wed, 29 Mar 2023 20:54:54 -0700 (PDT)
-Received: from localhost ([122.172.85.168])
-        by smtp.gmail.com with ESMTPSA id q9-20020a17090ad38900b002340d317f3esm2154710pju.52.2023.03.29.20.54.53
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 29 Mar 2023 20:54:53 -0700 (PDT)
-Date:   Thu, 30 Mar 2023 09:24:51 +0530
-From:   Viresh Kumar <viresh.kumar@linaro.org>
+        bh=DRrMSTrE1hzXNMTnJR9hzwcHZG5OJLH6N1k4mRkhtxc=;
+        b=ynfExVnq8Pbne4CrK35vVvzcZo/HMcJEJUR3Ujna/kLNgyxndnnVOhaOok7Q3u4boK
+         FW4keBgSZ6pU7kWyE+manshTU5Tk7hNavSWkOvFCWTteIMmp/9Qk7GSzFj7kYZ5XfmBv
+         miUHdrLcGJzpXksYn+qz42allwe3QMPmR/pnE7vpqvm1r6J8sdtN2nbt3yHJRZJvjQa2
+         WULHOKYx2FaImOfeOidrkyK9ABt3NseOxAzqi3/iHsrvkvaPYLGzC0VonLkMDJt7dAvE
+         qA6CCYx7R2kWBHI86Kqb+JhYZk0VIktRQH4ecdVqtPrNiVN9gXZkgnTnC6UdsKE6Gs/B
+         u+Eg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680148938;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=DRrMSTrE1hzXNMTnJR9hzwcHZG5OJLH6N1k4mRkhtxc=;
+        b=1RSWyBbnSusWpvyuwXYLkqsFMEJWEXe58fDMzhMoHr0D4eDl2EVPhx+n1ikyIE+bOJ
+         XyFEcfJhh9vAPCkTe0VfXsoflwDM1idzkiIgdBxRaC0jikctDBuNJMKgUyeeojxCRT+m
+         +tmMp6TKXgQLclcLOvEcswnP5utfMKKRSYHuQM6ELGITZLc4vhEcQNUwyL5FEUp3tXyX
+         hppZwly4MaHuSwT7MF9PoEQqhLou1B5fPich+IQ1q8CSfqX4t/bsNdA7wWK84JLmp8f2
+         c8xktPwuTx6ycyMmPqrfSd+yqa8s1+IkGwKp+ABuDjQhHjgLdwj9L1qR+mqxrVkcXjwe
+         9mog==
+X-Gm-Message-State: AAQBX9fpQWGVvRao+YIz1LPR+QSdSOKx9bWOjoTnA/Lv2gHUYkLaaTog
+        5sHnxk6tSNplWkfC1sn4YSd2aS8xESmIVlYUA9WqJw==
+X-Google-Smtp-Source: AKy350YsOJqAiqRYem5e01w1p2m+BEvgEUELir1jFBDVGQszGos9GuJs6YHfU/Z+9mLpMcFmxWEdJiS8UYrZt9G/tI4=
+X-Received: by 2002:a50:9fef:0:b0:4fc:1608:68c8 with SMTP id
+ c102-20020a509fef000000b004fc160868c8mr10756114edf.1.1680148938164; Wed, 29
+ Mar 2023 21:02:18 -0700 (PDT)
+MIME-Version: 1.0
+References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org> <20230329-dt-cpu-header-cleanups-v1-16-581e2605fe47@kernel.org>
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-16-581e2605fe47@kernel.org>
+From:   Anup Patel <anup@brainfault.org>
+Date:   Thu, 30 Mar 2023 09:32:06 +0530
+Message-ID: <CAAhSdy3MYV=v2TNZ_507zGe6Pj_c95TZwODPK8-zTHpkn-ukww@mail.gmail.com>
+Subject: Re: [PATCH 16/19] cpuidle: Adjust includes to remove of_device.h
 To:     Rob Herring <robh@kernel.org>
 Cc:     "David S. Miller" <davem@davemloft.net>,
         Rob Herring <robh+dt@kernel.org>,
@@ -66,6 +69,7 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Daniel Lezcano <daniel.lezcano@linaro.org>,
         Thomas Gleixner <tglx@linutronix.de>,
         Amit Daniel Kachhap <amit.kachhap@gmail.com>,
+        Viresh Kumar <viresh.kumar@linaro.org>,
         Lukasz Luba <lukasz.luba@arm.com>,
         Amit Kucheria <amitk@kernel.org>,
         Zhang Rui <rui.zhang@intel.com>,
@@ -83,7 +87,6 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         Andy Gross <agross@kernel.org>,
         Bjorn Andersson <andersson@kernel.org>,
         Konrad Dybcio <konrad.dybcio@linaro.org>,
-        Anup Patel <anup@brainfault.org>,
         Huacai Chen <chenhuacai@kernel.org>,
         Jiaxun Yang <jiaxun.yang@flygoat.com>,
         Marc Zyngier <maz@kernel.org>,
@@ -95,46 +98,100 @@ Cc:     "David S. Miller" <davem@davemloft.net>,
         linux-mediatek@lists.infradead.org, linuxppc-dev@lists.ozlabs.org,
         linux-tegra@vger.kernel.org, linux-arm-msm@vger.kernel.org,
         linux-mips@vger.kernel.org
-Subject: Re: [PATCH 18/19] OPP: Adjust includes to remove of_device.h
-Message-ID: <20230330035451.huc3ae2acvgoh4xs@vireshk-i7>
-References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
- <20230329-dt-cpu-header-cleanups-v1-18-581e2605fe47@kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-18-581e2605fe47@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On 29-03-23, 10:52, Rob Herring wrote:
+On Wed, Mar 29, 2023 at 9:22=E2=80=AFPM Rob Herring <robh@kernel.org> wrote=
+:
+>
 > Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
 > implicitly including other includes, and is no longer needed. Adjust the
-> include files with what was implicitly included by of_device.h (cpu.h and
-> of.h) and drop including of_device.h.
-> 
+> include files with what was implicitly included by of_device.h (cpu.h,
+> cpuhotplug.h, of.h, and of_platform.h) and drop including of_device.h.
+>
 > Signed-off-by: Rob Herring <robh@kernel.org>
+
+For cpuidle-riscv-sbi.c
+Acked-by: Anup Patel <anup@brainfault.org>
+
+Regards,
+Anup
+
 > ---
 > Please ack and I will take the series via the DT tree.
 > ---
->  drivers/opp/of.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/opp/of.c b/drivers/opp/of.c
-> index e55c6095adf0..63b126c6215e 100644
-> --- a/drivers/opp/of.c
-> +++ b/drivers/opp/of.c
-> @@ -13,7 +13,7 @@
->  #include <linux/cpu.h>
->  #include <linux/errno.h>
->  #include <linux/device.h>
+>  drivers/cpuidle/cpuidle-psci.c      | 1 -
+>  drivers/cpuidle/cpuidle-qcom-spm.c  | 3 +--
+>  drivers/cpuidle/cpuidle-riscv-sbi.c | 2 +-
+>  drivers/cpuidle/dt_idle_states.c    | 1 -
+>  4 files changed, 2 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/cpuidle/cpuidle-psci.c b/drivers/cpuidle/cpuidle-psc=
+i.c
+> index 6de027f9f6f5..bf68920d038a 100644
+> --- a/drivers/cpuidle/cpuidle-psci.c
+> +++ b/drivers/cpuidle/cpuidle-psci.c
+> @@ -16,7 +16,6 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
 > -#include <linux/of_device.h>
-> +#include <linux/of.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/psci.h>
 >  #include <linux/pm_domain.h>
+> diff --git a/drivers/cpuidle/cpuidle-qcom-spm.c b/drivers/cpuidle/cpuidle=
+-qcom-spm.c
+> index c6e2e91bb4c3..1fc9968eae19 100644
+> --- a/drivers/cpuidle/cpuidle-qcom-spm.c
+> +++ b/drivers/cpuidle/cpuidle-qcom-spm.c
+> @@ -11,8 +11,7 @@
+>  #include <linux/io.h>
 >  #include <linux/slab.h>
->  #include <linux/export.h>
-
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
-
--- 
-viresh
+>  #include <linux/of.h>
+> -#include <linux/of_address.h>
+> -#include <linux/of_device.h>
+> +#include <linux/of_platform.h>
+>  #include <linux/err.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/cpuidle.h>
+> diff --git a/drivers/cpuidle/cpuidle-riscv-sbi.c b/drivers/cpuidle/cpuidl=
+e-riscv-sbi.c
+> index be383f4b6855..ae0b838a0634 100644
+> --- a/drivers/cpuidle/cpuidle-riscv-sbi.c
+> +++ b/drivers/cpuidle/cpuidle-riscv-sbi.c
+> @@ -8,6 +8,7 @@
+>
+>  #define pr_fmt(fmt) "cpuidle-riscv-sbi: " fmt
+>
+> +#include <linux/cpuhotplug.h>
+>  #include <linux/cpuidle.h>
+>  #include <linux/cpumask.h>
+>  #include <linux/cpu_pm.h>
+> @@ -15,7 +16,6 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> -#include <linux/of_device.h>
+>  #include <linux/slab.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/pm_domain.h>
+> diff --git a/drivers/cpuidle/dt_idle_states.c b/drivers/cpuidle/dt_idle_s=
+tates.c
+> index 02aa0b39af9d..12fec92a85fd 100644
+> --- a/drivers/cpuidle/dt_idle_states.c
+> +++ b/drivers/cpuidle/dt_idle_states.c
+> @@ -14,7 +14,6 @@
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/of.h>
+> -#include <linux/of_device.h>
+>
+>  #include "dt_idle_states.h"
+>
+>
+> --
+> 2.39.2
+>
