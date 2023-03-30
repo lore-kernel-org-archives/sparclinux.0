@@ -2,50 +2,57 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 830E7C77B6E
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 11:53:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BF807C77B6E
+	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 12:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231144AbjC3Lxo (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 30 Mar 2023 07:53:44 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50246 "EHLO
+        id S231697AbjC3M7g (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 30 Mar 2023 08:59:36 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53912 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230413AbjC3Lxm (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 07:53:42 -0400
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 414DFB460;
-        Thu, 30 Mar 2023 04:53:17 -0700 (PDT)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B5FC16204C;
-        Thu, 30 Mar 2023 11:52:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26940C433AA;
-        Thu, 30 Mar 2023 11:52:07 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1680177127;
-        bh=Lg8Woq7ScP2NFdPayLKkYeMtRMZwMJRAR9+KtXakJhE=;
-        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
-        b=szgi2AGJBTiRQ58jY7BtDVpishu6YXxB3MID/h/iLnY6weieQpEEBjD5U4dJKUZJo
-         NyrFHSlcuLma/JgU04Kyl/teOBwE2aqvJirDrSyFmIOb/MgyJ5jbYzY27e7K0/FB3v
-         CGl1zaVIaqHqL9jEmUV6o9JaD3e9FPV5dCV6/OyKRUcn2nGSc77XIBQZ4V3nd48tRE
-         MXMuKMr76f/IZcL1m1wvAHaMqdCUnLP5+1pyn+Oivk5n7icXvXAiLs6rb+QGNifsx4
-         s+2w00OYui+zTpJ8W2EjziNZVSk+jRvfupY8WA5Y6La/gJ22X/s8u0ZbXc6MKI1CFs
-         Gh6YkXLHZHYVw==
-Received: by mail-lf1-f52.google.com with SMTP id g19so11034911lfr.9;
-        Thu, 30 Mar 2023 04:52:07 -0700 (PDT)
-X-Gm-Message-State: AAQBX9ft5A7WJCknKgnZ3X+jipHPJIOsmWAmuopg6M9eJX6eQz3aA7s4
-        EQgGRwRdqFLaFGTSjQi+FLYILDCHpiUj7JnhrQg=
-X-Google-Smtp-Source: AKy350aaxBOgSqlP959KpS9cfZAsDCsvbSuFf+7QcLc+VlamdgSrDzoUdXNjAn81KSsW2remp6yjeVooIQhT3qtniP0=
-X-Received: by 2002:a19:f007:0:b0:4db:b4:c8d7 with SMTP id p7-20020a19f007000000b004db00b4c8d7mr1755725lfc.2.1680177124990;
- Thu, 30 Mar 2023 04:52:04 -0700 (PDT)
+        with ESMTP id S231338AbjC3M7e (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 08:59:34 -0400
+Received: from mail-io1-xd2c.google.com (mail-io1-xd2c.google.com [IPv6:2607:f8b0:4864:20::d2c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D22393FF;
+        Thu, 30 Mar 2023 05:59:33 -0700 (PDT)
+Received: by mail-io1-xd2c.google.com with SMTP id d14so8225507ion.9;
+        Thu, 30 Mar 2023 05:59:33 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112; t=1680181172; x=1682773172;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:from:to:cc:subject:date
+         :message-id:reply-to;
+        bh=db58zgLapT4+5eM+e2dEcRQMOxpl02qLJJqJynMawPw=;
+        b=gvyLOSrV5NqLHUuxidIYczTpyccsUd898Kt8qAjGZCJm8EQYH5JcTmwLqg57uC0cvB
+         j7U0x9dcm2RsX8dLxVGcboGq4Pdvm6cDFGIifVhW5LUG0BZhpnkLq+12fDfUITmPUgDN
+         KJqbUWD1A1NNvcxlD8Va+DklQ7yRgA9v4iGNa+yDzNCF8hz/BAHOp1sivo3m/ett+i3j
+         AtVwEXoZrtByosb2V89SvT6DgwFv0o1YJU+4lunFRTh6XWRbkQcRhcsLjusSr3Liunwq
+         utzWcTAPvMsNoessMz8HZ9Y6dfPH5hnImowquLEBicF67L5RSN3ovwZ4QUhqVrtpFGVk
+         CyWA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112; t=1680181172; x=1682773172;
+        h=content-transfer-encoding:cc:to:subject:message-id:date:from
+         :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=db58zgLapT4+5eM+e2dEcRQMOxpl02qLJJqJynMawPw=;
+        b=GgNj6eOVH4dLtqkJAK20/LMKhswJVWtIN9ax47qNYhIqspEW1sBhaVfRTt7mbducAS
+         A/wL6rr6YO66M44LZIMe9BkSx3c+JNzUH2xnkc9r16MHCiyeI9R5RCxyWglII8gxQ5w9
+         bCYPeEdyfcSC9EbpkKYIRbRIn1fOLUaCcupt2cSthVyshskd+TLGJZ/7cDJ3Z0WSEc2T
+         gqEy2kgE0dRFahKJNbnTFzw+K5B/w3khCo8Uhz8SEdOzJwdYgXsGMQJ9OgGE/zmWWUmz
+         aJq0z2ghF6yhujSghCM5ciilGkpsMS6qST4Dl4itQDFvqWqHPhZqC3K5AaOIx7YVrdRs
+         Nk2g==
+X-Gm-Message-State: AAQBX9fjeB2bUp6zI1YBXwPHLB+knqRrRPpcKMIVKdRSSK8EliD4FX/T
+        Wqsbf9lEIPRblE8XG9XZYEc24SZtKOBBy0KIZbE=
+X-Google-Smtp-Source: AKy350Yt7w4HDnt8ZzJ1OA1g5OCPUWPp6heQMoQ57xTct+y1JPFpMNsPMtx4N97vitPklV5i5ccLJReO6yCW0ia7/Oo=
+X-Received: by 2002:a02:95c3:0:b0:3eb:3166:9da4 with SMTP id
+ b61-20020a0295c3000000b003eb31669da4mr2710421jai.2.1680181172425; Thu, 30 Mar
+ 2023 05:59:32 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-19-arnd@kernel.org>
-In-Reply-To: <20230327121317.4081816-19-arnd@kernel.org>
-From:   Ard Biesheuvel <ardb@kernel.org>
-Date:   Thu, 30 Mar 2023 13:51:53 +0200
-X-Gmail-Original-Message-ID: <CAMj1kXGNjrmTr1R+-09UYtHSgvT6fSgZxvpbEOfeTFxhWtgGcQ@mail.gmail.com>
-Message-ID: <CAMj1kXGNjrmTr1R+-09UYtHSgvT6fSgZxvpbEOfeTFxhWtgGcQ@mail.gmail.com>
-Subject: Re: [PATCH 18/21] ARM: drop SMP support for ARM11MPCore
+References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-9-arnd@kernel.org>
+In-Reply-To: <20230327121317.4081816-9-arnd@kernel.org>
+From:   "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date:   Thu, 30 Mar 2023 13:59:06 +0100
+Message-ID: <CA+V-a8v--RqxFJYTZ04vVgiA69VJsFWk=r=TvRvokhpAV-famg@mail.gmail.com>
+Subject: Re: [PATCH 08/21] riscv: dma-mapping: only invalidate after DMA, not flush
 To:     Arnd Bergmann <arnd@kernel.org>
 Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
         Vineet Gupta <vgupta@kernel.org>,
@@ -80,52 +87,55 @@ Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
         linux-openrisc@vger.kernel.org, linux-parisc@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-riscv@lists.infradead.org,
         linux-sh@vger.kernel.org, sparclinux@vger.kernel.org,
-        linux-xtensa@linux-xtensa.org, Daniel Golle <daniel@makrotopia.org>
+        linux-xtensa@linux-xtensa.org
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 27 Mar 2023 at 14:18, Arnd Bergmann <arnd@kernel.org> wrote:
+On Mon, Mar 27, 2023 at 1:16=E2=80=AFPM Arnd Bergmann <arnd@kernel.org> wro=
+te:
 >
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> The cache management operations for noncoherent DMA on ARMv6 work
-> in two different ways:
+> No other architecture intentionally writes back dirty cache lines into
+> a buffer that a device has just finished writing into. If the cache is
+> clean, this has no effect at all, but if a cacheline in the buffer has
+> actually been written by the CPU,  there is a drive bug that is likely
+> made worse by overwriting that buffer.
 >
->  * When CONFIG_DMA_CACHE_RWFO is set, speculative prefetches on in-flight
->    DMA buffers lead to data corruption when the prefetched data is written
->    back on top of data from the device.
->
->  * When CONFIG_DMA_CACHE_RWFO is disabled, a cache flush on one CPU
->    is not seen by the other core(s), leading to inconsistent contents
->    accross the system.
->
-> As a consequence, neither configuration is actually safe to use in a
-> general-purpose kernel that is used on both MPCore systems and ARM1176
-> with prefetching enabled.
->
-> We could add further workarounds to make the behavior more dynamic based
-> on the system, but realistically, there are close to zero remaining
-> users on any ARM11MPCore anyway, and nobody seems too interested in it,
-> compared to the more popular ARM1176 used in BMC2835 and AST2500.
->
-> The Oxnas platform has some minimal support in OpenWRT, but most of the
-> drivers and dts files never made it into the mainline kernel, while the
-> Arm Versatile/Realview platform mainly serves as a reference system but
-> is not necessary to be kept working once all other ARM11MPCore are gone.
->
-> Take the easy way out here and drop support for multiprocessing on
-> ARMv6, along with the CONFIG_DMA_CACHE_RWFO option and the cache
-> management implementation for it. This also helps with other ARMv6
-> issues, but for the moment leaves the ability to build a kernel that
-> can run on both ARMv7 SMP and single-processor ARMv6, which we probably
-> want to stop supporting as well, but not as part of this series.
->
-> Cc: Neil Armstrong <neil.armstrong@linaro.org>
-> Cc: Daniel Golle <daniel@makrotopia.org>
-> Cc: Linus Walleij <linus.walleij@linaro.org>
-> Cc: linux-oxnas@groups.io
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  arch/riscv/mm/dma-noncoherent.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
 
-Acked-by: Ard Biesheuvel <ardb@kernel.org>
+Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
+
+Cheers,
+Prabhakar
+
+> diff --git a/arch/riscv/mm/dma-noncoherent.c b/arch/riscv/mm/dma-noncoher=
+ent.c
+> index d919efab6eba..640f4c496d26 100644
+> --- a/arch/riscv/mm/dma-noncoherent.c
+> +++ b/arch/riscv/mm/dma-noncoherent.c
+> @@ -42,7 +42,7 @@ void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t si=
+ze,
+>                 break;
+>         case DMA_FROM_DEVICE:
+>         case DMA_BIDIRECTIONAL:
+> -               ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
+> +               ALT_CMO_OP(inval, vaddr, size, riscv_cbom_block_size);
+>                 break;
+>         default:
+>                 break;
+> --
+> 2.39.2
+>
+>
+> _______________________________________________
+> linux-riscv mailing list
+> linux-riscv@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-riscv
