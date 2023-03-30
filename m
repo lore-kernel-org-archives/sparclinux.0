@@ -2,57 +2,58 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF807C77B6E
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 12:59:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F890C77B6F
+	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 13:27:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231697AbjC3M7g (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 30 Mar 2023 08:59:36 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53912 "EHLO
+        id S231977AbjC3N1M (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 30 Mar 2023 09:27:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60720 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231338AbjC3M7e (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 08:59:34 -0400
-Received: from mail-io1-xd2c.google.com (mail-io1-xd2c.google.com [IPv6:2607:f8b0:4864:20::d2c])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D22393FF;
-        Thu, 30 Mar 2023 05:59:33 -0700 (PDT)
-Received: by mail-io1-xd2c.google.com with SMTP id d14so8225507ion.9;
-        Thu, 30 Mar 2023 05:59:33 -0700 (PDT)
+        with ESMTP id S231822AbjC3N1J (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 09:27:09 -0400
+Received: from mail-il1-x134.google.com (mail-il1-x134.google.com [IPv6:2607:f8b0:4864:20::134])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6B080BDEF;
+        Thu, 30 Mar 2023 06:26:46 -0700 (PDT)
+Received: by mail-il1-x134.google.com with SMTP id e6so9776646ilu.9;
+        Thu, 30 Mar 2023 06:26:46 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680181172; x=1682773172;
+        d=gmail.com; s=20210112; t=1680182805; x=1682774805;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:from:to:cc:subject:date
          :message-id:reply-to;
-        bh=db58zgLapT4+5eM+e2dEcRQMOxpl02qLJJqJynMawPw=;
-        b=gvyLOSrV5NqLHUuxidIYczTpyccsUd898Kt8qAjGZCJm8EQYH5JcTmwLqg57uC0cvB
-         j7U0x9dcm2RsX8dLxVGcboGq4Pdvm6cDFGIifVhW5LUG0BZhpnkLq+12fDfUITmPUgDN
-         KJqbUWD1A1NNvcxlD8Va+DklQ7yRgA9v4iGNa+yDzNCF8hz/BAHOp1sivo3m/ett+i3j
-         AtVwEXoZrtByosb2V89SvT6DgwFv0o1YJU+4lunFRTh6XWRbkQcRhcsLjusSr3Liunwq
-         utzWcTAPvMsNoessMz8HZ9Y6dfPH5hnImowquLEBicF67L5RSN3ovwZ4QUhqVrtpFGVk
-         CyWA==
+        bh=n2pZnebNGLahNe2yjgjrKsFqnYvTRYd7uF1JoUeedu4=;
+        b=ipMmc4f2rhe9ZxmiesNtaMCdByaDBx7tN+zc7KMJSrXwy2WiELheDph1YzfOyUJK5G
+         2D9w1lws05LiLD96ktr9W079igf4FZMXTfy1rli6Syf8wtA/xOvdvesIM/xHoHpQ4mp2
+         kGaQPBqZIeQg75WZRmLC1J0vvz0N+J/wHgPfeNx6CWqljr2xVRlnhMmqStDFXeH9OteD
+         UdDKlBrcDx+IHVgGRnNql6fNqhC8UJ/0zLJcMACiQdKHQjGURJds5lWBs1vyz5ebkPWw
+         0o6fGsGo2wE6PVztfykuJW8aKjmi0krcntJGszy/82gq0ndxxs4fJ8aJQW98nZewfAkA
+         hgxg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680181172; x=1682773172;
+        d=1e100.net; s=20210112; t=1680182805; x=1682774805;
         h=content-transfer-encoding:cc:to:subject:message-id:date:from
          :in-reply-to:references:mime-version:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
-        bh=db58zgLapT4+5eM+e2dEcRQMOxpl02qLJJqJynMawPw=;
-        b=GgNj6eOVH4dLtqkJAK20/LMKhswJVWtIN9ax47qNYhIqspEW1sBhaVfRTt7mbducAS
-         A/wL6rr6YO66M44LZIMe9BkSx3c+JNzUH2xnkc9r16MHCiyeI9R5RCxyWglII8gxQ5w9
-         bCYPeEdyfcSC9EbpkKYIRbRIn1fOLUaCcupt2cSthVyshskd+TLGJZ/7cDJ3Z0WSEc2T
-         gqEy2kgE0dRFahKJNbnTFzw+K5B/w3khCo8Uhz8SEdOzJwdYgXsGMQJ9OgGE/zmWWUmz
-         aJq0z2ghF6yhujSghCM5ciilGkpsMS6qST4Dl4itQDFvqWqHPhZqC3K5AaOIx7YVrdRs
-         Nk2g==
-X-Gm-Message-State: AAQBX9fjeB2bUp6zI1YBXwPHLB+knqRrRPpcKMIVKdRSSK8EliD4FX/T
-        Wqsbf9lEIPRblE8XG9XZYEc24SZtKOBBy0KIZbE=
-X-Google-Smtp-Source: AKy350Yt7w4HDnt8ZzJ1OA1g5OCPUWPp6heQMoQ57xTct+y1JPFpMNsPMtx4N97vitPklV5i5ccLJReO6yCW0ia7/Oo=
-X-Received: by 2002:a02:95c3:0:b0:3eb:3166:9da4 with SMTP id
- b61-20020a0295c3000000b003eb31669da4mr2710421jai.2.1680181172425; Thu, 30 Mar
- 2023 05:59:32 -0700 (PDT)
+        bh=n2pZnebNGLahNe2yjgjrKsFqnYvTRYd7uF1JoUeedu4=;
+        b=XKsMDayOlwVZ/+/jeS5lmBFAGWD0j4RBR2BY2nyji6WZuy/N3FaKHLkPpqeaWPMqUn
+         txdSh18O2NU16utq/lwzwgwz6rUKdkcXa2qlMQymOBmYC4kqkMXed9jSBvMSDdPiiod+
+         A6fFy4Nl/uQuMY7iayVLVTYQfi+VgqCvtmdJOwiEv7zl7K7TaBAAFoXizow8b/IX+4jf
+         ga8m21Vt/qrehbiq6t46ECtRixi79KHHi06JGkaEF5lYbie94Jf313PUdpuZI8R7wHI/
+         EPepXZ1PH2imQByNnwrQ5iLig0ayC5BcZrRK7n7MHVomJSJgP0QgfBN8E4W1mQsLjUrT
+         K/ZQ==
+X-Gm-Message-State: AAQBX9d+jR2BwKkDtcU459i1tNTLR81oh9wsEQLdmwozA42l3tHgpdiM
+        xDe5DgCBBuRVlvi9zaCfTm8eGSjpDHycrDjd/VE=
+X-Google-Smtp-Source: AKy350b7GKjd6GbmSD4bjqzZzqd/x8SBG7vY+M0wf9Tl0Xt+rzmxZqELne3/hmMfJjmFaGc7B3VEjdENhXkZ8+X22Co=
+X-Received: by 2002:a05:6e02:1047:b0:325:dd36:7451 with SMTP id
+ p7-20020a056e02104700b00325dd367451mr11322497ilj.1.1680182805604; Thu, 30 Mar
+ 2023 06:26:45 -0700 (PDT)
 MIME-Version: 1.0
-References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-9-arnd@kernel.org>
-In-Reply-To: <20230327121317.4081816-9-arnd@kernel.org>
+References: <20230327121317.4081816-1-arnd@kernel.org> <20230327121317.4081816-10-arnd@kernel.org>
+In-Reply-To: <20230327121317.4081816-10-arnd@kernel.org>
 From:   "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Date:   Thu, 30 Mar 2023 13:59:06 +0100
-Message-ID: <CA+V-a8v--RqxFJYTZ04vVgiA69VJsFWk=r=TvRvokhpAV-famg@mail.gmail.com>
-Subject: Re: [PATCH 08/21] riscv: dma-mapping: only invalidate after DMA, not flush
+Date:   Thu, 30 Mar 2023 14:26:18 +0100
+Message-ID: <CA+V-a8twDb_P3TOpOqhz3Umump_NZg2Bw-8tgMCAmAdadUxfkw@mail.gmail.com>
+Subject: Re: [PATCH 09/21] riscv: dma-mapping: skip invalidation before
+ bidirectional DMA
 To:     Arnd Bergmann <arnd@kernel.org>
 Cc:     linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
         Vineet Gupta <vgupta@kernel.org>,
@@ -99,18 +100,18 @@ te:
 >
 > From: Arnd Bergmann <arnd@arndb.de>
 >
-> No other architecture intentionally writes back dirty cache lines into
-> a buffer that a device has just finished writing into. If the cache is
-> clean, this has no effect at all, but if a cacheline in the buffer has
-> actually been written by the CPU,  there is a drive bug that is likely
-> made worse by overwriting that buffer.
+> For a DMA_BIDIRECTIONAL transfer, the caches have to be cleaned
+> first to let the device see data written by the CPU, and invalidated
+> after the transfer to let the CPU see data written by the device.
+>
+> riscv also invalidates the caches before the transfer, which does
+> not appear to serve any purpose.
 >
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
 >  arch/riscv/mm/dma-noncoherent.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-
 Reviewed-by: Lad Prabhakar <prabhakar.mahadev-lad.rj@bp.renesas.com>
 
 Cheers,
@@ -118,16 +119,16 @@ Prabhakar
 
 > diff --git a/arch/riscv/mm/dma-noncoherent.c b/arch/riscv/mm/dma-noncoher=
 ent.c
-> index d919efab6eba..640f4c496d26 100644
+> index 640f4c496d26..69c80b2155a1 100644
 > --- a/arch/riscv/mm/dma-noncoherent.c
 > +++ b/arch/riscv/mm/dma-noncoherent.c
-> @@ -42,7 +42,7 @@ void arch_sync_dma_for_cpu(phys_addr_t paddr, size_t si=
-ze,
+> @@ -25,7 +25,7 @@ void arch_sync_dma_for_device(phys_addr_t paddr, size_t=
+ size,
+>                 ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
 >                 break;
->         case DMA_FROM_DEVICE:
 >         case DMA_BIDIRECTIONAL:
 > -               ALT_CMO_OP(flush, vaddr, size, riscv_cbom_block_size);
-> +               ALT_CMO_OP(inval, vaddr, size, riscv_cbom_block_size);
+> +               ALT_CMO_OP(clean, vaddr, size, riscv_cbom_block_size);
 >                 break;
 >         default:
 >                 break;
