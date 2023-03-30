@@ -2,44 +2,44 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEB51C77B6F
-	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 16:28:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A70CC77B62
+	for <sparclinux@archiver.kernel.org>; Thu, 30 Mar 2023 16:28:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231817AbjC3Q2h (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Thu, 30 Mar 2023 12:28:37 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60314 "EHLO
+        id S231304AbjC3Q2m (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Thu, 30 Mar 2023 12:28:42 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231590AbjC3Q2e (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 12:28:34 -0400
+        with ESMTP id S231700AbjC3Q2f (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Thu, 30 Mar 2023 12:28:35 -0400
 Received: from mga05.intel.com (mga05.intel.com [192.55.52.43])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3F0EBDE5;
-        Thu, 30 Mar 2023 09:28:30 -0700 (PDT)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 432A8BB9C;
+        Thu, 30 Mar 2023 09:28:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
   d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1680193710; x=1711729710;
+  t=1680193712; x=1711729712;
   h=from:to:cc:subject:date:message-id:in-reply-to:
    references:mime-version:content-transfer-encoding;
-  bh=gIQa0UBc6rrUYtPkGDZ1t1xT6zplGxALb8OYgbohTeo=;
-  b=BMtTgumTEElOfhQRh4w1CoFSlfi1IAEExZC2z1RKdIUvoIe6ccOxQVzV
-   Rlksvnz+TcvSvVLgBTVVNHnv3EBmaC9Jdg26SckfEbnntjcaNkiJJkduh
-   m4oUcxXM2199ksPs7gvzF+1LgO9qQToWjlEGN6L8oBajTJAuOKW2GgO8N
-   bFBgi8gxJySCKoYEYvHJW0k0FHYB/J1zvzOvZ+OHAFlDGBrAbqdQ6itQ6
-   FlBGGA05YlYApYayjV7BP6ISso81/5cVOkvzXSErGBro1mVIKHNLLSFH9
-   fXvfsJRlgeuDd0n4MFFAh5vkidqwRdCSRQMSHS+pe5vQG+7X0A0wF0TNd
-   w==;
-X-IronPort-AV: E=McAfee;i="6600,9927,10665"; a="427496004"
+  bh=mMeyztJwnpsG6WpiZZE3Wzd++aYBpdo5TdtsAUuwHek=;
+  b=UeetYP0z4KQE3eGjgEb1rZcZdEKa4Zt/lw25k6ICMVHP/gr5WLpuWQOv
+   vHX230IkzboLjCyY0SQaC5V2mklJtqcbYRk2INBRiPU+nUZ2ThENiWsQl
+   QjVZ5ibEfB6QA9H2UxZ8Z3lAFcYb+cVp+jJSkiiHMmVkMr1XHd/axlD3J
+   3JHxWBMqslYXAnMN15EbgPmZAp1alUykAZS6TnuASxRudTBpBTdr4LXG/
+   0kqpNQWr3EUMkEcrs+OLeQYpHrCj5mOTQr8ShpTdUC6iUyfiIoVSwlr14
+   MPiOzkt1azTtcvTJEyW41A0oyLudH1otqOsj8j/Ds4aW4rMZ3DlizoKzE
+   g==;
+X-IronPort-AV: E=McAfee;i="6600,9927,10665"; a="427496059"
 X-IronPort-AV: E=Sophos;i="5.98,305,1673942400"; 
-   d="scan'208";a="427496004"
-Received: from orsmga005.jf.intel.com ([10.7.209.41])
-  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2023 09:28:29 -0700
+   d="scan'208";a="427496059"
+Received: from orsmga002.jf.intel.com ([10.7.209.21])
+  by fmsmga105.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 30 Mar 2023 09:28:31 -0700
 X-ExtLoop1: 1
-X-IronPort-AV: E=McAfee;i="6600,9927,10665"; a="858971548"
+X-IronPort-AV: E=McAfee;i="6600,9927,10665"; a="684762351"
 X-IronPort-AV: E=Sophos;i="5.98,305,1673942400"; 
-   d="scan'208";a="858971548"
+   d="scan'208";a="684762351"
 Received: from black.fi.intel.com ([10.237.72.28])
-  by orsmga005.jf.intel.com with ESMTP; 30 Mar 2023 09:28:17 -0700
+  by orsmga002.jf.intel.com with ESMTP; 30 Mar 2023 09:28:19 -0700
 Received: by black.fi.intel.com (Postfix, from userid 1003)
-        id C528C14B; Thu, 30 Mar 2023 19:24:48 +0300 (EEST)
+        id 43047238; Thu, 30 Mar 2023 19:24:51 +0300 (EEST)
 From:   Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 To:     =?UTF-8?q?Micka=C3=ABl=20Sala=C3=BCn?= <mic@digikod.net>,
         Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
@@ -80,9 +80,9 @@ Cc:     Miguel Ojeda <ojeda@kernel.org>,
         Bjorn Helgaas <bhelgaas@google.com>,
         Stefano Stabellini <sstabellini@kernel.org>,
         Oleksandr Tyshchenko <oleksandr_tyshchenko@epam.com>
-Subject: [PATCH v8 1/7] kernel.h: Split out COUNT_ARGS() and CONCATENATE()
-Date:   Thu, 30 Mar 2023 19:24:28 +0300
-Message-Id: <20230330162434.35055-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v8 4/7] PCI: Document pci_bus_for_each_resource() to avoid confusion
+Date:   Thu, 30 Mar 2023 19:24:31 +0300
+Message-Id: <20230330162434.35055-5-andriy.shevchenko@linux.intel.com>
 X-Mailer: git-send-email 2.40.0.1.gaa8946217a0b
 In-Reply-To: <20230330162434.35055-1-andriy.shevchenko@linux.intel.com>
 References: <20230330162434.35055-1-andriy.shevchenko@linux.intel.com>
@@ -92,64 +92,47 @@ Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-kernel.h is being used as a dump for all kinds of stuff for a long time.
-The COUNT_ARGS() and CONCATENATE() macros may be used in some places
-without need of the full kernel.h dependency train with it.
-
-Here is the attempt on cleaning it up by splitting out these macros().
+There might be a confusion with the implementation of the
+pci_bus_for_each_resources() due to side effect of Logical
+OR. Document entire macro and explain how it works and why
+the conditional needs to be like that.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- include/linux/args.h   | 13 +++++++++++++
- include/linux/kernel.h |  8 +-------
- 2 files changed, 14 insertions(+), 7 deletions(-)
- create mode 100644 include/linux/args.h
+ include/linux/pci.h | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/include/linux/args.h b/include/linux/args.h
-new file mode 100644
-index 000000000000..16ef6fad8add
---- /dev/null
-+++ b/include/linux/args.h
-@@ -0,0 +1,13 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+
-+#ifndef _LINUX_ARGS_H
-+#define _LINUX_ARGS_H
-+
-+/* This counts to 12. Any more, it will return 13th argument. */
-+#define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
-+#define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
-+
-+#define __CONCAT(a, b) a ## b
-+#define CONCATENATE(a, b) __CONCAT(a, b)
-+
-+#endif	/* _LINUX_ARGS_H */
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 0d91e0af0125..fa675d50d7b7 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -13,6 +13,7 @@
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 5cacd9e4c8cd..e3b3af606280 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -1446,6 +1446,26 @@ int devm_request_pci_bus_resources(struct device *dev,
+ /* Temporary until new and working PCI SBR API in place */
+ int pci_bridge_secondary_bus_reset(struct pci_dev *dev);
  
- #include <linux/stdarg.h>
- #include <linux/align.h>
-+#include <linux/args.h>
- #include <linux/limits.h>
- #include <linux/linkage.h>
- #include <linux/stddef.h>
-@@ -457,13 +458,6 @@ ftrace_vprintk(const char *fmt, va_list ap)
- static inline void ftrace_dump(enum ftrace_dump_mode oops_dump_mode) { }
- #endif /* CONFIG_TRACING */
- 
--/* This counts to 12. Any more, it will return 13th argument. */
--#define __COUNT_ARGS(_0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _n, X...) _n
--#define COUNT_ARGS(X...) __COUNT_ARGS(, ##X, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
--
--#define __CONCAT(a, b) a ## b
--#define CONCATENATE(a, b) __CONCAT(a, b)
--
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
++/**
++ * pci_bus_for_each_resource - iterate over PCI bus resources
++ * @bus: the PCI bus
++ * @res: a varible to keep a pointer to the current resource
++ * @i: a variable to keep the index of the current resource
++ *
++ * Iterate over PCI bus resources. The first part is to go over PCI bus
++ * resource array, which has at most the %PCI_BRIDGE_RESOURCE_NUM entries.
++ * After that continue with the separate list of the additional resources,
++ * if not empty. That's why the Logical OR is being used.
++ *
++ * Possible usage:
++ *
++ *	struct pci_bus *bus = ...;
++ *	struct resource *res;
++ *	unsigned int i;
++ *
++ * 	pci_bus_for_each_resource(bus, res, i)
++ * 		pr_info("PCI bus resource[%u]: %pR\n", i, res);
++ */
+ #define pci_bus_for_each_resource(bus, res, i)				\
+ 	for (i = 0;							\
+ 	    (res = pci_bus_resource_n(bus, i)) || i < PCI_BRIDGE_RESOURCE_NUM; \
 -- 
 2.40.0.1.gaa8946217a0b
 
