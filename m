@@ -2,60 +2,60 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD40C77B6F
-	for <sparclinux@archiver.kernel.org>; Sat,  1 Apr 2023 19:22:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F17DC76196
+	for <sparclinux@archiver.kernel.org>; Sat,  1 Apr 2023 19:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229448AbjDATWJ (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Sat, 1 Apr 2023 15:22:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46086 "EHLO
+        id S229988AbjDATWt (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Sat, 1 Apr 2023 15:22:49 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47338 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229626AbjDATWI (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 Apr 2023 15:22:08 -0400
-Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 377F21C1DF
-        for <sparclinux@vger.kernel.org>; Sat,  1 Apr 2023 12:22:05 -0700 (PDT)
-Received: by mail-wm1-x32e.google.com with SMTP id s13so14796234wmr.4
-        for <sparclinux@vger.kernel.org>; Sat, 01 Apr 2023 12:22:05 -0700 (PDT)
+        with ESMTP id S229844AbjDATWr (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Sat, 1 Apr 2023 15:22:47 -0400
+Received: from mail-wm1-x335.google.com (mail-wm1-x335.google.com [IPv6:2a00:1450:4864:20::335])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E3122659F
+        for <sparclinux@vger.kernel.org>; Sat,  1 Apr 2023 12:22:32 -0700 (PDT)
+Received: by mail-wm1-x335.google.com with SMTP id o24-20020a05600c511800b003ef59905f26so15785970wms.2
+        for <sparclinux@vger.kernel.org>; Sat, 01 Apr 2023 12:22:32 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linaro.org; s=google; t=1680376923;
+        d=linaro.org; s=google; t=1680376950;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=0hCHlkF5Z3NmTqMnInVbTSc5iAXn26gWIw7YwXQgkr4=;
-        b=g6sUbB29tDRqwWFaUjnPs6EJpXE5M1cKRPU9iBTc0LRSeeY2pnemn3+Ow7d7VJL9vC
-         1UPid8/hMd1vpO8Z1HH8wUfyfZNWK5WVNz8O2iOSwFulwT14iN6cAJ9k3kYRxszx/8J+
-         ZfVbXmkh0pMO1XRkO2ML4wn90O4bBd4syFghP/pgtFlNifs4VINxjJrPhysz2kyaFa3d
-         ut2cSJXOHIi46pQrkm23u6p9HDSNAX9mJNsPIRMYtwbQg8sSv434+Zoa59dQRAEnpuIW
-         UIBhBPrlBG9iosFOv68C9vWhjUSSn5P/QoCed33C2PtnKJGt1PfFOt1XJFjzTE6pAOu+
-         O3Aw==
+        bh=YsdIX4QaNsFy8jAUYtXLUiYq0pMM/KF7S/HscFFRFa8=;
+        b=wLou/172SsZ4tbZKAmsf4wdm/jkdhPJhgp/9PODUlSx+8zj3bvceTjgZUslKBzMWw8
+         dbzF5WM+xXp7t01zz37q83r+zoMvSKVW3P/J28MwkqEbL9aNMV8iCK1aq/f4+7SIi4B9
+         qp2UZBwhIDmh3rDtCB63WKwzAN5BUgdGepgfYA2wOSMqur9AYXlb5tF5t3JYnBT9m+FF
+         QZNbjh2HDQTcX3YBnp/khnrydEiI2K5FE2h9klkr7WGo/ExSeTZ8Jium1tK606uJuIKM
+         bxjPVjsLqxf1k5WstPx4prev8VXkZHddRS3F63SKw/dTy0euJ1u4Vad24HvY2PFiL49V
+         8UgQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680376923;
+        d=1e100.net; s=20210112; t=1680376950;
         h=content-transfer-encoding:in-reply-to:from:references:cc:to
          :content-language:subject:user-agent:mime-version:date:message-id
          :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
-        bh=0hCHlkF5Z3NmTqMnInVbTSc5iAXn26gWIw7YwXQgkr4=;
-        b=iEuJGDUaMYilcBTdvULpNYgPe82Z7Y1WhgogxP88YgeIO/RV6VVeQV32XNmHbi1ITa
-         X7g0ZGDZJGpXXjffDCS5RuufVwJFHIrmIDbQreXYbqSK8spHdQROEkWTgrre8nOqrCfI
-         qXw/y5lFNIz6B4x205jOHKQr2ftxFeMsliq7ZhsyaOHJOK8xAkrcH+CMpRoE1bJtxVUT
-         rPtRYiSatGBhKT2CKLGTkBpkoU2pysCl9kGqM1eK04hMVjT8mQRgVbDBFqB5S1bcxALS
-         gE2ew/ecyMtxJt8cRS3IIsqlvtRnTttfLwi63I7VJwjXRDiDQoAwhKEwAq6T+qgyKFmF
-         MOhA==
-X-Gm-Message-State: AO0yUKW/t10FHwzzAZY1I3ycAY0NgG7iRwDcnIq/y/YtidL0E6qM32Un
-        IOEhoOtGoRXVpYR0UJE45ABfVg==
-X-Google-Smtp-Source: AK7set9h+h3Yx3+JglVGj8gMjIzM5W42Mci6pIwcqvCbd9w9+V46ksoIxY9Juxkx8HAEL/TqjQdSeA==
-X-Received: by 2002:a7b:cb95:0:b0:3d0:6a57:66a5 with SMTP id m21-20020a7bcb95000000b003d06a5766a5mr22553123wmi.0.1680376923601;
-        Sat, 01 Apr 2023 12:22:03 -0700 (PDT)
+        bh=YsdIX4QaNsFy8jAUYtXLUiYq0pMM/KF7S/HscFFRFa8=;
+        b=CB88ZbONkO83JlgypcCvji0nwUQLlE6nUbqzO6wvYFpM10VcvTxAnnG1QpnlZ3KATp
+         i0nv9f0c/+SaqN0/xTJvlLOOlOwaF1ofPfncL88UawwszAmaP/CgO7LSMRNOlzdEwlIc
+         srjHzaT0J8VHkCOoeyOTcnI2RtgwMOImKhy+uTcS3hfMQolL7SLdWbNAjvQTNIUwIIXC
+         7CXYhWHl4NPzo0u0jYNlvgSMzhuwWwAfOnLE9tciAoZoKW4UhHH5CUVXqdLWr1MpVhLu
+         M+gz4egbAyil7rriwKWL8AusfSI4QhBlDl396FElfZbipzNvOCOte+mt1f+AZC2C/zm1
+         Uswg==
+X-Gm-Message-State: AO0yUKUyHbpeiP+EzRnxoviCp3vMYZNDkJkTNsi6GmNE9Oon1gfJJyxW
+        mZv/Si5+R/pD24/L2O+KBQJp3g==
+X-Google-Smtp-Source: AK7set9y5bHkZCySLIhsJfaK02RbOBp8M7OwMT91WfVTWaYaVc0pGHqd8wtNzjk/5/WSJSDGT1LTiA==
+X-Received: by 2002:a7b:cd88:0:b0:3ee:7061:1bdd with SMTP id y8-20020a7bcd88000000b003ee70611bddmr22820919wmj.4.1680376950405;
+        Sat, 01 Apr 2023 12:22:30 -0700 (PDT)
 Received: from ?IPV6:2a05:6e02:1041:c10:b36a:1186:309c:1f9a? ([2a05:6e02:1041:c10:b36a:1186:309c:1f9a])
-        by smtp.googlemail.com with ESMTPSA id o9-20020a05600c4fc900b003ef6bc71cccsm14508987wmq.27.2023.04.01.12.22.01
+        by smtp.googlemail.com with ESMTPSA id r5-20020adfe685000000b002e61e002943sm4791678wrm.116.2023.04.01.12.22.28
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 01 Apr 2023 12:22:03 -0700 (PDT)
-Message-ID: <c0fdb192-43d1-760f-ccd8-2f9d5fe41a99@linaro.org>
-Date:   Sat, 1 Apr 2023 21:22:01 +0200
+        Sat, 01 Apr 2023 12:22:29 -0700 (PDT)
+Message-ID: <93ffd73a-4544-5148-0159-1a9ea773c0a0@linaro.org>
+Date:   Sat, 1 Apr 2023 21:22:28 +0200
 MIME-Version: 1.0
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
  Thunderbird/102.9.0
-Subject: Re: [PATCH 11/19] clocksource: ingenic: Add explicit include for
- cpuhotplug.h
+Subject: Re: [PATCH 12/19] thermal: cpuidle_cooling: Adjust includes to remove
+ of_device.h
 Content-Language: en-US
 To:     Rob Herring <robh@kernel.org>,
         "David S. Miller" <davem@davemloft.net>,
@@ -103,9 +103,9 @@ Cc:     sparclinux@vger.kernel.org, linux-kernel@vger.kernel.org,
         linuxppc-dev@lists.ozlabs.org, linux-tegra@vger.kernel.org,
         linux-arm-msm@vger.kernel.org, linux-mips@vger.kernel.org
 References: <20230329-dt-cpu-header-cleanups-v1-0-581e2605fe47@kernel.org>
- <20230329-dt-cpu-header-cleanups-v1-11-581e2605fe47@kernel.org>
+ <20230329-dt-cpu-header-cleanups-v1-12-581e2605fe47@kernel.org>
 From:   Daniel Lezcano <daniel.lezcano@linaro.org>
-In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-11-581e2605fe47@kernel.org>
+In-Reply-To: <20230329-dt-cpu-header-cleanups-v1-12-581e2605fe47@kernel.org>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -113,22 +113,16 @@ List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
 On 29/03/2023 17:52, Rob Herring wrote:
-> Removing include of cpu.h from of_device.h (included by of_platform.h)
-> causes an error in ingenic-timer:
-> 
-> drivers/clocksource/ingenic-timer.c: In function ‘ingenic_tcu_init’:
-> drivers/clocksource/ingenic-timer.c:338:15: error: implicit declaration of function ‘cpuhp_setup_state’
-> 
-> The of_platform.h header is not necessary either, so it and of_address.h
-> can be dropped.
+> Now that of_cpu_device_node_get() is defined in of.h, of_device.h is just
+> implicitly including other includes, and is no longer needed. Adjust the
+> include files with what was implicitly included by of_device.h (cpu.h and
+> of.h) and drop including of_device.h.
 > 
 > Signed-off-by: Rob Herring <robh@kernel.org>
 > ---
 > Please ack and I will take the series via the DT tree.
-> ---
 
 Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-
 
 -- 
 <http://www.linaro.org/> Linaro.org │ Open source software for ARM SoCs
