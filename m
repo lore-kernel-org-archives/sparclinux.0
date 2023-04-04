@@ -2,60 +2,141 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76E2BC76196
-	for <sparclinux@archiver.kernel.org>; Mon,  3 Apr 2023 08:16:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00821C77B6E
+	for <sparclinux@archiver.kernel.org>; Tue,  4 Apr 2023 07:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231521AbjDCIQR (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Mon, 3 Apr 2023 04:16:17 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38092 "EHLO
+        id S233857AbjDDHW0 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 Apr 2023 03:22:26 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50796 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231506AbjDCIQN (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Mon, 3 Apr 2023 04:16:13 -0400
-Received: from mail.arenig.pl (mail.arenig.pl [217.61.104.40])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DD340E1B8
-        for <sparclinux@vger.kernel.org>; Mon,  3 Apr 2023 01:15:54 -0700 (PDT)
-Received: by mail.arenig.pl (Postfix, from userid 1001)
-        id 3C3A2A37F0; Mon,  3 Apr 2023 09:15:38 +0100 (BST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=arenig.pl; s=mail;
-        t=1680509752; bh=LTrFku/ToeGnnqiqyaN86kCQQkxkwCY5tVpcGX1QBNI=;
-        h=Date:From:To:Subject:From;
-        b=Kk2sR5dikBD2ISviQYpRaf4zI0dfqd0q/GdKZc6LYuJTmlDNyJp2M2wCutmVhfrP7
-         DFnJodOClDBVc3ItmfCMOT7G/2+kSD6WoTtnwQAJygEymNTm+F74wtHnN0CDTKCIKu
-         7qxcduKvSUguOHe4wzBa/Oklnf0kqN1f54nw8bDPjVDyLtascQQaCZqZgqR8AzYd1/
-         OmJ16eQxOY+iw3af8p74mWiKYZ4rC1KCCZxg4903qRnZt3P8uiIhcgIpVchVZW01lV
-         PopykgojBL2T1Usu8EDmPNPJjPjVrSEJXKR4O4P265bN8UGfLydDmuj6Mp50d7LFO3
-         HbdV+4Jz3O14g==
-Received: by mail.arenig.pl for <sparclinux@vger.kernel.org>; Mon,  3 Apr 2023 08:15:29 GMT
-Message-ID: <20230403074500-0.1.8s.w9n4.0.8k38xmm3u5@arenig.pl>
-Date:   Mon,  3 Apr 2023 08:15:29 GMT
-From:   =?UTF-8?Q? "Aleksandra_Kami=C5=84ska" ?= 
-        <aleksandra.kaminska@arenig.pl>
-To:     <sparclinux@vger.kernel.org>
-Subject: Nowe lakiery hybrydowe do oferty
-X-Mailer: mail.arenig.pl
+        with ESMTP id S233851AbjDDHWY (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Apr 2023 03:22:24 -0400
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B63A3268B;
+        Tue,  4 Apr 2023 00:22:20 -0700 (PDT)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2588A62F5C;
+        Tue,  4 Apr 2023 07:22:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18439C433D2;
+        Tue,  4 Apr 2023 07:22:11 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1680592939;
+        bh=zNbuc2c7Q9IWg5uy9hdmHULoUQBr2Hs/BAYhilZF5F4=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=CqHblzUj1z5GNNRhlVv5PjhJZbkNnPlRJpd8BNP9SFM3LozxkSRnpQ6pJHq1734IE
+         nD0HzFbv58nu6J/EDvb0/r/dPnGTG4/RX9IFH1dtOkbIUrpX4gBAxv+iMBA5DHcRED
+         emlRqtXMUO+8S4B3gXHGAfaZat5oK//B6B2YKi3S5Gq0z1OVXNwTRQKMwaAeo6YUWs
+         fVidc4rMbc4aUoxxzgWhlqdgki6r0Y6O3oX30JhcakMQVSnJAF09H5rT22qPoqcLsD
+         1rUCPCKRgr6yla1vp2aXejTBBX5r0wagFlZzYRUY3h9pSLxjoBb/Ad/MMOzP9CoNyA
+         E21K1u28YAOpQ==
+Date:   Tue, 4 Apr 2023 10:22:00 +0300
+From:   Mike Rapoport <rppt@kernel.org>
+To:     Justin Forbes <jforbes@fedoraproject.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Christophe Leroy <christophe.leroy@csgroup.eu>,
+        "David S. Miller" <davem@davemloft.net>,
+        Dinh Nguyen <dinguyen@kernel.org>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Guo Ren <guoren@kernel.org>,
+        John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>,
+        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
+        Max Filippov <jcmvbkbc@gmail.com>,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        Rich Felker <dalias@libc.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Zi Yan <ziy@nvidia.com>, linux-arm-kernel@lists.infradead.org,
+        linux-csky@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-m68k@lists.linux-m68k.org,
+        linux-mm@kvack.org, linux-sh@vger.kernel.org,
+        linux-xtensa@linux-xtensa.org, linuxppc-dev@lists.ozlabs.org,
+        sparclinux@vger.kernel.org
+Subject: Re: [PATCH v3 02/14] arm64: drop ranges in definition of
+ ARCH_FORCE_MAX_ORDER
+Message-ID: <ZCvQGJzdED+An8an@kernel.org>
+References: <20230325060828.2662773-1-rppt@kernel.org>
+ <20230325060828.2662773-3-rppt@kernel.org>
+ <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAFxkdAr5C7ggZ+WdvDbsfmwuXujT_z_x3qcUnhnCn-WrAurvgA@mail.gmail.com>
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-Dzie=C5=84 dobry,
+On Wed, Mar 29, 2023 at 10:55:37AM -0500, Justin Forbes wrote:
+> On Sat, Mar 25, 2023 at 1:09 AM Mike Rapoport <rppt@kernel.org> wrote:
+> >
+> > From: "Mike Rapoport (IBM)" <rppt@kernel.org>
+> >
+> > It is not a good idea to change fundamental parameters of core memory
+> > management. Having predefined ranges suggests that the values within
+> > those ranges are sensible, but one has to *really* understand
+> > implications of changing MAX_ORDER before actually amending it and
+> > ranges don't help here.
+> >
+> > Drop ranges in definition of ARCH_FORCE_MAX_ORDER and make its prompt
+> > visible only if EXPERT=y
+> 
+> I do not like suddenly hiding this behind EXPERT for a couple of
+> reasons.  Most importantly, it will silently change the config for
+> users building with an old kernel config.  If a user has for instance
+> "13" set and building with 4K pages, as is the current configuration
+> for Fedora and RHEL aarch64 builds, an oldconfig build will now set it
+> to 10 with no indication that it is doing so.  And while I think that
+> 10 is a fine default for many aarch64 users, there are valid reasons
+> for choosing other values. Putting this behind expert makes it much
+> less obvious that this is an option.
 
-w bran=C5=BCy lakier=C3=B3w hybrydowych ro=C5=9Bnie popularno=C5=9B=C4=87=
- produkt=C3=B3w wielozadaniowych, kt=C3=B3re skracaj=C4=85 czas wykonania=
- manicure.
+That's the idea of EXPERT, no?
 
-Opracowali=C5=9Bmy now=C4=85 linie lakier=C3=B3w, kt=C3=B3re spe=C5=82nia=
-j=C4=85 wsp=C3=B3=C5=82czesne wymagania w tym zakresie, dlatego ciesz=C4=85=
- si=C4=99 rosn=C4=85cym zainteresowaniem na rynku.
+This option was intended to allow allocation of huge pages for
+architectures that had PMD_ORDER > MAX_ORDER and not to allow user to
+select size of maximal physically contiguous allocation.
 
-Produkty dostarczamy do drogerii, sieci zakupowych, handlowych, hurtowni =
-i dystrybutor=C3=B3w, kt=C3=B3rzy osi=C4=85gaj=C4=85 wy=C5=BCsze ni=C5=BC=
- dotychczas zyski ze sprzeda=C5=BCy tego typu rozwi=C4=85za=C5=84.
+Changes to MAX_ORDER fundamentally change the behaviour of core mm and
+unless users *really* know what they are doing there is no reason to choose
+non-default values so hiding this option behind EXPERT seems totally
+appropriate to me.
+ 
+> Justin
+> 
+> > Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+> > Reviewed-by: Zi Yan <ziy@nvidia.com>
+> > Signed-off-by: Mike Rapoport (IBM) <rppt@kernel.org>
+> > ---
+> >  arch/arm64/Kconfig | 4 +---
+> >  1 file changed, 1 insertion(+), 3 deletions(-)
+> >
+> > diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> > index e60baf7859d1..7324032af859 100644
+> > --- a/arch/arm64/Kconfig
+> > +++ b/arch/arm64/Kconfig
+> > @@ -1487,11 +1487,9 @@ config XEN
+> >  # 16K |       27          |      14      |       13        |         11         |
+> >  # 64K |       29          |      16      |       13        |         13         |
+> >  config ARCH_FORCE_MAX_ORDER
+> > -       int "Maximum zone order" if ARM64_4K_PAGES || ARM64_16K_PAGES
+> > +       int "Maximum zone order" if EXPERT && (ARM64_4K_PAGES || ARM64_16K_PAGES)
+> >         default "13" if ARM64_64K_PAGES
+> > -       range 11 13 if ARM64_16K_PAGES
+> >         default "11" if ARM64_16K_PAGES
+> > -       range 10 15 if ARM64_4K_PAGES
+> >         default "10"
+> >         help
+> >           The kernel memory allocator divides physically contiguous memory
+> > --
+> > 2.35.1
+> >
+> >
 
-Chc=C4=85 Pa=C5=84stwo pozna=C4=87 propozycj=C4=99 wsp=C3=B3=C5=82pracy?
-
-
-Z pozdrowieniami
-Aleksandra Kami=C5=84ska
+-- 
+Sincerely yours,
+Mike.
