@@ -2,93 +2,99 @@ Return-Path: <sparclinux-owner@vger.kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C2E2C76188
-	for <sparclinux@archiver.kernel.org>; Tue,  4 Apr 2023 21:17:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70F44C6FD1D
+	for <sparclinux@archiver.kernel.org>; Tue,  4 Apr 2023 22:40:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229743AbjDDVR4 (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
-        Tue, 4 Apr 2023 17:17:56 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55916 "EHLO
+        id S236651AbjDDWkl (ORCPT <rfc822;sparclinux@archiver.kernel.org>);
+        Tue, 4 Apr 2023 18:40:41 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32970 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234844AbjDDVRt (ORCPT
-        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Apr 2023 17:17:49 -0400
-Received: from mail-ed1-x534.google.com (mail-ed1-x534.google.com [IPv6:2a00:1450:4864:20::534])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 32C9D5599;
-        Tue,  4 Apr 2023 14:17:13 -0700 (PDT)
-Received: by mail-ed1-x534.google.com with SMTP id r11so136091038edd.5;
-        Tue, 04 Apr 2023 14:17:13 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112; t=1680643031;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:from:to:cc:subject:date:message-id:reply-to;
-        bh=vB8C/rkfKSiKVTM11U1zRHBbWNH+nLc5httEWsxhlqs=;
-        b=c+svavxJzJiDnanNxas0i37W0Wi3ItSv75f77BColKvnVsaij56RGWuarKjybsdY90
-         c54uFR0fCl+BgN7t8hK7AMaBcwP9BWoOaRexZ69XxqUL9SMonxIGVpoEU96iYw785yK/
-         JosttHftu7m+AgCTVNeH48tS54HhWxGIONtep8kkmbDYMsraR2ICNZLmApYislh3PUll
-         gKLhX3drqADr3+sEv1WQ6dI67x/wZI8N6kCr4F107zOrMzlkfezL8xwMD9WVqzcv/Oki
-         BwHCzkYFsaa5hQdJtVzxKeWFTCUuJhmZ7rD+OqO8ZEdFtaxIi3i4DHHDHczcxuLjEvOv
-         KBOw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112; t=1680643031;
-        h=cc:to:subject:message-id:date:from:in-reply-to:references
-         :mime-version:x-gm-message-state:from:to:cc:subject:date:message-id
-         :reply-to;
-        bh=vB8C/rkfKSiKVTM11U1zRHBbWNH+nLc5httEWsxhlqs=;
-        b=d/ImaHeH0XT02VegHvjsN9LDxsyo5BGNk2JEZ+I7Io59kupWdMT1zdC5vVDv3ljepr
-         7NknqE2QlkidFNwLotqYkYJTJYi7UfMV16r7WdeGpF+Nbx4ICzx3o+8K1VdMLD/WYOdQ
-         M0n5TsAtiLRo+ugoZPnrQTRKF9Lt6uDQfurngqFJvB/AsxrEoe6fVdmn7K9sS7emb8Dt
-         Hb+BXF1cm1IN2Ta6NmyFRW+EoPVz1PvZjqwSgC0cROJLeuStJBkuFvJ8O38CSaXj3+aT
-         jnC1GuUEnOHKJLWVH3PPi0jO6jQeQyN9dBqgru9n6j+gfUIcfZ6Ov44qb6LE6fQcuwwE
-         0lEw==
-X-Gm-Message-State: AAQBX9f3KtFQ9vfdZ0r9FJVw1x+lxmOEjYh++1/F9OYvhIp7yQXFkYya
-        HEjSvyA6A6fmkWbJVYkkyGloTZs/YXORMaWNIjSn0WJ4yIA=
-X-Google-Smtp-Source: AKy350aIqmZisXJIuv3J8wKQg2znly2zjp4bcIZKIIKVGI7jtw6pB/aDQVQxVQWyQt5jRB+KnOnc6Z0ic3xeASo5O8k=
-X-Received: by 2002:a50:9e2b:0:b0:4fc:fc86:5f76 with SMTP id
- z40-20020a509e2b000000b004fcfc865f76mr450020ede.6.1680643031003; Tue, 04 Apr
- 2023 14:17:11 -0700 (PDT)
+        with ESMTP id S236379AbjDDWkk (ORCPT
+        <rfc822;sparclinux@vger.kernel.org>); Tue, 4 Apr 2023 18:40:40 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:3::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6A612709;
+        Tue,  4 Apr 2023 15:40:38 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:From:References:Cc:To:Subject:MIME-Version:Date:
+        Message-ID:Sender:Reply-To:Content-ID:Content-Description;
+        bh=0i5Bbc0w1weKrsu/nCnfi4mk4ZRljnGWA85xKD9hlPA=; b=lsZG54/x6E1Vjm+EI4lpfbSaJz
+        8qBe2Ju/q4siAqopbhW4VcR/AZyS+LkNNiy6t1TlLtd2iF3cMlfRJ0dOYIkYqsJsowaX4bDXe8/ta
+        7NVzIaZLue9ohS7XE681YuluVUsWZ+tPorFNe/3aLA41bCUYiaOGmNf76Vig1iCCIqbLts08sEaVV
+        dzrVEtGp/7YUv/dZw2kfpJqcfNvFSJFrFcheuveqVYul3aM1Ib2X3Gpd4GbSw1RxzI3Oi4OhPdmdB
+        mDSqs02IdQqVXWGSi06cT9gERet0/fJ1w6zu5deGsInC60v/lvQDMpO4SorbA0/q/hm8X3BV4aZeT
+        f8ptMkNw==;
+Received: from [2601:1c2:980:9ec0::2764]
+        by bombadil.infradead.org with esmtpsa (Exim 4.96 #2 (Red Hat Linux))
+        id 1pjpKK-002yQQ-2n;
+        Tue, 04 Apr 2023 22:40:32 +0000
+Message-ID: <c3718ac3-3dd1-2273-68ef-3d2923778ab7@infradead.org>
+Date:   Tue, 4 Apr 2023 15:40:31 -0700
 MIME-Version: 1.0
-References: <CAHk-=whcaHLNpb7Mu_QX7ABwPgyRyfW-V8=v4Mv0S22fpjY4JQ@mail.gmail.com>
- <20230327072641.3591802-1-geert@linux-m68k.org> <eb55ca34-ca71-ed19-dae2-6e5e87c170@linux-m68k.org>
-In-Reply-To: <eb55ca34-ca71-ed19-dae2-6e5e87c170@linux-m68k.org>
-From:   Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Date:   Tue, 4 Apr 2023 22:16:35 +0100
-Message-ID: <CADVatmNHYar6tR3r9q42vZR5fsqZeeDb8LEmmBcrrOwhA7HpmQ@mail.gmail.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:102.0) Gecko/20100101
+ Thunderbird/102.9.0
 Subject: Re: Build regressions/improvements in v6.3-rc4
-To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Content-Language: en-US
+To:     Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
 Cc:     linux-kernel@vger.kernel.org, linux-wireless@vger.kernel.org,
         sparclinux@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+References: <CAHk-=whcaHLNpb7Mu_QX7ABwPgyRyfW-V8=v4Mv0S22fpjY4JQ@mail.gmail.com>
+ <20230327072641.3591802-1-geert@linux-m68k.org>
+ <eb55ca34-ca71-ed19-dae2-6e5e87c170@linux-m68k.org>
+ <CADVatmNHYar6tR3r9q42vZR5fsqZeeDb8LEmmBcrrOwhA7HpmQ@mail.gmail.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+In-Reply-To: <CADVatmNHYar6tR3r9q42vZR5fsqZeeDb8LEmmBcrrOwhA7HpmQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 List-ID: <sparclinux.vger.kernel.org>
 X-Mailing-List: sparclinux@vger.kernel.org
 
-On Mon, 27 Mar 2023 at 08:29, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->
-> On Mon, 27 Mar 2023, Geert Uytterhoeven wrote:
-> > JFYI, when comparing v6.3-rc4[1] to v6.3-rc3[3], the summaries are:
-> >  - build errors: +9/-1
->
->    + /kisskb/src/drivers/net/wireless/cisco/airo.c: error: 'status_rid.currentXmitRate' is used uninitialized [-Werror=uninitialized]:  => 6163:45
->
-> sh4-gcc11/sh-allmodconfig
-> seen before
->
->    + error: modpost: "ebus_dma_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_irq_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_prepare" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_register" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_request" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_residue" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ebus_dma_unregister" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->    + error: modpost: "ns87303_lock" [drivers/parport/parport_pc.ko] undefined!:  => N/A
->
-> sparc64-gcc11/sparc-allmodconfig
-> seen before
 
-Tried sparc64 allmodconfig with gcc-11 and did not see the parport
-errors with 6ab608fe852b ("Merge tag 'for-6.3-rc4-tag' of
-git://git.kernel.org/pub/scm/linux/kernel/git/kdave/linux").
-Is it still being seen?
+
+On 4/4/23 14:16, Sudip Mukherjee wrote:
+> On Mon, 27 Mar 2023 at 08:29, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>>
+>> On Mon, 27 Mar 2023, Geert Uytterhoeven wrote:
+>>> JFYI, when comparing v6.3-rc4[1] to v6.3-rc3[3], the summaries are:
+>>>  - build errors: +9/-1
+>>
+>>    + /kisskb/src/drivers/net/wireless/cisco/airo.c: error: 'status_rid.currentXmitRate' is used uninitialized [-Werror=uninitialized]:  => 6163:45
+>>
+>> sh4-gcc11/sh-allmodconfig
+>> seen before
+>>
+>>    + error: modpost: "ebus_dma_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_irq_enable" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_prepare" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_register" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_request" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_residue" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ebus_dma_unregister" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>    + error: modpost: "ns87303_lock" [drivers/parport/parport_pc.ko] undefined!:  => N/A
+>>
+>> sparc64-gcc11/sparc-allmodconfig
+>> seen before
+> 
+> Tried sparc64 allmodconfig with gcc-11 and did not see the parport
+> errors with 6ab608fe852b ("Merge tag 'for-6.3-rc4-tag' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/kdave/linux").
+> Is it still being seen?
+> 
+
+This is reported at  http://kisskb.ellerman.id.au/kisskb/buildresult/14905002/
+
+I still see it on sparc32 using gcc-12.2.0.
+
+The compiler info vs. the sparc-allmodconfig is confusing IMO.
+I am compiling with sparc-linux, not sparc64-linux.
+
+The .config file says:
+# CONFIG_64BIT is not set
+CONFIG_SPARC=y
+CONFIG_SPARC32=y
+
 
 -- 
-Regards
-Sudip
+~Randy
